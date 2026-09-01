@@ -93,11 +93,9 @@ full percentage point of density for each of the four kinds.
 ## Disclosed limits
 
 - **Fixed training budget**: verbatim recipe = 20 epochs, patience 3.
-  A2's val loss was still improving at epoch 19–20, so "mute at 5.6%"
-  is a claim about this recipe's budget, not a learnability
-  asymptote. An epoch-extension probe on A2 would separate
-  optimization speed from asymptote — not run (would deviate from the
-  registered recipe); flagged as the natural follow-up.
+  ~~A2's val loss was still improving, so "mute at 5.6%" might be a
+  budget claim~~ — **RESOLVED by Addendum 2 below**: 60 epochs moves
+  the vocabulary numbers by noise; the location is density-shaped.
 - **Offline operationalization**: emission = masked argmax on held-out
   states, not live rollouts. Live emission (the exp-004 104.66/1k was
   the same offline shape, but certification measured live) needs the
@@ -117,3 +115,41 @@ full percentage point of density for each of the four kinds.
 - The fog prereg's vocabulary arms can assume a seedable register at
   period 1 and must not assume one at period ≥ 4.
 - Half B (does density change USE) stays post-fog per F-026, unchanged.
+
+## Addendum 2 — the training-budget extension (2026-08-31)
+
+Owner-routed, declared with a decision rule before running: fresh
+60-epoch / patience-10 runs on A1, A1b, A2 (same corpora, same
+trainer seed; patience loosened so a plateau-then-late-transition
+could not be censored). No run early-stopped; every clone took all
+60 epochs.
+
+| arm | use @20ep | use @60ep | msg@1\|here @20ep | @60ep | act@1 @20ep | @60ep |
+|---|---|---|---|---|---|---|
+| A1 | .58–.80 | .60–.81 | .875 | .886 | .7991 | .8188 |
+| A1b | .35–.56 | .39–.54 | .691 | .705 | .8009 | .8159 |
+| A2 | ≤ .0033 | .000–.027 | .0039 | .0271 | .8010 | .8172 |
+
+**Per the pre-declared rule: the recipe stands.** Tripling the
+budget moved the vocabulary numbers by noise-level amounts — A1
++~.01, A1b mixed ±.04, A2 creeping from mute to still-mute (its
+best kind reaches .027; here_critter stays exactly 0). The
+transition's location is **density-shaped, not budget-shaped**:
+20 epochs was never what kept A2 mute, and no plateau-then-jump
+appeared anywhere in 60 epochs of history.
+
+**What the budget DOES buy is action fidelity**: act@1 rose
+~+1.6–2.0 points on every arm (.799–.801 → .816–.819) and val loss
+was still improving at 60 in A1's case. So the fog Gen 1 BC
+question splits cleanly: the vocabulary needs period-1 density and
+is indifferent to budget; action quality benefits from a longer
+cycle at ~3× cost (~40–120 s/epoch on a 1M-row corpus here; the
+3.9M-row anchor scales ×4). Whether +2 act@1 is worth 3× training
+time on five seats is an owner call at the fog prereg, not a screen
+matter.
+
+**Recipe ruling (owner, 2026-08-31)**: fog Gen 1 BC keeps
+train-to-plateau (patience ~10), sets NO epoch floor for the
+vocabulary, and gates each clone on a here-conditioned acceptance
+bar instead (opportunity-use + msg@1|here, held-out; this screen's
+readout is the instrument). Recorded in the fog timeline §step 5.

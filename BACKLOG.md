@@ -874,7 +874,21 @@ pan/zoom controls." Scope sketch, to be specced when picked up:
 - Spec-first when picked up (engine untouched; client-only, but it is a
   public interaction surface — new spec, not an 038 amendment).
 
-### Custom north/south groom animations (added 2026-08-22; owner: design is on it)
+### ~~Custom north/south groom animations~~ — DONE, owner ruling 2026-08-24
+
+Owner: *"already done, it was in the handover."* It landed with the
+GROOM-OTHER-EDITS pass and has been live since.
+
+The check behind that ruling was run on 2026-08-24 — `GROOM_OTHER` byte-equal
+to the handover's on all 25 dials, the axial branch differing only in comment
+wording. It is **not re-runnable today**: `design-handoffs/` was a local drop
+and was never committed, so the comparison cannot be repeated from this tree.
+Recorded as history rather than as something a reader can verify.
+
+The guidance below is kept because it is still the map for whoever touches
+that branch next — the coupling note in particular has cost three rounds.
+
+### The original entry (added 2026-08-22)
 
 Social grooming shipped v1 with a real end-on treatment, not a fallback —
 `grooming-other` is in `AXIAL_POSES`, and the axial branch in `applyAxial`
@@ -1658,7 +1672,32 @@ a feature if it is not asked to look solid.
 Worth remembering when the next feature is costed at a pixel width: that is
 one of at least three things setting whether it reads.
 
-### The walk contradicts itself travelling north/south (added 2026-08-08; Client thread)
+### ~~The walk contradicts itself travelling north/south~~ — SHIPPED 2026-08-20 (PR #275)
+
+Design's rebuild landed, over five owner rounds, and it took **none of the
+four options costed below**. The diagnosis under them was wrong.
+
+The fault was never the gait. The axial chest's underside sat BELOW the
+ground line — re-checked against the commit before #275, `AXIAL.bodyY` 0.7
+plus `bodyRy` 0.185 is 0.885 against a `CAT_GROUND` of 0.88 — so the body was
+buried and there were about **two pixels of visible leg** at a 120px tile (the
+pixel figure is #275's measurement, carried). Every note here about sweeps,
+planting and cadence was describing legs nobody could see. Once the body cleared the ground, the step
+could travel in DEPTH on the same `gaitStep` curve the side walk already
+uses — which none of the four options proposed, because none of them
+suspected the ground line.
+
+The entry is kept rather than deleted because the CENSUS is the durable part:
+717 east/west frames against 394 north/south, about 10% of all frames. That
+measurement still holds and would still be the thing to re-derive. The
+options are history; the number is not.
+
+Kept too because "do nothing is a legitimate answer" was the right standing
+answer for two years, and stopped being right at the moment the tile got big
+enough to see the problem. Worth remembering the next time an entry here
+carries a costed do-nothing.
+
+### The original entry (added 2026-08-08; Client thread)
 Our cat is a **side profile**, so it encodes a heading. The legs sweep
 fore–aft — horizontally on screen — whatever way the cat is actually
 going, and that sweep is the entire basis of the planted foot: a stance

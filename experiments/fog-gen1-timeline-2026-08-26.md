@@ -118,6 +118,19 @@ Teacher rows enter the corpora here and in step 7; delivery is the
 ROADMAP's registered three-arm comparison — mixed-corpus vs vocabulary
 lesson (head-selective message-head finetune) vs no-seeding control.
 
+**BC recipe (owner-ruled 2026-08-31, from F-034's extension)**: stop
+rule = train-to-plateau on val loss with patience ~10 (patience 3
+provably censors; the 20-epoch cap left ~+2 act@1 on the table), NO
+epoch floor for the vocabulary — the message head converges by ~epoch
+10 at period-1 density and no budget rescues wrong density. The
+vocabulary is gated by MEASUREMENT instead: every clone must clear a
+here-conditioned acceptance bar (opportunity-use + msg@1 on
+here-rows, held-out set; `here-word-screen/readout_screen.py` is the
+instrument) before advancing. A miss points at density or schema,
+never epochs. Exact bar numbers pinned at the prereg alongside the
+schema-4→fog caveat: message-head convergence speed under the new
+digest matrix + self-row is extrapolated, not yet measured.
+
 ### HALT (egregious — stop, fix, possibly break schema)
 
 | # | trigger | threshold | baseline / instrument |

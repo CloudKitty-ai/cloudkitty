@@ -285,6 +285,11 @@ for exp in ("low", "high"):
     for f in (0.25, 0.5, 1.0):
         SCENARIOS[f"contagion {f} x {exp} exposure"] = {
             "contagion": f, "wet_p": EXPOSURE[exp]}
+# Serving-world groom bump (2026-08-31): temporary accommodation for the
+# frozen e004 groom-for-cuddle habit, reverted at the Gen 1 retrain.
+for g in (1.5, 2.0):
+    SCENARIOS[f"groom_cuddle_relief {g} (serving bump candidate)"] = {
+        "groom_cuddle": g}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

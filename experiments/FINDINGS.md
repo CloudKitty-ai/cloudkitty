@@ -1894,3 +1894,15 @@ the decimals. Decision unchanged: period 1 dominates — period 2's
 corpus is barely smaller and strictly worse placed. act@1 .8009
 (flat), rewards byte-identical (gate zero holds for the fifth arm at
 all 25 paired seeds).
+
+**Extension addendum (2026-08-31, owner-routed, decision rule
+pre-declared)**: fresh 60-epoch/patience-10 runs on A1/A1b/A2 (the
+qualifier in point 3, discharged). Verdict: **the cliff is
+density-shaped, not budget-shaped** — 3× budget moved opportunity-use
+by noise (A1 .60–.81, A1b .39–.54, A2 still mute at ≤ .027 with
+here_critter exactly 0; no plateau-then-jump anywhere in the
+histories). The 20-epoch recipe stands for vocabulary seeding.
+Separate fact the probe surfaced: the budget DOES buy action
+fidelity — act@1 +1.6–2.0 points on every arm (.80 → .82) at 3×
+cost; whether that trade is taken for Fog Gen 1's BC stage is an
+owner call at the fog prereg.

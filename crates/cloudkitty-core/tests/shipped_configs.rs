@@ -115,12 +115,24 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
     const MEASURED_MEAN_CUDDLE_NEED: f32 = 5.1;
 
     let sleep_min = a.durations.sleep.min as f32;
-    let bath_min = a.durations.bath.min as f32;
     let cuddle_min = a.durations.cuddle.min as f32;
+    // groom_cuddle_relief is TEMPORARILY absent from the rider loop: the
+    // served value is bumped to 2.0 (a pre-Gen-1 accommodation for frozen
+    // incumbents whose groom-for-cuddle habit predates 041 -- see
+    // experiments/groom-bump-handoff-2026-08-31.md), which deliberately
+    // finishes the mean need in one minimum groom. The exact pin below
+    // catches drift and goes red at the Gen 1 reseating revert (0.5), which
+    // must also restore the groom row to this loop (and its bath_min term).
+    assert!(
+        (a.groom_cuddle_relief - 2.0).abs() < f32::EPSILON,
+        "groom_cuddle_relief is {} -- the served value is pinned at the \
+         temporary 2.0 bump; if this is the Gen 1 reseating revert, restore \
+         the groom row to the rider loop (handoff 2026-08-31)",
+        a.groom_cuddle_relief
+    );
     for (name, per_scene) in [
         ("cosleep_drip_relief", a.cosleep_drip_relief * sleep_min),
         ("cosleep_mutual_relief", a.cosleep_mutual_relief * sleep_min),
-        ("groom_cuddle_relief", a.groom_cuddle_relief * bath_min),
         ("rest_drip_relief", a.rest_drip_relief * cuddle_min),
     ] {
         assert!(
