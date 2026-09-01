@@ -21,13 +21,14 @@ REPO = HERE.parents[1]
 SCRATCH = Path(sys.argv[1]) if len(sys.argv) > 1 else None
 if SCRATCH is None:
     sys.exit("usage: run_smoke.py <scratch dir containing configs/>")
-CONFIGS = sorted((SCRATCH / "configs").glob("*.toml"))
+GLOB = sys.argv[2] if len(sys.argv) > 2 else "*.toml"
+CONFIGS = sorted((SCRATCH / "configs").glob(GLOB))
 SERVER = REPO / "target/debug/cloudkitty-server"
 INSTRUMENT = REPO / "experiments/attn-cert-2026-08-14/waterline_exposure.py"
 RAW = HERE / "results-raw"
 WARMUP_S, MEASURE_S, INTERVAL_S = 60, 300, 0.03
 
-assert len(CONFIGS) == 15, CONFIGS
+assert CONFIGS, (SCRATCH, GLOB)
 
 
 def fetch(url):

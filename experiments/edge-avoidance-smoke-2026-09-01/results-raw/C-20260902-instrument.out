@@ -1,0 +1,14 @@
+ticks 7301 (1515-9014)
+on-water share of cat-ticks: 3.94%
+water-edge share of cat-ticks (land, cheb<=1 of water): 23.22%
+cross-waterline adjacency: 639 of 9174 adjacent pair-ticks (6.97%)
+
+paired activity   pair-ticks  cross   rate |  scenes  cross   rate
+  duet                 597     17    2.8% |     307      9    2.9%
+  cosleep              640     71   11.1% |     133     12    9.0%
+  cuddle              4161    198    4.8% |     817     36    4.4%
+  groom                262     81   30.9% |      59     21   35.6%
+
+cross pairings by pair: {'cuddle:Biscuit+Miso': 13, 'groom:Biscuit+Kittybear': 10, 'groom:Biscuit+Pumpkin': 1, 'cosleep:Clementine+Kittybear': 26, 'cuddle:Clementine+Kittybear': 49, 'cuddle:Biscuit+Clementine': 18, 'duet:Clementine+Pumpkin': 4, 'cuddle:Clementine+Pumpkin': 23, 'cuddle:Clementine+Miso': 44, 'groom:Clementine+Kittybear': 30, 'cuddle:Biscuit+Kittybear': 5, 'cuddle:Miso+Pumpkin': 22, 'duet:Biscuit+Clementine': 2, 'cosleep:Clementine+Pumpkin': 2, 'groom:Kittybear+Pumpkin': 9, 'cosleep:Kittybear+Miso': 11, 'duet:Biscuit+Miso': 4, 'duet:Miso+Pumpkin': 1, 'cosleep:Biscuit+Miso': 7, 'groom:Clementine+Pumpkin': 5, 'cuddle:Kittybear+Pumpkin': 7, 'cuddle:Biscuit+Pumpkin': 5, 'duet:Clementine+Miso': 4, 'groom:Clementine+Miso': 8, 'cuddle:Kittybear+Miso': 12, 'groom:Miso+Pumpkin': 8, 'cosleep:Clementine+Miso': 19, 'cosleep:Miso+Pumpkin': 6, 'groom:Kittybear+Miso': 10, 'duet:Kittybear+Miso': 2}
+cross adjacency by pair: {'Clementine+Kittybear': 136, 'Biscuit+Kittybear': 45, 'Biscuit+Clementine': 52, 'Biscuit+Pumpkin': 13, 'Clementine+Pumpkin': 73, 'Kittybear+Miso': 65, 'Clementine+Miso': 96, 'Biscuit+Miso': 58, 'Miso+Pumpkin': 55, 'Kittybear+Pumpkin': 46}
+-> /Users/elizabethkelly/ai/cloudkitty/experiments/edge-avoidance-smoke-2026-09-01/results-raw/C-20260902-exposure.json

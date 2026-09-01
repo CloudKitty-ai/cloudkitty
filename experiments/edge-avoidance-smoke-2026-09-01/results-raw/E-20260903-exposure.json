@@ -1,0 +1,134 @@
+{
+ "instrument": "waterline_exposure.py",
+ "provenance": {
+  "git_head": "978b436c100bc82d13809f69c929fc6d1221e9a9",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   ".claude/skills/speckit-taskstoissues/SKILL.md",
+   ".specify/init-options.json",
+   ".specify/integration.json",
+   ".specify/integrations/claude.manifest.json",
+   ".specify/integrations/speckit.manifest.json",
+   "experiments/attn-cert-2026-08-14/results-raw/041-cuddle-repro-samples-2026-08-31.json",
+   "experiments/attn-cert-2026-08-14/results-raw/clem-post-bump-samples-1104710.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-1104693.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-552654.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-763947.json",
+   "experiments/attn-cert-2026-08-14/results-raw/waterline-exposure-1110103.json",
+   "experiments/cuddle-economy-model/results-raw-bidirectional.json",
+   "experiments/cuddle-economy-model/results-raw-optiona-rerun.json",
+   "experiments/edge-avoidance-smoke-2026-09-01/results-raw/",
+   "experiments/here-word-screen/results-raw/"
+  ],
+  "git_dirty_count": 15,
+  "tool": "waterline_exposure.py",
+  "tool_sha256": "bf7e26e561bb7a5ecd10af84b3f909b094739d1f2457a54088f4e289db0212b3",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-09-01T09:12:14+00:00"
+ },
+ "served": {
+  "base": "http://127.0.0.1:8114",
+  "config_sha256": "c3b069af4412a469cb664eb49debfc35de3e70a1b8e61d4f67be9d02614975fa",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 40,
+   "seed": 20260903
+  },
+  "tick": 8264,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "needs_driven"
+   }
+  ]
+ },
+ "tick_range": [
+  1508,
+  8260
+ ],
+ "ticks_seen": 6552,
+ "cat_ticks": 32760,
+ "on_water_share": 0.0397,
+ "water_edge_share": 0.2196,
+ "adjacent_pair_ticks": 9121,
+ "cross_adjacent_pair_ticks": 389,
+ "unit": "action-ticks (last_action), NOT activity.state \u2014 see partner_of",
+ "active_pair_ticks": {
+  "duet": 582,
+  "cosleep": 501,
+  "cuddle": 3867,
+  "groom": 110
+ },
+ "cross_pair_ticks": {
+  "duet": 9,
+  "cosleep": 8,
+  "cuddle": 44,
+  "groom": 4
+ },
+ "scenes": {
+  "duet": 298,
+  "cosleep": 109,
+  "cuddle": 775,
+  "groom": 26
+ },
+ "cross_scenes": {
+  "duet": 5,
+  "cosleep": 1,
+  "cuddle": 8,
+  "groom": 1
+ },
+ "cross_pairings_by_pair": {
+  "duet:Miso+Pumpkin": 2,
+  "cuddle:Biscuit+Kittybear": 4,
+  "cuddle:Clementine+Pumpkin": 2,
+  "cuddle:Kittybear+Pumpkin": 2,
+  "duet:Clementine+Kittybear": 2,
+  "cuddle:Clementine+Kittybear": 7,
+  "cuddle:Clementine+Miso": 4,
+  "cuddle:Biscuit+Miso": 2,
+  "cuddle:Biscuit+Clementine": 13,
+  "cuddle:Kittybear+Miso": 3,
+  "cosleep:Biscuit+Pumpkin": 6,
+  "cuddle:Biscuit+Pumpkin": 6,
+  "duet:Biscuit+Pumpkin": 3,
+  "duet:Biscuit+Clementine": 2,
+  "groom:Biscuit+Clementine": 4,
+  "cosleep:Clementine+Miso": 1,
+  "cuddle:Miso+Pumpkin": 1,
+  "cosleep:Clementine+Kittybear": 1
+ },
+ "cross_adjacency_by_pair": {
+  "Clementine+Kittybear": 35,
+  "Kittybear+Pumpkin": 20,
+  "Miso+Pumpkin": 39,
+  "Biscuit+Pumpkin": 54,
+  "Clementine+Pumpkin": 13,
+  "Biscuit+Kittybear": 73,
+  "Biscuit+Miso": 26,
+  "Clementine+Miso": 31,
+  "Biscuit+Clementine": 68,
+  "Kittybear+Miso": 30
+ }
+}

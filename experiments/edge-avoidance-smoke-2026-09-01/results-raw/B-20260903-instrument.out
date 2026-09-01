@@ -1,0 +1,14 @@
+ticks 7310 (1515-9015)
+on-water share of cat-ticks: 5.98%
+water-edge share of cat-ticks (land, cheb<=1 of water): 28.73%
+cross-waterline adjacency: 1632 of 10738 adjacent pair-ticks (15.20%)
+
+paired activity   pair-ticks  cross   rate |  scenes  cross   rate
+  duet                 651     69   10.6% |     333     36   10.8%
+  cosleep              736    156   21.2% |     149     28   18.8%
+  cuddle              4173    490   11.7% |     856     75    8.8%
+  groom                615    265   43.1% |     131     51   38.9%
+
+cross pairings by pair: {'cuddle:Clementine+Kittybear': 37, 'cosleep:Clementine+Kittybear': 18, 'cosleep:Biscuit+Miso': 42, 'cuddle:Biscuit+Kittybear': 43, 'duet:Biscuit+Miso': 16, 'cuddle:Biscuit+Miso': 75, 'groom:Biscuit+Kittybear': 60, 'cuddle:Biscuit+Clementine': 36, 'duet:Miso+Pumpkin': 4, 'duet:Clementine+Kittybear': 6, 'duet:Biscuit+Pumpkin': 9, 'cuddle:Biscuit+Pumpkin': 71, 'cuddle:Kittybear+Pumpkin': 35, 'cuddle:Clementine+Miso': 40, 'groom:Kittybear+Pumpkin': 26, 'duet:Biscuit+Kittybear': 8, 'duet:Clementine+Miso': 4, 'cuddle:Kittybear+Miso': 56, 'groom:Biscuit+Miso': 44, 'cosleep:Biscuit+Kittybear': 23, 'cosleep:Clementine+Miso': 5, 'groom:Clementine+Kittybear': 44, 'groom:Biscuit+Clementine': 8, 'groom:Kittybear+Miso': 29, 'groom:Biscuit+Pumpkin': 8, 'cosleep:Miso+Pumpkin': 19, 'groom:Miso+Pumpkin': 21, 'cosleep:Kittybear+Pumpkin': 6, 'cuddle:Miso+Pumpkin': 43, 'duet:Kittybear+Pumpkin': 6, 'duet:Clementine+Pumpkin': 6, 'cosleep:Kittybear+Miso': 8, 'cosleep:Biscuit+Pumpkin': 19, 'cuddle:Clementine+Pumpkin': 54, 'groom:Clementine+Miso': 18, 'groom:Clementine+Pumpkin': 7, 'duet:Biscuit+Clementine': 8, 'cosleep:Clementine+Pumpkin': 16, 'duet:Kittybear+Miso': 2}
+cross adjacency by pair: {'Kittybear+Miso': 198, 'Clementine+Miso': 150, 'Biscuit+Miso': 218, 'Kittybear+Pumpkin': 124, 'Clementine+Pumpkin': 134, 'Clementine+Kittybear': 172, 'Biscuit+Kittybear': 194, 'Biscuit+Clementine': 132, 'Miso+Pumpkin': 138, 'Biscuit+Pumpkin': 172}
+-> /Users/elizabethkelly/ai/cloudkitty/experiments/edge-avoidance-smoke-2026-09-01/results-raw/B-20260903-exposure.json

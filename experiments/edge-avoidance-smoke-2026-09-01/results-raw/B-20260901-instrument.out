@@ -1,0 +1,14 @@
+ticks 6605 (1501-8296)
+on-water share of cat-ticks: 4.81%
+water-edge share of cat-ticks (land, cheb<=1 of water): 27.11%
+cross-waterline adjacency: 1049 of 9897 adjacent pair-ticks (10.60%)
+
+paired activity   pair-ticks  cross   rate |  scenes  cross   rate
+  duet                 628     43    6.8% |     323     22    6.8%
+  cosleep              645    107   16.6% |     137     22   16.1%
+  cuddle              3791    289    7.6% |     784     45    5.7%
+  groom                507    227   44.8% |     107     47   43.9%
+
+cross pairings by pair: {'cuddle:Biscuit+Kittybear': 5, 'duet:Biscuit+Pumpkin': 4, 'cuddle:Biscuit+Pumpkin': 9, 'cuddle:Biscuit+Miso': 42, 'cosleep:Biscuit+Miso': 34, 'cosleep:Clementine+Kittybear': 6, 'cuddle:Miso+Pumpkin': 28, 'duet:Biscuit+Miso': 8, 'cuddle:Clementine+Miso': 20, 'groom:Miso+Pumpkin': 4, 'duet:Biscuit+Clementine': 9, 'cuddle:Biscuit+Clementine': 25, 'groom:Clementine+Pumpkin': 24, 'groom:Biscuit+Clementine': 29, 'groom:Biscuit+Miso': 35, 'groom:Kittybear+Miso': 27, 'groom:Clementine+Kittybear': 42, 'groom:Biscuit+Kittybear': 2, 'groom:Kittybear+Pumpkin': 39, 'groom:Clementine+Miso': 25, 'cuddle:Clementine+Kittybear': 45, 'cuddle:Clementine+Pumpkin': 38, 'duet:Kittybear+Miso': 2, 'duet:Miso+Pumpkin': 8, 'cuddle:Kittybear+Pumpkin': 65, 'cosleep:Clementine+Pumpkin': 13, 'cosleep:Clementine+Miso': 7, 'cosleep:Biscuit+Clementine': 11, 'cosleep:Biscuit+Kittybear': 4, 'cosleep:Kittybear+Miso': 22, 'cosleep:Miso+Pumpkin': 7, 'duet:Kittybear+Pumpkin': 4, 'duet:Biscuit+Kittybear': 4, 'cuddle:Kittybear+Miso': 12, 'cosleep:Kittybear+Pumpkin': 3, 'duet:Clementine+Pumpkin': 2, 'duet:Clementine+Kittybear': 2}
+cross adjacency by pair: {'Biscuit+Pumpkin': 40, 'Biscuit+Kittybear': 61, 'Kittybear+Miso': 121, 'Biscuit+Miso': 172, 'Clementine+Kittybear': 131, 'Clementine+Pumpkin': 110, 'Biscuit+Clementine': 97, 'Kittybear+Pumpkin': 139, 'Miso+Pumpkin': 108, 'Clementine+Miso': 70}
+-> /Users/elizabethkelly/ai/cloudkitty/experiments/edge-avoidance-smoke-2026-09-01/results-raw/B-20260901-exposure.json

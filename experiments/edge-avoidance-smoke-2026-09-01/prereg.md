@@ -91,6 +91,28 @@ sum of denominators).
 - Watchdog state per run (expected quiet; an alarm in E is reported,
   not a halt — its budget is deliberately nonstandard).
 
+## Addendum 1 — arm F, E's drift-matched control (declared 2026-09-01, BEFORE its collection; A–E already collected and scored)
+
+The pinned E bar (≤ 0.5 × A) assumed avoidance would push cross
+adjacency BELOW the no-charge baseline. Arm B falsified that
+assumption in the main collection: the blind factor-1.0 arm ROSE to
+11.84% pooled vs A's 6.61% — the charge raises bath need, which
+drives cats toward water, so blind drift moves the metric UP. E
+therefore failed the pinned bar (4.84% > 3.30%) while sitting below A
+in all three seeds despite 10× the drift pressure. Per rule 1 the
+smoke as originally pinned is VOID; this addendum declares the
+correctly-baselined control rather than re-scoring E against a bar it
+was never measured for.
+
+**Arm F**: ladder OFF, factor 10.0, membership bidirectional, the same
+E budget adjustment (ceiling 25 / safeguard 98 / distress 99), same
+three seeds, same protocol and validity gates. F is E with avoidance
+made impossible — the drift E's charge produces, uncorrected.
+
+**Amended rule 1**: E fires iff E's pooled share ≤ 0.5 × F's pooled
+share AND E < F in each seed pair. Rules 2 and 3 unchanged (still
+evaluated on B/C/D against the A-derived bar already pinned).
+
 ## What this smoke is not
 
 Not evidence about learned policies (BC clones imitate the teacher;

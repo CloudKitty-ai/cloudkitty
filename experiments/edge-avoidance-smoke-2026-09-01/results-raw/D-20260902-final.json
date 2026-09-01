@@ -1,0 +1,475 @@
+{
+ "world": {
+  "width": 20,
+  "height": 20,
+  "tick": 9019,
+  "kitties": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "pos": {
+     "x": 17,
+     "y": 17
+    },
+    "needs": {
+     "eat": 27.899977,
+     "drink": 40.40001,
+     "sleep": 51.599964,
+     "play": 17.400003,
+     "cuddle": 12.799991,
+     "bath": 16.19999
+    },
+    "happiness": 71.64001,
+    "activity": {
+     "state": "idle"
+    },
+    "behavior": "needs_driven",
+    "behavior_description": "Scripted",
+    "meow_cooldowns": {
+     "want_drink": 9024,
+     "want_sleep": 9023
+    },
+    "in_distress": [],
+    "happiness_rose": false,
+    "last_action": {
+     "action": "idle"
+    },
+    "last_relief": {
+     "eat": 8926,
+     "drink": 8918,
+     "sleep": 8933,
+     "play": 8961,
+     "cuddle": 9017,
+     "bath": 8938
+    },
+    "purr_cooldown_until": 9033,
+    "announce_armed": [
+     "drink",
+     "sleep"
+    ]
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "pos": {
+     "x": 6,
+     "y": 16
+    },
+    "needs": {
+     "eat": 19.799997,
+     "drink": 12.600005,
+     "sleep": 6.9000015,
+     "play": 26.399992,
+     "cuddle": 8.450001,
+     "bath": 3.8000007
+    },
+    "happiness": 86.6875,
+    "activity": {
+     "state": "idle"
+    },
+    "behavior": "needs_driven",
+    "behavior_description": "Scripted",
+    "meow_cooldowns": {},
+    "in_distress": [],
+    "happiness_rose": false,
+    "last_action": {
+     "action": "chase",
+     "target": "kitty",
+     "id": 5
+    },
+    "pursuit": {
+     "target": {
+      "target": "kitty",
+      "id": 5
+     },
+     "started": 9018,
+     "closest": 1,
+     "improved_at": 9018
+    },
+    "last_relief": {
+     "eat": 8953,
+     "drink": 8977,
+     "sleep": 8996,
+     "play": 8986,
+     "cuddle": 9014,
+     "bath": 9000
+    },
+    "purring_until": 9024,
+    "purring_duration": 12,
+    "purr_cooldown_until": 9012
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "pos": {
+     "x": 18,
+     "y": 16
+    },
+    "needs": {
+     "eat": 41.39999,
+     "drink": 33.19998,
+     "sleep": 17.399994,
+     "play": 30.39998,
+     "cuddle": 28.499971,
+     "bath": 7.899995
+    },
+    "happiness": 72.45001,
+    "activity": {
+     "state": "idle"
+    },
+    "behavior": "needs_driven",
+    "behavior_description": "Scripted",
+    "meow_cooldowns": {
+     "want_eat": 9020,
+     "want_drink": 9022
+    },
+    "in_distress": [],
+    "happiness_rose": false,
+    "last_action": {
+     "action": "move",
+     "direction": "north"
+    },
+    "last_relief": {
+     "eat": 8950,
+     "drink": 8936,
+     "sleep": 8932,
+     "play": 8943,
+     "cuddle": 9017,
+     "bath": 8940
+    },
+    "purring_until": 9023,
+    "purring_duration": 13,
+    "purr_cooldown_until": 9010,
+    "announce_armed": [
+     "eat",
+     "drink",
+     "play"
+    ]
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "pos": {
+     "x": 6,
+     "y": 15
+    },
+    "needs": {
+     "eat": 29.199982,
+     "drink": 12.000005,
+     "sleep": 6.9000015,
+     "play": 20.999994,
+     "cuddle": 33.899975,
+     "bath": 14.599994
+    },
+    "happiness": 80.3,
+    "activity": {
+     "state": "resting"
+    },
+    "behavior": "needs_driven",
+    "behavior_description": "Scripted",
+    "meow_cooldowns": {
+     "want_cuddle": 9021,
+     "wait_for_me": 9022
+    },
+    "in_distress": [],
+    "happiness_rose": false,
+    "last_action": {
+     "action": "rest",
+     "with": null
+    },
+    "last_relief": {
+     "eat": 8946,
+     "drink": 8979,
+     "sleep": 8996,
+     "play": 8949,
+     "cuddle": 9014,
+     "bath": 9000
+    },
+    "activity_clock": {
+     "started": 9013,
+     "applied": 9018,
+     "drip_ticks": 2
+    },
+    "purring_until": 9022,
+    "purring_duration": 12,
+    "purr_cooldown_until": 9010,
+    "announce_armed": [
+     "cuddle"
+    ]
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "pos": {
+     "x": 6,
+     "y": 17
+    },
+    "needs": {
+     "eat": 0.8,
+     "drink": 11.5999975,
+     "sleep": 2.6999998,
+     "play": 9.900003,
+     "cuddle": 16.099997,
+     "bath": 8.799997
+    },
+    "happiness": 91.895004,
+    "activity": {
+     "state": "idle"
+    },
+    "behavior": "needs_driven",
+    "behavior_description": "Scripted",
+    "meow_cooldowns": {
+     "wait_for_me": 9028
+    },
+    "in_distress": [],
+    "happiness_rose": false,
+    "last_action": {
+     "action": "idle"
+    },
+    "last_relief": {
+     "eat": 9017,
+     "drink": 8990,
+     "sleep": 9010,
+     "play": 8986,
+     "cuddle": 8996,
+     "bath": 8931
+    },
+    "purr_cooldown_until": 9038
+   }
+  ],
+  "elements": [
+   {
+    "id": 1,
+    "kind": "water",
+    "pos": {
+     "x": 7,
+     "y": 12
+    }
+   },
+   {
+    "id": 2,
+    "kind": "water",
+    "pos": {
+     "x": 8,
+     "y": 12
+    }
+   },
+   {
+    "id": 3,
+    "kind": "water",
+    "pos": {
+     "x": 7,
+     "y": 13
+    }
+   },
+   {
+    "id": 4,
+    "kind": "water",
+    "pos": {
+     "x": 8,
+     "y": 13
+    }
+   },
+   {
+    "id": 5,
+    "kind": "water",
+    "pos": {
+     "x": 19,
+     "y": 8
+    }
+   },
+   {
+    "id": 6,
+    "kind": "water",
+    "pos": {
+     "x": 7,
+     "y": 0
+    }
+   },
+   {
+    "id": 7,
+    "kind": "water",
+    "pos": {
+     "x": 16,
+     "y": 16
+    }
+   },
+   {
+    "id": 362,
+    "kind": "chow",
+    "servings": 1,
+    "pos": {
+     "x": 1,
+     "y": 0
+    }
+   },
+   {
+    "id": 406,
+    "kind": "chow",
+    "servings": 1,
+    "pos": {
+     "x": 1,
+     "y": 6
+    }
+   },
+   {
+    "id": 409,
+    "kind": "chow",
+    "servings": 1,
+    "pos": {
+     "x": 8,
+     "y": 1
+    }
+   },
+   {
+    "id": 436,
+    "kind": "bug",
+    "pos": {
+     "x": 1,
+     "y": 2
+    },
+    "ttl": 215
+   },
+   {
+    "id": 441,
+    "kind": "sunbeam",
+    "pos": {
+     "x": 7,
+     "y": 17
+    },
+    "ttl": 82
+   },
+   {
+    "id": 442,
+    "kind": "greeble",
+    "heading": "north",
+    "pos": {
+     "x": 19,
+     "y": 6
+    },
+    "ttl": 324
+   },
+   {
+    "id": 444,
+    "kind": "sunbeam",
+    "pos": {
+     "x": 15,
+     "y": 5
+    },
+    "ttl": 50
+   },
+   {
+    "id": 445,
+    "kind": "sunbeam",
+    "pos": {
+     "x": 1,
+     "y": 1
+    },
+    "ttl": 160
+   },
+   {
+    "id": 446,
+    "kind": "sunbeam",
+    "pos": {
+     "x": 18,
+     "y": 17
+    },
+    "ttl": 82
+   },
+   {
+    "id": 447,
+    "kind": "bug",
+    "pos": {
+     "x": 3,
+     "y": 19
+    },
+    "ttl": 419
+   },
+   {
+    "id": 448,
+    "kind": "chow",
+    "servings": 1,
+    "pos": {
+     "x": 8,
+     "y": 10
+    }
+   },
+   {
+    "id": 450,
+    "kind": "chow",
+    "servings": 5,
+    "pos": {
+     "x": 19,
+     "y": 5
+    }
+   },
+   {
+    "id": 451,
+    "kind": "chow",
+    "servings": 3,
+    "pos": {
+     "x": 5,
+     "y": 17
+    }
+   },
+   {
+    "id": 452,
+    "kind": "bug",
+    "pos": {
+     "x": 18,
+     "y": 19
+    },
+    "ttl": 488
+   }
+  ],
+  "recent_meows": [
+   {
+    "kitty_id": 3,
+    "kind": "want_eat",
+    "tick": 9010,
+    "intensity": 0.36000004
+   },
+   {
+    "kitty_id": 4,
+    "kind": "want_cuddle",
+    "tick": 9011,
+    "intensity": 0.31199968
+   },
+   {
+    "kitty_id": 3,
+    "kind": "want_drink",
+    "tick": 9012,
+    "intensity": 0.3039998
+   },
+   {
+    "kitty_id": 4,
+    "kind": "wait_for_me",
+    "tick": 9012,
+    "intensity": 0.0
+   },
+   {
+    "kitty_id": 1,
+    "kind": "want_sleep",
+    "tick": 9013,
+    "intensity": 0.47999972
+   },
+   {
+    "kitty_id": 1,
+    "kind": "want_drink",
+    "tick": 9014,
+    "intensity": 0.384
+   },
+   {
+    "kitty_id": 5,
+    "kind": "wait_for_me",
+    "tick": 9018,
+    "intensity": 0.0
+   }
+  ]
+ },
+ "welfare": {
+  "threshold": 150,
+  "alarm_live": false,
+  "entries": []
+ }
+}

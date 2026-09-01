@@ -1,0 +1,148 @@
+{
+ "instrument": "waterline_exposure.py",
+ "provenance": {
+  "git_head": "978b436c100bc82d13809f69c929fc6d1221e9a9",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   ".claude/skills/speckit-taskstoissues/SKILL.md",
+   ".specify/init-options.json",
+   ".specify/integration.json",
+   ".specify/integrations/claude.manifest.json",
+   ".specify/integrations/speckit.manifest.json",
+   "experiments/attn-cert-2026-08-14/results-raw/041-cuddle-repro-samples-2026-08-31.json",
+   "experiments/attn-cert-2026-08-14/results-raw/clem-post-bump-samples-1104710.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-1104693.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-552654.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-763947.json",
+   "experiments/attn-cert-2026-08-14/results-raw/waterline-exposure-1110103.json",
+   "experiments/cuddle-economy-model/results-raw-bidirectional.json",
+   "experiments/cuddle-economy-model/results-raw-optiona-rerun.json",
+   "experiments/edge-avoidance-smoke-2026-09-01/results-raw/",
+   "experiments/here-word-screen/results-raw/"
+  ],
+  "git_dirty_count": 15,
+  "tool": "waterline_exposure.py",
+  "tool_sha256": "bf7e26e561bb7a5ecd10af84b3f909b094739d1f2457a54088f4e289db0212b3",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-09-01T08:24:03+00:00"
+ },
+ "served": {
+  "base": "http://127.0.0.1:8106",
+  "config_sha256": "d72216fc8ba9c6f77f6f2370df619d6b53e4c47b3ee125bc4c92d38acc87474b",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 40,
+   "seed": 20260901
+  },
+  "tick": 9019,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "needs_driven"
+   }
+  ]
+ },
+ "tick_range": [
+  1515,
+  9015
+ ],
+ "ticks_seen": 7329,
+ "cat_ticks": 36645,
+ "on_water_share": 0.0463,
+ "water_edge_share": 0.263,
+ "adjacent_pair_ticks": 9340,
+ "cross_adjacent_pair_ticks": 848,
+ "unit": "action-ticks (last_action), NOT activity.state \u2014 see partner_of",
+ "active_pair_ticks": {
+  "duet": 603,
+  "cosleep": 620,
+  "cuddle": 3962,
+  "groom": 218
+ },
+ "cross_pair_ticks": {
+  "duet": 31,
+  "cosleep": 74,
+  "cuddle": 211,
+  "groom": 89
+ },
+ "scenes": {
+  "duet": 311,
+  "cosleep": 132,
+  "cuddle": 790,
+  "groom": 47
+ },
+ "cross_scenes": {
+  "duet": 16,
+  "cosleep": 14,
+  "cuddle": 40,
+  "groom": 22
+ },
+ "cross_pairings_by_pair": {
+  "cuddle:Kittybear+Pumpkin": 18,
+  "cuddle:Biscuit+Kittybear": 24,
+  "groom:Biscuit+Kittybear": 5,
+  "groom:Kittybear+Pumpkin": 28,
+  "duet:Biscuit+Kittybear": 8,
+  "groom:Clementine+Kittybear": 10,
+  "cuddle:Kittybear+Miso": 8,
+  "cuddle:Biscuit+Clementine": 25,
+  "cosleep:Biscuit+Clementine": 37,
+  "duet:Biscuit+Clementine": 7,
+  "groom:Biscuit+Pumpkin": 8,
+  "cuddle:Biscuit+Pumpkin": 10,
+  "cuddle:Clementine+Kittybear": 37,
+  "cuddle:Biscuit+Miso": 15,
+  "cosleep:Biscuit+Pumpkin": 11,
+  "cuddle:Clementine+Pumpkin": 24,
+  "cuddle:Clementine+Miso": 38,
+  "duet:Biscuit+Pumpkin": 8,
+  "cosleep:Clementine+Kittybear": 9,
+  "groom:Kittybear+Miso": 8,
+  "cosleep:Kittybear+Miso": 6,
+  "groom:Clementine+Miso": 14,
+  "groom:Miso+Pumpkin": 4,
+  "cuddle:Miso+Pumpkin": 12,
+  "duet:Clementine+Kittybear": 2,
+  "cosleep:Clementine+Miso": 4,
+  "groom:Biscuit+Clementine": 8,
+  "groom:Clementine+Pumpkin": 4,
+  "cosleep:Kittybear+Pumpkin": 1,
+  "duet:Clementine+Pumpkin": 4,
+  "duet:Biscuit+Miso": 2,
+  "cosleep:Clementine+Pumpkin": 6
+ },
+ "cross_adjacency_by_pair": {
+  "Biscuit+Kittybear": 128,
+  "Kittybear+Pumpkin": 79,
+  "Kittybear+Miso": 60,
+  "Clementine+Kittybear": 118,
+  "Biscuit+Pumpkin": 63,
+  "Biscuit+Clementine": 124,
+  "Clementine+Pumpkin": 91,
+  "Miso+Pumpkin": 50,
+  "Clementine+Miso": 93,
+  "Biscuit+Miso": 42
+ }
+}

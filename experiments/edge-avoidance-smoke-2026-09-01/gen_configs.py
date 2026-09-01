@@ -31,6 +31,10 @@ ARMS = {
     "D": {"ladder": True, "factor": 1.0, "membership": "bidirectional"},
     "E": {"ladder": True, "factor": 10.0, "membership": "bidirectional",
           "crank_budget": True},
+    # Addendum 1: E's drift-matched control -- E with avoidance made
+    # impossible. Ports 8115+ so A-E configs regenerate byte-identical.
+    "F": {"ladder": False, "factor": 10.0, "membership": "bidirectional",
+          "crank_budget": True},
 }
 
 idx = 0

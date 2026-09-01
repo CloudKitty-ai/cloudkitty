@@ -1,0 +1,149 @@
+{
+ "instrument": "waterline_exposure.py",
+ "provenance": {
+  "git_head": "978b436c100bc82d13809f69c929fc6d1221e9a9",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   ".claude/skills/speckit-taskstoissues/SKILL.md",
+   ".specify/init-options.json",
+   ".specify/integration.json",
+   ".specify/integrations/claude.manifest.json",
+   ".specify/integrations/speckit.manifest.json",
+   "experiments/attn-cert-2026-08-14/results-raw/041-cuddle-repro-samples-2026-08-31.json",
+   "experiments/attn-cert-2026-08-14/results-raw/clem-post-bump-samples-1104710.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-1104693.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-552654.json",
+   "experiments/attn-cert-2026-08-14/results-raw/need-latency-763947.json",
+   "experiments/attn-cert-2026-08-14/results-raw/waterline-exposure-1110103.json",
+   "experiments/cuddle-economy-model/results-raw-bidirectional.json",
+   "experiments/cuddle-economy-model/results-raw-optiona-rerun.json",
+   "experiments/here-word-screen/results-raw/"
+  ],
+  "git_dirty_count": 14,
+  "tool": "waterline_exposure.py",
+  "tool_sha256": "bf7e26e561bb7a5ecd10af84b3f909b094739d1f2457a54088f4e289db0212b3",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-09-01T07:47:35+00:00"
+ },
+ "served": {
+  "base": "http://127.0.0.1:8100",
+  "config_sha256": "69f20938390c759bb3b655e3ff8e96b9fc3e4654ef20ef43d558d4f12e975cc7",
+  "world": {
+   "width": 20,
+   "height": 20,
+   "tick_ms": 40,
+   "seed": 20260901
+  },
+  "tick": 8173,
+  "roster": [
+   {
+    "id": 1,
+    "name": "Miso",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 2,
+    "name": "Biscuit",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 3,
+    "name": "Pumpkin",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 4,
+    "name": "Kittybear",
+    "behavior": "needs_driven"
+   },
+   {
+    "id": 5,
+    "name": "Clementine",
+    "behavior": "needs_driven"
+   }
+  ]
+ },
+ "tick_range": [
+  1496,
+  8169
+ ],
+ "ticks_seen": 6479,
+ "cat_ticks": 32395,
+ "on_water_share": 0.0377,
+ "water_edge_share": 0.2346,
+ "adjacent_pair_ticks": 9489,
+ "cross_adjacent_pair_ticks": 588,
+ "unit": "action-ticks (last_action), NOT activity.state \u2014 see partner_of",
+ "active_pair_ticks": {
+  "duet": 602,
+  "cosleep": 568,
+  "cuddle": 3817,
+  "groom": 309
+ },
+ "cross_pair_ticks": {
+  "duet": 40,
+  "cosleep": 22,
+  "cuddle": 180,
+  "groom": 59
+ },
+ "scenes": {
+  "duet": 311,
+  "cosleep": 119,
+  "cuddle": 774,
+  "groom": 68
+ },
+ "cross_scenes": {
+  "duet": 20,
+  "cosleep": 6,
+  "cuddle": 39,
+  "groom": 14
+ },
+ "cross_pairings_by_pair": {
+  "cuddle:Biscuit+Miso": 24,
+  "cuddle:Clementine+Pumpkin": 16,
+  "cuddle:Clementine+Kittybear": 4,
+  "cuddle:Clementine+Miso": 38,
+  "duet:Miso+Pumpkin": 6,
+  "cuddle:Kittybear+Miso": 12,
+  "duet:Biscuit+Pumpkin": 4,
+  "duet:Clementine+Miso": 6,
+  "cosleep:Clementine+Miso": 6,
+  "cuddle:Biscuit+Kittybear": 12,
+  "cosleep:Biscuit+Kittybear": 7,
+  "duet:Biscuit+Kittybear": 6,
+  "duet:Clementine+Pumpkin": 2,
+  "duet:Biscuit+Clementine": 4,
+  "cuddle:Miso+Pumpkin": 16,
+  "duet:Kittybear+Miso": 2,
+  "cuddle:Biscuit+Pumpkin": 13,
+  "groom:Biscuit+Clementine": 8,
+  "cuddle:Kittybear+Pumpkin": 27,
+  "cosleep:Miso+Pumpkin": 3,
+  "cosleep:Biscuit+Miso": 5,
+  "duet:Clementine+Kittybear": 2,
+  "groom:Kittybear+Pumpkin": 8,
+  "groom:Biscuit+Pumpkin": 9,
+  "groom:Clementine+Miso": 7,
+  "groom:Clementine+Pumpkin": 4,
+  "groom:Biscuit+Kittybear": 7,
+  "duet:Kittybear+Pumpkin": 4,
+  "cuddle:Biscuit+Clementine": 18,
+  "cosleep:Kittybear+Pumpkin": 1,
+  "duet:Biscuit+Miso": 4,
+  "groom:Kittybear+Miso": 4,
+  "groom:Miso+Pumpkin": 4,
+  "groom:Clementine+Kittybear": 8
+ },
+ "cross_adjacency_by_pair": {
+  "Biscuit+Miso": 71,
+  "Biscuit+Kittybear": 51,
+  "Clementine+Miso": 98,
+  "Clementine+Pumpkin": 52,
+  "Clementine+Kittybear": 32,
+  "Kittybear+Miso": 34,
+  "Miso+Pumpkin": 50,
+  "Biscuit+Pumpkin": 75,
+  "Biscuit+Clementine": 66,
+  "Kittybear+Pumpkin": 59
+ }
+}
