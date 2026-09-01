@@ -133,3 +133,90 @@ training's to show), not a pricing of the score's refusal effect. The
 score-on dials are one candidate point, not a sweep of the score; if
 P5 misses, the next campaign sweeps those dials with this as its
 baseline.
+
+## Addendum 1: comfort 25 / 20 extension (declared 2026-09-01 before collection)
+
+Owner's ask after F-038: extend the comfort curve to 25 and 20, and read
+Biscuit's welfare on every need, not on eat alone. The eat-only reading
+let w35 pass P3 while leaving cuddle, her highest elevated need at c55
+(mean 30.8, 50% of polls ≥30), at 0.42; c35 took it to 0.26. Weight
+bands are withdrawn; bath is the only need fine at 55 (7% ≥30), so a
+band covering everything but bath is within noise of flat comfort. The
+extension is flat comfort only, score off only (the score dials get an
+offline pricing pass from this sweep's raws before any run).
+
+**Arms**: c25-off, c20-off × seeds 20260911 / 20260912 = 4 runs, one
+batch. Everything else as §Arms and configs (`gen_configs.py --ext`,
+ports 8320–8323). Baseline stays c55-off from the main sweep; the c30
+and floor figures it is read against are the main sweep's too.
+
+**Why these two**: 30 is the announce threshold. At c30 Biscuit leaves
+play the tick a need arms and meows about it; below 30 she leaves
+before arming, so her food and cuddle meows should mostly vanish (R5).
+The `needs_driven` seats eat at mean 21–27, so c20 should land on the
+roster's food line (R1) and the reading of interest becomes how much of
+her play survives (R3), which is the identity cost of feeding her.
+
+**Readouts** (Biscuit unless stated; pooled, each seed shown):
+
+- R1 **all-needs welfare** (primary): per need in eat/drink/sleep/
+  cuddle/bath, mean level and share of polls ≥30, Biscuit and the
+  pooled roster, from the /world polls. Plus happiness mean, worst
+  poll, share of polls under 60.
+- R2 lateness: eat/drink time>30 and latency p50 (F-038's surviving
+  measures). Armed excursions per 1k is REPORT-ONLY with a prediction:
+  it turns over below 30 (F-038 point 4 says it can only fall once she
+  eats below the line most of the time; c25 < c30's 8.2, c20 within
+  +1 of the floor's 4.4–5.0). A failure of that prediction reopens the
+  mechanism, not the bar.
+- R3 character: total play per 1k vs c55-off, split duet / element /
+  solo; duet share.
+- R4 roster supply: the four seats' pooled duet rate.
+- R5 announce share: share of (poll, kitty) rows with a non-empty
+  `announce_armed`, any need and per need, Biscuit and roster.
+
+**Bars**:
+
+- **E1 (roster-parity welfare)**: an arm reaches parity if, for each of
+  eat, drink, sleep and cuddle, Biscuit's share of polls ≥30 is within
+  +0.05 of the pooled roster's, pooled and in both seeds. (Bath is
+  already within 0.06 at c55 and 0.00 at c30; reported, not barred.)
+  Prediction: c20 passes; c25 passes on eat/drink/sleep and is the
+  arm to watch on cuddle.
+- **E2 (character)**: reported as the ratio to c55-off. The bound is
+  the owner's: c30's 0.70x was accepted on 2026-09-01 ("0.7x play with
+  solid element play is still very Biscuit"), which supersedes P1's
+  −25% for this decision. Prediction: c25 0.55–0.65x, c20 0.40–0.55x,
+  with element play taking the loss first and duets starting to fall
+  below 30 (a serious cat does not start scenes).
+- **E3 (roster supply)**: P4 as pinned, others' duets within −15% of
+  c55-off.
+- **E4 (troughs)**: share of Biscuit polls under 60 happiness no worse
+  than c30's (0.0% both seeds); worst poll reported.
+- **Recommendation rule**: recommend the highest comfort that passes E1
+  and E3 if its E2 ratio is at or above the owner's accepted 0.70x;
+  otherwise present c30 (accepted, E1 status as measured) against the
+  E1-passing arm as the owner's trade. The pin is the owner's either
+  way.
+
+**Known before collection**: running the E-bars over the main sweep's
+raws (`score.py`, same commit as this addendum) shows c30-off already
+passes E1: gaps +0.04 / +0.04 / +0.04 / +0.03 pooled, seed 1 all ≤
+0.037, seed 2 all ≤ 0.045; E3 PASS, E4 PASS. So by the rule above c30
+is already the recommendation, and the extension cannot move it
+upward. What c25/c20 can show is (i) whether Biscuit's residual +0.04
+above the roster closes to zero or reverses (a `playful` cat that eats
+before the roster does), (ii) the shape of the play cliff below 30
+(E2), and (iii) the announce consequence (R5). The owner asked for the
+curve; this is its exploratory tail, declared as such. If c25 passes
+E1 with a residual under +0.02 AND keeps E2 ≥ 0.70x, that is reported
+as a second candidate beside c30, not as a replacement.
+
+**Guard**: `test_score.py` grows three pins on the same recorded slice
+for the new primitives (per-need share and mean, announce share,
+happiness trough), each shown red in-run before commit.
+
+**Not here**: the score dial re-sweep (offline pricing first), any
+policy Biscuit, any economy change. Re-verify trigger unchanged: the
+pinned arm is re-run against the then-served economy before the lineage
+retrain.

@@ -24,7 +24,10 @@ from scene_census import classify  # noqa: E402
 RAW = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "results-raw"
 SEEDS = [20260911, 20260912]
 COMFORT = ["c55", "c45", "c35", "c30", "w35"]
-ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")]
+ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")] + ["c25-off", "c20-off"]
+NEEDS5 = ("eat", "drink", "sleep", "cuddle", "bath")
+PARITY = 0.05  # Addendum 1 E1: Biscuit share>=30 within +0.05 of the roster's
+TROUGH = 60.0  # Addendum 1 E4: happiness bar for a trough poll
 BISCUIT = 2
 FOOD = ("eat", "drink", "sleep")
 ARMED = 30.0
@@ -82,6 +85,39 @@ def low_need(ser, kitty_id, tick):
 
 # ---- per run --------------------------------------------------------------
 
+def need_shares(world_polls, kitty_ids):
+    """Addendum 1 R1: per need, mean level and share of polls at or above
+    ARMED, pooled over the (poll, kitty) rows of kitty_ids."""
+    vals = defaultdict(list)
+    for p in world_polls:
+        for k in p["kitties"]:
+            if k["id"] in kitty_ids:
+                for n in NEEDS5:
+                    vals[n].append(k["needs"][n])
+    return {n: {"mean": sum(v) / len(v), "share_armed": sum(x >= ARMED for x in v) / len(v)}
+            for n, v in vals.items()}
+
+
+def announce_share(world_polls, kitty_ids):
+    """Addendum 1 R5: share of (poll, kitty) rows with a non-empty
+    announce_armed, plus the per-need shares."""
+    rows, any_, per = 0, 0, Counter()
+    for p in world_polls:
+        for k in p["kitties"]:
+            if k["id"] in kitty_ids:
+                rows += 1
+                armed = k.get("announce_armed", [])
+                any_ += bool(armed)
+                per.update(armed)
+    return {"any": any_ / rows, **{n: per[n] / rows for n in NEEDS5}}
+
+
+def happiness_trough(world_polls, kitty_id, bar):
+    """Addendum 1 E4: (worst poll, share of polls under bar) for one kitty."""
+    h = [k["happiness"] for p in world_polls for k in p["kitties"] if k["id"] == kitty_id]
+    return min(h), sum(x < bar for x in h) / len(h)
+
+
 def load(run):
     c = json.loads((RAW / f"{run}-census.json").read_text())
     w = json.loads((RAW / f"{run}-world-polls.json").read_text())["polls"]
@@ -130,6 +166,12 @@ def per_run(run):
                     for i in names},
         "demand_price": lat["demand_price_happiness_pts"],
         "happiness": {names[i]: sum(v) / len(v) for i, v in hap.items()},
+        # Addendum 1
+        "needs_biscuit": need_shares(w, {BISCUIT}),
+        "needs_roster": need_shares(w, set(others)),
+        "announce_biscuit": announce_share(w, {BISCUIT}),
+        "announce_roster": announce_share(w, set(others)),
+        "trough_biscuit": happiness_trough(w, BISCUIT, TROUGH),
     }
 
 
@@ -195,7 +237,16 @@ def main():
             "biscuit_price": pool(rs, lambda r: r["demand_price"]["Biscuit"]),
             "biscuit_hap": pool(rs, lambda r: r["happiness"]["Biscuit"]),
             "roster_hap": pool(rs, lambda r: sum(r["happiness"].values()) / len(r["happiness"])),
+            "needs_biscuit": {n: {k: pool(rs, lambda r: r["needs_biscuit"][n][k]) for k in ("mean", "share_armed")} for n in NEEDS5},
+            "needs_roster": {n: {k: pool(rs, lambda r: r["needs_roster"][n][k]) for k in ("mean", "share_armed")} for n in NEEDS5},
+            "announce_biscuit": {k: pool(rs, lambda r: r["announce_biscuit"][k]) for k in ("any",) + NEEDS5},
+            "announce_roster": {k: pool(rs, lambda r: r["announce_roster"][k]) for k in ("any",) + NEEDS5},
+            "trough_worst": min(r["trough_biscuit"][0] for r in rs),
+            "trough_share": pool(rs, lambda r: r["trough_biscuit"][1]),
+            "play_split": {c_: pool(rs, lambda r: r["biscuit_play_per_1k"][c_]) for c_ in ("play-duet", "play-elem", "play-solo")},
             "seeds": {r["run"]: {
+                "parity": {n: r["needs_biscuit"][n]["share_armed"] - r["needs_roster"][n]["share_armed"] for n in NEEDS5},
+                "trough": r["trough_biscuit"],
                 "eat_above30": food(r, "Biscuit", "eat", "above30"),
                 "eat_exc_per_1k": food(r, "Biscuit", "eat", "exc_per_1k"),
                 "floor_eat_above30": others_food(r, "above30"),
@@ -214,6 +265,17 @@ def main():
               f"  others-duet {d['others_duet']:.2f}  price {d['biscuit_price']:.2f}"
               f"  hap B {d['biscuit_hap']:.1f} roster {d['roster_hap']:.1f}")
     out["arms"] = A
+
+    print("== Addendum 1 R1/R5: per-need share>=30 (mean), Biscuit | roster; announce any; trough")
+    for a in ARMS:
+        if a not in A:
+            continue
+        d = A[a]
+        cells = "  ".join(f"{n} {d['needs_biscuit'][n]['share_armed']:.2f}({d['needs_biscuit'][n]['mean']:.1f})"
+                          f"|{d['needs_roster'][n]['share_armed']:.2f}({d['needs_roster'][n]['mean']:.1f})" for n in NEEDS5)
+        print(f"  {a:8s} {cells}  announce B {d['announce_biscuit']['any']:.2f} R {d['announce_roster']['any']:.2f}"
+              f"  trough worst {d['trough_worst']:.1f} <{TROUGH:.0f} {d['trough_share']:.4f}"
+              f"  play {d['play_split']['play-duet']:.1f}+{d['play_split']['play-elem']:.1f}+{d['play_split']['play-solo']:.1f}")
 
     base = A.get("c55-off")
     if not base:
@@ -269,6 +331,22 @@ def main():
                       "play": (c35["play_total"], w35["play_total"])}
         print(f"== P3 weights {ok(p3)}: closure c35 ({ca:.2f},{ce:.2f}) w35 ({wa:.2f},{we:.2f});"
               f" play c35 {c35['play_total']:.1f} w35 {w35['play_total']:.1f}")
+
+    print("== Addendum 1 E1-E4 per arm (E1 parity on eat/drink/sleep/cuddle, pooled + both seeds)")
+    c30 = A.get("c30-off")
+    for a in ARMS:
+        if a not in A or a == "c55-off":
+            continue
+        d = A[a]
+        gaps = {n: d["needs_biscuit"][n]["share_armed"] - d["needs_roster"][n]["share_armed"] for n in NEEDS5}
+        e1 = (all(gaps[n] <= PARITY for n in NEEDS5[:4])
+              and all(all(s["parity"][n] <= PARITY for n in NEEDS5[:4]) for s in d["seeds"].values()))
+        e2 = d["play_total"] / base["play_total"]
+        e3 = d["others_duet"] >= 0.85 * base["others_duet"]
+        e4 = c30 is not None and d["trough_share"] <= c30["trough_share"]
+        bars[f"E-{a}"] = {"E1": e1, "E1_gaps": gaps, "E2_ratio": e2, "E3": e3, "E4": e4}
+        print(f"  {a:8s} E1 {ok(e1)} gaps " + " ".join(f"{n} {gaps[n]:+.2f}" for n in NEEDS5)
+              + f"  E2 {e2:.2f}x  E3 {ok(e3)}  E4 {ok(e4)} (<{TROUGH:.0f} share {d['trough_share']:.4f})")
 
     print("== P5 score-on vs score-off (comfort-matched)")
     for c in COMFORT:

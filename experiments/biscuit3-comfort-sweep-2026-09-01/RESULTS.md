@@ -120,11 +120,31 @@ stands. (`score.py` also reports the excursion half of P3 as PASS, on
 the inverted measure; disregard that line for the reason above.)
 
 Why w35 loses less play than c35 for the same food line: at c35 the
-comfort line moves for ALL needs, so bath and cuddle at 35–55 also pull
-her out of play (hungry-play share 0.32 vs 0.35, nearly equal food
-behaviour; element play 141.6 vs 107.0). Comfort on non-food needs was
-costing play without buying food. Per-need weights are the right shape
-for lever 1.
+comfort line moves for ALL needs, so cuddle at 35–55 also pulls her out
+of play (hungry-play share 0.32 vs 0.35, nearly equal food behaviour;
+element play 141.6 vs 107.0).
+
+**Corrected reading (2026-09-01, owner's question about overall
+welfare).** The P3 bar read eat only. Per need, Biscuit mean / share of
+polls ≥30, score-off, pooled:
+
+| arm | eat | drink | sleep | cuddle | bath |
+|---|---|---|---|---|---|
+| c55 | 28.3 / 0.45 | 25.6 / 0.38 | 28.0 / 0.45 | 30.8 / 0.50 | 15.6 / 0.07 |
+| c45 | 24.5 / 0.36 | 22.0 / 0.29 | 24.0 / 0.36 | 26.0 / 0.41 | 15.4 / 0.07 |
+| w35 | 21.6 / 0.27 | 20.2 / 0.23 | 21.4 / 0.27 | 27.0 / 0.42 | 15.5 / 0.07 |
+| c35 | 20.4 / 0.23 | 19.2 / 0.20 | 19.2 / 0.20 | 20.7 / 0.26 | 15.0 / 0.05 |
+| c30 | 17.6 / 0.13 | 16.6 / 0.09 | 16.7 / 0.09 | 17.8 / 0.16 | 13.7 / 0.01 |
+| roster (c55) | 15.4 / 0.10 | 13.8 / 0.07 | 12.9 / 0.06 | 16.5 / 0.13 | 8.5 / 0.01 |
+
+Cuddle is her highest elevated need at c55, above eat. w35 leaves it at
+55 and it barely moves (0.50 → 0.42); c35 takes it to 0.26. The play
+w35 keeps over c35 is play she does while wanting a cuddle, so P3's
+"weights preserve more character" is a bar that passed by not counting
+the need the band left out. Bath is the only need that sits fine at 55
+(0.07 ≥30, 0.01 at c30), so a band covering everything but bath is
+within noise of flat comfort. Weights are withdrawn as a
+recommendation; welfare is read on all five needs from here on.
 
 ### P4 (roster supply): PASS for every score-off arm
 
@@ -168,11 +188,9 @@ Refusal exposure is not measured here (prereg); the refusal stamp
 
 - **For the owner's comfort call**: the curve is in the table. If the
   identity question ("is playing through hunger Biscuit-ness?") comes
-  down on the side of feeding her, the sweep's shape says do it with
-  per-need weights (food band at 35, others at 55: w35) rather than a
-  flat comfort, and expect ~11% less play, ~half the hungry-play share,
-  eat p50 88 → 31. A flat c35 buys a little more food (0.62 vs 0.51)
-  for twice the play loss.
+  down on the side of feeding her, use flat comfort; the weights
+  recommendation is withdrawn (P3 corrected reading). Owner's lean
+  2026-09-01: c30 viable, c25/c20 to be run (addendum).
 - **For Biscuit 3.0's clone**: whatever is chosen is the ANCHOR's
   behaviour; the clone inherits it with the leash's fidelity and the
   transfer is the training's to show (prereg §What this is not).
@@ -195,7 +213,7 @@ Refusal exposure is not measured here (prereg); the refusal stamp
 | P1 | c45/w35/c35 PASS on total play; c30-off MISS (0.70x). Low-need half compositional, never binds. |
 | P2 | MISS every arm as pinned (excursion measure inverted). On time>30 alone: c30 0.91 (clears 2/3 both seeds), c35 0.62, w35 0.51, c45 0.26. |
 | Decision | middle case → owner call on the curve. |
-| P3 | PASS: w35 closes 0.51 vs c35 0.62 (within 0.25×), keeps 209 vs 179 play. |
+| P3 | PASS as pinned (w35 closes 0.51 vs c35 0.62, keeps 209 vs 179 play), but the bar read eat only; w35 leaves cuddle, her highest need, at 0.42 ≥30 vs c35's 0.26. Weights withdrawn. |
 | P4 | PASS for all score-off arms (0.96–1.06x); MISS for all score-on arms (0.46–0.51x). |
 | P5 | partner-need PASS, play PASS, supply MISS at every comfort; dials not shippable. |
 

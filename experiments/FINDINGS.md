@@ -2038,7 +2038,7 @@ line); a lock class outside the three partnered families.
 the bar with the 0.43/0.82 numbers in hand, and a live v1 re-runs this
 set before it watches a seating.
 
-## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; per-need weights buy the same food line for half the play loss; the spec-042 score at t_partner 5 refuses nearly every friend and halves the roster's duets
+## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; a food-only weight band keeps play by leaving cuddle (her highest need) unserved; the spec-042 score at t_partner 5 refuses nearly every friend and halves the roster's duets
 
 Biscuit 3.0 comfort sweep (`biscuit3-comfort-sweep-2026-09-01/RESULTS.md`;
 prereg + tooling @ 893cd48 before collection). Scripted `playful`
@@ -2054,10 +2054,17 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    67–79/1k in all arms. Seeds agree to two digits. Biscuit happiness
    77 → 85, demand price 22.7 → 15.2.
 
-2. **Per-need weights are the right shape (P3 PASS).** Food band at 35
-   with bath/cuddle at 55 (w35) closes 0.51 of the time>30 gap vs flat
-   c35's 0.62, and keeps 209 vs 179 play/1k. Flat comfort on non-food
-   needs was taking play without buying food.
+2. **The weights arm passed P3 by leaving cuddle unserved (corrected
+   2026-09-01).** w35 (eat/drink/sleep at 35, bath/cuddle at 55) closes
+   0.51 of the eat time>30 gap vs flat c35's 0.62 and keeps 209 vs 179
+   play/1k, so P3 passes as pinned. But cuddle is Biscuit's highest
+   elevated need at c55 (mean 30.8, 50% of polls ≥30; roster 16.5/13%),
+   above eat (28.3/45%). w35 leaves it at 27.0/42% while c35 takes it to
+   20.7/26%. The play w35 "saved" is play she did while wanting a
+   cuddle. Bath is the one need genuinely fine at 55 (15.6, 7% ≥30; 1%
+   at c30), so a weight band covering everything but bath is within
+   noise of flat comfort. Welfare has to be read on all five needs;
+   P3 as pinned read only eat. Weights are not recommended.
 
 3. **The spec-042 candidate dials are not shippable.** With `t_partner
    5.0` against a realized mean partner play need of 4.3 at duet
@@ -2077,9 +2084,11 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    starting with food needs < 30) rises 1.6–2.9x for the same reason a
    fed cat lives below 30. Neither can serve as a bar again.
 
-**Decision (prereg rule)**: middle case, owner's call on the curve. The
-sweep's shape says: if Biscuit is to be fed, do it with w35-style
-weights, not a flat comfort. **Scope**: scripted anchor only; a clone's
+**Decision (prereg rule)**: middle case, owner's call on the curve. If
+Biscuit is to be fed, use flat comfort; the food-only weight band is
+withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
+with solid element play is still very Biscuit"); c25/c20 extension
+declared. **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm
