@@ -99,3 +99,37 @@ reprice both work by keeping Clementine's cuddle OUT of the OOD
 region — they fix the collateral degradation too, not just the
 cuddle number. Accept-until-retrain means accepting a seat whose
 policy is degraded most of the time, not merely one high need.
+
+## Mechanism confirmed (same day): a repriced habit, not diffuse OOD
+
+Activity mix by her own cuddle regime (repro server, fresh world,
+~120 samples): at cuddle < 30 she grooms 5% of ticks; at cuddle > 60
+she grooms **56%** (idle 31%, everything else single digits). The
+owner's live card caught it verbatim: "grooming Miso … has been
+wanting cuddle for a while."
+
+The loop: her e004 policy learned groom-for-cuddle when
+`cuddle_relief` paid the groomer 8.0/tick. Spec 041 repriced the
+groomer's side to 0.5/tick — BELOW her 0.7 rise — so the trained
+response to high cuddle now loses ground while consuming the turns
+that would have serviced eat/drink/play. The collateral elevation is
+the cost of the futile loop; the drains still come only from
+neighbors resting beside her.
+
+## Recommendation (owner's call; Product's lane for the change)
+
+1. **Serving-config bump of `groom_cuddle_relief`** (0.5 → ~1.5–2.0)
+   is the targeted fix: it re-arms her own trained strategy exactly
+   where she already spends the turns. At 2.0, a 4-tick groom
+   delivers 8.0 — one old-lifeline scene — and net drain while
+   grooming is +1.3/tick against her rise. Frozen policies change no
+   decisions in response (relief is not observed; needs just fall
+   faster), so the roster-wide effect is mostly faster cuddle
+   servicing wherever grooming already occurs (326/1000 ring
+   events). Own small config deploy; needflow can price the mix
+   shift if wanted.
+2. Trait dial (cuddle rise 0.7 → ~0.4) works but softens the
+   designed character; keep as fallback.
+3. Accept-until-retrain is now clearly the worst option: it accepts
+   a seat spending most of its time in a futile loop, plus the
+   intermittent watchdog alarms.
