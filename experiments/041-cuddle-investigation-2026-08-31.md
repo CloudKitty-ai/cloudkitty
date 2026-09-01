@@ -31,7 +31,9 @@ policies DID select rest on untrained weights). **Clementine
 (e004-a1-s2-o4, the oldest MLP artifact) initiates rest exactly
 never** — zero scenes in the ring.
 
-Her arithmetic post-041: cuddle rises 0.7/tick (the cuddler trait),
+Her arithmetic post-041: cuddle rises 0.7/tick (the "cuddlier"
+3-dial trait — not to be confused with Miso's spec-035 persona name
+"the cuddler", which carries no cuddle-rise override),
 and the only channel faster than that is `rest_mutual_relief` 8.0 —
 which she receives only PASSIVELY, when another cat rests beside her
 (she is the roster's most popular rest partner: 35 of the ring's
