@@ -81,15 +81,25 @@ Only c30 clears 2/3 (both seeds); c35 sits just under.
 The second P2 measure, armed excursions per 1k, goes the other way in
 every arm (Biscuit 6.3 → 7.0 → 7.9 → 8.2; floor 4.4–5.0), so its
 "closure" is −0.46 to −1.23 and **P2 as pinned is MISS for every arm by
-construction**. Cause, from the mechanics: `eat_relief` is 35 points, so
-a cat that eats at 55 drops to 20 and dwells long above 30 before each
-meal; a cat that eats at 30 drops to 0 and cycles 0 → 30 → 0. Fewer,
-longer excursions at high comfort; more, shorter ones at low comfort.
-Excursions per 1k counts cycles, not lateness. The prereg pinned a
-measure that cannot move in the direction it asked for. That is a
-design error in the prereg, recorded here; the exploratory reading is
-time>30 alone, and the decision rule below is applied to it with that
-label.
+construction**. Cause, from the mechanics and the polls (seed 1, c55
+vs c30): `eat_relief` is 35 per eating tick and a meal runs ~2 ticks,
+so every meal resets eat to near zero (mean after-meal level 2–7 for
+every seat). Meals per 1k is then rise rate ÷ the level she eats at:
+Biscuit eats at mean 48.5 under c55 (6.6 meals/1k) and at 30.3 under
+c30 (9.5 meals/1k). An armed excursion is a crossing of 30, so
+excursions ≈ meals × P(meal starts ≥ 30). Under c55 that share is 0.92
+and excursions ≈ meals; under c30 it is 0.58 and the count is still
+higher because there are more meals. The floor seats eat at mean 21–27
+with 70–85% of meals starting BELOW 30; they eat 13–24 times per 1k
+and cross 30 only 4–5 times. For Biscuit's excursion count to fall to
+the floor she would have to eat below 30 most of the time, i.e. a
+comfort under the lowest arm. Within the pinned arms the count can only
+rise. Excursions per 1k measures how often a cat gets hungry enough to
+cross the line, which a cat that eats promptly at 30 does MORE often
+than one that eats at 50. The prereg pinned a measure that cannot move
+in the direction it asked for; a design error in the prereg, recorded
+here. The exploratory reading is time>30 alone, and the decision rule
+below is applied to it with that label.
 
 ### Decision rule (prereg §Pinned bars), applied
 
@@ -170,9 +180,10 @@ Refusal exposure is not measured here (prereg); the refusal stamp
   partner value distribution (mean partner play need at duet start
   4.3). Any shipped default needs the next sweep.
 - **For the prereg method**: two measures failed as bars. Excursions
-  per 1k is a cycle counter under partial relief (do not use it as a
-  lateness measure again; time-above and latency p50 are the lateness
-  measures). "Low-need play" as a share of life below 30 is
+  per 1k counts meals that started above the line; with full-reset
+  meals it grows as the eating level falls toward 30 (do not use it as
+  a lateness measure again; time-above and latency p50 are the
+  lateness measures). "Low-need play" as a share of life below 30 is
   compositional; a character bound has to be on a quantity the
   treatment cannot move by construction, and total play was the only
   one here.

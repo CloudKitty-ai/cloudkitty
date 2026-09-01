@@ -2068,9 +2068,12 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    `t_partner` and `w_serious` with this as baseline.
 
 4. **Two prereg measures failed as bars.** Armed excursions per 1k
-   RISES as comfort drops (6.3 → 8.2) because `eat_relief` is 35
-   points: a late eater drops to 20 and dwells, a prompt eater cycles
-   0 → 30 → 0. It counts cycles, not lateness. "Low-need play" (scenes
+   RISES as comfort drops (6.3 → 8.2): a meal resets eat to ~0
+   (35/tick × ~2 ticks), so meals per 1k ∝ 1 ÷ eating level (6.6 at
+   mean 48.5, 9.5 at 30.3), and an excursion is a meal that started
+   above 30. The floor seats' 4–5/1k comes from eating at 21–27, below
+   the line 70–85% of the time. The count measures how often a cat
+   gets hungry enough to cross 30, not how late she is. "Low-need play" (scenes
    starting with food needs < 30) rises 1.6–2.9x for the same reason a
    fed cat lives below 30. Neither can serve as a bar again.
 
