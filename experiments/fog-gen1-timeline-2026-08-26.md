@@ -48,6 +48,18 @@ policy could occasionally select rest on untrained weight. Watch
 welfare + watchdog, not rest counts; a few odd incumbent rest scenes
 are the expected signature of this mechanism, not a defect.
 
+**SOAK CALLED 2026-09-01 (owner, early — "in the interest of moving
+along to models more robust in the updated world").** Span: bump
+deploy (PR #332) to the closing spot check at tick 1,193,578
+(`attn-cert-2026-08-14/results-raw/soak-spot-1193578.json`): alarm
+never live, `/welfare` entries empty at close, five seats happiness
+89.3–94.8, worst need Kittybear bath 25.8. One blemish on the record:
+the Miso one-sided-cosleep stall (~ticks 1,153,885–1,154,404, cuddle
+100, distress age peaked 131 of 150, self-resolved, no alarm; raw
+`miso-stall-1788266378.jsonl`) — the only watchdog entries of the
+soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
+3.0 comfort sweep are unblocked.
+
 ## Step 2 — pre-fog validation (lab, fast)
 
 - **Primary: scripted needs-driven lab worlds** vs the needflow model's
