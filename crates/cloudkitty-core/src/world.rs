@@ -884,20 +884,26 @@ impl World {
             Vec::new()
         };
         // Waterline contagion (spec 044): wet fur travels with the scene.
-        // Membership is the cat's OWN activity naming a partner (the
-        // clarified own-activity rule -- a merely-referenced cat, like an
-        // idle groomee, pays nothing; play is reciprocal by construction
-        // so both members name each other) who is CURRENTLY adjacent
+        // Membership is ruled by `[water] contagion_membership` (spec
+        // 045). Under `option_a` -- the shipped 044 rule and the default
+        // -- it is the cat's OWN activity naming a partner (the clarified
+        // own-activity rule -- a merely-referenced cat, like an idle
+        // groomee, pays nothing; play is reciprocal by construction so
+        // both members name each other). Under `bidirectional` the other
+        // role is admitted too: a dry cat that a WET cat's activity names
+        // also pays. Either way the partner must be CURRENTLY adjacent
         // (`is_available_friend`, the one adjacency predicate;
         // owner-ruled 2026-08-31: a scene the tick has already dissolved
         // -- a free partner who wandered after the namer's slot, before
         // the namer's next prune -- never draws a trailing charge). Dry
         // members only: a cat on water pays occupancy below, never both
         // -- the arms are mutually exclusive, so the per-tick worst case
-        // is unchanged at factor <= 1. Both sets are snapshots of current
-        // positions and activities taken before the loop, so the needs
-        // loop itself is order-free (Article V), and nothing is collected
-        // while the dial is off.
+        // is unchanged at factor <= 1; the BTreeSet makes a cat admitted
+        // by both roles, or referenced by several wet cats, ONE member
+        // and so one charge (FR-003, structural). Both sets are
+        // snapshots of current positions and activities taken before the
+        // loop, so the needs loop itself is order-free (Article V), and
+        // nothing is collected while the dial is off.
         let contagious: std::collections::BTreeSet<crate::kitty::KittyId> =
             if config.water.contagion_factor > 0.0 && config.water.bath_gain > 0.0 {
                 let wet_ids: std::collections::BTreeSet<crate::kitty::KittyId> = self
@@ -906,13 +912,39 @@ impl World {
                     .filter(|k| water.contains(&k.pos))
                     .map(|k| k.id)
                     .collect();
+                // Spec 045 bidirectional arm: admit a dry cat when ANY
+                // wet cat's activity names it AND that namer is still
+                // adjacent. A scan, not the research-note's BTreeMap
+                // keyed by named cat: the map would keep one namer per
+                // named cat, and if the kept one had wandered while
+                // another adjacent wet namer remained, it would wrongly
+                // deny -- adjacency is per NAMER, so every namer must be
+                // consulted. Order-free (any() over a snapshot).
+                let bidirectional = config.water.contagion_membership
+                    == crate::config::ContagionMembership::Bidirectional;
+                // Wet namers pre-collected as (namer, named) pairs -- the
+                // scan is O(wet-namers x dry) instead of O(roster^2), and
+                // wet namers are few (medium review, since this arm is a
+                // candidate for a served pre-fog flip).
+                let wet_namer_pairs: Vec<(crate::kitty::KittyId, crate::kitty::KittyId)> =
+                    if bidirectional {
+                        self.kitties
+                            .iter()
+                            .filter(|w| wet_ids.contains(&w.id))
+                            .filter_map(|w| w.activity.partner().map(|named| (w.id, named)))
+                            .collect()
+                    } else {
+                        Vec::new()
+                    };
                 self.kitties
                     .iter()
                     .filter(|k| !water.contains(&k.pos))
                     .filter(|k| {
                         k.activity.partner().is_some_and(|p| {
                             wet_ids.contains(&p) && self.is_available_friend(k.id, p)
-                        })
+                        }) || wet_namer_pairs
+                            .iter()
+                            .any(|(w, named)| *named == k.id && self.is_available_friend(*w, k.id))
                     })
                     .map(|k| k.id)
                     .collect()
@@ -950,11 +982,12 @@ impl World {
                 // the `contagious` filter never admits a wet cat at all.
                 // (Review finding 2 read the `else` alone as the guard --
                 // it is one of three, none load-bearing by itself.)
-                let ratio = config.bath_ratio(kitty.id);
-                kitty.needs.add(
-                    NeedKind::Bath,
-                    config.water.contagion_factor * config.water.bath_gain * ratio,
-                );
+                // The formula lives in `Config::contagion_charge` -- the
+                // ONE copy the 045 ladder also reads (predictor and
+                // collector must never drift).
+                kitty
+                    .needs
+                    .add(NeedKind::Bath, config.contagion_charge(kitty.id));
             }
             let previous = kitty.happiness;
             let current = happiness(
@@ -3218,6 +3251,72 @@ mod tests {
         assert!(
             (moved - (ambient + charge)).abs() < 1e-4,
             "the adjacent case must still pay: bath moved {moved}, expected {}",
+            ambient + charge
+        );
+    }
+
+    /// Spec 045: the adjacency ruling holds for the REFERENCED role too.
+    /// Under `bidirectional` a wet cat's activity naming a dry cat admits
+    /// that cat only while the NAMER is currently adjacent — a groomee
+    /// who wandered two tiles from its wet groomer draws no trailing
+    /// charge. Same mid-tick layer as the 044 pin above: the stale
+    /// reference is real between the namer's slot and its next prune.
+    #[tokio::test]
+    async fn bidirectional_charges_only_while_the_wet_namer_is_adjacent() {
+        use crate::kitty::ActivityClock;
+
+        let mut config = test_config();
+        config.water.contagion_factor = 1.0;
+        config.water.contagion_membership = crate::config::ContagionMembership::Bidirectional;
+        config.validate().expect("test config must be legal");
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+
+        // One permanent water tile, nothing else wet on the map.
+        world
+            .elements
+            .retain(|el| el.element_type() != ElementType::Water);
+        let wet_tile = Position::new(8, 8);
+        world.elements.push(Element {
+            id: 9_900,
+            kind: ElementKind::Water,
+            pos: wet_tile,
+            ttl: None,
+        });
+
+        // The wet cat holds the scene naming the dry cat, which has
+        // wandered two tiles off (one step past adjacency), idle.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = wet_tile;
+        world.kitties[b].activity = Activity::Resting {
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(8, 10);
+
+        let ambient = config.need_rate_for(1, NeedKind::Bath);
+        let charge = config.water.contagion_factor * config.water.bath_gain * config.bath_ratio(1);
+
+        let before = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        world.advance_needs(&config);
+        let moved = world.kitty(1).unwrap().needs.get(NeedKind::Bath) - before;
+        assert!(
+            (moved - ambient).abs() < 1e-4,
+            "a referenced cat no longer adjacent to its wet namer must not \
+             charge: bath moved {moved}, ambient is {ambient}"
+        );
+
+        // Positive control on the same world: step the referenced cat
+        // back into adjacency and the identical scene pays the charge.
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(8, 9);
+        let before = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        world.advance_needs(&config);
+        let moved = world.kitty(1).unwrap().needs.get(NeedKind::Bath) - before;
+        assert!(
+            (moved - (ambient + charge)).abs() < 1e-4,
+            "the adjacent referenced case must pay: bath moved {moved}, expected {}",
             ambient + charge
         );
     }

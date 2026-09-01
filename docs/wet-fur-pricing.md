@@ -73,6 +73,67 @@ contagion charge is the worst case and the admissible ratio shrinks to
 `experiments/tools/family-gen` asserts the ~4.28 occupancy-era bound
 and would need the same widening before any factor > 1 ever ships.
 
+## Membership: who pays the contagion charge (spec 045)
+
+`[water] contagion_membership` parameterizes the 044 charge's payer
+set. `"option_a"` (the default, absent ≡ shipped 044 byte-identical):
+only the dry cat whose OWN activity names a wet adjacent partner pays.
+`"bidirectional"` (a lab dial for the water's-edge avoidance smoke,
+owner-directed 2026-08-31): the other role is admitted too — a dry cat
+that a wet adjacent cat's activity names (an idle groomee, say) also
+pays, **either role, dry members only**. Everything else is 044 law
+verbatim: same formula, same pre-charge ceiling gate, same wet-member
+exemption, same current-adjacency requirement (`is_available_friend`,
+checked against the actual namer), and at most **one charge per cat per
+tick** however many roles or wet namers admit it (structural — the
+membership set is a `BTreeSet`). Membership moves *who* pays, never the
+per-cat per-tick maximum, so the budget rule above stands verbatim
+under both values — asserted by a membership-invariance test arm, not
+assumed. An unknown TOML value refuses the config naming both legal
+values. The armed boot-log line names the active rule.
+
+## The charge-aware ladder (spec 045, lab-only)
+
+`[behavior] contagion_aware_ladder` (bool, default false): when on, the
+built-in chooser prices a candidate partnered scene's **expected
+contagion exposure** into its existing scores — scene-total under the
+active membership rule (owner-clarified: egocentric pricing would make
+the smoke's C and D arms choose identically), in bath need-points, the
+score's existing currency:
+
+`Σ over payers: 0 if payer.bath ≥ ceiling, else min(charge(payer) ×
+E_ticks(kind), headroom + one full charge)` — with `charge` read from
+`Config::contagion_charge`, the ONE formula the engine's charge arm
+shares, and the cap engine-faithful to the pre-charge gate's documented
+overshoot (Experiments ruling 2026-09-01; a headroom-only clamp
+under-priced exactly the near-ceiling cats)
+
+`E_ticks` is the scene's configured **minimum** duration
+(`Activity::bounds`, the one activity→duration authority; grooming
+reads `durations.bath`) — the same horizon as the chooser's
+`expected_wait` and needflow's relief model, a conservative weight that
+never manufactures avoidance.
+Four seams, all behind the gate: the partnered-relief score
+(`selection::scored`), per-candidate play ranking
+(`selection::play_score` — a dry playmate outranks an equal wet one;
+reachable only from the Playful behavior, and its 1:1
+need-points-per-tile currency is a deliberate disclosed ruling), the
+groom response (declines only when exposure exceeds the scene's total
+value: the groomee's bath pressure plus the groomer's own expected
+`groom_cuddle_relief`), and the cosleep friend-pick (a companion whose
+exposure exceeds the decider's cuddle pressure plus the companion's
+tier relief is skipped — the cat still naps, just not against wet fur).
+Every decline is a choice, never a refusal; legality is untouched
+(Article IV). Payer-set note: play is reciprocal, so its dry member
+pays under BOTH membership rules — play carries no membership contrast
+by design (Experiments ruling 2026-09-01). Scope disclosure: only partners wet at DECISION
+time are priced — mid-scene waterline crossings are neither charged nor
+discounted (research.md D4's wet-now disclosure; the smoke's readout
+section carries the consequence). Off ⇒ every seam short-circuits
+before any arithmetic: structurally byte-identical, and deliberately
+NOT auto-on with the factor (smoke arm B needs an armed charge under a
+charge-blind ladder). When armed, one extra boot-log line says so.
+
 Gen 1 flip note (operational): `contagion_factor` has an engine
 default of 0.0, is skipped from serialization at 0.0, and is outside
 the snapshot fingerprint — the served `cloudkitty.toml` has no
@@ -92,5 +153,13 @@ one place on the box: the "waterline contagion" boot-log line.
 - Contagion mechanism + armed pins: `specs/044-waterline-contagion/`,
   `world.rs::advance_needs` (the charge arm),
   `tests/waterline_contagion.rs` (armed behavior).
+- Membership dial + charge-aware ladder: `specs/045-contagion-membership/`,
+  `world.rs::advance_needs` (the bidirectional arm of the membership
+  set), `behavior/selection.rs::expected_scene_exposure` (the exposure
+  law + the scored/play seams),
+  `behavior/needs_driven.rs::groom_response` (the groom seam — the one
+  kitty-groom initiation path), `tests/waterline_contagion.rs`
+  (membership differentials), `cloudkitty-rl/src/mask.rs` tests
+  (FR-007: neither dial ever moves a legality mask).
 - Config commentary: `cloudkitty.toml` `[water]`, which cites the
   60-roofline rationale.

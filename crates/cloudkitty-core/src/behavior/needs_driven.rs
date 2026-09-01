@@ -201,6 +201,10 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
                     .filter(|k| {
                         me.pos.manhattan_distance(&k.pos) <= ctx.config.behavior.sunbeam_reach
                     })
+                    // Spec 045 seam 4: a companion not worth the splash is
+                    // not worth the walk either (same bar as the adjacent
+                    // pick — score and walk must not disagree).
+                    .filter(|k| cosleep_worth_the_exposure(ctx, k.id))
                     .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
                 if let Some(friend) = reachable {
                     return step_toward(ctx, friend.pos);
@@ -302,6 +306,28 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
         me.id,
     )?;
     let emitter = ctx.world.kitty(heard.kitty_id)?;
+    // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
+    // never grooms others and `pursue`'s Friend arm emits Rest): a scene
+    // whose expected contagion exposure exceeds its TOTAL value — the
+    // groomee's bath pressure plus the groomer's own expected cuddle
+    // relief from the partnered groom (scene-total cost against
+    // scene-total value, Experiments review point 2) — is declined
+    // before the errand starts, walk included. A choice, never a
+    // refusal: the groom stays legal; the advisor proposes something
+    // else. Gate off ⇒ exposure is 0 before any arithmetic and the
+    // comparison never runs.
+    let exposure = selection::expected_scene_exposure(
+        ctx,
+        crate::kitty::Activity::Grooming {
+            target: Some(emitter.id),
+        },
+        emitter.id,
+    );
+    if exposure > 0.0
+        && exposure > emitter.needs.get(NeedKind::Bath) + ctx.config.actions.groom_cuddle_relief
+    {
+        return None;
+    }
     if me.pos.is_adjacent(&emitter.pos) {
         Some(Action::Groom {
             target: Some(emitter.id),
@@ -446,11 +472,52 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
     }
 }
 
+/// The co-sleep companion pick — `adjacent_friend`'s three call sites
+/// are all cosleep routing (spec 028 FR-020), so the 045 exposure seam
+/// lives here. Spec 045 seam 4 (Experiments ruling 2026-09-01): a
+/// companion whose scene exposure exceeds the scene's total value is
+/// skipped — the cat still naps, just not pressed against wet fur. A
+/// choice, never a refusal (Article IV); with the ladder gate off the
+/// filter is structurally inert (exposure is 0 before any arithmetic).
 fn adjacent_friend(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
     ctx.world
         .others(ctx.me.id)
+        .filter(|k| cosleep_worth_the_exposure(ctx, k.id))
         .find(|k| ctx.me.pos.is_adjacent(&k.pos))
         .map(|k| k.id)
+}
+
+/// The seam-4 bar, the groom seam's value shape translated to co-sleep:
+/// admit the companion iff the scene's expected exposure is at most the
+/// scene's total value — the decider's own cuddle pressure (the stock
+/// the friend-nap relieves; the reason a friend beats a sunbeam) plus
+/// the companion's per-tick cuddle relief at the tier it would take now
+/// (`is_settled` semantics: mutual when sleeping/resting, drip
+/// otherwise — the engine's own tier rule).
+fn cosleep_worth_the_exposure(ctx: &DecisionContext, friend: crate::kitty::KittyId) -> bool {
+    let exposure = selection::expected_scene_exposure(
+        ctx,
+        crate::kitty::Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: Some(friend),
+        },
+        friend,
+    );
+    if exposure <= 0.0 {
+        return true;
+    }
+    let mutual = ctx.world.kitty(friend).is_some_and(|k| {
+        matches!(
+            k.activity,
+            crate::kitty::Activity::Sleeping { .. } | crate::kitty::Activity::Resting { .. }
+        )
+    });
+    let relief = if mutual {
+        ctx.config.actions.cosleep_mutual_relief
+    } else {
+        ctx.config.actions.cosleep_drip_relief
+    };
+    exposure <= ctx.me.needs.get(NeedKind::Cuddle) + relief
 }
 
 fn wander(ctx: &DecisionContext) -> Action {
@@ -1325,6 +1392,162 @@ mod tests {
             NeedsDriven.decide_action(&near),
             Action::Groom { target: Some(2) },
             "adjacent: the answer is the groom itself"
+        );
+    }
+
+    /// Spec 045 seam 4 (Experiments ruling 2026-09-01, medium-review
+    /// finding 3): the co-sleep friend-pick prices exposure too —
+    /// co-sleep is one of the four charged kinds, the longest horizon
+    /// (E = 3), and carries the highest cross-waterline share in the
+    /// live baseline. A sleepy cat with real cuddle need declines a WET
+    /// companion exactly when the scene's exposure exceeds its total
+    /// value (own cuddle pressure + the companion's tier relief), and
+    /// naps solo instead; a companion worth the splash is still named.
+    #[tokio::test]
+    async fn a_sleepy_cat_declines_a_wet_cosleep_companion_only_when_net_negative() {
+        fn sleepy_ctx(factor: f32, ladder: bool) -> crate::behavior::DecisionContext {
+            let mut ctx = decision_context(move |world| {
+                world.elements.clear();
+                world.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(2, 3),
+                    ttl: None,
+                });
+                let a = world.kitty_index(1).unwrap();
+                world.kitties[a].pos = Position::new(2, 2); // dry, sleepy
+                world.kitties[a].needs.add(NeedKind::Sleep, 80.0);
+                world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].pos = Position::new(2, 3); // wet, idle
+            });
+            let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            cfg.behavior.contagion_aware_ladder = ladder;
+            cfg.water.contagion_factor = factor;
+            cfg.water.contagion_membership = crate::config::ContagionMembership::Bidirectional;
+            ctx
+        }
+        // Net-positive at the Gen 1 factor: exposure 3.5 × 3 = 10.5 is
+        // under the scene's value (own cuddle 40 + drip relief 15) — the
+        // companion is worth the splash.
+        assert_eq!(
+            NeedsDriven.decide_action(&sleepy_ctx(1.0, true)),
+            Action::Sleep { with: Some(2) },
+            "a net-positive co-sleep must still name the wet friend"
+        );
+        // Net-negative at a cranked factor: min(20×3.5×3, headroom 60 +
+        // one charge 70) = 130 > 55 — nap solo, right here.
+        assert_eq!(
+            NeedsDriven.decide_action(&sleepy_ctx(20.0, true)),
+            Action::Sleep { with: None },
+            "exposure above the scene's value must drop the companion, \
+             not the nap"
+        );
+        // Gate off: the classic cosleep routing stands whatever the factor.
+        assert_eq!(
+            NeedsDriven.decide_action(&sleepy_ctx(20.0, false)),
+            Action::Sleep { with: Some(2) },
+            "gate off: exposure never prices"
+        );
+    }
+
+    /// Spec 045 T022 (SC-004, seam 3): a WET responder pricing the scene
+    /// under `bidirectional` declines the groom exactly when the scene's
+    /// expected exposure (the dry groomee's charge — scene-total) exceeds
+    /// the scene's total value: the groomee's bath pressure PLUS the
+    /// groomer's own expected `groom_cuddle_relief` (Experiments review
+    /// point 2 — value against the groomee's bath alone would over-
+    /// decline net-positive grooms). A net-positive groom is still
+    /// proposed; under `option_a` the scene prices zero (the wet decider
+    /// is exempt and the groomee is merely referenced) so even a cranked
+    /// factor declines nothing.
+    ///
+    /// Groom-initiation enumeration (analyze U1, recorded): kitty-directed
+    /// grooming is initiated ONLY here in `groom_response` — `Playful`
+    /// never grooms others, `pursue`'s Friend arm emits Rest (the 041
+    /// groom-for-cuddle channel is the groomer's RELIEF, not a second
+    /// initiation route), and `Groom { target: None }` is solo, sceneless,
+    /// exposure-free. One path, one seam.
+    #[tokio::test]
+    async fn a_wet_groomer_declines_only_a_net_negative_groom() {
+        fn wet_groomer_ctx(
+            factor: f32,
+            membership: crate::config::ContagionMembership,
+        ) -> crate::behavior::DecisionContext {
+            let mut ctx = decision_context(move |world| {
+                world.tick = 100;
+                world.elements.clear();
+                world.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(2, 2),
+                    ttl: None,
+                });
+                let a = world.kitty_index(1).unwrap();
+                world.kitties[a].pos = Position::new(2, 2); // the wet groomer
+                world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].pos = Position::new(2, 3); // dry, adjacent, asking
+                                                            // Bath 10, well under the ceiling (60): the exposure cap
+                                                            // is the groomee's headroom (50), so a cranked factor can
+                                                            // actually exceed the scene's value — a groomee near the
+                                                            // ceiling caps exposure toward zero and would never
+                                                            // decline (the cap's own test pins that). The meow is
+                                                            // staged directly; the rung reads the log, not the need.
+                world.kitties[b].needs.add(NeedKind::Bath, 10.0);
+                world.recent_meows.push(crate::meow::Meow {
+                    kitty_id: 2,
+                    kind: MessageKind::WantBath,
+                    tick: 100,
+                    intensity: 0.5,
+                });
+            });
+            let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            cfg.behavior.contagion_aware_ladder = true;
+            cfg.water.contagion_factor = factor;
+            cfg.water.contagion_membership = membership;
+            ctx
+        }
+        use crate::config::ContagionMembership::{Bidirectional, OptionA};
+        // Net-positive at the Gen 1 factor: exposure 1.0×3.5×2 = 7 is
+        // under the scene's value (bath 10 + groom_cuddle_relief 15 = 25)
+        // — the kindness stands.
+        assert_eq!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(1.0, Bidirectional)),
+            Action::Groom { target: Some(2) },
+            "a net-positive groom must still be proposed"
+        );
+        // Net-negative at a cranked factor: min(20×3.5×2, headroom 50 +
+        // one charge 70) = 120 > 25 — the groomer proposes something
+        // else (a choice, never a refusal: legality is untouched,
+        // Article IV).
+        assert_ne!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(20.0, Bidirectional)),
+            Action::Groom { target: Some(2) },
+            "exposure above the scene's total value must decline"
+        );
+        // The bar moves with the relief dial (medium review finding 4:
+        // the seam reads `groom_cuddle_relief` from CONFIG, so lab arms
+        // pin their own value — the smoke pins the canonical 0.5, per
+        // Experiments 2026-09-01 — and the sensitivity is pinned here):
+        // the same net-negative scene turns net-positive when the
+        // groomer's relief is worth more than the exposure.
+        let mut generous = wet_groomer_ctx(20.0, Bidirectional);
+        std::sync::Arc::get_mut(&mut generous.config)
+            .unwrap()
+            .actions
+            .groom_cuddle_relief = 130.0; // value 10 + 130 > exposure 120
+        assert_eq!(
+            NeedsDriven.decide_action(&generous),
+            Action::Groom { target: Some(2) },
+            "the decline bar must track the configured relief dial"
+        );
+        // option_a: the wet decider is exempt and the groomee merely
+        // referenced — the scene prices zero, whatever the factor.
+        assert_eq!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(20.0, OptionA)),
+            Action::Groom { target: Some(2) },
+            "option_a prices this scene at zero — nothing to decline"
         );
     }
 

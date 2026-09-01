@@ -141,6 +141,178 @@ mod tests {
         );
     }
 
+    /// Spec 045 FR-007 (armed case): the membership dial moves PRICES,
+    /// never legality. A cat charged by the bidirectional rule holds the
+    /// exact legal-action and legal-message masks of its uncharged twin
+    /// in the option_a world at the same tick — the divergence guard
+    /// first proves the twins really did diverge on bath (the charge
+    /// landed), so mask equality is measured across a real charge, not
+    /// two identical worlds.
+    #[tokio::test(flavor = "current_thread")]
+    async fn contagion_membership_and_its_charge_never_move_the_mask() {
+        use cloudkitty_core::behavior::test_behaviors::AlwaysInvalid;
+        use cloudkitty_core::config::ContagionMembership;
+        use cloudkitty_core::element::{Element, ElementKind};
+        use cloudkitty_core::grid::Position;
+        use cloudkitty_core::test_support::test_config;
+        use cloudkitty_core::{BehaviorRegistry, ElementType, NeedKind, World};
+        use std::sync::Arc;
+
+        async fn charged_world(
+            membership: ContagionMembership,
+        ) -> (World, Arc<cloudkitty_core::Config>) {
+            let mut config = test_config();
+            config.kitties[0].behavior = "always_invalid".into();
+            config.kitties[1].behavior = "always_invalid".into();
+            config.water.contagion_factor = 1.0;
+            config.water.contagion_membership = membership;
+            config.validate().expect("test config must be legal");
+            let config = Arc::new(config);
+            let mut world = World::generate(&config);
+            world
+                .elements
+                .retain(|el| el.element_type() != ElementType::Water);
+            world.elements.push(Element {
+                id: 9_900,
+                kind: ElementKind::Water,
+                pos: Position::new(8, 8),
+                ttl: None,
+            });
+            // The wet cat rests naming the dry adjacent cat — the 045
+            // referenced-role scene: charged under bidirectional only.
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(8, 8);
+            let cuddle = world.kitties[b].needs.get(NeedKind::Cuddle);
+            world.kitties[b].needs.add(NeedKind::Cuddle, 50.0 - cuddle);
+            world.kitties[b].activity = Activity::Resting {
+                with_friend: Some(1),
+            };
+            world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(8, 9);
+            let mut registry = BehaviorRegistry::with_builtins();
+            registry.register("always_invalid", Arc::new(AlwaysInvalid));
+            world.tick(&registry, &config).await;
+            (world, config)
+        }
+
+        let (bidi, bidi_cfg) = charged_world(ContagionMembership::Bidirectional).await;
+        let (opta, opta_cfg) = charged_world(ContagionMembership::OptionA).await;
+        let charged = bidi.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        let uncharged = opta.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        assert!(
+            charged > uncharged + 1.0,
+            "the twins must diverge on bath before mask equality means \
+             anything: bidirectional {charged} vs option_a {uncharged}"
+        );
+
+        let cfg = ObservationConfig::default();
+        let codec = ActionCodec::v2(&cfg);
+        let sb = bidi.snapshot();
+        let sa = opta.snapshot();
+        for id in [1, 2] {
+            let mb = legal_action_mask(
+                &sb,
+                id,
+                &TargetTable::build(&sb, id, &cfg),
+                &codec,
+                &bidi_cfg,
+            );
+            let ma = legal_action_mask(
+                &sa,
+                id,
+                &TargetTable::build(&sa, id, &cfg),
+                &codec,
+                &opta_cfg,
+            );
+            assert_eq!(
+                mb, ma,
+                "kitty {id}: the membership dial moved the legal-action \
+                 mask (FR-007)"
+            );
+            assert_eq!(
+                legal_message_mask(&sb, id, &bidi_cfg),
+                legal_message_mask(&sa, id, &opta_cfg),
+                "kitty {id}: the membership dial moved the message mask \
+                 (FR-007)"
+            );
+        }
+    }
+
+    /// Spec 045 FR-007 armed case (T025, Article IV): the charge-aware
+    /// ladder changes only PROPOSALS. The masks are computed against ONE
+    /// exposed world's snapshot under the gate-on and gate-off CONFIGS —
+    /// the sharp form of "the bool never leaks into legality"
+    /// (medium-review test hygiene: the earlier twin-worlds form was
+    /// vacuous under `always_invalid` cats, whose worlds cannot diverge
+    /// on the gate; the config is the only input that varies here, so
+    /// any legality read of the gate reds this directly — proven by the
+    /// recorded fake-hook injection).
+    #[tokio::test(flavor = "current_thread")]
+    async fn the_ladder_gate_never_moves_the_mask() {
+        use cloudkitty_core::behavior::test_behaviors::AlwaysInvalid;
+        use cloudkitty_core::config::ContagionMembership;
+        use cloudkitty_core::element::{Element, ElementKind};
+        use cloudkitty_core::grid::Position;
+        use cloudkitty_core::test_support::test_config;
+        use cloudkitty_core::{BehaviorRegistry, ElementType, World};
+        use std::sync::Arc;
+
+        async fn exposed_world(ladder: bool) -> (World, Arc<cloudkitty_core::Config>) {
+            let mut config = test_config();
+            config.kitties[0].behavior = "always_invalid".into();
+            config.kitties[1].behavior = "always_invalid".into();
+            config.water.contagion_factor = 1.0;
+            config.water.contagion_membership = ContagionMembership::Bidirectional;
+            config.behavior.contagion_aware_ladder = ladder;
+            config.validate().expect("test config must be legal");
+            let config = Arc::new(config);
+            let mut world = World::generate(&config);
+            world
+                .elements
+                .retain(|el| el.element_type() != ElementType::Water);
+            world.elements.push(Element {
+                id: 9_900,
+                kind: ElementKind::Water,
+                pos: Position::new(8, 8),
+                ttl: None,
+            });
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(8, 8); // the wet friend
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(8, 9); // dry, facing exposure
+            let mut registry = BehaviorRegistry::with_builtins();
+            registry.register("always_invalid", Arc::new(AlwaysInvalid));
+            world.tick(&registry, &config).await;
+            (world, config)
+        }
+
+        let (on, on_cfg) = exposed_world(true).await;
+        // The gate-off config: identical world inputs, only the bool
+        // differs — masks are pure functions of (snapshot, config), so
+        // one snapshot under both configs isolates the bool exactly.
+        let mut off = (*on_cfg).clone();
+        off.behavior.contagion_aware_ladder = false;
+        let off_cfg = Arc::new(off);
+        let cfg = ObservationConfig::default();
+        let codec = ActionCodec::v2(&cfg);
+        let snapshot = on.snapshot();
+        for id in [1, 2] {
+            let table = TargetTable::build(&snapshot, id, &cfg);
+            assert_eq!(
+                legal_action_mask(&snapshot, id, &table, &codec, &on_cfg),
+                legal_action_mask(&snapshot, id, &table, &codec, &off_cfg),
+                "kitty {id}: the ladder gate moved the legal-action mask \
+                 (FR-007 armed case)"
+            );
+            assert_eq!(
+                legal_message_mask(&snapshot, id, &on_cfg),
+                legal_message_mask(&snapshot, id, &off_cfg),
+                "kitty {id}: the ladder gate moved the message mask"
+            );
+        }
+    }
+
     #[test]
     fn the_mask_is_never_all_zero_for_a_fresh_world() {
         let (world, config) = test_world();
