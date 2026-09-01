@@ -302,6 +302,28 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
         me.id,
     )?;
     let emitter = ctx.world.kitty(heard.kitty_id)?;
+    // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
+    // never grooms others and `pursue`'s Friend arm emits Rest): a scene
+    // whose expected contagion exposure exceeds its TOTAL value — the
+    // groomee's bath pressure plus the groomer's own expected cuddle
+    // relief from the partnered groom (scene-total cost against
+    // scene-total value, Experiments review point 2) — is declined
+    // before the errand starts, walk included. A choice, never a
+    // refusal: the groom stays legal; the advisor proposes something
+    // else. Gate off ⇒ exposure is 0 before any arithmetic and the
+    // comparison never runs.
+    let exposure = selection::expected_scene_exposure(
+        ctx,
+        crate::kitty::Activity::Grooming {
+            target: Some(emitter.id),
+        },
+        emitter.id,
+    );
+    if exposure > 0.0
+        && exposure > emitter.needs.get(NeedKind::Bath) + ctx.config.actions.groom_cuddle_relief
+    {
+        return None;
+    }
     if me.pos.is_adjacent(&emitter.pos) {
         Some(Action::Groom {
             target: Some(emitter.id),
@@ -1325,6 +1347,89 @@ mod tests {
             NeedsDriven.decide_action(&near),
             Action::Groom { target: Some(2) },
             "adjacent: the answer is the groom itself"
+        );
+    }
+
+    /// Spec 045 T022 (SC-004, seam 3): a WET responder pricing the scene
+    /// under `bidirectional` declines the groom exactly when the scene's
+    /// expected exposure (the dry groomee's charge — scene-total) exceeds
+    /// the scene's total value: the groomee's bath pressure PLUS the
+    /// groomer's own expected `groom_cuddle_relief` (Experiments review
+    /// point 2 — value against the groomee's bath alone would over-
+    /// decline net-positive grooms). A net-positive groom is still
+    /// proposed; under `option_a` the scene prices zero (the wet decider
+    /// is exempt and the groomee is merely referenced) so even a cranked
+    /// factor declines nothing.
+    ///
+    /// Groom-initiation enumeration (analyze U1, recorded): kitty-directed
+    /// grooming is initiated ONLY here in `groom_response` — `Playful`
+    /// never grooms others, `pursue`'s Friend arm emits Rest (the 041
+    /// groom-for-cuddle channel is the groomer's RELIEF, not a second
+    /// initiation route), and `Groom { target: None }` is solo, sceneless,
+    /// exposure-free. One path, one seam.
+    #[tokio::test]
+    async fn a_wet_groomer_declines_only_a_net_negative_groom() {
+        fn wet_groomer_ctx(
+            factor: f32,
+            membership: crate::config::ContagionMembership,
+        ) -> crate::behavior::DecisionContext {
+            let mut ctx = decision_context(move |world| {
+                world.tick = 100;
+                world.elements.clear();
+                world.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(2, 2),
+                    ttl: None,
+                });
+                let a = world.kitty_index(1).unwrap();
+                world.kitties[a].pos = Position::new(2, 2); // the wet groomer
+                world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
+                let b = world.kitty_index(2).unwrap();
+                world.kitties[b].pos = Position::new(2, 3); // dry, adjacent, asking
+                                                            // Bath 10, well under the ceiling (60): the exposure cap
+                                                            // is the groomee's headroom (50), so a cranked factor can
+                                                            // actually exceed the scene's value — a groomee near the
+                                                            // ceiling caps exposure toward zero and would never
+                                                            // decline (the cap's own test pins that). The meow is
+                                                            // staged directly; the rung reads the log, not the need.
+                world.kitties[b].needs.add(NeedKind::Bath, 10.0);
+                world.recent_meows.push(crate::meow::Meow {
+                    kitty_id: 2,
+                    kind: MessageKind::WantBath,
+                    tick: 100,
+                    intensity: 0.5,
+                });
+            });
+            let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            cfg.behavior.contagion_aware_ladder = true;
+            cfg.water.contagion_factor = factor;
+            cfg.water.contagion_membership = membership;
+            ctx
+        }
+        use crate::config::ContagionMembership::{Bidirectional, OptionA};
+        // Net-positive at the Gen 1 factor: exposure 1.0×3.5×2 = 7 is
+        // under the scene's value (bath 10 + groom_cuddle_relief 15 = 25)
+        // — the kindness stands.
+        assert_eq!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(1.0, Bidirectional)),
+            Action::Groom { target: Some(2) },
+            "a net-positive groom must still be proposed"
+        );
+        // Net-negative at a cranked factor: min(20×3.5×2, headroom 50)
+        // = 50 > 25 — the groomer proposes something else (a choice,
+        // never a refusal: legality is untouched, Article IV).
+        assert_ne!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(20.0, Bidirectional)),
+            Action::Groom { target: Some(2) },
+            "exposure above the scene's total value must decline"
+        );
+        // option_a: the wet decider is exempt and the groomee merely
+        // referenced — the scene prices zero, whatever the factor.
+        assert_eq!(
+            NeedsDriven.decide_action(&wet_groomer_ctx(20.0, OptionA)),
+            Action::Groom { target: Some(2) },
+            "option_a prices this scene at zero — nothing to decline"
         );
     }
 

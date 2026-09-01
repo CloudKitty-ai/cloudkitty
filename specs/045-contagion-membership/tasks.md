@@ -51,46 +51,46 @@ existing charge; `option_a` stays byte-identical 044.
 **Independent test**: quickstart §2 — the membership differential suite
 alone proves the story.
 
-- [ ] T007 [US1] Red-first differential tests in
+- [X] T007 [US1] Red-first differential tests in
   `crates/cloudkitty-core/tests/waterline_contagion.rs`: for each
   paired kind, the referenced dry adjacent cat moves `ambient + charge`
   under `bidirectional` and `ambient` only under `option_a`, while the
   NAMER's charge is equal under both. Run before T010: the
   bidirectional arms red naturally (engine still behaves as option_a);
   record the observed reds.
-- [ ] T008 [US1] Red-first multi-payer test in
+- [X] T008 [US1] Red-first multi-payer test in
   `tests/waterline_contagion.rs`: two wet groomers referencing one dry
   adjacent cat move it by exactly `ambient + one charge` (FR-003).
   Reds pre-implementation; record.
-- [ ] T009 [US1] Kept-behavior arms in `tests/waterline_contagion.rs`,
+- [X] T009 [US1] Kept-behavior arms in `tests/waterline_contagion.rs`,
   sorted must-pass per rule 6: under `bidirectional`, the non-adjacent
   referenced cat and the wet member stay uncharged (adjacency gate and
   wet exemption are membership-independent); both-dry and both-wet
   scenes unchanged. These must be green before AND after T010.
-- [ ] T010 [US1] Implement the bidirectional arm in `advance_needs`
+- [X] T010 [US1] Implement the bidirectional arm in `advance_needs`
   (`crates/cloudkitty-core/src/world.rs`): pre-collect `wet_namers`
   (BTreeMap of wet cats' `Activity::partner()` targets) inside the
   existing factor-gated snapshot, extend the `contagious` filter with
   the membership check + `is_available_friend(wet, dry)`. T007/T008
   green, T009 still green; update the snapshot comment (Option A
   wording → membership-aware).
-- [ ] T011 [US1] Unit-layer referenced-role adjacency test in
+- [X] T011 [US1] Unit-layer referenced-role adjacency test in
   `world.rs` `mod tests` (the 044 mid-tick layer): a wet cat naming a
   dry partner two tiles away charges nothing under `bidirectional`;
   adjacent positive control pays. Red-first: delete the
   `is_available_friend` call from the new arm, predict the exact
   failure, observe, restore; record.
-- [ ] T012 [US1] Budget membership-invariance arm in `config/mod.rs`
+- [X] T012 [US1] Budget membership-invariance arm in `config/mod.rs`
   tests (FR-008): the 044 near-budget accept and reject configs
   accept/reject IDENTICALLY with `contagion_membership =
   "bidirectional"` added. Natural red channel: assert against the
   option_a outcomes recorded first; a divergence is the bug this
   catches.
-- [ ] T013 [US1] Boot log (FR-009): the armed contagion line in
+- [X] T013 [US1] Boot log (FR-009): the armed contagion line in
   `crates/cloudkitty-server/src/main.rs` names the active membership
   rule in both variants; disabled line unchanged. Verify by running the
   server against a lab TOML in both states (quickstart §6).
-- [ ] T014 [US1] Same-seed determinism arm in
+- [X] T014 [US1] Same-seed determinism arm in
   `tests/waterline_contagion.rs`: two 500-tick runs, factor 1.0 +
   `bidirectional`, identical worlds — and within the same arm assert
   the legal-action mask of a charged cat equals the mask of its
@@ -106,16 +106,16 @@ alone proves the story.
 
 **Independent test**: quickstart §1 + §4.
 
-- [ ] T015 [US3] Run `cargo test -p cloudkitty-core --test
+- [X] T015 [US3] Run `cargo test -p cloudkitty-core --test
   evolution_golden` unregenerated and re-assert the stamp sha equals
   baseline; record both in redden-list.
-- [ ] T016 [US3] Seeded byte-identity test in
+- [X] T016 [US3] Seeded byte-identity test in
   `tests/waterline_contagion.rs` (or the config integration suite per
   repo idiom): a 500-tick run under the explicit-default TOML
   (`"option_a"` + `false`) is byte-identical to the absent-key config
   run. Red channel shares T004's recorded skip-attr cycles (044 T017
   precedent — say so in redden-list).
-- [ ] T017 [US3] Run both config sweeps and validate the served TOML
+- [X] T017 [US3] Run both config sweeps and validate the served TOML
   unchanged (`cargo test --workspace` covers the sweeps): zero edits to
   any existing config, READ THE COUNT, record.
 
@@ -126,7 +126,7 @@ off = byte-identical.
 
 **Independent test**: quickstart §3.
 
-- [ ] T018 [US2] Red-first unit tests for the exposure helper in
+- [X] T018 [US2] Red-first unit tests for the exposure helper in
   `crates/cloudkitty-core/src/behavior/selection.rs` tests: payer sets
   per membership (option_a: decider iff dry-with-wet-partner;
   bidirectional: each dry member with a wet counterpart; both-dry and
@@ -135,21 +135,21 @@ off = byte-identical.
   verified groom mapping), `bath_ratio(payer)` not decider. Written
   before T019 — natural reds (helper absent → compile fail counts,
   record per 044 T003 precedent).
-- [ ] T019 [US2] Implement `expected_scene_exposure(ctx, kind, partner)`
+- [X] T019 [US2] Implement `expected_scene_exposure(ctx, kind, partner)`
   in `behavior/selection.rs`, short-circuiting to 0 BEFORE any
   arithmetic when `contagion_aware_ladder` is false or
   `contagion_factor × bath_gain` is 0. T018 green. Verify the D5 groom
   duration mapping against the activity code here and record the
   finding in the config doc comment.
-- [ ] T020 [US2] Red-first `scored()` seam in `behavior/selection.rs`:
+- [X] T020 [US2] Red-first `scored()` seam in `behavior/selection.rs`:
   at cranked factor the exposed Friend/Playmate need scores strictly
   below its unexposed twin; gate off ⇒ scores unchanged. Inject the
   seam AFTER observing the red (test written first); record.
-- [ ] T021 [US2] Red-first `play_score()` seam in
+- [X] T021 [US2] Red-first `play_score()` seam in
   `behavior/selection.rs`: a dry playmate outranks an otherwise-equal
   wet one at cranked factor; equal rank at factor 0.0 with gate on.
   Record the red.
-- [ ] T022 [US2] Red-first groom seam in
+- [X] T022 [US2] Red-first groom seam in
   `behavior/needs_driven.rs` (`groom_response`): decline iff scene
   exposure > groomee bath pressure + groomer's expected
   `groom_cuddle_relief` value (scene-total both sides, per Experiments
@@ -159,16 +159,16 @@ off = byte-identical.
   `pursue` Friend-arm route from the 041 groom-for-cuddle channel) and
   either seam each or record why the T020 `scored()` seam already
   prices it. Record the red.
-- [ ] T023 [US2] Gate-off byte-identity in `behavior` tests: seeded
+- [X] T023 [US2] Gate-off byte-identity in `behavior` tests: seeded
   scripted run with `contagion_aware_ladder = false` ≡ pre-045 run;
   with gate on + factor 0.0 ≡ gate off (043 gate-equality idiom). Red
   channel: temporarily hard-enable the gate, predict divergence,
   observe, restore; record.
-- [ ] T024 [US2] Ladder boot log line in
+- [X] T024 [US2] Ladder boot log line in
   `crates/cloudkitty-server/src/main.rs` emitted ONLY when the gate is
   on; default boot log byte-identical (contract). Manual verify per
   quickstart §6.
-- [ ] T025 [US2] Determinism arm: same-seed identical with gate on +
+- [X] T025 [US2] Determinism arm: same-seed identical with gate on +
   cranked factor + each membership value (`tests/waterline_contagion.rs`
   or behavior tests per idiom) — and assert the ladder changed only
   PROPOSALS: the legal-action mask for a cat facing an exposed scene is
@@ -177,15 +177,15 @@ off = byte-identical.
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T026 Update `docs/wet-fur-pricing.md`: membership paragraph
+- [X] T026 Update `docs/wet-fur-pricing.md`: membership paragraph
   (either-role rule, one-charge cap, budget invariance), ladder
   paragraph (scene-total shape, min-bounds horizon, wet-now scope
   disclosure pointer to research.md D4), "Where the law lives"
   additions.
-- [ ] T027 Add the spec-045 one-liner to `## Unreleased` in
+- [X] T027 Add the spec-045 one-liner to `## Unreleased` in
   `CHANGELOG.md` (no compatibility markers — nothing moves at
   defaults).
-- [ ] T028 Final gate: `cargo clippy --workspace` + `cargo fmt --check`
+- [X] T028 Final gate: `cargo clippy --workspace` + `cargo fmt --check`
   clean; full `cargo test --workspace`, READ THE COUNT against
   baseline + new-test arithmetic; redden-list complete (every Phase
   3/5 assertion has a recorded cycle); commit 2; `git status` clean.

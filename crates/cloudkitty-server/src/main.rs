@@ -258,10 +258,21 @@ async fn run() -> Result<()> {
         // Spec 044: the contagion dial is engine-defaulted, skipped from
         // serialization at 0.0, and outside the snapshot fingerprint --
         // this line is the ONE place the running system states its value,
-        // and the flip deploy is read off exactly this evidence.
+        // and the flip deploy is read off exactly this evidence. Spec
+        // 045: the armed line also names the membership rule, so a
+        // future membership flip is as legible as the factor flip.
         if config.water.contagion_factor > 0.0 {
+            let membership = match config.water.contagion_membership {
+                cloudkitty_core::config::ContagionMembership::OptionA => {
+                    "option_a: the dry namer pays"
+                }
+                cloudkitty_core::config::ContagionMembership::Bidirectional => {
+                    "bidirectional: any dry member of a wet/dry pair pays"
+                }
+            };
             tracing::info!(
                 contagion_factor = config.water.contagion_factor,
+                membership,
                 "waterline contagion armed: a dry cat pays for an adjacent \
                  in-water partner its own activity names"
             );
@@ -273,6 +284,16 @@ async fn run() -> Result<()> {
         }
     } else {
         tracing::info!("wet fur disabled ([water] bath_gain = 0): water occupancy is free");
+    }
+    // Spec 045: the ladder gate speaks ONLY when armed — silence at the
+    // default keeps the served boot log byte-identical (the contract in
+    // contracts/config-surface.md).
+    if config.behavior.contagion_aware_ladder {
+        tracing::info!(
+            "charge-aware ladder armed ([behavior] contagion_aware_ladder): \
+             the built-in chooser prices expected contagion exposure into \
+             partnered-scene proposals"
+        );
     }
 
     tracing::info!(

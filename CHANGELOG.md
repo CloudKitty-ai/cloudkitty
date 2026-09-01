@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- Two lab dials for the water's-edge avoidance smoke (spec 045):
+  `[water] contagion_membership` (`"option_a"` default / `"bidirectional"`
+  — under the latter a dry cat a wet adjacent cat's activity names pays
+  the 044 charge too, either role, one charge per cat per tick, budget
+  law unchanged) and `[behavior] contagion_aware_ladder` (default off —
+  when on, the built-in chooser prices a candidate scene's expected
+  contagion exposure, scene-total under the active membership, into its
+  scores; proposals only, never legality). Both absent from the served
+  config; defaults byte-identical, stamp and golden unmoved.
 - Wet fur travels with the scene (spec 044). A new `[water]`
   `contagion_factor` prices partnered scenes across the waterline: a dry
   cat whose own activity names a partner standing in water accrues

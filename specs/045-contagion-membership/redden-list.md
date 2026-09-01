@@ -22,3 +22,61 @@ Default-config stamp (`engine_defaults_sha256`):
 recorded: no new `bool_is_false` helper — the ladder field reuses the
 in-tree bool skip idiom `std::ops::Not::not` (the `pounce` field's,
 039-D5), per CLAUDE.md rule 2 (existing helper first).
+
+## US1 cycles (T007–T014)
+
+| assertion | injected bug | predicted failure | observed red | restored green |
+|---|---|---|---|---|
+| T007 per-kind referenced-cat differential (resting/co-sleeping/grooming: bidi − option_a = exactly one charge; namer's rise membership-blind) | natural red: run before T010 (engine still option_a-only) | differential 0, expected 3.5 | ✅ "resting: referenced dry cat's differential is 0, expected exactly one charge 3.5" at waterline_contagion.rs:600 | ✅ 11/0 post-T010 |
+| T008 multi-payer (two wet groomers, one dry cat, exactly ONE charge over baseline) | same natural red, pre-T010 | added 0, expected 3.5 | ✅ "two wet groomers must add exactly ONE charge (3.5)…, added 0" at :732 | ✅ 11/0 |
+| T007b play reciprocity (dry member pays once under either rule — the BTreeSet one-charge cap from the double-admission side) | kept-behavior arm, green pre-AND-post T010 by design (dry member already a member by own-naming); its charge arithmetic shares 044 T014's recorded red | — | green both sides (rule 6 must-pass) | ✅ |
+| T009 kept exemptions under bidirectional (non-adjacent referenced, wet member, both-dry, both-wet) | rule-6 must-pass pile: green before AND after T010 | — | verified green pre-T010 and post-T010 | ✅ |
+| T011 referenced-role adjacency (unit layer, mid-tick): wet namer two tiles off charges nothing; adjacent positive control pays | `is_available_friend(w.id, k.id)` deleted from the bidirectional arm | non-adjacent arm reds with ambient+charge instead of ambient | ✅ "a referenced cat no longer adjacent to its wet namer must not charge: bath moved 3.7, ambient is 0.2" at world.rs:3291 | ✅ 1/0, restored |
+| T012 budget membership-invariance (FR-008: 044's accept/reject configs identical under both membership values) | natural channel: asserts the recorded option_a outcomes hold verbatim under `bidirectional` — a divergence (someone teaching validate_water to price membership) is the exact bug | divergence panics naming the membership | green first run (invariance holds — the assertion's red channel is the divergence it forbids) | ✅ 89/0 config tests |
+| T014a bidirectional same-seed determinism (500 ticks, factor 1.0) | ⚠ NO honest red — 044 T017's caveat carries verbatim: the arm draws no RNG by construction; any injected draw shifts both same-seed runs identically. Kept as the in-tree pin against future platform/order nondeterminism. Recorded per rule 6, not hidden. | — | — | ✅ green |
+| T014b mask equality (FR-007 armed: charged cat's legal-action + message masks equal its uncharged option_a twin's at the same tick, with a divergence guard proving the charge landed) | fake legality hook injected into `action::validate` (Rest refused whenever membership = bidirectional) | the action-mask equality reds for kitty 1 | ✅ "kitty 1: the membership dial moved the legal-action mask (FR-007)" at mask.rs:216 | ✅ 6/0 mask tests, injection removed |
+
+
+## US3 (T015–T017)
+
+**T015**: `evolution_golden` passes unregenerated (1/0). Stamp guard
+tests green in-suite; stamp re-read at commit 1 was byte-equal and no
+config-surface change has landed since (re-asserted again at T028).
+
+**T016** `explicit_default_dials_are_byte_identical_to_absent` (500-tick
+seeded run, both dials explicit vs absent, through TOML): red channel
+shares the recorded T004/T005 skip-attr and rename cycles — the run
+halves compare provably-equal configs (044 T017 precedent, recorded not
+hidden).
+
+**T017**: full workspace suite **762 passed, 0 failed** (753 + 9 new:
+T007 ×1, play reciprocity, T008, T009, T011, T012, T014a, T014b, T016).
+`git status`: zero edits to any TOML — served config untouched.
+
+## US2 cycles (T018–T025)
+
+| assertion | injected bug | predicted failure | observed red | restored green |
+|---|---|---|---|---|
+| T018 exposure helper unit arms (payer sets per membership, ceiling cap, E_ticks = bounds.min per kind incl. grooming→durations.bath, payer's own bath_ratio, gate short-circuits) | natural red: tests written before the helper existed | compile fail E0425 | ✅ E0425 ×5 (`cannot find function expected_scene_exposure`) — 044 T003 precedent, compile fail counts | ✅ 5/5 post-T019 |
+| T020 scored() seam (exposed cuddle scores exactly one scene-exposure below its dry twin; gate off ⇒ identical AND equal to the hand-computed pre-045 formula) | natural red: test written before the seam | dry − wet = 0, expected 10.5 | ✅ "exposed cuddle must score exactly one scene-exposure below its twin: dry 39, wet 39" | ✅ 117/0 behavior tests |
+| T021 play_score() seam (dry playmate outranks equal wet twin at factor 1.0; classic tie-break stands at factor 0.0 with gate on) | natural red: seam absent | wet id 2 wins both arms | ✅ "armed: the dry twin must outrank the wet one — left: Kitty 2, right: Kitty 3" | ✅ 118/0 |
+| T022 groom seam (wet groomer declines iff exposure > groomee bath + groom_cuddle_relief; net-positive groom proposed; option_a prices zero) + groom-path enumeration recorded in the test doc | natural red 1: seam absent — cranked-factor groom still proposed. Bonus red 2 (staging bug caught by the CEILING CAP): first staging used groomee bath 95 > ceiling 60 ⇒ headroom 0 ⇒ exposure 0 ⇒ never declines — exactly the never-price-what-cannot-be-collected law working; restaged at bath 10 | assert_ne fails: Groom{2} == Groom{2} | ✅ observed twice (pre-seam and at the over-ceiling staging) | ✅ 119/0 |
+| T023 gate-on + factor 0.0 ≡ gate off (500-tick seeded run) | `factor.max(1.0)` injected into the helper's rate (the borrowed validate_water idiom — prices at factor 0) | ⚠ the 500-tick equality STAYED GREEN under the injection on this seed (test_config world never flips a choice) — vacuous alone, recorded per rule 6, kept as the seeded integration pin. The honest guard: `exposure_is_zero_before_any_arithmetic_when_gated_off`'s factor-0 arm | ✅ the unit arm panicked "left: 10.5, right: 0.0" under the same injection | ✅ restored, behavior 119/0 |
+| T025a armed-ladder determinism (500 ticks × both memberships) | ⚠ NO honest red — the 044 T017 caveat, third occurrence; recorded not hidden | — | — | ✅ green |
+| T025b ladder-gate mask equality (FR-007 armed case, Article IV: gate on vs off, exposed scene, both masks both cats) | fake legality hook in `action::validate` (Rest refused whenever the ladder gate is on) | action-mask equality reds for kitty 1 | ✅ "kitty 1: the ladder gate moved the legal-action mask (FR-007 armed case)" at mask.rs:281 | ✅ 7/0 mask tests, injection removed |
+
+**Boot log (T013/T024, quickstart §6)**: armed contagion line names the
+membership in both states; ladder line present ONLY with the gate on;
+default boot log carries neither (verified live against lab TOMLs).
+
+**Post-US2 suite**: **773 passed, 0 failed** (762 + 11 new).
+
+## Final gate (T028)
+
+`cargo clippy --workspace` 0 warnings; `cargo fmt --check` clean.
+Full workspace suite **773 passed, 0 failed** — baseline 750 + 3
+(Phase 2) + 9 (US1/US3) + 11 (US2), arithmetic exact. Stamp re-read at
+commit 2: `6c73f894…f07687` byte-equal to baseline; `evolution_golden`
+passes unregenerated. Served TOMLs untouched. Every Phase 3/5 assertion
+above carries a recorded cycle; the three no-honest-red caveats
+(T014a, T023 seeded arm, T025a) are recorded, not hidden.

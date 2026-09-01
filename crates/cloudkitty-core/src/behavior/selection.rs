@@ -91,7 +91,53 @@ fn scored(
     let distance = distance_given(ctx, kind, playmate)?;
     let pressure = ctx.me.needs.get(kind);
     let urgency = (pressure - ctx.config.thresholds.safeguard).max(0.0);
-    Some(pressure + behavior.urgency_weight * urgency - behavior.tile_cost * distance)
+    Some(
+        pressure + behavior.urgency_weight * urgency
+            - behavior.tile_cost * distance
+            - scene_exposure_for(ctx, kind, playmate),
+    )
+}
+
+/// Spec 045 seam 1: the expected exposure of the concrete candidate this
+/// score already priced — the playmate the shared scan found for play,
+/// the `nearest_friend` for cuddle (the same candidate `distance_given`
+/// walked to, so score and walk keep the 004 agreement rule). Zero for
+/// every non-partnered relief shape, and zero before any arithmetic when
+/// the ladder gate is off (the helper's own short-circuit).
+fn scene_exposure_for(
+    ctx: &DecisionContext,
+    kind: NeedKind,
+    playmate: Option<(TargetRef, Position)>,
+) -> f32 {
+    if !ctx.config.behavior.contagion_aware_ladder {
+        return 0.0;
+    }
+    match kind.relief() {
+        ReliefSource::Playmate => match playmate {
+            Some((TargetRef::Kitty { id }, _)) => expected_scene_exposure(
+                ctx,
+                crate::kitty::Activity::Playing {
+                    target: Some(TargetRef::Kitty { id }),
+                },
+                id,
+            ),
+            _ => 0.0,
+        },
+        ReliefSource::Friend => ctx
+            .world
+            .nearest_friend(ctx.me.id, ctx.me.pos)
+            .map(|k| {
+                expected_scene_exposure(
+                    ctx,
+                    crate::kitty::Activity::Resting {
+                        with_friend: Some(k.id),
+                    },
+                    k.id,
+                )
+            })
+            .unwrap_or(0.0),
+        _ => 0.0,
+    }
 }
 
 /// How far this cat would have to walk to do something about `need` -- in
@@ -180,6 +226,73 @@ pub fn priced_travel(ctx: &DecisionContext, from: Position, to: Position) -> f32
 /// bath-trait override still tilts routes with the charge disabled.
 pub fn bath_ratio(ctx: &DecisionContext) -> f32 {
     ctx.config.bath_ratio(ctx.me.id)
+}
+
+/// Spec 045: the expected contagion exposure of committing to `scene`
+/// with `partner`, in bath need-points — the score's existing currency.
+///
+/// Scene-total under the ACTIVE membership rule (FR-006, owner-clarified
+/// 2026-08-31): every member who would PAY the 044 charge contributes
+/// `min(factor × bath_gain × bath_ratio(payer) × E_ticks, max(0,
+/// bath_gain_ceiling − payer.bath))` — the cap mirrors the engine's
+/// pre-charge gate, so the ladder never prices exposure the charge
+/// cannot collect. Payers: under `option_a` the DECIDER, iff it is dry
+/// beside a wet partner (the namer is the decider); under
+/// `bidirectional` each dry member whose counterpart is wet, either
+/// role. `E_ticks` is the scene's configured MINIMUM duration read from
+/// [`crate::kitty::Activity::bounds`], the one activity→duration
+/// authority (grooming reads `durations.bath` there — verified at
+/// implementation, research D5): the same basis as [`expected_wait`]
+/// and needflow's relief horizon, a conservative weight that never
+/// manufactures avoidance. `bath_ratio(payer)` is the PAYER's own trait
+/// ratio — the exact per-cat scale the engine's charge draws — so the
+/// ladder and the felt price stay one coherent preference.
+///
+/// Prices only partners wet AT DECISION TIME (the wet-now scope,
+/// research D4: mid-scene waterline crossings are neither charged nor
+/// discounted). Gated: returns 0 BEFORE any arithmetic when
+/// `[behavior] contagion_aware_ladder` is off or the charge itself is
+/// off (`contagion_factor × bath_gain` = 0), so off is structurally
+/// byte-identical. A preference in the behaviors, never a rule in the
+/// engine (Article IV): exposure moves what the advisor proposes, never
+/// what is legal.
+pub fn expected_scene_exposure(
+    ctx: &DecisionContext,
+    scene: crate::kitty::Activity,
+    partner: KittyId,
+) -> f32 {
+    let b = &ctx.config.behavior;
+    let w = &ctx.config.water;
+    if !b.contagion_aware_ladder || w.contagion_factor <= 0.0 || w.bath_gain <= 0.0 {
+        return 0.0;
+    }
+    let Some(other) = ctx.world.kitty(partner) else {
+        return 0.0;
+    };
+    let wet = |pos: Position| {
+        ctx.world
+            .elements_of(ElementType::Water)
+            .any(|e| e.pos == pos)
+    };
+    let me_wet = wet(ctx.me.pos);
+    let partner_wet = wet(other.pos);
+    let e_ticks = scene
+        .bounds(&ctx.config.actions.durations)
+        .map(|bounds| bounds.min)
+        .unwrap_or(0) as f32;
+    let bidirectional = w.contagion_membership == crate::config::ContagionMembership::Bidirectional;
+    let mut exposure = 0.0;
+    let mut pay = |id: KittyId, bath_now: f32| {
+        let rate = w.contagion_factor * w.bath_gain * ctx.config.bath_ratio(id);
+        exposure += (rate * e_ticks).min((w.bath_gain_ceiling - bath_now).max(0.0));
+    };
+    if !me_wet && partner_wet {
+        pay(ctx.me.id, ctx.me.needs.get(NeedKind::Bath));
+    }
+    if bidirectional && me_wet && !partner_wet {
+        pay(other.id, other.needs.get(NeedKind::Bath));
+    }
+    exposure
 }
 
 /// The element of `kind` cheapest to actually walk to, by
@@ -339,9 +452,13 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
             Some(v) => my_play >= b.t_self && (b.t_partner <= 0.0 || *v >= b.t_partner),
             None => true,
         })
-        .max_by(|(_, p1, tag1, id1, v1), (_, p2, tag2, id2, v2)| {
-            let s1 = play_score(ctx, *v1, *p1);
-            let s2 = play_score(ctx, *v2, *p2);
+        .max_by(|(t1, p1, tag1, id1, v1), (t2, p2, tag2, id2, v2)| {
+            let kitty_of = |t: &TargetRef| match t {
+                TargetRef::Kitty { id } => Some(*id),
+                TargetRef::Element { .. } => None,
+            };
+            let s1 = play_score(ctx, *v1, *p1, kitty_of(t1));
+            let s2 = play_score(ctx, *v2, *p2, kitty_of(t2));
             // Higher score wins; equal scores fall back to today's exact
             // ascending (distance, tag, id) order -- reversed here because
             // max_by keeps the Greater side. No NaN can reach total_cmp:
@@ -395,12 +512,35 @@ fn expected_wait(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
 /// against distance; a critter (no value) at the standalone appeal
 /// constant (owner-clarified: NOT scaled by w_value -- each dial moves
 /// one thing).
-fn play_score(ctx: &DecisionContext, value: Option<f32>, pos: Position) -> f32 {
+/// `kitty` is the candidate's identity when it is a friend (spec 045):
+/// a kitty candidate's score also carries the expected exposure of the
+/// play scene it proposes, so a dry playmate outranks an otherwise-equal
+/// wet one — the seam where positional avoidance becomes learnable.
+/// Critters carry no partner and price no exposure; the helper's gate
+/// makes the term structurally zero when the ladder is off.
+fn play_score(
+    ctx: &DecisionContext,
+    value: Option<f32>,
+    pos: Position,
+    kitty: Option<KittyId>,
+) -> f32 {
     let b = &ctx.config.behavior;
     let distance = ctx.me.pos.manhattan_distance(&pos) as f32;
-    match value {
+    let base = match value {
         Some(v) => b.w_value * v - distance,
         None => b.critter_appeal - distance,
+    };
+    match kitty {
+        Some(id) => {
+            base - expected_scene_exposure(
+                ctx,
+                crate::kitty::Activity::Playing {
+                    target: Some(TargetRef::Kitty { id }),
+                },
+                id,
+            )
+        }
+        None => base,
     }
 }
 
@@ -567,6 +707,292 @@ mod tests {
     use crate::element::{Element, ElementKind};
     use crate::kitty::{AbandonedChase, Pursuit};
     use crate::test_support::decision_context;
+
+    // ---- Spec 045: the exposure helper (T018) -------------------------
+
+    use crate::config::ContagionMembership;
+    use crate::kitty::Activity;
+
+    const WET_POS: Position = Position { x: 8, y: 8 };
+    const DRY_POS: Position = Position { x: 8, y: 9 };
+
+    /// A staged pair: kitty 1 (the decider) and kitty 2 adjacent, one
+    /// water tile at `WET_POS`, ladder armed at factor 1.0 under the
+    /// given membership. `me_wet`/`partner_wet` choose who stands in it.
+    fn exposure_ctx(
+        membership: ContagionMembership,
+        me_wet: bool,
+        partner_wet: bool,
+    ) -> crate::behavior::DecisionContext {
+        let mut ctx = decision_context(move |world| {
+            world.elements.clear();
+            world.push_element(Element {
+                id: 900,
+                kind: ElementKind::Water,
+                pos: WET_POS,
+                ttl: None,
+            });
+            let me = world.kitty_index(1).unwrap();
+            world.kitties[me].pos = if me_wet { WET_POS } else { DRY_POS };
+            let other = world.kitty_index(2).unwrap();
+            // Both-wet shares the single tile's wetness by position only
+            // in the me_wet case; give the partner its own wet tile then.
+            world.kitties[other].pos = if partner_wet {
+                if me_wet {
+                    world.push_element(Element {
+                        id: 901,
+                        kind: ElementKind::Water,
+                        pos: DRY_POS,
+                        ttl: None,
+                    });
+                    DRY_POS
+                } else {
+                    WET_POS
+                }
+            } else if me_wet {
+                DRY_POS
+            } else {
+                Position { x: 7, y: 9 }
+            };
+        });
+        let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+        cfg.behavior.contagion_aware_ladder = true;
+        cfg.water.contagion_factor = 1.0;
+        cfg.water.contagion_membership = membership;
+        ctx
+    }
+
+    fn rest_scene() -> Activity {
+        Activity::Resting {
+            with_friend: Some(2),
+        }
+    }
+
+    #[test]
+    fn exposure_payer_sets_follow_the_membership_rule() {
+        // option_a: the decider pays iff it is dry beside a wet partner.
+        let rate = |ctx: &crate::behavior::DecisionContext, id| {
+            ctx.config.water.contagion_factor
+                * ctx.config.water.bath_gain
+                * ctx.config.bath_ratio(id)
+        };
+        let e_cuddle = 3.0; // durations.cuddle.min at the defaults
+
+        let ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        assert!(
+            (x - rate(&ctx, 1) * e_cuddle).abs() < 1e-4,
+            "namer pays: {x}"
+        );
+
+        // option_a: a wet decider's dry partner is NOT priced (the namer
+        // is the decider — data-model payer set, Experiments-reviewed).
+        let ctx = exposure_ctx(ContagionMembership::OptionA, true, false);
+        assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+
+        // bidirectional: the dry counterpart pays from either role.
+        let ctx = exposure_ctx(ContagionMembership::Bidirectional, true, false);
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        assert!(
+            (x - rate(&ctx, 2) * e_cuddle).abs() < 1e-4,
+            "the partner's charge is the scene's cost: {x}"
+        );
+        let ctx = exposure_ctx(ContagionMembership::Bidirectional, false, true);
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        assert!((x - rate(&ctx, 1) * e_cuddle).abs() < 1e-4);
+
+        // Both-dry and both-wet price zero under either rule.
+        for membership in [
+            ContagionMembership::OptionA,
+            ContagionMembership::Bidirectional,
+        ] {
+            let ctx = exposure_ctx(membership, false, false);
+            assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+            let ctx = exposure_ctx(membership, true, true);
+            assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+        }
+    }
+
+    #[test]
+    fn exposure_caps_at_the_payers_remaining_ceiling_headroom() {
+        // The ladder must never price exposure the engine cannot collect
+        // (the pre-charge gate's mirror): a payer near the ceiling owes
+        // at most ceiling − bath.
+        let mut ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
+        ctx.me.needs.add(NeedKind::Bath, 58.0); // ceiling 60 → headroom 2
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        assert!(
+            (x - 2.0).abs() < 1e-4,
+            "exposure must cap at the remaining headroom: {x}"
+        );
+        // At or past the ceiling: nothing collectable, nothing priced.
+        ctx.me.needs.add(NeedKind::Bath, 4.0);
+        assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+    }
+
+    #[test]
+    fn exposure_horizon_is_the_scenes_minimum_duration() {
+        // E_ticks = bounds.min per Activity::bounds (research D5, amended
+        // per Experiments review): play 2, cuddle/rest 3, sleep 3, and
+        // grooming reads durations.bath (min 2) — the mapping verified
+        // against the activity code, recorded in the config doc comment.
+        let ctx = exposure_ctx(ContagionMembership::OptionA, false, true);
+        let per_tick = ctx.config.water.bath_gain; // factor 1.0, ratio 1.0
+        let cases: [(Activity, f32); 4] = [
+            (
+                Activity::Playing {
+                    target: Some(TargetRef::Kitty { id: 2 }),
+                },
+                2.0,
+            ),
+            (rest_scene(), 3.0),
+            (
+                Activity::Sleeping {
+                    in_sunbeam: false,
+                    with_friend: Some(2),
+                },
+                3.0,
+            ),
+            (Activity::Grooming { target: Some(2) }, 2.0),
+        ];
+        for (scene, e_min) in cases {
+            let x = expected_scene_exposure(&ctx, scene, 2);
+            assert!(
+                (x - per_tick * e_min).abs() < 1e-4,
+                "{scene:?}: expected {} got {x}",
+                per_tick * e_min
+            );
+        }
+    }
+
+    #[test]
+    fn exposure_scales_by_the_payers_own_bath_ratio_not_the_deciders() {
+        // bidirectional, wet decider, dry partner with a 2x bath trait:
+        // the partner is the payer, so ITS ratio scales the charge.
+        let mut ctx = exposure_ctx(ContagionMembership::Bidirectional, true, false);
+        let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+        cfg.kitties[1].needs = Some(crate::config::NeedRateOverrides {
+            bath: Some(0.4), // ratio 2.0 against the 0.2 baseline
+            ..Default::default()
+        });
+        let x = expected_scene_exposure(&ctx, rest_scene(), 2);
+        let expected = 1.0 * ctx.config.water.bath_gain * 2.0 * 3.0;
+        assert!(
+            (x - expected).abs() < 1e-4,
+            "the payer's ratio scales: expected {expected}, got {x}"
+        );
+    }
+
+    #[test]
+    fn an_exposed_partnered_need_scores_below_its_unexposed_twin() {
+        // T020 (SC-004, seam 1): the same cuddle errand, the same
+        // adjacent friend — the only difference is the friend standing in
+        // water. With the ladder armed at the Gen 1 factor the exposed
+        // score drops by exactly the scene's expected exposure; with the
+        // gate off the two worlds score identically (pre-045 arithmetic,
+        // computed by hand here so the gate-off arm is pinned to the
+        // formula, not to itself).
+        fn cuddle_ctx(friend_wet: bool, ladder: bool) -> crate::behavior::DecisionContext {
+            let mut ctx = decision_context(move |world| {
+                world.elements.clear();
+                if friend_wet {
+                    world.push_element(Element {
+                        id: 900,
+                        kind: ElementKind::Water,
+                        pos: WET_POS,
+                        ttl: None,
+                    });
+                }
+                let me = world.kitty_index(1).unwrap();
+                world.kitties[me].pos = DRY_POS;
+                world.kitties[me].needs.add(NeedKind::Cuddle, 40.0);
+                let other = world.kitty_index(2).unwrap();
+                world.kitties[other].pos = WET_POS;
+            });
+            let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            cfg.behavior.contagion_aware_ladder = ladder;
+            cfg.water.contagion_factor = 1.0;
+            ctx
+        }
+        // Gate ON: the wet-friend world scores strictly below the dry.
+        let wet = score(&cuddle_ctx(true, true), NeedKind::Cuddle).unwrap();
+        let dry = score(&cuddle_ctx(false, true), NeedKind::Cuddle).unwrap();
+        let expected_exposure = 1.0 * 3.5 * 1.0 * 3.0; // factor×gain×ratio×E_cuddle
+        assert!(
+            (dry - wet - expected_exposure).abs() < 1e-3,
+            "exposed cuddle must score exactly one scene-exposure below \
+             its twin: dry {dry}, wet {wet}"
+        );
+        // Gate OFF: identical scores, equal to the pre-045 arithmetic.
+        let wet_off = score(&cuddle_ctx(true, false), NeedKind::Cuddle).unwrap();
+        let dry_off = score(&cuddle_ctx(false, false), NeedKind::Cuddle).unwrap();
+        assert_eq!(wet_off, dry_off, "gate off: exposure must not price");
+        let pre045 = 40.0 - 1.0; // pressure − tile_cost × distance(1), no urgency
+        assert!(
+            (wet_off - pre045).abs() < 1e-3,
+            "gate off must be the pre-045 formula: {wet_off} vs {pre045}"
+        );
+    }
+
+    #[test]
+    fn a_dry_playmate_outranks_an_otherwise_equal_wet_one() {
+        // T021 (SC-004, seam 2): two idle friends, equal distance, equal
+        // value (identity dials), one standing in water. At the Gen 1
+        // factor with the ladder armed the dry one wins the ranking; at
+        // factor 0.0 with the gate still on, nothing is priced and the
+        // classic (distance, tag, id) tie-break stands — the wet, lower
+        // id wins. The contrast pins the seam to the CHARGE, not the gate.
+        fn pick(factor: f32) -> Option<(TargetRef, Position)> {
+            let mut ctx = decision_context(move |world| {
+                world.elements.clear();
+                world.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(8, 8),
+                    ttl: None,
+                });
+                let me = world.kitty_index(1).unwrap();
+                world.kitties[me].pos = Position::new(8, 10);
+                let wet = world.kitty_index(2).unwrap();
+                world.kitties[wet].pos = Position::new(8, 8);
+                let dry =
+                    crate::kitty::Kitty::new(3, "Pumpkin", Position::new(8, 12), "needs_driven");
+                world.kitties.push(dry);
+            });
+            let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            cfg.behavior.contagion_aware_ladder = true;
+            cfg.water.contagion_factor = factor;
+            scored_playmate(&ctx)
+        }
+        assert_eq!(
+            pick(1.0),
+            Some((TargetRef::Kitty { id: 3 }, Position::new(8, 12))),
+            "armed: the dry twin must outrank the wet one"
+        );
+        assert_eq!(
+            pick(0.0),
+            Some((TargetRef::Kitty { id: 2 }, Position::new(8, 8))),
+            "factor 0.0 with the gate on: the classic tie-break must stand"
+        );
+    }
+
+    #[test]
+    fn exposure_is_zero_before_any_arithmetic_when_gated_off() {
+        // Gate off: zero, whatever the factor.
+        let mut ctx = exposure_ctx(ContagionMembership::Bidirectional, false, true);
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .contagion_aware_ladder = false;
+        assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+        // Gate on, factor 0: the charge does not exist — zero.
+        let mut ctx = exposure_ctx(ContagionMembership::Bidirectional, false, true);
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .water
+            .contagion_factor = 0.0;
+        assert_eq!(expected_scene_exposure(&ctx, rest_scene(), 2), 0.0);
+    }
 
     /// The stuck world of tick 1465, reconstructed: Miso at (21,30), bath and
     /// play both pinned at 100, sleep 98.9, a bug 3 tiles away, water 6 and

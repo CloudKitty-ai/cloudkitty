@@ -1988,6 +1988,48 @@ mod tests {
     }
 
     #[test]
+    fn membership_never_moves_the_budget() {
+        // Spec 045 FR-008/D8: `bidirectional` moves who pays, never the
+        // per-cat per-tick maximum (one charge, same magnitude, same
+        // ceiling gate — FR-003), so the 044 headroom law stands
+        // verbatim: the sibling test's accept and reject configs must
+        // accept/reject IDENTICALLY with the membership flipped. A
+        // divergence here is exactly the bug this arm exists to catch —
+        // someone teaching `validate_water` to price membership.
+        for membership in [
+            ContagionMembership::OptionA,
+            ContagionMembership::Bidirectional,
+        ] {
+            // The Gen 1 factor accepts (FR-011's bit-identical check).
+            let mut c = cfg();
+            c.water.contagion_factor = 1.0;
+            c.water.contagion_membership = membership;
+            c.validate()
+                .unwrap_or_else(|e| panic!("factor 1.0 must validate under {membership:?}: {e}"));
+
+            // The crowded default world rejects, naming the same dials.
+            let mut c = cfg();
+            c.water.contagion_factor = 5.0;
+            c.water.contagion_membership = membership;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(
+                msg.contains("[water] bath_gain_ceiling") && msg.contains("contagion_factor"),
+                "the reject and its remedies must be membership-blind \
+                 ({membership:?}): {msg}"
+            );
+
+            // The same factor with real headroom accepts.
+            let mut c = cfg();
+            c.water.contagion_factor = 5.0;
+            c.water.bath_gain_ceiling = 50.0; // 50 + 17.5 < 75
+            c.water.contagion_membership = membership;
+            c.validate().unwrap_or_else(|e| {
+                panic!("factor 5.0 with headroom must validate under {membership:?}: {e}")
+            });
+        }
+    }
+
+    #[test]
     fn contagion_factor_bounds_are_checked_even_when_wet_fur_is_off() {
         // Spec 044 FR-010: nonsense is nonsense whether or not the charge
         // could ever fire — the bounds check precedes the gain == 0.0

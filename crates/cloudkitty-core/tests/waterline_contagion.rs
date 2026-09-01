@@ -18,6 +18,7 @@
 use std::sync::Arc;
 
 use cloudkitty_core::behavior::test_behaviors::AlwaysInvalid;
+use cloudkitty_core::config::{ContagionMembership, KittyConfig};
 use cloudkitty_core::element::{Element, ElementKind};
 use cloudkitty_core::grid::Position;
 use cloudkitty_core::kitty::{Activity, ActivityClock};
@@ -41,10 +42,18 @@ fn registry() -> BehaviorRegistry {
 /// pushed tile satisfies the element rule's min of 1 on its own, so the
 /// spawner never mints a second wet tile under the dry cat mid-test.
 fn contagion_world(factor: f32) -> (World, Arc<Config>) {
+    membership_world(factor, ContagionMembership::OptionA)
+}
+
+/// Spec 045: `contagion_world` with the membership rule a parameter.
+/// `OptionA` is the default, so every 044 test above runs the world it
+/// always ran.
+fn membership_world(factor: f32, membership: ContagionMembership) -> (World, Arc<Config>) {
     let mut config = test_config();
     config.kitties[0].behavior = "always_invalid".into();
     config.kitties[1].behavior = "always_invalid".into();
     config.water.contagion_factor = factor;
+    config.water.contagion_membership = membership;
     config.validate().expect("test config must be legal");
     let config = Arc::new(config);
     let mut world = World::generate(&config);
@@ -522,4 +531,448 @@ async fn armed_runs_are_deterministic_and_explicit_zero_is_absent() {
         "explicit contagion_factor = 0.0 must be byte-identical to the \
          key-absent world"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Spec 045: the membership dial. `option_a` above is the shipped 044 rule;
+// these scenes pin what `bidirectional` ADDS (the referenced dry adjacent
+// cat pays too) and everything it must NOT move (the namer's charge, the
+// wet exemption, the adjacency gate, the one-charge-per-tick cap).
+// ---------------------------------------------------------------------------
+
+/// Run one tick of `scene` (set on the WET cat, naming the dry cat) under
+/// the given membership and return (dry delta, wet delta) of bath.
+async fn referenced_scene_deltas(membership: ContagionMembership, scene: Activity) -> (f32, f32) {
+    let (mut world, config) = membership_world(1.0, membership);
+    set_scene(&mut world, WET_CAT, scene);
+    set_need(&mut world, DRY_CAT, NeedKind::Bath, 30.0);
+    set_need(&mut world, WET_CAT, NeedKind::Bath, 10.0);
+    let before_dry = need(&world, DRY_CAT, NeedKind::Bath);
+    let before_wet = need(&world, WET_CAT, NeedKind::Bath);
+    tick_once(&mut world, &config).await;
+    (
+        need(&world, DRY_CAT, NeedKind::Bath) - before_dry,
+        need(&world, WET_CAT, NeedKind::Bath) - before_wet,
+    )
+}
+
+/// Spec 045 FR-002/SC-002, per paired kind: a wet cat's activity naming
+/// the dry adjacent cat charges that referenced cat under `bidirectional`
+/// and not under `option_a` — the differential IS the charge — while the
+/// wet NAMER's own rise is identical under both rules (membership moves
+/// who pays, never what the wet member pays). Grooming relieves the
+/// TARGET's bath, so the dry cat's absolute delta there carries relief
+/// arithmetic; the option_a-vs-bidirectional differential isolates the
+/// charge in every kind uniformly.
+#[tokio::test(flavor = "current_thread")]
+async fn a_referenced_dry_adjacent_cat_pays_under_bidirectional_only() {
+    let scenes: [(&str, Activity); 3] = [
+        (
+            "resting",
+            Activity::Resting {
+                with_friend: Some(DRY_CAT),
+            },
+        ),
+        (
+            "co-sleeping",
+            Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: Some(DRY_CAT),
+            },
+        ),
+        (
+            "grooming",
+            Activity::Grooming {
+                target: Some(DRY_CAT),
+            },
+        ),
+    ];
+    for (name, activity) in scenes {
+        let (dry_a, wet_a) =
+            referenced_scene_deltas(ContagionMembership::OptionA, activity.clone()).await;
+        let (dry_b, wet_b) =
+            referenced_scene_deltas(ContagionMembership::Bidirectional, activity).await;
+        let (_, config) = membership_world(1.0, ContagionMembership::Bidirectional);
+        let expected = charge(&config, DRY_CAT);
+        assert!(
+            ((dry_b - dry_a) - expected).abs() < TOL,
+            "{name}: referenced dry cat's differential is {}, expected \
+             exactly one charge {expected}",
+            dry_b - dry_a
+        );
+        assert!(
+            (wet_b - wet_a).abs() < TOL,
+            "{name}: the wet namer's rise moved with the membership rule \
+             ({wet_a} vs {wet_b}) — it must not"
+        );
+        if !matches!(activity_kind(name), "grooming") {
+            let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
+            assert!(
+                (dry_a - ambient).abs() < TOL,
+                "{name}: under option_a the referenced cat must move by \
+                 ambient only ({ambient}), moved {dry_a}"
+            );
+        }
+    }
+}
+
+/// Names are data here only so the non-groom arms can assert the absolute
+/// option_a baseline too.
+fn activity_kind(name: &str) -> &str {
+    name
+}
+
+/// Play is reciprocal by construction: both members name each other, so
+/// the dry member is admitted by its OWN activity under either rule — and
+/// under `bidirectional` it is admitted by BOTH roles at once and must
+/// still pay exactly once (FR-003; the BTreeSet cap, pinned from the
+/// double-admission side).
+#[tokio::test(flavor = "current_thread")]
+async fn play_reciprocity_charges_the_dry_member_once_under_either_rule() {
+    let mut deltas = Vec::new();
+    for membership in [
+        ContagionMembership::OptionA,
+        ContagionMembership::Bidirectional,
+    ] {
+        let (mut world, config) = membership_world(1.0, membership);
+        set_scene(
+            &mut world,
+            DRY_CAT,
+            Activity::Playing {
+                target: Some(TargetRef::Kitty { id: WET_CAT }),
+            },
+        );
+        set_scene(
+            &mut world,
+            WET_CAT,
+            Activity::Playing {
+                target: Some(TargetRef::Kitty { id: DRY_CAT }),
+            },
+        );
+        set_need(&mut world, DRY_CAT, NeedKind::Bath, 10.0);
+        let before = need(&world, DRY_CAT, NeedKind::Bath);
+        tick_once(&mut world, &config).await;
+        let delta = need(&world, DRY_CAT, NeedKind::Bath) - before;
+        let expected = config.need_rate_for(DRY_CAT, NeedKind::Bath) + charge(&config, DRY_CAT);
+        assert!(
+            (delta - expected).abs() < TOL,
+            "play under {membership:?}: dry member moved {delta}, expected \
+             ambient + exactly one charge = {expected}"
+        );
+        deltas.push(delta);
+    }
+    assert!(
+        (deltas[0] - deltas[1]).abs() < TOL,
+        "play must price identically under both rules (both members \
+         already name each other): {} vs {}",
+        deltas[0],
+        deltas[1]
+    );
+}
+
+/// Spec 045 FR-003/SC-003 multi-payer: TWO wet groomers whose activities
+/// both reference the same dry adjacent cat move it by exactly ONE charge
+/// over the option_a baseline — several admitting wet namers are one
+/// membership, one charge.
+#[tokio::test(flavor = "current_thread")]
+async fn two_wet_groomers_referencing_one_dry_cat_charge_it_once() {
+    const THIRD_CAT: KittyId = 3;
+    const SECOND_WET_TILE: Position = Position { x: 9, y: 9 };
+    async fn run(membership: ContagionMembership) -> f32 {
+        let mut config = test_config();
+        config.kitties.push(KittyConfig {
+            id: THIRD_CAT,
+            name: "Pumpkin".into(),
+            x: 1,
+            y: 1,
+            behavior: "always_invalid".into(),
+            needs: None,
+        });
+        for k in &mut config.kitties {
+            k.behavior = "always_invalid".into();
+        }
+        config.water.contagion_factor = 1.0;
+        config.water.contagion_membership = membership;
+        config.validate().expect("test config must be legal");
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        world
+            .elements
+            .retain(|el| el.element_type() != ElementType::Water);
+        for (id, pos) in [(9_900, WET_TILE), (9_901, SECOND_WET_TILE)] {
+            world.elements.push(Element {
+                id,
+                kind: ElementKind::Water,
+                pos,
+                ttl: None,
+            });
+        }
+        place(&mut world, DRY_CAT, DRY_TILE);
+        place(&mut world, WET_CAT, WET_TILE);
+        place(&mut world, THIRD_CAT, SECOND_WET_TILE);
+        for id in [WET_CAT, THIRD_CAT] {
+            set_scene(
+                &mut world,
+                id,
+                Activity::Grooming {
+                    target: Some(DRY_CAT),
+                },
+            );
+        }
+        set_need(&mut world, DRY_CAT, NeedKind::Bath, 30.0);
+        let before = need(&world, DRY_CAT, NeedKind::Bath);
+        tick_once(&mut world, &config).await;
+        need(&world, DRY_CAT, NeedKind::Bath) - before
+    }
+    let base = run(ContagionMembership::OptionA).await;
+    let bidi = run(ContagionMembership::Bidirectional).await;
+    let (_, config) = membership_world(1.0, ContagionMembership::Bidirectional);
+    let expected = charge(&config, DRY_CAT);
+    assert!(
+        ((bidi - base) - expected).abs() < TOL,
+        "two wet groomers must add exactly ONE charge ({expected}) over \
+         the option_a baseline, added {}",
+        bidi - base
+    );
+}
+
+/// Spec 045 FR-002 kept behavior (rule 6 must-pass, green before AND
+/// after the engine branch): every 044 exemption is membership-blind.
+/// A referenced cat out of adjacency, a wet member, a both-dry scene and
+/// a both-wet scene all price under `bidirectional` exactly as they do
+/// under `option_a`.
+#[tokio::test(flavor = "current_thread")]
+async fn bidirectional_keeps_every_044_exemption() {
+    // Referenced but NOT adjacent: the wet cat names a dry cat two tiles
+    // away — no charge (whatever the tick's scene-resolution does to the
+    // stale reference first, the observable is ambient-only).
+    let (mut world, config) = membership_world(1.0, ContagionMembership::Bidirectional);
+    let far = Position { x: 8, y: 11 };
+    place(&mut world, DRY_CAT, far);
+    set_scene(
+        &mut world,
+        WET_CAT,
+        Activity::Resting {
+            with_friend: Some(DRY_CAT),
+        },
+    );
+    set_need(&mut world, DRY_CAT, NeedKind::Bath, 30.0);
+    let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
+    let before = need(&world, DRY_CAT, NeedKind::Bath);
+    tick_once(&mut world, &config).await;
+    let delta = need(&world, DRY_CAT, NeedKind::Bath) - before;
+    assert!(
+        (delta - ambient).abs() < TOL,
+        "non-adjacent referenced cat moved {delta}, expected ambient \
+         {ambient}"
+    );
+
+    // The wet member stays exempt: a wet cat referenced by another wet
+    // cat's activity — and naming it back — pays occupancy once, never
+    // contagion on top, under bidirectional exactly as under option_a.
+    let (mut world, config) = membership_world(1.0, ContagionMembership::Bidirectional);
+    world.elements.push(Element {
+        id: 9_901,
+        kind: ElementKind::Water,
+        pos: DRY_TILE,
+        ttl: None,
+    });
+    set_scene(
+        &mut world,
+        DRY_CAT,
+        Activity::Resting {
+            with_friend: Some(WET_CAT),
+        },
+    );
+    set_scene(
+        &mut world,
+        WET_CAT,
+        Activity::Resting {
+            with_friend: Some(DRY_CAT),
+        },
+    );
+    for id in [DRY_CAT, WET_CAT] {
+        set_need(&mut world, id, NeedKind::Bath, 10.0);
+    }
+    let before: Vec<f32> = [DRY_CAT, WET_CAT]
+        .iter()
+        .map(|&id| need(&world, id, NeedKind::Bath))
+        .collect();
+    tick_once(&mut world, &config).await;
+    for (i, id) in [DRY_CAT, WET_CAT].into_iter().enumerate() {
+        let delta = need(&world, id, NeedKind::Bath) - before[i];
+        let expected = config.need_rate_for(id, NeedKind::Bath)
+            + config.water.bath_gain * config.bath_ratio(id);
+        assert!(
+            (delta - expected).abs() < TOL,
+            "both wet under bidirectional, cat {id}: moved {delta}, \
+             expected occupancy only ({expected})"
+        );
+    }
+
+    // Both dry: a scene with nobody in water prices nothing, whatever
+    // the membership rule.
+    let (mut world, config) = membership_world(1.0, ContagionMembership::Bidirectional);
+    place(&mut world, WET_CAT, Position { x: 9, y: 9 }); // off the water
+    set_scene(
+        &mut world,
+        WET_CAT,
+        Activity::Resting {
+            with_friend: Some(DRY_CAT),
+        },
+    );
+    set_need(&mut world, DRY_CAT, NeedKind::Bath, 10.0);
+    let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
+    let before = need(&world, DRY_CAT, NeedKind::Bath);
+    tick_once(&mut world, &config).await;
+    let delta = need(&world, DRY_CAT, NeedKind::Bath) - before;
+    assert!(
+        (delta - ambient).abs() < TOL,
+        "both dry under bidirectional: referenced cat moved {delta}, \
+         expected ambient {ambient}"
+    );
+}
+
+/// Spec 045 SC-006, the armed half of Article V for the membership dial:
+/// the bidirectional arm reads the same pre-loop snapshots and draws no
+/// RNG, so a factor-1.0 bidirectional world is as reproducible as an
+/// option_a one. (044 T017's no-honest-red caveat carries: the arm draws
+/// no RNG by construction, so no single injected mutation can red this
+/// without also shifting both runs identically — kept as the in-tree pin
+/// against future platform/order nondeterminism, recorded, not hidden.)
+#[tokio::test(flavor = "current_thread")]
+async fn bidirectional_runs_are_deterministic() {
+    async fn run(config: &Arc<Config>, ticks: u64) -> String {
+        let registry = registry();
+        let mut world = World::generate(config);
+        for _ in 0..ticks {
+            world.tick(&registry, config).await;
+        }
+        serde_json::to_string(&world).expect("worlds serialize")
+    }
+    let mut armed = test_config();
+    armed.water.contagion_factor = 1.0;
+    armed.water.contagion_membership = ContagionMembership::Bidirectional;
+    armed.validate().expect("armed test config must be legal");
+    let armed = Arc::new(armed);
+    assert_eq!(
+        run(&armed, 500).await,
+        run(&armed, 500).await,
+        "two same-seed factor-1.0 bidirectional runs diverged"
+    );
+}
+
+/// Spec 045 SC-001 (US3): both explicit-default dials are byte-identical
+/// to the absent-key world over a real seeded run, through the TOML
+/// surface every real config comes through. The red channel shares the
+/// recorded skip-attr and rename cycles from the config layer (044 T017
+/// precedent): the run halves compare provably-equal configs, so their
+/// honest red IS the config-equality assertions'.
+#[tokio::test(flavor = "current_thread")]
+async fn explicit_default_dials_are_byte_identical_to_absent() {
+    async fn run(config: &Arc<Config>, ticks: u64) -> String {
+        let registry = registry();
+        let mut world = World::generate(config);
+        for _ in 0..ticks {
+            world.tick(&registry, config).await;
+        }
+        serde_json::to_string(&world).expect("worlds serialize")
+    }
+    let absent_toml = toml::to_string(&test_config()).expect("configs serialize");
+    for key in ["contagion_membership", "contagion_aware_ladder"] {
+        assert!(
+            !absent_toml.contains(key),
+            "the default serialization must not carry {key}: {absent_toml}"
+        );
+    }
+    let explicit_toml = absent_toml
+        .replace(
+            "[water]\n",
+            "[water]\ncontagion_membership = \"option_a\"\n",
+        )
+        .replace(
+            "[behavior]\n",
+            "[behavior]\ncontagion_aware_ladder = false\n",
+        );
+    assert_ne!(
+        absent_toml, explicit_toml,
+        "the explicit arm must differ on disk"
+    );
+    let absent: Config = toml::from_str(&absent_toml).expect("absent arm parses");
+    let explicit: Config = toml::from_str(&explicit_toml).expect("explicit arm parses");
+    assert_eq!(
+        absent, explicit,
+        "explicit option_a + false and absent must be the same config"
+    );
+    let absent = Arc::new(absent);
+    let explicit = Arc::new(explicit);
+    assert_eq!(
+        run(&absent, 500).await,
+        run(&explicit, 500).await,
+        "explicit-default dials must be byte-identical to the key-absent \
+         world"
+    );
+}
+
+/// Spec 045 SC-004/FR-005 (T023, the 043 gate-equality idiom): the
+/// ladder gate ON with `contagion_factor = 0.0` is byte-identical to the
+/// gate OFF at the same seed — the helper short-circuits before any
+/// arithmetic when the charge itself does not exist, so an armed-but-
+/// priceless ladder changes nothing. (Gate off ≡ absent is T016's
+/// explicit-default run; gate off ≡ pre-045 is structural: every seam
+/// subtracts a term that is identically 0.0.)
+#[tokio::test(flavor = "current_thread")]
+async fn ladder_gate_on_at_factor_zero_is_byte_identical_to_gate_off() {
+    async fn run(config: &Arc<Config>, ticks: u64) -> String {
+        let registry = registry();
+        let mut world = World::generate(config);
+        for _ in 0..ticks {
+            world.tick(&registry, config).await;
+        }
+        serde_json::to_string(&world).expect("worlds serialize")
+    }
+    let mut on = test_config();
+    on.behavior.contagion_aware_ladder = true; // factor stays 0.0
+    on.validate().expect("gate-on config must be legal");
+    let off = test_config();
+    let on = Arc::new(on);
+    let off = Arc::new(off);
+    assert_eq!(
+        run(&on, 500).await,
+        run(&off, 500).await,
+        "an armed ladder with no charge to price must change nothing"
+    );
+}
+
+/// Spec 045 SC-006 (T025): the ladder draws no RNG and reads only the
+/// frozen snapshot, so an armed ladder at the Gen 1 factor is as
+/// reproducible as a blind one — under either membership rule. (The
+/// same no-honest-red caveat as the other determinism arms, recorded in
+/// redden-list, not hidden.)
+#[tokio::test(flavor = "current_thread")]
+async fn armed_ladder_runs_are_deterministic_under_both_memberships() {
+    async fn run(config: &Arc<Config>, ticks: u64) -> String {
+        let registry = registry();
+        let mut world = World::generate(config);
+        for _ in 0..ticks {
+            world.tick(&registry, config).await;
+        }
+        serde_json::to_string(&world).expect("worlds serialize")
+    }
+    for membership in [
+        ContagionMembership::OptionA,
+        ContagionMembership::Bidirectional,
+    ] {
+        let mut armed = test_config();
+        armed.water.contagion_factor = 1.0;
+        armed.water.contagion_membership = membership;
+        armed.behavior.contagion_aware_ladder = true;
+        armed.validate().expect("armed ladder config must be legal");
+        let armed = Arc::new(armed);
+        assert_eq!(
+            run(&armed, 500).await,
+            run(&armed, 500).await,
+            "two same-seed armed-ladder runs diverged under {membership:?}"
+        );
+    }
 }
