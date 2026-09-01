@@ -1482,22 +1482,28 @@ function applyAxial(L, pose, phase, view, opts) {
       // `the rear groom tail clears the skull` pins the CONDITION rather than
       // the flag: move the tip inboard again and it fails first, saying that
       // the skull is back under the tail and the burial is needed again.
-      const up = 0.5 + gRx * PROPORTION.bodyW;
-      // Declared, so `clampAxialHead` can find this tail without inferring it
-      // from `tailBehind`. That flag went in 2026-08-25 and took the clamp
-      // with it -- the clamp gated on it, so from then on the tip's final x
-      // was never set at all, exactly as the comment above promises it is.
-      // Nothing showed while the head was small enough to duck under; the
-      // moment the head was corrected to the camera's own radius, 20% of the
-      // tail crossed the skull. This is the raised REAR tail specifically:
-      // the south tail lies along the ground and clears the head by 40% of a
-      // box without help.
+      // THE SAME TAIL AS THE AXIAL WALK, from the same dials (owner,
+      // 2026-09-01: "see north-facing groom-target cat in the card for an
+      // example of what it should look like" -- that cat is drawn through
+      // the standard axial branch). It had been a separate hand-rolled curve
+      // and it showed: base 0.500/0.840 to tip 0.721/0.190, a rise of 0.650
+      // of a box against the reference's 0.350. Nearly twice, and reaching
+      // higher than the head.
+      //
+      // ONE declared difference: the base. A seated cat's rump is ON the
+      // ground, so the tail leaves from the seated stern rather than the
+      // standing `tailBaseY` -- and that is the only thing about a sitting
+      // cat's tail that a camera should care about. Tip, curve and reach are
+      // the camera's.
+      //
+      // No sway: `tailSway` rides the walk cycle and a seated cat has no
+      // cycle. Its tip is therefore `tailOutX` exactly.
       L.tailRaised = true;
       L.tail = {
-        x0: 0.5, y0: gStern,
-        c1x: 0.5 + (up - 0.5) * 1.1, c1y: gStern - 0.02,
-        c2x: up + 0.06, c2y: G.axialTailUpY + 0.2,
-        x1: up, y1: G.axialTailUpY,
+        x0: AXIAL.tailBaseX, y0: gStern,
+        c1x: AXIAL.tailOutX + AXIAL.tailCurve, c1y: gStern - 0.02,
+        c2x: AXIAL.tailOutX + AXIAL.tailCurve, c2y: AXIAL.tailTopY + 0.16,
+        x1: AXIAL.tailOutX, y1: AXIAL.tailTopY,
       };
     } else {
       L.tail = {
@@ -1672,8 +1678,26 @@ function clampAxialHead(L) {
   // cat. Gating this on `tailBehind` meant it ran only in the case where it
   // mattered less, and silently stopped running when the flag went.
   if ((L.tailBehind || L.tailRaised) && L.tail) {
+    // Only if the tail ACTUALLY crosses the skull. This used to push on an
+    // x-only bound -- past the wider of head and body, always -- which for a
+    // tail that passes BESIDE the head at a different height is a shove it
+    // never needed, and it cost the tuck: the reference tails come back
+    // inside the body's own edge, and a tail held outside it reads as a
+    // stripe rather than a curl. The head is a circle; ask the circle.
+    const crosses = () => {
+      for (let i = 0; i <= 60; i += 1) {
+        const u = i / 60;
+        const m = 1 - u;
+        const px = m * m * m * L.tail.x0 + 3 * m * m * u * L.tail.c1x
+          + 3 * m * u * u * L.tail.c2x + u * u * u * L.tail.x1;
+        const py = m * m * m * L.tail.y0 + 3 * m * m * u * L.tail.c1y
+          + 3 * m * u * u * L.tail.c2y + u * u * u * L.tail.y1;
+        if (Math.hypot(px - L.head.cx, py - L.head.cy) < wide) return true;
+      }
+      return false;
+    };
     const clearX = 0.5 + Math.max(wide, L.body.rx) + GROOM_OTHER.axialTailClearHead;
-    const shift = clearX - L.tail.x1;
+    const shift = crosses() ? clearX - L.tail.x1 : 0;
     if (shift > 0) {
       L.tail = { ...L.tail, c1x: L.tail.c1x + shift * 0.85, c2x: L.tail.c2x + shift, x1: clearX };
     }
@@ -2393,7 +2417,17 @@ const GROOM_OTHER = {
   // axial swim landed on. `axialBottom` is the third and it is the real
   // seated fact: the rump is on the ground, not floating at the camera's
   // standing 0.845.
-  axialSeatWide: 0.86,
+  // 1.0: sitting does NOT narrow a cat across the shoulders.
+  //
+  // This was 0.86 for one draft, taken from the side view's seated/standing
+  // `rx` ratio -- which is the wrong QUANTITY. Side `rx` is the body's LENGTH
+  // nose-to-tail, and sitting shortens that; axial `rx` is its WIDTH across
+  // the shoulders, and sitting does not touch it. The tell was that it left
+  // the seated body narrower than its own head (0.893 of it) where every
+  // reference pose is wider (1.038), and the tail then had nowhere to tuck.
+  axialSeatWide: 1,
+  // Height IS a seated difference, and this one the side view can speak to:
+  // 1.10 is `grooming-other`'s own side ry against walking's, 0.2418/0.2205.
   axialSeatTall: 1.1,
   // The pre-2026-09-01 drawing, kept because the lab's before-column replays
   // it. Nothing reads these in the pose any more.
