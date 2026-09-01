@@ -46,6 +46,29 @@ especially), happiness/bath levels vs the needflow predictions
 (coin-flip table superseded; Option A + bidirectional tables in
 `cuddle-economy-model/RESULTS.md`).
 
+Readout expectation (from the 045 value-shape review, 2026-08-31):
+the ladder prices only candidates wet NOW — mid-scene waterline
+crossings (the bulk of the measured wet_p exposure) are neither
+charged nor discounted at selection. So arms C/D can express
+avoidance of WET partners (cross-waterline adjacency should move)
+but not anticipatory avoidance of edge-loitering dry partners
+(water-adjacent share may barely move). A flat water-adjacent share
+is NOT evidence of no edge behavior; weigh the cross-adjacency
+readout first.
+
+Channel scope (ruled 2026-09-01, from the 045 review round): the
+smoke's avoidance channels are groom, cosleep, and cuddle partner
+picks plus the groom-decline seam. The PLAY channel is deliberately
+charge-blind in every arm — the scored play seam only runs in the
+Playful behavior, which no scripted needs-driven arm uses — and this
+costs the decision nothing: play is reciprocal, so its dry member
+pays under BOTH memberships (engine test + needflow guard #6 both
+pin it), and play carries ~zero C-vs-D contrast. Corollary
+prediction: C ≈ D on play metrics is EXPECTED, not a null result. E's
+positive-control bar applies to the groom/cosleep/cuddle channels.
+Cosleep matters most: it carries 51 of the 87 cross pair-ticks in
+the live baseline below.
+
 ## Decision rule (bars pinned at prereg, shape declared now)
 
 - E must show the avoidance signature (water-adjacent share and/or
@@ -63,17 +86,31 @@ especially), happiness/bath levels vs the needflow predictions
 
 ## Dependencies (block collection, not this design)
 
-1. **044 merged** (inert; arms set the dial in lab configs only).
+1. **044 merged** — DONE 2026-08-31 (PR #334 → main 74537e4, CI
+   green; inert; arms set the dial in lab configs only).
 2. **A `contagion_membership` config dial** (option_a | bidirectional,
-   default option_a) — engine charge-filter branch, lab-use;
-   Product's lane, small. NOT YET REQUESTED — handoff awaits the
-   owner's word.
-3. **A charge-aware ladder option** for the scripted chooser (weigh
-   expected contagion exposure in scene value), config-gated,
-   default off — Product's lane; the larger of the two. NOT YET
-   REQUESTED — same word. Its design should reuse the needflow value
-   shape (charge x expected scene-ticks against the payer's bath).
+   default option_a) — IN SPEC 045 (Product, drafting 2026-08-31).
+3. **A charge-aware ladder option** for the scripted chooser,
+   config-gated `contagion_aware_ladder`, default off (deliberately
+   NOT auto-on with the factor — arm B needs the separation) — IN
+   SPEC 045. Value shape reviewed by Experiments at plan time
+   (scene-total exposure, needflow-derived; three adjustments filed:
+   E_ticks horizon must match the relief term's, the groom-decline
+   seam must value the scene scene-total, wet-now-only pricing
+   disclosed → the readout expectation above). Second review round
+   ruled 2026-09-01: play's dry member priced from either role under
+   option_a (reciprocity — FR-006 fidelity); a FOURTH gated seam on
+   the cosleep friend-pick (the dominant cross-adjacency channel);
+   ceiling cap re-shaped engine-faithful (0 at bath ≥ ceiling, else
+   min(rate × E_ticks, headroom + one full charge) — the engine's
+   pre-charge gate overshoots); play_score's exposure≡tiles 1:1 left
+   deliberate (seam unreachable in every arm, no speculative dial).
 4. Instrument --base flag (Experiments, trivial).
+5. **Lab arm configs pin `groom_cuddle_relief = 0.5`** (canonical) —
+   the groom-decline bar reads it from config, and the served value
+   is the TEMP 2.0 bump that reverts at Gen 1 reseating. The smoke
+   decides for the economy Gen 1 trains under; the prereg names the
+   pinned value.
 
 ## Sequencing
 
