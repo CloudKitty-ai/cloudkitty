@@ -99,11 +99,17 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   magnet finding is the argument: Gen 1 cannot see a wet neighbour, so
   an armed charge trains arm B's world. F-035 is Gen 2 pricing input.
 - **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
-  — scripted `playful_comfort` dose-response, owner-gated to run once
-  ALL pre-fog engine changes are in (step 1 + any step-3 economy
-  members), so it prices the dial against the economy Biscuit 3.0
-  trains under. With contagion shelved, the last engine-change blocker
-  is gone; runs once the owner calls the 041+bump soak.
+  — **DONE 2026-09-01 (F-038,
+  `biscuit3-comfort-sweep-2026-09-01/RESULTS.md`)**: 20/20 runs valid.
+  Comfort buys food linearly (eat time>30 0.455 → 0.132 at 55 → 30) and
+  pays in element play only (duets hold); per-need weights (food band
+  35, others 55) close 0.51 of the gap for 11% play vs flat c35's 0.62
+  for 24% (P3 PASS). Spec-042 candidate dials NOT shippable
+  (`t_partner 5.0` cuts Biscuit's duets 72.6 → 8.9/1k, roster duets
+  −51–57%). Decision rule lands in the middle case: **owner call on
+  the curve**; the sweep's shape says weights, not flat comfort. Two
+  prereg measures failed as bars (excursions/1k is a cycle counter
+  under partial relief; low-need play is compositional).
 
 The validated step-2 mix bands become step 5's reference.
 

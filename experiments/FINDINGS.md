@@ -2037,3 +2037,47 @@ line); a lock class outside the three partnered families.
 **Re-verify when**: H4 is pinned at step-5 kickoff — the owner picks
 the bar with the 0.43/0.82 numbers in hand, and a live v1 re-runs this
 set before it watches a seating.
+
+## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; per-need weights buy the same food line for half the play loss; the spec-042 score at t_partner 5 refuses nearly every friend and halves the roster's duets
+
+Biscuit 3.0 comfort sweep (`biscuit3-comfort-sweep-2026-09-01/RESULTS.md`;
+prereg + tooling @ 893cd48 before collection). Scripted `playful`
+Biscuit with four `needs_driven` seats, canonical 041 economy
+(`groom_cuddle_relief` 0.5), 20k measured ticks × 2 seeds per arm,
+20/20 runs valid, watchdog quiet throughout.
+
+1. **The comfort curve is smooth, no free lunch.** Eat time-above-30
+   0.455 / 0.362 / 0.236 / 0.132 at comfort 55 / 45 / 35 / 30 (in-run
+   scripted floor 0.100); eat p50 88 / 56.5 / 26.5 / 10.5 ticks;
+   hungry-play share 0.65 → 0.15. Total play 1.00 / 0.93 / 0.76 / 0.70x.
+   Every play point lost is element play (162 → 96/1k); duets hold at
+   67–79/1k in all arms. Seeds agree to two digits. Biscuit happiness
+   77 → 85, demand price 22.7 → 15.2.
+
+2. **Per-need weights are the right shape (P3 PASS).** Food band at 35
+   with bath/cuddle at 55 (w35) closes 0.51 of the time>30 gap vs flat
+   c35's 0.62, and keeps 209 vs 179 play/1k. Flat comfort on non-food
+   needs was taking play without buying food.
+
+3. **The spec-042 candidate dials are not shippable.** With `t_partner
+   5.0` against a realized mean partner play need of 4.3 at duet
+   start, Biscuit's duets fall 72.6 → 8.9/1k at every comfort; she
+   substitutes elements (total play flat, +4–9%) and the four other
+   seats lose 51–57% of their duets. Partner need at duet start rises
+   4.3 → 10–12 as designed. Food unmoved. The next campaign sweeps
+   `t_partner` and `w_serious` with this as baseline.
+
+4. **Two prereg measures failed as bars.** Armed excursions per 1k
+   RISES as comfort drops (6.3 → 8.2) because `eat_relief` is 35
+   points: a late eater drops to 20 and dwells, a prompt eater cycles
+   0 → 30 → 0. It counts cycles, not lateness. "Low-need play" (scenes
+   starting with food needs < 30) rises 1.6–2.9x for the same reason a
+   fed cat lives below 30. Neither can serve as a bar again.
+
+**Decision (prereg rule)**: middle case, owner's call on the curve. The
+sweep's shape says: if Biscuit is to be fed, do it with w35-style
+weights, not a flat comfort. **Scope**: scripted anchor only; a clone's
+transfer is the training's to show. **Invalidated by**: an economy
+change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
+**Re-verify when**: the owner pins a comfort value (re-run that arm
+against the then-served economy before the lineage retrain).
