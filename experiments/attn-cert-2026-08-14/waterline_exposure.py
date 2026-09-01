@@ -30,6 +30,7 @@ re-derivation answers that, and F-016 §3 warns that even that will not
 proxy learned policies on the grooming-on-water channel.
 """
 
+import argparse
 import json
 import sys
 import time
@@ -40,9 +41,20 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from census_provenance import served, stamp  # noqa: E402
 
-BASE = "https://kitties.ai"
-DURATION_S = int(sys.argv[1]) if len(sys.argv) > 1 else 300
-INTERVAL_S = float(sys.argv[2]) if len(sys.argv) > 2 else 0.45
+_p = argparse.ArgumentParser(description=__doc__)
+_p.add_argument("duration_s", nargs="?", type=int, default=300)
+_p.add_argument("interval_s", nargs="?", type=float, default=0.45)
+_p.add_argument("--base", default="https://kitties.ai",
+                help="server base URL (lab arms point at localhost)")
+_p.add_argument("--raw", default=None,
+                help="raw output path (default: results-raw/waterline-"
+                     "exposure-<first tick>.json — lab runs must set this: "
+                     "fresh worlds share low first ticks and would collide)")
+_args = _p.parse_args()
+
+BASE = _args.base
+DURATION_S = _args.duration_s
+INTERVAL_S = _args.interval_s
 HERE = Path(__file__).resolve().parent
 KINDS = ("duet", "cosleep", "cuddle", "groom")
 
@@ -110,10 +122,17 @@ def main():
                  if e.get("kind") == "water"}
         ks = {k["id"]: k for k in w["kitties"]}
         on = {i: (k["pos"]["x"], k["pos"]["y"]) in water for i, k in ks.items()}
+        # Edge-loitering: a LAND cat within Chebyshev 1 of any water tile
+        # (the 8-neighborhood — "at the water's edge"). Distinct from the
+        # pairing adjacency below, which stays Manhattan 1 like the rule.
+        edge = {i: (not on[i]) and any(
+            max(abs(k["pos"]["x"] - wx), abs(k["pos"]["y"] - wy)) <= 1
+            for wx, wy in water) for i, k in ks.items()}
         counted = set()
         for i, k in ks.items():
             c["cat_ticks"] += 1
             c["on_water"] += on[i]
+            c["water_edge"] += edge[i]
             pr = partner_of(k)
             if pr and pr[0] in ks:
                 j, kind = pr
@@ -156,6 +175,7 @@ def main():
         "tick_range": [ticks[0], ticks[-1]], "ticks_seen": len(ticks),
         "cat_ticks": c["cat_ticks"],
         "on_water_share": round(c["on_water"] / max(1, c["cat_ticks"]), 4),
+        "water_edge_share": round(c["water_edge"] / max(1, c["cat_ticks"]), 4),
         "adjacent_pair_ticks": c["adjacent_pair_ticks"],
         "cross_adjacent_pair_ticks": c["cross_adjacent"],
         "unit": "action-ticks (last_action), NOT activity.state — see partner_of",
@@ -168,11 +188,14 @@ def main():
         "cross_adjacency_by_pair": {"+".join(k): v
                                     for k, v in adjacency_pairs.items()},
     }
-    raw = HERE / "results-raw" / f"waterline-exposure-{ticks[0]}.json"
+    raw = Path(_args.raw) if _args.raw else (
+        HERE / "results-raw" / f"waterline-exposure-{ticks[0]}.json")
     raw.write_text(json.dumps(out, indent=1) + "\n")
 
     print(f"ticks {len(ticks)} ({ticks[0]}-{ticks[-1]})")
     print(f"on-water share of cat-ticks: {100 * out['on_water_share']:.2f}%")
+    print(f"water-edge share of cat-ticks (land, cheb<=1 of water): "
+          f"{100 * out['water_edge_share']:.2f}%")
     print(f"cross-waterline adjacency: {c['cross_adjacent']} of "
           f"{c['adjacent_pair_ticks']} adjacent pair-ticks "
           f"({100 * c['cross_adjacent'] / max(1, c['adjacent_pair_ticks']):.2f}%)")
