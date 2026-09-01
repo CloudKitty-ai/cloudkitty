@@ -3612,6 +3612,48 @@ check('the axial views share one lens; only leg POSITION may differ', () => {
     }
 });
 
+check('the seated axial cat is drawn through the same lens as the walking one', () => {
+  // The one-lens rule, applied where the AXIAL_ENDS guard could not reach.
+  // `grooming-other` authored its own end-on body and its own near/far head
+  // cue, so a seated cat was a different camera from a walking one: the head
+  // came out 14% larger facing south and 14% smaller facing north than the
+  // walking cat's, because `axialHeadNear` added a second depth cue on top of
+  // the `headRFront`/`headRBack` pair that already IS the camera's. The owner
+  // saw both ends of that, 2026-09-01.
+  //
+  // Perspective belongs to the camera and the camera does not change when the
+  // cat sits down. Anatomy may: the body is allowed to differ, and does, but
+  // only through factors declared against the camera's own numbers.
+  for (const view of ['front', 'back']) {
+    const seated = CatV2.catLayout('grooming-other', 0.3, { view });
+    const walking = CatV2.catLayout('walking', 0.3, { view });
+    close(
+      seated.head.r,
+      walking.head.r,
+      `the seated axial head is ${seated.head.r.toFixed(4)} facing ${view} against the `
+        + `walking cat's ${walking.head.r.toFixed(4)} -- a second depth cue on the camera's own`,
+    );
+  }
+
+  // And the body is DERIVED, not stated: its axes must be the camera's times
+  // the two declared seat factors. Stating them again is how the aspect drifted
+  // to 1.45 against the camera's 0.97 without anything noticing.
+  const C = CatV2.AXIAL_CAMERAS[CatV2.AXIAL.camera];
+  const G = CatV2.GROOM_OTHER;
+  const seated = CatV2.catLayout('grooming-other', 0.3, { view: 'front' });
+  const walking = CatV2.catLayout('walking', 0.3, { view: 'front' });
+  close(
+    seated.body.rx / walking.body.rx,
+    (C.bodyRx * G.axialSeatWide) / C.bodyRx,
+    'the seated axial width is not the camera\'s times `axialSeatWide`',
+  );
+  assert(
+    seated.body.ry / seated.body.rx < 1.35,
+    `the seated axial body's aspect is ${(seated.body.ry / seated.body.rx).toFixed(2)} -- `
+      + 'stretched again; the camera stands at 0.97 and the owner called 1.45 too much',
+  );
+});
+
 check('an axial cat paints its far legs first', () => {
   // Round 4 of the review, and a real paint-order bug: the renderer gives a
   // far leg the darker `furShade`, but the axial array was built in GAIT order

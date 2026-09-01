@@ -66,14 +66,34 @@ assert unpaid.get("play_duet", 0) <= 5.0, unpaid
 wet = {"wet_p": needflow.EXPOSURE["high"]}
 assert full(wet) == base_full, "factor 0 must be byte-identical"
 # ...and the ceiling gate holds: a zero ceiling means the charge never
-# lands (bug class: gate dropped)...
-assert full({**wet, "contagion": 1.0, "wet_ceiling": 0.0}) == base_full, \
-    "ceiling 0 must be byte-identical"
+# lands, so the ECONOMY is byte-identical (the diagnostic charge counters
+# still record skip events -- strip them; they are readout, not economy)...
+def economy(r):
+    return {k: v for k, v in r.items() if k != "contagion_charges"}
+assert economy(full({**wet, "contagion": 1.0, "wet_ceiling": 0.0})) == economy(base_full), \
+    "ceiling 0 must leave the economy byte-identical"
 # ...red: at factor 1 the charge lands and grooming absorbs it -- both
 # groom modes must rise (bug class: charge computed but never applied).
 charged = full({**wet, "contagion": 1.0})
 assert charged != base_full, "factor 1 must move the economy"
 assert charged["per_1k_cat_ticks"]["groom_other"] > base["groom_other"], charged
 assert charged["per_1k_cat_ticks"]["groom_self"] > base["groom_self"], charged
+
+# 6. Option A membership + adjacency (owner-ruled 2026-08-31; engine
+# @172fcd9): a referenced cat never pays for the asymmetric kinds, a wet
+# namer's scene charges nobody, a mid-scene adjacency lapse blocks the
+# charge, and play stays reciprocal (its dry member pays from either role)...
+ch = charged["contagion_charges"]
+assert ch["partner_asym"] == 0, ch
+assert ch["wet_namer_skip"] > 0, ch
+assert ch["nonadjacent_skip"] > 0, ch
+assert ch["partner_play"] > 0, ch
+# ...red: the retired coin-flip membership (the pre-ruling model -- the
+# exact pricing bug this section exists to catch) charges referenced cats
+# for asymmetric kinds and never skips a wet namer or a lapsed pair.
+retired = full({**wet, "contagion": 1.0, "membership": "coinflip-retired"})
+rch = retired["contagion_charges"]
+assert rch["partner_asym"] > 0, rch
+assert rch["wet_namer_skip"] == 0 and rch["nonadjacent_skip"] == 0, rch
 
 print("needflow guard: all green (each assertion shown red under its bug)")

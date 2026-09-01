@@ -1412,11 +1412,16 @@ function applyAxial(L, pose, phase, view, opts) {
     const nod = G.nod * Math.sin(phase * 3 * TAU);
     // One sign for both views, the way `ds` serves the axial walk.
     const reach = back ? -1 : 1;
-    const gRy = G.axialRy + 0.006 * breathe;
+    const gRy = C.bodyRy * G.axialSeatTall + 0.006 * breathe;
+    // Named once. The tail's reach and the raised-tail cue are both measured
+    // from the body's HALF-WIDTH, so they have to read the same number the
+    // body is built from -- leaving them on the retired `axialRx` placed the
+    // tail against a flank the cat no longer has.
+    const gRx = C.bodyRx * G.axialSeatWide;
     // The rump is ON the ground, so `cy + ry` is stated directly rather than
     // through `seatCy` -- there is no tilt end-on for `seatCy` to solve for,
     // and `axialBottom` is the same quantity spelled the way the pose reads.
-    L.body = { cx: 0.5, cy: G.axialBottom - gRy, rx: G.axialRx, ry: gRy, rot: 0 };
+    L.body = { cx: 0.5, cy: G.axialBottom - gRy, rx: gRx, ry: gRy, rot: 0 };
     const gR = (back ? C.headRBack : C.headRFront) * (1 + G.axialHeadNear * reach);
     L.head = { cx: 0.5, cy: (back ? C.headYBack : C.headYFront) + nod, r: gR };
     // The clearance floor is NOT applied here: `proportionLayout` moves this
@@ -1452,7 +1457,7 @@ function applyAxial(L, pose, phase, view, opts) {
       gLeg(-G.axialLegFar, true), gLeg(G.axialLegFar, true),
       gLeg(-G.axialLegNear, false), gLeg(G.axialLegNear, false),
     ];
-    const gTip = G.axialRx + G.axialTailOut * (back ? 1 : 0.6);
+    const gTip = gRx + G.axialTailOut * (back ? 1 : 0.6);
     const gStern = G.axialBottom - 0.03;
     if (back) {
       // Out at the flank and up, painted in FRONT like every other rear view.
@@ -1477,12 +1482,32 @@ function applyAxial(L, pose, phase, view, opts) {
       // `the rear groom tail clears the skull` pins the CONDITION rather than
       // the flag: move the tip inboard again and it fails first, saying that
       // the skull is back under the tail and the burial is needed again.
-      const up = 0.5 + G.axialRx * PROPORTION.bodyW;
+      // THE SAME TAIL AS THE AXIAL WALK, from the same dials (owner,
+      // 2026-09-01: "see north-facing groom-target cat in the card for an
+      // example of what it should look like" -- that cat is drawn through
+      // the standard axial branch). It had been a separate hand-rolled curve
+      // and it showed: base 0.500/0.840 to tip 0.721/0.190, a rise of 0.650
+      // of a box against the reference's 0.350. Nearly twice, and reaching
+      // higher than the head.
+      //
+      // NO declared difference at all -- the same tail, from the same dials.
+      //
+      // A first pass moved the base down to the seated stern, reasoning that
+      // a sitting cat's rump is on the ground. That is true of the rump and
+      // false of the DRAWING: the reference hides its base INSIDE the body on
+      // purpose, which is what leaves only the upper hook showing and makes
+      // the thing read as a curl. Started at the ground the whole length
+      // shows, and a tail that shows its whole length along the flank is a
+      // stripe, not a tail. The owner saw that immediately.
+      //
+      // No sway: `tailSway` rides the walk cycle and a seated cat has none.
+      // Its tip is therefore `tailOutX` exactly, which is idle's number too.
+      L.tailRaised = true;
       L.tail = {
-        x0: 0.5, y0: gStern,
-        c1x: 0.5 + (up - 0.5) * 1.1, c1y: gStern - 0.02,
-        c2x: up + 0.06, c2y: G.axialTailUpY + 0.2,
-        x1: up, y1: G.axialTailUpY,
+        x0: AXIAL.tailBaseX, y0: AXIAL.tailBaseY,
+        c1x: AXIAL.tailOutX + AXIAL.tailCurve, c1y: AXIAL.tailBaseY - 0.02,
+        c2x: AXIAL.tailOutX + AXIAL.tailCurve, c2y: AXIAL.tailTopY + 0.16,
+        x1: AXIAL.tailOutX, y1: AXIAL.tailTopY,
       };
     } else {
       L.tail = {
@@ -1651,9 +1676,32 @@ function clampAxialHead(L) {
   // skull swallowed this cue three rounds running; measuring the tip from the
   // head instead of from the flank makes that impossible rather than merely
   // noticed.
-  if (L.tailBehind && L.tail) {
+  // Whether the tail is BEHIND or in FRONT, the tip has to clear the skull.
+  // Behind, because the head hides it and only an outer arc would show;
+  // in front, because a stroked tail over the skull is a stick through the
+  // cat. Gating this on `tailBehind` meant it ran only in the case where it
+  // mattered less, and silently stopped running when the flag went.
+  if ((L.tailBehind || L.tailRaised) && L.tail) {
+    // Only if the tail ACTUALLY crosses the skull. This used to push on an
+    // x-only bound -- past the wider of head and body, always -- which for a
+    // tail that passes BESIDE the head at a different height is a shove it
+    // never needed, and it cost the tuck: the reference tails come back
+    // inside the body's own edge, and a tail held outside it reads as a
+    // stripe rather than a curl. The head is a circle; ask the circle.
+    const crosses = () => {
+      for (let i = 0; i <= 60; i += 1) {
+        const u = i / 60;
+        const m = 1 - u;
+        const px = m * m * m * L.tail.x0 + 3 * m * m * u * L.tail.c1x
+          + 3 * m * u * u * L.tail.c2x + u * u * u * L.tail.x1;
+        const py = m * m * m * L.tail.y0 + 3 * m * m * u * L.tail.c1y
+          + 3 * m * u * u * L.tail.c2y + u * u * u * L.tail.y1;
+        if (Math.hypot(px - L.head.cx, py - L.head.cy) < wide) return true;
+      }
+      return false;
+    };
     const clearX = 0.5 + Math.max(wide, L.body.rx) + GROOM_OTHER.axialTailClearHead;
-    const shift = clearX - L.tail.x1;
+    const shift = crosses() ? clearX - L.tail.x1 : 0;
     if (shift > 0) {
       L.tail = { ...L.tail, c1x: L.tail.c1x + shift * 0.85, c2x: L.tail.c2x + shift, x1: clearX };
     }
@@ -2355,6 +2403,38 @@ const GROOM_OTHER = {
   // --- Axial view (north/south) ---
   // A seated cat seen end-on is the narrowest and tallest it ever looks --
   // more so than the walking axial body, which is a standing ribcage.
+  // The seated end-on body, ANCHORED TO THE CAMERA rather than stated.
+  //
+  // Owner, 2026-09-01, after watching it in the world: the body is too
+  // stretched and does not line up with the other poses. It did not: it named
+  // its own `axialRx` 0.155 and `axialRy` 0.225 against a camera whose body is
+  // 0.185 x 0.18, an aspect of 1.45 against the standard 0.97.
+  //
+  // The two factors are the SIDE VIEW's own seated-versus-standing ratios,
+  // measured off the finished layouts rather than chosen: a seated cat is
+  // 0.86 as wide as a walking one (rx 0.3025 against 0.352) and about 1.10 as
+  // tall (groom-other ry 0.2418 against 0.2205). Read against those, the
+  // shipped width was nearly right -- 0.155 where the ratio gives 0.159 --
+  // and the HEIGHT was the outlier, 0.225 where it gives 0.198.
+  //
+  // One anchor, two declared differences, which is the same discipline the
+  // axial swim landed on. `axialBottom` is the third and it is the real
+  // seated fact: the rump is on the ground, not floating at the camera's
+  // standing 0.845.
+  // 1.0: sitting does NOT narrow a cat across the shoulders.
+  //
+  // This was 0.86 for one draft, taken from the side view's seated/standing
+  // `rx` ratio -- which is the wrong QUANTITY. Side `rx` is the body's LENGTH
+  // nose-to-tail, and sitting shortens that; axial `rx` is its WIDTH across
+  // the shoulders, and sitting does not touch it. The tell was that it left
+  // the seated body narrower than its own head (0.893 of it) where every
+  // reference pose is wider (1.038), and the tail then had nowhere to tuck.
+  axialSeatWide: 1,
+  // Height IS a seated difference, and this one the side view can speak to:
+  // 1.10 is `grooming-other`'s own side ry against walking's, 0.2418/0.2205.
+  axialSeatTall: 1.1,
+  // The pre-2026-09-01 drawing, kept because the lab's before-column replays
+  // it. Nothing reads these in the pose any more.
   axialRx: 0.155,
   axialRy: 0.225,
   axialBottom: 0.88, // the rump is ON the ground; CAT_GROUND, stated as geometry
@@ -2367,7 +2447,14 @@ const GROOM_OTHER = {
   // nothing anywhere in its range. A dead control is worse than a missing one,
   // and the comment claiming the drop was half the cue was simply false --
   // size carries it alone.
-  axialHeadNear: 0.14, // signed by view: +south, -north
+  // ZERO since 2026-09-01. This applied a further +/-14% to a head radius the
+  // CAMERA has already sized for depth -- `headRFront` 0.232 against
+  // `headRBack` 0.196 IS the near/far cue -- so the south head was drawn 14%
+  // larger than a walking cat's and the north 14% smaller. The owner saw both.
+  // It is the same fault the one-lens rule was written for: perspective
+  // belongs to the camera, and the camera does not change when the cat turns
+  // round. Kept as a dial so the cue can be put back deliberately.
+  axialHeadNear: 0, // signed by view: +south, -north
   // The skull must stand this share of its own DIAMETER above the body's top.
   //
   // Was an absolute gap (0.1 of a box), and that is why the rear view kept
