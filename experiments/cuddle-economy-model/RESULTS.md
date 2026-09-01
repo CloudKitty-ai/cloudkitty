@@ -172,3 +172,78 @@ Readings:
 Limits: scripted greedy chooser (comparative, not a forecast of the
 frozen roster); bath_ratio 1; charge-blind chooser as disclosed in
 the post-041 section.
+
+## Contagion re-priced under Option A membership (2026-08-31)
+
+Pre-flip gate from `../contagion-pricing-option-a-handoff-2026-08-31.md`:
+the 2026-08-30 table above priced the charge with a coin-flip payer,
+but the shipped rule (Option A, own-activity membership; adjacency
+amendment @172fcd9) charges only the NAMER, and only while the pair is
+currently adjacent. `needflow.py` now models the shipped rule
+(`membership="option_a"`, the default); the coin-flip survives as
+`"coinflip-retired"`, the guard's red arm, and replays the old model
+draw-for-draw (verified: 1.0 x high reproduces the published row to
+the decimal). Raw: `results-raw-optiona-rerun.json` (uncommitted).
+
+Run at BOTH economies, because the flip lands on a serving world that
+carries the temporary groom bump (2.0) until Gen 1 reseating, while
+0.5 stays the canonical design truth the earlier table used.
+
+Canonical economy (groom_cuddle 0.5; compare the 2026-08-30 table):
+
+| arm | groom self/other | cosleep | rest | duet | mean bath | happiness |
+|---|---|---|---|---|---|---|
+| baseline (0) | 4.3 / 15.8 | 16.7 | 12.8 | 27.0 | 5.23 | 95.36 |
+| 1.0 x low | 5.0 / 17.6 | 16.7 | 12.7 | 26.4 | 5.15 | 95.38 |
+| 1.0 x high | 5.9 / 20.9 | 16.6 | 12.3 | 26.3 | 5.10 | 95.37 |
+
+(0.25/0.5 arms sit between; all seven happiness values span
+95.36–95.39.)
+
+Serving economy (groom_cuddle 2.0, the world the flip deploys onto):
+
+| arm | groom self/other | cosleep | rest | duet | mean bath | happiness |
+|---|---|---|---|---|---|---|
+| baseline (0) | 1.6 / 27.8 | 17.2 | 5.7 | 28.1 | 3.45 | 95.83 |
+| 1.0 x low | 1.9 / 30.0 | 17.3 | 5.1 | 27.9 | 3.48 | 95.86 |
+| 1.0 x high | 2.5 / 34.2 | 17.0 | 4.4 | 27.7 | 3.54 | 95.88 |
+
+Readings:
+
+1. **The welfare-benign conclusion SURVIVES the membership
+   correction, at both economies.** Canonical: happiness 95.36–95.39
+   across all arms (the coin-flip table spanned 95.33–95.41).
+   Serving: 95.83–95.88. The factor-1.0 ruling stands from the
+   pricing side.
+2. **Option A deletes roughly half the asymmetric-kind charge, as
+   predicted at acceptance.** Worst case (1.0 x high, canonical):
+   2,996 initiator charges vs 2,751 wet-namer skips — 48% of
+   qualifying scene-ticks charge nobody because the wet member is the
+   namer. Adjacency lapses remove another ~4% (226 skips). Grooming
+   still absorbs what remains (groom_other +32%, groom_self +39% at
+   worst case — the coin-flip's +34%/+68%, attenuated).
+3. **Incidence concentrates on initiators by construction** —
+   `partner_asym` charges are structurally zero (guard-pinned, red
+   arm = the retired coin-flip). Per-seat tails stay the scripted
+   anchor probe's job; a groom-heavy seat pays more often but each
+   charge is the same size, and seat `bath_ratio` (0.5–2.0x) still
+   scales it.
+4. **On the serving economy the rest niche gives ground** (5.7 →
+   4.4/1k at worst case) — the same scripted-chooser displacement
+   artifact disclosed in the groom-bump section, not a frozen-roster
+   prediction; frozen incumbents re-decide nothing.
+
+**Owner note (2026-08-31), the unintuitive dynamic, on the record**:
+one would assume any wet-cat + dry-cat pairing ends as two wet cats —
+but under Option A wetness follows the NAMING, not the contact. A wet
+groomer licking a dry groomee wets nobody (the groomee's own activity
+names no one), which is exactly the half of the charge the coin-flip
+model was overcounting. Ruled a reasonable starting point. If dry
+cats avoiding the water's edge to dodge wet friends turns out to be
+acceptable behavior to see, the charge can be made bidirectional in a
+future generation — that is a design option, not a defect.
+
+Limits: the standing ones (scripted greedy chooser, bath_ratio 1,
+charge-blind chooser, wet member's own occupancy unmodeled), and the
+coin-flip's undisclosed-membership gap is hereby closed: membership
+now matches the shipped engine rule exactly.
