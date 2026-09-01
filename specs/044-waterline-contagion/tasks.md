@@ -59,7 +59,7 @@
 
 - [ ] T010 [US3] Widen the budget in `validate_water` (crates/cloudkitty-core/src/config/validate.rs:600-632): `max_charge = gain * max_ratio * factor.max(1.0)`; extend the error text with the contagion remedy (lower the factor) while keeping the existing remedies verbatim
 - [ ] T011 [US3] Re-run the sweeps: `cargo test --test shipped_configs` and `cargo test -p cloudkitty-rl --test shipped_configs_rl` — green with zero config edits (FR-011, SC-006); record counts in redden-list header
-- [ ] T012 [US3] Amend/extend commit 1: full `cargo test --workspace`, READ THE COUNT, then commit "spec 044 commit 1b: validate_water budget widened to max(1, factor)" (or squash into 1a if 1a is unpushed — one inert config commit is the plan's shape)
+- [ ] T012 [US3] Complete commit 1: full `cargo test --workspace`, READ THE COUNT, then amend/squash into T008's commit so ONE inert config-surface commit lands (the plan's two-commit shape; 1a is unpushed, so amending is safe)
 
 **Checkpoint**: commit 1 complete — config surface + full validation, still byte-inert.
 
@@ -75,9 +75,9 @@
 
 - [ ] T013 [US2] Create crates/cloudkitty-core/tests/waterline_contagion.rs with the harness: a small generated world with one permanent water tile (reuse the `water_safeguard.rs` pinned-world idiom), helpers to place two cats adjacent, set activities directly, tick once, and read bath deltas; plus a `charge(config, id)` = `contagion_factor × bath_gain × bath_ratio(id)` expectation helper
 - [ ] T014 [US2] Accrual tests, one per paired kind (FR-003, SC-002): dry cat Resting{with_friend}, Sleeping{with_friend}, Playing{kitty target}, Grooming{target} beside a wet partner accrues `ambient + charge` to tolerance. Red-first: file runs before T018 → all four fail with no-accrual (predict exact expected-vs-actual), record, keep red until T018
-- [ ] T015 [P] [US2] Exemption + gate tests (FR-004, FR-005, SC-003): wet member's rise is exactly occupancy (never + contagion); dry member at/above ceiling accrues ambient only; overshoot bounded by one scaled charge just under the ceiling
-- [ ] T016 [P] [US2] Nothing-case tests (spec edge cases + clarified Option A): both-dry, both-wet, critter-play target, idle groomee of a wet groomer (asymmetric reference — THE Option A pin), solo activities; each accrues ambient only
-- [ ] T017 [P] [US2] Armed determinism test (FR-008, SC-005): two same-seed runs at factor 1.0 for 500 ticks produce identical serialized streams; and a factor-0.0 run's stream is identical to a build-without-collection run (assert the pre-loop collection is gated: factor 0.0 world equals baseline world byte-for-byte over the run)
+- [ ] T015 [US2] Exemption + gate tests (FR-004, FR-005, SC-003): wet member's rise is exactly occupancy (never + contagion); dry member at/above ceiling accrues ambient only; overshoot bounded by one scaled charge just under the ceiling
+- [ ] T016 [US2] Nothing-case tests (spec edge cases + clarified Option A): both-dry, both-wet, critter-play target, idle groomee of a wet groomer (asymmetric reference — THE Option A pin), solo activities; each accrues ambient only
+- [ ] T017 [US2] Armed determinism test (FR-008, SC-005): two same-seed runs at factor 1.0 for 500 ticks produce identical serialized streams; and an explicit `contagion_factor = 0.0` config run is byte-identical to a default (key-absent) config run over the same span (pins spec US1 scenario 2: explicit zero ≡ absent, everywhere)
 
 ### Implementation for User Story 2
 
@@ -104,7 +104,7 @@
 - **Setup (T001–T002)** → everything.
 - **US1 (T003–T008)**: T003/T004 written first (red = compile fail), T005 → T006 → T007 → T008. T004 parallel with T003 (different files).
 - **US3 (T009–T012)**: after T006 (needs the field + bounds); T009 before T010 (red-first).
-- **US2 (T013–T021)**: after commit 1 (needs the validated field); T013 → T014, then T015/T016/T017 in parallel (same file, but independent test fns — write sequentially in one pass if simpler); T018 after all US2 tests exist and are red; T019 → T020 → T021.
+- **US2 (T013–T021)**: after commit 1 (needs the validated field); T013 → T014 → T015 → T016 → T017 sequentially (one file, independent test fns); T018 after all US2 tests exist and are red; T019 → T020 → T021.
 - **Polish (T022–T025)**: after US2. T022/T023 parallel.
 
 ### Independent test criteria
