@@ -46,6 +46,16 @@ especially), happiness/bath levels vs the needflow predictions
 (coin-flip table superseded; Option A + bidirectional tables in
 `cuddle-economy-model/RESULTS.md`).
 
+Readout expectation (from the 045 value-shape review, 2026-08-31):
+the ladder prices only candidates wet NOW — mid-scene waterline
+crossings (the bulk of the measured wet_p exposure) are neither
+charged nor discounted at selection. So arms C/D can express
+avoidance of WET partners (cross-waterline adjacency should move)
+but not anticipatory avoidance of edge-loitering dry partners
+(water-adjacent share may barely move). A flat water-adjacent share
+is NOT evidence of no edge behavior; weigh the cross-adjacency
+readout first.
+
 ## Decision rule (bars pinned at prereg, shape declared now)
 
 - E must show the avoidance signature (water-adjacent share and/or
