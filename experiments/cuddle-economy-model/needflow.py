@@ -61,6 +61,9 @@ def econ_from_config(path=CONFIG):
         wet_ceiling=w.get("bath_gain_ceiling", 60.0),
         contagion=0.0,                        # proposed factor; 0.0 = today
         wet_p={},                             # kind -> P(cross-waterline | scene-tick)
+        membership="option_a",                # shipped rule; "coinflip-retired"
+                                              # = the pre-ruling model, kept as
+                                              # the guard's red arm
         dur={k: (v["min"], v["max"]) for k, v in a["durations"].items()},
     )
 
@@ -102,6 +105,8 @@ def sim(overrides=None, ticks=30000, seed=7):
         for j in range(i + 1, NCATS):
             adj[(i, j)] = rng.random() < P_ADJ
     scenes = {}                                    # kind -> count
+    charges = {"initiator": 0, "partner_play": 0, "partner_asym": 0,
+               "wet_namer_skip": 0, "nonadjacent_skip": 0}
     need_sums = {k: 0.0 for k in NEEDS}
     idle_ticks = 0
     free_ticks = 0
@@ -177,19 +182,42 @@ def sim(overrides=None, ticks=30000, seed=7):
             for k, r in pp.items():
                 partner.needs[k] = max(0.0, partner.needs[k] - r)
         if partner is not None and econ["contagion"] > 0.0:
-            # With the measured cross-waterline probability for this kind,
-            # one member (whoever loiters near water) is wet and the DRY one
-            # pays contagion x bath_gain, ceiling-gated like the engine's
-            # occupancy charge. bath_ratio is 1 under global rates (real
-            # seats span 0.5-2.0x); the wet member's own occupancy charge is
-            # unmodeled, as is all water occupancy in the baseline. The
-            # chooser stays charge-blind: incumbents never priced it, and
-            # the scripted ladder's stance is the anchor probe's question.
+            # Membership per the shipped Option A rule + adjacency amendment
+            # (owner-ruled 2026-08-31; engine @172fcd9 on 044-waterline-
+            # contagion): the payer's OWN activity must name the partner AND
+            # the pair must be currently adjacent. The scene holder is the
+            # namer here — the engine leaves the partner free for cosleep/
+            # groom/rest — so for those kinds only `cat` can pay, and only
+            # when the PARTNER is the wet member; a wet namer's scene
+            # charges nobody. play_duet is reciprocal (both name each
+            # other), so its dry member pays either way. The second coin
+            # now decides WHO IS WET (the measured windows are scene-level,
+            # not role-split), no longer who pays; "coinflip-retired"
+            # replays the pre-ruling model draw-for-draw as the guard's red
+            # arm. bath_ratio is 1 under global rates (real seats span
+            # 0.5-2.0x); the wet member's own occupancy charge is unmodeled,
+            # as is all water occupancy in the baseline. The chooser stays
+            # charge-blind: incumbents never priced it, and the scripted
+            # ladder's stance is the anchor probe's question.
             if wet_rng.random() < econ["wet_p"].get(sc["kind"], 0.0):
-                dry = cat if wet_rng.random() < 0.5 else partner
-                if dry.needs["bath"] < econ["wet_ceiling"]:
-                    dry.needs["bath"] = min(
-                        100.0, dry.needs["bath"] + econ["contagion"] * econ["wet_gain"])
+                wet_is_partner = wet_rng.random() < 0.5
+                retired = econ["membership"] == "coinflip-retired"
+                if retired or sc["kind"] == "play_duet":
+                    payer = cat if wet_is_partner else partner
+                    role = "initiator" if wet_is_partner else (
+                        "partner_play" if sc["kind"] == "play_duet"
+                        else "partner_asym")
+                else:
+                    payer, role = (cat, "initiator") if wet_is_partner else (None, None)
+                pair = (min(cat.i, sc["partner"]), max(cat.i, sc["partner"]))
+                if payer is None:
+                    charges["wet_namer_skip"] += 1
+                elif not retired and not adj[pair]:
+                    charges["nonadjacent_skip"] += 1
+                elif payer.needs["bath"] < econ["wet_ceiling"]:
+                    payer.needs["bath"] = min(
+                        100.0, payer.needs["bath"] + econ["contagion"] * econ["wet_gain"])
+                    charges[role] += 1
         sc["elapsed"] += 1
         mn, mx = dur_of[sc["kind"]]
         who, k = primary[sc["kind"]]
@@ -260,7 +288,8 @@ def sim(overrides=None, ticks=30000, seed=7):
     return dict(scenes=scenes, per_1k_cat_ticks={k: round(v, 2) for k, v in per1k.items()},
                 mean_needs={k: round(v, 2) for k, v in means.items()},
                 mean_happiness=round(happy, 2),
-                idle_share_of_free=round(idle_ticks / max(1, free_ticks), 3))
+                idle_share_of_free=round(idle_ticks / max(1, free_ticks), 3),
+                contagion_charges=charges)
 
 
 # Cross-waterline share of pair-ticks, per paired kind: the two measured
