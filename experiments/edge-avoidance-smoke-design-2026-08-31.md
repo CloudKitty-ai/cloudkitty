@@ -73,16 +73,18 @@ readout first.
 
 ## Dependencies (block collection, not this design)
 
-1. **044 merged** (inert; arms set the dial in lab configs only).
+1. **044 merged** — DONE 2026-08-31 (PR #334 → main 74537e4, CI
+   green; inert; arms set the dial in lab configs only).
 2. **A `contagion_membership` config dial** (option_a | bidirectional,
-   default option_a) — engine charge-filter branch, lab-use;
-   Product's lane, small. NOT YET REQUESTED — handoff awaits the
-   owner's word.
-3. **A charge-aware ladder option** for the scripted chooser (weigh
-   expected contagion exposure in scene value), config-gated,
-   default off — Product's lane; the larger of the two. NOT YET
-   REQUESTED — same word. Its design should reuse the needflow value
-   shape (charge x expected scene-ticks against the payer's bath).
+   default option_a) — IN SPEC 045 (Product, drafting 2026-08-31).
+3. **A charge-aware ladder option** for the scripted chooser,
+   config-gated `contagion_aware_ladder`, default off (deliberately
+   NOT auto-on with the factor — arm B needs the separation) — IN
+   SPEC 045. Value shape reviewed by Experiments at plan time
+   (scene-total exposure, needflow-derived; three adjustments filed:
+   E_ticks horizon must match the relief term's, the groom-decline
+   seam must value the scene scene-total, wet-now-only pricing
+   disclosed → the readout expectation above).
 4. Instrument --base flag (Experiments, trivial).
 
 ## Sequencing
