@@ -1369,6 +1369,23 @@ mod tests {
     }
 
     #[test]
+    fn default_retention_covers_the_baseline_window() {
+        // Spec 046 US2-1 / FR-004: Experiments' first live baseline reads a
+        // >= 15,000-tick window at ~0.23 TAXED refusals/tick on the 5-seat
+        // roster => >= 3,450 taxed events, floored at 3,500. The absorbed
+        // term rides on top and is UNMEASURED until that baseline, so 4,000
+        // is a floor, not a fit -- shrink the default below the window and
+        // this line reddens before the census silently truncates.
+        assert!(
+            default_refusal_retention() >= 3_500,
+            "refusal_retention default {} < 3,500: the >=15k-tick baseline window \
+             (15,000 x ~0.23 taxed/tick, absorbed term unmeasured on top) no \
+             longer fits the ring",
+            default_refusal_retention()
+        );
+    }
+
+    #[test]
     fn refusal_retention_zero_is_rejected_and_one_accepted() {
         // Spec 046 US2-3: the engine refuses what it will not honor -- a
         // zero ring silently degrades to one, so zero is rejected up front
@@ -2814,6 +2831,35 @@ mod tests {
             !json.contains("contagion_aware_ladder"),
             "contagion_aware_ladder leaked into the stamp: {json}"
         );
+        // Spec 046: the refusal ring's retention rides the same discipline
+        // -- an unset (or explicitly-default) knob must not move the stamp.
+        // Delete its skip attribute and this line reddens.
+        assert!(
+            !json.contains("refusal_retention"),
+            "refusal_retention leaked into the stamp: {json}"
+        );
+    }
+
+    #[test]
+    fn refusal_retention_explicit_default_equals_absent() {
+        // Spec 046 US3-3 / SC-004: the skip helper is keyed to the default
+        // VALUE (043/045 precedent), so a config spelling out 4000 parses AND
+        // serializes identically to one omitting the key -- neither can move
+        // `engine_defaults_sha256`.
+        let explicit: EventsConfig =
+            toml::from_str("distress_retention = 1000\nrefusal_retention = 4000")
+                .expect("explicit default parses");
+        let absent: EventsConfig =
+            toml::from_str("distress_retention = 1000").expect("absent key parses");
+        assert_eq!(explicit, absent, "explicit 4000 IS the absent default");
+        assert_eq!(
+            serde_json::to_string(&explicit).unwrap(),
+            serde_json::to_string(&absent).unwrap(),
+            "and both serialize without the key"
+        );
+        assert!(!serde_json::to_string(&explicit)
+            .unwrap()
+            .contains("refusal_retention"));
     }
 
     #[test]

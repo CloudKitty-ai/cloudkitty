@@ -15,6 +15,14 @@
 //! (one earlier) was verified byte-identical against the previous pin
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
+//!
+//! Regenerated at spec 046 (2026-09-01): the refusal ring rides the
+//! serialized world, so the digest moves for the additive field alone.
+//! Continuity witness before regenerating: the 10k-tick world's JSON with
+//! the `refusal_log` key stripped digests to EXACTLY the 041 pin
+//! (7b361b2a…) — dynamics, RNG state, and every sibling field are
+//! byte-identical; only the new ring differs. Recorded in
+//! specs/046-refusal-stamp/redden-list.md.
 
 use std::sync::Arc;
 
@@ -22,10 +30,11 @@ use cloudkitty_core::{BehaviorRegistry, Config, World};
 use sha2::{Digest, Sha256};
 
 /// sha256 of the serialized world after 10,000 ticks of the default
-/// config (scripted behaviors, default seed), generated at spec 041's
-/// engine-sibling commit.
-const GOLDEN_DIGEST_SPEC_041_SIBLING: &str =
-    "7b361b2a5582d33efd96d8d64ef5be73d890c76e9d9751e57453e37f44ec17ad";
+/// config (scripted behaviors, default seed), generated at spec 046
+/// (refusal ring rides the serialization; dynamics proven unmoved via the
+/// strip witness above).
+const GOLDEN_DIGEST_SPEC_046: &str =
+    "04102fe4c43fa7e7fb2594840973158cfbdccdcce30e7ec82573dcbd0773636f";
 
 fn digest_after(ticks: u64) -> String {
     let config = Arc::new(Config::default());
@@ -49,7 +58,7 @@ fn digest_after(ticks: u64) -> String {
 fn golden_evolution_flag_absent_10k_ticks() {
     assert_eq!(
         digest_after(10_000),
-        GOLDEN_DIGEST_SPEC_041_SIBLING,
+        GOLDEN_DIGEST_SPEC_046,
         "flag-absent world evolution diverged from the pinned generation"
     );
 }

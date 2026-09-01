@@ -34,8 +34,13 @@ routine). Each entry shows `kitty_id`, the verbatim `proposed` action
 
 Seeded twin runs, pre-branch build vs 046 build, same config + seed:
 diff the kitty traces (needs/positions/actions/messages). Expected:
-identical. The evolution golden test is the in-suite version of this —
-it must pass **unregenerated**.
+identical. The evolution golden test is the in-suite version of this.
+Note (implementation finding, 2026-09-01): the golden hashes the
+SERIALIZED world, which now carries the additive ring — it cannot pass
+unregenerated (041 precedent). The equivalent proof, run before
+regenerating: the 10k-tick world's JSON with the `refusal_log` key
+stripped digests to exactly the prior pin — dynamics, RNG, and every
+sibling field byte-identical (redden-list T020 note).
 
 ## 4. Additivity checks (SC-004 / FR-006)
 

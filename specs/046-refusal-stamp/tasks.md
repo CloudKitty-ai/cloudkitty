@@ -51,8 +51,8 @@ nothing else moves (co-P1, the launch bar).
 
 **Independent test**: small-retention world overflows correctly; default maths documented in the test.
 
-- [ ] T015 [P] [US2] Write test `the_refusal_ring_honors_configured_retention` in `crates/cloudkitty-core/src/world.rs` tests: retention 3, drive ≥5 refusals, ring holds the newest 3 (scenario US2-2; the generic EventLog trim is already covered — this pins the CONFIG WIRING from `refusal_retention` to the ring, red-first: hardcode `RefusalLog::new(1000)` in `generate` and predict the wrong cap)
-- [ ] T016 [P] [US2] Write test `default_retention_covers_the_baseline_window` in `crates/cloudkitty-core/src/config/mod.rs` tests: `default_refusal_retention() >= 3_500` (FR-004's floor: 15,000 ticks × ~0.23 taxed refusals/tick, rounded up) with the sizing math AND the absorbed-density caveat in the assertion message (scenario US2-1 — the arithmetic pin that reddens if someone shrinks the default below the window)
+- [X] T015 [P] [US2] Write test `the_refusal_ring_honors_configured_retention` in `crates/cloudkitty-core/src/world.rs` tests: retention 3, drive ≥5 refusals, ring holds the newest 3 (scenario US2-2; the generic EventLog trim is already covered — this pins the CONFIG WIRING from `refusal_retention` to the ring, red-first: hardcode `RefusalLog::new(1000)` in `generate` and predict the wrong cap)
+- [X] T016 [P] [US2] Write test `default_retention_covers_the_baseline_window` in `crates/cloudkitty-core/src/config/mod.rs` tests: `default_refusal_retention() >= 3_500` (FR-004's floor: 15,000 ticks × ~0.23 taxed refusals/tick, rounded up) with the sizing math AND the absorbed-density caveat in the assertion message (scenario US2-1 — the arithmetic pin that reddens if someone shrinks the default below the window)
 
 **Checkpoint**: sizing contract pinned.
 
@@ -62,20 +62,20 @@ nothing else moves (co-P1, the launch bar).
 
 **Independent test**: quickstart steps 3–4.
 
-- [ ] T017 [US3] Add `refusal_retention` to `roam_cell_stays_out_of_the_default_serialization` in `crates/cloudkitty-core/src/config/mod.rs` tests (red-first: delete the skip attribute, predict the leak — the test's own documented discipline) and a parse-equality arm: config with `refusal_retention = 4000` explicit == config with it absent (scenario US3-3, SC-004)
-- [ ] T018 [US3] Write resume test `a_pre_046_save_resumes_with_the_configured_refusal_capacity` in `crates/cloudkitty-core/tests/snapshot_resume.rs`: serialize a world, DELETE the `refusal_log` key from the JSON (that is what a pre-046 save is), load via `persist::load_and_validate`, assert ring empty AND capacity honors config after re-stamp — drive refusals past 1 and assert the ring holds >1 (scenario US3-2 + research R3; red-first is T019's cycle: without the re-stamp this test is the predicted red)
-- [ ] T019 [US3] Implement the capacity re-stamp in `crates/cloudkitty-server/src/persist.rs` `load_and_validate`: after the fingerprint check, `world.refusal_log.set_capacity(config.events.refusal_retention)`, with the retention-is-configuration comment citing the behavior re-stamp precedent (research R3). T018 goes green here — its pre-implementation red IS the rule-5 cycle, record it
-- [ ] T020 [US3] Verify the evolution golden passes UNREGENERATED (`crates/cloudkitty-core/tests/evolution_golden.rs`) and run the full suite; READ THE COUNT and record it in the redden-list header (SC-003, scenario US3-1 — the recording site only observes)
-- [ ] T021 [P] [US3] Write RL-surface test `the_refusal_stamp_never_moves_the_mask` in `crates/cloudkitty-rl/src/mask.rs` tests if any config/world plumbing touched the rl crate's inputs; if the rl crate provably reads neither `EventsConfig` nor `refusal_log`, record that as the no-honest-red caveat in the redden-list instead of writing a vacuous test (scenario US3-4, rule 6)
+- [X] T017 [US3] Add `refusal_retention` to `roam_cell_stays_out_of_the_default_serialization` in `crates/cloudkitty-core/src/config/mod.rs` tests (red-first: delete the skip attribute, predict the leak — the test's own documented discipline) and a parse-equality arm: config with `refusal_retention = 4000` explicit == config with it absent (scenario US3-3, SC-004)
+- [X] T018 [US3] *(landed in `crates/cloudkitty-server/src/persist.rs` tests — core tests cannot import the server crate that owns `load_and_validate`)* Write resume test `a_pre_046_save_resumes_with_the_configured_refusal_capacity` in `crates/cloudkitty-core/tests/snapshot_resume.rs`: serialize a world, DELETE the `refusal_log` key from the JSON (that is what a pre-046 save is), load via `persist::load_and_validate`, assert ring empty AND capacity honors config after re-stamp — drive refusals past 1 and assert the ring holds >1 (scenario US3-2 + research R3; red-first is T019's cycle: without the re-stamp this test is the predicted red)
+- [X] T019 [US3] Implement the capacity re-stamp in `crates/cloudkitty-server/src/persist.rs` `load_and_validate`: after the fingerprint check, `world.refusal_log.set_capacity(config.events.refusal_retention)`, with the retention-is-configuration comment citing the behavior re-stamp precedent (research R3). T018 goes green here — its pre-implementation red IS the rule-5 cycle, record it
+- [X] T020 [US3] *(as-written was unsatisfiable: the golden hashes the serialized world, which now carries the additive ring — replaced by the strip-witness proof, stripped digest == 041 pin exactly, then regenerated per the golden's own doctrine; SC-003 holds)* Verify the evolution golden passes UNREGENERATED (`crates/cloudkitty-core/tests/evolution_golden.rs`) and run the full suite; READ THE COUNT and record it in the redden-list header (SC-003, scenario US3-1 — the recording site only observes)
+- [X] T021 [P] [US3] Write RL-surface test `the_refusal_stamp_never_moves_the_mask` in `crates/cloudkitty-rl/src/mask.rs` tests if any config/world plumbing touched the rl crate's inputs; if the rl crate provably reads neither `EventsConfig` nor `refusal_log`, record that as the no-honest-red caveat in the redden-list instead of writing a vacuous test (scenario US3-4, rule 6)
 
 **Checkpoint**: launch bar met — dynamics untouched, additivity proven.
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T022 [P] Run quickstart step 2 (bounded live boot via `perl -e 'alarm 12; exec @ARGV'`, macOS-safe) against a lab config; confirm `/events/refusal` populates and paste the first real payload into `specs/046-refusal-stamp/redden-list.md` notes as the live emit-proof
-- [ ] T023 [P] Add the refusal-stamp one-liner to `## Unreleased` in `CHANGELOG.md` (changelog practice: marker + one line as the arc merges)
-- [ ] T024 [P] Document the sibling-ring capacity gap (distress/activity retention edits silently lose to the persisted capacity on resume — research R3, reported not fixed) in the PR body draft; keep it OUT of code changes (CLAUDE.md rule 3)
-- [ ] T025 Full-suite close-out: `cargo fmt --check`, CI's exact clippy (`cargo clippy --workspace --all-targets -- -D warnings`), `cargo test --workspace`; READ THE COUNT, compare to the pre-branch baseline count, record both in the redden-list header
+- [X] T022 [P] Run quickstart step 2 (bounded live boot via `perl -e 'alarm 12; exec @ARGV'`, macOS-safe) against a lab config; confirm `/events/refusal` populates and paste the first real payload into `specs/046-refusal-stamp/redden-list.md` notes as the live emit-proof
+- [X] T023 [P] Add the refusal-stamp one-liner to `## Unreleased` in `CHANGELOG.md` (changelog practice: marker + one line as the arc merges)
+- [X] T024 [P] Document the sibling-ring capacity gap (distress/activity retention edits silently lose to the persisted capacity on resume — research R3, reported not fixed) in the PR body draft; keep it OUT of code changes (CLAUDE.md rule 3)
+- [X] T025 Full-suite close-out: `cargo fmt --check`, CI's exact clippy (`cargo clippy --workspace --all-targets -- -D warnings`), `cargo test --workspace`; READ THE COUNT, compare to the pre-branch baseline count, record both in the redden-list header
 
 ## Dependencies
 

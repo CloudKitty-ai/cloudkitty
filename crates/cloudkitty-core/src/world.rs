@@ -23,7 +23,9 @@ use crate::action::TargetRef;
 use crate::behavior::{gather_decisions, BehaviorRegistry};
 use crate::config::Config;
 use crate::element::{Element, ElementId, ElementKind, ElementType};
-use crate::events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog};
+use crate::events::{
+    ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog,
+};
 use crate::grid::{Direction, Position};
 use crate::invariants;
 use crate::kitty::{Activity, Kitty, KittyId};
@@ -2881,13 +2883,35 @@ mod tests {
         // Both scenes really did continue (the flag told the truth).
         for id in [1, 2] {
             assert!(
-                matches!(
-                    world.kitty(id).unwrap().activity,
-                    Activity::Sleeping { .. }
-                ),
+                matches!(world.kitty(id).unwrap().activity, Activity::Sleeping { .. }),
                 "kitty {id} kept sleeping through the minimum"
             );
         }
+    }
+
+    #[test]
+    fn the_refusal_ring_honors_configured_retention() {
+        // Spec 046 US2-2: the generic EventLog trim is covered in events.rs;
+        // this pins the CONFIG WIRING -- `[events] refusal_retention` is the
+        // capacity `World::generate` actually hands the ring.
+        let mut config = test_config();
+        config.events.refusal_retention = 3;
+        config.validate().expect("retention 3 is legal");
+        let mut world = World::generate(&config);
+
+        // Five refusals: a stray Purr each tick (always refused, no scene).
+        for _ in 0..5 {
+            let mut proposals = crate::seam::JointProposal::new();
+            proposals.propose(1, Action::Purr);
+            world.tick_with_proposals(&proposals, &config);
+        }
+
+        let ticks: Vec<u64> = world.refusal_log.to_vec().iter().map(|e| e.tick).collect();
+        assert_eq!(
+            ticks,
+            vec![2, 3, 4],
+            "the ring holds the newest 3 of 5, oldest dropped first"
+        );
     }
 
     #[test]
