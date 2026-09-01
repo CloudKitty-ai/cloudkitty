@@ -106,3 +106,44 @@ reusable when contagion reopens.
 At reopen: F-035 stands as pricing input only if the charge formula,
 ladder value shape, and E_ticks bounds are unchanged; otherwise the
 smoke reruns (its prereg, driver, and configs are committed).
+
+## Plumbing the wet-side vector needs (owner asked 2026-09-01)
+
+For a wet learner to understand the price of interacting with a dry
+friend, three pieces, the first being the hard one.
+
+1. **An incentive that can be collected.** The wet member is exempt
+   today, so there is nothing to learn. The obvious third membership
+   option (charge the wet cat's bath for pairing with a dry friend) has
+   a collection problem: the wet cat already pays occupancy and sits
+   near the bath ceiling, and the ceiling gate zeroes any charge at bath
+   ≥ ceiling (045's "never price what can't be collected"). A wet-side
+   bath charge prices at zero for exactly the soaked cat it should
+   deter. Alternatives, each needing its own needflow pass and a
+   `validate_water`-style budget: land it on a different need (cuddle
+   or happiness, stretching the wet-fur semantics), or a prosocial
+   reward term (the partner's bath delta enters the actor's training
+   reward). The reward term has no served surface, so it is invisible
+   to the watchdog and the census and shapes only learners, never
+   scripted seats. Price-not-law stands either way; the legality funnel
+   and mask do not move.
+2. **Observability.** Half exists: the self block carries a
+   tile-derived in-water flag (schema 2,
+   `crates/cloudkitty-rl/src/observe.rs`), so a wet learner knows it is
+   wet. The other half is the neighbour-in-water float on `KITTY_SLOT`
+   (wall-gated; reopen trigger 1). One float serves both directions: a
+   dry cat reads a wet neighbour as 1, a wet cat reads a dry neighbour
+   as 0. Without it, dryness is only inferable by comparing a
+   neighbour's relative position against the water slots, too weak to
+   learn from.
+3. **A teacher that does it.** BC clones imitate the scripted chooser,
+   and 045's aware ladder prices only the dry side's seams (selection,
+   play_score, groom-decline, cosleep pick). A wet-side seam is needed
+   (wet groomer declines a dry groomee, wet cat skips a dry cosleep
+   pick) or the corpus carries no wet-side avoidance to copy, and the
+   clones inherit the teacher's blindness however the reward is shaped.
+
+Mitigating fact: wetness is wet-now, tile-derived, no timer. A wet cat
+that wants a dry friend just steps out first, so any wet-side price
+mostly teaches "leave the pond before you groom", which is likely the
+behavior wanted anyway.
