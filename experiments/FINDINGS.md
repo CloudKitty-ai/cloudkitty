@@ -1906,3 +1906,43 @@ Separate fact the probe surfaced: the budget DOES buy action
 fidelity — act@1 +1.6–2.0 points on every arm (.80 → .82) at 3×
 cost; whether that trade is taken for Fog Gen 1's BC stage is an
 owner call at the fog prereg.
+
+## F-035 · active · The waterline charge is a magnet before it is a fence: charge-blind arms drift TOWARD the water's edge, and only a charge-aware chooser turns the price into avoidance
+
+The water's-edge avoidance smoke
+(`edge-avoidance-smoke-2026-09-01/RESULTS.md`; prereg @ 978b436,
+addendum @ 0049a70, both before collection; engine main @ dfa4b6b —
+044 charge + both 045 dials). Six arms × three paired seeds, scripted
+needs-driven lab worlds at the canonical economy.
+
+1. **The magnet.** Cross-waterline adjacency (share of adjacent
+   pair-ticks) rises with a blind charge: no-charge 6.61% → blind
+   factor 1.0 = 11.84% → blind factor 10 = 13.70%. Mechanism: the
+   charge raises bath need, and bath-relief seeking sends cats to the
+   water. A welfare price whose payers cannot see it CONCENTRATES the
+   population at the priced boundary.
+
+2. **The fence needs eyes.** The charge-aware ladder reverses the
+   drift: aware factor 1.0 lands at 7.66% (option_a) / 8.07%
+   (bidirectional) — ~4 pp below blind at the same factor — and the
+   10× positive control drops to 4.84%, ≤ half its drift-matched
+   blind twin in pooled share and below it in every seed pair.
+
+3. **Membership does not matter to behavior at factor 1.0**:
+   |option_a − bidirectional| = 0.41 pp under the aware ladder, no
+   consistent per-seed ordering, and the play channel obeyed the
+   reciprocity prediction (C ≈ D, the pricing-bug canary stayed
+   quiet). The step-4 bidirectional call gets clean data: no
+   meaningful edge-avoidance difference between the rules.
+
+**Scope**: scripted choosers only (BC clones imitate the teacher —
+this is exactly the corpus-side question); canonical
+`groom_cuddle_relief` 0.5; the 10× arms run a disclosed nonstandard
+budget (ceiling 25 / safeguard 98 / distress 99), directional only.
+**Invalidated by**: changes to the charge formula, the ladder value
+shape, or E_ticks bounds; fog changing what a cat can see near water
+(step-5 shakeout re-checks). **Re-verify when**: any proposal to arm
+`contagion_aware_ladder` on a SERVED world — the groom collapse down
+the aware arms (pair-ticks 1,893 blind → 527 aware-bidirectional) and
+the two low Clementine happiness samples say the decline seam
+redistributes relief in exactly the population 041 burned.

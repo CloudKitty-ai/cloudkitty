@@ -63,12 +63,14 @@ are the expected signature of this mechanism, not a defect.
   8.2% corpus share; `announce_here = 1` is the fog collection
   parameter; act@1 and welfare untouched. Collection complete, so the
   contagion flip is unblocked from the screen side.
-- **Water's-edge avoidance smoke** (owner-approved 2026-08-31, design
-  = `edge-avoidance-smoke-design-2026-08-31.md`): charge-aware-ladder
-  lab arms, Option A vs bidirectional, cranked-factor positive
-  control; produces the data for the step-4 bidirectional membership
-  call. Blocked on two small Product dials (membership enum +
-  charge-aware ladder option) — handoff awaits the owner's word.
+- **Water's-edge avoidance smoke** — **RUN + COMPLETE 2026-09-01
+  (F-035, `edge-avoidance-smoke-2026-09-01/RESULTS.md`)**: positive
+  control fires (vs the addendum's drift-matched blind arm — the
+  charge is a MAGNET when unseen, blind arms drift toward the edge);
+  option_a vs bidirectional = 0.41 pp under the aware ladder, play
+  reciprocity prediction held. The step-4 membership call has its
+  data: no meaningful behavioral difference between the rules at
+  factor 1.0. Owner rules at step 4.
 - **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
   — scripted `playful_comfort` dose-response, owner-gated to run once
   ALL pre-fog engine changes are in (step 1 + any step-3 economy
@@ -109,12 +111,11 @@ after the contagion flip deploys, re-run
 `attn-cert-2026-08-14/waterline_exposure.py` against the fresh
 pre-flip baseline (banked 2026-08-31: on-water 3.02%, cross-adjacency
 6.20%); the live check is a sanity pass only — **the decision data
-comes from the step-2 avoidance smoke**
-(`edge-avoidance-smoke-design-2026-08-31.md`, owner-approved), whose
-charge-aware lab arms can actually express avoidance. If bidirectional
-shows no meaningful edge avoidance there (positive control firing),
-the owner may flip membership to bidirectional (dry member pays from
-either role). Pre-priced welfare-benign at both economies;
+is IN (2026-09-01): F-035,
+`edge-avoidance-smoke-2026-09-01/RESULTS.md` — positive control
+fired, |option_a − bidirectional| = 0.41 pp at factor 1.0 under the
+charge-aware ladder**. On that data the owner may flip membership to
+bidirectional (dry member pays from either role). Pre-priced welfare-benign at both economies;
 charge-filter-only, no schema break. The genuine avoidance question (dry cats dodging wet
 friends at the water's edge) is only answerable AFTER Gen 1 trains
 under whichever rule ships — watch it at step-5 shakeout.
