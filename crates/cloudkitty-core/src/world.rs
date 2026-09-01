@@ -883,6 +883,33 @@ impl World {
         } else {
             Vec::new()
         };
+        // Waterline contagion (spec 044): wet fur travels with the scene.
+        // Membership is the cat's OWN activity naming a partner (the
+        // clarified own-activity rule -- a merely-referenced cat, like an
+        // idle groomee, pays nothing; play is reciprocal by construction
+        // so both members name each other). Dry members only: a cat on
+        // water pays occupancy below, never both -- the arms are mutually
+        // exclusive, so the per-tick worst case is unchanged at factor
+        // <= 1. Both sets are snapshots taken before the loop, so tick
+        // order cannot affect who pays (Article V), and nothing is
+        // collected while the dial is off.
+        let contagious: std::collections::BTreeSet<crate::kitty::KittyId> =
+            if config.water.contagion_factor > 0.0 && config.water.bath_gain > 0.0 {
+                let wet_ids: std::collections::BTreeSet<crate::kitty::KittyId> = self
+                    .kitties
+                    .iter()
+                    .filter(|k| water.contains(&k.pos))
+                    .map(|k| k.id)
+                    .collect();
+                self.kitties
+                    .iter()
+                    .filter(|k| !water.contains(&k.pos))
+                    .filter(|k| k.activity.partner().is_some_and(|p| wet_ids.contains(&p)))
+                    .map(|k| k.id)
+                    .collect()
+            } else {
+                std::collections::BTreeSet::new()
+            };
         for kitty in &mut self.kitties {
             for kind in NeedKind::ALL {
                 // Per-kitty override when configured, global rate otherwise.
@@ -903,6 +930,17 @@ impl World {
                 kitty
                     .needs
                     .add(NeedKind::Bath, config.water.bath_gain * ratio);
+            } else if contagious.contains(&kitty.id)
+                && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
+            {
+                // The contagion arm (spec 044): same pre-charge ceiling
+                // gate, same bath_ratio scale, one extra dial. `else`
+                // makes no-double-pay structural rather than tested.
+                let ratio = config.bath_ratio(kitty.id);
+                kitty.needs.add(
+                    NeedKind::Bath,
+                    config.water.contagion_factor * config.water.bath_gain * ratio,
+                );
             }
             let previous = kitty.happiness;
             let current = happiness(
