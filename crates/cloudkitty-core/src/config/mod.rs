@@ -145,6 +145,26 @@ pub struct WaterConfig {
     /// fail now, and the error names the cat and the remedies.
     #[serde(default = "default_water_bath_gain_ceiling")]
     pub bath_gain_ceiling: f32,
+    /// Waterline contagion (spec 044): a DRY cat whose own activity names
+    /// an ADJACENT partner standing in water accrues `contagion_factor *
+    /// bath_gain * bath_ratio(self)` per tick -- wet fur is social, and
+    /// the price travels with the scene (a named partner who already
+    /// wandered out of adjacency draws no trailing charge; owner ruling
+    /// 2026-08-31). Own-activity rule: only the cat whose
+    /// activity carries the partner pays (a merely-referenced cat, like an
+    /// idle groomee, pays nothing); play is reciprocal by construction so
+    /// both members NAME each other, but at most the dry one pays -- a
+    /// scene has at most one dry-beside-wet member, so "both pay
+    /// contagion" is unreachable (review amendment 2026-08-31). Dry
+    /// member only -- a cat on water pays occupancy, never both -- and
+    /// the same pre-charge ceiling gates it.
+    /// A price, not a prohibition: legality and refusal are untouched.
+    /// 0.0 (the default) disables the mechanic entirely; 1.0 is the Gen 1
+    /// ruling (owner, 2026-08-30), flipped in its own deploy. Skipped from
+    /// serialization at 0.0 so the launch is byte-identical (the 039-D5
+    /// stamp discipline).
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub contagion_factor: f32,
 }
 
 /// The rhythm of a sustained purr (spec 011, retuned by spec 022). Purring
@@ -1175,6 +1195,7 @@ impl Default for WaterConfig {
         Self {
             bath_gain: default_water_bath_gain(),
             bath_gain_ceiling: default_water_bath_gain_ceiling(),
+            contagion_factor: 0.0,
         }
     }
 }
@@ -1859,6 +1880,111 @@ mod tests {
     }
 
     #[test]
+    fn contagion_widens_the_headroom_budget_only_above_factor_one() {
+        // Spec 044 FR-009/FR-011: the budget is ceiling + max(1, factor) x
+        // gain x max_ratio < safeguard. Dry-member-only keeps the per-tick
+        // worst case unchanged at factor <= 1.0, so every config valid
+        // under the occupancy-only budget stays valid at the Gen 1 ruling
+        // -- bit-identical check, no re-baseline debt.
+        let mut c = cfg();
+        c.water.contagion_factor = 1.0;
+        c.validate()
+            .expect("factor 1.0 must not change what validates (FR-011)");
+
+        // Above 1.0 the contagion charge IS the worst case: the default
+        // world (ceiling 60, gain 3.5, ratio 1.0, safeguard 75) has 15 of
+        // headroom, so factor 5.0 (charge 17.5) crowds the safeguard.
+        let mut c = cfg();
+        c.water.contagion_factor = 5.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[water] bath_gain_ceiling"), "{msg}");
+        assert!(
+            msg.contains("contagion_factor"),
+            "the remedy names the new dial: {msg}"
+        );
+
+        // The same factor with enough headroom is accepted -- the budget
+        // is a line, not a ban on the dial.
+        let mut c = cfg();
+        c.water.contagion_factor = 5.0;
+        c.water.bath_gain_ceiling = 50.0; // 50 + 17.5 < 75
+        c.validate()
+            .expect("factor 5.0 with real headroom must validate");
+
+        // And the trait-scaled case still blames the right cat: Biscuit
+        // at 2x bath rise doubles the contagion charge exactly as it
+        // doubles occupancy (same bath_ratio scale).
+        let mut c = cfg();
+        c.water.contagion_factor = 3.0; // 3.5 x 2.0 x 3.0 = 21; 60 + 21 >= 75
+        c.kitties[1].needs = Some(NeedRateOverrides {
+            bath: Some(0.4), // ratio 2.0 against the 0.2 baseline
+            ..Default::default()
+        });
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("Biscuit"), "blames the swimmer: {msg}");
+
+        // Review amendment 2026-08-31: the contagion remedy sentence
+        // appears only when the factor actually multiplies the charge.
+        // An operator whose config never mentions the key must not be
+        // told to lower it.
+        let mut c = cfg();
+        c.water.bath_gain = 15.0; // 60 + 15 = 75, not < 75
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            !msg.contains("contagion_factor"),
+            "a factor-absent budget failure must not name the factor: {msg}"
+        );
+    }
+
+    #[test]
+    fn contagion_factor_bounds_are_checked_even_when_wet_fur_is_off() {
+        // Spec 044 FR-010: nonsense is nonsense whether or not the charge
+        // could ever fire — the bounds check precedes the gain == 0.0
+        // early return, so a config carrying a NaN factor beside a
+        // disabled mechanic is still refused loudly.
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -1.0] {
+            let mut c = cfg();
+            c.water.contagion_factor = bad;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains("[water] contagion_factor"), "{bad}: {msg}");
+
+            let mut c = cfg();
+            c.water.bath_gain = 0.0;
+            c.water.contagion_factor = bad;
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(
+                msg.contains("[water] contagion_factor"),
+                "{bad} with wet fur off: {msg}"
+            );
+        }
+        // The legal states: absent (the default), the explicit off state,
+        // and the Gen 1 ruling.
+        cfg().validate().expect("default (absent) validates");
+        for good in [0.0, 1.0] {
+            let mut c = cfg();
+            c.water.contagion_factor = good;
+            c.validate()
+                .unwrap_or_else(|e| panic!("factor {good} must validate: {e}"));
+        }
+        // Sibling parity (review amendment 2026-08-31): every other
+        // [water] key is bounded 0..=100; the factor is too. The top of
+        // the range is legal (beside a disabled gain, so the headroom
+        // budget stays out of the way), one step past it is not.
+        let mut c = cfg();
+        c.water.bath_gain = 0.0;
+        c.water.contagion_factor = 100.0;
+        c.validate().expect("factor 100.0 is the top of the range");
+        let mut c = cfg();
+        c.water.bath_gain = 0.0;
+        c.water.contagion_factor = 100.5;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("[water] contagion_factor"),
+            "over-range: {msg}"
+        );
+    }
+
+    #[test]
     fn fingerprint_ignores_water_tunables() {
         let a = cfg();
         let mut b = cfg();
@@ -2527,6 +2653,48 @@ mod tests {
             !json.contains("announce_here"),
             "announce_here leaked into the stamp: {json}"
         );
+        // Spec 044: the waterline contagion factor rides the same
+        // discipline — 0.0/absent is the launch state.
+        assert!(
+            !json.contains("contagion_factor"),
+            "contagion_factor leaked into the stamp: {json}"
+        );
+    }
+
+    #[test]
+    fn contagion_factor_stays_out_of_the_stamp_at_explicit_zero() {
+        // Spec 044 US1: the identity-skip half — an EXPLICIT 0.0 must
+        // serialize the same as absent (skip_serializing_if reads the
+        // value, not whether anyone wrote it), so a world that spells
+        // out the off state cannot move the defaults stamp.
+        let mut c = Config::default();
+        c.water.contagion_factor = 0.0;
+        let json = serde_json::to_string(&c).unwrap();
+        assert!(
+            !json.contains("contagion_factor"),
+            "explicit 0.0 leaked into the stamp: {json}"
+        );
+    }
+
+    #[test]
+    fn contagion_factor_zero_parses_equal_to_absent() {
+        // Spec 044 US1 scenario 2: `contagion_factor = 0.0` and an absent
+        // key are the same world. The `absent` arm carries a [water] table
+        // WITHOUT the key — the shape every existing world config has — so
+        // a dropped `default` attribute reds here instead of hiding behind
+        // the section-level default.
+        let absent: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\n",
+        )
+        .unwrap();
+        let zero: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_factor = 0.0\n",
+        )
+        .unwrap();
+        assert_eq!(absent, zero);
+        assert_eq!(absent.water.contagion_factor, 0.0);
     }
 
     #[test]

@@ -583,6 +583,19 @@ impl Config {
                 "must be a finite number between 0 and 100",
             ));
         }
+        // Contagion bounds sit BEFORE the gain == 0.0 early return (spec
+        // 044 FR-010): nonsense is nonsense even beside a disabled
+        // mechanic, and a config must not start passing validation just
+        // because wet fur was switched off.
+        let factor = self.water.contagion_factor;
+        if !factor.is_finite() || !(0.0..=100.0).contains(&factor) {
+            return Err(ConfigError::invalid(
+                "[water] contagion_factor",
+                factor.to_string(),
+                "must be a finite number between 0 and 100 (0 disables \
+                 waterline contagion)",
+            ));
+        }
         if gain == 0.0 {
             // Wet fur disabled: no charge exists, nothing to budget.
             return Ok(());
@@ -610,7 +623,11 @@ impl Config {
                     (best, who)
                 }
             });
-        let max_charge = gain * max_ratio;
+        // Spec 044: contagion scales the same per-tick charge by the
+        // factor, so above 1.0 the contagion charge IS the worst case; at
+        // or below 1.0 occupancy still is (dry-member-only, no cat pays
+        // both) and the budget is bit-identical to the occupancy-only one.
+        let max_charge = gain * max_ratio * factor.max(1.0);
         let safeguard = self.thresholds.safeguard;
         if ceiling + max_charge >= safeguard {
             let blame = swimmer.map_or_else(
@@ -626,7 +643,14 @@ impl Config {
                      ceiling, the gain, or that cat's [kitty.needs] bath \
                      rise -- or set [water] bath_gain = 0 to disable wet \
                      fur (both [water] keys have engine defaults, so this \
-                     can fire for a config that never wrote them)"
+                     can fire for a config that never wrote them){}",
+                    if factor > 1.0 {
+                        "; when [water] contagion_factor is above 1 it \
+                         multiplies the charge, so lowering the factor is \
+                         a remedy too"
+                    } else {
+                        ""
+                    }
                 ),
             ));
         }

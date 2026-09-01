@@ -1,0 +1,36 @@
+# Spec 044 redden list
+
+Every assertion added by this spec, proven red via the exact bug it
+catches (CLAUDE.md rules 5/6), then restored to green.
+
+**Baseline (T001)**: `cargo test --workspace` at c3db7bc (branch merged
+with origin/main d06b6d6): **737 passed, 0 failed**. Default-config
+stamp (`engine_defaults_sha256`):
+`6c73f89443671d5acc06a1e029c28c94856e3404396c231ee559026c98f07687`
+— must be unmoved at both commits. Git status clean.
+
+| assertion | injected bug | predicted failure | observed red | restored green |
+|---|---|---|---|---|
+| T003 stamp guard: `!json.contains("contagion_factor")` (default) + sibling explicit-zero test | field written before it existed; then `skip_serializing_if` removed from the field | first: compile fail E0609; then: both tests red with `"contagion_factor":0.0` visible in the stamp JSON | ✅ E0609 ×4; then both tests panicked showing the leaked key | ✅ 84/0 config tests |
+| T003 `contagion_factor_zero_parses_equal_to_absent` | (covered by the same compile-fail red; the `absent` arm carries a `[water]` table without the key, so a dropped `default` attr would red here) | compile fail E0609 | ✅ E0609 | ✅ green |
+| T009 `contagion_widens_the_headroom_budget_only_above_factor_one` (reject at factor 5.0 on the default world; blame the 2x cat at factor 3.0) | run before T010's widening; then post-T010, `factor.max(1.0)` replaced with `1.0` | both times: `unwrap_err` panics on Ok at the factor-5.0 arm (un-widened budget accepts 60 + 17.5 vs 75) | ✅ panicked at mod.rs:1894 pre-T010 and again under the injection — identical failure, the exact bug the assertion exists to catch | ✅ 85/0 |
+| T014 accrual per paired kind (resting / co-sleeping / playing / grooming: `ambient + factor×gain×ratio`) | run before T018 existed (charge unimplemented) | delta = ambient only (0.2), expected 3.7 | ✅ "resting: dry member's bath moved 0.19999981, expected 3.7" | ✅ 6/6 post-T018 |
+| T015 below-ceiling arm (full charge lands just under the ceiling) | same pre-T018 run | moved 0.2, expected 3.7 | ✅ observed verbatim | ✅ 6/6 |
+| T015 at-ceiling arm (ambient only at the ceiling) | ceiling gate dropped from the contagion arm (injection 3) | delta = ambient + charge (3.7) instead of ambient | ✅ "at the ceiling the charge must be off: moved 3.7000008" | ✅ 6/6 |
+| T015 wet-member exemption + T016 both-wet no-stacking + Option A groomee differential | injection 1: naive scene tax — membership = any named partner, wet or dry, `else if` flattened to `if` | wet member pays occupancy + contagion; both-wet stacks; factor-1.0 groom world diverges from factor-0.0 | ✅ all three tests red under injection 1 | ✅ 6/6 |
+| T016 solo + critter-play arms + Option A direct arm (referenced-only cat pays ambient) | injection 2: partner requirement dropped — every dry cat charged whenever anyone is wet | solo/critter/referenced cats all overpay by one charge | ✅ `no_charge_without_a_wet_named_partner` + `a_referenced_cat_...` red under injection 2 | ✅ 6/6 |
+| T017 same-seed armed determinism (two factor-1.0 runs identical over 500 ticks) | ⚠ NO honest red found: the charge path draws no RNG by construction, and any injected extra draw shifts both same-seed runs identically — the assertion cannot observe it. Kept because SC-005 mandates the in-tree pin; its guard value is regression against future platform/order nondeterminism (e.g. a HashMap iteration leaking into charge order). Recorded per CLAUDE.md rule 6 rather than hidden. | — | — | ✅ green |
+| T017 explicit-zero ≡ absent (TOML arms parse equal + 500-tick runs byte-identical) | the config-equality half shares T003's cycle (skip-attr removal / compile fail); the run half compares two runs of provably-equal configs, so its red channel IS the config-equality assert | key visible in TOML arm (asserted `assert_ne!` on the raw strings, `assert_eq!` on parsed configs) | ✅ via T003's recorded reds | ✅ green |
+| T004 bounds tests (NaN/±∞/−1 rejected, also with `bath_gain = 0`) | run before T006's bounds check existed; then bounds check moved AFTER the `gain == 0` early return | first: `unwrap_err` panics on Ok (no check); then: only the wet-fur-off arm reds | ✅ panicked at the reject arm pre-T006; post-injection panicked at mod.rs:1892 (the `bath_gain = 0` arm) exactly | ✅ 84/0 |
+| Post-review amendment (owner-ruled 2026-08-31, review finding 7): `contagion_charges_only_a_currently_adjacent_wet_partner` (world.rs unit test — the needs-phase layer, since a statically distant partner self-corrects in Phase 1 before needs run, and the real window is mid-tick) | run before the adjacency filter existed (the exact stale-partner bug the ruling forbids: activity naming a wet partner two tiles away charged anyway) | moved ambient + charge (3.7), expected ambient (0.2) | ✅ "a partner no longer adjacent must not charge: bath moved 3.7, ambient is 0.2" at world.rs:3191 | ✅ green post-fix (`is_available_friend` added to the contagion filter); positive-control arm pins the adjacent case still pays; all 6 armed integration tests stay green |
+
+## Review-resolution cycles (2026-08-31, findings 1–5/9/10 + below-cut)
+
+| assertion | injected bug | predicted failure | observed red | restored green |
+|---|---|---|---|---|
+| `the_factor_scales_the_charge` (finding 1: factor 2.0 pin) | `contagion_factor *` dropped from the charge line | only the new test reds (the six 0.0/1.0 tests are identity-blind — the exact gap the finding named) | ✅ 6 passed / 1 failed, panicked at waterline_contagion.rs:220 | ✅ 7/7 |
+| exact at-ceiling arm rework (finding 5: ulp-walked seed so the gate reads EXACTLY the ceiling) | `<` → `<=` on the contagion arm's ceiling gate | at-ceiling arm reds (charge fires on the boundary); before the rework this mutation was suite-invisible | ✅ "at the ceiling the charge must be off: moved 3.7000008, ambient is 0.2" | ✅ 7/7 |
+| `contagion_moves_in_gated_steps_below_the_safeguard` (finding 3: the named runtime re-proof, ARMED at factor 2.0) | ceiling gate deleted from the contagion arm | safeguard suite reds at the above-ceiling clause | ✅ "above the ceiling (65) only ambient may apply, got 7.199997" at water_safeguard.rs:377 | ✅ 5/5 |
+| upper bound 0..=100 (below-cut, sibling parity) | natural red: arms written before the bound existed | 100.5-with-gain-0 arm panics on `unwrap_err` of Ok | ✅ panicked at mod.rs:1977 | ✅ 5/5 config contagion tests |
+| remedy clause gated on factor > 1 (below-cut) | natural red: arm written before the gate | factor-absent budget failure contains "contagion_factor" | ✅ panicked at mod.rs:1930 on the `!contains` | ✅ green; the factor-5.0 contains-arm still pins the >1 path |
+| **Finding 2 REFUTED empirically**: `.filter(\|k\| !water.contains(&k.pos))` deleted outright | (this was the finding's claimed FR-005 break) | prediction: ALL GREEN — a wet below-ceiling cat takes the occupancy `if` (the `else` skips contagion) and a wet at-ceiling cat fails both arms' shared ceiling gate, so the filter is observationally redundant | ✅ waterline_contagion 7/7, water_safeguard 5/5, world lib 64/64 all green under the deletion | ✅ filter restored anyway (defense-in-depth + clarity); comment corrected to name all three guards; no test added — no single honest mutation can red one, per rule 5 |

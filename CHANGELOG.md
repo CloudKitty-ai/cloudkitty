@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- Wet fur travels with the scene (spec 044). A new `[water]`
+  `contagion_factor` prices partnered scenes across the waterline: a dry
+  cat whose own activity names a partner standing in water accrues
+  `factor × bath_gain × bath_ratio(self)` per tick, gated by the same
+  pre-charge ceiling as occupancy — the wet member keeps paying occupancy
+  alone, never both. A price, not a prohibition: legality, masks and the
+  refusal seam are untouched, and `validate_water`'s headroom budget now
+  covers the larger of the two charges so the safeguard stays
+  unreachable by water at any legal dial. 0.0 (the served default) is
+  byte-identical to before the knob existed; the Gen 1 flip to 1.0 is
+  its own later deploy.
 - A cat washing a friend to the north or south is drawn through the same lens
   as one walking there. Seen end-on, social grooming had been quietly
   authoring its own camera: its body named its own width and height instead of

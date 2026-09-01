@@ -255,6 +255,22 @@ async fn run() -> Result<()> {
             ceiling = config.water.bath_gain_ceiling,
             "wet fur active: water occupancy charges the bath need"
         );
+        // Spec 044: the contagion dial is engine-defaulted, skipped from
+        // serialization at 0.0, and outside the snapshot fingerprint --
+        // this line is the ONE place the running system states its value,
+        // and the flip deploy is read off exactly this evidence.
+        if config.water.contagion_factor > 0.0 {
+            tracing::info!(
+                contagion_factor = config.water.contagion_factor,
+                "waterline contagion armed: a dry cat pays for an adjacent \
+                 in-water partner its own activity names"
+            );
+        } else {
+            tracing::info!(
+                "waterline contagion disabled ([water] contagion_factor = 0): \
+                 wet fur does not travel with the scene"
+            );
+        }
     } else {
         tracing::info!("wet fur disabled ([water] bath_gain = 0): water occupancy is free");
     }

@@ -883,6 +883,42 @@ impl World {
         } else {
             Vec::new()
         };
+        // Waterline contagion (spec 044): wet fur travels with the scene.
+        // Membership is the cat's OWN activity naming a partner (the
+        // clarified own-activity rule -- a merely-referenced cat, like an
+        // idle groomee, pays nothing; play is reciprocal by construction
+        // so both members name each other) who is CURRENTLY adjacent
+        // (`is_available_friend`, the one adjacency predicate;
+        // owner-ruled 2026-08-31: a scene the tick has already dissolved
+        // -- a free partner who wandered after the namer's slot, before
+        // the namer's next prune -- never draws a trailing charge). Dry
+        // members only: a cat on water pays occupancy below, never both
+        // -- the arms are mutually exclusive, so the per-tick worst case
+        // is unchanged at factor <= 1. Both sets are snapshots of current
+        // positions and activities taken before the loop, so the needs
+        // loop itself is order-free (Article V), and nothing is collected
+        // while the dial is off.
+        let contagious: std::collections::BTreeSet<crate::kitty::KittyId> =
+            if config.water.contagion_factor > 0.0 && config.water.bath_gain > 0.0 {
+                let wet_ids: std::collections::BTreeSet<crate::kitty::KittyId> = self
+                    .kitties
+                    .iter()
+                    .filter(|k| water.contains(&k.pos))
+                    .map(|k| k.id)
+                    .collect();
+                self.kitties
+                    .iter()
+                    .filter(|k| !water.contains(&k.pos))
+                    .filter(|k| {
+                        k.activity.partner().is_some_and(|p| {
+                            wet_ids.contains(&p) && self.is_available_friend(k.id, p)
+                        })
+                    })
+                    .map(|k| k.id)
+                    .collect()
+            } else {
+                std::collections::BTreeSet::new()
+            };
         for kitty in &mut self.kitties {
             for kind in NeedKind::ALL {
                 // Per-kitty override when configured, global rate otherwise.
@@ -903,6 +939,22 @@ impl World {
                 kitty
                     .needs
                     .add(NeedKind::Bath, config.water.bath_gain * ratio);
+            } else if contagious.contains(&kitty.id)
+                && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
+            {
+                // The contagion arm (spec 044): same pre-charge ceiling
+                // gate, same bath_ratio scale, one extra dial. No cat
+                // pays both arms in a tick, twice over: when occupancy
+                // fires, the `else` skips this arm; when occupancy is
+                // ceiling-refused, the shared gate here refuses too; and
+                // the `contagious` filter never admits a wet cat at all.
+                // (Review finding 2 read the `else` alone as the guard --
+                // it is one of three, none load-bearing by itself.)
+                let ratio = config.bath_ratio(kitty.id);
+                kitty.needs.add(
+                    NeedKind::Bath,
+                    config.water.contagion_factor * config.water.bath_gain * ratio,
+                );
             }
             let previous = kitty.happiness;
             let current = happiness(
@@ -1181,10 +1233,12 @@ impl World {
     /// settled in a pile -- sleeping or resting, the contact-census
     /// definition. The ONE definition of "mutual": co-sleep tier pricing,
     /// warmth conduction (spec 031), and rest tier resolution all call it,
-    /// so the three can never disagree about whether a pile is mutual. The
-    /// pre-fog waterline contagion references this function (plus
-    /// `Activity::partner()`) rather than defining "partnered" a second
-    /// time -- owner-approved definition hook, 2026-08-27.
+    /// so the three can never disagree about whether a pile is mutual.
+    /// (A 2026-08-27 note anticipated waterline contagion hooking in here
+    /// too; the shipped spec 044 covers all four paired kinds, not just
+    /// the settled two, so its membership is `Activity::partner()` plus
+    /// `is_available_friend` in `advance_needs` -- changing this function
+    /// does NOT move the contagion charge.)
     pub fn is_settled(&self, id: KittyId) -> bool {
         self.kitty(id).is_some_and(|k| {
             matches!(
@@ -3101,5 +3155,70 @@ mod tests {
         world.kitties[b].pos = Position::new(12, 12);
         run_slot(&mut world, &config, 1, Action::Idle);
         assert_eq!(world.kitty(1).unwrap().activity, Activity::Idle);
+    }
+
+    /// Spec 044, owner-ruled 2026-08-31: the contagion charge requires the
+    /// named partner to be CURRENTLY adjacent — a trailing tick is not a
+    /// price. The stale state is real mid-tick (a free rest companion or
+    /// groomee moves onto water after the namer's slot, before the namer's
+    /// next prune), so the pin lives at the needs phase itself, the layer
+    /// the charge reads from.
+    #[tokio::test]
+    async fn contagion_charges_only_a_currently_adjacent_wet_partner() {
+        use crate::kitty::ActivityClock;
+
+        let mut config = test_config();
+        config.water.contagion_factor = 1.0;
+        config.validate().expect("test config must be legal");
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+
+        // One permanent water tile, nothing else wet on the map.
+        world
+            .elements
+            .retain(|el| el.element_type() != ElementType::Water);
+        let wet_tile = Position::new(8, 8);
+        world.elements.push(Element {
+            id: 9_900,
+            kind: ElementKind::Water,
+            pos: wet_tile,
+            ttl: None,
+        });
+
+        // The wandered-partner state as Phase 4 sees it mid-tick: kitty 1
+        // still holds the scene naming kitty 2, but 2 has stepped onto
+        // water two tiles away (one step past adjacency).
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = wet_tile;
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(8, 10);
+        world.kitties[a].activity = Activity::Resting {
+            with_friend: Some(2),
+        };
+        world.kitties[a].activity_clock = Some(ActivityClock::start(world.tick));
+
+        let ambient = config.need_rate_for(1, NeedKind::Bath);
+        let charge = config.water.contagion_factor * config.water.bath_gain * config.bath_ratio(1);
+
+        let before = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        world.advance_needs(&config);
+        let moved = world.kitty(1).unwrap().needs.get(NeedKind::Bath) - before;
+        assert!(
+            (moved - ambient).abs() < 1e-4,
+            "a partner no longer adjacent must not charge: bath moved {moved}, ambient is {ambient}"
+        );
+
+        // Positive control on the same world: step the namer back into
+        // adjacency and the identical scene pays the full charge.
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(8, 9);
+        let before = world.kitty(1).unwrap().needs.get(NeedKind::Bath);
+        world.advance_needs(&config);
+        let moved = world.kitty(1).unwrap().needs.get(NeedKind::Bath) - before;
+        assert!(
+            (moved - (ambient + charge)).abs() < 1e-4,
+            "the adjacent case must still pay: bath moved {moved}, expected {}",
+            ambient + charge
+        );
     }
 }
