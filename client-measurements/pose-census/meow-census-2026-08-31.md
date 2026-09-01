@@ -89,6 +89,46 @@ and the roster rate is not a per-cat rate.
 idle together -- which is what the 2026-08-25 record predicted when it was
 added to the gate.
 
+## What a chattier generation would actually look like
+
+Owner, 2026-09-01: meow frequency is strongly generational, and the bet is
+that the fog generation speaks a great deal more, with preliminary exploration
+supporting it. That lands on a CLIENT dial, so it is worth knowing the shape
+in advance.
+
+`meowCooldownMs` is 20s per cat, which is a hard per-cat ceiling of **180 drawn
+calls an hour** however loud the world gets. A fixed dead time after each
+accepted event gives an accepted rate of `lam / (1 + lam * tau)`, and that
+model lands close to what this census measured -- Biscuit 82.9/hr predicted
+against 69.6 drawn, Kittybear 13.3 against 12.0, Clementine 4.7 against 4.8,
+Pumpkin 2.4 against 2.4. It runs slightly high because real speech arrives in
+BURSTS rather than Poisson, and a burst wastes more of the cooldown than an
+even arrival does.
+
+Biscuit is already at **46% of its ceiling**. Scaling its eligible rate:
+
+    eligible     drawn      of ceiling   dropped
+     1x   154/hr    83/hr        46%        46%
+     2x   307/hr   113/hr        63%        63%
+     3x   461/hr   129/hr        72%        72%
+     5x   768/hr   146/hr        81%        81%
+    10x  1536/hr   161/hr        90%        90%
+
+**Ten times the speech buys 2.3 times the animation.** The client will
+compress a large behavioural change into a small visible one, which is exactly
+what the cooldown was put there to do -- the trigger is the world's and the
+rhythm is ours, and a chattier generation was the risk it was written for. It
+is working; this is just the number.
+
+Two consequences worth carrying into the fog re-cut:
+
+- A post-fog meow census will measure the COOLDOWN more than the generation,
+  unless the dial moves first. Report eligible-per-hour beside drawn-per-hour
+  or the reading will understate what changed in the world.
+- The ceiling is per CAT, so a roster that speaks more evenly gains more than
+  one loud seat does. Today Biscuit draws 29 of 37; four quieter cats have
+  almost their whole ceiling unused.
+
 ## The transient reading, kept as a warning
 
 The first cut of this census, 17 minutes after the 041 restart:
