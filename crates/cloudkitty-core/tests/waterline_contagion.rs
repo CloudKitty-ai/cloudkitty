@@ -198,12 +198,43 @@ async fn the_wet_member_pays_occupancy_and_nothing_more() {
     );
 }
 
+/// Review finding 1: the factor is a real multiplier, not a switch. The
+/// rest of this suite runs at 0.0 (arm off) or 1.0 (the identity), so
+/// only this scene notices a charge line that drops or hardcodes the
+/// factor. 2.0 is legal on the test world: 60 + 2 x 3.5 = 67 < 75.
+#[tokio::test(flavor = "current_thread")]
+async fn the_factor_scales_the_charge() {
+    let (mut world, config) = contagion_world(2.0);
+    set_scene(
+        &mut world,
+        DRY_CAT,
+        Activity::Resting {
+            with_friend: Some(WET_CAT),
+        },
+    );
+    let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
+    let expected = ambient + charge(&config, DRY_CAT);
+    let before = need(&world, DRY_CAT, NeedKind::Bath);
+    tick_once(&mut world, &config).await;
+    let delta = need(&world, DRY_CAT, NeedKind::Bath) - before;
+    assert!(
+        (delta - expected).abs() < TOL,
+        "at factor 2.0 the charge must double: moved {delta}, expected \
+         ambient + 2 x gain x ratio = {expected}"
+    );
+}
+
 /// FR-004: the ceiling gates the PRE-charge value, same as occupancy. At
 /// the ceiling the dry member accrues ambient only; just below it, one
 /// full scaled charge still lands (overshoot bounded by one charge).
 #[tokio::test(flavor = "current_thread")]
 async fn the_ceiling_gates_the_charge_on_the_pre_charge_value() {
-    // At the ceiling: ambient only.
+    // At the ceiling — EXACTLY at it. The gate reads after this tick's
+    // ambient rise, so the seed is walked by ulps until seeding + ambient
+    // reproduces the ceiling bit-for-bit (review finding 5: a seed OF the
+    // ceiling reads ceiling + ambient at the gate, which both `<` and
+    // `<=` refuse — the boundary itself was unpinned). With the read
+    // exactly on the line, only strict `<` refuses the charge.
     let (mut world, config) = contagion_world(1.0);
     set_scene(
         &mut world,
@@ -213,8 +244,26 @@ async fn the_ceiling_gates_the_charge_on_the_pre_charge_value() {
         },
     );
     let ceiling = config.water.bath_gain_ceiling;
-    set_need(&mut world, DRY_CAT, NeedKind::Bath, ceiling);
     let ambient = config.need_rate_for(DRY_CAT, NeedKind::Bath);
+    let mut seed = ceiling - ambient;
+    for _ in 0..8 {
+        set_need(&mut world, DRY_CAT, NeedKind::Bath, seed);
+        let stored = need(&world, DRY_CAT, NeedKind::Bath);
+        let at_gate = stored + ambient;
+        if at_gate == ceiling {
+            break;
+        }
+        seed = if at_gate < ceiling {
+            f32::from_bits(stored.to_bits() + 1)
+        } else {
+            f32::from_bits(stored.to_bits() - 1)
+        };
+    }
+    assert_eq!(
+        need(&world, DRY_CAT, NeedKind::Bath) + ambient,
+        ceiling,
+        "the harness must land the gate read exactly on the ceiling"
+    );
     let before = need(&world, DRY_CAT, NeedKind::Bath);
     tick_once(&mut world, &config).await;
     let delta = need(&world, DRY_CAT, NeedKind::Bath) - before;

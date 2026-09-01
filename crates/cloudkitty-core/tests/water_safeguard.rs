@@ -97,12 +97,12 @@ async fn bath_moves_in_gated_steps_at_every_legal_dial() {
 
         let ratio = config.bath_ratio(kitty_id);
         let ambient = config.need_rate_for(kitty_id, NeedKind::Bath);
-        let charge = config.water.bath_gain * ratio;
+        let charge = config.water.bath_gain * ratio * config.water.contagion_factor.max(1.0);
         let ceiling = config.water.bath_gain_ceiling;
         let safeguard = config.thresholds.safeguard;
         assert!(
             ceiling + charge < safeguard,
-            "the table entry must be legal by the validation arithmetic"
+            "the table entry must be legal by the validation arithmetic              (spec 044 widened: gain x ratio x max(1, contagion_factor))"
         );
 
         let mut crossed_at_ambient_pace = true;
@@ -275,5 +275,120 @@ async fn a_chase_that_lands_on_water_pays_like_any_lounger() {
         (after - before - expected).abs() < 1e-3,
         "chased-onto water pays ambient + charge: delta {}",
         after - before
+    );
+}
+
+/// Spec 044 / review finding 3: the contagion half of the same law, run
+/// ARMED — and above factor 1.0, the regime the widened budget
+/// (`validate_water`'s `factor.max(1.0)`) specifically admits. A dry cat
+/// held in a rest scene naming a wet partner has its bath walk upward in
+/// gated steps: below the ceiling each tick adds at most ambient + the
+/// factor-scaled charge, from the ceiling up water contributes nothing,
+/// so no contagion charge can carry the cat across the safeguard line.
+#[tokio::test]
+async fn contagion_moves_in_gated_steps_below_the_safeguard() {
+    use cloudkitty_core::config::ElementRule;
+    use cloudkitty_core::kitty::{Activity, ActivityClock};
+
+    let mut config = Config::default();
+    for kitty in &mut config.kitties {
+        kitty.behavior = "always_invalid".to_string();
+    }
+    config.water.contagion_factor = 2.0; // 60 + 2 x 3.5 = 67 < 75
+                                         // One permanent tile, placed by the test: the pushed element
+                                         // satisfies min 1 on its own, so the spawner never mints water
+                                         // under the dry cat mid-run.
+    config.elements.water = ElementRule {
+        min: 1,
+        max: 1,
+        ttl: None,
+        servings: None,
+        roam_cell: None,
+        dart: false,
+    };
+    config.validate().expect("armed config must be legal");
+    let config = Arc::new(config);
+    let mut world = World::generate(&config);
+    world
+        .elements
+        .retain(|el| el.element_type() != cloudkitty_core::ElementType::Water);
+
+    let wet_id = world.kitties[0].id;
+    let dry_id = world.kitties[1].id;
+    let wet = world.kitties[0].pos;
+    world.elements.push(Element {
+        id: 9_900,
+        kind: ElementKind::Water,
+        pos: wet,
+        ttl: None,
+    });
+    // The first free tile beside the water; every mind is idle-locked,
+    // so a tile free now stays free.
+    let dry = [(0_i64, 1_i64), (0, -1), (1, 0), (-1, 0)]
+        .iter()
+        .map(|(dx, dy)| (i64::from(wet.x) + dx, i64::from(wet.y) + dy))
+        .filter(|&(x, y)| x >= 0 && y >= 0 && (x as u32) < world.width && (y as u32) < world.height)
+        .map(|(x, y)| Position::new(x as u32, y as u32))
+        .find(|p| world.kitty_at(*p).is_none())
+        .expect("some neighbour of the wet tile is free");
+
+    let registry = registry();
+    let ratio = config.bath_ratio(dry_id);
+    let ambient = config.need_rate_for(dry_id, NeedKind::Bath);
+    let charge = config.water.bath_gain * ratio * config.water.contagion_factor;
+    let ceiling = config.water.bath_gain_ceiling;
+    let safeguard = config.thresholds.safeguard;
+    assert!(
+        ceiling + charge < safeguard,
+        "the armed dial must be legal by the widened validation arithmetic"
+    );
+
+    let scene = Activity::Resting {
+        with_friend: Some(wet_id),
+    };
+    let mut crossed_at_ambient_pace = true;
+    let mut reached_ceiling = false;
+    for _ in 0..2_000 {
+        pin(&mut world, wet_id, wet);
+        pin(&mut world, dry_id, dry);
+        // Hold the scene open: re-seat it (governing need topped up)
+        // whenever an end rule or duration cap dropped it.
+        let idx = world.kitty_index(dry_id).unwrap();
+        if world.kitties[idx].activity != scene {
+            let cuddle = world.kitties[idx].needs.get(NeedKind::Cuddle);
+            world.kitties[idx]
+                .needs
+                .add(NeedKind::Cuddle, 50.0 - cuddle);
+            world.kitties[idx].activity = scene;
+            world.kitties[idx].activity_clock = Some(ActivityClock::start(world.tick));
+        }
+        let before = world.kitties[idx].needs.get(NeedKind::Bath);
+        world.tick(&registry, &config).await;
+        let idx = world.kitty_index(dry_id).unwrap();
+        let after = world.kitties[idx].needs.get(NeedKind::Bath);
+        let delta = after - before;
+
+        assert!(
+            delta <= ambient + charge + 1e-3,
+            "delta {delta} exceeds ambient {ambient} + contagion charge {charge}"
+        );
+        if before >= ceiling {
+            reached_ceiling = true;
+            assert!(
+                delta <= ambient + 1e-3,
+                "above the ceiling ({before}) only ambient may apply, got {delta}"
+            );
+        }
+        if before < safeguard && after >= safeguard && delta > ambient + 1e-3 {
+            crossed_at_ambient_pace = false;
+        }
+    }
+    assert!(
+        crossed_at_ambient_pace,
+        "no contagion charge may carry a cat across the safeguard line"
+    );
+    assert!(
+        reached_ceiling,
+        "the scenario must actually exercise the ceiling to prove anything"
     );
 }

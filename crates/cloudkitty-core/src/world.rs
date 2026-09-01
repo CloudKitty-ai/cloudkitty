@@ -943,8 +943,13 @@ impl World {
                 && kitty.needs.get(NeedKind::Bath) < config.water.bath_gain_ceiling
             {
                 // The contagion arm (spec 044): same pre-charge ceiling
-                // gate, same bath_ratio scale, one extra dial. `else`
-                // makes no-double-pay structural rather than tested.
+                // gate, same bath_ratio scale, one extra dial. No cat
+                // pays both arms in a tick, twice over: when occupancy
+                // fires, the `else` skips this arm; when occupancy is
+                // ceiling-refused, the shared gate here refuses too; and
+                // the `contagious` filter never admits a wet cat at all.
+                // (Review finding 2 read the `else` alone as the guard --
+                // it is one of three, none load-bearing by itself.)
                 let ratio = config.bath_ratio(kitty.id);
                 kitty.needs.add(
                     NeedKind::Bath,

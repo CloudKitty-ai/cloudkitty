@@ -153,8 +153,11 @@ pub struct WaterConfig {
     /// 2026-08-31). Own-activity rule: only the cat whose
     /// activity carries the partner pays (a merely-referenced cat, like an
     /// idle groomee, pays nothing); play is reciprocal by construction so
-    /// both members pay there. Dry member only -- a cat on water pays
-    /// occupancy, never both -- and the same pre-charge ceiling gates it.
+    /// both members NAME each other, but at most the dry one pays -- a
+    /// scene has at most one dry-beside-wet member, so "both pay
+    /// contagion" is unreachable (review amendment 2026-08-31). Dry
+    /// member only -- a cat on water pays occupancy, never both -- and
+    /// the same pre-charge ceiling gates it.
     /// A price, not a prohibition: legality and refusal are untouched.
     /// 0.0 (the default) disables the mechanic entirely; 1.0 is the Gen 1
     /// ruling (owner, 2026-08-30), flipped in its own deploy. Skipped from
@@ -1919,6 +1922,18 @@ mod tests {
         });
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("Biscuit"), "blames the swimmer: {msg}");
+
+        // Review amendment 2026-08-31: the contagion remedy sentence
+        // appears only when the factor actually multiplies the charge.
+        // An operator whose config never mentions the key must not be
+        // told to lower it.
+        let mut c = cfg();
+        c.water.bath_gain = 15.0; // 60 + 15 = 75, not < 75
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            !msg.contains("contagion_factor"),
+            "a factor-absent budget failure must not name the factor: {msg}"
+        );
     }
 
     #[test]
@@ -1951,6 +1966,22 @@ mod tests {
             c.validate()
                 .unwrap_or_else(|e| panic!("factor {good} must validate: {e}"));
         }
+        // Sibling parity (review amendment 2026-08-31): every other
+        // [water] key is bounded 0..=100; the factor is too. The top of
+        // the range is legal (beside a disabled gain, so the headroom
+        // budget stays out of the way), one step past it is not.
+        let mut c = cfg();
+        c.water.bath_gain = 0.0;
+        c.water.contagion_factor = 100.0;
+        c.validate().expect("factor 100.0 is the top of the range");
+        let mut c = cfg();
+        c.water.bath_gain = 0.0;
+        c.water.contagion_factor = 100.5;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("[water] contagion_factor"),
+            "over-range: {msg}"
+        );
     }
 
     #[test]

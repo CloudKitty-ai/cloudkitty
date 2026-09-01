@@ -56,12 +56,31 @@ certification-hygiene rule. `60 + 14 = 74` is the exact roofline that
 exam permits, so **60 it is** — a live-design decision constrained by a
 frozen artifact, recorded in spec 026's Clarifications.
 
-The rule itself: `ceiling + gain × max_admissible_bath_ratio < 75`,
+The rule itself:
+`ceiling + gain × max_admissible_bath_ratio × max(1, contagion_factor) < 75`,
 enforced at config load (`config/validate.rs::validate_water`) and
-re-proven at runtime (`tests/water_safeguard.rs`). At 3.5/60 the
-maximum admissible bath ratio is ~4.28 (it was ~16.7 at 1.5/50) — a
-roster cat more than ~4.3× as fastidious as baseline is a config error,
-not a distress event waiting to happen.
+re-proven at runtime (`tests/water_safeguard.rs`, both charge sources).
+Spec 044 (waterline contagion) added the `max(1, contagion_factor)`
+term: a dry cat whose own activity names an adjacent in-water partner
+pays `factor × gain × bath_ratio` under the same ceiling — the dry and
+wet member never both pay, so at factor ≤ 1 occupancy remains the
+worst case and the arithmetic is unchanged. At 3.5/60 and factor ≤ 1
+the maximum admissible bath ratio is ~4.28 (it was ~16.7 at 1.5/50) —
+a roster cat more than ~4.3× as fastidious as baseline is a config
+error, not a distress event waiting to happen. Above factor 1 the
+contagion charge is the worst case and the admissible ratio shrinks to
+`(75 − ceiling) / (gain × factor)`; note
+`experiments/tools/family-gen` asserts the ~4.28 occupancy-era bound
+and would need the same widening before any factor > 1 ever ships.
+
+Gen 1 flip note (operational): `contagion_factor` has an engine
+default of 0.0, is skipped from serialization at 0.0, and is outside
+the snapshot fingerprint — the served `cloudkitty.toml` has no
+`[water]` table today, so the flip *creates* one. `WaterConfig` is
+`deny_unknown_fields`: after the flip, rolling back to a pre-044
+binary also requires deleting the key from the config, or the old
+binary refuses to boot. The dial's live value is legible in exactly
+one place on the box: the "waterline contagion" boot-log line.
 
 ## Where the law lives
 
@@ -70,5 +89,8 @@ not a distress event waiting to happen.
 - Dial values + generation-2 context: `specs/026-in-water-obs/`.
 - Enforcement: `config/validate.rs` (load), `tests/water_safeguard.rs`
   (runtime re-proof), the frozen `evals/v1` exams (certification).
+- Contagion mechanism + armed pins: `specs/044-waterline-contagion/`,
+  `world.rs::advance_needs` (the charge arm),
+  `tests/waterline_contagion.rs` (armed behavior).
 - Config commentary: `cloudkitty.toml` `[water]`, which cites the
   60-roofline rationale.

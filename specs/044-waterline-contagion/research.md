@@ -123,5 +123,8 @@ as of origin/main a2e93f8.
 - No wet timer, no new persisted world state: `contagious` is derived
   per tick and dropped (FR-006).
 - CHANGELOG: one line under `## Unreleased` rides the PR (house
-  changelog practice); no docs page exists for `[water]` beyond the
-  config doc-comments, which D1 updates in place.
+  changelog practice). *(Corrected by review finding 4, 2026-08-31:
+  the original text claimed no docs page exists for `[water]` beyond
+  the config doc-comments — `docs/wet-fur-pricing.md` is the durable
+  charge-law record and BACKLOG points at it; it was updated with the
+  widened law as part of the review resolution.)*

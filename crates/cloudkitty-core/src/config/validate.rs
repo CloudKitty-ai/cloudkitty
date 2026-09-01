@@ -588,12 +588,12 @@ impl Config {
         // mechanic, and a config must not start passing validation just
         // because wet fur was switched off.
         let factor = self.water.contagion_factor;
-        if !factor.is_finite() || factor < 0.0 {
+        if !factor.is_finite() || !(0.0..=100.0).contains(&factor) {
             return Err(ConfigError::invalid(
                 "[water] contagion_factor",
                 factor.to_string(),
-                "must be a finite non-negative number (0 disables waterline \
-                 contagion)",
+                "must be a finite number between 0 and 100 (0 disables \
+                 waterline contagion)",
             ));
         }
         if gain == 0.0 {
@@ -643,9 +643,14 @@ impl Config {
                      ceiling, the gain, or that cat's [kitty.needs] bath \
                      rise -- or set [water] bath_gain = 0 to disable wet \
                      fur (both [water] keys have engine defaults, so this \
-                     can fire for a config that never wrote them); when \
-                     [water] contagion_factor is above 1 it multiplies the \
-                     charge, so lowering the factor is a remedy too"
+                     can fire for a config that never wrote them){}",
+                    if factor > 1.0 {
+                        "; when [water] contagion_factor is above 1 it \
+                         multiplies the charge, so lowering the factor is \
+                         a remedy too"
+                    } else {
+                        ""
+                    }
                 ),
             ));
         }
