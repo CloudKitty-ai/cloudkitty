@@ -1997,3 +1997,43 @@ mix, which is why they (not the model's) are step 5's reference.
 sleepy cat sees within `sunbeam_reach` (step 6 re-derives the bands).
 **Re-verify when**: needflow is next used to predict a scripted or
 BC-clone mix — add the gates first, or don't use it for that.
+
+## F-037 · active · The action-shape collapse detector names a lock but does not lead the watchdog: on every recorded starving lock it fires 48–147 ticks after the distress alarm would, and its healthy margin is 0.07
+
+Collapse detector v0 (`collapse-detector-v0/RESULTS.md`; prereg,
+detector and guard @ 72ca108 before any trace was read). Trailing
+W = 200 share of one partnered activity (resting/sleeping/grooming
+with partner flag) > 0.50 sustained D = 200, per seat; mutual-pair
+share the same, per pair; need spread report-only. Run on all 19
+exp-006 forensics traces.
+
+1. **Validated as pinned.** 3/3 MUST-FIRE locks fire (880030 twins,
+   880008 twins, 880015 triadic), the SHOULD-FIRE pile fires, 11/11
+   MUST-SILENT traces stay silent. The discriminating negative holds:
+   solo-s3-880013's watchdog equivalent fires at tick 6,585 on directed
+   travel while the detector sits at 0.32. That is the one case the
+   welfare instrument cannot separate and this one can.
+
+2. **Not an early warning.** Detector first fire vs watchdog equivalent:
+   4619/4566, 1368/1221, 3717/3669, 591/514. A ~300-tick lock is needed
+   to cross-and-sustain, and every recorded lock had a need in distress
+   within ~120 ticks of onset. The ROADMAP's "fires earlier because
+   needs must starve first" premise is wrong for these locks. What
+   survives is the naming (seat, family, pair) and the untested claim
+   about welfare-quiet locks — no such lock exists in the trace set.
+
+3. **The bar is on a knife edge on the healthy side.** Realized lock
+   share is 0.82–0.83 (F-027's 98% was the action HEAD's share; the
+   re-entry idle tick between naps takes ~17%), healthy peak 0.43 (a
+   51-tick partnered sleep run at tick ~11.5k in solo-s3-e1s1-870003).
+   Mutual-pair share confirms twins (0.58–0.67) but misses the triadic
+   pile (0.38). Need spread reaches 93/82/73 on silent traces and stays
+   report-only.
+
+**Scope**: sleeping-with-partner locks only (every positive is one);
+exp-006 trace format; 200k healthy ticks, not the ROADMAP's untraced
+2.4M. **Invalidated by**: W/D/bar changes (v0.1 with its own prereg
+line); a lock class outside the three partnered families.
+**Re-verify when**: H4 is pinned at step-5 kickoff — the owner picks
+the bar with the 0.43/0.82 numbers in hand, and a live v1 re-runs this
+set before it watches a seating.

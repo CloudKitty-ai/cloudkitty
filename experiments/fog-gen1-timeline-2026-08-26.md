@@ -64,8 +64,14 @@ are the expected signature of this mechanism, not a defect.
   5's bands are the MEASURED canon table, not the model's.
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
-- `tail-benchmarks/family-11-r5` against the collapse-detector v0
-  (ROADMAP parking lot item; the known-positive it must catch).
+- `tail-benchmarks/family-11-r5` against the collapse-detector v0 —
+  **DONE 2026-09-01 (`collapse-detector-v0/RESULTS.md`, F-037)**:
+  VALIDATED on the pinned labels (3/3 MUST-FIRE, 11/11 MUST-SILENT,
+  the directed-travel negative held where the watchdog fires). Two
+  corrections to the ROADMAP design: it fires 48–147 ticks AFTER the
+  watchdog on every recorded lock (a namer, not an early warning), and
+  the healthy margin on signal (a) is 0.07 (peak 0.43 vs bar 0.50), so
+  H4's pin does not inherit ">50%" unexamined.
 - **Here-word density screen** — **Half A DONE 2026-08-31 (F-034,
   `here-word-screen/RESULTS.md`)**: vocabulary cliff between 5.6% and
   8.2% corpus share; `announce_here = 1` is the fog collection
@@ -168,7 +174,7 @@ digest matrix + self-row is extrapolated, not yet measured.
 | H1 | watchdog alarm | any | spec-040 box log (absolute, fog-independent) |
 | H2 | worst-seat welfare below the scripted anchor on the SAME fog config, sustained | anchor re-derived on fog config | scripted anchors = house cert practice; per-seat because Nash p=0 punishes one sacrificed cat |
 | H3 | hard-zero intended activity | 0 over an emit-proven window | F-029 rule; census + F-031 spans |
-| H4 | single-activity domination | one partnered activity >50% of a seat's decisions, sustained | F-027 ran ~98%; detector v0 validated on family-11-r5 |
+| H4 | single-activity domination | one partnered activity >50% of a seat's REALIZED ticks over a trailing 200, sustained 200 | detector v0 validated on family-11-r5 (`collapse-detector-v0/RESULTS.md`): locks 0.82–0.83, healthy peak 0.43, margin 0.07 under the 0.50 bar — owner may lift the bar to 0.55–0.65 at the pin; fires ~50–150 ticks after H1 on a starving lock, so it names the cause rather than leading the alarm |
 | H5 | frozen cluster | same-pair contact share near-total, sustained | F-027's spatial signature; `nn_distance.py` + pair census |
 | H6 | hyper-dispersion | NN cheb MEDIAN ≥ 5, sustained | baseline median 1.0 — 5× current; loose deliberately (fog legitimately disperses) |
 

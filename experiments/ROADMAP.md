@@ -186,8 +186,15 @@ threshold economics, all 20×20-composition numbers.
 
 ## Parking lot (trigger conditions, not dates)
 
-- **Behavioural-collapse detector** (owner, flagged 2026-08-25; design
-  sketched, nothing built). Monitors *action distribution*, not reward —
+- **Behavioural-collapse detector** (owner, flagged 2026-08-25; **v0
+  BUILT + VALIDATED 2026-09-01**, `collapse-detector-v0/` — offline over
+  the exp-006 traces, 3/3 known locks fire, 11/11 healthy traces
+  silent, F-037. Two corrections to the sketch below: it does NOT fire
+  earlier than the watchdog on a starving lock (48–147 ticks later on
+  every recorded one), and (a)'s healthy margin is 0.07 under the 0.50
+  bar. Remaining: v1 = live transport off `/world`; the "2.4M
+  cutover-config ticks" silence was never traced, ten 200k-tick
+  cutover-config traces stand in.) Monitors *action distribution*, not reward —
   reward is a training-time quantity with no served surface, and the
   threshold problem is where the previous soak-watch generations died.
   Three signals, each catching a different face of F-027's dyadic lock:
