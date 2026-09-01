@@ -24,6 +24,10 @@ instrument, so the only thing differing is the world.
 **73 -> 89 animated meows per hour, roster-wide.** One every 41 seconds against
 one every 49. A modest move, and much smaller than the transient promised.
 
+Roster-bound, and expected to move again: the seats are frozen models trained
+under the old economy, so this is what the CURRENT minds do with the new
+prices, not what the prices are worth.
+
                               pre-041 (438k)   settled (1,107k)   [transient]
     cat-ticks                          3,375              9,380         5,340
     speech events                         30                147           295
@@ -32,15 +36,29 @@ one every 49. A modest move, and much smaller than the transient promised.
     DRAWN, after the cooldown             11                 37            45
     per hour                            73.3               88.8         189.6
 
-## Rest did not become ordinary
+## Rest has not become ordinary YET, and this census cannot say whether it will
 
     resting, share of cat-ticks   0.59%  ->  0.64%
 
-That is the headline finding and it is a negative one. The gate entry `loaf`
-was a bet that 041 would make loafing common; on the settled world it is where
-it was. `loaf` took **3 of 147** speech events, two per cent, against 5 of 295
-on the transient. Adding it to the gate bought almost nothing, and the reason
-is not that the meow gate is wrong -- it is that the cats still do not rest.
+`loaf` took **3 of 147** speech events, two per cent, against 5 of 295 on the
+transient. So the gate entry buys almost nothing today.
+
+**That is not a result about 041's pricing.** Owner, 2026-09-01: the seated
+models are FROZEN, and a frozen policy cannot respond to need pressure that
+changed after it was trained. Rest is priced to be worth choosing now; the
+minds choosing were trained under the economy that preceded it and have no way
+to know. The hotfix that raised the groom cuddle gain was the interim
+compensation for exactly that -- it moves the need through a channel the
+incumbents already use, because the channel 041 opened is one they cannot see.
+
+So the honest reading of 0.64% is **a measurement of the current roster, not
+of the new economy**. The question `loaf` was added to answer stays open, and
+it is not answerable by census until a generation trained under 041 is seated.
+
+⚠ **RE-VERIFY TRIGGER: re-cut this census after the next generation seats.**
+Both numbers in it are roster-bound -- the rest share for the reason above,
+and the meow rate with it, since `want_cuddle` is 29% of the speech that
+drives it. Neither is a property of the client.
 
 ⚠ **Rest was never a true zero.** The standing note said rest was chosen by no
 seat, so its census zero was true rather than thin. It was not zero before
