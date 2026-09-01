@@ -27,11 +27,16 @@ asymmetric-reference nothing-cases; armed same-seed determinism.
 ## 3. Validation budget (SC-004)
 
 ```sh
-cargo test -p cloudkitty-core config::validate
+cargo test -p cloudkitty-core --lib contagion
 ```
 
-Expect: boundary accept/reject exactly per
-[contracts/config-surface.md](contracts/config-surface.md).
+Expect: 4 tests — bounds (reject NaN/∞/negative even with `bath_gain =
+0`), widened budget boundary, stamp identity-skip at explicit zero, and
+zero ≡ absent — accept/reject exactly per
+[contracts/config-surface.md](contracts/config-surface.md). (The tests
+live beside the other `validate_water` guards in `config/mod.rs`'s test
+module, the repo's home for validator tests — the original
+`config::validate` filter here matched nothing.)
 
 ## 4. Served config + sweeps (SC-006)
 

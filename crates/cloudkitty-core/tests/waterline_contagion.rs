@@ -107,8 +107,7 @@ const TOL: f32 = 1e-4;
 /// it touches the TARGET's — the dry groomer's own bath sees only
 /// ambient + charge.
 #[tokio::test(flavor = "current_thread")]
-async fn a_dry_cat_naming_a_wet_partner_pays_the_charge_in_every_paired_kind(
-) {
+async fn a_dry_cat_naming_a_wet_partner_pays_the_charge_in_every_paired_kind() {
     let scenes: [(&str, Activity); 4] = [
         (
             "resting",
@@ -456,10 +455,16 @@ async fn armed_runs_are_deterministic_and_explicit_zero_is_absent() {
         "the default serialization must not carry the key: {absent_toml}"
     );
     let zero_toml = absent_toml.replace("[water]\n", "[water]\ncontagion_factor = 0.0\n");
-    assert_ne!(absent_toml, zero_toml, "the explicit arm must differ on disk");
+    assert_ne!(
+        absent_toml, zero_toml,
+        "the explicit arm must differ on disk"
+    );
     let absent: Config = toml::from_str(&absent_toml).expect("absent arm parses");
     let zero: Config = toml::from_str(&zero_toml).expect("explicit-zero arm parses");
-    assert_eq!(absent, zero, "explicit 0.0 and absent must be the same config");
+    assert_eq!(
+        absent, zero,
+        "explicit 0.0 and absent must be the same config"
+    );
     let absent = Arc::new(absent);
     let zero = Arc::new(zero);
     assert_eq!(
