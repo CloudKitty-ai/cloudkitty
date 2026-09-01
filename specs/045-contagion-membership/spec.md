@@ -155,10 +155,11 @@ equal to absent.
   (unchanged 044 law; wet pays occupancy only).
 - The ladder option on in a config whose world has no water: values
   identical to off (no exposure exists to price).
-- Ladder on for a scene whose expected duration is one tick (critter-play
-  style early ends are priced via measured expectation, not the
-  activity's max): exposure weight uses the expected duration, so short
-  scenes are cheap, not free.
+- Ladder on for a short scene: the exposure weight uses the scene's
+  configured MINIMUM duration (the same horizon the chooser's existing
+  wait estimate and the needflow relief model use — amended per
+  Experiments' review 2026-08-31), so short scenes are cheap, not free,
+  and exposure is never overweighted against relief.
 - Invalid membership value in TOML (anything but the two names): config
   rejected at load with a message naming the two legal values.
 - The membership dial does not create scenes, end scenes, or alter

@@ -92,8 +92,13 @@ alone proves the story.
   server against a lab TOML in both states (quickstart §6).
 - [ ] T014 [US1] Same-seed determinism arm in
   `tests/waterline_contagion.rs`: two 500-tick runs, factor 1.0 +
-  `bidirectional`, identical worlds. Carry 044 T017's recorded
-  no-honest-red caveat forward in redden-list rather than hiding it.
+  `bidirectional`, identical worlds — and within the same arm assert
+  the legal-action mask of a charged cat equals the mask of its
+  uncharged twin in the option_a run at the same tick (FR-007: the
+  membership dial moves prices, never legality). Carry 044 T017's
+  recorded no-honest-red caveat forward in redden-list rather than
+  hiding it; the mask assertion has its own red channel (point it at a
+  fake legality hook to prove it can fail).
 
 ## Phase 4: User Story 3 — The served world never notices (P1)
 
@@ -149,7 +154,11 @@ off = byte-identical.
   exposure > groomee bath pressure + groomer's expected
   `groom_cuddle_relief` value (scene-total both sides, per Experiments
   review point 2 — verify the relief dial's source at implementation);
-  a net-positive groom is still proposed. Record the red.
+  a net-positive groom is still proposed. BEFORE writing the seam,
+  enumerate every groom-initiation path (`groom_response` AND any
+  `pursue` Friend-arm route from the 041 groom-for-cuddle channel) and
+  either seam each or record why the T020 `scored()` seam already
+  prices it. Record the red.
 - [ ] T023 [US2] Gate-off byte-identity in `behavior` tests: seeded
   scripted run with `contagion_aware_ladder = false` ≡ pre-045 run;
   with gate on + factor 0.0 ≡ gate off (043 gate-equality idiom). Red
@@ -161,7 +170,10 @@ off = byte-identical.
   quickstart §6.
 - [ ] T025 [US2] Determinism arm: same-seed identical with gate on +
   cranked factor + each membership value (`tests/waterline_contagion.rs`
-  or behavior tests per idiom).
+  or behavior tests per idiom) — and assert the ladder changed only
+  PROPOSALS: the legal-action mask for a cat facing an exposed scene is
+  identical with the gate on and off at the same tick (FR-007 armed
+  case; Article IV).
 
 ## Phase 6: Polish & Cross-Cutting
 
