@@ -20,8 +20,11 @@ import sys
 from pathlib import Path
 
 SRC = Path("/Users/elizabethkelly/ai/cloudkitty/cloudkitty.toml").read_text()
-OUT = Path(__file__).parent / "configs"
-OUT.mkdir(exist_ok=True)
+# Configs and world snapshots are transient — write them OUTSIDE the repo
+# (pass the scratch dir; raws are the record, these are regenerable).
+OUT = Path(sys.argv[1]) / "configs" if len(sys.argv) > 1 else \
+    Path(__file__).parent / "configs"
+OUT.mkdir(parents=True, exist_ok=True)
 SEEDS = [20260901, 20260902, 20260903]
 
 ARMS = {
