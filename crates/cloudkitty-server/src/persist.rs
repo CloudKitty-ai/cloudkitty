@@ -322,6 +322,37 @@ mod tests {
     }
 
     #[test]
+    fn a_mid_window_save_resumes_with_its_refusal_events_intact() {
+        // Spec 046 edge case (convergence T026): the census window survives
+        // a restart -- a save taken mid-window carries its refusal events,
+        // and the load path's capacity re-stamp (unchanged retention) trims
+        // nothing. The reloaded ring is the saved ring verbatim.
+        use cloudkitty_core::seam::JointProposal;
+        use cloudkitty_core::Action;
+
+        let dir = temp_dir("mid-window");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+
+        let mut world = World::generate(&config);
+        for _ in 0..3 {
+            let mut p = JointProposal::new();
+            p.propose(1, Action::Purr); // retired action: always refused
+            world.tick_with_proposals(&p, &config);
+        }
+        let saved_events = world.refusal_log.to_vec();
+        assert_eq!(saved_events.len(), 3, "the window has events to lose");
+        save(&world, &path).expect("save");
+
+        let loaded = load_and_validate(&path, &config).expect("load");
+        assert_eq!(
+            loaded.refusal_log.to_vec(),
+            saved_events,
+            "the reloaded ring is the saved window verbatim"
+        );
+    }
+
+    #[test]
     fn a_pre_046_save_resumes_with_the_configured_refusal_capacity() {
         // Spec 046 US3-2 / research R3: a pre-046 save has NO refusal_log
         // key. Serde default gives it capacity 0 (ring of one), and nothing

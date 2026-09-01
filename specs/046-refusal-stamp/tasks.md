@@ -95,3 +95,7 @@ MVP = Phases 1–3 (US1): the census could already consume a lab box.
 US2/US3 are small and land in the same PR — the launch bar (US3) is
 non-negotiable before merge, so the PR ships all phases; the phase
 split exists for red-first ordering, not staged delivery.
+
+## Phase 7: Convergence
+
+- [X] T026 Add persist test `a_mid_window_save_resumes_with_its_refusal_events_intact` in `crates/cloudkitty-server/src/persist.rs` tests: drive a world into ≥2 refusal events, save, `load_and_validate` under the same config, assert the reloaded ring's events equal the saved ring's verbatim (the census window survives a restart) per spec Edge Case 4 / FR-006 (partial)
