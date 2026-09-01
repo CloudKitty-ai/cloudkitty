@@ -202,7 +202,12 @@ def sim(overrides=None, ticks=30000, seed=7):
             if wet_rng.random() < econ["wet_p"].get(sc["kind"], 0.0):
                 wet_is_partner = wet_rng.random() < 0.5
                 retired = econ["membership"] == "coinflip-retired"
-                if retired or sc["kind"] == "play_duet":
+                # "bidirectional" (owner's banked future option, 2026-08-31):
+                # wetness follows CONTACT, not naming — the dry member pays
+                # from either role. Distinct from the retired coin-flip only
+                # in keeping the adjacency gate.
+                if retired or sc["kind"] == "play_duet" or \
+                        econ["membership"] == "bidirectional":
                     payer = cat if wet_is_partner else partner
                     role = "initiator" if wet_is_partner else (
                         "partner_play" if sc["kind"] == "play_duet"

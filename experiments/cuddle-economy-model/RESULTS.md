@@ -247,3 +247,43 @@ Limits: the standing ones (scripted greedy chooser, bath_ratio 1,
 charge-blind chooser, wet member's own occupancy unmodeled), and the
 coin-flip's undisclosed-membership gap is hereby closed: membership
 now matches the shipped engine rule exactly.
+
+### Bidirectional membership, pre-priced (owner-directed 2026-08-31)
+
+The owner's follow-up to the Option A note: after the flip, measure
+water's-edge adjacency on the live roster; if the impact is
+small/minimal, consider making the charge bidirectional (dry member
+pays from either role — wetness follows contact, not naming) BEFORE
+the fog generation trains, so Gen 1 seats train under the final rule.
+`membership="bidirectional"` now models it (adjacency gate kept; it
+differs from the retired coin-flip only there). Raw:
+`results-raw-bidirectional.json` (uncommitted).
+
+| economy | arm | groom self/other | rest | mean bath | happiness |
+|---|---|---|---|---|---|
+| canonical 0.5 | bidi 1.0 x low | 5.5 / 18.1 | 12.7 | 5.14 | 95.39 |
+| canonical 0.5 | bidi 1.0 x high | 6.9 / 21.8 | 12.1 | 5.07 | 95.36 |
+| serving 2.0 | bidi 1.0 x low | 2.2 / 31.2 | 4.9 | 3.53 | 95.86 |
+| serving 2.0 | bidi 1.0 x high | 3.0 / 35.0 | 4.1 | 3.60 | 95.90 |
+
+**Welfare-benign as well, at both economies** (all eight arms:
+canonical 95.36–95.39, serving 95.83–95.90). Charge volume roughly
+doubles vs Option A (the referenced dry cat now pays: partner_asym
+~2,600–3,300 charges joins initiator ~3,000–3,700 at worst case);
+grooming absorbs it, landing between Option A and the retired
+coin-flip in mix shift. So the bidirectional call is NOT gated on
+welfare — the model clears both rules. What it IS gated on:
+
+1. **The live water's-edge check (post-flip)** —
+   `attn-cert-2026-08-14/waterline_exposure.py`, fresh pre-flip
+   baseline vs post-flip windows. Declared expectation: the frozen
+   roster shows no avoidance — the chooser is charge-blind, relief
+   is unobserved, and no incumbent trained under the charge — so
+   "impact small/minimal" is expected nearly by construction.
+   Directional signature that would matter: cross-waterline
+   adjacency share collapsing toward zero.
+2. **The real avoidance question belongs to fog Gen 1**: only seats
+   TRAINED under the charge can learn to dodge wet friends at the
+   water's edge. That is unmeasurable pre-fog; the bidirectional
+   ruling is therefore a design-preference call informed by (this)
+   pricing, not an empirical gate the live roster can decide.

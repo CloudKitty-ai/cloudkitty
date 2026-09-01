@@ -97,6 +97,19 @@ train adds). Fog work on the far side is 3.0-numbered.
 Spec-first (speckit). Scope per ROADMAP; free register never scripted;
 here_* words are about the WORLD, want_* about speaker state.
 
+**Bidirectional-contagion decision point (owner-directed 2026-08-31,
+rules BEFORE step-5 training so Gen 1 trains under the final rule)**:
+after the contagion flip deploys, re-run
+`attn-cert-2026-08-14/waterline_exposure.py` against the fresh
+pre-flip baseline; if water's-edge impact is small/minimal (declared
+expectation: it will be — the frozen roster cannot learn avoidance;
+see `cuddle-economy-model/RESULTS.md` §Bidirectional), the owner may
+flip membership to bidirectional (dry member pays from either role).
+Pre-priced welfare-benign at both economies; charge-filter-only, no
+schema break. The genuine avoidance question (dry cats dodging wet
+friends at the water's edge) is only answerable AFTER Gen 1 trains
+under whichever rule ships — watch it at step-5 shakeout.
+
 Also specced in this window: the **Here*-teacher** scripted behavior
 (Product; parked since 2026-08-17, doctrine in the comms brainstorm
 addendum + ROADMAP bootstrap paragraph) — law-named words only,
