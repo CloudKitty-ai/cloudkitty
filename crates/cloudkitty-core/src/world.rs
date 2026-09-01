@@ -23,7 +23,7 @@ use crate::action::TargetRef;
 use crate::behavior::{gather_decisions, BehaviorRegistry};
 use crate::config::Config;
 use crate::element::{Element, ElementId, ElementKind, ElementType};
-use crate::events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog};
+use crate::events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog};
 use crate::grid::{Direction, Position};
 use crate::invariants;
 use crate::kitty::{Activity, Kitty, KittyId};
@@ -48,6 +48,12 @@ pub struct World {
     /// defaulted so snapshots written before the log existed still load.
     #[serde(default)]
     pub activity_log: ActivityLog,
+    /// Refusals: non-Idle proposals validation resolved to Idle (spec 046).
+    /// Serde defaulted so pre-046 saves still load — to capacity 0, which the
+    /// server load path immediately re-stamps from config (retention is
+    /// configuration, not world state).
+    #[serde(default)]
+    pub refusal_log: RefusalLog,
     pub rng: SimRng,
     pub config_fingerprint: String,
     next_element_id: ElementId,
@@ -97,6 +103,7 @@ impl World {
             recent_meows: Vec::new(),
             distress: DistressLog::new(config.events.distress_retention),
             activity_log: ActivityLog::new(config.events.activity_retention),
+            refusal_log: RefusalLog::new(config.events.refusal_retention),
             rng: SimRng::from_seed(config.world.seed),
             config_fingerprint: config.fingerprint(),
             next_element_id: 1,
@@ -162,6 +169,7 @@ impl World {
             recent_meows: snapshot.recent_meows.clone(),
             distress: DistressLog::default(),
             activity_log: ActivityLog::default(),
+            refusal_log: RefusalLog::default(),
             rng: SimRng::from_seed(0),
             config_fingerprint: String::new(),
             next_element_id,
@@ -331,6 +339,21 @@ impl World {
             // engine continues the scene whatever was proposed; past it, a
             // different action lawfully interrupts (ending a duet for both).
             let enforced = self.enforce_durations(kitty_id, validated, config);
+            // The refusal stamp (spec 046): a non-Idle proposal validation
+            // resolved to Idle, recorded on the tick it was heard, in turn
+            // order. `absorbed` reads the enforcement outcome -- a scene
+            // minimum continuing the kitty's activity is the only way a
+            // refused turn ends non-Idle (refusal heard, nothing lost);
+            // a legal proposal never enters (validated == proposal != Idle),
+            // so duration overrides of legal actions are not refusals.
+            if proposal != action::Action::Idle && validated == action::Action::Idle {
+                self.refusal_log.record(RefusalEvent {
+                    kitty_id,
+                    proposed: proposal,
+                    tick: self.tick,
+                    absorbed: enforced != action::Action::Idle,
+                });
+            }
             // Record what actually happened, not what was proposed: the viewer's
             // "doing" line must never claim an action the engine refused --
             // and on continuation ticks it truthfully repeats the activity.
@@ -2763,6 +2786,132 @@ mod tests {
         });
         world.tick = 100;
         (world, config)
+    }
+
+    #[test]
+    fn a_refused_proposal_is_stamped_with_kitty_proposal_and_tick() {
+        // Spec 046 US1-1/US1-2 + the legacy edge case: a non-Idle proposal
+        // resolved to Idle by validation records exactly one event carrying
+        // the kitty, the proposal VERBATIM, and the tick it was heard --
+        // `absorbed == false` when no scene was there to continue (a taxed
+        // tick). A chosen Idle is not a refusal. A stray legacy proposal
+        // (Purr, retired spec 011) IS one: the stamp reports the enforcement
+        // surface faithfully.
+        let config = test_config();
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0); // kitty 1
+        world.kitties[1].pos = Position::new(1, 0); // kitty 2, blocking east
+
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::move_to(Direction::East)); // occupied cell
+        proposals.propose(2, Action::Purr); // retired action, always refused
+        world.tick_with_proposals(&proposals, &config);
+
+        let events = world.refusal_log.to_vec();
+        assert_eq!(events.len(), 2, "two refusals, two events: {events:?}");
+        let moved = events.iter().find(|e| e.kitty_id == 1).unwrap();
+        assert_eq!(
+            moved.proposed,
+            Action::move_to(Direction::East),
+            "the proposal rides verbatim, not the applied Idle"
+        );
+        assert_eq!(moved.tick, 0, "stamped on the tick it was heard");
+        assert!(!moved.absorbed, "no scene absorbed it: a taxed tick");
+        let purred = events.iter().find(|e| e.kitty_id == 2).unwrap();
+        assert_eq!(purred.proposed, Action::Purr);
+        assert!(!purred.absorbed);
+
+        // A chosen Idle records nothing (US1-2): the ring does not grow.
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::Idle);
+        world.tick_with_proposals(&proposals, &config);
+        assert_eq!(
+            world.refusal_log.len(),
+            2,
+            "a chosen Idle is not a refusal; nor is a substituted one"
+        );
+    }
+
+    #[test]
+    fn duration_enforcement_decides_the_absorbed_flag_never_the_refusal() {
+        // Spec 046 US1-3 (Experiments ruling b, 2026-09-01): duration
+        // enforcement never creates or suppresses a refusal event -- it only
+        // decides the flag. (a) A LEGAL different action proposed inside a
+        // scene minimum is continuation-overridden, not refused: NO event.
+        // (b) An ILLEGAL proposal inside the minimum is refused AND the
+        // scene continues: one event, `absorbed == true` (nothing lost).
+        let config = test_config();
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0); // kitty 1
+        world.kitties[1].pos = Position::new(5, 5); // kitty 2, far away
+
+        // Tick 0: both start a solo sleep (always legal; min 3 governs).
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::Sleep { with: None });
+        proposals.propose(2, Action::Sleep { with: None });
+        world.tick_with_proposals(&proposals, &config);
+        assert!(world.refusal_log.is_empty(), "legal starts refuse nothing");
+        for id in [1, 2] {
+            assert!(
+                world.kitty(id).unwrap().activity_clock.is_some(),
+                "kitty {id} is mid-scene"
+            );
+        }
+
+        // Tick 1, inside the minimum: kitty 1 proposes a LEGAL move (east is
+        // empty), kitty 2 an ILLEGAL Purr.
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::move_to(Direction::East));
+        proposals.propose(2, Action::Purr);
+        world.tick_with_proposals(&proposals, &config);
+
+        let events = world.refusal_log.to_vec();
+        assert_eq!(
+            events.len(),
+            1,
+            "the legal override is not a refusal; the illegal one is: {events:?}"
+        );
+        assert_eq!(events[0].kitty_id, 2);
+        assert_eq!(events[0].proposed, Action::Purr);
+        assert_eq!(events[0].tick, 1);
+        assert!(
+            events[0].absorbed,
+            "the scene continued: refusal heard, nothing lost"
+        );
+        // Both scenes really did continue (the flag told the truth).
+        for id in [1, 2] {
+            assert!(
+                matches!(
+                    world.kitty(id).unwrap().activity,
+                    Activity::Sleeping { .. }
+                ),
+                "kitty {id} kept sleeping through the minimum"
+            );
+        }
+    }
+
+    #[test]
+    fn a_refused_partnered_proposal_carries_the_asked_partner() {
+        // Spec 046 US1-4 / SC-002: the census can name WHO was asked. A
+        // refused social play (partner out of reach) records the proposal
+        // verbatim, target included -- never the enforced Idle.
+        let config = test_config();
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0); // kitty 1
+        world.kitties[1].pos = Position::new(9, 9); // kitty 2: not adjacent
+
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::play_with(TargetRef::Kitty { id: 2 }));
+        world.tick_with_proposals(&proposals, &config);
+
+        let events = world.refusal_log.to_vec();
+        assert_eq!(events.len(), 1, "one refused play: {events:?}");
+        assert_eq!(
+            events[0].proposed,
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+            "the event names the asked partner"
+        );
+        assert!(!events[0].absorbed);
     }
 
     #[test]

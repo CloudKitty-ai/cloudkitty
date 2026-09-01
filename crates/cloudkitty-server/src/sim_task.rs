@@ -13,7 +13,9 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use cloudkitty_core::{ActivityEnd, BehaviorRegistry, Config, DistressEvent, World, WorldSnapshot};
+use cloudkitty_core::{
+    ActivityEnd, BehaviorRegistry, Config, DistressEvent, RefusalEvent, World, WorldSnapshot,
+};
 use tokio::sync::{oneshot, watch};
 use tokio::time::{interval, Duration, MissedTickBehavior};
 
@@ -32,6 +34,8 @@ pub struct Published {
     pub snapshot_json: Option<Arc<str>>,
     pub distress: Arc<Vec<DistressEvent>>,
     pub activity_ends: Arc<Vec<ActivityEnd>>,
+    /// Refusals (spec 046), oldest first — served on GET /events/refusal.
+    pub refusals: Arc<Vec<RefusalEvent>>,
 }
 
 impl Published {
@@ -49,6 +53,7 @@ impl Published {
             snapshot_json,
             distress: Arc::new(world.distress.to_vec()),
             activity_ends: Arc::new(world.activity_log.to_vec()),
+            refusals: Arc::new(world.refusal_log.to_vec()),
         }
     }
 }
@@ -192,6 +197,39 @@ fn save_now(world: &World, path: Option<&std::path::Path>, reason: &str) {
 mod tests {
     use super::*;
     use cloudkitty_core::test_support::test_config;
+
+    #[test]
+    fn published_refusals_are_the_ring_verbatim_and_a_fresh_world_serves_none() {
+        // Spec 046 US1-6: what /events/refusal serves IS the ring --
+        // byte-equal, oldest first -- and a fresh world publishes an empty
+        // list (readable as "no refusals" only because the emit-proof
+        // tests exist, F-029).
+        use cloudkitty_core::action::Action;
+        use cloudkitty_core::grid::{Direction, Position};
+        use cloudkitty_core::seam::JointProposal;
+
+        let config = test_config();
+        let fresh = World::generate(&config);
+        assert!(
+            Published::from_world(&fresh).refusals.is_empty(),
+            "a fresh world has refused nothing"
+        );
+
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0);
+        world.kitties[1].pos = Position::new(1, 0);
+        let mut p = JointProposal::new();
+        p.propose(1, Action::move_to(Direction::East)); // occupied: refused
+        world.tick_with_proposals(&p, &config);
+
+        let published = Published::from_world(&world);
+        assert!(!published.refusals.is_empty(), "the refusal was published");
+        assert_eq!(
+            *published.refusals,
+            world.refusal_log.to_vec(),
+            "the served list is the ring verbatim"
+        );
+    }
 
     #[tokio::test]
     async fn the_world_ticks_and_publishes() {

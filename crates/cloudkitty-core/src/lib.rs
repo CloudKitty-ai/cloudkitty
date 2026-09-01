@@ -39,7 +39,7 @@ pub use action::{Action, TargetRef};
 pub use behavior::{Behavior, BehaviorRegistry, DecisionContext};
 pub use config::{Config, ConfigError};
 pub use element::{Element, ElementId, ElementKind, ElementType};
-pub use events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog};
+pub use events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog};
 pub use grid::{Direction, Position};
 pub use invariants::Violation;
 pub use kitty::{Activity, Kitty, KittyId};

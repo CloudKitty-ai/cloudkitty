@@ -179,3 +179,10 @@ pub(super) fn default_exchange_timeout_ms() -> u64 {
 pub(super) fn default_activity_retention() -> usize {
     1000
 }
+
+/// Spec 046: a floor sized on taxed refusal density (~0.23/tick, 5 seats)
+/// over the ≥15,000-tick census window; the absorbed term is unmeasured
+/// until Experiments' first live baseline (FR-004).
+pub(super) fn default_refusal_retention() -> usize {
+    4000
+}

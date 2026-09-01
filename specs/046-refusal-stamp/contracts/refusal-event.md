@@ -13,12 +13,17 @@ shape plugins and replays already speak) — targets ride exactly as the
 action carries them:
 
 ```json
-{"kitty_id": 3, "proposed": {"kind": "play", "target": {"kitty": 1}}, "tick": 125349, "absorbed": false}
+{"kitty_id": 1, "proposed": {"action": "move", "direction": "east"}, "tick": 0, "absorbed": false}
 ```
 
 ```json
-{"kitty_id": 2, "proposed": {"kind": "move", "direction": "north"}, "tick": 125350, "absorbed": true}
+{"kitty_id": 2, "proposed": {"action": "play", "target": "kitty", "id": 1}, "tick": 125350, "absorbed": true}
 ```
+
+(The first example is the REAL payload recorded by a driven world on
+2026-09-01 and pinned by `a_refusal_event_serializes_the_proposal_verbatim`;
+the internally-tagged key is `action`, and `Play`'s target flattens —
+exactly the proposal wire shape plugins already speak.)
 
 `absorbed` is always present: `false` = the turn resolved Idle (a taxed
 tick — the F-033/step-5 count is the `absorbed == false` filter);

@@ -1166,6 +1166,22 @@ pub struct EventsConfig {
     /// alone cannot show (the final tick clears the clock it stamped).
     #[serde(default = "default_activity_retention")]
     pub activity_retention: usize,
+    /// How many refusal events the world remembers (spec 046): every
+    /// non-Idle proposal that validation resolved to Idle. The default is a
+    /// FLOOR sized on taxed density (~0.23/tick, 5 seats, ≥15k-tick window);
+    /// the absorbed term is unmeasured until the first live baseline, when
+    /// the knob is re-derived by config alone. `skip_serializing_if` keyed
+    /// to the default value keeps `engine_defaults_sha256` unmoved (039 D5
+    /// discipline, 043/045 precedent).
+    #[serde(
+        default = "default_refusal_retention",
+        skip_serializing_if = "is_default_refusal_retention"
+    )]
+    pub refusal_retention: usize,
+}
+
+fn is_default_refusal_retention(v: &usize) -> bool {
+    *v == default_refusal_retention()
 }
 
 impl Default for EventsConfig {
@@ -1173,6 +1189,7 @@ impl Default for EventsConfig {
         Self {
             distress_retention: 1000,
             activity_retention: default_activity_retention(),
+            refusal_retention: default_refusal_retention(),
         }
     }
 }
@@ -1349,6 +1366,24 @@ mod tests {
     #[test]
     fn the_shipped_default_config_is_valid() {
         cfg().validate().expect("default config must be valid");
+    }
+
+    #[test]
+    fn refusal_retention_zero_is_rejected_and_one_accepted() {
+        // Spec 046 US2-3: the engine refuses what it will not honor -- a
+        // zero ring silently degrades to one, so zero is rejected up front
+        // with the spec 020 D2 row shape.
+        let mut c = cfg();
+        c.events.refusal_retention = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("[events] refusal_retention"),
+            "names the field: {msg}"
+        );
+        assert!(msg.contains("at least 1"), "names the floor: {msg}");
+
+        c.events.refusal_retention = 1;
+        c.validate().expect("retention 1 is legal (a ring of one)");
     }
 
     #[test]

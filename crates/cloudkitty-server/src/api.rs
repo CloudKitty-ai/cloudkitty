@@ -14,7 +14,9 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use cloudkitty_core::{ActivityEnd, Config, DistressEvent, Kitty, KittyId, WorldSnapshot};
+use cloudkitty_core::{
+    ActivityEnd, Config, DistressEvent, Kitty, KittyId, RefusalEvent, WorldSnapshot,
+};
 use serde_json::json;
 use tokio::sync::watch;
 
@@ -97,6 +99,14 @@ pub async fn get_welfare(
 /// cannot show how long a scene lasted -- these events can. Oldest first.
 pub async fn get_activity_ends(State(state): State<AppState>) -> Json<Arc<Vec<ActivityEnd>>> {
     Json(state.current().activity_ends.clone())
+}
+
+/// Refusals (spec 046): every non-Idle proposal validation resolved to
+/// Idle — the kitty, the proposal verbatim, the tick, and whether a scene
+/// minimum absorbed it. A signal for the census, never read by the engine
+/// (Article I). Full ring, oldest first, like /events/activity.
+pub async fn get_refusals(State(state): State<AppState>) -> Json<Arc<Vec<RefusalEvent>>> {
+    Json(state.current().refusals.clone())
 }
 
 pub async fn get_config(State(state): State<AppState>) -> Json<Arc<Config>> {
