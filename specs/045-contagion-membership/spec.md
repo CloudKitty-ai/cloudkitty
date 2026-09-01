@@ -26,7 +26,16 @@ dial changes served behavior at defaults — byte-identical launch."
 
 ## Clarifications
 
-*(none yet — see Assumptions for recorded defaults)*
+### Session 2026-08-31
+
+- Q: When the charge-aware ladder prices a candidate scene, does it
+  weigh only the charge the choosing cat itself would pay, or the
+  scene's total contagion cost no matter which member pays it? → A:
+  Scene-total — the chooser weighs every contagion charge the candidate
+  scene would generate under the active membership rule, whichever
+  member pays. (Egocentric pricing would make the smoke's bidirectional
+  arm choose identically to the Option A arm by construction, voiding
+  the D-vs-C contrast the membership ruling depends on.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -96,13 +105,15 @@ higher; with the option off, the two rank as they do today.
 2. **Given** the option on with factor 0.0, **Then** choices are
    byte-identical to the option being off (zero charge weighs zero).
 3. **Given** the option on with a large factor, **When** a candidate
-   scene would expose the chooser (or its partner, under the active
-   membership rule) to the contagion charge, **Then** that scene's value
-   is reduced by the expected exposure and an otherwise-equal unexposed
-   scene wins.
-4. **Given** the option on, **When** the membership setting is
-   `bidirectional`, **Then** the exposure the ladder prices matches the
-   bidirectional charge (the ladder always prices the rule that is live).
+   scene would generate a contagion charge for any member under the
+   active membership rule, **Then** that scene's value is reduced by the
+   scene-total expected exposure and an otherwise-equal unexposed scene
+   wins.
+4. **Given** the option on with membership `bidirectional`, **When** a
+   wet cat weighs grooming a dry adjacent friend, **Then** the friend's
+   charge counts against the scene's value even though the chooser pays
+   nothing itself (scene-total pricing; the ladder always prices the
+   rule that is live).
 
 ---
 
@@ -177,12 +188,14 @@ equal to absent.
 - **FR-005**: The engine MUST expose a scripted-chooser option, default
   off, that when on weighs a candidate scene's expected contagion
   exposure — the per-tick charge times the scene's expected duration —
-  against the payer's bath need in the scene's value, using the needflow
-  value shape as the reference model. When off or absent, scripted
-  choice MUST be byte-identical to the current engine.
-- **FR-006**: The ladder's priced exposure MUST follow the active
-  membership setting: the same configuration that decides who pays
-  decides what the chooser expects to pay.
+  in the scene's value, using the needflow value shape as the reference
+  model. When off or absent, scripted choice MUST be byte-identical to
+  the current engine.
+- **FR-006**: The priced exposure is scene-total under the active
+  membership setting: the chooser weighs every contagion charge the
+  candidate scene would generate — whichever member pays it — as
+  determined by the same configuration that decides who pays at
+  need-accrual time (clarified 2026-08-31).
 - **FR-007**: Neither dial may alter action legality, masks, refusal
   behavior, scene formation or termination, RNG draw order at defaults,
   or any need dynamics other than who the existing contagion charge
@@ -206,10 +219,10 @@ equal to absent.
 - **Membership setting**: which dry scene-members the contagion charge
   admits — the naming side only (`option_a`, default) or either side
   (`bidirectional`). Selects payers; never sizes the charge.
-- **Expected contagion exposure**: per-tick contagion charge × expected
-  scene duration for the member who would pay under the active
-  membership rule; the quantity the charge-aware ladder subtracts from
-  a candidate scene's value.
+- **Expected contagion exposure**: the scene-total of per-tick
+  contagion charge × expected scene duration, summed over every member
+  who would pay under the active membership rule; the quantity the
+  charge-aware ladder weighs against a candidate scene's value.
 - **Charge-aware ladder option**: the on/off gate for exposure pricing
   in the scripted chooser; off is the served and default state.
 
