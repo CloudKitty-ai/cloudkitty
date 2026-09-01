@@ -643,7 +643,27 @@ const VIEW = Object.freeze({
    * `meowCooldownMs` holds the ceiling.
    */
   meowPoses: ['walking', 'idle', 'pouncing', 'loaf'],
-  meowCooldownMs: 20000, // at most one drawn call per cat per this
+  // 20000 -> 8000 (owner, 2026-09-01). At most one drawn call per cat per
+  // this, across all kinds.
+  //
+  // 8s is the ENGINE's own speech window -- `meow.recent_window_ticks` is 10
+  // ticks of 800ms, and it is both the audibility window and a per-cat
+  // PER-KIND cooldown. Matching it stops the client holding back calls the
+  // world has already spaced, while keeping a ceiling for the chattier
+  // generation this dial was written for.
+  //
+  // At 20s it was dropping HALF the eligible calls on the settled world (36
+  // of 73, 2026-08-31 census). The gap census said that was more caution than
+  // the world needs: of 69 consecutive gaps between eligible calls, NONE
+  // overlapped the 800ms animation, the shortest was a single tick, and only
+  // 4% fell under 2s. The 38% sitting in the 8-20s band was the client
+  // refusing calls the engine had already allowed.
+  //
+  // Not zero, and the floor below 10 ticks is guarded: a ceiling shorter than
+  // the engine's own window would redraw calls the world itself rate-limits.
+  // The fog re-cut is where this is judged again -- on the screen, per the
+  // owner's ruling, not off arithmetic.
+  meowCooldownMs: 8000,
 
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer

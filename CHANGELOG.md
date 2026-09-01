@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- Cats open their mouths for more of what they say. The client holds a ceiling
+  on how often it will draw a call, because the trigger belongs to the world
+  and the rhythm belongs to us, and a generation that talks more should not
+  turn a cat into a metronome. That ceiling was twenty seconds, chosen before
+  there was anything to measure it against, and it was refusing half of every
+  eligible call on the board. It is now eight, which is the engine's own
+  speech window: the length that is both how long a word stays audible and how
+  long a cat must wait before repeating that word. Matched to it, the client
+  stops holding back calls the world has already spaced out, and keeps a
+  ceiling for the chattier generation the dial was written for. Measured
+  first: across twenty-five minutes of the settled world, no two eligible
+  calls ever fell closer than the animation is long, and the shortest gap
+  between any of them was a single tick. The floor is guarded — a ceiling
+  shorter than the engine's window would redraw calls the world itself rate
+  limits — and where it settles is a question for the screen, once a
+  generation trained to talk is seated.
+
 - Wet fur travels with the scene (spec 044). A new `[water]`
   `contagion_factor` prices partnered scenes across the waterline: a dry
   cat whose own activity names a partner standing in water accrues
