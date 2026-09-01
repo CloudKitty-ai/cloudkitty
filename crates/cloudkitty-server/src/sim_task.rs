@@ -36,6 +36,10 @@ pub struct Published {
     pub activity_ends: Arc<Vec<ActivityEnd>>,
     /// Refusals (spec 046), oldest first — served on GET /events/refusal.
     pub refusals: Arc<Vec<RefusalEvent>>,
+    /// The refusal ring's capacity, served beside the events so a consumer
+    /// can tell a wrapped window from a short one (the /welfare threshold
+    /// precedent; `/config` omits the knob at its default).
+    pub refusal_capacity: usize,
 }
 
 impl Published {
@@ -54,6 +58,7 @@ impl Published {
             distress: Arc::new(world.distress.to_vec()),
             activity_ends: Arc::new(world.activity_log.to_vec()),
             refusals: Arc::new(world.refusal_log.to_vec()),
+            refusal_capacity: world.refusal_log.capacity(),
         }
     }
 }
@@ -228,6 +233,15 @@ mod tests {
             *published.refusals,
             world.refusal_log.to_vec(),
             "the served list is the ring verbatim"
+        );
+        assert_eq!(
+            published.refusal_capacity,
+            world.refusal_log.capacity(),
+            "the published capacity is the ring's own bound"
+        );
+        assert_eq!(
+            published.refusal_capacity, config.events.refusal_retention,
+            "which on a generated world is the configured retention"
         );
     }
 

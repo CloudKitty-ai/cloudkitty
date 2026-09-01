@@ -134,6 +134,14 @@ impl<T> EventLog<T> {
         }
     }
 
+    /// The ring's own bound — how many events it can hold before dropping
+    /// oldest-first. Served beside the events (spec 046 review): a consumer
+    /// reading a full window cannot otherwise tell "short history" from
+    /// "wrapped ring" (the F-029 absent-key trap, one struct up).
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
+
     /// Oldest first, newest last.
     pub fn events(&self) -> impl Iterator<Item = &T> {
         self.events.iter()

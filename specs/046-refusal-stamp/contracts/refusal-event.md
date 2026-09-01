@@ -2,9 +2,14 @@
 
 ## Endpoint
 
-`GET /events/refusal` → JSON array of refusal events, **oldest first,
-newest last** (ring order), full ring, no pagination — the exact shape
-discipline of `GET /events/activity`.
+`GET /events/refusal` → `{"capacity": N, "events": [...]}` — the full
+ring under `events`, **oldest first, newest last** (ring order), no
+pagination, beside the ring's own `capacity` (envelope added at the
+review-medium pass, 2026-09-01: a consumer must be able to tell a
+wrapped window from a short history without hard-coding the knob's
+default — the `/welfare` threshold precedent; `/config` omits
+`refusal_retention` at its default, so the endpoint is the served
+source of the bound).
 
 ## Event wire shape
 
@@ -43,8 +48,11 @@ REAL recorded payload, per CLAUDE.md rule 5's fixture discipline.)
    `absorbed` set from the enforcement outcome.
 2. No event for: chosen Idle, duration-overridden *legal* proposals,
    message downgrades.
-3. Bounded: at most `[events] refusal_retention` events (default 4000);
-   oldest dropped first.
+3. Bounded: at most `[events] refusal_retention` events (default 6,000
+   — re-sized at the review-medium pass: taxed and absorbed refusals
+   share the slots at ~0.38/tick combined on the scripted world, so
+   6,000 covers a ~15k-tick census window); oldest dropped first; the
+   bound is served as `capacity`.
 4. Deterministic: same seed + same decisions → same stream, either tick
    driver.
 5. Additive: pre-046 world saves load (ring starts empty at configured

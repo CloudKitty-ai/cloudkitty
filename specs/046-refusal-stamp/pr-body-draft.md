@@ -6,9 +6,9 @@ the kitty, the proposal **verbatim** (targets included), the tick, and an
 `absorbed` flag from the enforcement outcome (Experiments ruling (b),
 2026-09-01: `absorbed == false` rows are the taxed ticks; census
 definition quoted in the spec). Ring sized by `[events] refusal_retention`
-(default 4,000 — a floor on taxed density), served at
-`GET /events/refusal`, recorded once in the shared apply pipeline so both
-tick drivers stamp identical streams.
+(default 6,000 — see the review section), served at `GET /events/refusal`
+as `{capacity, events}`, recorded once in the shared apply pipeline so
+both tick drivers stamp identical streams.
 
 Additive delivery proven:
 
@@ -20,8 +20,42 @@ Additive delivery proven:
 - Pre-046 saves resume: `persist::load_and_validate` re-stamps the ring's
   capacity from config (retention is configuration, the behavior
   re-stamp doctrine).
-- 13 red-first cycles + live emit-proof payload in `redden-list.md`.
-  Suite 774 → 787, nothing lost.
+- 19 red-first cycles + live emit-proof payload in `redden-list.md`.
+  Suite 774 → 790, nothing lost.
+
+## Review-medium fixes (2026-09-01, findings 2/4/6/7/8)
+
+- **Ring re-sized 4,000 → 6,000** (finding 2): absorbed refusals share
+  the ring's slots with taxed ones — measured ~0.38/tick combined on the
+  scripted default world (taxed 1,586 / absorbed 2,414 at saturation), so
+  4,000 covered only ~10.4k ticks of the ≥15k census window. New
+  ring-observing guard `default_ring_covers_the_baseline_window_under_
+  absorbed_load` (red at 4,000 before the raise); floor test re-derived
+  to ≥ 5,700. Still a floor per FR-004 — Experiments re-derives by config
+  at the first live baseline. ⚠ Experiments ruled the original 4,000
+  (explicitly with the absorbed term unmeasured); the raise honors their
+  floor but should be relayed.
+- **Capacity envelope** (finding 4): `/events/refusal` now serves
+  `{capacity, events}` (the `/welfare` threshold precedent) so a wrapped
+  window is tellable from a short history — `/config` omits the knob at
+  its default. Contract + quickstart amended.
+- **Strip witness in-tree** (finding 6): the golden continuity claim is
+  now a running test (`golden_strip_witness_refusal_ring_is_the_only_
+  delta`, string-level strip — a `Value` round-trip reorders keys). It
+  earned its keep immediately: the 6,000 raise moved the full pin
+  (capacity integer) while the witness stayed green.
+- **Docs** (finding 7): `/events/refusal` row in the README endpoint
+  table; `refusal_retention = 6000` row in the shipped `cloudkitty.toml`.
+- **Typed endpoint test** (finding 8): the integration test now
+  deserializes the served list as `Vec<RefusalEvent>` (absorbed's
+  presence proven by the deserialize itself) and got its first redden
+  rows (cycles 18–19).
+
+Deferred from the same review, owner's call pending: finding 1 (absorbed
+semantics — the flag reads "kitty was mid-scene", not "scene minimum
+continued"; census + prose question, Experiments relay), finding 3
+(sibling-ring re-stamp — below), finding 5 (per-tick publish copy of the
+full ring).
 
 ## Reported, not fixed (CLAUDE.md rule 3)
 
