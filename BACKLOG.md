@@ -2143,6 +2143,22 @@ deserves a clamp so route pricing cannot become effectively prohibitive
 (the "preference, never prohibition" doctrine holds today only because
 shipped ratios stay near 1).
 
+### Cats jump over cats — the boxed-cat escape (added 2026-08-31)
+Owner's note, from a question during spec 044 planning. Today a cat with
+kitties on all four cardinal neighbors (or 2–3 at a corner/edge) has zero
+legal moves that turn: `Move` is cardinal, one step, and occupancy-blocked
+(`action.rs:367-370`). Transient and harmless — blockers are autonomous,
+an illegal move degrades to Idle, relief doesn't require moving — but
+during the boxed ticks Article I's "reachable" clause is technically
+false. The engine already travels 2 tiles in one tick (spec 039's final
+pounce: chase step + lunge, `action.rs:587-609`), so the owner's idea:
+allow a jump *over* an adjacent cat to the empty tile beyond, and the
+boxed state stops existing entirely. When it comes, the real bill is
+surface, not physics: a new legality arm (middle tile occupied, landing
+tile empty and in-bounds) touching `Action::Move` or a new action variant
+— which means the RL mask, the wire-compatible action surface, and
+whatever a policy retrain prices. Dig in properly before speccing.
+
 ### Cuddle puddles (added 2026-07-22)
 More than two kitties cuddling or sleeping together in one pile. Low
 priority, but touches real machinery when it comes: today's duets are
