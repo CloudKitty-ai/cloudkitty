@@ -165,6 +165,41 @@ pub struct WaterConfig {
     /// stamp discipline).
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     pub contagion_factor: f32,
+    /// Who pays the contagion charge (spec 045, lab dial for the
+    /// water's-edge avoidance smoke — owner-directed 2026-08-31).
+    /// `option_a` (the default) is the shipped 044 rule verbatim: only
+    /// the dry cat whose OWN activity names a wet adjacent partner pays.
+    /// `bidirectional` admits the other role too: a dry cat that a wet
+    /// adjacent cat's activity names (a referenced groomee, say) also
+    /// pays — any dry member of a wet/dry pair, either role. Everything
+    /// else is unchanged: same formula, same pre-charge ceiling gate,
+    /// same wet-member exemption, same current-adjacency requirement,
+    /// and at most ONE charge per cat per tick whatever admits it.
+    /// Membership moves who pays, never the per-cat per-tick maximum,
+    /// so the 044 budget law stands verbatim. Skipped from
+    /// serialization at `option_a` (the 039-D5 stamp discipline).
+    #[serde(default, skip_serializing_if = "ContagionMembership::is_option_a")]
+    pub contagion_membership: ContagionMembership,
+}
+
+/// The waterline-contagion membership rule (spec 045): who pays the 044
+/// charge. An enum, not a bool — the owner's vocabulary ("Option A" /
+/// "bidirectional", ruling 2026-08-31) and room for future variants.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ContagionMembership {
+    /// Shipped 044: only the dry NAMER pays.
+    #[default]
+    OptionA,
+    /// Any dry member of a wet/dry pair pays, either role.
+    Bidirectional,
+}
+
+impl ContagionMembership {
+    /// Serde skip helper: the default variant stays out of the stamp.
+    pub fn is_option_a(&self) -> bool {
+        matches!(self, ContagionMembership::OptionA)
+    }
 }
 
 /// The rhythm of a sustained purr (spec 011, retuned by spec 022). Purring
@@ -1005,6 +1040,20 @@ pub struct BehaviorConfig {
     /// passes `message_legal` and the engine's enforcement seam.
     #[serde(default, skip_serializing_if = "u64_is_zero")]
     pub announce_here: u64,
+    /// Spec 045: the charge-aware ladder gate (lab dial for the
+    /// water's-edge avoidance smoke). When true, the built-in chooser
+    /// prices a candidate partnered scene's expected contagion exposure
+    /// — scene-total under the active `[water] contagion_membership`
+    /// rule — into its existing scores; when false (the default), every
+    /// 045 seam short-circuits BEFORE any exposure arithmetic, so off is
+    /// structurally byte-identical to pre-045. Deliberately NOT auto-on
+    /// with the contagion factor: smoke arm B needs the factor armed
+    /// under a charge-BLIND ladder. A preference in the behaviors, never
+    /// a rule in the engine (Article IV) — exposure moves what the
+    /// advisor proposes, never what is legal. Skip-serialized at false
+    /// (the pounce field's 039-D5 discipline).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub contagion_aware_ladder: bool,
 }
 
 impl Default for BehaviorConfig {
@@ -1035,6 +1084,7 @@ impl Default for BehaviorConfig {
             critter_appeal: 0.0,
             comfort_weight: ComfortWeights::default(),
             announce_here: 0,
+            contagion_aware_ladder: false,
         }
     }
 }
@@ -1196,6 +1246,7 @@ impl Default for WaterConfig {
             bath_gain: default_water_bath_gain(),
             bath_gain_ceiling: default_water_bath_gain_ceiling(),
             contagion_factor: 0.0,
+            contagion_membership: ContagionMembership::default(),
         }
     }
 }
@@ -2659,6 +2710,18 @@ mod tests {
             !json.contains("contagion_factor"),
             "contagion_factor leaked into the stamp: {json}"
         );
+        // Spec 045: both lab dials ride the same discipline —
+        // option_a/absent and false/absent are the launch states and the
+        // stamp must not move for values nobody set. Delete either
+        // field's skip attribute and its line here reddens.
+        assert!(
+            !json.contains("contagion_membership"),
+            "contagion_membership leaked into the stamp: {json}"
+        );
+        assert!(
+            !json.contains("contagion_aware_ladder"),
+            "contagion_aware_ladder leaked into the stamp: {json}"
+        );
     }
 
     #[test]
@@ -2695,6 +2758,83 @@ mod tests {
         .unwrap();
         assert_eq!(absent, zero);
         assert_eq!(absent.water.contagion_factor, 0.0);
+    }
+
+    #[test]
+    fn contagion_membership_option_a_parses_equal_to_absent() {
+        // Spec 045 FR-001/SC-001: `contagion_membership = "option_a"` and
+        // an absent key are the same world — the shipped 044 rule. The
+        // `absent` arm carries a [water] table WITHOUT the key, so a
+        // dropped `default` attribute reds here instead of hiding behind
+        // the section-level default.
+        let absent: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\n",
+        )
+        .unwrap();
+        let explicit: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"option_a\"\n",
+        )
+        .unwrap();
+        assert_eq!(absent, explicit);
+        assert_eq!(
+            absent.water.contagion_membership,
+            ContagionMembership::OptionA
+        );
+        // The other variant actually parses — the dial is reachable.
+        let bidi: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"bidirectional\"\n",
+        )
+        .unwrap();
+        assert_eq!(
+            bidi.water.contagion_membership,
+            ContagionMembership::Bidirectional
+        );
+    }
+
+    #[test]
+    fn contagion_membership_unknown_value_is_rejected_naming_both() {
+        // Spec 045 FR-008: an unknown membership value must refuse the
+        // config at load, and the error must name both legal values so
+        // the lab config author sees the menu, not a shrug.
+        let err = toml::from_str::<Config>(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"both\"\n",
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(err.contains("option_a"), "error must name option_a: {err}");
+        assert!(
+            err.contains("bidirectional"),
+            "error must name bidirectional: {err}"
+        );
+    }
+
+    #[test]
+    fn contagion_aware_ladder_false_parses_equal_to_absent() {
+        // Spec 045 FR-005/SC-001: `contagion_aware_ladder = false` and an
+        // absent key are the same world — the gate off, the stamp
+        // unmoved. Same discipline as the sibling arms above.
+        let absent: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\n",
+        )
+        .unwrap();
+        let explicit: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = false\n",
+        )
+        .unwrap();
+        assert_eq!(absent, explicit);
+        assert!(!absent.behavior.contagion_aware_ladder);
+        let on: Config = toml::from_str(
+            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = true\n",
+        )
+        .unwrap();
+        assert!(on.behavior.contagion_aware_ladder);
     }
 
     #[test]

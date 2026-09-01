@@ -12,35 +12,35 @@ config surface, commit 2 = engine branch + ladder + tests + docs.
 
 ## Phase 1: Setup
 
-- [ ] T001 Run `cargo test --workspace` at the branch tip and create
+- [X] T001 Run `cargo test --workspace` at the branch tip and create
   `specs/045-contagion-membership/redden-list.md` with the baseline
   count, the default-config stamp sha (must equal `6c73f894…`), and the
   044-style cycle table header.
 
 ## Phase 2: Foundational (config surface — blocks all stories; commit 1)
 
-- [ ] T002 Add `ContagionMembership` enum (`OptionA` default /
+- [X] T002 Add `ContagionMembership` enum (`OptionA` default /
   `Bidirectional`; TOML `"option_a"` / `"bidirectional"`; `is_option_a`
   helper) and the `WaterConfig.contagion_membership` field with
   `#[serde(default, skip_serializing_if =
   "ContagionMembership::is_option_a")]` + doc comment naming the owner
   ruling context, in `crates/cloudkitty-core/src/config/mod.rs`.
-- [ ] T003 Add `bool_is_false` helper beside `f32_is_zero` and the
+- [X] T003 Add `bool_is_false` helper beside `f32_is_zero` and the
   `BehaviorConfig.contagion_aware_ladder` field (`#[serde(default,
   skip_serializing_if = "bool_is_false")]`) + doc comment, in
   `crates/cloudkitty-core/src/config/mod.rs`.
-- [ ] T004 Stamp + parse-equality tests in `config/mod.rs` tests:
+- [X] T004 Stamp + parse-equality tests in `config/mod.rs` tests:
   default serialization contains NEITHER new key; explicit
   `contagion_membership = "option_a"` and `contagion_aware_ladder =
   false` parse equal to absent. Red-first: remove each
   `skip_serializing_if` attr in turn (leaked-key red), restore; record
   both cycles in redden-list.
-- [ ] T005 Unknown-variant rejection test in `config/mod.rs` tests: a
+- [X] T005 Unknown-variant rejection test in `config/mod.rs` tests: a
   `[water]` table with `contagion_membership = "both"` is rejected and
   the error message names `option_a` and `bidirectional`. Natural red:
   written against the enum before checking serde's message; if serde's
   message is opaque, add the clearer wrapper research D8 allows.
-- [ ] T006 Commit 1 (inert surface): full workspace suite green, count
+- [X] T006 Commit 1 (inert surface): full workspace suite green, count
   recorded, stamp sha byte-equal to baseline, `git status` clean.
 
 ## Phase 3: User Story 1 — Bidirectional membership for the lab arms (P1)
