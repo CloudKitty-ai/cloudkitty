@@ -66,3 +66,36 @@ that never does, and she is also the seat with the highest rise.
 Caveat: fresh world, not the box's resumed snapshot — same engine,
 config, and artifacts; the equilibrium behavior is the claim, exact
 tick numbers are not.
+
+## Follow-up (same day): the collateral elevation, and boxing ruled out
+
+Owner observed live that Clementine's eat/drink/play also ran high
+(~30), then that the pattern cleared and "she was not stuck"; asked
+whether a 4-cat box explains it. Checked both mechanisms on the
+repro server (positions + needs, 200 samples over ~300k ticks;
+raw `boxing.json` in the session scratchpad):
+
+- **Boxing is real but rare and weak.** Kitty moves are 4-way and a
+  kitty-occupied destination is illegal (`action.rs:368`), so a full
+  box is possible — but it occurred in 5/200 samples, and blocked≥2
+  vs blocked=0 moves her needs only modestly (eat 32.0 vs 26.4).
+  Not the driver; matches the owner's "not stuck" observation.
+- **The driver is the high-cuddle regime itself.** Split by her own
+  cuddle level: eat 18.1 → 35.5, drink 11.9 → 34.2, play 14.2 →
+  45.1 (cuddle <30 vs >60). Her artifact trained under an economy
+  where cuddle idled near 5 and never saw 60–100; with that input
+  far out of distribution her WHOLE servicing degrades — the
+  "mind broken, not world harder" side of the separator. Since her
+  cuddle sits high most of the time (mean 57), this is her steady
+  state, not an excursion.
+- **The mild roster-wide elevation is a different, benign thing**:
+  seats that CAN rest now spend real turns resting (33–43
+  scenes/ring each — a new time sink 041 introduced), so everyone's
+  other needs ride somewhat higher than the pre-041 census. Miso
+  shows the shape mildly and stays content/purring.
+
+Consequence for the options above: the trait dial and the cosleep
+reprice both work by keeping Clementine's cuddle OUT of the OOD
+region — they fix the collateral degradation too, not just the
+cuddle number. Accept-until-retrain means accepting a seat whose
+policy is degraded most of the time, not merely one high need.
