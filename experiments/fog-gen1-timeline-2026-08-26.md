@@ -51,9 +51,17 @@ are the expected signature of this mechanism, not a defect.
 ## Step 2 — pre-fog validation (lab, fast)
 
 - **Primary: scripted needs-driven lab worlds** vs the needflow model's
-  predicted bands (`cuddle-economy-model/RESULTS.md`) — rest nonzero
-  and sustained, cosleep ~6:1 over solo sleep, play within ~2/1k,
-  groom mix retained, both rest tiers shown able to emit.
+  predicted bands (`cuddle-economy-model/RESULTS.md`) — **DONE
+  2026-09-01 (`needflow-lab-validation-2026-09-01/RESULTS.md`, F-036)**.
+  Emit gates pass with room: rest 29.7/1k, the largest scene class,
+  both tiers emitting in every seed and sub-window; play corridor flat
+  under the bump (Δ 0.2/1k); groom mix retained. The "cosleep ~6:1"
+  expectation was the model's number and does not hold: measured
+  0.32:1, because engine cosleep routing is gated on
+  `cuddle_real_threshold` 15 and the 041 rest economy holds cuddle
+  near 14 (owner design question, not blocking). needflow is NOT a
+  proxy for the scripted chooser (three engine gates it lacks); step
+  5's bands are the MEASURED canon table, not the model's.
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0
@@ -166,7 +174,10 @@ digest matrix + self-row is extrapolated, not yet measured.
 
 ### INVESTIGATE (log, continue; input to step 6)
 
-- activity mix outside step-2 bands by modest factors
+- activity mix outside step-2 bands by modest factors (bands =
+  `needflow-lab-validation-2026-09-01/RESULTS.md` Deliverable 1;
+  seed spread <4%, so pin the factor at prereg; rest-solo and
+  play-solo are exact zeros for the teacher)
 - needs-servicing latency percentile creep (the "world harder" vs
   "mind broken" separator)
 - refusal-tax share >10% of any seat's ticks (F-033 seam instrument;

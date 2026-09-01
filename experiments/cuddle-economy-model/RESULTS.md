@@ -287,3 +287,33 @@ welfare — the model clears both rules. What it IS gated on:
    water's edge. That is unmeasurable pre-fog; the bidirectional
    ruling is therefore a design-preference call informed by (this)
    pricing, not an empirical gate the live roster can decide.
+
+## Lab validation against scripted seats (2026-09-01) — known misses
+
+`../needflow-lab-validation-2026-09-01/RESULTS.md`: six 20k-tick
+`needs_driven` lab runs at the canonical (0.5) and serving (2.0)
+`groom_cuddle_relief`. Emit gates and rest-nonzero pass; the model is
+NOT validated as a proxy for the scripted chooser. Misses, with the
+engine mechanism each one lacks:
+
+- **cosleep : solo sleep inverted** — model 5.6:1, lab 0.32:1. The
+  engine gates cosleep routing on `cuddle_real_threshold` (15.0); the
+  041 rest economy holds standing cuddle near 14, so most naps go solo.
+  needflow offers `cosleep` to any adjacent pair with no gate.
+- **groom-other 0.15× the model** (2.4/1k vs 15.8), self-groom 4×.
+  Scripted kitty-grooms are initiated only by `groom_response` to an
+  audible bath meow; needflow value-chooses `groom_other` whenever
+  adjacent.
+- **Dial-response predictions do not transfer.** The scripted chooser
+  never reads `groom_cuddle_relief` when deciding (payout only, plus
+  the inert 045 exposure seam), so the bump table's +76% / −62% / −55%
+  / −34% swings came out −11% / +4% / −1% / −1% in the lab. Those rows
+  describe a relief-pricing chooser (the Nash-training proxy the model
+  was built as), not `needs_driven` seats or BC clones of them.
+- No critter hunting (lab play-elem 5.6/1k); scripted seats never play
+  solo (lab 0 vs model 13.2), rest lands at 30/1k vs 12.8 (2.3×), and
+  absolute happiness sits 7 points high (95.4 vs 88.1).
+
+The calibration table above was frozen against the POLICY roster;
+scripted seats were never the calibration subject, and this is the
+first measurement of how far the two choosers sit apart.

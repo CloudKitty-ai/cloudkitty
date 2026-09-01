@@ -1954,3 +1954,46 @@ shape, or E_ticks bounds; fog changing what a cat can see near water
 the aware arms (pair-ticks 1,893 blind → 527 aware-bidirectional) and
 the two low Clementine happiness samples say the decline seam
 redistributes relief in exactly the population 041 burned.
+
+## F-036 · active · The needflow model is not a proxy for the scripted teacher: three engine gates it lacks invert the sleep niche and make relief dials invisible to `needs_driven` decisions
+
+Needflow lab validation (`needflow-lab-validation-2026-09-01/RESULTS.md`;
+prereg @ af4c5ea, scorer @ 261bbb7, both before collection; engine
+main @ 055dc5b). Six 20k-tick `needs_driven` runs, three paired seeds
+at `groom_cuddle_relief` 0.5 (canonical) and 2.0 (served bump).
+
+1. **The 041 rest niche is wide open under scripted seats.** Rest is
+   the largest scene class at 29.7/1k cat-ticks (model 12.8), 707–772
+   scenes per 5,000-tick sub-window in every seed, both tiers emitting
+   (mutual ≥1,392, drip ≥2,270 scenes per run). The emit gates the
+   timeline asked for pass with room.
+
+2. **Cosleep : solo sleep is 0.32 : 1, not the model's 5.6 : 1.**
+   Engine cosleep routing (`needs_driven.rs:193`, spec 028 FR-020)
+   opens only at cuddle ≥ `cuddle_real_threshold` (15.0); the 041 rest
+   economy holds standing cuddle at ~14.2, so 1,153 of 1,513 naps in
+   one run went solo. needflow offers cosleep to any adjacent pair
+   ungated, and cosleep strictly dominates solo sleep there. Rest is
+   eating cosleep's demand; whether that is the intended sleep niche
+   is an owner design question.
+
+3. **Relief dials are invisible to scripted decisions.** The bump moved
+   groom-other −11%, groom-self +4%, rest −1%, bath −1% (model +76 /
+   −62 / −55 / −34%). `groom_cuddle_relief` enters the engine only as
+   payout and in the inert 045 exposure seam; kitty-grooms are
+   initiated solely by `groom_response` to an audible bath meow (lab
+   groom-other 2.4/1k vs model 15.8). A relief-pricing proxy predicts
+   swings that neither scripted seats nor the frozen roster can
+   produce; only a learner trained under the dial can answer a
+   reprice.
+
+**Scope**: scripted `needs_driven` seats on the served 20×20 world,
+no fog, contagion shelved. needflow's calibration subject was the
+POLICY roster; this is the first measurement of the scripted chooser
+against it, and the bands it produced are the Gen 1 BC teacher's own
+mix, which is why they (not the model's) are step 5's reference.
+**Invalidated by**: changes to `cuddle_real_threshold`, the
+`groom_response` seam, the 041 relief dials, or fog changing what a
+sleepy cat sees within `sunbeam_reach` (step 6 re-derives the bands).
+**Re-verify when**: needflow is next used to predict a scripted or
+BC-clone mix — add the gates first, or don't use it for that.
