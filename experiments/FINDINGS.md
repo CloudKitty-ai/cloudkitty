@@ -1838,3 +1838,71 @@ refusals via `Groom { target: None }`. The chosen half (5.8% of ticks)
 is not a bug but a trained behaviour to understand, and it is the
 larger one. Whether either moves a seat's happiness is still
 unmeasured: that needs a needs-servicing count per turn, not this probe.
+
+## F-034 · active · Here* vocabulary cloning is a cliff, and the cliff sits between 5.6% and 8.2% corpus share — not near 1%
+
+The here-word density screen's Half A
+(`here-word-screen/RESULTS.md`, run 2026-08-31 on the owner's
+2026-08-30 word; plan pre-registered @ 8c50fda with the spec-043
+FR-006 amendment). Extends [F-022] from two far-apart anchor points
+(0.2% → mute; purr-rich ≈10% → fluent) to a bracket on the boundary
+itself. Method: four paired-seed corpora on the anchor composition at
+`announce_here` off/1/4/16 (realized here-share 0 / 8.18 / 5.56 /
+2.36% of decisions), one V4 clone each under the verbatim
+`train_clone6.py` recipe, readouts conditioned on the here-kinds per
+[F-015].
+
+1. **The cliff.** Opportunity-use (kind legal, no want spoken): A1 =
+   .58–.80 by kind, msg@1 on here-rows .8748, predicted emission
+   84.5/1k tracking its source's 82.4/1k per kind. A2 and A3: ≤ .0033
+   use, ~0.3/1k — functionally mute at 5.6% and 2.4% corpus share.
+   Nothing in between: the middle of the dial belongs to the mute
+   side.
+
+2. **The vocabulary is free where it works.** act@1 .7986–.8037
+   across all four arms (no action-learning cost at any density), and
+   reward streams byte-identical across arms at all 25 paired seeds —
+   the welfare charge is exactly zero by gate-zero construction
+   ([F-026]'s report-only expectation, satisfied at equality).
+
+3. **Qualifier that keeps this honest**: "mute at 5.6%" is a claim
+   about the registered recipe's budget (20 epochs, patience 3); A2's
+   val loss was still falling at the cap. Epoch-extension on A2 is
+   the registered follow-up before treating the cliff's location as
+   an asymptote. Emission is offline masked-argmax on held-out
+   states; live-rollout confirmation wants the lab binding gate.
+
+**What it changes**: fog corpus seeding uses `announce_here = 1` as a
+collection parameter, not a swept dial (per-kind cooldowns cap the
+ceiling near 8%, so period 1 is the only workable setting); the
+parked Here*-teacher likely collapses into "the scripted behaviors
+with the knob armed" (plan §8, owner's read pending); and exp-003's
+0.2% channel sat 40× under the cliff, not 5× — its failure was never
+a near-miss.
+
+**A1b addendum (2026-08-31, owner-routed, declared before
+collection)**: a fifth arm at period 2 (realized share 7.61% — the
+cooldown compression again) lands mid-transition: emission RATE
+fluent (73.6/1k vs source 76.9) but placement half-right
+(opportunity-use .35–.56, msg@1 on here-rows .691). So the shape is a
+steep transition, not a pure step: mute ≤ 5.6%, half-fluent at 7.6%,
+fluent at 8.2% — the whole rise inside ~2.6 points of corpus share.
+A 0.57-point share difference (A1b→A1) buying +.14–.24 of use hints
+raw share may not be the only driver (period 1 is also the most
+regular context); one clone per arm, so the shape is the claim, not
+the decimals. Decision unchanged: period 1 dominates — period 2's
+corpus is barely smaller and strictly worse placed. act@1 .8009
+(flat), rewards byte-identical (gate zero holds for the fifth arm at
+all 25 paired seeds).
+
+**Extension addendum (2026-08-31, owner-routed, decision rule
+pre-declared)**: fresh 60-epoch/patience-10 runs on A1/A1b/A2 (the
+qualifier in point 3, discharged). Verdict: **the cliff is
+density-shaped, not budget-shaped** — 3× budget moved opportunity-use
+by noise (A1 .60–.81, A1b .39–.54, A2 still mute at ≤ .027 with
+here_critter exactly 0; no plateau-then-jump anywhere in the
+histories). The 20-epoch recipe stands for vocabulary seeding.
+Separate fact the probe surfaced: the budget DOES buy action
+fidelity — act@1 +1.6–2.0 points on every arm (.80 → .82) at 3×
+cost; whether that trade is taken for Fog Gen 1's BC stage is an
+owner call at the fog prereg.

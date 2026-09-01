@@ -135,3 +135,40 @@ cd experiments/cuddle-economy-model
 python3 needflow.py            # scenario tables
 python3 test_needflow.py       # guard; every assertion shown red in-run
 ```
+
+## Serving-world groom bump pricing (2026-08-31)
+
+Context: `041-cuddle-investigation-2026-08-31.md` — Clementine's
+frozen e004 policy runs groom-for-cuddle at 56% of high-cuddle ticks,
+but 041's `groom_cuddle_relief` 0.5 sits below her 0.7 rise (a futile
+loop). Candidates re-arm the habit on the SERVING config only,
+reverted at the Gen 1 retrain. 30k ticks, seed 7, served dials
+otherwise.
+
+| groom_cuddle_relief | groom_other | groom_self | rest_avail | cosleep | mean cuddle | mean bath | happiness |
+|---|---|---|---|---|---|---|---|
+| 0.5 (served) | 15.77 | 4.28 | 12.81 | 16.66 | 7.61 | 5.23 | 95.36 |
+| 1.5 | 22.52 | 2.18 | 8.97 | 17.08 | 7.08 | 3.98 | 95.67 |
+| 2.0 | 27.77 | 1.62 | 5.72 | 17.23 | 6.71 | 3.45 | 95.83 |
+
+Readings:
+- **Welfare-benign, slightly positive** at both candidates
+  (95.36 → 95.67 / 95.83); every mean need improves or holds.
+- **Grooming displaces rest in the scripted mix** — rest_avail
+  −30% at 1.5, −55% at 2.0. This is a greedy-chooser artifact and
+  does NOT transfer to the frozen serving roster (policies change no
+  decisions when relief dials move), but it measures how far each
+  value leans against 041's specialist design in scripted reference
+  worlds. Step-2 validation bands use canonical configs, not the
+  serving bump, so no conflict.
+- Bath improves as a side effect (more grooming = more bath relief
+  delivered); groom_self is crowded out by groom_other's better EV.
+- For Clementine specifically: at 1.5 her net while grooming is
+  +0.8/tick against the 0.7 rise (holds, barely); at 2.0 it is
+  +1.3/tick and a 4-tick scene delivers 8.0 — one old-lifeline
+  scene. **Lean: 2.0** — the margin at 1.5 is thin against her rise,
+  and the displacement artifact does not apply to frozen seats.
+
+Limits: scripted greedy chooser (comparative, not a forecast of the
+frozen roster); bath_ratio 1; charge-blind chooser as disclosed in
+the post-041 section.

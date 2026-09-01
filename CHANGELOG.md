@@ -33,6 +33,39 @@ change.
 
 ## Unreleased
 
+- A cat washing a friend to the north or south is drawn through the same lens
+  as one walking there. Seen end-on, social grooming had been quietly
+  authoring its own camera: its body named its own width and height instead of
+  taking the camera's, and its head carried a second near-far cue on top of
+  the one the camera already applies — so the same cat's skull came out
+  fourteen per cent larger facing the viewer and fourteen per cent smaller
+  facing away than a walking cat's, and its body stood at an aspect of 1.45
+  where every other end-on pose stands at 0.97. The owner saw all three from
+  the served world before any of it was measured. The body is now the camera's
+  own figures times two declared factors, and only one of those is a real
+  seated difference: sitting makes a cat taller for its width, and does not
+  narrow it across the shoulders — a distinction that cost a draft, because
+  the side view's seated ratio measures the body's *length*, which sitting
+  does shorten. The rear tail is now simply the rear tail, the same one the
+  walk and the idle draw, with no seated variation at all: an earlier attempt
+  to start it from the ground, where a sitting cat's rump actually is, showed
+  its whole length down the flank and read as a stripe rather than a curl. The
+  reference hides the base inside the body on purpose. Two guards came out of
+  it — the head must match the walking cat's radii in both views, and the body
+  must be derived rather than restated — and one long-standing fault surfaced:
+  the clamp that keeps a tail off the skull had been measuring against a
+  straight edge rather than the skull itself, and shoving tails clear of
+  collisions they were never in.
+
+- Scripted cats can volunteer here-words (spec 043). A new `[behavior]`
+  `announce_here` period lets a scripted cat whose message slot would be
+  Silent name an adjacent thing — `here_food` / `here_water` /
+  `here_critter` / `here_sunbeam` — on its deterministic phase ticks,
+  cycling the legal kinds without RNG. Existing speech always wins and
+  legality is unchanged law; unset (the served default) is byte-identical
+  to before the knob existed, and the in-tree gate-zero test pins that
+  speech never moves action. Built for Experiments' here-word density
+  screen.
 - A seated hock is tucked in by exactly the amount it was told to be. Every
   seated pose derives where its hind leg meets the body by reading the body's
   own outline, and the outline it read was the finished one — after the

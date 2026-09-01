@@ -21,25 +21,24 @@ save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
 # `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
-# via the matching [rl.policy.<name>] block. FIVE SEATS, FIVE MINDS
-# (2026-08-22, owner's seating word): Biscuit 2.0 (e006a-L-04-s3) takes
-# Biscuit's seat and the e004 incumbent moves to Clementine — the first
-# roster with no scripted seat. Certified as this exact composition in
-# experiments/exp-006a-biscuit-corner/battery-2026-08-22.md (all gates).
-# A seat swap on the served world: the world fingerprint doesn't move, so
-# no --fresh is needed (deploy stays the owner's restart, her call).
+# via the matching [rl.policy.<name>] block. WALL WINDOW (spec 033): every
+# seat is parked scripted — the schema pins turned (obs 4 / action 3 /
+# mask 3) and every committed artifact speaks the previous generation, so
+# none can open on this binary. The served box stays on its pre-wall binary
+# and world (only client-only deploys are safe there until the phase-1
+# generation certifies and seats). The [rl.policy.*] blocks below stay for
+# provenance; unreferenced blocks are never opened (the generation-gap
+# test proves it, second tour: spec 026 US4, spec 028 precedent).
 
 [[kitty]]
 id = 1
 name = "Miso"
 x = 8
 y = 10
-# "The cuddler", carried onto the schema-4 surface (spec 035): the same
-# mind that took this seat 2026-08-14, resuming after the wall.
-behavior = "policy:attn-a1-s1-o4"
-# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
-# certification world constructed per prereg D-003 — the served config
-# plus exactly the three sheets the wall rider deferred).
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s1 "the cuddler"
+# (candidate B, seated 2026-08-14 — the record stays in policies/README.md
+# and the block below). Scripted until the phase-1 generation seats.
+behavior = "needs_driven"
 [kitty.needs]
 sleep = 0.6
 eat = 0.3
@@ -50,16 +49,10 @@ id = 2
 name = "Biscuit"
 x = 16
 y = 15
-# BISCUIT 2.0 (seated 2026-08-22, owner's word): e006a-L-04-s3, the
-# exp-006a lineage PPO product — BC-cloned from this seat's e004
-# incumbent, then trained on the bugs-2.0 world. Battery 89.95 vs the
-# owner's bar 87.31, G3 character fingerprint PASS (experiments/
-# exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
-# incumbent it grew from moves to Clementine.
-behavior = "policy:e006a-L-04-s3"
-# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
-# certification world constructed per prereg D-003 — the served config
-# plus exactly the three sheets the wall rider deferred).
+# SEAT PARKED (spec 033 wall): was policy:e004-a1-s2, the cross-generation
+# incumbent (its responder culture is why candidate B kept it; records in
+# policies/README.md). Scripted until the phase-1 generation seats.
+behavior = "playful"
 [kitty.needs]
 play = 0.8
 eat = 0.3
@@ -70,11 +63,10 @@ id = 3
 name = "Pumpkin"
 x = 13
 y = 6
-# "The doter", carried onto the schema-4 surface (spec 035). Seated ONCE
-# this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
-# deadlock was a twin artifact). The needs override below is world-law,
-# not behavior — it stays.
-behavior = "policy:attn-a1-s3-o4"
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s3 "the doter" (candidate
+# B, seated 2026-08-14). Scripted until the phase-1 generation seats. The
+# needs override below is world-law, not behavior — it stays.
+behavior = "needs_driven"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -91,13 +83,9 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
-# battery doc): the E1 dialect — here-meows and a meaningful mew — is
-# worth the recert. G2c says the swap is free at team level (+0.0003).
-behavior = "policy:e006-E1-s1"
-# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
-# certification world constructed per prereg D-003 — the served config
-# plus exactly the three sheets the wall rider deferred).
+# SEAT PARKED (spec 033 wall): was policy:attn-a1-s3 (Pumpkin's artifact,
+# the multi-seat pattern). Scripted until the phase-1 generation seats.
+behavior = "needs_driven"
 [kitty.needs]
 bath = 0.4
 drink = 0.3
@@ -110,15 +98,13 @@ x = 10
 y = 16
 # THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with five cats
 # and three observation slots, someone is always unslotted -- want-meows
-# carry real signal). SEATED 2026-08-22 (owner's word), keeping the
-# interim-roster ruling's promise that a policy mind frees up for her at
-# bugs-2.0+: the e004 MLP incumbent moves here from Biscuit's seat.
-# Battery 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md). Her
-# look (the designed white cat) is a client-side palette override. Trait
-# vector owner-final, 3-dial: cuddlier, lighter on play and bath
-# (verified -0.07 vs trait-flat under policy company -- the parity band);
-# stage-3 mortal like Pumpkin's.
-behavior = "policy:e004-a1-s2-o4"
+# carry real signal). Scripted until the phase-1 generation seats her;
+# adding this id moves the world fingerprint, so the rollout that first
+# serves this roster is a --fresh. Her look (the designed white cat) is a
+# client-side palette override. Trait vector owner-final, 3-dial: cuddlier,
+# lighter on play and bath (verified -0.07 vs trait-flat under policy
+# company -- the parity band); stage-3 mortal like Pumpkin's.
+behavior = "needs_driven"
 [kitty.needs]
 cuddle = 0.7
 play = 0.3
@@ -192,22 +178,12 @@ servings = 5
 [elements.bug]
 min = 3
 max = 7
-# Bugs 2.0 (spec 039): longer, calmer lifetimes -- a patch relocates
-# roughly every eight real-world minutes instead of churning.
 ttl = 600
-# The roam tether: each bug lives its whole life inside the 4x4
-# world-aligned cell it was born in, so a patch of the meadow HAS bugs
-# and a hunt ends inside sixteen tiles. Omit for free-range bugs.
-# Semantics: specs/039-bugs2-tether/contracts/roam-config.md
 roam_cell = 4
 
 [elements.greeble]
 # Greebles are fast, erratic, and invisible to humans -- they appear in the API
 # like any other element, but the viewer never draws them. Press `g` to cheat.
-# NEVER tethered (spec 039): they roam the whole world. The dart flag (039
-# third amendment, the owner's ruling) puts them on the critter rest-tick
-# schedule with a 1-3 tile dart on moving ticks: freeze, dart, freeze.
-# Catchable by timing now, priced as an opportunistic target.
 min = 1
 max = 3
 ttl = 600
@@ -229,49 +205,23 @@ sleep_relief = 5.0
 sleep_relief_sunbeam = 7.0
 groom_relief = 20.0
 play_relief = 20.0
-# The bugs-2.0 sticker (spec 039, owner's pre-merge ask): bug play priced on
-# the MEASURED frontier — a pre-registered {26, 28, 30} sweep on the shipped
-# mechanics came back linear within 0.2, and the smallest value clearing the
-# unskilled bar is 28 (engine default 25). Gradient preserved: solo 10 <
-# duet-each 20 < bug 28 < greeble 35 < team-duet 40 — a bug is a find, a
-# friend is still the better deal. Sweep: experiments/bugs2-grid2-2026-08-21.md.
 play_relief_bug = 28.0
-# The cuddle economy (spec 041): within the need, ONE saturating specialist
-# -- partnered rest's mutual tier -- and every rider partial. A rider that
-# finishes the need kills the dedicated activity; standing (partial) demand
-# is what makes rest worth choosing. Deliveries below are per SCENE, not per
-# pair: a reciprocal mutual pair pays each cat from both slots (the engine's
-# shape, priced into the model), so instruments count scenes, not relief
-# events. Measured mean cuddle need: 5.1 (median 2.8, 2026-08-25 census; the
-# 11.6 the exp-004 pilot priced against was the earlier generation's read).
-# Partnered rest when the partner is itself resting or sleeping (the mutual
-# tier), per serviced tick, both parties. THE specialist: kept at the
-# classic value, saturating on purpose -- the one route that finishes the
-# need.
+# Resting or grooming alongside a friend (the rest duet and the groomer's
+# warmth). Cosleep is priced separately below since spec 028. Re-priced by
+# the exp-004 dial-pricing pilot (2026-08-09, owner-pinned): a minimum-length
+# duet now pays 40 against a mean cuddle need of 11.6, down from 75.
+# spec 041 migration (owner's loud-retirement ruling, 2026-08-28):
+# cuddle_relief = 8.0 split faithfully into its two sites.
 rest_mutual_relief = 8.0
-# Partnered rest when the partner is merely present (the drip tier), per
-# serviced tick, both parties. A rider: a minimum scene (6 ticks) delivers
-# 1.5 against the 5.1 mean. Convention: drip stays below mutual.
-rest_drip_relief = 0.25
-# The groomer's own warmth while grooming a friend. Canonical value 0.5
-# (the spec-041 specialist split; a minimum 4-tick groom delivers 2.0 --
-# the groomer still needs real cuddles). Bumped to 2.0 here as a TEMPORARY
-# pre-Gen-1 accommodation: frozen incumbents trained pre-041 (Clementine)
-# answer high cuddle with groom-for-cuddle, and 0.5 sits below her 0.7
-# rise -- a futile loop that trips the spec-040 watchdog. Serving world
-# ONLY; specs, lab worlds, and collection configs keep 0.5. REVERT at the
-# Gen 1 reseating -- see experiments/groom-bump-handoff-2026-08-31.md.
-groom_cuddle_relief = 2.0
+groom_cuddle_relief = 8.0
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
-# parties: the passive tier when the partner is merely present. A rider --
-# a minimum nap (6 ticks) delivers 1.5, contributing to the need without
-# finishing it...
-cosleep_drip_relief = 0.25
-# ...and the mutual tier when the partner is itself sleeping or resting.
-# Also a rider (3.6 per minimum nap): co-sleep keeps a strictly positive
-# edge over solo sleep, and rest keeps the saturating role. Convention:
-# drip stays below mutual.
-cosleep_mutual_relief = 0.6
+# parties: the passive tier when the partner is merely present -- priced so
+# a typical 3-tick contact (~9) roughly meets the mean need, not 4x it...
+cosleep_drip_relief = 3.0
+# ...and the mutual tier when the partner is itself sleeping or resting,
+# at rest-duet parity: mutual engagement pays like a duet, one price for
+# "both parties actively resting together" everywhere it happens.
+cosleep_mutual_relief = 8.0
 # Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
 # play_relief -- playing together stays the better deal.
 solo_play_relief = 10.0
@@ -345,15 +295,12 @@ cooldown_factor_max = 2.75
 announce_probability = 0.0
 
 [behavior]
+announce_here = 2
+pounce = true
 # Share of a tick an *external* behavior may spend deciding before the engine
 # steps in with the default behavior. Built-in behaviors are exempt: they run
 # in-process, so determinism never depends on how fast this machine is.
 budget_fraction_of_tick = 0.5
-# The final pounce (spec 039, the fallback the owner pre-authorized when the
-# tether alone left unskilled hunts under the bar): a chase step that leaves
-# an ELEMENT quarry exactly 2 tiles away lunges one more step in the same
-# tick. Cats are never pounced on. Omit (or false) for the pre-039 chase.
-pounce = true
 # What "real cuddle need" means to the scripted responders (spec 028): at or
 # above this, a cat answers an audible want_bath with grooming and prefers a
 # friend's side to a sunbeam for its nap. One shared gate on purpose.
@@ -361,36 +308,6 @@ cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
 playful_comfort = 55.0
-# Playful 2.0 (spec 042): the partner-value score and per-need comfort
-# weights, all launched at their identity values and ABSENT here on purpose
-# (absent = identity; the engine-defaults stamp stays unmoved). Priced by
-# Experiments' joint comfort x score x weights campaign; the owner pins
-# served values. Uncomment HERE, under [behavior], to set one:
-# w_value = 0.0         # friend-value multiplier in the play score; > 0 also
-#                       #   admits busy-but-soon-free friends to the ranking
-# w_busy = 0.0          # expected-wait penalty per tick (mid-scene partner)
-# w_serious = 0.0       # penalty per point of a partner's top NON-play need
-# t_self = 0.0          # own play-need floor for bothering any friend
-# t_partner = 0.0       # per-friend value floor (eligibility filter)
-# critter_appeal = 0.0  # standalone critter score offset (either sign)
-# [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
-#                             #   (strictly > 0; pair w_busy with w_value)
-# eat = 1.0
-# drink = 1.0
-# sleep = 1.0
-# play = 1.0
-# cuddle = 1.0
-# bath = 1.0
-# The here-word announce period (spec 043). Unset (or 0) = scripted cats
-# never volunteer here_* words -- the launch state, byte-identical to before
-# the knob existed. N >= 1: on its phase ticks ((tick + kitty id) divisible
-# by N) a cat whose message slot would be Silent names one ADJACENT thing --
-# here_food / here_water / here_critter / here_sunbeam -- cycling the legal
-# kinds deterministically (no RNG). Existing speech always wins: wait_for_me
-# and want-words are untouched at any setting. Legality is unchanged law
-# (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
-# Experiments' density screen, not a welfare lever.
-# announce_here = 4
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
@@ -455,52 +372,43 @@ distress_patience_ticks = 60
 # Artifacts live in the committed policies/ directory (owner decision
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
-# The phase-1 generation (seated 2026-08-21, closing the spec-033 wall),
-# plus the 2026-08-22 Biscuit 2.0 seating. Three seats are the pre-wall
-# incumbents carried onto the schema-4 surface by ckpolicy-expand (spec
-# 035): same minds, proven twice over — structural attestation at
-# expansion plus the bit-exact parity leg in Experiments' acceptance
-# (expansion-acceptance-2026-08-17.md). e006-E1-s1 is exp-006's E-arm
-# PPO product (actor-only export; forward parity vs the measured torch
-# actor 7.8e-05 max logit delta). e006a-L-04-s3 is exp-006a's lineage
-# PPO product (plain-V4 export, parity 2.29e-05 over 2,000
-# certification-world obs rows); with it seated, the e004 incumbent
-# moves from Biscuit to Clementine. Certified whole, twice:
-# experiments/exp-006-character-gen/results/deploy-battery-2026-08-21.md
-# for the phase-1 seating, experiments/exp-006a-biscuit-corner/
-# battery-2026-08-22.md for this roster (all gates; Biscuit 89.95 vs bar
-# 87.31, Clementine-e004 94.81 vs scripted bar 90.10). Greedy selection
-# throughout, matching the measured condition. Sources retired to
-# policies/retired/ with their records; shas + provenance in
-# policies/README.md and policies/registry.toml (spec 034 rows in this
-# same change, per the same-PR rule).
-[rl.policy.attn-a1-s1-o4]
-artifact = "policies/attn-a1-s1-o4.ckpolicy"
+# e004-a1-s2 = exp-004's certified winner (shaped self-play arm A1: distress
+# shaping c = 0.5, γ_Φ = 0.998 pinned; RNG seed 2), sha256 21d19730… — the
+# first two-head, observation-schema-3 policy (v2 artifact) to reach the
+# served world, and the first CERTIFIED seating: 15/15 of its cohort passed
+# the settled §9.2 stress gate (this candidate: worst max_distress_age
+# 46/0/405 across shapes iii/r3/r5, zero floor touches, zero fallbacks in
+# 1,350 stress runs); §9.3 welfare +0.0440 over the paired scripted baseline
+# (0.9500 absolute). Channel: 169.6 meows/1k, Purr-dominant by grounded
+# legality (deviation D-002, registered — not collapse); GroomKitty 93.3/1k
+# where v3 measured 0. Seated at both policy seats 2026-08-09 and extended to ALL FOUR the same
+# day on the 4x deployment screen (deploy-screen-4x: 0.9499 vs 0.8866 live;
+# §9.1 water bounds PASS at the all-policy composition), superseding
+# e003-m0-g998-s3 (retired to policies/retired/ with its record — a v1
+# artifact this binary cannot open in any case).
+# Full certification record: experiments/exp-004-meow-channel/results/
+# grid-2026-08-09.md; ledger + per-run JSONs beside it.
+# Greedy selection (sample = false), matching the measured condition.
+# Since the 2026-08-14 cross-generation cutover it drives Biscuit's seat only.
+[rl.policy.e004-a1-s2]
+artifact = "policies/e004-a1-s2.ckpolicy"
 
-[rl.policy.attn-a1-s3-o4]
-artifact = "policies/attn-a1-s3-o4.ckpolicy"
+# attn-a1-s1 "the cuddler" / attn-a1-s3 "the doter" = attention-PPO winners
+# (A1 recipe on the attention actor+critic, seeds 1 and 3) — the first spec-030
+# v3 (entity-attention) artifacts to reach the served world, serving beside the
+# v2 incumbent. Certified 2026-08-14 as candidate B, the cross-generation
+# roster: all gates green, no deviations (paired team Nash −0.0016/−0.0018 vs
+# the incumbent world, inside the 0.002 parity band; hard floor +0.042 over
+# the fresh scripted anchor; worst max_distress_age 92/89 vs bound 150; zero
+# floor touches; §9.2 stress 0 exceedances of bar 225). The "attn" type token
+# is asserted mechanically: the v3 header pins architecture = entity_attention
+# at load. Certification record: experiments/attn-cert-2026-08-14/
+# selection-crossgen.md (protocol + instrument in selection.md beside it);
+# shas in policies/README.md. Greedy selection, matching the measured
+# condition. attn-a1-s3 takes two seats (Pumpkin, Kittybear) — the multi-seat
+# pattern every rollout has used.
+[rl.policy.attn-a1-s1]
+artifact = "policies/attn-a1-s1.ckpolicy"
 
-[rl.policy.e004-a1-s2-o4]
-artifact = "policies/e004-a1-s2-o4.ckpolicy"
-
-[rl.policy.e006-E1-s1]
-artifact = "policies/e006-E1-s1.ckpolicy"
-
-[rl.policy.e006a-L-04-s3]
-artifact = "policies/e006a-L-04-s3.ckpolicy"
-
-# The serving welfare watchdog (spec 040) — a standing, read-only watch
-# over every cat's distress ages, the layer F-027 proved was missing: a
-# 2331-tick co-sleep distress streak ran with relief nearby and nobody
-# looking. Crossing the threshold writes a WELFARE ALARM to the server
-# log (re-announced every remind_every ticks while it lasts) and the
-# current surface is always at GET /welfare. Detection only: the watchdog
-# proposes nothing, changes nothing, and a watched world is byte-identical
-# to an unwatched one. Server-owned table, like [rl] and [plugins] -- the
-# engine never sees it. Omitting the table means exactly these defaults;
-# there is no off switch to forget.
-[watchdog]
-# The alarm line, in ticks of sustained distress: the certification bound
-# (max_distress_age vs 150 in every battery since exp-004).
-threshold = 150
-remind_every = 150
+[rl.policy.attn-a1-s3]
+artifact = "policies/attn-a1-s3.ckpolicy"

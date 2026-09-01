@@ -58,8 +58,11 @@ are the expected signature of this mechanism, not a defect.
   discovered hunting under a correct economy) — confirmatory only.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0
   (ROADMAP parking lot item; the known-positive it must catch).
-- **Here-word density screen** (plan @ 8c50fda) — the fog-vocabulary
-  de-risker runs HERE, on the current gen, before fog forecloses it.
+- **Here-word density screen** — **Half A DONE 2026-08-31 (F-034,
+  `here-word-screen/RESULTS.md`)**: vocabulary cliff between 5.6% and
+  8.2% corpus share; `announce_here = 1` is the fog collection
+  parameter; act@1 and welfare untouched. Collection complete, so the
+  contagion flip is unblocked from the screen side.
 - **Biscuit 3.0 comfort sweep** (`biscuit3-design-note-2026-08-26.md`)
   — scripted `playful_comfort` dose-response, owner-gated to run once
   ALL pre-fog engine changes are in (step 1 + any step-3 economy
@@ -100,9 +103,10 @@ addendum + ROADMAP bootstrap paragraph) — law-named words only,
 grounded-predicate emission, courtesy dials per F-023. A
 demonstration-corpus contributor (teacher seat in collection
 compositions), never servable on the box; no schema break, so it
-enters here, not step 3. The here-word density screen
-(`here-word-density-screen.md`, sequencing undecided) may collapse
-this item — check before scoping.
+enters here, not step 3. **F-034 (2026-08-31) supports collapsing
+this item**: the scripted behaviors with `announce_here = 1` produce
+a corpus a V4 clone learns the register from — scoping it away is
+the owner's call at this window.
 
 ## Step 5 — shakeout training round
 
@@ -113,6 +117,19 @@ below; anything not on the HALT list is step-6 data, not a stop.
 Teacher rows enter the corpora here and in step 7; delivery is the
 ROADMAP's registered three-arm comparison — mixed-corpus vs vocabulary
 lesson (head-selective message-head finetune) vs no-seeding control.
+
+**BC recipe (owner-ruled 2026-08-31, from F-034's extension)**: stop
+rule = train-to-plateau on val loss with patience ~10 (patience 3
+provably censors; the 20-epoch cap left ~+2 act@1 on the table), NO
+epoch floor for the vocabulary — the message head converges by ~epoch
+10 at period-1 density and no budget rescues wrong density. The
+vocabulary is gated by MEASUREMENT instead: every clone must clear a
+here-conditioned acceptance bar (opportunity-use + msg@1 on
+here-rows, held-out set; `here-word-screen/readout_screen.py` is the
+instrument) before advancing. A miss points at density or schema,
+never epochs. Exact bar numbers pinned at the prereg alongside the
+schema-4→fog caveat: message-head convergence speed under the new
+digest matrix + self-row is extrapolated, not yet measured.
 
 ### HALT (egregious — stop, fix, possibly break schema)
 
