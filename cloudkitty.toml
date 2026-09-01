@@ -253,9 +253,15 @@ rest_mutual_relief = 8.0
 # serviced tick, both parties. A rider: a minimum scene (6 ticks) delivers
 # 1.5 against the 5.1 mean. Convention: drip stays below mutual.
 rest_drip_relief = 0.25
-# The groomer's own warmth while grooming a friend. A rider: a minimum
-# groom (4 ticks) delivers 2.0 -- the groomer still needs real cuddles.
-groom_cuddle_relief = 0.5
+# The groomer's own warmth while grooming a friend. Canonical value 0.5
+# (the spec-041 specialist split; a minimum 4-tick groom delivers 2.0 --
+# the groomer still needs real cuddles). Bumped to 2.0 here as a TEMPORARY
+# pre-Gen-1 accommodation: frozen incumbents trained pre-041 (Clementine)
+# answer high cuddle with groom-for-cuddle, and 0.5 sits below her 0.7
+# rise -- a futile loop that trips the spec-040 watchdog. Serving world
+# ONLY; specs, lab worlds, and collection configs keep 0.5. REVERT at the
+# Gen 1 reseating -- see experiments/groom-bump-handoff-2026-08-31.md.
+groom_cuddle_relief = 2.0
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
 # parties: the passive tier when the partner is merely present. A rider --
 # a minimum nap (6 ticks) delivers 1.5, contributing to the need without
