@@ -264,6 +264,15 @@ equal to absent.
   measured expectation (the critter-play `mlen` precedent), with the
   exact shape settled at plan time under Experiments' review of the
   needflow-derived value model (`cuddle-economy-model/RESULTS.md`).
+- The ladder prices only candidates who are wet at decision time; it
+  neither charges for nor discounts mid-scene waterline crossings (a
+  dry partner stepping in, a wet partner stepping out). Consequence for
+  the smoke, per Experiments' review 2026-08-31: the lab arms can
+  express avoidance of wet partners, not anticipatory avoidance of
+  water's-edge loiterers — the water-adjacent-share readout is expected
+  to move less than cross-waterline adjacency, and a flat
+  water-adjacent share is not evidence the charge produces no edge
+  behavior. (Experiments mirrors this in the smoke design doc.)
 - Bidirectional is pre-priced welfare-benign at both live economies
   (canonical 0.5 and serving 2.0 groom relief) — the budget law needs
   restating in docs only if the plan finds the per-tick maximum moved,

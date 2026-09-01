@@ -96,32 +96,59 @@ engine cannot collect; scene-total is the owner's clarified ruling
 ratio the charge draws — so the ladder and the felt price stay one
 coherent preference (the `bath_ratio` doc's existing principle).
 
-**Experiments review**: this section is the value model their handoff
-reserved review on; sent for review at plan time. The cap and the
-duration source (D5) are the two knobs they are most likely to adjust.
+**Experiments review (DONE 2026-08-31)**: scene-total, the ceiling cap,
+`bath_ratio` coherence, and the gate-not-auto-on-with-factor all
+confirmed as-is; they independently verified the voiding claim (under
+both rules the initiator pays iff dry-with-wet-partner, so egocentric C
+and D are literally identical — the contrast is 100% the partner's
+charge). Three adjustments folded: D5's duration basis (midpoint →
+min), D6 site 3's value side (scene-total, groomer's cuddle relief
+included), and the wet-now disclosure below.
 
-## D5 — Expected scene duration
+**Wet-now disclosure (Experiments review point 3 — no code change)**:
+the helper prices only candidates wet at DECISION time. Measured wet
+windows are dominated by MID-SCENE waterline crossings, which the
+ladder neither charges for (a dry partner stepping in) nor discounts (a
+wet partner stepping out). Smoke consequence, mirrored in the smoke
+design doc's readout section: arms C/D can express avoidance of WET
+partners, not anticipatory avoidance of water's-edge loiterers — the
+water-adjacent-share readout is expected to move less than the
+cross-waterline-adjacency readout, and a flat water-adjacent share is
+NOT evidence the charge produces no edge behavior.
 
-**Decision**: `E_ticks(kind)` = the midpoint `(min + max) / 2` of the
-existing `[durations]` `DurationBounds` for the scene's activity kind —
-play → `durations.play`, cuddle/rest → `durations.cuddle`, co-sleep →
+## D5 — Expected scene duration (amended per Experiments review 2026-08-31)
+
+**Decision**: `E_ticks(kind)` = the **`min`** of the existing
+`[durations]` `DurationBounds` for the scene's activity kind — play →
+`durations.play`, cuddle/rest → `durations.cuddle`, co-sleep →
 `durations.sleep`, grooming → the grooming activity's governing bounds
 (mapping verified against the activity code at implementation; if
 grooming has no bounds entry, fall back to the short-activity default
 and record it in the config doc comment).
 
-**Rationale**: grounded in what the engine actually enforces, already
-config-surfaced, deterministic, and adds ZERO new dials. It
-overestimates scenes ended early by prune (partner walks off) — an
-acceptable bias for a choice weight, disclosed to Experiments; the
-smoke's positive control (arm E) cranks the factor far past any
-duration-bias sensitivity.
+**Rationale**: the horizon must match the basis the chooser's other
+duration-anchored terms use, or exposure is systematically overweighted
+against relief (Experiments review point 1: a midpoint basis over play
+bounds [min, max] overweights by mid/min — up to 3× at the default
+[2, 5]-shape bounds — and would manufacture avoidance the priced
+economy doesn't imply). Two anchors agree on `min`: needflow values
+relief over MIN duration, and the chooser's one existing
+duration-anchored term (`expected_wait`, selection.rs — "exact only for
+scenes that actually hold their minimum") reads `bounds.min`. The
+selection score's relief term itself carries no duration weighting
+(pressure is the value proxy), so `min` is adopted from those two
+precedents rather than matched to a relief horizon that doesn't exist —
+disclosed rather than silently chosen. Still config-grounded,
+deterministic, zero new dials. `min` UNDERestimates scenes that run
+past their minimum — a conservative bias for a cost weight (never
+manufactures avoidance), disclosed; arm E's cranked factor swamps it.
 
-**Alternatives**: a new per-kind expected-ticks config table (four new
-dials to justify and validate for a lab-only weight); measured `mlen`
-constants baked into code (magic numbers — Article VI violation);
-per-candidate survival modeling (speculative machinery, CLAUDE.md
-rule 2).
+**Alternatives**: midpoint `(min+max)/2` (rejected per the review —
+overweights exposure relative to every duration basis actually in use);
+a new per-kind expected-ticks config table (four new dials for a
+lab-only weight); measured `mlen` constants baked into code (magic
+numbers — Article VI violation); per-candidate survival modeling
+(speculative machinery, CLAUDE.md rule 2).
 
 ## D6 — Ladder injection sites (three, all behind the gate)
 
@@ -136,11 +163,17 @@ rule 2).
    candidate's exposure so a dry playmate outranks an otherwise-equal
    wet one (this is where positional avoidance becomes learnable).
 3. **The groom seam (`needs_driven::groom_response`)** — before
-   committing to groom, compare the scene's exposure against the value
-   grooming delivers (the groomee's bath pressure); decline when
-   exposure exceeds value. Under `bidirectional` this is the seam that
-   lets a wet groomer spare a dry friend — the D-vs-C contrast for
-   groom scenes.
+   committing to groom, compare the scene's exposure against the
+   scene's TOTAL value (Experiments review point 2: cost is
+   scene-total, so value must be too): the groomee's bath pressure PLUS
+   the groomer's expected cuddle relief from the same scene (partnered
+   groom pays the groomer `groom_cuddle_relief` — the Clementine
+   mechanism, currently 2.0 on the serving world), both in need-points.
+   Decline only when exposure exceeds that sum; comparing against the
+   groomee's bath alone would over-decline net-positive grooms and
+   collapse arm D's groom mix for the wrong reason. Under
+   `bidirectional` this is the seam that lets a wet groomer spare a dry
+   friend — the D-vs-C contrast for groom scenes.
 
 **Rationale**: (1) and (2) are the two existing pricing sites and must
 agree (the 004 agreement rule the module documents); (3) is the only

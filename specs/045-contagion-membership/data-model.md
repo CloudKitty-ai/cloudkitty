@@ -60,13 +60,19 @@ exposure(ctx, kind, partner) =
   whose counterpart is wet (0, 1 members possible; never 2 — a pair has
   at most one dry-beside-wet member paying per counterpart... both-dry
   and both-wet yield ∅; one-wet-one-dry yields exactly the dry one).
-- `E_ticks(kind)`: midpoint of the governing `[durations]`
-  `DurationBounds` (D5 mapping).
+- `E_ticks(kind)`: `min` of the governing `[durations]`
+  `DurationBounds` (D5, amended per Experiments review — the same
+  basis as `expected_wait` and needflow's relief horizon).
 - Units: bath need-points — subtracted directly from selection scores
   and candidate values (the score's existing currency).
 - Consumed at the three gated seams (D6): `scored()` for
   Playmate/Friend relief, `play_score()` per candidate, the groom seam
-  (decline when exposure > groomee's bath pressure).
+  (decline only when exposure > groomee's bath pressure + the
+  groomer's expected cuddle relief — scene-total cost vs scene-total
+  value).
+- Scope: prices only candidates wet at decision time — no anticipatory
+  pricing of mid-scene waterline crossings (disclosed; see research.md
+  D4's wet-now disclosure).
 
 ## Invariants preserved
 

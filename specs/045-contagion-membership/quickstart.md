@@ -38,8 +38,9 @@ Expect: gate off ⇒ seeded scripted run byte-identical to pre-045;
 gate on + factor 0.0 ⇒ byte-identical to gate off; gate on + cranked
 factor ⇒ the dry playmate outranks the otherwise-equal wet one, the
 exposed cuddle scores below the unexposed one, and the wet groomer
-declines the dry friend iff exposure exceeds the groomee's bath
-pressure (bidirectional).
+declines the dry friend iff exposure exceeds the scene's total value
+(groomee bath pressure + groomer's expected cuddle relief,
+bidirectional).
 
 ## 4. Budget invariance + sweeps (SC-005)
 
