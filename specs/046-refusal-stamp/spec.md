@@ -142,7 +142,7 @@ no-dynamics-change are jointly the acceptance bar.
 
 **Independent Test**: Seeded twin runs on the pre- and post-stamp build
 (or with the ring field ignored) produce identical need traces,
-positions, actions, and messages; a pre-046 snapshot and the served
+positions, actions, and messages; a pre-046 world save and the served
 config both parse and resume.
 
 **Acceptance Scenarios**:
@@ -151,7 +151,7 @@ config both parse and resume.
    stamp present, **Then** every kitty's needs, position, activity, and
    message trace is identical to the pre-stamp build's — the recording
    site only observes.
-2. **Given** a pre-046 snapshot (no refusal ring in the payload),
+2. **Given** a pre-046 world save (no refusal ring in the payload),
    **When** it is loaded, **Then** it parses and resumes; the ring
    starts empty with a bounded default capacity (degrading to a ring of
    one like the other logs' serde-default, never unbounded).
@@ -177,7 +177,7 @@ config both parse and resume.
   resolves to Idle **is** a refusal and is recorded — the stamp reports
   the enforcement surface faithfully rather than special-casing
   variants; consumers filter by action kind if they wish.
-- Snapshot saved mid-window then resumed: the ring round-trips through
+- World saved mid-window then resumed: the ring round-trips through
   persistence so the census does not lose the window across a restart.
 
 ## Requirements *(mandatory)*
@@ -205,10 +205,13 @@ config both parse and resume.
 - **FR-005**: The server MUST serve the ring at its own endpoint
   (`/events/refusal`), mirroring the activity-end endpoint's shape:
   full ring, oldest first.
-- **FR-006**: The refusal ring MUST ride the world snapshot additively:
-  serde-default on read (pre-046 snapshots load, ring empty, capacity
-  degrading to one like the sibling logs), present on write, so a
-  saved-and-resumed world keeps its window.
+- **FR-006**: The refusal ring MUST ride the persisted world save
+  additively: serde-default on read (pre-046 saves load, ring empty,
+  capacity degrading to one like the sibling logs), present on write,
+  so a saved-and-resumed world keeps its window. The served
+  `WorldSnapshot` payload (`/world`, websocket frames) carries no event
+  rings today and gains none — the endpoint is the only serving
+  surface, matching the distress and activity-end pattern.
 - **FR-007**: The stamp MUST NOT change dynamics: no need, position,
   activity, message, mask, observation, or selection behavior differs
   from the pre-stamp build under any config. It is not wall-gated and
@@ -241,7 +244,7 @@ config both parse and resume.
 - **SC-003**: Seeded twin runs with and without the stamp code path
   active produce byte-identical kitty traces (needs, positions,
   actions, messages) for the full run.
-- **SC-004**: The deployed config and a pre-046 snapshot both load
+- **SC-004**: The deployed config and a pre-046 world save both load
   without edits; the config stamp hash is unchanged.
 - **SC-005**: At default sizing, polling the endpoint once per 10,000
   ticks observes every refusal at the measured density (no rollover
