@@ -2905,6 +2905,22 @@ check('the cooldown holds the rhythm whatever the engine says', () => {
   // charm now reads as a tic then.
   const V = api.VIEW;
   assert(V.meowCooldownMs > 0, 'there must be a ceiling at all');
+  // 20s -> 8s, owner 2026-09-01, off the gap census. Pinned because an
+  // unpinned dial is one careless bake from reverting, and this one was
+  // unpinned while it dropped half the calls on the board.
+  //
+  // 8s is the ENGINE's own `recent_window_ticks` (10 ticks x 800ms), which is
+  // its per-cat-per-KIND speech cooldown. Matching it means the client stops
+  // holding back calls the world has already decided are far enough apart,
+  // while still keeping a ceiling for a chattier generation -- the thing this
+  // dial was written for. Measured on the settled world: no gap between
+  // eligible calls overlapped the 800ms animation, and only 4% fell under 2s.
+  close(V.meowCooldownMs, 8000, 'the meow ceiling moved');
+  assert(
+    V.meowCooldownMs >= 800 * 10,
+    'the ceiling is now shorter than the engine\'s own speech window, so the '
+      + 'client would redraw calls the world itself rate-limits',
+  );
   const p = new api.Presentation();
   let t = 1000;
   p.pushState(meowWorld(1), t);
