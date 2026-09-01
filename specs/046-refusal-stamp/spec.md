@@ -34,13 +34,24 @@ exactly the F-033 tax mechanism — the mask probes the frozen
 start-of-tick snapshot, the world moves before the kitty's apply slot,
 and the proposal that was legal when scored is refused when heard.
 
+Every refusal event carries an **`absorbed` flag**, set from the
+enforcement outcome (Experiments ruling 2026-09-01): `false` when the
+kitty's turn actually resolved to Idle (a **taxed** tick — the F-033
+mechanism, what the step-5 pin counts), `true` when duration
+enforcement continued a scene the kitty was inside (the refusal was
+heard but cost nothing). Duration enforcement therefore never creates
+or suppresses a refusal — it only decides the flag. Absorbed refusals
+are a second signal in their own right: a policy proposing illegal
+actions mid-minimum is proposal-quality evidence for the step-4
+teacher-collapse call and the H6 pins, and the enforcement layer is the
+only place that can see it.
+
 Explicitly **not** refusals:
 
 - A proposed Idle. Idle is always legal; a chosen idle is the 55% side
   of F-033's 55/45 split and must never pollute the 45% side.
-- Duration enforcement. Inside a scene's minimum the engine continues
-  the scene whatever was proposed; the kitty keeps a serviced scene and
-  loses nothing, so no tax accrues and no event is recorded.
+- A *legal* proposal overridden by duration enforcement. Validation
+  accepted it; nothing was refused.
 - Message downgrades. An illegal message resolves to Silent on a
   separate channel with its own semantics (spec 028); the stamp records
   activity refusals only.
@@ -49,6 +60,20 @@ Refusals are recorded for **every kitty on every tick driver** —
 behavior-driven serve loop and joint-proposal seam alike, scripted and
 policy seats alike. The recording site is the one shared apply pipeline,
 so the two drivers can never drift.
+
+## Clarifications
+
+### Session 2026-09-01
+
+- Q: Should the stamp record all validation refusals, or only refusals
+  that actually cost the tick (the taxed reading F-033 and the step-5
+  pin compare against)? → A: All validation refusals, each carrying
+  `absorbed: bool` from the enforcement outcome (Experiments ruling,
+  option b). Taxed-only filtering is `absorbed == false`; absorbed
+  rows are kept as proposal-quality evidence (step-4 teacher-collapse,
+  H6 pins). Census definition agreed with Experiments: refusal-tax
+  share = events with `absorbed == false` / ticks; absorbed share
+  reported alongside, report-only until baselined.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -72,15 +97,19 @@ tick — first from the world's ring, then over the serving endpoint.
 
 **Acceptance Scenarios**:
 
-1. **Given** a kitty whose non-Idle proposal is refused by validation,
-   **When** the tick completes, **Then** the refusal ring holds one new
-   event carrying that kitty's id, the proposed action verbatim, and
-   the tick number.
+1. **Given** a kitty whose non-Idle proposal is refused by validation
+   and whose turn resolves to Idle, **When** the tick completes,
+   **Then** the refusal ring holds one new event carrying that kitty's
+   id, the proposed action verbatim, the tick number, and
+   `absorbed = false`.
 2. **Given** a kitty that proposes Idle, **When** the tick completes,
    **Then** no refusal event is recorded for it.
-3. **Given** a kitty inside a scene's minimum whose different-action
-   proposal is overridden by duration enforcement, **When** the tick
-   completes, **Then** no refusal event is recorded for it.
+3. **Given** a kitty inside a scene's minimum whose *legal*
+   different-action proposal is overridden by duration enforcement,
+   **When** the tick completes, **Then** no refusal event is recorded
+   for it; **Given** the proposal was instead *illegal* (refused by
+   validation) and the scene continued, **Then** one event is recorded
+   with `absorbed = true`.
 4. **Given** a refused partnered proposal (e.g. Play naming a partner),
    **When** the event is read back, **Then** the proposed action carries
    the named partner — per-seat attribution includes who was asked.
@@ -187,9 +216,10 @@ config both parse and resume.
 - **FR-001**: The world MUST record one refusal event per validation
   refusal — a non-Idle proposal resolved to Idle by the enforcement
   surface — carrying the refused kitty's id, the proposed action
-  verbatim (any `with`/`target` the proposal named included), and the
-  tick. No other pathway (chosen Idle, duration enforcement, message
-  downgrade) may emit one.
+  verbatim (any `with`/`target` the proposal named included), the
+  tick, and `absorbed` (true iff the enforced outcome kept a serviced
+  scene rather than resolving Idle). No other pathway (chosen Idle,
+  override of a legal proposal, message downgrade) may emit one.
 - **FR-002**: Recording MUST happen at the shared apply pipeline so the
   behavior-driven and joint-proposal tick drivers produce identical
   streams for identical decisions.
@@ -201,7 +231,11 @@ config both parse and resume.
 - **FR-004**: The default retention MUST hold at least a 15,000-tick
   window at the measured roster density (~0.23 refusals/tick on 5
   seats), i.e. at least 3,500 events; the spec's sizing line is
-  **4,000** unless the plan surfaces a cost that forces revisiting.
+  **4,000**. Caveat (Experiments, 2026-09-01): that density is *taxed*
+  density only — absorbed refusals add an unmeasured term, so 4,000 is
+  a floor sized on the known component; Experiments' first live
+  baseline reports the taxed/absorbed split and the knob is re-derived
+  then (config change only, no code).
 - **FR-005**: The server MUST serve the ring at its own endpoint
   (`/events/refusal`), mirroring the activity-end endpoint's shape:
   full ring, oldest first.
@@ -220,12 +254,15 @@ config both parse and resume.
 - **FR-008**: Emit-proof (F-029): the test suite MUST demonstrate the
   stream emitting at every layer a consumer reads — the engine ring and
   the serialized event payload — before any test or census asserts on
-  an empty stream.
+  an empty stream. At the ring layer the proof MUST cover BOTH values
+  of `absorbed` (one recorded taxed event, one recorded absorbed
+  event), so neither filter arm of the census reads an unprovable zero.
 
 ### Key Entities
 
 - **Refusal event**: (kitty id, proposed action — verbatim, targets
-  included —, tick). The honest record of one enforcement act.
+  included —, tick, absorbed flag). The honest record of one
+  enforcement act; `absorbed == false` rows are the taxed ticks.
 - **Refusal ring**: bounded, config-sized event log of the most recent
   refusals, a sibling of the distress and activity-end rings.
 - **Events configuration**: gains one retention knob for the refusal
@@ -237,8 +274,9 @@ config both parse and resume.
 
 - **SC-001**: A census can attribute every refusal in a 15,000-tick
   window to a seat, a proposed action, and a tick — per-seat refusal-tax
-  share (the step-5 INVESTIGATE metric) is computable from the served
-  stream alone, no seam probe.
+  share (the step-5 INVESTIGATE metric: `absorbed == false` events /
+  ticks, the agreed census definition) is computable from the served
+  stream alone, no seam probe; absorbed share alongside.
 - **SC-002**: A refused partnered proposal is attributable to the
   partner that was asked in 100% of cases where the proposal named one.
 - **SC-003**: Seeded twin runs with and without the stamp code path

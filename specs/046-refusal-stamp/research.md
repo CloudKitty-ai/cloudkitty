@@ -6,42 +6,38 @@ research needed. Line references are to the branch base (origin/main
 
 ## R1 — Recording site
 
-**Decision**: record inside `World::run_applied_phases_from_decisions`'s
-per-kitty loop (`crates/cloudkitty-core/src/world.rs`, the block that
-calls `action::validate` and then `enforce_durations`), with predicate
-`proposal != Action::Idle && validated == Action::Idle`, pushing to
-`self.refusal_log` immediately — so ring order within a tick is the
-tick's turn order (spec edge case).
+**Decision** (amended per Experiments ruling 2026-09-01, option b):
+record inside `World::run_applied_phases_from_decisions`'s per-kitty
+loop (`crates/cloudkitty-core/src/world.rs`), predicate
+`proposal != Action::Idle && validated == Action::Idle` — but push
+AFTER `enforce_durations`, because the event's `absorbed` flag reads
+the enforced outcome: `absorbed = (enforced != Action::Idle)` (the
+scene continued; `DurationRuling::Continue` is the only way a
+validated-Idle turn ends non-Idle). Ring order within a tick is still
+the tick's turn order.
 
 **Rationale**: `validate` returns "the proposal if it is legal,
 otherwise Idle" (its doc line) — so the predicate is exactly the spec's
-refusal definition and can never fire on a chosen Idle. Recording
-*before* `enforce_durations` reads the validation verdict, not the
-duration override, satisfying acceptance scenario US1-3 (a
-duration-continued kitty whose proposal *validated fine* records
-nothing; one whose proposal was refused AND who then continues a scene
-still records the refusal — the enforcement act happened). Both tick
-drivers (`world.rs:183` behavior loop, `seam.rs:271` joint proposals)
-share this pipeline, making FR-002 structural rather than tested-only.
+refusal definition and can never fire on a chosen Idle. A legal
+proposal overridden by duration enforcement never enters the predicate
+(validated == proposal ≠ Idle): US1-3's no-event arm holds by
+construction. An illegal proposal mid-minimum records with
+`absorbed = true` — kept deliberately (Experiments: proposal-quality
+evidence for step-4 teacher-collapse and the H6 pins), while the taxed
+count F-033 compares against is the `absorbed == false` filter. Both
+tick drivers (`world.rs:183` behavior loop, `seam.rs:271` joint
+proposals) share this pipeline, making FR-002 structural rather than
+tested-only.
 
 **Alternatives considered**: (a) recording in `action::validate` itself
 — rejected: validate is a pure function called speculatively by probes
 and tests (`world.rs:556` shows a second caller); recording there would
 stamp non-turns. (b) Deriving refusals from `PhaseOutcome.per_kitty`
 after the loop — equivalent result, but loses the natural turn-order
-push and spreads the logic.
-
-**Wait — US1-3 nuance check**: scenario US1-3 says a duration-overridden
-*different-action* proposal records nothing. Inside a scene minimum, is
-that proposal typically *legal* (validated == proposal, then overridden)
-or *illegal*? Both cases exist. The predicate records only the illegal
-case — which is correct: the spec's non-refusal carve-out is "duration
-enforcement" as a *mechanism* (the kitty keeps a serviced scene), but an
-illegal proposal is refused by validation regardless of what enforcement
-does next. US1-3's Given says "whose different-action proposal is
-overridden by duration enforcement" — the tasks phase must pin the test
-world so the proposal is *legal* (e.g. a legal Move elsewhere proposed
-mid-minimum), keeping the scenario's Then honest.
+push and spreads the logic. (c) Taxed-only recording (drop absorbed
+rows) — rejected by Experiments 2026-09-01: filtering
+`absorbed == false` reproduces the taxed count exactly, and the
+absorbed rows are a second signal only this layer can see.
 
 ## R2 — Config knob + stamp discipline
 
@@ -101,8 +97,13 @@ the PR body; fixing them is out of scope.
 **Decision**: no pagination, no compression, full-ring serve like the
 siblings.
 
+**Density caveat (Experiments ruling)**: ~0.23/tick is *taxed* density;
+absorbed rows add an unmeasured term. 4,000 stands as a floor sized on
+the known component; the first live baseline reports the split and the
+knob is re-derived by config alone.
+
 **Rationale**: a serialized refusal event is ~60–120 bytes (`kitty_id`,
-tagged `Action` with optional target, `tick`). Worst case 4,000 × ~90 B
+tagged `Action` with optional target, `tick`, `absorbed`). Worst case 4,000 × ~90 B
 ≈ 360 KB added to a save file already carrying two 1,000-event rings
 and full kitty state, written atomically at the existing save interval;
 and ≈ 360 KB per `/events/refusal` poll at census cadence (one poll per
@@ -112,9 +113,12 @@ serves per `/world` poll cycle at 20×20 with full rosters.
 ## R5 — Event shape
 
 **Decision**:
-`RefusalEvent { kitty_id: KittyId, proposed: Action, tick: u64 }` —
+`RefusalEvent { kitty_id: KittyId, proposed: Action, tick: u64, absorbed: bool }` —
 plain derive(Serialize, Deserialize), no serde-default gymnastics needed
 (the event kind itself is new; nothing pre-046 ever parses one).
+`absorbed` serializes ALWAYS (no skip-at-false): a new instrument's
+fields should be explicit — the census filters on it and an absent-key
+convention would just re-create a reading trap.
 `RefusalLog = EventLog<RefusalEvent>`.
 
 **Rationale**: the proposal verbatim carries `with`/`target` — the

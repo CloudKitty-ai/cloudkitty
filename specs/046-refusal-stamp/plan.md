@@ -7,11 +7,14 @@
 ## Summary
 
 Record every Article IV refusal — a non-Idle proposal resolved to Idle
-by `action::validate` — into a new bounded ring on the `World`, sized by
-a new `[events] refusal_retention` knob (default 4,000), and serve the
-ring at `/events/refusal`. One recording site in the shared apply
-pipeline covers both tick drivers. Zero dynamics change; config stamp
-and evolution golden must not move.
+by `action::validate` — into a new bounded ring on the `World`, each
+event carrying an `absorbed` flag from the enforcement outcome
+(Experiments ruling 2026-09-01: `absorbed == false` rows are the taxed
+ticks F-033 compares against; absorbed rows are proposal-quality
+evidence). Ring sized by a new `[events] refusal_retention` knob
+(default 4,000), served at `/events/refusal`. One recording site in the
+shared apply pipeline covers both tick drivers. Zero dynamics change;
+config stamp and evolution golden must not move.
 
 ## Technical Context
 
@@ -88,10 +91,11 @@ specs/046-refusal-stamp/
 R1–R6 in [research.md](research.md). Headlines:
 
 - **R1 recording site**: inside `run_applied_phases_from_decisions`'s
-  per-kitty loop, right after `validate` — predicate
-  `proposal != Action::Idle && validated == Action::Idle`. Both tick
-  drivers call this one pipeline (`world.rs:183`, `seam.rs:271`), so
-  FR-002 is structural.
+  per-kitty loop, after `enforce_durations` — predicate
+  `proposal != Action::Idle && validated == Action::Idle`, with
+  `absorbed = (enforced != Action::Idle)`. Both tick drivers call this
+  one pipeline (`world.rs:183`, `seam.rs:271`), so FR-002 is
+  structural.
 - **R2 stamp discipline**: `refusal_retention` gets
   `#[serde(default = "default_refusal_retention", skip_serializing_if = "is_default_refusal_retention")]`
   keyed to the default *value* (043/045 precedent), plus a line in
@@ -107,8 +111,9 @@ R1–R6 in [research.md](research.md). Headlines:
 - **R4 sizing**: ~90 bytes/event serialized → ≤ ~360 KB ring, additive
   to a save already carrying the 1000-event activity and distress rings;
   poll payload same order. Acceptable; no endpoint pagination.
-- **R5 event shape**: `RefusalEvent { kitty_id, proposed: Action, tick }`
-  — the proposal verbatim (targets ride free). No reason code, no
+- **R5 event shape**: `RefusalEvent { kitty_id, proposed: Action, tick, absorbed }`
+  — the proposal verbatim (targets ride free), the flag always
+  serialized. No reason code, no
   validated/applied copy (KittyTickRecord already carries those for seam
   consumers).
 - **R6 no gate**: recording is unconditional; the only knob is

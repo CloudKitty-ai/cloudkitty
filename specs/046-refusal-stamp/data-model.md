@@ -7,12 +7,15 @@
 | `kitty_id` | `KittyId` | The kitty whose proposal was refused                           |
 | `proposed` | `Action`  | The proposal verbatim — `with`/`target` included when named    |
 | `tick`     | `u64`     | The tick the refusal was heard                                 |
+| `absorbed` | `bool`    | `false` = the turn resolved Idle (taxed tick, the F-033 count); `true` = duration enforcement continued a scene (refusal heard, nothing lost). Always serialized — no skip-at-false (research R5) |
 
 - Derives `Debug, Clone, PartialEq, Serialize, Deserialize` (+ `Copy` if
   `Action: Copy` holds — verify at implementation).
 - Emitted iff `proposal != Action::Idle && validate(...) == Action::Idle`
-  (FR-001). Never for chosen Idle, duration overrides of *legal*
-  proposals, or message downgrades.
+  (FR-001), recorded after `enforce_durations` with
+  `absorbed = (enforced != Action::Idle)` (research R1). Never for
+  chosen Idle, duration overrides of *legal* proposals, or message
+  downgrades.
 - Within a tick, events append in turn order.
 
 ## RefusalLog (new alias)
