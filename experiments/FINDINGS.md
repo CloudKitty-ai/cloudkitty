@@ -2084,11 +2084,26 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    starting with food needs < 30) rises 1.6–2.9x for the same reason a
    fed cat lives below 30. Neither can serve as a bar again.
 
+5. **Addendum 1 (c25 / c20, 2026-09-01): parity reached, play halves,
+   meows vanish.** Both arms reach roster-parity welfare on all five
+   needs (Biscuit's share ≥30 within 0 of the roster at c25, below it
+   at c20); total play 0.58x / 0.45x of c55 (predicted 0.55–0.65 /
+   0.40–0.55); duets begin to fall below 30 (67 → 56 → 54/1k) after
+   holding 67–79 from 55 to 30; roster duets slide to 0.88x / 0.85x
+   (bar 0.85x). Excursions per 1k turned over as point 4 predicted
+   (8.2 → 3.15 → 2.02, under the floor). Her announce share fell to the
+   roster's at c25 (0.39 → 0.19): below the announce threshold she
+   leaves play before arming, so the hungry-Biscuit meow disappears
+   from the client. c30 already met parity within +0.04 on the main
+   raws.
+
 **Decision (prereg rule)**: middle case, owner's call on the curve. If
 Biscuit is to be fed, use flat comfort; the food-only weight band is
 withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
-with solid element play is still very Biscuit"); c25/c20 extension
-declared. **Scope**: scripted anchor only; a clone's
+with solid element play is still very Biscuit"). Addendum 1's rule
+(highest comfort passing parity with play ≥ the owner's 0.70x) lands
+on **c30**; c25 is the next point on the curve (parity exact, 0.58x,
+half the meows), not a candidate under that line. **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm

@@ -102,14 +102,25 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   — **DONE 2026-09-01 (F-038,
   `biscuit3-comfort-sweep-2026-09-01/RESULTS.md`)**: 20/20 runs valid.
   Comfort buys food linearly (eat time>30 0.455 → 0.132 at 55 → 30) and
-  pays in element play only (duets hold); per-need weights (food band
-  35, others 55) close 0.51 of the gap for 11% play vs flat c35's 0.62
-  for 24% (P3 PASS). Spec-042 candidate dials NOT shippable
-  (`t_partner 5.0` cuts Biscuit's duets 72.6 → 8.9/1k, roster duets
-  −51–57%). Decision rule lands in the middle case: **owner call on
-  the curve**; the sweep's shape says weights, not flat comfort. Two
-  prereg measures failed as bars (excursions/1k is a cycle counter
-  under partial relief; low-need play is compositional).
+  pays in element play only (duets hold 55–30). Weights arm WITHDRAWN
+  on the owner's all-needs question: w35 passed P3 by leaving cuddle,
+  her highest need, at 0.42 ≥30 (c35: 0.26). Spec-042 candidate dials
+  NOT shippable (`t_partner 5.0` cuts Biscuit's duets 72.6 → 8.9/1k,
+  roster duets −51–57%); offline pricing shows `t_self 5.0` is the
+  larger cut (her own play need clears it in 46% of free moments).
+  Decision rule: middle case, **owner call on the curve**; owner leans
+  c30 (0.70x play accepted). **Addendum 1 (c25/c20) DONE 2026-09-01**:
+  both reach roster-parity welfare on all five needs, play 0.58x /
+  0.45x, duets start falling below 30, roster duets 0.88x / 0.85x,
+  hungry meows fall to the roster's rate at c25; by the addendum's rule
+  **c30 stands**, c25 is the next point on the curve. Two prereg
+  measures failed as bars (excursions/1k counts meals that started
+  above 30 and RISES as the eating level falls toward 30, turning over
+  only below it: 8.2 → 3.15 → 2.02; low-need play is compositional).
+  Score formula itself under discussion (owner proposes the friend's
+  play-vs-top-need delta with multiplicative delay; delta is negative
+  in 93% of friend-moments, so it needs slack or a headroom form);
+  dial sweep (Addendum 2) HELD until the formula is settled.
 
 The validated step-2 mix bands become step 5's reference.
 

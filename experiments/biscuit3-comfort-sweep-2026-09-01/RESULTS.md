@@ -220,3 +220,64 @@ Refusal exposure is not measured here (prereg); the refusal stamp
 Report-only: no watchdog entry in 20 runs; happiness table in
 `score.json`; Biscuit eat max 48–81 across runs (no starvation; the
 041 economy holds).
+
+## Addendum 1 results: comfort 25 / 20 (2026-09-01; declared @ 1c003f6 before collection; 4/4 valid)
+
+Same binary and protocol as the main sweep (no crate change between);
+census polls 1,547 and world polls 1,572 per run, watchdog quiet in all
+four. Read against the main sweep's c55-off baseline and c30-off.
+
+| arm | eat ≥30 B \| roster | drink ≥30 B | cuddle ≥30 B \| roster | eat p50 | excursions /1k (floor) | play /1k duet + elem | vs c55 | roster duets /1k | announce any B \| roster | happiness B \| roster |
+|---|---|---|---|---|---|---|---|---|---|---|
+| c30-off | 0.13 \| 0.09 | 0.09 | 0.16 \| 0.13 | 10.5 | 8.2 (4.4–5.0) | 67.3 + 95.8 = 163.1 | 0.70x | 25.5 | 0.39 \| 0.21 | 84.8 \| 87.0 |
+| c25-off | 0.06 \| 0.07 | 0.05 | 0.10 \| 0.11 | 11.0 | 3.15 (4.27) | 56.4 + 80.3 = 136.6 | 0.58x | 23.4 | 0.19 \| 0.19 | 86.3 \| 87.5 |
+| c20-off | 0.05 \| 0.08 | 0.03 | 0.07 \| 0.11 | 15.0 | 2.02 (4.09) | 54.3 + 51.4 = 105.7 | 0.45x | 22.8 | 0.15 \| 0.19 | 87.6 \| 87.8 |
+
+Seeds: c25 play 130.2 / 143.1, eat ≥30 0.071 / 0.055; c20 play 106.5 /
+104.8, eat ≥30 0.048 / 0.051. Play-solo zero in all four.
+
+**E1 (roster-parity welfare) PASS both.** Every gap at or below zero,
+pooled and per seed: c25 eat −0.01, drink −0.01, sleep −0.00, cuddle
+−0.01 (seed maxima +0.008); c20 eat −0.03, drink −0.02, sleep −0.01,
+cuddle −0.04. At c25 she sits on the roster's line on every need; at
+c20 she eats and cuddles BEFORE the roster does (a `playful` cat gets
+serious at a fixed level, a `needs_driven` cat acts on whichever need
+is top, so the fed-earlier ordering is expected below the roster's
+eating level of 21–27).
+
+**E2 (character)** 0.58x and 0.45x of c55-off total play, both inside
+the pre-declared ranges (0.55–0.65, 0.40–0.55). The loss lands where
+predicted: element play keeps paying (96 → 80 → 51/1k) and duets start
+to fall below 30 (67 → 56 → 54/1k), where they had held 67–79 across
+c55–c30. Duet share rises 0.41 → 0.51 because elements fall faster.
+
+**E3 (roster supply) PASS both**, 0.88x and 0.85x of c55-off (bar
+0.85x); c20 sits on the line. Biscuit is a smaller share of the
+roster's play supply the more she eats.
+
+**E4 (troughs) MISS both as pinned.** One poll under 60 happiness in
+~3,100 per arm (c25 worst 56.6 in seed 1, c20 worst 59.5 in seed 2)
+against c30's zero. Immaterial in size; reported as the bar was
+written.
+
+**Predictions (all held).** Armed excursions per 1k turned over below
+30 as F-038 point 4 said they must: 8.2 (c30) → 3.15 → 2.02, now below
+the floor's 4.1–4.3 (she eats earlier than the roster, so fewer of her
+meals start above 30). Her announce share fell to the roster's rate at
+c25 (0.39 → 0.19 vs 0.19; cuddle 0.10, eat 0.06) and under it at c20
+(0.15): below the announce threshold she leaves play before arming, so
+the hungry-Biscuit meow largely disappears from the client. Hungry-play
+share 0.15 → 0.05 → 0.04.
+
+**Recommendation rule applied: c30 stands.** Highest comfort passing E1
+and E3 with E2 at or above the owner's accepted 0.70x is c30 (c25 and
+c20 pass E1 and E3 but sit at 0.58x and 0.45x). c25 meets the
+second-candidate residual condition (all gaps under +0.02) but not the
+E2 condition, so it is reported as the curve's next point, not as a
+candidate. The owner has the whole curve; what c30 → c25 buys is her
+residual +0.04 above the roster on every need and half her hungry
+meows, for 12% of c55 play (~26/1k, of which ~11 are duets).
+
+Report-only: Biscuit happiness matches the roster's within 1.2 points
+at c25 and 0.2 at c20; demand price 15.2 → 13.75 → 12.41; eat max
+per run unchanged in kind (no starvation).
