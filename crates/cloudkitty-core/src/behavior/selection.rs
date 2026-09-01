@@ -817,7 +817,7 @@ mod tests {
             target: Some(TargetRef::Kitty { id: 2 }),
         };
         let ctx = exposure_ctx(ContagionMembership::OptionA, true, false);
-        let x = expected_scene_exposure(&ctx, play_scene.clone(), 2);
+        let x = expected_scene_exposure(&ctx, play_scene, 2);
         assert!(
             (x - rate(&ctx, 2) * 2.0).abs() < 1e-4,
             "reciprocal play: the dry partner is a namer under option_a \

@@ -588,8 +588,7 @@ async fn a_referenced_dry_adjacent_cat_pays_under_bidirectional_only() {
         ),
     ];
     for (name, activity) in scenes {
-        let (dry_a, wet_a) =
-            referenced_scene_deltas(ContagionMembership::OptionA, activity.clone()).await;
+        let (dry_a, wet_a) = referenced_scene_deltas(ContagionMembership::OptionA, activity).await;
         let (dry_b, wet_b) =
             referenced_scene_deltas(ContagionMembership::Bidirectional, activity).await;
         let (_, config) = membership_world(1.0, ContagionMembership::Bidirectional);
