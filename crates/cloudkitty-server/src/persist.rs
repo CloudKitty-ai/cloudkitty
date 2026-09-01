@@ -133,7 +133,17 @@ pub fn load_and_validate(path: &Path, config: &Config) -> Result<World, PersistE
     // serializes its capacity, so without this a pre-046 save (no
     // refusal_log key, serde-defaulted to capacity 0 -> ring of one) would
     // keep that capacity FOREVER on the deployed box, which resumes rather
-    // than regenerates -- and the census would silently undercount.
+    // than regenerates -- and the census would silently undercount. All
+    // three rings share the doctrine (review-medium finding 3): a retention
+    // edit that loses to the persisted capacity is invisible until a census
+    // reads a window it believes is wider. Shrinking a knob now trims a
+    // ring's oldest events on resume -- that is what "configuration" means.
+    world
+        .distress
+        .set_capacity(config.events.distress_retention);
+    world
+        .activity_log
+        .set_capacity(config.events.activity_retention);
     world
         .refusal_log
         .set_capacity(config.events.refusal_retention);
@@ -349,6 +359,44 @@ mod tests {
             loaded.refusal_log.to_vec(),
             saved_events,
             "the reloaded ring is the saved window verbatim"
+        );
+    }
+
+    #[test]
+    fn a_retention_edit_reaches_every_ring_on_resume() {
+        // Review-medium finding 3 (2026-09-01): distress and activity are
+        // the same EventLog<T> with the same serialized capacity, so the
+        // "retention is configuration" doctrine must re-stamp ALL three
+        // rings -- else an operator's retention edit silently loses to the
+        // persisted capacity forever (the box resumes, never regenerates,
+        // and Config::fingerprint doesn't cover retention).
+        let dir = temp_dir("sibling-restamp");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+
+        let world = World::generate(&config);
+        save(&world, &path).expect("save");
+
+        // The operator's edit: every retention knob moves before the restart.
+        let mut edited = test_config();
+        edited.events.distress_retention = config.events.distress_retention + 7;
+        edited.events.activity_retention = config.events.activity_retention + 7;
+        edited.events.refusal_retention = config.events.refusal_retention + 7;
+        edited.validate().expect("the edited config is legal");
+
+        let loaded = load_and_validate(&path, &edited).expect("the save resumes");
+        assert_eq!(
+            (
+                loaded.distress.capacity(),
+                loaded.activity_log.capacity(),
+                loaded.refusal_log.capacity(),
+            ),
+            (
+                edited.events.distress_retention,
+                edited.events.activity_retention,
+                edited.events.refusal_retention,
+            ),
+            "every ring resumes at the CONFIGURED retention, not the persisted one"
         );
     }
 

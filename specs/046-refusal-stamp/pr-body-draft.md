@@ -20,8 +20,8 @@ Additive delivery proven:
 - Pre-046 saves resume: `persist::load_and_validate` re-stamps the ring's
   capacity from config (retention is configuration, the behavior
   re-stamp doctrine).
-- 19 red-first cycles + live emit-proof payload in `redden-list.md`.
-  Suite 774 → 790, nothing lost.
+- 22 red-first cycles + live emit-proof payload in `redden-list.md`.
+  Suite 774 → 792, nothing lost.
 
 ## Review-medium fixes (2026-09-01, findings 2/4/6/7/8)
 
@@ -51,21 +51,33 @@ Additive delivery proven:
   presence proven by the deserialize itself) and got its first redden
   rows (cycles 18–19).
 
-Deferred from the same review, owner's call pending: finding 1 (absorbed
-semantics — the flag reads "kitty was mid-scene", not "scene minimum
-continued"; census + prose question, Experiments relay), finding 3
-(sibling-ring re-stamp — below), finding 5 (per-tick publish copy of the
-full ring).
+Findings 3 and 5 were then fixed on the owner's ruling (cycles 20–22):
+
+- **Sibling-ring re-stamp** (finding 3): the load-path capacity re-stamp
+  now covers all three rings (`distress`, `activity_log`, `refusal_log`)
+  — a retention edit reaches every ring on resume instead of silently
+  losing to the persisted capacity. Semantics note: shrinking a
+  retention now trims that ring's oldest events on the next resume;
+  that is what "retention is configuration" means. No-op on the
+  deployed box today (both sibling retentions have only ever been their
+  defaults).
+- **Publish-path reuse** (finding 5): `Published` reuses the previous
+  tick's refusal-window `Arc` when the ring is unchanged, witnessed by
+  (length, newest tick) — sufficient because the sim loop is the sole
+  writer and `record` stamps the strictly-increasing current tick,
+  including the saturated-rotation case a length-only witness misses.
+  A quiet tick is now a pointer copy instead of a ~192 KB reclone, and
+  raising `refusal_retention` no longer scales the per-tick publish
+  cost.
+
+Still deferred, owner's call pending: finding 1 (absorbed semantics —
+the flag reads "kitty was mid-scene", not "scene minimum continued";
+census + prose question, Experiments relay).
 
 ## Reported, not fixed (CLAUDE.md rule 3)
 
-**Sibling-ring capacity gap**: `EventLog` serializes its `capacity`, and
-nothing re-sizes the **distress** or **activity** rings on load — an
-operator's retention edit for those rings silently loses to the capacity
-persisted in the world save on every resume. Pre-046 worlds have never
-hit it (those retentions have never been edited mid-life). The 046 ring
-gets the load-time re-stamp; extending it to the siblings is a separate
-small change if wanted.
+*(The sibling-ring capacity gap originally reported here was fixed on
+the owner's ruling at the review-medium pass — see finding 3 above.)*
 
 ## Spec-artifact deviations (recorded during implement)
 

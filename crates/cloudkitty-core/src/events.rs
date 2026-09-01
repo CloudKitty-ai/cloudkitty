@@ -147,6 +147,11 @@ impl<T> EventLog<T> {
         self.events.iter()
     }
 
+    /// The most recent event, if any (O(1)).
+    pub fn newest(&self) -> Option<&T> {
+        self.events.back()
+    }
+
     pub fn len(&self) -> usize {
         self.events.len()
     }
