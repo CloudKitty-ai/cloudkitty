@@ -147,3 +147,9 @@ cycle at ~3× cost (~40–120 s/epoch on a 1M-row corpus here; the
 3.9M-row anchor scales ×4). Whether +2 act@1 is worth 3× training
 time on five seats is an owner call at the fog prereg, not a screen
 matter.
+
+**Recipe ruling (owner, 2026-08-31)**: fog Gen 1 BC keeps
+train-to-plateau (patience ~10), sets NO epoch floor for the
+vocabulary, and gates each clone on a here-conditioned acceptance
+bar instead (opportunity-use + msg@1|here, held-out; this screen's
+readout is the instrument). Recorded in the fog timeline §step 5.
