@@ -79,6 +79,7 @@ The experiment thread reads the refusal record stream as a welfare/pricing instr
 - **Rescue forgone (grooming)**: a friend gone at decision time but back at apply time no longer resumes the old scene. Accepted; the fresh decision may start a new grooming scene with the same friend.
 - **Counterpart entirely absent from the world** (not just out of reach): treated as gone, same as the engine's own scene-ending rule.
 - **A scene inside its minimum duration**: the engine ends a dead-counterpart scene regardless of minimum ("minimum notwithstanding"), so the fresh decision is never overridden back into the dead scene.
+- **Eating at an emptied bowl (out of scope, owner-tabled 2026-09-02)**: the engine holds a meal through its minimum even when the bowl emptied (spec 006's "the bowl is the meal's own end rule"), so a cat can spend up to the eat minimum (~2 ticks) re-proposing at an empty bowl; the rows are `absorbed=true` and never touched the refusal tax. Owner's read: the minimums exist to prevent frantic alternation and feel organic — locking a cat at an empty bowl doesn't serve that. **Banked for evaluation** (extend early-end / dead-scene treatment to food); a change there amends the spec-006 meal end rule, its own spec, not 048.
 
 ## Requirements *(mandatory)*
 
