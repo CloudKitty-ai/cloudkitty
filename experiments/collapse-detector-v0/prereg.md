@@ -96,6 +96,40 @@ to `>=`; window off by one; partner index decode).
   not tuned away post hoc — a threshold change is a v0.1 with its own
   prereg line.
 
+## v0.1: H4 bar lifted to 0.65 (owner ruled 2026-09-01; declared before re-running)
+
+Owner's reasoning: one recorded lock class is not enough data for a firm
+bar, and a healthy Biscuit could plausibly hold one partnered activity
+at half a 200-tick window. Signal (a)'s bar moves 0.50 → 0.65; signal
+(b) (mutual pair) stays at 0.50 (margin 0.24 there, not ruled on); W, D
+and (c) unchanged. Reevaluate if a later collapse class would be caught
+by a lower bar.
+
+Predictions on the same 19 traces: all three MUST-FIRE still fire on
+(a) (their lock shares 0.82–0.83 clear 0.65), first fire later by
+about 0.15·W = 30 ticks on a hard lock (the synthetic 500-tick lock
+moves 399 → 429, episode 499 → 439) and by more where the lock ramps;
+`first_fire_tick` stays (b)'s where (b) also fires; all eleven MUST-SILENT stay
+silent (healthy peak 0.43); healthy-side margin becomes 0.22, lock-side
+0.17. Guard: a one-sided 0.60-share partnering that fired under 0.50
+stays silent under 0.65 (shown red by restoring 0.50 before commit);
+the at-the-bar pin moves to exactly 0.65 one-sided.
+
+## v0.2: (a) bar 0.55 (owner ruled 2026-09-01 after the v0.1 miss; declared before re-running)
+
+0.65 dropped the ramping twins lock (RESULTS §v0.1); 0.58 is the data's
+ceiling. Owner sets **0.55**, to be revisited if a new problematic
+scenario asks for a different number. (b), W, D, (c) unchanged.
+
+Predictions, from the v0.1 bar sweep: all four positives fire on (a) at
+880015 3735/368, 880030 4643/2218, 880008 1380/290, 880017 609/402
+(tick/episode); eleven MUST-SILENT silent; healthy margin 0.12, lock
+side 0.27. Synthetic mutual 500-tick lock: (a) first fire 399 → 409,
+episode 499 → 479 (0.05·W = 10 ticks each side). Guard pins move to
+0.55 exactly (one-sided 11-on/9-off) and a 0.53 one-sided share (period
+100) that fires under 0.50 and is silent under 0.55; each red at 0.50
+before commit.
+
 ## What this is not
 
 Not a live instrument (transport is v1). Not silence "across the 2.4M

@@ -101,3 +101,58 @@ and the episode is 438.
   a prereg line); a new lock class that is not sleeping-with-partner
   (every positive here is); a trace format change in
   `global_state.rs`.
+
+## v0.1: (a) bar 0.65 (owner ruled 2026-09-01; prereg §v0.1 @ f204edc before the re-run)
+
+Raw: `results-raw/run-v01-2026-09-01.txt`, reproduced by the same
+command with `SHARE_BAR_A = 0.65`. Guard 6/6 (the mutual-lock pin
+repointed 399/499 → 429/439 after going red at 0.65; the two new pins
+red at 0.50).
+
+**Prediction missed on one MUST-FIRE.** Eleven MUST-SILENT stay silent
+(healthy peak 0.43, margin now 0.22). Three positives fire later, as
+predicted: 880015 3717 → 3768 (episode 398 → 297, named seat flips
+Kittybear → Pumpkin, the other twin), 880030 4619 → 4673 (2260 → 2146),
+880017 591 → 633 (438 → 354). **reference-r5-880008 (twins, MUST FIRE)
+goes silent**: its share peaks at 0.82 like the others, but the lock
+ramps, and it holds above 0.65 for only 148 (Pumpkin) / 160 (twin)
+consecutive ticks, under D = 200. Above 0.50 it held 314.
+
+Bar sweep on the four positives, D = 200 (`first tick / episode`):
+
+| bar | 880015 | 880030 | 880008 | 880017 |
+|---|---|---|---|---|
+| 0.50 | 3717 / 398 | 4619 / 2260 | 1368 / 314 | 591 / 438 |
+| 0.55 | 3735 / 368 | 4643 / 2218 | 1380 / 290 | 609 / 402 |
+| 0.58 | 3748 / 348 | 4657 / 2191 | 1387 / 276 | 617 / 387 |
+| 0.60 | 3753 / 338 | 4661 / 2176 | silent | 621 / 378 |
+| 0.65 | 3768 / 297 | 4673 / 2146 | silent | 633 / 354 |
+
+So the recorded data does constrain the bar from above: 0.58 is the
+highest that keeps all four (healthy margin 0.15, lock-side 0.24);
+anything ≥ 0.60 drops the ~500-tick twins lock. The premise "the one
+scenario we have was well over 50%" holds for the peak, not for the
+sustained window: peak and D interact, and the shorter the lock the
+lower the bar it needs.
+
+Owner's options, on the record: (i) keep 0.65 and accept that a
+ramping ~500-tick twins lock is the watchdog's to catch (H1 fired at
+1221 on that trace, 147 ticks ahead of v0's detector anyway); (ii)
+0.58, the data's ceiling; (iii) 0.65 with D lowered (160 catches only
+one twin, knife edge; not recommended). **detector.py stays at 0.65 as
+ruled until the owner says otherwise**; v0.1's verdict is 3/4 positives
+(2/3 MUST-FIRE), 11/11 silent, i.e. NOT validated on the prereg's
+labels at this bar.
+
+## v0.2: (a) bar 0.55 (owner ruled 2026-09-01; prereg §v0.2 @ ddd8249 before the re-run)
+
+Raw: `results-raw/run-v02-2026-09-01.txt`. Guard 6/6, three pins red
+at 0.50 first (mutual lock 409/479, at-bar 0.55, one-sided 0.53).
+
+**v0.2 VALIDATED**, every prediction to the tick: MUST-FIRE 3/3,
+SHOULD-FIRE 1/1 (880015 3735/368, 880030 4643/2218, 880008 1380/290,
+880017 609/402), MUST-SILENT 11/11. Healthy margin 0.12 (peak 0.43 vs
+0.55), lock side 0.27 (0.82 vs 0.55). First fire lands 66–122 ticks
+after the watchdog on the four locks (v0: 48–147). This is H4's
+instrument for step 5 unless a new collapse class asks for a different
+bar (owner's revisit condition).

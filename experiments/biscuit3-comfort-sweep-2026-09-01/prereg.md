@@ -263,6 +263,46 @@ non-play need is > 30 and above its play need. Report-only: blocked
 partner's top need distribution; who she plays with instead (duet
 partner mix); element share.
 
+**R8 refusal tax (added 2026-09-01, owner's ceiling, before collection)**:
+Biscuit's share of ticks spent refused into idle (a partnered proposal
+bounced, `absorbed == false` on the spec-046 `/events/refusal` stamp,
+which the rebuilt binary carries; exact field names pinned from a real
+payload when the server is up, and `len(events) < capacity` checked or
+the endpoint polled so the 6,000-event ring never drops a run's tail).
+Read on both arms. Owner's rule (clarified 2026-09-01): **3.5% is the
+line above which investigation is warranted**, not a retrain gate;
+c30 + consent is itself the current response to the tax, and the
+reading that decides is Biscuit 3.0's after training. R8 here is the
+scripted early look, reported next to the E1 welfare gap (Biscuit vs
+roster, all five needs), which is the quantity the whole arc exists to
+close. Caveat carried:
+the 4.6–4.7% figures on record are a POLICY seat's (Biscuit 2.0,
+F-033, `idle_rewrite_probe.py` on seam traces); these arms are
+scripted, so this is the first scripted-Biscuit reading with the
+served instrument, not a before/after on the same seat.
+
+**Review caveats folded in (Product's 047 review, 2026-09-01, before
+collection)**: (1) R2 hungry-play share joins the readouts for both
+arms, split duet / element / solo: when the gate drops a friend on the
+get-serious path, play is priced as SOLO (as if the friend were absent,
+the spec's declared degradation), so any welfare cost of the gate would
+show up as solo play started while a need is ≥ 30, not in R7. Owner
+walked it through and ACCEPTED the re-pricing as-is (2026-09-01):
+training runs against this scripted cat, so marginal scoring detours
+wash out; what matters is that consideration of other cats' needs is
+MODELED so its learnability can be tested. Pinned INTENDED in-tree by
+Product. R2 stays the report-only aggregate watch. (2) R7 is
+read from census duet starts, never from the refusal ring, so
+`finish_what_you_started` continuation refusals cannot make the gate
+look leaky; R8 filters on `absorbed == false`, which excludes them by
+construction (a mid-scene continuation is enforced, hence absorbed);
+verified on a real payload before R8 is read. (3) C3/C4 compare levels
+at one dial value against off; the duet delta includes chase-exclusion
+tails paid when a mid-chase target is blocked, and the bars do not
+separate that from the gate itself. Reported as one price, not
+attributed. (4) `consent_line` is refused above 100 at load; this
+addendum's arm is 30.0.
+
 **Offline pricing that these predictions rest on** (c30 raws,
 `consent_price.py`): 565 of 2,693 duets (21%) would be blocked; in 84%
 of those an eligible idle friend stood within a median 2 tiles.
@@ -277,11 +317,25 @@ of those an eligible idle friend stood within a median 2 tiles.
 - **C5 welfare**: Biscuit's E1 gaps do not widen by more than +0.02 on
   any need; roster all-needs shares unchanged within ±0.02.
 
+**Scope (clarified 2026-09-01 with Product, before collection)**: the
+rule is unconditional, so the gate sits on every playful friend-play
+start, not only the spec-042 ranking. Three sites on main 1f60b8d:
+the ranking (`selection.rs:484`), get-serious via `choose()` →
+`nearest_viable_playmate` (`selection.rs:46`, :384), and opportunism
+via `take_what_is_here` → `adjacent_playmate` (`needs_driven.rs:159`,
+`selection.rs:702`). Playful-scoped; needs_driven kitties never read
+the dial; 0.0 short-circuits at each site. Sizing from the c30 raws:
+Biscuit's own max need ≥ 30 at duet start (the get-serious path) in
+167 of 2,693 duets, 22 of the 565 blocked; partner adjacent at the
+poll before start in 64% of duets, 68% of blocked ones. A one-site
+gate would leave C2 measuring the opportunism leak. Product owes one
+redden-first guard per site.
+
 **Recommendation rule**: C1–C5 all pass → the gate ships in the
 Biscuit 3.0 anchor config at c30 (owner pins). C2 passes and C3 or C4
 misses → report the price; owner call. C2 misses → the gate is not
 doing its job (check the snapshot the gate reads against the census's
-interpolation before anything else).
+interpolation before anything else, then check all three sites fire).
 
 **Guard**: `test_score.py` gains a pin for R7 on the recorded payload
 (one duet whose partner is blocked, one whose partner has play on top,

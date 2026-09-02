@@ -76,6 +76,8 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   5's bands are the MEASURED canon table, not the model's.
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
+  **SKIPPED for this round (owner ruled 2026-09-01)**; step 2's
+  remaining measurement is the Addendum 2 consent gate run.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0 —
   **DONE 2026-09-01 (`collapse-detector-v0/RESULTS.md`, F-037)**:
   VALIDATED on the pinned labels (3/3 MUST-FIRE, 11/11 MUST-SILENT,
@@ -212,7 +214,7 @@ digest matrix + self-row is extrapolated, not yet measured.
 | H1 | watchdog alarm | any | spec-040 box log (absolute, fog-independent) |
 | H2 | worst-seat welfare below the scripted anchor on the SAME fog config, sustained | anchor re-derived on fog config | scripted anchors = house cert practice; per-seat because Nash p=0 punishes one sacrificed cat |
 | H3 | hard-zero intended activity | 0 over an emit-proven window | F-029 rule; census + F-031 spans |
-| H4 | single-activity domination | one partnered activity >50% of a seat's REALIZED ticks over a trailing 200, sustained 200 | detector v0 validated on family-11-r5 (`collapse-detector-v0/RESULTS.md`): locks 0.82–0.83, healthy peak 0.43, margin 0.07 under the 0.50 bar — owner may lift the bar to 0.55–0.65 at the pin; fires ~50–150 ticks after H1 on a starving lock, so it names the cause rather than leading the alarm |
+| H4 | single-activity domination | one partnered activity **>55%** (owner pinned 2026-09-01, v0.2) of a seat's REALIZED ticks over a trailing 200, sustained 200 | detector v0.2 VALIDATED on family-11-r5 (`collapse-detector-v0/RESULTS.md` §v0.2): 4/4 locks fire (0.82–0.83), 11/11 healthy silent (peak 0.43), margin 0.12; 0.65 was tried first and dropped the ramping ~500-tick twins lock (silent at any bar ≥0.60), so revisit only on a new collapse class; fires 66–122 ticks after H1 on a starving lock, so it names the cause rather than leading the alarm |
 | H5 | frozen cluster | same-pair contact share near-total, sustained | F-027's spatial signature; `nn_distance.py` + pair census |
 | H6 | hyper-dispersion | NN cheb MEDIAN ≥ 5, sustained | baseline median 1.0 — 5× current; loose deliberately (fog legitimately disperses) |
 
@@ -224,8 +226,18 @@ digest matrix + self-row is extrapolated, not yet measured.
   play-solo are exact zeros for the teacher)
 - needs-servicing latency percentile creep (the "world harder" vs
   "mind broken" separator)
-- refusal-tax share >10% of any seat's ticks (F-033 seam instrument;
-  Biscuit 2.0 pays 4.6% today)
+- refusal-tax share above **3.5%** of any seat's ticks (owner ruled
+  2026-09-01: 3.5% is where INVESTIGATION is warranted, not a retrain
+  gate; was >10%). F-033 seam instrument / spec-046 stamp; Biscuit 2.0
+  pays 4.6% today. c30 + consent IS the current response to the tax;
+  the reading that counts is Biscuit 3.0's (policy seat, after
+  training), with comfort-sweep Addendum 2 R8 as the scripted early
+  look. Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  all-needs parity): closing that gap is the point, the tax is one of
+  its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
+  with the roster paying ~4.7% is NOT actionable; the tax becomes a
+  target only in a later marginal-welfare phase once the world
+  architecture is stable.
 - dispersion drift (NN median ≥3 but <5)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 

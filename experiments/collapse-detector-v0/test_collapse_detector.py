@@ -40,8 +40,11 @@ def test_mutual_lock_fires_both_signals_at_the_predicted_tick():
     assert r["verdict"] == "FIRE"
     a = [f for f in r["fires"] if f["signal"] == "a"]
     b = [f for f in r["fires"] if f["signal"] == "b"]
+    # v0.2: (a)'s bar is 0.55, so the trailing share crosses it 0.05*W = 10
+    # ticks later on the way in and 10 ticks earlier on the way out: first
+    # fire 399 -> 409, episode 499 -> 479. (b) keeps v0's 0.50 numbers.
     assert [(f["seat"], f["family"], f["tick"], f["episode"]) for f in a] == \
-        [("k1", "sleeping", 399, 499), ("k2", "sleeping", 399, 499)], a
+        [("k1", "sleeping", 409, 479), ("k2", "sleeping", 409, 479)], a
     assert [(f["pair"], f["tick"], f["episode"]) for f in b] == [(["k1", "k2"], 399, 499)], b
     assert r["first_fire_tick"] == 399
 
@@ -74,6 +77,31 @@ def test_one_sided_partnering_fires_a_not_b():
     assert [f["signal"] for f in r["fires"]] == ["a"], r["fires"]
     assert r["fires"][0]["seat"] == "k2" and r["fires"][0]["family"] == "grooming"
     assert r["max_share"]["b"] == 0.0
+
+
+
+
+def test_eleven_on_nine_off_one_sided_sits_at_the_v02_bar_and_stays_silent():
+    # Period 20 divides W=200: k0 partnered on k1 for 11 of every 20 ticks,
+    # k1 never reciprocates, so (a) == 0.55 exactly and (b) == 0.
+    st = world()
+    for s in range(100, 1100, 20):
+        set_act(st, 0, s, s + 11, "sleeping", partner=1)
+    r = detect(st, ROSTER)
+    assert r["verdict"] == "silent", r["fires"]
+    assert abs(r["max_share"]["a"] - 0.55) < 1e-9 and r["max_share"]["b"] == 0.0, r["max_share"]
+
+
+def test_fifty_three_percent_one_sided_partnering_is_silent_under_v02():
+    # 53-on/47-off (period 100 divides W), one-sided: (a) == 0.53 for the
+    # whole run. Fired under v0's 0.50 bar (a healthy-Biscuit false
+    # positive); silent under 0.55.
+    st = world()
+    for s in range(100, 1100, 100):
+        set_act(st, 0, s, s + 53, "sleeping", partner=1)
+    r = detect(st, ROSTER)
+    assert r["verdict"] == "silent", r["fires"]
+    assert abs(r["max_share"]["a"] - 0.53) < 1e-9, r["max_share"]
 
 
 if __name__ == "__main__":
