@@ -38,6 +38,8 @@ witness behind it.
 | 11 | classic-scan doctrine pin (review #2) | the review's exact mutation: `!consent \|\|` dropped at the `viable_playmate_with` friends filter | ONLY the new pin red, workspace-wide | as predicted: exactly 1 failed of 807 (no-fail-fast) | reverted, lib 454/0 |
 | 12 | 042/047 boundary pin (review #3) | site-1 filter removed | the new pin + cycle 6a's three | as predicted: exactly those 4 (no-fail-fast) | restored, lib 455/0 |
 
+| 13 | finding-1 flip pin (ACCEPTED by the owner 2026-09-01) | site-2 re-removed (`choose_consenting` → `choose`) | exactly 2 red: the new flip pin's line-30 arm + the site-2 guard | as predicted (workspace no-fail-fast) | restored; ⚠ the `git checkout --` revert also discarded the UNCOMMITTED pin (commit-before-destructive-checks, occurrence five) — re-added from the recorded content, lib 456/0, committed immediately |
+
 **Re-verification of cycles 1, 3, 6b, 6c, 8, 9, 7 with
 `--workspace --no-fail-fast`** (complete red lists):
 

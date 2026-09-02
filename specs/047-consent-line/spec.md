@@ -42,6 +42,15 @@ selection. Rejection is not the target; consent is.
   three read the same decision-time world snapshot the selector already
   consults, so Experiments' consent-share readout (R7) has exactly one
   definition to pin.
+- Q: Blocking the only playmate re-prices play as solo (distance 0, the
+  absent-friend rule), which near the play/eat crossover can buy solo play
+  a tick over a moderately higher need — is that intended? → A: **Accepted
+  by the owner 2026-09-01** (medium-review finding 1): the scripted cat is
+  a training teacher and marginal scoring detours wash out in training;
+  what matters is that consideration of other cats' needs is modeled so it
+  is learnable. Bounded (solo play relieves play; safeguard urgency wins
+  past 75); pinned as intended in the flip test; Experiments' R2
+  (hungry-play share, both arms, report-only) watches the aggregate.
 
 ## User Scenarios & Testing *(mandatory)*
 
