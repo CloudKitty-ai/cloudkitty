@@ -3240,6 +3240,79 @@ mod tests {
         assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Eat), 60.0);
     }
 
+    /// Spec 048 SC-005 must-stay-green: the SAME-TICK race stays a genuine,
+    /// stamped refusal. The partner lawfully interrupts the duet in its own
+    /// earlier slot; this cat's continuation — decided when the duet was
+    /// still live — is then refused and recorded `absorbed = false`. The
+    /// spec-048 rule reads the DECISION snapshot and must never see (or
+    /// suppress) this.
+    #[test]
+    fn a_same_tick_duet_race_is_still_a_stamped_refusal() {
+        // Both role assignments run (interrupter/proposer swapped); the fair
+        // turn-order draw decides which one realizes the race (interrupter
+        // first). Exactly the realized one must stamp the un-absorbed
+        // refusal. Each interrupter steps AWAY from its partner (a step
+        // into the partner's tile would be illegal and interrupt nothing).
+        let race_row = |interrupter: KittyId, proposer: KittyId, away: Direction| {
+            let (mut world, config) = duet_stage();
+            for id in [1, 2] {
+                let idx = world.kitty_index(id).unwrap();
+                world.kitties[idx].needs.add(NeedKind::Play, 100.0);
+                world.kitties[idx].activity = Activity::Playing {
+                    target: Some(TargetRef::Kitty { id: 3 - id }),
+                };
+                // Past the play minimum: interruptible.
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock {
+                    started: 97,
+                    applied: 99,
+                    mutual_ticks: 0,
+                    drip_ticks: 0,
+                });
+            }
+            let tick = world.tick;
+            let config = std::sync::Arc::new(config);
+            world.tick_with_proposals(
+                &crate::seam::JointProposal::from_actions([
+                    (interrupter, Action::move_to(away)),
+                    (
+                        proposer,
+                        Action::play_with(TargetRef::Kitty { id: interrupter }),
+                    ),
+                ]),
+                &config,
+            );
+            // absorbed = false is the race signature: the duet ended both
+            // sides in the interrupter's earlier slot, so nothing continued.
+            // (Proposer-first instead yields an absorbed = true row: the
+            // still-live scene absorbs the refused re-proposal — 046's
+            // mid-scene meaning, filtered out of the R8 tax by construction.)
+            let row = world
+                .refusal_log
+                .events()
+                .find(|r| r.kitty_id == proposer && r.tick == tick && !r.absorbed)
+                .cloned();
+            row
+        };
+
+        // Kitty 1 sits at (5,5), kitty 2 at (5,6): 1 escapes North, 2 South.
+        let realized: Vec<_> = [
+            race_row(2, 1, Direction::South),
+            race_row(1, 2, Direction::North),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        assert_eq!(
+            realized.len(),
+            1,
+            "exactly one role assignment realizes the race (interrupter drew the earlier slot)"
+        );
+        assert!(
+            matches!(realized[0].proposed, Action::Play { .. }),
+            "the stale continuation is what was refused"
+        );
+    }
+
     /// Spec 048 US1 e2e (FR-007/SC-002): a cat mid-play with a critter that
     /// expired last tick — dead in the decision snapshot — takes a REAL
     /// action this tick and stamps no refusal row. Staged so the fresh
