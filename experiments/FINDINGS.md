@@ -2037,3 +2037,88 @@ line); a lock class outside the three partnered families.
 **Re-verify when**: H4 is pinned at step-5 kickoff — the owner picks
 the bar with the 0.43/0.82 numbers in hand, and a live v1 re-runs this
 set before it watches a seating.
+
+## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; a food-only weight band keeps play by leaving cuddle (her highest need) unserved; the spec-042 score at t_partner 5 refuses nearly every friend and halves the roster's duets
+
+Biscuit 3.0 comfort sweep (`biscuit3-comfort-sweep-2026-09-01/RESULTS.md`;
+prereg + tooling @ 893cd48 before collection). Scripted `playful`
+Biscuit with four `needs_driven` seats, canonical 041 economy
+(`groom_cuddle_relief` 0.5), 20k measured ticks × 2 seeds per arm,
+20/20 runs valid, watchdog quiet throughout.
+
+1. **The comfort curve is smooth, no free lunch.** Eat time-above-30
+   0.455 / 0.362 / 0.236 / 0.132 at comfort 55 / 45 / 35 / 30 (in-run
+   scripted floor 0.100); eat p50 88 / 56.5 / 26.5 / 10.5 ticks;
+   hungry-play share 0.65 → 0.15. Total play 1.00 / 0.93 / 0.76 / 0.70x.
+   Every play point lost is element play (162 → 96/1k); duets hold at
+   67–79/1k in all arms. Seeds agree to two digits. Biscuit happiness
+   77 → 85, demand price 22.7 → 15.2.
+
+2. **The weights arm passed P3 by leaving cuddle unserved (corrected
+   2026-09-01).** w35 (eat/drink/sleep at 35, bath/cuddle at 55) closes
+   0.51 of the eat time>30 gap vs flat c35's 0.62 and keeps 209 vs 179
+   play/1k, so P3 passes as pinned. But cuddle is Biscuit's highest
+   elevated need at c55 (mean 30.8, 50% of polls ≥30; roster 16.5/13%),
+   above eat (28.3/45%). w35 leaves it at 27.0/42% while c35 takes it to
+   20.7/26%. The play w35 "saved" is play she did while wanting a
+   cuddle. Bath is the one need genuinely fine at 55 (15.6, 7% ≥30; 1%
+   at c30), so a weight band covering everything but bath is within
+   noise of flat comfort. Welfare has to be read on all five needs;
+   P3 as pinned read only eat. Weights are not recommended.
+
+3. **The spec-042 candidate dials are not shippable.** With `t_partner
+   5.0` against a realized mean partner play need of 4.3 at duet
+   start, Biscuit's duets fall 72.6 → 8.9/1k at every comfort; she
+   substitutes elements (total play flat, +4–9%) and the four other
+   seats lose 51–57% of their duets. Partner need at duet start rises
+   4.3 → 10–12 as designed. Food unmoved. The next campaign sweeps
+   `t_partner` and `w_serious` with this as baseline.
+
+4. **Two prereg measures failed as bars.** Armed excursions per 1k
+   RISES as comfort drops (6.3 → 8.2): a meal resets eat to ~0
+   (35/tick × ~2 ticks), so meals per 1k ∝ 1 ÷ eating level (6.6 at
+   mean 48.5, 9.5 at 30.3), and an excursion is a meal that started
+   above 30. The floor seats' 4–5/1k comes from eating at 21–27, below
+   the line 70–85% of the time. The count measures how often a cat
+   gets hungry enough to cross 30, not how late she is. "Low-need play" (scenes
+   starting with food needs < 30) rises 1.6–2.9x for the same reason a
+   fed cat lives below 30. Neither can serve as a bar again.
+
+5. **Addendum 1 (c25 / c20, 2026-09-01): parity reached, play halves,
+   meows vanish.** Both arms reach roster-parity welfare on all five
+   needs (Biscuit's share ≥30 within 0 of the roster at c25, below it
+   at c20); total play 0.58x / 0.45x of c55 (predicted 0.55–0.65 /
+   0.40–0.55); duets begin to fall below 30 (67 → 56 → 54/1k) after
+   holding 67–79 from 55 to 30; roster duets slide to 0.88x / 0.85x
+   (bar 0.85x). Excursions per 1k turned over as point 4 predicted
+   (8.2 → 3.15 → 2.02, under the floor). Her announce share fell to the
+   roster's at c25 (0.39 → 0.19): below the announce threshold she
+   leaves play before arming, so the hungry-Biscuit meow disappears
+   from the client. c30 already met parity within +0.04 on the main
+   raws.
+
+6. **Addendum 1b (c32 / c28, 2026-09-01): the bracket fails on opposite
+   sides.** c32 misses parity on eat, sleep and cuddle (+0.07–0.09,
+   both seeds) at 0.76x play; c28 passes (+0.02–0.03) at 0.65x. Welfare
+   and play are monotone over 35/32/30/28/25 (eat ≥30 0.23 → 0.18 →
+   0.13 → 0.10 → 0.06; play 0.76 → 0.76 → 0.70 → 0.65 → 0.58) with one
+   flat step: c32 keeps c35's play at a third less time hungry. Between
+   32 and 28 each 2 points of comfort cost ~0.05x of c55 play and buy
+   ~0.025 of every gap; duets hold 63–67/1k down to 28. Report-only:
+   one c28 seed carried a 250-tick one-sided cosleep (Biscuit `resting
+   with_friend` Miso while Miso idle, cuddle 82 → 100, happiness 25.4,
+   watchdog quiet, self-resolved), the same shape as the served soak's
+   Miso event; a roster mechanic a seed exposed, not a comfort effect.
+
+**Decision (prereg rule)**: middle case, owner's call on the curve. If
+Biscuit is to be fed, use flat comfort; the food-only weight band is
+withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
+with solid element play is still very Biscuit"). Addendum 1's rule
+(highest comfort passing parity with play ≥ the owner's 0.70x) lands
+on **c30**, and the 32/28 bracket confirms it (c32 fails parity, c28
+fails the play line); c25 is the next point on the curve (parity exact,
+0.58x, half the meows), not a candidate under that line. **Scope**: scripted anchor only; a clone's
+transfer is the training's to show. **Invalidated by**: an economy
+change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
+**Re-verify when**: the owner pins a comfort value (re-run that arm
+against the then-served economy before the lineage retrain).

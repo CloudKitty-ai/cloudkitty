@@ -86,6 +86,15 @@ teach the fix.
 
 ## The comfort sweep (scripted, lab, no training)
 
+**RUN 2026-09-01 — `biscuit3-comfort-sweep-2026-09-01/RESULTS.md`,
+F-038.** Curve smooth, no free lunch; duets untouched, element play
+pays; w35 (per-need weights) beats flat c35 on play kept for the same
+food line; spec-042 candidate dials refuse nearly every friend (not
+shippable, `t_partner` re-sweep owed). Decision rule → middle case,
+owner's call on the curve. The "scripted floor 1–4" below was the live
+800 ms server's; the lab floor is p50 7–25.
+
+
 **⏳ SEQUENCING (owner, 2026-08-26): run the sweep once ALL pre-fog
 engine changes are in** — after step 1 (cuddle sibling package) lands
 and anything else in the step-3 bundle that touches the economy, so

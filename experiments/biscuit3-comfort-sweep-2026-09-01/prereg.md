@@ -1,0 +1,241 @@
+# Biscuit 3.0 comfort × score × weights sweep — preregistration
+## (2026-09-01, Experiments; `biscuit3-design-note-2026-08-26.md` §The comfort sweep; owner-gated on the 041+bump soak, called 2026-09-01; bars pinned HERE before collection)
+
+Engine: main @ 0df1e7f (crate tree unchanged since 41c6025: 041
+economy, spec-042 dials in and inert at defaults, 044/045 inert,
+contagion shelved). Debug build, headless local servers, tick_ms 40,
+five in parallel on distinct ports.
+
+## Question
+
+Lever 1 of the design note: how much of scripted Biscuit's food gap
+does a lower `playful_comfort` buy, and what does it cost in play?
+Riders: do per-need comfort weights (spec 042 FR-005) buy the same food
+gain for less play, and what does the partner-value score (FR-001–004)
+do to whom Biscuit bothers? All scripted, no training: the subject is
+the ANCHOR Biscuit 3.0 would be cloned from, so what moves here is what
+the clone will be taught.
+
+## Arms and configs
+
+`gen_configs.py` rewrites the served `cloudkitty.toml` textually
+(needflow-lab pattern): Biscuit's seat `playful`, the other four
+`needs_driven`, tick_ms 40, `groom_cuddle_relief` 0.5 (the canonical
+economy Biscuit 3.0 trains under; the served 2.0 is a temporary bump,
+and F-036 says scripted decisions never read it), per-run seed / port /
+snapshot, no `[water]` block.
+
+| arm | playful_comfort | comfort_weight | note |
+|---|---|---|---|
+| c55 | 55 | identity | today's anchor (the baseline arm) |
+| c45 | 45 | identity | |
+| c35 | 35 | identity | |
+| c30 | 30 | identity | the announce threshold: serious the tick a need arms |
+| w35 | 55 | eat/drink/sleep 1.571429, others 1.0 | food band trips at 35.00, bath/cuddle keep 55 |
+
+Each × score {off, on}. Score-on = the spec-042 candidate dials,
+chosen before any data and disclosed as a first pass, not a tuned set:
+`w_value 0.5, w_busy 1.0, w_serious 0.5, t_self 5.0, t_partner 5.0,
+critter_appeal 0.0`. Reading: a friend's play need is worth half a tile
+per point; a friend mid-scene pays one play-point per tick still owed
+on its minimum; a friend's top non-play need costs half a play-point
+per point; Biscuit bothers nobody under her own play need of 5, and
+nobody whose value is under 5. Critter appeal 0 keeps the
+critter-first tie.
+
+10 arms × 2 seeds (20260911, 20260912) = 20 runs.
+
+## Protocol (per run)
+
+Fresh world (`--fresh --no-backup`); discard ticks < 1,500; measure
+**20,000 ticks** (100k cat-ticks). Two pollers at 0.5 s (~12 ticks):
+`needflow-lab-validation-2026-09-01/scene_census.py` for the scene mix
+(F-031 rules, its own guard) and this directory's `run_sweep.py`
+polling `/world` in the `need_latency.py` shape (needs, `last_relief`,
+happiness, activity per seat). Archive final `/world` + `/welfare` and
+the boot log. Raws → `results-raw/` (uncommitted).
+
+Validity per run: `polls_in_window` ≥ 1,000 on the census poller and
+≥ 1,000 world polls; watchdog read from the final `/welfare` (an alarm
+is reported with the arm, not a re-run trigger).
+
+## Readouts (Biscuit unless stated; pooled over both seeds, each seed shown)
+
+- **R1 food latency** (`need_latency.analyze`, spec-028 band arm 30 /
+  disarm 25): eat and drink armed excursions per 1k ticks, latency
+  p50, time-above-30 share. In-run control: the four `needs_driven`
+  seats' same numbers (the scripted floor, F-033 baseline 1–4 ticks).
+- **R2 hungry-play share**: Biscuit play relief stamps (`last_relief.play`
+  advancing between polls) taken while her eat or drink is ≥ 30 at
+  that poll, over all her play relief stamps. Same definition as the
+  2026-08-26 live baseline (15/86 ≈ 17% for policy Biscuit). Poll-level
+  approximation, stated.
+- **R3 play, and low-need play**: Biscuit's play scenes per 1k ticks by
+  class (duet / element / solo, F-031 spans), and the LOW-NEED subset:
+  scenes whose start tick has eat, drink and sleep all < 30
+  (interpolated linearly between the bracketing world polls). Comfort
+  cannot reach these by construction; second-order loss (time spent
+  eating) can.
+- **R4 roster play access**: play-duet scenes per 1k ticks for the four
+  `needs_driven` seats, pooled and per seat. Biscuit is the roster's
+  play supply.
+- **R5 welfare**: happiness mean per seat; Biscuit's standing-demand
+  price (happiness points); watchdog.
+- **R6 score arm only**: mean partner play need at the start of
+  Biscuit's duets (interpolated), duet share of her play, and R4.
+
+## Pinned bars
+
+Baseline arm is c55-off. "Gap" = c55-off Biscuit minus the pooled
+`needs_driven` seats, on eat time-above-30 AND eat excursions per 1k.
+
+- **P1 (character bound)**: an arm KEEPS the character if its low-need
+  play rate (R3) is within −15% of c55-off, pooled, and its total play
+  is within −25%.
+- **P2 (gap closure)**: an arm CLOSES the gap if it removes ≥ 2/3 of
+  both gap measures, pooled and in both seeds.
+- **Decision (design note's rule)**: if some comfort arm passes P1 and
+  P2, vector 2 is config + one lineage retrain at the highest comfort
+  that does (report the whole curve; the value itself is the owner's).
+  If no arm passing P1 removes even 1/3 of the gap, the gap is
+  geometry/travel, not choice: redirect before training. In between:
+  owner call on the curve.
+- **P3 (weights)**: w35-off closes at least as much of the gap as
+  c35-off does (within 0.25× of c35's closure on each measure) AND
+  keeps more play (total Biscuit play ≥ c35-off's). Both must hold for
+  "weights preserve more character" to stand.
+- **P4 (roster supply)**: for every arm passing P1, the four-seat
+  pooled duet rate (R4) is within −15% of c55-off. A miss names the
+  arm as fixing one seat's demand by taxing four seats' supply.
+- **P5 (score, comfort-matched pairs, both seeds)**: score-on raises
+  the mean partner play need at Biscuit's duet starts (R6) vs
+  score-off; Biscuit's total play stays within ±10%; R4 does not fall
+  by more than 15%. Any miss is reported per dial family; refusal
+  exposure is NOT measurable here (FR-004 makes it zero by
+  construction; the refusal stamp is Product's fast-follow).
+
+Report-only: happiness per seat, spans, duet share, excursion maxima.
+
+## Guard
+
+`test_score.py` on a RECORDED payload: two real polls from a lab world
+plus real activity events, pins for (a) the interpolated need at a
+scene start, (b) a play relief stamp counted hungry only when eat or
+drink ≥ 30 at that poll, (c) the low-need filter dropping a scene whose
+interpolated sleep crosses 30. Each shown red in-run (fixture edit
+that should flip the pin) before commit.
+
+## What this is not
+
+Not a Biscuit 3.0 certification, not a claim about policy Biscuit (a
+clone imitates with the leash's fidelity, but the transfer is the
+training's to show), not a pricing of the score's refusal effect. The
+score-on dials are one candidate point, not a sweep of the score; if
+P5 misses, the next campaign sweeps those dials with this as its
+baseline.
+
+## Addendum 1: comfort 25 / 20 extension (declared 2026-09-01 before collection)
+
+Owner's ask after F-038: extend the comfort curve to 25 and 20, and read
+Biscuit's welfare on every need, not on eat alone. The eat-only reading
+let w35 pass P3 while leaving cuddle, her highest elevated need at c55
+(mean 30.8, 50% of polls ≥30), at 0.42; c35 took it to 0.26. Weight
+bands are withdrawn; bath is the only need fine at 55 (7% ≥30), so a
+band covering everything but bath is within noise of flat comfort. The
+extension is flat comfort only, score off only (the score dials get an
+offline pricing pass from this sweep's raws before any run).
+
+**Arms**: c25-off, c20-off × seeds 20260911 / 20260912 = 4 runs, one
+batch. Everything else as §Arms and configs (`gen_configs.py --ext`,
+ports 8320–8323). Baseline stays c55-off from the main sweep; the c30
+and floor figures it is read against are the main sweep's too.
+
+**Why these two**: 30 is the announce threshold. At c30 Biscuit leaves
+play the tick a need arms and meows about it; below 30 she leaves
+before arming, so her food and cuddle meows should mostly vanish (R5).
+The `needs_driven` seats eat at mean 21–27, so c20 should land on the
+roster's food line (R1) and the reading of interest becomes how much of
+her play survives (R3), which is the identity cost of feeding her.
+
+**Readouts** (Biscuit unless stated; pooled, each seed shown):
+
+- R1 **all-needs welfare** (primary): per need in eat/drink/sleep/
+  cuddle/bath, mean level and share of polls ≥30, Biscuit and the
+  pooled roster, from the /world polls. Plus happiness mean, worst
+  poll, share of polls under 60.
+- R2 lateness: eat/drink time>30 and latency p50 (F-038's surviving
+  measures). Armed excursions per 1k is REPORT-ONLY with a prediction:
+  it turns over below 30 (F-038 point 4 says it can only fall once she
+  eats below the line most of the time; c25 < c30's 8.2, c20 within
+  +1 of the floor's 4.4–5.0). A failure of that prediction reopens the
+  mechanism, not the bar.
+- R3 character: total play per 1k vs c55-off, split duet / element /
+  solo; duet share.
+- R4 roster supply: the four seats' pooled duet rate.
+- R5 announce share: share of (poll, kitty) rows with a non-empty
+  `announce_armed`, any need and per need, Biscuit and roster.
+
+**Bars**:
+
+- **E1 (roster-parity welfare)**: an arm reaches parity if, for each of
+  eat, drink, sleep and cuddle, Biscuit's share of polls ≥30 is within
+  +0.05 of the pooled roster's, pooled and in both seeds. (Bath is
+  already within 0.06 at c55 and 0.00 at c30; reported, not barred.)
+  Prediction: c20 passes; c25 passes on eat/drink/sleep and is the
+  arm to watch on cuddle.
+- **E2 (character)**: reported as the ratio to c55-off. The bound is
+  the owner's: c30's 0.70x was accepted on 2026-09-01 ("0.7x play with
+  solid element play is still very Biscuit"), which supersedes P1's
+  −25% for this decision. Prediction: c25 0.55–0.65x, c20 0.40–0.55x,
+  with element play taking the loss first and duets starting to fall
+  below 30 (a serious cat does not start scenes).
+- **E3 (roster supply)**: P4 as pinned, others' duets within −15% of
+  c55-off.
+- **E4 (troughs)**: share of Biscuit polls under 60 happiness no worse
+  than c30's (0.0% both seeds); worst poll reported.
+- **Recommendation rule**: recommend the highest comfort that passes E1
+  and E3 if its E2 ratio is at or above the owner's accepted 0.70x;
+  otherwise present c30 (accepted, E1 status as measured) against the
+  E1-passing arm as the owner's trade. The pin is the owner's either
+  way.
+
+**Known before collection**: running the E-bars over the main sweep's
+raws (`score.py`, same commit as this addendum) shows c30-off already
+passes E1: gaps +0.04 / +0.04 / +0.04 / +0.03 pooled, seed 1 all ≤
+0.037, seed 2 all ≤ 0.045; E3 PASS, E4 PASS. So by the rule above c30
+is already the recommendation, and the extension cannot move it
+upward. What c25/c20 can show is (i) whether Biscuit's residual +0.04
+above the roster closes to zero or reverses (a `playful` cat that eats
+before the roster does), (ii) the shape of the play cliff below 30
+(E2), and (iii) the announce consequence (R5). The owner asked for the
+curve; this is its exploratory tail, declared as such. If c25 passes
+E1 with a residual under +0.02 AND keeps E2 ≥ 0.70x, that is reported
+as a second candidate beside c30, not as a replacement.
+
+**Guard**: `test_score.py` grows three pins on the same recorded slice
+for the new primitives (per-need share and mean, announce share,
+happiness trough), each shown red in-run before commit.
+
+**Not here**: the score dial re-sweep (offline pricing first), any
+policy Biscuit, any economy change. Re-verify trigger unchanged: the
+pinned arm is re-run against the then-served economy before the lineage
+retrain.
+
+## Addendum 1b: comfort 32 / 28 (declared 2026-09-01 before collection)
+
+Owner's ask after Addendum 1: bracket the accepted point. c32-off and
+c28-off × the two seeds, 4 runs, one batch (`gen_configs.py --ext2`,
+ports 8324–8327). Same binary, protocol, baseline and bars as Addendum
+1 (E1–E4, recommendation rule unchanged). w arms dropped by the owner.
+
+What the bracket can show: the two announce-threshold effects (meow
+share, excursion turnover) should sit on opposite sides of 30, so c32
+should look like c30 with a little more play and c28 like c25 with a
+little more. Predictions, from the curve's slope between 35 and 25:
+c32 play 0.72–0.78x, c28 0.62–0.68x; c32 fails E1 narrowly (gaps
++0.05–0.09), c28 passes; excursions c32 ≈ 8, c28 ≈ 4–6; announce c32
+≈ 0.45, c28 ≈ 0.25. A monotone read between neighbours is the test; a
+non-monotone reading (c32 below c30 on play, c28 above c30 on welfare
+gaps) would say two seeds are not enough at this spacing and the pin
+should not lean on a 2–3 point difference. No new instrument, no new
+guard.
