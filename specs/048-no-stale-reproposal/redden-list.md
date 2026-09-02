@@ -18,6 +18,13 @@ pins. Adopted for later cycles: any mutation that can move a live trajectory
 predicts ALL FOUR golden-family pins (evolution golden, strip witness, JSON
 wire golden, and — only if drivers diverge — joint parity) or names why not.
 
+| C | T009 (also T004/5/7's red-first re-proof) | T008's check disabled (`if false &&`) at HEAD 7d9b980 | 4 reds: `a_scene_whose_critter_moved_away_is_not_continued`, `a_scene_whose_critter_expired_is_not_continued`, `every_builtin_declines_a_snapshot_dead_scene`, `a_dead_critter_scene_yields_a_real_action_and_no_refusal_row`; golden family GREEN (trajectory back to pin) | exactly 4/4, golden green — 810/4 | yes; lib 461/0 |
+| D | T012 | groom arm of `counterpart_gone_in` → `false` | prune witness `a_groomed_friend_walking_away_ends_the_grooming` + behavior witness `a_groom_whose_friend_walked_away_is_not_continued` red; the 3 golden-family reds present EITHER WAY at this HEAD (T008 landed, T015 re-pin pending) so they are not evidence | exactly the 2 witnesses red (+3 standing golden reds, noted non-marginal) | yes; lib 463/0 |
+
+Cycle D note: the FR-002 both-witness guard is proven in both directions —
+the same one-arm weakening reds the ENGINE's ending witness and the
+BEHAVIOR's declining witness, because both consult the one body.
+
 Cycle B consequence: the duet arm of the shared predicate has NO
 mutation-witness among existing tests and CANNOT get a behavior-side one
 (the behavior never sees a one-sided duet — probe-proven). Its guards are
