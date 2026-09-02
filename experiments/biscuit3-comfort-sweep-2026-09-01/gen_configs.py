@@ -18,6 +18,7 @@ No [water] block: contagion is shelved for Gen 1.
 
 usage: gen_configs.py <scratch dir> [--ext]   (writes <scratch>/configs/*.toml)
   --ext: prereg Addendum 1 only -- c25/c20, score off, ports 8320+
+  --ext2: prereg Addendum 1b only -- c32/c28, score off, ports 8324+
 """
 import re
 import sys
@@ -31,16 +32,19 @@ SEEDS = [20260911, 20260912]
 # eat/drink/sleep trip the line at 35.00.
 COMFORT_ARMS = [("c55", 55.0, None), ("c45", 45.0, None), ("c35", 35.0, None),
                 ("c30", 30.0, None), ("w35", 55.0, 55.0 / 35.0)]
-EXT = "--ext" in sys.argv[2:]
-if EXT:
+EXT = "--ext" in sys.argv[2:] or "--ext2" in sys.argv[2:]
+if "--ext" in sys.argv[2:]:
     COMFORT_ARMS = [("c25", 25.0, None), ("c20", 20.0, None)]
+if "--ext2" in sys.argv[2:]:
+    COMFORT_ARMS = [("c32", 32.0, None), ("c28", 28.0, None)]
 SCORE_STATES = (False,) if EXT else (False, True)
+BASE_IDX = 24 if "--ext2" in sys.argv[2:] else (20 if EXT else 0)
 # Candidate score dials (first pass, chosen before any data; see prereg).
 SCORE = {"w_value": 0.5, "w_busy": 1.0, "w_serious": 0.5,
          "t_self": 5.0, "t_partner": 5.0, "critter_appeal": 0.0}
 
 src = SRC.read_text()
-idx = 20 if EXT else 0
+idx = BASE_IDX
 for label, comfort, food_w in COMFORT_ARMS:
     for score_on in SCORE_STATES:
         for seed in SEEDS:
@@ -90,4 +94,4 @@ for label, comfort, food_w in COMFORT_ARMS:
             assert "[water]" not in t
             (OUT / f"{run}.toml").write_text(t)
             idx += 1
-print(f"wrote {idx - (20 if EXT else 0)} configs to {OUT}")
+print(f"wrote {idx - BASE_IDX} configs to {OUT}")

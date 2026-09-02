@@ -220,3 +220,22 @@ happiness trough), each shown red in-run before commit.
 policy Biscuit, any economy change. Re-verify trigger unchanged: the
 pinned arm is re-run against the then-served economy before the lineage
 retrain.
+
+## Addendum 1b: comfort 32 / 28 (declared 2026-09-01 before collection)
+
+Owner's ask after Addendum 1: bracket the accepted point. c32-off and
+c28-off × the two seeds, 4 runs, one batch (`gen_configs.py --ext2`,
+ports 8324–8327). Same binary, protocol, baseline and bars as Addendum
+1 (E1–E4, recommendation rule unchanged). w arms dropped by the owner.
+
+What the bracket can show: the two announce-threshold effects (meow
+share, excursion turnover) should sit on opposite sides of 30, so c32
+should look like c30 with a little more play and c28 like c25 with a
+little more. Predictions, from the curve's slope between 35 and 25:
+c32 play 0.72–0.78x, c28 0.62–0.68x; c32 fails E1 narrowly (gaps
++0.05–0.09), c28 passes; excursions c32 ≈ 8, c28 ≈ 4–6; announce c32
+≈ 0.45, c28 ≈ 0.25. A monotone read between neighbours is the test; a
+non-monotone reading (c32 below c30 on play, c28 above c30 on welfare
+gaps) would say two seeds are not enough at this spacing and the pin
+should not lean on a 2–3 point difference. No new instrument, no new
+guard.

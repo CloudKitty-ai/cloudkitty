@@ -24,7 +24,7 @@ from scene_census import classify  # noqa: E402
 RAW = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "results-raw"
 SEEDS = [20260911, 20260912]
 COMFORT = ["c55", "c45", "c35", "c30", "w35"]
-ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")] + ["c25-off", "c20-off"]
+ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")] + ["c32-off", "c28-off", "c25-off", "c20-off"]
 NEEDS5 = ("eat", "drink", "sleep", "cuddle", "bath")
 PARITY = 0.05  # Addendum 1 E1: Biscuit share>=30 within +0.05 of the roster's
 TROUGH = 60.0  # Addendum 1 E4: happiness bar for a trough poll
