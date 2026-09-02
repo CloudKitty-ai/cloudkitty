@@ -128,6 +128,26 @@ pub fn load_and_validate(path: &Path, config: &Config) -> Result<World, PersistE
         }
     }
 
+    // Retention is configuration, not world state (spec 046 research R3):
+    // the same doctrine as the behavior re-stamp above. `EventLog`
+    // serializes its capacity, so without this a pre-046 save (no
+    // refusal_log key, serde-defaulted to capacity 0 -> ring of one) would
+    // keep that capacity FOREVER on the deployed box, which resumes rather
+    // than regenerates -- and the census would silently undercount. All
+    // three rings share the doctrine (review-medium finding 3): a retention
+    // edit that loses to the persisted capacity is invisible until a census
+    // reads a window it believes is wider. Shrinking a knob now trims a
+    // ring's oldest events on resume -- that is what "configuration" means.
+    world
+        .distress
+        .set_capacity(config.events.distress_retention);
+    world
+        .activity_log
+        .set_capacity(config.events.activity_retention);
+    world
+        .refusal_log
+        .set_capacity(config.events.refusal_retention);
+
     if let Err(violation) = invariants::check(&world, config) {
         return Err(PersistError::Unlawful {
             path: path.to_path_buf(),
@@ -309,6 +329,122 @@ mod tests {
         loaded.kitties[0].behavior_description = Some("stale".into());
         crate::stamp_behavior_descriptions(&mut loaded, &registry, &no_policies);
         assert_eq!(loaded.kitties[0].behavior_description, None);
+    }
+
+    #[test]
+    fn a_mid_window_save_resumes_with_its_refusal_events_intact() {
+        // Spec 046 edge case (convergence T026): the census window survives
+        // a restart -- a save taken mid-window carries its refusal events,
+        // and the load path's capacity re-stamp (unchanged retention) trims
+        // nothing. The reloaded ring is the saved ring verbatim.
+        use cloudkitty_core::seam::JointProposal;
+        use cloudkitty_core::Action;
+
+        let dir = temp_dir("mid-window");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+
+        let mut world = World::generate(&config);
+        for _ in 0..3 {
+            let mut p = JointProposal::new();
+            p.propose(1, Action::Purr); // retired action: always refused
+            world.tick_with_proposals(&p, &config);
+        }
+        let saved_events = world.refusal_log.to_vec();
+        assert_eq!(saved_events.len(), 3, "the window has events to lose");
+        save(&world, &path).expect("save");
+
+        let loaded = load_and_validate(&path, &config).expect("load");
+        assert_eq!(
+            loaded.refusal_log.to_vec(),
+            saved_events,
+            "the reloaded ring is the saved window verbatim"
+        );
+    }
+
+    #[test]
+    fn a_retention_edit_reaches_every_ring_on_resume() {
+        // Review-medium finding 3 (2026-09-01): distress and activity are
+        // the same EventLog<T> with the same serialized capacity, so the
+        // "retention is configuration" doctrine must re-stamp ALL three
+        // rings -- else an operator's retention edit silently loses to the
+        // persisted capacity forever (the box resumes, never regenerates,
+        // and Config::fingerprint doesn't cover retention).
+        let dir = temp_dir("sibling-restamp");
+        let path = dir.join("snapshot.json");
+        let config = test_config();
+
+        let world = World::generate(&config);
+        save(&world, &path).expect("save");
+
+        // The operator's edit: every retention knob moves before the restart.
+        let mut edited = test_config();
+        edited.events.distress_retention = config.events.distress_retention + 7;
+        edited.events.activity_retention = config.events.activity_retention + 7;
+        edited.events.refusal_retention = config.events.refusal_retention + 7;
+        edited.validate().expect("the edited config is legal");
+
+        let loaded = load_and_validate(&path, &edited).expect("the save resumes");
+        assert_eq!(
+            (
+                loaded.distress.capacity(),
+                loaded.activity_log.capacity(),
+                loaded.refusal_log.capacity(),
+            ),
+            (
+                edited.events.distress_retention,
+                edited.events.activity_retention,
+                edited.events.refusal_retention,
+            ),
+            "every ring resumes at the CONFIGURED retention, not the persisted one"
+        );
+    }
+
+    #[test]
+    fn a_pre_046_save_resumes_with_the_configured_refusal_capacity() {
+        // Spec 046 US3-2 / research R3: a pre-046 save has NO refusal_log
+        // key. Serde default gives it capacity 0 (ring of one), and nothing
+        // ever re-sizes a loaded ring -- so without the load-path re-stamp
+        // the deployed box (which resumes, never regenerates) would census
+        // through a ring of one forever. The re-stamp reads retention from
+        // config, the same doctrine as the behavior re-stamp above.
+        use cloudkitty_core::seam::JointProposal;
+        use cloudkitty_core::Action;
+
+        let dir = temp_dir("pre-046-restamp");
+        let path = dir.join("snapshot.json");
+        let mut config = test_config();
+        config.events.refusal_retention = 5;
+        config.validate().expect("retention 5 is legal");
+
+        // What a pre-046 save IS: this world's JSON minus the refusal_log key.
+        let world = World::generate(&config);
+        let mut json: serde_json::Value = serde_json::to_value(&world).unwrap();
+        assert!(
+            json.as_object_mut()
+                .unwrap()
+                .remove("refusal_log")
+                .is_some(),
+            "the field exists to be removed -- otherwise this test is vacuous"
+        );
+        std::fs::write(&path, serde_json::to_vec(&json).unwrap()).unwrap();
+
+        let mut loaded = load_and_validate(&path, &config).expect("a pre-046 save loads");
+        assert!(loaded.refusal_log.is_empty(), "the ring starts empty");
+
+        // Drive three refusals (a stray Purr each tick): a capacity-0 ring
+        // degrades to ONE, so holding all three proves the re-stamp landed.
+        for _ in 0..3 {
+            let mut p = JointProposal::new();
+            p.propose(1, Action::Purr);
+            loaded.tick_with_proposals(&p, &config);
+        }
+        assert_eq!(
+            loaded.refusal_log.len(),
+            3,
+            "the resumed ring holds more than one event: capacity came from \
+             config, not from the (absent) persisted field"
+        );
     }
 
     #[test]

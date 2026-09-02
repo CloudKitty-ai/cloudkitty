@@ -14,7 +14,9 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use cloudkitty_core::{ActivityEnd, Config, DistressEvent, Kitty, KittyId, WorldSnapshot};
+use cloudkitty_core::{
+    ActivityEnd, Config, DistressEvent, Kitty, KittyId, RefusalEvent, WorldSnapshot,
+};
 use serde_json::json;
 use tokio::sync::watch;
 
@@ -97,6 +99,31 @@ pub async fn get_welfare(
 /// cannot show how long a scene lasted -- these events can. Oldest first.
 pub async fn get_activity_ends(State(state): State<AppState>) -> Json<Arc<Vec<ActivityEnd>>> {
     Json(state.current().activity_ends.clone())
+}
+
+/// The refusal window with its own bound (spec 046, envelope added at the
+/// review-medium pass): `capacity` says how many events the ring holds
+/// before wrapping, so a consumer can tell a truncated window from a short
+/// history without hard-coding the knob's default (the /welfare threshold
+/// precedent; `/config` omits `refusal_retention` at its default).
+#[derive(serde::Serialize)]
+pub struct RefusalWindow {
+    pub capacity: usize,
+    pub events: Arc<Vec<RefusalEvent>>,
+}
+
+/// Refusals (spec 046): every non-Idle proposal validation resolved to
+/// Idle — the kitty, the proposal verbatim, the tick, and whether a
+/// continuing scene absorbed it (the kitty was mid-scene, minimum met or
+/// not). A signal for the census, never read by the engine
+/// (Article I). Full ring under `events`, oldest first, beside the ring's
+/// `capacity`.
+pub async fn get_refusals(State(state): State<AppState>) -> Json<RefusalWindow> {
+    let published = state.current();
+    Json(RefusalWindow {
+        capacity: published.refusal_capacity,
+        events: published.refusals.clone(),
+    })
 }
 
 pub async fn get_config(State(state): State<AppState>) -> Json<Arc<Config>> {

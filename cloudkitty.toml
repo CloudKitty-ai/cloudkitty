@@ -431,6 +431,10 @@ distress_retention = 1000
 # How many finished-activity events to keep. Each records the true tick span
 # a scene ran (started..=ended), which snapshots alone cannot show.
 activity_retention = 1000
+# How many refusal events to keep (spec 046). Taxed AND absorbed refusals
+# share these slots (~0.38/tick combined on the scripted world), so 6000
+# covers a ~15,000-tick census window; raise it here to widen the window.
+refusal_retention = 6000
 
 [viewer]
 # Read by the web client via /config; the simulation ignores it. A distress

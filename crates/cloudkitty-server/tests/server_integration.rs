@@ -494,6 +494,61 @@ async fn finished_scenes_appear_on_the_activity_events_endpoint_with_true_spans(
 }
 
 #[tokio::test]
+async fn refusals_appear_on_the_refusal_events_endpoint() {
+    // Spec 046 US1-6 (typed at the review-medium pass): the live route
+    // serves `{capacity, events}` where `events` deserializes as the real
+    // `Vec<RefusalEvent>` -- so a re-wired route or a reshaped field fails
+    // HERE, not in a consumer. `absorbed` has no serde default, so a
+    // successful deserialize IS the always-present proof. Built-in
+    // behaviors refuse routinely (mask-vs-moved-world), so the list
+    // populates within the poll budget.
+    use cloudkitty_core::{Action, RefusalEvent};
+
+    let server = start_server().await;
+
+    let mut window: Option<Value> = None;
+    for _ in 0..200 {
+        let body: Value = reqwest::get(server.url("/events/refusal"))
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert!(
+            body["events"].is_array(),
+            "always an events list, never an error: {body}"
+        );
+        if body["events"]
+            .as_array()
+            .map(|a| !a.is_empty())
+            .unwrap_or(false)
+        {
+            window = Some(body);
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+
+    let window = window.expect("some proposal was refused within 200 polls");
+    assert_eq!(
+        window["capacity"].as_u64().unwrap(),
+        test_config().events.refusal_retention as u64,
+        "the served capacity is the configured retention: a consumer can \
+         tell a wrapped window from a short one without reading Rust source"
+    );
+    let events: Vec<RefusalEvent> = serde_json::from_value(window["events"].clone())
+        .expect("the served list deserializes as the refusal ring's own type");
+    let mut last_tick = 0;
+    for ev in &events {
+        assert_ne!(ev.proposed, Action::Idle, "Idle is never refused");
+        assert!(ev.tick >= last_tick, "ring order is tick order");
+        last_tick = ev.tick;
+    }
+
+    server.shutdown().await;
+}
+
+#[tokio::test]
 async fn the_activity_clock_appears_mid_scene_and_never_otherwise() {
     // Spec 006: `activity_clock` is served exactly while a scene runs --
     // omitted when idle, present (with started <= applied < tick) during an

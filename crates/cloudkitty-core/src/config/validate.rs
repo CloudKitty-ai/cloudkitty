@@ -873,6 +873,7 @@ impl Config {
                 "[events] activity_retention",
                 self.events.activity_retention,
             ),
+            ("[events] refusal_retention", self.events.refusal_retention),
         ] {
             if value == 0 {
                 return Err(ConfigError::invalid(

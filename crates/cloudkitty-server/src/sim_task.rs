@@ -13,7 +13,9 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use cloudkitty_core::{ActivityEnd, BehaviorRegistry, Config, DistressEvent, World, WorldSnapshot};
+use cloudkitty_core::{
+    ActivityEnd, BehaviorRegistry, Config, DistressEvent, RefusalEvent, World, WorldSnapshot,
+};
 use tokio::sync::{oneshot, watch};
 use tokio::time::{interval, Duration, MissedTickBehavior};
 
@@ -32,10 +34,37 @@ pub struct Published {
     pub snapshot_json: Option<Arc<str>>,
     pub distress: Arc<Vec<DistressEvent>>,
     pub activity_ends: Arc<Vec<ActivityEnd>>,
+    /// Refusals (spec 046), oldest first — served on GET /events/refusal.
+    pub refusals: Arc<Vec<RefusalEvent>>,
+    /// The refusal ring's capacity, served beside the events so a consumer
+    /// can tell a wrapped window from a short one (the /welfare threshold
+    /// precedent; `/config` omits the knob at its default).
+    pub refusal_capacity: usize,
 }
 
 impl Published {
     fn from_world(world: &World) -> Self {
+        Self::from_world_reusing(world, None)
+    }
+
+    /// True when the refusal ring cannot have changed since `prev` was
+    /// published. The sim loop is the ring's sole writer and `record`
+    /// always stamps the strictly-increasing current tick, so equal length
+    /// plus equal newest-tick is a sufficient witness — including the
+    /// saturated-rotation case (drop k oldest, add k new: length holds but
+    /// the newest tick moves).
+    fn refusal_window_unchanged(prev: &Published, world: &World) -> bool {
+        prev.refusals.len() == world.refusal_log.len()
+            && prev.refusals.last().map(|e| e.tick) == world.refusal_log.newest().map(|e| e.tick)
+    }
+
+    /// Builds the published view, reusing the previous tick's refusal
+    /// window allocation when the ring has not changed (review-medium
+    /// finding 5): a saturated default ring is ~192 KB, and recloning it
+    /// every tick for data that changes by at most a few entries per tick
+    /// made this one line dominate the per-tick publish allocation — and
+    /// scale linearly with the very knob Experiments is expected to raise.
+    fn from_world_reusing(world: &World, prev: Option<&Published>) -> Self {
         let snapshot = Arc::new(world.snapshot());
         let snapshot_json = match serde_json::to_string(&*snapshot) {
             Ok(json) => Some(Arc::from(json)),
@@ -49,6 +78,11 @@ impl Published {
             snapshot_json,
             distress: Arc::new(world.distress.to_vec()),
             activity_ends: Arc::new(world.activity_log.to_vec()),
+            refusals: match prev {
+                Some(prev) if Self::refusal_window_unchanged(prev, world) => prev.refusals.clone(),
+                _ => Arc::new(world.refusal_log.to_vec()),
+            },
+            refusal_capacity: world.refusal_log.capacity(),
         }
     }
 }
@@ -103,7 +137,11 @@ pub fn spawn(
             tokio::select! {
                 _ = ticker.tick() => {
                     world.tick(&registry, &config).await;
-                    let _ = tx.send(Arc::new(Published::from_world(&world)));
+                    let next = {
+                        let prev = tx.borrow();
+                        Published::from_world_reusing(&world, Some(&prev))
+                    };
+                    let _ = tx.send(Arc::new(next));
                     // Spec 040: the standing welfare watch. Read-only over
                     // &world; the log lines are a rendering of the returned
                     // events (single source, watchdog.rs plan D2).
@@ -192,6 +230,97 @@ fn save_now(world: &World, path: Option<&std::path::Path>, reason: &str) {
 mod tests {
     use super::*;
     use cloudkitty_core::test_support::test_config;
+
+    #[test]
+    fn published_refusals_are_the_ring_verbatim_and_a_fresh_world_serves_none() {
+        // Spec 046 US1-6: what /events/refusal serves IS the ring --
+        // byte-equal, oldest first -- and a fresh world publishes an empty
+        // list (readable as "no refusals" only because the emit-proof
+        // tests exist, F-029).
+        use cloudkitty_core::action::Action;
+        use cloudkitty_core::grid::{Direction, Position};
+        use cloudkitty_core::seam::JointProposal;
+
+        let config = test_config();
+        let fresh = World::generate(&config);
+        assert!(
+            Published::from_world(&fresh).refusals.is_empty(),
+            "a fresh world has refused nothing"
+        );
+
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0);
+        world.kitties[1].pos = Position::new(1, 0);
+        let mut p = JointProposal::new();
+        p.propose(1, Action::move_to(Direction::East)); // occupied: refused
+        world.tick_with_proposals(&p, &config);
+
+        let published = Published::from_world(&world);
+        assert!(!published.refusals.is_empty(), "the refusal was published");
+        assert_eq!(
+            *published.refusals,
+            world.refusal_log.to_vec(),
+            "the served list is the ring verbatim"
+        );
+        assert_eq!(
+            published.refusal_capacity,
+            world.refusal_log.capacity(),
+            "the published capacity is the ring's own bound"
+        );
+        assert_eq!(
+            published.refusal_capacity, config.events.refusal_retention,
+            "which on a generated world is the configured retention"
+        );
+    }
+
+    #[test]
+    fn the_refusal_window_allocation_is_reused_until_the_ring_changes() {
+        // Review-medium finding 5: the publish path must not reclone a
+        // ~192 KB ring on every quiet tick — and must never reuse a stale
+        // one. Three arms: quiet tick reuses the Arc; a new refusal
+        // rebuilds; and the saturated-rotation case (capacity 1: drop one,
+        // add one — length holds, newest tick moves) rebuilds too, which a
+        // length-only witness would miss.
+        use cloudkitty_core::action::Action;
+        use cloudkitty_core::seam::JointProposal;
+
+        let mut config = test_config();
+        config.events.refusal_retention = 1; // rotation arm needs a full ring
+        let mut world = World::generate(&config);
+
+        let mut p = JointProposal::new();
+        p.propose(1, Action::Purr); // retired: always refused
+        world.tick_with_proposals(&p, &config);
+        let first = Published::from_world(&world);
+        assert_eq!(first.refusals.len(), 1, "the ring is saturated");
+
+        // Quiet tick: nothing proposed, nothing refused.
+        world.tick_with_proposals(&JointProposal::new(), &config);
+        let quiet = Published::from_world_reusing(&world, Some(&first));
+        assert!(
+            Arc::ptr_eq(&first.refusals, &quiet.refusals),
+            "an unchanged ring reuses the previous allocation"
+        );
+
+        // Rotation: one refusal in, one out — length 1 before and after.
+        let mut p = JointProposal::new();
+        p.propose(1, Action::Purr);
+        world.tick_with_proposals(&p, &config);
+        let rotated = Published::from_world_reusing(&world, Some(&quiet));
+        assert!(
+            !Arc::ptr_eq(&quiet.refusals, &rotated.refusals),
+            "a rotated ring is republished — length alone is not the witness"
+        );
+        assert_eq!(
+            *rotated.refusals,
+            world.refusal_log.to_vec(),
+            "and the republished window is the ring verbatim"
+        );
+        assert_ne!(
+            quiet.refusals[0].tick, rotated.refusals[0].tick,
+            "the rotation really replaced the event (else this arm is vacuous)"
+        );
+    }
 
     #[tokio::test]
     async fn the_world_ticks_and_publishes() {

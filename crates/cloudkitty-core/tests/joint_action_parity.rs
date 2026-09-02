@@ -48,6 +48,32 @@ fn golden_parity_over_five_thousand_ticks() {
 }
 
 #[test]
+fn both_tick_drivers_stamp_identical_refusal_streams() {
+    // Spec 046 US1-5 / FR-002: the refusal stamp lives in the shared apply
+    // pipeline, so the behavior loop and the joint-action seam produce the
+    // SAME stream from the same seed and decisions -- byte-equal, and
+    // non-empty (an empty stream would prove nothing, F-029).
+    let config = Arc::new(Config::default());
+    let registry = BehaviorRegistry::with_builtins();
+
+    let mut driven = World::generate(&config);
+    let mut joint = World::generate(&config);
+
+    for _ in 0..500 {
+        let outcome = drive_tick(&mut driven, &registry, &config);
+        joint.tick_with_proposals(&outcome.proposals, &config);
+    }
+
+    let driven_stream = serde_json::to_string(&driven.refusal_log.to_vec()).unwrap();
+    let joint_stream = serde_json::to_string(&joint.refusal_log.to_vec()).unwrap();
+    assert!(
+        !driven.refusal_log.is_empty(),
+        "500 built-in ticks must produce at least one refusal, or this parity check is vacuous"
+    );
+    assert_eq!(driven_stream, joint_stream, "refusal streams diverged");
+}
+
+#[test]
 fn the_budgetless_driver_matches_the_served_tick() {
     // drive_tick is the same law as World::tick: from the same seed, one
     // budgetless behavior-driven tick and one served (async, budgeted) tick

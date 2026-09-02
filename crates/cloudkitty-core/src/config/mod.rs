@@ -1166,6 +1166,22 @@ pub struct EventsConfig {
     /// alone cannot show (the final tick clears the clock it stamped).
     #[serde(default = "default_activity_retention")]
     pub activity_retention: usize,
+    /// How many refusal events the world remembers (spec 046): every
+    /// non-Idle proposal that validation resolved to Idle. The default is a
+    /// FLOOR sized on taxed density (~0.23/tick, 5 seats, ≥15k-tick window);
+    /// the absorbed term is unmeasured until the first live baseline, when
+    /// the knob is re-derived by config alone. `skip_serializing_if` keyed
+    /// to the default value keeps `engine_defaults_sha256` unmoved (039 D5
+    /// discipline, 043/045 precedent).
+    #[serde(
+        default = "default_refusal_retention",
+        skip_serializing_if = "is_default_refusal_retention"
+    )]
+    pub refusal_retention: usize,
+}
+
+fn is_default_refusal_retention(v: &usize) -> bool {
+    *v == default_refusal_retention()
 }
 
 impl Default for EventsConfig {
@@ -1173,6 +1189,7 @@ impl Default for EventsConfig {
         Self {
             distress_retention: 1000,
             activity_retention: default_activity_retention(),
+            refusal_retention: default_refusal_retention(),
         }
     }
 }
@@ -1349,6 +1366,81 @@ mod tests {
     #[test]
     fn the_shipped_default_config_is_valid() {
         cfg().validate().expect("default config must be valid");
+    }
+
+    #[test]
+    fn default_retention_covers_the_baseline_window() {
+        // Spec 046 US2-1 / FR-004, floor re-derived at the review-medium
+        // pass (2026-09-01): the window is set by COMBINED density (~0.38
+        // refusals/tick measured on the scripted default world — absorbed
+        // shares the slots, see the ring-observing test below), so the
+        // >=15,000-tick baseline needs >= 5,700 events. Shrink the default
+        // below the window and this line reddens before the census silently
+        // truncates.
+        assert!(
+            default_refusal_retention() >= 5_700,
+            "refusal_retention default {} < 5,700: the >=15k-tick baseline window \
+             (15,000 x ~0.38 combined refusals/tick) no longer fits the ring",
+            default_refusal_retention()
+        );
+    }
+
+    #[test]
+    fn default_ring_covers_the_baseline_window_under_absorbed_load() {
+        // Review-medium finding 2 (2026-09-01): absorbed refusals share the
+        // ring's slots with taxed ones, so the window the default buys is
+        // set by COMBINED density — which the constant floor test above
+        // cannot observe. Drive the default world well past saturation and
+        // measure the window the ring actually holds.
+        let config = std::sync::Arc::new(cfg());
+        let registry = crate::BehaviorRegistry::with_builtins();
+        let mut world = crate::World::generate(&config);
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("runtime");
+        for _ in 0..20_000 {
+            runtime.block_on(world.tick(&registry, &config));
+        }
+        let len = world.refusal_log.len();
+        assert_eq!(
+            len, config.events.refusal_retention,
+            "20k ticks must saturate the default ring, or this window measure \
+             is drive-length-limited and vacuous"
+        );
+        let oldest = world
+            .refusal_log
+            .events()
+            .next()
+            .expect("a saturated ring has an oldest event")
+            .tick;
+        let taxed = world.refusal_log.events().filter(|e| !e.absorbed).count();
+        let window = world.tick - oldest;
+        assert!(
+            window >= 15_000,
+            "the saturated default ring covers only {window} ticks \
+             (capacity {len}, taxed {taxed}, absorbed {}): Experiments' \
+             >=15,000-tick baseline window no longer fits",
+            len - taxed
+        );
+    }
+
+    #[test]
+    fn refusal_retention_zero_is_rejected_and_one_accepted() {
+        // Spec 046 US2-3: the engine refuses what it will not honor -- a
+        // zero ring silently degrades to one, so zero is rejected up front
+        // with the spec 020 D2 row shape.
+        let mut c = cfg();
+        c.events.refusal_retention = 0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("[events] refusal_retention"),
+            "names the field: {msg}"
+        );
+        assert!(msg.contains("at least 1"), "names the floor: {msg}");
+
+        c.events.refusal_retention = 1;
+        c.validate().expect("retention 1 is legal (a ring of one)");
     }
 
     #[test]
@@ -2779,6 +2871,38 @@ mod tests {
             !json.contains("contagion_aware_ladder"),
             "contagion_aware_ladder leaked into the stamp: {json}"
         );
+        // Spec 046: the refusal ring's retention rides the same discipline
+        // -- an unset (or explicitly-default) knob must not move the stamp.
+        // Delete its skip attribute and this line reddens.
+        assert!(
+            !json.contains("refusal_retention"),
+            "refusal_retention leaked into the stamp: {json}"
+        );
+    }
+
+    #[test]
+    fn refusal_retention_explicit_default_equals_absent() {
+        // Spec 046 US3-3 / SC-004: the skip helper is keyed to the default
+        // VALUE (043/045 precedent), so a config spelling out the default
+        // parses AND serializes identically to one omitting the key --
+        // neither can move `engine_defaults_sha256`. Spelled via the default
+        // fn so a re-derived default cannot silently stale this proof.
+        let explicit: EventsConfig = toml::from_str(&format!(
+            "distress_retention = 1000\nrefusal_retention = {}",
+            default_refusal_retention()
+        ))
+        .expect("explicit default parses");
+        let absent: EventsConfig =
+            toml::from_str("distress_retention = 1000").expect("absent key parses");
+        assert_eq!(explicit, absent, "explicit default IS the absent default");
+        assert_eq!(
+            serde_json::to_string(&explicit).unwrap(),
+            serde_json::to_string(&absent).unwrap(),
+            "and both serialize without the key"
+        );
+        assert!(!serde_json::to_string(&explicit)
+            .unwrap()
+            .contains("refusal_retention"));
     }
 
     #[test]

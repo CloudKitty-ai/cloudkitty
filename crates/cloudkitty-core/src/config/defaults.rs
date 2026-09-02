@@ -179,3 +179,14 @@ pub(super) fn default_exchange_timeout_ms() -> u64 {
 pub(super) fn default_activity_retention() -> usize {
     1000
 }
+
+/// Spec 046 FR-004, re-sized at the review-medium pass (2026-09-01):
+/// absorbed refusals share the ring's slots with taxed ones, so the window
+/// is set by COMBINED density — measured at ~0.38/tick on the scripted
+/// default world (taxed 1,586 / absorbed 2,414 over a saturated ring;
+/// see `default_ring_covers_the_baseline_window_under_absorbed_load`).
+/// 15,000-tick census window × ~0.38 ≈ 5,760, rounded up. Still a floor:
+/// Experiments re-derives the knob by config at the first live baseline.
+pub(super) fn default_refusal_retention() -> usize {
+    6000
+}

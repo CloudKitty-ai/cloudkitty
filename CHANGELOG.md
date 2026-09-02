@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- Refusal stamp (spec 046): every non-Idle proposal validation resolves
+  to Idle is recorded — kitty, proposal verbatim, tick, and an `absorbed`
+  flag (the kitty was mid-scene and the scene continued) — in a bounded
+  ring sized
+  by `[events] refusal_retention` (default 6,000 — taxed and absorbed
+  share the slots at ~0.38/tick combined, covering a ~15k-tick census
+  window), served at `GET /events/refusal` as `{capacity, events}` so a
+  wrapped window is tellable from a short one (the `/welfare` threshold
+  precedent). Additive: zero dynamics change, config stamp
+  unmoved, pre-046 saves resume (ring capacity re-stamped from config on
+  load).
 - Two lab dials for the water's-edge avoidance smoke (spec 045):
   `[water] contagion_membership` (`"option_a"` default / `"bidirectional"`
   — under the latter a dry cat a wet adjacent cat's activity names pays
