@@ -76,9 +76,9 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   5's bands are the MEASURED canon table, not the model's.
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
-  **SKIPPED for this round (owner ruled 2026-09-01)**; step 2's
-  last measurement, the Addendum 2 consent gate run, is DONE (below);
-  step 2 now waits only on the owner's anchor call.
+  **SKIPPED for this round (owner ruled 2026-09-01)**, then **DROPPED
+  from step 2 (owner ruled 2026-09-02, relayed from the Product
+  session)**: not run, no smoke owed before the wall.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0 —
   **DONE 2026-09-01 (`collapse-detector-v0/RESULTS.md`, F-037)**:
   VALIDATED on the pinned labels (3/3 MUST-FIRE, 11/11 MUST-SILENT,
@@ -148,7 +148,14 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   anchor = c30 + `consent_line 30`, no re-admission mechanic**; C3/C4/C5
   and E1 overridden on the record (RESULTS §Owner ruling). Half B (the
   spec-048 twins) still runs on the merge ping. Step 7 gains a
-  consent-transfer pair (below).
+  consent-transfer pair (below). Half B DONE 2026-09-02 (RESULTS
+  Addendum 3 Half B); `w_value` SHELVED indefinitely; arc closed.
+
+**Step 2 COMPLETE 2026-09-02** (MLP smoke dropped; needflow F-036,
+detector F-037, here-word F-034, edge smoke F-035, comfort sweep F-038
+all recorded). Before step 3 opens: the deploy (logging "waterline
+contagion disabled"), the live refusal baseline off `/events/refusal`
+after it, the v2.10 tag, and the owner's step-3 in/out doc.
 
 The validated step-2 mix bands become step 5's reference.
 
