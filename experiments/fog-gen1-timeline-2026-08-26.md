@@ -76,6 +76,8 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   5's bands are the MEASURED canon table, not the model's.
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
+  **SKIPPED for this round (owner ruled 2026-09-01)**; step 2's
+  remaining measurement is the Addendum 2 consent gate run.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0 —
   **DONE 2026-09-01 (`collapse-detector-v0/RESULTS.md`, F-037)**:
   VALIDATED on the pinned labels (3/3 MUST-FIRE, 11/11 MUST-SILENT,
