@@ -16,6 +16,17 @@
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
 //!
+//! Regenerated at spec 048 (2026-09-02): an INTENTIONAL dynamics move,
+//! not an additive field — `finish_what_you_started` now declines a
+//! scene whose counterpart the decision snapshot shows gone, so every
+//! formerly-wasted stale-continuation tick takes a real action and the
+//! trajectory diverges from the first such tick. Both pins regenerate
+//! from one new run; no byte-continuity relation to the 046 pins is
+//! claimed (that is the point — the change is a behavior change, guarded
+//! red-first in specs/048-no-stale-reproposal/redden-list.md, and the
+//! probe-after table there shows the world-level effect on the reference
+//! arms: dead-at-snapshot re-proposals zero everywhere, races kept).
+//!
 //! Regenerated at spec 046 (2026-09-01): the refusal ring rides the
 //! serialized world, so the digest moves for the additive field alone.
 //! Continuity witness before regenerating: the 10k-tick world's JSON with
@@ -30,21 +41,20 @@ use cloudkitty_core::{BehaviorRegistry, Config, World};
 use sha2::{Digest, Sha256};
 
 /// sha256 of the serialized world after 10,000 ticks of the default
-/// config (scripted behaviors, default seed), generated at spec 046
-/// (refusal ring rides the serialization; dynamics proven unmoved via the
-/// strip witness below). Regenerated once more at the review-medium pass
-/// (2026-09-01): `refusal_retention` 4,000 → 6,000 moves the serialized
-/// ring's `capacity` integer and nothing else — the strip witness stayed
-/// green across the change, which is exactly the laundering-detector doing
-/// its job.
-const GOLDEN_DIGEST_SPEC_046: &str =
-    "8e184e6dd94aab158cbca7ec8aa7a86ff0b4192dfca5d817359f00d45d5b2028";
+/// config (scripted behaviors, default seed), generated at spec 048 (a
+/// deliberate dynamics move — see the module doc). History: spec 046
+/// pinned 8e184e6d… (additive ring, dynamics proven unmoved by the strip
+/// witness); 048 supersedes it with a justified behavior change.
+const GOLDEN_DIGEST_SPEC_048: &str =
+    "31f36082eafc92378d5f5f099593ca5933db9225f98ef8ea0838b3f25ff507ee";
 
-/// The spec 041 pin — the last generation whose serialized world carried
-/// no `refusal_log`. The strip witness holds the two pins in the exact
-/// relation the 046 regeneration claimed: current world minus the ring
-/// == this, byte for byte.
-const PRE_046_STRIP_PIN: &str = "7b361b2a5582d33efd96d8d64ef5be73d890c76e9d9751e57453e37f44ec17ad";
+/// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
+/// pins (re-derived at 048, since the dynamics themselves moved). The
+/// witness's job is unchanged: a future "additive field only" claim must
+/// keep world-minus-that-field byte-identical to THIS pin, or it is
+/// hiding a dynamics move. (History: 7b361b2a… held that role for the
+/// 041→046 generation.)
+const STRIP_PIN_SPEC_048: &str = "8dca830fb664b52a00544adb4547d832d3df402b1e5d0b567ee58d332bbbaefa";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.
@@ -76,7 +86,7 @@ fn digest(bytes: &[u8]) -> String {
 fn golden_evolution_flag_absent_10k_ticks() {
     assert_eq!(
         digest(world_json_10k().as_bytes()),
-        GOLDEN_DIGEST_SPEC_046,
+        GOLDEN_DIGEST_SPEC_048,
         "flag-absent world evolution diverged from the pinned generation"
     );
 }
@@ -128,19 +138,25 @@ fn strip_key(json: &str, key: &str) -> String {
     format!("{}{}", &json[..cut_start], &json[cut_end..])
 }
 
-/// The 046 regeneration's continuity claim as a running check, not prose:
-/// the serialized world with the `refusal_log` key removed digests to the
-/// pre-046 pin exactly — dynamics, RNG state, and every sibling field are
-/// byte-identical; the ring is the only delta. Any future regeneration
-/// that cannot keep (or consciously re-derive) this relation is hiding a
-/// dynamics move behind "additive field, digest moved".
+/// The laundering detector, currently DORMANT (review 048 finding 6,
+/// stated plainly): through the 041→046 generation this test asserted a
+/// real cross-generation claim — world-minus-ring today == the older
+/// pre-ring world, byte for byte — and that independence was the entire
+/// mechanism. Spec 048 moved the dynamics themselves, so both pins were
+/// re-derived from ONE new run and this test is, for now, a same-run
+/// consistency check, not independent confirmation (redden cycle A shows
+/// it reddening together with the golden on a single injected bug). Its
+/// detector role resumes at the NEXT "additive field only" claim: that
+/// regeneration must keep world-minus-the-new-field byte-identical to
+/// the 048 strip pin, or it is hiding a dynamics move behind "additive
+/// field, digest moved".
 #[test]
 fn golden_strip_witness_refusal_ring_is_the_only_delta() {
     let stripped = strip_key(world_json_10k(), "refusal_log");
     assert_eq!(
         digest(stripped.as_bytes()),
-        PRE_046_STRIP_PIN,
-        "world-minus-ring diverged from the pre-046 pin: the delta is no longer \
+        STRIP_PIN_SPEC_048,
+        "world-minus-ring diverged from the 048 pin: the delta is no longer \
          the refusal ring alone"
     );
 }

@@ -33,6 +33,32 @@ change.
 
 ## Unreleased
 
+- No stale re-proposal (spec 048) **`[rng-sequence]`**: a cat no longer
+  proposes the continuation of a scene whose counterpart the decision
+  snapshot already shows gone — the critter out of reach, the groomed
+  friend unavailable — and makes a fresh decision that turn instead. One
+  shared definition of "counterpart gone" now serves both the engine's
+  dead-scene ending rule and the behavior's commitment check, so the two
+  can never drift. Effects: the formerly wasted idle turn buys a real
+  action, and the refusal stream stops carrying rows that were never real
+  refusals (measured on the reference arms: 554–788 spurious critter-play
+  rows per 20k-tick run drop to zero; same-tick duet races — genuine
+  refusals — persist). No config knob; defaults stamp, world fingerprint,
+  and observation layout unchanged. The marker is carried for its
+  consequence, per this changelog's precedent (owner-ruled 2026-09-02):
+  the literal order of random draws is untouched, but this is a
+  deliberate behavior change, so **seeded world evolution diverges** at
+  its first stale-continuation tick — exactly what `[rng-sequence]`
+  warns consumers about. The evolution golden and the run-JSON wire
+  golden regenerate with this entry as the justification. Downstream
+  baselines that are history and re-derive on this engine before any
+  comparison: refusal-rate numbers (F-033's 4.7% policy tax, the 3.5%
+  INVESTIGATE line), and **the scripted BC teacher's label
+  distribution** — bc-collect labels frames with the applied action, so
+  frames that were Idle-labeled at dead scenes now carry real actions;
+  every policy artifact cloned pre-048 learned the old teacher, and any
+  BC collection or clone-anchor comparison spanning this boundary is
+  comparing two different teachers.
 - Consent line (spec 047): a new `[behavior] consent_line` dial — a friend
   whose top non-play need is strictly over the line and strictly over its
   own play need is never proposed to for play by a playful cat, on all

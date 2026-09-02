@@ -566,6 +566,46 @@ mod tests {
         r
     }
 
+    /// Spec 048 doctrine (FR-005, contract invariant 3): declining a
+    /// snapshot-dead scene is shared good sense — EVERY registered builtin
+    /// falls through to a fresh decision; none re-proposes the
+    /// continuation, and the freed tick buys a REAL action (SC-002), not
+    /// an idle. Iterates the registry (review finding 5), so a future
+    /// builtin joins this doctrine the moment it registers.
+    #[tokio::test]
+    async fn every_builtin_declines_a_snapshot_dead_scene() {
+        let stale = crate::action::Action::Play {
+            target: Some(crate::action::TargetRef::Element { id: 800 }),
+        };
+        let registry = BehaviorRegistry::with_builtins();
+        for name in registry.names() {
+            let behavior = registry.get(&name).expect("just listed");
+            let ctx = crate::test_support::decision_context(|world| {
+                world.elements.clear(); // the critter 800 is gone entirely
+                world.tick = 20;
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+                world.kitties[idx]
+                    .needs
+                    .add(crate::needs::NeedKind::Play, 60.0);
+                world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                    target: Some(crate::action::TargetRef::Element { id: 800 }),
+                };
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            });
+            let decision = behavior.decide(&ctx).await;
+            assert_ne!(
+                decision.activity, stale,
+                "{name} re-proposed a scene the snapshot shows dead"
+            );
+            assert_ne!(
+                decision.activity,
+                crate::action::Action::Idle,
+                "{name} idled the freed tick instead of deciding fresh (SC-002)"
+            );
+        }
+    }
+
     #[test]
     fn builtins_are_registered_and_marked() {
         let r = BehaviorRegistry::with_builtins();

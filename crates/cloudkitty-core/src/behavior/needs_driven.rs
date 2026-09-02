@@ -96,6 +96,15 @@ pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
     if remaining <= 0.0 {
         return None;
     }
+    // Spec 048: a scene whose counterpart the snapshot already shows gone
+    // (the critter out of reach, the groomed friend unavailable, the duet
+    // not bound back) is not worth another proposal -- the engine's prune
+    // would end it and refuse the continuation anyway. Same rule, same
+    // body (`counterpart_gone_in`), read at decision time: decline and let
+    // the fresh decision spend the tick on something real.
+    if ctx.world.counterpart_gone(ctx.me.id) {
+        return None;
+    }
     activity.continuation()
 }
 
@@ -580,6 +589,140 @@ mod tests {
         );
     }
 
+    /// Stage kitty 1 mid-play with critter 800; the closure places (or
+    /// omits) the critter. Play need stays real so only the counterpart
+    /// decides the outcome (spec 048).
+    fn mid_critter_play(critter: Option<Position>) -> crate::behavior::DecisionContext {
+        decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+            world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                target: Some(crate::action::TargetRef::Element { id: 800 }),
+            };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            if let Some(pos) = critter {
+                world.push_element(Element {
+                    id: 800,
+                    kind: ElementKind::Bug,
+                    pos,
+                    ttl: Some(50),
+                });
+            }
+        })
+    }
+
+    /// Spec 048 US1: the critter scurried out of reach — the snapshot
+    /// already shows it — so the commitment declines to continue and the
+    /// cat decides fresh this very tick.
+    #[test]
+    fn a_scene_whose_critter_moved_away_is_not_continued() {
+        let ctx = mid_critter_play(Some(Position::new(8, 8)));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "no stale re-proposal at a counterpart the snapshot shows gone"
+        );
+    }
+
+    /// Spec 048 US1, expired variant: the critter is gone from the world
+    /// entirely.
+    #[test]
+    fn a_scene_whose_critter_expired_is_not_continued() {
+        let ctx = mid_critter_play(None);
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "an absent counterpart reads as gone, same as the engine's rule"
+        );
+    }
+
+    /// Stage kitty 1 mid-groom of kitty 2 (dirty, so only availability
+    /// decides); the closure places the friend.
+    fn mid_groom(friend_pos: Position) -> crate::behavior::DecisionContext {
+        decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = friend_pos;
+            world.kitties[f].needs.add(NeedKind::Bath, 60.0);
+        })
+    }
+
+    /// Spec 048 US2: the groomed friend walked out of reach — the
+    /// commitment declines and the cat decides fresh this tick.
+    #[test]
+    fn a_groom_whose_friend_walked_away_is_not_continued() {
+        let ctx = mid_groom(Position::new(9, 9));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "an unavailable friend reads as gone, same as the engine's rule"
+        );
+    }
+
+    /// Spec 048 FR-004 must-stay-green: an available friend keeps being
+    /// groomed exactly as before the fix.
+    #[test]
+    fn a_groom_whose_friend_is_still_beside_continues() {
+        let ctx = mid_groom(Position::new(5, 6));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Groom { target: Some(2) }),
+            "a live grooming scene is untouched by spec 048"
+        );
+    }
+
+    /// Spec 048 FR-004 must-stay-green (review finding 1): a LIVE duet —
+    /// reciprocal in the snapshot — continues exactly as before the fix.
+    /// This is the duet arm's behavior-side witness: the 048 rule must
+    /// never fire on a duet the snapshot shows alive (same-tick races are
+    /// invisible to it by construction, so a live-duet decline here would
+    /// be the rule suppressing race rows).
+    #[test]
+    fn a_scene_whose_duet_is_still_reciprocal_continues() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            for (id, partner) in [(1, 2), (2, 1)] {
+                let idx = world.kitty_index(id).unwrap();
+                world.kitties[idx].pos = Position::new(5, 4 + id);
+                world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+                world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                    target: Some(crate::action::TargetRef::Kitty { id: partner }),
+                };
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            }
+        });
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Play {
+                target: Some(crate::action::TargetRef::Kitty { id: 2 })
+            }),
+            "a reciprocal duet is a live scene; spec 048 never touches it"
+        );
+    }
+
+    /// Spec 048 FR-004 must-stay-green: a live counterpart continues
+    /// exactly as before the fix.
+    #[test]
+    fn a_scene_whose_critter_is_still_adjacent_continues() {
+        let ctx = mid_critter_play(Some(Position::new(5, 6)));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Play {
+                target: Some(crate::action::TargetRef::Element { id: 800 })
+            }),
+            "a live scene is untouched by spec 048"
+        );
+    }
+
     #[tokio::test]
     async fn a_napping_cat_stays_asleep_until_rested() {
         // The commitment rule: mid-nap with sleep need remaining, the cat
@@ -648,9 +791,13 @@ mod tests {
         let dirty_friend = decision_context(|world| {
             world.tick = 20;
             let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
             world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
             world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
             let friend = world.kitty_index(2).unwrap();
+            // Adjacent: a live scene (spec 048 made the old cross-map
+            // staging honestly dead -- the engine would prune it).
+            world.kitties[friend].pos = Position::new(5, 6);
             world.kitties[friend].needs.add(NeedKind::Bath, 60.0);
         });
         assert_eq!(
@@ -661,10 +808,14 @@ mod tests {
         let clean_friend = decision_context(|world| {
             world.tick = 20;
             let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
             world.kitties[idx].needs.add(NeedKind::Bath, 60.0); // its own dirt is not the question
             world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
             world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
-            // the friend's bath need stays at its spawn value of zero: clean
+            // Adjacent (a live scene); the friend's bath need stays at its
+            // spawn value of zero: clean.
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(5, 6);
         });
         assert_ne!(
             NeedsDriven.decide_action(&clean_friend),

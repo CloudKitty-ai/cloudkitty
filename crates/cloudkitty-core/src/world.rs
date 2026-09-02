@@ -459,13 +459,6 @@ impl World {
         }
     }
 
-    /// Whether `other` is bound in a duet back to `me`.
-    fn reciprocal_duet(&self, me: KittyId, other: KittyId) -> bool {
-        self.kitty(other)
-            .map(|k| k.activity.duet_partner() == Some(me))
-            .unwrap_or(false)
-    }
-
     /// Spec 006 FR-010: an activity whose counterpart is gone -- a critter
     /// expired or scurried out of reach, a groomed friend who walked away, a
     /// water source that dried up -- ends immediately, minimum notwithstanding.
@@ -474,41 +467,20 @@ impl World {
     /// spec 014: the legal-action mask replays the apply slot's exact
     /// sequence (prune, validate, enforcement verdict) on a probe world.
     pub fn prune_dead_activity(&mut self, kitty_id: KittyId) {
-        let Some(kitty) = self.kitty(kitty_id) else {
-            return;
-        };
-        if kitty.activity_clock.is_none() {
-            return;
-        }
-        let pos = kitty.pos;
-        let counterpart_gone = match kitty.activity {
-            // A rest companion, like a co-sleep companion, is re-filtered
-            // every serviced tick by the effects arm (spec 041) -- a
-            // wandered partner drops the scene to solo posture there, so
-            // rest has no prune entry in either shape.
-            Activity::Idle
-            | Activity::Eating
-            | Activity::Sleeping { .. }
-            | Activity::Playing { target: None }
-            | Activity::Grooming { target: None }
-            | Activity::Resting { .. } => false,
-            // (An emptied or expired bowl is the meal's own end rule, not a
-            // vanished counterpart -- see resolve_activity_ends.)
-            Activity::Drinking => self.adjacent_element(pos, ElementType::Water).is_none(),
-            Activity::Playing {
-                target: Some(TargetRef::Element { id }),
-            } => self
-                .element(id)
-                .map(|e| !pos.is_adjacent(&e.pos))
-                .unwrap_or(true),
-            Activity::Playing {
-                target: Some(TargetRef::Kitty { id }),
-            } => !self.reciprocal_duet(kitty_id, id),
-            Activity::Grooming { target: Some(id) } => !self.is_available_friend(kitty_id, id),
-        };
-        if counterpart_gone {
+        if self.counterpart_gone(kitty_id) {
             self.end_activity(kitty_id);
         }
+    }
+
+    /// Whether `kitty_id`'s ongoing activity has a counterpart the world no
+    /// longer supplies (spec 048 FR-002): THE one definition of a dead
+    /// scene. `prune_dead_activity` ends scenes by it; the behavior-side
+    /// commitment (`finish_what_you_started`) declines to continue by it,
+    /// through the snapshot twin below -- one body in
+    /// `counterpart_gone_in`, so the two rules can never drift.
+    pub(crate) fn counterpart_gone(&self, kitty_id: KittyId) -> bool {
+        self.kitty(kitty_id)
+            .is_some_and(|k| counterpart_gone_in(k, &self.kitties, &self.elements))
     }
 
     /// Spec 006 FR-003/004: inside an activity's minimum the engine continues
@@ -1259,21 +1231,13 @@ impl World {
             .count() as u32
     }
 
-    /// Both sides of a prospective interaction, resolved once. `None` when
-    /// either kitty is missing or the "friend" is the kitty itself.
-    fn friend_pair(&self, me: KittyId, friend: KittyId) -> Option<(&Kitty, &Kitty)> {
-        if me == friend {
-            return None;
-        }
-        Some((self.kitty(me)?, self.kitty(friend)?))
-    }
-
     /// A friend is any other kitty; "available" adds the adjacency an interaction
-    /// needs.
+    /// needs. One body in `available_friend_in` (the free twin), shared with
+    /// the dead-scene rule's grooming arm so the two can't drift (spec 048
+    /// review).
     pub fn is_available_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        self.friend_pair(me, friend)
-            .map(|(a, b)| a.pos.is_adjacent(&b.pos))
-            .unwrap_or(false)
+        self.kitty(me)
+            .is_some_and(|k| available_friend_in(&self.kitties, k, friend))
     }
 
     /// A friend who can be drawn into a duet right now: available *and* doing
@@ -1282,12 +1246,14 @@ impl World {
     /// cuddle. Governs cuddle and social play; co-sleeping and grooming keep
     /// the plain availability rule because they bind nobody.
     pub fn is_conscriptable_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        // "Doing nothing" is one check, not two: the strict pairing invariant
-        // (clock present exactly when an activity is in progress) makes the
-        // clock alone authoritative.
-        self.friend_pair(me, friend)
-            .map(|(a, b)| a.pos.is_adjacent(&b.pos) && b.activity_clock.is_none())
-            .unwrap_or(false)
+        // Availability is the ONE shared body (`available_friend_in`);
+        // conscriptability adds "doing nothing" — one check, not two: the
+        // strict pairing invariant (clock present exactly when an activity
+        // is in progress) makes the clock alone authoritative.
+        self.is_available_friend(me, friend)
+            && self
+                .kitty(friend)
+                .is_some_and(|k| k.activity_clock.is_none())
     }
 
     /// The shared mutual predicate (spec 041 FR-002): the kitty is itself
@@ -1429,6 +1395,13 @@ impl WorldSnapshot {
         self.kitties.iter().find(|k| k.id == id)
     }
 
+    /// The dead-scene rule over the decision snapshot -- same body as
+    /// `World::counterpart_gone` (spec 048 FR-002, one definition).
+    pub(crate) fn counterpart_gone(&self, kitty_id: KittyId) -> bool {
+        self.kitty(kitty_id)
+            .is_some_and(|k| counterpart_gone_in(k, &self.kitties, &self.elements))
+    }
+
     pub fn others<'a>(&'a self, me: KittyId) -> impl Iterator<Item = &'a Kitty> + 'a {
         self.kitties.iter().filter(move |k| k.id != me)
     }
@@ -1461,6 +1434,65 @@ impl WorldSnapshot {
 // -- one body here, thin delegating methods above, so the predicate can
 // never fork. `is_adjacent` is manhattan <= 1: the speaker's own tile
 // counts, uniformly, for every predicate below.
+
+/// The one body of the dead-scene rule (spec 048 FR-002): whether
+/// `kitty`'s ongoing activity names a counterpart that `kitties`/`elements`
+/// no longer supply. Serves both worlds -- the live one (prune, at the
+/// apply slot) and the decision snapshot (`finish_what_you_started`) --
+/// via the thin delegating methods, so the ending rule and the
+/// don't-continue rule can never fork. A kitty with no activity clock has
+/// no scene. Table: specs/048-no-stale-reproposal/data-model.md.
+pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[Element]) -> bool {
+    if kitty.activity_clock.is_none() {
+        return false;
+    }
+    let pos = kitty.pos;
+    match kitty.activity {
+        // A rest companion, like a co-sleep companion, is re-filtered
+        // every serviced tick by the effects arm (spec 041) -- a
+        // wandered partner drops the scene to solo posture there, so
+        // rest has no prune entry in either shape.
+        Activity::Idle
+        | Activity::Eating
+        | Activity::Sleeping { .. }
+        | Activity::Playing { target: None }
+        | Activity::Grooming { target: None }
+        | Activity::Resting { .. } => false,
+        // (An emptied or expired bowl is the meal's own end rule, not a
+        // vanished counterpart -- see resolve_activity_ends.)
+        Activity::Drinking => adjacent_element_in(elements, pos, ElementType::Water).is_none(),
+        Activity::Playing {
+            target: Some(TargetRef::Element { id }),
+        } => elements
+            .iter()
+            .find(|e| e.id == id)
+            .map(|e| !pos.is_adjacent(&e.pos))
+            .unwrap_or(true),
+        // A duet whose other side is not bound back to this kitty.
+        Activity::Playing {
+            target: Some(TargetRef::Kitty { id }),
+        } => !kitties
+            .iter()
+            .find(|k| k.id == id)
+            .map(|k| k.activity.duet_partner() == Some(kitty.id))
+            .unwrap_or(false),
+        // The groomed friend must still be available -- the SAME body
+        // `is_available_friend` delegates to, not a replica.
+        Activity::Grooming { target: Some(id) } => !available_friend_in(kitties, kitty, id),
+    }
+}
+
+/// The one body of "available friend" (a distinct, present, adjacent
+/// kitty): `World::is_available_friend` and the dead-scene rule's grooming
+/// arm both delegate here.
+pub(crate) fn available_friend_in(kitties: &[Kitty], me: &Kitty, friend: KittyId) -> bool {
+    friend != me.id
+        && kitties
+            .iter()
+            .find(|k| k.id == friend)
+            .map(|k| me.pos.is_adjacent(&k.pos))
+            .unwrap_or(false)
+}
 
 /// The nearest element of `kind` on or beside `pos` (ties broken by id).
 pub fn adjacent_element_in(
@@ -3199,6 +3231,123 @@ mod tests {
             "min = max = 1 is an instant action"
         );
         assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Eat), 60.0);
+    }
+
+    /// Spec 048 SC-005 must-stay-green: the SAME-TICK race stays a genuine,
+    /// stamped refusal. The partner lawfully interrupts the duet in its own
+    /// earlier slot; this cat's continuation — decided when the duet was
+    /// still live — is then refused and recorded `absorbed = false`. The
+    /// spec-048 rule reads the DECISION snapshot and must never see (or
+    /// suppress) this.
+    #[test]
+    fn a_same_tick_duet_race_is_still_a_stamped_refusal() {
+        // Both role assignments run (interrupter/proposer swapped); the fair
+        // turn-order draw decides which one realizes the race (interrupter
+        // first). Exactly the realized one must stamp the un-absorbed
+        // refusal. Each interrupter steps AWAY from its partner (a step
+        // into the partner's tile would be illegal and interrupt nothing).
+        let race_row = |interrupter: KittyId, proposer: KittyId, away: Direction| {
+            let (mut world, config) = duet_stage();
+            for id in [1, 2] {
+                let idx = world.kitty_index(id).unwrap();
+                world.kitties[idx].needs.add(NeedKind::Play, 100.0);
+                world.kitties[idx].activity = Activity::Playing {
+                    target: Some(TargetRef::Kitty { id: 3 - id }),
+                };
+                // Past the play minimum: interruptible.
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock {
+                    started: 97,
+                    applied: 99,
+                    mutual_ticks: 0,
+                    drip_ticks: 0,
+                });
+            }
+            let tick = world.tick;
+            let config = std::sync::Arc::new(config);
+            world.tick_with_proposals(
+                &crate::seam::JointProposal::from_actions([
+                    (interrupter, Action::move_to(away)),
+                    (
+                        proposer,
+                        Action::play_with(TargetRef::Kitty { id: interrupter }),
+                    ),
+                ]),
+                &config,
+            );
+            // absorbed = false is the race signature: the duet ended both
+            // sides in the interrupter's earlier slot, so nothing continued.
+            // (Proposer-first instead yields an absorbed = true row: the
+            // still-live scene absorbs the refused re-proposal — 046's
+            // mid-scene meaning, filtered out of the R8 tax by construction.)
+            let row = world
+                .refusal_log
+                .events()
+                .find(|r| r.kitty_id == proposer && r.tick == tick && !r.absorbed)
+                .cloned();
+            row
+        };
+
+        // Kitty 1 sits at (5,5), kitty 2 at (5,6): 1 escapes North, 2 South.
+        let realized: Vec<_> = [
+            race_row(2, 1, Direction::South),
+            race_row(1, 2, Direction::North),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        assert_eq!(
+            realized.len(),
+            1,
+            "exactly one role assignment realizes the race (interrupter drew the earlier slot)"
+        );
+        assert!(
+            matches!(realized[0].proposed, Action::Play { .. }),
+            "the stale continuation is what was refused"
+        );
+    }
+
+    /// Spec 048 US1 e2e (FR-007/SC-002): a cat mid-play with a critter that
+    /// expired last tick — dead in the decision snapshot — takes a REAL
+    /// action this tick and stamps no refusal row. Staged so the fresh
+    /// decision is unambiguous: ravenous beside a stocked bowl.
+    #[tokio::test]
+    async fn a_dead_critter_scene_yields_a_real_action_and_no_refusal_row() {
+        let (mut world, config) = duet_stage();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+        world.kitties[idx].needs.add(NeedKind::Eat, 80.0);
+        world.kitties[idx].activity = Activity::Playing {
+            target: Some(TargetRef::Element { id: 800 }),
+        };
+        world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(95));
+        // The critter is GONE (expired); only relief remains in reach.
+        world.push_element(Element {
+            id: 900,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(4, 5),
+            ttl: None,
+        });
+        // Keep the neighbour out of the story.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(15, 15);
+
+        let registry = crate::behavior::BehaviorRegistry::with_builtins();
+        let config = std::sync::Arc::new(config);
+        let tick = world.tick;
+        world.tick(&registry, &config).await;
+
+        assert!(
+            !world
+                .refusal_log
+                .events()
+                .any(|r| r.kitty_id == 1 && r.tick == tick),
+            "no proposal was refused: the dead scene was never re-proposed"
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().last_action,
+            Some(Action::Eat),
+            "the freed tick buys a real action, not an idle"
+        );
     }
 
     /// Two kitties side by side, everything else out of the way.
