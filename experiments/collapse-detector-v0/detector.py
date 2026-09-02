@@ -10,8 +10,8 @@ one-hot 9-15, social 16, partner flag 17, partner index 18, progress
   (b) mutual-pair persistence           per pair   FIRES
   (c) need spread                        per seat   report only
 
-Each is a trailing-window share (W) that must hold over its bar (0.65 for
-(a) since v0.1, 0.50 for (b), 60 for
+Each is a trailing-window share (W) that must hold over its bar (0.55 for
+(a) since v0.2, 0.50 for (b), 60 for
 (c)) for D consecutive ticks to fire. Detect-and-report: nothing here
 touches a world.
 
@@ -29,9 +29,9 @@ ACTIVITIES = ["idle", "resting", "sleeping", "eating", "drinking",
               "playing", "grooming"]
 PARTNERED = {"resting", "sleeping", "grooming"}      # the adhesive families
 W, D = 200, 200
-# v0.1 (owner 2026-09-01): H4's single-family bar (a) is 0.65; the mutual-pair
-# bar (b) stays at v0's 0.50.
-SHARE_BAR_A, SHARE_BAR_B, SPREAD_BAR = 0.65, 0.50, 60.0
+# v0.2 (owner 2026-09-01): H4's single-family bar (a) is 0.55 (v0.1's 0.65
+# dropped a ramping ~500-tick lock); the mutual-pair bar (b) stays at v0's 0.50.
+SHARE_BAR_A, SHARE_BAR_B, SPREAD_BAR = 0.55, 0.50, 60.0
 WATCHDOG_THRESHOLD = 150
 
 

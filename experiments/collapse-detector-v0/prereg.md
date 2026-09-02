@@ -115,6 +115,21 @@ silent (healthy peak 0.43); healthy-side margin becomes 0.22, lock-side
 stays silent under 0.65 (shown red by restoring 0.50 before commit);
 the at-the-bar pin moves to exactly 0.65 one-sided.
 
+## v0.2: (a) bar 0.55 (owner ruled 2026-09-01 after the v0.1 miss; declared before re-running)
+
+0.65 dropped the ramping twins lock (RESULTS §v0.1); 0.58 is the data's
+ceiling. Owner sets **0.55**, to be revisited if a new problematic
+scenario asks for a different number. (b), W, D, (c) unchanged.
+
+Predictions, from the v0.1 bar sweep: all four positives fire on (a) at
+880015 3735/368, 880030 4643/2218, 880008 1380/290, 880017 609/402
+(tick/episode); eleven MUST-SILENT silent; healthy margin 0.12, lock
+side 0.27. Synthetic mutual 500-tick lock: (a) first fire 399 → 409,
+episode 499 → 479 (0.05·W = 10 ticks each side). Guard pins move to
+0.55 exactly (one-sided 11-on/9-off) and a 0.53 one-sided share (period
+100) that fires under 0.50 and is silent under 0.55; each red at 0.50
+before commit.
+
 ## What this is not
 
 Not a live instrument (transport is v1). Not silence "across the 2.4M
