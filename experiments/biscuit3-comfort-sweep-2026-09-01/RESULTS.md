@@ -513,3 +513,43 @@ sizing assumed. Either is a spec-042 amendment in Product's lane. Half
 B (the four twins on the re-proposal-fix binary) still runs as declared;
 its `wv` twins now measure whether the fix changes this picture, which
 it should not.
+
+## Owner ruling: the Biscuit 3.0 anchor is c30 + consent (2026-09-02)
+
+Ruled after Half A, on the Addendum 2 numbers: **ship c30 with
+`consent_line = 30`**, no friend re-admission mechanic. The two engine
+routes (decoupling mid-scene admission from `w_value`; option (b)
+blocked-conditional friend preference) are set aside as over-engineering
+for a corpus habit. The consent gate lives in the scripted selector
+only: the RL menu picks `PlayKitty(slot)` directly (`codec.rs:26`) and
+neither `mask.rs` nor `reward.rs` prices consent, so a trained Biscuit
+3.0 inherits consent from the BC teacher and PPO is free to keep or drop
+it. Buying selector mechanics before the trained kitty shows which
+happened is speculative spend.
+
+Declared bars overridden by this ruling, on the record: C3 (duets 0.73x
+vs ≥0.90x), C4 (0.83x roster duets, all of it Biscuit's own), C5 (cuddle
+gap +0.028, sleep +0.020 vs ≤+0.02), E1 at c30 (+0.05–0.06 vs 0.05).
+Accepted as the price of R7 0.208 → 0.013 and R8 4.9% → 3.4%, with
+element play up (95.7 → 117.3/1k) and total play flat.
+
+Still owed here: Half B (the four `c30-fix-*` twins on the spec-048
+binary) runs as declared once Product pings the merge; its
+`fix-consent30` twin is the shipping configuration measured on the
+shipping engine. The `wv` twins run too, as declared, but change
+nothing downstream.
+
+Banked for step 7 (owner's addition): train Biscuit 3.0 twice, c30 +
+`consent_line 30` and c30 + `consent_line 0`, same seed and budget, and
+read the trained kitty's consent share (share of her duets that
+conscript a friend with a need ≥30), duets/1k, element play, and E1
+against each other. That is the transfer question for consent in the
+needs-driven script, and the trigger for reopening option (b) if the
+gated arm's duet loss persists in the policy. Note `consent_line` is a
+roster-wide dial: the ungated arm's teacher corpus is ungated for every
+seat, not just hers.
+
+Filed as a bug independent of this ruling: `expected_wait` returns 0
+for boundless (rest) and past-minimum scenes (`selection.rs:581-589`),
+so any `w_value > 0` admits a settled rester as a free partner. Latent
+at today's identity dials; Product's lane.

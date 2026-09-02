@@ -141,7 +141,14 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   4.9% → 3.4%. Prereg rule → **report the price, OWNER CALL**: ship
   c30 + consent with E1 at +0.05–0.06, or re-pin comfort with the gate
   on (c28 / c26 + consent bracket, one run). This is the Biscuit 3.0
-  anchor decision.
+  anchor decision. **Addendum 3 Half A DONE 2026-09-02**: a `w_value`
+  re-admission dial (0.25 / 0.5) FAILS (element play handed to solo
+  play beside resting friends; mid-scene admission is welded to
+  `w_value` and a rester prices at zero wait). **OWNER RULED 2026-09-02:
+  anchor = c30 + `consent_line 30`, no re-admission mechanic**; C3/C4/C5
+  and E1 overridden on the record (RESULTS §Owner ruling). Half B (the
+  spec-048 twins) still runs on the merge ping. Step 7 gains a
+  consent-transfer pair (below).
 
 The validated step-2 mix bands become step 5's reference.
 
@@ -267,6 +274,13 @@ step 1's — two total, accepted knowingly).
 
 5 new certifiable seats incl. Biscuit 3.0. Biscuit 3.0's design per
 `biscuit3-design-note-2026-08-26.md` (anchor-side comfort fix +
-proposal filter; the step-2 comfort sweep is its pricing input).
+proposal filter; the step-2 comfort sweep is its pricing input; anchor
+RULED 2026-09-02: c30 + `consent_line 30`). **Consent-transfer pair
+(owner 2026-09-02)**: Biscuit 3.0 trained twice, c30 with `consent_line`
+30 and 0, same seed and budget; read the trained kitty's consent share,
+duets/1k, element play and E1 against each other. Answers whether
+consent in the needs-driven teacher survives PPO (the gate binds the
+scripted selector only; the RL menu and reward do not see it), and is
+the reopen trigger for a friend re-admission mechanic.
 Two-layer welfare gates, G5 census, G6 soak,
 owner's word for seating/deploy — the standing machinery, unchanged.

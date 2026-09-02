@@ -2125,6 +2125,17 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    both seeds) and E1 flips to MISS at c30 (+0.05–0.06 vs 0.05); the
    roster's shares improve 0.006–0.014. Partnered refusal tax 4.9% →
    3.4% of her ticks (scripted; the 4.9% matches F-033's policy 4.7%).
+8. **Addendum 3 Half A (2026-09-02): a `w_value` re-admission dial
+   cannot buy the duets back.** At `w_value` 0.25 / 0.5 (`w_busy` =
+   1/`w_value`) under the gate, duets move 49.0 → 53.6 / 51.2 per 1k
+   while element play falls 117.3 → 49.5 / 31.4 and SOLO play appears
+   from zero (54.8 / 67.3 per 1k); loiter share (idle beside a busy
+   friend) rises 0.137 → 0.18 / 0.20. Any `w_value` > 0 also switches
+   on mid-scene friend admission (`selection.rs:499`), and
+   `expected_wait` prices a resting or past-minimum friend at zero, so
+   a settled rester out-scores every critter; Biscuit walks over,
+   cannot conscript, and the solo backstop fires beside it. R7 / R8
+   unmoved.
 
 **Decision (prereg rule)**: middle case, owner's call on the curve. If
 Biscuit is to be fed, use flat comfort; the food-only weight band is
@@ -2137,7 +2148,13 @@ fails the play line); c25 is the next point on the curve (parity exact,
 (prereg rule)**: C2 passes, C3 / C4 / C5 miss → report the price, owner
 call: ship c30 + consent with E1 at +0.05–0.06, or re-pin comfort with
 the gate on (c28 / c26 + consent bracket; c28 passed E1 at +0.02–0.03
-without it). **Scope**: scripted anchor only; a clone's
+without it). **OWNER RULED 2026-09-02: the anchor is c30 +
+`consent_line 30`, no re-admission mechanic** (C3 / C4 / C5 / E1
+overridden on the record, RESULTS §Owner ruling). The gate binds the
+scripted selector only; the RL menu picks partners directly and the
+reward does not price consent, so the trained kitty inherits consent as
+a teacher habit. Step 7 trains Biscuit 3.0 with `consent_line` 30 and 0
+to read the transfer. **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm
