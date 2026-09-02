@@ -76,9 +76,9 @@
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T015 Golden evolution pin re-pin in `crates/cloudkitty-core/tests/evolution_golden.rs` (+ its recorded fixture; expected exactly one move, per that module's own regenerate-with-justification doctrine) + `CHANGELOG.md` Unreleased entry with the 039-style marker justifying the re-pin (FR-008); defaults-stamp test confirmed UNTOUCHED (SC-004)
-- [ ] T016 `cargo fmt --all --check` + `cargo clippy --workspace --all-targets -- -D warnings` (CI-exact) in the worktree
-- [ ] T017 Final `cargo test --workspace --no-fail-fast` COUNT READ + quickstart.md walked top to bottom; redden-list.md complete (every cycle has prediction/observed/restore/count)
+- [X] T015 Golden evolution pin re-pin in `crates/cloudkitty-core/tests/evolution_golden.rs` (+ its recorded fixture; expected exactly one move, per that module's own regenerate-with-justification doctrine) + `CHANGELOG.md` Unreleased entry with the 039-style marker justifying the re-pin (FR-008); defaults-stamp test confirmed UNTOUCHED (SC-004)
+- [X] T016 `cargo fmt --all --check` + `cargo clippy --workspace --all-targets -- -D warnings` (CI-exact) in the worktree
+- [X] T017 Final `cargo test --workspace --no-fail-fast` COUNT READ + quickstart.md walked top to bottom; redden-list.md complete (every cycle has prediction/observed/restore/count)
 
 ---
 

@@ -782,9 +782,10 @@ mod tests {
             world.kitties[idx].needs.add(NeedKind::Bath, 60.0); // its own dirt is not the question
             world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
             world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            // Adjacent (a live scene); the friend's bath need stays at its
+            // spawn value of zero: clean.
             let friend = world.kitty_index(2).unwrap();
-            world.kitties[friend].pos = Position::new(5, 6); // adjacent: a live scene
-            // the friend's bath need stays at its spawn value of zero: clean
+            world.kitties[friend].pos = Position::new(5, 6);
         });
         assert_ne!(
             NeedsDriven.decide_action(&clean_friend),

@@ -6,6 +6,10 @@ restore verified by RE-READING THE COUNT. Commit before every
 mutate-then-revert cycle (checkout-trap rule, five occurrences on record).
 
 Baseline count (branch tip before implementation): recorded at cycle 0.
+FINAL count (T017, all tasks done): **817/0** = 809 baseline + 8 new guards
+(T004-T007, T009-T011, T013). fmt + clippy CI-exact clean. Golden + strip
++ rl wire goldens regenerated with justification; defaults stamp test
+untouched and green.
 
 | # | Task | Mutation / staging | Prediction (exact reds) | Observed | Restored + count re-read |
 |---|------|--------------------|-------------------------|----------|--------------------------|

@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- No stale re-proposal (spec 048): a cat no longer proposes the
+  continuation of a scene whose counterpart the decision snapshot already
+  shows gone — the critter out of reach, the groomed friend unavailable —
+  and makes a fresh decision that turn instead. One shared definition of
+  "counterpart gone" now serves both the engine's dead-scene ending rule
+  and the behavior's commitment check, so the two can never drift.
+  Effects: the formerly wasted idle turn buys a real action, and the
+  refusal stream stops carrying rows that were never real refusals
+  (measured on the reference arms: 554–788 spurious critter-play rows per
+  20k-tick run drop to zero; same-tick duet races — genuine refusals —
+  persist). No config knob and no marker applies: defaults stamp, world
+  fingerprint, observation layout, and the order of random draws are all
+  unchanged — but this is a deliberate behavior change, so **seeded world
+  evolution diverges** at its first stale-continuation tick. The evolution
+  golden and the run-JSON wire golden regenerate with this entry as the
+  justification, and refusal-rate baselines measured pre-048 (F-033's
+  4.7% policy tax, the 3.5% INVESTIGATE line) are history — re-derive on
+  this engine before comparing.
 - Consent line (spec 047): a new `[behavior] consent_line` dial — a friend
   whose top non-play need is strictly over the line and strictly over its
   own play need is never proposed to for play by a playful cat, on all

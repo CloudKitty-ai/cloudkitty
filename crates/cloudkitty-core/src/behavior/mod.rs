@@ -583,7 +583,9 @@ mod tests {
                 world.tick = 20;
                 let idx = world.kitty_index(1).unwrap();
                 world.kitties[idx].pos = crate::grid::Position::new(5, 5);
-                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 60.0);
+                world.kitties[idx]
+                    .needs
+                    .add(crate::needs::NeedKind::Play, 60.0);
                 world.kitties[idx].activity = crate::kitty::Activity::Playing {
                     target: Some(crate::action::TargetRef::Element { id: 800 }),
                 };
