@@ -2165,11 +2165,11 @@ A sweep (element play handed to solo play, loiter share 0.137 → 0.20;
 Experiments RESULTS @ 35b1248). **Latent at identity dials** — no shipped
 config sets `w_value`, and the owner ruled the Gen 1 anchor carries no
 re-admission mechanic (2026-09-02, "anything further risks
-over-engineering"). Reopen trigger: the step-7 consent-transfer twin
-training (Biscuit 3.0 trained at consent_line 30 vs 0) — if the trained
-kitty needs a re-admission mechanic, fix this first: either decouple
-admission from `w_value` (own switch) or treat boundless / past-minimum
-scenes as inadmissible rather than free.
+over-engineering"). Reopen trigger (owner-ruled 2026-09-02): fix this
+if we ever enable the `w_value` dial — no plans to do that soon. Fix
+shapes on record: either decouple admission from `w_value` (own switch)
+or treat boundless / past-minimum scenes as inadmissible rather than
+free.
 
 ### Kitties learn each other's traits — anticipatory cooperation (added 2026-07-21)
 A 014 follow-on, deliberately out of scope until the trained meadow is
