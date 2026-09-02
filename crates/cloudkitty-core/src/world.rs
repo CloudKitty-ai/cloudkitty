@@ -459,13 +459,6 @@ impl World {
         }
     }
 
-    /// Whether `other` is bound in a duet back to `me`.
-    fn reciprocal_duet(&self, me: KittyId, other: KittyId) -> bool {
-        self.kitty(other)
-            .map(|k| k.activity.duet_partner() == Some(me))
-            .unwrap_or(false)
-    }
-
     /// Spec 006 FR-010: an activity whose counterpart is gone -- a critter
     /// expired or scurried out of reach, a groomed friend who walked away, a
     /// water source that dried up -- ends immediately, minimum notwithstanding.
@@ -474,41 +467,20 @@ impl World {
     /// spec 014: the legal-action mask replays the apply slot's exact
     /// sequence (prune, validate, enforcement verdict) on a probe world.
     pub fn prune_dead_activity(&mut self, kitty_id: KittyId) {
-        let Some(kitty) = self.kitty(kitty_id) else {
-            return;
-        };
-        if kitty.activity_clock.is_none() {
-            return;
-        }
-        let pos = kitty.pos;
-        let counterpart_gone = match kitty.activity {
-            // A rest companion, like a co-sleep companion, is re-filtered
-            // every serviced tick by the effects arm (spec 041) -- a
-            // wandered partner drops the scene to solo posture there, so
-            // rest has no prune entry in either shape.
-            Activity::Idle
-            | Activity::Eating
-            | Activity::Sleeping { .. }
-            | Activity::Playing { target: None }
-            | Activity::Grooming { target: None }
-            | Activity::Resting { .. } => false,
-            // (An emptied or expired bowl is the meal's own end rule, not a
-            // vanished counterpart -- see resolve_activity_ends.)
-            Activity::Drinking => self.adjacent_element(pos, ElementType::Water).is_none(),
-            Activity::Playing {
-                target: Some(TargetRef::Element { id }),
-            } => self
-                .element(id)
-                .map(|e| !pos.is_adjacent(&e.pos))
-                .unwrap_or(true),
-            Activity::Playing {
-                target: Some(TargetRef::Kitty { id }),
-            } => !self.reciprocal_duet(kitty_id, id),
-            Activity::Grooming { target: Some(id) } => !self.is_available_friend(kitty_id, id),
-        };
-        if counterpart_gone {
+        if self.counterpart_gone(kitty_id) {
             self.end_activity(kitty_id);
         }
+    }
+
+    /// Whether `kitty_id`'s ongoing activity has a counterpart the world no
+    /// longer supplies (spec 048 FR-002): THE one definition of a dead
+    /// scene. `prune_dead_activity` ends scenes by it; the behavior-side
+    /// commitment (`finish_what_you_started`) declines to continue by it,
+    /// through the snapshot twin below -- one body in
+    /// `counterpart_gone_in`, so the two rules can never drift.
+    pub(crate) fn counterpart_gone(&self, kitty_id: KittyId) -> bool {
+        self.kitty(kitty_id)
+            .is_some_and(|k| counterpart_gone_in(k, &self.kitties, &self.elements))
     }
 
     /// Spec 006 FR-003/004: inside an activity's minimum the engine continues
@@ -1429,6 +1401,13 @@ impl WorldSnapshot {
         self.kitties.iter().find(|k| k.id == id)
     }
 
+    /// The dead-scene rule over the decision snapshot -- same body as
+    /// `World::counterpart_gone` (spec 048 FR-002, one definition).
+    pub(crate) fn counterpart_gone(&self, kitty_id: KittyId) -> bool {
+        self.kitty(kitty_id)
+            .is_some_and(|k| counterpart_gone_in(k, &self.kitties, &self.elements))
+    }
+
     pub fn others<'a>(&'a self, me: KittyId) -> impl Iterator<Item = &'a Kitty> + 'a {
         self.kitties.iter().filter(move |k| k.id != me)
     }
@@ -1461,6 +1440,58 @@ impl WorldSnapshot {
 // -- one body here, thin delegating methods above, so the predicate can
 // never fork. `is_adjacent` is manhattan <= 1: the speaker's own tile
 // counts, uniformly, for every predicate below.
+
+/// The one body of the dead-scene rule (spec 048 FR-002): whether
+/// `kitty`'s ongoing activity names a counterpart that `kitties`/`elements`
+/// no longer supply. Serves both worlds -- the live one (prune, at the
+/// apply slot) and the decision snapshot (`finish_what_you_started`) --
+/// via the thin delegating methods, so the ending rule and the
+/// don't-continue rule can never fork. A kitty with no activity clock has
+/// no scene. Table: specs/048-no-stale-reproposal/data-model.md.
+pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[Element]) -> bool {
+    if kitty.activity_clock.is_none() {
+        return false;
+    }
+    let pos = kitty.pos;
+    match kitty.activity {
+        // A rest companion, like a co-sleep companion, is re-filtered
+        // every serviced tick by the effects arm (spec 041) -- a
+        // wandered partner drops the scene to solo posture there, so
+        // rest has no prune entry in either shape.
+        Activity::Idle
+        | Activity::Eating
+        | Activity::Sleeping { .. }
+        | Activity::Playing { target: None }
+        | Activity::Grooming { target: None }
+        | Activity::Resting { .. } => false,
+        // (An emptied or expired bowl is the meal's own end rule, not a
+        // vanished counterpart -- see resolve_activity_ends.)
+        Activity::Drinking => adjacent_element_in(elements, pos, ElementType::Water).is_none(),
+        Activity::Playing {
+            target: Some(TargetRef::Element { id }),
+        } => elements
+            .iter()
+            .find(|e| e.id == id)
+            .map(|e| !pos.is_adjacent(&e.pos))
+            .unwrap_or(true),
+        // A duet whose other side is not bound back to this kitty.
+        Activity::Playing {
+            target: Some(TargetRef::Kitty { id }),
+        } => !kitties
+            .iter()
+            .find(|k| k.id == id)
+            .map(|k| k.activity.duet_partner() == Some(kitty.id))
+            .unwrap_or(false),
+        // The groomed friend must still be a distinct, adjacent kitty
+        // (`is_available_friend`'s exact meaning).
+        Activity::Grooming { target: Some(id) } => !(id != kitty.id
+            && kitties
+                .iter()
+                .find(|k| k.id == id)
+                .map(|k| pos.is_adjacent(&k.pos))
+                .unwrap_or(false)),
+    }
+}
 
 /// The nearest element of `kind` on or beside `pos` (ties broken by id).
 pub fn adjacent_element_in(
