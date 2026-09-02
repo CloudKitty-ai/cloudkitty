@@ -286,8 +286,12 @@ collection)**: (1) R2 hungry-play share joins the readouts for both
 arms, split duet / element / solo: when the gate drops a friend on the
 get-serious path, play is priced as SOLO (as if the friend were absent,
 the spec's declared degradation), so any welfare cost of the gate would
-show up as solo play started while a need is ≥ 30, not in R7. Owner is
-walking this one through herself; the readout is report-only. (2) R7 is
+show up as solo play started while a need is ≥ 30, not in R7. Owner
+walked it through and ACCEPTED the re-pricing as-is (2026-09-01):
+training runs against this scripted cat, so marginal scoring detours
+wash out; what matters is that consideration of other cats' needs is
+MODELED so its learnability can be tested. Pinned INTENDED in-tree by
+Product. R2 stays the report-only aggregate watch. (2) R7 is
 read from census duet starts, never from the refusal ring, so
 `finish_what_you_started` continuation refusals cannot make the gate
 look leaky; R8 filters on `absorbed == false`, which excludes them by
