@@ -580,6 +580,70 @@ mod tests {
         );
     }
 
+    /// Stage kitty 1 mid-play with critter 800; the closure places (or
+    /// omits) the critter. Play need stays real so only the counterpart
+    /// decides the outcome (spec 048).
+    fn mid_critter_play(critter: Option<Position>) -> crate::behavior::DecisionContext {
+        decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+            world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                target: Some(crate::action::TargetRef::Element { id: 800 }),
+            };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            if let Some(pos) = critter {
+                world.push_element(Element {
+                    id: 800,
+                    kind: ElementKind::Bug,
+                    pos,
+                    ttl: Some(50),
+                });
+            }
+        })
+    }
+
+    /// Spec 048 US1: the critter scurried out of reach — the snapshot
+    /// already shows it — so the commitment declines to continue and the
+    /// cat decides fresh this very tick.
+    #[test]
+    fn a_scene_whose_critter_moved_away_is_not_continued() {
+        let ctx = mid_critter_play(Some(Position::new(8, 8)));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "no stale re-proposal at a counterpart the snapshot shows gone"
+        );
+    }
+
+    /// Spec 048 US1, expired variant: the critter is gone from the world
+    /// entirely.
+    #[test]
+    fn a_scene_whose_critter_expired_is_not_continued() {
+        let ctx = mid_critter_play(None);
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "an absent counterpart reads as gone, same as the engine's rule"
+        );
+    }
+
+    /// Spec 048 FR-004 must-stay-green: a live counterpart continues
+    /// exactly as before the fix.
+    #[test]
+    fn a_scene_whose_critter_is_still_adjacent_continues() {
+        let ctx = mid_critter_play(Some(Position::new(5, 6)));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Play {
+                target: Some(crate::action::TargetRef::Element { id: 800 })
+            }),
+            "a live scene is untouched by spec 048"
+        );
+    }
+
     #[tokio::test]
     async fn a_napping_cat_stays_asleep_until_rested() {
         // The commitment rule: mid-nap with sleep need remaining, the cat

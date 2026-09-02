@@ -1241,11 +1241,12 @@ impl World {
     }
 
     /// A friend is any other kitty; "available" adds the adjacency an interaction
-    /// needs.
+    /// needs. One body in `available_friend_in` (the free twin), shared with
+    /// the dead-scene rule's grooming arm so the two can't drift (spec 048
+    /// review).
     pub fn is_available_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        self.friend_pair(me, friend)
-            .map(|(a, b)| a.pos.is_adjacent(&b.pos))
-            .unwrap_or(false)
+        self.kitty(me)
+            .is_some_and(|k| available_friend_in(&self.kitties, k, friend))
     }
 
     /// A friend who can be drawn into a duet right now: available *and* doing
@@ -1482,15 +1483,22 @@ pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[
             .find(|k| k.id == id)
             .map(|k| k.activity.duet_partner() == Some(kitty.id))
             .unwrap_or(false),
-        // The groomed friend must still be a distinct, adjacent kitty
-        // (`is_available_friend`'s exact meaning).
-        Activity::Grooming { target: Some(id) } => !(id != kitty.id
-            && kitties
-                .iter()
-                .find(|k| k.id == id)
-                .map(|k| pos.is_adjacent(&k.pos))
-                .unwrap_or(false)),
+        // The groomed friend must still be available -- the SAME body
+        // `is_available_friend` delegates to, not a replica.
+        Activity::Grooming { target: Some(id) } => !available_friend_in(kitties, kitty, id),
     }
+}
+
+/// The one body of "available friend" (a distinct, present, adjacent
+/// kitty): `World::is_available_friend` and the dead-scene rule's grooming
+/// arm both delegate here.
+pub(crate) fn available_friend_in(kitties: &[Kitty], me: &Kitty, friend: KittyId) -> bool {
+    friend != me.id
+        && kitties
+            .iter()
+            .find(|k| k.id == friend)
+            .map(|k| me.pos.is_adjacent(&k.pos))
+            .unwrap_or(false)
 }
 
 /// The nearest element of `kind` on or beside `pos` (ties broken by id).
@@ -3230,6 +3238,50 @@ mod tests {
             "min = max = 1 is an instant action"
         );
         assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Eat), 60.0);
+    }
+
+    /// Spec 048 US1 e2e (FR-007/SC-002): a cat mid-play with a critter that
+    /// expired last tick — dead in the decision snapshot — takes a REAL
+    /// action this tick and stamps no refusal row. Staged so the fresh
+    /// decision is unambiguous: ravenous beside a stocked bowl.
+    #[tokio::test]
+    async fn a_dead_critter_scene_yields_a_real_action_and_no_refusal_row() {
+        let (mut world, config) = duet_stage();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+        world.kitties[idx].needs.add(NeedKind::Eat, 80.0);
+        world.kitties[idx].activity = Activity::Playing {
+            target: Some(TargetRef::Element { id: 800 }),
+        };
+        world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(95));
+        // The critter is GONE (expired); only relief remains in reach.
+        world.push_element(Element {
+            id: 900,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(4, 5),
+            ttl: None,
+        });
+        // Keep the neighbour out of the story.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(15, 15);
+
+        let registry = crate::behavior::BehaviorRegistry::with_builtins();
+        let config = std::sync::Arc::new(config);
+        let tick = world.tick;
+        world.tick(&registry, &config).await;
+
+        assert!(
+            !world
+                .refusal_log
+                .events()
+                .any(|r| r.kitty_id == 1 && r.tick == tick),
+            "no proposal was refused: the dead scene was never re-proposed"
+        );
+        assert_eq!(
+            world.kitty(1).unwrap().last_action,
+            Some(Action::Eat),
+            "the freed tick buys a real action, not an idle"
+        );
     }
 
     /// Two kitties side by side, everything else out of the way.
