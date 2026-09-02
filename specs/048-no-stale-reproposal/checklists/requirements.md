@@ -31,9 +31,9 @@
 
 ## Notes
 
-- The one genuine owner decision (full coverage vs play-only, FR-003) is
-  resolved by a documented default in Assumptions — flag it at
-  `/speckit-clarify` for an explicit ruling rather than a marker here.
+- The one genuine owner decision (full coverage vs play-only, FR-003)
+  was RULED at `/speckit-clarify` 2026-09-02: full coverage (option A);
+  recorded in the spec's Clarifications section.
 - "Golden pin", "defaults stamp", and "refusal record" are house
   measurement artifacts, named because their movement/non-movement IS the
   requirement (FR-006/FR-008), not implementation choices.

@@ -19,6 +19,12 @@ Measured on the four Addendum 2 reference runs (20,000-tick windows, probe 2026-
 - Kitty-kitty duets: **zero** — a duet ends for both partners at once, so a half-ended duet never survives to the next decision. (The remaining partnered refusal rows are same-tick races, out of scope — see Edge Cases.)
 - Drinking: **zero** — water is permanent in every served world.
 
+## Clarifications
+
+### Session 2026-09-02
+
+- Q: Should the rule cover every scene shape the engine's dead-scene rule covers, or only play scenes? (FR-003) → A: Full coverage — every shape (critter play, duet play, grooming, drinking); one shared definition with the engine's rule.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The critter got away; do something real (Priority: P1)
@@ -80,7 +86,7 @@ The experiment thread reads the refusal record stream as a welfare/pricing instr
 
 - **FR-001**: A cat MUST NOT propose the continuation of an ongoing scene when the world it is deciding against already shows the scene's counterpart gone; it makes a fresh decision that turn instead.
 - **FR-002**: "Counterpart gone" MUST mean exactly what the engine's own dead-scene ending rule means, and there MUST be one shared definition — the decision-side check and the engine's scene-ending check can never drift apart.
-- **FR-003**: The rule covers every scene shape the engine's dead-scene ending rule covers (critter play, kitty-kitty play, grooming, drinking). Scene shapes the engine never ends for a vanished counterpart (sleeping, resting, solo scenes) are untouched.
+- **FR-003**: The rule covers every scene shape the engine's dead-scene ending rule covers (critter play, kitty-kitty play, grooming, drinking) — owner-ruled 2026-09-02 (Clarifications). Scene shapes the engine never ends for a vanished counterpart (sleeping, resting, solo scenes) are untouched.
 - **FR-004**: A scene whose counterpart is present and live MUST continue exactly as today — this feature changes no decision where the counterpart survives.
 - **FR-005**: The change applies to every cat personality that continues scenes (it is shared good sense, not a personality trait). It is not scoped to any one behavior.
 - **FR-006**: There is no configuration knob: the fix is unconditional, and the default configuration's serialized form MUST NOT change.
@@ -106,7 +112,7 @@ The experiment thread reads the refusal record stream as a welfare/pricing instr
 
 ## Assumptions
 
-- **Scope default — full coverage, not play-only**: the owner's words named play; this spec covers every scene shape the engine's dead-scene rule covers (FR-003), on the recommendation accepted in discussion: one shared definition is the simplest correct shape, drinking is unreachable in practice (water is permanent), and grooming has the same failure at smaller volume. If the owner prefers play-only, FR-003 narrows and grooming keeps today's behavior.
+- **Scope — full coverage (owner-ruled, no longer a default)**: every scene shape the engine's dead-scene rule covers (FR-003). Rationale on record: one shared definition is the simplest correct shape, drinking is unreachable in practice (water is permanent), and grooming has the same failure at smaller volume.
 - The same-tick race class is structurally out of reach of any decision-time rule and is not attempted.
 - The experiment thread re-baselines its refusal-tax readings on the fixed build (their Addendum 3 plan already sequences this fix before their batch).
 - No compensating "wait for the counterpart to come back" behavior is added — the fresh decision simply runs the cat's normal decision process.
