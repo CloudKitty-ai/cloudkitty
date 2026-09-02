@@ -24,6 +24,20 @@ Addendum 1 pins, from the same three /world polls (ticks 214/227/240):
       drink 1/3); the roster arms in 2 of 12 rows.
   (f) Biscuit happiness 82.1 / 78.9 / 75.6 -> worst 75.6, share under
       80 = 2/3.
+Addendum 2 pins, fixtures/c30-off-20260911-consent-slice.json (three real
+Biscuit duet starts from the c30 sweep run, bracketing census polls
+unedited):
+  (g) consent gate at line 30: the 1537 start (Pumpkin cuddle 35.2 >
+      play 0.4) is BLOCKED; 1835 (Clementine play 29.4 over a 13.05 top)
+      and 1521 (Pumpkin top 29.4, under the line) are not. Strictness:
+      with the line set AT the 1537 top exactly, it is NOT blocked.
+  (h) hungry_start: Pumpkin's 1521 start interpolates eat 29.4 -> not
+      hungry for the partner; Biscuit at 1537 reads her own needs.
+  (i) refusal_tax on fixtures/consent30-probe-refusals.json (a real
+      /events/refusal payload from the 047 binary, tick 13-315): Biscuit
+      (id 2) has 24 absorbed==false rows, none of her 17 absorbed rows
+      count; by_action splits play_kitty from the rest; the window is
+      inclusive at both ends (first refused row tick 20, last 310).
 Each shown red in-run (mutating score.py) before commit.
 
 Run: python3 test_score.py
@@ -31,8 +45,9 @@ Run: python3 test_score.py
 import json
 from pathlib import Path
 
-from score import (announce_share, happiness_trough, hungry_play, interp_need,
-                   low_need, need_shares, series)
+from score import (announce_share, consent_blocked, happiness_trough, hungry_play,
+                   hungry_start, interp_need, low_need, need_shares, refusal_tax,
+                   series)
 
 HERE = Path(__file__).resolve().parent
 FIX = json.loads((HERE / "fixtures" / "w35-off-20260912-slice.json").read_text())
@@ -72,4 +87,26 @@ assert close(ar["any"], 2 / 12, 1e-9), ar
 assert happiness_trough(W, 2, 80.0) == (min(k["happiness"] for p in W for k in p["kitties"] if k["id"] == 2), 2 / 3)
 assert close(happiness_trough(W, 2, 80.0)[0], 75.6, 0.05)
 
-print("test_score: 6 pins ok")
+# (g) the consent gate on three recorded duet starts
+CS = json.loads((HERE / "fixtures" / "c30-off-20260911-consent-slice.json").read_text())
+CSER = series(CS["census_polls"])
+verdicts = {e["started"]: consent_blocked(CSER, e["activity"]["target"]["id"], e["started"]) for e in CS["events"]}
+assert verdicts == {1537: True, 1835: False, 1521: False}, verdicts
+top_1537 = max(interp_need(CSER, 3, 1537, n) for n in ("eat", "drink", "sleep", "cuddle", "bath"))
+assert close(top_1537, 35.2, 0.05)
+assert consent_blocked(CSER, 3, 1537, line=top_1537) is False     # strict >, not >=: AT the line is not over it
+
+# (h) hungry_start reads the named seat's own eat/drink at the start tick
+assert hungry_start(CSER, 3, 1521) is False and close(interp_need(CSER, 3, 1521, "eat"), 29.4, 0.05)
+assert hungry_start(CSER, 2, 1537) == (max(interp_need(CSER, 2, 1537, n) for n in ("eat", "drink")) >= 30)
+
+# (i) refusal tax off a real spec-046 ring payload
+RF = json.loads((HERE / "fixtures" / "consent30-probe-refusals.json").read_text())["events"]
+tax = refusal_tax(RF, 2, 13, 315)
+assert tax["refused_idle"] == 24 and sum(1 for e in RF if e["kitty_id"] == 2) == 41, tax
+assert close(tax["share_of_ticks"], 24 / 303, 1e-9), tax
+# window is inclusive at both ends: her first refused row sits at tick 20, last at 310
+assert refusal_tax(RF, 2, 20, 310)["refused_idle"] == 24 and refusal_tax(RF, 2, 21, 309)["refused_idle"] == 22
+assert sum(tax["by_action"].values()) == 24 and "play_kitty" in tax["by_action"], tax["by_action"]
+
+print("test_score: 9 pins ok")

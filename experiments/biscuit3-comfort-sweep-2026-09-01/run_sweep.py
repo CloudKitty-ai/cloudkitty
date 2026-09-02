@@ -40,15 +40,28 @@ def fetch(url):
         return json.load(r)
 
 
-def poll_world(base, t_end, out):
-    """need_latency.py's live poll shape, until the world passes t_end."""
+def poll_world(base, t_end, out, refusals=None):
+    """need_latency.py's live poll shape, until the world passes t_end.
+    Addendum 2: the same loop drains the spec-046 refusal ring into
+    `refusals` (dict keyed on (kitty, tick, proposal), gaps flagged when
+    the oldest row served is newer than the newest row already held)."""
     while True:
         try:
             w = fetch(f"{base}/world")
+            ring = fetch(f"{base}/events/refusal") if refusals is not None else None
         except Exception as e:
             print(f"{base}: world poll {e}", file=sys.stderr)
             time.sleep(INTERVAL_S)
             continue
+        if ring is not None:
+            ev = refusals["events"]
+            if ev and len(ring["events"]) == ring["capacity"]:
+                held, oldest = max(e["tick"] for e in ev.values()), ring["events"][0]["tick"]
+                if oldest > held:            # ring rotated past rows we never saw
+                    refusals["ring_gaps"].append((held, oldest))
+            refusals["capacity"] = ring["capacity"]
+            for e in ring["events"]:
+                ev[(e["kitty_id"], e["tick"], json.dumps(e["proposed"], sort_keys=True))] = e
         out.append({"tick": w["tick"], "kitties": [
             {"id": k["id"], "name": k["name"], "pos": k["pos"], "needs": k["needs"],
              "last_relief": k.get("last_relief", {}),
@@ -81,7 +94,8 @@ def one_run(cfg):
             time.sleep(1.0)
         t0 = fetch(f"{base}/world")["tick"]
         polls = []
-        th = threading.Thread(target=poll_world, args=(base, t0 + MEASURE_TICKS, polls))
+        refusals = {"events": {}, "ring_gaps": [], "capacity": None}
+        th = threading.Thread(target=poll_world, args=(base, t0 + MEASURE_TICKS, polls, refusals))
         th.start()
         r = subprocess.run(
             [sys.executable, CENSUS, "--base", base, "--ticks", str(MEASURE_TICKS),
@@ -91,6 +105,9 @@ def one_run(cfg):
         (RAW / f"{run}-instrument.out").write_text(r.stdout + r.stderr)
         (RAW / f"{run}-world-polls.json").write_text(json.dumps(
             {"base": base, "interval_s": INTERVAL_S, "polls": polls}) + "\n")
+        (RAW / f"{run}-refusals.json").write_text(json.dumps(
+            {"base": base, "capacity": refusals["capacity"], "ring_gaps": refusals["ring_gaps"],
+             "events": sorted(refusals["events"].values(), key=lambda e: (e["tick"], e["kitty_id"]))}) + "\n")
         (RAW / f"{run}-final.json").write_text(json.dumps(
             {"world": fetch(f"{base}/world"), "welfare": fetch(f"{base}/welfare")},
             indent=1) + "\n")

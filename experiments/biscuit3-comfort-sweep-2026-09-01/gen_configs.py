@@ -39,6 +39,14 @@ if "--ext2" in sys.argv[2:]:
     COMFORT_ARMS = [("c32", 32.0, None), ("c28", 28.0, None)]
 SCORE_STATES = (False,) if EXT else (False, True)
 BASE_IDX = 24 if "--ext2" in sys.argv[2:] else (20 if EXT else 0)
+# Addendum 2: c30 on the spec-047 binary, consent gate off (identity
+# re-run, "off2") and at the owner's line (30.0). Score stays off.
+CONSENT = "--consent" in sys.argv[2:]
+CONSENT_STATES = (None, 30.0) if CONSENT else (None,)
+if CONSENT:
+    COMFORT_ARMS = [("c30", 30.0, None)]
+    SCORE_STATES = (False,)
+    BASE_IDX = 28
 # Candidate score dials (first pass, chosen before any data; see prereg).
 SCORE = {"w_value": 0.5, "w_busy": 1.0, "w_serious": 0.5,
          "t_self": 5.0, "t_partner": 5.0, "critter_appeal": 0.0}
@@ -46,7 +54,7 @@ SCORE = {"w_value": 0.5, "w_busy": 1.0, "w_serious": 0.5,
 src = SRC.read_text()
 idx = BASE_IDX
 for label, comfort, food_w in COMFORT_ARMS:
-    for score_on in SCORE_STATES:
+    for score_on, consent in [(s_, c_) for s_ in SCORE_STATES for c_ in CONSENT_STATES]:
         for seed in SEEDS:
             t = src
             # Biscuit is the second seat; her policy line is unique.
@@ -64,7 +72,10 @@ for label, comfort, food_w in COMFORT_ARMS:
             t, n = re.subn(r'^bind = "[^"]+"$', f'bind = "127.0.0.1:{port}"',
                            t, flags=re.M)
             assert n == 1
-            run = f"{label}-{'on' if score_on else 'off'}-{seed}"
+            state = "on" if score_on else "off"
+            if CONSENT:
+                state = "off2" if consent is None else f"consent{consent:g}"
+            run = f"{label}-{state}-{seed}"
             snap = OUT.parent / "snaps" / f"{run}.json"
             t, n = re.subn(r'^snapshot_path = "[^"]+"$',
                            f'snapshot_path = "{snap}"', t, flags=re.M)
@@ -73,6 +84,8 @@ for label, comfort, food_w in COMFORT_ARMS:
                            "groom_cuddle_relief = 0.5", t, flags=re.M)
             assert n == 1
             dials = [f"playful_comfort = {comfort}"]
+            if consent is not None:
+                dials.append(f"consent_line = {consent}")
             if score_on:
                 dials += [f"{k} = {v}" for k, v in SCORE.items()]
             if food_w is not None:

@@ -1,0 +1,368 @@
+{
+ "source": "c30-off-20260911 sweep run 2026-09-01, real payloads, unedited: three Biscuit play-duet starts and their bracketing census polls",
+ "census_polls": [
+  {
+   "tick": 1511,
+   "kitties": [
+    {
+     "id": 1,
+     "needs": {
+      "eat": 12.600005,
+      "drink": 3.2000003,
+      "sleep": 18.000006,
+      "play": 12.000005,
+      "cuddle": 9.249999,
+      "bath": 3.7
+     },
+     "happiness": 90.3975
+    },
+    {
+     "id": 2,
+     "needs": {
+      "eat": 38.99995,
+      "drink": 20.399996,
+      "sleep": 0.6,
+      "play": 35.999985,
+      "cuddle": 4.5500007,
+      "bath": 17.999996
+     },
+     "happiness": 79.24751
+    },
+    {
+     "id": 3,
+     "needs": {
+      "eat": 23.40001,
+      "drink": 8.000001,
+      "sleep": 9.199996,
+      "play": 17.599993,
+      "cuddle": 25.549984,
+      "bath": 3.4999988
+     },
+     "happiness": 85.3425
+    },
+    {
+     "id": 4,
+     "needs": {
+      "eat": 19.99999,
+      "drink": 8.100002,
+      "sleep": 1.2000072,
+      "play": 6.6000013,
+      "cuddle": 4.5500007,
+      "bath": 2.4
+     },
+     "happiness": 92.1675
+    },
+    {
+     "id": 5,
+     "needs": {
+      "eat": 17.999992,
+      "drink": 10.399999,
+      "sleep": 16.500006,
+      "play": 6.6000013,
+      "cuddle": 20.250002,
+      "bath": 3.7999985
+     },
+     "happiness": 87.2475
+    }
+   ]
+  },
+  {
+   "tick": 1524,
+   "kitties": [
+    {
+     "id": 1,
+     "needs": {
+      "eat": 16.500006,
+      "drink": 8.400001,
+      "sleep": 0.6,
+      "play": 15.900007,
+      "cuddle": 14.199994,
+      "bath": 6.099998
+     },
+     "happiness": 89.5
+    },
+    {
+     "id": 2,
+     "needs": {
+      "eat": 2.3999999,
+      "drink": 24.299986,
+      "sleep": 4.5,
+      "play": 0.8,
+      "cuddle": 9.75,
+      "bath": 20.600006
+     },
+     "happiness": 89.3125
+    },
+    {
+     "id": 3,
+     "needs": {
+      "eat": 31.200014,
+      "drink": 13.199996,
+      "sleep": 11.7999935,
+      "play": 0.4,
+      "cuddle": 30.499979,
+      "bath": 4.799998
+     },
+     "happiness": 83.995
+    },
+    {
+     "id": 4,
+     "needs": {
+      "eat": 1.6,
+      "drink": 12.000005,
+      "sleep": 3.2999997,
+      "play": 10.500004,
+      "cuddle": 9.75,
+      "bath": 7.6000013
+     },
+     "happiness": 92.6075
+    },
+    {
+     "id": 5,
+     "needs": {
+      "eat": 23.199987,
+      "drink": 15.599994,
+      "sleep": 20.399996,
+      "play": 10.500004,
+      "cuddle": 29.350012,
+      "bath": 5.0999975
+     },
+     "happiness": 82.4375
+    }
+   ]
+  },
+  {
+   "tick": 1537,
+   "kitties": [
+    {
+     "id": 1,
+     "needs": {
+      "eat": 20.399996,
+      "drink": 13.599996,
+      "sleep": 8.4,
+      "play": 2.9999998,
+      "cuddle": 19.14999,
+      "bath": 8.699996
+     },
+     "happiness": 87.3125
+    },
+    {
+     "id": 2,
+     "needs": {
+      "eat": 6.300001,
+      "drink": 28.199976,
+      "sleep": 8.4000025,
+      "play": 0.8,
+      "cuddle": 13.699995,
+      "bath": 23.200016
+     },
+     "happiness": 86.185005
+    },
+    {
+     "id": 3,
+     "needs": {
+      "eat": 4.000004,
+      "drink": 18.399992,
+      "sleep": 14.399991,
+      "play": 0.4,
+      "cuddle": 35.19999,
+      "bath": 6.0999966
+     },
+     "happiness": 87.105
+    },
+    {
+     "id": 4,
+     "needs": {
+      "eat": 6.800001,
+      "drink": 15.900007,
+      "sleep": 7.2000017,
+      "play": 2.1,
+      "cuddle": 14.199995,
+      "bath": 12.799996
+     },
+     "happiness": 90.015
+    },
+    {
+     "id": 5,
+     "needs": {
+      "eat": 28.399982,
+      "drink": 20.79999,
+      "sleep": 24.299986,
+      "play": 14.400006,
+      "cuddle": 38.20002,
+      "bath": 6.3999963
+     },
+     "happiness": 77.66501
+    }
+   ]
+  },
+  {
+   "tick": 1822,
+   "kitties": [
+    {
+     "id": 1,
+     "needs": {
+      "eat": 21.299994,
+      "drink": 11.5999975,
+      "sleep": 13.200003,
+      "play": 1.5,
+      "cuddle": 4.0000005,
+      "bath": 3.7
+     },
+     "happiness": 90.06
+    },
+    {
+     "id": 2,
+     "needs": {
+      "eat": 24.299986,
+      "drink": 19.499998,
+      "sleep": 28.499975,
+      "play": 16.000002,
+      "cuddle": 37.399998,
+      "bath": 31.300037
+     },
+     "happiness": 74.26
+    },
+    {
+     "id": 3,
+     "needs": {
+      "eat": 8.4,
+      "drink": 23.199987,
+      "sleep": 14.199991,
+      "play": 8.000001,
+      "cuddle": 2.15,
+      "bath": 7.049997
+     },
+     "happiness": 88.97
+    },
+    {
+     "id": 4,
+     "needs": {
+      "eat": 18.799992,
+      "drink": 4.8,
+      "sleep": 9.900003,
+      "play": 1.5,
+      "cuddle": 4.0000005,
+      "bath": 11.199998
+     },
+     "happiness": 91.29
+    },
+    {
+     "id": 5,
+     "needs": {
+      "eat": 25.599985,
+      "drink": 26.799984,
+      "sleep": 13.099954,
+      "play": 25.499983,
+      "cuddle": 3.95,
+      "bath": 7.3999953
+     },
+     "happiness": 82.02751
+    }
+   ]
+  },
+  {
+   "tick": 1835,
+   "kitties": [
+    {
+     "id": 1,
+     "needs": {
+      "eat": 25.199984,
+      "drink": 16.799994,
+      "sleep": 1.8000001,
+      "play": 5.4000006,
+      "cuddle": 5.550002,
+      "bath": 6.299998
+     },
+     "happiness": 88.7425
+    },
+    {
+     "id": 2,
+     "needs": {
+      "eat": 28.199976,
+      "drink": 23.399988,
+      "sleep": 32.399967,
+      "play": 26.399992,
+      "cuddle": 42.600018,
+      "bath": 33.900047
+     },
+     "happiness": 69.385
+    },
+    {
+     "id": 3,
+     "needs": {
+      "eat": 16.200005,
+      "drink": 4.8000007,
+      "sleep": 0.2,
+      "play": 13.199996,
+      "cuddle": 7.3500013,
+      "bath": 8.3499975
+     },
+     "happiness": 91.435
+    },
+    {
+     "id": 4,
+     "needs": {
+      "eat": 4.4000006,
+      "drink": 8.700003,
+      "sleep": 0.3,
+      "play": 5.4000006,
+      "cuddle": 5.550002,
+      "bath": 2.0
+     },
+     "happiness": 95.3925
+    },
+    {
+     "id": 5,
+     "needs": {
+      "eat": 3.6000004,
+      "drink": 0.4,
+      "sleep": 3.2999997,
+      "play": 29.399973,
+      "cuddle": 13.049998,
+      "bath": 8.699997
+     },
+     "happiness": 91.0325
+    }
+   ]
+  }
+ ],
+ "events": [
+  {
+   "kitty_id": 2,
+   "activity": {
+    "state": "playing",
+    "target": {
+     "target": "kitty",
+     "id": 3
+    }
+   },
+   "started": 1537,
+   "ended": 1538
+  },
+  {
+   "kitty_id": 2,
+   "activity": {
+    "state": "playing",
+    "target": {
+     "target": "kitty",
+     "id": 5
+    }
+   },
+   "started": 1835,
+   "ended": 1836
+  },
+  {
+   "kitty_id": 2,
+   "activity": {
+    "state": "playing",
+    "target": {
+     "target": "kitty",
+     "id": 3
+    }
+   },
+   "started": 1521,
+   "ended": 1522
+  }
+ ]
+}

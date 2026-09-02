@@ -25,6 +25,11 @@ RAW = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "results-raw"
 SEEDS = [20260911, 20260912]
 COMFORT = ["c55", "c45", "c35", "c30", "w35"]
 ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")] + ["c32-off", "c28-off", "c25-off", "c20-off"]
+# Addendum 2: c30 on the spec-047 binary, gate off (identity) and at 30.
+ARMS += ["c30-off2", "c30-consent30"]
+CONSENT_LINE = 30.0
+REFUSAL_LINE = 0.035   # owner 2026-09-01: investigate above this, not a retrain gate
+NON_PLAY = ("eat", "drink", "sleep", "cuddle", "bath")
 NEEDS5 = ("eat", "drink", "sleep", "cuddle", "bath")
 PARITY = 0.05  # Addendum 1 E1: Biscuit share>=30 within +0.05 of the roster's
 TROUGH = 60.0  # Addendum 1 E4: happiness bar for a trough poll
@@ -79,6 +84,33 @@ def hungry_play(world_polls, kitty_id):
     return hungry, total
 
 
+def consent_blocked(ser, kitty_id, tick, line=CONSENT_LINE):
+    """Spec 047's gate read off interpolated needs at a duet start: the
+    partner's top NON-play need strictly over the line AND strictly over
+    its own play need. Play on top (ties included) is never blocked."""
+    top = max(interp_need(ser, kitty_id, tick, n) for n in NON_PLAY)
+    return top > line and top > interp_need(ser, kitty_id, tick, "play")
+
+
+def hungry_start(ser, kitty_id, tick):
+    """R2 by scene: eat or drink interpolated >= ARMED at the scene start."""
+    return max(interp_need(ser, kitty_id, tick, n) for n in ("eat", "drink")) >= ARMED
+
+
+def refusal_tax(events, kitty_id, t0, t1):
+    """R8 off the spec-046 ring: the seat's refused-into-idle rows
+    (absorbed == false) in [t0, t1], total and by proposed action; a
+    continuation re-proposal at a busy friend is enforced, hence absorbed,
+    and never counts."""
+    rows = [e for e in events if e["kitty_id"] == kitty_id and t0 <= e["tick"] <= t1
+            and not e["absorbed"]]
+    by = Counter(e["proposed"]["action"] + ("_" + e["proposed"]["target"]
+                 if e["proposed"]["action"] == "play" and "target" in e["proposed"] else "")
+                 for e in rows)
+    return {"refused_idle": len(rows), "share_of_ticks": len(rows) / (t1 - t0 + 1),
+            "by_action": dict(by)}
+
+
 def low_need(ser, kitty_id, tick):
     return all(interp_need(ser, kitty_id, tick, n) < ARMED for n in FOOD)
 
@@ -125,6 +157,12 @@ def load(run):
     return c, w, f
 
 
+def load_refusals(run):
+    """Addendum 2 runs archive the deduped spec-046 ring; older runs have none."""
+    p = RAW / f"{run}-refusals.json"
+    return json.loads(p.read_text()) if p.exists() else None
+
+
 def per_run(run):
     c, w, f = load(run)
     s = c["summary"]
@@ -141,6 +179,9 @@ def per_run(run):
     duets = [e for e in bplay if classify(e) == "play-duet"]
     pneed = [interp_need(ser, e["activity"]["target"]["id"], e["started"], "play") for e in duets]
     hungry, total = hungry_play(w, BISCUIT)
+    blocked = sum(consent_blocked(ser, e["activity"]["target"]["id"], e["started"]) for e in duets)
+    hs = Counter(classify(e) for e in bplay if hungry_start(ser, BISCUIT, e["started"]))
+    refusals = load_refusals(run)
     lat = analyze(w)
     others = [i for i in names if i != BISCUIT]
     wf = f["welfare"]
@@ -172,6 +213,13 @@ def per_run(run):
         "announce_biscuit": announce_share(w, {BISCUIT}),
         "announce_roster": announce_share(w, set(others)),
         "trough_biscuit": happiness_trough(w, BISCUIT, TROUGH),
+        # Addendum 2
+        "consent": {"blocked": blocked, "duets": len(duets),
+                    "share": blocked / len(duets) if duets else None},
+        "hungry_start_by_class": {c_: {"hungry": hs[c_], "n": per_seat[BISCUIT][c_]}
+                                  for c_ in ("play-duet", "play-elem", "play-solo")},
+        "refusal_tax": (refusal_tax(refusals["events"], BISCUIT, t0, t1)
+                        | {"ring_gaps": refusals["ring_gaps"]}) if refusals else None,
     }
 
 
@@ -366,6 +414,66 @@ def main():
               f"  play {off['play_total']:.1f} -> {on['play_total']:.1f} {ok(play_flat)}"
               f"  others-duet {off['others_duet']:.2f} -> {on['others_duet']:.2f} {ok(supply)}"
               f"  duet-share {off['duet_share']:.2f} -> {on['duet_share']:.2f}")
+    print("== Addendum 2 R7/R8/R2-split per arm (consent share pooled [seeds]; refusal tax; hungry starts by class)")
+    for a in ARMS:
+        if a not in A:
+            continue
+        rs = arm(a)
+        cs = [r["consent"]["share"] for r in rs]
+        A[a]["consent_share"] = pool(rs, lambda r: r["consent"]["share"])
+        A[a]["consent_seeds"] = cs
+        A[a]["refusal_tax"] = pool(rs, lambda r: (r["refusal_tax"] or {}).get("share_of_ticks"))
+        A[a]["hungry_start"] = {c_: pool(rs, lambda r: r["hungry_start_by_class"][c_]["hungry"] * 1000.0 / r["ticks"])
+                                for c_ in ("play-duet", "play-elem", "play-solo")}
+        gaps = [r["refusal_tax"]["ring_gaps"] for r in rs if r["refusal_tax"]]
+        tax = A[a]["refusal_tax"]
+        print(f"  {a:14s} R7 {A[a]['consent_share']:.3f} {[round(c_, 3) for c_ in cs]}"
+              f"  R8 tax {'n/a' if tax is None else f'{tax:.4f}'} ring-gaps {sum(len(g) for g in gaps)}"
+              f"  hungry-start/1k duet {A[a]['hungry_start']['play-duet']:.1f}"
+              f" elem {A[a]['hungry_start']['play-elem']:.1f} solo {A[a]['hungry_start']['play-solo']:.1f}")
+
+    old30, off2, con = A.get("c30-off"), A.get("c30-off2"), A.get("c30-consent30")
+    if old30 and off2:
+        # C1: same config, new binary; pooled play +-5%, eat>=30 +-0.02
+        c1 = (abs(off2["play_total"] - old30["play_total"]) <= 0.05 * old30["play_total"]
+              and abs(off2["eat_above30"] - old30["eat_above30"]) <= 0.02)
+        bars["C1"] = {"pass": c1, "play": (old30["play_total"], off2["play_total"]),
+                      "eat_above30": (old30["eat_above30"], off2["eat_above30"])}
+        print(f"== Addendum 2 C1 identity {ok(c1)}: play {old30['play_total']:.1f} -> {off2['play_total']:.1f}"
+              f" ({off2['play_total'] / old30['play_total']:.3f}x)  eat>30 {old30['eat_above30']:.3f} -> {off2['eat_above30']:.3f}")
+    if off2 and con:
+        # C2-C5 read against the identity re-run on the same binary (C1 says
+        # it stands in for the old c30-off); the old-arm ratio is printed too.
+        c2 = all(c_ is not None and c_ < 0.05 for c_ in con["consent_seeds"]) and len(con["consent_seeds"]) == len(SEEDS)
+        dd = con["play_split"]["play-duet"] / off2["play_split"]["play-duet"]
+        pt = con["play_total"] / off2["play_total"]
+        c3 = dd >= 0.90 and pt >= 0.96
+        od = con["others_duet"] / off2["others_duet"]
+        c4 = od >= 0.95
+        g_off = {n: off2["needs_biscuit"][n]["share_armed"] - off2["needs_roster"][n]["share_armed"] for n in NEEDS5}
+        g_con = {n: con["needs_biscuit"][n]["share_armed"] - con["needs_roster"][n]["share_armed"] for n in NEEDS5}
+        widen = {n: g_con[n] - g_off[n] for n in NEEDS5}
+        roster_d = {n: con["needs_roster"][n]["share_armed"] - off2["needs_roster"][n]["share_armed"] for n in NEEDS5}
+        c5 = all(widen[n] <= 0.02 for n in NEEDS5) and all(abs(roster_d[n]) <= 0.02 for n in NEEDS5)
+        bars.update({"C2": {"pass": c2, "consent_seeds": con["consent_seeds"], "off2_seeds": off2["consent_seeds"]},
+                     "C3": {"pass": c3, "duet_ratio": dd, "play_ratio": pt,
+                            "duets": (off2["play_split"]["play-duet"], con["play_split"]["play-duet"])},
+                     "C4": {"pass": c4, "others_duet_ratio": od},
+                     "C5": {"pass": c5, "gap_widening": widen, "roster_delta": roster_d},
+                     "R8": {"off2": off2["refusal_tax"], "consent30": con["refusal_tax"]}})
+        print(f"== Addendum 2 C2 consent {ok(c2)}: R7 {off2['consent_share']:.3f} -> {con['consent_share']:.3f}"
+              f" seeds {[round(c_, 3) for c_ in con['consent_seeds']]}")
+        print(f"== Addendum 2 C3 play kept {ok(c3)}: duets/1k {off2['play_split']['play-duet']:.1f} -> "
+              f"{con['play_split']['play-duet']:.1f} ({dd:.3f}x; vs old c30-off "
+              f"{con['play_split']['play-duet'] / old30['play_split']['play-duet'] if old30 else float('nan'):.3f}x)"
+              f"  total play {off2['play_total']:.1f} -> {con['play_total']:.1f} ({pt:.3f}x)")
+        print(f"== Addendum 2 C4 roster supply {ok(c4)}: others-duet {off2['others_duet']:.2f} -> {con['others_duet']:.2f} ({od:.3f}x)")
+        print(f"== Addendum 2 C5 welfare {ok(c5)}: gap widening " + " ".join(f"{n} {widen[n]:+.3f}" for n in NEEDS5)
+              + "  roster delta " + " ".join(f"{n} {roster_d[n]:+.3f}" for n in NEEDS5))
+        t_off, t_con = off2["refusal_tax"], con["refusal_tax"]
+        print(f"== Addendum 2 R8 refusal tax (investigate line {REFUSAL_LINE:.3f}): off2 "
+              f"{'n/a' if t_off is None else f'{t_off:.4f}'} consent30 {'n/a' if t_con is None else f'{t_con:.4f}'}"
+              f"  E1 gaps consent30 " + " ".join(f"{n} {g_con[n]:+.3f}" for n in NEEDS5))
     out["bars"] = bars
     (RAW / "score.json").write_text(json.dumps(out, indent=1, default=str) + "\n")
 
