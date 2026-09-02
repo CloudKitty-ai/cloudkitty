@@ -157,9 +157,11 @@ all recorded). Before step 3 opens: the deploy (logging "waterline
 contagion disabled") **DONE 2026-09-02** (046/047/048 served, boot line
 verified by Product); the live refusal baseline off `/events/refusal`
 **DONE 2026-09-02 (F-039, `refusal-baseline-2026-09-02/RESULTS.md`)**:
-Biscuit taxed 5.13% (94% partner play), other seats 0.70–2.30%, no seat
-near the 10% pin; combined density 0.334/tick, retention floor 5,014 so
-the 6,000 default stands; F-033's 4.7% / 3.5% bars retired. Remaining:
+Biscuit taxed 5.13% (94% partner play, above the 3.5% INVESTIGATE
+line; not actionable for Biscuit 2.0 per the 2026-09-01 ruling), other
+seats 0.70–2.30%; combined density 0.334/tick, retention floor 5,014 so
+the 6,000 default stands; F-033's 4.7% and the 4.6% seam read retired
+as reference numbers. Remaining:
 the v2.10 tag (Unreleased expansion first) and the owner's step-3
 in/out doc.
 
@@ -263,7 +265,9 @@ digest matrix + self-row is extrapolated, not yet measured.
   the reading that counts is Biscuit 3.0's (policy seat, after
   training), with comfort-sweep Addendum 2 R8 as the scripted early
   look (READ 2026-09-01: scripted c30 partnered tax 4.9%, 3.4% with
-  the gate, which reaches the line while widening E1 by 0.01–0.03). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  the gate, which reaches the line while widening E1 by 0.01–0.03;
+  LIVE READ 2026-09-02, F-039: Biscuit 2.0 taxed 5.13% off the stamp,
+  the seam's 4.6% undercounted). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
   its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
   with the roster paying ~4.7% is NOT actionable; the tax becomes a
