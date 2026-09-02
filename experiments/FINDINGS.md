@@ -66,6 +66,14 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
 | F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
 | F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
+| F-032 | superseded → F-033 | Biscuit's idle read as the legality funnel refusing a partnered ask (inference; narrowed to 45% of idle) |
+| F-033 | active | Every seat pays a partnered-action refusal tax in its own currency; for Biscuit under half her idle, the rest chosen (pre-048 bars retired by F-039) |
+| F-034 | active | Here* vocabulary cloning is a cliff between 5.6% and 8.2% corpus share, not near 1% |
+| F-035 | active | The waterline charge is a magnet before it is a fence: charge-blind arms drift toward the edge |
+| F-036 | active | The needflow model is not a proxy for the scripted teacher; three engine gates invert the sleep niche |
+| F-037 | active | The collapse detector names a lock but trails the watchdog by 48–147 ticks; healthy margin 0.07 |
+| F-038 | active | Comfort buys food promptness linearly and pays in element play, never duets; t_partner 5 halves roster duets |
+| F-039 | active | Live refusal tax is Biscuit's alone and it is partner play (5.13%); other seats under 2.3% in groom and move |
 
 ---
 
