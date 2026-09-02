@@ -30,6 +30,30 @@ mutation-witness among existing tests and CANNOT get a behavior-side one
 (the behavior never sees a one-sided duet — probe-proven). Its guards are
 the invariant checker plus T013's race pin. Recorded per rule 3.
 
-## probe-after (T014 results)
+## probe-after (T014 results, 2026-09-02, fixed build @ T013 tip + probe 275896e ride-along)
 
-(recorded at T014)
+Window 1500..21500, all four Addendum 2 arms: **`reproposed 0` on
+dead-at-snapshot scenes in EVERY class** (SC-001/SC-002). Dead scenes still
+occur (PlayCritter dead-at-snapshot 780–1,094/run; Groom 76–98) — the
+behavior just never proposes into them, and refused/rescued/reformed are
+all 0 by construction. PlayDuet same-tick race refusals persist at
+2,872–3,664/run (pre-fix band 2,648–3,416; trajectories lawfully diverged
+— SC-005: races untouched). Drink 0 everywhere (water permanent).
+
+| arm | PlayCritter dead / reproposed | Groom dead / reproposed | Duet races |
+|---|---|---|---|
+| c30-consent30-20260911 | 1094 / 0 | 76 / 0 | 2872 |
+| c30-consent30-20260912 | 933 / 0  | 98 / 0 | 3054 |
+| c30-off2-20260911      | 954 / 0  | 88 / 0 | 3152 |
+| c30-off2-20260912      | 780 / 0  | 80 / 0 | 3664 |
+
+## Discipline slips (rule-3 honesty)
+
+- T013 debugging: a `git stash && git stash drop` intended to discard a
+  temporary dump ALSO discarded the uncommitted T013 test (same-tree
+  hazard, stash-flavored cousin of checkout-trap occurrences one–five).
+  Rewritten from context, no loss — but the rule generalizes: COMMIT the
+  real work before ANY tree-level discard, stash included.
+- T013 staging bug found by the dump: the interrupter's escape step aimed
+  INTO the partner's tile — an illegal move interrupts nothing. Per-role
+  escape directions fix it (test comment records the trap).

@@ -10,7 +10,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `specs/048-no-stale-reproposal/redden-list.md` scaffold (cycle table: prediction / observed / restore / count re-read), noting the 047 `--no-fail-fast` standard
+- [X] T001 Create `specs/048-no-stale-reproposal/redden-list.md` scaffold (cycle table: prediction / observed / restore / count re-read), noting the 047 `--no-fail-fast` standard
 
 ---
 
@@ -18,8 +18,8 @@
 
 **Purpose**: the shared predicate exists before any story consumes it (plan D1, FR-002)
 
-- [ ] T002 Factor `World::counterpart_gone(&self, kitty_id) -> bool` out of `prune_dead_activity`'s match in `crates/cloudkitty-core/src/world.rs` (behavior-identical: prune becomes early-outs + `if self.counterpart_gone(id) { self.end_activity(id) }`); full suite green, COUNT READ
-- [ ] T003 Refactor-integrity cycle in `specs/048-no-stale-reproposal/redden-list.md`: mutate one arm of the factored predicate (duet arm → `false`), predict which EXISTING prune witnesses red, run `cargo test --workspace --no-fail-fast`, record, restore, re-read count (proves the factoring kept the guards pointed at the predicate)
+- [X] T002 Factor `World::counterpart_gone(&self, kitty_id) -> bool` out of `prune_dead_activity`'s match in `crates/cloudkitty-core/src/world.rs` (behavior-identical: prune becomes early-outs + `if self.counterpart_gone(id) { self.end_activity(id) }`); full suite green, COUNT READ
+- [X] T003 Refactor-integrity cycle in `specs/048-no-stale-reproposal/redden-list.md`: mutate one arm of the factored predicate (duet arm → `false`), predict which EXISTING prune witnesses red, run `cargo test --workspace --no-fail-fast`, record, restore, re-read count (proves the factoring kept the guards pointed at the predicate)
 
 **Checkpoint**: predicate shared and guarded — story phases can begin
 
@@ -33,15 +33,15 @@
 
 ### Tests (red-first — write, predict red, then implement)
 
-- [ ] T004 [US1] Behavior guard in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: cat mid-`Playing{Element}`, critter no longer adjacent in snapshot → `finish_what_you_started` returns `None` (red until T008)
-- [ ] T005 [US1] Behavior guard, expired variant in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter absent from world entirely → `None` (red until T008)
-- [ ] T006 [US1] Must-stay-green pin in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter still adjacent → continuation returned exactly as today (FR-004; sorted per CLAUDE.md rule 6 BEFORE T008 runs)
-- [ ] T007 [US1] E2E guard in `crates/cloudkitty-core/src/world.rs` tests: staged world, dead critter scene at tick boundary, one `tick` → no refusal row stamped for the cat that tick AND its applied action is real (stage so the fresh decision is unambiguous — e.g. high eat need with adjacent stocked chow — per remediated SC-002) (FR-007/SC-002; red until T008)
+- [X] T004 [US1] Behavior guard in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: cat mid-`Playing{Element}`, critter no longer adjacent in snapshot → `finish_what_you_started` returns `None` (red until T008)
+- [X] T005 [US1] Behavior guard, expired variant in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter absent from world entirely → `None` (red until T008)
+- [X] T006 [US1] Must-stay-green pin in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter still adjacent → continuation returned exactly as today (FR-004; sorted per CLAUDE.md rule 6 BEFORE T008 runs)
+- [X] T007 [US1] E2E guard in `crates/cloudkitty-core/src/world.rs` tests: staged world, dead critter scene at tick boundary, one `tick` → no refusal row stamped for the cat that tick AND its applied action is real (stage so the fresh decision is unambiguous — e.g. high eat need with adjacent stocked chow — per remediated SC-002) (FR-007/SC-002; red until T008)
 
 ### Implementation
 
-- [ ] T008 [US1] Consult the predicate in `finish_what_you_started` in `crates/cloudkitty-core/src/behavior/needs_driven.rs`: after the governing-need short-circuits, `counterpart_gone` on `ctx.world` → return `None` (plan D2); T004/T005/T007 flip green, T006 stays green, suite green COUNT READ
-- [ ] T009 [US1] Personality doctrine guard (contract invariant 3) in `crates/cloudkitty-core/src/behavior/mod.rs` tests: needs_driven AND playful both fall through on the same staged dead critter scene (red-first by reverting T008 in a recorded cycle)
+- [X] T008 [US1] Consult the predicate in `finish_what_you_started` in `crates/cloudkitty-core/src/behavior/needs_driven.rs`: after the governing-need short-circuits, `counterpart_gone` on `ctx.world` → return `None` (plan D2); T004/T005/T007 flip green, T006 stays green, suite green COUNT READ
+- [X] T009 [US1] Personality doctrine guard (contract invariant 3) in `crates/cloudkitty-core/src/behavior/mod.rs` tests: needs_driven AND playful both fall through on the same staged dead critter scene (red-first by reverting T008 in a recorded cycle)
 
 **Checkpoint**: US1 fully functional — MVP
 
@@ -53,9 +53,9 @@
 
 **Independent Test**: stage grooming pair, move/busy the target friend, advance: fresh action (quickstart §1).
 
-- [ ] T010 [US2] Behavior guard in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: cat mid-`Grooming{Some}`, friend unavailable in snapshot → `None`; red-first via a recorded revert-of-T008 cycle (implementation already landed in US1)
-- [ ] T011 [US2] Must-stay-green pin in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: friend present and available → grooming continuation unchanged (FR-004)
-- [ ] T012 [US2] One-definition cycle (contract invariant 1) in `specs/048-no-stale-reproposal/redden-list.md`: mutate the groom arm of `counterpart_gone`, predict BOTH a prune witness AND T010 red, `--no-fail-fast`, record, restore, count re-read (FR-002's no-drift guard)
+- [X] T010 [US2] Behavior guard in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: cat mid-`Grooming{Some}`, friend unavailable in snapshot → `None`; red-first via a recorded revert-of-T008 cycle (implementation already landed in US1)
+- [X] T011 [US2] Must-stay-green pin in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: friend present and available → grooming continuation unchanged (FR-004)
+- [X] T012 [US2] One-definition cycle (contract invariant 1) in `specs/048-no-stale-reproposal/redden-list.md`: mutate the groom arm of `counterpart_gone`, predict BOTH a prune witness AND T010 red, `--no-fail-fast`, record, restore, count re-read (FR-002's no-drift guard)
 
 **Checkpoint**: US1 + US2 green independently
 
@@ -67,8 +67,8 @@
 
 **Independent Test**: probe re-run reports zero dead-at-snapshot re-proposals; race band unchanged (quickstart §3).
 
-- [ ] T013 [US3] Race must-stay-green pin in `crates/cloudkitty-core/src/world.rs` tests: staged duet where the partner's earlier apply slot interrupts the duet the same tick → the stale continuation IS still refused and stamped `absorbed=false` (SC-005; control apply order via the seam driver `tick_with_proposals` — injected proposals bypass behavior dispatch, so the "continuation" is supplied directly and only the fair-order draw needs a cooperating seed, or assert on whichever partner drew the later slot; if an equivalent 046 pin already exists, cite it in redden-list.md instead of duplicating — FR-002-style one home)
-- [ ] T014 [US3] Probe re-run per `specs/048-no-stale-reproposal/quickstart.md` §3 (cherry-pick 275896e -n on a CLEAN COMMITTED tree, run all four arms, revert ride-along): expect `reproposed 0` on dead-at-snapshot in every class, PlayDuet races in the 2,600–3,400 band; record the four result blocks in `specs/048-no-stale-reproposal/redden-list.md` §probe-after (SC-001/SC-002/SC-005 evidence)
+- [X] T013 [US3] Race must-stay-green pin in `crates/cloudkitty-core/src/world.rs` tests: staged duet where the partner's earlier apply slot interrupts the duet the same tick → the stale continuation IS still refused and stamped `absorbed=false` (SC-005; control apply order via the seam driver `tick_with_proposals` — injected proposals bypass behavior dispatch, so the "continuation" is supplied directly and only the fair-order draw needs a cooperating seed, or assert on whichever partner drew the later slot; if an equivalent 046 pin already exists, cite it in redden-list.md instead of duplicating — FR-002-style one home)
+- [X] T014 [US3] Probe re-run per `specs/048-no-stale-reproposal/quickstart.md` §3 (cherry-pick 275896e -n on a CLEAN COMMITTED tree, run all four arms, revert ride-along): expect `reproposed 0` on dead-at-snapshot in every class, PlayDuet races in the 2,600–3,400 band; record the four result blocks in `specs/048-no-stale-reproposal/redden-list.md` §probe-after (SC-001/SC-002/SC-005 evidence)
 
 **Checkpoint**: all stories verified
 

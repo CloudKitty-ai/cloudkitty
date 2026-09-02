@@ -37,6 +37,7 @@ python3 experiments/biscuit3-comfort-sweep-2026-09-01/gen_configs.py <scratch> -
 PROBE_CONFIG_DIR=<scratch>/configs \
   cargo test -p cloudkitty-core --lib reproposal_probe -- --ignored --nocapture
 git restore --source=HEAD --staged --worktree crates/cloudkitty-core/src/lib.rs
+git restore --staged crates/cloudkitty-core/src/reproposal_probe.rs
 git clean -f crates/cloudkitty-core/src/reproposal_probe.rs
 ```
 
