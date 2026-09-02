@@ -560,7 +560,9 @@ mod tests {
             world.elements.clear();
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = Position::new(5, 5);
-            world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 45.0);
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Play, 45.0);
             let f = world.kitty_index(2).unwrap();
             world.kitties[f].pos = Position::new(5, 6); // adjacent, idle
             world.kitties[f].needs = crate::needs::Needs::default();

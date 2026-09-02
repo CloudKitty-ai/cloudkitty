@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- Consent line (spec 047): a new `[behavior] consent_line` dial — a friend
+  whose top non-play need is strictly over the line and strictly over its
+  own play need is never proposed to for play by a playful cat, on all
+  three playful friend-play paths (partner ranking, get-serious relief,
+  adjacent opportunism). Play on top always proposable; critters, elements,
+  solo play and needs_driven untouched. Default 0.0 = off: golden pin and
+  defaults stamp unmoved, no markers.
 - Refusal stamp (spec 046): every non-Idle proposal validation resolves
   to Idle is recorded — kitty, proposal verbatim, tick, and an `absorbed`
   flag (the kitty was mid-scene and the scene continued) — in a bounded

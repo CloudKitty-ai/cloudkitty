@@ -6,8 +6,8 @@ from the feature worktree root.
 ## 1. Identity at the default (FR-001 / SC-001)
 
 ```sh
-cargo test -p cloudkitty-core golden
-cargo test -p cloudkitty-core stamp
+cargo test -p cloudkitty-core --test evolution_golden
+cargo test -p cloudkitty-core --lib roam_cell_stays_out_of_the_default_serialization
 ```
 
 Expected: the evolution golden digest and the defaults stamp both pass
@@ -17,7 +17,9 @@ state. A moved pin is a bug, not a regen prompt (research D5).
 ## 2. The gate's behavior (SC-002, SC-003)
 
 ```sh
-cargo test -p cloudkitty-core consent
+cargo test -p cloudkitty-core --lib consent
+cargo test -p cloudkitty-core --lib a_critter_beside_a_blocked_friend
+cargo test -p cloudkitty-core --lib an_adjacent_burdened_friend
 ```
 
 Expected: the per-site guards pass — ranking trio (blocked / under-line /

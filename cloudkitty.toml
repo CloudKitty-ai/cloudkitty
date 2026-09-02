@@ -373,6 +373,13 @@ playful_comfort = 55.0
 # t_self = 0.0          # own play-need floor for bothering any friend
 # t_partner = 0.0       # per-friend value floor (eligibility filter)
 # critter_appeal = 0.0  # standalone critter score offset (either sign)
+# The consent line (spec 047): a friend whose top NON-play need is strictly
+# over this line AND strictly over its own play need is never proposed to
+# for play by a playful cat -- on every playful path (ranking, get-serious,
+# adjacent opportunism). Play on top (ties included) = always fair game.
+# Friends only: critters, elements, solo play and needs_driven cats are
+# untouched. Absent (or 0.0) = off, byte-identical to pre-047.
+# consent_line = 0.0
 # [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
 #                             #   (strictly > 0; pair w_busy with w_value)
 # eat = 1.0

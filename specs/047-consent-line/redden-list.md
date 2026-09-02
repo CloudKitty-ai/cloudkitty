@@ -24,3 +24,15 @@ after every run.
 | 7 | T014 identity witnesses | `Default` temporarily 30.0 | defaults-stamp assertion + evolution golden BOTH red (Biscuit is playful in the default config, so the gate runs in the golden world) | as predicted, plus the 046 strip witness red too (the world itself diverged — consistent) | reverted to 0.0; stamp + golden green, pins UNMOVED |
 | 8 | T015 doctrine guard | classic `take_what_is_here` entry temporarily passed `consent: true` | ONLY the needs_driven doctrine guard red | as predicted: exactly 1 failed (451 passed) | reverted, lib 452/0 |
 | 9 | T016 validation row | poison-table row added BEFORE the validate.rs entry | red: NaN/inf/−1 in `consent_line` accepted (nothing rejects) | as predicted: poison test failed at the expect_err | validate.rs entry added, lib 452/0 |
+
+## Final gate (T020/T021)
+
+- `cargo fmt --all --check`: clean. `cargo clippy --workspace --all-targets -- -D warnings`: clean.
+- Suite trajectory: **793/0 (baseline) → 805/0** (64 suites) — 12 new
+  tests: 4 predicate pins, 3 ranking trio, 1 score-on, 1 critter, 1
+  get-serious, 1 opportunism, 1 needs_driven doctrine; the stamp guard and
+  the 042 poison table were EXTENDED in place (no new test fn).
+- Quickstart §§1–4 walked as written; two stale test filters in §1/§2
+  fixed to the real target/test names during the walk.
+- Golden pin + defaults stamp: UNMOVED on the finished branch (cycle 7
+  proved both CAN red).

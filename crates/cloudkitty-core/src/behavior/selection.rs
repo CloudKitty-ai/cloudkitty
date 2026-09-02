@@ -464,27 +464,27 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
         .others(me.id)
         .filter(|k| !consent_blocks(ctx, k))
         .map(|k| {
-        (
-            TargetRef::Kitty { id: k.id },
-            k.pos,
-            1u8,
-            k.id,
-            // Value AND exposure computed ONCE per candidate, here at
-            // construction (the module's recorded 2026-08-29 rule: no
-            // re-derivation inside the comparator). Exposure is 0.0 the
-            // moment the ladder gate is off — the helper's short-circuit.
-            Some((
-                partner_value(ctx, k),
-                expected_scene_exposure(
-                    ctx,
-                    crate::kitty::Activity::Playing {
-                        target: Some(TargetRef::Kitty { id: k.id }),
-                    },
-                    k.id,
-                ),
-            )),
-        )
-    });
+            (
+                TargetRef::Kitty { id: k.id },
+                k.pos,
+                1u8,
+                k.id,
+                // Value AND exposure computed ONCE per candidate, here at
+                // construction (the module's recorded 2026-08-29 rule: no
+                // re-derivation inside the comparator). Exposure is 0.0 the
+                // moment the ladder gate is off — the helper's short-circuit.
+                Some((
+                    partner_value(ctx, k),
+                    expected_scene_exposure(
+                        ctx,
+                        crate::kitty::Activity::Playing {
+                            target: Some(TargetRef::Kitty { id: k.id }),
+                        },
+                        k.id,
+                    ),
+                )),
+            )
+        });
 
     critters
         .chain(friends)
@@ -1824,7 +1824,10 @@ mod playful2_tests {
         let mut ctx = decision_context(|world| pin_needs(world, 2, 30.0, 10.0));
         set_dials(&mut ctx, |b| b.consent_line = 30.0);
         let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
-        assert!(!consent_blocks(&ctx, k), "eat 30 is AT the line, not over it");
+        assert!(
+            !consent_blocks(&ctx, k),
+            "eat 30 is AT the line, not over it"
+        );
     }
 
     /// Play tying the top non-play need keeps the friend proposable —
@@ -1834,7 +1837,10 @@ mod playful2_tests {
         let mut ctx = decision_context(|world| pin_needs(world, 2, 40.0, 40.0));
         set_dials(&mut ctx, |b| b.consent_line = 30.0);
         let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
-        assert!(!consent_blocks(&ctx, k), "play 40 co-tops eat 40: proposable");
+        assert!(
+            !consent_blocks(&ctx, k),
+            "play 40 co-tops eat 40: proposable"
+        );
     }
 
     /// The default 0.0 is OFF: no need is even read (the short-circuit).
