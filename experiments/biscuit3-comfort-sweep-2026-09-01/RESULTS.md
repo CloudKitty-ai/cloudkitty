@@ -553,3 +553,73 @@ Filed as a bug independent of this ruling: `expected_wait` returns 0
 for boundless (rest) and past-minimum scenes (`selection.rs:581-589`),
 so any `w_value > 0` admits a settled rester as a free partner. Latent
 at today's identity dials; Product's lane.
+
+## Addendum 3 results, Half B: the four twins on the spec-048 binary (2026-09-02; declared @ a7adae2 before collection; 8/8 valid)
+
+Binary: main b9f9c00 (PR #339, last `crates/` commit 2048463), rebuilt
+2026-09-02. Same configs as the unfixed arms, `fix-` token only. 048
+carries `[rng-sequence]` by consequence (draw order untouched, seeded
+evolution diverges), so twin and unfixed arm are different histories
+under the same seed, not paired runs.
+
+| arm | duets/1k | elem/1k | solo/1k | total | R7 | R8 | elem refused | loiter | others' duets/1k |
+|---|---|---|---|---|---|---|---|---|---|
+| c30-off2 (unfixed) | 67.3 | 95.7 | 0.0 | 163.1 | 0.208 | 0.049 | 0.024 | 0.142 | 25.6 |
+| c30-fix-off | 67.4 | 110.5 | 0.0 | 177.9 | 0.254 | 0.049 | 0.000 | 0.144 | 25.8 |
+| c30-consent30 (unfixed) | 49.0 | 117.3 | 0.0 | 166.4 | 0.013 | 0.034 | 0.031 | 0.137 | 21.2 |
+| c30-fix-consent30 | 54.2 | 128.2 | 0.0 | 182.4 | 0.009 | 0.035 | 0.000 | 0.120 | 23.5 |
+| c30-fix-wv25 | 53.0 | 60.4 | 58.7 | 172.0 | 0.021 | 0.035 | 0.000 | 0.186 | 21.4 |
+| c30-fix-wv50 | 51.2 | 36.4 | 67.4 | 155.0 | 0.027 | 0.033 | 0.000 | 0.189 | 21.2 |
+
+Seeds: fix-off duets 60.5 / 74.4; fix-consent30 51.5 / 56.9;
+consent30 (unfixed) 48.2 / 49.8. The off arm's seed spread on the new
+binary (14/1k) is the noise floor for every duet comparison below.
+
+**F1 PASS, all four twins**: Biscuit's element refused-idle share
+0.024–0.031 → 0.000 exactly. Matches Product's probe (`reproposed 0`
+in every class). The fix's whole target is gone.
+
+**F2 PASS, all four**: partnered tax unmoved, 0.0487 → 0.0492 (off),
+0.0338 → 0.0354 (consent), 0.0338 → 0.0346, 0.0333 → 0.0330. The
+partnered rows are races, as the probe said; 048 does not touch them.
+
+**F3 MISS in three of four, on play total, and the miss is the fix
+working, not noise**: total play +9% (163.1 → 177.9 off, 166.4 → 182.4
+consent, 157.8 → 172.0 wv25; wv50 +3%, PASS). The gain is element play
+(+14.8 / +10.9 / +10.9 per 1k) against 24–31 refused-idle rows per 1k
+removed: a tick that used to re-propose a dead critter scene and refuse
+now goes to a live target. The ±5% bar assumed 048 was inert on
+outcomes; it is not, by about one recovered play per two rescued ticks.
+Duets within the seed floor everywhere (67.3 → 67.4; 49.0 → 54.2 is
+inside the off arm's 14/1k spread). Gap deltas within ±0.02 except
+cuddle +0.020 at off (bar edge).
+
+**D-bars on the fixed binary (the wv twins against fix-off /
+fix-consent30)**: identical verdicts to Half A. D1 MISS (0.79x /
+0.76x), D3 MISS (0.55x / 0.33x), D4 MISS, D6 FLAG (loiter 0.120 →
+0.186 / 0.189), solo play from zero to 58.7 / 67.4 per 1k. D5 PASS on
+both (cuddle narrows −0.015 / −0.020 while eat/drink/sleep widen up to
++0.020). The dial fails the same way on both binaries.
+
+**Interaction ≈ 0 within noise**: the dial's duet gain over its consent
+baseline is +4.6 / +2.2 per 1k unfixed and −1.2 / −3.0 fixed (diff −5.8
+/ −5.2, inside the 14/1k floor). The fix and the dial do not interact;
+the fix does not rescue the dial.
+
+**The shipping configuration, measured on the shipping engine
+(fix-consent30 vs fix-off)**: duets 0.80x (54.2 / 67.4), element play
+1.16x, total play 1.03x, R7 0.254 → 0.009, R8 4.9% → 3.5%, roster
+duets 0.91x (others' starts 25.8 → 23.5/1k), loiter down 0.144 → 0.120.
+E1 on this binary: Biscuit's all-five gaps vs the roster are +0.04 to
++0.05 at seed 1 and +0.07 to +0.09 at seed 2 (cuddle +0.051 / +0.087,
+mean +0.069), against +0.03 to +0.05 for fix-off (cuddle +0.052 /
++0.043). The E1 number the owner overrode was +0.05–0.06 on the f45a880
+binary; on b9f9c00 it reads +0.04–0.09 with a wide seed spread, and the
+off arm itself now sits at the 0.05 line on cuddle and sleep. The
+ruling stands as made; this is the re-verify reading it will get again
+against the served economy before the retrain (F-038 re-verify
+trigger), and the seed spread says one more seed pair would be cheap
+insurance if the anchor's E1 is ever load-bearing.
+
+Reverse-race `absorbed=true` rows (048 Edge Cases) are outside R8 by
+construction and were not counted here.
