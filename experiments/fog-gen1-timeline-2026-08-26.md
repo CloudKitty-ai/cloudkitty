@@ -267,7 +267,8 @@ digest matrix + self-row is extrapolated, not yet measured.
   look (READ 2026-09-01: scripted c30 partnered tax 4.9%, 3.4% with
   the gate, which reaches the line while widening E1 by 0.01–0.03;
   LIVE READ 2026-09-02, F-039: Biscuit 2.0 taxed 5.13% off the stamp,
-  the seam's 4.6% undercounted). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  the seam's 4.6% undercounted; owner 2026-09-02: c30 + consent read
+  at the line scripted, decide on Biscuit 3.0's own read). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
   its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
   with the roster paying ~4.7% is NOT actionable; the tax becomes a

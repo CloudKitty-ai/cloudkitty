@@ -30,6 +30,10 @@ Roster: 5,059 rows, 1,801 taxed + 3,258 absorbed. Taxed density
   disposes of this reading: Biscuit 2.0 at parity welfare paying
   ~4.7% is not actionable, and the reading that counts is Biscuit
   3.0's after training. Logged, no action.
+  **Owner 2026-09-02**: the scripted c30 + consent anchor read 3.4–3.5%
+  (Addendum 2 R8, comfort-sweep Half B), right at the line; the call
+  on further action waits for Biscuit 3.0's own refusal read after
+  training (step 7, this instrument).
 - Retention: `retention_floor_15k` = 5,014 < 6,000. **The default
   stands**; no config change owed. The combined density is 1.45× the
   taxed-only 0.23/tick the knob was sized on, and the 6,000 default's
