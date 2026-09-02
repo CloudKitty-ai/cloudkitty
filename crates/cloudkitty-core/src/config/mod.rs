@@ -969,6 +969,17 @@ pub struct BehaviorConfig {
     /// w_value — each dial moves exactly one thing). Either sign is lawful.
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     pub critter_appeal: f32,
+    /// Spec 047: the consent line. A FRIEND whose top NON-play need is
+    /// strictly over this line AND strictly over its own play need is never
+    /// proposed to for play by the playful behavior — on all three of its
+    /// friend-play paths (partner ranking, get-serious relief, adjacent
+    /// opportunism; Clarifications 2026-09-01). Play on top (ties included)
+    /// = always proposable. Friends only: critters, elements and solo play
+    /// are never gated, and needs_driven is untouched (the 042 doctrine).
+    /// 0.0 (the default, skip-serialized — 039-D5 stamp discipline) = off,
+    /// structurally byte-identical to pre-047.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub consent_line: f32,
     /// Per-need multipliers inside the playful get-serious trigger ONLY
     /// (spec 042): pressure × weight compared to `playful_comfort`. All 1.0
     /// = exactly the classic unweighted check; skip-serialized at identity.
@@ -1087,6 +1098,7 @@ impl Default for BehaviorConfig {
             t_self: 0.0,
             t_partner: 0.0,
             critter_appeal: 0.0,
+            consent_line: 0.0,
             comfort_weight: ComfortWeights::default(),
             announce_here: 0,
             contagion_aware_ladder: false,

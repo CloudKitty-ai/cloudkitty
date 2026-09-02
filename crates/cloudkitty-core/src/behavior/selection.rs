@@ -511,12 +511,35 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
 fn partner_value(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> f32 {
     let b = &ctx.config.behavior;
     let play_need = k.needs.get(NeedKind::Play);
-    let top_non_play = NeedKind::ALL
+    play_need - b.w_busy * expected_wait(ctx, k) - b.w_serious * top_non_play(k)
+}
+
+/// The highest of a kitty's NON-play needs at decision time. One home for
+/// the fold on purpose (spec 047 FR-009): the 042 score's seriousness term
+/// and the consent gate must read the same number, from the same snapshot.
+fn top_non_play(k: &crate::kitty::Kitty) -> f32 {
+    NeedKind::ALL
         .iter()
         .filter(|kind| **kind != NeedKind::Play)
         .map(|kind| k.needs.get(*kind))
-        .fold(0.0f32, f32::max);
-    play_need - b.w_busy * expected_wait(ctx, k) - b.w_serious * top_non_play
+        .fold(0.0f32, f32::max)
+}
+
+/// The spec-047 consent gate: proposing play to the friend `k` is off the
+/// table when its top non-play need is strictly over `consent_line` AND
+/// strictly over its own play need (the owner's rule — "over", so any tie
+/// keeps the friend eligible; play on top is always proposable). At the
+/// default `consent_line` 0.0 the gate short-circuits false before reading
+/// a single need: identity is structural, not numerical. Consulted only by
+/// the playful behavior's friend-play paths — never by needs_driven, never
+/// for critters, elements or solo play.
+pub(crate) fn consent_blocks(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> bool {
+    let line = ctx.config.behavior.consent_line;
+    if line <= 0.0 {
+        return false;
+    }
+    let top = top_non_play(k);
+    top > line && top > k.needs.get(NeedKind::Play)
 }
 
 /// Ticks until a mid-scene kitty could be free -- a HEURISTIC, exact only
@@ -1735,6 +1758,53 @@ mod playful2_tests {
         let idx = world.kitty_index(id).unwrap();
         world.kitties[idx].activity = crate::kitty::Activity::Eating;
         world.kitties[idx].activity_clock = Some(ActivityClock::start(world.tick));
+    }
+
+    // ---- Spec 047: the consent gate (T005 predicate pins) -------------
+
+    /// Pins a kitty's needs exactly: everything zeroed, then only eat and
+    /// play set — so `top_non_play` is the eat value by construction.
+    fn pin_needs(world: &mut crate::world::World, id: u32, eat: f32, play: f32) {
+        let idx = world.kitty_index(id).unwrap();
+        world.kitties[idx].needs = crate::needs::Needs::default();
+        world.kitties[idx].needs.eat = crate::needs::Need::new(eat);
+        world.kitties[idx].needs.play = crate::needs::Need::new(play);
+    }
+
+    /// The owner's rule verbatim: over the line AND over play blocks.
+    #[test]
+    fn the_consent_gate_blocks_a_friend_strictly_over_the_line() {
+        let mut ctx = decision_context(|world| pin_needs(world, 2, 40.0, 10.0));
+        set_dials(&mut ctx, |b| b.consent_line = 30.0);
+        let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
+        assert!(consent_blocks(&ctx, k), "eat 40 > line 30 and > play 10");
+    }
+
+    /// "Over" is strict: a top non-play need exactly AT the line spares.
+    #[test]
+    fn the_consent_gate_spares_a_friend_exactly_at_the_line() {
+        let mut ctx = decision_context(|world| pin_needs(world, 2, 30.0, 10.0));
+        set_dials(&mut ctx, |b| b.consent_line = 30.0);
+        let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
+        assert!(!consent_blocks(&ctx, k), "eat 30 is AT the line, not over it");
+    }
+
+    /// Play tying the top non-play need keeps the friend proposable —
+    /// blocking needs the non-play need strictly on top.
+    #[test]
+    fn the_consent_gate_spares_a_friend_whose_play_ties_its_top_need() {
+        let mut ctx = decision_context(|world| pin_needs(world, 2, 40.0, 40.0));
+        set_dials(&mut ctx, |b| b.consent_line = 30.0);
+        let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
+        assert!(!consent_blocks(&ctx, k), "play 40 co-tops eat 40: proposable");
+    }
+
+    /// The default 0.0 is OFF: no need is even read (the short-circuit).
+    #[test]
+    fn the_consent_gate_is_off_at_the_default_line() {
+        let ctx = decision_context(|world| pin_needs(world, 2, 90.0, 0.0));
+        let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
+        assert!(!consent_blocks(&ctx, k), "line 0.0 gates nothing, ever");
     }
 
     /// (a) The identity pin: at all-default dials the pick is today's --
