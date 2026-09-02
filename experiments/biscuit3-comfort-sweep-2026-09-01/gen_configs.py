@@ -19,6 +19,11 @@ No [water] block: contagion is shelved for Gen 1.
 usage: gen_configs.py <scratch dir> [--ext]   (writes <scratch>/configs/*.toml)
   --ext: prereg Addendum 1 only -- c25/c20, score off, ports 8320+
   --ext2: prereg Addendum 1b only -- c32/c28, score off, ports 8324+
+  --consent: Addendum 2 -- c30 off2 / consent30, ports 8328+
+  --add3 A: Addendum 3 half A -- consent30 + w_value 0.25 / 0.5 (w_busy =
+        1/w_value: wait priced in tiles), same binary, ports 8332+
+  --add3 B: Addendum 3 half B -- the four twins on the re-proposal-fix
+        binary (off, consent30, wv25, wv50), ports 8336+
 """
 import re
 import sys
@@ -47,6 +52,21 @@ if CONSENT:
     COMFORT_ARMS = [("c30", 30.0, None)]
     SCORE_STATES = (False,)
     BASE_IDX = 28
+# Addendum 3: (state token, consent line, w_value). w_busy = 1/w_value so
+# a tick of expected wait costs exactly one tile in the score; w_serious,
+# t_partner, t_self, critter_appeal stay at identity (no bar, no element
+# penalty: the owner's constraint).
+ADD3 = None
+if "--add3" in sys.argv[2:]:
+    ADD3 = sys.argv[sys.argv.index("--add3") + 1]
+    assert ADD3 in ("A", "B"), ADD3
+    COMFORT_ARMS = [("c30", 30.0, None)]
+    SCORE_STATES = (False,)
+    CONSENT_STATES = (None,)
+    ADD3_STATES = ([("wv25", 30.0, 0.25), ("wv50", 30.0, 0.5)] if ADD3 == "A" else
+                   [("fix-off", None, None), ("fix-consent30", 30.0, None),
+                    ("fix-wv25", 30.0, 0.25), ("fix-wv50", 30.0, 0.5)])
+    BASE_IDX = 32 if ADD3 == "A" else 36
 # Candidate score dials (first pass, chosen before any data; see prereg).
 SCORE = {"w_value": 0.5, "w_busy": 1.0, "w_serious": 0.5,
          "t_self": 5.0, "t_partner": 5.0, "critter_appeal": 0.0}
@@ -54,7 +74,10 @@ SCORE = {"w_value": 0.5, "w_busy": 1.0, "w_serious": 0.5,
 src = SRC.read_text()
 idx = BASE_IDX
 for label, comfort, food_w in COMFORT_ARMS:
-    for score_on, consent in [(s_, c_) for s_ in SCORE_STATES for c_ in CONSENT_STATES]:
+    variants = ([(False, c_, None, None) for c_ in CONSENT_STATES] if ADD3 is None else
+                [(False, c_, wv, tok) for tok, c_, wv in ADD3_STATES])
+    for score_on, consent, w_value, token in ([(s_, c_, None, None) for s_ in SCORE_STATES for c_ in CONSENT_STATES]
+                                              if ADD3 is None else variants):
         for seed in SEEDS:
             t = src
             # Biscuit is the second seat; her policy line is unique.
@@ -75,6 +98,8 @@ for label, comfort, food_w in COMFORT_ARMS:
             state = "on" if score_on else "off"
             if CONSENT:
                 state = "off2" if consent is None else f"consent{consent:g}"
+            if token is not None:
+                state = token
             run = f"{label}-{state}-{seed}"
             snap = OUT.parent / "snaps" / f"{run}.json"
             t, n = re.subn(r'^snapshot_path = "[^"]+"$',
@@ -86,6 +111,8 @@ for label, comfort, food_w in COMFORT_ARMS:
             dials = [f"playful_comfort = {comfort}"]
             if consent is not None:
                 dials.append(f"consent_line = {consent}")
+            if w_value is not None:
+                dials += [f"w_value = {w_value}", f"w_busy = {1.0 / w_value:.1f}"]
             if score_on:
                 dials += [f"{k} = {v}" for k, v in SCORE.items()]
             if food_w is not None:

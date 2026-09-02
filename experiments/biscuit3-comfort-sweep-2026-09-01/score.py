@@ -27,6 +27,14 @@ COMFORT = ["c55", "c45", "c35", "c30", "w35"]
 ARMS = [f"{c}-{s}" for c in COMFORT for s in ("off", "on")] + ["c32-off", "c28-off", "c25-off", "c20-off"]
 # Addendum 2: c30 on the spec-047 binary, gate off (identity) and at 30.
 ARMS += ["c30-off2", "c30-consent30"]
+# Addendum 3: Half A (same binary) = consent30 + w_value 0.25 / 0.5 with
+# w_busy = 1/w_value so wait is priced in tiles; Half B (re-proposal-fix
+# binary) = the four twins. Bars are read twin-against-twin.
+WV_ARMS = ["c30-wv25", "c30-wv50"]
+FIX_ARMS = ["c30-fix-off", "c30-fix-consent30", "c30-fix-wv25", "c30-fix-wv50"]
+ARMS += WV_ARMS + FIX_ARMS
+TWIN = {"c30-fix-off": "c30-off2", "c30-fix-consent30": "c30-consent30",
+        "c30-fix-wv25": "c30-wv25", "c30-fix-wv50": "c30-wv50"}
 CONSENT_LINE = 30.0
 REFUSAL_LINE = 0.035   # owner 2026-09-01: investigate above this, not a retrain gate
 NON_PLAY = ("eat", "drink", "sleep", "cuddle", "bath")
@@ -110,9 +118,44 @@ def refusal_tax(events, kitty_id, t0, t1):
                  if e["proposed"]["action"] == "play" and "target" in e["proposed"] else "")
                  for e in rows)
     partnered = by.get("play_kitty", 0)
+    element = by.get("play_element", 0)
     return {"refused_idle": len(rows), "share_of_ticks": len(rows) / (t1 - t0 + 1),
             "partnered": partnered, "partnered_share": partnered / (t1 - t0 + 1),
+            # Addendum 3: the element rows are the re-proposal fix's whole
+            # target (a critter that moved off; dead at snapshot, 100%
+            # refused); the partnered rows are same-tick races it cannot see.
+            "element": element, "element_share": element / (t1 - t0 + 1),
             "by_action": dict(by)}
+
+
+def race_rate(events, t0, t1):
+    """Addendum 3 report-only: ROSTER-wide partnered refused-idle rows per
+    tick (every seat's play-with-friend proposal bounced into idle). Product's
+    replay probe (2026-09-02) found these are same-tick races, a standing cost
+    of the decide/apply split that rises with duet churn."""
+    n = sum(1 for e in events if t0 <= e["tick"] <= t1 and not e["absorbed"]
+            and e["proposed"]["action"] == "play" and e["proposed"].get("target") == "kitty")
+    return n / (t1 - t0 + 1)
+
+
+def loiter_share(world_polls, kitty_id):
+    """Addendum 3 watch: share of /world polls where the seat is idle with a
+    BUSY friend (any non-idle activity) on an adjacent tile. w_value > 0
+    admits mid-scene friends for anticipatory approach (selection.rs:499),
+    and this is what approach-and-wait looks like at poll resolution."""
+    hits, n = 0, 0
+    for p in world_polls:
+        me = next(k for k in p["kitties"] if k["id"] == kitty_id)
+        n += 1
+        if me["activity"]["state"] != "idle":
+            continue
+        for k in p["kitties"]:
+            if k["id"] == kitty_id or k["activity"]["state"] == "idle":
+                continue
+            if abs(k["pos"]["x"] - me["pos"]["x"]) + abs(k["pos"]["y"] - me["pos"]["y"]) == 1:
+                hits += 1
+                break
+    return hits / n
 
 
 def low_need(ser, kitty_id, tick):
@@ -224,6 +267,9 @@ def per_run(run):
                                   for c_ in ("play-duet", "play-elem", "play-solo")},
         "refusal_tax": (refusal_tax(refusals["events"], BISCUIT, t0, t1)
                         | {"ring_gaps": refusals["ring_gaps"]}) if refusals else None,
+        # Addendum 3
+        "race_rate": race_rate(refusals["events"], t0, t1) if refusals else None,
+        "loiter": loiter_share(w, BISCUIT),
     }
 
 
@@ -480,6 +526,87 @@ def main():
         print(f"== Addendum 2 R8 partnered refusal tax (investigate line {REFUSAL_LINE:.3f}): off2 "
               f"{'n/a' if t_off is None else f'{t_off:.4f}'} consent30 {'n/a' if t_con is None else f'{t_con:.4f}'}"
               f"  E1 gaps consent30 " + " ".join(f"{n} {g_con[n]:+.3f}" for n in NEEDS5))
+    print("== Addendum 3 per arm: loiter share; roster race rate; Biscuit element refused-idle share")
+    for a in ARMS:
+        if a not in A:
+            continue
+        rs = arm(a)
+        A[a]["loiter"] = pool(rs, lambda r: r["loiter"])
+        A[a]["race_rate"] = pool(rs, lambda r: r["race_rate"])
+        A[a]["element_refused"] = pool(rs, lambda r: (r["refusal_tax"] or {}).get("element_share"))
+        A[a]["duets"] = A[a]["play_split"]["play-duet"]
+        A[a]["elem"] = A[a]["play_split"]["play-elem"]
+        rr, er = A[a]["race_rate"], A[a]["element_refused"]
+        print(f"  {a:18s} loiter {A[a]['loiter']:.4f} {[round(r['loiter'], 4) for r in rs]}"
+              f"  race/tick {'n/a' if rr is None else f'{rr:.4f}'}"
+              f"  elem-refused {'n/a' if er is None else f'{er:.4f}'}"
+              f"  duets {A[a]['duets']:.1f} elem {A[a]['elem']:.1f} total {A[a]['play_total']:.1f}")
+
+    def gaps_of(d):
+        return {n: d["needs_biscuit"][n]["share_armed"] - d["needs_roster"][n]["share_armed"] for n in NEEDS5}
+
+    def dial_bars(tag, d, base_off, base_con):
+        """D1-D6 for a w_value arm against its same-binary gate-off baseline
+        (D1/D3/D4/D5) and its consent-only baseline (D6 loiter watch)."""
+        g_off, g_d = gaps_of(base_off), gaps_of(d)
+        widen = {n: g_d[n] - g_off[n] for n in NEEDS5}
+        roster_d = {n: d["needs_roster"][n]["share_armed"] - base_off["needs_roster"][n]["share_armed"] for n in NEEDS5}
+        b = {"D1": d["duets"] >= 0.90 * base_off["duets"], "duet_ratio": d["duets"] / base_off["duets"],
+             "D2": all(c_ is not None and c_ < 0.05 for c_ in d["consent_seeds"]) and len(d["consent_seeds"]) == len(SEEDS),
+             "consent_seeds": d["consent_seeds"],
+             "D3": d["elem"] >= 0.95 * base_off["elem"], "elem_ratio": d["elem"] / base_off["elem"],
+             "D4": d["others_duet"] >= 0.95 * base_off["others_duet"], "others_ratio": d["others_duet"] / base_off["others_duet"],
+             "D5": all(widen[n] <= 0.02 for n in NEEDS5) and all(abs(roster_d[n]) <= 0.02 for n in NEEDS5),
+             "gap_widening": widen, "roster_delta": roster_d, "E1_gaps": g_d,
+             "D6_flag": d["loiter"] > base_con["loiter"] + 0.03, "loiter": (base_con["loiter"], d["loiter"]),
+             "R8": d["refusal_tax"]}
+        bars[tag] = b
+        print(f"== Addendum 3 {tag}: D1 duets {ok(b['D1'])} ({base_off['duets']:.1f} -> {d['duets']:.1f}, {b['duet_ratio']:.3f}x)"
+              f"  D2 consent {ok(b['D2'])} {[round(c_, 3) for c_ in d['consent_seeds']]}"
+              f"  D3 elem floor {ok(b['D3'])} ({base_off['elem']:.1f} -> {d['elem']:.1f}, {b['elem_ratio']:.3f}x)"
+              f"  D4 supply {ok(b['D4'])} ({b['others_ratio']:.3f}x)"
+              f"  D5 welfare {ok(b['D5'])} widening " + " ".join(f"{n} {widen[n]:+.3f}" for n in NEEDS5)
+              + f"  D6 loiter {'FLAG' if b['D6_flag'] else 'quiet'} ({base_con['loiter']:.4f} -> {d['loiter']:.4f})"
+              f"  R8 {'n/a' if d['refusal_tax'] is None else f'{d['refusal_tax']:.4f}'}")
+
+    for a in WV_ARMS:
+        if a in A and off2 and con:
+            dial_bars(f"A-{a}", A[a], off2, con)
+    fo, fc = A.get("c30-fix-off"), A.get("c30-fix-consent30")
+    for a in ("c30-fix-wv25", "c30-fix-wv50"):
+        if a in A and fo and fc:
+            dial_bars(f"B-{a}", A[a], fo, fc)
+
+    def fix_bars(a, d, t):
+        """F1-F3: a fix-binary arm against its unfixed twin. F1 the element
+        refused-idle rows go to (near) zero; F2 the partnered tax is unmoved
+        (races, not stale snapshots); F3 play and welfare within noise."""
+        g_d, g_t = gaps_of(d), gaps_of(t)
+        b = {"F1": d["element_refused"] <= 0.10 * t["element_refused"], "element_refused": (t["element_refused"], d["element_refused"]),
+             "F2": abs(d["refusal_tax"] - t["refusal_tax"]) <= 0.005, "partnered": (t["refusal_tax"], d["refusal_tax"]),
+             "F3": (abs(d["play_total"] - t["play_total"]) <= 0.05 * t["play_total"]
+                    and abs(d["duets"] - t["duets"]) <= 0.05 * t["duets"]
+                    and all(abs(g_d[n] - g_t[n]) <= 0.02 for n in NEEDS5)),
+             "play": (t["play_total"], d["play_total"]), "duets": (t["duets"], d["duets"]),
+             "gap_delta": {n: g_d[n] - g_t[n] for n in NEEDS5},
+             "ticks_recovered_share": t["element_refused"] - d["element_refused"]}
+        bars[f"F-{a}"] = b
+        print(f"== Addendum 3 fix {a} vs {TWIN[a]}: F1 elem-refused {ok(b['F1'])} ({t['element_refused']:.4f} -> {d['element_refused']:.4f})"
+              f"  F2 partnered unmoved {ok(b['F2'])} ({t['refusal_tax']:.4f} -> {d['refusal_tax']:.4f})"
+              f"  F3 within noise {ok(b['F3'])} play {t['play_total']:.1f} -> {d['play_total']:.1f}"
+              f" duets {t['duets']:.1f} -> {d['duets']:.1f} gap-delta " + " ".join(f"{n} {b['gap_delta'][n]:+.3f}" for n in NEEDS5))
+
+    for a in FIX_ARMS:
+        t = A.get(TWIN[a])
+        if a in A and t and A[a]["element_refused"] is not None and t["element_refused"] is not None:
+            fix_bars(a, A[a], t)
+    if all(k in A for k in ("c30-off2", "c30-consent30", "c30-wv25", "c30-wv50", "c30-fix-off", "c30-fix-consent30", "c30-fix-wv25", "c30-fix-wv50")):
+        # interaction: does the dial buy the same duets on both binaries?
+        for wv in ("wv25", "wv50"):
+            da = A[f"c30-{wv}"]["duets"] - A["c30-consent30"]["duets"]
+            db = A[f"c30-fix-{wv}"]["duets"] - A["c30-fix-consent30"]["duets"]
+            bars[f"I-{wv}"] = {"duet_gain_unfixed": da, "duet_gain_fixed": db, "interaction": db - da}
+            print(f"== Addendum 3 interaction {wv}: duet gain from the dial {da:+.1f}/1k unfixed, {db:+.1f}/1k fixed (diff {db - da:+.1f})")
     out["bars"] = bars
     (RAW / "score.json").write_text(json.dumps(out, indent=1, default=str) + "\n")
 

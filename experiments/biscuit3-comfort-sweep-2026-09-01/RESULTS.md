@@ -455,3 +455,61 @@ tax question anyway); (b) re-pin comfort with the gate on, one bracket
 run at c28 / c26 + consent, since Addendum 1b's c28 passed E1 at +0.02–
 0.03 without the gate and play there was 0.65x. Not recommended: tuning
 the gate's line above 30, which trades C2 for C3 on a 25-start residual.
+
+## Addendum 3 results, Half A: `w_value` under the gate (2026-09-02; declared @ a7adae2 before collection; 4/4 valid)
+
+Same binary as Addendum 2. Arms `c30-wv25` (`w_value 0.25`, `w_busy
+4.0`) and `c30-wv50` (`w_value 0.5`, `w_busy 2.0`), each = c30-consent30
+plus those two lines (diffed). 20,000 ticks × 2 seeds, watchdog quiet,
+1,556 census / 1,481 world polls per run.
+
+**The dial fails, and not the way the prereg predicted.** Biscuit's
+play split per 1k ticks (duet + element + solo):
+
+| arm | duets | element | solo | total | roster duets | loiter |
+|---|---|---|---|---|---|---|
+| c30-off2 | 67.3 | 95.7 | 0.0 | 163.1 | 25.5 | 0.142 |
+| c30-consent30 | 49.0 | 117.3 | 0.0 | 166.4 | 21.2 | 0.137 |
+| c30-wv25 | 53.6 (52.5 / 54.6) | 49.5 (46.7 / 52.2) | 54.8 (52.9 / 56.6) | 157.8 | 21.8 | 0.179 |
+| c30-wv50 | 51.2 (51.7 / 50.8) | 31.4 (30.1 / 32.6) | 67.3 (70.2 / 64.3) | 149.9 | 20.9 | 0.196 |
+
+Duets recover 49 → 54 / 51 (predicted 54–58 / 60–66; D1 MISS at
+0.80x / 0.76x of off2). Element play does not go back to friends, it
+goes to SOLO play: 117 → 50 / 31 per 1k (D3 MISS, 0.52x / 0.33x of
+off2's 95.7) while solo play, zero in every arm of this sweep so far,
+appears at 55 / 67 per 1k. Total play falls 5% / 10%. D2 passes (R7
+0.020 both arms, both seeds); D4 misses (0.85x / 0.82x, the consent
+arm's own miss carried); D5 passes at wv50 and misses at wv25 on cuddle
+(+0.028), with E1 gaps still +0.04–0.06 in both arms. D6 FLAGS in both
+arms: loiter share 0.137 → 0.179 / 0.196, more than 3x the seed spread
+above consent30. R8 partnered tax 0.034 / 0.033, unmoved.
+
+**Mechanism, read off the polls.** Every solo-play poll in both arms
+has a friend on an adjacent tile (89/90 and 113/113 in seed 1), and in
+81% / 78% of them that friend is busy, most often RESTING (78 and 86 of
+the adjacent states), then sleeping or grooming. Any `w_value > 0`
+switches on mid-scene admission (`selection.rs:499`, spec 042 D2):
+friends in a scene enter the ranking for anticipatory approach, priced
+by `w_busy × expected_wait`. `expected_wait` is the scene minimum less
+ticks served, floored at zero, and zero for a boundless activity
+(`selection.rs:581-589`); rest is boundless and most scenes are past
+their minimum, so a resting or sleeping friend is admitted at ZERO wait
+cost and out-scores every critter by `w_value × play_need` tiles. Biscuit
+walks to the resting friend, cannot conscript it (spec 006), and the
+solo backstop fires beside it. The dial did not re-admit idle friends
+so much as re-route Biscuit's play pressure onto unavailable ones. That
+is Product's flag 1 (2026-09-02) arriving in full, and the reason the
+c30-on arm of the main sweep read 3.2/1k solo where every off arm read 0.
+
+**Recommendation rule applied: D1 MISS at both values, D3 MISS at both,
+D6 flagged → the dial is not safe, and raising it is ruled out.** As
+declared, Product's option (b), a blocked-conditional friend preference
+that can reach site 3, is the next candidate; owner's call. The cheaper
+engine change this half points at is narrower: decouple mid-scene
+admission from `w_value` (its own switch, or price a boundless or
+past-minimum scene as unavailable rather than as zero wait), after
+which `w_value` would rank IDLE friends against critters the way the
+sizing assumed. Either is a spec-042 amendment in Product's lane. Half
+B (the four twins on the re-proposal-fix binary) still runs as declared;
+its `wv` twins now measure whether the fix changes this picture, which
+it should not.

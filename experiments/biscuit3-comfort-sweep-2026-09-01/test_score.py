@@ -38,6 +38,14 @@ unedited):
       (id 2) has 24 absorbed==false rows, none of her 17 absorbed rows
       count; by_action splits play_kitty from the rest; the window is
       inclusive at both ends (first refused row tick 20, last 310).
+Addendum 3 pins:
+  (j) the same payload: Biscuit's 11 play-at-element refused rows are the
+      element share; roster-wide play-at-kitty refused rows are 17 (Biscuit
+      13, Miso 2, Clementine 1, Kittybear 1) -> race rate 17/303.
+  (k) fixtures/c30-consent30-20260911-loiter-slice.json (three consecutive
+      /world polls 1589/1602/1615, unedited): Biscuit idle in all three;
+      an ADJACENT friend in all three (Pumpkin, Miso, Kittybear) but only
+      Miso at 1602 is busy (resting) -> loiter share 1/3.
 Each shown red in-run (mutating score.py) before commit.
 
 Run: python3 test_score.py
@@ -46,8 +54,8 @@ import json
 from pathlib import Path
 
 from score import (announce_share, consent_blocked, happiness_trough, hungry_play,
-                   hungry_start, interp_need, low_need, need_shares, refusal_tax,
-                   series)
+                   hungry_start, interp_need, loiter_share, low_need, need_shares,
+                   race_rate, refusal_tax, series)
 
 HERE = Path(__file__).resolve().parent
 FIX = json.loads((HERE / "fixtures" / "w35-off-20260912-slice.json").read_text())
@@ -111,4 +119,14 @@ assert sum(tax["by_action"].values()) == 24 and "play_kitty" in tax["by_action"]
 # R8 as declared is the PARTNERED tax (a play-with-friend proposal bounced): 13 of her 24 refused rows
 assert tax["partnered"] == 13 and close(tax["partnered_share"], 13 / 303, 1e-9), tax
 
-print("test_score: 10 pins ok")
+# (j) element rows and the roster-wide race rate off the same payload
+assert tax["element"] == 11 and close(tax["element_share"], 11 / 303, 1e-9), tax
+assert close(race_rate(RF, 13, 315), 17 / 303, 1e-9), race_rate(RF, 13, 315)
+assert close(race_rate(RF, 21, 309), 15 / 289, 1e-9)   # inclusive window, Biscuit's 20 and 310 rows drop
+
+# (k) loitering: idle next to a BUSY friend, at poll resolution
+LS = json.loads((HERE / "fixtures" / "c30-consent30-20260911-loiter-slice.json").read_text())["world_polls"]
+assert close(loiter_share(LS, 2), 1 / 3, 1e-9), loiter_share(LS, 2)
+assert loiter_share(LS, 1) == 0.0   # Miso is the busy one at 1602, idle-but-not-adjacent-to-busy otherwise
+
+print("test_score: 12 pins ok")

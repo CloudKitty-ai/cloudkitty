@@ -340,3 +340,115 @@ interpolation before anything else, then check all three sites fire).
 **Guard**: `test_score.py` gains a pin for R7 on the recorded payload
 (one duet whose partner is blocked, one whose partner has play on top,
 one whose partner is under the line), shown red in-run before commit.
+
+## Addendum 3: friend re-admission under the gate, and the re-proposal fix (declared 2026-09-02 before collection)
+
+Owner ruled (a) on Addendum 2's price (2026-09-02): keep c30 + consent,
+re-admit friends by dial only, "we still want element play so we don't
+want to discourage that too much", and bake in the "don't re-propose an
+ended play scene" fix. Owner then asked for the two effects separately
+and combined. Two halves, one prereg.
+
+**Correction on the record first.** Product's mechanism read for the
+Addendum 2 price (the spec-042 eligibility bar dropping second-choice
+friends) described the withdrawn c30-on arm, not the measured one:
+c30-consent30 carried the score dials at identity (`gen_configs.py`
+forces score off under `--consent`). At identity `scored_playmate` is
+the classic pick (`selection.rs:429`): everyone scores −distance, ties go
+critter-first, and opportunism is critter-first by structure
+(`selection.rs:770`). So there was no `w_serious` or `t_partner` to
+lower. The dial that re-admits friends without an element penalty is
+`w_value`: a friend scores `w_value·(play − w_busy·wait) − dist`
+against a critter's `0 − dist`. With `w_busy = 1/w_value` a tick of
+wait costs one tile, the unit distance is already in.
+
+Second correction: my Addendum 2 walk-through called about half the
+partnered refusal rows a post-scene artifact. Product's replay probe
+(2026-09-02, branch 275896e, never merges) found dead-at-snapshot duets
+= 0 in all four arms: those rows are same-tick races (the partner
+interrupted in an earlier apply slot), invisible to any snapshot-side
+fix. R8 stands as declared. The artifact is real only for element rows
+(critter moved off; dead at snapshot, 100% refused, 0 rescued:
+554–788 per run) and a few groom rows.
+
+**Offline sizing of the dial** (c30-consent30 polls, at each of
+Biscuit's 2,376 / 2,318 element-play starts, nearest idle
+gate-eligible friend at the bracketing poll): friend play need
+quartiles 3.6 / 8.8 / 13.8 (seed 2: 4.2 / 8.8 / 15.0), distance
+quartiles 2 / 4–5 / 9 tiles, 27–29% within 2 tiles, no eligible idle
+friend in 6–8% of starts. At the median friend, `w_value` 0.25 buys 2.2
+tiles of margin, 0.5 buys 4.4; 0.1 would buy under one tile. Bracket
+= 0.25 / 0.5. Caveats: these are positions at the start tick, not the
+decision tick, and the roster's play needs are low (mean 9–10), so the
+margin is friend-need-limited, not dial-limited.
+
+**Arms.** Half A, same binary as Addendum 2 (main f8a3bc0, built
+2026-09-01): `c30-wv25` (consent 30, `w_value 0.25`, `w_busy 4.0`) and
+`c30-wv50` (`w_value 0.5`, `w_busy 2.0`); everything else identical to
+c30-consent30 (diffed). Half B, on the re-proposal-fix binary (Product
+spec, lands on main first; commit recorded in RESULTS): `c30-fix-off`
+(= c30-off2's config), `c30-fix-consent30`, `c30-fix-wv25`,
+`c30-fix-wv50`. Seeds 20260911 / 20260912. Twelve runs; the Addendum 2
+raws are the unfixed baselines. Ports 8332–8343 (`gen_configs.py
+--add3 A|B`).
+
+**Readouts** (all of Addendum 2's, plus): element refused-idle share
+(R8's `by_action` split, the fix's target); roster-wide race rate
+(partnered refused rows per tick, report-only); loiter share = polls
+where Biscuit is idle with a busy friend on an adjacent tile (the
+poll-resolution face of anticipatory approach, which any `w_value > 0`
+switches on at `selection.rs:499`). Baselines already read: loiter
+0.14 / 0.14 (off2 / consent30) with seed spread ~0.012; race 0.064 →
+0.050 per tick; element refused 2.4% → 3.1% of Biscuit's ticks.
+
+**Bars, Half A** (each `wv` arm; D1/D3/D4/D5 against c30-off2, D2 on its
+own, D6 against c30-consent30):
+- **D1 duets**: Biscuit duets ≥ 0.90x c30-off2 (≥ 60.6/1k; consent30
+  sits at 49.0).
+- **D2 consent kept**: R7 < 0.05 both seeds (the dial must not leak
+  the gate).
+- **D3 element floor**: element play ≥ 0.95x c30-off2 (≥ 90.9/1k). The
+  gate's substitution (95.7 → 117.3) may be handed back; the dial may
+  not take element play below where it stood without the gate.
+- **D4 roster supply**: roster duets ≥ 0.95x c30-off2.
+- **D5 welfare**: E1 gaps widen ≤ +0.02 on every need vs c30-off2;
+  roster shares within ±0.02.
+- **D6 loiter watch**: report-only; FLAG if loiter share exceeds
+  c30-consent30's by more than 0.03 (2.5x the seed spread).
+
+**Bars, Half B**, twin against twin (fix-off vs off2, fix-consent30 vs
+consent30, fix-wv25 vs wv25, fix-wv50 vs wv50):
+- **F1 element rows gone**: element refused-idle share ≤ 0.10x the twin's.
+- **F2 partnered unmoved**: R8 partnered share within ±0.005 of the
+  twin's (Product's prediction: races persist).
+- **F3 within noise**: total play ±5%, duets ±5%, E1 gaps ±0.02 vs the
+  twin. The fix recovers idle ticks; it is not expected to move the
+  economy.
+The fixed `wv` arms also get D1–D6 against `c30-fix-off` /
+`c30-fix-consent30`, and the interaction is reported as the dial's duet
+gain on the fixed binary minus its gain on the unfixed one.
+
+**Predictions.** wv25: duets 49 → 54–58, element 117 → 106–112, D1
+MISS, D3/D4/D5 pass, loiter quiet. wv50: duets 60–66, element 95–104,
+D1 borderline, D3 borderline, D5 pass, loiter up but under the flag.
+Prior from Product: the dial reopens site 1 only; sites 2 and 3 stay
+critter-first, and the partner was adjacent in 68% of blocked duets, so
+the recovery may undershoot the tile arithmetic. Fix: F1/F2 pass on all
+four twins, F3 passes, element play +2–4/1k (the freed tick often
+re-chases), everything else inside seed noise. Interaction ≈ 0.
+
+**Recommendation rule.** A `wv` arm with D1–D5 all PASS and no D6 flag
+→ recommend it as the Biscuit 3.0 anchor dial next to the gate (owner
+pins; the anchor is c30 + consent30 + that `w_value`, re-run against
+the served economy before the retrain). D1 MISS but D3–D5 PASS at both
+values → the dial is safe but weak; report the curve, and Product's
+option (b) (blocked-conditional friend-first, which can reach site 3)
+becomes the next candidate, owner call. D3 or D5 MISS → the dial buys
+duets with element play or welfare; do not raise `w_value` further.
+F1 MISS → the fix did not land where the probe said; check the binary
+before anything else.
+
+**Guard.** `test_score.py` pins (j) element share and roster race rate
+on the recorded ring payload (11 element rows; 17 partnered rows
+roster-wide), (k) loiter share on three unedited c30-consent30 polls
+(1/3), each shown red by mutating `score.py` before commit.
