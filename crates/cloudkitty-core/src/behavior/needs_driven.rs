@@ -639,6 +639,46 @@ mod tests {
         );
     }
 
+    /// Stage kitty 1 mid-groom of kitty 2 (dirty, so only availability
+    /// decides); the closure places the friend.
+    fn mid_groom(friend_pos: Position) -> crate::behavior::DecisionContext {
+        decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
+            world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = friend_pos;
+            world.kitties[f].needs.add(NeedKind::Bath, 60.0);
+        })
+    }
+
+    /// Spec 048 US2: the groomed friend walked out of reach — the
+    /// commitment declines and the cat decides fresh this tick.
+    #[test]
+    fn a_groom_whose_friend_walked_away_is_not_continued() {
+        let ctx = mid_groom(Position::new(9, 9));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            None,
+            "an unavailable friend reads as gone, same as the engine's rule"
+        );
+    }
+
+    /// Spec 048 FR-004 must-stay-green: an available friend keeps being
+    /// groomed exactly as before the fix.
+    #[test]
+    fn a_groom_whose_friend_is_still_beside_continues() {
+        let ctx = mid_groom(Position::new(5, 6));
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Groom { target: Some(2) }),
+            "a live grooming scene is untouched by spec 048"
+        );
+    }
+
     /// Spec 048 FR-004 must-stay-green: a live counterpart continues
     /// exactly as before the fix.
     #[test]
