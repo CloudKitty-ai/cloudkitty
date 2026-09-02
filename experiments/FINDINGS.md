@@ -2097,13 +2097,27 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    from the client. c30 already met parity within +0.04 on the main
    raws.
 
+6. **Addendum 1b (c32 / c28, 2026-09-01): the bracket fails on opposite
+   sides.** c32 misses parity on eat, sleep and cuddle (+0.07–0.09,
+   both seeds) at 0.76x play; c28 passes (+0.02–0.03) at 0.65x. Welfare
+   and play are monotone over 35/32/30/28/25 (eat ≥30 0.23 → 0.18 →
+   0.13 → 0.10 → 0.06; play 0.76 → 0.76 → 0.70 → 0.65 → 0.58) with one
+   flat step: c32 keeps c35's play at a third less time hungry. Between
+   32 and 28 each 2 points of comfort cost ~0.05x of c55 play and buy
+   ~0.025 of every gap; duets hold 63–67/1k down to 28. Report-only:
+   one c28 seed carried a 250-tick one-sided cosleep (Biscuit `resting
+   with_friend` Miso while Miso idle, cuddle 82 → 100, happiness 25.4,
+   watchdog quiet, self-resolved), the same shape as the served soak's
+   Miso event; a roster mechanic a seed exposed, not a comfort effect.
+
 **Decision (prereg rule)**: middle case, owner's call on the curve. If
 Biscuit is to be fed, use flat comfort; the food-only weight band is
 withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
 with solid element play is still very Biscuit"). Addendum 1's rule
 (highest comfort passing parity with play ≥ the owner's 0.70x) lands
-on **c30**; c25 is the next point on the curve (parity exact, 0.58x,
-half the meows), not a candidate under that line. **Scope**: scripted anchor only; a clone's
+on **c30**, and the 32/28 bracket confirms it (c32 fails parity, c28
+fails the play line); c25 is the next point on the curve (parity exact,
+0.58x, half the meows), not a candidate under that line. **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm

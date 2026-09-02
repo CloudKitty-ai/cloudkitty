@@ -281,3 +281,88 @@ meows, for 12% of c55 play (~26/1k, of which ~11 are duets).
 Report-only: Biscuit happiness matches the roster's within 1.2 points
 at c25 and 0.2 at c20; demand price 15.2 → 13.75 → 12.41; eat max
 per run unchanged in kind (no starvation).
+
+## Addendum 1b results: comfort 32 / 28 (2026-09-01; declared @ 9a4b83c before collection; 4/4 valid)
+
+The bracket of the accepted point. Same binary and protocol; census
+polls 1,546–1,547 and world polls 1,571–1,572 per run; watchdog quiet
+(0 entries) in all four.
+
+| arm | eat ≥30 B \| roster | drink ≥30 B | cuddle ≥30 B \| roster | eat p50 | excursions /1k (floor) | play /1k duet + elem | vs c55 | roster duets /1k | announce any B \| roster | happiness B \| roster |
+|---|---|---|---|---|---|---|---|---|---|---|
+| c35-off | 0.23 \| 0.10 | 0.20 | 0.26 \| 0.14 | 26.5 | 7.9 (4.7) | 72.1 + 107.0 = 179.1 | 0.76x | 26.8 | 0.63 \| 0.24 | 82.8 \| 86.2 |
+| c32-off | 0.18 \| 0.09 | 0.12 | 0.21 \| 0.12 | 18.5 | 8.2 (4.7) | 66.0 + 111.3 = 177.2 | 0.76x | 25.2 | 0.52 \| 0.22 | 83.9 \| 86.8 |
+| c30-off | 0.13 \| 0.09 | 0.09 | 0.16 \| 0.13 | 10.5 | 8.2 (4.4) | 67.3 + 95.8 = 163.1 | 0.70x | 25.5 | 0.39 \| 0.21 | 84.8 \| 87.0 |
+| c28-off | 0.10 \| 0.09 | 0.08 | 0.15 \| 0.12 | 10.0 | 6.05 (4.15) | 63.4 + 90.1 = 153.5 | 0.65x | 25.4 | 0.29 \| 0.21 | 84.8 \| 86.8 |
+| c25-off | 0.06 \| 0.07 | 0.05 | 0.10 \| 0.11 | 11.0 | 3.15 (4.27) | 56.4 + 80.3 = 136.6 | 0.58x | 23.4 | 0.19 \| 0.19 | 86.3 \| 87.5 |
+
+Seeds: c32 play 175.4 / 179.1, eat ≥30 0.179 / 0.182; c28 play 148.1 /
+159.0, eat ≥30 0.123 / 0.091. Play-solo zero in all four.
+
+**E1** c32 MISS (gaps eat +0.09, drink +0.07, sleep +0.09, cuddle
++0.09; both seeds over 0.05 on eat, sleep and cuddle); c28 PASS (eat
++0.02, drink +0.02, sleep +0.02, cuddle +0.03; seed maxima +0.04).
+**E2** 0.76x and 0.65x, both inside the declared ranges (0.72–0.78,
+0.62–0.68). **E3 PASS both**, 0.95x and 0.95x. **E4** c32 PASS (no poll
+under 60); c28 MISS (0.7% of polls, all in seed 1, worst 25.4; see
+below).
+
+**Predictions**: E1 verdicts as declared; excursions c32 8.2 (≈8
+predicted), c28 6.05 (4–6, at the edge: the turnover is just beginning
+at 28); announce c32 0.52 (0.45 predicted, under), c28 0.29 (0.25). The
+read is monotone on welfare (eat ≥30 0.23 → 0.18 → 0.13 → 0.10 → 0.06
+over 35/32/30/28/25) and on total play (0.76 → 0.76 → 0.70 → 0.65 →
+0.58), with one flat step: c32 buys c35's play at a third less time
+hungry (eat ≥30 0.18 vs 0.23, cuddle 0.21 vs 0.26, eat p50 18.5 vs
+26.5). Between 32 and 28 each 2 points of comfort costs ~0.05x of c55
+play and buys ~0.025 of every gap. Duets are flat 63–67/1k across
+32–28 and start falling only below 28.
+
+**The c28 seed-1 trough** (ticks ~6,844–7,100, 22 polls). Biscuit is
+`resting with_friend 1` while Miso is `idle`: a one-sided cosleep, her
+cuddle climbing 82 → 100 through the "shared" rest and eat/drink
+following (drink 100 at tick 7,099), happiness 59 → 25. Self-resolved by
+tick 7,213 (cuddle 20, playing); watchdog quiet. This is the same shape
+as the served soak's Miso event (2026-09-01, attn-cert
+`miso-stall-1788266378.jsonl`: partner left, drip not landing). Nothing
+about comfort 28 causes it (absent in seed 2 and in every other arm at
+25–32); it is a roster mechanic that a random seed exposed here.
+Reported, not investigated; second sighting on the record.
+
+**Recommendation rule applied: c30 stands.** c32 misses E1 on three
+needs in both seeds; c28 passes E1 at 0.65x, under the owner's 0.70x.
+The bracket puts the pin between two points that fail on opposite
+sides, which is what the rule needs. The owner's residual choice is
+whether the 0.70x line is worth +0.04 on every need over c28 (which
+buys roster parity within +0.03 and a quarter fewer hungry meows for
+~10/1k play, of which ~4 are duets).
+
+Report-only: demand price 17.2 → 16.0 → 15.2 → 15.2 → 13.75; c32 and c28
+partner play need at duet start 4.4 / 4.5, unchanged from the curve.
+
+## Play rejection pricing (2026-09-01, exploratory, `avail_hazard.py`, no guard)
+
+Asked whether a partner-value formula can lower Biscuit's duet
+refusals. Mechanically no: a duet is refused iff the partner has an
+activity clock at her apply slot (`world.rs:1256`); a free adjacent
+friend accepts whatever its needs, and turn order is redrawn each tick
+(`world.rs:315`), so the race F-033 point 6 describes is the whole
+mechanism. On the 14 score-off runs (52k free-friend moments), the
+chance a free friend has entered a scene one poll later is 0.33 at top
+non-play need <10 rising to 0.42 at ≥40; flat 0.37–0.39 across play
+need; 0.33 → 0.41 across delta = play − top. An 8 pp spread against a
+37% base hazard (≈3.8%/tick): perfect ranking by need state moves her
+refusal rate by 2–3 points. 38% of her duets start from a friend that
+was mid-scene one poll earlier (resting 21%, sleeping 7%, grooming 6%),
+48% from within 2 tiles, 83% within 4: travel time is the tax. The
+refusal cost is hers alone (F-033: 4.7% of her ticks; the friend's scene
+continues) and is not in any raw until spec 046 lands.
+
+Consequence for the score: rejection is dropped as a target. The score
+is judged on CONSENT, the share of Biscuit's duets that conscript a
+friend whose top non-play need is already ≥30 (poll-resolution sample,
+n ≈ 180–220 starts per arm): 0.29 at c55, 0.19 at c30, 0.16 at c25
+(≥40: 0.08 / 0.06 / 0.06), bounded per duet by `play = { min = 2, max =
+5 }` ticks. Bars for any consent dial: roster duet supply ≥0.85x c55
+and all-five-needs roster parity. The multiplicative-delay amendment is
+held (a rejection lever).

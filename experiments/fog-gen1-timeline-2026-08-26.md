@@ -113,14 +113,23 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   both reach roster-parity welfare on all five needs, play 0.58x /
   0.45x, duets start falling below 30, roster duets 0.88x / 0.85x,
   hungry meows fall to the roster's rate at c25; by the addendum's rule
-  **c30 stands**, c25 is the next point on the curve. Two prereg
-  measures failed as bars (excursions/1k counts meals that started
-  above 30 and RISES as the eating level falls toward 30, turning over
-  only below it: 8.2 → 3.15 → 2.02; low-need play is compositional).
-  Score formula itself under discussion (owner proposes the friend's
-  play-vs-top-need delta with multiplicative delay; delta is negative
-  in 93% of friend-moments, so it needs slack or a headroom form);
-  dial sweep (Addendum 2) HELD until the formula is settled.
+  **c30 stands**, c25 is the next point on the curve. **Addendum 1b
+  (c32/c28) DONE 2026-09-01**: the bracket fails on opposite sides (c32
+  misses parity +0.07–0.09 at 0.76x; c28 passes +0.02–0.03 at 0.65x),
+  curve monotone, duets hold 63–67/1k to 28; c30 confirmed under the
+  rule. Two prereg measures failed as bars (excursions/1k counts meals
+  that started above 30 and RISES as the eating level falls toward 30,
+  turning over only below it: 8.2 → 3.15 → 2.02; low-need play is
+  compositional). Score: play REJECTION is not a target (refusal reads
+  only the partner's activity clock, `world.rs:1256`; the friend's need
+  state moves availability by ~8 pp across its whole range against a
+  37% base hazard per 12 ticks; the tax is Biscuit's alone, 4.7% of her
+  ticks). The score's job is reframed as CONSENT (share of duets that
+  conscript a friend with a need ≥30: 0.29 at c55, 0.19 at c30, 0.16 at
+  c25), with roster duet supply and all-five-needs parity as bars; the
+  owner's delta form is the right shape with slack; multiplicative
+  delay HELD (it is a rejection lever). Addendum 2 = small consent-dial
+  sweep, pending owner.
 
 The validated step-2 mix bands become step 5's reference.
 
