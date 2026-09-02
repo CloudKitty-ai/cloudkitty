@@ -2153,6 +2153,24 @@ just size) and the world-tuning screens (landed, re-runnable).
 
 ## P3 — simulation depth
 
+### expected_wait prices settled scenes at zero — latent spec-042 admission bug (filed 2026-09-02)
+`expected_wait` (selection.rs) returns 0 for a boundless activity and 0
+past a scene's minimum — its own doc concedes it is exact only for scenes
+that hold their minimum. Combined with the mid-scene admission switch
+being welded to `w_value > 0` (selection.rs:499), any live `w_value`
+admits a settled RESTING friend as a zero-wait partner that out-scores
+every critter yet can never be conscripted; the cat walks over and the
+solo backstop fires beside it. Proven in the Biscuit 3.0 Addendum 3 Half
+A sweep (element play handed to solo play, loiter share 0.137 → 0.20;
+Experiments RESULTS @ 35b1248). **Latent at identity dials** — no shipped
+config sets `w_value`, and the owner ruled the Gen 1 anchor carries no
+re-admission mechanic (2026-09-02, "anything further risks
+over-engineering"). Reopen trigger: the step-7 consent-transfer twin
+training (Biscuit 3.0 trained at consent_line 30 vs 0) — if the trained
+kitty needs a re-admission mechanic, fix this first: either decouple
+admission from `w_value` (own switch) or treat boundless / past-minimum
+scenes as inadmissible rather than free.
+
 ### Kitties learn each other's traits — anticipatory cooperation (added 2026-07-21)
 A 014 follow-on, deliberately out of scope until the trained meadow is
 proven working well (owner decision, 2026-07-21; recorded in 014's "Not in
