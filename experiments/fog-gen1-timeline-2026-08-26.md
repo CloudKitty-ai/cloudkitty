@@ -234,7 +234,10 @@ digest matrix + self-row is extrapolated, not yet measured.
   training), with comfort-sweep Addendum 2 R8 as the scripted early
   look. Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
-  its mechanisms.
+  its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
+  with the roster paying ~4.7% is NOT actionable; the tax becomes a
+  target only in a later marginal-welfare phase once the world
+  architecture is stable.
 - dispersion drift (NN median ≥3 but <5)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 
