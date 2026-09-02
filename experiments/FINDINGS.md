@@ -1717,6 +1717,8 @@ the measured split, and the part that survives, are F-033.
 
 ## F-033 · active · Every seat pays a partnered-action refusal tax, in its own currency — but for Biscuit that is under half its idle; the rest it chooses
 
+*Bars retired 2026-09-02 by F-039 (live stamp read, post-048): the 4.7% and 3.5% figures below are seam-probe history; the mechanism stands.*
+
 Settles the inference [F-032](FINDINGS-ARCHIVE.md) registered and could
 not test. Run 2026-08-25 on the owner's word — the experiment F-032
 itself specified. Cites [F-031](#f-031--active--a-partnered-scene-runs-its-minimum-only-if-the-counterpart-is-pinned-grooming-is-the-exception)
@@ -2161,3 +2163,36 @@ transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm
 against the then-served economy before the lineage retrain).
+
+## F-039 · active · On the served world the refusal tax is Biscuit's alone and it is partner play: 5.13% of her ticks, 94% `play:kitty`; every other seat pays under 2.3% in grooming and movement
+
+Live refusal baseline (`refusal-baseline-2026-09-02/RESULTS.md`; prereg
++ instrument @ 5831cde before collection). First read off the 046
+stamp (`/events/refusal`) on the 2026-09-02 deploy (046 + 047 inert +
+048; contagion disabled): 15,134 ticks, 95 polls, zero ring gaps,
+served config `275a3d7b…bbed0`.
+
+1. **Taxed share per seat** (refused, turn resolved to Idle): Miso
+   0.70%, Biscuit 5.13%, Pumpkin 1.86%, Kittybear 1.91%, Clementine
+   2.30%. No seat near the step-5 INVESTIGATE line (10%).
+2. **Biscuit's currency is partner play**: 734 of 777 taxed rows. The
+   other seats' taxed play rows are 3–23 across the window; they pay in
+   `groom:kitty` (150–252) and `move` (64–89).
+3. **Absorbed refusals** (heard mid-scene, tick serviced) outnumber
+   taxed 3,258 to 1,801. Miso absorbs the most (5.20%, 448 `sleep:with`
+   from inside a sleep); Biscuit absorbs 785 play asks on top of the
+   734 taxed, so about half her asks land while she is in a scene.
+4. **Retention**: combined density 0.334/tick, 1.45× the taxed-only
+   figure the 6,000 default was sized on; 15k-tick floor 5,014, the
+   default stands.
+
+Retires [F-033](#f-033--active--every-seat-pays-a-partnered-action-refusal-tax-in-its-own-currency--but-for-biscuit-that-is-under-half-its-idle-the-rest-it-chooses)'s
+4.7% and the 3.5% INVESTIGATE line as bars: those were seam-probe reads
+on a pre-048 engine that counted dead-scene rows b9f9c00 removed. That
+the stamp reads 5.13% after 048 took rows away says the seam probe
+undercounted, not that 048 did nothing. F-033's mechanism claim (the
+tax is partnered, per-seat currency) holds unchanged. **Scope**: the
+2026-09-02 deploy's roster and economy. **Invalidated by**: any deploy
+touching the selector, the play economy, or the roster. **Re-verify
+when**: the Biscuit 3.0 cutover lands (step 7); one window, same
+instrument.

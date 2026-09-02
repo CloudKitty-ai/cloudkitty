@@ -154,8 +154,14 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
 **Step 2 COMPLETE 2026-09-02** (MLP smoke dropped; needflow F-036,
 detector F-037, here-word F-034, edge smoke F-035, comfort sweep F-038
 all recorded). Before step 3 opens: the deploy (logging "waterline
-contagion disabled"), the live refusal baseline off `/events/refusal`
-after it, the v2.10 tag, and the owner's step-3 in/out doc.
+contagion disabled") **DONE 2026-09-02** (046/047/048 served, boot line
+verified by Product); the live refusal baseline off `/events/refusal`
+**DONE 2026-09-02 (F-039, `refusal-baseline-2026-09-02/RESULTS.md`)**:
+Biscuit taxed 5.13% (94% partner play), other seats 0.70–2.30%, no seat
+near the 10% pin; combined density 0.334/tick, retention floor 5,014 so
+the 6,000 default stands; F-033's 4.7% / 3.5% bars retired. Remaining:
+the v2.10 tag (Unreleased expansion first) and the owner's step-3
+in/out doc.
 
 The validated step-2 mix bands become step 5's reference.
 
