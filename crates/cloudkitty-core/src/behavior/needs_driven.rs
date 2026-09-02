@@ -550,6 +550,34 @@ mod tests {
     use crate::meow::MessageKind;
     use crate::test_support::decision_context;
 
+    /// Spec 047 doctrine guard (FR-005): the consent line moves ONLY the
+    /// playful behavior. Classic opportunism — needs_driven's entry point —
+    /// still bats an idle adjacent friend into a game with the dial set:
+    /// the 042 rule that the family's dials never move anyone else.
+    #[test]
+    fn needs_driven_opportunism_ignores_the_consent_line() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 45.0);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent, idle
+            world.kitties[f].needs = crate::needs::Needs::default();
+            world.kitties[f].needs.eat = crate::needs::Need::new(40.0);
+            world.kitties[f].needs.play = crate::needs::Need::new(10.0);
+        });
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .consent_line = 30.0;
+        assert_eq!(
+            take_what_is_here(&ctx),
+            Some(Action::play_with(crate::action::TargetRef::Kitty { id: 2 })),
+            "needs_driven batting is untouched by the dial"
+        );
+    }
+
     #[tokio::test]
     async fn a_napping_cat_stays_asleep_until_rested() {
         // The commitment rule: mid-nap with sleep need remaining, the cat

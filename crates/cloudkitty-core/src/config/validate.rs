@@ -379,6 +379,9 @@ impl Config {
             ("[behavior] w_serious", b.w_serious),
             ("[behavior] t_self", b.t_self),
             ("[behavior] t_partner", b.t_partner),
+            // Spec 047: the consent line shares the rule — a NaN would
+            // poison the gate's comparisons, a negative has no meaning.
+            ("[behavior] consent_line", b.consent_line),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

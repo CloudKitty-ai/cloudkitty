@@ -1692,6 +1692,8 @@ mod tests {
                 ("w_serious", |c, v| c.behavior.w_serious = v),
                 ("t_self", |c, v| c.behavior.t_self = v),
                 ("t_partner", |c, v| c.behavior.t_partner = v),
+                // Spec 047: the consent line shares the house rule.
+                ("consent_line", |c, v| c.behavior.consent_line = v),
                 ("comfort_weight] eat", |c, v| {
                     c.behavior.comfort_weight.eat = v
                 }),
@@ -2889,6 +2891,14 @@ mod tests {
         assert!(
             !json.contains("refusal_retention"),
             "refusal_retention leaked into the stamp: {json}"
+        );
+        // Spec 047: the consent line rides the same discipline -- 0.0/absent
+        // is the launch state and the stamp must not move for a value nobody
+        // set. Delete its skip attribute (or move its default) and this
+        // reddens.
+        assert!(
+            !json.contains("consent_line"),
+            "consent_line leaked into the stamp: {json}"
         );
     }
 
