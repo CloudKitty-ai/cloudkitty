@@ -196,6 +196,49 @@ mod tests {
         );
     }
 
+    /// Spec 047, medium-review finding 1 — ACCEPTED BY THE OWNER
+    /// 2026-09-01 and pinned here as INTENDED: blocking the only playmate
+    /// re-prices play as solo (distance 0, the pre-047 absent-friend
+    /// rule), which near the play/eat crossover can flip one tick from
+    /// "walk to the bowl" to "pounce at nothing first". Rationale on
+    /// record: the scripted cat is a training teacher; marginal scoring
+    /// detours wash out in training — what matters is that considering
+    /// the OTHER cat's needs is modeled at all, so it can be learned.
+    /// Bounded: solo play relieves play, eat keeps rising, safeguard
+    /// urgency buries play past 75. Experiments' R2 (hungry-play share)
+    /// watches the aggregate.
+    #[tokio::test]
+    async fn blocking_the_only_playmate_may_buy_solo_play_a_tick_over_eating() {
+        let stage = |line: f32| {
+            let mut ctx = decision_context(|world| {
+                world.elements.clear();
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = Position::new(5, 5);
+                world.kitties[idx].needs = crate::needs::Needs::default();
+                world.kitties[idx].needs.eat = crate::needs::Need::new(60.0); // serious (comfort 55)
+                world.kitties[idx].needs.play = crate::needs::Need::new(58.0);
+                world.push_element(Element {
+                    id: 610,
+                    kind: ElementKind::Chow { servings: 5 },
+                    pos: Position::new(11, 5), // 6 tiles: eat pays the walk
+                    ttl: None,
+                });
+                stage_burdened_friend(world, Position::new(5, 10)); // 5 tiles, in reach
+            });
+            set_consent_line(&mut ctx, line);
+            Playful.decide_action(&ctx)
+        };
+        assert!(
+            matches!(stage(0.0), Action::Move { .. }),
+            "line off: play pays the 5-tile walk to the friend, eat wins"
+        );
+        assert_eq!(
+            stage(30.0),
+            Action::play_solo(),
+            "line 30: the friend is blocked, play prices as solo (0 tiles) and outscores eat for a tick"
+        );
+    }
+
     #[tokio::test]
     async fn a_playful_cat_still_eats_the_food_it_is_standing_beside() {
         // Opportunism: adjacent food + real hunger beats the game, even below the
