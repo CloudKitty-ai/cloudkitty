@@ -96,6 +96,15 @@ pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
     if remaining <= 0.0 {
         return None;
     }
+    // Spec 048: a scene whose counterpart the snapshot already shows gone
+    // (the critter out of reach, the groomed friend unavailable, the duet
+    // not bound back) is not worth another proposal -- the engine's prune
+    // would end it and refuse the continuation anyway. Same rule, same
+    // body (`counterpart_gone_in`), read at decision time: decline and let
+    // the fresh decision spend the tick on something real.
+    if ctx.world.counterpart_gone(ctx.me.id) {
+        return None;
+    }
     activity.continuation()
 }
 
@@ -712,9 +721,13 @@ mod tests {
         let dirty_friend = decision_context(|world| {
             world.tick = 20;
             let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
             world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
             world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
             let friend = world.kitty_index(2).unwrap();
+            // Adjacent: a live scene (spec 048 made the old cross-map
+            // staging honestly dead -- the engine would prune it).
+            world.kitties[friend].pos = Position::new(5, 6);
             world.kitties[friend].needs.add(NeedKind::Bath, 60.0);
         });
         assert_eq!(
@@ -725,9 +738,12 @@ mod tests {
         let clean_friend = decision_context(|world| {
             world.tick = 20;
             let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
             world.kitties[idx].needs.add(NeedKind::Bath, 60.0); // its own dirt is not the question
             world.kitties[idx].activity = crate::kitty::Activity::Grooming { target: Some(2) };
             world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(15));
+            let friend = world.kitty_index(2).unwrap();
+            world.kitties[friend].pos = Position::new(5, 6); // adjacent: a live scene
             // the friend's bath need stays at its spawn value of zero: clean
         });
         assert_ne!(
