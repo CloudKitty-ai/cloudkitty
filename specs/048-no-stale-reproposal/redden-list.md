@@ -34,6 +34,33 @@ mutation-witness among existing tests and CANNOT get a behavior-side one
 (the behavior never sees a one-sided duet — probe-proven). Its guards are
 the invariant checker plus T013's race pin. Recorded per rule 3.
 
+| E | review F1 | duet arm of `counterpart_gone_in` → `true` (always gone) | new pin `a_scene_whose_duet_is_still_reciprocal_continues` red (the F1 point: the duet arm gains a BEHAVIOR witness) + duet lifecycle tests (named: `duet_relief_lands_once_per_tick_for_both_partners`, `a_duet_ends_for_both_when_either_is_content`, `a_post_min_interrupt_frees_both_duet_partners_the_same_tick`) + 3 golden family; T013 uncertain | 10 reds: pin ✓, 2/3 named lifecycle (post_min_interrupt survived — both sides end either way), golden 3 ✓, T013 GREEN (robust), + 4 under-enumerated duet-dependent tests (`default_ring_covers_the_baseline_window_under_absorbed_load`, `twenty_thousand_ticks_of_activities_respect_their_bounds`, 2 wet-fur duet charges). Class prediction held; names under-counted, recorded honestly. 808/10 | yes; lib 465/0 |
+
+## Review dispositions (medium, 2026-09-02; Elizabeth ruled)
+
+1. FIXED — live-reciprocal-duet behavior pin added; cycle E gives the duet
+   arm the behavior witness cycle B said was impossible for DEAD duets
+   (the live direction was the testable one).
+2. DOCUMENTED — reverse-race absorbed=true class recorded in spec Edge
+   Cases; bounded, lands in the class R8 already excludes; relayed to
+   Experiments for the re-baseline.
+3. FIXED — quickstart §1 now uses a verified multi-filter command,
+   "exactly 9 passed" expectation pinned.
+4. FIXED — CHANGELOG entry extended: BC teacher label distribution moved;
+   pre-048 policy artifacts learned the old teacher.
+5. FIXED — doctrine test iterates BehaviorRegistry::with_builtins() and
+   asserts a REAL action (not stale, not Idle).
+6. FIXED — strip-witness prose now states the detector is DORMANT for the
+   048 generation (same-run pins) and resumes at the next additive claim.
+7. OWNER RULED (option 1) — `[rng-sequence]` carried by consequence per
+   changelog precedent; prose states the literal draw order is untouched.
+8. OWNER RULED — TABLED as banked follow-up (spec-006 meal-end-rule
+   change, own spec); rationale in spec Edge Cases.
+Sub-cap fold-ins: `is_conscriptable_friend` now delegates to
+`is_available_friend` + clock (orphaned `friend_pair` removed);
+`mid_critter_play` triplication left as-is (different modules, different
+staging needs).
+
 ## probe-after (T014 results, 2026-09-02, fixed build @ T013 tip + probe 275896e ride-along)
 
 Window 1500..21500, all four Addendum 2 arms: **`reproposed 0` on

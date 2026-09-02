@@ -1231,15 +1231,6 @@ impl World {
             .count() as u32
     }
 
-    /// Both sides of a prospective interaction, resolved once. `None` when
-    /// either kitty is missing or the "friend" is the kitty itself.
-    fn friend_pair(&self, me: KittyId, friend: KittyId) -> Option<(&Kitty, &Kitty)> {
-        if me == friend {
-            return None;
-        }
-        Some((self.kitty(me)?, self.kitty(friend)?))
-    }
-
     /// A friend is any other kitty; "available" adds the adjacency an interaction
     /// needs. One body in `available_friend_in` (the free twin), shared with
     /// the dead-scene rule's grooming arm so the two can't drift (spec 048
@@ -1255,12 +1246,14 @@ impl World {
     /// cuddle. Governs cuddle and social play; co-sleeping and grooming keep
     /// the plain availability rule because they bind nobody.
     pub fn is_conscriptable_friend(&self, me: KittyId, friend: KittyId) -> bool {
-        // "Doing nothing" is one check, not two: the strict pairing invariant
-        // (clock present exactly when an activity is in progress) makes the
-        // clock alone authoritative.
-        self.friend_pair(me, friend)
-            .map(|(a, b)| a.pos.is_adjacent(&b.pos) && b.activity_clock.is_none())
-            .unwrap_or(false)
+        // Availability is the ONE shared body (`available_friend_in`);
+        // conscriptability adds "doing nothing" — one check, not two: the
+        // strict pairing invariant (clock present exactly when an activity
+        // is in progress) makes the clock alone authoritative.
+        self.is_available_friend(me, friend)
+            && self
+                .kitty(friend)
+                .is_some_and(|k| k.activity_clock.is_none())
     }
 
     /// The shared mutual predicate (spec 041 FR-002): the kitty is itself

@@ -692,7 +692,7 @@ mod tests {
             world.tick = 20;
             for (id, partner) in [(1, 2), (2, 1)] {
                 let idx = world.kitty_index(id).unwrap();
-                world.kitties[idx].pos = Position::new(5, 4 + id as u32);
+                world.kitties[idx].pos = Position::new(5, 4 + id);
                 world.kitties[idx].needs.add(NeedKind::Play, 60.0);
                 world.kitties[idx].activity = crate::kitty::Activity::Playing {
                     target: Some(crate::action::TargetRef::Kitty { id: partner }),

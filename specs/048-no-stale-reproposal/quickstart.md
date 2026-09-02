@@ -6,13 +6,16 @@ Prerequisites: this worktree (`~/ai/cloudkitty-reproposal`, branch
 ## 1. Scenario guards (fast, targeted)
 
 ```sh
-cargo test -p cloudkitty-core stale_scene -- --nocapture
+cargo test -p cloudkitty-core --lib -- scene_whose groom_whose \
+  every_builtin_declines a_dead_critter_scene a_same_tick_duet_race
 ```
 
-Expected: the spec-048 test group green — US1 (critter moved / expired → fresh action,
-no refusal row), US2 (groomed friend unavailable → fresh action), live-counterpart
-continuation pins (FR-004), the shared-predicate doctrine pair (contract invariant 1),
-and the personality doctrine test (invariant 3).
+Expected: **exactly 9 passed** (verified 2026-09-02; a lower count means a
+guard was renamed without updating this filter) — US1 (critter moved /
+expired → fresh action, no refusal row), US2 (groomed friend unavailable →
+fresh action), the live-counterpart FR-004 pins (critter, groom, AND the
+reciprocal-duet pin from review finding 1), the personality doctrine test
+(invariant 3), and the same-tick race pin (SC-005).
 
 ## 2. Full suite + identity witnesses
 

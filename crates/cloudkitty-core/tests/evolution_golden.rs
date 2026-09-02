@@ -138,12 +138,18 @@ fn strip_key(json: &str, key: &str) -> String {
     format!("{}{}", &json[..cut_start], &json[cut_end..])
 }
 
-/// The 046 regeneration's continuity claim as a running check, not prose:
-/// the serialized world with the `refusal_log` key removed digests to the
-/// pre-046 pin exactly — dynamics, RNG state, and every sibling field are
-/// byte-identical; the ring is the only delta. Any future regeneration
-/// that cannot keep (or consciously re-derive) this relation is hiding a
-/// dynamics move behind "additive field, digest moved".
+/// The laundering detector, currently DORMANT (review 048 finding 6,
+/// stated plainly): through the 041→046 generation this test asserted a
+/// real cross-generation claim — world-minus-ring today == the older
+/// pre-ring world, byte for byte — and that independence was the entire
+/// mechanism. Spec 048 moved the dynamics themselves, so both pins were
+/// re-derived from ONE new run and this test is, for now, a same-run
+/// consistency check, not independent confirmation (redden cycle A shows
+/// it reddening together with the golden on a single injected bug). Its
+/// detector role resumes at the NEXT "additive field only" claim: that
+/// regeneration must keep world-minus-the-new-field byte-identical to
+/// the 048 strip pin, or it is hiding a dynamics move behind "additive
+/// field, digest moved".
 #[test]
 fn golden_strip_witness_refusal_ring_is_the_only_delta() {
     let stripped = strip_key(world_json_10k(), "refusal_log");
