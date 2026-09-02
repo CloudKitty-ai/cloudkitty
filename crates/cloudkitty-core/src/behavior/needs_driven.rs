@@ -121,6 +121,18 @@ const OPPORTUNISM_LADDER: [NeedKind; 4] = [
 /// trait. The need→relief pairing comes from the one authoritative definition
 /// (`relief.rs`, spec 019); this function owns only the underfoot checks.
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
+    take_what_is_here_with(ctx, false)
+}
+
+/// [`take_what_is_here`] with the spec-047 consent gate armed on the
+/// Playmate rung — the playful behavior's opportunism entry (site 3).
+/// Every other rung is identical; needs_driven keeps the classic entry
+/// point above, untouched by the dial.
+pub(crate) fn take_what_is_here_consenting(ctx: &DecisionContext) -> Option<Action> {
+    take_what_is_here_with(ctx, true)
+}
+
+fn take_what_is_here_with(ctx: &DecisionContext, consent: bool) -> Option<Action> {
     let me = &ctx.me;
     let detour = ctx.config.behavior.worth_a_detour;
 
@@ -157,7 +169,7 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
             }
             // A bug within paw's reach gets batted at, whatever the errand was.
             ReliefSource::Playmate => {
-                if let Some(target) = selection::adjacent_playmate(ctx) {
+                if let Some(target) = selection::adjacent_playmate_with(ctx, consent) {
                     return Some(Action::play_with(target));
                 }
             }

@@ -44,7 +44,20 @@ pub struct Choice {
 /// deterministic word. Needs with no relief path at all are skipped outright
 /// (see [`travel_distance`]).
 pub fn choose(ctx: &DecisionContext) -> Choice {
-    let playmate = nearest_viable_playmate(ctx);
+    choose_with(ctx, false)
+}
+
+/// [`choose`] with the spec-047 consent gate armed — the playful
+/// behavior's get-serious entry (site 2). The blocked friend is excluded
+/// from the playmate scan itself, so the play score prices exactly the
+/// candidate pursuit would walk to (the 004 score/walk agreement rule)
+/// and a fully-blocked neighborhood degrades to solo play, never a stall.
+pub fn choose_consenting(ctx: &DecisionContext) -> Choice {
+    choose_with(ctx, true)
+}
+
+fn choose_with(ctx: &DecisionContext, consent: bool) -> Choice {
+    let playmate = viable_playmate_with(ctx, consent);
     let mut best: Option<(NeedKind, f32)> = None;
 
     for kind in NeedKind::ALL {
@@ -382,6 +395,14 @@ fn play_travel_distance(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
 /// `chase_patience_ticks` (a chase that is not working -- as opposed to
 /// one that is merely long).
 pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
+    viable_playmate_with(ctx, false)
+}
+
+/// [`nearest_viable_playmate`] with the spec-047 consent gate armed —
+/// reached only through the playful behavior's paths (site 2, get-serious).
+/// `consent: false` is byte-for-byte the classic scan: the gate predicate
+/// is never consulted, so needs_driven callers cannot be moved by the dial.
+fn viable_playmate_with(ctx: &DecisionContext, consent: bool) -> Option<(TargetRef, Position)> {
     let me = &ctx.me;
 
     let critters = ctx.world.critters().map(|e| {
@@ -395,6 +416,7 @@ pub fn nearest_viable_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Posi
     let friends = ctx
         .world
         .others(me.id)
+        .filter(|k| !consent || !consent_blocks(ctx, k))
         .map(|k| (TargetRef::Kitty { id: k.id }, k.pos, 1u8, k.id));
 
     critters
@@ -434,7 +456,14 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
             None,
         )
     });
-    let friends = ctx.world.others(me.id).map(|k| {
+    // Spec 047 site 1: a friend the consent gate blocks never becomes a
+    // candidate — score, approach, wait and solo-suppression all behave
+    // as if it were absent. Hard drop, not a ranking cost (FR-005).
+    let friends = ctx
+        .world
+        .others(me.id)
+        .filter(|k| !consent_blocks(ctx, k))
+        .map(|k| {
         (
             TargetRef::Kitty { id: k.id },
             k.pos,
@@ -723,6 +752,14 @@ pub fn play_action_with(ctx: &DecisionContext, playmate: Option<(TargetRef, Posi
 /// within paw's reach. Exclusion does not apply here -- a target that wandered
 /// into range costs nothing to bat at, however hopeless it was to chase.
 pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
+    adjacent_playmate_with(ctx, false)
+}
+
+/// [`adjacent_playmate`] with the spec-047 consent gate armed — reached
+/// only through the playful behavior's opportunism (site 3). Critters are
+/// untouched either way; `consent: false` never consults the gate, so
+/// needs_driven's batting is byte-for-byte the classic pass.
+pub(crate) fn adjacent_playmate_with(ctx: &DecisionContext, consent: bool) -> Option<TargetRef> {
     let me = &ctx.me;
     let critter = ctx
         .world
@@ -736,6 +773,7 @@ pub fn adjacent_playmate(ctx: &DecisionContext) -> Option<TargetRef> {
             // A friend mid-meal or asleep cannot be batted into a game
             // (spec 006 conscription); only an idle neighbour counts.
             .filter(|k| me.pos.is_adjacent(&k.pos) && !k.activity.is_in_progress())
+            .filter(|k| !consent || !consent_blocks(ctx, k))
             .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id))
             .map(|k| TargetRef::Kitty { id: k.id })
     })
@@ -1805,6 +1843,118 @@ mod playful2_tests {
         let ctx = decision_context(|world| pin_needs(world, 2, 90.0, 0.0));
         let k = ctx.world.kitties.iter().find(|k| k.id == 2).unwrap();
         assert!(!consent_blocks(&ctx, k), "line 0.0 gates nothing, ever");
+    }
+
+    // ---- Spec 047 site 1: the partner ranking (T006/T007) -------------
+
+    /// Stages me at (5,5) with an adjacent friend 2 whose needs are pinned;
+    /// no elements, so the friend is the only possible partner.
+    fn consent_ranking_ctx(eat: f32, play: f32, line: f32) -> DecisionContext {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6);
+            pin_needs(world, 2, eat, play);
+        });
+        set_dials(&mut ctx, |b| b.consent_line = line);
+        ctx
+    }
+
+    /// (US1/AC1) A friend over the line with a non-play need on top is
+    /// never in the ranking: with nobody else around, the scan is empty.
+    #[test]
+    fn the_ranking_drops_a_friend_over_the_consent_line() {
+        let ctx = consent_ranking_ctx(40.0, 10.0, 30.0);
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            None,
+            "the burdened friend must not be a candidate"
+        );
+    }
+
+    /// (US1/AC2) Under the line the friend stays a candidate.
+    #[test]
+    fn the_ranking_keeps_a_friend_under_the_consent_line() {
+        let ctx = consent_ranking_ctx(25.0, 10.0, 30.0);
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "eat 25 is under the line; the friend is fair game"
+        );
+    }
+
+    /// (US1/AC3) Play on top is always proposable, however high the rest.
+    #[test]
+    fn the_ranking_keeps_a_friend_whose_top_need_is_play() {
+        let ctx = consent_ranking_ctx(40.0, 45.0, 30.0);
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "play 45 tops eat 40; wanting to play is consent"
+        );
+    }
+
+    /// (US1/AC4, FR-004) The gate never touches critters: one adjacent to
+    /// a blocked friend is chosen exactly as if the friend weren't there.
+    #[test]
+    fn a_critter_beside_a_blocked_friend_is_still_chosen() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6);
+            pin_needs(world, 2, 40.0, 10.0); // blocked at line 30
+            world.push_element(Element {
+                id: 703,
+                kind: ElementKind::Bug,
+                pos: Position::new(4, 5), // adjacent too
+                ttl: Some(100),
+            });
+        });
+        set_dials(&mut ctx, |b| b.consent_line = 30.0);
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 703 }),
+            "the bug is fair game; only the friend is off the table"
+        );
+    }
+
+    /// (FR-005, analysis C2) The gate is not hiding inside the score term:
+    /// with the value dials LIVE, the blocked friend is still dropped and
+    /// the under-line friend (negative value, un-raised t_partner) is
+    /// still ranked.
+    #[test]
+    fn the_consent_gate_acts_with_the_score_on_not_inside_it() {
+        let blocked = {
+            let mut ctx = consent_ranking_ctx(40.0, 10.0, 30.0);
+            set_dials(&mut ctx, |b| {
+                b.w_value = 1.0;
+                b.w_serious = 1.0;
+            });
+            ctx
+        };
+        assert_eq!(
+            scored_playmate(&blocked).map(|(t, _)| t),
+            None,
+            "score live: the gate still drops, never merely down-ranks"
+        );
+        let kept = {
+            let mut ctx = consent_ranking_ctx(25.0, 10.0, 30.0);
+            set_dials(&mut ctx, |b| {
+                b.w_value = 1.0;
+                b.w_serious = 1.0;
+            });
+            ctx
+        };
+        assert_eq!(
+            scored_playmate(&kept).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "negative value under an un-raised t_partner ranks (042 pin); \
+             the consent gate adds no new bar under the line"
+        );
     }
 
     /// (a) The identity pin: at all-default dials the pick is today's --

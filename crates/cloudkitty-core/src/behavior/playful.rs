@@ -13,7 +13,7 @@
 
 use async_trait::async_trait;
 
-use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here};
+use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here_consenting};
 use super::{selection, Behavior, DecisionContext};
 use crate::action::Action;
 use crate::seam::Decision;
@@ -49,7 +49,9 @@ impl Playful {
 
         // Opportunism is good sense, not a personality trait: a playful cat still
         // eats the food it is standing next to before running off after a bug.
-        if let Some(action) = take_what_is_here(ctx) {
+        // Spec 047 site 3: but even a game within paw's reach honors the
+        // consent line — adjacency is not a bypass.
+        if let Some(action) = take_what_is_here_consenting(ctx) {
             return action;
         }
 
@@ -70,7 +72,10 @@ impl Playful {
             .map(|kind| weights.get(*kind) * ctx.me.needs.get(*kind))
             .fold(0.0f32, f32::max);
         if weighted_pressure >= ctx.config.behavior.playful_comfort {
-            return pursue(ctx, selection::choose(ctx));
+            // Spec 047 site 2: getting serious still honors the consent
+            // line — the same scored selection the sensible cat uses, but
+            // a blocked friend never enters its playmate scan.
+            return pursue(ctx, selection::choose_consenting(ctx));
         }
 
         // (Purring left the proposal surface in spec 011: the engine rumbles
@@ -121,6 +126,73 @@ mod tests {
             Playful.decide_action(&ctx),
             Action::Chase(TargetRef::Element { id: 601 }),
             "the bug wins over distant food"
+        );
+    }
+
+    // ---- Spec 047: the consent gate on playful's own paths ------------
+
+    /// Pins friend 2's needs exactly: blocked at line 30 (eat 40 tops
+    /// play 10) unless a test overrides.
+    fn stage_burdened_friend(world: &mut crate::world::World, pos: Position) {
+        let f = world.kitty_index(2).unwrap();
+        world.kitties[f].pos = pos;
+        world.kitties[f].needs = crate::needs::Needs::default();
+        world.kitties[f].needs.eat = crate::needs::Need::new(40.0);
+        world.kitties[f].needs.play = crate::needs::Need::new(10.0);
+    }
+
+    fn set_consent_line(ctx: &mut crate::behavior::DecisionContext, line: f32) {
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .consent_line = line;
+    }
+
+    /// Spec 047 site 2 (get-serious, T009): above the comfort line with
+    /// play the winning need, the gate still holds — the cat does not
+    /// walk after the burdened friend, it pounces at nothing where it
+    /// stands (the Article III degradation: play stays satisfiable,
+    /// solo — assert the positive, analysis C1).
+    #[tokio::test]
+    async fn a_serious_playful_cat_honors_the_consent_line() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            // Over comfort (55): serious. Play is the only pressure, so it
+            // wins the scored selection.
+            world.kitties[idx].needs.add(NeedKind::Play, 80.0);
+            // In reach (solo_play_reach 8) but NOT adjacent: the
+            // opportunism rung cannot fire, isolating the get-serious path.
+            stage_burdened_friend(world, Position::new(5, 8));
+        });
+        set_consent_line(&mut ctx, 30.0);
+        assert_eq!(
+            Playful.decide_action(&ctx),
+            Action::play_solo(),
+            "play is the errand, the friend is off the table: solo, never a chase"
+        );
+    }
+
+    /// Spec 047 site 3 (opportunism, T011): a burdened idle friend within
+    /// paw's reach is NOT batted into a game. With real play urge (over
+    /// `worth_a_detour` 30, under comfort 55), no critter anywhere and the
+    /// only friend blocked, the whole decision degrades to solo play —
+    /// adjacency is not a bypass, and play stays satisfiable (analysis C1).
+    #[tokio::test]
+    async fn an_adjacent_burdened_friend_is_not_batted_into_a_game() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx].needs.add(NeedKind::Play, 45.0);
+            stage_burdened_friend(world, Position::new(5, 6)); // adjacent
+        });
+        set_consent_line(&mut ctx, 30.0);
+        assert_eq!(
+            Playful.decide_action(&ctx),
+            Action::play_solo(),
+            "the opportunism rung must skip the burdened friend; solo, not conscription"
         );
     }
 
