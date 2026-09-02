@@ -67,7 +67,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
 | F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
 | F-032 | superseded → F-033 | Biscuit's idle read as the legality funnel refusing a partnered ask (inference; narrowed to 45% of idle) |
-| F-033 | active | Every seat pays a partnered-action refusal tax in its own currency; for Biscuit under half her idle, the rest chosen (pre-048 bars retired by F-039) |
+| F-033 | active | Every seat pays a partnered-action refusal tax in its own currency; for Biscuit under half her idle, the rest chosen (pre-048 numbers retired by F-039) |
 | F-034 | active | Here* vocabulary cloning is a cliff between 5.6% and 8.2% corpus share, not near 1% |
 | F-035 | active | The waterline charge is a magnet before it is a fence: charge-blind arms drift toward the edge |
 | F-036 | active | The needflow model is not a proxy for the scripted teacher; three engine gates invert the sleep niche |
@@ -1725,7 +1725,7 @@ the measured split, and the part that survives, are F-033.
 
 ## F-033 · active · Every seat pays a partnered-action refusal tax, in its own currency — but for Biscuit that is under half its idle; the rest it chooses
 
-*Bars retired 2026-09-02 by F-039 (live stamp read, post-048): the 4.7% and 3.5% figures below are seam-probe history; the mechanism stands.*
+*Numbers retired 2026-09-02 by F-039 (live stamp read, post-048): the 4.7% figure below is seam-probe history; the mechanism stands, and so does the owner's 3.5% INVESTIGATE line.*
 
 Settles the inference [F-032](FINDINGS-ARCHIVE.md) registered and could
 not test. Run 2026-08-25 on the owner's word — the experiment F-032
@@ -2182,7 +2182,10 @@ served config `275a3d7b…bbed0`.
 
 1. **Taxed share per seat** (refused, turn resolved to Idle): Miso
    0.70%, Biscuit 5.13%, Pumpkin 1.86%, Kittybear 1.91%, Clementine
-   2.30%. No seat near the step-5 INVESTIGATE line (10%).
+   2.30%. Biscuit is above the step-5 INVESTIGATE line (3.5%, owner
+   ruled 2026-09-01); the same ruling says Biscuit 2.0 at parity
+   welfare paying this is not actionable and the reading that counts
+   is Biscuit 3.0's. The other four are under the line.
 2. **Biscuit's currency is partner play**: 734 of 777 taxed rows. The
    other seats' taxed play rows are 3–23 across the window; they pay in
    `groom:kitty` (150–252) and `move` (64–89).
@@ -2195,7 +2198,8 @@ served config `275a3d7b…bbed0`.
    default stands.
 
 Retires [F-033](#f-033--active--every-seat-pays-a-partnered-action-refusal-tax-in-its-own-currency--but-for-biscuit-that-is-under-half-its-idle-the-rest-it-chooses)'s
-4.7% and the 3.5% INVESTIGATE line as bars: those were seam-probe reads
+4.7% and the 4.6% seam figure as reference numbers (the 3.5%
+INVESTIGATE line is the owner's and stands): those were seam-probe reads
 on a pre-048 engine that counted dead-scene rows b9f9c00 removed. That
 the stamp reads 5.13% after 048 took rows away says the seam probe
 undercounted, not that 048 did nothing. F-033's mechanism claim (the

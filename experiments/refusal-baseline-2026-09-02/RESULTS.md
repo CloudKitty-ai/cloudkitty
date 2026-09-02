@@ -23,22 +23,28 @@ Roster: 5,059 rows, 1,801 taxed + 3,258 absorbed. Taxed density
 
 ## Decision rules, applied
 
-- Step-5 pin (INVESTIGATE at >10% of a seat's ticks): no seat fires.
-  Biscuit 5.13% is the high seat; the next is Clementine at 2.30%.
+- Step-5 INVESTIGATE line (owner ruled 2026-09-01: 3.5% of a seat's
+  ticks, not a retrain gate; spec 046's >10% is the earlier value):
+  Biscuit at 5.13% is above it, every other seat is under (next is
+  Clementine at 2.30%). The owner's 2026-09-01 ruling already
+  disposes of this reading: Biscuit 2.0 at parity welfare paying
+  ~4.7% is not actionable, and the reading that counts is Biscuit
+  3.0's after training. Logged, no action.
 - Retention: `retention_floor_15k` = 5,014 < 6,000. **The default
   stands**; no config change owed. The combined density is 1.45× the
   taxed-only 0.23/tick the knob was sized on, and the 6,000 default's
   headroom covers it with 20% to spare.
-- Zero gaps, window valid, nothing blocks the v2.10 tag.
+- Zero gaps, window valid, nothing blocks the v2.10 tag (the
+  INVESTIGATE line is a step-5 instrument, not a tag prereq).
 
 ## Reading
 
 Biscuit's tax is partner play: 734 of her 777 taxed rows (94%) are
 `play:kitty`. That is the F-033 mechanism on the served world, read off
 the stamp instead of the seam probe. The number is not comparable to
-F-033's 4.7% or the 3.5% INVESTIGATE line, which were pre-048 and
-counted dead-scene rows that b9f9c00 removed; this 5.13% is the new
-reference, and the fact that it lands near the old seam number after
+F-033's 4.7% (or Biscuit 2.0's 4.6% seam read), which were pre-048
+and counted dead-scene rows that b9f9c00 removed; this 5.13% is the
+new reference, and the fact that it lands near the old seam number after
 048 took rows away says the seam probe undercounted the live tax rather
 than that 048 did nothing.
 
@@ -57,8 +63,10 @@ pre-fog reference and not interpreted further.
 
 ## Carry forward
 
-- F-033's 4.7% and the 3.5% INVESTIGATE line are retired as bars; the
-  step-5 pin reads this table.
+- F-033's 4.7% and the 4.6% seam reads are retired as reference
+  numbers; the step-5 INVESTIGATE line (3.5%, owner's) stands and
+  reads this table. Biscuit 2.0 sits above it by ruling, not by
+  oversight.
 - Re-run the window after the next deploy that touches the selector
   or the roster (Biscuit 3.0 cutover at step 7); one window per deploy,
   same instrument.
