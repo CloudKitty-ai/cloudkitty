@@ -566,6 +566,37 @@ mod tests {
         r
     }
 
+    /// Spec 048 doctrine (FR-005, contract invariant 3): declining a
+    /// snapshot-dead scene is shared good sense — BOTH builtins fall
+    /// through to a fresh decision; neither re-proposes the continuation.
+    #[tokio::test]
+    async fn every_builtin_declines_a_snapshot_dead_scene() {
+        let stale = crate::action::Action::Play {
+            target: Some(crate::action::TargetRef::Element { id: 800 }),
+        };
+        for behavior in [
+            Arc::new(NeedsDriven) as Arc<dyn Behavior>,
+            Arc::new(Playful) as Arc<dyn Behavior>,
+        ] {
+            let ctx = crate::test_support::decision_context(|world| {
+                world.elements.clear(); // the critter 800 is gone entirely
+                world.tick = 20;
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 60.0);
+                world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                    target: Some(crate::action::TargetRef::Element { id: 800 }),
+                };
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            });
+            let decision = behavior.decide(&ctx).await;
+            assert_ne!(
+                decision.activity, stale,
+                "no personality re-proposes a scene the snapshot shows dead"
+            );
+        }
+    }
+
     #[test]
     fn builtins_are_registered_and_marked() {
         let r = BehaviorRegistry::with_builtins();
