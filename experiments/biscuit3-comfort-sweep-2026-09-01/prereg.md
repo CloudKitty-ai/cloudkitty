@@ -277,11 +277,25 @@ of those an eligible idle friend stood within a median 2 tiles.
 - **C5 welfare**: Biscuit's E1 gaps do not widen by more than +0.02 on
   any need; roster all-needs shares unchanged within ±0.02.
 
+**Scope (clarified 2026-09-01 with Product, before collection)**: the
+rule is unconditional, so the gate sits on every playful friend-play
+start, not only the spec-042 ranking. Three sites on main 1f60b8d:
+the ranking (`selection.rs:484`), get-serious via `choose()` →
+`nearest_viable_playmate` (`selection.rs:46`, :384), and opportunism
+via `take_what_is_here` → `adjacent_playmate` (`needs_driven.rs:159`,
+`selection.rs:702`). Playful-scoped; needs_driven kitties never read
+the dial; 0.0 short-circuits at each site. Sizing from the c30 raws:
+Biscuit's own max need ≥ 30 at duet start (the get-serious path) in
+167 of 2,693 duets, 22 of the 565 blocked; partner adjacent at the
+poll before start in 64% of duets, 68% of blocked ones. A one-site
+gate would leave C2 measuring the opportunism leak. Product owes one
+redden-first guard per site.
+
 **Recommendation rule**: C1–C5 all pass → the gate ships in the
 Biscuit 3.0 anchor config at c30 (owner pins). C2 passes and C3 or C4
 misses → report the price; owner call. C2 misses → the gate is not
 doing its job (check the snapshot the gate reads against the census's
-interpolation before anything else).
+interpolation before anything else, then check all three sites fire).
 
 **Guard**: `test_score.py` gains a pin for R7 on the recorded payload
 (one duet whose partner is blocked, one whose partner has play on top,
