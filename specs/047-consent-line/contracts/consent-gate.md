@@ -17,7 +17,9 @@ consent_line = 30.0
 
 - Default 0.0 = OFF. At the default the engine is byte-identical to a
   pre-047 build: evolution golden pin and defaults stamp both unmoved.
-- Validation: must be finite and ≥ 0; violations fail config load with an
+- Validation: must be finite, ≥ 0 and ≤ 100 (needs cap at 100, so a higher
+  line could never block — it is refused rather than loaded inert; 100
+  itself is legal but blocks nothing); violations fail config load with an
   error naming `[behavior] consent_line`.
 
 ## The rule (owner's, pinned in the prereg)

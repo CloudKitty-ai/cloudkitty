@@ -25,6 +25,32 @@ after every run.
 | 8 | T015 doctrine guard | classic `take_what_is_here` entry temporarily passed `consent: true` | ONLY the needs_driven doctrine guard red | as predicted: exactly 1 failed (451 passed) | reverted, lib 452/0 |
 | 9 | T016 validation row | poison-table row added BEFORE the validate.rs entry | red: NaN/inf/−1 in `consent_line` accepted (nothing rejects) | as predicted: poison test failed at the expect_err | validate.rs entry added, lib 452/0 |
 
+## Medium-review fix pass (2026-09-01, cycles 10–12 + re-verification)
+
+**Standard adopted (review finding #3): every mutation cycle on this crate
+runs `cargo test --workspace --no-fail-fast`** — plain `cargo test -p`
+aborts at the first failing TARGET, so a lib red hides every integration
+witness behind it.
+
+| # | Guard | Injected bug / staged state | Predicted red | Observed | Green after |
+|---|-------|-----------------------------|---------------|----------|-------------|
+| 10 | upper bound (review #4) | test added BEFORE the validator bound | red: 300 accepted | as predicted | `> 100` rejected, lib 453/0 |
+| 11 | classic-scan doctrine pin (review #2) | the review's exact mutation: `!consent \|\|` dropped at the `viable_playmate_with` friends filter | ONLY the new pin red, workspace-wide | as predicted: exactly 1 failed of 807 (no-fail-fast) | reverted, lib 454/0 |
+| 12 | 042/047 boundary pin (review #3) | site-1 filter removed | the new pin + cycle 6a's three | as predicted: exactly those 4 (no-fail-fast) | restored, lib 455/0 |
+
+**Re-verification of cycles 1, 3, 6b, 6c, 8, 9, 7 with
+`--workspace --no-fail-fast`** (complete red lists):
+
+- Cycles 1 (2 reds), 3 (1), 6b (1), 6c (1), 8 (1), 9 (1): original
+  records were COMPLETE — no integration witness had been hidden.
+- Cycle 7: **5 reds, not the 3 recorded** — the fail-fast hid two lib
+  reds: `the_consent_gate_is_off_at_the_default_line` (the identity pin
+  itself, expected) and `an_unraised_t_partner_never_vetoes_a_negative_value_friend`
+  (the pre-existing 042 no-veto pin moving at a non-zero line). The three
+  recorded witnesses were all genuine. The 042/047 interaction the second
+  miss exposed is now pinned by cycle 12's
+  `the_consent_drop_supersedes_the_042_no_veto_at_a_live_line`.
+
 ## Final gate (T020/T021)
 
 - `cargo fmt --all --check`: clean. `cargo clippy --workspace --all-targets -- -D warnings`: clean.
