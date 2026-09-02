@@ -226,8 +226,11 @@ digest matrix + self-row is extrapolated, not yet measured.
   play-solo are exact zeros for the teacher)
 - needs-servicing latency percentile creep (the "world harder" vs
   "mind broken" separator)
-- refusal-tax share >10% of any seat's ticks (F-033 seam instrument;
-  Biscuit 2.0 pays 4.6% today)
+- refusal-tax share above **3.5%** of any seat's ticks (owner ruled
+  2026-09-01: 3.5% = ceiling for an optimal tax; was >10%). F-033 seam
+  instrument / spec-046 stamp; Biscuit 2.0 pays 4.6% today. First
+  reading under c30 + consent = comfort-sweep Addendum 2 R8; if that
+  still sits near 5% the tax gets its own investigation.
 - dispersion drift (NN median ≥3 but <5)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 

@@ -263,6 +263,20 @@ non-play need is > 30 and above its play need. Report-only: blocked
 partner's top need distribution; who she plays with instead (duet
 partner mix); element share.
 
+**R8 refusal tax (added 2026-09-01, owner's ceiling, before collection)**:
+Biscuit's share of ticks spent refused into idle (a partnered proposal
+bounced, `absorbed == false` on the spec-046 `/events/refusal` stamp,
+which the rebuilt binary carries; exact field names pinned from a real
+payload when the server is up, and `len(events) < capacity` checked or
+the endpoint polled so the 6,000-event ring never drops a run's tail).
+Read on both arms. Owner's rule: **3.5% is the ceiling for an optimal
+tax**; if c30-consent30 still sits near 5% the tax is worth its own
+investigation, otherwise it is closed for this round. Caveat carried:
+the 4.6–4.7% figures on record are a POLICY seat's (Biscuit 2.0,
+F-033, `idle_rewrite_probe.py` on seam traces); these arms are
+scripted, so this is the first scripted-Biscuit reading with the
+served instrument, not a before/after on the same seat.
+
 **Offline pricing that these predictions rest on** (c30 raws,
 `consent_price.py`): 565 of 2,693 duets (21%) would be blocked; in 84%
 of those an eligible idle friend stood within a median 2 tiles.
