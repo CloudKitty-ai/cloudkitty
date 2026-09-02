@@ -281,6 +281,24 @@ F-033, `idle_rewrite_probe.py` on seam traces); these arms are
 scripted, so this is the first scripted-Biscuit reading with the
 served instrument, not a before/after on the same seat.
 
+**Review caveats folded in (Product's 047 review, 2026-09-01, before
+collection)**: (1) R2 hungry-play share joins the readouts for both
+arms, split duet / element / solo: when the gate drops a friend on the
+get-serious path, play is priced as SOLO (as if the friend were absent,
+the spec's declared degradation), so any welfare cost of the gate would
+show up as solo play started while a need is ≥ 30, not in R7. Owner is
+walking this one through herself; the readout is report-only. (2) R7 is
+read from census duet starts, never from the refusal ring, so
+`finish_what_you_started` continuation refusals cannot make the gate
+look leaky; R8 filters on `absorbed == false`, which excludes them by
+construction (a mid-scene continuation is enforced, hence absorbed);
+verified on a real payload before R8 is read. (3) C3/C4 compare levels
+at one dial value against off; the duet delta includes chase-exclusion
+tails paid when a mid-chase target is blocked, and the bars do not
+separate that from the gate itself. Reported as one price, not
+attributed. (4) `consent_line` is refused above 100 at load; this
+addendum's arm is 30.0.
+
 **Offline pricing that these predictions rest on** (c30 raws,
 `consent_price.py`): 565 of 2,693 duets (21%) would be blocked; in 84%
 of those an eligible idle friend stood within a median 2 tiles.
