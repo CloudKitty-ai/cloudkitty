@@ -143,3 +143,16 @@ one twin, knife edge; not recommended). **detector.py stays at 0.65 as
 ruled until the owner says otherwise**; v0.1's verdict is 3/4 positives
 (2/3 MUST-FIRE), 11/11 silent, i.e. NOT validated on the prereg's
 labels at this bar.
+
+## v0.2: (a) bar 0.55 (owner ruled 2026-09-01; prereg §v0.2 @ ddd8249 before the re-run)
+
+Raw: `results-raw/run-v02-2026-09-01.txt`. Guard 6/6, three pins red
+at 0.50 first (mutual lock 409/479, at-bar 0.55, one-sided 0.53).
+
+**v0.2 VALIDATED**, every prediction to the tick: MUST-FIRE 3/3,
+SHOULD-FIRE 1/1 (880015 3735/368, 880030 4643/2218, 880008 1380/290,
+880017 609/402), MUST-SILENT 11/11. Healthy margin 0.12 (peak 0.43 vs
+0.55), lock side 0.27 (0.82 vs 0.55). First fire lands 66–122 ticks
+after the watchdog on the four locks (v0: 48–147). This is H4's
+instrument for step 5 unless a new collapse class asks for a different
+bar (owner's revisit condition).

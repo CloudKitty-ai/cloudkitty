@@ -269,9 +269,13 @@ bounced, `absorbed == false` on the spec-046 `/events/refusal` stamp,
 which the rebuilt binary carries; exact field names pinned from a real
 payload when the server is up, and `len(events) < capacity` checked or
 the endpoint polled so the 6,000-event ring never drops a run's tail).
-Read on both arms. Owner's rule: **3.5% is the ceiling for an optimal
-tax**; if c30-consent30 still sits near 5% the tax is worth its own
-investigation, otherwise it is closed for this round. Caveat carried:
+Read on both arms. Owner's rule (clarified 2026-09-01): **3.5% is the
+line above which investigation is warranted**, not a retrain gate;
+c30 + consent is itself the current response to the tax, and the
+reading that decides is Biscuit 3.0's after training. R8 here is the
+scripted early look, reported next to the E1 welfare gap (Biscuit vs
+roster, all five needs), which is the quantity the whole arc exists to
+close. Caveat carried:
 the 4.6–4.7% figures on record are a POLICY seat's (Biscuit 2.0,
 F-033, `idle_rewrite_probe.py` on seam traces); these arms are
 scripted, so this is the first scripted-Biscuit reading with the
