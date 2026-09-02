@@ -239,3 +239,50 @@ non-monotone reading (c32 below c30 on play, c28 above c30 on welfare
 gaps) would say two seeds are not enough at this spacing and the pin
 should not lean on a 2–3 point difference. No new instrument, no new
 guard.
+
+## Addendum 2: the consent gate at c30 (declared 2026-09-01 before the binary exists)
+
+Replaces the HELD dial sweep. Owner's rule (2026-09-01): play can
+always be proposed if the friend's top need is play; it cannot be
+proposed if a non-play need is the friend's top need and that need is
+over 30. Product implements it as the spec-042 dial `consent_line`
+(0.0 = off, byte identity; brief sent 2026-09-01). Rejection is not the
+target (RESULTS §Play rejection pricing); consent is.
+
+**Arms**: c30-off (the existing raws, re-run on the new binary as the
+identity check: the two must agree within seed noise) and
+c30-consent30 (`consent_line = 30.0`, every other dial identity) ×
+seeds 20260911 / 20260912. Four runs. Everything else as §Arms and
+configs.
+
+**Readouts**: R3 play split, R4 roster duets, Addendum 1 R1 (all-needs
+welfare, Biscuit and roster), and a new **R7 consent share**: of
+Biscuit's duet starts (census events, partner needs interpolated at the
+start tick as `partner_need` already is), the share whose partner's top
+non-play need is > 30 and above its play need. Report-only: blocked
+partner's top need distribution; who she plays with instead (duet
+partner mix); element share.
+
+**Offline pricing that these predictions rest on** (c30 raws,
+`consent_price.py`): 565 of 2,693 duets (21%) would be blocked; in 84%
+of those an eligible idle friend stood within a median 2 tiles.
+
+**Bars**:
+- **C1 identity**: c30-off on the new binary reproduces the old c30-off
+  within seed noise on total play (±5%) and eat ≥30 (±0.02), pooled.
+- **C2 consent**: R7 falls from 0.19–0.21 to under 0.05 in both seeds.
+- **C3 play kept**: Biscuit duets 60–64/1k (prediction; bar ≥ 0.90x
+  c30-off's 67.3), total play ≥ 0.96x c30-off.
+- **C4 roster supply**: roster duets ≥ 0.95x c30-off.
+- **C5 welfare**: Biscuit's E1 gaps do not widen by more than +0.02 on
+  any need; roster all-needs shares unchanged within ±0.02.
+
+**Recommendation rule**: C1–C5 all pass → the gate ships in the
+Biscuit 3.0 anchor config at c30 (owner pins). C2 passes and C3 or C4
+misses → report the price; owner call. C2 misses → the gate is not
+doing its job (check the snapshot the gate reads against the census's
+interpolation before anything else).
+
+**Guard**: `test_score.py` gains a pin for R7 on the recorded payload
+(one duet whose partner is blocked, one whose partner has play on top,
+one whose partner is under the line), shown red in-run before commit.
