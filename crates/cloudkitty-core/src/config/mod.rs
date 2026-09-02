@@ -969,6 +969,17 @@ pub struct BehaviorConfig {
     /// w_value — each dial moves exactly one thing). Either sign is lawful.
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     pub critter_appeal: f32,
+    /// Spec 047: the consent line. A FRIEND whose top NON-play need is
+    /// strictly over this line AND strictly over its own play need is never
+    /// proposed to for play by the playful behavior — on all three of its
+    /// friend-play paths (partner ranking, get-serious relief, adjacent
+    /// opportunism; Clarifications 2026-09-01). Play on top (ties included)
+    /// = always proposable. Friends only: critters, elements and solo play
+    /// are never gated, and needs_driven is untouched (the 042 doctrine).
+    /// 0.0 (the default, skip-serialized — 039-D5 stamp discipline) = off,
+    /// structurally byte-identical to pre-047.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub consent_line: f32,
     /// Per-need multipliers inside the playful get-serious trigger ONLY
     /// (spec 042): pressure × weight compared to `playful_comfort`. All 1.0
     /// = exactly the classic unweighted check; skip-serialized at identity.
@@ -1087,6 +1098,7 @@ impl Default for BehaviorConfig {
             t_self: 0.0,
             t_partner: 0.0,
             critter_appeal: 0.0,
+            consent_line: 0.0,
             comfort_weight: ComfortWeights::default(),
             announce_here: 0,
             contagion_aware_ladder: false,
@@ -1665,6 +1677,24 @@ mod tests {
     }
 
     #[test]
+    fn a_consent_line_above_the_need_cap_is_rejected() {
+        // Spec 047 (medium review #4): needs cap at 100, so a line above
+        // 100 can never block -- it would load clean, serialize as "set",
+        // and silently do nothing (a sweep arm meant as "maximum
+        // protection" would be control-identical). Reject at load, like
+        // the sibling percentage dials. 100 itself stays legal -- the
+        // sibling bound style -- and is documented as never-blocking.
+        let mut c = cfg();
+        c.behavior.consent_line = 300.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] consent_line"), "{msg}");
+        assert!(msg.contains("300"), "names the value: {msg}");
+        let mut ok = cfg();
+        ok.behavior.consent_line = 100.0;
+        ok.validate().expect("100 is the legal ceiling");
+    }
+
+    #[test]
     fn the_playful2_dials_reject_negative_and_non_finite_values() {
         // Spec 042 FR-007: no NaN may enter the score's total order, and
         // negatives are rejected where they have no meaning. critter_appeal
@@ -1680,6 +1710,8 @@ mod tests {
                 ("w_serious", |c, v| c.behavior.w_serious = v),
                 ("t_self", |c, v| c.behavior.t_self = v),
                 ("t_partner", |c, v| c.behavior.t_partner = v),
+                // Spec 047: the consent line shares the house rule.
+                ("consent_line", |c, v| c.behavior.consent_line = v),
                 ("comfort_weight] eat", |c, v| {
                     c.behavior.comfort_weight.eat = v
                 }),
@@ -2877,6 +2909,14 @@ mod tests {
         assert!(
             !json.contains("refusal_retention"),
             "refusal_retention leaked into the stamp: {json}"
+        );
+        // Spec 047: the consent line rides the same discipline -- 0.0/absent
+        // is the launch state and the stamp must not move for a value nobody
+        // set. Delete its skip attribute (or move its default) and this
+        // reddens.
+        assert!(
+            !json.contains("consent_line"),
+            "consent_line leaked into the stamp: {json}"
         );
     }
 

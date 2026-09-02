@@ -379,6 +379,9 @@ impl Config {
             ("[behavior] w_serious", b.w_serious),
             ("[behavior] t_self", b.t_self),
             ("[behavior] t_partner", b.t_partner),
+            // Spec 047: the consent line shares the rule — a NaN would
+            // poison the gate's comparisons, a negative has no meaning.
+            ("[behavior] consent_line", b.consent_line),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -387,6 +390,18 @@ impl Config {
                     "must be a finite number of at least 0",
                 ));
             }
+        }
+        // Spec 047 (medium review #4): needs cap at 100, so a consent line
+        // above 100 can never block -- it would load clean, serialize as
+        // "set", and silently do nothing. Bounded like the sibling
+        // percentage dials (playful_comfort, worth_a_detour); 100 itself
+        // is legal and documented as never-blocking.
+        if b.consent_line > 100.0 {
+            return Err(ConfigError::invalid(
+                "[behavior] consent_line",
+                b.consent_line.to_string(),
+                "must be at most 100 (needs cap at 100, so a higher line can never block)",
+            ));
         }
         // The comfort weights are strictly positive (medium review #5):
         // a zero weight would switch the get-serious trigger OFF for that

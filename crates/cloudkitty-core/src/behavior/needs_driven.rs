@@ -121,6 +121,18 @@ const OPPORTUNISM_LADDER: [NeedKind; 4] = [
 /// trait. The need→relief pairing comes from the one authoritative definition
 /// (`relief.rs`, spec 019); this function owns only the underfoot checks.
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
+    take_what_is_here_with(ctx, false)
+}
+
+/// [`take_what_is_here`] with the spec-047 consent gate armed on the
+/// Playmate rung — the playful behavior's opportunism entry (site 3).
+/// Every other rung is identical; needs_driven keeps the classic entry
+/// point above, untouched by the dial.
+pub(crate) fn take_what_is_here_consenting(ctx: &DecisionContext) -> Option<Action> {
+    take_what_is_here_with(ctx, true)
+}
+
+fn take_what_is_here_with(ctx: &DecisionContext, consent: bool) -> Option<Action> {
     let me = &ctx.me;
     let detour = ctx.config.behavior.worth_a_detour;
 
@@ -157,7 +169,7 @@ pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
             }
             // A bug within paw's reach gets batted at, whatever the errand was.
             ReliefSource::Playmate => {
-                if let Some(target) = selection::adjacent_playmate(ctx) {
+                if let Some(target) = selection::adjacent_playmate_with(ctx, consent) {
                     return Some(Action::play_with(target));
                 }
             }
@@ -537,6 +549,36 @@ mod tests {
     use crate::grid::Position;
     use crate::meow::MessageKind;
     use crate::test_support::decision_context;
+
+    /// Spec 047 doctrine guard (FR-005): the consent line moves ONLY the
+    /// playful behavior. Classic opportunism — needs_driven's entry point —
+    /// still bats an idle adjacent friend into a game with the dial set:
+    /// the 042 rule that the family's dials never move anyone else.
+    #[test]
+    fn needs_driven_opportunism_ignores_the_consent_line() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Play, 45.0);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 6); // adjacent, idle
+            world.kitties[f].needs = crate::needs::Needs::default();
+            world.kitties[f].needs.eat = crate::needs::Need::new(40.0);
+            world.kitties[f].needs.play = crate::needs::Need::new(10.0);
+        });
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .consent_line = 30.0;
+        assert_eq!(
+            take_what_is_here(&ctx),
+            Some(Action::play_with(crate::action::TargetRef::Kitty { id: 2 })),
+            "needs_driven batting is untouched by the dial"
+        );
+    }
 
     #[tokio::test]
     async fn a_napping_cat_stays_asleep_until_rested() {
