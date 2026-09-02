@@ -1677,6 +1677,24 @@ mod tests {
     }
 
     #[test]
+    fn a_consent_line_above_the_need_cap_is_rejected() {
+        // Spec 047 (medium review #4): needs cap at 100, so a line above
+        // 100 can never block -- it would load clean, serialize as "set",
+        // and silently do nothing (a sweep arm meant as "maximum
+        // protection" would be control-identical). Reject at load, like
+        // the sibling percentage dials. 100 itself stays legal -- the
+        // sibling bound style -- and is documented as never-blocking.
+        let mut c = cfg();
+        c.behavior.consent_line = 300.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] consent_line"), "{msg}");
+        assert!(msg.contains("300"), "names the value: {msg}");
+        let mut ok = cfg();
+        ok.behavior.consent_line = 100.0;
+        ok.validate().expect("100 is the legal ceiling");
+    }
+
+    #[test]
     fn the_playful2_dials_reject_negative_and_non_finite_values() {
         // Spec 042 FR-007: no NaN may enter the score's total order, and
         // negatives are rejected where they have no meaning. critter_appeal

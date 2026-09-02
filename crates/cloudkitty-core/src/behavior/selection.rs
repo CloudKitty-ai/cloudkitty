@@ -1902,6 +1902,58 @@ mod playful2_tests {
         );
     }
 
+    /// (medium review #3) The 042/047 boundary, pinned at a live line:
+    /// the exact staging of the 042 no-veto pin above (negative value,
+    /// un-raised t_partner — "penalized in the ranking, not dropped") IS
+    /// dropped once the friend crosses the consent line. Where the two
+    /// philosophies meet on one candidate, 047's hard drop supersedes;
+    /// under the line, 042's penalize-not-drop still governs (the
+    /// score-ON test). Both facts now have a home.
+    #[test]
+    fn the_consent_drop_supersedes_the_042_no_veto_at_a_live_line() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8);
+            pin_needs(world, 2, 80.0, 40.0); // the 042 pin's friend, exactly
+        });
+        set_dials(&mut ctx, |b| {
+            b.w_value = 1.0;
+            b.w_serious = 1.0; // t_partner stays 0.0, as in the 042 pin
+            b.consent_line = 30.0; // eat 80 > 30 and > play 40: blocked
+        });
+        assert_eq!(
+            scored_playmate(&ctx).map(|(t, _)| t),
+            None,
+            "at a live line the hard drop wins over penalize-not-drop"
+        );
+    }
+
+    /// (FR-005 doctrine, medium review #2) The CLASSIC scan never consults
+    /// the gate: `nearest_viable_playmate` — needs_driven's play path via
+    /// `choose` — still finds a blocked friend with the dial set. The
+    /// opportunism half of this doctrine is pinned in needs_driven.rs;
+    /// this is the `choose()` half the review measured as unguarded.
+    #[test]
+    fn the_classic_scan_ignores_the_consent_line() {
+        let mut ctx = decision_context(|world| {
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = Position::new(5, 5);
+            let f = world.kitty_index(2).unwrap();
+            world.kitties[f].pos = Position::new(5, 8); // in reach, not adjacent
+            pin_needs(world, 2, 40.0, 10.0); // blocked at line 30 — for playful only
+        });
+        set_dials(&mut ctx, |b| b.consent_line = 30.0);
+        assert_eq!(
+            nearest_viable_playmate(&ctx).map(|(t, _)| t),
+            Some(TargetRef::Kitty { id: 2 }),
+            "the classic scan is doctrine-blind to the dial"
+        );
+    }
+
     /// (US1/AC4, FR-004) The gate never touches critters: one adjacent to
     /// a blocked friend is chosen exactly as if the friend weren't there.
     #[test]

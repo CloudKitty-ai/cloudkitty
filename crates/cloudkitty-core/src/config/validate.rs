@@ -391,6 +391,18 @@ impl Config {
                 ));
             }
         }
+        // Spec 047 (medium review #4): needs cap at 100, so a consent line
+        // above 100 can never block -- it would load clean, serialize as
+        // "set", and silently do nothing. Bounded like the sibling
+        // percentage dials (playful_comfort, worth_a_detour); 100 itself
+        // is legal and documented as never-blocking.
+        if b.consent_line > 100.0 {
+            return Err(ConfigError::invalid(
+                "[behavior] consent_line",
+                b.consent_line.to_string(),
+                "must be at most 100 (needs cap at 100, so a higher line can never block)",
+            ));
+        }
         // The comfort weights are strictly positive (medium review #5):
         // a zero weight would switch the get-serious trigger OFF for that
         // need entirely -- beyond what any lawful playful_comfort (which
