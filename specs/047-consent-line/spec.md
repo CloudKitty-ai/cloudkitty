@@ -24,6 +24,25 @@ and in 84% of those an eligible idle friend stood within a median 2 tiles.
 Since the invited side cannot refuse, consent has to live in the chooser's
 selection. Rejection is not the target; consent is.
 
+## Clarifications
+
+### Session 2026-09-01
+
+- Q: The brief's gate site (the partner ranking's eligibility filter) covers
+  only one of three playful friend-play start paths — do get-serious relief
+  and adjacent opportunism get gated too? → A: **Yes — all three paths**
+  (Experiments confirmed 2026-09-01 after Product's leak analysis; the
+  owner's rule is unconditional and the prereg pins it that way; a one-site
+  gate would make bar C2 a test of the leak, not the rule). Playful-scoped:
+  needs-driven kitties are untouched even with the dial set. Sizing from the
+  c30 raws: get-serious carries ~6% of duets (167/2,693; 22 of the 565
+  would-be-blocked); the adjacency-heavy opportunism path is the material
+  leak (partner adjacent at the last poll in 68% of blocked duets).
+- Q: May the three sites read the friend's needs differently? → A: No — all
+  three read the same decision-time world snapshot the selector already
+  consults, so Experiments' consent-share readout (R7) has exactly one
+  definition to pin.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A burdened friend is left in peace (Priority: P1)
@@ -110,6 +129,11 @@ rejection.
   elements, and solo play; selection degrades exactly as if those friends were
   absent, never to a stuck state.
 - Dial set but no friends in range: no behavior change of any kind.
+- A blocked friend standing adjacent: the opportunism pass skips them (a
+  critter in reach is still batted at; with nothing else in reach the rung
+  yields nothing and the ladder moves on) — adjacency is not a bypass.
+- A playful kitty above its comfort line whose winning need is play: the
+  get-serious pick honors the gate exactly as the ranking does.
 - The gate composes with the existing eligibility thresholds (self-urge and
   partner-value floors) and with partner scoring on or off: it is an
   independent AND-condition, not a replacement for or modifier of any of them.
@@ -122,29 +146,37 @@ rejection.
   with default 0.0 meaning OFF; at the default, world evolution MUST be
   byte-identical to a build without the dial (proven by the existing
   golden-evolution and character-stamp witnesses, unmoved).
-- **FR-002**: When `consent_line` > 0, a FRIEND MUST be dropped from
-  play-target eligibility if and only if the friend's top non-play need
-  (highest of eat, drink, sleep, cuddle, bath) is strictly greater than
-  `consent_line` AND strictly greater than the friend's play need.
+- **FR-002**: When `consent_line` > 0, a FRIEND MUST be dropped as a play
+  target if and only if the friend's top non-play need (highest of eat,
+  drink, sleep, cuddle, bath) is strictly greater than `consent_line` AND
+  strictly greater than the friend's play need — on EVERY play-proposal path
+  of the playful behavior: the partner ranking, get-serious play relief, and
+  adjacent opportunism (Clarifications 2026-09-01).
 - **FR-003**: A friend whose top need is play (including a tie with the top
   non-play need) MUST always remain proposable, regardless of how high any
   need runs.
 - **FR-004**: The gate MUST apply to friend targets only; critter targets,
   element play, and solo play MUST be unaffected, including when they stand
   adjacent to a blocked friend.
-- **FR-005**: The gate MUST be a hard eligibility drop evaluated alongside the
-  existing eligibility conditions — never a ranking cost — and MUST act
-  independently of partner scoring being on or off and of every other dial's
-  value.
+- **FR-005**: The gate MUST be a hard drop evaluated alongside each path's
+  existing conditions — never a ranking cost — and MUST act independently of
+  partner scoring being on or off and of every other dial's value. It MUST
+  NOT alter any non-playful behavior's selection even when the dial is set
+  (the spec-042 doctrine: the family's dials never move anyone else).
 - **FR-006**: Config validation MUST reject a negative `consent_line` at load
   with an error naming the dial.
 - **FR-007**: The dial MUST be documented where the playful family's dials are
   documented (the served config's commented row and any dial table the family
   keeps).
-- **FR-008**: Each behavioral guard (identity at default, the three US1
-  eligibility cases, critter-unaffected, validation rejection) MUST be shown
-  red first against the exact bug it catches, per house rules 5/6, with the
-  cycles recorded in the feature's redden list.
+- **FR-008**: Each behavioral guard MUST be shown red first against the exact
+  bug it catches, per house rules 5/6, with the cycles recorded in the
+  feature's redden list: identity at default, the three US1 eligibility
+  cases, critter-unaffected, needs-driven-untouched, validation rejection,
+  and ONE guard PER GATED PATH (ranking, get-serious, opportunism), each red
+  when its own site's check is removed (Experiments' ask, 2026-09-01).
+- **FR-009**: All three gated sites MUST read the friend's needs from the
+  same decision-time world snapshot the selector already consults — one
+  consent definition across paths (Experiments' ask, 2026-09-01).
 
 ### Key Entities
 
