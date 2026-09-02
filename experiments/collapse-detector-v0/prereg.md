@@ -96,6 +96,25 @@ to `>=`; window off by one; partner index decode).
   not tuned away post hoc — a threshold change is a v0.1 with its own
   prereg line.
 
+## v0.1: H4 bar lifted to 0.65 (owner ruled 2026-09-01; declared before re-running)
+
+Owner's reasoning: one recorded lock class is not enough data for a firm
+bar, and a healthy Biscuit could plausibly hold one partnered activity
+at half a 200-tick window. Signal (a)'s bar moves 0.50 → 0.65; signal
+(b) (mutual pair) stays at 0.50 (margin 0.24 there, not ruled on); W, D
+and (c) unchanged. Reevaluate if a later collapse class would be caught
+by a lower bar.
+
+Predictions on the same 19 traces: all three MUST-FIRE still fire on
+(a) (their lock shares 0.82–0.83 clear 0.65), first fire later by
+about 0.15·W = 30 ticks on a hard lock (the synthetic 500-tick lock
+moves 399 → 429, episode 499 → 439) and by more where the lock ramps;
+`first_fire_tick` stays (b)'s where (b) also fires; all eleven MUST-SILENT stay
+silent (healthy peak 0.43); healthy-side margin becomes 0.22, lock-side
+0.17. Guard: a one-sided 0.60-share partnering that fired under 0.50
+stays silent under 0.65 (shown red by restoring 0.50 before commit);
+the at-the-bar pin moves to exactly 0.65 one-sided.
+
 ## What this is not
 
 Not a live instrument (transport is v1). Not silence "across the 2.4M

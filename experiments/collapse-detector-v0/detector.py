@@ -10,7 +10,8 @@ one-hot 9-15, social 16, partner flag 17, partner index 18, progress
   (b) mutual-pair persistence           per pair   FIRES
   (c) need spread                        per seat   report only
 
-Each is a trailing-window share (W) that must hold > 0.5 (or > 60 for
+Each is a trailing-window share (W) that must hold over its bar (0.65 for
+(a) since v0.1, 0.50 for (b), 60 for
 (c)) for D consecutive ticks to fire. Detect-and-report: nothing here
 touches a world.
 
@@ -28,7 +29,9 @@ ACTIVITIES = ["idle", "resting", "sleeping", "eating", "drinking",
               "playing", "grooming"]
 PARTNERED = {"resting", "sleeping", "grooming"}      # the adhesive families
 W, D = 200, 200
-SHARE_BAR, SPREAD_BAR = 0.50, 60.0
+# v0.1 (owner 2026-09-01): H4's single-family bar (a) is 0.65; the mutual-pair
+# bar (b) stays at v0's 0.50.
+SHARE_BAR_A, SHARE_BAR_B, SPREAD_BAR = 0.65, 0.50, 60.0
 WATCHDOG_THRESHOLD = 150
 
 
@@ -76,25 +79,25 @@ def detect(states, roster, names=None, w=W, d=D):
     report = {"fires": [], "max_share": {"a": 0.0, "b": 0.0, "c": 0.0},
               "watchdog_tick": None, "spread_flags": []}
 
-    # (a) one partnered family > 0.5 of the trailing window, per seat
+    # (a) one partnered family > SHARE_BAR_A of the trailing window, per seat
     for k in range(roster):
         for f in fam_ids:
             fl = (act[:, k] == f) & (pidx[:, k] >= 0)
             share = trailing_mean(fl, w)
             report["max_share"]["a"] = max(report["max_share"]["a"], float(np.nanmax(share)))
-            first, run = sustained(share > SHARE_BAR, d)
+            first, run = sustained(share > SHARE_BAR_A, d)
             if first is not None:
                 report["fires"].append({"signal": "a", "seat": names[k],
                                         "family": ACTIVITIES[f],
                                         "tick": int(first), "episode": int(run)})
 
-    # (b) mutual pair > 0.5 of the trailing window, per unordered pair
+    # (b) mutual pair > SHARE_BAR_B of the trailing window, per unordered pair
     for i in range(roster):
         for j in range(i + 1, roster):
             mutual = (pidx[:, i] == j) & (pidx[:, j] == i)
             share = trailing_mean(mutual, w)
             report["max_share"]["b"] = max(report["max_share"]["b"], float(np.nanmax(share)))
-            first, run = sustained(share > SHARE_BAR, d)
+            first, run = sustained(share > SHARE_BAR_B, d)
             if first is not None:
                 report["fires"].append({"signal": "b", "pair": [names[i], names[j]],
                                         "tick": int(first), "episode": int(run)})
