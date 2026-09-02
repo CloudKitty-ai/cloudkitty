@@ -83,10 +83,11 @@ report-only), and the ruling is pinned by
 ruling-(b) drift injection reds only this test — the review's
 "indistinguishable mechanisms" gap, closed).
 
-Open with Experiments (does not gate this PR): the event does not carry
-the enforced outcome's kind; their baseline wants to read absorbed rows
-by enforced activity kind. Awaiting their word on adding an `enforced`
-field vs. correlating another way.
+Experiments ruled the event stays as-is (2026-09-01): no `enforced`
+field — the live baseline reads taxed (`absorbed == false` / ticks) and
+the absorbed count only; a by-kind split was a nice-to-have,
+approximable from `/world` activity polls, additive later if step 4
+ever wants it. Wire shape final for this PR.
 
 ## Reported, not fixed (CLAUDE.md rule 3)
 
