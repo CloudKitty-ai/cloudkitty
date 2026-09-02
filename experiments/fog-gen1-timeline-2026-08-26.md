@@ -275,8 +275,9 @@ step 1's — two total, accepted knowingly).
 5 new certifiable seats incl. Biscuit 3.0. Biscuit 3.0's design per
 `biscuit3-design-note-2026-08-26.md` (anchor-side comfort fix +
 proposal filter; the step-2 comfort sweep is its pricing input; anchor
-RULED 2026-09-02: c30 + `consent_line 30`). **Consent-transfer pair
-(owner 2026-09-02)**: Biscuit 3.0 trained twice, c30 with `consent_line`
+RULED 2026-09-02: c30 + `consent_line 30`; `w_value` re-admission
+SHELVED indefinitely, solo play is not a targeted behaviour).
+**Consent-transfer pair (owner RULED 2026-09-02)**: Biscuit 3.0 trained twice, c30 with `consent_line`
 30 and 0, same seed and budget; read the trained kitty's consent share,
 duets/1k, element play and E1 against each other. Answers whether
 consent in the needs-driven teacher survives PPO (the gate binds the

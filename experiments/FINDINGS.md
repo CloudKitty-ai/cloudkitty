@@ -2154,7 +2154,9 @@ overridden on the record, RESULTS §Owner ruling). The gate binds the
 scripted selector only; the RL menu picks partners directly and the
 reward does not price consent, so the trained kitty inherits consent as
 a teacher habit. Step 7 trains Biscuit 3.0 with `consent_line` 30 and 0
-to read the transfer. **Scope**: scripted anchor only; a clone's
+to read the transfer (RULED 2026-09-02 after Half B; `w_value`
+re-admission SHELVED indefinitely, solo play is not a targeted
+behaviour). **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm

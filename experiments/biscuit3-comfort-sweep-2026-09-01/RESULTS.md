@@ -623,3 +623,13 @@ insurance if the anchor's E1 is ever load-bearing.
 
 Reverse-race `absorbed=true` rows (048 Edge Cases) are outside R8 by
 construction and were not counted here.
+
+**Owner ruling after Half B (2026-09-02)**: `w_value` re-admission is
+SHELVED indefinitely; solo play is not a targeted behaviour, and the
+dial produces it on both binaries. Neither the admission decoupling nor
+option (b) is queued; the `expected_wait` bug stays filed on its own
+merits (BACKLOG P3, PR #340). The step-7 consent-transfer pair is
+CONFIRMED: Biscuit 3.0 trained at c30 with `consent_line` 30 and 0,
+same seed and budget, read on the trained kitty's consent share,
+duets/1k, element play and E1. That pair is the only open item from
+this arc. Arc closed.
