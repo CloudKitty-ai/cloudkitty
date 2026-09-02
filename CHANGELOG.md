@@ -33,6 +33,8 @@ change.
 
 ## Unreleased
 
+## v2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
+
 - No stale re-proposal (spec 048) **`[rng-sequence]`**: a cat no longer
   proposes the continuation of a scene whose counterpart the decision
   snapshot already shows gone — the critter out of reach, the groomed
