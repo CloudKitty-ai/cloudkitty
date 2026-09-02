@@ -366,3 +366,92 @@ n ≈ 180–220 starts per arm): 0.29 at c55, 0.19 at c30, 0.16 at c25
 5 }` ticks. Bars for any consent dial: roster duet supply ≥0.85x c55
 and all-five-needs roster parity. The multiplicative-delay amendment is
 held (a rejection lever).
+
+## Addendum 2 results: the consent gate at c30 (2026-09-01; declared @ 1f60b8d, instruments @ 0cff5b2, before collection; 4/4 valid)
+
+Binary from main f45a880 (spec 047 merged). Arms c30-off2 (the c30
+config on the new binary, `consent_line` absent) and c30-consent30
+(`consent_line = 30.0`), seeds 20260911 / 20260912. Census polls
+1,557–1,558, world polls 1,479–1,480 per run; watchdog quiet (0
+entries) in all four; the refusal ring was drained every poll with
+zero gaps.
+
+**C1 identity PASS, at the event level.** c30-off2 reproduces the old
+c30-off tick for tick: every one of the 15,355 / 15,144 census events
+in the first 21,000 ticks of the new runs is in the old run's event
+set (the old runs carry 1–2 extra events at the window cut). Pooled
+play 163.1 → 163.1, eat ≥30 0.132 → 0.132, duets 67.3 → 67.3. The 047
+gate at 0.0 is inert at run time, not only in the unit guards. The
+old c30-off boot logs were overwritten by a mis-globbed launch that was
+killed before any data file was touched; the data files carry their
+16:00 timestamps.
+
+| arm | R7 consent share [seeds] | Biscuit duets /1k | element /1k | total play | duet share | roster duets /1k | roster-roster starts /1k | E1 gaps eat / drink / sleep / cuddle | R8 partnered tax | all refused-idle | happiness B \| roster |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| c30-off2 | 0.208 [0.196, 0.220] | 67.3 | 95.7 | 163.1 | 0.41 | 25.5 | 34.8 | +0.04 / +0.04 / +0.04 / +0.03 | 0.049 | 0.082 | 84.8 \| 86.9 |
+| c30-consent30 | 0.013 [0.015, 0.011] | 49.0 | 117.3 | 166.4 | 0.29 | 21.2 | 35.7 | +0.05 / +0.05 / +0.06 / +0.06 | 0.034 | 0.073 | 84.6 \| 87.2 |
+
+**C2 consent PASS.** R7 falls 0.208 → 0.013 (25 of 1,960 duet starts,
+both seeds under 0.05). The residual 25 are read at poll resolution: in
+most the partner's play need at the previous poll was 28–38 (play on or
+near its top), and a friend that initiates a duet with Biscuit is
+counted against her by this readout, which cannot see who proposed. Two
+Clementine starts at cuddle 85–97 and one Kittybear start at bath 33–39
+(bath 7 one poll earlier) are interpolation or friend-initiated; none
+is evidence the gate is leaky, and none of the three sites needs
+checking.
+
+**C3 play kept MISS.** Biscuit's duets 67.3 → 49.0/1k, 0.728x against
+the 0.90x bar and the 60–64 prediction. Total play 1.02x (bar 0.96x):
+the lost duets went to elements (95.7 → 117.3/1k), not to other
+friends. Partner mix is unchanged (Pumpkin 0.31 → 0.30, Miso 0.26 →
+0.24, Kittybear 0.22 → 0.25, Clementine 0.21 → 0.21). The offline
+pricing said 21% of her duets would be blocked and an eligible idle
+friend stood within 2 tiles in 84% of those; the run says 27% were
+lost and the substitute was an element. What the pricing did not model:
+after a friend drops out of the ranking the next-best candidate is
+priced against elements with the same distance discount, and the
+get-serious path prices play solo when its friend is blocked (the
+accepted degradation). Chase-exclusion tails ride in the same number
+(caveat 3). Reported as one price.
+
+**C4 roster supply MISS, but it is C3's shadow.** Roster duets 25.5 →
+21.2/1k (0.829x, bar 0.95x). The readout counts each roster kitty's
+duets including those with Biscuit; her 18.3/1k lost duets spread over
+four seats are 4.6/1k each, and the observed drop is 4.35/1k.
+Roster-roster duet starts are flat: 34.8 → 35.7/1k. The gate costs the
+roster no play with each other; it costs them play with Biscuit, which
+is the play the gate exists to decline.
+
+**C5 welfare MISS on cuddle, at the edge on sleep.** Biscuit's E1 gaps
+widen eat +0.006, drink +0.014, sleep +0.020, cuddle +0.028 (bar
++0.02); the roster's own shares move −0.006 to −0.014 (inside ±0.02,
+all in the roster's favour). Per seed: cuddle gap 0.034 / 0.021 →
+0.054 / 0.058, both seeds up; sleep 0.032 / 0.043 → 0.072 / 0.043,
+seed 1 only. c30 was pinned at E1 margins of +0.03–0.04; the gate adds
+0.01–0.03 and E1 flips to MISS at c30 (+0.049 / +0.050 / +0.057 /
++0.056 against 0.05). Happiness Biscuit 84.8 → 84.6, roster 86.9 →
+87.2. She plays slightly more in total, farther from her friends, and
+the roster is left alone slightly more.
+
+**R8 refusal tax (scripted early look).** Partnered refusals
+(`play` at a `kitty` target, `absorbed == false`): 4.9% of her ticks
+off, 3.4% with the gate, seeds 4.5 / 5.2 → 3.6 / 3.1. The old
+scripted figure lands on F-033's policy figure (4.7%) and the gate
+takes it to the owner's 3.5% line, from above. All refused-into-idle
+proposals (elements occupied, blocked moves, rests) run 8.2% → 7.3%;
+element refusals rise 2.4 → 3.1% with the extra element play. Read next
+to E1: the gate lowers the tax and widens the welfare gap at the same
+time, so on the owner's rule (parity is the gate, tax is the
+investigate line) it does not pay for itself at c30.
+
+**Recommendation rule applied: C2 passes, C3 / C4 / C5 miss → report
+the price; owner call.** The gate does its job (consent share 0.21 →
+0.01) at a price the prereg did not anticipate: 27% of Biscuit's duets,
+substituted by element play, and E1 parity lost by 0.006–0.007 at c30.
+Two ways to pay it, both owner's: (a) ship c30 + consent as the anchor
+and accept E1 at +0.05–0.06 (Biscuit 3.0's trained reading decides the
+tax question anyway); (b) re-pin comfort with the gate on, one bracket
+run at c28 / c26 + consent, since Addendum 1b's c28 passed E1 at +0.02–
+0.03 without the gate and play there was 0.65x. Not recommended: tuning
+the gate's line above 30, which trades C2 for C3 on a 25-start residual.

@@ -108,5 +108,7 @@ assert close(tax["share_of_ticks"], 24 / 303, 1e-9), tax
 # window is inclusive at both ends: her first refused row sits at tick 20, last at 310
 assert refusal_tax(RF, 2, 20, 310)["refused_idle"] == 24 and refusal_tax(RF, 2, 21, 309)["refused_idle"] == 22
 assert sum(tax["by_action"].values()) == 24 and "play_kitty" in tax["by_action"], tax["by_action"]
+# R8 as declared is the PARTNERED tax (a play-with-friend proposal bounced): 13 of her 24 refused rows
+assert tax["partnered"] == 13 and close(tax["partnered_share"], 13 / 303, 1e-9), tax
 
-print("test_score: 9 pins ok")
+print("test_score: 10 pins ok")

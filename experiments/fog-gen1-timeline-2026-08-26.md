@@ -77,7 +77,8 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
 - Secondary: MLP fast-training smoke. Weak negatives (learners barely
   discovered hunting under a correct economy) — confirmatory only.
   **SKIPPED for this round (owner ruled 2026-09-01)**; step 2's
-  remaining measurement is the Addendum 2 consent gate run.
+  last measurement, the Addendum 2 consent gate run, is DONE (below);
+  step 2 now waits only on the owner's anchor call.
 - `tail-benchmarks/family-11-r5` against the collapse-detector v0 —
   **DONE 2026-09-01 (`collapse-detector-v0/RESULTS.md`, F-037)**:
   VALIDATED on the pinned labels (3/3 MUST-FIRE, 11/11 MUST-SILENT,
@@ -130,8 +131,17 @@ soak. Step 1 closes; the refusal-stamp fast-follow and the Biscuit
   conscript a friend with a need ≥30: 0.29 at c55, 0.19 at c30, 0.16 at
   c25), with roster duet supply and all-five-needs parity as bars; the
   owner's delta form is the right shape with slack; multiplicative
-  delay HELD (it is a rejection lever). Addendum 2 = small consent-dial
-  sweep, pending owner.
+  delay HELD (it is a rejection lever). **Addendum 2 DONE 2026-09-01
+  (F-038 point 7)**: the spec-047 gate at `consent_line = 30` on c30
+  takes the consent share 0.21 → 0.01 (C2 PASS; C1 event-level
+  identity PASS) but costs 27% of Biscuit's duets (67.3 → 49.0/1k,
+  substituted by elements, total play 1.02x), 0.83x roster duets (all
+  of it her lost duets; roster-roster starts flat) and E1 parity at
+  c30 (gaps +0.05–0.06 vs 0.05, cuddle widest). Partnered refusal tax
+  4.9% → 3.4%. Prereg rule → **report the price, OWNER CALL**: ship
+  c30 + consent with E1 at +0.05–0.06, or re-pin comfort with the gate
+  on (c28 / c26 + consent bracket, one run). This is the Biscuit 3.0
+  anchor decision.
 
 The validated step-2 mix bands become step 5's reference.
 
@@ -232,7 +242,8 @@ digest matrix + self-row is extrapolated, not yet measured.
   pays 4.6% today. c30 + consent IS the current response to the tax;
   the reading that counts is Biscuit 3.0's (policy seat, after
   training), with comfort-sweep Addendum 2 R8 as the scripted early
-  look. Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  look (READ 2026-09-01: scripted c30 partnered tax 4.9%, 3.4% with
+  the gate, which reaches the line while widening E1 by 0.01–0.03). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
   its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
   with the roster paying ~4.7% is NOT actionable; the tax becomes a

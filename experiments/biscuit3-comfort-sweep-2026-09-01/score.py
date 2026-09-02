@@ -99,7 +99,9 @@ def hungry_start(ser, kitty_id, tick):
 
 def refusal_tax(events, kitty_id, t0, t1):
     """R8 off the spec-046 ring: the seat's refused-into-idle rows
-    (absorbed == false) in [t0, t1], total and by proposed action; a
+    (absorbed == false) in [t0, t1], total and by proposed action, with
+    the PARTNERED rows (a play-with-friend proposal bounced) as the
+    declared R8 figure; a
     continuation re-proposal at a busy friend is enforced, hence absorbed,
     and never counts."""
     rows = [e for e in events if e["kitty_id"] == kitty_id and t0 <= e["tick"] <= t1
@@ -107,7 +109,9 @@ def refusal_tax(events, kitty_id, t0, t1):
     by = Counter(e["proposed"]["action"] + ("_" + e["proposed"]["target"]
                  if e["proposed"]["action"] == "play" and "target" in e["proposed"] else "")
                  for e in rows)
+    partnered = by.get("play_kitty", 0)
     return {"refused_idle": len(rows), "share_of_ticks": len(rows) / (t1 - t0 + 1),
+            "partnered": partnered, "partnered_share": partnered / (t1 - t0 + 1),
             "by_action": dict(by)}
 
 
@@ -422,13 +426,15 @@ def main():
         cs = [r["consent"]["share"] for r in rs]
         A[a]["consent_share"] = pool(rs, lambda r: r["consent"]["share"])
         A[a]["consent_seeds"] = cs
-        A[a]["refusal_tax"] = pool(rs, lambda r: (r["refusal_tax"] or {}).get("share_of_ticks"))
+        A[a]["refusal_tax"] = pool(rs, lambda r: (r["refusal_tax"] or {}).get("partnered_share"))
+        A[a]["refused_idle_total"] = pool(rs, lambda r: (r["refusal_tax"] or {}).get("share_of_ticks"))
         A[a]["hungry_start"] = {c_: pool(rs, lambda r: r["hungry_start_by_class"][c_]["hungry"] * 1000.0 / r["ticks"])
                                 for c_ in ("play-duet", "play-elem", "play-solo")}
         gaps = [r["refusal_tax"]["ring_gaps"] for r in rs if r["refusal_tax"]]
         tax = A[a]["refusal_tax"]
         print(f"  {a:14s} R7 {A[a]['consent_share']:.3f} {[round(c_, 3) for c_ in cs]}"
-              f"  R8 tax {'n/a' if tax is None else f'{tax:.4f}'} ring-gaps {sum(len(g) for g in gaps)}"
+              f"  R8 partnered tax {'n/a' if tax is None else f'{tax:.4f}'}"
+              f" (all refused-idle {'n/a' if tax is None else f'{A[a]['refused_idle_total']:.4f}'}) ring-gaps {sum(len(g) for g in gaps)}"
               f"  hungry-start/1k duet {A[a]['hungry_start']['play-duet']:.1f}"
               f" elem {A[a]['hungry_start']['play-elem']:.1f} solo {A[a]['hungry_start']['play-solo']:.1f}")
 
@@ -471,7 +477,7 @@ def main():
         print(f"== Addendum 2 C5 welfare {ok(c5)}: gap widening " + " ".join(f"{n} {widen[n]:+.3f}" for n in NEEDS5)
               + "  roster delta " + " ".join(f"{n} {roster_d[n]:+.3f}" for n in NEEDS5))
         t_off, t_con = off2["refusal_tax"], con["refusal_tax"]
-        print(f"== Addendum 2 R8 refusal tax (investigate line {REFUSAL_LINE:.3f}): off2 "
+        print(f"== Addendum 2 R8 partnered refusal tax (investigate line {REFUSAL_LINE:.3f}): off2 "
               f"{'n/a' if t_off is None else f'{t_off:.4f}'} consent30 {'n/a' if t_con is None else f'{t_con:.4f}'}"
               f"  E1 gaps consent30 " + " ".join(f"{n} {g_con[n]:+.3f}" for n in NEEDS5))
     out["bars"] = bars

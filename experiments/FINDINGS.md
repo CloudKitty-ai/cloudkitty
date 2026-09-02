@@ -2110,6 +2110,22 @@ Biscuit with four `needs_driven` seats, canonical 041 economy
    watchdog quiet, self-resolved), the same shape as the served soak's
    Miso event; a roster mechanic a seed exposed, not a comfort effect.
 
+7. **Addendum 2 (the spec-047 consent gate at c30, 2026-09-01): the
+   gate works and costs a quarter of her duets plus parity.** On the
+   f45a880 binary, `consent_line` absent reproduces the old c30 run
+   tick for tick (15,355 / 15,144 events, all shared: C1 at the event
+   level). At `consent_line = 30`, the share of her duets that
+   conscript a friend with a non-play need over 30 falls 0.21 → 0.01
+   (C2), but duets fall 67.3 → 49.0/1k (0.73x, bar 0.90x, predicted
+   60–64) and the lost duets go to elements (95.7 → 117.3/1k, total
+   play 1.02x), not to the idle eligible friend the offline pricing
+   put within 2 tiles in 84% of blocked starts. Roster duets 0.83x is
+   entirely her lost duets counted on their side (roster-roster starts
+   34.8 → 35.7/1k, flat). Her E1 gaps widen +0.006–0.028 (cuddle most,
+   both seeds) and E1 flips to MISS at c30 (+0.05–0.06 vs 0.05); the
+   roster's shares improve 0.006–0.014. Partnered refusal tax 4.9% →
+   3.4% of her ticks (scripted; the 4.9% matches F-033's policy 4.7%).
+
 **Decision (prereg rule)**: middle case, owner's call on the curve. If
 Biscuit is to be fed, use flat comfort; the food-only weight band is
 withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
@@ -2117,7 +2133,11 @@ with solid element play is still very Biscuit"). Addendum 1's rule
 (highest comfort passing parity with play ≥ the owner's 0.70x) lands
 on **c30**, and the 32/28 bracket confirms it (c32 fails parity, c28
 fails the play line); c25 is the next point on the curve (parity exact,
-0.58x, half the meows), not a candidate under that line. **Scope**: scripted anchor only; a clone's
+0.58x, half the meows), not a candidate under that line. **Addendum 2
+(prereg rule)**: C2 passes, C3 / C4 / C5 miss → report the price, owner
+call: ship c30 + consent with E1 at +0.05–0.06, or re-pin comfort with
+the gate on (c28 / c26 + consent bracket; c28 passed E1 at +0.02–0.03
+without it). **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm
