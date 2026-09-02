@@ -178,6 +178,24 @@ the scene-age float, and is reopen trigger 1), the KITTY_SLOT gap
 ("wants the wall"), anything else wanting a schema break. Nothing
 enters step 4's spec without appearing here first.
 
+**Owner rulings 2026-09-02 (step 3 opened after the v2.10 tag)**:
+- **Neighbour-in-water bit: IN.** One `KITTY_SLOT` bit per friend row,
+  observe-only; the contagion charge stays at 0 (the 2026-09-01
+  shelving stands). Reason: 3.0 breaks compat anyway, so widening the
+  slot now means a later contagion investigation is a retrain, not a
+  schema break. Under fog it is a knowledge field (reads for visible
+  friends only; self-in-water is already in `SELF_BLOCK`). On the
+  record: with the charge at 0 the bit carries no price and Gen 1
+  will learn to ignore it; that is expected, not a defect.
+- **Scene-age float: IN.** Both halves per the ROADMAP entry: own
+  scene age in `SELF_BLOCK` and each visible friend's in its
+  `KITTY_SLOT` row, `elapsed / 24` clamped to 1, zero when no scene
+  runs, H = 24 frozen. Friend copy is a knowledge field under fog;
+  own copy is never masked. observe.rs arithmetic only.
+Still open for the doc: the KITTY_SLOT gap, the Here*-teacher scope
+(collapse into `announce_here`, F-034), the 3.0 config-hygiene delete
+list.
+
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
 **TAGGED 2026-09-02**: signed annotated tag v2.10 on main c6d931d (PR
