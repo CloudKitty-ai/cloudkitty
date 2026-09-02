@@ -10,6 +10,7 @@ injected bug produced the *predicted* red and the revert restored green.
 - Close-out (T025): **787 passed / 0 failed** (64 suites) after `cargo fmt` + CI-exact clippy clean (`cargo clippy --workspace --all-targets -- -D warnings`). Baseline 774 → 787: +13 new assertions, nothing lost.
 - Post-T026: **788 / 0**. Post review-medium fixes (findings 2/4/6/7/8, 2026-09-01): **790 passed / 0 failed** (64 suites; +2 = strip witness + ring-window test), fmt + CI-exact clippy clean. Golden regenerated a second time (`8e184e6d…`): the 4,000→6,000 default moves the serialized ring's `capacity` integer only — the in-tree strip witness stayed green across the change.
 - Post findings 3+5 (owner-ruled, 2026-09-01): **792 passed / 0 failed** (64 suites; +2 = sibling re-stamp test + publish-reuse test), fmt + CI-exact clippy clean.
+- Post finding 1 (Experiments ruled (a), 2026-09-01): **793 passed / 0 failed** (64 suites; +1 = past-minimum pin), fmt + CI-exact clippy clean. `absorbed` formula UNCHANGED; prose corrected to "the kitty was mid-scene and the scene continued" (events.rs, world.rs recording comment, api.rs, CHANGELOG, contract — with Experiments' F-033 rationale and the already-satisfied-scene blind spot recorded in the contract). The event does NOT carry the enforced outcome's kind — relayed back to Experiments (their baseline wants to read absorbed rows by enforced kind).
 
 | # | Assertion (test) | Injected bug | Predicted failure | Observed red | Restored green |
 |---|------------------|--------------|-------------------|--------------|----------------|
@@ -36,6 +37,7 @@ injected bug produced the *predicted* red and the revert restored green.
 | 20 | `a_retention_edit_reaches_every_ring_on_resume` (persist.rs, review-medium F3) | (no injection — the missing sibling re-stamps ARE the bug, T018 pattern) | Siblings keep persisted capacity; refusal alone re-stamped | Exactly that: `left: (1000, 1000, 6007) / right: (1007, 1007, 6007)` | ✓ green at the two sibling `set_capacity` calls, persist suite 15 passed |
 | 21 | `the_refusal_window_allocation_is_reused_until_the_ring_changes`, rotation arm (sim_task.rs, review-medium F5) | Witness dead-coded to length-only (tick comparison dropped) | Rotation arm reds ("length alone is not the witness"); quiet arm stays green | Exactly that, sim_task.rs:311 | ✓ reverted |
 | 22 | Same test, quiet-tick arm | Reuse arm dead-coded (`if false && …` — always rebuild) | Quiet-arm `Arc::ptr_eq` reds ("an unchanged ring reuses") | Exactly that, sim_task.rs:304 | ✓ reverted, 5 passed |
+| 23 | `a_refusal_past_the_scene_minimum_is_still_absorbed` (world.rs, review-medium F1 per Experiments ruling (a)) | Recording site drifted to ruling-(b) semantics (`absorbed` only while the minimum binds) | New pin reds at its absorbed==true assertion; cycle 4's within-minimum test stays GREEN (it cannot see this drift — the review's point, now closed) | Exactly that split | ✓ reverted, both passed |
 
 **T021 no-honest-red caveat** (rule 6): the rl crate reads neither
 `EventsConfig` nor `refusal_log` — grep over `crates/cloudkitty-rl/src`

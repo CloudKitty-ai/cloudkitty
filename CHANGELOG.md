@@ -35,7 +35,8 @@ change.
 
 - Refusal stamp (spec 046): every non-Idle proposal validation resolves
   to Idle is recorded — kitty, proposal verbatim, tick, and an `absorbed`
-  flag (scene minimum continued the activity) — in a bounded ring sized
+  flag (the kitty was mid-scene and the scene continued) — in a bounded
+  ring sized
   by `[events] refusal_retention` (default 6,000 — taxed and absorbed
   share the slots at ~0.38/tick combined, covering a ~15k-tick census
   window), served at `GET /events/refusal` as `{capacity, events}` so a

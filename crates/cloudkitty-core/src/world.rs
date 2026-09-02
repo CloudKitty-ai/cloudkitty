@@ -343,11 +343,14 @@ impl World {
             let enforced = self.enforce_durations(kitty_id, validated, config);
             // The refusal stamp (spec 046): a non-Idle proposal validation
             // resolved to Idle, recorded on the tick it was heard, in turn
-            // order. `absorbed` reads the enforcement outcome -- a scene
-            // minimum continuing the kitty's activity is the only way a
-            // refused turn ends non-Idle (refusal heard, nothing lost);
-            // a legal proposal never enters (validated == proposal != Idle),
-            // so duration overrides of legal actions are not refusals.
+            // order. `absorbed` reads the enforcement outcome -- a MID-SCENE
+            // kitty's continuing activity is the only way a refused turn
+            // ends non-Idle, minimum met or not: for a refusal (validated ==
+            // Idle) `is_continued_by` answers before the minimum check, so
+            // the flag means "the kitty was mid-scene", ruled the census
+            // meaning (Experiments (a), 2026-09-01). A legal proposal never
+            // enters (validated == proposal != Idle), so duration overrides
+            // of legal actions are not refusals.
             if proposal != action::Action::Idle && validated == action::Action::Idle {
                 self.refusal_log.record(RefusalEvent {
                     kitty_id,
@@ -2887,6 +2890,64 @@ mod tests {
                 "kitty {id} kept sleeping through the minimum"
             );
         }
+    }
+
+    #[test]
+    fn a_refusal_past_the_scene_minimum_is_still_absorbed() {
+        // Experiments ruling (a) on review-medium finding 1 (2026-09-01):
+        // `absorbed` means "the kitty was MID-SCENE and the scene
+        // continued", NOT "a scene minimum was still binding". Past the
+        // minimum a legal proposal could lawfully have ended the scene --
+        // but that difference is proposal quality (the absorbed rows'
+        // step-4/H6 evidence), not welfare cost: the taxed count stays
+        // F-033-comparable (idle ticks) only if this event stays
+        // absorbed == true. Pinned so nobody later "corrects" it toward
+        // minimum-only semantics.
+        let config = test_config();
+        let min = config.actions.durations.sleep.min;
+        let mut world = World::generate(&config);
+        world.kitties[0].pos = Position::new(0, 0);
+        world.kitties[1].pos = Position::new(5, 5);
+        // A deep sleep debt so the scene outlives its minimum (a scene ends
+        // past min once its governing need hits 0 -- resolve_activity_ends).
+        world.kitties[0].needs.sleep = crate::needs::Need::new(100.0);
+
+        // Tick 0: a solo sleep. Then idle through the minimum.
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::Sleep { with: None });
+        world.tick_with_proposals(&proposals, &config);
+        while world
+            .kitty(1)
+            .unwrap()
+            .activity_clock
+            .expect("the sleep outlives the minimum on this seed")
+            .serviced_before(world.tick)
+            < min
+        {
+            world.tick_with_proposals(&crate::seam::JointProposal::new(), &config);
+        }
+        assert!(
+            matches!(world.kitty(1).unwrap().activity, Activity::Sleeping { .. }),
+            "still mid-scene, minimum already met -- else this test is vacuous"
+        );
+
+        // Past the minimum: an ILLEGAL proposal (Purr is retired).
+        let mut proposals = crate::seam::JointProposal::new();
+        proposals.propose(1, Action::Purr);
+        world.tick_with_proposals(&proposals, &config);
+
+        let events = world.refusal_log.to_vec();
+        assert_eq!(events.len(), 1, "one refusal: {events:?}");
+        assert!(
+            events[0].absorbed,
+            "past-minimum refusal inside a continuing scene is ABSORBED \
+             (ruling (a)): the kitty kept a need-relieving scene; what it \
+             lost is proposal quality, not the tick"
+        );
+        assert!(
+            matches!(world.kitty(1).unwrap().activity, Activity::Sleeping { .. }),
+            "and the scene really did continue"
+        );
     }
 
     #[test]

@@ -70,9 +70,23 @@ Findings 3 and 5 were then fixed on the owner's ruling (cycles 20–22):
   raising `refusal_retention` no longer scales the per-tick publish
   cost.
 
-Still deferred, owner's call pending: finding 1 (absorbed semantics —
-the flag reads "kitty was mid-scene", not "scene minimum continued";
-census + prose question, Experiments relay).
+Finding 1 (absorbed semantics) was relayed to Experiments, who ruled
+**(a): keep the implemented formula** — `absorbed = (enforced != Idle)`
+IS the census meaning ("the kitty was mid-scene and the scene
+continued"), because the taxed count reproduces F-033's idle-tick
+definition: a past-minimum refusal kept a need-relieving scene, so its
+cost is proposal quality (the absorbed rows' step-4/H6 evidence), not
+welfare. Prose corrected everywhere (docstrings, recording-site comment,
+CHANGELOG, contract — including the already-satisfied-scene blind spot,
+report-only), and the ruling is pinned by
+`a_refusal_past_the_scene_minimum_is_still_absorbed` (cycle 23: a
+ruling-(b) drift injection reds only this test — the review's
+"indistinguishable mechanisms" gap, closed).
+
+Open with Experiments (does not gate this PR): the event does not carry
+the enforced outcome's kind; their baseline wants to read absorbed rows
+by enforced activity kind. Awaiting their word on adding an `enforced`
+field vs. correlating another way.
 
 ## Reported, not fixed (CLAUDE.md rule 3)
 

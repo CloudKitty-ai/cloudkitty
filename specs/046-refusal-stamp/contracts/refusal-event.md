@@ -32,9 +32,15 @@ exactly the proposal wire shape plugins already speak.)
 
 `absorbed` is always present: `false` = the turn resolved Idle (a taxed
 tick — the F-033/step-5 count is the `absorbed == false` filter);
-`true` = duration enforcement continued the kitty's scene (refusal
-heard, nothing lost; report-only until baselined). Agreed census
-definition: refusal-tax share = `absorbed == false` events / ticks.
+`true` = the kitty was MID-SCENE and the scene continued, minimum met
+or not (Experiments ruling (a), 2026-09-01: the taxed count reproduces
+F-033's idle-tick definition — a past-minimum refusal kept a
+need-relieving scene, so its cost is proposal quality, which is what
+absorbed rows are retained as step-4/H6 evidence for; report-only until
+baselined). Agreed census definition: refusal-tax share =
+`absorbed == false` events / ticks. Known blind spot, report-only by
+the same ruling: a mid-scene refusal inside an already-satisfied scene
+is absorbed yet relieves nothing — F-033 did not count those either.
 
 (Field names/tagging follow the existing `Action` serde derives
 verbatim — the contract is "the proposal as proposed", not a bespoke

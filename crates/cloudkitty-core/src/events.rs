@@ -61,8 +61,11 @@ fn tier_count_is_zero(n: &u32) -> bool {
 /// is a signal, never a punishment -- nothing in the engine reads this ring.
 ///
 /// `absorbed` reads the enforcement outcome: `false` means the turn resolved
-/// Idle (a taxed tick -- the census filter), `true` means duration
-/// enforcement continued the kitty's scene (refusal heard, nothing lost).
+/// Idle (a taxed tick -- the census filter), `true` means the kitty was
+/// MID-SCENE and the scene continued -- minimum met or not (Experiments
+/// ruling (a), 2026-09-01: the kitty kept a need-relieving scene, so the
+/// tick was not lost; what a past-minimum refusal cost is proposal quality,
+/// which is exactly what absorbed rows are retained as evidence for).
 /// Always serialized: the census filters on it, and an absent-key convention
 /// would re-create the F-029 reading trap.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
