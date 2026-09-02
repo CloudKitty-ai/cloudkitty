@@ -180,6 +180,11 @@ enters step 4's spec without appearing here first.
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
+**TAGGED 2026-09-02**: signed annotated tag v2.10 on main c6d931d (PR
+#342 rolled Unreleased; owner's go in the Product session). Last
+stable 2.x; fog work is 3.0-numbered. Step 3 (owner's in/out doc) is
+the next item.
+
 The last stable 2.x, capping the pre-wall deploy train: 041 deploy +
 soak → refusal-stamp fast-follow → `announce_here` knob → **tag**
 (contagion flip deploy + soak removed from the train by the 2026-09-01
