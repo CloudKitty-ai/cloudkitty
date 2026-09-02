@@ -679,6 +679,36 @@ mod tests {
         );
     }
 
+    /// Spec 048 FR-004 must-stay-green (review finding 1): a LIVE duet —
+    /// reciprocal in the snapshot — continues exactly as before the fix.
+    /// This is the duet arm's behavior-side witness: the 048 rule must
+    /// never fire on a duet the snapshot shows alive (same-tick races are
+    /// invisible to it by construction, so a live-duet decline here would
+    /// be the rule suppressing race rows).
+    #[test]
+    fn a_scene_whose_duet_is_still_reciprocal_continues() {
+        let ctx = decision_context(|world| {
+            world.elements.clear();
+            world.tick = 20;
+            for (id, partner) in [(1, 2), (2, 1)] {
+                let idx = world.kitty_index(id).unwrap();
+                world.kitties[idx].pos = Position::new(5, 4 + id as u32);
+                world.kitties[idx].needs.add(NeedKind::Play, 60.0);
+                world.kitties[idx].activity = crate::kitty::Activity::Playing {
+                    target: Some(crate::action::TargetRef::Kitty { id: partner }),
+                };
+                world.kitties[idx].activity_clock = Some(crate::kitty::ActivityClock::start(18));
+            }
+        });
+        assert_eq!(
+            finish_what_you_started(&ctx),
+            Some(Action::Play {
+                target: Some(crate::action::TargetRef::Kitty { id: 2 })
+            }),
+            "a reciprocal duet is a live scene; spec 048 never touches it"
+        );
+    }
+
     /// Spec 048 FR-004 must-stay-green: a live counterpart continues
     /// exactly as before the fix.
     #[test]

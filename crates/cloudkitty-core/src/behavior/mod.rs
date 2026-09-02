@@ -567,17 +567,19 @@ mod tests {
     }
 
     /// Spec 048 doctrine (FR-005, contract invariant 3): declining a
-    /// snapshot-dead scene is shared good sense — BOTH builtins fall
-    /// through to a fresh decision; neither re-proposes the continuation.
+    /// snapshot-dead scene is shared good sense — EVERY registered builtin
+    /// falls through to a fresh decision; none re-proposes the
+    /// continuation, and the freed tick buys a REAL action (SC-002), not
+    /// an idle. Iterates the registry (review finding 5), so a future
+    /// builtin joins this doctrine the moment it registers.
     #[tokio::test]
     async fn every_builtin_declines_a_snapshot_dead_scene() {
         let stale = crate::action::Action::Play {
             target: Some(crate::action::TargetRef::Element { id: 800 }),
         };
-        for behavior in [
-            Arc::new(NeedsDriven) as Arc<dyn Behavior>,
-            Arc::new(Playful) as Arc<dyn Behavior>,
-        ] {
+        let registry = BehaviorRegistry::with_builtins();
+        for name in registry.names() {
+            let behavior = registry.get(&name).expect("just listed");
             let ctx = crate::test_support::decision_context(|world| {
                 world.elements.clear(); // the critter 800 is gone entirely
                 world.tick = 20;
@@ -594,7 +596,12 @@ mod tests {
             let decision = behavior.decide(&ctx).await;
             assert_ne!(
                 decision.activity, stale,
-                "no personality re-proposes a scene the snapshot shows dead"
+                "{name} re-proposed a scene the snapshot shows dead"
+            );
+            assert_ne!(
+                decision.activity,
+                crate::action::Action::Idle,
+                "{name} idled the freed tick instead of deciding fresh (SC-002)"
             );
         }
     }
