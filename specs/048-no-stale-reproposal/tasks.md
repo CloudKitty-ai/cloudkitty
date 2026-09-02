@@ -36,7 +36,7 @@
 - [ ] T004 [US1] Behavior guard in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: cat mid-`Playing{Element}`, critter no longer adjacent in snapshot → `finish_what_you_started` returns `None` (red until T008)
 - [ ] T005 [US1] Behavior guard, expired variant in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter absent from world entirely → `None` (red until T008)
 - [ ] T006 [US1] Must-stay-green pin in `crates/cloudkitty-core/src/behavior/needs_driven.rs` tests: critter still adjacent → continuation returned exactly as today (FR-004; sorted per CLAUDE.md rule 6 BEFORE T008 runs)
-- [ ] T007 [US1] E2E guard in `crates/cloudkitty-core/src/world.rs` tests: staged world, dead critter scene at tick boundary, one `tick` → the cat's applied action is real (not Idle) AND no refusal row stamped that tick (FR-007/SC-002; red until T008)
+- [ ] T007 [US1] E2E guard in `crates/cloudkitty-core/src/world.rs` tests: staged world, dead critter scene at tick boundary, one `tick` → no refusal row stamped for the cat that tick AND its applied action is real (stage so the fresh decision is unambiguous — e.g. high eat need with adjacent stocked chow — per remediated SC-002) (FR-007/SC-002; red until T008)
 
 ### Implementation
 
@@ -67,7 +67,7 @@
 
 **Independent Test**: probe re-run reports zero dead-at-snapshot re-proposals; race band unchanged (quickstart §3).
 
-- [ ] T013 [US3] Race must-stay-green pin in `crates/cloudkitty-core/src/world.rs` tests: staged duet where the partner's earlier apply slot interrupts the duet the same tick → the stale continuation IS still refused and stamped `absorbed=false` (SC-005; if an equivalent 046 pin already exists, cite it in redden-list.md instead of duplicating — FR-002-style one home)
+- [ ] T013 [US3] Race must-stay-green pin in `crates/cloudkitty-core/src/world.rs` tests: staged duet where the partner's earlier apply slot interrupts the duet the same tick → the stale continuation IS still refused and stamped `absorbed=false` (SC-005; control apply order via the seam driver `tick_with_proposals` — injected proposals bypass behavior dispatch, so the "continuation" is supplied directly and only the fair-order draw needs a cooperating seed, or assert on whichever partner drew the later slot; if an equivalent 046 pin already exists, cite it in redden-list.md instead of duplicating — FR-002-style one home)
 - [ ] T014 [US3] Probe re-run per `specs/048-no-stale-reproposal/quickstart.md` §3 (cherry-pick 275896e -n on a CLEAN COMMITTED tree, run all four arms, revert ride-along): expect `reproposed 0` on dead-at-snapshot in every class, PlayDuet races in the 2,600–3,400 band; record the four result blocks in `specs/048-no-stale-reproposal/redden-list.md` §probe-after (SC-001/SC-002/SC-005 evidence)
 
 **Checkpoint**: all stories verified
@@ -76,7 +76,7 @@
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T015 Golden evolution pin re-pin in its fixture home (expected exactly one move, at the first artifact tick) + `CHANGELOG.md` Unreleased entry with the 039-style marker justifying the re-pin (FR-008); defaults-stamp test confirmed UNTOUCHED (SC-004)
+- [ ] T015 Golden evolution pin re-pin in `crates/cloudkitty-core/tests/evolution_golden.rs` (+ its recorded fixture; expected exactly one move, per that module's own regenerate-with-justification doctrine) + `CHANGELOG.md` Unreleased entry with the 039-style marker justifying the re-pin (FR-008); defaults-stamp test confirmed UNTOUCHED (SC-004)
 - [ ] T016 `cargo fmt --all --check` + `cargo clippy --workspace --all-targets -- -D warnings` (CI-exact) in the worktree
 - [ ] T017 Final `cargo test --workspace --no-fail-fast` COUNT READ + quickstart.md walked top to bottom; redden-list.md complete (every cycle has prediction/observed/restore/count)
 

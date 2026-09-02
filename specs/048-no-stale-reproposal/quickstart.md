@@ -36,7 +36,8 @@ git cherry-pick -n 275896e   # probe test rides along, uncommitted
 python3 experiments/biscuit3-comfort-sweep-2026-09-01/gen_configs.py <scratch> --consent
 PROBE_CONFIG_DIR=<scratch>/configs \
   cargo test -p cloudkitty-core --lib reproposal_probe -- --ignored --nocapture
-git checkout -- crates/cloudkitty-core/src/lib.rs && git clean -f crates/cloudkitty-core/src/reproposal_probe.rs
+git restore --source=HEAD --staged --worktree crates/cloudkitty-core/src/lib.rs
+git clean -f crates/cloudkitty-core/src/reproposal_probe.rs
 ```
 
 Expected after the fix, per arm: every class reports `reproposed 0` on dead-at-snapshot
@@ -46,7 +47,9 @@ longer proposes into them); `same-tick race refusals` for PlayDuet stays in the
 [research.md](research.md) §R2.
 
 ⚠ The cherry-pick/cleanup step touches `lib.rs`: run it only on a CLEAN tree (commit
-first — house rule).
+first — house rule). Note the cleanup uses `git restore --staged --worktree`, NOT
+`git checkout --`: after `cherry-pick -n` the changes sit in the index, and
+`checkout --` restores *from* the index — it would silently keep them.
 
 ## 4. Red-first record
 

@@ -105,7 +105,7 @@ The experiment thread reads the refusal record stream as a welfare/pricing instr
 ### Measurable Outcomes
 
 - **SC-001**: On the reference runs (same worlds, same seeds), stale critter-play continuation refusals drop from 554–788 per 20k-tick window to **zero**.
-- **SC-002**: Every turn that previously idled on a dead-scene continuation now performs a real action the same turn.
+- **SC-002**: On every turn that previously idled on a dead-scene continuation, the cat now makes a fresh decision that turn — the doomed continuation is never proposed. (The fresh proposal is almost always a real action; in rare cases it can itself be lawfully refused, which then stamps a *genuine* refusal row.)
 - **SC-003**: No scene with a live counterpart ends or changes because of this feature (US1/US2 scenario 3 / 2 class of checks, plus the full existing suite).
 - **SC-004**: The default configuration's serialized form is byte-identical before and after (defaults stamp unmoved).
 - **SC-005**: Same-tick race refusals remain in the refusal stream (measured 2,600–3,400 per reference run) — the fix removes only what it claims to.
