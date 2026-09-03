@@ -23,11 +23,13 @@ One rule per tier in `message_legal(kitty, kind, tick, config, view)`; the RL me
 |---|---|
 | eat | a chow element visible ∨ `memory[Chow]` present |
 | drink | a water element visible ∨ `memory[Water]` present |
-| cuddle, bath | an *available* friend visible ∨ heard-unseen (`heard_unseen()` non-empty after the availability filter where the partner-availability predicate can be evaluated; a heard friend's availability is unknown and counts as available) |
-| play | (the cuddle/bath clause) ∧ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. legal only when neither friend nor critter is known |
+| cuddle, bath | an **idle friend visible**: `idle_friend_in_view(view)` — a friend inside the disc with `activity_clock.is_none()` (no scene, not asleep); adjacency not required. Heard-unseen friends never enter the gate (owner ruled 2026-09-03). |
+| play | (the cuddle/bath clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known |
 | sleep | never known — no knowledge gate (need-only-when-top) |
 
 Radius-edge flicker on clause 4 is accepted (owner ruling v); no hysteresis.
+
+Targeting is a different question from the gate (owner ruled 2026-09-03, clarify item 1): built-in friend targeting takes heard-unseen friends **unconditionally** at their stamped position and checks idleness only on sight (research R10); the gate reads visible rows only.
 
 ## Here tier — legal iff
 

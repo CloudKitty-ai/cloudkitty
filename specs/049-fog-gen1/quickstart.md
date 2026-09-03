@@ -42,7 +42,7 @@ cargo test -p cloudkitty-core say_surface_grounding
 cargo test -p cloudkitty-core -- reply_ladder
 ```
 
-Expected: no want legal with known relief or off the top need; no here legal without adjacency or (audible matching want ∧ visible referent); every `reply = 1` has both; no same-tick reply; floor unset ⇒ message stream byte-identical to the no-reply engine.
+Expected: no want legal with known relief or off the top need (social kinds: illegal exactly while an idle friend is in view; a friend that is only heard, or visible but asleep / mid-scene, never silences the word); no here legal without adjacency or (audible matching want ∧ visible referent); every `reply = 1` has both; no same-tick reply; floor unset ⇒ message stream byte-identical to the no-reply engine.
 
 ## 5. Actions identical at a world-covering radius (SC-004, FR-024)
 
@@ -81,6 +81,14 @@ cargo test -p cloudkitty-server -- roster_above_slots_plus_one_is_refused
 ```
 
 Expected: a schema-4 `.ckpolicy` fails to load naming observation schema found 4 / expected 5, before any tick; a six-cat roster with `kitty_slots` 4 is refused at boot naming both numbers.
+
+Plugin wire (SC-013):
+
+```
+cargo test -p cloudkitty-core -- plugin_e2e
+```
+
+Expected: the request the plugin receives carries `v: 3` and a fogged `world`; a plugin that refuses the version falls back to the built-in with the tick loop untouched.
 
 ## 9. Determinism and save/restore (SC-006)
 

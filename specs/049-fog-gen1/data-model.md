@@ -16,6 +16,7 @@ Entities as the engine will hold them. Layout offsets are in [contracts/observat
 |---|---|---|---|
 | `pos` | `Position` | at emission | speaker's position when it spoke; the heard-row position for unseen friends. |
 | `reply` | `bool` | at emission, here-kinds only | `reply_condition` held: matching want from another cat audible (start-of-tick, inside `digest_window_ticks`) ∧ referent visible from the speaker. `false` for every non-here kind. |
+| *deleted* | `intensity`'s `#[serde(default)]` (`meow.rs:269`, pre-028 tolerance) | — | owner ruled 2026-09-03: a meow entry missing `intensity`, `pos` or `reply` fails to deserialise (inverse guard, one literal per field). |
 
 Retention: `recent_meows` keeps meows with `tick − m.tick < digest_window_ticks`.
 
@@ -34,7 +35,7 @@ Consumers: `DecisionContext.world: Arc<FogView>` (built-ins), `DecisionRequest.w
 
 ## Law view (`cloudkitty-core::meow::LawView`) — what `message_legal` reads
 
-Constructed from a `FogView` (mask) or from the live world filtered for the emitter (enforcement): visible elements, visible kitties, roster, start-of-tick meows, the emitter's memory. Both constructions go through the same filter function so the mask and enforcement cannot disagree except by the documented mid-tick element divergence (spec 033 review Finding 5: silences only).
+Constructed from a `FogView` (mask) or from the live world filtered for the emitter (enforcement): visible elements, visible kitties (with their activity clocks — the want gate's `idle_friend_in_view` reads them; heard-unseen friends are not in this view for the gate, by ruling 2026-09-03), roster, start-of-tick meows, the emitter's memory. Both constructions go through the same filter function so the mask and enforcement cannot disagree except by the documented mid-tick element divergence (spec 033 review Finding 5: silences only).
 
 ## Configuration (`cloudkitty-core::config`)
 
@@ -75,6 +76,10 @@ Groups: self (1 × 85), kitty (4 × 62), chow (2 × 5), water (2 × 4), sunbeam 
 
 **Friend row state (per observer, per friend, per tick)**: `Seen` if inside the disc; else `Heard` if an audible meow inside the window exists; else `Silent`.
 
-**Explore heading**: `None --first applied Move--> Some(d)`; `Some(d) --applied Move(d')--> Some(d')`; never cleared.
+**Explore heading**: `None --first applied Move--> Some(d)`; `Some(d) --applied Move(d')--> Some(d')`; never cleared; any cause (navigation, sidestep, policy move) — owner ruled 2026-09-03.
+
+**Heard-unseen friend as a built-in target**: `candidate (unconditional) --walk to stamped pos--> arrived: visible ∧ idle/available → proceed; not visible ∨ asleep ∨ mid-scene → dropped this tick`. State is never read through the fog.
+
+**Plugin wire**: `PROPOSAL_WIRE_VERSION` 2 → 3 (`DecisionRequest.v`); `world` = the fog view's snapshot; `me` carries `memory` and `explore_heading`; meows carry `pos`, `reply`.
 
 **Meow reply**: stamped once at emission; immutable.

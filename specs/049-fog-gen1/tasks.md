@@ -1,0 +1,253 @@
+# Tasks: Fog Gen 1 — the 3.0 observation wall
+
+**Input**: Design documents from `/specs/049-fog-gen1/` — plan.md, spec.md (8 US / FR-001–FR-048 / SC-001–SC-013, every clarification owner-ruled, timeline @ `138a289`), research.md (R1–R16), data-model.md, contracts/{observation-v5, meow-law-v5, config-3.0-migration}.md, quickstart.md.
+
+**Tests**: red-first is mandatory house practice (CLAUDE.md rules 5/6; constitution Article VI). Every new guard's red cycle is predicted BEFORE the run, run with `cargo test --workspace --no-fail-fast`, and recorded in `specs/049-fog-gen1/redden-list.md` with the count re-read after every restore. Commit before every mutate-then-revert cycle (checkout-trap rule, five occurrences on record). Any mutation that can move a live trajectory predicts ALL golden-family pins (evolution golden, strip witness, run_json golden, joint parity if drivers diverge) or names why not (048 cycle-A lesson).
+
+**Organization**: by user story, in the plan's arc order. The schema-5 *layout* (all constants, the 404 pin) lands once in US2 so the pin is green from then on; US3/US4/US7 fill cells the layout already reserves. `[vision] radius` in the served TOMLs is **ARC-TEMPORARY 40** (world-covering = the pre-fog world, FR-024) until T080 flips it to the placeholder 5 together with the one golden regeneration — the suite stays green through the arc and every mutation cycle is clean. `Config::default()` carries 5 from T006 (the stamp moves once).
+
+**Worktree**: `~/ai/cloudkitty-fog` @ `049-fog-gen1`; merge `origin/main` IN, never rebase; long jobs foreground; nothing deploys (cutover is step 7's `update.sh --fresh`).
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: parallelizable (different files, no dependency on an incomplete task)
+- **[Story]**: US1–US8 from spec.md; Setup / Foundational / Polish carry none
+
+---
+
+## Phase 1: Setup (records taken BEFORE any engine change)
+
+- [ ] T001 Create `specs/049-fog-gen1/redden-list.md` scaffold (048 format: cycle table prediction / observed / restore / count re-read; standing-reds ledger; consumers census section); record baseline `cargo test --workspace --no-fail-fast` count and `cargo fmt --all -- --check` + `cargo clippy --workspace --all-targets -- -D warnings` clean at the branch tip; commit
+- [ ] T002 Capture the pre-fog reference stream at the branch base, BEFORE T005+: add `#[ignore]` recorder `record_prefog_streams` in `crates/cloudkitty-core/tests/fog_continuity.rs` that runs the served roster all-scripted (`cloudkitty.toml`, fixed seed, `announce_here` 0) for 20,000 ticks and writes per-tick action digests + per-row message digests — message tuple = (kitty, kind, tick, intensity) ONLY, since `pos`/`reply` do not exist at the branch base — to `crates/cloudkitty-core/tests/fixtures/prefog-actions-20k.digest` and `prefog-messages-20k.digest`; run it once, commit the fixtures with the recorder (T061 compares against them; R13)
+- [ ] T003 Capture the serialised `Config::default()` (the stamp source) at the branch base to `specs/049-fog-gen1/redden-list.md` §stamp-before (the R13 diff basis for T078); note the current defaults-stamp hash from the stamp test
+- [ ] T004 [P] Consumers census in `specs/049-fog-gen1/redden-list.md` §consumers: grep `experiments/tools`, `experiments/*/**.py`, `crates/cloudkitty-py/tests`, `docs/` for schema-4 literals (`225`, `SELF_BLOCK`/`34`, `MEOW_DIGEST`/`60`, `kitty_slots`/`3`, `msg` token group, `PROPOSAL_WIRE_VERSION`/`"v": 2`) and list each hit as live-tooling (fix in T079) or 2.x record (leave, name why)
+
+---
+
+## Phase 2: Foundational (blocking prerequisites — the fog view is the only world any decider receives)
+
+**Purpose**: config surface, the view type, the decision seam over the view, meow record fields, wire version. Ends green at world-covering radius (kept behaviour, FR-024).
+
+- [ ] T005 [P] `Position::euclid_sq(&self, other: &Position) -> u64` and `Position::visible_from(&self, other: &Position, radius: u32) -> bool` (`dx² + dy² ≤ r²`, integer only, FR-001) in `crates/cloudkitty-core/src/grid.rs` + unit tests for the r = 5 edge pair (3,4) seen / (5,1) unseen (US1 scenarios 1–2); red-first: `≤` → `<`
+- [ ] T006 [P] Config surface in `crates/cloudkitty-core/src/config/mod.rs` (R11): `VisionConfig { radius: u32, memory_timeout_ticks: u64 }` as required `[vision]` (no absence default — the first section written under the FR-030 rule); `MeowConfig.digest_window_ticks: u64`; `BehaviorConfig.reply_intensity_floor: Option<f32>`; `Config::default()` = 5 / 0 / 30 / None; rewrite the `recent_window_ticks` doc comment as the per-kind emission cooldown (FR-017)
+- [ ] T007 Validation in `crates/cloudkitty-core/src/config/validate.rs`: `validate_vision` (radius ≥ 2, error names `[vision] radius`), `validate_meow` (`digest_window_ticks` a positive integer multiple of `recent_window_ticks`, error names both keys), floor ∈ [0, 1] when set; three unit tests, each red-first by an off-by-one
+- [ ] T008 `crates/cloudkitty-rl/src/config.rs`: `kitty_slots` default 3 → 4 (line 84); roster ≤ `kitty_slots + 1` check in `load_configs_from_str` (line 387) naming both numbers (FR-011); the existing `assert_eq!(rl.observation.kitty_slots, 3)` at line 414 is a kept-behaviour guard that MUST go red first, then point it at 4; new test `roster_above_slots_plus_one_is_refused`; red-first `>` → `>=`
+- [ ] T009 Completion script `experiments/tools/complete_config_3.py` (R14: stdlib `tomllib` + minimal writer, or `cargo run --bin` if round-tripping proves lossy) that inserts a named missing section/key with `Config::default()`'s serialised values; run it for `[vision]` (radius **40 ARC-TEMPORARY**, `memory_timeout_ticks` 0) and `[meow] digest_window_ticks = 30` across every TOML both sweeps load; hand-edit `cloudkitty.toml`, `training.toml`, `clowder/tiny-world.toml`; both sweeps green; commit
+- [ ] T010 Meow record in `crates/cloudkitty-core/src/meow.rs` (line 263): `pos: Position`, `reply: bool` (serde additive); `emit_message` in `crates/cloudkitty-core/src/action.rs` (line 887) stamps `pos = kitty.pos`, `reply = false` for now (T049 sets it); the purr engine-motor emission stamps `pos` too; `/world` and the meow event stream carry both (FR-040 fields only; assertion in `crates/cloudkitty-server/tests/server_integration.rs`)
+- [ ] T011 `recent_meows` retention → `config.meow.digest_window_ticks` in `crates/cloudkitty-core/src/world.rs` (lines 1165 and 2409; R5); the buffer-length test at line 1909 asserts against `recent_window_ticks + 1` — it MUST go red at window 30 before being pointed at `digest_window_ticks`; kitty `meow_cooldowns` keep `recent_window_ticks`
+- [ ] T012 Kitty state in `crates/cloudkitty-core/src/kitty.rs`: `MemorySlot { pos: Position, last_seen: u64 }`, `ElementMemory = [Option<MemorySlot>; 5]` in `ElementType::ALL` order, `Kitty.memory`, `Kitty.explore_heading: Option<Direction>` — serialised, no `#[serde(default)]` (the wall is `--fresh`; data-model.md); `Default` for `Kitty` gives empty memory / `None`
+- [ ] T013 `FogView` in `crates/cloudkitty-core/src/world.rs` (R1/R4): `{ snapshot: WorldSnapshot, observer: KittyId, roster: Vec<KittyId>, radius: u32 }`; `WorldSnapshot::fog_for(&self, observer, radius) -> FogView` filters kitties and elements by `visible_from` (observer kept whole; friends' `memory`/`explore_heading` blanked), keeps `recent_meows` whole and width/height/tick; `impl Deref<Target = WorldSnapshot>`; `visible(&self, pos)`, `friend_rows(&self, kitty_slots) -> Vec<Option<KittyId>>` (roster minus observer, ascending, padded), `heard_unseen(&self, window) -> Vec<(KittyId, Position, u64)>` (freshest audible meow with `m.tick < tick` and `tick − m.tick < window` per roster friend not in the view, own meows excluded); unit tests for each
+- [ ] T014 Decision seam over the view: `DecisionContext.world: Arc<FogView>` in `crates/cloudkitty-core/src/behavior/mod.rs` (line 65); `decision_jobs` (line 446) builds one view per kitty from the shared start-of-tick snapshot at `config.vision.radius`; `DecisionRequest.world = &view.snapshot` in `crates/cloudkitty-core/src/behavior/script.rs` (line 70/367); `crates/cloudkitty-core/src/test_support.rs` `decision_context` builds through `fog_for` (default radius 40 in tests); every existing read site compiles unchanged via `Deref`; full suite green at world-covering radius, COUNT READ
+- [ ] T015 Plugin wire (FR-048, R15): `PROPOSAL_WIRE_VERSION` 2 → 3 in `crates/cloudkitty-core/src/action.rs` (line 134); `crates/cloudkitty-core/tests/plugin_e2e.rs` asserts the received request carries `v == 3` and a fogged `world` (red-first: leave the constant at 2); the refuse-unknown-version fallback test re-run unchanged (SC-013); `docs/plugins.md` version line → 3 + a fogged-world note (`world` = the deciding cat's disc; `me` carries `memory`/`explore_heading`; meows carry `pos`/`reply`)
+- [ ] T016 Fog-view leak guard (FR-021, SC-002) in new `crates/cloudkitty-core/tests/fog_visibility.rs`: over random worlds and radii 2–40, every kitty and element reachable through `ctx.world` (`kitties`, `others`, `elements`, `elements_of`, `critters`, `kitty`, `element_at`) is inside the observer's Euclidean disc, and the set present equals the disc set exactly (zero misses, zero leaks); red-first: drop the element filter in `fog_for`; Euclidean → Manhattan
+- [ ] T017 Redden cycles for T005/T007/T008/T011/T015/T016 recorded in `specs/049-fog-gen1/redden-list.md` (commit before each; predictions first; count re-read after each restore)
+
+**Checkpoint**: suite green at world-covering radius; the fog view is the only world; plugin wire v3.
+
+---
+
+## Phase 3: User Story 1 — A cat sees only its surroundings, and remembers where things were (P1) 🎯 MVP (engine half; the encoding half rides US2's layout, T026)
+
+**Goal**: the disc is law (T013/T016) and each cat carries refuted-on-sight element memory that round-trips and is deterministic.
+
+**Independent Test**: quickstart §3 — `fog_visibility` and `fog_memory` property runs green; walk a cat past a bowl and out of range and read its memory tick by tick; remove the bowl and walk back — cleared on first sight.
+
+- [ ] T018 [US1] `World::update_memories(&mut self, config)` as the LAST step of `environment_phase` in `crates/cloudkitty-core/src/world.rs` (line 759; after `safeguard`): per kitty per kind — nearest visible element of the kind (Manhattan, ties lower id) → overwrite with `last_seen = tick`; else remembered tile inside the disc holding none of the kind → clear; else keep; then `memory_timeout_ticks > 0 && tick − last_seen > timeout` → clear (FR-007/FR-008, R3); no RNG
+- [ ] T019 [US1] Memory property guard in new `crates/cloudkitty-core/tests/fog_memory.rs` (SC-003): a slot is only ever the nearest visible element of its kind at its `last_seen` tick; a remembered tile inside the disc holding none of the kind reads cleared that tick; no slot clears otherwise at timeout 0; staleness monotone between sightings; a positive timeout clears; red-first: skip the refute branch; nearest → farthest; clear on every tick
+- [ ] T020 [US1] Scenario tests in `crates/cloudkitty-core/tests/fog_memory.rs`: US1 scenarios 3–7 (walk past and out → present/offset/staleness; bowl eaten while away → all zero on re-entry; two bowls → nearer wins, ties lower id; world-covering r → memory mirrors a visible element with staleness 0; own-tile water bit unaffected at any r)
+- [ ] T021 [US1] Memory and heading round-trip + determinism (SC-006): extend `crates/cloudkitty-core/tests/snapshot_resume.rs` (mid-run save/restore continues byte-identically with memory populated) and `crates/cloudkitty-core/tests/determinism.rs` (same seed + config + ticks → identical `memory` on every kitty); red-first: zero memory on restore
+- [ ] T022 [US1] Kitty listing on `/world` carries `memory` additively (FR-010): confirm serde on `crates/cloudkitty-server/src/api.rs` (no code change expected) and add one assertion in `crates/cloudkitty-server/tests/server_integration.rs` that the field appears and existing fields are unchanged
+- [ ] T023 [US1] Redden cycles for T019/T021 recorded in `specs/049-fog-gen1/redden-list.md`
+
+**Checkpoint**: US1 engine complete — fog + memory, deterministic, persisted.
+
+---
+
+## Phase 4: User Story 2 — Every friend has a permanent row, and fog masks fields, not friends (P1) — carries the schema-5 layout
+
+**Goal**: observation schema 5 with by-id permanent rows and Seen/Heard/Silent masking; the 404 pin green; every artifact/tokenizer/tool consequence of the width move landed.
+
+**Independent Test**: quickstart §2 (pins) and the US2 row tests: row index never changes across a walk; per-row mask state matches the entity's true state tick by tick.
+
+- [ ] T024 [US2] Layout constants in `crates/cloudkitty-rl/src/observe.rs` (contracts/observation-v5.md): `OBSERVATION_SCHEMA_VERSION` 4 → 5 (line 57); `SELF_BLOCK` = 34 + 1 + 30 + 20 = 85; `KITTY_SLOT` = 20 + 1 + 1 + 30 + 6 + 4 = 62; delete `MEOW_DIGEST` (line 93) and its encoder; `block_widths()` += `memory` 20, `msg_self` 30, `msg_kitty` 40, drops `msg`/`msg_count`; `observation_len` derives 404 at the served config; cells not yet filled (scene age, message blocks, intensities, answers-me, water bit) write 0 until T036/T040/T047
+- [ ] T025 [US2] `git mv crates/cloudkitty-rl/tests/schema_four_pins.rs crates/cloudkitty-rl/tests/schema_five_pins.rs`: literal pins 404 / `kitty_slots` 4 / menu 39 / kitty-pointer 20 / critter-pointer 8 / logit budget 55 / mask 55 / type rows 7 / obs 5 / action 3 / mask 3 / global 1 / `HEAD_KINDS` 15 / `MessageCodec::LEN` 16 (SC-001); the old schema-4 literals MUST be observed red at HEAD before retargeting (rule 6); red-first after: any width constant ±1
+- [ ] T026 [US2] `encode_observation(&FogView, …)` in `crates/cloudkitty-rl/src/observe.rs` (line 230): `TargetTable::build` kitties in roster order via `friend_rows` (surplus rows `None`), `fill_slots` (line 199) kept for critters and left present-but-inert for kitties (FR-015); element slots over visible elements only (FR-004); row state per friend — Seen → present 1, live dx/dy/dist, knowledge fields; Heard → present 0, dx/dy/dist to the stamped meow position, knowledge 0; Silent / vacant → 62 zeros (FR-012/FR-013); self block memory cells 65–84 (present, dx, dy relative to current pos /width /height, staleness (tick − last_seen)/40 clamped, **40 frozen literal**; FR-009 — US1's encoding half)
+- [ ] T027 [US2] Row tests in `crates/cloudkitty-rl/src/observe.rs` `#[cfg(test)]`: US2 scenarios 1–5 (row k = friend k+1 whatever the distances; `present` toggles exactly with the disc; heard row's dx/dy/dist point at the stamped position with knowledge zero; silent row zeros; lab roster 3 at slots 4 → row 4 permanently vacant) + memory-cell test (staleness /40, normaliser frozen); red-first: sort rows by distance; mask needs on seen rows; use live pos for heard rows; derive 40 from config
+- [ ] T028 [US2] Server boot in `crates/cloudkitty-server/src/lib.rs`: roster > `kitty_slots + 1` refused naming both numbers (US2 scenario 6); boot line `vision radius r` beside the existing "waterline contagion disabled" line; test `roster_above_slots_plus_one_is_refused` in `crates/cloudkitty-server/tests/server_integration.rs`; red-first `>` → `>=`
+- [ ] T029 [P] [US2] Tokenizer in `crates/cloudkitty-rl/src/attn.rs` `token_layout` (line 78): drop the msg group; type rows 7 (self, kitty, chow, water, sunbeam, critter, clock); kitty-pointer 20 / critter-pointer 8 / budget 55 derive; `crates/cloudkitty-rl/src/codec.rs` and `mask.rs` untouched (menu 39, mask 55 derive); any literal menu length in `crates/cloudkitty-rl/tests/codec_totality.rs` observed red then re-pointed
+- [ ] T030 [US2] Masks over the view (R2): `legal_action_mask(&FogView, …)` / `legal_message_mask(&FogView, …)` in `crates/cloudkitty-rl/src/mask.rs`; `crates/cloudkitty-rl/tests/mask_oracle.rs` gains the fog-view ≡ full-snapshot activity-mask equivalence over random worlds at r ≥ 2; red-first: compute one menu entry on the full snapshot
+- [ ] T031 [P] [US2] Artifact fixtures at schema 5 (SC-008): regenerate `crates/cloudkitty-rl/tests/fixtures/oracle.ckpolicy` + `oracle.parity` (consumed by `artifact_v3_parity.rs` only; the harness/policy tests train in-process and derive widths) by their spec-030/033 generator; keep the OLD one as `oracle-schema4.ckpolicy` and add `schema_four_artifact_is_refused` to `crates/cloudkitty-rl/tests/artifact_v3_reject.rs` (error names observation schema found 4 / expected 5, before any tick); `crates/cloudkitty-server/tests/policy_v3_kitty.rs` boots on the new fixture and asserts the refusal on the old; red-first: skip the pin compare
+- [ ] T032 [P] [US2] Expansion tool `crates/cloudkitty-rl/src/expand.rs`: `SOURCE_PINS` (3, 2, 2) stay; obs-5 targets refused by the existing pin compare; `crates/cloudkitty-rl/tests/expansion.rs` re-pointed (a 3 → 4 placement test needs a schema-4 target: keep one checked-in schema-4 target fixture, or convert the placement tests to refusal assertions — record the choice and why in the redden list)
+- [ ] T033 [P] [US2] Python surface: `crates/cloudkitty-py/tests/test_parallel_env.py` shape `(404,)` and `OBSERVATION_SCHEMA_VERSION` 5 where literal; `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` green incl. `test_pettingzoo_conformance.py` (quickstart §10)
+- [ ] T034 [P] [US2] `docs/encodings.md`: new "Observation — CURRENT: schema 5" section from contracts/observation-v5.md (offset tables, Seen/Heard/Silent masks, derived numbers, menu 39 listing); schema-4 table moved under "Historical observation versions" (line 97); action/mask sections note menu 39 / mask 55 at `kitty_slots` 4
+- [ ] T035 [US2] Redden cycles for T025/T027/T028/T030/T031 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+
+**Checkpoint**: schema 5 pinned at 404; rows by id; masks over the view; artifacts, tokenizer, Python, docs moved.
+
+---
+
+## Phase 5: User Story 3 — Repetition and insistence are fields (P1)
+
+**Goal**: per-speaker (recency, rate) cells on every kitty row and the self block; want-intensity cells on friend rows; the global digest gone.
+
+**Independent Test**: quickstart §3/§4 unit tests — two speakers at different cadences read distinguishable cells; the observer's own block reflects only its own calls.
+
+- [ ] T036 [US3] Message-block encoders in `crates/cloudkitty-rl/src/observe.rs`: kitty row 22–51 and self 35–64 per `HEAD_KINDS[k]` — recency `1 − age/digest_window` clamped, rate `count_in_window / (digest_window / cooldown)` clamped, a call is in the window iff `age < digest_window`, only `m.tick < tick` meows (R5); intensity cells 52–57 = last stamped `need/100` of the friend's freshest call of that want kind inside the window, 0 outside (FR-016); live on Seen and Heard rows, zero on Silent; reserve kinds naturally zero
+- [ ] T037 [US3] Unit tests with staged meows in `crates/cloudkitty-rl/src/observe.rs`: US3 scenarios 1–6 (A three calls → recency 1 − 5/30, rate 1.0; B one call → rate 1/3; own `here_food` in the self block only; a call at age = window contributes nothing; reserve kinds zero everywhere; intensity 0.62 whether or not A is visible, 0 outside the window); red-first: rate denominator → window; intensity → 0; count a call at age == window
+- [ ] T038 [P] [US3] `docs/meows.md` digest section rewritten (per-speaker cells, `recent_window_ticks` = cooldown, `digest_window_ticks` = audibility + rate denominator, intensity observed); the ROADMAP's "intensity dropped" line is NOT edited here (FR-016 overrides it; the ROADMAP is Experiments' doc) — the PR description flags it for Experiments
+- [ ] T039 [US3] Redden cycles for T037 recorded in `specs/049-fog-gen1/redden-list.md`
+
+**Checkpoint**: digest on the rows; five calls and one are different observations.
+
+---
+
+## Phase 6: User Story 4 — Scene age and a wet neighbour are visible facts (P2)
+
+**Goal**: own and seen-friend scene age (H = 24 frozen) and the neighbour-in-water bit, masked as knowledge fields.
+
+**Independent Test**: stage a duet and read both scene-age floats over 30 ticks; stand a visible friend in a pond and read the bit; move it out of the disc and read zero.
+
+- [ ] T040 [US4] Encoders in `crates/cloudkitty-rl/src/observe.rs`: self 34 own scene age = `activity_clock.elapsed / 24` clamped, 0 with no scene; kitty row 21 friend scene age (same formula); row 20 neighbour-in-water = a water element on the friend's tile (tile-derived, as the own-tile bit); both Seen-only (FR-019/FR-020); **24 frozen literal**, never read from `[actions] durations`
+- [ ] T041 [US4] Tests in `crates/cloudkitty-rl/src/observe.rs`: US4 scenarios 1–4 (12 ticks → 0.5, 30 → 1.0, tick after end → 0; seen friend at 6 ticks → 0.25; water bit 1 seen / 0 unseen whatever the tile; normaliser still 24 under a repriced durations table); red-first: derive H from config; set the water bit on heard rows
+- [ ] T042 [US4] Redden cycles for T041 recorded in `specs/049-fog-gen1/redden-list.md`
+
+**Checkpoint**: rows at their final width; every cell of the 404 has an encoder.
+
+---
+
+## Phase 7: User Story 7 — A want means "I can't see it"; a here can answer (P1)
+
+**Goal**: the knowledge-gated want law, the widened here law, the engine reply stamp, answers-me bits — one predicate shared by the mask and the built-in announce.
+
+**Independent Test**: quickstart §4 — `meow_law_fog` property run and US7 scenarios 1–9.
+
+- [ ] T043 [US7] `LawView` and `WANT_HERE_PAIRS` in `crates/cloudkitty-core/src/meow.rs` (R6/R7, contracts/meow-law-v5.md): `WANT_HERE_PAIRS: [(WantEat, HereFood), (WantDrink, HereWater), (WantSleep, HereSunbeam), (WantPlay, HereCritter)]`; `LawView` = visible elements, visible kitties with activity clocks, roster, start-of-tick meows (`m.tick < tick`), the emitter's memory — built from a `FogView` (mask) or from the live world filtered for the emitter (enforcement) through ONE filter function; `message_legal(kitty, kind, tick, config, &LawView)` (line 202) and the enforcement call in `crates/cloudkitty-core/src/world.rs` (line 376) moved onto it
+- [ ] T044 [US7] Want tier in `message_legal` (FR-036): armed (`announce_armed`) ∧ top need (`needs.highest_pressure()`, `NeedKind::ALL` order on ties) ∧ `!known_relief(kind)` — eat/drink → visible element ∨ memory slot present; cuddle/bath → `idle_friend_in_view` (a visible friend with `activity_clock.is_none()`; adjacency NOT required; a new small predicate in `crates/cloudkitty-core/src/world.rs` beside `available_friend_in`/`is_conscriptable_friend`, one body); **heard-unseen friends never enter the gate** (owner 2026-09-03); play → the cuddle clause ∨ critter visible ∨ `memory[Bug]`/`memory[Greeble]`; sleep → no knowledge gate; cooldown + vocabulary unchanged; `announce()` in `crates/cloudkitty-core/src/behavior/mod.rs` (line 488) collapses to the top-need want and keeps calling `message_legal` — ONE predicate
+- [ ] T045 [US7] Here tier (FR-037): cooldown ∧ vocabulary ∧ (`adjacent(referent)` — today's law — ∨ `reply_condition(kind, view, tick)`), where `reply_condition` = a meow of the paired want from another cat with `tick − m.tick < digest_window_ticks` and `m.tick < tick` exists ∧ the referent is visible from the speaker; cuddle/bath have no here
+- [ ] T046 [US7] Reply stamp (FR-040): `emit_message` in `crates/cloudkitty-core/src/action.rs` sets `reply = kind ∈ HERE_KINDS ∧ reply_condition(kind)` over the start-of-tick buffer (R5), `false` for every other kind; stamp independent of trigger (an ambient here landing while a want is audible is stamped 1)
+- [ ] T047 [US7] Answers-me bits 58–61 in `crates/cloudkitty-rl/src/observe.rs` (FR-041): per `HERE_KINDS` kind h, 1 iff the friend's freshest here of h inside the window has `tick` greater than the observer's own freshest matching want (via `WANT_HERE_PAIRS`) inside the window; Seen and Heard rows; derived, no engine state
+- [ ] T048 [US7] Property + scenario guards in new `crates/cloudkitty-core/tests/meow_law_fog.rs` (SC-010): US7 scenarios 1–9 staged; properties — no want legal while its relief is visible or remembered (social kinds: while an idle friend is in view) or off the top need; a heard-unseen friend never changes a want verdict; a visible mid-scene or sleeping friend never counts as idle; no here legal without adjacency or (audible matching want ∧ visible referent); every `reply = 1` has both at emission; every heard row's position equals the stamped position of the freshest audible meow; no reply on the tick of the want it answers; red-first (one cycle each): drop the top-need clause; drop the memory clause; drop the critter clause for play; let a heard-unseen friend silence `want_cuddle`; count a mid-scene visible friend as idle; stamp reply on adjacency alone; count same-tick wants
+- [ ] T049 [US7] Kept-behaviour sort (rule 6) for the law move: every test in `crates/cloudkitty-core/tests/say_surface_grounding.rs`, `meow_courtesy.rs`, `announce_here_gate_zero.rs` and the `meow.rs` unit tests is classified must-fail (asserts the armed-only want law or the adjacency-only here law) or must-pass BEFORE T044 runs; the must-fail set is observed red, then pointed at the new law; the gate-zero guard (043) stays green untouched
+- [ ] T050 [US7] Answers-me tests in `crates/cloudkitty-rl/src/observe.rs`: US7 scenario 4 timeline (want at t, here at t+1, bit at t+2), scenario 5 (adjacency here with no want → no bit), ordering (a here BEFORE my want → 0); red-first: use live pos; drop the "want before here" ordering
+- [ ] T051 [P] [US7] `docs/meows.md` law section: want law under fog, the widened here law, the reply stamp, answers-me, the pairs table; `/world` meow fields `pos`/`reply` documented (FR-040)
+- [ ] T052 [US7] Redden cycles for T048/T049/T050 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+
+**Checkpoint**: the words are load-bearing; mask and announce share one predicate; every here carries its stamp.
+
+---
+
+## Phase 8: User Story 5 — Scripted cats live under the same fog (P1)
+
+**Goal**: built-in targeting over visible ∪ remembered / visible ∪ heard, persistent-heading exploration, and the byte-identity proof at a world-covering radius.
+
+**Independent Test**: quickstart §5 (SC-004 stream identity) and §6 (first sight ≤ 40 ticks; r = 5 20k-tick smoke with zero invariant failures).
+
+- [ ] T053 [US5] `crates/cloudkitty-core/src/behavior/selection.rs`: `priced_nearest_element` (line 334) scans `view.elements_of(kind)` ∪ the memory slot for `kind` as a phantom `(pos, id = u32::MAX)` so ties resolve to real elements; `nearest_viable_playmate` (line 397) and the cuddle/`adjacent_friend` scans take `view.others()` filtered by the existing availability / conscriptability test ∪ `heard_unseen()` positions **unconditionally** (R10; owner 2026-09-03)
+- [ ] T054 [US5] `crates/cloudkitty-core/src/behavior/needs_driven.rs`: `seek_element` (line 284) walks to a remembered tile as if it held the element and, when neither visible nor remembered, calls `explore(ctx)` instead of idling; `groom_response` (line 315) walks to the WantBath caller's stamped `pos` when the caller is unseen; on arrival at a heard position with the friend not visible, or visible but asleep / mid-scene, the target is dropped that tick (FR-022; US5 scenarios 2, 2b, 2c)
+- [ ] T055 [US5] `explore(ctx)` in `crates/cloudkitty-core/src/behavior/needs_driven.rs` (FR-023, R9): if `explore_heading` is `None` or `distance_to_wall(pos, heading) ≤ radius` (integer arithmetic on bounds; no vision query) redraw ONCE from `ctx.rng` uniformly among directions that are neither the reverse nor wall-within-radius, else any non-reverse, else the current heading; then one step along the heading through the existing step rule (occupied-tile / water-avoiding sidestep); `action::apply` in `crates/cloudkitty-core/src/action.rs` writes `explore_heading` on EVERY applied `Move { direction }` whatever its cause (owner 2026-09-03); `wander` (line 544) untouched for its other callers
+- [ ] T056 [US5] Exploration tests in new `crates/cloudkitty-core/tests/fog_exploration.rs`: US5 scenario 1 (blind hungry cat steps along its heading, references nothing outside the disc, `want_eat` rides along if legal), scenario 6 (east at x = 14, r = 5 on a 20-wide world → redraw among N/S only, then holds), narrow-world fallbacks (edge cases), RNG draw count == redraw count, and `first_sight_within_one_crossing` (SC-012: every seeded blind trial with ≥ 1 bowl sights one within 40 ticks); red-first: redraw every tick; allow the reverse
+- [ ] T057 [US5] Targeting tests in `crates/cloudkitty-core/src/behavior/needs_driven.rs` / `selection.rs` `#[cfg(test)]`: scenarios 2 (remembered bowl walked to; refuted → explore same ladder that tick), 2b (heard friend at U is a target; dropped on arrival if not visible / asleep / mid-scene), 2c (groom response to an unseen WantBath caller), 3 (`playful` with a friend outside the disc and a critter inside picks only the critter); red-first: filter heard candidates by true state; keep the target on arrival with the friend asleep
+- [ ] T058 [US5] Duet visibility pin (US5 scenario 5) in `crates/cloudkitty-core/tests/fog_visibility.rs`: for every r ≥ 2 an adjacent partner is inside the disc — no scene runs with an unseen partner
+- [ ] T059 [US5] Same-fog structural witness (US5 Independent Test): an instrumented `DecisionContext` read-recorder run, served roster all-scripted at r = 5 for 5,000 ticks in `crates/cloudkitty-core/tests/fog_visibility.rs`, asserting every entity any built-in touched was inside disc ∪ memory ∪ heard set (the FR-021 guard at run scale; the structural T016 guard is the primary)
+- [ ] T060 [US5] Welfare smoke `fog_r5_20k` (`#[ignore]`) in `crates/cloudkitty-core/tests/welfare_longrun.rs` (SC-005): served roster all-scripted at r = 5 for 20,000 ticks, zero constitutional invariant failures, prints distress-event and watchdog counts (recorded for the step-5 prereg in the redden list, NOT gated); `crates/cloudkitty-core/tests/water_safeguard.rs` re-run at r = 5 as the FR-047 must-stay-green line (existence-based safeguard unchanged under fog)
+- [ ] T061 [US5] `world_covering_radius_reproduces_pre_fog_actions` in `crates/cloudkitty-core/tests/fog_continuity.rs` (SC-004/FR-024): 20,000 ticks, served roster all-scripted, `[vision] radius` 40, floor unset, `announce_here` 0 → per-tick action digests identical to T002's `prefog-actions-20k.digest`; message digests (same (kitty, kind, tick, intensity) tuple as T002) differ only on rows where a want the new law silences was legal under the old law (asserted per row, exemption set enumerated); red-first: force r = 5 inside the harness; if the action stream differs, STOP and report (the `[rng-sequence]` marker is claimed only then, FR-035)
+- [ ] T062 [US5] Redden cycles for T056/T057/T061 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+
+**Checkpoint**: scripted anchors decide under the same fog; the pre-fog world is the r = ∞ special case, proven byte for byte.
+
+---
+
+## Phase 9: User Story 8 — Scripted seats answer the wants they hear (P2)
+
+**Goal**: the scripted reply ladder behind an optional listener floor; launch state byte-identical when unset.
+
+**Independent Test**: quickstart §4 `reply_ladder` tests and the SC-011 stream diff.
+
+- [ ] T063 [US8] Ladder in `crates/cloudkitty-core/src/behavior/mod.rs` `announce()` (FR-042–FR-046): WaitForMe > {reply, own want} > ambient here (`announce_here`, line 529, unchanged rule) > Silent; reply candidate exists iff `reply_intensity_floor` is set and among audible wants from other cats (start-of-tick, inside the window) whose paired here is legal for me now (referent visible, cooldown clear, flag on) one has `intensity ≥ floor`; choose the highest intensity, ties → fresher call → lower id; own want vs reply: own raw need > caller intensity × 100 speaks, ties reply; the loser waits (cooldowns never bypassed); message-only, the action untouched; built-ins never consume a here (043 guard)
+- [ ] T064 [US8] `reply_ladder` tests in `crates/cloudkitty-core/src/behavior/mod.rs` `#[cfg(test)]`: US8 scenarios 1–9 (floor unset → no reply ever; 0.45 ≥ 0.30 → `here_food`, action unchanged; two wants → the 0.60 one; own need 50 vs 0.45 → own want, 45 vs 0.45 → reply; yield rule → WaitForMe wins; cooldown not clear → silent; `want_cuddle`/`want_bath` never answered; ambient here with a want audible stamped reply 1; a scripted caller ignores the reply it hears); red-first: pick the lowest intensity; ignore the floor; bypass the cooldown
+- [ ] T065 [US8] SC-011 stream identity in `crates/cloudkitty-core/tests/fog_continuity.rs`: at the commit immediately BEFORE T063 lands, run T002's recorder once more at r = 5 (served roster all-scripted, floor unset, `announce_here` 0) and commit `crates/cloudkitty-core/tests/fixtures/preladder-r5-20k.{actions,messages}.digest`; after T063, `reply_floor_unset_is_byte_identical` diffs the floor-unset streams against them tick by tick (no feature gate, no cfg switch — the comparator is the pre-ladder engine itself); red-first: fire replies with the floor `None`
+- [ ] T066 [US8] Listener-floor placeholder (FR-043): no corpus-collection config exists in-tree yet (the only `announce_here = 1` TOMLs are Experiments' frozen here-word-screen arms, which T072 excludes as records), so the 0.30 placeholder is recorded in `specs/049-fog-gen1/contracts/config-3.0-migration.md` and as a commented-out line in `cloudkitty.toml` ("provisional; set on the step-5 corpus-collection config, revisited at the speaker-floor screen"); the served config stays unset; Experiments sets it on the collection config they cut at step 5
+- [ ] T067 [US8] Redden cycles for T064/T065 recorded in `specs/049-fog-gen1/redden-list.md`
+
+**Checkpoint**: scripted seats answer; launch state byte-identical with the floor unset.
+
+---
+
+## Phase 10: User Story 6 — A 3.0 config is complete, and nothing pre-3.0 crosses the wall (P2)
+
+**Goal**: strict-both-ways config surface, retired keys unknown, snapshot shims gone, `evals/v2` cut, every live config migrated, migration note complete.
+
+**Independent Test**: quickstart §7 — both sweeps green or excluded with reason; each missing section and each retired key refused by name; v2 manifest hashes verify; a pre-3.0 save does not load.
+
+- [ ] T068 [US6] Delete the 13 top-level + 4 nested section-absence `#[serde(default)]` shims in `crates/cloudkitty-core/src/config/mod.rs` (lines 59–84 and the nested `happiness.weights`, `actions.durations`, `meow.vocabulary`, `water.contagion_membership`); `rl`, `plugins`, `watchdog` stay `ForeignTable` optional (lines 93–97); per-field defaults on inert launch dials stay (FR-030); the `[elements.<kind>] max` doc comment corrected to name the density ceiling + the critic's chow scale (FR-029; `crates/cloudkitty-rl/src/global_state.rs:115` is the reader)
+- [ ] T069 [US6] Delete the seven retired-key `Option` fields in `crates/cloudkitty-core/src/config/mod.rs` and their rejectors + guard tests in `crates/cloudkitty-core/src/config/validate.rs` (lines 567–748: `[purr] cooldown_ticks`; `[meow] cooldown_ticks`, `urgent_cooldown_ticks`, `courtesy_ticks`, `urgent_courtesy_ticks`, `urgent_need_threshold`; `[actions] cuddle_relief`); `deny_unknown_fields` now refuses them (FR-031); new tests `missing_section_is_named` (one case per required section, 14 top-level incl. `vision` + 4 nested) and `retired_key_is_unknown` (seven cases) in `crates/cloudkitty-core/src/config/` tests; red-first: re-add one `#[serde(default)]`; the deleted rejector tests are must-fail guards observed red first (rule 6)
+- [ ] T070 [US6] Snapshot shims deleted (FR-032): the seven `#[serde(default)]` restore shims on `Kitty` and `Pursuit.improved_at`'s default in `crates/cloudkitty-core/src/kitty.rs` (lines 42, 274–291 region); the two fixture-loading tests in `crates/cloudkitty-core/tests/snapshot_resume.rs` — `a_pre_041_bound_rest_duet_resumes_as_synchronized_resters` (explicitly wall-marked, line 84) and `a_pre_028_world_resumes_and_runs` (loads `pre-028-world.json`, which cannot deserialise once the `announce_armed` shim is gone) — and their fixtures `crates/cloudkitty-core/tests/fixtures/pre-028-world.json`, `pre-041-bound-duet.json` deleted (the pair the owner named 2026-09-03, timeline @ cefe5ba item 5); one new test asserts a pre-3.0 save is refused (names the missing field)
+- [ ] T071 [US6] Eighth shim (owner ruled 2026-09-03 @ cefe5ba item 6, FR-032): delete `Meow.intensity`'s `#[serde(default)]` in `crates/cloudkitty-core/src/meow.rs` (line 269) and the test `a_pre_028_meow_entry_reads_zero_intensity` in `crates/cloudkitty-core/tests/snapshot_resume.rs`; its one-for-one successor `a_pre_3_0_meow_entry_is_refused` — one JSON literal per required field (`intensity`, `pos`, `reply`) asserting the entry FAILS to deserialise naming the field (the rule-5 red for the new record contract); red-first: re-add the default for one field
+- [ ] T072 [US6] Completion pass over every in-scope TOML (FR-034, R14): re-run `experiments/tools/complete_config_3.py` for every now-required section; hand-edit `cloudkitty.toml`, `training.toml`, `clowder/tiny-world.toml`; result-backing families (exp-004 pilot/rebaseline, prereg families) and `evals/v1` added to `config-sweep-exclusions.txt` with a one-line reason each (the file's own rule: frozen records only)
+- [ ] T073 [US6] `evals/v2/` (FR-033): `heterogeneity`, `mixed-roster-guest`, `mixed-roster-half`, `mixed-roster-host`, `scale`, `scarcity` as complete 3.0 configs + `manifest.toml` with new content hashes; `crates/cloudkitty-rl/src/suite.rs` freeze guard and `crates/cloudkitty-rl/tests/shipped_configs_rl.rs:85` (+ the core sweep's twin) retargeted `evals/v1` → `evals/v2`; `crates/cloudkitty-rl/src/bin/kitty-eval.rs:106` default suite → `evals/v2`; `crates/cloudkitty-rl/tests/eval_suite.rs` re-pointed; `kitty-eval --suite evals/v2 --dry-run` verifies the hashes
+- [ ] T074 [US6] Sweeps + nan table green: `cargo test -p cloudkitty-core --test shipped_configs`, `cargo test -p cloudkitty-rl --test shipped_configs_rl`, and the nan-table sweep (locate via `grep -rn "nan" crates/*/tests` and CI) — every in-scope TOML loads complete through both surfaces or is excluded with reason (SC-007)
+- [ ] T075 [US6] Migration note finalised in `specs/049-fog-gen1/contracts/config-3.0-migration.md`: final counts (files completed / excluded), the script path, the seven maps, the new keys with served values; linked from `CHANGELOG.md` Unreleased (T082)
+- [ ] T076 [US6] Redden cycles for T069/T070 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+
+**Checkpoint**: 3.0 config surface strict in both directions; nothing pre-3.0 loads.
+
+---
+
+## Phase 11: Polish & Cross-Cutting
+
+- [ ] T077 Merge `origin/main` IN (never rebase) and re-run the full suite COUNT READ before the golden regeneration
+- [ ] T078 Defaults-stamp proof (R13, `[stamp]`): diff the serialised `Config::default()` against T003's capture — exactly `[vision] radius`, `[vision] memory_timeout_ticks`, `[meow] digest_window_ticks`, `[behavior] reply_intensity_floor` (absent), `[rl.observation] kitty_slots` 4 moved; record the diff in `specs/049-fog-gen1/redden-list.md`; update the stamp test's pinned hash with that justification
+- [ ] T079 Consumers outside the engine (T004's census): fix live tooling hits (`experiments/tools/bc-collect` dataset-format doc in `docs/encodings.md` §bc-collect, any Python reading widths or the msg token group, `crates/cloudkitty-py` docstrings); 2.x-record scripts left untouched and listed
+- [ ] T080 Flip `[vision] radius` 40 → **5** (the FR-002 placeholder) in `cloudkitty.toml`, `training.toml`, `clowder/tiny-world.toml` and every completed live config (the ARC-TEMPORARY value ends here); the world-covering value stays only inside T061's harness and `test_support`
+- [ ] T081 Golden family regenerated ONCE from one run after T080: `crates/cloudkitty-core/tests/evolution_golden.rs` (+ its recorded fixture), the strip witness, `crates/cloudkitty-rl/tests/goldens/run-json.golden.json` (`run_json_golden.rs`); justification pasted into each file's doctrine comment ("fog at r = 5 is an intentional dynamics move, spec 049"); joint-action parity re-checked (drivers unchanged → expected green); the golden reds standing since T080 are the predicted set — record them
+- [ ] T082 `CHANGELOG.md` Unreleased: the 3.0 wall entry (what it means, the six members, the meow law, the ladder, exploration) with `[obs-schema]` `[world-fresh]` `[stamp]`; `[rng-sequence]` only if T061 failed; migration note linked; NEVER tag here (tagging is the owner's, after Unreleased is expanded)
+- [ ] T083 `binding_continuity.py --rebaseline --config cloudkitty.toml --seating all-scripted` from `experiments/exp-006-character-gen/.venv` (foreground; SC-009): new 3.0 reference record committed alongside; the plain run passes against it (the cutover housekeeping the step-3 doc assigns to the wall PR)
+- [ ] T084 `cargo fmt --all -- --check` + `cargo clippy --workspace --all-targets -- -D warnings` (CI-exact) + `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` in the worktree
+- [ ] T085 Final `cargo test --workspace --no-fail-fast` COUNT READ = baseline + the new guards enumerated in `specs/049-fog-gen1/redden-list.md`; quickstart.md walked top to bottom (§1–§12); the redden list closed (every cycle has prediction / observed / restore / count; standing-reds ledger empty)
+- [ ] T086 Update the served-config comment block for `[vision]`, `[meow] digest_window_ticks`, `[behavior] reply_intensity_floor` in `cloudkitty.toml` (what each does, placeholder status, step-5 screening) and the `docs/rl-training.md` / `docs/howto-rl.md` width mentions; open the PR against `main` on the owner's go (peer relays are never approval), review dispositions recorded in `specs/049-fog-gen1/redden-list.md` §review
+
+---
+
+## Dependencies & Execution Order
+
+### Phase dependencies
+
+- Phase 1 (T001–T004) first; **T002 must be committed before any engine edit** — it is the SC-004 reference.
+- Phase 2 (T005–T017) blocks every story. T005/T006 parallel; T007 after T006; T008 independent; T009 after T006/T007 (the keys must exist to be inserted); T010–T011 independent of each other; T012 before T013 (the view blanks fields T012 adds); T013 before T014; T015 after T014 (the request carries the view); T016 after T014.
+- Phase 3 US1 (T018–T023) after Phase 2.
+- Phase 4 US2 (T024–T035) after Phase 3 (the memory cells encode T012/T018 state). T024 → T025 → T026 → T027; T028 after T008; T029–T034 parallel after T026; T030 needs T024.
+- Phase 5 US3 (T036–T039) after T026; Phase 6 US4 (T040–T042) after T036 (same encoder file, sequential).
+- Phase 7 US7 (T043–T052) after Phase 2 for the law (T043–T046, T048, T049) and after Phase 6 for the observation cells (T047, T050). T043 → T044 → T045 → T046; T049's sort happens BEFORE T044 runs.
+- Phase 8 US5 (T053–T062) after Phase 2 for targeting/exploration (T053–T059) and after Phase 7 for T061's want-law exemption set. T053 → T054 → T055 → T056/T057.
+- Phase 9 US8 (T063–T067) after Phase 7 (the ladder reads `reply_condition` and the want tier) and after T055 (a caller keeps exploring).
+- Phase 10 US6 (T068–T076) after every other story (deleting the section defaults reddens every config at once; do it when the surface is final). T068 → T069 → T072 → T073 → T074; T070 and T071 independent after Phase 3 (T071 after T010).
+- Phase 11 (T077–T086) last, in order: T077 → T078 → T079 → T080 → T081 → T082 → T083 → T084 → T085 → T086.
+
+### Story dependencies
+
+- US1 is the engine half of fog; US2 carries its encoding (T026) because the layout moves once.
+- US3, US4 fill cells US2 reserved; independent of each other in semantics, sequential in file.
+- US7 depends on Phase 2 only for the law; its observation bits depend on US2–US4's layout.
+- US5 depends on Phase 2 (view, memory, heard_unseen) and on US7 only for the SC-004 exemption set.
+- US8 depends on US7 (reply condition) and US5 (exploration for the caller).
+- US6 depends on everything (it is the deletion pass).
+
+### Within each story
+
+Guards written and observed red BEFORE the implementation they guard, where the guard can exist first (T019 before T018 is fine; where the type does not yet exist, the guard lands with the code and its red cycle is a recorded revert). Kept-behaviour tests sorted per rule 6 BEFORE the change runs (T008's `kitty_slots` 3, T011's buffer test, T025's schema-4 literals, T049's law tests, T069's rejector tests). Commit before every mutate-then-revert cycle.
+
+### Parallel opportunities
+
+- Phase 2: T005 ∥ T006; T010 ∥ T011 ∥ T012.
+- Phase 4: T029 ∥ T031 ∥ T032 ∥ T033 ∥ T034 after T026.
+- Phase 5/7: T038 ∥ T051 docs edits with any code task in their phase.
+- Phases 7 and 8 touch different files (meow.rs / observe.rs vs selection.rs / needs_driven.rs) — T053–T058 can run alongside T043–T048 if staffed; T061 waits for T044.
+- Everything else is sequential by file.
+
+---
+
+## Implementation Strategy
+
+**MVP** = Phases 1–4 (US1 + US2): a cat sees a disc, remembers what it saw, and the schema-5 observation with permanent by-id rows is pinned at 404 — demonstrable, testable, and the point of the generation. Phases 5–6 widen the rows' meaning; Phase 7 makes the words load-bearing; Phase 8 puts the scripted anchors under the same fog and proves the pre-fog world is the r = ∞ case; Phase 9 is the corpus contributors' half; Phase 10 is the wall's deletion pass; Phase 11 re-pins and records.
+
+Stop-and-validate at every checkpoint: full suite green (COUNT READ), redden list current, commit. If T061's action stream differs at a world-covering radius, stop and report before anything else lands (rule 4: exactly where). Nothing here deploys; the PR is the owner's gate.

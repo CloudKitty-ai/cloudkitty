@@ -36,7 +36,7 @@ Not in the set: the spec-025 play-key wording on the live chain link stays.
 
 ## Saved worlds
 
-Pre-3.0 snapshots do not load: the seven kitty restore shims, `Pursuit.improved_at`'s default, the pre-041 duet fixture and both wall-marked `snapshot_resume` tests are deleted. New kitty fields `memory`, `explore_heading`; new meow fields `pos`, `reply`.
+Pre-3.0 snapshots do not load: the seven kitty restore shims, `Pursuit.improved_at`'s default, the eighth shim (`Meow.intensity`'s serde default), the pre-041 duet fixture and the two fixture-loading `snapshot_resume` tests (`a_pre_041_bound_rest_duet_resumes_as_synchronized_resters`, `a_pre_028_world_resumes_and_runs`) are deleted; the pre-028 meow-entry test becomes its inverse (a missing `intensity`, `pos` or `reply` is refused by name). New kitty fields `memory`, `explore_heading`; new meow fields `pos`, `reply`.
 
 ## Policy artifacts
 
