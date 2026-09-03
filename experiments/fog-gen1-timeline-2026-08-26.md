@@ -192,9 +192,32 @@ enters step 4's spec without appearing here first.
   `KITTY_SLOT` row, `elapsed / 24` clamped to 1, zero when no scene
   runs, H = 24 frozen. Friend copy is a knowledge field under fog;
   own copy is never masked. observe.rs arithmetic only.
-Still open for the doc: the KITTY_SLOT gap, the Here*-teacher scope
-(collapse into `announce_here`, F-034), the 3.0 config-hygiene delete
-list.
+- **KITTY_SLOT gap: CLOSED, `kitty_slots` = roster − 1, pinned at 4
+  for Gen 1** (owner ruled 2026-09-02). Rows ordered by id, one
+  permanent row per friend; fog masks fields only (visible →
+  everything; unseen but heard within the digest window → position /
+  needs / activity masked, message block on; unseen and silent → all
+  zero). Reason: once the digest matrix lives on the kitty rows, three
+  slots under fog flap in the common clustering case (three friends
+  near, a fourth speaking at the vision edge: either unheard, or
+  displacing a near cat on every call while (distance, id) re-sorting
+  changes which cat `PlayKitty(slot)` names under a memoryless
+  policy). Hysteresis would need engine memory; four rows remove the
+  contention. Product confirmed 2026-09-02: nothing hardcodes 3
+  (config-derived everywhere; obs 225 → 245 before the digest move,
+  menu 34 → 39, kitty-ptr logits 15 → 20; only the wall's own schema
+  pins move, as the 3.0 break already rules); by-id ordering changes
+  one function (`fill_slots`) shared by encoder / table / mask /
+  codec, tokenizer indifferent to row order. The R1 target-priority
+  displacement (014 arc) becomes unreachable at roster 5: **keep it
+  INERT, do not delete** (owner: a larger world with a growing
+  population is a far-future possibility where it is useful again).
+  The "roster − 1" wording is deliberate: a Gen 2 roster change
+  re-raises the slot count explicitly rather than reintroducing the
+  flap silently. The phase-1 "someone always unslotted" thesis is
+  retired by fog itself (out-of-view set = the estimator's target).
+Still open for the doc: the Here*-teacher scope (collapse into
+`announce_here`, F-034), the 3.0 config-hygiene delete list.
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
