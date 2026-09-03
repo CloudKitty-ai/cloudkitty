@@ -1868,6 +1868,17 @@ detection (an enabled override truncates the observable — F-027's
 re-verify note); whether the served world logs every firing (it should —
 each one is a policy defect report). Engine change: spec-first flow when
 picked up.
+
+**Sequenced (owner, 2026-09-03, spec-049 clarify item 3)**: own spec on
+the 3.0 line, landing before the step-7 `--fresh` cutover (override
+state is a snapshot field), not inside 049. Every firing is stamped on
+the event stream and the live instruments read the stamp. Design
+constraint for the spec: a per-seat fallback chain, each rung =
+(behavior, descend trigger, hand-back condition), snapshot = current
+rung + entry tick; Gen 1 builds two rungs (masked policy →
+`needs_driven`), and a later LLM → attention model → scripted tier is a
+prepended rung. Ruling text:
+`experiments/fog-gen1-timeline-2026-08-26.md` step 4.
 Origin: `experiments/exp-006-character-gen/results/r5-forensics-2026-08-20.md`.
 
 ### Eval-suite v2: a stronger counterfactual baseline (added 2026-07-25)
