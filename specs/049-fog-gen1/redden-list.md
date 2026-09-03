@@ -45,6 +45,21 @@ FINAL count: recorded at T085.
 | 19 | T030 | "compute one entry on the full snapshot" — CANNOT be staged: `legal_action_mask` takes only the `FogView` (no full snapshot in scope). The R2 guard in `mask_oracle` compares the fogged verdict at r ∈ {2, 3, 5, 40} against the world-covering view with the same table and named the two exceptions above; cycle 9/10's fog_for mutations are what redden it | — | — | recorded per rule 3 |
 | 20 | T031 | MLP (v2) loader's pin compare skipped | `schema_four_artifact_is_refused` etc. | 3 reds, NONE of them the new witnesses: the schema-4 oracle is a v3 artifact gated by the attention loader (`attn.rs:324`), not `policy.rs:259`. Wrong layer — re-run as 20b | restored |
 | 20b | T031 | attention (v3) loader's pin compare skipped; the witnesses first tightened to the gate's own words (`4c98a0e`) | 5: `schema_four_artifact_is_refused`, server `a_schema_four_artifact_fails_startup…`, `policy_kitty::the_shipped_config_parks…`, `each_rejection_class_fails_by_name…`, expansion `the_serving_loader_still_refuses…` | exactly 5; 833/5 | restored, 0 dirty |
+| 21a | T037 | rate denominator = the window (not window / cooldown) | 1: `per_speaker_recency_and_rate_cells…` | 2: that + `the_observers_own_block…` (its rate 1/3 too — under-enumerated); 841/2 | restored |
+| 21b | T037 | intensity cells zeroed | 1: `want_intensity_cells_carry_the_last_stamp…` | exactly 1; 842/1 | restored |
+| 21c | T037 | a call at age == window counted (`<` → `<=`) in the block's own audibility closure | 1: `per_speaker…` (friend 4's edge-of-window call) | ZERO — the row STATE comes from `FogView::heard_unseen` (strict `<`, untouched), so friend 4 stayed silent whatever the block counted: two definitions of audibility, one guard. Fixed at `192d90f`: `FogView::audible` is THE rule, used by the heard rows and the message cells | restored |
+| 21c′ | T037 | the same edge, on the one definition (`world.rs`) | 2: `per_speaker…` (friend 4 becomes heard), `world::tests::heard_unseen…` (age-30 excluded) | exactly 2; 841/2 | restored |
+| 22a | T041 | scene age normaliser "derived" (12, a table value) instead of the frozen 24 | 1: `scene_age_reads_elapsed_over_a_frozen_twenty_four` | exactly 1; 842/1 | restored |
+| 22b | T041 | the water bit computed on HEARD rows from the stamped tile | 1: `the_neighbour_in_water_bit_and_scene_age_are_seen_only` | ZERO — the staging had walked the pond OUT of the disc with the friend, so nothing was in view to leak (vacuous). Re-staged at `11b82a1`: the pond stays inside the disc at the friend's meow tile, the friend outside | restored |
+| 22b′ | T041 | the same, pond in view | 1 | exactly 1; 842/1 | restored |
+
+## Phases 5–6 checkpoint (T039/T042, 2026-09-03)
+
+Count at `11b82a1`: **843/0, 2 ignored** (838 + 5: three US3 and two US4
+scenario tests). Two vacuous first cycles (21c, 22b) caught by reading the
+count: a guard whose staging cannot see the mutation is not a guard —
+both fixed at the source (one audibility definition; the pond in view)
+and re-proven.
 
 ## Phase 4 checkpoint (T035, 2026-09-03)
 
