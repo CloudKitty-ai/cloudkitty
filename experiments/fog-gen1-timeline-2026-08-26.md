@@ -399,6 +399,100 @@ a corpus a V4 clone learns the register from — scoping it away is
 the owner's call at this window. **RULED OUT for Gen 1 2026-09-02** (step 3 above;
 reopen trigger = a step-5 here-bar miss).
 
+**Meow law under fog — owner ruled 2026-09-02** (brainstormed live,
+Experiments + owner; input to spec 049, relayed to Product). Action
+and speech are independent channels (spec 028), so fog can make the
+words load-bearing without costing a turn. Four rulings:
+
+1. **Want law**: a want kind is legal iff the need is armed
+   (`announce_threshold` + `announce_hysteresis`, existing knobs; the
+   floor value is screened at step 5, see below) AND that kind is the
+   cat's top need (kind-order tie-break) AND the cat has no visible or
+   remembered relief for it. Food: no visible or remembered *stocked*
+   chow. Per-kind referents: eat/drink → element; cuddle/bath/play →
+   no available friend in view; sleep → one of need-only-when-top or
+   never speakable, the spec picks. Why: F-026's redundancy (the
+   speaker's needs are already in its row) is what wrote the want-half
+   off for Gen 1; what the speaker cannot *see* is in no row, so the
+   knowledge gate makes the word informative. Dropping the 30 floor
+   makes it early. Per-kind thresholds stay out (new config surface).
+2. **Reply bit**: every here word carries an engine-stamped `reply`
+   flag, never policy-chosen. `reply = 1` iff a matching want from
+   another cat is audible in the speaker's snapshot AND the referent is
+   visible from the speaker (stocked, for chow); adjacency sits inside
+   visibility, so an adjacent here with a want audible is also a
+   reply. `reply = 0` keeps today's adjacency law. Observation:
+   observer-relative "answers me" (the observer emitted the matching
+   want inside the window before the here), derived at build time from
+   `recent_meows`; 4 here kinds × 5 rows = +20 floats, width ≈ 384. No
+   new vocabulary. Latency floor one tick: everyone decides against the
+   start-of-tick snapshot (`world.rs:188`), so a same-tick reply cannot
+   exist and id order never matters; want → here → heard is three ticks
+   at best. Least-evidenced part of the package: the visible-from-
+   speaker widening; kept because six bowls at r = 5 make "can see it,
+   not at it" common.
+3. **Scripted side** (corpus contributors; policies learn their own):
+   - Trigger = want-listening (precedent `groom_response`, 028 FR-019);
+     the standing no-here-listener guard is untouched. Pairs: want_eat
+     → here_food, want_drink → here_water, want_sleep → here_sunbeam,
+     want_play → here_critter; cuddle and bath have no here word and
+     get no reply. Message-only: the replier's action is untouched.
+   - Several wants audible: answer the **highest intensity** (ties
+     freshest, then lower id).
+   - Listener floor `reply_intensity_floor` (`[behavior]`, unset =
+     replies off, byte-identical launch state; the 043 pattern) on the
+     *caller's* stamped `need/100`; the replier's own needs play no
+     part. Placeholder 0.30. **Revisit when the speaker floor is set**:
+     in a high-welfare world a 0.30 listener floor over a 15 speaker
+     floor yields calls nobody scripted answers.
+   - Ladder: WaitForMe > {reply, own want} > ambient here > Silent,
+     where the middle pair resolves by urgency: own want iff
+     `own_need > caller_intensity × 100` (raw need both sides), ties
+     reply. The loser is delayed one tick at most (per-kind cooldown
+     counts from the last emission). Stamped intensity is up to 10
+     ticks stale, which slightly favours the own want in close calls.
+   - Here-kind cooldown (`recent_window_ticks` = 10) is not bypassed
+     for replies; a blind caller re-emits every 10 ticks anyway.
+   - The stamp and the trigger are separate: an ambient phase-tick
+     here landing while a want is audible is stamped `reply = 1` too.
+     The step-5 ambient arm (reply path off) expects a small non-zero
+     reply count for that reason.
+   - The scripted caller does nothing with a reply: it keeps exploring
+     (FR-023). Replies feed policies and instruments only.
+4. **FR-023, scripted cat whose needed kind is neither visible nor
+   remembered: explore with a persistent heading.** Hold a heading
+   until the wall ahead is within `radius` (arithmetic on position,
+   heading, bounds, and the knob; no vision query), then re-draw once
+   among directions that are neither the reverse nor wall-within-
+   radius; fall back to any non-reverse, then to the current heading.
+   The initial draw uses the same filter. One field of cat state,
+   `explore_heading`, riding the step-4 snapshot bump. Draws happen
+   only on re-draw (state-dependent count, config-independent; the
+   fixed-shape rule holds). Why not the existing `wander`
+   (`needs_driven.rs:544`, memoryless random step): √t coverage and a
+   long first-sight tail against a 0.4/tick need, so the safeguard
+   would rescue most blind cats and the corpus would read "call, mill
+   about, get rescued". A heading sweeps an 11-tile column per step at
+   r = 5, first sight in ~10 ticks, tail bounded by one crossing.
+   `should_wait_for` needs the friend visible; Manhattan 2 is inside
+   any radius ≥ 2.
+
+Prereg items this adds to step 5: the **speaker-floor screen**,
+`announce_threshold` ∈ {10, 15, 20, 30} (30 = today's anchor;
+hysteresis 5), scripted seats only, run after the radius screen at the
+pinned radius. Held fixed: rulings 1–4, listener floor 0.30,
+`announce_here` at the served period. Measures per 1k ticks: want
+density and intensity histogram; reply rate inside
+`recent_window_ticks` and latency; blind-hungry span (want_eat → first
+sight of stocked chow); eat max and safeguard entries (the fog welfare
+read); informativeness P(need ≥ 50 | want heard). Decision rule,
+declared at prereg: welfare non-inferior to the 30 arm, informativeness
+above a bar set at prereg, pick the lowest floor clearing both; a floor
+that moves safeguard entries beyond the seed spread is INVESTIGATE, not
+a pick. Expect the four arms to be welfare-equivalent (the safeguard
+catches everyone at 75), so the informativeness bar decides and is
+declared with care. The listener floor is set in the same sitting.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
