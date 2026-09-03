@@ -43,6 +43,19 @@ proptest! {
         config.world.seed = seed;
         config.vision.radius = radius;
         config.vision.memory_timeout_ticks = 0;
+        // Several of every kind, so "nearest wins" is exercised (with the
+        // test world's single element per kind the farthest-wins bug went
+        // unnoticed -- redden cycle 12).
+        for rule in [
+            &mut config.elements.water,
+            &mut config.elements.chow,
+            &mut config.elements.bug,
+            &mut config.elements.greeble,
+            &mut config.elements.sunbeam,
+        ] {
+            rule.min = 3;
+            rule.max = 3;
+        }
         config.validate().unwrap();
         let config = Arc::new(config);
         let registry = BehaviorRegistry::with_builtins();
