@@ -412,8 +412,9 @@ words load-bearing without costing a turn. Four rulings:
    servings expires the same tick, `element.rs:108`, so no snapshot
    holds an empty bowl; chow memory is presence, refuted when the bowl
    is gone.) Per-kind referents: eat/drink → element; cuddle/bath/play
-   → no available friend in view OR heard at a known position (see the
-   coverage-pass rulings below); sleep → one of need-only-when-top or
+   → no idle friend **in view** (amended 2026-09-03, clarify item 1:
+   heard friends drive targeting, never the gate; see below); sleep →
+   one of need-only-when-top or
    never speakable, the spec picks. Why: F-026's redundancy (the
    speaker's needs are already in its row) is what wrote the want-half
    off for Gen 1; what the speaker cannot *see* is in no row, so the
@@ -564,6 +565,60 @@ none ruled yet):
   want gate only on a first sighting; the memory slot holds the bowl
   as remembered after that and the 10-tick cooldown bounds emission.
   No hysteresis on the gate.
+
+Spec 049 `/speckit-clarify` items, walked with the owner 2026-09-03
+(Product's plan artifacts predate this pass and are re-run after it;
+nothing below leans on them):
+
+1. **Heard-but-unseen friends — RULED, two parts.** Targeting: a heard
+   friend counts as available unconditionally; availability (idle, not
+   mid-scene) is checked only on sight, so the cat walks to the stamped
+   position and drops the target on arrival if the friend is asleep or
+   busy. Reading the true state through the fog was refused (masked
+   state would enter the mask). Want gate: `want_cuddle`/`want_bath`/
+   `want_play` are legal iff the top need is that kind and no idle
+   friend is **in view**; heard friends do not suppress the word.
+   Reason: with a 30-tick window on a five-cat roster some friend has
+   nearly always meowed, so "none heard" would make the three words
+   almost never legal, and under fog the caller's own want is the only
+   way its need reaches a cat that cannot see its row. Ruling 1 above
+   amended to match. ("Available" in the engine is adjacency,
+   `world.rs:1488`; "conscriptable" adds idle, `:1248`. The gate needs
+   idle without adjacency, read off the visible row.)
+2. **`explore_heading` written by the engine as the direction of the
+   last applied move — RULED A.** Any cause (navigation, sidestep,
+   policy move) updates it; FR-023 continues it and the edge-within-
+   radius rule re-draws. Bias judged mild and mostly helpful: after a
+   meal or a refuted memory the cat keeps going the way it came, the
+   least recently swept direction; a sidestep rotates the sweep 90°.
+   The blind-hungry span in the step-5 screen is the check; an
+   advisor-owned heading (B) is the upgrade if spans read long, with
+   its own line.
+3. **Distress-gated intervention (BACKLOG P2) — RULED A: own spec on
+   the 3.0 line, landing before the step-7 `--fresh` cutover, not
+   inside 049.** Under fog stage 2 (`needs_driven` override) is the
+   served-world welfare floor that (i) declined to build into the
+   spawn safeguard: it takes remembered relief and explores otherwise,
+   which also covers the new fog failure mode (a policy that never
+   learned to search). Cap and corpus are untouched (lab runs, override
+   off). Requirements carried into that spec's kickoff: every firing is
+   stamped on the event stream and live instruments read the stamp
+   (refusal baseline, welfare census, collapse-detector v1, the step-7
+   soak; an enabled override truncates the streak observable); override
+   state is a snapshot field, hence before the cutover. **Design
+   constraint (owner 2026-09-03)**: model it as a per-seat fallback
+   *chain*, each rung = (behavior, trigger to descend, hand-back
+   condition), the snapshot storing the current rung and entry tick,
+   the stamp carrying the rung. Gen 1 builds two rungs (masked policy
+   → `needs_driven`); a later LLM tier (LLM endpoint → attention model
+   → scripted, trigger = endpoint unavailable) is a prepended rung, not
+   a rewrite. The chain shape is the contract, not scope.
+4. **Plugin wire version — RULED A: `PROPOSAL_WIRE_VERSION` 2 → 3 in
+   the 049 PR.** Fog changes what the same shape means (a v2 plugin
+   assuming full sight cannot tell it sees a partial world) and the
+   wire grows fields (`reply`, `pos`, memory). Refuse-unknown-versions
+   plus Article IV fallback make the refusal safe; no third-party
+   plugin is live, so the cost is the version line and a doc note.
 
 ## Step 5 — shakeout training round
 
