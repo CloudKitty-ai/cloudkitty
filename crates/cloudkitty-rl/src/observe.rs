@@ -1335,15 +1335,27 @@ mod tests {
         let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
         assert_eq!(row(&obs, 0)[offsets::ROW_WATER_BIT], 1.0, "seen and wet");
         assert!(row(&obs, 0)[offsets::ROW_SCENE_AGE] > 0.0);
-        // Walk the friend (and its pond) out of the disc but keep it heard.
+        // Walk the friend out of the disc but keep it heard -- its call
+        // stamped from the pond tile (13, 10), which stays INSIDE the disc
+        // with water on it: the heard row points there, and still reads no
+        // water bit and no scene age (knowledge is masked, not re-derived
+        // from the tile the observer can see).
         world.kitties[friend].pos = Position::new(19, 0);
-        world.elements[0].pos = Position::new(19, 0);
-        world
-            .recent_meows
-            .push(meow_at(2, MessageKind::Mew, world.tick - 1, 0.0));
+        world.elements[0].pos = Position::new(13, 10);
+        let mut call = meow_at(2, MessageKind::Mew, world.tick - 1, 0.0);
+        call.pos = Position::new(13, 10);
+        world.recent_meows.push(call);
         let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(
+            view.element_at(Position::new(13, 10)).is_some(),
+            "the pond is in view"
+        );
         let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
         assert_eq!(row(&obs, 0)[0], 0.0, "heard");
+        assert!(
+            (row(&obs, 0)[1] - 3.0 / 20.0).abs() < 1e-6,
+            "dx to the stamped pond tile"
+        );
         assert_eq!(
             row(&obs, 0)[offsets::ROW_WATER_BIT],
             0.0,
