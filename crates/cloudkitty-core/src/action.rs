@@ -894,6 +894,8 @@ fn emit_message(
     let Some(kitty) = world.kitty(kitty_id) else {
         return;
     };
+    // Spec 049 FR-040: the speaker's position at emission, stamped once.
+    let pos = kitty.pos;
     // The stamped intensity (spec 028): the grounding need's value at
     // emission, on [0, 1] -- a listener hears how hungry, not just that.
     // Every non-want kind carries 0.0 (spec 033 clarify verdict: intensity
@@ -908,11 +910,15 @@ fn emit_message(
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].set_meow_cooldown(message, tick + config.meow.recent_window_ticks);
     }
+    // The reply bit lands with the here tier (spec 049 FR-040): false
+    // until the law over the fog view exists.
     world.recent_meows.push(Meow {
         kitty_id,
         kind: message,
         tick,
         intensity,
+        pos,
+        reply: false,
     });
 }
 

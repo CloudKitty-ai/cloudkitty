@@ -1286,7 +1286,7 @@ mod tests {
         // play may win selection -- but it must resolve as a pounce at nothing,
         // never a cross-map trek. One solo helping later, sleep takes over.
         let world = std::sync::Arc::get_mut(&mut ctx.world).unwrap();
-        world.elements.retain(|e| e.id != 102);
+        world.snapshot.elements.retain(|e| e.id != 102);
         ctx.me.needs.add(NeedKind::Bath, -80.0);
 
         assert_eq!(choose_need(&ctx), NeedKind::Play);

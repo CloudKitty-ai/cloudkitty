@@ -166,7 +166,10 @@ pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> Deci
         .clone();
     DecisionContext {
         me,
-        world: Arc::new(world.snapshot()),
+        // Through the fog view, like every real decision (spec 049 R1); the
+        // test config's radius is the compiled default, world-covering
+        // while the arc lands.
+        world: Arc::new(world.snapshot().fog_for(id, config.vision.radius)),
         rng: DecisionRng::from_seed(9876),
         config,
     }

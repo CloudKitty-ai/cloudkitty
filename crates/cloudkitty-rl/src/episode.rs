@@ -349,7 +349,7 @@ impl Episode {
                         .expect("seeds are dealt for every roster kitty");
                     let ctx = DecisionContext {
                         me: snapshot.kitty(id).cloned().expect("roster kitty"),
-                        world: snapshot.clone(),
+                        world: Arc::new(snapshot.fog_for(id, self.core.vision.radius)),
                         rng: DecisionRng::from_seed(seed),
                         config: self.core.clone(),
                     };

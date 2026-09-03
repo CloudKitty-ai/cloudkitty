@@ -191,5 +191,5 @@ activity_retention = 1000
 distress_patience_ticks = 60
 
 [vision]
-radius = 5
+radius = 64
 memory_timeout_ticks = 0

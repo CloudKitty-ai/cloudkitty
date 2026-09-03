@@ -43,7 +43,7 @@ use crate::kitty::{Kitty, KittyId};
 use crate::meow::MessageKind;
 use crate::rng::DecisionRng;
 use crate::seam::{Decision, Provenance, ResolvedDecision};
-use crate::world::{World, WorldSnapshot};
+use crate::world::{FogView, World};
 
 pub mod needs_driven;
 pub mod playful;
@@ -60,9 +60,13 @@ pub use script::{DecisionRequest, ScriptBehavior};
 pub struct DecisionContext {
     /// The deciding kitty's own full state.
     pub me: Kitty,
-    /// The start-of-tick world: every kitty, every element (greebles included --
-    /// cats can always perceive them), and recent meows.
-    pub world: Arc<WorldSnapshot>,
+    /// The start-of-tick world AS THIS KITTY MAY KNOW IT (spec 049 FR-021):
+    /// the kitties and elements inside its vision disc (greebles included --
+    /// fog is distance, never kind), every recent meow (hearing is global),
+    /// the roster's ids, and its own memory on `me`. Derefs to the filtered
+    /// snapshot, so nothing outside the disc is reachable from here -- the
+    /// same information set the policy observation is built from.
+    pub world: Arc<FogView>,
     /// This kitty's private randomness for this tick. The only randomness a
     /// behavior may use; anything else would break determinism.
     pub rng: DecisionRng,
@@ -242,7 +246,7 @@ fn decision_jobs(
     registry: &BehaviorRegistry,
     config: &Arc<Config>,
 ) -> Vec<DecisionJob> {
-    let snapshot = Arc::new(world.snapshot());
+    let snapshot = world.snapshot();
     let seeds = world.deal_decision_seeds();
     let mut jobs = Vec::with_capacity(world.kitties.len());
     for (id, seed) in seeds.iter() {
@@ -250,9 +254,12 @@ fn decision_jobs(
             continue;
         };
         let behavior = registry.get(&kitty.behavior);
+        // One fog view per kitty from the one shared start-of-tick snapshot
+        // (spec 049 R1): the only world this decider will ever see.
+        let view = Arc::new(snapshot.fog_for(id, config.vision.radius));
         let ctx = DecisionContext {
             me: kitty,
-            world: snapshot.clone(),
+            world: view,
             rng: DecisionRng::from_seed(seed),
             config: config.clone(),
         };
@@ -443,7 +450,7 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
 async fn fallback_from_seed(
     id: KittyId,
     seed: u64,
-    world: Arc<WorldSnapshot>,
+    world: Arc<FogView>,
     config: Arc<Config>,
 ) -> Decision {
     let me = world
@@ -935,7 +942,7 @@ mod tests {
         let me = snapshot.kitty(broken.kitty_id).unwrap().clone();
         let ctx = DecisionContext {
             me,
-            world: snapshot.clone(),
+            world: Arc::new(snapshot.fog_for(broken.kitty_id, config.vision.radius)),
             rng: DecisionRng::from_seed(broken.seed),
             config: config.clone(),
         };
@@ -976,7 +983,7 @@ mod tests {
             let behavior = registry.get(&kitty.behavior);
             let ctx = DecisionContext {
                 me: kitty,
-                world: snapshot.clone(),
+                world: Arc::new(snapshot.fog_for(r.kitty_id, config.vision.radius)),
                 rng: DecisionRng::from_seed(r.seed),
                 config: config.clone(),
             };
@@ -1009,7 +1016,7 @@ mod tests {
         let me = world.kitty(1).unwrap().clone();
         DecisionContext {
             me,
-            world: Arc::new(world.snapshot()),
+            world: Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
             rng: DecisionRng::from_seed(9876),
             config,
         }

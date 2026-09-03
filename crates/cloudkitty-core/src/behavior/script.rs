@@ -364,7 +364,9 @@ impl Behavior for ScriptBehavior {
             tick: now,
             kitty_id: kitty,
             me: &ctx.me,
-            world: ctx.world.as_ref(),
+            // Spec 049 FR-048: the plugin sees the fog view's snapshot --
+            // the same shape as ever, fogged contents.
+            world: &ctx.world.snapshot,
             seed: ctx.rng.gen_u64(),
             config: &ctx.config,
         };

@@ -49,4 +49,4 @@ pub use seam::{
     drive_tick, Decision, DrivenTick, JointProposal, KittyTickRecord, Provenance, ResolvedDecision,
     TickReport,
 };
-pub use world::{World, WorldSnapshot};
+pub use world::{FogView, World, WorldSnapshot};

@@ -35,10 +35,21 @@ pub(super) fn default_meow_digest_window_ticks() -> u64 {
     30
 }
 
-/// Spec 049 FR-002: the vision disc radius. A PLACEHOLDER (the timeline's
-/// worked example, 81 tiles); the step-5 prereg screens the value.
+/// Spec 049 FR-002: the vision disc radius. The 3.0 placeholder is 5 (the
+/// timeline's worked example, 81 tiles; the step-5 prereg screens it).
+///
+/// ARC-TEMPORARY 64 (spec 049 T006 as amended at T014): the compiled
+/// default is what every golden, determinism and welfare guard runs on,
+/// and 64 = width + height of the compiled 32x32 world is world-covering
+/// there (w + h ≥ the diagonal, always) -- the pre-fog world exactly
+/// (FR-024) -- so the suite stays green and every red-first cycle is
+/// clean while the arc lands. Every live TOML carries its own w + h the
+/// same way (the served 20x20 world: 40). The arc's last config task
+/// (T080) flips them all to 5 together with the one golden regeneration;
+/// `the_served_fog_defaults_are_the_documented_placeholders` is the
+/// guard that goes red then.
 pub(super) fn default_vision_radius() -> u32 {
-    5
+    64
 }
 
 /// Spec 049 FR-008: element-memory expiry, 0 = never.

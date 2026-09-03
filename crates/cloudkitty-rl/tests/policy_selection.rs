@@ -29,10 +29,11 @@ fn artifact_path(name: &str, fill: f32) -> PathBuf {
 fn context(seed: u64) -> DecisionContext {
     let config = Arc::new(Config::default());
     let world = cloudkitty_core::World::generate(&config);
-    let snapshot = Arc::new(world.snapshot());
+    let snapshot = world.snapshot();
+    let me = snapshot.kitties[0].clone();
     DecisionContext {
-        me: snapshot.kitties[0].clone(),
-        world: snapshot,
+        world: Arc::new(snapshot.fog_for(me.id, config.vision.radius)),
+        me,
         rng: DecisionRng::from_seed(seed),
         config,
     }

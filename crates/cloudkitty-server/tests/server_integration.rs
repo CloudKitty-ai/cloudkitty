@@ -689,9 +689,12 @@ async fn behavior_descriptions_serve_per_seat_kind_on_every_surface() {
         match kitty["behavior"].as_str().unwrap() {
             "policy:trained" => assert_eq!(desc.unwrap(), "Test · BC+PPO"),
             "needs_driven" => assert_eq!(desc.unwrap(), "Scripted"),
+            // Spec 049 FR-032: the kitty record serializes every field
+            // (the restore shims are gone), so a plugin seat's missing
+            // description is an explicit `null`, never an absent key.
             "advisor" => assert!(
-                desc.is_none(),
-                "a plugin seat serves no description: {kitty}"
+                desc.is_some_and(Value::is_null),
+                "a plugin seat serves a null description: {kitty}"
             ),
             other => panic!("unexpected behavior {other}"),
         }
@@ -932,4 +935,66 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     let entries = distressed["entries"].as_array().unwrap();
     assert!(!entries.is_empty(), "the streak is on the surface");
     assert_eq!(entries[0]["age"], 400);
+}
+
+/// Spec 049 FR-040: every recorded meow on `/world` carries the engine
+/// stamps `pos` (the speaker's position at emission) and `reply`, beside
+/// the fields it always had -- additive, nothing renamed or removed.
+#[tokio::test]
+async fn recorded_meows_carry_pos_and_reply_on_the_world_payload() {
+    // A cat whose eat need rockets arms `want_eat` on its first needs
+    // phase, so the scripted announce speaks within a few ticks.
+    let mut config = test_config();
+    config.kitties[0].needs = Some(cloudkitty_core::config::NeedRateOverrides {
+        eat: Some(20.0),
+        ..Default::default()
+    });
+    config.validate().expect("valid");
+    let server = start_server_with(
+        Arc::new(config),
+        BehaviorRegistry::with_builtins(),
+        &std::collections::BTreeMap::new(),
+    )
+    .await;
+
+    let mut meows = Vec::new();
+    for _ in 0..200 {
+        let world: Value = reqwest::get(server.url("/world"))
+            .await
+            .expect("GET /world")
+            .json()
+            .await
+            .expect("JSON");
+        let recent = world["recent_meows"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        if !recent.is_empty() {
+            meows = recent;
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+    assert!(
+        !meows.is_empty(),
+        "a hungry scripted cat speaks within 200 polls"
+    );
+    for m in &meows {
+        for key in ["kitty_id", "kind", "tick", "intensity"] {
+            assert!(
+                m.get(key).is_some(),
+                "schema-4 field {key} is still served: {m}"
+            );
+        }
+        let pos = &m["pos"];
+        assert!(
+            pos["x"].is_u64() && pos["y"].is_u64(),
+            "pos is the speaker's tile at emission: {m}"
+        );
+        assert!(
+            m["reply"].is_boolean(),
+            "reply is an engine-stamped bit: {m}"
+        );
+    }
+    server.shutdown().await;
 }

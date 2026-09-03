@@ -481,6 +481,8 @@ async fn a_seated_expanded_v2_mind_stays_mute_and_deaf_in_a_running_world() {
         kind: MessageKind::Chirp,
         tick: heard.tick,
         intensity: 0.0,
+        pos: cloudkitty_core::grid::Position::new(0, 0),
+        reply: false,
     });
     for _ in 0..40 {
         heard.tick(&registry, &config).await;

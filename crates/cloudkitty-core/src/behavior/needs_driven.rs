@@ -321,11 +321,20 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     if top >= ctx.config.thresholds.safeguard {
         return None;
     }
-    let heard = crate::meow::freshest_audible(
-        &ctx.world.recent_meows,
-        crate::meow::MessageKind::WantBath,
-        me.id,
-    )?;
+    // Until the fog-era targeting lands (spec 049 T054: the response walks
+    // to the caller's stamped position and hears the whole digest window),
+    // the built-in's audibility stays the per-kind cooldown -- exactly the
+    // buffer the pre-049 engine held -- so the retention move alone
+    // changes no scripted action (FR-024).
+    let now = ctx.world.tick;
+    let audible: Vec<crate::meow::Meow> = ctx
+        .world
+        .recent_meows
+        .iter()
+        .filter(|m| now.saturating_sub(m.tick) <= ctx.config.meow.recent_window_ticks)
+        .cloned()
+        .collect();
+    let heard = crate::meow::freshest_audible(&audible, crate::meow::MessageKind::WantBath, me.id)?;
     let emitter = ctx.world.kitty(heard.kitty_id)?;
     // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
     // never grooms others and `pursue`'s Friend arm emits Rest): a scene
@@ -953,7 +962,7 @@ mod tests {
         me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         crate::behavior::DecisionContext {
             me,
-            world: Arc::new(world.snapshot()),
+            world: Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
             rng: DecisionRng::from_seed(9876),
             config,
         }
@@ -1560,6 +1569,8 @@ mod tests {
                 kind: MessageKind::WantBath,
                 tick: 100,
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         assert!(
@@ -1579,6 +1590,8 @@ mod tests {
                 kind: MessageKind::WantBath,
                 tick: 100,
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         assert_eq!(
@@ -1693,6 +1706,8 @@ mod tests {
                     kind: MessageKind::WantBath,
                     tick: 100,
                     intensity: 0.5,
+                    pos: crate::grid::Position::new(0, 0),
+                    reply: false,
                 });
             });
             let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
@@ -1760,6 +1775,8 @@ mod tests {
                 kind: MessageKind::WantBath,
                 tick: 100,
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         let action = NeedsDriven.decide_action(&ctx);

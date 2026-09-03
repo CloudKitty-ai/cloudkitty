@@ -133,6 +133,47 @@ fn write_lines(path: &Path, lines: &[String]) {
     std::fs::write(path, text).expect("the fixture is writable");
 }
 
+fn read_lines(name: &str) -> Vec<String> {
+    let text = std::fs::read_to_string(fixtures_dir().join(name))
+        .unwrap_or_else(|e| panic!("fixture {name} is readable: {e}"));
+    text.lines().map(str::to_string).collect()
+}
+
+/// FR-024 / SC-004: fog at a world-covering radius IS the pre-fog world.
+/// The served roster, all scripted, 20,000 ticks, against the streams
+/// `record_prefog_streams` captured at the branch base. Controls:
+/// `[vision] radius` forced to 40 (every tile of the 20x20 world is inside
+/// every disc), the reply floor unset, `announce_here` 0. The served
+/// `digest_window_ticks` (30) is NOT overridden: the buffer outliving the
+/// cooldown must leave every built-in's action untouched, and this run is
+/// the witness that it does (the built-ins hear at the cooldown until the
+/// fog-era targeting lands deliberately at T054). Actions must match tick
+/// for tick; messages must match row for row until the want law lands
+/// (which may only SILENCE wants -- that exemption is added with it).
+#[test]
+fn world_covering_radius_reproduces_pre_fog_actions() {
+    let mut config = served_all_scripted();
+    config.vision.radius = 40;
+    config.behavior.reply_intensity_floor = None;
+    config.validate().expect("the control config validates");
+    let (actions, messages) = record_streams(config, TICKS);
+    let expected_actions = read_lines("prefog-actions-20k.digest");
+    let expected_messages = read_lines("prefog-messages-20k.digest");
+    assert_eq!(expected_actions.len() as u64, TICKS, "the fixture is whole");
+    for (i, (got, want)) in actions.iter().zip(expected_actions.iter()).enumerate() {
+        assert_eq!(
+            got, want,
+            "action stream diverged at line {i}: fog-view engine `{got}` vs pre-fog `{want}` \
+             (kitties in id order; codes per fog_continuity.rs). STOP and report (rule 4)."
+        );
+    }
+    assert_eq!(actions.len(), expected_actions.len());
+    assert_eq!(
+        messages, expected_messages,
+        "message stream diverged from the pre-fog recording"
+    );
+}
+
 /// The recorder. Ignored: it WRITES the reference fixtures and is run by
 /// hand exactly once, at the branch base, before any engine edit.
 #[test]

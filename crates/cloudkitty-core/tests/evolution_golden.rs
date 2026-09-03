@@ -16,6 +16,20 @@
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
 //!
+//! Regenerated at spec 049's fog wall, T014 (2026-09-03): the serialized
+//! world GAINED FIELDS -- `memory` and `explore_heading` on every kitty,
+//! `pos` and `reply` on every meow, the seven restore shims now always
+//! serialized (explicit `null` / `[]` / `0`), and the meow buffer retained
+//! for the 30-tick digest window instead of the 10-tick cooldown -- so the
+//! bytes moved while the dynamics did not. Continuity witness (recorded
+//! in specs/049-fog-gen1/redden-list.md): `fog_continuity.rs`'s 20,000-tick
+//! served-roster run at the world-covering radius reproduces the pre-fog
+//! ACTION and MESSAGE streams byte for byte at the served digest window.
+//! Both pins re-derived from one run. The fog arc regenerates this golden
+//! again at each INTENTIONAL dynamics move it lands (the want law, the
+//! fog-era targeting and exploration, the placeholder radius 5), each
+//! predicted in the redden list, so the witness stays armed between them.
+//!
 //! Regenerated at spec 048 (2026-09-02): an INTENTIONAL dynamics move,
 //! not an additive field — `finish_what_you_started` now declines a
 //! scene whose counterpart the decision snapshot shows gone, so every
@@ -41,12 +55,12 @@ use cloudkitty_core::{BehaviorRegistry, Config, World};
 use sha2::{Digest, Sha256};
 
 /// sha256 of the serialized world after 10,000 ticks of the default
-/// config (scripted behaviors, default seed), generated at spec 048 (a
-/// deliberate dynamics move — see the module doc). History: spec 046
-/// pinned 8e184e6d… (additive ring, dynamics proven unmoved by the strip
-/// witness); 048 supersedes it with a justified behavior change.
-const GOLDEN_DIGEST_SPEC_048: &str =
-    "31f36082eafc92378d5f5f099593ca5933db9225f98ef8ea0838b3f25ff507ee";
+/// config (scripted behaviors, default seed), generated at spec 049's
+/// wall (additive fields + retention, dynamics proven unmoved — see the
+/// module doc). History: spec 046 pinned 8e184e6d… (additive ring); 048
+/// pinned 31f36082… (a justified behavior change); 049 T014 supersedes it.
+const GOLDEN_DIGEST_SPEC_049: &str =
+    "7fd7cd5ac72258e0ca025f64c54b52dff311c3f30021dcb4a07f1f1384c315bd";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -54,7 +68,7 @@ const GOLDEN_DIGEST_SPEC_048: &str =
 /// keep world-minus-that-field byte-identical to THIS pin, or it is
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
-const STRIP_PIN_SPEC_048: &str = "8dca830fb664b52a00544adb4547d832d3df402b1e5d0b567ee58d332bbbaefa";
+const STRIP_PIN_SPEC_049: &str = "5de37e926e5baf5f8708254b7dc68262fea8958a381e6b7b4e24b619389fe7b1";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.
@@ -86,7 +100,7 @@ fn digest(bytes: &[u8]) -> String {
 fn golden_evolution_flag_absent_10k_ticks() {
     assert_eq!(
         digest(world_json_10k().as_bytes()),
-        GOLDEN_DIGEST_SPEC_048,
+        GOLDEN_DIGEST_SPEC_049,
         "flag-absent world evolution diverged from the pinned generation"
     );
 }
@@ -155,7 +169,7 @@ fn golden_strip_witness_refusal_ring_is_the_only_delta() {
     let stripped = strip_key(world_json_10k(), "refusal_log");
     assert_eq!(
         digest(stripped.as_bytes()),
-        STRIP_PIN_SPEC_048,
+        STRIP_PIN_SPEC_049,
         "world-minus-ring diverged from the 048 pin: the delta is no longer \
          the refusal ring alone"
     );

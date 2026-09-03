@@ -3379,7 +3379,10 @@ trill = true",
     #[test]
     fn the_served_fog_defaults_are_the_documented_placeholders() {
         let c = cfg();
-        assert_eq!(c.vision.radius, 5, "FR-002 placeholder");
+        // ARC-TEMPORARY: 64 (= 32 + 32, world-covering for the compiled
+        // world) until T080 flips the default to the FR-002 placeholder 5
+        // and re-points this line.
+        assert_eq!(c.vision.radius, 64, "ARC-TEMPORARY world-covering default");
         assert_eq!(c.vision.memory_timeout_ticks, 0, "FR-008: never");
         assert_eq!(c.meow.digest_window_ticks, 30, "FR-017");
         assert_eq!(c.meow.recent_window_ticks, 10, "the cooldown is unmoved");

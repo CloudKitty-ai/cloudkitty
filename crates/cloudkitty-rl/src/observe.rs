@@ -386,9 +386,17 @@ pub fn encode_observation(
     // toward the direction arrives at the cat whose urgency it heard,
     // which the old nearest-vs-freshest split could not promise.
     let window = core.meow.recent_window_ticks.max(1) as f32;
+    // Spec 049 T011: the buffer now outlives the cooldown (retention is the
+    // digest window), so this schema-4 digest filters to the audibility it
+    // always had -- age within the cooldown -- until schema 5 replaces it.
+    let audible: Vec<cloudkitty_core::meow::Meow> = snapshot
+        .recent_meows
+        .iter()
+        .filter(|m| snapshot.tick.saturating_sub(m.tick) <= core.meow.recent_window_ticks)
+        .cloned()
+        .collect();
     for kind in HEAD_KINDS {
-        let freshest =
-            cloudkitty_core::meow::freshest_audible(&snapshot.recent_meows, kind, kitty_id);
+        let freshest = cloudkitty_core::meow::freshest_audible(&audible, kind, kitty_id);
         match freshest.and_then(|m| snapshot.kitty(m.kitty_id).map(|k| (m, k))) {
             Some((m, emitter)) => {
                 let recency =
@@ -553,12 +561,16 @@ mod tests {
             kind: MessageKind::WantEat,
             tick: 42, // stale
             intensity: 0.9,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         world.recent_meows.push(Meow {
             kitty_id: 3,
             kind: MessageKind::WantEat,
             tick: 50, // fresh
             intensity: 0.4,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         let cfg = ObservationConfig::default();
         let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
@@ -586,6 +598,8 @@ mod tests {
             kind: MessageKind::WantEat,
             tick: 50,
             intensity: 0.9,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
         assert!(
@@ -606,12 +620,16 @@ mod tests {
             kind: MessageKind::Purr,
             tick: 50,
             intensity: 0.0,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         world.recent_meows.push(Meow {
             kitty_id: 2,
             kind: MessageKind::Mew,
             tick: 50,
             intensity: 0.0,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         let cfg = ObservationConfig::default();
         let obs = encode_observation(&world.snapshot(), 1, &config, &cfg, 0.0);
@@ -802,6 +820,8 @@ mod tests {
                 kind: MessageKind::WantEat,
                 tick: t,
                 intensity: 0.0,
+                pos: cloudkitty_core::grid::Position::new(0, 0),
+                reply: false,
             });
         }
         let cfg = ObservationConfig::default();
@@ -814,6 +834,8 @@ mod tests {
             kind: MessageKind::WantEat,
             tick: 50,
             intensity: 0.0,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         let one = encode_observation(&one_world.snapshot(), 1, &config, &cfg, 0.0);
 
@@ -869,6 +891,8 @@ mod tests {
             kind: MessageKind::HereFood,
             tick: 50,
             intensity: 0.0,
+            pos: cloudkitty_core::grid::Position::new(0, 0),
+            reply: false,
         });
         let cfg = ObservationConfig::default();
         let slot = digest_slot(&cfg, MessageKind::HereFood);
@@ -915,6 +939,8 @@ mod tests {
                 kind,
                 tick: 50,
                 intensity: 0.0,
+                pos: cloudkitty_core::grid::Position::new(0, 0),
+                reply: false,
             });
         }
         let cfg = ObservationConfig::default();

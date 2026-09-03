@@ -1,135 +1,88 @@
-//! The generation wall, engine side (spec 028 FR-022/SC-006): pre-028
-//! world snapshots load and RUN on this engine. The committed fixture was
-//! serialized at the last pre-028 commit — populated meows (no intensity
-//! field), per-kind cooldowns, live purr state — and this suite is the
-//! wall's witness that the break is policy-side only.
+//! The 3.0 generation wall, engine side (spec 049 FR-032 / SC-006): a
+//! pre-3.0 world snapshot does NOT load on this engine, and a 3.0 save
+//! round-trips. Until spec 049 this file was the 028/041 wall's witness
+//! the other way round -- two committed fixtures (`pre-028-world.json`,
+//! `pre-041-bound-duet.json`) that loaded and ran through restore shims.
+//! The owner ruled the shims and both fixture tests deleted with the wall
+//! (timeline @ cefe5ba, item 5); what remains asserts the refusal, field
+//! by field, so a silent default can never read a missing field into
+//! state again.
 
-use std::sync::Arc;
+use cloudkitty_core::Meow;
 
-use cloudkitty_core::behavior::BehaviorRegistry;
-use cloudkitty_core::config::Config;
-use cloudkitty_core::world::World;
-
-fn fixture() -> World {
-    let path =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/pre-028-world.json");
-    let text = std::fs::read_to_string(path).expect("the committed fixture is readable");
-    serde_json::from_str(&text).expect("a pre-028 world deserializes on this engine")
-}
-
-#[tokio::test(flavor = "current_thread")]
-async fn a_pre_028_world_resumes_and_runs() {
-    let mut world = fixture();
-
-    // The old-generation state arrived intact...
-    assert_eq!(world.tick, 3000, "the fixture's clock");
-    assert!(
-        !world.recent_meows.is_empty(),
-        "old-kind meows are still audible"
-    );
-    assert!(
-        world.recent_meows.iter().all(|m| m.intensity == 0.0),
-        "a pre-028 meow (no intensity field) reads 0.0"
-    );
-    assert!(
-        world.kitties.iter().any(|k| !k.meow_cooldowns.is_empty()),
-        "per-kind cooldown stamps survived the reinterpretation"
-    );
-    // ...and the new state defaulted honestly.
-    assert!(
-        world.kitties.iter().all(|k| k.announce_armed.is_empty()),
-        "pre-028 kitties resume disarmed; the first needs phase re-arms"
-    );
-
-    // And it RUNS: 200 ticks under the shipped config with the builtin
-    // registry -- policy seats lawfully fall back when their behavior is
-    // unregistered (core cannot open artifacts), which is itself the
-    // wall's point: the old world runs whatever the seats say. The
-    // invariants assert inside every tick.
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let text = std::fs::read_to_string(root.join("cloudkitty.toml")).unwrap();
-    let config: Config = toml::from_str(&text).unwrap();
-    config.validate().expect("the shipped config validates");
-    let config = Arc::new(config);
-    let registry = BehaviorRegistry::with_builtins();
-    for _ in 0..200 {
-        world.tick(&registry, &config).await;
-    }
-    assert_eq!(world.tick, 3200, "two hundred lawful ticks later");
-    assert!(
-        world.kitties.iter().any(|k| !k.announce_armed.is_empty())
-            || world.kitties.iter().all(|k| k.needs.highest_pressure().1
-                < config.meow.announce_threshold - config.meow.announce_hysteresis),
-        "arming state is live again (or honestly nothing is armable)"
-    );
-}
-
+/// Spec 049 FR-032 (owner ruled 2026-09-03, item 6 -- the eighth shim):
+/// a recorded meow needs every field; a missing `pos` or `reply` -- and,
+/// once the pre-028 tolerance is deleted at T071, `intensity` -- fails to
+/// deserialize NAMING the field. Intensity is an observed digest feature
+/// and the reply ladder's tie-breaker under fog: reading 0.0 into it
+/// would corrupt the digest instead of failing at load.
 #[test]
-fn a_pre_028_meow_entry_reads_zero_intensity() {
-    // The Meow-level compat case, isolated from the world fixture: the
-    // exact JSON a pre-028 recent_meows entry carries.
-    let json = r#"{"kitty_id": 3, "kind": "want_play", "tick": 42}"#;
-    let meow: cloudkitty_core::Meow = serde_json::from_str(json).unwrap();
-    assert_eq!(meow.intensity, 0.0);
-    assert_eq!(meow.kind, cloudkitty_core::MessageKind::WantPlay);
+fn a_pre_3_0_meow_entry_is_refused() {
+    let complete = r#"{"kitty_id": 3, "kind": "want_play", "tick": 42, "intensity": 0.5,
+                       "pos": {"x": 4, "y": 5}, "reply": false}"#;
+    let meow: Meow = serde_json::from_str(complete).expect("a 3.0 entry loads");
+    assert_eq!(meow.pos, cloudkitty_core::Position::new(4, 5));
+    assert!(!meow.reply);
+
+    for (missing, json) in [
+        (
+            "pos",
+            r#"{"kitty_id": 3, "kind": "want_play", "tick": 42, "intensity": 0.5, "reply": false}"#,
+        ),
+        (
+            "reply",
+            r#"{"kitty_id": 3, "kind": "want_play", "tick": 42, "intensity": 0.5, "pos": {"x": 4, "y": 5}}"#,
+        ),
+    ] {
+        let err = serde_json::from_str::<Meow>(json).unwrap_err().to_string();
+        assert!(
+            err.contains(missing),
+            "an entry without `{missing}` is refused naming it: {err}"
+        );
+    }
 }
 
-/// Spec 041 FR-009 / US1 AC-5: a snapshot recorded on the pre-041 engine
-/// carrying a BOUND rest duet (both partners in `Resting` naming each
-/// other, one shared clock) loads and resumes lawfully as two synchronized
-/// resters, each paying the mutual tier from its own slot -- no error
-/// state, no reshaping. The fixture was serialized by the pre-041 build
-/// (2026-08-28), not hand-written.
-///
-/// 3.0 config-hygiene wall: this tolerance (fixture + test) is marked for
-/// deletion there, alongside the inert `cuddle_relief` key -- after the
-/// wall's --fresh cutover no pre-041 world can resume.
-#[tokio::test(flavor = "current_thread")]
-async fn a_pre_041_bound_rest_duet_resumes_as_synchronized_resters() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/pre-041-bound-duet.json");
-    let text = std::fs::read_to_string(path).expect("the committed fixture is readable");
-    let mut world: World = serde_json::from_str(&text).expect("a pre-041 world deserializes");
-
-    // The bound-duet shape arrived intact: mutual references, live clocks.
-    let k1 = world.kitty(1).unwrap();
-    let k2 = world.kitty(2).unwrap();
-    assert_eq!(k1.activity.partner(), Some(2), "the fixture's duet");
-    assert_eq!(k2.activity.partner(), Some(1));
-    assert!(k1.activity_clock.is_some() && k2.activity_clock.is_some());
-    let cuddle_before_1 = k1.needs.get(cloudkitty_core::NeedKind::Cuddle);
-    let cuddle_before_2 = k2.needs.get(cloudkitty_core::NeedKind::Cuddle);
-
-    // One tick under the default config: both scenes continue lawfully
-    // (the invariants assert inside the tick), and each pays the mutual
-    // tier TWICE -- once from its own slot, once as the other's partner --
-    // the synchronized-resters shape the spec promises.
-    let config = Arc::new(Config::default());
-    let registry = BehaviorRegistry::with_builtins();
-    // Two ticks: the fixture's scene was already serviced on its capture
-    // tick (spec 006's effects-due rule), so the first resumed tick stamps
-    // without paying; the second pays.
-    world.tick(&registry, &config).await;
-    world.tick(&registry, &config).await;
-
-    let k1 = world.kitty(1).unwrap();
-    let k2 = world.kitty(2).unwrap();
-    assert_eq!(
-        k1.activity.partner(),
-        Some(2),
-        "the scene continues, un-reshaped"
+/// Spec 049 FR-032: a pre-3.0 world save does not load. The concrete
+/// witness is the shape the deleted `pre-028-world.json` fixture had -- a
+/// kitty without the 3.0 fields -- refused naming the first missing one.
+#[test]
+fn a_pre_3_0_kitty_record_is_refused_naming_the_missing_field() {
+    // A complete 3.0 kitty, serialized by this engine, loads back.
+    let kitty = cloudkitty_core::Kitty::new(
+        1,
+        "Miso",
+        cloudkitty_core::Position::new(2, 3),
+        "needs_driven",
     );
-    assert_eq!(k2.activity.partner(), Some(1));
-    let rate = config.actions.rest_mutual_relief;
-    for (before, kitty) in [(cuddle_before_1, k1), (cuddle_before_2, k2)] {
-        let got = kitty.needs.get(cloudkitty_core::NeedKind::Cuddle);
+    let text = serde_json::to_string(&kitty).unwrap();
+    let back: cloudkitty_core::Kitty =
+        serde_json::from_str(&text).expect("a 3.0 kitty round-trips");
+    assert_eq!(back, kitty);
+
+    // Strip one 3.0 field at a time: each absence is refused by name.
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+    for field in [
+        "memory",
+        "explore_heading",
+        "announce_armed",
+        "last_action",
+        "purr_cooldown_until",
+        "behavior_description",
+        "purring_until",
+        "purring_duration",
+    ] {
+        let mut stripped = value.clone();
+        stripped
+            .as_object_mut()
+            .unwrap()
+            .remove(field)
+            .unwrap_or_else(|| panic!("{field} is serialized"));
+        let err = serde_json::from_value::<cloudkitty_core::Kitty>(stripped)
+            .unwrap_err()
+            .to_string();
         assert!(
-            got < before - (2.0 * rate - 1.0),
-            "each rester collects mutual from both slots, got {got} from {before}"
+            err.contains(field),
+            "a save without `{field}` is refused naming it: {err}"
         );
-        // Counters resumed at zero (serde default) and count from the
-        // resume: the one paying tick bumped mutual on each owner's scene.
-        assert_eq!(kitty.activity_clock.unwrap().mutual_ticks, 1);
-        assert_eq!(kitty.activity_clock.unwrap().drip_ticks, 0);
     }
 }

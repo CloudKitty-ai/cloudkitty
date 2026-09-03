@@ -58,19 +58,19 @@ host = 6
 name = "scale"
 kind = "standard"
 config = "scale.toml"
-sha256 = "bc2ba51cb19f514c34152d25a1c9d32bffcd006def0661a3987af6fa1a42d79c"
+sha256 = "cdc15b74f661d7880fbaf86f6628384d5a02a51f16342efcd688b4d44d2ff68a"
 
 [[exam]]
 name = "scarcity"
 kind = "standard"
 config = "scarcity.toml"
-sha256 = "2bb97f5df642f9b4fa19a132de0cb822fb1b220e993cb1773be3f86371a0c486"
+sha256 = "a67f7735834a6a14aa23d73eba30ea49117675ac4db7abfce0d8c6196595cdf3"
 
 [[exam]]
 name = "heterogeneity"
 kind = "standard"
 config = "heterogeneity.toml"
-sha256 = "dc9fb2e32e53d791343e8017929cf66409d0cebec2e5fe5e0ec39bd4596e1ee3"
+sha256 = "76135c6cfa2437943c6f00db870bcd1c602d8e6821be5278f27678a3c49e6126"
 
 [[exam]]
 name = "mixed-roster"
@@ -79,14 +79,14 @@ kind = "mixed-roster"
 [[exam.cell]]
 name = "guest"
 config = "mixed-roster-guest.toml"
-sha256 = "9a712d870a54bb17dcde3c33d4843bd9bd556da8366208a7c4fdf205c82034c9"
+sha256 = "757343aca31e94d6385e8d715bbfcf34e912cb27eb8d6a29ab065a941368a40d"
 
 [[exam.cell]]
 name = "half"
 config = "mixed-roster-half.toml"
-sha256 = "ab21f68df8edb8b945c05ac28cbe87249aa41768980123aee53c6078a2eb748c"
+sha256 = "0e59bc6bcdde9adf40b1915b122417a21e21724df0522a50df90d4bc10473547"
 
 [[exam.cell]]
 name = "host"
 config = "mixed-roster-host.toml"
-sha256 = "c681d02a332c89cd66b9bab0ada6012e730e1693806af2fe1fad9f3c3e718ce1"
+sha256 = "504c31fe2951451f67babe9ee3b052147cee82a936d350519e57eab56447f275"

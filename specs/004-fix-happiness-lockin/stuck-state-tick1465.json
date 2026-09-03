@@ -31,7 +31,21 @@
         "play",
         "bath"
       ],
-      "happiness_rose": false
+      "happiness_rose": false,
+      "behavior_description": null,
+      "last_action": null,
+      "purring_until": null,
+      "purring_duration": null,
+      "purr_cooldown_until": 0,
+      "announce_armed": [],
+      "memory": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "explore_heading": null
     },
     {
       "id": 2,
@@ -55,12 +69,28 @@
       },
       "activity_clock": {
         "started": 1464,
-        "applied": 1464
+        "applied": 1464,
+        "mutual_ticks": 0,
+        "drip_ticks": 0
       },
       "behavior": "playful",
       "meow_cooldowns": {},
       "in_distress": [],
-      "happiness_rose": true
+      "happiness_rose": true,
+      "behavior_description": null,
+      "last_action": null,
+      "purring_until": null,
+      "purring_duration": null,
+      "purr_cooldown_until": 0,
+      "announce_armed": [],
+      "memory": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "explore_heading": null
     },
     {
       "id": 3,
@@ -86,7 +116,21 @@
         "want_play": 1469
       },
       "in_distress": [],
-      "happiness_rose": false
+      "happiness_rose": false,
+      "behavior_description": null,
+      "last_action": null,
+      "purring_until": null,
+      "purring_duration": null,
+      "purr_cooldown_until": 0,
+      "announce_armed": [],
+      "memory": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "explore_heading": null
     }
   ],
   "elements": [
@@ -244,22 +288,46 @@
     {
       "kitty_id": 1,
       "kind": "want_play",
-      "tick": 1455
+      "tick": 1455,
+      "intensity": 0.0,
+      "pos": {
+        "x": 21,
+        "y": 30
+      },
+      "reply": false
     },
     {
       "kitty_id": 3,
       "kind": "want_play",
-      "tick": 1456
+      "tick": 1456,
+      "intensity": 0.0,
+      "pos": {
+        "x": 6,
+        "y": 13
+      },
+      "reply": false
     },
     {
       "kitty_id": 1,
       "kind": "want_play",
-      "tick": 1462
+      "tick": 1462,
+      "intensity": 0.0,
+      "pos": {
+        "x": 21,
+        "y": 30
+      },
+      "reply": false
     },
     {
       "kitty_id": 3,
       "kind": "want_play",
-      "tick": 1464
+      "tick": 1464,
+      "intensity": 0.0,
+      "pos": {
+        "x": 6,
+        "y": 13
+      },
+      "reply": false
     }
   ],
   "distress": {

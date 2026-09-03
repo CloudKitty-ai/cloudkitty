@@ -698,7 +698,9 @@ impl Config {
         // Spec 049 FR-017: the digest window is a positive integer multiple
         // of the cooldown, so the rate cell's maximum (window / cooldown
         // calls) is exact. Both keys named: the fix is to move either.
-        if m.digest_window_ticks == 0 || m.digest_window_ticks % m.recent_window_ticks != 0 {
+        if m.digest_window_ticks == 0
+            || !m.digest_window_ticks.is_multiple_of(m.recent_window_ticks)
+        {
             return Err(ConfigError::invalid(
                 "[meow] digest_window_ticks",
                 m.digest_window_ticks.to_string(),

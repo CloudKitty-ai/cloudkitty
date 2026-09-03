@@ -268,6 +268,19 @@ pub struct Meow {
     /// 0.0 for the social words. Pre-028 snapshots read 0.0.
     #[serde(default)]
     pub intensity: f32,
+    /// Spec 049 FR-040: the speaker's position at emission, engine-stamped.
+    /// Under fog this is what a listener that cannot see the speaker
+    /// learns from the call -- the heard row points here, the scripted
+    /// groom response walks here; the position is the MEOW's, never the
+    /// cat's current one (owner ruling, coverage pass 2026-09-02).
+    pub pos: crate::grid::Position,
+    /// Spec 049 FR-040: engine-stamped at emission, never policy-chosen.
+    /// For a here-kind, true iff a matching want from another cat was
+    /// audible in the speaker's start-of-tick snapshot AND the referent
+    /// was visible from the speaker; false for every other kind. The
+    /// stamp is separate from any trigger (an ambient here landing while
+    /// a want is audible is stamped too). Immutable once recorded.
+    pub reply: bool,
 }
 
 /// The audible-emitter selection rule (spec 028), shared by the
@@ -321,6 +334,8 @@ mod tests {
             kind: MessageKind::WantBath,
             tick,
             intensity: 0.0,
+            pos: crate::grid::Position::new(0, 0),
+            reply: false,
         };
         let meows = vec![
             m(5, 10),
