@@ -457,6 +457,12 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             if let Some(dest) = kitty.pos.step(direction, world.width, world.height) {
                 if let Some(idx) = world.kitty_index(kitty_id) {
                     world.kitties[idx].pos = dest;
+                    // Spec 049 FR-023 (owner ruled 2026-09-03): the engine
+                    // records the direction of every APPLIED move, whatever
+                    // caused it -- navigation, a sidestep, a policy move --
+                    // as the cat's exploration heading. Read only by the
+                    // built-in explore step; never cleared.
+                    world.kitties[idx].explore_heading = Some(direction);
                 }
                 set_idle(world, kitty_id);
             }

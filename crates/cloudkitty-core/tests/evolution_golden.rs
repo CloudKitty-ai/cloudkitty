@@ -16,6 +16,16 @@
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
 //!
+//! Regenerated at spec 049 T054 (2026-09-03): an INTENTIONAL dynamics
+//! move -- the built-in groom response now hears a `want_bath` for the
+//! whole digest window (30, not the 10-tick cooldown) and walks to the
+//! caller's stamped tile when the caller is unseen (FR-017/FR-022), and
+//! built-in targeting runs over visible ∪ remembered elements and visible
+//! ∪ heard friends (inert at this covering radius, where every element is
+//! seen and nobody is unseen). `fog_continuity.rs` names the widened
+//! response as the second lawful cause of a first divergence. Both pins
+//! from one run.
+//!
 //! Regenerated at spec 049 T044 (2026-09-03): an INTENTIONAL dynamics
 //! move -- the knowledge-gated want law (FR-036) silences wants whose
 //! relief the cat can see or remember, and the built-in groom response
@@ -77,7 +87,7 @@ use sha2::{Digest, Sha256};
 /// module doc). History: spec 046 pinned 8e184e6d… (additive ring); 048
 /// pinned 31f36082… (a justified behavior change); 049 T014 supersedes it.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "bc67a5dfe7d2835e845b7c6258c53df4a4db30be4d5467136a73e1600fcad999";
+    "ac442a23e3bfe01f441ca3c0fd0f7fbbac76bfeb07e573cf76242e57c2a87e94";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -85,7 +95,7 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// keep world-minus-that-field byte-identical to THIS pin, or it is
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
-const STRIP_PIN_SPEC_049: &str = "199dae097eb6c1576622155b2f411ef87c3bacff2a0123abde79b279bfd9470d";
+const STRIP_PIN_SPEC_049: &str = "173f9d09828504179ec93fc60c530501f998db11dc6cc3a4a56f3b26b2062c71";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

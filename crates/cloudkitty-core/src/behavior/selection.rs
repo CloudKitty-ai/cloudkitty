@@ -332,11 +332,39 @@ pub fn expected_scene_exposure(
 /// so the bowl a kitty picks and the bowl it walks to can never differ
 /// (the 004 agreement rule, extended to pricing).
 pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Option<(Position, f32)> {
+    // Spec 049 FR-022: candidates are the VISIBLE elements of the kind plus
+    // the one remembered tile, walked to as if it held the element -- a
+    // phantom with id u32::MAX, so a real element always wins a price tie.
+    // When the remembered tile comes into the disc empty, the engine has
+    // already cleared the slot (research R3), so this scan finds neither
+    // and the caller explores (FR-023) -- the same ladder, that tick.
+    let remembered = ctx.me.memory[crate::kitty::memory_index(kind)]
+        .map(|slot| (u32::MAX, slot.pos, priced_travel(ctx, ctx.me.pos, slot.pos)));
     ctx.world
         .elements_of(kind)
         .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
+        .chain(remembered)
         .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
         .map(|(_, pos, cost)| (pos, cost))
+}
+
+/// Spec 049 FR-022 (owner ruled 2026-09-03): friends the cat can only HEAR
+/// are targets unconditionally -- their state is masked and is never read
+/// through the fog -- at the position of their last audible meow, except
+/// that a stamped position the cat has already reached is dropped: on
+/// arrival the friend is either in view (and judged like any visible
+/// friend) or not there, and a heard position is never walked to twice
+/// without a new meow. Chase bookkeeping (a written-off target) still
+/// applies. Shared by the playmate scan, the cuddle-friend seek and the
+/// groom response.
+pub(crate) fn heard_unseen_targets(ctx: &DecisionContext) -> Vec<(KittyId, Position)> {
+    let window = ctx.config.meow.digest_window_ticks;
+    ctx.world
+        .heard_unseen(window)
+        .into_iter()
+        .filter(|(_, pos, _)| !ctx.me.pos.is_adjacent(pos))
+        .map(|(id, pos, _)| (id, pos))
+        .collect()
 }
 
 /// The sunbeam worth walking to for a nap, if any: the priced-cheapest one,
@@ -418,10 +446,18 @@ fn viable_playmate_with(ctx: &DecisionContext, consent: bool) -> Option<(TargetR
         .others(me.id)
         .filter(|k| !consent || !consent_blocks(ctx, k))
         .map(|k| (TargetRef::Kitty { id: k.id }, k.pos, 1u8, k.id));
+    // Spec 049: heard-unseen friends join unconditionally (no consent, no
+    // mid-scene check -- nothing to read through the fog); bookkeeping only.
+    let heard: Vec<(TargetRef, Position, u8, KittyId)> = heard_unseen_targets(ctx)
+        .into_iter()
+        .map(|(id, pos)| (TargetRef::Kitty { id }, pos, 1u8, id))
+        .filter(|(target, _, _, _)| chase_bookkeeping_allows(ctx, *target))
+        .collect();
 
     critters
         .chain(friends)
         .filter(|(target, _, _, _)| is_viable(ctx, *target))
+        .chain(heard)
         .min_by_key(|(_, pos, tag, id)| (me.pos.manhattan_distance(pos), *tag, *id))
         .map(|(target, pos, _, _)| (target, pos))
 }

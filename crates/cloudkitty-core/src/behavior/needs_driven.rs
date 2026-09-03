@@ -255,22 +255,26 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         ReliefSource::Friend => {
             // Only an idle friend can be drawn into a cuddle (spec 006
             // conscription) -- proposing at a busy one would just bounce to
-            // Idle. Seek the nearest *free* friend instead.
+            // Idle. Seek the nearest *free* VISIBLE friend -- or, under fog
+            // (spec 049 FR-022), a friend only HEARD, at its last meow's
+            // position, unconditionally: its state is masked, idleness is
+            // checked on sight, and a reached position is dropped
+            // (`heard_unseen_targets`).
             let free = world
                 .others(me.id)
                 .filter(|k| !k.activity.is_in_progress())
-                .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
+                .map(|k| (k.id, k.pos))
+                .chain(selection::heard_unseen_targets(ctx))
+                .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id));
             match free {
-                Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
-                    with: Some(friend.id),
-                },
+                Some((id, pos)) if me.pos.is_adjacent(&pos) => Action::Rest { with: Some(id) },
                 // Approach etiquette (spec 012): at the corner, the higher-id
                 // kitty asks and holds; the lower one closes the last step.
-                Some(friend) if selection::should_wait_for(ctx, friend.id, friend.pos) => {
+                Some((id, pos)) if selection::should_wait_for(ctx, id, pos) => {
                     selection::wait_for_them(ctx)
                 }
                 // Walking over for a cuddle is not a chase; this cat is not playing.
-                Some(friend) => step_toward(ctx, friend.pos),
+                Some((_, pos)) => step_toward(ctx, pos),
                 // Everyone is mid-scene; scenes are short (bounded by their
                 // maximums), so wait rather than lock into a relief-less
                 // solo rest.
@@ -298,8 +302,68 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
     // pond is pursued only when it truly is the cheapest walk (spec 010).
     match selection::priced_nearest_element(ctx, kind) {
         Some((pos, _)) => step_toward(ctx, pos),
-        // The safeguard will have provided something by the next environment
-        // phase; until then, there is nothing useful to do about it.
+        // Nothing of the kind visible or remembered (spec 049 FR-023):
+        // under fog "none visible" no longer means "none exists", so the
+        // cat explores along its persistent heading instead of idling.
+        None => explore(ctx),
+    }
+}
+
+/// How many tiles of world lie ahead of `pos` along `dir` before the wall
+/// -- arithmetic on position, heading and bounds only (FR-023: no vision
+/// query).
+pub(crate) fn distance_to_wall(
+    pos: crate::grid::Position,
+    dir: Direction,
+    width: u32,
+    height: u32,
+) -> u32 {
+    match dir {
+        Direction::North => pos.y,
+        Direction::South => height.saturating_sub(1).saturating_sub(pos.y),
+        Direction::West => pos.x,
+        Direction::East => width.saturating_sub(1).saturating_sub(pos.x),
+    }
+}
+
+/// The blind cat's search (spec 049 FR-023, owner ruling 4 of 2026-09-02):
+/// one step along the persistent exploration heading -- the engine-recorded
+/// direction of the last applied move -- redrawn ONCE from the decision
+/// RNG when there is no heading yet or the wall ahead is within the vision
+/// radius: uniformly among directions that are neither the reverse nor
+/// wall-within-radius; failing that any non-reverse direction; failing
+/// that the current heading. Draws happen only on a redraw -- a
+/// state-dependent count, never per step. The step itself goes through the
+/// existing step rule (occupied-tile and water-avoiding sidesteps).
+pub(crate) fn explore(ctx: &DecisionContext) -> Action {
+    let me = &ctx.me;
+    let (width, height) = (ctx.world.width, ctx.world.height);
+    let radius = ctx.config.vision.radius;
+    let clear = |d: Direction| distance_to_wall(me.pos, d, width, height) > radius;
+    let heading = match me.explore_heading {
+        Some(h) if clear(h) => h,
+        current => {
+            let reverse = current.map(Direction::opposite);
+            let candidates: Vec<Direction> = Direction::ALL
+                .into_iter()
+                .filter(|&d| Some(d) != reverse && clear(d))
+                .collect();
+            let fallback: Vec<Direction> = Direction::ALL
+                .into_iter()
+                .filter(|&d| Some(d) != reverse)
+                .collect();
+            let pool = if !candidates.is_empty() {
+                candidates
+            } else if !fallback.is_empty() {
+                fallback
+            } else {
+                vec![current.unwrap_or(Direction::North)]
+            };
+            *ctx.rng.choose(&pool).expect("a non-empty pool")
+        }
+    };
+    match me.pos.step(heading, width, height) {
+        Some(next) => step_toward(ctx, next),
         None => Action::Idle,
     }
 }
@@ -321,21 +385,29 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     if top >= ctx.config.thresholds.safeguard {
         return None;
     }
-    // Until the fog-era targeting lands (spec 049 T054: the response walks
-    // to the caller's stamped position and hears the whole digest window),
-    // the built-in's audibility stays the per-kind cooldown -- exactly the
-    // buffer the pre-049 engine held -- so the retention move alone
-    // changes no scripted action (FR-024).
-    let now = ctx.world.tick;
+    // Spec 049 (T054, the fog-era response): the ask is audible for the
+    // whole digest window -- the view's one audibility rule (start-of-tick,
+    // age inside the window) -- and the caller, if unseen, is sought at the
+    // position its call was stamped with (FR-022, spec 028 FR-019 under
+    // fog). A reached stamped position with no caller in view drops the
+    // response that tick.
+    let window = ctx.config.meow.digest_window_ticks;
     let audible: Vec<crate::meow::Meow> = ctx
         .world
         .recent_meows
         .iter()
-        .filter(|m| now.saturating_sub(m.tick) <= ctx.config.meow.recent_window_ticks)
+        .filter(|m| ctx.world.audible(m, window))
         .cloned()
         .collect();
     let heard = crate::meow::freshest_audible(&audible, crate::meow::MessageKind::WantBath, me.id)?;
-    let emitter = ctx.world.kitty(heard.kitty_id)?;
+    let Some(emitter) = ctx.world.kitty(heard.kitty_id) else {
+        // Heard, not seen: walk to where the call came from -- unless this
+        // cat is already there and the caller is not (dropped).
+        if me.pos.is_adjacent(&heard.pos) {
+            return None;
+        }
+        return Some(step_toward(ctx, heard.pos));
+    };
     // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
     // never grooms others and `pursue`'s Friend arm emits Rest): a scene
     // whose expected contagion exposure exceeds its TOTAL value — the
@@ -1597,7 +1669,7 @@ mod tests {
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
-                tick: 100,
+                tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                 intensity: 0.5,
                 pos: crate::grid::Position::new(0, 0),
                 reply: false,
@@ -1618,7 +1690,7 @@ mod tests {
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
-                tick: 100,
+                tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                 intensity: 0.5,
                 pos: crate::grid::Position::new(0, 0),
                 reply: false,
@@ -1734,7 +1806,7 @@ mod tests {
                 world.recent_meows.push(crate::meow::Meow {
                     kitty_id: 2,
                     kind: MessageKind::WantBath,
-                    tick: 100,
+                    tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                     intensity: 0.5,
                     pos: crate::grid::Position::new(0, 0),
                     reply: false,

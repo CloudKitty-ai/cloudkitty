@@ -133,6 +133,10 @@ fn write_lines(path: &Path, lines: &[String]) {
     std::fs::write(path, text).expect("the fixture is writable");
 }
 
+fn config_digest_window() -> u64 {
+    served_all_scripted().meow.digest_window_ticks
+}
+
 fn read_lines(name: &str) -> Vec<String> {
     let text = std::fs::read_to_string(fixtures_dir().join(name))
         .unwrap_or_else(|e| panic!("fixture {name} is readable: {e}"));
@@ -195,26 +199,42 @@ fn world_covering_radius_reproduces_pre_fog_actions() {
             .filter(|(_, (g, w))| g != w)
             .map(|(k, (g, w))| (k, *g, *w))
             .collect();
-        let explained = diffs.iter().all(|&(_, _, pre)| {
-            // A groom of friend `id` in the pre-fog stream ...
-            let Some(target) = pre.strip_prefix('G').and_then(|t| t.parse::<u32>().ok()) else {
-                return false;
-            };
-            // ... answering a want_bath from that friend inside the cooldown
-            // that the fog-view engine no longer records.
-            let silenced = |rows: &[String]| {
-                rows.iter().any(|row| {
-                    let mut f = row.split('\t');
-                    let tick: u64 = f.next().unwrap().parse().unwrap();
-                    let kitty: u32 = f.next().unwrap().parse().unwrap();
-                    let kind = f.next().unwrap();
-                    kitty == target
-                        && kind == "want_bath"
-                        && tick < horizon
-                        && horizon - tick <= cooldown
-                })
-            };
-            silenced(&expected_messages) && !silenced(&messages)
+        let window = config_digest_window();
+        let want_bath_from = |rows: &[String], target: u32, max_age: u64| {
+            rows.iter().any(|row| {
+                let mut f = row.split('\t');
+                let tick: u64 = f.next().unwrap().parse().unwrap();
+                let kitty: u32 = f.next().unwrap().parse().unwrap();
+                let kind = f.next().unwrap();
+                kitty == target
+                    && kind == "want_bath"
+                    && tick < horizon
+                    && horizon - tick <= max_age
+            })
+        };
+        let explained = diffs.iter().all(|&(_, now, pre)| {
+            // (i) The pre-fog cat groomed friend `id` in answer to a
+            // want_bath inside the cooldown that the fog-view engine no
+            // longer records (the want law silenced it) ...
+            let silenced_response = pre
+                .strip_prefix('G')
+                .and_then(|t| t.parse::<u32>().ok())
+                .is_some_and(|target| {
+                    want_bath_from(&expected_messages, target, cooldown)
+                        && !want_bath_from(&messages, target, cooldown)
+                });
+            // (ii) ... or the fog-view cat grooms friend `id` in answer to a
+            // want_bath older than the cooldown but inside the digest window
+            // -- the deliberate audibility widening of the built-in response
+            // (FR-017/FR-022; the pre-fog engine had already forgotten it).
+            let widened_response = now
+                .strip_prefix('G')
+                .and_then(|t| t.parse::<u32>().ok())
+                .is_some_and(|target| {
+                    want_bath_from(&messages, target, window)
+                        && !want_bath_from(&messages, target, cooldown)
+                });
+            silenced_response || widened_response
         });
         assert!(
             explained,
