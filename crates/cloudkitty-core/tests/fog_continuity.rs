@@ -139,38 +139,151 @@ fn read_lines(name: &str) -> Vec<String> {
     text.lines().map(str::to_string).collect()
 }
 
-/// FR-024 / SC-004: fog at a world-covering radius IS the pre-fog world.
-/// The served roster, all scripted, 20,000 ticks, against the streams
+/// FR-024 / SC-004 as the want law leaves it: fog at a world-covering
+/// radius IS the pre-fog world -- for the VISIBILITY FILTER. The served
+/// roster, all scripted, 20,000 ticks, against the streams
 /// `record_prefog_streams` captured at the branch base. Controls:
-/// `[vision] radius` forced to 40 (every tile of the 20x20 world is inside
-/// every disc), the reply floor unset, `announce_here` 0. The served
-/// `digest_window_ticks` (30) is NOT overridden: the buffer outliving the
-/// cooldown must leave every built-in's action untouched, and this run is
-/// the witness that it does (the built-ins hear at the cooldown until the
-/// fog-era targeting lands deliberately at T054). Actions must match tick
-/// for tick; messages must match row for row until the want law lands
-/// (which may only SILENCE wants -- that exemption is added with it).
+/// `[vision] radius` forced to 40 (every tile of the 20x20 world inside
+/// every disc), the reply floor unset, `announce_here` 0, the served
+/// digest window.
+///
+/// Two claims, in order. (1) The fog-view plumbing alone changes nothing:
+/// proven BYTE FOR BYTE -- every action and every message row identical
+/// over all 20,000 ticks -- at the pre-law commits of this arc (redden
+/// list, cycles 3/5: `a268555` through `11b82a1`), the proof the spec's
+/// FR-024 asks for. (2) After the knowledge-gated want law (FR-036) the
+/// streams cannot stay byte-identical by construction: the built-in
+/// groom response LISTENS to `want_bath` (spec 028 FR-019), and at a
+/// world-covering radius that word is silenced whenever an idle friend is
+/// in view -- so a groom response the pre-fog engine took never fires,
+/// and the trajectories lawfully part from that tick on (owner flag: SC-004
+/// amended, recorded in the redden list). What this guard now pins: the
+/// action streams are identical up to the first divergence, the first
+/// divergence is EXACTLY that -- the pre-fog cat was grooming a friend
+/// whose `want_bath` the pre-fog stream carries inside the cooldown and
+/// the fog-view stream does not -- and, up to that tick, the message
+/// streams differ only by silenced wants (nothing added, nothing but
+/// want rows removed).
 #[test]
 fn world_covering_radius_reproduces_pre_fog_actions() {
     let mut config = served_all_scripted();
     config.vision.radius = 40;
     config.behavior.reply_intensity_floor = None;
     config.validate().expect("the control config validates");
+    let cooldown = config.meow.recent_window_ticks;
     let (actions, messages) = record_streams(config, TICKS);
     let expected_actions = read_lines("prefog-actions-20k.digest");
     let expected_messages = read_lines("prefog-messages-20k.digest");
     assert_eq!(expected_actions.len() as u64, TICKS, "the fixture is whole");
-    for (i, (got, want)) in actions.iter().zip(expected_actions.iter()).enumerate() {
-        assert_eq!(
-            got, want,
-            "action stream diverged at line {i}: fog-view engine `{got}` vs pre-fog `{want}` \
-             (kitties in id order; codes per fog_continuity.rs). STOP and report (rule 4)."
+
+    // (a) Actions: identical up to the first divergence.
+    let first_divergence = actions
+        .iter()
+        .zip(expected_actions.iter())
+        .position(|(got, want)| got != want);
+    let horizon = first_divergence.map_or(TICKS, |i| i as u64);
+    if let Some(i) = first_divergence {
+        let got = &actions[i];
+        let want = &expected_actions[i];
+        // Which kitty moved, and what the pre-fog engine had it doing.
+        let got_codes: Vec<&str> = got.split('\t').nth(1).unwrap().split(' ').collect();
+        let want_codes: Vec<&str> = want.split('\t').nth(1).unwrap().split(' ').collect();
+        let diffs: Vec<(usize, &str, &str)> = got_codes
+            .iter()
+            .zip(want_codes.iter())
+            .enumerate()
+            .filter(|(_, (g, w))| g != w)
+            .map(|(k, (g, w))| (k, *g, *w))
+            .collect();
+        let explained = diffs.iter().all(|&(_, _, pre)| {
+            // A groom of friend `id` in the pre-fog stream ...
+            let Some(target) = pre.strip_prefix('G').and_then(|t| t.parse::<u32>().ok()) else {
+                return false;
+            };
+            // ... answering a want_bath from that friend inside the cooldown
+            // that the fog-view engine no longer records.
+            let silenced = |rows: &[String]| {
+                rows.iter().any(|row| {
+                    let mut f = row.split('\t');
+                    let tick: u64 = f.next().unwrap().parse().unwrap();
+                    let kitty: u32 = f.next().unwrap().parse().unwrap();
+                    let kind = f.next().unwrap();
+                    kitty == target
+                        && kind == "want_bath"
+                        && tick < horizon
+                        && horizon - tick <= cooldown
+                })
+            };
+            silenced(&expected_messages) && !silenced(&messages)
+        });
+        assert!(
+            explained,
+            "action stream diverged at tick {i} for a reason other than a silenced want_bath's \
+             groom response: fog-view `{got}` vs pre-fog `{want}` (kitties in id order; codes per \
+             fog_continuity.rs). STOP and report (rule 4)."
         );
+        eprintln!(
+            "FR-024: actions identical for {i} ticks; first divergence at tick {i} = a groom \
+             response to a want_bath the want law silences ({diffs:?})"
+        );
+    } else {
+        eprintln!("FR-024: actions identical over all {TICKS} ticks");
     }
-    assert_eq!(actions.len(), expected_actions.len());
-    assert_eq!(
-        messages, expected_messages,
-        "message stream diverged from the pre-fog recording"
+
+    // (b) Messages up to the horizon: the want law may only SILENCE wants.
+    let before = |rows: &[String]| -> std::collections::BTreeSet<String> {
+        rows.iter()
+            .filter(|row| row.split('\t').next().unwrap().parse::<u64>().unwrap() < horizon)
+            .cloned()
+            .collect()
+    };
+    let got = before(&messages);
+    let want = before(&expected_messages);
+    // Added rows: a silenced call frees its kind's cooldown, so a later
+    // same-kind call the pre-fog engine could NOT make (still cooling down)
+    // becomes legal -- the want law's only other footprint. Each added row
+    // must be a want whose speaker's previous same-kind call inside the
+    // cooldown exists in the pre-fog stream and is absent from ours.
+    let parse = |row: &str| {
+        let mut f = row.split('\t');
+        let tick: u64 = f.next().unwrap().parse().unwrap();
+        let kitty: u32 = f.next().unwrap().parse().unwrap();
+        let kind = f.next().unwrap().to_string();
+        (tick, kitty, kind)
+    };
+    let mut freed = 0usize;
+    for row in got.difference(&want) {
+        let (tick, kitty, kind) = parse(row);
+        assert!(kind.starts_with("want_"), "a non-want row was ADDED: {row}");
+        let silenced_predecessor = want.iter().any(|old| {
+            let (t, k, kd) = parse(old);
+            k == kitty && kd == kind && t < tick && tick - t < cooldown && !got.contains(old)
+        });
+        assert!(
+            silenced_predecessor,
+            "the fog-view engine ADDED {row} without a silenced same-kind call inside the \
+             cooldown to explain it"
+        );
+        freed += 1;
+    }
+    let mut silenced_kinds = std::collections::BTreeMap::new();
+    for row in want.difference(&got) {
+        let kind = row
+            .split('\t')
+            .nth(2)
+            .expect("tick\tkitty\tkind\tintensity");
+        assert!(
+            kind.starts_with("want_"),
+            "a non-want row went missing before the horizon (only FR-036 silences may differ): {row}"
+        );
+        *silenced_kinds.entry(kind.to_string()).or_insert(0usize) += 1;
+    }
+    eprintln!(
+        "FR-024 message exemption set before tick {horizon}: {} of {} pre-fog rows silenced by \
+         the want law ({silenced_kinds:?}); {freed} calls freed by a silenced predecessor's \
+         cooldown",
+        want.difference(&got).count(),
+        want.len()
     );
 }
 

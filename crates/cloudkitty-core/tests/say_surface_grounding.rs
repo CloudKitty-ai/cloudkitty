@@ -96,7 +96,13 @@ fn here_legality_is_exactly_predicate_and_cooldown_and_flag() {
             ];
             for (kind, predicate, flag) in cases {
                 let expected = predicate && flag && kitty.can_meow(kind, world.tick);
-                let actual = message_legal(kitty, kind, world.tick, &config, &world.elements);
+                let actual = message_legal(
+                    kitty,
+                    kind,
+                    world.tick,
+                    &config,
+                    &world.snapshot().fog_for(1, config.vision.radius),
+                );
                 assert_eq!(
                     actual, expected,
                     "world {world_seed}, {kind:?} at {pos:?}: legality must be \
@@ -148,7 +154,13 @@ fn the_free_register_is_refused_only_by_cooldown_or_flag() {
                 let expected =
                     config.meow.vocabulary.enabled(kind) && kitty.can_meow(kind, world.tick);
                 assert_eq!(
-                    message_legal(kitty, kind, world.tick, &config, &world.elements),
+                    message_legal(
+                        kitty,
+                        kind,
+                        world.tick,
+                        &config,
+                        &world.snapshot().fog_for(1, config.vision.radius)
+                    ),
                     expected,
                     "{kind:?}: a sound-named word answers to nothing but cooldown and flag"
                 );

@@ -1479,20 +1479,35 @@ mod tests {
         // Spec 028 FR-017 (the engine-side half of FR-021): the message is
         // computed after and independent of the activity, so deciding with
         // the channel in play picks the same activity as the ladder alone.
-        // A hungry cat mid-walk announces WantEat and keeps walking.
-        let ctx = decision_context(|world| {
-            world.elements.clear();
-            let idx = world.kitty_index(1).unwrap();
-            world.kitties[idx].pos = Position::new(2, 2);
-            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
-            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            world.push_element(Element {
-                id: 700,
-                kind: ElementKind::Chow { servings: 5 },
-                pos: Position::new(12, 2),
-                ttl: None,
-            });
+        // A hungry cat announces WantEat and keeps doing whatever the
+        // ladder chose. Under the fog law (spec 049 FR-036) the word is
+        // legal only while no bowl is visible or remembered, so the bowl
+        // sits ten tiles off at radius 5 -- unseen, unremembered.
+        let config = {
+            let mut c = crate::test_support::test_config();
+            c.vision.radius = 5;
+            c.validate().unwrap();
+            std::sync::Arc::new(c)
+        };
+        let mut world = crate::world::World::generate(&config);
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(2, 2);
+        world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+        world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+        world.push_element(Element {
+            id: 700,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(12, 2),
+            ttl: None,
         });
+        let me = world.kitty(1).unwrap().clone();
+        let ctx = crate::behavior::DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, 5)),
+            rng: crate::rng::DecisionRng::from_seed(9876),
+            config,
+        };
         let decision = NeedsDriven.decide(&ctx).await;
         assert_eq!(
             decision.activity,
@@ -1508,17 +1523,32 @@ mod tests {
 
     #[tokio::test]
     async fn a_grounded_cat_announces_its_highest_pressure_legal_want() {
-        // Two armed needs: the higher pressure wins; ties would fall to
-        // NeedKind::ALL order (the selection precedent).
-        let ctx = decision_context(|world| {
-            let idx = world.kitty_index(1).unwrap();
-            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
-            world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
-            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
-        });
-        let decision = NeedsDriven.decide(&ctx).await;
+        // Two armed needs: only the TOP need's want can be legal (spec 049
+        // FR-036), and the social words need no idle friend in view -- so
+        // with the friend busy the cat says WantCuddle (its top need), and
+        // with the friend idle in view it says nothing at all.
+        let stage = |friend_busy: bool| {
+            decision_context(move |world| {
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
+                world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
+                world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+                world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
+                if friend_busy {
+                    let f = world.kitty_index(2).unwrap();
+                    world.kitties[f].activity = crate::kitty::Activity::Grooming { target: None };
+                    world.kitties[f].activity_clock =
+                        Some(crate::kitty::ActivityClock::start(world.tick));
+                }
+            })
+        };
+        let decision = NeedsDriven.decide(&stage(true)).await;
         assert_eq!(decision.message, Some(MessageKind::WantCuddle));
+        let decision = NeedsDriven.decide(&stage(false)).await;
+        assert_eq!(
+            decision.message, None,
+            "an idle friend in view silences the social want"
+        );
     }
 
     #[tokio::test]

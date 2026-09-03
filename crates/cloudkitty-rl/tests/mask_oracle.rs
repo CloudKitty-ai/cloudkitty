@@ -149,7 +149,10 @@ fn assert_mask_matches_engine(world: &World, config: &Config) {
             kitty.id
         );
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            let engine_says = message_legal(kitty, kind, full.tick, config, &full.elements);
+            // The engine's own law over the emitter's fog view -- the
+            // enforcement seam builds exactly this view from the live
+            // world (spec 049 R6).
+            let engine_says = message_legal(kitty, kind, full.tick, config, &snapshot);
             assert_eq!(
                 message_mask[k + 1],
                 engine_says,

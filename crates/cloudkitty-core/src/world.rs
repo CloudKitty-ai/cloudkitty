@@ -371,9 +371,14 @@ impl World {
             // (defined order -- activity, then message), enforcement as
             // downgrade-to-Silent, never an error.
             let tick = self.tick;
+            // Spec 049: enforcement rules over the emitter's LIVE fog view
+            // (the same filter the mask probes, built by `fog_for` from the
+            // mid-tick world -- the documented element divergence only ever
+            // silences).
             let applied_message = decision.message.filter(|&kind| {
                 self.kitty(kitty_id).is_some_and(|k| {
-                    crate::meow::message_legal(k, kind, tick, config, &self.elements)
+                    let view = self.snapshot().fog_for(kitty_id, config.vision.radius);
+                    crate::meow::message_legal(k, kind, tick, config, &view)
                 })
             });
             if let Some(kind) = applied_message {
@@ -1701,6 +1706,18 @@ pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[
 /// The one body of "available friend" (a distinct, present, adjacent
 /// kitty): `World::is_available_friend` and the dead-scene rule's grooming
 /// arm both delegate here.
+/// The social want gate's friend clause (spec 049 FR-036, owner ruled
+/// 2026-09-03): a friend INSIDE the disc with no scene running (the
+/// activity clock is the one authoritative "doing nothing" check, as in
+/// `is_conscriptable_friend`) -- adjacency NOT required, so this is a
+/// third small predicate beside `available_friend_in` (adjacent) and
+/// `is_conscriptable_friend` (adjacent ∧ idle). Heard-unseen friends are
+/// not in the view and never enter it.
+pub fn idle_friend_in_view(view: &FogView) -> bool {
+    view.others(view.observer)
+        .any(|k| k.activity_clock.is_none())
+}
+
 pub(crate) fn available_friend_in(kitties: &[Kitty], me: &Kitty, friend: KittyId) -> bool {
     friend != me.id
         && kitties

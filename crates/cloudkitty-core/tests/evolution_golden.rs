@@ -16,6 +16,16 @@
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
 //!
+//! Regenerated at spec 049 T044 (2026-09-03): an INTENTIONAL dynamics
+//! move -- the knowledge-gated want law (FR-036) silences wants whose
+//! relief the cat can see or remember, and the built-in groom response
+//! listens to `want_bath` (spec 028 FR-019), so at the compiled
+//! world-covering radius the social words go quiet and the scripted
+//! trajectory parts from the pre-law one. `fog_continuity.rs` pins that
+//! the FIRST divergence is exactly that (a silenced want_bath's groom
+//! response) and that messages differ only by silenced wants before it.
+//! Both pins from one run.
+//!
 //! Regenerated at spec 049 T018 (2026-09-03): the element memory now
 //! FILLS -- `update_memories` runs last in every environment phase, so
 //! the serialized kitties carry populated slots -- while nothing reads it
@@ -67,7 +77,7 @@ use sha2::{Digest, Sha256};
 /// module doc). History: spec 046 pinned 8e184e6d… (additive ring); 048
 /// pinned 31f36082… (a justified behavior change); 049 T014 supersedes it.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "88c956dec49dbb47ad73d9ec5dad39683735ab36bf28ce87dbd23135f48b4f1f";
+    "bc67a5dfe7d2835e845b7c6258c53df4a4db30be4d5467136a73e1600fcad999";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -75,7 +85,7 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// keep world-minus-that-field byte-identical to THIS pin, or it is
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
-const STRIP_PIN_SPEC_049: &str = "476ff81a4b47c18f9f9f60c495773c61afa0148675430e664a41102b13b59133";
+const STRIP_PIN_SPEC_049: &str = "199dae097eb6c1576622155b2f411ef87c3bacff2a0123abde79b279bfd9470d";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

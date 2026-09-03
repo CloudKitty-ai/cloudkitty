@@ -916,15 +916,23 @@ fn emit_message(
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].set_meow_cooldown(message, tick + config.meow.recent_window_ticks);
     }
-    // The reply bit lands with the here tier (spec 049 FR-040): false
-    // until the law over the fog view exists.
+    // The reply stamp (spec 049 FR-040): for a here-kind, true iff the
+    // reply condition held at emission -- a matching want from another
+    // cat audible in the start-of-tick buffer AND the referent visible
+    // from the speaker -- read over the speaker's live fog view; false
+    // for every other kind. Separate from any trigger: an ambient here
+    // landing while a want is audible is stamped too.
+    let reply = MessageKind::HERE_KINDS.contains(&message) && {
+        let view = world.snapshot().fog_for(kitty_id, config.vision.radius);
+        crate::meow::reply_condition(message, &view, config)
+    };
     world.recent_meows.push(Meow {
         kitty_id,
         kind: message,
         tick,
         intensity,
         pos,
-        reply: false,
+        reply,
     });
 }
 
@@ -1241,7 +1249,7 @@ mod tests {
                 MessageKind::Purr,
                 50,
                 &config,
-                &world.elements
+                &world.snapshot().fog_for(1, config.vision.radius)
             ),
             "an earned purr message is legal"
         );
@@ -1281,7 +1289,7 @@ mod tests {
             MessageKind::Purr,
             world.tick,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
     }
 
@@ -1331,7 +1339,7 @@ mod tests {
                 MessageKind::Purr,
                 50,
                 &config,
-                &world.elements
+                &world.snapshot().fog_for(1, config.vision.radius)
             ),
             "legal while purring -- the no-op is lawful, not masked"
         );
@@ -3134,7 +3142,7 @@ mod proposal_contract_tests {
             MessageKind::HereFood,
             50,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
         apply_message(&mut world, 1, MessageKind::HereFood, &config, 50);
         assert!(
@@ -3184,7 +3192,7 @@ mod proposal_contract_tests {
             MessageKind::HereFood,
             51,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
     }
 }

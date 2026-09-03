@@ -78,7 +78,7 @@ pub fn legal_message_mask(view: &FogView, kitty_id: KittyId, config: &Config) ->
     mask[0] = true; // Silence is always legal -- structural, never all-zero.
     if let Some(kitty) = view.kitty(kitty_id) {
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            mask[k + 1] = message_legal(kitty, kind, view.tick, config, &view.elements);
+            mask[k + 1] = message_legal(kitty, kind, view.tick, config, view);
         }
     }
     mask

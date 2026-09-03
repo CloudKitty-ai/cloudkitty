@@ -425,7 +425,7 @@ pub fn encode_observation(
                 // Their message block + want intensities (FR-016) and the
                 // answers-me bits (FR-041; land with US7 -- 0 until then).
                 push_message_block(&mut v, view, friend, core, true);
-                v.extend(std::iter::repeat_n(0.0, HERE_KINDS_LEN));
+                push_answers_me(&mut v, view, friend, core);
             }
             RowState::Heard { pos } => {
                 v.push(0.0);
@@ -437,7 +437,7 @@ pub fn encode_observation(
                 v.extend(std::iter::repeat_n(0.0, 6 + 1 + 7 + 1 + 1 + 1 + 1));
                 // The message block is live on a heard row (FR-012).
                 push_message_block(&mut v, view, friend, core, true);
-                v.extend(std::iter::repeat_n(0.0, HERE_KINDS_LEN));
+                push_answers_me(&mut v, view, friend, core);
             }
             RowState::Silent => v.extend(std::iter::repeat_n(0.0, KITTY_SLOT)),
         }
@@ -579,6 +579,30 @@ fn push_message_block(
                 .max_by(|a, b| a.tick.cmp(&b.tick));
             v.push(freshest.map_or(0.0, |m| m.intensity.clamp(0.0, 1.0)));
         }
+    }
+}
+
+/// The answers-me bits (spec 049 FR-041): per `HERE_KINDS` kind, 1 iff
+/// the friend's freshest audible here of that kind was emitted AFTER the
+/// observer's own freshest audible matching want (both inside the digest
+/// window, both start-of-tick) -- observer-relative "answers me", derived
+/// at build time from the buffer, no engine state. A same-tick reply
+/// cannot exist (the view's audibility rule), so want → here → heard is
+/// three ticks at best.
+fn push_answers_me(v: &mut Vec<f32>, view: &FogView, friend: KittyId, core: &Config) {
+    let window = core.meow.digest_window_ticks;
+    let freshest = |speaker: KittyId, kind: MessageKind| -> Option<u64> {
+        view.recent_meows
+            .iter()
+            .filter(|m| m.kitty_id == speaker && m.kind == kind && view.audible(m, window))
+            .map(|m| m.tick)
+            .max()
+    };
+    for here in MessageKind::HERE_KINDS {
+        let answered = cloudkitty_core::meow::want_for_here(here)
+            .and_then(|want| Some((freshest(view.observer, want)?, freshest(friend, here)?)))
+            .is_some_and(|(my_want, their_here)| their_here > my_want);
+        v.push(if answered { 1.0 } else { 0.0 });
     }
 }
 
@@ -1369,6 +1393,109 @@ mod tests {
         assert!(
             row(&obs, 0)[offsets::ROW_MSG_BLOCK + 2 * head_col(MessageKind::Mew)] > 0.0,
             "the block is live"
+        );
+    }
+    // ---- spec 049 T050: the answers-me bits (US7 scenarios 4-5) ----
+
+    fn answers_me(obs: &Observation, k: usize, here: MessageKind) -> f32 {
+        let col = MessageKind::HERE_KINDS
+            .iter()
+            .position(|&h| h == here)
+            .unwrap();
+        row(obs, k)[offsets::ROW_ANSWERS_ME + col]
+    }
+
+    #[test]
+    fn a_here_after_my_want_answers_me_and_nothing_else_does() {
+        // Scenario 4's timeline from B's seat (id 2): B wants water at t,
+        // A (id 1) says here_water at t + 1, B reads answers-me = 1 at
+        // t + 2 on A's row for here_water -- and 0 for every other here,
+        // and 0 on every other friend's row.
+        let (mut world, config) = five_cat_world();
+        let t = world.tick; // 100
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::WantDrink, t, 0.4));
+        let mut here = meow_at(1, MessageKind::HereWater, t + 1, 0.0);
+        here.reply = true;
+        world.recent_meows.push(here);
+        world.tick = t + 2;
+        let cfg = ObservationConfig::default();
+        let view = world.snapshot().fog_for(2, config.vision.radius);
+        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        // From B's seat, row 0 is friend 1.
+        assert_eq!(obs.table.kitties[0], Some(1));
+        assert_eq!(
+            answers_me(&obs, 0, MessageKind::HereWater),
+            1.0,
+            "A answered me"
+        );
+        assert_eq!(answers_me(&obs, 0, MessageKind::HereFood), 0.0);
+        assert_eq!(answers_me(&obs, 0, MessageKind::HereCritter), 0.0);
+        assert_eq!(answers_me(&obs, 0, MessageKind::HereSunbeam), 0.0);
+        for k in 1..4 {
+            assert_eq!(
+                answers_me(&obs, k, MessageKind::HereWater),
+                0.0,
+                "row {k} said nothing"
+            );
+        }
+        // Not yet at t + 1 (the here is a same-tick word to B's start-of-
+        // tick buffer).
+        world.tick = t + 1;
+        let view = world.snapshot().fog_for(2, config.vision.radius);
+        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        assert_eq!(
+            answers_me(&obs, 0, MessageKind::HereWater),
+            0.0,
+            "three ticks at best"
+        );
+    }
+
+    #[test]
+    fn a_here_before_my_want_or_with_no_want_is_not_an_answer() {
+        // Scenario 5: an adjacency here with no want audible sets no bit;
+        // and ordering matters -- a here BEFORE my want is not an answer.
+        let (mut world, config) = five_cat_world();
+        let t = world.tick;
+        world
+            .recent_meows
+            .push(meow_at(1, MessageKind::HereWater, t - 5, 0.0));
+        world.tick = t + 1;
+        let cfg = ObservationConfig::default();
+        let view = world.snapshot().fog_for(2, config.vision.radius);
+        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        assert_eq!(
+            answers_me(&obs, 0, MessageKind::HereWater),
+            0.0,
+            "no want of mine: not an answer"
+        );
+        // My want comes AFTER A's here: still 0.
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::WantDrink, t - 2, 0.4));
+        let view = world.snapshot().fog_for(2, config.vision.radius);
+        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        assert_eq!(
+            answers_me(&obs, 0, MessageKind::HereWater),
+            0.0,
+            "a here before my want"
+        );
+        // A fresher here after it: 1 -- on a HEARD row too (the bits live
+        // in the message block).
+        world
+            .recent_meows
+            .push(meow_at(1, MessageKind::HereWater, t, 0.0));
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(0, 19);
+        let view = world.snapshot().fog_for(2, config.vision.radius);
+        assert!(view.kitty(1).is_none(), "A is out of B's sight");
+        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[0], 0.0, "heard");
+        assert_eq!(
+            answers_me(&obs, 0, MessageKind::HereWater),
+            1.0,
+            "answered, heard"
         );
     }
 }

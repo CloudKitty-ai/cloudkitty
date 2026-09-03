@@ -48,11 +48,25 @@ meaning), **observed** (what the cats use it for, with the evidence).
 **want_eat · want_drink · want_play · want_cuddle · want_bath ·
 want_sleep**
 
-- **Law**: legal while the matching need is armed (at or above
-  `announce_threshold`, with hysteresis so the word doesn't flicker
-  mid-errand) and the cooldown is clear. The emission stamps the need's
-  value as the digest's intensity: a listener hears how hungry, not just
-  that.
+- **Law** (spec 049 FR-036, the knowledge-gated want law): legal while
+  the matching need is armed (at or above `announce_threshold`, with
+  hysteresis so the word doesn't flicker mid-errand), that need is the
+  cat's **top need** (`NeedKind::ALL` order breaks exact ties), the cat
+  has **no known relief** for it, and the cooldown is clear. Known
+  relief, per word: `want_eat` — a bowl visible or remembered;
+  `want_drink` — water visible or remembered; `want_cuddle`, `want_bath`
+  — an **idle friend in view** (no scene, not asleep; adjacency not
+  required; a friend the cat can only hear never silences the word);
+  `want_play` — that friend clause, or a critter visible or remembered;
+  `want_sleep` — never (need-only-when-top). So under fog a want says "I
+  am in need and I cannot see the answer", which no observation row
+  carries. The emission stamps the need's value as the call's intensity
+  and the speaker's position: a listener hears how hungry, and where
+  from. One predicate, `message_legal` over the cat's fog view, judges
+  the RL mask and the built-in announce alike. Consequences the owner
+  ruled: at a world-covering radius the element wants go silent in a
+  world that always has chow and water, and a cat that has ever seen a
+  pond never says `want_drink` again.
 - **Intent**: honest requests. Six needs, six words, nothing unsayable
   (spec 028 gave the two silent needs, bath and sleep, their words).
 - **Observed**: used as designed, with one lovely elaboration — the
@@ -85,17 +99,35 @@ want_sleep**
 
 **here_food · here_water · here_critter · here_sunbeam**
 
-- **Law**: legal exactly when the referent is ADJACENT to the speaker
-  (own tile counts). Each word uses the matching action's own predicate:
-  `here_food` is Eat's stocked-bowl adjacency (an empty bowl is not food
-  here), `here_water` is Drink's, `here_critter` is Play-critter's
-  (deliberately not Chase's, which is legal at any distance — this word
-  means *here with me*, never *exists somewhere*). `here_sunbeam` is the
-  family's one stated exception, since no sunbeam action exists to
-  borrow from: explicit adjacency to a live beam. The family invariant,
-  owner-ruled and binding through every future vision regime: adjacency
-  is required; seeing is never enough. The guarantee is emission-time
-  truth ONLY — see the non-guarantees below.
+- **Law** (spec 033, widened by spec 049 FR-037): legal when the
+  referent is ADJACENT to the speaker (own tile counts) — each word the
+  matching action's own predicate: `here_food` is Eat's stocked-bowl
+  adjacency (an empty bowl is not food here), `here_water` is Drink's,
+  `here_critter` is Play-critter's (deliberately not Chase's, which is
+  legal at any distance), `here_sunbeam` explicit adjacency to a live
+  beam — **or** when the word is a reply: a matching want from another
+  cat is audible in the speaker's start-of-tick buffer AND the referent
+  is visible from the speaker (anywhere in its disc). The pairs:
+  `want_eat ↔ here_food`, `want_drink ↔ here_water`, `want_sleep ↔
+  here_sunbeam`, `want_play ↔ here_critter`; cuddle and bath have no
+  here-word. Every recorded here carries an engine-stamped `reply` bit —
+  1 exactly when that reply condition held at emission, whatever
+  triggered the word (an ambient here landing while a want is audible is
+  a reply too), 0 for adjacency-only heres and for every non-here kind —
+  and a `pos`. A same-tick reply is impossible (everyone decides against
+  the start-of-tick snapshot): want → here → heard is three ticks at
+  best. The guarantee is emission-time truth ONLY — see the
+  non-guarantees below.
+- **Scripted replies** (spec 049 FR-042–FR-046): a built-in cat answers
+  audible wants by *want*-listening only (the groom-response precedent);
+  no built-in ever consumes a here-word (the 043 gate-zero guard stands).
+  With `[behavior] reply_intensity_floor` set, it replies with the paired
+  here-kind when it can see the referent, its cooldown is clear, and the
+  caller's stamped intensity reaches the floor — the most urgent caller
+  first (ties to the fresher call, then the lower id); its own want wins
+  the turn when its raw need exceeds the caller's intensity × 100; the
+  loser waits at most one tick. Unset (the served value) = no replies,
+  byte-identical to the no-reply engine.
 - **Intent**: altruistic reference — the channel's first words that point
   at the world instead of at the speaker's needs. `here_sunbeam` is the
   best-behaved of the family: a beam is non-consumable and its warmth

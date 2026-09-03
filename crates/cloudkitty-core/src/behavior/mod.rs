@@ -487,22 +487,20 @@ async fn fallback(ctx: &DecisionContext) -> Decision {
 /// The deterministic announce rule (spec 028 FR-018), shared by every
 /// scripted decider: say the highest-pressure need whose want-kind is
 /// legal right now -- "meow whenever legal" is the honest broadcast, and
-/// the mask (grounding + per-kind cooldown) is the whole restraint.
-/// Equal pressures tie-break in `NeedKind::ALL` order (the selection
-/// precedent). Computed after and independent of the activity: announcing
-/// never displaces the turn (the imitability principle's source-side
-/// half). No RNG -- the announce lotteries died with the courtesy era.
+/// the law (grounding + top need + no known relief + per-kind cooldown,
+/// spec 049 FR-036) is the whole restraint; since only the TOP need's
+/// want can be legal, the scan collapses to it by construction -- ONE
+/// predicate, `message_legal` over the cat's fog view, shared with the
+/// RL mask. Equal pressures tie-break in `NeedKind::ALL` order (the
+/// selection precedent). Computed after and independent of the activity:
+/// announcing never displaces the turn (the imitability principle's
+/// source-side half). No RNG -- the announce lotteries died with the
+/// courtesy era.
 pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
     let mut best: Option<(f32, MessageKind)> = None;
     for need in crate::needs::NeedKind::ALL {
         let want = MessageKind::for_need(need);
-        if !crate::meow::message_legal(
-            &ctx.me,
-            want,
-            ctx.world.tick,
-            &ctx.config,
-            &ctx.world.elements,
-        ) {
+        if !crate::meow::message_legal(&ctx.me, want, ctx.world.tick, &ctx.config, &ctx.world) {
             continue;
         }
         let pressure = ctx.me.needs.get(need);
@@ -545,13 +543,7 @@ fn announce_here(ctx: &DecisionContext) -> Option<MessageKind> {
     let legal: Vec<MessageKind> = MessageKind::HERE_KINDS
         .into_iter()
         .filter(|&kind| {
-            crate::meow::message_legal(
-                &ctx.me,
-                kind,
-                ctx.world.tick,
-                &ctx.config,
-                &ctx.world.elements,
-            )
+            crate::meow::message_legal(&ctx.me, kind, ctx.world.tick, &ctx.config, &ctx.world)
         })
         .collect();
     if legal.is_empty() {
@@ -1051,14 +1043,16 @@ mod tests {
     fn a_want_word_outranks_a_here_word() {
         // T009 / FR-004 (owner precedence ruling 2026-08-23): armed want +
         // adjacent referent + knob on + phase tick → the want speaks; the
-        // here path fills only a slot that would otherwise be Silent.
+        // here path fills only a slot that would otherwise be Silent. The
+        // want is WantSleep since spec 049 (no knowledge gate): want_eat
+        // beside a visible bowl is exactly what the fog law silences.
         let ctx = here_ctx(1, 51, |w| {
             adjacent_chow(w);
             let idx = w.kitty_index(1).unwrap();
-            w.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].announce_armed.insert(NeedKind::Sleep);
+            w.kitties[idx].needs.add(NeedKind::Sleep, 60.0);
         });
-        assert_eq!(announce(&ctx), Some(MessageKind::WantEat));
+        assert_eq!(announce(&ctx), Some(MessageKind::WantSleep));
     }
 
     #[test]
