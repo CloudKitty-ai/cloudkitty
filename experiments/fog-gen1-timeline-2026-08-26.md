@@ -412,8 +412,9 @@ words load-bearing without costing a turn. Four rulings:
    servings expires the same tick, `element.rs:108`, so no snapshot
    holds an empty bowl; chow memory is presence, refuted when the bowl
    is gone.) Per-kind referents: eat/drink → element; cuddle/bath/play
-   → no available friend in view OR heard at a known position (see the
-   coverage-pass rulings below); sleep → one of need-only-when-top or
+   → no idle friend **in view** (amended 2026-09-03, clarify item 1:
+   heard friends drive targeting, never the gate; see below); sleep →
+   one of need-only-when-top or
    never speakable, the spec picks. Why: F-026's redundancy (the
    speaker's needs are already in its row) is what wrote the want-half
    off for Gen 1; what the speaker cannot *see* is in no row, so the
@@ -427,7 +428,9 @@ words load-bearing without costing a turn. Four rulings:
    reply. `reply = 0` keeps today's adjacency law. Observation:
    observer-relative "answers me" (the observer emitted the matching
    want inside the window before the here), derived at build time from
-   `recent_meows`; 4 here kinds × 5 rows = +20 floats, width ≈ 384. No
+   `recent_meows`; 4 here kinds × 4 friend rows = +16 floats (the self
+   row was a miscount, corrected 2026-09-03: "I answered someone" is
+   derivable, no self bits). No
    new vocabulary. Latency floor one tick: everyone decides against the
    start-of-tick snapshot (`world.rs:188`), so a same-tick reply cannot
    exist and id order never matters; want → here → heard is three ticks
@@ -536,7 +539,10 @@ none ruled yet):
     broadcast position is the invitation.
   - **Want intensity is observed**: per (speaker × want kind) the
     digest carries the last stamped intensity alongside recency + rate
-    (6 kinds × 4 rows = +24 floats; width ≈ 408 with the reply bit).
+    (6 kinds × 4 rows = +24 floats). **Spec 049 pins width exactly 404**
+    (self 85 | 4 × 62 | elements 70 | clock 1; owner-ruled 2026-09-03
+    with the play gate = friends AND no critter visible or remembered,
+    and radius floor 2).
     Overrides ROADMAP §Meow-digest's "intensity dropped": that
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only
@@ -559,6 +565,80 @@ none ruled yet):
   want gate only on a first sighting; the memory slot holds the bowl
   as remembered after that and the 10-tick cooldown bounds emission.
   No hysteresis on the gate.
+
+Spec 049 `/speckit-clarify` items, walked with the owner 2026-09-03
+(Product's plan artifacts predate this pass and are re-run after it;
+nothing below leans on them):
+
+1. **Heard-but-unseen friends — RULED, two parts.** Targeting: a heard
+   friend counts as available unconditionally; availability (idle, not
+   mid-scene) is checked only on sight, so the cat walks to the stamped
+   position and drops the target on arrival if the friend is asleep or
+   busy. Reading the true state through the fog was refused (masked
+   state would enter the mask). Want gate: `want_cuddle`/`want_bath`/
+   `want_play` are legal iff the top need is that kind and no idle
+   friend is **in view**; heard friends do not suppress the word.
+   Reason: with a 30-tick window on a five-cat roster some friend has
+   nearly always meowed, so "none heard" would make the three words
+   almost never legal, and under fog the caller's own want is the only
+   way its need reaches a cat that cannot see its row. Ruling 1 above
+   amended to match. ("Available" in the engine is adjacency,
+   `world.rs:1488`; "conscriptable" adds idle, `:1248`. The gate needs
+   idle without adjacency, read off the visible row.)
+2. **`explore_heading` written by the engine as the direction of the
+   last applied move — RULED A.** Any cause (navigation, sidestep,
+   policy move) updates it; FR-023 continues it and the edge-within-
+   radius rule re-draws. Bias judged mild and mostly helpful: after a
+   meal or a refuted memory the cat keeps going the way it came, the
+   least recently swept direction; a sidestep rotates the sweep 90°.
+   The blind-hungry span in the step-5 screen is the check; an
+   advisor-owned heading (B) is the upgrade if spans read long, with
+   its own line.
+3. **Distress-gated intervention (BACKLOG P2) — RULED A: own spec on
+   the 3.0 line, landing before the step-7 `--fresh` cutover, not
+   inside 049.** Under fog stage 2 (`needs_driven` override) is the
+   served-world welfare floor that (i) declined to build into the
+   spawn safeguard: it takes remembered relief and explores otherwise,
+   which also covers the new fog failure mode (a policy that never
+   learned to search). Cap and corpus are untouched (lab runs, override
+   off). Requirements carried into that spec's kickoff: every firing is
+   stamped on the event stream and live instruments read the stamp
+   (refusal baseline, welfare census, collapse-detector v1, the step-7
+   soak; an enabled override truncates the streak observable); override
+   state is a snapshot field, hence before the cutover. **Design
+   constraint (owner 2026-09-03)**: model it as a per-seat fallback
+   *chain*, each rung = (behavior, trigger to descend, hand-back
+   condition), the snapshot storing the current rung and entry tick,
+   the stamp carrying the rung. Gen 1 builds two rungs (masked policy
+   → `needs_driven`); a later LLM tier (LLM endpoint → attention model
+   → scripted, trigger = endpoint unavailable) is a prepended rung, not
+   a rewrite. The chain shape is the contract, not scope.
+4. **Plugin wire version — RULED A: `PROPOSAL_WIRE_VERSION` 2 → 3 in
+   the 049 PR.** Fog changes what the same shape means (a v2 plugin
+   assuming full sight cannot tell it sees a partial world) and the
+   wire grows fields (`reply`, `pos`, memory). Refuse-unknown-versions
+   plus Article IV fallback make the refusal safe; no third-party
+   plugin is live, so the cost is the version line and a doc note.
+
+`/speckit-analyze` items on FR-032 (the step-3 delete list above),
+ruled 2026-09-03:
+
+5. **"Both `snapshot_resume.rs` tests" = (a)
+   `a_pre_041_bound_rest_duet_resumes_as_synchronized_resters` and (b)
+   `a_pre_028_world_resumes_and_runs`, with their fixtures
+   `pre-041-bound-duet.json` and `pre-028-world.json`.** The step-3
+   wording "already marked for the wall" was loose: only (a) carries the
+   doc mark, but (b) cannot deserialise once `announce_armed` and the
+   purr shims are gone, so it falls with the seven either way.
+6. **Eighth shim, `Meow.intensity`'s `#[serde(default)]`
+   (`meow.rs:269`): DELETE with the wall.** Same class as the seven, and
+   under fog worse than dead tolerance: intensity is an observed digest
+   feature and the scripted ladder's tie-breaker, so a default that reads
+   a missing field as 0.0 would corrupt the digest silently instead of
+   failing at load. Test (c) `a_pre_028_meow_entry_reads_zero_intensity`
+   goes with it; its one-for-one successor is the inverse guard: one
+   JSON literal per required field (`intensity`, `pos`, `reply`)
+   asserting the entry fails to deserialise.
 
 ## Step 5 — shakeout training round
 
@@ -592,7 +672,7 @@ digest matrix + self-row is extrapolated, not yet measured.
 | H3 | hard-zero intended activity | 0 over an emit-proven window | F-029 rule; census + F-031 spans |
 | H4 | single-activity domination | one partnered activity **>55%** (owner pinned 2026-09-01, v0.2) of a seat's REALIZED ticks over a trailing 200, sustained 200 | detector v0.2 VALIDATED on family-11-r5 (`collapse-detector-v0/RESULTS.md` §v0.2): 4/4 locks fire (0.82–0.83), 11/11 healthy silent (peak 0.43), margin 0.12; 0.65 was tried first and dropped the ramping ~500-tick twins lock (silent at any bar ≥0.60), so revisit only on a new collapse class; fires 66–122 ticks after H1 on a starving lock, so it names the cause rather than leading the alarm |
 | H5 | frozen cluster | same-pair contact share near-total, sustained | F-027's spatial signature; `nn_distance.py` + pair census |
-| H6 | hyper-dispersion | NN cheb MEDIAN ≥ 5, sustained | baseline median 1.0 — 5× current; loose deliberately (fog legitimately disperses) |
+| H6 | hyper-dispersion | NN **Euclidean** median ≥ 6, sustained 200 (owner pinned 2026-09-03; was cheb ≥ 5) | five random cats on 20×20 give Euclidean median 5.4 (cheb 4.8), so ≥ 6 is avoidance, no anchor term, welfare cannot excuse it; baseline median 1.0 in both metrics; below the bar dispersion is read JOINTLY with welfare (above anchor + welfare ≥ anchor = strategy finding, + welfare < anchor = INVESTIGATE); contact share and H5 stay Chebyshev; companion reads friend-in-view share + cluster shape (`fog-gen1-shakeout/PREREG.md` Part C) |
 
 ### INVESTIGATE (log, continue; input to step 6)
 
@@ -618,11 +698,45 @@ digest matrix + self-row is extrapolated, not yet measured.
   with the roster paying ~4.7% is NOT actionable; the tax becomes a
   target only in a later marginal-welfare phase once the world
   architecture is stable.
-- dispersion drift (NN median ≥3 but <5)
+- dispersion drift: above the fog-anchor Euclidean median with welfare below the anchor (owner 2026-09-03; above the anchor with welfare at or above it is a strategy finding, not an investigation)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 
 Owner pins the exact H4/H6/refusal numbers at step-5 kickoff now that
-baselines exist.
+baselines exist. (H4 0.55 pinned 2026-09-01; refusal 3.5% 2026-09-01;
+H6 Euclidean ≥ 6 pinned 2026-09-03. PPO horizon, radius set, and pin
+rule: `fog-gen1-shakeout/PREREG.md` Part C, ruled/pencilled 2026-09-03.)
+
+### The training pass (owner-ruled 2026-09-03)
+
+One PPO pass, sized to the box: 18 procs are the full count, other
+utilisation is low, so **6 arms × 3 threads** (exp-006 wave 1 was 4 × 4
+at ~8.2 s/update, ~15 h per 20M ticks; pace at 3 threads is unmeasured
+and is read off the first hour). Shakeout horizon shorter than 20M,
+pinned at prereg. Purpose restated by the owner: find anything that
+needs a further major change, schema-breaking above all, before the
+step-6 LOCK; an extra run on an unexpected finding is fine.
+
+Sequential prerequisites (same box, before the pass): radius screen
+(also re-derives the scripted anchor on the fog config, H2's baseline)
+→ speaker-floor screen with the listener floor set in the same sitting
+→ corpus at the pinned knobs (`announce_here = 1` scripted seats) → BC
+clone to plateau, three acceptance bars → critic retrain on the new
+width.
+
+| slot | arm | tier | reads |
+|---|---|---|---|
+| 1 | lineage reference: clone init + anchor, low-end β (F-019), pinned radius + floor, seed 1 | essential | H1–H6, INVESTIGATE list |
+| 2 | reference, seed 2 | essential | seed lottery vs fog (a one-seed HALT is uninterpretable) |
+| 3 | no-fog control: same recipe, whole-world radius | essential | fog's effect vs the 3.0 schema/digest's |
+| 4 | radius bracket: one step wider than the pin | valuable | first fog dose-response point; is the pin load-bearing |
+| 5 | leash dose: next β up the F-019 curve | valuable | F-019's registered invalidation ("trajectory collapse at a fingerprint-preserving dose under fog") |
+| 6 | vocabulary lesson: head-selective message-head finetune from the same corpus vs slot 1's mixed corpus | valuable (owner picked over seed 3) | the registered delivery comparison, two of its three arms |
+
+Nice to have, NOT in this pass: Biscuit 3.0 consent-transfer twins
+(step 7 by ruling); no-seeding control, now an `announce_here = 0`
+corpus (the F-026 overturn test proper, step 7); an RL arm at the
+runner-up speaker floor (the screen is scripted); the ambient
+reply-off arm runs inside the scripted floor screen, not as an RL slot.
 
 ## Step 6 — remediate + LOCK
 
