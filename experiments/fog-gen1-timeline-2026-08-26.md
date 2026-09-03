@@ -427,7 +427,9 @@ words load-bearing without costing a turn. Four rulings:
    reply. `reply = 0` keeps today's adjacency law. Observation:
    observer-relative "answers me" (the observer emitted the matching
    want inside the window before the here), derived at build time from
-   `recent_meows`; 4 here kinds × 5 rows = +20 floats, width ≈ 384. No
+   `recent_meows`; 4 here kinds × 4 friend rows = +16 floats (the self
+   row was a miscount, corrected 2026-09-03: "I answered someone" is
+   derivable, no self bits). No
    new vocabulary. Latency floor one tick: everyone decides against the
    start-of-tick snapshot (`world.rs:188`), so a same-tick reply cannot
    exist and id order never matters; want → here → heard is three ticks
@@ -536,7 +538,10 @@ none ruled yet):
     broadcast position is the invitation.
   - **Want intensity is observed**: per (speaker × want kind) the
     digest carries the last stamped intensity alongside recency + rate
-    (6 kinds × 4 rows = +24 floats; width ≈ 408 with the reply bit).
+    (6 kinds × 4 rows = +24 floats). **Spec 049 pins width exactly 404**
+    (self 85 | 4 × 62 | elements 70 | clock 1; owner-ruled 2026-09-03
+    with the play gate = friends AND no critter visible or remembered,
+    and radius floor 2).
     Overrides ROADMAP §Meow-digest's "intensity dropped": that
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only
