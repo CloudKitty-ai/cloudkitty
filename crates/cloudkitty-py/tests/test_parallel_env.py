@@ -205,8 +205,8 @@ def test_unseeded_reset_gives_fresh_reproducible_episodes():
 
     # Explicit seeds still reproduce exactly.
     c = cloudkitty.ParallelEnv(horizon=20)
-    c_obs, _ = c.reset(seed=7)
-    assert {k: v.tobytes() for k, v in c_obs.items()} == first
+    c.reset(seed=7)
+    assert tuple(c.elements()) == first, "the seeded episode itself replays"
 
 
 def test_non_canonical_agent_names_are_rejected():
