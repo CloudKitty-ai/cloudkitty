@@ -315,6 +315,27 @@ enters step 4's spec without appearing here first.
     step-5 prereg's design pass screens it (one-dimensional at 20×20).
   - **Estimator / JEPA head**: training-side over the unslotted set,
     no observation footprint, not wall-gated; stays parked.
+  - **Same fog for everyone** (owner ruled 2026-09-02): scripted
+    behaviours observe through the same radius as policies (navigation
+    and target-picking filtered by visibility). Reason: the Gen 1
+    welfare cap is then a like-for-like benchmark for the post-fog
+    world, and the `announce_here = 1` corpus comes from speakers whose
+    "here" means what the listener's does. Engine work the spec scopes.
+  - **Visibility metric: Euclidean** (owner ruled 2026-09-02), integer
+    check `dx² + dy² ≤ r²`; 81 tiles at r = 5 (Manhattan diamond 61,
+    Chebyshev square 121). The obs `dist` field stays Manhattan (it
+    means travel). On the record: the diamond sits inside the disc at
+    equal r, so Euclidean only adds diagonal tiles; the cost is that
+    visibility and "reachable in r steps" part company (at r = 5 a cat
+    6 steps away at (5,1) is unseen while one 7 steps away at (3,4) is
+    seen).
+  - Not a concern (checked 2026-09-02): action legality for unseen
+    cats. Partner play is legal only at Manhattan ≤ 1
+    (`is_adjacent`, spec 009) and the never-all-zero mask keys on it,
+    so no unseen cat is ever a legal target at any radius ≥ 1.
+  - Width for the schema pins: ≈ 364 floats (245 four-row base + digest
+    on rows +120 −60 global + self-row 30 + scene age 5 + water bits 4
+    + memory 20); the spec states the exact number (owner agreed).
   **Step 3 doc COMPLETE 2026-09-02**: every member ruled. Step 4 spec
   opens on this list.
 
