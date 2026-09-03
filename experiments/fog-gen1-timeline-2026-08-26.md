@@ -672,7 +672,7 @@ digest matrix + self-row is extrapolated, not yet measured.
 | H3 | hard-zero intended activity | 0 over an emit-proven window | F-029 rule; census + F-031 spans |
 | H4 | single-activity domination | one partnered activity **>55%** (owner pinned 2026-09-01, v0.2) of a seat's REALIZED ticks over a trailing 200, sustained 200 | detector v0.2 VALIDATED on family-11-r5 (`collapse-detector-v0/RESULTS.md` §v0.2): 4/4 locks fire (0.82–0.83), 11/11 healthy silent (peak 0.43), margin 0.12; 0.65 was tried first and dropped the ramping ~500-tick twins lock (silent at any bar ≥0.60), so revisit only on a new collapse class; fires 66–122 ticks after H1 on a starving lock, so it names the cause rather than leading the alarm |
 | H5 | frozen cluster | same-pair contact share near-total, sustained | F-027's spatial signature; `nn_distance.py` + pair census |
-| H6 | hyper-dispersion | NN cheb MEDIAN ≥ 5, sustained | baseline median 1.0 — 5× current; loose deliberately (fog legitimately disperses) |
+| H6 | hyper-dispersion | NN **Euclidean** median ≥ 6, sustained 200 (owner pinned 2026-09-03; was cheb ≥ 5) | five random cats on 20×20 give Euclidean median 5.4 (cheb 4.8), so ≥ 6 is avoidance, no anchor term, welfare cannot excuse it; baseline median 1.0 in both metrics; below the bar dispersion is read JOINTLY with welfare (above anchor + welfare ≥ anchor = strategy finding, + welfare < anchor = INVESTIGATE); contact share and H5 stay Chebyshev; companion reads friend-in-view share + cluster shape (`fog-gen1-shakeout/PREREG.md` Part C) |
 
 ### INVESTIGATE (log, continue; input to step 6)
 
@@ -698,11 +698,13 @@ digest matrix + self-row is extrapolated, not yet measured.
   with the roster paying ~4.7% is NOT actionable; the tax becomes a
   target only in a later marginal-welfare phase once the world
   architecture is stable.
-- dispersion drift (NN median ≥3 but <5)
+- dispersion drift: above the fog-anchor Euclidean median with welfare below the anchor (owner 2026-09-03; above the anchor with welfare at or above it is a strategy finding, not an investigation)
 - vocabulary oddities (remember: aggregate msg@1 useless, 95% Silent)
 
 Owner pins the exact H4/H6/refusal numbers at step-5 kickoff now that
-baselines exist.
+baselines exist. (H4 0.55 pinned 2026-09-01; refusal 3.5% 2026-09-01;
+H6 Euclidean ≥ 6 pinned 2026-09-03. PPO horizon, radius set, and pin
+rule: `fog-gen1-shakeout/PREREG.md` Part C, ruled/pencilled 2026-09-03.)
 
 ### The training pass (owner-ruled 2026-09-03)
 

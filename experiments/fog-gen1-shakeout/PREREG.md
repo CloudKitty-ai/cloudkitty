@@ -78,12 +78,52 @@ Proposed classification, owner to rule each row:
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
 | pace at 3 threads makes the horizon unreachable in the budget | box | drop slot 4 or 6 first, never 1–3 | none |
 
-## Part C — the rest of the prereg (skeleton, to fill)
+## Part C — the rest of the prereg (owner walk-through 2026-09-03)
 
-- Screens: radius set `<owner>` (floor 2; whole-world = control);
-  speaker floor {10, 15, 20, 30}; listener floor set in the same
+- **Radius screen (ruled)**: scripted, radii {2, 3, 4, 5, 6} plus the
+  whole-world control; the pin is drawn from {3, 4, 5}, 2 and 6 are
+  context (where the anchor breaks, where fog stops binding). Euclidean
+  disc coverage of 20×20: r=2 3.2%, 3 7.2%, 4 12.2%, 5 20.2%, 6 28.2%
+  (open field; edge-clipped averages 3.0 / 6.4 / 10.3 / 16.1 / 21.5%).
+  Per radius: anchor welfare curve (watchdog entries, eat/drink max,
+  safeguard entries, blind-hungry span), `nn_distance.py` dispersion,
+  friend-in-view share. **Pin rule PENCILLED, set after the curve is
+  seen and before corpus collection**: smallest radius in {3, 4, 5} at
+  which the anchor holds welfare within the seed spread of the no-fog
+  anchor was the first draft; the owner expects a substantial scripted
+  welfare impact, so "zero adverse events" may be unrealistic and the
+  sweep is descriptive first. If no radius clears whatever rule is set,
+  that is the finding and the pass runs at 5 as a shakeout, not a pin.
+- **Leash consequence (pencilled)**: a weak anchor under fog means the
+  clone-and-leash recipe holds learners near a weak teacher; slot 5 (β
+  up) is promoted to essential, H2 becomes a floor we expect to clear,
+  and H1 (absolute) carries the welfare reading.
+- Speaker floor {10, 15, 20, 30}; listener floor set in the same
   sitting (placeholder 0.30). Measures and decision rules as ruled in
   the timeline step 4.
+- **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
+  consecutive 1M-tick bins each improve the bin-mean shaped return by
+  < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
+  Cap 20M (safety, never the target). Viability read at 6M: an arm at
+  the clone's return with KL flat = leash holding, learner found
+  nothing (slot 5's question); an arm below the clone's return = recipe
+  not viable under fog, stop and read Part A. Replayed on the twelve
+  exp-006 runs the rule stops 10 at 8–9M, E0-s2 at 12M, E0-s1 at 16M,
+  never before the 3.5–4.5M transition, return at stop within 0.006 of
+  the 20M final. Freed threads may take an extra run.
+- **H6 (ruled)**: metric switches to Euclidean (the vision disc;
+  instrument already emits `euc_median`; banked baseline is 1.0 in
+  both metrics). HALT = NN Euclidean median ≥ 6 sustained 200 ticks,
+  one number, no anchor term: five random cats on 20×20 give median
+  5.4 (Chebyshev 4.8), so ≥ 6 is avoidance and welfare cannot excuse
+  it. Dispersion below the bar is read JOINTLY with welfare: above the
+  fog-anchor median with welfare at or above the anchor = strategy
+  finding (logged, no investigation); above the anchor with welfare
+  below it = INVESTIGATE. Contact share and H5 stay Chebyshev (engine
+  adjacency). Companion reads: friend-in-view share (per cat, share of
+  ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
+  the anchor at the same radius) and cluster shape, to tell loose
+  clusters with excursions from five solo cats.
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
 - BC: train to plateau, patience 10, no epoch floor; bars reply-here /
