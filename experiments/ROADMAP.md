@@ -361,7 +361,13 @@ that wall, not one item at a time afterwards. Running list:
   possible). The (recency, rate) corners separate single fresh call /
   ongoing insistence / stopped burst / silence. Per-cell dx/dy and
   intensity are dropped — the slot already carries the emitter's
-  position. Sizing: 15 kinds × 2 × 4 slots = 120 floats, replacing the
+  position. **Amended 2026-09-02 (owner, fog timeline step 4, coverage
+  pass (ii))**: intensity comes back for the six want kinds only (+24
+  floats), because under fog an unseen caller's needs are masked and
+  the stamped intensity is the listener's only urgency read; the
+  heard-but-unseen row's position is the speaker's at its last audible
+  meow, and every here word carries an engine-stamped `reply` bit
+  (+20). Sizing: 15 kinds × 2 × 4 slots = 120 floats, replacing the
   60-float global digest (obs ~225 → ~285; the step-2 MLP smoke prices
   the flat widening; the spec-030 entity tokenizer absorbs it as
   kitty-token features). No new engine state: both fields are
