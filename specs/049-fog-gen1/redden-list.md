@@ -350,3 +350,28 @@ Must-pass pile: every test that already loads a full config or a
 sub-struct whose fields carry per-field defaults (PurrConfig from "",
 MeowConfig dials) — MeowConfig-from-fragment tests will go RED on the
 now-required `vocabulary` table and are re-pointed by adding it.
+
+### Phase 10 — observed after the landing (@ 2f87357) and cycles 26a–26c
+
+Observed red after the landing (13 config unit tests): the predicted set,
+except `purr_table_defaults_when_absent…` stayed GREEN (it parses the
+`PurrConfig` sub-struct from "", whose fields carry per-field defaults —
+a key-default subject, kept) and the three misspelt/wrong-table/invented-
+section guards stayed GREEN (the unknown-field error surfaces first).
+Two tests deleted as the section-absence subject (`a_toml_without_durations…`,
+`water_section_defaults_when_absent…`), the vocabulary test inverted, the
+vision test rebuilt from the full defaults, nine completed. Other crates:
+14 red (server policy/integration fixtures, rl config + suite fixtures),
+all partial literals, completed with `complete_toml`. `--check` clean over
+52 in-scope TOMLs; nested tables complete. No separate "nan table" test
+exists — the finiteness table lives in `validate_actions` and the two
+shipped-config sweeps exercise it (T074).
+
+| cycle | mutation | predicted red | observed | restore |
+|---|---|---|---|---|
+| 26a | `#[serde(default)]` back on `[water]` | `missing_section_is_named` | RED 1: exactly it | 866/1 → clean |
+| 26b | `[purr] cooldown_ticks: Option<u64>` re-admitted (first attempt did not compile — the Default arm; re-run compiling) | `retired_key_is_unknown` | RED 1: exactly it | 866/1 → clean |
+| 26c | `Meow.intensity` serde default back | `a_pre_3_0_meow_entry_is_refused` | RED 1: exactly it | 866/1 → clean |
+
+Phase-10 checkpoint: **867/0, 4 ignored** (871 − 6 deleted + 2 inverse
+guards), fmt + clippy clean.

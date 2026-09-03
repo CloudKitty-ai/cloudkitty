@@ -14,7 +14,9 @@
 
 ## Sections that are now REQUIRED (absence is a load error naming the section)
 
-Top-level (13): `persistence`, `kitty` (the roster array), `needs`, `happiness`, `thresholds`, `elements`, `actions`, `meow`, `behavior`, `purr`, `water`, `events`, `viewer` — plus the new `vision`. Nested (4): `happiness.weights`, `actions.durations`, `meow.vocabulary`, `water.contagion_membership`. Still optional (foreign tables kept only so `deny_unknown_fields` holds): `rl`, `plugins`, `watchdog`. Per-field defaults on inert launch dials (the stamp discipline) are unchanged.
+Top-level (13): `persistence`, `kitty` (the roster array), `needs`, `happiness`, `thresholds`, `elements`, `actions`, `meow`, `behavior`, `purr`, `water`, `events`, `viewer` — plus the new `vision`. Nested tables (3): `happiness.weights`, `actions.durations` (with its per-activity sub-tables), `meow.vocabulary`. Still optional (foreign tables kept only so `deny_unknown_fields` holds): `rl`, `plugins`, `watchdog`. Per-field defaults on inert launch dials (the stamp discipline) are unchanged — `[water] contagion_factor` AND `[water] contagion_membership` (a key, not a section; the plan's "fourth nested shim" was a miscount, recorded in `redden-list.md` Phase 10) keep their `off` defaults and stay skipped from serialization at those values.
+
+Guards: `config::tests::missing_section_is_named` (every section absent one at a time from the serialised defaults, refused naming it) and `retired_key_is_unknown` (the seven keys below). Test fragments that name only what they are about are completed with `cloudkitty_core::test_support::complete_toml` (a recursive merge over the serialised `Config::default()`); parser tests use raw text.
 
 ## Retired keys — no longer known (the seven 2.x parse-then-reject maps)
 
@@ -49,6 +51,15 @@ Observation schema 5: every schema-4 (and earlier) `.ckpolicy` is refused at loa
 ## Migration count at the step-3 HEAD (2026-09-02)
 
 65 in-scope TOMLs lacked `[water]` (served config included); 8 lacked ten or more sections (`training.toml`, clowder's `tiny-world.toml`, exp-004 pilot/rebaseline families). Live tooling configs are completed in this change (hand edits for the served, training and clowder files; the completion script for generated families); result-backing families join the exclusions file with a reason each.
+
+## Migration record at the step-4 landing (2026-09-03, T072/T075)
+
+- **Tool**: `experiments/tools/complete_config_3.py` (appends every missing top-level table from `experiments/tools/config-3.0-defaults.toml` = the serialised `Config::default()`; `--require` / `--set` for keys; `--check` reports and exits 1). Nested tables under an existing section were appended by hand from the same defaults file.
+- **In scope after exclusions**: 52 TOMLs; `--check` is clean and every nested table is present (verified at this landing).
+- **Completed in this arc**: 43 exp-006 character-gen TOMLs + `specs/004-fix-happiness-lockin/stuck-state-config.toml` (`[vision]`, `[meow] digest_window_ticks`, the arc-temporary world-covering radius); `evals/v2` cut as complete 3.0 configs (7 files); at the wall landing: `cloudkitty.toml` and `crates/clowder/tests/tiny-world.toml` (+`[water]`), `training.toml` (+10 sections), `tiny-world.toml` and the spec-004 config (+`[meow.vocabulary]`, the spec-004 config also +`[actions.durations.*]`).
+- **Excluded**: 18 directories in `config-sweep-exclusions.txt` (9 added at the wall, each with its reason: 2.x records whose bytes must not move).
+- **Served values** at the wall: `[vision] radius` is ARC-TEMPORARY world-covering (40 served, 64 compiled) until T080 flips every radius to the 5 placeholder; `memory_timeout_ticks = 0`; `[meow] digest_window_ticks = 30`; `[behavior] reply_intensity_floor` unset (a commented `0.30` line records the provisional corpus-collection value); `[rl.observation] kitty_slots = 4`.
+- **Saved worlds**: `Meow.intensity` is required (the eighth shim deleted at T071); the inverse guard names each of `intensity`, `pos`, `reply`.
 
 ## Changelog markers
 
