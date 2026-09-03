@@ -16,6 +16,13 @@
 //! (3f89642e…, main @ 87236c5) ×3 before this regeneration — see
 //! specs/041-rest-cuddle-sibling/continuity-baseline.md.
 //!
+//! Regenerated at spec 049 T018 (2026-09-03): the element memory now
+//! FILLS -- `update_memories` runs last in every environment phase, so
+//! the serialized kitties carry populated slots -- while nothing reads it
+//! yet (the built-ins' targeting over memory is T053). Additive state,
+//! dynamics unmoved: `fog_continuity`'s byte-identity guard is green at
+//! this HEAD. Both pins from one run.
+//!
 //! Regenerated at spec 049's fog wall, T014 (2026-09-03): the serialized
 //! world GAINED FIELDS -- `memory` and `explore_heading` on every kitty,
 //! `pos` and `reply` on every meow, the seven restore shims now always
@@ -60,7 +67,7 @@ use sha2::{Digest, Sha256};
 /// module doc). History: spec 046 pinned 8e184e6d… (additive ring); 048
 /// pinned 31f36082… (a justified behavior change); 049 T014 supersedes it.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "7fd7cd5ac72258e0ca025f64c54b52dff311c3f30021dcb4a07f1f1384c315bd";
+    "88c956dec49dbb47ad73d9ec5dad39683735ab36bf28ce87dbd23135f48b4f1f";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -68,7 +75,7 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// keep world-minus-that-field byte-identical to THIS pin, or it is
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
-const STRIP_PIN_SPEC_049: &str = "5de37e926e5baf5f8708254b7dc68262fea8958a381e6b7b4e24b619389fe7b1";
+const STRIP_PIN_SPEC_049: &str = "476ff81a4b47c18f9f9f60c495773c61afa0148675430e664a41102b13b59133";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

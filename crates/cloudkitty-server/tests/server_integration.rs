@@ -998,3 +998,47 @@ async fn recorded_meows_carry_pos_and_reply_on_the_world_payload() {
     }
     server.shutdown().await;
 }
+
+/// Spec 049 FR-010: the kitty listing on `/world` carries `memory` (five
+/// slots, `ElementType::ALL` order) and `explore_heading` additively --
+/// the schema-4 fields are all still there, unchanged in shape.
+#[tokio::test]
+async fn kitties_on_the_world_payload_carry_memory_and_heading_additively() {
+    let server = start_server().await;
+    let world: Value = reqwest::get(server.url("/world"))
+        .await
+        .expect("GET /world")
+        .json()
+        .await
+        .expect("JSON");
+    let kitties = world["kitties"].as_array().expect("a roster");
+    assert!(kitties.len() >= 2);
+    for kitty in kitties {
+        for key in [
+            "id",
+            "name",
+            "pos",
+            "needs",
+            "happiness",
+            "activity",
+            "behavior",
+            "last_action",
+        ] {
+            assert!(
+                kitty.get(key).is_some(),
+                "schema-4 field {key} still served: {kitty}"
+            );
+        }
+        let memory = kitty["memory"].as_array().expect("memory is an array");
+        assert_eq!(memory.len(), 5, "one slot per element kind");
+        for slot in memory {
+            assert!(
+                slot.is_null() || (slot["pos"]["x"].is_u64() && slot["last_seen"].is_u64()),
+                "a slot is null or a remembered tile with its tick: {slot}"
+            );
+        }
+        let heading = &kitty["explore_heading"];
+        assert!(heading.is_null() || heading.is_string(), "{heading}");
+    }
+    server.shutdown().await;
+}

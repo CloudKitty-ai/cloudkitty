@@ -761,6 +761,66 @@ impl World {
         self.expire_elements();
         spawn::ensure_minimums(self, config);
         spawn::safeguard(self, config);
+        // Spec 049: memory reads the RESOLVED world, last, so the snapshot
+        // the next tick's deciders see is complete (Article V order kept).
+        self.update_memories(config);
+    }
+
+    /// Spec 049 FR-007 / FR-008 (research R3): each cat's per-kind element
+    /// memory, updated from the resolved world once per tick, per cat, per
+    /// kind -- sight-only, no RNG:
+    ///
+    /// * an element of the kind is visible (the disc, FR-001) → the slot
+    ///   becomes the NEAREST visible one (Manhattan, ties to the lower id),
+    ///   stamped with the tick it will be seen at;
+    /// * else the remembered tile is inside the disc → it holds none of the
+    ///   kind (or the first arm would have fired) → the slot clears:
+    ///   refuted on sight;
+    /// * else the slot is unchanged -- unless `[vision] memory_timeout_ticks`
+    ///   is positive and the memory is older than that.
+    ///
+    /// `last_seen` is the tick of the SNAPSHOT the element is (or was last)
+    /// visible in -- this phase runs at tick `t` and publishes the world
+    /// tick `t + 1`'s deciders read -- so a memory reads "ticks since last
+    /// seen" as 0 while seeing and exactly `k` after `k` ticks out of view
+    /// (US1 scenario 3; the edge case "memory of a kind seen this tick").
+    /// Chow is presence only: an emptied bowl expired earlier this phase,
+    /// so no snapshot ever holds one. Engine-owned; public so scenario
+    /// tests can stage a world and step the memory without a tick.
+    pub fn update_memories(&mut self, config: &Config) {
+        let radius = config.vision.radius;
+        let timeout = config.vision.memory_timeout_ticks;
+        let seen_at = self.tick + 1;
+        for idx in 0..self.kitties.len() {
+            let origin = self.kitties[idx].pos;
+            for (slot, kind) in ElementType::ALL.iter().enumerate() {
+                let nearest = self
+                    .elements
+                    .iter()
+                    .filter(|e| e.element_type() == *kind && origin.visible_from(&e.pos, radius))
+                    .min_by_key(|e| (origin.manhattan_distance(&e.pos), e.id))
+                    .map(|e| e.pos);
+                let memory = &mut self.kitties[idx].memory[slot];
+                match (nearest, *memory) {
+                    (Some(pos), _) => {
+                        *memory = Some(crate::kitty::MemorySlot {
+                            pos,
+                            last_seen: seen_at,
+                        });
+                    }
+                    (None, Some(remembered)) => {
+                        if origin.visible_from(&remembered.pos, radius) {
+                            *memory = None;
+                        } else if timeout > 0
+                            && seen_at.saturating_sub(remembered.last_seen) > timeout
+                        {
+                            *memory = None;
+                        }
+                    }
+                    (None, None) => {}
+                }
+            }
+        }
     }
 
     /// Bugs plod one tile every other tick; greebles skitter one or two tiles every

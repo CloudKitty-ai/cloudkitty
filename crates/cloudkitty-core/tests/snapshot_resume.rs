@@ -86,3 +86,60 @@ fn a_pre_3_0_kitty_record_is_refused_naming_the_missing_field() {
         );
     }
 }
+
+/// Spec 049 FR-010 / SC-006: memory and the exploration heading are kitty
+/// STATE -- a mid-run save/restore continues byte-identically with them
+/// populated, and the restored world carries exactly the memory the saved
+/// one had (an engine that zeroed memory on restore would fail the second
+/// assertion even before the trajectories could diverge).
+#[tokio::test(flavor = "current_thread")]
+async fn a_mid_run_save_restores_memory_and_continues_byte_identically() {
+    use cloudkitty_core::behavior::BehaviorRegistry;
+    use cloudkitty_core::config::Config;
+    use cloudkitty_core::world::World;
+    use std::sync::Arc;
+
+    let mut config = Config::default();
+    config.vision.radius = 8; // a real fog: memory fills as the cats roam
+    config.validate().unwrap();
+    let config = Arc::new(config);
+    let registry = BehaviorRegistry::with_builtins();
+    let mut live = World::generate(&config);
+    for _ in 0..300 {
+        live.tick(&registry, &config).await;
+    }
+    let populated = live
+        .kitties
+        .iter()
+        .flat_map(|k| k.memory.iter())
+        .filter(|slot| slot.is_some())
+        .count();
+    assert!(
+        populated >= 2,
+        "after 300 ticks the cats remember things: {populated} slots"
+    );
+
+    let saved = serde_json::to_string(&live).unwrap();
+    let mut restored: World = serde_json::from_str(&saved).expect("a 3.0 save loads");
+    for (a, b) in live.kitties.iter().zip(restored.kitties.iter()) {
+        assert_eq!(
+            a.memory, b.memory,
+            "kitty {}: memory restored exactly",
+            a.id
+        );
+        assert_eq!(
+            a.explore_heading, b.explore_heading,
+            "kitty {}: heading restored",
+            a.id
+        );
+    }
+    for _ in 0..200 {
+        live.tick(&registry, &config).await;
+        restored.tick(&registry, &config).await;
+    }
+    assert_eq!(
+        serde_json::to_string(&live).unwrap(),
+        serde_json::to_string(&restored).unwrap(),
+        "the restored world continues byte-identically"
+    );
+}

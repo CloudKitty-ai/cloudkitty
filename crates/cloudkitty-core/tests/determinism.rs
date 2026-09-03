@@ -117,3 +117,27 @@ async fn concurrency_does_not_change_the_outcome() {
         "completion order leaked into the simulation"
     );
 }
+
+/// Spec 049 SC-006: same seed + config + ticks → identical memory on every
+/// kitty, under a real fog (the world fingerprint already covers it; this
+/// names the field so a memory that drifted would say so).
+#[tokio::test]
+async fn the_same_seed_produces_the_same_memory_under_fog() {
+    let mut config = test_config();
+    config.vision.radius = 4;
+    config.validate().unwrap();
+    let config = Arc::new(config);
+    let a = run(&config, 400).await;
+    let b = run(&config, 400).await;
+    let populated = a
+        .kitties
+        .iter()
+        .flat_map(|k| k.memory.iter())
+        .filter(|s| s.is_some())
+        .count();
+    assert!(populated >= 2, "memory fills under fog: {populated}");
+    for (x, y) in a.kitties.iter().zip(b.kitties.iter()) {
+        assert_eq!(x.memory, y.memory, "kitty {}", x.id);
+        assert_eq!(x.explore_heading, y.explore_heading, "kitty {}", x.id);
+    }
+}
