@@ -52,36 +52,31 @@ impl ConfigError {
     }
 }
 
+/// The whole configuration. Spec 049 FR-030 (the 3.0 wall): every
+/// section is REQUIRED -- a file that omits one fails to load naming it;
+/// there are no section-absence defaults. Per-field defaults survive
+/// only on inert launch dials (a key whose default is "off"). The
+/// `[rl]`, `[plugins]` and `[watchdog]` tables stay optional foreign
+/// tables. `Config::default()` documents the served values and is what
+/// `experiments/tools/complete_config_3.py` completes a file from.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub world: WorldConfig,
-    #[serde(default)]
     pub persistence: PersistenceConfig,
     /// The kitty roster. TOML spells this `[[kitty]]`.
-    #[serde(default, rename = "kitty")]
+    #[serde(rename = "kitty")]
     pub kitties: Vec<KittyConfig>,
-    #[serde(default)]
     pub needs: NeedsConfig,
-    #[serde(default)]
     pub happiness: HappinessConfig,
-    #[serde(default)]
     pub thresholds: ThresholdConfig,
-    #[serde(default)]
     pub elements: ElementsConfig,
-    #[serde(default)]
     pub actions: ActionEffects,
-    #[serde(default)]
     pub meow: MeowConfig,
-    #[serde(default)]
     pub behavior: BehaviorConfig,
-    #[serde(default)]
     pub purr: PurrConfig,
-    #[serde(default)]
     pub water: WaterConfig,
-    #[serde(default)]
     pub events: EventsConfig,
-    #[serde(default)]
     pub viewer: ViewerConfig,
     /// Fog Gen 1 (spec 049): the vision disc and the element-memory
     /// expiry. REQUIRED -- the first section written under the 3.0 rule
@@ -276,11 +271,6 @@ pub struct PurrConfig {
     /// only chosen purrs.
     #[serde(default = "default_purr_announce_probability")]
     pub announce_probability: f32,
-    /// RETIRED (spec 022): the flat rest was replaced by the proportional
-    /// factor pair above. Deserialize-only sentinel -- a config that still
-    /// names this key fails validation loudly, never silently ignored.
-    #[serde(default, skip_serializing)]
-    pub cooldown_ticks: Option<u64>,
 }
 
 impl Default for PurrConfig {
@@ -291,7 +281,6 @@ impl Default for PurrConfig {
             cooldown_factor_min: default_purr_cooldown_factor_min(),
             cooldown_factor_max: default_purr_cooldown_factor_max(),
             announce_probability: default_purr_announce_probability(),
-            cooldown_ticks: None,
         }
     }
 }
@@ -436,7 +425,6 @@ impl NeedsConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HappinessConfig {
-    #[serde(default)]
     pub weights: NeedWeights,
     pub floor: f32,
 }
@@ -478,10 +466,13 @@ pub struct ElementRule {
     pub max: u32,
     /// Lifetime in ticks; `None` (absent) means permanent.
     ///
-    /// Note on `max` below: it is read only by config validation. The
-    /// simulation tops each type up to `min` and no further, so the
-    /// standing population IS the minimums -- `min` is the real knob,
-    /// and lowering `max` alone changes nothing at runtime.
+    /// Note on `max` below: the density ceiling validation checks the
+    /// minimums against, AND the RL critic's chow scale (spec 049
+    /// FR-029: `cloudkitty-rl/src/global_state.rs` normalises total
+    /// servings by `chow.max × servings`). The simulation tops each type
+    /// up to `min` and no further, so the standing population IS the
+    /// minimums -- `min` is the world knob; `max` moves what the critic
+    /// sees, never the world.
     #[serde(default)]
     pub ttl: Option<u64>,
     /// Chow only: servings per element.
@@ -635,14 +626,6 @@ pub struct ActionEffects {
     /// with exactly this meaning, and renaming would move the `/config`
     /// wire key for zero behavioral gain.
     pub play_relief: f32,
-    /// RETIRED LOUDLY (spec 041, owner's full-compatibility-break ruling
-    /// 2026-08-28): the classic shared dial, split into
-    /// `rest_mutual_relief` and `groom_cuddle_relief`. Parsed only so its
-    /// presence can be rejected with the migration map (the spec-025
-    /// pattern); every committed config was migrated in the same change.
-    /// The field itself is deleted at the 3.0 config-hygiene wall.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cuddle_relief: Option<f32>,
     /// Cuddle relief per serviced cosleep tick when the adjacent partner is
     /// merely present (spec 028's passive tier). Both parties receive it.
     /// Defaults equal to the classic `cuddle_relief` -- behavior-preserving
@@ -691,7 +674,6 @@ pub struct ActionEffects {
     pub play_relief_greeble: f32,
     /// How long each activity runs, in ticks (spec 006): the engine holds an
     /// activity at least `min` ticks and never lets it pass `max`.
-    #[serde(default)]
     pub durations: DurationsConfig,
 }
 
@@ -707,7 +689,6 @@ impl Default for ActionEffects {
             // being playful and cuddly -- the point of the retune.
             groom_relief: 20.0,
             play_relief: 20.0,
-            cuddle_relief: None,
             cosleep_drip_relief: default_cosleep_relief(),
             cosleep_mutual_relief: default_cosleep_relief(),
             rest_mutual_relief: default_cuddle_split_relief(),
@@ -816,30 +797,9 @@ pub struct MeowConfig {
     /// mask from flickering while an errand is in progress.
     #[serde(default = "default_meow_announce_hysteresis")]
     pub announce_hysteresis: f32,
-    /// RETIRED (spec 023): renamed to `courtesy_ticks` when engine
-    /// enforcement ended. Deserialize-only sentinel -- a config naming it
-    /// fails validation loudly, never silently shifting semantics.
-    #[serde(default, skip_serializing)]
-    pub cooldown_ticks: Option<u64>,
-    /// RETIRED (spec 023): renamed to `urgent_courtesy_ticks`.
-    #[serde(default, skip_serializing)]
-    pub urgent_cooldown_ticks: Option<u64>,
-    /// RETIRED (spec 028): the courtesy era ended when legality became
-    /// engine law; the cooldown is `recent_window_ticks`.
-    #[serde(default, skip_serializing)]
-    pub courtesy_ticks: Option<u64>,
-    /// RETIRED (spec 028): urgency no longer shortens the interval --
-    /// grounding (announce_threshold) is the urgency story now.
-    #[serde(default, skip_serializing)]
-    pub urgent_courtesy_ticks: Option<u64>,
-    /// RETIRED (spec 028): replaced by `announce_threshold`, which gates
-    /// legality instead of shortening courtesy.
-    #[serde(default, skip_serializing)]
-    pub urgent_need_threshold: Option<f32>,
     /// Per-kind enable flags (spec 033): vocabulary is armed by config,
     /// never by engine fork. Flags gate LEGALITY ONLY -- every layout
     /// (digest, head, mask, observation) is identical whatever they say.
-    #[serde(default)]
     pub vocabulary: VocabularyConfig,
 }
 
@@ -850,11 +810,6 @@ impl Default for MeowConfig {
             digest_window_ticks: default_meow_digest_window_ticks(),
             announce_threshold: default_meow_announce_threshold(),
             announce_hysteresis: default_meow_announce_hysteresis(),
-            cooldown_ticks: None,
-            urgent_cooldown_ticks: None,
-            courtesy_ticks: None,
-            urgent_courtesy_ticks: None,
-            urgent_need_threshold: None,
             vocabulary: VocabularyConfig::default(),
         }
     }
@@ -1434,6 +1389,7 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_support::complete_toml as complete;
 
     fn cfg() -> Config {
         Config::default()
@@ -1729,7 +1685,7 @@ mod tests {
             radius = 40
             memory_timeout_ticks = 0
 "#;
-        let c: Config = toml::from_str(toml_src).expect("parses");
+        let c: Config = toml::from_str(&complete(toml_src)).expect("parses");
         assert_eq!(c.kitties[0].needs.unwrap().eat, Some(1.5));
         assert_eq!(c.kitties[0].needs.unwrap().drink, None);
         assert!(c.kitties[1].needs.is_none());
@@ -1927,8 +1883,14 @@ mod tests {
         // the dials still fill from defaults, but `digest_window_ticks` is
         // REQUIRED -- a partial table that omits it is not a 3.0 config
         // (see `a_meow_section_without_the_digest_window_is_refused`).
-        let parsed: MeowConfig =
-            toml::from_str("digest_window_ticks = 30").expect("the dials fill from defaults");
+        let with_vocab = |fragment: &str| {
+            format!(
+                "{fragment}\n[vocabulary]\n{}",
+                toml::to_string(&VocabularyConfig::default()).unwrap()
+            )
+        };
+        let parsed: MeowConfig = toml::from_str(&with_vocab("digest_window_ticks = 30"))
+            .expect("the dials fill from defaults");
         assert_eq!(
             (
                 parsed.recent_window_ticks,
@@ -1938,9 +1900,10 @@ mod tests {
             ),
             (10, 30, 30.0, 5.0)
         );
-        let partial: MeowConfig =
-            toml::from_str("digest_window_ticks = 30\nannounce_threshold = 40.0")
-                .expect("a partial meow table parses");
+        let partial: MeowConfig = toml::from_str(&with_vocab(
+            "digest_window_ticks = 30\nannounce_threshold = 40.0",
+        ))
+        .expect("a partial meow table parses");
         assert_eq!(partial.announce_hysteresis, 5.0);
 
         // The band rows: hysteresis strictly below threshold, threshold on
@@ -1961,79 +1924,6 @@ mod tests {
         c.meow.recent_window_ticks = 0;
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("[meow] recent_window_ticks"), "{msg}");
-    }
-
-    #[test]
-    fn the_retired_courtesy_trio_is_rejected_loudly() {
-        // Spec 028 (FR-024, US6 scenario 2): the courtesy-era names fail at
-        // load with migration text naming their successors -- the intended
-        // signal for any config carried across the generation wall.
-        for (toml_line, key, successor) in [
-            (
-                "courtesy_ticks = 10",
-                "[meow] courtesy_ticks",
-                "recent_window_ticks",
-            ),
-            (
-                "urgent_courtesy_ticks = 5",
-                "[meow] urgent_courtesy_ticks",
-                "announce_threshold",
-            ),
-            (
-                "urgent_need_threshold = 75.0",
-                "[meow] urgent_need_threshold",
-                "announce_threshold",
-            ),
-        ] {
-            let parsed: MeowConfig =
-                toml::from_str(&format!("digest_window_ticks = 30\n{toml_line}"))
-                    .expect("the retired key still parses");
-            let mut c = cfg();
-            c.meow = parsed;
-            let msg = c.validate().unwrap_err().to_string();
-            assert!(msg.contains(key), "{msg}");
-            assert!(msg.contains("retired by spec 028"), "{msg}");
-            assert!(msg.contains(successor), "{msg}");
-        }
-    }
-
-    #[test]
-    fn the_retired_meow_cooldown_knobs_are_rejected_loudly() {
-        // Spec 023 FR-006 / US3 scenario 2: the enforcement-era names fail
-        // at load naming their replacements -- never silently accepted with
-        // shifted semantics.
-        let parsed: MeowConfig = toml::from_str("digest_window_ticks = 30\ncooldown_ticks = 15")
-            .expect("the retired key still parses");
-        let mut c = cfg();
-        c.meow = parsed;
-        let msg = c.validate().unwrap_err().to_string();
-        assert!(msg.contains("[meow] cooldown_ticks"), "{msg}");
-        assert!(msg.contains("retired"), "{msg}");
-        assert!(msg.contains("courtesy_ticks"), "{msg}");
-
-        let parsed: MeowConfig =
-            toml::from_str("digest_window_ticks = 30\nurgent_cooldown_ticks = 5").expect("parses");
-        let mut c = cfg();
-        c.meow = parsed;
-        let msg = c.validate().unwrap_err().to_string();
-        assert!(msg.contains("[meow] urgent_cooldown_ticks"), "{msg}");
-        assert!(msg.contains("urgent_courtesy_ticks"), "{msg}");
-    }
-
-    #[test]
-    fn the_retired_purr_cooldown_knob_is_rejected_loudly() {
-        // Spec 022 FR-010 / US3 scenario 3: a config still naming the flat
-        // rest fails at load with an error naming the replacements -- never
-        // a silent ignore (the config module accepts unknown keys, so the
-        // sentinel is what makes this loud).
-        let parsed: PurrConfig =
-            toml::from_str("cooldown_ticks = 30").expect("the retired key still parses");
-        let mut c = cfg();
-        c.purr = parsed;
-        let msg = c.validate().unwrap_err().to_string();
-        assert!(msg.contains("[purr] cooldown_ticks"), "{msg}");
-        assert!(msg.contains("retired"), "{msg}");
-        assert!(msg.contains("cooldown_factor_min"), "{msg}");
     }
 
     #[test]
@@ -2071,23 +1961,6 @@ mod tests {
         assert!(msg.contains("[behavior] water_step_cost"), "{msg}");
         c.behavior.water_step_cost = 0.0; // legal: disables the preference
         assert!(c.validate().is_ok());
-    }
-
-    #[test]
-    fn water_section_defaults_when_absent_and_old_configs_keep_parsing() {
-        // A pre-024 config has no [water] table: the section default must
-        // land whole, so every existing config file keeps working unedited
-        // (spec 024 FR-010) -- including the hash-frozen exam configs,
-        // which can never be edited at all.
-        let parsed: Config = toml::from_str(
-            "[world]\nwidth = 32\nheight = 32\nseed = 7\ntick_ms = 1000\n\
-             [[kitty]]\nid = 1\nname = \"A\"\nx = 1\ny = 1\nbehavior = \"needs_driven\"\n\
-             [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
-        .expect("pre-024 config parses");
-        assert_eq!(parsed.water.bath_gain, 3.5);
-        assert_eq!(parsed.water.bath_gain_ceiling, 60.0);
-        parsed.validate().expect("defaults validate");
     }
 
     #[test]
@@ -2497,67 +2370,6 @@ mod tests {
     }
 
     #[test]
-    fn a_config_carrying_the_retired_cuddle_relief_fails_with_a_map() {
-        // Spec 041 FR-005 (owner's noisy-failure ruling, 2026-08-28): the
-        // retired key is a loud error carrying the migration map -- the
-        // spec-025 pattern. Silently accepting it would either run a
-        // doubled economy (engine defaults) or pretend the old economy
-        // still exists; the owner chose the full compatibility break.
-        let cfg_with = |extra: &str| -> Result<(), ConfigError> {
-            let c: Config = toml::from_str(&format!(
-                r#"
-                [world]
-                width = 32
-                height = 32
-                tick_ms = 800
-                seed = 1
-
-                [[kitty]]
-                id = 1
-                name = "A"
-                x = 1
-                y = 1
-                behavior = "needs_driven"
-
-                [[kitty]]
-                id = 2
-                name = "B"
-                x = 2
-                y = 2
-                behavior = "playful"
-
-                [actions]
-                eat_relief = 40.0
-                drink_relief = 40.0
-                sleep_relief = 5.0
-                sleep_relief_sunbeam = 8.0
-                groom_relief = 30.0
-                play_relief = 20.0
-                {extra}
-            
-                [vision]
-                radius = 40
-                memory_timeout_ticks = 0
-"#
-            ))
-            .expect("shape parses");
-            c.validate()
-        };
-
-        let msg = cfg_with("cuddle_relief = 8.0")
-            .expect_err("the retired key must fail loudly")
-            .to_string();
-        assert!(msg.contains("cuddle_relief"), "{msg}");
-        assert!(
-            msg.contains("rest_mutual_relief") && msg.contains("groom_cuddle_relief"),
-            "the error carries the migration map: {msg}"
-        );
-
-        // Without the key, the same config is fine.
-        cfg_with("").expect("a migrated config loads");
-    }
-
-    #[test]
     fn a_pre_025_config_outside_the_survivable_band_fails_with_a_map() {
         // The contract's two documented break classes: a legacy config
         // carrying play_relief >= 25 collides with the defaulted bug value
@@ -2566,7 +2378,7 @@ mod tests {
         // defaulted key and pointing at the migration (pin the 025 keys).
         // In between, the band upgrades untouched.
         let legacy = |play_relief: f32| -> Config {
-            toml::from_str(&format!(
+            toml::from_str(&complete(&format!(
                 r#"
                 [world]
                 width = 32
@@ -2600,7 +2412,7 @@ mod tests {
                 radius = 40
                 memory_timeout_ticks = 0
 "#
-            ))
+            )))
             .expect("legacy shape parses")
         };
 
@@ -2674,7 +2486,7 @@ mod tests {
             radius = 40
             memory_timeout_ticks = 0
 "#;
-        let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
+        let c: Config = toml::from_str(&complete(toml_src)).expect("old-shape config parses");
         assert_eq!(c.behavior.urgency_weight, default_urgency_weight());
         assert_eq!(
             c.behavior.chase_exclusion_ticks,
@@ -2725,39 +2537,6 @@ mod tests {
     }
 
     // ---- action durations (spec 006) ----------------------------------
-
-    #[test]
-    fn a_toml_without_durations_gets_the_documented_defaults() {
-        let toml_src = r#"
-            [world]
-            width = 32
-            height = 32
-            tick_ms = 800
-            seed = 1
-
-            [actions]
-            eat_relief = 40.0
-            drink_relief = 40.0
-            sleep_relief = 5.0
-            sleep_relief_sunbeam = 8.0
-            groom_relief = 30.0
-            play_relief = 25.0
-            cuddle_relief = 20.0
-        
-            [vision]
-            radius = 40
-            memory_timeout_ticks = 0
-"#;
-        let c: Config = toml::from_str(toml_src).expect("durationless [actions] parses");
-        assert_eq!(c.actions.durations.eat, DurationBounds::new(2, 5));
-        assert_eq!(c.actions.durations.drink, DurationBounds::new(2, 5));
-        assert_eq!(c.actions.durations.play, DurationBounds::new(2, 5));
-        assert_eq!(c.actions.durations.bath, DurationBounds::new(2, 5));
-        // Sleep and cuddle minimums raised 2 -> 3 by owner tuning
-        // (2026-07-20), once the 005 animations made durations visible.
-        assert_eq!(c.actions.durations.sleep, DurationBounds::new(3, 8));
-        assert_eq!(c.actions.durations.cuddle, DurationBounds::new(3, 8));
-    }
 
     #[test]
     fn a_zero_minimum_duration_is_rejected_by_name() {
@@ -2874,9 +2653,10 @@ mod tests {
         let text = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
                     [rl.observation]\nkitty_slots = 4\n\n\
                     [plugins.greeter]\ncommand = \"/bin/true\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n";
-        let c: Config = toml::from_str(text).expect("foreign tables are recognised, not rejected");
+        let c: Config =
+            toml::from_str(&complete(text)).expect("foreign tables are recognised, not rejected");
         let plain: Config =
-            toml::from_str("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n").unwrap();
+            toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n")).unwrap();
         assert_eq!(c, plain, "and they carry nothing into Config");
     }
 
@@ -3057,15 +2837,13 @@ mod tests {
         // WITHOUT the key — the shape every existing world config has — so
         // a dropped `default` attribute reds here instead of hiding behind
         // the section-level default.
-        let absent: Config = toml::from_str(
+        let absent: Config = toml::from_str(&complete(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
              [water]\nbath_gain = 3.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        ))
         .unwrap();
-        let zero: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_factor = 0.0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let zero: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_factor = 0.0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert_eq!(absent, zero);
         assert_eq!(absent.water.contagion_factor, 0.0);
@@ -3078,15 +2856,13 @@ mod tests {
         // `absent` arm carries a [water] table WITHOUT the key, so a
         // dropped `default` attribute reds here instead of hiding behind
         // the section-level default.
-        let absent: Config = toml::from_str(
+        let absent: Config = toml::from_str(&complete(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
              [water]\nbath_gain = 3.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        ))
         .unwrap();
-        let explicit: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_membership = \"option_a\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let explicit: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"option_a\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert_eq!(absent, explicit);
         assert_eq!(
@@ -3094,10 +2870,8 @@ mod tests {
             ContagionMembership::OptionA
         );
         // The other variant actually parses — the dial is reachable.
-        let bidi: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_membership = \"bidirectional\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let bidi: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"bidirectional\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert_eq!(
             bidi.water.contagion_membership,
@@ -3128,22 +2902,16 @@ mod tests {
         // Spec 045 FR-005/SC-001: `contagion_aware_ladder = false` and an
         // absent key are the same world — the gate off, the stamp
         // unmoved. Same discipline as the sibling arms above.
-        let absent: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let absent: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
-        let explicit: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = false\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let explicit: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = false\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert_eq!(absent, explicit);
         assert!(!absent.behavior.contagion_aware_ladder);
-        let on: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = true\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let on: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = true\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert!(on.behavior.contagion_aware_ladder);
     }
@@ -3156,15 +2924,11 @@ mod tests {
         // the shape every existing world config has — so a dropped
         // `default` attribute reds here instead of hiding behind the
         // struct-level default.
-        let absent: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let absent: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
-        let zero: Config = toml::from_str(
-            "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\nannounce_here = 0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
-        )
+        let zero: Config = toml::from_str(&complete("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
+             [behavior]\nbudget_fraction_of_tick = 0.5\nannounce_here = 0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",))
         .unwrap();
         assert_eq!(absent, zero);
         assert_eq!(absent.behavior.announce_here, 0);
@@ -3207,17 +2971,20 @@ mod tests {
 
     // ---- spec 033 (T017): the vocabulary table's config law ----
 
+    /// Spec 033's documented vocabulary defaults stand on `Config::default()`;
+    /// since the 3.0 wall (spec 049 FR-030) the `[meow.vocabulary]` table is
+    /// REQUIRED -- a meow table without it is refused naming it.
     #[test]
-    fn an_omitted_vocabulary_table_means_the_documented_defaults() {
-        // US3/AC3: thirteen active kinds on, the two reserves off.
+    fn the_vocabulary_table_is_required_and_the_documented_defaults_stand() {
         let config = crate::test_support::test_config();
         let v = config.meow.vocabulary;
         assert!(v.want_eat && v.mew && v.purr && v.here_food && v.chirp);
         assert!(!v.trill && !v.ekekek, "reserves ship off");
-        // And a [meow] table carrying only its required key parses to the
-        // same defaults.
-        let meow: MeowConfig = toml::from_str("digest_window_ticks = 30").unwrap();
-        assert_eq!(meow.vocabulary, VocabularyConfig::default());
+        assert_eq!(v, VocabularyConfig::default());
+        let err = toml::from_str::<MeowConfig>("digest_window_ticks = 30")
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("vocabulary"), "named: {err}");
     }
 
     #[test]
@@ -3344,24 +3111,30 @@ trill = true",
         }
     }
 
+    /// Spec 049 FR-030: `[vision]` is required and named when missing (the
+    /// first section written under the 3.0 rule); both its keys are required.
     #[test]
     fn the_vision_section_is_required_and_named_when_missing() {
-        // FR-030: the first section written under the 3.0 rule -- no
-        // absence default. The served defaults live in Config::default()
-        // only.
-        let without = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n";
-        let err = toml::from_str::<Config>(without).unwrap_err().to_string();
+        let mut without: toml::Table = toml::Table::try_from(Config::default()).unwrap();
+        without.remove("vision").unwrap();
+        let err = toml::from_str::<Config>(&toml::to_string(&without).unwrap())
+            .unwrap_err()
+            .to_string();
         assert!(
             err.contains("vision"),
             "the refusal names the section: {err}"
         );
-        let with = format!("{without}[vision]\nradius = 5\nmemory_timeout_ticks = 0\n");
-        let c: Config = toml::from_str(&with).expect("a complete [vision] loads");
+        let c: Config = toml::from_str(&complete(
+            "[vision]\nradius = 5\nmemory_timeout_ticks = 0\n",
+        ))
+        .expect("a complete [vision] loads");
         assert_eq!(c.vision.radius, 5);
         assert_eq!(c.vision.memory_timeout_ticks, 0);
-        // Both fields are required, not per-field defaulted.
-        let half = format!("{without}[vision]\nradius = 5\n");
-        let err = toml::from_str::<Config>(&half).unwrap_err().to_string();
+        let mut half = without.clone();
+        half.insert("vision".into(), toml::toml! { radius = 5 }.into());
+        let err = toml::from_str::<Config>(&toml::to_string(&half).unwrap())
+            .unwrap_err()
+            .to_string();
         assert!(err.contains("memory_timeout_ticks"), "{err}");
     }
 
@@ -3390,5 +3163,91 @@ trill = true",
             c.behavior.reply_intensity_floor, None,
             "FR-043: replies off"
         );
+    }
+    // ---- spec 049 FR-030 / FR-031: the 3.0 wall on the parser (T068/T069) ----
+
+    /// Every required section, absent one at a time from the serialised
+    /// defaults, is refused naming it -- the 3.0 rule (FR-030), 14
+    /// top-level (`vision` included) and the three nested tables.
+    #[test]
+    fn missing_section_is_named() {
+        let full: toml::Table = toml::Table::try_from(Config::default()).unwrap();
+        let top = [
+            "world",
+            "persistence",
+            "kitty",
+            "needs",
+            "happiness",
+            "thresholds",
+            "elements",
+            "actions",
+            "meow",
+            "behavior",
+            "purr",
+            "water",
+            "events",
+            "viewer",
+            "vision",
+        ];
+        for section in top {
+            let mut t = full.clone();
+            assert!(t.remove(section).is_some(), "{section} is in the defaults");
+            let err = toml::from_str::<Config>(&toml::to_string(&t).unwrap())
+                .unwrap_err()
+                .to_string();
+            assert!(
+                err.contains(section),
+                "a config without [{section}] is refused naming it: {err}"
+            );
+        }
+        for (section, nested) in [
+            ("happiness", "weights"),
+            ("actions", "durations"),
+            ("meow", "vocabulary"),
+        ] {
+            let mut t = full.clone();
+            let inner = t.get_mut(section).unwrap().as_table_mut().unwrap();
+            assert!(
+                inner.remove(nested).is_some(),
+                "{section}.{nested} is in the defaults"
+            );
+            let err = toml::from_str::<Config>(&toml::to_string(&t).unwrap())
+                .unwrap_err()
+                .to_string();
+            assert!(
+                err.contains(nested),
+                "a config without [{section}.{nested}] is refused naming it: {err}"
+            );
+        }
+    }
+
+    /// The seven retired keys are unknown to the parser now (FR-031): no
+    /// migration map, `deny_unknown_fields` refuses each naming it.
+    #[test]
+    fn retired_key_is_unknown() {
+        let full: toml::Table = toml::Table::try_from(Config::default()).unwrap();
+        for (section, key) in [
+            ("purr", "cooldown_ticks"),
+            ("meow", "cooldown_ticks"),
+            ("meow", "urgent_cooldown_ticks"),
+            ("meow", "courtesy_ticks"),
+            ("meow", "urgent_courtesy_ticks"),
+            ("meow", "urgent_need_threshold"),
+            ("actions", "cuddle_relief"),
+        ] {
+            let mut t = full.clone();
+            t.get_mut(section)
+                .unwrap()
+                .as_table_mut()
+                .unwrap()
+                .insert(key.into(), toml::Value::Integer(15));
+            let err = toml::from_str::<Config>(&toml::to_string(&t).unwrap())
+                .unwrap_err()
+                .to_string();
+            assert!(
+                err.contains("unknown field") && err.contains(key),
+                "[{section}] {key} is an unknown field: {err}"
+            );
+        }
     }
 }

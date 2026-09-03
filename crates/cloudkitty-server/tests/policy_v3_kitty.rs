@@ -12,7 +12,8 @@ use cloudkitty_rl::test_support;
 use cloudkitty_server::register_policy_behaviors;
 
 fn config_text(v3: &std::path::Path, v2: &std::path::Path) -> String {
-    format!(
+    // Spec 049 FR-030: completed over the defaults -- every section stated.
+    cloudkitty_core::test_support::complete_toml(&format!(
         r#"
 [world]
 width = 32
@@ -52,7 +53,7 @@ memory_timeout_ticks = 0
 "#,
         v3.display(),
         v2.display()
-    )
+    ))
 }
 
 #[test]
@@ -159,6 +160,7 @@ fn a_schema_four_artifact_fails_startup_and_the_schema_five_oracle_boots() {
              [rl.policy.oracle]\nartifact = \"{}\"\n",
             artifact.display()
         );
+        let text = cloudkitty_core::test_support::complete_toml(&text);
         let config: Config = toml::from_str(&text).unwrap();
         config.validate().unwrap();
         let rl = RlConfig::from_toml_str(&text).unwrap();

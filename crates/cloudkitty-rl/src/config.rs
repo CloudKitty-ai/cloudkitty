@@ -531,7 +531,7 @@ mod tests {
         // step no-oped with no error. This pins the corrected `[[kitty]]`
         // form end to end: the behavior lands on the kitty, and the policy
         // block is found.
-        let (core, rl) = load_configs_from_str(
+        let (core, rl) = load_configs_from_str(&cloudkitty_core::test_support::complete_toml(
             r#"
             [world]
             width = 32
@@ -560,7 +560,7 @@ mod tests {
             radius = 40
             memory_timeout_ticks = 0
 "#,
-        )
+        ))
         .expect("the documented deploy config must load");
         let pumpkin = core
             .kitties
@@ -610,7 +610,8 @@ mod tests {
                     2 * i + 1
                 ));
             }
-            text
+            // Spec 049 FR-030: completed over the defaults -- every section stated.
+            cloudkitty_core::test_support::complete_toml(&text)
         }
         let err = load_configs_from_str(&world_with(6))
             .unwrap_err()

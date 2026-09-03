@@ -26,6 +26,10 @@ fn a_pre_3_0_meow_entry_is_refused() {
 
     for (missing, json) in [
         (
+            "intensity",
+            r#"{"kitty_id": 3, "kind": "want_play", "tick": 42, "pos": {"x": 4, "y": 5}, "reply": false}"#,
+        ),
+        (
             "pos",
             r#"{"kitty_id": 3, "kind": "want_play", "tick": 42, "intensity": 0.5, "reply": false}"#,
         ),

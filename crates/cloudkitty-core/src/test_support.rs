@@ -174,3 +174,27 @@ pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> Deci
         config,
     }
 }
+
+/// Spec 049 FR-030: a 3.0 config states every section -- a fragment that
+/// names only what a test is about no longer loads on its own. This
+/// completes such a fragment over the serialised `Config::default()`:
+/// tables merge recursively with the fragment's keys winning, and a
+/// non-table value (the `[[kitty]]` roster included) replaces the default
+/// wholesale. Tests of the parser itself (`deny_unknown_fields`, a missing
+/// section named) must NOT use it -- the raw text is their subject.
+pub fn complete_toml(fragment: &str) -> String {
+    fn merge(base: &mut toml::Table, over: toml::Table) {
+        for (key, value) in over {
+            match (base.get_mut(&key), value) {
+                (Some(toml::Value::Table(b)), toml::Value::Table(o)) => merge(b, o),
+                (_, v) => {
+                    base.insert(key, v);
+                }
+            }
+        }
+    }
+    let mut merged = toml::Table::try_from(Config::default()).expect("the defaults serialise");
+    let over: toml::Table = toml::from_str(fragment).expect("the fragment is valid TOML");
+    merge(&mut merged, over);
+    toml::to_string(&merged).expect("the merged table serialises")
+}

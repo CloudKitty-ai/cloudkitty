@@ -576,14 +576,6 @@ impl Config {
                 "must be at most cooldown_factor_max",
             ));
         }
-        if let Some(retired) = self.purr.cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[purr] cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 022: the motor's rest is proportional now -- \
-                 use cooldown_factor_min / cooldown_factor_max",
-            ));
-        }
         Ok(())
     }
 
@@ -732,46 +724,6 @@ impl Config {
                  announce_threshold -- disarm happens at threshold - hysteresis",
             ));
         }
-        if let Some(retired) = m.cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 023: the engine no longer enforces meow \
-                 cooldowns -- the scripted-courtesy value is courtesy_ticks",
-            ));
-        }
-        if let Some(retired) = m.urgent_cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 023: use urgent_courtesy_ticks",
-            ));
-        }
-        if let Some(retired) = m.courtesy_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] courtesy_ticks",
-                retired.to_string(),
-                "retired by spec 028: message legality is engine law now -- \
-                 the per-kind cooldown is recent_window_ticks",
-            ));
-        }
-        if let Some(retired) = m.urgent_courtesy_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_courtesy_ticks",
-                retired.to_string(),
-                "retired by spec 028: urgency no longer shortens the \
-                 interval -- grounding (announce_threshold) is the urgency \
-                 story",
-            ));
-        }
-        if let Some(retired) = m.urgent_need_threshold {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_need_threshold",
-                retired.to_string(),
-                "retired by spec 028: replaced by announce_threshold, which \
-                 gates legality instead of shortening courtesy",
-            ));
-        }
         Ok(())
     }
 
@@ -784,19 +736,6 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
-        // Spec 041 FR-005 (the owner's noisy-failure ruling): the retired
-        // shared dial is a loud error carrying its migration map -- the
-        // spec-025 pattern. Accepting it silently would run a config
-        // written for the shared-dial economy against the split one.
-        if let Some(v) = a.cuddle_relief {
-            return Err(ConfigError::invalid(
-                "[actions] cuddle_relief",
-                v.to_string(),
-                "retired by spec 041's dial split: delete it and set \
-                 rest_mutual_relief and groom_cuddle_relief explicitly \
-                 (a faithful migration carries this value into both)",
-            ));
-        }
         // Every relief dial shares one finiteness/negativity rule. Spec 025
         // built the table for the four play keys; the remaining six joined
         // 2026-08-06 (the 025 review's finding 7): before that,

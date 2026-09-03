@@ -1215,7 +1215,11 @@ sha256 = "{sha}"
     #[test]
     fn a_valid_manifest_loads_with_verified_hashes() {
         let dir = scratch_dir("valid");
-        write_suite(&dir, MINIMAL_EXAM, false);
+        write_suite(
+            &dir,
+            &cloudkitty_core::test_support::complete_toml(MINIMAL_EXAM),
+            false,
+        );
         let suite = load_suite(&dir).expect("loads");
         assert_eq!(suite.version, "unit-suite");
         assert_eq!(suite.exams.len(), 1);
@@ -1224,7 +1228,11 @@ sha256 = "{sha}"
     #[test]
     fn a_tampered_hash_names_the_file() {
         let dir = scratch_dir("tampered");
-        write_suite(&dir, MINIMAL_EXAM, true);
+        write_suite(
+            &dir,
+            &cloudkitty_core::test_support::complete_toml(MINIMAL_EXAM),
+            true,
+        );
         let Err(err) = load_suite(&dir) else {
             panic!("hash mismatch must fail");
         };
@@ -1236,7 +1244,11 @@ sha256 = "{sha}"
     fn an_invalid_config_names_exam_and_field() {
         let dir = scratch_dir("invalid");
         let bad = MINIMAL_EXAM.replace("width = 16", "width = 0");
-        write_suite(&dir, &bad, false);
+        write_suite(
+            &dir,
+            &cloudkitty_core::test_support::complete_toml(&bad),
+            false,
+        );
         let Err(err) = load_suite(&dir) else {
             panic!("invalid config must fail");
         };

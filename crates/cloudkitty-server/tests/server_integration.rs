@@ -617,7 +617,8 @@ async fn the_viewer_is_served_at_the_root() {
 /// One config that exercises all three seat kinds (spec 034 FR-005): a
 /// policy seat (fixture artifact + its registry row), a builtin, a plugin.
 fn describe_config_text(artifact: &std::path::Path) -> String {
-    format!(
+    // Spec 049 FR-030: completed over the defaults -- every section stated.
+    cloudkitty_core::test_support::complete_toml(&format!(
         r#"
 [world]
 # 32x32: the default element counts validate against floor(area / 32),
@@ -658,7 +659,7 @@ radius = 40
 memory_timeout_ticks = 0
 "#,
         artifact.display()
-    )
+    ))
 }
 
 #[tokio::test]
@@ -1059,9 +1060,11 @@ fn a_roster_above_the_slot_count_plus_one_is_refused_at_boot() {
             2 * i + 1
         ));
     }
-    let err = cloudkitty_rl::config::load_configs_from_str(&text)
-        .expect_err("six cats against four rows")
-        .to_string();
+    let err = cloudkitty_rl::config::load_configs_from_str(
+        &cloudkitty_core::test_support::complete_toml(&text),
+    )
+    .expect_err("six cats against four rows")
+    .to_string();
     assert!(err.contains("[rl.observation] kitty_slots"), "{err}");
     assert!(
         err.contains("roster of 6") && err.contains("at least 5"),

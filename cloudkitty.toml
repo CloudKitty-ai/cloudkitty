@@ -532,6 +532,10 @@ radius = 40
 # Element-memory expiry in ticks; 0 = never (sight is the only corrector).
 memory_timeout_ticks = 0
 
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
 [rl.policy.attn-a1-s1-o4]
 artifact = "policies/attn-a1-s1-o4.ckpolicy"
 

@@ -23,7 +23,8 @@ fn fixture_artifact(dir: &str, name: &str) -> PathBuf {
 }
 
 fn policy_config_text(artifact: &std::path::Path) -> String {
-    format!(
+    // Spec 049 FR-030: completed over the defaults -- every section stated.
+    cloudkitty_core::test_support::complete_toml(&format!(
         r#"
 [world]
 width = 32
@@ -59,7 +60,7 @@ radius = 40
 memory_timeout_ticks = 0
 "#,
         artifact.display()
-    )
+    ))
 }
 
 #[test]

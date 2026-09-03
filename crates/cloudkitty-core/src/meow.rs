@@ -372,8 +372,11 @@ pub struct Meow {
     pub kind: MessageKind,
     pub tick: u64,
     /// Spec 028: the grounding need's value at emission, /100 (want-kinds);
-    /// 0.0 for the social words. Pre-028 snapshots read 0.0.
-    #[serde(default)]
+    /// 0.0 for the social words. REQUIRED since the 3.0 wall (spec 049
+    /// FR-032, the eighth shim deleted): under fog intensity is an observed
+    /// digest feature and the reply ladder's tie-breaker, so a silent 0.0
+    /// on a missing field would corrupt the digest instead of failing at
+    /// load.
     pub intensity: f32,
     /// Spec 049 FR-040: the speaker's position at emission, engine-stamped.
     /// Under fog this is what a listener that cannot see the speaker

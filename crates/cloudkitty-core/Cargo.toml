@@ -18,6 +18,7 @@ futures = { workspace = true }
 # but must be declared here since features are additive across the workspace.
 tokio = { workspace = true, features = ["time", "rt", "macros"] }
 
+toml = "0.8"
 [dev-dependencies]
 proptest = "1"
 # Spec 039's golden evolution digest pins a sha256 of world state; same
@@ -26,4 +27,3 @@ sha2 = "0.10"
 tokio = { workspace = true, features = ["time", "rt", "rt-multi-thread", "macros", "test-util"] }
 # Core itself is format-agnostic; tests parse TOML to prove the config schema
 # round-trips the way cloudkitty.toml is written.
-toml = "0.8"

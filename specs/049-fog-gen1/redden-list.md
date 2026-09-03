@@ -316,3 +316,37 @@ sibling module's tests.
 | 25e | ties go to the own want (`>` → `>=`) | own-need-vs-intensity test (the 45 tie) | RED 1: exactly it | 870/1 → clean |
 
 Phase-9 checkpoint: 871/0, 4 ignored, fmt + clippy clean.
+
+## Phase 10 (US6: the 3.0 config hygiene) — rule-6 sort BEFORE the landing
+
+Landing = T068 (13 top-level + 3 nested-TABLE section-absence shims deleted;
+`kitties` keeps only its rename) + T069 (seven retired `Option` fields,
+their rejectors and four rejector tests deleted; `deny_unknown_fields`
+refuses the keys) + T071 (`Meow.intensity` default deleted).
+
+DEVIATION (reversible, recorded): `[water] contagion_membership` is a KEY,
+not a section; its sibling `contagion_factor` keeps its per-field default
+under FR-030's inert-launch-dial clause and the 039-D5 stamp discipline
+(skipped at `option_a`), so the membership key keeps its default too. The
+three nested TABLE shims (`happiness.weights`, `actions.durations`,
+`meow.vocabulary`) are deleted.
+
+Must-fail pile (predicted RED, then re-pointed or deleted):
+- the four rejector tests — OBSERVED RED first (rejectors deleted, fields
+  kept: 4 failed / 1 passed in the `retired` filter), then deleted
+- `purr_table_defaults_when_absent_and_rejects_bad_bounds`,
+  `water_section_defaults_when_absent_and_old_configs_keep_parsing` (the
+  section-absence subject itself → their inverse is `missing_section_is_named`)
+- the "old-shape / durationless [actions] parses" pair (2677, 2751) — the
+  `durations` table is now required
+- `the_rl_and_plugins_tables_belong_to_other_parsers_and_still_load`,
+  the `[vision]` trio (3353–3375 "with" arm), the contagion absent/explicit
+  quartet (3060–3164), the three misspelt/wrong-table/invented-section
+  guards (2851–2867) — partial literals → completed with
+  `test_support::complete_toml` (parser tests keep raw text)
+- other crates' partial literals (server lib.rs, policy tests,
+  waterline_contagion, rl config/eval_suite) — expect RED, complete them
+Must-pass pile: every test that already loads a full config or a
+sub-struct whose fields carry per-field defaults (PurrConfig from "",
+MeowConfig dials) — MeowConfig-from-fragment tests will go RED on the
+now-required `vocabulary` table and are re-pointed by adding it.

@@ -143,3 +143,25 @@ distress_patience_ticks = 60
 [vision]
 radius = 24
 memory_timeout_ticks = 0
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+# spec 049 FR-030: every section stated (completed at the 3.0 wall)
+[meow.vocabulary]
+want_eat = true
+want_drink = true
+mew = true
+want_play = true
+want_cuddle = true
+purr = true
+want_bath = true
+want_sleep = true
+here_food = true
+here_water = true
+here_critter = true
+here_sunbeam = true
+chirp = true
+trill = false
+ekekek = false
