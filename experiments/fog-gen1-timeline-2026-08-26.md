@@ -704,6 +704,38 @@ digest matrix + self-row is extrapolated, not yet measured.
 Owner pins the exact H4/H6/refusal numbers at step-5 kickoff now that
 baselines exist.
 
+### The training pass (owner-ruled 2026-09-03)
+
+One PPO pass, sized to the box: 18 procs are the full count, other
+utilisation is low, so **6 arms × 3 threads** (exp-006 wave 1 was 4 × 4
+at ~8.2 s/update, ~15 h per 20M ticks; pace at 3 threads is unmeasured
+and is read off the first hour). Shakeout horizon shorter than 20M,
+pinned at prereg. Purpose restated by the owner: find anything that
+needs a further major change, schema-breaking above all, before the
+step-6 LOCK; an extra run on an unexpected finding is fine.
+
+Sequential prerequisites (same box, before the pass): radius screen
+(also re-derives the scripted anchor on the fog config, H2's baseline)
+→ speaker-floor screen with the listener floor set in the same sitting
+→ corpus at the pinned knobs (`announce_here = 1` scripted seats) → BC
+clone to plateau, three acceptance bars → critic retrain on the new
+width.
+
+| slot | arm | tier | reads |
+|---|---|---|---|
+| 1 | lineage reference: clone init + anchor, low-end β (F-019), pinned radius + floor, seed 1 | essential | H1–H6, INVESTIGATE list |
+| 2 | reference, seed 2 | essential | seed lottery vs fog (a one-seed HALT is uninterpretable) |
+| 3 | no-fog control: same recipe, whole-world radius | essential | fog's effect vs the 3.0 schema/digest's |
+| 4 | radius bracket: one step wider than the pin | valuable | first fog dose-response point; is the pin load-bearing |
+| 5 | leash dose: next β up the F-019 curve | valuable | F-019's registered invalidation ("trajectory collapse at a fingerprint-preserving dose under fog") |
+| 6 | vocabulary lesson: head-selective message-head finetune from the same corpus vs slot 1's mixed corpus | valuable (owner picked over seed 3) | the registered delivery comparison, two of its three arms |
+
+Nice to have, NOT in this pass: Biscuit 3.0 consent-transfer twins
+(step 7 by ruling); no-seeding control, now an `announce_here = 0`
+corpus (the F-026 overturn test proper, step 7); an RL arm at the
+runner-up speaker floor (the screen is scripted); the ambient
+reply-off arm runs inside the scripted floor screen, not as an RL slot.
+
 ## Step 6 — remediate + LOCK
 
 Apply step-5 remediations. "Locked" means all three at once: schema
