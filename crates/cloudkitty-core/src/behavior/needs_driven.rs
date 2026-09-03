@@ -41,7 +41,7 @@ impl Behavior for NeedsDriven {
 }
 
 impl NeedsDriven {
-    fn decide_action(&self, ctx: &DecisionContext) -> Action {
+    pub(crate) fn decide_action(&self, ctx: &DecisionContext) -> Action {
         // A scene in progress that is still doing its job gets finished first.
         if let Some(action) = finish_what_you_started(ctx) {
             return action;

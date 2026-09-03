@@ -411,6 +411,14 @@ playful_comfort = 55.0
 # (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
 # Experiments' density screen, not a welfare lever.
 # announce_here = 4
+# Spec 049 FR-043: the scripted reply listener floor. Set, a scripted cat
+# answers an audible want whose stamped intensity is at or above it with the
+# paired here-word (referent in view, cooldown clear); unset, scripted cats
+# never reply and the streams are byte-identical to the pre-ladder engine.
+# 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
+# (Experiments cut it), is revisited at the speaker-floor screen, and stays
+# unset on the served config.
+# reply_intensity_floor = 0.30
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.

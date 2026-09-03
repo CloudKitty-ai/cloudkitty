@@ -9,7 +9,7 @@
 | `[vision] radius` | u32 ≥ 2 | 5 (placeholder; step-5 prereg screens) | vision disc radius for everyone |
 | `[vision] memory_timeout_ticks` | u64 | 0 (= never) | element-memory expiry |
 | `[meow] digest_window_ticks` | u64, positive multiple of `recent_window_ticks` | 30 | audibility window and rate denominator |
-| `[behavior] reply_intensity_floor` | f32 in [0,1], **optional** | absent on the served config (replies off); 0.30 on corpus-collection configs | scripted reply listener floor |
+| `[behavior] reply_intensity_floor` | f32 in [0,1], **optional** | absent on the served config (replies off); **0.30 provisional** on the corpus-collection config Experiments cut at step 5 (a commented line in `cloudkitty.toml` records it); revisited at the speaker-floor screen | scripted reply listener floor (T066) |
 | `[rl.observation] kitty_slots` | usize | 4 (default moved from 3) | roster ≤ kitty_slots + 1 enforced |
 
 ## Sections that are now REQUIRED (absence is a load error naming the section)
