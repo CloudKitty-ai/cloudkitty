@@ -14,9 +14,7 @@ use cloudkitty_rl::attn::{write_v3_artifact, V3Header, V3_ARCHITECTURE};
 use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::codec::ActionCodec;
 use cloudkitty_rl::config::RlConfig;
-use cloudkitty_rl::expand::{
-    expand_file, old_v3_blob_float_count, ExpandError,
-};
+use cloudkitty_rl::expand::{expand_file, old_v3_blob_float_count, ExpandError};
 use cloudkitty_rl::observe::{observation_len, HEAD_KINDS};
 use cloudkitty_rl::policy::{
     split_container_for_expansion, write_artifact, ArtifactHeader, PolicyArtifact,

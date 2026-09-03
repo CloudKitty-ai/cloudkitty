@@ -857,4 +857,189 @@ mod tests {
             );
         }
     }
+    // ---- spec 049 T027: permanent by-id rows, row states, memory cells ----
+
+    /// A 20x20 world, five cats (ids 1..5), observer 1 at (10, 10), r = 5.
+    fn five_cat_world() -> (cloudkitty_core::World, Config) {
+        let mut config = cloudkitty_core::test_support::test_config();
+        config.world.width = 20;
+        config.world.height = 20;
+        config.vision.radius = 5;
+        config.kitties = [
+            (1u32, 10u32, 10u32),
+            (2, 11, 10),
+            (3, 0, 0),
+            (4, 19, 19),
+            (5, 0, 19),
+        ]
+        .iter()
+        .map(|&(id, x, y)| cloudkitty_core::config::KittyConfig {
+            id,
+            name: format!("K{id}"),
+            x,
+            y,
+            behavior: "needs_driven".into(),
+            needs: None,
+        })
+        .collect();
+        config.validate().unwrap();
+        let mut world = cloudkitty_core::World::generate(&config);
+        world.elements.clear();
+        world.tick = 100;
+        (world, config)
+    }
+
+    fn row(obs: &Observation, k: usize) -> &[f32] {
+        &obs.values[SELF_BLOCK + k * KITTY_SLOT..SELF_BLOCK + (k + 1) * KITTY_SLOT]
+    }
+
+    #[test]
+    fn rows_are_permanent_and_present_toggles_exactly_with_the_disc() {
+        // US2 scenarios 1-2: row k = friend k + 1 whatever the distances;
+        // friend 4 walks out of the disc and back, its row index unchanged,
+        // `present` 1 exactly on the ticks it is inside.
+        let (mut world, config) = five_cat_world();
+        let cfg = ObservationConfig::default();
+        for (x, y, inside) in [
+            (13u32, 14u32, true),
+            (15, 11, false),
+            (14, 10, true),
+            (16, 10, false),
+        ] {
+            let idx = world.kitty_index(4).unwrap();
+            world.kitties[idx].pos = Position::new(x, y);
+            let view = world.snapshot().fog_for(1, config.vision.radius);
+            let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+            assert_eq!(
+                obs.table.kitties,
+                vec![Some(2), Some(3), Some(4), Some(5)],
+                "rows by id"
+            );
+            let r4 = row(&obs, 2);
+            assert_eq!(
+                r4[0],
+                if inside { 1.0 } else { 0.0 },
+                "friend 4 at ({x}, {y}): present"
+            );
+            if inside {
+                assert!(
+                    (r4[1] - (x as f32 - 10.0) / 20.0).abs() < 1e-6,
+                    "dx to the live position"
+                );
+                assert!(
+                    (r4[3] - ((x as f32 - 10.0).abs() + (y as f32 - 10.0).abs()) / 40.0).abs()
+                        < 1e-6
+                );
+                assert_eq!(
+                    r4[10],
+                    world.kitty(4).unwrap().happiness / 100.0,
+                    "knowledge shown"
+                );
+            } else {
+                assert!(r4.iter().all(|&v| v == 0.0), "silent: all zero");
+            }
+            // Friend 2, adjacent, is seen on every tick in row 0.
+            assert_eq!(row(&obs, 0)[0], 1.0);
+        }
+    }
+
+    #[test]
+    fn a_heard_row_points_at_the_stamped_meow_position_with_knowledge_masked() {
+        // US2 scenario 3: friend 3 outside the disc called 12 ticks ago
+        // from tile T; its row reads present 0, dx/dy/distance to T
+        // (wherever it has walked since), knowledge fields 0.
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = five_cat_world();
+        let cfg = ObservationConfig::default();
+        world.recent_meows.push(Meow {
+            kitty_id: 3,
+            kind: MessageKind::HereWater,
+            tick: 88,
+            intensity: 0.0,
+            pos: Position::new(2, 5),
+            reply: false,
+        });
+        let idx = world.kitty_index(3).unwrap();
+        world.kitties[idx].pos = Position::new(0, 0); // walked on since
+        world.kitties[idx].happiness = 42.0;
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(view.kitty(3).is_none(), "outside the disc");
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let r3 = row(&obs, 1);
+        assert_eq!(r3[0], 0.0, "present means seen");
+        assert!(
+            (r3[1] - (2.0 - 10.0) / 20.0).abs() < 1e-6,
+            "dx to T, not to the cat"
+        );
+        assert!((r3[2] - (5.0 - 10.0) / 20.0).abs() < 1e-6, "dy to T");
+        assert!((r3[3] - (8.0 + 5.0) / 40.0).abs() < 1e-6, "distance to T");
+        assert!(
+            r3[4..KITTY_SCHEMA_4].iter().all(|&v| v == 0.0),
+            "needs, happiness, activity, flags masked"
+        );
+        assert_eq!(r3[offsets::ROW_WATER_BIT], 0.0);
+        assert_eq!(r3[offsets::ROW_SCENE_AGE], 0.0);
+        // Silent friend 5 (no call) and vacant rows are all zero; a lab
+        // roster of three leaves row 4 permanently vacant (scenario 5).
+        assert!(row(&obs, 3).iter().all(|&v| v == 0.0), "friend 5: silent");
+        let mut three = config.clone();
+        three.kitties.truncate(3);
+        three.validate().unwrap();
+        let mut w3 = cloudkitty_core::World::generate(&three);
+        w3.elements.clear();
+        let view3 = w3.snapshot().fog_for(1, 40);
+        let obs3 = encode_observation(&view3, 1, &three, &cfg, 0.0);
+        assert_eq!(obs3.table.kitties, vec![Some(2), Some(3), None, None]);
+        assert!(row(&obs3, 2).iter().all(|&v| v == 0.0) && row(&obs3, 3).iter().all(|&v| v == 0.0));
+        assert_eq!(
+            obs3.values.len(),
+            404,
+            "the slot config does not change per lab"
+        );
+    }
+
+    #[test]
+    fn the_memory_cells_read_the_remembered_tile_with_staleness_over_forty() {
+        // FR-009: present, dx/dy to the remembered tile from the CURRENT
+        // position, staleness (tick - last_seen)/40 clamped, 40 frozen.
+        use cloudkitty_core::kitty::{memory_index, MemorySlot};
+        // A 24x24 world (width + height = 48 != 40), so a normaliser
+        // derived from the world would read wrong here.
+        let (mut world, mut config) = five_cat_world();
+        config.world.width = 24;
+        config.world.height = 24;
+        world.width = 24;
+        world.height = 24;
+        let cfg = ObservationConfig::default();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].memory[memory_index(ElementType::Chow)] = Some(MemorySlot {
+            pos: Position::new(14, 7),
+            last_seen: 90,
+        });
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let chow = offsets::SELF_MEMORY + 4 * memory_index(ElementType::Chow);
+        assert_eq!(obs.values[chow], 1.0, "present");
+        assert!((obs.values[chow + 1] - 4.0 / 24.0).abs() < 1e-6, "dx");
+        assert!((obs.values[chow + 2] - (-3.0) / 24.0).abs() < 1e-6, "dy");
+        assert!(
+            (obs.values[chow + 3] - 10.0 / 40.0).abs() < 1e-6,
+            "staleness 10/40"
+        );
+        let water = offsets::SELF_MEMORY + 4 * memory_index(ElementType::Water);
+        assert!(
+            obs.values[water..water + 4].iter().all(|&v| v == 0.0),
+            "never seen: zero"
+        );
+        // Clamped at a full traverse and beyond; the normaliser is the
+        // frozen literal, never the world's width + height.
+        world.kitties[idx].memory[memory_index(ElementType::Chow)] = Some(MemorySlot {
+            pos: Position::new(14, 7),
+            last_seen: 10,
+        });
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(obs.values[chow + 3], 1.0, "90/40 clamps to 1");
+        assert_eq!(STALENESS_NORMALISER, 40.0);
+    }
 }

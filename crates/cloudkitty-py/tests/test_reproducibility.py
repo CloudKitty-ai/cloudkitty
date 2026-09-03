@@ -14,6 +14,8 @@ def rollout_digest():
 
     import cloudkitty
 
+    MENU = 39  # menu v2 at kitty_slots 4 (spec 049)
+
     env = cloudkitty.ParallelEnv(horizon=60)
     obs, infos = env.reset(seed=7)
     agents = env.possible_agents
@@ -30,8 +32,8 @@ def rollout_digest():
         actions = {}
         for offset, agent in enumerate(agents):
             mask = np.asarray(infos[agent]["mask"], dtype=np.uint8)
-            legal_a = np.flatnonzero(mask[:34])
-            legal_m = np.flatnonzero(mask[34:])
+            legal_a = np.flatnonzero(mask[:MENU])
+            legal_m = np.flatnonzero(mask[MENU:])
             actions[agent] = [
                 int(legal_a[(step_index + offset) % legal_a.size]),
                 int(legal_m[(step_index + offset) % legal_m.size]),
