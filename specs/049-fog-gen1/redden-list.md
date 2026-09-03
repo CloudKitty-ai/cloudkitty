@@ -454,3 +454,31 @@ model-less seats (cert_harness6 untouched). Reference record:
 `cf0cfede…`); the plain run reproduces it byte for byte. Note: the
 seating's "scripted" seats are zero-logit first-legal-pair seats (the 2.x
 instrument's own convention), a continuity trace, not a welfare measure.
+
+### T081 observed, T082, T084, T085 — the arc's close
+
+T081: after the four pins the flip's red set was exactly the predicted
+three goldens; regenerated ONCE from one run: evolution `eaba8138…`, strip
+pin `0bbb577f…`, rl run-json golden (`UPDATE_GOLDENS=1`), doctrine
+paragraphs in each file. Suite after: **867/0, 4 ignored**; clippy
+`-D warnings` clean; `cargo fmt --check` clean.
+
+T082: CHANGELOG Unreleased carries the 3.0 wall entry with
+`[obs-schema] [world-fresh] [stamp] [rng-sequence]` — the fourth marker by
+the 048 precedent (consequence: the pre-fog action stream is reproduced
+only up to the first widened groom response, tick 549, and every seeded
+evolution diverges under fog). Never tagged here.
+
+T084: `cargo fmt --all -- --check` OK; `cargo clippy --workspace
+--all-targets -- -D warnings` OK; `maturin develop --release` + `pytest`
+in the scratch venv (python 3.14): 18 passed, 1 skipped (PettingZoo
+conformance without gymnasium, as CI) after one re-point —
+`test_unseeded_reset_gives_fresh_reproducible_episodes` compared reset
+OBSERVATIONS, which under fog are byte-identical across seeds (an empty
+first view); it now compares the global state, the subject unchanged.
+
+T085: quickstart §1–§12 walked top to bottom; every engine section green;
+seven command lines named tests by stale names / a missing `--dry-run`
+flag and were corrected in place (the guide describes what exists). The
+standing-reds ledger is empty. Final COUNT READ recorded below at the
+last commit.

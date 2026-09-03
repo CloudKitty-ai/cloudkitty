@@ -5,7 +5,7 @@ Run everything from the worktree root (`~/ai/cloudkitty-fog`, branch `049-fog-ge
 ## 0. Prerequisites
 
 - Pinned toolchain via `rust-toolchain.toml` (`rustc -V` must match the pin).
-- Python 3.11 venv with `maturin`, `pytest`, `numpy` for §5; the exp-006 venv (`experiments/exp-006-character-gen/.venv`) for §6.
+- A Python venv (3.11–3.14) with `maturin`, `pytest`, `numpy` for §10 and §11 (the binding is rebuilt from this tree; the exp-006 venv's binding is 2.x).
 
 ## 1. Build and the whole suite
 
@@ -38,8 +38,8 @@ Expected: property runs green (random worlds and radii 2–40); the mask on the 
 
 ```
 cargo test -p cloudkitty-core --test meow_law_fog
-cargo test -p cloudkitty-core say_surface_grounding
-cargo test -p cloudkitty-core -- reply_ladder
+cargo test -p cloudkitty-core --test say_surface_grounding
+cargo test -p cloudkitty-core --lib -- behavior::tests   # the US8 reply-ladder scenarios live here
 ```
 
 Expected: no want legal with known relief or off the top need (social kinds: illegal exactly while an idle friend is in view; a friend that is only heard, or visible but asleep / mid-scene, never silences the word); no here legal without adjacency or (audible matching want ∧ visible referent); every `reply = 1` has both; no same-tick reply; floor unset ⇒ message stream byte-identical to the no-reply engine.
@@ -56,18 +56,18 @@ Expected: 20,000 ticks, served roster all-scripted, `[vision] radius` = 40, repl
 
 ```
 cargo test -p cloudkitty-core --test fog_exploration -- first_sight_within_one_crossing
-cargo test -p cloudkitty-core --test welfare_longrun -- --ignored fog_r5_20k
+cargo test -p cloudkitty-rl --test welfare_longrun -- --ignored fog_r5 --nocapture   # the r = 5 READING, beside the 2.x bounds gate
 ```
 
-Expected: every seeded blind trial sights a bowl within 40 ticks; the r = 5 run completes 20,000 ticks with zero invariant failures, printing distress-event and watchdog counts (recorded for the step-5 prereg, not gated).
+Expected: every seeded blind trial sights a bowl on a sweepable tile within 40 ticks (worst 36 over 24 seeds; the corner pockets are pinned as unswept — owner flag); the r = 5 run completes 20,000 ticks with zero invariant failures and PRINTS the welfare report against the 2.x global-vision bounds (at the arc's end: 13 violations, an eat distress of 3,477 ticks on the compiled 32×32 world — recorded for the step-5 prereg and the owner, not gated; the gate itself pins the global-vision radius).
 
 ## 7. Config strictness, sweeps, exams (SC-007)
 
 ```
 cargo test -p cloudkitty-core --test shipped_configs
 cargo test -p cloudkitty-rl --test shipped_configs_rl
-cargo test -p cloudkitty-core config:: -- missing_section_is_named retired_key_is_unknown
-cargo run -p cloudkitty-rl --bin kitty-eval -- --suite evals/v2 --dry-run
+cargo test -p cloudkitty-core --lib -- missing_section_is_named retired_key_is_unknown
+cargo test -p cloudkitty-rl --test eval_suite   # loads evals/v2 through the manifest with verified hashes
 ```
 
 Expected: every in-scope TOML loads complete through both surfaces or is listed in `config-sweep-exclusions.txt`; `evals/v2` present in both sweeps; each missing section and each retired key refused by name; the v2 manifest hashes verify.
@@ -77,7 +77,8 @@ Expected: every in-scope TOML loads complete through both surfaces or is listed 
 ```
 cargo test -p cloudkitty-rl --test artifact_v3_reject -- schema_four_artifact_is_refused
 cargo test -p cloudkitty-server --test policy_v3_kitty
-cargo test -p cloudkitty-server -- roster_above_slots_plus_one_is_refused
+cargo test -p cloudkitty-rl --lib -- roster_above_slots_plus_one_is_refused
+cargo test -p cloudkitty-server --test server_integration -- a_roster_above_the_slot_count_plus_one_is_refused_at_boot
 ```
 
 Expected: a schema-4 `.ckpolicy` fails to load naming observation schema found 4 / expected 5, before any tick; a six-cat roster with `kitty_slots` 4 is refused at boot naming both numbers.
@@ -85,7 +86,7 @@ Expected: a schema-4 `.ckpolicy` fails to load naming observation schema found 4
 Plugin wire (SC-013):
 
 ```
-cargo test -p cloudkitty-core -- plugin_e2e
+cargo test -p cloudkitty-core --test plugin_e2e
 ```
 
 Expected: the request the plugin receives carries `v: 3` and a fogged `world`; a plugin that refuses the version falls back to the built-in with the tick loop untouched.
@@ -110,11 +111,12 @@ Expected: `observation_space` shape (404,), `OBSERVATION_SCHEMA_VERSION` 5, two-
 ## 11. Binding continuity (SC-009)
 
 ```
-experiments/exp-006-character-gen/.venv/bin/python experiments/exp-006-character-gen/binding_continuity.py --rebaseline --config cloudkitty.toml --seating all-scripted
-experiments/exp-006-character-gen/.venv/bin/python experiments/exp-006-character-gen/binding_continuity.py
+# a venv whose `cloudkitty` binding was built from THIS tree (maturin develop --release in crates/cloudkitty-py)
+$VENV/bin/python experiments/exp-006-character-gen/binding_continuity.py --config cloudkitty.toml --seating val-scripted \
+    --out /tmp/bc-now.json --compare specs/049-fog-gen1/binding-continuity/reference-3.0-val-scripted.json
 ```
 
-Expected: a new 3.0 reference record committed alongside; the second run passes against it.
+Expected: `state trace identical: True` against the committed 3.0 reference (digest `cf0cfede…`, 2,000 ticks, seed 870001). The script has no `--rebaseline`; the reference IS the `--out` of a run at the recorded HEAD. `val-scripted` is cert_harness6's all-scripted seating (zero-logit seats: a continuity trace, not a welfare measure).
 
 ## 12. Goldens (end of arc only)
 

@@ -182,13 +182,17 @@ def test_unseeded_reset_gives_fresh_reproducible_episodes():
     # Spec 014 review: reset(seed=s) then bare reset() must give a NEW
     # episode (not replay s forever), and the whole sequence must replay
     # from the same starting seed.
+    # Compared on the generated ELEMENT layout, not the observation: under
+    # fog (spec 049) a cat's first view can be empty whatever the seed, so
+    # two different episodes can open with byte-identical observations
+    # (and the tick-0 global state is a seed-independent summary).
     def rollout(env):
-        obs, infos = env.reset()
-        return {a: obs[a].tobytes() for a in env.possible_agents}
+        env.reset()
+        return tuple(env.elements())
 
     a = cloudkitty.ParallelEnv(horizon=20)
-    first_obs, _ = a.reset(seed=7)
-    first = {k: v.tobytes() for k, v in first_obs.items()}
+    a.reset(seed=7)
+    first = tuple(a.elements())
     second = rollout(a)
     third = rollout(a)
     assert second != first, "bare reset() must not replay the seeded episode"

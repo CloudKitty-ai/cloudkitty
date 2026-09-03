@@ -33,6 +33,62 @@ change.
 
 ## Unreleased
 
+- **Fog Gen 1 — the 3.0 observation wall (spec 049)** **`[obs-schema]`
+  `[world-fresh]` `[stamp]` `[rng-sequence]`**. Every cat — built-in,
+  plugin, policy — now decides from ONE fog view: the kitties and
+  elements inside a Euclidean disc of `[vision] radius` tiles (5, the
+  FR-002 placeholder the step-5 pre-registration screens; `dx² + dy² ≤
+  r²`, edge included), every recent meow (hearing stays global), the
+  roster's ids, and its own one-slot-per-element-kind memory, refuted on
+  sight and never timed out unless `memory_timeout_ticks` says so. The
+  six members of the wall, owner-ruled 2026-09-02/03: (1) the fog view
+  as the only world any decider or encoder receives, with meows stamped
+  with the speaker's position; (2) element memory in the cat's own
+  record; (3) observation schema 5 — four permanent by-id kitty rows
+  (`[rl.observation] kitty_slots` 4, roster ≤ slots + 1 refused at
+  load), the global meow digest deleted and replaced by per-speaker
+  recency / rate / want-intensity / answers-me cells on the rows, scene
+  age and a neighbour-in-water bit; **404 floats** at the served config,
+  menu 39, logit budget 55, plugin wire v3; (4) the meow law under fog —
+  a want-word is legal only for the top need with no relief visible or
+  remembered, a here-word when the referent is in view and a matching
+  want is audible (or by adjacency), every here carries an engine-stamped
+  `reply` bit, and audibility is the new `[meow] digest_window_ticks`
+  (30), the cooldown unchanged at 10; (5) the scripted seats' half of the
+  corpus — a reply ladder (`[behavior] reply_intensity_floor`, unset =
+  replies off, 0.30 provisional for the corpus-collection config) that
+  shares the rung with the own want under the yield, and
+  persistent-heading exploration for a blind cat (the engine records the
+  heading from every applied move; redraw only when the wall ahead is
+  within the radius); built-in targeting runs over visible ∪ remembered
+  elements and visible ∪ heard friends; (6) the 3.0 config hygiene: every
+  section is REQUIRED and named when missing, the seven retired 2.x keys
+  are unknown, the eight snapshot shims are deleted, `evals/v2` replaces
+  the hash-frozen v1, and 52 in-scope configs are completed (migration
+  note: `specs/049-fog-gen1/contracts/config-3.0-migration.md`;
+  completion tool: `experiments/tools/complete_config_3.py`). Every 2.x
+  policy artifact is schema 4 and is refused at load, so the five served
+  seats are parked on `needs_driven` until the Gen 1 minds seat at the
+  step-7 cutover; pre-3.0 saved worlds do not load (`update.sh --fresh`).
+  The defaults stamp moves by exactly `[vision] radius`,
+  `memory_timeout_ticks`, `[meow] digest_window_ticks` and `kitty_slots`
+  3 → 4 (proof in `specs/049-fog-gen1/redden-list.md` §T078). The
+  `[rng-sequence]` marker is carried for its consequence, per the 048
+  precedent: at a world-covering radius the action stream is byte-
+  identical to the pre-fog engine up to the first widened groom response
+  (tick 549 on the served roster — the built-in now answers a want_bath
+  older than the cooldown but inside the digest window), and under fog
+  every seeded evolution diverges from the first blind decision. The
+  evolution golden, the strip witness and the run-JSON golden regenerate
+  with this entry as the justification. Open owner flags in the spec-049
+  report: the exploration rule's unswept corner pockets and, on worlds
+  wider than ~4r, its unswept centre (the 2.x welfare bounds fail at r =
+  5 on the compiled 32×32 world; the rl welfare gate pins the
+  global-vision radius and an ignored r = 5 reading sits beside it);
+  043's gate-zero doctrine versus 049's heard-friend targeting; SC-004's
+  byte-identity amended to "identical up to the first explained
+  divergence"; the exams' `kitty_slots = roster − 1` widths.
+
 ## v2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
 
 - No stale re-proposal (spec 048) **`[rng-sequence]`**: a cat no longer
