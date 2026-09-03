@@ -548,9 +548,9 @@ fn push_message_block(
     let window = core.meow.digest_window_ticks.max(1);
     let cooldown = core.meow.recent_window_ticks.max(1);
     let max_calls = (window / cooldown).max(1) as f32;
-    let audible = |m: &&cloudkitty_core::meow::Meow| {
-        m.kitty_id == speaker && m.tick < now && now - m.tick < window
-    };
+    // One audibility rule, the view's (FR-016/R5): never re-derived here.
+    let audible =
+        |m: &&cloudkitty_core::meow::Meow| m.kitty_id == speaker && view.audible(m, window);
     for kind in HEAD_KINDS {
         let mut count = 0u32;
         let mut freshest: Option<u64> = None;

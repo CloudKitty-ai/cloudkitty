@@ -1618,7 +1618,6 @@ impl FogView {
     /// position, the scripted friend-targeting candidate set and the here
     /// law -- so the three cannot drift.
     pub fn heard_unseen(&self, window: u64) -> Vec<(KittyId, Position, u64)> {
-        let now = self.snapshot.tick;
         self.roster
             .iter()
             .filter(|&&id| id != self.observer && self.snapshot.kitty(id).is_none())
@@ -1626,11 +1625,22 @@ impl FogView {
                 self.snapshot
                     .recent_meows
                     .iter()
-                    .filter(|m| m.kitty_id == id && m.tick < now && now - m.tick < window)
+                    .filter(|m| m.kitty_id == id && self.audible(m, window))
                     .max_by_key(|m| m.tick)
                     .map(|m| (id, m.pos, m.tick))
             })
             .collect()
+    }
+
+    /// THE audibility rule (spec 049 FR-016/FR-017, research R5): a call
+    /// is audible at this view's tick iff it was recorded on an EARLIER
+    /// tick (the start-of-tick buffer; nobody hears a same-tick word) and
+    /// its age is strictly less than `window`. One definition for the
+    /// heard rows, the per-speaker message cells, the here law and the
+    /// scripted ladder -- never re-derived in place.
+    pub fn audible(&self, m: &Meow, window: u64) -> bool {
+        let now = self.snapshot.tick;
+        m.tick < now && now - m.tick < window
     }
 }
 
