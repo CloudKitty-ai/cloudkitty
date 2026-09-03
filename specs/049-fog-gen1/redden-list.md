@@ -296,3 +296,23 @@ blind-price test), fmt + clippy clean. T060's 20k reading lives in
 `crates/cloudkitty-rl/tests/welfare_longrun.rs` (beside the 2.x bounds
 run it mirrors; ignored, prints, asserts invariants only) — the task
 named the core file, whose doc says the 20k run moved to rl at spec 014.
+
+## Phase 9 (US8: the scripted reply ladder) — cycles 25a–25e
+
+Order kept: T065's fixtures (`preladder-r5-20k.{actions,messages}.digest`)
+were recorded and committed @ f34ecf7 BEFORE the ladder landed @ a90f2fe.
+The Phase-9 landing suite read **871/0, 4 ignored** (the commit message
+says 870 — a miscount, the log says 871). Scenario 8 (ambient here
+stamped reply 1) is the engine stamp's own guard in `meow_law_fog.rs`,
+not duplicated. `NeedsDriven::decide_action` opened to the crate for the
+sibling module's tests.
+
+| cycle | mutation | predicted red | observed | restore |
+|---|---|---|---|---|
+| 25a | the LOWEST intensity answered (`max_by` → `min_by`) | loudest-want test | RED 1: exactly it | 870/1 → clean |
+| 25b | the floor ignored | at/above-floor test (0.29 answered) | RED 1: exactly it | 870/1 → clean |
+| 25c | the here law bypassed (cooldown, referent, flag) | cooling-here test | RED 1: exactly it | 870/1 → clean |
+| 25d | replies fire with the floor unset (`?` → `unwrap_or(0.0)`) | floor-unset unit test; SC-011 `reply_floor_unset_is_byte_identical`; possibly goldens | RED 4: both + `world_covering_radius_reproduces_pre_fog_actions` + the 043 `gate_zero_speech_never_moves_action`; goldens GREEN (the golden run's roster does not meet a reply condition) — SC-011 is NOT vacuous: replies fire in the served-roster r = 5 stream | 867/4 → clean |
+| 25e | ties go to the own want (`>` → `>=`) | own-need-vs-intensity test (the 45 tie) | RED 1: exactly it | 870/1 → clean |
+
+Phase-9 checkpoint: 871/0, 4 ignored, fmt + clippy clean.
