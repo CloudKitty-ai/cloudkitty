@@ -262,3 +262,37 @@ crate constants and derives the space from `observation_len`.
 ## §review
 
 (dispositions recorded at T086)
+
+## Phase 8 (US5: scripted cats under the same fog) — cycles 24a–24f
+
+Landing note: the Phase-8 guards caught that the exploration step was
+UNREACHABLE — need selection priced an unseen, unremembered kind `None`
+and skipped it (the 004 "no path" rule, written under global vision), so
+a blind hungry cat slept. `selection::blind_price`: `radius + 1` while
+the disc leaves part of the world unseen, `None` at a covering radius
+(so FR-024's world-covering identity and the 004 skip doctrine both keep
+their proof); cuddle prices visible ∪ heard (the walk's candidate).
+Second slip: the blind-price unit test was committed without a green run
+(the filter missed its module); its arithmetic was wrong, fixed @ 8bf7ec6.
+
+OWNER FLAG (FR-023 / SC-012): the ruled redraw rule (turn when the wall
+ahead ≤ radius) never brings the disc over the ten tiles per corner
+farther than r from the inner square — 40 of 400 tiles at 20×20, r = 5.
+A bowl there is found only by the safeguard. Pinned by
+`the_corner_pockets_are_outside_the_sweep`; SC-012 (worst 36 ticks over
+24 seeds) is stated over the sweepable tiles.
+
+| cycle | mutation | predicted red | observed | restore |
+|---|---|---|---|---|
+| 24a | explore redraws every tick | scenario-6 holds/zero-draw test, first-heading draw count, SC-012 | RED 5: scenario 6, blind-hungry (redraw at tick 1), SC-012, the blind-price test (then wrong, see 8bf7ec6), `voluntary_swimming…` at the r = 5 dial (exploration variants reach bath distress in the flooded world) | 857/5 → clean 0 dirty |
+| 24b | the reverse allowed in both pools | boxed-in never-reverses, scenario 6, SC-012 | RED 5: as predicted + the (then wrong) blind-price test + `voluntary_swimming…` r = 5 | 857/5 → clean |
+| 24c | heard candidates dropped | heard-friend cuddle, playful heard-only scan | RED 3: both + the (then wrong) blind-price test | 859/3 → clean |
+| 24d | Friend arm keeps busy/asleep friends | arrived-asleep assertion | RED 5: it + BOTH goldens + wire golden + `world_covering_radius_reproduces_pre_fog_actions` — the idle filter is load-bearing in the pre-fog stream | 857/5 → clean |
+| 24e | blind price → `None` (the pre-fix engine) | blind-hungry, refuted-memory explore, SC-012, blind-price test | RED 4: exactly those | 858/4 → clean |
+| 24f | blind price without the covering gate | blind-price test; fog_continuity predicted GREEN (served minimums keep every kind visible at r = 40) | RED 2: the test + `an_unrelievable_need_is_skipped_not_priced` (004 doctrine); continuity GREEN as predicted | 860/2 → clean |
+
+Phase-8 checkpoint: **862/0, 3 ignored** (861 + the arithmetic-fixed
+blind-price test), fmt + clippy clean. T060's 20k reading lives in
+`crates/cloudkitty-rl/tests/welfare_longrun.rs` (beside the 2.x bounds
+run it mirrors; ignored, prints, asserts invariants only) — the task
+named the core file, whose doc says the 20k run moved to rl at spec 014.
