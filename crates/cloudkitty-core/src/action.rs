@@ -130,8 +130,14 @@ impl Action {
 /// (spec 033): `follow_me` stopped parsing as a message kind (renamed
 /// `mew` -- no alias, a lying name is what the rename removed) and seven
 /// kinds joined the accepted set (here_food, here_water, here_critter,
-/// here_sunbeam, chirp, trill, ekekek).
-pub const PROPOSAL_WIRE_VERSION: u32 = 2;
+/// here_sunbeam, chirp, trill, ekekek). Version 3 (spec 049 FR-048, owner
+/// ruled 2026-09-03): `world` is the deciding cat's FOG VIEW -- the same
+/// shape, fogged contents (kitties and elements inside its disc, every
+/// recent meow) -- and the wire grew fields: `memory` and `explore_heading`
+/// on kitties (blanked on friends), `pos` and `reply` on meows. A v2
+/// plugin assuming full sight could not tell it sees a partial world, so
+/// the version says so; refusing it falls back per Article IV.
+pub const PROPOSAL_WIRE_VERSION: u32 = 3;
 
 /// Why a proposal failed to parse (spec 016). Every kind resolves the same
 /// way downstream -- the fallback decides, per amended Article IV's default --

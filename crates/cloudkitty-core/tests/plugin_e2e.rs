@@ -73,6 +73,36 @@ fn a_well_behaved_plugin_drives_kitties_for_a_full_day() {
     assert_eq!(world.tick, 600, "a full in-world day, zero missed ticks");
 }
 
+/// Spec 049 FR-048 / SC-013: the request carries wire version 3 and the
+/// deciding cat's FOG VIEW. The well-behaved fixture refuses any other
+/// version (exit 3) and exits (4) on any entity outside its disc, any
+/// missing `memory` / `explore_heading` on `me`, or a meow without
+/// `pos` / `reply` -- so at radius 2, where the second kitty is mostly
+/// out of sight, 300 ticks of `PolicyMade` decisions prove both halves;
+/// a refusal would surface as the fallback's provenance (the tick loop
+/// untouched -- the SC-013 fallback guard is this same path).
+#[test]
+fn the_request_carries_wire_v3_and_a_fogged_world() {
+    let (mut world, registry, config) =
+        world_with_plugin(plugin("well_behaved.py", &[]), &[0, 1], |c| {
+            c.vision.radius = 2;
+        });
+    let (first, second) = (config.kitties[0].id, config.kitties[1].id);
+    for _ in 0..300 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        for id in [first, second] {
+            let record = driven.report.record(id).expect("every kitty decides");
+            assert_eq!(
+                record.provenance,
+                Provenance::PolicyMade,
+                "tick {}: the plugin accepted the request (v3, fogged world)",
+                world.tick
+            );
+        }
+    }
+    assert_eq!(world.tick, 300);
+}
+
 /// SC-003: a hostile plugin emitting malformed output every decision for
 /// 1,000 ticks. Every tick completes, the constitutional invariants hold
 /// (asserted inside the applied phases every tick), and every affected
