@@ -2671,10 +2671,11 @@ mod playful2_tests {
         let fogged = build(5, Position::new(10, 10));
         assert_eq!(blind_price(&fogged), Some(6.0));
         assert_eq!(travel_distance(&fogged, NeedKind::Eat), Some(6.0));
-        // From the centre the farthest corner is (9, 9) away: 162 > 144
-        // at r = 12 (priced), 162 <= 169 at r = 13 (covering: skipped).
-        assert_eq!(blind_price(&build(12, Position::new(10, 10))), Some(13.0));
-        assert_eq!(blind_price(&build(13, Position::new(10, 10))), None);
+        // From the centre the farthest corner, (0, 0), is (10, 10) away:
+        // 200 > 196 at r = 14 (priced), 200 <= 225 at r = 15 (covering:
+        // skipped).
+        assert_eq!(blind_price(&build(14, Position::new(10, 10))), Some(15.0));
+        assert_eq!(blind_price(&build(15, Position::new(10, 10))), None);
         // From a corner the whole world is farther: r = 26 does not cover
         // (19² + 19² = 722 > 676), r = 27 does (729).
         assert_eq!(blind_price(&build(26, Position::new(0, 19))), Some(27.0));
