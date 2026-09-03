@@ -103,6 +103,13 @@ ttl = 300
 [rl.episode]
 horizon = 2000
 
+# Fog Gen 1 (spec 049): the vision disc -- see cloudkitty.toml's [vision]
+# for the full note. ARC-TEMPORARY 40 (world-covering, the pre-fog world)
+# until the arc's last config task flips it to the placeholder 5.
+[vision]
+radius = 40
+memory_timeout_ticks = 0
+
 [rl.reward]
 p = 0.0          # Nash welfare — the product objective, unchanged
 epsilon = 0.01

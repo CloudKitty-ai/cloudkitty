@@ -154,6 +154,7 @@ play = 0.5831
 sleep = 0.5254
 
 [meow]
+digest_window_ticks = 30
 announce_hysteresis = 5.0
 announce_threshold = 30.0
 recent_window_ticks = 10
@@ -193,6 +194,10 @@ cooldown_factor_max = 2.75
 cooldown_factor_min = 1.75
 max_ticks = 13
 min_ticks = 8
+
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 
 [rl.policy.attn-a1-s1]
 artifact = "policies/attn-a1-s1.ckpolicy"

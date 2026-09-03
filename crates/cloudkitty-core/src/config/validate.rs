@@ -506,6 +506,18 @@ impl Config {
                 "must be a finite number in [0, 100] -- the need scale",
             ));
         }
+        // Spec 049 FR-043: the reply listener floor is a stamped intensity
+        // (need/100), so it lives on [0, 1] when set; NaN is never a floor.
+        if let Some(floor) = self.behavior.reply_intensity_floor {
+            if !floor.is_finite() || !(0.0..=1.0).contains(&floor) {
+                return Err(ConfigError::invalid(
+                    "[behavior] reply_intensity_floor",
+                    floor.to_string(),
+                    "must be a finite number in [0, 1] -- a caller's stamped \
+                     intensity (need/100); unset means replies are off",
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -680,8 +692,21 @@ impl Config {
             return Err(ConfigError::invalid(
                 "[meow] recent_window_ticks",
                 m.recent_window_ticks.to_string(),
-                "must be at least 1 -- the window is both audibility and the \
-                 per-kind cooldown",
+                "must be at least 1 -- the per-kind emission cooldown",
+            ));
+        }
+        // Spec 049 FR-017: the digest window is a positive integer multiple
+        // of the cooldown, so the rate cell's maximum (window / cooldown
+        // calls) is exact. Both keys named: the fix is to move either.
+        if m.digest_window_ticks == 0 || m.digest_window_ticks % m.recent_window_ticks != 0 {
+            return Err(ConfigError::invalid(
+                "[meow] digest_window_ticks",
+                m.digest_window_ticks.to_string(),
+                format!(
+                    "must be a positive integer multiple of [meow] recent_window_ticks ({}) \
+                     -- the rate cell counts calls per window / cooldown",
+                    m.recent_window_ticks
+                ),
             ));
         }
         if !m.announce_threshold.is_finite()
@@ -945,6 +970,23 @@ impl Config {
 
     /// Confirms every configured behavior name is registered. Called once the
     /// behavior registry is known.
+    /// `[vision]` (spec 049): the disc must contain adjacency and the
+    /// spec-012 yield rule's Manhattan-2 friend, which any r >= 2 gives
+    /// (edge case "Radius validation"). No upper bound: a world-covering
+    /// radius is the no-fog control.
+    pub(super) fn validate_vision(&self) -> Result<(), ConfigError> {
+        let v = &self.vision;
+        if v.radius < 2 {
+            return Err(ConfigError::invalid(
+                "[vision] radius",
+                v.radius.to_string(),
+                "must be at least 2 -- adjacency (r >= 1) and the yield rule's \
+                 Manhattan-2 friend must be inside the disc",
+            ));
+        }
+        Ok(())
+    }
+
     pub fn validate_behavior_names(&self, known: &[String]) -> Result<(), ConfigError> {
         for k in &self.kitties {
             if !known.iter().any(|n| n == &k.behavior) {

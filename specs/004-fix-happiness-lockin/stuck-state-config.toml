@@ -138,6 +138,7 @@ play_relief_greeble = 27.0
 rest_mutual_relief = 20.0
 groom_cuddle_relief = 20.0
 [meow]
+digest_window_ticks = 30
 # (Migrated twice: cooldown_ticks -> courtesy_ticks by spec 023, then the
 # courtesy trio deleted by spec 028, which made message legality engine law.
 # The stuck state this fixture archives is unrelated to meow timing, so the
@@ -157,3 +158,21 @@ playful_comfort = 55.0
 [events]
 # How many distress events to keep.
 distress_retention = 1000
+
+[purr]
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+[viewer]
+distress_patience_ticks = 60
+
+[vision]
+radius = 40
+memory_timeout_ticks = 0

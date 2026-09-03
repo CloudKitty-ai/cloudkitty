@@ -60,6 +60,10 @@ pub struct RlConfig {
 pub struct ObservationConfig {
     /// Kitty slots in the observation (default 3 — the default roster's
     /// "everyone else"; larger rosters are partially observable by design).
+    /// Spec 049 FR-011 moves this to 4 (one PERMANENT row per friend, by
+    /// id, roster ≤ slots + 1 enforced) WITH the schema-5 layout: the
+    /// default and the roster check land in the same change as the width,
+    /// because every schema-4 literal in this crate derives from it.
     pub kitty_slots: usize,
     /// Critter slots (default 4).
     pub critter_slots: usize,
@@ -443,7 +447,11 @@ mod tests {
 
             [rl.policy.sunchaser]
             artifact = "policies/sunchaser-v1.ckpolicy"
-        "#;
+        
+            [vision]
+            radius = 40
+            memory_timeout_ticks = 0
+"#;
         let rl = RlConfig::from_toml_str(text).expect("parses");
         assert_eq!(rl.reward.p, 1.0);
         assert_eq!(rl.reward.epsilon, 0.05);
@@ -531,7 +539,11 @@ mod tests {
 
             [rl.policy.trained]
             artifact = "policies/trained.ckpolicy"
-            "#,
+            
+            [vision]
+            radius = 40
+            memory_timeout_ticks = 0
+"#,
         )
         .expect("the documented deploy config must load");
         let pumpkin = core

@@ -1166,6 +1166,9 @@ ttl = 300
 [rl.eval]
 seeds = [1, 2]
 ticks = 50
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 "#;
 
     fn write_suite(dir: &Path, exam_text: &str, tamper_hash: bool) {

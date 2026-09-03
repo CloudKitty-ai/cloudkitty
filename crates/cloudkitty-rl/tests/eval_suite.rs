@@ -22,11 +22,11 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-fn evals_v1() -> PathBuf {
-    repo_root().join("evals/v1")
+fn evals_v2() -> PathBuf {
+    repo_root().join("evals/v2")
 }
 
-const V1_EXAM_FILES: [&str; 6] = [
+const V2_EXAM_FILES: [&str; 6] = [
     "scale.toml",
     "scarcity.toml",
     "heterogeneity.toml",
@@ -35,7 +35,8 @@ const V1_EXAM_FILES: [&str; 6] = [
     "mixed-roster-host.toml",
 ];
 
-/// A short-tick copy of the real v1 suite: same worlds, same structure,
+/// A short-tick copy of the real v2 suite (spec 049: the 3.0 cut of the
+/// v1 designs; v1 is a 2.x record and no longer loads on this engine): same worlds, same structure,
 /// `[rl.eval]` shrunk so integration tests stay fast. Hashes are computed
 /// over the rewritten bytes, so the scratch suite is internally frozen.
 fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
@@ -47,8 +48,8 @@ fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
     // synthetic outcomes in suite.rs.
     let k = seeds.matches(',').count() + 2;
     let mut hashes = BTreeMap::new();
-    for file in V1_EXAM_FILES {
-        let text = std::fs::read_to_string(evals_v1().join(file)).unwrap();
+    for file in V2_EXAM_FILES {
+        let text = std::fs::read_to_string(evals_v2().join(file)).unwrap();
         let text = text
             .replace("ticks = 20000", &format!("ticks = {ticks}"))
             .replace("seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", seeds);
@@ -244,8 +245,8 @@ fn two_suite_runs_produce_identical_json() {
 #[test]
 fn every_v1_exam_sustains_an_invariant_asserted_run() {
     let registry = BehaviorRegistry::with_builtins();
-    for file in V1_EXAM_FILES {
-        let path = evals_v1().join(file);
+    for file in V2_EXAM_FILES {
+        let path = evals_v2().join(file);
         let (core, rl) = load_configs_from_path(path.to_str().unwrap())
             .unwrap_or_else(|e| panic!("{file} must load and validate: {e}"));
         // Cells carry candidate seats; normalize them the same way the
@@ -280,8 +281,8 @@ fn no_exam_equals_a_training_or_certification_config() {
     // untracked worlds.backup/) -- they carried pre-022 purr/meow keys and
     // would no longer load.
     let others = ["cloudkitty.toml", "training.toml"];
-    for file in V1_EXAM_FILES {
-        let exam_bytes = std::fs::read(evals_v1().join(file)).unwrap();
+    for file in V2_EXAM_FILES {
+        let exam_bytes = std::fs::read(evals_v2().join(file)).unwrap();
         for other in others {
             let other_bytes = std::fs::read(root.join(other)).unwrap();
             assert_ne!(
@@ -308,10 +309,10 @@ fn no_exam_equals_a_training_or_certification_config() {
     let load = |path: PathBuf| load_configs_from_path(path.to_str().unwrap()).unwrap().0;
     let bar = load(root.join("cloudkitty.toml"));
     let gym = load(root.join("training.toml"));
-    let scale = load(evals_v1().join("scale.toml"));
-    let scarcity = load(evals_v1().join("scarcity.toml"));
-    let heterogeneity = load(evals_v1().join("heterogeneity.toml"));
-    let mixed = load(evals_v1().join("mixed-roster-guest.toml"));
+    let scale = load(evals_v2().join("scale.toml"));
+    let scarcity = load(evals_v2().join("scarcity.toml"));
+    let heterogeneity = load(evals_v2().join("heterogeneity.toml"));
+    let mixed = load(evals_v2().join("mixed-roster-guest.toml"));
 
     let tiles = |c: &Config| c.world.width * c.world.height;
     assert!(
@@ -487,14 +488,14 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
 // candidate fails behavior-name validation loudly.
 #[test]
 fn two_subjects_share_the_frozen_exam_without_touching_it() {
-    let real_hashes: Vec<String> = V1_EXAM_FILES
+    let real_hashes: Vec<String> = V2_EXAM_FILES
         .iter()
-        .map(|f| sha256_hex(&std::fs::read(evals_v1().join(f)).unwrap()))
+        .map(|f| sha256_hex(&std::fs::read(evals_v2().join(f)).unwrap()))
         .collect();
 
     let dir = build_scratch_suite("two-subjects", 100, "seeds = [1]");
     let scratch_hash = |dir: &Path| -> Vec<String> {
-        V1_EXAM_FILES
+        V2_EXAM_FILES
             .iter()
             .map(|f| sha256_hex(&std::fs::read(dir.join(f)).unwrap()))
             .collect()
@@ -513,16 +514,16 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
         assert_eq!(scratch_hash(&dir), before, "scoring {brain} wrote nothing");
     }
 
-    let after: Vec<String> = V1_EXAM_FILES
+    let after: Vec<String> = V2_EXAM_FILES
         .iter()
-        .map(|f| sha256_hex(&std::fs::read(evals_v1().join(f)).unwrap()))
+        .map(|f| sha256_hex(&std::fs::read(evals_v2().join(f)).unwrap()))
         .collect();
     assert_eq!(real_hashes, after, "the committed exam files are untouched");
 
     // Outside a suite run, the placeholder is an ordinary policy name and
     // an unbound registry rejects it, naming the kitty and the behavior.
     let (core, _) =
-        load_configs_from_path(evals_v1().join("mixed-roster-guest.toml").to_str().unwrap())
+        load_configs_from_path(evals_v2().join("mixed-roster-guest.toml").to_str().unwrap())
             .unwrap();
     let unbound = BehaviorRegistry::with_builtins();
     let Err(err) = core.validate_behavior_names(&unbound.names()) else {
@@ -540,7 +541,7 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
 #[test]
 fn cell_configs_differ_only_in_behavior() {
     let strip_behaviors = |file: &str| -> toml::Value {
-        let text = std::fs::read_to_string(evals_v1().join(file)).unwrap();
+        let text = std::fs::read_to_string(evals_v2().join(file)).unwrap();
         let mut value: toml::Value = toml::from_str(&text).unwrap();
         for kitty in value
             .get_mut("kitty")
@@ -559,7 +560,7 @@ fn cell_configs_differ_only_in_behavior() {
 
     // And the seat maps are exactly the contract's (contracts/exam-configs.md).
     let seats = |file: &str| -> Vec<String> {
-        let (core, _) = load_configs_from_path(evals_v1().join(file).to_str().unwrap()).unwrap();
+        let (core, _) = load_configs_from_path(evals_v2().join(file).to_str().unwrap()).unwrap();
         core.kitties.iter().map(|k| k.behavior.clone()).collect()
     };
     let c = CANDIDATE_BEHAVIOR;
@@ -603,7 +604,7 @@ fn binomial_tail(n: u32, p: f64, k: u32) -> f64 {
 // read from the manifest and the cell configs.
 #[test]
 fn least_happy_thresholds_match_the_binomial_rule() {
-    let suite = load_suite(&evals_v1()).unwrap();
+    let suite = load_suite(&evals_v2()).unwrap();
     let cells = suite
         .exams
         .iter()
@@ -689,7 +690,7 @@ fn a_landed_exam_file_cannot_change_without_failing_ci() {
 // finding 6), so every cell's seed count must derive the same k.
 #[test]
 fn sign_test_k_matches_the_fair_coin_rule() {
-    let suite = load_suite(&evals_v1()).unwrap();
+    let suite = load_suite(&evals_v2()).unwrap();
     let mut cells_checked = 0;
     for exam in &suite.exams {
         let cloudkitty_rl::suite::LoadedExam::MixedRoster { name, cells } = exam else {

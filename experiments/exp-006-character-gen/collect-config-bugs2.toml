@@ -240,6 +240,7 @@ sleep = { min = 6, max = 12 }
 cuddle = { min = 6, max = 12 }
 
 [meow]
+digest_window_ticks = 30
 # Law, not manners (spec 028): a want-kind may be spoken only while its need
 # is armed and that kind's per-cat cooldown has cleared; silence is always
 # legal. The window below is both audibility and the per-kind cooldown, so
@@ -389,6 +390,15 @@ distress_patience_ticks = 60
 # grid-2026-08-09.md; ledger + per-run JSONs beside it.
 # Greedy selection (sample = false), matching the measured condition.
 # Since the 2026-08-14 cross-generation cutover it drives Biscuit's seat only.
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+[vision]
+radius = 40
+memory_timeout_ticks = 0
+
 [rl.policy.e004-a1-s2]
 artifact = "policies/e004-a1-s2.ckpolicy"
 

@@ -83,6 +83,12 @@ pub struct Config {
     pub events: EventsConfig,
     #[serde(default)]
     pub viewer: ViewerConfig,
+    /// Fog Gen 1 (spec 049): the vision disc and the element-memory
+    /// expiry. REQUIRED -- the first section written under the 3.0 rule
+    /// (FR-030): a config that omits it fails to load naming it. There is
+    /// no absence default; `Config::default()` documents the served
+    /// values.
+    pub vision: VisionConfig,
     /// The `[rl]`, `[plugins]`, and `[watchdog]` tables are parsed from
     /// the same file text by cloudkitty-rl and the server respectively --
     /// everything under them is someone else's business. They are
@@ -102,6 +108,37 @@ pub struct Config {
 /// it. Deserializes from any value; carries nothing.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct ForeignTable;
+
+/// `[vision]` (spec 049): the fog. Every cat -- policy, built-in, plugin
+/// -- sees the kitties and elements inside a Euclidean disc of `radius`
+/// around it (`dx² + dy² ≤ r²`, integer arithmetic, FR-001) and nothing
+/// beyond; hearing stays global. World law, not an observation knob: the
+/// same disc bounds what a scripted behaviour may know (FR-021). Every
+/// field is required -- there is no per-field default to fall back on,
+/// because a config that does not say how far its cats see is not a 3.0
+/// config.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VisionConfig {
+    /// The disc radius in tiles. At least 2 (adjacency and the spec-012
+    /// yield rule's Manhattan-2 friend must be visible); a radius covering
+    /// the whole world is legal and is the no-fog control. Served 5 -- a
+    /// placeholder the step-5 prereg screens (FR-002).
+    pub radius: u32,
+    /// Element-memory expiry (FR-008): a remembered tile older than this
+    /// many ticks is forgotten. 0 = never (the served value); sight is
+    /// otherwise the only thing that corrects a memory.
+    pub memory_timeout_ticks: u64,
+}
+
+impl Default for VisionConfig {
+    fn default() -> Self {
+        Self {
+            radius: default_vision_radius(),
+            memory_timeout_ticks: default_vision_memory_timeout_ticks(),
+        }
+    }
+}
 
 impl<'de> serde::Deserialize<'de> for ForeignTable {
     fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
@@ -753,12 +790,23 @@ impl DurationsConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MeowConfig {
-    /// How long a meow stays visible to kitties and viewers -- and, since
-    /// spec 028, the per-kind emission cooldown: one live digest entry per
-    /// kind per emitter, so a persistent signal refreshes exactly as the
-    /// old one fades.
+    /// The per-kind emission COOLDOWN (spec 028; renamed in meaning, not
+    /// in key, by spec 049 FR-017): after a cat speaks a kind it may not
+    /// speak that kind again for this many ticks -- the speech-economy
+    /// law the density ladder (F-034) rides on. Audibility is no longer
+    /// this key's business: how long a call stays audible, and the rate
+    /// cell's denominator, is `digest_window_ticks`. The key keeps its
+    /// name because the retired `[meow] cooldown_ticks` is deleted in the
+    /// same change and tooling references this one.
     #[serde(default = "default_meow_recent_window_ticks")]
     pub recent_window_ticks: u64,
+    /// The digest window (spec 049 FR-017): a call is audible -- kept in
+    /// `recent_meows`, counted by the per-speaker (recency, rate) cells,
+    /// eligible as a want a here-word can answer -- while its age is
+    /// strictly less than this. Must be a positive integer multiple of
+    /// `recent_window_ticks` so the rate cell's maximum is exact (3 at
+    /// 30/10). REQUIRED -- no absence default (FR-030).
+    pub digest_window_ticks: u64,
     /// A want-kind arms when its need reaches this level; only an armed
     /// kind may be announced (grounded legality, enforced in the mask).
     #[serde(default = "default_meow_announce_threshold")]
@@ -799,6 +847,7 @@ impl Default for MeowConfig {
     fn default() -> Self {
         Self {
             recent_window_ticks: default_meow_recent_window_ticks(),
+            digest_window_ticks: default_meow_digest_window_ticks(),
             announce_threshold: default_meow_announce_threshold(),
             announce_hysteresis: default_meow_announce_hysteresis(),
             cooldown_ticks: None,
@@ -1070,6 +1119,17 @@ pub struct BehaviorConfig {
     /// (the pounce field's 039-D5 discipline).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub contagion_aware_ladder: bool,
+    /// Spec 049 FR-043: the scripted reply listener floor. When set, a
+    /// built-in cat that hears a want it can answer (the paired here-kind
+    /// is legal for it now) replies iff the caller's stamped intensity is
+    /// at least this; the reply rides the message channel only (FR-042).
+    /// Unset (the served value) = no reply candidate ever exists, and the
+    /// launch state is byte-identical to the no-reply engine (the 043
+    /// pattern). 0.30 is the provisional placeholder for corpus-collection
+    /// configs, revisited when the speaker floor is screened at step 5.
+    /// Skip-serialized when absent (the 039-D5 stamp discipline).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reply_intensity_floor: Option<f32>,
 }
 
 impl Default for BehaviorConfig {
@@ -1102,6 +1162,7 @@ impl Default for BehaviorConfig {
             comfort_weight: ComfortWeights::default(),
             announce_here: 0,
             contagion_aware_ladder: false,
+            reply_intensity_floor: None,
         }
     }
 }
@@ -1267,6 +1328,7 @@ impl Default for Config {
             water: WaterConfig::default(),
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
+            vision: VisionConfig::default(),
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
@@ -1314,6 +1376,8 @@ impl Config {
         // Position 16: appended by spec 024 (a spec-contract extension,
         // documented in that spec -- new sections append, never reorder).
         self.validate_water()?;
+        // Position 17: appended by spec 049 (fog).
+        self.validate_vision()?;
         Ok(())
     }
 
@@ -1660,7 +1724,11 @@ mod tests {
             x = 2
             y = 2
             behavior = "playful"
-        "#;
+        
+            [vision]
+            radius = 40
+            memory_timeout_ticks = 0
+"#;
         let c: Config = toml::from_str(toml_src).expect("parses");
         assert_eq!(c.kitties[0].needs.unwrap().eat, Some(1.5));
         assert_eq!(c.kitties[0].needs.unwrap().drink, None);
@@ -1855,20 +1923,24 @@ mod tests {
 
     #[test]
     fn meow_dial_defaults_land_and_the_rows_hold() {
-        // Spec 028 (keeping 023's posture): an absent [meow] table (or a
-        // partial one) fills from defaults, so an old-key config reaches
-        // validation where the retirement error can explain itself.
-        let parsed: MeowConfig = toml::from_str("").expect("an empty meow table parses");
+        // Spec 028 (keeping 023's posture) as amended by spec 049 FR-030:
+        // the dials still fill from defaults, but `digest_window_ticks` is
+        // REQUIRED -- a partial table that omits it is not a 3.0 config
+        // (see `a_meow_section_without_the_digest_window_is_refused`).
+        let parsed: MeowConfig =
+            toml::from_str("digest_window_ticks = 30").expect("the dials fill from defaults");
         assert_eq!(
             (
                 parsed.recent_window_ticks,
+                parsed.digest_window_ticks,
                 parsed.announce_threshold,
                 parsed.announce_hysteresis
             ),
-            (10, 30.0, 5.0)
+            (10, 30, 30.0, 5.0)
         );
         let partial: MeowConfig =
-            toml::from_str("announce_threshold = 40.0").expect("a partial meow table parses");
+            toml::from_str("digest_window_ticks = 30\nannounce_threshold = 40.0")
+                .expect("a partial meow table parses");
         assert_eq!(partial.announce_hysteresis, 5.0);
 
         // The band rows: hysteresis strictly below threshold, threshold on
@@ -1914,7 +1986,8 @@ mod tests {
             ),
         ] {
             let parsed: MeowConfig =
-                toml::from_str(toml_line).expect("the retired key still parses");
+                toml::from_str(&format!("digest_window_ticks = 30\n{toml_line}"))
+                    .expect("the retired key still parses");
             let mut c = cfg();
             c.meow = parsed;
             let msg = c.validate().unwrap_err().to_string();
@@ -1929,8 +2002,8 @@ mod tests {
         // Spec 023 FR-006 / US3 scenario 2: the enforcement-era names fail
         // at load naming their replacements -- never silently accepted with
         // shifted semantics.
-        let parsed: MeowConfig =
-            toml::from_str("cooldown_ticks = 15").expect("the retired key still parses");
+        let parsed: MeowConfig = toml::from_str("digest_window_ticks = 30\ncooldown_ticks = 15")
+            .expect("the retired key still parses");
         let mut c = cfg();
         c.meow = parsed;
         let msg = c.validate().unwrap_err().to_string();
@@ -1938,7 +2011,8 @@ mod tests {
         assert!(msg.contains("retired"), "{msg}");
         assert!(msg.contains("courtesy_ticks"), "{msg}");
 
-        let parsed: MeowConfig = toml::from_str("urgent_cooldown_ticks = 5").expect("parses");
+        let parsed: MeowConfig =
+            toml::from_str("digest_window_ticks = 30\nurgent_cooldown_ticks = 5").expect("parses");
         let mut c = cfg();
         c.meow = parsed;
         let msg = c.validate().unwrap_err().to_string();
@@ -2008,7 +2082,7 @@ mod tests {
         let parsed: Config = toml::from_str(
             "[world]\nwidth = 32\nheight = 32\nseed = 7\ntick_ms = 1000\n\
              [[kitty]]\nid = 1\nname = \"A\"\nx = 1\ny = 1\nbehavior = \"needs_driven\"\n\
-             [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n",
+             [[kitty]]\nid = 2\nname = \"B\"\nx = 2\ny = 2\nbehavior = \"needs_driven\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .expect("pre-024 config parses");
         assert_eq!(parsed.water.bath_gain, 3.5);
@@ -2460,7 +2534,11 @@ mod tests {
                 groom_relief = 30.0
                 play_relief = 20.0
                 {extra}
-            "#
+            
+                [vision]
+                radius = 40
+                memory_timeout_ticks = 0
+"#
             ))
             .expect("shape parses");
             c.validate()
@@ -2517,7 +2595,11 @@ mod tests {
                 sleep_relief_sunbeam = 8.0
                 groom_relief = 30.0
                 play_relief = {play_relief}
-            "#
+            
+                [vision]
+                radius = 40
+                memory_timeout_ticks = 0
+"#
             ))
             .expect("legacy shape parses")
         };
@@ -2587,7 +2669,11 @@ mod tests {
             sleep_relief_sunbeam = 8.0
             groom_relief = 30.0
             play_relief = 20.0
-        "#;
+        
+            [vision]
+            radius = 40
+            memory_timeout_ticks = 0
+"#;
         let c: Config = toml::from_str(toml_src).expect("old-shape config parses");
         assert_eq!(c.behavior.urgency_weight, default_urgency_weight());
         assert_eq!(
@@ -2657,7 +2743,11 @@ mod tests {
             groom_relief = 30.0
             play_relief = 25.0
             cuddle_relief = 20.0
-        "#;
+        
+            [vision]
+            radius = 40
+            memory_timeout_ticks = 0
+"#;
         let c: Config = toml::from_str(toml_src).expect("durationless [actions] parses");
         assert_eq!(c.actions.durations.eat, DurationBounds::new(2, 5));
         assert_eq!(c.actions.durations.drink, DurationBounds::new(2, 5));
@@ -2783,10 +2873,10 @@ mod tests {
     fn the_rl_and_plugins_tables_belong_to_other_parsers_and_still_load() {
         let text = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
                     [rl.observation]\nkitty_slots = 4\n\n\
-                    [plugins.greeter]\ncommand = \"/bin/true\"\n";
+                    [plugins.greeter]\ncommand = \"/bin/true\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n";
         let c: Config = toml::from_str(text).expect("foreign tables are recognised, not rejected");
         let plain: Config =
-            toml::from_str("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n").unwrap();
+            toml::from_str("[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n").unwrap();
         assert_eq!(c, plain, "and they carry nothing into Config");
     }
 
@@ -2969,12 +3059,12 @@ mod tests {
         // the section-level default.
         let absent: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\n",
+             [water]\nbath_gain = 3.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         let zero: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_factor = 0.0\n",
+             [water]\nbath_gain = 3.5\ncontagion_factor = 0.0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert_eq!(absent, zero);
@@ -2990,12 +3080,12 @@ mod tests {
         // the section-level default.
         let absent: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\n",
+             [water]\nbath_gain = 3.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         let explicit: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_membership = \"option_a\"\n",
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"option_a\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert_eq!(absent, explicit);
@@ -3006,7 +3096,7 @@ mod tests {
         // The other variant actually parses — the dial is reachable.
         let bidi: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_membership = \"bidirectional\"\n",
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"bidirectional\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert_eq!(
@@ -3022,7 +3112,7 @@ mod tests {
         // the lab config author sees the menu, not a shrug.
         let err = toml::from_str::<Config>(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [water]\nbath_gain = 3.5\ncontagion_membership = \"both\"\n",
+             [water]\nbath_gain = 3.5\ncontagion_membership = \"both\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap_err()
         .to_string();
@@ -3040,19 +3130,19 @@ mod tests {
         // unmoved. Same discipline as the sibling arms above.
         let absent: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\n",
+             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         let explicit: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = false\n",
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = false\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert_eq!(absent, explicit);
         assert!(!absent.behavior.contagion_aware_ladder);
         let on: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = true\n",
+             [behavior]\nbudget_fraction_of_tick = 0.5\ncontagion_aware_ladder = true\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert!(on.behavior.contagion_aware_ladder);
@@ -3068,12 +3158,12 @@ mod tests {
         // struct-level default.
         let absent: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\n",
+             [behavior]\nbudget_fraction_of_tick = 0.5\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         let zero: Config = toml::from_str(
             "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
-             [behavior]\nbudget_fraction_of_tick = 0.5\nannounce_here = 0\n",
+             [behavior]\nbudget_fraction_of_tick = 0.5\nannounce_here = 0\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
         )
         .unwrap();
         assert_eq!(absent, zero);
@@ -3124,8 +3214,9 @@ mod tests {
         let v = config.meow.vocabulary;
         assert!(v.want_eat && v.mew && v.purr && v.here_food && v.chirp);
         assert!(!v.trill && !v.ekekek, "reserves ship off");
-        // And a bare [meow] table parses to the same defaults.
-        let meow: MeowConfig = toml::from_str("").unwrap();
+        // And a [meow] table carrying only its required key parses to the
+        // same defaults.
+        let meow: MeowConfig = toml::from_str("digest_window_ticks = 30").unwrap();
         assert_eq!(meow.vocabulary, VocabularyConfig::default());
     }
 
@@ -3192,5 +3283,109 @@ trill = true",
                 );
             }
         }
+    }
+    // ---- spec 049: the fog surface (T006/T007) ----
+
+    #[test]
+    fn vision_radius_below_two_is_refused_naming_the_key() {
+        // Edge case "Radius validation": r >= 2 keeps adjacency and the
+        // yield rule's Manhattan-2 friend inside the disc.
+        for bad in [0u32, 1] {
+            let mut c = cfg();
+            c.vision.radius = bad;
+            let err = c.validate().unwrap_err().to_string();
+            assert!(err.contains("[vision] radius"), "{err}");
+            assert!(err.contains(&bad.to_string()), "{err}");
+        }
+        let mut c = cfg();
+        c.vision.radius = 2;
+        c.validate().expect("2 is the floor");
+        c.vision.radius = 400;
+        c.validate()
+            .expect("a world-covering radius is the no-fog control");
+    }
+
+    #[test]
+    fn digest_window_must_be_a_positive_multiple_of_the_cooldown() {
+        // FR-017: window / cooldown is the rate cell's maximum, so it must
+        // be an exact integer; the error names both keys.
+        for bad in [0u64, 25, 5, 31] {
+            let mut c = cfg();
+            c.meow.recent_window_ticks = 10;
+            c.meow.digest_window_ticks = bad;
+            let err = c.validate().unwrap_err().to_string();
+            assert!(err.contains("[meow] digest_window_ticks"), "{err}");
+            assert!(err.contains("recent_window_ticks"), "{err}");
+            assert!(err.contains(&bad.to_string()), "{err}");
+        }
+        for ok in [10u64, 20, 30, 100] {
+            let mut c = cfg();
+            c.meow.recent_window_ticks = 10;
+            c.meow.digest_window_ticks = ok;
+            c.validate()
+                .unwrap_or_else(|e| panic!("{ok} is a multiple of 10: {e}"));
+        }
+    }
+
+    #[test]
+    fn reply_intensity_floor_outside_the_unit_interval_is_refused() {
+        // FR-043: a floor is a stamped intensity (need/100).
+        for bad in [-0.01f32, 1.01, f32::NAN, f32::INFINITY] {
+            let mut c = cfg();
+            c.behavior.reply_intensity_floor = Some(bad);
+            let err = c.validate().unwrap_err().to_string();
+            assert!(err.contains("[behavior] reply_intensity_floor"), "{err}");
+        }
+        for ok in [None, Some(0.0f32), Some(0.30), Some(1.0)] {
+            let mut c = cfg();
+            c.behavior.reply_intensity_floor = ok;
+            c.validate()
+                .unwrap_or_else(|e| panic!("{ok:?} is a legal floor: {e}"));
+        }
+    }
+
+    #[test]
+    fn the_vision_section_is_required_and_named_when_missing() {
+        // FR-030: the first section written under the 3.0 rule -- no
+        // absence default. The served defaults live in Config::default()
+        // only.
+        let without = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n";
+        let err = toml::from_str::<Config>(without).unwrap_err().to_string();
+        assert!(
+            err.contains("vision"),
+            "the refusal names the section: {err}"
+        );
+        let with = format!("{without}[vision]\nradius = 5\nmemory_timeout_ticks = 0\n");
+        let c: Config = toml::from_str(&with).expect("a complete [vision] loads");
+        assert_eq!(c.vision.radius, 5);
+        assert_eq!(c.vision.memory_timeout_ticks, 0);
+        // Both fields are required, not per-field defaulted.
+        let half = format!("{without}[vision]\nradius = 5\n");
+        let err = toml::from_str::<Config>(&half).unwrap_err().to_string();
+        assert!(err.contains("memory_timeout_ticks"), "{err}");
+    }
+
+    #[test]
+    fn a_meow_section_without_the_digest_window_is_refused() {
+        // FR-030 applies to the new key too: `[meow]` present without
+        // `digest_window_ticks` is an incomplete 3.0 config.
+        let text = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\
+                    [vision]\nradius = 5\nmemory_timeout_ticks = 0\n\
+                    [meow]\nrecent_window_ticks = 10\n";
+        let err = toml::from_str::<Config>(text).unwrap_err().to_string();
+        assert!(err.contains("digest_window_ticks"), "{err}");
+    }
+
+    #[test]
+    fn the_served_fog_defaults_are_the_documented_placeholders() {
+        let c = cfg();
+        assert_eq!(c.vision.radius, 5, "FR-002 placeholder");
+        assert_eq!(c.vision.memory_timeout_ticks, 0, "FR-008: never");
+        assert_eq!(c.meow.digest_window_ticks, 30, "FR-017");
+        assert_eq!(c.meow.recent_window_ticks, 10, "the cooldown is unmoved");
+        assert_eq!(
+            c.behavior.reply_intensity_floor, None,
+            "FR-043: replies off"
+        );
     }
 }

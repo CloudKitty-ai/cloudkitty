@@ -653,6 +653,9 @@ artifact = "{}"
 
 [plugins.advisor]
 command = "/bin/echo"
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 "#,
         artifact.display()
     )

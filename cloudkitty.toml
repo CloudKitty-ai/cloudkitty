@@ -292,10 +292,23 @@ cuddle = { min = 6, max = 12 }
 [meow]
 # Law, not manners (spec 028): a want-kind may be spoken only while its need
 # is armed and that kind's per-cat cooldown has cleared; silence is always
-# legal. The window below is both audibility and the per-kind cooldown, so
-# an honest persistent signal refreshes exactly as the old one fades --
-# one live digest entry per kind per emitter, never sooner.
+# legal. Under fog (spec 049) a want-word is also a claim of ignorance --
+# legal only when the need is the cat's top need and it knows no relief
+# (nothing visible or remembered; for the social words, no idle friend in
+# view) -- and a here-word may answer an audible want it can see the
+# referent of. The full law is docs/meows.md.
+#
+# recent_window_ticks is the per-kind emission COOLDOWN (spec 049 FR-017
+# rewrote its meaning, not its key): after speaking a kind a cat may not
+# speak it again for this many ticks. Audibility moved to
+# digest_window_ticks below.
 recent_window_ticks = 10
+# The digest window (spec 049): a call stays audible -- kept in the recent
+# buffer, counted by the per-speaker (recency, rate) cells on every kitty
+# row, answerable by a here-word -- while its age is strictly less than
+# this. Must be a positive integer multiple of recent_window_ticks so the
+# rate cell's maximum (window / cooldown = 3 calls) is exact.
+digest_window_ticks = 30
 # A want-kind arms at this need level (grounded legality)...
 announce_threshold = 30.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
@@ -485,6 +498,25 @@ distress_patience_ticks = 60
 # policies/retired/ with their records; shas + provenance in
 # policies/README.md and policies/registry.toml (spec 034 rows in this
 # same change, per the same-PR rule).
+# Fog Gen 1 (spec 049): every cat -- policy, built-in, plugin -- sees the
+# kitties and elements inside a Euclidean disc of `radius` tiles around it
+# (dx^2 + dy^2 <= r^2, the disc's edge included) and nothing beyond;
+# hearing stays global; each cat remembers the last tile it saw each
+# element kind on, corrected on sight. World law, so it lives here beside
+# [world] and [meow], not under [rl]. The 3.0 placeholder radius is 5
+# (81 tiles; the step-5 prereg screens the value).
+#
+# ARC-TEMPORARY: 40 here is the world-covering radius (the pre-fog world --
+# the served 20x20 world's width + height, so every tile is inside every
+# disc). It holds while the 049 arc lands, so the suite stays green and the
+# byte-identity proof (FR-024) runs against the served file; the arc's last
+# config task flips it to the placeholder 5 together with the one golden
+# regeneration. Do not deploy this value.
+[vision]
+radius = 40
+# Element-memory expiry in ticks; 0 = never (sight is the only corrector).
+memory_timeout_ticks = 0
+
 [rl.policy.attn-a1-s1-o4]
 artifact = "policies/attn-a1-s1-o4.ckpolicy"
 

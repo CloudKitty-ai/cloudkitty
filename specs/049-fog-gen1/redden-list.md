@@ -18,6 +18,37 @@ FINAL count: recorded at T085.
 | # | Task | Mutation / staging | Prediction (exact reds) | Observed | Restored + count re-read |
 |---|------|--------------------|-------------------------|----------|--------------------------|
 | 0 | T001 | none (baseline) | — | 818/0, 1 ignored | — |
+| 1 | T008 (rule-6 sort) | `kitty_slots` default 3 → 4 with the old guard left in place | `rl config::tests::an_empty_file_yields_the_documented_defaults` red (`left: 4, right: 3`) | that red PLUS, at the full-suite run, 15 more: every schema-4 derived literal in rl/server (`the_default_layout_is_225_values`, `the_default_menu_has_exactly_thirty_four_entries…`, `…23_tokens`, `the_logit_budget_is_fifty`, `the_schema_four_numbers_match_the_contract`, 2 mask, 2 codec/episode vacant-slot, `the_forward_matches_the_numpy_oracle…`, `all_three_committed_artifacts_expand…`, `every_index_decodes…`, 2 `policy_kitty`) — the T025/T029/T031 must-fail set, one phase early | **DEFERRED**: default restored to 3, roster check + test withdrawn to the head of Phase 4 (T008 re-lands with T024); the 3-guard re-observed then. Suite re-read below. |
+| 2 | T006 (rule-6 sort) | `[meow] digest_window_ticks` made REQUIRED (no serde default) | 4 core config tests that asserted the 028 "partial `[meow]` fills from defaults" posture red: `meow_dial_defaults_land_and_the_rows_hold`, `the_retired_courtesy_trio_is_rejected_loudly`, `the_retired_meow_cooldown_knobs_are_rejected_loudly`, `an_omitted_vocabulary_table_means_the_documented_defaults` | exactly those 4 (94/4 in `config::`) | each re-pointed to carry the required key (the two rejector tests die at T069 anyway); `a_meow_section_without_the_digest_window_is_refused` is the new guard; `config::` 98/0 |
+
+## §phase-2 notes (T009 checkpoint)
+
+- **`evals/v2` front-loaded from T073**: `evals/v1` is hash-frozen (manifest
+  sha256 + `eval_suite.rs` freeze guard) and cannot carry `[vision]`, so the
+  moment the section became required (T006) the v1 exams stopped loading and
+  `eval_suite.rs` (which builds scratch suites from the exam files) went
+  red. The v2 cut (six complete 3.0 configs via `complete_config_3.py`,
+  radius ARC-TEMPORARY 40, new manifest hashes), `evals/v1` → exclusions, and
+  the `eval_suite.rs` / `shipped_configs_rl.rs` / `kitty-eval` retargets
+  landed at T009.
+- **OWNER FLAG (FR-011 consequence the plan did not price)**: with permanent
+  by-id rows the loader refuses roster > `kitty_slots + 1`, so `scale` (8
+  cats) and the three `mixed-roster` cells (6 cats) now carry
+  `[rl.observation] kitty_slots = roster − 1` (7 / 5) to load at all — and
+  therefore a different observation width (85 + 7×62 + … / 85 + 5×62 + …),
+  which a 404-wide Gen 1 mind cannot sit. Certification at step 6 needs
+  either minds shaped per exam roster or an exam redesign; recorded in each
+  exam's `[rl.observation]` comment and raised in the PR. Reversible: the
+  four exams are the only live configs with rosters above five.
+- **Record classification (T072's, taken early)**: nine 2.x directories
+  joined `config-sweep-exclusions.txt` with reasons (exp-004 families /
+  pilot / rebaseline, here-word-screen arms, sunbeam screen, attn-ppo test
+  worlds, tail-benchmarks, exp-005-leash, evals/v1); the live set = served,
+  training, clowder tiny-world, the spec-004 stuck-state fixture, and the
+  43 exp-006 cert/collect/family configs (FR-034's "cert, collect, lab
+  families"). T072 re-runs the script in `--check` mode and reviews.
+- `experiments/tools/config-3.0-defaults.toml` is GENERATED from
+  `Config::default()` (T009); regenerate when a compiled default moves.
 
 ## Standing-reds ledger
 

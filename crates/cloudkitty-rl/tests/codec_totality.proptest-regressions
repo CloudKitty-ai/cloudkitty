@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 308424e37d8d5a4c5924cf9f6b9d6c9b589b79d098cf37baef01979a6ab9f593 # shrinks to table = TargetTable { kitties: [None, None, None], critters: [None, None, None, None] }

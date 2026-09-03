@@ -2,7 +2,7 @@
 //!
 //! The core sweep (cloudkitty-core/tests/shipped_configs.rs) deserializes
 //! `Config` alone and never sees the `[rl]` blocks -- yet the frozen
-//! evals/v1 exams carry `[rl.eval]` and `[rl.reward]`, and those files are
+//! evals/v2 exams carry `[rl.eval]` and `[rl.reward]`, and those files are
 //! sha-pinned and uneditable. With `deny_unknown_fields` on the rl structs
 //! (2026-08-06 handoff item 2), a stray key there would slip past the core
 //! sweep and permanently strand a certification exam. This sweep closes
@@ -82,8 +82,8 @@ fn every_shipped_toml_loads_through_both_config_surfaces() {
     assert!(
         files
             .iter()
-            .any(|p| { p.parent().is_some_and(|d| d.ends_with("evals/v1")) }),
-        "the frozen exams are in the sweep"
+            .any(|p| { p.parent().is_some_and(|d| d.ends_with("evals/v2")) }),
+        "the frozen exams (evals/v2, the 3.0 cut) are in the sweep"
     );
     for file in files {
         let text = std::fs::read_to_string(&file).unwrap();

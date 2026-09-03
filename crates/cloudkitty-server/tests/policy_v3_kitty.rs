@@ -46,6 +46,9 @@ artifact = "{}"
 
 [rl.policy.mlp]
 artifact = "{}"
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 "#,
         v3.display(),
         v2.display()

@@ -54,6 +54,9 @@ behavior = "policy:trained"
 
 [rl.policy.trained]
 artifact = "{}"
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 "#,
         artifact.display()
     )
