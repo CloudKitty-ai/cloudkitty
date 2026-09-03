@@ -336,6 +336,22 @@ enters step 4's spec without appearing here first.
   - Width for the schema pins: ≈ 364 floats (245 four-row base + digest
     on rows +120 −60 global + self-row 30 + scene age 5 + water bits 4
     + memory 20); the spec states the exact number (owner agreed).
+  - **Cutover housekeeping, owner ruled 2026-09-02** (not the fog
+    spec's; the wall / step-7 PRs own them):
+    - `binding_continuity.py` re-baselines at the wall: new reference
+      record with a 3.0 config and an ALL-SCRIPTED seating, defaults
+      re-pointed (both current defaults are pre-wall: the exp-006
+      config migrates forward in place per F-028, the `c006a-L04s3`
+      seating is schema 3 and cannot load). The tool proves
+      binding-vs-engine determinism, not policy behaviour; a Gen 1
+      artifact may replace the seating later.
+    - Groom bump revert: `groom_cuddle_relief` 2.0 → 0.5 rides the
+      `--fresh` 3.0 served config at step-7 cutover, same PR, with the
+      `shipped_configs.rs:119` pin moving alongside. Gen 1 trains at
+      the canonical 0.5 untouched; the step-6 soak is the check on a
+      re-learned groom-for-cuddle loop, no separate pre-check. Served
+      reads taken at 2.0 (F-039, the post-041 census) re-run after
+      cutover.
   **Step 3 doc COMPLETE 2026-09-02**: every member ruled. Step 4 spec
   opens on this list.
 
