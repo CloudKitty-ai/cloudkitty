@@ -286,6 +286,35 @@ enters step 4's spec without appearing here first.
     codec, the HTTP API, `HEAD_KINDS`; `validate_capacity` keeps itself.
     Python blast radius for the key deletions is zero; the reddening
     points are the two config sweeps and the nan table.
+- **Fog Gen 1 itself: IN, the wall's reason** (entered 2026-09-02; the
+  shape was ruled 2026-08-23 and 2026-08-31, ROADMAP §Fog splits in two
+  and §Meow-digest redesign). Vision radius limits which cats and
+  elements are observed; a visible cat's needs stay fully readable;
+  hearing global; 20×20; grounded reference only. Digest matrix
+  per-(speaker × kind) recency + rate on the by-id kitty rows, window
+  30, cooldown 10, global digest deleted, self-row in `SELF_BLOCK`.
+  Variable entity tokens (spec 030), F-010's retest as a normal
+  condition. Owner rulings 2026-09-02 on the open sub-items:
+  - **Memory: one slot per element kind**, sight-only, most-recent-wins
+    within the kind (`ElementType::ALL` = 5 kinds × present/dx/dy/
+    staleness = 20 floats in `SELF_BLOCK`; staleness normaliser a frozen
+    constant by the scene-age rule). Cats are never remembered in Gen 1
+    (Gen 2's belief model; the by-id rows already carry "heard but
+    unseen"). **Refuted on sight**: a remembered tile inside the radius
+    that no longer holds the element clears the memory, a sighting
+    elsewhere overwrites it (gone or moved, bugs included). No timeout
+    for correctness; a timeout stays a free knob, default off.
+    Considered and declined: `memory_slots = 2` layout with one active
+    slot (a 20-dead-float hedge against the ROADMAP's Recurrence
+    trigger); owner kept `memory_slots = 1`. Tier split on the record:
+    radius, expiry, overwrite rule, staleness constant, element slot
+    counts are semantics (retrain, never a break); slot count, extra
+    fields, cat memory, a new element kind are layout (Gen 2).
+  - **Radius value**: a config knob, layout radius-invariant; the
+    step-4 spec ships the key with a placeholder default and the
+    step-5 prereg's design pass screens it (one-dimensional at 20×20).
+  - **Estimator / JEPA head**: training-side over the unslotted set,
+    no observation footprint, not wall-gated; stays parked.
   **Step 3 doc COMPLETE 2026-09-02**: every member ruled. Step 4 spec
   opens on this list.
 
