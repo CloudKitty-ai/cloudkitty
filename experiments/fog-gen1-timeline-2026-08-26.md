@@ -245,9 +245,28 @@ enters step 4's spec without appearing here first.
     more interesting world, and they will need the key. Owed at the
     wall: rewrite the doc comment at `config/mod.rs:443-446` (it says
     validation-only) and the ROADMAP line.
-  - Open: `cuddle_relief` field + rejector (in, trivial), section-absence
-    defaults (frozen-exam conflict = call B), snapshot restore shims
-    (in), migration-map rejectors (call C).
+  - **Section-absence defaults: OUT (deleted), frozen exams → `evals/v2`**
+    (owner ruled 2026-09-02, option a). The 13 whole-table
+    `#[serde(default)]`s on `Config` (`config/mod.rs:59-84`) and the four
+    nested ones (`happiness.weights`, `actions.durations`,
+    `meow.vocabulary`, `water.contagion_membership`) go; `rl` /
+    `plugins` / `watchdog` stay optional (foreign tables kept only so
+    `deny_unknown_fields` holds). Per-field defaults on inert launch
+    dials stay: they are the stamp discipline, not shims. `evals/v1`
+    (six exams, 11 of 13 sections absent, byte-frozen by 017 FR-012)
+    is listed in `config-sweep-exclusions.txt` as a frozen record of an
+    earlier generation, and Gen 1 certification cuts `evals/v2`: same
+    six exam designs, complete 3.0 sections, new manifest hashes,
+    freeze guard and the RL sweep's "frozen exams are in the sweep"
+    assertion (`shipped_configs_rl.rs:86`) retargeted; `kitty-eval`
+    (G5, report-only) reads v2. v1 results stay a 2.x record. Wider
+    migration at the wall (HEAD 2026-09-02): 65 in-scope tomls lack
+    `[water]` (`cloudkitty.toml` included), 8 lack ten or more
+    (`training.toml`, clowder's `tiny-world.toml`, exp-004 pilot /
+    rebaseline families); live tooling configs get their sections in
+    the wall PR, result-backing families go to the exclusions file.
+  - Open: `cuddle_relief` field + rejector (in, trivial), snapshot
+    restore shims (in), migration-map rejectors (call C).
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
