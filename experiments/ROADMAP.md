@@ -421,8 +421,12 @@ that wall, not one item at a time afterwards. Running list:
   `--fresh` (owner, same ruling)**. Scope:
   - Delete deprecated economy keys rather than carry them inert:
     `cuddle_relief` (the 2.x line keeps it accepted-but-inert after
-    the step-1 split, spec-028 pattern; 3.0 removes it), play's dead
-    `max = 5`, plus whatever a struct sweep finds. Historical tomls
+    the step-1 split, spec-028 pattern; 3.0 removes it), plus whatever
+    a struct sweep finds. (An earlier draft listed "play's dead
+    `max = 5`"; play's duration max is live, and the runtime-inert
+    `[elements.<kind>] max` is KEPT by owner ruling 2026-09-02: it
+    feeds the density ceiling and the critic's chow scale, and the
+    banked dynamic-populations item needs it.) Historical tomls
     stay valid for their PINNED commits — F-028 provenance makes
     reproduction ride git checkout, never HEAD forward-compat.
   - Drop the section-absence serde defaults (pre-010/011/024 shims in

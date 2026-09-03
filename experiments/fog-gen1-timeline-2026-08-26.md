@@ -231,7 +231,23 @@ enters step 4's spec without appearing here first.
   bar.** First lever then is density (the cooldown, which the speech
   economy and F-034's ladder depend on); a teacher only if density
   cannot be raised without breaking the ladder.
-Still open for the doc: the 3.0 config-hygiene delete list.
+- **3.0 config-hygiene delete list** (scope ruled 2026-08-26, ROADMAP;
+  members checked against HEAD a1f802a on 2026-09-02, ruled one at a time):
+  - **`ElementRule.max`: KEEP** (owner ruled 2026-09-02). The ROADMAP's
+    "play's dead `max = 5`" named the wrong key: play's duration max is
+    live (`world.rs:631`, `invariants.rs:150`). The dead-at-runtime one
+    is `[elements.<kind>] max`, and it is not validation-only either: it
+    sets the density ceiling (`validate.rs:233-248`) and the critic's
+    chow-remaining scale (`cloudkitty-rl/src/global_state.rs:114-116`);
+    only the spawner ignores it (`spawn.rs:6`, tops up to `min`). Owner:
+    get fog working on the current, relatively static world; dynamic
+    element populations (BACKLOG, 2026-07-20) are evaluated later for a
+    more interesting world, and they will need the key. Owed at the
+    wall: rewrite the doc comment at `config/mod.rs:443-446` (it says
+    validation-only) and the ROADMAP line.
+  - Open: `cuddle_relief` field + rejector (in, trivial), section-absence
+    defaults (frozen-exam conflict = call B), snapshot restore shims
+    (in), migration-map rejectors (call C).
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
