@@ -2000,6 +2000,55 @@ min; fully deterministic through the seeded RNG; tunables named in
 config (Article VI). **Design not settled — start with an ideation
 conversation, as the 008 direction was.**
 
+### Rendering a meow REPLY (added 2026-09-03; Client thread — after Fog Gen 1, owner)
+
+Owner's ruling, relayed from the Experiments thread: the fog timeline's
+step-4 coverage pass, item (iv)
+(`experiments/fog-gen1-timeline-2026-08-26.md`, main `26504ac`). Spec 049
+gives the `Meow` record two additive engine-stamped fields: `reply`, a
+bool saying this `here_*` word answers an audible `want_*` from another
+cat, and `pos`, where the speaker stood when it spoke. Both reach
+`/world` and the meow event stream. Nothing is specced on the client side
+and nothing is needed for 049. The open question is whether a reply earns
+its own treatment: a distinct bubble, or a drawn link from replier back
+to caller.
+
+Two independent paths draw a meow today, and a reply treatment lands in
+both.
+
+The BUBBLE (`render.js:2065`, `drawBubbles`) reads `world.recent_meows`
+straight off the served world, keeps what was spoken in the last
+`BUBBLE_TICKS` (3, `render.js:100`), takes one per cat with the newest
+winning, looks its copy up in `MEOW_TEXT`, and draws at the cat's
+interpolated position, so the bubble rides along with a walking cat.
+
+The GAPE (`anim.js:1776`, `meowFor`) is the mouth. It gates on the pose
+(`VIEW.meowPoses`), plays once from the frame the meow arrived, and
+allows one drawn call per cat per `VIEW.meowCooldownMs` (8s since PR
+#335). It already returns the `kind` alongside the gape, so a `reply` bit
+rides that channel with no new plumbing.
+
+Three things to settle before speccing:
+
+1. **The two paths disagree about rate.** The cooldown holds the mouth
+   and not the bubble, so a reply drawn as a bubble sits outside the
+   ceiling that exists to keep the Fog generation's chatter from reading
+   as a tic. A call-and-answer pair is also the case where drawing half
+   is worse than drawing neither, and both paths keep exactly one slot
+   per cat with the newest winning (`anim.js:1423`, and the `said` map in
+   `drawBubbles`), so a reply can evict the call it answers.
+2. **A link between two cats is a claim the viewer reads.** FR-002b's
+   naming law is why the free register renders its sound-words as-is
+   (`render.js:49-59`). `reply` is an engine-stamped fact rather than an
+   invented meaning, so drawing it should be legal, but the shape of a
+   link asserts something about the pair and wants checking against the
+   law rather than assuming.
+3. **`pos` is worth taking even if no link is drawn.** A meow first
+   appears the tick after it was spoken and lingers about ten
+   (`anim.js:1406-1411`), so the speaker has moved by the time it is on
+   screen. Today the bubble follows the cat; `pos` is what would make
+   leaving it where the word was said possible at all.
+
 ### Cover colour variance — wants a full treatment (added 2026-08-13; Client thread)
 
 Every clump takes the same two palette entries, `MEADOW.bush` and
