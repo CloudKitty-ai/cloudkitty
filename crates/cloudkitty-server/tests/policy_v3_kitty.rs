@@ -173,10 +173,11 @@ fn a_schema_four_artifact_fails_startup_and_the_schema_five_oracle_boots() {
                 err.contains("[rl.policy.oracle]"),
                 "names the config field: {err}"
             );
-            assert!(err.contains("observation"), "names the schema: {err}");
             assert!(
-                err.contains('4') && err.contains('5'),
-                "found 4 / expected 5: {err}"
+                err.contains("observation schema mismatch")
+                    && err.contains("schema v4")
+                    && err.contains("speaks v5"),
+                "the schema gate's own words -- found 4, expected 5: {err}"
             );
         }
     }

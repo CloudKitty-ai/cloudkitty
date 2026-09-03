@@ -157,12 +157,10 @@ fn the_shipped_config_parks_every_seat_at_the_3_0_wall_and_refuses_the_2_x_minds
         ));
         let text = format!("{err}");
         assert!(
-            text.contains("observation"),
-            "[rl.policy.{name}]: the refusal names the observation schema: {text}"
-        );
-        assert!(
-            text.contains('4') && text.contains('5'),
-            "[rl.policy.{name}]: found 4 / expected 5 are both named: {text}"
+            text.contains("observation schema mismatch")
+                && text.contains("schema v4")
+                && text.contains("speaks v5"),
+            "[rl.policy.{name}]: the schema gate's own words -- found 4, expected 5: {text}"
         );
     }
     // And a registry with no seated policy registers nothing -- boot
