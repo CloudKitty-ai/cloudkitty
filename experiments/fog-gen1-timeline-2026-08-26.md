@@ -620,6 +620,26 @@ nothing below leans on them):
    plus Article IV fallback make the refusal safe; no third-party
    plugin is live, so the cost is the version line and a doc note.
 
+`/speckit-analyze` items on FR-032 (the step-3 delete list above),
+ruled 2026-09-03:
+
+5. **"Both `snapshot_resume.rs` tests" = (a)
+   `a_pre_041_bound_rest_duet_resumes_as_synchronized_resters` and (b)
+   `a_pre_028_world_resumes_and_runs`, with their fixtures
+   `pre-041-bound-duet.json` and `pre-028-world.json`.** The step-3
+   wording "already marked for the wall" was loose: only (a) carries the
+   doc mark, but (b) cannot deserialise once `announce_armed` and the
+   purr shims are gone, so it falls with the seven either way.
+6. **Eighth shim, `Meow.intensity`'s `#[serde(default)]`
+   (`meow.rs:269`): DELETE with the wall.** Same class as the seven, and
+   under fog worse than dead tolerance: intensity is an observed digest
+   feature and the scripted ladder's tie-breaker, so a default that reads
+   a missing field as 0.0 would corrupt the digest silently instead of
+   failing at load. Test (c) `a_pre_028_meow_entry_reads_zero_intensity`
+   goes with it; its one-for-one successor is the inverse guard: one
+   JSON literal per required field (`intensity`, `pos`, `reply`)
+   asserting the entry fails to deserialise.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
