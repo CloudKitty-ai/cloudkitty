@@ -130,7 +130,7 @@
 - [X] T049 [US7] Kept-behaviour sort (rule 6) for the law move: every test in `crates/cloudkitty-core/tests/say_surface_grounding.rs`, `meow_courtesy.rs`, `announce_here_gate_zero.rs` and the `meow.rs` unit tests is classified must-fail (asserts the armed-only want law or the adjacency-only here law) or must-pass BEFORE T044 runs; the must-fail set is observed red, then pointed at the new law; the gate-zero guard (043) stays green untouched
 - [X] T050 [US7] Answers-me tests in `crates/cloudkitty-rl/src/observe.rs`: US7 scenario 4 timeline (want at t, here at t+1, bit at t+2), scenario 5 (adjacency here with no want → no bit), ordering (a here BEFORE my want → 0); red-first: use live pos; drop the "want before here" ordering
 - [X] T051 [P] [US7] `docs/meows.md` law section: want law under fog, the widened here law, the reply stamp, answers-me, the pairs table; `/world` meow fields `pos`/`reply` documented (FR-040)
-- [ ] T052 [US7] Redden cycles for T048/T049/T050 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+- [X] T052 [US7] Redden cycles for T048/T049/T050 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
 
 **Checkpoint**: the words are load-bearing; mask and announce share one predicate; every here carries its stamp.
 

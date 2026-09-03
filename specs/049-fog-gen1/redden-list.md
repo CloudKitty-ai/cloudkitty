@@ -52,6 +52,26 @@ FINAL count: recorded at T085.
 | 22a | T041 | scene age normaliser "derived" (12, a table value) instead of the frozen 24 | 1: `scene_age_reads_elapsed_over_a_frozen_twenty_four` | exactly 1; 842/1 | restored |
 | 22b | T041 | the water bit computed on HEARD rows from the stamped tile | 1: `the_neighbour_in_water_bit_and_scene_age_are_seen_only` | ZERO — the staging had walked the pond OUT of the disc with the friend, so nothing was in view to leak (vacuous). Re-staged at `11b82a1`: the pond stays inside the disc at the friend's meow tile, the friend outside | restored |
 | 22b′ | T041 | the same, pond in view | 1 | exactly 1; 842/1 | restored |
+| 23 | T049 (rule-6 sort) | the law landed (want tier armed ∧ top ∧ no known relief; here tier adjacent ∨ reply) | must-fail: `a_grounded_clear_message_emits_and_records` (want_eat beside a visible bowl), `a_want_word_outranks_a_here_word`, `needs_driven::…a_grounded_cat_announces_its_highest_pressure_legal_want` (idle friend in view), `…announcing_never_alters_the_chosen_activity` (bowl in view at r = 64); goldens (the want law moves the buffer and — via the groom response — the trajectory); `fog_continuity` (actions diverge where a silenced `want_bath` no longer draws a groom) | exactly those 7 (836/7) | the four re-pointed (WantSleep = the ungated kind; the bowl out of sight at r = 5; the friend busy vs idle), goldens re-pinned (an intentional move), `fog_continuity` AMENDED: identical up to the first divergence, which must be a silenced-want_bath groom response, messages before it only silenced wants or calls a silenced predecessor's cooldown freed — OWNER FLAG (SC-004 as written cannot hold with FR-036; the visibility filter's byte-identity stands at the pre-law commits) |
+| 23a | T048 | the top-need clause dropped | `only_the_top_need_may_ask`, property, goldings? | 4: both law guards + 2 goldens (846/4); continuity green (at r = 64 only sleep wants are ever legal, so the clause rarely bites there) | restored |
+| 23b | T048 | the memory clause dropped (eat/drink) | 1 scenario; the property stages no memory (recorded) | exactly 1 (849/1) | restored |
+| 23c | T048 | the critter clause dropped (play) | 1–2 | 1: the scenario; the property's friend clause masks its critter clause at most radii (recorded) | restored |
+| 23d | T048 | a heard-unseen friend silences the social words | 2 | script mismatch — ran UNMUTATED (850/0 = the true count); redone as 23d′ | — |
+| 23d′ | T048 | same | 2: `the_social_words…`, property (the "hearing moved the gate" check) | exactly 2 (848/2) | restored |
+| 23e | T048 | a mid-scene visible friend counts as idle (`idle_friend_in_view` ignores the clock) | scenario, property?, goldens, `a_grounded_cat_announces…` | 5: scenario, `a_grounded_cat_announces…`, `groom_kitty_appears_in_a_seeded_scripted_run` (fewer want_bath → no groom), 2 goldens (845/5); the property's stagings have no busy friends (recorded) | restored |
+| 23f | T046 | reply stamped on adjacency alone | 1: `a_here_can_answer…` (scenario 5's `!reply`) | exactly 1 (849/1) | restored |
+| 23g | T045/T048 | same-tick calls audible (`FogView::audible`: `<` → `<=`) | ≥ 4 | 4: `a_here_can_answer…` (scenario 6), `a_here_after_my_want…` ("three ticks at best"), `the_observers_own_block…`, `world::…heard_unseen…` (846/4) | restored |
+| 23h | T050 | answers-me ignores the want-before-here order | 1: `a_here_before_my_want…` | exactly 1 (849/1) | restored |
+
+## Phase 7 checkpoint (T052, 2026-09-03)
+
+Count at `a8ad22c`: **850/0, 2 ignored** (843 + 5 `meow_law_fog` + 2
+answers-me). The plan's `LawView` is the `FogView` itself: `fog_for` builds
+it for the mask AND the enforcement seam, so the two cannot disagree except
+by the documented mid-tick element divergence. Three property weaknesses
+recorded rather than papered over (23b/23c/23e): the random stagings never
+contest memory, the critter clause under an idle friend, or busy friends —
+the scenario tests carry those clauses.
 
 ## Phases 5–6 checkpoint (T039/T042, 2026-09-03)
 
