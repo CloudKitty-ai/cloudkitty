@@ -489,9 +489,16 @@ read); informativeness P(need ≥ 50 | want heard). Decision rule,
 declared at prereg: welfare non-inferior to the 30 arm, informativeness
 above a bar set at prereg, pick the lowest floor clearing both; a floor
 that moves safeguard entries beyond the seed spread is INVESTIGATE, not
-a pick. Expect the four arms to be welfare-equivalent (the safeguard
-catches everyone at 75), so the informativeness bar decides and is
-declared with care. The listener floor is set in the same sitting.
+a pick. The welfare arm is live, not a formality: the Article I
+safeguard (`spawn.rs:179`) spawns only when NO element of the kind
+exists anywhere, so under fog a blind cat past 75 with six unseen
+bowls gets no rescue; finding is the cat's own job up to distress and
+the watchdog. The listener floor is set in the same sitting.
+**Open owner call for the step-4 spec**: whether the safeguard stays
+existence-based under fog (recommended: the scripted anchor on the
+same fog config is the welfare benchmark, and a radius-aware rescue
+would also hand policies the answer the words exist to carry) or gains
+a fog-aware form (spawn inside a starving cat's radius).
 
 ## Step 5 — shakeout training round
 
