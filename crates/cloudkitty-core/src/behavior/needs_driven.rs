@@ -1574,16 +1574,21 @@ mod tests {
             ttl: None,
         });
         let me = world.kitty(1).unwrap().clone();
-        let ctx = crate::behavior::DecisionContext {
-            me,
-            world: std::sync::Arc::new(world.snapshot().fog_for(1, 5)),
+        let view = std::sync::Arc::new(world.snapshot().fog_for(1, 5));
+        // Two contexts on the same seed: the blind cat's first exploration
+        // step draws its heading (spec 049 FR-023), so a shared RNG would
+        // hand the second call a different draw and prove nothing.
+        let make = || crate::behavior::DecisionContext {
+            me: me.clone(),
+            world: view.clone(),
             rng: crate::rng::DecisionRng::from_seed(9876),
-            config,
+            config: config.clone(),
         };
+        let ctx = make();
         let decision = NeedsDriven.decide(&ctx).await;
         assert_eq!(
             decision.activity,
-            NeedsDriven.decide_action(&ctx),
+            NeedsDriven.decide_action(&make()),
             "the channel rides along; it never displaces the turn"
         );
         assert_eq!(
@@ -1982,5 +1987,329 @@ mod tests {
             Action::Sleep { with: None },
             "below the gate: the sunbeam, exactly as before"
         );
+    }
+    // ---- spec 049 T056/T057: exploration and targeting under fog ----
+
+    /// A 20x20 world at radius `radius`, no elements, kitty 1 at (10, 10),
+    /// kitty 2 far away at (0, 0), tick 100.
+    fn fog_ctx(
+        radius: u32,
+        seed: u64,
+        setup: impl FnOnce(&mut crate::world::World),
+    ) -> crate::behavior::DecisionContext {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 20;
+        config.world.height = 20;
+        config.vision.radius = radius;
+        config.kitties[0].x = 10;
+        config.kitties[0].y = 10;
+        config.kitties[1].x = 0;
+        config.kitties[1].y = 0;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        world.elements.clear();
+        world.tick = 100;
+        setup(&mut world);
+        let me = world.kitty(1).unwrap().clone();
+        crate::behavior::DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, radius)),
+            rng: crate::rng::DecisionRng::from_seed(seed),
+            config,
+        }
+    }
+
+    fn set_heading(world: &mut crate::world::World, id: u32, heading: Option<Direction>) {
+        let idx = world.kitty_index(id).unwrap();
+        world.kitties[idx].explore_heading = heading;
+    }
+
+    #[tokio::test]
+    async fn a_blind_hungry_cat_steps_along_its_heading_and_asks_as_it_goes() {
+        // US5 scenario 1 (+ FR-036): no bowl visible, none remembered, a
+        // heading held -- one step along it, and want_eat rides along.
+        let ctx = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            set_heading(w, 1, Some(Direction::East));
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::move_to(Direction::East)
+        );
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.activity, Action::move_to(Direction::East));
+        assert_eq!(
+            decision.message,
+            Some(MessageKind::WantEat),
+            "the ask rides along"
+        );
+        assert_eq!(explore(&ctx), Action::move_to(Direction::East));
+    }
+
+    #[test]
+    fn the_heading_is_redrawn_only_when_the_wall_ahead_is_within_the_radius() {
+        // US5 scenario 6: east at x = 14, r = 5, 20 wide -> the wall ahead is
+        // 5 away (not clear): redraw among north and south (west is the
+        // reverse, east is wall-within-radius); then hold the new heading.
+        for seed in 0..12u64 {
+            let ctx = fog_ctx(5, seed, |w| {
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].pos = Position::new(14, 10);
+                set_heading(w, 1, Some(Direction::East));
+            });
+            let step = explore(&ctx);
+            assert!(
+                matches!(
+                    step,
+                    Action::Move {
+                        direction: Direction::North | Direction::South
+                    }
+                ),
+                "seed {seed}: redraw among N/S, got {step:?}"
+            );
+            let Action::Move { direction } = step else {
+                unreachable!()
+            };
+            // Holding: with that heading recorded and the wall far, the
+            // next step continues it -- and draws nothing.
+            let held = fog_ctx(5, seed + 100, move |w| {
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].pos = Position::new(14, 10).step(direction, 20, 20).unwrap();
+                set_heading(w, 1, Some(direction));
+            });
+            assert_eq!(
+                explore(&held),
+                Action::move_to(direction),
+                "the heading holds"
+            );
+            let untouched = crate::rng::DecisionRng::from_seed(seed + 100).gen_u64();
+            assert_eq!(
+                held.rng.gen_u64(),
+                untouched,
+                "zero draws on a non-redraw step"
+            );
+        }
+        // Distance-to-wall arithmetic, edge included: 4 away redraws, 6 holds.
+        assert_eq!(
+            distance_to_wall(Position::new(14, 10), Direction::East, 20, 20),
+            5
+        );
+        assert_eq!(
+            distance_to_wall(Position::new(13, 10), Direction::East, 20, 20),
+            6
+        );
+        assert_eq!(
+            distance_to_wall(Position::new(3, 2), Direction::North, 20, 20),
+            2
+        );
+        let holds = fog_ctx(5, 7, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].pos = Position::new(13, 10);
+            set_heading(w, 1, Some(Direction::East));
+        });
+        assert_eq!(
+            explore(&holds),
+            Action::move_to(Direction::East),
+            "6 > 5: holds"
+        );
+    }
+
+    #[test]
+    fn a_first_heading_is_drawn_once_and_a_boxed_in_cat_never_reverses() {
+        // No heading yet: one draw among the wall-clear directions. Boxed in
+        // (every wall within the radius, r = 40 on a 20x20 world): any
+        // non-reverse direction -- never straight back.
+        let fresh = fog_ctx(5, 3, |w| set_heading(w, 1, None));
+        let step = explore(&fresh);
+        assert!(matches!(step, Action::Move { .. }), "{step:?}");
+        let after = fresh.rng.gen_u64();
+        let one_draw = {
+            let r = crate::rng::DecisionRng::from_seed(3);
+            let _ = r.choose(&Direction::ALL);
+            r.gen_u64()
+        };
+        assert_eq!(after, one_draw, "exactly one draw for the first heading");
+        for seed in 0..16u64 {
+            let boxed = fog_ctx(40, seed, |w| set_heading(w, 1, Some(Direction::East)));
+            let step = explore(&boxed);
+            assert!(
+                !matches!(
+                    step,
+                    Action::Move {
+                        direction: Direction::West
+                    }
+                ),
+                "seed {seed}: the reverse is never drawn ({step:?})"
+            );
+            assert!(matches!(step, Action::Move { .. }));
+        }
+    }
+
+    #[test]
+    fn a_remembered_bowl_is_walked_to_and_a_refuted_memory_drops_into_exploration() {
+        // US5 scenario 2: the remembered tile is a target as if it held the
+        // bowl; once the engine clears the memory (the tile came into view
+        // empty), the same ladder explores that tick.
+        use crate::kitty::MemorySlot;
+        let remembering = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Chow)] =
+                Some(MemorySlot {
+                    pos: Position::new(2, 10),
+                    last_seen: 50,
+                });
+            set_heading(w, 1, Some(Direction::South));
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&remembering),
+            Action::move_to(Direction::West),
+            "walks toward the remembered tile"
+        );
+        let refuted = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            set_heading(w, 1, Some(Direction::South));
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&refuted),
+            Action::move_to(Direction::South),
+            "nothing visible or remembered: the exploration step, same ladder"
+        );
+    }
+
+    #[test]
+    fn a_heard_friend_is_a_cuddle_target_until_the_cat_arrives_and_finds_nobody() {
+        // US5 scenario 2b: real cuddle need, the only friend outside the
+        // disc but heard from U -> walk toward U whatever U's (masked)
+        // state; on arrival with the friend not visible the target is
+        // dropped that tick; visible and idle on arrival -> the cuddle.
+        let call = |w: &mut crate::world::World| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::Mew,
+                tick: 95,
+                intensity: 0.0,
+                pos: Position::new(15, 10),
+                reply: false,
+            });
+        };
+        let hears = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 60.0);
+            call(w);
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&hears),
+            Action::move_to(Direction::East),
+            "walks toward the stamped position"
+        );
+        let arrived_alone = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].pos = Position::new(14, 10); // adjacent to U, friend still at (0, 0)
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 60.0);
+            call(w);
+        });
+        assert!(
+            selection::heard_unseen_targets(&arrived_alone).is_empty(),
+            "the reached position is dropped"
+        );
+        let action = NeedsDriven.decide_action(&arrived_alone);
+        assert!(
+            !matches!(
+                action,
+                Action::Rest { with: Some(_) }
+                    | Action::Move {
+                        direction: Direction::East
+                    }
+            ),
+            "nobody known: cuddle has no path this tick, the ladder moves on ({action:?})"
+        );
+        let arrived_together = fog_ctx(5, 1, |w| {
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me].pos = Position::new(14, 10);
+            w.kitties[me].needs.add(NeedKind::Cuddle, 60.0);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(15, 10); // there, idle
+            call(w);
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&arrived_together),
+            Action::Rest { with: Some(2) },
+            "visible and idle on arrival: the cuddle"
+        );
+        let arrived_asleep = fog_ctx(5, 1, |w| {
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me].pos = Position::new(14, 10);
+            w.kitties[me].needs.add(NeedKind::Cuddle, 60.0);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(15, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Sleeping {
+                with_friend: None,
+                in_sunbeam: false,
+            };
+            w.kitties[f].activity_clock = Some(crate::kitty::ActivityClock::start(100));
+            call(w);
+        });
+        let action = NeedsDriven.decide_action(&arrived_asleep);
+        assert!(
+            !matches!(action, Action::Rest { with: Some(2) }),
+            "visible but asleep on arrival: dropped this tick ({action:?})"
+        );
+    }
+
+    #[test]
+    fn the_groom_response_walks_to_an_unseen_callers_stamped_tile_and_drops_on_arrival() {
+        // US5 scenario 2c: a WantBath from outside the disc is answered by
+        // walking toward its stamped position; arriving with the caller
+        // still unseen, the response yields to the rest of the ladder.
+        let ask = |w: &mut crate::world::World| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 90,
+                intensity: 0.7,
+                pos: Position::new(10, 16),
+                reply: false,
+            });
+        };
+        let hears = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            ask(w);
+        });
+        assert_eq!(
+            groom_response(&hears),
+            Some(Action::move_to(Direction::South))
+        );
+        let arrived = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].pos = Position::new(10, 15);
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            ask(w);
+        });
+        assert_eq!(
+            groom_response(&arrived),
+            None,
+            "arrived, caller unseen: dropped"
+        );
+        // An ask older than the cooldown but inside the digest window is
+        // still answered (FR-017: audibility is the window).
+        let old_ask = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 75, // age 25 < 30
+                intensity: 0.7,
+                pos: Position::new(10, 16),
+                reply: false,
+            });
+        });
+        assert!(groom_response(&old_ask).is_some());
     }
 }

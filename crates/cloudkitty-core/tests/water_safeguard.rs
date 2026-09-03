@@ -66,6 +66,12 @@ fn dial_table() -> Vec<Config> {
     hot.water.bath_gain = 14.0;
     table.push(hot);
 
+    // Spec 049 T060: the Gen 1 vision radius. The safeguard reads tiles,
+    // not the view -- fog must not move a single gated step.
+    let mut fogged = Config::default();
+    fogged.vision.radius = 5;
+    table.push(fogged);
+
     // A tiny ceiling: charges stop almost immediately.
     let mut low = Config::default();
     low.water.bath_gain_ceiling = 5.0;

@@ -155,7 +155,9 @@ fn scene_exposure_for(
 
 /// How far this cat would have to walk to do something about `need` -- in
 /// priced tiles, water surcharge included (spec 010) -- or `None` when the
-/// world currently offers no way to relieve it at all.
+/// world currently offers no way to relieve it at all. Under fog (spec 049)
+/// an element kind out of view and out of memory is priced by
+/// [`blind_price`], not skipped: exploration is its relief path.
 ///
 /// "No way" is deliberately not encoded as a huge distance: a sentinel is
 /// only as strong as the weight multiplying it, so a legal `tile_cost = 0`
@@ -180,18 +182,46 @@ fn distance_given(
         // Relieved-in-place needs cost no travel.
         ReliefSource::InPlace { .. } => Some(0.0),
         ReliefSource::Sunbeam => Some(sleep_travel_distance(ctx)),
-        ReliefSource::Element { kind, .. } => {
-            priced_nearest_element(ctx, kind).map(|(_, cost)| cost)
-        }
+        ReliefSource::Element { kind, .. } => priced_nearest_element(ctx, kind)
+            .map(|(_, cost)| cost)
+            .or_else(|| blind_price(ctx)),
         // Playmates are deliberately unpriced (spec 010 scope decision): they
         // move every tick, chases re-aim continuously, and pricing a fleeing
         // target's momentary path would add noise, not honesty.
         ReliefSource::Playmate => Some(play_travel_distance(ctx, playmate) as f32),
+        // Spec 049 FR-022: the candidate the walk goes to -- the nearest
+        // visible friend or a friend only heard, at its stamped position.
         ReliefSource::Friend => ctx
             .world
             .nearest_friend(me.id, me.pos)
-            .map(|k| priced_travel(ctx, me.pos, k.pos)),
+            .map(|k| (k.id, k.pos))
+            .into_iter()
+            .chain(heard_unseen_targets(ctx))
+            .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id))
+            .map(|(_, pos)| priced_travel(ctx, me.pos, pos)),
     }
+}
+
+/// Spec 049 FR-023: the price of an element kind that is neither visible
+/// nor remembered. Under fog "not in view" is not "not in the world" (the
+/// safeguard's existence guarantee, FR-047, is untouched), so the need
+/// keeps a relief path -- exploration -- priced at the nearest tile the
+/// element could occupy: just outside the disc, `radius + 1`. A bound, not
+/// a sentinel: at `tile_cost = 0` the need competes on pressure alone and
+/// exploration makes real progress each step, so the 004 lock-in shape (an
+/// unrelievable need winning for ever) cannot recur. When the disc covers
+/// the whole world from where the cat stands there is nowhere unseen for
+/// the element to be, and the pre-fog rule stands: no path, skipped --
+/// which is what keeps a world-covering radius byte-identical (FR-024).
+pub(crate) fn blind_price(ctx: &DecisionContext) -> Option<f32> {
+    let radius = ctx.config.vision.radius;
+    let me = ctx.me.pos;
+    let dx =
+        me.x.max(ctx.world.width.saturating_sub(1).saturating_sub(me.x)) as u64;
+    let dy =
+        me.y.max(ctx.world.height.saturating_sub(1).saturating_sub(me.y)) as u64;
+    let farthest_sq = dx * dx + dy * dy;
+    (farthest_sq > (radius as u64).pow(2)).then_some(radius as f32 + 1.0)
 }
 
 /// The walking distance from `from` to `to` plus the `water_step_cost`
@@ -2519,6 +2549,139 @@ mod playful2_tests {
             scored_playmate(&ctx).map(|(t, _)| t),
             Some(TargetRef::Element { id: 706 }),
             "exclusion outranks any score"
+        );
+    }
+    // ---- spec 049 T057: playmates under fog (US5 scenario 3) ----
+
+    #[test]
+    fn a_playful_scan_sees_the_critter_in_the_disc_and_not_the_silent_friend_outside_it() {
+        // A friend outside the disc and silent is no candidate; a critter
+        // inside is; a friend outside but HEARD joins at its stamped tile,
+        // unconditionally, and loses to a nearer critter.
+        let build = |setup: &dyn Fn(&mut crate::world::World)| {
+            let mut config = crate::test_support::test_config();
+            config.world.width = 20;
+            config.world.height = 20;
+            config.vision.radius = 5;
+            config.kitties[0].x = 10;
+            config.kitties[0].y = 10;
+            config.kitties[1].x = 0;
+            config.kitties[1].y = 0;
+            config.validate().unwrap();
+            let config = std::sync::Arc::new(config);
+            let mut world = crate::world::World::generate(&config);
+            world.elements.clear();
+            world.tick = 100;
+            setup(&mut world);
+            let me = world.kitty(1).unwrap().clone();
+            crate::behavior::DecisionContext {
+                me,
+                world: std::sync::Arc::new(world.snapshot().fog_for(1, 5)),
+                rng: crate::rng::DecisionRng::from_seed(1),
+                config,
+            }
+        };
+        let bug = |w: &mut crate::world::World| {
+            w.push_element(crate::element::Element {
+                id: 800,
+                kind: crate::element::ElementKind::Bug,
+                pos: Position::new(12, 10),
+                ttl: None,
+            });
+        };
+        let silent = build(&bug);
+        assert_eq!(
+            nearest_viable_playmate(&silent),
+            Some((TargetRef::Element { id: 800 }, Position::new(12, 10))),
+            "only the critter is a candidate"
+        );
+        let heard = build(&|w| {
+            bug(w);
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: crate::meow::MessageKind::Mew,
+                tick: 95,
+                intensity: 0.0,
+                pos: Position::new(18, 10),
+                reply: false,
+            });
+        });
+        assert_eq!(
+            nearest_viable_playmate(&heard).map(|(t, _)| t),
+            Some(TargetRef::Element { id: 800 }),
+            "the nearer critter wins"
+        );
+        let heard_only = build(&|w| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: crate::meow::MessageKind::Mew,
+                tick: 95,
+                intensity: 0.0,
+                pos: Position::new(18, 10),
+                reply: false,
+            });
+        });
+        assert_eq!(
+            nearest_viable_playmate(&heard_only),
+            Some((TargetRef::Kitty { id: 2 }, Position::new(18, 10))),
+            "a heard friend is a candidate at its stamped tile, state unread"
+        );
+        // A remembered bowl is a priced element candidate too (FR-022).
+        let remembering = build(&|w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Chow)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(3, 10),
+                    last_seen: 40,
+                });
+        });
+        assert_eq!(
+            priced_nearest_element(&remembering, ElementType::Chow).map(|(p, _)| p),
+            Some(Position::new(3, 10))
+        );
+        assert_eq!(priced_nearest_element(&silent, ElementType::Chow), None);
+    }
+
+    #[test]
+    fn the_blind_price_is_the_edge_of_the_disc_and_nothing_at_a_covering_radius() {
+        // FR-023 pricing: unseen, unremembered chow is priced r + 1 while
+        // there is somewhere unseen for it to be; at a radius covering the
+        // world from where the cat stands, the pre-fog skip stands.
+        let build = |radius: u32, pos: Position| {
+            let mut config = crate::test_support::test_config();
+            config.world.width = 20;
+            config.world.height = 20;
+            config.vision.radius = radius;
+            config.kitties[0].x = pos.x;
+            config.kitties[0].y = pos.y;
+            config.kitties[1].x = 0;
+            config.kitties[1].y = 0;
+            config.validate().unwrap();
+            let config = std::sync::Arc::new(config);
+            let mut world = crate::world::World::generate(&config);
+            world.elements.clear();
+            let me = world.kitty(1).unwrap().clone();
+            crate::behavior::DecisionContext {
+                me,
+                world: std::sync::Arc::new(world.snapshot().fog_for(1, radius)),
+                rng: crate::rng::DecisionRng::from_seed(1),
+                config,
+            }
+        };
+        let fogged = build(5, Position::new(10, 10));
+        assert_eq!(blind_price(&fogged), Some(6.0));
+        assert_eq!(travel_distance(&fogged, NeedKind::Eat), Some(6.0));
+        // From the centre the farthest corner is (9, 9) away: 162 > 144
+        // at r = 12 (priced), 162 <= 169 at r = 13 (covering: skipped).
+        assert_eq!(blind_price(&build(12, Position::new(10, 10))), Some(13.0));
+        assert_eq!(blind_price(&build(13, Position::new(10, 10))), None);
+        // From a corner the whole world is farther: r = 26 does not cover
+        // (19² + 19² = 722 > 676), r = 27 does (729).
+        assert_eq!(blind_price(&build(26, Position::new(0, 19))), Some(27.0));
+        assert_eq!(blind_price(&build(27, Position::new(0, 19))), None);
+        assert_eq!(
+            travel_distance(&build(27, Position::new(0, 19)), NeedKind::Eat),
+            None
         );
     }
 }
