@@ -30,11 +30,13 @@ called `follow_me` was designed to mean "come along," and the cats used
 it to mean "I'm coming, stay put." The name lied; the law didn't. Now
 free words carry names that cannot lie.
 
-Every word obeys the same cooldown (one live digest entry per kind per
-emitter — `meow.recent_window_ticks` is both the audibility window and
-the refresh rate), and every word can be disabled by the world's
-`[meow.vocabulary]` config. Flags gate legality only; no flag ever
-changes what an observation looks like.
+Every word obeys the same per-kind cooldown (`meow.recent_window_ticks`,
+served 10: after speaking a kind a cat may not speak it again for that
+many ticks) and stays audible for the digest window
+(`meow.digest_window_ticks`, served 30 — a positive multiple of the
+cooldown, so "three calls in a window" is exact). Every word can be
+disabled by the world's `[meow.vocabulary]` config. Flags gate legality
+only; no flag ever changes what an observation looks like.
 
 ## The words
 
@@ -183,18 +185,36 @@ for by the reward function.
 
 ## The digest — what a listener actually hears
 
-Per kind, a hearer's observation carries the single freshest audible
-emitter (freshest tick wins; ties go to the lower kitty id; your own
-meows are inaudible to you), as four numbers: recency (1.0 fresh, fading
-linearly over `recent_window_ticks`), the emitter's dx and dy — **live
-position, recomputed every tick, never a stamped coordinate** — and the
-intensity stamped at emission (the speaker's need level for want-kinds;
-0.0 for everything else). A plugin author can build a listening cat from
-exactly this: for each kind, one emitter, where they are right now, how
-fresh the word is, and how urgent, if urgency applies. Full field table:
-`docs/encodings.md`.
+Since the fog wall (spec 049, observation schema 5) there is no global
+digest: repetition and insistence are **per-speaker fields on each
+friend's permanent row**. For every friend, per kind, a hearer's
+observation carries two numbers about that friend's own calls inside the
+digest window — recency (1.0 fresh, fading linearly to 0 over
+`digest_window_ticks`) and rate (calls in the window over the most the
+cooldown allows: three at the served 30/10) — and, for the six want-kinds,
+the intensity stamped on its freshest call (the speaker's need level at
+emission, /100; here-kinds and the free register carry none). A call is
+inside the window while its age is strictly less than it, and only calls
+from earlier ticks count: nobody hears a same-tick word. The observer's
+own row carries the same recency/rate pair for its own calls (no
+intensity — its needs are already there), so a memoryless mind can tell
+"I already asked" from "I have not". Five `here_water` calls and one no
+longer produce the same observation, and a second simultaneous speaker
+of a kind is no longer inaudible.
 
-The live-position rule is the design's quiet teeth: a `here_food` beacon
-points at the *speaker*, so it is only useful while the speaker stays
-near the food — the digest itself favors hosts over shouters, and can
-never point a hearer at a bowl that no longer exists.
+Where a call came FROM is a stamp, not a live position: every recorded
+meow carries the speaker's `pos` at emission. A friend the hearer can
+see has its live position on its row; a friend it can only hear has the
+position of that friend's last audible meow (its row's dx/dy/distance
+point there, its knowledge fields read zero), and the recency cell says
+how stale that is. A `here_food` from an unseen cat therefore points
+where the speaker was when it spoke — useful exactly while the speaker
+stayed near the food — never at a bowl the hearer cannot confirm. The
+answers-me bits (per here-kind, on friend rows) say whether that friend's
+latest here of the kind came after the hearer's own matching want. Full
+field table: `docs/encodings.md`.
+
+Historical (schema 4, spec 033): one global digest per kind — the single
+freshest audible emitter's recency, LIVE dx/dy and intensity — which the
+fog made both a leak (a moving unseen cat's position, every tick) and a
+bottleneck (one emitter per kind for the whole meadow).

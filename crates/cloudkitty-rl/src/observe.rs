@@ -370,10 +370,11 @@ pub fn encode_observation(
     }
     push_traits(&mut v, kitty_id, core, cfg);
     debug_assert_eq!(v.len(), SELF_SCHEMA_4);
-    // Own scene age (FR-019; the encoder lands with US4 -- 0 until then).
-    v.push(0.0);
-    // Own message block (FR-016; lands with US3 -- 0 until then).
-    v.extend(std::iter::repeat_n(0.0, MSG_BLOCK));
+    // Own scene age (FR-019): elapsed / 24, clamped; 0 with no scene.
+    v.push(scene_age(me, view.tick));
+    // Own message block (FR-016): recency + rate of my own calls; no
+    // intensity cells on the self row (my needs are already here).
+    push_message_block(&mut v, view, kitty_id, core, false);
     // Element memory (FR-009): per kind, present, dx, dy relative to the
     // CURRENT position, staleness = (tick − last_seen) / 40, clamped.
     for kind in ElementType::ALL {
@@ -417,14 +418,14 @@ pub fn encode_observation(
                 } else {
                     0.0
                 });
-                // Water bit + scene age (FR-020; land with US4 -- 0 until
-                // then), message block, intensities, answers-me (US3/US7).
-                v.push(0.0);
-                v.push(0.0);
-                v.extend(std::iter::repeat_n(
-                    0.0,
-                    MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN,
-                ));
+                // Knowledge fields (FR-020): the neighbour-in-water bit
+                // (tile-derived, as the own-tile bit) and their scene age.
+                v.push(if water_at(view, other.pos) { 1.0 } else { 0.0 });
+                v.push(scene_age(other, view.tick));
+                // Their message block + want intensities (FR-016) and the
+                // answers-me bits (FR-041; land with US7 -- 0 until then).
+                push_message_block(&mut v, view, friend, core, true);
+                v.extend(std::iter::repeat_n(0.0, HERE_KINDS_LEN));
             }
             RowState::Heard { pos } => {
                 v.push(0.0);
@@ -434,11 +435,9 @@ pub fn encode_observation(
                 // Knowledge fields masked: needs, happiness, activity,
                 // partner flag, target bit, water bit, scene age.
                 v.extend(std::iter::repeat_n(0.0, 6 + 1 + 7 + 1 + 1 + 1 + 1));
-                // The message block is live on a heard row (US3 fills it).
-                v.extend(std::iter::repeat_n(
-                    0.0,
-                    MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN,
-                ));
+                // The message block is live on a heard row (FR-012).
+                push_message_block(&mut v, view, friend, core, true);
+                v.extend(std::iter::repeat_n(0.0, HERE_KINDS_LEN));
             }
             RowState::Silent => v.extend(std::iter::repeat_n(0.0, KITTY_SLOT)),
         }
@@ -516,6 +515,71 @@ pub fn encode_observation(
 
     debug_assert_eq!(v.len(), observation_len(cfg));
     Observation { values: v, table }
+}
+
+/// Scene age (spec 049 FR-019/FR-020): the activity clock's elapsed
+/// ticks over the frozen 24, clamped to 1; 0 outside a scene. Never read
+/// from `[actions] durations` -- a repriced table must not move the
+/// observation's meaning.
+fn scene_age(kitty: &Kitty, tick: u64) -> f32 {
+    kitty
+        .activity_clock
+        .map(|clock| (clock.elapsed(tick) as f32 / SCENE_AGE_NORMALISER).clamp(0.0, 1.0))
+        .unwrap_or(0.0)
+}
+
+/// A speaker's message block (spec 049 FR-016): per `HEAD_KINDS` kind,
+/// recency = `1 − age / digest_window` of its freshest call of that kind
+/// and rate = its calls of that kind inside the window over the most it
+/// could have made (`window / cooldown`), both clamped to [0, 1]; then,
+/// on friend rows only, the last stamped intensity of its freshest call
+/// of each `WANT_KINDS` kind. A call is inside the window iff its age is
+/// strictly less than the window, and only START-OF-TICK calls count
+/// (`m.tick < tick`, research R5). Reserve kinds read 0 wherever unarmed
+/// because nobody speaks them.
+fn push_message_block(
+    v: &mut Vec<f32>,
+    view: &FogView,
+    speaker: KittyId,
+    core: &Config,
+    with_intensity: bool,
+) {
+    let now = view.tick;
+    let window = core.meow.digest_window_ticks.max(1);
+    let cooldown = core.meow.recent_window_ticks.max(1);
+    let max_calls = (window / cooldown).max(1) as f32;
+    let audible = |m: &&cloudkitty_core::meow::Meow| {
+        m.kitty_id == speaker && m.tick < now && now - m.tick < window
+    };
+    for kind in HEAD_KINDS {
+        let mut count = 0u32;
+        let mut freshest: Option<u64> = None;
+        for m in view
+            .recent_meows
+            .iter()
+            .filter(audible)
+            .filter(|m| m.kind == kind)
+        {
+            count += 1;
+            freshest = Some(freshest.map_or(m.tick, |t| t.max(m.tick)));
+        }
+        let recency = freshest
+            .map(|t| (1.0 - (now - t) as f32 / window as f32).clamp(0.0, 1.0))
+            .unwrap_or(0.0);
+        v.push(recency);
+        v.push((count as f32 / max_calls).clamp(0.0, 1.0));
+    }
+    if with_intensity {
+        for kind in WANT_KINDS {
+            let freshest = view
+                .recent_meows
+                .iter()
+                .filter(audible)
+                .filter(|m| m.kind == kind)
+                .max_by(|a, b| a.tick.cmp(&b.tick));
+            v.push(freshest.map_or(0.0, |m| m.intensity.clamp(0.0, 1.0)));
+        }
+    }
 }
 
 /// A water element on `pos` in the view (tile-derived, as the own-tile
@@ -1041,5 +1105,258 @@ mod tests {
         let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
         assert_eq!(obs.values[chow + 3], 1.0, "90/40 clamps to 1");
         assert_eq!(STALENESS_NORMALISER, 40.0);
+    }
+    // ---- spec 049 T037: repetition and insistence are fields (US3) ----
+
+    fn meow_at(
+        kitty_id: u32,
+        kind: MessageKind,
+        tick: u64,
+        intensity: f32,
+    ) -> cloudkitty_core::meow::Meow {
+        cloudkitty_core::meow::Meow {
+            kitty_id,
+            kind,
+            tick,
+            intensity,
+            pos: Position::new(0, 0),
+            reply: false,
+        }
+    }
+
+    fn head_col(kind: MessageKind) -> usize {
+        HEAD_KINDS.iter().position(|&k| k == kind).unwrap()
+    }
+
+    #[test]
+    fn per_speaker_recency_and_rate_cells_tell_three_calls_from_one() {
+        // US3 scenarios 1-2, 4, 5: A (id 2, seen) called want_play at
+        // t-25, t-15, t-5 (cooldown 10, window 30) -> recency 1 - 5/30,
+        // rate 3/3; B (id 3, heard) once at t-5 -> rate 1/3; a call at age
+        // exactly 30 contributes nothing; reserve kinds zero everywhere.
+        let (mut world, config) = five_cat_world();
+        assert_eq!(
+            (
+                config.meow.recent_window_ticks,
+                config.meow.digest_window_ticks
+            ),
+            (10, 30)
+        );
+        let t = world.tick; // 100
+        for age in [25u64, 15, 5] {
+            world
+                .recent_meows
+                .push(meow_at(2, MessageKind::WantPlay, t - age, 0.5));
+        }
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::WantPlay, t - 30, 0.9)); // age == window
+        world
+            .recent_meows
+            .push(meow_at(3, MessageKind::WantPlay, t - 5, 0.5));
+        // Friend 4 (unseen) spoke exactly one window ago: NOT audible, so
+        // its row is silent -- the strict `<` at the window's edge.
+        world
+            .recent_meows
+            .push(meow_at(4, MessageKind::WantEat, t - 30, 0.7));
+        let cfg = ObservationConfig::default();
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let col = offsets::ROW_MSG_BLOCK + 2 * head_col(MessageKind::WantPlay);
+        let a = row(&obs, 0);
+        assert!((a[col] - (1.0 - 5.0 / 30.0)).abs() < 1e-6, "A recency");
+        assert!(
+            (a[col + 1] - 1.0).abs() < 1e-6,
+            "A rate 3/3 -- the age-30 call is outside"
+        );
+        let b = row(&obs, 1);
+        assert_eq!(b[0], 0.0, "B is heard, not seen");
+        assert!((b[col] - (1.0 - 5.0 / 30.0)).abs() < 1e-6, "B recency");
+        assert!(
+            (b[col + 1] - 1.0 / 3.0).abs() < 1e-6,
+            "B rate 1/3: distinguishable from A"
+        );
+        assert!(
+            row(&obs, 2).iter().all(|&x| x == 0.0),
+            "friend 4: a call at age == window is silence"
+        );
+        for kind in [MessageKind::Trill, MessageKind::Ekekek] {
+            let c = offsets::ROW_MSG_BLOCK + 2 * head_col(kind);
+            for k in 0..4 {
+                assert_eq!(row(&obs, k)[c], 0.0);
+                assert_eq!(row(&obs, k)[c + 1], 0.0);
+            }
+            assert_eq!(
+                obs.values[offsets::SELF_MSG_BLOCK + 2 * head_col(kind)],
+                0.0
+            );
+        }
+        // Nobody's own block reflects another speaker's calls.
+        assert_eq!(
+            obs.values[offsets::SELF_MSG_BLOCK + 2 * head_col(MessageKind::WantPlay)],
+            0.0
+        );
+    }
+
+    #[test]
+    fn the_observers_own_block_carries_only_its_own_calls() {
+        // US3 scenario 3: my here_food at t-2 reads recency 1 - 2/30, rate
+        // 1/3 in the SELF block and in no kitty row.
+        let (mut world, config) = five_cat_world();
+        let t = world.tick;
+        world
+            .recent_meows
+            .push(meow_at(1, MessageKind::HereFood, t - 2, 0.0));
+        let cfg = ObservationConfig::default();
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let sc = offsets::SELF_MSG_BLOCK + 2 * head_col(MessageKind::HereFood);
+        assert!((obs.values[sc] - (1.0 - 2.0 / 30.0)).abs() < 1e-6);
+        assert!((obs.values[sc + 1] - 1.0 / 3.0).abs() < 1e-6);
+        let rc = offsets::ROW_MSG_BLOCK + 2 * head_col(MessageKind::HereFood);
+        for k in 0..4 {
+            assert_eq!(row(&obs, k)[rc], 0.0, "row {k} does not carry my call");
+        }
+        // And a same-tick call is not yet audible (start-of-tick buffer).
+        world
+            .recent_meows
+            .push(meow_at(1, MessageKind::HereWater, t, 0.0));
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(
+            obs.values[offsets::SELF_MSG_BLOCK + 2 * head_col(MessageKind::HereWater)],
+            0.0
+        );
+    }
+
+    #[test]
+    fn want_intensity_cells_carry_the_last_stamp_seen_or_heard_and_expire_with_the_window() {
+        // US3 scenario 6: A's last want_eat stamped 0.62 reads 0.62 in A's
+        // row whether A is seen or heard; outside the window 0; here-kinds
+        // have no intensity cell.
+        let (mut world, config) = five_cat_world();
+        let t = world.tick;
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::WantEat, t - 20, 0.40));
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::WantEat, t - 8, 0.62));
+        let cfg = ObservationConfig::default();
+        let cell = offsets::ROW_INTENSITY
+            + WANT_KINDS
+                .iter()
+                .position(|&k| k == MessageKind::WantEat)
+                .unwrap();
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[0], 1.0, "A is seen");
+        assert!(
+            (row(&obs, 0)[cell] - 0.62).abs() < 1e-6,
+            "the freshest stamp, seen"
+        );
+        let idx = world.kitty_index(2).unwrap();
+        world.kitties[idx].pos = Position::new(19, 0); // out of sight, heard
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[0], 0.0, "A is heard");
+        assert!(
+            (row(&obs, 0)[cell] - 0.62).abs() < 1e-6,
+            "the freshest stamp, heard"
+        );
+        world.tick = t + 40; // both calls outside the window
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert!(
+            row(&obs, 0).iter().all(|&x| x == 0.0),
+            "silent: nothing in the window"
+        );
+        assert_eq!(
+            offsets::ROW_INTENSITY - offsets::ROW_MSG_BLOCK,
+            2 * HEAD_KINDS.len(),
+            "here-kinds carry recency + rate only; the six intensity cells follow"
+        );
+    }
+
+    // ---- spec 049 T041: scene age and the wet neighbour (US4) ----
+
+    #[test]
+    fn scene_age_reads_elapsed_over_a_frozen_twenty_four() {
+        // US4 scenarios 1-2, 4: 12 ticks in -> 0.5, 30 -> 1.0, no scene ->
+        // 0; a seen friend 6 ticks in -> 0.25; and 24 stays 24 under a
+        // repriced durations table.
+        let (mut world, mut config) = five_cat_world();
+        let t = world.tick;
+        let me = world.kitty_index(1).unwrap();
+        let friend = world.kitty_index(2).unwrap();
+        let cfg = ObservationConfig::default();
+        for (elapsed, expect) in [(12u64, 0.5f32), (30, 1.0), (60, 1.0)] {
+            world.kitties[me].activity = Activity::Grooming { target: None };
+            world.kitties[me].activity_clock = Some(ActivityClock::start(t + 1 - elapsed));
+            let view = world.snapshot().fog_for(1, config.vision.radius);
+            let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+            assert!(
+                (obs.values[offsets::SELF_SCENE_AGE] - expect).abs() < 1e-6,
+                "{elapsed} ticks in"
+            );
+        }
+        world.kitties[me].activity = Activity::Idle;
+        world.kitties[me].activity_clock = None;
+        world.kitties[friend].activity = Activity::Grooming { target: None };
+        world.kitties[friend].activity_clock = Some(ActivityClock::start(t + 1 - 6));
+        config.actions.durations.sleep.max = 200; // a repriced table changes nothing
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(obs.values[offsets::SELF_SCENE_AGE], 0.0, "no scene: 0");
+        assert!(
+            (row(&obs, 0)[offsets::ROW_SCENE_AGE] - 0.25).abs() < 1e-6,
+            "a seen friend 6 ticks in"
+        );
+        assert_eq!(SCENE_AGE_NORMALISER, 24.0);
+    }
+
+    #[test]
+    fn the_neighbour_in_water_bit_and_scene_age_are_seen_only() {
+        // US4 scenario 3 + FR-012: a seen friend on a water tile reads 1;
+        // the same friend outside the disc reads 0 there whatever its tile.
+        use cloudkitty_core::element::Element;
+        let (mut world, config) = five_cat_world();
+        let friend = world.kitty_index(2).unwrap();
+        world.kitties[friend].activity = Activity::Grooming { target: None };
+        world.kitties[friend].activity_clock = Some(ActivityClock::start(world.tick - 5));
+        world.push_element(Element {
+            id: 700,
+            kind: ElementKind::Water,
+            pos: Position::new(11, 10),
+            ttl: None,
+        });
+        let cfg = ObservationConfig::default();
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[offsets::ROW_WATER_BIT], 1.0, "seen and wet");
+        assert!(row(&obs, 0)[offsets::ROW_SCENE_AGE] > 0.0);
+        // Walk the friend (and its pond) out of the disc but keep it heard.
+        world.kitties[friend].pos = Position::new(19, 0);
+        world.elements[0].pos = Position::new(19, 0);
+        world
+            .recent_meows
+            .push(meow_at(2, MessageKind::Mew, world.tick - 1, 0.0));
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[0], 0.0, "heard");
+        assert_eq!(
+            row(&obs, 0)[offsets::ROW_WATER_BIT],
+            0.0,
+            "knowledge masked"
+        );
+        assert_eq!(
+            row(&obs, 0)[offsets::ROW_SCENE_AGE],
+            0.0,
+            "knowledge masked"
+        );
+        assert!(
+            row(&obs, 0)[offsets::ROW_MSG_BLOCK + 2 * head_col(MessageKind::Mew)] > 0.0,
+            "the block is live"
+        );
     }
 }
