@@ -500,6 +500,19 @@ same fog config is the welfare benchmark, and a radius-aware rescue
 would also hand policies the answer the words exist to carry) or gains
 a fog-aware form (spawn inside a starving cat's radius).
 
+Coverage pass 2026-09-02, open items (owner walks them one by one;
+none ruled yet):
+- (i) Safeguard under fog: existence-based vs fog-aware, above.
+- (ii) Scripted navigation reads visible ∪ remembered; a refuted memory
+  drops the cat into FR-023 exploration. Implied by "same fog for
+  everyone", not yet written for the spec.
+- (iii) Step-5 acceptance bar splits `reply = 1` here rows from
+  ambient rows; `readout_screen.py` needs the flag. Prereg item.
+- (iv) The `reply` flag on the `Meow` record reaches `/world` and the
+  event stream; additive; Client thread's call whether to render it.
+- (v) Visibility flicker at the radius edge toggles the want gate as a
+  cat walks; the 10-tick cooldown bounds it. Proposed: accept.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
