@@ -320,3 +320,72 @@ fn record_prefog_streams() {
         &messages,
     );
 }
+
+// ---- spec 049 T065 / SC-011: the reply ladder is inert with the floor unset ----
+
+/// The served roster all scripted at the Gen 1 radius, `announce_here` 0,
+/// `reply_intensity_floor` unset -- the exact configuration SC-011 names.
+fn served_all_scripted_r5_floor_unset() -> Config {
+    let mut config = served_all_scripted();
+    config.vision.radius = 5;
+    config.behavior.reply_intensity_floor = None;
+    config.validate().expect("the r = 5 served config is valid");
+    config
+}
+
+/// SC-011: with `reply_intensity_floor` unset the engine WITH the reply
+/// ladder (T063) produces byte-identical action and message streams to
+/// the engine immediately before it -- recorded into
+/// `preladder-r5-20k.{actions,messages}.digest` at that commit by
+/// `record_preladder_r5_streams`. No feature gate, no cfg switch: the
+/// comparator is the pre-ladder engine itself, frozen as data. Fog is on
+/// (r = 5), so the blind cats explore and call; only replies are absent.
+#[test]
+fn reply_floor_unset_is_byte_identical() {
+    let expected_actions = read_lines("preladder-r5-20k.actions.digest");
+    let expected_messages = read_lines("preladder-r5-20k.messages.digest");
+    let (actions, messages) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    if let Some((tick, (got, want))) = actions
+        .iter()
+        .zip(&expected_actions)
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+    {
+        panic!("actions diverge at tick {tick}:\n  pre-ladder {want}\n  now        {got}");
+    }
+    assert_eq!(
+        actions.len(),
+        expected_actions.len(),
+        "action stream length"
+    );
+    if let Some((i, (got, want))) = messages
+        .iter()
+        .zip(&expected_messages)
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+    {
+        panic!("messages diverge at row {i}:\n  pre-ladder {want}\n  now        {got}");
+    }
+    assert_eq!(
+        messages.len(),
+        expected_messages.len(),
+        "message stream length"
+    );
+}
+
+/// The T065 recorder: run once at the commit immediately before T063 to
+/// capture the pre-ladder r = 5 streams. `cargo test -p cloudkitty-core
+/// --test fog_continuity -- --ignored record_preladder`.
+#[test]
+#[ignore]
+fn record_preladder_r5_streams() {
+    let (actions, messages) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    write_lines(
+        &fixtures_dir().join("preladder-r5-20k.actions.digest"),
+        &actions,
+    );
+    write_lines(
+        &fixtures_dir().join("preladder-r5-20k.messages.digest"),
+        &messages,
+    );
+}
