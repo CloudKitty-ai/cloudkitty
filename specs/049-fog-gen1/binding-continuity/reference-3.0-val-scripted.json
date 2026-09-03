@@ -1,23 +1,21 @@
 {
  "provenance": {
-  "git_head": "27c70fa70d41fba39e6d5beee6f282a789949bf0",
-  "git_dirty": true,
-  "git_dirty_paths": [
-   "CHANGELOG.md"
-  ],
-  "git_dirty_count": 1,
+  "git_head": "45c1582c1b859a9b01cc11d03b6b5234935f8d1e",
+  "git_dirty": false,
+  "git_dirty_paths": null,
+  "git_dirty_count": 0,
   "tool": "binding_continuity.py",
   "tool_sha256": "88c6db2c377f1e0526e6d0bb469cbe4329341853084ae449af17dd28591b6974",
   "toolchain_pin": "1.97.1",
-  "stamped_utc": "2026-09-03T23:52:13+00:00"
+  "stamped_utc": "2026-09-03T23:58:18+00:00"
  },
  "binding": {
   "module": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/822111a9-6d90-42e2-ab87-fceb02cfaf21/scratchpad/pyenv/lib/python3.14/site-packages/cloudkitty/__init__.py",
   "artifacts": [
    {
     "name": "cloudkitty.abi3.so",
-    "sha256": "aa66a1da090c8d98681271561b16fbd972ac6d71dbf8b5992477839f61890805",
-    "mtime": 1788478696.5435398
+    "sha256": "5aebe3319f478a170785e87cd4e1f1a6151c916e68f7de72e83ec1b2882e5d08",
+    "mtime": 1788479542.0910065
    }
   ]
  },

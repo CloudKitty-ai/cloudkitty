@@ -482,3 +482,15 @@ seven command lines named tests by stale names / a missing `--dry-run`
 flag and were corrected in place (the guide describes what exists). The
 standing-reds ledger is empty. Final COUNT READ recorded below at the
 last commit.
+
+### Final COUNT READ (T085)
+
+At `45c1582` (the last engine/test commit): `cargo test --workspace
+--no-fail-fast` = **867 passed, 0 failed, 4 ignored** (the four ignored:
+the two stream recorders, the r = 5 welfare reading, one pre-existing).
+Baseline at the branch base was 818; the difference is the new guards
+this file enumerates phase by phase, minus the deletions it records
+(schema-4 pins, the spec-035 map tests, the section-absence and rejector
+tests, the two fixture-loading resume tests). fmt --check, clippy
+`-D warnings`, pytest 18/1 skipped. Binding-continuity reference re-taken
+at the clean `45c1582` (digest unchanged, `cf0cfede…`).
