@@ -36,6 +36,25 @@ FINAL count: recorded at T085.
 | 13 | T019 | `update_memories`: clear on every tick out of view (`if true \|\|`) | property red; `a_bowl_walked_past…`, `a_remembered_bowl…`, `a_positive_timeout…` red; determinism `the_same_seed_produces_the_same_memory_under_fog` red (its ≥ 2 populated precondition); mid-run restore uncertain; goldens green (nothing is ever out of view at the covering radius) | exactly 5: the 4 memory guards + the determinism precondition; restore green; goldens green as predicted | restored, 0 dirty; 836/5 |
 | 14 | T021 | `#[serde(skip)]` on `Kitty.memory` (zero memory on restore) | `a_mid_run_save_restores_memory…`, `a_pre_3_0_kitty_record_is_refused…`, `empty_bookkeeping…wall_fields_always_on_it`, server `kitties_on_the_world_payload_carry_memory…`, goldens ×2 = 6 | 9: the 6 PLUS 3 `plugin_e2e` (the well-behaved fixture exits 4 on a `me` without `memory` — the T015 fogged-world check, consistent, under-enumerated) | restored, 0 dirty; 832/9 |
 | 15 | T008/T024/T025 (rule-6 sort) | `kitty_slots` 3 → 4 with the schema-5 constants (SELF 85, KITTY 62, digest deleted) | every schema-4 literal red: the 16 of cycle 1 (`the_default_layout_is_225_values`, `…thirty_four_entries…`, `…23_tokens`, `the_logit_budget_is_fifty`, `the_schema_four_numbers…`, 2 mask, 2 codec/episode, oracle parity, 3 expansion, 2 `policy_kitty`) PLUS the six global-digest tests, which cannot compile once `MEOW_DIGEST` is gone | as predicted: the 16 observed red at cycle 1 (recorded there); at this landing the digest tests failed at COMPILE (the loudest red) and the rest at run | all re-pointed or replaced: `schema_five_pins.rs` (404/4/39/20/8/55/55/7/5/3/3/1/15/16/24/40), menu indices at k = 4, token layout 16/7, `oracle.ckpolicy` regenerated (numpy-only generator `make_oracle_v5.py`, sha 8c1691b4…; the schema-4 oracle kept as the refusal witness), expansion → target-pin refusal, served seats parked; 835/0 |
+| 16 | T025 | `SELF_BLOCK` + 1 | class: the schema-5 pin (404), `the_default_layout_is_404_values`, `the_self_block_is_carried…` (85), the parity fixture (405 ≠ 404), AND every test that encodes an observation (the encoder's `debug_assert_eq!(v.len(), observation_len)` fires) | 36 reds = exactly that class (observe, episode, harness, policy, py-side rl, the parity + the server oracle boot); 802/36 | restored, 0 dirty |
+| 17a | T027 | kitty rows filled nearest-first (the schema-4 rule) instead of by id | 4: `kitty_rows_are_by_id…`, `rows_are_permanent…`, `a_heard_row_points…`, `a_distant_groom_target_keeps…` | exactly 4; 834/4 | restored |
+| 17b | T027 | needs + happiness zeroed on SEEN rows | 1: `rows_are_permanent…` (happiness shown) | exactly 1; 837/1 | restored |
+| 17c | T027 | "use the live position on heard rows" — CANNOT be staged: the view holds no live position for an unseen friend (there is nothing to leak from); the structural proof is the T016 leak guard + `a_heard_row_points…` asserting the meow's stamped tile | — | — | recorded per rule 3 |
+| 17d | T027 | staleness normaliser derived from the world (width + height) instead of the frozen 40 | 1: `the_memory_cells_read…` (staged on a 24×24 world so 48 ≠ 40) | exactly 1; 837/1 | restored |
+| 18 | T028 | loader roster check `>` → `>=` | class: every test loading a 5-cat config at 4 slots (both sweeps, harness served, eval_suite ×9, `policy_kitty` served, rl `roster_above…`); the server 6-cat test stays green | 16 reds, exactly the class; 822/16 | restored |
+| 19 | T030 | "compute one entry on the full snapshot" — CANNOT be staged: `legal_action_mask` takes only the `FogView` (no full snapshot in scope). The R2 guard in `mask_oracle` compares the fogged verdict at r ∈ {2, 3, 5, 40} against the world-covering view with the same table and named the two exceptions above; cycle 9/10's fog_for mutations are what redden it | — | — | recorded per rule 3 |
+| 20 | T031 | MLP (v2) loader's pin compare skipped | `schema_four_artifact_is_refused` etc. | 3 reds, NONE of them the new witnesses: the schema-4 oracle is a v3 artifact gated by the attention loader (`attn.rs:324`), not `policy.rs:259`. Wrong layer — re-run as 20b | restored |
+| 20b | T031 | attention (v3) loader's pin compare skipped; the witnesses first tightened to the gate's own words (`4c98a0e`) | 5: `schema_four_artifact_is_refused`, server `a_schema_four_artifact_fails_startup…`, `policy_kitty::the_shipped_config_parks…`, `each_rejection_class_fails_by_name…`, expansion `the_serving_loader_still_refuses…` | exactly 5; 833/5 | restored, 0 dirty |
+
+## Phase 4 checkpoint (T035, 2026-09-03)
+
+Count at `4c98a0e`: **838/0, 2 ignored** (841 at Phase 3 − the 6 global-
+digest tests − the spec-035 map-running expansion tests + the pins /
+row / refusal / boot guards; cycle 17b/17d read 837 + 1 induced). Python
+surface: 18 passed, 1 skipped (PettingZoo conformance without gymnasium,
+as in CI). Lessons banked: cycle 20 — mutate the layer the FIXTURE goes
+through (the v3 gate, not the v2 one); cycles 17c/19 — a mutation the
+type system makes unspeakable is recorded, not faked.
 
 ## §phase-4 notes (schema-5 landing, 2026-09-03)
 

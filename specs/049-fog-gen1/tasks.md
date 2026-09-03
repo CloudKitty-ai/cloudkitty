@@ -80,7 +80,7 @@
 - [X] T032 [P] [US2] Expansion tool `crates/cloudkitty-rl/src/expand.rs`: `SOURCE_PINS` (3, 2, 2) stay; obs-5 targets refused by the existing pin compare; `crates/cloudkitty-rl/tests/expansion.rs` re-pointed (a 3 → 4 placement test needs a schema-4 target: keep one checked-in schema-4 target fixture, or convert the placement tests to refusal assertions — record the choice and why in the redden list)
 - [X] T033 [P] [US2] Python surface: `crates/cloudkitty-py/tests/test_parallel_env.py` shape `(404,)` and `OBSERVATION_SCHEMA_VERSION` 5 where literal; `cd crates/cloudkitty-py && maturin develop --release && pytest tests -v` green incl. `test_pettingzoo_conformance.py` (quickstart §10)
 - [X] T034 [P] [US2] `docs/encodings.md`: new "Observation — CURRENT: schema 5" section from contracts/observation-v5.md (offset tables, Seen/Heard/Silent masks, derived numbers, menu 39 listing); schema-4 table moved under "Historical observation versions" (line 97); action/mask sections note menu 39 / mask 55 at `kitty_slots` 4
-- [ ] T035 [US2] Redden cycles for T025/T027/T028/T030/T031 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
+- [X] T035 [US2] Redden cycles for T025/T027/T028/T030/T031 recorded in `specs/049-fog-gen1/redden-list.md`; full suite COUNT READ
 
 **Checkpoint**: schema 5 pinned at 404; rows by id; masks over the view; artifacts, tokenizer, Python, docs moved.
 
