@@ -78,10 +78,10 @@ pub(crate) struct Group {
 pub(crate) fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
     let w = block_widths();
     // emb indices: self 0, kitty 1, chow 2, water 3, sunbeam 4, critter 5,
-    // msg 6, clock 7. type rows: self 0, kitty 1, chow 2, water 3, sunbeam 4,
-    // critter 5, msg 6..6+msg_count, clock last.
-    let msg_row0 = 6;
-    let clock_row = msg_row0 + w.msg_count;
+    // clock 6. type rows: self 0, kitty 1, chow 2, water 3, sunbeam 4,
+    // critter 5, clock 6 -- seven (spec 049: the message-kind token group
+    // went with the global digest; repetition rides the kitty rows).
+    let clock_row = 6;
     let groups = vec![
         Group {
             emb: 0,
@@ -133,14 +133,6 @@ pub(crate) fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
         },
         Group {
             emb: 6,
-            width: w.msg,
-            count: w.msg_count,
-            type_row0: msg_row0,
-            per_token_row: true,
-            always_present: false,
-        },
-        Group {
-            emb: 7,
             width: w.clock,
             count: 1,
             type_row0: clock_row,
@@ -248,8 +240,10 @@ pub(crate) fn labeled_tensor_sizes(
 ) -> Vec<(&'static str, usize)> {
     let _ = heads;
     let mut s = Vec::new();
-    // 1. embedding linears, in group order (emb 0..7 by first appearance).
-    for emb in 0..8 {
+    // 1. embedding linears, one per token type, in group order (emb 0..n
+    //    by first appearance; seven since spec 049 dropped the message
+    //    group -- derived from the layout, never a literal 8).
+    for emb in 0..embedding_count(groups) {
         let width = groups
             .iter()
             .find(|g| g.emb == emb)
@@ -288,6 +282,12 @@ pub(crate) fn labeled_tensor_sizes(
     s.push(("cptr_w", CRIT_VERBS * d));
     s.push(("cptr_b", CRIT_VERBS));
     s
+}
+
+/// How many per-type embedding linears the layout carries: one per
+/// distinct `emb` index, contiguous from 0.
+pub(crate) fn embedding_count(groups: &[Group]) -> usize {
+    groups.iter().map(|g| g.emb + 1).max().unwrap_or(0)
 }
 
 /// The dense (non-entity) menu-entry count for a slot configuration — the
@@ -425,8 +425,8 @@ impl AttnArtifact {
             .map(|c| f32::from_le_bytes(*c));
         let mut take = |n: usize| -> Vec<f32> { it.by_ref().take(n).collect() };
 
-        let mut emb = Vec::with_capacity(8);
-        for e in 0..8 {
+        let mut emb = Vec::with_capacity(embedding_count(&groups));
+        for e in 0..embedding_count(&groups) {
             let width = groups
                 .iter()
                 .find(|g| g.emb == e)
@@ -842,19 +842,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_token_layout_sums_to_the_observation_length_and_23_tokens() {
+    fn the_token_layout_sums_to_the_observation_length_and_16_tokens() {
         let cfg = ObservationConfig::default();
         let (groups, type_rows) = token_layout(&cfg);
         let width_sum: usize = groups.iter().map(|g| g.count * g.width).sum();
         let token_count: usize = groups.iter().map(|g| g.count).sum();
         assert_eq!(width_sum, crate::observe::observation_len(&cfg));
         assert_eq!(
-            token_count, 30,
-            "1 self + 3 kitty + 2 chow + 2 water + 2 sun + 4 critter + 15 msg + 1 clock"
+            token_count, 16,
+            "1 self + 4 kitty + 2 chow + 2 water + 2 sun + 4 critter + 1 clock (schema 5)"
         );
         assert_eq!(
-            type_rows, 22,
-            "6 singleton/shared + 15 message kinds + clock (schema 4)"
+            type_rows, 7,
+            "self, kitty, chow, water, sunbeam, critter, clock -- no message group (schema 5)"
+        );
+        assert!(
+            groups.iter().all(|g| !g.per_token_row),
+            "no per-token rows remain"
         );
     }
 }

@@ -62,7 +62,8 @@ fn garbage_logits_still_select_a_masked_in_action() {
     let rl = RlConfig::default();
     let config = Arc::new(Config::default());
     let world = cloudkitty_core::World::generate(&config);
-    let snapshot = world.snapshot();
+    let full = world.snapshot();
+    let snapshot = full.fog_for(full.kitties[0].id, config.vision.radius);
     let codec = ActionCodec::v2(&rl.observation);
 
     for (name, fill) in [

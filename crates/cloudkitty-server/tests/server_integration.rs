@@ -1042,3 +1042,29 @@ async fn kitties_on_the_world_payload_carry_memory_and_heading_additively() {
     }
     server.shutdown().await;
 }
+
+/// Spec 049 FR-011 / US2 scenario 6 at the boot seam: `main.rs` loads
+/// through `load_configs_from_str`, which refuses a roster the permanent
+/// rows cannot seat, naming the slot count and the roster.
+#[test]
+fn a_roster_above_the_slot_count_plus_one_is_refused_at_boot() {
+    let mut text = String::from(
+        "[world]\nwidth = 32\nheight = 32\ntick_ms = 800\nseed = 1\n\
+         [vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
+    );
+    for i in 0..6 {
+        text.push_str(&format!(
+            "[[kitty]]\nid = {}\nname = \"K{i}\"\nx = {}\ny = 3\nbehavior = \"needs_driven\"\n",
+            i + 1,
+            2 * i + 1
+        ));
+    }
+    let err = cloudkitty_rl::config::load_configs_from_str(&text)
+        .expect_err("six cats against four rows")
+        .to_string();
+    assert!(err.contains("[rl.observation] kitty_slots"), "{err}");
+    assert!(
+        err.contains("roster of 6") && err.contains("at least 5"),
+        "{err}"
+    );
+}

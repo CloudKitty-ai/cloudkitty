@@ -809,11 +809,13 @@ impl World {
                         });
                     }
                     (None, Some(remembered)) => {
-                        if origin.visible_from(&remembered.pos, radius) {
-                            *memory = None;
-                        } else if timeout > 0
-                            && seen_at.saturating_sub(remembered.last_seen) > timeout
-                        {
+                        // Refuted on sight (the tile is in view and holds
+                        // none of the kind), or expired under a positive
+                        // timeout; otherwise unchanged.
+                        let refuted = origin.visible_from(&remembered.pos, radius);
+                        let expired =
+                            timeout > 0 && seen_at.saturating_sub(remembered.last_seen) > timeout;
+                        if refuted || expired {
                             *memory = None;
                         }
                     }

@@ -25,8 +25,9 @@ fn observations_and_global_state_are_deterministic_and_bounded_across_a_run() {
         let clock = tick as f32 / 200.0;
 
         for kitty in &snapshot.kitties {
-            let a = encode_observation(&snapshot, kitty.id, &config, &obs_cfg, clock);
-            let b = encode_observation(&snapshot, kitty.id, &config, &obs_cfg, clock);
+            let view = snapshot.fog_for(kitty.id, config.vision.radius);
+            let a = encode_observation(&view, kitty.id, &config, &obs_cfg, clock);
+            let b = encode_observation(&view, kitty.id, &config, &obs_cfg, clock);
             assert_eq!(a.values, b.values, "tick {tick}, kitty {}", kitty.id);
             assert_eq!(a.table, b.table);
             assert_eq!(a.values.len(), observation_len(&obs_cfg));
@@ -68,8 +69,10 @@ fn same_seed_worlds_encode_identically() {
     let sa = a.snapshot();
     let sb = b.snapshot();
     for kitty in &sa.kitties {
-        let oa = encode_observation(&sa, kitty.id, &config, &obs_cfg, 0.0);
-        let ob = encode_observation(&sb, kitty.id, &config, &obs_cfg, 0.0);
+        let va = sa.fog_for(kitty.id, config.vision.radius);
+        let vb = sb.fog_for(kitty.id, config.vision.radius);
+        let oa = encode_observation(&va, kitty.id, &config, &obs_cfg, 0.0);
+        let ob = encode_observation(&vb, kitty.id, &config, &obs_cfg, 0.0);
         assert_eq!(oa.values, ob.values);
     }
 }

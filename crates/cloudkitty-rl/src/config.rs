@@ -58,12 +58,11 @@ pub struct RlConfig {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct ObservationConfig {
-    /// Kitty slots in the observation (default 3 — the default roster's
-    /// "everyone else"; larger rosters are partially observable by design).
-    /// Spec 049 FR-011 moves this to 4 (one PERMANENT row per friend, by
-    /// id, roster ≤ slots + 1 enforced) WITH the schema-5 layout: the
-    /// default and the roster check land in the same change as the width,
-    /// because every schema-4 literal in this crate derives from it.
+    /// Kitty slots in the observation: one PERMANENT row per friend, by
+    /// kitty id (spec 049 FR-011). Default 4 = the served roster of five
+    /// minus one; a roster larger than `kitty_slots + 1` is refused at
+    /// load (a friend without a row cannot exist under permanent rows),
+    /// and a smaller roster leaves surplus rows permanently vacant.
     pub kitty_slots: usize,
     /// Critter slots (default 4).
     pub critter_slots: usize,
@@ -85,7 +84,7 @@ pub struct ObservationConfig {
 impl Default for ObservationConfig {
     fn default() -> Self {
         Self {
-            kitty_slots: 3,
+            kitty_slots: 4,
             critter_slots: 4,
             chow_slots: 2,
             water_slots: 2,
@@ -396,6 +395,23 @@ pub fn load_configs_from_str(
     core.validate()
         .map_err(|e| RlConfigError::Message(e.to_string()))?;
     let rl = RlConfig::from_toml_str(text)?;
+    // Spec 049 FR-011: permanent by-id rows -- every friend owns one, so a
+    // roster the rows cannot seat is refused here, in the loader every
+    // tool shares, naming both numbers. A smaller roster is fine (surplus
+    // rows stay vacant).
+    let roster = core.kitties.len();
+    let slots = rl.observation.kitty_slots;
+    if roster > slots + 1 {
+        return Err(RlConfigError::invalid(
+            "[rl.observation] kitty_slots",
+            slots.to_string(),
+            format!(
+                "a roster of {roster} kitties needs at least {} kitty slots (roster - 1): every \
+                 friend owns a permanent observation row (spec 049 FR-011)",
+                roster - 1
+            ),
+        ));
+    }
     Ok((core, rl))
 }
 
@@ -415,7 +431,7 @@ mod tests {
     #[test]
     fn an_empty_file_yields_the_documented_defaults() {
         let rl = RlConfig::from_toml_str("").expect("defaults are valid");
-        assert_eq!(rl.observation.kitty_slots, 3);
+        assert_eq!(rl.observation.kitty_slots, 4, "spec 049 FR-011: roster - 1");
         assert_eq!(rl.observation.critter_slots, 4);
         assert_eq!(rl.observation.chow_slots, 2);
         assert_eq!(rl.observation.water_slots, 2);
@@ -576,5 +592,36 @@ mod tests {
         )
         .expect("a parked seat block still loads");
         assert!(rl.policy.contains_key("parked"));
+    }
+    /// Spec 049 FR-011 / US2 scenario 6: a friend without a row cannot
+    /// exist under permanent rows, so the loader refuses the roster,
+    /// naming the slot count and the roster size.
+    #[test]
+    fn roster_above_slots_plus_one_is_refused() {
+        fn world_with(kitties: usize) -> String {
+            let mut text = String::from(
+                "[world]\nwidth = 32\nheight = 32\ntick_ms = 800\nseed = 1\n\
+                 [vision]\nradius = 5\nmemory_timeout_ticks = 0\n",
+            );
+            for i in 0..kitties {
+                text.push_str(&format!(
+                    "[[kitty]]\nid = {}\nname = \"K{i}\"\nx = {}\ny = 3\nbehavior = \"needs_driven\"\n",
+                    i + 1,
+                    2 * i + 1
+                ));
+            }
+            text
+        }
+        let err = load_configs_from_str(&world_with(6))
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("[rl.observation] kitty_slots"), "{err}");
+        assert!(err.contains('4'), "names the slot count: {err}");
+        assert!(err.contains("roster of 6"), "names the roster: {err}");
+        assert!(err.contains("at least 5"), "names roster - 1: {err}");
+        load_configs_from_str(&world_with(5)).expect("roster == slots + 1 is the served shape");
+        load_configs_from_str(&world_with(3)).expect("a smaller roster leaves rows vacant");
+        let six = format!("{}[rl.observation]\nkitty_slots = 5\n", world_with(6));
+        load_configs_from_str(&six).expect("slots = roster - 1 seats everyone");
     }
 }

@@ -114,22 +114,17 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_seats_a_policy_this_binary_can_open() {
-    // Supersedes `the_shipped_config_boots_scripted_across_the_generation_gap`
-    // (third tour, spec 033 wall), which asserted every seat stayed parked
-    // until a schema-4 artifact certified. Four have: the three
-    // surface-expanded incumbents (spec 035) plus e006-E1-s1, certified as
-    // a composition 2026-08-21, so the parked assertion has expired by its
-    // own terms — exactly as it did at the spec-026 and spec-028 gaps.
-    //
-    // What replaces it is strictly stronger. The parked test proved
-    // unreferenced blocks are never opened; this one proves every
-    // referenced artifact IS opened and survives the schema gate. It
-    // therefore catches a seat naming a missing artifact, a
-    // stale-generation artifact, or a policy with no [rl.policy.*] block —
-    // none of which the parked version could see. If the seats ever park
-    // again (a fourth tour), restore the generation-gap test from git
-    // history instead of deleting this one.
+fn the_shipped_config_parks_every_seat_at_the_3_0_wall_and_refuses_the_2_x_minds() {
+    // The fourth tour (spec 049, the fog wall). This restores the
+    // generation-gap posture the third-tour test (`…seats_a_policy_this
+    // _binary_can_open`) said to restore "if the seats ever park again":
+    // observation schema 5 refuses every schema-4 artifact at load
+    // (FR-025 / SC-008), so the served roster is scripted until the Gen 1
+    // minds seat at the step-7 cutover. Two proofs: no seat names a
+    // policy, and every [rl.policy.*] artifact the config still lists --
+    // the 2.x registry, never opened for an unreferenced block -- IS
+    // refused by this binary, naming the observation schema and both
+    // versions, before any tick.
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
@@ -138,24 +133,43 @@ fn the_shipped_config_seats_a_policy_this_binary_can_open() {
         config
             .kitties
             .iter()
-            .any(|k| k.behavior.starts_with("policy:")),
-        "the shipped config seats at least one policy now that the phase-1 \
-         generation is certified; if the seats are parked again, restore \
-         the generation-gap test instead of deleting this one"
+            .all(|k| !k.behavior.starts_with("policy:")),
+        "at the 3.0 wall every served seat is scripted; a policy seat means Gen 1 minds \
+         landed -- then restore the seats-open test from git history"
     );
     let mut rl = RlConfig::from_toml_str(&text).unwrap();
-    // Artifact paths in the shipped config are relative to the repo root (the
-    // server's working directory); a test's is the crate root, so resolve them
-    // before opening anything.
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     for policy in rl.policy.values_mut() {
         policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
     }
+    assert!(
+        !rl.policy.is_empty(),
+        "the 2.x registry blocks stay as the record of what was seated"
+    );
+    let expectations = cloudkitty_rl::behavior::PolicyBehavior::expectations(&rl);
+    for (name, policy) in &rl.policy {
+        let err = cloudkitty_rl::policy::PolicyArtifact::load(
+            std::path::Path::new(&policy.artifact),
+            &expectations,
+        )
+        .expect_err(&format!(
+            "[rl.policy.{name}]: a 2.x (schema-4) artifact must not cross the wall"
+        ));
+        let text = format!("{err}");
+        assert!(
+            text.contains("observation"),
+            "[rl.policy.{name}]: the refusal names the observation schema: {text}"
+        );
+        assert!(
+            text.contains('4') && text.contains('5'),
+            "[rl.policy.{name}]: found 4 / expected 5 are both named: {text}"
+        );
+    }
+    // And a registry with no seated policy registers nothing -- boot
+    // proceeds scripted.
     let mut registry = BehaviorRegistry::with_builtins();
-    // The proof: registration opens every named artifact and runs it through
-    // the schema gate. A pre-wall artifact would be refused here.
-    register_policy_behaviors(&mut registry, &config, &rl)
-        .expect("every seated policy resolves to an artifact this binary can open");
+    let displays = register_policy_behaviors(&mut registry, &config, &rl).unwrap();
+    assert!(displays.is_empty());
     config.validate_behavior_names(&registry.names()).unwrap();
 }
 

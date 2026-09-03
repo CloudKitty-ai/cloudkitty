@@ -133,3 +133,51 @@ fn a_stale_generation_v3_artifact_fails_startup_naming_its_field() {
         "the error names the v3 seat's config field: {message}"
     );
 }
+
+/// Spec 049 SC-008 at the boot seam: a config seating the schema-4 oracle
+/// (a real pre-wall artifact) is refused at registration -- before any
+/// tick -- naming the observation schema, found 4, expected 5; and the
+/// schema-5 oracle beside it boots.
+#[test]
+fn a_schema_four_artifact_fails_startup_and_the_schema_five_oracle_boots() {
+    let fixtures =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../cloudkitty-rl/tests/fixtures");
+    let dir = std::env::temp_dir().join("ck-server-schema-gate");
+    std::fs::create_dir_all(&dir).unwrap();
+    for (name, seats) in [
+        ("oracle-schema4.ckpolicy", false),
+        ("oracle.ckpolicy", true),
+    ] {
+        let artifact = dir.join(name);
+        std::fs::copy(fixtures.join(name), &artifact).unwrap();
+        test_support::registry_row_beside(&artifact, "Oracle · fixture");
+        let text = format!(
+            "[world]\nwidth = 32\nheight = 32\ntick_ms = 800\nseed = 99\n\
+             [vision]\nradius = 40\nmemory_timeout_ticks = 0\n\
+             [[kitty]]\nid = 1\nname = \"Miso\"\nx = 10\ny = 12\nbehavior = \"needs_driven\"\n\
+             [[kitty]]\nid = 2\nname = \"Biscuit\"\nx = 20\ny = 18\nbehavior = \"policy:oracle\"\n\
+             [rl.policy.oracle]\nartifact = \"{}\"\n",
+            artifact.display()
+        );
+        let config: Config = toml::from_str(&text).unwrap();
+        config.validate().unwrap();
+        let rl = RlConfig::from_toml_str(&text).unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        let result = register_policy_behaviors(&mut registry, &config, &rl);
+        if seats {
+            result.expect("the schema-5 oracle seats");
+            assert!(registry.get("policy:oracle").is_some());
+        } else {
+            let err = format!("{:#}", result.expect_err("schema 4 is refused at startup"));
+            assert!(
+                err.contains("[rl.policy.oracle]"),
+                "names the config field: {err}"
+            );
+            assert!(err.contains("observation"), "names the schema: {err}");
+            assert!(
+                err.contains('4') && err.contains('5'),
+                "found 4 / expected 5: {err}"
+            );
+        }
+    }
+}

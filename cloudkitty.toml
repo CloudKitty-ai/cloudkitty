@@ -36,7 +36,7 @@ x = 8
 y = 10
 # "The cuddler", carried onto the schema-4 surface (spec 035): the same
 # mind that took this seat 2026-08-14, resuming after the wall.
-behavior = "policy:attn-a1-s1-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s1-o4 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -56,7 +56,7 @@ y = 15
 # owner's bar 87.31, G3 character fingerprint PASS (experiments/
 # exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
 # incumbent it grew from moves to Clementine.
-behavior = "policy:e006a-L-04-s3"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -74,7 +74,7 @@ y = 6
 # this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
 # deadlock was a twin artifact). The needs override below is world-law,
 # not behavior — it stays.
-behavior = "policy:attn-a1-s3-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s3-o4 cannot cross the 3.0 wall (see [vision])
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -94,7 +94,7 @@ y = 4
 # e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
 # battery doc): the E1 dialect — here-meows and a meaningful mew — is
 # worth the recert. G2c says the swap is free at team level (+0.0003).
-behavior = "policy:e006-E1-s1"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006-E1-s1 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -118,7 +118,7 @@ y = 16
 # vector owner-final, 3-dial: cuddlier, lighter on play and bath
 # (verified -0.07 vs trait-flat under policy company -- the parity band);
 # stage-3 mortal like Pumpkin's.
-behavior = "policy:e004-a1-s2-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e004-a1-s2-o4 cannot cross the 3.0 wall (see [vision])
 [kitty.needs]
 cuddle = 0.7
 play = 0.3
@@ -498,6 +498,13 @@ distress_patience_ticks = 60
 # policies/retired/ with their records; shas + provenance in
 # policies/README.md and policies/registry.toml (spec 034 rows in this
 # same change, per the same-PR rule).
+# THE SERVED ROSTER AT THE 3.0 WALL (spec 049 FR-025 / SC-008): every
+# 2.x policy artifact is schema 4 and is refused at load on this engine
+# (observation schema 5), so the five seats are scripted here -- the
+# step-5 shakeout / corpus-collection state -- until the Gen 1 minds seat
+# at the step-7 cutover. The [rl.policy.*] blocks stay as the registry
+# of what WAS seated (unreferenced blocks are never opened).
+#
 # Fog Gen 1 (spec 049): every cat -- policy, built-in, plugin -- sees the
 # kitties and elements inside a Euclidean disc of `radius` tiles around it
 # (dx^2 + dy^2 <= r^2, the disc's edge included) and nothing beyond;

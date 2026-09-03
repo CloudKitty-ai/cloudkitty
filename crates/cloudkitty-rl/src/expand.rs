@@ -41,6 +41,14 @@ pub const NEW_HEAD_FLOOR: f32 = -1.0e4;
 /// refuses — there is nothing principled to do with it.
 pub const SOURCE_PINS: (u32, u32, u32) = (3, 2, 2);
 
+/// The one TARGET generation the map is defined onto: the spec-033
+/// surface (observation 4 / action 3 / mask 3). Spec 049 (the fog wall,
+/// observation 5) has NO expansion map by ruling -- every embedding width
+/// moved and the message-kind tokens are gone -- so when the compiled
+/// surface is not this, the tool refuses before reading any source,
+/// naming both surfaces. Gen 1 minds train fresh on the far side.
+pub const TARGET_PINS: (u32, u32, u32) = (4, 3, 3);
+
 /// The pre-wall vocabulary: Silent + eight head kinds, digest 8×4.
 const OLD_MSG_COUNT: usize = 8;
 const OLD_MSG_HEAD_LEN: usize = OLD_MSG_COUNT + 1;
@@ -72,6 +80,14 @@ pub enum ExpandError {
         a: u32,
         m: u32,
     },
+    #[error(
+        "no expansion map onto this binary's surface (observation {o}/action {a}/mask {m}): \
+         the tool maps the pre-wall generation onto observation {}/action {}/mask {} only \
+         -- across the spec-049 fog wall there is nothing principled to place, and Gen 1 \
+         minds train on the far side",
+        TARGET_PINS.0, TARGET_PINS.1, TARGET_PINS.2
+    )]
+    UnmappedTarget { o: u32, a: u32, m: u32 },
     #[error("unknown artifact version {found} in {path} (this tool knows 2 and 3)")]
     UnknownVersion { path: String, found: u32 },
     #[error("{path}: {detail}")]
@@ -183,6 +199,22 @@ pub fn expand_file(source: &Path, output: &Path) -> Result<Attestation, ExpandEr
             o: pins.0,
             a: pins.1,
             m: pins.2,
+        });
+    }
+    if !matches!(probe.artifact_version, 2 | 3) {
+        return Err(ExpandError::UnknownVersion {
+            path: sp,
+            found: probe.artifact_version,
+        });
+    }
+    // Spec 049 T032: the map exists onto ONE target generation. A
+    // well-formed pre-wall source is refused here, after the source-shaped
+    // refusals above keep their names, when this binary is past it.
+    if current != TARGET_PINS {
+        return Err(ExpandError::UnmappedTarget {
+            o: current.0,
+            a: current.1,
+            m: current.2,
         });
     }
 

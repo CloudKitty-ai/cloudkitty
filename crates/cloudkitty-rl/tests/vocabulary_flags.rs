@@ -26,7 +26,7 @@ fn flags_never_move_a_single_layout_number() {
         ttl: None,
     });
     let cfg = ObservationConfig::default();
-    let snapshot = world.snapshot();
+    let snapshot = world.snapshot().fog_for(1, config.vision.radius);
     let table = TargetTable::build(&snapshot, 1, &cfg);
     let codec = ActionCodec::v2(&cfg);
 
@@ -92,7 +92,7 @@ fn a_disabled_kind_never_emits_over_any_horizon() {
     });
     for t in 10..60 {
         world.tick = t;
-        let snapshot = world.snapshot();
+        let snapshot = world.snapshot().fog_for(1, config.vision.radius);
         let mask = legal_message_mask(&snapshot, 1, &config);
         let col = 1 + HEAD_KINDS
             .iter()

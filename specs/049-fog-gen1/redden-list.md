@@ -35,6 +35,42 @@ FINAL count: recorded at T085.
 | 12b | T019 | same mutation after the property test stages THREE of every kind (`6c32b80`) | property red, `two_visible_bowls…` red, goldens red | exactly those 4 (837/4); the mirror test stays green (the compiled world's spawn happens to place one per kind — noted, its nearest clause is covered by the property now) | restored, 0 dirty |
 | 13 | T019 | `update_memories`: clear on every tick out of view (`if true \|\|`) | property red; `a_bowl_walked_past…`, `a_remembered_bowl…`, `a_positive_timeout…` red; determinism `the_same_seed_produces_the_same_memory_under_fog` red (its ≥ 2 populated precondition); mid-run restore uncertain; goldens green (nothing is ever out of view at the covering radius) | exactly 5: the 4 memory guards + the determinism precondition; restore green; goldens green as predicted | restored, 0 dirty; 836/5 |
 | 14 | T021 | `#[serde(skip)]` on `Kitty.memory` (zero memory on restore) | `a_mid_run_save_restores_memory…`, `a_pre_3_0_kitty_record_is_refused…`, `empty_bookkeeping…wall_fields_always_on_it`, server `kitties_on_the_world_payload_carry_memory…`, goldens ×2 = 6 | 9: the 6 PLUS 3 `plugin_e2e` (the well-behaved fixture exits 4 on a `me` without `memory` — the T015 fogged-world check, consistent, under-enumerated) | restored, 0 dirty; 832/9 |
+| 15 | T008/T024/T025 (rule-6 sort) | `kitty_slots` 3 → 4 with the schema-5 constants (SELF 85, KITTY 62, digest deleted) | every schema-4 literal red: the 16 of cycle 1 (`the_default_layout_is_225_values`, `…thirty_four_entries…`, `…23_tokens`, `the_logit_budget_is_fifty`, `the_schema_four_numbers…`, 2 mask, 2 codec/episode, oracle parity, 3 expansion, 2 `policy_kitty`) PLUS the six global-digest tests, which cannot compile once `MEOW_DIGEST` is gone | as predicted: the 16 observed red at cycle 1 (recorded there); at this landing the digest tests failed at COMPILE (the loudest red) and the rest at run | all re-pointed or replaced: `schema_five_pins.rs` (404/4/39/20/8/55/55/7/5/3/3/1/15/16/24/40), menu indices at k = 4, token layout 16/7, `oracle.ckpolicy` regenerated (numpy-only generator `make_oracle_v5.py`, sha 8c1691b4…; the schema-4 oracle kept as the refusal witness), expansion → target-pin refusal, served seats parked; 835/0 |
+
+## §phase-4 notes (schema-5 landing, 2026-09-03)
+
+- **Served seats parked**: `register_policy_behaviors` opens every seated
+  artifact and schema 5 refuses all five 2.x minds, so `cloudkitty.toml`'s
+  five seats are `needs_driven` on this branch (the step-5 shakeout /
+  corpus state) with the `[rl.policy.*]` blocks kept as the record;
+  `policy_kitty.rs` now asserts SC-008 on the REAL artifacts (found 4 /
+  expected 5, before any tick) — the "fourth tour" the third-tour test's
+  own doc asked for. OWNER FLAG: the served file cannot boot policy seats
+  until Gen 1 minds exist (step 7).
+- **Mask under fog, two exact statements** (`mask_oracle.rs`): (1) a
+  kitty-targeted entry whose row names a friend outside the disc is fog-
+  silenced (a pursuit would step on the friend's live position); (2) a
+  scene whose critter counterpart hopped outside the disc but still lives is
+  undecidable — the fogged probe prunes it (unseen = gone, the 048 rule) and
+  releases the non-continuation set, the full world continues the scene; no
+  mask is right for both alive and dead, and releasing is the benign choice
+  (a duration override, never a refusal). Everywhere else the fogged mask
+  equals the full-world mask at every radius ≥ 2, with the table built from
+  that radius's view. Quickstart §3's expectation carries this wording.
+- **Expansion tool (T032 choice)**: `TARGET_PINS` (4/3/3) added; a
+  well-formed pre-wall source is refused at this binary naming both surfaces
+  (`UnmappedTarget`); the spec-035 placement / attestation / deaf-mute guards
+  ran the map for real and cannot execute at schema 5 — deleted, restorable
+  from history when a 3.0 map is ruled; the source-shaped refusals keep their
+  names.
+- **Oracle fixture (T031 choice)**: numpy-only generator (no venv here has
+  torch); seeded synthetic weights at the schema-5 layout; the numpy forward
+  is the independent reference the parity test needs. `tensor_sizes` and the
+  loader no longer assume eight embeddings (a phantom bias for the deleted
+  message group would have broken every blob length).
+- **Mask-oracle rosters clamped to 5**: rosters above `kitty_slots + 1` are
+  refused at load (FR-011), and a sixth cat with no row makes a partnered
+  continuation inexpressible (all-zero) — exactly the state the rule forbids.
 
 ## Phase 3 checkpoint (T023, 2026-09-03)
 
