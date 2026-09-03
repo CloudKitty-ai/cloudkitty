@@ -30,6 +30,20 @@ FINAL count: recorded at T085.
 | 8 | T015 | `PROPOSAL_WIRE_VERSION` 3 → 2 | 3–4 reds: `plugin_e2e::the_request_carries_wire_v3_and_a_fogged_world`, `…a_well_behaved_plugin_drives_kitties_for_a_full_day`, `…a_plugin_that_dies_mid_run…` (uncertain: the fixture refuses before its first reply), `script::…a_decision_request_serializes…` | exactly 4 (the uncertain one red); 827/4; the tick loop untouched in every case (SC-013's fallback path) | restored, 0 dirty |
 | 9 | T016 | `fog_for`: the element filter dropped | 3 reds: `fog_visibility`, `world::…fog_for_keeps…` (element 902 present), `plugin_e2e::the_request_carries_wire_v3…` (a leaked element at r = 2 → the fixture exits 4 → fallback provenance) | exactly those 3; 828/3 | restored, 0 dirty (the proptest regressions file the induced failure wrote was deleted, not committed) |
 | 10 | T016 | `visible_from`: Euclidean → Manhattan | 3 reds: `grid::…edge` ((3,4) at Manhattan 7 unseen), `world::…fog_for_keeps…`, `fog_visibility` (inline oracle); plugin v3 green (the diamond is a subset of the disc: no leak); goldens/continuity green | exactly those 3; 828/3 | restored, 0 dirty |
+| 11 | T019 | `update_memories`: the refute branch skipped (`if false`) | property `memory_is_the_nearest_sighting…` + scenario `a_remembered_bowl_that_is_gone_clears…` red; goldens red (state) | exactly the 2 memory guards; goldens GREEN — at the world-covering compiled radius the refute arm is dead (every element is always visible, the first arm always fires), so the mutation cannot move state there: over-predicted, recorded | restored, 0 dirty; 839/2 |
+| 12 | T019 | `update_memories`: nearest → farthest (`min_by_key` → `max_by_key`) | property red, `two_visible_bowls…` red, `a_world_covering_radius_mirrors…` red, goldens red (state) | `two_visible_bowls…` + 2 goldens ONLY (838/3): the PROPERTY stayed green and so did the mirror test — the test world spawns ONE element per kind, so "nearest" is never contested. A vacuous guard (rule 6): fixed, not excused → cycle 12b | restored, 0 dirty |
+| 12b | T019 | same mutation after the property test stages THREE of every kind (`6c32b80`) | property red, `two_visible_bowls…` red, goldens red | exactly those 4 (837/4); the mirror test stays green (the compiled world's spawn happens to place one per kind — noted, its nearest clause is covered by the property now) | restored, 0 dirty |
+| 13 | T019 | `update_memories`: clear on every tick out of view (`if true \|\|`) | property red; `a_bowl_walked_past…`, `a_remembered_bowl…`, `a_positive_timeout…` red; determinism `the_same_seed_produces_the_same_memory_under_fog` red (its ≥ 2 populated precondition); mid-run restore uncertain; goldens green (nothing is ever out of view at the covering radius) | exactly 5: the 4 memory guards + the determinism precondition; restore green; goldens green as predicted | restored, 0 dirty; 836/5 |
+| 14 | T021 | `#[serde(skip)]` on `Kitty.memory` (zero memory on restore) | `a_mid_run_save_restores_memory…`, `a_pre_3_0_kitty_record_is_refused…`, `empty_bookkeeping…wall_fields_always_on_it`, server `kitties_on_the_world_payload_carry_memory…`, goldens ×2 = 6 | 9: the 6 PLUS 3 `plugin_e2e` (the well-behaved fixture exits 4 on a `me` without `memory` — the T015 fogged-world check, consistent, under-enumerated) | restored, 0 dirty; 832/9 |
+
+## Phase 3 checkpoint (T023, 2026-09-03)
+
+Count at `6c32b80`: **841/0, 2 ignored** (cycle 11's 839 + its 2 induced
+reds; 831 + 10 Phase-3 guards: 7 `fog_memory`, mid-run restore, memory
+determinism, `/world` memory fields). Goldens re-pinned once (T018: memory
+populated in serialized state; byte-identity guard green). Lesson banked
+from cycle 12: a property guard whose staging never CONTESTS the rule it
+guards is vacuous — stage the contest.
 
 ## Phase 2 checkpoint (T017, 2026-09-03)
 

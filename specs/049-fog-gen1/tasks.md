@@ -57,7 +57,7 @@
 - [X] T020 [US1] Scenario tests in `crates/cloudkitty-core/tests/fog_memory.rs`: US1 scenarios 3–7 (walk past and out → present/offset/staleness; bowl eaten while away → all zero on re-entry; two bowls → nearer wins, ties lower id; world-covering r → memory mirrors a visible element with staleness 0; own-tile water bit unaffected at any r)
 - [X] T021 [US1] Memory and heading round-trip + determinism (SC-006): extend `crates/cloudkitty-core/tests/snapshot_resume.rs` (mid-run save/restore continues byte-identically with memory populated) and `crates/cloudkitty-core/tests/determinism.rs` (same seed + config + ticks → identical `memory` on every kitty); red-first: zero memory on restore
 - [X] T022 [US1] Kitty listing on `/world` carries `memory` additively (FR-010): confirm serde on `crates/cloudkitty-server/src/api.rs` (no code change expected) and add one assertion in `crates/cloudkitty-server/tests/server_integration.rs` that the field appears and existing fields are unchanged
-- [ ] T023 [US1] Redden cycles for T019/T021 recorded in `specs/049-fog-gen1/redden-list.md`
+- [X] T023 [US1] Redden cycles for T019/T021 recorded in `specs/049-fog-gen1/redden-list.md`
 
 **Checkpoint**: US1 engine complete — fog + memory, deterministic, persisted.
 
