@@ -408,9 +408,12 @@ words load-bearing without costing a turn. Four rulings:
    (`announce_threshold` + `announce_hysteresis`, existing knobs; the
    floor value is screened at step 5, see below) AND that kind is the
    cat's top need (kind-order tie-break) AND the cat has no visible or
-   remembered relief for it. Food: no visible or remembered *stocked*
-   chow. Per-kind referents: eat/drink → element; cuddle/bath/play →
-   no available friend in view; sleep → one of need-only-when-top or
+   remembered relief for it. ("Stocked" is redundant: a bowl at zero
+   servings expires the same tick, `element.rs:108`, so no snapshot
+   holds an empty bowl; chow memory is presence, refuted when the bowl
+   is gone.) Per-kind referents: eat/drink → element; cuddle/bath/play
+   → no available friend in view OR heard at a known position (see the
+   coverage-pass rulings below); sleep → one of need-only-when-top or
    never speakable, the spec picks. Why: F-026's redundancy (the
    speaker's needs are already in its row) is what wrote the want-half
    off for Gen 1; what the speaker cannot *see* is in no row, so the
@@ -419,7 +422,7 @@ words load-bearing without costing a turn. Four rulings:
 2. **Reply bit**: every here word carries an engine-stamped `reply`
    flag, never policy-chosen. `reply = 1` iff a matching want from
    another cat is audible in the speaker's snapshot AND the referent is
-   visible from the speaker (stocked, for chow); adjacency sits inside
+   visible from the speaker; adjacency sits inside
    visibility, so an adjacent here with a want audible is also a
    reply. `reply = 0` keeps today's adjacency law. Observation:
    observer-relative "answers me" (the observer emitted the matching
@@ -502,10 +505,42 @@ a fog-aware form (spawn inside a starving cat's radius).
 
 Coverage pass 2026-09-02, open items (owner walks them one by one;
 none ruled yet):
-- (i) Safeguard under fog: existence-based vs fog-aware, above.
-- (ii) Scripted navigation reads visible ∪ remembered; a refuted memory
-  drops the cat into FR-023 exploration. Implied by "same fog for
-  everyone", not yet written for the spec.
+- (i) Safeguard under fog: **RULED 2026-09-02, keep existence-based.**
+  Finding is the cat's job; the scripted anchor on the same fog config
+  is the welfare benchmark; a fog-aware rescue would teach policies
+  that starving makes food appear. If the anchor shows distress at the
+  pinned radius, that is a radius finding. A distress-only (≥ 90)
+  fog-aware form stays available as a later knob, not built now.
+- (ii) **RULED 2026-09-02**, four parts, all for the step-4 spec:
+  - Elements: scripted targeting reads visible ∪ the one remembered
+    tile per kind; a remembered tile is walked to as the element; on
+    arrival within radius it is confirmed or refuted (cleared), and a
+    refuted memory drops the cat into FR-023 exploration on the same
+    ladder. Chow memory is presence only; remembered servings are
+    OUT for Gen 1 (a fifth field is layout, Gen 2). If added later,
+    the decision-relevant pair is count + ticks since seen, and the
+    staleness field already carries the second half.
+  - **Meows broadcast location**: the `Meow` record gains `pos`
+    (speaker position at emission, engine-stamped, additive). **Q1 of
+    spec 049 re-ruled**: a heard-but-unseen row carries the speaker's
+    position at its last audible meow, NOT live dx/dy (A as ruled
+    earlier leaked a moving cat's position for the whole window);
+    digest recency says how stale it is. Not a memory slot ("no cat
+    memory in Gen 1" stands): it is a reduction over `recent_meows`.
+    This also keeps `groom_response` (028 FR-019) alive under same-fog:
+    it walks to an unseen caller and had no position to use.
+  - Friends: scripted friend targeting (cuddle, play, `groom_response`)
+    reads visible friends ∪ heard-unseen friends at last-meow position;
+    on arrival, visible → proceed, else drop the target this tick.
+    Friend-referent wants therefore work without a here word: the
+    broadcast position is the invitation.
+  - **Want intensity is observed**: per (speaker × want kind) the
+    digest carries the last stamped intensity alongside recency + rate
+    (6 kinds × 4 rows = +24 floats; width ≈ 408 with the reply bit).
+    Overrides ROADMAP §Meow-digest's "intensity dropped": that
+    argument covered position (the row has it), not urgency, and under
+    fog an unseen caller's needs are masked, so intensity is the only
+    urgency channel. Here kinds stay recency + rate.
 - (iii) Step-5 acceptance bar splits `reply = 1` here rows from
   ambient rows; `readout_screen.py` needs the flag. Prereg item.
 - (iv) The `reply` flag on the `Meow` record reaches `/world` and the
