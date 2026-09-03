@@ -216,8 +216,22 @@ enters step 4's spec without appearing here first.
   re-raises the slot count explicitly rather than reintroducing the
   flap silently. The phase-1 "someone always unslotted" thesis is
   retired by fog itself (out-of-view set = the estimator's target).
-Still open for the doc: the Here*-teacher scope (collapse into
-`announce_here`, F-034), the 3.0 config-hygiene delete list.
+- **Here*-teacher: OUT for Gen 1** (owner ruled 2026-09-02),
+  collapsed into `announce_here = 1` on the scripted seats. F-034: the
+  scripted behaviours with the knob armed already produce a corpus a
+  clone learns the register from (fluent at 8.2% realised share,
+  act@1 and welfare untouched), and step 5 gates the vocabulary by
+  measurement (`readout_screen.py` here-conditioned bar) regardless.
+  A dedicated teacher had no other job: `want_*` is law-grounded, the
+  free register is never scripted. On the record: the cliff is narrow
+  (half-fluent 7.6%, fluent 8.2%, cooldown ceiling near 8%, so period
+  1 has no headroom) and F-034 was collected under global vision on
+  schema 3; the fog corpus is re-collected on schema 4. **Reopen
+  trigger: a fog-collected clone misses the step-5 here-conditioned
+  bar.** First lever then is density (the cooldown, which the speech
+  economy and F-034's ladder depend on); a teacher only if density
+  cannot be raised without breaking the ladder.
+Still open for the doc: the 3.0 config-hygiene delete list.
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
@@ -260,7 +274,8 @@ compositions), never servable on the box; no schema break, so it
 enters here, not step 3. **F-034 (2026-08-31) supports collapsing
 this item**: the scripted behaviors with `announce_here = 1` produce
 a corpus a V4 clone learns the register from — scoping it away is
-the owner's call at this window.
+the owner's call at this window. **RULED OUT for Gen 1 2026-09-02** (step 3 above;
+reopen trigger = a step-5 here-bar miss).
 
 ## Step 5 — shakeout training round
 
