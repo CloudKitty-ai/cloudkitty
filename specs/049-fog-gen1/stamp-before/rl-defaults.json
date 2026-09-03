@@ -1,0 +1,43 @@
+{
+  "observation": {
+    "kitty_slots": 3,
+    "critter_slots": 4,
+    "chow_slots": 2,
+    "water_slots": 2,
+    "sunbeam_slots": 2,
+    "reference_need_rate": 1.0,
+    "max_chow_servings": 5
+  },
+  "global_state": {
+    "elements_per_type": 2
+  },
+  "reward": {
+    "p": 0.0,
+    "epsilon": 0.01,
+    "mode": "level",
+    "shaping": {
+      "enabled": false,
+      "gamma": 1.0,
+      "distress_coefficient": 0.0
+    }
+  },
+  "episode": {
+    "horizon": 2000
+  },
+  "eval": {
+    "ticks": 20000,
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "policy": {}
+}
