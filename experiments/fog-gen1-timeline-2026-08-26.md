@@ -541,12 +541,24 @@ none ruled yet):
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only
     urgency channel. Here kinds stay recency + rate.
-- (iii) Step-5 acceptance bar splits `reply = 1` here rows from
-  ambient rows; `readout_screen.py` needs the flag. Prereg item.
-- (iv) The `reply` flag on the `Meow` record reaches `/world` and the
-  event stream; additive; Client thread's call whether to render it.
-- (v) Visibility flicker at the radius edge toggles the want gate as a
-  cat walks; the 10-tick cooldown bounds it. Proposed: accept.
+- (iii) **RULED 2026-09-02**: the step-5 acceptance bar becomes three
+  bars, each with opportunity-use + msg@1 pinned at prereg on the
+  held-out set: reply-here (opportunity = matching want audible AND
+  referent visible from me; the bar that carries the fog result),
+  ambient-here (the F-034 continuity check), and want (opportunity =
+  armed top need with nothing visible or remembered; the want-half's
+  first bar). A pooled bar would pass a clone that never replies. The
+  collector's trace carries the `reply` flag and want intensity;
+  `readout_screen.py` grows the two new bars. Instrument work, no
+  engine change.
+- (iv) **RULED 2026-09-02**: `reply` and `pos` on the `Meow` record
+  reach `/world` and the meow event stream as additive fields; nothing
+  for 049 beyond naming them. Rendering a reply is a Client BACKLOG
+  item for after Fog Gen 1 (owner), relayed to the Client thread.
+- (v) **RULED 2026-09-02, accept**: radius-edge flicker toggles the
+  want gate only on a first sighting; the memory slot holds the bowl
+  as remembered after that and the 10-tick cooldown bounds emission.
+  No hysteresis on the gate.
 
 ## Step 5 — shakeout training round
 
