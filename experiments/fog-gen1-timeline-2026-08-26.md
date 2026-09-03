@@ -265,8 +265,29 @@ enters step 4's spec without appearing here first.
     (`training.toml`, clowder's `tiny-world.toml`, exp-004 pilot /
     rebaseline families); live tooling configs get their sections in
     the wall PR, result-backing families go to the exclusions file.
-  - Open: `cuddle_relief` field + rejector (in, trivial), snapshot
-    restore shims (in), migration-map rejectors (call C).
+  - **Migration-map rejectors: DELETE all seven** (owner ruled
+    2026-09-02). The parse-then-reject `Option` fields and their
+    rejectors: `[purr] cooldown_ticks` (022, `validate.rs:567`),
+    `[meow] cooldown_ticks` + `urgent_cooldown_ticks` (023, `:708`,
+    `:716`), `[meow] courtesy_ticks` + `urgent_courtesy_ticks` +
+    `urgent_need_threshold` (028, `:723-740`), `[actions] cuddle_relief`
+    (041, `:764`), with their guard tests. `deny_unknown_fields` still
+    refuses the keys; the wall's migration note carries the seven maps.
+    Not in the set: the 025 play-key wording on the live chain link
+    (`:822`) stays.
+  - **Snapshot restore shims: DELETE** (ROADMAP scope, unlocked by
+    `--fresh`): the seven in `kitty.rs` (`mutual_ticks`/`drip_ticks`
+    pre-041, `behavior_description` pre-034, `last_action`,
+    `purring_until` + `purr_cooldown_until` pre-011, `purring_duration`
+    pre-022, `announce_armed` pre-028), `Pursuit.improved_at`
+    (`kitty.rs:40`, same pattern), the pre-041 duet fixture and both
+    `snapshot_resume.rs` tests already marked for the wall.
+  - Out of scope, on the record (ROADMAP): `ACTION_SCHEMA_VERSION` /
+    codec, the HTTP API, `HEAD_KINDS`; `validate_capacity` keeps itself.
+    Python blast radius for the key deletions is zero; the reddening
+    points are the two config sweeps and the nan table.
+  **Step 3 doc COMPLETE 2026-09-02**: every member ruled. Step 4 spec
+  opens on this list.
 
 ## Step 3.5 — tag v2.10 (owner-ruled 2026-08-30)
 
