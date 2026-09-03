@@ -376,7 +376,7 @@ impl ParallelEnv {
         Ok(space.clone_ref(py))
     }
 
-    /// The activity menu's width (34 at default slots).
+    /// The activity menu's width (39 at the served `kitty_slots` 4, schema 5).
     #[getter]
     fn menu_len(&self) -> usize {
         self.episode.codec().len()

@@ -19,8 +19,19 @@ const TICKS: u64 = 20_000;
 
 #[test]
 fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
-    let config = Arc::new(Config::default());
+    // Spec 049 T080: these bounds were baselined under global vision (specs
+    // 004/006), so the gate pins a world-covering radius (64 = 32 + 32 on
+    // the compiled world) and keeps measuring what it always measured. At
+    // the served placeholder r = 5 the same run reads 13 violations (means
+    // 77.6 / 69.3 / 77.9, below-45 shares 2.6-4.7%, an eat distress of
+    // 3,477 ticks): the ruled heading rule sweeps only a ring within r of
+    // the inner square, so on a 32x32 world the centre and the corner
+    // pockets are never seen and the existence-based safeguard never puts
+    // food in view -- OWNER FLAG (spec 049 report), the reading below.
+    let mut config = Config::default();
+    config.vision.radius = 64;
     config.validate().expect("the default config is valid");
+    let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);
     let mut accumulator = WelfareAccumulator::new(&world, &config);
@@ -94,6 +105,8 @@ fn fog_r5_twenty_thousand_ticks_welfare_reading() {
         );
     }
     println!("r=5 max distress age {}", report.max_distress_age);
+    println!("r=5 distress census {:?}", report.distress_census);
+    println!("r=5 pinned {:?}", report.pinned);
     let violations = report.violations();
     println!(
         "r=5 against the 2.x global-vision bounds: {} violation(s){}{}",

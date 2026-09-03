@@ -82,12 +82,16 @@ use cloudkitty_core::{BehaviorRegistry, Config, World};
 use sha2::{Digest, Sha256};
 
 /// sha256 of the serialized world after 10,000 ticks of the default
-/// config (scripted behaviors, default seed), generated at spec 049's
-/// wall (additive fields + retention, dynamics proven unmoved — see the
-/// module doc). History: spec 046 pinned 8e184e6d… (additive ring); 048
-/// pinned 31f36082… (a justified behavior change); 049 T014 supersedes it.
+/// config (scripted behaviors, default seed). Spec 049 T081 (the ONE
+/// regeneration after T080): fog at r = 5 is an intentional dynamics
+/// move — every scripted cat now decides from a 5-tile disc, explores for
+/// what it cannot see and asks for it, so the 10k-tick world differs from
+/// the world-covering run this golden pinned while the arc landed
+/// (ac442a23…, T054; ee5f0d3b…/…, the T014/T018/T044 moves before it).
+/// History: spec 046 pinned 8e184e6d… (additive ring); 048 pinned
+/// 31f36082… (a justified behavior change).
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "ac442a23e3bfe01f441ca3c0fd0f7fbbac76bfeb07e573cf76242e57c2a87e94";
+    "eaba813891b0bf8aa95669b9c60a8e25912d27d9bd5ce43dc394958f442c370c";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -95,7 +99,9 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// keep world-minus-that-field byte-identical to THIS pin, or it is
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
-const STRIP_PIN_SPEC_049: &str = "173f9d09828504179ec93fc60c530501f998db11dc6cc3a4a56f3b26b2062c71";
+/// Spec 049 T081: re-derived with the golden above from the same r = 5
+/// run (173f9d09… was the world-covering run's pin).
+const STRIP_PIN_SPEC_049: &str = "0bbb577fc6c451d7a7bc89705fd6bbd7061f14307a33de5b3ed2aee2acb4f681";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

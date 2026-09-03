@@ -1,0 +1,68 @@
+{
+ "provenance": {
+  "git_head": "c2b2bc145d56a0834ccb644b321f659f5e7ae752",
+  "git_dirty": true,
+  "git_dirty_paths": [
+   "cloudkitty.toml",
+   "crates/cloudkitty-core/src/config/defaults.rs",
+   "crates/cloudkitty-core/src/config/mod.rs",
+   "crates/cloudkitty-core/src/test_support.rs",
+   "crates/cloudkitty-core/tests/water_safeguard.rs",
+   "crates/cloudkitty-py/src/lib.rs",
+   "crates/cloudkitty-rl/tests/welfare_longrun.rs",
+   "crates/clowder/tests/tiny-world.toml",
+   "evals/v2/heterogeneity.toml",
+   "evals/v2/manifest.toml",
+   "evals/v2/mixed-roster-guest.toml",
+   "evals/v2/mixed-roster-half.toml",
+   "evals/v2/mixed-roster-host.toml",
+   "evals/v2/scale.toml",
+   "evals/v2/scarcity.toml",
+   "experiments/exp-006-character-gen/binding_continuity.py",
+   "experiments/exp-006-character-gen/collect-config-bugs2.toml",
+   "experiments/exp-006-character-gen/collect-config.toml",
+   "experiments/exp-006-character-gen/configs/phase1-cutover-bugs2.toml",
+   "experiments/exp-006-character-gen/configs/phase1-cutover-flatbiscuit.toml",
+   "experiments/exp-006-character-gen/configs/phase1-cutover-playfulbiscuit.toml",
+   "experiments/exp-006-character-gen/configs/phase1-cutover.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-00.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-01.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-02.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-03.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-04.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-05.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-06.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-07.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-08.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-09.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-10.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-11.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-12.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-13.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-14.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-15.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-16.toml",
+   "experiments/exp-006-character-gen/family-farspawn-bugs2/family-17.toml"
+  ],
+  "git_dirty_count": 63,
+  "tool": "binding_continuity.py",
+  "tool_sha256": "88c6db2c377f1e0526e6d0bb469cbe4329341853084ae449af17dd28591b6974",
+  "toolchain_pin": "1.97.1",
+  "stamped_utc": "2026-09-03T23:45:35+00:00"
+ },
+ "binding": {
+  "module": "/private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/822111a9-6d90-42e2-ab87-fceb02cfaf21/scratchpad/pyenv/lib/python3.14/site-packages/cloudkitty/__init__.py",
+  "artifacts": [
+   {
+    "name": "cloudkitty.abi3.so",
+    "sha256": "aa66a1da090c8d98681271561b16fbd972ac6d71dbf8b5992477839f61890805",
+    "mtime": 1788478696.5435398
+   }
+  ]
+ },
+ "config": "cloudkitty.toml",
+ "seating": "val-scripted",
+ "seed": 870001,
+ "ticks": 2000,
+ "state_trace_sha256": "cf0cfede645765e098d47cca86c0f56de314c5d36416c2ad4703a25f4afa8a30"
+}

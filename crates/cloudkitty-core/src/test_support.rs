@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::action::TargetRef;
 use crate::behavior::DecisionContext;
-use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, WorldConfig};
+use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, VisionConfig, WorldConfig};
 use crate::element::ElementType;
 use crate::kitty::{Activity, KittyId};
 use crate::rng::DecisionRng;
@@ -139,6 +139,14 @@ pub fn test_config() -> Config {
             },
             ..ElementsConfig::default()
         },
+        // Spec 049 T080: this 16x16 stage and every test staged on it were
+        // written under global vision; the world-covering radius (64 >=
+        // any pair of tiles here) keeps them meaning what they meant. Fog
+        // tests set their own radius (`config.vision.radius = 5`).
+        vision: VisionConfig {
+            radius: 64,
+            memory_timeout_ticks: 0,
+        },
         ..Config::default()
     }
 }
@@ -167,8 +175,7 @@ pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> Deci
     DecisionContext {
         me,
         // Through the fog view, like every real decision (spec 049 R1); the
-        // test config's radius is the compiled default, world-covering
-        // while the arc lands.
+        // test config pins a world-covering radius (see `test_config`).
         world: Arc::new(world.snapshot().fog_for(id, config.vision.radius)),
         rng: DecisionRng::from_seed(9876),
         config,

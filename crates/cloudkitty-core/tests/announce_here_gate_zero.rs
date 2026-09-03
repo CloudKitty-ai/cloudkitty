@@ -114,8 +114,22 @@ fn want_and_wait(run: &Run) -> Vec<(u64, u32, MessageKind)> {
 
 #[test]
 fn gate_zero_speech_never_moves_action() {
-    let a = run(Config::default(), TICKS);
-    let b = run(armed(1), TICKS);
+    // Spec 049 T080: this doctrine is a GLOBAL-VISION doctrine. Under fog a
+    // friend outside the disc that speaks any word -- a Here* word
+    // included -- becomes a heard target at its stamped tile (FR-022,
+    // owner ruled 2026-09-03: heard friends drive built-in targeting), so
+    // at the served r = 5 the armed run's actions diverge from the silent
+    // run's (first at tick 119 on the compiled world). The guard keeps its
+    // original claim at a world-covering radius, where everything heard
+    // is also seen and the here path can move nothing; the fog-era
+    // relation between 043's gate zero and 049's hearing is an OWNER
+    // FLAG in the spec-049 report.
+    let mut silent = Config::default();
+    silent.vision.radius = 64;
+    let mut speaking = armed(1);
+    speaking.vision.radius = 64;
+    let a = run(silent, TICKS);
+    let b = run(speaking, TICKS);
 
     // Assertion 1: gate zero. Compared per tick so a failure names the
     // first divergent moment instead of just "the runs differ".

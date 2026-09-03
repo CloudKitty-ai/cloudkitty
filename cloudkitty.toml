@@ -513,22 +513,16 @@ distress_patience_ticks = 60
 # at the step-7 cutover. The [rl.policy.*] blocks stay as the registry
 # of what WAS seated (unreferenced blocks are never opened).
 #
-# Fog Gen 1 (spec 049): every cat -- policy, built-in, plugin -- sees the
-# kitties and elements inside a Euclidean disc of `radius` tiles around it
-# (dx^2 + dy^2 <= r^2, the disc's edge included) and nothing beyond;
-# hearing stays global; each cat remembers the last tile it saw each
-# element kind on, corrected on sight. World law, so it lives here beside
-# [world] and [meow], not under [rl]. The 3.0 placeholder radius is 5
-# (81 tiles; the step-5 prereg screens the value).
-#
-# ARC-TEMPORARY: 40 here is the world-covering radius (the pre-fog world --
-# the served 20x20 world's width + height, so every tile is inside every
-# disc). It holds while the 049 arc lands, so the suite stays green and the
-# byte-identity proof (FR-024) runs against the served file; the arc's last
-# config task flips it to the placeholder 5 together with the one golden
-# regeneration. Do not deploy this value.
+# Fog Gen 1 (spec 049): the vision disc. A cat knows the kitties and elements
+# within `radius` of itself (Euclidean, dx² + dy² ≤ r², edge included), every
+# recent meow (hearing is global), the roster's ids and its own one-slot-per-
+# kind element memory; the same disc for every seat -- built-ins, plugins and
+# policies decide from one fog view. 5 is the FR-002 PLACEHOLDER (81 tiles on
+# the 20x20 world); the step-5 pre-registration screens the radius set and
+# rules the served value. Every built-in cat explores for what it cannot see
+# (FR-023) and asks for it (FR-036); see docs/meows.md.
 [vision]
-radius = 40
+radius = 5
 # Element-memory expiry in ticks; 0 = never (sight is the only corrector).
 memory_timeout_ticks = 0
 

@@ -181,7 +181,7 @@ max_ticks = 13
 min_ticks = 8
 
 [vision]
-radius = 52
+radius = 5
 memory_timeout_ticks = 0
 
 [rl.policy.attn-a1-s1]

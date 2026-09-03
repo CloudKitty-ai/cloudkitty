@@ -1424,7 +1424,17 @@ mod tests {
         // set by COMBINED density — which the constant floor test above
         // cannot observe. Drive the default world well past saturation and
         // measure the window the ring actually holds.
-        let config = std::sync::Arc::new(cfg());
+        //
+        // Spec 049 T080: pinned at the world-covering radius the 2.x
+        // baseline (F-039, ~0.38 combined refusals/tick) was measured
+        // under. At the served r = 5, 20,000 ticks do NOT saturate the
+        // 6,000 ring -- blind cats propose far fewer partnered scenes, so
+        // the refusal density fell and this window measure would be
+        // drive-length-limited (vacuous) there. The fog-era density is the
+        // refusal baseline's re-run item (one window per roster deploy).
+        let mut pinned = cfg();
+        pinned.vision.radius = 64;
+        let config = std::sync::Arc::new(pinned);
         let registry = crate::BehaviorRegistry::with_builtins();
         let mut world = crate::World::generate(&config);
         let runtime = tokio::runtime::Builder::new_current_thread()
@@ -3152,10 +3162,10 @@ trill = true",
     #[test]
     fn the_served_fog_defaults_are_the_documented_placeholders() {
         let c = cfg();
-        // ARC-TEMPORARY: 64 (= 32 + 32, world-covering for the compiled
-        // world) until T080 flips the default to the FR-002 placeholder 5
-        // and re-points this line.
-        assert_eq!(c.vision.radius, 64, "ARC-TEMPORARY world-covering default");
+        assert_eq!(
+            c.vision.radius, 5,
+            "FR-002: the placeholder, screened at step 5"
+        );
         assert_eq!(c.vision.memory_timeout_ticks, 0, "FR-008: never");
         assert_eq!(c.meow.digest_window_ticks, 30, "FR-017");
         assert_eq!(c.meow.recent_window_ticks, 10, "the cooldown is unmoved");

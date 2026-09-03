@@ -381,7 +381,14 @@ proptest! {
 
     #[test]
     fn the_mask_is_a_pure_oracle_and_never_all_zero(spec in arb_world_spec()) {
-        let config = Config::default();
+        // Spec 049 T080: mask == engine oracle is the GLOBAL-VISION claim;
+        // under fog the mask is stricter by design (a kitty-targeted entry
+        // whose friend is outside the disc is fog-silenced while the engine,
+        // which sees the whole world, would apply it). The fog relation is
+        // its own guard below (`the_fog_mask_is_the_full_mask_inside_the_disc`
+        // and companions), so this one pins the world-covering radius.
+        let mut config = Config::default();
+        config.vision.radius = 64;
         let world = build_world(&spec, &config);
         assert_mask_matches_engine(&world, &config);
     }
@@ -498,8 +505,12 @@ fn a_default_population_critter_cluster_keeps_an_ongoing_play_expressible() {
     // critters, four critter slots. Four bugs with small ids crowd close;
     // the played-with greeble (large id) sits adjacent but loses every
     // tie-break. Without target-priority the continuation Play{Element}
-    // would be inexpressible mid-minimum.
-    let config = Config::default();
+    // would be inexpressible mid-minimum. Spec 049 T080: kitty 9 is moved
+    // 4+4 tiles off, outside a 5-disc, so the mask == engine check that
+    // closes this test runs at the world-covering radius (the fog
+    // exception is the fog guard's subject, not this corner's).
+    let mut config = Config::default();
+    config.vision.radius = 64;
     let mut world = crowded_base(&config);
     world.elements.retain(|e| !e.element_type().is_critter());
     for (id, x, y) in [

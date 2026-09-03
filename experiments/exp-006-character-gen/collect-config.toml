@@ -392,7 +392,7 @@ bath_gain = 3.5
 bath_gain_ceiling = 60.0
 
 [vision]
-radius = 40
+radius = 5
 memory_timeout_ticks = 0
 
 [rl.policy.e004-a1-s2]

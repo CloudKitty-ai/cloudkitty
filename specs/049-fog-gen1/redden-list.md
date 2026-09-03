@@ -375,3 +375,82 @@ shipped-config sweeps exercise it (T074).
 
 Phase-10 checkpoint: **867/0, 4 ignored** (871 − 6 deleted + 2 inverse
 guards), fmt + clippy clean.
+
+## Phase 11 — T077 merge, the T080 flip and its predicted reds (written BEFORE the run)
+
+T077: `origin/main` merged IN @ c2b2bc1 (three docs commits: the step-5
+training pass, the shakeout PREREG draft, the radius-set ruling); suite
+after the merge **867/0, 4 ignored**.
+
+T060 reading BEFORE the flip (rl `fog_r5_twenty_thousand_ticks_welfare_reading`,
+compiled 32×32 world, all scripted, r = 5): means 77.6 / 69.3 / 77.9,
+below-45 shares 4.3 / 4.7 / 2.6 % (streaks 106 / 186 / 103), max distress
+age **3,477** ticks; 13 violations of the 2.x bounds. Census: eat distress
+4,033 / 3,533 / 3,746 ticks in 3 / 7 / 7 episodes; sleep pinned streaks
+326 / 396 / 246. **OWNER FLAG (mechanism)**: the ruled FR-023 heading rule
+("redraw when the wall ahead ≤ r") walks the inner square `[r, w−1−r]²`
+and never leaves its band, so on a world wider than ~4r the centre (a
+10×10 core at 32×32, r = 5) and the corner pockets are never inside any
+disc; the safeguard is existence-based (FR-047) and never puts food in
+view; a blind cat can starve for thousands of ticks. On the served 20×20
+world the band covers everything but the 40 pocket tiles (SC-012 holds,
+worst 36 ticks). Decision for the arc (reversible, hers to overrule): the
+compiled default flips to 5 as the contract says; the rl welfare GATE pins
+radius 64 (its bounds are global-vision bounds) and the r = 5 READING
+stays beside it, ignored, for the prereg.
+
+T080 landed: 53 TOMLs `radius = 5` (served, training, tiny-world, spec-004,
+43 exp-006, evals/v2 ×7 re-hashed, config-3.0-defaults); compiled default
+5; `test_support::test_config` pins 64 (its 16×16 stage was written under
+global vision); rl welfare gate pins 64; water_safeguard dial table keeps a
+64 entry beside the default.
+
+Predicted RED after the flip (the T081 set): `golden_evolution_flag_absent_10k_ticks`,
+`golden_strip_witness_refusal_ring_is_the_only_delta` (core goldens on the
+served config), `run_json_wire_shape_matches_the_golden` (rl run-json
+golden). Predicted GREEN: fog_continuity (forces 40), determinism, joint-
+action parity (both drivers at the same radius), snapshot_resume (explicit
+r 8), mask_oracle (explicit radii), SC-012 / the same-fog witness (explicit
+5), pytest (shapes unchanged).
+
+### T080 observed, T078 stamp proof, T083 record
+
+Observed after the flip: **7 red** — the 3 predicted goldens + 4
+unpredicted, each a global-vision doctrine test that ran on
+`Config::default()`:
+- `default_ring_covers_the_baseline_window_under_absorbed_load`: at r = 5,
+  20,000 ticks do NOT saturate the 6,000 ring (fewer refusals under fog) →
+  the window measure is vacuous there; pinned at 64, the fog-era refusal
+  density noted as the refusal baseline's re-run item.
+- `gate_zero_speech_never_moves_action` (043): projections diverge at tick
+  119 — a Here* word from an unseen friend is a heard target under FR-022
+  (owner ruled). Pinned at 64; **OWNER FLAG**: 043's gate-zero doctrine
+  and 049's hearing are in tension by design under fog.
+- `the_mask_is_a_pure_oracle_and_never_all_zero`,
+  `a_default_population_critter_cluster_keeps_an_ongoing_play_expressible`
+  (rl mask_oracle): `Chase(Kitty 9)` fog-silenced for kitty 3 with kitty 9
+  outside its disc while the engine accepts — the documented fog exception,
+  proved by the fog guard in the same file; both pinned at 64.
+No test weakened: each pin keeps the claim at the radius it was made under.
+
+T078 (R13, `[stamp]`): `stamp-after/{core,rl}-defaults.json` dumped from
+`Config::default()` / `RlConfig::default()` after the flip and diffed
+key-by-key against T003's capture: core **added** exactly
+`vision.radius`, `vision.memory_timeout_ticks`, `meow.digest_window_ticks`;
+rl **changed** exactly `observation.kitty_slots` 3 → 4; nothing removed,
+nothing else changed; `[behavior] reply_intensity_floor` absent (skipped
+at None) as predicted. `engine_defaults_sha256()` before
+`6c73f894…f07687` → after `babc2c5417e6143ebd1f7805c103fcbed7557a4b3730d7c43af7356a5aa22c18`.
+The stamp test pins no hex (shape/stability/sensitivity), so nothing to
+re-point.
+
+T083 (SC-009): `binding_continuity.py` could not run an all-scripted
+seating (it called the `None` model) and sliced masks with cert_harness6's
+2.x literals (menu 34 of 39); as the cutover housekeeping the wall PR owns
+it now derives the head split from the binding's mask width and skips
+model-less seats (cert_harness6 untouched). Reference record:
+`specs/049-fog-gen1/binding-continuity/reference-3.0-val-scripted.json`
+(served config, `val-scripted`, seed 870001, 2,000 ticks, digest
+`cf0cfede…`); the plain run reproduces it byte for byte. Note: the
+seating's "scripted" seats are zero-logit first-legal-pair seats (the 2.x
+instrument's own convention), a continuity trace, not a welfare measure.
