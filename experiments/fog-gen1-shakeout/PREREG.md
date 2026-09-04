@@ -1,8 +1,10 @@
 # Fog Gen 1 step-5 shakeout — prereg DRAFT (2026-09-03, not declared)
 
 Status: draft, being hashed out with the owner. Knob and field names
-marked `<049:…>` are spec 049's to pin; the width, the radius default,
-and the acceptance-bar numbers are filled in when the 049 branch lands.
+marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
+merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
+open before declaration: the BC bar numbers (`<pin at declaration>`,
+owner's call) and `schema_check.py` with its guard.
 Declaration = a later commit that removes this header. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
@@ -42,7 +44,7 @@ answers-me 59–62. Element blocks: chow 2 × 5, water 2 × 4, sunbeam
 |---|---|---|---|---|
 | A1 | every column | variance over the probe window | > 0 for every column that can vary on this config | a constant column that should move → wiring; a constant column that cannot move on this config is listed as such at declaration, never discovered |
 | A2 | self: element-memory token (20) | per kind: memory set only after a sighting; cleared on a refuted arrival; never set for a kind not yet seen | set-events == first-sight events; refutations > 0 in the fog arms, == 0 in the no-fog control | memory set without sight → leak; never cleared → refutation path dead; token identical across kinds → slot indexing |
-| A3 | kitty rows: fog mask | row fields masked exactly when Euclidean distance > `<049:vision_radius>` | mask flips agree with the geometry on every sampled tick; no-fog control never masks | mask disagrees with geometry → visibility predicate; mask never flips at the pinned radius → radius not applied |
+| A3 | kitty rows: fog mask | row fields masked exactly when Euclidean distance > `[vision] radius` (served 5, `dx² + dy² ≤ r²` edge included; the knob the radius screen re-pins) | mask flips agree with the geometry on every sampled tick; no-fog control never masks | mask disagrees with geometry → visibility predicate; mask never flips at the pinned radius → radius not applied |
 | A4 | kitty rows: heard-unseen position | a masked row whose speaker meowed inside the window carries `pos` from that meow, static until the next audible meow | position changes only on meow ticks; equals the speaker's true position at that tick | position tracks the live cat → Q1 re-rule not implemented (leak); position never set → `pos` plumbing dead |
 | A5 | kitty rows: digest (30) | recency + rate per (speaker × kind) populated for masked AND visible speakers | heard-unseen rows have non-zero recency; rates within the scripted emission rates measured in the floor screen | zero digest on masked rows → audibility gated on visibility (wrong); rates > emission → double counting |
 | A6 | kitty rows: want intensity (6) | equals the caller's stamped `need/100` at its last want of that kind | matches the trace stamp on every want tick; 0 for kinds never called | constant 0 → not observed; drifts between wants → live need leaking |
@@ -95,7 +97,7 @@ with no layout consequence (the legality mask is an oracle over
 | H4 single-activity domination > 0.55 | the F-027 dyadic attractor returning under fog, or the leash too loose for the fog geometry (slot 5 separates these) | β re-pin, or roster arrangement | knob |
 | H5 frozen cluster | same as H4, spatial signature | as H4 | knob |
 | H6 hyper-dispersion (median ≥ owner's pin) | cats spread to keep everything in view; or the want gate never fires so nobody is called in | floor / listener floor re-pin if wants are under-fired; radius if over-dispersed with wants healthy | knob |
-| blind-hungry span long (floor screen + arms) | radius too small for six bowls; or explore not sweeping (A10) | radius re-pin; FR-023 if A10 red | knob / **break** (A10 red means `explore_heading` semantics or the snapshot field) |
+| blind-hungry span long (floor screen + arms) | radius too small for six bowls; or explore not sweeping (A10) | radius re-pin; FR-023 if A10 red | knob / **break** (A10 red means `crate::explore::Lattice` semantics or the `explore_waypoint` snapshot field) |
 | reply-here bar missed by the clone | corpus density (F-034 cliff) or a dead `reply`/answers-me column (A7/A8) | density first (period), then the column | knob / **break** (column) |
 | want bar missed | want density on the scripted seats too low at the pinned floor | floor re-pin | knob |
 | ambient-here bar missed | F-034 continuity broken by the new digest matrix | corpus / recipe | knob, unless the self digest is shown degenerate (A1) → **break** |
@@ -158,7 +160,7 @@ with no layout consequence (the legality mask is an oracle over
   finding (logged, no investigation); above the anchor with welfare
   below it = INVESTIGATE. Contact share and H5 stay Chebyshev (engine
   adjacency). Companion reads: friend-in-view share (per cat, share of
-  ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
+  ticks with ≥ 1 friend inside `[vision] radius`, always against
   the anchor at the same radius) and cluster shape, to tell loose
   clusters with excursions from five solo cats.
 - **Responder-approach read (companion, added 2026-09-03 after the
@@ -170,7 +172,7 @@ with no layout consequence (the legality mask is an oracle over
   `want_play` entries in `recent_meows` whose speaker was NOT in the
   listener's view at the tick of the meow, the share where the
   listener's Euclidean distance to the speaker falls by ≥ 2 within the
-  next `<049:announce_cooldown>` ticks (approach), and the share where
+  next `[meow] recent_window_ticks` (served 10) ticks (approach), and the share where
   a partnered cuddle or play scene with that speaker starts within the
   same window (uptake). The in-view exclusion keeps the read on the
   word: a speaker already visible triggers the want-gate path, not the
@@ -224,8 +226,8 @@ with no layout consequence (the legality mask is an oracle over
   learner seat: of its cosleep scenes, the share started beside a friend
   whose tile is a sunbeam; and of the ticks a settled friend on a beam
   was Seen and the seat's own sleep need was armed, the share where the
-  seat closed distance to that friend within `<049:announce_cooldown>`
-  ticks. Both against the anchor at the same radius. Learners at or
+  seat closed distance to that friend within `[meow] recent_window_ticks`
+  (served 10) ticks. Both against the anchor at the same radius. Learners at or
   above the anchor = the demonstration transferred; well below with
   sleep welfare intact = the learner found other sleep (a strategy
   finding, logged); well below with sleep welfare below the anchor =
