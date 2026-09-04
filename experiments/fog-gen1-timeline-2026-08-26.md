@@ -692,7 +692,14 @@ digest matrix + self-row is extrapolated, not yet measured.
   the gate, which reaches the line while widening E1 by 0.01–0.03;
   LIVE READ 2026-09-02, F-039: Biscuit 2.0 taxed 5.13% off the stamp,
   the seam's 4.6% undercounted; owner 2026-09-02: c30 + consent read
-  at the line scripted, decide on Biscuit 3.0's own read). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  at the line scripted, decide on Biscuit 3.0's own read). **Owner
+  2026-09-03: 3.5% is a HEURISTIC from previous-generation Biscuit,
+  aimed at wasted turns proposing to a partner who cannot or is unlikely
+  to say yes; not a hard rule. Under fog the stamp also counts
+  drop-on-arrival at a stale heard position, so the step-5 read waits
+  on a `reason` field on `RefusalEvent` landing before the pass
+  (`fog-gen1-shakeout/PREREG.md` Part B; relay to Product once 049
+  posts).** Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
   its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
   with the roster paying ~4.7% is NOT actionable; the tax becomes a
