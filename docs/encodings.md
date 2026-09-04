@@ -71,7 +71,7 @@ gone: repetition and insistence are per-speaker fields on the rows.
 | 28–33 | own traits: per-need rise rates | /reference_need_rate |
 | 34 | own scene age | `activity_clock.elapsed / 24`, clamp 0–1; 0 with no scene; **24 frozen** (FR-019) |
 | 35–64 | own message block: per `HEAD_KINDS[k]`, `35+2k` recency, `36+2k` rate | recency `1 − age/digest_window_ticks`, clamp; rate `calls in window / (digest_window / recent_window_ticks)`, clamp; a call is in the window iff `age < digest_window` (FR-016) |
-| 65–84 | element memory: per `ElementType::ALL[j]`, `65+4j` present, `+1` dx, `+2` dy, `+3` staleness | dx/dy = remembered tile − CURRENT position (/width, /height); staleness `(tick − last_seen) / 40`, clamp; **40 frozen** (FR-009) |
+| 65–84 | element memory: per `ElementType::ALL[j]`, `65+4j` present, `+1` dx, `+2` dy, `+3` staleness | dx/dy = remembered tile − CURRENT position (/width, /height); staleness `(tick − last_seen) / 40`, clamp; **40 frozen** (FR-009); seeded at generation from the tick-0 disc (stamped 0), so a reset observation already carries what is in view |
 
 **Kitty row (62) × 4**, row k = the friend with the (k+1)-th smallest id.
 A row's contents follow the friend's state for the observer this tick

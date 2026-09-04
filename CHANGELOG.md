@@ -67,9 +67,10 @@ change.
   the hash-frozen v1, and 52 in-scope configs are completed (migration
   note: `specs/049-fog-gen1/contracts/config-3.0-migration.md`;
   completion tool: `experiments/tools/complete_config_3.py`). Every 2.x
-  policy artifact is schema 4 and is refused at load, so the five served
-  seats are parked on `needs_driven` until the Gen 1 minds seat at the
-  step-7 cutover; pre-3.0 saved worlds do not load (`update.sh --fresh`).
+  policy artifact is schema 4 and is refused at load, so the served seats
+  sit on the built-ins until the Gen 1 minds seat at the step-7 cutover —
+  `needs_driven` for four, Biscuit on the new `playful` (the 3.0 anchor;
+  owner ruled 2026-09-03); pre-3.0 saved worlds do not load (`update.sh --fresh`).
   The defaults stamp moves by exactly `[vision] radius`,
   `memory_timeout_ticks`, `[meow] digest_window_ticks` and `kitty_slots`
   3 → 4 (proof in `specs/049-fog-gen1/redden-list.md` §T078). The

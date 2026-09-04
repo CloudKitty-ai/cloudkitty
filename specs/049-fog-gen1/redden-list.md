@@ -608,3 +608,12 @@ arm kept for exhaustiveness), `needs_driven.rs::groom_response` (freshness
 / FR-024 / FR-036 / SC-004a-b / US5-4 / key entity / edge case / a
 Clarifications session, `docs/meows.md`, `contracts/meow-law-v5.md`,
 CHANGELOG. Final count after T087: **872 passed / 0 failed / 5 ignored**.
+
+### T089 / T091 (owner ruled 2026-09-03, no engine change)
+
+T089: generation-time memory seeding KEPT — recorded in data-model.md
+(memory entity) and docs/encodings.md (self-memory row). T091: the served
+seats are `needs_driven` for every cat but Biscuit, who sits on the new
+`playful` (the 3.0 anchor) — `cloudkitty.toml` updated, CHANGELOG line
+amended; every served-config consumer green (server 40+3+4+4+1, core
+shipped_configs 18, rl shipped/eval/harness 16+10+1).

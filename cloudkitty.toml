@@ -56,7 +56,7 @@ y = 15
 # owner's bar 87.31, G3 character fingerprint PASS (experiments/
 # exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
 # incumbent it grew from moves to Clementine.
-behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
+behavior = "playful"  # Gen 1 seat, owner ruled 2026-09-03 (spec 049 T091): Biscuit sits on the new playful (the 3.0 anchor); 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
