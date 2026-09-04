@@ -2143,6 +2143,48 @@ mod tests {
     }
 
     #[test]
+    fn a_remembered_beam_under_an_awake_cat_is_not_worth_walking_to_either() {
+        // Review 3 finding 1 (2026-09-04): T092's occupied filter dropped
+        // the visible beam, and the remembered slot -- FR-007 stores the
+        // nearest VISIBLE beam with no occupancy check, so after one
+        // environment phase it names this very tile -- re-added it as the
+        // u32::MAX phantom, and `pursue` walked the cat into the standoff
+        // the ruling retired (`step_toward` refuses the last step). The
+        // phantom is filtered like the element. Staged: the only beam two
+        // tiles east under an IDLE friend, remembered from the last phase.
+        let ctx = fog_ctx(5, 1, |w| {
+            w.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(12, 10),
+                ttl: None,
+            });
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(12, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Idle;
+            w.kitties[f].activity_clock = None;
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Sunbeam)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(12, 10),
+                    last_seen: 100,
+                });
+        });
+        assert_eq!(
+            selection::sunbeam_worth_walking(&ctx),
+            None,
+            "an occupied beam is not worth walking to, remembered or seen"
+        );
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None },
+            "nap here, never the standoff"
+        );
+        assert_eq!(selection::travel_distance(&ctx, NeedKind::Sleep), Some(0.0));
+    }
+
+    #[test]
     fn explore_walks_the_tour_and_draws_nothing() {
         // US5 scenario 6: the step is toward the CURRENT waypoint, whatever
         // the cat did last; the index is the engine's, so the step reads it

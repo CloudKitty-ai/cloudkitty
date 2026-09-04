@@ -209,6 +209,14 @@ pub fn message_legal(
     use crate::element::ElementType;
     use crate::world::{adjacent_critter_in, adjacent_element_in, adjacent_stocked_chow_in};
 
+    // The speaker's memory is read off `kitty`, "another cat" off
+    // `view.observer`: one cat, or the here tier's verdict flips (review
+    // 3 finding 4).
+    debug_assert_eq!(
+        kitty.id, view.observer,
+        "message_legal: the kitty must be the view's observer"
+    );
+
     // WaitForMe first: the engine's own word, outside the flag system.
     if kind == MessageKind::WaitForMe {
         return kitty.can_meow(kind, tick);
@@ -323,11 +331,9 @@ pub fn here_for_want(want: MessageKind) -> Option<MessageKind> {
 /// expires in the environment phase), and a `here_food` stamped `reply`
 /// must not point at nothing (`/code-review high 049` finding 4).
 pub fn referent_visible(here: MessageKind, view: &crate::world::FogView) -> bool {
-    use crate::element::{ElementKind, ElementType};
+    use crate::element::ElementType;
     match here {
-        MessageKind::HereFood => view
-            .elements_of(ElementType::Chow)
-            .any(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0)),
+        MessageKind::HereFood => stocked_chow_in_view(view),
         MessageKind::HereWater => view.elements_of(ElementType::Water).next().is_some(),
         MessageKind::HereSunbeam => view.elements_of(ElementType::Sunbeam).next().is_some(),
         MessageKind::HereCritter => view.critters().next().is_some(),
@@ -347,6 +353,15 @@ pub fn referent_visible(here: MessageKind, view: &crate::world::FogView) -> bool
         | MessageKind::Trill
         | MessageKind::Ekekek => false,
     }
+}
+
+/// A STOCKED bowl anywhere in the view -- the one food-in-view predicate
+/// behind the here law's referent and the want law's known relief, so the
+/// two cannot drift (review 2 finding 4; review 3 finding 2).
+pub fn stocked_chow_in_view(view: &crate::world::FogView) -> bool {
+    use crate::element::{ElementKind, ElementType};
+    view.elements_of(ElementType::Chow)
+        .any(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0))
 }
 
 /// The reply condition (spec 049 FR-037/FR-040, research R7): a meow of
@@ -380,6 +395,9 @@ pub fn reply_condition(
 /// not relief the caller can execute (owner ruled 2026-09-03, T087; the
 /// law does not consult this arm, it is here so the table stays whole).
 /// Reads the cat's OWN memory (the view's observer record is whole).
+/// Food in view means a STOCKED bowl (`stocked_chow_in_view`): at the
+/// mid-tick enforcement seam a bowl an earlier cat emptied this tick is
+/// still an element, and it is relief for nobody (review 3 finding 2).
 pub fn known_relief(
     want: MessageKind,
     kitty: &crate::kitty::Kitty,
@@ -390,7 +408,7 @@ pub fn known_relief(
     let remembered = |kind: ElementType| kitty.memory[memory_index(kind)].is_some();
     let visible = |kind: ElementType| view.elements_of(kind).next().is_some();
     match want {
-        MessageKind::WantEat => visible(ElementType::Chow) || remembered(ElementType::Chow),
+        MessageKind::WantEat => stocked_chow_in_view(view) || remembered(ElementType::Chow),
         MessageKind::WantDrink => visible(ElementType::Water) || remembered(ElementType::Water),
         MessageKind::WantCuddle => crate::world::idle_friend_in_view(view),
         MessageKind::WantBath => false,
@@ -633,6 +651,73 @@ mod tests {
         assert!(
             legal(&world, MessageKind::HereFood, &config),
             "stocked and a want audible: the reply arm opens"
+        );
+    }
+
+    /// Review 3 finding 2 (2026-09-04): `known_relief(WantEat)` read bowl
+    /// PRESENCE -- review 2's finding 4 mirrored on the want side. At the
+    /// mid-tick enforcement seam a bowl an earlier cat emptied this tick
+    /// is still an element (it expires in the environment phase), and
+    /// presence-only silenced a lawful `want_eat` from a cat with no
+    /// relief at all. Relief is a STOCKED bowl in view or a remembered
+    /// tile. Staged: eat armed and top, no memory, a bowl in view: empty
+    /// then stocked.
+    #[test]
+    fn want_eat_is_not_silenced_by_an_emptied_bowl_in_view() {
+        let (mut world, config) = bare_meadow();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].memory = Default::default();
+        world.kitties[idx]
+            .needs
+            .add(crate::needs::NeedKind::Eat, 90.0);
+        world.kitties[idx]
+            .announce_armed
+            .insert(crate::needs::NeedKind::Eat);
+        world.push_element(Element {
+            id: 900,
+            kind: ElementKind::Chow { servings: 0 },
+            pos: Position::new(11, 8),
+            ttl: None,
+        });
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(
+            !known_relief(MessageKind::WantEat, world.kitty(1).unwrap(), &view),
+            "an emptied bowl in view is not relief"
+        );
+        assert!(
+            legal(&world, MessageKind::WantEat, &config),
+            "the want stands: nothing to eat is known"
+        );
+        let bowl = world.elements.iter_mut().find(|e| e.id == 900).unwrap();
+        bowl.kind = ElementKind::Chow { servings: 1 };
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(known_relief(
+            MessageKind::WantEat,
+            world.kitty(1).unwrap(),
+            &view
+        ));
+        assert!(
+            !legal(&world, MessageKind::WantEat, &config),
+            "a stocked bowl in view silences the want"
+        );
+    }
+
+    /// Review 3 finding 4 (2026-09-04): `message_legal` reads the
+    /// speaker's memory off `kitty` and "another cat" off
+    /// `view.observer`, so the two must name one cat; the old
+    /// element-slice signature carried no identity. Debug-asserted at the
+    /// head.
+    #[test]
+    #[should_panic(expected = "view's observer")]
+    fn message_legal_refuses_a_kitty_that_is_not_the_views_observer() {
+        let (world, config) = bare_meadow();
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let _ = message_legal(
+            world.kitty(2).unwrap(),
+            MessageKind::Mew,
+            world.tick,
+            &config,
+            &view,
         );
     }
 

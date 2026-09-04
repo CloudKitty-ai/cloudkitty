@@ -372,18 +372,24 @@ pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Optio
     // When the remembered tile comes into the disc empty, the engine has
     // already cleared the slot (research R3), so this scan finds neither
     // and the caller explores (FR-023) -- the same ladder, that tick.
-    let remembered = ctx.me.memory[crate::kitty::memory_index(kind)]
-        .map(|slot| (u32::MAX, slot.pos, priced_travel(ctx, ctx.me.pos, slot.pos)));
     // T092 (owner ruled 2026-09-03): a sunbeam another cat stands on cannot
     // be landed on; unless that cat is settled (then `warm_friend_beside`
     // is the answer, before this scan runs) it is not worth walking to --
     // the nap on the spot beats a wait. `LawEra::PreFog` keeps the 2.x
-    // scan for SC-004a's replay.
+    // scan for SC-004a's replay. The remembered tile is filtered the same
+    // way (review 3 finding 1): FR-007 stores the nearest VISIBLE beam
+    // with no occupancy check, so the slot names the very tile the filter
+    // dropped, and an unfiltered phantom walked the cat into the standoff.
+    // A remembered tile outside the disc has no visible occupant and
+    // passes, as it must.
     let occupied = |pos: Position| {
         ctx.config.meow.law_era == crate::config::LawEra::Fog
             && kind == ElementType::Sunbeam
             && ctx.world.others(ctx.me.id).any(|k| k.pos == pos)
     };
+    let remembered = ctx.me.memory[crate::kitty::memory_index(kind)]
+        .filter(|slot| !occupied(slot.pos))
+        .map(|slot| (u32::MAX, slot.pos, priced_travel(ctx, ctx.me.pos, slot.pos)));
     ctx.world
         .elements_of(kind)
         .filter(|e| !occupied(e.pos))
