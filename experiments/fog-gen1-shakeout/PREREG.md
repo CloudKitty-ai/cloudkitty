@@ -92,7 +92,7 @@ with no layout consequence (the legality mask is an oracle over
 | radius bracket (slot 4) indistinguishable from the pin on welfare | fog barely binds at 20×20 (ROADMAP's standing concern) | Gen 1 ships at the pin; the world-size × radius screen moves to Gen 2 | knob |
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
 | groom pile-on: responders per audible `want_bath` > 1 sustained (anchor at r=40 vs the fog radii) | the 049 groom response hears for the 30-tick digest window while 2.x listened within the 10-tick cooldown, so stale asks attract two responders to a caller a third cat is already grooming (Product measured 2026-09-03: divergence at tick 559 at r=40); under fog a responder cannot see the caller is busy until it arrives | rung freshness rule (act only on asks aged ≤ the announce cooldown; audibility itself unchanged), proposed to the owner 2026-09-03 | knob-class law change; **break** only if the second arrival exposes a double-groom scene defect (Groom validation checks adjacency only, action.rs:385) |
-| groom relief farm: groom-of-clean-friend rate (target bath below the announce threshold at scene start) in a policy arm above the anchor's | `Grooming { target: Some }` pays the groomer `groom_cuddle_relief` unconditionally (action.rs:747-760) and `Groom { target }` is legal on any adjacent friend (action.rs:385), so cuddle relief can be farmed on a clean neighbour with no ask; 2.x pricing, first looked for here; degenerate form = the F-027 dyadic attractor. Product's probe 2026-09-03 saw the scripted form (k1 + k5 grooming k4 at bath 1.6 on a 25-tick-old ask); rung fixes bind anchors only | pricing (groomer relief scaled by the target's bath need, or zero below threshold); post-LOCK is fine | **law** (pricing), no schema; read TOGETHER with H4 |
+| groom relief farm: groom-of-clean-friend rate (target bath below the announce threshold at scene start) in a policy arm above the anchor's | `Grooming { target: Some }` pays the groomer `groom_cuddle_relief` unconditionally (action.rs:747-760) and `Groom { target }` is legal on any adjacent friend (action.rs:385), so cuddle relief can be farmed on a clean neighbour with no ask; 2.x pricing, first looked for here; degenerate form = the F-027 dyadic attractor. Product's probe 2026-09-03 saw the scripted form (k1 + k5 grooming k4 at bath 1.6 on a 25-tick-old ask); rung fixes bind anchors only | pricing (groomer relief scaled by the target's bath need, or zero below threshold), never a reward term (F-018 layer 2: the farm is an equilibrium under the price; scripted seats are IN the team reward, so an honest groom of a dirty anchor already pays more than a clean-target groom at 0.5); post-LOCK is fine | **law** (pricing), no schema; read TOGETHER with H4 |
 | pace at 3 threads runs the stop rule past the planned wall clock | box | **no arm is dropped (owner 2026-09-03)**: all six run to the stop rule or the 20M cap and the pass takes the extra hours | none |
 
 ## Part C — the rest of the prereg (owner walk-through 2026-09-03)
@@ -141,11 +141,24 @@ with no layout consequence (the legality mask is an oracle over
   ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
   the anchor at the same radius) and cluster shape, to tell loose
   clusters with excursions from five solo cats.
-- Config for every screen, corpus, and arm: canonical prices, in
-  particular `groom_cuddle_relief = 0.5` (the served world carries the
-  TEMPORARY #332 bump to 2.0, revert ruled for the step-7 cutover; a
-  pass trained at 2.0 would price the relief farm at a value that never
-  ships).
+- **Config rule (owner ruled 2026-09-03)**: every screen, corpus, and
+  arm here, and the step-7 certification training, derive from the
+  served `cloudkitty.toml` with the #332 bump reverted
+  (`groom_cuddle_relief = 0.5`); any deliberate training/serving
+  divergence is declared in this file by key. Root `training.toml`
+  (the exp-001 scarcity world: 1.5× need rates, pre-041 relief prices,
+  `groom_cuddle_relief` 15.0) is NOT a source for Gen 1 configs;
+  exp-006's `collect-config.toml` trained at 8.0 against a served 0.5,
+  which is the Clementine futile loop and the #332 bump in one line.
+- **Reward (declared)**: spec 014 team welfare, unchanged: Nash power
+  mean (`p = 0`, `epsilon = 0.01`, `mode = level`) of unclamped
+  happiness over the FULL roster, scripted seats included; happiness
+  weights 0.2 / 0.2 / 0.15 × 4 (identical in every config checked);
+  no per-seat or personality term (ROADMAP guard 3, F-018 layer 2);
+  shaping off unless an arm declares a team-level potential here. The
+  leash β is a constraint, never an objective. No arm in the pass
+  touches `[rl.reward]`, so no F-018 layer-2 exception is claimed.
+  The stop rule reads `ep_return_mean`, the env's unshaped team return.
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
 - BC: train to plateau, patience 10, no epoch floor; bars reply-here /
