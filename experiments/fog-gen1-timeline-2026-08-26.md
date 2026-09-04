@@ -637,7 +637,13 @@ none ruled yet):
     scripted "settled" predicate into the schema, where a later change
     to it would move the cell's meaning with no version bump. Prereg:
     header and critic width updated, bit on the A13 emit-proof list,
-    cosleep-on-beam companion read added to Part C.
+    cosleep-on-beam companion read added to Part C. Landed 2026-09-04
+    (Product, `049-fog-gen1` @ 51b2baa, suite 884/0/6): kitty-row
+    offset 21, after the water bit; scene age 22, message block 23–52,
+    want intensities 53–58, answers-me 59–62; observation 408 = self 85
+    | kitty 4 × 63 | chow 2 × 5 | water 2 × 4 | sunbeam 2 × 6 | critter
+    4 × 10 | clock 1. Pins in `schema_five_pins.rs`; numpy layout at
+    `experiments/attn-oracle-2026-08-15/obs_layout_v5.py`.
     Overrides ROADMAP §Meow-digest's "intensity dropped": that
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only

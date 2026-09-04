@@ -31,7 +31,12 @@ names, rule 5). Width and offsets come from spec 049's FR-026 layout
 (pinned 408 after the owner's 2026-09-04 ruling adding the kitty-row
 "neighbour on a sunbeam" bit: self 85 | 4 × 63 | elements 70 | clock 1;
 was 404 with rows of 62; schema number stays 5, no artifact predates
-the change).
+the change). Landed on `049-fog-gen1` @ 51b2baa. Kitty-row offsets
+after the landing: water bit 20, on-sunbeam 21, scene age 22, message
+block 23–52 (23+2k recency, 24+2k rate), want intensities 53–58,
+answers-me 59–62. Element blocks: chow 2 × 5, water 2 × 4, sunbeam
+2 × 6, critter 4 × 10. Numpy layout for `schema_check.py`:
+`experiments/attn-oracle-2026-08-15/obs_layout_v5.py`.
 
 | # | block | check | healthy reading | degenerate signature → suspect |
 |---|---|---|---|---|
@@ -47,7 +52,7 @@ the change).
 | A10 | FR-023 explore (lattice serpentine tour, owner ruled 2026-09-03, T088; landed as `crate::explore::Lattice`, field `explore_waypoint`) | a scripted cat with nothing visible or remembered walks toward its current lattice waypoint (inset ⌊r/√2⌋, spacing ≤ ⌊r√2⌋, boustrophedon and back, cycle 2N−2) and `explore_waypoint` advances only on reach or when another cat holds the waypoint; coverage is complete: over one blind tour every tile of the world lies inside some disc, at EVERY screened radius (20×20 lattices: r=5 {3,10,16}, r=4 {2,7,12,17}, r=3 {2,6,10,13,17}, r=2 ten points per axis; the r=2 screen is the hardest case and the one checked) | union of discs along the anchor's blind path == the whole grid within one tour; `explore_waypoint` advances by one per reach, never resets across errands; first-sight latency from blind ≤ one tour + approach (SC-012 bound 144 at r=5; Product measured worst 108, median 28, mean 35 over 399 trials) | a tile never inside any disc → lattice inset or spacing wrong for this (r, W, H) (the old heading rule's pockets: 100/36/4/0 uncovered core tiles at r = 2/3/4/5 on 20×20 plus corners); index resets after an errand → state not persisted; index skips → advance rule |
 | A11 | scene age + water bit | scene age climbs 1/tick inside a scene and resets on exit; water bit == on-water tile | exact agreement with the trace | either drifts → snapshot bump |
 | A12 | elements block (70) | only visible elements populated; remembered elements appear in the memory token, not here | element rows zero when no element is inside the radius | remembered bowl appears in the element block → memory leaking into sight |
-| A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported; the list includes the kitty-row on-sunbeam bit (`<049:row_offset_sunbeam>`, ruled 2026-09-04) at 1 on a Seen row and the water bit at 1, each in the anchor trace | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
+| A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported; the list includes the kitty-row on-sunbeam bit (kitty-row offset 21, ruled and landed 2026-09-04) at 1 on a Seen row and the water bit at 1, each in the anchor trace | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
 | A14 | legality mask (activity + message) | no legality bit depends on a masked fact: the mask is recomputable from the observer's visible rows + own memory alone (adjacency incl. diagonal, distance 1.41, sits inside every radius ≥ 2, so the current law passes; the ruled want / reply law reads only the speaker's knowledge) | recomputing the mask from the observation reproduces the engine mask on every sampled tick | a bit that differs → a 049 rule reads true state through fog |
 | A15 | kitty rows: by-id permanent rows (`kitty_slots` = roster−1 = 4) | row identity fixed per observer across ticks; a masked row still exists with masked FIELDS, never dropped or shifted | the (observer, row) → kitty-id map is constant over the probe | rows re-order or compact when a cat leaves view → every downstream column mislabelled |
 | A16 | kitty rows: `reply` bit (observed) | the observing cat's row carries the engine `reply` stamp on the same here, per speaker | observed reply column == A8's stamp on every here in the trace | engine stamps, observation stays zero → the ladder tie-breaker is invisible to learners |
