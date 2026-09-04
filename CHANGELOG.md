@@ -58,9 +58,12 @@ change.
   corpus — a reply ladder (`[behavior] reply_intensity_floor`, unset =
   replies off, 0.30 provisional for the corpus-collection config) that
   shares the rung with the own want under the yield, and
-  persistent-heading exploration for a blind cat (the engine records the
-  heading from every applied move; redraw only when the wall ahead is
-  within the radius); built-in targeting runs over visible ∪ remembered
+  the lattice serpentine tour for a blind cat (owner ruled 2026-09-03,
+  T088: waypoints inset floor(r/√2) at spacing ≤ floor(r√2), boustrophedon
+  and back, coverage-complete on any rectangle at any radius by
+  construction; one engine-owned tour index per cat, `explore_waypoint`,
+  no RNG draw — it replaced the persistent-heading rule, whose coverage
+  depended on r versus world size); built-in targeting runs over visible ∪ remembered
   elements and visible ∪ heard friends; (6) the 3.0 config hygiene: every
   section is REQUIRED and named when missing, the seven retired 2.x keys
   are unknown, the eight snapshot shims are deleted, `evals/v2` replaces
@@ -89,10 +92,8 @@ change.
   switch, `MeowConfig.want_law`) and the named-cause law. The evolution
   golden, the strip witness and the run-JSON golden regenerate with this
   entry as the justification. Open owner flags in the spec-049
-  report: the exploration rule's unswept corner pockets and, on worlds
-  wider than ~4r, its unswept centre (the 2.x welfare bounds fail at r =
-  5 on the compiled 32×32 world; the rl welfare gate pins the
-  global-vision radius and an ignored r = 5 reading sits beside it);
+  report: the sunbeam standoff (T092 pending; the rl welfare gate pins the
+  global-vision radius and ignored r = 5 readings sit beside it);
   043's gate-zero doctrine versus 049's heard-friend targeting; the exams' `kitty_slots = roster − 1` widths (SC-004 is now the
   ruled 4a/4b split, no longer a flag).
 

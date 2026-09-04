@@ -23,7 +23,7 @@ def check_fogged(req):
     me = req["me"]
     r = req["config"]["vision"]["radius"]
     ox, oy = me["pos"]["x"], me["pos"]["y"]
-    if "memory" not in me or "explore_heading" not in me:
+    if "memory" not in me or "explore_waypoint" not in me:
         return False
     for entity in req["world"]["kitties"] + req["world"]["elements"]:
         dx, dy = entity["pos"]["x"] - ox, entity["pos"]["y"] - oy

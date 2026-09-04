@@ -67,7 +67,7 @@ fn a_pre_3_0_kitty_record_is_refused_naming_the_missing_field() {
     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
     for field in [
         "memory",
-        "explore_heading",
+        "explore_waypoint",
         "announce_armed",
         "last_action",
         "purr_cooldown_until",
@@ -132,8 +132,8 @@ async fn a_mid_run_save_restores_memory_and_continues_byte_identically() {
             a.id
         );
         assert_eq!(
-            a.explore_heading, b.explore_heading,
-            "kitty {}: heading restored",
+            a.explore_waypoint, b.explore_waypoint,
+            "kitty {}: tour index restored",
             a.id
         );
     }

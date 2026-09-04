@@ -133,7 +133,7 @@ impl Action {
 /// here_sunbeam, chirp, trill, ekekek). Version 3 (spec 049 FR-048, owner
 /// ruled 2026-09-03): `world` is the deciding cat's FOG VIEW -- the same
 /// shape, fogged contents (kitties and elements inside its disc, every
-/// recent meow) -- and the wire grew fields: `memory` and `explore_heading`
+/// recent meow) -- and the wire grew fields: `memory` and `explore_waypoint`
 /// on kitties (blanked on friends), `pos` and `reply` on meows. A v2
 /// plugin assuming full sight could not tell it sees a partial world, so
 /// the version says so; refusing it falls back per Article IV.
@@ -457,12 +457,6 @@ pub fn apply(world: &mut World, kitty_id: KittyId, action: Action, config: &Conf
             if let Some(dest) = kitty.pos.step(direction, world.width, world.height) {
                 if let Some(idx) = world.kitty_index(kitty_id) {
                     world.kitties[idx].pos = dest;
-                    // Spec 049 FR-023 (owner ruled 2026-09-03): the engine
-                    // records the direction of every APPLIED move, whatever
-                    // caused it -- navigation, a sidestep, a policy move --
-                    // as the cat's exploration heading. Read only by the
-                    // built-in explore step; never cleared.
-                    world.kitties[idx].explore_heading = Some(direction);
                 }
                 set_idle(world, kitty_id);
             }

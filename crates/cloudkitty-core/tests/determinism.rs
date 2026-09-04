@@ -138,6 +138,6 @@ async fn the_same_seed_produces_the_same_memory_under_fog() {
     assert!(populated >= 2, "memory fills under fog: {populated}");
     for (x, y) in a.kitties.iter().zip(b.kitties.iter()) {
         assert_eq!(x.memory, y.memory, "kitty {}", x.id);
-        assert_eq!(x.explore_heading, y.explore_heading, "kitty {}", x.id);
+        assert_eq!(x.explore_waypoint, y.explore_waypoint, "kitty {}", x.id);
     }
 }

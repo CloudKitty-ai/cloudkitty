@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::action::{Action, TargetRef};
 use crate::config::{DurationBounds, DurationsConfig};
-use crate::grid::{Direction, Position};
+use crate::grid::Position;
 use crate::meow::MessageKind;
 use crate::needs::{NeedKind, Needs};
 
@@ -337,13 +337,14 @@ pub struct Kitty {
     /// memory_timeout_ticks`. Cats are never remembered. Serialized as
     /// state (FR-010); required on load -- a save without it is pre-3.0.
     pub memory: ElementMemory,
-    /// Fog Gen 1 exploration heading (spec 049 FR-023): the direction of
-    /// this cat's last APPLIED move, whatever caused it -- navigation, a
-    /// sidestep, a policy move (owner ruled 2026-09-03) -- written by the
-    /// engine in `action::apply`, read only by the built-in explore step.
-    /// `None` until the first move; never cleared. Required on load.
-    #[serde(deserialize_with = "Option::deserialize")]
-    pub explore_heading: Option<Direction>,
+    /// Fog Gen 1 exploration state (spec 049 FR-023, owner ruled
+    /// 2026-09-03, T088): this cat's position in the lattice serpentine
+    /// tour (`crate::explore::Lattice`) -- set at generation to `id mod
+    /// cycle length` and advanced by the engine in the environment phase
+    /// when the cat stands on its waypoint, or beside it while another cat
+    /// occupies the tile. Read only by the built-in explore step; never a
+    /// behaviour's to write. Required on load.
+    pub explore_waypoint: u32,
 }
 
 /// One remembered tile (spec 049 FR-006): where an element kind was last
@@ -397,7 +398,7 @@ impl Kitty {
             purr_cooldown_until: 0,
             announce_armed: BTreeSet::new(),
             memory: [None; crate::element::ElementType::ALL.len()],
-            explore_heading: None,
+            explore_waypoint: 0,
         }
     }
 
@@ -613,7 +614,7 @@ mod tests {
             "purr_cooldown_until",
             "announce_armed",
             "memory",
-            "explore_heading",
+            "explore_waypoint",
         ] {
             assert!(json.get(always).is_some(), "{always} is always serialized");
         }

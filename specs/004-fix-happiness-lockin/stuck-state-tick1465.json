@@ -45,7 +45,7 @@
         null,
         null
       ],
-      "explore_heading": null
+      "explore_waypoint": 0
     },
     {
       "id": 2,
@@ -90,7 +90,7 @@
         null,
         null
       ],
-      "explore_heading": null
+      "explore_waypoint": 0
     },
     {
       "id": 3,
@@ -130,7 +130,7 @@
         null,
         null
       ],
-      "explore_heading": null
+      "explore_waypoint": 0
     }
   ],
   "elements": [

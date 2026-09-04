@@ -76,7 +76,7 @@ fn a_well_behaved_plugin_drives_kitties_for_a_full_day() {
 /// Spec 049 FR-048 / SC-013: the request carries wire version 3 and the
 /// deciding cat's FOG VIEW. The well-behaved fixture refuses any other
 /// version (exit 3) and exits (4) on any entity outside its disc, any
-/// missing `memory` / `explore_heading` on `me`, or a meow without
+/// missing `memory` / `explore_waypoint` on `me`, or a meow without
 /// `pos` / `reply` -- so at radius 2, where the second kitty is mostly
 /// out of sight, 300 ticks of `PolicyMade` decisions prove both halves;
 /// a refusal would surface as the fallback's provenance (the tick loop

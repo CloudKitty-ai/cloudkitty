@@ -7,7 +7,7 @@ Entities as the engine will hold them. Layout offsets are in [contracts/observat
 | Field | Type | Written by | Notes |
 |---|---|---|---|
 | `memory` | `ElementMemory` = `[Option<MemorySlot>; 5]` in `ElementType::ALL` order (water, chow, bug, greeble, sunbeam) | engine, environment phase (`update_memories`) | `MemorySlot { pos: Position, last_seen: u64 }`. Rules: nearest visible of the kind overwrites (ties lower id); remembered tile inside the disc holding none of the kind → cleared; `memory_timeout_ticks > 0` and `tick − last_seen > timeout` → cleared; else unchanged. Chow = presence only. **Seeded at generation** (owner ruled 2026-09-03, T089): `World::generate` runs the same refresh over the tick-0 world stamped 0, so the first observation of an episode is not memory-blank to what stands in the disc. Serialised; no restore shim. |
-| `explore_heading` | `Option<Direction>` | engine, on every applied `Move { direction }` | read by built-in exploration only; persists across non-move turns; a friend's copy is blanked in the fog view. |
+| `explore_waypoint` | `u32` | engine: at generation (`id mod cycle length`) and in the environment phase (advance when the cat stands on its waypoint, or beside it while another cat holds it) | the cat's index into the lattice serpentine tour (`explore::Lattice`: inset floor(r/√2), spacing ≤ floor(r√2), boustrophedon and back); read by built-in exploration only; persists across errands; serialised, required on load (owner ruled 2026-09-03, T088 — replaced `explore_heading`). |
 | *deleted* | seven `#[serde(default)]` restore shims (mutual/drip ticks, behavior_description, last_action, purring_until, purr_cooldown_until, purring_duration, announce_armed) + `Pursuit.improved_at` default | — | pre-3.0 saves do not load. |
 
 ## Meow record (`cloudkitty-core::meow::Meow`) — additive fields
@@ -24,7 +24,7 @@ Retention: `recent_meows` keeps meows with `tick − m.tick < digest_window_tick
 
 | Field | Type | Contents |
 |---|---|---|
-| `snapshot` | `WorldSnapshot` (Deref target) | `kitties`: observer (full) + friends inside the disc, with `memory`/`explore_heading` blanked; `elements`: inside the disc; `recent_meows`: whole buffer; `width`, `height`, `tick` unchanged. |
+| `snapshot` | `WorldSnapshot` (Deref target) | `kitties`: observer (full) + friends inside the disc, with `memory`/`explore_waypoint` blanked; `elements`: inside the disc; `recent_meows`: whole buffer; `width`, `height`, `tick` unchanged. |
 | `observer` | `KittyId` | the deciding cat. |
 | `roster` | `Vec<KittyId>` | every kitty id in the world, ascending — ids are not knowledge. |
 | `radius` | `u32` | the configured `[vision] radius`. |
@@ -80,6 +80,6 @@ Groups: self (1 × 85), kitty (4 × 62), chow (2 × 5), water (2 × 4), sunbeam 
 
 **Heard-unseen friend as a built-in target**: `candidate (unconditional) --walk to stamped pos--> arrived: visible ∧ idle/available → proceed; not visible ∨ asleep ∨ mid-scene → dropped this tick`. State is never read through the fog.
 
-**Plugin wire**: `PROPOSAL_WIRE_VERSION` 2 → 3 (`DecisionRequest.v`); `world` = the fog view's snapshot; `me` carries `memory` and `explore_heading`; meows carry `pos`, `reply`.
+**Plugin wire**: `PROPOSAL_WIRE_VERSION` 2 → 3 (`DecisionRequest.v`); `world` = the fog view's snapshot; `me` carries `memory` and `explore_waypoint`; meows carry `pos`, `reply`.
 
 **Meow reply**: stamped once at emission; immutable.

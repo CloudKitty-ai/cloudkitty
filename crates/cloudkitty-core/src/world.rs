@@ -121,6 +121,15 @@ impl World {
             ));
         }
         world.kitties.sort_by_key(|k| k.id);
+        // Spec 049 FR-023 (T088): each cat starts the lattice tour at
+        // `id mod cycle length` -- spread over the tour, no RNG draw -- and
+        // a cat spawned on its waypoint is already past it.
+        let lattice =
+            crate::explore::Lattice::for_world(world.width, world.height, config.vision.radius);
+        for kitty in &mut world.kitties {
+            kitty.explore_waypoint = lattice.start_index(kitty.id);
+        }
+        world.advance_tours(config);
 
         // Stock the world to each type's minimum before the first tick.
         spawn::ensure_minimums(&mut world, config);
@@ -771,9 +780,37 @@ impl World {
         self.expire_elements();
         spawn::ensure_minimums(self, config);
         spawn::safeguard(self, config);
+        self.advance_tours(config);
         // Spec 049: memory reads the RESOLVED world, last, so the snapshot
         // the next tick's deciders see is complete (Article V order kept).
         self.update_memories(config);
+    }
+
+    /// Spec 049 FR-023 (owner ruled 2026-09-03, T088): the lattice tour
+    /// advances when the cat stands on its current waypoint, or beside it
+    /// while another cat occupies the tile (a step onto an occupied tile
+    /// is never applied, so the tour would stall there). Every cat, every
+    /// tick, exploring or not -- a cat that crosses its waypoint on an
+    /// errand is simply further along. Engine-owned, like memory: a
+    /// behaviour reads the index and never writes it.
+    fn advance_tours(&mut self, config: &Config) {
+        let lattice =
+            crate::explore::Lattice::for_world(self.width, self.height, config.vision.radius);
+        let positions: Vec<(KittyId, Position)> =
+            self.kitties.iter().map(|k| (k.id, k.pos)).collect();
+        for idx in 0..self.kitties.len() {
+            let (id, pos, index) = {
+                let k = &self.kitties[idx];
+                (k.id, k.pos, k.explore_waypoint)
+            };
+            let waypoint = lattice.waypoint(index);
+            let held = positions
+                .iter()
+                .any(|(other, p)| *other != id && *p == waypoint);
+            if pos == waypoint || (held && pos.is_adjacent(&waypoint)) {
+                self.kitties[idx].explore_waypoint = (index + 1) % lattice.cycle_len();
+            }
+        }
     }
 
     /// Spec 049 FR-007 / FR-008 (research R3): each cat's per-kind element
@@ -1513,7 +1550,7 @@ impl WorldSnapshot {
     /// Spec 049 FR-001/FR-021 (research R1): the world as `observer` may
     /// know it. Kitties and elements inside the observer's Euclidean disc
     /// (`dx² + dy² ≤ radius²`, the edge included), the observer itself
-    /// whole, every friend's private mind (`memory`, `explore_heading`)
+    /// whole, every friend's private mind (`memory`, `explore_waypoint`)
     /// blanked -- a friend's memory is not observable -- every recent meow
     /// (hearing is global, FR-003), and the roster's ids (ids are not
     /// knowledge; the permanent rows need them). Width, height and tick
@@ -1531,7 +1568,7 @@ impl WorldSnapshot {
                 let mut seen = k.clone();
                 if seen.id != observer {
                     seen.memory = [None; ElementType::ALL.len()];
-                    seen.explore_heading = None;
+                    seen.explore_waypoint = 0;
                 }
                 seen
             })
@@ -3969,7 +4006,7 @@ mod tests {
             pos: Position::new(1, 1),
             last_seen: 3,
         });
-        world.kitties[i2].explore_heading = Some(Direction::East);
+        world.kitties[i2].explore_waypoint = 7;
         world.kitties[i1].memory[1] = Some(MemorySlot {
             pos: Position::new(2, 2),
             last_seen: 4,
@@ -4003,8 +4040,8 @@ mod tests {
         let friend = view.kitty(2).expect("the edge friend is seen");
         assert_eq!(friend.memory, [None; 5], "a friend's memory is blanked");
         assert_eq!(
-            friend.explore_heading, None,
-            "a friend's heading is blanked"
+            friend.explore_waypoint, 0,
+            "a friend's tour index is blanked"
         );
         let ids: Vec<u32> = view.elements.iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![901], "elements filtered by the disc");

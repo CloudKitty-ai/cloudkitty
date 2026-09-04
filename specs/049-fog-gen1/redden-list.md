@@ -617,3 +617,34 @@ seats are `needs_driven` for every cat but Biscuit, who sits on the new
 `playful` (the 3.0 anchor) — `cloudkitty.toml` updated, CHANGELOG line
 amended; every served-config consumer green (server 40+3+4+4+1, core
 shipped_configs 18, rl shipped/eval/harness 16+10+1).
+
+### T088 — the lattice serpentine tour (owner ruled 2026-09-03 in the Experiments session, confirmed here)
+
+The heading rule's coverage was a function of r versus world size (single
+loop at threshold t = r: 20×20 unswept 40/36/56 tiles at r = 5/4/6; 32×32
+the whole 10×10 core; computed table in the scratchpad `sweep_geometry.py`
+run), which would have made the step-5 radius screen measure the sweep
+instead of vision. Replaced by `crate::explore::Lattice`: waypoints inset
+floor(r/√2), spacing ≤ floor(r√2), boustrophedon and back (cycle 2N−2, no
+crossing legs); one engine-owned index per cat `explore_waypoint` (u32,
+set at generation to id mod cycle, advanced in the environment phase on
+reach or beside a held waypoint), no RNG draw; `explore_heading` deleted
+(nothing else read it; the wire/API field is now `explore_waypoint`).
+
+| cycle | guard / mutation | predicted | observed | restore |
+|---|---|---|---|---|
+| R9 | `explore::tests::coverage_is_complete_by_construction` (every tile of 8 world shapes × r = 2..8 inside some waypoint's disc); mutation: inset = r (the old rule's wall distance) | RED at the first corner | RED: 20×20 r=2 tile (0,0) outside every disc | inset restored (the file was untracked: restored by sed, verified by grep) |
+| R10 | field swap + engine + behaviour + 20 sites; full cycle t088a | goldens ×2, preladder, run-json golden RED; others unknown | 868/7: the four predicted + the ladder test that pinned the heading (re-pointed to a waypoint), the spec-004 archived snapshot (`explore_heading` → `explore_waypoint: 0` in the fixture) | goldens re-pinned ONCE (evolution `f2dc24d9…`, strip `dc480760…`), preladder r=5 streams re-recorded, run-json golden regenerated |
+| R11 | SC-012 over every tile (399 trials: every non-visible tile once, the corners and (16,10) from all 16 indices) | within the computed bound 144 | worst 108 (bowl at (19,19) from index 10), median 28, mean 35 | bound pinned as the tour cycle + approach; the measurement printed |
+| R12 | full cycle t088b | 875/0/5 | 875/0/5; fmt clean; clippy one `is_multiple_of` lint → fixed, clean; pytest 18/1 on the rebuilt binding; binding continuity CONTINUOUS | — |
+
+Welfare readings after T087 + T088 (ignored tests, for the owner and the
+prereg): compiled 32×32 r=5: **1 violation** (Miso's 48-tick streak; was 13
+with a 3,477-tick distress — the coverage failure is gone, max distress
+age 103). Served 20×20 r=5: 6 violations (was 9) — Miso streak 124,
+Clementine streak 201 + 1.0% share, distress age 369, sleep pinned 238 /
+cuddle pinned 288: the sunbeam standoff (T092). Served r=64 control: 5
+violations (was 1 before T087): the same standoff now arises at global
+vision too (sleep pinned 202 / cuddle 119, Clementine 174 + 1.2%) — the
+groom rules changed the served world's cuddle economy enough to expose it;
+T092 is the fix on both.

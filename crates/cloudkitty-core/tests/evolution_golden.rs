@@ -44,7 +44,8 @@
 //! this HEAD. Both pins from one run.
 //!
 //! Regenerated at spec 049's fog wall, T014 (2026-09-03): the serialized
-//! world GAINED FIELDS -- `memory` and `explore_heading` on every kitty,
+//! world GAINED FIELDS -- `memory` and `explore_heading` (since T088 the
+//! tour index `explore_waypoint`) on every kitty,
 //! `pos` and `reply` on every meow, the seven restore shims now always
 //! serialized (explicit `null` / `[]` / `0`), and the meow buffer retained
 //! for the 30-tick digest window instead of the 10-tick cooldown -- so the
@@ -95,9 +96,12 @@ use sha2::{Digest, Sha256};
 /// armed-only (an ask, not an announcement) and the groom response's two
 /// rules (act only on an ask no older than the cooldown; on sight decline
 /// a caller already below the announce threshold). eaba8138… was the
-/// T081 pin under the first-landed law.
+/// T081 pin under the first-landed law. T088 (owner ruled 2026-09-03): the
+/// lattice serpentine tour replaced the heading rule -- every blind r = 5
+/// search walks a different path -- so re-pinned again (14b946af… was the
+/// T087 pin).
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "14b946afea6ce0721d2a3220a43b886d99fa326a597535716acb308ab4f5a6ac";
+    "f2dc24d9f90a75652940f48bbdef5a3f39546a27a1b3030b1a7c83c300d586f5";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -107,8 +111,9 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// 041→046 generation.)
 /// Spec 049 T081: re-derived with the golden above from the same r = 5
 /// run (173f9d09… was the world-covering run's pin); T087: re-derived
-/// again with the golden above (0bbb577f… was the T081 pin).
-const STRIP_PIN_SPEC_049: &str = "408dc1a7c43925bf5ad1fec10e2649c2e5e954b328d1d93f554141c7c8f2ad13";
+/// again with the golden above (0bbb577f… was the T081 pin); T088: again
+/// (408dc1a7… was the T087 pin).
+const STRIP_PIN_SPEC_049: &str = "dc480760f5466e27dd1b5b4bf073a7093d144b1626d3cd50f94231fd75054aca";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

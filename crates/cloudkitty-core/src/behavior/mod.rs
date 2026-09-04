@@ -1435,7 +1435,7 @@ mod tests {
             ladder_ctx(Some(0.30), 100, move |w| {
                 let idx = w.kitty_index(1).unwrap();
                 w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
-                w.kitties[idx].explore_heading = Some(crate::grid::Direction::East);
+                w.kitties[idx].explore_waypoint = 3; // (16, 10): east of the cat
                 call(w, 1, MessageKind::WantEat, 95, 0.6);
                 if replied {
                     w.recent_meows.push(Meow {

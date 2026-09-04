@@ -1001,10 +1001,11 @@ async fn recorded_meows_carry_pos_and_reply_on_the_world_payload() {
 }
 
 /// Spec 049 FR-010: the kitty listing on `/world` carries `memory` (five
-/// slots, `ElementType::ALL` order) and `explore_heading` additively --
-/// the schema-4 fields are all still there, unchanged in shape.
+/// slots, `ElementType::ALL` order) and `explore_waypoint` (the tour index,
+/// T088) additively -- the schema-4 fields are all still there, unchanged
+/// in shape.
 #[tokio::test]
-async fn kitties_on_the_world_payload_carry_memory_and_heading_additively() {
+async fn kitties_on_the_world_payload_carry_memory_and_tour_index_additively() {
     let server = start_server().await;
     let world: Value = reqwest::get(server.url("/world"))
         .await
@@ -1038,8 +1039,8 @@ async fn kitties_on_the_world_payload_carry_memory_and_heading_additively() {
                 "a slot is null or a remembered tile with its tick: {slot}"
             );
         }
-        let heading = &kitty["explore_heading"];
-        assert!(heading.is_null() || heading.is_string(), "{heading}");
+        let waypoint = &kitty["explore_waypoint"];
+        assert!(waypoint.is_u64(), "{waypoint}");
     }
     server.shutdown().await;
 }

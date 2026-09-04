@@ -24,6 +24,7 @@ pub mod behavior;
 pub mod config;
 pub mod element;
 pub mod events;
+pub mod explore;
 pub mod grid;
 pub mod invariants;
 pub mod kitty;

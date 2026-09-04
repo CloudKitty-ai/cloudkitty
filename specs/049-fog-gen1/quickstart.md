@@ -98,7 +98,7 @@ cargo test -p cloudkitty-core --test determinism
 cargo test -p cloudkitty-core --test snapshot_resume
 ```
 
-Expected: same seed + config + ticks → identical world including memory and `explore_heading`; a mid-run save/restore continues byte-identically.
+Expected: same seed + config + ticks → identical world including memory and `explore_waypoint`; a mid-run save/restore continues byte-identically.
 
 ## 10. Python surface (CI parity)
 

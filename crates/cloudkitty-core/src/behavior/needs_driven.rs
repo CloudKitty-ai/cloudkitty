@@ -304,68 +304,30 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
         Some((pos, _)) => step_toward(ctx, pos),
         // Nothing of the kind visible or remembered (spec 049 FR-023):
         // under fog "none visible" no longer means "none exists", so the
-        // cat explores along its persistent heading instead of idling.
+        // cat walks its lattice tour (`explore`) instead of idling.
         None => explore(ctx),
     }
 }
 
-/// How many tiles of world lie ahead of `pos` along `dir` before the wall
-/// -- arithmetic on position, heading and bounds only (FR-023: no vision
-/// query).
-pub(crate) fn distance_to_wall(
-    pos: crate::grid::Position,
-    dir: Direction,
-    width: u32,
-    height: u32,
-) -> u32 {
-    match dir {
-        Direction::North => pos.y,
-        Direction::South => height.saturating_sub(1).saturating_sub(pos.y),
-        Direction::West => pos.x,
-        Direction::East => width.saturating_sub(1).saturating_sub(pos.x),
-    }
-}
-
-/// The blind cat's search (spec 049 FR-023, owner ruling 4 of 2026-09-02):
-/// one step along the persistent exploration heading -- the engine-recorded
-/// direction of the last applied move -- redrawn ONCE from the decision
-/// RNG when there is no heading yet or the wall ahead is within the vision
-/// radius: uniformly among directions that are neither the reverse nor
-/// wall-within-radius; failing that any non-reverse direction; failing
-/// that the current heading. Draws happen only on a redraw -- a
-/// state-dependent count, never per step. The step itself goes through the
-/// existing step rule (occupied-tile and water-avoiding sidesteps).
+/// The blind cat's search (spec 049 FR-023, owner ruled 2026-09-03, T088):
+/// one step toward the current waypoint of the lattice serpentine tour
+/// (`crate::explore`), through the existing step rule (occupied-tile and
+/// water-avoiding sidesteps). The tour index is ENGINE state -- set at
+/// generation, advanced in the environment phase when the cat stands on
+/// the waypoint or beside it while another cat holds it -- so this step
+/// reads it and draws nothing from the RNG. Standing on the waypoint
+/// already (the engine advances at the tick's end) idles this one tick.
 pub(crate) fn explore(ctx: &DecisionContext) -> Action {
-    let me = &ctx.me;
-    let (width, height) = (ctx.world.width, ctx.world.height);
-    let radius = ctx.config.vision.radius;
-    let clear = |d: Direction| distance_to_wall(me.pos, d, width, height) > radius;
-    let heading = match me.explore_heading {
-        Some(h) if clear(h) => h,
-        current => {
-            let reverse = current.map(Direction::opposite);
-            let candidates: Vec<Direction> = Direction::ALL
-                .into_iter()
-                .filter(|&d| Some(d) != reverse && clear(d))
-                .collect();
-            let fallback: Vec<Direction> = Direction::ALL
-                .into_iter()
-                .filter(|&d| Some(d) != reverse)
-                .collect();
-            let pool = if !candidates.is_empty() {
-                candidates
-            } else if !fallback.is_empty() {
-                fallback
-            } else {
-                vec![current.unwrap_or(Direction::North)]
-            };
-            *ctx.rng.choose(&pool).expect("a non-empty pool")
-        }
-    };
-    match me.pos.step(heading, width, height) {
-        Some(next) => step_toward(ctx, next),
-        None => Action::Idle,
+    let lattice = crate::explore::Lattice::for_world(
+        ctx.world.width,
+        ctx.world.height,
+        ctx.config.vision.radius,
+    );
+    let target = lattice.waypoint(ctx.me.explore_waypoint);
+    if ctx.me.pos == target {
+        return Action::Idle;
     }
+    step_toward(ctx, target)
 }
 
 /// The groom response (spec 028 FR-019): a cat with real cuddle need that
@@ -2048,20 +2010,22 @@ mod tests {
         }
     }
 
-    fn set_heading(world: &mut crate::world::World, id: u32, heading: Option<Direction>) {
+    fn set_waypoint(world: &mut crate::world::World, id: u32, index: u32) {
         let idx = world.kitty_index(id).unwrap();
-        world.kitties[idx].explore_heading = heading;
+        world.kitties[idx].explore_waypoint = index;
     }
 
     #[tokio::test]
-    async fn a_blind_hungry_cat_steps_along_its_heading_and_asks_as_it_goes() {
-        // US5 scenario 1 (+ FR-036): no bowl visible, none remembered, a
-        // heading held -- one step along it, and want_eat rides along.
+    async fn a_blind_hungry_cat_steps_toward_its_waypoint_and_asks_as_it_goes() {
+        // US5 scenario 1 (+ FR-036): no bowl visible, none remembered, the
+        // tour index at (16, 10) -- one step east toward it, and want_eat
+        // rides along. (20x20 at r = 5: the lattice is {3, 10, 16}², index
+        // 3 of the snake is (16, 10).)
         let ctx = fog_ctx(5, 1, |w| {
             let idx = w.kitty_index(1).unwrap();
             w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
             w.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            set_heading(w, 1, Some(Direction::East));
+            set_waypoint(w, 1, 3);
         });
         assert_eq!(
             NeedsDriven.decide_action(&ctx),
@@ -2078,102 +2042,31 @@ mod tests {
     }
 
     #[test]
-    fn the_heading_is_redrawn_only_when_the_wall_ahead_is_within_the_radius() {
-        // US5 scenario 6: east at x = 14, r = 5, 20 wide -> the wall ahead is
-        // 5 away (not clear): redraw among north and south (west is the
-        // reverse, east is wall-within-radius); then hold the new heading.
-        for seed in 0..12u64 {
-            let ctx = fog_ctx(5, seed, |w| {
-                let idx = w.kitty_index(1).unwrap();
-                w.kitties[idx].pos = Position::new(14, 10);
-                set_heading(w, 1, Some(Direction::East));
-            });
-            let step = explore(&ctx);
-            assert!(
-                matches!(
-                    step,
-                    Action::Move {
-                        direction: Direction::North | Direction::South
-                    }
-                ),
-                "seed {seed}: redraw among N/S, got {step:?}"
-            );
-            let Action::Move { direction } = step else {
-                unreachable!()
-            };
-            // Holding: with that heading recorded and the wall far, the
-            // next step continues it -- and draws nothing.
-            let held = fog_ctx(5, seed + 100, move |w| {
-                let idx = w.kitty_index(1).unwrap();
-                w.kitties[idx].pos = Position::new(14, 10).step(direction, 20, 20).unwrap();
-                set_heading(w, 1, Some(direction));
-            });
-            assert_eq!(
-                explore(&held),
-                Action::move_to(direction),
-                "the heading holds"
-            );
-            let untouched = crate::rng::DecisionRng::from_seed(seed + 100).gen_u64();
-            assert_eq!(
-                held.rng.gen_u64(),
-                untouched,
-                "zero draws on a non-redraw step"
-            );
+    fn explore_walks_the_tour_and_draws_nothing() {
+        // US5 scenario 6: the step is toward the CURRENT waypoint, whatever
+        // the cat did last; the index is the engine's, so the step reads it
+        // and never touches the RNG; standing on the waypoint (the engine
+        // advances at the tick's end) idles this tick.
+        for (index, expected) in [
+            (1u32, Direction::North),
+            (3, Direction::East),
+            (5, Direction::West),
+            (7, Direction::South),
+        ] {
+            let ctx = fog_ctx(5, 11, move |w| set_waypoint(w, 1, index));
+            assert_eq!(explore(&ctx), Action::move_to(expected), "index {index}");
+            let untouched = crate::rng::DecisionRng::from_seed(11).gen_u64();
+            assert_eq!(ctx.rng.gen_u64(), untouched, "zero draws");
         }
-        // Distance-to-wall arithmetic, edge included: 4 away redraws, 6 holds.
-        assert_eq!(
-            distance_to_wall(Position::new(14, 10), Direction::East, 20, 20),
-            5
-        );
-        assert_eq!(
-            distance_to_wall(Position::new(13, 10), Direction::East, 20, 20),
-            6
-        );
-        assert_eq!(
-            distance_to_wall(Position::new(3, 2), Direction::North, 20, 20),
-            2
-        );
-        let holds = fog_ctx(5, 7, |w| {
-            let idx = w.kitty_index(1).unwrap();
-            w.kitties[idx].pos = Position::new(13, 10);
-            set_heading(w, 1, Some(Direction::East));
+        let standing = fog_ctx(5, 11, |w| set_waypoint(w, 1, 4)); // (10, 10) = me
+        assert_eq!(explore(&standing), Action::Idle);
+        // A blocked straight line still moves (the step rule sidesteps).
+        let blocked = fog_ctx(5, 11, |w| {
+            set_waypoint(w, 1, 3);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(11, 10);
         });
-        assert_eq!(
-            explore(&holds),
-            Action::move_to(Direction::East),
-            "6 > 5: holds"
-        );
-    }
-
-    #[test]
-    fn a_first_heading_is_drawn_once_and_a_boxed_in_cat_never_reverses() {
-        // No heading yet: one draw among the wall-clear directions. Boxed in
-        // (every wall within the radius, r = 40 on a 20x20 world): any
-        // non-reverse direction -- never straight back.
-        let fresh = fog_ctx(5, 3, |w| set_heading(w, 1, None));
-        let step = explore(&fresh);
-        assert!(matches!(step, Action::Move { .. }), "{step:?}");
-        let after = fresh.rng.gen_u64();
-        let one_draw = {
-            let r = crate::rng::DecisionRng::from_seed(3);
-            let _ = r.choose(&Direction::ALL);
-            r.gen_u64()
-        };
-        assert_eq!(after, one_draw, "exactly one draw for the first heading");
-        for seed in 0..16u64 {
-            let boxed = fog_ctx(40, seed, |w| set_heading(w, 1, Some(Direction::East)));
-            let step = explore(&boxed);
-            assert!(
-                !matches!(
-                    step,
-                    Action::Move {
-                        direction: Direction::West
-                    }
-                ),
-                "seed {seed}: the reverse is never drawn ({step:?})"
-            );
-            assert!(matches!(step, Action::Move { .. }));
-        }
+        assert!(matches!(explore(&blocked), Action::Move { .. }));
     }
 
     #[test]
@@ -2190,7 +2083,7 @@ mod tests {
                     pos: Position::new(2, 10),
                     last_seen: 50,
                 });
-            set_heading(w, 1, Some(Direction::South));
+            set_waypoint(w, 1, 7); // (10, 16): south of the cat
         });
         assert_eq!(
             NeedsDriven.decide_action(&remembering),
@@ -2200,7 +2093,7 @@ mod tests {
         let refuted = fog_ctx(5, 1, |w| {
             let idx = w.kitty_index(1).unwrap();
             w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
-            set_heading(w, 1, Some(Direction::South));
+            set_waypoint(w, 1, 7); // (10, 16): south of the cat
         });
         assert_eq!(
             NeedsDriven.decide_action(&refuted),
