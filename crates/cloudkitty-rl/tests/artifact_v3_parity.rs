@@ -105,9 +105,11 @@ fn serving_cost_is_negligible_against_the_tick() {
 /// message-kind tokens are gone) and a parity oracle needs only an
 /// INDEPENDENT reference forward, not training -- exported v3-format at
 /// the schema-5 pins (sha256 8c1691b4…); `tests/fixtures/oracle.parity`
-/// (sha256 a4ca2736…) holds 144 rows at 404/55: 112 plausible (~35%
+/// (sha256 2658886d…) holds 152 rows at 404/55: 112 plausible (~35%
 /// per-block vacancy) plus stress (every kitty row vacant, every critter
-/// vacant, every element vacant, self+clock only), with logits from the
+/// vacant, every element vacant, self+clock only, and -- the spec-049
+/// review's row -- every kitty row HEARD: present 0, the rest live, which
+/// a "present <= 0" pad rule wrongly masked), with logits from the
 /// numpy reference. Fully regenerable via
 /// `experiments/attn-oracle-2026-08-15/make_oracle_v5.py`; the numpy
 /// forward (`numpy_forward_v5.py`, the certified v4 forward with only the

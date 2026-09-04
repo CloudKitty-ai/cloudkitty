@@ -3,8 +3,8 @@ entity-attention mind at the new surface -- no trained checkpoint can
 carry across the fog wall (every embedding width moved), and a parity
 oracle needs no training, only an INDEPENDENT reference forward --
 exported v3-FORMAT at the schema-5 pins, plus a 404/55 parity file with
-seeded synthetic rows covering per-class vacancy and the self+clock
-extreme. numpy only (no torch in any venv on the build machine); the
+seeded synthetic rows covering per-class vacancy, the self+clock
+extreme and every-kitty-row-heard (present 0, message block live). numpy only (no torch in any venv on the build machine); the
 Rust forward (`artifact_v3_parity.rs`) is checked against
 `numpy_forward_v5` within 1e-4.
 """
@@ -24,7 +24,7 @@ from obs_layout_v5 import (BLOCKS, DENSE_ACT, N_HEAD, N_LOGITS, N_TYPE_ROWS,  # 
 
 SEED = 20260903
 D_MODEL, HEADS, LAYERS, FFN = 64, 4, 2, 128
-N_REAL_LIKE, N_STRESS = 112, 32
+N_REAL_LIKE, N_STRESS = 112, 40
 
 
 def seeded_weights():
@@ -86,6 +86,13 @@ def synth_rows():
     obs[s + 8:s + 16, 363:403] = 0.0     # every critter vacant
     obs[s + 16:s + 24, 333:363] = 0.0    # every chow/water/sunbeam vacant
     obs[s + 24:s + 32, 85:403] = 0.0     # self + clock only
+    # every kitty row HEARD (spec 049 review): present 0, the rest live --
+    # the token attends; a "present <= 0" pad rule masks it (the bug).
+    for i in range(s + 32, s + 40):
+        for k in range(4):
+            a = 85 + 62 * k
+            obs[i, a:a + 62] = rng.uniform(0.05, 1.0, 62)
+            obs[i, a] = 0.0
     return obs
 
 

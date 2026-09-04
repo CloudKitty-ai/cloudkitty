@@ -527,7 +527,13 @@ impl AttnArtifact {
                     }
                     x[o] = acc + te[o];
                 }
-                let masked = !g.always_present && feats[0] <= 0.0;
+                // Padding iff the whole row is zero (spec 049 review): a
+                // kitty row is permanent by id and its first cell is "seen
+                // this tick", so a HEARD friend (present 0, message block
+                // live -- every recency there is > 0 inside the window) is
+                // a real token; only a silent or vacant row is masked. An
+                // absent element slot is all zero, as it always was.
+                let masked = !g.always_present && feats.iter().all(|&f| f == 0.0);
                 s.mask.push(masked);
                 off += g.width;
                 tok += 1;

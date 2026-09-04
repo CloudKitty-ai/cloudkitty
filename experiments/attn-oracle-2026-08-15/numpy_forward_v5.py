@@ -2,6 +2,12 @@
 5) -- the certified numpy_forward_v4 with only the layout moved: seven
 token types, no message group, kitty rows 4 x 62, self 85, menu 39,
 55 logits. Reads the artifact's own bytes (forward-v3.md module order).
+
+One rule moved with the layout (spec 049 review): a token is padding iff
+its whole feature row is zero. Under schema 5 a kitty row is permanent
+by id and its first cell is "seen this tick", so a HEARD friend (present
+0, message block live) is a real token; only a silent or vacant row (all
+zero) is masked -- and an absent element slot is all zero as before.
 """
 import json
 import struct
@@ -76,7 +82,7 @@ def numpy_forward(p, obs):
         if name in ("self", "clock"):
             pad.append(np.zeros((n, cnt), bool))
         else:
-            pad.append(t[:, :, 0] <= 0.0)
+            pad.append(~np.any(t != 0.0, axis=-1))
     x = np.concatenate(toks, 1)
     mask = np.concatenate(pad, 1)
     for i in range(p["header"]["encoder_layers"]):
