@@ -753,6 +753,29 @@ the 040 lesson); both config sweeps green. Cert anchors re-derived on
 the locked fog config (second and final re-baseline; the first was
 step 1's — two total, accepted knowingly).
 
+**Pre-declared for the re-baseline (Experiments, 2026-09-03, from the
+FR-036 bath-clause probes in the Product session)**: partnered groom
+scenes fall by roughly 90% against the 2.10 scripted baseline, and the
+groomers' cuddle-relief credits with them. Product measured (served
+roster, scripted, one seed, 20k ticks) that ~90% of 2.x partnered
+grooms started on a CLEAN target: the first responder cleaned the
+caller within a few ticks and the same ask kept drawing groomers for
+the rest of the audibility window, each paid `groom_cuddle_relief`
+(unconditional, `action.rs:747-760`). Rung fixes proposed for 049
+T087 (act only on asks aged ≤ the announce cooldown; on sight, drop
+the response if the caller's bath is below the announce threshold)
+remove the clean-target grooms and simultaneous groomers to ~0 at
+every radius; dirty-target grooms are unchanged by them (pre-fog 2.0
+per 1k at r=40, 3.7 at r=5; bath armed-only restores 3.1 / 4.8, the
+FR-036 law as first landed left 0.0–0.25). Read the drop as the farm
+closing, not as a defect (F-029's lesson); the cuddle economy shifts
+toward rest and cosleep accordingly. Learners are not bound by the
+rung: the step-5 prereg carries a relief-farm read
+(`fog-gen1-shakeout/PREREG.md` Part B), fix class = pricing (law).
+The r=4 row of Product's table is single-seed and internally odd
+(want_bath 14.75/1k under the armed law vs 8.25 under bath armed-only
+with an identical bath clause); replicate seeds before reading it.
+
 ## Step 7 — certification round
 
 5 new certifiable seats incl. Biscuit 3.0. Biscuit 3.0's design per
