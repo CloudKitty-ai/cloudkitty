@@ -832,3 +832,32 @@ exposure) now serves the beside rule and the occupied-beam filter.
 | w1 | `needs_driven::tests::a_settled_friends_beam_in_reach_is_walked_to_for_the_cosleep` (the review-3 stage with the friend RESTING) | RED at the first assertion: `sunbeam_worth_walking` = None under the strict filter | RED there (None vs `Some((12,10), 2.0)`) | exemption landed @ c0cd1fb; targeted GREEN; full suite 880 / **3** / 6 — the two goldens and the SC-011 preladder streams (tick 95 again), SC-004b GREEN: its first divergence is back at tick 119 (kitty 2 cosleeps beside a settled friend where pre-fog waited; the tick-15 nap-instead-of-walk is gone, the fog cat now walks like the pre-fog cat did) | 880 / 3 / 6 |
 | re-pin | goldens from one run; `record_preladder_r5_streams`; welfare re-read | served 0 / 0, compiled 2 | served 0 / 0; compiled r = 5 **2** (unchanged from the strict filter) | @ the flag-13 records commit | — |
 
+## The kitty-row sunbeam bit (owner ruled 2026-09-04, on Experiments' input relayed the same day)
+
+Flag 13's follow-on: with the warm reading, the scripted sleep arm reads
+"a settled friend on a beam" and the teacher corpus demonstrates the walk
+to it, but the observation carried the fact only as a cross-token match
+(a kitty row's dx/dy against a sunbeam slot's). Ruled: a PRIMITIVE
+tile-derived "neighbour on a sunbeam" cell beside the water bit — row
+offset **21** (scene age 22, message block 23–52, intensities 53–58,
+answers-me 59–62), kitty row 62 → 63, observation 404 → **408** at the
+served slots, schema number unchanged (no schema-5 artifact, corpus or
+critic exists). Not the composed settled-on-beam variant (a schema hazard:
+a later change to "settled" would move a cell's meaning with no bump).
+The imitability principle, applied as 049 applied it for the water bit.
+
+| cycle | guard | prediction | observed | restore | count |
+|---|---|---|---|---|---|
+| s0 | `observe::tests::a_seen_friends_row_carries_the_sunbeam_bit_and_a_heard_ones_does_not` + the pins at 408 / 63 / offsets 21–63, with `ROW_SUNBEAM_BIT` and `KITTY_SLOT` moved but the encoder NOT yet emitting the cell | the pins GREEN (derived constants); every encode test RED at the encoder's own length assertion (62 cells pushed against a claimed 63), the cell test among them | rl lib **58 / 15**, all fifteen at `observe.rs`'s `debug_assert_eq!(v.len(), observation_len(cfg))`; pins green | the cell emitted (Seen: `tile_holds(Sunbeam)`; Heard: one more masked zero); numpy `obs_layout_v5` / `make_oracle_v5` re-parameterised (blocks derived, no hand offsets) and the oracle regenerated (`c205106b…` / `c97c5e59…`, 152 rows at 408/55); rl crate **158 / 0**, parity within 1e-4 | — |
+| s1 | full suite after the docs | 884 / 0 / 6 | **881 / 3 / 6**: `eval_suite::a_landed_exam_file_cannot_change_without_failing_ci` + two manifest loaders — my "404 floats" → "408" comment edit in the four frozen `evals/v2` exams moved their hashes (spec 017 FR-012: a frozen exam never changes) | the four files restored byte-for-byte; the stale comment noted in BACKLOG P1 (`evals/v3` re-cut) | 881 / 3 / 6 |
+| s2 | full suite after the restore | 884 / 0 / 6 | **884 / 0 / 6** (wall 64 s); fmt + clippy clean; pytest 18 / 1 on the rebuilt binding; binding continuity CONTINUOUS (the trace is world state; first-legal-pair seats read no observation) | — | 884 / 0 / 6 |
+
+Touched for the width: `observe.rs` (constant, offset, push, `tile_holds`),
+`schema_five_pins.rs`, `artifact_v3_parity.rs` (sha comment + fixtures),
+`contracts/observation-v5.md`, `docs/encodings.md`, `docs/rl-training.md`,
+CHANGELOG Unreleased, BACKLOG P1/P2 widths (exam widths 597 / 471), spec
+FR-012 / FR-020 / FR-026 / SC-001 + a clarification, data-model, plan,
+quickstart §1/§10, the three numpy files. Experiments owns the prereg
+placeholders (Part A header 4 × 63 / 408, critic width, A13 emit-proof
+entry, Part C cosleep-share read).
+
