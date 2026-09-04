@@ -648,3 +648,7 @@ violations (was 1 before T087): the same standoff now arises at global
 vision too (sleep pinned 202 / cuddle 119, Clementine 174 + 1.2%) — the
 groom rules changed the served world's cuddle economy enough to expose it;
 T092 is the fix on both.
+
+### T090 (owner ruled 2026-09-04, no engine change)
+
+The blind price ratified as implemented; the doctrine sentence (a need is priced at the cheapest walk the cat's knowledge cannot exclude; r + 1 is the exact greatest lower bound of Manhattan travel outside a Euclidean disc; covering radius → `None`) recorded in research.md R9 and docs/meows.md, with the two notes (memory beats the bound; sensitivity `tile_cost × (r + 1)`).

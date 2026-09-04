@@ -68,7 +68,13 @@ want_sleep**
   scripted groom response answers a `want_bath` only while the ask is no
   older than the cooldown and, on sight, only a caller still above the
   announce threshold (T087) — a still-needy caller re-emits every
-  cooldown, so nothing is lost and nobody walks to a cat already groomed. The emission stamps the need's value as the call's intensity
+  cooldown, so nothing is lost and nobody walks to a cat already groomed.
+- **Blind price** (spec 049 T090, owner ruled 2026-09-04): when a scripted
+  cat's need has relief it can neither see nor remember, the need is not
+  skipped (the 004 "no path" rule) but priced at radius + 1 tiles and the
+  cat explores — a need is priced at the cheapest walk the cat's knowledge cannot exclude, and skipped only when knowledge proves no path. Pre-fog, seeing everything and finding none proves no path (skip — the 004 doctrine). Under fog, FR-047's existence guarantee proves a path exists and the disc bounds its length: priced travel is Manhattan tiles and every tile outside a Euclidean disc of radius r is at Manhattan distance ≥ r + 1, so radius + 1 is the exact greatest lower bound; a covering radius → `None` falls out of the same sentence, which is what keeps FR-024 byte-identical. A remembered
+  element farther than r + 1 is priced at its remembered distance (a known
+  path beats a bound); the sensitivity is `tile_cost × (r + 1)`. The emission stamps the need's value as the call's intensity
   and the speaker's position: a listener hears how hungry, and where
   from. One predicate, `message_legal` over the cat's fog view, judges
   the RL mask and the built-in announce alike. Consequences the owner
