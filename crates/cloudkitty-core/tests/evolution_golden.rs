@@ -102,9 +102,11 @@ use sha2::{Digest, Sha256};
 /// T087 pin). T092 (owner ruled 2026-09-03): the sleep arm cosleeps beside
 /// a settled friend on a beam instead of waiting at the occupied tile, and
 /// an occupied beam is not worth walking to -- re-pinned again (f2dc24d9…
-/// was the T088 pin).
+/// was the T088 pin). T093: the refusal ring's rows gained `reason`, so the
+/// serialized world moved by the ring ALONE -- the strip witness below did
+/// not move (13d22603… was the T092 pin).
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "13d226036e13343cc33bfaebcc92c4a45a8f287429ca9bdc099d1972898dc3e8";
+    "ae534fd1a75a483dcf9db3eec81852c08b2030dcc2a9206289355dd2b743fafa";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The

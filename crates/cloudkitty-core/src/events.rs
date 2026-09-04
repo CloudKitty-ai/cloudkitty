@@ -88,7 +88,7 @@ pub struct RefusalEvent {
 /// tax. `proposed` is verbatim on the event, so an instrument splits
 /// `Other` by action variant itself; absent-vs-busy is the one split the
 /// action alone cannot make. Serialized snake_case.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RefusalReason {
     /// A kitty-targeted proposal whose target exists but is not adjacent.
@@ -361,17 +361,19 @@ mod tests {
         // driven world produced on 2026-09-01: `proposed` is the standard
         // internally-tagged Action serialization, `absorbed` ALWAYS present
         // (no skip-at-false -- an absent-key convention would re-create the
-        // reading trap the census filters on this key).
+        // reading trap the census filters on this key); since spec 049
+        // T093 the `reason` too -- a move into an occupied cell is `other`.
         assert_eq!(
             serde_json::to_string(taxed).unwrap(),
-            r#"{"kitty_id":1,"proposed":{"action":"move","direction":"east"},"tick":0,"absorbed":false}"#,
+            r#"{"kitty_id":1,"proposed":{"action":"move","direction":"east"},"tick":0,"absorbed":false,"reason":"other"}"#,
         );
 
         // The target flattens into the play object -- the proposal wire
-        // shape plugins already speak (pinned for the endpoint contract).
+        // shape plugins already speak (pinned for the endpoint contract);
+        // the partner was adjacent and mid-scene: `partner_busy`.
         assert_eq!(
             serde_json::to_string(&events[2]).unwrap(),
-            r#"{"kitty_id":1,"proposed":{"action":"play","target":"kitty","id":2},"tick":3,"absorbed":false}"#,
+            r#"{"kitty_id":1,"proposed":{"action":"play","target":"kitty","id":2},"tick":3,"absorbed":false,"reason":"partner_busy"}"#,
         );
 
         // All round-trip losslessly, target-carrying proposals included.

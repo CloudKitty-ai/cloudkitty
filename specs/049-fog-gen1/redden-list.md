@@ -675,3 +675,40 @@ Welfare readings after T092: **served 20×20 r=5: 0 violations** (was 9 →
 after T088 — a different seed path on a world that is not the served one;
 the coverage failure stays gone). The 2.x welfare bounds hold on the world
 that ships, at the radius that ships.
+
+### T093 — `RefusalEvent.reason` (owner ruled 2026-09-03; shape sent to Experiments 2026-09-04, prereg row written against it @ main 844f7f8)
+
+`RefusalReason { PartnerAbsent, PartnerBusy, Other }` (snake_case on the
+wire), a REQUIRED field on the event, derived at the stamp site by
+`action::refusal_reason` from the same predicates `validate` uses
+(kitty-targeted rest/sleep/groom/play: target exists and not adjacent →
+absent; adjacent yet refused, i.e. social play at a mid-scene or asleep
+friend → busy; everything else → other). `/events/refusal` rows carry it;
+README row, api doc, CHANGELOG line.
+
+| cycle | guard / mutation | predicted | observed | restore |
+|---|---|---|---|---|
+| R16 | `a_refusal_names_absent_busy_or_other` (absent for four targeted kinds two tiles away; busy for play at a mid-scene and at an asleep neighbour; other for a missing/self/element target, an occupied move, a meal, a chase; the three wire names); mutation: the classifier returns Other for every kind | RED on absent + busy | RED | `git checkout` on the COMMITTED file (a first attempt checked out an uncommitted action.rs and wiped the new code — re-applied, then committed BEFORE the mutation), 0 dirty, GREEN |
+| R17 | ring-layer pins from real events gained `"reason"` (`other` for the occupied move, `partner_busy` for the play at a sleeping partner); the endpoint test asserts the vocabulary on every row | — | the ring test RED until re-pinned (the field is required); evolution golden RED (the serialized world moved by the ring alone — the strip witness did NOT move) → re-pinned `ae534fd1…` | — |
+| R18 | full cycle t093c | 877/0/6 | 877/0/6; fmt + clippy clean; pytest 18/1 on the rebuilt binding; binding continuity CONTINUOUS | — |
+
+Reading (`refusal_reasons.rs`, ignored): served roster all scripted, 20k
+ticks, (reason, absorbed) → count. r=5: absent 1,096 taxed / 2,197
+absorbed (Rest 2,596, Play 366, Sleep 323, Groom 8); busy 294 / 1,685
+(Play 1,979); other 2,152 / 823 (Move 2,437, Eat 538). r=40: absent 1,116
+/ 2,236; busy 328 / 1,882; other 2,253 / 821. Experiments' expectation
+(scripted partner refusals ≈ 0) does not hold: the cats propose at a
+friend adjacent in the start-of-tick snapshot who moved first in the fair
+turn order — the same-tick ordering tax, ~4% of decisions, radius-flat
+(fog adds nothing to it at these radii). Reported to Experiments as the
+calibration number.
+
+## Phase 12 closed — 2026-09-04
+
+T087–T093 all LANDED (T087 at 6895774, T089/T091 c8a3737, T088 5caad4c,
+T090 2b0b94d, T092 7bf937f, T093 below). Final count **877 passed / 0
+failed / 6 ignored**; fmt + clippy clean; pytest 18/1; binding continuity
+CONTINUOUS (`cf0cfede…` reproduced throughout). The served world holds
+the 2.x welfare bounds at r = 5 and at global vision. Next: the owner
+re-runs `/speckit-converge`, then a high-effort review in another
+session; the PR waits on her go.
