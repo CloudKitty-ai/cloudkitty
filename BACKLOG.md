@@ -16,7 +16,9 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 Spec 049's permanent by-id kitty rows make the observation width a
 function of the roster (`kitty_slots = roster − 1`), so `evals/v2`'s
 `scale` (8 cats, 597 floats) and `mixed-roster-{guest,half,host}` (6
-cats, 471) refuse a served-width (408) Gen 1 mind at artifact load —
+cats, 471) refuse a served-width (408) Gen 1 mind at artifact load
+(their frozen comment blocks still say "404 floats": the v2 manifest
+hash-freezes the files, so the number is corrected in v3, not in place) —
 `kitty-eval --suite evals/v2 --artifact <policy>` dies before a tick on 4
 of 6 exams (`/code-review high 049` finding 1; PR flag 5). v2 is frozen
 by its manifest, so the fix is `evals/v3`: the same six designs with the

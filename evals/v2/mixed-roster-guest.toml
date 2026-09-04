@@ -225,7 +225,7 @@ memory_timeout_ticks = 0
 # Spec 049 FR-011: permanent by-id kitty rows -- kitty_slots = roster - 1
 # (6 cats here), or the exam refuses to load. NOTE the consequence:
 # the observation width is a function of the roster under permanent rows,
-# so a mind trained at the served 4 slots (408 floats) cannot sit this exam
+# so a mind trained at the served 4 slots (404 floats) cannot sit this exam
 # as-is; certification against it needs a mind shaped for 6 seats or a
 # redesign of the exam (owner call raised at the 049 wall, 2026-09-03).
 [rl.observation]
