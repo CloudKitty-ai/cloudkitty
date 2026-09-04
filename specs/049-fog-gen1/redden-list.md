@@ -261,7 +261,70 @@ crate constants and derives the space from `observation_len`.
 
 ## §review
 
-(dispositions recorded at T086)
+`/code-review medium 049` (2026-09-03, eight finder angles over the
+37-commit branch) returned eight findings plus follow-ups. Every finding
+was re-verified against the tree before its disposition; fixes landed
+red-first (cycles R1–R4 below), four commits f645286 · 18241c2 · eaf961e ·
+88b3cf7. Suite after: **869/0, 5 ignored** (cycle review3); `cargo fmt
+--check` + `clippy -D warnings` clean; pytest 18 passed / 1 skipped on the
+binding rebuilt from this tree; `binding_continuity.py` CONTINUOUS (the
+3.0 reference digest `cf0cfede…` reproduced by the rebuilt binding).
+
+| # | finding | verdict | disposition |
+|---|---|---|---|
+| 1 | `attn.rs:530` pad rule `feats[0] <= 0.0` masks every HEARD kitty row (present 0, ~58 live cells) — attention minds hear nothing; the numpy oracle agreed with the bug | CONFIRMED, defect (mine, T031) | FIXED @ f645286: a token is padding iff its whole row is zero (a heard row always carries a recency > 0 inside the window; silent/vacant rows and absent element slots are all zero as before). Same rule in `numpy_forward_v5.py`; oracle fixture regenerated with eight every-kitty-row-HEARD rows (152 rows, sha `2658886d…`; artifact bytes unchanged). Cycle R1. |
+| 2 | FR-023's heading rule never enters the interior of a world wider than ~4r; compiled 32×32 r = 5 fails the 2.x bounds | CONFIRMED (the ruled rule) | OWNER FLAG 1 stands, unchanged. The served world's own reading is finding 3. |
+| 3 | the only enforcing welfare gate was retargeted to r = 64; nothing enforces at the shipped radius; stale expect message | CONFIRMED | Message fixed (eaf961e). A gate at r = 5 on the SERVED world was tried (cycle R4) and FAILS the 2.x bounds — 9 violations — by a mechanism that is not coverage (the sunbeam standoff, **OWNER FLAG 10**), so it landed as an ignored READING beside the compiled one (88b3cf7), the same world at r = 64 as its control (1 violation: Clementine's 33-tick streak vs the 20 limit — the served world under global vision was never gated before; a reading for the owner). |
+| 4 | `test_config` pins r = 64, so the inherited suite exercises the FogView seam unfogged | ACCEPTED (design) | The inherited assertions prove the seam re-routes without moving what they pinned (the T-baseline doctrine); fog claims live in `fog_*.rs`, `meow_law_fog.rs`, the observe/mask fog tests and `plugin_e2e`. Finding 1 is the review's counter-example; its guard now exists at the parity layer. No change. |
+| 5 | `World::generate` never seeds memory: every reset observation is memory-blind; the pytest was re-pointed around it | CONFIRMED, defect (mine) | FIXED @ 18241c2: generation refreshes memory stamped 0 from the stocked world (the tick phase's body with `seen_at = tick + 1`; `update_memories` delegates). Cycle R2. No golden moved; the binding reference reproduces. |
+| 6 | `mask_oracle.rs:154`: the message half compares `message_legal` to itself | CONFIRMED, pre-existing (2.x wrote it so) | REPORTED, not fixed (rule 3). The 049 want gate and reply stamp have their own oracles (`meow_law_fog.rs` US4/US7, the mask fog tests). BACKLOG candidate: an independent message oracle. |
+| 7 | `a_malformed_v3_header_is_refused_not_panicked_on` vacuous behind the T032 target gate (the hyperparameter guards deletable, test green) | CONFIRMED (mine) | FIXED @ eaf961e: `expand::tests::the_v3_hyperparameter_guard_names_each_refusal` at the guard's own layer; the integration test re-documented as the gate's pin. Mutation R3. |
+| 8 | T083 ticked while `cert_harness6.py` keeps `N_ACT 34` / `(225, 50)`: every model-backed seating breaks | CONFIRMED as stated | T083's scope was the all-scripted re-baseline the step-3 doc assigned; `binding_continuity.py` now REFUSES a model-backed seat by name before the first tick (never a wrong-width row). The cert_harness6 cutover is Experiments' housekeeping — OWNER FLAG 8 sharpened to say so. |
+
+Follow-ups from the review: `referent_visible` / `known_relief` `_ => false`
+→ exhaustive matches (FIXED); `docs/rl-training.md` `# 34` and `evals/v1`
+×2 (FIXED); `groom_response`'s heard-unseen branch returns before the
+spec-045 exposure gate → inert at the served default, and the unseen
+groomee's bath pressure is masked so any stand-in is a ruling — **OWNER
+FLAG 11** (Gen 2 contagion input, with F-035); `snapshot().fog_for` per
+emitted message in the enforcement loop and the reply stamp → REPORTED:
+bounded by messages per tick (≤ roster), the mid-tick view is the
+documented semantics; measure before touching; `blind_price` through
+`Position::visible_from` (FIXED); `HERE_KINDS_LEN` derived (FIXED);
+Bug/Greeble → `is_critter` (FIXED); `toml` as a core runtime dependency →
+ACCEPTED (server and rl already carry toml 0.8; a feature gate is plumbing
+for nothing); ARC-TEMPORARY leftovers, two detached doc comments, `let _ =
+window` (FIXED). Cleared by the reviewer, nothing to do: retired keys still
+refused per section; roster > kitty_slots + 1 refused in the shared loader;
+the mid-tick enforcement view only ever silences.
+
+**OWNER FLAG 10 — the sunbeam standoff (served world, r = 5).** Miso,
+sleep at the cap, sees ONE sunbeam: adjacent, occupied by Clementine,
+cuddle at the cap, who is resting "with" Miso. `sunbeam_worth_walking`
+prices the occupied beam cheapest (1 tile); `step_toward` an adjacent
+occupied tile has no improving step and yields Idle; Miso proposes Idle
+every tick (probed from the proposals). Clementine's partnered rest with
+an Idle partner pays only the drip, below her cuddle rise, so she never
+leaves. Both paths are 2.x code; fog makes the geometry likelier (one
+beam in view, cats cluster round what they know). Held 406 ticks in
+20,000 on the served world at r = 5; not seen at r = 64 in 20,000. The
+candidate fix — skip beams another cat occupies in
+`priced_nearest_element` — was measured and REVERTED: served r = 5 10
+violations, the r = 64 control 5 (from 1), the compiled r = 5 reading
+unchanged at 13. The Gen 1 welfare bar is the step-5 prereg's; the
+standoff itself is a scripted-dynamics ruling.
+
+### Review cycles
+
+| cycle | mutation / red | predicted | observed | restore |
+|---|---|---|---|---|
+| R1 | oracle fixture gains 8 every-kitty-row-HEARD rows + the numpy pad rule "all zero"; Rust rule unchanged | parity RED (greedy argmax mismatch on the heard rows) | RED at the argmax assertion; GREEN after the attn fix, max abs error ≤ 1e-4 | fix landed (f645286) |
+| R2 | `a_generated_world_is_remembered_before_the_first_tick` on the old engine | RED (a slot None while an element is in the disc) | RED (Water at r = 5); GREEN after the fix. The full cycle then read 862/7: five selection stagings, SC-012's blind world and one observe staging carried seeded memory of elements they had stripped → `test_support::forget_everything` at the staging layer (before `setup`); 869/0 | fix landed (18241c2) |
+| R3 | `check_v3_hyper`'s positivity guard deleted | unit test RED (`unwrap_err` on Ok); gate test GREEN | exactly that | `git checkout -- crates/`, 0 dirty; unit GREEN |
+| R4 | served world at r = 5 held to the 2.x bounds (probe) | unknown | 9 violations (above); control r = 64: 1; the standoff probed and the candidate fix measured (above) | ignored reading landed (88b3cf7); the probe file deleted, the candidate reverted |
+
+Final count after the review: **869 passed / 0 failed / 5 ignored**
+(cycle review3, 88b3cf7).
 
 ## Phase 8 (US5: scripted cats under the same fog) — cycles 24a–24f
 
