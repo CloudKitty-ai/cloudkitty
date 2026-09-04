@@ -768,3 +768,15 @@ vs `validate`, the 404 sum, `prune_transient` ⊇ audibility, the reply
 tie-break, the attention pad rule vs heard rows, `deny_unknown_fields`
 everywhere, every swept TOML carrying `[vision]`) — all consistent with
 this ledger; nothing to add.
+
+## Phase 14 (converge rerun #3, 2026-09-04) — T097, text only
+
+One finding: the contract's pairs table, FR-037/FR-040 and the "Stocked
+is struck" edge case still described `here_food`'s referent as any
+visible bowl after review 2's finding 4 made the reply arm read STOCKED.
+Landed with the owner's framing (2026-09-04): empty bowls are not a world
+state — the bowl despawns and respawns elsewhere — and the only place an
+emptied one is visible is inside phase 2, between the Eat that took the
+last serving and the environment phase's expiry, which is where message
+enforcement runs; both arms now read the same stocked predicate. No code
+or test moved; no cycle; suite stands at 878 / 0 / 6.

@@ -6,7 +6,7 @@ One rule per tier in `message_legal(kitty, kind, tick, config, view)`; the RL me
 
 | want | here | referent | visible-from-speaker test |
 |---|---|---|---|
-| `want_eat` | `here_food` | chow | any chow element inside the speaker's disc |
+| `want_eat` | `here_food` | chow | a STOCKED chow element (`servings > 0`) inside the speaker's disc — presence alone is not food: empty bowls are not a world state, but within phase 2 an emptied bowl lingers in the element list until the environment phase despawns it, and enforcement runs there (T097; the adjacency arm has always read stocked) |
 | `want_drink` | `here_water` | water | any water element inside the disc |
 | `want_sleep` | `here_sunbeam` | sunbeam | any sunbeam inside the disc |
 | `want_play` | `here_critter` | critter (bug or greeble) | any critter inside the disc |
@@ -38,7 +38,7 @@ Targeting is a different question from the gate (owner ruled 2026-09-03, clarify
 
 vocabulary on ∧ cooldown clear ∧ ( **adjacent(referent)** — today's law, the corresponding action's own predicate — ∨ **reply_condition** ).
 
-`reply_condition(kind)` = a meow of the paired want from another cat with `tick − m.tick < digest_window_ticks` and `m.tick < tick` exists ∧ the referent is visible from the speaker.
+`reply_condition(kind)` = a meow of the paired want from another cat with `tick − m.tick < digest_window_ticks` and `m.tick < tick` exists ∧ the referent is visible from the speaker (food: a stocked bowl, per the pairs table).
 
 ## Purr, free register, WaitForMe — unchanged.
 
