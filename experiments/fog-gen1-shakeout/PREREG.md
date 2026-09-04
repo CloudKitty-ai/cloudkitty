@@ -56,7 +56,8 @@ Each HALT / INVESTIGATE line from the timeline, plus the pass-specific
 reads, gets its schema consequence now. "Break" = a change the step-6
 LOCK must absorb (obs layout, snapshot, wire); "knob" = config or
 prereg value, no break; "instrument" = measurement change only.
-Proposed classification, owner to rule each row:
+Classification: rows 1–13 and the slot-6 / pace rows RULED as written
+(owner 2026-09-03, batches 1–3); H3 and refusal-tax rows still proposed.
 
 | finding | most likely cause | step-6 decision | consequence |
 |---|---|---|---|
@@ -73,10 +74,10 @@ Proposed classification, owner to rule each row:
 | ambient-here bar missed | F-034 continuity broken by the new digest matrix | corpus / recipe | knob, unless the self digest is shown degenerate (A1) → **break** |
 | digest rows never fire for heard-unseen cats | `pos` / audibility plumbing | FR-014 | **break** |
 | refusal tax > 3.5% on a seat | partner targeting at stamped positions produces arrivals at unavailable friends (clarify item 1's drop-on-arrival) | count drop-on-arrival events separately before acting | instrument first |
-| vocabulary lesson arm (slot 6) differs from mixed corpus (slot 1) on the bars | delivery matters under the new digest | registered result, feeds step 7's three-arm design | none |
+| vocabulary lesson arm (slot 6) differs from mixed corpus (slot 1) on the bars | delivery matters under the new digest (same schema, same columns in both arms, so it cannot name a column) | registered result, feeds step 7's three-arm design | none for the LOCK; sets the step-7 corpus default |
 | radius bracket (slot 4) indistinguishable from the pin on welfare | fog barely binds at 20×20 (ROADMAP's standing concern) | Gen 1 ships at the pin; the world-size × radius screen moves to Gen 2 | knob |
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
-| pace at 3 threads makes the horizon unreachable in the budget | box | drop slot 4 or 6 first, never 1–3 | none |
+| pace at 3 threads runs the stop rule past the planned wall clock | box | **no arm is dropped (owner 2026-09-03)**: all six run to the stop rule or the 20M cap and the pass takes the extra hours | none |
 
 ## Part C — the rest of the prereg (owner walk-through 2026-09-03)
 
