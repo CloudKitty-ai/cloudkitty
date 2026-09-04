@@ -13,7 +13,8 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use cloudkitty_core::{Action, BehaviorRegistry, Config, Direction, TargetRef, World};
+use cloudkitty_core::config::WantLaw;
+use cloudkitty_core::{Action, BehaviorRegistry, Config, Direction, NeedKind, TargetRef, World};
 
 const TICKS: u64 = 20_000;
 
@@ -94,7 +95,11 @@ fn action_code(action: Option<Action>) -> String {
 /// id order`) and one message line per recorded meow
 /// (`tick<TAB>kitty<TAB>kind<TAB>intensity`), the meows of a tick sorted
 /// by (kitty, kind) so the per-tick turn order plays no part.
-fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>) {
+/// The third stream is not a fixture: per tick, the kitties whose bath need
+/// was below `announce_threshold` at the START of the tick (the state the
+/// deciders read) -- what SC-004b's classifier needs to name an on-sight
+/// drop of a clean caller.
+fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>, Vec<Vec<u32>>) {
     let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);
@@ -104,8 +109,17 @@ fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>) {
         .expect("runtime");
     let mut actions = Vec::with_capacity(ticks as usize);
     let mut messages = Vec::new();
+    let mut clean_sets = Vec::with_capacity(ticks as usize);
     for _ in 0..ticks {
         let tick = world.tick;
+        clean_sets.push(
+            world
+                .kitties
+                .iter()
+                .filter(|k| k.needs.get(NeedKind::Bath) < config.meow.announce_threshold)
+                .map(|k| k.id)
+                .collect::<Vec<u32>>(),
+        );
         runtime.block_on(world.tick(&registry, &config));
         let codes: Vec<String> = world
             .kitties
@@ -124,7 +138,7 @@ fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>) {
             messages.push(format!("{tick}\t{kitty}\t{kind}\t{intensity}"));
         }
     }
-    (actions, messages)
+    (actions, messages, clean_sets)
 }
 
 fn write_lines(path: &Path, lines: &[String]) {
@@ -133,54 +147,86 @@ fn write_lines(path: &Path, lines: &[String]) {
     std::fs::write(path, text).expect("the fixture is writable");
 }
 
-fn config_digest_window() -> u64 {
-    served_all_scripted().meow.digest_window_ticks
-}
-
 fn read_lines(name: &str) -> Vec<String> {
     let text = std::fs::read_to_string(fixtures_dir().join(name))
         .unwrap_or_else(|e| panic!("fixture {name} is readable: {e}"));
     text.lines().map(str::to_string).collect()
 }
 
-/// FR-024 / SC-004 as the want law leaves it: fog at a world-covering
-/// radius IS the pre-fog world -- for the VISIBILITY FILTER. The served
-/// roster, all scripted, 20,000 ticks, against the streams
-/// `record_prefog_streams` captured at the branch base. Controls:
-/// `[vision] radius` forced to 40 (every tile of the 20x20 world inside
-/// every disc), the reply floor unset, `announce_here` 0, the served
-/// digest window.
-///
-/// Two claims, in order. (1) The fog-view plumbing alone changes nothing:
-/// proven BYTE FOR BYTE -- every action and every message row identical
-/// over all 20,000 ticks -- at the pre-law commits of this arc (redden
-/// list, cycles 3/5: `a268555` through `11b82a1`), the proof the spec's
-/// FR-024 asks for. (2) After the knowledge-gated want law (FR-036) the
-/// streams cannot stay byte-identical by construction: the built-in
-/// groom response LISTENS to `want_bath` (spec 028 FR-019), and at a
-/// world-covering radius that word is silenced whenever an idle friend is
-/// in view -- so a groom response the pre-fog engine took never fires,
-/// and the trajectories lawfully part from that tick on (owner flag: SC-004
-/// amended, recorded in the redden list). What this guard now pins: the
-/// action streams are identical up to the first divergence, the first
-/// divergence is EXACTLY that -- the pre-fog cat was grooming a friend
-/// whose `want_bath` the pre-fog stream carries inside the cooldown and
-/// the fog-view stream does not -- and, up to that tick, the message
-/// streams differ only by silenced wants (nothing added, nothing but
-/// want rows removed).
+/// SC-004a (owner ruled 2026-09-03, T087): the visibility plumbing alone
+/// changes nothing. The current engine under `WantLaw::PreFog` -- the 2.x
+/// armed-only word law and the 2.x groom response (no on-sight drop) -- at
+/// a world-covering radius reproduces the pre-fog reference streams byte
+/// for byte, actions AND messages, over all 20,000 ticks. The switch is
+/// test-side (`#[serde(skip)]`), so the proof stays reproducible after
+/// merge without a pinned commit. Controls: `[vision] radius` forced to 40
+/// (every tile of the 20x20 world inside every disc), the reply floor
+/// unset, `announce_here` 0, the served digest window.
 #[test]
-fn world_covering_radius_reproduces_pre_fog_actions() {
+fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
+    let mut config = served_all_scripted();
+    config.vision.radius = 40;
+    config.behavior.reply_intensity_floor = None;
+    config.meow.want_law = WantLaw::PreFog;
+    config.validate().expect("the control config validates");
+    let (actions, messages, _) = record_streams(config, TICKS);
+    let expected_actions = read_lines("prefog-actions-20k.digest");
+    let expected_messages = read_lines("prefog-messages-20k.digest");
+    if let Some((tick, (got, want))) = actions
+        .iter()
+        .zip(&expected_actions)
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+    {
+        panic!("SC-004a: actions diverge at tick {tick}:\n  pre-fog {want}\n  now     {got}");
+    }
+    assert_eq!(
+        actions.len(),
+        expected_actions.len(),
+        "action stream length"
+    );
+    if let Some((i, (got, want))) = messages
+        .iter()
+        .zip(&expected_messages)
+        .enumerate()
+        .find(|(_, (a, b))| a != b)
+    {
+        panic!("SC-004a: messages diverge at row {i}:\n  pre-fog {want}\n  now     {got}");
+    }
+    assert_eq!(
+        messages.len(),
+        expected_messages.len(),
+        "message stream length"
+    );
+}
+
+/// SC-004b (owner ruled 2026-09-03, T087): the law. Under the ruled law the
+/// same run parts from the pre-fog streams, and every action-stream
+/// divergence must trace to a NAMED cause -- nothing else. With `want_bath`
+/// armed-only no want with an action listener is ever silenced, and the
+/// groom response's freshness rule is 2.x-matching, so the one named cause
+/// left is the on-sight rule: the pre-fog cat groomed a caller whose bath
+/// need was already below the announce threshold, which the ruled rung
+/// declines. Pinned: actions identical up to the first divergence; the
+/// first divergence is exactly that (every differing kitty is a pre-fog
+/// `G{id}` whose target was clean at that tick's start -- the worlds are
+/// identical up to there, so our run's clean set IS the pre-fog world's);
+/// and up to that tick the message streams differ only by wants silenced
+/// by top-need / known-relief (nothing added but calls freed by a silenced
+/// predecessor's cooldown, nothing removed but want rows).
+#[test]
+fn world_covering_radius_diverges_only_by_the_named_causes() {
     let mut config = served_all_scripted();
     config.vision.radius = 40;
     config.behavior.reply_intensity_floor = None;
     config.validate().expect("the control config validates");
     let cooldown = config.meow.recent_window_ticks;
-    let (actions, messages) = record_streams(config, TICKS);
+    let (actions, messages, clean_sets) = record_streams(config, TICKS);
     let expected_actions = read_lines("prefog-actions-20k.digest");
     let expected_messages = read_lines("prefog-messages-20k.digest");
     assert_eq!(expected_actions.len() as u64, TICKS, "the fixture is whole");
 
-    // (a) Actions: identical up to the first divergence.
+    // (a) Actions: identical up to the first divergence, which is named.
     let first_divergence = actions
         .iter()
         .zip(expected_actions.iter())
@@ -189,7 +235,6 @@ fn world_covering_radius_reproduces_pre_fog_actions() {
     if let Some(i) = first_divergence {
         let got = &actions[i];
         let want = &expected_actions[i];
-        // Which kitty moved, and what the pre-fog engine had it doing.
         let got_codes: Vec<&str> = got.split('\t').nth(1).unwrap().split(' ').collect();
         let want_codes: Vec<&str> = want.split('\t').nth(1).unwrap().split(' ').collect();
         let diffs: Vec<(usize, &str, &str)> = got_codes
@@ -199,9 +244,14 @@ fn world_covering_radius_reproduces_pre_fog_actions() {
             .filter(|(_, (g, w))| g != w)
             .map(|(k, (g, w))| (k, *g, *w))
             .collect();
-        let window = config_digest_window();
-        let want_bath_from = |rows: &[String], target: u32, max_age: u64| {
-            rows.iter().any(|row| {
+        // The on-sight rule declines the whole errand, walk included: a
+        // fresh ask (age <= cooldown at this tick's start) from a caller
+        // already clean at this tick's start, which the pre-fog cats still
+        // answered -- each differing pre-fog action is that walk (a Move)
+        // or that groom (`G{caller}`).
+        let clean = &clean_sets[i];
+        let asked_fresh = |target: u32| {
+            expected_messages.iter().any(|row| {
                 let mut f = row.split('\t');
                 let tick: u64 = f.next().unwrap().parse().unwrap();
                 let kitty: u32 = f.next().unwrap().parse().unwrap();
@@ -209,45 +259,32 @@ fn world_covering_radius_reproduces_pre_fog_actions() {
                 kitty == target
                     && kind == "want_bath"
                     && tick < horizon
-                    && horizon - tick <= max_age
+                    && horizon - tick <= cooldown
             })
         };
-        let explained = diffs.iter().all(|&(_, now, pre)| {
-            // (i) The pre-fog cat groomed friend `id` in answer to a
-            // want_bath inside the cooldown that the fog-view engine no
-            // longer records (the want law silenced it) ...
-            let silenced_response = pre
-                .strip_prefix('G')
-                .and_then(|t| t.parse::<u32>().ok())
-                .is_some_and(|target| {
-                    want_bath_from(&expected_messages, target, cooldown)
-                        && !want_bath_from(&messages, target, cooldown)
-                });
-            // (ii) ... or the fog-view cat grooms friend `id` in answer to a
-            // want_bath older than the cooldown but inside the digest window
-            // -- the deliberate audibility widening of the built-in response
-            // (FR-017/FR-022; the pre-fog engine had already forgotten it).
-            let widened_response = now
-                .strip_prefix('G')
-                .and_then(|t| t.parse::<u32>().ok())
-                .is_some_and(|target| {
-                    want_bath_from(&messages, target, window)
-                        && !want_bath_from(&messages, target, cooldown)
-                });
-            silenced_response || widened_response
-        });
+        let clean_callers: Vec<u32> = clean.iter().copied().filter(|&c| asked_fresh(c)).collect();
+        let explained = !clean_callers.is_empty()
+            && diffs.iter().all(|&(_, _, pre)| {
+                pre.starts_with('M')
+                    || pre
+                        .strip_prefix('G')
+                        .and_then(|t| t.parse::<u32>().ok())
+                        .is_some_and(|target| clean_callers.contains(&target))
+            });
         assert!(
             explained,
-            "action stream diverged at tick {i} for a reason other than a silenced want_bath's \
-             groom response: fog-view `{got}` vs pre-fog `{want}` (kitties in id order; codes per \
-             fog_continuity.rs). STOP and report (rule 4)."
+            "action stream diverged at tick {i} for a reason other than the on-sight rule \
+             (the pre-fog cats answering a fresh ask from an already-clean caller): fog-view \
+             `{got}` vs pre-fog `{want}` (kitties in id order; codes per fog_continuity.rs; clean \
+             at start {clean:?}, of whom asked inside the cooldown {clean_callers:?}). STOP and \
+             report (rule 4)."
         );
         eprintln!(
-            "FR-024: actions identical for {i} ticks; first divergence at tick {i} = a groom \
-             response to a want_bath the want law silences ({diffs:?})"
+            "SC-004b: actions identical for {i} ticks; first divergence at tick {i} = the on-sight \
+             rule declining the answer to a clean caller {clean_callers:?} ({diffs:?})"
         );
     } else {
-        eprintln!("FR-024: actions identical over all {TICKS} ticks");
+        eprintln!("SC-004b: actions identical over all {TICKS} ticks");
     }
 
     // (b) Messages up to the horizon: the want law may only SILENCE wants.
@@ -312,7 +349,7 @@ fn world_covering_radius_reproduces_pre_fog_actions() {
 #[test]
 #[ignore = "writes the pre-fog reference fixtures; run once at the branch base"]
 fn record_prefog_streams() {
-    let (actions, messages) = record_streams(served_all_scripted(), TICKS);
+    let (actions, messages, _) = record_streams(served_all_scripted(), TICKS);
     assert_eq!(actions.len() as u64, TICKS);
     write_lines(&fixtures_dir().join("prefog-actions-20k.digest"), &actions);
     write_lines(
@@ -335,16 +372,20 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 
 /// SC-011: with `reply_intensity_floor` unset the engine WITH the reply
 /// ladder (T063) produces byte-identical action and message streams to
-/// the engine immediately before it -- recorded into
-/// `preladder-r5-20k.{actions,messages}.digest` at that commit by
-/// `record_preladder_r5_streams`. No feature gate, no cfg switch: the
-/// comparator is the pre-ladder engine itself, frozen as data. Fog is on
-/// (r = 5), so the blind cats explore and call; only replies are absent.
+/// the engine immediately before it -- PROVEN at the ladder's landing
+/// (a90f2fe) against streams `record_preladder_r5_streams` captured at
+/// the commit before it; no feature gate, no cfg switch, the comparator
+/// was the pre-ladder engine itself, frozen as data. The fixtures were
+/// re-recorded at T087 (the ruled bath clause and groom-response rules
+/// move every r = 5 stream), so what they pin NOW is that the floor-unset
+/// streams of the ruled engine do not drift -- any later scripted-dynamics
+/// move re-records them with its justification. Fog is on (r = 5), so the
+/// blind cats explore and call; only replies are absent.
 #[test]
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");
     let expected_messages = read_lines("preladder-r5-20k.messages.digest");
-    let (actions, messages) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    let (actions, messages, _) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
     if let Some((tick, (got, want))) = actions
         .iter()
         .zip(&expected_actions)
@@ -379,7 +420,7 @@ fn reply_floor_unset_is_byte_identical() {
 #[test]
 #[ignore]
 fn record_preladder_r5_streams() {
-    let (actions, messages) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    let (actions, messages, _) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
     write_lines(
         &fixtures_dir().join("preladder-r5-20k.actions.digest"),
         &actions,

@@ -16,20 +16,23 @@ One rule per tier in `message_legal(kitty, kind, tick, config, view)`; the RL me
 
 1. `[meow.vocabulary]` flag on; per-kind cooldown clear (unchanged).
 2. Grounding need armed: `announce_armed` contains it (`announce_threshold` + `announce_hysteresis`, unchanged; served 30/5, step-5 screens {10, 15, 20, 30}).
-3. The need is the cat's **top need**: `needs.highest_pressure()` (strictly greater wins; `NeedKind::ALL` order keeps the earlier kind on exact ties).
-4. **No known relief** (`known_relief(kind, view)` is false):
+3. The need is the cat's **top need**: `needs.highest_pressure()` (strictly greater wins; `NeedKind::ALL` order keeps the earlier kind on exact ties). *Announcements only — `want_bath` is exempt (T087, below).*
+4. **No known relief** (`known_relief(kind, view)` is false). *Announcements only.*
 
 | kind | known relief |
 |---|---|
 | eat | a chow element visible ∨ `memory[Chow]` present |
 | drink | a water element visible ∨ `memory[Water]` present |
-| cuddle, bath | an **idle friend visible**: `idle_friend_in_view(view)` — a friend inside the disc with `activity_clock.is_none()` (no scene, not asleep); adjacency not required. Heard-unseen friends never enter the gate (owner ruled 2026-09-03). |
-| play | (the cuddle/bath clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known |
+| cuddle | an **idle friend visible**: `idle_friend_in_view(view)` — a friend inside the disc with `activity_clock.is_none()` (no scene, not asleep); adjacency not required. Heard-unseen friends never enter the gate (owner ruled 2026-09-03). |
+| bath | **never** — an ASK (owner ruled 2026-09-03, T087): clauses 3 and 4 do not apply; legal iff clauses 1 and 2. Its relief is self-grooming; the partnered groom is the groomer's to start on hearing the word. `WantLaw::PreFog` (`MeowConfig.want_law`, `#[serde(skip)]`, test-side) replays the 2.x armed-only law for every kind — SC-004a. |
+| play | (the cuddle clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known |
 | sleep | never known — no knowledge gate (need-only-when-top) |
 
 Radius-edge flicker on clause 4 is accepted (owner ruling v); no hysteresis.
 
 Targeting is a different question from the gate (owner ruled 2026-09-03, clarify item 1): built-in friend targeting takes heard-unseen friends **unconditionally** at their stamped position and checks idleness only on sight (research R10); the gate reads visible rows only.
+
+**The scripted groom response** (`needs_driven::groom_response`; owner ruled 2026-09-03, T087): acts only on a `want_bath` with age ≤ `recent_window_ticks` (inclusive — the 2.x rule; audibility stays `digest_window_ticks`, the rung declines stale asks); on sight, declines a caller whose bath need < `announce_threshold` (`PreFog` keeps the 2.x rung, which groomed on the word alone). Both imitable: recency is a digest cell, the seen row carries bath.
 
 ## Here tier — legal iff
 

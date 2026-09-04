@@ -557,3 +557,54 @@ this file enumerates phase by phase, minus the deletions it records
 tests, the two fixture-loading resume tests). fmt --check, clippy
 `-D warnings`, pytest 18/1 skipped. Binding-continuity reference re-taken
 at the clean `45c1582` (digest unchanged, `cf0cfede…`).
+
+## Phase 12 (convergence) — T087: the FR-036 social clause, SC-004 split, the groom-response rules
+
+Owner ruled 2026-09-03 (four rulings, hashed out with Experiments over the
+measurements below; relayed by Experiments and confirmed by the owner in
+the Product session): (1) `want_bath` armed-only — an ASK, no top-need
+clause, no idle-friend gate; cuddle and play as ruled; (2) SC-004 split
+into 4a (plumbing, byte-identical under a test-side pre-fog law switch)
+and 4b (the named-cause law); (3) the groom response acts only on an ask
+aged ≤ cooldown, inclusive (2.x-matching; audibility stays the digest
+window); (4) on sight it declines a caller whose bath is below the
+announce threshold. Mechanism for 4a: `MeowConfig.want_law: WantLaw
+{Fog, PreFog}`, `#[serde(skip)]` (no TOML sets it, the stamp does not
+carry it), read by the want tier and the rung's on-sight rule.
+
+Measurements behind the rulings (served roster, all `needs_driven`, one
+seed, 20,000 ticks; "dirty" = target bath ≥ announce_threshold 30 at
+scene start; `groom_cuddle_relief` = the served 2.0, the #332 bump):
+
+| law | rung as landed, r=40 | with rules 3+4, r=40 | rung as landed, r=5 | with rules 3+4, r=5 |
+|---|---|---|---|---|
+| pre-fog armed-only | 2.35 dirty / 24.25 clean, simul 13.45 | 2.00 / 0.00, simul 0.30 | 3.80 / 30.85, simul 18.05 | 3.70 / 0.00, simul 0.50 |
+| FR-036 as first landed | 0.10 / 0.25 | 0.00 / 0.00 | 0.50 / 7.70, simul 4.20 | 0.25 / 0.00 |
+| bath armed-only | 2.80 / 23.95, simul 14.15 | 3.10 / 0.00, simul 0.70 | 2.40 / 22.00, simul 15.35 | 4.80 / 0.00, simul 0.85 |
+
+(grooms per 1k ticks; "simul" = ticks per 1k with two groomers on one
+cat.) ~90% of the 2.x partnered grooms started on an already-clean cat
+(the first responder cleans the caller in a few ticks and the same ask
+keeps drawing groomers for the rest of the window); rules 3+4 remove the
+clean-target grooms and the pile-on at every radius and law; on the dirty
+number the first-landed law killed the social groom (0.0–0.25/1k) and
+armed-only restores it at or above the pre-fog rate. `want_bath` volume
+4.8 → 4.9/1k at r=40 under the rules (no spam). Probe of the tick-559
+pile-on: a second responder's `Groom{target}` is APPLIED (validation is
+adjacency-only by the 041 design), never refused — so it never reaches
+T093's `reason`.
+
+| cycle | guard / mutation | predicted | observed | restore |
+|---|---|---|---|---|
+| R5 | six guards written before the engine moved: `want_bath_is_armed_only…`, the SC-010 property re-pointed (bath armed-only), groom-response freshness (age 11 and 25 declined, 10 answered), on-sight decline (bath 10 declined, 60 groomed), SC-004a under `PreFog`, SC-004b with the named-cause classifier | all six RED | all six RED exactly (4a diverged at 549 with the switch unwired; 4b's 549 unexplained) | — |
+| R6 | the law + the two rules landed | six GREEN; 4a full 20k identity uncertain (stop and report if not) | 4a GREEN — actions AND messages byte-identical over all 20,000 ticks under `PreFog` (the plumbing proof now lives on the engine); 4b RED at tick 550: the pre-fog cats WALK toward a clean caller (`Mn` vs `Me` for kitties 2 and 5), the classifier named only the groom | classifier widened to the errand (walk or groom) toward a fresh ask from a clean caller — 4b GREEN, first divergence tick 550, exemption set 38/72 pre-fog rows silenced (cuddle 13, drink 6, eat 19), 1 freed |
+| R7 | full cycle t087a | goldens ×2 RED, SC-011 preladder RED, stagings unknown | 867/5: the two goldens, SC-011, and two groom stagings (a caller staged at bath 0 / 10 is now declined on sight) | stagings re-pointed (caller bath 40; the 045 test announces at 10 so its bath-10 arithmetic stands), goldens re-pinned ONCE (evolution `14b946af…`, strip `408dc1a7…`), preladder r=5 streams re-recorded (the SC-011 identity was proven at a90f2fe; the fixture now pins the ruled floor-unset streams) |
+| R8 | full cycle t087b | 872/0/5, fmt + clippy clean | 872/0/5, fmt clean, clippy RED on a dead test helper (`config_digest_window`, orphaned by the classifier rewrite) → deleted; pytest 18/1 on the rebuilt binding; binding continuity CONTINUOUS (`cf0cfede…` reproduced — the val-scripted seats are first-legal-pair seats, untouched by the bath clause) | — |
+
+Landed: `meow.rs` (two word classes; `known_relief(WantBath)` = false, the
+arm kept for exhaustiveness), `needs_driven.rs::groom_response` (freshness
++ on-sight; `PreFog` keeps the 2.x rung), `config/mod.rs` (`WantLaw`),
+`fog_continuity.rs` (SC-004a + SC-004b, the clean-set stream), spec FR-022
+/ FR-024 / FR-036 / SC-004a-b / US5-4 / key entity / edge case / a
+Clarifications session, `docs/meows.md`, `contracts/meow-law-v5.md`,
+CHANGELOG. Final count after T087: **872 passed / 0 failed / 5 ignored**.

@@ -90,8 +90,14 @@ use sha2::{Digest, Sha256};
 /// (ac442a23…, T054; ee5f0d3b…/…, the T014/T018/T044 moves before it).
 /// History: spec 046 pinned 8e184e6d… (additive ring); 048 pinned
 /// 31f36082… (a justified behavior change).
+/// Spec 049 T087 (owner ruled 2026-09-03): re-pinned once more for the
+/// scripted-dynamics move the review's convergence ruled -- `want_bath`
+/// armed-only (an ask, not an announcement) and the groom response's two
+/// rules (act only on an ask no older than the cooldown; on sight decline
+/// a caller already below the announce threshold). eaba8138… was the
+/// T081 pin under the first-landed law.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "eaba813891b0bf8aa95669b9c60a8e25912d27d9bd5ce43dc394958f442c370c";
+    "14b946afea6ce0721d2a3220a43b886d99fa326a597535716acb308ab4f5a6ac";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -100,8 +106,9 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// hiding a dynamics move. (History: 7b361b2a… held that role for the
 /// 041→046 generation.)
 /// Spec 049 T081: re-derived with the golden above from the same r = 5
-/// run (173f9d09… was the world-covering run's pin).
-const STRIP_PIN_SPEC_049: &str = "0bbb577fc6c451d7a7bc89705fd6bbd7061f14307a33de5b3ed2aee2acb4f681";
+/// run (173f9d09… was the world-covering run's pin); T087: re-derived
+/// again with the golden above (0bbb577f… was the T081 pin).
+const STRIP_PIN_SPEC_049: &str = "408dc1a7c43925bf5ad1fec10e2649c2e5e954b328d1d93f554141c7c8f2ad13";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

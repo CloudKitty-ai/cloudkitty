@@ -54,13 +54,21 @@ want_sleep**
   cat's **top need** (`NeedKind::ALL` order breaks exact ties), the cat
   has **no known relief** for it, and the cooldown is clear. Known
   relief, per word: `want_eat` — a bowl visible or remembered;
-  `want_drink` — water visible or remembered; `want_cuddle`, `want_bath`
-  — an **idle friend in view** (no scene, not asleep; adjacency not
-  required; a friend the cat can only hear never silences the word);
-  `want_play` — that friend clause, or a critter visible or remembered;
-  `want_sleep` — never (need-only-when-top). So under fog a want says "I
-  am in need and I cannot see the answer", which no observation row
-  carries. The emission stamps the need's value as the call's intensity
+  `want_drink` — water visible or remembered; `want_cuddle` — an **idle
+  friend in view** (no scene, not asleep; adjacency not required; a
+  friend the cat can only hear never silences the word); `want_play` —
+  that friend clause, or a critter visible or remembered; `want_sleep` —
+  never (need-only-when-top); `want_bath` — never, and no top-need clause
+  either: it is an **ask**, armed-only (owner ruled 2026-09-03, spec 049
+  T087) — its relief is self-grooming, and the partnered groom only a
+  groomer starts, on hearing the word, so an idle friend in view is a
+  groomer to be asked, not relief the caller can execute. So under fog an
+  announcement says "I am in need and I cannot see the answer", which no
+  observation row carries, and the ask says "come and groom me". The
+  scripted groom response answers a `want_bath` only while the ask is no
+  older than the cooldown and, on sight, only a caller still above the
+  announce threshold (T087) — a still-needy caller re-emits every
+  cooldown, so nothing is lost and nobody walks to a cat already groomed. The emission stamps the need's value as the call's intensity
   and the speaker's position: a listener hears how hungry, and where
   from. One predicate, `message_legal` over the cat's fog view, judges
   the RL mask and the built-in announce alike. Consequences the owner

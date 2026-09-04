@@ -249,13 +249,21 @@ pub fn message_legal(
                 && kitty.can_meow(kind, tick)
         }
         // The six law-named requests (spec 049 FR-036, the knowledge-gated
-        // want law): grounding need armed, that need the cat's TOP need,
-        // and no KNOWN relief for it -- so under fog a want says "I cannot
-        // see it", which no row carries. Cooldown clear. Enumerated --
-        // never a catch-all -- so a future kind added without a legality
-        // tier is a non-exhaustive-match COMPILE error here, not a
-        // silently never-legal word (033 review Finding 4). ONE predicate:
-        // the RL mask and the built-in announce both call this.
+        // want law), in two classes (owner ruled 2026-09-03, T087):
+        // ANNOUNCEMENTS (eat, drink, sleep, play, cuddle) -- grounding need
+        // armed, that need the cat's TOP need, and no KNOWN relief for it,
+        // so under fog the word says "I cannot see it", which no row
+        // carries; and the one ASK, `want_bath` -- armed-only: its relief
+        // source is in-place self-grooming, the partnered groom only a
+        // GROOMER can start, and the groom response starts it on hearing
+        // the word, so the word IS the mechanism and an idle friend in view
+        // is a groomer to be asked, not relief the caller can execute.
+        // Cooldown clear for every kind. Enumerated -- never a catch-all --
+        // so a future kind added without a legality tier is a
+        // non-exhaustive-match COMPILE error here, not a silently
+        // never-legal word (033 review Finding 4). ONE predicate: the RL
+        // mask and the built-in announce both call this. `WantLaw::PreFog`
+        // (SC-004a's test-side switch) replays the 2.x armed-only law.
         MessageKind::WantEat
         | MessageKind::WantDrink
         | MessageKind::WantPlay
@@ -265,10 +273,16 @@ pub fn message_legal(
             let need = kind
                 .related_need()
                 .expect("every Want kind names its grounding need");
-            kitty.announce_armed.contains(&need)
-                && kitty.needs.highest_pressure().0 == need
-                && !known_relief(kind, kitty, view)
-                && kitty.can_meow(kind, tick)
+            let armed = kitty.announce_armed.contains(&need) && kitty.can_meow(kind, tick);
+            match (config.meow.want_law, kind) {
+                (crate::config::WantLaw::PreFog, _) => armed,
+                (crate::config::WantLaw::Fog, MessageKind::WantBath) => armed,
+                (crate::config::WantLaw::Fog, _) => {
+                    armed
+                        && kitty.needs.highest_pressure().0 == need
+                        && !known_relief(kind, kitty, view)
+                }
+            }
         }
         MessageKind::WaitForMe => unreachable!("handled before the flag gate above"),
     }
@@ -350,12 +364,15 @@ pub fn reply_condition(
     audible_want && referent_visible(here, view)
 }
 
-/// Known relief (spec 049 FR-036 clause c): what silences a want-word.
-/// Eat/drink: the element visible or remembered; cuddle/bath: an idle
-/// friend IN VIEW (heard friends never gate -- owner ruled 2026-09-03);
-/// play: that friend clause OR a critter visible or remembered; sleep:
-/// never (need-only-when-top). Reads the cat's OWN memory (the view's
-/// observer record is whole).
+/// Known relief (spec 049 FR-036 clause c): what silences a want-word --
+/// relief the CALLER can execute itself. Eat/drink: the element visible or
+/// remembered; cuddle: an idle friend IN VIEW (walk over and rest; heard
+/// friends never gate -- owner ruled 2026-09-03); play: that friend clause
+/// OR a critter visible or remembered; sleep: never (need-only-when-top);
+/// bath: never -- an idle friend in view is a groomer who has to be asked,
+/// not relief the caller can execute (owner ruled 2026-09-03, T087; the
+/// law does not consult this arm, it is here so the table stays whole).
+/// Reads the cat's OWN memory (the view's observer record is whole).
 pub fn known_relief(
     want: MessageKind,
     kitty: &crate::kitty::Kitty,
@@ -368,7 +385,8 @@ pub fn known_relief(
     match want {
         MessageKind::WantEat => visible(ElementType::Chow) || remembered(ElementType::Chow),
         MessageKind::WantDrink => visible(ElementType::Water) || remembered(ElementType::Water),
-        MessageKind::WantCuddle | MessageKind::WantBath => crate::world::idle_friend_in_view(view),
+        MessageKind::WantCuddle => crate::world::idle_friend_in_view(view),
+        MessageKind::WantBath => false,
         MessageKind::WantPlay => {
             crate::world::idle_friend_in_view(view)
                 || view.critters().next().is_some()

@@ -193,6 +193,35 @@ fn the_social_words_read_idle_friends_in_view_only() {
     );
 }
 
+/// Owner ruled 2026-09-03 (spec 049 T087, FR-036 amended): `want_bath` is
+/// an ASK, not an announcement. Its relief source is in-place self-grooming;
+/// the partnered groom only a GROOMER can start, and the groom response
+/// starts it on hearing the word -- so an idle friend in view is not relief
+/// the caller can execute, it is a groomer who has to be asked. The word is
+/// armed-only: no top-need clause, no idle-friend-in-view gate. Cuddle keeps
+/// both (its relief the caller executes itself: walk over and rest).
+#[test]
+fn want_bath_is_armed_only_an_ask_not_an_announcement() {
+    let (mut world, config) = stage();
+    arm(&mut world, 1, NeedKind::Bath, 40.0);
+    arm(&mut world, 1, NeedKind::Cuddle, 70.0); // cuddle is the top need
+    place(&mut world, 2, 11, 10); // an idle friend in view, adjacent
+    assert!(
+        legal(&world, 1, MessageKind::WantBath, &config),
+        "bath: armed suffices -- not the top need, an idle friend in view"
+    );
+    assert!(
+        !legal(&world, 1, MessageKind::WantCuddle, &config),
+        "cuddle keeps the friend clause"
+    );
+    let idx = world.kitty_index(1).unwrap();
+    world.kitties[idx].announce_armed.remove(&NeedKind::Bath);
+    assert!(
+        !legal(&world, 1, MessageKind::WantBath, &config),
+        "unarmed: silent"
+    );
+}
+
 /// US7 scenarios 4-6: the widened here law and the reply stamp -- an
 /// audible matching want plus a visible referent make a here legal
 /// without adjacency and stamp reply = 1; an adjacency here with no want
@@ -280,8 +309,9 @@ fn a_here_can_answer_an_audible_want_it_can_see_the_referent_of() {
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(48))]
     /// SC-010 over random stagings: no want is legal while its relief is
-    /// visible or remembered (social kinds: while an idle friend is in
-    /// view) or while it is not the top need; a heard-unseen friend never
+    /// visible or remembered (cuddle and play: while an idle friend is in
+    /// view) or while it is not the top need -- except `want_bath`, an ask,
+    /// armed-only (owner ruled 2026-09-03); a heard-unseen friend never
     /// changes a want verdict; no here is legal without an adjacent
     /// referent or (an audible matching want AND a visible referent);
     /// every heard row's position is the freshest audible meow's stamp.
@@ -328,12 +358,17 @@ proptest! {
             let relief = match want {
                 MessageKind::WantEat => visible(ElementType::Chow) || remembered(ElementType::Chow),
                 MessageKind::WantDrink => visible(ElementType::Water) || remembered(ElementType::Water),
-                MessageKind::WantCuddle | MessageKind::WantBath => idle_in_view,
+                MessageKind::WantCuddle => idle_in_view,
                 MessageKind::WantPlay => idle_in_view || view.critters().next().is_some() || remembered(ElementType::Bug) || remembered(ElementType::Greeble),
                 _ => false,
             };
             let verdict = message_legal(&me, want, 100, &config, &view);
-            let expected = need == top && !relief && config.meow.vocabulary.enabled(want);
+            let expected = match want {
+                // An ask: armed (staged for every kind above), no top-need
+                // clause, no relief gate.
+                MessageKind::WantBath => config.meow.vocabulary.enabled(want),
+                _ => need == top && !relief && config.meow.vocabulary.enabled(want),
+            };
             prop_assert_eq!(verdict, expected, "{:?}: top {:?}, relief {}", want, top, relief);
             // A heard-unseen friend never changes a want verdict: drop the
             // call and re-judge.

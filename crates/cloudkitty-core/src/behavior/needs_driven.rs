@@ -370,12 +370,13 @@ pub(crate) fn explore(ctx: &DecisionContext) -> Action {
 
 /// The groom response (spec 028 FR-019): a cat with real cuddle need that
 /// HEARS a bath ask answers it -- walk over, groom. Keyed on the audible
-/// meow alone (the freshest WantBath emitter, the digest's own selection
-/// rule: max tick, ties to the lower id, self excluded) and never on a
-/// privileged read of the neighbor's needs -- everything this rung reads,
-/// a policy could observe (the imitability principle). Yields to the
-/// responder's own urgency: any need at or above the safeguard threshold
-/// is its own errand first, so urgent eat still wins the ladder.
+/// meow (the freshest FRESH WantBath emitter, the digest's own selection
+/// rule: max tick, ties to the lower id, self excluded) and, on sight, on
+/// the caller's bath need as its seen row carries it -- never on a
+/// privileged read: everything this rung reads, a policy could observe
+/// (the imitability principle). Yields to the responder's own urgency:
+/// any need at or above the safeguard threshold is its own errand first,
+/// so urgent eat still wins the ladder.
 fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
     if me.needs.get(NeedKind::Cuddle) < ctx.config.behavior.cuddle_real_threshold {
@@ -392,11 +393,20 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     // fog). A reached stamped position with no caller in view drops the
     // response that tick.
     let window = ctx.config.meow.digest_window_ticks;
+    // Freshness (owner ruled 2026-09-03, T087): the rung acts only on an ask
+    // no older than the cooldown, INCLUSIVE (the 2.x rule). The call stays
+    // audible and in the digest; the rung declines stale asks -- a
+    // still-needy caller re-emits every cooldown (FR-045), so an older ask
+    // means the need was met or the caller is mid-scene, and under fog a
+    // responder cannot see which until it arrives.
+    let cooldown = ctx.config.meow.recent_window_ticks;
     let audible: Vec<crate::meow::Meow> = ctx
         .world
         .recent_meows
         .iter()
-        .filter(|m| ctx.world.audible(m, window))
+        .filter(|m| {
+            ctx.world.audible(m, window) && ctx.world.tick.saturating_sub(m.tick) <= cooldown
+        })
         .cloned()
         .collect();
     let heard = crate::meow::freshest_audible(&audible, crate::meow::MessageKind::WantBath, me.id)?;
@@ -408,6 +418,15 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
         }
         return Some(step_toward(ctx, heard.pos));
     };
+    // On sight (owner ruled 2026-09-03, T087): a caller whose bath need is
+    // below the announce threshold has been groomed already -- decline,
+    // read off the seen row (imitable). `WantLaw::PreFog` keeps the 2.x
+    // rung, which groomed on the word alone, for SC-004a's replay.
+    if ctx.config.meow.want_law == crate::config::WantLaw::Fog
+        && emitter.needs.get(NeedKind::Bath) < ctx.config.meow.announce_threshold
+    {
+        return None;
+    }
     // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
     // never grooms others and `pursue`'s Friend arm emits Rest): a scene
     // whose expected contagion exposure exceeds its TOTAL value — the
@@ -1671,6 +1690,8 @@ mod tests {
             world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
             let b = world.kitty_index(2).unwrap();
             world.kitties[b].pos = Position::new(8, 2);
+            // A caller in need (T087: on sight, a clean caller is declined).
+            world.kitties[b].needs.add(NeedKind::Bath, 40.0);
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
@@ -1692,6 +1713,7 @@ mod tests {
             world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
             let b = world.kitty_index(2).unwrap();
             world.kitties[b].pos = Position::new(2, 3);
+            world.kitties[b].needs.add(NeedKind::Bath, 40.0);
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
@@ -1821,6 +1843,12 @@ mod tests {
             cfg.behavior.contagion_aware_ladder = true;
             cfg.water.contagion_factor = factor;
             cfg.water.contagion_membership = membership;
+            // T087's on-sight rule declines a caller below the announce
+            // threshold; the arithmetic above needs bath 10, so this config
+            // announces at 10 (a screened value, FR-038) -- the groomee is
+            // dirty by its own world's law.
+            cfg.meow.announce_threshold = 10.0;
+            cfg.meow.announce_hysteresis = 5.0;
             ctx
         }
         use crate::config::ContagionMembership::{Bidirectional, OptionA};
@@ -2296,20 +2324,73 @@ mod tests {
             None,
             "arrived, caller unseen: dropped"
         );
-        // An ask older than the cooldown but inside the digest window is
-        // still answered (FR-017: audibility is the window).
-        let old_ask = fog_ctx(5, 1, |w| {
+        // Freshness (owner ruled 2026-09-03, T087): the rung acts only on
+        // an ask no older than the cooldown, INCLUSIVE (2.x-matching).
+        // Audibility stays the digest window -- the call is still in the
+        // digest, the rung just declines stale asks: a still-needy caller
+        // re-emits every cooldown, so an older ask means the need was met
+        // or the caller is mid-scene (and, under fog, a wasted walk).
+        let ask_aged = |age: u64| {
+            fog_ctx(5, 1, move |w| {
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+                w.recent_meows.push(crate::meow::Meow {
+                    kitty_id: 2,
+                    kind: MessageKind::WantBath,
+                    tick: 100 - age,
+                    intensity: 0.7,
+                    pos: Position::new(10, 16),
+                    reply: false,
+                });
+            })
+        };
+        assert!(
+            groom_response(&ask_aged(10)).is_some(),
+            "age == cooldown: fresh, answered"
+        );
+        assert_eq!(
+            groom_response(&ask_aged(11)),
+            None,
+            "age == cooldown + 1: audible, declined"
+        );
+        assert_eq!(
+            groom_response(&ask_aged(25)),
+            None,
+            "age 25 < window 30: audible, declined"
+        );
+    }
+
+    #[test]
+    fn the_groom_response_declines_a_visible_caller_already_clean() {
+        // Owner ruled 2026-09-03 (T087): on sight, a caller whose bath need
+        // is below the announce threshold is not groomed -- someone already
+        // did, and the seen row carries the need (imitable). A dirty caller
+        // in view is groomed as before.
+        let ask_from = |w: &mut crate::world::World, bath: f32| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(10, 11); // adjacent, in view
+            w.kitties[f].needs.add(NeedKind::Bath, bath);
             let idx = w.kitty_index(1).unwrap();
             w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
             w.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
-                tick: 75, // age 25 < 30
-                intensity: 0.7,
-                pos: Position::new(10, 16),
+                tick: 95,
+                intensity: bath / 100.0,
+                pos: Position::new(10, 11),
                 reply: false,
             });
-        });
-        assert!(groom_response(&old_ask).is_some());
+        };
+        let clean = fog_ctx(5, 1, |w| ask_from(w, 10.0));
+        assert_eq!(
+            groom_response(&clean),
+            None,
+            "bath 10 < announce threshold 30: declined"
+        );
+        let dirty = fog_ctx(5, 1, |w| ask_from(w, 60.0));
+        assert_eq!(
+            groom_response(&dirty),
+            Some(Action::Groom { target: Some(2) })
+        );
     }
 }

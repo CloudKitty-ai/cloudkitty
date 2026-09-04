@@ -75,19 +75,25 @@ change.
   3 → 4 (proof in `specs/049-fog-gen1/redden-list.md` §T078). The
   `[rng-sequence]` marker is carried for its consequence, per the 048
   precedent: at a world-covering radius the action stream is byte-
-  identical to the pre-fog engine up to the first widened groom response
-  (tick 549 on the served roster — the built-in now answers a want_bath
-  older than the cooldown but inside the digest window), and under fog
-  every seeded evolution diverges from the first blind decision. The
-  evolution golden, the strip witness and the run-JSON golden regenerate
-  with this entry as the justification. Open owner flags in the spec-049
+  identical to the pre-fog engine up to the first named divergence (tick
+  550 on the served roster: the ruled groom response declines to answer a
+  caller already groomed clean), and under fog every seeded evolution
+  diverges from the first blind decision. The review's convergence (T087,
+  owner ruled 2026-09-03) made `want_bath` armed-only — an ask, not an
+  announcement: no top-need clause, no idle-friend gate — gave the
+  scripted groom response two rules (act only on an ask no older than the
+  cooldown, inclusive; on sight decline a caller below the announce
+  threshold), and split SC-004 into the plumbing proof (byte-identical
+  actions AND messages over 20k ticks under a test-side pre-fog law
+  switch, `MeowConfig.want_law`) and the named-cause law. The evolution
+  golden, the strip witness and the run-JSON golden regenerate with this
+  entry as the justification. Open owner flags in the spec-049
   report: the exploration rule's unswept corner pockets and, on worlds
   wider than ~4r, its unswept centre (the 2.x welfare bounds fail at r =
   5 on the compiled 32×32 world; the rl welfare gate pins the
   global-vision radius and an ignored r = 5 reading sits beside it);
-  043's gate-zero doctrine versus 049's heard-friend targeting; SC-004's
-  byte-identity amended to "identical up to the first explained
-  divergence"; the exams' `kitty_slots = roster − 1` widths.
+  043's gate-zero doctrine versus 049's heard-friend targeting; the exams' `kitty_slots = roster − 1` widths (SC-004 is now the
+  ruled 4a/4b split, no longer a flag).
 
 ## v2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
 
