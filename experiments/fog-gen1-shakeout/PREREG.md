@@ -141,6 +141,11 @@ with no layout consequence (the legality mask is an oracle over
   ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
   the anchor at the same radius) and cluster shape, to tell loose
   clusters with excursions from five solo cats.
+- Config for every screen, corpus, and arm: canonical prices, in
+  particular `groom_cuddle_relief = 0.5` (the served world carries the
+  TEMPORARY #332 bump to 2.0, revert ruled for the step-7 cutover; a
+  pass trained at 2.0 would price the relief farm at a value that never
+  ships).
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
 - BC: train to plateau, patience 10, no epoch floor; bars reply-here /
