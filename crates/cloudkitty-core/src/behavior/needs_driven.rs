@@ -41,7 +41,7 @@ impl Behavior for NeedsDriven {
 }
 
 impl NeedsDriven {
-    fn decide_action(&self, ctx: &DecisionContext) -> Action {
+    pub(crate) fn decide_action(&self, ctx: &DecisionContext) -> Action {
         // A scene in progress that is still doing its job gets finished first.
         if let Some(action) = finish_what_you_started(ctx) {
             return action;
@@ -235,6 +235,14 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
             }
+            // T092 (owner ruled 2026-09-03, the sunbeam standoff): a settled
+            // friend on a beam beside this cat is a beam it can use from
+            // here -- spec 031's conduction pays sunbeam-grade sleep beside
+            // a settled partner -- so cosleep at cost 0 instead of a step
+            // onto the occupied tile (which idled for hundreds of ticks).
+            if let Some(friend) = warm_friend_beside(ctx) {
+                return Action::Sleep { with: Some(friend) };
+            }
             match selection::sunbeam_worth_walking(ctx) {
                 // Worth walking to, if it is not an expedition. The same
                 // priced helper feeds the sleep score in `selection` (the
@@ -255,22 +263,26 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         ReliefSource::Friend => {
             // Only an idle friend can be drawn into a cuddle (spec 006
             // conscription) -- proposing at a busy one would just bounce to
-            // Idle. Seek the nearest *free* friend instead.
+            // Idle. Seek the nearest *free* VISIBLE friend -- or, under fog
+            // (spec 049 FR-022), a friend only HEARD, at its last meow's
+            // position, unconditionally: its state is masked, idleness is
+            // checked on sight, and a reached position is dropped
+            // (`heard_unseen_targets`).
             let free = world
                 .others(me.id)
                 .filter(|k| !k.activity.is_in_progress())
-                .min_by_key(|k| (me.pos.manhattan_distance(&k.pos), k.id));
+                .map(|k| (k.id, k.pos))
+                .chain(selection::heard_unseen_targets(ctx))
+                .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id));
             match free {
-                Some(friend) if me.pos.is_adjacent(&friend.pos) => Action::Rest {
-                    with: Some(friend.id),
-                },
+                Some((id, pos)) if me.pos.is_adjacent(&pos) => Action::Rest { with: Some(id) },
                 // Approach etiquette (spec 012): at the corner, the higher-id
                 // kitty asks and holds; the lower one closes the last step.
-                Some(friend) if selection::should_wait_for(ctx, friend.id, friend.pos) => {
+                Some((id, pos)) if selection::should_wait_for(ctx, id, pos) => {
                     selection::wait_for_them(ctx)
                 }
                 // Walking over for a cuddle is not a chase; this cat is not playing.
-                Some(friend) => step_toward(ctx, friend.pos),
+                Some((_, pos)) => step_toward(ctx, pos),
                 // Everyone is mid-scene; scenes are short (bounded by their
                 // maximums), so wait rather than lock into a relief-less
                 // solo rest.
@@ -298,20 +310,43 @@ fn seek_element(ctx: &DecisionContext, kind: ElementType, use_it: Action) -> Act
     // pond is pursued only when it truly is the cheapest walk (spec 010).
     match selection::priced_nearest_element(ctx, kind) {
         Some((pos, _)) => step_toward(ctx, pos),
-        // The safeguard will have provided something by the next environment
-        // phase; until then, there is nothing useful to do about it.
-        None => Action::Idle,
+        // Nothing of the kind visible or remembered (spec 049 FR-023):
+        // under fog "none visible" no longer means "none exists", so the
+        // cat walks its lattice tour (`explore`) instead of idling.
+        None => explore(ctx),
     }
+}
+
+/// The blind cat's search (spec 049 FR-023, owner ruled 2026-09-03, T088):
+/// one step toward the current waypoint of the lattice serpentine tour
+/// (`crate::explore`), through the existing step rule (occupied-tile and
+/// water-avoiding sidesteps). The tour index is ENGINE state -- set at
+/// generation, advanced in the environment phase when the cat stands on
+/// the waypoint or beside it while another cat holds it -- so this step
+/// reads it and draws nothing from the RNG. Standing on the waypoint
+/// already (the engine advances at the tick's end) idles this one tick.
+pub(crate) fn explore(ctx: &DecisionContext) -> Action {
+    let lattice = crate::explore::Lattice::for_world(
+        ctx.world.width,
+        ctx.world.height,
+        ctx.config.vision.radius,
+    );
+    let target = lattice.waypoint(ctx.me.explore_waypoint);
+    if ctx.me.pos == target {
+        return Action::Idle;
+    }
+    step_toward(ctx, target)
 }
 
 /// The groom response (spec 028 FR-019): a cat with real cuddle need that
 /// HEARS a bath ask answers it -- walk over, groom. Keyed on the audible
-/// meow alone (the freshest WantBath emitter, the digest's own selection
-/// rule: max tick, ties to the lower id, self excluded) and never on a
-/// privileged read of the neighbor's needs -- everything this rung reads,
-/// a policy could observe (the imitability principle). Yields to the
-/// responder's own urgency: any need at or above the safeguard threshold
-/// is its own errand first, so urgent eat still wins the ladder.
+/// meow (the freshest FRESH WantBath emitter, the digest's own selection
+/// rule: max tick, ties to the lower id, self excluded) and, on sight, on
+/// the caller's bath need as its seen row carries it -- never on a
+/// privileged read: everything this rung reads, a policy could observe
+/// (the imitability principle). Yields to the responder's own urgency:
+/// any need at or above the safeguard threshold is its own errand first,
+/// so urgent eat still wins the ladder.
 fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
     if me.needs.get(NeedKind::Cuddle) < ctx.config.behavior.cuddle_real_threshold {
@@ -321,12 +356,47 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     if top >= ctx.config.thresholds.safeguard {
         return None;
     }
-    let heard = crate::meow::freshest_audible(
-        &ctx.world.recent_meows,
-        crate::meow::MessageKind::WantBath,
-        me.id,
-    )?;
-    let emitter = ctx.world.kitty(heard.kitty_id)?;
+    // Spec 049 (T054, the fog-era response): the ask is audible for the
+    // whole digest window -- the view's one audibility rule (start-of-tick,
+    // age inside the window) -- and the caller, if unseen, is sought at the
+    // position its call was stamped with (FR-022, spec 028 FR-019 under
+    // fog). A reached stamped position with no caller in view drops the
+    // response that tick.
+    let window = ctx.config.meow.digest_window_ticks;
+    // Freshness (owner ruled 2026-09-03, T087): the rung acts only on an ask
+    // no older than the cooldown, INCLUSIVE (the 2.x rule). The call stays
+    // audible and in the digest; the rung declines stale asks -- a
+    // still-needy caller re-emits every cooldown (FR-045), so an older ask
+    // means the need was met or the caller is mid-scene, and under fog a
+    // responder cannot see which until it arrives.
+    let cooldown = ctx.config.meow.recent_window_ticks;
+    let audible: Vec<crate::meow::Meow> = ctx
+        .world
+        .recent_meows
+        .iter()
+        .filter(|m| {
+            ctx.world.audible(m, window) && ctx.world.tick.saturating_sub(m.tick) <= cooldown
+        })
+        .cloned()
+        .collect();
+    let heard = crate::meow::freshest_audible(&audible, crate::meow::MessageKind::WantBath, me.id)?;
+    let Some(emitter) = ctx.world.kitty(heard.kitty_id) else {
+        // Heard, not seen: walk to where the call came from -- unless this
+        // cat is already there and the caller is not (dropped).
+        if me.pos.is_adjacent(&heard.pos) {
+            return None;
+        }
+        return Some(step_toward(ctx, heard.pos));
+    };
+    // On sight (owner ruled 2026-09-03, T087): a caller whose bath need is
+    // below the announce threshold has been groomed already -- decline,
+    // read off the seen row (imitable). `LawEra::PreFog` keeps the 2.x
+    // rung, which groomed on the word alone, for SC-004a's replay.
+    if ctx.config.meow.law_era == crate::config::LawEra::Fog
+        && emitter.needs.get(NeedKind::Bath) < ctx.config.meow.announce_threshold
+    {
+        return None;
+    }
     // Spec 045 seam 3 (the only kitty-groom initiation path — Playful
     // never grooms others and `pursue`'s Friend arm emits Rest): a scene
     // whose expected contagion exposure exceeds its TOTAL value — the
@@ -500,6 +570,41 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
 /// skipped — the cat still naps, just not pressed against wet fur. A
 /// choice, never a refusal (Article IV); with the ladder gate off the
 /// filter is structurally inert (exposure is 0 before any arithmetic).
+/// T092 (owner ruled 2026-09-03): an adjacent friend in view, SETTLED
+/// (resting or asleep) on a sunbeam tile -- sunbeam-grade sleep from beside
+/// it (spec 031 conduction), at no walk; the seam-4 exposure bar applies as
+/// to any cosleep pick. Shared by the sleep arm and the sleep score, so
+/// score and walk agree (the `relief` invariant). `LawEra::PreFog` keeps
+/// the 2.x arm (none) for SC-004a's replay.
+pub(crate) fn warm_friend_beside(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
+    if ctx.config.meow.law_era == crate::config::LawEra::PreFog {
+        return None;
+    }
+    ctx.world
+        .others(ctx.me.id)
+        .filter(|k| ctx.me.pos.is_adjacent(&k.pos))
+        .filter(|k| {
+            ctx.world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
+        })
+        .filter(|k| warm_occupant(ctx, k))
+        .min_by_key(|k| k.id)
+        .map(|k| k.id)
+}
+
+/// A friend this cat can cosleep beside for sunbeam-grade sleep: settled
+/// (resting or asleep) and worth the exposure. ONE predicate for the
+/// beside rule above and for `selection::priced_nearest_element`'s
+/// occupied-beam filter (flag 13, owner ruled 2026-09-04, the warm
+/// reading): a beam under such a friend is still worth walking to --
+/// arrival beside it is the cosleep -- while a beam under an awake cat is
+/// not.
+pub(crate) fn warm_occupant(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> bool {
+    matches!(
+        k.activity,
+        crate::kitty::Activity::Resting { .. } | crate::kitty::Activity::Sleeping { .. }
+    ) && cosleep_worth_the_exposure(ctx, k.id)
+}
+
 fn adjacent_friend(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
     ctx.world
         .others(ctx.me.id)
@@ -953,7 +1058,7 @@ mod tests {
         me.set_meow_cooldown(MessageKind::WantEat, u64::MAX);
         crate::behavior::DecisionContext {
             me,
-            world: Arc::new(world.snapshot()),
+            world: Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
             rng: DecisionRng::from_seed(9876),
             config,
         }
@@ -1470,24 +1575,46 @@ mod tests {
         // Spec 028 FR-017 (the engine-side half of FR-021): the message is
         // computed after and independent of the activity, so deciding with
         // the channel in play picks the same activity as the ladder alone.
-        // A hungry cat mid-walk announces WantEat and keeps walking.
-        let ctx = decision_context(|world| {
-            world.elements.clear();
-            let idx = world.kitty_index(1).unwrap();
-            world.kitties[idx].pos = Position::new(2, 2);
-            world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
-            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            world.push_element(Element {
-                id: 700,
-                kind: ElementKind::Chow { servings: 5 },
-                pos: Position::new(12, 2),
-                ttl: None,
-            });
+        // A hungry cat announces WantEat and keeps doing whatever the
+        // ladder chose. Under the fog law (spec 049 FR-036) the word is
+        // legal only while no bowl is visible or remembered, so the bowl
+        // sits ten tiles off at radius 5 -- unseen, unremembered.
+        let config = {
+            let mut c = crate::test_support::test_config();
+            c.vision.radius = 5;
+            c.validate().unwrap();
+            std::sync::Arc::new(c)
+        };
+        let mut world = crate::world::World::generate(&config);
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(2, 2);
+        world.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+        world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+        world.push_element(Element {
+            id: 700,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(12, 2),
+            ttl: None,
         });
+        let me = world.kitty(1).unwrap().clone();
+        let view = std::sync::Arc::new(world.snapshot().fog_for(1, 5));
+        // Two contexts on the same seed so both calls start from the same
+        // RNG state whatever the ladder draws along the way (the exploring
+        // step itself draws nothing since T088 -- see
+        // `explore_walks_the_tour_and_draws_nothing`; a shared context would
+        // still couple the two calls through any other rung's draw).
+        let make = || crate::behavior::DecisionContext {
+            me: me.clone(),
+            world: view.clone(),
+            rng: crate::rng::DecisionRng::from_seed(9876),
+            config: config.clone(),
+        };
+        let ctx = make();
         let decision = NeedsDriven.decide(&ctx).await;
         assert_eq!(
             decision.activity,
-            NeedsDriven.decide_action(&ctx),
+            NeedsDriven.decide_action(&make()),
             "the channel rides along; it never displaces the turn"
         );
         assert_eq!(
@@ -1499,17 +1626,32 @@ mod tests {
 
     #[tokio::test]
     async fn a_grounded_cat_announces_its_highest_pressure_legal_want() {
-        // Two armed needs: the higher pressure wins; ties would fall to
-        // NeedKind::ALL order (the selection precedent).
-        let ctx = decision_context(|world| {
-            let idx = world.kitty_index(1).unwrap();
-            world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
-            world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
-            world.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
-        });
-        let decision = NeedsDriven.decide(&ctx).await;
+        // Two armed needs: only the TOP need's want can be legal (spec 049
+        // FR-036), and the social words need no idle friend in view -- so
+        // with the friend busy the cat says WantCuddle (its top need), and
+        // with the friend idle in view it says nothing at all.
+        let stage = |friend_busy: bool| {
+            decision_context(move |world| {
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].needs.add(NeedKind::Eat, 40.0);
+                world.kitties[idx].needs.add(NeedKind::Cuddle, 55.0);
+                world.kitties[idx].announce_armed.insert(NeedKind::Eat);
+                world.kitties[idx].announce_armed.insert(NeedKind::Cuddle);
+                if friend_busy {
+                    let f = world.kitty_index(2).unwrap();
+                    world.kitties[f].activity = crate::kitty::Activity::Grooming { target: None };
+                    world.kitties[f].activity_clock =
+                        Some(crate::kitty::ActivityClock::start(world.tick));
+                }
+            })
+        };
+        let decision = NeedsDriven.decide(&stage(true)).await;
         assert_eq!(decision.message, Some(MessageKind::WantCuddle));
+        let decision = NeedsDriven.decide(&stage(false)).await;
+        assert_eq!(
+            decision.message, None,
+            "an idle friend in view silences the social want"
+        );
     }
 
     #[tokio::test]
@@ -1555,11 +1697,15 @@ mod tests {
             world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
             let b = world.kitty_index(2).unwrap();
             world.kitties[b].pos = Position::new(8, 2);
+            // A caller in need (T087: on sight, a clean caller is declined).
+            world.kitties[b].needs.add(NeedKind::Bath, 40.0);
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
-                tick: 100,
+                tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         assert!(
@@ -1574,11 +1720,14 @@ mod tests {
             world.kitties[a].needs.add(NeedKind::Cuddle, 40.0);
             let b = world.kitty_index(2).unwrap();
             world.kitties[b].pos = Position::new(2, 3);
+            world.kitties[b].needs.add(NeedKind::Bath, 40.0);
             world.recent_meows.push(crate::meow::Meow {
                 kitty_id: 2,
                 kind: MessageKind::WantBath,
-                tick: 100,
+                tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         assert_eq!(
@@ -1691,14 +1840,22 @@ mod tests {
                 world.recent_meows.push(crate::meow::Meow {
                     kitty_id: 2,
                     kind: MessageKind::WantBath,
-                    tick: 100,
+                    tick: 99, // start-of-tick: a same-tick call is not yet audible (spec 049)
                     intensity: 0.5,
+                    pos: crate::grid::Position::new(0, 0),
+                    reply: false,
                 });
             });
             let cfg = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
             cfg.behavior.contagion_aware_ladder = true;
             cfg.water.contagion_factor = factor;
             cfg.water.contagion_membership = membership;
+            // T087's on-sight rule declines a caller below the announce
+            // threshold; the arithmetic above needs bath 10, so this config
+            // announces at 10 (a screened value, FR-038) -- the groomee is
+            // dirty by its own world's law.
+            cfg.meow.announce_threshold = 10.0;
+            cfg.meow.announce_hysteresis = 5.0;
             ctx
         }
         use crate::config::ContagionMembership::{Bidirectional, OptionA};
@@ -1760,6 +1917,8 @@ mod tests {
                 kind: MessageKind::WantBath,
                 tick: 100,
                 intensity: 0.5,
+                pos: crate::grid::Position::new(0, 0),
+                reply: false,
             });
         });
         let action = NeedsDriven.decide_action(&ctx);
@@ -1862,6 +2021,463 @@ mod tests {
             NeedsDriven.decide_action(&ctx),
             Action::Sleep { with: None },
             "below the gate: the sunbeam, exactly as before"
+        );
+    }
+    // ---- spec 049 T056/T057: exploration and targeting under fog ----
+
+    /// A 20x20 world at radius `radius`, no elements, kitty 1 at (10, 10),
+    /// kitty 2 far away at (0, 0), tick 100.
+    fn fog_ctx(
+        radius: u32,
+        seed: u64,
+        setup: impl FnOnce(&mut crate::world::World),
+    ) -> crate::behavior::DecisionContext {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 20;
+        config.world.height = 20;
+        config.vision.radius = radius;
+        config.kitties[0].x = 10;
+        config.kitties[0].y = 10;
+        config.kitties[1].x = 0;
+        config.kitties[1].y = 0;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        world.elements.clear();
+        world.tick = 100;
+        setup(&mut world);
+        let me = world.kitty(1).unwrap().clone();
+        crate::behavior::DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, radius)),
+            rng: crate::rng::DecisionRng::from_seed(seed),
+            config,
+        }
+    }
+
+    fn set_waypoint(world: &mut crate::world::World, id: u32, index: u32) {
+        let idx = world.kitty_index(id).unwrap();
+        world.kitties[idx].explore_waypoint = index;
+    }
+
+    #[tokio::test]
+    async fn a_blind_hungry_cat_steps_toward_its_waypoint_and_asks_as_it_goes() {
+        // US5 scenario 1 (+ FR-036): no bowl visible, none remembered, the
+        // tour index at (16, 10) -- one step east toward it, and want_eat
+        // rides along. (20x20 at r = 5: the lattice is {3, 10, 16}², index
+        // 3 of the snake is (16, 10).)
+        let ctx = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].announce_armed.insert(NeedKind::Eat);
+            set_waypoint(w, 1, 3);
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::move_to(Direction::East)
+        );
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(decision.activity, Action::move_to(Direction::East));
+        assert_eq!(
+            decision.message,
+            Some(MessageKind::WantEat),
+            "the ask rides along"
+        );
+        assert_eq!(explore(&ctx), Action::move_to(Direction::East));
+    }
+
+    #[test]
+    fn a_sleeper_naps_beside_a_settled_friend_on_a_beam_instead_of_waiting() {
+        // T092 (owner ruled 2026-09-03, the sunbeam standoff): the only beam
+        // in view is under a resting friend. The engine pays sunbeam-grade
+        // sleep beside a SETTLED partner (spec 031 conduction), so the arm
+        // proposes the cosleep at cost 0 instead of a step onto the occupied
+        // tile (which was Idle, for hundreds of ticks). Under an AWAKE
+        // occupant there is no warmth and no landing: the beam is not worth
+        // walking to, and the cat naps here (beside the friend, as the nap
+        // rung always did) rather than wait.
+        let stage = |friend_activity: crate::kitty::Activity| {
+            fog_ctx(5, 1, move |w| {
+                w.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Sunbeam,
+                    pos: Position::new(10, 11),
+                    ttl: None,
+                });
+                let f = w.kitty_index(2).unwrap();
+                w.kitties[f].pos = Position::new(10, 11);
+                w.kitties[f].activity = friend_activity;
+                w.kitties[f].activity_clock = if friend_activity.is_in_progress() {
+                    Some(crate::kitty::ActivityClock::start(90))
+                } else {
+                    None
+                };
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            })
+        };
+        let resting = stage(crate::kitty::Activity::Resting { with_friend: None });
+        assert_eq!(
+            NeedsDriven.decide_action(&resting),
+            Action::Sleep { with: Some(2) },
+            "a settled friend on the beam: cosleep beside it"
+        );
+        assert_eq!(
+            selection::travel_distance(&resting, NeedKind::Sleep),
+            Some(0.0),
+            "the score agrees: no walk"
+        );
+        let awake = stage(crate::kitty::Activity::Idle);
+        let action = NeedsDriven.decide_action(&awake);
+        assert!(
+            matches!(action, Action::Sleep { .. }),
+            "an awake occupant: nap here, never wait ({action:?})"
+        );
+        assert_eq!(
+            selection::travel_distance(&awake, NeedKind::Sleep),
+            Some(0.0)
+        );
+        // The 2.x arm, kept for SC-004a's replay: the occupied beam is still
+        // the target and the step onto it is what the standoff was.
+        let mut pre_fog = stage(crate::kitty::Activity::Resting { with_friend: None });
+        std::sync::Arc::get_mut(&mut pre_fog.config)
+            .unwrap()
+            .meow
+            .law_era = crate::config::LawEra::PreFog;
+        assert_ne!(
+            NeedsDriven.decide_action(&pre_fog),
+            Action::Sleep { with: Some(2) }
+        );
+    }
+
+    #[test]
+    fn a_remembered_beam_under_an_awake_cat_is_not_worth_walking_to_either() {
+        // Review 3 finding 1 (2026-09-04): T092's occupied filter dropped
+        // the visible beam, and the remembered slot -- FR-007 stores the
+        // nearest VISIBLE beam with no occupancy check, so after one
+        // environment phase it names this very tile -- re-added it as the
+        // u32::MAX phantom, and `pursue` walked the cat into the standoff
+        // the ruling retired (`step_toward` refuses the last step). The
+        // phantom is filtered like the element. Staged: the only beam two
+        // tiles east under an IDLE friend, remembered from the last phase.
+        let ctx = fog_ctx(5, 1, |w| {
+            w.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(12, 10),
+                ttl: None,
+            });
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(12, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Idle;
+            w.kitties[f].activity_clock = None;
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Sunbeam)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(12, 10),
+                    last_seen: 100,
+                });
+        });
+        assert_eq!(
+            selection::sunbeam_worth_walking(&ctx),
+            None,
+            "an occupied beam is not worth walking to, remembered or seen"
+        );
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::Sleep { with: None },
+            "nap here, never the standoff"
+        );
+        assert_eq!(selection::travel_distance(&ctx, NeedKind::Sleep), Some(0.0));
+    }
+
+    #[test]
+    fn a_settled_friends_beam_in_reach_is_walked_to_for_the_cosleep() {
+        // Flag 13, owner ruled 2026-09-04 ("warm reading"): a beam under a
+        // SETTLED friend is worth walking to -- arrival beside it is the
+        // T092 cosleep, and the walk is the demonstration the step-5
+        // teacher corpus must carry. Only an AWAKE occupant makes a beam
+        // not worth the walk. Same stage as the awake test, friend resting.
+        let ctx = fog_ctx(5, 1, |w| {
+            w.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(12, 10),
+                ttl: None,
+            });
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(12, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Resting { with_friend: None };
+            w.kitties[f].activity_clock = Some(crate::kitty::ActivityClock::start(90));
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Sunbeam)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(12, 10),
+                    last_seen: 100,
+                });
+        });
+        assert_eq!(
+            selection::sunbeam_worth_walking(&ctx),
+            Some((Position::new(12, 10), 2.0)),
+            "a settled friend's beam is a beam worth walking to"
+        );
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::move_to(Direction::East),
+            "the walk toward the cosleep"
+        );
+        assert_eq!(
+            selection::travel_distance(&ctx, NeedKind::Sleep),
+            Some(2.0),
+            "the score prices the walk"
+        );
+    }
+
+    #[test]
+    fn explore_walks_the_tour_and_draws_nothing() {
+        // US5 scenario 6: the step is toward the CURRENT waypoint, whatever
+        // the cat did last; the index is the engine's, so the step reads it
+        // and never touches the RNG; standing on the waypoint (the engine
+        // advances at the tick's end) idles this tick.
+        for (index, expected) in [
+            (1u32, Direction::North),
+            (3, Direction::East),
+            (5, Direction::West),
+            (7, Direction::South),
+        ] {
+            let ctx = fog_ctx(5, 11, move |w| set_waypoint(w, 1, index));
+            assert_eq!(explore(&ctx), Action::move_to(expected), "index {index}");
+            let untouched = crate::rng::DecisionRng::from_seed(11).gen_u64();
+            assert_eq!(ctx.rng.gen_u64(), untouched, "zero draws");
+        }
+        let standing = fog_ctx(5, 11, |w| set_waypoint(w, 1, 4)); // (10, 10) = me
+        assert_eq!(explore(&standing), Action::Idle);
+        // A blocked straight line still moves (the step rule sidesteps).
+        let blocked = fog_ctx(5, 11, |w| {
+            set_waypoint(w, 1, 3);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(11, 10);
+        });
+        assert!(matches!(explore(&blocked), Action::Move { .. }));
+    }
+
+    #[test]
+    fn a_remembered_bowl_is_walked_to_and_a_refuted_memory_drops_into_exploration() {
+        // US5 scenario 2: the remembered tile is a target as if it held the
+        // bowl; once the engine clears the memory (the tile came into view
+        // empty), the same ladder explores that tick.
+        use crate::kitty::MemorySlot;
+        let remembering = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Chow)] =
+                Some(MemorySlot {
+                    pos: Position::new(2, 10),
+                    last_seen: 50,
+                });
+            set_waypoint(w, 1, 7); // (10, 16): south of the cat
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&remembering),
+            Action::move_to(Direction::West),
+            "walks toward the remembered tile"
+        );
+        let refuted = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            set_waypoint(w, 1, 7); // (10, 16): south of the cat
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&refuted),
+            Action::move_to(Direction::South),
+            "nothing visible or remembered: the exploration step, same ladder"
+        );
+    }
+
+    #[test]
+    fn a_heard_friend_is_a_cuddle_target_until_the_cat_arrives_and_finds_nobody() {
+        // US5 scenario 2b: real cuddle need, the only friend outside the
+        // disc but heard from U -> walk toward U whatever U's (masked)
+        // state; on arrival with the friend not visible the target is
+        // dropped that tick; visible and idle on arrival -> the cuddle.
+        let call = |w: &mut crate::world::World| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::Mew,
+                tick: 95,
+                intensity: 0.0,
+                pos: Position::new(15, 10),
+                reply: false,
+            });
+        };
+        let hears = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 60.0);
+            call(w);
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&hears),
+            Action::move_to(Direction::East),
+            "walks toward the stamped position"
+        );
+        let arrived_alone = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].pos = Position::new(14, 10); // adjacent to U, friend still at (0, 0)
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 60.0);
+            call(w);
+        });
+        assert!(
+            selection::heard_unseen_targets(&arrived_alone).is_empty(),
+            "the reached position is dropped"
+        );
+        let action = NeedsDriven.decide_action(&arrived_alone);
+        assert!(
+            !matches!(
+                action,
+                Action::Rest { with: Some(_) }
+                    | Action::Move {
+                        direction: Direction::East
+                    }
+            ),
+            "nobody known: cuddle has no path this tick, the ladder moves on ({action:?})"
+        );
+        let arrived_together = fog_ctx(5, 1, |w| {
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me].pos = Position::new(14, 10);
+            w.kitties[me].needs.add(NeedKind::Cuddle, 60.0);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(15, 10); // there, idle
+            call(w);
+        });
+        assert_eq!(
+            NeedsDriven.decide_action(&arrived_together),
+            Action::Rest { with: Some(2) },
+            "visible and idle on arrival: the cuddle"
+        );
+        let arrived_asleep = fog_ctx(5, 1, |w| {
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me].pos = Position::new(14, 10);
+            w.kitties[me].needs.add(NeedKind::Cuddle, 60.0);
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(15, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Sleeping {
+                with_friend: None,
+                in_sunbeam: false,
+            };
+            w.kitties[f].activity_clock = Some(crate::kitty::ActivityClock::start(100));
+            call(w);
+        });
+        let action = NeedsDriven.decide_action(&arrived_asleep);
+        assert!(
+            !matches!(action, Action::Rest { with: Some(2) }),
+            "visible but asleep on arrival: dropped this tick ({action:?})"
+        );
+    }
+
+    #[test]
+    fn the_groom_response_walks_to_an_unseen_callers_stamped_tile_and_drops_on_arrival() {
+        // US5 scenario 2c: a WantBath from outside the disc is answered by
+        // walking toward its stamped position; arriving with the caller
+        // still unseen, the response yields to the rest of the ladder.
+        let ask = |w: &mut crate::world::World| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 90,
+                intensity: 0.7,
+                pos: Position::new(10, 16),
+                reply: false,
+            });
+        };
+        let hears = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            ask(w);
+        });
+        assert_eq!(
+            groom_response(&hears),
+            Some(Action::move_to(Direction::South))
+        );
+        let arrived = fog_ctx(5, 1, |w| {
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].pos = Position::new(10, 15);
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            ask(w);
+        });
+        assert_eq!(
+            groom_response(&arrived),
+            None,
+            "arrived, caller unseen: dropped"
+        );
+        // Freshness (owner ruled 2026-09-03, T087): the rung acts only on
+        // an ask no older than the cooldown, INCLUSIVE (2.x-matching).
+        // Audibility stays the digest window -- the call is still in the
+        // digest, the rung just declines stale asks: a still-needy caller
+        // re-emits every cooldown, so an older ask means the need was met
+        // or the caller is mid-scene (and, under fog, a wasted walk).
+        let ask_aged = |age: u64| {
+            fog_ctx(5, 1, move |w| {
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+                w.recent_meows.push(crate::meow::Meow {
+                    kitty_id: 2,
+                    kind: MessageKind::WantBath,
+                    tick: 100 - age,
+                    intensity: 0.7,
+                    pos: Position::new(10, 16),
+                    reply: false,
+                });
+            })
+        };
+        assert!(
+            groom_response(&ask_aged(10)).is_some(),
+            "age == cooldown: fresh, answered"
+        );
+        assert_eq!(
+            groom_response(&ask_aged(11)),
+            None,
+            "age == cooldown + 1: audible, declined"
+        );
+        assert_eq!(
+            groom_response(&ask_aged(25)),
+            None,
+            "age 25 < window 30: audible, declined"
+        );
+    }
+
+    #[test]
+    fn the_groom_response_declines_a_visible_caller_already_clean() {
+        // Owner ruled 2026-09-03 (T087): on sight, a caller whose bath need
+        // is below the announce threshold is not groomed -- someone already
+        // did, and the seen row carries the need (imitable). A dirty caller
+        // in view is groomed as before.
+        let ask_from = |w: &mut crate::world::World, bath: f32| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(10, 11); // adjacent, in view
+            w.kitties[f].needs.add(NeedKind::Bath, bath);
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Cuddle, 40.0);
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: MessageKind::WantBath,
+                tick: 95,
+                intensity: bath / 100.0,
+                pos: Position::new(10, 11),
+                reply: false,
+            });
+        };
+        let clean = fog_ctx(5, 1, |w| ask_from(w, 10.0));
+        assert_eq!(
+            groom_response(&clean),
+            None,
+            "bath 10 < announce threshold 30: declined"
+        );
+        let dirty = fog_ctx(5, 1, |w| ask_from(w, 60.0));
+        assert_eq!(
+            groom_response(&dirty),
+            Some(Action::Groom { target: Some(2) })
         );
     }
 }

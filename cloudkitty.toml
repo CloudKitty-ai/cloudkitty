@@ -36,7 +36,7 @@ x = 8
 y = 10
 # "The cuddler", carried onto the schema-4 surface (spec 035): the same
 # mind that took this seat 2026-08-14, resuming after the wall.
-behavior = "policy:attn-a1-s1-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s1-o4 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -56,7 +56,7 @@ y = 15
 # owner's bar 87.31, G3 character fingerprint PASS (experiments/
 # exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
 # incumbent it grew from moves to Clementine.
-behavior = "policy:e006a-L-04-s3"
+behavior = "playful"  # Gen 1 seat, owner ruled 2026-09-03 (spec 049 T091): Biscuit sits on the new playful (the 3.0 anchor); 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -74,7 +74,7 @@ y = 6
 # this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
 # deadlock was a twin artifact). The needs override below is world-law,
 # not behavior — it stays.
-behavior = "policy:attn-a1-s3-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s3-o4 cannot cross the 3.0 wall (see [vision])
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -94,7 +94,7 @@ y = 4
 # e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
 # battery doc): the E1 dialect — here-meows and a meaningful mew — is
 # worth the recert. G2c says the swap is free at team level (+0.0003).
-behavior = "policy:e006-E1-s1"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006-E1-s1 cannot cross the 3.0 wall (see [vision])
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -118,7 +118,7 @@ y = 16
 # vector owner-final, 3-dial: cuddlier, lighter on play and bath
 # (verified -0.07 vs trait-flat under policy company -- the parity band);
 # stage-3 mortal like Pumpkin's.
-behavior = "policy:e004-a1-s2-o4"
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e004-a1-s2-o4 cannot cross the 3.0 wall (see [vision])
 [kitty.needs]
 cuddle = 0.7
 play = 0.3
@@ -292,10 +292,23 @@ cuddle = { min = 6, max = 12 }
 [meow]
 # Law, not manners (spec 028): a want-kind may be spoken only while its need
 # is armed and that kind's per-cat cooldown has cleared; silence is always
-# legal. The window below is both audibility and the per-kind cooldown, so
-# an honest persistent signal refreshes exactly as the old one fades --
-# one live digest entry per kind per emitter, never sooner.
+# legal. Under fog (spec 049) a want-word is also a claim of ignorance --
+# legal only when the need is the cat's top need and it knows no relief
+# (nothing visible or remembered; for the social words, no idle friend in
+# view) -- and a here-word may answer an audible want it can see the
+# referent of. The full law is docs/meows.md.
+#
+# recent_window_ticks is the per-kind emission COOLDOWN (spec 049 FR-017
+# rewrote its meaning, not its key): after speaking a kind a cat may not
+# speak it again for this many ticks. Audibility moved to
+# digest_window_ticks below.
 recent_window_ticks = 10
+# The digest window (spec 049): a call stays audible -- kept in the recent
+# buffer, counted by the per-speaker (recency, rate) cells on every kitty
+# row, answerable by a here-word -- while its age is strictly less than
+# this. Must be a positive integer multiple of recent_window_ticks so the
+# rate cell's maximum (window / cooldown = 3 calls) is exact.
+digest_window_ticks = 30
 # A want-kind arms at this need level (grounded legality)...
 announce_threshold = 30.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
@@ -398,6 +411,14 @@ playful_comfort = 55.0
 # (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
 # Experiments' density screen, not a welfare lever.
 # announce_here = 4
+# Spec 049 FR-043: the scripted reply listener floor. Set, a scripted cat
+# answers an audible want whose stamped intensity is at or above it with the
+# paired here-word (referent in view, cooldown clear); unset, scripted cats
+# never reply and the streams are byte-identical to the pre-ladder engine.
+# 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
+# (Experiments cut it), is revisited at the speaker-floor screen, and stays
+# unset on the served config.
+# reply_intensity_floor = 0.30
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
@@ -485,6 +506,30 @@ distress_patience_ticks = 60
 # policies/retired/ with their records; shas + provenance in
 # policies/README.md and policies/registry.toml (spec 034 rows in this
 # same change, per the same-PR rule).
+# THE SERVED ROSTER AT THE 3.0 WALL (spec 049 FR-025 / SC-008): every
+# 2.x policy artifact is schema 4 and is refused at load on this engine
+# (observation schema 5), so the five seats are scripted here -- the
+# step-5 shakeout / corpus-collection state -- until the Gen 1 minds seat
+# at the step-7 cutover. The [rl.policy.*] blocks stay as the registry
+# of what WAS seated (unreferenced blocks are never opened).
+#
+# Fog Gen 1 (spec 049): the vision disc. A cat knows the kitties and elements
+# within `radius` of itself (Euclidean, dx² + dy² ≤ r², edge included), every
+# recent meow (hearing is global), the roster's ids and its own one-slot-per-
+# kind element memory; the same disc for every seat -- built-ins, plugins and
+# policies decide from one fog view. 5 is the FR-002 PLACEHOLDER (81 tiles on
+# the 20x20 world); the step-5 pre-registration screens the radius set and
+# rules the served value. Every built-in cat explores for what it cannot see
+# (FR-023) and asks for it (FR-036); see docs/meows.md.
+[vision]
+radius = 5
+# Element-memory expiry in ticks; 0 = never (sight is the only corrector).
+memory_timeout_ticks = 0
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
 [rl.policy.attn-a1-s1-o4]
 artifact = "policies/attn-a1-s1-o4.ckpolicy"
 

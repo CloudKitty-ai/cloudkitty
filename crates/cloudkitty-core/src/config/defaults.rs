@@ -28,6 +28,33 @@ pub(super) fn default_meow_recent_window_ticks() -> u64 {
     10
 }
 
+/// Spec 049 FR-017: the audibility window and the rate denominator's
+/// numerator scale -- served 30 = 3 x the 10-tick cooldown, so the rate
+/// cell's maximum (3 calls) is exact.
+pub(super) fn default_meow_digest_window_ticks() -> u64 {
+    30
+}
+
+/// Spec 049 FR-002: the vision disc radius. 5 is the 3.0 placeholder (the
+/// timeline's worked example, 81 tiles; the step-5 prereg screens it) and
+/// the served value; `Config::default()` documents the served values.
+///
+/// History: the arc landed under an ARC-TEMPORARY world-covering default
+/// (64 = width + height of the compiled 32x32 world) so every golden and
+/// red-first cycle ran on the pre-fog dynamics (FR-024); T080 flipped it
+/// here with the one golden regeneration. Guards whose bounds were
+/// baselined under global vision pin that radius explicitly
+/// (`test_support::test_config`, the rl welfare gate); the r = 5 welfare
+/// READING lives beside the gate, ignored, for the prereg.
+pub(super) fn default_vision_radius() -> u32 {
+    5
+}
+
+/// Spec 049 FR-008: element-memory expiry, 0 = never.
+pub(super) fn default_vision_memory_timeout_ticks() -> u64 {
+    0
+}
+
 // Spec 028: the announce band, derived from the needs analysis (2026-08-08)
 // -- 30 sits inside every cat's lived range and stays top-1%-informative;
 // 5 of hysteresis keeps the mask steady across an errand.

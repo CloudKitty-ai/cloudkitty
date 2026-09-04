@@ -24,6 +24,7 @@ pub mod behavior;
 pub mod config;
 pub mod element;
 pub mod events;
+pub mod explore;
 pub mod grid;
 pub mod invariants;
 pub mod kitty;
@@ -39,7 +40,9 @@ pub use action::{Action, TargetRef};
 pub use behavior::{Behavior, BehaviorRegistry, DecisionContext};
 pub use config::{Config, ConfigError};
 pub use element::{Element, ElementId, ElementKind, ElementType};
-pub use events::{ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog};
+pub use events::{
+    ActivityEnd, ActivityLog, DistressEvent, DistressLog, RefusalEvent, RefusalLog, RefusalReason,
+};
 pub use grid::{Direction, Position};
 pub use invariants::Violation;
 pub use kitty::{Activity, Kitty, KittyId};
@@ -49,4 +52,4 @@ pub use seam::{
     drive_tick, Decision, DrivenTick, JointProposal, KittyTickRecord, Provenance, ResolvedDecision,
     TickReport,
 };
-pub use world::{World, WorldSnapshot};
+pub use world::{FogView, World, WorldSnapshot};

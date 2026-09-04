@@ -15,6 +15,11 @@
 //! fix the code, not the golden. An *intentional* wire change regenerates
 //! the golden in the same PR with the justification alongside
 //! (`UPDATE_GOLDENS=1 cargo test -p cloudkitty-rl --test run_json_golden`)
+//!
+//! Regenerated at spec 049 T081: the served config runs under fog at
+//! r = 5 (an intentional dynamics move — every seat decides from its own
+//! 5-tile disc), the observation is schema 5 and `kitty_slots` is 4, so
+//! the recorded run's numbers moved; the wire SHAPE is unchanged.
 //! and must reckon with every stored report the change orphans.
 //!
 //! The runs are tiny (default world, 120 ticks) — this guards the

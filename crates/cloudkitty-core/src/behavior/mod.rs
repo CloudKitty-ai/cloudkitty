@@ -43,7 +43,7 @@ use crate::kitty::{Kitty, KittyId};
 use crate::meow::MessageKind;
 use crate::rng::DecisionRng;
 use crate::seam::{Decision, Provenance, ResolvedDecision};
-use crate::world::{World, WorldSnapshot};
+use crate::world::{FogView, World};
 
 pub mod needs_driven;
 pub mod playful;
@@ -60,9 +60,13 @@ pub use script::{DecisionRequest, ScriptBehavior};
 pub struct DecisionContext {
     /// The deciding kitty's own full state.
     pub me: Kitty,
-    /// The start-of-tick world: every kitty, every element (greebles included --
-    /// cats can always perceive them), and recent meows.
-    pub world: Arc<WorldSnapshot>,
+    /// The start-of-tick world AS THIS KITTY MAY KNOW IT (spec 049 FR-021):
+    /// the kitties and elements inside its vision disc (greebles included --
+    /// fog is distance, never kind), every recent meow (hearing is global),
+    /// the roster's ids, and its own memory on `me`. Derefs to the filtered
+    /// snapshot, so nothing outside the disc is reachable from here -- the
+    /// same information set the policy observation is built from.
+    pub world: Arc<FogView>,
     /// This kitty's private randomness for this tick. The only randomness a
     /// behavior may use; anything else would break determinism.
     pub rng: DecisionRng,
@@ -242,7 +246,7 @@ fn decision_jobs(
     registry: &BehaviorRegistry,
     config: &Arc<Config>,
 ) -> Vec<DecisionJob> {
-    let snapshot = Arc::new(world.snapshot());
+    let snapshot = world.snapshot();
     let seeds = world.deal_decision_seeds();
     let mut jobs = Vec::with_capacity(world.kitties.len());
     for (id, seed) in seeds.iter() {
@@ -250,9 +254,12 @@ fn decision_jobs(
             continue;
         };
         let behavior = registry.get(&kitty.behavior);
+        // One fog view per kitty from the one shared start-of-tick snapshot
+        // (spec 049 R1): the only world this decider will ever see.
+        let view = Arc::new(snapshot.fog_for(id, config.vision.radius));
         let ctx = DecisionContext {
             me: kitty,
-            world: snapshot.clone(),
+            world: view,
             rng: DecisionRng::from_seed(seed),
             config: config.clone(),
         };
@@ -443,7 +450,7 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
 async fn fallback_from_seed(
     id: KittyId,
     seed: u64,
-    world: Arc<WorldSnapshot>,
+    world: Arc<FogView>,
     config: Arc<Config>,
 ) -> Decision {
     let me = world
@@ -480,22 +487,23 @@ async fn fallback(ctx: &DecisionContext) -> Decision {
 /// The deterministic announce rule (spec 028 FR-018), shared by every
 /// scripted decider: say the highest-pressure need whose want-kind is
 /// legal right now -- "meow whenever legal" is the honest broadcast, and
-/// the mask (grounding + per-kind cooldown) is the whole restraint.
-/// Equal pressures tie-break in `NeedKind::ALL` order (the selection
-/// precedent). Computed after and independent of the activity: announcing
-/// never displaces the turn (the imitability principle's source-side
-/// half). No RNG -- the announce lotteries died with the courtesy era.
+/// the law (grounding + top need + no known relief + per-kind cooldown,
+/// spec 049 FR-036) is the whole restraint; since only the TOP need's
+/// want can be legal, the scan collapses to it by construction -- ONE
+/// predicate, `message_legal` over the cat's fog view, shared with the
+/// RL mask. Equal pressures tie-break in `NeedKind::ALL` order (the
+/// selection precedent). Computed after and independent of the activity:
+/// announcing never displaces the turn (the imitability principle's
+/// source-side half). No RNG -- the announce lotteries died with the
+/// courtesy era. Spec 049 (US8) adds the reply tier beside the own want
+/// (`reply_candidate`); the ambient here (`announce_here`) still only
+/// fills a slot both leave Silent, so the ladder reads WaitForMe >
+/// {reply, own want} > ambient here > Silent.
 pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
     let mut best: Option<(f32, MessageKind)> = None;
     for need in crate::needs::NeedKind::ALL {
         let want = MessageKind::for_need(need);
-        if !crate::meow::message_legal(
-            &ctx.me,
-            want,
-            ctx.world.tick,
-            &ctx.config,
-            &ctx.world.elements,
-        ) {
+        if !crate::meow::message_legal(&ctx.me, want, ctx.world.tick, &ctx.config, &ctx.world) {
             continue;
         }
         let pressure = ctx.me.needs.get(need);
@@ -504,10 +512,55 @@ pub(crate) fn announce(ctx: &DecisionContext) -> Option<MessageKind> {
             best = Some((pressure, want));
         }
     }
-    if let Some((_, want)) = best {
-        return Some(want);
+    // Spec 049 FR-042–FR-045: the reply tier shares the rung with the own
+    // want. A reply exists only with the listener floor set; own raw need
+    // above the caller's intensity × 100 speaks, ties go to the reply; the
+    // loser simply waits (cooldowns are never bypassed). Message only --
+    // the action is untouched, and a built-in never consumes a here it
+    // hears (FR-046: a caller keeps exploring).
+    match (best, reply_candidate(ctx)) {
+        (Some((pressure, want)), Some((intensity, here))) => {
+            // Compared in the stamp's own domain (need / 100, f32), so a
+            // caller stamped from need 45 ties an own need of 45 exactly.
+            if pressure / 100.0 > intensity {
+                Some(want)
+            } else {
+                Some(here)
+            }
+        }
+        (Some((_, want)), None) => Some(want),
+        (None, Some((_, here))) => Some(here),
+        (None, None) => announce_here(ctx),
     }
-    announce_here(ctx)
+}
+
+/// The scripted reply candidate (spec 049 FR-042/FR-043): with the
+/// listener floor set, among the audible wants from OTHER cats in the
+/// start-of-tick buffer whose paired here-word is legal for this cat now
+/// (flag on, cooldown clear, referent visible -- `message_legal`'s here
+/// tier over the fog view) and whose stamped intensity is at or above
+/// the floor, the highest intensity; ties to the fresher call, then the
+/// lower id. `want_cuddle` / `want_bath` have no paired here and are
+/// never answered. Floor unset: `None`, always -- the pre-ladder streams
+/// are byte-identical (SC-011).
+fn reply_candidate(ctx: &DecisionContext) -> Option<(f32, MessageKind)> {
+    let floor = ctx.config.behavior.reply_intensity_floor?;
+    let window = ctx.config.meow.digest_window_ticks;
+    let view = &ctx.world;
+    view.recent_meows
+        .iter()
+        .filter(|m| m.kitty_id != ctx.me.id && m.intensity >= floor && view.audible(m, window))
+        .filter_map(|m| crate::meow::here_for_want(m.kind).map(|here| (m, here)))
+        .filter(|(_, here)| {
+            crate::meow::message_legal(&ctx.me, *here, view.tick, &ctx.config, view)
+        })
+        .max_by(|(a, _), (b, _)| {
+            a.intensity
+                .total_cmp(&b.intensity)
+                .then(a.tick.cmp(&b.tick))
+                .then(b.kitty_id.cmp(&a.kitty_id))
+        })
+        .map(|(m, here)| (m.intensity, here))
 }
 
 /// The here path (spec 043): fills a slot the want loop left Silent —
@@ -538,13 +591,7 @@ fn announce_here(ctx: &DecisionContext) -> Option<MessageKind> {
     let legal: Vec<MessageKind> = MessageKind::HERE_KINDS
         .into_iter()
         .filter(|&kind| {
-            crate::meow::message_legal(
-                &ctx.me,
-                kind,
-                ctx.world.tick,
-                &ctx.config,
-                &ctx.world.elements,
-            )
+            crate::meow::message_legal(&ctx.me, kind, ctx.world.tick, &ctx.config, &ctx.world)
         })
         .collect();
     if legal.is_empty() {
@@ -935,7 +982,7 @@ mod tests {
         let me = snapshot.kitty(broken.kitty_id).unwrap().clone();
         let ctx = DecisionContext {
             me,
-            world: snapshot.clone(),
+            world: Arc::new(snapshot.fog_for(broken.kitty_id, config.vision.radius)),
             rng: DecisionRng::from_seed(broken.seed),
             config: config.clone(),
         };
@@ -976,7 +1023,7 @@ mod tests {
             let behavior = registry.get(&kitty.behavior);
             let ctx = DecisionContext {
                 me: kitty,
-                world: snapshot.clone(),
+                world: Arc::new(snapshot.fog_for(r.kitty_id, config.vision.radius)),
                 rng: DecisionRng::from_seed(r.seed),
                 config: config.clone(),
             };
@@ -1009,7 +1056,7 @@ mod tests {
         let me = world.kitty(1).unwrap().clone();
         DecisionContext {
             me,
-            world: Arc::new(world.snapshot()),
+            world: Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
             rng: DecisionRng::from_seed(9876),
             config,
         }
@@ -1044,14 +1091,16 @@ mod tests {
     fn a_want_word_outranks_a_here_word() {
         // T009 / FR-004 (owner precedence ruling 2026-08-23): armed want +
         // adjacent referent + knob on + phase tick → the want speaks; the
-        // here path fills only a slot that would otherwise be Silent.
+        // here path fills only a slot that would otherwise be Silent. The
+        // want is WantSleep since spec 049 (no knowledge gate): want_eat
+        // beside a visible bowl is exactly what the fog law silences.
         let ctx = here_ctx(1, 51, |w| {
             adjacent_chow(w);
             let idx = w.kitty_index(1).unwrap();
-            w.kitties[idx].announce_armed.insert(NeedKind::Eat);
-            w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+            w.kitties[idx].announce_armed.insert(NeedKind::Sleep);
+            w.kitties[idx].needs.add(NeedKind::Sleep, 60.0);
         });
-        assert_eq!(announce(&ctx), Some(MessageKind::WantEat));
+        assert_eq!(announce(&ctx), Some(MessageKind::WantSleep));
     }
 
     #[test]
@@ -1125,5 +1174,286 @@ mod tests {
         config.meow.vocabulary.here_food = false;
         let ctx = here_ctx_with(config, 51, adjacent_chow);
         assert_eq!(announce(&ctx), None);
+    }
+    // ---- spec 049 US8: the scripted reply ladder (T064) ----
+    //
+    // Scenario 8 (an ambient here landing while a want is audible is
+    // stamped reply 1) is the engine stamp's own guard:
+    // `tests/meow_law_fog.rs` (`stamped.reply`). The scenarios here drive
+    // `announce` / `decide` directly on a fogged 16x16 stage at r = 5:
+    // kitty 1 at (8, 8), kitty 2 at (12, 12) -- out of the disc (32 > 25),
+    // audible everywhere.
+
+    use crate::meow::Meow;
+
+    fn ladder_ctx(
+        floor: Option<f32>,
+        tick: u64,
+        setup: impl FnOnce(&mut World),
+    ) -> DecisionContext {
+        let mut config = test_config();
+        config.vision.radius = 5;
+        config.behavior.reply_intensity_floor = floor;
+        config.validate().unwrap();
+        here_ctx_with(config, tick, setup)
+    }
+
+    fn call(world: &mut World, from: u32, kind: MessageKind, tick: u64, intensity: f32) {
+        world.recent_meows.push(Meow {
+            kitty_id: from,
+            kind,
+            tick,
+            intensity,
+            pos: Position::new(12, 12),
+            reply: false,
+        });
+    }
+
+    fn chow_near(world: &mut World) {
+        world.push_element(Element {
+            id: 700,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(10, 8), // in the disc, not adjacent
+            ttl: None,
+        });
+    }
+
+    fn water_near(world: &mut World) {
+        world.push_element(Element {
+            id: 701,
+            kind: ElementKind::Water,
+            pos: Position::new(8, 10),
+            ttl: None,
+        });
+    }
+
+    #[test]
+    fn with_the_floor_unset_no_want_is_ever_answered() {
+        // US8 scenario 1 / FR-043: the ladder does not exist without the
+        // listener floor -- SC-011's byte-identity rests on this.
+        for intensity in [0.0f32, 0.45, 1.0] {
+            let ctx = ladder_ctx(None, 100, |w| {
+                chow_near(w);
+                call(w, 2, MessageKind::WantEat, 95, intensity);
+            });
+            assert_eq!(reply_candidate(&ctx), None);
+            assert_eq!(announce(&ctx), None, "intensity {intensity}: silent");
+        }
+    }
+
+    #[tokio::test]
+    async fn a_want_at_or_above_the_floor_is_answered_and_the_action_is_untouched() {
+        // US8 scenario 2 / FR-042, FR-044: 0.45 >= 0.30 -> here_food; the
+        // floor itself is inclusive; the activity is what the ladder alone
+        // would have chosen.
+        let stage = |intensity: f32| {
+            ladder_ctx(Some(0.30), 100, move |w| {
+                chow_near(w);
+                call(w, 2, MessageKind::WantEat, 95, intensity);
+            })
+        };
+        assert_eq!(announce(&stage(0.45)), Some(MessageKind::HereFood));
+        assert_eq!(
+            announce(&stage(0.30)),
+            Some(MessageKind::HereFood),
+            "at the floor: answered"
+        );
+        assert_eq!(announce(&stage(0.29)), None, "below the floor: silent");
+        let decision = NeedsDriven.decide(&stage(0.45)).await;
+        assert_eq!(decision.message, Some(MessageKind::HereFood));
+        assert_eq!(
+            decision.activity,
+            NeedsDriven.decide_action(&stage(0.45)),
+            "message only: the action is the ladder's own"
+        );
+    }
+
+    #[test]
+    fn the_loudest_want_is_answered_ties_to_the_fresher_call_then_the_lower_id() {
+        // US8 scenario 3 / FR-042.
+        let two = ladder_ctx(Some(0.30), 100, |w| {
+            chow_near(w);
+            water_near(w);
+            call(w, 2, MessageKind::WantEat, 97, 0.45);
+            call(w, 2, MessageKind::WantDrink, 95, 0.60);
+        });
+        assert_eq!(announce(&two), Some(MessageKind::HereWater), "the 0.60 one");
+        let fresher = ladder_ctx(Some(0.30), 100, |w| {
+            chow_near(w);
+            water_near(w);
+            call(w, 2, MessageKind::WantEat, 95, 0.5);
+            call(w, 2, MessageKind::WantDrink, 97, 0.5);
+        });
+        assert_eq!(
+            announce(&fresher),
+            Some(MessageKind::HereWater),
+            "equal: the fresher"
+        );
+        // Same intensity, same tick, two callers: the lower id.
+        let mut config = test_config();
+        config.vision.radius = 5;
+        config.behavior.reply_intensity_floor = Some(0.30);
+        config.kitties.push(crate::config::KittyConfig {
+            id: 3,
+            name: "Clementine".into(),
+            x: 0,
+            y: 0,
+            behavior: "needs_driven".into(),
+            needs: None,
+        });
+        config.validate().unwrap();
+        let lower = here_ctx_with(config, 100, |w| {
+            chow_near(w);
+            water_near(w);
+            call(w, 3, MessageKind::WantEat, 96, 0.5);
+            call(w, 2, MessageKind::WantDrink, 96, 0.5);
+        });
+        assert_eq!(
+            announce(&lower),
+            Some(MessageKind::HereWater),
+            "equal, same tick: id 2"
+        );
+    }
+
+    #[test]
+    fn own_need_above_the_callers_intensity_speaks_and_a_tie_goes_to_the_reply() {
+        // US8 scenario 4 / FR-045: own raw need vs caller intensity x 100.
+        // Sleep is the own want (never silenced by known relief), so both
+        // rungs are live at once.
+        let stage = |own: f32| {
+            ladder_ctx(Some(0.30), 100, move |w| {
+                chow_near(w);
+                call(w, 2, MessageKind::WantEat, 95, 0.45);
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Sleep, own);
+                w.kitties[idx].announce_armed.insert(NeedKind::Sleep);
+            })
+        };
+        assert_eq!(
+            announce(&stage(50.0)),
+            Some(MessageKind::WantSleep),
+            "50 > 45: own want"
+        );
+        assert_eq!(
+            announce(&stage(45.0)),
+            Some(MessageKind::HereFood),
+            "45 vs 0.45: tie -> reply"
+        );
+        assert_eq!(
+            announce(&stage(40.0)),
+            Some(MessageKind::HereFood),
+            "40 < 45: reply"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_yield_outranks_a_reply() {
+        // US8 scenario 5: etiquette speaks first. The spec-012 corner stage
+        // (kitty 2 asks and waits) with a want kitty 2 could answer.
+        let mut config = test_config();
+        config.behavior.reply_intensity_floor = Some(0.30);
+        config.validate().unwrap();
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        world.elements.clear();
+        world.tick = 100; // even
+        let friend = world.kitty_index(1).unwrap();
+        world.kitties[friend].pos = Position::new(5, 5);
+        let me = world.kitty_index(2).unwrap();
+        world.kitties[me].pos = Position::new(6, 6); // Manhattan 2
+        world.kitties[me].needs.add(NeedKind::Cuddle, 90.0);
+        world.kitties[me].set_meow_cooldown(MessageKind::WantCuddle, u64::MAX);
+        world.push_element(Element {
+            id: 700,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(7, 7),
+            ttl: None,
+        });
+        call(&mut world, 1, MessageKind::WantEat, 95, 0.9);
+        let me = world.kitty(2).unwrap().clone();
+        let ctx = DecisionContext {
+            me,
+            world: Arc::new(world.snapshot().fog_for(2, config.vision.radius)),
+            rng: DecisionRng::from_seed(9876),
+            config,
+        };
+        assert_eq!(
+            reply_candidate(&ctx),
+            Some((0.9, MessageKind::HereFood)),
+            "a reply was available"
+        );
+        let decision = NeedsDriven.decide(&ctx).await;
+        assert_eq!(
+            decision.message,
+            Some(MessageKind::WaitForMe),
+            "the yield wins the slot"
+        );
+    }
+
+    #[test]
+    fn a_cooling_here_word_is_no_reply_and_the_caller_is_not_made_to_wait() {
+        // US8 scenario 6: the here-kind's own cooldown is never bypassed --
+        // silent this tick, nothing queued.
+        let ctx = ladder_ctx(Some(0.30), 100, |w| {
+            chow_near(w);
+            call(w, 2, MessageKind::WantEat, 95, 0.45);
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].set_meow_cooldown(MessageKind::HereFood, 105);
+        });
+        assert_eq!(reply_candidate(&ctx), None);
+        assert_eq!(announce(&ctx), None);
+        // And a referent out of view is no reply either (FR-037).
+        let unseen = ladder_ctx(Some(0.30), 100, |w| {
+            w.push_element(Element {
+                id: 700,
+                kind: ElementKind::Chow { servings: 5 },
+                pos: Position::new(0, 0), // 128 > 25
+                ttl: None,
+            });
+            call(w, 2, MessageKind::WantEat, 95, 0.45);
+        });
+        assert_eq!(announce(&unseen), None);
+    }
+
+    #[test]
+    fn cuddle_and_bath_wants_are_never_answered() {
+        // US8 scenario 7 / FR-042: no paired here-word.
+        let ctx = ladder_ctx(Some(0.30), 100, |w| {
+            chow_near(w);
+            call(w, 2, MessageKind::WantCuddle, 95, 0.9);
+            call(w, 2, MessageKind::WantBath, 96, 0.9);
+        });
+        assert_eq!(reply_candidate(&ctx), None);
+        assert_eq!(announce(&ctx), None);
+    }
+
+    #[test]
+    fn a_scripted_caller_does_nothing_with_the_reply_it_hears() {
+        // US8 scenario 9 / FR-046: the blind hungry caller's next turn is
+        // the same exploration step with or without the reply in its ears.
+        let stage = |replied: bool| {
+            ladder_ctx(Some(0.30), 100, move |w| {
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Eat, 60.0);
+                w.kitties[idx].explore_waypoint = 3; // (16, 10): east of the cat
+                call(w, 1, MessageKind::WantEat, 95, 0.6);
+                if replied {
+                    w.recent_meows.push(Meow {
+                        kitty_id: 2,
+                        kind: MessageKind::HereFood,
+                        tick: 96,
+                        intensity: 0.0,
+                        pos: Position::new(12, 12),
+                        reply: true,
+                    });
+                }
+            })
+        };
+        let heard = NeedsDriven.decide_action(&stage(true));
+        assert_eq!(heard, NeedsDriven.decide_action(&stage(false)));
+        assert_eq!(
+            heard,
+            crate::action::Action::move_to(crate::grid::Direction::East)
+        );
     }
 }

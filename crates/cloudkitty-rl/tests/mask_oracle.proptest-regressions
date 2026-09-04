@@ -1,0 +1,9 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 9007274073b31252b4431563df94d36224a80f0c13943ef1f97b76e3b2047461 # shrinks to spec = WorldSpec { roster: 2, positions: [(17, 28), (5, 13)], activities: [Eating, PlaySolo], serviced: [2, 2] }
+cc ace32bab9ef8592f709a0c39b9078e40b30eb973f256efc1f06aedbe0e3fa757 # shrinks to spec = WorldSpec { roster: 2, positions: [(0, 0), (0, 3)], activities: [PlayKitty(3), Idle], serviced: [0, 0] }
+cc e0df1f9ae8e45ef9d51ecb00979865ff374c83d8c76ca6013f6a71793af170d7 # shrinks to spec = WorldSpec { roster: 6, positions: [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0)], activities: [Idle, Idle, Idle, RestWith(2), Idle, Idle], serviced: [0, 0, 0, 0, 0, 0] }

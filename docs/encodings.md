@@ -1,8 +1,8 @@
 # Encodings — the living contract
 
 Every number a policy sees or emits, in one place: observation vectors,
-the action menu and message head, legality masks, the meow digest, the
-critic's global state, and the bc-collect dataset format. Each section is
+the action menu and message head, legality masks, the per-speaker message
+blocks, the critic's global state, and the bc-collect dataset format. Each section is
 versioned; the current version is marked. Every row here is verified
 against the code it describes, with the source cited.
 
@@ -13,7 +13,9 @@ edit here is an incomplete change. This file supersedes
 `specs/014-multi-agent-rl/contracts/encodings.md` (frozen at its v1/40-menu
 vintage); historical versions remain summarized below so old datasets and
 retired artifacts stay readable. The frozen normative tables for the most
-recent move live in `specs/033-say-surface/contracts/say-surface-v3.md`.
+recent move live in `specs/049-fog-gen1/contracts/observation-v5.md` (the
+fog wall); the previous move's in
+`specs/033-say-surface/contracts/say-surface-v3.md`.
 
 Shared orderings (normative everywhere below; sources cited):
 
@@ -26,18 +28,33 @@ Shared orderings (normative everywhere below; sources cited):
 - `HEAD_KINDS` (15, spec 033) = want_eat, want_drink, mew, want_play,
   want_cuddle, purr, want_bath, want_sleep, here_food, here_water,
   here_critter, here_sunbeam, chirp, trill, ekekek (`observe.rs`;
-  `wait_for_me` is engine-only and lives in no head, digest, or mask)
+  `wait_for_me` is engine-only and lives in no head, message block, or
+  mask)
+- `WANT_KINDS` (6, spec 049) = want_eat, want_drink, want_play,
+  want_cuddle, want_bath, want_sleep — `HEAD_KINDS` order, the intensity
+  cells' order (`observe.rs`)
+- `HERE_KINDS` (4, spec 043) = here_food, here_water, here_critter,
+  here_sunbeam — the answers-me bits' order (`meow.rs`)
 
-## Observation — CURRENT: schema 4 (spec 033; `observe.rs`)
+## Observation — CURRENT: schema 5 (spec 049, the fog wall; `observe.rs`)
 
-Layout: `self 34 | kitty×3 ×20 | chow×2 ×5 | water×2 ×4 | sunbeam×2 ×6 |
-critter×4 ×10 | digest 15×4 | clock 1` = **225** at the served slot
-configuration. Length is `observation_len(cfg)` — config-derived, never a
-constant to quote. A vacant slot is an all-zero block; the first field
-doubles as the presence flag. Kitty slots are 3 by schema constant,
-independent of roster size (someone-always-unslotted is deliberate).
+Layout: `self 85 | kitty×4 ×63 | chow×2 ×5 | water×2 ×4 | sunbeam×2 ×6 |
+critter×4 ×10 | clock 1` = **408** at the served slot configuration
+(404 until the kitty-row sunbeam bit landed, 2026-09-04).
+Length is `observation_len(cfg)` — config-derived, never a constant to
+quote; `schema_five_pins.rs` asserts every number here literally. The
+vector is a pure function of the deciding cat's **fog view**
+(`WorldSnapshot::fog_for`): the kitties and elements inside its
+Euclidean disc (`dx² + dy² ≤ r²`, integer, edge included; `[vision]
+radius`), every recent meow (hearing is global), the roster's ids, and
+its own memory — the same information set every built-in behaviour and
+plugin decides from (spec 049 FR-021). Kitty rows are **permanent, one
+per friend, in kitty-id order** (`kitty_slots` = roster − 1, served 4; a
+roster above `kitty_slots + 1` is refused at load); a vacant row (a lab
+roster smaller than five) is all zero. The schema-4 global meow digest is
+gone: repetition and insistence are per-speaker fields on the rows.
 
-**Self block (34)** — offsets within the block:
+**Self block (85)** — never fogged (FR-005):
 
 | off | field | normalization |
 |---|---|---|
@@ -53,49 +70,61 @@ independent of roster size (someone-always-unslotted is deliberate).
 | 26 | pursuit present | 0/1 |
 | 27 | pursuit staleness | (tick − last_progress)/chase_patience, clamp |
 | 28–33 | own traits: per-need rise rates | /reference_need_rate |
+| 34 | own scene age | `activity_clock.elapsed / 24`, clamp 0–1; 0 with no scene; **24 frozen** (FR-019) |
+| 35–64 | own message block: per `HEAD_KINDS[k]`, `35+2k` recency, `36+2k` rate | recency `1 − age/digest_window_ticks`, clamp; rate `calls in window / (digest_window / recent_window_ticks)`, clamp; a call is in the window iff `age < digest_window` (FR-016) |
+| 65–84 | element memory: per `ElementType::ALL[j]`, `65+4j` present, `+1` dx, `+2` dy, `+3` staleness | dx/dy = remembered tile − CURRENT position (/width, /height); staleness `(tick − last_seen) / 40`, clamp; **40 frozen** (FR-009); seeded at generation from the tick-0 disc (stamped 0), so a reset observation already carries what is in view |
 
-**Kitty slot (20)** — nearest-first with target-priority displacement
-(the `TargetTable` fill rule; the entity my activity references always
-gets a slot):
+**Kitty row (63) × 4**, row k = the friend with the (k+1)-th smallest id.
+A row's contents follow the friend's state for the observer this tick
+(FR-012): **Seen** (inside the disc) → every field; **Heard** (outside
+the disc, at least one audible call of any kind inside the digest window)
+→ present 0, dx/dy/distance to the friend's **position at its last
+audible meow** (the meow's stamped `pos`, however far it has walked
+since), the message block live, everything else 0; **Silent** (outside
+the disc, no call in the window) → 63 zeros.
 
-| off | field | normalization |
-|---|---|---|
-| 0 | present | 0/1 |
-| 1–2 | dx, dy (them − me) | /width, /height |
-| 3 | manhattan distance | /(width + height) |
-| 4–9 | their needs | /100 |
-| 10 | their happiness | /100 |
-| 11–17 | their activity one-hot | 0/1 |
-| 18 | their activity has a partner | 0/1 |
-| 19 | is my activity's target | 0/1 |
+| off | field | normalization | Seen | Heard |
+|---|---|---|---|---|
+| 0 | present = seen this tick | 0/1 | 1 | 0 |
+| 1–2 | dx, dy | (them − me)/width, /height | live | stamped meow pos |
+| 3 | manhattan distance | /(width + height) | live | to the meow pos |
+| 4–9 | their needs | /100 | ✓ | 0 |
+| 10 | their happiness | /100 | ✓ | 0 |
+| 11–17 | their activity one-hot | 0/1 | ✓ | 0 |
+| 18 | their activity has a partner | 0/1 | ✓ | 0 |
+| 19 | is my activity's target | 0/1 | ✓ | 0 |
+| 20 | neighbour in water (tile-derived) | 0/1 | ✓ | 0 |
+| 21 | neighbour on a sunbeam (tile-derived; the scripted sleep arm's "friend on a beam" as one cell, so a policy can read what its teacher reads) | 0/1 | ✓ | 0 |
+| 22 | their scene age | elapsed/24, clamp | ✓ | 0 |
+| 23–52 | message block: per `HEAD_KINDS[k]`, `23+2k` recency, `24+2k` rate (their own calls) | as the self block | ✓ | ✓ |
+| 53–58 | want intensity: per `WANT_KINDS` kind, the last stamped `need/100` of their freshest call of that kind in the window | 0–1; 0 outside the window | ✓ | ✓ |
+| 59–62 | answers-me: per `HERE_KINDS` kind, 1 iff their freshest here of that kind in the window was emitted after my own matching want in the window | 0/1 | ✓ | ✓ |
 
-**Element slots** — common prefix (present, dx, dy, distance), then:
-chow (5): + servings (/max_chow_servings, clamp); water (4): prefix only;
-sunbeam (6): + remaining-ttl fraction (1.0 if untimed) + occupied-by-any-
-kitty; critter (10): + is-greeble + heading one-hot (4, `Direction::ALL`
-order; zeros for a bug) + is-my-activity's-target. Chow, water, and
-sunbeam slots are pure nearest-K; critters use the target-priority fill.
-
-**Meow digest (15 × 4 = 60)** — per `HEAD_KINDS` kind, the single
-freshest audible emitter (max tick; tie to the LOWER kitty id; a
-listener's own meows are inaudible to it — `freshest_audible`, one shared
-implementation):
-
-| off | field | normalization |
-|---|---|---|
-| 0 | recency | 1 − age/recent_window_ticks, clamp 0–1 |
-| 1–2 | emitter dx, dy — LIVE, recomputed each tick | /width, /height |
-| 3 | intensity stamped at emission | clamp 0–1; **0.0 for every non-want kind** (`related_need() == None`: purr, mew, the Here family, chirp, trill, ekekek) |
-
-The dx/dy are the *speaker's* live offset, never a resource coordinate —
-a digest entry can outlive its referent but can never point at a stale
-location (spec 033 FR-005). The reserve columns (trill, ekekek) are
-all-zero in every world until an experiment arms those flags.
+**Element slots** — unchanged widths; candidates are the elements inside
+my disc (FR-004); nearest-K by (Manhattan, id); critters keep the
+target-priority fill (the played-with critter is always granted a slot).
+Common prefix (present, dx, dy, distance), then: chow (5): + servings
+(/max_chow_servings, clamp); water (4): prefix only; sunbeam (6): +
+remaining-ttl fraction (1.0 if untimed) + occupied-by-any-kitty; critter
+(10): + is-greeble + heading one-hot (4, `Direction::ALL` order; zeros for
+a bug) + is-my-activity's-target. `dist` fields stay Manhattan (they mean
+travel).
 
 **Clock (1)**: episode tick/horizon, clamp 0–1; 0 at deploy.
 
+The v3 artifact's token layout derives from these widths: 16 tokens
+(self, 4 kitty, 2 chow, 2 water, 2 sunbeam, 4 critter, clock), seven
+type-embedding rows — the message-kind tokens went with the digest.
+
 ### Historical observation versions
 
+- **Schema 4** (spec 033): `self 34 | kitty×3 ×20 | chow×2 ×5 | water×2
+  ×4 | sunbeam×2 ×6 | critter×4 ×10 | digest 15×4 | clock 1` = 225.
+  Kitty slots nearest-first with target-priority displacement; the global
+  meow digest per `HEAD_KINDS` kind = (recency `1 − age/recent_window`,
+  emitter dx, dy LIVE, intensity) of the single freshest audible emitter;
+  30 tokens / 22 type rows. Frozen tables in
+  `specs/033-say-surface/contracts/say-surface-v3.md`.
 - **Schema 3** (spec 028): digest 8×4, obs 197. Same layout otherwise.
 - **Schema 2** (spec 026): the in-water self flag arrived (33→34), obs
   183→184-era layout with the split digest; superseded by 028's coherent
@@ -104,31 +133,34 @@ all-zero in every world until an experiment arms those flags.
   era. Fully specified in the frozen
   `specs/014-multi-agent-rl/contracts/encodings.md`.
 
-## Action encoding — CURRENT: schema 3 (spec 033; `codec.rs`)
+## Action encoding — CURRENT: schema 3 (spec 033; `codec.rs`) — menu 39 at `kitty_slots` 4 (spec 049)
 
-**The activity menu is v2's 34 entries, UNCHANGED across the 2→3 bump.**
-The bump versions the full decision encoding, and what moved is the
-message head (9 → 16). Do not hunt for a menu delta; there is none.
+**The schema did not move at the fog wall**: the menu is config-derived
+by the same v2 construction rule, and only `k` (`kitty_slots`) moved, 3 →
+4, so the served menu is 39 entries (one kitty-verb group for the fourth
+row). `ACTION_SCHEMA_VERSION` stays 3.
 
 | idx | entry | notes |
 |---|---|---|
 | 0–3 | Move North / East / South / West | `Direction::ALL` order |
 | 4 | Rest (solo) | |
-| 5–7 | Rest with kitty slot 0/1/2 | cuddle |
-| 8 | Sleep (solo) | |
-| 9–11 | Sleep with kitty slot 0/1/2 | |
-| 12 | Groom (self) | |
-| 13–15 | Groom kitty slot 0/1/2 | |
-| 16, 17 | Eat, Drink | |
-| 18–21 | Chase critter slot 0/1/2/3 | |
-| 22–24 | Chase kitty slot 0/1/2 | |
-| 25 | Play (solo pounce) | |
-| 26–29 | Play with critter slot 0/1/2/3 | |
-| 30–32 | Play with kitty slot 0/1/2 | |
-| 33 | Idle | |
+| 5–8 | Rest with kitty row 0/1/2/3 | cuddle |
+| 9 | Sleep (solo) | |
+| 10–13 | Sleep with kitty row 0/1/2/3 | |
+| 14 | Groom (self) | |
+| 15–18 | Groom kitty row 0/1/2/3 | |
+| 19, 20 | Eat, Drink | |
+| 21–24 | Chase critter slot 0/1/2/3 | |
+| 25–28 | Chase kitty row 0/1/2/3 | |
+| 29 | Play (solo pounce) | |
+| 30–33 | Play with critter slot 0/1/2/3 | |
+| 34–37 | Play with kitty row 0/1/2/3 | |
+| 38 | Idle | |
 
 A vacant slot decodes to a reserved id and lawfully validates to idle —
-totality, never a decode error.
+totality, never a decode error. A kitty row names the same cat every
+tick (permanent rows); under fog a row whose friend is outside the disc is
+never a legal target (the mask silences it).
 
 **Message head (16)**: index 0 = Silent (always legal, structural);
 index k+1 = `HEAD_KINDS[k]`. So: want-kinds and purr at 1–8 with **mew at
@@ -138,14 +170,19 @@ reserves trill 14 and ekekek 15. Frozen through the fog era (ROADMAP
 principle 5): future vocabulary experiments are `[meow.vocabulary]` flag
 flips over the reserves, never codec moves.
 
-**v3 policy output (50 logits)**: dense 11 + kitty-pointer 15 (5 verbs ×
-3 slots) + critter-pointer 8 (2 verbs × 4 slots) + message head 16.
+**v3 policy output (55 logits)**: dense 11 + kitty-pointer 20 (5 verbs ×
+4 rows) + critter-pointer 8 (2 verbs × 4 slots) + message head 16.
 Artifact containers and the forward contract: spec 030's
 `policy-artifact-v3.md` / `forward-v3.md`, amended by spec 033's
 `artifact-pins-delta.md`.
 
 ### Historical action versions
 
+- **Schema 3 at `kitty_slots` 3** (spec 033 → spec 049): menu 34, 50
+  logits (kitty-pointer 15); the index table above with one fewer row per
+  kitty-verb group (Sleep solo 8, Groom self 12, Eat/Drink 16/17, Chase
+  critter 18–21, Chase kitty 22–24, Play solo 25, Play critter 26–29, Play
+  kitty 30–32, Idle 33).
 - **Schema 2** (spec 028): menu 34 (meow rows removed, Idle renumbered),
   head 9. Head index 3 was `follow_me` — the same word mew answers for.
 - **Schema 1** (spec 014): the 40-entry menu with meow rows; frozen
@@ -153,17 +190,23 @@ Artifact containers and the forward contract: spec 030's
 
 ## Mask — CURRENT: schema 3 (spec 033; `mask.rs`)
 
-One vector: `[activity mask (34) ∥ message mask (16)]` = 50 at default
-slots, u8/bool. Both halves are pure oracles over engine law — the
-activity half probes `validate`, the message half probes `message_legal`
-— never reimplemented (the mask-oracle tests prove equivalence). Neither
+One vector: `[activity mask (39) ∥ message mask (16)]` = 55 at default
+slots (50 at `kitty_slots` 3), u8/bool. Both halves are pure oracles over
+engine law, probed over the deciding cat's **fog view** (spec 049 R2) —
+the activity half probes `validate` and duration enforcement on a probe
+world built from the view, the message half probes `message_legal` —
+never reimplemented (the mask-oracle tests prove equivalence with the
+full-world verdict at every radius ≥ 2, with two named exceptions: a
+kitty-targeted entry whose friend is outside the disc is fog-silenced,
+and a critter play whose critter hopped outside the disc is released —
+see `mask_oracle.rs`). Neither
 half is ever all-zero: the activity mask structurally (FR-018 of 014),
 the message mask because Silent is always legal. A kind disabled by
 `[meow.vocabulary]` is masked false on every tick; flags gate legality
 only and never move any width in this document.
 
-Historical: schema 2 (spec 028) was `[34 ∥ 9]` = 43; schema 1 masked the
-40-menu.
+Historical: schema 3 at `kitty_slots` 3 (spec 033) was `[34 ∥ 16]` = 50;
+schema 2 (spec 028) was `[34 ∥ 9]` = 43; schema 1 masked the 40-menu.
 
 ## Global state — CURRENT: v1 (`global_state.rs`, critic-only)
 
@@ -194,7 +237,8 @@ clock.
 
 Row invariant: `mask[i, label[i]] == 1` and `mask_msg[i, label_msg[i]]
 == 1` everywhere; `mask_msg[:, 0]` all-ones. Datasets record the schema
-they were collected under; a v4-observation dataset is 225/34/16-shaped.
+they were collected under; a schema-5 dataset is 408/39/16-shaped (a
+schema-4 one was 225/34/16).
 
 ## Documented elsewhere (pointers, not duplication)
 
@@ -203,4 +247,5 @@ policy-artifact.md`, v3 in `specs/030-artifact-v3/contracts/
 policy-artifact-v3.md` (+ forward and parity-fixture format in
 `forward-v3.md`), pins amended by `specs/033-say-surface/contracts/
 artifact-pins-delta.md`. The plugin proposal wire: `docs/plugins.md`
-(v2 since spec 033). What the words MEAN: `docs/meows.md`.
+(v3 since spec 049: the fogged world). What the words MEAN, and the law
+under fog: `docs/meows.md`.

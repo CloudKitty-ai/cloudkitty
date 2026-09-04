@@ -538,6 +538,14 @@ async fn refusals_appear_on_the_refusal_events_endpoint() {
     );
     let events: Vec<RefusalEvent> = serde_json::from_value(window["events"].clone())
         .expect("the served list deserializes as the refusal ring's own type");
+    // Spec 049 T093: every row names its reason in the wire vocabulary.
+    for row in window["events"].as_array().unwrap() {
+        let reason = row["reason"].as_str().expect("reason is a string");
+        assert!(
+            ["partner_absent", "partner_busy", "other"].contains(&reason),
+            "{reason}"
+        );
+    }
     let mut last_tick = 0;
     for ev in &events {
         assert_ne!(ev.proposed, Action::Idle, "Idle is never refused");
@@ -617,7 +625,8 @@ async fn the_viewer_is_served_at_the_root() {
 /// One config that exercises all three seat kinds (spec 034 FR-005): a
 /// policy seat (fixture artifact + its registry row), a builtin, a plugin.
 fn describe_config_text(artifact: &std::path::Path) -> String {
-    format!(
+    // Spec 049 FR-030: completed over the defaults -- every section stated.
+    cloudkitty_core::test_support::complete_toml(&format!(
         r#"
 [world]
 # 32x32: the default element counts validate against floor(area / 32),
@@ -653,9 +662,12 @@ artifact = "{}"
 
 [plugins.advisor]
 command = "/bin/echo"
+[vision]
+radius = 40
+memory_timeout_ticks = 0
 "#,
         artifact.display()
-    )
+    ))
 }
 
 #[tokio::test]
@@ -686,9 +698,12 @@ async fn behavior_descriptions_serve_per_seat_kind_on_every_surface() {
         match kitty["behavior"].as_str().unwrap() {
             "policy:trained" => assert_eq!(desc.unwrap(), "Test · BC+PPO"),
             "needs_driven" => assert_eq!(desc.unwrap(), "Scripted"),
+            // Spec 049 FR-032: the kitty record serializes every field
+            // (the restore shims are gone), so a plugin seat's missing
+            // description is an explicit `null`, never an absent key.
             "advisor" => assert!(
-                desc.is_none(),
-                "a plugin seat serves no description: {kitty}"
+                desc.is_some_and(Value::is_null),
+                "a plugin seat serves a null description: {kitty}"
             ),
             other => panic!("unexpected behavior {other}"),
         }
@@ -929,4 +944,139 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     let entries = distressed["entries"].as_array().unwrap();
     assert!(!entries.is_empty(), "the streak is on the surface");
     assert_eq!(entries[0]["age"], 400);
+}
+
+/// Spec 049 FR-040: every recorded meow on `/world` carries the engine
+/// stamps `pos` (the speaker's position at emission) and `reply`, beside
+/// the fields it always had -- additive, nothing renamed or removed.
+#[tokio::test]
+async fn recorded_meows_carry_pos_and_reply_on_the_world_payload() {
+    // A cat whose eat need rockets arms `want_eat` on its first needs
+    // phase, so the scripted announce speaks within a few ticks.
+    let mut config = test_config();
+    config.kitties[0].needs = Some(cloudkitty_core::config::NeedRateOverrides {
+        eat: Some(20.0),
+        ..Default::default()
+    });
+    config.validate().expect("valid");
+    let server = start_server_with(
+        Arc::new(config),
+        BehaviorRegistry::with_builtins(),
+        &std::collections::BTreeMap::new(),
+    )
+    .await;
+
+    let mut meows = Vec::new();
+    for _ in 0..200 {
+        let world: Value = reqwest::get(server.url("/world"))
+            .await
+            .expect("GET /world")
+            .json()
+            .await
+            .expect("JSON");
+        let recent = world["recent_meows"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        if !recent.is_empty() {
+            meows = recent;
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(30)).await;
+    }
+    assert!(
+        !meows.is_empty(),
+        "a hungry scripted cat speaks within 200 polls"
+    );
+    for m in &meows {
+        for key in ["kitty_id", "kind", "tick", "intensity"] {
+            assert!(
+                m.get(key).is_some(),
+                "schema-4 field {key} is still served: {m}"
+            );
+        }
+        let pos = &m["pos"];
+        assert!(
+            pos["x"].is_u64() && pos["y"].is_u64(),
+            "pos is the speaker's tile at emission: {m}"
+        );
+        assert!(
+            m["reply"].is_boolean(),
+            "reply is an engine-stamped bit: {m}"
+        );
+    }
+    server.shutdown().await;
+}
+
+/// Spec 049 FR-010: the kitty listing on `/world` carries `memory` (five
+/// slots, `ElementType::ALL` order) and `explore_waypoint` (the tour index,
+/// T088) additively -- the schema-4 fields are all still there, unchanged
+/// in shape.
+#[tokio::test]
+async fn kitties_on_the_world_payload_carry_memory_and_tour_index_additively() {
+    let server = start_server().await;
+    let world: Value = reqwest::get(server.url("/world"))
+        .await
+        .expect("GET /world")
+        .json()
+        .await
+        .expect("JSON");
+    let kitties = world["kitties"].as_array().expect("a roster");
+    assert!(kitties.len() >= 2);
+    for kitty in kitties {
+        for key in [
+            "id",
+            "name",
+            "pos",
+            "needs",
+            "happiness",
+            "activity",
+            "behavior",
+            "last_action",
+        ] {
+            assert!(
+                kitty.get(key).is_some(),
+                "schema-4 field {key} still served: {kitty}"
+            );
+        }
+        let memory = kitty["memory"].as_array().expect("memory is an array");
+        assert_eq!(memory.len(), 5, "one slot per element kind");
+        for slot in memory {
+            assert!(
+                slot.is_null() || (slot["pos"]["x"].is_u64() && slot["last_seen"].is_u64()),
+                "a slot is null or a remembered tile with its tick: {slot}"
+            );
+        }
+        let waypoint = &kitty["explore_waypoint"];
+        assert!(waypoint.is_u64(), "{waypoint}");
+    }
+    server.shutdown().await;
+}
+
+/// Spec 049 FR-011 / US2 scenario 6 at the boot seam: `main.rs` loads
+/// through `load_configs_from_str`, which refuses a roster the permanent
+/// rows cannot seat, naming the slot count and the roster.
+#[test]
+fn a_roster_above_the_slot_count_plus_one_is_refused_at_boot() {
+    let mut text = String::from(
+        "[world]\nwidth = 32\nheight = 32\ntick_ms = 800\nseed = 1\n\
+         [vision]\nradius = 40\nmemory_timeout_ticks = 0\n",
+    );
+    for i in 0..6 {
+        text.push_str(&format!(
+            "[[kitty]]\nid = {}\nname = \"K{i}\"\nx = {}\ny = 3\nbehavior = \"needs_driven\"\n",
+            i + 1,
+            2 * i + 1
+        ));
+    }
+    let err = cloudkitty_rl::config::load_configs_from_str(
+        &cloudkitty_core::test_support::complete_toml(&text),
+    )
+    .expect_err("six cats against four rows")
+    .to_string();
+    assert!(err.contains("[rl.observation] kitty_slots"), "{err}");
+    assert!(
+        err.contains("roster of 6") && err.contains("at least 5"),
+        "{err}"
+    );
 }

@@ -11,6 +11,25 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
+### `evals/v3`: the four wide exams re-cut at roster 5 (added 2026-09-04; Product thread; owner ruled "option 1")
+
+Spec 049's permanent by-id kitty rows make the observation width a
+function of the roster (`kitty_slots = roster − 1`), so `evals/v2`'s
+`scale` (8 cats, 597 floats) and `mixed-roster-{guest,half,host}` (6
+cats, 471) refuse a served-width (408) Gen 1 mind at artifact load
+(their frozen comment blocks still say "404 floats": the v2 manifest
+hash-freezes the files, so the number is corrected in v3, not in place) —
+`kitty-eval --suite evals/v2 --artifact <policy>` dies before a tick on 4
+of 6 exams (`/code-review high 049` finding 1; PR flag 5). v2 is frozen
+by its manifest, so the fix is `evals/v3`: the same six designs with the
+four wide exams re-cut at roster 5 (`scale` = 5 cats on the 48×48 world,
+keeping the dilution half of the question; mixed-roster cells 4 + 1,
+3 + 2, 1 + 4), `heterogeneity` and `scarcity` carried unchanged, new
+manifest hashes, the identity thresholds re-derived from the new roster
+shares by the existing manifest unit test, `kitty-eval`'s default suite
+→ v3, v2 listed in `config-sweep-exclusions.txt` as the record. Own
+spec; lands after the 049 PR and before the step-7 seating smoke.
+
 <!-- shipped P1 items are removed once merged; see git history -->
 
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
@@ -1805,6 +1824,32 @@ Options, costed:
   natural already").
 
 ## P2 — the bigger pieces, for a proper sitting
+
+### Fog hot-loop allocations in the training tick (added 2026-09-04; Product thread, from `/code-review high 049` findings 8–10)
+
+Three per-tick allocation sites spec 049 added, all LOW and none
+measured; the plan's stated goal was "no per-tick allocation growth
+beyond the views", and these exceed it:
+
+- `world.rs` message enforcement and `action.rs` `emit_message` each
+  build `self.snapshot()` (every kitty, element and the meow buffer) and
+  then `fog_for` keeps one disc — two whole-world clones per speaking cat
+  per tick, on top of `decision_jobs`' one view per cat. Fix shape: a
+  live-world `fog_for` that filters without the intermediate clone, and
+  (review 3, 2026-09-04) ONE view per apply slot threaded into
+  `apply_message` rather than `emit_message` rebuilding it.
+- `observe.rs` `row_state` calls `heard_unseen` (allocates; scans roster ×
+  buffer) once per kitty row; with the message block (15 passes per row)
+  and answers-me (8 more), on the order of 100 buffer scans per 408-float
+  observation. Fix shape: one pre-pass grouping meows by (kitty, kind).
+- `needs_driven.rs` `groom_response` clones `recent_meows` into a `Vec`
+  per cat per tick to reuse `freshest_audible`'s slice signature; the
+  filter + max can run in place over the borrowed slice.
+
+Bill: measure first (ticks/s on the served roster all-scripted, and the
+bc-collect / PPO rollout rate). The buffers are small (5 cats, ~25
+elements, ≤ ~50 meows), so the win may be modest — do it if step-5
+throughput reads short, not before.
 
 ### Distress-gated intervention — the behavioral safeguard (added 2026-08-20; owner-approved for investigation)
 

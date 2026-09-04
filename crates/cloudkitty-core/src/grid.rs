@@ -61,6 +61,26 @@ impl Position {
     pub fn in_bounds(&self, width: u32, height: u32) -> bool {
         self.x < width && self.y < height
     }
+
+    /// Squared Euclidean distance, `dx² + dy²`, in integers (spec 049
+    /// FR-001). Never rooted: the vision disc compares it to `r²`, so no
+    /// float ever enters a visibility verdict.
+    pub fn euclid_sq(&self, other: &Position) -> u64 {
+        let dx = u64::from(self.x.abs_diff(other.x));
+        let dy = u64::from(self.y.abs_diff(other.y));
+        // Saturating: a sum past u64 is past every r² that fits one, so
+        // the verdict is right without widening the type.
+        (dx * dx).saturating_add(dy * dy)
+    }
+
+    /// The vision rule (spec 049 FR-001): `other` is visible from `self`
+    /// exactly when `dx² + dy² ≤ r²` — on the disc's edge counts as seen,
+    /// integer arithmetic only. One rule for policies and built-ins alike;
+    /// the fog view is its only caller in the engine.
+    pub fn visible_from(&self, other: &Position, radius: u32) -> bool {
+        let r = u64::from(radius);
+        self.euclid_sq(other) <= r.saturating_mul(r)
+    }
 }
 
 /// Whether two tiles lie in the same roam cell (spec 039): the world tiles
@@ -182,6 +202,29 @@ mod tests {
         let far = Position::new(9, 9);
         assert_eq!(far.step(Direction::East, 10, 10), None);
         assert_eq!(far.step(Direction::South, 10, 10), None);
+    }
+
+    #[test]
+    fn the_vision_disc_is_euclidean_and_closed_on_its_edge() {
+        // Spec 049 US1 scenarios 1-2 at r = 5: (3, 4) is ON the edge
+        // (9 + 16 = 25 ≤ 25) and seen although seven steps away; (5, 1)
+        // is six steps away and unseen (26 > 25). The Manhattan diamond
+        // would rule the opposite on both.
+        let me = Position::new(10, 10);
+        let edge = Position::new(13, 14);
+        let outside = Position::new(15, 11);
+        assert_eq!(me.euclid_sq(&edge), 25);
+        assert_eq!(me.euclid_sq(&outside), 26);
+        assert!(me.visible_from(&edge, 5), "the disc's edge is seen");
+        assert!(!me.visible_from(&outside, 5), "26 > 25 is unseen");
+        assert_eq!(me.manhattan_distance(&edge), 7);
+        assert_eq!(me.manhattan_distance(&outside), 6);
+        // Symmetric, and the own tile is inside every disc.
+        assert!(edge.visible_from(&me, 5));
+        assert!(me.visible_from(&me, 0));
+        // Integer arithmetic survives large offsets without overflow.
+        let far = Position::new(u32::MAX, u32::MAX);
+        assert!(!Position::new(0, 0).visible_from(&far, u32::MAX - 1));
     }
 
     #[test]

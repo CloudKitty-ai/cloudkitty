@@ -30,11 +30,13 @@ called `follow_me` was designed to mean "come along," and the cats used
 it to mean "I'm coming, stay put." The name lied; the law didn't. Now
 free words carry names that cannot lie.
 
-Every word obeys the same cooldown (one live digest entry per kind per
-emitter — `meow.recent_window_ticks` is both the audibility window and
-the refresh rate), and every word can be disabled by the world's
-`[meow.vocabulary]` config. Flags gate legality only; no flag ever
-changes what an observation looks like.
+Every word obeys the same per-kind cooldown (`meow.recent_window_ticks`,
+served 10: after speaking a kind a cat may not speak it again for that
+many ticks) and stays audible for the digest window
+(`meow.digest_window_ticks`, served 30 — a positive multiple of the
+cooldown, so "three calls in a window" is exact). Every word can be
+disabled by the world's `[meow.vocabulary]` config. Flags gate legality
+only; no flag ever changes what an observation looks like.
 
 ## The words
 
@@ -46,11 +48,39 @@ meaning), **observed** (what the cats use it for, with the evidence).
 **want_eat · want_drink · want_play · want_cuddle · want_bath ·
 want_sleep**
 
-- **Law**: legal while the matching need is armed (at or above
-  `announce_threshold`, with hysteresis so the word doesn't flicker
-  mid-errand) and the cooldown is clear. The emission stamps the need's
-  value as the digest's intensity: a listener hears how hungry, not just
-  that.
+- **Law** (spec 049 FR-036, the knowledge-gated want law): legal while
+  the matching need is armed (at or above `announce_threshold`, with
+  hysteresis so the word doesn't flicker mid-errand), that need is the
+  cat's **top need** (`NeedKind::ALL` order breaks exact ties), the cat
+  has **no known relief** for it, and the cooldown is clear. Known
+  relief, per word: `want_eat` — a bowl visible or remembered;
+  `want_drink` — water visible or remembered; `want_cuddle` — an **idle
+  friend in view** (no scene, not asleep; adjacency not required; a
+  friend the cat can only hear never silences the word); `want_play` —
+  that friend clause, or a critter visible or remembered; `want_sleep` —
+  never (need-only-when-top); `want_bath` — never, and no top-need clause
+  either: it is an **ask**, armed-only (owner ruled 2026-09-03, spec 049
+  T087) — its relief is self-grooming, and the partnered groom only a
+  groomer starts, on hearing the word, so an idle friend in view is a
+  groomer to be asked, not relief the caller can execute. So under fog an
+  announcement says "I am in need and I cannot see the answer", which no
+  observation row carries, and the ask says "come and groom me". The
+  scripted groom response answers a `want_bath` only while the ask is no
+  older than the cooldown and, on sight, only a caller still above the
+  announce threshold (T087) — a still-needy caller re-emits every
+  cooldown, so nothing is lost and nobody walks to a cat already groomed.
+- **Blind price** (spec 049 T090, owner ruled 2026-09-04): when a scripted
+  cat's need has relief it can neither see nor remember, the need is not
+  skipped (the 004 "no path" rule) but priced at radius + 1 tiles and the
+  cat explores — a need is priced at the cheapest walk the cat's knowledge cannot exclude, and skipped only when knowledge proves no path. Pre-fog, seeing everything and finding none proves no path (skip — the 004 doctrine). Under fog, FR-047's existence guarantee proves a path exists and the disc bounds its length: priced travel is Manhattan tiles and every tile outside a Euclidean disc of radius r is at Manhattan distance ≥ r + 1, so radius + 1 is the exact greatest lower bound; a covering radius → `None` falls out of the same sentence, which is what keeps FR-024 byte-identical. A remembered
+  element farther than r + 1 is priced at its remembered distance (a known
+  path beats a bound); the sensitivity is `tile_cost × (r + 1)`. The emission stamps the need's value as the call's intensity
+  and the speaker's position: a listener hears how hungry, and where
+  from. One predicate, `message_legal` over the cat's fog view, judges
+  the RL mask and the built-in announce alike. Consequences the owner
+  ruled: at a world-covering radius the element wants go silent in a
+  world that always has chow and water, and a cat that has ever seen a
+  pond never says `want_drink` again.
 - **Intent**: honest requests. Six needs, six words, nothing unsayable
   (spec 028 gave the two silent needs, bath and sleep, their words).
 - **Observed**: used as designed, with one lovely elaboration — the
@@ -83,17 +113,35 @@ want_sleep**
 
 **here_food · here_water · here_critter · here_sunbeam**
 
-- **Law**: legal exactly when the referent is ADJACENT to the speaker
-  (own tile counts). Each word uses the matching action's own predicate:
-  `here_food` is Eat's stocked-bowl adjacency (an empty bowl is not food
-  here), `here_water` is Drink's, `here_critter` is Play-critter's
-  (deliberately not Chase's, which is legal at any distance — this word
-  means *here with me*, never *exists somewhere*). `here_sunbeam` is the
-  family's one stated exception, since no sunbeam action exists to
-  borrow from: explicit adjacency to a live beam. The family invariant,
-  owner-ruled and binding through every future vision regime: adjacency
-  is required; seeing is never enough. The guarantee is emission-time
-  truth ONLY — see the non-guarantees below.
+- **Law** (spec 033, widened by spec 049 FR-037): legal when the
+  referent is ADJACENT to the speaker (own tile counts) — each word the
+  matching action's own predicate: `here_food` is Eat's stocked-bowl
+  adjacency (an empty bowl is not food here), `here_water` is Drink's,
+  `here_critter` is Play-critter's (deliberately not Chase's, which is
+  legal at any distance), `here_sunbeam` explicit adjacency to a live
+  beam — **or** when the word is a reply: a matching want from another
+  cat is audible in the speaker's start-of-tick buffer AND the referent
+  is visible from the speaker (anywhere in its disc). The pairs:
+  `want_eat ↔ here_food`, `want_drink ↔ here_water`, `want_sleep ↔
+  here_sunbeam`, `want_play ↔ here_critter`; cuddle and bath have no
+  here-word. Every recorded here carries an engine-stamped `reply` bit —
+  1 exactly when that reply condition held at emission, whatever
+  triggered the word (an ambient here landing while a want is audible is
+  a reply too), 0 for adjacency-only heres and for every non-here kind —
+  and a `pos`. A same-tick reply is impossible (everyone decides against
+  the start-of-tick snapshot): want → here → heard is three ticks at
+  best. The guarantee is emission-time truth ONLY — see the
+  non-guarantees below.
+- **Scripted replies** (spec 049 FR-042–FR-046): a built-in cat answers
+  audible wants by *want*-listening only (the groom-response precedent);
+  no built-in ever consumes a here-word (the 043 gate-zero guard stands).
+  With `[behavior] reply_intensity_floor` set, it replies with the paired
+  here-kind when it can see the referent, its cooldown is clear, and the
+  caller's stamped intensity reaches the floor — the most urgent caller
+  first (ties to the fresher call, then the lower id); its own want wins
+  the turn when its raw need exceeds the caller's intensity × 100; the
+  loser waits at most one tick. Unset (the served value) = no replies,
+  byte-identical to the no-reply engine.
 - **Intent**: altruistic reference — the channel's first words that point
   at the world instead of at the speaker's needs. `here_sunbeam` is the
   best-behaved of the family: a beam is non-consumable and its warmth
@@ -183,18 +231,36 @@ for by the reward function.
 
 ## The digest — what a listener actually hears
 
-Per kind, a hearer's observation carries the single freshest audible
-emitter (freshest tick wins; ties go to the lower kitty id; your own
-meows are inaudible to you), as four numbers: recency (1.0 fresh, fading
-linearly over `recent_window_ticks`), the emitter's dx and dy — **live
-position, recomputed every tick, never a stamped coordinate** — and the
-intensity stamped at emission (the speaker's need level for want-kinds;
-0.0 for everything else). A plugin author can build a listening cat from
-exactly this: for each kind, one emitter, where they are right now, how
-fresh the word is, and how urgent, if urgency applies. Full field table:
-`docs/encodings.md`.
+Since the fog wall (spec 049, observation schema 5) there is no global
+digest: repetition and insistence are **per-speaker fields on each
+friend's permanent row**. For every friend, per kind, a hearer's
+observation carries two numbers about that friend's own calls inside the
+digest window — recency (1.0 fresh, fading linearly to 0 over
+`digest_window_ticks`) and rate (calls in the window over the most the
+cooldown allows: three at the served 30/10) — and, for the six want-kinds,
+the intensity stamped on its freshest call (the speaker's need level at
+emission, /100; here-kinds and the free register carry none). A call is
+inside the window while its age is strictly less than it, and only calls
+from earlier ticks count: nobody hears a same-tick word. The observer's
+own row carries the same recency/rate pair for its own calls (no
+intensity — its needs are already there), so a memoryless mind can tell
+"I already asked" from "I have not". Five `here_water` calls and one no
+longer produce the same observation, and a second simultaneous speaker
+of a kind is no longer inaudible.
 
-The live-position rule is the design's quiet teeth: a `here_food` beacon
-points at the *speaker*, so it is only useful while the speaker stays
-near the food — the digest itself favors hosts over shouters, and can
-never point a hearer at a bowl that no longer exists.
+Where a call came FROM is a stamp, not a live position: every recorded
+meow carries the speaker's `pos` at emission. A friend the hearer can
+see has its live position on its row; a friend it can only hear has the
+position of that friend's last audible meow (its row's dx/dy/distance
+point there, its knowledge fields read zero), and the recency cell says
+how stale that is. A `here_food` from an unseen cat therefore points
+where the speaker was when it spoke — useful exactly while the speaker
+stayed near the food — never at a bowl the hearer cannot confirm. The
+answers-me bits (per here-kind, on friend rows) say whether that friend's
+latest here of the kind came after the hearer's own matching want. Full
+field table: `docs/encodings.md`.
+
+Historical (schema 4, spec 033): one global digest per kind — the single
+freshest audible emitter's recency, LIVE dx/dy and intensity — which the
+fog made both a leak (a moving unseen cat's position, every tick) and a
+bottleneck (one emitter per kind for the whole meadow).

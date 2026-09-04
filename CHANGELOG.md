@@ -33,6 +33,79 @@ change.
 
 ## Unreleased
 
+- **Fog Gen 1 — the 3.0 observation wall (spec 049)** **`[obs-schema]`
+  `[world-fresh]` `[stamp]` `[rng-sequence]`**. Every cat — built-in,
+  plugin, policy — now decides from ONE fog view: the kitties and
+  elements inside a Euclidean disc of `[vision] radius` tiles (5, the
+  FR-002 placeholder the step-5 pre-registration screens; `dx² + dy² ≤
+  r²`, edge included), every recent meow (hearing stays global), the
+  roster's ids, and its own one-slot-per-element-kind memory, refuted on
+  sight and never timed out unless `memory_timeout_ticks` says so. The
+  six members of the wall, owner-ruled 2026-09-02/03: (1) the fog view
+  as the only world any decider or encoder receives, with meows stamped
+  with the speaker's position; (2) element memory in the cat's own
+  record; (3) observation schema 5 — four permanent by-id kitty rows
+  (`[rl.observation] kitty_slots` 4, roster ≤ slots + 1 refused at
+  load), the global meow digest deleted and replaced by per-speaker
+  recency / rate / want-intensity / answers-me cells on the rows, scene
+  age, a neighbour-in-water bit and a neighbour-on-a-sunbeam bit; **408
+  floats** at the served config,
+  menu 39, logit budget 55, plugin wire v3; (4) the meow law under fog —
+  a want-word is legal only for the top need with no relief visible or
+  remembered, a here-word when the referent is in view and a matching
+  want is audible (or by adjacency), every here carries an engine-stamped
+  `reply` bit, and audibility is the new `[meow] digest_window_ticks`
+  (30), the cooldown unchanged at 10; (5) the scripted seats' half of the
+  corpus — a reply ladder (`[behavior] reply_intensity_floor`, unset =
+  replies off, 0.30 provisional for the corpus-collection config) that
+  shares the rung with the own want under the yield, and
+  the lattice serpentine tour for a blind cat (owner ruled 2026-09-03,
+  T088: waypoints inset floor(r/√2) at spacing ≤ floor(r√2), boustrophedon
+  and back, coverage-complete on any rectangle at any radius by
+  construction; one engine-owned tour index per cat, `explore_waypoint`,
+  no RNG draw — it replaced the persistent-heading rule, whose coverage
+  depended on r versus world size); built-in targeting runs over visible ∪ remembered
+  elements and visible ∪ heard friends; (6) the 3.0 config hygiene: every
+  section is REQUIRED and named when missing, the seven retired 2.x keys
+  are unknown, the eight snapshot shims are deleted, `evals/v2` replaces
+  the hash-frozen v1, and 52 in-scope configs are completed (migration
+  note: `specs/049-fog-gen1/contracts/config-3.0-migration.md`;
+  completion tool: `experiments/tools/complete_config_3.py`). Every 2.x
+  policy artifact is schema 4 and is refused at load, so the served seats
+  sit on the built-ins until the Gen 1 minds seat at the step-7 cutover —
+  `needs_driven` for four, Biscuit on the new `playful` (the 3.0 anchor;
+  owner ruled 2026-09-03); every refusal on `/events/refusal` carries a
+  `reason` — `partner_absent`, `partner_busy`, `other` — read off the
+  judgement that refused it (T093, owner ruled 2026-09-03: under fog a
+  partnered proposal at a stale heard position is a refusal by design, and
+  the step-5 refusal-tax read must tell that from the F-033 tax); pre-3.0 saved worlds do not load (`update.sh --fresh`).
+  The defaults stamp moves by exactly `[vision] radius`,
+  `memory_timeout_ticks`, `[meow] digest_window_ticks` and `kitty_slots`
+  3 → 4 (proof in `specs/049-fog-gen1/redden-list.md` §T078). The
+  `[rng-sequence]` marker is carried for its consequence, per the 048
+  precedent: at a world-covering radius the action stream is byte-
+  identical to the pre-fog engine up to the first named divergence (tick
+  550 on the served roster: the ruled groom response declines to answer a
+  caller already groomed clean), and under fog every seeded evolution
+  diverges from the first blind decision. The review's convergence (T087,
+  owner ruled 2026-09-03) made `want_bath` armed-only — an ask, not an
+  announcement: no top-need clause, no idle-friend gate — gave the
+  scripted groom response two rules (act only on an ask no older than the
+  cooldown, inclusive; on sight decline a caller below the announce
+  threshold), and split SC-004 into the plumbing proof (byte-identical
+  actions AND messages over 20k ticks under a test-side pre-fog law
+  switch, `MeowConfig.law_era`) and the named-cause law. The evolution
+  golden, the strip witness and the run-JSON golden regenerate with this
+  entry as the justification. Open owner flags in the spec-049
+  report: none from welfare — the sunbeam standoff the review found is
+  fixed (T092, owner ruled 2026-09-03: the sleep arm cosleeps beside a
+  settled friend on a beam instead of waiting at the occupied tile), and
+  the served world holds the 2.x bounds at r = 5 and at global vision (the
+  rl welfare gate still pins the global-vision radius on the compiled
+  world; ignored r = 5 readings sit beside it);
+  043's gate-zero doctrine versus 049's heard-friend targeting; the exams' `kitty_slots = roster − 1` widths (SC-004 is now the
+  ruled 4a/4b split, no longer a flag).
+
 ## v2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
 
 - No stale re-proposal (spec 048) **`[rng-sequence]`**: a cat no longer

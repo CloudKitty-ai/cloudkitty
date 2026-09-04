@@ -58,11 +58,11 @@ One JSON object per line, with exactly these fields:
 
 | Field | What it is |
 |---|---|
-| `v` | Wire version, currently `2` (spec 033: the vocabulary finalized). Refuse versions you don't understand — your failed reply just falls back, which is safe. |
+| `v` | Wire version, currently `3` (spec 049: the fog — see below; version 2 was spec 033's vocabulary). Refuse versions you don't understand — your failed reply just falls back, which is safe. |
 | `tick` | The deciding tick. Echo it back. |
 | `kitty_id` | Whose turn this is — one process may advise several kitties. Echo it back. |
-| `me` | Your kitty's full state (position, needs, activity, and so on). |
-| `world` | The start-of-tick world snapshot every behavior decides against: every kitty, every element (greebles included), recent meows. |
+| `me` | Your kitty's full state (position, needs, activity, and so on) — including, since version 3, its element `memory` (one last-seen tile per kind: water, chow, bug, greeble, sunbeam) and its `explore_waypoint` (its index into the lattice exploration tour). |
+| `world` | The start-of-tick world **as your kitty may know it** (version 3, spec 049 — the fog): the kitties and elements inside its vision disc (`dx² + dy² ≤ radius²` from `me`, `[vision] radius` in `config`; greebles included), every recent meow (hearing is global — each carries the speaker's `pos` at emission and an engine-stamped `reply` bit), and nothing beyond. Friends' `memory` / `explore_waypoint` are blanked. The same shape as version 2; a plugin assuming full sight cannot tell the difference, which is why the version moved. |
 | `seed` | A number from your kitty's own private randomness stream: deterministic to the world, never synchronized between kitties. Use it whenever you need a tie-break (see the livelock warning below). |
 | `config` | The simulation config, so your thresholds can match the world's. |
 

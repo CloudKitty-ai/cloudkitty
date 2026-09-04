@@ -127,29 +127,36 @@ fn an_ungrounded_want_kind_downgrades_to_silent() {
 
 #[test]
 fn a_grounded_clear_message_emits_and_records() {
-    // The positive half, same seam: armed + cooldown clear emits, records
-    // proposed == applied, stamps the window.
+    // The positive half, same seam: armed + top need + cooldown clear emits,
+    // records proposed == applied, stamps the window. WantSleep is the
+    // kind with no knowledge gate (spec 049 FR-036: need-only-when-top),
+    // so the positive half stays stageable at a world-covering radius --
+    // want_eat there is silenced by the ever-visible bowl (observed red at
+    // the law's landing, redden list cycle 23).
     let config = Config::default();
     let mut world = World::generate(&config);
     let idx = world.kitty_index(1).unwrap();
     world.kitties[idx]
         .announce_armed
-        .insert(cloudkitty_core::NeedKind::Eat);
+        .insert(cloudkitty_core::NeedKind::Sleep);
+    world.kitties[idx]
+        .needs
+        .add(cloudkitty_core::NeedKind::Sleep, 60.0); // the top need
 
     let mut proposals = JointProposal::new();
     proposals.propose(
         1,
         Decision {
             activity: Action::Idle,
-            message: Some(MessageKind::WantEat),
+            message: Some(MessageKind::WantSleep),
         },
     );
     let before = world.recent_meows.len();
     let report = world.tick_with_proposals(&proposals, &config);
     let record = report.record(1).expect("kitty 1 is in the roster");
-    assert_eq!(record.applied_message, Some(MessageKind::WantEat));
+    assert_eq!(record.applied_message, Some(MessageKind::WantSleep));
     assert_eq!(world.recent_meows.len(), before + 1, "heard by everyone");
-    let stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::WantEat];
+    let stamp = world.kitty(1).unwrap().meow_cooldowns[&MessageKind::WantSleep];
     assert_eq!(
         stamp,
         // The emission tick (tick advanced by one inside the tick).

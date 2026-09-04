@@ -19,8 +19,32 @@ const TICKS: u64 = 20_000;
 
 #[test]
 fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
-    let config = Arc::new(Config::default());
-    config.validate().expect("the default config is valid");
+    // Spec 049 T080: these bounds were baselined under global vision (specs
+    // 004/006), so the gate pins a world-covering radius (64 = 32 + 32 on
+    // the compiled world) and keeps measuring what it always measured. At
+    // the served placeholder r = 5 the same run reads 2 violations after
+    // review 3 finding 1 (4 after T088/T092; 13 under the heading rule,
+    // with a 3,477-tick eat distress; the lattice tour took the coverage
+    // failure away, the remembered-beam filter two more) -- the
+    // ignored reading below; the SERVED 20x20 world holds these bounds at
+    // r = 5 and at global vision (0 violations,
+    // `served_world_fog_r5_welfare_reading_with_global_vision_control`,
+    // ~7 s for both runs) -- a READING by ruling, never a gate (owner,
+    // 2026-09-04, on `/code-review high 049` finding 2): the 2.x bounds
+    // were calibrated under global vision and are NOT the 3.x bar; the
+    // Gen 1 welfare bar is the step-5 prereg's, and a ruled smaller
+    // radius or a reward retune may legitimately move the anchors below
+    // these numbers. The regression tripwire at the shipped radius is
+    // SC-011 (`fog_continuity::reply_floor_unset_is_byte_identical`: the
+    // served roster's 20,000-tick action AND message streams at r = 5,
+    // byte-pinned); run this reading at every re-pin of those streams and
+    // record the numbers beside the pin.
+    let mut config = Config::default();
+    config.vision.radius = 64;
+    config
+        .validate()
+        .expect("the default config under global vision is valid");
+    let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);
     let mut accumulator = WelfareAccumulator::new(&world, &config);
@@ -53,5 +77,119 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
         violations.is_empty(),
         "welfare bounds violated:\n{}",
         violations.join("\n")
+    );
+}
+
+/// Spec 049 T060: the same 20,000-tick run at the Gen 1 vision radius --
+/// every built-in cat blind beyond five tiles, exploring for what it
+/// cannot see. A READING, not a gate: the 2.x bounds were baselined under
+/// global vision and the Gen 1 welfare bar is the step-5 pre-registration's
+/// to set, so this prints the report and asserts only the invariants that
+/// hold at any radius (orthogonal scenes, the run completing). Run it with
+/// `cargo test -p cloudkitty-rl --test welfare_longrun -- --ignored fog_r5`.
+#[test]
+#[ignore]
+fn fog_r5_twenty_thousand_ticks_welfare_reading() {
+    let mut config = Config::default();
+    config.vision.radius = 5;
+    config
+        .validate()
+        .expect("the default config at r = 5 is valid");
+    let config = Arc::new(config);
+    let registry = BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+    let mut accumulator = WelfareAccumulator::new(&world, &config);
+
+    for _ in 0..TICKS {
+        drive_tick(&mut world, &registry, &config);
+        assert_orthogonal_scenes(&world);
+        accumulator.observe(&world);
+    }
+
+    let report = accumulator.report();
+    for kitty in &report.kitties {
+        println!(
+            "r=5 {}: mean {:.1}, below-45 {:.1}% (longest streak {}), floor touches {}",
+            kitty.name,
+            kitty.mean_happiness,
+            kitty.low_share * 100.0,
+            kitty.max_low_streak,
+            kitty.floor_touches,
+        );
+    }
+    println!("r=5 max distress age {}", report.max_distress_age);
+    println!("r=5 distress census {:?}", report.distress_census);
+    println!("r=5 pinned {:?}", report.pinned);
+    let violations = report.violations();
+    println!(
+        "r=5 against the 2.x global-vision bounds: {} violation(s){}{}",
+        violations.len(),
+        if violations.is_empty() { "" } else { "\n" },
+        violations.join("\n")
+    );
+}
+
+/// The served world (`cloudkitty.toml`: 20×20, the five seats parked on
+/// `needs_driven`) over 20,000 ticks at `radius`, scored like the gate;
+/// returns the 2.x-bound violations after printing the per-kitty report.
+fn served_world_violations(radius: u32, label: &str) -> Vec<String> {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let text = std::fs::read_to_string(root.join("cloudkitty.toml")).unwrap();
+    let mut config: Config = toml::from_str(&text).unwrap();
+    assert_eq!(config.vision.radius, 5, "the served FR-002 placeholder");
+    for kitty in &mut config.kitties {
+        kitty.behavior = "needs_driven".into();
+    }
+    config.vision.radius = radius;
+    config.validate().expect("the served config is valid");
+    let config = Arc::new(config);
+    let registry = BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+    let mut accumulator = WelfareAccumulator::new(&world, &config);
+
+    for _ in 0..TICKS {
+        drive_tick(&mut world, &registry, &config);
+        assert_orthogonal_scenes(&world);
+        accumulator.observe(&world);
+    }
+
+    let report = accumulator.report();
+    for kitty in &report.kitties {
+        println!(
+            "{label} {}: mean {:.1}, below-45 {:.1}% (longest streak {}), floor touches {}",
+            kitty.name,
+            kitty.mean_happiness,
+            kitty.low_share * 100.0,
+            kitty.max_low_streak,
+            kitty.floor_touches,
+        );
+    }
+    println!("{label} max distress age {}", report.max_distress_age);
+    println!("{label} distress census {:?}", report.distress_census);
+    let violations = report.violations();
+    println!(
+        "{label} against the 2.x global-vision bounds: {} violation(s){}{}",
+        violations.len(),
+        if violations.is_empty() { "" } else { "\n" },
+        violations.join("\n")
+    );
+    violations
+}
+
+/// Spec 049 review: the welfare picture at the radius that SHIPS, on the
+/// world that ships. A READING beside the compiled-world one above (same
+/// doctrine: the 2.x bounds were baselined under global vision; the Gen 1
+/// bar is the step-5 pre-registration's), with the same world under
+/// global vision as its control. Run with `cargo test -p cloudkitty-rl
+/// --test welfare_longrun -- --ignored served_world --nocapture`.
+#[test]
+#[ignore]
+fn served_world_fog_r5_welfare_reading_with_global_vision_control() {
+    let fog = served_world_violations(5, "served r=5");
+    let control = served_world_violations(64, "served r=64");
+    println!(
+        "served world: r=5 {} violation(s), r=64 control {} violation(s)",
+        fog.len(),
+        control.len()
     );
 }

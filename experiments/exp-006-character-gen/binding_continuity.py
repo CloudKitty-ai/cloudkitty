@@ -30,7 +30,7 @@ from census_provenance import stamp  # noqa: E402
 
 
 def trace_digest(config, seating, seed, ticks):
-    from cert_harness6 import SEATINGS, load_model, N_ACT, N_HEADS, NEG_INF
+    from cert_harness6 import SEATINGS, load_model, N_MSG, NEG_INF
     import cloudkitty
     seats = list(SEATINGS[seating])
     models = {s: load_model(s) for s in set(seats)}
@@ -38,6 +38,31 @@ def trace_digest(config, seating, seed, ticks):
     obs, infos = env.reset(seed=seed)
     names = list(env.possible_agents)
     seat_of = {a: s for a, s in zip(names, seats)}
+    # Spec 049 (the 3.0 wall, cutover housekeeping): the head split comes
+    # from the binding's mask width, not cert_harness6's 2.x literals
+    # (menu 34 -> 39 at schema 5); a "scripted" seat has no model and keeps
+    # zero logits (the masked argmax = first legal pair), exactly as the
+    # 2.x reference seating treated its scripted fill.
+    mask_width = int(np.asarray(infos[names[0]]["mask"]).shape[0])
+    N_ACT = mask_width - N_MSG
+    N_HEADS = mask_width
+    # Until cert_harness6's loaders are cut over to schema 5 (their 225/50
+    # literals are Experiments' housekeeping), a model-backed seat is
+    # refused here by name -- never fed a row of the wrong width.
+    obs_width = int(np.asarray(obs[names[0]], np.float32).shape[0])
+    for s, fwd in models.items():
+        if fwd is None:
+            continue
+        try:
+            probe = np.asarray(fwd(np.zeros((1, obs_width), np.float32)), np.float32)
+        except Exception as e:  # noqa: BLE001 -- any shape failure is the message
+            raise SystemExit(
+                f"seat {s!r}: its model refuses a {obs_width}-wide observation "
+                f"({e}); cert_harness6's loaders are still 2.x-shaped") from e
+        if probe.shape != (1, N_HEADS):
+            raise SystemExit(
+                f"seat {s!r}: its model emits {probe.shape[1]} logits, the binding "
+                f"masks {N_HEADS}; cert_harness6's loaders are still 2.x-shaped")
     h = hashlib.sha256()
     n = 0
     for _ in range(ticks):
@@ -46,6 +71,8 @@ def trace_digest(config, seating, seed, ticks):
                        for a in names]).astype(bool)
         lg = np.zeros((len(names), N_HEADS), np.float32)
         for s, fwd in models.items():
+            if fwd is None:
+                continue
             r = [i for i, a in enumerate(names) if seat_of[a] == s]
             if r:
                 lg[r] = np.asarray(fwd(ob[r]), np.float32)

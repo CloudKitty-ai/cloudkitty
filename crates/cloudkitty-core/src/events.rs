@@ -75,6 +75,31 @@ pub struct RefusalEvent {
     pub proposed: Action,
     pub tick: u64,
     pub absorbed: bool,
+    /// Why (spec 049 T093, owner ruled 2026-09-03): read off the same
+    /// judgement `action::validate` made, at the stamp. Required -- no
+    /// serde default (the F-029 rule: an absent key is never a reading).
+    pub reason: RefusalReason,
+}
+
+/// The minimum vocabulary of a refusal (spec 049 T093): under fog a
+/// partnered proposal at a stale heard position is a refusal by design
+/// (clarify item 1's drop-on-arrival runs through this stamp), and the
+/// step-5 refusal-tax read must separate that from the F-033 partnered-play
+/// tax. `proposed` is verbatim on the event, so an instrument splits
+/// `Other` by action variant itself; absent-vs-busy is the one split the
+/// action alone cannot make. Serialized snake_case.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RefusalReason {
+    /// A kitty-targeted proposal whose target exists but is not adjacent.
+    PartnerAbsent,
+    /// The target is adjacent but not conscriptable -- mid-scene or asleep
+    /// (only social play conscripts; rest, sleep and groom bind nobody).
+    PartnerBusy,
+    /// Everything else: a Move into an occupied tile, Eat/Drink with
+    /// nothing adjacent, play or chase at a vanished or distant critter, a
+    /// stale Meow/Purr, a target that does not exist.
+    Other,
 }
 
 impl ActivityEnd {
@@ -336,17 +361,19 @@ mod tests {
         // driven world produced on 2026-09-01: `proposed` is the standard
         // internally-tagged Action serialization, `absorbed` ALWAYS present
         // (no skip-at-false -- an absent-key convention would re-create the
-        // reading trap the census filters on this key).
+        // reading trap the census filters on this key); since spec 049
+        // T093 the `reason` too -- a move into an occupied cell is `other`.
         assert_eq!(
             serde_json::to_string(taxed).unwrap(),
-            r#"{"kitty_id":1,"proposed":{"action":"move","direction":"east"},"tick":0,"absorbed":false}"#,
+            r#"{"kitty_id":1,"proposed":{"action":"move","direction":"east"},"tick":0,"absorbed":false,"reason":"other"}"#,
         );
 
         // The target flattens into the play object -- the proposal wire
-        // shape plugins already speak (pinned for the endpoint contract).
+        // shape plugins already speak (pinned for the endpoint contract);
+        // the partner was adjacent and mid-scene: `partner_busy`.
         assert_eq!(
             serde_json::to_string(&events[2]).unwrap(),
-            r#"{"kitty_id":1,"proposed":{"action":"play","target":"kitty","id":2},"tick":3,"absorbed":false}"#,
+            r#"{"kitty_id":1,"proposed":{"action":"play","target":"kitty","id":2},"tick":3,"absorbed":false,"reason":"partner_busy"}"#,
         );
 
         // All round-trip losslessly, target-carrying proposals included.

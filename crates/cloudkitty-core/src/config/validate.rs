@@ -506,6 +506,18 @@ impl Config {
                 "must be a finite number in [0, 100] -- the need scale",
             ));
         }
+        // Spec 049 FR-043: the reply listener floor is a stamped intensity
+        // (need/100), so it lives on [0, 1] when set; NaN is never a floor.
+        if let Some(floor) = self.behavior.reply_intensity_floor {
+            if !floor.is_finite() || !(0.0..=1.0).contains(&floor) {
+                return Err(ConfigError::invalid(
+                    "[behavior] reply_intensity_floor",
+                    floor.to_string(),
+                    "must be a finite number in [0, 1] -- a caller's stamped \
+                     intensity (need/100); unset means replies are off",
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -562,14 +574,6 @@ impl Config {
                 "[purr] cooldown_factor_min",
                 format!("{f_min} (cooldown_factor_max is {f_max})"),
                 "must be at most cooldown_factor_max",
-            ));
-        }
-        if let Some(retired) = self.purr.cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[purr] cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 022: the motor's rest is proportional now -- \
-                 use cooldown_factor_min / cooldown_factor_max",
             ));
         }
         Ok(())
@@ -680,8 +684,23 @@ impl Config {
             return Err(ConfigError::invalid(
                 "[meow] recent_window_ticks",
                 m.recent_window_ticks.to_string(),
-                "must be at least 1 -- the window is both audibility and the \
-                 per-kind cooldown",
+                "must be at least 1 -- the per-kind emission cooldown",
+            ));
+        }
+        // Spec 049 FR-017: the digest window is a positive integer multiple
+        // of the cooldown, so the rate cell's maximum (window / cooldown
+        // calls) is exact. Both keys named: the fix is to move either.
+        if m.digest_window_ticks == 0
+            || !m.digest_window_ticks.is_multiple_of(m.recent_window_ticks)
+        {
+            return Err(ConfigError::invalid(
+                "[meow] digest_window_ticks",
+                m.digest_window_ticks.to_string(),
+                format!(
+                    "must be a positive integer multiple of [meow] recent_window_ticks ({}) \
+                     -- the rate cell counts calls per window / cooldown",
+                    m.recent_window_ticks
+                ),
             ));
         }
         if !m.announce_threshold.is_finite()
@@ -705,46 +724,6 @@ impl Config {
                  announce_threshold -- disarm happens at threshold - hysteresis",
             ));
         }
-        if let Some(retired) = m.cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 023: the engine no longer enforces meow \
-                 cooldowns -- the scripted-courtesy value is courtesy_ticks",
-            ));
-        }
-        if let Some(retired) = m.urgent_cooldown_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_cooldown_ticks",
-                retired.to_string(),
-                "retired by spec 023: use urgent_courtesy_ticks",
-            ));
-        }
-        if let Some(retired) = m.courtesy_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] courtesy_ticks",
-                retired.to_string(),
-                "retired by spec 028: message legality is engine law now -- \
-                 the per-kind cooldown is recent_window_ticks",
-            ));
-        }
-        if let Some(retired) = m.urgent_courtesy_ticks {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_courtesy_ticks",
-                retired.to_string(),
-                "retired by spec 028: urgency no longer shortens the \
-                 interval -- grounding (announce_threshold) is the urgency \
-                 story",
-            ));
-        }
-        if let Some(retired) = m.urgent_need_threshold {
-            return Err(ConfigError::invalid(
-                "[meow] urgent_need_threshold",
-                retired.to_string(),
-                "retired by spec 028: replaced by announce_threshold, which \
-                 gates legality instead of shortening courtesy",
-            ));
-        }
         Ok(())
     }
 
@@ -757,19 +736,6 @@ impl Config {
     /// problem.
     pub(super) fn validate_actions(&self) -> Result<(), ConfigError> {
         let a = &self.actions;
-        // Spec 041 FR-005 (the owner's noisy-failure ruling): the retired
-        // shared dial is a loud error carrying its migration map -- the
-        // spec-025 pattern. Accepting it silently would run a config
-        // written for the shared-dial economy against the split one.
-        if let Some(v) = a.cuddle_relief {
-            return Err(ConfigError::invalid(
-                "[actions] cuddle_relief",
-                v.to_string(),
-                "retired by spec 041's dial split: delete it and set \
-                 rest_mutual_relief and groom_cuddle_relief explicitly \
-                 (a faithful migration carries this value into both)",
-            ));
-        }
         // Every relief dial shares one finiteness/negativity rule. Spec 025
         // built the table for the four play keys; the remaining six joined
         // 2026-08-06 (the 025 review's finding 7): before that,
@@ -938,6 +904,23 @@ impl Config {
                 "[elements] combined minimums",
                 element_min.to_string(),
                 format!("must not exceed the {area} tiles in the world"),
+            ));
+        }
+        Ok(())
+    }
+
+    /// `[vision]` (spec 049): the disc must contain adjacency and the
+    /// spec-012 yield rule's Manhattan-2 friend, which any r >= 2 gives
+    /// (edge case "Radius validation"). No upper bound: a world-covering
+    /// radius is the no-fog control.
+    pub(super) fn validate_vision(&self) -> Result<(), ConfigError> {
+        let v = &self.vision;
+        if v.radius < 2 {
+            return Err(ConfigError::invalid(
+                "[vision] radius",
+                v.radius.to_string(),
+                "must be at least 2 -- adjacency (r >= 1) and the yield rule's \
+                 Manhattan-2 friend must be inside the disc",
             ));
         }
         Ok(())

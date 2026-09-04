@@ -20,3 +20,16 @@ experiments/screens/geometry-22x22-2026-08-05    measurement record behind regis
 experiments/screens/scarcity-2026-08-05          measurement record behind registered findings
 experiments/rebaseline-2026-08-06/configs        the re-baseline record
 experiments/exp-001-bc-mappo/configs             exp-001 historical configs
+# --- the 3.0 wall (spec 049 FR-033/FR-034, 2026-09-03): pre-3.0 records ---
+# A 3.0 config states every section (FR-030) and the [vision] keys; the
+# directories below are 2.x records whose bytes must not move (their runs
+# and results are pinned to their commits), so they leave the sweep instead.
+evals/v1                                         eval-suite-v1: hash-frozen 2.x exams; v2 is the 3.0 cut
+experiments/exp-004-meow-channel                 exp-004 prereg families + result-backing served-t* configs (closed experiment)
+experiments/exp-004-pilot-2026-08-09             exp-004 pilot family (result-backing record)
+experiments/exp-004-rebaseline-2026-08-09        exp-004 re-baseline play-share configs (result-backing record)
+experiments/here-word-screen                     F-034 here-word density screen arms (frozen; Half B is post-fog on new configs)
+experiments/sunbeam-screen-2026-08-14            measurement record behind the sunbeam screen
+experiments/attn-ppo-2026-08-13                  test worlds of a closed 2.x training run
+experiments/tail-benchmarks                      2.x tail-benchmark family record
+experiments/exp-005-leash                        exp-005 runs at its pinned pre-wall commit (89b720a); its collect config is that record

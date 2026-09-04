@@ -26,17 +26,101 @@ use proptest::prelude::*;
 /// real (mutations included) on a fresh probe per entry. Also asserts the
 /// structural never-all-zero property for every kitty.
 fn assert_mask_matches_engine(world: &World, config: &Config) {
-    let snapshot = world.snapshot();
+    let full = world.snapshot();
     let obs_cfg = ObservationConfig::default();
     let codec = ActionCodec::v2(&obs_cfg);
 
-    for kitty in &snapshot.kitties {
+    for kitty in &full.kitties {
+        // Spec 049 R2: the mask is computed on the kitty's fog view; the
+        // probe below runs on the FULL snapshot (the engine's own apply
+        // slot). This oracle doubles as the fog-view ≡ full-snapshot
+        // guard: at every radius >= 2, with the TABLE built from that
+        // radius's view, the fogged mask equals the full-world mask on
+        // every entry except one class -- a kitty-targeted entry whose
+        // row names a friend OUTSIDE the disc, which fog silences (a
+        // pursuit of what cannot be seen would step on the friend's live
+        // position through the engine; the built-ins reach a heard friend
+        // by walking, and so may a policy). Fog only ever silences.
+        let snapshot = full.fog_for(kitty.id, config.vision.radius);
         let table = TargetTable::build(&snapshot, kitty.id, &obs_cfg);
         let mask = legal_action_mask(&snapshot, kitty.id, &table, &codec, config);
+        let covering = full.fog_for(kitty.id, full.width + full.height);
+        for radius in [2u32, 3, 5, 40] {
+            let view = full.fog_for(kitty.id, radius);
+            let table_r = TargetTable::build(&view, kitty.id, &obs_cfg);
+            let fog_mask = legal_action_mask(&view, kitty.id, &table_r, &codec, config);
+            let full_mask = legal_action_mask(&covering, kitty.id, &table_r, &codec, config);
+            // The one undecidable corner: a scene whose CRITTER counterpart
+            // hopped outside this disc but still lives. The fogged probe
+            // prunes it (unseen reads as gone -- the spec 048 rule the
+            // built-ins follow) and offers the non-continuation set; the
+            // full world continues the scene, so its mask is the
+            // continuation alone. No mask is right for both the alive and
+            // the dead critter here (their legal sets are disjoint), and
+            // releasing the set is the benign choice: a live critter's
+            // scene is CONTINUED by the duration rule (an override, never
+            // a refusal), a dead one's proposal is what the policy wanted.
+            // In a LAWFUL world a partnered scene never lands here (the
+            // partner is adjacent, inside every disc of radius >= 2 -- US5
+            // scenario 5); this oracle also stages unlawful non-adjacent
+            // partners at random, which fall into the same undecidable
+            // class and are skipped the same way.
+            let counterpart_out_of_view = match kitty.activity {
+                Activity::Playing {
+                    target: Some(TargetRef::Element { id }),
+                } => {
+                    view.elements.iter().all(|e| e.id != id)
+                        && full.elements.iter().any(|e| e.id == id)
+                }
+                _ => kitty
+                    .activity
+                    .partner()
+                    .is_some_and(|p| view.kitty(p).is_none()),
+            };
+            if counterpart_out_of_view {
+                continue;
+            }
+            // With the counterpart in view -- every lawful state -- the
+            // fogged mask keeps the structural never-all-zero property.
+            assert!(
+                fog_mask.iter().any(|&b| b),
+                "kitty {} r = {radius} activity {:?}: all-zero under fog",
+                kitty.id,
+                kitty.activity
+            );
+            for (index, entry) in codec.entries().iter().enumerate() {
+                let unseen_target = match *entry {
+                    cloudkitty_rl::codec::MenuEntry::RestWithKitty(k)
+                    | cloudkitty_rl::codec::MenuEntry::SleepWithKitty(k)
+                    | cloudkitty_rl::codec::MenuEntry::GroomKitty(k)
+                    | cloudkitty_rl::codec::MenuEntry::ChaseKitty(k)
+                    | cloudkitty_rl::codec::MenuEntry::PlayKitty(k) => {
+                        table_r.kitties[k].is_some_and(|id| view.kitty(id).is_none())
+                    }
+                    _ => false,
+                };
+                if unseen_target {
+                    assert!(
+                        !fog_mask[index],
+                        "kitty {} r = {radius} entry {index} ({entry:?}): a friend outside the \
+                         disc is never a legal target under fog",
+                        kitty.id
+                    );
+                } else {
+                    assert_eq!(
+                        fog_mask[index], full_mask[index],
+                        "kitty {} r = {radius} entry {index} ({entry:?}): the fogged mask differs \
+                         from the full-world mask -- the mask would encode knowledge the \
+                         observation lacks (spec 049 research R2)",
+                        kitty.id
+                    );
+                }
+            }
+        }
 
         for (index, &bit) in mask.iter().enumerate() {
             let proposal = codec.decode(index, &table).unwrap();
-            let mut probe = World::from_snapshot(&snapshot);
+            let mut probe = World::from_snapshot(&full);
             let applied = probe.apply_slot_verdict(kitty.id, proposal, config);
             let engine_says = applied == proposal;
             assert_eq!(
@@ -65,7 +149,10 @@ fn assert_mask_matches_engine(world: &World, config: &Config) {
             kitty.id
         );
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            let engine_says = message_legal(kitty, kind, snapshot.tick, config, &snapshot.elements);
+            // The engine's own law over the emitter's fog view -- the
+            // enforcement seam builds exactly this view from the live
+            // world (spec 049 R6).
+            let engine_says = message_legal(kitty, kind, full.tick, config, &snapshot);
             assert_eq!(
                 message_mask[k + 1],
                 engine_says,
@@ -92,7 +179,7 @@ fn silent_is_never_masked() {
     world.kitties[idx].announce_armed.clear();
     world.kitties[idx].happiness = 0.0;
     world.kitties[idx].happiness_rose = false;
-    let snapshot = world.snapshot();
+    let snapshot = world.snapshot().fog_for(1, config.vision.radius);
     let mask = legal_message_mask(&snapshot, 1, &config);
     assert!(mask[0], "Silent survives the most hostile state");
     assert!(
@@ -145,7 +232,11 @@ struct WorldSpec {
 }
 
 fn arb_world_spec() -> impl Strategy<Value = WorldSpec> {
-    (2usize..=6)
+    // Rosters up to kitty_slots + 1 = 5 (spec 049 FR-011): the loader
+    // refuses anything larger, and under permanent by-id rows a sixth cat
+    // would have no row -- a partnered continuation naming it would be
+    // inexpressible, which is exactly the state FR-011 forbids.
+    (2usize..=5)
         .prop_flat_map(|roster| {
             (
                 Just(roster),
@@ -290,7 +381,14 @@ proptest! {
 
     #[test]
     fn the_mask_is_a_pure_oracle_and_never_all_zero(spec in arb_world_spec()) {
-        let config = Config::default();
+        // Spec 049 T080: mask == engine oracle is the GLOBAL-VISION claim;
+        // under fog the mask is stricter by design (a kitty-targeted entry
+        // whose friend is outside the disc is fog-silenced while the engine,
+        // which sees the whole world, would apply it). The fog relation is
+        // its own guard below (`the_fog_mask_is_the_full_mask_inside_the_disc`
+        // and companions), so this one pins the world-covering radius.
+        let mut config = Config::default();
+        config.vision.radius = 64;
         let world = build_world(&spec, &config);
         assert_mask_matches_engine(&world, &config);
     }
@@ -326,7 +424,7 @@ fn crowded_base(config: &Config) -> World {
 }
 
 fn assert_continuation_masked_in(world: &World, config: &Config, expected: &str) {
-    let snapshot = world.snapshot();
+    let snapshot = world.snapshot().fog_for(1, config.vision.radius);
     let obs_cfg = ObservationConfig::default();
     let codec = ActionCodec::v2(&obs_cfg);
     let table = TargetTable::build(&snapshot, 1, &obs_cfg);
@@ -407,8 +505,12 @@ fn a_default_population_critter_cluster_keeps_an_ongoing_play_expressible() {
     // critters, four critter slots. Four bugs with small ids crowd close;
     // the played-with greeble (large id) sits adjacent but loses every
     // tie-break. Without target-priority the continuation Play{Element}
-    // would be inexpressible mid-minimum.
-    let config = Config::default();
+    // would be inexpressible mid-minimum. Spec 049 T080: kitty 9 is moved
+    // 4+4 tiles off, outside a 5-disc, so the mask == engine check that
+    // closes this test runs at the world-covering radius (the fog
+    // exception is the fog guard's subject, not this corner's).
+    let mut config = Config::default();
+    config.vision.radius = 64;
     let mut world = crowded_base(&config);
     world.elements.retain(|e| !e.element_type().is_critter());
     for (id, x, y) in [
@@ -442,7 +544,7 @@ fn a_default_population_critter_cluster_keeps_an_ongoing_play_expressible() {
     };
     world.kitties[me].activity_clock = Some(ActivityClock::start(world.tick));
 
-    let snapshot = world.snapshot();
+    let snapshot = world.snapshot().fog_for(1, 40);
     let table = TargetTable::build(&snapshot, 1, &ObservationConfig::default());
     assert!(
         table.critters.contains(&Some(900)),

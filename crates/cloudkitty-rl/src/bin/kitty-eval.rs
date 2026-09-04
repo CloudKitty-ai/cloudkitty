@@ -103,7 +103,7 @@ fn parse_args() -> Result<Args, String> {
                             [--config PATH|compiled (default ./cloudkitty.toml)] \
                             [--seeds 1,2,...] [--ticks 20000] \
                             [--roster all-policy|mixed|both] [--json out.json]\n       \
-                            kitty-eval --suite evals/v1 (--brain NAME | --artifact PATH \
+                            kitty-eval --suite evals/v2 (--brain NAME | --artifact PATH \
                             [--sample]) [--enforce sign-test] [--json out.json]"
                         .to_string(),
                 )

@@ -121,9 +121,23 @@ impl World {
             ));
         }
         world.kitties.sort_by_key(|k| k.id);
+        // Spec 049 FR-023 (T088): each cat starts the lattice tour at
+        // `id mod cycle length` -- spread over the tour, no RNG draw -- and
+        // a cat spawned on its waypoint is already past it.
+        let lattice =
+            crate::explore::Lattice::for_world(world.width, world.height, config.vision.radius);
+        for kitty in &mut world.kitties {
+            kitty.explore_waypoint = lattice.start_index(kitty.id);
+        }
+        world.advance_tours(config);
 
         // Stock the world to each type's minimum before the first tick.
         spawn::ensure_minimums(&mut world, config);
+        // Spec 049 (review): the generated world is the tick-0 world the
+        // first deciders read, so memory is seeded from it exactly as the
+        // tick phase seeds the next -- the reset observation is not blind
+        // to a bowl standing inside the disc.
+        world.refresh_memories(config, world.tick);
 
         for kitty in &mut world.kitties {
             kitty.happiness = happiness(
@@ -357,6 +371,8 @@ impl World {
                     proposed: proposal,
                     tick: self.tick,
                     absorbed: enforced != action::Action::Idle,
+                    // Spec 049 T093: named on the world `validate` judged.
+                    reason: action::refusal_reason(self, kitty_id, proposal),
                 });
             }
             // Record what actually happened, not what was proposed: the viewer's
@@ -371,9 +387,25 @@ impl World {
             // (defined order -- activity, then message), enforcement as
             // downgrade-to-Silent, never an error.
             let tick = self.tick;
+            // Spec 049: enforcement rules over the emitter's LIVE fog view
+            // (the same filter the mask probes, built by `fog_for` from the
+            // mid-tick world). The verdict can differ from the start-of-tick
+            // mask's in both directions, and only matters in one: the
+            // element clauses only ever silence (memory covers everything
+            // visible at the tick's start, so relief seen after a move
+            // silences and nothing un-silences; an emptied bowl stays an
+            // element until the environment phase); the social clause and
+            // the top-need clause move both ways (a friend that entered a
+            // scene or left the disc earlier in the apply order; a top need
+            // relieved by this cat's own action). A word the mask forbade is
+            // never proposed by a mask-respecting policy or a built-in, so a
+            // mid-tick legalisation is unobservable there; a mid-tick
+            // silencing is the downgrade-to-Silent the law promises
+            // (reviewed 2026-09-04, `/code-review high 049` finding 3).
             let applied_message = decision.message.filter(|&kind| {
                 self.kitty(kitty_id).is_some_and(|k| {
-                    crate::meow::message_legal(k, kind, tick, config, &self.elements)
+                    let view = self.snapshot().fog_for(kitty_id, config.vision.radius);
+                    crate::meow::message_legal(k, kind, tick, config, &view)
                 })
             });
             if let Some(kind) = applied_message {
@@ -761,6 +793,101 @@ impl World {
         self.expire_elements();
         spawn::ensure_minimums(self, config);
         spawn::safeguard(self, config);
+        self.advance_tours(config);
+        // Spec 049: memory reads the RESOLVED world, last, so the snapshot
+        // the next tick's deciders see is complete (Article V order kept).
+        self.update_memories(config);
+    }
+
+    /// Spec 049 FR-023 (owner ruled 2026-09-03, T088): the lattice tour
+    /// advances when the cat stands on its current waypoint, or beside it
+    /// while another cat occupies the tile (a step onto an occupied tile
+    /// is never applied, so the tour would stall there). Every cat, every
+    /// tick, exploring or not -- a cat that crosses its waypoint on an
+    /// errand is simply further along. Engine-owned, like memory: a
+    /// behaviour reads the index and never writes it.
+    fn advance_tours(&mut self, config: &Config) {
+        let lattice =
+            crate::explore::Lattice::for_world(self.width, self.height, config.vision.radius);
+        let positions: Vec<(KittyId, Position)> =
+            self.kitties.iter().map(|k| (k.id, k.pos)).collect();
+        for idx in 0..self.kitties.len() {
+            let (id, pos, index) = {
+                let k = &self.kitties[idx];
+                (k.id, k.pos, k.explore_waypoint)
+            };
+            let waypoint = lattice.waypoint(index);
+            let held = positions
+                .iter()
+                .any(|(other, p)| *other != id && *p == waypoint);
+            if pos == waypoint || (held && pos.is_adjacent(&waypoint)) {
+                self.kitties[idx].explore_waypoint = (index + 1) % lattice.cycle_len();
+            }
+        }
+    }
+
+    /// Spec 049 FR-007 / FR-008 (research R3): each cat's per-kind element
+    /// memory, updated from the resolved world once per tick, per cat, per
+    /// kind -- sight-only, no RNG:
+    ///
+    /// * an element of the kind is visible (the disc, FR-001) → the slot
+    ///   becomes the NEAREST visible one (Manhattan, ties to the lower id),
+    ///   stamped with the tick it will be seen at;
+    /// * else the remembered tile is inside the disc → it holds none of the
+    ///   kind (or the first arm would have fired) → the slot clears:
+    ///   refuted on sight;
+    /// * else the slot is unchanged -- unless `[vision] memory_timeout_ticks`
+    ///   is positive and the memory is older than that.
+    ///
+    /// `last_seen` is the tick of the SNAPSHOT the element is (or was last)
+    /// visible in -- this phase runs at tick `t` and publishes the world
+    /// tick `t + 1`'s deciders read -- so a memory reads "ticks since last
+    /// seen" as 0 while seeing and exactly `k` after `k` ticks out of view
+    /// (US1 scenario 3; the edge case "memory of a kind seen this tick").
+    /// Chow is presence only: an emptied bowl expired earlier this phase,
+    /// so no snapshot ever holds one. Engine-owned; public so scenario
+    /// tests can stage a world and step the memory without a tick.
+    /// `World::generate` seeds the same way, stamped 0 (the world the
+    /// first deciders read).
+    pub fn update_memories(&mut self, config: &Config) {
+        self.refresh_memories(config, self.tick + 1);
+    }
+
+    fn refresh_memories(&mut self, config: &Config, seen_at: u64) {
+        let radius = config.vision.radius;
+        let timeout = config.vision.memory_timeout_ticks;
+        for idx in 0..self.kitties.len() {
+            let origin = self.kitties[idx].pos;
+            for (slot, kind) in ElementType::ALL.iter().enumerate() {
+                let nearest = self
+                    .elements
+                    .iter()
+                    .filter(|e| e.element_type() == *kind && origin.visible_from(&e.pos, radius))
+                    .min_by_key(|e| (origin.manhattan_distance(&e.pos), e.id))
+                    .map(|e| e.pos);
+                let memory = &mut self.kitties[idx].memory[slot];
+                match (nearest, *memory) {
+                    (Some(pos), _) => {
+                        *memory = Some(crate::kitty::MemorySlot {
+                            pos,
+                            last_seen: seen_at,
+                        });
+                    }
+                    (None, Some(remembered)) => {
+                        // Refuted on sight (the tile is in view and holds
+                        // none of the kind), or expired under a positive
+                        // timeout; otherwise unchanged.
+                        let refuted = origin.visible_from(&remembered.pos, radius);
+                        let expired =
+                            timeout > 0 && seen_at.saturating_sub(remembered.last_seen) > timeout;
+                        if refuted || expired {
+                            *memory = None;
+                        }
+                    }
+                    (None, None) => {}
+                }
+            }
+        }
     }
 
     /// Bugs plod one tile every other tick; greebles skitter one or two tiles every
@@ -1097,11 +1224,14 @@ impl World {
         };
         if announce {
             let id = self.kitties[idx].id;
+            let pos = self.kitties[idx].pos;
             self.recent_meows.push(Meow {
                 kitty_id: id,
                 kind: crate::meow::MessageKind::Purr,
                 tick,
                 intensity: 0.0,
+                pos,
+                reply: false,
             });
         }
     }
@@ -1162,7 +1292,10 @@ impl World {
     /// Keeps the transient parts of the world bounded so a long-running sandbox
     /// does not grow without limit.
     fn prune_transient(&mut self, config: &Config) {
-        let window = config.meow.recent_window_ticks;
+        // Spec 049 FR-017 / research R5: the buffer keeps a call while it
+        // is audible -- `tick - m.tick < digest_window_ticks` -- which is
+        // longer than the per-kind cooldown now (30 vs 10 served).
+        let window = config.meow.digest_window_ticks;
         let cutoff = self.tick.saturating_sub(window);
         self.recent_meows.retain(|m| m.tick >= cutoff);
         for kitty in &mut self.kitties {
@@ -1426,6 +1559,154 @@ impl WorldSnapshot {
         self.others(me)
             .min_by_key(|k| (pos.manhattan_distance(&k.pos), k.id))
     }
+
+    /// Spec 049 FR-001/FR-021 (research R1): the world as `observer` may
+    /// know it. Kitties and elements inside the observer's Euclidean disc
+    /// (`dx² + dy² ≤ radius²`, the edge included), the observer itself
+    /// whole, every friend's private mind (`memory`, `explore_waypoint`)
+    /// blanked -- a friend's memory is not observable -- every recent meow
+    /// (hearing is global, FR-003), and the roster's ids (ids are not
+    /// knowledge; the permanent rows need them). Width, height and tick
+    /// unchanged. The observer must be in the snapshot.
+    pub fn fog_for(&self, observer: KittyId, radius: u32) -> FogView {
+        let origin = self
+            .kitty(observer)
+            .expect("the observer is in its own snapshot")
+            .pos;
+        let kitties = self
+            .kitties
+            .iter()
+            .filter(|k| origin.visible_from(&k.pos, radius))
+            .map(|k| {
+                let mut seen = k.clone();
+                if seen.id != observer {
+                    seen.memory = [None; ElementType::ALL.len()];
+                    seen.explore_waypoint = 0;
+                }
+                seen
+            })
+            .collect();
+        let elements = self
+            .elements
+            .iter()
+            .filter(|e| origin.visible_from(&e.pos, radius))
+            .cloned()
+            .collect();
+        let mut roster: Vec<KittyId> = self.kitties.iter().map(|k| k.id).collect();
+        roster.sort_unstable();
+        FogView {
+            snapshot: WorldSnapshot {
+                width: self.width,
+                height: self.height,
+                tick: self.tick,
+                kitties,
+                elements,
+                recent_meows: self.recent_meows.clone(),
+            },
+            observer,
+            roster,
+            radius,
+        }
+    }
+}
+
+/// The fogged world (spec 049 FR-021, research R1): the ONLY world any
+/// decider -- built-in, plugin, policy encoder, mask -- ever receives.
+/// Derefs to the filtered [`WorldSnapshot`], so every existing accessor
+/// (`kitty`, `others`, `elements_of`, `critters`, `element_at`, the
+/// fields) is already fogged; enforcement is structural, not per call.
+#[derive(Debug, Clone)]
+pub struct FogView {
+    /// The filtered start-of-tick world: what is inside the disc, plus
+    /// every recent meow.
+    pub snapshot: WorldSnapshot,
+    /// The deciding cat.
+    pub observer: KittyId,
+    /// Every kitty id in the world, ascending -- ids are not knowledge, and
+    /// the permanent by-id rows (FR-011) need them whether or not the
+    /// friend is seen.
+    pub roster: Vec<KittyId>,
+    /// The configured `[vision] radius`.
+    pub radius: u32,
+}
+
+impl std::ops::Deref for FogView {
+    type Target = WorldSnapshot;
+    fn deref(&self) -> &WorldSnapshot {
+        &self.snapshot
+    }
+}
+
+impl FogView {
+    /// The observer's own tile -- the disc's centre.
+    pub fn origin(&self) -> Position {
+        self.snapshot
+            .kitty(self.observer)
+            .expect("the observer is always in its own view")
+            .pos
+    }
+
+    /// The disc rule (FR-001) from the observer's tile.
+    pub fn visible(&self, pos: Position) -> bool {
+        self.origin().visible_from(&pos, self.radius)
+    }
+
+    /// The observer's own record (never fogged, FR-005).
+    pub fn me(&self) -> &Kitty {
+        self.snapshot
+            .kitty(self.observer)
+            .expect("the observer is always in its own view")
+    }
+
+    /// The permanent friend rows (FR-011): the roster minus the observer,
+    /// ascending by id, one row each, padded with `None` to `kitty_slots`.
+    /// A roster above `kitty_slots + 1` is refused at load, so no friend
+    /// is ever left without a row here; a smaller roster leaves the
+    /// surplus rows vacant.
+    pub fn friend_rows(&self, kitty_slots: usize) -> Vec<Option<KittyId>> {
+        let mut rows: Vec<Option<KittyId>> = self
+            .roster
+            .iter()
+            .filter(|&&id| id != self.observer)
+            .map(|&id| Some(id))
+            .collect();
+        rows.truncate(kitty_slots);
+        rows.resize(kitty_slots, None);
+        rows
+    }
+
+    /// Research R4: friends the observer cannot see but has heard --
+    /// per roster friend outside the disc, its freshest audible meow
+    /// (`m.tick < tick`, the start-of-tick buffer; `tick − m.tick <
+    /// window`; own meows excluded) as `(id, the MEOW's position, its
+    /// tick)`. Ascending by id. The one helper behind the heard row's
+    /// position, the scripted friend-targeting candidate set and the here
+    /// law -- so the three cannot drift.
+    pub fn heard_unseen(&self, window: u64) -> Vec<(KittyId, Position, u64)> {
+        self.roster
+            .iter()
+            .filter(|&&id| id != self.observer && self.snapshot.kitty(id).is_none())
+            .filter_map(|&id| {
+                self.snapshot
+                    .recent_meows
+                    .iter()
+                    .filter(|m| m.kitty_id == id && self.audible(m, window))
+                    .max_by_key(|m| m.tick)
+                    .map(|m| (id, m.pos, m.tick))
+            })
+            .collect()
+    }
+
+    /// THE audibility rule (spec 049 FR-016/FR-017, research R5): a call
+    /// is audible at this view's tick iff it was recorded on an EARLIER
+    /// tick (the start-of-tick buffer; nobody hears a same-tick word) and
+    /// its age is strictly less than `window`. One definition for the
+    /// heard rows, the per-speaker message cells, the here law and the
+    /// scripted ladder -- never re-derived in place.
+    pub fn audible(&self, m: &Meow, window: u64) -> bool {
+        let now = self.snapshot.tick;
+        m.tick < now && now - m.tick < window
+    }
 }
 
 // The adjacency predicates as free functions over an element slice (spec
@@ -1480,6 +1761,18 @@ pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[
         // `is_available_friend` delegates to, not a replica.
         Activity::Grooming { target: Some(id) } => !available_friend_in(kitties, kitty, id),
     }
+}
+
+/// The social want gate's friend clause (spec 049 FR-036, owner ruled
+/// 2026-09-03): a friend INSIDE the disc with no scene running (the
+/// activity clock is the one authoritative "doing nothing" check, as in
+/// `is_conscriptable_friend`) -- adjacency NOT required, so this is a
+/// third small predicate beside `available_friend_in` (adjacent) and
+/// `is_conscriptable_friend` (adjacent ∧ idle). Heard-unseen friends are
+/// not in the view and never enter it.
+pub fn idle_friend_in_view(view: &FogView) -> bool {
+    view.others(view.observer)
+        .any(|k| k.activity_clock.is_none())
 }
 
 /// The one body of "available friend" (a distinct, present, adjacent
@@ -1902,14 +2195,19 @@ mod tests {
                 kind: crate::meow::MessageKind::WantPlay,
                 tick,
                 intensity: 0.0,
+                pos: Position::new(0, 0),
+                reply: false,
             });
             world.prune_transient(&config);
         }
+        // Spec 049 FR-017: retention is the digest window (audibility),
+        // not the cooldown -- observed red at 31 entries for window 10
+        // before this line moved (redden list, cycle 3).
         assert!(
-            world.recent_meows.len() as u64 <= config.meow.recent_window_ticks + 1,
+            world.recent_meows.len() as u64 <= config.meow.digest_window_ticks + 1,
             "bounded: {} entries for window {}",
             world.recent_meows.len(),
-            config.meow.recent_window_ticks
+            config.meow.digest_window_ticks
         );
     }
 
@@ -2406,7 +2704,9 @@ mod tests {
         for _ in 0..60 {
             world.tick(&registry, &config).await;
         }
-        let window = config.meow.recent_window_ticks;
+        // Spec 049 FR-017: a call lingers exactly while audible -- the
+        // digest window, not the cooldown.
+        let window = config.meow.digest_window_ticks;
         for meow in &world.recent_meows {
             assert!(
                 meow.tick + window >= world.tick,
@@ -3702,5 +4002,134 @@ mod tests {
             "the adjacent referenced case must pay: bath moved {moved}, expected {}",
             ambient + charge
         );
+    }
+    // ---- spec 049 T013: the fog view ----
+
+    #[test]
+    fn fog_for_keeps_the_disc_and_blanks_friends_minds() {
+        use crate::kitty::MemorySlot;
+        let config = Arc::new(test_config());
+        let mut world = World::generate(&config);
+        world.elements.clear();
+        let i1 = world.kitty_index(1).unwrap();
+        let i2 = world.kitty_index(2).unwrap();
+        world.kitties[i1].pos = Position::new(5, 5);
+        world.kitties[i2].pos = Position::new(8, 9); // 9 + 16 = 25: on the r = 5 edge
+        world.kitties[i2].memory[0] = Some(MemorySlot {
+            pos: Position::new(1, 1),
+            last_seen: 3,
+        });
+        world.kitties[i2].explore_waypoint = 7;
+        world.kitties[i1].memory[1] = Some(MemorySlot {
+            pos: Position::new(2, 2),
+            last_seen: 4,
+        });
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(10, 5), // 25: seen
+            ttl: None,
+        });
+        world.push_element(Element {
+            id: 902,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(11, 5), // 36: unseen
+            ttl: None,
+        });
+        let snapshot = world.snapshot();
+
+        let view = snapshot.fog_for(1, 5);
+        assert_eq!(view.observer, 1);
+        assert_eq!(view.radius, 5);
+        assert_eq!(view.roster, vec![1, 2], "ids travel whatever the fog");
+        assert_eq!(view.origin(), Position::new(5, 5));
+        assert!(view.visible(Position::new(8, 9)));
+        assert!(!view.visible(Position::new(11, 5)));
+        assert_eq!(
+            view.me().memory[1].unwrap().pos,
+            Position::new(2, 2),
+            "own memory kept"
+        );
+        let friend = view.kitty(2).expect("the edge friend is seen");
+        assert_eq!(friend.memory, [None; 5], "a friend's memory is blanked");
+        assert_eq!(
+            friend.explore_waypoint, 0,
+            "a friend's tour index is blanked"
+        );
+        let ids: Vec<u32> = view.elements.iter().map(|e| e.id).collect();
+        assert_eq!(ids, vec![901], "elements filtered by the disc");
+        assert_eq!(view.tick, snapshot.tick);
+        assert_eq!((view.width, view.height), (snapshot.width, snapshot.height));
+
+        let narrow = snapshot.fog_for(1, 2);
+        assert!(narrow.kitty(2).is_none(), "outside r = 2");
+        assert!(narrow.elements.is_empty());
+        assert_eq!(narrow.roster, vec![1, 2]);
+        assert_eq!(
+            narrow.me().pos,
+            Position::new(5, 5),
+            "the observer is always whole"
+        );
+    }
+
+    #[test]
+    fn friend_rows_are_the_roster_minus_me_ascending_and_padded() {
+        let config = Arc::new(test_config());
+        let world = World::generate(&config);
+        let snapshot = world.snapshot();
+        assert_eq!(
+            snapshot.fog_for(1, 40).friend_rows(4),
+            vec![Some(2), None, None, None]
+        );
+        assert_eq!(
+            snapshot.fog_for(2, 40).friend_rows(4),
+            vec![Some(1), None, None, None]
+        );
+        assert_eq!(
+            snapshot.fog_for(1, 2).friend_rows(1),
+            vec![Some(2)],
+            "unseen friends keep their row"
+        );
+    }
+
+    #[test]
+    fn heard_unseen_reports_the_freshest_audible_meow_per_unseen_friend() {
+        let config = Arc::new(test_config());
+        let mut world = World::generate(&config);
+        let i1 = world.kitty_index(1).unwrap();
+        let i2 = world.kitty_index(2).unwrap();
+        world.kitties[i1].pos = Position::new(2, 2);
+        world.kitties[i2].pos = Position::new(13, 13);
+        world.tick = 40;
+        let meow = |kitty_id: u32, tick: u64, x: u32, y: u32| Meow {
+            kitty_id,
+            kind: crate::meow::MessageKind::WantEat,
+            tick,
+            intensity: 0.5,
+            pos: Position::new(x, y),
+            reply: false,
+        };
+        world.recent_meows = vec![
+            meow(2, 10, 9, 9),   // age 30: outside a 30 window
+            meow(2, 12, 10, 10), // audible
+            meow(2, 37, 12, 12), // audible, freshest
+            meow(2, 40, 13, 13), // same tick: never audible (start-of-tick buffer)
+            meow(1, 39, 2, 2),   // own meow: never in the list
+        ];
+        let snapshot = world.snapshot();
+        let view = snapshot.fog_for(1, 5);
+        assert!(view.kitty(2).is_none(), "friend 2 is outside the disc");
+        assert_eq!(view.heard_unseen(30), vec![(2, Position::new(12, 12), 37)]);
+        assert!(
+            view.heard_unseen(3).is_empty(),
+            "age 3 < 3 fails: strictly inside the window"
+        );
+        assert_eq!(view.heard_unseen(4), vec![(2, Position::new(12, 12), 37)]);
+        // A seen friend is never a heard-unseen row, however loud.
+        let wide = snapshot.fog_for(1, 40);
+        assert!(wide.kitty(2).is_some());
+        assert!(wide.heard_unseen(30).is_empty());
+        // Silence: nothing inside the window.
+        assert!(snapshot.fog_for(1, 5).heard_unseen(2).is_empty());
     }
 }

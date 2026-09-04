@@ -36,10 +36,9 @@ pub struct Pursuit {
     pub target: TargetRef,
     pub started: u64,
     pub closest: u32,
-    /// Tick at which `closest` last improved. Defaulted for snapshots written
-    /// before this field existed; `last_progress` treats 0 as "unknown" and
-    /// falls back to `started`.
-    #[serde(default)]
+    /// Tick at which `closest` last improved. `last_progress` treats 0 as
+    /// "unknown" and falls back to `started`. Required in every save (the
+    /// pre-3.0 restore default was deleted at the spec 049 wall).
     pub improved_at: u64,
 }
 
@@ -214,16 +213,10 @@ pub struct ActivityClock {
     /// partnered rest or co-sleep scene whose partner was itself settled
     /// (`mutual_ticks`) or merely present (`drip_ticks`). Reset with the
     /// clock at scene start, copied onto the `ActivityEnd` event at scene
-    /// end, zero on every other activity. Absent in pre-041 snapshots:
-    /// a resumed scene honestly counts from its resume.
-    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
+    /// end, zero on every other activity. Always serialized; required on
+    /// load (the pre-041 restore default was deleted at the spec 049 wall).
     pub mutual_ticks: u32,
-    #[serde(default, skip_serializing_if = "tier_count_is_zero")]
     pub drip_ticks: u32,
-}
-
-fn tier_count_is_zero(n: &u32) -> bool {
-    *n == 0
 }
 
 impl ActivityClock {
@@ -271,7 +264,7 @@ pub struct Kitty {
     /// (like the config for `behavior`) is authoritative on resume: the
     /// server re-stamps every kitty after load, so a snapshot's value —
     /// including its absence in pre-034 saves — is informational only.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(deserialize_with = "Option::deserialize")]
     pub behavior_description: Option<String>,
     /// Earliest tick at which each message kind may be used again.
     #[serde(default)]
@@ -287,8 +280,8 @@ pub struct Kitty {
     /// The action the engine actually applied for this kitty last tick -- the
     /// post-validation one, so an illegal proposal honestly reads as `Idle`.
     /// `None` only before the world's first tick. Feeds the viewer's "doing"
-    /// line; defaulted so pre-existing saves still load.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// line. Always serialized (`null` before the first tick).
+    #[serde(deserialize_with = "Option::deserialize")]
     pub last_action: Option<Action>,
     /// The chase in progress, if any. Engine-maintained (see `World::tick`);
     /// behaviors read it to judge when a chase has become hopeless.
@@ -316,28 +309,63 @@ pub struct Kitty {
     /// `Some(t)` while the kitty is purring; the purr ends at tick `t`
     /// (spec 011). Purring is background state -- it never occupies the
     /// action slot -- and its presence in the payload is the viewer's
-    /// "rumbling now" signal. Absent in pre-011 snapshots: quiet.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// "rumbling now" signal. Always serialized (`null` when quiet).
+    #[serde(deserialize_with = "Option::deserialize")]
     pub purring_until: Option<u64>,
     /// The drawn length of the current purr (spec 022): set at purr start
     /// (either origin), consumed at purr end to stamp the proportional motor
-    /// cooldown, then cleared -- paired with `purring_until`. Absent in
-    /// pre-022 snapshots: an in-flight purr restores without it, and its end
-    /// treats the duration as `[purr] min_ticks` (the fixed convention).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// cooldown, then cleared -- paired with `purring_until`. Always
+    /// serialized; an in-flight purr without one ends as `[purr] min_ticks`
+    /// (the fixed convention).
+    #[serde(deserialize_with = "Option::deserialize")]
     pub purring_duration: Option<u64>,
-    /// No new purr may begin before this tick (spec 011). 0 in pre-011
-    /// snapshots: immediately eligible.
-    #[serde(default)]
+    /// No new purr may begin before this tick (spec 011). 0 = immediately
+    /// eligible. Required in every save.
     pub purr_cooldown_until: u64,
     /// Needs currently armed for announcement (spec 028): a want-kind is
     /// speakable only while its need is armed. Armed at `>= [meow]
     /// announce_threshold`, disarmed below `threshold - hysteresis`, held
     /// in the band -- updated in the needs phase beside distress, same
-    /// edge-rule style, no RNG. Absent in pre-028 snapshots: disarmed,
-    /// and re-armed honestly on the first needs phase.
-    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    /// edge-rule style, no RNG. Always serialized (empty = disarmed).
     pub announce_armed: BTreeSet<NeedKind>,
+    /// Fog Gen 1 element memory (spec 049 FR-006): the last tile this cat
+    /// SAW each element kind on, one slot per kind in `ElementType::ALL`
+    /// order (water, chow, bug, greeble, sunbeam), with the tick it was
+    /// last seen. Engine-written in the environment phase
+    /// (`World::update_memories`, FR-007): sight-only, nearest-visible-wins,
+    /// refuted on sight, expiring only under `[vision]
+    /// memory_timeout_ticks`. Cats are never remembered. Serialized as
+    /// state (FR-010); required on load -- a save without it is pre-3.0.
+    pub memory: ElementMemory,
+    /// Fog Gen 1 exploration state (spec 049 FR-023, owner ruled
+    /// 2026-09-03, T088): this cat's position in the lattice serpentine
+    /// tour (`crate::explore::Lattice`) -- set at generation to `id mod
+    /// cycle length` and advanced by the engine in the environment phase
+    /// when the cat stands on its waypoint, or beside it while another cat
+    /// occupies the tile. Read only by the built-in explore step; never a
+    /// behaviour's to write. Required on load.
+    pub explore_waypoint: u32,
+}
+
+/// One remembered tile (spec 049 FR-006): where an element kind was last
+/// seen and when.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MemorySlot {
+    pub pos: Position,
+    pub last_seen: u64,
+}
+
+/// The per-kind memory: index = position in `ElementType::ALL` (water,
+/// chow, bug, greeble, sunbeam). `None` = never seen (or refuted).
+pub type ElementMemory = [Option<MemorySlot>; crate::element::ElementType::ALL.len()];
+
+/// The memory slot index of an element kind -- its `ElementType::ALL`
+/// position, the one place that order is turned into an index.
+pub fn memory_index(kind: crate::element::ElementType) -> usize {
+    crate::element::ElementType::ALL
+        .iter()
+        .position(|k| *k == kind)
+        .expect("every element kind has a memory slot")
 }
 
 impl Kitty {
@@ -369,6 +397,8 @@ impl Kitty {
             purring_duration: None,
             purr_cooldown_until: 0,
             announce_armed: BTreeSet::new(),
+            memory: [None; crate::element::ElementType::ALL.len()],
+            explore_waypoint: 0,
         }
     }
 
@@ -487,27 +517,32 @@ mod tests {
     }
 
     #[test]
-    fn a_pre_004_kitty_json_deserializes_with_empty_bookkeeping() {
-        // The exact field set a 003-era snapshot carries -- none of the new ones.
-        let json = r#"{
-            "id": 1, "name": "Miso", "pos": {"x": 21, "y": 30},
-            "needs": {"eat": 34.5, "drink": 30.5, "sleep": 98.9,
-                      "play": 100.0, "cuddle": 45.75, "bath": 100.0},
-            "happiness": 39.3,
-            "activity": {"state": "idle"},
-            "behavior": "needs_driven",
-            "meow_cooldowns": {},
-            "in_distress": ["sleep", "play", "bath"],
-            "happiness_rose": false
-        }"#;
-        let k: Kitty = serde_json::from_str(json).unwrap();
+    fn a_kitty_record_with_the_optional_bookkeeping_absent_loads_empty() {
+        // The bookkeeping the 049 wall did NOT name (pursuit, abandoned
+        // chases, relief and distress stamps) keeps its absent-means-empty
+        // wire shape; a 3.0 record written with them empty omits them and
+        // loads back empty. (Pre-3.0 records are refused elsewhere: the
+        // wall's required fields.)
+        let json = serde_json::to_value(kitty()).unwrap();
+        for absent in [
+            "pursuit",
+            "abandoned_chases",
+            "last_relief",
+            "distress_since",
+        ] {
+            assert!(
+                json.get(absent).is_none(),
+                "{absent} stays off the wire when empty"
+            );
+        }
+        let k: Kitty = serde_json::from_value(json).unwrap();
         assert!(k.pursuit.is_none());
         assert!(k.abandoned_chases.is_empty());
         assert!(k.last_relief.is_empty());
         assert!(k.distress_since.is_empty());
         assert!(
             k.purring_duration.is_none(),
-            "pre-022 snapshots have no stored duration (min_ticks convention)"
+            "no stored duration = the min_ticks convention"
         );
         assert_eq!(
             k.last_relief_tick(NeedKind::Bath),
@@ -517,59 +552,43 @@ mod tests {
     }
 
     #[test]
-    fn a_pre_028_kitty_json_deserializes_disarmed() {
-        // Spec 028 (FR-022): a pre-028 kitty carries no announce_armed key
-        // and loads disarmed; the first needs phase re-arms honestly from
-        // the loaded need values. Wire hygiene both ways: empty sets are
-        // absent when serialized, armed sets round-trip.
-        let json = r#"{
-            "id": 1, "name": "Miso", "pos": {"x": 3, "y": 3},
-            "needs": {"eat": 80.0, "drink": 30.0, "sleep": 30.0,
-                      "play": 30.0, "cuddle": 30.0, "bath": 30.0},
-            "happiness": 80.0,
-            "activity": {"state": "idle"},
-            "behavior": "needs_driven",
-            "meow_cooldowns": {"want_eat": 120},
-            "in_distress": [],
-            "happiness_rose": false
-        }"#;
-        let k: Kitty = serde_json::from_str(json).unwrap();
-        assert!(
-            k.announce_armed.is_empty(),
-            "pre-028 kitties load disarmed, whatever their needs say"
+    fn a_kitty_record_without_announce_armed_is_refused_and_sets_round_trip() {
+        // Spec 049 FR-032 replaces spec 028 FR-022's tolerance: the armed
+        // set is required on load (a record without it is pre-3.0 and is
+        // refused naming the field) and always serialized -- `[]` when
+        // disarmed -- so a 3.0 save never hides its arming state.
+        let k = kitty();
+        let mut json = serde_json::to_value(&k).unwrap();
+        assert_eq!(
+            json["announce_armed"],
+            serde_json::json!([]),
+            "the empty set is on the wire"
         );
-        let out = serde_json::to_string(&k).unwrap();
-        assert!(
-            !out.contains("announce_armed"),
-            "an empty set stays off the wire"
-        );
-
+        json.as_object_mut().unwrap().remove("announce_armed");
+        let err = serde_json::from_value::<Kitty>(json)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("announce_armed"), "{err}");
         let mut armed = k.clone();
         armed.announce_armed.insert(NeedKind::Eat);
         let out = serde_json::to_string(&armed).unwrap();
-        assert!(out.contains("announce_armed"), "armed state rides the wire");
         let back: Kitty = serde_json::from_str(&out).unwrap();
-        assert_eq!(back.announce_armed, armed.announce_armed);
+        assert_eq!(
+            back.announce_armed, armed.announce_armed,
+            "an armed set round-trips"
+        );
     }
 
     #[test]
     fn restored_meow_bookkeeping_is_a_harmless_courtesy_record() {
-        // Spec 023 US3 scenario 4: a pre-023 snapshot's stamped cooldowns
-        // load fine; the courtesy consult respects them (a delayed next
+        // Spec 023 US3 scenario 4, on a 3.0 record: stamped cooldowns
+        // round-trip; the courtesy consult respects them (a delayed next
         // scripted meow) and nothing enforces them -- the engine reads
         // this map nowhere.
-        let json = r#"{
-            "id": 1, "name": "Miso", "pos": {"x": 3, "y": 3},
-            "needs": {"eat": 30.0, "drink": 30.0, "sleep": 30.0,
-                      "play": 30.0, "cuddle": 30.0, "bath": 30.0},
-            "happiness": 80.0,
-            "activity": {"state": "idle"},
-            "behavior": "needs_driven",
-            "meow_cooldowns": {"want_eat": 500},
-            "in_distress": [],
-            "happiness_rose": false
-        }"#;
-        let k: Kitty = serde_json::from_str(json).unwrap();
+        let mut k = kitty();
+        k.meow_cooldowns.insert(MessageKind::WantEat, 500);
+        let json = serde_json::to_string(&k).unwrap();
+        let k: Kitty = serde_json::from_str(&json).unwrap();
         assert!(
             !k.can_meow(MessageKind::WantEat, 499),
             "the restored record delays the courtesy consult"
@@ -578,26 +597,51 @@ mod tests {
     }
 
     #[test]
-    fn empty_bookkeeping_stays_off_the_wire() {
+    fn empty_bookkeeping_stays_off_the_wire_and_the_wall_fields_are_always_on_it() {
         let json = serde_json::to_value(kitty()).unwrap();
+        // Not named by the 049 wall: still absent when empty.
         assert!(json.get("pursuit").is_none());
         assert!(json.get("abandoned_chases").is_none());
         assert!(json.get("last_relief").is_none());
         assert!(json.get("distress_since").is_none());
-        assert!(json.get("purring_duration").is_none());
+        // The seven deleted shims (spec 049 FR-032) plus the two new fields:
+        // present in every record, explicit when empty or None.
+        for always in [
+            "behavior_description",
+            "last_action",
+            "purring_until",
+            "purring_duration",
+            "purr_cooldown_until",
+            "announce_armed",
+            "memory",
+            "explore_waypoint",
+        ] {
+            assert!(json.get(always).is_some(), "{always} is always serialized");
+        }
+        assert_eq!(
+            json["memory"],
+            serde_json::json!([null, null, null, null, null])
+        );
     }
 
     #[test]
-    fn a_pursuit_saved_before_improved_at_existed_falls_back_to_started() {
-        // The field is serde-defaulted, so a snapshot written between the 004
-        // merge and this fix arrives with improved_at = 0. Treating that as
-        // "improved at the dawn of time" would condemn the chase instantly;
-        // last_progress falls back to `started` instead.
+    fn a_pursuit_without_improved_at_is_refused_and_zero_falls_back_to_started() {
+        // Spec 049 FR-032: the restore default is gone -- a pursuit record
+        // without `improved_at` is a pre-3.0 save and is refused naming the
+        // field. The 0 = "unknown" convention itself stays: last_progress
+        // falls back to `started` rather than condemning the chase.
         let json = r#"{"target":{"target":"element","id":9},"started":500,"closest":4}"#;
-        let p: Pursuit = serde_json::from_str(json).unwrap();
-        assert_eq!(p.improved_at, 0);
-        assert_eq!(p.last_progress(), 500, "falls back to the start tick");
-
+        let err = serde_json::from_str::<Pursuit>(json)
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("improved_at"), "{err}");
+        let p = Pursuit {
+            target: TargetRef::Element { id: 9 },
+            started: 500,
+            closest: 4,
+            improved_at: 0,
+        };
+        assert_eq!(p.last_progress(), 500, "0 falls back to the start tick");
         // And a normal pursuit reports its actual last improvement.
         let fresh = Pursuit {
             target: TargetRef::Element { id: 9 },
@@ -691,22 +735,26 @@ mod tests {
     }
 
     #[test]
-    fn a_pre_006_kitty_json_deserializes_with_no_clock() {
-        // The field defaults to None; whether such a kitty is *lawful* is the
-        // invariants' strict business (an in-progress activity without a
-        // clock is refused there), not serde's.
-        let json = serde_json::json!({
-            "id": 1,
-            "name": "Miso",
-            "pos": {"x": 1, "y": 1},
-            "needs": {"eat": 0.0, "drink": 0.0, "sleep": 0.0, "play": 0.0, "cuddle": 0.0, "bath": 0.0},
-            "happiness": 100.0,
-            "activity": {"state": "sleeping", "in_sunbeam": false},
-            "behavior": "needs_driven",
-        });
-        let k: Kitty = serde_json::from_value(json).unwrap();
-        assert_eq!(k.activity_clock, None);
-        assert!(k.activity.is_sleeping());
+    fn a_kitty_record_without_a_clock_loads_with_none() {
+        // `activity_clock` keeps its absent-means-None wire shape (it is not
+        // one of the restore shims the 049 wall deleted); whether such a
+        // kitty is *lawful* is the invariants' strict business (an
+        // in-progress activity without a clock is refused there), not
+        // serde's. Built from a 3.0 record so the wall's required fields
+        // are all present.
+        let mut k = kitty();
+        k.activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        let json = serde_json::to_value(&k).unwrap();
+        assert!(
+            json.get("activity_clock").is_none(),
+            "None stays off the wire"
+        );
+        let back: Kitty = serde_json::from_value(json).unwrap();
+        assert_eq!(back.activity_clock, None);
+        assert!(back.activity.is_sleeping());
     }
 
     #[test]

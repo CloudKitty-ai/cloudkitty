@@ -55,10 +55,10 @@ obs, infos = env.reset()
 agents = env.possible_agents          # e.g. ["kitty_1", ..., "kitty_5"]
 
 # obs[agent]:            float32 [N_WORLDS, obs_len]
-# infos[agent]["mask"]:  uint8   [N_WORLDS, 50] — 34 activity ∥ 16 message
+# infos[agent]["mask"]:  uint8   [N_WORLDS, 55] — 39 activity ∥ 16 message (spec 049, kitty_slots 4)
 # env.state():           float32 [N_WORLDS, state_len] — the critic's view
 
-MENU = env.menu_len                    # 34 at default slots (unchanged by 033)
+MENU = env.menu_len                    # 39 at the served slots (spec 049)
 actions = {a: np.zeros((N_WORLDS, 2), dtype=np.int64) for a in agents}
 for a in agents:
     for w in range(N_WORLDS):
@@ -131,9 +131,9 @@ def export_ckpolicy(path, layers, obs_len):
         "artifact_version": 2,   # spec 028: two heads in one final layer
         # The three SCHEMA fields always come from the binding's constants,
         # never literals: an artifact stamped with a stale generation is
-        # refused at load (observation schema 4 since spec 033 -- the
-        # say-surface freeze took the digest to 15 kinds, the vector
-        # to 225).
+        # refused at load (observation schema 5 since spec 049 -- the
+        # fog wall: 408 floats at the served slots, no global digest,
+        # per-speaker message blocks on the kitty rows).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
         "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
@@ -141,7 +141,7 @@ def export_ckpolicy(path, layers, obs_len):
         "activation": "relu",
     }
     assert header["layers"][0][0] == obs_len
-    assert header["layers"][-1][1] == 50   # 34 activity + 16 message
+    assert header["layers"][-1][1] == 55   # 39 activity + 16 message (spec 049, kitty_slots 4)
     header_bytes = (json.dumps(header) + "\n").encode()
     with open(path, "wb") as f:
         f.write(b"CKPOLICY")
@@ -221,7 +221,7 @@ discipline binds certification: what seats is what was measured.
 ```bash
 # Measurement beside the smoke (spec 017): four frozen held-out worlds.
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
-  --suite evals/v1 --artifact policies/trained.ckpolicy
+  --suite evals/v2 --artifact policies/trained.ckpolicy
 ```
 
 The suite scores across committed exam configs — scale, scarcity,

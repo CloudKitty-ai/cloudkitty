@@ -25,7 +25,7 @@
 use cloudkitty_core::action;
 use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::meow::message_legal;
-use cloudkitty_core::world::{World, WorldSnapshot};
+use cloudkitty_core::world::{FogView, World};
 use cloudkitty_core::Config;
 
 use crate::codec::ActionCodec;
@@ -40,16 +40,24 @@ use crate::observe::{TargetTable, HEAD_KINDS};
 /// unchanged.
 pub const MASK_SCHEMA_VERSION: u32 = 3;
 
-/// Computes the legal-action mask for `kitty_id` against the frozen
-/// snapshot. One bool per menu entry, in menu order.
+/// Computes the legal-action mask for `kitty_id` against its frozen fog
+/// view (spec 049 research R2: the mask encodes no knowledge the
+/// observation lacks). The verdicts equal the full snapshot's for every
+/// entry whose target is in view; a kitty-targeted entry naming a friend
+/// outside the disc is fog-silenced even where the full world would allow
+/// it (`Chase` needs only existence there) -- the `unseen_target` class
+/// `mask_oracle` asserts masked -- and a scene whose counterpart is out of
+/// view is the one undecidable corner the oracle skips. Restoring a
+/// full-snapshot mask would leak targets the observation cannot see. One
+/// bool per menu entry, in menu order.
 pub fn legal_action_mask(
-    snapshot: &WorldSnapshot,
+    view: &FogView,
     kitty_id: KittyId,
     table: &TargetTable,
     codec: &ActionCodec,
     config: &Config,
 ) -> Vec<bool> {
-    let mut probe = World::from_snapshot(snapshot);
+    let mut probe = World::from_snapshot(&view.snapshot);
     // The apply slot's first act: an activity whose counterpart is gone ends
     // before the proposal gets its hearing (spec 006 FR-010).
     probe.prune_dead_activity(kitty_id);
@@ -70,16 +78,12 @@ pub fn legal_action_mask(
 /// `message_legal` for `HEAD_KINDS[k]`. The same no-reimplementation
 /// doctrine as the activity mask: the ruling is the engine's function,
 /// called, never copied.
-pub fn legal_message_mask(
-    snapshot: &WorldSnapshot,
-    kitty_id: KittyId,
-    config: &Config,
-) -> Vec<bool> {
+pub fn legal_message_mask(view: &FogView, kitty_id: KittyId, config: &Config) -> Vec<bool> {
     let mut mask = vec![false; 1 + HEAD_KINDS.len()];
     mask[0] = true; // Silence is always legal -- structural, never all-zero.
-    if let Some(kitty) = snapshot.kitty(kitty_id) {
+    if let Some(kitty) = view.kitty(kitty_id) {
         for (k, &kind) in HEAD_KINDS.iter().enumerate() {
-            mask[k + 1] = message_legal(kitty, kind, snapshot.tick, config, &snapshot.elements);
+            mask[k + 1] = message_legal(kitty, kind, view.tick, config, view);
         }
     }
     mask
@@ -102,17 +106,20 @@ mod tests {
     #[test]
     fn an_idle_kitty_has_idle_and_solo_entries_legal() {
         let (world, config) = test_world();
-        let snapshot = world.snapshot();
+        let snapshot = world.snapshot().fog_for(1, config.vision.radius);
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
 
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert_eq!(mask.len(), 34, "menu v2: the meow rows are gone");
-        assert!(mask[33], "idle (renumbered, spec 028) is genuinely legal");
+        assert_eq!(mask.len(), 39, "menu v2 at kitty_slots 4 (spec 049)");
+        assert!(
+            mask[38],
+            "idle (last row; 33 at kitty_slots 3) is genuinely legal"
+        );
         assert!(mask[4], "solo rest is always legal");
-        assert!(mask[12], "self-groom is always legal");
-        assert!(mask[25], "solo play is always legal");
+        assert!(mask[14], "self-groom is always legal");
+        assert!(mask[29], "solo play is always legal");
         assert!(mask.iter().filter(|&&b| b).count() >= 4);
     }
 
@@ -127,16 +134,16 @@ mod tests {
         // Clock started this tick: zero ticks serviced, minimum not met.
         world.kitties[idx].activity_clock = Some(ActivityClock::start(world.tick));
 
-        let snapshot = world.snapshot();
+        let snapshot = world.snapshot().fog_for(1, config.vision.radius);
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
         let table = TargetTable::build(&snapshot, 1, &cfg);
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
 
         let set: Vec<usize> = (0..mask.len()).filter(|&i| mask[i]).collect();
-        assert_eq!(set, vec![8], "exactly the solo-sleep continuation");
+        assert_eq!(set, vec![9], "exactly the solo-sleep continuation");
         assert_eq!(
-            codec.decode(8, &table).unwrap(),
+            codec.decode(9, &table).unwrap(),
             Action::Sleep { with: None }
         );
     }
@@ -208,9 +215,9 @@ mod tests {
 
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
-        let sb = bidi.snapshot();
-        let sa = opta.snapshot();
         for id in [1, 2] {
+            let sb = bidi.snapshot().fog_for(id, bidi_cfg.vision.radius);
+            let sa = opta.snapshot().fog_for(id, opta_cfg.vision.radius);
             let mb = legal_action_mask(
                 &sb,
                 id,
@@ -296,8 +303,8 @@ mod tests {
         let off_cfg = Arc::new(off);
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
-        let snapshot = on.snapshot();
         for id in [1, 2] {
+            let snapshot = on.snapshot().fog_for(id, on_cfg.vision.radius);
             let table = TargetTable::build(&snapshot, id, &cfg);
             assert_eq!(
                 legal_action_mask(&snapshot, id, &table, &codec, &on_cfg),
@@ -316,10 +323,11 @@ mod tests {
     #[test]
     fn the_mask_is_never_all_zero_for_a_fresh_world() {
         let (world, config) = test_world();
-        let snapshot = world.snapshot();
+        let full = world.snapshot();
         let cfg = ObservationConfig::default();
         let codec = ActionCodec::v2(&cfg);
-        for kitty in &snapshot.kitties {
+        for kitty in &full.kitties {
+            let snapshot = full.fog_for(kitty.id, config.vision.radius);
             let table = TargetTable::build(&snapshot, kitty.id, &cfg);
             let mask = legal_action_mask(&snapshot, kitty.id, &table, &codec, &config);
             assert!(mask.iter().any(|&b| b), "kitty {} all-zero", kitty.id);

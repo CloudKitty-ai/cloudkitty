@@ -364,7 +364,9 @@ impl Behavior for ScriptBehavior {
             tick: now,
             kitty_id: kitty,
             me: &ctx.me,
-            world: ctx.world.as_ref(),
+            // Spec 049 FR-048: the plugin sees the fog view's snapshot --
+            // the same shape as ever, fogged contents.
+            world: &ctx.world.snapshot,
             seed: ctx.rng.gen_u64(),
             config: &ctx.config,
         };
@@ -490,7 +492,10 @@ mod tests {
             ["config", "kitty_id", "me", "seed", "tick", "v", "world"],
             "the request carries the documented fields"
         );
-        assert_eq!(object["v"], 2); // spec 033: mew rename + 7 kinds (D4)
+        // Spec 049 FR-048: version 3 -- the fogged world and the grown
+        // fields (2 was spec 033: mew rename + 7 kinds, D4). Observed red
+        // at 2 before this line moved (redden list, cycle 8).
+        assert_eq!(object["v"], 3);
         assert_eq!(object["tick"], 7);
         assert_eq!(object["seed"], 42);
         assert!(!line.contains('\n'), "one request means one line");

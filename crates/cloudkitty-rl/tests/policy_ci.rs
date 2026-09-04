@@ -129,7 +129,7 @@ fn p99_decision_latency_is_under_a_tenth_of_the_budget() {
             .expect("the policy kitty is rostered");
         let ctx = cloudkitty_core::behavior::DecisionContext {
             me: snapshot.kitty(policy_kitty).unwrap().clone(),
-            world: snapshot.clone(),
+            world: Arc::new(snapshot.fog_for(policy_kitty, config.vision.radius)),
             rng: cloudkitty_core::rng::DecisionRng::from_seed(kitty_seed),
             config: config.clone(),
         };

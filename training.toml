@@ -100,8 +100,133 @@ min = 2
 max = 2
 ttl = 300
 
+[persistence]
+snapshot_path = "snapshot.json"
+save_every_ticks = 100
+
+[happiness]
+floor = 5.0
+
+[happiness.weights]
+eat = 0.20000000298023224
+drink = 0.20000000298023224
+sleep = 0.15000000596046448
+play = 0.15000000596046448
+cuddle = 0.15000000596046448
+bath = 0.15000000596046448
+
+[thresholds]
+distress = 90.0
+safeguard = 75.0
+purr = 70.0
+
+[actions]
+eat_relief = 40.0
+drink_relief = 40.0
+sleep_relief = 5.0
+sleep_relief_sunbeam = 7.0
+groom_relief = 20.0
+play_relief = 20.0
+cosleep_drip_relief = 15.0
+cosleep_mutual_relief = 15.0
+rest_mutual_relief = 15.0
+rest_drip_relief = 0.0
+groom_cuddle_relief = 15.0
+solo_play_relief = 10.0
+play_relief_bug = 25.0
+play_relief_greeble = 35.0
+
+[actions.durations.eat]
+min = 2
+max = 5
+
+[actions.durations.drink]
+min = 2
+max = 5
+
+[actions.durations.play]
+min = 2
+max = 5
+
+[actions.durations.bath]
+min = 2
+max = 5
+
+[actions.durations.sleep]
+min = 3
+max = 8
+
+[actions.durations.cuddle]
+min = 3
+max = 8
+
+[meow]
+recent_window_ticks = 10
+digest_window_ticks = 30
+announce_threshold = 30.0
+announce_hysteresis = 5.0
+
+[meow.vocabulary]
+want_eat = true
+want_drink = true
+mew = true
+want_play = true
+want_cuddle = true
+purr = true
+want_bath = true
+want_sleep = true
+here_food = true
+here_water = true
+here_critter = true
+here_sunbeam = true
+chirp = true
+trill = false
+ekekek = false
+
+[behavior]
+budget_fraction_of_tick = 0.5
+playful_comfort = 55.0
+urgency_weight = 2.0
+tile_cost = 1.0
+water_step_cost = 4.0
+worth_a_detour = 30.0
+chase_patience_ticks = 12
+chase_exclusion_ticks = 60
+solo_play_reach = 8
+sunbeam_reach = 8
+budget_strikes = 5
+bench_ticks = 300
+reply_max_bytes = 65536
+relaunch_cooldown_ticks = 20
+exchange_timeout_ms = 1000
+cuddle_real_threshold = 15.0
+
+[purr]
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+[events]
+distress_retention = 1000
+activity_retention = 1000
+
+[viewer]
+distress_patience_ticks = 60
+
 [rl.episode]
 horizon = 2000
+
+# Fog Gen 1 (spec 049): the vision disc -- see cloudkitty.toml's [vision]
+# for the full note. 5 is the FR-002 placeholder the step-5 prereg screens.
+[vision]
+radius = 5
+memory_timeout_ticks = 0
 
 [rl.reward]
 p = 0.0          # Nash welfare — the product objective, unchanged

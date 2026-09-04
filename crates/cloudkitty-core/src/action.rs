@@ -14,6 +14,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::config::Config;
 use crate::element::{ElementId, ElementKind, ElementType};
+use crate::events::RefusalReason;
 use crate::grid::{Direction, Position};
 use crate::kitty::{Activity, ActivityClock, KittyId};
 use crate::meow::{Meow, MessageKind};
@@ -130,8 +131,14 @@ impl Action {
 /// (spec 033): `follow_me` stopped parsing as a message kind (renamed
 /// `mew` -- no alias, a lying name is what the rename removed) and seven
 /// kinds joined the accepted set (here_food, here_water, here_critter,
-/// here_sunbeam, chirp, trill, ekekek).
-pub const PROPOSAL_WIRE_VERSION: u32 = 2;
+/// here_sunbeam, chirp, trill, ekekek). Version 3 (spec 049 FR-048, owner
+/// ruled 2026-09-03): `world` is the deciding cat's FOG VIEW -- the same
+/// shape, fogged contents (kitties and elements inside its disc, every
+/// recent meow) -- and the wire grew fields: `memory` and `explore_waypoint`
+/// on kitties (blanked on friends), `pos` and `reply` on meows. A v2
+/// plugin assuming full sight could not tell it sees a partial world, so
+/// the version says so; refusing it falls back per Article IV.
+pub const PROPOSAL_WIRE_VERSION: u32 = 3;
 
 /// Why a proposal failed to parse (spec 016). Every kind resolves the same
 /// way downstream -- the fallback decides, per amended Article IV's default --
@@ -420,6 +427,35 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
         proposal
     } else {
         Action::Idle
+    }
+}
+
+/// Why a proposal `validate` refused was refused (spec 049 T093, owner
+/// ruled 2026-09-03) -- the same predicates, read at the stamp on the same
+/// world: a kitty-targeted proposal (rest, sleep, groom, social play) at a
+/// target that exists but is not adjacent is `PartnerAbsent`; adjacent yet
+/// refused -- only social play can be, through `is_conscriptable_friend`
+/// (mid-scene or asleep) -- is `PartnerBusy`; everything else is `Other`.
+/// `Chase(Kitty)` is legal whenever the friend exists, so it never carries
+/// a partner reason. Meaningful only for a proposal `validate` resolved to
+/// Idle; on a legal proposal it still answers (`Other`), never panics.
+pub fn refusal_reason(world: &World, kitty_id: KittyId, proposal: Action) -> RefusalReason {
+    let target = match proposal {
+        Action::Rest { with: Some(id) }
+        | Action::Sleep { with: Some(id) }
+        | Action::Groom { target: Some(id) }
+        | Action::Play {
+            target: Some(TargetRef::Kitty { id }),
+        } => id,
+        _ => return RefusalReason::Other,
+    };
+    if target == kitty_id || world.kitty(target).is_none() {
+        return RefusalReason::Other;
+    }
+    if !world.is_available_friend(kitty_id, target) {
+        RefusalReason::PartnerAbsent
+    } else {
+        RefusalReason::PartnerBusy
     }
 }
 
@@ -894,6 +930,8 @@ fn emit_message(
     let Some(kitty) = world.kitty(kitty_id) else {
         return;
     };
+    // Spec 049 FR-040: the speaker's position at emission, stamped once.
+    let pos = kitty.pos;
     // The stamped intensity (spec 028): the grounding need's value at
     // emission, on [0, 1] -- a listener hears how hungry, not just that.
     // Every non-want kind carries 0.0 (spec 033 clarify verdict: intensity
@@ -908,11 +946,23 @@ fn emit_message(
     if let Some(idx) = world.kitty_index(kitty_id) {
         world.kitties[idx].set_meow_cooldown(message, tick + config.meow.recent_window_ticks);
     }
+    // The reply stamp (spec 049 FR-040): for a here-kind, true iff the
+    // reply condition held at emission -- a matching want from another
+    // cat audible in the start-of-tick buffer AND the referent visible
+    // from the speaker -- read over the speaker's live fog view; false
+    // for every other kind. Separate from any trigger: an ambient here
+    // landing while a want is audible is stamped too.
+    let reply = MessageKind::HERE_KINDS.contains(&message) && {
+        let view = world.snapshot().fog_for(kitty_id, config.vision.radius);
+        crate::meow::reply_condition(message, &view, config)
+    };
     world.recent_meows.push(Meow {
         kitty_id,
         kind: message,
         tick,
         intensity,
+        pos,
+        reply,
     });
 }
 
@@ -1229,7 +1279,7 @@ mod tests {
                 MessageKind::Purr,
                 50,
                 &config,
-                &world.elements
+                &world.snapshot().fog_for(1, config.vision.radius)
             ),
             "an earned purr message is legal"
         );
@@ -1269,7 +1319,7 @@ mod tests {
             MessageKind::Purr,
             world.tick,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
     }
 
@@ -1319,7 +1369,7 @@ mod tests {
                 MessageKind::Purr,
                 50,
                 &config,
-                &world.elements
+                &world.snapshot().fog_for(1, config.vision.radius)
             ),
             "legal while purring -- the no-op is lawful, not masked"
         );
@@ -3122,7 +3172,7 @@ mod proposal_contract_tests {
             MessageKind::HereFood,
             50,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
         apply_message(&mut world, 1, MessageKind::HereFood, &config, 50);
         assert!(
@@ -3172,7 +3222,141 @@ mod proposal_contract_tests {
             MessageKind::HereFood,
             51,
             &config,
-            &world.elements
+            &world.snapshot().fog_for(1, config.vision.radius)
         ));
+    }
+}
+
+#[cfg(test)]
+mod refusal_reason_tests {
+    use super::*;
+    use crate::test_support::test_world;
+
+    fn stage() -> (World, Config) {
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(5, 6);
+        world.kitties[b].activity = Activity::Idle;
+        world.kitties[b].activity_clock = None;
+        (world, config)
+    }
+
+    /// Spec 049 T093: absent vs busy vs other, on the same world `validate`
+    /// judged -- and each partner reason only where `validate` refuses.
+    #[test]
+    fn a_refusal_names_absent_busy_or_other() {
+        // Absent: the partner exists two tiles away.
+        let (mut world, config) = stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(5, 8);
+        for proposal in [
+            Action::Rest { with: Some(2) },
+            Action::Sleep { with: Some(2) },
+            Action::Groom { target: Some(2) },
+            Action::Play {
+                target: Some(TargetRef::Kitty { id: 2 }),
+            },
+        ] {
+            assert_eq!(
+                validate(&world, 1, proposal, &config),
+                Action::Idle,
+                "{proposal:?}"
+            );
+            assert_eq!(
+                refusal_reason(&world, 1, proposal),
+                RefusalReason::PartnerAbsent,
+                "{proposal:?}"
+            );
+        }
+        // Busy: adjacent but mid-scene (a clock running) or asleep -- only
+        // social play is refused; rest/sleep/groom bind nobody and pass.
+        let (mut world, config) = stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].activity = Activity::Grooming { target: None };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(1));
+        let play = Action::Play {
+            target: Some(TargetRef::Kitty { id: 2 }),
+        };
+        assert_eq!(validate(&world, 1, play, &config), Action::Idle);
+        assert_eq!(refusal_reason(&world, 1, play), RefusalReason::PartnerBusy);
+        assert_eq!(
+            validate(&world, 1, Action::Rest { with: Some(2) }, &config),
+            Action::Rest { with: Some(2) }
+        );
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        assert_eq!(
+            refusal_reason(&world, 1, play),
+            RefusalReason::PartnerBusy,
+            "asleep is busy"
+        );
+        // Other: a missing target, a self target, an element, a move, a meal.
+        let (mut world, config) = stage();
+        assert_eq!(
+            refusal_reason(&world, 1, Action::Groom { target: Some(9) }),
+            RefusalReason::Other
+        );
+        assert_eq!(
+            refusal_reason(&world, 1, Action::Rest { with: Some(1) }),
+            RefusalReason::Other
+        );
+        assert_eq!(
+            refusal_reason(
+                &world,
+                1,
+                Action::Play {
+                    target: Some(TargetRef::Element { id: 77 })
+                }
+            ),
+            RefusalReason::Other
+        );
+        assert_eq!(
+            validate(
+                &world,
+                1,
+                Action::Move {
+                    direction: Direction::South
+                },
+                &config
+            ),
+            Action::Idle,
+            "occupied"
+        );
+        assert_eq!(
+            refusal_reason(
+                &world,
+                1,
+                Action::Move {
+                    direction: Direction::South
+                }
+            ),
+            RefusalReason::Other
+        );
+        assert_eq!(refusal_reason(&world, 1, Action::Eat), RefusalReason::Other);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(9, 9);
+        assert_eq!(
+            refusal_reason(&world, 1, Action::Chase(TargetRef::Kitty { id: 2 })),
+            RefusalReason::Other,
+            "a chase is legal whenever the friend exists: never a partner reason"
+        );
+        // The wire names.
+        assert_eq!(
+            serde_json::to_string(&RefusalReason::PartnerAbsent).unwrap(),
+            "\"partner_absent\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RefusalReason::PartnerBusy).unwrap(),
+            "\"partner_busy\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RefusalReason::Other).unwrap(),
+            "\"other\""
+        );
     }
 }

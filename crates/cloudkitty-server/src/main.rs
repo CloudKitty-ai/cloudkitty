@@ -289,6 +289,14 @@ async fn run() -> Result<()> {
     } else {
         tracing::info!("wet fur disabled ([water] bath_gain = 0): water occupancy is free");
     }
+    // Spec 049: the fog's one knob, said out loud beside the other world-law
+    // lines so a deploy log shows what every cat could see.
+    tracing::info!(
+        radius = config.vision.radius,
+        memory_timeout_ticks = config.vision.memory_timeout_ticks,
+        "vision radius {}: every cat sees the Euclidean disc around it (fog Gen 1)",
+        config.vision.radius
+    );
     // Spec 045: the ladder gate speaks ONLY when armed — silence at the
     // default keeps the served boot log byte-identical (the contract in
     // contracts/config-surface.md).

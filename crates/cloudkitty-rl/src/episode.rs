@@ -349,7 +349,7 @@ impl Episode {
                         .expect("seeds are dealt for every roster kitty");
                     let ctx = DecisionContext {
                         me: snapshot.kitty(id).cloned().expect("roster kitty"),
-                        world: snapshot.clone(),
+                        world: Arc::new(snapshot.fog_for(id, self.core.vision.radius)),
                         rng: DecisionRng::from_seed(seed),
                         config: self.core.clone(),
                     };
@@ -443,13 +443,17 @@ impl Episode {
         let mut new_tables = BTreeMap::new();
 
         for &id in &externals {
+            // Spec 049: each agent observes its own fog view of the one
+            // published snapshot -- the same view its scripted seat-mate
+            // would decide from.
+            let view = snapshot.fog_for(id, self.core.vision.radius);
             let observation =
-                encode_observation(&snapshot, id, &self.core, &self.rl.observation, clock);
+                encode_observation(&view, id, &self.core, &self.rl.observation, clock);
             // The serialized mask is the two-head concat (mask schema 3):
-            // [activity (menu_len) | message (16)] -- 50 at default slots.
+            // [activity (menu_len) | message (16)] -- 55 at default slots.
             let mut mask =
-                legal_action_mask(&snapshot, id, &observation.table, &self.codec, &self.core);
-            mask.extend(legal_message_mask(&snapshot, id, &self.core));
+                legal_action_mask(&view, id, &observation.table, &self.codec, &self.core);
+            mask.extend(legal_message_mask(&view, id, &self.core));
             let record = report.record(id);
             let applied_action = record.and_then(|r| {
                 self.last_tables
@@ -690,10 +694,10 @@ mod tests {
         let agents = episode.external_agents();
         let mut actions: BTreeMap<KittyId, (usize, usize)> =
             agents.iter().map(|&id| (id, (33, 0))).collect();
-        actions.insert(agents[0], (34, 0));
+        actions.insert(agents[0], (39, 0));
         assert!(matches!(
             episode.step(&actions),
-            Err(EpisodeError::ActionOutOfRange { index: 34, .. })
+            Err(EpisodeError::ActionOutOfRange { index: 39, .. })
         ));
 
         // In-range indices naming vacant slots decode and lawfully idle.

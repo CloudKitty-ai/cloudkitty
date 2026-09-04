@@ -259,15 +259,15 @@ mod tests {
 
     fn table() -> TargetTable {
         TargetTable {
-            kitties: vec![Some(2), Some(3), None],
+            kitties: vec![Some(2), Some(3), None, Some(5)],
             critters: vec![Some(11), None, None, Some(14)],
         }
     }
 
     #[test]
-    fn the_default_menu_has_exactly_thirty_four_entries_in_normative_order() {
+    fn the_default_menu_has_exactly_thirty_nine_entries_in_normative_order() {
         let codec = ActionCodec::v2(&ObservationConfig::default());
-        assert_eq!(codec.len(), 34);
+        assert_eq!(codec.len(), 39);
         let t = table();
         // Spot-check the normative index table.
         assert_eq!(
@@ -278,30 +278,30 @@ mod tests {
         );
         assert_eq!(codec.decode(4, &t).unwrap(), Action::Rest { with: None });
         assert_eq!(codec.decode(5, &t).unwrap(), Action::Rest { with: Some(2) });
-        assert_eq!(codec.decode(8, &t).unwrap(), Action::Sleep { with: None });
+        assert_eq!(codec.decode(9, &t).unwrap(), Action::Sleep { with: None });
         assert_eq!(
-            codec.decode(12, &t).unwrap(),
+            codec.decode(14, &t).unwrap(),
             Action::Groom { target: None }
         );
-        assert_eq!(codec.decode(16, &t).unwrap(), Action::Eat);
-        assert_eq!(codec.decode(17, &t).unwrap(), Action::Drink);
+        assert_eq!(codec.decode(19, &t).unwrap(), Action::Eat);
+        assert_eq!(codec.decode(20, &t).unwrap(), Action::Drink);
         assert_eq!(
-            codec.decode(18, &t).unwrap(),
+            codec.decode(21, &t).unwrap(),
             Action::Chase(TargetRef::Element { id: 11 })
         );
         assert_eq!(
-            codec.decode(22, &t).unwrap(),
+            codec.decode(25, &t).unwrap(),
             Action::Chase(TargetRef::Kitty { id: 2 })
         );
-        assert_eq!(codec.decode(25, &t).unwrap(), Action::Play { target: None });
+        assert_eq!(codec.decode(29, &t).unwrap(), Action::Play { target: None });
         assert_eq!(
-            codec.decode(29, &t).unwrap(),
+            codec.decode(33, &t).unwrap(),
             Action::Play {
                 target: Some(TargetRef::Element { id: 14 })
             }
         );
         assert_eq!(
-            codec.decode(33, &t).unwrap(),
+            codec.decode(38, &t).unwrap(),
             Action::Idle,
             "Idle renumbered onto the retired meow block's first row"
         );
@@ -366,13 +366,13 @@ mod tests {
             }
         );
         assert_eq!(
-            codec.decode(19, &t).unwrap(),
+            codec.decode(22, &t).unwrap(),
             Action::Chase(TargetRef::Element { id: VACANT_ELEMENT })
         );
         // Out of range is the one caller error.
         assert!(matches!(
-            codec.decode(34, &t),
-            Err(CodecError::OutOfRange { index: 34, len: 34 })
+            codec.decode(39, &t),
+            Err(CodecError::OutOfRange { index: 39, len: 39 })
         ));
     }
 

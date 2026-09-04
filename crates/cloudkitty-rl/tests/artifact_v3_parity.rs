@@ -98,21 +98,25 @@ fn serving_cost_is_negligible_against_the_tick() {
     );
 }
 
-/// The real-checkpoint parity gate (spec 030 T020; schema-4 fixtures per
-/// spec 033 FR-013): oracle expanded from the spec-030 oracle's source
-/// checkpoint — the v4-BC attention clone (train_attn_clone.py, torch seed
-/// 20260809; its v3 export was the prior oracle.ckpolicy, sha 48773196…) —
-/// with extension rows (type-embedding rows 14–20, message-head rows 9–15)
-/// initialized at torch.manual_seed(20260815) and parity rows drawn at
-/// numpy seed 20260815. `tests/fixtures/oracle.ckpolicy` sha256 be74c4df…,
-/// `tests/fixtures/oracle.parity` sha256 b70f3e0f… — 144 rows at 225/50:
-/// 112 plausible (~35% per-block vacancy) plus stress (per-class
-/// all-vacant, digest-silent, self+clock-only, 8 rows with NONZERO
-/// trill/ekekek digest slots — never-legal kinds present in obs — and 4
-/// rows with chirp + all four Here* audible). Fully regenerable via
-/// `experiments/attn-oracle-2026-08-15/make_oracle_v4.py`; the numpy
-/// reference forward (`numpy_forward_v4.py`, self-check 2.86e-06) lives
-/// beside it.
+/// The parity gate at the schema-5 surface (spec 030 T020; re-cut at the
+/// spec-049 fog wall, T031): `tests/fixtures/oracle.ckpolicy` is a SEEDED
+/// synthetic entity-attention mind at the new surface -- no trained
+/// checkpoint carries across the wall (every embedding width moved, the
+/// message-kind tokens are gone) and a parity oracle needs only an
+/// INDEPENDENT reference forward, not training -- exported v3-format at
+/// the schema-5 pins (sha256 c205106b…); `tests/fixtures/oracle.parity`
+/// (sha256 c97c5e59…) holds 152 rows at 408/55 (regenerated 2026-09-04
+/// for the kitty-row sunbeam bit; 8c1691b4… / 2658886d… were the 404
+/// pair): 112 plausible (~35%
+/// per-block vacancy) plus stress (every kitty row vacant, every critter
+/// vacant, every element vacant, self+clock only, and -- the spec-049
+/// review's row -- every kitty row HEARD: present 0, the rest live, which
+/// a "present <= 0" pad rule wrongly masked), with logits from the
+/// numpy reference. Fully regenerable via
+/// `experiments/attn-oracle-2026-08-15/make_oracle_v5.py`; the numpy
+/// forward (`numpy_forward_v5.py`, the certified v4 forward with only the
+/// layout moved) lives beside it. The schema-4 oracle stays as
+/// `oracle-schema4.ckpolicy`, the refusal witness (`artifact_v3_reject`).
 #[test]
 fn the_forward_matches_the_numpy_oracle_within_1e_4() {
     let rl = RlConfig::default();

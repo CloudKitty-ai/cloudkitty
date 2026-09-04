@@ -13,8 +13,8 @@ def make_env(horizon=25):
     return cloudkitty.ParallelEnv(horizon=horizon)
 
 
-MENU = 34  # menu v2 (spec 028); the mask concat is [activity 34 | message 16] since spec 033
-IDLE = [33, 0]  # (idle, silent) — the v2 no-op pair
+MENU = 39  # menu v2 at kitty_slots 4 (spec 049); the mask concat is [activity 39 | message 16]
+IDLE = [38, 0]  # (idle, silent) — the v2 no-op pair; Idle is the last menu row (38 at kitty_slots 4)
 
 
 def masked_choice(mask, rng):
@@ -51,7 +51,7 @@ def test_reset_shapes_and_bounds():
             "provenance",
         }
         mask = info["mask"]
-        assert mask.dtype == np.uint8 and mask.shape == (50,)
+        assert mask.dtype == np.uint8 and mask.shape == (55,)
         assert mask[MENU] == 1, "Silent (head index 0) is always legal"
         assert mask.any(), "never all-zero"
         assert info["applied_action"] is None, "nothing applied at reset"
@@ -99,7 +99,7 @@ def test_out_of_range_raises_vacant_slots_do_not():
     agents = env.possible_agents
 
     with pytest.raises(IndexError):
-        env.step({agents[0]: [34, 0], **{a: IDLE for a in agents[1:]}})
+        env.step({agents[0]: [39, 0], **{a: IDLE for a in agents[1:]}})
 
     # The message half gets the identical treatment (head has 16 entries
     # since spec 033) and the identical exception type — one fault class,
@@ -127,7 +127,7 @@ def test_a_downgraded_message_stays_visible_as_proposed():
     env.reset(seed=5)
     agents = env.possible_agents
     _, _, _, _, infos = env.step(
-        {agents[0]: [33, 1], **{a: IDLE for a in agents[1:]}}
+        {agents[0]: [38, 1], **{a: IDLE for a in agents[1:]}}
     )
     info = infos[agents[0]]
     assert info["proposed_message"] == "want_eat"
@@ -170,11 +170,11 @@ def test_spaces_are_described():
     try:
         import gymnasium
 
-        assert list(act_space.nvec) == [34, 16], "MultiDiscrete pair (spec 028; head 16 since 033)"
+        assert list(act_space.nvec) == [39, 16], "MultiDiscrete pair (menu 39 at kitty_slots 4, spec 049; head 16 since 033)"
         assert obs_space.shape[0] > 100
     except ImportError:
         assert act_space["type"] == "multi_discrete"
-        assert list(act_space["nvec"]) == [34, 16]
+        assert list(act_space["nvec"]) == [39, 16]
         assert obs_space["shape"][0] > 100
 
 
@@ -182,13 +182,17 @@ def test_unseeded_reset_gives_fresh_reproducible_episodes():
     # Spec 014 review: reset(seed=s) then bare reset() must give a NEW
     # episode (not replay s forever), and the whole sequence must replay
     # from the same starting seed.
+    # Compared on the generated ELEMENT layout, not the observation: under
+    # fog (spec 049) a cat's first view can be empty whatever the seed, so
+    # two different episodes can open with byte-identical observations
+    # (and the tick-0 global state is a seed-independent summary).
     def rollout(env):
-        obs, infos = env.reset()
-        return {a: obs[a].tobytes() for a in env.possible_agents}
+        env.reset()
+        return tuple(env.elements())
 
     a = cloudkitty.ParallelEnv(horizon=20)
-    first_obs, _ = a.reset(seed=7)
-    first = {k: v.tobytes() for k, v in first_obs.items()}
+    a.reset(seed=7)
+    first = tuple(a.elements())
     second = rollout(a)
     third = rollout(a)
     assert second != first, "bare reset() must not replay the seeded episode"
@@ -201,8 +205,8 @@ def test_unseeded_reset_gives_fresh_reproducible_episodes():
 
     # Explicit seeds still reproduce exactly.
     c = cloudkitty.ParallelEnv(horizon=20)
-    c_obs, _ = c.reset(seed=7)
-    assert {k: v.tobytes() for k, v in c_obs.items()} == first
+    c.reset(seed=7)
+    assert tuple(c.elements()) == first, "the seeded episode itself replays"
 
 
 def test_non_canonical_agent_names_are_rejected():
@@ -224,7 +228,7 @@ def test_vector_env_bad_index_leaves_the_batch_in_sync():
     agents = env.possible_agents
 
     bad = {a: [IDLE, IDLE] for a in agents}
-    bad[agents[0]] = [[34, 0], IDLE]
+    bad[agents[0]] = [[39, 0], IDLE]
     with pytest.raises(IndexError):
         env.step(bad)
 

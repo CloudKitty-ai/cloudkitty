@@ -113,9 +113,10 @@ pub struct RefusalWindow {
 }
 
 /// Refusals (spec 046): every non-Idle proposal validation resolved to
-/// Idle — the kitty, the proposal verbatim, the tick, and whether a
+/// Idle — the kitty, the proposal verbatim, the tick, whether a
 /// continuing scene absorbed it (the kitty was mid-scene, minimum met or
-/// not). A signal for the census, never read by the engine
+/// not), and since spec 049 (T093) the `reason` (`partner_absent`,
+/// `partner_busy`, `other`). A signal for the census, never read by the engine
 /// (Article I). Full ring under `events`, oldest first, beside the ring's
 /// `capacity`.
 pub async fn get_refusals(State(state): State<AppState>) -> Json<RefusalWindow> {

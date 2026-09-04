@@ -29,11 +29,11 @@ import cloudkitty
 
 env = cloudkitty.ParallelEnv(horizon=100)     # the default world, one episode
 obs, infos = env.reset(seed=7)
-MENU = env.menu_len                           # 34 at default slots
+MENU = env.menu_len                           # 39 at the served kitty_slots 4 (spec 049)
 for _ in range(100):
     actions = {}
     for agent in env.agents:
-        mask = infos[agent]["mask"]           # 43 wide: 34 activity ∥ 9 message
+        mask = infos[agent]["mask"]           # 55 wide: 39 activity ∥ 16 message
         actions[agent] = [int(np.random.choice(np.flatnonzero(mask[:MENU]))),
                           int(np.random.choice(np.flatnonzero(mask[MENU:])))]
     obs, rewards, terminations, truncations, infos = env.step(actions)
@@ -42,11 +42,15 @@ for _ in range(100):
 Three things to internalize before training anything:
 
 - **The mask is law, and a decision is a pair** (spec 028). An action is
-  `[activity, message]` — `MultiDiscrete([34, 9])` — and the 43-wide
-  mask is both heads' legality concatenated: the first 34 entries mark
-  which menu activities would apply as proposed *right now*, the last 9
-  which messages are lawfully expressible (Silent, index 0, always is —
-  structurally). Select each head only among its masked-in entries (for
+  `[activity, message]` — `MultiDiscrete([39, 16])` at the served
+  `kitty_slots` 4 (spec 049; both widths are config-derived, read them
+  from the binding, never as literals) — and the 55-wide mask is both
+  heads' legality concatenated: the first 39 entries mark which menu
+  activities would apply as proposed *right now*, the last 16 which
+  messages are lawfully expressible (Silent, index 0, always is —
+  structurally). Under fog (spec 049) the mask is computed over the
+  cat's own view: an entry aimed at a friend outside its disc is masked
+  out even if the engine would accept it. Select each head only among its masked-in entries (for
   a softmax: illegal logits → −inf per head, *then* normalize).
 - **The reward is one team scalar** — Nash welfare over the *whole*
   roster, broadcast to every agent. There is no per-kitty credit to
@@ -85,8 +89,8 @@ env = cloudkitty.VectorEnv(N_WORLDS, horizon=HORIZON, workers=N_WORLDS)
 agents = env.possible_agents
 obs0, _ = env.reset(seeds=EVAL_SEEDS)
 OBS_LEN = obs0[agents[0]].shape[1]
-MENU, HEAD = env.menu_len, env.head_len       # 34 + 9 (spec 028)
-OUT = MENU + HEAD                             # one trunk, 43 logits
+MENU, HEAD = env.menu_len, env.head_len       # 39 + 16 (spec 028 heads, spec 049 widths)
+OUT = MENU + HEAD                             # one trunk, 55 logits at the served slots
 
 rng = np.random.default_rng(0)
 
@@ -142,7 +146,7 @@ for iteration in range(1, ITERATIONS + 1):
 # length-prefixed JSON header, then per layer weights row-major [out][in]
 # followed by bias, all little-endian f32.
 header = {
-    "artifact_version": 2,   # spec 028: 43 logits = 34 activity + 9 message
+    "artifact_version": 2,   # spec 028: one final layer, 55 logits = 39 activity + 16 message
     "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
     "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
     "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,

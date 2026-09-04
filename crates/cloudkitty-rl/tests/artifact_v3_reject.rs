@@ -174,3 +174,27 @@ fn a_v3_artifact_on_a_v2_only_supported_set_is_rejected_by_version() {
         Err(ArtifactError::UnsupportedVersion { found: 9, .. })
     ));
 }
+
+/// Spec 049 FR-025 / SC-008: a REAL schema-4 artifact -- the spec-033
+/// oracle, kept beside its schema-5 successor as this witness -- is
+/// refused at load naming the observation schema and both versions,
+/// before any tick.
+#[test]
+fn schema_four_artifact_is_refused() {
+    let rl = RlConfig::default();
+    let expect = PolicyBehavior::expectations(&rl);
+    let old =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/oracle-schema4.ckpolicy");
+    let err = PolicyArtifact::load(&old, &expect).expect_err("schema 4 cannot cross the wall");
+    match err {
+        ArtifactError::SchemaMismatch {
+            schema,
+            found,
+            expected,
+        } => {
+            assert_eq!(schema, "observation");
+            assert_eq!((found, expected), (4, 5));
+        }
+        other => panic!("wrong error class: {other}"),
+    }
+}

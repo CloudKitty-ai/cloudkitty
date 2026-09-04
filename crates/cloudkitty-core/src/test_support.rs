@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::action::TargetRef;
 use crate::behavior::DecisionContext;
-use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, WorldConfig};
+use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, VisionConfig, WorldConfig};
 use crate::element::ElementType;
 use crate::kitty::{Activity, KittyId};
 use crate::rng::DecisionRng;
@@ -139,19 +139,40 @@ pub fn test_config() -> Config {
             },
             ..ElementsConfig::default()
         },
+        // Spec 049 T080: this 16x16 stage and every test staged on it were
+        // written under global vision; the world-covering radius (64 >=
+        // any pair of tiles here) keeps them meaning what they meant. Fog
+        // tests set their own radius (`config.vision.radius = 5`).
+        vision: VisionConfig {
+            radius: 64,
+            memory_timeout_ticks: 0,
+        },
         ..Config::default()
     }
 }
 
-/// A freshly generated world plus the config that made it.
+/// Blank every cat's element memory: a STAGED world starts with no history.
+/// Generation seeds memory from the stocked world (spec 049), so a test
+/// that then rewrites the elements would otherwise carry memories of what
+/// it removed; a test that wants memory sets it explicitly.
+pub fn forget_everything(world: &mut World) {
+    for kitty in &mut world.kitties {
+        kitty.memory.iter_mut().for_each(|slot| *slot = None);
+    }
+}
+
+/// A freshly generated world plus the config that made it, memory blank
+/// (`forget_everything`).
 pub fn test_world() -> (World, Config) {
     let config = test_config();
     debug_assert!(config.validate().is_ok(), "the test config must be valid");
-    let world = World::generate(&config);
+    let mut world = World::generate(&config);
+    forget_everything(&mut world);
     (world, config)
 }
 
-/// Builds a decision context for kitty 1 after applying `setup` to the world.
+/// Builds a decision context for kitty 1 after applying `setup` to the world
+/// (memory blank before `setup`, as `test_world`).
 pub fn decision_context(setup: impl FnOnce(&mut World)) -> DecisionContext {
     decision_context_for(1, setup)
 }
@@ -159,6 +180,7 @@ pub fn decision_context(setup: impl FnOnce(&mut World)) -> DecisionContext {
 pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> DecisionContext {
     let config = Arc::new(test_config());
     let mut world = World::generate(&config);
+    forget_everything(&mut world);
     setup(&mut world);
     let me = world
         .kitty(id)
@@ -166,8 +188,34 @@ pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> Deci
         .clone();
     DecisionContext {
         me,
-        world: Arc::new(world.snapshot()),
+        // Through the fog view, like every real decision (spec 049 R1); the
+        // test config pins a world-covering radius (see `test_config`).
+        world: Arc::new(world.snapshot().fog_for(id, config.vision.radius)),
         rng: DecisionRng::from_seed(9876),
         config,
     }
+}
+
+/// Spec 049 FR-030: a 3.0 config states every section -- a fragment that
+/// names only what a test is about no longer loads on its own. This
+/// completes such a fragment over the serialised `Config::default()`:
+/// tables merge recursively with the fragment's keys winning, and a
+/// non-table value (the `[[kitty]]` roster included) replaces the default
+/// wholesale. Tests of the parser itself (`deny_unknown_fields`, a missing
+/// section named) must NOT use it -- the raw text is their subject.
+pub fn complete_toml(fragment: &str) -> String {
+    fn merge(base: &mut toml::Table, over: toml::Table) {
+        for (key, value) in over {
+            match (base.get_mut(&key), value) {
+                (Some(toml::Value::Table(b)), toml::Value::Table(o)) => merge(b, o),
+                (_, v) => {
+                    base.insert(key, v);
+                }
+            }
+        }
+    }
+    let mut merged = toml::Table::try_from(Config::default()).expect("the defaults serialise");
+    let over: toml::Table = toml::from_str(fragment).expect("the fragment is valid TOML");
+    merge(&mut merged, over);
+    toml::to_string(&merged).expect("the merged table serialises")
 }
