@@ -640,6 +640,40 @@ ruled 2026-09-03:
    JSON literal per required field (`intensity`, `pos`, `reply`)
    asserting the entry fails to deserialise.
 
+**FR-036 bath clause reopened and re-ruled (049 converge T087, owner
+2026-09-03, relayed to Product)**. The want law as first landed
+silenced `want_bath` whenever an idle friend was in view, on the
+reasoning that a kitty can bathe itself. Product's probes (served
+roster, scripted, one seed, 20k) showed the cost: dirty-target grooms
+fell from 2.0 per 1k (r=40) / 3.7 (r=5) pre-fog to 0.0–0.25, because
+the groom response (`needs_driven.rs:315-359`) fires only on hearing
+`want_bath` and is the only kitty-groom path. Cuddle and play keep
+their gate: the here-word pairs with both (spec 049 line 196), so an
+idle friend in view is the ask, whereas bath has no reply pair. Four
+rulings, Product's list verbatim:
+
+1. **`want_bath` is armed-only**: no top-need clause, no
+   idle-friend-in-view gate. Cuddle and play stay as ruled 2026-09-02.
+   Measured: dirty-target grooms 3.1 / 4.8 per 1k (r=40 / r=5),
+   `want_bath` 4.8–5.5 per 1k, no spam.
+2. **SC-004 splits**: 4a plumbing, byte-identical actions over 20k at a
+   covering radius with the want law held at the pre-fog rule (kept
+   reproducible; mechanism is Product's to size); 4b law, every
+   divergence traces to a silenced want or the groom response's
+   listening rule. Literal identity through the law is off the table
+   (Product measured divergence at tick 559).
+3. **Groom response freshness**: act only on a `want_bath` aged ≤ the
+   announce cooldown, inclusive (matches 2.x); audibility stays the
+   one 30-tick digest rule.
+4. **Groom response on sight**: drop it when the caller is visible with
+   bath below the announce threshold.
+
+Rulings 3 and 4 close the scripted relief farm (~90% of 2.x partnered
+grooms started on a clean target; under 3 + 4 that rate and
+simultaneous groomers go to ~0 at every radius). The learner-side farm
+is a step-5 read, fix class pricing, never a reward term (Part B of the
+prereg). The re-baseline consequence is pre-declared under Step 6.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
@@ -761,9 +795,10 @@ roster, scripted, one seed, 20k ticks) that ~90% of 2.x partnered
 grooms started on a CLEAN target: the first responder cleaned the
 caller within a few ticks and the same ask kept drawing groomers for
 the rest of the audibility window, each paid `groom_cuddle_relief`
-(unconditional, `action.rs:747-760`). Rung fixes proposed for 049
-T087 (act only on asks aged ≤ the announce cooldown; on sight, drop
-the response if the caller's bath is below the announce threshold)
+(unconditional, `action.rs:747-760`). Rung fixes ruled for 049
+T087 (owner 2026-09-03, rulings 3 and 4 under Step 4: act only on asks
+aged ≤ the announce cooldown; on sight, drop the response if the
+caller's bath is below the announce threshold)
 remove the clean-target grooms and simultaneous groomers to ~0 at
 every radius; dirty-target grooms are unchanged by them (pre-fog 2.0
 per 1k at r=40, 3.7 at r=5; bath armed-only restores 3.1 / 4.8, the
