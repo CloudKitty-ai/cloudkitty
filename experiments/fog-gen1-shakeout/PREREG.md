@@ -20,7 +20,7 @@ fog is a by-product, not the goal. Two consequences for the design:
   so the pass ends in a list of decisions rather than a list of
   surprises.
 
-## Part A — schema-defect checklist (read at probe 1, then every probe)
+## Part A — schema-defect checklist (read at probe 1, then every probe; rows ruled 2026-09-03)
 
 Runs against the first `--probe-every` checkpoint of every arm and the
 scripted anchor on the same config. Every row is a test with a
@@ -28,7 +28,15 @@ predicted healthy reading and a named degenerate signature; the
 instrument is `schema_check.py` (to write; guard = plain-python asserts
 on recorded probe traces, each row driven red by the exact defect it
 names, rule 5). Width and offsets come from spec 049's FR-026 layout
-(pinned 404: self 85 | 4 × 62 | elements 70 | clock 1).
+(pinned 408 after the owner's 2026-09-04 ruling adding the kitty-row
+"neighbour on a sunbeam" bit: self 85 | 4 × 63 | elements 70 | clock 1;
+was 404 with rows of 62; schema number stays 5, no artifact predates
+the change). Landed on `049-fog-gen1` @ 51b2baa. Kitty-row offsets
+after the landing: water bit 20, on-sunbeam 21, scene age 22, message
+block 23–52 (23+2k recency, 24+2k rate), want intensities 53–58,
+answers-me 59–62. Element blocks: chow 2 × 5, water 2 × 4, sunbeam
+2 × 6, critter 4 × 10. Numpy layout for `schema_check.py`:
+`experiments/attn-oracle-2026-08-15/obs_layout_v5.py`.
 
 | # | block | check | healthy reading | degenerate signature → suspect |
 |---|---|---|---|---|
@@ -41,29 +49,49 @@ names, rule 5). Width and offsets come from spec 049's FR-026 layout
 | A7 | kitty rows: answers-me (4) | 1 only when the observer emitted the matching want inside the window before the here | count == engine-stamped `reply` events addressed to the observer, per F-029 emit-proof | never 1 in any arm → derivation dead; 1 without a prior own want → window logic |
 | A8 | `reply` stamp (engine) | `reply = 1` iff a matching want is audible AND the referent is visible from the speaker | rule holds on every here in the trace; reply count > 0 in fog arms with the scripted reply path on | replies on ticks with no audible want → stamp rule; zero replies with wants and visible referents present → stamp dead |
 | A9 | want law | a want is emitted only when armed, top need, and nothing visible or remembered for it | zero violations on the scripted anchor trace (the law is engine-side: policies cannot violate it either) | any violation → `message_legal` under fog |
-| A10 | FR-023 explore | a scripted cat with nothing visible or remembered walks a persistent heading; re-draws only with the wall inside the radius | heading changes / blind ticks small and concentrated near edges; first-sight latency from blind consistent with the r-sweep arithmetic | re-draw every tick → heading not persisted; cats pin to a corner → re-draw filter |
+| A10 | FR-023 explore (lattice serpentine tour, owner ruled 2026-09-03, T088; landed as `crate::explore::Lattice`, field `explore_waypoint`) | a scripted cat with nothing visible or remembered walks toward its current lattice waypoint (inset ⌊r/√2⌋, spacing ≤ ⌊r√2⌋, boustrophedon and back, cycle 2N−2) and `explore_waypoint` advances only on reach or when another cat holds the waypoint; coverage is complete: over one blind tour every tile of the world lies inside some disc, at EVERY screened radius (20×20 lattices: r=5 {3,10,16}, r=4 {2,7,12,17}, r=3 {2,6,10,13,17}, r=2 ten points per axis; the r=2 screen is the hardest case and the one checked) | union of discs along the anchor's blind path == the whole grid within one tour; `explore_waypoint` advances by one per reach, never resets across errands; first-sight latency from blind ≤ one tour + approach (SC-012 bound 144 at r=5; Product measured worst 108, median 28, mean 35 over 399 trials) | a tile never inside any disc → lattice inset or spacing wrong for this (r, W, H) (the old heading rule's pockets: 100/36/4/0 uncovered core tiles at r = 2/3/4/5 on 20×20 plus corners); index resets after an errand → state not persisted; index skips → advance rule |
 | A11 | scene age + water bit | scene age climbs 1/tick inside a scene and resets on exit; water bit == on-water tile | exact agreement with the trace | either drifts → snapshot bump |
 | A12 | elements block (70) | only visible elements populated; remembered elements appear in the memory token, not here | element rows zero when no element is inside the radius | remembered bowl appears in the element block → memory leaking into sight |
-| A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
+| A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported; the list includes the kitty-row on-sunbeam bit (kitty-row offset 21, ruled and landed 2026-09-04) at 1 on a Seen row and the water bit at 1, each in the anchor trace | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
+| A14 | legality mask (activity + message) | no legality bit depends on a masked fact: the mask is recomputable from the observer's visible rows + own memory alone (adjacency incl. diagonal, distance 1.41, sits inside every radius ≥ 2, so the current law passes; the ruled want / reply law reads only the speaker's knowledge) | recomputing the mask from the observation reproduces the engine mask on every sampled tick | a bit that differs → a 049 rule reads true state through fog |
+| A15 | kitty rows: by-id permanent rows (`kitty_slots` = roster−1 = 4) | row identity fixed per observer across ticks; a masked row still exists with masked FIELDS, never dropped or shifted | the (observer, row) → kitty-id map is constant over the probe | rows re-order or compact when a cat leaves view → every downstream column mislabelled |
+| A16 | kitty rows: `reply` bit (observed) | the observing cat's row carries the engine `reply` stamp on the same here, per speaker | observed reply column == A8's stamp on every here in the trace | engine stamps, observation stays zero → the ladder tie-breaker is invisible to learners |
+| A17 | anchor / policy observation parity | the scripted anchor and the PPO arms observe the identical vector on the identical config (same fog, radius, memory) | per-block variance (A1) and mask flip rate agree between the anchor trace and a policy trace at matched ticks | disagreement → the arms train on a world the anchor did not see (the exam-vs-gym skew class) |
+| A18 | probe determinism | same snapshot + same radius → byte-identical observation (house bit-identical methodology) | two encodes of every probe snapshot agree byte for byte | any difference → nothing in A1–A17 is interpretable across probes |
 
-Reading rule: any red on A2–A9 or A12 at probe 1 is a **stop the pass**
-event (it is the defect the pass exists to find and every later probe
-is contaminated); A1, A10, A11, A13 are logged and read with Part B.
+Rows A14–A18 added on the (3) walk (owner ruled all five 2026-09-03).
+Not added: contagion (shelved for Gen 1), scene-age float (A11), the
+width itself (a schema-header pin, `attn.rs:322`, not a probe read).
+
+Reading rule: any red on A2–A9, A12, A14, A15, or A16 at probe 1 is a
+**stop the pass** event (it is the defect the pass exists to find and
+every later probe is contaminated); A1, A11, A13, A17, A18 are
+logged and read with Part B, except that an outright A17 or A18 failure
+also stops the pass because nothing else is then interpretable. A10's
+coverage half is read once, on the scripted r=2 radius screen BEFORE
+the pass (it is an anchor property, not a training one); a red there
+stops the screen, since an uncovered core would make the radius pin
+measure the sweep rule instead of vision (why T088 was re-ruled). Its
+index-persistence half is read at probe 1 with the rest.
 
 ## Part B — finding → step-6 decision map
 
 Each HALT / INVESTIGATE line from the timeline, plus the pass-specific
 reads, gets its schema consequence now. "Break" = a change the step-6
 LOCK must absorb (obs layout, snapshot, wire); "knob" = config or
-prereg value, no break; "instrument" = measurement change only.
-Proposed classification, owner to rule each row:
+prereg value, no break; "instrument" = measurement change only; "law" = engine-rule change,
+no layout consequence.
+Classification: every row RULED (owner 2026-09-03). Labels: "break" /
+"knob" / "instrument" as above, plus "law" = an engine-rule change
+with no layout consequence (the legality mask is an oracle over
+`validate`, so it follows a law change without a schema bump).
 
 | finding | most likely cause | step-6 decision | consequence |
 |---|---|---|---|
 | H1 watchdog alarm in a fog arm, silent in the no-fog control | policy never learned to search; or FR-023/memory defective on the scripted side too (check A2, A10) | if A-checks clean: radius / floor re-pin, or a training-budget finding | knob |
 | H1 in the no-fog control too | 3.0 schema or digest defect, not fog | Part A localises; fix at the named block | **break** |
 | H2 worst seat below the scripted anchor on the same fog config | information the anchor uses (memory, heading) is not reaching the policy in a learnable form | obs layout of the memory token or digest | **break** if a column is dead or degenerate (A2/A5); knob (radius) if columns are healthy |
-| H3 hard-zero intended activity | a legality path closed under fog (e.g. a partnered action whose target must be visible) | engine law | **break** only if the fix touches the action surface; otherwise knob |
+| H3 hard-zero intended activity | a legality path closed under fog (e.g. the approach to a heard friend arrives at a stale stamp and the partnered proposal fails `is_conscriptable_friend`, `world.rs:1248`) | engine law, or the action surface | **break** iff the fix changes menu length, message-head count, or target-slot layout (`ACTION_SCHEMA` / `MASK_SCHEMA` bump); otherwise **law** (validation or chooser change; the mask is an oracle over `validate`, `mask.rs:56-65`, so it follows for free; re-verify run at the owner's discretion). A zero that Part A traces to a dead column or a masked-row leak is that row's break, not H3's. Owner ruled 2026-09-03 |
 | H4 single-activity domination > 0.55 | the F-027 dyadic attractor returning under fog, or the leash too loose for the fog geometry (slot 5 separates these) | β re-pin, or roster arrangement | knob |
 | H5 frozen cluster | same as H4, spatial signature | as H4 | knob |
 | H6 hyper-dispersion (median ≥ owner's pin) | cats spread to keep everything in view; or the want gate never fires so nobody is called in | floor / listener floor re-pin if wants are under-fired; radius if over-dispersed with wants healthy | knob |
@@ -72,11 +100,13 @@ Proposed classification, owner to rule each row:
 | want bar missed | want density on the scripted seats too low at the pinned floor | floor re-pin | knob |
 | ambient-here bar missed | F-034 continuity broken by the new digest matrix | corpus / recipe | knob, unless the self digest is shown degenerate (A1) → **break** |
 | digest rows never fire for heard-unseen cats | `pos` / audibility plumbing | FR-014 | **break** |
-| refusal tax > 3.5% on a seat | partner targeting at stamped positions produces arrivals at unavailable friends (clarify item 1's drop-on-arrival) | count drop-on-arrival events separately before acting | instrument first |
-| vocabulary lesson arm (slot 6) differs from mixed corpus (slot 1) on the bars | delivery matters under the new digest | registered result, feeds step 7's three-arm design | none |
+| refusal tax > 3.5% on a seat | drop-on-arrival runs THROUGH the stamp: `Chase(Kitty)` is legal whenever the friend exists (`action.rs:403`), `Play{Kitty}` needs conscriptable (`action.rs:414`), so a partnered proposal at a stale stamp is a refusal; the 3.5% line is the OWNER'S HEURISTIC from previous-generation Biscuit (wasted turns proposing to a partner who cannot or is unlikely to say yes), not a hard rule | **instrument first, landing BEFORE the pass**: a `reason` on `RefusalEvent` (`events.rs:72`; at least `partner_absent` / `partner_busy` / `other`, read off the same validate call; the log is not snapshot state, so this is an event + `/events/refusal` change only). Then: fog-shaped share above the line → knob (audible window / radius); F-033-shaped share above the line → the Biscuit 3.0 design question, outside this pass | instrument (pre-pass); owner ruled 2026-09-03; lands as 049 convergence task T093 (owner confirmed in the Product session 2026-09-03). **Shape (Product, 2026-09-04, implementation follows T092)**: `GET /events/refusal` → `{capacity: 6000, events: [{kitty_id, proposed, tick, absorbed, reason}]}`, oldest first; `reason` ∈ `partner_absent` (kitty target exists, not adjacent) / `partner_busy` (adjacent, failed conscription: only `Play{Kitty}`) / `other` (everything else, incl. nonexistent target); derived at the stamp site from the one `validate` judgement; runtime ring only, no schema consequence. **Read**: tax = TAXED share per seat per tick (refused and the turn resolved to Idle; F-039's convention, the one the 3.5% line was drawn on), split by `reason`; the fog-shaped share is `partner_absent` on `Rest/Sleep/Groom{f}` (stale heard position) plus `partner_busy` on `Play{Kitty}`. **The scripted anchor's own partner rate is NOT zero (Product measured 2026-09-04, served roster all scripted, 20k)**: r = 5 partner_absent 3,293 (Rest 2,596, Play 366, Sleep 323, Groom 8; 1,096 taxed / 2,197 absorbed), partner_busy 1,979 (all Play; 294 / 1,685), other 2,975 (Move 2,437, Eat 538); r = 40 absent 3,352 / busy 2,210 / other 3,074, radius-flat. Mechanism: a scripted cat proposes at a friend adjacent in the start-of-tick snapshot, the friend (earlier in the fair turn order) moved first, the proposal is refused at apply: the same-tick ordering tax, ~1.4% taxed partner share per cat-tick at global vision, so fog adds nothing to it at these radii. The earlier expectation of zero was wrong. So the anchor at the same radius is the calibration baseline and the fog-specific drop-on-arrival signal is the policy seat's taxed partner share MINUS the anchor's; the 3.5% line applies to the seat's absolute taxed share as in F-039. `other` is split by the verbatim `proposed` variant in the instrument (Eat/Drink with nothing adjacent = the stale-memory arrival class, Move = collisions, Play/Chase{Critter} = the intended play-ends-short artifact), so no fourth `reason` value is needed. Reading test in the 049 branch: `cargo test -p cloudkitty-core --test refusal_reasons -- --ignored --nocapture` |
+| vocabulary lesson arm (slot 6) differs from mixed corpus (slot 1) on the bars | delivery matters under the new digest (same schema, same columns in both arms, so it cannot name a column) | registered result, feeds step 7's three-arm design | none for the LOCK; sets the step-7 corpus default |
 | radius bracket (slot 4) indistinguishable from the pin on welfare | fog barely binds at 20×20 (ROADMAP's standing concern) | Gen 1 ships at the pin; the world-size × radius screen moves to Gen 2 | knob |
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
-| pace at 3 threads makes the horizon unreachable in the budget | box | drop slot 4 or 6 first, never 1–3 | none |
+| groom pile-on: responders per audible `want_bath` > 1 sustained (anchor at r=40 vs the fog radii) | the 049 groom response hears for the 30-tick digest window while 2.x listened within the 10-tick cooldown, so stale asks attract two responders to a caller a third cat is already grooming (Product measured 2026-09-03: divergence at tick 559 at r=40); under fog a responder cannot see the caller is busy until it arrives | rung freshness rule (act only on asks aged ≤ the announce cooldown, inclusive; audibility itself unchanged) plus an on-sight drop when the visible caller's bath is below the announce threshold; **owner ruled 2026-09-03** (049 T087 rulings 3 and 4), lands with 049, so this read is a check that the rung holds, not a proposal | knob-class law change; **break** only if the second arrival exposes a double-groom scene defect (Groom validation checks adjacency only, action.rs:385) |
+| groom relief farm: groom-of-clean-friend rate (target bath below the announce threshold at scene start) in a policy arm above the anchor's | `Grooming { target: Some }` pays the groomer `groom_cuddle_relief` unconditionally (action.rs:747-760) and `Groom { target }` is legal on any adjacent friend (action.rs:385), so cuddle relief can be farmed on a clean neighbour with no ask; 2.x pricing, first looked for here; degenerate form = the F-027 dyadic attractor. Product's probe 2026-09-03 saw the scripted form (k1 + k5 grooming k4 at bath 1.6 on a 25-tick-old ask); rung fixes bind anchors only | pricing (groomer relief scaled by the target's bath need, or zero below threshold), never a reward term (F-018 layer 2: the farm is an equilibrium under the price; scripted seats are IN the team reward, so an honest groom of a dirty anchor already pays more than a clean-target groom at 0.5); post-LOCK is fine | **law** (pricing), no schema; read TOGETHER with H4 |
+| pace at 3 threads runs the stop rule past the planned wall clock | box | **no arm is dropped (owner 2026-09-03)**: all six run to the stop rule or the 20M cap and the pass takes the extra hours | none |
 
 ## Part C — the rest of the prereg (owner walk-through 2026-09-03)
 
@@ -87,7 +117,14 @@ Proposed classification, owner to rule each row:
   (open field; edge-clipped averages 3.0 / 6.4 / 10.3 / 16.1 / 21.5%).
   Per radius: anchor welfare curve (watchdog entries, eat/drink max,
   safeguard entries, blind-hungry span), `nn_distance.py` dispersion,
-  friend-in-view share. **Pin rule PENCILLED, set after the curve is
+  friend-in-view share. The blind-hungry span and safeguard entries
+  test the ratified blind price (T090, owner 2026-09-04: an unseen,
+  unremembered kind is priced `radius + 1`, the Manhattan lower bound;
+  `None` at a covering radius): with the tour coverage-complete, a
+  small-radius anchor grooming or playing through hunger points at
+  `tile_cost × (r + 1)` first (6 at r = 5, 3 at r = 2), and a long span
+  on a cat holding a stale memory points at the memory-beats-bound
+  rule, not at the price. **Pin rule PENCILLED, set after the curve is
   seen and before corpus collection**: smallest radius in {3, 4, 5} at
   which the anchor holds welfare within the seed spread of the no-fog
   anchor was the first draft; the owner expects a substantial scripted
@@ -124,12 +161,76 @@ Proposed classification, owner to rule each row:
   ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
   the anchor at the same radius) and cluster shape, to tell loose
   clusters with excursions from five solo cats.
+- **Responder-approach read (companion, added 2026-09-03 after the
+  FR-036 bath re-ruling)**: `want_cuddle` and `want_play` have no
+  scripted listener (the groom response answers `want_bath` only), so
+  under the ruled want law these two words are pure social cues and
+  whether anyone acts on them is the learners' to show. Measure, per
+  learner seat and per word: of the audible `want_cuddle` /
+  `want_play` entries in `recent_meows` whose speaker was NOT in the
+  listener's view at the tick of the meow, the share where the
+  listener's Euclidean distance to the speaker falls by ≥ 2 within the
+  next `<049:announce_cooldown>` ticks (approach), and the share where
+  a partnered cuddle or play scene with that speaker starts within the
+  same window (uptake). The in-view exclusion keeps the read on the
+  word: a speaker already visible triggers the want-gate path, not the
+  cue. Always against the anchor at the same radius, whose approach
+  share is the chance rate (scripted seats never route on these
+  words). Reading: learners above the anchor on approach = the cue
+  carries and no rung is owed; at or below the anchor on BOTH words
+  across the reference arms = the words are inert, which is the
+  trigger for the banked scripted cue-answer rungs (a
+  `cuddle_response` / `play_response` in `needs_driven`, mirror of the
+  groom response: hear, approach, offer; law-class, no schema, fine
+  post-LOCK) and for revisiting the cuddle clause of FR-036 in the
+  same sitting (owner 2026-09-03: "see how those shake out, add a
+  scripted cue answer if needed"). No HALT and no step-6 gate hangs on
+  this read; it is a step-7 input only. Instrument: probe-side, from
+  the probe's own snapshots (`recent_meows`, positions, scene starts
+  from `/events/activity` spans); written with `schema_check.py`.
+- **Config rule (owner ruled 2026-09-03)**: every screen, corpus, and
+  arm here, and the step-7 certification training, derive from the
+  served `cloudkitty.toml` with the #332 bump reverted
+  (`groom_cuddle_relief = 0.5`); any deliberate training/serving
+  divergence is declared in this file by key. Root `training.toml`
+  (the exp-001 scarcity world: 1.5× need rates, pre-041 relief prices,
+  `groom_cuddle_relief` 15.0) is NOT a source for Gen 1 configs;
+  exp-006's `collect-config.toml` trained at 8.0 against a served 0.5,
+  which is the Clementine futile loop and the #332 bump in one line.
+- **Reward (declared)**: spec 014 team welfare, unchanged: Nash power
+  mean (`p = 0`, `epsilon = 0.01`, `mode = level`) of unclamped
+  happiness over the FULL roster, scripted seats included; happiness
+  weights 0.2 / 0.2 / 0.15 × 4 (identical in every config checked);
+  no per-seat or personality term (ROADMAP guard 3, F-018 layer 2);
+  shaping off unless an arm declares a team-level potential here. The
+  leash β is a constraint, never an objective. No arm in the pass
+  touches `[rl.reward]`, so no F-018 layer-2 exception is claimed.
+  The stop rule reads `ep_return_mean`, the env's unshaped team return.
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
 - BC: train to plateau, patience 10, no epoch floor; bars reply-here /
   ambient-here / want, numbers `<pin at declaration>`, held-out set.
-- Critic: retrain at width 404, γ 0.998, censored MC targets (the
-  exp-006 recipe).
+- Critic: retrain at width 408, γ 0.998, censored MC targets (the
+  exp-006 recipe). The trainer pins width through its tokenizer module
+  (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at
+  start); Gen 1 gets an `obs_tokens_v5` written against the posted
+  layout, so no schema-4 artifact is touched.
+- **Cosleep-on-beam read (companion, owner ruled 2026-09-04 with the
+  on-sunbeam bit)**: T092 made the scripted sleep arm cosleep beside a
+  settled friend on a sunbeam (conduction pays sunbeam-grade relief),
+  and the final 049 review had scripted cats walk to a settled friend's
+  beam in reach. The observation now carries the trigger as a primitive
+  (row on-sunbeam bit × the row's resting/sleeping one-hot). Measure per
+  learner seat: of its cosleep scenes, the share started beside a friend
+  whose tile is a sunbeam; and of the ticks a settled friend on a beam
+  was Seen and the seat's own sleep need was armed, the share where the
+  seat closed distance to that friend within `<049:announce_cooldown>`
+  ticks. Both against the anchor at the same radius. Learners at or
+  above the anchor = the demonstration transferred; well below with
+  sleep welfare intact = the learner found other sleep (a strategy
+  finding, logged); well below with sleep welfare below the anchor =
+  INVESTIGATE, first suspect the bit's plumbing (A13 must show it at 1
+  before this read is trusted). No gate hangs on it.
 - Pass: six slots per the timeline table; horizon `<owner>` ticks;
   probe every 50 updates, 2,000 probe ticks; Part A at probe 1.
 - Kickoff pins owed by the owner: H6 median, the three bar numbers,

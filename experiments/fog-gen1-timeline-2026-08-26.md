@@ -483,6 +483,85 @@ words load-bearing without costing a turn. Four rulings:
    `should_wait_for` needs the friend visible; Manhattan 2 is inside
    any radius ≥ 2.
 
+   **SUPERSEDED 2026-09-03 (049 converge T088, owner ruled in the
+   Experiments session, relayed to Product): the search becomes a
+   lattice serpentine tour.** As implemented, the redraw pool at a loop
+   corner has one member, so after first wall contact every blind cat
+   orbits the inset-r square forever (turn sense fixed by the first
+   draw). Its disc never reaches the corners (a corner sits r√2 from
+   the loop's corner: 40 tiles at 20×20, r = 5) nor the centre of any
+   world wider than about 4r (a 10×10 core at 32×32, r = 5, the
+   compiled-world welfare failure in Product's T060 reading). Worse for
+   step 5: coverage is a function of r against world size, not of
+   vision. On the served 20×20 the uncovered core is 100 / 36 / 4 / 0
+   tiles at r = 2 / 3 / 4 / 5, so the radius screen would have pinned 5
+   for the sweep rule's sake. Any single turn threshold fails: corners
+   need the turn inset a with a√2 ≤ r, the interior needs lane spacing
+   s ≤ r√2, and one loop has one lane. Ruled rule: waypoints on a
+   square lattice with inset ⌊r/√2⌋ and spacing ≤ r√2 (3×3 at {3, 10,
+   16} on 20×20, r = 5; 5×5 at 32×32), visited in boustrophedon order;
+   cat state = one waypoint index on the snapshot, advanced when the
+   waypoint enters the disc, so the cat resumes toward its waypoint
+   after every errand. Coverage-complete on any rectangle at any radius
+   by construction (~52 steps for all 400 tiles at 20×20, r = 5); at
+   most one RNG draw at tour entry, none per step. Options set aside:
+   turn at the wall / second threshold (moves the hole to an 8×8 core),
+   persistent random walk with drawn run lengths (no pockets, complete
+   only in expectation; second choice), least-recently-seen map (Gen 2
+   footprint). Note for the leash reading: `explore_heading` was never
+   in the observation, so the anchor's search was already hidden state
+   to the learner; the tour changes nothing there. Prereg A10 rewritten
+   for the tour; its coverage half is read on the r = 2 screen before
+   the pass.
+
+   Landed 2026-09-04 (Product, owner confirmed there): `crate::explore::
+   Lattice`, spacing ≤ ⌊r√2⌋ (integer, rounding never opens a gap),
+   boustrophedon and back (cycle 2N−2, no crossing leg); one engine
+   field `explore_waypoint` replaces `explore_heading` (nothing else
+   read it), seeded at generation to id mod cycle (spread, zero draws),
+   advanced in the environment phase on reach or beside a waypoint
+   another cat holds. Coverage proved over 8 world shapes × r = 2..8
+   (RED under the old inset). 20×20 lattices: r = 5 {3, 10, 16}, r = 4
+   {2, 7, 12, 17}, r = 3 {2, 6, 10, 13, 17}, r = 2 ten points per axis;
+   32×32 r = 5 {3, 9, 16, 22, 28}. SC-012 re-ruled to "any tile within
+   one tour + approach" (bound 144 at 20×20 r = 5; measured over 399
+   trials worst 108, median 28, mean 35; the old 40-tick claim covered
+   sweepable tiles only). Welfare after T087 + T088: compiled 32×32
+   r = 5 goes 13 → 1 violation (max distress age 3,477 → 103), the
+   coverage prediction holds; served 20×20 r = 5 goes 9 → 6, all the
+   sunbeam standoff; **served r = 64 control goes 1 → 5, all standoff**:
+   the standoff now arises at global vision too, so the step-5 no-fog
+   control anchor fails the 2.x bounds until T092 (scripted sunbeam fix)
+   lands. Suite 875/0/5, binding continuity CONTINUOUS.
+
+   **Blind price RATIFIED 2026-09-04 (049 converge T090, owner ruled in
+   the Experiments session, relayed to Product for `research.md` and
+   `docs/meows.md`)**: an element kind neither visible nor remembered is
+   priced at `radius + 1` in the 004 selector (`selection::blind_price`);
+   `None` when the disc covers the world. The spec stated no price; this
+   is what makes FR-023 exploration reachable through selection at all.
+   Doctrine: a need is priced at the cheapest walk the cat's knowledge
+   cannot exclude, and skipped only when knowledge proves no path.
+   Pre-fog, seeing everything and finding none proves no path (the 004
+   skip). Under fog FR-047's existence guarantee proves a path and the
+   disc bounds it: priced travel is Manhattan, every tile outside a
+   Euclidean disc of radius r is at Manhattan ≥ r + 1, so the price is
+   the exact greatest lower bound, and covering radius → `None` is the
+   same sentence (FR-024 byte-identity). Rejected: expected first-sight
+   distance under the tour (~half a tour, ~26 tiles at 20×20, r = 5),
+   which at `tile_cost = 1.0` would handicap a blind eat by ~26 points
+   against in-place bath and play, so a hungry cat grooms until hunger
+   runs far ahead; it is also world-size dependent, which the radius
+   screen would read as a size effect. The bound costs 6 points and is
+   stationary across blind steps, so the choice does not oscillate.
+   Consequences: a remembered element farther than r + 1 is priced at
+   memory, so the cat walks to a stale memory rather than exploring for
+   a nearer unknown (correct, and the mechanism if blind-hungry spans
+   read long on cats with stale memories); the whole sensitivity is
+   `tile_cost × (r + 1)` (6 at r = 5, 3 at r = 2), the first knob if
+   small-radius anchors groom through hunger in the step-5 screen, now
+   that the tour is coverage-complete.
+
 Prereg items this adds to step 5: the **speaker-floor screen**,
 `announce_threshold` ∈ {10, 15, 20, 30} (30 = today's anchor;
 hysteresis 5), scripted seats only, run after the radius screen at the
@@ -542,7 +621,29 @@ none ruled yet):
     (6 kinds × 4 rows = +24 floats). **Spec 049 pins width exactly 404**
     (self 85 | 4 × 62 | elements 70 | clock 1; owner-ruled 2026-09-03
     with the play gate = friends AND no critter visible or remembered,
-    and radius floor 2).
+    and radius floor 2). **Width 404 → 408 (owner ruled 2026-09-04, on
+    Product's hearing, Experiments consulted)**: each kitty row gains a
+    tile-derived "neighbour on a sunbeam" bit beside the water bit (0/1,
+    live on Seen, 0 on Heard/Silent), rows 62 → 63; schema number stays
+    5 (no artifact predates it). Why: T092 and the final 049 review made
+    scripted cats cosleep beside, and walk to, a settled friend on a
+    beam; the trigger was a cross-token position match (kitty row dx/dy
+    against a sunbeam slot's) that a learner cannot read cheaply, so
+    the clone would imitate a rule whose trigger it cannot see and the
+    leash would penalise it for that (the imitability principle, the
+    same reasoning that added the water bit). Primitive over composed:
+    settledness is already in the row's activity one-hot, so on-beam
+    AND settled is a within-row AND; a composed cell would bake the
+    scripted "settled" predicate into the schema, where a later change
+    to it would move the cell's meaning with no version bump. Prereg:
+    header and critic width updated, bit on the A13 emit-proof list,
+    cosleep-on-beam companion read added to Part C. Landed 2026-09-04
+    (Product, `049-fog-gen1` @ 51b2baa, suite 884/0/6): kitty-row
+    offset 21, after the water bit; scene age 22, message block 23–52,
+    want intensities 53–58, answers-me 59–62; observation 408 = self 85
+    | kitty 4 × 63 | chow 2 × 5 | water 2 × 4 | sunbeam 2 × 6 | critter
+    4 × 10 | clock 1. Pins in `schema_five_pins.rs`; numpy layout at
+    `experiments/attn-oracle-2026-08-15/obs_layout_v5.py`.
     Overrides ROADMAP §Meow-digest's "intensity dropped": that
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only
@@ -640,6 +741,40 @@ ruled 2026-09-03:
    JSON literal per required field (`intensity`, `pos`, `reply`)
    asserting the entry fails to deserialise.
 
+**FR-036 bath clause reopened and re-ruled (049 converge T087, owner
+2026-09-03, relayed to Product)**. The want law as first landed
+silenced `want_bath` whenever an idle friend was in view, on the
+reasoning that a kitty can bathe itself. Product's probes (served
+roster, scripted, one seed, 20k) showed the cost: dirty-target grooms
+fell from 2.0 per 1k (r=40) / 3.7 (r=5) pre-fog to 0.0–0.25, because
+the groom response (`needs_driven.rs:315-359`) fires only on hearing
+`want_bath` and is the only kitty-groom path. Cuddle and play keep
+their gate: the here-word pairs with both (spec 049 line 196), so an
+idle friend in view is the ask, whereas bath has no reply pair. Four
+rulings, Product's list verbatim:
+
+1. **`want_bath` is armed-only**: no top-need clause, no
+   idle-friend-in-view gate. Cuddle and play stay as ruled 2026-09-02.
+   Measured: dirty-target grooms 3.1 / 4.8 per 1k (r=40 / r=5),
+   `want_bath` 4.8–5.5 per 1k, no spam.
+2. **SC-004 splits**: 4a plumbing, byte-identical actions over 20k at a
+   covering radius with the want law held at the pre-fog rule (kept
+   reproducible; mechanism is Product's to size); 4b law, every
+   divergence traces to a silenced want or the groom response's
+   listening rule. Literal identity through the law is off the table
+   (Product measured divergence at tick 559).
+3. **Groom response freshness**: act only on a `want_bath` aged ≤ the
+   announce cooldown, inclusive (matches 2.x); audibility stays the
+   one 30-tick digest rule.
+4. **Groom response on sight**: drop it when the caller is visible with
+   bath below the announce threshold.
+
+Rulings 3 and 4 close the scripted relief farm (~90% of 2.x partnered
+grooms started on a clean target; under 3 + 4 that rate and
+simultaneous groomers go to ~0 at every radius). The learner-side farm
+is a step-5 read, fix class pricing, never a reward term (Part B of the
+prereg). The re-baseline consequence is pre-declared under Step 6.
+
 ## Step 5 — shakeout training round
 
 Deliberately small: fewer seeds, shorter horizon. Purpose = discover
@@ -692,7 +827,14 @@ digest matrix + self-row is extrapolated, not yet measured.
   the gate, which reaches the line while widening E1 by 0.01–0.03;
   LIVE READ 2026-09-02, F-039: Biscuit 2.0 taxed 5.13% off the stamp,
   the seam's 4.6% undercounted; owner 2026-09-02: c30 + consent read
-  at the line scripted, decide on Biscuit 3.0's own read). Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
+  at the line scripted, decide on Biscuit 3.0's own read). **Owner
+  2026-09-03: 3.5% is a HEURISTIC from previous-generation Biscuit,
+  aimed at wasted turns proposing to a partner who cannot or is unlikely
+  to say yes; not a hard rule. Under fog the stamp also counts
+  drop-on-arrival at a stale heard position, so the step-5 read waits
+  on a `reason` field on `RefusalEvent` landing before the pass
+  (`fog-gen1-shakeout/PREREG.md` Part B; relay to Product once 049
+  posts).** Read it TOGETHER with the Biscuit-vs-roster welfare gap (E1
   all-needs parity): closing that gap is the point, the tax is one of
   its mechanisms. Owner 2026-09-01: a Biscuit 3.0 at parity welfare
   with the roster paying ~4.7% is NOT actionable; the tax becomes a
@@ -745,6 +887,30 @@ version final; `binding_continuity.py` green (deny_unknown_fields —
 the 040 lesson); both config sweeps green. Cert anchors re-derived on
 the locked fog config (second and final re-baseline; the first was
 step 1's — two total, accepted knowingly).
+
+**Pre-declared for the re-baseline (Experiments, 2026-09-03, from the
+FR-036 bath-clause probes in the Product session)**: partnered groom
+scenes fall by roughly 90% against the 2.10 scripted baseline, and the
+groomers' cuddle-relief credits with them. Product measured (served
+roster, scripted, one seed, 20k ticks) that ~90% of 2.x partnered
+grooms started on a CLEAN target: the first responder cleaned the
+caller within a few ticks and the same ask kept drawing groomers for
+the rest of the audibility window, each paid `groom_cuddle_relief`
+(unconditional, `action.rs:747-760`). Rung fixes ruled for 049
+T087 (owner 2026-09-03, rulings 3 and 4 under Step 4: act only on asks
+aged ≤ the announce cooldown; on sight, drop the response if the
+caller's bath is below the announce threshold)
+remove the clean-target grooms and simultaneous groomers to ~0 at
+every radius; dirty-target grooms are unchanged by them (pre-fog 2.0
+per 1k at r=40, 3.7 at r=5; bath armed-only restores 3.1 / 4.8, the
+FR-036 law as first landed left 0.0–0.25). Read the drop as the farm
+closing, not as a defect (F-029's lesson); the cuddle economy shifts
+toward rest and cosleep accordingly. Learners are not bound by the
+rung: the step-5 prereg carries a relief-farm read
+(`fog-gen1-shakeout/PREREG.md` Part B), fix class = pricing (law).
+The r=4 row of Product's table is single-seed and internally odd
+(want_bath 14.75/1k under the armed law vs 8.25 under bath armed-only
+with an identical bath clause); replicate seeds before reading it.
 
 ## Step 7 — certification round
 
