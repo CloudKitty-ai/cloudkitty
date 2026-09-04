@@ -538,6 +538,14 @@ async fn refusals_appear_on_the_refusal_events_endpoint() {
     );
     let events: Vec<RefusalEvent> = serde_json::from_value(window["events"].clone())
         .expect("the served list deserializes as the refusal ring's own type");
+    // Spec 049 T093: every row names its reason in the wire vocabulary.
+    for row in window["events"].as_array().unwrap() {
+        let reason = row["reason"].as_str().expect("reason is a string");
+        assert!(
+            ["partner_absent", "partner_busy", "other"].contains(&reason),
+            "{reason}"
+        );
+    }
     let mut last_tick = 0;
     for ev in &events {
         assert_ne!(ev.proposed, Action::Idle, "Idle is never refused");

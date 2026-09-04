@@ -75,6 +75,31 @@ pub struct RefusalEvent {
     pub proposed: Action,
     pub tick: u64,
     pub absorbed: bool,
+    /// Why (spec 049 T093, owner ruled 2026-09-03): read off the same
+    /// judgement `action::validate` made, at the stamp. Required -- no
+    /// serde default (the F-029 rule: an absent key is never a reading).
+    pub reason: RefusalReason,
+}
+
+/// The minimum vocabulary of a refusal (spec 049 T093): under fog a
+/// partnered proposal at a stale heard position is a refusal by design
+/// (clarify item 1's drop-on-arrival runs through this stamp), and the
+/// step-5 refusal-tax read must separate that from the F-033 partnered-play
+/// tax. `proposed` is verbatim on the event, so an instrument splits
+/// `Other` by action variant itself; absent-vs-busy is the one split the
+/// action alone cannot make. Serialized snake_case.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RefusalReason {
+    /// A kitty-targeted proposal whose target exists but is not adjacent.
+    PartnerAbsent,
+    /// The target is adjacent but not conscriptable -- mid-scene or asleep
+    /// (only social play conscripts; rest, sleep and groom bind nobody).
+    PartnerBusy,
+    /// Everything else: a Move into an occupied tile, Eat/Drink with
+    /// nothing adjacent, play or chase at a vanished or distant critter, a
+    /// stale Meow/Purr, a target that does not exist.
+    Other,
 }
 
 impl ActivityEnd {

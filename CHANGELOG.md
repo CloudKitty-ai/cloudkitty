@@ -73,7 +73,11 @@ change.
   policy artifact is schema 4 and is refused at load, so the served seats
   sit on the built-ins until the Gen 1 minds seat at the step-7 cutover —
   `needs_driven` for four, Biscuit on the new `playful` (the 3.0 anchor;
-  owner ruled 2026-09-03); pre-3.0 saved worlds do not load (`update.sh --fresh`).
+  owner ruled 2026-09-03); every refusal on `/events/refusal` carries a
+  `reason` — `partner_absent`, `partner_busy`, `other` — read off the
+  judgement that refused it (T093, owner ruled 2026-09-03: under fog a
+  partnered proposal at a stale heard position is a refusal by design, and
+  the step-5 refusal-tax read must tell that from the F-033 tax); pre-3.0 saved worlds do not load (`update.sh --fresh`).
   The defaults stamp moves by exactly `[vision] radius`,
   `memory_timeout_ticks`, `[meow] digest_window_ticks` and `kitty_slots`
   3 → 4 (proof in `specs/049-fog-gen1/redden-list.md` §T078). The

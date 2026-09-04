@@ -371,6 +371,8 @@ impl World {
                     proposed: proposal,
                     tick: self.tick,
                     absorbed: enforced != action::Action::Idle,
+                    // Spec 049 T093: named on the world `validate` judged.
+                    reason: action::refusal_reason(self, kitty_id, proposal),
                 });
             }
             // Record what actually happened, not what was proposed: the viewer's

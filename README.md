@@ -122,7 +122,7 @@ All read-only: the viewer is a window, not a control surface.
 | `GET /kitties/{id}` | One kitty (404 with `{"error": "..."}` if unknown) |
 | `GET /events/distress` | Recent distress events, oldest first |
 | `GET /events/activity` | Recently finished activities with their true tick spans |
-| `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, and the `absorbed` flag |
+| `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `other`; spec 049) |
 | `GET /config` | The active, validated configuration |
 | `WS /ws` | The full world, pushed after every tick |
 
