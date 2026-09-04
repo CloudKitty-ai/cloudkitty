@@ -712,3 +712,28 @@ CONTINUOUS (`cf0cfede…` reproduced throughout). The served world holds
 the 2.x welfare bounds at r = 5 and at global vision. Next: the owner
 re-runs `/speckit-converge`, then a high-effort review in another
 session; the PR waits on her go.
+
+## Phase 13 (converge rerun 2026-09-04) — text sync only, no engine change
+
+The rerun found no engine gap: three artifact-text findings (tasks
+T094–T096, appended at 48b45de). No guard moved and no test reads the
+spec, plan or quickstart text, so there is no red-first cycle to record;
+the suite count stands at the Phase 12 close (877 / 0 / 6, tree at
+ce910c5 + docs).
+
+- **T094** (MEDIUM, contradicts): FR-024(b) and SC-004b still named the
+  groom response as the only action cause and tick 550 as the first
+  divergence; the guard has named TWO causes since R14 (on-sight decline;
+  the T092 warm-beam nap) and the first divergence is tick 119. Spec text
+  re-pointed to what the guard asserts.
+- **T095** (LOW, unrequested → RATIFIED, owner ruled 2026-09-04
+  "Agreed"): `World::generate` runs the reach rule once after seeding the
+  tour index, so a cat spawned on its waypoint starts past it. Recorded in
+  FR-023, the spec Clarifications, and data-model.md; the pin
+  `a_cat_spawned_on_its_waypoint_starts_past_it` was already in place.
+- **T096** (LOW, partial): T088/T092 leftovers — quickstart §6 (heading
+  bar, 24 seeds, pockets, 13 violations → every-tile trial, bound 144,
+  worst 108 / 399, served 0 / compiled 4), data-model's "Explore heading"
+  transitions → the waypoint's, plan.md's Storage / Constraints / Article V
+  / Project Structure / test-plan row (`explore_heading`, `DecisionRng`
+  redraws → `explore_waypoint`, `explore.rs`, no draw).

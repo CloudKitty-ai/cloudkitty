@@ -7,7 +7,7 @@ Entities as the engine will hold them. Layout offsets are in [contracts/observat
 | Field | Type | Written by | Notes |
 |---|---|---|---|
 | `memory` | `ElementMemory` = `[Option<MemorySlot>; 5]` in `ElementType::ALL` order (water, chow, bug, greeble, sunbeam) | engine, environment phase (`update_memories`) | `MemorySlot { pos: Position, last_seen: u64 }`. Rules: nearest visible of the kind overwrites (ties lower id); remembered tile inside the disc holding none of the kind → cleared; `memory_timeout_ticks > 0` and `tick − last_seen > timeout` → cleared; else unchanged. Chow = presence only. **Seeded at generation** (owner ruled 2026-09-03, T089): `World::generate` runs the same refresh over the tick-0 world stamped 0, so the first observation of an episode is not memory-blank to what stands in the disc. Serialised; no restore shim. |
-| `explore_waypoint` | `u32` | engine: at generation (`id mod cycle length`) and in the environment phase (advance when the cat stands on its waypoint, or beside it while another cat holds it) | the cat's index into the lattice serpentine tour (`explore::Lattice`: inset floor(r/√2), spacing ≤ floor(r√2), boustrophedon and back); read by built-in exploration only; persists across errands; serialised, required on load (owner ruled 2026-09-03, T088 — replaced `explore_heading`). |
+| `explore_waypoint` | `u32` | engine: at generation (`id mod cycle length`, then advanced once by the reach rule so a cat spawned on its waypoint starts past it — T095, owner ruled 2026-09-04) and in the environment phase (advance when the cat stands on its waypoint, or beside it while another cat holds it) | the cat's index into the lattice serpentine tour (`explore::Lattice`: inset floor(r/√2), spacing ≤ floor(r√2), boustrophedon and back); read by built-in exploration only; persists across errands; serialised, required on load (owner ruled 2026-09-03, T088 — replaced `explore_heading`). |
 | *deleted* | seven `#[serde(default)]` restore shims (mutual/drip ticks, behavior_description, last_action, purring_until, purr_cooldown_until, purring_duration, announce_armed) + `Pursuit.improved_at` default | — | pre-3.0 saves do not load. |
 
 ## Meow record (`cloudkitty-core::meow::Meow`) — additive fields
@@ -76,7 +76,7 @@ Groups: self (1 × 85), kitty (4 × 62), chow (2 × 5), water (2 × 4), sunbeam 
 
 **Friend row state (per observer, per friend, per tick)**: `Seen` if inside the disc; else `Heard` if an audible meow inside the window exists; else `Silent`.
 
-**Explore heading**: `None --first applied Move--> Some(d)`; `Some(d) --applied Move(d')--> Some(d')`; never cleared; any cause (navigation, sidestep, policy move) — owner ruled 2026-09-03.
+**Explore waypoint** (T088, replaced the heading): `generate: i = id mod cycle, then the reach rule once`; `i --stands on waypoint(i), or beside it while another cat holds it (environment phase)--> (i + 1) mod cycle`; never written by a behaviour; persists across errands; friends' copies blanked in the fog view.
 
 **Heard-unseen friend as a built-in target**: `candidate (unconditional) --walk to stamped pos--> arrived: visible ∧ idle/available → proceed; not visible ∨ asleep ∨ mid-scene → dropped this tick`. State is never read through the fog.
 

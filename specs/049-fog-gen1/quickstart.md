@@ -55,11 +55,11 @@ Expected: 20,000 ticks, served roster all-scripted, `[vision] radius` = 40, repl
 ## 6. Blind first-sight and welfare smoke (SC-005, SC-012)
 
 ```
-cargo test -p cloudkitty-core --test fog_exploration -- first_sight_within_one_crossing
-cargo test -p cloudkitty-rl --test welfare_longrun -- --ignored fog_r5 --nocapture   # the r = 5 READING, beside the 2.x bounds gate
+cargo test -p cloudkitty-core --test fog_exploration -- every_tile_is_sighted_within_one_tour --nocapture
+cargo test -p cloudkitty-rl --test welfare_longrun -- --ignored fog_r5 --nocapture   # the r = 5 READINGS (compiled 32×32; served 20×20 with an r = 64 control), beside the 2.x bounds gate
 ```
 
-Expected: every seeded blind trial sights a bowl on a sweepable tile within 40 ticks (worst 36 over 24 seeds; the corner pockets are pinned as unswept — owner flag); the r = 5 run completes 20,000 ticks with zero invariant failures and PRINTS the welfare report against the 2.x global-vision bounds (at the arc's end: 13 violations, an eat distress of 3,477 ticks on the compiled 32×32 world — recorded for the step-5 prereg and the owner, not gated; the gate itself pins the global-vision radius).
+Expected (SC-012 as re-ruled, T088): every blind trial — a bowl on each tile outside the starting disc, plus the four corners and the centre-adjacent tile from every tour index, 399 in all — is sighted within one tour plus the approach (bound 144 ticks; at landing worst 108, median 28, mean 35, printed); the exploring step draws nothing from the RNG. The r = 5 readings complete 20,000 ticks with zero invariant failures and PRINT the welfare report against the 2.x global-vision bounds (at the arc's end: the served world 0 violations at r = 5 and at r = 64 (T092); the compiled 32×32 world 4 — recorded for the step-5 prereg and the owner, not gated; the gate itself pins the global-vision radius).
 
 ## 7. Config strictness, sweeps, exams (SC-007)
 

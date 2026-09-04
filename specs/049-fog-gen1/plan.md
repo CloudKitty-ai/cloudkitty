@@ -6,7 +6,7 @@
 
 ## Summary
 
-Narrow every cat's view to a Euclidean disc (`dx² + dy² ≤ r²`, integer), keep hearing global, and give each cat a one-slot-per-element-kind memory that is refuted on sight — the same view for policies, built-in behaviours, and external advisors, enforced by construction through one per-kitty **fog view** that is the only world any decider or encoder ever receives. Ride the wall with the owner-ruled bundle: four permanent by-id kitty rows; the meow digest moved onto those rows as per-speaker (recency, rate, want-intensity) cells with the global digest deleted; scene age and a neighbour-in-water bit; a knowledge-gated want law, a widened here law, an engine-stamped `reply`/`pos` on every meow, answers-me bits, and the scripted reply ladder; persistent-heading exploration for a blind scripted cat; and the 3.0 config hygiene (section-absence defaults, seven retired keys, snapshot shims all deleted; `evals/v2` cut; every live config migrated). Observation schema 4 → 5, **exactly 404 floats** at the served config, menu 39, logit budget 55; plugin wire 2 → 3. Post-plan clarify (2026-09-03, four owner rulings, timeline @ 138a289) folded: heard friends drive built-in targeting but never the social want gate (which reads "no idle friend in view"); the exploration heading is engine-recorded from any applied move; the distress-gated intervention is its own 3.0 spec before the cutover, not here; the plugin wire version bumps.
+Narrow every cat's view to a Euclidean disc (`dx² + dy² ≤ r²`, integer), keep hearing global, and give each cat a one-slot-per-element-kind memory that is refuted on sight — the same view for policies, built-in behaviours, and external advisors, enforced by construction through one per-kitty **fog view** that is the only world any decider or encoder ever receives. Ride the wall with the owner-ruled bundle: four permanent by-id kitty rows; the meow digest moved onto those rows as per-speaker (recency, rate, want-intensity) cells with the global digest deleted; scene age and a neighbour-in-water bit; a knowledge-gated want law, a widened here law, an engine-stamped `reply`/`pos` on every meow, answers-me bits, and the scripted reply ladder; the lattice serpentine tour for a blind scripted cat (re-ruled 2026-09-03, T088 — replaced the persistent heading); and the 3.0 config hygiene (section-absence defaults, seven retired keys, snapshot shims all deleted; `evals/v2` cut; every live config migrated). Observation schema 4 → 5, **exactly 404 floats** at the served config, menu 39, logit budget 55; plugin wire 2 → 3. Post-plan clarify (2026-09-03, four owner rulings, timeline @ 138a289) folded: heard friends drive built-in targeting but never the social want gate (which reads "no idle friend in view"); the exploration state is engine-owned (since T088 the tour index, set at generation and advanced on reach); the distress-gated intervention is its own 3.0 spec before the cutover, not here; the plugin wire version bumps.
 
 Technical approach: the engine already derives every width from `observe.rs` block constants and `ObservationConfig`, so the layout work is extending the block constants and the encoder loops and letting `block_widths()` / `observation_len()` / `token_layout()` / `ActionCodec::v2` move the tokenizer, codec, mask and Python surface automatically, with the schema pin test asserting each derived number literally. The behavioural work is four engine seams — the fog view (`WorldSnapshot::fog_for`), the per-tick memory update in the environment phase, `message_legal` restructured for the want/here tiers over the fog view, and `emit_message` stamping `pos`/`reply` — plus the built-in ladder (`announce` → reply ladder, `seek_element` → remembered tile / exploration, friend targeting over visible ∪ heard). The hygiene work is deletion with a migration note and a config-completion pass over 65 files.
 
@@ -16,7 +16,7 @@ Technical approach: the engine already derives every width from `observe.rs` blo
 
 **Primary Dependencies**: existing workspace only — `cloudkitty-core` (kitty state, snapshot, law, behaviours, config), `cloudkitty-rl` (observation, codec, mask, tokenizer, artifact loading, eval suite), `cloudkitty-server` (boot validation, API additive fields), `cloudkitty-py` (constants and `observation_len` re-exported, unchanged code). No new crates, no new external dependencies.
 
-**Storage**: world snapshot JSON (save/restore) gains `memory`, `explore_heading` on kitties and `pos`, `reply` on meows; pre-3.0 saves do not load (`--fresh` cutover, owner-ruled). No database.
+**Storage**: world snapshot JSON (save/restore) gains `memory`, `explore_waypoint` (T088) on kitties and `pos`, `reply` on meows; pre-3.0 saves do not load (`--fresh` cutover, owner-ruled). No database.
 
 **Testing**: `cargo test --workspace --no-fail-fast` (baseline count recorded at cycle 0 of the redden list; last known main count 817/0 at spec 048), fmt + clippy CI-exact, property tests (visibility, memory, want/here/reply law, mask-equivalence on the fog view), the golden family (evolution golden, strip witness, run_json golden — all three regenerate with justification: fog is an intentional dynamics move), the defaults-stamp test (moves: new keys with defaults — `[stamp]` claimed), the two config sweeps + `evals/v2` freeze guard, `binding_continuity.py` re-baseline, pytest surface (obs space shape derives), PettingZoo conformance.
 
@@ -26,7 +26,7 @@ Technical approach: the engine already derives every width from `observe.rs` blo
 
 **Performance Goals**: per tick, five fog views (filter ~30 entities each) and five memory updates (5 kinds × ~25 elements) — O(roster × entities), negligible against decision dispatch. Observation 225 → 404 floats and v3 tokens 30 → 16 (message-kind tokens gone, kitty rows +1): forward cost moves by the widths only. No per-tick allocation growth beyond the views.
 
-**Constraints**: determinism preserved (memory update and law are pure functions of state; exploration draws come from the cat's own `DecisionRng` and only on redraw; no new master-RNG draws); Article V tick order unchanged (memory updates inside the environment phase); mask-oracle doctrine kept (the message mask still probes `message_legal`, the activity mask still probes `validate`, both now over the fog view, with a new equivalence guard); one-serialization posture (the API gains fields, changes none); `HEAD_KINDS`, `ACTION_SCHEMA_VERSION`, `MASK_SCHEMA_VERSION`, `GLOBAL_STATE_SCHEMA_VERSION` frozen.
+**Constraints**: determinism preserved (memory update and law are pure functions of state; exploration draws nothing — the tour index is engine-owned, set from the kitty id and advanced on reach (T088); no new master-RNG draws); Article V tick order unchanged (memory updates inside the environment phase); mask-oracle doctrine kept (the message mask still probes `message_legal`, the activity mask still probes `validate`, both now over the fog view, with a new equivalence guard); one-serialization posture (the API gains fields, changes none); `HEAD_KINDS`, `ACTION_SCHEMA_VERSION`, `MASK_SCHEMA_VERSION`, `GLOBAL_STATE_SCHEMA_VERSION` frozen.
 
 **Scale/Scope**: ~14 Rust source files across three crates, four config-file edits, 65 TOML migrations (scripted), `evals/v2` (six files + manifest), three living docs (`encodings.md`, `meows.md`, `plugins.md` note) + CHANGELOG, the migration note, `binding_continuity` reference record, and the redden list. Roughly 2× spec 033's footprint.
 
@@ -38,7 +38,7 @@ Technical approach: the engine already derives every width from `observe.rs` blo
 - **Article II (Cannot Die)**: no population mechanic touched. PASS.
 - **Article III (Cannot Be Alone)**: roster untouched; the new roster-vs-slots check (FR-011) refuses rosters *above* slots + 1 and never below 2. PASS.
 - **Article IV (Engine Is the Law)**: every new law lives in the engine — visibility in the fog view, want/here legality in `message_legal`, the reply stamp in `emit_message`, memory in the environment phase. Behaviours still only propose; an illegal want or here downgrades to Silent exactly as today. The fog view makes "behaviours know only what the engine shows them" structural (FR-021), strengthening Article IV's information boundary for external advisors too. PASS.
-- **Article V (Server-Authoritative, Deterministic)**: memory update is a pure function of the resolved world, inserted into phase 3; meow stamps are pure functions of the emitter's state and the start-of-tick meow buffer; exploration redraws use the dealt per-kitty `DecisionRng`, so the master stream is unchanged in shape; tick order unchanged; same seed + config + ticks → same world including memory (SC-006). The schema bump is the sanctioned generation-gate mechanism. PASS.
+- **Article V (Server-Authoritative, Deterministic)**: memory update is a pure function of the resolved world, inserted into phase 3; meow stamps are pure functions of the emitter's state and the start-of-tick meow buffer; exploration draws nothing (the tour index is a function of the kitty id and its position, T088), so the master stream is unchanged in shape; tick order unchanged; same seed + config + ticks → same world including memory (SC-006). The schema bump is the sanctioned generation-gate mechanism. PASS.
 - **Article VI (Spec-First, Test-Guarded)**: this plan follows the spec; every new constant is configuration with a documented default (`[vision] radius`, `memory_timeout_ticks`, `[meow] digest_window_ticks`, `[behavior] reply_intensity_floor`) except the two frozen normalisers (H = 24, staleness 40), which the spec freezes deliberately with reasons and which are guarded by literal pins; the property suite (Articles I–III) stays a required CI gate and gains fog-era guards. PASS.
 
 **Complexity Tracking**: no violations to justify.
@@ -67,7 +67,7 @@ specs/049-fog-gen1/
 
 ```text
 crates/cloudkitty-core/src/
-├── kitty.rs           # Kitty += memory: ElementMemory, explore_heading: Option<Direction>;
+├── kitty.rs           # Kitty += memory: ElementMemory, explore_waypoint: u32 (T088);
 │                      #   seven restore shims + Pursuit.improved_at default DELETED
 ├── element.rs         # (no change; ElementType::ALL is the memory kind order)
 ├── meow.rs            # Meow += pos, reply; intensity serde default DELETED (eighth shim);
@@ -77,10 +77,12 @@ crates/cloudkitty-core/src/
 │                      #   both over a FogView; heard_unseen() helper; want↔here pairs
 ├── world.rs           # WorldSnapshot::fog_for(kitty, radius) → FogView; recent_meows
 │                      #   retention = digest_window_ticks; update_memories() in the
-│                      #   environment phase; explore_heading written on applied Move;
+│                      #   environment phase; advance_tours() moves explore_waypoint (T088);
 │                      #   enforcement calls message_legal over the live fog view
 ├── action.rs          # emit_message stamps pos + reply (start-of-tick meows only); PROPOSAL_WIRE_VERSION 2 → 3 (R15)
 ├── grid.rs            # Position::euclid_sq / visible_from(r) (integer)
+├── explore.rs         # (T088) Lattice serpentine tour: inset floor(r/√2), spacing floor(r√2),
+│                      #   boustrophedon cycle; start_index(id); coverage-complete by construction
 ├── config/mod.rs      # VisionConfig {radius, memory_timeout_ticks}; MeowConfig +=
 │                      #   digest_window_ticks (recent_window_ticks doc rewritten);
 │                      #   BehaviorConfig += reply_intensity_floor: Option<f32>;
@@ -92,7 +94,9 @@ crates/cloudkitty-core/src/
 │                      #   view per kitty; announce() → the reply ladder
 │                      #   (WaitForMe > {reply, own want} > ambient here > Silent)
 ├── behavior/needs_driven.rs  # seek_element: visible ∪ remembered tile → explore;
-│                      #   groom_response walks to last-meow pos; explore(ctx)
+│                      #   groom_response walks to last-meow pos; explore(ctx) steps
+│                      #   toward the cat's lattice waypoint (T088); sleep arm cosleeps
+│                      #   beside a settled friend on a beam (T092)
 ├── behavior/selection.rs     # priced_nearest_element over visible ∪ remembered;
 │                      #   playmate / friend scans over visible ∪ heard-unseen
 ├── behavior/script.rs # DecisionRequest.world = the fog view's snapshot (plugins fogged); v = 3
@@ -157,7 +161,7 @@ Guards that MUST go red under the named mutation, at the cheapest layer, before 
 | Here law + reply stamp (SC-010) | core unit + property | stamp reply on adjacency alone; count same-tick wants |
 | Scripted reply ladder (US8) | core behaviour tests | pick lowest intensity; ignore floor; bypass cooldown |
 | Reply floor unset = byte-identical (SC-011) | core golden-style run diff | fire replies with floor None |
-| Exploration redraw rule (FR-023, SC-012) | core behaviour tests + seeded first-sight trial | redraw every tick; allow reverse |
+| Exploration tour (FR-023, SC-012; T088) | core `explore` unit tests + behaviour tests + seeded every-tile first-sight trial | inset = r (coverage fails by construction); advance without reach |
 | Actions identical at world-covering r (SC-004) | core 20k-tick seeded diff vs pre-fog pin | filter elements at infinite r |
 | Schema pins (SC-001) | rl `schema_five_pins` | any width constant ±1 |
 | Schema-4 artifact refused (SC-008) | rl `artifact_v3_reject` / server `policy_v3_kitty` | skip the pin compare |
