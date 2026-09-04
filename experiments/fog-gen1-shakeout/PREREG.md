@@ -20,7 +20,7 @@ fog is a by-product, not the goal. Two consequences for the design:
   so the pass ends in a list of decisions rather than a list of
   surprises.
 
-## Part A — schema-defect checklist (read at probe 1, then every probe)
+## Part A — schema-defect checklist (read at probe 1, then every probe; rows ruled 2026-09-03)
 
 Runs against the first `--probe-every` checkpoint of every arm and the
 scripted anchor on the same config. Every row is a test with a
@@ -45,17 +45,21 @@ names, rule 5). Width and offsets come from spec 049's FR-026 layout
 | A11 | scene age + water bit | scene age climbs 1/tick inside a scene and resets on exit; water bit == on-water tile | exact agreement with the trace | either drifts → snapshot bump |
 | A12 | elements block (70) | only visible elements populated; remembered elements appear in the memory token, not here | element rows zero when no element is inside the radius | remembered bowl appears in the element block → memory leaking into sight |
 | A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
+| A14 | legality mask (activity + message) | no legality bit depends on a masked fact: the mask is recomputable from the observer's visible rows + own memory alone (adjacency incl. diagonal, distance 1.41, sits inside every radius ≥ 2, so the current law passes; the ruled want / reply law reads only the speaker's knowledge) | recomputing the mask from the observation reproduces the engine mask on every sampled tick | a bit that differs → a 049 rule reads true state through fog |
+| A15 | kitty rows: by-id permanent rows (`kitty_slots` = roster−1 = 4) | row identity fixed per observer across ticks; a masked row still exists with masked FIELDS, never dropped or shifted | the (observer, row) → kitty-id map is constant over the probe | rows re-order or compact when a cat leaves view → every downstream column mislabelled |
+| A16 | kitty rows: `reply` bit (observed) | the observing cat's row carries the engine `reply` stamp on the same here, per speaker | observed reply column == A8's stamp on every here in the trace | engine stamps, observation stays zero → the ladder tie-breaker is invisible to learners |
+| A17 | anchor / policy observation parity | the scripted anchor and the PPO arms observe the identical vector on the identical config (same fog, radius, memory) | per-block variance (A1) and mask flip rate agree between the anchor trace and a policy trace at matched ticks | disagreement → the arms train on a world the anchor did not see (the exam-vs-gym skew class) |
+| A18 | probe determinism | same snapshot + same radius → byte-identical observation (house bit-identical methodology) | two encodes of every probe snapshot agree byte for byte | any difference → nothing in A1–A17 is interpretable across probes |
 
-Candidate row for the (3) walk (not yet added): A14 *no legality bit
-depends on a masked fact*: adjacency (incl. diagonal, distance 1.41)
-sits inside every radius ≥ 2, so the current mask never tells a policy
-more than its visible row; the ruled want / reply law reads only the
-speaker's own knowledge. The check catches any 049 rule that reads true
-state through fog.
+Rows A14–A18 added on the (3) walk (owner ruled all five 2026-09-03).
+Not added: contagion (shelved for Gen 1), scene-age float (A11), the
+width 404 itself (a schema-header pin, `attn.rs:322`, not a probe read).
 
-Reading rule: any red on A2–A9 or A12 at probe 1 is a **stop the pass**
-event (it is the defect the pass exists to find and every later probe
-is contaminated); A1, A10, A11, A13 are logged and read with Part B.
+Reading rule: any red on A2–A9, A12, A14, A15, or A16 at probe 1 is a
+**stop the pass** event (it is the defect the pass exists to find and
+every later probe is contaminated); A1, A10, A11, A13, A17, A18 are
+logged and read with Part B, except that an outright A17 or A18 failure
+also stops the pass because nothing else is then interpretable.
 
 ## Part B — finding → step-6 decision map
 
