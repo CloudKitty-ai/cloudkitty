@@ -514,6 +514,26 @@ words load-bearing without costing a turn. Four rulings:
    for the tour; its coverage half is read on the r = 2 screen before
    the pass.
 
+   Landed 2026-09-04 (Product, owner confirmed there): `crate::explore::
+   Lattice`, spacing ≤ ⌊r√2⌋ (integer, rounding never opens a gap),
+   boustrophedon and back (cycle 2N−2, no crossing leg); one engine
+   field `explore_waypoint` replaces `explore_heading` (nothing else
+   read it), seeded at generation to id mod cycle (spread, zero draws),
+   advanced in the environment phase on reach or beside a waypoint
+   another cat holds. Coverage proved over 8 world shapes × r = 2..8
+   (RED under the old inset). 20×20 lattices: r = 5 {3, 10, 16}, r = 4
+   {2, 7, 12, 17}, r = 3 {2, 6, 10, 13, 17}, r = 2 ten points per axis;
+   32×32 r = 5 {3, 9, 16, 22, 28}. SC-012 re-ruled to "any tile within
+   one tour + approach" (bound 144 at 20×20 r = 5; measured over 399
+   trials worst 108, median 28, mean 35; the old 40-tick claim covered
+   sweepable tiles only). Welfare after T087 + T088: compiled 32×32
+   r = 5 goes 13 → 1 violation (max distress age 3,477 → 103), the
+   coverage prediction holds; served 20×20 r = 5 goes 9 → 6, all the
+   sunbeam standoff; **served r = 64 control goes 1 → 5, all standoff**:
+   the standoff now arises at global vision too, so the step-5 no-fog
+   control anchor fails the 2.x bounds until T092 (scripted sunbeam fix)
+   lands. Suite 875/0/5, binding continuity CONTINUOUS.
+
    **Blind price RATIFIED 2026-09-04 (049 converge T090, owner ruled in
    the Experiments session, relayed to Product for `research.md` and
    `docs/meows.md`)**: an element kind neither visible nor remembered is
