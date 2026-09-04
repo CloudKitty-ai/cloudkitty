@@ -584,17 +584,25 @@ pub(crate) fn warm_friend_beside(ctx: &DecisionContext) -> Option<crate::kitty::
         .others(ctx.me.id)
         .filter(|k| ctx.me.pos.is_adjacent(&k.pos))
         .filter(|k| {
-            matches!(
-                k.activity,
-                crate::kitty::Activity::Resting { .. } | crate::kitty::Activity::Sleeping { .. }
-            )
-        })
-        .filter(|k| {
             ctx.world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
         })
-        .filter(|k| cosleep_worth_the_exposure(ctx, k.id))
+        .filter(|k| warm_occupant(ctx, k))
         .min_by_key(|k| k.id)
         .map(|k| k.id)
+}
+
+/// A friend this cat can cosleep beside for sunbeam-grade sleep: settled
+/// (resting or asleep) and worth the exposure. ONE predicate for the
+/// beside rule above and for `selection::priced_nearest_element`'s
+/// occupied-beam filter (flag 13, owner ruled 2026-09-04, the warm
+/// reading): a beam under such a friend is still worth walking to --
+/// arrival beside it is the cosleep -- while a beam under an awake cat is
+/// not.
+pub(crate) fn warm_occupant(ctx: &DecisionContext, k: &crate::kitty::Kitty) -> bool {
+    matches!(
+        k.activity,
+        crate::kitty::Activity::Resting { .. } | crate::kitty::Activity::Sleeping { .. }
+    ) && cosleep_worth_the_exposure(ctx, k.id)
 }
 
 fn adjacent_friend(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
@@ -2182,6 +2190,49 @@ mod tests {
             "nap here, never the standoff"
         );
         assert_eq!(selection::travel_distance(&ctx, NeedKind::Sleep), Some(0.0));
+    }
+
+    #[test]
+    fn a_settled_friends_beam_in_reach_is_walked_to_for_the_cosleep() {
+        // Flag 13, owner ruled 2026-09-04 ("warm reading"): a beam under a
+        // SETTLED friend is worth walking to -- arrival beside it is the
+        // T092 cosleep, and the walk is the demonstration the step-5
+        // teacher corpus must carry. Only an AWAKE occupant makes a beam
+        // not worth the walk. Same stage as the awake test, friend resting.
+        let ctx = fog_ctx(5, 1, |w| {
+            w.push_element(Element {
+                id: 900,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(12, 10),
+                ttl: None,
+            });
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = Position::new(12, 10);
+            w.kitties[f].activity = crate::kitty::Activity::Resting { with_friend: None };
+            w.kitties[f].activity_clock = Some(crate::kitty::ActivityClock::start(90));
+            let idx = w.kitty_index(1).unwrap();
+            w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            w.kitties[idx].memory[crate::kitty::memory_index(ElementType::Sunbeam)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(12, 10),
+                    last_seen: 100,
+                });
+        });
+        assert_eq!(
+            selection::sunbeam_worth_walking(&ctx),
+            Some((Position::new(12, 10), 2.0)),
+            "a settled friend's beam is a beam worth walking to"
+        );
+        assert_eq!(
+            NeedsDriven.decide_action(&ctx),
+            Action::move_to(Direction::East),
+            "the walk toward the cosleep"
+        );
+        assert_eq!(
+            selection::travel_distance(&ctx, NeedKind::Sleep),
+            Some(2.0),
+            "the score prices the walk"
+        );
     }
 
     #[test]
