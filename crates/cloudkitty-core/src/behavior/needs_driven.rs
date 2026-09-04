@@ -1591,9 +1591,11 @@ mod tests {
         });
         let me = world.kitty(1).unwrap().clone();
         let view = std::sync::Arc::new(world.snapshot().fog_for(1, 5));
-        // Two contexts on the same seed: the blind cat's first exploration
-        // step draws its heading (spec 049 FR-023), so a shared RNG would
-        // hand the second call a different draw and prove nothing.
+        // Two contexts on the same seed so both calls start from the same
+        // RNG state whatever the ladder draws along the way (the exploring
+        // step itself draws nothing since T088 -- see
+        // `explore_walks_the_tour_and_draws_nothing`; a shared context would
+        // still couple the two calls through any other rung's draw).
         let make = || crate::behavior::DecisionContext {
             me: me.clone(),
             world: view.clone(),

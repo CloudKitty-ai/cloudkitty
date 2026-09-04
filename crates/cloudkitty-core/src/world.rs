@@ -389,8 +389,19 @@ impl World {
             let tick = self.tick;
             // Spec 049: enforcement rules over the emitter's LIVE fog view
             // (the same filter the mask probes, built by `fog_for` from the
-            // mid-tick world -- the documented element divergence only ever
-            // silences).
+            // mid-tick world). The verdict can differ from the start-of-tick
+            // mask's in both directions, and only matters in one: the
+            // element clauses only ever silence (memory covers everything
+            // visible at the tick's start, so relief seen after a move
+            // silences and nothing un-silences; an emptied bowl stays an
+            // element until the environment phase); the social clause and
+            // the top-need clause move both ways (a friend that entered a
+            // scene or left the disc earlier in the apply order; a top need
+            // relieved by this cat's own action). A word the mask forbade is
+            // never proposed by a mask-respecting policy or a built-in, so a
+            // mid-tick legalisation is unobservable there; a mid-tick
+            // silencing is the downgrade-to-Silent the law promises
+            // (reviewed 2026-09-04, `/code-review high 049` finding 3).
             let applied_message = decision.message.filter(|&kind| {
                 self.kitty(kitty_id).is_some_and(|k| {
                     let view = self.snapshot().fog_for(kitty_id, config.vision.radius);

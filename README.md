@@ -166,7 +166,8 @@ docs/                       guides: the RL HOWTO (howto-rl.md), the training ref
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
-evals/v1/                   the exam room: frozen, hash-pinned held-out worlds
+evals/v2/                   the exam room: frozen, hash-pinned held-out worlds (the 3.0
+                            cut; evals/v1/ is the 2.x record, excluded from the sweeps)
 policies/                   deployed minds: every .ckpolicy artifact the served world
                             runs, committed byte-identical and hash-pinned to its
                             certification record in policies/README.md
@@ -182,7 +183,7 @@ training.toml               the gym: the world policies are trained in
 
 **Three worlds, three jobs.** `training.toml` is the gym. `cloudkitty.toml` is the
 served world: welfare bounds are calibrated there, and a candidate is smoke-tested
-there on what the server ships. `evals/v1/` is the exam room, held out — a result
+there on what the server ships. `evals/v2/` is the exam room, held out — a result
 claimed against a suite version is void if any of its exams were trained on.
 Certification is none of these; it happens in the experiment pipeline's registered
 gates ([experiments/PIPELINE.md](experiments/PIPELINE.md)).

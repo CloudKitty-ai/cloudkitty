@@ -22,12 +22,15 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
     // Spec 049 T080: these bounds were baselined under global vision (specs
     // 004/006), so the gate pins a world-covering radius (64 = 32 + 32 on
     // the compiled world) and keeps measuring what it always measured. At
-    // the served placeholder r = 5 the same run reads 13 violations (means
-    // 77.6 / 69.3 / 77.9, below-45 shares 2.6-4.7%, an eat distress of
-    // 3,477 ticks): the ruled heading rule sweeps only a ring within r of
-    // the inner square, so on a 32x32 world the centre and the corner
-    // pockets are never seen and the existence-based safeguard never puts
-    // food in view -- OWNER FLAG (spec 049 report), the reading below.
+    // the served placeholder r = 5 the same run reads 4 violations after
+    // T088/T092 (was 13 under the heading rule, with a 3,477-tick eat
+    // distress; the lattice tour took the coverage failure away) -- the
+    // ignored reading below; the SERVED 20x20 world holds these bounds at
+    // r = 5 and at global vision (0 violations,
+    // `served_world_fog_r5_welfare_reading_with_global_vision_control`,
+    // ~7 s for both runs). Whether that served reading becomes a second
+    // enforced gate is the owner's call (spec 049 SC-005 records, does not
+    // gate; `/code-review high 049` finding 2, 2026-09-04).
     let mut config = Config::default();
     config.vision.radius = 64;
     config

@@ -42,9 +42,14 @@ pub const MASK_SCHEMA_VERSION: u32 = 3;
 
 /// Computes the legal-action mask for `kitty_id` against its frozen fog
 /// view (spec 049 research R2: the mask encodes no knowledge the
-/// observation lacks; every menu action is local, so the verdicts equal
-/// the full snapshot's -- `mask_oracle` proves it). One bool per menu
-/// entry, in menu order.
+/// observation lacks). The verdicts equal the full snapshot's for every
+/// entry whose target is in view; a kitty-targeted entry naming a friend
+/// outside the disc is fog-silenced even where the full world would allow
+/// it (`Chase` needs only existence there) -- the `unseen_target` class
+/// `mask_oracle` asserts masked -- and a scene whose counterpart is out of
+/// view is the one undecidable corner the oracle skips. Restoring a
+/// full-snapshot mask would leak targets the observation cannot see. One
+/// bool per menu entry, in menu order.
 pub fn legal_action_mask(
     view: &FogView,
     kitty_id: KittyId,
