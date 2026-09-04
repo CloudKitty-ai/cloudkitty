@@ -141,6 +141,33 @@ with no layout consequence (the legality mask is an oracle over
   ticks with ≥ 1 friend inside `<049:vision_radius>`, always against
   the anchor at the same radius) and cluster shape, to tell loose
   clusters with excursions from five solo cats.
+- **Responder-approach read (companion, added 2026-09-03 after the
+  FR-036 bath re-ruling)**: `want_cuddle` and `want_play` have no
+  scripted listener (the groom response answers `want_bath` only), so
+  under the ruled want law these two words are pure social cues and
+  whether anyone acts on them is the learners' to show. Measure, per
+  learner seat and per word: of the audible `want_cuddle` /
+  `want_play` entries in `recent_meows` whose speaker was NOT in the
+  listener's view at the tick of the meow, the share where the
+  listener's Euclidean distance to the speaker falls by ≥ 2 within the
+  next `<049:announce_cooldown>` ticks (approach), and the share where
+  a partnered cuddle or play scene with that speaker starts within the
+  same window (uptake). The in-view exclusion keeps the read on the
+  word: a speaker already visible triggers the want-gate path, not the
+  cue. Always against the anchor at the same radius, whose approach
+  share is the chance rate (scripted seats never route on these
+  words). Reading: learners above the anchor on approach = the cue
+  carries and no rung is owed; at or below the anchor on BOTH words
+  across the reference arms = the words are inert, which is the
+  trigger for the banked scripted cue-answer rungs (a
+  `cuddle_response` / `play_response` in `needs_driven`, mirror of the
+  groom response: hear, approach, offer; law-class, no schema, fine
+  post-LOCK) and for revisiting the cuddle clause of FR-036 in the
+  same sitting (owner 2026-09-03: "see how those shake out, add a
+  scripted cue answer if needed"). No HALT and no step-6 gate hangs on
+  this read; it is a step-7 input only. Instrument: probe-side, from
+  the probe's own snapshots (`recent_meows`, positions, scene starts
+  from `/events/activity` spans); written with `schema_check.py`.
 - **Config rule (owner ruled 2026-09-03)**: every screen, corpus, and
   arm here, and the step-7 certification training, derive from the
   served `cloudkitty.toml` with the #332 bump reverted
