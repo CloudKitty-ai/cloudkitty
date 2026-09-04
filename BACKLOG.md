@@ -11,6 +11,23 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ## P1 — quick wins, next up
 
+### `evals/v3`: the four wide exams re-cut at roster 5 (added 2026-09-04; Product thread; owner ruled "option 1")
+
+Spec 049's permanent by-id kitty rows make the observation width a
+function of the roster (`kitty_slots = roster − 1`), so `evals/v2`'s
+`scale` (8 cats, 590 floats) and `mixed-roster-{guest,half,host}` (6
+cats, 466) refuse a served-width (404) Gen 1 mind at artifact load —
+`kitty-eval --suite evals/v2 --artifact <policy>` dies before a tick on 4
+of 6 exams (`/code-review high 049` finding 1; PR flag 5). v2 is frozen
+by its manifest, so the fix is `evals/v3`: the same six designs with the
+four wide exams re-cut at roster 5 (`scale` = 5 cats on the 48×48 world,
+keeping the dilution half of the question; mixed-roster cells 4 + 1,
+3 + 2, 1 + 4), `heterogeneity` and `scarcity` carried unchanged, new
+manifest hashes, the identity thresholds re-derived from the new roster
+shares by the existing manifest unit test, `kitty-eval`'s default suite
+→ v3, v2 listed in `config-sweep-exclusions.txt` as the record. Own
+spec; lands after the 049 PR and before the step-7 seating smoke.
+
 <!-- shipped P1 items are removed once merged; see git history -->
 
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")

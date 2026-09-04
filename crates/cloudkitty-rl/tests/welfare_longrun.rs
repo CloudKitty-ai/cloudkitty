@@ -28,9 +28,16 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
     // ignored reading below; the SERVED 20x20 world holds these bounds at
     // r = 5 and at global vision (0 violations,
     // `served_world_fog_r5_welfare_reading_with_global_vision_control`,
-    // ~7 s for both runs). Whether that served reading becomes a second
-    // enforced gate is the owner's call (spec 049 SC-005 records, does not
-    // gate; `/code-review high 049` finding 2, 2026-09-04).
+    // ~7 s for both runs) -- a READING by ruling, never a gate (owner,
+    // 2026-09-04, on `/code-review high 049` finding 2): the 2.x bounds
+    // were calibrated under global vision and are NOT the 3.x bar; the
+    // Gen 1 welfare bar is the step-5 prereg's, and a ruled smaller
+    // radius or a reward retune may legitimately move the anchors below
+    // these numbers. The regression tripwire at the shipped radius is
+    // SC-011 (`fog_continuity::reply_floor_unset_is_byte_identical`: the
+    // served roster's 20,000-tick action AND message streams at r = 5,
+    // byte-pinned); run this reading at every re-pin of those streams and
+    // record the numbers beside the pin.
     let mut config = Config::default();
     config.vision.radius = 64;
     config
