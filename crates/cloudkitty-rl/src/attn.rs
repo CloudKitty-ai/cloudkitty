@@ -530,9 +530,16 @@ impl AttnArtifact {
                 // Padding iff the whole row is zero (spec 049 review): a
                 // kitty row is permanent by id and its first cell is "seen
                 // this tick", so a HEARD friend (present 0, message block
-                // live -- every recency there is > 0 inside the window) is
-                // a real token; only a silent or vacant row is masked. An
-                // absent element slot is all zero, as it always was.
+                // live) is a real token whenever its audible call is a
+                // HEAD kind (a recency > 0) or its stamped position is not
+                // the observer's own tile (a nonzero offset); only a
+                // silent or vacant row is masked. The one live row this
+                // rule cannot tell from padding: a friend heard ONLY
+                // through the engine's `wait_for_me` (outside HEAD_KINDS,
+                // no recency cell) that spoke from the tile the observer
+                // now stands on -- accepted (review 3 finding 5): rare,
+                // and the MLP head reads the same zeros. An absent element
+                // slot is all zero, as it always was.
                 let masked = !g.always_present && feats.iter().all(|&f| f == 0.0);
                 s.mask.push(masked);
                 off += g.width;

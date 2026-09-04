@@ -60,6 +60,41 @@ fn the_schema_five_numbers_match_the_contract() {
     assert_eq!(STALENESS_NORMALISER, 40.0, "FR-009: 20 + 20 frozen");
 }
 
+/// The offset table (contract §Self block / §Kitty row) as LITERALS,
+/// independent of the derivation (review 3 finding 3, 2026-09-04): the
+/// row tests in `observe.rs` read their cells THROUGH these constants,
+/// so a reordered block tail that keeps 404 left the suite green and
+/// silently reinterpreted every trained artifact's input. Seen red on an
+/// induced self-tail swap (memory before the message block): redden
+/// list, cycle r3b.
+#[test]
+fn the_offset_table_matches_the_contract() {
+    use cloudkitty_rl::observe::{block_widths, offsets};
+    assert_eq!(offsets::SELF_SCENE_AGE, 34, "own scene age");
+    assert_eq!(offsets::SELF_MSG_BLOCK, 35, "own message block 35-64");
+    assert_eq!(offsets::SELF_MEMORY, 65, "element memory 65-84");
+    assert_eq!(offsets::SELF_BLOCK, 85, "self block");
+    assert_eq!(offsets::ROW_WATER_BIT, 20, "neighbour in water");
+    assert_eq!(offsets::ROW_SCENE_AGE, 21, "their scene age");
+    assert_eq!(offsets::ROW_MSG_BLOCK, 22, "their message block 22-51");
+    assert_eq!(offsets::ROW_INTENSITY, 52, "want intensities 52-57");
+    assert_eq!(offsets::ROW_ANSWERS_ME, 58, "answers-me 58-61");
+    assert_eq!(offsets::KITTY_SLOT, 62, "kitty row");
+    assert_eq!(offsets::MEMORY_BLOCK, 20, "5 kinds x 4");
+    assert_eq!(offsets::MSG_BLOCK, 30, "15 kinds x 2");
+    let w = block_widths();
+    assert_eq!(
+        (w.self_, w.kitty, w.chow, w.water, w.sunbeam, w.critter, w.clock),
+        (85, 62, 5, 4, 6, 10, 1),
+        "token widths"
+    );
+    assert_eq!(
+        (w.memory, w.msg_self, w.msg_kitty),
+        (20, 30, 40),
+        "sub-block widths"
+    );
+}
+
 /// The v3 forward's logit budget: dense 11, kitty-ptr 20 (5 verbs x 4),
 /// critter-ptr 8 (2 x 4), message head 16 -- 55 in all. Asserted via the
 /// codec (menu 39) and head rather than a hand sum, so the test derives

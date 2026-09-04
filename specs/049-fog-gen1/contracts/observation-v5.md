@@ -56,6 +56,9 @@ Chow (5), water (4), sunbeam (6), critter (10) exactly as schema 4; candidates a
 | `OBSERVATION_SCHEMA_VERSION` | 5 | |
 | `ACTION_SCHEMA_VERSION` / `MASK_SCHEMA_VERSION` / `GLOBAL_STATE_SCHEMA_VERSION` | 3 / 3 / 1 (unchanged) | |
 | `HEAD_KINDS.len()` / `MessageCodec::LEN` | 15 / 16 (unchanged) | |
+| self offsets: scene age / message block / memory / width | 34 / 35 / 65 / 85 | `observe.rs::offsets`, literal in `the_offset_table_matches_the_contract` (review 3, 2026-09-04) |
+| kitty-row offsets: water bit / scene age / message block / intensities / answers-me / width | 20 / 21 / 22 / 52 / 58 / 62 | same pin |
+| token widths chow / water / sunbeam / critter / clock; memory / msg_self / msg_kitty | 5 / 4 / 6 / 10 / 1; 20 / 30 / 40 | `block_widths()`, same pin |
 
 ## Menu (39) at kitty_slots 4
 

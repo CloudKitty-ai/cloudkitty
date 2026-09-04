@@ -1833,7 +1833,9 @@ beyond the views", and these exceed it:
   build `self.snapshot()` (every kitty, element and the meow buffer) and
   then `fog_for` keeps one disc — two whole-world clones per speaking cat
   per tick, on top of `decision_jobs`' one view per cat. Fix shape: a
-  live-world `fog_for` that filters without the intermediate clone.
+  live-world `fog_for` that filters without the intermediate clone, and
+  (review 3, 2026-09-04) ONE view per apply slot threaded into
+  `apply_message` rather than `emit_message` rebuilding it.
 - `observe.rs` `row_state` calls `heard_unseen` (allocates; scans roster ×
   buffer) once per kitty row; with the message block (15 passes per row)
   and answers-me (8 more), on the order of 100 buffer scans per 404-float

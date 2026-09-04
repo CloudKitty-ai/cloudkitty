@@ -22,9 +22,10 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
     // Spec 049 T080: these bounds were baselined under global vision (specs
     // 004/006), so the gate pins a world-covering radius (64 = 32 + 32 on
     // the compiled world) and keeps measuring what it always measured. At
-    // the served placeholder r = 5 the same run reads 4 violations after
-    // T088/T092 (was 13 under the heading rule, with a 3,477-tick eat
-    // distress; the lattice tour took the coverage failure away) -- the
+    // the served placeholder r = 5 the same run reads 2 violations after
+    // review 3 finding 1 (4 after T088/T092; 13 under the heading rule,
+    // with a 3,477-tick eat distress; the lattice tour took the coverage
+    // failure away, the remembered-beam filter two more) -- the
     // ignored reading below; the SERVED 20x20 world holds these bounds at
     // r = 5 and at global vision (0 violations,
     // `served_world_fog_r5_welfare_reading_with_global_vision_control`,

@@ -99,9 +99,12 @@ fn action_code(action: Option<Action>) -> String {
 /// read at the START of each tick (the state the deciders read) that are
 /// not fixtures but what SC-004b's classifier needs to NAME a divergence:
 /// the kitties whose bath need was below `announce_threshold` (the on-sight
-/// rule), and the kitties with a sunbeam beside them that another cat
-/// stood on (the T092 cosleep/nap rule). `roster` maps an action column
-/// to a kitty id.
+/// rule), and the kitties with a sunbeam inside `sunbeam_reach` that
+/// another cat stood on (the T092 cosleep/nap rule: an occupied beam is
+/// not worth walking to, so the fog cat naps or cosleeps where the
+/// pre-fog cat priced the walk -- beside it, or anywhere in reach since
+/// review 3 finding 1 made the rule hold for the remembered tile too).
+/// `roster` maps an action column to a kitty id.
 struct Streams {
     actions: Vec<String>,
     messages: Vec<String>,
@@ -140,7 +143,7 @@ fn record_streams(config: Config, ticks: u64) -> Streams {
                 .filter(|k| {
                     world.kitties.iter().any(|o| {
                         o.id != k.id
-                            && k.pos.is_adjacent(&o.pos)
+                            && k.pos.manhattan_distance(&o.pos) <= config.behavior.sunbeam_reach
                             && world.element_at(o.pos).map(|e| e.element_type())
                                 == Some(cloudkitty_core::ElementType::Sunbeam)
                     })
@@ -307,9 +310,11 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
         let clean_callers: Vec<u32> = clean.iter().copied().filter(|&c| asked_fresh(c)).collect();
         // (i) the on-sight rule: every differing pre-fog action is the walk
         // or the groom toward a fresh ask from an already-clean caller;
-        // (ii) T092: the differing cat had a friend on a sunbeam beside it
-        // and naps/cosleeps (`S…`) where the pre-fog cat waited (`I`) or
-        // stepped (`M…`) at the occupied beam. Each diff must be one of them.
+        // (ii) T092: the differing cat had another cat on a sunbeam inside
+        // its reach and naps/cosleeps (`S…`) where the pre-fog cat priced
+        // the walk to that beam -- and waited (`I`), stepped (`M…`), or,
+        // the nap now costing nothing, served another need first (the
+        // score side of the same helper). Each diff must be one of them.
         let blocked = &beam_blocked[i];
         let explained = diffs.iter().all(|&(k, now, pre)| {
             let on_sight = !clean_callers.is_empty()
@@ -318,16 +323,14 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
                         .strip_prefix('G')
                         .and_then(|t| t.parse::<u32>().ok())
                         .is_some_and(|target| clean_callers.contains(&target)));
-            let warm_beam = now.starts_with('S')
-                && (pre == "I" || pre.starts_with('M'))
-                && blocked.contains(&roster[k]);
+            let warm_beam = now.starts_with('S') && blocked.contains(&roster[k]);
             on_sight || warm_beam
         });
         assert!(
             explained,
             "action stream diverged at tick {i} for a reason other than the named causes \
              (the on-sight rule: pre-fog cats answering a fresh ask from an already-clean \
-             caller; T092: a nap beside an occupied beam where pre-fog waited): fog-view `{got}` \
+             caller; T092: a nap or cosleep where an occupied beam was in reach): fog-view `{got}` \
              vs pre-fog `{want}` (kitties in id order; codes per fog_continuity.rs; clean at \
              start {clean:?}, of whom asked inside the cooldown {clean_callers:?}; beam-blocked \
              {blocked:?}). STOP and report (rule 4)."
