@@ -235,6 +235,14 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
             if world.element_at(me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam) {
                 return Action::Sleep { with: None };
             }
+            // T092 (owner ruled 2026-09-03, the sunbeam standoff): a settled
+            // friend on a beam beside this cat is a beam it can use from
+            // here -- spec 031's conduction pays sunbeam-grade sleep beside
+            // a settled partner -- so cosleep at cost 0 instead of a step
+            // onto the occupied tile (which idled for hundreds of ticks).
+            if let Some(friend) = warm_friend_beside(ctx) {
+                return Action::Sleep { with: Some(friend) };
+            }
             match selection::sunbeam_worth_walking(ctx) {
                 // Worth walking to, if it is not an expedition. The same
                 // priced helper feeds the sleep score in `selection` (the
@@ -382,9 +390,9 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     };
     // On sight (owner ruled 2026-09-03, T087): a caller whose bath need is
     // below the announce threshold has been groomed already -- decline,
-    // read off the seen row (imitable). `WantLaw::PreFog` keeps the 2.x
+    // read off the seen row (imitable). `LawEra::PreFog` keeps the 2.x
     // rung, which groomed on the word alone, for SC-004a's replay.
-    if ctx.config.meow.want_law == crate::config::WantLaw::Fog
+    if ctx.config.meow.law_era == crate::config::LawEra::Fog
         && emitter.needs.get(NeedKind::Bath) < ctx.config.meow.announce_threshold
     {
         return None;
@@ -562,6 +570,33 @@ fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
 /// skipped — the cat still naps, just not pressed against wet fur. A
 /// choice, never a refusal (Article IV); with the ladder gate off the
 /// filter is structurally inert (exposure is 0 before any arithmetic).
+/// T092 (owner ruled 2026-09-03): an adjacent friend in view, SETTLED
+/// (resting or asleep) on a sunbeam tile -- sunbeam-grade sleep from beside
+/// it (spec 031 conduction), at no walk; the seam-4 exposure bar applies as
+/// to any cosleep pick. Shared by the sleep arm and the sleep score, so
+/// score and walk agree (the `relief` invariant). `LawEra::PreFog` keeps
+/// the 2.x arm (none) for SC-004a's replay.
+pub(crate) fn warm_friend_beside(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
+    if ctx.config.meow.law_era == crate::config::LawEra::PreFog {
+        return None;
+    }
+    ctx.world
+        .others(ctx.me.id)
+        .filter(|k| ctx.me.pos.is_adjacent(&k.pos))
+        .filter(|k| {
+            matches!(
+                k.activity,
+                crate::kitty::Activity::Resting { .. } | crate::kitty::Activity::Sleeping { .. }
+            )
+        })
+        .filter(|k| {
+            ctx.world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
+        })
+        .filter(|k| cosleep_worth_the_exposure(ctx, k.id))
+        .min_by_key(|k| k.id)
+        .map(|k| k.id)
+}
+
 fn adjacent_friend(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
     ctx.world
         .others(ctx.me.id)
@@ -2039,6 +2074,70 @@ mod tests {
             "the ask rides along"
         );
         assert_eq!(explore(&ctx), Action::move_to(Direction::East));
+    }
+
+    #[test]
+    fn a_sleeper_naps_beside_a_settled_friend_on_a_beam_instead_of_waiting() {
+        // T092 (owner ruled 2026-09-03, the sunbeam standoff): the only beam
+        // in view is under a resting friend. The engine pays sunbeam-grade
+        // sleep beside a SETTLED partner (spec 031 conduction), so the arm
+        // proposes the cosleep at cost 0 instead of a step onto the occupied
+        // tile (which was Idle, for hundreds of ticks). Under an AWAKE
+        // occupant there is no warmth and no landing: the beam is not worth
+        // walking to, and the cat naps here (beside the friend, as the nap
+        // rung always did) rather than wait.
+        let stage = |friend_activity: crate::kitty::Activity| {
+            fog_ctx(5, 1, move |w| {
+                w.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Sunbeam,
+                    pos: Position::new(10, 11),
+                    ttl: None,
+                });
+                let f = w.kitty_index(2).unwrap();
+                w.kitties[f].pos = Position::new(10, 11);
+                w.kitties[f].activity = friend_activity;
+                w.kitties[f].activity_clock = if friend_activity.is_in_progress() {
+                    Some(crate::kitty::ActivityClock::start(90))
+                } else {
+                    None
+                };
+                let idx = w.kitty_index(1).unwrap();
+                w.kitties[idx].needs.add(NeedKind::Sleep, 90.0);
+            })
+        };
+        let resting = stage(crate::kitty::Activity::Resting { with_friend: None });
+        assert_eq!(
+            NeedsDriven.decide_action(&resting),
+            Action::Sleep { with: Some(2) },
+            "a settled friend on the beam: cosleep beside it"
+        );
+        assert_eq!(
+            selection::travel_distance(&resting, NeedKind::Sleep),
+            Some(0.0),
+            "the score agrees: no walk"
+        );
+        let awake = stage(crate::kitty::Activity::Idle);
+        let action = NeedsDriven.decide_action(&awake);
+        assert!(
+            matches!(action, Action::Sleep { .. }),
+            "an awake occupant: nap here, never wait ({action:?})"
+        );
+        assert_eq!(
+            selection::travel_distance(&awake, NeedKind::Sleep),
+            Some(0.0)
+        );
+        // The 2.x arm, kept for SC-004a's replay: the occupied beam is still
+        // the target and the step onto it is what the standoff was.
+        let mut pre_fog = stage(crate::kitty::Activity::Resting { with_friend: None });
+        std::sync::Arc::get_mut(&mut pre_fog.config)
+            .unwrap()
+            .meow
+            .law_era = crate::config::LawEra::PreFog;
+        assert_ne!(
+            NeedsDriven.decide_action(&pre_fog),
+            Action::Sleep { with: Some(2) }
+        );
     }
 
     #[test]

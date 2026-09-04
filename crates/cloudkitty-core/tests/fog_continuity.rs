@@ -13,7 +13,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use cloudkitty_core::config::WantLaw;
+use cloudkitty_core::config::LawEra;
 use cloudkitty_core::{Action, BehaviorRegistry, Config, Direction, NeedKind, TargetRef, World};
 
 const TICKS: u64 = 20_000;
@@ -95,11 +95,22 @@ fn action_code(action: Option<Action>) -> String {
 /// id order`) and one message line per recorded meow
 /// (`tick<TAB>kitty<TAB>kind<TAB>intensity`), the meows of a tick sorted
 /// by (kitty, kind) so the per-tick turn order plays no part.
-/// The third stream is not a fixture: per tick, the kitties whose bath need
-/// was below `announce_threshold` at the START of the tick (the state the
-/// deciders read) -- what SC-004b's classifier needs to name an on-sight
-/// drop of a clean caller.
-fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>, Vec<Vec<u32>>) {
+/// What one run yields: the two fixture streams, and two per-tick facts
+/// read at the START of each tick (the state the deciders read) that are
+/// not fixtures but what SC-004b's classifier needs to NAME a divergence:
+/// the kitties whose bath need was below `announce_threshold` (the on-sight
+/// rule), and the kitties with a sunbeam beside them that another cat
+/// stood on (the T092 cosleep/nap rule). `roster` maps an action column
+/// to a kitty id.
+struct Streams {
+    actions: Vec<String>,
+    messages: Vec<String>,
+    clean: Vec<Vec<u32>>,
+    beam_blocked: Vec<Vec<u32>>,
+    roster: Vec<u32>,
+}
+
+fn record_streams(config: Config, ticks: u64) -> Streams {
     let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);
@@ -109,14 +120,31 @@ fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>, Vec<
         .expect("runtime");
     let mut actions = Vec::with_capacity(ticks as usize);
     let mut messages = Vec::new();
-    let mut clean_sets = Vec::with_capacity(ticks as usize);
+    let mut clean = Vec::with_capacity(ticks as usize);
+    let mut beam_blocked = Vec::with_capacity(ticks as usize);
+    let roster: Vec<u32> = world.kitties.iter().map(|k| k.id).collect();
     for _ in 0..ticks {
         let tick = world.tick;
-        clean_sets.push(
+        clean.push(
             world
                 .kitties
                 .iter()
                 .filter(|k| k.needs.get(NeedKind::Bath) < config.meow.announce_threshold)
+                .map(|k| k.id)
+                .collect::<Vec<u32>>(),
+        );
+        beam_blocked.push(
+            world
+                .kitties
+                .iter()
+                .filter(|k| {
+                    world.kitties.iter().any(|o| {
+                        o.id != k.id
+                            && k.pos.is_adjacent(&o.pos)
+                            && world.element_at(o.pos).map(|e| e.element_type())
+                                == Some(cloudkitty_core::ElementType::Sunbeam)
+                    })
+                })
                 .map(|k| k.id)
                 .collect::<Vec<u32>>(),
         );
@@ -138,7 +166,13 @@ fn record_streams(config: Config, ticks: u64) -> (Vec<String>, Vec<String>, Vec<
             messages.push(format!("{tick}\t{kitty}\t{kind}\t{intensity}"));
         }
     }
-    (actions, messages, clean_sets)
+    Streams {
+        actions,
+        messages,
+        clean,
+        beam_blocked,
+        roster,
+    }
 }
 
 fn write_lines(path: &Path, lines: &[String]) {
@@ -154,7 +188,7 @@ fn read_lines(name: &str) -> Vec<String> {
 }
 
 /// SC-004a (owner ruled 2026-09-03, T087): the visibility plumbing alone
-/// changes nothing. The current engine under `WantLaw::PreFog` -- the 2.x
+/// changes nothing. The current engine under `LawEra::PreFog` -- the 2.x
 /// armed-only word law and the 2.x groom response (no on-sight drop) -- at
 /// a world-covering radius reproduces the pre-fog reference streams byte
 /// for byte, actions AND messages, over all 20,000 ticks. The switch is
@@ -167,9 +201,11 @@ fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
     let mut config = served_all_scripted();
     config.vision.radius = 40;
     config.behavior.reply_intensity_floor = None;
-    config.meow.want_law = WantLaw::PreFog;
+    config.meow.law_era = LawEra::PreFog;
     config.validate().expect("the control config validates");
-    let (actions, messages, _) = record_streams(config, TICKS);
+    let Streams {
+        actions, messages, ..
+    } = record_streams(config, TICKS);
     let expected_actions = read_lines("prefog-actions-20k.digest");
     let expected_messages = read_lines("prefog-messages-20k.digest");
     if let Some((tick, (got, want))) = actions
@@ -221,7 +257,13 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
     config.behavior.reply_intensity_floor = None;
     config.validate().expect("the control config validates");
     let cooldown = config.meow.recent_window_ticks;
-    let (actions, messages, clean_sets) = record_streams(config, TICKS);
+    let Streams {
+        actions,
+        messages,
+        clean: clean_sets,
+        beam_blocked,
+        roster,
+    } = record_streams(config, TICKS);
     let expected_actions = read_lines("prefog-actions-20k.digest");
     let expected_messages = read_lines("prefog-messages-20k.digest");
     assert_eq!(expected_actions.len() as u64, TICKS, "the fixture is whole");
@@ -263,25 +305,36 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
             })
         };
         let clean_callers: Vec<u32> = clean.iter().copied().filter(|&c| asked_fresh(c)).collect();
-        let explained = !clean_callers.is_empty()
-            && diffs.iter().all(|&(_, _, pre)| {
-                pre.starts_with('M')
+        // (i) the on-sight rule: every differing pre-fog action is the walk
+        // or the groom toward a fresh ask from an already-clean caller;
+        // (ii) T092: the differing cat had a friend on a sunbeam beside it
+        // and naps/cosleeps (`S…`) where the pre-fog cat waited (`I`) or
+        // stepped (`M…`) at the occupied beam. Each diff must be one of them.
+        let blocked = &beam_blocked[i];
+        let explained = diffs.iter().all(|&(k, now, pre)| {
+            let on_sight = !clean_callers.is_empty()
+                && (pre.starts_with('M')
                     || pre
                         .strip_prefix('G')
                         .and_then(|t| t.parse::<u32>().ok())
-                        .is_some_and(|target| clean_callers.contains(&target))
-            });
+                        .is_some_and(|target| clean_callers.contains(&target)));
+            let warm_beam = now.starts_with('S')
+                && (pre == "I" || pre.starts_with('M'))
+                && blocked.contains(&roster[k]);
+            on_sight || warm_beam
+        });
         assert!(
             explained,
-            "action stream diverged at tick {i} for a reason other than the on-sight rule \
-             (the pre-fog cats answering a fresh ask from an already-clean caller): fog-view \
-             `{got}` vs pre-fog `{want}` (kitties in id order; codes per fog_continuity.rs; clean \
-             at start {clean:?}, of whom asked inside the cooldown {clean_callers:?}). STOP and \
-             report (rule 4)."
+            "action stream diverged at tick {i} for a reason other than the named causes \
+             (the on-sight rule: pre-fog cats answering a fresh ask from an already-clean \
+             caller; T092: a nap beside an occupied beam where pre-fog waited): fog-view `{got}` \
+             vs pre-fog `{want}` (kitties in id order; codes per fog_continuity.rs; clean at \
+             start {clean:?}, of whom asked inside the cooldown {clean_callers:?}; beam-blocked \
+             {blocked:?}). STOP and report (rule 4)."
         );
         eprintln!(
-            "SC-004b: actions identical for {i} ticks; first divergence at tick {i} = the on-sight \
-             rule declining the answer to a clean caller {clean_callers:?} ({diffs:?})"
+            "SC-004b: actions identical for {i} ticks; first divergence at tick {i} named \
+             (clean callers asked fresh {clean_callers:?}, beam-blocked {blocked:?}): {diffs:?}"
         );
     } else {
         eprintln!("SC-004b: actions identical over all {TICKS} ticks");
@@ -349,7 +402,9 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
 #[test]
 #[ignore = "writes the pre-fog reference fixtures; run once at the branch base"]
 fn record_prefog_streams() {
-    let (actions, messages, _) = record_streams(served_all_scripted(), TICKS);
+    let Streams {
+        actions, messages, ..
+    } = record_streams(served_all_scripted(), TICKS);
     assert_eq!(actions.len() as u64, TICKS);
     write_lines(&fixtures_dir().join("prefog-actions-20k.digest"), &actions);
     write_lines(
@@ -385,7 +440,9 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");
     let expected_messages = read_lines("preladder-r5-20k.messages.digest");
-    let (actions, messages, _) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    let Streams {
+        actions, messages, ..
+    } = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
     if let Some((tick, (got, want))) = actions
         .iter()
         .zip(&expected_actions)
@@ -420,7 +477,9 @@ fn reply_floor_unset_is_byte_identical() {
 #[test]
 #[ignore]
 fn record_preladder_r5_streams() {
-    let (actions, messages, _) = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
+    let Streams {
+        actions, messages, ..
+    } = record_streams(served_all_scripted_r5_floor_unset(), TICKS);
     write_lines(
         &fixtures_dir().join("preladder-r5-20k.actions.digest"),
         &actions,

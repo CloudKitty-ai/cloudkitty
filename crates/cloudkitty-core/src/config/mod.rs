@@ -768,14 +768,15 @@ impl DurationsConfig {
 /// message legality is engine law -- a want-kind may be spoken only while
 /// its need is armed (threshold + hysteresis) and that kind's per-cat
 /// cooldown has cleared. Silence is always legal.
-/// Spec 049 SC-004a's switch (owner ruled 2026-09-03): which word law and
-/// groom-response rule the engine runs. `Fog` is FR-036 as ruled; `PreFog`
-/// is the 2.x pair -- the armed-only word law and the groom response with
-/// no on-sight drop of a clean caller -- kept ONLY so the pre-fog reference
-/// streams stay replayable on the current engine (the plumbing proof). A
-/// test-side switch: see `MeowConfig::want_law`.
+/// Spec 049 SC-004a's switch (owner ruled 2026-09-03): which scripted-law
+/// era the engine runs. `Fog` is the 3.0 package as ruled; `PreFog` is the
+/// 2.x package -- the armed-only word law, the groom response with no
+/// freshness/on-sight rules, the sleep arm without the beside-a-warm-friend
+/// cosleep (T092) -- kept ONLY so the pre-fog reference streams stay
+/// replayable on the current engine (the plumbing proof). A test-side
+/// switch: see `MeowConfig::law_era`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum WantLaw {
+pub enum LawEra {
     #[default]
     Fog,
     PreFog,
@@ -818,7 +819,7 @@ pub struct MeowConfig {
     /// config key: `#[serde(skip)]`, so no TOML can set it and the defaults
     /// stamp does not carry it. Always `Fog` outside the SC-004a guard.
     #[serde(skip)]
-    pub want_law: WantLaw,
+    pub law_era: LawEra,
 }
 
 impl Default for MeowConfig {
@@ -829,7 +830,7 @@ impl Default for MeowConfig {
             announce_threshold: default_meow_announce_threshold(),
             announce_hysteresis: default_meow_announce_hysteresis(),
             vocabulary: VocabularyConfig::default(),
-            want_law: WantLaw::Fog,
+            law_era: LawEra::Fog,
         }
     }
 }

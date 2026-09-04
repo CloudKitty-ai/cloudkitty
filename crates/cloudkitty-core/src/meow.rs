@@ -262,7 +262,7 @@ pub fn message_legal(
         // so a future kind added without a legality tier is a
         // non-exhaustive-match COMPILE error here, not a silently
         // never-legal word (033 review Finding 4). ONE predicate: the RL
-        // mask and the built-in announce both call this. `WantLaw::PreFog`
+        // mask and the built-in announce both call this. `LawEra::PreFog`
         // (SC-004a's test-side switch) replays the 2.x armed-only law.
         MessageKind::WantEat
         | MessageKind::WantDrink
@@ -274,10 +274,10 @@ pub fn message_legal(
                 .related_need()
                 .expect("every Want kind names its grounding need");
             let armed = kitty.announce_armed.contains(&need) && kitty.can_meow(kind, tick);
-            match (config.meow.want_law, kind) {
-                (crate::config::WantLaw::PreFog, _) => armed,
-                (crate::config::WantLaw::Fog, MessageKind::WantBath) => armed,
-                (crate::config::WantLaw::Fog, _) => {
+            match (config.meow.law_era, kind) {
+                (crate::config::LawEra::PreFog, _) => armed,
+                (crate::config::LawEra::Fog, MessageKind::WantBath) => armed,
+                (crate::config::LawEra::Fog, _) => {
                     armed
                         && kitty.needs.highest_pressure().0 == need
                         && !known_relief(kind, kitty, view)

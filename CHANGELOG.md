@@ -89,11 +89,15 @@ change.
   cooldown, inclusive; on sight decline a caller below the announce
   threshold), and split SC-004 into the plumbing proof (byte-identical
   actions AND messages over 20k ticks under a test-side pre-fog law
-  switch, `MeowConfig.want_law`) and the named-cause law. The evolution
+  switch, `MeowConfig.law_era`) and the named-cause law. The evolution
   golden, the strip witness and the run-JSON golden regenerate with this
   entry as the justification. Open owner flags in the spec-049
-  report: the sunbeam standoff (T092 pending; the rl welfare gate pins the
-  global-vision radius and ignored r = 5 readings sit beside it);
+  report: none from welfare — the sunbeam standoff the review found is
+  fixed (T092, owner ruled 2026-09-03: the sleep arm cosleeps beside a
+  settled friend on a beam instead of waiting at the occupied tile), and
+  the served world holds the 2.x bounds at r = 5 and at global vision (the
+  rl welfare gate still pins the global-vision radius on the compiled
+  world; ignored r = 5 readings sit beside it);
   043's gate-zero doctrine versus 049's heard-friend targeting; the exams' `kitty_slots = roster − 1` widths (SC-004 is now the
   ruled 4a/4b split, no longer a flag).
 

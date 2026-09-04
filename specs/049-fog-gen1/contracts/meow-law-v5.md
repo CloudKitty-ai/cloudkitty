@@ -24,7 +24,7 @@ One rule per tier in `message_legal(kitty, kind, tick, config, view)`; the RL me
 | eat | a chow element visible ∨ `memory[Chow]` present |
 | drink | a water element visible ∨ `memory[Water]` present |
 | cuddle | an **idle friend visible**: `idle_friend_in_view(view)` — a friend inside the disc with `activity_clock.is_none()` (no scene, not asleep); adjacency not required. Heard-unseen friends never enter the gate (owner ruled 2026-09-03). |
-| bath | **never** — an ASK (owner ruled 2026-09-03, T087): clauses 3 and 4 do not apply; legal iff clauses 1 and 2. Its relief is self-grooming; the partnered groom is the groomer's to start on hearing the word. `WantLaw::PreFog` (`MeowConfig.want_law`, `#[serde(skip)]`, test-side) replays the 2.x armed-only law for every kind — SC-004a. |
+| bath | **never** — an ASK (owner ruled 2026-09-03, T087): clauses 3 and 4 do not apply; legal iff clauses 1 and 2. Its relief is self-grooming; the partnered groom is the groomer's to start on hearing the word. `LawEra::PreFog` (`MeowConfig.law_era`, `#[serde(skip)]`, test-side) replays the 2.x armed-only law for every kind — SC-004a. |
 | play | (the cuddle clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known |
 | sleep | never known — no knowledge gate (need-only-when-top) |
 

@@ -99,9 +99,12 @@ use sha2::{Digest, Sha256};
 /// T081 pin under the first-landed law. T088 (owner ruled 2026-09-03): the
 /// lattice serpentine tour replaced the heading rule -- every blind r = 5
 /// search walks a different path -- so re-pinned again (14b946af… was the
-/// T087 pin).
+/// T087 pin). T092 (owner ruled 2026-09-03): the sleep arm cosleeps beside
+/// a settled friend on a beam instead of waiting at the occupied tile, and
+/// an occupied beam is not worth walking to -- re-pinned again (f2dc24d9…
+/// was the T088 pin).
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "f2dc24d9f90a75652940f48bbdef5a3f39546a27a1b3030b1a7c83c300d586f5";
+    "13d226036e13343cc33bfaebcc92c4a45a8f287429ca9bdc099d1972898dc3e8";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -112,8 +115,8 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// Spec 049 T081: re-derived with the golden above from the same r = 5
 /// run (173f9d09… was the world-covering run's pin); T087: re-derived
 /// again with the golden above (0bbb577f… was the T081 pin); T088: again
-/// (408dc1a7… was the T087 pin).
-const STRIP_PIN_SPEC_049: &str = "dc480760f5466e27dd1b5b4bf073a7093d144b1626d3cd50f94231fd75054aca";
+/// (408dc1a7… was the T087 pin); T092: again (dc480760… was the T088 pin).
+const STRIP_PIN_SPEC_049: &str = "6d1acfe000f5de190c41c354019a02bcb861aaa6dde7d5c062160a50c729754b";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

@@ -374,8 +374,19 @@ pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Optio
     // and the caller explores (FR-023) -- the same ladder, that tick.
     let remembered = ctx.me.memory[crate::kitty::memory_index(kind)]
         .map(|slot| (u32::MAX, slot.pos, priced_travel(ctx, ctx.me.pos, slot.pos)));
+    // T092 (owner ruled 2026-09-03): a sunbeam another cat stands on cannot
+    // be landed on; unless that cat is settled (then `warm_friend_beside`
+    // is the answer, before this scan runs) it is not worth walking to --
+    // the nap on the spot beats a wait. `LawEra::PreFog` keeps the 2.x
+    // scan for SC-004a's replay.
+    let occupied = |pos: Position| {
+        ctx.config.meow.law_era == crate::config::LawEra::Fog
+            && kind == ElementType::Sunbeam
+            && ctx.world.others(ctx.me.id).any(|k| k.pos == pos)
+    };
     ctx.world
         .elements_of(kind)
+        .filter(|e| !occupied(e.pos))
         .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
         .chain(remembered)
         .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
@@ -418,6 +429,11 @@ pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
 /// this invariant) -- the score must never call sleep free and then commit
 /// the cat to a trek.
 fn sleep_travel_distance(ctx: &DecisionContext) -> f32 {
+    // T092: a settled friend on a beam beside the cat is a beam at cost 0
+    // (the arm cosleeps); the same helper decides both.
+    if super::needs_driven::warm_friend_beside(ctx).is_some() {
+        return 0.0;
+    }
     match sunbeam_worth_walking(ctx) {
         Some((_, cost)) => cost,
         None => 0.0,

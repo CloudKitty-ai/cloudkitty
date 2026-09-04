@@ -652,3 +652,26 @@ T092 is the fix on both.
 ### T090 (owner ruled 2026-09-04, no engine change)
 
 The blind price ratified as implemented; the doctrine sentence (a need is priced at the cheapest walk the cat's knowledge cannot exclude; r + 1 is the exact greatest lower bound of Manhattan travel outside a Euclidean disc; covering radius → `None`) recorded in research.md R9 and docs/meows.md, with the two notes (memory beats the bound; sensitivity `tile_cost × (r + 1)`).
+
+### T092 — the sunbeam standoff (owner ruled 2026-09-03; picks confirmed 2026-09-04)
+
+Picks: a SETTLED occupant (resting/asleep) on a beam beside the cat →
+cosleep at cost 0 (`needs_driven::warm_friend_beside`, shared by the arm
+and `sleep_travel_distance`); an AWAKE occupant → the beam is excluded
+from `priced_nearest_element(Sunbeam)` and the cat naps on the spot
+(beside the friend, the nap rung's old behaviour) rather than wait; both
+gated under `LawEra::Fog` (`WantLaw` renamed `LawEra`: it now holds the
+whole 2.x scripted package for SC-004a's replay).
+
+| cycle | guard / mutation | predicted | observed | restore |
+|---|---|---|---|---|
+| R13 | `a_sleeper_naps_beside_a_settled_friend_on_a_beam_instead_of_waiting` (settled → `Sleep{with: 2}` and travel 0; awake → a `Sleep`, travel 0; `PreFog` → not the cosleep) | RED (Idle, travel 1) | RED exactly (Idle) | rule landed → GREEN |
+| R14 | SC-004a/4b after the rule | 4a GREEN; 4b RED until the T092 cause is named | 4a byte-identical over 20k; 4b: first divergence moved to tick 119 (`S5` vs `I`, kitty 2 beside a held beam) — classifier gained cause (ii) (our `S…` where pre-fog `I`/`M…` with a friend on a beam beside the cat), GREEN; `record_streams` now returns a `Streams` struct with the per-tick clean set, beam-blocked set and roster | — |
+| R15 | full cycle t092a | goldens ×2 + preladder RED | 873/3 exactly those | goldens re-pinned ONCE (evolution `13d22603…`, strip `6d1acfe0…`), preladder r=5 streams re-recorded |
+
+Welfare readings after T092: **served 20×20 r=5: 0 violations** (was 9 →
+6); **served r=64 control: 0** (was 1 → 5 after T087); compiled 32×32 r=5:
+4 (Miso/Biscuit/Pumpkin streaks 30/74/29, a distress of 260; was 13 → 1
+after T088 — a different seed path on a world that is not the served one;
+the coverage failure stays gone). The 2.x welfare bounds hold on the world
+that ships, at the radius that ships.
