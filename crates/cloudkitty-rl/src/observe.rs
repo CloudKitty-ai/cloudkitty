@@ -111,7 +111,7 @@ const KITTY_SCHEMA_4: usize = 1 + 2 + 1 + 6 + 1 + 7 + 1 + 1;
 /// Kitty row = schema 4 + water bit + scene age + message block + want
 /// intensities (6) + answers-me bits (4) = 62.
 const KITTY_SLOT: usize = KITTY_SCHEMA_4 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
-const HERE_KINDS_LEN: usize = 4;
+const HERE_KINDS_LEN: usize = MessageKind::HERE_KINDS.len();
 const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
 const WATER_SLOT: usize = 1 + 2 + 1;
 const SUNBEAM_SLOT: usize = 1 + 2 + 1 + 1 + 1;
@@ -391,7 +391,6 @@ pub fn encode_observation(
         }
     }
     debug_assert_eq!(v.len(), SELF_BLOCK);
-    let _ = window;
 
     // 2. Kitty rows: permanent, by id; contents by row state (FR-012).
     for row in &table.kitties {
@@ -973,6 +972,7 @@ mod tests {
         config.validate().unwrap();
         let mut world = cloudkitty_core::World::generate(&config);
         world.elements.clear();
+        cloudkitty_core::test_support::forget_everything(&mut world);
         world.tick = 100;
         (world, config)
     }
@@ -1075,6 +1075,7 @@ mod tests {
         three.validate().unwrap();
         let mut w3 = cloudkitty_core::World::generate(&three);
         w3.elements.clear();
+        cloudkitty_core::test_support::forget_everything(&mut w3);
         let view3 = w3.snapshot().fog_for(1, 40);
         let obs3 = encode_observation(&view3, 1, &three, &cfg, 0.0);
         assert_eq!(obs3.table.kitties, vec![Some(2), Some(3), None, None]);

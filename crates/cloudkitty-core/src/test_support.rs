@@ -151,15 +151,28 @@ pub fn test_config() -> Config {
     }
 }
 
-/// A freshly generated world plus the config that made it.
+/// Blank every cat's element memory: a STAGED world starts with no history.
+/// Generation seeds memory from the stocked world (spec 049), so a test
+/// that then rewrites the elements would otherwise carry memories of what
+/// it removed; a test that wants memory sets it explicitly.
+pub fn forget_everything(world: &mut World) {
+    for kitty in &mut world.kitties {
+        kitty.memory.iter_mut().for_each(|slot| *slot = None);
+    }
+}
+
+/// A freshly generated world plus the config that made it, memory blank
+/// (`forget_everything`).
 pub fn test_world() -> (World, Config) {
     let config = test_config();
     debug_assert!(config.validate().is_ok(), "the test config must be valid");
-    let world = World::generate(&config);
+    let mut world = World::generate(&config);
+    forget_everything(&mut world);
     (world, config)
 }
 
-/// Builds a decision context for kitty 1 after applying `setup` to the world.
+/// Builds a decision context for kitty 1 after applying `setup` to the world
+/// (memory blank before `setup`, as `test_world`).
 pub fn decision_context(setup: impl FnOnce(&mut World)) -> DecisionContext {
     decision_context_for(1, setup)
 }
@@ -167,6 +180,7 @@ pub fn decision_context(setup: impl FnOnce(&mut World)) -> DecisionContext {
 pub fn decision_context_for(id: KittyId, setup: impl FnOnce(&mut World)) -> DecisionContext {
     let config = Arc::new(test_config());
     let mut world = World::generate(&config);
+    forget_everything(&mut world);
     setup(&mut world);
     let me = world
         .kitty(id)

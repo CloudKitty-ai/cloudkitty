@@ -216,12 +216,16 @@ fn distance_given(
 pub(crate) fn blind_price(ctx: &DecisionContext) -> Option<f32> {
     let radius = ctx.config.vision.radius;
     let me = ctx.me.pos;
-    let dx =
-        me.x.max(ctx.world.width.saturating_sub(1).saturating_sub(me.x)) as u64;
-    let dy =
-        me.y.max(ctx.world.height.saturating_sub(1).saturating_sub(me.y)) as u64;
-    let farthest_sq = dx * dx + dy * dy;
-    (farthest_sq > (radius as u64).pow(2)).then_some(radius as f32 + 1.0)
+    let (right, bottom) = (
+        ctx.world.width.saturating_sub(1),
+        ctx.world.height.saturating_sub(1),
+    );
+    // Some corner outside the disc <=> some tile outside it -- the one
+    // visibility rule (`Position::visible_from`), never a second one.
+    let unseen = [(0, 0), (right, 0), (0, bottom), (right, bottom)]
+        .into_iter()
+        .any(|(x, y)| !me.visible_from(&Position::new(x, y), radius));
+    unseen.then_some(radius as f32 + 1.0)
 }
 
 /// The walking distance from `from` to `to` plus the `water_step_cost`
@@ -2660,6 +2664,7 @@ mod playful2_tests {
             let config = std::sync::Arc::new(config);
             let mut world = crate::world::World::generate(&config);
             world.elements.clear();
+            crate::test_support::forget_everything(&mut world);
             let me = world.kitty(1).unwrap().clone();
             crate::behavior::DecisionContext {
                 me,

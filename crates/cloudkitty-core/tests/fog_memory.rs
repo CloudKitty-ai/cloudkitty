@@ -351,3 +351,33 @@ fn own_tile_water_is_known_at_any_radius() {
         );
     }
 }
+
+/// Review finding (spec 049): `World::generate` publishes the tick-0 world
+/// the first deciders read, so it seeds memory exactly as the tick phase
+/// would (stamped 0, the tick it is seen at) -- the reset observation is
+/// not memory-blind to a bowl standing inside the disc.
+#[test]
+fn a_generated_world_is_remembered_before_the_first_tick() {
+    for radius in [5, 40] {
+        let mut config = test_config();
+        config.vision.radius = radius;
+        config.validate().unwrap();
+        let config = Arc::new(config);
+        let world = World::generate(&config);
+        assert_eq!(world.tick, 0);
+        let mut seen = 0;
+        for kitty in &world.kitties {
+            for kind in ElementType::ALL {
+                let expected = nearest_visible(&world, kitty.pos, kind, radius)
+                    .map(|pos| MemorySlot { pos, last_seen: 0 });
+                seen += usize::from(expected.is_some());
+                assert_eq!(
+                    kitty.memory[memory_index(kind)],
+                    expected,
+                    "r = {radius}: {kind:?} is remembered at generation"
+                );
+            }
+        }
+        assert!(seen > 0, "r = {radius}: something is in view at generation");
+    }
+}

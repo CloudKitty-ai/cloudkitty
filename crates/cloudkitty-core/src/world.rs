@@ -124,6 +124,11 @@ impl World {
 
         // Stock the world to each type's minimum before the first tick.
         spawn::ensure_minimums(&mut world, config);
+        // Spec 049 (review): the generated world is the tick-0 world the
+        // first deciders read, so memory is seeded from it exactly as the
+        // tick phase seeds the next -- the reset observation is not blind
+        // to a bowl standing inside the disc.
+        world.refresh_memories(config, world.tick);
 
         for kitty in &mut world.kitties {
             kitty.happiness = happiness(
@@ -792,10 +797,15 @@ impl World {
     /// Chow is presence only: an emptied bowl expired earlier this phase,
     /// so no snapshot ever holds one. Engine-owned; public so scenario
     /// tests can stage a world and step the memory without a tick.
+    /// `World::generate` seeds the same way, stamped 0 (the world the
+    /// first deciders read).
     pub fn update_memories(&mut self, config: &Config) {
+        self.refresh_memories(config, self.tick + 1);
+    }
+
+    fn refresh_memories(&mut self, config: &Config, seen_at: u64) {
         let radius = config.vision.radius;
         let timeout = config.vision.memory_timeout_ticks;
-        let seen_at = self.tick + 1;
         for idx in 0..self.kitties.len() {
             let origin = self.kitties[idx].pos;
             for (slot, kind) in ElementType::ALL.iter().enumerate() {
@@ -1703,9 +1713,6 @@ pub(crate) fn counterpart_gone_in(kitty: &Kitty, kitties: &[Kitty], elements: &[
     }
 }
 
-/// The one body of "available friend" (a distinct, present, adjacent
-/// kitty): `World::is_available_friend` and the dead-scene rule's grooming
-/// arm both delegate here.
 /// The social want gate's friend clause (spec 049 FR-036, owner ruled
 /// 2026-09-03): a friend INSIDE the disc with no scene running (the
 /// activity clock is the one authoritative "doing nothing" check, as in
@@ -1718,6 +1725,9 @@ pub fn idle_friend_in_view(view: &FogView) -> bool {
         .any(|k| k.activity_clock.is_none())
 }
 
+/// The one body of "available friend" (a distinct, present, adjacent
+/// kitty): `World::is_available_friend` and the dead-scene rule's grooming
+/// arm both delegate here.
 pub(crate) fn available_friend_in(kitties: &[Kitty], me: &Kitty, friend: KittyId) -> bool {
     friend != me.id
         && kitties

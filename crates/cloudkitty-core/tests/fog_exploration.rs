@@ -12,7 +12,7 @@ use std::sync::Arc;
 use cloudkitty_core::config::{Config, KittyConfig};
 use cloudkitty_core::element::{Element, ElementKind, ElementType};
 use cloudkitty_core::kitty::memory_index;
-use cloudkitty_core::test_support::test_config;
+use cloudkitty_core::test_support::{forget_everything, test_config};
 use cloudkitty_core::{BehaviorRegistry, NeedKind, Position, World};
 
 const R: u32 = 5;
@@ -54,6 +54,7 @@ fn blind_world(seed: u64) -> (World, Arc<Config>) {
     world
         .elements
         .retain(|e| e.element_type() != ElementType::Chow);
+    forget_everything(&mut world);
     let idx = world.kitty_index(1).unwrap();
     world.kitties[idx].needs.add(NeedKind::Eat, 55.0);
     assert!(world.kitties[idx].memory[memory_index(ElementType::Chow)].is_none());
