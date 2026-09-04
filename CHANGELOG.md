@@ -48,7 +48,8 @@ change.
   (`[rl.observation] kitty_slots` 4, roster ≤ slots + 1 refused at
   load), the global meow digest deleted and replaced by per-speaker
   recency / rate / want-intensity / answers-me cells on the rows, scene
-  age and a neighbour-in-water bit; **404 floats** at the served config,
+  age, a neighbour-in-water bit and a neighbour-on-a-sunbeam bit; **408
+  floats** at the served config,
   menu 39, logit budget 55, plugin wire v3; (4) the meow law under fog —
   a want-word is legal only for the top need with no relief visible or
   remembered, a here-word when the referent is in view and a matching

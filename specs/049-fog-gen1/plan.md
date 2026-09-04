@@ -105,7 +105,7 @@ crates/cloudkitty-core/src/
 
 crates/cloudkitty-rl/src/
 ├── observe.rs         # OBSERVATION_SCHEMA_VERSION 4→5; SELF_BLOCK 34→85, KITTY_SLOT
-│                      #   20→62; MEOW_DIGEST deleted; by-id permanent rows (fill rule
+│                      #   20→63 (62 until the sunbeam bit); MEOW_DIGEST deleted; by-id permanent rows (fill rule
 │                      #   for kitties: roster order, R1 displacement kept inert for
 │                      #   critters/never reachable for kitties); row-state masking;
 │                      #   memory / scene-age / water-bit / message-block / intensity /
@@ -121,7 +121,7 @@ crates/cloudkitty-rl/src/
 └── bin/kitty-eval.rs  # --suite default evals/v2
 
 crates/cloudkitty-rl/tests/
-├── schema_four_pins.rs → schema_five_pins.rs   # 404 / 39 / 20 / 55 / v5 literal pins
+├── schema_four_pins.rs → schema_five_pins.rs   # 408 / 39 / 20 / 55 / v5 literal pins + the offset table
 ├── mask_oracle.rs     # + fog-view ≡ full-snapshot mask equivalence
 ├── shipped_configs_rl.rs, ../cloudkitty-core/tests/shipped_configs.rs  # evals/v2 assertion
 └── (new) fog_visibility.rs, fog_memory.rs, meow_law_fog.rs  # property + scenario guards

@@ -2,7 +2,7 @@
 entity-attention mind at the new surface -- no trained checkpoint can
 carry across the fog wall (every embedding width moved), and a parity
 oracle needs no training, only an INDEPENDENT reference forward --
-exported v3-FORMAT at the schema-5 pins, plus a 404/55 parity file with
+exported v3-FORMAT at the schema-5 pins, plus a 408/55 parity file with
 seeded synthetic rows covering per-class vacancy, the self+clock
 extreme and every-kitty-row-heard (present 0, message block live). numpy only (no torch in any venv on the build machine); the
 Rust forward (`artifact_v3_parity.rs`) is checked against
@@ -19,8 +19,8 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from numpy_forward_v5 import load_artifact, numpy_forward  # noqa: E402
-from obs_layout_v5 import (BLOCKS, DENSE_ACT, N_HEAD, N_LOGITS, N_TYPE_ROWS,  # noqa: E402
-                           OBS_DIM, WIDTHS)
+from obs_layout_v5 import (BLOCKS, CRITTER_SPAN, DENSE_ACT, ELEMENT_SPAN, KITTY_SPAN,  # noqa: E402
+                           KITTY_W, N_HEAD, N_LOGITS, N_TYPE_ROWS, OBS_DIM, WIDTHS)
 
 SEED = 20260903
 D_MODEL, HEADS, LAYERS, FFN = 64, 4, 2, 128
@@ -82,16 +82,16 @@ def synth_rows():
             if rng.uniform() < 0.35:
                 obs[i, a:a + w] = 0.0
     s = N_REAL_LIKE
-    obs[s + 0:s + 8, 85:333] = 0.0       # every kitty row vacant / silent
-    obs[s + 8:s + 16, 363:403] = 0.0     # every critter vacant
-    obs[s + 16:s + 24, 333:363] = 0.0    # every chow/water/sunbeam vacant
-    obs[s + 24:s + 32, 85:403] = 0.0     # self + clock only
+    obs[s + 0:s + 8, KITTY_SPAN[0]:KITTY_SPAN[1]] = 0.0        # every kitty row vacant / silent
+    obs[s + 8:s + 16, CRITTER_SPAN[0]:CRITTER_SPAN[1]] = 0.0   # every critter vacant
+    obs[s + 16:s + 24, ELEMENT_SPAN[0]:ELEMENT_SPAN[1]] = 0.0  # every chow/water/sunbeam vacant
+    obs[s + 24:s + 32, KITTY_SPAN[0]:CRITTER_SPAN[1]] = 0.0    # self + clock only
     # every kitty row HEARD (spec 049 review): present 0, the rest live --
     # the token attends; a "present <= 0" pad rule masks it (the bug).
     for i in range(s + 32, s + 40):
         for k in range(4):
-            a = 85 + 62 * k
-            obs[i, a:a + 62] = rng.uniform(0.05, 1.0, 62)
+            a = KITTY_SPAN[0] + KITTY_W * k
+            obs[i, a:a + KITTY_W] = rng.uniform(0.05, 1.0, KITTY_W)
             obs[i, a] = 0.0
     return obs
 

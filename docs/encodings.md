@@ -38,8 +38,9 @@ Shared orderings (normative everywhere below; sources cited):
 
 ## Observation — CURRENT: schema 5 (spec 049, the fog wall; `observe.rs`)
 
-Layout: `self 85 | kitty×4 ×62 | chow×2 ×5 | water×2 ×4 | sunbeam×2 ×6 |
-critter×4 ×10 | clock 1` = **404** at the served slot configuration.
+Layout: `self 85 | kitty×4 ×63 | chow×2 ×5 | water×2 ×4 | sunbeam×2 ×6 |
+critter×4 ×10 | clock 1` = **408** at the served slot configuration
+(404 until the kitty-row sunbeam bit landed, 2026-09-04).
 Length is `observation_len(cfg)` — config-derived, never a constant to
 quote; `schema_five_pins.rs` asserts every number here literally. The
 vector is a pure function of the deciding cat's **fog view**
@@ -73,14 +74,14 @@ gone: repetition and insistence are per-speaker fields on the rows.
 | 35–64 | own message block: per `HEAD_KINDS[k]`, `35+2k` recency, `36+2k` rate | recency `1 − age/digest_window_ticks`, clamp; rate `calls in window / (digest_window / recent_window_ticks)`, clamp; a call is in the window iff `age < digest_window` (FR-016) |
 | 65–84 | element memory: per `ElementType::ALL[j]`, `65+4j` present, `+1` dx, `+2` dy, `+3` staleness | dx/dy = remembered tile − CURRENT position (/width, /height); staleness `(tick − last_seen) / 40`, clamp; **40 frozen** (FR-009); seeded at generation from the tick-0 disc (stamped 0), so a reset observation already carries what is in view |
 
-**Kitty row (62) × 4**, row k = the friend with the (k+1)-th smallest id.
+**Kitty row (63) × 4**, row k = the friend with the (k+1)-th smallest id.
 A row's contents follow the friend's state for the observer this tick
 (FR-012): **Seen** (inside the disc) → every field; **Heard** (outside
 the disc, at least one audible call of any kind inside the digest window)
 → present 0, dx/dy/distance to the friend's **position at its last
 audible meow** (the meow's stamped `pos`, however far it has walked
 since), the message block live, everything else 0; **Silent** (outside
-the disc, no call in the window) → 62 zeros.
+the disc, no call in the window) → 63 zeros.
 
 | off | field | normalization | Seen | Heard |
 |---|---|---|---|---|
@@ -93,10 +94,11 @@ the disc, no call in the window) → 62 zeros.
 | 18 | their activity has a partner | 0/1 | ✓ | 0 |
 | 19 | is my activity's target | 0/1 | ✓ | 0 |
 | 20 | neighbour in water (tile-derived) | 0/1 | ✓ | 0 |
-| 21 | their scene age | elapsed/24, clamp | ✓ | 0 |
-| 22–51 | message block: per `HEAD_KINDS[k]`, `22+2k` recency, `23+2k` rate (their own calls) | as the self block | ✓ | ✓ |
-| 52–57 | want intensity: per `WANT_KINDS` kind, the last stamped `need/100` of their freshest call of that kind in the window | 0–1; 0 outside the window | ✓ | ✓ |
-| 58–61 | answers-me: per `HERE_KINDS` kind, 1 iff their freshest here of that kind in the window was emitted after my own matching want in the window | 0/1 | ✓ | ✓ |
+| 21 | neighbour on a sunbeam (tile-derived; the scripted sleep arm's "friend on a beam" as one cell, so a policy can read what its teacher reads) | 0/1 | ✓ | 0 |
+| 22 | their scene age | elapsed/24, clamp | ✓ | 0 |
+| 23–52 | message block: per `HEAD_KINDS[k]`, `23+2k` recency, `24+2k` rate (their own calls) | as the self block | ✓ | ✓ |
+| 53–58 | want intensity: per `WANT_KINDS` kind, the last stamped `need/100` of their freshest call of that kind in the window | 0–1; 0 outside the window | ✓ | ✓ |
+| 59–62 | answers-me: per `HERE_KINDS` kind, 1 iff their freshest here of that kind in the window was emitted after my own matching want in the window | 0/1 | ✓ | ✓ |
 
 **Element slots** — unchanged widths; candidates are the elements inside
 my disc (FR-004); nearest-K by (Manhattan, id); critters keep the
@@ -235,7 +237,7 @@ clock.
 
 Row invariant: `mask[i, label[i]] == 1` and `mask_msg[i, label_msg[i]]
 == 1` everywhere; `mask_msg[:, 0]` all-ones. Datasets record the schema
-they were collected under; a schema-5 dataset is 404/39/16-shaped (a
+they were collected under; a schema-5 dataset is 408/39/16-shaped (a
 schema-4 one was 225/34/16).
 
 ## Documented elsewhere (pointers, not duplication)

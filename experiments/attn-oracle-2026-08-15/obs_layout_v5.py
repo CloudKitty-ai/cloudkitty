@@ -1,10 +1,11 @@
 """Observation schema 5 layout (spec 049, contracts/observation-v5.md):
-self 85 | kitty 4 x 62 | chow 2 x 5 | water 2 x 4 | sunbeam 2 x 6 |
-critter 4 x 10 | clock 1 = 404. The message-kind token group of schema 4
+self 85 | kitty 4 x 63 | chow 2 x 5 | water 2 x 4 | sunbeam 2 x 6 |
+critter 4 x 10 | clock 1 = 408 (404 before the kitty-row sunbeam bit,
+owner ruled 2026-09-04). The message-kind token group of schema 4
 is gone (repetition rides the kitty rows); seven token types remain.
 Pure layout constants, shared by the numpy forward and the generator.
 """
-WIDTHS = [("self", 85), ("kitty", 62), ("chow", 5), ("water", 4),
+WIDTHS = [("self", 85), ("kitty", 63), ("chow", 5), ("water", 4),
           ("sunbeam", 6), ("critter", 10), ("clock", 1)]
 COUNTS = {"self": 1, "kitty": 4, "chow": 2, "water": 2, "sunbeam": 2,
           "critter": 4, "clock": 1}
@@ -12,7 +13,7 @@ TYPE_ROW = {"self": [0], "kitty": [1] * 4, "chow": [2], "water": [3],
             "sunbeam": [4], "critter": [5] * 4, "clock": [6]}
 N_TYPE_ROWS = 7
 OBS_DIM = sum(w * COUNTS[n] for n, w in WIDTHS)
-assert OBS_DIM == 404
+assert OBS_DIM == 408
 # Menu 39 at kitty_slots 4 (ActionCodec::v2): Move 0-3, RestSolo 4,
 # RestWith 5-8, SleepSolo 9, SleepWith 10-13, GroomSelf 14, GroomKitty
 # 15-18, Eat 19, Drink 20, ChaseCritter 21-24, ChaseKitty 25-28, PlaySolo
@@ -28,7 +29,18 @@ assert N_LOGITS == 55
 # 9..11, critter 11..15, clock 15
 KITTY_TOK = slice(1, 5)
 CRIT_TOK = slice(11, 15)
-BLOCKS = ([(85 + 62 * k, 62) for k in range(4)] + [(333 + 5 * j, 5) for j in range(2)]
-          + [(343 + 4 * j, 4) for j in range(2)] + [(351 + 6 * j, 6) for j in range(2)]
-          + [(363 + 10 * j, 10) for j in range(4)])
-assert BLOCKS[-1][0] + BLOCKS[-1][1] == 403
+# Block offsets derived from WIDTHS x COUNTS (one row per slot, self and
+# clock excluded): kitty 85.., chow 337.., water 347.., sunbeam 355..,
+# critter 367..; the last block ends at 407.
+BLOCKS = []
+_off = 85
+for _name, _w in WIDTHS[1:-1]:
+    for _j in range(COUNTS[_name]):
+        BLOCKS.append((_off, _w))
+        _off += _w
+assert BLOCKS[-1][0] + BLOCKS[-1][1] == 407 == OBS_DIM - 1
+# Named spans the generator's stress rows zero out.
+KITTY_SPAN = (85, 85 + 4 * 63)          # 85..337
+ELEMENT_SPAN = (337, 367)               # chow, water, sunbeam
+CRITTER_SPAN = (367, 407)
+KITTY_W = 63

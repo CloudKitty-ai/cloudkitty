@@ -22,7 +22,7 @@ Expected at arc end: green, with the count = baseline (recorded at cycle 0) + th
 cargo test -p cloudkitty-rl --test schema_five_pins
 ```
 
-Expected: `observation_len` 404, `kitty_slots` 4, menu 39, kitty-pointer 20, logit budget 55, observation schema 5, action 3, mask 3 — every assertion literal against [contracts/observation-v5.md](contracts/observation-v5.md).
+Expected: `observation_len` 408 (kitty row 63), `kitty_slots` 4, menu 39, kitty-pointer 20, logit budget 55, observation schema 5, action 3, mask 3 — every assertion literal against [contracts/observation-v5.md](contracts/observation-v5.md).
 
 ## 3. Visibility, memory, mask equivalence (SC-002, SC-003, R2)
 
@@ -106,7 +106,7 @@ Expected: same seed + config + ticks → identical world including memory and `e
 cd crates/cloudkitty-py && maturin develop --release && pytest tests -v
 ```
 
-Expected: `observation_space` shape (404,), `OBSERVATION_SCHEMA_VERSION` 5, two-process reproducibility green, PettingZoo conformance green.
+Expected: `observation_space` shape (408,), `OBSERVATION_SCHEMA_VERSION` 5, two-process reproducibility green, PettingZoo conformance green.
 
 ## 11. Binding continuity (SC-009)
 

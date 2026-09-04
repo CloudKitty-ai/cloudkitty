@@ -132,7 +132,7 @@ def export_ckpolicy(path, layers, obs_len):
         # The three SCHEMA fields always come from the binding's constants,
         # never literals: an artifact stamped with a stale generation is
         # refused at load (observation schema 5 since spec 049 -- the
-        # fog wall: 404 floats at the served slots, no global digest,
+        # fog wall: 408 floats at the served slots, no global digest,
         # per-speaker message blocks on the kitty rows).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,

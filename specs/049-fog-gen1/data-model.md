@@ -54,7 +54,7 @@ Frozen literals (not config, guarded by pins): scene-age normaliser H = 24; memo
 
 ## Observation schema 5 (`cloudkitty-rl::observe`)
 
-Widths: `SELF_BLOCK` 85, `KITTY_SLOT` 62, `CHOW_SLOT` 5, `WATER_SLOT` 4, `SUNBEAM_SLOT` 6, `CRITTER_SLOT` 10, `CLOCK` 1, global digest deleted. `observation_len(cfg)` = 85 + 4·62 + 2·5 + 2·4 + 2·6 + 4·10 + 1 = **404** at the served config. `OBSERVATION_SCHEMA_VERSION` = 5. `block_widths()` gains `memory` (20) and `msg_self` (30) / `msg_kitty` (40) and drops `msg`/`msg_count`.
+Widths: `SELF_BLOCK` 85, `KITTY_SLOT` 63 (62 until the kitty-row sunbeam bit, owner ruled 2026-09-04), `CHOW_SLOT` 5, `WATER_SLOT` 4, `SUNBEAM_SLOT` 6, `CRITTER_SLOT` 10, `CLOCK` 1, global digest deleted. `observation_len(cfg)` = 85 + 4·63 + 2·5 + 2·4 + 2·6 + 4·10 + 1 = **408** at the served config. `OBSERVATION_SCHEMA_VERSION` = 5. `block_widths()` gains `memory` (20) and `msg_self` (30) / `msg_kitty` (40) and drops `msg`/`msg_count`.
 
 Row state (per friend row): `Seen | Heard | Silent` → field-level mask in the contract.
 
@@ -64,7 +64,7 @@ Menu 39 (kitty_slots 4), mask 39 ∥ 16 = 55, v3 logits dense 11 + kitty-ptr 20 
 
 ## Tokenizer (`cloudkitty-rl::attn::token_layout`)
 
-Groups: self (1 × 85), kitty (4 × 62), chow (2 × 5), water (2 × 4), sunbeam (2 × 6), critter (4 × 10), clock (1 × 1). Type rows 7 (was 22). Artifact format v3 unchanged; blob length derives.
+Groups: self (1 × 85), kitty (4 × 63), chow (2 × 5), water (2 × 4), sunbeam (2 × 6), critter (4 × 10), clock (1 × 1). Type rows 7 (was 22). Artifact format v3 unchanged; blob length derives.
 
 ## Eval suite
 

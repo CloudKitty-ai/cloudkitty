@@ -36,8 +36,8 @@ fn the_schema_five_numbers_match_the_contract() {
     );
     assert_eq!(
         observation_len(&cfg),
-        404,
-        "self 85 | kitty 4 x 62 | chow 2 x 5 | water 2 x 4 | sunbeam 2 x 6 | critter 4 x 10 | clock 1"
+        408,
+        "self 85 | kitty 4 x 63 | chow 2 x 5 | water 2 x 4 | sunbeam 2 x 6 | critter 4 x 10 | clock 1"
     );
     assert_eq!(
         ActionCodec::v2(&cfg).len(),
@@ -63,7 +63,7 @@ fn the_schema_five_numbers_match_the_contract() {
 /// The offset table (contract §Self block / §Kitty row) as LITERALS,
 /// independent of the derivation (review 3 finding 3, 2026-09-04): the
 /// row tests in `observe.rs` read their cells THROUGH these constants,
-/// so a reordered block tail that keeps 404 left the suite green and
+/// so a reordered block tail that keeps the width left the suite green and
 /// silently reinterpreted every trained artifact's input. Seen red on an
 /// induced self-tail swap (memory before the message block): redden
 /// list, cycle r3b.
@@ -75,17 +75,22 @@ fn the_offset_table_matches_the_contract() {
     assert_eq!(offsets::SELF_MEMORY, 65, "element memory 65-84");
     assert_eq!(offsets::SELF_BLOCK, 85, "self block");
     assert_eq!(offsets::ROW_WATER_BIT, 20, "neighbour in water");
-    assert_eq!(offsets::ROW_SCENE_AGE, 21, "their scene age");
-    assert_eq!(offsets::ROW_MSG_BLOCK, 22, "their message block 22-51");
-    assert_eq!(offsets::ROW_INTENSITY, 52, "want intensities 52-57");
-    assert_eq!(offsets::ROW_ANSWERS_ME, 58, "answers-me 58-61");
-    assert_eq!(offsets::KITTY_SLOT, 62, "kitty row");
+    assert_eq!(
+        offsets::ROW_SUNBEAM_BIT,
+        21,
+        "neighbour on a sunbeam (owner ruled 2026-09-04)"
+    );
+    assert_eq!(offsets::ROW_SCENE_AGE, 22, "their scene age");
+    assert_eq!(offsets::ROW_MSG_BLOCK, 23, "their message block 23-52");
+    assert_eq!(offsets::ROW_INTENSITY, 53, "want intensities 53-58");
+    assert_eq!(offsets::ROW_ANSWERS_ME, 59, "answers-me 59-62");
+    assert_eq!(offsets::KITTY_SLOT, 63, "kitty row");
     assert_eq!(offsets::MEMORY_BLOCK, 20, "5 kinds x 4");
     assert_eq!(offsets::MSG_BLOCK, 30, "15 kinds x 2");
     let w = block_widths();
     assert_eq!(
         (w.self_, w.kitty, w.chow, w.water, w.sunbeam, w.critter, w.clock),
-        (85, 62, 5, 4, 6, 10, 1),
+        (85, 63, 5, 4, 6, 10, 1),
         "token widths"
     );
     assert_eq!(

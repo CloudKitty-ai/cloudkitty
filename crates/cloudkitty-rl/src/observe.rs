@@ -15,7 +15,7 @@
 //!    `HEAD_KINDS` kind: recency, rate), then the element memory (per
 //!    `ElementType::ALL` kind: present, dx, dy, staleness). Never fogged
 //!    (FR-005).
-//! 2. **Kitty rows × K (62 each)**: one PERMANENT row per friend, in kitty
+//! 2. **Kitty rows × K (63 each)**: one PERMANENT row per friend, in kitty
 //!    id order, never re-sorted (FR-011). A row's contents follow the
 //!    friend's state for the observer this tick (FR-012): **seen** (inside
 //!    the disc) → every field; **heard** (outside the disc, a call inside
@@ -53,8 +53,8 @@ use crate::config::ObservationConfig;
 /// (spec 028): the meow digest became coherent, 183 → 197. Schema 4
 /// (spec 033): the say-surface finalized, 197 → 225. Schema 5 (spec 049,
 /// the fog wall): permanent by-id kitty rows (4), per-speaker message
-/// blocks in place of the global digest, scene age, the water bit, the
-/// element memory, 225 → 404.
+/// blocks in place of the global digest, scene age, the water and
+/// sunbeam bits, the element memory, 225 → 408.
 pub const OBSERVATION_SCHEMA_VERSION: u32 = 5;
 
 /// The message-head kinds (spec 028, finalized by spec 033): every kind a
@@ -108,9 +108,10 @@ const SELF_BLOCK: usize = SELF_SCHEMA_4 + 1 + MSG_BLOCK + MEMORY_BLOCK;
 /// The schema-4 kitty slot, unchanged: present, dx, dy, distance, needs 6,
 /// happiness, activity 7, partner flag, is-my-target bit.
 const KITTY_SCHEMA_4: usize = 1 + 2 + 1 + 6 + 1 + 7 + 1 + 1;
-/// Kitty row = schema 4 + water bit + scene age + message block + want
-/// intensities (6) + answers-me bits (4) = 62.
-const KITTY_SLOT: usize = KITTY_SCHEMA_4 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
+/// Kitty row = schema 4 + water bit + sunbeam bit + scene age + message
+/// block + want intensities (6) + answers-me bits (4) = 63.
+const KITTY_SLOT: usize =
+    KITTY_SCHEMA_4 + 1 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
 const HERE_KINDS_LEN: usize = MessageKind::HERE_KINDS.len();
 const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
 const WATER_SLOT: usize = 1 + 2 + 1;
@@ -134,11 +135,13 @@ pub mod offsets {
     pub const SELF_SCENE_AGE: usize = SELF_SCHEMA_4;
     pub const SELF_MSG_BLOCK: usize = SELF_SCHEMA_4 + 1;
     pub const SELF_MEMORY: usize = SELF_MSG_BLOCK + MSG_BLOCK;
-    /// Kitty row: the water bit; scene age; message block; the six want
+    /// Kitty row: the water bit; the sunbeam bit (owner ruled 2026-09-04,
+    /// flag 13 follow-on); scene age; message block; the six want
     /// intensities; the four answers-me bits.
     pub const ROW_WATER_BIT: usize = KITTY_SCHEMA_4;
-    pub const ROW_SCENE_AGE: usize = KITTY_SCHEMA_4 + 1;
-    pub const ROW_MSG_BLOCK: usize = KITTY_SCHEMA_4 + 2;
+    pub const ROW_SUNBEAM_BIT: usize = KITTY_SCHEMA_4 + 1;
+    pub const ROW_SCENE_AGE: usize = KITTY_SCHEMA_4 + 2;
+    pub const ROW_MSG_BLOCK: usize = KITTY_SCHEMA_4 + 3;
     pub const ROW_INTENSITY: usize = ROW_MSG_BLOCK + MSG_BLOCK;
     pub const ROW_ANSWERS_ME: usize = ROW_INTENSITY + WANT_KINDS.len();
     /// Block widths, by name.
@@ -184,7 +187,7 @@ pub const fn block_widths() -> BlockWidths {
 
 /// The exact observation length for a slot configuration -- a function of
 /// the slot config, never a constant to quote (the served config's slot
-/// defaults currently work out to 404; read it from here, don't hardcode).
+/// defaults currently work out to 408; read it from here, don't hardcode).
 pub fn observation_len(cfg: &ObservationConfig) -> usize {
     SELF_BLOCK
         + cfg.kitty_slots * KITTY_SLOT
@@ -418,8 +421,20 @@ pub fn encode_observation(
                     0.0
                 });
                 // Knowledge fields (FR-020): the neighbour-in-water bit
-                // (tile-derived, as the own-tile bit) and their scene age.
-                v.push(if water_at(view, other.pos) { 1.0 } else { 0.0 });
+                // (tile-derived, as the own-tile bit), the neighbour-on-a-
+                // sunbeam bit (tile-derived too; owner ruled 2026-09-04 so a
+                // learner reads "friend on a beam" as one cell) and their
+                // scene age.
+                v.push(if tile_holds(view, other.pos, ElementType::Water) {
+                    1.0
+                } else {
+                    0.0
+                });
+                v.push(if tile_holds(view, other.pos, ElementType::Sunbeam) {
+                    1.0
+                } else {
+                    0.0
+                });
                 v.push(scene_age(other, view.tick));
                 // Their message block + want intensities (FR-016) and the
                 // answers-me bits (FR-041; land with US7 -- 0 until then).
@@ -432,8 +447,9 @@ pub fn encode_observation(
                 v.push((pos.y as f32 - me.pos.y as f32) / height);
                 v.push(me.pos.manhattan_distance(&pos) as f32 / max_distance);
                 // Knowledge fields masked: needs, happiness, activity,
-                // partner flag, target bit, water bit, scene age.
-                v.extend(std::iter::repeat_n(0.0, 6 + 1 + 7 + 1 + 1 + 1 + 1));
+                // partner flag, target bit, water bit, sunbeam bit, scene
+                // age.
+                v.extend(std::iter::repeat_n(0.0, 6 + 1 + 7 + 1 + 1 + 1 + 1 + 1));
                 // The message block is live on a heard row (FR-012).
                 push_message_block(&mut v, view, friend, core, true);
                 push_answers_me(&mut v, view, friend, core);
@@ -608,10 +624,16 @@ fn push_answers_me(v: &mut Vec<f32>, view: &FogView, friend: KittyId, core: &Con
 /// A water element on `pos` in the view (tile-derived, as the own-tile
 /// flag has always been).
 fn water_at(snapshot: &WorldSnapshot, pos: Position) -> bool {
+    tile_holds(snapshot, pos, ElementType::Water)
+}
+
+/// Does an element of `kind` occupy `pos`? The tile fact behind the
+/// own-tile water bit and the kitty rows' water and sunbeam bits.
+fn tile_holds(snapshot: &WorldSnapshot, pos: Position, kind: ElementType) -> bool {
     snapshot
         .elements
         .iter()
-        .any(|e| e.element_type() == ElementType::Water && e.pos == pos)
+        .any(|e| e.element_type() == kind && e.pos == pos)
 }
 
 /// Activity one-hot in normative order: idle, resting, sleeping, eating,
@@ -734,10 +756,11 @@ mod tests {
     use cloudkitty_core::test_support::test_world;
 
     #[test]
-    fn the_default_layout_is_404_values() {
-        // Schema 5 (spec 049): self 85 | 4 x 62 | 2 x 5 | 2 x 4 | 2 x 6 |
-        // 4 x 10 | clock 1. (History: 197 at schema 3, 225 at schema 4.)
-        assert_eq!(observation_len(&ObservationConfig::default()), 404);
+    fn the_default_layout_is_408_values() {
+        // Schema 5 (spec 049): self 85 | 4 x 63 | 2 x 5 | 2 x 4 | 2 x 6 |
+        // 4 x 10 | clock 1. (History: 197 at schema 3, 225 at schema 4,
+        // 404 before the kitty-row sunbeam bit.)
+        assert_eq!(observation_len(&ObservationConfig::default()), 408);
     }
 
     #[test]
@@ -746,14 +769,14 @@ mod tests {
         // single self block (spec 026 US1 scenario 4, re-pinned at 85).
         assert_eq!(SELF_BLOCK, 85, "34 (schema 4) + scene age + 30 + 20");
         assert_eq!(
-            KITTY_SLOT, 62,
-            "20 (schema 4) + water + scene age + 30 + 6 + 4"
+            KITTY_SLOT, 63,
+            "20 (schema 4) + water + sunbeam + scene age + 30 + 6 + 4"
         );
         let cfg = ObservationConfig {
             kitty_slots: ObservationConfig::default().kitty_slots + 2,
             ..ObservationConfig::default()
         };
-        assert_eq!(observation_len(&cfg), 404 + 2 * KITTY_SLOT);
+        assert_eq!(observation_len(&cfg), 408 + 2 * KITTY_SLOT);
     }
 
     /// The in-water flag's fixed self-block index: needs (6) + happiness +
@@ -1082,9 +1105,62 @@ mod tests {
         assert!(row(&obs3, 2).iter().all(|&v| v == 0.0) && row(&obs3, 3).iter().all(|&v| v == 0.0));
         assert_eq!(
             obs3.values.len(),
-            404,
+            408,
             "the slot config does not change per lab"
         );
+    }
+
+    /// The kitty-row sunbeam bit (owner ruled 2026-09-04, flag 13's
+    /// follow-on, on Experiments' input): a tile-derived "neighbour on a
+    /// sunbeam" cell beside the water bit, so a learner reads "friend on
+    /// a beam" as one cell and "settled friend on a beam" as a within-row
+    /// AND with the activity one-hot, instead of matching a kitty row's
+    /// dx/dy against a sunbeam slot's. A knowledge field: live on Seen, 0
+    /// on Heard (whatever the friend stands on) and Silent.
+    #[test]
+    fn a_seen_friends_row_carries_the_sunbeam_bit_and_a_heard_ones_does_not() {
+        use cloudkitty_core::element::Element;
+        use cloudkitty_core::meow::{Meow, MessageKind};
+        let (mut world, config) = five_cat_world();
+        let cfg = ObservationConfig::default();
+        // Friend 2 (seen, at (11, 10)) and friend 3 (heard from (0, 0),
+        // outside the disc) each stand on a beam.
+        for (id, pos) in [(900, Position::new(11, 10)), (901, Position::new(0, 0))] {
+            world.push_element(Element {
+                id,
+                kind: ElementKind::Sunbeam,
+                pos,
+                ttl: Some(50),
+            });
+        }
+        world.recent_meows.push(Meow {
+            kitty_id: 3,
+            kind: MessageKind::Mew,
+            tick: 95,
+            intensity: 0.0,
+            pos: Position::new(0, 0),
+            reply: false,
+        });
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(
+            row(&obs, 0)[offsets::ROW_SUNBEAM_BIT],
+            1.0,
+            "friend 2 stands on a beam, in view"
+        );
+        assert_eq!(row(&obs, 0)[offsets::ROW_WATER_BIT], 0.0, "not water");
+        assert_eq!(
+            row(&obs, 1)[offsets::ROW_SUNBEAM_BIT],
+            0.0,
+            "friend 3 is only heard: a knowledge field, masked"
+        );
+        assert_eq!(row(&obs, 1)[0], 0.0, "and indeed not present");
+        assert!(row(&obs, 2).iter().all(|&v| v == 0.0), "friend 4: silent");
+        // The beam expires: the bit follows the tile, not the cat.
+        world.elements.retain(|e| e.id != 900);
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        assert_eq!(row(&obs, 0)[offsets::ROW_SUNBEAM_BIT], 0.0);
     }
 
     #[test]

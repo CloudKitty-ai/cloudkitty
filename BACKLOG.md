@@ -15,8 +15,8 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 Spec 049's permanent by-id kitty rows make the observation width a
 function of the roster (`kitty_slots = roster − 1`), so `evals/v2`'s
-`scale` (8 cats, 590 floats) and `mixed-roster-{guest,half,host}` (6
-cats, 466) refuse a served-width (404) Gen 1 mind at artifact load —
+`scale` (8 cats, 597 floats) and `mixed-roster-{guest,half,host}` (6
+cats, 471) refuse a served-width (408) Gen 1 mind at artifact load —
 `kitty-eval --suite evals/v2 --artifact <policy>` dies before a tick on 4
 of 6 exams (`/code-review high 049` finding 1; PR flag 5). v2 is frozen
 by its manifest, so the fix is `evals/v3`: the same six designs with the
@@ -1838,7 +1838,7 @@ beyond the views", and these exceed it:
   `apply_message` rather than `emit_message` rebuilding it.
 - `observe.rs` `row_state` calls `heard_unseen` (allocates; scans roster ×
   buffer) once per kitty row; with the message block (15 passes per row)
-  and answers-me (8 more), on the order of 100 buffer scans per 404-float
+  and answers-me (8 more), on the order of 100 buffer scans per 408-float
   observation. Fix shape: one pre-pass grouping meows by (kitty, kind).
 - `needs_driven.rs` `groom_response` clones `recent_meows` into a `Vec`
   per cat per tick to reuse `freshest_audible`'s slice signature; the

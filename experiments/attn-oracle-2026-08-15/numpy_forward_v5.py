@@ -1,6 +1,6 @@
 """Independent numpy reference forward for the spec-049 surface (schema
 5) -- the certified numpy_forward_v4 with only the layout moved: seven
-token types, no message group, kitty rows 4 x 62, self 85, menu 39,
+token types, no message group, kitty rows 4 x 63, self 85, menu 39,
 55 logits. Reads the artifact's own bytes (forward-v3.md module order).
 
 One rule moved with the layout (spec 049 review): a token is padding iff

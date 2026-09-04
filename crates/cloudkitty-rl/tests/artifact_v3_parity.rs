@@ -104,8 +104,10 @@ fn serving_cost_is_negligible_against_the_tick() {
 /// checkpoint carries across the wall (every embedding width moved, the
 /// message-kind tokens are gone) and a parity oracle needs only an
 /// INDEPENDENT reference forward, not training -- exported v3-format at
-/// the schema-5 pins (sha256 8c1691b4…); `tests/fixtures/oracle.parity`
-/// (sha256 2658886d…) holds 152 rows at 404/55: 112 plausible (~35%
+/// the schema-5 pins (sha256 c205106b…); `tests/fixtures/oracle.parity`
+/// (sha256 c97c5e59…) holds 152 rows at 408/55 (regenerated 2026-09-04
+/// for the kitty-row sunbeam bit; 8c1691b4… / 2658886d… were the 404
+/// pair): 112 plausible (~35%
 /// per-block vacancy) plus stress (every kitty row vacant, every critter
 /// vacant, every element vacant, self+clock only, and -- the spec-049
 /// review's row -- every kitty row HEARD: present 0, the rest live, which
