@@ -1806,6 +1806,30 @@ Options, costed:
 
 ## P2 — the bigger pieces, for a proper sitting
 
+### Fog hot-loop allocations in the training tick (added 2026-09-04; Product thread, from `/code-review high 049` findings 8–10)
+
+Three per-tick allocation sites spec 049 added, all LOW and none
+measured; the plan's stated goal was "no per-tick allocation growth
+beyond the views", and these exceed it:
+
+- `world.rs` message enforcement and `action.rs` `emit_message` each
+  build `self.snapshot()` (every kitty, element and the meow buffer) and
+  then `fog_for` keeps one disc — two whole-world clones per speaking cat
+  per tick, on top of `decision_jobs`' one view per cat. Fix shape: a
+  live-world `fog_for` that filters without the intermediate clone.
+- `observe.rs` `row_state` calls `heard_unseen` (allocates; scans roster ×
+  buffer) once per kitty row; with the message block (15 passes per row)
+  and answers-me (8 more), on the order of 100 buffer scans per 404-float
+  observation. Fix shape: one pre-pass grouping meows by (kitty, kind).
+- `needs_driven.rs` `groom_response` clones `recent_meows` into a `Vec`
+  per cat per tick to reuse `freshest_audible`'s slice signature; the
+  filter + max can run in place over the borrowed slice.
+
+Bill: measure first (ticks/s on the served roster all-scripted, and the
+bc-collect / PPO rollout rate). The buffers are small (5 cats, ~25
+elements, ≤ ~50 meows), so the win may be modest — do it if step-5
+throughput reads short, not before.
+
 ### Distress-gated intervention — the behavioral safeguard (added 2026-08-20; owner-approved for investigation)
 
 Owner, 2026-08-20: "worth investigating, let's add it to the backlog to

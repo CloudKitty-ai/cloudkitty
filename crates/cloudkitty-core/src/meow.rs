@@ -316,11 +316,18 @@ pub fn here_for_want(want: MessageKind) -> Option<MessageKind> {
 }
 
 /// Is the referent of a here-kind visible from the speaker (anywhere in
-/// its disc)? The referent visibility half of the reply condition.
+/// its disc)? The referent visibility half of the reply condition. Food
+/// means a STOCKED bowl, as in the adjacency arm
+/// (`adjacent_stocked_chow_in`): no snapshot holds an empty bowl, but the
+/// mid-tick enforcement view can (an earlier cat emptied it this tick; it
+/// expires in the environment phase), and a `here_food` stamped `reply`
+/// must not point at nothing (`/code-review high 049` finding 4).
 pub fn referent_visible(here: MessageKind, view: &crate::world::FogView) -> bool {
-    use crate::element::ElementType;
+    use crate::element::{ElementKind, ElementType};
     match here {
-        MessageKind::HereFood => view.elements_of(ElementType::Chow).next().is_some(),
+        MessageKind::HereFood => view
+            .elements_of(ElementType::Chow)
+            .any(|e| matches!(e.kind, ElementKind::Chow { servings } if servings > 0)),
         MessageKind::HereWater => view.elements_of(ElementType::Water).next().is_some(),
         MessageKind::HereSunbeam => view.elements_of(ElementType::Sunbeam).next().is_some(),
         MessageKind::HereCritter => view.critters().next().is_some(),
@@ -583,6 +590,50 @@ mod tests {
     fn legal(world: &World, kind: MessageKind, config: &crate::config::Config) -> bool {
         let view = world.snapshot().fog_for(1, config.vision.radius);
         message_legal(world.kitty(1).unwrap(), kind, world.tick, config, &view)
+    }
+
+    /// `/code-review high 049` finding 4 (2026-09-04): `here_food`'s
+    /// referent is FOOD, not a bowl object. At the mid-tick enforcement
+    /// seam a bowl an earlier cat emptied this tick still sits in the
+    /// element list (it expires in the environment phase), so the reply
+    /// arm must read stocked, as the adjacency arm always has -- else a
+    /// here stamped `reply` points at nothing. Staged: kitty 2's
+    /// `want_eat` audible, a bowl in view but not adjacent (the reply arm
+    /// is the only way in), empty then stocked.
+    #[test]
+    fn here_food_needs_a_stocked_bowl_in_view() {
+        let (mut world, config) = bare_meadow();
+        world.recent_meows.push(Meow {
+            kitty_id: 2,
+            kind: MessageKind::WantEat,
+            tick: 45,
+            intensity: 0.5,
+            pos: Position::new(2, 2),
+            reply: false,
+        });
+        world.push_element(crate::element::Element {
+            id: 900,
+            kind: ElementKind::Chow { servings: 0 },
+            pos: Position::new(11, 8),
+            ttl: None,
+        });
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(
+            !referent_visible(MessageKind::HereFood, &view),
+            "an emptied bowl is not food in view"
+        );
+        assert!(
+            !legal(&world, MessageKind::HereFood, &config),
+            "no here_food for an empty bowl, however loud the want"
+        );
+        let bowl = world.elements.iter_mut().find(|e| e.id == 900).unwrap();
+        bowl.kind = ElementKind::Chow { servings: 1 };
+        let view = world.snapshot().fog_for(1, config.vision.radius);
+        assert!(referent_visible(MessageKind::HereFood, &view));
+        assert!(
+            legal(&world, MessageKind::HereFood, &config),
+            "stocked and a want audible: the reply arm opens"
+        );
     }
 
     #[test]

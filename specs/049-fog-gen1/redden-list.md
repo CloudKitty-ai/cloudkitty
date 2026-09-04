@@ -737,3 +737,34 @@ ce910c5 + docs).
   transitions → the waypoint's, plan.md's Storage / Constraints / Article V
   / Project Structure / test-plan row (`explore_heading`, `DecisionRng`
   redraws → `explore_waypoint`, `explore.rs`, no draw).
+
+## Review 2 — `/code-review high 049` (run from the Client thread at the owner's request, 2026-09-04; write-up at the Client scratchpad `review-049-2026-09-04.md`)
+
+Ten findings, read-only from their side; dispositioned here. One engine
+change (finding 4, red-first below), five comment/doc fixes, one backlog
+entry, two owner calls, one finding corrected.
+
+| # | Finding | Disposition |
+|---|---|---|
+| 1 | MEDIUM — four `evals/v2` exams carry `kitty_slots` 7/5, so `observation_len` is 590/466 and `policy.rs` refuses a 404-wide artifact at load; `kitty-eval --suite evals/v2 --artifact` dies before a tick on 4 of 6 exams | OWNER FLAG 5 reaffirmed with the concrete failure mode. Not 049's to fix (the exams' rosters are the exam designs); options for the owner post-049: re-cut `scale`/`mixed-roster-*` at roster 5 so a served-width mind sits them, or accept exam-specific minds. Recorded in the PR body. |
+| 2 | MEDIUM — the one enforced welfare gate pins r = 64; the r = 5 readings are `#[ignore]`d, so a blind-cat-only regression lands green | OWNER CALL. SC-005 rules the r = 5 welfare a reading, not a gate (the Gen 1 bar is step 5's). Since T092 the SERVED world holds the 2.x bounds at r = 5 AND r = 64 (0 / 0, re-read this sitting, 6.7 s for both runs), so promoting `served_world_fog_r5_welfare_reading_with_global_vision_control` to enforced is cheap and would be a kept-behaviour guard, not a Gen 1 bar. Recommended; needs an SC-005 amendment. The gate's stale comment (13 violations, the heading rule) rewritten to the T088/T092 numbers @ c51189c. |
+| 3 | LOW — mid-tick element consumption can un-silence a want; the "only ever silences" comment is false | PARTLY WRONG as stated, comment fixed @ c51189c. The chow example cannot occur: memory covers everything visible at the tick's start (FR-007 refresh at the previous environment phase), and an emptied bowl stays an element until `expire_elements`, so the element clauses only ever silence. The social clause (a friend that entered a scene or left the disc earlier in the apply order) and the top-need clause (own relief) DO move both ways — unobservable for a mask-respecting proposer (a word the mask forbade is never proposed), a downgrade-to-Silent otherwise. The mid-tick seam is the 2.x design (activity, then message, over the live world); no change. |
+| 4 | LOW — `referent_visible(HereFood)` reads presence while the adjacency arm reads stocked; mid-tick an emptied bowl makes `here_food` legal via the reply arm and stamped `reply = 1` | REAL; FIXED red-first (cycle hr4 below). The spec's own edge case ("Stocked is struck") assumed the adjacency rule handled the mid-tick empty bowl; the reply arm is a second door. `referent_visible(HereFood)` now requires `servings > 0`. Start-of-tick verdicts unchanged (no snapshot holds an empty bowl), so the mask, goldens and stream pins are unmoved — predicted and observed. |
+| 5 | LOW — `mask.rs` doc claims fog verdicts equal the full snapshot's and cites `mask_oracle`, which carves out `unseen_target` | REAL; doc rewritten to what the oracle proves @ c51189c (equal for targets in view; unseen-friend targets fog-silenced; out-of-view counterpart the skipped corner). |
+| 6 | LOW — `needs_driven.rs` test comment cites the retired heading draw | REAL; comment rewritten @ c51189c (two contexts kept: they still decouple the calls through any other rung's draw). |
+| 7 | LOW — README repo map + "three worlds" name `evals/v1` as the exam room | REAL; → `evals/v2`, v1 named as the 2.x record @ c51189c. |
+| 8–10 | LOW efficiency — two whole-world clones per speaking cat per tick (enforcement + reply stamp); ~100 meow-buffer scans per observation; `groom_response` clones the buffer per cat | BACKLOG P2 "Fog hot-loop allocations in the training tick" with the fix shapes and a measure-first bill; the plan's "no per-tick allocation growth beyond the views" goal is cited as the reason it is on record. Not fixed here (unmeasured; small absolute buffers). |
+
+### Cycle hr4 — finding 4, `here_food` referent = stocked bowl
+
+| cycle | guard | prediction | observed | restore | count |
+|---|---|---|---|---|---|
+| hr4 | `meow::tests::here_food_needs_a_stocked_bowl_in_view` (kitty 2's `want_eat` audible; a bowl in view, not adjacent — the reply arm is the only door; empty then stocked) | RED on the unchanged engine at the first assertion ("an emptied bowl is not food in view"): presence-only reads the empty bowl as the referent, and `here_food` comes out legal | RED exactly there (0 passed / 1 failed) | `referent_visible(HereFood)` → `servings > 0`; targeted GREEN; full suite **878 / 0 / 6** (877 + this guard; every golden, the SC-004a/4b pins, the preladder streams and the mask oracle unmoved, as predicted: those runs never emit a here-word or never meet an empty bowl); fmt + clippy clean | 878 / 0 / 6 |
+
+Checked-and-cleared list from the reviewer (lattice coverage incl. the
+narrow-axis collapse, `advance_tours` ordering, `blind_price`'s corner
+maximum, `euclid_sq` saturation, `seen_at = tick + 1`, `refusal_reason`
+vs `validate`, the 404 sum, `prune_transient` ⊇ audibility, the reply
+tie-break, the attention pad rule vs heard rows, `deny_unknown_fields`
+everywhere, every swept TOML carrying `[vision]`) — all consistent with
+this ledger; nothing to add.
