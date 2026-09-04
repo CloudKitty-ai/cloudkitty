@@ -514,6 +514,34 @@ words load-bearing without costing a turn. Four rulings:
    for the tour; its coverage half is read on the r = 2 screen before
    the pass.
 
+   **Blind price RATIFIED 2026-09-04 (049 converge T090, owner ruled in
+   the Experiments session, relayed to Product for `research.md` and
+   `docs/meows.md`)**: an element kind neither visible nor remembered is
+   priced at `radius + 1` in the 004 selector (`selection::blind_price`);
+   `None` when the disc covers the world. The spec stated no price; this
+   is what makes FR-023 exploration reachable through selection at all.
+   Doctrine: a need is priced at the cheapest walk the cat's knowledge
+   cannot exclude, and skipped only when knowledge proves no path.
+   Pre-fog, seeing everything and finding none proves no path (the 004
+   skip). Under fog FR-047's existence guarantee proves a path and the
+   disc bounds it: priced travel is Manhattan, every tile outside a
+   Euclidean disc of radius r is at Manhattan ≥ r + 1, so the price is
+   the exact greatest lower bound, and covering radius → `None` is the
+   same sentence (FR-024 byte-identity). Rejected: expected first-sight
+   distance under the tour (~half a tour, ~26 tiles at 20×20, r = 5),
+   which at `tile_cost = 1.0` would handicap a blind eat by ~26 points
+   against in-place bath and play, so a hungry cat grooms until hunger
+   runs far ahead; it is also world-size dependent, which the radius
+   screen would read as a size effect. The bound costs 6 points and is
+   stationary across blind steps, so the choice does not oscillate.
+   Consequences: a remembered element farther than r + 1 is priced at
+   memory, so the cat walks to a stale memory rather than exploring for
+   a nearer unknown (correct, and the mechanism if blind-hungry spans
+   read long on cats with stale memories); the whole sensitivity is
+   `tile_cost × (r + 1)` (6 at r = 5, 3 at r = 2), the first knob if
+   small-radius anchors groom through hunger in the step-5 screen, now
+   that the tour is coverage-complete.
+
 Prereg items this adds to step 5: the **speaker-floor screen**,
 `announce_threshold` ∈ {10, 15, 20, 30} (30 = today's anchor;
 hysteresis 5), scripted seats only, run after the radius screen at the

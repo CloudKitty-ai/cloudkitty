@@ -109,7 +109,14 @@ with no layout consequence (the legality mask is an oracle over
   (open field; edge-clipped averages 3.0 / 6.4 / 10.3 / 16.1 / 21.5%).
   Per radius: anchor welfare curve (watchdog entries, eat/drink max,
   safeguard entries, blind-hungry span), `nn_distance.py` dispersion,
-  friend-in-view share. **Pin rule PENCILLED, set after the curve is
+  friend-in-view share. The blind-hungry span and safeguard entries
+  test the ratified blind price (T090, owner 2026-09-04: an unseen,
+  unremembered kind is priced `radius + 1`, the Manhattan lower bound;
+  `None` at a covering radius): with the tour coverage-complete, a
+  small-radius anchor grooming or playing through hunger points at
+  `tile_cost × (r + 1)` first (6 at r = 5, 3 at r = 2), and a long span
+  on a cat holding a stale memory points at the memory-beats-bound
+  rule, not at the price. **Pin rule PENCILLED, set after the curve is
   seen and before corpus collection**: smallest radius in {3, 4, 5} at
   which the anchor holds welfare within the seed spread of the no-fog
   anchor was the first draft; the owner expects a substantial scripted
