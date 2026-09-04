@@ -240,8 +240,9 @@ fn a_malformed_v3_header_is_refused_not_panicked_on() {
         let err = expand_file(&source, &dir.join("out.ckpolicy")).unwrap_err();
         // At the spec-049 wall the target gate refuses every pre-wall
         // source before its hyperparameters are read -- still a named
-        // refusal, never a panic. The hyperparameter naming ("positive" /
-        // "divisible") returns with a 3.0 expansion map, if one is ruled.
+        // refusal, never a panic. The guard itself is exercised at its
+        // own layer (`expand::tests::the_v3_hyperparameter_guard_names_
+        // each_refusal`); this test pins the gate in front of it.
         assert!(
             matches!(err, ExpandError::UnmappedTarget { .. }),
             "{field}: named refusal, not a panic: {err}"

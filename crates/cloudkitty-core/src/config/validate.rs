@@ -909,8 +909,6 @@ impl Config {
         Ok(())
     }
 
-    /// Confirms every configured behavior name is registered. Called once the
-    /// behavior registry is known.
     /// `[vision]` (spec 049): the disc must contain adjacency and the
     /// spec-012 yield rule's Manhattan-2 friend, which any r >= 2 gives
     /// (edge case "Radius validation"). No upper bound: a world-covering
@@ -928,6 +926,8 @@ impl Config {
         Ok(())
     }
 
+    /// Confirms every configured behavior name is registered. Called once the
+    /// behavior registry is known.
     pub fn validate_behavior_names(&self, known: &[String]) -> Result<(), ConfigError> {
         for k in &self.kitties {
             if !known.iter().any(|n| n == &k.behavior) {

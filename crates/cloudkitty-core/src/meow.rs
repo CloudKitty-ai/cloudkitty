@@ -310,7 +310,21 @@ pub fn referent_visible(here: MessageKind, view: &crate::world::FogView) -> bool
         MessageKind::HereWater => view.elements_of(ElementType::Water).next().is_some(),
         MessageKind::HereSunbeam => view.elements_of(ElementType::Sunbeam).next().is_some(),
         MessageKind::HereCritter => view.critters().next().is_some(),
-        _ => false,
+        // Not a here-kind: no referent. Exhaustive on purpose (the no
+        // catch-all doctrine above): a new here-kind lands here or fails
+        // to compile.
+        MessageKind::WantEat
+        | MessageKind::WantDrink
+        | MessageKind::Mew
+        | MessageKind::WantPlay
+        | MessageKind::WantCuddle
+        | MessageKind::Purr
+        | MessageKind::WaitForMe
+        | MessageKind::WantBath
+        | MessageKind::WantSleep
+        | MessageKind::Chirp
+        | MessageKind::Trill
+        | MessageKind::Ekekek => false,
     }
 }
 
@@ -358,11 +372,22 @@ pub fn known_relief(
         MessageKind::WantPlay => {
             crate::world::idle_friend_in_view(view)
                 || view.critters().next().is_some()
-                || remembered(ElementType::Bug)
-                || remembered(ElementType::Greeble)
+                || ElementType::ALL
+                    .iter()
+                    .any(|kind| kind.is_critter() && remembered(*kind))
         }
         MessageKind::WantSleep => false,
-        _ => false,
+        // Not a want-kind: nothing to silence. Exhaustive on purpose.
+        MessageKind::Mew
+        | MessageKind::Purr
+        | MessageKind::WaitForMe
+        | MessageKind::HereFood
+        | MessageKind::HereWater
+        | MessageKind::HereCritter
+        | MessageKind::HereSunbeam
+        | MessageKind::Chirp
+        | MessageKind::Trill
+        | MessageKind::Ekekek => false,
     }
 }
 

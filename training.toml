@@ -223,8 +223,7 @@ distress_patience_ticks = 60
 horizon = 2000
 
 # Fog Gen 1 (spec 049): the vision disc -- see cloudkitty.toml's [vision]
-# for the full note. ARC-TEMPORARY 40 (world-covering, the pre-fog world)
-# until the arc's last config task flips it to the placeholder 5.
+# for the full note. 5 is the FR-002 placeholder the step-5 prereg screens.
 [vision]
 radius = 5
 memory_timeout_ticks = 0

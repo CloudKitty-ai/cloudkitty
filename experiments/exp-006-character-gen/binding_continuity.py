@@ -46,6 +46,23 @@ def trace_digest(config, seating, seed, ticks):
     mask_width = int(np.asarray(infos[names[0]]["mask"]).shape[0])
     N_ACT = mask_width - N_MSG
     N_HEADS = mask_width
+    # Until cert_harness6's loaders are cut over to schema 5 (their 225/50
+    # literals are Experiments' housekeeping), a model-backed seat is
+    # refused here by name -- never fed a row of the wrong width.
+    obs_width = int(np.asarray(obs[names[0]], np.float32).shape[0])
+    for s, fwd in models.items():
+        if fwd is None:
+            continue
+        try:
+            probe = np.asarray(fwd(np.zeros((1, obs_width), np.float32)), np.float32)
+        except Exception as e:  # noqa: BLE001 -- any shape failure is the message
+            raise SystemExit(
+                f"seat {s!r}: its model refuses a {obs_width}-wide observation "
+                f"({e}); cert_harness6's loaders are still 2.x-shaped") from e
+        if probe.shape != (1, N_HEADS):
+            raise SystemExit(
+                f"seat {s!r}: its model emits {probe.shape[1]} logits, the binding "
+                f"masks {N_HEADS}; cert_harness6's loaders are still 2.x-shaped")
     h = hashlib.sha256()
     n = 0
     for _ in range(ticks):

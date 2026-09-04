@@ -138,8 +138,7 @@ activity_retention = 1000
 [viewer]
 distress_patience_ticks = 60
 
-# Fog Gen 1 (spec 049): the vision disc. ARC-TEMPORARY 40 (world-covering)
-# until the arc's last config task flips it to the placeholder 5.
+# Fog Gen 1 (spec 049): the vision disc; 5 is the FR-002 placeholder.
 [vision]
 radius = 5
 memory_timeout_ticks = 0

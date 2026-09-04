@@ -58,7 +58,7 @@ agents = env.possible_agents          # e.g. ["kitty_1", ..., "kitty_5"]
 # infos[agent]["mask"]:  uint8   [N_WORLDS, 55] — 39 activity ∥ 16 message (spec 049, kitty_slots 4)
 # env.state():           float32 [N_WORLDS, state_len] — the critic's view
 
-MENU = env.menu_len                    # 34 at default slots (unchanged by 033)
+MENU = env.menu_len                    # 39 at the served slots (spec 049)
 actions = {a: np.zeros((N_WORLDS, 2), dtype=np.int64) for a in agents}
 for a in agents:
     for w in range(N_WORLDS):
@@ -221,7 +221,7 @@ discipline binds certification: what seats is what was measured.
 ```bash
 # Measurement beside the smoke (spec 017): four frozen held-out worlds.
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
-  --suite evals/v1 --artifact policies/trained.ckpolicy
+  --suite evals/v2 --artifact policies/trained.ckpolicy
 ```
 
 The suite scores across committed exam configs — scale, scarcity,

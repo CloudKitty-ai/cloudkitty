@@ -922,3 +922,39 @@ pub fn verify_expansion(
     }
     Ok((mapped, zeroed, floored))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn header(d_model: usize, heads: usize, encoder_layers: usize) -> V3Header {
+        V3Header {
+            artifact_version: 3,
+            observation_schema: 3,
+            action_schema: 2,
+            mask_schema: 2,
+            architecture: V3_ARCHITECTURE.to_string(),
+            d_model,
+            heads,
+            encoder_layers,
+            ffn: 32,
+        }
+    }
+
+    /// Review finding (spec 030): `d_model = 0` reached a divide-by-zero and
+    /// `encoder_layers = 0` could attest an artifact the serving loader
+    /// refuses. Since the spec-049 wall the target gate refuses every
+    /// pre-wall source before its header is read (the integration test
+    /// `a_malformed_v3_header_is_refused_not_panicked_on` pins THAT), so
+    /// the guard is exercised here, at the layer the bug lives in.
+    #[test]
+    fn the_v3_hyperparameter_guard_names_each_refusal() {
+        assert!(check_v3_hyper(&header(16, 2, 1)).is_ok());
+        let zero_d = check_v3_hyper(&header(0, 2, 1)).unwrap_err();
+        assert!(zero_d.contains("positive"), "{zero_d}");
+        let zero_layers = check_v3_hyper(&header(16, 2, 0)).unwrap_err();
+        assert!(zero_layers.contains("positive"), "{zero_layers}");
+        let indivisible = check_v3_hyper(&header(16, 3, 1)).unwrap_err();
+        assert!(indivisible.contains("not divisible"), "{indivisible}");
+    }
+}

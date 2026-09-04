@@ -30,7 +30,9 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
     // food in view -- OWNER FLAG (spec 049 report), the reading below.
     let mut config = Config::default();
     config.vision.radius = 64;
-    config.validate().expect("the default config is valid");
+    config
+        .validate()
+        .expect("the default config under global vision is valid");
     let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
     let mut world = World::generate(&config);

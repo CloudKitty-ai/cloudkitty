@@ -319,7 +319,7 @@ scripted cats end up worse off, with a per-kitty sign test that catches a
 policy doing well on average while quietly exploiting one neighbor.
 
 ```bash
-kitty-eval --suite evals/v1 --artifact policies/trained.ckpolicy
+kitty-eval --suite evals/v2 --artifact policies/trained.ckpolicy
 ```
 
 Every exam config is sha256-pinned and frozen. A landed suite version never
