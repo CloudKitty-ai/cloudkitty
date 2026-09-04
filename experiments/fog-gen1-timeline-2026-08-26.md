@@ -621,7 +621,23 @@ none ruled yet):
     (6 kinds × 4 rows = +24 floats). **Spec 049 pins width exactly 404**
     (self 85 | 4 × 62 | elements 70 | clock 1; owner-ruled 2026-09-03
     with the play gate = friends AND no critter visible or remembered,
-    and radius floor 2).
+    and radius floor 2). **Width 404 → 408 (owner ruled 2026-09-04, on
+    Product's hearing, Experiments consulted)**: each kitty row gains a
+    tile-derived "neighbour on a sunbeam" bit beside the water bit (0/1,
+    live on Seen, 0 on Heard/Silent), rows 62 → 63; schema number stays
+    5 (no artifact predates it). Why: T092 and the final 049 review made
+    scripted cats cosleep beside, and walk to, a settled friend on a
+    beam; the trigger was a cross-token position match (kitty row dx/dy
+    against a sunbeam slot's) that a learner cannot read cheaply, so
+    the clone would imitate a rule whose trigger it cannot see and the
+    leash would penalise it for that (the imitability principle, the
+    same reasoning that added the water bit). Primitive over composed:
+    settledness is already in the row's activity one-hot, so on-beam
+    AND settled is a within-row AND; a composed cell would bake the
+    scripted "settled" predicate into the schema, where a later change
+    to it would move the cell's meaning with no version bump. Prereg:
+    header and critic width updated, bit on the A13 emit-proof list,
+    cosleep-on-beam companion read added to Part C.
     Overrides ROADMAP §Meow-digest's "intensity dropped": that
     argument covered position (the row has it), not urgency, and under
     fog an unseen caller's needs are masked, so intensity is the only
