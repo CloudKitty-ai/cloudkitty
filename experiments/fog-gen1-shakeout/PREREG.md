@@ -46,6 +46,13 @@ names, rule 5). Width and offsets come from spec 049's FR-026 layout
 | A12 | elements block (70) | only visible elements populated; remembered elements appear in the memory token, not here | element rows zero when no element is inside the radius | remembered bowl appears in the element block → memory leaking into sight |
 | A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
 
+Candidate row for the (3) walk (not yet added): A14 *no legality bit
+depends on a masked fact*: adjacency (incl. diagonal, distance 1.41)
+sits inside every radius ≥ 2, so the current mask never tells a policy
+more than its visible row; the ruled want / reply law reads only the
+speaker's own knowledge. The check catches any 049 rule that reads true
+state through fog.
+
 Reading rule: any red on A2–A9 or A12 at probe 1 is a **stop the pass**
 event (it is the defect the pass exists to find and every later probe
 is contaminated); A1, A10, A11, A13 are logged and read with Part B.
@@ -55,16 +62,19 @@ is contaminated); A1, A10, A11, A13 are logged and read with Part B.
 Each HALT / INVESTIGATE line from the timeline, plus the pass-specific
 reads, gets its schema consequence now. "Break" = a change the step-6
 LOCK must absorb (obs layout, snapshot, wire); "knob" = config or
-prereg value, no break; "instrument" = measurement change only.
-Classification: rows 1–13 and the slot-6 / pace rows RULED as written
-(owner 2026-09-03, batches 1–3); H3 and refusal-tax rows still proposed.
+prereg value, no break; "instrument" = measurement change only; "law" = engine-rule change,
+no layout consequence.
+Classification: every row RULED (owner 2026-09-03). Labels: "break" /
+"knob" / "instrument" as above, plus "law" = an engine-rule change
+with no layout consequence (the legality mask is an oracle over
+`validate`, so it follows a law change without a schema bump).
 
 | finding | most likely cause | step-6 decision | consequence |
 |---|---|---|---|
 | H1 watchdog alarm in a fog arm, silent in the no-fog control | policy never learned to search; or FR-023/memory defective on the scripted side too (check A2, A10) | if A-checks clean: radius / floor re-pin, or a training-budget finding | knob |
 | H1 in the no-fog control too | 3.0 schema or digest defect, not fog | Part A localises; fix at the named block | **break** |
 | H2 worst seat below the scripted anchor on the same fog config | information the anchor uses (memory, heading) is not reaching the policy in a learnable form | obs layout of the memory token or digest | **break** if a column is dead or degenerate (A2/A5); knob (radius) if columns are healthy |
-| H3 hard-zero intended activity | a legality path closed under fog (e.g. a partnered action whose target must be visible) | engine law | **break** only if the fix touches the action surface; otherwise knob |
+| H3 hard-zero intended activity | a legality path closed under fog (e.g. the approach to a heard friend arrives at a stale stamp and the partnered proposal fails `is_conscriptable_friend`, `world.rs:1248`) | engine law, or the action surface | **break** iff the fix changes menu length, message-head count, or target-slot layout (`ACTION_SCHEMA` / `MASK_SCHEMA` bump); otherwise **law** (validation or chooser change; the mask is an oracle over `validate`, `mask.rs:56-65`, so it follows for free; re-verify run at the owner's discretion). A zero that Part A traces to a dead column or a masked-row leak is that row's break, not H3's. Owner ruled 2026-09-03 |
 | H4 single-activity domination > 0.55 | the F-027 dyadic attractor returning under fog, or the leash too loose for the fog geometry (slot 5 separates these) | β re-pin, or roster arrangement | knob |
 | H5 frozen cluster | same as H4, spatial signature | as H4 | knob |
 | H6 hyper-dispersion (median ≥ owner's pin) | cats spread to keep everything in view; or the want gate never fires so nobody is called in | floor / listener floor re-pin if wants are under-fired; radius if over-dispersed with wants healthy | knob |
@@ -73,7 +83,7 @@ Classification: rows 1–13 and the slot-6 / pace rows RULED as written
 | want bar missed | want density on the scripted seats too low at the pinned floor | floor re-pin | knob |
 | ambient-here bar missed | F-034 continuity broken by the new digest matrix | corpus / recipe | knob, unless the self digest is shown degenerate (A1) → **break** |
 | digest rows never fire for heard-unseen cats | `pos` / audibility plumbing | FR-014 | **break** |
-| refusal tax > 3.5% on a seat | partner targeting at stamped positions produces arrivals at unavailable friends (clarify item 1's drop-on-arrival) | count drop-on-arrival events separately before acting | instrument first |
+| refusal tax > 3.5% on a seat | drop-on-arrival runs THROUGH the stamp: `Chase(Kitty)` is legal whenever the friend exists (`action.rs:403`), `Play{Kitty}` needs conscriptable (`action.rs:414`), so a partnered proposal at a stale stamp is a refusal; the 3.5% line is the OWNER'S HEURISTIC from previous-generation Biscuit (wasted turns proposing to a partner who cannot or is unlikely to say yes), not a hard rule | **instrument first, landing BEFORE the pass**: a `reason` on `RefusalEvent` (`events.rs:72`; at least `partner_absent` / `partner_busy` / `other`, read off the same validate call; the log is not snapshot state, so this is an event + `/events/refusal` change only). Then: fog-shaped share above the line → knob (audible window / radius); F-033-shaped share above the line → the Biscuit 3.0 design question, outside this pass | instrument (pre-pass); owner ruled 2026-09-03 |
 | vocabulary lesson arm (slot 6) differs from mixed corpus (slot 1) on the bars | delivery matters under the new digest (same schema, same columns in both arms, so it cannot name a column) | registered result, feeds step 7's three-arm design | none for the LOCK; sets the step-7 corpus default |
 | radius bracket (slot 4) indistinguishable from the pin on welfare | fog barely binds at 20×20 (ROADMAP's standing concern) | Gen 1 ships at the pin; the world-size × radius screen moves to Gen 2 | knob |
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
