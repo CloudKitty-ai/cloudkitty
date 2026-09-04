@@ -108,9 +108,12 @@ use sha2::{Digest, Sha256};
 /// T092's occupied-beam rule now holds for the REMEMBERED tile too (the
 /// phantom had walked the cat back into the standoff), so every sleeper
 /// whose nearest beam is held naps or cosleeps on the spot -- re-pinned
-/// again (ae534fd1… was the T093 pin).
+/// again (ae534fd1… was the T093 pin). Flag 13 (owner ruled 2026-09-04,
+/// the warm reading): a SETTLED friend's beam in reach is walked to for
+/// the cosleep on arrival; only an awake occupant's beam is not worth the
+/// walk -- re-pinned again (a0642777… was the review-3 pin).
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "a0642777a9934616cd8717806a9c118fc7e040f44c09c717a5a57e2dc78cd5f9";
+    "a5091adfd9e32ea677360a3bebeee6717fe5aea48e9b0aecf0b89f65ed3d23fa";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -122,8 +125,9 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// run (173f9d09… was the world-covering run's pin); T087: re-derived
 /// again with the golden above (0bbb577f… was the T081 pin); T088: again
 /// (408dc1a7… was the T087 pin); T092: again (dc480760… was the T088 pin);
-/// review 3 finding 1: again (6d1acfe0… was the T092/T093 pin).
-const STRIP_PIN_SPEC_049: &str = "ab932287745c5604aeb90a6c35d11ae00f67c66d63d246ec2bfad311261b79bd";
+/// review 3 finding 1: again (6d1acfe0… was the T092/T093 pin); flag 13:
+/// again (ab932287… was the review-3 pin).
+const STRIP_PIN_SPEC_049: &str = "7918bb2188f6deb3daa900967d30f336760b199b22970032e638b6b4493fdf84";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

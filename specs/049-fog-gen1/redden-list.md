@@ -817,3 +817,18 @@ audibility, `reply_candidate`'s tie-break, the mask stricter than the
 engine for out-of-disc targets, the mid-tick top-need clause, the r = 64
 welfare gate) — all consistent with this ledger; nothing to add.
 
+### Flag 13 RULED — the warm reading (owner, 2026-09-04)
+
+Owner's concern: step-5 learners must learn that cosleeping beside a
+friend on a beam yields better sleep relief, and the teacher corpus is
+the cheap place to carry the demonstration; the strict filter removed the
+walk that produces it. Ruled: a SETTLED friend's beam in reach is worth
+walking to (arrival beside it is the T092 cosleep); only an awake
+occupant's beam is not. One `warm_occupant` predicate (settled ∧ worth the
+exposure) now serves the beside rule and the occupied-beam filter.
+
+| cycle | guard | prediction | observed | restore | count |
+|---|---|---|---|---|---|
+| w1 | `needs_driven::tests::a_settled_friends_beam_in_reach_is_walked_to_for_the_cosleep` (the review-3 stage with the friend RESTING) | RED at the first assertion: `sunbeam_worth_walking` = None under the strict filter | RED there (None vs `Some((12,10), 2.0)`) | exemption landed @ c0cd1fb; targeted GREEN; full suite 880 / **3** / 6 — the two goldens and the SC-011 preladder streams (tick 95 again), SC-004b GREEN: its first divergence is back at tick 119 (kitty 2 cosleeps beside a settled friend where pre-fog waited; the tick-15 nap-instead-of-walk is gone, the fog cat now walks like the pre-fog cat did) | 880 / 3 / 6 |
+| re-pin | goldens from one run; `record_preladder_r5_streams`; welfare re-read | served 0 / 0, compiled 2 | served 0 / 0; compiled r = 5 **2** (unchanged from the strict filter) | @ the flag-13 records commit | — |
+
