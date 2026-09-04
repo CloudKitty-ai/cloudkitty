@@ -41,7 +41,7 @@ names, rule 5). Width and offsets come from spec 049's FR-026 layout
 | A7 | kitty rows: answers-me (4) | 1 only when the observer emitted the matching want inside the window before the here | count == engine-stamped `reply` events addressed to the observer, per F-029 emit-proof | never 1 in any arm → derivation dead; 1 without a prior own want → window logic |
 | A8 | `reply` stamp (engine) | `reply = 1` iff a matching want is audible AND the referent is visible from the speaker | rule holds on every here in the trace; reply count > 0 in fog arms with the scripted reply path on | replies on ticks with no audible want → stamp rule; zero replies with wants and visible referents present → stamp dead |
 | A9 | want law | a want is emitted only when armed, top need, and nothing visible or remembered for it | zero violations on the scripted anchor trace (the law is engine-side: policies cannot violate it either) | any violation → `message_legal` under fog |
-| A10 | FR-023 explore | a scripted cat with nothing visible or remembered walks a persistent heading; re-draws only with the wall inside the radius | heading changes / blind ticks small and concentrated near edges; first-sight latency from blind consistent with the r-sweep arithmetic | re-draw every tick → heading not persisted; cats pin to a corner → re-draw filter |
+| A10 | FR-023 explore (lattice serpentine tour, owner ruled 2026-09-03, T088) | a scripted cat with nothing visible or remembered walks toward its current lattice waypoint (inset ⌊r/√2⌋, spacing ≤ r√2, boustrophedon order) and the index advances only when the waypoint enters the disc; coverage is complete: over one blind tour every tile of the world lies inside some disc, at EVERY screened radius (the r=2 screen is the hardest case and the one checked) | union of discs along the anchor's blind path == the whole grid within one tour length; waypoint index monotone between errands and unchanged across them; first-sight latency from blind ≤ one tour length | a tile never inside any disc → lattice inset or spacing wrong for this (r, W, H) (the old heading rule's pockets: 100/36/4/0 uncovered core tiles at r = 2/3/4/5 on 20×20 plus corners); index resets after an errand → state not persisted; index skips → advance rule |
 | A11 | scene age + water bit | scene age climbs 1/tick inside a scene and resets on exit; water bit == on-water tile | exact agreement with the trace | either drifts → snapshot bump |
 | A12 | elements block (70) | only visible elements populated; remembered elements appear in the memory token, not here | element rows zero when no element is inside the radius | remembered bowl appears in the element block → memory leaking into sight |
 | A13 | emit-proof (F-029) | every category the instruments read has been EMITTED at least once in the window before "zero" is reported | a table of first-emission ticks per category | any category never emitted is "unproven", never "zero" |
@@ -57,9 +57,14 @@ width 404 itself (a schema-header pin, `attn.rs:322`, not a probe read).
 
 Reading rule: any red on A2–A9, A12, A14, A15, or A16 at probe 1 is a
 **stop the pass** event (it is the defect the pass exists to find and
-every later probe is contaminated); A1, A10, A11, A13, A17, A18 are
+every later probe is contaminated); A1, A11, A13, A17, A18 are
 logged and read with Part B, except that an outright A17 or A18 failure
-also stops the pass because nothing else is then interpretable.
+also stops the pass because nothing else is then interpretable. A10's
+coverage half is read once, on the scripted r=2 radius screen BEFORE
+the pass (it is an anchor property, not a training one); a red there
+stops the screen, since an uncovered core would make the radius pin
+measure the sweep rule instead of vision (why T088 was re-ruled). Its
+index-persistence half is read at probe 1 with the rest.
 
 ## Part B — finding → step-6 decision map
 

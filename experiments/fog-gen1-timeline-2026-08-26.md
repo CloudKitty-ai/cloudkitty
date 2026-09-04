@@ -483,6 +483,37 @@ words load-bearing without costing a turn. Four rulings:
    `should_wait_for` needs the friend visible; Manhattan 2 is inside
    any radius ≥ 2.
 
+   **SUPERSEDED 2026-09-03 (049 converge T088, owner ruled in the
+   Experiments session, relayed to Product): the search becomes a
+   lattice serpentine tour.** As implemented, the redraw pool at a loop
+   corner has one member, so after first wall contact every blind cat
+   orbits the inset-r square forever (turn sense fixed by the first
+   draw). Its disc never reaches the corners (a corner sits r√2 from
+   the loop's corner: 40 tiles at 20×20, r = 5) nor the centre of any
+   world wider than about 4r (a 10×10 core at 32×32, r = 5, the
+   compiled-world welfare failure in Product's T060 reading). Worse for
+   step 5: coverage is a function of r against world size, not of
+   vision. On the served 20×20 the uncovered core is 100 / 36 / 4 / 0
+   tiles at r = 2 / 3 / 4 / 5, so the radius screen would have pinned 5
+   for the sweep rule's sake. Any single turn threshold fails: corners
+   need the turn inset a with a√2 ≤ r, the interior needs lane spacing
+   s ≤ r√2, and one loop has one lane. Ruled rule: waypoints on a
+   square lattice with inset ⌊r/√2⌋ and spacing ≤ r√2 (3×3 at {3, 10,
+   16} on 20×20, r = 5; 5×5 at 32×32), visited in boustrophedon order;
+   cat state = one waypoint index on the snapshot, advanced when the
+   waypoint enters the disc, so the cat resumes toward its waypoint
+   after every errand. Coverage-complete on any rectangle at any radius
+   by construction (~52 steps for all 400 tiles at 20×20, r = 5); at
+   most one RNG draw at tour entry, none per step. Options set aside:
+   turn at the wall / second threshold (moves the hole to an 8×8 core),
+   persistent random walk with drawn run lengths (no pockets, complete
+   only in expectation; second choice), least-recently-seen map (Gen 2
+   footprint). Note for the leash reading: `explore_heading` was never
+   in the observation, so the anchor's search was already hidden state
+   to the learner; the tour changes nothing there. Prereg A10 rewritten
+   for the tour; its coverage half is read on the r = 2 screen before
+   the pass.
+
 Prereg items this adds to step 5: the **speaker-floor screen**,
 `announce_threshold` ∈ {10, 15, 20, 30} (30 = today's anchor;
 hysteresis 5), scripted seats only, run after the radius screen at the
