@@ -991,4 +991,22 @@ mod tests {
             );
         }
     }
+
+    /// Spec 050 FR-008 / US2 scenario 3: the 2.x replay era reads no
+    /// margin -- its want law is armed-only, with no relief clause.
+    #[test]
+    fn the_pre_fog_law_reads_no_margin() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        config.meow.law_era = crate::config::LawEra::PreFog;
+        top_and_armed(&mut world, NeedKind::Drink);
+        remember_beyond_the_disc(&mut world, ElementType::Water, 5);
+        for margin in [Some(0), Some(1), None] {
+            config.meow.relief_memory_margin = margin;
+            assert!(
+                legal(&world, MessageKind::WantDrink, &config),
+                "PreFog at margin {margin:?}: armed-only, the memory is not read"
+            );
+        }
+    }
 }
