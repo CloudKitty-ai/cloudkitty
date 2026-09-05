@@ -4,9 +4,15 @@ Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
 open before declaration: the BC bar numbers (`<pin at declaration>`,
-owner's call), the A1 declared-constant reasons (`declared_constant.json`,
-owner ratifies), and the `reply_intensity_floor` pin on `anchor.toml`.
-`schema_check.py` and its guard landed 2026-09-04 (e4f0642).
+owner's call), the `reply_intensity_floor` pin on `anchor.toml` (rule
+ruled 2026-09-05, number follows the speaker-floor screen), the
+`expected_per_1000` rates in `declared_constant.json` (from the corpus),
+and spec 050 `relief_memory_margin` landing (then the anchor re-smoke at
+margin 0). `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
+the A1 reasons were ratified the same day (5a16b43). The trainer
+(`trainer/train_ppo_fog.py`) landed 2026-09-05 with its own pin list
+(`PINS`: β 0.04 / 0.05 provisional; radius, the two schema-5 clones and
+the fog critic None until the screens and the BC pass fill them).
 Declaration = a later commit that removes this header. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
@@ -81,8 +87,10 @@ index-persistence half is read at probe 1 with the rest.
 
 Instrument status, 2026-09-04 (anchor smoke: `anchor.toml`, 1000 ticks,
 seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
-17 rows green, A17 waits for the trainer's probe dump. What the smoke
-taught, carried into the rows' reading:
+17 rows green; A17 lit 2026-09-05 from the fog trainer's smoke probe
+(random init, 3 × 100 ticks): red as expected for a random policy, and
+the disagreement split by direction taught the exemption rule below.
+What the smoke taught, carried into the rows' reading:
 
 - A5's healthy reading "heard rows have non-zero recency" is false for a
   row heard only through `wait_for_me`, which is outside the 15 digest
@@ -102,14 +110,36 @@ taught, carried into the rows' reading:
   (kitty 2 / kitty 4, ticks 456–486); 3 of 169 replies in the smoke were
   invisible this way. Engine semantics, not a wiring fault; logged as a
   Part B observation on the reply channel.
-- A1 on this config: 102 constant columns, four reasons
-  (`declared_constant.json`). Structural: trill/ekekek off in the
-  vocabulary; mew/chirp/purr never scripted; **want_drink is silent for
-  the whole run** because `known_relief(drink)` holds once water is seen
-  or remembered, water never moves and memory never expires, so the
-  scripted corpus carries no drink want and no here_water reply. Sample
-  (must move on the full corpus, else red): distress flags, want_play
-  on two rows, critter slots 3–4.
+- A1 on this config: 102 constant columns, six reasons
+  (`declared_constant.json`), all ratified by the owner 2026-09-04.
+  Constancy is a property of the sample; inertness is a property of the
+  generator, so a reason is one of two kinds. STRUCTURAL: a proof from
+  law, config or roster that the setting event is unreachable, good for
+  any corpus length. Three of these: trill/ekekek off in the vocabulary;
+  mew/chirp/purr never scripted; **want_drink is silent for the whole
+  run** because `known_relief(drink)` holds once water is seen or
+  remembered, water never moves and memory never expires (F-040; spec
+  050 `relief_memory_margin` = 0 removes this group when it lands).
+  RARE: the wiring is shown alive by a sibling column on the same
+  encoder loop (or a forced emission) and only incidence is unknown.
+  Three of these: distress flags for five needs (the cuddle flag on the
+  same loop moved; the others peaked 35–64 against a line at 90),
+  want_play on kitty rows 0 and 3 plus the here_critter bit (rows 1–2
+  moved; play is rare by law with five cats), critter slots 3–4 (slots
+  1–2 fill; four critters on the map, three in one disc never seen in
+  5000 cat-ticks). The checker reads a rare constant as **unproven**,
+  and red once the corpus is 5× the expected wait (`expected_per_1000`,
+  filled at declaration from the corpus's own precursor counts; null
+  until then). A rare group whose columns moved reads stale, the good
+  outcome. A17 exempts rare-declared columns from the can-vary
+  comparison (early PPO crosses distress; the anchor never does). A
+  structural reason has two proofs, and only one binds a policy: LAW
+  (trill/ekekek refused by the engine) holds for every mind, ROSTER
+  (mew/chirp/purr never scripted; water remembered before the first
+  drink) holds for the scripted anchor alone, and the smoke policy
+  moved all 31 of those columns. Roster-proof groups carry
+  `a17_exempt: true` and A17 reports them apart; a law-proof column
+  that moves stays red.
 - Scripted mask-mismatch: 19 of 4981 decisions (0.38%) had the behavior
   propose an action the mask forbids (bc-collect drops none; it records
   the mask). Read with Part B; not a schema row.
@@ -177,7 +207,13 @@ with no layout consequence (the legality mask is an oracle over
   and H1 (absolute) carries the welfare reading.
 - Speaker floor {10, 15, 20, 30}; listener floor set in the same
   sitting (placeholder 0.30). Measures and decision rules as ruled in
-  the timeline step 4.
+  the timeline step 4. **Listener floor rule (owner 2026-09-05)**: no
+  arm of its own; `reply_intensity_floor` = picked speaker floor / 100,
+  so every audible want is answerable and a 0.30 listener over a 15
+  speaker (the step-4 caveat) cannot occur. If the pick is 20 or 30, a
+  two-arm scripted contrast at that speaker floor, listener
+  {picked / 100, 0.30}, reads reply rate and informativeness before
+  the pin. Neither floor varies in the PPO pass.
 - **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
   consecutive 1M-tick bins each improve the bin-mean shaped return by
   < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
@@ -264,8 +300,19 @@ with no layout consequence (the legality mask is an oracle over
   (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at
   start); Gen 1 has `obs_tokens_v5` (cbf76eb, pads only all-zero rows
   so a Heard row stays attended), so no schema-4 artifact is touched.
-  Trainer cutover (`model_v5.py`, `train_ppo6.py` → schema 5, probe
-  `.npz` dumps for A17) is the next instrument.
+  Trainer cutover landed 2026-09-05: `model_v5.py` (torch forward
+  parity-guarded against the certified oracle) and
+  `trainer/train_ppo_fog.py` (the exp-006 recipe at 408/55, six slots
+  keyed to the step-5 table, owner pins in `PINS` with the launcher
+  refusing an unpinned slot outside `--smoke`, per-arm config =
+  `anchor.toml` with only `[vision] radius` rewritten, the Part C
+  plateau stop beside the §10 welfare stop, `probe-u*.npz` dumps for
+  A17). Two rulings (owner 2026-09-05): the training roster is the
+  served composition with every seat a policy (the exp-006 mix 0.0, no
+  spread family), and the critic keeps its 197-wide global-state view
+  (schema 1 did not move; the "width 408" above is the policy's, the
+  critic retrain is for the value distribution under fog, not a new
+  width).
 - **Cosleep-on-beam read (companion, owner ruled 2026-09-04 with the
   on-sunbeam bit)**: T092 made the scripted sleep arm cosleep beside a
   settled friend on a sunbeam (conduction pays sunbeam-grade relief),

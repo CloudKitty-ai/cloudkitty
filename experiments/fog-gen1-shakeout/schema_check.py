@@ -321,31 +321,85 @@ def ok_or_red(row, bad, summary, detail=None):
     return Finding(row, "RED" if bad else "ok", summary, detail or {})
 
 
+OVERDUE_FACTOR = 5.0   # a rare column is red once the corpus is this many expected waits long
+
+
+def declared_groups(declared_constant):
+    """`{reason: patterns}` for structural groups and `{reason: spec}` for
+    rare ones, from declared_constant.json or a bare list. A list value is
+    structural; an object is rare when it carries `expected_per_1000`
+    (with `patterns`, `wiring`), otherwise structural with `patterns` and
+    optional flags (`a17_exempt`, see a17_exempt_patterns)."""
+    structural, rare = {}, {}
+    if isinstance(declared_constant, dict):
+        for reason, v in declared_constant.items():
+            if isinstance(v, list):
+                structural[reason] = v
+            elif isinstance(v, dict) and isinstance(v.get("patterns"), list):
+                (rare if "expected_per_1000" in v else structural)[reason] = (
+                    v if "expected_per_1000" in v else v["patterns"])
+    else:
+        structural["declared"] = list(declared_constant)
+    return structural, rare
+
+
+def a17_exempt_patterns(declared_constant):
+    """`{reason: patterns}` for the groups whose columns may move under a
+    policy that the scripted anchor never moved: every RARE group, plus
+    structural groups flagged `a17_exempt` (constant by ROSTER behaviour,
+    not by law: the anchor never says mew, a policy may)."""
+    out = {}
+    if isinstance(declared_constant, dict):
+        for reason, v in declared_constant.items():
+            if isinstance(v, dict) and isinstance(v.get("patterns"), list) and (
+                    "expected_per_1000" in v or v.get("a17_exempt")):
+                out[reason] = v["patterns"]
+    return out
+
+
+def matches_any(name, groups):
+    return any(fnmatch.fnmatchcase(name, p)
+               for pats in groups.values() for p in pats)
+
+
 def check_a1(tr, declared_constant=()):
-    """Zero-variance columns must each match a declared pattern. The
-    declaration is `{reason: [fnmatch patterns]}` (declared_constant.json)
-    or a bare list of names; a reason that matches no constant column is
-    reported as stale (the column moved, so the reason no longer holds)."""
+    """Zero-variance columns must each match a declared pattern
+    (declared_groups). A structural match is ok for any corpus length. A
+    rare match reads unproven, and red once the corpus is OVERDUE_FACTOR
+    expected waits long (`expected_per_1000` setting events per 1000
+    ticks; null never turns red). A reason matching no constant column is
+    stale: the column moved, the good outcome for a rare group."""
     var = tr.obs.var(axis=0)
     constant = [col_name(i) for i in np.flatnonzero(var == 0)]
-    if isinstance(declared_constant, dict):
-        groups = {k: v for k, v in declared_constant.items() if isinstance(v, list)}
-    else:
-        groups = {"declared": list(declared_constant)}
-    matched, stale = {}, []
-    for reason, pats in groups.items():
+    structural, rare = declared_groups(declared_constant)
+    n_ticks = len(tr.lines)
+    matched, stale, unproven, overdue = {}, [], [], []
+    for reason, pats in structural.items():
         hits = [c for c in constant if any(fnmatch.fnmatchcase(c, p) for p in pats)]
         matched[reason] = len(hits)
         if not hits:
             stale.append(reason)
-    covered = {c for c in constant
-               if any(fnmatch.fnmatchcase(c, p) for pats in groups.values() for p in pats)}
-    extra = sorted(set(constant) - covered)
-    return ok_or_red("A1", bool(extra),
-                     f"{len(constant)} constant columns, {len(extra)} undeclared, "
-                     f"{len(stale)} stale reasons",
-                     {"constant": constant, "undeclared": extra, "matched": matched,
-                      "stale": stale})
+    for reason, spec in rare.items():
+        hits = [c for c in constant if any(fnmatch.fnmatchcase(c, p) for p in spec["patterns"])]
+        matched[reason] = len(hits)
+        if not hits:
+            stale.append(reason)
+            continue
+        rate = spec.get("expected_per_1000")
+        if rate and n_ticks * rate / 1000.0 >= OVERDUE_FACTOR:
+            overdue.extend(hits)
+        else:
+            unproven.extend(hits)
+    rare_pats = {k: v["patterns"] for k, v in rare.items()}
+    extra = sorted(c for c in constant
+                   if not matches_any(c, structural) and not matches_any(c, rare_pats))
+    status = "RED" if extra or overdue else "unproven" if unproven else "ok"
+    return Finding("A1", status,
+                   f"{len(constant)} constant columns, {len(extra)} undeclared, "
+                   f"{len(overdue)} rare overdue, {len(unproven)} rare unproven, "
+                   f"{len(stale)} stale reasons",
+                   {"constant": constant, "undeclared": extra, "overdue": overdue,
+                    "unproven": unproven, "matched": matched, "stale": stale})
 
 
 def check_a2(tr):
@@ -994,21 +1048,31 @@ def check_a16(tr):
     return f
 
 
-def check_a17(tr, policy_npz=None):
+def check_a17(tr, policy_npz=None, declared_constant=()):
+    """Can-vary must agree between anchor and policy, except on columns an
+    A1 group exempts (a17_exempt_patterns): RARE groups and roster-constant
+    structural ones may move under a policy the scripted anchor never
+    exercises (distress under early PPO, the free register) and are
+    reported apart, not red. Law-constant groups (the refused vocabulary)
+    stay red if they move."""
     if policy_npz is None:
         return Finding("A17", "n/a", "no policy trace given (--policy-trace)")
     pol = np.load(policy_npz)
     pobs = pol["obs"].reshape(-1, OBS_DIM).astype(np.float32)
     var_a, var_p = tr.obs.var(0) > 0, pobs.var(0) > 0
-    disagree = [col_name(i) for i in np.flatnonzero(var_a != var_p)]
+    exempt = a17_exempt_patterns(declared_constant)
+    differ = [col_name(i) for i in np.flatnonzero(var_a != var_p)]
+    rare_moved = [c for c in differ if matches_any(c, exempt)]
+    disagree = [c for c in differ if c not in rare_moved]
     rows_a = tr.obs[:, KITTY_SPAN[0]:KITTY_SPAN[1]].reshape(-1, N_KITTY, KITTY_W)
     rows_p = pobs[:, KITTY_SPAN[0]:KITTY_SPAN[1]].reshape(-1, N_KITTY, KITTY_W)
     seen_a = float((rows_a[..., ROW_PRESENT] > 0).mean())
     seen_p = float((rows_p[..., ROW_PRESENT] > 0).mean())
     return ok_or_red("A17", bool(disagree) or abs(seen_a - seen_p) > 0.25,
-                     f"{len(disagree)} columns differ in can-vary; seen share anchor {seen_a:.3f} "
-                     f"policy {seen_p:.3f}",
-                     {"disagree": disagree, "seen_share": [seen_a, seen_p]})
+                     f"{len(disagree)} columns differ in can-vary ({len(rare_moved)} declared "
+                     f"exempt); seen share anchor {seen_a:.3f} policy {seen_p:.3f}",
+                     {"disagree": disagree, "rare_moved": rare_moved,
+                      "seen_share": [seen_a, seen_p]})
 
 
 def check_a18(tr):
@@ -1028,7 +1092,7 @@ def run_all(tr, declared_constant=(), policy_npz=None):
         if fn is check_a1:
             out.append(fn(tr, declared_constant))
         elif fn is check_a17:
-            out.append(fn(tr, policy_npz))
+            out.append(fn(tr, policy_npz, declared_constant))
         else:
             out.append(fn(tr))
     return out

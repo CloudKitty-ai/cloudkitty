@@ -72,9 +72,20 @@ def not_ok(finding):
 
 
 def test_unplanted_trace_is_green():
-    # the baseline every plant is measured against
+    # the baseline every plant is measured against; A1 reads unproven on
+    # a 1000-tick smoke because the RARE groups have not moved yet
     for f in sc.run_all(BASE, DECLARED):
-        assert f.status in ("ok", "n/a"), f"{f.row} {f.status}: {f.summary}"
+        allowed = ("ok", "n/a", "unproven") if f.row == "A1" else ("ok", "n/a")
+        assert f.status in allowed, f"{f.row} {f.status}: {f.summary}"
+
+
+def constant_col(pattern):
+    """Index of the first zero-variance column whose name matches."""
+    import fnmatch
+    for i in np.flatnonzero(BASE.obs.var(0) == 0):
+        if fnmatch.fnmatchcase(sc.col_name(int(i)), pattern):
+            return int(i)
+    raise AssertionError(f"no constant column matches {pattern}")
 
 
 def test_a1_undeclared_constant_and_stale_reason():
@@ -84,7 +95,49 @@ def test_a1_undeclared_constant_and_stale_reason():
     assert sc.check_a1(tr, {}).status == "RED"
     declared = dict(DECLARED, **{"clock never moves": ["clock"]})
     f = sc.check_a1(tr, declared)
-    assert f.status == "ok" and f.detail["stale"] == ["clock never moves"]
+    assert f.status != "RED" and "clock never moves" in f.detail["stale"]
+
+
+def test_a1_rare_group_unproven_then_overdue():
+    # a RARE group's constant columns read unproven without a rate, and
+    # red once the corpus is OVERDUE_FACTOR expected waits long
+    tr = fresh()
+    structural = {k: v for k, v in DECLARED.items()
+                  if not (isinstance(v, dict) and "expected_per_1000" in v)}
+    rare = {k: dict(v) for k, v in DECLARED.items()
+            if isinstance(v, dict) and "expected_per_1000" in v}
+    for v in rare.values():
+        v["expected_per_1000"] = None
+    f = sc.check_a1(tr, dict(structural, **rare))
+    assert f.status == "unproven" and f.detail["unproven"] and not f.detail["overdue"]
+    # an a17_exempt object is STRUCTURAL for A1: its columns are neither
+    # unproven nor undeclared
+    mew = sc.col_name(constant_col("*.msg.mew.rate"))
+    assert mew not in f.detail["unproven"] and mew not in f.detail["undeclared"]
+    # 1000 ticks x 5/1000 = 5 expected events = exactly the factor: red
+    for v in rare.values():
+        v["expected_per_1000"] = sc.OVERDUE_FACTOR * 1000.0 / len(tr.lines)
+    f = sc.check_a1(tr, dict(structural, **rare))
+    assert f.status == "RED" and f.detail["overdue"] and not f.detail["unproven"]
+    # a hair under the factor stays unproven
+    for v in rare.values():
+        v["expected_per_1000"] *= 0.99
+    assert sc.check_a1(tr, dict(structural, **rare)).status == "unproven"
+
+
+def test_a1_rare_group_that_moved_is_stale():
+    # the good outcome: the corpus moved the rare columns, the reason is
+    # reported stale and nothing is red or unproven
+    tr = fresh()
+    col = constant_col("self.schema4[[]2[0-3][]]")
+    tr.obs[0, col] = 1.0
+    rare_reason = next(k for k, v in DECLARED.items()
+                       if isinstance(v, dict) and "self.schema4[[]2[0-5][]]" in v["patterns"])
+    declared = dict(DECLARED)
+    declared[rare_reason] = dict(declared[rare_reason], patterns=[sc.col_name(col)])
+    f = sc.check_a1(tr, declared)
+    assert rare_reason in f.detail["stale"]
+    assert sc.col_name(col) not in f.detail["unproven"]
 
 
 def test_a2_memory_token_without_a_remembered_slot():
@@ -234,16 +287,36 @@ def test_a16_bit_without_a_reply_stamp():
 
 
 def test_a17_policy_moves_a_corpus_constant(tmp):
-    # red: the policy dump varies a column the corpus never moved
+    # red: the policy dump varies a structural column the corpus never
+    # moved; a RARE-declared column moving under the policy is exempt
     tr = fresh()
-    pobs = tr.obs.copy()
-    col = int(np.flatnonzero(tr.obs.var(0) == 0)[0])
-    pobs[0, col] = 1.0 - pobs[0, col]
     path = tmp / "policy.npz"
+    pobs = tr.obs.copy()
+    col = constant_col("*.msg.trill.*")
+    pobs[0, col] = 1.0 - pobs[0, col]
     np.savez(path, obs=pobs)
-    not_ok(sc.check_a17(tr, path))
+    not_ok(sc.check_a17(tr, path, DECLARED))
+    pobs = tr.obs.copy()
+    col = constant_col("self.schema4[[]2[0-3][]]")     # a distress flag
+    pobs[0, col] = 1.0 - pobs[0, col]
+    np.savez(path, obs=pobs)
+    f = sc.check_a17(tr, path, DECLARED)
+    assert f.status == "ok" and f.detail["rare_moved"] == [sc.col_name(col)]
+    not_ok(sc.check_a17(tr, path))                      # undeclared: still red
+    # a roster-constant structural group flagged a17_exempt (the free
+    # register) is exempt too; the same group without the flag is red
+    pobs = tr.obs.copy()
+    col = constant_col("*.msg.mew.rate")
+    pobs[0, col] = 1.0 - pobs[0, col]
+    np.savez(path, obs=pobs)
+    f = sc.check_a17(tr, path, DECLARED)
+    assert f.status == "ok" and f.detail["rare_moved"] == [sc.col_name(col)]
+    unflagged = {k: ({"patterns": v["patterns"]} if isinstance(v, dict)
+                     and v.get("a17_exempt") else v)
+                 for k, v in DECLARED.items()}
+    not_ok(sc.check_a17(tr, path, unflagged))
     np.savez(path, obs=tr.obs)
-    assert sc.check_a17(tr, path).status == "ok"
+    assert sc.check_a17(tr, path, DECLARED).status == "ok"
 
 
 def test_a18_reencode_verdict_false():

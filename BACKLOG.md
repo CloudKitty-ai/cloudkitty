@@ -2305,6 +2305,25 @@ deserves a clamp so route pricing cannot become effectively prohibitive
 (the "preference, never prohibition" doctrine holds today only because
 shipped ratios stay near 1).
 
+### `critter_slots` 4 → 2 in the fogged observation (added 2026-09-04; owner's side thought during the A1 walk; Experiments thread; BANKED for Gen 2)
+The owner's read: under fog a cat sees a radius-5 disc of 81 tiles, and
+two critter slots should cover everything visible. The 1000-tick anchor
+smoke agrees: the map holds exactly 4 critters (bug `min` 3 + greeble
+`min` 1; `max` never moves the world), visible critters per cat-tick
+were 0 / 1 / 2 in 2326 / 2335 / 339 cases and never 3, and under
+independence three in one disc is ≤ ~2.7% per cat-tick before the bug
+tether spreads them. Cost of the trim: a third visible critter is not
+targetable. `critter_slots` is already a config key (`attn.rs:129`), but
+it sets both the observation width (4×10 → 2×10, 408 → 388) and the
+action menu (ChaseCritter/PlayCritter per slot, 39 → 35), so it is a
+schema bump touching `contracts/observation-v5.md`, `obs_layout_v5.py`,
+`model_v5.py`/`train_ppo6.py`, `schema_check.py` BLOCKS and the codec,
+and a Product spec. Owner ruled 2026-09-04: bank it rather than re-cut
+049's contract before the step-5 cutover; the step-5 corpus supplies the
+free re-verify (count of cat-ticks with ≥3 critters visible, the A1 RARE
+group for slots 3–4 in `fog-gen1-shakeout/declared_constant.json`).
+Two dead tokens and four masked actions are the price of waiting.
+
 ### Cats jump over cats — the boxed-cat escape (added 2026-08-31)
 Owner's note, from a question during spec 044 planning. Today a cat with
 kitties on all four cardinal neighbors (or 2–3 at a corner/edge) has zero
