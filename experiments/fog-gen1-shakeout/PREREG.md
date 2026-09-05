@@ -92,7 +92,23 @@ seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
 17 rows green; A17 lit 2026-09-05 from the fog trainer's smoke probe
 (random init, 3 × 100 ticks): red as expected for a random policy, and
 the disagreement split by direction taught the exemption rule below.
-What the smoke taught, carried into the rows' reading:
+**Re-smoke 2026-09-05 at `relief_memory_margin = 0`** (same seed and
+length, 4984 decisions, plus 3 × 20,000 ticks at seeds 870001–3 for the
+rates): 17 rows green again after two instrument corrections, both
+guarded (23 plain asserts, four plants red). A9 and A14 now read the
+margin (a remembered tile is relief only within radius + margin
+Manhattan, key absent = unbounded; A14 takes the reach off the memory
+token's own dx/dy), and A9's top-need read follows
+`needs.rs::highest_pressure` (strict `>` in `NeedKind::ALL` order), where
+it had used Python `max` over the snapshot dict: on an exact
+eat = drink = sleep tie the engine says eat, the old read said drink,
+three false violations. The same tie sat in `relief_radius_sweep.py`
+(`v < top` counted every tied kind as top) and inflated F-040 row 3's
+drink forecast 9 → 13 on seed 870001; the A1 groups were re-cut (the
+want_drink group is RARE now, `self.memory.water.present` stays
+structural, and a second-sunbeam `occupied` bit that the first smoke
+happened to move and this one did not is declared RARE with its sibling
+wiring). What the smokes taught, carried into the rows' reading:
 
 - A5's healthy reading "heard rows have non-zero recency" is false for a
   row heard only through `wait_for_me`, which is outside the 15 digest
@@ -277,7 +293,10 @@ with no layout consequence (the legality mask is an oracle over
   arm here, and the step-7 certification training, derive from the
   served `cloudkitty.toml` with the #332 bump reverted
   (`groom_cuddle_relief = 0.5`); any deliberate training/serving
-  divergence is declared in this file by key. Root `training.toml`
+  divergence is declared in this file by key. Since 2026-09-05 the
+  served file carries `[meow] relief_memory_margin = 0` (spec 050, PR
+  #345, main 01c499e) and so does `anchor.toml`, verbatim block; the
+  key is part of the rule, not a divergence. Root `training.toml`
   (the exp-001 scarcity world: 1.5× need rates, pre-041 relief prices,
   `groom_cuddle_relief` 15.0) is NOT a source for Gen 1 configs;
   exp-006's `collect-config.toml` trained at 8.0 against a served 0.5,

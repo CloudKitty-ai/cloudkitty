@@ -82,6 +82,14 @@ class Trace:
     def cooldown(self):
         return int(self.cfg["meow"]["recent_window_ticks"])
 
+    @property
+    def margin(self):
+        """[meow] relief_memory_margin (spec 050): a remembered tile is
+        relief only within radius + margin Manhattan; key absent = None,
+        the unbounded rule."""
+        m = self.cfg["meow"].get("relief_memory_margin")
+        return None if m is None else int(m)
+
     def snap(self, i):
         return self.lines[i]["snapshot"]
 
@@ -692,9 +700,25 @@ def check_a8(tr):
     return f
 
 
-def relief_known(want, kitty, snap, pos, r):
-    """meow.rs::known_relief read from one snapshot at `pos`."""
-    remembered = {k: kitty["memory"][j] is not None for j, k in enumerate(ELEMENT_KINDS)}
+def top_need(needs):
+    """needs.rs::highest_pressure: strict `>` scanning NeedKind::ALL in
+    order, so a tie goes to the earlier kind (eat < drink < sleep < play
+    < cuddle < bath). Ties are common: needs start equal and eat, drink
+    and sleep share a rate until one is relieved."""
+    best = NEED_KINDS[0]
+    for kind in NEED_KINDS[1:]:
+        if needs[kind] > needs[best]:
+            best = kind
+    return best
+
+
+def relief_known(want, kitty, snap, pos, r, margin=None):
+    """meow.rs::known_relief read from one snapshot at `pos`. A remembered
+    tile counts only within r + margin Manhattan of `pos` (inclusive);
+    margin None is the unbounded rule."""
+    def within_reach(slot):
+        return slot is not None and (margin is None or manhattan(pos, slot["pos"]) <= r + margin)
+    remembered = {k: within_reach(kitty["memory"][j]) for j, k in enumerate(ELEMENT_KINDS)}
     vis = lambda kind: any(e["kind"] == kind and visible(pos, e["pos"], r) for e in snap["elements"])  # noqa: E731
     idle_friend = any(k["id"] != kitty["id"] and k.get("activity_clock") is None
                       and visible(pos, k["pos"], r) for k in snap["kitties"])
@@ -723,11 +747,11 @@ def check_a9(tr):
             need = NEED_OF_WANT[m["kind"]]
             k0, k1 = k0s[m["kitty_id"]], k1s[m["kitty_id"]]
             armed = [need in k["announce_armed"] for k in (k0, k1)]
-            top = [max(k["needs"], key=k["needs"].get) == need for k in (k0, k1)]
+            top = [top_need(k["needs"]) == need for k in (k0, k1)]
             # memory is the start snapshot's (refreshed only in the
             # environment phase); sight from the post-move tile
-            relief = [relief_known(m["kind"], k0, snap, k0["pos"], r),
-                      relief_known(m["kind"], k0, snap, k1["pos"], r)]
+            relief = [relief_known(m["kind"], k0, snap, k0["pos"], r, tr.margin),
+                      relief_known(m["kind"], k0, snap, k1["pos"], r, tr.margin)]
             if m["kind"] == "want_bath":
                 checks = {"armed": armed}
             else:
@@ -946,7 +970,19 @@ def check_a14(tr):
         bad[f"{here}_without_visible_referent"] = int((head[here] & ~slot_present[kind]).sum())
     needs = tr.obs[:, SELF_NEEDS:SELF_NEEDS + len(NEED_KINDS)]
     top = needs.argmax(1)
-    mem = {k: tr.obs[:, SELF_MEMORY + j * MEMORY_SLOT] > 0 for j, k in enumerate(ELEMENT_KINDS)}
+    # A remembered element is known relief only within radius + margin
+    # Manhattan (spec 050); the reach is read off the token's own dx/dy
+    # (observe.rs normalises by world width/height), so no snapshot fact
+    # enters. Margin None (key absent) is the unbounded rule.
+    W, H = tr.snap(0)["width"], tr.snap(0)["height"]
+    mem = {}
+    for j, k in enumerate(ELEMENT_KINDS):
+        slot = tr.obs[:, SELF_MEMORY + j * MEMORY_SLOT:SELF_MEMORY + (j + 1) * MEMORY_SLOT]
+        present = slot[:, 0] > 0
+        if tr.margin is not None:
+            reach = np.rint(np.abs(slot[:, 1]) * W) + np.rint(np.abs(slot[:, 2]) * H)
+            present = present & (reach <= tr.radius + tr.margin)
+        mem[k] = present
     idle_friend = (seen & (rows[..., ROW_ACTIVITY] > 0)).any(1)
     thr = float(tr.cfg["meow"]["announce_threshold"]) - float(tr.cfg["meow"].get("announce_hysteresis", 0.0))
     for want in WANT_KINDS:

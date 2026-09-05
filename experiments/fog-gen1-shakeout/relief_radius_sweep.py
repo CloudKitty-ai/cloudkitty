@@ -4,7 +4,8 @@ recorded bc-collect --trace (no engine change).
 
     relief_radius_sweep.py TRACE_DIR [D ...]
 
-For every D (Manhattan; 0 = unbounded, today's rule) and every cat-tick,
+For every D (Manhattan; 0 = the unbounded pre-050 rule, i.e. the key
+absent; spec 050's `relief_memory_margin = m` is D = radius + m) and every cat-tick,
 a want is LEGAL when the need is armed (>= announce_threshold), is the
 top need, and no relief is known: visible relief always counts, a
 remembered element counts only within D tiles of the cat. Calls are then
@@ -24,7 +25,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from schema_check import (  # noqa: E402
     CRITTER_KINDS, ELEMENT_KINDS, NEED_OF_WANT, WANT_KINDS, elements_of,
-    kitties_by_id, load_trace, manhattan, meows_emitted_at, stocked, visible)
+    kitties_by_id, load_trace, manhattan, meows_emitted_at, stocked, top_need, visible)
 
 
 def known(want, kitty, snap, r, D):
@@ -61,11 +62,11 @@ def sweep(tr, Ds):
         for i in range(n_ticks):
             snap = tr.snap(i)
             for k in snap["kitties"]:
-                top = max(k["needs"].values())
+                top = top_need(k["needs"])   # engine tie-break, not `max`
                 for want in WANT_KINDS:
                     need = NEED_OF_WANT[want]
                     v = k["needs"][need]
-                    if v < thr or v < top or known(want, k, snap, r, D):
+                    if v < thr or need != top or known(want, k, snap, r, D):
                         continue
                     legal[want] += 1
                     key = (k["id"], want)
@@ -96,7 +97,7 @@ def main():
         legal, calls = out[D]
         tot += f"{sum(calls.values()) * scale:>7.0f}/{sum(legal.values()) * scale:<4.0f}"
     print(tot)
-    print("cells: simulated calls / legal cat-ticks; D=0 is today's unbounded memory rule")
+    print("cells: simulated calls / legal cat-ticks; D=0 is the unbounded (pre-050) memory rule")
 
 
 if __name__ == "__main__":
