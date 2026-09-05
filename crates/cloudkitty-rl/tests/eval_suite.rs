@@ -319,9 +319,14 @@ fn no_exam_equals_a_training_or_certification_config() {
         tiles(&scale) >= 2 * tiles(&bar),
         "scale: >= 2x the bar's tiles"
     );
-    assert!(
-        scale.kitties.len() > gym.kitties.len(),
-        "scale: roster larger than training's"
+    // The v1 crowd axis ("a roster larger than any the policy trained
+    // with") was DROPPED by the 2026-09-04 ruling (spec 051 FR-002): under
+    // permanent by-id rows a roster is an observation width. scale seats
+    // the served roster; dilution (the tiles assertion above) is the exam.
+    assert_eq!(
+        scale.kitties.len(),
+        5,
+        "scale: the served roster of 5 (spec 051)"
     );
 
     for kind in cloudkitty_core::element::ElementType::ALL {
@@ -380,8 +385,8 @@ fn a_builtin_candidate_exercises_cells_differentials_and_verdict() {
         );
         assert_eq!(
             cell.duet_shares.len(),
-            6,
-            "{}: every kitty's duet share",
+            5,
+            "{}: every kitty's duet share (roster 5, spec 051)",
             cell.name
         );
         assert_eq!(cell.runs.len(), cell.baseline_runs.len());
@@ -558,7 +563,10 @@ fn cell_configs_differ_only_in_behavior() {
     assert_eq!(guest, half, "guest and half agree on everything but seats");
     assert_eq!(guest, host, "guest and host agree on everything but seats");
 
-    // And the seat maps are exactly the contract's (contracts/exam-configs.md).
+    // And the seat maps are exactly the contract's: spec 051 FR-003 at
+    // roster 5 (guest 1 + 4, half 2 + 3, host 4 + 1; playful at seat 2 in
+    // every cell). The 017 contract (contracts/exam-configs.md) is the v1
+    // six-seat record.
     let seats = |file: &str| -> Vec<String> {
         let (core, _) = load_configs_from_path(evals_v3().join(file).to_str().unwrap()).unwrap();
         core.kitties.iter().map(|k| k.behavior.clone()).collect()
@@ -566,22 +574,15 @@ fn cell_configs_differ_only_in_behavior() {
     let c = CANDIDATE_BEHAVIOR;
     assert_eq!(
         seats("mixed-roster-guest.toml"),
-        vec![
-            c,
-            "playful",
-            "needs_driven",
-            "needs_driven",
-            "needs_driven",
-            "needs_driven"
-        ]
+        vec![c, "playful", "needs_driven", "needs_driven", "needs_driven"]
     );
     assert_eq!(
         seats("mixed-roster-half.toml"),
-        vec![c, "playful", c, "needs_driven", c, "needs_driven"]
+        vec![c, "playful", c, "needs_driven", "needs_driven"]
     );
     assert_eq!(
         seats("mixed-roster-host.toml"),
-        vec![c, "playful", c, c, c, c]
+        vec![c, "playful", c, c, c]
     );
 }
 
