@@ -77,3 +77,4 @@ F0 (three v2-roster-pinned guards the plan's R6 missed — each pointed at
 roster 5, none weakened) and U4's first attempt (red for the wrong reason,
 voided and re-run alone). One test in U7 (`two_subjects_share…`) was
 predicted red and stayed green; it does not guard the freeze.
+| post-converge (owner) | `every_v1_exam_sustains_an_invariant_asserted_run` renamed `every_exam_sustains_an_invariant_asserted_run` (owner: "Fix the v1 reference"); 017 quickstart map updated | GREEN, same body | GREEN | — |

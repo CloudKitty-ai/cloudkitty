@@ -253,12 +253,12 @@ fn two_suite_runs_produce_identical_json() {
     assert_eq!(a, b, "two suite runs serialize byte-identically");
 }
 
-// Spec guarding test 5 (FR-006): every v1 exam is a lawful world. The
+// Spec guarding test 5 (FR-006): every exam is a lawful world. The
 // per-tick invariant assertions run inside the engine; a completed run is
 // the proof. Expected numbers ≈ the measured baselines recorded in
 // contracts/exam-configs.md.
 #[test]
-fn every_v1_exam_sustains_an_invariant_asserted_run() {
+fn every_exam_sustains_an_invariant_asserted_run() {
     let registry = BehaviorRegistry::with_builtins();
     for file in V3_EXAM_FILES {
         let path = evals_v3().join(file);
