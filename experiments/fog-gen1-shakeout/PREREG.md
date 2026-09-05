@@ -3,12 +3,14 @@
 Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
-open before declaration: the BC bar numbers (`<pin at declaration>`,
-owner's call), the `reply_intensity_floor` pin on `anchor.toml` (rule
-ruled 2026-09-05, number follows the speaker-floor screen), the
-`expected_per_1000` rates in `declared_constant.json` (from the corpus),
-and spec 050 `relief_memory_margin` landing (then the anchor re-smoke at
-margin 0). `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
+open before declaration: the `reply_intensity_floor` pin on
+`anchor.toml` (rule ruled 2026-09-05, number follows the speaker-floor
+screen), the `expected_per_1000` rates in `declared_constant.json`
+(filled from the BC corpus trace at declaration, rule ruled 2026-09-05),
+and the anchor re-smoke at margin 0 once spec 050 `relief_memory_margin`
+is on main (merging 2026-09-05; the declaration waits for it, owner
+ruled). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
+`schema_check.py` and its guard landed 2026-09-04 (e4f0642);
 the A1 reasons were ratified the same day (5a16b43). The trainer
 (`trainer/train_ppo_fog.py`) landed 2026-09-05 with its own pin list
 (`PINS`: β 0.04 / 0.05 provisional; radius, the two schema-5 clones and
@@ -118,8 +120,13 @@ What the smoke taught, carried into the rows' reading:
   any corpus length. Three of these: trill/ekekek off in the vocabulary;
   mew/chirp/purr never scripted; **want_drink is silent for the whole
   run** because `known_relief(drink)` holds once water is seen or
-  remembered, water never moves and memory never expires (F-040; spec
-  050 `relief_memory_margin` = 0 removes this group when it lands).
+  remembered, water never moves and memory never expires (F-040). Spec
+  050 `relief_memory_margin` = 0 revives the want, but at ~1.2 calls per
+  1000 ticks on the served seed (Product's 20k read, 2026-09-05: 1,021
+  drink-top-and-armed cat-ticks, 25 legal; the law is armed AND top need
+  AND no known relief, `meow.rs:262`), not the ~12 that F-040 row 3
+  simulated. So when 050 lands this group is not dropped; it converts to
+  RARE with the re-smoke's measured rate (owner ruled 2026-09-05).
   RARE: the wiring is shown alive by a sibling column on the same
   encoder loop (or a forced emission) and only incidence is unknown.
   Three of these: distress flags for five needs (the cuddle flag on the
@@ -129,8 +136,10 @@ What the smoke taught, carried into the rows' reading:
   1–2 fill; four critters on the map, three in one disc never seen in
   5000 cat-ticks). The checker reads a rare constant as **unproven**,
   and red once the corpus is 5× the expected wait (`expected_per_1000`,
-  filled at declaration from the corpus's own precursor counts; null
-  until then). A rare group whose columns moved reads stale, the good
+  filled at declaration from the BC corpus trace at the pinned knobs,
+  the same config and roster the clone learns from, so the rate and the
+  clone share one world; null until then; the factor 5.0 stands. Owner
+  ruled 2026-09-05). A rare group whose columns moved reads stale, the good
   outcome. A17 exempts rare-declared columns from the can-vary
   comparison (early PPO crosses distress; the anchor never does). A
   structural reason has two proofs, and only one binds a policy: LAW
@@ -293,8 +302,17 @@ with no layout consequence (the legality mask is an oracle over
   reply at all (anchor smoke: 0 of each in 1000 ticks), so A7/A8/A16
   cannot be read on it. Anchor roster: 1 needs_driven, 2 playful, 3–5
   needs_driven.
-- BC: train to plateau, patience 10, no epoch floor; bars reply-here /
-  ambient-here / want, numbers `<pin at declaration>`, held-out set.
+- BC: train to plateau, patience 10, no epoch floor. The 60-epoch
+  extension (F-034 addendum 2: act@1 .80 → .82 at 3× cost) is NOT taken;
+  the clone is PPO's init and PPO moves the action head, while the
+  message head's fluency is density-shaped. Reopen only on a bar miss.
+  **Bars (owner ruled 2026-09-05), all on the held-out set**:
+  reply-here and ambient-here opportunity-use ≥ 0.50 per kind (under
+  F-034's fluent band .58–.80, above the half-fluent .35–.56); msg@1 on
+  here-rows ≥ 0.80 (A1 read .8748); want emission per kind within ±15%
+  of the source rate (relative, so it survives the speaker-floor pick),
+  applied only to kinds with ≥ 100 source rows; a thinner kind (drink
+  at ~1.2/1000 is one) reports its count and is excluded from the gate.
 - Critic: retrain at width 408, γ 0.998, censored MC targets (the
   exp-006 recipe). The trainer pins width through its tokenizer module
   (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at
@@ -331,7 +349,7 @@ with no layout consequence (the legality mask is an oracle over
   before this read is trusted). No gate hangs on it.
 - Pass: six slots per the timeline table; horizon `<owner>` ticks;
   probe every 50 updates, 2,000 probe ticks; Part A at probe 1.
-- Kickoff pins owed by the owner: H6 median, the three bar numbers,
-  INVESTIGATE band factor, horizon.
+- Kickoff pins owed by the owner: INVESTIGATE band factor, horizon. (H6
+  median and the three bar numbers are ruled, above.)
 - Results: `RESULTS.md` ends in the Part B table with each row's
   outcome filled, which IS the step-6 input.

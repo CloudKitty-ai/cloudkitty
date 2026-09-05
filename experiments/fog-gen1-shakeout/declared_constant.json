@@ -12,7 +12,7 @@
     ],
     "a17_exempt": true
   },
-  "want_drink structurally silent in the fog era: known_relief(drink) holds once water is seen or remembered (meow.rs), water never moves and memory_timeout 0 never forgets, so self.memory.water.present sits at 1 and want_drink is illegal for the rest of the run; the here_water answers-me bit follows. A policy that wanders past water before its first drink varies the memory bit (a17_exempt). DROP when spec 050 relief_memory_margin lands at 0": {
+  "want_drink structurally silent in the fog era: known_relief(drink) holds once water is seen or remembered (meow.rs), water never moves and memory_timeout 0 never forgets, so self.memory.water.present sits at 1 and want_drink is illegal for the rest of the run; the here_water answers-me bit follows. A policy that wanders past water before its first drink varies the memory bit (a17_exempt). When spec 050 relief_memory_margin lands at 0 this group CONVERTS to RARE with the re-smoke's measured expected_per_1000 (Product read ~1.2 calls/1000 on the served seed, 2026-09-05; owner ruled the conversion the same day), not dropped": {
     "patterns": [
       "*.msg.want_drink.*",
       "*.want.want_drink",
