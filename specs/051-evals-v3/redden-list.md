@@ -78,3 +78,14 @@ roster 5, none weakened) and U4's first attempt (red for the wrong reason,
 voided and re-run alone). One test in U7 (`two_subjects_share…`) was
 predicted red and stayed green; it does not guard the freeze.
 | post-converge (owner) | `every_v1_exam_sustains_an_invariant_asserted_run` renamed `every_exam_sustains_an_invariant_asserted_run` (owner: "Fix the v1 reference"); 017 quickstart map updated | GREEN, same body | GREEN | — |
+
+## Code review (owner ran `/code-review high 051` in the Client session, relayed 2026-09-05)
+
+| finding | disposition | cycle |
+|---|---|---|
+| 3 (low) — the axis guard checked only the served shape; every v3 roster is now the gym's 5, so geometry is the only margin from `training.toml` (24×24×5), unchecked for five files; the old `mixed != bar` assertion dead | FIXED: the held-out loop asserts every exam's (w, h, roster) against BOTH the bar's and the gym's shape; the two mixed-only assertions and the unused `mixed` load removed | `training.toml` pushed into the list → RED "training.toml: the gym's shape is not held out, (24, 24, 5)"; removed → GREEN |
+| 4 (low, time-boxed) — half's header claimed "friction at its maximum — neither group can dictate", untrue at 2 + 3 | FIXED before the freeze: "the closest split roster 5 allows — convention friction near its maximum, with the scripted side one seat ahead, so the candidates cannot dictate" | the reworded file against the old manifest → freeze guard RED naming mixed-roster-half.toml; rehashed (1 entry) → eval_suite 19 / 0 |
+| 1 (medium) — `evals/v2` excluded from both sweeps while its bytes still load: the exclusion silences nothing and drops six shipped TOMLs from CI; the file's own rule reserves it for records of an earlier engine generation | OWNER RULING REQUESTED — FR-009 / SC-005 put the exclusion in the spec by analogy with v1, and the analogy is wrong on this axis. Recommendation: drop the exclusion (v2 stays in both sweeps; the sweep assertion names v3; U5's red becomes an assertion pointed at a non-existent directory) | pending |
+| 2 (low) — `carried_exams_parse_equal_to_v2` loads v2 every run; contradicts the exclusion's premise; settled by the same ruling | with finding 1 | pending |
+
+Post-review cycle: **897 / 0 / 6**, 55 s; fmt + clippy clean.

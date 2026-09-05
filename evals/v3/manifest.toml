@@ -106,7 +106,7 @@ sha256 = "bdc32ac22a2f8cbb9e5638ff49dac1c364d613bd875153da7eff2a49976d2e8b"
 [[exam.cell]]
 name = "half"
 config = "mixed-roster-half.toml"
-sha256 = "d0fad980e0188a61649a4a88d9ccec4a146c2c2b06fbc87e6b3ec2f022030272"
+sha256 = "5de0be686f318d34fa7497cfce9bee1b49ba5e1c2851fc377aea646ad9698cb9"
 
 [[exam.cell]]
 name = "host"

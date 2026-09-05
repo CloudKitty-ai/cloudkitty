@@ -6,10 +6,11 @@
 # non-behavior value unchanged. v2 stays the pre-ruling 3.0 record.
 # Identical to mixed-roster-{guest,host}.toml except the behavior column
 # (guarded by test). Two candidate seats (Miso, Pumpkin), three scripted
-# (playful Biscuit + needs_driven Kittybear, Clementine): convention
-# friction at its maximum - neither group can dictate the meadow's rhythm.
-# Clementine's seat flips from v2's candidate so the cell is 2 + 3 at
-# roster 5 (spec 051 FR-003).
+# (playful Biscuit + needs_driven Kittybear, Clementine): the closest
+# split roster 5 allows - convention friction near its maximum, with the
+# scripted side one seat ahead, so the candidates cannot dictate the
+# meadow's rhythm. Clementine's seat flips from v2's candidate so the
+# cell is 2 + 3 at roster 5 (spec 051 FR-003).
 #
 # policy:candidate is bound by the harness at invocation to whatever
 # artifact (or aliased built-in) is under test; no artifact is ever named

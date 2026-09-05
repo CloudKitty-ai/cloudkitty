@@ -327,7 +327,6 @@ fn no_exam_equals_a_training_or_certification_config() {
     let scale = load(evals_v3().join("scale.toml"));
     let scarcity = load(evals_v3().join("scarcity.toml"));
     let heterogeneity = load(evals_v3().join("heterogeneity.toml"));
-    let mixed = load(evals_v3().join("mixed-roster-guest.toml"));
 
     let tiles = |c: &Config| c.world.width * c.world.height;
     assert!(
@@ -358,31 +357,26 @@ fn no_exam_equals_a_training_or_certification_config() {
     );
 
     let geometry = |c: &Config| (c.world.width, c.world.height, c.kitties.len());
-    // Spec 051 FR-008: held out by axis as well as by bytes — no exam
-    // shares the served / anchor shape (20 x 20, 5 cats), the one shape
-    // every Gen 1 mind trains on.
+    // Spec 051 FR-008 / spec 017 FR-007: held out by axis as well as by
+    // bytes — no exam shares the served / anchor shape (20 x 20, 5 cats)
+    // or the gym's (24 x 24, 5 cats). Every v3 roster is 5, the gym's
+    // roster, so geometry is the only margin left between an exam and
+    // the world a mind trains in (051 review finding 3).
     let served_shape = (20, 20, 5);
     assert_eq!(geometry(&bar), served_shape, "the bar is the served shape");
+    let training_shapes = [(&bar, "the served / anchor"), (&gym, "the gym's")];
     let held_out: Vec<PathBuf> = V3_EXAM_FILES.iter().map(|f| evals_v3().join(f)).collect();
     for path in held_out {
         let core = load(path.clone());
-        assert_ne!(
-            geometry(&core),
-            served_shape,
-            "{}: the served / anchor shape is not held out",
-            path.display()
-        );
+        for (world, what) in training_shapes {
+            assert_ne!(
+                geometry(&core),
+                geometry(world),
+                "{}: {what} shape is not held out",
+                path.display()
+            );
+        }
     }
-    assert_ne!(
-        geometry(&mixed),
-        geometry(&bar),
-        "mixed-roster: not the bar's shape"
-    );
-    assert_ne!(
-        geometry(&mixed),
-        geometry(&gym),
-        "mixed-roster: not the gym's shape"
-    );
 }
 
 // Spec guarding test 7a (SC-007): the machinery needs no trained artifact.
