@@ -5,7 +5,7 @@
 
 The Part C plateau predicate, the per-arm config derivation (anchor.toml
 with only `[vision] radius` moved), the no-fog radius, the slot table's
-seed claim, and the roster mix (one draft slot, exp-001/002's third). The PPO loop itself is the exp-006 recipe carried
+seed claim, and the roster mix (the `mixed` slot, exp-001/002's third). The PPO loop itself is the exp-006 recipe carried
 verbatim and is exercised by the --smoke run, not here.
 """
 import sys
@@ -56,8 +56,8 @@ def test_slots_claim_run_indices_12_to_20_once_each():
     assert idx == list(range(12, 21)), idx
     assert all(v[1] in tf.PINS and v[2] in tf.PINS for v in tf.SLOTS.values())
     assert {v[0] for v in tf.SLOTS.values()} == {"pin", "pin+1", "pin-1", "whole"}
-    # the six ruled slots keep their 2026-09-05 shape; the draft three
-    # sit after them
+    # the six slots of 2026-09-03 keep their shape; the three ruled
+    # 2026-09-05 sit after them
     ruled = {k: v for k, v in tf.SLOTS.items() if v[4] < 18}
     assert set(ruled) == {"ref-s1", "ref-s2", "nofog", "radius+1", "leash", "vocab"}
     assert tf.SLOTS["ref-s3"][3] == 3 and tf.SLOTS["ref-s3"][:3] == tf.SLOTS["ref-s1"][:3]

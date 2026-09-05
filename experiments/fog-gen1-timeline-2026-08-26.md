@@ -853,7 +853,11 @@ rule: `fog-gen1-shakeout/PREREG.md` Part C, ruled/pencilled 2026-09-03.)
 One PPO pass, sized to the box: 18 procs are the full count, other
 utilisation is low, so **6 arms × 3 threads** (exp-006 wave 1 was 4 × 4
 at ~8.2 s/update, ~15 h per 20M ticks; pace at 3 threads is unmeasured
-and is read off the first hour). Shakeout horizon shorter than 20M,
+and is read off the first hour). **Revised 2026-09-05 (owner): 9 arms ×
+2 threads, one round**, slots 7–9 below; the box throttles under
+sustained load (solo 781 ticks/s cold, 288 hot), so the pass runs at
+roughly 130–320 ticks/s per run, 17–43 h to the 20M cap
+(`fog-gen1-shakeout/PREREG.md` Part C, "Nine-arm pass"). Shakeout horizon shorter than 20M,
 pinned at prereg. Purpose restated by the owner: find anything that
 needs a further major change, schema-breaking above all, before the
 step-6 LOCK; an extra run on an unexpected finding is fine.
@@ -873,6 +877,9 @@ width.
 | 4 | radius bracket: one step wider than the pin | valuable | first fog dose-response point; is the pin load-bearing |
 | 5 | leash dose: next β up the F-019 curve | valuable | F-019's registered invalidation ("trajectory collapse at a fingerprint-preserving dose under fog") |
 | 6 | vocabulary lesson: head-selective message-head finetune from the same corpus vs slot 1's mixed corpus | valuable (owner picked over seed 3) | the registered delivery comparison, two of its three arms |
+| 7 | reference, seed 3 (added 2026-09-05) | valuable | the bands and the seed-lottery read on a three-seed spread |
+| 8 | mixed seating: as slot 1 with a third of episodes seating one policy cat among four scripted anchor seats (added 2026-09-05) | valuable | the arm spec 017's mixed-roster exam is fair on; step 7's seating question |
+| 9 | radius bracket, one step narrower than the pin (added 2026-09-05) | valuable | the bracket's lower side; is the pin on a slope or a cliff |
 
 Nice to have, NOT in this pass: Biscuit 3.0 consent-transfer twins
 (step 7 by ruling); no-seeding control, now an `announce_here = 0`

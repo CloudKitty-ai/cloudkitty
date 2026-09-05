@@ -7,9 +7,9 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
     = EntityPolicyV5 (attn-oracle-2026-08-15/model_v5.py, parity-guarded
     against the certified oracle); critic = EntityCritic over the padded
     197 global state, whose schema (1) did not move with the wall;
-  - arms are the SIX SLOTS of the timeline's step-5 table plus three
-    DRAFT slots (ref-s3, mixed, radius-1; PREREG Part C nine-arm
-    variant, owner ruling pending 2026-09-05), encoded so the radius,
+  - arms are the NINE SLOTS of the timeline's step-5 table (the six of
+    2026-09-03 plus ref-s3, mixed, radius-1, owner ruled 2026-09-05;
+    PREREG Part C "Nine-arm pass"), encoded so the radius,
     the leash dose, the init and the roster mix are never operator
     inputs.
     Every arm's world is anchor.toml with ONLY `[vision] radius`
@@ -19,8 +19,8 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
   - the training world is the served roster (5 seats, all policy: the
     exp-006 mix 0.0), one config, no family. That the pass trains on
     the served composition rather than a spread family was ruled by the
-    owner 2026-09-05 (PREREG Part C). The one exception is the draft
-    `mixed` slot (MIX): a third of its episodes seat one policy cat
+    owner 2026-09-05 (PREREG Part C). The one exception is the `mixed`
+    slot (MIX): a third of its episodes seat one policy cat
     among four scripted anchor seats, the exp-001/002 value, so spec
     017's mixed-roster exam has an arm that trained for it;
   - stop rules: the Section-10 welfare stop (nash < 0.5 on three
@@ -32,8 +32,7 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
     act / msg) so schema_check.py A17 can read the policy's can-vary
     against the anchor trace;
   - training episode seeds: base = 100M + run_index*20M + segment*1k,
-    run indices 12-17 (draft slots 18-20; SEED-BANDS.md row owed at
-    declaration);
+    run indices 12-20 (SEED-BANDS.md row owed at declaration);
     estimator / duet / 006a machinery dropped.
 
 Every PPO quantity (fragment 256, GAE lambda 0.95, clip 0.2, entropy
@@ -115,7 +114,7 @@ PINS = {
 
 # slot -> (radius rule, beta pin, init pin, seed, run_index). Run
 # indices 12-17 sit after exp-006 (0-7) and exp-006a (8-11); 18-20 are
-# the DRAFT nine-arm slots (PREREG Part C, owner ruling pending).
+# slots 7-9 (owner ruled 2026-09-05, PREREG Part C "Nine-arm pass").
 SLOTS = {
     "ref-s1":   ("pin",   "beta_low",  "init_clone", 1, 12),
     "ref-s2":   ("pin",   "beta_low",  "init_clone", 2, 13),
@@ -439,8 +438,9 @@ def main():
     ap.add_argument("--ckpt-every", type=int, default=50)
     ap.add_argument("--wall-min", type=float, default=None)
     ap.add_argument("--resume", action="store_true")
-    ap.add_argument("--threads", type=int, default=3,
-                    help="6 arms x 3 threads on the box (timeline step 5)")
+    ap.add_argument("--threads", type=int, default=2,
+                    help="9 arms x 2 threads on the box, one round (owner "
+                         "ruled 2026-09-05)")
     ap.add_argument("--out-dir", type=Path, default=None)
     ap.add_argument("--init", type=Path, default=None,
                     help="smoke only; real runs take the slot's pinned clone")
@@ -588,8 +588,8 @@ def main():
             "served composition, all seats policy (mix 0.0); owner "
             "ruled 2026-09-05 (PREREG Part C)" if mix == 0.0 else
             f"served composition; mix {mix}: that share of episodes "
-            "seats one policy cat among scripted anchor seats (draft "
-            "slot, PREREG Part C nine-arm variant)"),
+            "seats one policy cat among scripted anchor seats (PREREG "
+            "Part C nine-arm pass, owner ruled 2026-09-05)"),
         "mix": mix,
         "vstats": {"mean": mean_v, "std": std_v},
         "hyperparams": {k: str(v) if isinstance(v, Path) else v
