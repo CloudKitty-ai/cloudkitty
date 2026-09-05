@@ -212,6 +212,58 @@ def test_a9_want_word_with_relief_in_memory():
     not_ok(sc.check_a9(tr))
 
 
+def test_a9_memory_reach_follows_the_margin():
+    # red: drop the margin from relief_known (unbounded memory again), or
+    # count the tie for the later kind (needs.rs::highest_pressure)
+    kitty = {"id": 9, "pos": {"x": 0, "y": 0},
+             "memory": [{"pos": {"x": 0, "y": 7}, "last_seen": 0}, None, None, None, None]}
+    snap = {"elements": [], "kitties": [kitty]}
+    known = lambda margin: sc.relief_known("want_drink", kitty, snap, kitty["pos"], 5, margin)  # noqa: E731
+    assert known(None) and not known(0) and not known(1) and known(2)     # 7 <= 5 + 2, inclusive
+    assert sc.top_need({"eat": 47.0, "drink": 47.0, "sleep": 47.0, "play": 2.0, "cuddle": 4.0, "bath": 1.0}) == "eat"
+    assert sc.top_need({"eat": 10.0, "drink": 47.0, "sleep": 47.0, "play": 2.0, "cuddle": 4.0, "bath": 1.0}) == "drink"
+    assert sc.top_need({"eat": 0.0, "drink": 0.0, "sleep": 0.0, "play": 0.0, "cuddle": 0.0, "bath": 50.0}) == "bath"
+
+
+def test_a14_want_drink_with_remembered_water_beyond_reach():
+    # red: A14 reads memory presence alone and ignores the margin (a legal
+    # want_drink at margin 0 with a far pool remembered is then "known")
+    from obs_layout_v5 import ELEMENT_KINDS, HEAD_KINDS, MEMORY_SLOT, SELF_NEEDS
+    tr = fresh()
+    tr.cfg = json.loads(json.dumps(BASE.cfg))
+    W = tr.snap(0)["width"]
+    j = ELEMENT_KINDS.index("water")
+    slot = SELF_MEMORY + j * MEMORY_SLOT
+    r = 0
+    tr.obs[r, slot:slot + MEMORY_SLOT] = [1.0, (tr.radius + 3) / W, 0.0, 0.5]   # remembered, r + 3 away
+    tr.obs[r, SELF_NEEDS:SELF_NEEDS + 6] = [0.5, 0.9, 0.5, 0.1, 0.1, 0.1]      # drink top, armed
+    for off, _w in BLOCKS[N_KITTY + 2:N_KITTY + 4]:                              # no water in view
+        tr.obs[r, off + SLOT_PRESENT] = 0.0
+    tr.mask[r, N_ACT + 1 + HEAD_KINDS.index("want_drink")] = True
+
+    base_cfg = BASE.cfg
+
+    def flagged(margin):
+        # the planted row's contribution: the trace's own rows are counted
+        # under the same margin and subtracted (a margin-0 trace carries
+        # legal wants the unbounded rule would flag)
+        counts = []
+        for t in (BASE, tr):
+            t.cfg = json.loads(json.dumps(base_cfg))
+            t.cfg["meow"].pop("relief_memory_margin", None)
+            if margin is not None:
+                t.cfg["meow"]["relief_memory_margin"] = margin
+            counts.append(sc.check_a14(t).detail.get("want_drink_with_known_relief", 0))
+        return counts[1] - counts[0]
+    try:
+        assert flagged(0) == 0                   # beyond reach: not known, the bit is implied
+        assert flagged(2) == 0                   # r + 3 > r + 2
+        assert flagged(3) == 1                   # r + 3 <= r + 3, inclusive
+        assert flagged(None) == 1                # unbounded rule: known
+    finally:
+        BASE.cfg = base_cfg
+
+
 def test_a10_waypoint_index_off_rule():
     # red: an index that jumps two waypoints in one tick
     tr = fresh()

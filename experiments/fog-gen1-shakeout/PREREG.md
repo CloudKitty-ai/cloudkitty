@@ -10,6 +10,8 @@ screen), the `expected_per_1000` rates in `declared_constant.json`
 and the anchor re-smoke at margin 0 once spec 050 `relief_memory_margin`
 is on main (merging 2026-09-05; the declaration waits for it, owner
 ruled). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
+The nine-arm pass was ruled 2026-09-05 (Part C, "Nine-arm pass"
+bullet; slots 7-9 in the trainer, run indices 18-20).
 `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
 the A1 reasons were ratified the same day (5a16b43). The trainer
 (`trainer/train_ppo_fog.py`) landed 2026-09-05 with its own pin list
@@ -92,7 +94,23 @@ seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
 17 rows green; A17 lit 2026-09-05 from the fog trainer's smoke probe
 (random init, 3 × 100 ticks): red as expected for a random policy, and
 the disagreement split by direction taught the exemption rule below.
-What the smoke taught, carried into the rows' reading:
+**Re-smoke 2026-09-05 at `relief_memory_margin = 0`** (same seed and
+length, 4984 decisions, plus 3 × 20,000 ticks at seeds 870001–3 for the
+rates): 17 rows green again after two instrument corrections, both
+guarded (23 plain asserts, four plants red). A9 and A14 now read the
+margin (a remembered tile is relief only within radius + margin
+Manhattan, key absent = unbounded; A14 takes the reach off the memory
+token's own dx/dy), and A9's top-need read follows
+`needs.rs::highest_pressure` (strict `>` in `NeedKind::ALL` order), where
+it had used Python `max` over the snapshot dict: on an exact
+eat = drink = sleep tie the engine says eat, the old read said drink,
+three false violations. The same tie sat in `relief_radius_sweep.py`
+(`v < top` counted every tied kind as top) and inflated F-040 row 3's
+drink forecast 9 → 13 on seed 870001; the A1 groups were re-cut (the
+want_drink group is RARE now, `self.memory.water.present` stays
+structural, and a second-sunbeam `occupied` bit that the first smoke
+happened to move and this one did not is declared RARE with its sibling
+wiring). What the smokes taught, carried into the rows' reading:
 
 - A5's healthy reading "heard rows have non-zero recency" is false for a
   row heard only through `wait_for_me`, which is outside the 15 digest
@@ -185,7 +203,11 @@ with no layout consequence (the legality mask is an oracle over
 | leash dose (slot 5) collapses where slot 1 holds | F-019's fog invalidation condition met | β curve re-derived under fog before step 7 | knob (recipe) |
 | groom pile-on: responders per audible `want_bath` > 1 sustained (anchor at r=40 vs the fog radii) | the 049 groom response hears for the 30-tick digest window while 2.x listened within the 10-tick cooldown, so stale asks attract two responders to a caller a third cat is already grooming (Product measured 2026-09-03: divergence at tick 559 at r=40); under fog a responder cannot see the caller is busy until it arrives | rung freshness rule (act only on asks aged ≤ the announce cooldown, inclusive; audibility itself unchanged) plus an on-sight drop when the visible caller's bath is below the announce threshold; **owner ruled 2026-09-03** (049 T087 rulings 3 and 4), lands with 049, so this read is a check that the rung holds, not a proposal | knob-class law change; **break** only if the second arrival exposes a double-groom scene defect (Groom validation checks adjacency only, action.rs:385) |
 | groom relief farm: groom-of-clean-friend rate (target bath below the announce threshold at scene start) in a policy arm above the anchor's | `Grooming { target: Some }` pays the groomer `groom_cuddle_relief` unconditionally (action.rs:747-760) and `Groom { target }` is legal on any adjacent friend (action.rs:385), so cuddle relief can be farmed on a clean neighbour with no ask; 2.x pricing, first looked for here; degenerate form = the F-027 dyadic attractor. Product's probe 2026-09-03 saw the scripted form (k1 + k5 grooming k4 at bath 1.6 on a 25-tick-old ask); rung fixes bind anchors only | pricing (groomer relief scaled by the target's bath need, or zero below threshold), never a reward term (F-018 layer 2: the farm is an equilibrium under the price; scripted seats are IN the team reward, so an honest groom of a dirty anchor already pays more than a clean-target groom at 0.5); post-LOCK is fine | **law** (pricing), no schema; read TOGETHER with H4 |
-| pace at 3 threads runs the stop rule past the planned wall clock | box | **no arm is dropped (owner 2026-09-03)**: all six run to the stop rule or the 20M cap and the pass takes the extra hours | none |
+| pace at 2 threads (nine arms) runs the stop rule past the planned wall clock | box (measured 2026-09-05, random-init smoke, 12 worlds: one run alone at 3 threads does 781 ticks/s cold and 288-391 after minutes of all-core load; six at 3 threads 134-318 per run; the box throttles under sustained load, so the pass pace is the hot one, roughly 130-320 ticks/s per run, 7-17 h to 8M and 17-43 h to the cap) | **no arm is dropped (owner 2026-09-03)**: every arm runs to the stop rule or the 20M cap and the pass takes the extra hours | none |
+| slot 7 `ref-s3` sits outside the ref-s1/s2 spread on H1/H2 or the band reference | two seeds were a range, not a spread | every 2x band and the seed-lottery read take the three-seed spread; no re-pin from this row alone | none |
+| slot 8 `mixed` below ref-s1 on H2 or on spec 017's mixed-roster exam | the lone policy seat is graded by the team reward over four scripted cats it barely steers (exp-002 class-credit); F-017's mixed arms never learned self-contention; a third fewer policy samples per tick | registered result for step 7's seating question (does certification training add mixed episodes); nothing re-pins | none for the LOCK |
+| slot 9 `radius-1` holds welfare where the scripted anchor at pin-1 does not | the policy tolerates a radius the anchor cannot (memory + search) | Gen 1 ships at the pin (the anchor's); the tolerance is the Gen 2 world-size x radius screen's first point | knob |
+| slot 9 `radius-1` collapses (H1) where the pin holds | the pin sits on a cliff, not a slope | pin confirmed load-bearing; nothing moves | none |
 
 ## Part C — the rest of the prereg (owner walk-through 2026-09-03)
 
@@ -277,7 +299,10 @@ with no layout consequence (the legality mask is an oracle over
   arm here, and the step-7 certification training, derive from the
   served `cloudkitty.toml` with the #332 bump reverted
   (`groom_cuddle_relief = 0.5`); any deliberate training/serving
-  divergence is declared in this file by key. Root `training.toml`
+  divergence is declared in this file by key. Since 2026-09-05 the
+  served file carries `[meow] relief_memory_margin = 0` (spec 050, PR
+  #345, main 01c499e) and so does `anchor.toml`, verbatim block; the
+  key is part of the rule, not a divergence. Root `training.toml`
   (the exp-001 scarcity world: 1.5× need rates, pre-041 relief prices,
   `groom_cuddle_relief` 15.0) is NOT a source for Gen 1 configs;
   exp-006's `collect-config.toml` trained at 8.0 against a served 0.5,
@@ -320,7 +345,7 @@ with no layout consequence (the legality mask is an oracle over
   so a Heard row stays attended), so no schema-4 artifact is touched.
   Trainer cutover landed 2026-09-05: `model_v5.py` (torch forward
   parity-guarded against the certified oracle) and
-  `trainer/train_ppo_fog.py` (the exp-006 recipe at 408/55, six slots
+  `trainer/train_ppo_fog.py` (the exp-006 recipe at 408/55, nine slots
   keyed to the step-5 table, owner pins in `PINS` with the launcher
   refusing an unpinned slot outside `--smoke`, per-arm config =
   `anchor.toml` with only `[vision] radius` rewritten, the Part C
@@ -347,9 +372,41 @@ with no layout consequence (the legality mask is an oracle over
   finding, logged); well below with sleep welfare below the anchor =
   INVESTIGATE, first suspect the bit's plumbing (A13 must show it at 1
   before this read is trusted). No gate hangs on it.
-- Pass: six slots per the timeline table; horizon by the plateau rule
+- Pass: nine slots per the timeline table, 2 threads each, one round;
+  horizon by the plateau rule
   above (cap 20M); probe every 50 updates, 2,000 probe ticks; Part A at
   probe 1.
+- **Nine-arm pass (owner ruled 2026-09-05: "worth having the additional
+  data up front before we design our full training round")**: three
+  slots added to the six, same recipe and pins, run indices
+  18-20 (SEED-BANDS row at declaration covers 12-20): `ref-s3` (pin,
+  β low, clone init, seed 3: the reference arm's third seed, so every
+  2x band and the seed-lottery read stand on a spread rather than a
+  range; the owner passed it over for the vocabulary arm at six slots),
+  `mixed` (as ref-s1 with a third of training episodes seating one
+  policy cat among four scripted anchor seats, the exp-001/002 value;
+  the arm spec 017's mixed-roster exam is fair on, paired with ref-s1
+  by seed; it collects about a third fewer policy samples per tick, so
+  the plateau rule reads it at a handicap), and `radius-1` (pin-1: the
+  bracket's lower side, where fog binds harder than at the pin the
+  scripted screen picks). The six ruled arms keep the all-policy
+  ruling; `mixed` is the one declared exception (trainer `MIX`). Not
+  taken: a second vocabulary seed (its row is a registered result, not
+  a lock decision), a third β point, a served-groom arm (a reward
+  landscape the clone never saw), a random-init control (exp-001
+  settled it), floor arms (ruled scripted-only) and an attention critic
+  (engineering). **Thread split**: 18 cores; 6 x 3 threads against 9 x
+  2 was measured 2026-09-05 (random-init smoke, 12 worlds, 20 and 8
+  updates, back to back): 6 x 3 gave 318 then 134 ticks/s per run, 9 x
+  2 gave 110 then 250, so the box's throttling under sustained load
+  (solo 781 cold, 288 hot) swamps the split and neither ordering is
+  trusted to better than 2x. Same-position pairs put 9 x 2 at about
+  1.3x slower per run and about 1.2x more aggregate throughput, within
+  the 1.5x the owner was quoted. Both slots smoked (`--smoke`, 3
+  updates): `mixed` seats 5 of 12 worlds mixed and collects 10,240
+  policy samples per update against 15,360, `radius-1` derives
+  `radius = 4` from the pin 5. The nine run in one round at 2 threads
+  each (trainer default).
 - **Activity-mix INVESTIGATE band (owner ruled 2026-09-05)**: the
   timeline's "outside step-2 bands by modest factors" line. Reference =
   the scripted anchor at the pinned radius, measured in the radius

@@ -74,7 +74,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-037 | active | The collapse detector names a lock but trails the watchdog by 48–147 ticks; healthy margin 0.07 |
 | F-038 | active | Comfort buys food promptness linearly and pays in element play, never duets; t_partner 5 halves roster duets |
 | F-039 | active | Live refusal tax is Biscuit's alone and it is partner play (5.13%); other seats under 2.3% in groom and move |
-| F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls |
+| F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls (re-verified 2026-09-05 with spec 050 landed: 6–15 drink, +9 to +11 eat, anchor config; served ~1.2) |
 | F-041 | active | The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase (3 of 169 replies invisible in the anchor smoke) |
 
 ---
@@ -2255,12 +2255,33 @@ seeds at r=5 and three at r=4; instruments `schema_check.py` A1 and
    independently of the want law, and the scripted asker does not act on
    element here-words.
 
+**Re-verified 2026-09-05, spec 050 merged (PR #345, main 01c499e).**
+Row 3 was a first-order counterfactual; these are recorded runs, anchor
+config, 3 × 20,000 ticks, seeds 870001–3, five cats, calls per 1000
+ticks. Key absent (the old rule): drink 0 / 0 / 0, eat 13.3 / 12.2 /
+15.6, all wants 99.6 / 93.5 / 106.4. Margin 0: drink 6.3 / 5.9 / 15.2,
+eat 22.2 / 23.2 / 24.2, all wants 116.6 / 116.1 / 121.4. Margin 1: drink
+3.9 / 7.6 / 14.9, eat 21.1 / 22.2 / 19.8, all wants 110.5 / 110.8 /
+113.3. So the headline's ~12 drink calls is 6–15 measured (mean 9), the
+eat gain is +9 to +11 rather than the forecast's 0 to +16, and margin 1
+trims eat by about 8% while drink does not separate from margin 0 at
+three seeds (seed 870003 runs at 15 under both). Two corrections to the
+instrument behind row 3: `relief_radius_sweep.py` counted every need
+tied for the maximum as the top need (`v < top`), where
+`needs.rs::highest_pressure` breaks ties by `NeedKind::ALL` order, and
+eat = drink = sleep ties are common early in a run; with the engine's
+tie-break the seed-870001 forecast at D = r falls from 13 to 9 drink
+calls (eat unchanged at 39). `schema_check.py` A9 had the same tie read
+(3 false violations on the margin-0 re-smoke) and A9/A14 now read the
+margin. The served config's rate is lower (Product, 20k, floor unset,
+`announce_here` 0, `groom_cuddle_relief` 2.0: 23 drink calls, ~1.2 per
+1000), so the rate is config-shaped; which of the three anchor keys
+carries the difference is not identified.
+
 **Scope**: fog-era want law on the served 20×20 (7 pools, 6 bowls),
-radius 4–5, scripted seats. **Invalidated by**: the margin knob landing
-(then the numbers are the re-smoke's), a water element that despawns or
-moves, a non-zero `memory_timeout_ticks`. **Re-verify when**: the knob
-lands (re-smoke the anchor at margin 0 and 1, compare to row 3) and at
-the step-5 radius screen.
+radius 4–5, scripted seats. **Invalidated by**: a water element that
+despawns or moves, a non-zero `memory_timeout_ticks`. **Re-verify
+when**: the step-5 radius screen (the rates above are r = 5 only).
 
 ## F-041 · active · The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase
 
