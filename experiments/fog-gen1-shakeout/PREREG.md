@@ -4,7 +4,9 @@ Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
 open before declaration: the BC bar numbers (`<pin at declaration>`,
-owner's call) and `schema_check.py` with its guard.
+owner's call), the A1 declared-constant reasons (`declared_constant.json`,
+owner ratifies), and the `reply_intensity_floor` pin on `anchor.toml`.
+`schema_check.py` and its guard landed 2026-09-04 (e4f0642).
 Declaration = a later commit that removes this header. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
@@ -27,9 +29,10 @@ fog is a by-product, not the goal. Two consequences for the design:
 Runs against the first `--probe-every` checkpoint of every arm and the
 scripted anchor on the same config. Every row is a test with a
 predicted healthy reading and a named degenerate signature; the
-instrument is `schema_check.py` (to write; guard = plain-python asserts
-on recorded probe traces, each row driven red by the exact defect it
-names, rule 5). Width and offsets come from spec 049's FR-026 layout
+instrument is `schema_check.py` (landed 2026-09-04; guard
+`test_schema_check.py` = plain-python asserts on a recorded bc-collect
+`--trace` directory, each row driven red by the exact defect it names,
+rule 5). Width and offsets come from spec 049's FR-026 layout
 (pinned 408 after the owner's 2026-09-04 ruling adding the kitty-row
 "neighbour on a sunbeam" bit: self 85 | 4 × 63 | elements 70 | clock 1;
 was 404 with rows of 62; schema number stays 5, no artifact predates
@@ -75,6 +78,41 @@ the pass (it is an anchor property, not a training one); a red there
 stops the screen, since an uncovered core would make the radius pin
 measure the sweep rule instead of vision (why T088 was re-ruled). Its
 index-persistence half is read at probe 1 with the rest.
+
+Instrument status, 2026-09-04 (anchor smoke: `anchor.toml`, 1000 ticks,
+seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
+17 rows green, A17 waits for the trainer's probe dump. What the smoke
+taught, carried into the rows' reading:
+
+- A5's healthy reading "heard rows have non-zero recency" is false for a
+  row heard only through `wait_for_me`, which is outside the 15 digest
+  kinds (110 of 10553 heard rows). The checker counts those apart; they
+  are not a defect.
+- A6: a want stamp is taken after the caller's own action and before the
+  phase-4 rise, so it can sit below both snapshot readings by one tick's
+  rise. On water the bath rise is `bath_gain × bath_ratio` (kitty 4:
+  0.4 + 3.5 × 2 = 7.4 per tick, world.rs:1097).
+- A8 and A9 are read exactly only where both snapshot ends agree; the
+  rest (a bowl emptied earlier in the apply order, a want armed at one
+  end only) is reported as "soft", never as green. Smoke: 0 hard
+  violations, 5 soft.
+- A16: the answers-me compare is strict (`their_here > my_want`,
+  observe.rs:619), so a wanter who re-calls on the reply's own tick
+  never sees the bit. With equal cooldowns the pair falls into lockstep
+  (kitty 2 / kitty 4, ticks 456–486); 3 of 169 replies in the smoke were
+  invisible this way. Engine semantics, not a wiring fault; logged as a
+  Part B observation on the reply channel.
+- A1 on this config: 102 constant columns, four reasons
+  (`declared_constant.json`). Structural: trill/ekekek off in the
+  vocabulary; mew/chirp/purr never scripted; **want_drink is silent for
+  the whole run** because `known_relief(drink)` holds once water is seen
+  or remembered, water never moves and memory never expires, so the
+  scripted corpus carries no drink want and no here_water reply. Sample
+  (must move on the full corpus, else red): distress flags, want_play
+  on two rows, critter slots 3–4.
+- Scripted mask-mismatch: 19 of 4981 decisions (0.38%) had the behavior
+  propose an action the mask forbids (bc-collect drops none; it records
+  the mask). Read with Part B; not a schema row.
 
 ## Part B — finding → step-6 decision map
 
@@ -210,13 +248,24 @@ with no layout consequence (the legality mask is an oracle over
   The stop rule reads `ep_return_mean`, the env's unshaped team return.
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
+  Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
+  with three keys changed, each declared here: `groom_cuddle_relief`
+  2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
+  `reply_intensity_floor` unset → 0.30 (the served comment assigns the
+  floor to this config; 0.30 is the provisional value, owner pins at
+  declaration). Unset, the served config emits no here-word and no
+  reply at all (anchor smoke: 0 of each in 1000 ticks), so A7/A8/A16
+  cannot be read on it. Anchor roster: 1 needs_driven, 2 playful, 3–5
+  needs_driven.
 - BC: train to plateau, patience 10, no epoch floor; bars reply-here /
   ambient-here / want, numbers `<pin at declaration>`, held-out set.
 - Critic: retrain at width 408, γ 0.998, censored MC targets (the
   exp-006 recipe). The trainer pins width through its tokenizer module
   (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at
-  start); Gen 1 gets an `obs_tokens_v5` written against the posted
-  layout, so no schema-4 artifact is touched.
+  start); Gen 1 has `obs_tokens_v5` (cbf76eb, pads only all-zero rows
+  so a Heard row stays attended), so no schema-4 artifact is touched.
+  Trainer cutover (`model_v5.py`, `train_ppo6.py` → schema 5, probe
+  `.npz` dumps for A17) is the next instrument.
 - **Cosleep-on-beam read (companion, owner ruled 2026-09-04 with the
   on-sunbeam bit)**: T092 made the scripted sleep arm cosleep beside a
   settled friend on a sunbeam (conduction pays sunbeam-grade relief),
