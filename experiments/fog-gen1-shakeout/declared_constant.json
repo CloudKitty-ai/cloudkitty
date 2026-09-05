@@ -1,26 +1,47 @@
 {
-  "_": "PREREG A1: observation columns allowed to sit at zero variance over the corpus, one reason per group, fnmatch patterns over schema_check.col_name. A LIST value is a STRUCTURAL group: a proof from law/config/roster that the setting event is unreachable, so the column holds constant for any corpus length. An OBJECT value is a RARE group (owner ruling 2026-09-04): the wiring is shown alive (a sibling column on the same encoder loop moved, or a forced emission) and only incidence is unknown; its constant columns read UNPROVEN, and turn RED once the corpus is 5x the expected waiting time (expected_per_1000 = setting events per 1000 corpus ticks, all cats; null = no estimate yet, never red). A rare group whose columns all moved is reported stale, the good outcome.",
+  "_": "PREREG A1: observation columns allowed to sit at zero variance over the corpus, one reason per group, fnmatch patterns over schema_check.col_name. A LIST value is a STRUCTURAL group: a proof from law/config/roster that the setting event is unreachable, so the column holds constant for any corpus length. A structural group may also be written as an OBJECT with `patterns` and `a17_exempt: true` when its proof is ROSTER behaviour rather than law (the scripted anchor never says mew; a policy may): A1 treats it as structural, A17 does not red it for moving. An OBJECT value with `expected_per_1000` is a RARE group (owner ruling 2026-09-04): the wiring is shown alive (a sibling column on the same encoder loop moved, or a forced emission) and only incidence is unknown; its constant columns read UNPROVEN, and turn RED once the corpus is 5x the expected waiting time (expected_per_1000 = setting events per 1000 corpus ticks, all cats; null = no estimate yet, never red). A rare group whose columns all moved is reported stale, the good outcome.",
   "vocabulary: anchor.toml [vocabulary] trill = false, ekekek = false; the engine refuses both in every layout (meow.rs message_legal)": [
-    "*.msg.trill.*", "*.msg.ekekek.*"
+    "*.msg.trill.*",
+    "*.msg.ekekek.*"
   ],
-  "free register never scripted (owner ruling 2026-09-02): the scripted announce path emits wants, replies and here-words only, so mew/chirp/purr cannot appear in the corpus; a policy may say them, which A17 compares": [
-    "*.msg.mew.*", "*.msg.chirp.*", "*.msg.purr.*"
-  ],
-  "want_drink structurally silent in the fog era: known_relief(drink) holds once water is seen or remembered (meow.rs), water never moves and memory_timeout 0 never forgets, so self.memory.water.present sits at 1 and want_drink is illegal for the rest of the run; the here_water answers-me bit follows. DROP when spec 050 relief_memory_margin lands at 0": [
-    "*.msg.want_drink.*", "*.want.want_drink", "*.answers_me.here_water", "self.memory.water.present"
-  ],
+  "free register never scripted (owner ruling 2026-09-02): the scripted announce path emits wants, replies and here-words only, so mew/chirp/purr cannot appear in the corpus; a policy may say them (a17_exempt: the smoke policy did)": {
+    "patterns": [
+      "*.msg.mew.*",
+      "*.msg.chirp.*",
+      "*.msg.purr.*"
+    ],
+    "a17_exempt": true
+  },
+  "want_drink structurally silent in the fog era: known_relief(drink) holds once water is seen or remembered (meow.rs), water never moves and memory_timeout 0 never forgets, so self.memory.water.present sits at 1 and want_drink is illegal for the rest of the run; the here_water answers-me bit follows. A policy that wanders past water before its first drink varies the memory bit (a17_exempt). DROP when spec 050 relief_memory_margin lands at 0": {
+    "patterns": [
+      "*.msg.want_drink.*",
+      "*.want.want_drink",
+      "*.answers_me.here_water",
+      "self.memory.water.present"
+    ],
+    "a17_exempt": true
+  },
   "RARE distress flags eat/drink/sleep/play/bath: push_distress_flags writes all six in one loop and the cuddle flag moved (peak 98 > distress 90 on the 1000-tick smoke); the other needs peaked 35-64, so on the scripted anchor welfare keeps them below the line. Early PPO arms will cross it (A17 exempts this group)": {
-    "patterns": ["self.schema4[[]2[0-5][]]"],
+    "patterns": [
+      "self.schema4[[]2[0-5][]]"
+    ],
     "wiring": "sibling: self.schema4[24] (cuddle distress) varies on the smoke",
     "expected_per_1000": null
   },
   "RARE want_play on kitty rows 0 and 3 and the here_critter answers-me bit: one row loop writes rows 0-3 and rows 1-2 carried want_play; the play law knows relief whenever an idle friend or a critter is seen or remembered, so with five cats play wants are rare by law (1 on the smoke)": {
-    "patterns": ["kitty*.msg.want_play.*", "kitty*.want.want_play", "*.answers_me.here_critter"],
+    "patterns": [
+      "kitty*.msg.want_play.*",
+      "kitty*.want.want_play",
+      "*.answers_me.here_critter"
+    ],
     "wiring": "sibling: kitty1/kitty2 want_play cells vary on the smoke",
     "expected_per_1000": null
   },
   "RARE critter slots 3-4: one slot loop fills slots 1-4 and slots 1-2 fill; the world holds 4 critters (bug min 3 + greeble min 1), each covering ~81/400 of the map, so three in one disc is <= ~2.7% per cat-tick under independence and the bug tether spreads them (0 of 5000 cat-ticks on the smoke)": {
-    "patterns": ["element_block8[[]*", "element_block9[[]*"],
+    "patterns": [
+      "element_block8[[]*",
+      "element_block9[[]*"
+    ],
     "wiring": "sibling: element_block6/7 (critter slots 1-2) fill on the smoke",
     "expected_per_1000": null
   }

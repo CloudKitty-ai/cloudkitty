@@ -102,12 +102,18 @@ def test_a1_rare_group_unproven_then_overdue():
     # a RARE group's constant columns read unproven without a rate, and
     # red once the corpus is OVERDUE_FACTOR expected waits long
     tr = fresh()
-    structural = {k: v for k, v in DECLARED.items() if isinstance(v, list)}
-    rare = {k: dict(v) for k, v in DECLARED.items() if isinstance(v, dict)}
+    structural = {k: v for k, v in DECLARED.items()
+                  if not (isinstance(v, dict) and "expected_per_1000" in v)}
+    rare = {k: dict(v) for k, v in DECLARED.items()
+            if isinstance(v, dict) and "expected_per_1000" in v}
     for v in rare.values():
         v["expected_per_1000"] = None
     f = sc.check_a1(tr, dict(structural, **rare))
     assert f.status == "unproven" and f.detail["unproven"] and not f.detail["overdue"]
+    # an a17_exempt object is STRUCTURAL for A1: its columns are neither
+    # unproven nor undeclared
+    mew = sc.col_name(constant_col("*.msg.mew.rate"))
+    assert mew not in f.detail["unproven"] and mew not in f.detail["undeclared"]
     # 1000 ticks x 5/1000 = 5 expected events = exactly the factor: red
     for v in rare.values():
         v["expected_per_1000"] = sc.OVERDUE_FACTOR * 1000.0 / len(tr.lines)
@@ -297,6 +303,18 @@ def test_a17_policy_moves_a_corpus_constant(tmp):
     f = sc.check_a17(tr, path, DECLARED)
     assert f.status == "ok" and f.detail["rare_moved"] == [sc.col_name(col)]
     not_ok(sc.check_a17(tr, path))                      # undeclared: still red
+    # a roster-constant structural group flagged a17_exempt (the free
+    # register) is exempt too; the same group without the flag is red
+    pobs = tr.obs.copy()
+    col = constant_col("*.msg.mew.rate")
+    pobs[0, col] = 1.0 - pobs[0, col]
+    np.savez(path, obs=pobs)
+    f = sc.check_a17(tr, path, DECLARED)
+    assert f.status == "ok" and f.detail["rare_moved"] == [sc.col_name(col)]
+    unflagged = {k: ({"patterns": v["patterns"]} if isinstance(v, dict)
+                     and v.get("a17_exempt") else v)
+                 for k, v in DECLARED.items()}
+    not_ok(sc.check_a17(tr, path, unflagged))
     np.savez(path, obs=tr.obs)
     assert sc.check_a17(tr, path, DECLARED).status == "ok"
 

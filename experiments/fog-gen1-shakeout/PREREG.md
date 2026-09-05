@@ -8,7 +8,10 @@ owner's call), the `reply_intensity_floor` pin on `anchor.toml`, the
 `expected_per_1000` rates in `declared_constant.json` (from the corpus),
 and spec 050 `relief_memory_margin` landing (then the anchor re-smoke at
 margin 0). `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
-the A1 reasons were ratified the same day (5a16b43).
+the A1 reasons were ratified the same day (5a16b43). The trainer
+(`trainer/train_ppo_fog.py`) landed 2026-09-05 with its own pin list
+(`PINS`: β 0.04 / 0.05 provisional; radius, the two schema-5 clones and
+the fog critic None until the screens and the BC pass fill them).
 Declaration = a later commit that removes this header. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
@@ -83,8 +86,10 @@ index-persistence half is read at probe 1 with the rest.
 
 Instrument status, 2026-09-04 (anchor smoke: `anchor.toml`, 1000 ticks,
 seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
-17 rows green, A17 waits for the trainer's probe dump. What the smoke
-taught, carried into the rows' reading:
+17 rows green; A17 lit 2026-09-05 from the fog trainer's smoke probe
+(random init, 3 × 100 ticks): red as expected for a random policy, and
+the disagreement split by direction taught the exemption rule below.
+What the smoke taught, carried into the rows' reading:
 
 - A5's healthy reading "heard rows have non-zero recency" is false for a
   row heard only through `wait_for_me`, which is outside the 15 digest
@@ -126,8 +131,14 @@ taught, carried into the rows' reading:
   filled at declaration from the corpus's own precursor counts; null
   until then). A rare group whose columns moved reads stale, the good
   outcome. A17 exempts rare-declared columns from the can-vary
-  comparison (early PPO crosses distress; the anchor never does) and
-  still reds a structural one.
+  comparison (early PPO crosses distress; the anchor never does). A
+  structural reason has two proofs, and only one binds a policy: LAW
+  (trill/ekekek refused by the engine) holds for every mind, ROSTER
+  (mew/chirp/purr never scripted; water remembered before the first
+  drink) holds for the scripted anchor alone, and the smoke policy
+  moved all 31 of those columns. Roster-proof groups carry
+  `a17_exempt: true` and A17 reports them apart; a law-proof column
+  that moves stays red.
 - Scripted mask-mismatch: 19 of 4981 decisions (0.38%) had the behavior
   propose an action the mask forbids (bc-collect drops none; it records
   the mask). Read with Part B; not a schema row.
@@ -282,8 +293,19 @@ with no layout consequence (the legality mask is an oracle over
   (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at
   start); Gen 1 has `obs_tokens_v5` (cbf76eb, pads only all-zero rows
   so a Heard row stays attended), so no schema-4 artifact is touched.
-  Trainer cutover (`model_v5.py`, `train_ppo6.py` → schema 5, probe
-  `.npz` dumps for A17) is the next instrument.
+  Trainer cutover landed 2026-09-05: `model_v5.py` (torch forward
+  parity-guarded against the certified oracle) and
+  `trainer/train_ppo_fog.py` (the exp-006 recipe at 408/55, six slots
+  keyed to the step-5 table, owner pins in `PINS` with the launcher
+  refusing an unpinned slot outside `--smoke`, per-arm config =
+  `anchor.toml` with only `[vision] radius` rewritten, the Part C
+  plateau stop beside the §10 welfare stop, `probe-u*.npz` dumps for
+  A17). Two things the trainer assumes that this document does not
+  pin: the training roster is the served composition with every seat
+  a policy (the exp-006 mix 0.0, no spread family), and the critic
+  keeps its 197-wide global-state view (schema 1 did not move; the
+  "width 408" above is the policy's, the critic retrain is for the
+  value distribution under fog, not a new width).
 - **Cosleep-on-beam read (companion, owner ruled 2026-09-04 with the
   on-sunbeam bit)**: T092 made the scripted sleep arm cosleep beside a
   settled friend on a sunbeam (conduction pays sunbeam-grade relief),

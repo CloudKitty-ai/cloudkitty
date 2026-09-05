@@ -326,18 +326,35 @@ OVERDUE_FACTOR = 5.0   # a rare column is red once the corpus is this many expec
 
 def declared_groups(declared_constant):
     """`{reason: patterns}` for structural groups and `{reason: spec}` for
-    rare ones, from declared_constant.json (list = structural, object =
-    rare with `patterns`, `wiring`, `expected_per_1000`) or a bare list."""
+    rare ones, from declared_constant.json or a bare list. A list value is
+    structural; an object is rare when it carries `expected_per_1000`
+    (with `patterns`, `wiring`), otherwise structural with `patterns` and
+    optional flags (`a17_exempt`, see a17_exempt_patterns)."""
     structural, rare = {}, {}
     if isinstance(declared_constant, dict):
         for reason, v in declared_constant.items():
             if isinstance(v, list):
                 structural[reason] = v
             elif isinstance(v, dict) and isinstance(v.get("patterns"), list):
-                rare[reason] = v
+                (rare if "expected_per_1000" in v else structural)[reason] = (
+                    v if "expected_per_1000" in v else v["patterns"])
     else:
         structural["declared"] = list(declared_constant)
     return structural, rare
+
+
+def a17_exempt_patterns(declared_constant):
+    """`{reason: patterns}` for the groups whose columns may move under a
+    policy that the scripted anchor never moved: every RARE group, plus
+    structural groups flagged `a17_exempt` (constant by ROSTER behaviour,
+    not by law: the anchor never says mew, a policy may)."""
+    out = {}
+    if isinstance(declared_constant, dict):
+        for reason, v in declared_constant.items():
+            if isinstance(v, dict) and isinstance(v.get("patterns"), list) and (
+                    "expected_per_1000" in v or v.get("a17_exempt")):
+                out[reason] = v["patterns"]
+    return out
 
 
 def matches_any(name, groups):
@@ -1032,26 +1049,27 @@ def check_a16(tr):
 
 
 def check_a17(tr, policy_npz=None, declared_constant=()):
-    """Can-vary must agree between anchor and policy, except on columns a
-    RARE A1 group declares: those may move under a policy the scripted
-    anchor never exercises (distress under early PPO) and are reported
-    apart, not red."""
+    """Can-vary must agree between anchor and policy, except on columns an
+    A1 group exempts (a17_exempt_patterns): RARE groups and roster-constant
+    structural ones may move under a policy the scripted anchor never
+    exercises (distress under early PPO, the free register) and are
+    reported apart, not red. Law-constant groups (the refused vocabulary)
+    stay red if they move."""
     if policy_npz is None:
         return Finding("A17", "n/a", "no policy trace given (--policy-trace)")
     pol = np.load(policy_npz)
     pobs = pol["obs"].reshape(-1, OBS_DIM).astype(np.float32)
     var_a, var_p = tr.obs.var(0) > 0, pobs.var(0) > 0
-    _structural, rare = declared_groups(declared_constant)
-    rare_pats = {k: v["patterns"] for k, v in rare.items()}
+    exempt = a17_exempt_patterns(declared_constant)
     differ = [col_name(i) for i in np.flatnonzero(var_a != var_p)]
-    rare_moved = [c for c in differ if matches_any(c, rare_pats)]
+    rare_moved = [c for c in differ if matches_any(c, exempt)]
     disagree = [c for c in differ if c not in rare_moved]
     rows_a = tr.obs[:, KITTY_SPAN[0]:KITTY_SPAN[1]].reshape(-1, N_KITTY, KITTY_W)
     rows_p = pobs[:, KITTY_SPAN[0]:KITTY_SPAN[1]].reshape(-1, N_KITTY, KITTY_W)
     seen_a = float((rows_a[..., ROW_PRESENT] > 0).mean())
     seen_p = float((rows_p[..., ROW_PRESENT] > 0).mean())
     return ok_or_red("A17", bool(disagree) or abs(seen_a - seen_p) > 0.25,
-                     f"{len(disagree)} columns differ in can-vary ({len(rare_moved)} rare-declared "
+                     f"{len(disagree)} columns differ in can-vary ({len(rare_moved)} declared "
                      f"exempt); seen share anchor {seen_a:.3f} policy {seen_p:.3f}",
                      {"disagree": disagree, "rare_moved": rare_moved,
                       "seen_share": [seen_a, seen_p]})
