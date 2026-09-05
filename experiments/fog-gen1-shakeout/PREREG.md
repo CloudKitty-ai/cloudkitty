@@ -300,12 +300,12 @@ with no layout consequence (the legality mask is an oracle over
   refusing an unpinned slot outside `--smoke`, per-arm config =
   `anchor.toml` with only `[vision] radius` rewritten, the Part C
   plateau stop beside the §10 welfare stop, `probe-u*.npz` dumps for
-  A17). Two things the trainer assumes that this document does not
-  pin: the training roster is the served composition with every seat
-  a policy (the exp-006 mix 0.0, no spread family), and the critic
-  keeps its 197-wide global-state view (schema 1 did not move; the
-  "width 408" above is the policy's, the critic retrain is for the
-  value distribution under fog, not a new width).
+  A17). Two rulings (owner 2026-09-05): the training roster is the
+  served composition with every seat a policy (the exp-006 mix 0.0, no
+  spread family), and the critic keeps its 197-wide global-state view
+  (schema 1 did not move; the "width 408" above is the policy's, the
+  critic retrain is for the value distribution under fog, not a new
+  width).
 - **Cosleep-on-beam read (companion, owner ruled 2026-09-04 with the
   on-sunbeam bit)**: T092 made the scripted sleep arm cosleep beside a
   settled friend on a sunbeam (conduction pays sunbeam-grade relief),

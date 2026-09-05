@@ -15,8 +15,8 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
     outside --smoke;
   - the training world is the served roster (5 seats, all policy: the
     exp-006 mix 0.0), one config, no family. That the pass trains on
-    the served composition rather than a spread family is an assumption
-    the prereg does not pin; it is flagged in the run manifest;
+    the served composition rather than a spread family was ruled by the
+    owner 2026-09-05 (PREREG Part C);
   - stop rules: the Section-10 welfare stop (nash < 0.5 on three
     consecutive probes) AND the Part C plateau rule: three consecutive
     1M-tick bins each improving the bin-mean return by < 0.005 with
@@ -567,7 +567,7 @@ def main():
         "config": str(config_path), "config_sha256": sha256(config_path),
         "probe_config": str(probe_config),
         "training_roster": "served composition, all seats policy (mix 0.0); "
-                           "not pinned by PREREG Part C -- flagged assumption",
+                           "owner ruled 2026-09-05 (PREREG Part C)",
         "vstats": {"mean": mean_v, "std": std_v},
         "hyperparams": {k: str(v) if isinstance(v, Path) else v
                         for k, v in vars(args).items()},
