@@ -33,7 +33,7 @@ Expected: `the_law_holds_over_random_worlds` untouched and green (key absent); t
 cargo test -p cloudkitty-core --test relief_memory_margin -- --nocapture
 ```
 
-Expected: `want_drink` calls > 0 over 1,000 ticks on the served `cloudkitty.toml` verbatim (F-040 predicts ~12 across the roster; printed, not gated); with the test-only floor 0.01, `here_water` replies (`reply == true`) > 0. Red-first: with the field landed but unread, drink = 0.
+Expected: `want_drink` calls > 0 over 20,000 ticks on the served `cloudkitty.toml` verbatim (reading 2026-09-05: 23, ~1.2 per 1,000, first at tick 1,610; F-040's ~12 per 1,000 is the anchor config's rate); with the test-only floor 0.01, `here_water` replies (`reply == true`) > 0 (reading: 273). Red-first: with the key forced absent, drink = 0 at every horizon.
 
 ## 4. The stream re-pin and the SC-004b control (FR-009, R5)
 

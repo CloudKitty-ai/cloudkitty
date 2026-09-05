@@ -7,8 +7,13 @@
 //! drink calls and +10-13 eat calls per 1,000 ticks); the gate is > 0.
 //!
 //! Two runs: the served `cloudkitty.toml` VERBATIM for the drink count
-//! (1,000 ticks -- a few hundred could legitimately read 0 on a bad seed);
-//! and the same config with a reply floor set IN THE TEST ONLY for the
+//! over the house 20,000-tick stream horizon -- the spec's first draft
+//! said 1,000 on F-040's anchor rate (~12 per 1,000), but the SERVED
+//! config (floor unset, announce_here 0, the served seed) reads ~1.2 per
+//! 1,000 with its first call at tick 1,610, so 1,000 ticks read 0 on the
+//! served seed and 5,000 read 3 (implement-time measurement, 2026-09-05;
+//! redden-list §U2); and the same config with a reply floor set IN THE
+//! TEST ONLY for the
 //! `here_water` reply count -- any value > 0 (clarification 1,
 //! 2026-09-05): the claim is "the reply path fires on a want_drink", not
 //! "at 0.30", so the provisional declaration-time pin never ripples into
@@ -20,7 +25,7 @@ use std::sync::Arc;
 
 use cloudkitty_core::{BehaviorRegistry, Config, MessageKind, World};
 
-const TICKS: u64 = 1_000;
+const TICKS: u64 = 20_000;
 
 fn served_all_scripted() -> Config {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -72,8 +77,9 @@ fn the_served_roster_asks_for_water() {
     let counts = count_calls(config);
     let calls = |kind| counts.get(&kind).map_or(0, |c| c.0);
     println!(
-        "F-040 reading (served, r = 5, margin 0, {TICKS} ticks): want_drink {} want_eat {} want_play {}",
+        "F-040 reading (served, r = 5, margin 0, {TICKS} ticks): want_drink {} ({:.1} per 1,000) want_eat {} want_play {}",
         calls(MessageKind::WantDrink),
+        calls(MessageKind::WantDrink) as f64 * 1_000.0 / TICKS as f64,
         calls(MessageKind::WantEat),
         calls(MessageKind::WantPlay)
     );

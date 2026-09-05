@@ -33,7 +33,7 @@ At margin 0, Manhattan ≤ r lies inside the Euclidean disc, where a remembered 
 | axis-aligned `r + 1` fixture, asserted outside the disc: margin 0 legal, margin 1 silent, absent silent — drink, eat, play | `meow.rs` unit tests | the unchanged engine at the margin-0 arm |
 | water in view silent at margins 0 / 1 / 8 / absent; cuddle / bath / sleep verdicts equal across margins | `meow.rs` unit tests | (kept behaviour; green throughout) |
 | the reach rule over random worlds and margins, independent oracle | `tests/meow_law_fog.rs` (new test; the existing property untouched) | the unchanged engine |
-| served roster, r = 5, 1,000 ticks: `want_drink` > 0 on the served TOML verbatim; `here_water` replies > 0 with a test-only floor (0.01, any > 0) | `tests/relief_memory_margin.rs` (new) | key parsed but unread → 0 calls |
+| served roster, r = 5, 20,000 ticks: `want_drink` > 0 on the served TOML verbatim; `here_water` replies > 0 with a test-only floor (0.01, any > 0) | `tests/relief_memory_margin.rs` (new) | key parsed but unread → 0 calls |
 | `relief_memory_margin` absent from the default serialization | `config/mod.rs` stamp test | skip attribute dropped |
 
 ## Records that move with the served key
