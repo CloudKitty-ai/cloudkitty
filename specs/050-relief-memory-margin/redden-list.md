@@ -12,6 +12,8 @@ Baseline count (branch tip `5e5803f`, before any engine change, 2026-09-05):
 `cargo clippy --workspace --all-targets -- -D warnings` clean. Toolchain
 1.97.1 per `rust-toolchain.toml`.
 
+Owner rulings (2026-09-05, after the implement report): (1) SC-004 at 20,000 ticks STANDS — a 1,000-tick > 0 gate that reads zero on the served seed fails green-side for the wrong reason; raising the horizon was the fix, weakening the gate would not have been. (2) The r = 5 re-pin at tick 128 is ACCEPTED — want_eat at 118 from a bowl beyond radius + 0, kitty 4 walking toward the heard friend, r = 40 control unmoved, no RNG: the 048 shape exactly.
+
 FINAL count (T026, 2026-09-05): **894 / 0, 6 ignored**, wall 79 s; fmt + clippy clean.
 
 ## Cycles
