@@ -17,16 +17,16 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `specs/050-relief-memory-margin/redden-list.md` in the 049 format (standard paragraph; baseline count from a fresh `scratchpad/cycle.sh c0` on the untouched branch — expected 884 / 0 / 6 ignored, re-read; fmt + clippy clean; toolchain from `rust-toolchain.toml`); commit.
+- [X] T001 Create `specs/050-relief-memory-margin/redden-list.md` in the 049 format (standard paragraph; baseline count from a fresh `scratchpad/cycle.sh c0` on the untouched branch — expected 884 / 0 / 6 ignored, re-read; fmt + clippy clean; toolchain from `rust-toolchain.toml`); commit.
 
 ---
 
 ## Phase 2: Foundational — the key exists and is inert
 
-- [ ] T002 Add `pub relief_memory_margin: Option<u32>` to `MeowConfig` in `crates/cloudkitty-core/src/config/mod.rs` with `#[serde(default, skip_serializing_if = "Option::is_none")]` and a doc comment (spec 050: remembered relief within `[vision] radius + margin` Manhattan tiles; absent = unbounded; served 0; 039-D5 skip); set `relief_memory_margin: None` in `impl Default for MeowConfig` (same file).
-- [ ] T003 Extend `roam_cell_stays_out_of_the_default_serialization` in `crates/cloudkitty-core/src/config/mod.rs` with `assert!(!json.contains("relief_memory_margin"), ...)` (spec 050 comment); red-first: temporarily drop the skip attribute, predict "leaked into the stamp", see red, restore, see green — record as cycle F1 in `redden-list.md`.
-- [ ] T004 Add a `MeowConfig` parse test in `crates/cloudkitty-core/src/config/mod.rs` tests: `relief_memory_margin = 0` parses to `Some(0)`, absent parses to `None`, `relief_memory_margin = -1` fails to parse with an error naming the key (FR-001 negative refused); no `validate.rs` change (no upper bound).
-- [ ] T005 Run `cargo test -p cloudkitty-core --lib config::` and `scratchpad/cycle.sh f0`; predict: all green, count = baseline + 1 (T004); goldens and stamp unmoved (key absent from `Config::default()`); record in `redden-list.md`; commit.
+- [X] T002 Add `pub relief_memory_margin: Option<u32>` to `MeowConfig` in `crates/cloudkitty-core/src/config/mod.rs` with `#[serde(default, skip_serializing_if = "Option::is_none")]` and a doc comment (spec 050: remembered relief within `[vision] radius + margin` Manhattan tiles; absent = unbounded; served 0; 039-D5 skip); set `relief_memory_margin: None` in `impl Default for MeowConfig` (same file).
+- [X] T003 Extend `roam_cell_stays_out_of_the_default_serialization` in `crates/cloudkitty-core/src/config/mod.rs` with `assert!(!json.contains("relief_memory_margin"), ...)` (spec 050 comment); red-first: temporarily drop the skip attribute, predict "leaked into the stamp", see red, restore, see green — record as cycle F1 in `redden-list.md`.
+- [X] T004 Add a `MeowConfig` parse test in `crates/cloudkitty-core/src/config/mod.rs` tests: `relief_memory_margin = 0` parses to `Some(0)`, absent parses to `None`, `relief_memory_margin = -1` fails to parse with an error naming the key (FR-001 negative refused); no `validate.rs` change (no upper bound).
+- [X] T005 Run `cargo test -p cloudkitty-core --lib config::` and `scratchpad/cycle.sh f0`; predict: all green, count = baseline + 1 (T004); goldens and stamp unmoved (key absent from `Config::default()`); record in `redden-list.md`; commit.
 
 **Checkpoint**: the key parses, is skip-serialized, and nothing reads it.
 

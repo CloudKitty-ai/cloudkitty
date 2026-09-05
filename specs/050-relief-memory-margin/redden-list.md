@@ -19,3 +19,5 @@ FINAL count: recorded at T026.
 | cycle | mutation | prediction | result | restored (count re-read) |
 |---|---|---|---|---|
 | c0 | none (baseline) | 884 / 0 / 6 | 884 / 0 / 6, 78 s | — |
+| F1 (T003) | `skip_serializing_if` dropped from `relief_memory_margin` | `roam_cell_stays_out_of_the_default_serialization` RED "relief_memory_margin leaked into the stamp" | RED as predicted (`"relief_memory_margin":null` in the JSON) | restored via `git checkout`; 1 / 0 green re-read |
+| f0 (T005) | key landed, inert (T002–T004) | 885 / 0 / 6; goldens, stamp, streams unmoved | 885 / 0 / 6, 81 s — as predicted | — |
