@@ -4,9 +4,11 @@ Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
 open before declaration: the BC bar numbers (`<pin at declaration>`,
-owner's call), the A1 declared-constant reasons (`declared_constant.json`,
-owner ratifies), and the `reply_intensity_floor` pin on `anchor.toml`.
-`schema_check.py` and its guard landed 2026-09-04 (e4f0642).
+owner's call), the `reply_intensity_floor` pin on `anchor.toml`, the
+`expected_per_1000` rates in `declared_constant.json` (from the corpus),
+and spec 050 `relief_memory_margin` landing (then the anchor re-smoke at
+margin 0). `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
+the A1 reasons were ratified the same day (5a16b43).
 Declaration = a later commit that removes this header. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
@@ -102,14 +104,30 @@ taught, carried into the rows' reading:
   (kitty 2 / kitty 4, ticks 456–486); 3 of 169 replies in the smoke were
   invisible this way. Engine semantics, not a wiring fault; logged as a
   Part B observation on the reply channel.
-- A1 on this config: 102 constant columns, four reasons
-  (`declared_constant.json`). Structural: trill/ekekek off in the
-  vocabulary; mew/chirp/purr never scripted; **want_drink is silent for
-  the whole run** because `known_relief(drink)` holds once water is seen
-  or remembered, water never moves and memory never expires, so the
-  scripted corpus carries no drink want and no here_water reply. Sample
-  (must move on the full corpus, else red): distress flags, want_play
-  on two rows, critter slots 3–4.
+- A1 on this config: 102 constant columns, six reasons
+  (`declared_constant.json`), all ratified by the owner 2026-09-04.
+  Constancy is a property of the sample; inertness is a property of the
+  generator, so a reason is one of two kinds. STRUCTURAL: a proof from
+  law, config or roster that the setting event is unreachable, good for
+  any corpus length. Three of these: trill/ekekek off in the vocabulary;
+  mew/chirp/purr never scripted; **want_drink is silent for the whole
+  run** because `known_relief(drink)` holds once water is seen or
+  remembered, water never moves and memory never expires (F-040; spec
+  050 `relief_memory_margin` = 0 removes this group when it lands).
+  RARE: the wiring is shown alive by a sibling column on the same
+  encoder loop (or a forced emission) and only incidence is unknown.
+  Three of these: distress flags for five needs (the cuddle flag on the
+  same loop moved; the others peaked 35–64 against a line at 90),
+  want_play on kitty rows 0 and 3 plus the here_critter bit (rows 1–2
+  moved; play is rare by law with five cats), critter slots 3–4 (slots
+  1–2 fill; four critters on the map, three in one disc never seen in
+  5000 cat-ticks). The checker reads a rare constant as **unproven**,
+  and red once the corpus is 5× the expected wait (`expected_per_1000`,
+  filled at declaration from the corpus's own precursor counts; null
+  until then). A rare group whose columns moved reads stale, the good
+  outcome. A17 exempts rare-declared columns from the can-vary
+  comparison (early PPO crosses distress; the anchor never does) and
+  still reds a structural one.
 - Scripted mask-mismatch: 19 of 4981 decisions (0.38%) had the behavior
   propose an action the mask forbids (bc-collect drops none; it records
   the mask). Read with Part B; not a schema row.
