@@ -4,8 +4,8 @@
         experiments/fog-gen1-shakeout/trainer/test_train_ppo_fog.py
 
 The Part C plateau predicate, the per-arm config derivation (anchor.toml
-with only `[vision] radius` moved), the no-fog radius, and the slot
-table's seed claim. The PPO loop itself is the exp-006 recipe carried
+with only `[vision] radius` moved), the no-fog radius, the slot table's
+seed claim, and the roster mix (one draft slot, exp-001/002's third). The PPO loop itself is the exp-006 recipe carried
 verbatim and is exercised by the --smoke run, not here.
 """
 import sys
@@ -50,12 +50,26 @@ def test_whole_world_radius_covers_the_far_corner():
     assert r == 27 and r * r >= 19 * 19 + 19 * 19 and (r - 1) ** 2 < 19 * 19 * 2
 
 
-def test_slots_claim_run_indices_12_to_17_once_each():
+def test_slots_claim_run_indices_12_to_20_once_each():
     # red: duplicate a run index in SLOTS
     idx = sorted(v[4] for v in tf.SLOTS.values())
-    assert idx == list(range(12, 18)), idx
+    assert idx == list(range(12, 21)), idx
     assert all(v[1] in tf.PINS and v[2] in tf.PINS for v in tf.SLOTS.values())
-    assert {v[0] for v in tf.SLOTS.values()} == {"pin", "pin+1", "whole"}
+    assert {v[0] for v in tf.SLOTS.values()} == {"pin", "pin+1", "pin-1", "whole"}
+    # the six ruled slots keep their 2026-09-05 shape; the draft three
+    # sit after them
+    ruled = {k: v for k, v in tf.SLOTS.items() if v[4] < 18}
+    assert set(ruled) == {"ref-s1", "ref-s2", "nofog", "radius+1", "leash", "vocab"}
+    assert tf.SLOTS["ref-s3"][3] == 3 and tf.SLOTS["ref-s3"][:3] == tf.SLOTS["ref-s1"][:3]
+    assert tf.SLOTS["mixed"][:4] == tf.SLOTS["ref-s1"][:4]      # same seed: a pair
+    assert tf.SLOTS["radius-1"][0] == "pin-1" and tf.SLOTS["radius-1"][1:4] == tf.SLOTS["ref-s1"][1:4]
+
+
+def test_mix_is_zero_everywhere_but_the_mixed_slot():
+    # red: add a second MIX entry, or move mixed off a third
+    assert set(tf.MIX) == {"mixed"} and set(tf.MIX) <= set(tf.SLOTS)
+    assert tf.MIX["mixed"] == 0.33
+    assert all(tf.MIX.get(k, 0.0) == 0.0 for k in tf.SLOTS if k != "mixed")
 
 
 if __name__ == "__main__":

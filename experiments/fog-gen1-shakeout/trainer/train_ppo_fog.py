@@ -7,8 +7,11 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
     = EntityPolicyV5 (attn-oracle-2026-08-15/model_v5.py, parity-guarded
     against the certified oracle); critic = EntityCritic over the padded
     197 global state, whose schema (1) did not move with the wall;
-  - arms are the SIX SLOTS of the timeline's step-5 table, encoded so
-    the radius, the leash dose and the init are never operator inputs.
+  - arms are the SIX SLOTS of the timeline's step-5 table plus three
+    DRAFT slots (ref-s3, mixed, radius-1; PREREG Part C nine-arm
+    variant, owner ruling pending 2026-09-05), encoded so the radius,
+    the leash dose, the init and the roster mix are never operator
+    inputs.
     Every arm's world is anchor.toml with ONLY `[vision] radius`
     rewritten (the config rule: served toml, groom bump reverted, reward
     = spec 014). Owner pins live in PINS; a None pin refuses to launch
@@ -16,7 +19,10 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
   - the training world is the served roster (5 seats, all policy: the
     exp-006 mix 0.0), one config, no family. That the pass trains on
     the served composition rather than a spread family was ruled by the
-    owner 2026-09-05 (PREREG Part C);
+    owner 2026-09-05 (PREREG Part C). The one exception is the draft
+    `mixed` slot (MIX): a third of its episodes seat one policy cat
+    among four scripted anchor seats, the exp-001/002 value, so spec
+    017's mixed-roster exam has an arm that trained for it;
   - stop rules: the Section-10 welfare stop (nash < 0.5 on three
     consecutive probes) AND the Part C plateau rule: three consecutive
     1M-tick bins each improving the bin-mean return by < 0.005 with
@@ -26,7 +32,8 @@ forked verbatim through exp-005 and exp-004) with the step-5 deltas only:
     act / msg) so schema_check.py A17 can read the policy's can-vary
     against the anchor trace;
   - training episode seeds: base = 100M + run_index*20M + segment*1k,
-    run indices 12-17 (SEED-BANDS.md row owed at declaration);
+    run indices 12-17 (draft slots 18-20; SEED-BANDS.md row owed at
+    declaration);
     estimator / duet / 006a machinery dropped.
 
 Every PPO quantity (fragment 256, GAE lambda 0.95, clip 0.2, entropy
@@ -107,7 +114,8 @@ PINS = {
 }
 
 # slot -> (radius rule, beta pin, init pin, seed, run_index). Run
-# indices 12-17 sit after exp-006 (0-7) and exp-006a (8-11).
+# indices 12-17 sit after exp-006 (0-7) and exp-006a (8-11); 18-20 are
+# the DRAFT nine-arm slots (PREREG Part C, owner ruling pending).
 SLOTS = {
     "ref-s1":   ("pin",   "beta_low",  "init_clone", 1, 12),
     "ref-s2":   ("pin",   "beta_low",  "init_clone", 2, 13),
@@ -115,7 +123,15 @@ SLOTS = {
     "radius+1": ("pin+1", "beta_low",  "init_clone", 1, 15),
     "leash":    ("pin",   "beta_next", "init_clone", 1, 16),
     "vocab":    ("pin",   "beta_low",  "init_vocab", 1, 17),
+    "ref-s3":   ("pin",   "beta_low",  "init_clone", 3, 18),
+    "mixed":    ("pin",   "beta_low",  "init_clone", 1, 19),
+    "radius-1": ("pin-1", "beta_low",  "init_clone", 1, 20),
 }
+
+# Share of training episodes that seat ONE policy cat among scripted
+# anchor seats (ppo_env6.MixedVecRunner). Every slot not listed is 0.0,
+# the 2026-09-05 all-policy ruling; `mixed` takes exp-001/002's third.
+MIX = {"mixed": 0.33}
 
 
 def whole_world_radius(cfg):
@@ -473,7 +489,9 @@ def main():
     with ANCHOR_TOML.open("rb") as f:
         anchor_cfg = tomllib.load(f)
     radius = {"pin": pins["radius"], "pin+1": pins["radius"] + 1,
+              "pin-1": pins["radius"] - 1,
               "whole": whole_world_radius(anchor_cfg)}[radius_rule]
+    mix = MIX.get(args.slot, 0.0)
     config_path = out / "config.toml"
     derive_config(radius, config_path)
     probe_config = args.probe_config or config_path
@@ -533,7 +551,7 @@ def main():
     kitty_ids = [k["id"] for k in anchor_cfg["kitty"]]
     variant = Variant(path=str(config_path), kitty_ids=kitty_ids,
                       behaviors={k["id"]: k["behavior"] for k in anchor_cfg["kitty"]})
-    runner = MixedVecRunner([variant], 0.0, args.n_worlds, seed_base,
+    runner = MixedVecRunner([variant], mix, args.n_worlds, seed_base,
                             horizon=args.horizon)
 
     obs_dim, mask_dim = runner.dims
@@ -566,8 +584,13 @@ def main():
         "anchor_toml_sha256": sha256(ANCHOR_TOML),
         "config": str(config_path), "config_sha256": sha256(config_path),
         "probe_config": str(probe_config),
-        "training_roster": "served composition, all seats policy (mix 0.0); "
-                           "owner ruled 2026-09-05 (PREREG Part C)",
+        "training_roster": (
+            "served composition, all seats policy (mix 0.0); owner "
+            "ruled 2026-09-05 (PREREG Part C)" if mix == 0.0 else
+            f"served composition; mix {mix}: that share of episodes "
+            "seats one policy cat among scripted anchor seats (draft "
+            "slot, PREREG Part C nine-arm variant)"),
+        "mix": mix,
         "vstats": {"mean": mean_v, "std": std_v},
         "hyperparams": {k: str(v) if isinstance(v, Path) else v
                         for k, v in vars(args).items()},
