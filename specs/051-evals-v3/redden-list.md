@@ -67,3 +67,13 @@ and the reason for FR-012.
 | U6 (T023) | real sha256 written into `evals/v3/manifest.toml` LAST, after T019/T022 | eval_suite fully GREEN: F0's three hash reds close (freeze guard, thresholds, sign-test k) | **19 / 0**, 1.32 s | — |
 | U7 (T024, freeze proof) | one trailing space on line 8 of `evals/v3/heterogeneity.toml` (committed first) | RED: `a_landed_exam_file_cannot_change_without_failing_ci` naming the file; `load_suite` refuses (thresholds test errors); `two_subjects_share_the_frozen_exam_without_touching_it` predicted RED too | freeze guard RED naming heterogeneity.toml ("changed after landing — a frozen exam never changes"); `load_suite` REFUSED ("content hash 8f81… does not match the manifest's e99b… — a landed suite version is frozen (FR-012)"); `two_subjects_share…` stayed GREEN — it rehashes the files into a scratch suite and proves a run leaves them untouched, not the freeze; the prediction for that one test was wrong, the freeze proof is the other two | `git checkout -- evals/v3/heterogeneity.toml`; `git diff -- evals/v3` empty; eval_suite **19 / 0** re-read |
 | T026 | none — `git diff main -- evals/v2 evals/v1` EMPTY; `git diff origin/main --stat` = the plan's files (+ BACKLOG entry removal, CHANGELOG, the 017 exam-configs record line the cells test cites); fmt clean; clippy clean | — | verified | — |
+| final (T027) | none — the finished branch | 897 / 0 / 6 (894 + T010 + T012 + T016); 0 failures | **897 / 0 / 6, 70 s** — as predicted | — |
+
+FINAL count (T027, 2026-09-05): **897 / 0, 6 ignored**, wall 70 s; fmt + clippy
+clean; `git diff main -- evals/v2 evals/v1` empty.
+
+Two predictions were wrong and are recorded above rather than smoothed over:
+F0 (three v2-roster-pinned guards the plan's R6 missed — each pointed at
+roster 5, none weakened) and U4's first attempt (red for the wrong reason,
+voided and re-run alone). One test in U7 (`two_subjects_share…`) was
+predicted red and stayed green; it does not guard the freeze.

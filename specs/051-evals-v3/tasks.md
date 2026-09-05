@@ -88,9 +88,9 @@
 ## Phase 6: Polish & cross-cutting
 
 - [X] T026 `git diff main -- evals/v2 evals/v1` → expect EMPTY (SC-003); `git diff main --stat` → only the files plan.md names; `cargo fmt --all -- --check`; `cargo clippy --workspace --all-targets -- -D warnings`; record.
-- [ ] T027 `scratchpad/cycle.sh final`; predict: baseline count + 3 new tests (T010, T012, T016), 0 failures, 6 ignored; READ the count; close `redden-list.md` with the final table (cycles F0, U1–U7, final) and the R1 record; commit.
+- [X] T027 `scratchpad/cycle.sh final`; predict: baseline count + 3 new tests (T010, T012, T016), 0 failures, 6 ignored; READ the count; close `redden-list.md` with the final table (cycles F0, U1–U7, final) and the R1 record; commit.
 - [X] T028 Remove the `evals/v3` P1 entry from `BACKLOG.md` (the section's own convention: shipped P1 items are removed once merged — do it in the PR so the merge is the removal) and add a one-line pointer under the closed-items comment if the file keeps one; commit.
-- [ ] T029 Draft the PR body in the scratchpad (`pr-body-051.md`): the R1 finding first (with the oracle run and the "dies before a tick" correction to the BACKLOG entry and 049 review flag 1), the seven files, FR-012, the must-go-red guards each with its cycle, `evals/v2` untouched, the full-suite count, the step-7 hand-off line for Experiments (a scored result on a wide exam is not evidence the mind saw the room); end with the Claude Code footer and the session URL. Open the PR only on the owner's go.
+- [X] T029 Draft the PR body in the scratchpad (`pr-body-051.md`): the R1 finding first (with the oracle run and the "dies before a tick" correction to the BACKLOG entry and 049 review flag 1), the seven files, FR-012, the must-go-red guards each with its cycle, `evals/v2` untouched, the full-suite count, the step-7 hand-off line for Experiments (a scored result on a wide exam is not evidence the mind saw the room); end with the Claude Code footer and the session URL. Open the PR only on the owner's go.
 
 ---
 
