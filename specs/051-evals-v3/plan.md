@@ -28,7 +28,7 @@ A new frozen suite directory `evals/v3` beside the untouched `evals/v2`: `scale`
 
 **Constraints**: `evals/v2` byte-untouched (spec 017 FR-012; the 049 §s1 lesson); manifest hashes written LAST over final bytes; `sign_test*` keys above `[verdict.least_happy_threshold]`; the carried exams' parsed configs equal v2's; no test weakened; `experiments/` untouched.
 
-**Scale/Scope**: 7 new files under `evals/v3/`, 2 test files edited (one new test function), 1 usage string, 1 exclusions line, 4 docs/records (README, rl-training, 017 contract, CHANGELOG), 1 annotation in the 049 spec, the redden list; plus one ~15-line check in `suite.rs` with its unit test (FR-012).
+**Scale/Scope**: 7 new files under `evals/v3/`, 2 test files edited (three new test functions: the served-width guard, the FR-012 refusal, the carried-equality guard), 1 usage string, 1 exclusions line, 4 docs/records (README, rl-training, 017 contract, CHANGELOG), 1 annotation in the 049 spec, the redden list; plus one ~15-line check in `suite.rs` with its unit test (FR-012).
 
 ## Constitution Check
 
@@ -78,8 +78,8 @@ crates/cloudkitty-rl/
 │                                  #   NEW carried_exams_parse_equal_to_v2 (scarcity/heterogeneity vs evals/v2);
 │                                  #   distinctness guard += served geometry/roster axis
 ├── tests/shipped_configs_rl.rs    # "frozen exams are in the sweep" → evals/v3 (must go red when v2 is excluded)
-├── src/bin/kitty-eval.rs          # usage string → evals/v3
-└── src/suite.rs                   # FR-012 (ruled in): roster-fit refusal at the policy-subject seam + unit test
+├── src/bin/kitty-eval.rs          # usage string → evals/v3; the suite-error exit becomes a match (exit 3 determinism, exit 1 roster overflow)
+└── src/suite.rs                   # FR-012 (ruled in): roster-fit refusal at the policy-subject seam (its test lives in tests/eval_suite.rs)
 
 config-sweep-exclusions.txt        # += evals/v2 (the 2026-09-03 3.0 cut; four wide exams predate the roster-width ruling)
 README.md                          # repo map + example → evals/v3
