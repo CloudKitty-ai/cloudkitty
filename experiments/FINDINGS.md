@@ -74,6 +74,8 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-037 | active | The collapse detector names a lock but trails the watchdog by 48–147 ticks; healthy margin 0.07 |
 | F-038 | active | Comfort buys food promptness linearly and pays in element play, never duets; t_partner 5 halves roster duets |
 | F-039 | active | Live refusal tax is Biscuit's alone and it is partner play (5.13%); other seats under 2.3% in groom and move |
+| F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls |
+| F-041 | active | The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase (3 of 169 replies invisible in the anchor smoke) |
 
 ---
 
@@ -2208,3 +2210,78 @@ tax is partnered, per-seat currency) holds unchanged. **Scope**: the
 touching the selector, the play economy, or the roster. **Re-verify
 when**: the Biscuit 3.0 cutover lands (step 7); one window, same
 instrument.
+
+## F-040 · active · Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls per 1000 ticks and adds ~12 eat calls
+
+Read off the fog-gen1-shakeout anchor smoke (`anchor.toml` = served
+config + `groom_cuddle_relief 0.5`, `announce_here 1`,
+`reply_intensity_floor 0.30`; bc-collect `--trace`, 1000 ticks, three
+seeds at r=5 and three at r=4; instruments `schema_check.py` A1 and
+`relief_radius_sweep.py`, both in `experiments/fog-gen1-shakeout/`).
+
+1. **The mechanism.** `known_relief(drink)` (meow.rs) is "water visible
+   or water remembered". Water pools never move or despawn and
+   `memory_timeout_ticks = 0` never forgets, so the first sight of any
+   pool silences `want_drink` for the rest of the run. Chow escapes the
+   same fate only because an emptied bowl despawns, which refutes the
+   memory (42 chow refutations in 1000 ticks; water 0). In 3000 ticks at
+   r=5 no cat said `want_drink`; at r=4 one to three calls per 1000, all
+   from cats thirsty before their first sight of water. Consequence for
+   the corpus: no drink want and no `here_water` reply, 19 observation
+   columns constant (schema_check A1).
+2. **How often thirst is out of sight.** At r=5: 565 cat-ticks per 1000
+   with drink ≥ 30; water in view for 438 of them (7 pools, disc ~81
+   tiles); the remembered pool sat 6–8 Manhattan away in the other 127,
+   never farther. So a distance gate on remembered relief has two
+   regimes on a 20×20 with 7 pools: D > r stays silent, D ≤ r equals
+   "visible relief only" (Manhattan ≤ r implies inside the disc).
+3. **Counterfactual verbosity** (first order: recorded trajectory,
+   simulated calls at cooldown 10; the D=0 column reproduces the actual
+   trace within 3%). Per 1000 ticks, five cats, D = r versus today:
+   drink 13/11/24 (r=5) and 5/6/26 (r=4); eat +15/0/+16 and
+   +14/+11/+13; all wants +28/+12/+40 on 114/78/82 and +20/+17/+37 on
+   110/120/104. Radius does not separate at this sample; seed does. Only
+   eat, drink and play carry a memory clause, and play is already
+   silenced by sight almost always (0–1 calls at every D).
+4. **The law change asked of Product** (owner ruled 2026-09-04, spec to
+   follow): `[meow] relief_memory_margin`, a remembered element counts
+   as known relief only within `radius + margin` Manhattan tiles; key
+   absent = today's unbounded rule; served and anchor set 0. At margin 0
+   memory never silences a want (the visible clause already covers the
+   disc), which is the radius-invariant reading; margin 1 trims drink
+   and eat 10–20% (the D=6 column at r=5). Legality only, layout
+   unchanged, A14 still recomputable from the self memory dx/dy.
+   Navigation is untouched: `priced_nearest_element` reads memory
+   independently of the want law, and the scripted asker does not act on
+   element here-words.
+
+**Scope**: fog-era want law on the served 20×20 (7 pools, 6 bowls),
+radius 4–5, scripted seats. **Invalidated by**: the margin knob landing
+(then the numbers are the re-smoke's), a water element that despawns or
+moves, a non-zero `memory_timeout_ticks`. **Re-verify when**: the knob
+lands (re-smoke the anchor at margin 0 and 1, compare to row 3) and at
+the step-5 radius screen.
+
+## F-041 · active · The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase
+
+Anchor smoke as F-040, schema_check A16. `push_answers_me`
+(observe.rs:619) lights the bit when the friend's freshest audible
+here-word is strictly newer than the observer's freshest paired want.
+The scripted wanter re-calls every `recent_window_ticks` (10) and the
+scripted responder replies every 10 as well, so once a reply lands on a
+re-call tick the two stay in phase: kitty 2 `want_sleep` at 456/466/
+476/486, kitty 4 `here_sunbeam` replies at 466/476/486, bit never 1 for
+kitty 2. 3 of 169 replies in 1000 ticks were invisible this way; 0
+bits were lit without a reply behind them.
+
+The reading is engine semantics, not a wiring fault: the same-tick want
+is a new, unanswered want. The cost is to learners: the tie-breaker the
+reply bit exists to expose (the answered cat should stop asking and
+walk) is absent for exactly the cats asking at the cooldown cadence.
+Two ways out if it matters at step 5: compare `>=` when the here is a
+`reply`, or read the bit on the want's tick as well. **Scope**: served
+cooldown 10 for both wants and replies. **Invalidated by**: a reply
+cadence that differs from the want cadence. **Re-verify when**: the
+step-5 reply-here bar is read (a miss with A7/A8 green points here
+first).
+
