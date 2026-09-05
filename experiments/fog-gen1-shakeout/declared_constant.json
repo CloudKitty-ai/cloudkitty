@@ -1,0 +1,15 @@
+{
+  "_": "PREREG A1: observation columns allowed to sit at zero variance over the corpus, one reason per group, fnmatch patterns over schema_check.col_name. Structural groups hold for any corpus length; the SAMPLE group is a 1000-tick reading that the full corpus must move (a stale-reason report is the good outcome there).",
+  "vocabulary: anchor.toml [vocabulary] trill = false, ekekek = false; the engine refuses both in every layout (meow.rs message_legal)": [
+    "*.msg.trill.*", "*.msg.ekekek.*"
+  ],
+  "free register never scripted (owner ruling 2026-09-02): the scripted announce path emits wants, replies and here-words only, so mew/chirp/purr cannot appear in the corpus; a policy may say them, which A17 compares": [
+    "*.msg.mew.*", "*.msg.chirp.*", "*.msg.purr.*"
+  ],
+  "want_drink structurally silent in the fog era: known_relief(drink) holds once water is seen or remembered (meow.rs), water never moves and memory_timeout 0 never forgets, so self.memory.water.present sits at 1 and want_drink is illegal for the rest of the run; the here_water answers-me bit follows": [
+    "*.msg.want_drink.*", "*.want.want_drink", "*.answers_me.here_water", "self.memory.water.present"
+  ],
+  "SAMPLE (1000-tick anchor smoke, not structural): no cat reached distress; want_play stayed silent on rows 0 and 3 and so did the here_critter bit; never three critters in one disc (critter slots 3-4). Must move on the corpus": [
+    "self.schema4[[]2[0-5][]]", "kitty*.msg.want_play.*", "kitty*.want.want_play", "*.answers_me.here_critter", "element_block8[[]*", "element_block9[[]*"
+  ]
+}

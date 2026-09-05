@@ -44,3 +44,46 @@ KITTY_SPAN = (85, 85 + 4 * 63)          # 85..337
 ELEMENT_SPAN = (337, 367)               # chow, water, sunbeam
 CRITTER_SPAN = (367, 407)
 KITTY_W = 63
+
+# Intra-block offsets, the engine's `observe.rs::offsets` in Python. Built
+# by the same sums the engine uses (never restated as literals) so a
+# reader like schema_check.py names a cell instead of counting to it. Kind
+# orders are serde snake_case, the spelling a snapshot / meow carries.
+HEAD_KINDS = ["want_eat", "want_drink", "mew", "want_play", "want_cuddle",
+              "purr", "want_bath", "want_sleep", "here_food", "here_water",
+              "here_critter", "here_sunbeam", "chirp", "trill", "ekekek"]
+WANT_KINDS = ["want_eat", "want_drink", "want_play", "want_cuddle",
+              "want_bath", "want_sleep"]
+HERE_KINDS = ["here_food", "here_water", "here_critter", "here_sunbeam"]
+WANT_FOR_HERE = {"here_food": "want_eat", "here_water": "want_drink",
+                 "here_sunbeam": "want_sleep", "here_critter": "want_play"}
+NEED_KINDS = ["eat", "drink", "sleep", "play", "cuddle", "bath"]
+ELEMENT_KINDS = ["water", "chow", "bug", "greeble", "sunbeam"]  # ElementType::ALL
+MSG_BLOCK = 2 * len(HEAD_KINDS)                                  # recency, rate
+# Self block: schema 4 (needs 6, happiness, pos 2, activity 7, partner,
+# in-sunbeam, in-water, progress, distress 6, pursuit 2, traits 6) then
+# scene age, own message block, element memory (present, dx, dy, staleness).
+SELF_NEEDS, SELF_HAPPINESS, SELF_POS, SELF_ACTIVITY = 0, 6, 7, 9
+SELF_PARTNERED, SELF_IN_SUNBEAM, SELF_IN_WATER = 16, 17, 18
+SELF_SCHEMA_4 = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6
+SELF_SCENE_AGE = SELF_SCHEMA_4
+SELF_MSG_BLOCK = SELF_SCENE_AGE + 1
+SELF_MEMORY = SELF_MSG_BLOCK + MSG_BLOCK
+MEMORY_SLOT = 4
+assert SELF_MEMORY + len(ELEMENT_KINDS) * MEMORY_SLOT == dict(WIDTHS)["self"]
+# Kitty row: schema 4 (present, dx, dy, distance, needs 6, happiness,
+# activity 7, partnered, is-my-target) then the 049 cells.
+ROW_PRESENT, ROW_DX, ROW_DY, ROW_DIST, ROW_NEEDS, ROW_HAPPINESS = 0, 1, 2, 3, 4, 10
+ROW_ACTIVITY, ROW_PARTNERED, ROW_IS_TARGET = 11, 18, 19
+KITTY_SCHEMA_4 = 1 + 2 + 1 + 6 + 1 + 7 + 1 + 1
+ROW_WATER_BIT = KITTY_SCHEMA_4
+ROW_SUNBEAM_BIT = ROW_WATER_BIT + 1
+ROW_SCENE_AGE = ROW_SUNBEAM_BIT + 1
+ROW_MSG_BLOCK = ROW_SCENE_AGE + 1
+ROW_INTENSITY = ROW_MSG_BLOCK + MSG_BLOCK
+ROW_ANSWERS_ME = ROW_INTENSITY + len(WANT_KINDS)
+assert ROW_ANSWERS_ME + len(HERE_KINDS) == KITTY_W
+# Element slots: present, dx, dy, distance first in every kind.
+SLOT_PRESENT, SLOT_DX, SLOT_DY, SLOT_DIST = 0, 1, 2, 3
+# Normalisers (observe.rs): scene age / 24, memory staleness / 40.
+SCENE_AGE_NORMALISER, STALENESS_NORMALISER = 24.0, 40.0

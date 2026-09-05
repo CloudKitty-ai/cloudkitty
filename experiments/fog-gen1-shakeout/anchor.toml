@@ -1,0 +1,562 @@
+# CloudKitty's default world.
+#
+# Every number the simulation uses lives in this file -- the engine holds no magic
+# constants (Article VI). Edit freely: anything that would break the constitution
+# is rejected at startup with a message naming the field and its allowed range.
+
+[world]
+width = 20
+height = 20
+# Milliseconds per tick. 800ms is a comfortable watching pace.
+tick_ms = 800
+# The same seed replays the same world, exactly.
+seed = 20260718
+bind = "127.0.0.1:8090"
+
+[persistence]
+# The world is saved here on shutdown and every `save_every_ticks` ticks. Delete it
+# (or pass --fresh) to start over.
+snapshot_path = "snapshot.json"
+save_every_ticks = 100
+
+# The roster. At least two kitties, always (Article III: kitties cannot be alone).
+# `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
+# via the matching [rl.policy.<name>] block. FIVE SEATS, FIVE MINDS
+# (2026-08-22, owner's seating word): Biscuit 2.0 (e006a-L-04-s3) takes
+# Biscuit's seat and the e004 incumbent moves to Clementine — the first
+# roster with no scripted seat. Certified as this exact composition in
+# experiments/exp-006a-biscuit-corner/battery-2026-08-22.md (all gates).
+# A seat swap on the served world: the world fingerprint doesn't move, so
+# no --fresh is needed (deploy stays the owner's restart, her call).
+
+[[kitty]]
+id = 1
+name = "Miso"
+x = 8
+y = 10
+# "The cuddler", carried onto the schema-4 surface (spec 035): the same
+# mind that took this seat 2026-08-14, resuming after the wall.
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s1-o4 cannot cross the 3.0 wall (see [vision])
+# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
+# certification world constructed per prereg D-003 — the served config
+# plus exactly the three sheets the wall rider deferred).
+[kitty.needs]
+sleep = 0.6
+eat = 0.3
+play = 0.3
+
+[[kitty]]
+id = 2
+name = "Biscuit"
+x = 16
+y = 15
+# BISCUIT 2.0 (seated 2026-08-22, owner's word): e006a-L-04-s3, the
+# exp-006a lineage PPO product — BC-cloned from this seat's e004
+# incumbent, then trained on the bugs-2.0 world. Battery 89.95 vs the
+# owner's bar 87.31, G3 character fingerprint PASS (experiments/
+# exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
+# incumbent it grew from moves to Clementine.
+behavior = "playful"  # Gen 1 seat, owner ruled 2026-09-03 (spec 049 T091): Biscuit sits on the new playful (the 3.0 anchor); 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
+# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
+# certification world constructed per prereg D-003 — the served config
+# plus exactly the three sheets the wall rider deferred).
+[kitty.needs]
+play = 0.8
+eat = 0.3
+drink = 0.3
+
+[[kitty]]
+id = 3
+name = "Pumpkin"
+x = 13
+y = 6
+# "The doter", carried onto the schema-4 surface (spec 035). Seated ONCE
+# this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
+# deadlock was a twin artifact). The needs override below is world-law,
+# not behavior — it stays.
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s3-o4 cannot cross the 3.0 wall (see [vision])
+# Any kitty may override the global [needs] rise rates; unset needs keep the
+# defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
+# (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
+# policy company, zero distress): hungrier, and lighter on sleep and bath
+# to pay for it. Rates are stage-3 mortal: re-derived under the phase-1
+# world, a pin rather than a forever number.
+[kitty.needs]
+eat = 0.6
+sleep = 0.2
+bath = 0.1
+
+[[kitty]]
+id = 4
+name = "Kittybear"
+x = 4
+y = 4
+# e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
+# battery doc): the E1 dialect — here-meows and a meaningful mew — is
+# worth the recert. G2c says the swap is free at team level (+0.0003).
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006-E1-s1 cannot cross the 3.0 wall (see [vision])
+# The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
+# certification world constructed per prereg D-003 — the served config
+# plus exactly the three sheets the wall rider deferred).
+[kitty.needs]
+bath = 0.4
+drink = 0.3
+play = 0.3
+
+[[kitty]]
+id = 5
+name = "Clementine"
+x = 10
+y = 16
+# THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with five cats
+# and three observation slots, someone is always unslotted -- want-meows
+# carry real signal). SEATED 2026-08-22 (owner's word), keeping the
+# interim-roster ruling's promise that a policy mind frees up for her at
+# bugs-2.0+: the e004 MLP incumbent moves here from Biscuit's seat.
+# Battery 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md). Her
+# look (the designed white cat) is a client-side palette override. Trait
+# vector owner-final, 3-dial: cuddlier, lighter on play and bath
+# (verified -0.07 vs trait-flat under policy company -- the parity band);
+# stage-3 mortal like Pumpkin's.
+behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e004-a1-s2-o4 cannot cross the 3.0 wall (see [vision])
+[kitty.needs]
+cuddle = 0.7
+play = 0.3
+bath = 0.1
+
+# How fast each need rises, per tick. Higher means more pressing, more often.
+[needs]
+eat = 0.4
+drink = 0.4
+sleep = 0.3
+play = 0.4
+cuddle = 0.4
+bath = 0.2
+
+[happiness]
+# Happiness never falls below this, and never reaches zero (Article I).
+floor = 5.0
+
+# Happiness = 100 - weighted average of the needs. These must sum to 1.0.
+[happiness.weights]
+eat = 0.20
+drink = 0.20
+sleep = 0.15
+play = 0.15
+cuddle = 0.15
+bath = 0.15
+
+[thresholds]
+# A need crossing `distress` records a distress event -- a signal for whoever is
+# watching, never a punishment for the kitty.
+distress = 90.0
+# A need past `safeguard` obliges the world to make sure relief exists. Must be
+# below `distress`, so help arrives before things get bad.
+safeguard = 75.0
+# Happiness above `purr` earns a purr (as does happiness that just went up).
+purr = 70.0
+
+# Element populations. `min`/`max` must sit within the hard bounds derived
+# from world size: at least 1 of each type (greebles may be 0), and at most
+# floor(width * height / 32) -- 12 for this 20x20 world.
+#
+# Know your knobs: `max` is read only by config validation. The world tops
+# each type up to `min` and no further, so the standing population IS the
+# minimums -- `min` is the real knob, and lowering `max` alone changes
+# nothing at runtime.
+[elements]
+# Placement (spec 027): a world whose water minimum is 4+ always holds at
+# least one 2x2 lake, and spawns prefer the interior. Three table-level
+# dials govern placement and expiry, shown here at their engine defaults;
+# uncomment one HERE, under this header, to change it (before 2026-08-06
+# this block sat inside [thresholds], where an uncommented dial landed in
+# the wrong table -- silently then, loudly now).
+# spread_candidates = 8   # best-of-N width for every spawn draw
+# ttl_jitter = 100        # timed spawns draw base +/- this many ticks
+# edge_penalty = 2.0      # perimeter handicap in tiles; 0 disables
+
+[elements.water]
+# Generous on purpose: a kitty should never have to cross the whole world for a
+# drink. Lower these for a sparser, more demanding world -- the constitution still
+# guarantees relief, but the cats will work harder for it.
+min = 7
+max = 9
+# No ttl: puddles are permanent.
+
+[elements.chow]
+min = 6
+max = 8
+# Each bowl feeds this many meals before it is empty and vanishes.
+servings = 5
+
+[elements.bug]
+min = 3
+max = 7
+# Bugs 2.0 (spec 039): longer, calmer lifetimes -- a patch relocates
+# roughly every eight real-world minutes instead of churning.
+ttl = 600
+# The roam tether: each bug lives its whole life inside the 4x4
+# world-aligned cell it was born in, so a patch of the meadow HAS bugs
+# and a hunt ends inside sixteen tiles. Omit for free-range bugs.
+# Semantics: specs/039-bugs2-tether/contracts/roam-config.md
+roam_cell = 4
+
+[elements.greeble]
+# Greebles are fast, erratic, and invisible to humans -- they appear in the API
+# like any other element, but the viewer never draws them. Press `g` to cheat.
+# NEVER tethered (spec 039): they roam the whole world. The dart flag (039
+# third amendment, the owner's ruling) puts them on the critter rest-tick
+# schedule with a 1-3 tile dart on moving ticks: freeze, dart, freeze.
+# Catchable by timing now, priced as an opportunistic target.
+min = 1
+max = 3
+ttl = 600
+dart = true
+
+[elements.sunbeam]
+min = 4
+max = 5
+ttl = 300
+
+# How much each action relieves the need it addresses.
+[actions]
+eat_relief = 35.0
+drink_relief = 35.0
+sleep_relief = 5.0
+# Sleeping in a sunbeam is properly restorative. Re-pinned 8.0 -> 7.0 at
+# the spec-033 wall (owner preference, screened welfare-indistinguishable;
+# conducts to adjacent sleepers per spec 031 either way).
+sleep_relief_sunbeam = 7.0
+groom_relief = 20.0
+play_relief = 20.0
+# The bugs-2.0 sticker (spec 039, owner's pre-merge ask): bug play priced on
+# the MEASURED frontier — a pre-registered {26, 28, 30} sweep on the shipped
+# mechanics came back linear within 0.2, and the smallest value clearing the
+# unskilled bar is 28 (engine default 25). Gradient preserved: solo 10 <
+# duet-each 20 < bug 28 < greeble 35 < team-duet 40 — a bug is a find, a
+# friend is still the better deal. Sweep: experiments/bugs2-grid2-2026-08-21.md.
+play_relief_bug = 28.0
+# The cuddle economy (spec 041): within the need, ONE saturating specialist
+# -- partnered rest's mutual tier -- and every rider partial. A rider that
+# finishes the need kills the dedicated activity; standing (partial) demand
+# is what makes rest worth choosing. Deliveries below are per SCENE, not per
+# pair: a reciprocal mutual pair pays each cat from both slots (the engine's
+# shape, priced into the model), so instruments count scenes, not relief
+# events. Measured mean cuddle need: 5.1 (median 2.8, 2026-08-25 census; the
+# 11.6 the exp-004 pilot priced against was the earlier generation's read).
+# Partnered rest when the partner is itself resting or sleeping (the mutual
+# tier), per serviced tick, both parties. THE specialist: kept at the
+# classic value, saturating on purpose -- the one route that finishes the
+# need.
+rest_mutual_relief = 8.0
+# Partnered rest when the partner is merely present (the drip tier), per
+# serviced tick, both parties. A rider: a minimum scene (6 ticks) delivers
+# 1.5 against the 5.1 mean. Convention: drip stays below mutual.
+rest_drip_relief = 0.25
+# The groomer's own warmth while grooming a friend. Canonical value 0.5
+# (the spec-041 specialist split; a minimum 4-tick groom delivers 2.0 --
+# the groomer still needs real cuddles). Bumped to 2.0 here as a TEMPORARY
+# pre-Gen-1 accommodation: frozen incumbents trained pre-041 (Clementine)
+# answer high cuddle with groom-for-cuddle, and 0.5 sits below her 0.7
+# rise -- a futile loop that trips the spec-040 watchdog. Serving world
+# ONLY; specs, lab worlds, and collection configs keep 0.5. REVERT at the
+# Gen 1 reseating -- see experiments/groom-bump-handoff-2026-08-31.md.
+groom_cuddle_relief = 0.5
+# Cosleeping next to a friend (spec 028), per serviced sleep tick, both
+# parties: the passive tier when the partner is merely present. A rider --
+# a minimum nap (6 ticks) delivers 1.5, contributing to the need without
+# finishing it...
+cosleep_drip_relief = 0.25
+# ...and the mutual tier when the partner is itself sleeping or resting.
+# Also a rider (3.6 per minimum nap): co-sleep keeps a strictly positive
+# edge over solo sleep, and rest keeps the saturating role. Convention:
+# drip stays below mutual.
+cosleep_mutual_relief = 0.6
+# Pouncing at nothing, for a kitty with nobody to play with. Must not exceed
+# play_relief -- playing together stays the better deal.
+solo_play_relief = 10.0
+
+# How long each activity runs, in ticks (1 <= min <= max). The engine holds an
+# activity at least `min` ticks -- long enough to watch -- and never lets it
+# pass `max`. Relief applies on every tick, and a finished need (or an empty
+# bowl) ends the activity early once `min` is met. `bath` governs grooming;
+# `cuddle` governs resting, alone or together.
+[actions.durations]
+eat = { min = 2, max = 3 }
+drink = { min = 2, max = 3 }
+play = { min = 2, max = 5 }
+bath = { min = 4, max = 8 }
+sleep = { min = 6, max = 12 }
+cuddle = { min = 6, max = 12 }
+
+[meow]
+# Law, not manners (spec 028): a want-kind may be spoken only while its need
+# is armed and that kind's per-cat cooldown has cleared; silence is always
+# legal. Under fog (spec 049) a want-word is also a claim of ignorance --
+# legal only when the need is the cat's top need and it knows no relief
+# (nothing visible or remembered; for the social words, no idle friend in
+# view) -- and a here-word may answer an audible want it can see the
+# referent of. The full law is docs/meows.md.
+#
+# recent_window_ticks is the per-kind emission COOLDOWN (spec 049 FR-017
+# rewrote its meaning, not its key): after speaking a kind a cat may not
+# speak it again for this many ticks. Audibility moved to
+# digest_window_ticks below.
+recent_window_ticks = 10
+# The digest window (spec 049): a call stays audible -- kept in the recent
+# buffer, counted by the per-speaker (recency, rate) cells on every kitty
+# row, answerable by a here-word -- while its age is strictly less than
+# this. Must be a positive integer multiple of recent_window_ticks so the
+# rate cell's maximum (window / cooldown = 3 calls) is exact.
+digest_window_ticks = 30
+# A want-kind arms at this need level (grounded legality)...
+announce_threshold = 30.0
+# ...and disarms below threshold - hysteresis, so the mask holds steady
+# while an errand is in progress.
+announce_hysteresis = 5.0
+
+# The vocabulary (spec 033): one flag per speakable kind. Flags gate
+# LEGALITY only — every layout (digest, head, mask, observation) is
+# identical whatever they say, so experiments arm words by config, never
+# by engine fork. Law-named kinds (want_*, purr, here_*) mean what their
+# grounding predicate enforces; sound-named kinds (mew, chirp, trill,
+# ekekek — the free register) mean whatever the cats decide. trill and
+# ekekek are RESERVES: in every layout, legal in none, until the post-fog
+# language-capacity experiment arms them. The full language reference is
+# docs/meows.md.
+[meow.vocabulary]
+want_eat = true
+want_drink = true
+mew = true
+want_play = true
+want_cuddle = true
+purr = true
+want_bath = true
+want_sleep = true
+here_food = true
+here_water = true
+here_critter = true
+here_sunbeam = true
+chirp = true
+trill = false
+ekekek = false
+
+[purr]
+# A contented kitty rumbles for a while (a seeded draw between min and max
+# ticks), then rests its motor for a freshly drawn multiple of that purr's
+# length (a factor between the bounds below, ceiling-rounded) -- so a happy
+# meadow rumbles about 1/(1 + midpoint) of the time with an organic rhythm.
+# A kitty may also *choose* to purr (spec 022): that spends its whole turn,
+# must be earned by happiness, always announces, and is never blocked by the
+# motor's rest. Spontaneous purring stays pure charm -- no turn, no need
+# change -- and announces itself only with probability announce_probability
+# (0 keeps the broadcast channel for chosen purrs only).
+min_ticks = 8
+max_ticks = 13
+cooldown_factor_min = 1.75
+cooldown_factor_max = 2.75
+announce_probability = 0.0
+
+[behavior]
+# Share of a tick an *external* behavior may spend deciding before the engine
+# steps in with the default behavior. Built-in behaviors are exempt: they run
+# in-process, so determinism never depends on how fast this machine is.
+budget_fraction_of_tick = 0.5
+# The final pounce (spec 039, the fallback the owner pre-authorized when the
+# tether alone left unskilled hunts under the bar): a chase step that leaves
+# an ELEMENT quarry exactly 2 tiles away lunges one more step in the same
+# tick. Cats are never pounced on. Omit (or false) for the pre-039 chase.
+pounce = true
+# What "real cuddle need" means to the scripted responders (spec 028): at or
+# above this, a cat answers an audible want_bath with grooming and prefers a
+# friend's side to a sunbeam for its nap. One shared gate on purpose.
+cuddle_real_threshold = 15.0
+# The pressure at which a "playful" kitty stops playing and attends to a need.
+# Lower means a better-kept cat; higher means more single-minded fun.
+playful_comfort = 55.0
+# Playful 2.0 (spec 042): the partner-value score and per-need comfort
+# weights, all launched at their identity values and ABSENT here on purpose
+# (absent = identity; the engine-defaults stamp stays unmoved). Priced by
+# Experiments' joint comfort x score x weights campaign; the owner pins
+# served values. Uncomment HERE, under [behavior], to set one:
+# w_value = 0.0         # friend-value multiplier in the play score; > 0 also
+#                       #   admits busy-but-soon-free friends to the ranking
+# w_busy = 0.0          # expected-wait penalty per tick (mid-scene partner)
+# w_serious = 0.0       # penalty per point of a partner's top NON-play need
+# t_self = 0.0          # own play-need floor for bothering any friend
+# t_partner = 0.0       # per-friend value floor (eligibility filter)
+# critter_appeal = 0.0  # standalone critter score offset (either sign)
+# The consent line (spec 047): a friend whose top NON-play need is strictly
+# over this line AND strictly over its own play need is never proposed to
+# for play by a playful cat -- on every playful path (ranking, get-serious,
+# adjacent opportunism). Play on top (ties included) = always fair game.
+# Friends only: critters, elements, solo play and needs_driven cats are
+# untouched. Absent (or 0.0) = off, byte-identical to pre-047.
+# consent_line = 0.0
+# [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
+#                             #   (strictly > 0; pair w_busy with w_value)
+# eat = 1.0
+# drink = 1.0
+# sleep = 1.0
+# play = 1.0
+# cuddle = 1.0
+# bath = 1.0
+# The here-word announce period (spec 043). Unset (or 0) = scripted cats
+# never volunteer here_* words -- the launch state, byte-identical to before
+# the knob existed. N >= 1: on its phase ticks ((tick + kitty id) divisible
+# by N) a cat whose message slot would be Silent names one ADJACENT thing --
+# here_food / here_water / here_critter / here_sunbeam -- cycling the legal
+# kinds deterministically (no RNG). Existing speech always wins: wait_for_me
+# and want-words are untouched at any setting. Legality is unchanged law
+# (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
+# Experiments' density screen, not a welfare lever.
+announce_here = 1  # fog-gen1-shakeout: corpus source (PREREG, teacher ruled out 2026-09-02)
+# Spec 049 FR-043: the scripted reply listener floor. Set, a scripted cat
+# answers an audible want whose stamped intensity is at or above it with the
+# paired here-word (referent in view, cooldown clear); unset, scripted cats
+# never reply and the streams are byte-identical to the pre-ladder engine.
+# 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
+# (Experiments cut it), is revisited at the speaker-floor screen, and stays
+# unset on the served config.
+reply_intensity_floor = 0.30  # fog-gen1-shakeout: scripted reply path on (PREREG A8; PROVISIONAL, owner pins at declaration)
+# Need selection weighs pressure against travel. Pressure above the safeguard
+# threshold counts extra (urgency_weight per point), so urgent needs dominate --
+# but relief at zero distance still beats a hopeless cross-map trek.
+urgency_weight = 2.0
+# How many need-points one tile of travel is worth.
+tile_cost = 1.0
+# Extra tiles of effort a kitty ascribes to stepping onto water. Dry routes
+# win when they cost less than the splash; a kitty still wades when water is
+# the only way forward -- preference, never prohibition.
+water_step_cost = 4.0
+# A need at or above this is worth topping up when the means are already
+# underfoot (adjacent chow, water, a sunbeam, or a playmate).
+worth_a_detour = 30.0
+# A chase that hasn't closed distance in this many ticks is hopeless; the
+# target is then avoided for chase_exclusion_ticks. Greebles, mostly.
+chase_patience_ticks = 10
+chase_exclusion_ticks = 60
+# A viable playmate within this distance suppresses solo play; beyond it, a
+# kitty pounces at nothing sooner than sulking.
+solo_play_reach = 8
+# A sunbeam within this distance is worth walking to for a nap; farther than
+# that, a kitty sleeps where it is. Prices the sleep score and bounds the
+# sleep walk with the same number, so they can never disagree.
+sunbeam_reach = 8
+# External advisor knobs (spec 016), shown at their defaults. One plugin
+# reply line may carry at most reply_max_bytes; beyond it the proposal fails
+# and the plugin process is restarted. A dead plugin process is relaunched at
+# most once per relaunch_cooldown_ticks. A reply that misses the
+# exchange_timeout_ms wall-clock deadline fails the proposal and kills the
+# process — the transport's own containment, active on every dispatch path.
+# reply_max_bytes = 65536
+# relaunch_cooldown_ticks = 20
+# exchange_timeout_ms = 1000
+
+[events]
+# How many distress events to keep.
+distress_retention = 1000
+# How many finished-activity events to keep. Each records the true tick span
+# a scene ran (started..=ended), which snapshots alone cannot show.
+activity_retention = 1000
+# How many refusal events to keep (spec 046). Taxed AND absorbed refusals
+# share these slots (~0.38/tick combined on the scripted world), so 6000
+# covers a ~15,000-tick census window; raise it here to widen the window.
+refusal_retention = 6000
+
+[viewer]
+# Read by the web client via /config; the simulation ignores it. A distress
+# unresolved this long earns a gentle cue on the kitty's card.
+distress_patience_ticks = 60
+
+# External behavior plugins (spec 016): each [plugins.<name>] block registers
+# a long-running external program as a behavior; give a kitty
+# `behavior = "<name>"` to hand it the reins. The command must be a path to
+# an existing executable file (a shebang script, or an absolute interpreter
+# path with the script in args) -- validated at startup. Program paths and
+# args are never served on GET /config. Wire contract, failure semantics,
+# and a worked example: docs/plugins.md.
+#
+# [plugins.professor_whiskers]
+# command = "docs/examples/demo_plugin.py"
+# args = []
+
+# RL policy artifacts (spec 014 FR-016): a kitty with behavior = "policy:<name>"
+# resolves through the matching [rl.policy.<name>] block. The artifact is
+# schema-validated and content-hashed at startup (never served on GET /config).
+# Artifacts live in the committed policies/ directory (owner decision
+# 2026-07-31); the README there maps each file to its sha256, its
+# certification record, and the naming convention these keys follow.
+# The phase-1 generation (seated 2026-08-21, closing the spec-033 wall),
+# plus the 2026-08-22 Biscuit 2.0 seating. Three seats are the pre-wall
+# incumbents carried onto the schema-4 surface by ckpolicy-expand (spec
+# 035): same minds, proven twice over — structural attestation at
+# expansion plus the bit-exact parity leg in Experiments' acceptance
+# (expansion-acceptance-2026-08-17.md). e006-E1-s1 is exp-006's E-arm
+# PPO product (actor-only export; forward parity vs the measured torch
+# actor 7.8e-05 max logit delta). e006a-L-04-s3 is exp-006a's lineage
+# PPO product (plain-V4 export, parity 2.29e-05 over 2,000
+# certification-world obs rows); with it seated, the e004 incumbent
+# moves from Biscuit to Clementine. Certified whole, twice:
+# experiments/exp-006-character-gen/results/deploy-battery-2026-08-21.md
+# for the phase-1 seating, experiments/exp-006a-biscuit-corner/
+# battery-2026-08-22.md for this roster (all gates; Biscuit 89.95 vs bar
+# 87.31, Clementine-e004 94.81 vs scripted bar 90.10). Greedy selection
+# throughout, matching the measured condition. Sources retired to
+# policies/retired/ with their records; shas + provenance in
+# policies/README.md and policies/registry.toml (spec 034 rows in this
+# same change, per the same-PR rule).
+# THE SERVED ROSTER AT THE 3.0 WALL (spec 049 FR-025 / SC-008): every
+# 2.x policy artifact is schema 4 and is refused at load on this engine
+# (observation schema 5), so the five seats are scripted here -- the
+# step-5 shakeout / corpus-collection state -- until the Gen 1 minds seat
+# at the step-7 cutover. The [rl.policy.*] blocks stay as the registry
+# of what WAS seated (unreferenced blocks are never opened).
+#
+# Fog Gen 1 (spec 049): the vision disc. A cat knows the kitties and elements
+# within `radius` of itself (Euclidean, dx² + dy² ≤ r², edge included), every
+# recent meow (hearing is global), the roster's ids and its own one-slot-per-
+# kind element memory; the same disc for every seat -- built-ins, plugins and
+# policies decide from one fog view. 5 is the FR-002 PLACEHOLDER (81 tiles on
+# the 20x20 world); the step-5 pre-registration screens the radius set and
+# rules the served value. Every built-in cat explores for what it cannot see
+# (FR-023) and asks for it (FR-036); see docs/meows.md.
+[vision]
+radius = 5
+# Element-memory expiry in ticks; 0 = never (sight is the only corrector).
+memory_timeout_ticks = 0
+
+[water]
+bath_gain = 3.5
+bath_gain_ceiling = 60.0
+
+[rl.policy.attn-a1-s1-o4]
+artifact = "policies/attn-a1-s1-o4.ckpolicy"
+
+[rl.policy.attn-a1-s3-o4]
+artifact = "policies/attn-a1-s3-o4.ckpolicy"
+
+[rl.policy.e004-a1-s2-o4]
+artifact = "policies/e004-a1-s2-o4.ckpolicy"
+
+[rl.policy.e006-E1-s1]
+artifact = "policies/e006-E1-s1.ckpolicy"
+
+[rl.policy.e006a-L-04-s3]
+artifact = "policies/e006a-L-04-s3.ckpolicy"
+
+# The serving welfare watchdog (spec 040) — a standing, read-only watch
+# over every cat's distress ages, the layer F-027 proved was missing: a
+# 2331-tick co-sleep distress streak ran with relief nearby and nobody
+# looking. Crossing the threshold writes a WELFARE ALARM to the server
+# log (re-announced every remind_every ticks while it lasts) and the
+# current surface is always at GET /welfare. Detection only: the watchdog
+# proposes nothing, changes nothing, and a watched world is byte-identical
+# to an unwatched one. Server-owned table, like [rl] and [plugins] -- the
+# engine never sees it. Omitting the table means exactly these defaults;
+# there is no off switch to forget.
+[watchdog]
+# The alarm line, in ticks of sustained distress: the certification bound
+# (max_distress_age vs 150 in every battery since exp-004).
+threshold = 150
+remind_every = 150
