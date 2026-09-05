@@ -221,7 +221,7 @@ discipline binds certification: what seats is what was measured.
 ```bash
 # Measurement beside the smoke (spec 017): four frozen held-out worlds.
 cargo run -p cloudkitty-rl --bin kitty-eval -- \
-  --suite evals/v2 --artifact policies/trained.ckpolicy
+  --suite evals/v3 --artifact policies/trained.ckpolicy
 ```
 
 The suite scores across committed exam configs — scale, scarcity,
@@ -245,14 +245,17 @@ rerun with `--enforce sign-test` (tighten-only: it promotes warn to gate,
 and nothing can loosen a gate) before quoting the result.
 The held-out doctrine, verbatim: **results against a suite version are
 void if any of its exams appeared in training.** A landed suite version is
-frozen (hash-guarded in CI); evolution is a new `evals/v2/` alongside.
+frozen (hash-guarded in CI); evolution is a new `evals/v4/` alongside.
 
-`evals/v1` remains hash-frozen, but its calibrations are **historical**:
-the exams predate the spec 027 world and the spec 028 channel and dials.
-Read suite scores as archaeology until an `evals/v2` recalibrates —
-which schedules with the `FromConfig` refactor at the next harness
-touch, if a second certification instrument is ever wanted; nothing is
-committed now.
+`evals/v3` is the current suite (spec 051, 2026-09-05). `evals/v1` and
+`evals/v2` remain hash-frozen as **records**: v1's calibrations predate
+the spec 027 world and the spec 028 channel and dials; v2 (the 2026-09-03
+3.0 cut) seated 8 and 6 cats on its four wide exams, more than a
+served-width mind can observe — under permanent by-id rows (spec 049)
+the suite bound such a mind at the compiled default and scored it with
+friends silently dropped from its view. v3 re-cuts those four at the
+served roster of 5, and the suite now refuses a policy subject that
+cannot seat an exam's roster (exit 1) instead of scoring it blind.
 
 The suite fixes its own seeds and tick counts, so `--seeds`, `--ticks`,
 `--config` and `--roster` are refused with `--suite`: an instrument you
