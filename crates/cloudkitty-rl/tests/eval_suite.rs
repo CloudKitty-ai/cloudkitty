@@ -12,7 +12,7 @@ use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
 use cloudkitty_rl::harness::{run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite::{
     all_scripted_config, evaluate_verdict, load_suite, score_suite, sha256_hex, CellOutcome,
-    ExamOutcome, KittyDifferential, SignTestMode, SuiteSubject, VerdictConstants,
+    ExamOutcome, KittyDifferential, SignTestMode, SuiteRunError, SuiteSubject, VerdictConstants,
     CANDIDATE_BEHAVIOR,
 };
 use cloudkitty_rl::welfare::{KittyWelfare, WelfareReport};
@@ -42,6 +42,18 @@ const V3_EXAM_FILES: [&str; 6] = [
 /// `[rl.eval]` shrunk so integration tests stay fast. Hashes are computed
 /// over the rewritten bytes, so the scratch suite is internally frozen.
 fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
+    build_scratch_suite_edited(name, ticks, seeds, &|_, text| text)
+}
+
+/// [`build_scratch_suite`] with one more rewrite per exam file (file name,
+/// text after the tick/seed shrink) before hashing — a scratch suite that
+/// differs from v3 by design, still internally frozen.
+fn build_scratch_suite_edited(
+    name: &str,
+    ticks: u64,
+    seeds: &str,
+    edit: &dyn Fn(&str, String) -> String,
+) -> PathBuf {
     let dir = std::env::temp_dir().join("ck-eval-suite").join(name);
     std::fs::create_dir_all(&dir).unwrap();
     // Scratch seed sets are tiny, so the fair-coin sign-test threshold is
@@ -55,6 +67,7 @@ fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
         let text = text
             .replace("ticks = 20000", &format!("ticks = {ticks}"))
             .replace("seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", seeds);
+        let text = edit(file, text);
         hashes.insert(file, sha256_hex(text.as_bytes()));
         std::fs::write(dir.join(file), text).unwrap();
     }
@@ -956,4 +969,77 @@ fn a_served_width_mind_sits_every_exam() {
             "{file}: a scored run"
         );
     }
+}
+
+/// The served-width fixture artifact, bound exactly as `kitty-eval` binds a
+/// `--artifact` subject: validated against the compiled-default `RlConfig`,
+/// registered under its own name and the candidate seat.
+fn served_width_registry(dir_name: &str) -> BehaviorRegistry {
+    let artifact = cloudkitty_rl::test_support::fixture_artifact(dir_name, "served", 8, 7);
+    let behavior =
+        PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &RlConfig::default(), false)
+            .expect("a served-width artifact binds at the compiled default");
+    let behavior: Arc<dyn Behavior> = Arc::new(behavior);
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register("policy:served", behavior.clone());
+    registry.register(CANDIDATE_BEHAVIOR, behavior);
+    registry
+}
+
+// Spec 051 FR-012 / SC-008: the suite refuses a policy subject whose
+// observation cannot seat an exam's roster — the loud failure the silent
+// truncation (research R1) never gave. Red-first (redden-list U2): on the
+// unchanged engine this scratch suite SCORED its 6-cat exam.
+#[test]
+fn a_policy_subject_that_cannot_seat_the_roster_is_refused() {
+    let dir = build_scratch_suite_edited("roster-overflow", 30, "seeds = [1]", &|file, text| {
+        if file != "scale.toml" {
+            return text;
+        }
+        // v2's sixth cat, at its v2 position; the file's own slot count
+        // follows the roster (roster - 1), as the loader requires.
+        let sixth = "[[kitty]]\nid = 6\nname = \"Mochi\"\nx = 24\ny = 6\nbehavior = \"needs_driven\"\n\n";
+        let marker = "# The default world's rates:";
+        assert!(text.contains(marker), "scale.toml keeps its needs comment");
+        text.replacen(marker, &format!("{sixth}{marker}"), 1)
+            .replace("kitty_slots = 4", "kitty_slots = 5")
+    });
+    let suite = load_suite(&dir).unwrap();
+
+    let registry = served_width_registry("ck-eval-suite-roster-overflow");
+    let subject = SuiteSubject {
+        registry: &registry,
+        name: "policy:served",
+        is_policy: true,
+        selection: Some("greedy"),
+    };
+    let err = score_suite(&suite, &subject, false)
+        .err()
+        .expect("a 4-slot policy subject is refused the 6-cat exam before any tick");
+    assert!(
+        matches!(
+            err,
+            SuiteRunError::RosterOverflow {
+                roster: 6,
+                slots: 4,
+                ..
+            }
+        ),
+        "{err:?}"
+    );
+    let message = err.to_string();
+    assert!(
+        message.contains("scale") && message.contains("6 kitties") && message.contains("observes 4"),
+        "the message names the exam, the roster and the slots: {message}"
+    );
+
+    // A built-in subject has no observation width: it still scores the exam.
+    let registry = registry_with_candidate("needs_driven");
+    let subject = SuiteSubject {
+        registry: &registry,
+        name: "needs_driven",
+        is_policy: false,
+        selection: None,
+    };
+    score_suite(&suite, &subject, false).expect("a built-in subject scores the 6-cat exam");
 }
