@@ -347,9 +347,25 @@ with no layout consequence (the legality mask is an oracle over
   finding, logged); well below with sleep welfare below the anchor =
   INVESTIGATE, first suspect the bit's plumbing (A13 must show it at 1
   before this read is trusted). No gate hangs on it.
-- Pass: six slots per the timeline table; horizon `<owner>` ticks;
-  probe every 50 updates, 2,000 probe ticks; Part A at probe 1.
-- Kickoff pins owed by the owner: INVESTIGATE band factor, horizon. (H6
-  median and the three bar numbers are ruled, above.)
+- Pass: six slots per the timeline table; horizon by the plateau rule
+  above (cap 20M); probe every 50 updates, 2,000 probe ticks; Part A at
+  probe 1.
+- **Activity-mix INVESTIGATE band (owner ruled 2026-09-05)**: the
+  timeline's "outside step-2 bands by modest factors" line. Reference =
+  the scripted anchor at the pinned radius, measured in the radius
+  screen with the same instrument (the H2 baseline). Deliverable 1 of
+  `needflow-lab-validation-2026-09-01/RESULTS.md` (canon teacher at
+  global vision) is the second column: how far the fog roster sits from
+  the pre-fog teacher, logged, no line on it, since fog itself moves the
+  partnered classes. Factor **2×** either way (ratio outside [0.5, 2.0])
+  per class, on classes with ≥ 500 anchor scenes in the reference
+  window; 1.5× is the scripted noise line on 300k cat-ticks, and a
+  10k-cat-tick probe puts ~16% Poisson noise on the 3.7/1k classes.
+  Exact-zero teacher classes (rest-solo, play-solo): INVESTIGATE at
+  ≥ 1 per 1k cat-ticks. Window: pooled over the final probe (2,000
+  ticks, five seats) plus the arm's eval census, both readings agreeing
+  before the line is logged. Log and continue; step-6 input, no gate.
+- Kickoff pins: all ruled (H6 median, the three BC bars, the band
+  factor, the horizon rule).
 - Results: `RESULTS.md` ends in the Part B table with each row's
   outcome filled, which IS the step-6 input.
