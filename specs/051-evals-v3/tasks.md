@@ -17,9 +17,9 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Repoint `scratchpad/cycle.sh`'s `cd` line to `~/ai/cloudkitty-evals`; in the worktree run `git fetch origin && git merge --no-edit origin/main` (main moved to 30eb469+ after the branch point; merge IN, never rebase); commit the merge if any.
-- [ ] T002 Create `specs/051-evals-v3/redden-list.md` in the 050 format (standard paragraph; baseline count from `scratchpad/cycle.sh c0` on the merged, otherwise untouched branch — expected ≈ 894 / 0 / 6 ignored, RE-READ; fmt + clippy clean); commit.
-- [ ] T003 Record research R1 as redden-list §R1 (the premise, reproduced): build `kitty-eval`, build a 40-tick / 1-seed scratch copy of `evals/v2` under the scratchpad (the `build_scratch_suite` shape: replace `ticks = 20000` and the seed list, recompute each sha256 into a copied manifest with `sign_test_k = 2`), run `target/debug/kitty-eval --suite <scratch> --artifact crates/cloudkitty-rl/tests/fixtures/oracle.ckpolicy`; predict: all six exams SCORE with fallbacks 0, `scale` lists 8 kitties, exit 4 (fixture verdict), no refusal; paste the exam headers and exit code into the redden-list; commit.
+- [X] T001 Repoint `scratchpad/cycle.sh`'s `cd` line to `~/ai/cloudkitty-evals`; in the worktree run `git fetch origin && git merge --no-edit origin/main` (main moved to 30eb469+ after the branch point; merge IN, never rebase); commit the merge if any.
+- [X] T002 Create `specs/051-evals-v3/redden-list.md` in the 050 format (standard paragraph; baseline count from `scratchpad/cycle.sh c0` on the merged, otherwise untouched branch — expected ≈ 894 / 0 / 6 ignored, RE-READ; fmt + clippy clean); commit.
+- [X] T003 Record research R1 as redden-list §R1 (the premise, reproduced): build `kitty-eval`, build a 40-tick / 1-seed scratch copy of `evals/v2` under the scratchpad (the `build_scratch_suite` shape: replace `ticks = 20000` and the seed list, recompute each sha256 into a copied manifest with `sign_test_k = 2`), run `target/debug/kitty-eval --suite <scratch> --artifact crates/cloudkitty-rl/tests/fixtures/oracle.ckpolicy`; predict: all six exams SCORE with fallbacks 0, `scale` lists 8 kitties, exit 4 (fixture verdict), no refusal; paste the exam headers and exit code into the redden-list; commit.
 
 ---
 
