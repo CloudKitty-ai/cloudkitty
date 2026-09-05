@@ -16,6 +16,13 @@ Measured on the Experiments anchor (F-040): 3,000 ticks at r = 5, zero `want_dri
 
 The owner's rule: a remembered element counts as known relief only when its remembered tile lies **within `[vision] radius + margin` Manhattan tiles** of the cat. Visible relief counts as it does today. At margin 0, Manhattan ≤ r implies the tile is inside the Euclidean disc, so memory never silences a want and the law reads "visible relief only" — radius-invariant. A margin of 1 or 2 lets memory bite in the ring just outside the disc. Key absent keeps today's unbounded rule, so nothing moves until a config sets it.
 
+## Clarifications
+
+### Session 2026-09-05
+
+- Q: Where do the staged tests place the "remembered at Manhattan r + 1" tile, given a diagonal tile at that Manhattan distance can sit inside the Euclidean disc? → A: Option A with B's check — axis-aligned at (x + r + 1, y) or (x, y + r + 1), and the test asserts the tile is outside the disc anyway (protects the fixture if it is later moved). The same fixture is the inclusive-bound case: not known at margin 0 (want legal), known at margin 1 (want silent); that pair is the red-first guard that the bound is inclusive and Manhattan.
+- Q: Under which config is the SC-004 / US1 "here_water replies > 0" count taken, given the served toml leaves `reply_intensity_floor` unset? → A: Option A — the `want_drink` count runs on the served toml verbatim; the reply count sets a floor in the test only, any value > 0 (0.30 is provisional and not a contract of this spec); served stays unset.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A thirsty cat out of sight of water may ask (Priority: P1)
@@ -24,7 +31,7 @@ A cat whose top need is drink and who remembers a pool it cannot currently see s
 
 **Why this priority**: the whole point — the drink channel of the meow law is dead on the served world, and the step-5 corpus is collected from these seats.
 
-**Independent Test**: stage a thirsty cat (drink armed and top) with a water tile remembered at Manhattan `r + 1` and no water in view; at margin 0 the want is legal; at margin 1 it is silent; with the key absent it is silent.
+**Independent Test**: stage a thirsty cat (drink armed and top) with a water tile remembered at Manhattan `r + 1`, axis-aligned (`(x + r + 1, y)` or `(x, y + r + 1)`) so it lies outside the Euclidean disc, and no water in view; the test asserts the tile is outside the disc. At margin 0 the want is legal; at margin 1 it is silent; with the key absent it is silent. The margin-0 / margin-1 pair on this one fixture is the guard that the bound is inclusive and Manhattan.
 
 **Acceptance Scenarios**:
 
@@ -32,7 +39,8 @@ A cat whose top need is drink and who remembers a pool it cannot currently see s
 2. **Given** the same cat at margin 1, **When** legality is read, **Then** `want_drink` is silent (the remembered tile is within reach).
 3. **Given** the same cat with the key absent, **When** legality is read, **Then** `want_drink` is silent (today's rule).
 4. **Given** margin 0 and a pool IN VIEW, **When** legality is read, **Then** `want_drink` is silent at every margin (visible relief is unchanged).
-5. **Given** margin 0 on the served roster, **When** 1,000 ticks run all-scripted at r = 5, **Then** `want_drink` is said more than zero times and `here_water` replies appear (F-040 predicts ~12 drink calls per 1,000 ticks; the number is recorded, not gated).
+5. **Given** margin 0 on the served roster, **When** 1,000 ticks run all-scripted at r = 5 on the served config verbatim, **Then** `want_drink` is said more than zero times (F-040 predicts ~12 drink calls per 1,000 ticks; the number is recorded, not gated; the horizon is 1,000 ticks because a few hundred could legitimately read 0 on a bad seed).
+6. **Given** the same run with a reply floor set in the test only (any value > 0; the served config keeps the floor unset and the number is not a contract of this spec), **When** 1,000 ticks run, **Then** `here_water` replies appear — the claim is "the reply path fires on a `want_drink`", not "at a particular floor".
 
 ---
 
@@ -70,7 +78,8 @@ Eat (remembered chow), drink (remembered water) and play (remembered bug or gree
 
 ### Edge Cases
 
-- **Exactly at the bound**: a remembered tile at Manhattan `r + margin` counts as within reach (inclusive), one tile farther does not.
+- **Exactly at the bound**: a remembered tile at Manhattan `r + margin` counts as within reach (inclusive), one tile farther does not. The staged fixture is the axis-aligned tile at `r + 1`: outside the disc, not known at margin 0, known at margin 1.
+- **Staging geometry**: a diagonal tile at Manhattan `r + 1` can lie inside the Euclidean disc (e.g. `(3, 3)` at r = 5) and so be in view; every "remembered, none in view" stage uses an axis-aligned tile and asserts it is outside the disc.
 - **Standing on the remembered tile** (distance 0): within reach at every margin; but the tile is in view, so the visible clause decides — the memory clause is never the deciding arm inside the disc at margin ≥ 0.
 - **Refuted memory**: a remembered tile that came into view empty is already cleared by the engine (spec 049 R3); no clause reads it.
 - **Very large margin** (≥ width + height): equivalent to the key absent; not refused.
@@ -103,12 +112,12 @@ Eat (remembered chow), drink (remembered water) and play (remembered bug or gree
 
 ### Measurable Outcomes
 
-- **SC-001**: A thirsty cat with water remembered at Manhattan `r + 1` and none in view may say `want_drink` at margin 0, may not at margin 1, and may not with the key absent — asserted by a guard seen red on the unchanged engine at the margin-0 arm.
+- **SC-001**: A thirsty cat with water remembered at an axis-aligned tile at Manhattan `r + 1` (asserted outside the disc) and none in view may say `want_drink` at margin 0, may not at margin 1, and may not with the key absent — asserted by a guard seen red on the unchanged engine at the margin-0 arm.
 - **SC-002**: A cat with water in view may not say `want_drink` at any margin (0, 1, 8, absent).
 - **SC-003**: With the key absent every existing want-law, meow-law-fog and mask-oracle guard is untouched and green.
-- **SC-004**: On the served roster at r = 5, margin 0, all-scripted: `want_drink` calls per 1,000 ticks > 0 and `here_water` replies > 0 with the reply floor set (F-040 predicts ~12 drink calls and +10–13 eat calls per 1,000 ticks; recorded beside the pin, not gated).
+- **SC-004**: On the served roster at r = 5, margin 0, all-scripted, 1,000 ticks: `want_drink` calls > 0 on the served config verbatim; `here_water` replies > 0 with a reply floor > 0 set in the test only (the served `reply_intensity_floor` stays unset; the floor's value is not encoded as a contract). F-040 predicts ~12 drink calls and +10–13 eat calls per 1,000 ticks; recorded beside the pin, not gated.
 - **SC-005**: The served `cloudkitty.toml` diff against main is exactly the one key plus its comment; the defaults-stamp diff shows exactly the one key.
-- **SC-006**: The same reach test holds for eat (remembered chow) and play (remembered critter); cuddle/bath/sleep legality does not read the margin.
+- **SC-006**: The same reach test (same axis-aligned `r + 1` fixture, margin 0 legal / margin 1 silent) holds for eat (remembered chow) and play (remembered critter); cuddle/bath/sleep legality does not read the margin.
 - **SC-007**: Served welfare readings at r = 5 and r = 64 re-taken after the served key lands; numbers recorded in the welfare gate's comment (0 / 0 today).
 
 ## Assumptions
@@ -116,5 +125,6 @@ Eat (remembered chow), drink (remembered water) and play (remembered bug or gree
 - Manhattan distance, inclusive bound, matching the owner's words, F-040's read and the blind-price doctrine (spec 049 T090: Manhattan is the lower bound on the walk). Manhattan ≤ r implies inside the Euclidean disc, which is what makes margin 0 "visible relief only".
 - The compiled `Config::default()` leaves the key absent, so the compiled-world goldens keyed on defaults do not move; the served toml sets 0, so the served-roster stream pins (SC-011's r = 5 streams, SC-004b's named-cause run) and the served welfare readings move and are re-pinned / re-read once.
 - The Experiments `anchor.toml` is Experiments' file; they set `relief_memory_margin = 0` there and re-smoke (schema_check A1/A9, the relief sweep) after the merge; the want_drink group leaves their `declared_constant.json`; the PREREG config rule gains the key.
+- The served `cloudkitty.toml` keeps `reply_intensity_floor` unset (its 0.30 is provisional, owner-pinned at declaration on the Experiments anchor). The SC-004 reply count therefore sets a floor in the test only, any value > 0, so the declaration-time pin never ripples into this spec's guards.
 - F-041 (the strict answers-me bit hiding same-tick re-call replies) is a separate finding and out of scope here.
 - No observation-layout change: schema 5 stays 408 floats; no wire, artifact or exam width moves.
