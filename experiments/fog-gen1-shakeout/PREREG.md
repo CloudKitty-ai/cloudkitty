@@ -4,7 +4,8 @@ Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
 open before declaration: the BC bar numbers (`<pin at declaration>`,
-owner's call), the `reply_intensity_floor` pin on `anchor.toml`, the
+owner's call), the `reply_intensity_floor` pin on `anchor.toml` (rule
+ruled 2026-09-05, number follows the speaker-floor screen), the
 `expected_per_1000` rates in `declared_constant.json` (from the corpus),
 and spec 050 `relief_memory_margin` landing (then the anchor re-smoke at
 margin 0). `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
@@ -206,7 +207,13 @@ with no layout consequence (the legality mask is an oracle over
   and H1 (absolute) carries the welfare reading.
 - Speaker floor {10, 15, 20, 30}; listener floor set in the same
   sitting (placeholder 0.30). Measures and decision rules as ruled in
-  the timeline step 4.
+  the timeline step 4. **Listener floor rule (owner 2026-09-05)**: no
+  arm of its own; `reply_intensity_floor` = picked speaker floor / 100,
+  so every audible want is answerable and a 0.30 listener over a 15
+  speaker (the step-4 caveat) cannot occur. If the pick is 20 or 30, a
+  two-arm scripted contrast at that speaker floor, listener
+  {picked / 100, 0.30}, reads reply rate and informativeness before
+  the pin. Neither floor varies in the PPO pass.
 - **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
   consecutive 1M-tick bins each improve the bin-mean shaped return by
   < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
