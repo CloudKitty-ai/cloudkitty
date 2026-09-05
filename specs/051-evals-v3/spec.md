@@ -74,7 +74,7 @@ The new suite is hash-frozen the moment it lands; v2 stays on disk untouched as 
 - **A mind at a different width**: an artifact whose width matches neither 408 nor any exam is refused at load with the existing width error; v3 makes no promise about it.
 - **The wide v2 exams keep refusing**: nothing in this change teaches v2 to accept a served-width mind. The four-of-six refusal is the recorded reason for v3 and is asserted, not fixed.
 - **Held-out doctrine and the fog worlds**: the v3 exam worlds (48×48 × 5 cats; 28×28 × 5 cats; 32×32 scarcity and heterogeneity) must never enter a training or prereg family. Experiments is told the worlds exist; the mechanical guard is distinctness, the rest is doctrine.
-- **The mixed-roster exam's fairness precondition**: it is fair only if the training recipe includes mixed-control episodes (spec 017 memory). Whether the step-5 recipe does is Experiments' question, relayed at spec time, not a gate here.
+- **The mixed-roster exam's fairness precondition**: it is fair only if the training recipe includes mixed-control episodes (spec 017 memory). Experiments answered 2026-09-05: the step-5 PPO recipe has NONE (PREREG Part C, owner ruled 2026-09-05: served composition, all five seats policy, mix 0.0), so the mixed-roster exam is untrained-for by design in the step-5 pass; Experiments is flagging it to the owner as a step-7 certification-training input. Not a gate on this spec; the exam lands as designed.
 - **Manifest hashes are last**: the hashes go into the manifest over final bytes (the 017 gotcha); the manifest guards its members, not itself.
 
 ## Requirements *(mandatory)*
