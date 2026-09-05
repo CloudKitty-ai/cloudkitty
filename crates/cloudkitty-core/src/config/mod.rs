@@ -1934,8 +1934,7 @@ mod tests {
                 toml::to_string(&VocabularyConfig::default()).unwrap()
             )
         };
-        let absent: MeowConfig =
-            toml::from_str(&with_vocab("digest_window_ticks = 30")).unwrap();
+        let absent: MeowConfig = toml::from_str(&with_vocab("digest_window_ticks = 30")).unwrap();
         assert_eq!(absent.relief_memory_margin, None, "absent = the old rule");
         let zero: MeowConfig = toml::from_str(&with_vocab(
             "digest_window_ticks = 30\nrelief_memory_margin = 0",

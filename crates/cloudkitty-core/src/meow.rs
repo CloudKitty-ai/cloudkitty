@@ -288,7 +288,7 @@ pub fn message_legal(
                 (crate::config::LawEra::Fog, _) => {
                     armed
                         && kitty.needs.highest_pressure().0 == need
-                        && !known_relief(kind, kitty, view)
+                        && !known_relief(kind, kitty, view, config.meow.relief_memory_margin)
                 }
             }
         }
@@ -398,14 +398,33 @@ pub fn reply_condition(
 /// Food in view means a STOCKED bowl (`stocked_chow_in_view`): at the
 /// mid-tick enforcement seam a bowl an earlier cat emptied this tick is
 /// still an element, and it is relief for nobody (review 3 finding 2).
+///
+/// The memory REACH (spec 050, owner ruled 2026-09-04): with `margin` =
+/// `[meow] relief_memory_margin` set, a remembered tile is relief only
+/// while it lies within `view.radius + margin` Manhattan tiles of the cat
+/// (inclusive, saturating) -- ONE closure for eat, drink and play, so the
+/// rule cannot drift per kind. `None` keeps the unbounded rule. At margin
+/// 0 Manhattan <= r is inside the disc, where a remembered tile is either
+/// visible or already refuted, so the memory arm never decides: "visible
+/// relief only". Navigation is not the law and keeps the full memory.
 pub fn known_relief(
     want: MessageKind,
     kitty: &crate::kitty::Kitty,
     view: &crate::world::FogView,
+    margin: Option<u32>,
 ) -> bool {
     use crate::element::ElementType;
     use crate::kitty::memory_index;
-    let remembered = |kind: ElementType| kitty.memory[memory_index(kind)].is_some();
+    let within_reach = |slot: &crate::kitty::MemorySlot| {
+        margin.is_none_or(|m| {
+            kitty.pos.manhattan_distance(&slot.pos) <= view.radius.saturating_add(m)
+        })
+    };
+    let remembered = |kind: ElementType| {
+        kitty.memory[memory_index(kind)]
+            .as_ref()
+            .is_some_and(within_reach)
+    };
     let visible = |kind: ElementType| view.elements_of(kind).next().is_some();
     match want {
         MessageKind::WantEat => stocked_chow_in_view(view) || remembered(ElementType::Chow),
@@ -681,7 +700,7 @@ mod tests {
         });
         let view = world.snapshot().fog_for(1, config.vision.radius);
         assert!(
-            !known_relief(MessageKind::WantEat, world.kitty(1).unwrap(), &view),
+            !known_relief(MessageKind::WantEat, world.kitty(1).unwrap(), &view, None),
             "an emptied bowl in view is not relief"
         );
         assert!(
@@ -694,7 +713,8 @@ mod tests {
         assert!(known_relief(
             MessageKind::WantEat,
             world.kitty(1).unwrap(),
-            &view
+            &view,
+            None
         ));
         assert!(
             !legal(&world, MessageKind::WantEat, &config),
