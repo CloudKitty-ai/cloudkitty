@@ -55,7 +55,7 @@ A config without the key behaves exactly as today, so every existing want-law gu
 **Acceptance Scenarios**:
 
 1. **Given** the key absent, **When** the existing want-law, meow-law-fog and mask-oracle guards run, **Then** none is edited and all stay green.
-2. **Given** the served `cloudkitty.toml`, **When** it is diffed against main, **Then** the only change is the one key set to 0 (and its comment block).
+2. **Given** the served `cloudkitty.toml`, **When** it is diffed against main, **Then** the only changes are the one key set to 0, its comment block, and the head-comment phrase.
 3. **Given** the 2.x replay era (`LawEra::PreFog`), **When** the margin is set, **Then** nothing changes (the 2.x law has no relief clause).
 
 ---
@@ -98,7 +98,7 @@ Eat (remembered chow), drink (remembered water) and play (remembered bug or gree
 - **FR-004**: The rule applies to every want with a memory clause — eat (chow), drink (water), play (bug, greeble) — and to nothing else. Cuddle, bath and sleep read no memory and are untouched. One rule, not per kind.
 - **FR-005**: Navigation and targeting are untouched: the built-in element scan (visible ∪ remembered) and the exploration ladder read memory as before.
 - **FR-006**: The mask probe and the enforcement seam read ONE predicate, as today; the verdict stays recomputable from the observer's own knowledge (its position, its memory dx/dy, the radius and the margin) — the prereg's A14 property.
-- **FR-007**: The served `cloudkitty.toml` sets `relief_memory_margin = 0` with a comment block (what it does, why 0, that key-absent is the old rule, and that the step-5 prereg screens 0 and 1). The served-config diff is exactly that one key. The compiled default leaves the key absent.
+- **FR-007**: The served `cloudkitty.toml` sets `relief_memory_margin = 0` with a comment block (what it does, why 0, that key-absent is the old rule, and that the step-5 prereg screens 0 and 1). The served-config diff is exactly that one key, its comment block, and the one-phrase amendment to the `[meow]` head comment. The compiled default leaves the key absent.
 - **FR-008**: The test-side `LawEra::PreFog` replay (spec 049 FR-024a) is unaffected: the 2.x law has no relief clause and reads no margin.
 - **FR-009**: Records: the meow-law contract's known-relief table gains the reach; the config-3.0 migration note and the served comment block name the key; CHANGELOG Unreleased carries a one-liner; the defaults-stamp guard, goldens and stream pins that the served key moves are re-pinned once from one run with the justification in each file's doctrine comment; the served and compiled welfare readings are re-taken and recorded (readings, not gates — owner ruling 2026-09-04).
 
@@ -116,7 +116,7 @@ Eat (remembered chow), drink (remembered water) and play (remembered bug or gree
 - **SC-002**: A cat with water in view may not say `want_drink` at any margin (0, 1, 8, absent).
 - **SC-003**: With the key absent every existing want-law, meow-law-fog and mask-oracle guard is untouched and green.
 - **SC-004**: On the served roster at r = 5, margin 0, all-scripted, 1,000 ticks: `want_drink` calls > 0 on the served config verbatim; `here_water` replies > 0 with a reply floor > 0 set in the test only (the served `reply_intensity_floor` stays unset; the floor's value is not encoded as a contract). F-040 predicts ~12 drink calls and +10–13 eat calls per 1,000 ticks; recorded beside the pin, not gated.
-- **SC-005**: The served `cloudkitty.toml` diff against main is exactly the one key plus its comment; the defaults-stamp diff shows exactly the one key.
+- **SC-005**: The served `cloudkitty.toml` diff against main is exactly the one key, its comment block, and the one-phrase amendment to the `[meow]` head comment ("nothing remembered within reach"); the defaults stamp is unmoved (the key is absent from the default serialization, asserted by the stamp guard).
 - **SC-006**: The same reach test (same axis-aligned `r + 1` fixture, margin 0 legal / margin 1 silent) holds for eat (remembered chow) and play (remembered critter); cuddle/bath/sleep legality does not read the margin.
 - **SC-007**: Served welfare readings at r = 5 and r = 64 re-taken after the served key lands; numbers recorded in the welfare gate's comment (0 / 0 today).
 
