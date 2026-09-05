@@ -811,6 +811,21 @@ pub struct MeowConfig {
     /// mask from flickering while an errand is in progress.
     #[serde(default = "default_meow_announce_hysteresis")]
     pub announce_hysteresis: f32,
+    /// Spec 050: the want law's MEMORY REACH. When set, a REMEMBERED
+    /// element counts as known relief for `want_eat` / `want_drink` /
+    /// `want_play` (spec 049 FR-036 clause 4) only while its remembered
+    /// tile lies within `[vision] radius + relief_memory_margin` Manhattan
+    /// tiles of the cat (inclusive; saturating). Visible relief is
+    /// unchanged; navigation reads the full memory. Absent = the
+    /// unbounded rule (any remembered tile is relief -- the rule that made
+    /// `want_drink` structurally silent, F-040: pools are permanent and
+    /// never forgotten). Served 0: Manhattan <= r is inside the disc, so
+    /// memory never silences a want and the law reads "visible relief
+    /// only"; the step-5 prereg screens 0 and 1. Negative refused at
+    /// parse; no upper bound. Skip-serialized when absent (the 039-D5
+    /// stamp discipline).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub relief_memory_margin: Option<u32>,
     /// Per-kind enable flags (spec 033): vocabulary is armed by config,
     /// never by engine fork. Flags gate LEGALITY ONLY -- every layout
     /// (digest, head, mask, observation) is identical whatever they say.
@@ -829,6 +844,7 @@ impl Default for MeowConfig {
             digest_window_ticks: default_meow_digest_window_ticks(),
             announce_threshold: default_meow_announce_threshold(),
             announce_hysteresis: default_meow_announce_hysteresis(),
+            relief_memory_margin: None,
             vocabulary: VocabularyConfig::default(),
             law_era: LawEra::Fog,
         }
@@ -1907,6 +1923,37 @@ mod tests {
         assert!(c.validate().is_err());
     }
 
+    /// Spec 050 FR-001: `[meow] relief_memory_margin` is optional (absent =
+    /// the unbounded rule), a non-negative integer; a negative value is a
+    /// load error naming the key; there is no upper bound.
+    #[test]
+    fn relief_memory_margin_is_optional_and_refuses_a_negative_value() {
+        let with_vocab = |fragment: &str| {
+            format!(
+                "{fragment}\n[vocabulary]\n{}",
+                toml::to_string(&VocabularyConfig::default()).unwrap()
+            )
+        };
+        let absent: MeowConfig = toml::from_str(&with_vocab("digest_window_ticks = 30")).unwrap();
+        assert_eq!(absent.relief_memory_margin, None, "absent = the old rule");
+        let zero: MeowConfig = toml::from_str(&with_vocab(
+            "digest_window_ticks = 30\nrelief_memory_margin = 0",
+        ))
+        .unwrap();
+        assert_eq!(zero.relief_memory_margin, Some(0));
+        let huge: MeowConfig = toml::from_str(&with_vocab(
+            "digest_window_ticks = 30\nrelief_memory_margin = 4294967295",
+        ))
+        .unwrap();
+        assert_eq!(huge.relief_memory_margin, Some(u32::MAX), "no upper bound");
+        let err = toml::from_str::<MeowConfig>(&with_vocab(
+            "digest_window_ticks = 30\nrelief_memory_margin = -1",
+        ))
+        .expect_err("a negative margin is refused");
+        let msg = err.to_string();
+        assert!(msg.contains("relief_memory_margin"), "names the key: {msg}");
+    }
+
     #[test]
     fn meow_dial_defaults_land_and_the_rows_hold() {
         // Spec 028 (keeping 023's posture) as amended by spec 049 FR-030:
@@ -2809,6 +2856,13 @@ mod tests {
         assert!(
             !json.contains("refusal_retention"),
             "refusal_retention leaked into the stamp: {json}"
+        );
+        // Spec 050: the want law's memory reach rides the same discipline
+        // -- absent is the unbounded rule and the stamp must not move for
+        // a value nobody set. Delete its skip attribute and this reddens.
+        assert!(
+            !json.contains("relief_memory_margin"),
+            "relief_memory_margin leaked into the stamp: {json}"
         );
         // Spec 047: the consent line rides the same discipline -- 0.0/absent
         // is the launch state and the stamp must not move for a value nobody

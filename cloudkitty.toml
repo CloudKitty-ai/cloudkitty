@@ -294,9 +294,9 @@ cuddle = { min = 6, max = 12 }
 # is armed and that kind's per-cat cooldown has cleared; silence is always
 # legal. Under fog (spec 049) a want-word is also a claim of ignorance --
 # legal only when the need is the cat's top need and it knows no relief
-# (nothing visible or remembered; for the social words, no idle friend in
-# view) -- and a here-word may answer an audible want it can see the
-# referent of. The full law is docs/meows.md.
+# (nothing visible, nothing remembered within reach; for the social words,
+# no idle friend in view) -- and a here-word may answer an audible want it
+# can see the referent of. The full law is docs/meows.md.
 #
 # recent_window_ticks is the per-kind emission COOLDOWN (spec 049 FR-017
 # rewrote its meaning, not its key): after speaking a kind a cat may not
@@ -314,6 +314,20 @@ announce_threshold = 30.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
 # while an errand is in progress.
 announce_hysteresis = 5.0
+# The want law's MEMORY REACH (spec 050, owner ruled 2026-09-04): a
+# REMEMBERED element counts as known relief for want_eat / want_drink /
+# want_play only while its remembered tile lies within [vision] radius +
+# this many Manhattan tiles of the cat (inclusive). Visible relief is
+# unchanged; navigation keeps walking to remembered tiles whatever this
+# says. Why 0: Manhattan <= r is inside the disc, where a remembered tile
+# is either visible or already refuted, so at 0 memory never silences a
+# want and the served law reads "visible relief only" (radius-invariant).
+# That revives want_drink: pools are permanent and memory_timeout_ticks 0
+# never forgets, so under the old rule the first sight of any pool silenced
+# the word for the rest of the run (F-040: zero drink calls in 3,000 ticks,
+# no here_water reply to learn). Key ABSENT = the old unbounded rule. The
+# step-5 prereg screens 0 and 1.
+relief_memory_margin = 0
 
 # The vocabulary (spec 033): one flag per speakable kind. Flags gate
 # LEGALITY only — every layout (digest, head, mask, observation) is

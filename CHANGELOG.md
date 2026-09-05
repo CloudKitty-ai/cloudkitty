@@ -33,6 +33,21 @@ change.
 
 ## Unreleased
 
+- **The want law's memory reach — `[meow] relief_memory_margin` (spec 050)**
+  **`[rng-sequence]`** (by consequence, the 048 precedent: no draw moved,
+  but the served r = 5 scripted streams diverge — a revived want gives a
+  cuddly cat a heard friend to walk to at tick 128). A remembered element
+  counts as known relief for `want_eat` / `want_drink` / `want_play` only
+  while its remembered tile lies within `[vision] radius + margin`
+  Manhattan tiles of the cat (inclusive); visible relief and navigation
+  unchanged; cuddle / bath / sleep read no memory. Key absent = the
+  unbounded rule; the served config sets **0** ("visible relief only"),
+  which revives `want_drink` — pools are permanent and never forgotten, so
+  the old rule silenced it for good (F-040; served reading 23 calls per
+  20,000 ticks, 0 before, and 273 `here_water` replies with a test-only
+  floor). Defaults stamp unmoved (skip-serialized); no layout change; the
+  preladder r = 5 stream fixtures re-recorded once.
+
 - **Fog Gen 1 — the 3.0 observation wall (spec 049)** **`[obs-schema]`
   `[world-fresh]` `[stamp]` `[rng-sequence]`**. Every cat — built-in,
   plugin, policy — now decides from ONE fog view: the kitties and

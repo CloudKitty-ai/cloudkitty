@@ -288,7 +288,7 @@ pub fn message_legal(
                 (crate::config::LawEra::Fog, _) => {
                     armed
                         && kitty.needs.highest_pressure().0 == need
-                        && !known_relief(kind, kitty, view)
+                        && !known_relief(kind, kitty, view, config.meow.relief_memory_margin)
                 }
             }
         }
@@ -398,14 +398,33 @@ pub fn reply_condition(
 /// Food in view means a STOCKED bowl (`stocked_chow_in_view`): at the
 /// mid-tick enforcement seam a bowl an earlier cat emptied this tick is
 /// still an element, and it is relief for nobody (review 3 finding 2).
+///
+/// The memory REACH (spec 050, owner ruled 2026-09-04): with `margin` =
+/// `[meow] relief_memory_margin` set, a remembered tile is relief only
+/// while it lies within `view.radius + margin` Manhattan tiles of the cat
+/// (inclusive, saturating) -- ONE closure for eat, drink and play, so the
+/// rule cannot drift per kind. `None` keeps the unbounded rule. At margin
+/// 0 Manhattan <= r is inside the disc, where a remembered tile is either
+/// visible or already refuted, so the memory arm never decides: "visible
+/// relief only". Navigation is not the law and keeps the full memory.
 pub fn known_relief(
     want: MessageKind,
     kitty: &crate::kitty::Kitty,
     view: &crate::world::FogView,
+    margin: Option<u32>,
 ) -> bool {
     use crate::element::ElementType;
     use crate::kitty::memory_index;
-    let remembered = |kind: ElementType| kitty.memory[memory_index(kind)].is_some();
+    let within_reach = |slot: &crate::kitty::MemorySlot| {
+        margin.is_none_or(|m| {
+            kitty.pos.manhattan_distance(&slot.pos) <= view.radius.saturating_add(m)
+        })
+    };
+    let remembered = |kind: ElementType| {
+        kitty.memory[memory_index(kind)]
+            .as_ref()
+            .is_some_and(within_reach)
+    };
     let visible = |kind: ElementType| view.elements_of(kind).next().is_some();
     match want {
         MessageKind::WantEat => stocked_chow_in_view(view) || remembered(ElementType::Chow),
@@ -681,7 +700,7 @@ mod tests {
         });
         let view = world.snapshot().fog_for(1, config.vision.radius);
         assert!(
-            !known_relief(MessageKind::WantEat, world.kitty(1).unwrap(), &view),
+            !known_relief(MessageKind::WantEat, world.kitty(1).unwrap(), &view, None),
             "an emptied bowl in view is not relief"
         );
         assert!(
@@ -694,7 +713,8 @@ mod tests {
         assert!(known_relief(
             MessageKind::WantEat,
             world.kitty(1).unwrap(),
-            &view
+            &view,
+            None
         ));
         assert!(
             !legal(&world, MessageKind::WantEat, &config),
@@ -884,5 +904,193 @@ mod tests {
             !legal(&world, MessageKind::Mew, &config),
             "on cooldown: not"
         );
+    }
+
+    // ---- spec 050: the want law's memory reach ----
+
+    use crate::element::ElementType;
+    use crate::kitty::{memory_index, MemorySlot};
+    use crate::needs::NeedKind;
+
+    /// The spec 050 fixture (clarification 2, 2026-09-05): kitty 1 at
+    /// (8, 8) remembers `kind` at the AXIS-ALIGNED tile `(8 + r + 1, 8)`
+    /// -- Manhattan `r + 1`, and outside the Euclidean disc, which the
+    /// helper asserts so a later move of the fixture cannot quietly put
+    /// the tile in view (a diagonal tile at Manhattan r + 1 can sit
+    /// inside the disc). The same tile is the inclusive-bound case: not
+    /// within reach at margin 0, within reach at margin 1.
+    fn remember_beyond_the_disc(world: &mut World, kind: ElementType, r: u32) {
+        let idx = world.kitty_index(1).unwrap();
+        let me = world.kitties[idx].pos;
+        assert_eq!(me, Position::new(8, 8), "the fixture's observer tile");
+        let tile = Position::new(8 + r + 1, 8);
+        assert!(
+            !me.visible_from(&tile, r),
+            "the remembered tile must lie outside the disc"
+        );
+        assert_eq!(me.manhattan_distance(&tile), r + 1);
+        world.kitties[idx].memory[memory_index(kind)] = Some(MemorySlot {
+            pos: tile,
+            last_seen: 40,
+        });
+    }
+
+    fn top_and_armed(world: &mut World, need: NeedKind) {
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(need, 60.0);
+        world.kitties[idx].announce_armed.insert(need);
+        assert_eq!(world.kitties[idx].needs.highest_pressure().0, need);
+    }
+
+    /// Spec 050 SC-001 / US1 scenarios 1-3: a thirsty cat whose only known
+    /// water is a remembered tile at Manhattan r + 1 may say `want_drink`
+    /// at margin 0, may not at margin 1 (inclusive bound), and may not with
+    /// the key absent (the pre-050 rule). The margin-0 arm is the
+    /// red-first case on the unchanged engine.
+    #[test]
+    fn want_drink_reads_remembered_water_only_within_reach() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Drink);
+        remember_beyond_the_disc(&mut world, ElementType::Water, 5);
+        config.meow.relief_memory_margin = Some(0);
+        assert!(
+            legal(&world, MessageKind::WantDrink, &config),
+            "margin 0: the remembered pool is beyond reach, the cat may ask"
+        );
+        config.meow.relief_memory_margin = Some(1);
+        assert!(
+            !legal(&world, MessageKind::WantDrink, &config),
+            "margin 1: Manhattan r + 1 <= r + 1 is within reach (inclusive)"
+        );
+        config.meow.relief_memory_margin = None;
+        assert!(
+            !legal(&world, MessageKind::WantDrink, &config),
+            "key absent: any remembered tile is relief (the old rule)"
+        );
+    }
+
+    /// Spec 050 SC-002 / FR-003: water IN VIEW silences `want_drink` at
+    /// every margin -- the visible arm is untouched.
+    #[test]
+    fn water_in_view_silences_want_drink_at_every_margin() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Drink);
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Water,
+            pos: Position::new(11, 8),
+            ttl: None,
+        });
+        for margin in [Some(0), Some(1), Some(8), None] {
+            config.meow.relief_memory_margin = margin;
+            assert!(
+                !legal(&world, MessageKind::WantDrink, &config),
+                "water in view at margin {margin:?}: silent"
+            );
+        }
+    }
+
+    /// Spec 050 FR-008 / US2 scenario 3: the 2.x replay era reads no
+    /// margin -- its want law is armed-only, with no relief clause.
+    #[test]
+    fn the_pre_fog_law_reads_no_margin() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        config.meow.law_era = crate::config::LawEra::PreFog;
+        top_and_armed(&mut world, NeedKind::Drink);
+        remember_beyond_the_disc(&mut world, ElementType::Water, 5);
+        for margin in [Some(0), Some(1), None] {
+            config.meow.relief_memory_margin = margin;
+            assert!(
+                legal(&world, MessageKind::WantDrink, &config),
+                "PreFog at margin {margin:?}: armed-only, the memory is not read"
+            );
+        }
+    }
+
+    /// Spec 050 SC-006 / US3 scenario 1: eat reads the same reach.
+    #[test]
+    fn want_eat_reads_remembered_chow_only_within_reach() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Eat);
+        remember_beyond_the_disc(&mut world, ElementType::Chow, 5);
+        config.meow.relief_memory_margin = Some(0);
+        assert!(legal(&world, MessageKind::WantEat, &config), "margin 0");
+        config.meow.relief_memory_margin = Some(1);
+        assert!(!legal(&world, MessageKind::WantEat, &config), "margin 1");
+        config.meow.relief_memory_margin = None;
+        assert!(!legal(&world, MessageKind::WantEat, &config), "absent");
+    }
+
+    /// Spec 050 SC-006 / US3 scenario 2: play reads the same reach for a
+    /// remembered bug and a remembered greeble. Kitty 2 sits at (12, 12),
+    /// outside the r = 5 disc of (8, 8), so no idle friend is in view and
+    /// no critter is visible: the memory arm is the only arm that can
+    /// silence the word.
+    #[test]
+    fn want_play_reads_remembered_critters_only_within_reach() {
+        for critter in [ElementType::Bug, ElementType::Greeble] {
+            let (mut world, mut config) = bare_meadow();
+            config.vision.radius = 5;
+            top_and_armed(&mut world, NeedKind::Play);
+            let view = world.snapshot().fog_for(1, 5);
+            assert!(
+                !crate::world::idle_friend_in_view(&view) && view.critters().next().is_none(),
+                "the stage has no visible relief for play"
+            );
+            remember_beyond_the_disc(&mut world, critter, 5);
+            config.meow.relief_memory_margin = Some(0);
+            assert!(
+                legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: margin 0"
+            );
+            config.meow.relief_memory_margin = Some(1);
+            assert!(
+                !legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: margin 1"
+            );
+            config.meow.relief_memory_margin = None;
+            assert!(
+                !legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: absent"
+            );
+        }
+    }
+
+    /// Spec 050 SC-006 / US3 scenario 3: cuddle, bath and sleep read no
+    /// memory, so the margin plays no part -- their verdicts at every
+    /// margin equal the key-absent verdict, with remembered water, chow
+    /// and bug slots beyond the disc present the whole time.
+    #[test]
+    fn the_social_words_never_read_the_margin() {
+        for (need, word) in [
+            (NeedKind::Cuddle, MessageKind::WantCuddle),
+            (NeedKind::Bath, MessageKind::WantBath),
+            (NeedKind::Sleep, MessageKind::WantSleep),
+        ] {
+            let (mut world, mut config) = bare_meadow();
+            config.vision.radius = 5;
+            top_and_armed(&mut world, need);
+            for kind in [ElementType::Water, ElementType::Chow, ElementType::Bug] {
+                remember_beyond_the_disc(&mut world, kind, 5);
+            }
+            config.meow.relief_memory_margin = None;
+            let absent = legal(&world, word, &config);
+            assert!(
+                absent,
+                "{word:?}: armed, top, no relief clause reads memory"
+            );
+            for margin in [Some(0), Some(1), Some(8)] {
+                config.meow.relief_memory_margin = margin;
+                assert_eq!(
+                    legal(&world, word, &config),
+                    absent,
+                    "{word:?} at margin {margin:?}"
+                );
+            }
+        }
     }
 }
