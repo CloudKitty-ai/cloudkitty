@@ -3,10 +3,12 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use cloudkitty_core::behavior::BehaviorRegistry;
+use cloudkitty_core::behavior::{Behavior, BehaviorRegistry};
 use cloudkitty_core::Config;
-use cloudkitty_rl::config::load_configs_from_path;
+use cloudkitty_rl::behavior::PolicyBehavior;
+use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
 use cloudkitty_rl::harness::{run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite::{
     all_scripted_config, evaluate_verdict, load_suite, score_suite, sha256_hex, CellOutcome,
@@ -877,5 +879,81 @@ fn share_guard_paired_prefix_is_the_only_divergence() {
     for (p, i) in plain.lines().zip(indented.lines()) {
         assert_eq!(format!("  {p}"), i);
         assert!(p.starts_with("seed "));
+    }
+}
+
+// Spec 051 FR-006 / SC-001: a served-width mind sits every exam with every
+// friend in view. The property is roster fit (roster <= slots + 1): the
+// suite binds a policy subject once, at the compiled-default observation
+// config, and the encoder's friend-row builder truncates a wider roster
+// silently (research R1 — the oracle fixture scored v2's 8-cat `scale`
+// blind to three friends, zero fallbacks). Then the served-width fixture
+// artifact is bound exactly as `kitty-eval` binds it and completes a
+// short scored run on each file. Pointed at `evals/v2` once (redden-list
+// U1) the roster-fit assertion went red on exactly `scale` and the three
+// mixed-roster cells.
+#[test]
+fn a_served_width_mind_sits_every_exam() {
+    let suite_dir = evals_v3();
+    let rl_default = RlConfig::default();
+    let slots = rl_default.observation.kitty_slots;
+    let overflow: Vec<String> = V3_EXAM_FILES
+        .iter()
+        .filter_map(|file| {
+            let (core, _) =
+                load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
+            let roster = core.kitties.len();
+            (roster > slots + 1).then(|| {
+                format!(
+                    "{file}: roster {roster} needs {} slots, the served subject has {slots}",
+                    roster - 1
+                )
+            })
+        })
+        .collect();
+    assert!(
+        overflow.is_empty(),
+        "exams a served-width mind cannot sit with every friend in view:\n{}",
+        overflow.join("\n")
+    );
+
+    let artifact = cloudkitty_rl::test_support::fixture_artifact(
+        "ck-eval-suite-served-width",
+        "served",
+        8,
+        7,
+    );
+    let behavior = PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &rl_default, false)
+        .expect("a served-width artifact binds at the compiled default, as kitty-eval binds it");
+    let behavior: Arc<dyn Behavior> = Arc::new(behavior);
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register("policy:served", behavior.clone());
+    registry.register(CANDIDATE_BEHAVIOR, behavior);
+    for file in V3_EXAM_FILES {
+        let (core, rl) = load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
+        // Standard exams seat the subject everywhere; a cell runs its own
+        // behavior column, the candidate seats resolving through the registry.
+        let cell = file.starts_with("mixed-roster");
+        let outcome = run_one(&EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: if cell { None } else { Some("policy:served") },
+            roster: if cell {
+                RosterMode::FromConfig
+            } else {
+                RosterMode::AllSubject
+            },
+            seed: 1,
+            ticks: 200,
+        });
+        assert_eq!(
+            outcome.fallback_count, 0,
+            "{file}: the served-width mind took fallbacks"
+        );
+        assert!(
+            outcome.aggregates.team_welfare.is_finite(),
+            "{file}: a scored run"
+        );
     }
 }

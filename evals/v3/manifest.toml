@@ -16,9 +16,11 @@
 # mind saw the room. v3 re-cuts those four at roster 5 so every friend is
 # in view, and spec 051 FR-012 makes the suite refuse a policy subject that
 # cannot seat an exam's roster. The v3 roster-fit guard
-# (tests/eval_suite.rs) was pointed at v2 once in the red-first cycle and
-# went red on exactly those four files (recorded in
-# specs/051-evals-v3/redden-list.md).
+# (tests/eval_suite.rs, a_served_width_mind_sits_every_exam) was pointed
+# at v2 once in the red-first cycle, 2026-09-05, and went red on exactly
+# scale.toml (roster 8), mixed-roster-guest.toml, mixed-roster-half.toml
+# and mixed-roster-host.toml (roster 6) against 4 slots; scarcity and
+# heterogeneity passed (recorded in specs/051-evals-v3/redden-list.md).
 # FROZEN: every file below is immutable once landed (spec 017 FR-012).
 # Any edit fails CI (tests/eval_suite.rs freeze guard) and fails suite
 # startup. Evolution = a new evals/v4/ alongside; this file never changes.
