@@ -47,7 +47,7 @@ A new frozen suite directory `evals/v3` beside the untouched `evals/v2`: `scale`
 
 ```text
 specs/051-evals-v3/
-├── spec.md              # 3 US / 12 FRs (FR-012 owner call) / 8 SCs; §Clarifications 2026-09-05; plan-time correction
+├── spec.md              # 3 US / 12 FRs (FR-012 ruled in) / 8 SCs; §Clarifications 2026-09-05; plan-time correction
 ├── plan.md              # This file
 ├── research.md          # Phase 0: R1 the finding, R2–R9 design decisions
 ├── data-model.md        # Phase 1: suite version, exam, roster width, record suite
