@@ -12,7 +12,7 @@ Baseline count (branch tip `5e5803f`, before any engine change, 2026-09-05):
 `cargo clippy --workspace --all-targets -- -D warnings` clean. Toolchain
 1.97.1 per `rust-toolchain.toml`.
 
-FINAL count: recorded at T026.
+FINAL count (T026, 2026-09-05): **894 / 0, 6 ignored**, wall 79 s; fmt + clippy clean.
 
 ## Cycles
 
@@ -27,4 +27,7 @@ FINAL count: recorded at T026.
 | u2 (T015) | served key landed + T014; whole suite | RED only `fog_continuity::reply_floor_unset_is_byte_identical`; SC-004b (r = 40) green; goldens / stamp / sweeps green; 889 / 1 / 6 | 889 / 1 / 6, 84 s — exactly the predicted red. ACTIONS diverge first, at tick 128 (kitty 4 Idle → Move West), not at the first drink call: scratch diff of the two 130-tick streams shows kitty 3's `want_eat` at tick 118 is the first new call (remembered bowl beyond reach at margin 0), and kitty 4 (cuddle top) then walks toward the heard friend (R10 targeting). No RNG involved. First `want_drink` at tick 1,610. | — |
 | T016 | `record_preladder_r5_streams` re-run ONCE; fixtures re-recorded (actions 39,734 lines changed, messages 3,653) | fog_continuity 3 / 0 / 2 green | green as predicted; doc comment names the cause and ticks | — |
 | T017 | served diff = one key + comment block + head-comment phrase (verified by `git diff origin/main -- cloudkitty.toml`); stamp test green; `relief_memory_margin` appears nowhere under `evals/` or `training.toml` (only `experiments/FINDINGS.md`, Experiments' F-040 text — untouched) | — | verified | — |
+| U3 (T020, first cut) | `<=` → `<` in `known_relief` (exclusive bound) | RED at the "margin 1" arm of the drink / eat / play fixtures AND at the reach property | fixtures RED as predicted (3 tests: `want_drink_…`, `want_eat_…`, `want_play_…` (Bug + Greeble)); **the property stayed GREEN — vacuous for this bug** (uniform random tiles hit the exact bound too rarely at 48 cases and the tested kind was seldom the top need) | restored; property RE-CUT (rule 6): the remembered tile is drawn at the bound ± 1 and the tested kind's need is made top |
+| U3b (T020, re-cut) | same mutation | 3 fixtures RED + `the_reach_rule_holds_over_random_worlds_and_margins` RED | RED exactly as predicted (`meow::` 22 / 3; `meow_law_fog` 6 / 1) | `git checkout`; 25 / 0 and 7 / 0 re-read; the `.proptest-regressions` file the mutation wrote was deleted (it records the mutant's failing seed, not a real regression) |
+| final (T026) | none — the finished branch | 894 / 0 / 6 (885 + T006 2 + T010 2 + T014 1 + T018 3 + T019 1); fmt + clippy clean; nothing under `evals/` | **894 / 0 / 6, 79 s** — as predicted; fmt clean; clippy clean; `git status` shows nothing under `evals/` | — |
 | U1 (T007→T009) | the r + 1 fixture (`want_drink_reads_remembered_water_only_within_reach`) against the UNCHANGED predicate | RED at the margin-0 arm ("the cat may ask"); `water_in_view_silences_want_drink_at_every_margin` green | RED at meow.rs:937 exactly as predicted (20 / 1 in `meow::`); after T008 (the reach in `known_relief`) 21 / 0 green; `meow_law_fog` 6 / 0 green (key absent — SC-003) | the red test committed at its red state; closed green on the change |
