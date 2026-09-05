@@ -885,4 +885,90 @@ mod tests {
             "on cooldown: not"
         );
     }
+
+    // ---- spec 050: the want law's memory reach ----
+
+    use crate::element::ElementType;
+    use crate::kitty::{memory_index, MemorySlot};
+    use crate::needs::NeedKind;
+
+    /// The spec 050 fixture (clarification 2, 2026-09-05): kitty 1 at
+    /// (8, 8) remembers `kind` at the AXIS-ALIGNED tile `(8 + r + 1, 8)`
+    /// -- Manhattan `r + 1`, and outside the Euclidean disc, which the
+    /// helper asserts so a later move of the fixture cannot quietly put
+    /// the tile in view (a diagonal tile at Manhattan r + 1 can sit
+    /// inside the disc). The same tile is the inclusive-bound case: not
+    /// within reach at margin 0, within reach at margin 1.
+    fn remember_beyond_the_disc(world: &mut World, kind: ElementType, r: u32) {
+        let idx = world.kitty_index(1).unwrap();
+        let me = world.kitties[idx].pos;
+        assert_eq!(me, Position::new(8, 8), "the fixture's observer tile");
+        let tile = Position::new(8 + r + 1, 8);
+        assert!(
+            !me.visible_from(&tile, r),
+            "the remembered tile must lie outside the disc"
+        );
+        assert_eq!(me.manhattan_distance(&tile), r + 1);
+        world.kitties[idx].memory[memory_index(kind)] = Some(MemorySlot {
+            pos: tile,
+            last_seen: 40,
+        });
+    }
+
+    fn top_and_armed(world: &mut World, need: NeedKind) {
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(need, 60.0);
+        world.kitties[idx].announce_armed.insert(need);
+        assert_eq!(world.kitties[idx].needs.highest_pressure().0, need);
+    }
+
+    /// Spec 050 SC-001 / US1 scenarios 1-3: a thirsty cat whose only known
+    /// water is a remembered tile at Manhattan r + 1 may say `want_drink`
+    /// at margin 0, may not at margin 1 (inclusive bound), and may not with
+    /// the key absent (the pre-050 rule). The margin-0 arm is the
+    /// red-first case on the unchanged engine.
+    #[test]
+    fn want_drink_reads_remembered_water_only_within_reach() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Drink);
+        remember_beyond_the_disc(&mut world, ElementType::Water, 5);
+        config.meow.relief_memory_margin = Some(0);
+        assert!(
+            legal(&world, MessageKind::WantDrink, &config),
+            "margin 0: the remembered pool is beyond reach, the cat may ask"
+        );
+        config.meow.relief_memory_margin = Some(1);
+        assert!(
+            !legal(&world, MessageKind::WantDrink, &config),
+            "margin 1: Manhattan r + 1 <= r + 1 is within reach (inclusive)"
+        );
+        config.meow.relief_memory_margin = None;
+        assert!(
+            !legal(&world, MessageKind::WantDrink, &config),
+            "key absent: any remembered tile is relief (the old rule)"
+        );
+    }
+
+    /// Spec 050 SC-002 / FR-003: water IN VIEW silences `want_drink` at
+    /// every margin -- the visible arm is untouched.
+    #[test]
+    fn water_in_view_silences_want_drink_at_every_margin() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Drink);
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Water,
+            pos: Position::new(11, 8),
+            ttl: None,
+        });
+        for margin in [Some(0), Some(1), Some(8), None] {
+            config.meow.relief_memory_margin = margin;
+            assert!(
+                !legal(&world, MessageKind::WantDrink, &config),
+                "water in view at margin {margin:?}: silent"
+            );
+        }
+    }
 }
