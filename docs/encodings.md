@@ -238,7 +238,23 @@ clock.
 Row invariant: `mask[i, label[i]] == 1` and `mask_msg[i, label_msg[i]]
 == 1` everywhere; `mask_msg[:, 0]` all-ones. Datasets record the schema
 they were collected under; a schema-5 dataset is 408/39/16-shaped (a
-schema-4 one was 225/34/16).
+schema-4 one was 225/34/16). Every observation is the kitty's own fog
+view of the pre-tick snapshot at the config's `[vision] radius`
+(recorded in meta as `vision_radius`).
+
+With `--trace` (meta `trace: true`) the rollout dir also holds the
+schema trace the fog Gen 1 step-5 prereg reads. It is complete: one row
+per kitty per tick in roster order, no row dropped for label reasons.
+
+| file | shape/dtype | meaning |
+|---|---|---|
+| trace_obs.npy | (T·R, obs_len) f4 | every kitty's observation, every tick |
+| trace_mask.npy | (T·R, menu + head) u1 | activity mask then message mask |
+| trace_kitty.npy / trace_tick.npy | (T·R,) u4 | row identity |
+| trace.jsonl | T lines | per tick: `tick`, the pre-tick `snapshot` (kitties with `memory` and `explore_waypoint`, elements, `recent_meows` with `pos`, `intensity`, `reply`), `tables` (per observer: row → kitty id, critter slot → element id), `refusals` stamped this tick (with `reason`), `reencode_identical` (per observer: a second encode of the same view matched byte for byte) |
+
+Rows of obs.npy are a subset of trace_obs.npy, byte-identical at the
+same (tick, kitty).
 
 ## Documented elsewhere (pointers, not duplication)
 
