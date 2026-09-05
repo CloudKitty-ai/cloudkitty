@@ -21,12 +21,14 @@ One rule per tier in `message_legal(kitty, kind, tick, config, view)`; the RL me
 
 | kind | known relief |
 |---|---|
-| eat | a STOCKED chow element visible (`stocked_chow_in_view`, the here law's referent predicate — review 3 finding 2: at the mid-tick seam an emptied bowl is relief for nobody) ∨ `memory[Chow]` present |
-| drink | a water element visible ∨ `memory[Water]` present |
+| eat | a STOCKED chow element visible (`stocked_chow_in_view`, the here law's referent predicate — review 3 finding 2: at the mid-tick seam an emptied bowl is relief for nobody) ∨ `memory[Chow]` present **within reach** (spec 050) |
+| drink | a water element visible ∨ `memory[Water]` present **within reach** (spec 050) |
 | cuddle | an **idle friend visible**: `idle_friend_in_view(view)` — a friend inside the disc with `activity_clock.is_none()` (no scene, not asleep); adjacency not required. Heard-unseen friends never enter the gate (owner ruled 2026-09-03). |
 | bath | **never** — an ASK (owner ruled 2026-09-03, T087): clauses 3 and 4 do not apply; legal iff clauses 1 and 2. Its relief is self-grooming; the partnered groom is the groomer's to start on hearing the word. `LawEra::PreFog` (`MeowConfig.law_era`, `#[serde(skip)]`, test-side) replays the 2.x armed-only law for every kind — SC-004a. |
-| play | (the cuddle clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known |
+| play | (the cuddle clause) ∨ (a critter visible ∨ `memory[Bug]` ∨ `memory[Greeble]` present **within reach**) — i.e. the word is legal only when neither an idle friend is in view nor a critter is known (spec 050) |
 | sleep | never known — no knowledge gate (need-only-when-top) |
+
+**Within reach** (spec 050, owner ruled 2026-09-04): a remembered tile counts only while `manhattan(pos, tile) ≤ [vision] radius + [meow] relief_memory_margin` (inclusive, saturating, read off the cat's position at the probe); key absent = any remembered tile (the pre-050 rule); served 0 = "visible relief only" (Manhattan ≤ r is inside the disc). One closure for eat / drink / play; navigation reads the full memory. Contract: [specs/050-relief-memory-margin/contracts/relief-memory-margin.md](../../050-relief-memory-margin/contracts/relief-memory-margin.md).
 
 Radius-edge flicker on clause 4 is accepted (owner ruling v); no hysteresis.
 

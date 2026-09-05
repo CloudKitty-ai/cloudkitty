@@ -53,7 +53,11 @@ want_sleep**
   hysteresis so the word doesn't flicker mid-errand), that need is the
   cat's **top need** (`NeedKind::ALL` order breaks exact ties), the cat
   has **no known relief** for it, and the cooldown is clear. Known
-  relief, per word: `want_eat` — a bowl visible or remembered;
+  relief, per word ("remembered" means remembered **within reach** — the
+  remembered tile within `[vision] radius + [meow] relief_memory_margin`
+  Manhattan tiles of the cat; key absent = any remembered tile; served 0
+  = visible relief only, so a thirsty cat out of sight of water may ask —
+  spec 050): `want_eat` — a bowl visible or remembered;
   `want_drink` — water visible or remembered; `want_cuddle` — an **idle
   friend in view** (no scene, not asleep; adjacency not required; a
   friend the cat can only hear never silences the word); `want_play` —

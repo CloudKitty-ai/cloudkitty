@@ -310,21 +310,49 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(48))]
 
     /// Spec 050 FR-002 / FR-004 / FR-006 (prereg A14): the memory REACH
-    /// over random worlds, memories and margins, derived independently --
-    /// the oracle computes reach from the cat's position, the remembered
-    /// tile, the radius and the margin with its own Manhattan arithmetic,
-    /// never from `known_relief`. Eat, drink and play read the one rule;
-    /// cuddle, bath and sleep never read the margin. `u32::MAX` exercises
-    /// the saturating add (>= width + height is the key-absent rule). The
-    /// key-absent property above is untouched (SC-003).
+    /// over random worlds and margins, derived independently -- the oracle
+    /// computes reach from the cat's position, the remembered tile, the
+    /// radius and the margin with its own Manhattan arithmetic, never from
+    /// `known_relief`. The remembered tile is drawn AT the bound and one
+    /// tile either side of it (a uniform tile hits the bound too rarely:
+    /// the first cut of this property stayed green under a `<=` -> `<`
+    /// mutation, redden-list U3), and the tested kind's need is made the
+    /// top need, so every case is a live verdict. Eat, drink and play read
+    /// the one rule; cuddle, bath and sleep never read the margin.
+    /// `u32::MAX` exercises the saturating add (>= width + height is the
+    /// key-absent rule). The key-absent property below is untouched
+    /// (SC-003).
     #[test]
     fn the_reach_rule_holds_over_random_worlds_and_margins(
         seed in 0u64..5_000,
         radius in 2u32..=8,
         margin in prop::option::of(prop_oneof![0u32..=4, Just(u32::MAX)]),
-        needs in prop::collection::vec(0f32..100.0, 6),
-        slots in prop::collection::vec(prop::option::of((0u32..20, 0u32..20)), 5),
+        kind_ix in 0usize..4,
+        at_bound in -1i64..=1,
+        free_walk in 0u32..=12,
+        split in 0.0f64..1.0,
+        flip in (any::<bool>(), any::<bool>()),
+        others in prop::collection::vec(0f32..50.0, 6),
     ) {
+        let kind = [ElementType::Chow, ElementType::Water, ElementType::Bug, ElementType::Greeble][kind_ix];
+        let (want, need) = match kind {
+            ElementType::Chow => (MessageKind::WantEat, NeedKind::Eat),
+            ElementType::Water => (MessageKind::WantDrink, NeedKind::Drink),
+            _ => (MessageKind::WantPlay, NeedKind::Play),
+        };
+        // The walk to the remembered tile: at the bound (+/- 1) when the
+        // margin is small; a free short walk when the reach is unbounded.
+        let walk: i64 = match margin {
+            Some(m) if m <= 4 => i64::from(radius + m) + at_bound,
+            _ => i64::from(free_walk),
+        };
+        prop_assume!(walk >= 0);
+        let dx = (walk as f64 * split).round() as i64;
+        let dy = walk - dx;
+        let (x, y) = (10 + if flip.0 { dx } else { -dx }, 10 + if flip.1 { dy } else { -dy });
+        prop_assume!((0..20).contains(&x) && (0..20).contains(&y));
+        let tile = Position::new(x as u32, y as u32);
+
         let mut config = test_config();
         config.world.width = 20;
         config.world.height = 20;
@@ -341,56 +369,45 @@ proptest! {
         world.tick = 100;
         {
             let idx = world.kitty_index(1).unwrap();
-            for (kind, level) in NeedKind::ALL.iter().zip(needs.iter()) {
-                world.kitties[idx].needs.add(*kind, *level);
-                world.kitties[idx].announce_armed.insert(*kind);
+            for (k, level) in NeedKind::ALL.iter().zip(others.iter()) {
+                world.kitties[idx].needs.add(*k, *level);
+                world.kitties[idx].announce_armed.insert(*k);
             }
-            for (slot, tile) in world.kitties[idx].memory.iter_mut().zip(slots.iter()) {
-                *slot = tile.map(|(x, y)| MemorySlot { pos: Position::new(x, y), last_seen: 90 });
+            world.kitties[idx].needs.add(need, 60.0);
+            for slot in world.kitties[idx].memory.iter_mut() {
+                *slot = None;
             }
+            world.kitties[idx].memory[memory_index(kind)] = Some(MemorySlot { pos: tile, last_seen: 90 });
         }
         let me = world.kitty(1).unwrap().clone();
+        prop_assert_eq!(me.needs.highest_pressure().0, need, "the tested need is top");
         let view = world.snapshot().fog_for(1, radius);
-        let (top, _) = me.needs.highest_pressure();
-        let visible = |kind: ElementType| view.elements_of(kind).next().is_some();
         // The oracle's reach: Manhattan from the cat to the remembered tile,
         // against radius + margin, inclusive; absent = every slot counts.
-        let within = |kind: ElementType| {
-            me.memory[memory_index(kind)].is_some_and(|slot| {
-                let walk = me.pos.x.abs_diff(slot.pos.x) + me.pos.y.abs_diff(slot.pos.y);
-                margin.is_none_or(|m| walk <= radius.saturating_add(m))
-            })
-        };
+        let manhattan = me.pos.x.abs_diff(tile.x) + me.pos.y.abs_diff(tile.y);
+        prop_assert_eq!(i64::from(manhattan), walk);
+        let within = margin.is_none_or(|m| manhattan <= radius.saturating_add(m));
+        let visible = |k: ElementType| view.elements_of(k).next().is_some();
         let idle_in_view = view.others(1).any(|k| k.activity_clock.is_none());
-        for want in [MessageKind::WantEat, MessageKind::WantDrink, MessageKind::WantPlay] {
-            let need = want.related_need().unwrap();
-            let relief = match want {
-                MessageKind::WantEat => visible(ElementType::Chow) || within(ElementType::Chow),
-                MessageKind::WantDrink => visible(ElementType::Water) || within(ElementType::Water),
-                _ => idle_in_view || view.critters().next().is_some() || within(ElementType::Bug) || within(ElementType::Greeble),
-            };
-            let expected = need == top && !relief && config.meow.vocabulary.enabled(want);
-            prop_assert_eq!(message_legal(&me, want, 100, &config, &view), expected, "{:?}: top {:?}, margin {:?}, relief {}", want, top, margin, relief);
-        }
+        let relief = match kind {
+            ElementType::Chow => visible(ElementType::Chow) || within,
+            ElementType::Water => visible(ElementType::Water) || within,
+            _ => idle_in_view || view.critters().next().is_some() || within,
+        };
+        let expected = !relief && config.meow.vocabulary.enabled(want);
+        prop_assert_eq!(message_legal(&me, want, 100, &config, &view), expected, "{:?}: walk {}, radius {}, margin {:?}, relief {}", want, walk, radius, margin, relief);
         // The social words never read the margin: same verdict as key-absent.
         let mut unbounded = (*config).clone();
         unbounded.meow.relief_memory_margin = None;
-        for want in [MessageKind::WantCuddle, MessageKind::WantBath, MessageKind::WantSleep] {
+        for social in [MessageKind::WantCuddle, MessageKind::WantBath, MessageKind::WantSleep] {
             prop_assert_eq!(
-                message_legal(&me, want, 100, &config, &view),
-                message_legal(&me, want, 100, &unbounded, &view),
-                "{:?}: the margin moved a social verdict", want
+                message_legal(&me, social, 100, &config, &view),
+                message_legal(&me, social, 100, &unbounded, &view),
+                "{:?}: the margin moved a social verdict", social
             );
         }
     }
 
-    /// SC-010 over random stagings: no want is legal while its relief is
-    /// visible or remembered (cuddle and play: while an idle friend is in
-    /// view) or while it is not the top need -- except `want_bath`, an ask,
-    /// armed-only (owner ruled 2026-09-03); a heard-unseen friend never
-    /// changes a want verdict; no here is legal without an adjacent
-    /// referent or (an audible matching want AND a visible referent);
-    /// every heard row's position is the freshest audible meow's stamp.
     #[test]
     fn the_law_holds_over_random_worlds(
         seed in 0u64..5_000,

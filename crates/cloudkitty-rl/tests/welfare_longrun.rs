@@ -29,7 +29,8 @@ fn twenty_thousand_ticks_stay_within_the_welfare_bounds() {
     // ignored reading below; the SERVED 20x20 world holds these bounds at
     // r = 5 and at global vision (0 violations,
     // `served_world_fog_r5_welfare_reading_with_global_vision_control`,
-    // ~7 s for both runs) -- a READING by ruling, never a gate (owner,
+    // ~7 s for both runs; re-read 2026-09-05 after spec 050's served
+    // `relief_memory_margin = 0`: still 0 / 0) -- a READING by ruling, never a gate (owner,
     // 2026-09-04, on `/code-review high 049` finding 2): the 2.x bounds
     // were calibrated under global vision and are NOT the 3.x bar; the
     // Gen 1 welfare bar is the step-5 prereg's, and a ruled smaller
