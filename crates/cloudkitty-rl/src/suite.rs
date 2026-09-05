@@ -524,6 +524,39 @@ pub enum SuiteRunError {
     /// A repeated seed disagreed with itself (exit 3). `location` names the
     /// exam (and cell/mode) that produced it.
     Determinism { location: String, seed: u64 },
+    /// A policy subject's observation cannot seat an exam's roster (spec
+    /// 051 FR-012; exit 1, a load failure). Under permanent by-id kitty
+    /// rows the encoder truncates a wider roster silently, so this is
+    /// refused before any tick rather than scored blind.
+    RosterOverflow {
+        exam: String,
+        roster: usize,
+        slots: usize,
+    },
+}
+
+impl std::fmt::Display for SuiteRunError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SuiteRunError::Determinism { location, seed } => {
+                write!(
+                    f,
+                    "determinism self-check failed on seed {seed} ({location})"
+                )
+            }
+            SuiteRunError::RosterOverflow {
+                exam,
+                roster,
+                slots,
+            } => write!(
+                f,
+                "exam '{exam}': a roster of {roster} kitties needs {} kitty slots; the policy \
+                 subject observes {slots} (spec 051 FR-012) — a wider roster would be \
+                 truncated silently from its view",
+                roster - 1
+            ),
+        }
+    }
 }
 
 pub(crate) fn self_check(
@@ -884,14 +917,52 @@ fn sign_test_forgiven(check: &VerdictCheck, mode: SignTestMode) -> bool {
     !check.passed && check.check == SIGN_TEST_CHECK && mode == SignTestMode::Warn
 }
 
+/// Spec 051 FR-012: every exam's roster must fit a policy subject's
+/// observation (roster <= kitty_slots + 1), or the run is refused before
+/// any tick. The subject is bound once, at the compiled-default `RlConfig`
+/// (`kitty-eval`'s `resolve_subject`), so the slot count read here is the
+/// default's; if a suite subject ever carries its own `RlConfig`, read
+/// that instead. Under permanent by-id rows (spec 049) the encoder's
+/// friend-row builder truncates a wider roster silently — research R1
+/// measured a 4-slot mind scoring an 8-cat exam blind to three friends.
+fn roster_fit(suite: &LoadedSuite) -> Result<(), SuiteRunError> {
+    let slots = RlConfig::default().observation.kitty_slots;
+    let refuse = |exam: String, roster: usize| {
+        if roster > slots + 1 {
+            Err(SuiteRunError::RosterOverflow {
+                exam,
+                roster,
+                slots,
+            })
+        } else {
+            Ok(())
+        }
+    };
+    for exam in &suite.exams {
+        match exam {
+            LoadedExam::Standard(exam) => refuse(exam.name.clone(), exam.core.kitties.len())?,
+            LoadedExam::MixedRoster { name, cells } => {
+                for cell in cells {
+                    refuse(format!("{name}/{}", cell.name), cell.core.kitties.len())?;
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Scores every exam in manifest order. On a mechanical failure the error
-/// carries the exam/cell that produced it; nothing is ever skipped.
+/// carries the exam/cell that produced it; nothing is ever skipped. A
+/// policy subject that cannot seat every roster is refused first (FR-012).
 pub fn score_suite(
     suite: &LoadedSuite,
     subject: &SuiteSubject<'_>,
     enforce_sign_test: bool,
 ) -> Result<SuiteReport, SuiteRunError> {
     let sign_test_mode = suite.verdict.sign_test.tightened(enforce_sign_test);
+    if subject.is_policy {
+        roster_fit(suite)?;
+    }
     let mut exams = Vec::with_capacity(suite.exams.len());
     for exam in &suite.exams {
         match exam {

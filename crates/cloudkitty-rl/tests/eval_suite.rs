@@ -358,6 +358,21 @@ fn no_exam_equals_a_training_or_certification_config() {
     );
 
     let geometry = |c: &Config| (c.world.width, c.world.height, c.kitties.len());
+    // Spec 051 FR-008: held out by axis as well as by bytes — no exam
+    // shares the served / anchor shape (20 x 20, 5 cats), the one shape
+    // every Gen 1 mind trains on.
+    let served_shape = (20, 20, 5);
+    assert_eq!(geometry(&bar), served_shape, "the bar is the served shape");
+    let held_out: Vec<PathBuf> = V3_EXAM_FILES.iter().map(|f| evals_v3().join(f)).collect();
+    for path in held_out {
+        let core = load(path.clone());
+        assert_ne!(
+            geometry(&core),
+            served_shape,
+            "{}: the served / anchor shape is not held out",
+            path.display()
+        );
+    }
     assert_ne!(
         geometry(&mixed),
         geometry(&bar),
@@ -595,10 +610,7 @@ fn cell_configs_differ_only_in_behavior() {
         seats("mixed-roster-half.toml"),
         vec![c, "playful", c, "needs_driven", "needs_driven"]
     );
-    assert_eq!(
-        seats("mixed-roster-host.toml"),
-        vec![c, "playful", c, c, c]
-    );
+    assert_eq!(seats("mixed-roster-host.toml"), vec![c, "playful", c, c, c]);
 }
 
 /// P(X >= k) for X ~ Binomial(n, p), exact. The one implementation both
@@ -913,8 +925,7 @@ fn a_served_width_mind_sits_every_exam() {
     let overflow: Vec<String> = V3_EXAM_FILES
         .iter()
         .filter_map(|file| {
-            let (core, _) =
-                load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
+            let (core, _) = load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
             let roster = core.kitties.len();
             (roster > slots + 1).then(|| {
                 format!(
@@ -930,14 +941,12 @@ fn a_served_width_mind_sits_every_exam() {
         overflow.join("\n")
     );
 
-    let artifact = cloudkitty_rl::test_support::fixture_artifact(
-        "ck-eval-suite-served-width",
-        "served",
-        8,
-        7,
-    );
-    let behavior = PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &rl_default, false)
-        .expect("a served-width artifact binds at the compiled default, as kitty-eval binds it");
+    let artifact =
+        cloudkitty_rl::test_support::fixture_artifact("ck-eval-suite-served-width", "served", 8, 7);
+    let behavior =
+        PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &rl_default, false).expect(
+            "a served-width artifact binds at the compiled default, as kitty-eval binds it",
+        );
     let behavior: Arc<dyn Behavior> = Arc::new(behavior);
     let mut registry = BehaviorRegistry::with_builtins();
     registry.register("policy:served", behavior.clone());
@@ -998,7 +1007,8 @@ fn a_policy_subject_that_cannot_seat_the_roster_is_refused() {
         }
         // v2's sixth cat, at its v2 position; the file's own slot count
         // follows the roster (roster - 1), as the loader requires.
-        let sixth = "[[kitty]]\nid = 6\nname = \"Mochi\"\nx = 24\ny = 6\nbehavior = \"needs_driven\"\n\n";
+        let sixth =
+            "[[kitty]]\nid = 6\nname = \"Mochi\"\nx = 24\ny = 6\nbehavior = \"needs_driven\"\n\n";
         let marker = "# The default world's rates:";
         assert!(text.contains(marker), "scale.toml keeps its needs comment");
         text.replacen(marker, &format!("{sixth}{marker}"), 1)
@@ -1029,7 +1039,9 @@ fn a_policy_subject_that_cannot_seat_the_roster_is_refused() {
     );
     let message = err.to_string();
     assert!(
-        message.contains("scale") && message.contains("6 kitties") && message.contains("observes 4"),
+        message.contains("scale")
+            && message.contains("6 kitties")
+            && message.contains("observes 4"),
         "the message names the exam, the roster and the slots: {message}"
     );
 
@@ -1042,4 +1054,22 @@ fn a_policy_subject_that_cannot_seat_the_roster_is_refused() {
         selection: None,
     };
     score_suite(&suite, &subject, false).expect("a built-in subject scores the 6-cat exam");
+}
+
+// Spec 051 FR-004 / SC-006: scarcity and heterogeneity are carried from
+// v2 with their headers re-cut — every key and value parses equal to the
+// v2 original (Clarification Q2: comments may be corrected, values never).
+#[test]
+fn carried_exams_parse_equal_to_v2() {
+    let v2 = repo_root().join("evals/v2");
+    for file in ["scarcity.toml", "heterogeneity.toml"] {
+        let parsed = |dir: &Path| load_configs_from_path(dir.join(file).to_str().unwrap()).unwrap();
+        let (core2, rl2) = parsed(&v2);
+        let (core3, rl3) = parsed(&evals_v3());
+        assert_eq!(
+            (core2, rl2),
+            (core3, rl3),
+            "{file}: carried unchanged from eval-suite-v2 (spec 051 FR-004)"
+        );
+    }
 }
