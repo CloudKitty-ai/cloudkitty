@@ -1009,4 +1009,88 @@ mod tests {
             );
         }
     }
+
+    /// Spec 050 SC-006 / US3 scenario 1: eat reads the same reach.
+    #[test]
+    fn want_eat_reads_remembered_chow_only_within_reach() {
+        let (mut world, mut config) = bare_meadow();
+        config.vision.radius = 5;
+        top_and_armed(&mut world, NeedKind::Eat);
+        remember_beyond_the_disc(&mut world, ElementType::Chow, 5);
+        config.meow.relief_memory_margin = Some(0);
+        assert!(legal(&world, MessageKind::WantEat, &config), "margin 0");
+        config.meow.relief_memory_margin = Some(1);
+        assert!(!legal(&world, MessageKind::WantEat, &config), "margin 1");
+        config.meow.relief_memory_margin = None;
+        assert!(!legal(&world, MessageKind::WantEat, &config), "absent");
+    }
+
+    /// Spec 050 SC-006 / US3 scenario 2: play reads the same reach for a
+    /// remembered bug and a remembered greeble. Kitty 2 sits at (12, 12),
+    /// outside the r = 5 disc of (8, 8), so no idle friend is in view and
+    /// no critter is visible: the memory arm is the only arm that can
+    /// silence the word.
+    #[test]
+    fn want_play_reads_remembered_critters_only_within_reach() {
+        for critter in [ElementType::Bug, ElementType::Greeble] {
+            let (mut world, mut config) = bare_meadow();
+            config.vision.radius = 5;
+            top_and_armed(&mut world, NeedKind::Play);
+            let view = world.snapshot().fog_for(1, 5);
+            assert!(
+                !crate::world::idle_friend_in_view(&view) && view.critters().next().is_none(),
+                "the stage has no visible relief for play"
+            );
+            remember_beyond_the_disc(&mut world, critter, 5);
+            config.meow.relief_memory_margin = Some(0);
+            assert!(
+                legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: margin 0"
+            );
+            config.meow.relief_memory_margin = Some(1);
+            assert!(
+                !legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: margin 1"
+            );
+            config.meow.relief_memory_margin = None;
+            assert!(
+                !legal(&world, MessageKind::WantPlay, &config),
+                "{critter:?}: absent"
+            );
+        }
+    }
+
+    /// Spec 050 SC-006 / US3 scenario 3: cuddle, bath and sleep read no
+    /// memory, so the margin plays no part -- their verdicts at every
+    /// margin equal the key-absent verdict, with remembered water, chow
+    /// and bug slots beyond the disc present the whole time.
+    #[test]
+    fn the_social_words_never_read_the_margin() {
+        for (need, word) in [
+            (NeedKind::Cuddle, MessageKind::WantCuddle),
+            (NeedKind::Bath, MessageKind::WantBath),
+            (NeedKind::Sleep, MessageKind::WantSleep),
+        ] {
+            let (mut world, mut config) = bare_meadow();
+            config.vision.radius = 5;
+            top_and_armed(&mut world, need);
+            for kind in [ElementType::Water, ElementType::Chow, ElementType::Bug] {
+                remember_beyond_the_disc(&mut world, kind, 5);
+            }
+            config.meow.relief_memory_margin = None;
+            let absent = legal(&world, word, &config);
+            assert!(
+                absent,
+                "{word:?}: armed, top, no relief clause reads memory"
+            );
+            for margin in [Some(0), Some(1), Some(8)] {
+                config.meow.relief_memory_margin = margin;
+                assert_eq!(
+                    legal(&world, word, &config),
+                    absent,
+                    "{word:?} at margin {margin:?}"
+                );
+            }
+        }
+    }
 }

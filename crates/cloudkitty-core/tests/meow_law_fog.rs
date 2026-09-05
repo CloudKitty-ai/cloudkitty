@@ -308,6 +308,82 @@ fn a_here_can_answer_an_audible_want_it_can_see_the_referent_of() {
 
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(48))]
+
+    /// Spec 050 FR-002 / FR-004 / FR-006 (prereg A14): the memory REACH
+    /// over random worlds, memories and margins, derived independently --
+    /// the oracle computes reach from the cat's position, the remembered
+    /// tile, the radius and the margin with its own Manhattan arithmetic,
+    /// never from `known_relief`. Eat, drink and play read the one rule;
+    /// cuddle, bath and sleep never read the margin. `u32::MAX` exercises
+    /// the saturating add (>= width + height is the key-absent rule). The
+    /// key-absent property above is untouched (SC-003).
+    #[test]
+    fn the_reach_rule_holds_over_random_worlds_and_margins(
+        seed in 0u64..5_000,
+        radius in 2u32..=8,
+        margin in prop::option::of(prop_oneof![0u32..=4, Just(u32::MAX)]),
+        needs in prop::collection::vec(0f32..100.0, 6),
+        slots in prop::collection::vec(prop::option::of((0u32..20, 0u32..20)), 5),
+    ) {
+        let mut config = test_config();
+        config.world.width = 20;
+        config.world.height = 20;
+        config.world.seed = seed;
+        config.vision.radius = radius;
+        config.meow.relief_memory_margin = margin;
+        config.kitties = [(1u32, 10u32, 10u32), (2, 3, 4), (3, 15, 15), (4, 8, 12)]
+            .iter()
+            .map(|&(id, x, y)| KittyConfig { id, name: format!("K{id}"), x, y, behavior: "needs_driven".into(), needs: None })
+            .collect();
+        config.validate().unwrap();
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        world.tick = 100;
+        {
+            let idx = world.kitty_index(1).unwrap();
+            for (kind, level) in NeedKind::ALL.iter().zip(needs.iter()) {
+                world.kitties[idx].needs.add(*kind, *level);
+                world.kitties[idx].announce_armed.insert(*kind);
+            }
+            for (slot, tile) in world.kitties[idx].memory.iter_mut().zip(slots.iter()) {
+                *slot = tile.map(|(x, y)| MemorySlot { pos: Position::new(x, y), last_seen: 90 });
+            }
+        }
+        let me = world.kitty(1).unwrap().clone();
+        let view = world.snapshot().fog_for(1, radius);
+        let (top, _) = me.needs.highest_pressure();
+        let visible = |kind: ElementType| view.elements_of(kind).next().is_some();
+        // The oracle's reach: Manhattan from the cat to the remembered tile,
+        // against radius + margin, inclusive; absent = every slot counts.
+        let within = |kind: ElementType| {
+            me.memory[memory_index(kind)].is_some_and(|slot| {
+                let walk = me.pos.x.abs_diff(slot.pos.x) + me.pos.y.abs_diff(slot.pos.y);
+                margin.is_none_or(|m| walk <= radius.saturating_add(m))
+            })
+        };
+        let idle_in_view = view.others(1).any(|k| k.activity_clock.is_none());
+        for want in [MessageKind::WantEat, MessageKind::WantDrink, MessageKind::WantPlay] {
+            let need = want.related_need().unwrap();
+            let relief = match want {
+                MessageKind::WantEat => visible(ElementType::Chow) || within(ElementType::Chow),
+                MessageKind::WantDrink => visible(ElementType::Water) || within(ElementType::Water),
+                _ => idle_in_view || view.critters().next().is_some() || within(ElementType::Bug) || within(ElementType::Greeble),
+            };
+            let expected = need == top && !relief && config.meow.vocabulary.enabled(want);
+            prop_assert_eq!(message_legal(&me, want, 100, &config, &view), expected, "{:?}: top {:?}, margin {:?}, relief {}", want, top, margin, relief);
+        }
+        // The social words never read the margin: same verdict as key-absent.
+        let mut unbounded = (*config).clone();
+        unbounded.meow.relief_memory_margin = None;
+        for want in [MessageKind::WantCuddle, MessageKind::WantBath, MessageKind::WantSleep] {
+            prop_assert_eq!(
+                message_legal(&me, want, 100, &config, &view),
+                message_legal(&me, want, 100, &unbounded, &view),
+                "{:?}: the margin moved a social verdict", want
+            );
+        }
+    }
+
     /// SC-010 over random stagings: no want is legal while its relief is
     /// visible or remembered (cuddle and play: while an idle friend is in
     /// view) or while it is not the top need -- except `want_bath`, an ask,

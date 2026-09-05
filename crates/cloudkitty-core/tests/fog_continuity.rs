@@ -439,6 +439,16 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 /// streams of the ruled engine do not drift -- any later scripted-dynamics
 /// move re-records them with its justification. Fog is on (r = 5), so the
 /// blind cats explore and call; only replies are absent.
+///
+/// Re-recorded for spec 050 (2026-09-05): the served `[meow]
+/// relief_memory_margin = 0` bounds remembered relief to the disc, so
+/// want calls the unbounded memory silenced return -- first kitty 3's
+/// `want_eat` at tick 118 (its remembered bowl lay beyond reach); kitty 4,
+/// cuddle top, then targets the HEARD friend (research R10) and walks west
+/// at tick 128 where it idled before -- the first action divergence; the
+/// first `want_drink` is at tick 1,610 (23 per 20,000 on this seed, 0 under
+/// the old rule at every horizon). The r = 40 control above is untouched:
+/// on 20x20 every tile is within Manhattan 38 <= 40 + 0.
 #[test]
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");
