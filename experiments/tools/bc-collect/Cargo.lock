@@ -19,6 +19,7 @@ version = "0.1.0"
 dependencies = [
  "cloudkitty-core",
  "cloudkitty-rl",
+ "serde_json",
  "sha2",
  "toml",
 ]
@@ -50,6 +51,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "toml",
  "tracing",
 ]
 

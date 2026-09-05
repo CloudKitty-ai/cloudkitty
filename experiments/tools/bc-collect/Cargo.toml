@@ -8,6 +8,7 @@ description = "BC dataset collector for exp-001: behavior-driven rollouts record
 [dependencies]
 cloudkitty-core = { path = "../../../crates/cloudkitty-core" }
 cloudkitty-rl = { path = "../../../crates/cloudkitty-rl" }
+serde_json = "1"
 sha2 = "0.10"
 toml = "0.8"
 

@@ -37,9 +37,26 @@
 //! observation schema 2, and a hardcoded header would have produced a
 //! dataset that loads clean and is wrong in every row but the first.
 //!
+//! Spec 049: every kitty observes its own fog view of the one pre-tick
+//! snapshot (`WorldSnapshot::fog_for` at the config's `[vision] radius`),
+//! the same view its scripted seat drives from.
+//!
+//! `--trace` adds the schema trace the fog Gen 1 step-5 prereg reads
+//! (`experiments/fog-gen1-shakeout/PREREG.md` Part A): the complete,
+//! unfiltered per-tick rows -- trace_obs.npy (T*R x obs_width f32),
+//! trace_mask.npy (T*R x (mask_width + msg_mask_width) u8), trace_kitty.npy
+//! and trace_tick.npy (T*R u32), roster order inside each tick, no row
+//! dropped for label reasons -- and trace.jsonl, one object per tick:
+//! `tick`, the pre-tick `snapshot` (kitties with `memory` and
+//! `explore_waypoint`, elements, `recent_meows` with `pos`, `intensity`,
+//! `reply`), `tables` (per observer the row -> kitty id and slot -> critter
+//! id maps the encoder filled), `refusals` (the refusal events stamped this
+//! tick, with `reason`), and `reencode_identical` (per observer, whether a
+//! second encode of the same view reproduced the vector byte for byte).
+//!
 //! Usage:
 //!   bc-collect --family-dir DIR | --config FILE
-//!              [--rollouts N] [--ticks T] [--seed-base S] --out-dir DIR
+//!              [--rollouts N] [--ticks T] [--seed-base S] [--trace] --out-dir DIR
 
 use std::fs;
 use std::io::Write;
@@ -145,6 +162,7 @@ struct Args {
     ticks: u64,
     seed_base: u64,
     out_dir: PathBuf,
+    trace: bool,
 }
 
 fn parse_args() -> Args {
@@ -153,6 +171,7 @@ fn parse_args() -> Args {
     let mut ticks = 8_000u64;
     let mut seed_base = 5_000u64;
     let mut out_dir = None::<PathBuf>;
+    let mut trace = false;
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
         let mut value = |name: &str| {
@@ -181,6 +200,7 @@ fn parse_args() -> Args {
             "--ticks" => ticks = value("--ticks").parse().expect("--ticks: u64"),
             "--seed-base" => seed_base = value("--seed-base").parse().expect("--seed-base: u64"),
             "--out-dir" => out_dir = Some(PathBuf::from(value("--out-dir"))),
+            "--trace" => trace = true,
             other => panic!("unknown flag {other}"),
         }
     }
@@ -191,6 +211,7 @@ fn parse_args() -> Args {
         ticks,
         seed_base,
         out_dir: out_dir.expect("--out-dir is required"),
+        trace,
     }
 }
 
@@ -240,6 +261,11 @@ fn main() {
             let mut state_len = 0usize;
             let (mut dropped, mut mask_mismatch) = (0u64, 0u64);
             let mut dropped_by: BTreeMap<&'static str, u64> = BTreeMap::new();
+            let mut trace_obs_buf: Vec<f32> = Vec::new();
+            let mut trace_mask_buf: Vec<u8> = Vec::new();
+            let mut trace_kitty_buf: Vec<u32> = Vec::new();
+            let mut trace_tick_buf: Vec<u32> = Vec::new();
+            let mut trace_lines: Vec<String> = Vec::new();
 
             for tick in 0..args.ticks {
                 let clock = (tick % rl.episode.horizon) as f32 / horizon;
@@ -248,18 +274,72 @@ fn main() {
                     encode_global_state(&snap, &config, &rl.global_state, &rl.observation, clock);
                 state_len = state.len();
                 state_buf.extend_from_slice(&state);
-                // Encode every kitty's view of the pre-tick snapshot, then
-                // tick and label with what each actually did.
+                // Encode every kitty's fog view of the pre-tick snapshot
+                // (spec 049), then tick and label with what each actually did.
                 let views: Vec<_> = ids
                     .iter()
                     .map(|&id| {
-                        let obs = encode_observation(&snap, id, &config, &rl.observation, clock);
-                        let mask = legal_action_mask(&snap, id, &obs.table, &codec, &config);
-                        let msg_mask = legal_message_mask(&snap, id, &config);
+                        let view = snap.fog_for(id, config.vision.radius);
+                        let obs = encode_observation(&view, id, &config, &rl.observation, clock);
+                        let mask = legal_action_mask(&view, id, &obs.table, &codec, &config);
+                        let msg_mask = legal_message_mask(&view, id, &config);
                         (id, obs, mask, msg_mask)
                     })
                     .collect();
+                let mut trace_line = None;
+                if args.trace {
+                    let mut tables = serde_json::Map::new();
+                    let mut reencode = serde_json::Map::new();
+                    for (id, obs, mask, msg_mask) in &views {
+                        trace_obs_buf.extend_from_slice(&obs.values);
+                        trace_mask_buf.extend(mask.iter().chain(msg_mask.iter()).map(|&b| b as u8));
+                        trace_kitty_buf.push(*id);
+                        trace_tick_buf.push(tick as u32);
+                        tables.insert(
+                            id.to_string(),
+                            serde_json::json!({
+                                "kitties": obs.table.kitties,
+                                "critters": obs.table.critters,
+                            }),
+                        );
+                        // A18 (probe determinism): the same view encoded
+                        // twice must agree byte for byte.
+                        let again = encode_observation(
+                            &snap.fog_for(*id, config.vision.radius),
+                            *id,
+                            &config,
+                            &rl.observation,
+                            clock,
+                        );
+                        let same = again.values.len() == obs.values.len()
+                            && again
+                                .values
+                                .iter()
+                                .zip(&obs.values)
+                                .all(|(a, b)| a.to_bits() == b.to_bits());
+                        reencode.insert(id.to_string(), serde_json::Value::Bool(same));
+                    }
+                    trace_line = Some((tables, reencode));
+                }
                 let driven = drive_tick(&mut world, &registry, &config);
+                if let Some((tables, reencode)) = trace_line {
+                    // Refusals stamped this tick, read by tick stamp: the
+                    // ring is oldest-first and this tick's events are its
+                    // newest, so a wrapped ring never loses them.
+                    let refusals: Vec<_> = world
+                        .refusal_log
+                        .events()
+                        .filter(|e| e.tick == snap.tick)
+                        .collect();
+                    let line = serde_json::json!({
+                        "tick": snap.tick,
+                        "snapshot": &snap,
+                        "tables": tables,
+                        "refusals": refusals,
+                        "reencode_identical": reencode,
+                    });
+                    trace_lines.push(line.to_string());
+                }
                 for (id, obs, mask, msg_mask) in views {
                     let rec = driven.report.record(id).expect("kitty in roster");
                     let Some(label) = codec.encode(&rec.applied, &obs.table) else {
@@ -309,7 +389,11 @@ fn main() {
             write_npy_f32(&dir.join("obs.npy"), &obs_buf, &[n, obs_width]);
             write_npy_u8(&dir.join("mask.npy"), &mask_buf, &[n, mask_width]);
             write_npy_u16(&dir.join("label.npy"), &label_buf, &[n]);
-            write_npy_u8(&dir.join("mask_msg.npy"), &mask_msg_buf, &[n, msg_mask_width]);
+            write_npy_u8(
+                &dir.join("mask_msg.npy"),
+                &mask_msg_buf,
+                &[n, msg_mask_width],
+            );
             write_npy_u16(&dir.join("label_msg.npy"), &label_msg_buf, &[n]);
             write_npy_u32(&dir.join("kitty.npy"), &kitty_buf, &[n]);
             write_npy_u32(&dir.join("tick.npy"), &tick_buf, &[n]);
@@ -319,6 +403,36 @@ fn main() {
                 &state_buf,
                 &[reward_buf.len(), state_len],
             );
+            if args.trace {
+                let rows = trace_kitty_buf.len();
+                assert_eq!(
+                    rows,
+                    args.ticks as usize * ids.len(),
+                    "one trace row per kitty per tick"
+                );
+                write_npy_f32(
+                    &dir.join("trace_obs.npy"),
+                    &trace_obs_buf,
+                    &[rows, obs_width],
+                );
+                write_npy_u8(
+                    &dir.join("trace_mask.npy"),
+                    &trace_mask_buf,
+                    &[rows, mask_width + msg_mask_width],
+                );
+                write_npy_u32(&dir.join("trace_kitty.npy"), &trace_kitty_buf, &[rows]);
+                write_npy_u32(&dir.join("trace_tick.npy"), &trace_tick_buf, &[rows]);
+                assert_eq!(
+                    trace_lines.len(),
+                    args.ticks as usize,
+                    "one trace line per tick"
+                );
+                let mut f = fs::File::create(dir.join("trace.jsonl")).expect("creating trace");
+                for line in &trace_lines {
+                    f.write_all(line.as_bytes()).expect("trace line");
+                    f.write_all(b"\n").expect("trace line");
+                }
+            }
             let dropped_json: Vec<String> = dropped_by
                 .iter()
                 .map(|(k, v)| format!("\"{k}\": {v}"))
@@ -340,11 +454,13 @@ fn main() {
                 })
                 .collect();
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"horizon\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 args.ticks,
                 dropped_json.join(", "),
                 rl.episode.horizon,
+                config.vision.radius,
+                args.trace,
                 OBSERVATION_SCHEMA_VERSION,
                 ACTION_SCHEMA_VERSION,
                 MASK_SCHEMA_VERSION,
