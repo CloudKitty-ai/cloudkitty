@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- **The exam room re-cut for the served roster — `evals/v3` (spec 051)**.
+  No compatibility marker: nothing trained or saved moves. `evals/v2`'s
+  four wide exams seated 8 (`scale`) and 6 (the mixed-roster cells) cats;
+  under permanent by-id kitty rows (spec 049) that is more than a
+  served-width mind observes, and the suite did not refuse such a mind —
+  measured 2026-09-05, it scored all six v2 exams with friends silently
+  dropped from the subject's view. v3 re-cuts those four at the served
+  roster of 5 (the v2 seats 1–5, `playful` at seat 2, compositions 1 + 4 /
+  2 + 3 / 4 + 1), carries `scarcity` and `heterogeneity` unchanged (a
+  guard parses both equal to v2), and re-derives the same identity
+  thresholds (11 / 10 / 6, sign-test k 10). The suite now refuses a
+  policy subject whose observation cannot seat an exam's roster (exit 1,
+  naming the exam, roster and slots) instead of scoring it blind. v2
+  joins `evals/v1` in the sweep exclusions as a record; every pointer
+  (`kitty-eval` usage, README, `docs/rl-training.md`) names v3.
+
 - **The want law's memory reach — `[meow] relief_memory_margin` (spec 050)**
   **`[rng-sequence]`** (by consequence, the 048 precedent: no draw moved,
   but the served r = 5 scripted streams diverge — a revived want gives a
