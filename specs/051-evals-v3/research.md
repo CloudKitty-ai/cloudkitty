@@ -57,11 +57,11 @@ At ten seeds and tail 0.01 the binomial rule gives guest (share 4/5) → 11, hal
 
 `config-sweep-exclusions.txt` += `evals/v2` with the rationale ("eval-suite-v2: the 2026-09-03 3.0 cut; its four wide exams predate the roster-width ruling (spec 051); v3 is current"). `shipped_configs_rl.rs:85` flips to `evals/v3` — this is the must-go-red guard: after the exclusion and before the flip, it fails ("the frozen exams … are in the sweep"). Usage string, README (two sites), `docs/rl-training.md` (example + the two stale sentences at ~248/252), the 017 manifest contract's evolution line, one annotation in the 049 spec, CHANGELOG Unreleased (no marker: nothing saved or trained moves).
 
-## R8 — FR-012: refuse a subject that cannot seat the roster (OWNER CALL, recommended IN)
+## R8 — FR-012: refuse a subject that cannot seat the roster (owner RULED IN 2026-09-05)
 
 **Where**: `suite.rs` at the point the policy subject meets an exam (the `SuiteSubject { is_policy: true, .. }` branch in `score_suite`, before the first `run_one`): if `is_policy` and `cell/exam core.kitties.len() > ObservationConfig::default().kitty_slots + 1`, return `SuiteRunError` naming the exam, the roster and the slots. The subject's slot count is the compiled default because that is what `kitty-eval` binds against (R1); if a later spec lets a suite subject carry its own `RlConfig`, the check reads that instead.
 
-**Why in**: it is the exact mechanical guarantee the BACKLOG entry believed existed; without it, any future wide suite silently scores a truncated view again. ~15 lines plus a unit test on a scratch suite with a 6-cat exam (SC-008). **Why it might stay out**: it is an engine touch inside a config-file arc, and the owner may prefer it as its own one-liner spec. Either way v3 lands; the plan carries it as a separate task group that is skipped if declined.
+**Why**: it is the exact mechanical guarantee the BACKLOG entry believed existed; without it, any future wide suite silently scores a truncated view again. ~15 lines plus a unit test on a scratch suite with a 6-cat exam (SC-008). Ruled in; carried as its own task group so its red-first cycle is legible.
 
 ## R9 — Hand-off
 

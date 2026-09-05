@@ -30,7 +30,7 @@ C = `policy:candidate`, P = `playful`, N = `needs_driven`. Out-group shares for 
 
 ## Roster width (the invariant v3 restores)
 
-For a policy subject bound at the compiled default `kitty_slots = 4`: every v3 exam satisfies `roster ≤ kitty_slots + 1`, so `friend_rows` never truncates. v2 violates it on four files (8 and 6 > 5). FR-012, if ruled in, turns the violation into a refusal at the subject seam.
+For a policy subject bound at the compiled default `kitty_slots = 4`: every v3 exam satisfies `roster ≤ kitty_slots + 1`, so `friend_rows` never truncates. v2 violates it on four files (8 and 6 > 5). FR-012 (ruled in) turns the violation into a refusal at the subject seam.
 
 ## Record suite
 

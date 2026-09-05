@@ -2,19 +2,19 @@
 
 **Branch**: `051-evals-v3` | **Date**: 2026-09-05 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/051-evals-v3/spec.md` (3 user stories, 12 FRs of which FR-012 is an owner call, 8 SCs; owner ruled the rosters 2026-09-04; three clarifications 2026-09-05; the plan-time correction in §Problem).
+**Input**: Feature specification from `/specs/051-evals-v3/spec.md` (3 user stories, 12 FRs (FR-012 ruled in 2026-09-05), 8 SCs; owner ruled the rosters 2026-09-04; three clarifications 2026-09-05; the plan-time correction in §Problem).
 
 ## Summary
 
 A new frozen suite directory `evals/v3` beside the untouched `evals/v2`: `scale` and the three `mixed-roster` cells re-cut at roster 5 (the v2 seats 1–5, `playful` at seat 2, compositions 1+4 / 2+3 / 4+1), `scarcity` and `heterogeneity` carried with re-cut headers, a manifest with fresh hashes and the same derived thresholds (11 / 10 / 6, sign-test k 10). Every test that reached v2 through the one helper in `eval_suite.rs` retargets to v3; v2 joins the sweep exclusions and the sweep guard flips; the usage string, README, `docs/rl-training.md`, the 017 manifest contract and CHANGELOG point at v3.
 
-**The plan-time finding (research R1)** reshapes the guard, not the deliverable: the wide v2 exams do not refuse a served-width mind — the suite binds the subject against compiled-default observation config and the friend-row builder truncates a wider roster silently, so the oracle artifact scored all six v2 exams blind to 3 of 7 friends on `scale`. v3 at roster 5 is still the fix (every roster now fits 4 slots). The standing guard therefore asserts roster fit (roster ≤ slots + 1) for every v3 exam and runs a served-width fixture through the load path plus a short scored run; pointed at v2 it goes red on exactly the four wide exams. FR-012, the suite refusing a policy subject that cannot seat an exam's roster, is the loud failure everyone believed existed — one check at the subject seam, recommended in, owner's call.
+**The plan-time finding (research R1)** reshapes the guard, not the deliverable: the wide v2 exams do not refuse a served-width mind — the suite binds the subject against compiled-default observation config and the friend-row builder truncates a wider roster silently, so the oracle artifact scored all six v2 exams blind to 3 of 7 friends on `scale`. v3 at roster 5 is still the fix (every roster now fits 4 slots). The standing guard therefore asserts roster fit (roster ≤ slots + 1) for every v3 exam and runs a served-width fixture through the load path plus a short scored run; pointed at v2 it goes red on exactly the four wide exams. FR-012, the suite refusing a policy subject that cannot seat an exam's roster, is the loud failure everyone believed existed — one check at the subject seam, ruled IN by the owner 2026-09-05.
 
 ## Technical Context
 
 **Language/Version**: Rust, toolchain pinned by `rust-toolchain.toml` (no change). TOML exam files. No Python change.
 
-**Primary Dependencies**: `cloudkitty-rl` only — `evals/v3/*` (new files), `tests/eval_suite.rs` (retarget + one new guard), `tests/shipped_configs_rl.rs` (the sweep assertion), `src/bin/kitty-eval.rs` (usage string), and `src/suite.rs` only if FR-012 is ruled in. `cloudkitty-core`, `cloudkitty-server`, `cloudkitty-py`: no change.
+**Primary Dependencies**: `cloudkitty-rl` only — `evals/v3/*` (new files), `tests/eval_suite.rs` (retarget + one new guard), `tests/shipped_configs_rl.rs` (the sweep assertion), `src/bin/kitty-eval.rs` (usage string), and `src/suite.rs` (FR-012). `cloudkitty-core`, `cloudkitty-server`, `cloudkitty-py`: no change.
 
 **Storage**: none. No snapshot, wire, artifact or schema move. Six new committed TOMLs plus a manifest.
 
@@ -28,14 +28,14 @@ A new frozen suite directory `evals/v3` beside the untouched `evals/v2`: `scale`
 
 **Constraints**: `evals/v2` byte-untouched (spec 017 FR-012; the 049 §s1 lesson); manifest hashes written LAST over final bytes; `sign_test*` keys above `[verdict.least_happy_threshold]`; the carried exams' parsed configs equal v2's; no test weakened; `experiments/` untouched.
 
-**Scale/Scope**: 7 new files under `evals/v3/`, 2 test files edited (one new test function), 1 usage string, 1 exclusions line, 4 docs/records (README, rl-training, 017 contract, CHANGELOG), 1 annotation in the 049 spec, the redden list; plus one ~15-line check in `suite.rs` with its unit test if FR-012 lands.
+**Scale/Scope**: 7 new files under `evals/v3/`, 2 test files edited (one new test function), 1 usage string, 1 exclusions line, 4 docs/records (README, rl-training, 017 contract, CHANGELOG), 1 annotation in the 049 spec, the redden list; plus one ~15-line check in `suite.rs` with its unit test (FR-012).
 
 ## Constitution Check
 
 *GATE: evaluated pre-Phase-0 and re-checked post-design — PASS, no violations.*
 
 - **Article I–III**: every v3 exam is a lawful world under the same validation as the served config; the safeguard spawner is active in exam runs (spec 017 FR-006); rosters 4 and 5 satisfy Article III; the invariant-asserted run guard (FR-005) covers each file. PASS.
-- **Article IV**: the suite still only seats advisors; FR-012, if ruled in, refuses a subject at binding time, before any proposal — a loader-level refusal, not a rule change. PASS.
+- **Article IV**: the suite still only seats advisors; FR-012 refuses a subject at binding time, before any proposal — a loader-level refusal, not a rule change. PASS.
 - **Article V**: no draw order or tick order touched; the exams are configs; determinism guards (two runs identical JSON) retarget unchanged. PASS.
 - **Article VI**: spec-first; the suite version is frozen by hash and guarded in CI; thresholds derive from the manifest by the existing tests, never folklore. PASS.
 
@@ -79,7 +79,7 @@ crates/cloudkitty-rl/
 │                                  #   distinctness guard += served geometry/roster axis
 ├── tests/shipped_configs_rl.rs    # "frozen exams are in the sweep" → evals/v3 (must go red when v2 is excluded)
 ├── src/bin/kitty-eval.rs          # usage string → evals/v3
-└── src/suite.rs                   # ONLY IF FR-012 ruled in: roster-fit refusal at the policy-subject seam + unit test
+└── src/suite.rs                   # FR-012 (ruled in): roster-fit refusal at the policy-subject seam + unit test
 
 config-sweep-exclusions.txt        # += evals/v2 (the 2026-09-03 3.0 cut; four wide exams predate the roster-width ruling)
 README.md                          # repo map + example → evals/v3
@@ -89,7 +89,7 @@ specs/049-fog-gen1/spec.md         # one annotation at §the 3.0 wall: v2 → v3
 CHANGELOG.md                       # Unreleased one-liner (no compatibility marker: nothing trained or saved moves)
 ```
 
-**Structure Decision**: a config-file deliverable inside the existing suite layout (`evals/<version>/`), guarded by the existing test file. No new crate, module or binary. The one optional engine touch (FR-012) lives where the suite already binds subjects.
+**Structure Decision**: a config-file deliverable inside the existing suite layout (`evals/<version>/`), guarded by the existing test file. No new crate, module or binary. The one engine touch (FR-012) lives where the suite already binds subjects.
 
 ## Phase 0 → research.md; Phase 1 → data-model.md, contracts/evals-v3.md, quickstart.md
 

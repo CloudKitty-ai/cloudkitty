@@ -12,7 +12,7 @@ The suite manifest contract is spec 017's (`specs/017-eval-suite/contracts/suite
 1. **A served-width mind sits every exam.** Every v3 roster is ≤ 5, so a policy bound at the compiled default 4 kitty slots (408 floats) sees every friend on every exam. This is the property v2 lacked (research R1): v2's wide exams scored a served-width mind with friends silently dropped from its observation.
 2. **The six designs are the v1/v2 designs.** `scale` keeps the dilution question (2.25× the default area, default element counts) and drops the crowd; the mixed-roster cells keep the 28×28 composition hold-out with `playful` at seat 2 in every cell; `scarcity` and `heterogeneity` are carried with identical values.
 3. **Verdict constants** are derived, not chosen: guest 11 (unattainable, stated), half 10, host 6 at ten seeds and tail 0.01; sign-test k 10 at tail 0.001, mode `warn`, tighten-only via `--enforce sign-test`.
-4. **v2 and v1 are records.** Bytes never move; both are excluded from the shipped-config sweep; `kitty-eval --suite evals/v2` still runs (and, absent FR-012, still scores a served-width mind with a truncated view — the record says so).
+4. **v2 and v1 are records.** Bytes never move; both are excluded from the shipped-config sweep; `kitty-eval --suite evals/v2` still runs (and, with FR-012, refuses a served-width policy subject on its four wide exams instead of scoring a truncated view).
 
 ## Invocation
 
@@ -20,7 +20,7 @@ The suite manifest contract is spec 017's (`specs/017-eval-suite/contracts/suite
 kitty-eval --suite evals/v3 (--brain NAME | --artifact PATH [--sample]) [--enforce sign-test] [--json out.json]
 ```
 
-Exit codes and report stamping unchanged (spec 017). If FR-012 is ruled in: a `--artifact` subject whose slot count cannot seat an exam's roster is refused before any tick with a message naming the exam, the roster and the slots (exit 1, as any load failure).
+Exit codes and report stamping unchanged (spec 017). FR-012: a `--artifact` subject whose slot count cannot seat an exam's roster is refused before any tick with a message naming the exam, the roster and the slots (exit 1, as any load failure).
 
 ## Guards (all in `crates/cloudkitty-rl/tests/eval_suite.rs` unless noted)
 
@@ -32,7 +32,7 @@ Exit codes and report stamping unchanged (spec 017). If FR-012 is ruled in: a `-
 | threshold / sign-test derivations (retargeted) | manifest numbers = rule | scratch manifest with `guest = 10` |
 | distinctness (retargeted, + axis) | no exam byte-equals served/training; no exam at (20, 20, 5) | served config copied into the list |
 | `shipped_configs_rl.rs` sweep assertion (flipped) | `evals/v3` in the sweep | v2 excluded before the flip → red |
-| FR-012 unit test (only if ruled in) | 6-cat scratch exam refuses a 4-slot policy subject; scores a built-in | unchanged engine scores instead of refusing |
+| FR-012 unit test | 6-cat scratch exam refuses a 4-slot policy subject; scores a built-in | unchanged engine scores instead of refusing |
 
 ## Pointers moved to v3
 

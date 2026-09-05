@@ -26,7 +26,7 @@ Expected: all six exams SCORE (fallbacks 0), exit 4 on the fixture's mixed-roste
 4. Freeze guard: after the hashes are written last, edit one byte of any v3 file → RED (guard + `load_suite`); restore → GREEN.
 5. Sweep: add `evals/v2` to `config-sweep-exclusions.txt` BEFORE flipping `shipped_configs_rl.rs` → RED ("the frozen exams … are in the sweep"); flip to v3 → GREEN.
 6. Distinctness axis: temporarily append `cloudkitty.toml` to the exam list → RED at (20, 20, 5); remove → GREEN.
-7. If FR-012 is ruled in: the 6-cat scratch exam with a 4-slot fixture subject → on the unchanged engine it SCORES (RED for the new assertion); with the check landed it REFUSES naming exam / roster 6 / slots 4 → GREEN; a built-in subject on the same scratch suite still scores.
+7. FR-012: the 6-cat scratch exam with a 4-slot fixture subject → on the unchanged engine it SCORES (RED for the new assertion); with the check landed it REFUSES naming exam / roster 6 / slots 4 → GREEN; a built-in subject on the same scratch suite still scores.
 
 Every step goes in `redden-list.md` with the prediction written before the run.
 
