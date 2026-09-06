@@ -89,3 +89,9 @@ predicted red and stayed green; it does not guard the freeze.
 | 2 (low) — `carried_exams_parse_equal_to_v2` loads v2 every run; contradicts the exclusion's premise; settled by the same ruling | with finding 1 | pending |
 
 Post-review cycle: **897 / 0 / 6**, 55 s; fmt + clippy clean.
+
+**Owner ruling on findings 1 + 2 (2026-09-05): "Drop it."** The `evals/v2` line is removed from `config-sweep-exclusions.txt`; v2 stays in both sweeps while its bytes load and joins the exclusions the day it stops (the v1 precedent), with `carried_exams_parse_equal_to_v2` deleted in the same change. FR-009 / SC-005, US3 AS3 + independent test, Key Entities, plan, research R7, data-model, contract, quickstart, README, CHANGELOG amended; the original U5 cycle stands as history.
+
+| cycle | mutation | prediction | result | restored (count re-read) |
+|---|---|---|---|---|
+| U5′ (post-ruling) | sweep assertion pointed at `evals/v9` (no such directory), v2 line already removed | RED "the frozen exams (evals/v3, spec 051) are in the sweep" | RED exactly there (shipped_configs_rl.rs:82) | pointed back at v3: rl sweep 1 / 0, core sweep 2 / 0 — both with v2's six files in scope |

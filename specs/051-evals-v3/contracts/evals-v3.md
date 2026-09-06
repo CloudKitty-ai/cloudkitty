@@ -12,7 +12,7 @@ The suite manifest contract is spec 017's (`specs/017-eval-suite/contracts/suite
 1. **A served-width mind sits every exam.** Every v3 roster is ≤ 5, so a policy bound at the compiled default 4 kitty slots (408 floats) sees every friend on every exam. This is the property v2 lacked (research R1): v2's wide exams scored a served-width mind with friends silently dropped from its observation.
 2. **The six designs are the v1/v2 designs.** `scale` keeps the dilution question (2.25× the default area, default element counts) and drops the crowd; the mixed-roster cells keep the 28×28 composition hold-out with `playful` at seat 2 in every cell; `scarcity` and `heterogeneity` are carried with identical values.
 3. **Verdict constants** are derived, not chosen: guest 11 (unattainable, stated), half 10, host 6 at ten seeds and tail 0.01; sign-test k 10 at tail 0.001, mode `warn`, tighten-only via `--enforce sign-test`.
-4. **v2 and v1 are records.** Bytes never move; both are excluded from the shipped-config sweep; `kitty-eval --suite evals/v2` still runs (and, with FR-012, refuses a served-width policy subject on its four wide exams instead of scoring a truncated view).
+4. **v2 and v1 are records.** Bytes never move; v1 is excluded from the shipped-config sweep (it no longer loads), v2 stays in it while its bytes load (owner ruling 2026-09-05, review finding 1); `kitty-eval --suite evals/v2` still runs (and, with FR-012, refuses a served-width policy subject on its four wide exams instead of scoring a truncated view).
 
 ## Invocation
 
@@ -31,7 +31,7 @@ Exit codes and report stamping unchanged (spec 017). FR-012: a `--artifact` subj
 | freeze guard (retargeted) | sha256 of every file = manifest | one byte edited in a v3 file |
 | threshold / sign-test derivations (retargeted) | manifest numbers = rule | scratch manifest with `guest = 10` |
 | distinctness (retargeted, + axis) | no exam byte-equals served/training; no exam at (20, 20, 5) | served config copied into the list |
-| `shipped_configs_rl.rs` sweep assertion (flipped) | `evals/v3` in the sweep | v2 excluded before the flip → red |
+| `shipped_configs_rl.rs` sweep assertion (flipped) | `evals/v3` in the sweep | pointed at a directory that does not exist → red (the v2 exclusion was dropped by ruling) |
 | FR-012 unit test | 6-cat scratch exam refuses a 4-slot policy subject; scores a built-in | unchanged engine scores instead of refusing |
 
 ## Pointers moved to v3

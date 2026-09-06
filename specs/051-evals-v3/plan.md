@@ -77,11 +77,11 @@ crates/cloudkitty-rl/
 │                                  #   NEW a_served_width_mind_sits_every_exam (roster fit + load + short run);
 │                                  #   NEW carried_exams_parse_equal_to_v2 (scarcity/heterogeneity vs evals/v2);
 │                                  #   distinctness guard += served geometry/roster axis
-├── tests/shipped_configs_rl.rs    # "frozen exams are in the sweep" → evals/v3 (must go red when v2 is excluded)
+├── tests/shipped_configs_rl.rs    # "frozen exams are in the sweep" → evals/v3 (red when pointed at a directory that does not exist)
 ├── src/bin/kitty-eval.rs          # usage string → evals/v3; the suite-error exit becomes a match (exit 3 determinism, exit 1 roster overflow)
 └── src/suite.rs                   # FR-012 (ruled in): roster-fit refusal at the policy-subject seam (its test lives in tests/eval_suite.rs)
 
-config-sweep-exclusions.txt        # += evals/v2 (the 2026-09-03 3.0 cut; four wide exams predate the roster-width ruling)
+config-sweep-exclusions.txt        # UNCHANGED — v2 stays in the sweeps while its bytes load (owner ruling 2026-09-05, review finding 1)
 README.md                          # repo map + example → evals/v3
 docs/rl-training.md                # example → v3; the two stale "a new evals/v2" sentences corrected
 specs/017-eval-suite/contracts/suite-manifest.md   # evolution note names v3 as current

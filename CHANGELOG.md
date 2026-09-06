@@ -45,9 +45,10 @@ change.
   guard parses both equal to v2), and re-derives the same identity
   thresholds (11 / 10 / 6, sign-test k 10). The suite now refuses a
   policy subject whose observation cannot seat an exam's roster (exit 1,
-  naming the exam, roster and slots) instead of scoring it blind. v2
-  joins `evals/v1` in the sweep exclusions as a record; every pointer
-  (`kitty-eval` usage, README, `docs/rl-training.md`) names v3.
+  naming the exam, roster and slots) instead of scoring it blind. v2 is
+  a record whose bytes still load, so it stays in the config sweeps
+  (only v1 is excluded); every pointer (`kitty-eval` usage, README,
+  `docs/rl-training.md`) names v3.
 
 - **The want law's memory reach — `[meow] relief_memory_margin` (spec 050)**
   **`[rng-sequence]`** (by consequence, the 048 precedent: no draw moved,

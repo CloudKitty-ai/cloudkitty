@@ -55,7 +55,7 @@ At ten seeds and tail 0.01 the binomial rule gives guest (share 4/5) → 11, hal
 
 ## R7 — Records and pointers
 
-`config-sweep-exclusions.txt` += `evals/v2` with the rationale ("eval-suite-v2: the 2026-09-03 3.0 cut; its four wide exams predate the roster-width ruling (spec 051); v3 is current"). `shipped_configs_rl.rs:85` flips to `evals/v3` — this is the must-go-red guard: after the exclusion and before the flip, it fails ("the frozen exams … are in the sweep"). Usage string, README (two sites), `docs/rl-training.md` (example + the two stale sentences at ~248/252), the 017 manifest contract's evolution line, one annotation in the 049 spec, CHANGELOG Unreleased (no marker: nothing saved or trained moves).
+~~`config-sweep-exclusions.txt` += `evals/v2`~~ — REVERSED by owner ruling 2026-09-05 (code-review finding 1): v2's bytes load, so it stays in both sweeps; the exclusions manifest is for records that no longer load (v1). `shipped_configs_rl.rs:85` flips to `evals/v3`; its red-first is the assertion pointed at a directory that does not exist. Usage string, README (two sites), `docs/rl-training.md` (example + the two stale sentences at ~248/252), the 017 manifest contract's evolution line, one annotation in the 049 spec, CHANGELOG Unreleased (no marker: nothing saved or trained moves).
 
 ## R8 — FR-012: refuse a subject that cannot seat the roster (owner RULED IN 2026-09-05)
 

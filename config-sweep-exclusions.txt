@@ -25,7 +25,6 @@ experiments/exp-001-bc-mappo/configs             exp-001 historical configs
 # directories below are 2.x records whose bytes must not move (their runs
 # and results are pinned to their commits), so they leave the sweep instead.
 evals/v1                                         eval-suite-v1: hash-frozen 2.x exams; v2 is the 3.0 cut
-evals/v2                                         eval-suite-v2: the 2026-09-03 3.0 cut; its four wide exams seat 8/6 cats and predate the roster-width ruling (spec 051); v3 is current
 experiments/exp-004-meow-channel                 exp-004 prereg families + result-backing served-t* configs (closed experiment)
 experiments/exp-004-pilot-2026-08-09             exp-004 pilot family (result-backing record)
 experiments/exp-004-rebaseline-2026-08-09        exp-004 re-baseline play-share configs (result-backing record)

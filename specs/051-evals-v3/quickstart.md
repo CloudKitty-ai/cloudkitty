@@ -24,7 +24,7 @@ Expected: all six exams SCORE (fallbacks 0), exit 4 on the fixture's mixed-roste
 2. Point it at `evals/v3` (files written, manifest hashes not yet final) → GREEN.
 3. `carried_exams_parse_equal_to_v2`: bump one value in `evals/v3/scarcity.toml` → RED naming the file; restore → GREEN.
 4. Freeze guard: after the hashes are written last, edit one byte of any v3 file → RED (guard + `load_suite`); restore → GREEN.
-5. Sweep: add `evals/v2` to `config-sweep-exclusions.txt` BEFORE flipping `shipped_configs_rl.rs` → RED ("the frozen exams … are in the sweep"); flip to v3 → GREEN.
+5. Sweep: point the `shipped_configs_rl.rs` assertion at a directory that does not exist → RED ("the frozen exams … are in the sweep"); at v3 → GREEN. (v2 stays in the sweep by owner ruling 2026-09-05.)
 6. Distinctness axis: temporarily append `cloudkitty.toml` to the exam list → RED at (20, 20, 5); remove → GREEN.
 7. FR-012: the 6-cat scratch exam with a 4-slot fixture subject → on the unchanged engine it SCORES (RED for the new assertion); with the check landed it REFUSES naming exam / roster 6 / slots 4 → GREEN; a built-in subject on the same scratch suite still scores.
 

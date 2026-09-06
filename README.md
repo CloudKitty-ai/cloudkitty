@@ -167,8 +167,8 @@ client/                     the viewer: vanilla JS on a canvas, no build step â€
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
 evals/v3/                   the exam room: frozen, hash-pinned held-out worlds at the
-                            served roster (spec 051); evals/v1/ and evals/v2/ are records,
-                            excluded from the sweeps
+                            served roster (spec 051); evals/v1/ and evals/v2/ are records â€”
+                            v1 excluded from the sweeps, v2 still loads in them
 policies/                   deployed minds: every .ckpolicy artifact the served world
                             runs, committed byte-identical and hash-pinned to its
                             certification record in policies/README.md

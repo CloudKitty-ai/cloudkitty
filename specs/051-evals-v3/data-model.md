@@ -34,7 +34,7 @@ For a policy subject bound at the compiled default `kitty_slots = 4`: every v3 e
 
 ## Record suite
 
-`evals/v2`: bytes unchanged; listed in `config-sweep-exclusions.txt`; results historical (none were ever claimed against it with a policy subject). `evals/v1`: unchanged, already a record.
+`evals/v2`: bytes unchanged; still in the shipped-config sweeps while it loads (owner ruling 2026-09-05); results historical (none were ever claimed against it with a policy subject). `evals/v1`: unchanged, already a record.
 
 ## Validation rules carried by tests
 
