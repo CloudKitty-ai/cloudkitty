@@ -3,14 +3,16 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use cloudkitty_core::behavior::BehaviorRegistry;
+use cloudkitty_core::behavior::{Behavior, BehaviorRegistry};
 use cloudkitty_core::Config;
-use cloudkitty_rl::config::load_configs_from_path;
+use cloudkitty_rl::behavior::PolicyBehavior;
+use cloudkitty_rl::config::{load_configs_from_path, RlConfig};
 use cloudkitty_rl::harness::{run_many, run_one, EvalRequest, RosterMode, RunOutcome};
 use cloudkitty_rl::suite::{
     all_scripted_config, evaluate_verdict, load_suite, score_suite, sha256_hex, CellOutcome,
-    ExamOutcome, KittyDifferential, SignTestMode, SuiteSubject, VerdictConstants,
+    ExamOutcome, KittyDifferential, SignTestMode, SuiteRunError, SuiteSubject, VerdictConstants,
     CANDIDATE_BEHAVIOR,
 };
 use cloudkitty_rl::welfare::{KittyWelfare, WelfareReport};
@@ -22,11 +24,11 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-fn evals_v2() -> PathBuf {
-    repo_root().join("evals/v2")
+fn evals_v3() -> PathBuf {
+    repo_root().join("evals/v3")
 }
 
-const V2_EXAM_FILES: [&str; 6] = [
+const V3_EXAM_FILES: [&str; 6] = [
     "scale.toml",
     "scarcity.toml",
     "heterogeneity.toml",
@@ -35,11 +37,23 @@ const V2_EXAM_FILES: [&str; 6] = [
     "mixed-roster-host.toml",
 ];
 
-/// A short-tick copy of the real v2 suite (spec 049: the 3.0 cut of the
-/// v1 designs; v1 is a 2.x record and no longer loads on this engine): same worlds, same structure,
+/// A short-tick copy of the real v3 suite (spec 051: the four wide v2 exams
+/// re-cut at roster 5; v1 and v2 are records): same worlds, same structure,
 /// `[rl.eval]` shrunk so integration tests stay fast. Hashes are computed
 /// over the rewritten bytes, so the scratch suite is internally frozen.
 fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
+    build_scratch_suite_edited(name, ticks, seeds, &|_, text| text)
+}
+
+/// [`build_scratch_suite`] with one more rewrite per exam file (file name,
+/// text after the tick/seed shrink) before hashing — a scratch suite that
+/// differs from v3 by design, still internally frozen.
+fn build_scratch_suite_edited(
+    name: &str,
+    ticks: u64,
+    seeds: &str,
+    edit: &dyn Fn(&str, String) -> String,
+) -> PathBuf {
     let dir = std::env::temp_dir().join("ck-eval-suite").join(name);
     std::fs::create_dir_all(&dir).unwrap();
     // Scratch seed sets are tiny, so the fair-coin sign-test threshold is
@@ -48,11 +62,12 @@ fn build_scratch_suite(name: &str, ticks: u64, seeds: &str) -> PathBuf {
     // synthetic outcomes in suite.rs.
     let k = seeds.matches(',').count() + 2;
     let mut hashes = BTreeMap::new();
-    for file in V2_EXAM_FILES {
-        let text = std::fs::read_to_string(evals_v2().join(file)).unwrap();
+    for file in V3_EXAM_FILES {
+        let text = std::fs::read_to_string(evals_v3().join(file)).unwrap();
         let text = text
             .replace("ticks = 20000", &format!("ticks = {ticks}"))
             .replace("seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", seeds);
+        let text = edit(file, text);
         hashes.insert(file, sha256_hex(text.as_bytes()));
         std::fs::write(dir.join(file), text).unwrap();
     }
@@ -238,15 +253,15 @@ fn two_suite_runs_produce_identical_json() {
     assert_eq!(a, b, "two suite runs serialize byte-identically");
 }
 
-// Spec guarding test 5 (FR-006): every v1 exam is a lawful world. The
+// Spec guarding test 5 (FR-006): every exam is a lawful world. The
 // per-tick invariant assertions run inside the engine; a completed run is
 // the proof. Expected numbers ≈ the measured baselines recorded in
 // contracts/exam-configs.md.
 #[test]
-fn every_v1_exam_sustains_an_invariant_asserted_run() {
+fn every_exam_sustains_an_invariant_asserted_run() {
     let registry = BehaviorRegistry::with_builtins();
-    for file in V2_EXAM_FILES {
-        let path = evals_v2().join(file);
+    for file in V3_EXAM_FILES {
+        let path = evals_v3().join(file);
         let (core, rl) = load_configs_from_path(path.to_str().unwrap())
             .unwrap_or_else(|e| panic!("{file} must load and validate: {e}"));
         // Cells carry candidate seats; normalize them the same way the
@@ -281,8 +296,8 @@ fn no_exam_equals_a_training_or_certification_config() {
     // untracked worlds.backup/) -- they carried pre-022 purr/meow keys and
     // would no longer load.
     let others = ["cloudkitty.toml", "training.toml"];
-    for file in V2_EXAM_FILES {
-        let exam_bytes = std::fs::read(evals_v2().join(file)).unwrap();
+    for file in V3_EXAM_FILES {
+        let exam_bytes = std::fs::read(evals_v3().join(file)).unwrap();
         for other in others {
             let other_bytes = std::fs::read(root.join(other)).unwrap();
             assert_ne!(
@@ -309,19 +324,23 @@ fn no_exam_equals_a_training_or_certification_config() {
     let load = |path: PathBuf| load_configs_from_path(path.to_str().unwrap()).unwrap().0;
     let bar = load(root.join("cloudkitty.toml"));
     let gym = load(root.join("training.toml"));
-    let scale = load(evals_v2().join("scale.toml"));
-    let scarcity = load(evals_v2().join("scarcity.toml"));
-    let heterogeneity = load(evals_v2().join("heterogeneity.toml"));
-    let mixed = load(evals_v2().join("mixed-roster-guest.toml"));
+    let scale = load(evals_v3().join("scale.toml"));
+    let scarcity = load(evals_v3().join("scarcity.toml"));
+    let heterogeneity = load(evals_v3().join("heterogeneity.toml"));
 
     let tiles = |c: &Config| c.world.width * c.world.height;
     assert!(
         tiles(&scale) >= 2 * tiles(&bar),
         "scale: >= 2x the bar's tiles"
     );
-    assert!(
-        scale.kitties.len() > gym.kitties.len(),
-        "scale: roster larger than training's"
+    // The v1 crowd axis ("a roster larger than any the policy trained
+    // with") was DROPPED by the 2026-09-04 ruling (spec 051 FR-002): under
+    // permanent by-id rows a roster is an observation width. scale seats
+    // the served roster; dilution (the tiles assertion above) is the exam.
+    assert_eq!(
+        scale.kitties.len(),
+        5,
+        "scale: the served roster of 5 (spec 051)"
     );
 
     for kind in cloudkitty_core::element::ElementType::ALL {
@@ -338,16 +357,26 @@ fn no_exam_equals_a_training_or_certification_config() {
     );
 
     let geometry = |c: &Config| (c.world.width, c.world.height, c.kitties.len());
-    assert_ne!(
-        geometry(&mixed),
-        geometry(&bar),
-        "mixed-roster: not the bar's shape"
-    );
-    assert_ne!(
-        geometry(&mixed),
-        geometry(&gym),
-        "mixed-roster: not the gym's shape"
-    );
+    // Spec 051 FR-008 / spec 017 FR-007: held out by axis as well as by
+    // bytes — no exam shares the served / anchor shape (20 x 20, 5 cats)
+    // or the gym's (24 x 24, 5 cats). Every v3 roster is 5, the gym's
+    // roster, so geometry is the only margin left between an exam and
+    // the world a mind trains in (051 review finding 3).
+    let served_shape = (20, 20, 5);
+    assert_eq!(geometry(&bar), served_shape, "the bar is the served shape");
+    let training_shapes = [(&bar, "the served / anchor"), (&gym, "the gym's")];
+    let held_out: Vec<PathBuf> = V3_EXAM_FILES.iter().map(|f| evals_v3().join(f)).collect();
+    for path in held_out {
+        let core = load(path.clone());
+        for (world, what) in training_shapes {
+            assert_ne!(
+                geometry(&core),
+                geometry(world),
+                "{}: {what} shape is not held out",
+                path.display()
+            );
+        }
+    }
 }
 
 // Spec guarding test 7a (SC-007): the machinery needs no trained artifact.
@@ -380,8 +409,8 @@ fn a_builtin_candidate_exercises_cells_differentials_and_verdict() {
         );
         assert_eq!(
             cell.duet_shares.len(),
-            6,
-            "{}: every kitty's duet share",
+            5,
+            "{}: every kitty's duet share (roster 5, spec 051)",
             cell.name
         );
         assert_eq!(cell.runs.len(), cell.baseline_runs.len());
@@ -488,14 +517,14 @@ fn a_negative_host_differential_renders_the_exploitation_signature() {
 // candidate fails behavior-name validation loudly.
 #[test]
 fn two_subjects_share_the_frozen_exam_without_touching_it() {
-    let real_hashes: Vec<String> = V2_EXAM_FILES
+    let real_hashes: Vec<String> = V3_EXAM_FILES
         .iter()
-        .map(|f| sha256_hex(&std::fs::read(evals_v2().join(f)).unwrap()))
+        .map(|f| sha256_hex(&std::fs::read(evals_v3().join(f)).unwrap()))
         .collect();
 
     let dir = build_scratch_suite("two-subjects", 100, "seeds = [1]");
     let scratch_hash = |dir: &Path| -> Vec<String> {
-        V2_EXAM_FILES
+        V3_EXAM_FILES
             .iter()
             .map(|f| sha256_hex(&std::fs::read(dir.join(f)).unwrap()))
             .collect()
@@ -514,16 +543,16 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
         assert_eq!(scratch_hash(&dir), before, "scoring {brain} wrote nothing");
     }
 
-    let after: Vec<String> = V2_EXAM_FILES
+    let after: Vec<String> = V3_EXAM_FILES
         .iter()
-        .map(|f| sha256_hex(&std::fs::read(evals_v2().join(f)).unwrap()))
+        .map(|f| sha256_hex(&std::fs::read(evals_v3().join(f)).unwrap()))
         .collect();
     assert_eq!(real_hashes, after, "the committed exam files are untouched");
 
     // Outside a suite run, the placeholder is an ordinary policy name and
     // an unbound registry rejects it, naming the kitty and the behavior.
     let (core, _) =
-        load_configs_from_path(evals_v2().join("mixed-roster-guest.toml").to_str().unwrap())
+        load_configs_from_path(evals_v3().join("mixed-roster-guest.toml").to_str().unwrap())
             .unwrap();
     let unbound = BehaviorRegistry::with_builtins();
     let Err(err) = core.validate_behavior_names(&unbound.names()) else {
@@ -541,7 +570,7 @@ fn two_subjects_share_the_frozen_exam_without_touching_it() {
 #[test]
 fn cell_configs_differ_only_in_behavior() {
     let strip_behaviors = |file: &str| -> toml::Value {
-        let text = std::fs::read_to_string(evals_v2().join(file)).unwrap();
+        let text = std::fs::read_to_string(evals_v3().join(file)).unwrap();
         let mut value: toml::Value = toml::from_str(&text).unwrap();
         for kitty in value
             .get_mut("kitty")
@@ -558,31 +587,24 @@ fn cell_configs_differ_only_in_behavior() {
     assert_eq!(guest, half, "guest and half agree on everything but seats");
     assert_eq!(guest, host, "guest and host agree on everything but seats");
 
-    // And the seat maps are exactly the contract's (contracts/exam-configs.md).
+    // And the seat maps are exactly the contract's: spec 051 FR-003 at
+    // roster 5 (guest 1 + 4, half 2 + 3, host 4 + 1; playful at seat 2 in
+    // every cell). The 017 contract (contracts/exam-configs.md) is the v1
+    // six-seat record.
     let seats = |file: &str| -> Vec<String> {
-        let (core, _) = load_configs_from_path(evals_v2().join(file).to_str().unwrap()).unwrap();
+        let (core, _) = load_configs_from_path(evals_v3().join(file).to_str().unwrap()).unwrap();
         core.kitties.iter().map(|k| k.behavior.clone()).collect()
     };
     let c = CANDIDATE_BEHAVIOR;
     assert_eq!(
         seats("mixed-roster-guest.toml"),
-        vec![
-            c,
-            "playful",
-            "needs_driven",
-            "needs_driven",
-            "needs_driven",
-            "needs_driven"
-        ]
+        vec![c, "playful", "needs_driven", "needs_driven", "needs_driven"]
     );
     assert_eq!(
         seats("mixed-roster-half.toml"),
-        vec![c, "playful", c, "needs_driven", c, "needs_driven"]
+        vec![c, "playful", c, "needs_driven", "needs_driven"]
     );
-    assert_eq!(
-        seats("mixed-roster-host.toml"),
-        vec![c, "playful", c, c, c, c]
-    );
+    assert_eq!(seats("mixed-roster-host.toml"), vec![c, "playful", c, c, c]);
 }
 
 /// P(X >= k) for X ~ Binomial(n, p), exact. The one implementation both
@@ -604,7 +626,7 @@ fn binomial_tail(n: u32, p: f64, k: u32) -> f64 {
 // read from the manifest and the cell configs.
 #[test]
 fn least_happy_thresholds_match_the_binomial_rule() {
-    let suite = load_suite(&evals_v2()).unwrap();
+    let suite = load_suite(&evals_v3()).unwrap();
     let cells = suite
         .exams
         .iter()
@@ -690,7 +712,7 @@ fn a_landed_exam_file_cannot_change_without_failing_ci() {
 // finding 6), so every cell's seed count must derive the same k.
 #[test]
 fn sign_test_k_matches_the_fair_coin_rule() {
-    let suite = load_suite(&evals_v2()).unwrap();
+    let suite = load_suite(&evals_v3()).unwrap();
     let mut cells_checked = 0;
     for exam in &suite.exams {
         let cloudkitty_rl::suite::LoadedExam::MixedRoster { name, cells } = exam else {
@@ -876,5 +898,172 @@ fn share_guard_paired_prefix_is_the_only_divergence() {
     for (p, i) in plain.lines().zip(indented.lines()) {
         assert_eq!(format!("  {p}"), i);
         assert!(p.starts_with("seed "));
+    }
+}
+
+// Spec 051 FR-006 / SC-001: a served-width mind sits every exam with every
+// friend in view. The property is roster fit (roster <= slots + 1): the
+// suite binds a policy subject once, at the compiled-default observation
+// config, and the encoder's friend-row builder truncates a wider roster
+// silently (research R1 — the oracle fixture scored v2's 8-cat `scale`
+// blind to three friends, zero fallbacks). Then the served-width fixture
+// artifact is bound exactly as `kitty-eval` binds it and completes a
+// short scored run on each file. Pointed at `evals/v2` once (redden-list
+// U1) the roster-fit assertion went red on exactly `scale` and the three
+// mixed-roster cells.
+#[test]
+fn a_served_width_mind_sits_every_exam() {
+    let suite_dir = evals_v3();
+    let rl_default = RlConfig::default();
+    let slots = rl_default.observation.kitty_slots;
+    let overflow: Vec<String> = V3_EXAM_FILES
+        .iter()
+        .filter_map(|file| {
+            let (core, _) = load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
+            let roster = core.kitties.len();
+            (roster > slots + 1).then(|| {
+                format!(
+                    "{file}: roster {roster} needs {} slots, the served subject has {slots}",
+                    roster - 1
+                )
+            })
+        })
+        .collect();
+    assert!(
+        overflow.is_empty(),
+        "exams a served-width mind cannot sit with every friend in view:\n{}",
+        overflow.join("\n")
+    );
+
+    let artifact =
+        cloudkitty_rl::test_support::fixture_artifact("ck-eval-suite-served-width", "served", 8, 7);
+    let behavior =
+        PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &rl_default, false).expect(
+            "a served-width artifact binds at the compiled default, as kitty-eval binds it",
+        );
+    let behavior: Arc<dyn Behavior> = Arc::new(behavior);
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register("policy:served", behavior.clone());
+    registry.register(CANDIDATE_BEHAVIOR, behavior);
+    for file in V3_EXAM_FILES {
+        let (core, rl) = load_configs_from_path(suite_dir.join(file).to_str().unwrap()).unwrap();
+        // Standard exams seat the subject everywhere; a cell runs its own
+        // behavior column, the candidate seats resolving through the registry.
+        let cell = file.starts_with("mixed-roster");
+        let outcome = run_one(&EvalRequest {
+            core: &core,
+            rl: &rl,
+            registry: &registry,
+            subject: if cell { None } else { Some("policy:served") },
+            roster: if cell {
+                RosterMode::FromConfig
+            } else {
+                RosterMode::AllSubject
+            },
+            seed: 1,
+            ticks: 200,
+        });
+        assert_eq!(
+            outcome.fallback_count, 0,
+            "{file}: the served-width mind took fallbacks"
+        );
+        assert!(
+            outcome.aggregates.team_welfare.is_finite(),
+            "{file}: a scored run"
+        );
+    }
+}
+
+/// The served-width fixture artifact, bound exactly as `kitty-eval` binds a
+/// `--artifact` subject: validated against the compiled-default `RlConfig`,
+/// registered under its own name and the candidate seat.
+fn served_width_registry(dir_name: &str) -> BehaviorRegistry {
+    let artifact = cloudkitty_rl::test_support::fixture_artifact(dir_name, "served", 8, 7);
+    let behavior =
+        PolicyBehavior::from_artifact_path(artifact.to_str().unwrap(), &RlConfig::default(), false)
+            .expect("a served-width artifact binds at the compiled default");
+    let behavior: Arc<dyn Behavior> = Arc::new(behavior);
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register("policy:served", behavior.clone());
+    registry.register(CANDIDATE_BEHAVIOR, behavior);
+    registry
+}
+
+// Spec 051 FR-012 / SC-008: the suite refuses a policy subject whose
+// observation cannot seat an exam's roster — the loud failure the silent
+// truncation (research R1) never gave. Red-first (redden-list U2): on the
+// unchanged engine this scratch suite SCORED its 6-cat exam.
+#[test]
+fn a_policy_subject_that_cannot_seat_the_roster_is_refused() {
+    let dir = build_scratch_suite_edited("roster-overflow", 30, "seeds = [1]", &|file, text| {
+        if file != "scale.toml" {
+            return text;
+        }
+        // v2's sixth cat, at its v2 position; the file's own slot count
+        // follows the roster (roster - 1), as the loader requires.
+        let sixth =
+            "[[kitty]]\nid = 6\nname = \"Mochi\"\nx = 24\ny = 6\nbehavior = \"needs_driven\"\n\n";
+        let marker = "# The default world's rates:";
+        assert!(text.contains(marker), "scale.toml keeps its needs comment");
+        text.replacen(marker, &format!("{sixth}{marker}"), 1)
+            .replace("kitty_slots = 4", "kitty_slots = 5")
+    });
+    let suite = load_suite(&dir).unwrap();
+
+    let registry = served_width_registry("ck-eval-suite-roster-overflow");
+    let subject = SuiteSubject {
+        registry: &registry,
+        name: "policy:served",
+        is_policy: true,
+        selection: Some("greedy"),
+    };
+    let err = score_suite(&suite, &subject, false)
+        .err()
+        .expect("a 4-slot policy subject is refused the 6-cat exam before any tick");
+    assert!(
+        matches!(
+            err,
+            SuiteRunError::RosterOverflow {
+                roster: 6,
+                slots: 4,
+                ..
+            }
+        ),
+        "{err:?}"
+    );
+    let message = err.to_string();
+    assert!(
+        message.contains("scale")
+            && message.contains("6 kitties")
+            && message.contains("observes 4"),
+        "the message names the exam, the roster and the slots: {message}"
+    );
+
+    // A built-in subject has no observation width: it still scores the exam.
+    let registry = registry_with_candidate("needs_driven");
+    let subject = SuiteSubject {
+        registry: &registry,
+        name: "needs_driven",
+        is_policy: false,
+        selection: None,
+    };
+    score_suite(&suite, &subject, false).expect("a built-in subject scores the 6-cat exam");
+}
+
+// Spec 051 FR-004 / SC-006: scarcity and heterogeneity are carried from
+// v2 with their headers re-cut — every key and value parses equal to the
+// v2 original (Clarification Q2: comments may be corrected, values never).
+#[test]
+fn carried_exams_parse_equal_to_v2() {
+    let v2 = repo_root().join("evals/v2");
+    for file in ["scarcity.toml", "heterogeneity.toml"] {
+        let parsed = |dir: &Path| load_configs_from_path(dir.join(file).to_str().unwrap()).unwrap();
+        let (core2, rl2) = parsed(&v2);
+        let (core3, rl3) = parsed(&evals_v3());
+        assert_eq!(
+            (core2, rl2),
+            (core3, rl3),
+            "{file}: carried unchanged from eval-suite-v2 (spec 051 FR-004)"
+        );
     }
 }

@@ -151,7 +151,7 @@ The built-in behaviours (`needs_driven`, `playful`, and the clone-corpus seats w
 
 ### User Story 6 - A 3.0 config is complete, and nothing pre-3.0 crosses the wall (Priority: P2)
 
-Every configuration the 3.0 engine loads states every section explicitly; a missing section is a startup error naming it, exactly as an unknown key already is. The seven retired keys that 2.x parsed only to reject are no longer known at all. Saved worlds and policy artifacts from the 2.x line are refused (the cutover is `--fresh`). The frozen `evals/v1` exams are a 2.x record; Gen 1 certification reads `evals/v2`, the same six designs written as complete 3.0 configs.
+Every configuration the 3.0 engine loads states every section explicitly; a missing section is a startup error naming it, exactly as an unknown key already is. The seven retired keys that 2.x parsed only to reject are no longer known at all. Saved worlds and policy artifacts from the 2.x line are refused (the cutover is `--fresh`). The frozen `evals/v1` exams are a 2.x record; Gen 1 certification reads `evals/v2`, the same six designs written as complete 3.0 configs *(superseded: `evals/v3`, spec 051 — v2's wide exams seat more cats than a served-width mind observes)*.
 
 **Why this priority**: Owner-ruled 2026-08-26 and itemised 2026-09-02. A config surface strict in both directions is the safety property wanted before a five-seat training round; the shims exist only to load worlds that will never load again.
 

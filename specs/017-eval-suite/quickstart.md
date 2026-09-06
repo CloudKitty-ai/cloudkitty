@@ -105,7 +105,7 @@ harness tests unmodified.
 | 2 freeze guard | `a_landed_exam_file_cannot_change_without_failing_ci` |
 | 3 loud validation | `an_invalid_exam_fails_the_suite_before_any_scoring` |
 | 4 reproducibility | `two_suite_runs_produce_identical_json` |
-| 5 exam lawfulness | `every_v1_exam_sustains_an_invariant_asserted_run` |
+| 5 exam lawfulness | `every_exam_sustains_an_invariant_asserted_run` (renamed from `every_v1_exam_…`, spec 051) |
 | 6 single-config compatibility | existing tests, unmodified |
 | 7 mixed-roster machinery | `a_builtin_candidate_exercises_cells_differentials_and_verdict` + `a_negative_host_differential_renders_the_exploitation_signature` |
 | 8 seat binding | `two_subjects_share_the_frozen_exam_without_touching_it` |

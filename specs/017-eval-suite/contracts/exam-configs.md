@@ -1,5 +1,7 @@
 # Contract: The v1 Exam Worlds (FR-005..FR-008; US2, US3)
 
+*Record (spec 051): these are the v1 designs. `evals/v2` (spec 049) restated them as complete 3.0 configs; `evals/v3` (spec 051) re-cut `scale` and the three mixed-roster cells at the served roster of 5 — seat maps guest C P N N N, half C P C N N, host C P C C C (C = candidate, P = playful, N = needs_driven). `tests/eval_suite.rs` pins the v3 maps.*
+
 Full designs for the six files of `evals/v1/`. These TOMLs are the
 plan-phase deliverable the spec required; at landing they are committed
 byte-for-byte and their hashes recorded in the manifest — after that they

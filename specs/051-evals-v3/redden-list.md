@@ -1,0 +1,97 @@
+# 051 redden list — red-first cycle record
+
+Standard (adopted spec 047): every mutation/revert cycle runs
+`cargo test --workspace --no-fail-fast` (`scratchpad/cycle.sh LABEL`) or the
+named narrower target; predictions written BEFORE the run; restore verified by
+RE-READING THE COUNT. Commit before every mutate-then-revert cycle. `evals/v2`
+and `evals/v1` are never edited; `experiments/` is never touched.
+
+Baseline count (branch tip `743fcc4` = 23be139 + merge of origin/main c0d6320,
+before any change, 2026-09-05): **894 / 0, 6 ignored**, wall 89 s;
+`cargo fmt --all -- --check` clean; `cargo clippy --workspace --all-targets -- -D warnings`
+clean. Toolchain per `rust-toolchain.toml`.
+
+## §R1 — the premise, reproduced (T003, 2026-09-05)
+
+The BACKLOG entry and the 049 review said a served-width mind is *refused* by
+the four wide v2 exams ("dies before a tick"). Prediction before the run: all
+six exams SCORE with fallbacks 0, `scale` lists 8 kitties, exit 4 on the
+fixture's mixed-roster verdict, no refusal anywhere.
+
+Run: `target/debug/kitty-eval --suite <scratch-v2: ticks 40, seeds [1],
+rehashed, sign_test_k 2> --artifact crates/cloudkitty-rl/tests/fixtures/oracle.ckpolicy`
+(the oracle is schema 5, 408 floats = 4 kitty slots):
+
+```text
+== kitty-eval suite scratch-v2-probe: subject policy:…/oracle.ckpolicy (greedy selection) ==
+-- exam scale (sha256 4557825e4625) --
+seed 1 [AllSubject]: team welfare 0.9364, plain mean 0.9364, least-happy mean 93.6, fallbacks 0
+  Miso / Biscuit / Pumpkin / Kittybear / Clementine / Mochi / Marmalade / Noodle   (8 kitties scored)
+-- exam scarcity (sha256 d4ac81714aa7) --      seed 1 [AllSubject]: … fallbacks 0   (4 kitties)
+-- exam heterogeneity (sha256 fe2362c69c31) -- seed 1 [AllSubject]: … fallbacks 0   (5 kitties)
+-- exam mixed-roster --
+cell guest (sha256 cf7048022f31): seed 1 [FromConfig]: … fallbacks 0  (6 kitties: … Mochi)
+cell half / cell host: scored, fallbacks 0
+  mixed-roster verdict: FAIL
+kitty-eval: the mixed-roster exam failed its verdict — anchored to its own all-scripted baseline …
+exit=4
+```
+
+Result: exactly as predicted. A 4-slot mind scored an 8-cat and three 6-cat
+worlds with zero fallbacks: the subject is bound against `RlConfig::default()`
+(`resolve_subject`), the encoder's `friend_rows(kitty_slots)` truncates the
+roster to the 4 lowest-id friends, and the loader's roster check reads the
+exam file's own `kitty_slots` (7 / 5), never the subject's. The failure is
+silent truncation, not refusal. This is the v3 manifest's head-comment record
+and the reason for FR-012.
+
+## Cycles
+
+| cycle | mutation | prediction | result | restored (count re-read) |
+|---|---|---|---|---|
+| c0 | none (baseline, post-merge) | ≈ 894 / 0 / 6 | 894 / 0 / 6, 89 s; fmt + clippy clean | — |
+| F0 (T009) | seven v3 files drafted with PLACEHOLDER hashes (64 zeros); `eval_suite.rs` retargeted | RED: freeze guard + the two tests that `load_suite` the real directory (thresholds, sign-test k); everything reading files directly GREEN | **WRONG PREDICTION — 6 RED, not 3**: the three predicted, PLUS three guards that pin the v2 roster and that research R6 claimed "read unchanged": `cell_configs_differ_only_in_behavior` (seat maps hard-coded to SIX seats), `no_exam_equals_a_training_or_certification_config` (asserts `scale` roster > training's — the v1 CROWD axis the 2026-09-04 ruling dropped), `a_builtin_candidate_exercises_cells_differentials_and_verdict` (six duet shares per cell). All three are the changed behavior's own guards going red (rule 6): pointed at roster 5 (seat maps 1+4 / 2+3 / 4+1; `scale` roster == 5 with the ruling in the comment; five duet shares). Nothing weakened — each still pins an exact value. Re-run: 13 / 3 — the three hash reds only, as F0 originally predicted. | committed at 3 red (hashes land LAST, T023) |
+| U1 (T010→T011) | `a_served_width_mind_sits_every_exam` pointed at `evals/v2` | RED at the roster-fit assertion naming exactly `scale` (8) and the three mixed-roster cells (6) against 4 slots; `scarcity`, `heterogeneity` silent | RED exactly as predicted: "scale.toml: roster 8 needs 7 slots, the served subject has 4" + the three cells "roster 6 needs 5 slots"; the two narrow files absent from the list (one run, all four named — collected Vec) | pointed at `evals/v3`: GREEN, 1 / 0, 0.33 s (six 200-tick runs of the served-width fixture, fallbacks 0); the four names pasted into the v3 manifest head comment |
+| U2a (T012) | `a_policy_subject_that_cannot_seat_the_roster_is_refused` written against the unchanged engine (6-cat scratch `scale`, kitty_slots 5, served-width fixture as a policy subject) | does not compile: no `RosterOverflow` variant, no `Display` | as predicted (E0599 ×2); committed red | — |
+| U2b (T013, variant only) | `RosterOverflow` variant + `Display` landed, NO check in `score_suite`; `kitty-eval`'s irrefutable `let` (analyze finding I1) turned into the `suite_error_exit` match first — the test binary depends on the bin | RED: `score_suite` returns `Ok` (the 6-cat exam SCORES a 4-slot mind) at the `.expect("refused … before any tick")` | RED exactly there (eval_suite.rs:1018), 0.40 s | — |
+| U2b′ (T013, check landed) | `roster_fit` before the scoring loop, policy subjects only | T012 GREEN (RosterOverflow { roster 6, slots 4 }, message names scale / 6 kitties / observes 4; needs_driven still scores); `an_artifact_named_candidate_does_not_panic_the_suite` GREEN; only the three hash reds remain | as predicted: eval_suite 15 / 3 (the three hash reds), whole crate otherwise green | — |
+| U2c (T014c, the binary) | `kitty-eval` rebuilt; T003's scratch v2 with the oracle | exit 1, stderr names scale / 8 / 4, no exam scored | **exit 1**: "kitty-eval: exam 'scale': a roster of 8 kitties needs 7 kitty slots; the policy subject observes 4 (spec 051 FR-012) …" — nothing scored (compare §R1: the same run scored all six on the unchanged engine) | — |
+| U2c′ (T014c) | a 40-tick / 1-seed scratch v3 with the oracle | six exams score, `scale` lists 5 kitties, fallbacks 0, exit 0 or 4 | as predicted: all six scored, fallbacks 0 everywhere, `scale` lists 5, exit 4 on the fixture's mixed-roster verdict (its ordinary result, as on v2) | — |
+| T015 | none — the retargeted invariant run (`every_v1_exam_sustains_an_invariant_asserted_run`, name reported not renamed) on the six v3 files | GREEN, 0 fallbacks, floor > 0 | GREEN | — |
+| U3 (T016) | `carried_exams_parse_equal_to_v2` with `evals/v3/scarcity.toml` water `min = 1` → `2` (keep-copy taken first) | RED naming `scarcity.toml` | RED: "scarcity.toml: carried unchanged from eval-suite-v2 (spec 051 FR-004)" | keep-copy restored; `git diff -- evals/v3` empty; GREEN |
+| U4 (T017, first attempt — VOID) | the served config pushed into the axis list, run in the SAME pass as U3's mutation | RED at the axis | RED — but at line 348, the pre-existing "scarcity: Water minimum sits at the validation floor" assertion tripping on U3's mutation, NOT the new axis. Wrong reason = unverified (rule 5). | scarcity restored, re-run alone below |
+| U4′ (T017) | the served config pushed into the axis list, scarcity clean | RED at the axis line naming `cloudkitty.toml` with (20, 20, 5) | RED exactly there (eval_suite.rs:370): "cloudkitty.toml: the served / anchor shape is not held out, left (20, 20, 5) right (20, 20, 5)" | push removed; GREEN 1 / 0 |
+| T018 | none — `cell_configs_differ_only_in_behavior` on the three v3 cells (seat maps re-pointed at F0) | GREEN | GREEN | — |
+| T019 | none — head comments re-read against FR-002 / FR-003 / FR-011 (scale: dilution kept, crowd dropped with the ruling date, R1 truth; cells: composition lines, Clementine's flip named in half; carry lines "Body comment corrections: none") | — | wording stands as generated | — |
+| U5 (T020→T021) | `evals/v2` added to `config-sweep-exclusions.txt` BEFORE the sweep assertion moved | RED: "the frozen exams (evals/v2, the 3.0 cut) are in the sweep" | RED exactly there (shipped_configs_rl.rs:82) | assertion + module doc flipped to `evals/v3`; GREEN 1 / 0 |
+| U6 (T023) | real sha256 written into `evals/v3/manifest.toml` LAST, after T019/T022 | eval_suite fully GREEN: F0's three hash reds close (freeze guard, thresholds, sign-test k) | **19 / 0**, 1.32 s | — |
+| U7 (T024, freeze proof) | one trailing space on line 8 of `evals/v3/heterogeneity.toml` (committed first) | RED: `a_landed_exam_file_cannot_change_without_failing_ci` naming the file; `load_suite` refuses (thresholds test errors); `two_subjects_share_the_frozen_exam_without_touching_it` predicted RED too | freeze guard RED naming heterogeneity.toml ("changed after landing — a frozen exam never changes"); `load_suite` REFUSED ("content hash 8f81… does not match the manifest's e99b… — a landed suite version is frozen (FR-012)"); `two_subjects_share…` stayed GREEN — it rehashes the files into a scratch suite and proves a run leaves them untouched, not the freeze; the prediction for that one test was wrong, the freeze proof is the other two | `git checkout -- evals/v3/heterogeneity.toml`; `git diff -- evals/v3` empty; eval_suite **19 / 0** re-read |
+| T026 | none — `git diff main -- evals/v2 evals/v1` EMPTY; `git diff origin/main --stat` = the plan's files (+ BACKLOG entry removal, CHANGELOG, the 017 exam-configs record line the cells test cites); fmt clean; clippy clean | — | verified | — |
+| final (T027) | none — the finished branch | 897 / 0 / 6 (894 + T010 + T012 + T016); 0 failures | **897 / 0 / 6, 70 s** — as predicted | — |
+
+FINAL count (T027, 2026-09-05): **897 / 0, 6 ignored**, wall 70 s; fmt + clippy
+clean; `git diff main -- evals/v2 evals/v1` empty.
+
+Two predictions were wrong and are recorded above rather than smoothed over:
+F0 (three v2-roster-pinned guards the plan's R6 missed — each pointed at
+roster 5, none weakened) and U4's first attempt (red for the wrong reason,
+voided and re-run alone). One test in U7 (`two_subjects_share…`) was
+predicted red and stayed green; it does not guard the freeze.
+| post-converge (owner) | `every_v1_exam_sustains_an_invariant_asserted_run` renamed `every_exam_sustains_an_invariant_asserted_run` (owner: "Fix the v1 reference"); 017 quickstart map updated | GREEN, same body | GREEN | — |
+
+## Code review (owner ran `/code-review high 051` in the Client session, relayed 2026-09-05)
+
+| finding | disposition | cycle |
+|---|---|---|
+| 3 (low) — the axis guard checked only the served shape; every v3 roster is now the gym's 5, so geometry is the only margin from `training.toml` (24×24×5), unchecked for five files; the old `mixed != bar` assertion dead | FIXED: the held-out loop asserts every exam's (w, h, roster) against BOTH the bar's and the gym's shape; the two mixed-only assertions and the unused `mixed` load removed | `training.toml` pushed into the list → RED "training.toml: the gym's shape is not held out, (24, 24, 5)"; removed → GREEN |
+| 4 (low, time-boxed) — half's header claimed "friction at its maximum — neither group can dictate", untrue at 2 + 3 | FIXED before the freeze: "the closest split roster 5 allows — convention friction near its maximum, with the scripted side one seat ahead, so the candidates cannot dictate" | the reworded file against the old manifest → freeze guard RED naming mixed-roster-half.toml; rehashed (1 entry) → eval_suite 19 / 0 |
+| 1 (medium) — `evals/v2` excluded from both sweeps while its bytes still load: the exclusion silences nothing and drops six shipped TOMLs from CI; the file's own rule reserves it for records of an earlier engine generation | OWNER RULING REQUESTED — FR-009 / SC-005 put the exclusion in the spec by analogy with v1, and the analogy is wrong on this axis. Recommendation: drop the exclusion (v2 stays in both sweeps; the sweep assertion names v3; U5's red becomes an assertion pointed at a non-existent directory) | pending |
+| 2 (low) — `carried_exams_parse_equal_to_v2` loads v2 every run; contradicts the exclusion's premise; settled by the same ruling | with finding 1 | pending |
+
+Post-review cycle: **897 / 0 / 6**, 55 s; fmt + clippy clean.
+
+**Owner ruling on findings 1 + 2 (2026-09-05): "Drop it."** The `evals/v2` line is removed from `config-sweep-exclusions.txt`; v2 stays in both sweeps while its bytes load and joins the exclusions the day it stops (the v1 precedent), with `carried_exams_parse_equal_to_v2` deleted in the same change. FR-009 / SC-005, US3 AS3 + independent test, Key Entities, plan, research R7, data-model, contract, quickstart, README, CHANGELOG amended; the original U5 cycle stands as history.
+
+| cycle | mutation | prediction | result | restored (count re-read) |
+|---|---|---|---|---|
+| U5′ (post-ruling) | sweep assertion pointed at `evals/v9` (no such directory), v2 line already removed | RED "the frozen exams (evals/v3, spec 051) are in the sweep" | RED exactly there (shipped_configs_rl.rs:82) | pointed back at v3: rl sweep 1 / 0, core sweep 2 / 0 — both with v2's six files in scope |

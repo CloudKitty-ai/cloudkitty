@@ -103,7 +103,7 @@ fn parse_args() -> Result<Args, String> {
                             [--config PATH|compiled (default ./cloudkitty.toml)] \
                             [--seeds 1,2,...] [--ticks 20000] \
                             [--roster all-policy|mixed|both] [--json out.json]\n       \
-                            kitty-eval --suite evals/v2 (--brain NAME | --artifact PATH \
+                            kitty-eval --suite evals/v3 (--brain NAME | --artifact PATH \
                             [--sample]) [--enforce sign-test] [--json out.json]"
                         .to_string(),
                 )
@@ -381,12 +381,21 @@ fn write_json<T: Serialize>(path: &str, value: &T) -> Result<(), ExitCode> {
     }
 }
 
-/// Exit-3 arm shared by both modes: the spec-pinned determinism-failure
-/// message (contracts/suite-cli.md), single-sourced like its siblings.
-fn determinism_exit(err: suite::SuiteRunError) -> ExitCode {
-    let suite::SuiteRunError::Determinism { location, seed } = err;
-    eprintln!("kitty-eval: determinism self-check failed on seed {seed} ({location})");
-    ExitCode::from(3)
+/// The suite-error arms shared by both modes, single-sourced like their
+/// siblings: the spec-pinned determinism-failure message
+/// (contracts/suite-cli.md) at exit 3; a policy subject that cannot seat an
+/// exam's roster (spec 051 FR-012) at exit 1, as any load failure.
+fn suite_error_exit(err: suite::SuiteRunError) -> ExitCode {
+    match err {
+        suite::SuiteRunError::Determinism { .. } => {
+            eprintln!("kitty-eval: {err}");
+            ExitCode::from(3)
+        }
+        suite::SuiteRunError::RosterOverflow { .. } => {
+            eprintln!("kitty-eval: {err}");
+            ExitCode::from(1)
+        }
+    }
 }
 
 /// FR-013 gate, both modes: a policy run that ever took a fallback fails
@@ -434,7 +443,7 @@ fn run_suite(dir: &str, args: &Args) -> ExitCode {
     };
     let report = match suite::score_suite(&loaded, &subject, args.enforce_sign_test) {
         Ok(report) => report,
-        Err(err) => return determinism_exit(err),
+        Err(err) => return suite_error_exit(err),
     };
 
     suite::human_report(&report);
@@ -518,7 +527,7 @@ fn main() -> ExitCode {
         format!("{mode:?}")
     }) {
         Ok(sweep) => sweep,
-        Err(err) => return determinism_exit(err),
+        Err(err) => return suite_error_exit(err),
     };
 
     let output = EvalOutput {

@@ -166,8 +166,9 @@ docs/                       guides: the RL HOWTO (howto-rl.md), the training ref
 client/                     the viewer: vanilla JS on a canvas, no build step — hand-drawn
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
-evals/v2/                   the exam room: frozen, hash-pinned held-out worlds (the 3.0
-                            cut; evals/v1/ is the 2.x record, excluded from the sweeps)
+evals/v3/                   the exam room: frozen, hash-pinned held-out worlds at the
+                            served roster (spec 051); evals/v1/ and evals/v2/ are records —
+                            v1 excluded from the sweeps, v2 still loads in them
 policies/                   deployed minds: every .ckpolicy artifact the served world
                             runs, committed byte-identical and hash-pinned to its
                             certification record in policies/README.md
@@ -183,7 +184,7 @@ training.toml               the gym: the world policies are trained in
 
 **Three worlds, three jobs.** `training.toml` is the gym. `cloudkitty.toml` is the
 served world: welfare bounds are calibrated there, and a candidate is smoke-tested
-there on what the server ships. `evals/v2/` is the exam room, held out — a result
+there on what the server ships. `evals/v3/` is the exam room, held out — a result
 claimed against a suite version is void if any of its exams were trained on.
 Certification is none of these; it happens in the experiment pipeline's registered
 gates ([experiments/PIPELINE.md](experiments/PIPELINE.md)).
@@ -320,11 +321,11 @@ scripted cats end up worse off, with a per-kitty sign test that catches a
 policy doing well on average while quietly exploiting one neighbor.
 
 ```bash
-kitty-eval --suite evals/v2 --artifact policies/trained.ckpolicy
+kitty-eval --suite evals/v3 --artifact policies/trained.ckpolicy
 ```
 
 Every exam config is sha256-pinned and frozen. A landed suite version never
-changes (evolving it means a new `evals/v2/` alongside), and the suite refuses
+changes (evolving it means a new `evals/v4/` alongside), and the suite refuses
 every adjustable knob: an instrument you can adjust is not a bar. Exit codes,
 report stamping, the mixed-roster compositions, and what each verdict means are
 in [docs/rl-training.md](docs/rl-training.md).

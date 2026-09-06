@@ -101,6 +101,8 @@ config = "mixed-roster-host.toml"
 sha256 = "<recorded at landing>"
 ```
 
+*Evolution note (spec 051): `evals/v2` landed 2026-09-03 (spec 049 FR-033, the six designs as complete 3.0 configs) and `evals/v3` on 2026-09-05 (spec 051, the four wide exams re-cut at the served roster of 5). v3 is current; each version's manifest names the next.*
+
 ## Rules
 
 - **Hashes**: SHA-256 of the exact file bytes (the artifact loader's
