@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **Tooling: `revert-guard` hook**. A Claude Code PreToolUse hook
+  (`.claude/hooks/revert-guard.py`, wired in `.claude/settings.json`)
+  refuses `git checkout -- <file>` / `git restore <file>` when the target
+  holds uncommitted changes. CLAUDE.md rule 5 (commit first, or keep a
+  copy) had been violated five times by that one command in mutation
+  cycles; the rule is now checked at the command, not remembered at
+  session start. `git apply -R` and `git stash` stay open. Self-test:
+  `.claude/hooks/test-revert-guard.sh`. No product behaviour changes.
+
 - **The exam room re-cut for the served roster — `evals/v3` (spec 051)**.
   No compatibility marker: nothing trained or saved moves. `evals/v2`'s
   four wide exams seated 8 (`scale`) and 6 (the mixed-roster cells) cats;
