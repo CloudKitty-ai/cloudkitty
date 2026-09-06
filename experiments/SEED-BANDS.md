@@ -31,5 +31,7 @@ before trusting a gap here, then add what you find.
 | 1020001–1020100 | exp-006a | dataset v6 anchor demonstrations (100 rollouts; D-001 re-base) |
 | 1040001–1057006 | exp-006a | dataset v6 far-spawn cell (D-001 re-base) |
 | 1060001–1060025 | here-word screen | density arms A0–A3 + A1b (period 2, owner-routed addendum) on the anchor composition; the SAME 25 seeds run in every arm BY DESIGN (paired gate-zero + within-seed contrasts; declaration `here-word-screen/collection-2026-08-31.md`) |
+| 1080001–1080100 | fog Gen 1 (fog-gen1-shakeout) | BC corpus on anchor.toml, 40 × 20k at 1080001–1080040 (owner ruled 2026-09-06, #350); the rest of the row reserved for a re-collection at a re-pinned radius or floor |
 | 100000000–259999999 | exp-006 | PPO episode seeds: base 100M + run_index×20M + segment×1k, worlds striding w×1M inside (train_ppo6.py). Sits above the 1M+ pool because the runner's per-world 1M stride makes 1M-scale sub-bands collide across arcs — exp-004/exp-005 chains already interleave there |
 | 260000000–339999999 | exp-006a | PPO episode seeds, run indices 8–11 (same formula and stride as the exp-006 row; claimed by prereg D-002 — the frozen §2 sentence had placed these inside exp-006's band in error) |
+| 340000000–519999999 | fog Gen 1 (fog-gen1-shakeout) | PPO episode seeds, run indices 12–20 (nine-arm pass; same formula and stride as the exp-006 row; #350) |

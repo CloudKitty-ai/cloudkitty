@@ -318,6 +318,14 @@ with no layout consequence (the legality mask is an oracle over
   The stop rule reads `ep_return_mean`, the env's unshaped team return.
 - Corpus: `announce_here = 1` scripted seats, served period, pinned
   radius + floor; size sized to clear the F-034 cliff with margin.
+  **Size ruled (owner 2026-09-06, #350: "ruled 40x20k")**: 40
+  rollouts × 20,000 ticks (800k ticks, ~4.0M decision rows; exp-006's
+  anchor corpus was 100 × 8k), seeds 1080001–1080040, held-out =
+  index ending in 3 (03/13/23/33; exp-006's rule, carried), bc-collect
+  `--trace` on the four held-out only (the readout's reply/ambient
+  split reads the trace; the trainer does not). want_play stays
+  unjudged at this size (≈28 held-out rows against the 100-row
+  floor); it is rare by law, and only the floor pick moves it.
   Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
   with three keys changed, each declared here: `groom_cuddle_relief`
   2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
