@@ -26,7 +26,10 @@ if [ "${1:-}" = "--expect" ]; then expect="$2"; shift 2; fi
 file=$1 mutation=$2 test=$3
 log=$(mktemp -t mutate); trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
 
-summary() { grep -E 'passed|failed|# (pass|fail)' "$1" | tr -s ' ' | sort; }
+summary() {  # the suite's count lines; a suite with none is compared by line count
+  local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | tr -s ' ' | sort)
+  [ -n "$s" ] && echo "$s" || echo "lines=$(wc -l < "$1" | tr -d ' ')"
+}
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
 
 git ls-files --error-unmatch -- "$file" >/dev/null 2>&1 || { echo "mutate: $file is not tracked" >&2; exit 3; }
@@ -52,7 +55,7 @@ if bash -c "$test" >"$log.m" 2>&1; then
   echo "mutate: VACUOUS — the suite stayed green under the mutation. The guard does not guard this." >&2
   summary "$log.m" >&2; exit 6
 fi
-grep -E 'panicked|FAILED|failed|assert|Error|error' "$log.m" | head -n 12
+grep -E 'panicked|FAIL|fail|assert|Error|error' "$log.m" | head -n 12
 if [ -n "$expect" ] && ! grep -Eq -- "$expect" "$log.m"; then
   echo "mutate: red, but for the WRONG REASON — output did not match --expect '$expect'" >&2; exit 7
 fi
@@ -67,4 +70,4 @@ post=$(summary "$log.r")
 if [ "$base" != "$post" ]; then
   printf 'mutate: post-restore counts differ from baseline\n  baseline: %s\n  restored: %s\n' "$base" "$post" >&2; exit 9
 fi
-say "RED CONFIRMED  ·  baseline == restored: ${base:-<no summary line>}"
+say "RED CONFIRMED  ·  baseline == restored: $base"
