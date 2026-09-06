@@ -132,6 +132,52 @@ recommendation. It does not pick the branch that keeps the run alive —
 that branch will always look like the reasonable one at the time,
 which is exactly why the decision is the owner's.
 
+### Owner calls: the ledger (owner ruled 2026-09-05)
+
+Every open owner decision is a GitHub issue labelled `owner-call`, in
+any thread (Product, Experiments, Professor, Client). Issues rather
+than a shared file because four worktrees write them and only one
+holds `main`; the owner reviews and rules from the phone. The
+governing rule: **the entry must be rulable from a phone with no
+checkout.** Glossary on first mention of every terse name (spec
+number, finding, slot, knob). Committed files get a permalink at a
+commit SHA; anything local-only (results-raw, scratchpad, a running
+box) gets its numbers or the relevant lines pasted. A bare path is a
+violation.
+
+Shape, skim layer first (six lines), detail under `<details>`:
+
+    **Question**: one sentence, answerable yes/no or by option letter.
+    **Recommendation**: one line, with the reason.
+    **Blocks**: what cannot proceed until ruled, or "nothing yet".
+    **Needed by**: date. **Default if unruled**: "waits" (irreversible,
+      or on the §Ownership list) or "proceeds on the recommendation as
+      a reversible assumption" (CLAUDE.md rule 1).
+    **Discuss**: owning thread and the prompt to paste, e.g.
+      "Experiments, say `discuss #41`".
+    <details>
+    Already established: the facts the ruling rests on, each with
+      where it was ruled. This is what removes re-asking.
+    Assumptions: 2-4 bullets the recommendation depends on, phrased so
+      each can be challenged.
+    Options: each with cost and consequence, one line apiece.
+    Evidence: permalinks and pasted numbers.
+    </details>
+
+State label alongside `owner-call`: `oc:ready` (meets the bar above;
+a thread may not post one that does not), `oc:discussing` (a dialog is
+open, in the issue comments or a live session), `oc:blocked` (waiting
+on data, named in the body). Only the owner closes an entry; a thread
+closes only by quoting the owner's words verbatim in the closing
+comment. The ruling is then copied into the document that owns it
+(prereg, timeline, spec) with the issue number: the ledger is inbox
+and index, the owning document stays the record. After a live
+discussion the thread posts a summary comment (what changed, what
+stayed, the remaining question), never a transcript. Threads do not
+ping the owner per call; the owner sweeps the label. An entry open ten
+days with nothing in **Blocks** is a backlog item and moves to
+`BACKLOG.md`.
+
 ## Build relationship
 
 Rust tools here are standalone cargo packages (each carries its own empty
