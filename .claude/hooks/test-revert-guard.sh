@@ -11,7 +11,7 @@ echo dirty >> "$T/src/a.rs"                      # a.rs holds unlanded work; b.r
 fail=0
 case_() {  # case_ <expected-exit> <label> <command>
   local want=$1 label=$2 cmd=$3
-  printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":%s}}' "$T" "$(jq -Rn --arg c "$cmd" '$c')" \
+  printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":%s}}' "${CWD:-$T}" "$(jq -Rn --arg c "$cmd" '$c')" \
     | python3 "$HOOK" 2>/dev/null; local got=$?
   if [ "$got" -eq "$want" ]; then echo "ok   $label"; else echo "FAIL $label: want $want got $got"; fail=1; fi
 }
@@ -22,7 +22,7 @@ case_ 2 "checkout in compound command"      "cargo test -q && git checkout -- sr
 case_ 2 "restore dirty file"                "git restore src/a.rs"
 case_ 2 "restore -W dirty file"             "git restore --staged --worktree src/a.rs"
 case_ 2 "git -C repo checkout dirty file"   "git -C $T checkout -- src/a.rs"
-case_ 2 "cd <worktree> && checkout -- dirty"   "cd $T && git checkout -- src/a.rs"
+CWD=/ case_ 2 "cd <worktree> && checkout -- dirty, from elsewhere" "cd $T && git checkout -- src/a.rs"
 case_ 2 "cd into subdir, relative path"      "cd $T/src && git checkout -- a.rs"
 case_ 2 "git -c k=v checkout -- dirty"       "git -c core.pager=cat checkout -- src/a.rs"
 case_ 2 "checkout -f branch, dirty tree"     "git checkout -f main"
