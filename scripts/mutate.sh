@@ -27,7 +27,7 @@ file=$1 mutation=$2 test=$3
 log=$(mktemp -t mutate); trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
 
 summary() {  # the suite's count lines; a suite with none is compared by line count
-  local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | tr -s ' ' | sort)
+  local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | sed -E 's/;? *finished in [0-9.]+ ?s//; s/ in [0-9.]+ ?s\b//' | tr -s ' ' | sort)
   [ -n "$s" ] && echo "$s" || echo "lines=$(wc -l < "$1" | tr -d ' ')"
 }
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
@@ -44,6 +44,7 @@ if ! bash -c "$test" >"$log" 2>&1; then
 fi
 base=$(summary "$log")
 
+before=$(git status --porcelain)
 say "[2/5] mutate: $mutation"
 bash -c "$mutation" || { echo "mutate: mutation command failed" >&2; exit 5; }
 if git diff --quiet HEAD -- "$file"; then echo "mutate: mutation did not change $file (no-op)" >&2; exit 5; fi
@@ -63,6 +64,10 @@ fi
 say "[4/5] restore $file"
 restore || { echo "mutate: restore failed; $file still differs from HEAD" >&2; exit 8; }
 trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
+if [ "$before" != "$(git status --porcelain)" ]; then
+  echo "mutate: the mutation touched more than $file; tree differs from before the mutation:" >&2
+  diff <(echo "$before") <(git status --porcelain) >&2; exit 8
+fi
 
 say "[5/5] post-restore: $test"
 if ! bash -c "$test" >"$log.r" 2>&1; then tail -n 15 "$log.r" >&2; echo "mutate: post-restore run is not green" >&2; exit 9; fi

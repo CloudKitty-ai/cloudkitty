@@ -13,12 +13,17 @@ to block, exits 0 to allow. Any parse failure allows (fail-open) so a
 broken hook never locks the session; the guard is a net, not a wall.
 """
 import json
+import os
 import re
 import shlex
 import subprocess
 import sys
 
-CMD_RE = re.compile(r"\bgit\b((?:\s+-C\s+\S+|\s+--no-pager)*)\s+(checkout|restore)\b([^;&|\n]*)")
+CMD_RE = re.compile(
+    r"\bgit\b((?:\s+-C\s+\S+|\s+-c\s+\S+|\s+--no-pager)*)\s+(checkout|restore|reset)\b([^;&|\n]*)"
+)
+SEG_RE = re.compile(r"&&|\|\||;|\n")
+CD_RE = re.compile(r"^\s*cd(?:\s+(\S+))?\s*$")
 
 
 def dirty(repo, path):
@@ -54,11 +59,16 @@ def targets(sub, args):
             if t != "--":
                 out.append(t)
         return out
+    if sub == "reset":
+        # `reset --hard` / `--merge` rewrite every tracked file in the tree
+        return ["."] if any(t in ("--hard", "--merge") for t in toks) else []
     # checkout
     if "--" in toks:
         return toks[toks.index("--") + 1 :]
     if any(t in ("-b", "-B", "--orphan") for t in toks):
         return []  # branch creation never overwrites paths
+    if any(t in ("-f", "--force") for t in toks):
+        return ["."]  # a forced branch switch discards every local change
     # `git checkout <thing>`: a branch is safe, a path is not. Let git say
     # which by checking each non-flag token as a path.
     return [t for t in toks if not t.startswith("-")]
@@ -71,10 +81,21 @@ def main():
         repo = data.get("cwd") or "."
     except Exception:
         return 0
-    for m in CMD_RE.finditer(cmd):
+    cwd = repo
+    for seg in SEG_RE.split(cmd):
+        # follow `cd` so a `cd <worktree> && git checkout -- f` resolves
+        # against the worktree, not the session's cwd
+        cd = CD_RE.match(seg)
+        if cd:
+            d = os.path.expanduser(cd.group(1) or "~").strip("'\"")
+            cwd = d if os.path.isabs(d) else os.path.join(cwd, d)
+            continue
+        m = CMD_RE.search(seg)
+        if not m:
+            continue
         pre, sub, args = m.group(1), m.group(2), m.group(3)
         c = re.search(r"-C\s+(\S+)", pre)
-        r = c.group(1) if c else repo
+        r = c.group(1) if c else cwd
         for path in targets(sub, args):
             if dirty(r, path):
                 sys.stderr.write(
