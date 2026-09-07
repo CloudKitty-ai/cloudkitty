@@ -21,11 +21,11 @@
    Three lies survive this: string matches (assert on state, not wording
    — unless the wording is the contract), hand-written fixtures (record
    real payloads), wrong layer (put the check where the bug occurs).
-7. Changed behavior: sort its checks before running. Guards of the
+6. Changed behavior: sort its checks before running. Guards of the
    change must go red; kept behavior must stay green. A must-fail that
    stays green is vacuous — fix it if you made it so, report it (rule 3)
    if it already was. Re-read the must-pass pile; running is not
    reading. Point the failed guards at the new behavior — that's rule
    5's red, for free.
-8. Before designing experiments or training runs, read
+7. Before designing experiments or training runs, read
    experiments/FINDINGS.md.
