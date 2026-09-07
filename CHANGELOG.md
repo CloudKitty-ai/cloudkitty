@@ -44,8 +44,8 @@ change.
   sanctioned mutation cycle: refuses a dirty file, requires a green
   baseline, requires the mutation to go red (optionally for a named
   reason via `--expect`), restores, and re-runs with counts compared to
-  baseline. Self-test `scripts/test-mutate.sh`. CLAUDE.md rule 5 now
-  names it as the cycle. No product behaviour changes.
+  baseline. Self-test `scripts/test-mutate.sh`. No product behaviour
+  changes.
 
 - **The exam room re-cut for the served roster — `evals/v3` (spec 051)**.
   No compatibility marker: nothing trained or saved moves. `evals/v2`'s
