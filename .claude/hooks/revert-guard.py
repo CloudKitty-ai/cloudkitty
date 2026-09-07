@@ -32,7 +32,10 @@ def dirty(repo, path):
         ["git", "-C", repo, "diff", "--quiet", "HEAD", "--", path],
         capture_output=True,
     )
-    return r.returncode == 1
+    # exit 1 means "differs"; git also exits 1 (with a message) when HEAD
+    # is unreachable, e.g. not a repo. That is not dirt: fail open, the
+    # checkout itself will fail there and nothing can be lost.
+    return r.returncode == 1 and not r.stderr
 
 
 def targets(sub, args):

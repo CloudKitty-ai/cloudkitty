@@ -35,5 +35,6 @@ case_ 0 "restore --staged (index only)"     "git restore --staged src/a.rs"
 case_ 0 "checkout -b branch"                "git checkout -b feature/x"
 case_ 0 "checkout branch name"              "git checkout main"
 case_ 0 "unrelated git command"             "git status && git diff -- src/a.rs"
+CWD=/ case_ 0 "not a repo fails open"                "git checkout -- src/a.rs"
 case_ 0 "malformed input fails open"        ""
 exit $fail
