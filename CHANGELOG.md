@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **Tooling: `checkout-guard` hook**. A second Claude Code PreToolUse hook
+  (`.claude/hooks/checkout-guard.py`) enforces the shared-checkout rules
+  that five incidents had been re-teaching: `git rebase` is refused
+  anywhere in this repo (merge origin/main in); `gh pr merge
+  --delete-branch` is refused (it parks the worktree on main); a linked
+  worktree may not move onto `main` or onto another branch (one branch
+  per worktree, `--detach` passes); and in the native checkout every
+  index- or HEAD-mutating git command and every Edit/Write is refused
+  unless the session was launched with `CLOUDKITTY_THREAD=experiments`.
+  The two hooks share a parser (`.claude/hooks/gitcmd.py`) that now
+  treats heredoc bodies as data. Self-test
+  `.claude/hooks/test-checkout-guard.sh`. No product behaviour changes.
 - **Tooling: `revert-guard` hook**. A Claude Code PreToolUse hook
   (`.claude/hooks/revert-guard.py`, wired in `.claude/settings.json`)
   refuses `git checkout -- <file>` / `git restore <file>` when the target
