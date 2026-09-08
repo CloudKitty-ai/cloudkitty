@@ -350,7 +350,12 @@ with no layout consequence (the legality mask is an oracle over
   message head's fluency is density-shaped. Reopen only on a bar miss.
   **Bars (owner ruled 2026-09-05), all on the held-out set**:
   reply-here and ambient-here opportunity-use ≥ 0.50 per kind (under
-  F-034's fluent band .58–.80, above the half-fluent .35–.56); msg@1 on
+  F-034's fluent band .58–.80, above the half-fluent .35–.56), where a
+  reply opportunity is an audible matching want stamped at or above
+  the listener floor, the responder's own predicate (owner 2026-09-08,
+  #348: "we can keep the gap on some runs as planned, but we should
+  only measure response frequency against calls > listener floor");
+  under-floor calls read as ambient; msg@1 on
   here-rows ≥ 0.80 (A1 read .8748); want emission per kind within ±15%
   of the source rate (relative, so it survives the speaker-floor pick),
   applied only to kinds with ≥ 100 source rows; a thinner kind reports
