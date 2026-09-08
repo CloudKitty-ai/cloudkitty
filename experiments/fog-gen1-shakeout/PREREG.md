@@ -306,6 +306,16 @@ with no layout consequence (the legality mask is an oracle over
   beyond the seed spread = INVESTIGATE). No numeric informativeness
   bar was ruled: the screen is descriptive and the bar lands with the
   owner's pick on #352.
+- **Floor-screen contrast addendum (2026-09-08, after the four-arm
+  curve, before any pick)**: the curve puts the plausible pick at 20
+  (15 and 10 fall to the safeguard clause), so the ruled two-arm
+  listener contrast runs now at floor 20:
+  `results-raw/floor-screen/floor-20-listen-30.toml` = floor-20.toml
+  with only `reply_intensity_floor` moved 0.20 → 0.30
+  (`c3b85b577b8dc6e9db86af7a2dc41bcf7eba7659f9637e0153d30aacf5062434`),
+  same seeds 870001–870003, 20k ticks, `--trace`, out-dir
+  `results-raw/floor-screen/f20-l30`. Read against the f20 arms for
+  reply rate and informativeness; both sets go to #352 together.
 - **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
   consecutive 1M-tick bins each improve the bin-mean shaped return by
   < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
