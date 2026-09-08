@@ -19,6 +19,7 @@ sys.path.insert(0, str(HERE))
 
 import data_fog as df  # noqa: E402
 import readout_fog as rf  # noqa: E402
+import train_vocab_fog as tv  # noqa: E402
 from obs_layout_v5 import CRIT_MENU, DENSE_ACT, KITTY_MENU, N_ACT, N_HEAD, OBS_DIM  # noqa: E402
 from schema_check import Trace  # noqa: E402
 
@@ -217,6 +218,59 @@ def test_readout_bars():
     food = res["opportunity_use"]["here_food"]
     assert food["reply"]["argmax_use"] == 0.90 and food["reply"]["use"] < 0.10, food["reply"]
     assert res["bars"]["reply-here_food"] is False, "argmax hides an unlearned word; the mass does not"
+
+
+def test_vocab_strip_rewrites_here_to_silent_only():
+    r = SimpleNamespace(label_msg=np.array([0, 1, 9, 10, 2, 12, 11]),
+                        mask_msg=np.ones((7, N_HEAD), np.uint8))
+    tv.strip_here([r])
+    assert r.label_msg.tolist() == [0, 1, 0, 0, 2, 0, 0], "here -> silent, wants kept"
+    r = SimpleNamespace(label_msg=np.array([9]), mask_msg=np.ones((1, N_HEAD), np.uint8))
+    r.mask_msg[0, 0] = 0
+    try:
+        tv.strip_here([r])
+        assert False, "silent illegal on a here row was accepted"
+    except AssertionError as e:
+        assert "Silent must be legal" in str(e)
+
+
+def test_vocab_here_rows_select_legal_or_said():
+    n = 5
+    obs = np.arange(n, dtype=np.float32)[:, None]
+    mask_msg = np.zeros((n, N_HEAD), np.uint8)
+    mask_msg[:, 0] = 1
+    mask_msg[1, 9] = 1          # here_food legal, source silent
+    mask_msg[2, 12] = 1         # here_sunbeam legal, source said it
+    mask_msg[3, 1] = 1          # only want_eat legal
+    label_msg = np.array([0, 0, 12, 1, 0])
+    arrs = (obs, None, None, mask_msg, label_msg)
+    legal = tv.here_rows((obs, obs, obs, mask_msg, label_msg), "legal")
+    assert legal[0][:, 0].tolist() == [1.0, 2.0], "rows with a legal here-word"
+    said = tv.here_rows((obs, obs, obs, mask_msg, label_msg), "said")
+    assert said[0][:, 0].tolist() == [2.0], "rows where the source said one"
+
+
+def test_vocab_teach_moves_only_the_message_head():
+    torch.manual_seed(0)
+    model = tv.EntityPolicyV5()
+    before = {k: v.clone() for k, v in model.state_dict().items()}
+    params = tv.freeze_but_msg_head(model)
+    assert {n for n, p in model.named_parameters() if p.requires_grad} == {
+        "msg_head.weight", "msg_head.bias"}
+    opt = torch.optim.Adam(params, lr=1e-2)
+    obs = torch.zeros(8, OBS_DIM)
+    mask_msg = torch.ones(8, N_HEAD, dtype=torch.bool)
+    label_msg = torch.full((8,), 9, dtype=torch.int64)
+    loss, _ = tv.bc_loss_and_metrics(model(obs)[:, N_ACT:], mask_msg, label_msg, 0.05)
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+    after = model.state_dict()
+    for k in before:
+        if k.startswith("msg_head."):
+            assert not torch.equal(before[k], after[k]), f"{k} did not move"
+        else:
+            assert torch.equal(before[k], after[k]), f"{k} moved under the freeze"
 
 
 if __name__ == "__main__":
