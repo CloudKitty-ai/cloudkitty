@@ -232,6 +232,34 @@ with no layout consequence (the legality mask is an oracle over
   welfare impact, so "zero adverse events" may be unrealistic and the
   sweep is descriptive first. If no radius clears whatever rule is set,
   that is the finding and the pass runs at 5 as a shakeout, not a pin.
+- **Radius-screen run declaration (2026-09-08; this commit precedes
+  collection)**: instrument `radius_screen.py` @ 25a67a7, guard
+  `test_radius_screen.py` in the same commit, twelve mutate.sh reds
+  (episode flush, watchdog cut, safeguard crossing vs tick count,
+  memory blindness, stocking blindness, self-in-view, per-1k scaling,
+  span flush, traceless refusal, need max, dispersion pass-through,
+  max age). Arms: six configs derived from `anchor.toml` by
+  `train_ppo_fog.derive_config` (only the `[vision] radius` line
+  moves, tomllib-checked), radii 2 / 3 / 4 / 5 / 6 plus 40 as the
+  whole-world control (r = 40 covers the 20×20 board from any tile),
+  written to `results-raw/radius-screen/radius-N.toml`. SHA-256:
+  - radius-2 `0566b9536d125c466299bdf3b8f7a15a1175a93f460679c1a129a7a986bd258e`
+  - radius-3 `d19c334760341fdfe79359224f1ed625fcefb4c438dbd700c7219995043f4f8a`
+  - radius-4 `4b0805dee6fdd3bcd090b8ad2fb0467c8ff9fab862eaf346d9fb079ee6557865`
+  - radius-5 `a9a18f384c1a0ca23c408ee1530470a614ef22f9b68c9570b053222dd487b0bd`
+    (byte-identical to anchor.toml; matches the 050 re-smoke meta)
+  - radius-6 `59cb1af1d9195bb21ee16e48661a987270c99944fb1ec7f9420a79c57b1ebf52`
+  - radius-40 `f1552b79ca5956dbda7f1ce37a0c4b12dc8c41562ab0a4f74c6e2003b2ee3756`
+
+  Collection, per config: `experiments/tools/bc-collect/target/release/bc-collect
+  --config results-raw/radius-screen/radius-N.toml --rollouts 3
+  --ticks 20000 --seed-base 870001 --trace --out-dir
+  results-raw/radius-screen/rN`, giving world seeds 870001–870003
+  (the shared eval band, paired across radii; never corpus seeds).
+  Readout: `radius_screen.py` over the 18 rollout directories; the
+  table and `--out` JSON go to #351 with the numbers pasted. The
+  screen is descriptive; the pin is drawn per the pencilled rule
+  above and is the owner's call.
 - **Leash consequence (pencilled)**: a weak anchor under fog means the
   clone-and-leash recipe holds learners near a weak teacher; slot 5 (β
   up) is promoted to essential, H2 becomes a floor we expect to clear,
