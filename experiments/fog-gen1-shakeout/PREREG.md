@@ -348,9 +348,17 @@ with no layout consequence (the legality mask is an oracle over
   extension (F-034 addendum 2: act@1 .80 → .82 at 3× cost) is NOT taken;
   the clone is PPO's init and PPO moves the action head, while the
   message head's fluency is density-shaped. Reopen only on a bar miss.
-  **Bars (owner ruled 2026-09-05), all on the held-out set**:
-  reply-here and ambient-here opportunity-use ≥ 0.50 per kind (under
-  F-034's fluent band .58–.80, above the half-fluent .35–.56), where a
+  **Bars (owner ruled 2026-09-05; here-word read re-ruled 2026-09-08,
+  #348), all on the held-out set**: reply-here opportunity-use ≥ 0.50
+  per kind, read as the clone's masked-softmax mass on the here-word
+  (the expectation of a sampled read; argmax saturates and cannot
+  fail short of collapse), owner: "0.5 is a reasonable threshold in
+  that case"; ambient use, the source's own use and the argmax read
+  are reported beside it, not gated (the scripted rate is a teacher
+  rate; the bar exists for the F-034 cliff, mute clones read near 0).
+  Dry-run clone under this read: reply mass .83 / .77 / .69 / .81
+  (food / water / critter / sunbeam) against argmax .94 / .89 / .71 /
+  .94. A
   reply opportunity is an audible matching want stamped at or above
   the listener floor, the responder's own predicate (owner 2026-09-08,
   #348: "we can keep the gap on some runs as planned, but we should
