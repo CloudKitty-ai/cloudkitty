@@ -34,8 +34,15 @@ export const stateOf = (k) => k.activity?.state ?? k.state ?? null;
 // in the same expression, which is what lets `stateOf` prefer the nested one
 // without that preference ever changing a count.
 //
-// Additive on purpose. Owner call #357 ruled Client's jsonl stays flat, and
-// the flat tag is untouched -- `activity` rides alongside it.
+// Additive on purpose, and the widening is ruled. "Client's jsonl stays flat"
+// was an ASSUMPTION in owner call #357, not part of the ruling -- the ledger
+// convention defines that section as premises "phrased so each can be
+// challenged", and option C, the one that would have REPLACED the flat tag,
+// was declined. Owner, 2026-09-08, verbatim:
+//
+//   #357's "stays flat" was an assumption, not a requirement, and I'm setting
+//   it aside: the flat `state` tag is always written, and the full `activity`
+//   object may ride alongside it.
 export const censusKitty = (k) => ({
   id: k.id,
   name: k.name,

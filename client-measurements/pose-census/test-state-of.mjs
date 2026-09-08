@@ -169,9 +169,11 @@ check('censusKitty: banks the whole activity, not just the tag', () => {
   assert(row.activity?.target === 2,
     'the sibling field was discarded at capture and cannot be recovered later '
     + '(the raw is collected against a world that then moves on). If you are '
-    + 'narrowing capture back to the flat tag to satisfy owner call #357, read '
-    + 'the second conventions bullet in client-measurements/README.md first: '
-    + `#357 is satisfied by the flat tag, which is still written. Got ${JSON.stringify(row.activity)}`);
+    + 'narrowing capture back to the flat tag to satisfy owner call #357: the '
+    + 'owner set that assumption aside on 2026-09-08 -- "the flat `state` tag '
+    + 'is always written, and the full `activity` object may ride alongside '
+    + 'it". See the second conventions bullet in client-measurements/README.md. '
+    + `Got ${JSON.stringify(row.activity)}`);
 });
 
 check('censusKitty: the two shapes it writes agree, which is what makes precedence safe', () => {

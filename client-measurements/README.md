@@ -65,11 +65,13 @@ step, matching the client's own no-build-step house style.
   [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357), ruled option
   B on 2026-09-08: "#357: ruled B". Guarded by `pose-census/test-state-of.mjs`.
 
-  **The flat tag is still what the readers rely on, and the next bullet does
-  not change that.** #357's ruling that Client's jsonl stays flat holds in the
-  sense that matters: `state` is written at the top level of every row, before
-  and after. What changed is that the whole `activity` object now rides
-  *beside* it. Nothing was replaced or removed, so a pre-2026-09-08 raw and a
+  **"Stays flat" was an assumption in #357, not part of the ruling**, and the
+  owner set it aside on 2026-09-08, verbatim: "#357's 'stays flat' was an
+  assumption, not a requirement, and I'm setting it aside: the flat `state`
+  tag is always written, and the full `activity` object may ride alongside
+  it." The issue's Options declined C, which would have *replaced* the flat
+  tag; what the next bullet describes adds beside it. Nothing was replaced or
+  removed, so a pre-2026-09-08 raw and a
   post one both read the same way through `stateOf`.
 - **Capture the whole `activity` object, not just its tag, and replay through
   `asServed(k)`.** The two directions are not symmetric. The client reads more
