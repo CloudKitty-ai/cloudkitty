@@ -52,6 +52,17 @@ step, matching the client's own no-build-step house style.
   comparison cannot drift from what the client actually does. `pose-analyze`
   copies `poseFor` out of `render.js` for exactly this reason; if that function
   changes, update the copy.
+- **Read a kitty's activity state through `pose-census/state-of.mjs`, never
+  inline.** Two shapes reach these tools. The box serves the engine's
+  `Activity` enum internally tagged, so the state is a `state` key inside
+  `activity` (`/world`, `/kitties` and `/events/activity` all do this, which is
+  why Experiments' `live_census.py` reads `k["activity"]["state"]`); the jsonl
+  written here keeps that tag alone at the top level. The shape belongs to the
+  artifact that wrote it, and Client's jsonl stays flat, so the reader is what
+  absorbs the difference rather than each call site restating the rule.
+  `stateOf(k)` takes either shape and returns `null` for neither. Owner call
+  [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357), ruled option
+  B on 2026-09-08: "#357: ruled B". Guarded by `pose-census/test-state-of.mjs`.
 
 ---
 
@@ -65,6 +76,7 @@ reusable for any pose accounting.
 cd client-measurements/pose-census
 node pose-census.mjs 540 census.jsonl      # sample the live world for 540s
 node pose-analyze.mjs census.jsonl 4       # replay it; 4 = the chase-distance gate
+node test-state-of.mjs                     # guards the shared activity-state reader
 ```
 
 `pose-census.mjs` polls `https://kitties.ai/world` every 380ms (the world ticks
