@@ -310,7 +310,9 @@ recent_window_ticks = 10
 # rate cell's maximum (window / cooldown = 3 calls) is exact.
 digest_window_ticks = 30
 # A want-kind arms at this need level (grounded legality)...
-announce_threshold = 30.0
+# Served value 30.0; speaker floor pinned 20 off the floor screen
+# (#352, owner 2026-09-08: "20 it is").
+announce_threshold = 20.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
 # while an errand is in progress.
 announce_hysteresis = 5.0
@@ -433,7 +435,7 @@ announce_here = 1  # fog-gen1-shakeout: corpus source (PREREG, teacher ruled out
 # 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
 # (Experiments cut it), is revisited at the speaker-floor screen, and stays
 # unset on the served config.
-reply_intensity_floor = 0.30  # fog-gen1-shakeout: scripted reply path on (PREREG A8; PROVISIONAL, owner pins at declaration)
+reply_intensity_floor = 0.20  # fog-gen1-shakeout: scripted reply path on (PREREG A8); PINNED = speaker floor / 100 (#352, owner 2026-09-08)
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
@@ -537,7 +539,8 @@ distress_patience_ticks = 60
 # rules the served value. Every built-in cat explores for what it cannot see
 # (FR-023) and asks for it (FR-036); see docs/meows.md.
 [vision]
-radius = 5
+# Pinned off the radius screen (#351, owner 2026-09-08: "Pin at 4").
+radius = 4
 # Element-memory expiry in ticks; 0 = never (sight is the only corrector).
 memory_timeout_ticks = 0
 

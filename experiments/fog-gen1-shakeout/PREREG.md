@@ -3,9 +3,7 @@
 Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
-open before declaration: the `reply_intensity_floor` pin on
-`anchor.toml` (rule ruled 2026-09-05, number follows the speaker-floor
-screen), the `expected_per_1000` rates in `declared_constant.json`
+open before declaration: the `expected_per_1000` rates in `declared_constant.json`
 (filled from the BC corpus trace at declaration, rule ruled 2026-09-05),
 and the anchor re-smoke at margin 0 once spec 050 `relief_memory_margin`
 is on main (merging 2026-09-05; the declaration waits for it, owner
@@ -306,6 +304,16 @@ with no layout consequence (the legality mask is an oracle over
   beyond the seed spread = INVESTIGATE). No numeric informativeness
   bar was ruled: the screen is descriptive and the bar lands with the
   owner's pick on #352.
+- **Speaker floor RULED (#352, owner 2026-09-08): "20 it is."** Floor
+  20, listener 0.20 per the ruled listener rule, written into
+  `anchor.toml` (`announce_threshold` 30.0 → 20.0,
+  `reply_intensity_floor` 0.30 → 0.20) alongside the #351 radius
+  (`[vision] radius` 5 → 4); anchor.toml now equals the screened
+  floor-20 arm key for key. High-need service note from the pick
+  discussion: heard wants at intensity ≥ 0.5 numbered 1357 (floor 20)
+  vs 1356 (floor 30) on the same seeds, answered 0.792 vs 0.817 — the
+  floor adds mild asks under the urgent ones rather than diluting
+  them.
 - **Floor-screen contrast addendum (2026-09-08, after the four-arm
   curve, before any pick)**: the curve puts the plausible pick at 20
   (15 and 10 fall to the safeguard clause), so the ruled two-arm
@@ -398,11 +406,11 @@ with no layout consequence (the legality mask is an oracle over
   unjudged at this size (≈28 held-out rows against the 100-row
   floor); it is rare by law, and only the floor pick moves it.
   Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
-  with three keys changed, each declared here: `groom_cuddle_relief`
+  with five keys changed, each declared here: `groom_cuddle_relief`
   2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
-  `reply_intensity_floor` unset → 0.30 (the served comment assigns the
-  floor to this config; 0.30 is the provisional value, owner pins at
-  declaration). Unset, the served config emits no here-word and no
+  `reply_intensity_floor` unset → 0.20 (pinned #352, = speaker floor /
+  100), `announce_threshold` 30.0 → 20.0 (pinned #352), `[vision]
+  radius` → 4 (pinned #351). Unset, the served config emits no here-word and no
   reply at all (anchor smoke: 0 of each in 1000 ticks), so A7/A8/A16
   cannot be read on it. Anchor roster: 1 needs_driven, 2 playful, 3–5
   needs_driven.
