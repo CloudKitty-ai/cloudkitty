@@ -59,16 +59,24 @@ def predict_msg(model, obs, mask_msg, batch=8192):
 
 def reply_flags(tr, tick, kitty):
     """Per here kind, per decision row: an audible want of
-    WANT_FOR_HERE[kind] from another kitty sits in the pre-decision
-    snapshot of that tick (schema_check A8's predicate)."""
+    WANT_FOR_HERE[kind] from another kitty, stamped at or above the
+    listener floor, sits in the pre-decision snapshot of that tick (the
+    scripted responder's own candidate predicate, behavior/mod.rs
+    `reply_candidate`; schema_check A8). Floor unset = the responder
+    never replies, so no row is a reply opportunity (owner 2026-09-08:
+    a want under the floor is nobody's to answer, it reads as ambient)."""
     snap_at = {l["tick"]: l["snapshot"] for l in tr.lines}
     window = tr.window
+    floor = tr.cfg["behavior"].get("reply_intensity_floor")
     flags = {kind: np.zeros(len(tick), bool) for kind in HERE_MSG.values()}
+    if floor is None:
+        return flags
     cache = {}
     for i, (t, k) in enumerate(zip(tick.tolist(), kitty.tolist())):
         if (t, k) not in cache:
             heard = {m["kind"] for m in snap_at[t]["recent_meows"]
-                     if m["kitty_id"] != k and audible(m, t, window)}
+                     if m["kitty_id"] != k and m["intensity"] >= floor
+                     and audible(m, t, window)}
             cache[(t, k)] = {kind: WANT_FOR_HERE[kind] in heard
                              for kind in flags}
         for kind, hit in cache[(t, k)].items():

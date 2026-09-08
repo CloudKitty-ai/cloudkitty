@@ -95,15 +95,17 @@ def test_load_dataset_pins_dims_schemas_and_the_split():
             assert "rollout-01" in str(e) and "225" in str(e), e
 
 
-def _trace(lines, window=20):
+def _trace(lines, window=20, floor=0.30):
     tr = Trace(obs=None, mask=None, kitty=None, tick=None, lines=lines,
-               meta={}, cfg={"meow": {"digest_window_ticks": window}})
+               meta={}, cfg={"meow": {"digest_window_ticks": window},
+                             "behavior": {"reply_intensity_floor": floor}})
     return tr
 
 
 def test_reply_flags_use_the_a8_audible_predicate():
-    def meow(kind, kitty_id, tick):
-        return {"kind": kind, "kitty_id": kitty_id, "tick": tick}
+    def meow(kind, kitty_id, tick, intensity=0.5):
+        return {"kind": kind, "kitty_id": kitty_id, "tick": tick,
+                "intensity": intensity}
     lines = [
         # tick 100: kitty 2 wanted food at 95 (audible for 1), kitty 1
         # wanted water at 100 itself (not audible: same tick), kitty 1
@@ -112,10 +114,18 @@ def test_reply_flags_use_the_a8_audible_predicate():
             meow("want_eat", 2, 95), meow("want_drink", 1, 100),
             meow("want_sleep", 1, 79), meow("want_play", 1, 90)]}},
         {"tick": 101, "snapshot": {"recent_meows": [meow("want_drink", 1, 100)]}},
+        # tick 102: kitty 1 wants sleep at 0.29, under the 0.30 listener
+        # floor: audible, but nobody's to answer.
+        {"tick": 102, "snapshot": {"recent_meows": [meow("want_sleep", 1, 101, 0.29)]}},
     ]
-    tick = np.array([100, 100, 101])
-    kitty = np.array([1, 2, 2])
+    tick = np.array([100, 100, 101, 102])
+    kitty = np.array([1, 2, 2, 2])
     flags = rf.reply_flags(_trace(lines), tick, kitty)
+    assert flags["here_sunbeam"][3] == False, "under the listener floor is not a reply opportunity"  # noqa: E712
+    assert rf.reply_flags(_trace(lines, floor=0.29), tick, kitty)["here_sunbeam"][3] == True, "at the floor is"  # noqa: E712
+    assert not any(rf.reply_flags(_trace(lines, floor=None), tick, kitty)[k].any()
+                   for k in flags), "floor unset: the responder never replies"
+    flags = {k: v[:3] for k, v in flags.items()}
     # kitty 1 @100: hears kitty 2's want_eat -> here_food reply; its own
     # want_play does not count (same speaker).
     assert flags["here_food"].tolist() == [True, False, False]
@@ -159,7 +169,7 @@ def test_readout_bars():
     label_msg[380:] = 1               # 20 want_eat rows (unjudged, < 100)
     tick = np.arange(n) + 10
     lines = [{"tick": int(t), "snapshot": {"recent_meows":
-              ([{"kind": "want_eat", "kitty_id": 2, "tick": int(t) - 1}]
+              ([{"kind": "want_eat", "kitty_id": 2, "tick": int(t) - 1, "intensity": 0.5}]
                if t < 210 else [])}} for t in tick]
     r = SimpleNamespace(obs=obs, mask_msg=np.ones((n, N_HEAD), np.uint8),
                         label_msg=label_msg, tick=tick,
