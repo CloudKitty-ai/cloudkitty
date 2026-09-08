@@ -63,6 +63,20 @@ step, matching the client's own no-build-step house style.
   `stateOf(k)` takes either shape and returns `null` for neither. Owner call
   [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357), ruled option
   B on 2026-09-08: "#357: ruled B". Guarded by `pose-census/test-state-of.mjs`.
+- **Capture the whole `activity` object, not just its tag, and replay through
+  `asServed(k)`.** The two directions are not symmetric. The client reads more
+  of `activity` than the tag: `render.js:1943` draws the cuddle heart off
+  `with_friend`, and `app.js` reads `with_friend` and `in_sunbeam` for the
+  card text. So a tool that replays a raw through the shipped `poseFor` or
+  `Presentation` needs the real object, and a reconstruction from a flat tag
+  is a faithful served kitty only for a caller reading the tag alone.
+  `censusKitty(k)` writes both shapes from the same served kitty, so they
+  cannot disagree; `asServed(k)` hands the captured object straight back and
+  reconstructs only for a raw banked before this was true. Capture is the step
+  that cannot be redone, which is the whole argument: a raw is collected
+  against a world that then moves on, so a field dropped at capture costs
+  another live window to get back, while a field kept and never used costs
+  about 13% of a gitignored file.
 
 ---
 
@@ -80,8 +94,9 @@ node test-state-of.mjs                     # guards the shared activity-state re
 ```
 
 `pose-census.mjs` polls `https://kitties.ai/world` every 380ms (the world ticks
-at 800ms) and appends one JSON line per **distinct** tick — positions,
-activity state, `last_action`, and every element. Duplicate polls are dropped
+at 800ms) and appends one JSON line per **distinct** tick — positions, the
+activity state as a flat tag *and* the whole `activity` object beside it,
+`last_action`, and every element. Duplicate polls are dropped
 by tick number, so the sample is a clean tick series and a missed poll shows up
 as a gap rather than a silent hole.
 
