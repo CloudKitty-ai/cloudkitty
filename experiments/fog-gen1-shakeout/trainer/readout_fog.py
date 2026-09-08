@@ -2,12 +2,17 @@
 """Fog Gen 1 BC clone readout: the pre-declared bars on the held-out
 rollouts (PREREG Part A, owner ruled).
 
-  1. here-word opportunity-use >= 0.50 per kind, REPLY and AMBIENT read
-     separately. An opportunity is a held-out row where the here-word is
-     legal and the source did not say a want (here-word-screen V4). A
-     reply opportunity is one where the engine trace shows an audible
-     want of the matching kind from another kitty at that tick
-     (schema_check A8's predicate); the rest are ambient.
+  1. reply-here opportunity-use >= 0.50 per kind, read as the clone's
+     masked-softmax mass on the here-word (the expectation of a sampled
+     read; owner ruled 2026-09-08, #348: "0.5 is a reasonable
+     threshold"). An opportunity is a held-out row where the here-word
+     is legal and the source did not say a want (here-word-screen V4).
+     A reply opportunity is one where the engine trace shows an audible
+     want of the matching kind from another kitty, stamped at or above
+     the listener floor (the responder's own predicate); the rest are
+     ambient. Ambient use, the source's own use and the argmax read are
+     reported beside it, not gated (the scripted rate is a teacher
+     rate, #348).
   2. msg@1 >= 0.80 on rows where the source said a here-word.
   3. want emission per kind within +-15% of the source, kinds with
      >= 100 source rows only; thinner kinds are reported, not judged.
@@ -45,16 +50,21 @@ def load_clone(path):
     return model
 
 
-def predict_msg(model, obs, mask_msg, batch=8192):
-    """Masked argmax over the message head, as two_head_loss reports it."""
+def msg_probs(model, obs, mask_msg, batch=8192):
+    """Masked softmax over the message head, per row."""
     out = []
     with torch.no_grad():
         for i in range(0, obs.shape[0], batch):
             logits = model(torch.from_numpy(obs[i:i + batch]))[:, N_ACT:]
             legal = torch.from_numpy(mask_msg[i:i + batch])
             logits = logits.masked_fill(~legal, float("-inf"))
-            out.append(logits.argmax(1).numpy())
+            out.append(torch.softmax(logits, 1).numpy())
     return np.concatenate(out)
+
+
+def predict_msg(model, obs, mask_msg, batch=8192):
+    """Masked argmax over the message head, as two_head_loss reports it."""
+    return msg_probs(model, obs, mask_msg, batch).argmax(1)
 
 
 def reply_flags(tr, tick, kitty):
@@ -88,7 +98,8 @@ def readout(rollouts, model):
     obs = np.concatenate([r.obs for r in rollouts])
     mask_msg = np.concatenate([r.mask_msg for r in rollouts]).astype(bool)
     label_msg = np.concatenate([r.label_msg for r in rollouts])
-    pred = predict_msg(model, obs, mask_msg)
+    probs = msg_probs(model, obs, mask_msg)
+    pred = probs.argmax(1)
     n = len(label_msg)
     not_want = ~np.isin(label_msg, WANT)
     per_rollout = [reply_flags(load_trace(r.path), r.tick, r.kitty)
@@ -102,7 +113,8 @@ def readout(rollouts, model):
         for split, sel in (("reply", opp & reply), ("ambient", opp & ~reply)):
             m = int(sel.sum())
             row[split] = {"n": m,
-                          "use": float((pred[sel] == idx).mean()) if m else None,
+                          "use": float(probs[sel, idx].mean()) if m else None,
+                          "argmax_use": float((pred[sel] == idx).mean()) if m else None,
                           "source_use": float((label_msg[sel] == idx).mean())
                           if m else None}
         use[kind] = row
@@ -124,9 +136,8 @@ def readout(rollouts, model):
 
     bars = {}
     for kind, row in use.items():
-        for split in ("reply", "ambient"):
-            u = row[split]["use"]
-            bars[f"{split}-{kind}"] = (u is not None and u >= USE_BAR)
+        u = row["reply"]["use"]
+        bars[f"reply-{kind}"] = (u is not None and u >= USE_BAR)
     bars["msg@1|here"] = here_top1 >= HERE_TOP1_BAR
     for k, w in want.items():
         if w["judged"]:
@@ -164,14 +175,15 @@ def main():
 
     print(f"clone {args.clone.name} on {', '.join(d.name for d in dirs)}: "
           f"{res['rows']} rows, {res['here_rows']} here rows")
-    print(f"{'here kind':<14}{'split':<9}{'n':>7}{'use':>7}{'source':>8}")
+    print(f"{'here kind':<14}{'split':<9}{'n':>7}{'p-use':>7}{'argmax':>8}{'source':>8}")
     for kind, row in res["opportunity_use"].items():
         for split in ("reply", "ambient"):
             c = row[split]
-            u = "  n/a" if c["use"] is None else f"{c['use']:.3f}"
-            s = "  n/a" if c["source_use"] is None else f"{c['source_use']:.3f}"
-            print(f"{kind:<14}{split:<9}{c['n']:>7}{u:>7}{s:>8}"
-                  + ("  (thin)" if c["n"] < WANT_MIN_ROWS else ""))
+            f = lambda v: "  n/a" if v is None else f"{v:.3f}"
+            print(f"{kind:<14}{split:<9}{c['n']:>7}{f(c['use']):>7}"
+                  f"{f(c['argmax_use']):>8}{f(c['source_use']):>8}"
+                  + ("  (thin)" if c["n"] < WANT_MIN_ROWS else "")
+                  + ("" if split == "reply" else "  (informational)"))
     print(f"msg@1 on here rows: {res['msg_top1_here']:.3f}")
     print(f"{'want kind':<14}{'source':>7}{'pred':>7}{'ratio':>7}")
     for k, w in res["want_emission"].items():

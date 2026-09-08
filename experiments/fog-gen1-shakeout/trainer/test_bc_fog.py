@@ -135,13 +135,16 @@ def test_reply_flags_use_the_a8_audible_predicate():
 
 
 class _StubModel:
-    """Message-head logits read off obs[:, 0] (the wanted msg index); the
-    activity head is zeros. Row 0 of obs carrying an ILLEGAL index checks
-    the mask."""
+    """Message-head logits read off obs[:, 0] (the wanted msg index), the
+    wanted word boosted by `boost` over zeros; the activity head is zeros.
+    Row 0 of obs carrying an ILLEGAL index checks the mask."""
+    def __init__(self, boost=5.0):
+        self.boost = boost
+
     def __call__(self, obs):
         want = obs[:, 0].long()
         logits = torch.zeros(obs.shape[0], N_ACT + N_HEAD)
-        logits[torch.arange(obs.shape[0]), N_ACT + want] = 5.0
+        logits[torch.arange(obs.shape[0]), N_ACT + want] = self.boost
         return logits
 
 
@@ -158,8 +161,9 @@ def test_readout_bars():
     # 400 rows on one rollout, all here-words legal, no wants in the
     # source. Rows 0-199 are reply opportunities for here_food (kitty 2
     # wanted food on the previous tick), 200-399 ambient. The stub clone
-    # says here_food on 180 of the reply rows (0.90) and 80 of the
-    # ambient rows (0.40): the ambient bar must miss, the reply bar pass.
+    # puts logit 5 on here_food for 180 of the reply rows (mass P_HI over
+    # 16 legal words) and 80 of the ambient rows: the reply bar passes on
+    # the softmax mass, ambient is reported only.
     n = 400
     obs = np.zeros((n, OBS_DIM), np.float32)
     obs[:180, 0] = 9
@@ -182,10 +186,14 @@ def test_readout_bars():
         rf.load_trace = saved
     food = res["opportunity_use"]["here_food"]
     assert food["reply"]["n"] == 200 and food["ambient"]["n"] == 180, food
-    assert abs(food["reply"]["use"] - 0.90) < 1e-9
-    assert abs(food["ambient"]["use"] - 80 / 180) < 1e-9
+    e5 = float(np.exp(5.0))
+    p_hi, p_lo = e5 / (e5 + 15), 1 / (e5 + 15)   # mass on the boosted / an unboosted word
+    assert abs(food["reply"]["use"] - (0.90 * p_hi + 0.10 * p_lo)) < 1e-6, food["reply"]
+    assert abs(food["ambient"]["use"] - (80 * p_hi + 100 * p_lo) / 180) < 1e-6
+    assert abs(food["reply"]["argmax_use"] - 0.90) < 1e-9
+    assert abs(food["ambient"]["argmax_use"] - 80 / 180) < 1e-9
     assert res["bars"]["reply-here_food"] is True
-    assert res["bars"]["ambient-here_food"] is False
+    assert "ambient-here_food" not in res["bars"], "ambient use is informational"
     # want rows are opportunities for no here kind; here_food labels are
     water = res["opportunity_use"]["here_water"]
     assert (water["reply"]["n"], water["ambient"]["n"]) == (0, 380), water
@@ -196,7 +204,19 @@ def test_readout_bars():
     assert "want-want_eat" not in res["bars"], "thin kinds are not judged"
     assert res["here_rows"] == 200
     assert abs(res["msg_top1_here"] - 0.90) < 1e-9
-    assert res["pass"] is False
+    assert res["pass"] is False, "reply-here_water has no opportunities"
+    # A clone whose mass on the word sits under the bar misses it even
+    # when argmax would say the word on every row: logit 0.4 over 15
+    # zeros puts 0.09 on here_food.
+    weak = SimpleNamespace(**{**vars(r)})
+    rf.load_trace = lambda path: _trace(lines)
+    try:
+        res = rf.readout([weak], _StubModel(boost=0.4))
+    finally:
+        rf.load_trace = saved
+    food = res["opportunity_use"]["here_food"]
+    assert food["reply"]["argmax_use"] == 0.90 and food["reply"]["use"] < 0.10, food["reply"]
+    assert res["bars"]["reply-here_food"] is False, "argmax hides an unlearned word; the mass does not"
 
 
 if __name__ == "__main__":
