@@ -36,5 +36,9 @@ case_ 0 "checkout -b branch"                "git checkout -b feature/x"
 case_ 0 "checkout branch name"              "git checkout main"
 case_ 0 "unrelated git command"             "git status && git diff -- src/a.rs"
 CWD=/ case_ 0 "not a repo fails open"                "git checkout -- src/a.rs"
+case_ 0 "heredoc body is data, not a command" "cat > n.md <<'EOF'
+then git reset --hard and git checkout -- src/a.rs
+EOF
+echo ok"
 case_ 0 "malformed input fails open"        ""
 exit $fail
