@@ -7,6 +7,9 @@ R=$(mktemp -d); trap 'rm -rf "$R"' EXIT
 N="$R/native"; W="$R/wt"; O="$R/other"
 git init -q -b main "$N" && echo a > "$N/f" && git -C "$N" add f && git -C "$N" -c user.name=t -c user.email=t@t commit -qm init
 git -C "$N" branch existing
+# a remote with main and a branch that exists ONLY remotely (DWIM bait)
+git init -q --bare "$R/origin.git" && git -C "$N" remote add origin "$R/origin.git"
+git -C "$N" branch remote-only && git -C "$N" push -q origin main remote-only && git -C "$N" branch -q -D remote-only
 git -C "$N" worktree add -q "$W" -b arc/one main
 mkdir -p "$N/.claude/worktrees" && git -C "$N" worktree add -q "$N/.claude/worktrees/nested" -b arc/nested main
 git init -q "$O" && git -C "$O" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
@@ -54,6 +57,14 @@ b 2 "worktree: switch -c other"          "$W" "git switch -c other"
 b 2 "worktree: checkout existing branch" "$W" "git checkout existing"
 b 2 "worktree: rebase"                   "$W" "git rebase origin/main"
 b 2 "worktree: cd from native"           "$N" "cd $W && git checkout main"
+b 2 "worktree: checkout - (previous)"    "$W" "git checkout -"
+b 2 "worktree: switch -"                 "$W" "git switch -"
+b 2 "worktree: switch --create"          "$W" "git switch --create other"
+b 2 "worktree: checkout --track remote"  "$W" "git checkout --track origin/remote-only"
+b 2 "worktree: DWIM creates from remote" "$W" "git checkout remote-only"
+b 0 "worktree: checkout origin/main detaches" "$W" "git checkout origin/main"
+b 0 "worktree: checkout a sha"           "$W" "git checkout $(git -C "$N" rev-parse HEAD)"
+b 0 "worktree: rebase --abort"           "$W" "git rebase --abort"
 b 0 "worktree: checkout --detach"        "$W" "git checkout --detach origin/main"
 b 0 "worktree: checkout -- path"         "$W" "git checkout -- f"
 b 0 "worktree: checkout a path, no --"   "$W" "git checkout f"
@@ -63,6 +74,7 @@ echo "# gh"
 b 2 "gh pr merge --delete-branch"        "$W" "gh pr merge 5 --merge --delete-branch"
 b 2 "gh pr merge -d"                     "$W" "gh pr merge 5 -d --merge"
 b 0 "gh pr merge plain"                  "$W" "gh pr merge 5 --merge"
+b 0 "gh plain, -d in a later command"    "$W" "gh pr merge 5 --merge && git switch -d origin/main"
 echo "# outside the family"
 b 0 "other repo: commit"                 "$O" "git commit -m x"
 b 0 "other repo: rebase"                 "$O" "git rebase main"
@@ -70,6 +82,7 @@ b 0 "no repo at all"                     "/"  "git commit -m x"
 echo "# Edit / Write"
 case_ 2 "edit: file in native"           Edit  "$N" file_path "$N/f"
 case_ 2 "write: file in native"          Write "$N" file_path "$N/new.md"
+case_ 2 "write: new dir under native"    Write "$N" file_path "$N/docs/new/deep/x.md"
 case_ 2 "edit: native file from worktree cwd" Edit "$W" file_path "$N/f"
 case_ 0 "edit: file in worktree"         Edit  "$W" file_path "$W/f"
 case_ 0 "edit: nested .claude worktree"  Edit  "$N" file_path "$N/.claude/worktrees/nested/f"

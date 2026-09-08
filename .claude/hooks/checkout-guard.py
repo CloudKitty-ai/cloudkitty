@@ -39,7 +39,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gitcmd import git, git_calls, native_root, repo_shape, tokens  # noqa: E402
+from gitcmd import SEG_RE, git, git_calls, native_root, repo_shape, strip_heredocs, tokens  # noqa: E402
 
 NATIVE_MUTATORS = {
     "add", "rm", "mv", "commit", "checkout", "switch", "restore", "merge",
@@ -57,12 +57,23 @@ def is_experiments():
     return os.environ.get("CLOUDKITTY_THREAD", "").lower() == "experiments"
 
 
-def names_branch(d, tok):
+def branch_target(d, tok):
+    """What `git checkout/switch <tok>` does to the worktree's branch state:
+    "branch" (moves onto a local branch), "dwim" (git would CREATE a local
+    branch from a same-named remote branch), or None (a tag, a sha, an
+    explicit remote ref like origin/main: all detach, or a path)."""
+    if tok == "-":
+        return "branch"  # the previous branch
     rc, _, _ = git(d, "rev-parse", "--verify", "--quiet", f"refs/heads/{tok}")
     if rc == 0:
-        return True
-    rc, _, _ = git(d, "rev-parse", "--verify", "--quiet", f"refs/remotes/{tok}")
-    return rc == 0
+        return "branch"
+    rc, out, _ = git(d, "for-each-ref", "--format=%(refname)", f"refs/remotes/*/{tok}")
+    if rc == 0 and out:
+        return "dwim"
+    return None
+
+
+CREATE_FLAGS = ("-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan", "-t", "--track")
 
 
 def worktree_branch_move(d, sub, toks):
@@ -70,15 +81,18 @@ def worktree_branch_move(d, sub, toks):
     onto a branch, else None."""
     if "--" in toks:
         return None  # path checkout: revert-guard's business
-    if any(t in ("--detach", "-d") for t in toks) and not any(t in ("-b", "-B") for t in toks):
+    if any(t in ("--detach", "-d") for t in toks) and not any(t in CREATE_FLAGS for t in toks):
         return None
-    if any(t in ("-b", "-B", "-c", "-C", "--orphan") for t in toks):
+    if any(t in CREATE_FLAGS for t in toks):
         return f"`git {sub}` would create a branch in this worktree"
     for t in toks:
-        if t.startswith("-"):
+        if t.startswith("-") and t != "-":
             continue
-        if t == "main" or names_branch(d, t):
+        kind = branch_target(d, t)
+        if kind == "branch":
             return f"`git {sub} {t}` would put this worktree on branch `{t}`"
+        if kind == "dwim":
+            return f"`git {sub} {t}` would CREATE local branch `{t}` from the remote one"
     return None
 
 
@@ -88,7 +102,9 @@ def deny(msg):
 
 
 def check_bash(cmd, cwd, native):
-    if "gh pr merge" in cmd and any(f in tokens(cmd) for f in ("--delete-branch", "-d")):
+    for seg in SEG_RE.split(strip_heredocs(cmd)):
+        if "gh pr merge" not in seg or not any(f in tokens(seg) for f in ("--delete-branch", "-d")):
+            continue
         return deny(
             "`gh pr merge --delete-branch` checks out the default branch in the "
             "worktree it runs from (incident 3). Merge without the flag, then "
@@ -99,7 +115,7 @@ def check_bash(cmd, cwd, native):
         if top is None or os.path.dirname(common) != native:
             continue  # not this repo family
         toks = tokens(args)
-        if sub == "rebase":
+        if sub == "rebase" and not any(t in ("--abort", "--quit") for t in toks):
             return deny("`git rebase` is off in this repo: merge origin/main IN (rule: merge, never rebase).")
         if top == native:
             if sub in NATIVE_MUTATORS and not is_experiments():
@@ -124,7 +140,10 @@ def check_edit(path, native):
     if not path or is_experiments():
         return 0
     path = os.path.realpath(os.path.expanduser(path))
-    top, _ = repo_shape(os.path.dirname(path))
+    d = os.path.dirname(path)
+    while d and not os.path.isdir(d):  # a Write may create the directory too
+        d = os.path.dirname(d)
+    top, _ = repo_shape(d)
     if top == native:
         return deny(
             f"editing {path} inside the native checkout {native}, which is "
