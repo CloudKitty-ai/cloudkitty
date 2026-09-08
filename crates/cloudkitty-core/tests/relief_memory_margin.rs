@@ -6,13 +6,17 @@
 //! revives it. The counts are READINGS beside the pin (F-040 predicts ~12
 //! drink calls and +10-13 eat calls per 1,000 ticks); the gate is > 0.
 //!
-//! Two runs: the served `cloudkitty.toml` VERBATIM for the drink count
-//! over the house 20,000-tick stream horizon -- the spec's first draft
-//! said 1,000 on F-040's anchor rate (~12 per 1,000), but the SERVED
-//! config (floor unset, announce_here 0, the served seed) reads ~1.2 per
-//! 1,000 with its first call at tick 1,610, so 1,000 ticks read 0 on the
-//! served seed and 5,000 read 3 (implement-time measurement, 2026-09-05;
-//! redden-list §U2); and the same config with a reply floor set IN THE
+//! Two runs: the served `cloudkitty.toml` with EVERY SEAT SCRIPTED
+//! (`served_all_scripted` below) for the drink count over the house
+//! 20,000-tick stream horizon -- the spec's first draft said 1,000 on
+//! F-040's anchor rate (~12 per 1,000), but this all-scripted roster
+//! reads ~1.2 per 1,000 with its first call at tick 1,610, so 1,000
+//! ticks read 0 on the served seed and 5,000 read 3 (implement-time
+//! measurement, 2026-09-05; redden-list §U2). That 10x is the ROSTER,
+//! not a config key: the served world seats Biscuit on playful and that
+//! seat says 60-70% of the drink calls, so the served world hears ~14
+//! per 1,000 (F-040 re-verify and owner call #349, 2026-09-08; reverting
+//! each anchor key moved nothing); and the same config with a reply floor set IN THE
 //! TEST ONLY for the
 //! `here_water` reply count -- any value > 0 (clarification 1,
 //! 2026-09-05): the claim is "the reply path fires on a want_drink", not
