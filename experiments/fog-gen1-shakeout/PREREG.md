@@ -278,6 +278,34 @@ with no layout consequence (the legality mask is an oracle over
   two-arm scripted contrast at that speaker floor, listener
   {picked / 100, 0.30}, reads reply rate and informativeness before
   the pin. Neither floor varies in the PPO pass.
+- **Floor-screen run declaration (2026-09-08; this commit precedes
+  collection)**: instrument `floor_screen.py` @ ba3d54d (welfare via
+  `radius_screen.screen` through a comms tap), guard
+  `test_floor_screen.py` in the same commit, nine mutate.sh reds
+  (dedup, heard cut, informativeness bar, self-reply, window edge,
+  kind matching, ambient/reply split, traceless refusal, floor from
+  config). Arms: `anchor.toml` with exactly three keys moved —
+  `[vision] radius = 4` (the #351 pin), `announce_threshold` in
+  {10, 15, 20}, `reply_intensity_floor` = floor / 100 — written to
+  `results-raw/floor-screen/floor-N.toml`, tomllib-checked. SHA-256:
+  - floor-10 `ad293433fd49ecd1c0c1d58b118a8d9ab8edec6b956f1fe79c166360f0e41156`
+  - floor-15 `b4a413fbd76b2ce6cca22c968de9f1dddb902eccdc20aacd71e3dbd34192322f`
+  - floor-20 `952564513eec8193d27dc56c62cd40c1c6ad520fc13cd80257b52999a7d7fe05`
+
+  The 30 arm is `results-raw/radius-screen/radius-4.toml`
+  (`4b0805de…`, announce 30 / listener 0.30 / radius 4 already), so
+  its three radius-screen rollouts are reused verbatim rather than
+  re-collected. Collection, per new config:
+  `experiments/tools/bc-collect/target/release/bc-collect --config
+  results-raw/floor-screen/floor-N.toml --rollouts 3 --ticks 20000
+  --seed-base 870001 --trace --out-dir results-raw/floor-screen/fN`,
+  world seeds 870001–870003 paired across arms. Readout:
+  `floor_screen.py` over the 12 rollout directories; table and JSON
+  to #352. Decision rule as ruled above (welfare non-inferior to the
+  30 arm, informativeness, lowest floor clearing both; safeguard
+  beyond the seed spread = INVESTIGATE). No numeric informativeness
+  bar was ruled: the screen is descriptive and the bar lands with the
+  owner's pick on #352.
 - **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
   consecutive 1M-tick bins each improve the bin-mean shaped return by
   < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
