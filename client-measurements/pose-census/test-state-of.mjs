@@ -167,7 +167,11 @@ check('censusKitty: keeps the flat tag every banked raw and analyzer relies on',
 check('censusKitty: banks the whole activity, not just the tag', () => {
   const row = censusKitty(SERVED_FULL);
   assert(row.activity?.target === 2,
-    `the sibling field was discarded at capture, and it cannot be recovered later: ${JSON.stringify(row.activity)}`);
+    'the sibling field was discarded at capture and cannot be recovered later '
+    + '(the raw is collected against a world that then moves on). If you are '
+    + 'narrowing capture back to the flat tag to satisfy owner call #357, read '
+    + 'the second conventions bullet in client-measurements/README.md first: '
+    + `#357 is satisfied by the flat tag, which is still written. Got ${JSON.stringify(row.activity)}`);
 });
 
 check('censusKitty: the two shapes it writes agree, which is what makes precedence safe', () => {

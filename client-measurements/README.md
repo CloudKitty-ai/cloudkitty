@@ -57,12 +57,20 @@ step, matching the client's own no-build-step house style.
   `Activity` enum internally tagged, so the state is a `state` key inside
   `activity` (`/world`, `/kitties` and `/events/activity` all do this, which is
   why Experiments' `live_census.py` reads `k["activity"]["state"]`); the jsonl
-  written here keeps that tag alone at the top level. The shape belongs to the
-  artifact that wrote it, and Client's jsonl stays flat, so the reader is what
-  absorbs the difference rather than each call site restating the rule.
-  `stateOf(k)` takes either shape and returns `null` for neither. Owner call
+  written here carries the tag at the top level, which is the shape every raw
+  banked before 2026-09-08 has and the only shape any of them has. The shape
+  belongs to the artifact that wrote it, so the reader is what absorbs the
+  difference rather than each call site restating the rule. `stateOf(k)` takes
+  either and returns `null` for neither. Owner call
   [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357), ruled option
   B on 2026-09-08: "#357: ruled B". Guarded by `pose-census/test-state-of.mjs`.
+
+  **The flat tag is still what the readers rely on, and the next bullet does
+  not change that.** #357's ruling that Client's jsonl stays flat holds in the
+  sense that matters: `state` is written at the top level of every row, before
+  and after. What changed is that the whole `activity` object now rides
+  *beside* it. Nothing was replaced or removed, so a pre-2026-09-08 raw and a
+  post one both read the same way through `stateOf`.
 - **Capture the whole `activity` object, not just its tag, and replay through
   `asServed(k)`.** The two directions are not symmetric. The client reads more
   of `activity` than the tag: `render.js:1943` draws the cuddle heart off
