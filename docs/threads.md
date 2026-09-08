@@ -63,9 +63,8 @@ before the command runs.
   A fetch moves the ref, not the tree; compare the hashes.
 - **Read state off the running system**, never off memory
   (2026-08-24).
-- **Long jobs run foreground.** Read the output file, not the exit
-  code; never filter stderr through something that can eat a panic
-  (2026-08-19).
+- **Read a long job's output file, not its exit code**; never filter
+  stderr through something that can eat a panic (2026-08-19).
 
 ## 4. How much process
 
