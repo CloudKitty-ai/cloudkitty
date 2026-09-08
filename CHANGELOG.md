@@ -33,6 +33,11 @@ change.
 
 ## Unreleased
 
+- **Docs: `docs/threads.md`**, the four-thread working agreements in one
+  page: ownership by path, the checkout rules and which hook enforces
+  each, pull-before-diagnosing, process tiering, the owner-call ledger,
+  verbatim copy. Every line is a ruling the owner already made, dated;
+  it moves those rules out of session memory into the repo.
 - **Tooling: `checkout-guard` hook**. A second Claude Code PreToolUse hook
   (`.claude/hooks/checkout-guard.py`) enforces the shared-checkout rules
   that five incidents had been re-teaching: `git rebase` is refused
