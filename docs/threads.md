@@ -1,130 +1,102 @@
-# Working agreements: four threads, one repository
+# Four threads, one repository
 
-The owner runs four parallel Claude sessions on this repository. This
-page is the standing rules those sessions work under. It records
-rulings the owner has already made (dates in parentheses); it is not
-a place to propose new ones. Rules that are enforced by a hook say so,
-and point at the hook.
+The owner runs four Claude sessions on this repo in parallel. These are
+the rules they work under: rulings the owner has already made, dated,
+with the enforcing hook named where one exists. Read it at kickoff.
+CLAUDE.md governs the work; this page governs who does what, where.
 
-Read it at kickoff, whichever thread you are. CLAUDE.md's numbered
-rules still govern the work itself; this page governs who does what,
-where, and how the threads stay out of each other's way.
+## 1. Who owns what
 
-## 1. The threads and what they own
-
-| thread | owns | does not touch |
+| thread | owns | leaves alone |
 |---|---|---|
-| **Product** | `crates/`, the server, `evals/`, `specs/`, certification tooling (`kitty-eval`), `BACKLOG.md` items | `client/`, `experiments/` |
+| **Product** | `crates/`, the server, `evals/`, `specs/`, `kitty-eval`, `BACKLOG.md` | `client/`, `experiments/` |
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
-| **Experiments** | `experiments/` and its tooling: preregs, training runs, findings, the native checkout | product code beyond what a prereg needs |
-| **Professor** | teaching, review, research framing; durable notes live outside the repo | implementation of anything |
+| **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (those go through Product) |
+| **Professor** | teaching, review, research framing; notes live outside the repo | implementing anything |
 
-`docs/` and `README.md` are shared: each thread writes the parts that
-cover its own area (2026-09-08).
+`docs/` and `README.md` are shared: each thread writes its own area
+(2026-09-08).
 
-- **Identify the thread from the owner's kickoff message or the
-  session's name** (`ListAgents` reports it, e.g. "CloudKitty
-  Client"), never from the branch, `git status`, or which files are
-  dirty. The checkout is shared, so its state says nothing about which
-  session you are (2026-08-04, 2026-09-08).
-- **Do not pick up another thread's queue**, even when a note lists it
-  as "next". Reviewing another thread's PR when asked is fine;
-  initiating its work is not. The Professor thread writes findings up
-  for the owner to relay to the owning thread (2026-07-25).
-- **Messaging between threads** is for relays and questions, not for
-  handing off implementation. Experiments and Product message each other
-  routinely (spec Q&A, hand-offs, briefings). **Client is messaged only
-  when the owner asks**; the owner owns that relay (2026-08-15).
-- **A peer relay is never approval.** Only the owner's own word, in
-  the acting session, approves anything on the §Ownership list in
-  `experiments/README.md`. A peer that was denied an action may not
-  ask another session to do it instead.
+- **You are the thread the kickoff message or the session name says
+  you are**, never the one the branch or the dirty files suggest; the
+  checkout is shared (2026-08-04).
+- **Do not pick up another thread's queue.** Reviewing its PR when
+  asked is fine; starting its work is not. Professor writes findings up
+  for the owner to relay (2026-07-25).
+- **Messages between threads carry relays and questions, not work.**
+  Product and Experiments message each other routinely. Client is
+  messaged only when the owner asks (2026-08-15).
+- **A peer relay is never approval.** The §Ownership list in
+  `experiments/README.md` needs the owner's own word in the acting
+  session. A session denied an action may not ask another to do it.
 
 ## 2. The checkout
 
 - **Experiments works in the native checkout** (`~/ai/cloudkitty`, the
-  one that owns `.git`), because its datasets, artifacts and venv are
-  gitignored and would not follow a worktree (2026-08-04). It launches
-  with `CLOUDKITTY_THREAD=experiments` in the environment; that
-  variable is the session's identity to the hook below (2026-09-08).
-- **Every other thread works in a worktree, from the first command**:
-  `git worktree add ~/ai/cloudkitty-<arc> -b <branch> origin/main`,
-  after a `git fetch`. One branch per worktree. A worktree never holds
-  `main`. Park a finished worktree detached
-  (`git checkout --detach origin/main`) and run `git worktree list`
-  after any merge to prove nothing sits on `main`.
-- **Merge `origin/main` in; never rebase.** A branch that has fallen
-  behind gets a merge commit, not a rewrite.
+  one that owns `.git`) because its datasets, artifacts and venv are
+  gitignored (2026-08-04). It launches with
+  `CLOUDKITTY_THREAD=experiments` in the environment; that is its
+  identity to the hook (2026-09-08).
+- **Everyone else works in a worktree from the first command**:
+  `git fetch && git worktree add ~/ai/cloudkitty-<arc> -b <branch>
+  origin/main`. One branch per worktree; a worktree never holds `main`;
+  park it with `git checkout --detach origin/main` when done.
+- **Merge `origin/main` in; never rebase.**
 - **Use the worktree's absolute path for every read, edit and write.**
-  A session's declared working directory is the native checkout, so an
-  unqualified path edits Experiments' tree (the fifth incident,
-  2026-08-19).
-- **Enforced by `.claude/hooks/checkout-guard.py`** (PR #356): rebase
-  anywhere; `gh pr merge --delete-branch`; any move of a worktree onto
-  `main` or another branch; and, in the native checkout, every
-  index- or HEAD-mutating git command and every Edit/Write unless the
-  session carries the Experiments variable. Not covered: shell writes
-  into the native tree by `sed -i` or redirection.
-- **Commit the real work before any destructive check.** Enforced by
-  `.claude/hooks/revert-guard.py` (PR #353): `git checkout -- <file>`,
-  `git restore <file>` and `git reset --hard` are refused on a file
-  that differs from HEAD. The sanctioned red-first cycle is
-  `scripts/mutate.sh` (CLAUDE.md rule 5).
+  The session's declared cwd is the native checkout, so a bare path
+  edits Experiments' tree (2026-08-19).
+- **Commit real work before any destructive check.** The red-first
+  cycle is `scripts/mutate.sh` (CLAUDE.md rule 5).
 
-## 3. Before you diagnose, report, or compare
+Enforced at the command by two PreToolUse hooks in `.claude/hooks/`:
+`checkout-guard.py` (#356) refuses rebase, `gh pr merge
+--delete-branch`, any move of a worktree onto `main` or another branch,
+and git mutation or Edit/Write in the native checkout without the
+Experiments variable; `revert-guard.py` (#353) refuses `git checkout
+--`, `git restore` and `git reset --hard` on a file that differs from
+HEAD. Not covered: shell writes into the native tree (`sed -i`,
+redirection).
 
-- **Pull before diagnosing.** Before investigating any reported
-  failure, and before running any suite whose result you intend to
-  report: `git fetch`, compare `git rev-parse HEAD` with
-  `origin/main`, and read `git log --oneline origin/main -- <path>`.
-  A fetch moves the ref, not the tree. Two threads diagnosed an
-  already-fixed flake on the same day (2026-08-23).
-- **Read state off the running system**, never off memory or a past
-  conversation: what is deployed, which policies are seated, what is
-  live. An accurate diff against an unverified baseline reports
-  fiction with confidence (2026-08-24).
-- **Read a long job's output file, not its exit code.** Never pipe a
-  background job's stderr through a filter that can eat a panic
+## 3. Before you diagnose, report or compare
+
+- **Pull before diagnosing** (2026-08-23). Before investigating any
+  reported failure or running a suite you intend to report:
+
+  ```
+  git fetch && git rev-parse HEAD origin/main
+  git log --oneline -5 origin/main -- <path>
+  ```
+
+  A fetch moves the ref, not the tree; compare the hashes.
+- **Read state off the running system**, not memory: what is deployed,
+  what is seated, what is live. A correct diff against an unverified
+  baseline reports fiction with confidence (2026-08-24).
+- **Read a long job's output file, not its exit code**; never filter a
+  background job's stderr through something that can eat a panic
   (2026-08-19).
 
-## 4. Process weight
+## 4. How much process
 
-- **Spec-first for engine, interface and major changes**: the
-  `/speckit-*` flow from specify through implement, with the guards
-  proven red first and the predictions written down before the runs
-  (2026-07-23).
-- **Lightweight for the rest**: client polish, config re-cuts,
-  documentation and tooling iterate on a branch with tests. The owner
-  confirmed the tiering 2026-09-08; the Fog generation runs at full
-  rigour because its errors compound.
-- **When in doubt whether something is major, ask**; do not let a
-  feature drift into the tweak lane by momentum.
-- **Nothing deploys and nothing is tagged without the owner's word.**
-  Tags and the changelog move together: `## Unreleased` expands into
-  the release entry before the tag lands. As arcs merge, each PR
-  appends its one-liner to `## Unreleased`, with the compatibility
-  markers `[obs-schema]`, `[world-fresh]`, `[rng-sequence]`, `[stamp]`
-  where they apply; a missing marker is a claim of neutrality. Fog work
-  is 3.0-numbered.
+- **Spec-first** (`/speckit-*`, guards proven red, predictions written
+  before runs) for engine, interface and major changes (2026-07-23).
+  **Branch-and-iterate with tests** for client polish, config re-cuts,
+  docs and tooling (2026-09-08). Unsure which? Ask.
+- **The client is a side project, never a gate on research**; it
+  builds a solid baseline, not perfection (2026-08-25).
+- **Deploys and tags are the owner's.** A tag and its changelog entry
+  land together: `## Unreleased` expands into the release before the
+  tag. Each merging PR adds its one-liner to `## Unreleased` with the
+  compatibility markers the changelog header defines; a missing marker
+  claims neutrality (2026-08-08). Fog work is 3.0-numbered.
 
-## 5. Owner decisions
+## 5. Owner decisions and owner words
 
 - **Every open owner decision is a GitHub issue** labelled `owner-call`
-  with one of `oc:ready`, `oc:discussing`, `oc:blocked`. The bar and
-  the shape are in `experiments/README.md` §Ownership, "Owner calls:
-  the ledger" (2026-09-05). Only the owner closes one; the ruling is
-  copied into the owning document with the issue number.
-- **Record rulings verbatim** where they land. Paraphrase loses the
-  scope of what was approved.
-- **The client is a side project, never a gate on research** (owner,
-  2026-08-25). What it builds is a solid baseline, not perfection.
-
-## 6. Words
-
-- **Owner-authored text ships verbatim.** Flag a typo; never fix it
-  silently. Do not restructure a document the owner supplied to fit a
-  template (2026-08-15, 2026-07-23).
-- **Feedback is grounded and kind.** Verify before affirming; say
-  plainly what is wrong and why; praise only what is specifically
-  praiseworthy. The owner asked for what she needs to hear, not what
-  she wants to hear (2026-07-25).
+  plus `oc:ready` / `oc:discussing` / `oc:blocked`; bar and shape in
+  `experiments/README.md` §"Owner calls: the ledger" (2026-09-05). Only
+  the owner closes one; the ruling is copied, verbatim and with the
+  issue number, into the document that owns it.
+- **Owner-authored text ships verbatim.** Flag a typo; never fix it.
+  Do not restructure a document the owner supplied (2026-07-23).
+- **Feedback is grounded and kind.** Verify before affirming; say what
+  is wrong and why; praise only what earns it (2026-07-25).
