@@ -18,7 +18,7 @@
     ],
     "a17_exempt": true
   },
-  "RARE want_drink and the here_water answers-me bit (spec 050 relief_memory_margin 0, merged 2026-09-05 PR #345; group converted from STRUCTURAL that day, owner ruled): under the pre-050 law the word was silenced for the run by remembered water (F-040); at margin 0 the anchor says it 6.3 / 5.9 / 15.2 per 1000 over 3 x 20k (seeds 870001-3), first call at tick 120-148, so a 1000-tick smoke carries 0-3 calls and most kitty rows never hear one. The served config reads ~1.2/1000 (Product, 20k): the rate is config-shaped, and the corpus is collected on anchor.toml": {
+  "RARE want_drink and the here_water answers-me bit (spec 050 relief_memory_margin 0, merged 2026-09-05 PR #345; group converted from STRUCTURAL that day, owner ruled): under the pre-050 law the word was silenced for the run by remembered water (F-040); at margin 0 the anchor says it 6.3 / 5.9 / 15.2 per 1000 over 3 x 20k (seeds 870001-3), first call at tick 120-148, so a 1000-tick smoke carries 0-3 calls and most kitty rows never hear one. The ~1.2/1000 served read (Product, 20k) was an all-scripted roster; the served roster seats Biscuit on playful and it says 60-70% of the calls (F-040 ablation 2026-09-08, #349). The corpus is collected on anchor.toml": {
     "patterns": [
       "*.msg.want_drink.*",
       "*.want.want_drink",

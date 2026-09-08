@@ -335,6 +335,15 @@ with no layout consequence (the legality mask is an oracle over
   reply at all (anchor smoke: 0 of each in 1000 ticks), so A7/A8/A16
   cannot be read on it. Anchor roster: 1 needs_driven, 2 playful, 3–5
   needs_driven.
+- **Vocabulary lesson (slot 6, `init_vocab`; owner ruled 2026-09-08,
+  #347: "ruled: B")**: stage 1 clones the corpus with every here-word
+  label rewritten to Silent (same recipe as slot 1's clone); stage 2
+  freezes trunk + activity head and trains the message head on the
+  here-rows only, same optimiser and plateau rule. The stage-2 clone
+  must clear the BC bars below like any other; its named confound is
+  the frozen trunk, which never had gradient from a here-row. Options A
+  (wholesale then here-only), C (no freeze) and D (drop the arm) were
+  not taken; the reasoning is in the issue.
 - BC: train to plateau, patience 10, no epoch floor. The 60-epoch
   extension (F-034 addendum 2: act@1 .80 → .82 at 3× cost) is NOT taken;
   the clone is PPO's init and PPO moves the action head, while the
@@ -344,8 +353,10 @@ with no layout consequence (the legality mask is an oracle over
   F-034's fluent band .58–.80, above the half-fluent .35–.56); msg@1 on
   here-rows ≥ 0.80 (A1 read .8748); want emission per kind within ±15%
   of the source rate (relative, so it survives the speaker-floor pick),
-  applied only to kinds with ≥ 100 source rows; a thinner kind (drink
-  at ~1.2/1000 is one) reports its count and is excluded from the gate.
+  applied only to kinds with ≥ 100 source rows; a thinner kind reports
+  its count and is excluded from the gate (play is one; drink is not:
+  the ~1.2/1000 read was an all-scripted roster, the anchor roster
+  says it at 6–15, F-040 ablation, #349).
 - Critic: retrain at width 408, γ 0.998, censored MC targets (the
   exp-006 recipe). The trainer pins width through its tokenizer module
   (`obs_tokens_v4.OBS_DIM`, asserted against the runner's dims at

@@ -74,7 +74,7 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-037 | active | The collapse detector names a lock but trails the watchdog by 48–147 ticks; healthy margin 0.07 |
 | F-038 | active | Comfort buys food promptness linearly and pays in element play, never duets; t_partner 5 halves roster duets |
 | F-039 | active | Live refusal tax is Biscuit's alone and it is partner play (5.13%); other seats under 2.3% in groom and move |
-| F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls (re-verified 2026-09-05 with spec 050 landed: 6–15 drink, +9 to +11 eat, anchor config; served ~1.2) |
+| F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls (re-verified 2026-09-05 with spec 050 landed: 6–15 drink, +9 to +11 eat; the ~1.2 read was an all-scripted roster, Biscuit's playful seat carries 60–70% of the calls, #349) |
 | F-041 | active | The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase (3 of 169 replies invisible in the anchor smoke) |
 
 ---
@@ -2277,6 +2277,29 @@ margin. The served config's rate is lower (Product, 20k, floor unset,
 `announce_here` 0, `groom_cuddle_relief` 2.0: 23 drink calls, ~1.2 per
 1000), so the rate is config-shaped; which of the three anchor keys
 carries the difference is not identified.
+
+**Ablation 2026-09-08 (owner: "#349 ablation now").** The gap is the
+roster, not a key. Four arms, 3 × 20k, seeds 870001–3, bc-collect on
+anchor.toml with one key at the served value each and a fourth with all
+three at served values; drink calls per 1000: groom 2.0 → 6.5 / 5.1 /
+11.8, `announce_here` 0 → 6.0 / 7.4 / 13.2, floor unset → 4.9 / 7.8 /
+13.8, all three served → 4.6 / 11.5 / 13.7 (anchor 6.3 / 5.9 / 15.2).
+No key moves it. Product's 23 per 20k came from
+`tests/relief_memory_margin.rs`, whose `served_all_scripted()` sets
+every seat to `needs_driven`; the served roster seats Biscuit (kitty
+2) on `playful`. Reproduced: all-scripted config at the served seed
+20260718 reads 23 (Product's number), at 870001–2 reads 17 / 26; the
+same config with Biscuit `playful` at 20260718 reads 278 (13.9 per
+1000). Per kitty on the anchor, Biscuit says 60–70% of the drink calls
+(88 of 126 at 870001, 176 of 304 at 870003) and about half the eat
+calls: the playful seat spends its ticks on critters away from bowls
+and pools, and under margin 0 it must see water to know relief. So
+the served world hears drink at the anchor rate, the declared
+`expected_per_1000` for want_drink is roster-shaped (drop Biscuit's
+seat and it falls 8×), and drink is not a thin kind at corpus scale
+(~7,000 rows over 800k ticks). Side read: `announce_here` 0 cuts
+`here_water` from ~160 to ~54 per 1000 and floor unset cuts it to 0;
+neither touches the want rate.
 
 **Scope**: fog-era want law on the served 20×20 (7 pools, 6 bowls),
 radius 4–5, scripted seats. **Invalidated by**: a water element that
