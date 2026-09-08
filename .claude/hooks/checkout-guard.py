@@ -8,7 +8,13 @@ shared-checkout-branch-hazard) came from the same few commands; this hook
 refuses them at the command:
 
   everywhere in this repo family
-    git rebase                         merge origin/main IN instead
+    git rebase                         merge origin/main IN instead. This
+                                       is for worktree branches; on native
+                                       main the flow is `git pull --rebase`
+                                       (the only writer to main, landing
+                                       local commits over a merged PR),
+                                       which is not `git rebase` and must
+                                       stay open (pinned in the test)
     gh pr merge ... --delete-branch    the flag checks out the default
                                        branch in the worktree you ran it
                                        from; delete with git push --delete

@@ -40,6 +40,10 @@ echo "# native checkout, Experiments"
 CLOUDKITTY_THREAD=experiments b 0 "experiments: commit"      "$N" "git commit -m x"
 CLOUDKITTY_THREAD=experiments b 0 "experiments: checkout -b" "$N" "git checkout -b exp/x main"
 CLOUDKITTY_THREAD=experiments b 2 "experiments: rebase"      "$N" "git rebase origin/main"
+# PINNED (Experiments, PR #356 review): the only writer to main lands local commits over a
+# just-merged PR with pull --rebase. Rule 2 (no rebase) is for worktree branches; if it is
+# ever tightened past sub == "rebase", this case is what breaks.
+CLOUDKITTY_THREAD=experiments b 0 "experiments: push flow on native main" "$N" "git add f && git commit -q -m 'a; b' && git pull -q --rebase --autostash origin main && git push -q origin main"
 CLOUDKITTY_THREAD=Experiments b 0 "identity is case-insensitive" "$N" "git add f"
 echo "# linked worktree"
 b 2 "worktree: checkout main"            "$W" "git checkout main"
