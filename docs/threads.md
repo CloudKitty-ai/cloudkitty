@@ -14,15 +14,19 @@ where, and how the threads stay out of each other's way.
 
 | thread | owns | does not touch |
 |---|---|---|
-| **Product** | `crates/`, the server, `evals/`, `docs/`, `specs/`, certification tooling (`kitty-eval`), `BACKLOG.md` items | `client/`, `experiments/` |
+| **Product** | `crates/`, the server, `evals/`, `specs/`, certification tooling (`kitty-eval`), `BACKLOG.md` items | `client/`, `experiments/` |
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
 | **Experiments** | `experiments/` and its tooling: preregs, training runs, findings, the native checkout | product code beyond what a prereg needs |
 | **Professor** | teaching, review, research framing; durable notes live outside the repo | implementation of anything |
 
-- **Identify the thread from the owner's kickoff message**, never from
-  the branch, `git status`, or which files are dirty. The checkout is
-  shared, so its state says nothing about which session you are
-  (2026-08-04).
+`docs/` and `README.md` are shared: each thread writes the parts that
+cover its own area (2026-09-08).
+
+- **Identify the thread from the owner's kickoff message or the
+  session's name** (`ListAgents` reports it, e.g. "CloudKitty
+  Client"), never from the branch, `git status`, or which files are
+  dirty. The checkout is shared, so its state says nothing about which
+  session you are (2026-08-04, 2026-09-08).
 - **Do not pick up another thread's queue**, even when a note lists it
   as "next". Reviewing another thread's PR when asked is fine;
   initiating its work is not. The Professor thread writes findings up
