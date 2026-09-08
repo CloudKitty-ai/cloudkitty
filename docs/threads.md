@@ -79,9 +79,9 @@ where, and how the threads stay out of each other's way.
   conversation: what is deployed, which policies are seated, what is
   live. An accurate diff against an unverified baseline reports
   fiction with confidence (2026-08-24).
-- **Long jobs run foreground with a generous timeout**, and read the
-  output file rather than the exit code. Never pipe a background job's
-  stderr through a filter that can eat a panic.
+- **Read a long job's output file, not its exit code.** Never pipe a
+  background job's stderr through a filter that can eat a panic
+  (2026-08-19).
 
 ## 4. Process weight
 
