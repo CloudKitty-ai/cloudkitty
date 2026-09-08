@@ -1,6 +1,7 @@
 // Sample the live served world and append one JSON line per distinct tick.
 // Read-only: GET /world only. Usage: node pose-census.mjs <seconds> <outfile>
 import { appendFileSync } from 'node:fs';
+import { stateOf } from './state-of.mjs';
 
 const seconds = Number(process.argv[2] ?? 480);
 const out = process.argv[3] ?? 'census.jsonl';
@@ -26,7 +27,7 @@ while (Date.now() < until) {
             id: k.id,
             name: k.name,
             pos: k.pos,
-            state: k.activity?.state ?? null,
+            state: stateOf(k),
             last_action: k.last_action ?? null,
           })),
           elements: w.elements.map((e) => ({ id: e.id, kind: e.kind, pos: e.pos })),

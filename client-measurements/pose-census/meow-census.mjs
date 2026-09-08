@@ -16,6 +16,7 @@
 // `purr` is carried but flagged: the client draws a purr as a glyph, never a
 // bubble, so it is not speech for our purposes.
 import { appendFileSync } from 'node:fs';
+import { stateOf } from './state-of.mjs';
 
 const seconds = Number(process.argv[2] || 300);
 const out = process.argv[3] || 'meow-census.jsonl';
@@ -40,7 +41,7 @@ while (Date.now() < until) {
             id: k.id,
             name: k.name,
             pos: k.pos,
-            state: k.activity?.state ?? null,
+            state: stateOf(k),
             last_action: k.last_action ?? null,
           })),
           elements: w.elements.map((e) => ({ id: e.id, kind: e.kind, pos: e.pos })),
