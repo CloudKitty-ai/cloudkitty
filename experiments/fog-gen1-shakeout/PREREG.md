@@ -260,6 +260,11 @@ with no layout consequence (the legality mask is an oracle over
   table and `--out` JSON go to #351 with the numbers pasted. The
   screen is descriptive; the pin is drawn per the pencilled rule
   above and is the owner's call.
+- **Radius pin RULED (#351, owner 2026-09-08): "Pin at 4."** Ruled off
+  the posted curve (watchdog 0 at r ≥ 3, r=4 episodes 0.30–0.65/1k vs
+  control 0.35–0.55, safeguard-eat 0.20–0.30/1k, blind-hungry
+  295–392 cat-ticks/1k). `PINS["radius"] = 4` in the trainer; the
+  speaker-floor screen and the corpus run at radius 4.
 - **Leash consequence (pencilled)**: a weak anchor under fog means the
   clone-and-leash recipe holds learners near a weak teacher; slot 5 (β
   up) is promoted to essential, H2 becomes a floor we expect to clear,
