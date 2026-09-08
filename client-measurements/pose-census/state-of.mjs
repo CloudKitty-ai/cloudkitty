@@ -23,3 +23,45 @@
 //
 // Owner call #357, ruled option B on 2026-09-08: "#357: ruled B".
 export const stateOf = (k) => k.activity?.state ?? k.state ?? null;
+
+// One census row's worth of a served kitty, for the capture tools.
+//
+// `state` is the flat tag every banked raw carries and every analyzer here
+// reads. `activity` is the whole object beside it, because the client reads
+// more of it than the tag (`render.js:1943` draws the cuddle heart off
+// `with_friend`) and a field not captured cannot be recovered later: the
+// world will have moved on. The two are written from the same served kitty
+// in the same expression, which is what lets `stateOf` prefer the nested one
+// without that preference ever changing a count.
+//
+// Additive on purpose. Owner call #357 ruled Client's jsonl stays flat, and
+// the flat tag is untouched -- `activity` rides alongside it.
+export const censusKitty = (k) => ({
+  id: k.id,
+  name: k.name,
+  pos: k.pos,
+  state: stateOf(k),
+  activity: k.activity ?? null,
+  last_action: k.last_action ?? null,
+});
+
+// The same kitty in the shape the SHIPPED client reads, for tools that replay
+// a raw through `render.js` / `anim.js` rather than reimplementing them.
+//
+// `stateOf` exists because the readers here take either shape. This is the
+// other direction, and it is not symmetric: the client reads more of
+// `activity` than its tag. `render.js:1943` draws the cuddle heart off
+// `activity.with_friend`, and `app.js` reads `with_friend` and `in_sunbeam`
+// for the card text. A reconstruction from a flat `state` can only ever
+// supply the tag, so it is a faithful served kitty for a caller that reads
+// the tag alone and a quiet liar for any other.
+//
+// So the real `activity` is passed through whenever the raw carries it, and
+// only a raw that predates the capture tools writing it gets a reconstruction.
+// The flat `state` is dropped from the result: what comes back is a served
+// kitty, not a hybrid carrying both shapes.
+export const asServed = (k) => {
+  const { state, ...rest } = k;
+  const activity = k.activity ?? (state != null ? { state } : undefined);
+  return activity === undefined ? rest : { ...rest, activity };
+};

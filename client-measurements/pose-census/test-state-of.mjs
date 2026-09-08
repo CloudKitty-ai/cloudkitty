@@ -12,12 +12,15 @@
  * they are pasted here verbatim with their provenance rather than read from
  * a file that is not in the tree.
  *
- * The last two checks are the ones that make the four call-site swaps
- * behaviour-preserving rather than merely plausible: each site gained a
- * fallback branch it did not have, and these say those branches are dead on
- * the shapes the site actually sees.
+ * Two groups here do more than exercise the functions. The served-shape and
+ * agreement checks are what make the call-site swaps behaviour-preserving
+ * rather than merely plausible: every site gained a branch it did not have,
+ * and those checks say the branch cannot change what the site reads. The
+ * asServed checks pin the direction that is NOT symmetric -- the client reads
+ * more of `activity` than its tag, so a reconstruction is a last resort and a
+ * captured `activity` must survive untouched.
  */
-import { stateOf } from './state-of.mjs';
+import { stateOf, asServed, censusKitty } from './state-of.mjs';
 
 let passed = 0;
 let failed = 0;
@@ -54,10 +57,10 @@ const SERVED_UNIT = {
   last_action: { action: 'eat' },
 };
 
-// pose-census.mjs output, census-2026-08-23.jsonl line 1, tick 226217,
-// kitty 1. What this directory writes, and what pose-analyze.mjs and
-// scene-vs-action.mjs read back.
-const JSONL_ROW = {
+// pose-census.mjs output BEFORE it captured `activity`:
+// census-2026-08-23.jsonl line 1, tick 226217, kitty 1. Every banked raw
+// looks like this and the readers must keep taking it.
+const JSONL_OLD = {
   id: 1,
   name: 'Miso',
   pos: { x: 13, y: 3 },
@@ -74,9 +77,21 @@ check('nested: reads a unit variant', () => {
   assert(stateOf(SERVED_UNIT) === 'idle', `got ${JSON.stringify(stateOf(SERVED_UNIT))}, want 'idle'`);
 });
 
-check('flat: reads the top-level state this directory writes', () => {
-  assert(stateOf(JSONL_ROW) === 'sleeping',
-    `got ${JSON.stringify(stateOf(JSONL_ROW))}, want 'sleeping'`);
+// pose-census.mjs output AFTER it captured `activity`, tick 1946891, kitty 3.
+// `target: 5` is the point of the widening: a sibling field the flat capture
+// discarded, on a raw that cannot be re-collected once the world moves on.
+const JSONL_BOTH = {
+  id: 3,
+  name: 'Pumpkin',
+  pos: { x: 10, y: 1 },
+  state: 'grooming',
+  activity: { state: 'grooming', target: 5 },
+  last_action: { action: 'groom', target: 5 },
+};
+
+check('flat: reads the top-level state a pre-widening raw carries', () => {
+  assert(stateOf(JSONL_OLD) === 'sleeping',
+    `got ${JSON.stringify(stateOf(JSONL_OLD))}, want 'sleeping'`);
 });
 
 check('neither shape present is null, the value the capture tools already wrote', () => {
@@ -96,11 +111,76 @@ check('the served shape has no top-level state, so the capture tools cannot chan
 });
 
 // scene-vs-action.mjs:26 reads the jsonl and used to write `k.state ?? null`.
-// stateOf puts `k.activity?.state` AHEAD of that, so it can only change what
-// that tool counts if a jsonl row ever carries `activity`. pose-census.mjs
-// writes five keys and `activity` is not one of them.
-check('the jsonl shape has no activity, so the flat reader cannot change what it counts', () => {
-  assert(!('activity' in JSONL_ROW), `a jsonl row carries activity: ${JSON.stringify(JSONL_ROW)}`);
+// stateOf puts `k.activity?.state` AHEAD of that, so on a widened raw both
+// branches have a value and precedence decides. It cannot change what that
+// tool counts as long as the two agree, which is what the capture writes: one
+// `stateOf(k)` and the object it came out of, from the same served kitty.
+check('a widened raw carries both shapes and they agree, so precedence changes nothing', () => {
+  assert('activity' in JSONL_BOTH && 'state' in JSONL_BOTH, 'the fixture is not a widened row');
+  assert(JSONL_BOTH.activity.state === JSONL_BOTH.state,
+    `nested ${JSON.stringify(JSONL_BOTH.activity.state)} != flat ${JSON.stringify(JSONL_BOTH.state)}`);
+  assert(stateOf(JSONL_BOTH) === JSONL_BOTH.state,
+    `stateOf returned ${JSON.stringify(stateOf(JSONL_BOTH))}, not the state the row records`);
+});
+
+// --- asServed: the flat -> served direction, for replay through the client ---
+
+check('asServed: a pre-widening raw is reconstructed, and loses its flat state', () => {
+  const k = asServed(JSONL_OLD);
+  assert(k.activity?.state === 'sleeping', `activity came back ${JSON.stringify(k.activity)}`);
+  assert(!('state' in k), `the result is a hybrid carrying both shapes: ${JSON.stringify(k)}`);
+  assert(k.last_action?.action === 'sleep', 'the rest of the kitty did not survive');
+});
+
+check('asServed: a captured activity passes through with its sibling fields', () => {
+  const k = asServed(JSONL_BOTH);
+  assert(k.activity?.target === 5,
+    `the sibling field was dropped, so the replay sees a poorer kitty than the client: ${JSON.stringify(k.activity)}`);
+  assert(k.activity === JSONL_BOTH.activity, 'the captured activity was rebuilt rather than passed through');
+  assert(!('state' in k), `the result is a hybrid carrying both shapes: ${JSON.stringify(k)}`);
+});
+
+check('asServed: neither shape leaves no activity, as the old shim also did', () => {
+  const k = asServed({ id: 1, name: 'Miso' });
+  assert(k.activity === undefined, `activity came back ${JSON.stringify(k.activity)}`);
+  assert(k.id === 1 && k.name === 'Miso', 'the rest of the kitty did not survive');
+});
+
+// --- censusKitty: what the two capture tools write ---
+
+// GET https://kitties.ai/world, tick 1950821, kitty 3. A whole served kitty
+// with a sibling field on its activity.
+const SERVED_FULL = {
+  id: 3,
+  name: 'Pumpkin',
+  pos: { x: 10, y: 3 },
+  activity: { state: 'grooming', target: 2 },
+  last_action: { action: 'groom', target: 2 },
+};
+
+check('censusKitty: keeps the flat tag every banked raw and analyzer relies on', () => {
+  const row = censusKitty(SERVED_FULL);
+  assert(row.state === 'grooming', `flat state came out ${JSON.stringify(row.state)}`);
+  assert(stateOf(row) === 'grooming', 'the row does not read back through stateOf');
+});
+
+check('censusKitty: banks the whole activity, not just the tag', () => {
+  const row = censusKitty(SERVED_FULL);
+  assert(row.activity?.target === 2,
+    `the sibling field was discarded at capture, and it cannot be recovered later: ${JSON.stringify(row.activity)}`);
+});
+
+check('censusKitty: the two shapes it writes agree, which is what makes precedence safe', () => {
+  const row = censusKitty(SERVED_FULL);
+  assert(row.activity.state === row.state,
+    `nested ${JSON.stringify(row.activity.state)} != flat ${JSON.stringify(row.state)}`);
+});
+
+check('censusKitty: a kitty with no activity still yields a readable row', () => {
+  const row = censusKitty({ id: 1, name: 'Miso', pos: { x: 0, y: 0 } });
+  assert(row.state === null, `state came out ${JSON.stringify(row.state)}, want null`);
+  assert(row.activity === null, `activity came out ${JSON.stringify(row.activity)}, want null`);
+  assert(row.last_action === null, 'last_action should be null, as both tools already wrote');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

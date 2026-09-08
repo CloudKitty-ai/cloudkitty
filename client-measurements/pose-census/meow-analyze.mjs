@@ -5,6 +5,7 @@
 // facing, movement and the axial lock are the client's own answers rather
 // than a second implementation of them. Usage: node meow-analyze.mjs <file>
 import { readFileSync } from 'node:fs';
+import { asServed } from './state-of.mjs';
 
 const D = new URL('../../client/', import.meta.url).pathname;
 const api = eval(readFileSync(D + 'anim.js', 'utf8') + ';({VIEW, Presentation})');
@@ -41,7 +42,7 @@ let catTicks = 0;
 for (const w of lines) {
   const world = {
     ...w,
-    kitties: w.kitties.map((k) => ({ ...k, activity: k.state ? { state: k.state } : undefined })),
+    kitties: w.kitties.map(asServed),
   };
   p.pushState(world, w.tick * 800);
   for (const k of world.kitties) {

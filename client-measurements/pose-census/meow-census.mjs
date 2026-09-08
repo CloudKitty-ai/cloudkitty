@@ -16,7 +16,7 @@
 // `purr` is carried but flagged: the client draws a purr as a glyph, never a
 // bubble, so it is not speech for our purposes.
 import { appendFileSync } from 'node:fs';
-import { stateOf } from './state-of.mjs';
+import { censusKitty } from './state-of.mjs';
 
 const seconds = Number(process.argv[2] || 300);
 const out = process.argv[3] || 'meow-census.jsonl';
@@ -37,13 +37,7 @@ while (Date.now() < until) {
         out,
         JSON.stringify({
           tick: w.tick,
-          kitties: w.kitties.map((k) => ({
-            id: k.id,
-            name: k.name,
-            pos: k.pos,
-            state: stateOf(k),
-            last_action: k.last_action ?? null,
-          })),
+          kitties: w.kitties.map(censusKitty),
           elements: w.elements.map((e) => ({ id: e.id, kind: e.kind, pos: e.pos })),
           // The whole window as served; dedupe by (kitty_id, tick, kind) at
           // analysis time, since a meow stays in the window for several polls.
