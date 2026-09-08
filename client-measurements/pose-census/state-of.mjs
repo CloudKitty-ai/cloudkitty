@@ -7,14 +7,17 @@
 //           Experiments' live_census.py reads `k["activity"]["state"]` too --
 //           so the state is the `state` tag beside that variant's own fields:
 //             {"activity":{"state":"sleeping","in_sunbeam":false,"with_friend":2}}
-//   FLAT    the jsonl the census tools in this directory write keeps the tag
-//           alone, at the top level:
+//   FLAT    the jsonl the census tools in this directory write carries the tag
+//           at the top level:
 //             {"state":"sleeping"}
+//           Every raw banked before 2026-09-08 carries the tag ALONE; from
+//           that date `censusKitty` writes the whole `activity` beside it, so
+//           a newer raw answers either read. See its comment for the ruling.
 //
-// The shape belongs to the artifact that wrote it, not to the reader, and
-// Client's jsonl stays flat. So the readers need one accessor that takes
-// either, instead of four call sites each restating the rule -- which is
-// what they were doing, in three different ways.
+// The shape belongs to the artifact that wrote it, not to the reader. So the
+// readers need one accessor that takes either, instead of four call sites
+// each restating the rule -- which is what they were doing, in three
+// different ways.
 //
 // `null` when neither shape carries a state. The two capture tools already
 // wrote `null` there; `poseFor`/`poseUngated` in pose-analyze.mjs only ever
