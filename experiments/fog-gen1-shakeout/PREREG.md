@@ -343,7 +343,18 @@ with no layout consequence (the legality mask is an oracle over
   must clear the BC bars below like any other; its named confound is
   the frozen trunk, which never had gradient from a here-row. Options A
   (wholesale then here-only), C (no freeze) and D (drop the arm) were
-  not taken; the reasoning is in the issue.
+  not taken; the reasoning is in the issue. Trainer:
+  `trainer/train_vocab_fog.py` (`--stage strip`, `--stage teach`). The
+  lesson rows are every row where a here-word is legal (`--rows legal`,
+  so the head also learns the source's silences on those rows; `said`
+  = positives only, not taken). Stage 2 has seven batches per epoch,
+  so its epoch cap is 2,000, not 200; the plateau rule is unchanged
+  and fired at epoch 465 on the dry run. Dry run on the re-smoke
+  traces (2026-09-08): stage 1 is a true mute (here mass .01, msg@1 on
+  here rows 0); stage 2 reads reply mass .78 / .73 / .72 / .80, msg@1
+  on here rows .937, want emission within tolerance (cuddle 1.147, the
+  closest to the edge), bars PASS. Ambient use runs above the source
+  on sunbeam (.76 vs .66), the plain clone's does not.
 - BC: train to plateau, patience 10, no epoch floor. The 60-epoch
   extension (F-034 addendum 2: act@1 .80 → .82 at 3× cost) is NOT taken;
   the clone is PPO's init and PPO moves the action head, while the

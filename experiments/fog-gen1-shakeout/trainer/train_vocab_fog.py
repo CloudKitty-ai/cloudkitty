@@ -206,7 +206,8 @@ def main(argv=None):
     ap2.add_argument("--name", required=True)
     ap2.add_argument("--data-root", type=Path, required=True)
     ap2.add_argument("--out-dir", type=Path, default=None)
-    ap2.add_argument("--epochs", type=int, default=200)
+    ap2.add_argument("--epochs", type=int, default=2000,
+                     help="cap only; seven batches per epoch on the here-rows")
     ap2.add_argument("--batch-size", type=int, default=4096)
     ap2.add_argument("--lr", type=float, default=3e-4)
     ap2.add_argument("--eps", type=float, default=0.05)
