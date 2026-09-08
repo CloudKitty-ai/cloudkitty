@@ -14,16 +14,12 @@ broken hook never locks the session; the guard is a net, not a wall.
 """
 import json
 import os
-import re
 import shlex
 import subprocess
 import sys
 
-CMD_RE = re.compile(
-    r"\bgit\b((?:\s+-C\s+\S+|\s+-c\s+\S+|\s+--no-pager)*)\s+(checkout|restore|reset)\b([^;&|\n]*)"
-)
-SEG_RE = re.compile(r"&&|\|\||;|\n")
-CD_RE = re.compile(r"^\s*cd(?:\s+(\S+))?\s*$")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from gitcmd import git_calls  # noqa: E402
 
 
 def dirty(repo, path):
@@ -84,21 +80,9 @@ def main():
         repo = data.get("cwd") or "."
     except Exception:
         return 0
-    cwd = repo
-    for seg in SEG_RE.split(cmd):
-        # follow `cd` so a `cd <worktree> && git checkout -- f` resolves
-        # against the worktree, not the session's cwd
-        cd = CD_RE.match(seg)
-        if cd:
-            d = os.path.expanduser(cd.group(1) or "~").strip("'\"")
-            cwd = d if os.path.isabs(d) else os.path.join(cwd, d)
+    for r, sub, args in git_calls(cmd, repo):
+        if sub not in ("checkout", "restore", "reset"):
             continue
-        m = CMD_RE.search(seg)
-        if not m:
-            continue
-        pre, sub, args = m.group(1), m.group(2), m.group(3)
-        c = re.search(r"-C\s+(\S+)", pre)
-        r = c.group(1) if c else cwd
         for path in targets(sub, args):
             if dirty(r, path):
                 sys.stderr.write(
