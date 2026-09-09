@@ -18,7 +18,7 @@ Built once at boot (`settings::build(&config, &watchdog, raw: Option<&toml::Valu
 | `group` | string | the config section, as the toml spells it: `world`, `kitty`, `vision`, `meow`, `actions`, `behavior`, `water`, `watchdog` |
 | `key` | string | the key within the group; for seats, the kitty id |
 | `value` | JSON value | the effective value (number / bool / string / seat object); Option keys carry their sentinel string |
-| `default` | JSON value or absent | the engine (or server) default; absent for `world.*` and seats |
+| `default` | JSON value or absent | the engine (or server) default; absent for `world.*`, seats and `vision.*` (required sections) |
 | `source` | `"toml"` \| `"default"` | `toml` iff the key's path is present in the loaded config text; `default` otherwise, and always when no file was loaded |
 
 ### Source
