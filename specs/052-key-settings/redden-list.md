@@ -23,8 +23,62 @@ cycle; and `git diff main --stat -- crates/cloudkitty-core crates/cloudkitty-rl`
 empty at every commit (the stamp hashes those two crates' defaults and
 nothing else).
 
+Stamp read through the block on the served toml (T018, code at 6e7299a):
+`babc2c5417e6143ebd1f7805c103fcbed7557a4b3730d7c43af7356a5aa22c18`;
+`git diff main --stat -- crates/cloudkitty-core crates/cloudkitty-rl` empty at
+every commit of this arc.
+
+The served block as read at T018 (2026-09-09; not pinned by any test — this
+is a reading, the values are the config's business):
+
+```text
+engine_defaults_sha256 = babc2c5417e6143ebd1f7805c103fcbed7557a4b3730d7c43af7356a5aa22c18
+world.width = 20 [toml]
+world.height = 20 [toml]
+world.seed = 20260718 [toml]
+kitty.1 = Miso needs_driven [toml]
+kitty.2 = Biscuit playful [toml]
+kitty.3 = Pumpkin needs_driven [toml]
+kitty.4 = Kittybear needs_driven [toml]
+kitty.5 = Clementine needs_driven [toml]
+vision.radius = 5 (default: 5) [toml]
+vision.memory_timeout_ticks = 0 (default: 0) [toml]
+meow.relief_memory_margin = 0 (default: unbounded) [toml]
+actions.groom_cuddle_relief = 2.0 (default: 15.0) [toml]
+behavior.announce_here = 0 (default: 0) [default]
+behavior.contagion_aware_ladder = false (default: false) [default]
+behavior.reply_intensity_floor = none (default: none) [default]
+water.bath_gain = 3.5 (default: 3.5) [toml]
+water.bath_gain_ceiling = 60.0 (default: 60.0) [toml]
+water.contagion_factor = 0.0 (default: 0.0) [default]
+water.contagion_membership = option_a (default: option_a) [default]
+watchdog.threshold = 150 (default: 150) [toml]
+watchdog.remind_every = 150 (default: 150) [toml]
+```
+
+FINAL count (T023, 2026-09-09): **905 / 0, 6 ignored** = cycle 0 + the 8 new tests (6 unit in `settings.rs`, 2 integration); fmt + clippy clean; the four shell tests exit 0.
+
+Lessons banked this arc: (1) do not edit any file while `scripts/mutate.sh`
+is running — its tree snapshot is the whole tree, and a concurrent doc edit
+reads as "the mutation touched a second file" (U2c). (2) A mutant that does
+not compile is "red for the wrong reason"; write the mutant so it compiles
+(U2b). (3) Count predictions: re-read every test that asserts on the mutated
+property, not just the one written for it (U2b's grammar test).
+
 ## Cycles
 
 | cycle | mutation | prediction | result | restored (count re-read) |
 |---|---|---|---|---|
 | c0 | none (baseline) | — | 897 / 0 / 6, 4:19 (71 test binaries) | — |
+| F0 (T006) | the block built at boot + 6 unit guards, nothing reads it | `cargo test -p cloudkitty-server` green, no count movement beyond +6 unit tests; clippy clean | green; 46 lib (40 + 6), integration unchanged; clippy clean | — |
+| U1a (T010) | `update.sh`: 404 not special-cased (`if false`) | exactly the 404 case fails: "stderr lacks 'this binary does not serve /settings'" | RED as predicted (got "answered 404 with an unusable body") | mutate.sh restore; 4 passed re-read |
+| U1b (T010) | `update.sh`: `\|\| ! -s "$body"` dropped | exactly the empty case fails: "want exit 1 got 0" | first attempt RED for the WRONG REASON (my sed broke the `[[ ]]` — mutate.sh refused it, rc 7); corrected sed: RED as predicted | restored; 4 passed re-read |
+| U1c (T010) | `update.sh`: curl's exit swallowed (`\|\| true` inside the substitution) | exactly the closed-port case fails: "stderr lacks 'the server stopped answering'" | RED as predicted (got "answered 000 with an unusable body") | restored; 4 passed re-read |
+| U2a (T015) | `settings.rs`: the `contagion_membership` key renamed in the list | exactly 2 red: `the_key_names_are_pinned` + the minimal-config test (no entry `water.contagion_membership`) | RED, exactly those 2 (44 / 2) | restored; count re-read equal |
+| U2b (T015) | `settings.rs`: source decided by `value == default` | exactly 2 red: minimal-config test (groom written at default reads `default`) + no-file test (world/kitty read `toml`) | first attempt RED for the WRONG REASON (the mutant did not compile: `value` used after move; mutate.sh rc 7); compiling mutant: RED — **3 tests, not 2**: the grammar test also pins `vision.radius` as `[toml]` on the fixture, which value-comparison flips. Mechanism as predicted, count under-predicted by one. | restored; count re-read equal |
+| U2c (T015) | `settings.rs`: no-file presence returns `Toml` | exactly 1 red: `no_config_file_means_every_source_is_default` | first attempt: the red was exactly that test, but mutate.sh reported rc 8 (tree differed: my README/doc edits landed mid-cycle — do not edit the tree while mutate.sh runs); re-run on a stable tree: RED, exactly 1 (45 / 1) | restored; count re-read equal |
+| U2d (T015) | `settings.rs`: absent Option renders `null` | exactly 2 red: `option_dials_render_their_rule_never_null` + `render_text_follows_the_line_grammar` | RED, exactly those 2 | restored; count re-read equal |
+| U2e (T015) | `api.rs`: `Accept` header ignored | exactly 1 red: the wire test (content-type assertion) | RED, expect matched on that test | restored; count re-read equal |
+| U2f (T015) | `api.rs`: JSON serves a clone with one `source` flipped | exactly 1 red: the wire test (JSON equality) | RED, expect matched on that test | restored; count re-read equal |
+| U2g (T015) | `settings.rs`: `announce()` logs the JSON | exactly 1 red: `announce_logs_the_rendered_block_verbatim` | RED, exactly 1 (45 / 1) | restored; count re-read equal |
+| T016 / T018 | live run, served `cloudkitty.toml`, fresh scratch world | `/config` byte-identical to the pre-change capture; one block in the boot log equal to the `text/plain` fetch; 21 JSON entries | `/config` 2,939 bytes, `cmp` identical; ONE block, equal to the wire text after stripping the log's ANSI colour codes; 21 entries (5 seats); `Content-Type: text/plain; charset=utf-8` | — |

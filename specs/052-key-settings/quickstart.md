@@ -56,7 +56,7 @@ Four cases: 200 + body → section printed, exit 0; 404 → message 1, exit 1; 2
 
 | red | prediction |
 |---|---|
-| treat 404 as success | the 404 case fails (exit 0, no message) |
+| 404 not special-cased (falls to the unusable branch) | the 404 case fails: stderr lacks the old-binary message |
 | drop the empty-body check | the empty case fails |
 | swallow curl's exit status | the closed-port case fails (it reports "unusable" instead of "stopped answering") |
 
