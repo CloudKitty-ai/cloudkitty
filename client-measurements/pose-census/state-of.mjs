@@ -68,10 +68,14 @@ export const censusKitty = (k) => ({
 //
 // So the real `activity` is passed through whenever the raw carries it, and
 // only a raw that predates the capture tools writing it gets a reconstruction.
-// The flat `state` is dropped from the result: what comes back is a served
-// kitty, not a hybrid carrying both shapes.
+// What comes back is a served kitty, not a hybrid: the flat `state` is dropped,
+// and so is a null `activity` -- `censusKitty` writes `activity: null` for a
+// kitty that has none, and leaving that key in place would hand the replay an
+// object that is neither shape. Both are unreachable from a live capture
+// (`Kitty.activity` is not optional server-side), but the two functions have
+// to agree about the shape they are defending against.
 export const asServed = (k) => {
-  const { state, ...rest } = k;
-  const activity = k.activity ?? (state != null ? { state } : undefined);
-  return activity === undefined ? rest : { ...rest, activity };
+  const { state, activity, ...rest } = k;
+  const served = activity ?? (state != null ? { state } : undefined);
+  return served === undefined ? rest : { ...rest, activity: served };
 };

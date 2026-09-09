@@ -7,18 +7,20 @@
  * The harness pattern of client/test-motion.mjs: no toolchain, drive the
  * function directly, count and exit non-zero on any failure.
  *
- * Both fixtures are RECORDED, not composed. Neither raw is committed -- the
- * served world is live and this directory's jsonl is a local artifact -- so
- * they are pasted here verbatim with their provenance rather than read from
- * a file that is not in the tree.
+ * Every fixture is RECORDED, not composed: served kitties are pasted from a
+ * `GET /world` response and the census rows from real tool output, each with
+ * its tick. They are TRIMMED to the keys these functions touch -- a served
+ * kitty also carries `needs`, `happiness`, `behavior` and more -- so they are
+ * verbatim in their values, not complete as payloads. Nothing is read from a
+ * file because neither raw is committed: the served world is live, and this
+ * directory's jsonl is gitignored.
  *
- * Two groups here do more than exercise the functions. The served-shape and
- * agreement checks are what make the call-site swaps behaviour-preserving
- * rather than merely plausible: every site gained a branch it did not have,
- * and those checks say the branch cannot change what the site reads. The
- * asServed checks pin the direction that is NOT symmetric -- the client reads
- * more of `activity` than its tag, so a reconstruction is a last resort and a
- * captured `activity` must survive untouched.
+ * Every check below calls a function under test. Two earlier ones did not --
+ * they asserted properties of a hand-written literal, which cannot go red for
+ * any change to state-of.mjs, and stayed green under every code mutation.
+ * What they were documenting is recorded as comments where the assumptions
+ * belong; the guarding is done by the censusKitty checks, against rows those
+ * functions actually produce.
  */
 import { stateOf, asServed, censusKitty } from './state-of.mjs';
 
@@ -99,29 +101,24 @@ check('neither shape present is null, the value the capture tools already wrote'
     `got ${JSON.stringify(stateOf({ id: 1, name: 'Miso' }))}, want null`);
 });
 
-// pose-census.mjs:29 and meow-census.mjs:43 poll /world and used to write
-// `k.activity?.state ?? null`. stateOf adds a `?? k.state` branch between
-// those two. It can only change what they write if a served kitty ever
-// carries a top-level `state` -- and the engine's Kitty struct has no such
-// field, only `activity: Activity`.
-check('the served shape has no top-level state, so the capture tools cannot change what they write', () => {
-  for (const k of [SERVED_WITH_FIELDS, SERVED_UNIT]) {
-    assert(!('state' in k), `a served kitty carries a top-level state: ${JSON.stringify(k)}`);
-  }
-});
-
-// scene-vs-action.mjs:26 reads the jsonl and used to write `k.state ?? null`.
-// stateOf puts `k.activity?.state` AHEAD of that, so on a widened raw both
-// branches have a value and precedence decides. It cannot change what that
-// tool counts as long as the two agree, which is what the capture writes: one
-// `stateOf(k)` and the object it came out of, from the same served kitty.
-check('a widened raw carries both shapes and they agree, so precedence changes nothing', () => {
-  assert('activity' in JSONL_BOTH && 'state' in JSONL_BOTH, 'the fixture is not a widened row');
-  assert(JSONL_BOTH.activity.state === JSONL_BOTH.state,
-    `nested ${JSON.stringify(JSONL_BOTH.activity.state)} != flat ${JSON.stringify(JSONL_BOTH.state)}`);
-  assert(stateOf(JSONL_BOTH) === JSONL_BOTH.state,
-    `stateOf returned ${JSON.stringify(stateOf(JSONL_BOTH))}, not the state the row records`);
-});
+// TWO ASSUMPTIONS THE SWAPS REST ON, neither of them testable from here.
+// Recorded rather than asserted, because an assertion over a fixture typed in
+// this file cannot notice either one becoming false.
+//
+// 1. A served kitty has no top-level `state`. pose-census.mjs and
+//    meow-census.mjs poll /world and used to write `k.activity?.state ??
+//    null`; stateOf adds a `?? k.state` branch between those two, which is
+//    dead only while this holds. The evidence is the engine type, not
+//    anything in JavaScript: `Kitty` in crates/cloudkitty-core/src/kitty.rs
+//    has `activity: Activity` and no `state` field, and `Activity` is
+//    serialized internally tagged on `state`. If that ever changes, this file
+//    will not be what tells you.
+// 2. Where a row carries both shapes, they agree. scene-vs-action.mjs reads
+//    the jsonl and used to write `k.state ?? null`; stateOf puts
+//    `k.activity?.state` AHEAD of that, so on a widened row precedence
+//    decides. This one IS guarded, by `censusKitty: the two shapes it writes
+//    agree` below -- against a row censusKitty produces, which is the only
+//    place a widened row comes from.
 
 // --- asServed: the flat -> served direction, for replay through the client ---
 
@@ -140,9 +137,15 @@ check('asServed: a captured activity passes through with its sibling fields', ()
   assert(!('state' in k), `the result is a hybrid carrying both shapes: ${JSON.stringify(k)}`);
 });
 
-check('asServed: neither shape leaves no activity, as the old shim also did', () => {
-  const k = asServed({ id: 1, name: 'Miso' });
-  assert(k.activity === undefined, `activity came back ${JSON.stringify(k.activity)}`);
+check('asServed: a censusKitty row with no activity comes back clean, not half-shaped', () => {
+  // The composition the pipeline actually performs: capture writes the row,
+  // replay hands it to the client. censusKitty writes `activity: null` for a
+  // kitty that has none, so asServed has to strip that key rather than pass
+  // it through -- a kitty carrying `activity: null` is neither shape.
+  const k = asServed(censusKitty({ id: 1, name: 'Miso', pos: { x: 0, y: 0 } }));
+  assert(!('activity' in k),
+    `a null activity survived into the replay: ${JSON.stringify(k)}`);
+  assert(!('state' in k), `the result is a hybrid carrying both shapes: ${JSON.stringify(k)}`);
   assert(k.id === 1 && k.name === 'Miso', 'the rest of the kitty did not survive');
 });
 
