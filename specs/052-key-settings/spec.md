@@ -22,7 +22,7 @@ The fix is one list, owned by the server: the **key settings**, every entry an *
 
 ### Session 2026-09-08
 
-- Q: Should each key setting carry only its effective value, or also its default and where the value came from? → A: All three: `value (default: <engine default>) [source]`, where source is `toml` (the key is written in the served config) or `default` (it is not). A third source does not exist today — the server's command line takes only paths and `--fresh`, and the only environment variable it reads is the log filter — so the source tag is a two-value set, defined so a future override layer adds a value rather than a rewrite. Keys with no meaningful engine default (world size and seed, the seats) carry no default.
+- Q: Should each key setting carry only its effective value, or also its default and where the value came from? → A: All three: `value (default: <engine default>) [source]`, where source is `toml` (the key is written in the served config) or `default` (it is not). A third source does not exist today — the server's command line takes only paths and `--fresh`, and the only environment variable it reads is the log filter — so the source tag is a two-value set, defined so a future override layer adds a value rather than a rewrite. Keys with no meaningful engine default (world size and seed, the seats, and — found at review — `[vision]`, a required section) carry no default.
 - Q: When the deploy succeeds but the key settings section cannot be produced, exit non-zero or warn and exit zero? → A: Exit non-zero, message naming the cause, no rollback; the `deployed` line and the backup prune still run first. Owner asked whether the script could hit the endpoint too soon after start: verified in the source that the server loads the config, builds its state, registers every route, and only then binds the listener; the health check needs `/world` to answer twice, three seconds apart, before the section runs. So the endpoint is answerable whenever the health check passes — provided the block is built at boot, not on first request (now FR-006a).
 - Q: Should a test also pin the served toml's full block (values, defaults, sources), so a later served-dial change is a golden diff? → A: No. Pin key names only (FR-011). The toml diff and the existing config sweeps already show a value change; a key silently dropped from the served toml shows up as `[default]` in the deploy tail, which is where anyone would look.
 
@@ -129,7 +129,7 @@ At boot, after the config is validated and before the first tick, the server log
   | (header) | `engine_defaults_sha256` | computed stamp (spec 039); rendered as the block's first line, not an entry, so it carries no source | none | — |
   | world | `width`, `height`, `seed` | `[world]` | none | — |
   | seats | per kitty: `id`, `name`, `behavior` | `[[kitty]]` | none | — |
-  | vision | `radius`, `memory_timeout_ticks` | `[vision]` | engine default | engine default |
+  | vision | `radius`, `memory_timeout_ticks` | `[vision]` | none — a required section under the 3.0 rule (found at review: the compiled `Config::default()` carries values, but a file that omits the section fails to load, so there is nothing to fall back on) | (required) |
   | meow | `relief_memory_margin` | `[meow]` | `unbounded` | `unbounded` (today's rule) |
   | actions | `groom_cuddle_relief` | `[actions]` | engine default | engine default |
   | behavior | `announce_here`, `contagion_aware_ladder`, `reply_intensity_floor` | `[behavior]` | engine default; floor `none` | engine default; floor absent = `none` |

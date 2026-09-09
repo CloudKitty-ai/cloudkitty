@@ -15,8 +15,8 @@ Three readers, one value. The value is built at boot (before the listener binds)
     { "group": "world",    "key": "seed",   "value": 20260814, "source": "toml" },
     { "group": "kitty",    "key": "1", "value": { "name": "Miso", "behavior": "needs_driven" }, "source": "toml" },
     { "group": "kitty",    "key": "2", "value": { "name": "Biscuit", "behavior": "policy:e006a-L-04-s3" }, "source": "toml" },
-    { "group": "vision",   "key": "radius", "value": 5, "default": 5, "source": "toml" },
-    { "group": "vision",   "key": "memory_timeout_ticks", "value": 0, "default": 0, "source": "toml" },
+    { "group": "vision",   "key": "radius", "value": 5, "source": "toml" },
+    { "group": "vision",   "key": "memory_timeout_ticks", "value": 0, "source": "toml" },
     { "group": "meow",     "key": "relief_memory_margin", "value": 0, "default": "unbounded", "source": "toml" },
     { "group": "actions",  "key": "groom_cuddle_relief", "value": 15.0, "default": 15.0, "source": "toml" },
     { "group": "behavior", "key": "announce_here", "value": 0, "default": 0, "source": "default" },
@@ -32,9 +32,9 @@ Three readers, one value. The value is built at boot (before the listener binds)
 }
 ```
 
-Rules: `entries` is ordered (display order); every listed key is present on every config; `default` is omitted only for `world.*` and `kitty.*`; an Option key absent from the config carries its sentinel string (`"unbounded"`, `"none"`) in both `value` and `default`; `source` is decided by presence in the loaded file, so a key written at its default reads `"toml"`. (Values above are illustrative, not the served toml's.)
+Rules: `entries` is ordered (display order); every listed key is present on every config; `default` is omitted for `world.*`, `kitty.*` and `vision.*` (required sections under the 3.0 rule — there is no default to fall back on); f32 dials print as written (`0.2`, not the f64 expansion); an Option key absent from the config carries its sentinel string (`"unbounded"`, `"none"`) in both `value` and `default`; `source` is decided by presence in the loaded file, so a key written at its default reads `"toml"`. (Values above are illustrative, not the served toml's.)
 
-## 2. `GET /settings` — text (`Accept: text/plain`)
+## 2. `GET /settings` — text (`Accept: text/plain`, and not `application/json`; a browser's `application/json, text/plain, */*` stays JSON)
 
 `200 OK`, `text/plain; charset=utf-8`. Exactly the boot block: one line per entry, header first, trailing newline.
 
@@ -45,8 +45,8 @@ world.height = 20 [toml]
 world.seed = 20260814 [toml]
 kitty.1 = Miso needs_driven [toml]
 kitty.2 = Biscuit policy:e006a-L-04-s3 [toml]
-vision.radius = 5 (default: 5) [toml]
-vision.memory_timeout_ticks = 0 (default: 0) [toml]
+vision.radius = 5 [toml]
+vision.memory_timeout_ticks = 0 [toml]
 meow.relief_memory_margin = 0 (default: unbounded) [toml]
 actions.groom_cuddle_relief = 15 (default: 15) [toml]
 behavior.announce_here = 0 (default: 0) [default]
@@ -73,11 +73,12 @@ On the server-restart path, after `wait_healthy` succeeds, after the `deployed <
 | result | prints | exit |
 |---|---|---|
 | 200, non-empty body | `==> key settings` then the body verbatim | 0 |
-| 404 | `!! this binary does not serve /settings (predates spec 052?)` | 1 |
-| 200 empty, or any other status | `!! /settings answered <code> with an unusable body` | 1 |
-| curl failed to connect / timed out | `!! the server stopped answering after the health check` | 1 |
+| 404 | `!! this binary does not serve /settings (predates spec 052?)` | 2 |
+| 200 empty, or any other status | `!! /settings answered <code> with an unusable body` | 2 |
+| curl failed to connect / timed out, three tries two seconds apart | `!! the server stopped answering after the health check` | 2 |
+| the section could not be written to stdout | `!! could not print the key settings section` | 2 |
 
-No rollback in any of the three failures; the world is serving. The client-only path (`--client-only`) is unchanged.
+Exit **2**, not 1: the rollback branch exits 1, and a wrapper reading `$?` must never take "deployed but unverified" for "rolled back". No rollback in any of these failures; the world is serving. The client-only path (`--client-only`) is unchanged.
 
 ## 5. What this contract does not touch
 

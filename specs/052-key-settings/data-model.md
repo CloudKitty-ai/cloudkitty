@@ -36,8 +36,8 @@ Display order = this table. Paths are what the presence check resolves.
 | 2 | `world.height` | `world.height` | u32 | none | (required) |
 | 3 | `world.seed` | `world.seed` | u64 | none | (required) |
 | 4… | `kitty.<id>` | `kitty[i]` | `{ "name": …, "behavior": … }` | none | (required, ≥ 2) |
-| | `vision.radius` | `vision.radius` | u32 | 5 | default |
-| | `vision.memory_timeout_ticks` | `vision.memory_timeout_ticks` | u64 | 0 | default |
+| | `vision.radius` | `vision.radius` | u32 | none (required section) | (required) |
+| | `vision.memory_timeout_ticks` | `vision.memory_timeout_ticks` | u64 | none (required section) | (required) |
 | | `meow.relief_memory_margin` | `meow.relief_memory_margin` | u32 or `"unbounded"` | `"unbounded"` | `"unbounded"` |
 | | `actions.groom_cuddle_relief` | `actions.groom_cuddle_relief` | f32 | 15.0 | default |
 | | `behavior.announce_here` | `behavior.announce_here` | u64 | 0 | default |
@@ -55,7 +55,7 @@ The seat count is the roster's; the golden is taken on a two-seat fixture and pi
 ## Validation rules
 
 - Every entry has a `value`; no entry is ever omitted (FR-004).
-- `default` is present for every entry except `world.*` and `kitty.*` (and the header).
+- `default` is present for every entry except `world.*`, `kitty.*` and `vision.*` (required sections; and the header).
 - An Option key's `value` and `default` are the same sentinel string when absent; a number when set.
 - `source` is `default` for every entry when `raw` is `None`.
 - The wire (JSON and text) carries the built value unchanged: `serde_json::to_value(&block)` and `block.render_text()` are what `/settings` serves.

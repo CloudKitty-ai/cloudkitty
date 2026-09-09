@@ -15,7 +15,6 @@ use futures::StreamExt;
 use serde_json::Value;
 use tokio::sync::watch;
 
-/// A small, fast world guaranteed to contain a greeble.
 /// Spec 052: the key settings block the way `main.rs` builds it, with no
 /// raw file (tests build their `Config` in code, so every source reads
 /// `default`).
@@ -27,6 +26,7 @@ fn settings(config: &Config) -> Arc<cloudkitty_server::settings::KeySettings> {
     ))
 }
 
+/// A small, fast world guaranteed to contain a greeble.
 fn test_config() -> Config {
     Config {
         world: WorldConfig {
@@ -346,6 +346,21 @@ async fn settings_endpoint_serves_the_built_block_as_json_and_as_text() {
         "text/plain was asked for, got {content_type}"
     );
     assert_eq!(text.text().await.unwrap(), expected.render_text());
+
+    // A browser's default Accept lists both; JSON wins (review 2026-09-09).
+    let browser = reqwest::Client::new()
+        .get(server.url("/settings"))
+        .header("Accept", "application/json, text/plain, */*")
+        .send()
+        .await
+        .unwrap();
+    let browser_ct = browser
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    assert!(browser_ct.starts_with("application/json"), "{browser_ct}");
 
     // The viewer is a window, not a control surface: the route is GET-only.
     let post = reqwest::Client::new()

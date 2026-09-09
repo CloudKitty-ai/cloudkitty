@@ -84,45 +84,67 @@ pub struct KeySettings {
     pub entries: Vec<Entry>,
 }
 
-/// One step of a presence path into the raw config tree.
-#[derive(Debug, Clone, Copy)]
-enum Seg {
-    Key(&'static str),
-    Index(usize),
+/// `Toml` iff `[group] key` is written in the raw tree; `Default` when it
+/// is not, or when there is no tree (no file was loaded). The path is the
+/// entry's own group and key — never spelled a second time — so an entry
+/// cannot report another dial's source.
+fn present(raw: Option<&toml::Value>, group: &str, key: &str) -> Source {
+    match raw.and_then(|r| r.get(group)).and_then(|g| g.get(key)) {
+        Some(_) => Source::Toml,
+        None => Source::Default,
+    }
 }
 
-/// `Toml` iff `path` resolves in the raw tree; `Default` when it does not
-/// or when there is no tree (no file was loaded).
-fn present(raw: Option<&toml::Value>, path: &[Seg]) -> Source {
-    let Some(mut node) = raw else {
-        return Source::Default;
-    };
-    for seg in path {
-        node = match seg {
-            Seg::Key(k) => match node.get(k) {
-                Some(next) => next,
-                None => return Source::Default,
-            },
-            Seg::Index(i) => match node.as_array().and_then(|a| a.get(*i)) {
-                Some(next) => next,
-                None => return Source::Default,
-            },
-        };
+/// `Toml` iff the `i`-th `[[kitty]]` table is written in the raw tree.
+fn present_seat(raw: Option<&toml::Value>, i: usize) -> Source {
+    match raw
+        .and_then(|r| r.get("kitty"))
+        .and_then(|k| k.as_array())
+        .and_then(|a| a.get(i))
+    {
+        Some(_) => Source::Toml,
+        None => Source::Default,
     }
-    Source::Toml
 }
 
 /// An Option dial as a JSON value: the number when set, the sentinel word
 /// when not — so the reader sees the rule, never `null` (FR-003).
-fn opt<T: Into<Value>>(v: Option<T>, absent: &'static str) -> Value {
-    match v {
-        Some(v) => v.into(),
-        None => Value::String(absent.to_string()),
+fn opt(v: Option<Value>, absent: &'static str) -> Value {
+    v.unwrap_or_else(|| Value::String(absent.to_string()))
+}
+
+/// An f32 dial as the number it was WRITTEN as: the shortest decimal that
+/// round-trips the f32 (`0.2`), not the f64 expansion a plain `f as f64`
+/// prints (`0.20000000298023224`) — the block exists to be compared with the
+/// toml by eye. A non-finite value (unreachable through validation) renders
+/// as its name, never `null` (FR-003).
+fn num(f: f32) -> Value {
+    if !f.is_finite() {
+        return Value::String(f.to_string());
     }
+    let shortest: f64 = f.to_string().parse().unwrap_or(f64::from(f));
+    json!(shortest)
 }
 
 fn membership(m: ContagionMembership) -> Value {
     serde_json::to_value(m).expect("ContagionMembership serializes to its snake_case name")
+}
+
+/// One entry, its source read from its OWN group and key.
+fn entry(
+    raw: Option<&toml::Value>,
+    group: &'static str,
+    key: &str,
+    value: Value,
+    default: Option<Value>,
+) -> Entry {
+    Entry {
+        group,
+        key: key.to_string(),
+        value,
+        default,
+        source: present(raw, group, key),
+    }
 }
 
 /// Builds the block from the validated engine config, the server's
@@ -132,157 +154,141 @@ fn membership(m: ContagionMembership) -> Value {
 pub fn build(config: &Config, watchdog: &WatchdogConfig, raw: Option<&toml::Value>) -> KeySettings {
     let d = Config::default();
     let wd = WatchdogConfig::default();
-    let mut entries = Vec::new();
-    let mut push =
-        |group: &'static str, key: &str, value: Value, default: Option<Value>, path: &[Seg]| {
-            entries.push(Entry {
-                group,
-                key: key.to_string(),
-                value,
-                default,
-                source: present(raw, path),
-            });
-        };
+    let mut entries: Vec<Entry> = Vec::new();
 
     // The world shape and the seats have no defaults: a config without them
     // does not load (and Article III wants at least two seats).
     let w = &config.world;
-    push(
-        "world",
-        "width",
-        json!(w.width),
-        None,
-        &[Seg::Key("world"), Seg::Key("width")],
-    );
-    push(
-        "world",
-        "height",
-        json!(w.height),
-        None,
-        &[Seg::Key("world"), Seg::Key("height")],
-    );
-    push(
-        "world",
-        "seed",
-        json!(w.seed),
-        None,
-        &[Seg::Key("world"), Seg::Key("seed")],
-    );
-    for (i, k) in config.kitties.iter().enumerate() {
-        push(
-            "kitty",
-            &k.id.to_string(),
-            json!({ "name": k.name, "behavior": k.behavior }),
-            None,
-            &[Seg::Key("kitty"), Seg::Index(i)],
-        );
-    }
+    entries.push(entry(raw, "world", "width", json!(w.width), None));
+    entries.push(entry(raw, "world", "height", json!(w.height), None));
+    entries.push(entry(raw, "world", "seed", json!(w.seed), None));
+    let seats: Vec<Entry> = config
+        .kitties
+        .iter()
+        .enumerate()
+        .map(|(i, k)| Entry {
+            group: "kitty",
+            key: k.id.to_string(),
+            value: json!({ "name": k.name, "behavior": k.behavior }),
+            default: None,
+            source: present_seat(raw, i),
+        })
+        .collect();
+    entries.extend(seats);
 
-    // Fog Gen 1 (spec 049).
-    push(
+    // Fog Gen 1 (spec 049). A REQUIRED section under the 3.0 rule: a config
+    // that omits it fails to load, so there is no default to fall back on and
+    // no default column — the source can only ever read `toml`.
+    entries.push(entry(
+        raw,
         "vision",
         "radius",
         json!(config.vision.radius),
-        Some(json!(d.vision.radius)),
-        &[Seg::Key("vision"), Seg::Key("radius")],
-    );
-    push(
+        None,
+    ));
+    entries.push(entry(
+        raw,
         "vision",
         "memory_timeout_ticks",
         json!(config.vision.memory_timeout_ticks),
-        Some(json!(d.vision.memory_timeout_ticks)),
-        &[Seg::Key("vision"), Seg::Key("memory_timeout_ticks")],
-    );
+        None,
+    ));
 
     // The fog want law's memory reach (spec 050); absent = today's unbounded rule.
-    push(
+    entries.push(entry(
+        raw,
         "meow",
         "relief_memory_margin",
-        opt(config.meow.relief_memory_margin, "unbounded"),
-        Some(opt(d.meow.relief_memory_margin, "unbounded")),
-        &[Seg::Key("meow"), Seg::Key("relief_memory_margin")],
-    );
+        opt(
+            config.meow.relief_memory_margin.map(Value::from),
+            "unbounded",
+        ),
+        Some(opt(
+            d.meow.relief_memory_margin.map(Value::from),
+            "unbounded",
+        )),
+    ));
 
     // The groom bump and its owed revert (spec 041 / cuddle economy).
-    push(
+    entries.push(entry(
+        raw,
         "actions",
         "groom_cuddle_relief",
-        json!(config.actions.groom_cuddle_relief),
-        Some(json!(d.actions.groom_cuddle_relief)),
-        &[Seg::Key("actions"), Seg::Key("groom_cuddle_relief")],
-    );
+        num(config.actions.groom_cuddle_relief),
+        Some(num(d.actions.groom_cuddle_relief)),
+    ));
 
     // Launch dials on the built-in chooser (specs 043, 045, 049).
     let b = &config.behavior;
-    push(
+    entries.push(entry(
+        raw,
         "behavior",
         "announce_here",
         json!(b.announce_here),
         Some(json!(d.behavior.announce_here)),
-        &[Seg::Key("behavior"), Seg::Key("announce_here")],
-    );
-    push(
+    ));
+    entries.push(entry(
+        raw,
         "behavior",
         "contagion_aware_ladder",
         json!(b.contagion_aware_ladder),
         Some(json!(d.behavior.contagion_aware_ladder)),
-        &[Seg::Key("behavior"), Seg::Key("contagion_aware_ladder")],
-    );
-    push(
+    ));
+    entries.push(entry(
+        raw,
         "behavior",
         "reply_intensity_floor",
-        opt(b.reply_intensity_floor, "none"),
-        Some(opt(d.behavior.reply_intensity_floor, "none")),
-        &[Seg::Key("behavior"), Seg::Key("reply_intensity_floor")],
-    );
+        opt(b.reply_intensity_floor.map(num), "none"),
+        Some(opt(d.behavior.reply_intensity_floor.map(num), "none")),
+    ));
 
     // Wet fur and the waterline (specs 024, 044, 045).
     let wa = &config.water;
-    push(
+    entries.push(entry(
+        raw,
         "water",
         "bath_gain",
-        json!(wa.bath_gain),
-        Some(json!(d.water.bath_gain)),
-        &[Seg::Key("water"), Seg::Key("bath_gain")],
-    );
-    push(
+        num(wa.bath_gain),
+        Some(num(d.water.bath_gain)),
+    ));
+    entries.push(entry(
+        raw,
         "water",
         "bath_gain_ceiling",
-        json!(wa.bath_gain_ceiling),
-        Some(json!(d.water.bath_gain_ceiling)),
-        &[Seg::Key("water"), Seg::Key("bath_gain_ceiling")],
-    );
-    push(
+        num(wa.bath_gain_ceiling),
+        Some(num(d.water.bath_gain_ceiling)),
+    ));
+    entries.push(entry(
+        raw,
         "water",
         "contagion_factor",
-        json!(wa.contagion_factor),
-        Some(json!(d.water.contagion_factor)),
-        &[Seg::Key("water"), Seg::Key("contagion_factor")],
-    );
-    push(
+        num(wa.contagion_factor),
+        Some(num(d.water.contagion_factor)),
+    ));
+    entries.push(entry(
+        raw,
         "water",
         "contagion_membership",
         membership(wa.contagion_membership),
         Some(membership(d.water.contagion_membership)),
-        &[Seg::Key("water"), Seg::Key("contagion_membership")],
-    );
+    ));
 
     // The welfare watchdog (spec 040): server-owned, so the engine's
     // `/config` never shows it — this block does.
-    push(
+    entries.push(entry(
+        raw,
         "watchdog",
         "threshold",
         json!(watchdog.threshold),
         Some(json!(wd.threshold)),
-        &[Seg::Key("watchdog"), Seg::Key("threshold")],
-    );
-    push(
+    ));
+    entries.push(entry(
+        raw,
         "watchdog",
         "remind_every",
         json!(watchdog.remind_every),
         Some(json!(wd.remind_every)),
-        &[Seg::Key("watchdog"), Seg::Key("remind_every")],
-    );
+    ));
 
     KeySettings {
         engine_defaults_sha256: cloudkitty_rl::suite::engine_defaults_sha256(),
@@ -570,7 +576,15 @@ mod tests {
             .find(|l| l.starts_with("vision.radius = "))
             .unwrap();
         assert!(radius.ends_with(" [toml]"), "{radius}");
-        assert!(radius.contains(" (default: "), "{radius}");
+        assert!(
+            !radius.contains(" (default: "),
+            "[vision] is a required section: no default to advertise — {radius}"
+        );
+        let relief = lines
+            .iter()
+            .find(|l| l.starts_with("actions.groom_cuddle_relief = "))
+            .unwrap();
+        assert!(relief.contains(" (default: "), "{relief}");
         let margin = lines
             .iter()
             .find(|l| l.starts_with("meow.relief_memory_margin = "))
@@ -582,6 +596,38 @@ mod tests {
         for l in &lines[1..] {
             assert!(l.ends_with(" [toml]") || l.ends_with(" [default]"), "{l}");
         }
+    }
+
+    /// Review finding (2026-09-09): an f32 widened to f64 prints its full
+    /// expansion (`0.20000000298023224`), and the block exists to be compared
+    /// with the toml by eye. Dials print as written; non-finite never `null`.
+    #[test]
+    fn f32_dials_print_as_written() {
+        let mut config = minimal_config();
+        config.behavior.reply_intensity_floor = Some(0.2);
+        config.water.contagion_factor = 0.1;
+        config.actions.groom_cuddle_relief = 2.0;
+        let block = build(&config, &WatchdogConfig::default(), None);
+        let text = block.render_text();
+        assert!(
+            text.contains("behavior.reply_intensity_floor = 0.2 (default: none) [default]"),
+            "{text}"
+        );
+        assert!(
+            text.contains("water.contagion_factor = 0.1 (default: 0.0) [default]"),
+            "{text}"
+        );
+        assert!(
+            text.contains("actions.groom_cuddle_relief = 2.0 (default: 15.0) [default]"),
+            "{text}"
+        );
+        let floor = block
+            .entries
+            .iter()
+            .find(|e| e.key == "reply_intensity_floor")
+            .unwrap();
+        assert_eq!(floor.value, json!(0.2));
+        assert_eq!(num(f32::NAN), json!("NaN"), "never null");
     }
 
     /// A writer that keeps what `tracing` formats, so the boot event can be

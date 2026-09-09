@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Exercises update.sh's closing "key settings" section (spec 052 FR-008/009)
 # against a stub server, with no CloudKitty server involved. Exit 0 = all
-# cases held. Runs from any directory on a laptop or in CI; needs bash, curl
+# five cases held. Runs from any directory on a laptop or in CI; needs bash, curl
 # and python3.
 #
 # update.sh cannot be sourced (it takes a lock and runs top-level statements
@@ -62,16 +62,30 @@ run_case "200 with a body prints the section" 0 "" $'==> key settings\nengine_de
 stop_stub
 
 start_stub notfound; UPSTREAM="127.0.0.1:$PORT"
-run_case "404 names the old binary" 1 "this binary does not serve /settings" ""
+run_case "404 names the old binary" 2 "this binary does not serve /settings" ""
 stop_stub
 
 start_stub empty;    UPSTREAM="127.0.0.1:$PORT"
-run_case "200 with an empty body is unusable" 1 "/settings answered 200 with an unusable body" ""
+run_case "200 with an empty body is unusable" 2 "/settings answered 200 with an unusable body" ""
 stop_stub
 
-# The port the last stub held is closed now: connection refused.
-UPSTREAM="127.0.0.1:$PORT"
-run_case "closed port means the server stopped answering" 1 "the server stopped answering after the health check" ""
+# Port 1 (tcpmux) needs root to bind and nothing listens on it: connection
+# refused, deterministically — reusing the stub's freed ephemeral port would
+# race whatever else on the machine opens a socket (review 2026-09-09).
+# The function retries three times two seconds apart, so this case takes ~4 s.
+UPSTREAM="127.0.0.1:1"
+run_case "closed port means the server stopped answering" 2 "the server stopped answering after the health check" ""
 
-if [[ "$fail" -eq 0 ]]; then echo "4 passed"; fi
+# A section that cannot be printed (stdout gone: a closed pipe, a full disk)
+# must not report clean — the function's status is cat's, not the cleanup's.
+start_stub ok;       UPSTREAM="127.0.0.1:$PORT"
+print_key_settings >&- 2> "$T/err"; got=$?
+if [[ "$got" -eq 2 && "$(cat "$T/err")" == *"could not print the key settings section"* ]]; then
+  echo "ok   closed stdout is not a clean deploy"
+else
+  echo "FAIL closed stdout is not a clean deploy: exit $got, stderr: $(cat "$T/err")"; fail=1
+fi
+stop_stub
+
+if [[ "$fail" -eq 0 ]]; then echo "5 passed"; fi
 exit "$fail"
