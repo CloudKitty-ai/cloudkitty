@@ -143,6 +143,11 @@ fn load_config(
     RlConfig,
     PluginsConfig,
     cloudkitty_server::watchdog::WatchdogConfig,
+    // Spec 052: the raw tree of the same text, so the key settings block
+    // can say whether a dial was WRITTEN in the file (its source) — the
+    // typed parse cannot, serde has filled the defaults by then. `None`
+    // on the built-in-defaults path.
+    Option<toml::Value>,
 )> {
     if !args.config_path.exists() {
         if args.config_explicit {
@@ -157,6 +162,7 @@ fn load_config(
             RlConfig::default(),
             PluginsConfig::default(),
             cloudkitty_server::watchdog::WatchdogConfig::default(),
+            None,
         ));
     }
 
@@ -183,7 +189,10 @@ fn load_config(
                 args.config_path.display()
             )
         })?;
-    Ok((config, rl_config, plugins, watchdog))
+    let raw: toml::Value = text
+        .parse()
+        .with_context(|| format!("could not load {}", args.config_path.display()))?;
+    Ok((config, rl_config, plugins, watchdog, Some(raw)))
 }
 
 #[tokio::main]
@@ -211,7 +220,7 @@ async fn run() -> Result<()> {
         return Ok(());
     };
 
-    let (config, rl_config, plugins_config, watchdog_config) = load_config(&args)?;
+    let (config, rl_config, plugins_config, watchdog_config, raw_config) = load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
 
@@ -226,6 +235,14 @@ async fn run() -> Result<()> {
     config.validate_behavior_names(&registry.names())?;
 
     let config = Arc::new(config);
+    // Spec 052: the key settings block, built here — after validation and
+    // before anything binds or ticks (FR-006a) — and shared by the boot
+    // log and GET /settings.
+    let settings = Arc::new(cloudkitty_server::settings::build(
+        &config,
+        &watchdog_config,
+        raw_config.as_ref(),
+    ));
     let snapshot_path = args
         .snapshot_path
         .clone()
@@ -326,6 +343,7 @@ async fn run() -> Result<()> {
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        settings: settings.clone(),
     };
     let client_dir = resolve_client_dir(&args)?;
     let app = build_router(state, &client_dir);

@@ -5,6 +5,7 @@
 
 pub mod api;
 pub mod persist;
+pub mod settings;
 pub mod sim_task;
 pub mod watchdog;
 pub mod ws;

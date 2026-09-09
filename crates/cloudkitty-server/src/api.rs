@@ -28,6 +28,9 @@ pub struct AppState {
     pub config: Arc<Config>,
     /// Spec 040: the watchdog's latest welfare surface, served on /welfare.
     pub welfare: watch::Receiver<Arc<crate::watchdog::WelfareStatus>>,
+    /// Spec 052: the key settings block, built at boot before the listener
+    /// binds (FR-006a) and served on /settings for the life of the process.
+    pub settings: Arc<crate::settings::KeySettings>,
 }
 
 impl AppState {

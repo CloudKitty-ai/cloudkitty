@@ -16,6 +16,17 @@ use serde_json::Value;
 use tokio::sync::watch;
 
 /// A small, fast world guaranteed to contain a greeble.
+/// Spec 052: the key settings block the way `main.rs` builds it, with no
+/// raw file (tests build their `Config` in code, so every source reads
+/// `default`).
+fn settings(config: &Config) -> Arc<cloudkitty_server::settings::KeySettings> {
+    Arc::new(cloudkitty_server::settings::build(
+        config,
+        &Default::default(),
+        None,
+    ))
+}
+
 fn test_config() -> Config {
     Config {
         world: WorldConfig {
@@ -150,6 +161,7 @@ async fn start_server_with(
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        settings: settings(&config),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
 
@@ -323,6 +335,7 @@ async fn distress_ages_appear_in_the_payload_once_a_distress_exists() {
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        settings: settings(&config),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -927,6 +940,7 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
         published,
         config: arc.clone(),
         welfare,
+        settings: settings(&arc),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
