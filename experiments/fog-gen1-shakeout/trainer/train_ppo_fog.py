@@ -101,8 +101,8 @@ PINS = {
     # (#351, 2026-09-08; curve in PREREG Part C's run declaration).
     "radius": 4,
     # F-019 low end (exp-006 L-04) and the next dose up the curve.
-    # 0.05 is PROVISIONAL (exp-006 L-05 sat there); owner confirms at
-    # declaration.
+    # 0.05 CONFIRMED by the owner 2026-09-09 ("That confirms 0.05"):
+    # the only up-dose with a full pre-fog twin (exp-006 L-05).
     "beta_low": 0.04,
     "beta_next": 0.05,
     # Schema-5 BC clones: the mixed-corpus clone (slots 1-5) and the

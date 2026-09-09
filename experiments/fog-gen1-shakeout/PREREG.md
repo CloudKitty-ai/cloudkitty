@@ -563,11 +563,13 @@ with no layout consequence (the legality mask is an oracle over
   numpy). Probes every 50 updates, 2,000 ticks, on `PROBE_SEEDS`
   40,001–40,003; Part A read at probe 1. PINS standing at this
   declaration: `radius` = 4 (#351); `beta_low` = 0.04 (F-019);
-  `beta_next` = 0.05 PROVISIONAL — the owner confirms it at the
-  final declaration; `init_clone` / `init_vocab` / `critic` fill from
-  the BC bars readout (the mixed-corpus clone is training as this row
-  is written). The final declaration = the commit that removes this
-  file's draft header, after the bars and the β confirmation.
+  `beta_next` = 0.05 CONFIRMED (owner 2026-09-09, "That confirms
+  0.05", after the dose-record review: sampled points are {0, 0.03,
+  0.04, 0.05, 0.2} and 0.05 is the only up-dose with a full pre-fog
+  twin, exp-006 L-05); `init_clone` / `init_vocab` filled 2026-09-09
+  (both clones cleared the BC bars); `critic` waits on #365. The
+  final declaration = the commit that removes this file's draft
+  header, after #365.
 - **Activity-mix INVESTIGATE band (owner ruled 2026-09-05)**: the
   timeline's "outside step-2 bands by modest factors" line. Reference =
   the scripted anchor at the pinned radius, measured in the radius
