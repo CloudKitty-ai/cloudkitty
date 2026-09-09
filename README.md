@@ -124,6 +124,7 @@ All read-only: the viewer is a window, not a control surface.
 | `GET /events/activity` | Recently finished activities with their true tick spans |
 | `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `other`; spec 049) |
 | `GET /config` | The active, validated configuration |
+| `GET /settings` | The key settings — every dial anyone has needed to verify after a deploy, each as effective value, engine default and source (`toml` / `default`); `Accept: text/plain` returns the boot-log block verbatim |
 | `WS /ws` | The full world, pushed after every tick |
 
 Greebles appear in every payload; the client just declines to draw them.

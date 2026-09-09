@@ -50,6 +50,16 @@ jobs:
       - name: Tests (includes the Articles I-III invariant suite)
         run: cargo test --workspace
 
+      # Spec 052: every guard in the tree runs here, not only the Rust ones.
+      # The four build their fixtures under `mktemp -d` and need only bash,
+      # git, curl, jq and python3 (all on ubuntu-latest).
+      - name: Shell tests (deploy tail, hook self-tests, mutate runner)
+        run: |
+          bash docs/deploy/test-update-tail.sh
+          bash .claude/hooks/test-revert-guard.sh
+          bash .claude/hooks/test-checkout-guard.sh
+          bash scripts/test-mutate.sh
+
   # Spec 014 T003: the Python surface is a required gate — SC-002's two-process
   # reproducibility test lives here. Only the optional PettingZoo conformance
   # step may fail without failing the merge.

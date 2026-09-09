@@ -33,6 +33,14 @@ change.
 
 ## Unreleased
 
+- **Key settings (spec 052).** One server-owned list of the dials anyone has
+  needed to verify after a deploy, each as effective value, engine default
+  and source (`toml` / `default`, by presence in the served file): logged
+  once at boot, served at `GET /settings` (JSON, or the same text block
+  under `Accept: text/plain`), and printed by `update.sh` as its closing
+  section — with a non-zero exit, no rollback, when it cannot be. `/config`
+  and the stamp are untouched. The four shell tests in the tree (this
+  one's, the two hook self-tests, the mutation runner's) now run in CI.
 - **Docs: `THREADS.md`** (repo root), the four-thread working agreements in one
   page: ownership by path, the checkout rules and which hook enforces
   each, pull-before-diagnosing, process tiering, the owner-call ledger,

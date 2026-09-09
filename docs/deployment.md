@@ -173,6 +173,17 @@ the other, which looks like a successful deploy and changes nothing. A
 commit that reseats a kitty or relocates a `.ckpolicy` is a silent no-op
 under it. That is the whole reason `update.sh` exists.
 
+The script ends with a **`key settings`** section, read from the running
+server (`GET /settings` in its text form): one line per dial — its
+effective value, its engine default, and whether the served
+`cloudkitty.toml` wrote it (`[toml]`) or the default is in force
+(`[default]`). That section is the deploy's own answer to "is it on?";
+nothing has to be read out of the journal by eye. If the script exits
+non-zero *after* its `deployed` line, the world is serving but the section
+could not be produced — an older binary that does not serve `/settings`, an
+unusable answer, or a server that stopped answering after the health
+check. The message says which. Nothing was rolled back; verify by hand.
+
 **A viewer-only change needs no restart at all.** `ServeDir` opens each
 file from disk per request and caches nothing in memory, and the server
 sends `no-cache` so browsers revalidate. Updating `client/` on the box is
@@ -235,6 +246,9 @@ Worth knowing when you point the internet at it:
   a snapshot the world's future is predictable — CloudKitty is a
   deterministic fishbowl, and this is the fishbowl glass. The `[rl.*]`
   blocks (policy artifact paths) are *not* served.
+- **`GET /settings` is public like `/config`.** It lists dials only — the
+  world shape and seed, the seats, and the launch dials — never a path or
+  the bind address.
 - **CORS is permissive**: any website can read the API from a visitor's
   browser. For public read-only data this is a choice, not an oversight.
 - **There are no accounts and no rate limits** in the app itself. The
