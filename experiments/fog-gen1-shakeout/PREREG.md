@@ -403,9 +403,13 @@ with no layout consequence (the legality mask is an oracle over
   anchor corpus was 100 × 8k), seeds 1080001–1080040, held-out =
   index ending in 3 (03/13/23/33; exp-006's rule, carried), bc-collect
   `--trace` on the four held-out only (the readout's reply/ambient
-  split reads the trace; the trainer does not). want_play stays
-  unjudged at this size (≈28 held-out rows against the 100-row
-  floor); it is rare by law, and only the floor pick moves it.
+  split reads the trace; the trainer does not). The "want_play stays
+  unjudged (≈28 held-out rows against the 100-row floor)" estimate was
+  written at floor 30 and the floor pick moved it, as this sentence
+  predicted: at the pinned floor 20 the held-out traces carry 517
+  want_play emissions (119/133/132/133 per seed, measured 2026-09-08
+  at the expected_per_1000 fill), so the 100-row floor is met and
+  want_play is judged like every other kind.
   Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
   with five keys changed, each declared here: `groom_cuddle_relief`
   2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
@@ -530,6 +534,40 @@ with no layout consequence (the legality mask is an oracle over
   policy samples per update against 15,360, `radius-1` derives
   `radius = 4` from the pin 5. The nine run in one round at 2 threads
   each (trainer default).
+- **PINS and SEED-BANDS row (declared 2026-09-09; the run manifest
+  for indices 12–20, verbatim from trainer `SLOTS`)**. Radii at the
+  #351 pin 4: `radius-1` = 3, `radius+1` = 5, `nofog` = whole-world
+  27 (ceil hypot(19, 19) on 20×20). Slot → (radius, β pin, init pin,
+  world seed, run index):
+
+  | slot | radius | β | init | seed | idx |
+  |---|---|---|---|---|---|
+  | ref-s1 | 4 | beta_low | init_clone | 1 | 12 |
+  | ref-s2 | 4 | beta_low | init_clone | 2 | 13 |
+  | nofog | 27 | beta_low | init_clone | 1 | 14 |
+  | radius+1 | 5 | beta_low | init_clone | 1 | 15 |
+  | leash | 4 | beta_next | init_clone | 1 | 16 |
+  | vocab | 4 | beta_low | init_vocab | 1 | 17 |
+  | ref-s3 | 4 | beta_low | init_clone | 3 | 18 |
+  | mixed | 4 | beta_low | init_clone | 1 | 19 |
+  | radius-1 | 3 | beta_low | init_clone | 1 | 20 |
+
+  `mixed` alone carries MIX 0.33; every other arm is all-policy (the
+  2026-09-05 ruling). Training-episode seed bands: base =
+  100,000,000 + run_index × 20,000,000 + segment × 1,000, so index 12
+  owns [340M, 360M) up through index 20 owning [500M, 520M) —
+  disjoint from each other, from exp-006/006a (indices 0–11, ending
+  at 340M), and from every low band in use (probe trio 40,001–40,003,
+  shared eval band 870,001–870,030, corpus 1,080,001–1,080,040, all
+  below 100M). Optimiser init seed = 20260905 + run_index (torch and
+  numpy). Probes every 50 updates, 2,000 ticks, on `PROBE_SEEDS`
+  40,001–40,003; Part A read at probe 1. PINS standing at this
+  declaration: `radius` = 4 (#351); `beta_low` = 0.04 (F-019);
+  `beta_next` = 0.05 PROVISIONAL — the owner confirms it at the
+  final declaration; `init_clone` / `init_vocab` / `critic` fill from
+  the BC bars readout (the mixed-corpus clone is training as this row
+  is written). The final declaration = the commit that removes this
+  file's draft header, after the bars and the β confirmation.
 - **Activity-mix INVESTIGATE band (owner ruled 2026-09-05)**: the
   timeline's "outside step-2 bands by modest factors" line. Reference =
   the scripted anchor at the pinned radius, measured in the radius

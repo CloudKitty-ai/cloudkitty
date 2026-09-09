@@ -1,9 +1,22 @@
 // Replay a census and compare the shipped poseFor against a chase-distance gate.
 // Usage: node pose-analyze.mjs census.jsonl [gate]
+//
+// The pose rule is the SHIPPED one, loaded from client/render.js rather than
+// copied into this file (owner call #362, ruled B on 2026-09-08). Both columns
+// call it; they differ only in the gate they hand it.
 import { readFileSync } from 'node:fs';
+import { asServed } from './state-of.mjs';
+import { poseFor, chaseDistanceFor, dialsWithGate, lungedBetween, VIEW } from './shipped-pose.mjs';
 
 const file = process.argv[2] ?? 'census.jsonl';
-const GATE = Number(process.argv[3] ?? 4);
+// Defaults to the dial the client actually ships, so the column labelled
+// SHIPPED is shipped. Pass a number to sweep a candidate gate instead.
+const GATE = Number(process.argv[3] ?? VIEW.pounceGateTiles);
+// The counterfactual: the same rule with the gate opened, so every chase
+// pounces. This is what the column was for -- the cost of having a gate at
+// all -- and it no longer needs a second copy of the rule to express.
+const UNGATED = dialsWithGate(Infinity);
+const GATED = dialsWithGate(GATE);
 
 const rows = readFileSync(file, 'utf8')
   .split('\n')
@@ -11,42 +24,6 @@ const rows = readFileSync(file, 'utf8')
   .map((l) => JSON.parse(l));
 const byTick = new Map(rows.map((r) => [r.tick, r]));
 const ticks = [...byTick.keys()].sort((a, b) => a - b);
-
-const manhattan = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-
-/**
- * The rule as it stood BEFORE the gate shipped -- the counterfactual now,
- * kept so the cost of the gate stays measurable after the fact.
- */
-function poseUngated(state, action, moved, onWater) {
-  if (state === 'sleeping') return 'sleep-curl';
-  if (state === 'resting') return 'loaf';
-  if (state === 'eating') return 'eating';
-  if (state === 'drinking') return 'drinking';
-  if (state === 'grooming') return 'grooming';
-  if (action === 'play' || action === 'chase') return 'pouncing';
-  if (onWater) return 'swim';
-  if (moved) return 'walking';
-  return 'idle';
-}
-
-/**
- * render.js:64 -- the shipped rule, verbatim, gate and all. Keep this in
- * step with render.js: it is a copy, and a copy that drifts reports on a
- * client nobody is running.
- */
-function poseFor(state, action, moved, onWater, near) {
-  if (state === 'sleeping') return 'sleep-curl';
-  if (state === 'resting') return 'loaf';
-  if (state === 'eating') return 'eating';
-  if (state === 'drinking') return 'drinking';
-  if (state === 'grooming') return 'grooming';
-  if (action === 'play') return 'pouncing';
-  if (action === 'chase' && near) return 'pouncing';
-  if (onWater) return 'swim';
-  if (moved) return 'walking';
-  return 'idle';
-}
 
 const now = new Map();
 const gated = new Map();
@@ -72,8 +49,9 @@ for (let i = 1; i < ticks.length; i++) {
   const prev = byTick.get(t0);
   const cur = byTick.get(t1);
   const wasAt = new Map(prev.kitties.map((k) => [k.id, k.pos]));
-  const kittyPos = new Map(cur.kitties.map((k) => [k.id, k.pos]));
-  const elPos = new Map(cur.elements.map((e) => [e.id, e.pos]));
+  // The tick in the shape the client is handed, so `chaseDistanceFor` resolves
+  // a target out of it exactly as the renderer does.
+  const world = { ...cur, kitties: cur.kitties.map(asServed) };
   const water = new Set(
     cur.elements.filter((e) => e.kind === 'water').map((e) => `${e.pos.x},${e.pos.y}`),
   );
@@ -86,20 +64,16 @@ for (let i = 1; i < ticks.length; i++) {
     const onWater = water.has(`${k.pos.x},${k.pos.y}`);
     const action = k.last_action?.action ?? null;
 
-    let near = false;
+    // The distance is the client's own answer, from the same function the
+    // renderer calls, so an unresolvable target reads null here exactly as it
+    // does on screen -- and null KEEPS the pounce rather than losing it.
+    const served = asServed(k);
+    const chaseDist = chaseDistanceFor(served, world);
+    const lunged = lungedBetween(was, k);
     if (action === 'chase') {
       chaseKind[k.last_action.target] = (chaseKind[k.last_action.target] ?? 0) + 1;
-      const tp =
-        k.last_action.target === 'element'
-          ? elPos.get(k.last_action.id)
-          : kittyPos.get(k.last_action.id);
-      if (tp) {
-        const d = manhattan(k.pos, tp);
-        dists.push(d);
-        near = d <= GATE;
-      } else {
-        unresolved++; // target gone this tick: cannot verify proximity
-      }
+      if (chaseDist !== null) dists.push(chaseDist);
+      else unresolved++; // target gone this tick: cannot verify proximity
       if (moved) movedWhenChasing.moved++;
       else {
         movedWhenChasing.still++;
@@ -111,8 +85,8 @@ for (let i = 1; i < ticks.length; i++) {
       playKind[kind] = (playKind[kind] ?? 0) + 1;
     }
 
-    const pNow = poseUngated(k.activity?.state ?? k.state, action, moved, onWater);
-    const pGate = poseFor(k.activity?.state ?? k.state, action, moved, onWater, near);
+    const pNow = poseFor(served, moved, onWater, chaseDist, lunged, UNGATED);
+    const pGate = poseFor(served, moved, onWater, chaseDist, lunged, GATED);
     bump(now, pNow);
     bump(gated, pGate);
     seq.set(k.id, [...(seq.get(k.id) ?? []), { tick: t1, now: pNow, gate: pGate }]);
@@ -145,8 +119,9 @@ const pct = (n) => ((100 * n) / pairs).toFixed(2).padStart(6) + '%';
 const keys = [...new Set([...now.keys(), ...gated.keys()])].sort();
 
 console.log(`ticks sampled: ${ticks.length}  usable consecutive pairs: ${pairs} kitty-ticks  (gaps skipped: ${gaps})`);
-console.log(`gate: chase pounces only within ${GATE} tiles (Manhattan)\n`);
-console.log('pose          ungated     SHIPPED    delta');
+console.log(`gate: chase pounces only within ${GATE} tiles (Manhattan)`);
+console.log(`rule: client/render.js poseFor, loaded not copied (#362)\n`);
+console.log('pose         no gate     SHIPPED    delta');
 for (const key of keys) {
   const a = now.get(key) ?? 0;
   const b = gated.get(key) ?? 0;
