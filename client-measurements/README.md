@@ -47,11 +47,23 @@ step, matching the client's own no-build-step house style.
   not state.
 - Anything that reads the live site does so **read-only** (`GET` alone) and
   polls at a rate a small axum server will not notice.
-- When a tool models a change to shipped code, it should **replay the shipped
-  function verbatim** beside the modelled variant on identical input, so the
-  comparison cannot drift from what the client actually does. `pose-analyze`
-  copies `poseFor` out of `render.js` for exactly this reason; if that function
-  changes, update the copy.
+- When a tool models a change to shipped code, it **loads the shipped function
+  and calls it** beside the modelled variant on identical input, so the
+  comparison cannot drift from what the client actually does. **Load it; never
+  copy it.** `pose-census/shipped-pose.mjs` evals `client/render.js` and hands
+  back the real `poseFor`; `meow-analyze` and `pose-analyze` both use it, and a
+  modelled variant is expressed by changing the DIALS passed in
+  (`dialsWithGate(n)`), not by reimplementing the rule with `n` substituted.
+
+  This bullet used to say "replay the shipped function verbatim... if that
+  function changes, update the copy", and `pose-analyze` kept such a copy. It
+  drifted anyway, for six weeks: measured 2026-09-08, the column it labelled
+  SHIPPED disagreed with the client on 23.1% of kitty-ticks in
+  `census-2026-08-23.jsonl` and 20.9% in `meow2.jsonl`. **A convention telling
+  you to keep a copy in step is not a guard.** Owner call
+  [#362](https://github.com/CloudKitty-ai/cloudkitty/issues/362), ruled option
+  B on 2026-09-08: "Ruled: B". Guarded by `pose-census/test-shipped-pose.mjs`,
+  whose checks each name the drift they would have caught.
 - **Read a kitty's activity state through `pose-census/state-of.mjs`, never
   inline.** Two shapes reach these tools. The box serves the engine's
   `Activity` enum internally tagged, so the state is a `state` key inside
@@ -99,8 +111,10 @@ reusable for any pose accounting.
 ```sh
 cd client-measurements/pose-census
 node pose-census.mjs 540 census.jsonl      # sample the live world for 540s
-node pose-analyze.mjs census.jsonl 4       # replay it; 4 = the chase-distance gate
+node pose-analyze.mjs census.jsonl         # replay it at the SHIPPED chase gate
+node pose-analyze.mjs census.jsonl 5       # ...or sweep a candidate gate
 node test-state-of.mjs                     # guards the shared activity-state reader
+node test-shipped-pose.mjs                 # guards that the pose rule is LOADED, not copied
 ```
 
 `pose-census.mjs` polls `https://kitties.ai/world` every 380ms (the world ticks
@@ -120,6 +134,16 @@ switches, and how often a switch reverses within two ticks — the flicker a
 distance threshold could introduce).
 
 ### Finding, 2026-08-08 — the pounce/walk split
+
+> **These numbers stand, and a re-run today will not reproduce them.** They
+> were measured against the client as it was on 2026-08-08, when
+> `pose-analyze`'s copy of `poseFor` was accurate. The client changed five
+> days later (`ACTION_POSE`, 2026-08-13) and again on 2026-08-22
+> (`grooming-other`), so today's rule sorts the same ticks differently —
+> notably it has a `grooming-other` pose this table cannot show, and it reads
+> an applied action ahead of a running scene. The tool now follows the client
+> (#362); the difference is the client moving, not the measurement being
+> wrong.
 
 676 consecutive ticks, 2700 kitty-ticks, no gaps, no failed polls. Roster was
 two `e003-m0-g998-s3` seats plus `playful` and `needs_driven` on the 20×20.
