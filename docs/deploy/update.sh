@@ -153,6 +153,39 @@ wait_healthy() {
     return 1
 }
 
+# Spec 052: the closing "key settings" section. The truth is read from the
+# RUNNING server (GET /settings, text form), never from the toml this script
+# copied or from its own idea of the defaults: each line is a dial's
+# effective value, its engine default and whether the file wrote it. It runs
+# LAST — after the `deployed` line and the backup prune — so the section is
+# the final thing on the terminal, and its failure is the exit code. No
+# rollback on failure: by then the world is serving (wait_healthy passed);
+# a missing section means "verify by hand", not "the deploy is bad".
+# Three causes, three messages, so the operator knows which happened.
+print_key_settings() {
+    local body code
+    body="$(mktemp)"
+    if ! code="$(curl -sS --max-time 5 -H 'Accept: text/plain' \
+                 -o "$body" -w '%{http_code}' "http://${UPSTREAM}/settings" 2>/dev/null)"; then
+        rm -f "$body"
+        echo "!! the server stopped answering after the health check" >&2
+        return 1
+    fi
+    if [[ "$code" == "404" ]]; then
+        rm -f "$body"
+        echo "!! this binary does not serve /settings (predates spec 052?)" >&2
+        return 1
+    fi
+    if [[ "$code" != "200" || ! -s "$body" ]]; then
+        rm -f "$body"
+        echo "!! /settings answered ${code} with an unusable body" >&2
+        return 1
+    fi
+    log "key settings"
+    cat "$body"
+    rm -f "$body"
+}
+
 cd "$REPO"
 git pull --ff-only
 DEPLOYED_REV="$(git rev-parse --short HEAD)"
@@ -316,7 +349,13 @@ if wait_healthy; then
             done <<< "$stale"
         fi
     fi
-    exit 0
+    # Spec 052: the section is the last output; a deploy that cannot state
+    # what is on does not report clean (exit 1, no rollback — see the function).
+    if print_key_settings; then
+        exit 0
+    else
+        exit 1
+    fi
 fi
 
 echo >&2

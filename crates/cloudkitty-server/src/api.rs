@@ -11,7 +11,7 @@
 use std::sync::Arc;
 
 use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::http::{header, HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use cloudkitty_core::{
@@ -132,4 +132,26 @@ pub async fn get_refusals(State(state): State<AppState>) -> Json<RefusalWindow> 
 
 pub async fn get_config(State(state): State<AppState>) -> Json<Arc<Config>> {
     Json(state.config.clone())
+}
+
+/// The key settings (spec 052, contracts §1/§2): every dial anyone has
+/// needed to verify after a deploy, as effective value, engine default and
+/// source. JSON by default; the same block as text — byte-identical to the
+/// boot log — when the request accepts `text/plain`, which is what the
+/// deploy script asks for. Read-only, built at boot, and it touches nothing
+/// `/config` serializes (FR-005).
+pub async fn get_settings(State(state): State<AppState>, headers: HeaderMap) -> Response {
+    let wants_text = headers
+        .get(header::ACCEPT)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|accept| accept.contains("text/plain"));
+    if wants_text {
+        (
+            [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+            state.settings.render_text(),
+        )
+            .into_response()
+    } else {
+        Json(state.settings.clone()).into_response()
+    }
 }
