@@ -21,7 +21,7 @@ sleep 3; curl -s http://127.0.0.1:8090/config > /tmp/config-before.json; kill %1
 ## 1. Unit guards (`crates/cloudkitty-server/src/settings.rs`)
 
 ```bash
-cargo test -p cloudkitty-server settings::
+cargo test -p cloudkitty-server --no-fail-fast settings::   # --no-fail-fast under mutate.sh too, or the integration guards never run after a lib red
 ```
 
 | guard | FR | red (mutate.sh --expect) | prediction |
@@ -31,6 +31,8 @@ cargo test -p cloudkitty-server settings::
 | no file → all default | FR-011a | `raw.is_none()` branch returns `Toml` | exactly the no-file test fails |
 | Option sentinels | FR-003 | render `None` as `null` | the sentinel test fails on `meow.relief_memory_margin` |
 | render_text grammar | contract §2 | omit the `(default: …)` parenthesis for keys that have one | the grammar test fails on the first defaulted line |
+| f32 as written | review 2 | widen with `f64::from` | exactly the f32 test fails (`0.2` prints as `0.20000000298023224`) |
+| presence path | review 3 | look the key up at the root of the tree | the minimal-config test fails (and the grammar test's `world.width [toml]` line) |
 | announce (log capture) | FR-012 / SC-004 | log the JSON instead of `render_text()` | exactly the announce test fails |
 
 ## 2. Integration guards (`crates/cloudkitty-server/tests/server_integration.rs`)
@@ -52,13 +54,15 @@ cargo test -p cloudkitty-server --test server_integration settings
 bash docs/deploy/test-update-tail.sh
 ```
 
-Four cases: 200 + body → section printed, exit 0; 404 → message 1, exit 1; 200 empty → message 2, exit 1; closed port → message 3, exit 1.
+Five cases: 200 + body → section printed, exit 0; 404 → message 1, exit 2; 200 empty → message 2, exit 2; closed port (127.0.0.1:1) → message 3, exit 2; stdout closed → message 4, exit 2. Exit 2, never 1: the rollback branch owns 1.
 
 | red | prediction |
 |---|---|
 | 404 not special-cased (falls to the unusable branch) | the 404 case fails: stderr lacks the old-binary message |
 | drop the empty-body check | the empty case fails |
 | swallow curl's exit status | the closed-port case fails (it reports "unusable" instead of "stopped answering") |
+| ignore `cat`'s status | the closed-stdout case fails (exit 0) |
+| `return 1` in one branch | that branch's case fails (want 2 got 1) |
 
 ### 3a. The CI step (FR-015 / SC-007)
 
