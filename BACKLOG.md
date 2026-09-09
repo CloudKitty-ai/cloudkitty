@@ -45,9 +45,13 @@ constrained side of the G1 bar. The note for future censuses now lives in
 `experiments/bugs2-grid-analyze.py::ev`. Measurements:
 `experiments/exp-006a-biscuit-corner/live-play-2026-08-23.md`.
 
-### Serving welfare watchdog: max_distress_age on the served world (added 2026-08-20; owner-approved)
+### ~~Serving welfare watchdog: max_distress_age on the served world~~ — SHIPPED (spec 040, PR #283 2026-08-22; de-flaked #298)
 
-The engine already computes `distress_since` per (kitty, need); nothing
+Live on the served world: `GET /welfare` reads `threshold 150, alarm_live
+false` (checked off the box 2026-09-08). Detection only, as specified;
+intervention stays the P2 entry below. Struck 2026-09-08.
+
+The original entry (added 2026-08-20; owner-approved): the engine already computes `distress_since` per (kitty, need); nothing
 watches it continuously on the served world — the G6 soak watches were
 stopped after the pass, by design. The exp-006 r5 forensics showed why a
 standing watch matters: the co-sleep deadlock (F-027) ran a 2331-tick
@@ -1029,9 +1033,21 @@ eat 50.0%).
 we'll see what happens with the next gen of models and I'll worry about
 it then if it still looks excessive."** Do not re-open before then.
 
-### A mutation runner that snapshots by construction (added 2026-08-23; tooling, LOW priority)
+### ~~A mutation runner that snapshots by construction~~ — DONE 2026-09-06 (`scripts/mutate.sh`, PR #353)
 
-Every red-first pass this session hand-rolled a `mutate-*.sh` that edits a
+`scripts/mutate.sh [--expect REGEX] <file> <mutation-cmd> <test-cmd>`
+is the runner, with one difference from the shape below: it refuses a
+target that is dirty against HEAD and restores from git, rather than
+copying the file aside, and it compares a `git status` snapshot after
+the restore so a mutation that touched a second file is refused (exit
+8). It also refuses a no-op mutation, a mutation the suite survives
+(VACUOUS), and, with `--expect`, a red for the wrong reason; the
+post-restore run must reproduce the baseline counts. The companion
+hook `revert-guard.py` makes the hand-rolled `git checkout` restore
+impossible on a dirty file. CLAUDE.md rule 5 names the script. Struck
+2026-09-08.
+
+The original entry (added 2026-08-23; tooling, LOW priority): every red-first pass this session hand-rolled a `mutate-*.sh` that edits a
 source file, runs the suite, and restores it — and one of them restored by
 `git checkout`, which ate uncommitted harness work and cost a rebuild.
 CLAUDE.md rule 5 now carries the lesson ("Undo means revert: commit first,
