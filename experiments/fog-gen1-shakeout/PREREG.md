@@ -3,13 +3,12 @@
 Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
-open before declaration: the `reply_intensity_floor` pin on
-`anchor.toml` (rule ruled 2026-09-05, number follows the speaker-floor
-screen), the `expected_per_1000` rates in `declared_constant.json`
-(filled from the BC corpus trace at declaration, rule ruled 2026-09-05),
-and the anchor re-smoke at margin 0 once spec 050 `relief_memory_margin`
-is on main (merging 2026-09-05; the declaration waits for it, owner
-ruled). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
+open before declaration: nothing — the `expected_per_1000` rates were
+filled 2026-09-08 from the four held-out BC-corpus traces (rule ruled
+2026-09-05; the critter-slots group carries null with an empirical
+alive-proof instead of a rate, see the fill note in the json: its
+incidence is seed-clustered and a pooled rate reds a healthy seed),
+and the margin-0 anchor re-smoke ran 2026-09-05 (30eb469). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
 The nine-arm pass was ruled 2026-09-05 (Part C, "Nine-arm pass"
 bullet; slots 7-9 in the trainer, run indices 18-20).
 `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
@@ -260,6 +259,11 @@ with no layout consequence (the legality mask is an oracle over
   table and `--out` JSON go to #351 with the numbers pasted. The
   screen is descriptive; the pin is drawn per the pencilled rule
   above and is the owner's call.
+- **Radius pin RULED (#351, owner 2026-09-08): "Pin at 4."** Ruled off
+  the posted curve (watchdog 0 at r ≥ 3, r=4 episodes 0.30–0.65/1k vs
+  control 0.35–0.55, safeguard-eat 0.20–0.30/1k, blind-hungry
+  295–392 cat-ticks/1k). `PINS["radius"] = 4` in the trainer; the
+  speaker-floor screen and the corpus run at radius 4.
 - **Leash consequence (pencilled)**: a weak anchor under fog means the
   clone-and-leash recipe holds learners near a weak teacher; slot 5 (β
   up) is promoted to essential, H2 becomes a floor we expect to clear,
@@ -273,6 +277,54 @@ with no layout consequence (the legality mask is an oracle over
   two-arm scripted contrast at that speaker floor, listener
   {picked / 100, 0.30}, reads reply rate and informativeness before
   the pin. Neither floor varies in the PPO pass.
+- **Floor-screen run declaration (2026-09-08; this commit precedes
+  collection)**: instrument `floor_screen.py` @ ba3d54d (welfare via
+  `radius_screen.screen` through a comms tap), guard
+  `test_floor_screen.py` in the same commit, nine mutate.sh reds
+  (dedup, heard cut, informativeness bar, self-reply, window edge,
+  kind matching, ambient/reply split, traceless refusal, floor from
+  config). Arms: `anchor.toml` with exactly three keys moved —
+  `[vision] radius = 4` (the #351 pin), `announce_threshold` in
+  {10, 15, 20}, `reply_intensity_floor` = floor / 100 — written to
+  `results-raw/floor-screen/floor-N.toml`, tomllib-checked. SHA-256:
+  - floor-10 `ad293433fd49ecd1c0c1d58b118a8d9ab8edec6b956f1fe79c166360f0e41156`
+  - floor-15 `b4a413fbd76b2ce6cca22c968de9f1dddb902eccdc20aacd71e3dbd34192322f`
+  - floor-20 `952564513eec8193d27dc56c62cd40c1c6ad520fc13cd80257b52999a7d7fe05`
+
+  The 30 arm is `results-raw/radius-screen/radius-4.toml`
+  (`4b0805de…`, announce 30 / listener 0.30 / radius 4 already), so
+  its three radius-screen rollouts are reused verbatim rather than
+  re-collected. Collection, per new config:
+  `experiments/tools/bc-collect/target/release/bc-collect --config
+  results-raw/floor-screen/floor-N.toml --rollouts 3 --ticks 20000
+  --seed-base 870001 --trace --out-dir results-raw/floor-screen/fN`,
+  world seeds 870001–870003 paired across arms. Readout:
+  `floor_screen.py` over the 12 rollout directories; table and JSON
+  to #352. Decision rule as ruled above (welfare non-inferior to the
+  30 arm, informativeness, lowest floor clearing both; safeguard
+  beyond the seed spread = INVESTIGATE). No numeric informativeness
+  bar was ruled: the screen is descriptive and the bar lands with the
+  owner's pick on #352.
+- **Speaker floor RULED (#352, owner 2026-09-08): "20 it is."** Floor
+  20, listener 0.20 per the ruled listener rule, written into
+  `anchor.toml` (`announce_threshold` 30.0 → 20.0,
+  `reply_intensity_floor` 0.30 → 0.20) alongside the #351 radius
+  (`[vision] radius` 5 → 4); anchor.toml now equals the screened
+  floor-20 arm key for key. High-need service note from the pick
+  discussion: heard wants at intensity ≥ 0.5 numbered 1357 (floor 20)
+  vs 1356 (floor 30) on the same seeds, answered 0.792 vs 0.817 — the
+  floor adds mild asks under the urgent ones rather than diluting
+  them.
+- **Floor-screen contrast addendum (2026-09-08, after the four-arm
+  curve, before any pick)**: the curve puts the plausible pick at 20
+  (15 and 10 fall to the safeguard clause), so the ruled two-arm
+  listener contrast runs now at floor 20:
+  `results-raw/floor-screen/floor-20-listen-30.toml` = floor-20.toml
+  with only `reply_intensity_floor` moved 0.20 → 0.30
+  (`c3b85b577b8dc6e9db86af7a2dc41bcf7eba7659f9637e0153d30aacf5062434`),
+  same seeds 870001–870003, 20k ticks, `--trace`, out-dir
+  `results-raw/floor-screen/f20-l30`. Read against the f20 arms for
+  reply rate and informativeness; both sets go to #352 together.
 - **PPO horizon (ruled)**: no fixed tick count. Stop an arm when three
   consecutive 1M-tick bins each improve the bin-mean shaped return by
   < 0.005 AND KL-to-anchor changes by < 10% or < 0.02 absolute per bin.
@@ -355,11 +407,11 @@ with no layout consequence (the legality mask is an oracle over
   unjudged at this size (≈28 held-out rows against the 100-row
   floor); it is rare by law, and only the floor pick moves it.
   Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
-  with three keys changed, each declared here: `groom_cuddle_relief`
+  with five keys changed, each declared here: `groom_cuddle_relief`
   2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
-  `reply_intensity_floor` unset → 0.30 (the served comment assigns the
-  floor to this config; 0.30 is the provisional value, owner pins at
-  declaration). Unset, the served config emits no here-word and no
+  `reply_intensity_floor` unset → 0.20 (pinned #352, = speaker floor /
+  100), `announce_threshold` 30.0 → 20.0 (pinned #352), `[vision]
+  radius` → 4 (pinned #351). Unset, the served config emits no here-word and no
   reply at all (anchor smoke: 0 of each in 1000 ticks), so A7/A8/A16
   cannot be read on it. Anchor roster: 1 needs_driven, 2 playful, 3–5
   needs_driven.

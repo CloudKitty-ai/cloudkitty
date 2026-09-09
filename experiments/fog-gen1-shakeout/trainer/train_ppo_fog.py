@@ -97,8 +97,9 @@ PLATEAU_BINS = 3
 # ---------------------------------------------------------------- owner pins
 # None = not yet pinned; the launcher refuses the slot outside --smoke.
 PINS = {
-    # [vision] radius ruled off the radius screen (PREREG Part C).
-    "radius": None,
+    # [vision] radius ruled off the radius screen: owner "Pin at 4"
+    # (#351, 2026-09-08; curve in PREREG Part C's run declaration).
+    "radius": 4,
     # F-019 low end (exp-006 L-04) and the next dose up the curve.
     # 0.05 is PROVISIONAL (exp-006 L-05 sat there); owner confirms at
     # declaration.
