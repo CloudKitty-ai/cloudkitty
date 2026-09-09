@@ -107,8 +107,10 @@ PINS = {
     "beta_next": 0.05,
     # Schema-5 BC clones: the mixed-corpus clone (slots 1-5) and the
     # vocabulary-lesson clone (slot 6); {"hyper", "state_dict"} .pt.
-    "init_clone": None,
-    "init_vocab": None,
+    # Both cleared the ruled BC bars on the held-out traces 2026-09-09
+    # (bars.json beside each artifact).
+    "init_clone": "experiments/fog-gen1-shakeout/results-raw/clones/clone-fog/clone-fog.pt",
+    "init_vocab": "experiments/fog-gen1-shakeout/results-raw/clones/vocab-s2/vocab-s2.pt",
     # Critic retrained at the fog surface (timeline step 5 prerequisite).
     "critic": None,
 }
