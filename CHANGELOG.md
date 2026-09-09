@@ -33,7 +33,7 @@ change.
 
 ## Unreleased
 
-- **Docs: `docs/threads.md`**, the four-thread working agreements in one
+- **Docs: `THREADS.md`** (repo root), the four-thread working agreements in one
   page: ownership by path, the checkout rules and which hook enforces
   each, pull-before-diagnosing, process tiering, the owner-call ledger,
   verbatim copy. Every line is a ruling the owner already made, dated;
