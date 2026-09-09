@@ -1,6 +1,7 @@
 // Replay a census and compare the shipped poseFor against a chase-distance gate.
 // Usage: node pose-analyze.mjs census.jsonl [gate]
 import { readFileSync } from 'node:fs';
+import { stateOf } from './state-of.mjs';
 
 const file = process.argv[2] ?? 'census.jsonl';
 const GATE = Number(process.argv[3] ?? 4);
@@ -111,8 +112,8 @@ for (let i = 1; i < ticks.length; i++) {
       playKind[kind] = (playKind[kind] ?? 0) + 1;
     }
 
-    const pNow = poseUngated(k.activity?.state ?? k.state, action, moved, onWater);
-    const pGate = poseFor(k.activity?.state ?? k.state, action, moved, onWater, near);
+    const pNow = poseUngated(stateOf(k), action, moved, onWater);
+    const pGate = poseFor(stateOf(k), action, moved, onWater, near);
     bump(now, pNow);
     bump(gated, pGate);
     seq.set(k.id, [...(seq.get(k.id) ?? []), { tick: t1, now: pNow, gate: pGate }]);

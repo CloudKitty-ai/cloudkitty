@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- **Census tooling: one activity-state reader, and a wider capture**
+  (`client-measurements/pose-census/`). `stateOf(k)` replaces four inline
+  reads of a kitty's activity state, built for owner call
+  [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357) ("#357: ruled
+  B"), whose motivating incident was a nested read of a flat census file
+  returning `(none)` on 1,125 cat-ticks and being reported as an engine
+  anomaly. The capture tools now also bank the whole `activity` object beside
+  the flat `state` tag, so the sibling fields the shipped client reads
+  (`with_friend`, `in_sunbeam`, `target`) survive into a raw instead of being
+  discarded at collection, where they cannot be recovered once the world moves
+  on. The owner set the "jsonl stays flat" assumption aside for this on
+  2026-09-08; the flat tag is still written on every row, so every banked raw
+  reads unchanged. No marker: measurement tooling only, nothing outside
+  `client-measurements/`, and the three analyzers produce byte-identical
+  output on the banked raws.
+
 - **Docs: `THREADS.md`** (repo root), the four-thread working agreements in one
   page: ownership by path, the checkout rules and which hook enforces
   each, pull-before-diagnosing, process tiering, the owner-call ledger,

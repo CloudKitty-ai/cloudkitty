@@ -9,6 +9,7 @@
 //
 // Usage: node scene-vs-action.mjs census.jsonl
 import { readFileSync } from 'node:fs';
+import { stateOf } from './state-of.mjs';
 const rows = readFileSync(process.argv[2], 'utf8').trim().split('\n').map(JSON.parse);
 const PAIRS = [['play', 'playing'], ['eat', 'eating'], ['drink', 'drinking'], ['groom', 'grooming'], ['sleep', 'sleeping']];
 
@@ -23,7 +24,7 @@ const runsOf = (pick) => {
   return out;
 };
 const A = runsOf((k) => k.last_action?.action ?? null);
-const S = runsOf((k) => k.state ?? null);
+const S = runsOf(stateOf);
 const sum = (a) => (a || []).reduce((x, y) => x + y, 0);
 
 console.log('action        action-ticks  state-ticks   ratio   state-runs  ticks/state-run');

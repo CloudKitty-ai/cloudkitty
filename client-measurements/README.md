@@ -52,6 +52,41 @@ step, matching the client's own no-build-step house style.
   comparison cannot drift from what the client actually does. `pose-analyze`
   copies `poseFor` out of `render.js` for exactly this reason; if that function
   changes, update the copy.
+- **Read a kitty's activity state through `pose-census/state-of.mjs`, never
+  inline.** Two shapes reach these tools. The box serves the engine's
+  `Activity` enum internally tagged, so the state is a `state` key inside
+  `activity` (`/world`, `/kitties` and `/events/activity` all do this, which is
+  why Experiments' `live_census.py` reads `k["activity"]["state"]`); the jsonl
+  written here carries the tag at the top level, which is the shape every raw
+  banked before 2026-09-08 has and the only shape any of them has. The shape
+  belongs to the artifact that wrote it, so the reader is what absorbs the
+  difference rather than each call site restating the rule. `stateOf(k)` takes
+  either and returns `null` for neither. Owner call
+  [#357](https://github.com/CloudKitty-ai/cloudkitty/issues/357), ruled option
+  B on 2026-09-08: "#357: ruled B". Guarded by `pose-census/test-state-of.mjs`.
+
+  **"Stays flat" was an assumption in #357, not part of the ruling**, and the
+  owner set it aside on 2026-09-08, verbatim: "#357's 'stays flat' was an
+  assumption, not a requirement, and I'm setting it aside: the flat `state`
+  tag is always written, and the full `activity` object may ride alongside
+  it." The issue's Options declined C, which would have *replaced* the flat
+  tag; what the next bullet describes adds beside it. Nothing was replaced or
+  removed, so a pre-2026-09-08 raw and a
+  post one both read the same way through `stateOf`.
+- **Capture the whole `activity` object, not just its tag, and replay through
+  `asServed(k)`.** The two directions are not symmetric. The client reads more
+  of `activity` than the tag: `render.js:1943` draws the cuddle heart off
+  `with_friend`, and `app.js` reads `with_friend` and `in_sunbeam` for the
+  card text. So a tool that replays a raw through the shipped `poseFor` or
+  `Presentation` needs the real object, and a reconstruction from a flat tag
+  is a faithful served kitty only for a caller reading the tag alone.
+  `censusKitty(k)` writes both shapes from the same served kitty, so they
+  cannot disagree; `asServed(k)` hands the captured object straight back and
+  reconstructs only for a raw banked before this was true. Capture is the step
+  that cannot be redone, which is the whole argument: a raw is collected
+  against a world that then moves on, so a field dropped at capture costs
+  another live window to get back, while a field kept and never used costs
+  about 13% of a gitignored file.
 
 ---
 
@@ -65,11 +100,13 @@ reusable for any pose accounting.
 cd client-measurements/pose-census
 node pose-census.mjs 540 census.jsonl      # sample the live world for 540s
 node pose-analyze.mjs census.jsonl 4       # replay it; 4 = the chase-distance gate
+node test-state-of.mjs                     # guards the shared activity-state reader
 ```
 
 `pose-census.mjs` polls `https://kitties.ai/world` every 380ms (the world ticks
-at 800ms) and appends one JSON line per **distinct** tick — positions,
-activity state, `last_action`, and every element. Duplicate polls are dropped
+at 800ms) and appends one JSON line per **distinct** tick — positions, the
+activity state as a flat tag *and* the whole `activity` object beside it,
+`last_action`, and every element. Duplicate polls are dropped
 by tick number, so the sample is a clean tick series and a missed poll shows up
 as a gap rather than a silent hole.
 
