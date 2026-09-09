@@ -25,14 +25,16 @@
       "*.answers_me.here_water"
     ],
     "wiring": "sibling: self.msg.want_drink.*, kitty3.msg.want_drink.* and kitty3.want.want_drink vary on the 1000-tick re-smoke (3 calls); every row varies on the 20k traces",
-    "expected_per_1000": null
+    "expected_per_1000": 39.663,
+    "filled": "filled 2026-09-08 from the four held-out BC-corpus traces (idx03/13/23/33, seeds 1080004/14/24/34, 80k ticks, anchor.toml at the pinned knobs: radius 4, floor 20, listener 0.20); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition"
   },
   "RARE distress flags eat/drink/sleep/play/bath: push_distress_flags writes all six in one loop and the cuddle flag moved (peak 98 > distress 90 on the 1000-tick smoke); the other needs peaked 35-64, so on the scripted anchor welfare keeps them below the line. Early PPO arms will cross it (A17 exempts this group)": {
     "patterns": [
       "self.schema4[[]2[0-5][]]"
     ],
     "wiring": "sibling: self.schema4[24] (cuddle distress) varies on the smoke",
-    "expected_per_1000": null
+    "expected_per_1000": 0.088,
+    "filled": "filled 2026-09-08 from the four held-out BC-corpus traces (idx03/13/23/33, seeds 1080004/14/24/34, 80k ticks, anchor.toml at the pinned knobs: radius 4, floor 20, listener 0.20); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition"
   },
   "RARE want_play on kitty rows 0 and 3 and the here_critter answers-me bit: one row loop writes rows 0-3 and rows 1-2 carried want_play; the play law knows relief whenever an idle friend or a critter is seen or remembered, so with five cats play wants are rare by law (1 on the smoke)": {
     "patterns": [
@@ -41,7 +43,8 @@
       "*.answers_me.here_critter"
     ],
     "wiring": "sibling: kitty1/kitty2 want_play cells vary on the smoke",
-    "expected_per_1000": null
+    "expected_per_1000": 6.463,
+    "filled": "filled 2026-09-08 from the four held-out BC-corpus traces (idx03/13/23/33, seeds 1080004/14/24/34, 80k ticks, anchor.toml at the pinned knobs: radius 4, floor 20, listener 0.20); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition"
   },
   "RARE critter slots 3-4: one slot loop fills slots 1-4 and slots 1-2 fill; the world holds 4 critters (bug min 3 + greeble min 1), each covering ~81/400 of the map, so three in one disc is <= ~2.7% per cat-tick under independence and the bug tether spreads them (0 of 5000 cat-ticks on the smoke)": {
     "patterns": [
@@ -49,13 +52,15 @@
       "element_block9[[]*"
     ],
     "wiring": "sibling: element_block6/7 (critter slots 1-2) fill on the smoke",
-    "expected_per_1000": null
+    "expected_per_1000": null,
+    "filled": "2026-09-08 fill decision: NULL, not a rate. On the four held-out BC-corpus traces (20k ticks each, pinned knobs) slot-3 fill events count {idx03: 0, idx13: 5, idx23: 21, idx33: 9} and slot 4 counts 0 in all 320k cat-ticks: the incidence is seed-clustered (critter spawn geometry), so no per-1000 rate makes the 5x waiting-time rule sound - the pooled 0.438/1k reds a healthy 20k seed (idx03) by luck. The wiring-alive question the rare mechanism exists for is settled empirically: element_block8 varies on 3 of 4 corpus seeds; element_block9's zero is the declared geometry argument. Null never reds; A17 exemption unchanged."
   },
   "RARE second sunbeam slot's occupied bit (element_block5[5], observe.rs: a kitty standing on the second-nearest visible sunbeam): the slot loop writes both sunbeam slots and element_block4[5] (nearest sunbeam occupied) varies on every trace; two sunbeams in one disc with the farther one occupied is rare (10 of 5000 rows on the 2026-09-04 smoke, 0 of 5000 on the 2026-09-05 re-smoke, 225 of 100000 at 20k), so a 1000-tick trace reads it constant by chance": {
     "patterns": [
       "element_block5[[]5[]]"
     ],
     "wiring": "sibling: element_block4[5] (nearest sunbeam occupied) varies on the smoke",
-    "expected_per_1000": null
+    "expected_per_1000": 2.325,
+    "filled": "filled 2026-09-08 from the four held-out BC-corpus traces (idx03/13/23/33, seeds 1080004/14/24/34, 80k ticks, anchor.toml at the pinned knobs: radius 4, floor 20, listener 0.20); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition"
   }
 }

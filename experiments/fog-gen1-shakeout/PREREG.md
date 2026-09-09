@@ -3,11 +3,12 @@
 Status: draft, being hashed out with the owner. Knob and field names
 marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
 merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
-open before declaration: the `expected_per_1000` rates in `declared_constant.json`
-(filled from the BC corpus trace at declaration, rule ruled 2026-09-05),
-and the anchor re-smoke at margin 0 once spec 050 `relief_memory_margin`
-is on main (merging 2026-09-05; the declaration waits for it, owner
-ruled). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
+open before declaration: nothing — the `expected_per_1000` rates were
+filled 2026-09-08 from the four held-out BC-corpus traces (rule ruled
+2026-09-05; the critter-slots group carries null with an empirical
+alive-proof instead of a rate, see the fill note in the json: its
+incidence is seed-clustered and a pooled rate reds a healthy seed),
+and the margin-0 anchor re-smoke ran 2026-09-05 (30eb469). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
 The nine-arm pass was ruled 2026-09-05 (Part C, "Nine-arm pass"
 bullet; slots 7-9 in the trainer, run indices 18-20).
 `schema_check.py` and its guard landed 2026-09-04 (e4f0642);
