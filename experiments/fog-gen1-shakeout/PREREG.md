@@ -403,9 +403,13 @@ with no layout consequence (the legality mask is an oracle over
   anchor corpus was 100 × 8k), seeds 1080001–1080040, held-out =
   index ending in 3 (03/13/23/33; exp-006's rule, carried), bc-collect
   `--trace` on the four held-out only (the readout's reply/ambient
-  split reads the trace; the trainer does not). want_play stays
-  unjudged at this size (≈28 held-out rows against the 100-row
-  floor); it is rare by law, and only the floor pick moves it.
+  split reads the trace; the trainer does not). The "want_play stays
+  unjudged (≈28 held-out rows against the 100-row floor)" estimate was
+  written at floor 30 and the floor pick moved it, as this sentence
+  predicted: at the pinned floor 20 the held-out traces carry 517
+  want_play emissions (119/133/132/133 per seed, measured 2026-09-08
+  at the expected_per_1000 fill), so the 100-row floor is met and
+  want_play is judged like every other kind.
   Config = `anchor.toml` (this directory): the served `cloudkitty.toml`
   with five keys changed, each declared here: `groom_cuddle_relief`
   2.0 → 0.5 (the config rule), `announce_here` unset → 1 (this line),
