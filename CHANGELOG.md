@@ -33,6 +33,21 @@ change.
 
 ## Unreleased
 
+- **Census tooling: `pose-analyze` calls the client's pose rule instead of
+  copying it.** Its local `poseFor` claimed to be the shipped rule verbatim and
+  had drifted for six weeks — `ACTION_POSE` entered `render.js` on 2026-08-13
+  and `grooming-other` on 2026-08-22 — so the column it labelled SHIPPED
+  disagreed with the client on 23.1% of kitty-ticks in one banked raw and 20.9%
+  in the other. It now loads the real function (`shipped-pose.mjs`), and the
+  no-gate counterfactual is the same rule with the gate opened rather than a
+  second copy of it. Owner call
+  [#362](https://github.com/CloudKitty-ai/cloudkitty/issues/362), ruled B.
+  **This changes numbers the tool reports** — that is the fix, not a
+  regression, and the 2026-08-08 pounce/walk finding in
+  `client-measurements/README.md` still stands because the copy was accurate
+  when that measurement was taken. No compatibility marker: measurement
+  tooling, nothing outside `client-measurements/`.
+
 - **Census tooling: one activity-state reader, and a wider capture**
   (`client-measurements/pose-census/`). `stateOf(k)` replaces four inline
   reads of a kitty's activity state, built for owner call
