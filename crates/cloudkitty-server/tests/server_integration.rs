@@ -312,6 +312,115 @@ async fn config_and_distress_endpoints_are_served() {
     server.shutdown().await;
 }
 
+/// Spec 052 FR-012 / SC-004: the wire carries the block the server built,
+/// unchanged — JSON is its serde form, `Accept: text/plain` is the one
+/// renderer's output (the same bytes the boot log says).
+#[tokio::test]
+async fn settings_endpoint_serves_the_built_block_as_json_and_as_text() {
+    let server = start_server().await;
+    let expected = cloudkitty_server::settings::build(&test_config(), &Default::default(), None);
+
+    let json: Value = reqwest::get(server.url("/settings"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(json, serde_json::to_value(&expected).unwrap());
+
+    let text = reqwest::Client::new()
+        .get(server.url("/settings"))
+        .header("Accept", "text/plain")
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(text.status(), reqwest::StatusCode::OK);
+    let content_type = text
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    assert!(
+        content_type.starts_with("text/plain"),
+        "text/plain was asked for, got {content_type}"
+    );
+    assert_eq!(text.text().await.unwrap(), expected.render_text());
+
+    // The viewer is a window, not a control surface: the route is GET-only.
+    let post = reqwest::Client::new()
+        .post(server.url("/settings"))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(post.status(), reqwest::StatusCode::METHOD_NOT_ALLOWED);
+
+    server.shutdown().await;
+}
+
+/// Spec 052 FR-004 / SC-002: on a config that sets no optional dial, every
+/// listed key is still present, every entry has a source, and no value is
+/// `null` — "at the default" is a value here, never an absence.
+#[tokio::test]
+async fn settings_endpoint_lists_every_key_on_a_minimal_config() {
+    let server = start_server().await;
+    let json: Value = reqwest::get(server.url("/settings"))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+
+    let stamp = json["engine_defaults_sha256"].as_str().unwrap();
+    assert_eq!(stamp.len(), 64);
+
+    let entries = json["entries"].as_array().unwrap();
+    let names: Vec<String> = entries
+        .iter()
+        .map(|e| {
+            format!(
+                "{}.{}",
+                e["group"].as_str().unwrap(),
+                e["key"].as_str().unwrap()
+            )
+        })
+        .collect();
+    for wanted in [
+        "world.width",
+        "world.height",
+        "world.seed",
+        "kitty.1",
+        "kitty.2",
+        "vision.radius",
+        "vision.memory_timeout_ticks",
+        "meow.relief_memory_margin",
+        "actions.groom_cuddle_relief",
+        "behavior.announce_here",
+        "behavior.contagion_aware_ladder",
+        "behavior.reply_intensity_floor",
+        "water.bath_gain",
+        "water.bath_gain_ceiling",
+        "water.contagion_factor",
+        "water.contagion_membership",
+        "watchdog.threshold",
+        "watchdog.remind_every",
+    ] {
+        assert!(
+            names.contains(&wanted.to_string()),
+            "{wanted} missing from {names:?}"
+        );
+    }
+    for e in entries {
+        assert!(!e["value"].is_null(), "{e} has a null value");
+        assert!(
+            e["source"] == "toml" || e["source"] == "default",
+            "{e} has no source"
+        );
+    }
+
+    server.shutdown().await;
+}
+
 #[tokio::test]
 async fn distress_ages_appear_in_the_payload_once_a_distress_exists() {
     // Drive a need into distress fast: a kitty whose play need rockets.

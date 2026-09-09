@@ -330,6 +330,13 @@ async fn run() -> Result<()> {
         remind_every = watchdog_config.remind_every,
         "welfare watchdog standing by"
     );
+    // Spec 052: the key settings block, said once here — after validation,
+    // before the first tick (FR-006) — and the SAME Arc the endpoint serves
+    // (FR-006a), so the journal and GET /settings cannot disagree. The
+    // per-spec lines above (wet fur, contagion, vision, the ladder gate)
+    // stay as their specs' evidence (FR-007); this block is added beside
+    // them, not in place of them.
+    settings.announce();
     let watchdog = cloudkitty_server::watchdog::Watchdog::new(watchdog_config);
     let sim = sim_task::spawn(
         world,
