@@ -2102,6 +2102,29 @@ Three things to settle before speccing:
    screen. Today the bubble follows the cat; `pos` is what would make
    leaving it where the word was said possible at all.
 
+### Debug option: show the vision radius (added 2026-09-10; Client thread — after the fog shakeout, owner)
+
+Owner's ask, verbatim: **"debug option: show vision radius. Notes: each cat
+should have a different color, and the colors should overlap in a way that is
+still aesthetically appealing even when all 5 cats are together."**
+
+What gets drawn is Fog Gen 1's sight: the Euclidean disc of `vision.radius`
+tiles a cat sees kitties and elements inside
+(`crates/cloudkitty-core/src/config/mod.rs:108-122`).
+
+**The radius is served — read it, never hardcode it.** Spec 052 (key
+settings, #364) puts it on `GET /settings`:
+
+    { "group": "vision", "key": "radius", "value": 5, "source": "toml" }
+
+A client-side copy of an engine value is the failure owner call #362 was
+opened for. `/settings` reaches the box on the next server update; checking
+the live box before then finds no vision field and says nothing about whether
+the surface exists.
+
+`v` is the only free debug key (`b`, `d`, `g`, `h`, `l`, `p` and `r` are
+taken); the toggle mold is in `client/app.js`.
+
 ### Cover colour variance — wants a full treatment (added 2026-08-13; Client thread)
 
 Every clump takes the same two palette entries, `MEADOW.bush` and
