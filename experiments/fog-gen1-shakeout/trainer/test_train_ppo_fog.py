@@ -29,6 +29,19 @@ def test_plateau_flat_needs_both_return_and_kl_flat():
     assert not tf.plateau_flat({"ret": None, "kl": 0.1}, {"ret": 1.0, "kl": 0.1})
 
 
+def test_plateau_flat_returns_a_real_bool_on_numpy_bins():
+    # red: return the bare comparison; the 2026-09-10 pass died at u~650
+    # writing metrics.jsonl because np.bool_ is not JSON serializable
+    import numpy as np
+    prev = {"ret": np.float32(0.865), "kl": np.float32(0.062)}
+    assert tf.plateau_flat(prev, {"ret": np.float32(0.866),
+                                  "kl": np.float32(0.063)}) is True, \
+        "plateau_flat on numpy bins must return a real bool (metrics.jsonl json)"
+    assert tf.plateau_flat(prev, {"ret": np.float32(0.966),
+                                  "kl": np.float32(0.063)}) is False, \
+        "plateau_flat non-flat verdict must also be a real bool"
+
+
 def test_derive_config_moves_only_the_radius():
     # red: substitute a second `radius` line, or skip the equality check
     with tempfile.TemporaryDirectory() as td:

@@ -401,7 +401,9 @@ def plateau_flat(prev, cur):
     d_ret = cur["ret"] - prev["ret"]
     d_kl = abs(cur["kl"] - prev["kl"])
     kl_flat = d_kl < PLATEAU_KL_REL * abs(prev["kl"]) or d_kl < PLATEAU_KL_ABS
-    return d_ret < PLATEAU_RETURN and kl_flat
+    # bool(): bin values arrive as numpy floats, and np.bool_ is not
+    # JSON serializable when the verdict lands in metrics.jsonl
+    return bool(d_ret < PLATEAU_RETURN and kl_flat)
 
 
 def sha256(path: Path) -> str:
