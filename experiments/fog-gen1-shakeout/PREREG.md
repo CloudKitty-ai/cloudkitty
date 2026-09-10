@@ -82,6 +82,42 @@ stops the screen, since an uncovered core would make the radius pin
 measure the sweep rule instead of vision (why T088 was re-ruled). Its
 index-persistence half is read at probe 1 with the rest.
 
+**Probe-1 amendment (#367, owner ruled 2026-09-10 "Agreed, let's do
+that")**: the probe-1 read fired A17 RED on the radius-1 arm. Every
+disagreeing column traced to a rare two-elements-in-one-disc event that
+one 2,000-tick sample carried and the other did not, in both directions
+(the anchor saw a second sunbeam the policy never did; the policy saw a
+second chow and critter the anchor's rollout-00 missed), with A3, A12,
+A14 and A18 green on all nine arms. Ruled an instrument artifact, not a
+stop; the pass continued. Two fixes landed with the ruling, one banked:
+
+1. The A17 probe read pools the anchor's bc-collect rollouts (the
+   PROBE_SEEDS trio) to match the probe npz's pooled worlds; the
+   single-rollout comparison was a granularity bug. Driver:
+   `parta_pool_a17.py` (delegates to `schema_check.check_a17`).
+2. `declared_constant.json` gained four groups, each with a `filled`
+   provenance string citing #367: RARE second chow / second sunbeam
+   positions / second critter slot at sub-pin radii (all
+   `expected_per_1000: null` — the corpus rates were measured at
+   radius 4 and do not transfer, the idx03 lesson), and a STRUCTURAL
+   whole-world-radius group for the nofog arm (fog memory unreachable,
+   want_eat and self want_play law-blocked, slot present bits and
+   row-present bit constant). The structural group's patterns are
+   global but inert at fog radii, where those columns vary; a dead
+   want path at radius 4 still reds A5/A6. Law-constant groups (the
+   refused vocabulary) were not touched.
+3. Banked for the step-6 instrument revision: rate-based A17 (red on
+   statistically incompatible rates rather than boolean can-vary) and
+   config-aware declarations. Until then, the nofog arm's A1 reads a
+   KNOWN RED: 34 rare-overdue columns from the want_drink / kitty
+   want_play groups, whose radius-4 rates predict events that the
+   whole-world config blocks by law (water and critters are always
+   visible). Documented here so every probe shows the same explained
+   signature; A1 is a logged row and stops nothing.
+
+After the amendment: all nine arms A17 ok (pooled and single-rollout),
+radius-1 A1 unproven with 0 undeclared, radius-4 arms unchanged.
+
 Instrument status, 2026-09-04 (anchor smoke: `anchor.toml`, 1000 ticks,
 seed 870001, bc-collect `--trace`; 4981 decisions, 5000 observations):
 17 rows green; A17 lit 2026-09-05 from the fog trainer's smoke probe

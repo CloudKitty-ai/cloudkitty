@@ -62,5 +62,38 @@
     "wiring": "sibling: element_block4[5] (nearest sunbeam occupied) varies on the smoke",
     "expected_per_1000": 2.325,
     "filled": "filled 2026-09-08 from the four held-out BC-corpus traces (idx03/13/23/33, seeds 1080004/14/24/34, 80k ticks, anchor.toml at the pinned knobs: radius 4, floor 20, listener 0.20); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition"
+  },
+  "RARE second chow slot at sub-pin radii (element_block1, all fields): two bowls (chow min 6 max 8, random spawns) must lie in one vision disc; common at the pinned radius 4 (the group reads stale there, the good outcome) but rare at r=3 - anchor rollout-00 of the #367 probe read carried 0 co-visible ticks while rollout-01 (seed 40002) carried 10": {
+    "patterns": [
+      "element_block1[[]*"
+    ],
+    "wiring": "sibling: element_block0 (nearest chow) fills on every trace; element_block1[1] varies in r3 anchor rollout-01 and across the whole radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
+  },
+  "RARE second sunbeam slot position fields (element_block5[0-4]): companion to the [5]-occupied-bit group above, which was declared alone because these fields always varied on the radius-4 corpus; at r=3 two beams co-visible is itself rare (the #367 radius-1 policy probe carried 0 such rows in 30k while the pooled anchor carried some - anchors walk to beams, sunbeam_reach 8)": {
+    "patterns": [
+      "element_block5[[][0-4][]]"
+    ],
+    "wiring": "sibling: element_block4 (nearest sunbeam) varies on every trace; block5[0-4] vary on the pooled r3 anchor trio and across the radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
+  },
+  "STRUCTURAL at whole-world radius (the nofog arm, r=27 covers the 20x20 grid; group scoped to that config, added 2026-09-10 per #367): nothing is ever unseen, so fog memory tokens can never set; chow/critters are always visible, so the want law (emit only when nothing visible or remembered) blocks want_eat and self want_play, and their digest/answers-me columns with them; every element slot stays filled (A12 read 0 empty at r27) so the slot present bits sit at 1, and every kitty row reads Seen (row-present bit constant). At fog radii these columns all vary, so this group is inert there; a dead want path at r4 would still red A5/A6 (digest and intensity are checked against trace stamps), which is why declaring them does not mask that failure": [
+    "self.memory.*",
+    "*.msg.want_eat.*",
+    "*.want.want_eat",
+    "*.answers_me.here_food",
+    "self.msg.want_play.*",
+    "element_block[0-7][[]0[]]",
+    "kitty*.schema4[[]0[]]"
+  ],
+  "RARE second critter slot at sub-pin radii (element_block7, all fields): companion to the block8/9 slots-3-4 group above; slot 2 fills whenever two of the four critters share a disc, common at radius 4 but rare at r=3 (the #367 probe read's anchor rollout-00 never carried it while the pooled trio did)": {
+    "patterns": [
+      "element_block7[[]*"
+    ],
+    "wiring": "sibling: element_block6 (critter slot 1) fills on every trace; block7 varies on the pooled r3 anchor trio and across the radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
   }
 }
