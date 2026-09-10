@@ -2115,16 +2115,30 @@ means five discs that will frequently overlap two and three deep, which is
 the whole difficulty in the owner's note — the overlap is the common case,
 not the edge case.
 
-**Blocked on a served field, and it must not be worked around.** `/world`
-today serves `tick`, `width`, `height`, `kitties`, `elements`,
-`recent_meows` and nothing about vision; no kitty field carries a radius
-either (checked against the live box 2026-09-10). So the client cannot draw a
-truthful disc without an additive `/world` field — Product's lane, small.
-**Do not hardcode the radius to get started.** A client-side copy of an
-engine number is exactly the failure owner call #362 was opened for: the
-pose-rule copy read right for six weeks and then silently disagreed with the
-client on 21-23% of kitty-ticks. If the radius is worth drawing it is worth
-serving.
+**The radius is served — read it, never hardcode it.** Spec 052 (key
+settings, merged in #364) puts it on `GET /settings`, in the ordered
+`entries` array:
+
+    { "group": "vision", "key": "radius", "value": 5, "source": "toml" }
+
+Two properties of that surface shape the client code
+(`specs/052-key-settings/contracts/key-settings.md`): the value is **built at
+boot and never changes for the life of the process**, so read it once at
+startup rather than per frame; and `vision.*` entries carry **no `default`
+field** — vision is a required section under the 3.0 rule, so there is no
+fallback to fall back to.
+
+Which gives the degrade path: if `/settings` is absent, or carries no
+`vision.radius` entry, the toggle reports itself unavailable and **draws
+nothing**. It does not guess a number. A client-side copy of an engine value
+is exactly the failure owner call #362 was opened for — the pose-rule copy
+read right for six weeks and then silently disagreed with the client on
+21-23% of kitty-ticks — and this one is cheap to get right, because the
+value is one fetch away.
+
+The only thing outstanding is the deploy: `/settings` reaches the box on the
+next server update (owner, 2026-09-10). Until then the toggle has nothing to
+read, which is the degrade path above rather than a blocker on anyone.
 
 Client-side shape, once the field exists:
 
