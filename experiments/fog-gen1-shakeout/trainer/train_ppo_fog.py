@@ -111,8 +111,11 @@ PINS = {
     # (bars.json beside each artifact).
     "init_clone": "experiments/fog-gen1-shakeout/results-raw/clones/clone-fog/clone-fog.pt",
     "init_vocab": "experiments/fog-gen1-shakeout/results-raw/clones/vocab-s2/vocab-s2.pt",
-    # Critic retrained at the fog surface (timeline step 5 prerequisite).
-    "critic": None,
+    # Critic retrained at the fog surface. Held-out EV ~0 on the flat
+    # anchor corpus; ACCEPTED per #365 ("Probe then accept", owner
+    # 2026-09-10) after the random-policy probe passed (finite, in
+    # band, Spearman 0.395 on off-distribution returns).
+    "critic": "experiments/fog-gen1-shakeout/results-raw/clones/critic-fog/critic6-0p998.pt",
 }
 
 # slot -> (radius rule, beta pin, init pin, seed, run_index). Run

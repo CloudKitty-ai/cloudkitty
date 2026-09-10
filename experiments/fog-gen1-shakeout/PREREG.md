@@ -1,22 +1,16 @@
-# Fog Gen 1 step-5 shakeout — prereg DRAFT (2026-09-03, not declared)
+# Fog Gen 1 step-5 shakeout — prereg (DECLARED 2026-09-10)
 
-Status: draft, being hashed out with the owner. Knob and field names
-marked `<049:…>` were spec 049's to pin; all filled 2026-09-04 from the
-merged tree (PR #344, main 75e97d1, served `cloudkitty.toml`). Still
-open before declaration: nothing — the `expected_per_1000` rates were
-filled 2026-09-08 from the four held-out BC-corpus traces (rule ruled
-2026-09-05; the critter-slots group carries null with an empirical
-alive-proof instead of a rate, see the fill note in the json: its
-incidence is seed-clustered and a pooled rate reds a healthy seed),
-and the margin-0 anchor re-smoke ran 2026-09-05 (30eb469). The BC bar numbers were ruled 2026-09-05 (Part C, BC bullet).
-The nine-arm pass was ruled 2026-09-05 (Part C, "Nine-arm pass"
-bullet; slots 7-9 in the trainer, run indices 18-20).
-`schema_check.py` and its guard landed 2026-09-04 (e4f0642);
-the A1 reasons were ratified the same day (5a16b43). The trainer
-(`trainer/train_ppo_fog.py`) landed 2026-09-05 with its own pin list
-(`PINS`: β 0.04 / 0.05 provisional; radius, the two schema-5 clones and
-the fog critic None until the screens and the BC pass fill them).
-Declaration = a later commit that removes this header. Timeline
+Declared by this commit; the draft header (2026-09-03) defined the
+declaration as the commit that removes it. Every pin is filled and
+ruled: `[vision] radius` 4 (#351), speaker floor 20 with listener
+0.20 (#352), β 0.04 / 0.05 (owner confirmed 2026-09-09), the two BC
+clones (both cleared the ruled bars on the held-out traces,
+2026-09-09) and the critic (EV ~0 on the flat anchor corpus, accepted
+per #365 "Probe then accept" after the random-policy probe passed,
+2026-09-10). `expected_per_1000` filled 2026-09-08 from the held-out
+corpus traces (the critter-slots group carries null with an
+empirical alive-proof; its incidence is seed-clustered). Corpus:
+40 × 20k at the pinned knobs, seeds 1080001–1080040. Timeline
 authority: `experiments/fog-gen1-timeline-2026-08-26.md` step 5 (HALT /
 INVESTIGATE tables, BC recipe, the training-pass slate).
 
