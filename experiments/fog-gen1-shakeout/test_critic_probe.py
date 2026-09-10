@@ -37,6 +37,8 @@ assert cp.spearman([1, 2, 3, 4], [4, 3, 2, 1]) == -1.0, "spearman: inverted"
 assert abs(cp.spearman([1, 2, 3, 4, 5], [1, 3, 2, 5, 4]) - 0.8) < 1e-12, \
     "spearman: known 0.8 case"
 assert cp.spearman([1, 1, 2, 2], [1, 1, 2, 2]) == 1.0, "spearman: ties"
+assert cp.spearman([1, 2, 3, 4], [1, 10, 100, 1000]) == 1.0, \
+    "spearman: rank-based, monotone nonlinear must be exactly 1 (Pearson is not)"
 
 # --- verdict ---------------------------------------------------------------
 t = np.linspace(300, 500, 100)
