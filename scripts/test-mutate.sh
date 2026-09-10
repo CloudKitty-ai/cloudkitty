@@ -18,7 +18,9 @@ case_() {  # case_ <want-exit> <label> <args...>
   local clean=ok; git diff --quiet HEAD -- cfg || clean=DIRTY
   if [ "$got" -eq "$want" ] && [ "$clean" = ok ]; then echo "ok   $label"; else echo "FAIL $label: want $want got $got, cfg $clean"; fail=1; fi
 }
-MUT="sed -i '' 's/42/41/' cfg"; NOOP="true"; T_OK="bash t.sh"
+# perl, not `sed -i`: BSD and GNU sed disagree on the in-place suffix, and
+# this runs on macOS and in CI (spec 052 put it there).
+MUT="perl -pi -e 's/42/41/' cfg"; NOOP="true"; T_OK="bash t.sh"
 case_ 0 "happy path: red confirmed, file restored"      cfg "$MUT" "$T_OK"
 case_ 0 "happy path with matching --expect"             --expect 'expected 42' cfg "$MUT" "$T_OK"
 case_ 7 "red for the wrong reason"                      --expect 'expected 99' cfg "$MUT" "$T_OK"

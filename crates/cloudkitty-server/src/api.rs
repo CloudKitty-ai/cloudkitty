@@ -11,7 +11,7 @@
 use std::sync::Arc;
 
 use axum::extract::{Path, State};
-use axum::http::StatusCode;
+use axum::http::{header, HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use cloudkitty_core::{
@@ -28,6 +28,9 @@ pub struct AppState {
     pub config: Arc<Config>,
     /// Spec 040: the watchdog's latest welfare surface, served on /welfare.
     pub welfare: watch::Receiver<Arc<crate::watchdog::WelfareStatus>>,
+    /// Spec 052: the key settings block, built at boot before the listener
+    /// binds (FR-006a) and served on /settings for the life of the process.
+    pub settings: Arc<crate::settings::KeySettings>,
 }
 
 impl AppState {
@@ -129,4 +132,29 @@ pub async fn get_refusals(State(state): State<AppState>) -> Json<RefusalWindow> 
 
 pub async fn get_config(State(state): State<AppState>) -> Json<Arc<Config>> {
     Json(state.config.clone())
+}
+
+/// The key settings (spec 052, contracts §1/§2): every dial anyone has
+/// needed to verify after a deploy, as effective value, engine default and
+/// source. JSON by default; the same block as text — byte-identical to the
+/// boot log — when the request asks for `text/plain` and not also for
+/// JSON (a browser's `application/json, text/plain, */*` stays JSON; the
+/// deploy script sends `text/plain` alone). Read-only, built at boot, and
+/// it touches nothing `/config` serializes (FR-005).
+pub async fn get_settings(State(state): State<AppState>, headers: HeaderMap) -> Response {
+    let wants_text = headers
+        .get(header::ACCEPT)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|accept| {
+            accept.contains("text/plain") && !accept.contains("application/json")
+        });
+    if wants_text {
+        (
+            [(header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+            state.settings.render_text(),
+        )
+            .into_response()
+    } else {
+        Json(state.settings.clone()).into_response()
+    }
 }

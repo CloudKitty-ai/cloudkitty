@@ -24,7 +24,9 @@ expect=""
 if [ "${1:-}" = "--expect" ]; then expect="$2"; shift 2; fi
 [ $# -eq 3 ] || { sed -n '2,20p' "$0" >&2; exit 2; }
 file=$1 mutation=$2 test=$3
-log=$(mktemp -t mutate); trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
+# A full template, not `-t mutate`: GNU mktemp refuses a template without X's
+# (found the first time this ran in CI, spec 052 T022).
+log=$(mktemp "${TMPDIR:-/tmp}/mutate.XXXXXX"); trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
 
 summary() {  # the suite's count lines; a suite with none is compared by line count
   local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | sed -E 's/;? *finished in [0-9.]+ ?s//; s/ in [0-9.]+ ?s\b//' | tr -s ' ' | sort)

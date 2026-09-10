@@ -5,6 +5,7 @@
 
 pub mod api;
 pub mod persist;
+pub mod settings;
 pub mod sim_task;
 pub mod watchdog;
 pub mod ws;
@@ -300,6 +301,7 @@ pub fn build_router(state: AppState, client_dir: &Path) -> Router {
         .route("/events/refusal", get(api::get_refusals))
         .route("/welfare", get(api::get_welfare))
         .route("/config", get(api::get_config))
+        .route("/settings", get(api::get_settings))
         .route("/ws", get(ws::ws_handler))
         // Anything else is a static file: index.html, app.js, render.js.
         .fallback_service(fresh_static)
