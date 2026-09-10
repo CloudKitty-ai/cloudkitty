@@ -2108,61 +2108,22 @@ Owner's ask, verbatim: **"debug option: show vision radius. Notes: each cat
 should have a different color, and the colors should overlap in a way that is
 still aesthetically appealing even when all 5 cats are together."**
 
-The thing being drawn is Fog Gen 1's sight: a cat sees the kitties and
-elements inside a Euclidean disc of `vision.radius` tiles
-(`crates/cloudkitty-core/src/config/mod.rs:108-122`). Five cats on a 20x20
-means five discs that will frequently overlap two and three deep, which is
-the whole difficulty in the owner's note — the overlap is the common case,
-not the edge case.
+What gets drawn is Fog Gen 1's sight: the Euclidean disc of `vision.radius`
+tiles a cat sees kitties and elements inside
+(`crates/cloudkitty-core/src/config/mod.rs:108-122`).
 
 **The radius is served — read it, never hardcode it.** Spec 052 (key
-settings, merged in #364) puts it on `GET /settings`, in the ordered
-`entries` array:
+settings, #364) puts it on `GET /settings`:
 
     { "group": "vision", "key": "radius", "value": 5, "source": "toml" }
 
-Two properties of that surface shape the client code
-(`specs/052-key-settings/contracts/key-settings.md`): the value is **built at
-boot and never changes for the life of the process**, so read it once at
-startup rather than per frame; and `vision.*` entries carry **no `default`
-field** — vision is a required section under the 3.0 rule, so there is no
-fallback to fall back to.
+A client-side copy of an engine value is the failure owner call #362 was
+opened for. `/settings` reaches the box on the next server update; checking
+the live box before then finds no vision field and says nothing about whether
+the surface exists.
 
-Which gives the degrade path: if `/settings` is absent, or carries no
-`vision.radius` entry, the toggle reports itself unavailable and **draws
-nothing**. It does not guess a number. A client-side copy of an engine value
-is exactly the failure owner call #362 was opened for — the pose-rule copy
-read right for six weeks and then silently disagreed with the client on
-21-23% of kitty-ticks — and this one is cheap to get right, because the
-value is one fetch away.
-
-The only thing outstanding is the deploy: `/settings` reaches the box on the
-next server update (owner, 2026-09-10). Until then the toggle has nothing to
-read, which is the degrade path above rather than a blocker on anyone.
-
-Client-side shape, once the field exists:
-
-- **The toggle follows the existing mold** (`client/app.js`, spec 008
-  FR-004/FR-009): a single key that flips a renderer flag, syncs a footer
-  note, and redraws, with every fresh load starting from the default.
-  `b`, `d`, `g`, `h`, `l`, `p` and `r` are taken; **`v` is free**.
-  Keyboard-only is deliberate, not an oversight — the debug group has never
-  been reachable on mobile and that is working as intended.
-- **Colour is the actual design work.** Per-cat hues are easy; five
-  overlapping translucent discs that still read as *appealing* rather than as
-  mud is not. Worth costing at least: additive blending versus plain alpha;
-  drawing rings (outlines) instead of fills, so overlap reads as intersecting
-  circles rather than stacked wash; a fill at very low alpha with a stronger
-  ring; and whether the cat's own existing identity colour should drive the
-  hue so the disc is attributable without a legend.
-- Judge it at the tile sizes the camera actually draws (57-103px) and with
-  all five cats huddled, since that is the stated worst case. The
-  `client/gallery-*.html` pages are where a five-disc arrangement can be
-  looked at without waiting for the world to huddle.
-
-Sequenced after the fog shakeout because the radius it visualises is one of
-the dials the shakeout is still moving; drawing it before then means
-re-judging the art against a number that changed.
+`v` is the only free debug key (`b`, `d`, `g`, `h`, `l`, `p` and `r` are
+taken); the toggle mold is in `client/app.js`.
 
 ### Cover colour variance — wants a full treatment (added 2026-08-13; Client thread)
 
