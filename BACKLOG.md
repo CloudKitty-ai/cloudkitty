@@ -2102,6 +2102,54 @@ Three things to settle before speccing:
    screen. Today the bubble follows the cat; `pos` is what would make
    leaving it where the word was said possible at all.
 
+### Debug option: show the vision radius (added 2026-09-10; Client thread — after the fog shakeout, owner)
+
+Owner's ask, verbatim: **"debug option: show vision radius. Notes: each cat
+should have a different color, and the colors should overlap in a way that is
+still aesthetically appealing even when all 5 cats are together."**
+
+The thing being drawn is Fog Gen 1's sight: a cat sees the kitties and
+elements inside a Euclidean disc of `vision.radius` tiles
+(`crates/cloudkitty-core/src/config/mod.rs:108-122`). Five cats on a 20x20
+means five discs that will frequently overlap two and three deep, which is
+the whole difficulty in the owner's note — the overlap is the common case,
+not the edge case.
+
+**Blocked on a served field, and it must not be worked around.** `/world`
+today serves `tick`, `width`, `height`, `kitties`, `elements`,
+`recent_meows` and nothing about vision; no kitty field carries a radius
+either (checked against the live box 2026-09-10). So the client cannot draw a
+truthful disc without an additive `/world` field — Product's lane, small.
+**Do not hardcode the radius to get started.** A client-side copy of an
+engine number is exactly the failure owner call #362 was opened for: the
+pose-rule copy read right for six weeks and then silently disagreed with the
+client on 21-23% of kitty-ticks. If the radius is worth drawing it is worth
+serving.
+
+Client-side shape, once the field exists:
+
+- **The toggle follows the existing mold** (`client/app.js`, spec 008
+  FR-004/FR-009): a single key that flips a renderer flag, syncs a footer
+  note, and redraws, with every fresh load starting from the default.
+  `b`, `d`, `g`, `h`, `l`, `p` and `r` are taken; **`v` is free**.
+  Keyboard-only is deliberate, not an oversight — the debug group has never
+  been reachable on mobile and that is working as intended.
+- **Colour is the actual design work.** Per-cat hues are easy; five
+  overlapping translucent discs that still read as *appealing* rather than as
+  mud is not. Worth costing at least: additive blending versus plain alpha;
+  drawing rings (outlines) instead of fills, so overlap reads as intersecting
+  circles rather than stacked wash; a fill at very low alpha with a stronger
+  ring; and whether the cat's own existing identity colour should drive the
+  hue so the disc is attributable without a legend.
+- Judge it at the tile sizes the camera actually draws (57-103px) and with
+  all five cats huddled, since that is the stated worst case. The
+  `client/gallery-*.html` pages are where a five-disc arrangement can be
+  looked at without waiting for the world to huddle.
+
+Sequenced after the fog shakeout because the radius it visualises is one of
+the dials the shakeout is still moving; drawing it before then means
+re-judging the art against a number that changed.
+
 ### Cover colour variance — wants a full treatment (added 2026-08-13; Client thread)
 
 Every clump takes the same two palette entries, `MEADOW.bush` and
