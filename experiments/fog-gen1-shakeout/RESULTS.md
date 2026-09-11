@@ -75,7 +75,7 @@ cat ever says (the a17-exempt group); the plain-clone arms sit at 0–2.
 | H1 watchdog, fog arms | **CLEAR**: 0 entries in every arm and every anchor | none |
 | H1 in the no-fog control | CLEAR (0) | none |
 | H2 worst seat below anchor | **CLEAR, inverted**: every arm at or above its matched anchor on distress, blind-hungry and safeguard; the anchors are the weaker rosters at every radius | none; per-seat split is a phase-2 read, pooled margin is wide |
-| H3 hard-zero intended activity | **No activity class is dead.** GroomKitty is chosen in every arm (28–251 of 30k decisions: ref-s1 28, ref-s3 61, nofog 63, radius+1 112, ref-s2 116, vocab 136, radius-1 172, leash 197, mixed 251) but concentrates on kitty rows 0–1; rows 2–3 are the census's argmax-zeros in most arms — a per-TARGET slot bias, not a closed action. On the same legal rows the final ref-s1 policy argmax-picks GroomKitty MORE than the clone (53 vs 41 of 6,563; sampled mass .011 vs .009; mixed .026), so PPO preserved the behavior at clone level rather than eroding it. ChaseCritter/PlayCritter slot zeros are 1–10 legal rows (noise). A14 green: no legality path closed | logged, no break. The slot bias reads as corpus density (grooming examples concentrate in specific observer-to-row cells of the asymmetric roster) — a step-7 corpus/roster question, not a schema one |
+| H3 hard-zero intended activity | **No activity class is dead.** GroomKitty is chosen in every arm (28–251 of 30k decisions: ref-s1 28, ref-s3 61, nofog 63, radius+1 112, ref-s2 116, vocab 136, radius-1 172, leash 197, mixed 251) but concentrates on kitty rows 0–1; rows 2–3 are the census's argmax-zeros in most arms — a per-TARGET slot bias, not a closed action. On the same legal rows the final ref-s1 policy argmax-picks GroomKitty on more rows than the clone (53 vs 41 of 6,563), but the realized RATE decays through training (phase-2 curve below: ~13/1k at u49 to 0.9/1k at plateau on ref-s1) — the per-row comparison hides a distribution shift. ChaseCritter/PlayCritter slot zeros are 1–10 legal rows (noise). A14 green: no legality path closed | logged, no break. The slot bias reads as corpus density (grooming examples concentrate in specific observer-to-row cells of the asymmetric roster) — a step-7 corpus/roster question, not a schema one |
 | H4 domination > 0.55 | max per-seat class share .59–.68, all idle, all at or below the anchors' own .66–.69; no non-idle attractor, and the F-027 dyadic groom form is absent (GroomKitty near-zero) | none |
 | H5 frozen cluster | absent: dispersion and contact match the anchor exactly (nn-euc median 1.41 everywhere), scene turnover normal | none |
 | H6 hyper-dispersion | CLEAR: median 1.41 vs HALT bar 6; friend-in-view at anchor level except radius-1 (.672 vs .811) and mixed (.746 vs .820), both with welfare at or above anchor → strategy finding per the ruled joint read | logged |
@@ -89,14 +89,56 @@ cat ever says (the a17-exempt group); the plain-clone arms sit at 0–2.
 | activity-mix band | only idle qualifies (≥500 anchor scenes): ratios 0.88–0.99, in band. Sleeping/eating/drinking sit at 1.5–2.3× on cat-tick shares but their anchor scene counts are far below 500 in a 2k window | logged; eval-census confirmation pending (phase 2) |
 | groom pile-on / relief farm | groom-other runs at 0.9–8.4 per 1k decisions across arms — far too thin to farm, and grooming class share 1.1–1.5× anchor is dominantly GroomSelf. Sustainability is the live question, not farming: the behavior is held near clone level by the leash and corpus prior (the tightest-leash arm has the most groom-other of the all-policy arms) while its reward value at `groom_cuddle_relief` 0.5 is marginal — a longer or looser step-7 run is where it would decay | phase-2 read (groom-of-clean-friend on mixed); the sustain-vs-price question goes to step-6/7 pricing beside the relief-farm rule |
 
-## Remaining reads (phase 2, no gate hangs on them)
+## Phase-2 reads (run 2026-09-11; instruments `phase2_read.py` +
+## curve/attribution drivers, raw in `results-raw/partb/`)
 
-Responder-approach (want_cuddle / want_play cue uptake), cosleep-on-beam
-transfer, groom-of-clean-friend rate on `mixed`, per-seat H2 split, and
-the eval-census half of the band read. These need the scene-span and
-meow-payload instruments on policy probes; the probe npz carries what
-they need. The critic-compression rewatch (#365 nuance) belongs to the
-step-6 design discussion.
+**Groom-other over training (the sustainability curve)**: the rate
+DECAYS through the run in every arm — from ~10–16/1k decisions at u49
+(the clone's smeared level) to 0.9–8.4/1k at plateau; ref-s1 fell 14×.
+Retention orders by leash and roster: leash 6.6, mixed 8.4, plain refs
+0.9–3.9. The plateau rule stopped the arms before the decay finished,
+not because it had.
+
+**The teacher never grooms anyone**: 0 groom-other events in all 400k
+held-out corpus cat-ticks (four traces, `last_action.with` read). The
+scripted groom response requires the responder's own cuddle need ≥
+`cuddle_real_threshold` 15 against a measured mean of 5.1, so the rung
+effectively never fires at the pinned config. Consequences: the clone
+had zero demonstrations (its u49 groom mass is untrained-head
+generalization), every unit of policy groom-other is EMERGENT
+reward-supported behavior (dirty-target-preferring, cuddle-need-
+correlated), and no scripted rung will sustain social grooming in
+Gen 1 — pricing is the only lever. Candidate finding for the owner.
+
+**Responder-approach (pre-declared trigger FIRES)**: reference arms'
+approach share to unseen speakers is at or below the anchor's chance
+rate on BOTH words (want_cuddle .42–.47 vs anchor .56; want_play
+.24–.57 vs .64). Per the ruled reading, the words are inert as cues:
+this is the trigger for the banked scripted cue-answer rungs
+(`cuddle_response` / `play_response` in needs_driven) and the FR-036
+cuddle-clause revisit, in the same sitting. Step-7 input, no halt.
+nofog reads 0/0 events (no unseen speakers at whole-world vision), the
+instrument's built-in consistency check.
+
+**Cosleep-on-beam (strategy finding, logged per the ruled branch)**:
+arms present almost no settled-friend-on-beam opportunities (0–16
+ticks vs anchors' 211–955) and close ~none; they sleep MORE than the
+anchor with welfare intact, but only 5–10% of sleeping ticks are in a
+sunbeam vs the anchor's 29% — the learners traded beam-seeking for
+sleep-anywhere-beside-friends (SleepWith 66–115/1k and rising through
+training as RestWith falls; partnered total holds ~230/1k). The T092
+demonstration did not transfer; sleep welfare did not need it.
+
+**Per-seat H2 attribution**: the pass's three distress episodes are
+vocab seed-40003 kitty 2 (eat, 12 ticks) and mixed kitty 3 (eat, 11
+and 65 ticks on seeds 40002/3). Nothing approaches the 150-tick
+watchdog line; mixed kitty 3 is the seat to watch in step-7's mixed
+question.
+
+**Still open**: uptake halves of the approach and cosleep reads (need
+scene spans), the eval-census half of the band read, and the
+critic-compression rewatch (#365 nuance) — all step-6-sitting
+material.
 
 ## Step-6 input, in one paragraph
 
