@@ -75,7 +75,7 @@ cat ever says (the a17-exempt group); the plain-clone arms sit at 0–2.
 | H1 watchdog, fog arms | **CLEAR**: 0 entries in every arm and every anchor | none |
 | H1 in the no-fog control | CLEAR (0) | none |
 | H2 worst seat below anchor | **CLEAR, inverted**: every arm at or above its matched anchor on distress, blind-hungry and safeguard; the anchors are the weaker rosters at every radius | none; per-seat split is a phase-2 read, pooled margin is wide |
-| H3 hard-zero intended activity | **GroomKitty argmax-zero** on 2–3 of 4 row slots in every all-policy arm (legal on ~450–770 of 30k rows each); `mixed` alone has no GroomKitty zero. ChaseCritter/PlayCritter slots zero sporadically at 1–10 legal rows (noise). Greedy caveat applies; the action is legal and masked correctly (A14 green), so no legality path closed | logged, no break: a chooser preference, not a closed path; feeds the step-7 seating question beside the mixed row |
+| H3 hard-zero intended activity | **No activity class is dead.** GroomKitty is chosen in every arm (28–251 of 30k decisions: ref-s1 28, ref-s3 61, nofog 63, radius+1 112, ref-s2 116, vocab 136, radius-1 172, leash 197, mixed 251) but concentrates on kitty rows 0–1; rows 2–3 are the census's argmax-zeros in most arms — a per-TARGET slot bias, not a closed action. On the same legal rows the final ref-s1 policy argmax-picks GroomKitty MORE than the clone (53 vs 41 of 6,563; sampled mass .011 vs .009; mixed .026), so PPO preserved the behavior at clone level rather than eroding it. ChaseCritter/PlayCritter slot zeros are 1–10 legal rows (noise). A14 green: no legality path closed | logged, no break. The slot bias reads as corpus density (grooming examples concentrate in specific observer-to-row cells of the asymmetric roster) — a step-7 corpus/roster question, not a schema one |
 | H4 domination > 0.55 | max per-seat class share .59–.68, all idle, all at or below the anchors' own .66–.69; no non-idle attractor, and the F-027 dyadic groom form is absent (GroomKitty near-zero) | none |
 | H5 frozen cluster | absent: dispersion and contact match the anchor exactly (nn-euc median 1.41 everywhere), scene turnover normal | none |
 | H6 hyper-dispersion | CLEAR: median 1.41 vs HALT bar 6; friend-in-view at anchor level except radius-1 (.672 vs .811) and mixed (.746 vs .820), both with welfare at or above anchor → strategy finding per the ruled joint read | logged |
@@ -87,7 +87,7 @@ cat ever says (the a17-exempt group); the plain-clone arms sit at 0–2.
 | slot 8 mixed | the one arm with any distress signal (0.33/1k, max age 65, sg-eat 0.50 vs anchor 0.17/31/0.17) — 2 episodes vs 1 in a 6k-cat-tick window, Poisson-level; also lowest friend-in-view and highest blind-hungry of the r4 arms, and the only arm that grooms specific friends | registered result for step 7's seating question, both directions of it |
 | slot 7 ref-s3 spread | inside the s1/s2 spread on every gate (blind-hungry 218 vs 342/358 is the widest gap, same sign as seed noise) | three-seed spread stands for the bands |
 | activity-mix band | only idle qualifies (≥500 anchor scenes): ratios 0.88–0.99, in band. Sleeping/eating/drinking sit at 1.5–2.3× on cat-tick shares but their anchor scene counts are far below 500 in a 2k window | logged; eval-census confirmation pending (phase 2) |
-| groom pile-on / relief farm | GroomKitty is argmax-dead in the all-policy arms, so no farming and no pile-on is expressible there under greedy probes; grooming class share 1.1–1.5× anchor is GroomSelf | phase-2 read on mixed (the one arm that grooms friends) |
+| groom pile-on / relief farm | groom-other runs at 0.9–8.4 per 1k decisions across arms — far too thin to farm, and grooming class share 1.1–1.5× anchor is dominantly GroomSelf. Sustainability is the live question, not farming: the behavior is held near clone level by the leash and corpus prior (the tightest-leash arm has the most groom-other of the all-policy arms) while its reward value at `groom_cuddle_relief` 0.5 is marginal — a longer or looser step-7 run is where it would decay | phase-2 read (groom-of-clean-friend on mixed); the sustain-vs-price question goes to step-6/7 pricing beside the relief-farm rule |
 
 ## Remaining reads (phase 2, no gate hangs on them)
 
@@ -104,7 +104,11 @@ No break rows fired; no knob re-pins are owed. The recipe held at both
 β doses, welfare beat the scripted teacher at every radius including
 pin−1, the taught vocabulary survived PPO everywhere, and the only
 degrees of freedom the pass surfaced are choices, not defects: the
-mixed-seating question (slot 8's noisier welfare against its unique
-partnered-groom behavior) and the corpus-delivery question (the
-vocabulary lesson's free-register opening). Both were pre-declared as
-step-7 inputs.
+mixed-seating question (slot 8's noisier welfare against the richest
+partnered-groom behavior of the nine), the corpus-delivery question
+(the vocabulary lesson's free-register opening), and the groom-other
+sustainability question (alive at clone level in every arm, but held
+there by the leash and corpus prior rather than by the reward at the
+0.5 relief price, and biased toward specific packmates by corpus
+density). All were pre-declared as step-7 inputs or fall under the
+pricing row.
