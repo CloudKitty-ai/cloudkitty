@@ -43,9 +43,10 @@ assert [d["menu_index"] for d in m["hard_zero_legal"]] == [11], \
     f"hard-zero: menu 11 legal on every row, never chosen; got {m['hard_zero_legal']}"
 assert pb.msg_census(rows)[4] == 1 and pb.msg_census(rows)[0] == 3, "msg census"
 
-# scene starts: age climbs 0,1 then resets to 0 in class 5
+# scene starts: a FLAT consecutive age is not a start (only a strict
+# drop is), so ages 0,0 then climb then reset -> exactly one start
 obs2 = np.zeros((4, L.OBS_DIM), np.float32)
-obs2[:, L.SELF_SCENE_AGE] = [0.0, 0.1, 0.0, 0.1]
+obs2[:, L.SELF_SCENE_AGE] = [0.0, 0.0, 0.1, 0.0]
 obs2[0:2, L.SELF_ACTIVITY + 1] = 1
 obs2[2:4, L.SELF_ACTIVITY + 5] = 1
 rows2 = dict(rows, obs=obs2)
