@@ -1822,6 +1822,54 @@ Options, costed:
 
 ## P2 — the bigger pieces, for a proper sitting
 
+### consent_line for needs_driven — SHELVED UNTIL GEN 2 (owner ruling 2026-09-10, on Experiments' read; added 2026-09-11; Product thread)
+
+Extend spec 047's consent line to the scripted chooser, so `needs_driven`
+cats honor the same strict-`>` consent rule policy cats do and the served
+roster runs one rule. Banked at the 047 merge (owner, 2026-09-01) as its
+own spec; the mechanical shape on record is two call-site flips
+(`choose`/`take_what_is_here` → the existing `_consenting` variants — the
+mechanism is shared, do not reimplement).
+
+Why it waits for Gen 2 (Experiments' read, 2026-09-10, relayed for the
+ruling): it changes the scripted TEACHER, and everything scripted-derived
+in the Gen 1 chain — the 40×20k corpus, the BC/vocab clones and their
+bars, `expected_per_1000`, the mixed arm's scripted seats — imitates or
+measures the old teacher. Landing it mid-window without re-cuts puts
+policies trained beside old-consent partners into service beside
+new-consent partners. It was landable at the head of the window only
+with a full scripted-chain re-cut, which is only worth it if step 6 was
+collecting a fresh corpus anyway; Experiments expects step 6 to reuse
+the existing corpus, so it banks. It also lands inside Experiments' open
+step-7 consent-transfer pair (30 vs 0), which assumes a fixed scripted
+background. Same shape as the waterline-contagion precedent: behavior
+changes bank behind generation boundaries.
+
+Bill at pick-up: own spec; the two call-site flips; every scripted-stream
+pin re-recorded; if the Gen 2 prereg screens pins against scripted cats,
+screen against the NEW teacher.
+
+### Spec-006 empty-bowl early end — SHELVED UNTIL GEN 2 (owner ruling 2026-09-10, on Experiments' read; added 2026-09-11; Product thread)
+
+End an eating scene when the bowl empties instead of holding the cat at
+an empty bowl for the scene minimum. Tabled at the 048 merge (owner,
+2026-09-02): scene minimums exist to prevent frantic alternation, and
+locking a cat at an EMPTY bowl serves neither. Analysis on record: the
+window is ≤ the eat minimum (~2 ticks), the rows are `absorbed=true`
+(never in R8's tax), and the engine's min-hold is spec 006's deliberate
+meal-end rule — so this is a spec-006 amendment, its own spec, not 048.
+
+Why it waits for Gen 2 (Experiments' read, 2026-09-10, unconditional):
+(a) it is `[rng-sequence]` by consequence (the 048 precedent), so every
+seed-pinned artifact the Gen 1 chain stands on — the corpus at seeds
+1080001–40, `expected_per_1000`, the declared rates feeding the live
+Part A probe — stops describing the shipping engine; (b) it is a
+food-scene reprice, and the Gen 1 policies reseating are frozen against
+today's eating dynamics — shipping them onto an early-end engine is the
+frozen-models-cannot-answer-a-reprice trap, and the post-reseat census
+would measure the skew, not the roster. Gen 2's fresh prereg cycle
+absorbs both for free.
+
 ### Fog hot-loop allocations in the training tick (added 2026-09-04; Product thread, from `/code-review high 049` findings 8–10)
 
 Three per-tick allocation sites spec 049 added, all LOW and none
