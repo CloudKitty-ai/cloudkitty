@@ -99,16 +99,28 @@ Retention orders by leash and roster: leash 6.6, mixed 8.4, plain refs
 0.9–3.9. The plateau rule stopped the arms before the decay finished,
 not because it had.
 
-**The teacher never grooms anyone**: 0 groom-other events in all 400k
-held-out corpus cat-ticks (four traces, `last_action.with` read). The
-scripted groom response requires the responder's own cuddle need ≥
-`cuddle_real_threshold` 15 against a measured mean of 5.1, so the rung
-effectively never fires at the pinned config. Consequences: the clone
-had zero demonstrations (its u49 groom mass is untrained-head
-generalization), every unit of policy groom-other is EMERGENT
-reward-supported behavior (dirty-target-preferring, cuddle-need-
-correlated), and no scripted rung will sustain social grooming in
-Gen 1 — pricing is the only lever. Candidate finding for the owner.
+**CORRECTED 2026-09-11 (gate-screen follow-up): the teacher grooms
+plentifully and honestly.** The earlier "0 groom-other in 400k
+cat-ticks" was an instrument artifact of the F-029 class:
+`last_action.with` never carries groom targets — the target lives in
+`activity.target`. Re-measured on the correct field: the corpus
+teacher grooms others at 12.7/1k cat-ticks (4.9/1k scene starts), and
+100% of scene starts follow a fresh want_bath with PRE-tick target
+bath >= 20 (snapshots are post-apply; the first groom tick's ~20
+relief made targets read clean). `groom_response` is the sole
+initiator and works as designed. Consequences of the correction: the
+clone's u49 groom rate (~13/1k) IS imitation of the corpus (~12.7/1k),
+not emergence; the "farm germinating at 0.5" read was the same
+post-apply/scene-tail artifact (teacher tick-level clean-share is 94%
+by the same illusion) — no farm evidence anywhere. What SURVIVES the
+correction, unchanged: PPO decays groom-other from the imitated ~13/1k
+to 0.9-8.4/1k at plateau under the flat 0.5 price, which remains the
+reprice's motivation. Gate screen (cuddle_real_threshold 5/8/10/15,
+3x20k each, seeds 870001-3, results-raw/gate-screen/): initiations
+6.33 / 5.55 / 4.99 / 4.47 per 1k cat-ticks — a smooth +42% from 15
+down to 5, honest at every setting — with the shared gate's coupled
+side-effect on the sleep economy (nap-adjacent share of sleeping
+0.69 / 0.63 / 0.59 / 0.53). Recommendation recorded: keep 15.
 
 **Responder-approach (pre-declared trigger FIRES)**: reference arms'
 approach share to unseen speakers is at or below the anchor's chance
