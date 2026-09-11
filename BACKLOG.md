@@ -15,133 +15,30 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 
-Costed, then dropped the same day: the charm gain (the kitty keeps
-playing for a beat after the critter escapes) did not justify the change
-surface. Kept here because the mechanism is worth not re-deriving, and
-because a future census WILL surface these numbers again.
-
-**The behaviour is intended, not a defect.** `World::prune_dead_activity`
-(world.rs:464) ends an element play scene when the element is gone **or
-no longer adjacent**, and pruning runs before the duration minimum is
-enforced. Critters move on alternate ticks (`(tick + id) % 2`) and play's
-`min` is 2, so every critter play scene contains exactly one move
-opportunity; when it breaks adjacency the scene dies at one tick. The
-600-tick ttl is NOT the cause — measured scene expiry is 0.3% (15 in
-5,244) against a ~20% cut rate.
-
-**It is already priced.** The chase-census measures mean scene length
-directly and `ev()` multiplies `scenes x mlen`, so the sticker corridor
-was set against the real numbers: bug 1.8 · greeble 1.5 · duet 2.0. The
-live served world reproduces the bug figure independently (20% of Biscuit
-2.0's scenes ran one tick; 0.8x2 + 0.2x1 = 1.8).
-
-**Why it was dropped rather than deferred**: implementing it needed two
-coupled changes, not one — relax the prune AND add an adjacency check to
-the relief arm, since `action.rs:769` resolves relief by element id and
-kind alone and would otherwise pay the full sticker on the grace tick
-instead of the ruled `solo_play_relief`. And the lift lands unevenly:
-+11% bug EV against **+33% greeble** (greebles dart), pushing the
-constrained side of the G1 bar. The note for future censuses now lives in
-`experiments/bugs2-grid-analyze.py::ev`. Measurements:
-`experiments/exp-006a-biscuit-corner/live-play-2026-08-23.md`.
-
-### ~~Serving welfare watchdog: max_distress_age on the served world~~ — SHIPPED (spec 040, PR #283 2026-08-22; de-flaked #298)
-
-Live on the served world: `GET /welfare` reads `threshold 150, alarm_live
-false` (checked off the box 2026-09-08). Detection only, as specified;
-intervention stays the P2 entry below. Struck 2026-09-08.
-
-The original entry (added 2026-08-20; owner-approved): the engine already computes `distress_since` per (kitty, need); nothing
-watches it continuously on the served world — the G6 soak watches were
-stopped after the pass, by design. The exp-006 r5 forensics showed why a
-standing watch matters: the co-sleep deadlock (F-027) ran a 2331-tick
-distress streak while the engine's only safeguard (supply-side,
-`spawn::safeguard`) was structurally blind to it — relief existed, nobody
-went. Alarm line: the constitutional 150. This is the serving-side
-detection layer; the offline layer is the tail-benchmark roster
-(`experiments/tail-benchmarks/`). Detection only — intervention is the
-separate P2 entry below.
+Costed, then dropped the same day: the charm gain did not justify the
+change surface. Kernel kept so the mechanism is not re-derived when a
+future census surfaces these numbers again: the behaviour is intended —
+`World::prune_dead_activity` ends an element play scene when the element
+is gone, so ~20% of critter plays die at 1 tick, and that truncation is
+priced into the critic's EV via `mlen`. Full costing: git history of
+this entry (removed 2026-09-11) and `docs/` play notes.
 
 ### No harness drives the v2 cat through the RENDERER — MOSTLY CLOSED 2026-08-22
 
-A structural coverage hole, found while gating the settle, and it has already
-let one feature ship inert.
-
-`render.js` branches on `v2Motion = typeof drawCatTween === 'function'`.
-**Neither harness ever takes that branch.** `test-meadow` evals every file into
-one scope, where render.js's bare `drawCat` binds to **cat.js's v1** function
-(cat.js is eval'd first and its declaration wins), so `v2Motion` is false;
-`test-motion` calls `CatV2.drawCat` directly and never goes through the
-renderer at all.
-
-So everything render.js does *around* a v2 cat is unguarded: the
-`!v2Motion` guard on `canvasSettle`, the `settle` opt it passes, the eyes and
-ears it overrides. Mutating `canvasSettle` to wrap v2 cats in the old canvas
-squash — the exact mechanism that made the ear and tail outlines vanish —
-**changes nothing in either suite.**
-
-Cost to close: the harnesses would need cat-v2's symbols to win the bare-name
-binding, which is the same globals trap recorded in 'every cat-v2 symbol the
-page reads bare is actually installed'. Not attempted here; it is a harness
-change, not a feature change, and it wants doing on its own rather than inside
-an art PR.
-
-**Closed 2026-08-22 for the three mechanisms named above.** `test-meadow`
-gained a SECOND scope — everything `src` loads except cat.js, which is how
-every lab already runs and what index.html's `Object.assign(window,
-CatV2)` achieves for the page — plus four checks that drive real frames
-through it: the scope is v2 and not the hybrid; the v1 canvas squash never
-reaches a v2 cat (detected by ANISOTROPY, since cat-v2 does its own
-uniform `scale(size, size)`); the settle arrives as a pose deformation
-matching the tween; and the v1 ears boolean does not reach a v2 cat. All
-four mutation-verified — including the one this entry said changed
-nothing: flipping `canvasSettle` to wrap v2 is now red.
-
-Two notes for whoever picks up the rest:
+Closed 2026-08-22: `test-meadow` gained a second scope (everything `src`
+loads except cat.js) plus four mutation-verified checks driving real
+frames through render.js's v2 branch. Two notes for whoever picks up the
+rest:
 
 - **The original scope is still the hybrid, deliberately.** The meadow
   checks want v1 present for vocabulary comparisons; the v2 scope sits
-  beside it rather than replacing it. Putting cat.js back in front of the
-  v2 scope is a load-time SyntaxError (the install's `const drawCat`
-  collides with cat.js's declaration), so the two cannot quietly merge.
-- **Remaining slice: the EYES.** `render.js` also does
-  `if (v2Motion && motion.blinkLid !== undefined) { lid = motion.blinkLid;
-  if (eyes === 'closed') eyes = undefined; }` — the eased lid replacing the
-  snap blink. Nothing asserts that yet. The fixture is the cheap part now:
-  `v2Frame()` exists, and a frame taken mid-blink (see the slow-blink
-  schedule in test-motion) would show `lid` present and `eyes` cleared.
-
-### The give-up droop is EARS ONLY — SHIPPED 2026-08-20
-
-Owner reported half-closed eyes on cats that were **walking**, in every
-direction, lasting longer than a tick — then, decisively: *"ears go down with
-the half closed eyes as well."* That pairing is the signature.
-
-`render.js`'s `sad` beat set `ears`, `earsHold` AND `eyes = 'half'`. It is
-applied **after** the pose, so it overrode a walk, and `sadBeatMs` is **1600 —
-two full ticks**. It fires when a cat abandons a chase, and such a cat is
-usually still moving, so it landed exactly where it was most visible.
-
-**Nothing in the pose system could produce it**, which is why four separate
-paths came back clean and cost an hour: the walk layout is always `'open'` in
-all three views (proven by draw-log identity against a forced-open cat),
-`motionFor` returns before the blink block for `'walking'` (0 lids in 400
-samples, against 7.8% for idle), and the tween switches eyes at the midpoint so
-a blend gives closed or open, never half. **A beat painted over the pose is
-invisible to every question you can ask the pose.**
-
-Owner: *"keep the ears, drop the half-lid."* Which is the hunter-eyes decision
-again — the ear channel carries what the eyes were being asked to. `lid =
-undefined` went with it: it existed only so a deep blink could not promote the
-FORCED half-lid into the happy closed arcs.
-
-**The guard is blunt on purpose.** `test-meadow` binds render.js's bare
-`drawCat` to cat.js's **v1**, so the opts cannot be intercepted — but v1 draws a
-half-lidded eye with fewer primitives than an open one (118 vs 128), so op
-count discriminates. It needs a POSITIVE CONTROL to mean anything: op count
-cannot see the ears, so "droop fired, eyes untouched" and "no droop at all" are
-the same number. Verified by renaming the beat's kind, which passed until the
-control existed.
+  beside it. Putting cat.js back in front of the v2 scope is a load-time
+  SyntaxError, so the two cannot quietly merge.
+- **Remaining slice: the EYES.** `render.js` replaces the snap blink with
+  the eased `motion.blinkLid` for v2 cats and nothing asserts it. The
+  fixture is cheap now: `v2Frame()` exists, and a frame taken mid-blink
+  (see test-motion's slow-blink schedule) shows `lid` present and `eyes`
+  cleared.
 
 ### The cat's eyes and Clementine's coat (added 2026-08-20; owner's queue)
 
@@ -159,50 +56,16 @@ choices at high one.
    "designed white cat" intent from the trait sheet and reopens it.
 
 2. **~~Deprecate the hunter eyes~~ — SHIPPED 2026-08-20 as a substitution.**
-   The reason is better than "it did not read", and worth keeping: *"the v1
-   hunter eyes read cute at low res, but as we get higher and higher res the
-   'fierce' hunting behaviour is not the chill cute vibe we're going for — I'm
-   fine with the chasing kitties behaviour being the default for everything."*
-   The face was not drawn badly; it was **off-brief, and low resolution had
-   been hiding it.**
-
-   Gone: `expressionFor`, `PURSUING_ACTIONS`, `hunterGateTiles`, the view
-   passthrough and the renderer's expression term — all of which existed for
-   this and nothing else. Kept: `pursuitDistanceFor` (tested, three separated
-   outcomes, and the queued gaze work wants it) and the DRAWING —
-   `FOCUS_VARIANTS` plus `eyesOverride: 'focused'` are still dialled and still
-   exercised by the gallery and by v1. **Retiring the world's route to a face
-   is not the same as deleting the vocabulary**; those 79 lines of owner-judged
-   values are a separate decision.
-
-   It also drops "hunting kitties do not blink" (owner, 2026-08-02),
-   deliberately — the point is that a hunt is drawn the way play already is,
-   and players blink.
-
-   Superseded original entry: **a SUBSTITUTION, not a deletion.** Owner,
-   2026-08-20: *"they don't read well any more and we've seen repeated
-   behavioural issues so we'll just disable them going forward"*, then, asked
-   whether the hunt should become invisible: *"the ear/gaze of play/chase
-   kitties looks good, so we should keep that for chasing prey — i.e. same
-   behaviour for chasing prey as for chasing kitties."*
-
-   So the rule is **one chase expression, not two**. What goes is the
-   hunter-specific eye variant (`FOCUS_VARIANTS`); what a cat chasing a bug
-   does instead is exactly what a cat chasing a kitty already does. That is a
-   unification, and it is worth more than the deprecation: the two cases were
-   the same behaviour wearing different faces, which is how one of them got to
-   be wrong without the other noticing.
-
-   **This resolves the conflict with the animation residue's follow-up 1**
-   ("ears forward on the hunt", below). Ears-forward is NOT deprecated — the
-   chase expression already carries it, and unifying the two cases delivers it
-   for prey without a new channel. Do not implement follow-up 1 separately;
-   check whether this item has already done it.
-
-   The hunter face has checks pinning that it does not outlive its quarry.
-   Expect them red, and point them at the chase expression rather than
-   deleting them — the invariant they encode still holds, it just has one
-   subject now instead of two.
+   The reason is better than "it did not read": *"the v1 hunter eyes read
+   cute at low res, but as we get higher and higher res the 'fierce'
+   hunting behaviour is not the chill cute vibe we're going for — I'm
+   fine with the chasing kitties behaviour being the default for
+   everything."* Off-brief, and low resolution had been hiding it. Gone:
+   `expressionFor` and everything that existed only for it. Kept:
+   `pursuitDistanceFor` (tested; the queued gaze work wants it) and the
+   `FOCUS_VARIANTS` drawing — retiring the world's route to a face is not
+   deleting the vocabulary. Full accounting: this entry's git history
+   (condensed 2026-09-11).
 
 3. **~~Replace the half-closed eyes in RESTING poses~~ — SHIPPED 2026-08-20.**
    Owner: they *"read fine during transitions — slow blink, falling asleep —
@@ -677,172 +540,26 @@ PR #245.
 
 ### ~~Dissolve the map's edge in CAMERA MODE ONLY~~ — DROPPED 2026-08-20
 
-**Owner: "we can forget about the camera edge dissolve for the foreseeable
-future, our recent map border/landscape changes make it moot."** Deferred on
-2026-08-19, dropped the next day, and the reason is the interesting part: the
-question it existed to answer was *what should the map's edge be when the
-camera is cropping an arbitrary window rather than showing the world's
-boundary*. The hairline answered it by being thin enough not to assert
-anything, and the landscape work then made the edge mostly leave the screen —
-the canvas fills the viewport, so on a phone the top and bottom edges are
-scrolled past rather than looked at. The original reasoning is kept below in
-case Fog or a resizable window brings the question back.
-
-Owner's call after the edge-treatment lab, 2026-08-19: **the hairline ships now
-(phone), the dissolve is a later item.** Not a rejection — a deferral with a
-reason worth keeping.
-
-**The idea.** Fade the meadow's outermost ~14px to transparent instead of
-ending it on a line. The map keeps every pixel of its size; only the last band
-stops being opaque.
-
-**Why it is a camera-mode question and not a styling one.** The edge means
-different things in the two modes, and only one of them is a lie:
-
-- **Camera off**, the edge IS the world boundary. The meadow really does stop
-  there. A hard edge is the truth, and dissolving it would say "there is more
-  beyond" about a world that has no more.
-- **Camera on**, the edge is an arbitrary crop and there IS more meadow past
-  it. A hard line there says the world ends where the viewport does.
-
-Same reasoning that made the letterbox right: tell the renderer what is
-actually true rather than what is convenient.
-
-**What the lab settled, so it is not re-derived:**
-
-- The natural edge is **not a constant** — grass-to-page swings from **ΔL* 0.1
-  at dusk to 18.5 at dawn**, a factor of 180 across one day. So a dissolve does
-  its most visible work at dawn, where the edge is already loud, and is a
-  **no-op at dusk**, where grass and paper are the same lightness. Any dissolve
-  that ships needs a per-hour answer, not one radius.
-- It **softens the horizon the sky dial pins to** (`bottom: calc(100% -
-  var(--stage-pad))`, owner 2026-07-23: "exact wins"). The dial has to be
-  settled first; the owner sequenced it that way deliberately.
-
-**Open, and not answerable from a still frame:**
-
-- **Motion.** A kitty walking through a fading band is a different question
-  from a fading band holding still. A half-faded cat at the boundary may read
-  as a bug rather than an effect.
-- **Cost.** Drawn in-canvas it is per-frame work on a budget already under
-  question (see the high-dpr bake above); drawn as a CSS mask it forces a
-  compositing layer. Neither is free and neither is measured.
+Owner, 2026-08-20: *"if we want to look at it in the future, our recent
+map border/landscape changes make it moot."* The question it existed to
+answer — what should the map's edge be when the camera crops an
+arbitrary window — was answered by the hairline being thin enough not to
+assert anything, and the landscape work then moved the edge mostly off
+screen. Kept as one line in case Fog or a resizable window brings the
+question back; the full idea (fade the outer ~14px, why it is a
+camera-mode question) is in this entry's git history (removed
+2026-09-11).
 
 ### Phone portrait: the horizontal gap beside the map — SHIPPED (PR #248, 2026-08-19; Client thread)
 
-Owner, 2026-08-19: "a bit of a horizontal gap around the map in portrait that
-could get us another free tile or so." **Shipped the same day as option F —
-body sides 10px → 2px, mat 5px → 4px, 12px of total chrome.** The measurement
-is kept below because the `minTiles` decision still ahead reads it, and
-because the step arithmetic outlives these particular numbers. Measured, not
-estimated — and it is **two gaps, only one of which is anyone's to reclaim.**
-
-On a phone `body` pays `padding: … 10px` and `.stage` a 5px mat, so the width
-budget is `viewport − 30`. Then `resizeFor` floors the tile, and a 20-tile
-world throws away everything the budget carries past a multiple of 20. The
-stage is `width: max-content`, so that remainder does not sit inside the mat —
-it appears as extra cream **outside** the stage's rounded edge, which is why it
-reads as one gap rather than as rounding.
-
-On the owner's 16 Pro (402 CSS px): **16px of cream each side — 10 of padding
-and 6 of quantisation.**
-
-Chrome is the reclaimable half; the quantisation is not, and cutting chrome
-**moves pixels into it** until the budget crosses the next multiple of 20:
-
-| viewport | budget now | tile | map | slack | body 10→6 | body+mat → 8px |
-|---|---|---:|---:|---:|---:|---:|
-| 360 small Android | 330 | 16 | 320 | 10 | 320 | **340** |
-| 375 SE / 8 | 345 | 17 | 340 | 5 | 340 | **360** |
-| 393 iPhone 12–15 Pro | 363 | 18 | 360 | 3 | 360 | **380** |
-| **402 iPhone 16 Pro** | 372 | 18 | 360 | **12** | **380** | 380 |
-| 412 Pixel / Galaxy | 382 | 19 | 380 | 2 | 380 | **400** |
-
-So the free tile the owner saw **is real and is specific to her handset**: the
-16 Pro is the one width whose budget sits just under a multiple of 20, and
-trimming the body padding to 6 takes it 360 → 380 (+5.6%) with the slack going
-to zero. **No other listed handset gains anything from that same edit.** The
-360px Android snaps at 20px total chrome (body 6 + mat 4); 375, 393 and 412 all
-need the map taken to the screen edge before they move at all.
-
-**Why it is worth more than 5.6%: it lands on the `minTiles` decision.** The
-camera's floor tile is `cssWidth / minTiles` once `minTiles` binds, so the map
-width is the phone's cat size, one for one:
-
-| map | `minTiles` 6 | `minTiles` 7 |
-|---|---:|---:|
-| 320 | 53.3 | 45.7 |
-| 340 (today, SE) | 56.7 | **48.6** |
-| 360 (today, 16 Pro) | 60.0 | **51.4** |
-| 380 | 63.3 | 54.3 |
-
-The 48.6px that makes `minTiles: 7` cost the 50px bar **is the 340px map, not
-"the phone"** — on the 16 Pro `minTiles: 7` already clears 50 today. Reclaim
-the gap and a 375 viewport reaches 360 too, at 51.4px. So the question changes
-shape: not "state a phone exception to the 50px rule" but "keep 50 with no
-exception on every listed handset except the 360px Android, and pay for it out
-of the bezel". **Do the two together**, or `minTiles` gets decided against a
-floor that was about to move.
-
-Note the same 340 is written into 037's **SC-001** — "the smallest cat in the
-range is fixed at 340/`minTiles` = 56.7px … so the spread is simply
-`floorPx / 56.7`", which is what caps `floorPx` at 113. At a 360px map that
-becomes 60px and the cap moves to 120. SC-001 is being discarded (owner,
-2026-08-19), so this is not a reason to act — but it is the second criterion
-found resting on an undeclared 340, and if anything ever re-derives a floor
-target from "the smallest supported map", **that number is a measurement of the
-CSS, not a constant.**
-
-**The decision this needs, which is the owner's:** the body padding is shared —
-`body` is the flex column, so zeroing its sides pushes the *cards* to the screen
-edge as well. Reclaiming it for the map alone means moving that padding onto
-`header`/`.panel`/`footer` and letting the stage run to the edge, which is a
-look, not a refactor. The mat itself is already an owner-set number (16 → 6 on
-2026-08-05, "6px is kitten.me's mat width exactly"), and `#sky-dial` pins to
-`--stage-pad`, so changing the mat moves the horizon with it — by design, and
-worth re-checking by eye at the new value rather than trusting the variable.
-
-**What shipped, and what is still open.** Option F (12px chrome) was chosen
-over the cheaper 20px step because **it is the only one that moves the 50px
-bar**: at `minTiles` 7 the 20px step clears 50 on 3 of 5 handsets, exactly as
-today, while 12px clears it on 4 of 5. The 16px option is **strictly
-dominated** — identical maps to 20px everywhere. Still open: whether the
-CARDS should keep an inset while the map runs to the edge, which needs the
-padding moved onto `header`/`.panel`/`footer` and is a look, not a refactor.
-**A guard exists as of PR #260**: `client/test-motion.mjs` drives the real
-`resizeFor` against four layouts recorded off real devices, so the chrome
-arithmetic is no longer only checked by eye. It does not cover the *choice* of
-chrome, only that the measurement is faithful.
-
-**RESOLVED 2026-08-19 — `minTiles: 7` shipped.** The pairing worked as the
-entry argued: with the gap reclaimed first, 7 clears the 50px bar on 4 of 5
-listed handsets (the 360px Android is the one exception, at 48.6px) rather than
-being decided against a floor that was about to move. Two consequences that the
-tables above do NOT show, both measured off the shipped `Camera` rather than
-derived:
-
-- **It is not a phone-only dial.** The break-even is `minTiles × floorPx` =
-  791px, so every map *below* that loses apparent size at full zoom — a 640px
-  map goes 106.7px → 91.4px per tile, a 760px map 113px → 108.6px. Maps at or
-  above 791px do not move at all.
-- **At 340px the zoom range goes to nothing.** The floor asks for 7 tiles while
-  the ceiling's own 50px target asks for 6.8, so the ceiling is raised to meet
-  the floor and that map pans without ever zooming. Zoom range first appears at
-  a 351px map, against 301px before. Accepted under the ruling that zoom range
-  is instrumental, not a goal.
-
-037's **SC-001 was the casualty**, and it fired rather than failed — its own
-margin note had predicted this exact trade. Withdrawn on the owner's 2026-08-19
-call and replaced by the per-device bar it stood in for; see the spec. Note the
-knock-on: SC-001 was what capped `floorPx` at 113, and **that cap is gone with
-it**.
-
-**Durable vs perishable:** the arithmetic
-is durable — the wasted remainder is `budget mod world.width`, and the phone's
-cat size is `map / minTiles`. **Every number in both tables is perishable**: they
-assume the 20-tile served world (`cloudkitty.toml`), and a wider world under Fog
-re-rolls which handsets sit just under a boundary. Re-run the arithmetic against
-the world that is actually served before spending a design decision on it.
+Shipped; what stays is the durable arithmetic the `minTiles` decision
+still reads: the wasted remainder is `budget mod world.width`, and the
+phone's cat size is `map / minTiles`. **Every derived number in the old
+tables was perishable** — they assumed the 20-tile served world, and a
+wider world under Fog re-rolls which handsets sit just under a boundary.
+Re-run the arithmetic against the world actually served before spending
+a design decision on it. Tables and the SC-001 history: this entry's git
+history (removed 2026-09-11).
 
 ### Connect-time frame backlog — SPEC PARKED (added 2026-08-15; Product thread)
 Spec 032 is written, decisions settled, implementation deliberately parked
@@ -880,38 +597,17 @@ pan/zoom controls." Scope sketch, to be specced when picked up:
 
 ### ~~Custom north/south groom animations~~ — DONE, owner ruling 2026-08-24
 
-Owner: *"already done, it was in the handover."* It landed with the
-GROOM-OTHER-EDITS pass and has been live since.
-
-The check behind that ruling was run on 2026-08-24 — `GROOM_OTHER` byte-equal
-to the handover's on all 25 dials, the axial branch differing only in comment
-wording. It is **not re-runnable today**: `design-handoffs/` was a local drop
-and was never committed, so the comparison cannot be repeated from this tree.
-Recorded as history rather than as something a reader can verify.
-
-The guidance below is kept because it is still the map for whoever touches
-that branch next — the coupling note in particular has cost three rounds.
-
-### The original entry (added 2026-08-22)
-
-Social grooming shipped v1 with a real end-on treatment, not a fallback —
-`grooming-other` is in `AXIAL_POSES`, and the axial branch in `applyAxial`
-carries its own seated body, the near/far head-size depth cue, four legs
-and the two tail routings. That is where a custom drawing lands when
-Design delivers: replace the branch's geometry, keep `clampAxialHead`'s
-two floors (skull share above the shoulders, tail tip clear of the
-finished head) unless the new drawing makes them moot.
-
-Read the coupling note in `GROOM_OTHER` before touching any of it:
-`axialTailUpY`, `axialTailClearHead`, `axialHeadWide` and `axialHeadShow`
-interact, and three separate rounds lost the rear tail cue to exactly
-that. The lab's groom-other card draws all three views at once for this
-reason. N/S is the MAJORITY case (54% of groom targets), so it is worth
-the custom art.
-
-Also still first-cut and dialable after a live look: `VIEW.groomLean`
-(0.22 tiles, 450ms) — judged in the lab at full lean, never yet watched
-easing in and out on the served world.
+Owner: *"already done, it was in the handover."* Live since the
+GROOM-OTHER-EDITS pass. The 2026-08-24 byte-equal check against the
+handover is not re-runnable (`design-handoffs/` was a local drop, never
+committed) — history, not something a reader can verify. For whoever
+touches the axial groom branch next: **read the coupling note in
+`GROOM_OTHER` first** — `axialTailUpY`, `axialTailClearHead`,
+`axialHeadWide` and `axialHeadShow` interact, and three separate rounds
+lost the rear tail cue to exactly that (the lab's groom-other card draws
+all three views at once for this reason). Still first-cut and dialable:
+`VIEW.groomLean` (0.22 tiles, 450ms), judged in the lab, never yet
+watched easing on the served world.
 
 ### Four paws at phone sizes: the seated poses need a haunch mass (added 2026-08-22; from GROOM-OTHER-EDITS; owner's call)
 
@@ -1032,36 +728,6 @@ eat 50.0%).
 **Owner's ruling 2026-08-23: "we wanted more play and we got more play …
 we'll see what happens with the next gen of models and I'll worry about
 it then if it still looks excessive."** Do not re-open before then.
-
-### ~~A mutation runner that snapshots by construction~~ — DONE 2026-09-06 (`scripts/mutate.sh`, PR #353)
-
-`scripts/mutate.sh [--expect REGEX] <file> <mutation-cmd> <test-cmd>`
-is the runner, with one difference from the shape below: it refuses a
-target that is dirty against HEAD and restores from git, rather than
-copying the file aside, and it compares a `git status` snapshot after
-the restore so a mutation that touched a second file is refused (exit
-8). It also refuses a no-op mutation, a mutation the suite survives
-(VACUOUS), and, with `--expect`, a red for the wrong reason; the
-post-restore run must reproduce the baseline counts. The companion
-hook `revert-guard.py` makes the hand-rolled `git checkout` restore
-impossible on a dirty file. CLAUDE.md rule 5 names the script. Struck
-2026-09-08.
-
-The original entry (added 2026-08-23; tooling, LOW priority): every red-first pass this session hand-rolled a `mutate-*.sh` that edits a
-source file, runs the suite, and restores it — and one of them restored by
-`git checkout`, which ate uncommitted harness work and cost a rebuild.
-CLAUDE.md rule 5 now carries the lesson ("Undo means revert: commit first,
-or keep a copy to restore from"), but the rule is a discipline where a tool
-would be a guarantee.
-
-Shape: take a file, a list of (find, replace) mutations and a command;
-`cp` the file aside FIRST, apply one mutation, run, record pass/fail,
-restore from the copy, repeat; refuse to start on a dirty tree for the
-target file. The value is that the restore path cannot consult git, so it
-cannot widen to files the run never touched. Small — an afternoon — and it
-retires a script that has been rewritten from scratch at least six times
-(`mutate-groom.sh`, `mutate-size.sh`, `mutate-lick.sh`, `mutate-dial.sh`,
-`mutate-v2render.sh`, …).
 
 ### Real heatmaps replace the worn paths (added 2026-08-21; owner's ask; LOW priority)
 
@@ -1481,44 +1147,6 @@ and reverted — max travel ~0.24px at world size, unreadable; pitch
 replaces it. House method: judge in `gallery-v2.html` (dials +
 readout), bake on the owner's paste.
 
-### Water cues: occlude the cat's lower body — SHIPPED 2026-08-07 (PR #124)
-Clipping the cat against the waterline, so a cat on a water tile is
-visibly half-submerged whatever pose it is wearing. Solved the
-water+action case in one stroke, as the entry predicted: a cat keeps its
-*drinking* or *grooming* pose (which `poseFor` lets outrank the wade) and
-still reads as standing in water — no second pose, no per-activity
-special-casing.
-
-Built exactly on the groundwork the entry named: it consumes
-`Presentation.wetFor`, so the surface rises and falls with a shoreline
-crossing (measured 0.88 → 0.72 and back, symmetric over `wetFadeMs`)
-rather than popping, and the shadow, the ripple and the waterline can
-never disagree.
-
-**Waterline 0.72**, owner-picked from six depths rendered through the
-shipping path at live tile size; it crosses the bottom of the body so the
-cat is clearly *in* the pond, while the pose stays legible. 0.62 —
-matching `SWIM`'s own surface, which would have given wading and swimming
-cats one shared water level — was rejected because a standing cat then
-looks like it is swimming. The swim pose opts out of clipping entirely:
-it is already drawn sunk.
-
-The deferral condition was met by v3 Phase 1's larger tile, as planned.
-
-**The entry's second half is resolved too, and verified rather than
-assumed.** It said a single water tile rendered as a rounded blue square,
-because `shoreRounding` was a flat 0.45 tiles applied to a 1×1 blob. The
-shoreline pipeline was rewritten in the 2026-08-07 meadow round — arcs
-first (`sampleRoundedLoop`), wobble riding the finished curve, rounding
-0.8 — and an isolated water tile now draws as a rounded organic blob.
-Checked on interior 1×1 ponds in the preview world at high zoom, not
-inferred from the dial change.
-
-That leaves the river case, which is NOT covered: rounding is still a
-flat constant rather than clamped by local channel width, so a 1-wide
-channel would still bead into lozenges, and `groupWaterTiles` still
-floods 4-adjacent only. Both are recorded in the v3 plan's Phase 5.
-
 ### Pond restyle — give the pond a bottom (added 2026-08-09; Client thread)
 The design handoff's **spec 02**, plus the deltas we measured against it. The
 bundle was gitignored and temporary, as its original `deletemewhendone/` name
@@ -1605,20 +1233,15 @@ through the day, and the cats standing in that light never answer it — flat
 attempt starts from the meadow's own sun, not from that draft.
 
 ### Ambient whole-body float — CLOSED, not doing (2026-08-09; Client thread)
-Graphics v3 Phase 4 listed a slow whole-body y-bob for every cat, borrowed
-from kitten.me, on top of the breathing we already have. **Closed by the
-owner** rather than deferred, and the reasoning generalises so it is worth
-keeping: the walk's body bob was built, measured and reverted the same day
-(branch history, `56b071c`) because at our tile size a few tenths of a pixel
-of vertical motion on a rigid body reads as **edge shimmer, not life** — the
-body travelled 0.56px peak-to-peak at a 56px tile against a foot's 9.52px
-fore–aft.
 
-The same arithmetic applies to an ambient float, and worse: an idle cat has no
-lateral motion to hide behind. If it ever comes back it should come back as
-the *whole-cat* mechanism from that revert (head, tail and limb pivots riding
-the body, grounded feet held), not as a torso sliding against a welded head —
-and only at an amplitude that clears a pixel.
+Closed by the owner, and the reasoning generalises: the walk's body bob
+was built, measured and reverted the same day (branch history,
+`56b071c`) because at our tile size a few tenths of a pixel of vertical
+motion on a rigid body reads as **edge shimmer, not life** (0.56px
+peak-to-peak at a 56px tile, against a foot's 9.52px fore–aft). An idle
+float is worse — no lateral motion to hide behind. If it ever returns it
+returns as the whole-cat mechanism from that revert, at an amplitude
+that clears a pixel.
 
 ### Animation handoff — the residue, re-reviewed 2026-08-14 (Client thread)
 
@@ -1673,97 +1296,30 @@ excluded and the measurement for that written at the call site; invariants
    adding before that dial is next touched, not after.
 
 ### Whiskers — CLOSED, they shipped (2026-08-13; Client thread)
-Shipped on in #215 at the whole-world tile, without camera mode and without
-clearing the sub-pixel floor. This entry said the stroke lands near **0.8px**
-and that a bigger tile had not been enough, and both of those are still true —
-the stroke is pinned at exactly the 0.8px floor at the live tile.
 
-**The premise was wrong, not the measurement.** kitten.me's whiskers sit at
-the same 0.8px below a 44px cat, so stroke width was never what made theirs
-read. What does is **opacity** — at 0.25 a hairline is a soft hint rather than
-an aliased dotted line — and **length**, running past the head so most of the
-whisker falls against background rather than fur. Sub-pixel geometry can carry
-a feature if it is not asked to look solid.
-
-Worth remembering when the next feature is costed at a pixel width: that is
-one of at least three things setting whether it reads.
+Shipped. The lesson outlives them: what makes sub-pixel geometry read is
+**opacity** (0.25 turns a hairline into a soft hint, not an aliased
+dotted line) and **length** (run past the head so most of the whisker
+falls against background). Worth remembering when the next feature is
+costed at a pixel width — that is one of at least three things setting
+whether it reads.
 
 ### ~~The walk contradicts itself travelling north/south~~ — SHIPPED 2026-08-20 (PR #275)
 
-Design's rebuild landed, over five owner rounds, and it took **none of the
-four options costed below**. The diagnosis under them was wrong.
+Design's rebuild landed and took none of the four options costed here —
+the diagnosis under them was wrong. The fault was never the gait: the
+axial chest's underside sat below the ground line (`AXIAL.bodyY` 0.7 +
+`bodyRy` 0.185 = 0.885 against `CAT_GROUND` 0.88), so there were ~two
+pixels of visible leg at a 120px tile and every note about sweeps and
+cadence described legs nobody could see.
 
-The fault was never the gait. The axial chest's underside sat BELOW the
-ground line — re-checked against the commit before #275, `AXIAL.bodyY` 0.7
-plus `bodyRy` 0.185 is 0.885 against a `CAT_GROUND` of 0.88 — so the body was
-buried and there were about **two pixels of visible leg** at a 120px tile (the
-pixel figure is #275's measurement, carried). Every note here about sweeps,
-planting and cadence was describing legs nobody could see. Once the body cleared the ground, the step
-could travel in DEPTH on the same `gaitStep` curve the side walk already
-uses — which none of the four options proposed, because none of them
-suspected the ground line.
-
-The entry is kept rather than deleted because the CENSUS is the durable part:
-717 east/west frames against 394 north/south, about 10% of all frames. That
-measurement still holds and would still be the thing to re-derive. The
-options are history; the number is not.
-
-Kept too because "do nothing is a legitimate answer" was the right standing
-answer for two years, and stopped being right at the moment the tile got big
-enough to see the problem. Worth remembering the next time an entry here
-carries a costed do-nothing.
-
-### The original entry (added 2026-08-08; Client thread)
-Our cat is a **side profile**, so it encodes a heading. The legs sweep
-fore–aft — horizontally on screen — whatever way the cat is actually
-going, and that sweep is the entire basis of the planted foot: a stance
-paw drifts backward at exactly the rate the ground passes under it, so
-it holds still against a mark.
-
-Travelling east or west that cancels: 9.5px of paw sweep against 56px of
-travel per tick, same axis. Travelling **north or south the axes are
-perpendicular** — the paw still sweeps 9.5px sideways while the cat
-carries it 56px vertically, so every foot, planted or not, slides across
-the ground at full walking speed. Nothing cancels. `dx === 0` also keeps
-the previous facing (`anim.js`), so the cat is a profile sliding sideways
-up the screen.
-
-**Measured, not guessed** (9-minute live census, `client-measurements/`):
-717 east/west moves against 394 north/south, so **35.5%** of walking is in
-the mode where the planting does nothing. Walking is ~28% of frames, so
-this is about **10% of all frames** — which is the budget any fix has to
-fit inside, and it rules out a new art vocabulary on its own.
-
-This is a consequence of the gait work succeeding, not a regression: with
-the old pegs the feet slid in every direction, so nothing was claimed and
-nothing was contradicted. **Doing nothing is a legitimate answer** and is
-what ships today (owner's call, 2026-08-08 — deferred in favour of higher
-value work).
-
-Options, costed, so this does not get re-derived:
-- **Front/rear-facing vocabulary** — the only true fix, and out of all
-  proportion: two more views of body, head, ears, face, tail, legs and
-  every pattern mask, for every pose, plus something sane when a cat turns
-  from east to north (a snap pops, a blend needs in-between views).
-- **Rotate the profile toward travel** — cheap, but a rotated side view
-  reads as a cat climbing a hill, not walking away.
-- **Isometric projection**, so north has a horizontal component — that is
-  the whole world (tiles, ponds, shadows, elements), and camera work is
-  already deferred until after the art.
-- **Damp the sweep by the horizontal share of travel**, `|dx|/(|dx|+|dy|)`
-  — about five lines, the renderer already has the delta. Risk: still legs
-  read as an escalator, and the factor pops at direction changes unless
-  smoothed across a tick.
-- **Swap the motion instead of killing it**: for vertical travel replace
-  the fore–aft sweep with a small alternating *piston*, paws stepping
-  under the body rather than past it — the old sprite-game convention for
-  "walking toward/away from you". ~30 lines, entirely inside the walking
-  case, no new vocabulary. **Best value of the list if this is picked up.**
-
-Suggested shape if revisited: one dial, 0 = today's full sweep, 1 = full
-piston, damping as the midpoint, judged in the lab on a card that walks a
-cat north and south — with "do nothing" as a fourth thing in the
-comparison, not as the absence of one.
+Two durable parts, kept: the **census** — 717 east/west frames against
+394 north/south, ~10% of all frames; that measurement holds and is what
+to re-derive. And the standing lesson: this entry's costed **do-nothing
+was the right answer for two years and stopped being right the moment
+the tile got big enough to see the problem** — remember that the next
+time an entry here carries a costed do-nothing. The four options and the
+original gait analysis: this entry's git history (removed 2026-09-11).
 
 ### Stationary poses have no axial drawing (added 2026-08-12; Client thread)
 
@@ -1996,9 +1552,10 @@ baseline runs too); and cross-version comparability breaks by design —
 v1-vs-v2 scores are different questions, which the version stamp
 already makes explicit. Sequencing: after the first certified policy
 exists, alongside whatever else v2 wants (owner note, 2026-07-25) —
-**that condition is now met** (s3/s6 certified clean 2026-07-30), but
-the suite is in active exp-003 service; hold until that experiment
-closes. Natural pairing: the small-world exams entry below (P2).
+**that condition is now met** (s3/s6 certified clean 2026-07-30), and
+exp-003 has since CLOSED (complete, 2026-08) — the hold is spent
+(noted 2026-09-11); sequencing is now only "alongside whatever else the
+next suite version wants". Natural pairing: the small-world exams entry below (P2).
 Additional v2 nicety (experiments session, 2026-07-27, low priority):
 Mixed mode always seats the subject at roster index 0
 (`harness.rs`, the `Mixed if index == 0` arm), so mixed certification
@@ -2311,7 +1868,13 @@ conventions (`g`/`l`/`p` keys, keyboard-only by design, off by
 default); display the config string verbatim so the label can never
 drift from the seating truth.
 
-### evals/v2 — small-world exams for the certification path (added 2026-08-06, from the consumed pre-exp-003 handoff)
+### Small-world exams for the certification path — a future evals/v4 (added 2026-08-06, from the consumed pre-exp-003 handoff; renamed 2026-09-11)
+Named "evals/v2" when written; that name has since shipped as something
+else — evals/v2 (cut 2026-09-03, spec 049) is the six v1 designs as
+frozen 3.0 configs, and evals/v3 (spec 051) their schema-5 re-cut. This
+entry is still open and unchanged in substance; per the manifest
+doctrine (evolution = a new directory alongside) it would land as
+evals/v4.
 Post-exp-003, Product-owned. The owner tests 20×20 and 22×22 geometry
 after exp-003 and picks a new default then; every frozen `evals/v1`
 exam is ≥28×28, so a small-world default would leave certification
