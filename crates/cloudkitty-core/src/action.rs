@@ -786,12 +786,22 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
                 // Grooming a friend cleans them and satisfies the groomer's
                 // own need for closeness. Only the groomer is in an activity;
                 // the friend stays free and may wander off, ending it.
+                // The groomer's pay is the spec-054 curve over the bath
+                // relief this tick actually DELIVERS — read before the
+                // relief lands so payment and cleaning price the same
+                // tick's dirt (you are paid only for dirt that exists;
+                // a second groomer in the same tick sees the remainder,
+                // in the fair per-tick application order).
+                let delivered = world
+                    .kitty(friend)
+                    .map(|k| k.needs.get(NeedKind::Bath))
+                    .unwrap_or(0.0);
                 lower_need(world, friend, NeedKind::Bath, effects.groom_relief);
                 lower_need(
                     world,
                     kitty_id,
                     NeedKind::Cuddle,
-                    effects.groom_cuddle_relief,
+                    effects.groom_cuddle_pay(delivered),
                 );
             }
         },
@@ -1395,7 +1405,9 @@ mod tests {
         apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
 
         assert!((world.kitty(2).unwrap().needs.get(NeedKind::Bath) - 40.0).abs() < 0.01);
-        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Cuddle) - 35.0).abs() < 0.01);
+        // Spec 054: the comfort is the curve at the delivered relief — a
+        // bath-60 friend delivers a full tick (x = 1), the 2.0 ceiling.
+        assert!((world.kitty(1).unwrap().needs.get(NeedKind::Cuddle) - 48.0).abs() < 0.01);
     }
 
     #[test]
@@ -2734,12 +2746,13 @@ mod proposal_contract_tests {
         world.kitties[b].pos = Position::new(4, 5);
         world.kitties[b].needs.add(NeedKind::Bath, 60.0);
 
-        // The groomer's warmth: classic cuddle_relief (15), not a cosleep tier.
+        // The groomer's warmth: the spec-054 curve (a bath-60 friend pays
+        // the 2.0 ceiling), not a cosleep tier.
         apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
         let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
         assert!(
-            (a_cuddle - 35.0).abs() < 0.01,
-            "the groomer is paid by cuddle_relief, got {a_cuddle}"
+            (a_cuddle - 48.0).abs() < 0.01,
+            "the groomer is paid by the groom curve, got {a_cuddle}"
         );
 
         // The mutual rest scene: same isolation (a settled partner earns
@@ -2792,7 +2805,10 @@ mod proposal_contract_tests {
             "the duet follows its own dial, got {a_cuddle}"
         );
 
-        // The groomer is untouched by the rest dial's move...
+        // The groomer is untouched by the rest dial's move... (re-pointed
+        // at spec 054: the groomer's pay is the curve — a bath-60 target
+        // delivers a full tick, x = 1, pay = the 2.0 ceiling — so cuddle
+        // lands at 50 − 2.0 = 48, whatever rest_mutual_relief says.)
         let (mut world, mut config) = cuddle_pricing_stage();
         config.actions.rest_mutual_relief = 4.0;
         let b = world.kitty_index(2).unwrap();
@@ -2800,19 +2816,166 @@ mod proposal_contract_tests {
         apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
         let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
         assert!(
-            (a_cuddle - 35.0).abs() < 0.01,
-            "the groomer ignores rest_mutual_relief, got {a_cuddle}"
+            (a_cuddle - 48.0).abs() < 0.01,
+            "the groomer ignores rest_mutual_relief and pays the curve, got {a_cuddle}"
         );
 
-        // ...and the duet is untouched by the groomer's.
+        // ...and the duet is untouched by the groomer's (re-pointed at
+        // spec 054: the groomer's dials are the curve trio now; the inert
+        // legacy flat key would be a vacuous probe).
         let (mut world, mut config) = cuddle_pricing_stage();
-        config.actions.groom_cuddle_relief = 4.0;
+        config.actions.groom_cuddle_floor = 4.0;
+        config.actions.groom_cuddle_ceiling = 4.0;
         settle(&mut world, 2);
         apply(&mut world, 1, Action::Rest { with: Some(2) }, &config);
         let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
         assert!(
             (a_cuddle - 35.0).abs() < 0.01,
-            "the duet ignores groom_cuddle_relief, got {a_cuddle}"
+            "the duet ignores the groom curve dials, got {a_cuddle}"
+        );
+    }
+
+    /// Spec 054 US1: the groomer's per-tick pay is the curve at the bath
+    /// relief that tick actually delivers — read off the same tick's dirt,
+    /// decaying as the target cleans, floored at the charm tier.
+    #[test]
+    fn groom_scene_pay_follows_the_delivered_relief_curve() {
+        // Full dirt (bath 60 ≥ one groom tick): x = 1, pay = ceiling 2.0.
+        let (mut world, config) = cuddle_pricing_stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 60.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 48.0).abs() < 1e-3,
+            "full dirt pays the 2.0 ceiling, got cuddle {a_cuddle}"
+        );
+
+        // Half dirt (bath 10 = half a groom tick): x = 0.5, the exact
+        // saturation point — still 2.0.
+        let (mut world, config) = cuddle_pricing_stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 10.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 48.0).abs() < 1e-3,
+            "half dirt saturates at 2.0, got cuddle {a_cuddle}"
+        );
+
+        // Bath 7 against a 20-point tick: x = 0.35, pay = 0.25 + 3.5·0.35
+        // = 1.475 — the per-tick cap by existing dirt (spec edge case).
+        let (mut world, config) = cuddle_pricing_stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 7.0);
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 48.525).abs() < 1e-3,
+            "bath 7 delivers x = 0.35 and pays 1.475, got cuddle {a_cuddle}"
+        );
+
+        // Clean target: exactly the 0.25 charm floor, bath stays zero.
+        let (mut world, config) = cuddle_pricing_stage();
+        apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 49.75).abs() < 1e-3,
+            "a clean target pays exactly the floor, got cuddle {a_cuddle}"
+        );
+        assert_eq!(
+            world.kitty(2).unwrap().needs.get(NeedKind::Bath),
+            0.0,
+            "needs are bounded: a clean target stays clean"
+        );
+
+        // Decay (US1 scenario 4): bath 25 pays 2.0, then 1.125, then the
+        // floor — each tick priced off that tick's dirt, never a stale
+        // opening value.
+        let (mut world, config) = cuddle_pricing_stage();
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, 25.0);
+        let mut cuddle_before = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        for expected in [2.0f32, 1.125, 0.25] {
+            // Continuations service once per tick (spec 006) — advance
+            // the clock so each pass is a real groomed tick.
+            world.tick += 1;
+            apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+            let cuddle_after = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+            let paid = cuddle_before - cuddle_after;
+            assert!(
+                (paid - expected).abs() < 1e-3,
+                "the payment decays with the dirt: expected {expected}, paid {paid}"
+            );
+            cuddle_before = cuddle_after;
+        }
+
+        // Solo grooming: unchanged — own bath drops, no cuddle pay.
+        let (mut world, config) = cuddle_pricing_stage();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].needs.add(NeedKind::Bath, 30.0);
+        apply(&mut world, 1, Action::Groom { target: None }, &config);
+        let me = world.kitty(1).unwrap();
+        assert!(
+            (me.needs.get(NeedKind::Bath) - 10.0).abs() < 1e-3,
+            "solo groom cleans the groomer"
+        );
+        assert!(
+            (me.needs.get(NeedKind::Cuddle) - 50.0).abs() < 1e-3,
+            "solo groom pays no cuddle relief"
+        );
+    }
+
+    /// Spec 054 US2 (SC-003/FR-006): the relief farm is closed — a clean
+    /// target pays exactly the floor per tick, and a scene's above-floor
+    /// income is bounded by what the opening dirt can deliver.
+    #[test]
+    fn the_groom_relief_farm_is_closed_at_the_floor() {
+        // Farming a clean cat: four grooms accumulate exactly 4 × floor —
+        // never a point above the drip tier's rate.
+        let (mut world, config) = cuddle_pricing_stage();
+        for _ in 0..4 {
+            world.tick += 1; // one serviced groomed tick per pass (spec 006)
+            apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+        }
+        let a_cuddle = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        assert!(
+            (a_cuddle - 49.0).abs() < 1e-3,
+            "four clean-target grooms pay exactly 4 x 0.25, got cuddle {a_cuddle}"
+        );
+
+        // A dirty-then-clean scene: cumulative ABOVE-FLOOR income is
+        // bounded by the opening dirt's worth — above-floor pay per tick
+        // is at most slope · delivered/groom_relief, so the scene total
+        // is at most slope · opening/groom_relief. No dirt is paid twice.
+        let (mut world, config) = cuddle_pricing_stage();
+        let opening = 25.0f32;
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].needs.add(NeedKind::Bath, opening);
+        let mut above_floor = 0.0f32;
+        let mut cuddle_before = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+        for _ in 0..6 {
+            world.tick += 1; // one serviced groomed tick per pass (spec 006)
+            apply(&mut world, 1, Action::Groom { target: Some(2) }, &config);
+            let cuddle_after = world.kitty(1).unwrap().needs.get(NeedKind::Cuddle);
+            above_floor += (cuddle_before - cuddle_after) - config.actions.groom_cuddle_floor;
+            cuddle_before = cuddle_after;
+        }
+        assert_eq!(
+            world.kitty(2).unwrap().needs.get(NeedKind::Bath),
+            0.0,
+            "the target came clean"
+        );
+        let bound =
+            config.actions.groom_cuddle_slope * opening / config.actions.groom_relief;
+        assert!(
+            above_floor <= bound + 1e-3,
+            "above-floor income {above_floor} exceeds the opening dirt's \
+             worth ({bound})"
+        );
+        assert!(
+            above_floor > 0.0,
+            "real dirt earned real above-floor income (the honest half)"
         );
     }
 

@@ -757,7 +757,13 @@ impl Config {
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
             ("[actions] rest_mutual_relief", a.rest_mutual_relief),
             ("[actions] rest_drip_relief", a.rest_drip_relief),
-            ("[actions] groom_cuddle_relief", a.groom_cuddle_relief),
+            // Spec 054: the groom pricing curve's three dials join the
+            // sweep. The retired flat groom_cuddle_relief is NOT here —
+            // it is a recognised-but-inert legacy key read by no code,
+            // so no value in it can poison anything.
+            ("[actions] groom_cuddle_floor", a.groom_cuddle_floor),
+            ("[actions] groom_cuddle_slope", a.groom_cuddle_slope),
+            ("[actions] groom_cuddle_ceiling", a.groom_cuddle_ceiling),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -766,6 +772,19 @@ impl Config {
                     "must be a finite number of at least 0",
                 ));
             }
+        }
+        // Spec 054: the curve's one ordering rule beyond the sweep
+        // (slope ≥ 0 is already the sweep's non-negativity; it is what
+        // keeps "a dirtier friend pays more"). A ceiling under the floor
+        // would make the ramp start above its own clamp — pay would read
+        // ceiling everywhere and the floor calibration would silently lie.
+        if a.groom_cuddle_ceiling < a.groom_cuddle_floor {
+            return Err(ConfigError::invalid(
+                "[actions] groom_cuddle_ceiling",
+                a.groom_cuddle_ceiling.to_string(),
+                "must be at least groom_cuddle_floor: the groom pay ramp \
+                 saturates at the ceiling, it cannot sit under its floor",
+            ));
         }
         // The strict chain: solo < kitty < bug < greeble. Equality anywhere
         // makes two play forms indistinguishable -- exactly the

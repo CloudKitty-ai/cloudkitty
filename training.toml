@@ -131,7 +131,6 @@ cosleep_drip_relief = 15.0
 cosleep_mutual_relief = 15.0
 rest_mutual_relief = 15.0
 rest_drip_relief = 0.0
-groom_cuddle_relief = 15.0
 solo_play_relief = 10.0
 play_relief_bug = 25.0
 play_relief_greeble = 35.0

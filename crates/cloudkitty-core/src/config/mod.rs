@@ -652,11 +652,29 @@ pub struct ActionEffects {
     /// reprice diff.
     #[serde(default = "default_rest_drip_relief")]
     pub rest_drip_relief: f32,
-    /// The groomer's own cuddle relief while grooming a friend (spec 041).
-    /// Split from the classic `cuddle_relief` at its engine-default value
-    /// (same explicit-pin note as `rest_mutual_relief`).
-    #[serde(default = "default_cuddle_split_relief")]
+    /// RETIRED flat groomer pay (spec 054): recognised here only so
+    /// `deny_unknown_fields` can hold on every config written before the
+    /// reprice (frozen evals/v2, current evals/v3) — read by no code,
+    /// never serialized (the same pattern that carries `[rl]`/`[plugins]`/
+    /// `[watchdog]`). The groomer's pay is the delivered-relief curve
+    /// below; see `groom_cuddle_pay`.
+    #[serde(default, skip_serializing)]
     pub groom_cuddle_relief: f32,
+    /// Spec 054 curve dial: the groomer's cuddle pay per serviced groomed
+    /// tick at zero delivered bath relief — the charm tier, calibrated to
+    /// the drip-rest anchor tier (0.25) so clean-target grooming never
+    /// out-earns drip-resting while staying paid (owner rule 1).
+    #[serde(default = "default_groom_cuddle_floor")]
+    pub groom_cuddle_floor: f32,
+    /// Spec 054 curve dial: pay gained per unit of delivered fraction —
+    /// ≥ 0 keeps "a dirtier friend pays more" (FR-002a monotonicity).
+    #[serde(default = "default_groom_cuddle_slope")]
+    pub groom_cuddle_slope: f32,
+    /// Spec 054 curve dial: the saturation pay per tick, one party —
+    /// 1/4 of the rest_mutual anchor per party (owner rule 2's 4x
+    /// dominance); reached exactly at x = 0.5 with the default slope.
+    #[serde(default = "default_groom_cuddle_ceiling")]
+    pub groom_cuddle_ceiling: f32,
     /// Play relief for pouncing at nothing. Smaller than `play_relief` so a
     /// kitty with company always prefers the real thing. Also the price a
     /// vanished play target drops to (spec 025): the critter is gone, the
@@ -693,12 +711,44 @@ impl Default for ActionEffects {
             cosleep_mutual_relief: default_cosleep_relief(),
             rest_mutual_relief: default_cuddle_split_relief(),
             rest_drip_relief: default_rest_drip_relief(),
-            groom_cuddle_relief: default_cuddle_split_relief(),
+            // The retired flat dial (spec 054): read by no code, never
+            // serialized — 0.0 matches the serde default so the two
+            // construction paths agree on the inert value.
+            groom_cuddle_relief: 0.0,
+            groom_cuddle_floor: default_groom_cuddle_floor(),
+            groom_cuddle_slope: default_groom_cuddle_slope(),
+            groom_cuddle_ceiling: default_groom_cuddle_ceiling(),
             solo_play_relief: default_solo_play_relief(),
             play_relief_bug: default_play_relief_bug(),
             play_relief_greeble: default_play_relief_greeble(),
             durations: DurationsConfig::default(),
         }
+    }
+}
+
+impl ActionEffects {
+    /// THE groom-other pricing curve (spec 054): the one definition every
+    /// reader must call — the effect body pays it and the scripted
+    /// groom-response seam prices with it (FR-008; no third reader may
+    /// appear without reading this function). `delivered_bath` is the
+    /// bath relief the target actually receives this tick; it is clamped
+    /// to a full groom tick, normalized to the delivered fraction
+    /// x ∈ [0, 1], and run through the clamped linear ramp
+    /// `min(ceiling, floor + slope · x)`.
+    ///
+    /// Evaluation stays in IEEE core arithmetic (add/mul/div/min — all
+    /// correctly rounded, FR-002a): no transcendental or platform-library
+    /// math may enter the tick path through this curve, so the same
+    /// inputs pay bit-identically on every supported platform.
+    pub fn groom_cuddle_pay(&self, delivered_bath: f32) -> f32 {
+        // A zero groom_relief world delivers nothing per tick; the charm
+        // floor is still the pay (x reads 0, not a division by zero).
+        let x = if self.groom_relief > 0.0 {
+            delivered_bath.clamp(0.0, self.groom_relief) / self.groom_relief
+        } else {
+            0.0
+        };
+        (self.groom_cuddle_floor + self.groom_cuddle_slope * x).min(self.groom_cuddle_ceiling)
     }
 }
 
@@ -2431,8 +2481,13 @@ mod tests {
                     c.actions.rest_mutual_relief = v
                 }),
                 ("rest_drip_relief", |c, v| c.actions.rest_drip_relief = v),
-                ("groom_cuddle_relief", |c, v| {
-                    c.actions.groom_cuddle_relief = v
+                // Spec 054: the flat groom_cuddle_relief left this table
+                // with its validation (inert legacy key, read by no code);
+                // the curve's three dials took its seat.
+                ("groom_cuddle_floor", |c, v| c.actions.groom_cuddle_floor = v),
+                ("groom_cuddle_slope", |c, v| c.actions.groom_cuddle_slope = v),
+                ("groom_cuddle_ceiling", |c, v| {
+                    c.actions.groom_cuddle_ceiling = v
                 }),
             ] {
                 let mut c = cfg();
@@ -2444,6 +2499,133 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn groom_cuddle_pay_hits_the_owner_anchors_exactly() {
+        // Spec 054 SC-002: the five owner anchors at defaults
+        // (floor 0.25, slope 3.5, ceiling 2.0, groom_relief 20). The
+        // input is DELIVERED bath relief, so x = delivered/20. Anchors
+        // whose arithmetic is exact in f32 (x ∈ {0, 0.25, 0.5, 1}) pin
+        // with ==; c(0.10) pins bit-exact against the formula (FR-002a's
+        // determinism claim) and to 0.60 within display tolerance.
+        let a = cfg().actions;
+        assert_eq!(a.groom_cuddle_pay(0.0), 0.25, "c(0) = the charm floor");
+        assert_eq!(a.groom_cuddle_pay(5.0), 1.125, "c(0.25), exact in f32");
+        assert_eq!(a.groom_cuddle_pay(10.0), 2.0, "c(0.5) = exact saturation");
+        assert_eq!(a.groom_cuddle_pay(20.0), 2.0, "c(1) holds the ceiling");
+        let c_tenth = a.groom_cuddle_pay(2.0);
+        assert_eq!(
+            c_tenth,
+            0.25f32 + 3.5 * (2.0f32 / 20.0),
+            "c(0.10) is the formula's own f32 evaluation, bit-exact"
+        );
+        assert!((c_tenth - 0.60).abs() < 1e-6, "c(0.10) ≈ 0.60, got {c_tenth}");
+    }
+
+    #[test]
+    fn groom_cuddle_pay_is_strictly_monotone_below_saturation_then_flat() {
+        // Spec 054 FR-002a's pinned invariant: "a dirtier friend always
+        // pays more" strictly below x_sat = (ceiling − floor)/slope
+        // (0.5 at defaults), constant at the ceiling after.
+        let a = cfg().actions;
+        for i in 0..50u32 {
+            let lo = a.groom_cuddle_pay(i as f32 * 0.2);
+            let hi = a.groom_cuddle_pay((i + 1) as f32 * 0.2);
+            assert!(
+                lo < hi,
+                "strictly increasing below saturation: c({}) = {lo} !< c({}) = {hi}",
+                i as f32 * 0.2,
+                (i + 1) as f32 * 0.2
+            );
+        }
+        for delivered in [10.0, 12.5, 15.0, 20.0] {
+            assert_eq!(
+                a.groom_cuddle_pay(delivered),
+                2.0,
+                "constant at the ceiling from saturation on"
+            );
+        }
+    }
+
+    #[test]
+    fn groom_cuddle_pay_clamps_delivered_to_one_groom_tick() {
+        // A bath deeper than one full groom tick delivers one tick's
+        // worth: x caps at 1 and pay at the ceiling — never above.
+        let a = cfg().actions;
+        assert_eq!(a.groom_cuddle_pay(60.0), a.groom_cuddle_pay(20.0));
+        assert_eq!(a.groom_cuddle_pay(f32::MAX), 2.0);
+    }
+
+    #[test]
+    fn the_legacy_groom_cuddle_relief_key_loads_but_never_serializes() {
+        // Spec 054 FR-010: recognised-but-inert. A pre-054 config pinning
+        // the flat key (frozen evals/v2, current evals/v3) still loads
+        // under deny_unknown_fields and still validates — and the key
+        // never comes back out: a serialized default Config carries no
+        // trace of it (so `/config` and the engine-defaults stamp move
+        // only by the declared dial delta, SC-007).
+        let mut c = cfg();
+        c.actions.groom_cuddle_relief = 999.0; // read by no code
+        let text = toml::to_string(&c).expect("config serializes");
+        assert!(
+            !text.contains("groom_cuddle_relief"),
+            "the legacy key must never serialize"
+        );
+        let with_legacy = text.replace(
+            "groom_relief = 20.0",
+            "groom_relief = 20.0\ngroom_cuddle_relief = 0.5",
+        );
+        assert!(with_legacy.contains("groom_cuddle_relief"), "fixture wired");
+        let parsed: Config =
+            toml::from_str(&with_legacy).expect("a config pinning the legacy key still loads");
+        parsed.validate().expect("and validates");
+        // Inert means inert: the pinned value moves no payment.
+        assert_eq!(
+            parsed.actions.groom_cuddle_pay(20.0),
+            c.actions.groom_cuddle_pay(20.0),
+            "the legacy pin must not move the curve"
+        );
+    }
+
+    #[test]
+    fn the_groom_curve_dials_reject_a_ceiling_under_the_floor() {
+        // Spec 054 FR-009's ordering rule (negatives and non-finites ride
+        // the shared sweep above).
+        let mut c = cfg();
+        c.actions.groom_cuddle_floor = 3.0;
+        c.actions.groom_cuddle_ceiling = 1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("groom_cuddle_ceiling"),
+            "rejected by name: {msg}"
+        );
+    }
+
+    #[test]
+    fn the_groom_curve_calibrations_hold_at_anchor_values() {
+        // Spec 054 owner rules 1–2 as tested invariants. The literals are
+        // the ANCHOR values (shakeout anchor: rest_drip 0.25, rest_mutual
+        // 8.0 to both) — if the reseat re-pins those, the invariants to
+        // re-check are floor = drip tier and 4x dominance, not these raw
+        // numbers (spec Assumptions).
+        let a = cfg().actions;
+        assert_eq!(
+            a.groom_cuddle_floor, 0.25,
+            "rule 1, strict: the charm floor IS the anchor drip tier"
+        );
+        assert_eq!(
+            a.groom_cuddle_ceiling,
+            8.0 / 4.0,
+            "rule 2: peak pay to one party = 1/4 of rest_mutual per party \
+             at anchor (SC-004)"
+        );
+        // The default slope saturates exactly at half a groom tick.
+        assert_eq!(
+            (a.groom_cuddle_ceiling - a.groom_cuddle_floor) / a.groom_cuddle_slope,
+            0.5,
+            "x_sat = 0.5 at defaults"
+        );
     }
 
     #[test]

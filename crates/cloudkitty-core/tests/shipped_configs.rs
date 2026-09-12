@@ -116,24 +116,32 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
 
     let sleep_min = a.durations.sleep.min as f32;
     let cuddle_min = a.durations.cuddle.min as f32;
-    // groom_cuddle_relief is TEMPORARILY absent from the rider loop: the
-    // served value is bumped to 2.0 (a pre-Gen-1 accommodation for frozen
-    // incumbents whose groom-for-cuddle habit predates 041 -- see
-    // experiments/groom-bump-handoff-2026-08-31.md), which deliberately
-    // finishes the mean need in one minimum groom. The exact pin below
-    // catches drift and goes red at the Gen 1 reseating revert (0.5), which
-    // must also restore the groom row to this loop (and its bath_min term).
+    // Spec 054: the flat groom_cuddle_relief (and its temporary 2.0 bump,
+    // handoff 2026-08-31) is retired -- the served toml is scrubbed of the
+    // key and the groomer is paid by the delivered-relief curve at engine
+    // defaults (deliberately unpinned: the defaults ARE the calibration,
+    // and pinning them would only add stamp-drift surface).
     assert!(
-        (a.groom_cuddle_relief - 2.0).abs() < f32::EPSILON,
-        "groom_cuddle_relief is {} -- the served value is pinned at the \
-         temporary 2.0 bump; if this is the Gen 1 reseating revert, restore \
-         the groom row to the rider loop (handoff 2026-08-31)",
-        a.groom_cuddle_relief
+        !text.contains("groom_cuddle_relief ="),
+        "the served toml must stay scrubbed of the retired flat dial"
     );
+    assert_eq!(a.groom_cuddle_floor, 0.25, "served = engine default floor");
+    assert_eq!(a.groom_cuddle_slope, 3.5, "served = engine default slope");
+    assert_eq!(
+        a.groom_cuddle_ceiling, 2.0,
+        "served = engine default ceiling"
+    );
+    // The groom row returns to the rider loop (the retirement discharges
+    // the handoff's restore note): the rider component of groom pay is the
+    // charm FLOOR -- above-floor income is delivered-dirt-bounded, not a
+    // rider -- and a minimum groom scene of floor ticks must not finish
+    // the mean need.
+    let bath_min = a.durations.bath.min as f32;
     for (name, per_scene) in [
         ("cosleep_drip_relief", a.cosleep_drip_relief * sleep_min),
         ("cosleep_mutual_relief", a.cosleep_mutual_relief * sleep_min),
         ("rest_drip_relief", a.rest_drip_relief * cuddle_min),
+        ("groom_cuddle_floor (charm rider)", a.groom_cuddle_floor * bath_min),
     ] {
         assert!(
             per_scene < MEASURED_MEAN_CUDDLE_NEED,
@@ -153,4 +161,46 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
         "co-sleep must keep a strictly positive edge over solo sleep"
     );
     assert!(a.rest_drip_relief < a.rest_mutual_relief, "rest tier order");
+}
+
+/// Spec 054 SC-006: the frozen evals/v2 and current evals/v3 worlds pin
+/// the retired flat `groom_cuddle_relief` -- they must keep loading
+/// BYTE-UNCHANGED through the recognised-but-inert legacy key (the sweep
+/// above already validates them; this guard pins that the legacy key is
+/// really present and really inert, so a future "clean up the dead key"
+/// pass cannot silently break the frozen suite).
+#[test]
+fn the_frozen_eval_suites_still_pin_the_legacy_groom_key_and_load() {
+    let root = repo_root();
+    let mut checked = 0;
+    for suite in ["evals/v2", "evals/v3"] {
+        for entry in std::fs::read_dir(root.join(suite)).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().is_none_or(|e| e != "toml")
+                || path.file_name().is_some_and(|n| n == "manifest.toml")
+            {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).unwrap();
+            assert!(
+                text.contains("groom_cuddle_relief"),
+                "{} lost its legacy pin -- frozen suites are never edited",
+                path.display()
+            );
+            let config: Config = toml::from_str(&text)
+                .unwrap_or_else(|e| panic!("{} no longer parses: {e}", path.display()));
+            config
+                .validate()
+                .unwrap_or_else(|e| panic!("{} no longer validates: {e}", path.display()));
+            // Inert: whatever the pin says, the pay is the curve's.
+            assert_eq!(
+                config.actions.groom_cuddle_pay(0.0),
+                config.actions.groom_cuddle_floor,
+                "{}: the legacy pin must not move the curve",
+                path.display()
+            );
+            checked += 1;
+        }
+    }
+    assert_eq!(checked, 12, "both suites fully swept (6 worlds each)");
 }

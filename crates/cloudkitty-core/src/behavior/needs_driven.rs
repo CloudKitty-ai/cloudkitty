@@ -403,9 +403,12 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     // groomee's bath pressure plus the groomer's own expected cuddle
     // relief from the partnered groom (scene-total cost against
     // scene-total value, Experiments review point 2) — is declined
-    // before the errand starts, walk included. A choice, never a
-    // refusal: the groom stays legal; the advisor proposes something
-    // else. Gate off ⇒ exposure is 0 before any arithmetic and the
+    // before the errand starts, walk included. The groomer's side is
+    // the spec-054 curve at the groomee's current bath — the actual
+    // first-tick pay, the same `groom_cuddle_pay` the effect body pays
+    // (FR-008: one curve, every reader). A choice, never a refusal:
+    // the groom stays legal; the advisor proposes something else.
+    // Gate off ⇒ exposure is 0 before any arithmetic and the
     // comparison never runs.
     let exposure = selection::expected_scene_exposure(
         ctx,
@@ -415,7 +418,11 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
         emitter.id,
     );
     if exposure > 0.0
-        && exposure > emitter.needs.get(NeedKind::Bath) + ctx.config.actions.groom_cuddle_relief
+        && exposure
+            > emitter.needs.get(NeedKind::Bath)
+                + ctx.config
+                    .actions
+                    .groom_cuddle_pay(emitter.needs.get(NeedKind::Bath))
     {
         return None;
     }
@@ -1797,9 +1804,10 @@ mod tests {
     /// under `bidirectional` declines the groom exactly when the scene's
     /// expected exposure (the dry groomee's charge — scene-total) exceeds
     /// the scene's total value: the groomee's bath pressure PLUS the
-    /// groomer's own expected `groom_cuddle_relief` (Experiments review
-    /// point 2 — value against the groomee's bath alone would over-
-    /// decline net-positive grooms). A net-positive groom is still
+    /// groomer's own expected pay — since spec 054 the curve
+    /// `groom_cuddle_pay` at the groomee's current bath (Experiments
+    /// review point 2 — value against the groomee's bath alone would
+    /// over-decline net-positive grooms). A net-positive groom is still
     /// proposed; under `option_a` the scene prices zero (the wet decider
     /// is exempt and the groomee is merely referenced) so even a cranked
     /// factor declines nothing.
@@ -1860,15 +1868,15 @@ mod tests {
         }
         use crate::config::ContagionMembership::{Bidirectional, OptionA};
         // Net-positive at the Gen 1 factor: exposure 1.0×3.5×2 = 7 is
-        // under the scene's value (bath 10 + groom_cuddle_relief 15 = 25)
-        // — the kindness stands.
+        // under the scene's value (bath 10 + the curve at bath 10:
+        // c(0.5) = 2.0 — so 12) — the kindness stands.
         assert_eq!(
             NeedsDriven.decide_action(&wet_groomer_ctx(1.0, Bidirectional)),
             Action::Groom { target: Some(2) },
             "a net-positive groom must still be proposed"
         );
         // Net-negative at a cranked factor: min(20×3.5×2, headroom 50 +
-        // one charge 70) = 120 > 25 — the groomer proposes something
+        // one charge 70) = 120 > 12 — the groomer proposes something
         // else (a choice, never a refusal: legality is untouched,
         // Article IV).
         assert_ne!(
@@ -1876,17 +1884,20 @@ mod tests {
             Action::Groom { target: Some(2) },
             "exposure above the scene's total value must decline"
         );
-        // The bar moves with the relief dial (medium review finding 4:
-        // the seam reads `groom_cuddle_relief` from CONFIG, so lab arms
-        // pin their own value — the smoke pins the canonical 0.5, per
-        // Experiments 2026-09-01 — and the sensitivity is pinned here):
-        // the same net-negative scene turns net-positive when the
-        // groomer's relief is worth more than the exposure.
+        // The bar moves with the pricing dials (medium review finding 4,
+        // re-pointed at spec 054: the seam reads the CURVE from CONFIG,
+        // so lab arms pin their own dials and the sensitivity is pinned
+        // here): the same net-negative scene turns net-positive when the
+        // groomer's expected pay is worth more than the exposure. Bath 10
+        // sits at x = 0.5, so pay = min(ceiling, floor + slope·0.5);
+        // cranking ceiling to 130 with a slope that reaches it makes the
+        // scene worth 10 + 130 = 140 > exposure 120.
         let mut generous = wet_groomer_ctx(20.0, Bidirectional);
-        std::sync::Arc::get_mut(&mut generous.config)
+        let generous_actions = &mut std::sync::Arc::get_mut(&mut generous.config)
             .unwrap()
-            .actions
-            .groom_cuddle_relief = 130.0; // value 10 + 130 > exposure 120
+            .actions;
+        generous_actions.groom_cuddle_slope = 260.0;
+        generous_actions.groom_cuddle_ceiling = 130.0;
         assert_eq!(
             NeedsDriven.decide_action(&generous),
             Action::Groom { target: Some(2) },

@@ -199,6 +199,14 @@ fn read_lines(name: &str) -> Vec<String> {
 /// merge without a pinned commit. Controls: `[vision] radius` forced to 40
 /// (every tile of the 20x20 world inside every disc), the reply floor
 /// unset, `announce_here` 0, the served digest window.
+///
+/// Fixtures re-recorded for spec 054 (2026-09-11): the groom-other
+/// reprice is an intentional dynamics move — the groomer's cuddle pay is
+/// the delivered-relief curve, not the flat 15 — so every stream with a
+/// kitty-directed groom in it (first at tick 119 here; the pre-reprice
+/// streams first diverged at tick 562, downstream of the tick-550 groom
+/// scene) parts from the pre-054 reference. What this pins NOW is that
+/// the PreFog law era alone still moves nothing on the repriced engine.
 #[test]
 fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
     let mut config = served_all_scripted();
@@ -400,14 +408,26 @@ fn world_covering_radius_diverges_only_by_the_named_causes() {
     );
 }
 
-/// The recorder. Ignored: it WRITES the reference fixtures and is run by
-/// hand exactly once, at the branch base, before any engine edit.
+/// The recorder. Ignored: it WRITES the reference fixtures. Originally
+/// run once at the fog branch base (the 2.x engine, where this
+/// configuration WAS the engine's behavior); since the post-landing
+/// re-records (T087 on) it captures the exact control configuration the
+/// SC-004a test replays — world-covering radius, `LawEra::PreFog`, the
+/// reply floor unset — so the fixture pins that configuration's streams
+/// on the engine of record and any later intentional dynamics move
+/// re-records it with its justification (spec 054 aligned the recorder
+/// body with that practice; it had kept its branch-base form).
 #[test]
-#[ignore = "writes the pre-fog reference fixtures; run once at the branch base"]
+#[ignore = "writes the pre-fog reference fixtures; run only at an intentional dynamics move"]
 fn record_prefog_streams() {
+    let mut config = served_all_scripted();
+    config.vision.radius = 40;
+    config.behavior.reply_intensity_floor = None;
+    config.meow.law_era = LawEra::PreFog;
+    config.validate().expect("the control config validates");
     let Streams {
         actions, messages, ..
-    } = record_streams(served_all_scripted(), TICKS);
+    } = record_streams(config, TICKS);
     assert_eq!(actions.len() as u64, TICKS);
     write_lines(&fixtures_dir().join("prefog-actions-20k.digest"), &actions);
     write_lines(
@@ -449,6 +469,13 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 /// first `want_drink` is at tick 1,610 (23 per 20,000 on this seed, 0 under
 /// the old rule at every horizon). The r = 40 control above is untouched:
 /// on 20x20 every tile is within Manhattan 38 <= 40 + 0.
+///
+/// Re-recorded for spec 054 (2026-09-11): the groom-other reprice moves
+/// every groomer's cuddle trajectory (pre-reprice streams first diverged
+/// at tick 1,436 — a cat rests with a friend where it walked west
+/// before, the repriced cuddle pressure's first visible fork). What this
+/// pins NOW is that the floor-unset streams of the repriced engine do
+/// not drift.
 #[test]
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");
