@@ -141,7 +141,10 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
         ("cosleep_drip_relief", a.cosleep_drip_relief * sleep_min),
         ("cosleep_mutual_relief", a.cosleep_mutual_relief * sleep_min),
         ("rest_drip_relief", a.rest_drip_relief * cuddle_min),
-        ("groom_cuddle_floor (charm rider)", a.groom_cuddle_floor * bath_min),
+        (
+            "groom_cuddle_floor (charm rider)",
+            a.groom_cuddle_floor * bath_min,
+        ),
     ] {
         assert!(
             per_scene < MEASURED_MEAN_CUDDLE_NEED,

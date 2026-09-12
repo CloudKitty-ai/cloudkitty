@@ -2966,8 +2966,7 @@ mod proposal_contract_tests {
             0.0,
             "the target came clean"
         );
-        let bound =
-            config.actions.groom_cuddle_slope * opening / config.actions.groom_relief;
+        let bound = config.actions.groom_cuddle_slope * opening / config.actions.groom_relief;
         assert!(
             above_floor <= bound + 1e-3,
             "above-floor income {above_floor} exceeds the opening dirt's \

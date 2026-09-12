@@ -2484,8 +2484,12 @@ mod tests {
                 // Spec 054: the flat groom_cuddle_relief left this table
                 // with its validation (inert legacy key, read by no code);
                 // the curve's three dials took its seat.
-                ("groom_cuddle_floor", |c, v| c.actions.groom_cuddle_floor = v),
-                ("groom_cuddle_slope", |c, v| c.actions.groom_cuddle_slope = v),
+                ("groom_cuddle_floor", |c, v| {
+                    c.actions.groom_cuddle_floor = v
+                }),
+                ("groom_cuddle_slope", |c, v| {
+                    c.actions.groom_cuddle_slope = v
+                }),
                 ("groom_cuddle_ceiling", |c, v| {
                     c.actions.groom_cuddle_ceiling = v
                 }),
@@ -2534,7 +2538,10 @@ mod tests {
             0.25f32 + 3.5 * (2.0f32 / 20.0),
             "c(0.10) is the formula's own f32 evaluation, bit-exact"
         );
-        assert!((c_tenth - 0.60).abs() < 1e-6, "c(0.10) ≈ 0.60, got {c_tenth}");
+        assert!(
+            (c_tenth - 0.60).abs() < 1e-6,
+            "c(0.10) ≈ 0.60, got {c_tenth}"
+        );
     }
 
     #[test]

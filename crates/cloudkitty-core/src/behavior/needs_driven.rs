@@ -420,7 +420,8 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     if exposure > 0.0
         && exposure
             > emitter.needs.get(NeedKind::Bath)
-                + ctx.config
+                + ctx
+                    .config
                     .actions
                     .groom_cuddle_pay(emitter.needs.get(NeedKind::Bath))
     {
