@@ -187,17 +187,29 @@ threshold economics, all 20×20-composition numbers.
 ## Parking lot (trigger conditions, not dates)
 
 - **Preferred-behavior downtime ("free time") design — banked POST
-  GEN 2** (owner ruled 2026-09-12). The satiating enjoyment stock:
-  `happiness_i = 100 − Σw·needs_i + e_i`, where `e_i` rises at
-  `α · trait_i(activity)` during a cat's preferred activities, decays
-  otherwise, capped small (E_max ~3–5, rider-tier vs the need
-  weights). Satiation self-terminates sessions, so cats rotate
-  rather than grind. Honest classification: an AMENDMENT to the
-  welfare definition rule 1 of `DESIGN-DOCTRINE.md` protects (welfare
-  comes to include enjoyment), never an exception to it — and a
-  persisted per-cat stock is a snapshot/break-class change, so it
-  lands at a generation boundary by doctrine rule 9. Trigger: after
-  Gen 2 ships, or if free time is promoted to a product pillar.
+  GEN 2** (owner ruled 2026-09-12; design refined by the owner the
+  same day, superseding the additive-stock sketch). The CAPPED
+  PARTITION: the needs contribution to happiness tapers below
+  need = 10 (soft, not a hard cap — no gradient cliff), so the top
+  slice of the existing 0–100 headroom is purchasable only through
+  enjoyment behaviors, each on diminishing returns with a PER-SOURCE
+  satiation stock (rotation and variety come from satiation):
+  purring-the-STATE while settled/partnered (never the word — paying
+  the word destroys its measured honesty), a cat's trait-scaled
+  favorite activities, and HELPING A FRIEND with the friend's
+  favorites — the last is the jewel: traits are not observable, so
+  reward-anchored helping creates emergent pressure to model other
+  cats' preferences. Properties: bounded (no ceiling raise, Nash and
+  Article I untouched, cross-generation comparability), repurposes
+  the measured over-servicing grind (needs 10 -> 0 becomes ~worthless,
+  those ticks flow to the enjoyment economy), and creates gradient
+  exactly where returns are flat today (#365's zone) — signal via
+  enrichment, not hardship. Honest classification: an AMENDMENT to
+  the welfare definition rule 1 of `DESIGN-DOCTRINE.md` protects,
+  never an exception — and per-source persisted stocks are a
+  snapshot/break-class change, so it lands at a generation boundary
+  by doctrine rule 9. Trigger: after Gen 2 ships, or if free time is
+  promoted to a product pillar.
   Interim (no ruling needed): personality expression WITHOUT payment —
   trait-conditioned policies + corpus demonstrations; downtime is a
   gradient-quiet zone (reward flat at the welfare ceiling), so
