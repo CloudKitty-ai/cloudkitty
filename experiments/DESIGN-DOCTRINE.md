@@ -7,7 +7,7 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rule 1 BANKED 2026-09-12; rules 2-10 pending).
+owner in progress (rules 1-2 BANKED 2026-09-12; rules 3-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -20,6 +20,7 @@ not the five-part structure. Rule 1 below is the format exemplar.
    (F-018 layer 2 / ROADMAP guard 3.) BANKED — full form below.
 2. **Prices are physics, not nudges** — price states of the world,
    never behaviors you want to see. (2026-09-11, generalizing F-018.)
+   BANKED — full form below.
 3. **Within a need: one saturating specialist, every rider partial** —
    a rider that finishes the need kills the dedicated activity.
    (Spec 041.)
@@ -68,3 +69,33 @@ want; behavior preferences route through pricing or world design.
 - **Amendment path**: the welfare DEFINITION can be amended by ruling
   at a generation boundary (e.g., the banked enjoyment design, ROADMAP
   parking lot); never as a behavior-payment backdoor.
+
+### 2. Prices are physics, not nudges
+*(Generalizes F-018; spec 054 exemplar. Banked 2026-09-12.)*
+
+A price is a rule about the world, not about the cat: it describes
+what happens when an action lands (whose need moves, by how much),
+never a payment for the choice itself. Physics generalizes across
+seats and generations and is bounded by what the world supplies; a
+nudge is bounded only by how fast the action repeats, which is what
+makes farms.
+
+- **Boundary test**: does the number come from a consequence in the
+  world (something moved, or a real state held), or from the
+  designer's wish for the behavior? Wish -> nudge, banned. Wording is
+  not the test; a nudge can always be phrased as a state.
+- **Hidden states are legal**: a price may key to a state the actor
+  cannot observe (054's ramp under hidden needs). This is the
+  emergence lever, not a defect.
+- **Trait scaling is physics of the cat** (>=0.5x floor): keyed to
+  who, never to which policy or to a schedule.
+- **Two clocks**: scripted teachers answer a reprice immediately
+  (F-016: bath_gain moved scripted on-water time); policies answer
+  only after retraining, so a frozen-roster census after a reprice
+  measures the roster, not the price (rule 9). Declare the teacher
+  side before any corpus collection that follows the change.
+- **When the behavior has no consequence in the world**, give it one
+  (world design, rule 8) rather than paying for the behavior. Hidden
+  is not absent: a state the actor cannot see still counts.
+- **OPEN**: the charm floor's standing under this rule (a flat payment
+  regardless of state) is deferred to the rule 4 walkthrough.
