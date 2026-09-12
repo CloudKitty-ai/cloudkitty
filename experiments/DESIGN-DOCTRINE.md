@@ -7,7 +7,7 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-2 BANKED 2026-09-12; rules 3-10 pending).
+owner in progress (rules 1-3 BANKED 2026-09-12; rules 4-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -21,9 +21,9 @@ not the five-part structure. Rule 1 below is the format exemplar.
 2. **Prices are physics, not nudges** — price states of the world,
    never behaviors you want to see. (2026-09-11, generalizing F-018.)
    BANKED — full form below.
-3. **Within a need: one saturating specialist, every rider partial** —
-   a rider that finishes the need kills the dedicated activity.
-   (Spec 041.)
+3. **Side relief never makes a specialist unnecessary** — a rider
+   that finishes the need kills the dedicated activity. (Spec 041.)
+   BANKED — full form below.
 4. **A charm floor prices at the cheapest existing route** — flavor
    survives without a farm. (Spec 054.)
 5. **The imitability principle**: scripted rungs read only what a
@@ -99,3 +99,23 @@ makes farms.
   is not absent: a state the actor cannot see still counts.
 - **OPEN**: the charm floor's standing under this rule (a flat payment
   regardless of state) is deferred to the rule 4 walkthrough.
+
+### 3. Side relief never makes a specialist unnecessary
+*(Spec 041; the 054 ratio. Banked 2026-09-12.)*
+
+Every need has a specialist, the activity that finishes it. Some
+specialists relieve a second need on the side (co-sleep warms; the
+groomer is warmed). Side relief contributes to that need but never
+suffices for it.
+
+- **Two checks, both required**: insufficiency (one scene cannot
+  finish the need from typical demand) and rate order (per-tick side
+  relief below the specialist's). Rate order alone is not enough: it
+  held before 041 while rest ran zero scenes.
+- **Side relief** = relief to a need other than the activity's own.
+  Grooming a friend is the bath specialist acting on the target.
+- **Accepted holes**: per scene, not per pair (a reciprocal pair earns
+  twice); riders stack. Re-open if a census shows the specialist's
+  scenes falling.
+- **Re-verify**: insufficiency is checked against measured demand;
+  re-check every rider at any roster or need-rate change.

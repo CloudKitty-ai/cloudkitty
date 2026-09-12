@@ -210,6 +210,10 @@ threshold economics, all 20×20-composition numbers.
   snapshot/break-class change, so it lands at a generation boundary
   by doctrine rule 9. Trigger: after Gen 2 ships, or if free time is
   promoted to a product pillar.
+  Rider floor (riders cannot relieve a need below F) considered
+  2026-09-12 and declined: it overlaps this design's window at T. If
+  revived, F = T with one taper band, specified together with this
+  design.
   Interim (no ruling needed): personality expression WITHOUT payment —
   trait-conditioned policies + corpus demonstrations; downtime is a
   gradient-quiet zone (reward flat at the welfare ceiling), so
