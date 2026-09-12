@@ -132,6 +132,24 @@ cuddle-clause revisit, in the same sitting. Step-7 input, no halt.
 nofog reads 0/0 events (no unseen speakers at whole-world vision), the
 instrument's built-in consistency check.
 
+**Visible-caller revision (2026-09-11, owner review)**: the inertness
+is specific to UNSEEN callers. Fresh-start conditioned (listener sees
+the caller, not already partnered with it), listeners start a
+partnered scene with a visible want_cuddle caller at 0.40-0.48 within
+10 ticks vs a 0.21-0.26 matched baseline, and want_play at 0.48-0.53
+vs 0.21-0.24 (mixed's play cell is n=15) — roughly 2x, in every arm
+tested, with ZERO corpus demonstrations of answering. Likely anchor:
+the mutual tier pays only when the partner reciprocates, and a
+broadcasting caller is the friend most likely to rest back, so reading
+the row's want-intensity cell is strictly better partner selection.
+What never got learned is the fog-specific rescue (walk toward an
+invisible caller), which competes with an adjacent friend offering
+identical relief. Two read caveats on the original numbers: part of
+the visible effect can flow through the caller's own approach, and
+the unseen-approach gap vs anchor is inflated by the policies' lower
+mobility (Move share 9-13% vs 16-17%). The banked rungs would add
+specifically the into-the-fog response; urgency reduced.
+
 **Cosleep-on-beam (strategy finding, logged per the ruled branch)**:
 arms present almost no settled-friend-on-beam opportunities (0–16
 ticks vs anchors' 211–955) and close ~none; they sleep MORE than the
