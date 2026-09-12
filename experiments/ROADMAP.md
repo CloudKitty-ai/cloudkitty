@@ -186,6 +186,30 @@ threshold economics, all 20×20-composition numbers.
 
 ## Parking lot (trigger conditions, not dates)
 
+- **Preferred-behavior downtime ("free time") design — banked POST
+  GEN 2** (owner ruled 2026-09-12). The satiating enjoyment stock:
+  `happiness_i = 100 − Σw·needs_i + e_i`, where `e_i` rises at
+  `α · trait_i(activity)` during a cat's preferred activities, decays
+  otherwise, capped small (E_max ~3–5, rider-tier vs the need
+  weights). Satiation self-terminates sessions, so cats rotate
+  rather than grind. Honest classification: an AMENDMENT to the
+  welfare definition rule 1 of `DESIGN-DOCTRINE.md` protects (welfare
+  comes to include enjoyment), never an exception to it — and a
+  persisted per-cat stock is a snapshot/break-class change, so it
+  lands at a generation boundary by doctrine rule 9. Trigger: after
+  Gen 2 ships, or if free time is promoted to a product pillar.
+  Interim (no ruling needed): personality expression WITHOUT payment —
+  trait-conditioned policies + corpus demonstrations; downtime is a
+  gradient-quiet zone (reward flat at the welfare ceiling), so
+  unpaid variety persists there, per the purr/chirp evidence.
+  Companion instrument, live NOW, not banked: the downtime metric
+  (share of cat-ticks with all six needs below T) — baseline
+  2026-09-12: fog arms .63–.70 at T=20 vs anchor .36, nofog .90.
+  Side-effect to sequence deliberately: an enjoyment stock re-shapes
+  returns exactly where they are flat today (#365), part fix and
+  part confound. Full discussion: `fog-gen1-shakeout/GEN2-INPUTS.md`
+  and the DESIGN-DOCTRINE rule-1 walkthrough.
+
 - **Behavioural-collapse detector** (owner, flagged 2026-08-25; **v0
   BUILT + VALIDATED 2026-09-01**, `collapse-detector-v0/` — offline over
   the exp-006 traces, 3/3 known locks fire, 11/11 healthy traces
