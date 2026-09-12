@@ -21,11 +21,44 @@ has its own dial.
 |---|---|---|---|
 | `Resting { with_friend }` — `Rest { with }` | `is_available_friend` | tier per serviced tick, **both** parties: `rest_mutual_relief` when the partner is itself settled, `rest_drip_relief` otherwise | No — partner keeps its own activity and clock; wandered partner drops the scene to solo posture |
 | `Sleeping { with_friend }` — `Sleep { with }` | `is_available_friend` | tier per serviced tick, **both** parties: `cosleep_mutual_relief` / `cosleep_drip_relief` | No |
-| `Grooming { target }` — `Groom { target }` | `is_available_friend` | `groom_cuddle_relief`, groomer **only** | No |
+| `Grooming { target }` — `Groom { target }` | `is_available_friend` | the spec-054 delivered-relief curve (below), groomer **only** | No |
 
 `is_available_friend` is adjacency alone. `is_conscriptable_friend`
 (adjacent *and* clock-free) now governs **social play only** — the one
 remaining bound duet.
+
+### The groom-other curve (spec 054)
+
+Since spec 054 the groomer's pay is not a flat dial but a function of the
+bath relief the target **actually receives** that tick:
+
+```
+delivered = min(target's bath before the tick, groom_relief)
+x         = delivered / groom_relief            # ∈ [0, 1]
+pay       = min(groom_cuddle_ceiling,
+                groom_cuddle_floor + groom_cuddle_slope · x)
+```
+
+| Dial (`[actions]`) | Engine default | Bounds |
+|---|---|---|
+| `groom_cuddle_floor` | `0.25` | finite, ≥ 0, ≤ ceiling |
+| `groom_cuddle_slope` | `3.5` | finite, ≥ 0 |
+| `groom_cuddle_ceiling` | `2.0` | finite, ≥ floor |
+
+The two calibrations are the design (owner rules, spec 054): the **floor
+equals the drip-rest anchor tier** (0.25), so grooming a clean cat stays
+paid — charm grooming and a scene's tail ticks — but never out-earns
+drip-resting; the **ceiling is ¼ of the mutual-rest anchor per party**
+(2.0 vs 8.0), so the partnered-rest economy stays 4× dominant. Above-floor
+income exists only where real dirt exists (per-tick delivered cap: no
+scene is paid twice for the same bath need). Evaluation is add/mul/min
+only — no transcendental math in the tick path, bit-identical across
+platforms. One definition, every reader (`ActionEffects::groom_cuddle_pay`):
+the effect body pays it and the scripted groom-response seam prices with it.
+
+The pre-054 flat `groom_cuddle_relief` is a recognised-but-inert legacy
+key: configs that pin it (frozen `evals/v2`, current `evals/v3`) keep
+loading; it is read by no code, never serialized, never a key setting.
 
 Both tier resolutions use the single shared mutual predicate,
 `World::is_settled` (partner's activity matches `Sleeping | Resting`) —
