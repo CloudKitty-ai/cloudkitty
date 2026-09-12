@@ -120,7 +120,7 @@ reprice's motivation. Gate screen (cuddle_real_threshold 5/8/10/15,
 6.33 / 5.55 / 4.99 / 4.47 per 1k cat-ticks — a smooth +42% from 15
 down to 5, honest at every setting — with the shared gate's coupled
 side-effect on the sleep economy (nap-adjacent share of sleeping
-0.69 / 0.63 / 0.59 / 0.53). Recommendation recorded: keep 15.
+0.69 / 0.63 / 0.59 / 0.53). RULED (owner 2026-09-11, verbatim "Keep 15"): the gate stays 15.
 
 **Responder-approach (pre-declared trigger FIRES)**: reference arms'
 approach share to unseen speakers is at or below the anchor's chance
