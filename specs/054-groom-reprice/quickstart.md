@@ -8,8 +8,12 @@ Prerequisites: this worktree (`~/ai/cloudkitty-groom`, branch
 ## 1. Curve anchor points and invariants (unit)
 
 ```sh
-cargo test -p cloudkitty-core groom_cuddle_pay
+cargo test -p cloudkitty-core groom_cu
 ```
+
+(The `groom_cu` filter catches all six curve/config units:
+`groom_cuddle_pay_*`, the legacy-key test, and the two `groom_curve`
+validation/calibration tests.)
 
 Expected: exact anchors c(0)=0.25, c(0.10)=0.60, c(0.25)=1.125,
 c(0.5)=2.0, c(1)=2.0; strict monotonicity below saturation; ceiling

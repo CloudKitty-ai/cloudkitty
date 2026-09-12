@@ -2501,6 +2501,20 @@ mod tests {
         }
     }
 
+    /// Not a test: prints the canonical serialized default config, the
+    /// exact bytes the engine-defaults stamp hashes (suite.rs) and the
+    /// shape `/config` serves — run by hand (`-- --ignored --nocapture
+    /// dump_serialized_defaults`) when a spec must record a declared
+    /// config-surface delta (SC-007-class byte-diff records).
+    #[test]
+    #[ignore = "prints the stamp's input for declared-delta records"]
+    fn dump_serialized_defaults() {
+        println!(
+            "{}",
+            serde_json::to_string(&Config::default()).expect("defaults serialize")
+        );
+    }
+
     #[test]
     fn groom_cuddle_pay_hits_the_owner_anchors_exactly() {
         // Spec 054 SC-002: the five owner anchors at defaults

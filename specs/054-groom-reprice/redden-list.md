@@ -62,13 +62,54 @@ must-pass), `option_a` gate-off seam case, evals/v2 + v3 loading, schema-5
 
 ## Predicted-red ledger (rule 5, one row per new/re-pointed assertion)
 
-| Task | Mutation (`--expect`) | Prediction | Observed |
+All cycles via `scripts/mutate.sh --expect` (clean file → baseline green
+→ mutate → RED matching the expectation → restore → green at baseline
+counts). Every row below ended **RED CONFIRMED**.
+
+| Task | Mutation | Predicted red | Observed |
 |---|---|---|---|
-| T007 | pending | | |
-| T011 | pending | | |
-| T014 | pending | | |
-| T022 | pending | | |
+| T007-1 | `default_groom_cuddle_floor` 0.25 → 0.3 | anchors + calibrations | ✅ 3 red — the two predicted **plus** `strictly_monotone` (under-predicted: floor 0.3 pulls x_sat to 0.486, inside the sampled grid, so the strict-below sweep hits the flat zone; coherent same-cause red) |
+| T007-2 | drop the `.min(ceiling)` clamp in `groom_cuddle_pay` | anchors (c(1)=3.75), monotone (flat-after), clamp (f32::MAX) | ✅ 3 red as predicted |
+| T007-3 | legacy key `skip_serializing` removed | the legacy-serialization test | ✅ 1 red as predicted |
+| T007-4 | `default_groom_cuddle_slope` 3.5 → 3.0 | anchors, calibrations (x_sat), monotone (flat-after at 10) | ✅ 3 red as predicted |
+| T007-5 | `default_groom_cuddle_ceiling` 2.0 → 2.5 | anchors (c(1)), clamp, monotone (flat-after), calibrations | ✅ 4 red as predicted |
+| T011-A | effect pays `groom_cuddle_pay(groom_relief)` (requested, not delivered) | scene-pay + farm-closure | ✅ RED as predicted (doubles as T014's "break the per-tick delivered cap" mutation — one mutation, both ledger rows) |
+| T011-B | delivered read as if AFTER `lower_need` (`bath − groom_relief`, clamped) | scene-pay (half-dirt, bath-7, decay) | ✅ RED as predicted |
+| T014 | floor default 0.25 → 0.5 (above the drip tier) | calibrations + farm-closure | ✅ 2 red as predicted |
+| T022-a | seam falls back to a flat `+ 15.0` | the 045 generous case ("decline bar must track") | ✅ RED as predicted |
+| T022-b | settings drops the `groom_cuddle_ceiling` entry | key-names golden (20≠21) + entries len (19≠20) | ✅ 2 red as predicted |
 
 ## Cycle records
 
-(appended as cycles run)
+- **Cycle 0** (baseline @ e6246a7): 906 passed / 0 failed / 6 ignored.
+- **Cycle 1** (all code + test re-points, pre-golden-regen): 911 passed /
+  4 failed — the four world-evolution witnesses (G1–G4 above), each red
+  for the reprice's intended dynamics move.
+- **Cycle 2** (goldens re-pinned, fixtures re-recorded): **915 passed /
+  0 failed / 6 ignored** across the workspace.
+- **Cycle 3** (final, after the `dump_serialized_defaults` tool +
+  quickstart walk): **915 passed / 0 failed / 7 ignored** (the extra
+  ignored is the dump tool itself). Every ledger row above resolved.
+
+## T023 — declared config-surface delta (SC-007) and schema guard (SC-005)
+
+Serialized `Config::default()` (the exact bytes `engine_defaults_sha256`
+hashes and the shape `/config` serves), dumped at the branch base
+(08eb1ed, detached temp worktree) and at HEAD via the new `#[ignore]`d
+`dump_serialized_defaults` tool, flattened and diffed:
+
+```
+REMOVED: {'actions.groom_cuddle_relief': 15.0}
+ADDED:   {'actions.groom_cuddle_floor': 0.25,
+          'actions.groom_cuddle_slope': 3.5,
+          'actions.groom_cuddle_ceiling': 2.0}
+CHANGED: {}
+```
+
+Exactly the declared dial delta — nothing else moves, so the stamp moves
+once, by this delta alone. Schema guard: `observe::tests::
+the_default_layout_is_408_values` green (SC-005; schema 5 untouched).
+
+Quickstart §1–§6 walked green on the finished branch (one doc drift
+fixed: §1's filter is `groom_cu`, which covers the calibration tests its
+Expected text names).
