@@ -13,6 +13,11 @@ questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
 rule, its boundary tests, carve-outs, known costs, amendment paths),
 not the five-part structure. Rule 1 below is the format exemplar.
+ADMISSION: a banked rule carries the rule, its boundary tests,
+carve-outs, known costs, and enough rationale to tell when the rule
+has drifted from its objective. Declined ideas, design sketches, and
+measured values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS);
+spec and finding ids stay as pointers.
 
 ## The rules
 
@@ -62,13 +67,10 @@ want; behavior preferences route through pricing or world design.
 - **Known cost**: low-welfare-impact behaviors starve (groom-other ->
   spec 054); pay them with pricing, knowingly.
 - **Diagnostic**: flat returns near the welfare ceiling are ambiguous
-  between success and signal exhaustion. Read downtime (all needs < T
-  share; baseline 2026-09-12: fog arms .63-.70 @ T=20, anchor .36).
-  Add difficulty as world VARIANCE (scarcity episodes), never a
-  shifted training mean.
+  between success and signal exhaustion. Read downtime (share of
+  cat-ticks with all needs < T) against a baseline.
 - **Amendment path**: the welfare DEFINITION can be amended by ruling
-  at a generation boundary (e.g., the banked enjoyment design, ROADMAP
-  parking lot); never as a behavior-payment backdoor.
+  at a generation boundary; never as a behavior-payment backdoor.
 
 ### 2. Prices are physics, not nudges
 *(Generalizes F-018; spec 054 exemplar. Banked 2026-09-12.)*
@@ -90,7 +92,7 @@ makes farms.
 - **Trait scaling is physics of the cat** (>=0.5x floor): keyed to
   who, never to which policy or to a schedule.
 - **Two clocks**: scripted teachers answer a reprice immediately
-  (F-016: bath_gain moved scripted on-water time); policies answer
+  (F-016); policies answer
   only after retraining, so a frozen-roster census after a reprice
   measures the roster, not the price (rule 9). Declare the teacher
   side before any corpus collection that follows the change.
