@@ -76,6 +76,31 @@ doctrine is a division of labor — reward stays team welfare only,
 demonstrations buy what is cheap to demonstrate, and the world's
 design is where to be opinionated.
 
+## Friend-in-fog pursuit: build at Gen 2 corpus collection (owner-aligned analysis, 2026-09-11)
+
+The cue-answer rungs (cuddle_response / play_response) are ruled
+wanted but deliberately NOT built for Gen 1. Timing rule, from the
+shakeout's own evidence: build a behavior when the world that values
+it exists — a behavior built earlier is leash-held, not
+reward-anchored, and decays (groom-other, 13 to 0.9/1k). Gen 1's
+world assigns pursuit near-zero marginal value (needs visible, roster
+dense: friend-in-view .80, nn 1.41 — an adjacent friend offers the
+identical mutual-tier relief with no travel), so a Gen 1 rung's
+demonstrations would be shed by PPO and need a reprice-style rescue.
+At Gen 2, hidden needs makes the call the only channel for a friend's
+state and the rung rides the mandatory corpus/prereg cycle at ~zero
+marginal process cost; the FR-036 cuddle-clause revisit travels with
+it. Cost of waiting: the Gen 1 serving period shows unanswered
+FROM-THE-FOG calls only — the minority slice; visible callers are
+answered at ~2x baseline (finding-4 revision, RESULTS.md @ aab284b).
+
+**Design constraint this places on Gen 2's world**: the world must
+actually deliver the scarcity that anchors pursuit — hidden needs at
+minimum, and the density/size question read against it — or the rung
+repeats the Gen 1 pattern. Verify with the fresh-start-conditioned
+response read (this week's instrument) before and after the rung
+lands.
+
 ## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
 
 - World-size × radius screen; first data point = the shakeout's r-3
