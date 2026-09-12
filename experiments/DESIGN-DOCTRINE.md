@@ -7,7 +7,7 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-3 BANKED 2026-09-12; rules 4-10 pending).
+owner in progress (rules 1-4 BANKED 2026-09-12; rules 5-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -29,8 +29,8 @@ spec and finding ids stay as pointers.
 3. **Side relief never makes a specialist unnecessary** — a rider
    that finishes the need kills the dedicated activity. (Spec 041.)
    BANKED — full form below.
-4. **A charm floor prices at the cheapest existing route** — flavor
-   survives without a farm. (Spec 054.)
+4. **Unfarmable first, prosocial second, charm last.** (Spec 054.)
+   BANKED — full form below.
 5. **The imitability principle**: scripted rungs read only what a
    policy could observe — never a privileged read. (groom_response;
    exp-004.)
@@ -99,8 +99,7 @@ makes farms.
 - **When the behavior has no consequence in the world**, give it one
   (world design, rule 8) rather than paying for the behavior. Hidden
   is not absent: a state the actor cannot see still counts.
-- **OPEN**: the charm floor's standing under this rule (a flat payment
-  regardless of state) is deferred to the rule 4 walkthrough.
+- **One exception**: the prosocial edge, rule 4.
 
 ### 3. Side relief never makes a specialist unnecessary
 *(Spec 041; the 054 ratio. Banked 2026-09-12.)*
@@ -121,3 +120,34 @@ suffices for it.
   scenes falling.
 - **Re-verify**: insufficiency is checked against measured demand;
   re-check every rider at any roster or need-rate change.
+
+### 4. Unfarmable first, prosocial second, charm last
+*(Spec 054; the project's benevolence goal. Banked 2026-09-12.)*
+
+Three things, in order; each bounds the next.
+
+1. **Unfarmable.** Any flat payment sits at or below the lowest-paying
+   existing route to the same need, under preconditions no harder than
+   the behavior's. Activities are exclusive, so such a payment never
+   raises a need's per-tick income above what the world already
+   allowed; repetition earns nothing new. No existing route, no flat
+   payment.
+2. **Prosocial gets the edge, not the field.** Where a behavior has a
+   self form and an other form (groom self, groom a friend), the other
+   form pays more by the value delivered to the friend, and at a tie
+   it still pays a small edge. The self form stays a full specialist
+   for the actor's own need, so self-sufficiency is always viable.
+   Cases: friend in need -> the other form wins by value delivered
+   (physics, rule 2); neither in need -> the edge alone; actor in need
+   -> the self form must still finish it alone.
+3. **Charm at marginal cost.** All else equal, a behavior we find
+   charming may be paid, only within item 1's bound. It buys the tie,
+   not presence; value delivered is what carries a behavior.
+
+- **Standing under rule 2**: the edge is a nudge, a declared exception,
+  admitted because item 1 makes it harmless. It dissolves the day the
+  edge is derived from a state priced the same wherever it holds.
+- **Re-verify** every edge at any reprice of the route that bounds it.
+- **Values enter through the world**: benevolence is what the world
+  makes real, and rule 1 already counts the friend's relief. The edge
+  is the only thumb on the scale, and it lives at ties.
