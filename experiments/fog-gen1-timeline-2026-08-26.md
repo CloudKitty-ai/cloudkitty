@@ -1047,6 +1047,14 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   The candidate pool and the charm ruling pick which network takes
   which seat; rule 10's floor battery certifies the actual five-network
   composition before seating, which none of them trained in.
+  RE-CONFIRMED 2026-09-13 after the mind-versus-seat clarification
+  (personality lives in the seat, so five networks are five seed draws
+  of one roster-wide mind, not five personalities): the owner keeps
+  five networks for the twin risk, the deadlock and degenerate-scene
+  class seen when the same model sits in several seats (the exp-006
+  forensics locks; the 006a battery called its roster "twin-free" for
+  that reason). Distinct seeds break the symmetry a shared network
+  would carry into every pair.
 - **Biscuit 3.0 corpus (found and started 2026-09-13).** The shakeout
   corpus was collected with Biscuit's teacher at comfort 55 and the
   consent gate off; the anchor ruled 2026-09-02 (c30 + `consent_line`
