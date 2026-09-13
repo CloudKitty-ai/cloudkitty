@@ -136,6 +136,14 @@ lands.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes.
+- Here-word emergence proof (the `announce_here = 0` no-seeding
+  control, the F-026 overturn test): DEFERRED here from step 7 (owner,
+  2026-09-13). The current recipe cannot run it fairly: the leash sums
+  KL over both heads, so a silent clone anchor pulls the message head
+  toward silence and a null reads as leash-held. Design it with the
+  free-register question above (message head off the leash, or an
+  entropy bonus on it, as a declared arm) so both contrasts run
+  against hidden needs in one pass.
 - Doctrine rule 5 view holes, fixed at the Gen 2 schema bump (moved
   here from DESIGN-DOCTRINE.md 2026-09-13): the fog view still exposes
   friend-record fields no rule reads (strip them as memory was); the

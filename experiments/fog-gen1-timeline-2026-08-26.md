@@ -951,3 +951,30 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   readings, not bars. Re-open triggers: a mixed-exam cell declared a
   bar in the step-7 declaration, or a served roster that seats a
   scripted cat by design.
+- **Finding 2, corpus delivery: THE VOCABULARY LESSON FOR ALL FIVE
+  (owner, verbatim "Lesson for all five").** Every certification run
+  starts from the lesson clone (#347 option B: here-words stripped,
+  then re-taught on the message head only) rather than the plain
+  clone. On the record: both clones keep the here-words through PPO
+  at the same rates; the lesson alone opens the free register (chirp
+  20.4, purr 17.3 per 1k, activity-differentiated, unheard), which the
+  doctrine classes as charm (rule 4 item 3) and rule 10 as a
+  null-benefit trade, so the step-7 declaration names it as the
+  seating's charm trade: purpose = the free register on the served
+  roster; benefit instrument = free-word rate and its activity split
+  (`phase2_read.py`); declared cost = chatter (meow/1k 350–415 vs
+  185–240 plain), lower reply-mass bars (.71–.79 vs .77–.84, both
+  above .50), uncooled message-head entropy (1.15 vs 0.8), and rule
+  7's expected drift-down in longer runs (entropy-held, not
+  world-valued). Welfare equal in the pass.
+- **Finding 2, no-seeding control: DEFERRED TO GEN 2 (owner, verbatim
+  "defer proving here word emergence until gen 2").** The
+  `announce_here = 0` arm ruled "step 7" on 2026-09-03 does not run in
+  step 7. Reason: under the current recipe the leash sums KL over both
+  heads (`train_ppo_fog.py` `head_quantities`), so a silent clone
+  anchor pulls the message head toward silence and a null would read
+  as leash-held silence, not as fog failing to make words emerge; a
+  fair test is a recipe change (message head off the leash, or an
+  entropy bonus on it) and its own declared arm. It joins GEN2-INPUTS'
+  free-register question, where the same contrast (rule 7) is designed
+  against hidden needs.
