@@ -62,6 +62,24 @@ trace), idx14-22 (9), idx23 (1, trace), idx24-32 (9), idx33 (1,
 trace), idx34-39 (6). Eighteen processes, nine per corpus, launched
 together under `caffeinate -s`.
 
+## Capacity check (declared 2026-09-13, before training; owner: "Let's run the test")
+
+Question (owner's): would a mind specialised to one seat free capacity
+that the roster-wide mind spends learning to drive every seat? Read
+as: is the clone capacity-bound at the served width? Two plain clones
+on the B3 corpus, the registered recipe, same seed and data: the
+served shape (`d_model` 64, `ffn` 128; 83,170 parameters) and a wide
+shape (`d_model` 128, `ffn` 256; > 3× the parameters), via
+`train_clone_fog.py --d-model 128 --ffn 256`. Reads on the held-out
+four: val loss, act@1, msg@1 and the three BC bars (`readout_fog.py`).
+**Prediction: not capacity-bound.** The wide clone lands within the
+shakeout's seed noise on act@1 (the clone-fog run's 0.8369 stands as
+the scale; a gain under 0.01 is noise, over 0.02 is a finding) and
+moves no bar's pass/fail. If the wide clone clears 0.02 on act@1 or
+flips a bar, capacity binds and a wider mind is a Gen 2 recipe input;
+nothing about step 7 changes either way (the pass runs the served
+shape). No PPO run is spent.
+
 After collection, per corpus, the shakeout chain unchanged: lesson
 clone (`train_vocab_fog.py --stage strip`, then `--stage teach`), the
 plain clone for B3 only (`train_clone_fog.py`, the plain-clone
