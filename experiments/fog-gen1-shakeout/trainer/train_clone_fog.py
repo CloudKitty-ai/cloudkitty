@@ -53,6 +53,12 @@ def tables(ev):
     return act, groups, msg
 
 
+def build_model(d_model=64, ffn=128):
+    """The clone's network; `hyper` rides the checkpoint so readout and
+    PPO rebuild the same shape (capacity check = 128 / 256)."""
+    return EntityPolicyV5(d_model=d_model, ffn=ffn)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True)
@@ -69,6 +75,10 @@ def main():
     ap.add_argument("--limit-rollouts", type=int, default=None)
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--threads", type=int, default=None)
+    ap.add_argument("--d-model", type=int, default=64,
+                    help="entity width (fog-gen1-cert capacity check: 128)")
+    ap.add_argument("--ffn", type=int, default=128,
+                    help="encoder feed-forward width (capacity check: 256)")
     args = ap.parse_args()
     out_dir = args.out_dir or (HERE.parent / "artifacts" / args.name)
 
@@ -87,7 +97,7 @@ def main():
     print(f"[{args.name}] {tr[0].shape[0]} train / {va[0].shape[0]} val rows",
           flush=True)
 
-    model = EntityPolicyV5()
+    model = build_model(args.d_model, args.ffn)
     n_params = sum(p.numel() for p in model.parameters())
     print(f"[{args.name}] EntityPolicyV5 params: {n_params}", flush=True)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
