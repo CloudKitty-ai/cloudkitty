@@ -7,8 +7,8 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-6 BANKED 2026-09-12, rule 7 2026-09-13;
-rules 8-10 pending).
+owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-8 2026-09-13;
+rules 9-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -30,6 +30,10 @@ rule 5's repair menu and strip remedy do not apply to that field.
 Rule 3's re-open trigger is a level read; rule 7 demands a contrast:
 the pass should say why both stand. Groom-other now sits in three
 rules (1, 2, 7): one owner, two pointers.
+Rule 2's "give it one (world design, rule 8)" must point at its own
+hidden-state lever; rule 8 owns information design only.
+Rule 1's amendment path must point at rule 8's enrichment conditions
+(states never acts or words, a saturating stock, its own contrast).
 
 ## The rules
 
@@ -55,7 +59,8 @@ rules (1, 2, 7): one owner, two pointers.
 8. **Design scarcity of information, not incentives for behavior.**
    Companion levers: staged leash, matched horizons, world variation;
    counterweight: demonstrations buy what is cheap to demonstrate.
-   (GEN2-INPUTS; evidence: here-words under fog vs nofog.)
+   (GEN2-INPUTS; evidence: here-words under fog vs nofog.) BANKED —
+   full form below.
 9. **Frozen models cannot answer a reprice** — behavior changes land
    with retraining generations, never on frozen rosters. (Memory;
    the #368 shelvings; spec 054's merge-hold.)
@@ -338,3 +343,41 @@ a floor the leash dose sets, and the floor costs welfare (F-019).
   no pass (rule 10). A failed contrast means the world does not value
   it yet: pull the seed or do more world work, never re-declare it
   personality.
+
+### 8. Design scarcity of information, not incentives for behavior
+*(GEN2-INPUTS; F-026, F-021, F-030; ROADMAP fog split and free-time
+entry. Banked 2026-09-13.)*
+
+A signal or a pursuit is worth doing only when the cat cannot
+otherwise see the thing: under global vision the channel was
+welfare-redundant (F-026); fog held the here-words nofog shed. This
+rule owns who can see what; a missing consequence is a price (rule
+2).
+
+- **Boundary test**: for a wanted behavior, ask what a cat would need
+  to know, or not know, for it to be worth doing, and change that.
+  "Not paid enough" is rule 2's question, not this rule's.
+- **Scarcity pairs with a route to the fact** the actor can run from
+  its view and memory: a speaker who has it (the Here* adjacency
+  law), a search (fog with memory), or an inference (a friend's
+  unseen favorites show in what it does: the free-time plan's
+  helping, ROADMAP). Hiding a state takes the actor's cue away too,
+  and a channel with no consequence is not enough (rule 7).
+- **Headroom at the ceiling** comes from variance or enrichment,
+  never from replacing the served config with a harder one
+  (exam-vs-gym skew: training.toml's 1.5x need rates). Variance =
+  declared tail episodes; the served config stays the majority
+  episode and the certified world (rule 10); changing it is a
+  generation ruling (rule 9). Enrichment is a rule 1 amendment at a
+  generation boundary: states of the cat enter happiness, never acts
+  or words, through a stock that saturates so the act cannot be
+  farmed; anything else is rule 1's backdoor. It lands with its own
+  contrast, since it reshapes returns where they were flat.
+- **Counterweight**: demonstrations buy what is cheap to demonstrate
+  (F-022, F-017). Scarcity makes a seed survive; it does not replace
+  one (rule 7).
+- **Known costs**: scarcity is paid in welfare (the Gen 1 cap; rule
+  10 bounds it). Its settings are composition numbers (F-023), and a
+  scarcity change is an observation change (rule 5).
+- **Re-verify**: rule 7's contrast, with and without the scarcity;
+  the composition numbers re-measured at every roster change.
