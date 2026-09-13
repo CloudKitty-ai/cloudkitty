@@ -406,14 +406,21 @@ clone anchor).
   newly illegal one vanishes through the refusal funnel.
 - **Deploy test, before the retrain**, both required: no artifact
   becomes invalid (a teacher change orphans the corpus, clones, and
-  bars; an rng-sequence change orphans seed pins; these wait for the
-  boundary and the re-cut; a reprice orphans nothing scripted, since
-  the rule is unchanged on either of rule 2's clocks); and the old habit
-  at the new price is declared harmless, welfare and every need's route
-  holding (041: zero rest scenes pre-declared), or compensated below,
-  after the reprice passed its own re-verifies (rules 3, 4). Harmful
-  waits (054 FR-013); a state reading that later breaks the declaration
-  reverts the deploy.
+  bars, and waits for the boundary; a reprice orphans nothing scripted,
+  since the rule is unchanged on either of rule 2's clocks); and the
+  old habit at the new price is declared harmless, welfare and every
+  need's route holding (041: zero rest scenes pre-declared), or
+  compensated below, after the reprice passed its own re-verifies
+  (rules 3, 4). Harmful waits (054 FR-013); a state reading that later
+  breaks the declaration reverts the deploy.
+- **Seed pins** (goldens, continuity fixtures) are re-derived in the
+  same PR when the PR attributes every divergence it causes: streams
+  byte-identical up to a first fork the change predicts and names (the
+  048 precedent; 054's fork at tick 119). A change the pins cannot
+  attribute, a reordered draw that forks every world at its first draw,
+  lands alone or waits for the re-cut. The CHANGELOG marker records the
+  consequence, not this test. Known cost: the pins see nothing after
+  the fork they attribute; one change per PR is the mitigation.
 - **Interim compensation**: a temporary dial on an activity the frozen
   roster already performs at a material rate (the groom bump). A payout
   moves no scripted baseline (rule 2), so rule 10's thresholds stand
