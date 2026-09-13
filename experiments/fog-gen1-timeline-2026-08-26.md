@@ -978,3 +978,18 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   entropy bonus on it) and its own declared arm. It joins GEN2-INPUTS'
   free-register question, where the same contrast (rule 7) is designed
   against hidden needs.
+- **Finding 6, the row 0–1 groom census: CORRECTED, nothing owed.**
+  The cause is dirt, not corpus density and not vision (RESULTS.md
+  correction of 2026-09-13, `groom_cells.py`): policies self-groom
+  about twice the teacher, so only Biscuit is ever dirty and takes the
+  grooms; Biscuit sits at row 0 or 1 for every observer by id. No
+  balanced-corpus arm. The one gap found, Biscuit never grooms anyone
+  (the `playful` teacher has no groom response), is KEPT AS DECLARED
+  PERSONALITY for Gen 1 (owner, 2026-09-13): Biscuit gives play where
+  the others give bath, which still reads as reciprocity; the step-7
+  declaration names it as Biscuit's charm trait at zero pay. Costs
+  weighed: adding a groom response now is a teacher change that
+  re-runs the corpus, clone, bars and critic on step 7's critical
+  path, for a giver with nobody dirty to groom. Re-open at Gen 2 with
+  the dirt-supply question (GEN2-INPUTS), where a non-grooming seat
+  would become one fifth of the givers missing.

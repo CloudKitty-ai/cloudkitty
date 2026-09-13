@@ -139,7 +139,11 @@ lands.
   2 world that wants visible social grooming has to supply dirt the
   self form cannot clear as fast (rule 8 variance, rule 2 physics),
   and Biscuit's teacher needs a groom response if that seat is to
-  give as well as take.
+  give bath as well as take it. For Gen 1 the owner ruled (2026-09-13)
+  Biscuit's non-grooming a declared trait: Biscuit gives play where
+  the others give bath, reciprocity in another currency. Decide the
+  two together: dirt the self form cannot clear makes a non-grooming
+  seat one fifth of the givers missing.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes.
