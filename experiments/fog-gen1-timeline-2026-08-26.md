@@ -1009,3 +1009,34 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   from the fog that go unanswered per hour on the served roster, off
   the refusal stamp's `reason` field, so the cost of waiting is a
   number at the Gen 2 design sitting. A reading, not a gate.
+- **Finding 7, sunbeam naps: BEAM-PRICE SCREEN IN THE STEP-7 PASS
+  (owner, 2026-09-13: "Let's run the screen. Even 5-10% is better
+  than chance, and we don't need to make it a dominant preference for
+  it to still be cute").** Three runs: `sleep_relief_sunbeam` 10.0 at
+  two seeds and 15.0 at one seed (served 7.0; base sleep 5.0; beam
+  conducts to adjacent sleepers, spec 031), otherwise the step-7 seat
+  recipe. A reprice, not a teacher change: orphans nothing scripted
+  (rule 9), so no corpus, clone or critic re-run; the training
+  config carries it as a declared deviation from served. Reads:
+  in-beam share of sleeping ticks (baseline 5–10% policy vs 29%
+  anchor) and settled-friend-on-beam opportunities, off the probe
+  rows (`phase2_read.py` cosleep read); welfare floor unchanged.
+  Declared in the step-7 prereg as a charm trade (rule 10), ruled
+  after: the pick is the owner's, pencilled as the smaller price
+  whose in-beam share clears the policy baseline beyond seed spread
+  (a dominant preference is not required). The picked price rides
+  the reseat's served config with the seats trained under it, as the
+  radius and floor pins did; `validate.rs` only requires it finite
+  and non-negative, no shipped-config pin moves. Rules 3 and 4
+  re-verify at the pick (the beam is a sleep-specialist form, not a
+  rider; conduction pays the co-sleeper's own specialist).
+- **Finding 9, instrument debt: nothing funded for step 7.**
+  Rate-based A17 and the scene-span instrument stay on the Gen 2
+  shelf (every step-7 arm runs at pin 4; the uptake reads served the
+  deferred rungs). **Critic-compression rewatch APPROVED (owner)** as
+  an INVESTIGATE row in the step-7 prereg, never a stop: explained
+  variance and the value range read off each arm's metrics through
+  the pass, against #365's compression nuance.
+- **Finding 8, free register**: nothing further; the hearability
+  ruling stands and the lesson clone ships chirp and purr as declared
+  charm.
