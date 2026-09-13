@@ -96,7 +96,12 @@ doctrine is a division of labor — reward stays team welfare only,
 demonstrations buy what is cheap to demonstrate, and the world's
 design is where to be opinionated.
 
-## Friend-in-fog pursuit: build at Gen 2 corpus collection (owner-aligned analysis, 2026-09-11)
+## Friend-in-fog pursuit: build at Gen 2 corpus collection (RULED by the owner 2026-09-13, "Defer to gen 2"; analysis of 2026-09-11 below)
+
+Owed before this sitting: a live read of unanswered from-the-fog
+calls per hour on the served Gen 1 roster, off the refusal stamp's
+`reason` field, so the cost of waiting is a number here.
+
 
 The cue-answer rungs (cuddle_response / play_response) are ruled
 wanted but deliberately NOT built for Gen 1. Timing rule, from the

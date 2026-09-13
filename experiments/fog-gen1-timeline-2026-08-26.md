@@ -993,3 +993,19 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   path, for a giver with nobody dirty to groom. Re-open at Gen 2 with
   the dirt-supply question (GEN2-INPUTS), where a non-grooming seat
   would become one fifth of the givers missing.
+- **Finding 4, cue-answer rungs: DEFERRED TO GEN 2 (owner, verbatim
+  "Defer to gen 2").** The scripted cuddle_response / play_response
+  rungs (walk toward an unseen caller) are not built for Gen 1; the
+  FR-036 cuddle-clause revisit travels with them. On the record:
+  visible callers are already answered at ~2× baseline with zero
+  demonstrations (finding 4 as revised); only the from-the-fog slice
+  is inert, and Gen 1's world gives that walk near-zero value (needs
+  visible, roster dense), so a rung's rows would be shed as
+  groom-other's were (rule 7); building now is a teacher change that
+  re-runs the corpus, clone, bars and critic before step 7 (rule 9).
+  Gen 2's hidden needs make the call the only channel and the rung
+  rides that corpus cycle (GEN2-INPUTS §Friend-in-fog pursuit, now
+  the ruling). **Live read owed post-reseat (owner agreed)**: calls
+  from the fog that go unanswered per hour on the served roster, off
+  the refusal stamp's `reason` field, so the cost of waiting is a
+  number at the Gen 2 design sitting. A reading, not a gate.
