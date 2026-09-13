@@ -7,7 +7,7 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-4 BANKED 2026-09-12; rules 5-10 pending).
+owner in progress (rules 1-5 BANKED 2026-09-12; rules 6-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -31,9 +31,8 @@ spec and finding ids stay as pointers.
    BANKED — full form below.
 4. **Unfarmable first, prosocial second, charm last.** (Spec 054.)
    BANKED — full form below.
-5. **The imitability principle**: scripted rungs read only what a
-   policy could observe — never a privileged read. (groom_response;
-   exp-004.)
+5. **A teacher may only act on what the student can see** — the
+   imitability principle. (Specs 028, 049.) BANKED — full form below.
 6. **The free register is never scripted** — scripted cats may hear
    it, never speak it. (Owner ruling 2026-09-02.)
 7. **Build a behavior when the world that values it exists** —
@@ -99,7 +98,7 @@ makes farms.
 - **When the behavior has no consequence in the world**, give it one
   (world design, rule 8) rather than paying for the behavior. Hidden
   is not absent: a state the actor cannot see still counts.
-- **One exception**: the prosocial edge, rule 4.
+- **Exception**: the prosocial edge, rule 4.
 
 ### 3. Side relief never makes a specialist unnecessary
 *(Spec 041; the 054 ratio. Banked 2026-09-12.)*
@@ -151,3 +150,41 @@ Three things, in order; each bounds the next.
 - **Values enter through the world**: benevolence is what the world
   makes real, and rule 1 already counts the friend's relief. The edge
   is the only thumb on the scale, and it lives at ties.
+
+### 5. A teacher may only act on what the student can see
+*(The imitability principle; spec 028 FR-019, spec 049 FR-021.
+Banked 2026-09-12.)*
+
+Scripted cats are teachers: their recorded turns are what a policy is
+first trained to copy and what the leash pulls it back toward. So a
+scripted rule may act only on what the policy it will teach can
+observe, and its decision to speak never costs it the turn. A teacher
+that acts on something the student cannot see teaches the action
+without its cause; the student copies it at the right rate and the
+wrong moments, and training erodes it or finds an unrelated cue that
+happens to correlate.
+
+- **Boundary test**: could the scripted rule be rewritten to read
+  only the observation, directly or in one step? If not, either stop
+  reading the hidden thing or add it to the observation, as the raw
+  fact rather than a judgment built from it.
+- **Speaking rides along**: a scripted cat decides what to say
+  separately from what to do and never idles to speak, so the student
+  does not learn that speaking means stopping.
+- **Enforced by construction**: scripted rules, the observation
+  encoder, and the legal-action masks are handed the same fog-filtered
+  view (049 FR-021). Where it still leaks, fix the view.
+- **Carve-out**: the critic sees everything during training; it never
+  acts and teaches nothing.
+- **Known cost**: whatever a teacher reads becomes part of the
+  observation, so a new read is a schema change and a retrain
+  boundary (rule 9). Teachers are deliberately less informed than
+  the engine.
+- **Holes on record, fix at the Gen 2 wall**: some friend-record
+  fields leak through the view (nothing reads them today; strip them
+  as memory was); the exploration rule follows a tour position the
+  observation does not carry (add the direction as cells with the Gen
+  2 schema).
+- **Re-verify**: every scripted rule whenever the observation changes.
+  "Can see" is per generation: when Gen 2 hides needs, a rule that
+  reads a visible friend's needs becomes illegal.
