@@ -158,7 +158,9 @@ repertoire.
   trigger this rule and prove nothing there.
 - **Re-verify**: demand is measured, never assumed; re-check every rider
   at any roster or need-rate change, or reprice or legality change of
-  either activity.
+  either activity. The measured demand is the mean need the
+  shipped-config guard pins, dated to its census; re-measuring means
+  rerunning that census and moving the constant in the same PR.
 
 ### 4. Unfarmable first, prosocial second, charm last
 *(Spec 054; the project's benevolence goal. Banked 2026-09-12.)*
