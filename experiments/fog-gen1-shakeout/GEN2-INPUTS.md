@@ -51,6 +51,26 @@ schema change, only a consequence. The ladder, as discussed:
 Success metric already exists: `phase2_read.py`'s approach read with
 purr/chirp in the word list (run once 2026-09-11).
 
+**Revisit trigger for doctrine rules 5 and 6 (owner, 2026-09-13).**
+Rule 6 makes lineage rows the free register's only seed. Rule 5 makes
+a Gen 1 policy's rows an illegal read once Gen 2 hides the needs it
+decided on, and a policy cannot be re-recorded under a narrower view.
+Rule 7 now carries the resolution: where the world gives a word
+something to say, the register may start unseeded, from the entropy
+bonus and the scarcity, which is the contrast F-022 names as its own
+invalidator (F-022 was measured under global vision, where F-026
+found the channel redundant). If the Gen 2 free register stays silent
+under real scarcity, the gap is back and one of the two rules bends:
+a rule 5 carve-out for lineage rows (the word arrives without its
+cause, a known cost), or a second seed source in rule 6. Levers to
+try before bending either: give the register a fact no law-named
+word carries (Want* already covers hidden needs; candidates are a
+resource last seen under fog, the speaker's next move, a third cat's
+state); a positive-signaling loss on the message head, a training
+device under rule 1's outside-the-rule clause, carrying rule 7's cost
+if the world does not value the word. The owner expects some design
+assumptions to move before the sound-named words come alive.
+
 ## Encouraging emergence without shaping — the levers, ranked
 
 1. **Design scarcity of information, not incentives for behavior.**

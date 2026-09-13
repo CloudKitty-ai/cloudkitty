@@ -8,8 +8,8 @@ this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
 owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-10 2026-09-13).
-NEXT: the cross-rule consistency pass (inputs below), then a full
-read of all ten, then final analysis and compression.
+Cross-rule consistency pass applied 2026-09-13. NEXT: a full read of
+all ten, then final analysis and compression.
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -20,29 +20,6 @@ carve-outs, known costs, and enough rationale to tell when the rule
 has drifted from its objective. Declined ideas, design sketches, and
 measured values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS);
 spec and finding ids stay as pointers.
-INPUTS FOR THE CONSISTENCY PASS (the A/B test's two findings, reach
-and the frozen shift, are now rule 3's third check and rule 9's first
-bullet).
-Rule 2's two clocks: scripted rules answer a state change at once
-(F-016) and a payout change never (F-036); "answer a reprice
-immediately" must say which. Rule 2's exception list gains rule 9's
-interim dial (temporary), and its census sentence becomes a pointer
-to rule 9.
-Rule 5 must point at rule 6: rule 5's test licenses a read of a heard
-free word's kind (it is in the shared view), rule 6 forbids it, and
-rule 5's repair menu and strip remedy do not apply to that field.
-Rule 3's re-open trigger is a level read; rule 7 demands a contrast:
-the pass should say why both stand. Groom-other now sits in three
-rules (1, 2, 7): one owner, two pointers.
-Rule 2's "give it one (world design, rule 8)" must point at its own
-hidden-state lever; rule 8 owns information design only.
-Rule 1's amendment path must point at rule 8's enrichment conditions
-(states never acts or words, a saturating stock, its own contrast).
-Rule 9's "(the anchor)" is the clone anchor; its two "rule 10's gates"
-are the live layer: name both. Rule 8's "rule 10 bounds it" means the
-catastrophe gates; rule 10's floor is relative to the same world.
-Rule 8's "certified world" is the battery's floor-bearing world (the
-served config); the battery also carries the triggering worlds.
 
 ## The rules
 
@@ -58,15 +35,15 @@ served config); the battery also carries the triggering worlds.
    BANKED — full form below.
 5. **A teacher may only act on what the student can see** — the
    imitability principle. (Specs 028, 049.) BANKED — full form below.
-6. **The free register is never scripted** — scripted cats may hear
-   it, never speak it. (Spec 033 FR-002b; bootstrap doctrine
+6. **The free register is never scripted** — a scripted cat neither
+   speaks it nor decides by it. (Spec 033 FR-002b; bootstrap doctrine
    2026-08-18, restated 2026-09-02.) BANKED — full form below.
 7. **Build a behavior when the world that values it exists** —
    earlier, the leash carries it and the rate falls to a floor the
-   dose sets. (2026-09-11, GEN2-INPUTS; evidence: groom-other 13 →
-   0.9-8.4/1k.) BANKED — full form below.
+   dose sets. (2026-09-11, GEN2-INPUTS; evidence: the groom-other
+   decay curve, shakeout RESULTS.) BANKED — full form below.
 8. **Design scarcity of information, not incentives for behavior.**
-   Companion levers: staged leash, matched horizons, world variation;
+   Headroom is variance or enrichment, never a harder served config;
    counterweight: demonstrations buy what is cheap to demonstrate.
    (GEN2-INPUTS; evidence: here-words under fog vs nofog.) BANKED —
    full form below.
@@ -90,7 +67,8 @@ reward, the return the policy climbs, is the Nash mean of roster
 happiness (the geometric mean, so one miserable cat drags the whole
 team) and nothing else. Every cat is paid the same team number, so a
 friend's relief counts for the actor as much as its own. Behavior
-preferences route through pricing (rule 2) or world design.
+preferences route through pricing (rule 2) or information design
+(rule 8).
 
 - **Boundary test**: would the term distinguish two futures with
   identical welfare trajectories? Yes -> reward term, banned. No ->
@@ -104,15 +82,16 @@ preferences route through pricing (rule 2) or world design.
 - **Outside the rule**: the imitation leash and the entropy bonus are
   training devices, not reward. They shape how the policy learns,
   never what it is for.
-- **Known cost**: low-welfare-impact behaviors starve (groom-other ->
-  spec 054); pay them with pricing, knowingly.
+- **Known cost**: low-welfare-impact behaviors starve (groom-other,
+  spec 054); the rescue is rule 7's.
 - **Diagnostic**: flat returns near the welfare ceiling are ambiguous
   between success and signal exhaustion. Read downtime (share of
   cat-ticks with all needs < T) against a same-generation baseline
   (rule 9): downtime still rising is success, downtime flat is
   exhaustion.
 - **Amendment path**: the welfare DEFINITION can be amended by ruling
-  at a generation boundary; never as a behavior-payment backdoor.
+  at a generation boundary, under rule 8's enrichment conditions;
+  never as a behavior-payment backdoor.
 
 ### 2. Prices are physics, not nudges
 *(Generalizes F-018; spec 054 exemplar. Banked 2026-09-12.)*
@@ -133,23 +112,22 @@ makes farms.
 - **Hidden states are legal**: a price may key to a state the actor
   cannot observe (054: grooming a friend pays by the dirt removed
   even when the actor cannot see the dirt). This is the lever for
-  behavior we did not script, not a defect.
+  patterns we did not script over acts the corpus carries (rule 7),
+  not a defect.
 - **Trait scaling is physics of the cat** (>=0.5x floor): keyed to
   who, never to which policy or to a schedule.
-- **Two clocks**: scripted teachers answer a reprice immediately
-  (F-016); policies answer
-  only after retraining, so a frozen-roster census after a reprice
-  measures the roster, not the price (rule 9). Declare the teacher
-  side before recording any teacher turns (rule 5) that follow the
-  change; where the price keys to a state the teacher cannot see, the
-  declared answer is none.
-- **When the behavior has no consequence in the world**, give it one
-  (world design, rule 8) rather than paying for the behavior. Hidden
-  is not absent: a state the actor cannot see still counts.
-- **Known cost**: a wanted behavior with no consequence cannot be
-  bought at all; giving it one is world work and a retrain (rules 7,
-  9).
-- **Exception**: the prosocial edge, rule 4, paid as the groom floor.
+- **Two clocks**: a scripted rule answers a state change at once
+  (F-016) and a payout change never (F-036); a policy answers either
+  only after retraining, so a census before the retrain is rule 9's.
+  Before recording teacher turns that follow a change, declare which
+  clock the scripted side is on; a payout, or a state the teacher
+  cannot see (rule 5), gets none.
+- **No consequence, no price**: a wanted behavior with no consequence
+  in the world cannot be bought at all. Give it a state to move,
+  hidden if need be (the lever above), rather than paying for the
+  choice; that is world work and a retrain (rules 7, 9).
+- **Exceptions**: the prosocial edge, rule 4, paid as the groom
+  floor; rule 9's interim dial, temporary.
 
 ### 3. Side relief never makes a specialist unnecessary
 *(Spec 041. Banked 2026-09-12.)*
@@ -162,7 +140,8 @@ the repertoire.
 
 - **Side relief (a rider)** = relief to a need other than the
   activity's own. Grooming a friend delivers bath relief as the
-  specialist, not as a rider; only its cuddle floor is side relief.
+  specialist, not as a rider; only its groom floor (cuddle relief) is
+  side relief.
 - **Three checks, all required**: insufficiency (one scene, one
   continuous run of the activity, cannot finish the need from
   measured demand); rate order (per-tick side relief below the
@@ -179,7 +158,9 @@ the repertoire.
 - **Accepted holes**: per scene, not per pair (a reciprocal pair earns
   twice); riders from successive activities add up. Re-open if a
   census on a retrained roster (rule 9) shows the specialist's scenes
-  falling or absent.
+  absent or falling: a repertoire read, so a level suffices; whether
+  the world values the activity is rule 7's contrast, a different
+  question.
 - **Re-verify**: demand is measured, never assumed; re-check every
   rider at any roster or need-rate change, or reprice or legality
   change of either activity.
@@ -195,7 +176,7 @@ Three things, in order; each bounds the next.
    rule 3's checks, such pay is never the best route to the need it
    relieves: an activity with the same preconditions (the same friend
    beside you) must already pay as much per tick to that need (rule
-   3's reach check, pointed at the rider). One activity per tick, so
+   3's reach and rate-order checks, pointed at the rider). One activity per tick, so
    repetition earns nothing the world did not already allow. No such
    activity, no such pay.
 2. **Prosocial gets the edge, not the field.** Where a behavior has a
@@ -222,7 +203,8 @@ Three things, in order; each bounds the next.
   activity that bounds it.
 - **Values enter through the world**: benevolence is what the world
   makes real, and rule 1 already counts the friend's relief. The edge
-  is the only thumb on the scale, and it lives at ties.
+  is the only standing thumb on the scale (rule 9's interim dial is
+  temporary), and it lives at ties.
 
 ### 5. A teacher may only act on what the student can see
 *(The imitability principle; spec 028 FR-019, spec 049 FR-021.
@@ -247,7 +229,8 @@ finds an unrelated cue that happens to correlate.
   the observation, as the raw fact (the friend's position) rather
   than a judgment built from it (worth chasing). Add it when the
   student needs the same fact to do the behavior at all; otherwise
-  drop the read.
+  drop the read. One field passes this test and is still barred: a
+  heard free word's kind (rule 6).
 - **Speaking rides along**: a scripted cat decides what to say
   separately from what to do, from the same view, and never idles to
   speak, so the student does not learn that speaking means stopping.
@@ -260,8 +243,8 @@ finds an unrelated cue that happens to correlate.
 - **Known cost**: whatever a teacher reads becomes part of the
   observation, so a new read is a schema change and a retrain
   boundary (rule 9). Teachers are deliberately less informed than the
-  engine, and a price keyed to a state they cannot see gets no
-  teacher answer at all (rule 2, two clocks).
+  engine; what a price they cannot see does to them is rule 2's two
+  clocks.
 - **Diagnostic**: the student's rate of a behavior matches the
   teacher's while its timing against the cause does not. That is this
   failure, not a training shortfall.
@@ -335,9 +318,14 @@ a floor the leash dose sets, and the floor costs welfare (F-019).
   gamma, never physics compressed to fit (rule 2: a delay set by the
   wish is a nudge).
 - **Order**: world, then the seed at that generation's corpus
-  collection, then train. The seed is still required (F-022: no
-  channel came alive by exploration); the entropy bonus (rule 1) only
-  keeps unspoken words on the table.
+  collection, then train. A seed is required where the world gives
+  the word nothing to say (F-022, measured under global vision, where
+  the channel was redundant: F-026). Where it does (rule 8), an
+  unseeded free register is the contrast F-022 invites, not a
+  violation: at a schema boundary, lineage rows seed where rule 5
+  allows them, and elsewhere the register restarts from the entropy
+  bonus (rule 1), which keeps unspoken words on the table, and the
+  scarcity. Revisit trigger in GEN2-INPUTS.
 - **Diagnostic**: vary the leash dose. A world-anchored rate ignores
   it; a leash-held rate orders by it. A low rate measures the world
   or the corpus (rule 6's comparison), never the cats' ability; a
@@ -363,8 +351,7 @@ entry. Banked 2026-09-13.)*
 A signal or a pursuit is worth doing only when the cat cannot
 otherwise see the thing: under global vision the channel was
 welfare-redundant (F-026); fog held the here-words nofog shed. This
-rule owns who can see what; a missing consequence is a price (rule
-2).
+rule owns who can see what.
 
 - **Boundary test**: for a wanted behavior, ask what a cat would need
   to know, or not know, for it to be worth doing, and change that.
@@ -373,24 +360,24 @@ rule owns who can see what; a missing consequence is a price (rule
   its view and memory: a speaker who has it (the Here* adjacency
   law), a search (fog with memory), or an inference (a friend's
   unseen favorites show in what it does: the free-time plan's
-  helping, ROADMAP). Hiding a state takes the actor's cue away too,
-  and a channel with no consequence is not enough (rule 7).
+  helping, ROADMAP). Hiding a state takes the actor's cue away too.
 - **Headroom at the ceiling** comes from variance or enrichment,
   never from replacing the served config with a harder one
   (exam-vs-gym skew: training.toml's 1.5x need rates). Variance =
   declared tail episodes; the served config stays the majority
-  episode and the certified world (rule 10); changing it is a
-  generation ruling (rule 9). Enrichment is a rule 1 amendment at a
-  generation boundary: states of the cat enter happiness, never acts
+  episode and the world rule 10's floor is measured in; changing it
+  is a generation ruling (rule 9). Enrichment is a rule 1 amendment
+  at a generation boundary: states of the cat enter happiness, never acts
   or words, through a stock that saturates so the act cannot be
   farmed; anything else is rule 1's backdoor. It lands with its own
   contrast, since it reshapes returns where they were flat.
 - **Counterweight**: demonstrations buy what is cheap to demonstrate
-  (F-022, F-017). Scarcity makes a seed survive; it does not replace
-  one (rule 7).
+  (F-022, F-017). Scarcity makes a seed survive; whether it can
+  replace one is rule 7's open contrast.
 - **Known costs**: scarcity is paid in welfare (the Gen 1 cap; rule
-  10 bounds it). Its settings are composition numbers (F-023), and a
-  scarcity change is an observation change (rule 5).
+  10's catastrophe gates bound it, its floor moves with the world).
+  Its settings are composition numbers (F-023), and a scarcity change
+  is an observation change (rule 5).
 - **Re-verify**: rule 7's contrast, with and without the scarcity;
   the composition numbers re-measured at every roster change.
 
@@ -403,9 +390,10 @@ A frozen roster is the seated policies, weights fixed. It carries
 the old world's answer, so a behavior change (a reprice, a legality
 or world change) is answered only by the generation retrained under
 it. A generation is one retrain and reseat on one observation
-schema, one served config, one teacher ruleset; the boundary is
-where they may change together; a same-generation baseline is a lab
-arm trained under the same three (the anchor).
+schema, one teacher ruleset, and one served config apart from
+deploys that pass the test below; the boundary is where they may
+change together; a same-generation baseline is a lab arm trained
+under the same three (the clone anchor).
 
 - **A frozen roster shifts, never answers**: its behavior moves
   through the states the change moves; a newly legal action goes
@@ -421,16 +409,15 @@ arm trained under the same three (the anchor).
   frozen roster already performs at a material rate (the groom bump).
   A declared, temporary exception to rule 2: no time term in the
   dial, the revert a deploy at the reseat or sooner if rule 10's
-  gates fire. The dial passes the same deploy test, and rules 3 and 4
-  re-verify at it and at its revert. Cost: it pays the old habit at
-  the new price (the bump bought Clementine's loop, hence the
-  revert).
+  live layer fires. The dial passes the same deploy test. Cost: it
+  pays the old habit at the new price (the bump bought Clementine's
+  loop, hence the revert).
 - **Census rule**: after the change and before the retrain a census
   measures the roster's choices, not the price. State readings stand
-  (needs, demand, welfare: rule 3's arithmetic and rule 10's gates
-  run now); choice shares carry a re-verify trigger naming the next
-  seating, never a conclusion, which rule 7's contrast reads after
-  the retrain. No census inside the deploy transient: wait until
+  (needs, demand, welfare: rule 3's arithmetic and rule 10's live
+  layer run now); choice shares carry a re-verify trigger naming the
+  next seating, never a conclusion, which rule 7's contrast reads
+  after the retrain. No census inside the deploy transient: wait until
   needs oscillate around a stable mean.
 - **One retrain per generation**: bundle the changes at the boundary;
   a served retrain before a schema change is throwaway work (lab
@@ -454,12 +441,11 @@ welfare could never seat.
   scripted baseline of the same battery, plus the catastrophe gates
   (distress age, stress bar, fallback bounds); thresholds are
   multiples of the re-measured baseline, never constants (F-021).
-  Like rosters only: a new seat shape re-measures the baseline first.
   No noise allowance; a miss inside noise is replicated on disjoint
-  worlds before it counts (F-004). A world change or a welfare
-  amendment (rule 1) moves both sides, so only the catastrophe gates
-  bound what it costs (rule 8; the amendment's own contrast is its
-  check).
+  worlds before it counts (F-004). A world change (rule 8) or a
+  welfare amendment (rule 1) moves both sides, so only the
+  catastrophe gates bound what either costs; the amendment's own
+  contrast (rule 8) is its check.
 - **The trade**: before instruments run, the selection doc declares
   what the seating is for, the instrument that measures that benefit
   (F-010's out-of-distribution test, fingerprints, probes), and the
@@ -469,8 +455,8 @@ welfare could never seat.
   and not measured does not seat; a cost inside the allowance against
   a null benefit is the owner's ruling, on the record.
 - **Boundary test, bar or reading**: a bar was declared before the
-  instrument ran, names its battery, is never inherited, and changes
-  only on the owner's word. A reading (the noise floor, a parity band,
+  instrument ran, names its battery, and changes only on the owner's
+  word; a trade bar is never inherited from another seating. A reading (the noise floor, a parity band,
   a screen prediction) may set a bar, never be one. No trade bar sits
   inside noise, and a result inside noise establishes nothing: a
   benefit or a contrast is absent for the decision, a cost is
