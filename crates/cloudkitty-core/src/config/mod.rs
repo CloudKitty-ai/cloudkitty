@@ -2624,6 +2624,31 @@ mod tests {
     }
 
     #[test]
+    fn the_groom_floor_may_never_out_pay_the_drips() {
+        // Doctrine rule 4 item 1: the floor's unfarmable bound is the
+        // LARGER of the two same-precondition drips.
+        let mut c = cfg();
+        // The served shape: equality with both drips is legal.
+        c.actions.rest_drip_relief = 0.25;
+        c.actions.cosleep_drip_relief = 0.25;
+        c.actions.groom_cuddle_floor = 0.25;
+        c.validate().expect("floor equal to the drip tier is legal");
+        // One drip below the floor is fine while the other covers it —
+        // engine defaults live here (rest_drip launches 0.0 per spec
+        // 041; cosleep carries 15.0).
+        c.actions.rest_drip_relief = 0.0;
+        c.validate().expect("one covering drip is enough");
+        // Past both drips: rejected by name.
+        c.actions.groom_cuddle_floor = 0.26;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("groom_cuddle_floor"),
+            "rejected by name: {msg}"
+        );
+        assert!(msg.contains("drip"), "the error names the bound: {msg}");
+    }
+
+    #[test]
     fn the_groom_curve_calibrations_hold_at_anchor_values() {
         // Spec 054 owner rules 1–2 as tested invariants. The literals are
         // the ANCHOR values (shakeout anchor: rest_drip 0.25, rest_mutual
