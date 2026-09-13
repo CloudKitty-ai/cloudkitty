@@ -934,3 +934,20 @@ scripted selector only; the RL menu and reward do not see it), and is
 the reopen trigger for a friend re-admission mechanic.
 Two-layer welfare gates, G5 census, G6 soak,
 owner's word for seating/deploy — the standing machinery, unchanged.
+
+### Step-6 sitting rulings (2026-09-13, shakeout findings reviewed one by one)
+
+- **Finding 5, seating: ALL-POLICY (owner, verbatim "All policy").**
+  Every certification run trains on the served composition (trainer
+  `MIX` 0.0 for all five seats); no mixed episodes. Reasons on the
+  record: the served world is all-policy and slot 8's third of the
+  budget trained a composition it never presents at a sample
+  handicap; slot 8's welfare read (two eat episodes on kitty 3, lowest
+  friend-in-view, highest blind-hungry of the r4 arms) was inside noise
+  in both directions, which under doctrine rule 10 establishes nothing;
+  its richer groom-other retention is exposure-held, the class rule 7
+  says decays when the exposure stops, and spec 054's reprice is the
+  world-value lever. Spec 017's mixed-roster exam cells are read as
+  readings, not bars. Re-open triggers: a mixed-exam cell declared a
+  bar in the step-7 declaration, or a served roster that seats a
+  scripted cat by design.
