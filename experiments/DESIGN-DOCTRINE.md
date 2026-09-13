@@ -7,8 +7,9 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-9 2026-09-13;
-rule 10 pending).
+owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-10 2026-09-13).
+NEXT: the cross-rule consistency pass (inputs below), then a full
+read of all ten, then final analysis and compression.
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -37,6 +38,11 @@ Rule 2's "give it one (world design, rule 8)" must point at its own
 hidden-state lever; rule 8 owns information design only.
 Rule 1's amendment path must point at rule 8's enrichment conditions
 (states never acts or words, a saturating stock, its own contrast).
+Rule 9's "(the anchor)" is the clone anchor; its two "rule 10's gates"
+are the live layer: name both. Rule 8's "rule 10 bounds it" means the
+catastrophe gates; rule 10's floor is relative to the same world.
+Rule 8's "certified world" is the battery's floor-bearing world (the
+served config); the battery also carries the triggering worlds.
 
 ## The rules
 
@@ -69,7 +75,9 @@ Rule 1's amendment path must point at rule 8's enrichment conditions
    roster shifts, it does not answer. (Owner ruling 2026-09-01; the
    #368 shelvings; spec 054 FR-013.) BANKED — full form below.
 10. **Two-layer welfare gates; a noise reading is never a pass bar.**
-    (Certification gate philosophy.)
+    The floor is absolute; above it a seating declares a trade, never
+    inherits a bar. (Certification gate philosophy 2026-08-14; owner
+    reshaping 2026-09-13.) BANKED — full form below.
 
 ## Banked rules
 
@@ -428,3 +436,59 @@ arm trained under the same three (the anchor).
   a served retrain before a schema change is throwaway work (lab
   arms are not reseats). Attribution confound accepted; ablation is
   the fallback if a result surprises.
+
+### 10. Two-layer welfare gates; a noise reading is never a pass bar
+*(Owner direction 2026-08-14, attn-cert selection; ROADMAP guards 1
+and 2; reshaped by the owner 2026-09-13. Banked 2026-09-13.)*
+
+A seating gate answers two questions with different bars. Is the
+world no worse than the scripted roster makes it? That is the floor:
+the question is fixed, its number floats with the world it is
+measured in. Is what this seating is for worth what it costs? That
+is a trade, declared per seating, ruled by the owner (ROADMAP
+principle 4). An incumbent-relative bar folds the two and ratchets:
+every winner raises it, so a seat class chosen for anything but
+welfare could never seat.
+
+- **The floor**: rule 1's team Nash, seat-paired, at or above the
+  scripted baseline of the same battery, plus the catastrophe gates
+  (distress age, stress bar, fallback bounds); thresholds are
+  multiples of the re-measured baseline, never constants (F-021).
+  Like rosters only: a new seat shape re-measures the baseline first.
+  No noise allowance; a miss inside noise is replicated on disjoint
+  worlds before it counts (F-004). A world change or a welfare
+  amendment (rule 1) moves both sides, so only the catastrophe gates
+  bound what it costs (rule 8; the amendment's own contrast is its
+  check).
+- **The trade**: before instruments run, the selection doc declares
+  what the seating is for, the instrument that measures that benefit
+  (F-010's out-of-distribution test, fingerprints, probes), and the
+  welfare it may cost, which is that seating's own bar. The delta
+  against the incumbent at the same seat (guard 2) is the reading it
+  is held to, cross-generation by nature (rule 9). A benefit asserted
+  and not measured does not seat; a cost inside the allowance against
+  a null benefit is the owner's ruling, on the record.
+- **Boundary test, bar or reading**: a bar was declared before the
+  instrument ran, names its battery, is never inherited, and changes
+  only on the owner's word. A reading (the noise floor, a parity band,
+  a screen prediction) may set a bar, never be one. No trade bar sits
+  inside noise, and a result inside noise establishes nothing: a
+  benefit or a contrast is absent for the decision, a cost is
+  uncharged. Gates confer eligibility, never precedence.
+- **Failure**: a selection gate stops, reports, and waits for the
+  owner. The live layer (catastrophe gates on the running world, the
+  watchdog, the soak) acts without a ruling and can trigger rule 9's
+  early revert; rule 9's mid-generation readings feed it, never the
+  floor.
+- **Carve-outs**: a seat class whose operating mode breaks a gate as
+  written gets it reshaped to ask the same question, never waived
+  (LLM seats: a declared fallback band replaces zero-fallback). Lab
+  passes owe the same declare-before-you-run shape: welfare stops and
+  a plateau rule on unshaped return. Diagnostics (F-037) inform,
+  never gate.
+- **Known cost, re-verify**: the floor is battery-bound (F-009), so
+  the battery runs on the served config plus the worlds that trigger
+  known failures (F-010) in the deployed company (F-012, F-023); the
+  floor and noise floor are re-measured, clustered by world (F-004),
+  at any change of them, and every fixed dimension is stated with the
+  claim.
