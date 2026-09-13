@@ -1,60 +1,49 @@
-# Design doctrine — DRAFT (walkthrough in progress, 2026-09-12)
+# Design doctrine
 
-The rules for shaping worlds, rewards, and behaviors — assembled here
-for the first time from where they lived (config comments, spec text,
-code comments, findings, GEN2-INPUTS). Process rules live in `README.md
-§Design discipline`; empirical findings in `FINDINGS.md`; this file
-holds the design principles between them.
+The rules for shaping worlds, rewards, and behaviors, assembled
+2026-09-12 from config comments, spec text, code comments, findings,
+and GEN2-INPUTS, where older copies may still sit. Process rules live
+in `README.md §Design discipline`; empirical findings in `FINDINGS.md`;
+this file holds the design principles between them.
 
-Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-10 2026-09-13).
-Cross-rule consistency pass applied 2026-09-13. NEXT: a full read of all
-ten, then final analysis and compression. PROCESS (owner-set): each rule
-is explored in session against five questions — purpose, benefit,
-downsides, exceptions, refinements — and what lands here is the TERSE
-decision-bearing residue only (the rule, its boundary tests, carve-outs,
-known costs, amendment paths), not the five-part structure. Rule 1 below
-is the format exemplar. ADMISSION: a banked rule carries the rule, its
-boundary tests, carve-outs, known costs, and enough rationale to tell
-when the rule has drifted from its objective. Declined ideas, design
-sketches, and measured values live elsewhere (ROADMAP, specs, RESULTS,
-FINDINGS); spec and finding ids stay as pointers.
+Status: all ten rules banked with the owner (rules 1-6 on 2026-09-12,
+7-10 on 2026-09-13), then passed for cross-rule consistency, read cold
+four rounds on the whole set and three on charm, and compressed
+(2026-09-13). ADMISSION: a banked rule carries the rule, its boundary
+tests, carve-outs, known costs, amendment paths, and enough rationale
+to tell when the rule has drifted from its objective, in plain
+register. Declined ideas, design sketches, open tasks, and measured
+values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS,
+GEN2-INPUTS); spec and finding ids stay as pointers. PROCESS
+(owner-set): a rule is explored in session against five questions
+(purpose, benefit, downsides, exceptions, refinements) and what lands
+here is the terse decision-bearing residue only, never the five-part
+structure; rule 1 is the format exemplar. Changes land on the owner's
+word, dated in the rule's source line.
 
 ## The rules
 
+Each has its full form and sources below.
+
 1. **Reward is team welfare only; pricing is never a reward term.**
-   (F-018 layer 2 / ROADMAP guard 3.) BANKED — full form below.
-2. **Prices are physics, not nudges** — price states of the world, never
-   behaviors you want to see. (2026-09-11, generalizing F-018.) BANKED —
-   full form below.
-3. **Side relief never makes a specialist unnecessary** — a rider that
-   finishes the need kills the dedicated activity. (Spec 041.) BANKED —
-   full form below.
-4. **Unfarmable first, prosocial second, charm last.** (Spec 054.)
-   BANKED — full form below.
-5. **A teacher may only act on what the student can see** — the
-   imitability principle. (Specs 028, 049.) BANKED — full form below.
-6. **The free register is never scripted** — a scripted cat neither
-   speaks it nor decides by it. (Spec 033 FR-002b; bootstrap doctrine
-   2026-08-18, restated 2026-09-02.) BANKED — full form below.
-7. **Build a behavior when the world that values it exists** — earlier,
+2. **Prices are physics, not nudges**: price states of the world, never
+   behaviors you want to see.
+3. **Side relief never makes a specialist unnecessary**: a rider that
+   finishes the need kills the dedicated activity.
+4. **Unfarmable first, prosocial second, charm last.**
+5. **A teacher may only act on what the student can see**: the
+   imitability principle.
+6. **The free register is never scripted**: a scripted cat neither
+   speaks it nor decides by it.
+7. **Build a behavior when the world that values it exists**: earlier,
    the leash carries it and the rate falls to a residual the dose sets.
-   (2026-09-11, GEN2-INPUTS; evidence: the groom-other decay curve,
-   shakeout RESULTS.) BANKED — full form below.
-8. **Design scarcity of information, not incentives for behavior.**
-   Headroom is variance or enrichment, never a harder served config;
-   counterweight: demonstrations buy what is cheap to demonstrate.
-   (GEN2-INPUTS; evidence: here-words under fog vs nofog.) BANKED — full
-   form below.
-9. **Frozen models cannot answer a reprice** — a behavior change is
-   answered only by the generation retrained under it; a frozen roster
-   shifts, it does not answer. (Owner ruling 2026-09-01; the #368
-   shelvings; spec 054 FR-013.) BANKED — full form below.
-10. **Two-layer welfare gates; a noise reading is never a pass bar.**
-    The floor's question is fixed; above it a seating declares a trade,
-    never inherits a bar: the best world, not the most optimal one.
-    (Certification gate philosophy 2026-08-14; owner reshaping
-    2026-09-13; charm ruling 2026-09-13.) BANKED — full form below.
+8. **Design scarcity of information, not incentives for behavior**:
+   headroom is variance or enrichment, never a harder served config.
+9. **Frozen models cannot answer a reprice**: a behavior change is
+   answered only by the generation retrained under it.
+10. **Two-layer welfare gates; a noise reading is never a pass bar**:
+    the floor's question is fixed; above it a seating declares a trade,
+    never inherits a bar.
 
 ## Banked rules
 
@@ -96,7 +85,8 @@ preferences route through pricing (rule 2) or information design (rule
   read on the old number). Anything else is a behavior-payment backdoor.
 
 ### 2. Prices are physics, not nudges
-*(Generalizes F-018; spec 054 exemplar. Banked 2026-09-12.)*
+*(Generalizes F-018, 2026-09-11; spec 054 exemplar. Banked
+2026-09-12.)*
 
 A price is a rule about the world, not about the choice: it describes
 what happens when an action lands (whose need moves, by how much), never
@@ -158,8 +148,9 @@ repertoire.
   need inside one scene, two matched the specialist's rate, and the
   specialist alone needed a free, consenting partner. It ran zero
   scenes.
-- **Accepted holes**: per scene, not per pair (a reciprocal pair earns
-  twice); riders from successive activities add up. Re-open the three
+- **Accepted holes**: the checks are per scene, not per pair, so a
+  reciprocal pair earns the rider twice and riders from successive
+  activities add up. Re-open the three
   checks if a count on the retrained roster shows the specialist's
   scenes absent or falling: a trigger, not a bar, so a level read clear
   of noise is enough. Rule 7's contrast asks a different question,
@@ -250,7 +241,8 @@ cue that happens to correlate.
 - **Enforced by construction**: scripted rules, the observation encoder,
   and the legal-action masks are handed the same fog-filtered view (049
   FR-021). Where it still leaks, nothing may read the leak, and the view
-  is fixed at the next schema boundary.
+  is fixed at the next schema boundary (the open leaks are listed in
+  GEN2-INPUTS).
 - **Carve-out**: whatever sees everything during training but never acts
   and never enters the corpus (the critic) teaches nothing.
 - **Known cost**: whatever a teacher reads becomes part of the
@@ -260,11 +252,6 @@ cue that happens to correlate.
 - **Diagnostic**: the student's rate of a behavior matches the teacher's
   while its timing against the cause does not. That is this failure, not
   a training shortfall.
-- **Holes on record, fix at the Gen 2 wall**: the view exposes some
-  facts about friends that no rule reads today (strip them as memory
-  was); the exploration rule follows a stop on a private route the
-  observation does not carry (add the direction to it as observation
-  cells with the Gen 2 schema).
 - **Re-verify**: every scripted rule whenever the observation changes.
   "Can see" is per generation: when Gen 2 hides needs, a rule that reads
   a visible friend's needs becomes illegal. A corpus recorded under a
@@ -306,9 +293,9 @@ holds it there.
   clone's free-register rate against a lineage clone's.
 - **Re-verify** at every behavior change: no free kind named in behavior
   code outside tests; hearing kind-blind (a heard mew places the friend
-  at its stamped tile, nothing more). Both hold today. Lineage rows
-  carry a mind's view, so rule 5's test applies to them as recorded and
-  they cannot be re-recorded; when they may seed is rule 7's.
+  at its stamped tile, nothing more). Lineage rows carry a mind's view,
+  so rule 5's test applies to them as recorded and they cannot be
+  re-recorded; when they may seed is rule 7's.
 - **Amendment path**: to give a free word a meaning, move it to the
   law-named tier (rename for the meaning, enforce by predicate). Drift
   sign: a free word given a meaning by anything but the cats' use.
@@ -418,23 +405,22 @@ clone anchor).
 - **Deploy test, before the retrain**, both required: no artifact
   becomes invalid (a teacher change orphans the corpus, clones, and
   bars; an rng-sequence change orphans seed pins; these wait for the
-  boundary and the re-cut; a reprice orphans nothing scripted, since the
-  rule is unchanged whether it answers the moved state at once or never,
-  rule 2's two clocks); and the old habit at the new price is declared
-  harmless, welfare and every need's route holding (041: zero rest
-  scenes pre-declared), or compensated below, after the reprice passed
-  its own re-verifies (rules 3, 4). Harmful waits (054 FR-013); a state
-  reading that later breaks the declaration reverts the deploy.
+  boundary and the re-cut; a reprice orphans nothing scripted, since
+  the rule is unchanged on either of rule 2's clocks); and the old habit
+  at the new price is declared harmless, welfare and every need's route
+  holding (041: zero rest scenes pre-declared), or compensated below,
+  after the reprice passed its own re-verifies (rules 3, 4). Harmful
+  waits (054 FR-013); a state reading that later breaks the declaration
+  reverts the deploy.
 - **Interim compensation**: a temporary dial on an activity the frozen
   roster already performs at a material rate (the groom bump). A payout
   moves no scripted baseline (rule 2), so rule 10's thresholds stand
-  under it. A declared, temporary exception to rule 2: no time term in
-  the dial, the revert a deploy at the reseat or sooner if rule 10's
-  live layer fires. The dial passes the same deploy test and carries the
-  same declaration, so a reading that breaks it reverts the dial early
-  too; the revert lands with the reseat, so the next generation's
-  battery (rule 10) runs without it. Cost: it pays the old habit at the
-  new price (the bump bought Clementine's loop, hence the revert).
+  under it. A declared, temporary exception to rule 2 with no time term
+  in the dial; it passes the same deploy test with the same declaration.
+  The revert is a deploy at the reseat, so the next generation's battery
+  (rule 10) runs without it, or earlier when rule 10's live layer fires
+  or a reading breaks the declaration. Cost: it pays the old habit at
+  the new price (the bump bought Clementine's loop, hence the revert).
 - **Census rule**: after the change and before the retrain a census
   measures the roster's choices, not the price (corpus collection from
   the frozen roster is the next seed, rule 7, not a reading). State
@@ -450,7 +436,8 @@ clone anchor).
 
 ### 10. Two-layer welfare gates; a noise reading is never a pass bar
 *(Owner direction 2026-08-14, attn-cert selection; ROADMAP guards 1
-and 2; reshaped by the owner 2026-09-13. Banked 2026-09-13.)*
+and 2; reshaped by the owner 2026-09-13, charm ruling the same day.
+Banked 2026-09-13.)*
 
 A seating installs one or more policies in their seats, gated once
 (the floor reads each seat; charm may read the roster). Its gate

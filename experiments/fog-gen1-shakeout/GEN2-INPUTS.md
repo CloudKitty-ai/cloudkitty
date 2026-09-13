@@ -136,3 +136,9 @@ lands.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes.
+- Doctrine rule 5 view holes, fixed at the Gen 2 schema bump (moved
+  here from DESIGN-DOCTRINE.md 2026-09-13): the fog view still exposes
+  friend-record fields no rule reads (strip them as memory was); the
+  exploration rule follows a stop on a private route the observation
+  does not carry (add the direction to the waypoint as observation
+  cells). Until then nothing may read either.
