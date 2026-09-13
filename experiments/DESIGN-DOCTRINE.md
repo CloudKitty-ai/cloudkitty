@@ -120,24 +120,31 @@ makes farms.
 - **Exception**: the prosocial edge, rule 4, paid as the groom floor.
 
 ### 3. Side relief never makes a specialist unnecessary
-*(Spec 041; the 054 ratio. Banked 2026-09-12.)*
+*(Spec 041. Banked 2026-09-12.)*
 
-Every need has a specialist, the activity that finishes it. Some
-specialists relieve a second need on the side (co-sleep warms; the
+Every need gets a specialist, the activity that finishes it. Some
+activities relieve a second need on the side (co-sleep warms; the
 groomer is warmed). Side relief contributes to that need but never
-suffices for it.
+suffices for it: a need whose riders suffice loses its activity from
+the repertoire.
 
-- **Two checks, both required**: insufficiency (one scene cannot
-  finish the need from typical demand) and rate order (per-tick side
-  relief below the specialist's). Rate order alone is not enough: it
-  held before 041 while rest ran zero scenes.
-- **Side relief** = relief to a need other than the activity's own.
-  Grooming a friend is the bath specialist acting on the target.
+- **Side relief (a rider)** = relief to a need other than the
+  activity's own. Grooming a friend delivers bath relief as the
+  specialist, not as a rider; only its cuddle floor is side relief.
+- **Two checks, both required**: insufficiency (one scene, one
+  continuous run of the activity, cannot finish the need from
+  measured demand) and rate order (per-tick side relief below the
+  specialist's; 054's ceiling against the cuddle specialist is the
+  exemplar). Rate order alone is not enough: it held before 041 while
+  the cuddle specialist ran zero scenes, because its riders saturated
+  the need.
 - **Accepted holes**: per scene, not per pair (a reciprocal pair earns
-  twice); riders stack. Re-open if a census shows the specialist's
-  scenes falling.
-- **Re-verify**: insufficiency is checked against measured demand;
-  re-check every rider at any roster or need-rate change.
+  twice); riders from successive activities add up. Re-open if a
+  census on a retrained roster (rule 9) shows the specialist's scenes
+  falling or absent.
+- **Re-verify**: demand is measured, never assumed; re-check every
+  rider at any roster or need-rate change, or reprice of either
+  activity.
 
 ### 4. Unfarmable first, prosocial second, charm last
 *(Spec 054; the project's benevolence goal. Banked 2026-09-12.)*
