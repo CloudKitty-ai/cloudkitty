@@ -18,14 +18,11 @@ carve-outs, known costs, and enough rationale to tell when the rule
 has drifted from its objective. Declined ideas, design sketches, and
 measured values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS);
 spec and finding ids stay as pointers.
-INPUTS FOR THE CONSISTENCY PASS (from the 2026-09-12 clean-room A/B
-test of rules 1-5): (a) rule 3 covers prices only; the cuddle
-specialist also lost on preconditions (it needed a free, consenting
-partner; its riders needed neither), so a specialist must not carry a
-precondition its riders lack — candidate boundary for rule 3 or rule 4
-item 1. (b) Rule 9 must say a frozen policy's behavior does shift under
-a reprice through the states the reprice changes; what it cannot do is
-answer what the price now rewards.
+INPUT FOR THE CONSISTENCY PASS (from the 2026-09-12 clean-room A/B
+test of rules 1-5): rule 9 must say a frozen policy's behavior does
+shift under a reprice through the states the reprice changes; what it
+cannot do is answer what the price now rewards. (The test's other
+finding, reach, is now rule 3's third check.)
 
 ## The rules
 
@@ -140,20 +137,26 @@ the repertoire.
 - **Side relief (a rider)** = relief to a need other than the
   activity's own. Grooming a friend delivers bath relief as the
   specialist, not as a rider; only its cuddle floor is side relief.
-- **Two checks, both required**: insufficiency (one scene, one
+- **Three checks, all required**: insufficiency (one scene, one
   continuous run of the activity, cannot finish the need from
-  measured demand) and rate order (per-tick side relief below the
+  measured demand); rate order (per-tick side relief below the
   specialist's; 054's ceiling against the cuddle specialist is the
-  exemplar). Rate order alone is not enough: it held before 041 while
-  the cuddle specialist ran zero scenes, because its riders saturated
-  the need.
+  exemplar); and reach (the specialist needs nothing its riders do
+  not). A precondition only the specialist carries, a free partner
+  or consent, makes the riders the default route and the specialist
+  the exception. Drop it, as 041 did when rest stopped binding its
+  partner, or count it as rate order failing.
+  Before 041 every check failed at once: all three riders finished
+  the need inside one scene, two matched the specialist's rate, and
+  the specialist alone needed a free, consenting partner. It ran zero
+  scenes.
 - **Accepted holes**: per scene, not per pair (a reciprocal pair earns
   twice); riders from successive activities add up. Re-open if a
   census on a retrained roster (rule 9) shows the specialist's scenes
   falling or absent.
 - **Re-verify**: demand is measured, never assumed; re-check every
-  rider at any roster or need-rate change, or reprice of either
-  activity.
+  rider at any roster or need-rate change, or reprice or legality
+  change of either activity.
 
 ### 4. Unfarmable first, prosocial second, charm last
 *(Spec 054; the project's benevolence goal. Banked 2026-09-12.)*
@@ -165,9 +168,10 @@ Three things, in order; each bounds the next.
    delivers: the groom floor, the rest and co-sleep drips. Beyond
    rule 3's checks, such pay is never the best route to the need it
    relieves: an activity with the same preconditions (the same friend
-   beside you) must already pay as much per tick to that need. One
-   activity per tick, so repetition earns nothing the world did not
-   already allow. No such activity, no such pay.
+   beside you) must already pay as much per tick to that need (rule
+   3's reach check, pointed at the rider). One activity per tick, so
+   repetition earns nothing the world did not already allow. No such
+   activity, no such pay.
 2. **Prosocial gets the edge, not the field.** Where a behavior has a
    self form and an other form (groom self, groom a friend), the other
    form pays more by the value delivered to the friend, and when
