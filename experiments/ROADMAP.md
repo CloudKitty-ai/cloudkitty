@@ -210,6 +210,24 @@ threshold economics, all 20×20-composition numbers.
   snapshot/break-class change, so it lands at a generation boundary
   by doctrine rule 9. Trigger: after Gen 2 ships, or if free time is
   promoted to a product pillar.
+  **Teacher side, folded in 2026-09-13 (owner)**: one parameterized
+  script replaces the playful / needs_driven split — per cat a
+  COMFORT LINE and a FAVOURITE ("do the favourite until a need passes
+  the line"; Biscuit = play at 30, a needs_driven cat = the line at 0;
+  sleep, cuddle, self-groom as other favourites), with Biscuit's
+  consent gate generalized to every partnered favourite (never
+  conscript a friend whose need is over the line; solo favourites need
+  no gate). The favourite is the source the cat enjoys, so under the
+  capped partition it is world-anchored (rule 7) where today Biscuit's
+  play is leash-held; and a favourite friends cannot see is the object
+  of the helping-a-friend pressure. The mind reads its own block as an
+  observation input (six need-rate multipliers, two lines, one
+  categorical favourite; self-only), trained across trait draws with
+  the served roster as the majority episode (rule 8), so a toml change
+  inside the trained region needs no retrain: the trait-vector
+  alternative in `fog-gen1-shakeout/GEN2-INPUTS.md` §"Where
+  personality lives". Per-need comfort weights stay open (the Biscuit
+  design note's w35 was withdrawn for the right reason).
   Rider floor (riders cannot relieve a need below F) considered
   2026-09-12 and declined: it overlaps this design's window at T. If
   revived, F = T with one taper band, specified together with this

@@ -177,7 +177,11 @@ lands.
   (comfort line and need rates as its dials, dissolving the
   playful / needs_driven split), is a schema change and Gen 2 material;
   the owner is uncertain whether to go that way. The cheaper fix if
-  seat inference ever binds is an identity cell alone. The capacity
+  seat inference ever binds is an identity cell alone. Folded into
+  the free-time design the same day (owner): the parameterized
+  teacher is comfort line + favourite per cat, the favourite being the
+  enjoyment source the capped partition prices, so the trait becomes
+  world-anchored; see `ROADMAP.md` §free time, "Teacher side". The capacity
   side of the question (does driving every seat cost the mind
   capacity) is being measured on the B3 corpus (`fog-gen1-cert/PREREG.md`
   §Capacity check).
