@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- **Validation: the groom charm floor is bounded by the drip tier.**
+  Configs where `groom_cuddle_floor` exceeds the larger of
+  `rest_drip_relief` and `cosleep_drip_relief` now fail to load —
+  doctrine rule 4's unfarmable bound, previously held only by the
+  served values happening to be equal. Marker-free and proven neutral:
+  no default or behavior moves, and every shipped and frozen toml
+  (served, training, evals/v2, evals/v3) loads unchanged. (#TBD)
 - **Groom-other repriced to the delivered-relief curve (spec 054).**
   `[stamp]` `[rng-sequence]` (by consequence, the spec-048 precedent:
   no draw is reordered, but repriced cuddle trajectories change scripted
