@@ -2633,12 +2633,18 @@ mod tests {
         c.actions.cosleep_drip_relief = 0.25;
         c.actions.groom_cuddle_floor = 0.25;
         c.validate().expect("floor equal to the drip tier is legal");
-        // One drip below the floor is fine while the other covers it —
-        // engine defaults live here (rest_drip launches 0.0 per spec
-        // 041; cosleep carries 15.0).
+        // The bound is the LARGER drip, so either side alone may cover
+        // the floor. (The shipped-default shape — rest_drip 0.0, cosleep
+        // 15.0 per specs 041/028 — is the first case's family; it is
+        // itself validated by the_shipped_default_config_is_valid.)
         c.actions.rest_drip_relief = 0.0;
-        c.validate().expect("one covering drip is enough");
-        // Past both drips: rejected by name.
+        c.validate().expect("a covering cosleep drip is enough");
+        c.actions.rest_drip_relief = 0.25;
+        c.actions.cosleep_drip_relief = 0.0;
+        c.validate().expect("a covering rest drip is enough");
+        // Past both drips: rejected by name. Both drips at 0.25 so the
+        // bound is pinned as max, not sum (0.26 <= 0.25 + 0.25).
+        c.actions.cosleep_drip_relief = 0.25;
         c.actions.groom_cuddle_floor = 0.26;
         let msg = c.validate().unwrap_err().to_string();
         assert!(
