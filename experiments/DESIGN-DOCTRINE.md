@@ -125,17 +125,21 @@ suffices for it.
 
 Three things, in order; each bounds the next.
 
-1. **Unfarmable.** Any flat payment sits at or below the lowest-paying
-   existing route to the same need, under preconditions no harder than
-   the behavior's. Activities are exclusive, so such a payment never
-   raises a need's per-tick income above what the world already
-   allowed; repetition earns nothing new. No existing route, no flat
-   payment.
+1. **Unfarmable.** Some side relief (rule 3) is paid per tick for
+   being in an activity beside a friend, whatever the activity
+   delivers: the groom floor, the rest and co-sleep drips. Beyond
+   rule 3's checks, such pay is never the best route to the need it
+   relieves: an activity with the same preconditions (the same friend
+   beside you) must already pay as much per tick to that need. One
+   activity per tick, so repetition earns nothing the world did not
+   already allow. No such activity, no such pay.
 2. **Prosocial gets the edge, not the field.** Where a behavior has a
    self form and an other form (groom self, groom a friend), the other
-   form pays more by the value delivered to the friend, and at a tie
-   it still pays a small edge. The self form stays a full specialist
-   for the actor's own need, so self-sufficiency is always viable.
+   form pays more by the value delivered to the friend, and when
+   neither is in need it still pays a small edge over the self form,
+   never over the need's other routes (item 1). The self form stays a
+   full specialist for the actor's own need, so self-sufficiency is
+   always viable.
    Cases: friend in need -> the other form wins by value delivered
    (physics, rule 2); neither in need -> the edge alone; actor in need
    -> the self form must still finish it alone.
@@ -143,10 +147,11 @@ Three things, in order; each bounds the next.
    charming may be paid, only within item 1's bound. It buys the tie,
    not presence; value delivered is what carries a behavior.
 
-- **Standing under rule 2**: the edge is a nudge, a declared exception,
-  admitted because item 1 makes it harmless. It dissolves the day the
+- **Standing under rule 2**: the groom floor is a nudge, a declared
+  exception, admitted because item 1 makes it harmless. It dissolves the day the
   edge is derived from a state priced the same wherever it holds.
-- **Re-verify** every edge at any reprice of the route that bounds it.
+- **Re-verify** every fixed side pay and edge at any reprice of the
+  activity that bounds it.
 - **Values enter through the world**: benevolence is what the world
   makes real, and rule 1 already counts the friend's relief. The edge
   is the only thumb on the scale, and it lives at ties.
