@@ -786,6 +786,23 @@ impl Config {
                  saturates at the ceiling, it cannot sit under its floor",
             ));
         }
+        // Doctrine rule 4 item 1 (banked 2026-09-12): the floor pays for
+        // grooming a CLEAN friend, so an activity with the same
+        // precondition — a friend beside you — must already pay at least
+        // as much cuddle per tick, or charm-grooming becomes the best
+        // route to cuddle and the floor is a farm. The bound is the
+        // larger drip: one covering route is enough. Until this guard the
+        // bound held only because the served values happen to be equal
+        // (floor 0.25 = both served drips).
+        if a.groom_cuddle_floor > a.rest_drip_relief.max(a.cosleep_drip_relief) {
+            return Err(ConfigError::invalid(
+                "[actions] groom_cuddle_floor",
+                a.groom_cuddle_floor.to_string(),
+                "must not exceed the larger of rest_drip_relief and \
+                 cosleep_drip_relief: the charm floor may never out-pay \
+                 the drip tier (unfarmable bound)",
+            ));
+        }
         // The strict chain: solo < kitty < bug < greeble. Equality anywhere
         // makes two play forms indistinguishable -- exactly the
         // team-neutrality the split exists to remove. Each link carries its
