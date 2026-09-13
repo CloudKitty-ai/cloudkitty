@@ -141,4 +141,8 @@ lands.
   friend-record fields no rule reads (strip them as memory was); the
   exploration rule follows a stop on a private route the observation
   does not carry (add the direction to the waypoint as observation
-  cells). Until then nothing may read either.
+  cells). Until then nothing may read either. Becomes a hole the day
+  Gen 2 hides needs (Product, 2026-09-13): the groom-response
+  valuation reads the groomee's bath through `groom_cuddle_pay`
+  (`crates/cloudkitty-core/src/behavior/needs_driven.rs:426`), legal
+  while needs are visible.
