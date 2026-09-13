@@ -47,15 +47,21 @@ no-seeding control (deferred to Gen 2), mixed seating (ruled
 all-policy), a longer horizon (Gen 2 recipe data), a balanced corpus
 (finding 6 corrected: the cause was dirt, not the corpus).
 
-**Trainer changes owed (with the guard, red-first)**: `--anchor`
-pointing at `anchor-b3.toml`; the SLOTS table above with run indices
-21–40 (bands [520M, 920M), disjoint from every band in use); a
-per-slot dial override applied by `derive_config` beside the radius
-line (each override a single-line substitution, re-read and checked
-against the base config with exactly those keys changed, as the
-radius is); `--beta` values 0.02 and 0.10 as new pin keys
-(`beta_lo`, `beta_hi`); init pins `init_lesson`, `init_plain`,
-`init_lesson_off`; the critic pin. The plateau and welfare stop rules,
+**Trainer**: `trainer/train_ppo_cert.py` (landed 2026-09-13 @
+c699512, guard + three mutate reds), a wrapper that points the
+shakeout trainer at `anchor-b3.toml`, the SLOTS table above with run
+indices 21–40 (bands [520M, 920M), disjoint from every band in use),
+pins `beta_lo` 0.02 / `beta_hi` 0.10 / `init_lesson` / `init_plain`
+/ `init_lesson_off` / `critic`, an empty MIX, and per-slot dial
+overrides applied beside the radius line (an existing key is
+rewritten, an absent one inserted under its section; the result is
+re-read and checked equal to the anchor with exactly the radius and
+those keys moved, the shakeout's own check extended; the overrides
+are written to `cert-overrides.json` beside the manifest). Smoked on
+`beam15-s1` with the shakeout clone and critic as stand-ins (39
+updates, 20k ticks): derived config carries `sleep_relief_sunbeam =
+15.0` and `radius = 4`, manifest run index 40, seed base 900M,
+anchor sha `782f96…`. The plateau and welfare stop rules,
 the probe cadence (every 50 updates, 2k ticks, PROBE_SEEDS 40,001–3)
 and the Part A read at probe 1 (`schema_check.py --policy-trace`
 against a B3 anchor trace at r4, collected fresh) are the shakeout's
