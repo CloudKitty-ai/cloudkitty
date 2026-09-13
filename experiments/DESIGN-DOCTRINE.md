@@ -7,7 +7,7 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-5 BANKED 2026-09-12; rules 6-10 pending).
+owner in progress (rules 1-6 BANKED 2026-09-12; rules 7-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -23,6 +23,9 @@ test of rules 1-5): rule 9 must say a frozen policy's behavior does
 shift under a reprice through the states the reprice changes; what it
 cannot do is answer what the price now rewards. (The test's other
 finding, reach, is now rule 3's third check.)
+Rule 5 must point at rule 6: rule 5's test licenses a read of a heard
+free word's kind (it is in the shared view), rule 6 forbids it, and
+rule 5's repair menu and strip remedy do not apply to that field.
 
 ## The rules
 
@@ -39,7 +42,8 @@ finding, reach, is now rule 3's third check.)
 5. **A teacher may only act on what the student can see** — the
    imitability principle. (Specs 028, 049.) BANKED — full form below.
 6. **The free register is never scripted** — scripted cats may hear
-   it, never speak it. (Owner ruling 2026-09-02.)
+   it, never speak it. (Spec 033 FR-002b; bootstrap doctrine
+   2026-08-18, restated 2026-09-02.) BANKED — full form below.
 7. **Build a behavior when the world that values it exists** —
    earlier means leash-held and decaying. (2026-09-11, GEN2-INPUTS;
    evidence: groom-other 13 → 0.9/1k.)
@@ -248,3 +252,43 @@ finds an unrelated cue that happens to correlate.
   "Can see" is per generation: when Gen 2 hides needs, a rule that
   reads a visible friend's needs becomes illegal. A corpus recorded
   under a read found illegal is re-recorded at the next generation.
+
+### 6. The free register is never scripted
+*(Spec 033 FR-002b; bootstrap doctrine 2026-08-18, restated by the
+2026-09-02 Here*-teacher ruling. Banked 2026-09-12.)*
+
+Law-named words (Want*, Here*, Purr, WaitForMe) mean what their
+legality rule enforces, so a script may speak them and teaches nothing
+false. Sound-named words (mew, chirp, the reserves trill and ekekek)
+mean whatever the cats make them mean. A script that speaks one
+authors the meaning: every corpus row where it says chirp under some
+condition teaches the clone chirp means that condition, and the leash
+(rule 5) holds it there.
+
+- **Scripted** = a rule a person wrote (engine behaviors, a teacher
+  seat filled by one, a plugin). A trained policy in a teacher seat is
+  a mind; its free words are lineage, the register's only source of
+  demonstrations (F-022).
+- **Speaking test**: no scripted rule emits a sound-named kind or
+  filters by one (gating a mind's free words, or dropping its corpus
+  rows, by the word). Kind-blind law such as the cooldown is not a
+  filter.
+- **Hearing test**: no scripted decision depends on a heard word's
+  kind or tier. What the law attaches to every call (who, where, when,
+  whether a reply) is fair to use. The kind sits in the shared view, so
+  rule 5's test passes and its repairs do not apply: the fault is who
+  authors the meaning, not what the student can see.
+- **Carve-out**: a lab emitter may speak a free word to probe hearers
+  when nothing learns from it (no corpus, no training rollout, no
+  served world).
+- **Known cost**: a scripted corpus teaches silence in the register,
+  and the leash covers the message head. Call a silent word unused
+  only after comparing a scripted-corpus clone's free-register rate
+  against a lineage clone's.
+- **Re-verify** at every behavior change: no free kind named in
+  behavior code outside tests; hearing kind-blind (a heard mew places
+  the friend at its stamped tile, nothing more). Both hold today.
+- **Amendment path**: to give a free word a meaning, move it to the
+  law-named tier (rename for the meaning, enforce by predicate).
+  Drift sign: a free word given a meaning by anything but the cats'
+  use.
