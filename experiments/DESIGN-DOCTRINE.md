@@ -7,7 +7,8 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-6 BANKED 2026-09-12; rules 7-10 pending).
+owner in progress (rules 1-6 BANKED 2026-09-12, rule 7 2026-09-13;
+rules 8-10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -26,6 +27,9 @@ finding, reach, is now rule 3's third check.)
 Rule 5 must point at rule 6: rule 5's test licenses a read of a heard
 free word's kind (it is in the shared view), rule 6 forbids it, and
 rule 5's repair menu and strip remedy do not apply to that field.
+Rule 3's re-open trigger is a level read; rule 7 demands a contrast:
+the pass should say why both stand. Groom-other now sits in three
+rules (1, 2, 7): one owner, two pointers.
 
 ## The rules
 
@@ -45,8 +49,9 @@ rule 5's repair menu and strip remedy do not apply to that field.
    it, never speak it. (Spec 033 FR-002b; bootstrap doctrine
    2026-08-18, restated 2026-09-02.) BANKED — full form below.
 7. **Build a behavior when the world that values it exists** —
-   earlier means leash-held and decaying. (2026-09-11, GEN2-INPUTS;
-   evidence: groom-other 13 → 0.9/1k.)
+   earlier, the leash carries it and the rate falls to a floor the
+   dose sets. (2026-09-11, GEN2-INPUTS; evidence: groom-other 13 →
+   0.9-8.4/1k.) BANKED — full form below.
 8. **Design scarcity of information, not incentives for behavior.**
    Companion levers: staged leash, matched horizons, world variation;
    counterweight: demonstrations buy what is cheap to demonstrate.
@@ -292,3 +297,44 @@ condition teaches the clone chirp means that condition, and the leash
   law-named tier (rename for the meaning, enforce by predicate).
   Drift sign: a free word given a meaning by anything but the cats'
   use.
+
+### 7. Build a behavior when the world that values it exists
+*(GEN2-INPUTS 2026-09-11; shakeout RESULTS: here-words under fog vs
+nofog, the groom-other decay curve; spec 054 is the rescue. Banked
+2026-09-13.)*
+
+To build a behavior is to put it into training: a scripted rule in
+the corpus, or for the free register the lineage rows (rule 6). It
+survives training only when a consequence in the world carries it to
+team return. Otherwise only the leash holds it up: the rate falls to
+a floor the leash dose sets, and the floor costs welfare (F-019).
+
+- **"Values it" has three parts**: a consequence in the world (rule
+  2); a path from it to team return inside the training horizon
+  (about 500 ticks at gamma 0.998); a cue in the observation if the
+  behavior is to be conditional (without one the world anchors only a
+  base rate). Repairs, all before the seed: world work; a new
+  observation cell (a schema boundary, rule 9); a longer horizon at
+  gamma, never physics compressed to fit (rule 2: a delay set by the
+  wish is a nudge).
+- **Order**: world, then the seed at that generation's corpus
+  collection, then train. The seed is still required (F-022: no
+  channel came alive by exploration); the entropy bonus (rule 1) only
+  keeps unspoken words on the table.
+- **Diagnostic**: vary the leash dose. A world-anchored rate ignores
+  it; a leash-held rate orders by it. A low rate measures the world
+  or the corpus (rule 6's comparison), never the cats' ability; a
+  reprice answers it only once the diagnostic says world.
+- **Carve-outs**: personality held by the leash on purpose, declared
+  in advance (F-019; rule 1's outside-the-rule clause), is a welfare
+  cost paid knowingly. Scripted seats never decay (F-036); their
+  corpus rows shedding in the policies is not a defect. Charm pay
+  (rule 4) is not a build.
+- **Known cost**: the served roster waits a generation.
+- **Re-verify**: a contrast, never a level. After the retrain (rule
+  9), the rate at the loosest leash under the valuing world against
+  the same recipe under the world without the value, or the prior
+  world (fog vs nofog; 054 repriced vs flat). A gap inside noise is
+  no pass (rule 10). A failed contrast means the world does not value
+  it yet: pull the seed or do more world work, never re-declare it
+  personality.
