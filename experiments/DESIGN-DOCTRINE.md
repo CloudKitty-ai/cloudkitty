@@ -53,52 +53,71 @@ spec and finding ids stay as pointers.
 ### 1. Reward is team welfare only; pricing is never a reward term
 *(F-018 layer 2 / ROADMAP guard 3. Banked 2026-09-12.)*
 
-The Nash mean of roster happiness is the only thing the gradient may
-want; behavior preferences route through pricing or world design.
+Welfare is the goal itself; anything else in the reward is a proxy,
+and a proxy is what the gradient optimizes instead of the goal. So the
+reward, the return the policy climbs, is the Nash mean of roster
+happiness (the geometric mean, so one miserable cat drags the whole
+team) and nothing else. Every cat is paid the same team number, so a
+friend's relief counts for the actor as much as its own. Behavior
+preferences route through pricing (rule 2) or world design.
 
 - **Boundary test**: would the term distinguish two futures with
   identical welfare trajectories? Yes -> reward term, banned. No ->
-  pricing, allowed.
+  not a reward term; test it as pricing under rule 2.
 - **Carve-outs (compatible, not exceptions)**: declared team-level
-  potential shaping (`gamma*Phi(s') - Phi(s)`, state-only Phi, exact
-  form checked at declaration); estimator-side decompositions (change
-  the estimator, not the objective).
+  potential shaping (`gamma*Phi(s') - Phi(s)`, Phi a function of team
+  state only, exact form checked at declaration), compatible because
+  it sums to nothing over an episode and cannot change what is
+  optimal; estimator-side decompositions (critic heads, baselines:
+  anything that leaves the return itself unchanged).
+- **Outside the rule**: the imitation leash and the entropy bonus are
+  training devices, not reward. They shape how the policy learns,
+  never what it is for.
 - **Known cost**: low-welfare-impact behaviors starve (groom-other ->
   spec 054); pay them with pricing, knowingly.
 - **Diagnostic**: flat returns near the welfare ceiling are ambiguous
   between success and signal exhaustion. Read downtime (share of
-  cat-ticks with all needs < T) against a baseline.
+  cat-ticks with all needs < T) against a same-generation baseline
+  (rule 9): downtime still rising is success, downtime flat is
+  exhaustion.
 - **Amendment path**: the welfare DEFINITION can be amended by ruling
   at a generation boundary; never as a behavior-payment backdoor.
 
 ### 2. Prices are physics, not nudges
 *(Generalizes F-018; spec 054 exemplar. Banked 2026-09-12.)*
 
-A price is a rule about the world, not about the cat: it describes
+A price is a rule about the world, not about the choice: it describes
 what happens when an action lands (whose need moves, by how much),
-never a payment for the choice itself. Physics generalizes across
-seats and generations and is bounded by what the world supplies; a
+never a payment for choosing it. Physics generalizes across cats,
+policies, and generations and is bounded by what the world supplies; a
 nudge is bounded only by how fast the action repeats, which is what
 makes farms.
 
 - **Boundary test**: does the number come from a consequence in the
   world (something moved, or a real state held), or from the
   designer's wish for the behavior? Wish -> nudge, banned. Wording is
-  not the test; a nudge can always be phrased as a state.
+  not the test; a nudge can always be phrased as a state. Ask instead
+  what bounds the pay: what the world supplies (physics) or how fast
+  the act repeats (nudge).
 - **Hidden states are legal**: a price may key to a state the actor
-  cannot observe (054's ramp under hidden needs). This is the
-  emergence lever, not a defect.
+  cannot observe (054: grooming a friend pays by the dirt removed
+  even when the actor cannot see the dirt). This is the lever for
+  behavior we did not script, not a defect.
 - **Trait scaling is physics of the cat** (>=0.5x floor): keyed to
   who, never to which policy or to a schedule.
 - **Two clocks**: scripted teachers answer a reprice immediately
   (F-016); policies answer
   only after retraining, so a frozen-roster census after a reprice
   measures the roster, not the price (rule 9). Declare the teacher
-  side before any corpus collection that follows the change.
+  side before recording any teacher turns (rule 5) that follow the
+  change.
 - **When the behavior has no consequence in the world**, give it one
   (world design, rule 8) rather than paying for the behavior. Hidden
   is not absent: a state the actor cannot see still counts.
-- **Exception**: the prosocial edge, rule 4.
+- **Known cost**: a wanted behavior with no consequence cannot be
+  bought at all; giving it one is world work and a retrain (rules 7,
+  9).
+- **Exception**: the prosocial edge, rule 4, paid as the groom floor.
 
 ### 3. Side relief never makes a specialist unnecessary
 *(Spec 041; the 054 ratio. Banked 2026-09-12.)*
@@ -147,9 +166,12 @@ Three things, in order; each bounds the next.
    charming may be paid, only within item 1's bound. It buys the tie,
    not presence; value delivered is what carries a behavior.
 
-- **Standing under rule 2**: the groom floor is a nudge, a declared
-  exception, admitted because item 1 makes it harmless. It dissolves the day the
-  edge is derived from a state priced the same wherever it holds.
+- **Standing under rule 2**: the rest and co-sleep drips are physics
+  (a friend beside you warms). The groom floor, which pays item 2's
+  edge, pays when nothing was delivered: a nudge, a declared
+  exception, admitted because item 1 makes it harmless. It dissolves
+  the day the edge is derived from a state priced the same wherever
+  it holds.
 - **Re-verify** every fixed side pay and edge at any reprice of the
   activity that bounds it.
 - **Values enter through the world**: benevolence is what the world
