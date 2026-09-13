@@ -160,6 +160,27 @@ lands.
   free-register question above (message head off the leash, or an
   entropy bonus on it, as a declared arm) so both contrasts run
   against hidden needs in one pass.
+- Where personality lives (clarified with the owner 2026-09-13).
+  Every Gen 1 candidate is one roster-wide mind that drove all five
+  seats in self-play; it is playful in Biscuit's seat and needs-driven
+  elsewhere because it infers its seat from the world's fingerprint
+  (by-id rows, the neighbours' need patterns, its own need vector) and
+  copies that seat's teacher (matched-state read: Biscuit's seat keeps
+  playing at .48–.52 where the other seats play at .00–.09, teacher
+  .56 / .04–.08). Biscuit 2.0 was the same shape. So a mind seated
+  elsewhere becomes that seat's cat, and a roster change (a swapped cat,
+  reordered ids) scrambles the fingerprint the mind keys identity on;
+  nothing certifies that because the roster never changes within a
+  generation. The portable alternative, a trait vector in the
+  observation with training across trait draws (rule 8 variation, the
+  served roster as majority episode) and one parameterized teacher
+  (comfort line and need rates as its dials, dissolving the
+  playful / needs_driven split), is a schema change and Gen 2 material;
+  the owner is uncertain whether to go that way. The cheaper fix if
+  seat inference ever binds is an identity cell alone. The capacity
+  side of the question (does driving every seat cost the mind
+  capacity) is being measured on the B3 corpus (`fog-gen1-cert/PREREG.md`
+  §Capacity check).
 - Doctrine rule 5 view holes, fixed at the Gen 2 schema bump (moved
   here from DESIGN-DOCTRINE.md 2026-09-13): the fog view still exposes
   friend-record fields no rule reads (strip them as memory was); the
