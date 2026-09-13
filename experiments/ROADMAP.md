@@ -227,7 +227,18 @@ threshold economics, all 20×20-composition numbers.
   inside the trained region needs no retrain: the trait-vector
   alternative in `fog-gen1-shakeout/GEN2-INPUTS.md` §"Where
   personality lives". Per-need comfort weights stay open (the Biscuit
-  design note's w35 was withdrawn for the right reason).
+  design note's w35 was withdrawn for the right reason). Owner's
+  Pumpkin case (2026-09-13): food is the scarcest resource and Pumpkin's
+  eat rises fastest, so a level-based line would need a lower value
+  for Pumpkin to hold welfare. Preferred fix: define comfort in TICKS
+  OF SLACK (line for need k = armed_k − c × rate_k), so one value per
+  cat means the same for every need and a fast-rising need gets
+  attention earlier by construction; a food-search scarcity term only
+  if the per-cat scripted sweep (the Biscuit comfort sweep's method,
+  read on all five needs, highest c holding roster parity) shows eat
+  failing at a slack the other needs hold. Favourite encoding: a float
+  per enjoyment source (the trait-scaled gain the engine applies;
+  one-hot is the single-source case), teacher's favourite = top weight.
   Rider floor (riders cannot relieve a need below F) considered
   2026-09-12 and declined: it overlaps this design's window at T. If
   revived, F = T with one taper band, specified together with this
