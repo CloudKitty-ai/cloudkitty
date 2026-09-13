@@ -18,6 +18,14 @@ carve-outs, known costs, and enough rationale to tell when the rule
 has drifted from its objective. Declined ideas, design sketches, and
 measured values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS);
 spec and finding ids stay as pointers.
+INPUTS FOR THE CONSISTENCY PASS (from the 2026-09-12 clean-room A/B
+test of rules 1-5): (a) rule 3 covers prices only; the cuddle
+specialist also lost on preconditions (it needed a free, consenting
+partner; its riders needed neither), so a specialist must not carry a
+precondition its riders lack — candidate boundary for rule 3 or rule 4
+item 1. (b) Rule 9 must say a frozen policy's behavior does shift under
+a reprice through the states the reprice changes; what it cannot do is
+answer what the price now rewards.
 
 ## The rules
 
