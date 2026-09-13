@@ -1040,3 +1040,23 @@ owner's word for seating/deploy — the standing machinery, unchanged.
 - **Finding 8, free register**: nothing further; the hearability
   ruling stands and the lesson clone ships chirp and purr as declared
   charm.
+- **Seats = FIVE NETWORKS (owner, verbatim "Five networks",
+  2026-09-13).** Each certification run trains one network driving
+  all five seats in self-play; the served roster seats five distinct
+  networks, one artifact per seat as the config's registry expects.
+  The candidate pool and the charm ruling pick which network takes
+  which seat; rule 10's floor battery certifies the actual five-network
+  composition before seating, which none of them trained in.
+- **Biscuit 3.0 corpus (found and started 2026-09-13).** The shakeout
+  corpus was collected with Biscuit's teacher at comfort 55 and the
+  consent gate off; the anchor ruled 2026-09-02 (c30 + `consent_line`
+  30) never entered a config, so no step-5 clone was a Biscuit 3.0
+  clone. Two fresh corpora declared in `fog-gen1-cert/PREREG.md`
+  §Corpus (@ f503284, before collection): `anchor-b3.toml` (gate 30,
+  every candidate clones from it) and `anchor-b3-off.toml` (gate 0,
+  the consent-transfer twin), 40 × 20k each, seeds 1,090,001–040 and
+  1,091,001–040; collection launched 2026-09-13 16:33 MDT on the
+  owner's word ("start the biscuit prep now"). The corpus re-run
+  removes the pipeline-cost argument that weighed against the
+  finding-4 rungs and a Biscuit groom response; both rulings stand on
+  rule 7 and the character call, re-weighable by the owner.
