@@ -110,7 +110,8 @@ makes farms.
   only after retraining, so a frozen-roster census after a reprice
   measures the roster, not the price (rule 9). Declare the teacher
   side before recording any teacher turns (rule 5) that follow the
-  change.
+  change; where the price keys to a state the teacher cannot see, the
+  declared answer is none.
 - **When the behavior has no consequence in the world**, give it one
   (world design, rule 8) rather than paying for the behavior. Hidden
   is not absent: a state the actor cannot see still counts.
@@ -190,35 +191,48 @@ Three things, in order; each bounds the next.
 Banked 2026-09-12.)*
 
 Scripted cats are teachers: their recorded turns are what a policy is
-first trained to copy and what the leash pulls it back toward. So a
-scripted rule may act only on what the policy it will teach can
-observe, and its decision to speak never costs it the turn. A teacher
-that acts on something the student cannot see teaches the action
-without its cause; the student copies it at the right rate and the
-wrong moments, and training erodes it or finds an unrelated cue that
-happens to correlate.
+first trained to copy and what the leash (the training pull back
+toward those turns) holds it near. So a scripted rule may act only on
+what the policy it will teach can observe, and its decision to speak
+never costs it the turn. A teacher that acts on something the student
+cannot see teaches the action without its cause; the student copies
+it at the right rate and the wrong moments, and training erodes it or
+finds an unrelated cue that happens to correlate.
 
-- **Boundary test**: could the scripted rule be rewritten to read
-  only the observation, directly or in one step? If not, either stop
-  reading the hidden thing or add it to the observation, as the raw
-  fact rather than a judgment built from it.
+- **Boundary test**: is every input to the scripted rule a function
+  of the observation alone? Derived quantities are fine (the nearest
+  visible friend); a read of anything outside it is not. Private
+  state counts as outside: a counter or a route the teacher keeps for
+  itself is invisible unless the observation carries it too (the
+  memory cells). Chance is not a cause; a teacher may roll dice. If
+  the test fails, either stop reading the hidden thing or add it to
+  the observation, as the raw fact (the friend's position) rather
+  than a judgment built from it (worth chasing). Add it when the
+  student needs the same fact to do the behavior at all; otherwise
+  drop the read.
 - **Speaking rides along**: a scripted cat decides what to say
-  separately from what to do and never idles to speak, so the student
-  does not learn that speaking means stopping.
+  separately from what to do, from the same view, and never idles to
+  speak, so the student does not learn that speaking means stopping.
 - **Enforced by construction**: scripted rules, the observation
   encoder, and the legal-action masks are handed the same fog-filtered
-  view (049 FR-021). Where it still leaks, fix the view.
-- **Carve-out**: the critic sees everything during training; it never
-  acts and teaches nothing.
+  view (049 FR-021). Where it still leaks, nothing may read the leak,
+  and the view is fixed at the next schema boundary.
+- **Carve-out**: whatever sees everything during training but never
+  acts and never enters the corpus (the critic) teaches nothing.
 - **Known cost**: whatever a teacher reads becomes part of the
   observation, so a new read is a schema change and a retrain
-  boundary (rule 9). Teachers are deliberately less informed than
-  the engine.
-- **Holes on record, fix at the Gen 2 wall**: some friend-record
-  fields leak through the view (nothing reads them today; strip them
-  as memory was); the exploration rule follows a tour position the
-  observation does not carry (add the direction as cells with the Gen
-  2 schema).
+  boundary (rule 9). Teachers are deliberately less informed than the
+  engine, and a price keyed to a state they cannot see gets no
+  teacher answer at all (rule 2, two clocks).
+- **Diagnostic**: the student's rate of a behavior matches the
+  teacher's while its timing against the cause does not. That is this
+  failure, not a training shortfall.
+- **Holes on record, fix at the Gen 2 wall**: the view exposes some
+  facts about friends that no rule reads today (strip them as memory
+  was); the exploration rule follows a stop on a private route the
+  observation does not carry (add the direction to it as observation
+  cells with the Gen 2 schema).
 - **Re-verify**: every scripted rule whenever the observation changes.
   "Can see" is per generation: when Gen 2 hides needs, a rule that
-  reads a visible friend's needs becomes illegal.
+  reads a visible friend's needs becomes illegal. A corpus recorded
+  under a read found illegal is re-recorded at the next generation.
