@@ -7,8 +7,8 @@ code comments, findings, GEN2-INPUTS). Process rules live in
 this file holds the design principles between them.
 
 Status: the ten rules below are captured as-is; walkthrough with the
-owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-8 2026-09-13;
-rules 9-10 pending).
+owner in progress (rules 1-6 BANKED 2026-09-12, rules 7-9 2026-09-13;
+rule 10 pending).
 PROCESS (owner-set): each rule is explored in session against five
 questions — purpose, benefit, downsides, exceptions, refinements —
 and what lands here is the TERSE decision-bearing residue only (the
@@ -19,11 +19,14 @@ carve-outs, known costs, and enough rationale to tell when the rule
 has drifted from its objective. Declined ideas, design sketches, and
 measured values live elsewhere (ROADMAP, specs, RESULTS, FINDINGS);
 spec and finding ids stay as pointers.
-INPUT FOR THE CONSISTENCY PASS (from the 2026-09-12 clean-room A/B
-test of rules 1-5): rule 9 must say a frozen policy's behavior does
-shift under a reprice through the states the reprice changes; what it
-cannot do is answer what the price now rewards. (The test's other
-finding, reach, is now rule 3's third check.)
+INPUTS FOR THE CONSISTENCY PASS (the A/B test's two findings, reach
+and the frozen shift, are now rule 3's third check and rule 9's first
+bullet).
+Rule 2's two clocks: scripted rules answer a state change at once
+(F-016) and a payout change never (F-036); "answer a reprice
+immediately" must say which. Rule 2's exception list gains rule 9's
+interim dial (temporary), and its census sentence becomes a pointer
+to rule 9.
 Rule 5 must point at rule 6: rule 5's test licenses a read of a heard
 free word's kind (it is in the shared view), rule 6 forbids it, and
 rule 5's repair menu and strip remedy do not apply to that field.
@@ -61,9 +64,10 @@ Rule 1's amendment path must point at rule 8's enrichment conditions
    counterweight: demonstrations buy what is cheap to demonstrate.
    (GEN2-INPUTS; evidence: here-words under fog vs nofog.) BANKED —
    full form below.
-9. **Frozen models cannot answer a reprice** — behavior changes land
-   with retraining generations, never on frozen rosters. (Memory;
-   the #368 shelvings; spec 054's merge-hold.)
+9. **Frozen models cannot answer a reprice** — a behavior change is
+   answered only by the generation retrained under it; a frozen
+   roster shifts, it does not answer. (Owner ruling 2026-09-01; the
+   #368 shelvings; spec 054 FR-013.) BANKED — full form below.
 10. **Two-layer welfare gates; a noise reading is never a pass bar.**
     (Certification gate philosophy.)
 
@@ -381,3 +385,46 @@ rule owns who can see what; a missing consequence is a price (rule
   scarcity change is an observation change (rule 5).
 - **Re-verify**: rule 7's contrast, with and without the scarcity;
   the composition numbers re-measured at every roster change.
+
+### 9. Frozen models cannot answer a reprice
+*(Owner ruling 2026-09-01; spec 041's early deploy, spec 054 FR-013's
+hold, the #368 shelvings; one-retrain ruling 2026-08-27. Banked
+2026-09-13.)*
+
+A frozen roster is the seated policies, weights fixed. It carries
+the old world's answer, so a behavior change (a reprice, a legality
+or world change) is answered only by the generation retrained under
+it. A generation is one retrain and reseat on one observation
+schema, one served config, one teacher ruleset; the boundary is
+where they may change together; a same-generation baseline is a lab
+arm trained under the same three (the anchor).
+
+- **A frozen roster shifts, never answers**: its behavior moves
+  through the states the change moves; a newly legal action goes
+  unchosen, a newly illegal one vanishes through the refusal funnel.
+- **Deploy test, before the retrain**, both required: no artifact
+  becomes invalid (a teacher change orphans the corpus, clones, and
+  bars; an rng-sequence change orphans seed pins; these wait for the
+  boundary and the re-cut); and the old habit at the new price is
+  declared harmless, welfare and every need's route holding (041:
+  zero rest scenes pre-declared), or compensated below. Harmful
+  waits (054 FR-013).
+- **Interim compensation**: a temporary dial on an activity the
+  frozen roster already performs at a material rate (the groom bump).
+  A declared, temporary exception to rule 2: no time term in the
+  dial, the revert a deploy at the reseat or sooner if rule 10's
+  gates fire. The dial passes the same deploy test, and rules 3 and 4
+  re-verify at it and at its revert. Cost: it pays the old habit at
+  the new price (the bump bought Clementine's loop, hence the
+  revert).
+- **Census rule**: after the change and before the retrain a census
+  measures the roster's choices, not the price. State readings stand
+  (needs, demand, welfare: rule 3's arithmetic and rule 10's gates
+  run now); choice shares carry a re-verify trigger naming the next
+  seating, never a conclusion, which rule 7's contrast reads after
+  the retrain. No census inside the deploy transient: wait until
+  needs oscillate around a stable mean.
+- **One retrain per generation**: bundle the changes at the boundary;
+  a served retrain before a schema change is throwaway work (lab
+  arms are not reseats). Attribution confound accepted; ablation is
+  the fallback if a result surprises.
