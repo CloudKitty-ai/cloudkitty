@@ -176,12 +176,22 @@ lands.
   served roster as majority episode) and one parameterized teacher
   (comfort line and need rates as its dials, dissolving the
   playful / needs_driven split), is a schema change and Gen 2 material;
-  the owner is uncertain whether to go that way. The cheaper fix if
-  seat inference ever binds is an identity cell alone. Folded into
-  the free-time design the same day (owner): the parameterized
-  teacher is comfort line + favourite per cat, the favourite being the
-  enjoyment source the capped partition prices, so the trait becomes
-  world-anchored; see `ROADMAP.md` §free time, "Teacher side". The capacity
+  **RULED 2026-09-13 (owner): identity vectors are a GEN 2 member;
+  free time is GEN 3.** The Gen 2 block, self-only in the
+  observation: six need-rate multipliers, comfort as ticks of slack,
+  the consent line, and a per-source favourite weight vector (one-hot
+  the single-source case); one parameterized teacher (comfort line +
+  favourite, the consent gate on every partnered favourite) replaces
+  the playful / needs_driven split; the corpus samples trait draws
+  with the served roster as the majority episode (rule 8); a toml
+  change inside the trained region needs no retrain. Until Gen 3's
+  enjoyment economy lands, a favourite is one of the needs and is
+  valued through that need's relief (Biscuit's play today), so it is
+  world-anchored to that extent and leash-held beyond it (rule 7's
+  declared-personality carve-out); Gen 3 is where favourites outside
+  the needs get their value. Design detail on `ROADMAP.md` §free time,
+  "Teacher side" (the slack formulation, the Pumpkin case, the
+  per-cat scripted sweep as the pin procedure). The capacity
   side of the question (does driving every seat cost the mind
   capacity) is being measured on the B3 corpus (`fog-gen1-cert/PREREG.md`
   §Capacity check).

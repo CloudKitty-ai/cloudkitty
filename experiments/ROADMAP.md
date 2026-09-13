@@ -209,7 +209,9 @@ threshold economics, all 20×20-composition numbers.
   never an exception — and per-source persisted stocks are a
   snapshot/break-class change, so it lands at a generation boundary
   by doctrine rule 9. Trigger: after Gen 2 ships, or if free time is
-  promoted to a product pillar.
+  promoted to a product pillar. **RULED 2026-09-13 (owner): free time
+  = GEN 3; the identity vectors below land in GEN 2 first
+  (`fog-gen1-shakeout/GEN2-INPUTS.md` §"Where personality lives").**
   **Teacher side, folded in 2026-09-13 (owner)**: one parameterized
   script replaces the playful / needs_driven split — per cat a
   COMFORT LINE and a FAVOURITE ("do the favourite until a need passes
