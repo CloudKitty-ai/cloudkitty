@@ -131,8 +131,15 @@ lands.
   scene-span instrument (blocks the uptake reads).
 - consent_line for needs_driven and empty-bowl early end (owner
   shelvings, BACKLOG #368).
-- Groom slot bias (policies groom rows 0–1 only — corpus density):
-  corpus/roster balancing at the next collection.
+- Social-grooming demand (corrected 2026-09-13, RESULTS.md
+  `groom_cells.py`; the earlier "row 0–1 slot bias = corpus density"
+  reading was wrong): all-policy rosters keep themselves clean
+  (self-groom ~2× the teacher), so the only dirt left for a friend to
+  groom is Biscuit's, and Biscuit's teacher never grooms anyone. A Gen
+  2 world that wants visible social grooming has to supply dirt the
+  self form cannot clear as fast (rule 8 variance, rule 2 physics),
+  and Biscuit's teacher needs a groom response if that seat is to
+  give as well as take.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes.

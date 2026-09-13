@@ -75,7 +75,7 @@ cat ever says (the a17-exempt group); the plain-clone arms sit at 0–2.
 | H1 watchdog, fog arms | **CLEAR**: 0 entries in every arm and every anchor | none |
 | H1 in the no-fog control | CLEAR (0) | none |
 | H2 worst seat below anchor | **CLEAR, inverted**: every arm at or above its matched anchor on distress, blind-hungry and safeguard; the anchors are the weaker rosters at every radius | none; per-seat split is a phase-2 read, pooled margin is wide |
-| H3 hard-zero intended activity | **No activity class is dead.** GroomKitty is chosen in every arm (28–251 of 30k decisions: ref-s1 28, ref-s3 61, nofog 63, radius+1 112, ref-s2 116, vocab 136, radius-1 172, leash 197, mixed 251) but concentrates on kitty rows 0–1; rows 2–3 are the census's argmax-zeros in most arms — a per-TARGET slot bias, not a closed action. On the same legal rows the final ref-s1 policy argmax-picks GroomKitty on more rows than the clone (53 vs 41 of 6,563), but the realized RATE decays through training (phase-2 curve below: ~13/1k at u49 to 0.9/1k at plateau on ref-s1) — the per-row comparison hides a distribution shift. ChaseCritter/PlayCritter slot zeros are 1–10 legal rows (noise). A14 green: no legality path closed | logged, no break. The slot bias reads as corpus density (grooming examples concentrate in specific observer-to-row cells of the asymmetric roster) — a step-7 corpus/roster question, not a schema one |
+| H3 hard-zero intended activity | **No activity class is dead.** GroomKitty is chosen in every arm (28–251 of 30k decisions: ref-s1 28, ref-s3 61, nofog 63, radius+1 112, ref-s2 116, vocab 136, radius-1 172, leash 197, mixed 251) but concentrates on kitty rows 0–1; rows 2–3 are the census's argmax-zeros in most arms — a per-TARGET slot bias, not a closed action. On the same legal rows the final ref-s1 policy argmax-picks GroomKitty on more rows than the clone (53 vs 41 of 6,563), but the realized RATE decays through training (phase-2 curve below: ~13/1k at u49 to 0.9/1k at plateau on ref-s1) — the per-row comparison hides a distribution shift. ChaseCritter/PlayCritter slot zeros are 1–10 legal rows (noise). A14 green: no legality path closed | logged, no break. ~~The slot bias reads as corpus density~~ CORRECTED 2026-09-13 (`groom_cells.py`, below): the rows are dirt, not density — Biscuit is the only cat that is ever dirty at plateau and sits at row 0 or 1 for every observer by id order; no dirty, visible, legal friend in rows 2–3 goes ungroomed |
 | H4 domination > 0.55 | max per-seat class share .59–.68, all idle, all at or below the anchors' own .66–.69; no non-idle attractor, and the F-027 dyadic groom form is absent (GroomKitty near-zero) | none |
 | H5 frozen cluster | absent: dispersion and contact match the anchor exactly (nn-euc median 1.41 everywhere), scene turnover normal | none |
 | H6 hyper-dispersion | CLEAR: median 1.41 vs HALT bar 6; friend-in-view at anchor level except radius-1 (.672 vs .811) and mixed (.746 vs .820), both with welfare at or above anchor → strategy finding per the ruled joint read | logged |
@@ -165,6 +165,41 @@ and 65 ticks on seeds 40002/3). Nothing approaches the 150-tick
 watchdog line; mixed kitty 3 is the seat to watch in step-7's mixed
 question.
 
+**CORRECTED 2026-09-13 (owner asked what causes the row 0–1 groom
+concentration): it is who gets dirty, not corpus density and not
+vision.** Instrument `groom_cells.py` (+ guard, four mutate reds):
+per observer × friend, grooms over opportunities (friend present AND
+friend bath ≥ the announce threshold 20 AND GroomKitty legal), rows
+by id. Both prior readings fail on the table. Vision: every friend
+row is visible 25–55% of the observer's decisions in every cell,
+teacher and policy alike. Density: the teacher's corpus (8 rollouts,
+794,676 decisions, 12,180 grooms) grooms by row 2,572 / 5,079 /
+2,086 / 2,443 — rows 2–3 carry 37% — and by target in proportion to
+dirt (Biscuit 50%, Kittybear 25%, Miso 12%, Clem 9%, Pumpkin 4%;
+own-dirty shares .11 / .06 / .03 / .02 / .01). At plateau the
+policies keep themselves clean: GroomSelf roughly doubles against
+the teacher (Miso 59 → 104/1k, Kittybear 104 → 144–165, Pumpkin
+39 → 57–59, Clem 26 → 49–61), bath means fall from 7–9 to 4–6, and
+every own-dirty share but Biscuit's drops to ≤ .03 (Kittybear
+.01–.03, the rest .00–.01). Biscuit stays dirty .09–.22 (bath mean
+12.5–13.5, the roster's critter-player at 200–290 chase+play/1k, most
+time in water) and takes 90–100% of the grooms in every all-policy
+arm (ref-s1 28/28, vocab 132/136, leash 157/197). By id order Biscuit
+is row 0 for Miso and row 1 for everyone else: that is the "row 0–1"
+census. The only other cat with dirty ticks, Kittybear, is groomed
+when dirty, visible and legal (leash: Miso 4/9, Biscuit 4/21, Clem
+12/11; mixed: Pumpkin 10/13, Clem 12/10; ref-s1 0/7 and 0/15, thin),
+so nobody is neglected. The one standing gap is the groomer side:
+Biscuit never grooms anyone — 0 grooms in the corpus (the `playful`
+teacher has no groom response; 740–1,478 dirty-visible-legal chances
+per rollout) and 0 in every probe — so the clone in Biscuit's seat
+never learned it. Consequences: no balanced-corpus arm is owed for
+step 7 (the cause is not the corpus); social-grooming demand in an
+all-policy world is Biscuit's dirt, which bounds what spec 054's
+ramp can sustain and is the contrast to read the flat-vs-ramp arms
+against; whether Biscuit 3.0's teacher should groom others is a
+Biscuit-design question, not a corpus one.
+
 **Still open**: uptake halves of the approach and cosleep reads (need
 scene spans), the eval-census half of the band read, and the
 critic-compression rewatch (#365 nuance) — all step-6-sitting
@@ -181,6 +216,6 @@ partnered-groom behavior of the nine), the corpus-delivery question
 (the vocabulary lesson's free-register opening), and the groom-other
 sustainability question (alive at clone level in every arm, but held
 there by the leash and corpus prior rather than by the reward at the
-0.5 relief price, and biased toward specific packmates by corpus
-density). All were pre-declared as step-7 inputs or fall under the
+0.5 relief price, and aimed at the one cat that is ever dirty; the
+"corpus density" reading is corrected below). All were pre-declared as step-7 inputs or fall under the
 pricing row.
