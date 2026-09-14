@@ -895,6 +895,25 @@ the 040 lesson); both config sweeps green. Cert anchors re-derived on
 the locked fog config (second and final re-baseline; the first was
 step 1's — two total, accepted knowingly).
 
+**LOCK checks run 2026-09-13 (Experiments), at main 172ef89.** Schema
+5 (width 408) final: nothing from the pass breaks it, and the two
+banked items that would (rate-based A17, scene spans) sit on the Gen
+2 shelf. Evolution goldens 2/2 green; `fog_continuity` 3/3 green and
+the two `record_*` tests rewrote the fixtures byte-identical (no
+diff), so continuity holds at current main including spec 054. Both
+shipped-config sweeps green in CI at 172ef89 (the CI workflow runs
+them on the tracked tree). On a lab checkout the sweeps cannot be
+read locally: `collect()` walks the filesystem and this checkout
+carries ~100 gitignored 2.x record configs (`experiments/**/raw/`,
+trait-screen `configs/`) that no longer parse; the exclusion
+manifest cannot name them (it asserts each directory exists, which
+fails in CI). Reported, not fixed (rule 3): a sweep that skipped
+gitignored paths would read the same in both places. Cert anchors:
+the scripted baseline re-derives on the B3 config at battery time
+(`fog-gen1-cert/PREREG.md` §Battery), after the beam pick; the
+probe-1 anchor traces for the pass's Part A read are collected on
+`anchor-b3.toml` at r4 (seeds 40,001–3).
+
 **Pre-declared for the re-baseline (Experiments, 2026-09-03, from the
 FR-036 bath-clause probes in the Product session)**: partnered groom
 scenes fall by roughly 90% against the 2.10 scripted baseline, and the
