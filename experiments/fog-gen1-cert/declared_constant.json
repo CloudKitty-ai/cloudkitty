@@ -1,0 +1,103 @@
+{
+  "_": "PREREG A1: observation columns allowed to sit at zero variance over the corpus, one reason per group, fnmatch patterns over schema_check.col_name. A LIST value is a STRUCTURAL group: a proof from law/config/roster that the setting event is unreachable, so the column holds constant for any corpus length. A structural group may also be written as an OBJECT with `patterns` and `a17_exempt: true` when its proof is ROSTER behaviour rather than law (the scripted anchor never says mew; a policy may): A1 treats it as structural, A17 does not red it for moving. An OBJECT value with `expected_per_1000` is a RARE group (owner ruling 2026-09-04): the wiring is shown alive (a sibling column on the same encoder loop moved, or a forced emission) and only incidence is unknown; its constant columns read UNPROVEN, and turn RED once the corpus is 5x the expected waiting time (expected_per_1000 = setting events per 1000 corpus ticks, all cats; null = no estimate yet, never red). A rare group whose columns all moved is reported stale, the good outcome. | fog-gen1-cert copy 2026-09-14: expected_per_1000 refilled on the B3 corpus (step 7); reasons carried verbatim from the shakeout (anchor.toml text refers to the shakeout's config; B3 differs only by the Biscuit teacher)",
+  "vocabulary: anchor.toml [vocabulary] trill = false, ekekek = false; the engine refuses both in every layout (meow.rs message_legal)": [
+    "*.msg.trill.*",
+    "*.msg.ekekek.*"
+  ],
+  "free register never scripted (owner ruling 2026-09-02): the scripted announce path emits wants, replies and here-words only, so mew/chirp/purr cannot appear in the corpus; a policy may say them (a17_exempt: the smoke policy did)": {
+    "patterns": [
+      "*.msg.mew.*",
+      "*.msg.chirp.*",
+      "*.msg.purr.*"
+    ],
+    "a17_exempt": true
+  },
+  "self.memory.water.present sits at 1 for the whole run: every anchor cat has a pool in its start disc (7 pools, r 5) and memory_timeout_ticks 0 never forgets; spec 050 did not touch memory (navigation keeps the full slot), only the want law read of it. A policy spawned elsewhere or a re-seeded world varies the bit (a17_exempt)": {
+    "patterns": [
+      "self.memory.water.present"
+    ],
+    "a17_exempt": true
+  },
+  "RARE want_drink and the here_water answers-me bit (spec 050 relief_memory_margin 0, merged 2026-09-05 PR #345; group converted from STRUCTURAL that day, owner ruled): under the pre-050 law the word was silenced for the run by remembered water (F-040); at margin 0 the anchor says it 6.3 / 5.9 / 15.2 per 1000 over 3 x 20k (seeds 870001-3), first call at tick 120-148, so a 1000-tick smoke carries 0-3 calls and most kitty rows never hear one. The ~1.2/1000 served read (Product, 20k) was an all-scripted roster; the served roster seats Biscuit on playful and it says 60-70% of the calls (F-040 ablation 2026-09-08, #349). The corpus is collected on anchor.toml": {
+    "patterns": [
+      "*.msg.want_drink.*",
+      "*.want.want_drink",
+      "*.answers_me.here_water"
+    ],
+    "wiring": "sibling: self.msg.want_drink.*, kitty3.msg.want_drink.* and kitty3.want.want_drink vary on the 1000-tick re-smoke (3 calls); every row varies on the 20k traces",
+    "expected_per_1000": 32.938,
+    "filled": "filled 2026-09-14 from the four held-out B3 corpus traces (idx03/13/23/33, seeds 1090004/14/24/34, 80k ticks, anchor-b3.toml: radius 4, floor 20, listener 0.20, playful_comfort 30, consent_line 30); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition; same method as the 2026-09-08 fill",
+    "shakeout_value": 39.663
+  },
+  "RARE distress flags eat/drink/sleep/play/bath: push_distress_flags writes all six in one loop and the cuddle flag moved (peak 98 > distress 90 on the 1000-tick smoke); the other needs peaked 35-64, so on the scripted anchor welfare keeps them below the line. Early PPO arms will cross it (A17 exempts this group)": {
+    "patterns": [
+      "self.schema4[[]2[0-5][]]"
+    ],
+    "wiring": "sibling: self.schema4[24] (cuddle distress) varies on the smoke",
+    "expected_per_1000": null,
+    "filled": "2026-09-14 fill decision: NULL. Zero upward crossings of the 90 line on any non-cuddle need in the four B3 held-out traces (80k ticks, 400k cat-ticks): the c30 Biscuit teacher keeps its needs below the line (the shakeout corpus at c55 gave 0.088/1k, all Biscuit). A null never turns red; A17 still exempts the group, since early PPO arms cross it.",
+    "shakeout_value": 0.088
+  },
+  "RARE want_play on kitty rows 0 and 3 and the here_critter answers-me bit: one row loop writes rows 0-3 and rows 1-2 carried want_play; the play law knows relief whenever an idle friend or a critter is seen or remembered, so with five cats play wants are rare by law (1 on the smoke)": {
+    "patterns": [
+      "kitty*.msg.want_play.*",
+      "kitty*.want.want_play",
+      "*.answers_me.here_critter"
+    ],
+    "wiring": "sibling: kitty1/kitty2 want_play cells vary on the smoke",
+    "expected_per_1000": 8.2,
+    "filled": "filled 2026-09-14 from the four held-out B3 corpus traces (idx03/13/23/33, seeds 1090004/14/24/34, 80k ticks, anchor-b3.toml: radius 4, floor 20, listener 0.20, playful_comfort 30, consent_line 30); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition; same method as the 2026-09-08 fill",
+    "shakeout_value": 6.463
+  },
+  "RARE critter slots 3-4: one slot loop fills slots 1-4 and slots 1-2 fill; the world holds 4 critters (bug min 3 + greeble min 1), each covering ~81/400 of the map, so three in one disc is <= ~2.7% per cat-tick under independence and the bug tether spreads them (0 of 5000 cat-ticks on the smoke)": {
+    "patterns": [
+      "element_block8[[]*",
+      "element_block9[[]*"
+    ],
+    "wiring": "sibling: element_block6/7 (critter slots 1-2) fill on the smoke",
+    "expected_per_1000": null,
+    "filled": "2026-09-08 fill decision: NULL, not a rate. On the four held-out BC-corpus traces (20k ticks each, pinned knobs) slot-3 fill events count {idx03: 0, idx13: 5, idx23: 21, idx33: 9} and slot 4 counts 0 in all 320k cat-ticks: the incidence is seed-clustered (critter spawn geometry), so no per-1000 rate makes the 5x waiting-time rule sound - the pooled 0.438/1k reds a healthy 20k seed (idx03) by luck. The wiring-alive question the rare mechanism exists for is settled empirically: element_block8 varies on 3 of 4 corpus seeds; element_block9's zero is the declared geometry argument. Null never reds; A17 exemption unchanged."
+  },
+  "RARE second sunbeam slot's occupied bit (element_block5[5], observe.rs: a kitty standing on the second-nearest visible sunbeam): the slot loop writes both sunbeam slots and element_block4[5] (nearest sunbeam occupied) varies on every trace; two sunbeams in one disc with the farther one occupied is rare (10 of 5000 rows on the 2026-09-04 smoke, 0 of 5000 on the 2026-09-05 re-smoke, 225 of 100000 at 20k), so a 1000-tick trace reads it constant by chance": {
+    "patterns": [
+      "element_block5[[]5[]]"
+    ],
+    "wiring": "sibling: element_block4[5] (nearest sunbeam occupied) varies on the smoke",
+    "expected_per_1000": 0.938,
+    "filled": "filled 2026-09-14 from the four held-out B3 corpus traces (idx03/13/23/33, seeds 1090004/14/24/34, 80k ticks, anchor-b3.toml: radius 4, floor 20, listener 0.20, playful_comfort 30, consent_line 30); events per 1000 world ticks, all cats: meow groups = deduplicated emissions, distress = episodes (upward crossings, non-cuddle needs), element groups = cat-ticks with the setting condition; same method as the 2026-09-08 fill",
+    "shakeout_value": 2.325
+  },
+  "RARE second chow slot at sub-pin radii (element_block1, all fields): two bowls (chow min 6 max 8, random spawns) must lie in one vision disc; common at the pinned radius 4 (the group reads stale there, the good outcome) but rare at r=3 - anchor rollout-00 of the #367 probe read carried 0 co-visible ticks while rollout-01 (seed 40002) carried 10": {
+    "patterns": [
+      "element_block1[[]*"
+    ],
+    "wiring": "sibling: element_block0 (nearest chow) fills on every trace; element_block1[1] varies in r3 anchor rollout-01 and across the whole radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
+  },
+  "RARE second sunbeam slot position fields (element_block5[0-4]): companion to the [5]-occupied-bit group above, which was declared alone because these fields always varied on the radius-4 corpus; at r=3 two beams co-visible is itself rare (the #367 radius-1 policy probe carried 0 such rows in 30k while the pooled anchor carried some - anchors walk to beams, sunbeam_reach 8)": {
+    "patterns": [
+      "element_block5[[][0-4][]]"
+    ],
+    "wiring": "sibling: element_block4 (nearest sunbeam) varies on every trace; block5[0-4] vary on the pooled r3 anchor trio and across the radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
+  },
+  "STRUCTURAL at whole-world radius (the nofog arm, r=27 covers the 20x20 grid; group scoped to that config, added 2026-09-10 per #367): nothing is ever unseen, so fog memory tokens can never set; chow/critters are always visible, so the want law (emit only when nothing visible or remembered) blocks want_eat and self want_play, and their digest/answers-me columns with them; every element slot stays filled (A12 read 0 empty at r27) so the slot present bits sit at 1, and every kitty row reads Seen (row-present bit constant). At fog radii these columns all vary, so this group is inert there; a dead want path at r4 would still red A5/A6 (digest and intensity are checked against trace stamps), which is why declaring them does not mask that failure": [
+    "self.memory.*",
+    "*.msg.want_eat.*",
+    "*.want.want_eat",
+    "*.answers_me.here_food",
+    "self.msg.want_play.*",
+    "element_block[0-7][[]0[]]",
+    "kitty*.schema4[[]0[]]"
+  ],
+  "RARE second critter slot at sub-pin radii (element_block7, all fields): companion to the block8/9 slots-3-4 group above; slot 2 fills whenever two of the four critters share a disc, common at radius 4 but rare at r=3 (the #367 probe read's anchor rollout-00 never carried it while the pooled trio did)": {
+    "patterns": [
+      "element_block7[[]*"
+    ],
+    "wiring": "sibling: element_block6 (critter slot 1) fills on every trace; block7 varies on the pooled r3 anchor trio and across the radius-4 corpus",
+    "expected_per_1000": null,
+    "filled": "added 2026-09-10 per owner ruling on #367 (probe-1 A17 red on the radius-1 arm was rare-column sampling at r3, both directions; ruled artifact-and-continue, declarations extended to the off-pin configs). Rate NULL deliberately: rarity here is radius-dependent and the corpus rates were measured at radius 4, so no per-1000 rate makes the 5x waiting-time rule sound at r3 (the idx03 lesson). Null never reds; A17 exemption is the point."
+  }
+}
