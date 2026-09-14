@@ -1469,7 +1469,9 @@ watchdog alone; the lock class this was designed against is the one
 five distinct networks were chosen to avoid. Cover meanwhile is
 doctrine rule 10's live layer (watchdog, soak, G5 census) and rule
 9's early revert. Reopen triggers: a live watchdog alarm on the Gen 1
-roster, or the LLM-seat sitting. Design note for then: keep the
+roster, intractable distress in Gen 2's hidden-needs world (owner,
+2026-09-13: "if we start seeing intractable distress in Gen 2 we can
+look at pulling it in"), or the LLM-seat sitting. Design note for then: keep the
 override state runtime-only rather than a snapshot field, so the
 change is law-class and can land inside a generation under rule 9's
 deploy test (teacher seats never fire it, so no corpus is touched);
