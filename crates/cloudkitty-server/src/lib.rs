@@ -4,6 +4,7 @@
 //! up a real server -- simulation, REST and WebSocket -- on an ephemeral port.
 
 pub mod api;
+pub mod http_behavior;
 pub mod persist;
 pub mod settings;
 pub mod sim_task;
@@ -29,6 +30,7 @@ use tower_http::services::ServeDir;
 use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::api::AppState;
+use crate::http_behavior::{HttpBehavior, SeatClass, SeatClassed};
 
 /// One row of the model registry (spec 034): what a certified artifact is,
 /// in words a viewer can read. Keyed by sha256 in `registry.toml`; the
@@ -200,16 +202,29 @@ pub struct PluginsConfig {
     pub plugins: std::collections::BTreeMap<String, PluginEntry>,
 }
 
-/// One plugin: the program to run and its arguments. `command` must be a
-/// path to an existing executable file (a shebang script, or an interpreter
-/// given by absolute path with the script in `args`) — name-only PATH
-/// lookups are refused so startup validation means something.
+/// One plugin, on exactly one transport (spec 053 FR-002): a local program
+/// (`command` + `args`) or a remote endpoint (`url`) — never both, never
+/// neither. `command` must be a path to an existing executable file (a
+/// shebang script, or an interpreter given by absolute path with the
+/// script in `args`) — name-only PATH lookups are refused so startup
+/// validation means something. `url` must parse as an absolute http(s)
+/// address; reachability is a runtime question with a per-tick fallback,
+/// never a startup check (spec 016 FR-011).
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PluginEntry {
-    pub command: String,
+    #[serde(default)]
+    pub command: Option<String>,
     #[serde(default)]
     pub args: Vec<String>,
+    #[serde(default)]
+    pub url: Option<String>,
+    /// Doctrine rule 6 (spec 053 FR-015): REQUIRED for a `url` entry —
+    /// remote code cannot show whether it is scripted or a mind; defaults
+    /// to `scripted` for a `command` entry (today's presumption, so
+    /// existing configs parse unchanged).
+    #[serde(default)]
+    pub class: Option<SeatClass>,
 }
 
 /// Registers a [`ScriptBehavior`] per `[plugins.<name>]` block, validating
@@ -232,46 +247,89 @@ pub fn register_plugin_behaviors(
                  (a builtin or policy behavior); pick a different plugin name"
             );
         }
-        let command = Path::new(&entry.command);
-        let metadata = match std::fs::metadata(command) {
-            Ok(metadata) if metadata.is_file() => metadata,
-            _ => anyhow::bail!(
-                "[plugins.{name}].command ({}) does not exist or is not a file",
-                entry.command
+        let (behavior, class): (Arc<dyn cloudkitty_core::behavior::Behavior>, SeatClass) = match (
+            &entry.command,
+            &entry.url,
+        ) {
+            (Some(_), Some(_)) => anyhow::bail!(
+                "[plugins.{name}] declares both command and url; \
+                     one entry is exactly one transport"
             ),
-        };
-        // The docs promise "an existing executable file... validated at
-        // startup" — a missing exec bit is startup-detectable, so it must
-        // be a startup error, not a per-tick launch failure (FR-011). In
-        // the interpreter-plus-script form the command IS the interpreter,
-        // which is exactly the thing that must be executable.
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            if metadata.permissions().mode() & 0o111 == 0 {
-                anyhow::bail!(
-                    "[plugins.{name}].command ({}) is not executable (chmod +x it, \
-                     or use an interpreter path as the command with the script in args)",
-                    entry.command
-                );
+            (None, None) => anyhow::bail!(
+                "[plugins.{name}] declares neither command nor url; \
+                     one entry is exactly one transport"
+            ),
+            (Some(command_text), None) => {
+                let command = Path::new(command_text);
+                let metadata = match std::fs::metadata(command) {
+                    Ok(metadata) if metadata.is_file() => metadata,
+                    _ => anyhow::bail!(
+                        "[plugins.{name}].command ({command_text}) does not exist or is not a file"
+                    ),
+                };
+                // The docs promise "an existing executable file... validated at
+                // startup" — a missing exec bit is startup-detectable, so it must
+                // be a startup error, not a per-tick launch failure (FR-011). In
+                // the interpreter-plus-script form the command IS the interpreter,
+                // which is exactly the thing that must be executable. The check is
+                // "executable by anyone" (mode & 0o111), not by the server's user
+                // (spec 053 FR-013, documented).
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    if metadata.permissions().mode() & 0o111 == 0 {
+                        anyhow::bail!(
+                                "[plugins.{name}].command ({command_text}) is not executable (chmod +x it, \
+                                 or use an interpreter path as the command with the script in args)"
+                            );
+                    }
+                }
+                #[cfg(not(unix))]
+                let _ = metadata;
+                let behavior = ScriptBehavior::new(name.clone(), command, entry.args.clone());
+                (
+                    Arc::new(behavior) as _,
+                    entry.class.unwrap_or(SeatClass::Scripted),
+                )
             }
-        }
-        #[cfg(not(unix))]
-        let _ = metadata;
+            (None, Some(url_text)) => {
+                if !entry.args.is_empty() {
+                    anyhow::bail!(
+                        "[plugins.{name}].args is script-transport only; a url entry takes no args"
+                    );
+                }
+                let Some(class) = entry.class else {
+                    anyhow::bail!(
+                            "[plugins.{name}] is remote (url) and must declare \
+                             class = \"scripted\" or \"mind\" — remote code cannot show which it is"
+                        );
+                };
+                let url = match reqwest::Url::parse(url_text) {
+                    Ok(url) if matches!(url.scheme(), "http" | "https") => url,
+                    Ok(url) => anyhow::bail!(
+                        "[plugins.{name}].url ({url_text}) has unsupported scheme {:?}; \
+                             the remote transport speaks http or https",
+                        url.scheme()
+                    ),
+                    Err(error) => anyhow::bail!(
+                        "[plugins.{name}].url ({url_text}) is not a valid absolute URL: {error}"
+                    ),
+                };
+                (Arc::new(HttpBehavior::new(name.clone(), url)) as _, class)
+            }
+        };
         tracing::info!(
             plugin = %name,
-            command = %entry.command,
+            command = entry.command.as_deref().unwrap_or("-"),
+            url = entry.url.as_deref().unwrap_or("-"),
             args = ?entry.args,
+            seat_class = class.as_str(),
             "plugin behavior registered"
         );
-        registry.register(
-            name.clone(),
-            Arc::new(ScriptBehavior::new(
-                name.clone(),
-                command,
-                entry.args.clone(),
-            )),
-        );
+        // Both transports ride the seat-class span wrapper (spec 053
+        // FR-015, owner ruling 2026-09-14): every plugin-attributed log
+        // line carries seat_class; the class never enters core.
+        registry.register(name.clone(), Arc::new(SeatClassed::new(behavior, class)));
     }
     Ok(())
 }
@@ -479,5 +537,117 @@ mod plugin_registration_tests {
         let parsed: Result<PluginsConfig, _> =
             toml::from_str("[plugins.demo]\ncommand = \"/bin/echo\"\nworkdir = \"/tmp\"\n");
         assert!(parsed.is_err(), "unknown [plugins] fields are refused");
+    }
+
+    // ---- spec 053: the remote transport's startup surface ----
+
+    /// Registers `toml_text` against fresh builtins and returns the error.
+    fn startup_error(toml_text: &str) -> String {
+        let plugins: PluginsConfig = toml::from_str(toml_text).unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        register_plugin_behaviors(&mut registry, &plugins)
+            .unwrap_err()
+            .to_string()
+    }
+
+    #[test]
+    fn both_transports_on_one_entry_is_a_startup_error() {
+        // FR-002: one entry, exactly one transport.
+        let msg = startup_error(
+            "[plugins.twin]\ncommand = \"/bin/echo\"\nurl = \"http://127.0.0.1:1/x\"\nclass = \"mind\"\n",
+        );
+        assert!(msg.contains("[plugins.twin]"), "{msg}");
+        assert!(msg.contains("both command and url"), "{msg}");
+    }
+
+    #[test]
+    fn neither_transport_is_a_startup_error() {
+        let msg = startup_error("[plugins.hollow]\nclass = \"mind\"\n");
+        assert!(msg.contains("[plugins.hollow]"), "{msg}");
+        assert!(msg.contains("neither command nor url"), "{msg}");
+    }
+
+    #[test]
+    fn args_on_a_url_entry_is_a_startup_error() {
+        let msg = startup_error(
+            "[plugins.chatty]\nurl = \"http://127.0.0.1:1/x\"\nclass = \"mind\"\nargs = [\"--x\"]\n",
+        );
+        assert!(msg.contains("[plugins.chatty].args"), "{msg}");
+        assert!(msg.contains("script-transport only"), "{msg}");
+    }
+
+    #[test]
+    fn a_url_entry_without_a_class_is_a_startup_error() {
+        // FR-015 (doctrine rule 6): remote code cannot show whether it is
+        // scripted or a mind, so the declaration has no default.
+        let msg = startup_error("[plugins.enigma]\nurl = \"http://127.0.0.1:1/x\"\n");
+        assert!(msg.contains("[plugins.enigma]"), "{msg}");
+        assert!(msg.contains("must declare"), "{msg}");
+        assert!(msg.contains("class"), "{msg}");
+    }
+
+    #[test]
+    fn a_relative_or_unparseable_url_is_a_startup_error() {
+        let msg = startup_error("[plugins.lost]\nurl = \"decide\"\nclass = \"mind\"\n");
+        assert!(msg.contains("[plugins.lost].url"), "{msg}");
+        assert!(msg.contains("not a valid absolute URL"), "{msg}");
+    }
+
+    #[test]
+    fn a_non_http_scheme_is_a_startup_error() {
+        let msg = startup_error(
+            "[plugins.retro]\nurl = \"ftp://example.test/decide\"\nclass = \"mind\"\n",
+        );
+        assert!(msg.contains("[plugins.retro].url"), "{msg}");
+        assert!(msg.contains("unsupported scheme"), "{msg}");
+    }
+
+    #[test]
+    fn a_url_entry_registers_and_may_not_shadow_builtins() {
+        // FR-004: same registration rules as script plugins. DNS and
+        // reachability are runtime questions — 127.0.0.1:1 never answers,
+        // and registration succeeds anyway (FR-005).
+        let plugins: PluginsConfig = toml::from_str(
+            "[plugins.brainy]\nurl = \"http://127.0.0.1:1/decide\"\nclass = \"mind\"\n",
+        )
+        .unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        register_plugin_behaviors(&mut registry, &plugins).unwrap();
+        assert!(
+            registry.get("brainy").is_some(),
+            "the remote plugin is a behavior"
+        );
+
+        let msg = startup_error(
+            "[plugins.playful]\nurl = \"http://127.0.0.1:1/decide\"\nclass = \"mind\"\n",
+        );
+        assert!(msg.contains("collides"), "{msg}");
+    }
+
+    #[test]
+    fn a_class_is_accepted_on_a_command_entry_and_defaults_scripted() {
+        // FR-015: script entries MAY declare (a local LLM harness is a
+        // mind); absent, today's presumption holds and old configs parse.
+        let dir = fixture_dir("plugin-class-cmd");
+        let program = dir.join("demo.sh");
+        std::fs::write(&program, "#!/bin/sh\n").unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        let toml_text = format!("[plugins.demo]\ncommand = {program:?}\nclass = \"mind\"\n");
+        let plugins: PluginsConfig = toml::from_str(&toml_text).unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        register_plugin_behaviors(&mut registry, &plugins).unwrap();
+        assert!(registry.get("demo").is_some());
+
+        let bare: PluginsConfig =
+            toml::from_str(&format!("[plugins.plain]\ncommand = {program:?}\n")).unwrap();
+        assert_eq!(
+            bare.plugins["plain"].class, None,
+            "no declaration parses; registration defaults it to scripted"
+        );
+        std::fs::remove_dir_all(&dir).ok();
     }
 }

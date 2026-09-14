@@ -364,6 +364,31 @@ async fn run() -> Result<()> {
 
     axum::serve(listener, app)
         .with_graceful_shutdown(async {
+            // SIGTERM matters since spec 053: plugin children live in their
+            // own process groups (the group-kill fix), so a supervisor's
+            // stop signal no longer reaches them by group membership — the
+            // graceful path, which drops the registry and with it every
+            // PluginChild, is now the only thing that cleans them up.
+            #[cfg(unix)]
+            {
+                // Registration can fail in restrictive sandboxes; that
+                // must degrade to the old SIGINT-only behavior, never
+                // panic a server that just bound its port (Client-relay
+                // review 2026-09-14, finding 4).
+                match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+                    Ok(mut sigterm) => {
+                        tokio::select! {
+                            _ = tokio::signal::ctrl_c() => {}
+                            _ = sigterm.recv() => {}
+                        }
+                    }
+                    Err(error) => {
+                        tracing::warn!(%error, "SIGTERM handler failed to install; graceful shutdown on SIGINT only");
+                        let _ = tokio::signal::ctrl_c().await;
+                    }
+                }
+            }
+            #[cfg(not(unix))]
             let _ = tokio::signal::ctrl_c().await;
             tracing::info!("interrupt received; letting the kitties settle");
         })

@@ -27,3 +27,8 @@ sha2 = "0.10"
 tokio = { workspace = true, features = ["time", "rt", "rt-multi-thread", "macros", "test-util"] }
 # Core itself is format-agnostic; tests parse TOML to prove the config schema
 # round-trips the way cloudkitty.toml is written.
+
+[target.'cfg(unix)'.dependencies]
+# Process-group kill for script plugins (spec 053 FR-012): killpg is the
+# one call std does not wrap.
+libc = "0.2"

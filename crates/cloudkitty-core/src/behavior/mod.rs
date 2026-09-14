@@ -45,6 +45,7 @@ use crate::rng::DecisionRng;
 use crate::seam::{Decision, Provenance, ResolvedDecision};
 use crate::world::{FogView, World};
 
+pub mod exchange;
 pub mod needs_driven;
 pub mod playful;
 mod relief;
@@ -52,6 +53,7 @@ pub mod script;
 pub mod selection;
 pub mod test_behaviors;
 
+pub use exchange::{parse_reply_line, ReplyRejection};
 pub use needs_driven::NeedsDriven;
 pub use playful::Playful;
 pub use script::{DecisionRequest, ScriptBehavior};

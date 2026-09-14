@@ -44,10 +44,11 @@ use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
+use super::exchange::{parse_reply_line, ReplyRejection};
 use super::{Behavior, DecisionContext};
-use crate::action::{parse_proposal_value, Action, ProposalError, PROPOSAL_WIRE_VERSION};
+use crate::action::{Action, ProposalError, PROPOSAL_WIRE_VERSION};
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
 use crate::seam::Decision;
@@ -78,21 +79,10 @@ pub struct DecisionRequest<'a> {
     /// stateless, so a plugin needs no handshake and survives its own
     /// restarts with zero protocol. The cost is one redundant `Config`
     /// serialization per decision — small next to the `WorldSnapshot` riding
-    /// alongside it. If plugin throughput ever matters, a send-once
-    /// handshake is a wire-version bump (a v2 candidate, noted for the
-    /// HttpBehavior sitting).
+    /// alongside it. A send-once handshake (a wire-version bump) was
+    /// considered and DEFERRED at the HttpBehavior sitting: remote LLM
+    /// harnesses cache the config on their side (spec 053 research R10).
     pub config: &'a Config,
-}
-
-/// The reply envelope, plugin -> engine, strict. Echoing the request is what
-/// protects a plugin from its own desyncs: without it, a stray extra line
-/// would silently become the answer to the *next* decision (analysis I1).
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ReplyEnvelope {
-    tick: u64,
-    kitty_id: KittyId,
-    proposal: serde_json::Value,
 }
 
 /// One unit of work for a child's I/O thread: write this line, read one
@@ -144,13 +134,18 @@ struct PluginChild {
 impl Drop for PluginChild {
     fn drop(&mut self) {
         // Kill-and-reap so a replaced or abandoned process never lingers as
-        // a zombie; a plugin's death must cost nothing but cleverness. The
-        // kill closes the pipes, which unblocks the I/O thread; the channel
-        // halves dropping right after tell it to exit. The thread is
-        // detached, never joined: a grandchild of the plugin could inherit
-        // the stdout pipe and hold it open indefinitely, and one detached
-        // thread per killed process -- gone the moment the stream closes --
-        // is the bounded worst case.
+        // a zombie; a plugin's death must cost nothing but cleverness. On
+        // unix the WHOLE PROCESS GROUP dies (spec 053 FR-012, 016 review
+        // residual 1): the child was spawned as its own group leader, so a
+        // grandchild that inherited the stdout pipe dies with it, the
+        // pipes close, and the detached I/O thread frees -- because the
+        // group is gone, not merely the direct child. killpg goes first,
+        // while the pid is unreaped and therefore still valid as a group
+        // id; kill+wait then reaps the leader.
+        #[cfg(unix)]
+        unsafe {
+            let _ = libc::killpg(self.child.id() as libc::pid_t, libc::SIGKILL);
+        }
         let _ = self.child.kill();
         let _ = self.child.wait();
     }
@@ -211,13 +206,22 @@ impl ScriptBehavior {
     }
 
     fn spawn_child(&self) -> std::io::Result<PluginChild> {
-        let mut child = Command::new(&self.command)
+        let mut command = Command::new(&self.command);
+        command
             .args(&self.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             // The author's diagnostics belong in the server log.
-            .stderr(Stdio::inherit())
-            .spawn()?;
+            .stderr(Stdio::inherit());
+        // Its own process group (unix), so the kill path can end the whole
+        // group: a grandchild holding our stdout pipe must die with the
+        // plugin, or it strands the detached I/O thread (spec 053 FR-012).
+        #[cfg(unix)]
+        {
+            use std::os::unix::process::CommandExt;
+            command.process_group(0);
+        }
+        let mut child = command.spawn()?;
         let stdin = child.stdin.take().expect("stdin was piped");
         let stdout = BufReader::new(child.stdout.take().expect("stdout was piped"));
         let (request_tx, request_rx) = mpsc::channel();
@@ -226,7 +230,14 @@ impl ScriptBehavior {
             .name(format!("plugin-io-{}", self.name))
             .spawn(move || io_loop(stdin, stdout, request_rx, reply_tx));
         if let Err(error) = spawned {
-            // No thread means no pipes served; don't leak the process.
+            // No thread means no pipes served; don't leak the process — or
+            // its group: the child is already its own group leader, so
+            // anything it managed to fork must die here too (the same two
+            // lines as Drop; review 2026-09-14 finding 3).
+            #[cfg(unix)]
+            unsafe {
+                let _ = libc::killpg(child.id() as libc::pid_t, libc::SIGKILL);
+            }
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
@@ -322,20 +333,20 @@ impl ScriptBehavior {
                 "plugin closed its stdout mid-reply",
             )));
         }
-        let text = String::from_utf8_lossy(&line);
-
-        let envelope: ReplyEnvelope =
-            serde_json::from_str(&text).map_err(ExchangeFailure::BadEnvelope)?;
-        if envelope.tick != expect_tick || envelope.kitty_id != expect_kitty {
-            return Err(ExchangeFailure::Desynced {
-                got_tick: envelope.tick,
-                got_kitty: envelope.kitty_id,
-            });
-        }
-        // Through the hardened gate, exactly like any external bytes; the
-        // envelope's `Value` already collapsed duplicate keys last-wins
-        // (documented semantics).
-        parse_proposal_value(envelope.proposal).map_err(ExchangeFailure::Rejected)
+        // The shared parser both transports speak (spec 053 FR-003):
+        // strict envelope -> correlation -> hardened gate, in
+        // `behavior::exchange`. Only the failure bookkeeping is ours.
+        parse_reply_line(&line, expect_tick, expect_kitty).map_err(|rejection| match rejection {
+            ReplyRejection::BadEnvelope(error) => ExchangeFailure::BadEnvelope(error),
+            ReplyRejection::Desynced {
+                got_tick,
+                got_kitty,
+            } => ExchangeFailure::Desynced {
+                got_tick,
+                got_kitty,
+            },
+            ReplyRejection::Rejected(error) => ExchangeFailure::Rejected(error),
+        })
     }
 }
 
@@ -563,5 +574,58 @@ mod tests {
             started.elapsed() < Duration::from_secs(30),
             "drop is prompt"
         );
+    }
+
+    /// Residual 1 of the 016 review (spec 053 FR-012): killing a plugin
+    /// must end its whole process group. sh backgrounds a sleeping
+    /// grandchild (which inherits the plugin's stdout AND stderr), echoes
+    /// the grandchild's pid as its one "reply", then blocks; after the
+    /// drop, the grandchild itself must be gone. Under a child-only kill
+    /// the grandchild sleeps on, holding the pipes — which also makes the
+    /// TEST HARNESS wait out the sleep (cargo waits for the inherited
+    /// stderr pipe to close), so the sleep is kept short: the un-fixed
+    /// red is a 30s run ending in a clean assertion failure, and the
+    /// harness-hang is itself the stranding bug in miniature.
+    #[cfg(unix)]
+    #[test]
+    fn the_kill_ends_the_whole_process_group() {
+        let behavior = ScriptBehavior::new(
+            "groupkill",
+            "/bin/sh",
+            vec![
+                "-c".into(),
+                "sleep 30 & echo $!; read line; read line2".into(),
+            ],
+        );
+        let child = behavior.spawn_child().expect("sh spawns");
+        child
+            .request_tx
+            .send(IoRequest {
+                line: "{}".to_string(),
+                max_bytes: 65536,
+            })
+            .expect("io thread accepts work");
+        let line = child
+            .reply_rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("the pid line arrives")
+            .expect("stdout is readable");
+        let grandchild: i32 = String::from_utf8_lossy(&line)
+            .trim()
+            .parse()
+            .expect("sh echoed its grandchild's pid");
+
+        drop(child);
+
+        // kill(pid, 0) probes liveness; the group kill must take the
+        // grandchild with it, bounded — a clean red, never a hang.
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        while unsafe { libc::kill(grandchild, 0) } == 0 {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "the grandchild survives the kill: the process group was not ended"
+            );
+            std::thread::sleep(Duration::from_millis(50));
+        }
     }
 }

@@ -1,13 +1,21 @@
 # Writing a CloudKitty Behavior Plugin
 
-A plugin is an external program that decides what a kitty does. You write it
-in any language; CloudKitty launches it, keeps it running, and asks it one
-question per tick: *"here is the world — what does your kitty do?"* Your
-answer is a proposal, and the engine is the law (Article IV): everything you
-propose is validated, nothing you do can hurt a kitty, crash the world, or
-stall a tick. The worst any plugin can achieve is a moment of lost
-cleverness — its kitty falls back to the built-in needs-driven behavior for
-that tick.
+A plugin is an external brain that decides what a kitty does. You write it
+in any language, and it speaks to CloudKitty over one of two transports:
+a **local program** (launched and kept running, spoken to over stdio) or a
+**remote HTTP endpoint** (one POST per decision — spec 053). Either way
+the engine asks one question per tick: *"here is the world — what does
+your kitty do?"* Your answer is a proposal, and the engine is the law
+(Article IV): everything you propose is validated, nothing you do can hurt
+a kitty, crash the world, or stall a tick. The worst any plugin can
+achieve is a moment of lost cleverness — its kitty falls back to the
+built-in needs-driven behavior for that tick.
+
+**One contract, two transports.** The request, the reply envelope, the
+proposal wire, the failure semantics, and the budget/bench machinery in
+this document apply to both transports identically — the engine parses
+both through literally the same code. Sections below say so where the
+carrier differs.
 
 This document is the complete contract. Every `json accepted` /
 `json rejected` example in it is enforced by a test
@@ -37,8 +45,48 @@ args = []
 The `command` must be a path to an existing executable file — a shebang
 script, or an absolute interpreter path with the script in `args`. That is
 validated at startup; a missing program stops the server with a clear error
-instead of surprising you mid-run. Program paths and args are never exposed
-on the public `GET /config`.
+instead of surprising you mid-run. One precision worth knowing: the exec
+check is "executable by **anyone**" (`mode & 0o111`), not "executable by
+the server's user" — a program executable only by another owner or group
+passes startup and then fails at every spawn, which surfaces as per-tick
+fallbacks, not a startup error. `chmod +x` covers the common case. Program
+paths and args are never exposed on the public `GET /config`.
+
+### Remote quick start (spec 053)
+
+The same brain can live behind an HTTP endpoint instead — any service you
+can reach, no file on the server's disk:
+
+```toml
+[plugins.professor_whiskers]
+url = "http://127.0.0.1:9090/decide"   # absolute http(s); the exact
+                                        # address is the trust boundary
+class = "scripted"                      # REQUIRED for url entries:
+                                        # "scripted" (a rule a person
+                                        # wrote) or "mind" (a trained
+                                        # policy, an LLM)
+```
+
+`docs/examples/demo_http_brain.py` is the runnable twin of
+`demo_plugin.py`: start it, declare it as above, point a kitty at it. One
+entry declares exactly one transport — `command` or `url`, never both,
+never neither, and `args` is script-only. The URL must parse at startup
+(scheme http or https); whether it *answers* is a runtime question with a
+per-tick fallback, exactly like a crashing program. `url` and `class` are
+server-owned like the rest of the entry: never served, never in the
+engine-defaults stamp, not a key setting.
+
+**Why `class` exists**: for a local program someone can read the file; for
+remote code nobody can, so the entry itself must say whether the advisor
+is scripted or a mind (design doctrine rule 6). The declared class rides
+the registration line and every log line the transports emit as
+`seat_class` (the dispatch layer's own bench warning names the advisor
+but not the class — it lives below the wrapper). Script entries
+may declare it too (a local LLM harness is a mind); undeclared, they
+default to `scripted`. One doctrine consequence to know: an Article IV
+**fallback turn is a scripted turn** no matter what the seat declares —
+fallback rows are excluded from a mind seat's lineage, keyed on the same
+provenance mark you see in logs.
 
 ## The exchange
 
@@ -51,6 +99,26 @@ stdio:
 - You write **one reply line** to your stdout.
 - One request, one reply, in order. stdout is only for replies —
   diagnostics go to stderr, which lands in the server log.
+
+Over the **remote transport** the same exchange is one HTTP round trip:
+the engine POSTs the request line as a JSON body
+(`Content-Type: application/json`) to your configured URL, and your
+response is status **200** with the reply envelope as its body (a
+trailing newline is tolerated; nothing else extra is). Everything else is
+identical — same fields, same envelope, same proposal wire. Three
+HTTP-specific rules:
+
+- **200 or it didn't happen.** Any other status — errors, and redirects,
+  which are never followed (the configured address is the trust
+  boundary) — is a failed proposal, whatever the body says.
+- **One request, one exchange, no pipelining.** Internal retries are your
+  business: a harness may re-ask its model within `exchange_timeout_ms`
+  and send its one reply late-but-in-time; the engine never sees the
+  attempts. The engine's validation stays authoritative regardless of any
+  checking you do on your side.
+- **The envelope echo is still checked**, even though HTTP pairs request
+  and response — proxies, caches, and confused load balancers are exactly
+  the middleboxes it exists to catch.
 
 ### The request
 
@@ -203,8 +271,8 @@ on a bare action; not an object.)
 | Parses, and is legal right now | Applied — your kitty does it | The action, attributed to your plugin |
 | Parses, but is illegal right now (chasing a vanished bug, eating with no chow near, purring without contentment) | Idle turn, via engine validation | An idle turn — not a punishment, just the law |
 | Fails to parse | Fallback: the built-in needs-driven behavior takes the turn | `proposal rejected` in the log, with the parse error |
-| Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** | `plugin reply desynced` / size / `exchange timed out` warning in the log |
-| Your process crashed or its stream broke | Fallback (repeated budget timeouts also bench your kitty's dispatch for a while — it recovers on its own) | `plugin exchange failed`, budget/bench warnings |
+| Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** (remote: only the missed deadline tears the exchange channel down — a late answer is discarded, never applied to a later tick; a consumed wrong-echo or oversized reply costs one tick and the next exchange proceeds) | `plugin reply desynced` / size / `exchange timed out` warning in the log |
+| Your process crashed or its stream broke (remote: connection refused/reset, DNS failure, a non-200 status) | Fallback (repeated budget timeouts also bench your kitty's dispatch for a while — it recovers on its own); remote clean failures don't cool down — the next decision asks again | `plugin exchange failed`, budget/bench warnings |
 
 Two constitutional safety rails you can rely on (Article IV, v1.2.0): a
 malformed proposal resolves to the **fallback**, a well-formed-but-illegal
@@ -214,26 +282,50 @@ didn't send, never a stalled world.
 ## Lifecycle
 
 - **Launch** is lazy (first decision) after startup validation: the
-  `command` must exist, be a file, and be executable (`chmod +x`), or the
-  server refuses to start.
+  `command` must exist, be a file, and be executable — by anyone, see the
+  quick-start note — or the server refuses to start. A remote entry's URL
+  is validated the same way at startup; reachability never is.
 - **Death** is survived: every affected decision falls back, and the engine
   relaunches your program — at most once per `relaunch_cooldown_ticks`
   (default 20), so a crash-looping program never becomes a spawn storm.
+  The remote transport reuses the same cooldown for rebuilding its
+  exchange channel after a missed deadline (only — a consumed oversized
+  or mis-correlated reply costs one tick, no cooldown; see the table
+  above). One sizing note: the rebuilt exchange starts COLD — client,
+  DNS, TCP, and any TLS handshake all happen inside the same
+  `exchange_timeout_ms` a warm request meets easily — so keep the
+  deadline comfortably above your endpoint's cold-connection setup,
+  especially for https advisors with aggressive timeouts.
 - **Deadline**: each exchange must answer within `exchange_timeout_ms`
-  (default 1000). Miss it and the proposal fails, your process is killed,
-  and the relaunch cooldown starts — a silently hung program can never
+  (default 1000). Miss it and the proposal fails, your process is killed
+  — as its whole process group, so a grandchild holding your stdout dies
+  with you and the engine's I/O thread frees because the pipes close —
+  and the relaunch cooldown starts; a silently hung program can never
   stall the world. This deadline is the transport's own and applies
   everywhere, including headless drivers with no decision budget.
 - **Budget**: on the served path the whole exchange (including waiting for
   siblings sharing your process — see below) also runs inside the standing
   decision budget (default: half a tick — `budget_fraction_of_tick`).
   Answer promptly; precompute between ticks if you must think slowly.
-- **Shared processes**: several kitties may name the same plugin. Exchanges
-  are serialized and `kitty_id` says who is asking; keep per-kitty state
-  keyed by it. Because a kitty's budget clock also covers its wait in the
-  queue, keep (kitties sharing the process) × (your reply time) comfortably
-  inside the budget — a slow shared plugin can cost its last-served kitties
-  budget strikes even when every individual reply is prompt.
+- **Shared processes**: several kitties may name the same plugin (either
+  transport). Exchanges are serialized and `kitty_id` says who is asking;
+  keep per-kitty state keyed by it. Because a kitty's budget clock also
+  covers its wait in the queue, keep (kitties sharing the process) × (your
+  reply time) comfortably inside the budget — a slow shared plugin can
+  cost its last-served kitties budget strikes even when every individual
+  reply is prompt. This burst is a known, accepted bound (016 review
+  residual 2, re-accepted at the 053 sitting): when a shared plugin
+  wedges, each sibling's dispatch thread can park on the queue for up to
+  `exchange_timeout_ms` during the one relaunch+timeout tick per cooldown
+  window. The mitigation is tuning `exchange_timeout_ms` down when many
+  kitties share one process.
+- **Slow advisors — a remote LLM harness, say**: declare **one entry per
+  kitty** pointing at the same URL. Each entry is its own exchange queue,
+  so your endpoint sees the kitties in parallel and no kitty pays for a
+  sibling's wait; the serialization above is per-entry, not per-URL.
+  Auxiliary model output (a train of thought, telemetry) never rides the
+  reply — the envelope rejects unknown fields by design; log it on your
+  own side, keyed by `tick`, and strip it before answering.
 
 ## The multi-agent livelock warning
 
@@ -260,8 +352,10 @@ eventually dance.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `[plugins.<name>] command` | — | Path to your executable (existence and the exec bit validated at startup) |
-| `[plugins.<name>] args` | `[]` | Arguments, passed verbatim |
+| `[plugins.<name>] command` | — | Path to your executable (existence and the exec bit — "executable by anyone" — validated at startup); script transport, exclusive with `url` |
+| `[plugins.<name>] args` | `[]` | Arguments, passed verbatim (script transport only) |
+| `[plugins.<name>] url` | — | Absolute `http(s)` endpoint address (parsed at startup, never probed); remote transport, exclusive with `command` |
+| `[plugins.<name>] class` | `"scripted"` for `command` entries; **no default** for `url` entries | Seat class, `"scripted"` or `"mind"` — remote code cannot show which it is, so a url entry must say |
 | `[behavior] reply_max_bytes` | `65536` | Cap on one reply line |
 | `[behavior] relaunch_cooldown_ticks` | `20` | Minimum ticks between relaunch attempts |
 | `[behavior] exchange_timeout_ms` | `1000` | Hard wall-clock deadline on one exchange; missing it kills your process |

@@ -132,18 +132,20 @@ WorkingDirectory=/opt/cloudkitty
 ExecStart=/opt/cloudkitty/cloudkitty-server --config /opt/cloudkitty/cloudkitty.toml
 Restart=on-failure
 
-# The server takes its final world save on SIGINT (Ctrl-C); systemd's
-# default SIGTERM would skip it. Periodic saves bound the loss either
-# way, but there is no reason to lose even one interval on purpose.
+# Graceful shutdown (final world save included) runs on SIGINT and,
+# since spec 053, on SIGTERM too — plugin children live in their own
+# process groups now, so the graceful path is what cleans them up.
+# KillSignal=SIGINT is kept as belt-and-braces for older binaries.
 KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-The `KillSignal` line is the one non-obvious part: graceful shutdown —
-"letting the kitties settle", final save included — listens for SIGINT
-only.
+The `KillSignal` line predates spec 053, when graceful shutdown —
+"letting the kitties settle", final save included — listened for SIGINT
+only; the server now handles SIGTERM identically, and the line stays as
+belt-and-braces for older binaries.
 
 The unit above is the minimal shape, for understanding. The one
 `docs/deploy/provision-cloudkitty.sh` installs adds a service account,
