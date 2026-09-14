@@ -907,11 +907,15 @@ read locally: `collect()` walks the filesystem and this checkout
 carries ~100 gitignored 2.x record configs (`experiments/**/raw/`,
 trait-screen `configs/`) that no longer parse; the exclusion
 manifest cannot name them (it asserts each directory exists, which
-fails in CI). Reported, not fixed (rule 3): a sweep that skipped
-gitignored paths would read the same in both places; HANDED TO
-PRODUCT 2026-09-13 on the owner's word (handover (e): drop
-git-ignored files from `collect()`, keep untracked ones in scope,
-red-first), kickoff in that session. Cert anchors:
+fails in CI). Handed to Product 2026-09-13 as handover (e) and
+MERGED the same day (PR #372 → main d52d386): `collect()` now
+subtracts one `git check-ignore` call, untracked-but-not-ignored
+files stay in scope, a git-less tree is unfiltered as before, and
+each sweep binary carries a self-test in a throwaway repo. Re-run on
+this checkout at d52d386: core sweep 4/4, rl sweep 2/2, both green,
+so the LOCK line reads locally as well as in CI. Lab caveat from
+Product: `check-ignore` honors global excludes, so a broad personal
+ignore rule shrinks a local sweep silently; CI stays the backstop. Cert anchors:
 the scripted baseline re-derives on the B3 config at battery time
 (`fog-gen1-cert/PREREG.md` §Battery), after the beam pick; the
 probe-1 anchor traces for the pass's Part A read are collected on
