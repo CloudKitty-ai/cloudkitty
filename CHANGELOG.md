@@ -43,7 +43,7 @@ change.
   edit: the same four residents, the same composition, the same copy, in
   the art they actually wear. Biscuit's eyes still close all the way
   (owner, 2026-08-02) and the `og:image:alt` sentence still describes
-  the picture. Presentation only. (#PR)
+  the picture. Presentation only. (#374)
 
 - **HttpBehavior: a remote endpoint can be a kitty's advisor.** The
   second speaker of the spec-016 plugin contract, deferred from that
