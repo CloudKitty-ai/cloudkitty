@@ -20,15 +20,15 @@ the one behavior change to existing code.
 **Purpose**: dependencies and the pre-feature baseline SC-004 is measured
 against.
 
-- [ ] T001 Capture the pre-feature determinism baseline (016 method):
+- [x] T001 Capture the pre-feature determinism baseline (016 method):
       fixed seed + config, N ticks, world-state hash from the branch point
       → `specs/053-http-behavior/baseline.txt`; commit it before any code
       change so the Polish post-check diffs against recorded truth.
-- [ ] T002 [P] Promote reqwest in `crates/cloudkitty-server/Cargo.toml`:
+- [x] T002 [P] Promote reqwest in `crates/cloudkitty-server/Cargo.toml`:
       move `reqwest = { version = "0.12" }` from `[dev-dependencies]` to
       `[dependencies]` with the `blocking` feature (drop `json` unless a
       test needs it); `cargo check -p cloudkitty-server`.
-- [ ] T003 [P] Add `[target.'cfg(unix)'.dependencies] libc = "0.2"` to
+- [x] T003 [P] Add `[target.'cfg(unix)'.dependencies] libc = "0.2"` to
       `crates/cloudkitty-core/Cargo.toml` (already in Cargo.lock
       transitively); `cargo check -p cloudkitty-core`.
 
@@ -41,14 +41,14 @@ against.
 **Purpose**: the one shared contract parser both transports speak
 (research R5) — FR-003's "no dialect" by construction.
 
-- [ ] T004 Create `crates/cloudkitty-core/src/behavior/exchange.rs`: move
+- [x] T004 Create `crates/cloudkitty-core/src/behavior/exchange.rs`: move
       `ReplyEnvelope` (strict, `deny_unknown_fields`) from `script.rs` and
       add `pub fn parse_reply_line(bytes: &[u8], expect_tick: u64,
       expect_kitty: KittyId) -> Result<Action, ReplyRejection>` (envelope
       decode → correlation check → `parse_proposal_value`), with
       `ReplyRejection { BadEnvelope, Desynced{got_tick, got_kitty},
       Rejected }`; re-export from `behavior/mod.rs`.
-- [ ] T005 Rewire `ScriptBehavior::exchange` in
+- [x] T005 Rewire `ScriptBehavior::exchange` in
       `crates/cloudkitty-core/src/behavior/script.rs` to call
       `parse_reply_line`, mapping `ReplyRejection` onto the existing
       `ExchangeFailure` variants; behavior-preserving — the whole core
@@ -57,7 +57,7 @@ against.
       `DecisionRequest.config` doc comment: the send-once v2 handshake
       was considered and DEFERRED at this sitting (point at 053
       research.md R10), no longer "noted for the HttpBehavior sitting".
-- [ ] T006 Mutate cycle proving the moved code is still guarded: commit
+- [x] T006 Mutate cycle proving the moved code is still guarded: commit
       T004–T005, then `scripts/mutate.sh --expect` (a) invert the
       correlation check in `exchange.rs` → predict the script desync test
       red; (b) drop `deny_unknown_fields` → predict the 016 strict-envelope
@@ -77,24 +77,24 @@ per FR-002/FR-005/FR-015.
 with `PolicyMade` provenance; detach the plugin → world byte-identical to
 plugin-free.
 
-- [ ] T007 [US1] In `crates/cloudkitty-server/src/lib.rs`: add
+- [x] T007 [US1] In `crates/cloudkitty-server/src/lib.rs`: add
       `enum SeatClass { Scripted, Mind }` (serde lowercase) and extend
       `PluginEntry` with `url: Option<String>` and
       `class: Option<SeatClass>`; make `command` `Option<String>`;
       `deny_unknown_fields` stays.
-- [ ] T008 [US1] Startup validation in `register_plugin_behaviors`
+- [x] T008 [US1] Startup validation in `register_plugin_behaviors`
       (`crates/cloudkitty-server/src/lib.rs`), each error naming the
       entry: exactly one of `command`/`url` (FR-002); `args` nonempty with
       `url`; `url` must parse via `reqwest::Url` with scheme http/https;
       `class` required when `url` set, defaulted `Scripted` when `command`
       set (FR-015); existing command-path checks unchanged; collision rule
       applies to both transports.
-- [ ] T009 [US1] Startup-validation unit tests beside the existing ones in
+- [x] T009 [US1] Startup-validation unit tests beside the existing ones in
       `crates/cloudkitty-server/src/lib.rs` tests mod: both transports
       declared / neither / args-with-url / relative URL / `ftp://` scheme /
       missing class on url entry / class accepted on command entry /
       url-entry name collision — each asserts the error names the entry.
-- [ ] T010 [US1] Create `crates/cloudkitty-server/src/http_behavior.rs`:
+- [x] T010 [US1] Create `crates/cloudkitty-server/src/http_behavior.rs`:
       `HttpBehavior { name, url, class, state: Mutex<ExchangeState> }`
       implementing core `Behavior` per data-model.md — lifecycle enum
       `NotSpawned/Running/Dead{since_tick}`; dedicated I/O thread owning
@@ -111,7 +111,7 @@ plugin-free.
       table per data-model.md (timeout/oversized/desync tear down +
       `relaunch_cooldown_ticks`; status/refused/garbage don't);
       `decide()` = the same `unreachable!` contract as ScriptBehavior.
-- [ ] T011 [US1] Seat-class wrapper (owner ruled option A) + registration
+- [x] T011 [US1] Seat-class wrapper (owner ruled option A) + registration
       in `crates/cloudkitty-server/src/lib.rs` (or beside
       `http_behavior.rs`): a wrapper behavior holding
       `(inner: Arc<dyn Behavior>, seat_class)` that enters a
@@ -122,12 +122,12 @@ plugin-free.
       decision into a fallback). Wrap BOTH transports with it at
       registration in `register_plugin_behaviors`; registration log line
       carries `seat_class`. No class field enters core.
-- [ ] T012 [US1] Stub-endpoint test helper in
+- [x] T012 [US1] Stub-endpoint test helper in
       `crates/cloudkitty-server/tests/http_plugin.rs`: raw
       `std::net::TcpListener` on 127.0.0.1:0, scripted per-connection
       responses (arbitrary bytes possible); happy path = parse the POSTed
       `DecisionRequest`, echo `tick`/`kitty_id` around a legal proposal.
-- [ ] T013 [US1] Happy-path integration tests in `tests/http_plugin.rs`:
+- [x] T013 [US1] Happy-path integration tests in `tests/http_plugin.rs`:
       (a) proposals applied with `PolicyMade` provenance over a full
       in-world day of ticks (SC-002); (b) contract parity — byte-compare a
       captured `DecisionRequest` line against the script transport's for
@@ -135,7 +135,7 @@ plugin-free.
       both (FR-003/US1-AS4); (c) served-surface secrecy — `GET /config`
       and `GET /settings` byte-identical with and without a remote plugin
       declared; no `url`/`class` string in any served byte (SC-005/FR-009).
-- [ ] T014 [US1] Mutate cycles (commit first, predictions logged):
+- [x] T014 [US1] Mutate cycles (commit first, predictions logged):
       (a) sed the unconditional seed draw behind the liveness check →
       predict the determinism/parity test red; (b) neuter a startup
       validation arm (`if false`) → predict its T009 test red; (c) point
@@ -158,7 +158,7 @@ discarded.
 **Independent Test**: kill the stub mid-run → same-tick fallback, tick
 loop uninterrupted; restart stub → cleverness returns unaided.
 
-- [ ] T015 [US2] Hostile-endpoint tests in
+- [x] T015 [US2] Hostile-endpoint tests in
       `crates/cloudkitty-server/tests/http_plugin.rs`, one per contract
       table row (contracts/http-transport.md): non-200 status; 3xx
       redirect (not followed); connection refused (unbound port);
@@ -167,7 +167,7 @@ loop uninterrupted; restart stub → cleverness returns unaided.
       wedge past `exchange_timeout_ms` — each yields fallback
       (`FallbackTaken` provenance where dispatched), tick completes,
       other kitties' decisions unaffected.
-- [ ] T016 [US2] Lifecycle tests in `tests/http_plugin.rs`: (a) taint
+- [x] T016 [US2] Lifecycle tests in `tests/http_plugin.rs`: (a) taint
       teardown + cooldown — after a timeout, no exchange is attempted for
       `relaunch_cooldown_ticks`, then a fresh thread exchanges again
       (automatic recovery, US2-AS1); (b) late-reply discard — stub answers
@@ -175,17 +175,17 @@ loop uninterrupted; restart stub → cleverness returns unaided.
       applied to any later tick (fresh channels make them unreadable,
       US2-AS3); (c) clean failures (refused/non-200) do NOT enter cooldown
       — the next decision exchanges immediately (data-model taint table).
-- [ ] T017 [US2] SC-003 soak test in `tests/http_plugin.rs`: a hostile
+- [x] T017 [US2] SC-003 soak test in `tests/http_plugin.rs`: a hostile
       stub misbehaving every decision for 1,000+ consecutive ticks —
       every tick completes, constitutional invariants assert clean, every
       affected decision recorded as fallback, fallback latency within the
       standing budget from the first affected tick.
-- [ ] T018 [US2] Breaker interaction test in `tests/http_plugin.rs`: with
+- [x] T018 [US2] Breaker interaction test in `tests/http_plugin.rs`: with
       served-path budget config, repeated remote timeouts bench the kitty
       per `budget_strikes`/`bench_ticks` exactly as a script advisor —
       zero edits to `behavior/mod.rs` (FR-006's "no new code paths" is
       literal; the test only observes).
-- [ ] T019 [US2] Mutate cycles: (a) make timeout NOT taint (skip teardown)
+- [x] T019 [US2] Mutate cycles: (a) make timeout NOT taint (skip teardown)
       → predict late-reply-discard red; (b) drop the `take` cap → predict
       oversized red; (c) accept any 2xx → predict the non-200 test red;
       (d) follow redirects (Policy default) → predict redirect test red.
