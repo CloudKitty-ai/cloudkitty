@@ -94,10 +94,20 @@ def reply_flags(tr, tick, kitty):
     return flags
 
 
-def readout(rollouts, model):
+def readout(rollouts, model, want_source="applied"):
+    """`want_source`: which teacher emission the want bar counts.
+    "applied" (the shakeout's read) = label_msg, the message the tick
+    applied; "proposed" = label_msg_proposed, the message the teacher
+    proposed before apply-time re-validation could downgrade it to
+    Silent (fog-gen1-cert 2026-09-13: the clone imitates proposals, so
+    the applied read carries the tick's downgrade rate as a bias).
+    Opportunity use and msg@1 read applied labels either way."""
     obs = np.concatenate([r.obs for r in rollouts])
     mask_msg = np.concatenate([r.mask_msg for r in rollouts]).astype(bool)
     label_msg = np.concatenate([r.label_msg for r in rollouts])
+    assert want_source in ("applied", "proposed"), want_source
+    want_labels = (label_msg if want_source == "applied"
+                   else np.concatenate([r.label_msg_proposed for r in rollouts]))
     probs = msg_probs(model, obs, mask_msg)
     pred = probs.argmax(1)
     n = len(label_msg)
@@ -124,11 +134,12 @@ def readout(rollouts, model):
 
     want = {}
     for idx in WANT:
-        src, prd = int((label_msg == idx).sum()), int((pred == idx).sum())
+        src, prd = int((want_labels == idx).sum()), int((pred == idx).sum())
         want[MSG_NAMES[idx]] = {
             "source": src, "pred": prd,
             "ratio": prd / src if src else None,
-            "judged": src >= WANT_MIN_ROWS}
+            "judged": src >= WANT_MIN_ROWS,
+            "applied_source": int((label_msg == idx).sum())}
 
     per_1k = {MSG_NAMES[i]: {"source": 1000 * int((label_msg == i).sum()) / n,
                              "pred": 1000 * int((pred == i).sum()) / n}
@@ -144,7 +155,8 @@ def readout(rollouts, model):
             bars[f"want-{k}"] = abs(w["ratio"] - 1.0) <= WANT_TOL
     return {"rows": n, "here_rows": int(here_rows.sum()),
             "opportunity_use": use, "msg_top1_here": here_top1,
-            "want_emission": want, "per_1000_rows": per_1k, "bars": bars,
+            "want_emission": want, "want_source": want_source,
+            "per_1000_rows": per_1k, "bars": bars,
             "pass": all(bars.values())}
 
 
@@ -155,6 +167,8 @@ def main():
     ap.add_argument("--rollouts", nargs="*", default=None,
                     help="dir names to read; default = the held-out split")
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--want-source", choices=("applied", "proposed"), default="applied",
+                    help="teacher emissions the want bar counts (see readout)")
     args = ap.parse_args()
 
     dirs = sorted(p for p in args.data_root.iterdir() if (p / "meta.json").exists())
@@ -169,7 +183,10 @@ def main():
         r.path = d
         r.kitty = np.load(d / "kitty.npy")   # decision-row speaker ids
         assert r.kitty.shape == r.tick.shape, d
-    res = readout(rollouts, load_clone(args.clone))
+        if args.want_source == "proposed":
+            r.label_msg_proposed = np.load(d / "label_msg_proposed.npy")
+            assert r.label_msg_proposed.shape == r.label_msg.shape, d
+    res = readout(rollouts, load_clone(args.clone), args.want_source)
     res["clone"] = str(args.clone)
     res["rollouts"] = [d.name for d in dirs]
 
@@ -185,11 +202,13 @@ def main():
                   + ("  (thin)" if c["n"] < WANT_MIN_ROWS else "")
                   + ("" if split == "reply" else "  (informational)"))
     print(f"msg@1 on here rows: {res['msg_top1_here']:.3f}")
-    print(f"{'want kind':<14}{'source':>7}{'pred':>7}{'ratio':>7}")
+    print(f"{'want kind':<14}{'source':>7}{'pred':>7}{'ratio':>7}   (source = {res['want_source']})")
     for k, w in res["want_emission"].items():
         ratio = "  n/a" if w["ratio"] is None else f"{w['ratio']:.3f}"
+        beside = ("" if res["want_source"] == "applied" or not w["applied_source"]
+                  else f"  applied {w['applied_source']} ({w['pred'] / w['applied_source']:.3f})")
         print(f"{k:<14}{w['source']:>7}{w['pred']:>7}{ratio:>7}"
-              + ("" if w["judged"] else "  (unjudged, < 100 source rows)"))
+              + ("" if w["judged"] else "  (unjudged, < 100 source rows)") + beside)
     misses = [k for k, ok in res["bars"].items() if not ok]
     print("bars: " + ("PASS" if res["pass"] else "MISS " + ", ".join(misses)))
 

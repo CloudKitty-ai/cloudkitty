@@ -201,8 +201,25 @@ def test_readout_bars():
     assert water["reply"]["use"] is None and "reply-here_water" in res["bars"]
     assert res["bars"]["reply-here_water"] is False, "no opportunities is a miss, not a pass"
     assert res["want_emission"]["want_eat"] == {
-        "source": 20, "pred": 0, "ratio": 0.0, "judged": False}
+        "source": 20, "pred": 0, "ratio": 0.0, "judged": False, "applied_source": 20}
     assert "want-want_eat" not in res["bars"], "thin kinds are not judged"
+    assert res["want_source"] == "applied"
+    # The proposed source (fog-gen1-cert): want counts read the teacher's
+    # PROPOSED labels; the applied count rides beside; opportunity use and
+    # the here rows still read applied labels.
+    prop = SimpleNamespace(**{**vars(r)})
+    prop.label_msg_proposed = label_msg.copy()
+    prop.label_msg_proposed[280:380] = 1     # 100 proposals the tick silenced
+    rf.load_trace = lambda path: _trace(lines)
+    try:
+        res_p = rf.readout([prop], _StubModel(), want_source="proposed")
+    finally:
+        rf.load_trace = saved
+    assert res_p["want_source"] == "proposed"
+    assert res_p["want_emission"]["want_eat"] == {
+        "source": 120, "pred": 0, "ratio": 0.0, "judged": True, "applied_source": 20}
+    assert res_p["bars"]["want-want_eat"] is False, "judged now: 120 proposed rows"
+    assert res_p["opportunity_use"]["here_food"] == food and res_p["here_rows"] == 200
     assert res["here_rows"] == 200
     assert abs(res["msg_top1_here"] - 0.90) < 1e-9
     assert res["pass"] is False, "reply-here_water has no opportunities"
