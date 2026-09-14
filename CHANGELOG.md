@@ -40,7 +40,7 @@ change.
   Untracked-but-not-ignored files stay in scope (new experiment output
   loads on the current engine by default), and without a usable git
   nothing is filtered, so CI behavior is unchanged. Marker-free:
-  test-only, no engine, config, or schema change. (#TBD)
+  test-only, no engine, config, or schema change. (#372)
 
 - **Validation: the groom charm floor is bounded by the drip tier.**
   Configs where `groom_cuddle_floor` exceeds the larger of
