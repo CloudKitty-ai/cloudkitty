@@ -50,7 +50,7 @@ change.
   shared-plugin mutex burst is re-accepted with its mitigation
   documented. Endpoint addresses are server-owned and never served.
   Marker-free: no engine semantic, RNG draw, served-config byte, or
-  schema moves — a plugin-free world is byte-identical. (spec 053)
+  schema moves — a plugin-free world is byte-identical. (spec 053, #373)
 
 - **The shipped-config sweeps skip files git ignores.** Both sweep
   tests (core and rl) walk the filesystem, so a lab checkout's
