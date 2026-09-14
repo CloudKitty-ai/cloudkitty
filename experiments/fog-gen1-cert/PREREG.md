@@ -291,6 +291,18 @@ flips a bar, capacity binds and a wider mind is a Gen 2 recipe input;
 nothing about step 7 changes either way (the pass runs the served
 shape). No PPO run is spent.
 
+**Collected 2026-09-13 16:33–18:12 MDT.** Both corpora: 40 rollouts,
+seeds exactly the declared bands (40 unique each), every meta.json
+carrying the declared config sha, traces on 03/13/23/33 only, zero
+dropped rows; B3 3,973,189 decisions, B3-off 3,973,440; 8.5 GB each.
+The teacher change took (rollout-03, Biscuit's seat, against the
+shakeout corpus): eat-over-30 share 0.472 → 0.124 (B3) / 0.150
+(B3-off), the comfort sweep's c30 point (0.132); play chosen while
+another need is armed and on top 0.56 → 0.04 in both; PlayKitty
+per 1k 139 (shakeout) → 153 (gate off) → 97 (gate 30), the gate's
+cut at 0.64× against the sweep's 0.73× on duets; Biscuit grooms
+nobody in all three.
+
 After collection, per corpus, the shakeout chain unchanged: lesson
 clone (`train_vocab_fog.py --stage strip`, then `--stage teach`), the
 plain clone for B3 only (`train_clone_fog.py`, the plain-clone
