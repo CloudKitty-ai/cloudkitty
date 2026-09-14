@@ -382,6 +382,94 @@ async fn served_surfaces_are_byte_identical_with_a_remote_plugin_declared() {
     }
 }
 
+// ---------------------------------------------------------------- US3 ----
+// Docs verification (FR-011, the 016 "documented = tested" bar): every
+// remote-transport example in docs/plugins.md parses/behaves as written.
+
+fn plugins_doc() -> String {
+    let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../docs/plugins.md");
+    std::fs::read_to_string(path).expect("docs/plugins.md is readable")
+}
+
+/// The remote quick-start TOML block parses and registers exactly as
+/// documented (comments and all).
+#[test]
+fn the_documented_remote_declaration_parses_and_registers() {
+    let doc = plugins_doc();
+    let block = doc
+        .split("```toml")
+        .find(|block| block.contains("url = "))
+        .expect("the remote quick start has a toml block")
+        .split("```")
+        .next()
+        .unwrap();
+    let plugins: cloudkitty_server::PluginsConfig =
+        toml::from_str(block).expect("the documented declaration parses");
+    let mut registry = BehaviorRegistry::with_builtins();
+    cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins)
+        .expect("the documented declaration registers");
+    assert!(
+        registry.get("professor_whiskers").is_some(),
+        "the documented plugin name is a behavior"
+    );
+}
+
+/// The documented reply envelope is byte-for-byte accepted by the one
+/// shared parser both transports speak.
+#[test]
+fn the_documented_reply_envelope_parses_through_the_shared_gate() {
+    let example =
+        r#"{"tick": 41, "kitty_id": 2, "proposal": {"action": "move", "direction": "north"}}"#;
+    assert!(
+        plugins_doc().contains(example),
+        "the docs still carry the reply-envelope example this test verifies"
+    );
+    assert!(
+        cloudkitty_core::behavior::parse_reply_line(example.as_bytes(), 41, 2).is_ok(),
+        "the documented envelope is accepted verbatim"
+    );
+}
+
+/// The shipped example brain (docs/examples/demo_http_brain.py) drives a
+/// kitty end-to-end, exactly as the docs promise.
+#[test]
+fn the_documented_example_brain_drives_a_kitty() {
+    use std::io::BufRead;
+    let script = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../docs/examples/demo_http_brain.py");
+    let mut brain = std::process::Command::new("python3")
+        .arg(script)
+        .arg("127.0.0.1:0")
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("python3 runs the example");
+    let mut line = String::new();
+    std::io::BufReader::new(brain.stdout.take().expect("stdout piped"))
+        .read_line(&mut line)
+        .expect("the example prints its address");
+    let url = line
+        .trim()
+        .strip_prefix("listening on ")
+        .expect("the documented address line");
+
+    let (mut world, registry, config) = world_with_remote(url, SeatClass::Scripted, |_| {});
+    let kitty = config.kitties[0].id;
+    for _ in 0..10 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        assert_eq!(
+            driven
+                .report
+                .record(kitty)
+                .expect("kitty decides")
+                .provenance,
+            Provenance::PolicyMade,
+            "the example brain's decisions are applied and attributed"
+        );
+    }
+    let _ = brain.kill();
+    let _ = brain.wait();
+}
+
 // ---------------------------------------------------------------- US2 ----
 
 /// Ticks the world once and returns kitty 0's provenance.
