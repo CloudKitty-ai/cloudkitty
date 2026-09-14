@@ -195,6 +195,33 @@ the declared cost, cross-generation by nature: the 2.x roster cannot
 run on the 3.0 world, so the delta is read off the last 2.x soak and
 G5 census on record, stated as such.
 
+## Part A on the B3 corpus (2026-09-14)
+
+`schema_check.py` on the four B3 held-out traces with the shakeout's
+declarations: A1 unproven with 0 undeclared and 0 overdue (the
+shakeout's accepted state; 8 reasons read stale because their columns
+moved on B3, the good outcome), A10 / A13 / A18 ok on all four, and
+**one A14 row on rollout-03**: Biscuit at tick 1755 with sleep and
+cuddle both at 27.899977 in the observation and want_cuddle legal.
+Cause: an exact f32 tie in the encoded needs where the engine's
+unrounded values order the two by less than the observation's
+resolution, so the mask carries a fact the observation cannot. One
+row in 400,000. **Proposed Part A amendment (owner's word, the #367
+shape):** A14's top-need clause exempts rows where the want's need
+ties the observation's top need exactly; the count is reported on
+every read and stays on the record. Until ruled, the row stands as
+red on the corpus trace; probe-1 reads on the pass would show the
+same class at the same rate.
+
+`declared_constant.json` in this directory is the cert copy: the
+shakeout's groups and reasons verbatim, `expected_per_1000` refilled
+on the B3 held-out traces by the 2026-09-08 method (events per 1000
+world ticks over 80k): want_drink 39.663 → 32.938, want_play 6.463 →
+8.2, second-sunbeam occupied 2.325 → 0.938, distress 0.088 → null
+(zero crossings of the 90 line in 80k ticks: the c30 Biscuit keeps
+its needs under it; A17 still exempts the group). The pass's Part A
+read at probe 1 uses this file.
+
 ## BC bars (the shakeout's, unchanged)
 
 Every clone that seeds an arm clears, on the held-out four: reply-here
