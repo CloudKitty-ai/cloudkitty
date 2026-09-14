@@ -203,7 +203,7 @@ test-verified (FR-011, 016 FR-015/SC-007 bar).
 declaration → request → reply → failure semantics → worked example, each
 example exercised by a test.
 
-- [ ] T020 [US3] Extend `docs/plugins.md`: remote transport as an
+- [x] T020 [US3] Extend `docs/plugins.md`: remote transport as an
       extension of the one contract — `url`/`class` declaration, POST
       request/response semantics, the failure table, budget/bench
       interaction, worked end-to-end example (stub responder), livelock
@@ -218,16 +218,16 @@ example exercised by a test.
       authoritative; auxiliary model output (e.g. train of thought) is
       logged harness-side and stripped before replying — the strict
       envelope refuses unknown fields by design.
-- [ ] T021 [US3] Config reference rows in `docs/plugins.md` (and wherever
+- [x] T021 [US3] Config reference rows in `docs/plugins.md` (and wherever
       the `[plugins]`/`[behavior]` reference table lives): `url` (no
       default; selects the remote transport), `class` (required for url
       entries; default `scripted` for command entries) — SC-006.
-- [ ] T022 [US3] Docs-example verification tests (016 pattern) in
+- [x] T022 [US3] Docs-example verification tests (016 pattern) in
       `crates/cloudkitty-server/tests/http_plugin.rs`: the documented TOML
       declaration parses and registers; the documented request/reply
       example bytes round-trip through `parse_reply_line`; the worked
       example's responder drives a kitty.
-- [ ] T023 [US3] Mutate cycle: corrupt the documented example TOML in the
+- [x] T023 [US3] Mutate cycle: corrupt the documented example TOML in the
       test fixture (wrong key name) → predict the docs test red for the
       documented reason.
 
@@ -244,11 +244,11 @@ entry closes.
 **Independent Test**: kill a wedged plugin whose grandchild holds its
 stdout → no stranded I/O thread; docs state the exec-bit's real meaning.
 
-- [ ] T024 [US4] Rule-6 sort, recorded in redden-list.md before running:
+- [x] T024 [US4] Rule-6 sort, recorded in redden-list.md before running:
       must-go-red — the new grandchild test (T025) against today's
       single-`kill()` path; must-stay-green — every existing script.rs
       test and the 016 suite (re-read the pile, then run).
-- [ ] T025 [US4] Write the red test first in
+- [x] T025 [US4] Write the red test first in
       `crates/cloudkitty-core/src/behavior/script.rs` tests:
       `the_kill_ends_the_whole_process_group` — plugin
       `sh -c 'sleep 600 & read line'` (grandchild inherits stdout);
@@ -257,19 +257,19 @@ stdout → no stranded I/O thread; docs state the exec-bit's real meaning.
       under the current kill path (hand-rolled red with stated reason if
       the failure mode is a hang mutate.sh can't classify — the (e)
       precedent).
-- [ ] T026 [US4] Implement in `script.rs`: `CommandExt::process_group(0)`
+- [x] T026 [US4] Implement in `script.rs`: `CommandExt::process_group(0)`
       on spawn; kill path `libc::killpg(child_pid, SIGKILL)` + reap under
       `cfg(unix)` (non-unix keeps `child.kill()`); update the
       `Drop for PluginChild` comment — the thread frees because the group
       dies and the pipes close, not "a grandchild could hold it open".
       T025 green; whole must-stay-green pile green.
-- [ ] T027 [US4] Docs in `docs/plugins.md`: exec-bit check means
+- [x] T027 [US4] Docs in `docs/plugins.md`: exec-bit check means
       "executable by anyone", not "by the server's user" — a program
       executable only by another user passes startup and fails at spawn
       (FR-013); shared-plugin mutex burst re-accepted with the
       `exchange_timeout_ms` mitigation documented where operators tune
       shared processes (FR-014); update the lifecycle wording per T026.
-- [ ] T028 [US4] Close the "ScriptBehavior transport residuals" entry in
+- [x] T028 [US4] Close the "ScriptBehavior transport residuals" entry in
       `BACKLOG.md` (all three residuals land/disposition here — spec
       clarification 2026-09-11, owner ruling A).
 
@@ -279,15 +279,15 @@ stdout → no stranded I/O thread; docs state the exec-bit's real meaning.
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T029 SC-004 post-check: re-run the T001 baseline command on the
+- [x] T029 SC-004 post-check: re-run the T001 baseline command on the
       finished branch → `specs/053-http-behavior/post-check.txt`; hashes
       byte-identical (no plugins configured). Also `cargo test -p
       cloudkitty-core` unchanged-script-transport confirmation.
-- [ ] T030 Full gates: `cargo fmt --check`, `cargo clippy --workspace
+- [x] T030 Full gates: `cargo fmt --check`, `cargo clippy --workspace
       --all-targets -- -D warnings` (blocking gate), `cargo test
       --workspace` (SC-001), plus `env PATH=/var/empty`-style hermetic
       sanity if any test shells out.
-- [ ] T031 CHANGELOG.md: one-liner under `## Unreleased` (house practice —
+- [x] T031 CHANGELOG.md: one-liner under `## Unreleased` (house practice —
       feature marker: server-owned config surface addition, no engine
       semantic, no served-config byte; PR number at merge time).
 - [ ] T032 Fresh-eyes review before merge (house pattern, the 371/372

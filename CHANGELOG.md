@@ -33,6 +33,25 @@ change.
 
 ## Unreleased
 
+- **HttpBehavior: a remote endpoint can be a kitty's advisor.** The
+  second speaker of the spec-016 plugin contract, deferred from that
+  sitting: a `[plugins.<name>]` entry may declare `url` instead of
+  `command`, and each decision is one HTTP POST carrying the identical
+  request, answered by the identical strict envelope — both transports
+  parse replies through literally the same code. Every Article IV
+  protection (budget, breaker, bench, fallback) applies unchanged with
+  zero transport-specific paths; redirects are never followed, replies
+  are 200-only and capped, and a late answer is structurally discarded.
+  Entries declare a seat class (`scripted`/`mind` — required for remote
+  code, which can't show it) that rides plugin log lines. The three
+  016-review script-transport residuals settle here too: plugins now die
+  as a whole process group (a grandchild can no longer strand the I/O
+  thread), the exec-bit check's real meaning is documented, and the
+  shared-plugin mutex burst is re-accepted with its mitigation
+  documented. Endpoint addresses are server-owned and never served.
+  Marker-free: no engine semantic, RNG draw, served-config byte, or
+  schema moves — a plugin-free world is byte-identical. (spec 053)
+
 - **The shipped-config sweeps skip files git ignores.** Both sweep
   tests (core and rl) walk the filesystem, so a lab checkout's
   gitignored 2.x record configs turned them red locally while CI was

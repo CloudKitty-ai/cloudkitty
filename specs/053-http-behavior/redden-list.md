@@ -79,4 +79,23 @@ Sorted before running, the kill path change (`process_group(0)` +
   Read: none of them observes a grandchild, so the only behavior that
   moves is the one the red test pins.
 
-- (T025 red observed): see below after the run.
+- **T025 red observed as predicted**: "the grandchild survives the
+  kill: the process group was not ended", clean assertion failure at
+  the 5s bound (5.05s run). Wrinkle recorded: with a 600s grandchild
+  the cargo harness ALSO hung waiting on the inherited stderr pipe —
+  the stranding bug in miniature; the fixture's sleep was shortened to
+  30s so the un-fixed red stays a bounded clean failure.
+- **T026 green**: script suite 8/8 (group-kill test now 0.63s — the
+  group dies, pipes close) + plugin_e2e 7/7 (must-stay-green pile).
+- **T026 mutate re-proof** (killpg line removed, post-commit).
+  Prediction: red at "the grandchild survives the kill". Observed: RED
+  CONFIRMED, restore == baseline.
+
+## Phase 5 — docs (T023)
+
+- **T023** (docs/plugins.md: documented `url` key renamed `uri`).
+  First run red for the WRONG REASON — the test's block locator keyed
+  on `url = ` and failed before the parse assertion; locator re-keyed
+  on the stable plugin name, committed, re-run. Prediction: red at
+  "the documented declaration parses" (deny_unknown_fields refuses
+  `uri`). Observed: RED CONFIRMED.
