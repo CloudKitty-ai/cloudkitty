@@ -44,10 +44,11 @@ use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
+use super::exchange::{parse_reply_line, ReplyRejection};
 use super::{Behavior, DecisionContext};
-use crate::action::{parse_proposal_value, Action, ProposalError, PROPOSAL_WIRE_VERSION};
+use crate::action::{Action, ProposalError, PROPOSAL_WIRE_VERSION};
 use crate::config::Config;
 use crate::kitty::{Kitty, KittyId};
 use crate::seam::Decision;
@@ -78,21 +79,10 @@ pub struct DecisionRequest<'a> {
     /// stateless, so a plugin needs no handshake and survives its own
     /// restarts with zero protocol. The cost is one redundant `Config`
     /// serialization per decision — small next to the `WorldSnapshot` riding
-    /// alongside it. If plugin throughput ever matters, a send-once
-    /// handshake is a wire-version bump (a v2 candidate, noted for the
-    /// HttpBehavior sitting).
+    /// alongside it. A send-once handshake (a wire-version bump) was
+    /// considered and DEFERRED at the HttpBehavior sitting: remote LLM
+    /// harnesses cache the config on their side (spec 053 research R10).
     pub config: &'a Config,
-}
-
-/// The reply envelope, plugin -> engine, strict. Echoing the request is what
-/// protects a plugin from its own desyncs: without it, a stray extra line
-/// would silently become the answer to the *next* decision (analysis I1).
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ReplyEnvelope {
-    tick: u64,
-    kitty_id: KittyId,
-    proposal: serde_json::Value,
 }
 
 /// One unit of work for a child's I/O thread: write this line, read one
@@ -322,20 +312,20 @@ impl ScriptBehavior {
                 "plugin closed its stdout mid-reply",
             )));
         }
-        let text = String::from_utf8_lossy(&line);
-
-        let envelope: ReplyEnvelope =
-            serde_json::from_str(&text).map_err(ExchangeFailure::BadEnvelope)?;
-        if envelope.tick != expect_tick || envelope.kitty_id != expect_kitty {
-            return Err(ExchangeFailure::Desynced {
-                got_tick: envelope.tick,
-                got_kitty: envelope.kitty_id,
-            });
-        }
-        // Through the hardened gate, exactly like any external bytes; the
-        // envelope's `Value` already collapsed duplicate keys last-wins
-        // (documented semantics).
-        parse_proposal_value(envelope.proposal).map_err(ExchangeFailure::Rejected)
+        // The shared parser both transports speak (spec 053 FR-003):
+        // strict envelope -> correlation -> hardened gate, in
+        // `behavior::exchange`. Only the failure bookkeeping is ours.
+        parse_reply_line(&line, expect_tick, expect_kitty).map_err(|rejection| match rejection {
+            ReplyRejection::BadEnvelope(error) => ExchangeFailure::BadEnvelope(error),
+            ReplyRejection::Desynced {
+                got_tick,
+                got_kitty,
+            } => ExchangeFailure::Desynced {
+                got_tick,
+                got_kitty,
+            },
+            ReplyRejection::Rejected(error) => ExchangeFailure::Rejected(error),
+        })
     }
 }
 
