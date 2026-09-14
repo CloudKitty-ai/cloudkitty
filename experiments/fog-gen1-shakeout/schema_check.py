@@ -985,13 +985,28 @@ def check_a14(tr):
         mem[k] = present
     idle_friend = (seen & (rows[..., ROW_ACTIVITY] > 0)).any(1)
     thr = float(tr.cfg["meow"]["announce_threshold"]) - float(tr.cfg["meow"].get("announce_hysteresis", 0.0))
+    # Top-need clause, tie exemption (owner ruled 2026-09-14, option 1 of
+    # fog-gen1-cert PREREG §Part A): the observation stores need / 100 in
+    # f32, whose spacing near 0.28 is coarser than the raw f32's near 28,
+    # so two raw needs one step apart can encode equal. The engine orders
+    # them and the mask follows; the observation shows a tie it cannot
+    # break. A want whose need ties the observation's top exactly is
+    # reported, never counted (one row in 400k on the B3 corpus; the
+    # engine-side fix, comparing in encoded space, is BACKLOG).
+    top_value = needs.max(1)
+    ties = {}
     for want in WANT_KINDS:
         need = NEED_OF_WANT[want]
         bit = head[want]
         bad[f"{want}_below_arm_floor"] = int((bit & (needs[:, NEED_KINDS.index(need)] * 100 < thr - 1e-3)).sum())
         if want == "want_bath":
             continue
-        bad[f"{want}_not_top_need"] = int((bit & (top != NEED_KINDS.index(need))).sum())
+        idx = NEED_KINDS.index(need)
+        tied = needs[:, idx] == top_value
+        bad[f"{want}_not_top_need"] = int((bit & (top != idx) & ~tied).sum())
+        n_tie = int((bit & (top != idx) & tied).sum())
+        if n_tie:
+            ties[f"{want}_top_need_tie_exempt"] = n_tie
     relief = {"want_eat": slot_present["chow"] | mem["chow"],
               "want_drink": slot_present["water"] | mem["water"],
               "want_cuddle": idle_friend,
@@ -999,8 +1014,11 @@ def check_a14(tr):
     for want, known in relief.items():
         bad[f"{want}_with_known_relief"] = int((head[want] & known).sum())
     total = sum(bad.values())
-    return ok_or_red("A14", total, f"{total} mask bits not implied by the observation",
-                     {k: v for k, v in bad.items() if v} or {"all": 0})
+    detail = {k: v for k, v in bad.items() if v} or {"all": 0}
+    detail.update(ties)
+    tie_note = f", {sum(ties.values())} top-need ties exempt" if ties else ""
+    return ok_or_red("A14", total, f"{total} mask bits not implied by the observation{tie_note}",
+                     detail)
 
 
 def check_a15(tr):

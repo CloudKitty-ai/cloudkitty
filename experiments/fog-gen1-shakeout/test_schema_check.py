@@ -308,6 +308,33 @@ def test_a14_kitty_menu_on_an_unseen_row():
     not_ok(sc.check_a14(tr))
 
 
+def test_a14_top_need_tie_is_exempt_not_counted():
+    # Owner ruled 2026-09-14 (fog-gen1-cert PREREG §Part A, option 1): a
+    # want whose need ties the observation's top EXACTLY is reported as a
+    # tie, never counted; one float step below the top is still red.
+    # red: drop the tie exemption, or count ties into the total.
+    from obs_layout_v5 import HEAD_KINDS, N_ACT, NEED_KINDS, SELF_NEEDS
+    tr = fresh()
+    base = sc.check_a14(tr)
+    r = 7
+    sleep, cuddle = NEED_KINDS.index("sleep"), NEED_KINDS.index("cuddle")
+    needs = tr.obs[r, SELF_NEEDS:SELF_NEEDS + len(NEED_KINDS)]
+    needs[:] = 0.05
+    needs[sleep] = needs[cuddle] = np.float32(0.27899977)   # the B3 rollout-03 tick-1755 pair
+    tr.mask[r, N_ACT + 1 + HEAD_KINDS.index("want_cuddle")] = True
+    rows_of(tr, r)[:, sc.ROW_ACTIVITY] = 0.0                # no idle friend in view
+    tied = sc.check_a14(tr)
+    assert tied.status == base.status, tied.summary
+    assert tied.detail.get("want_cuddle_top_need_tie_exempt", 0) == \
+        base.detail.get("want_cuddle_top_need_tie_exempt", 0) + 1, tied.detail
+    assert tied.detail.get("want_cuddle_not_top_need", 0) == base.detail.get("want_cuddle_not_top_need", 0)
+    assert "ties exempt" in tied.summary
+    needs[cuddle] = np.nextafter(np.float32(0.27899977), np.float32(0))  # one step under: not a tie
+    below = sc.check_a14(tr)
+    assert below.detail.get("want_cuddle_not_top_need", 0) == base.detail.get("want_cuddle_not_top_need", 0) + 1
+    not_ok(below)
+
+
 def test_a15_row_order_moves():
     # red: two table entries swapped for one observer on one tick
     tr = fresh()
