@@ -230,7 +230,14 @@ impl ScriptBehavior {
             .name(format!("plugin-io-{}", self.name))
             .spawn(move || io_loop(stdin, stdout, request_rx, reply_tx));
         if let Err(error) = spawned {
-            // No thread means no pipes served; don't leak the process.
+            // No thread means no pipes served; don't leak the process — or
+            // its group: the child is already its own group leader, so
+            // anything it managed to fork must die here too (the same two
+            // lines as Drop; review 2026-09-14 finding 3).
+            #[cfg(unix)]
+            unsafe {
+                let _ = libc::killpg(child.id() as libc::pid_t, libc::SIGKILL);
+            }
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);

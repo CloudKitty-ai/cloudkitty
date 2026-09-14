@@ -27,7 +27,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 class Decide(BaseHTTPRequestHandler):
     def do_POST(self):
         request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        # The demo policy: rest even ticks, play odd ones. The engine
+        # The demo policy: idle even ticks, play odd ones. The engine
         # validates either into legality (Article IV) — an illegal "play"
         # is an idle turn, never an error.
         proposal = {"action": "idle"} if request["tick"] % 2 == 0 else {"action": "play"}

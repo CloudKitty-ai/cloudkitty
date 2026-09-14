@@ -79,7 +79,9 @@ engine-defaults stamp, not a key setting.
 **Why `class` exists**: for a local program someone can read the file; for
 remote code nobody can, so the entry itself must say whether the advisor
 is scripted or a mind (design doctrine rule 6). The declared class rides
-every plugin-attributed server log line as `seat_class`. Script entries
+the registration line and every log line the transports emit as
+`seat_class` (the dispatch layer's own bench warning names the advisor
+but not the class — it lives below the wrapper). Script entries
 may declare it too (a local LLM harness is a mind); undeclared, they
 default to `scripted`. One doctrine consequence to know: an Article IV
 **fallback turn is a scripted turn** no matter what the seat declares —
@@ -269,7 +271,7 @@ on a bare action; not an object.)
 | Parses, and is legal right now | Applied — your kitty does it | The action, attributed to your plugin |
 | Parses, but is illegal right now (chasing a vanished bug, eating with no chow near, purring without contentment) | Idle turn, via engine validation | An idle turn — not a punishment, just the law |
 | Fails to parse | Fallback: the built-in needs-driven behavior takes the turn | `proposal rejected` in the log, with the parse error |
-| Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** (remote: the exchange channel is torn down and rebuilt after the same cooldown — a late answer is discarded, never applied to a later tick) | `plugin reply desynced` / size / `exchange timed out` warning in the log |
+| Wrong `tick`/`kitty_id` echo, oversized, or no reply within `exchange_timeout_ms` | Fallback, **and your process is restarted** (remote: only the missed deadline tears the exchange channel down — a late answer is discarded, never applied to a later tick; a consumed wrong-echo or oversized reply costs one tick and the next exchange proceeds) | `plugin reply desynced` / size / `exchange timed out` warning in the log |
 | Your process crashed or its stream broke (remote: connection refused/reset, DNS failure, a non-200 status) | Fallback (repeated budget timeouts also bench your kitty's dispatch for a while — it recovers on its own); remote clean failures don't cool down — the next decision asks again | `plugin exchange failed`, budget/bench warnings |
 
 Two constitutional safety rails you can rely on (Article IV, v1.2.0): a
@@ -317,7 +319,7 @@ didn't send, never a stalled world.
   sibling's wait; the serialization above is per-entry, not per-URL.
   Auxiliary model output (a train of thought, telemetry) never rides the
   reply — the envelope rejects unknown fields by design; log it on your
-  side, keyed by `tick`, and strip it before answering.
+  own side, keyed by `tick`, and strip it before answering.
 
 ## The multi-agent livelock warning
 

@@ -50,19 +50,23 @@ Same three-state machine as `ChildState`, thread-for-process:
 
 ```text
 NotSpawned ──(first decision)──> Running(IoThread)
-Running ──(taint: timeout | oversized | desync)──> Dead{since_tick}
+Running ──(taint: timeout | dead thread)──> Dead{since_tick}
 Dead ──(now - since_tick >= relaunch_cooldown_ticks)──> Running(fresh thread + client)
 ```
 
 - **Running** holds the request `Sender`, reply `Receiver`, and the
   detached I/O thread owning one `reqwest::blocking::Client`
-  (redirects off, request timeout = `exchange_timeout_ms`).
-- **Taint teardown (research R6)**: a late in-flight reply may still land
-  in a dropped channel; the fresh thread gets fresh channels, so a stale
-  answer is structurally unreadable (US2/AS3).
-- **Clean failures** (error status, refused/reset connection, garbage body
-  on a completed 200, envelope/proposal rejection) leave `Running` — the
-  next exchange is independent.
+  (redirects off, request timeout = 2x `exchange_timeout_ms` — the
+  engine-side channel deadline is authoritative; the client timer only
+  self-unblocks a detached thread).
+- **Taint teardown (research R6, narrowed at review)**: only a missed
+  deadline (a late in-flight reply may still land in the channel) or a
+  dead thread tears down; the fresh thread gets fresh channels, so a
+  stale answer is structurally unreadable (US2/AS3).
+- **Clean failures** (error status, refused/reset connection, garbage,
+  oversized, or mis-correlated body on a consumed reply,
+  envelope/proposal rejection) leave `Running` — the next exchange is
+  independent.
 
 ### Decision flow (`try_decide`) — same order as script.rs
 
@@ -89,17 +93,23 @@ Script kinds map onto HTTP as:
 |----------------------|-------------|----------------|
 | `Io` (pipes broke)   | connect refused/reset/DNS failure, client error before a status | no (stateless exchange; retry next decision) |
 | `BadEnvelope`        | 200 body not a valid envelope | no |
-| `Desynced`           | envelope echoes wrong tick/kitty | **yes** |
+| `Desynced`           | envelope echoes wrong tick/kitty | no (consumed reply, connection dropped — review 2026-09-14 finding 5) |
 | `Rejected`           | proposal fails the hardened gate | no |
-| `TooLarge`           | body exceeds `reply_max_bytes` | **yes** |
+| `TooLarge`           | body exceeds `reply_max_bytes` | no (read stopped at the cap — review finding 5) |
 | `TimedOut`           | no reply within `exchange_timeout_ms` | **yes** |
 | *(new)* `BadStatus`  | any non-200 status (includes surfaced redirects) | no |
 
-Note the one deliberate difference from script: clean `Io` failures do NOT
-taint (no shared stream exists to desync; killing the thread would only
-add cooldown latency to recovery, against US2's automatic-recovery bar).
-The three taint rows are exactly the script transport's
-unaccounted-for-stream rows.
+The deliberate difference from script grew at review: NOTHING that
+consumed its one reply taints — there is no shared stream to desync, so
+`Io`, `Desynced`, and `TooLarge` all leave the channel accounted and the
+next exchange independent. Only `TimedOut` (a reply may still be in
+flight toward the channel) and `ChannelGone` (the thread is dead) tear
+down, with `relaunch_cooldown_ticks` before rebuild. The io thread's
+client timer sits at 2x the exchange deadline so the engine-side
+`recv_timeout` always classifies a deadline miss as `TimedOut`, never as
+a racing client-side error (review finding 6); a client build failure
+drops the channel silently so the first exchange reads `ChannelGone`
+(review finding 7).
 
 ## Shared reply validation (extracted) — `cloudkitty-core::behavior::exchange`
 

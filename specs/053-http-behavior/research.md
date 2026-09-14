@@ -248,3 +248,38 @@ local to the LLM, operator-owned — as the designated home:
   exchanges (FR-014 burst), so the LLM-shaped deployment is one
   `[plugins]` entry per kitty pointing at the same harness URL — the
   harness parallelizes behind it. Documented in T020.
+
+## Review amendments (fresh-eyes review, 2026-09-14)
+
+The T032 adversarial review (record in redden-list.md §Review) amended
+four decisions above; the deltas, so this file stays truthful:
+
+- **R6 narrowed**: `TooLarge` and `Desynced` no longer taint — the
+  review traced both to a consumed reply on a dropped connection (the
+  channel provably empty), so teardown bought nothing and charged a
+  20-tick cooldown for one verbose reply, exactly the LLM case R10
+  anticipates. Only `TimedOut` and a dead thread tear down. The script
+  transport's teardown for the same kinds stays — there the oversized
+  line's remaining bytes really do sit in the stream.
+- **R2 amended**: the blocking client's request timeout is 2× the
+  exchange deadline, not equal to it — the engine-side `recv_timeout`
+  must always win the race so a deadline miss is always classified
+  `TimedOut` (taint + cooldown), never a client-side `Transport` error
+  (no taint). A client build failure now drops the channel without
+  sending, so the first exchange reads `ChannelGone` and enters the
+  cooldown immediately.
+- **R7 extended**: the spawn-path cleanup for an io-thread-spawn failure
+  kills the process group too (the child is already its own leader
+  there); and `main.rs` now handles SIGTERM alongside SIGINT — group
+  isolation means a supervisor's stop signal no longer reaches plugin
+  children by membership, so the graceful path (which drops every
+  PluginChild) must run under systemd/docker stops as well.
+- **R9 guarded**: the seat-class span was the review's one HIGH — fully
+  unobserved by the suite (drop the `.instrument`, swap the class
+  strings, or discard the declaration at registration: all survived).
+  A dedicated capture test (`tests/seat_class_log.rs`, its own binary —
+  tracing's process-global callsite cache races parallel scoped
+  subscribers) now pins registration + per-exchange lines carrying the
+  DECLARED value. Known, accepted gap: core dispatch's bench warning
+  names the advisor but fires below the wrapper and carries no class;
+  docs say so.

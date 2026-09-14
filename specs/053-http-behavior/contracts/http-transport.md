@@ -45,8 +45,8 @@ One decision = one `POST <url>`:
 | non-200 status (incl. 3xx) | `BadStatus` | next exchange proceeds |
 | refused / reset / DNS failure | I/O failure | next exchange proceeds |
 | 200, body not a valid envelope | `BadEnvelope` | next exchange proceeds |
-| 200, envelope echoes wrong tick/kitty | `Desynced` | exchange channel torn down; rebuilt after `relaunch_cooldown_ticks` |
-| body exceeds `reply_max_bytes` | `TooLarge` | torn down + cooldown |
+| 200, envelope echoes wrong tick/kitty | `Desynced` | next exchange proceeds — the reply was consumed and its connection dropped; no stream exists to resync (review 2026-09-14) |
+| body exceeds `reply_max_bytes` | `TooLarge` | next exchange proceeds — read stopped at the cap; one verbose reply costs one tick (review 2026-09-14) |
 | no complete reply within `exchange_timeout_ms` | `TimedOut` | torn down + cooldown; a late answer is discarded, never applied to a later tick |
 | well-formed but illegal proposal | engine validation idles it | unchanged (parse vs validation stay distinct) |
 
@@ -58,7 +58,9 @@ exists to catch.
 
 No new tunables. The transport is governed by the existing documented
 `[behavior]` keys: `exchange_timeout_ms` (end-to-end exchange deadline,
-engine-side), `reply_max_bytes` (body cap, enforced by capped read — a
+engine-side; the client's own timer sits at twice it, purely as the
+detached thread's self-unblock, so the engine always classifies a miss
+as the timeout it is), `reply_max_bytes` (body cap, enforced by capped read — a
 Content-Length is not trusted), `relaunch_cooldown_ticks` (teardown
 cooldown), and the budget/strikes/bench stack, all transport-agnostic.
 

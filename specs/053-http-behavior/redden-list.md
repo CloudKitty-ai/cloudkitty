@@ -1,4 +1,58 @@
-# 053 redden list — rule-5/rule-6 ledger
+# 053 redden list — rule-5/rule-6 ledger + review record
+
+## T032 fresh-eyes review (2026-09-14, adversarial agent on the full diff)
+
+Eight findings, all triaged; resolutions in the review-fixes commit and
+research.md §Review amendments:
+
+1. **HIGH, verified — seat-class span entirely unguarded** (three
+   surviving mutants: drop `.instrument`, swap `as_str` arms, discard
+   the class at registration). FIXED: dedicated capture test
+   `tests/seat_class_log.rs` (own binary — tracing's process-global
+   callsite cache races parallel scoped subscribers; first draft in the
+   shared binary flaked exactly that way) pins registration + exchange
+   lines carrying the DECLARED value, both classes. Post-commit mutate
+   cycles below. ACCEPTED sub-gap, documented in plugins.md: core
+   dispatch's bench warning fires below the wrapper and carries no
+   class.
+2. **MED-HIGH, verified — shared-entry semantics had zero coverage**
+   (every test was single-kitty; only the breaker test used the
+   budgeted path). FIXED: `one_shared_entry_advises_two_kitties` (50
+   ticks, per-kitty attribution, one exchange per kitty per tick) and
+   `a_shared_entry_cools_down_for_both_kitties` (shared Dead state:
+   sibling doesn't exchange against a tainted channel; shared
+   recovery). Budgeted-path mutex contention under abandoned threads
+   remains exercised only by the breaker test — accepted, inherited
+   script-transport shape.
+3. **MED, verified — io-thread-spawn-failure path killed the child but
+   not its group.** FIXED: same killpg lines as Drop.
+4. **MED, verified — process_group(0) detached plugins from SIGTERM**
+   (only SIGINT triggered graceful shutdown; supervisors orphan plugin
+   groups). FIXED: main.rs handles SIGTERM alongside SIGINT (unix).
+5. **MED, verified — TooLarge/Desynced teardown charged a 20-tick
+   cooldown for a provably-clean channel** (reply consumed, connection
+   dropped; the script rationale doesn't transfer — no stream exists).
+   FIXED: no taint for either; only TimedOut/ChannelGone tear down.
+   Contract, data-model, docs tables amended; tests rewritten to the
+   no-cooldown contract (the old cooldown assertions are the rule-6
+   red: they fail against the new code by construction).
+6. **LOW-MED, plausible — reqwest's equal timeout racing the engine
+   deadline** (a miss classified Transport/no-taint instead of
+   TimedOut). FIXED: client timer = 2× deadline; engine always wins.
+7. **LOW, verified — client-build failure left Running over a dead
+   thread** (one wasted mis-classified decision). FIXED: io_loop logs
+   and drops the channel without sending → first exchange reads
+   ChannelGone → immediate cooldown.
+8. **LOW, verified — example-brain test leaked python3 on panic.**
+   FIXED: KillOnDrop guard. (The grandchild pid-reuse note is a
+   false-RED direction — accepted.)
+
+Reviewer confirmed sound: killpg-before-reap ordering, non-200 body
+handling, redirect-guard non-vacuity, seed-draw ordering, SC-005
+structure (`Config.plugins` never serializes, so a remote endpoint
+can't learn a sibling's URL), docs-locator mutant behavior. Doc nit
+(demo comment "rest" vs idle) fixed.
+
 
 Every mutate cycle: prediction first, observed outcome after. All via
 `scripts/mutate.sh --expect` unless a stated reason says hand-rolled.

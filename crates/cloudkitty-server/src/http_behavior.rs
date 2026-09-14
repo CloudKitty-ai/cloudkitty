@@ -13,12 +13,13 @@
 //!
 //! Failure semantics, in one line each (contracts/http-transport.md):
 //! - non-200 status (redirects are never followed), refused/reset/DNS
-//!   failure, garbage or rejected 200 body -> failed proposal; the next
-//!   exchange proceeds — HTTP is stateless, there is no stream to resync;
-//! - missed deadline, oversized body, or a mis-correlated envelope ->
-//!   failed proposal AND the exchange channel is torn down (a late
-//!   in-flight reply could otherwise sit in it and answer the *next*
-//!   decision); a fresh thread is built after `relaunch_cooldown_ticks`.
+//!   failure, garbage/oversized/mis-correlated/rejected reply -> failed
+//!   proposal; the next exchange proceeds — HTTP is stateless, the one
+//!   reply was consumed, there is no stream to resync;
+//! - missed deadline (or a dead exchange thread) -> failed proposal AND
+//!   the exchange channel is torn down (only then can a late in-flight
+//!   reply sit in it and answer the *next* decision); a fresh thread is
+//!   built after `relaunch_cooldown_ticks`.
 //!
 //! One shared behavior may advise several kitties: the mutex serializes
 //! exchanges (the spec-016 shared-plugin semantics and its documented
@@ -114,10 +115,14 @@ struct IoReply {
 /// The exchange thread's whole life: one blocking POST per request, results
 /// handed back over the reply channel. It owns the client, so the deciding
 /// thread never blocks on network I/O directly — it waits on the channel
-/// with a deadline instead. The client's own request timeout (same
-/// deadline) is the thread's self-unblock: an in-flight request on a
-/// torn-down channel dies there, the bounded worst case.
+/// with a deadline instead. The client's own request timeout is the
+/// thread's self-unblock, set to TWICE the exchange deadline so the
+/// engine's `recv_timeout` always fires first and a deadline miss is
+/// always classified `TimedOut` (never a racing client-side `Transport`
+/// error — review 2026-09-14 finding 6); an in-flight request on a
+/// torn-down channel dies at that doubled bound, the bounded worst case.
 fn io_loop(
+    name: String,
     url: reqwest::Url,
     timeout_ms: u64,
     requests: mpsc::Receiver<IoRequest>,
@@ -129,14 +134,17 @@ fn io_loop(
     // surfaces as its status and fails the proposal.
     let client = reqwest::blocking::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
-        .timeout(Duration::from_millis(timeout_ms))
+        .timeout(Duration::from_millis(timeout_ms.saturating_mul(2).max(1)))
         .build();
     let client = match client {
         Ok(client) => client,
-        // No client means no exchanges served; the deciding side sees the
-        // channel disconnect and rebuilds after the cooldown.
+        // No client means no exchanges can ever be served: log why and
+        // return WITHOUT sending — dropping the channel halves makes the
+        // very first exchange fail as ChannelGone (teardown + cooldown),
+        // instead of a build error masquerading as a clean per-tick
+        // transport failure over a dead thread (review finding 7).
         Err(error) => {
-            let _ = replies.send(Err(error.to_string()));
+            tracing::warn!(plugin = %name, %error, "http plugin client failed to build");
             return;
         }
     };
@@ -209,11 +217,11 @@ enum HttpFailure {
     /// A 200 body that was not a well-formed envelope.
     BadEnvelope(serde_json::Error),
     /// The envelope answers a different decision — a proxy, a cache, a
-    /// stale worker. The channel is unaccounted for.
+    /// stale worker. Consumed and discarded; the channel stays accounted.
     Desynced { got_tick: u64, got_kitty: KittyId },
     /// The proposal inside a well-correlated envelope failed the gate.
     Rejected(ProposalError),
-    /// The body exceeded `reply_max_bytes`.
+    /// The body exceeded `reply_max_bytes`; read stopped at the cap.
     TooLarge { limit: usize },
     /// No reply within `exchange_timeout_ms`; a late answer may still be
     /// in flight toward this channel.
@@ -240,9 +248,10 @@ impl HttpBehavior {
         let (request_tx, request_rx) = mpsc::channel();
         let (reply_tx, reply_rx) = mpsc::channel();
         let url = self.url.clone();
+        let name = self.name.clone();
         std::thread::Builder::new()
             .name(format!("plugin-http-{}", self.name))
-            .spawn(move || io_loop(url, timeout_ms, request_rx, reply_tx))?;
+            .spawn(move || io_loop(name, url, timeout_ms, request_rx, reply_tx))?;
         Ok(HttpChannel {
             request_tx,
             reply_rx,
@@ -422,19 +431,26 @@ impl Behavior for HttpBehavior {
                         tracing::warn!(plugin = %self.name, kitty, %error, "proposal rejected");
                         false
                     }
+                    // Desync and oversize do NOT taint here, deliberately
+                    // unlike script (review 2026-09-14 finding 5): the one
+                    // reply was consumed and its connection dropped, so the
+                    // channel is provably empty — there is no stream to
+                    // resync, and tearing down would charge a cooldown for
+                    // a failure the next independent exchange has already
+                    // escaped. One verbose LLM reply costs one tick.
                     HttpFailure::Desynced {
                         got_tick,
                         got_kitty,
                     } => {
                         tracing::warn!(
                             plugin = %self.name, kitty, tick = now, got_tick, got_kitty,
-                            "http plugin reply desynced; tearing the exchange channel down"
+                            "proposal rejected: reply answers a different decision"
                         );
-                        true
+                        false
                     }
                     HttpFailure::TooLarge { limit } => {
-                        tracing::warn!(plugin = %self.name, kitty, limit, "http plugin reply exceeded reply_max_bytes; tearing the exchange channel down");
-                        true
+                        tracing::warn!(plugin = %self.name, kitty, limit, "proposal rejected: reply exceeded reply_max_bytes");
+                        false
                     }
                     HttpFailure::TimedOut { deadline_ms } => {
                         tracing::warn!(

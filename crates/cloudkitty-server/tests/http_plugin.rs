@@ -437,14 +437,25 @@ fn the_documented_example_brain_drives_a_kitty() {
     use std::io::BufRead;
     let script = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../docs/examples/demo_http_brain.py");
-    let mut brain = std::process::Command::new("python3")
-        .arg(script)
-        .arg("127.0.0.1:0")
-        .stdout(std::process::Stdio::piped())
-        .spawn()
-        .expect("python3 runs the example");
+    // Killed on drop even when an assertion below panics — a leaked
+    // python3 would outlive the test run (review 2026-09-14 finding 8).
+    struct KillOnDrop(std::process::Child);
+    impl Drop for KillOnDrop {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+    let mut brain = KillOnDrop(
+        std::process::Command::new("python3")
+            .arg(script)
+            .arg("127.0.0.1:0")
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("python3 runs the example"),
+    );
     let mut line = String::new();
-    std::io::BufReader::new(brain.stdout.take().expect("stdout piped"))
+    std::io::BufReader::new(brain.0.stdout.take().expect("stdout piped"))
         .read_line(&mut line)
         .expect("the example prints its address");
     let url = line
@@ -466,8 +477,6 @@ fn the_documented_example_brain_drives_a_kitty() {
             "the example brain's decisions are applied and attributed"
         );
     }
-    let _ = brain.kill();
-    let _ = brain.wait();
 }
 
 // ---------------------------------------------------------------- US2 ----
@@ -597,48 +606,36 @@ fn a_refusing_endpoint_is_a_per_tick_fallback() {
     assert_eq!(world.tick, 5, "every tick completes");
 }
 
-/// An oversized body fails at the cap and tears the channel down: no
-/// exchange is attempted during the cooldown window.
+/// An oversized body fails at the cap WITHOUT a cooldown (review
+/// 2026-09-14 finding 5): the reply was consumed and its connection
+/// dropped, so the channel is provably clean — one verbose reply costs
+/// one tick, and the next exchange proceeds.
 #[test]
-fn an_oversized_reply_fails_at_the_cap_and_cools_down() {
+fn an_oversized_reply_fails_at_the_cap_without_cooldown() {
     let stub = stub::spawn(|_request| stub::Reply::raw(200, vec![b'x'; 4096]));
     let (mut world, registry, config) = world_with_remote(&stub.url, SeatClass::Mind, |config| {
         config.behavior.reply_max_bytes = 512;
-        config.behavior.relaunch_cooldown_ticks = 3;
     });
 
-    assert_eq!(
-        tick_provenance(&mut world, &registry, &config),
-        Provenance::FallbackTaken,
-        "over the cap is a failed proposal"
-    );
-    assert_eq!(stub.hits.load(Ordering::SeqCst), 1);
-    // Ticks 1 and 2 sit inside the cooldown: fallback with no exchange.
-    for _ in 0..2 {
+    for expected_hits in 1..=3usize {
         assert_eq!(
             tick_provenance(&mut world, &registry, &config),
-            Provenance::FallbackTaken
+            Provenance::FallbackTaken,
+            "over the cap is a failed proposal"
+        );
+        assert_eq!(
+            stub.hits.load(Ordering::SeqCst),
+            expected_hits,
+            "an oversized reply does not cost a cooldown; the next exchange proceeds"
         );
     }
-    assert_eq!(
-        stub.hits.load(Ordering::SeqCst),
-        1,
-        "a torn-down channel does not exchange during cooldown"
-    );
-    // Tick 3: the channel is rebuilt and asks again.
-    tick_provenance(&mut world, &registry, &config);
-    assert_eq!(
-        stub.hits.load(Ordering::SeqCst),
-        2,
-        "rebuilt after cooldown"
-    );
 }
 
 /// A mis-correlated envelope (wrong tick echo — a proxy cache, a stale
-/// worker) is discarded and tears the channel down; a stale-but-legal
-/// proposal is never applied.
+/// worker) is discarded WITHOUT a cooldown: consumed reply, clean channel,
+/// and a stale-but-legal proposal is still never applied.
 #[test]
-fn a_wrong_echo_is_discarded_and_tears_the_channel_down() {
+fn a_wrong_echo_is_discarded_without_cooldown() {
     let stub = stub::spawn(|request| {
         let body = serde_json::json!({
             "tick": request.tick + 1,
@@ -647,22 +644,20 @@ fn a_wrong_echo_is_discarded_and_tears_the_channel_down() {
         });
         stub::Reply::raw(200, serde_json::to_vec(&body).unwrap())
     });
-    let (mut world, registry, config) = world_with_remote(&stub.url, SeatClass::Mind, |config| {
-        config.behavior.relaunch_cooldown_ticks = 3;
-    });
+    let (mut world, registry, config) = world_with_remote(&stub.url, SeatClass::Mind, |_| {});
 
-    assert_eq!(
-        tick_provenance(&mut world, &registry, &config),
-        Provenance::FallbackTaken
-    );
-    for _ in 0..2 {
-        tick_provenance(&mut world, &registry, &config);
+    for expected_hits in 1..=3usize {
+        assert_eq!(
+            tick_provenance(&mut world, &registry, &config),
+            Provenance::FallbackTaken,
+            "a wrong echo is never applied"
+        );
+        assert_eq!(
+            stub.hits.load(Ordering::SeqCst),
+            expected_hits,
+            "a discarded desync does not cost a cooldown"
+        );
     }
-    assert_eq!(
-        stub.hits.load(Ordering::SeqCst),
-        1,
-        "desync tears the channel down for the cooldown window"
-    );
 }
 
 /// US2-AS3: a correct answer arriving after the deadline is never applied —
@@ -785,4 +780,101 @@ async fn budget_timeouts_bench_the_kitty_exactly_as_for_a_script_advisor() {
         registry.is_benched(kitty, world.tick),
         "three budget strikes bench the kitty (spec 014 breaker, transport-agnostic)"
     );
+}
+
+// ---------------------------------------------- review guards (T032) ----
+
+/// One shared entry advising two kitties (the spec-016 shared-advisor
+/// semantics over HTTP): the envelope's kitty_id echo attributes each
+/// correctly, one exchange per kitty per tick.
+#[test]
+fn one_shared_entry_advises_two_kitties() {
+    let stub = stub::spawn(|request| stub::Reply::envelope(request, legal_proposal(request.tick)));
+    let mut config = test_config();
+    config.kitties[0].behavior = "remote".into();
+    config.kitties[1].behavior = "remote".into();
+    let config = Arc::new(config);
+    let behavior = HttpBehavior::new("remote", reqwest::Url::parse(&stub.url).unwrap());
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register(
+        "remote",
+        Arc::new(SeatClassed::new(Arc::new(behavior), SeatClass::Mind)),
+    );
+    let mut world = World::generate(&config);
+    let (first, second) = (config.kitties[0].id, config.kitties[1].id);
+
+    for _ in 0..50 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        for id in [first, second] {
+            assert_eq!(
+                driven.report.record(id).expect("decides").provenance,
+                Provenance::PolicyMade,
+                "both kitties sharing one entry are advised and attributed"
+            );
+        }
+    }
+    assert_eq!(
+        stub.hits.load(Ordering::SeqCst),
+        100,
+        "one exchange per kitty per tick"
+    );
+}
+
+/// A shared entry's Dead state is shared: one kitty's timeout taints the
+/// channel for its sibling in the same tick (no exchange against a
+/// tainted channel), and both recover together after the cooldown.
+#[test]
+fn a_shared_entry_cools_down_for_both_kitties() {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let counter = calls.clone();
+    let stub = stub::spawn(move |request| {
+        let call = counter.fetch_add(1, Ordering::SeqCst);
+        let reply = stub::Reply::envelope(request, legal_proposal(request.tick));
+        if call == 0 {
+            reply.after_ms(400)
+        } else {
+            reply
+        }
+    });
+    let mut config = test_config();
+    config.kitties[0].behavior = "remote".into();
+    config.kitties[1].behavior = "remote".into();
+    config.behavior.exchange_timeout_ms = 150;
+    config.behavior.relaunch_cooldown_ticks = 3;
+    let config = Arc::new(config);
+    let behavior = HttpBehavior::new("remote", reqwest::Url::parse(&stub.url).unwrap());
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register(
+        "remote",
+        Arc::new(SeatClassed::new(Arc::new(behavior), SeatClass::Mind)),
+    );
+    let mut world = World::generate(&config);
+    let (first, second) = (config.kitties[0].id, config.kitties[1].id);
+
+    let driven = drive_tick(&mut world, &registry, &config);
+    for id in [first, second] {
+        assert_eq!(
+            driven.report.record(id).expect("decides").provenance,
+            Provenance::FallbackTaken
+        );
+    }
+    assert_eq!(
+        stub.hits.load(Ordering::SeqCst),
+        1,
+        "the sibling does not exchange against a tainted channel"
+    );
+    for _ in 0..2 {
+        drive_tick(&mut world, &registry, &config);
+    }
+    assert_eq!(stub.hits.load(Ordering::SeqCst), 1, "shared cooldown");
+    // Let the stub's slow first reply fully elapse, then both recover.
+    std::thread::sleep(Duration::from_millis(500));
+    let driven = drive_tick(&mut world, &registry, &config);
+    for id in [first, second] {
+        assert_eq!(
+            driven.report.record(id).expect("decides").provenance,
+            Provenance::PolicyMade,
+            "recovery is shared and automatic"
+        );
+    }
 }
