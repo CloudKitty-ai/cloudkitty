@@ -38,3 +38,7 @@
   keys) are the operator-facing contract of spec 016, not implementation.
 - ARC BANKED 2026-09-11 (owner): spec complete through clarify; resume at
   `/speckit-plan` after the groom/cuddle reprice spec.
+- RE-VALIDATED 2026-09-13 after the design-doctrine fold (rules 6/10 →
+  FR-015/FR-016, scope-fence assumption, bench edge case): still 16/16.
+  Doctrine check per CLAUDE.md rule 8 recorded in the spec's
+  Clarifications (Session 2026-09-13).

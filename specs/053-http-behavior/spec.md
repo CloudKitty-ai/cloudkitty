@@ -19,6 +19,27 @@
   re-acceptance with its mitigation documented. The BACKLOG entry closes
   entirely with this feature.
 
+### Session 2026-09-13 (design-doctrine check, CLAUDE.md rule 8)
+
+Checked against `experiments/DESIGN-DOCTRINE.md` (all ten rules banked
+@ 30b6d54). Rules 6 and 10 change choices; recorded per rule 8:
+
+- Q: Doctrine rule 6 classifies every seat as scripted (a rule a person
+  wrote) or a mind (a trained policy or an LLM) — but remote code cannot
+  be read. Where is the class declared? → A: In the plugin entry itself:
+  a remote entry MUST declare scripted-vs-mind, no default (FR-015).
+- Q: Do a mind seat's Article IV fallback turns count as the mind's own
+  rows (rules 6/10 — the fallback rule deciding from the dealt seed is a
+  rule a person wrote)? → A: No. Fallback turns are scripted rows
+  regardless of the seat's declared class and are excluded from a mind
+  seat's lineage rows; the FR-008 provenance distinction is the marker
+  (FR-016).
+- Q: Does 053 fold the three-tier fallback chain (LLM → local model →
+  scripted)? → A: No (owner ruling 2026-09-13, relayed): the chain is
+  deferred, bundled with the distress-gated intervention spec, to the
+  LLM-seat sitting after the Gen 1 reseat. 053 keeps the existing
+  Article IV budget/breaker/scripted-fallback shape (see Assumptions).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A remote service drives a kitty (Priority: P1)
@@ -197,6 +218,9 @@ actual meaning.
 - A world with only script plugins configured → behaves exactly as before
   this feature; a world with no plugins → byte-identical to the pre-feature
   build, zero network activity.
+- A declared-mind remote seat spends a stretch benched by the circuit
+  breaker → every turn in the bench window is a fallback row: scripted,
+  never lineage; the seat's declaration does not launder them (FR-016).
 - Worlds with remote plugins are outside the Article V determinism
   guarantee, exactly as script-plugin worlds already are; everything around
   the advisor (seeds dealt, fallbacks, resolution) stays deterministic.
@@ -288,6 +312,26 @@ actual meaning.
   it, and no code change is made for it — so the BACKLOG entry closes with
   this feature.
 
+**Seat classification (design doctrine rules 6 & 10; User Stories 1–2)**
+
+- **FR-015**: Every remote plugin entry MUST declare whether the advisor
+  behind the endpoint is scripted (a rule a person wrote) or a mind (a
+  trained policy or an LLM), with no default — remote code cannot show
+  which it is, so an undeclared remote entry is a startup error naming the
+  entry. A script plugin entry MAY carry the same declaration and defaults
+  to scripted (today's presumption; existing configs stay valid unchanged).
+  The declared class MUST be observable wherever the advisor's decisions
+  are attributed, so corpus and lineage tooling can classify rows without
+  reading the server's config; the declaration is a server-owned plugin
+  field like the rest of the entry (FR-009 — never served).
+- **FR-016**: An Article IV fallback turn is a scripted turn regardless of
+  the seat's declared class: the fallback rule deciding from the kitty's
+  dealt seed is a rule a person wrote. Fallback rows are therefore excluded
+  from a mind seat's lineage rows, and the seat's declaration never
+  reclassifies them. The FR-008 provenance distinction (applied vs
+  fallback vs idled) is the marker this exclusion keys on; no new marking
+  surface is introduced.
+
 ### Key Entities
 
 - **Remote plugin entry**: a plugin declaration whose transport is an
@@ -354,6 +398,13 @@ actual meaning.
   request per decision and reads its one response; correlation is still
   verified by the envelope echo even where the transport appears to
   guarantee it — proxies and middleboxes are why the rule exists.
+- **Article IV's shape is frozen this sitting.** The three-tier fallback
+  chain (LLM → local model → scripted) and the distress-gated intervention
+  spec are deferred, bundled together, to the LLM-seat sitting after the
+  Gen 1 reseat (owner ruling 2026-09-13; evidence and design note in
+  `BACKLOG.md` §Distress-gated intervention). 053 extends who can speak to
+  the existing budget/breaker/scripted-fallback stack; it does not reshape
+  it.
 - **Nothing deploys from this arc.** The serving deployment runs no
   plugins; the fog shakeout, its arms, and the box are untouched (house
   rule: nothing deploys, never tag).
