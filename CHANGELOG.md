@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **The shipped-config sweeps skip files git ignores.** Both sweep
+  tests (core and rl) walk the filesystem, so a lab checkout's
+  gitignored 2.x record configs turned them red locally while CI was
+  green; they now subtract what `git check-ignore` reports.
+  Untracked-but-not-ignored files stay in scope (new experiment output
+  loads on the current engine by default), and without a usable git
+  nothing is filtered, so CI behavior is unchanged. Marker-free:
+  test-only, no engine, config, or schema change. (#372)
+
 - **Validation: the groom charm floor is bounded by the drip tier.**
   Configs where `groom_cuddle_floor` exceeds the larger of
   `rest_drip_relief` and `cosleep_drip_relief` now fail to load —
