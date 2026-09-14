@@ -206,6 +206,40 @@ fn legal_proposal(tick: u64) -> serde_json::Value {
 
 // ---------------------------------------------------------------- US1 ----
 
+/// FR-001 through the production door: a `[plugins]` url entry registered
+/// by `register_plugin_behaviors` (not a hand-built behavior) drives a
+/// kitty — config alone selects the remote transport.
+#[test]
+fn a_url_entry_registered_from_config_drives_a_kitty() {
+    let stub = stub::spawn(|request| stub::Reply::envelope(request, legal_proposal(request.tick)));
+    let mut config = test_config();
+    config.kitties[0].behavior = "remote".into();
+    let config = Arc::new(config);
+    let kitty = config.kitties[0].id;
+
+    let plugins: cloudkitty_server::PluginsConfig = toml::from_str(&format!(
+        "[plugins.remote]\nurl = {:?}\nclass = \"mind\"\n",
+        stub.url
+    ))
+    .unwrap();
+    let mut registry = BehaviorRegistry::with_builtins();
+    cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins).unwrap();
+
+    let mut world = World::generate(&config);
+    for _ in 0..5 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        assert_eq!(
+            driven
+                .report
+                .record(kitty)
+                .expect("kitty decides")
+                .provenance,
+            Provenance::PolicyMade,
+            "the endpoint's decision is attributed through the config-registered transport"
+        );
+    }
+}
+
 /// SC-002: a well-behaved endpoint drives its kitty for a full in-world day
 /// (600 ticks), every decision applied and attributed to the advisor.
 #[test]
