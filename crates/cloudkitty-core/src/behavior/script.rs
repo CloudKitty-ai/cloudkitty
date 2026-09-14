@@ -134,13 +134,18 @@ struct PluginChild {
 impl Drop for PluginChild {
     fn drop(&mut self) {
         // Kill-and-reap so a replaced or abandoned process never lingers as
-        // a zombie; a plugin's death must cost nothing but cleverness. The
-        // kill closes the pipes, which unblocks the I/O thread; the channel
-        // halves dropping right after tell it to exit. The thread is
-        // detached, never joined: a grandchild of the plugin could inherit
-        // the stdout pipe and hold it open indefinitely, and one detached
-        // thread per killed process -- gone the moment the stream closes --
-        // is the bounded worst case.
+        // a zombie; a plugin's death must cost nothing but cleverness. On
+        // unix the WHOLE PROCESS GROUP dies (spec 053 FR-012, 016 review
+        // residual 1): the child was spawned as its own group leader, so a
+        // grandchild that inherited the stdout pipe dies with it, the
+        // pipes close, and the detached I/O thread frees -- because the
+        // group is gone, not merely the direct child. killpg goes first,
+        // while the pid is unreaped and therefore still valid as a group
+        // id; kill+wait then reaps the leader.
+        #[cfg(unix)]
+        unsafe {
+            let _ = libc::killpg(self.child.id() as libc::pid_t, libc::SIGKILL);
+        }
         let _ = self.child.kill();
         let _ = self.child.wait();
     }
@@ -201,13 +206,22 @@ impl ScriptBehavior {
     }
 
     fn spawn_child(&self) -> std::io::Result<PluginChild> {
-        let mut child = Command::new(&self.command)
+        let mut command = Command::new(&self.command);
+        command
             .args(&self.args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             // The author's diagnostics belong in the server log.
-            .stderr(Stdio::inherit())
-            .spawn()?;
+            .stderr(Stdio::inherit());
+        // Its own process group (unix), so the kill path can end the whole
+        // group: a grandchild holding our stdout pipe must die with the
+        // plugin, or it strands the detached I/O thread (spec 053 FR-012).
+        #[cfg(unix)]
+        {
+            use std::os::unix::process::CommandExt;
+            command.process_group(0);
+        }
+        let mut child = command.spawn()?;
         let stdin = child.stdin.take().expect("stdin was piped");
         let stdout = BufReader::new(child.stdout.take().expect("stdout was piped"));
         let (request_tx, request_rx) = mpsc::channel();
@@ -553,5 +567,58 @@ mod tests {
             started.elapsed() < Duration::from_secs(30),
             "drop is prompt"
         );
+    }
+
+    /// Residual 1 of the 016 review (spec 053 FR-012): killing a plugin
+    /// must end its whole process group. sh backgrounds a sleeping
+    /// grandchild (which inherits the plugin's stdout AND stderr), echoes
+    /// the grandchild's pid as its one "reply", then blocks; after the
+    /// drop, the grandchild itself must be gone. Under a child-only kill
+    /// the grandchild sleeps on, holding the pipes — which also makes the
+    /// TEST HARNESS wait out the sleep (cargo waits for the inherited
+    /// stderr pipe to close), so the sleep is kept short: the un-fixed
+    /// red is a 30s run ending in a clean assertion failure, and the
+    /// harness-hang is itself the stranding bug in miniature.
+    #[cfg(unix)]
+    #[test]
+    fn the_kill_ends_the_whole_process_group() {
+        let behavior = ScriptBehavior::new(
+            "groupkill",
+            "/bin/sh",
+            vec![
+                "-c".into(),
+                "sleep 30 & echo $!; read line; read line2".into(),
+            ],
+        );
+        let child = behavior.spawn_child().expect("sh spawns");
+        child
+            .request_tx
+            .send(IoRequest {
+                line: "{}".to_string(),
+                max_bytes: 65536,
+            })
+            .expect("io thread accepts work");
+        let line = child
+            .reply_rx
+            .recv_timeout(Duration::from_secs(10))
+            .expect("the pid line arrives")
+            .expect("stdout is readable");
+        let grandchild: i32 = String::from_utf8_lossy(&line)
+            .trim()
+            .parse()
+            .expect("sh echoed its grandchild's pid");
+
+        drop(child);
+
+        // kill(pid, 0) probes liveness; the group kill must take the
+        // grandchild with it, bounded — a clean red, never a hang.
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        while unsafe { libc::kill(grandchild, 0) } == 0 {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "the grandchild survives the kill: the process group was not ended"
+            );
+            std::thread::sleep(Duration::from_millis(50));
+        }
     }
 }

@@ -59,6 +59,24 @@ Every mutate cycle: prediction first, observed outcome after. All via
 
 ## Rule-6 sort — the one existing-behavior change (T024)
 
-Filled at the US4 sitting, before running:
-- must-go-red: (pending T025)
-- must-stay-green: (pending)
+Sorted before running, the kill path change (`process_group(0)` +
+`killpg`):
+
+- **must-go-red** (against today's single `child.kill()`): the new
+  `the_kill_ends_the_whole_process_group` — sh backgrounds a sleeping
+  grandchild, echoes its pid, blocks; after `drop(child)` the grandchild
+  must be ESRCH within 5s. Prediction: red at "the grandchild survives
+  the kill" (a clean assertion failure, not a hang — the poll is
+  bounded), because kill() signals only the direct child.
+- **must-stay-green** (re-read, not just re-run): script.rs unit tests
+  (`a_decision_request_serializes_with_the_documented_shape` — no spawn;
+  `a_reply_cut_off_mid_line_is_an_io_death...` — sh exits by itself,
+  group kill moot; `a_silent_wedge_is_cut_off_by_the_exchange_deadline`
+  — asserts drop is PROMPT: killpg is synchronous signal delivery, no
+  new blocking); the whole plugin_e2e suite (python children, no
+  grandchildren holding stdout; relaunch cycles unaffected — the group
+  dies where the child alone died before); docs_examples (no processes).
+  Read: none of them observes a grandchild, so the only behavior that
+  moves is the one the red test pins.
+
+- (T025 red observed): see below after the run.
