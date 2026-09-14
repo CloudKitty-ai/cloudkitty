@@ -88,6 +88,25 @@ pub(super) fn default_rest_drip_relief() -> f32 {
     0.0
 }
 
+// Spec 054: the groom-other pricing curve. Pay per serviced groomed tick
+// is min(ceiling, floor + slope * delivered/groom_relief). Floor is the
+// charm tier, calibrated to the drip-rest ANCHOR tier (0.25) so grooming
+// a clean cat never out-earns drip-resting (owner rule 1, strict);
+// ceiling is 1/4 of the rest_mutual anchor per party (8.0/4 — rule 2's
+// 4x dominance); the slope reaches the ceiling exactly at half a groom
+// tick's delivered relief (x_sat = (2.0 - 0.25)/3.5 = 0.5).
+pub(super) fn default_groom_cuddle_floor() -> f32 {
+    0.25
+}
+
+pub(super) fn default_groom_cuddle_slope() -> f32 {
+    3.5
+}
+
+pub(super) fn default_groom_cuddle_ceiling() -> f32 {
+    2.0
+}
+
 // Spec 028: what "real cuddle need" means to the scripted responders
 // (groom-response and cosleep-routing share the one gate).
 pub(super) fn default_cuddle_real_threshold() -> f32 {

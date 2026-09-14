@@ -112,8 +112,15 @@ use sha2::{Digest, Sha256};
 /// the warm reading): a SETTLED friend's beam in reach is walked to for
 /// the cosleep on arrival; only an awake occupant's beam is not worth the
 /// walk -- re-pinned again (a0642777… was the review-3 pin).
+/// Spec 054 (2026-09-11): an INTENTIONAL dynamics move -- the groomer's
+/// cuddle pay is the delivered-relief curve (min(2.0, 0.25 + 3.5·x) per
+/// groomed tick) instead of the flat groom_cuddle_relief 15, so every
+/// groomer's cuddle trajectory moves from the world's first
+/// kitty-directed groom on (tick 119 on this seed) and the trajectories
+/// part -- re-pinned again (a5091adf… was the flag-13 pin). Justified
+/// red-first in specs/054-groom-reprice/redden-list.md.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "a5091adfd9e32ea677360a3bebeee6717fe5aea48e9b0aecf0b89f65ed3d23fa";
+    "a3fd38e57a13de811dbf2088c58d7af899074f6465b61ca6bff5293432724001";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -126,8 +133,9 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// again with the golden above (0bbb577f… was the T081 pin); T088: again
 /// (408dc1a7… was the T087 pin); T092: again (dc480760… was the T088 pin);
 /// review 3 finding 1: again (6d1acfe0… was the T092/T093 pin); flag 13:
-/// again (ab932287… was the review-3 pin).
-const STRIP_PIN_SPEC_049: &str = "7918bb2188f6deb3daa900967d30f336760b199b22970032e638b6b4493fdf84";
+/// again (ab932287… was the review-3 pin); spec 054: again, from the
+/// same repriced run as the golden above (7918bb21… was the flag-13 pin).
+const STRIP_PIN_SPEC_049: &str = "3c4e86cd8c72cad699dc3f3642cdb971d31f5b8d3c0172098637c2c33f9d8520";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.

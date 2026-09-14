@@ -1,0 +1,207 @@
+# Gen 2 inputs banked from the step-5 shakeout
+
+Written 2026-09-11, for review before Gen 2 design. Gen 1 scope is
+closed against all of it: the owner ruled the free-register question
+"do nothing for Gen 1" (verbatim: "For now let's go with option 3 (do
+nothing), I feel like we have enough moving parts here before we seat
+our gen 1 kitties without adding more speculative work"). Everything
+below is Gen 2 sitting material, none of it blocks the reseat.
+
+## The organizing finding: behavior persists when the world values it
+
+The shakeout's cleanest controlled contrast, no instrument between the
+reader and the claim: nothing rewards speaking, yet the fog arms held
+here-words at ~130–150/1k decisions through 9M PPO ticks while the
+nofog arm shed them (109 → 84/1k and falling). Same corpus, same
+leash, same reward — under fog a here-word informs a teammate who
+cannot see, and that information reaches team return through better
+decisions. Meanwhile every behavior whose value the world does NOT
+realize decayed: groom-other fell from the imitated ~13/1k to
+0.9–8.4/1k (fixed for Gen 1 by the spec-054 reprice), and the free
+register lives on entropy income and the lesson prior (mechanism
+settled 2026-09-11: entropy bonus on consequence-free heads, gated by
+KL affordability; the purr-rest / chirp-play mapping is amplified
+symmetry breaking from the frozen trunk, not communication — nobody
+routes on the words, approach 0.35–0.36 vs 0.49 want_cuddle).
+
+## The free register: hearable options (deferred whole)
+
+The digest already delivers all 15 words (kitty*.msg.purr.rate etc.,
+A5-verified for masked and visible speakers) — "hearable" needs no
+schema change, only a consequence. The ladder, as discussed:
+
+1. **Scripted listener rung** (law-class): a needs_driven cat hears
+   purr from an unseen friend and drifts toward it. Reads only the
+   digest (imitable); seeds corpus demonstrations; the natural sibling
+   of the banked cuddle_response / play_response rungs (whose trigger
+   fired in phase 2). Does not touch the "free register never
+   scripted" ruling — scripted cats would hear, never speak.
+2. **Purr conduction** (pricing, spec-054's class): proximity to a
+   purring cat pays a small cuddle drip. Anchors both sides through
+   team return with no reward term (F-018 layer 2 clean). Needs the
+   cuddle-economy doctrine applied — rider tier, no stacking with the
+   mutual tier — or a purr-pile is the next F-027-class attractor.
+3. **Do nothing; let Gen 2's world supply the value** — RULED for
+   Gen 1. Under hidden needs an honest state signal is information a
+   teammate cannot get otherwise, the same mechanism that anchored
+   here-words under fog. The risk to carry into the sitting: value
+   that is merely available has not been enough; the gradient has to
+   find it.
+
+Success metric already exists: `phase2_read.py`'s approach read with
+purr/chirp in the word list (run once 2026-09-11).
+
+**Revisit trigger for doctrine rules 5 and 6 (owner, 2026-09-13).**
+Rule 6 makes lineage rows the free register's only seed. Rule 5 makes
+a Gen 1 policy's rows an illegal read once Gen 2 hides the needs it
+decided on, and a policy cannot be re-recorded under a narrower view.
+Rule 7 now carries the resolution: where the world gives a word
+something to say, the register may start unseeded, from the entropy
+bonus and the scarcity, which is the contrast F-022 names as its own
+invalidator (F-022 was measured under global vision, where F-026
+found the channel redundant). If the Gen 2 free register stays silent
+under real scarcity, the gap is back and one of the two rules bends:
+a rule 5 carve-out for lineage rows (the word arrives without its
+cause, a known cost), or a second seed source in rule 6. Levers to
+try before bending either: give the register a fact no law-named
+word carries (Want* already covers hidden needs; candidates are a
+resource last seen under fog, the speaker's next move, a third cat's
+state); a positive-signaling loss on the message head, a training
+device under rule 1's outside-the-rule clause, carrying rule 7's cost
+if the world does not value the word. The owner expects some design
+assumptions to move before the sound-named words come alive.
+
+## Encouraging emergence without shaping — the levers, ranked
+
+1. **Design scarcity of information, not incentives for behavior.**
+   Hidden needs is fog's scale-up: once a friend's needs are hidden,
+   every honest signal becomes decision-relevant and the team reward
+   anchors it unshaped.
+2. **Prices as physics, not nudges.** Price states of the world
+   (warmth conducts, dirt exists), never behaviors (no bonus for
+   approaching). Spec 054 sits on the right side of the line.
+3. **Stage the leash.** The KL leash is the deliberate anti-emergence
+   force; a Gen 2 recipe could hold it early and release late (or
+   re-anchor to the policy's own earlier self), with the welfare stops
+   as the guardrail instead of the teacher pull.
+4. **Match horizons to the hoped-for behaviors.** γ 0.998 is a
+   ~500-tick horizon; reciprocity-class behaviors mature slower and
+   are invisible to the gradient regardless of value.
+5. **Vary the world, not the reward.** Episodes with different
+   scarcity profiles give niche behaviors episodes where they win.
+
+Counterweight, from this project's own record: exp-003's collapse and
+F-017's mixed arms are why demonstrations-plus-leash exists. The
+doctrine is a division of labor — reward stays team welfare only,
+demonstrations buy what is cheap to demonstrate, and the world's
+design is where to be opinionated.
+
+## Friend-in-fog pursuit: build at Gen 2 corpus collection (RULED by the owner 2026-09-13, "Defer to gen 2"; analysis of 2026-09-11 below)
+
+Owed before this sitting: a live read of unanswered from-the-fog
+calls per hour on the served Gen 1 roster, off the refusal stamp's
+`reason` field, so the cost of waiting is a number here.
+
+
+The cue-answer rungs (cuddle_response / play_response) are ruled
+wanted but deliberately NOT built for Gen 1. Timing rule, from the
+shakeout's own evidence: build a behavior when the world that values
+it exists — a behavior built earlier is leash-held, not
+reward-anchored, and decays (groom-other, 13 to 0.9/1k). Gen 1's
+world assigns pursuit near-zero marginal value (needs visible, roster
+dense: friend-in-view .80, nn 1.41 — an adjacent friend offers the
+identical mutual-tier relief with no travel), so a Gen 1 rung's
+demonstrations would be shed by PPO and need a reprice-style rescue.
+At Gen 2, hidden needs makes the call the only channel for a friend's
+state and the rung rides the mandatory corpus/prereg cycle at ~zero
+marginal process cost; the FR-036 cuddle-clause revisit travels with
+it. Cost of waiting: the Gen 1 serving period shows unanswered
+FROM-THE-FOG calls only — the minority slice; visible callers are
+answered at ~2x baseline (finding-4 revision, RESULTS.md @ aab284b).
+
+**Design constraint this places on Gen 2's world**: the world must
+actually deliver the scarcity that anchors pursuit — hidden needs at
+minimum, and the density/size question read against it — or the rung
+repeats the Gen 1 pattern. Verify with the fresh-start-conditioned
+response read (this week's instrument) before and after the rung
+lands.
+
+## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
+
+- World-size × radius screen; first data point = the shakeout's r-3
+  tolerance (policy holds welfare at pin−1 where the anchor degrades).
+- Hidden needs (the Gen 2 half of the fog split); F-026 deferred here;
+  F-035 waterline contagion input.
+- Rate-based A17 + config-aware declarations (#367's root fix) and the
+  scene-span instrument (blocks the uptake reads).
+- consent_line for needs_driven and empty-bowl early end (owner
+  shelvings, BACKLOG #368).
+- Social-grooming demand (corrected 2026-09-13, RESULTS.md
+  `groom_cells.py`; the earlier "row 0–1 slot bias = corpus density"
+  reading was wrong): all-policy rosters keep themselves clean
+  (self-groom ~2× the teacher), so the only dirt left for a friend to
+  groom is Biscuit's, and Biscuit's teacher never grooms anyone. A Gen
+  2 world that wants visible social grooming has to supply dirt the
+  self form cannot clear as fast (rule 8 variance, rule 2 physics),
+  and Biscuit's teacher needs a groom response if that seat is to
+  give bath as well as take it. For Gen 1 the owner ruled (2026-09-13)
+  Biscuit's non-grooming a declared trait: Biscuit gives play where
+  the others give bath, reciprocity in another currency. Decide the
+  two together: dirt the self form cannot clear makes a non-grooming
+  seat one fifth of the givers missing.
+- Critic compression rewatch (#365): the critic ranks correctly but
+  does not extrapolate down; matters if training enters new return
+  regimes.
+- Here-word emergence proof (the `announce_here = 0` no-seeding
+  control, the F-026 overturn test): DEFERRED here from step 7 (owner,
+  2026-09-13). The current recipe cannot run it fairly: the leash sums
+  KL over both heads, so a silent clone anchor pulls the message head
+  toward silence and a null reads as leash-held. Design it with the
+  free-register question above (message head off the leash, or an
+  entropy bonus on it, as a declared arm) so both contrasts run
+  against hidden needs in one pass.
+- Where personality lives (clarified with the owner 2026-09-13).
+  Every Gen 1 candidate is one roster-wide mind that drove all five
+  seats in self-play; it is playful in Biscuit's seat and needs-driven
+  elsewhere because it infers its seat from the world's fingerprint
+  (by-id rows, the neighbours' need patterns, its own need vector) and
+  copies that seat's teacher (matched-state read: Biscuit's seat keeps
+  playing at .48–.52 where the other seats play at .00–.09, teacher
+  .56 / .04–.08). Biscuit 2.0 was the same shape. So a mind seated
+  elsewhere becomes that seat's cat, and a roster change (a swapped cat,
+  reordered ids) scrambles the fingerprint the mind keys identity on;
+  nothing certifies that because the roster never changes within a
+  generation. The portable alternative, a trait vector in the
+  observation with training across trait draws (rule 8 variation, the
+  served roster as majority episode) and one parameterized teacher
+  (comfort line and need rates as its dials, dissolving the
+  playful / needs_driven split), is a schema change and Gen 2 material;
+  **RULED 2026-09-13 (owner): identity vectors are a GEN 2 member;
+  free time is GEN 3.** The Gen 2 block, self-only in the
+  observation: six need-rate multipliers, comfort as ticks of slack,
+  the consent line, and a per-source favourite weight vector (one-hot
+  the single-source case); one parameterized teacher (comfort line +
+  favourite, the consent gate on every partnered favourite) replaces
+  the playful / needs_driven split; the corpus samples trait draws
+  with the served roster as the majority episode (rule 8); a toml
+  change inside the trained region needs no retrain. Until Gen 3's
+  enjoyment economy lands, a favourite is one of the needs and is
+  valued through that need's relief (Biscuit's play today), so it is
+  world-anchored to that extent and leash-held beyond it (rule 7's
+  declared-personality carve-out); Gen 3 is where favourites outside
+  the needs get their value. Design detail on `ROADMAP.md` §free time,
+  "Teacher side" (the slack formulation, the Pumpkin case, the
+  per-cat scripted sweep as the pin procedure). The capacity
+  side of the question (does driving every seat cost the mind
+  capacity) is being measured on the B3 corpus (`fog-gen1-cert/PREREG.md`
+  §Capacity check).
+- Doctrine rule 5 view holes, fixed at the Gen 2 schema bump (moved
+  here from DESIGN-DOCTRINE.md 2026-09-13): the fog view still exposes
+  friend-record fields no rule reads (strip them as memory was); the
+  exploration rule follows a stop on a private route the observation
+  does not carry (add the direction to the waypoint as observation
+  cells). Until then nothing may read either. Becomes a hole the day
+  Gen 2 hides needs (Product, 2026-09-13): the groom-response
+  valuation reads the groomee's bath through `groom_cuddle_pay`
+  (`crates/cloudkitty-core/src/behavior/needs_driven.rs:426`), legal
+  while needs are visible.

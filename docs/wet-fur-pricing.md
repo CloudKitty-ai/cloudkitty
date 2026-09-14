@@ -119,8 +119,9 @@ Four seams, all behind the gate: the partnered-relief score
 reachable only from the Playful behavior, and its 1:1
 need-points-per-tile currency is a deliberate disclosed ruling), the
 groom response (declines only when exposure exceeds the scene's total
-value: the groomee's bath pressure plus the groomer's own expected
-`groom_cuddle_relief`), and the cosleep friend-pick (a companion whose
+value: the groomee's bath pressure plus the groomer's own expected pay —
+since spec 054 the delivered-relief curve `groom_cuddle_pay` at the
+groomee's current bath), and the cosleep friend-pick (a companion whose
 exposure exceeds the decider's cuddle pressure plus the companion's
 tier relief is skipped — the cat still naps, just not against wet fur).
 Every decline is a choice, never a refusal; legality is untouched

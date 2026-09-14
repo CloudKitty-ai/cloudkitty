@@ -69,6 +69,61 @@ fn excluded_dirs(root: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
+/// Drops the files git ignores (handover (e), 2026-09-13): a lab checkout
+/// carries gitignored record configs of earlier engine generations that no
+/// longer parse, and the exclusion manifest cannot cover them -- it asserts
+/// every named directory exists, and those records exist only on the lab
+/// machine. Untracked-but-NOT-ignored files stay in scope (the manifest
+/// header's rule: new experiment output loads on the current engine by
+/// default). If git is unavailable or errors, the list is left unfiltered,
+/// so CI behavior -- which only ever sees the tracked tree -- is unchanged.
+/// Known cost: check-ignore honors the machine's global excludes
+/// (core.excludesFile, .git/info/exclude), so a broad personal ignore rule
+/// shrinks a local sweep silently; CI, which filters nothing, is the
+/// backstop.
+fn drop_gitignored(root: &Path, files: &mut Vec<PathBuf>) {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let Ok(mut child) = Command::new("git")
+        .args(["check-ignore", "--stdin", "-z"])
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+    else {
+        return;
+    };
+    let mut input = Vec::new();
+    for f in files.iter() {
+        input.extend_from_slice(f.as_os_str().as_encoded_bytes());
+        input.push(0);
+    }
+    // The question is written from its own thread: past ~64KB of pipe
+    // traffic a write-everything-then-read protocol deadlocks (git stops
+    // draining stdin once its stdout pipe fills), and a deadlock here is
+    // an unkillable hang, never a red.
+    let mut stdin = child.stdin.take().unwrap();
+    let writer = std::thread::spawn(move || stdin.write_all(&input).is_ok());
+    let Ok(out) = child.wait_with_output() else {
+        let _ = writer.join();
+        return;
+    };
+    let asked_everything = writer.join().unwrap_or(false);
+    // check-ignore: 0 = some paths ignored, 1 = none; any other exit -- or
+    // a half-delivered question -- means the answer is unusable, and no
+    // filtering beats wrong filtering.
+    if !asked_everything || !matches!(out.status.code(), Some(0 | 1)) {
+        return;
+    }
+    let ignored: std::collections::HashSet<&[u8]> = out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|s| !s.is_empty())
+        .collect();
+    files.retain(|f| !ignored.contains(f.as_os_str().as_encoded_bytes()));
+}
+
 #[test]
 fn every_shipped_toml_loads_through_validation() {
     let root = repo_root();
@@ -82,6 +137,7 @@ fn every_shipped_toml_loads_through_validation() {
     }
     let excluded = excluded_dirs(&root);
     files.retain(|f| !excluded.iter().any(|dir| f.starts_with(dir)));
+    drop_gitignored(&root, &mut files);
     assert!(
         files.iter().any(|p| p.ends_with("cloudkitty.toml")),
         "the served config is in the sweep"
@@ -116,24 +172,35 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
 
     let sleep_min = a.durations.sleep.min as f32;
     let cuddle_min = a.durations.cuddle.min as f32;
-    // groom_cuddle_relief is TEMPORARILY absent from the rider loop: the
-    // served value is bumped to 2.0 (a pre-Gen-1 accommodation for frozen
-    // incumbents whose groom-for-cuddle habit predates 041 -- see
-    // experiments/groom-bump-handoff-2026-08-31.md), which deliberately
-    // finishes the mean need in one minimum groom. The exact pin below
-    // catches drift and goes red at the Gen 1 reseating revert (0.5), which
-    // must also restore the groom row to this loop (and its bath_min term).
+    // Spec 054: the flat groom_cuddle_relief (and its temporary 2.0 bump,
+    // handoff 2026-08-31) is retired -- the served toml is scrubbed of the
+    // key and the groomer is paid by the delivered-relief curve at engine
+    // defaults (deliberately unpinned: the defaults ARE the calibration,
+    // and pinning them would only add stamp-drift surface).
     assert!(
-        (a.groom_cuddle_relief - 2.0).abs() < f32::EPSILON,
-        "groom_cuddle_relief is {} -- the served value is pinned at the \
-         temporary 2.0 bump; if this is the Gen 1 reseating revert, restore \
-         the groom row to the rider loop (handoff 2026-08-31)",
-        a.groom_cuddle_relief
+        !text.contains("groom_cuddle_relief ="),
+        "the served toml must stay scrubbed of the retired flat dial"
     );
+    assert_eq!(a.groom_cuddle_floor, 0.25, "served = engine default floor");
+    assert_eq!(a.groom_cuddle_slope, 3.5, "served = engine default slope");
+    assert_eq!(
+        a.groom_cuddle_ceiling, 2.0,
+        "served = engine default ceiling"
+    );
+    // The groom row returns to the rider loop (the retirement discharges
+    // the handoff's restore note): the rider component of groom pay is the
+    // charm FLOOR -- above-floor income is delivered-dirt-bounded, not a
+    // rider -- and a minimum groom scene of floor ticks must not finish
+    // the mean need.
+    let bath_min = a.durations.bath.min as f32;
     for (name, per_scene) in [
         ("cosleep_drip_relief", a.cosleep_drip_relief * sleep_min),
         ("cosleep_mutual_relief", a.cosleep_mutual_relief * sleep_min),
         ("rest_drip_relief", a.rest_drip_relief * cuddle_min),
+        (
+            "groom_cuddle_floor (charm rider)",
+            a.groom_cuddle_floor * bath_min,
+        ),
     ] {
         assert!(
             per_scene < MEASURED_MEAN_CUDDLE_NEED,
@@ -153,4 +220,133 @@ fn the_served_cuddle_riders_are_partial_and_tier_ordered() {
         "co-sleep must keep a strictly positive edge over solo sleep"
     );
     assert!(a.rest_drip_relief < a.rest_mutual_relief, "rest tier order");
+}
+
+/// Spec 054 SC-006: the frozen evals/v2 and current evals/v3 worlds pin
+/// the retired flat `groom_cuddle_relief` -- they must keep loading
+/// BYTE-UNCHANGED through the recognised-but-inert legacy key (the sweep
+/// above already validates them; this guard pins that the legacy key is
+/// really present and really inert, so a future "clean up the dead key"
+/// pass cannot silently break the frozen suite).
+#[test]
+fn the_frozen_eval_suites_still_pin_the_legacy_groom_key_and_load() {
+    let root = repo_root();
+    let mut checked = 0;
+    for suite in ["evals/v2", "evals/v3"] {
+        for entry in std::fs::read_dir(root.join(suite)).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().is_none_or(|e| e != "toml")
+                || path.file_name().is_some_and(|n| n == "manifest.toml")
+            {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).unwrap();
+            assert!(
+                text.contains("groom_cuddle_relief"),
+                "{} lost its legacy pin -- frozen suites are never edited",
+                path.display()
+            );
+            let config: Config = toml::from_str(&text)
+                .unwrap_or_else(|e| panic!("{} no longer parses: {e}", path.display()));
+            config
+                .validate()
+                .unwrap_or_else(|e| panic!("{} no longer validates: {e}", path.display()));
+            // Inert: whatever the pin says, the pay is the curve's.
+            assert_eq!(
+                config.actions.groom_cuddle_pay(0.0),
+                config.actions.groom_cuddle_floor,
+                "{}: the legacy pin must not move the curve",
+                path.display()
+            );
+            checked += 1;
+        }
+    }
+    assert_eq!(checked, 12, "both suites fully swept (6 worlds each)");
+}
+
+/// Removes the self-test's scratch repo even when the test panics.
+struct RemoveOnDrop(PathBuf);
+impl Drop for RemoveOnDrop {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// Self-test for `drop_gitignored`, in a throwaway `git init` repo under
+/// the system temp dir: the sweep test runs concurrently in this binary
+/// and must never see the fixtures, and this checkout's own ignore rules
+/// must never shape the result. Three-way contract: a gitignored file is
+/// dropped; a TRACKED file survives even when an ignore rule matches it
+/// (check-ignore must consult the index); an untracked-but-not-ignored
+/// file survives (new experiment output is in scope by default). A bulk
+/// all-ignored batch rides along because past ~64KB of pipe traffic a
+/// naive write-then-read protocol deadlocks -- under that bug this test
+/// hangs rather than fails, which is still the only layer that can see
+/// it. If git itself is unusable the test skips: the filter is fail-open
+/// by design, and a git-less environment is the unfiltered world where
+/// the sweep behaves exactly as it did before the filter existed.
+#[test]
+fn the_filter_drops_gitignored_files_and_nothing_else() {
+    let scratch = std::env::temp_dir().join(format!(
+        "cloudkitty-sweep-selftest-core-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    let raw = scratch.join("raw");
+    std::fs::create_dir_all(&raw).unwrap();
+    std::fs::write(
+        scratch.join(".gitignore"),
+        "raw/\ntracked-but-ignored.toml\n",
+    )
+    .unwrap();
+    let ignored_file = raw.join("retired-generation.toml");
+    std::fs::write(&ignored_file, "cuddle_relief = 1.0 # retired 2.x key\n").unwrap();
+    let tracked = scratch.join("tracked-but-ignored.toml");
+    std::fs::write(&tracked, "# the index must win over the ignore rule\n").unwrap();
+    let untracked = scratch
+        .join("untracked-experiment-output.toml")
+        .to_path_buf();
+    std::fs::write(&untracked, "# untracked-not-ignored: in scope by default\n").unwrap();
+    let git = |args: &[&str]| {
+        std::process::Command::new("git")
+            .args(args)
+            .current_dir(&scratch)
+            .output()
+            .is_ok_and(|o| o.status.success())
+    };
+    if !git(&["init", "-q"]) {
+        eprintln!("skipping: git unusable here, and the filter is fail-open without it");
+        return;
+    }
+    // A developer's global excludes must not reach into the fixture repo.
+    assert!(git(&["config", "core.excludesFile", "/dev/null"]));
+    // Index-only: check-ignore consults the index, no commit needed; -f
+    // because git add itself refuses an ignore-matched path.
+    assert!(git(&[
+        "add",
+        "-f",
+        ".gitignore",
+        "tracked-but-ignored.toml"
+    ]));
+
+    let mut files = vec![ignored_file.clone(), tracked.clone(), untracked.clone()];
+    // check-ignore answers from patterns, so the bulk paths need not exist.
+    for i in 0..3000 {
+        files.push(raw.join(format!("bulk-{i}.toml")));
+    }
+    drop_gitignored(&scratch, &mut files);
+    assert!(
+        !files.contains(&ignored_file),
+        "the gitignored fixture must be dropped from the sweep"
+    );
+    assert!(
+        files.contains(&tracked),
+        "a tracked config survives the filter even when an ignore rule matches it"
+    );
+    assert!(
+        files.contains(&untracked),
+        "an untracked-but-not-ignored file survives the filter"
+    );
+    assert_eq!(files.len(), 2, "the bulk gitignored batch is fully dropped");
 }

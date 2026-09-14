@@ -27,10 +27,20 @@ registered before the candidate exists; scripted behaviors never
 leave the toolbox; the end state is the best world, not the most
 learned one. New, from this era's decisions:
 
-1. **Two-layer welfare gates** (owner, 2026-08-14): the scripted-
-   baseline hard floor never moves; each seating declares its own
-   budget vs the incumbent before instruments run. 0.002 is a noise
-   floor for reading parity, never a pass bar.
+1. **Two-layer welfare gates** (owner, 2026-08-14; reshaped
+   2026-09-13, doctrine rule 10): the floor is the scripted roster of
+   the same battery, seat-paired, plus the catastrophe gates; its
+   question is fixed, its number floats with the world it is measured
+   in. Each seating declares its trade before instruments run: what
+   it is for, the instrument that measures that benefit, and the
+   welfare it may cost, which is its own bar. The delta against the
+   incumbent at the same seat is a reading that charges that cost,
+   never a bar; when the incumbent cannot run in the new battery (a
+   schema wall, as at Fog Gen 1), the reading is taken live after the
+   seating against the incumbent's last record, with the world change
+   named as its confound, and only the catastrophe gates bound the
+   cost. 0.002 is a noise floor for reading parity, never a pass bar;
+   a result inside noise establishes nothing until replicated.
 2. **Seat-paired accounting** for trait-differentiated seats: every
    seat measures against the incumbent at the SAME seat. Absolute
    welfare comparison across trait structure is an accounting error.
@@ -185,6 +195,77 @@ never "the fog cap". Same class as the sticker corridor and F-023's
 threshold economics, all 20×20-composition numbers.
 
 ## Parking lot (trigger conditions, not dates)
+
+- **Preferred-behavior downtime ("free time") design — banked POST
+  GEN 2** (owner ruled 2026-09-12; design refined by the owner the
+  same day, superseding the additive-stock sketch). The CAPPED
+  PARTITION: the needs contribution to happiness tapers below
+  need = 10 (soft, not a hard cap — no gradient cliff), so the top
+  slice of the existing 0–100 headroom is purchasable only through
+  enjoyment behaviors, each on diminishing returns with a PER-SOURCE
+  satiation stock (rotation and variety come from satiation):
+  purring-the-STATE while settled/partnered (never the word — paying
+  the word destroys its measured honesty), a cat's trait-scaled
+  favorite activities, and HELPING A FRIEND with the friend's
+  favorites — the last is the jewel: traits are not observable, so
+  reward-anchored helping creates emergent pressure to model other
+  cats' preferences. Properties: bounded (no ceiling raise, Nash and
+  Article I untouched, cross-generation comparability), repurposes
+  the measured over-servicing grind (needs 10 -> 0 becomes ~worthless,
+  those ticks flow to the enjoyment economy), and creates gradient
+  exactly where returns are flat today (#365's zone) — signal via
+  enrichment, not hardship. Honest classification: an AMENDMENT to
+  the welfare definition rule 1 of `DESIGN-DOCTRINE.md` protects,
+  never an exception — and per-source persisted stocks are a
+  snapshot/break-class change, so it lands at a generation boundary
+  by doctrine rule 9. Trigger: after Gen 2 ships, or if free time is
+  promoted to a product pillar. **RULED 2026-09-13 (owner): free time
+  = GEN 3; the identity vectors below land in GEN 2 first
+  (`fog-gen1-shakeout/GEN2-INPUTS.md` §"Where personality lives").**
+  **Teacher side, folded in 2026-09-13 (owner)**: one parameterized
+  script replaces the playful / needs_driven split — per cat a
+  COMFORT LINE and a FAVOURITE ("do the favourite until a need passes
+  the line"; Biscuit = play at 30, a needs_driven cat = the line at 0;
+  sleep, cuddle, self-groom as other favourites), with Biscuit's
+  consent gate generalized to every partnered favourite (never
+  conscript a friend whose need is over the line; solo favourites need
+  no gate). The favourite is the source the cat enjoys, so under the
+  capped partition it is world-anchored (rule 7) where today Biscuit's
+  play is leash-held; and a favourite friends cannot see is the object
+  of the helping-a-friend pressure. The mind reads its own block as an
+  observation input (six need-rate multipliers, two lines, one
+  categorical favourite; self-only), trained across trait draws with
+  the served roster as the majority episode (rule 8), so a toml change
+  inside the trained region needs no retrain: the trait-vector
+  alternative in `fog-gen1-shakeout/GEN2-INPUTS.md` §"Where
+  personality lives". Per-need comfort weights stay open (the Biscuit
+  design note's w35 was withdrawn for the right reason). Owner's
+  Pumpkin case (2026-09-13): food is the scarcest resource and Pumpkin's
+  eat rises fastest, so a level-based line would need a lower value
+  for Pumpkin to hold welfare. Preferred fix: define comfort in TICKS
+  OF SLACK (line for need k = armed_k − c × rate_k), so one value per
+  cat means the same for every need and a fast-rising need gets
+  attention earlier by construction; a food-search scarcity term only
+  if the per-cat scripted sweep (the Biscuit comfort sweep's method,
+  read on all five needs, highest c holding roster parity) shows eat
+  failing at a slack the other needs hold. Favourite encoding: a float
+  per enjoyment source (the trait-scaled gain the engine applies;
+  one-hot is the single-source case), teacher's favourite = top weight.
+  Rider floor (riders cannot relieve a need below F) considered
+  2026-09-12 and declined: it overlaps this design's window at T. If
+  revived, F = T with one taper band, specified together with this
+  design.
+  Interim (no ruling needed): personality expression WITHOUT payment —
+  trait-conditioned policies + corpus demonstrations; downtime is a
+  gradient-quiet zone (reward flat at the welfare ceiling), so
+  unpaid variety persists there, per the purr/chirp evidence.
+  Companion instrument, live NOW, not banked: the downtime metric
+  (share of cat-ticks with all six needs below T) — baseline
+  2026-09-12: fog arms .63–.70 at T=20 vs anchor .36, nofog .90.
+  Side-effect to sequence deliberately: an enjoyment stock re-shapes
+  returns exactly where they are flat today (#365), part fix and
+  part confound. Full discussion: `fog-gen1-shakeout/GEN2-INPUTS.md`
+  and the DESIGN-DOCTRINE rule-1 walkthrough.
 
 - **Behavioural-collapse detector** (owner, flagged 2026-08-25; **v0
   BUILT + VALIDATED 2026-09-01**, `collapse-detector-v0/` — offline over

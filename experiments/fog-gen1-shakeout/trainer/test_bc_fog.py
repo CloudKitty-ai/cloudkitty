@@ -250,6 +250,17 @@ def test_vocab_here_rows_select_legal_or_said():
     assert said[0][:, 0].tolist() == [2.0], "rows where the source said one"
 
 
+def test_clone_width_rides_the_checkpoint_hyper():
+    import train_clone_fog as tc
+    base, wide = tc.build_model(), tc.build_model(128, 256)
+    assert base.hyper == {"d_model": 64, "heads": 4, "layers": 2, "ffn": 128}
+    assert wide.hyper == {"d_model": 128, "heads": 4, "layers": 2, "ffn": 256}
+    n = lambda m: sum(p.numel() for p in m.parameters())  # noqa: E731
+    assert n(base) == 83170 and n(wide) > 3 * n(base), (n(base), n(wide))
+    rebuilt = tv.EntityPolicyV5(**wide.hyper)
+    rebuilt.load_state_dict(wide.state_dict())  # readout_fog's path
+
+
 def test_vocab_teach_moves_only_the_message_head():
     torch.manual_seed(0)
     model = tv.EntityPolicyV5()

@@ -895,6 +895,32 @@ the 040 lesson); both config sweeps green. Cert anchors re-derived on
 the locked fog config (second and final re-baseline; the first was
 step 1's — two total, accepted knowingly).
 
+**LOCK checks run 2026-09-13 (Experiments), at main 172ef89.** Schema
+5 (width 408) final: nothing from the pass breaks it, and the two
+banked items that would (rate-based A17, scene spans) sit on the Gen
+2 shelf. Evolution goldens 2/2 green; `fog_continuity` 3/3 green and
+the two `record_*` tests rewrote the fixtures byte-identical (no
+diff), so continuity holds at current main including spec 054. Both
+shipped-config sweeps green in CI at 172ef89 (the CI workflow runs
+them on the tracked tree). On a lab checkout the sweeps cannot be
+read locally: `collect()` walks the filesystem and this checkout
+carries ~100 gitignored 2.x record configs (`experiments/**/raw/`,
+trait-screen `configs/`) that no longer parse; the exclusion
+manifest cannot name them (it asserts each directory exists, which
+fails in CI). Handed to Product 2026-09-13 as handover (e) and
+MERGED the same day (PR #372 → main d52d386): `collect()` now
+subtracts one `git check-ignore` call, untracked-but-not-ignored
+files stay in scope, a git-less tree is unfiltered as before, and
+each sweep binary carries a self-test in a throwaway repo. Re-run on
+this checkout at d52d386: core sweep 4/4, rl sweep 2/2, both green,
+so the LOCK line reads locally as well as in CI. Lab caveat from
+Product: `check-ignore` honors global excludes, so a broad personal
+ignore rule shrinks a local sweep silently; CI stays the backstop. Cert anchors:
+the scripted baseline re-derives on the B3 config at battery time
+(`fog-gen1-cert/PREREG.md` §Battery), after the beam pick; the
+probe-1 anchor traces for the pass's Part A read are collected on
+`anchor-b3.toml` at r4 (seeds 40,001–3).
+
 **Pre-declared for the re-baseline (Experiments, 2026-09-03, from the
 FR-036 bath-clause probes in the Product session)**: partnered groom
 scenes fall by roughly 90% against the 2.10 scripted baseline, and the
@@ -934,3 +960,145 @@ scripted selector only; the RL menu and reward do not see it), and is
 the reopen trigger for a friend re-admission mechanic.
 Two-layer welfare gates, G5 census, G6 soak,
 owner's word for seating/deploy — the standing machinery, unchanged.
+
+### Step-6 sitting rulings (2026-09-13, shakeout findings reviewed one by one)
+
+- **Finding 5, seating: ALL-POLICY (owner, verbatim "All policy").**
+  Every certification run trains on the served composition (trainer
+  `MIX` 0.0 for all five seats); no mixed episodes. Reasons on the
+  record: the served world is all-policy and slot 8's third of the
+  budget trained a composition it never presents at a sample
+  handicap; slot 8's welfare read (two eat episodes on kitty 3, lowest
+  friend-in-view, highest blind-hungry of the r4 arms) was inside noise
+  in both directions, which under doctrine rule 10 establishes nothing;
+  its richer groom-other retention is exposure-held, the class rule 7
+  says decays when the exposure stops, and spec 054's reprice is the
+  world-value lever. Spec 017's mixed-roster exam cells are read as
+  readings, not bars. Re-open triggers: a mixed-exam cell declared a
+  bar in the step-7 declaration, or a served roster that seats a
+  scripted cat by design.
+- **Finding 2, corpus delivery: THE VOCABULARY LESSON FOR ALL FIVE
+  (owner, verbatim "Lesson for all five").** Every certification run
+  starts from the lesson clone (#347 option B: here-words stripped,
+  then re-taught on the message head only) rather than the plain
+  clone. On the record: both clones keep the here-words through PPO
+  at the same rates; the lesson alone opens the free register (chirp
+  20.4, purr 17.3 per 1k, activity-differentiated, unheard), which the
+  doctrine classes as charm (rule 4 item 3) and rule 10 as a
+  null-benefit trade, so the step-7 declaration names it as the
+  seating's charm trade: purpose = the free register on the served
+  roster; benefit instrument = free-word rate and its activity split
+  (`phase2_read.py`); declared cost = chatter (meow/1k 350–415 vs
+  185–240 plain), lower reply-mass bars (.71–.79 vs .77–.84, both
+  above .50), uncooled message-head entropy (1.15 vs 0.8), and rule
+  7's expected drift-down in longer runs (entropy-held, not
+  world-valued). Welfare equal in the pass.
+- **Finding 2, no-seeding control: DEFERRED TO GEN 2 (owner, verbatim
+  "defer proving here word emergence until gen 2").** The
+  `announce_here = 0` arm ruled "step 7" on 2026-09-03 does not run in
+  step 7. Reason: under the current recipe the leash sums KL over both
+  heads (`train_ppo_fog.py` `head_quantities`), so a silent clone
+  anchor pulls the message head toward silence and a null would read
+  as leash-held silence, not as fog failing to make words emerge; a
+  fair test is a recipe change (message head off the leash, or an
+  entropy bonus on it) and its own declared arm. It joins GEN2-INPUTS'
+  free-register question, where the same contrast (rule 7) is designed
+  against hidden needs.
+- **Finding 6, the row 0–1 groom census: CORRECTED, nothing owed.**
+  The cause is dirt, not corpus density and not vision (RESULTS.md
+  correction of 2026-09-13, `groom_cells.py`): policies self-groom
+  about twice the teacher, so only Biscuit is ever dirty and takes the
+  grooms; Biscuit sits at row 0 or 1 for every observer by id. No
+  balanced-corpus arm. The one gap found, Biscuit never grooms anyone
+  (the `playful` teacher has no groom response), is KEPT AS DECLARED
+  PERSONALITY for Gen 1 (owner, 2026-09-13): Biscuit gives play where
+  the others give bath, which still reads as reciprocity; the step-7
+  declaration names it as Biscuit's charm trait at zero pay. Costs
+  weighed: adding a groom response now is a teacher change that
+  re-runs the corpus, clone, bars and critic on step 7's critical
+  path, for a giver with nobody dirty to groom. Re-open at Gen 2 with
+  the dirt-supply question (GEN2-INPUTS), where a non-grooming seat
+  would become one fifth of the givers missing.
+- **Finding 4, cue-answer rungs: DEFERRED TO GEN 2 (owner, verbatim
+  "Defer to gen 2").** The scripted cuddle_response / play_response
+  rungs (walk toward an unseen caller) are not built for Gen 1; the
+  FR-036 cuddle-clause revisit travels with them. On the record:
+  visible callers are already answered at ~2× baseline with zero
+  demonstrations (finding 4 as revised); only the from-the-fog slice
+  is inert, and Gen 1's world gives that walk near-zero value (needs
+  visible, roster dense), so a rung's rows would be shed as
+  groom-other's were (rule 7); building now is a teacher change that
+  re-runs the corpus, clone, bars and critic before step 7 (rule 9).
+  Gen 2's hidden needs make the call the only channel and the rung
+  rides that corpus cycle (GEN2-INPUTS §Friend-in-fog pursuit, now
+  the ruling). **Live read owed post-reseat (owner agreed)**: calls
+  from the fog that go unanswered per hour on the served roster, off
+  the refusal stamp's `reason` field, so the cost of waiting is a
+  number at the Gen 2 design sitting. A reading, not a gate.
+- **Finding 7, sunbeam naps: BEAM-PRICE SCREEN IN THE STEP-7 PASS
+  (owner, 2026-09-13: "Let's run the screen. Even 5-10% is better
+  than chance, and we don't need to make it a dominant preference for
+  it to still be cute").** Three runs: `sleep_relief_sunbeam` 10.0 at
+  two seeds and 15.0 at one seed (served 7.0; base sleep 5.0; beam
+  conducts to adjacent sleepers, spec 031), otherwise the step-7 seat
+  recipe. A reprice, not a teacher change: orphans nothing scripted
+  (rule 9), so no corpus, clone or critic re-run; the training
+  config carries it as a declared deviation from served. Reads:
+  in-beam share of sleeping ticks (baseline 5–10% policy vs 29%
+  anchor) and settled-friend-on-beam opportunities, off the probe
+  rows (`phase2_read.py` cosleep read); welfare floor unchanged.
+  Declared in the step-7 prereg as a charm trade (rule 10), ruled
+  after: the pick is the owner's, pencilled as the smaller price
+  whose in-beam share clears the policy baseline beyond seed spread
+  (a dominant preference is not required). The picked price rides
+  the reseat's served config with the seats trained under it, as the
+  radius and floor pins did; `validate.rs` only requires it finite
+  and non-negative, no shipped-config pin moves. Rules 3 and 4
+  re-verify at the pick (the beam is a sleep-specialist form, not a
+  rider; conduction pays the co-sleeper's own specialist).
+- **Finding 9, instrument debt: nothing funded for step 7.**
+  Rate-based A17 and the scene-span instrument stay on the Gen 2
+  shelf (every step-7 arm runs at pin 4; the uptake reads served the
+  deferred rungs). **Critic-compression rewatch APPROVED (owner)** as
+  an INVESTIGATE row in the step-7 prereg, never a stop: explained
+  variance and the value range read off each arm's metrics through
+  the pass, against #365's compression nuance.
+- **Finding 8, free register**: nothing further; the hearability
+  ruling stands and the lesson clone ships chirp and purr as declared
+  charm.
+- **Distress-gated intervention: DEFERRED past the reseat (owner,
+  2026-09-13: "I wasn't expecting our fog models to do so well. I
+  think we can bundle it with the planned 3-tier fallback model for
+  when LLMs land").** The step-4 clarify sequencing ("own spec before
+  the step-7 cutover") is superseded; nothing engine-side now stands
+  between LOCK and the reseat. Evidence, cover and the runtime-only
+  design note are in `BACKLOG.md` §Distress-gated intervention. The
+  step-7 battery's fallback bound stays zero.
+- **Seats = FIVE NETWORKS (owner, verbatim "Five networks",
+  2026-09-13).** Each certification run trains one network driving
+  all five seats in self-play; the served roster seats five distinct
+  networks, one artifact per seat as the config's registry expects.
+  The candidate pool and the charm ruling pick which network takes
+  which seat; rule 10's floor battery certifies the actual five-network
+  composition before seating, which none of them trained in.
+  RE-CONFIRMED 2026-09-13 after the mind-versus-seat clarification
+  (personality lives in the seat, so five networks are five seed draws
+  of one roster-wide mind, not five personalities): the owner keeps
+  five networks for the twin risk, the deadlock and degenerate-scene
+  class seen when the same model sits in several seats (the exp-006
+  forensics locks; the 006a battery called its roster "twin-free" for
+  that reason). Distinct seeds break the symmetry a shared network
+  would carry into every pair.
+- **Biscuit 3.0 corpus (found and started 2026-09-13).** The shakeout
+  corpus was collected with Biscuit's teacher at comfort 55 and the
+  consent gate off; the anchor ruled 2026-09-02 (c30 + `consent_line`
+  30) never entered a config, so no step-5 clone was a Biscuit 3.0
+  clone. Two fresh corpora declared in `fog-gen1-cert/PREREG.md`
+  §Corpus (@ f503284, before collection): `anchor-b3.toml` (gate 30,
+  every candidate clones from it) and `anchor-b3-off.toml` (gate 0,
+  the consent-transfer twin), 40 × 20k each, seeds 1,090,001–040 and
+  1,091,001–040; collection launched 2026-09-13 16:33 MDT on the
+  owner's word ("start the biscuit prep now"). The corpus re-run
+  removes the pipeline-cost argument that weighed against the
+  finding-4 rungs and a Biscuit groom response; both rulings stand on
+  rule 7 and the character call, re-weighable by the owner.

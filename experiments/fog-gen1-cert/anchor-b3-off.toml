@@ -253,12 +253,15 @@ rest_mutual_relief = 8.0
 # serviced tick, both parties. A rider: a minimum scene (6 ticks) delivers
 # 1.5 against the 5.1 mean. Convention: drip stays below mutual.
 rest_drip_relief = 0.25
-# The groomer's own warmth while grooming a friend is the spec-054
-# delivered-relief curve (groom_cuddle_floor / _slope / _ceiling, engine
-# defaults 0.25 / 3.5 / 2.0 -- deliberately not pinned here: the defaults
-# ARE the owner's calibration). The pre-054 flat groom_cuddle_relief --
-# and the temporary 2.0 bump that rode it -- is retired to an inert
-# legacy key; history in experiments/groom-bump-handoff-2026-08-31.md.
+# The groomer's own warmth while grooming a friend. Canonical value 0.5
+# (the spec-041 specialist split; a minimum 4-tick groom delivers 2.0 --
+# the groomer still needs real cuddles). Bumped to 2.0 here as a TEMPORARY
+# pre-Gen-1 accommodation: frozen incumbents trained pre-041 (Clementine)
+# answer high cuddle with groom-for-cuddle, and 0.5 sits below her 0.7
+# rise -- a futile loop that trips the spec-040 watchdog. Serving world
+# ONLY; specs, lab worlds, and collection configs keep 0.5. REVERT at the
+# Gen 1 reseating -- see experiments/groom-bump-handoff-2026-08-31.md.
+# groom_cuddle_relief: retired flat dial (spec 054); the ramp defaults apply, as served.
 # Cosleeping next to a friend (spec 028), per serviced sleep tick, both
 # parties: the passive tier when the partner is merely present. A rider --
 # a minimum nap (6 ticks) delivers 1.5, contributing to the need without
@@ -307,10 +310,13 @@ recent_window_ticks = 10
 # rate cell's maximum (window / cooldown = 3 calls) is exact.
 digest_window_ticks = 30
 # A want-kind arms at this need level (grounded legality)...
-announce_threshold = 30.0
+# Served value 30.0; speaker floor pinned 20 off the floor screen
+# (#352, owner 2026-09-08: "20 it is").
+announce_threshold = 20.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
 # while an errand is in progress.
 announce_hysteresis = 5.0
+
 # The want law's MEMORY REACH (spec 050, owner ruled 2026-09-04): a
 # REMEMBERED element counts as known relief for want_eat / want_drink /
 # want_play only while its remembered tile lies within [vision] radius +
@@ -384,7 +390,7 @@ pounce = true
 cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
-playful_comfort = 55.0
+playful_comfort = 30.0  # fog-gen1-cert: Biscuit 3.0 anchor c30 (owner 2026-09-02, F-038)
 # Playful 2.0 (spec 042): the partner-value score and per-need comfort
 # weights, all launched at their identity values and ABSENT here on purpose
 # (absent = identity; the engine-defaults stamp stays unmoved). Priced by
@@ -403,7 +409,7 @@ playful_comfort = 55.0
 # adjacent opportunism). Play on top (ties included) = always fair game.
 # Friends only: critters, elements, solo play and needs_driven cats are
 # untouched. Absent (or 0.0) = off, byte-identical to pre-047.
-# consent_line = 0.0
+consent_line = 0.0  # fog-gen1-cert: Biscuit 3.0 anchor consent gate (owner 2026-09-02); the twin runs it at 0.0
 # [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
 #                             #   (strictly > 0; pair w_busy with w_value)
 # eat = 1.0
@@ -421,7 +427,7 @@ playful_comfort = 55.0
 # and want-words are untouched at any setting. Legality is unchanged law
 # (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
 # Experiments' density screen, not a welfare lever.
-# announce_here = 4
+announce_here = 1  # fog-gen1-shakeout: corpus source (PREREG, teacher ruled out 2026-09-02)
 # Spec 049 FR-043: the scripted reply listener floor. Set, a scripted cat
 # answers an audible want whose stamped intensity is at or above it with the
 # paired here-word (referent in view, cooldown clear); unset, scripted cats
@@ -429,7 +435,7 @@ playful_comfort = 55.0
 # 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
 # (Experiments cut it), is revisited at the speaker-floor screen, and stays
 # unset on the served config.
-# reply_intensity_floor = 0.30
+reply_intensity_floor = 0.20  # fog-gen1-shakeout: scripted reply path on (PREREG A8); PINNED = speaker floor / 100 (#352, owner 2026-09-08)
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
@@ -533,7 +539,8 @@ distress_patience_ticks = 60
 # rules the served value. Every built-in cat explores for what it cannot see
 # (FR-023) and asks for it (FR-036); see docs/meows.md.
 [vision]
-radius = 5
+# Pinned off the radius screen (#351, owner 2026-09-08: "Pin at 4").
+radius = 4
 # Element-memory expiry in ticks; 0 = never (sight is the only corrector).
 memory_timeout_ticks = 0
 

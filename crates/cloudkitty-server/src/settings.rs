@@ -209,13 +209,29 @@ pub fn build(config: &Config, watchdog: &WatchdogConfig, raw: Option<&toml::Valu
         )),
     ));
 
-    // The groom bump and its owed revert (spec 041 / cuddle economy).
+    // The groom-other pricing curve (spec 054): pay per groomed tick is
+    // min(ceiling, floor + slope · delivered/groom_relief). The retired
+    // flat groom_cuddle_relief is an inert legacy key — never listed.
     entries.push(entry(
         raw,
         "actions",
-        "groom_cuddle_relief",
-        num(config.actions.groom_cuddle_relief),
-        Some(num(d.actions.groom_cuddle_relief)),
+        "groom_cuddle_floor",
+        num(config.actions.groom_cuddle_floor),
+        Some(num(d.actions.groom_cuddle_floor)),
+    ));
+    entries.push(entry(
+        raw,
+        "actions",
+        "groom_cuddle_slope",
+        num(config.actions.groom_cuddle_slope),
+        Some(num(d.actions.groom_cuddle_slope)),
+    ));
+    entries.push(entry(
+        raw,
+        "actions",
+        "groom_cuddle_ceiling",
+        num(config.actions.groom_cuddle_ceiling),
+        Some(num(d.actions.groom_cuddle_ceiling)),
     ));
 
     // Launch dials on the built-in chooser (specs 043, 045, 049).
@@ -358,13 +374,15 @@ mod tests {
     use std::io::Write;
     use std::sync::{Arc, Mutex};
 
-    /// The nine optional listed keys: every dial on the list that carries a
-    /// per-key default (the 3.0 rule: sections are required, only inert
+    /// The eleven optional listed keys: every dial on the list that carries
+    /// a per-key default (the 3.0 rule: sections are required, only inert
     /// launch dials default). Removing them from a serialized
     /// `Config::default()` leaves a file that still loads.
     const OPTIONAL: &[(&str, &str)] = &[
         ("meow", "relief_memory_margin"),
-        ("actions", "groom_cuddle_relief"),
+        ("actions", "groom_cuddle_floor"),
+        ("actions", "groom_cuddle_slope"),
+        ("actions", "groom_cuddle_ceiling"),
         ("behavior", "announce_here"),
         ("behavior", "contagion_aware_ladder"),
         ("behavior", "reply_intensity_floor"),
@@ -431,7 +449,9 @@ mod tests {
             "vision.radius",
             "vision.memory_timeout_ticks",
             "meow.relief_memory_margin",
-            "actions.groom_cuddle_relief",
+            "actions.groom_cuddle_floor",
+            "actions.groom_cuddle_slope",
+            "actions.groom_cuddle_ceiling",
             "behavior.announce_here",
             "behavior.contagion_aware_ladder",
             "behavior.reply_intensity_floor",
@@ -455,10 +475,10 @@ mod tests {
     #[test]
     fn a_minimal_config_plus_one_written_key_sources_exactly_that_key() {
         let mut raw = minimal_raw();
-        let default_relief = Config::default().actions.groom_cuddle_relief;
+        let default_floor = Config::default().actions.groom_cuddle_floor;
         raw["actions"].as_table_mut().unwrap().insert(
-            "groom_cuddle_relief".into(),
-            toml::Value::Float(default_relief.into()),
+            "groom_cuddle_floor".into(),
+            toml::Value::Float(default_floor.into()),
         );
         let block = build(&minimal_config(), &WatchdogConfig::default(), Some(&raw));
 
@@ -478,12 +498,12 @@ mod tests {
             );
         }
         assert_eq!(
-            source_of(&block, "actions.groom_cuddle_relief"),
+            source_of(&block, "actions.groom_cuddle_floor"),
             Source::Toml,
             "written at its default still reads toml"
         );
         for (group, key) in OPTIONAL {
-            if *key == "groom_cuddle_relief" {
+            if *key == "groom_cuddle_floor" {
                 continue;
             }
             let name = format!("{group}.{key}");
@@ -501,7 +521,7 @@ mod tests {
     #[test]
     fn no_config_file_means_every_source_is_default() {
         let block = build(&minimal_config(), &WatchdogConfig::default(), None);
-        assert_eq!(block.entries.len(), 18);
+        assert_eq!(block.entries.len(), 20);
         for e in &block.entries {
             assert_eq!(e.source, Source::Default, "{}.{}", e.group, e.key);
         }
@@ -582,7 +602,7 @@ mod tests {
         );
         let relief = lines
             .iter()
-            .find(|l| l.starts_with("actions.groom_cuddle_relief = "))
+            .find(|l| l.starts_with("actions.groom_cuddle_floor = "))
             .unwrap();
         assert!(relief.contains(" (default: "), "{relief}");
         let margin = lines
@@ -606,7 +626,7 @@ mod tests {
         let mut config = minimal_config();
         config.behavior.reply_intensity_floor = Some(0.2);
         config.water.contagion_factor = 0.1;
-        config.actions.groom_cuddle_relief = 2.0;
+        config.actions.groom_cuddle_floor = 0.5;
         let block = build(&config, &WatchdogConfig::default(), None);
         let text = block.render_text();
         assert!(
@@ -618,7 +638,7 @@ mod tests {
             "{text}"
         );
         assert!(
-            text.contains("actions.groom_cuddle_relief = 2.0 (default: 15.0) [default]"),
+            text.contains("actions.groom_cuddle_floor = 0.5 (default: 0.25) [default]"),
             "{text}"
         );
         let floor = block

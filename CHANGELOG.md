@@ -33,6 +33,43 @@ change.
 
 ## Unreleased
 
+- **The shipped-config sweeps skip files git ignores.** Both sweep
+  tests (core and rl) walk the filesystem, so a lab checkout's
+  gitignored 2.x record configs turned them red locally while CI was
+  green; they now subtract what `git check-ignore` reports.
+  Untracked-but-not-ignored files stay in scope (new experiment output
+  loads on the current engine by default), and without a usable git
+  nothing is filtered, so CI behavior is unchanged. Marker-free:
+  test-only, no engine, config, or schema change. (#372)
+
+- **Validation: the groom charm floor is bounded by the drip tier.**
+  Configs where `groom_cuddle_floor` exceeds the larger of
+  `rest_drip_relief` and `cosleep_drip_relief` now fail to load —
+  doctrine rule 4's unfarmable bound, previously held only by the
+  served values happening to be equal. Marker-free and proven neutral:
+  no default or behavior moves, and every shipped and frozen toml
+  (served, training, evals/v2, evals/v3) loads unchanged. (#371)
+- **Groom-other repriced to the delivered-relief curve (spec 054).**
+  `[stamp]` `[rng-sequence]` (by consequence, the spec-048 precedent:
+  no draw is reordered, but repriced cuddle trajectories change scripted
+  decisions, so a seeded world evolves differently from its first
+  kitty-directed groom on.) The groomer's cuddle pay per groomed tick is no longer the
+  flat `groom_cuddle_relief` but `min(ceiling, floor + slope ·
+  delivered/groom_relief)` — paid only for the bath relief the target
+  actually receives that tick (defaults 0.25 / 3.5 / 2.0: floor = the
+  drip-rest anchor tier so clean-target charm grooming stays paid but
+  never beats drip-resting; ceiling = ¼ of mutual rest per party, the
+  4× dominance rule; exact saturation at half a groom tick). One curve
+  definition (`groom_cuddle_pay`), read by the effect body and the
+  scripted groom-response seam alike; evaluation is add/mul/min only, so
+  determinism and cross-platform goldens hold by construction. The flat
+  dial is retired to a recognised-but-inert legacy key — frozen evals/v2
+  and current evals/v3 load byte-unchanged — and the served/training
+  configs are scrubbed of it (this discharges the owed #332 groom-bump
+  revert: there is no flat dial left to revert). The observation/reward
+  schema is untouched. **Lands with the Gen 1 reseat, never on the
+  frozen roster** (3.0-numbered behavior change; merge held for the
+  reseat sitting).
 - **Key settings (spec 052).** One server-owned list of the dials anyone has
   needed to verify after a deploy, each as effective value, engine default
   and source (`toml` / `default`, by presence in the served file): logged
