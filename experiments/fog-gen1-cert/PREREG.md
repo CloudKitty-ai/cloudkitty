@@ -1,11 +1,12 @@
 # Fog Gen 1 step 7 (certification round) — pre-registration
 
-**DRAFT.** §Corpus and §Capacity check are declared (committed
-2026-09-13 before their runs, per house rule). Everything else below
-is the draft of the rest, written 2026-09-13 from the step-6 sitting's
-rulings (`experiments/fog-gen1-timeline-2026-08-26.md` §"Step-6
-sitting rulings"); it becomes the declaration when the pins fill, the
-owner has read it, and this header is removed. Instruments and the
+**DRAFT.** §Corpus and §Capacity check were declared before their
+runs (2026-09-13, per house rule) and are now closed with results.
+The rest was written 2026-09-13 from the step-6 sitting's rulings
+(`experiments/fog-gen1-timeline-2026-08-26.md` §"Step-6 sitting
+rulings"); every pin is filled (2026-09-14) and Part A reads clean on
+the B3 corpus, so this becomes the declaration when the owner has
+read it and this header is removed on her word. Instruments and the
 trainer are the shakeout's (`experiments/fog-gen1-shakeout/`), reused
 unchanged unless a section here says otherwise. Doctrine check (CLAUDE.md
 rule 8) recorded in §Doctrine.
@@ -89,8 +90,9 @@ Rules that changed a choice, or confirmed one already on the table:
 - Rule 10 **changed** the battery's shape (§Battery): a floor against
   the scripted baseline of the same battery plus a per-seating trade,
   where the timeline's step 7 still said "two-layer welfare gates" in
-  the incumbent-relative form. ROADMAP guard 1 still carries the old
-  wording; owner's word owed.
+  the incumbent-relative form. ROADMAP guard 1 was reworded to the
+  rule 10 shape with the schema-wall clause on the owner's word
+  (2026-09-13 @ 1181688).
 - Rule 4 item 3 and rule 10 **confirmed** the free register, Biscuit's
   non-grooming and the beam screen as charm, declared here, ruled
   after.
@@ -428,6 +430,8 @@ bars can see, so driving all five seats does not cost the served mind
 capacity it needs; the question the owner asked (would a seat
 specialist free capacity) is closed with a number. Gen 2's recipe
 keeps 64 / 128 unless a wider observation changes the arithmetic.
+
+## Corpus, collected (2026-09-13; continues §Corpus above)
 
 **Collected 2026-09-13 16:33–18:12 MDT.** Both corpora: 40 rollouts,
 seeds exactly the declared bands (40 unique each), every meta.json
