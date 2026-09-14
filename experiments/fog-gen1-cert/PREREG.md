@@ -217,6 +217,22 @@ held-out traces; `schema_check.py` green on them.
   finite and inside [0, 2 × target mean], Spearman ≥ 0.3 against
   realized returns. Pass = accept as the distribution-recalibrated
   init ("Probe then accept", owner 2026-09-10); miss = owner call.
+  **Probe PASS 2026-09-13** (`b3-critic/probe.json`): finite, in band
+  (predictions 427–437 against realized 224–310, the same compression
+  as #365: ranks, does not extrapolate down), Spearman 0.493 ≥ 0.3.
+  `critic` = `results-raw/clones/b3-critic/critic6-0p998.pt`, FILLED.
+- `init_lesson_off` bars (2026-09-13, `b3off-vocab-s2/bars.json`;
+  strip best epoch 75, teach best epoch 114): reply-here mass
+  .794 / .789 / .684 / .775 (bar .50) PASS; msg@1 on here rows .953
+  (bar .80) PASS; wants 0.98–1.12 PASS except **want_cuddle 1.170,
+  MISS** on the ±15% bar. Split by seat: every seat over-emits
+  (Miso 1.15, Biscuit 1.17, Pumpkin 1.16, Kittybear 1.13, Clem 1.21),
+  partnered rows 1.29 vs unpartnered 1.13, so it is systematic, not a
+  seat; the shakeout's lesson clone had the same shape five points
+  lower (1.06–1.16 by seat, 1.127 overall, a pass). Disposition
+  waits on the B3 lesson clone's own bars (the seat init); the twin
+  is the control arm. The bar is declared and changes only on the
+  owner's word.
 - `radius` 4, `floor` 20 / 0.20, `beta_low` 0.04 (shakeout pins, carried);
   `beta_lo` 0.02, `beta_hi` 0.10 (ruled 2026-09-13)
 - `beam` 7 served; screen 10 / 15
