@@ -57,3 +57,54 @@ pub fn parse_reply_line(
     // (documented semantics).
     parse_proposal_value(envelope.proposal).map_err(ReplyRejection::Rejected)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const GOOD: &str = r#"{"tick": 7, "kitty_id": 2, "proposal": {"action": "rest"}}"#;
+
+    #[test]
+    fn a_correlated_envelope_yields_its_proposal() {
+        let action = parse_reply_line(GOOD.as_bytes(), 7, 2).ok();
+        assert_eq!(
+            action,
+            Some(Action::Rest { with: None }),
+            "the documented example parses"
+        );
+    }
+
+    /// docs/plugins.md: "Unknown fields in the envelope are rejected." This
+    /// is the strictness a train-of-thought sidecar field would violate —
+    /// auxiliary model output is stripped harness-side (spec 053 R10).
+    #[test]
+    fn an_unknown_envelope_field_is_rejected_not_ignored() {
+        let line =
+            r#"{"tick": 7, "kitty_id": 2, "proposal": {"action": "rest"}, "thought": "hmm"}"#;
+        assert!(
+            matches!(
+                parse_reply_line(line.as_bytes(), 7, 2),
+                Err(ReplyRejection::BadEnvelope(_))
+            ),
+            "an extra envelope field is a bad envelope"
+        );
+    }
+
+    #[test]
+    fn a_wrong_echo_is_desynced_not_accepted() {
+        assert!(
+            matches!(
+                parse_reply_line(GOOD.as_bytes(), 8, 2),
+                Err(ReplyRejection::Desynced { got_tick: 7, .. })
+            ),
+            "a stale tick echo is a desync"
+        );
+        assert!(
+            matches!(
+                parse_reply_line(GOOD.as_bytes(), 7, 3),
+                Err(ReplyRejection::Desynced { got_kitty: 2, .. })
+            ),
+            "a wrong kitty echo is a desync"
+        );
+    }
+}
