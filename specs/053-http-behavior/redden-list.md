@@ -171,3 +171,33 @@ Sorted before running, the kill path change (`process_group(0)` +
   on the stable plugin name, committed, re-run. Prediction: red at
   "the documented declaration parses" (deny_unknown_fields refuses
   `uri`). Observed: RED CONFIRMED.
+
+## Client-relayed review (owner-initiated `/code-review medium 053`, relayed 2026-09-14)
+
+Six claims, each VERIFIED against the tree before acting; fixes in the
+relay-review commit:
+
+1. plugins.md Lifecycle bullet contradicted the code + its own table
+   (claimed cooldown after oversize/desync) — confirmed verbatim, fixed.
+2. Command-entry class default was a vacuous doctrine guard — CONFIRMED
+   by running the reviewer's mutant first (`unwrap_or(Mind)`: mutate.sh
+   exit VACUOUS across lib + seat_class_log). Guard added (undeclared
+   command entry registers `seat_class="scripted"`); post-commit cycle
+   predicted red at "defaults to scripted at registration": RED
+   CONFIRMED.
+3. Teardown-rebuild starts cold (client+DNS+TCP+TLS inside the same
+   deadline) — true by construction; documented as a sizing floor in
+   plugins.md rather than pooling the client across teardowns (the
+   blocking client must be built/used only on the dedicated thread;
+   revisit if aggressive timeouts are wanted at the LLM sitting).
+4. SIGTERM `.expect` panicked a freshly bound server if registration
+   failed — fixed to degrade to SIGINT-only with a warn.
+5. deployment.md + provision-cloudkitty.sh stale SIGINT-only rationale
+   — confirmed verbatim, updated (both signals since 053).
+6. reqwest default-tls linked system OpenSSL into the shipped binary,
+   hidden by a 4-line lock diff — switched to
+   `default-features = false, features = ["blocking", "rustls-tls"]`;
+   self-contained binary, TLS stack explicit in the lock (+188 lines).
+   Deploy-box OpenSSL check no longer needed.
+
+Reviewer's non-finding (libc scoping correct) matches ours.
