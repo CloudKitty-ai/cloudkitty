@@ -1,15 +1,17 @@
 # Fog Gen 1 step 7 (certification round) — pre-registration
 
-**DRAFT.** §Corpus and §Capacity check were declared before their
-runs (2026-09-13, per house rule) and are now closed with results.
-The rest was written 2026-09-13 from the step-6 sitting's rulings
-(`experiments/fog-gen1-timeline-2026-08-26.md` §"Step-6 sitting
-rulings"); every pin is filled (2026-09-14) and Part A reads clean on
-the B3 corpus, so this becomes the declaration when the owner has
-read it and this header is removed on her word. Instruments and the
-trainer are the shakeout's (`experiments/fog-gen1-shakeout/`), reused
-unchanged unless a section here says otherwise. Doctrine check (CLAUDE.md
-rule 8) recorded in §Doctrine.
+**DECLARED 2026-09-14, on the owner's word after reading it, and
+committed before the first run started.** §Corpus and §Capacity check
+were declared before their runs (2026-09-13, per house rule) and are
+closed with results. The rest was written 2026-09-13 from the step-6
+sitting's rulings (`experiments/fog-gen1-timeline-2026-08-26.md`
+§"Step-6 sitting rulings"); every pin is filled (2026-09-14) and Part A
+reads clean on the B3 corpus. Instruments and the trainer are the
+shakeout's (`experiments/fog-gen1-shakeout/`), reused unchanged unless
+a section here says otherwise. Doctrine check (CLAUDE.md rule 8)
+recorded in §Doctrine. From this commit the declaration is frozen;
+readings from the pass go to `RESULTS.md` beside it, and any amendment
+is dated, attributed to the owner, and appended, never edited in.
 
 ## Purpose
 
