@@ -233,6 +233,36 @@ held-out traces; `schema_check.py` green on them.
   waits on the B3 lesson clone's own bars (the seat init); the twin
   is the control arm. The bar is declared and changes only on the
   owner's word.
+  **Root cause (2026-09-13, read on rollout-03's trace):** not the
+  clone and not the cooldown. On the 1,094 false-positive rows the
+  teacher was armed for cuddle, cuddle was its top need, no idle
+  friend was in view, the cooldown was clear, and the mask said the
+  word was legal, so the law says speak, and the teacher's proposal
+  was want_cuddle. The corpus labels the APPLIED message
+  (bc-collect's applied-not-proposed doctrine), and `world.rs`
+  re-validates every message at apply time on the live mid-tick view
+  after the activity and the earlier cats' turns have landed,
+  downgrading an illegal one to Silent (the social clause and the
+  top-need clause move mid-tick; reviewed 2026-09-04, 049 finding 3).
+  On the post-apply snapshot 23% of the false-positive rows have a
+  top need other than cuddle (true positives 1%), 70% an idle friend
+  in view (58%), 83% one or the other (58%); ticks since the last own
+  call and WaitForMe and action refusals were ruled out. So the
+  clone reproduces the teacher's proposals, and the want bar, which
+  compares argmax proposals with applied labels, carries the tick's
+  downgrade rate as a built-in bias: +12.7% at c55 (a pass) and +17%
+  at c30, where cuddle scenes start more often (partnered rows
+  +29%). In the served world a policy's proposal meets the same
+  downgrade, so this is not over-emission there either.
+  **Disposition = owner's call.** The instrument reads the wrong
+  layer for wants (proposal against applied). The fix is to record
+  the proposed message beside the applied one in bc-collect
+  (`label_msg_proposed.npy`) and read the want bar proposal against
+  proposal; that is a tool change plus a re-collection, banked for
+  the next corpus. For this pass the honest options are to accept
+  the raw ratio with this mechanism on the record, or to re-collect
+  now (about 1.6 h for both corpora, the clones unaffected since the
+  applied labels are unchanged).
 - `radius` 4, `floor` 20 / 0.20, `beta_low` 0.04 (shakeout pins, carried);
   `beta_lo` 0.02, `beta_hi` 0.10 (ruled 2026-09-13)
 - `beam` 7 served; screen 10 / 15
