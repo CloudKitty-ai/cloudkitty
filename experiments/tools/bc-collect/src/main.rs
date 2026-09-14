@@ -22,6 +22,9 @@
 //! label_msg.npy from the APPLIED message (0 = Silent), same
 //! applied-not-proposed doctrine. The engine-reserved WaitForMe has no head
 //! index and labels as Silent, counted in meta as msg_inexpressible.
+//! label_msg_proposed.npy (N u16) is the PROPOSED message under the same
+//! codec (fog-gen1-cert, 2026-09-13): the tick may downgrade a proposal to
+//! Silent at apply, and meta's msg_downgraded counts those rows.
 //!
 //! Output: one directory per rollout with obs.npy (N x obs_width f32),
 //! mask.npy (N x mask_width u8), label.npy (N u16), mask_msg.npy
@@ -252,6 +255,14 @@ fn main() {
             let mut label_buf: Vec<u16> = Vec::new();
             let mut mask_msg_buf: Vec<u8> = Vec::new();
             let mut label_msg_buf: Vec<u16> = Vec::new();
+            // The PROPOSED message beside the applied one (fog-gen1-cert,
+            // 2026-09-13): the tick re-validates a message at apply on the
+            // live mid-tick view and downgrades an illegal one to Silent,
+            // so a clone that learns proposals reads as over-emitting
+            // against applied labels. The want bar reads this file;
+            // training labels stay applied. Same codec, WaitForMe -> 0.
+            let mut label_msg_proposed_buf: Vec<u16> = Vec::new();
+            let mut msg_downgraded = 0u64;
             let mut msg_inexpressible = 0u64;
             let mut msg_mask_mismatch = 0u64;
             let mut kitty_buf: Vec<u32> = Vec::new();
@@ -372,11 +383,16 @@ fn main() {
                         msg_mask_mismatch += 1;
                         continue;
                     }
+                    let msg_proposed = MessageCodec::encode(rec.proposed_message).unwrap_or(0);
+                    if msg_proposed != msg_label {
+                        msg_downgraded += 1;
+                    }
                     obs_buf.extend_from_slice(&obs.values);
                     mask_buf.extend(mask.iter().map(|&b| b as u8));
                     label_buf.push(label as u16);
                     mask_msg_buf.extend(msg_mask.iter().map(|&b| b as u8));
                     label_msg_buf.push(msg_label as u16);
+                    label_msg_proposed_buf.push(msg_proposed as u16);
                     kitty_buf.push(id);
                     tick_buf.push(tick as u32);
                 }
@@ -395,6 +411,11 @@ fn main() {
                 &[n, msg_mask_width],
             );
             write_npy_u16(&dir.join("label_msg.npy"), &label_msg_buf, &[n]);
+            write_npy_u16(
+                &dir.join("label_msg_proposed.npy"),
+                &label_msg_proposed_buf,
+                &[n],
+            );
             write_npy_u32(&dir.join("kitty.npy"), &kitty_buf, &[n]);
             write_npy_u32(&dir.join("tick.npy"), &tick_buf, &[n]);
             write_npy_f32(&dir.join("reward.npy"), &reward_buf, &[reward_buf.len()]);
@@ -454,7 +475,7 @@ fn main() {
                 })
                 .collect();
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 args.ticks,
                 dropped_json.join(", "),
@@ -471,7 +492,7 @@ fn main() {
             total_dropped += dropped;
             total_mask_mismatch += mask_mismatch + msg_mask_mismatch;
             eprintln!(
-                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible"
+                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible, {msg_downgraded} msg-downgraded"
             );
         }
     }

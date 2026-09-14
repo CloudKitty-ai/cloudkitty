@@ -263,6 +263,22 @@ held-out traces; `schema_check.py` green on them.
   the raw ratio with this mechanism on the record, or to re-collect
   now (about 1.6 h for both corpora, the clones unaffected since the
   applied labels are unchanged).
+  **OWNER RULED option 2 (2026-09-13, "2"). Declared before the
+  re-collection:** bc-collect gains `label_msg_proposed.npy` (the
+  proposed message under the same codec, WaitForMe → Silent as
+  before) and `msg_downgraded` in meta.json; nothing else it writes
+  changes. Both corpora are re-collected with the new tool at the
+  declared seeds and configs into fresh directories; guard
+  `test_proposed_labels.py` proves, per held-out rollout, that every
+  pre-existing file is byte-identical to the first collection (so the
+  running clones and the critic stand) and that the proposed file
+  obeys its invariants (a downgrade only goes to Silent, every
+  proposed label mask-legal, at least one downgrade). The want bar
+  (readout_fog `--want-source proposed`) then reads the clone's
+  argmax proposals against the teacher's PROPOSED emissions, the
+  layer the clone imitates; the applied ratio is reported beside it.
+  The ±15% tolerance and the ≥ 100-row floor are unchanged. Training
+  labels stay applied.
 - `radius` 4, `floor` 20 / 0.20, `beta_low` 0.04 (shakeout pins, carried);
   `beta_lo` 0.02, `beta_hi` 0.10 (ruled 2026-09-13)
 - `beam` 7 served; screen 10 / 15
