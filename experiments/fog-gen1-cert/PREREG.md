@@ -206,12 +206,17 @@ cuddle both at 27.899977 in the observation and want_cuddle legal.
 Cause: an exact f32 tie in the encoded needs where the engine's
 unrounded values order the two by less than the observation's
 resolution, so the mask carries a fact the observation cannot. One
-row in 400,000. **Proposed Part A amendment (owner's word, the #367
-shape):** A14's top-need clause exempts rows where the want's need
-ties the observation's top need exactly; the count is reported on
-every read and stays on the record. Until ruled, the row stands as
-red on the corpus trace; probe-1 reads on the pass would show the
-same class at the same rate.
+row in 400,000. **Part A amendment RULED (owner 2026-09-14, "A14
+option 1 for now"):** A14's top-need clause exempts rows where the
+want's need ties the observation's top need exactly; the count is
+reported on every read (`<want>_top_need_tie_exempt` in the detail,
+"N top-need ties exempt" in the summary) and stays on the record.
+Landed in `schema_check.py` with a guard case (the tick-1755 pair
+exempt, one float step under it red) and a mutate red. Rollout-03
+re-reads A14 ok, 1 tie exempt. The engine-side fix (the want law
+comparing needs in the observation's encoded space, so mask and
+observation agree bit for bit) is BACKLOG, Product's lane, a teacher
+change under rule 9 for the next corpus.
 
 `declared_constant.json` in this directory is the cert copy: the
 shakeout's groups and reasons verbatim, `expected_per_1000` refilled

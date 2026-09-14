@@ -71,6 +71,45 @@ device under rule 1's outside-the-rule clause, carrying rule 7's cost
 if the world does not value the word. The owner expects some design
 assumptions to move before the sound-named words come alive.
 
+## Imagining the friend: a mini-friend-model inside the mind (owner's idea, 2026-09-14; banked as a Gen 2 design input)
+
+The roster-wide mind can pilot any seat (§"Where personality lives").
+Use that: distil from the mind a very small per-friend predictor,
+"what would I do in that cat's place", capped so it can hold only the
+friend's most common behaviours and never a functional clone; feed
+its prediction back to the mind as imagination; then, once that
+baseline works, correct each mini-model with the friend's observed
+behaviour. Simulation-theory theory of mind with a capacity cap.
+
+Why it fits here. In self-play every friend IS the same mind, so
+"predict the friend" and "predict myself in its seat" are one
+training signal and no extra corpus is needed; under five served
+networks the friend drifts from self by a seed's worth, which is what
+the observed-behaviour correction closes. Gen 2 is where it earns
+its keep: with needs hidden, predicting a friend's next act from
+visible cues is inference of its hidden state, rule 8's third route
+to a fact. The free-time plan's "helping a friend's favourites" needs
+a place to hold a belief about what the friend wants; this is it.
+
+The design question is the consumer, not the model (rule 7: a
+prediction nobody acts on decays into an unused auxiliary). Three
+consumers already have instruments: proposal acceptance (the
+partnered-refusal tax, Biscuit ~5%, read off the refusal stamp by
+`reason`; the first benefit instrument), meeting a friend (the
+into-the-fog response, §Friend-in-fog pursuit), and consent (learned
+rather than scripted). Doctrine: the mini-model lives inside the
+mind and reads only what the mind sees (rule 5); its training loss is
+a device under rule 1's outside-the-rule clause, never a reward term;
+it predicts acts, not words (rule 6); no schema change while the
+imagination stays internal (it attaches naturally to the entity
+transformer's kitty rows). Risks to design against: over-trust (a
+tiny confident model is confidently wrong out of distribution: a
+scripted cat, a new roster; calibration is the read, and the
+correction should be a running per-friend error signal the mind can
+see, so it learns when to discount the prior) and shortcutting (where
+the mind can read the friend's needs directly, as at Gen 1, it will
+ignore the model; train it where the direct route is closed).
+
 ## Encouraging emergence without shaping — the levers, ranked
 
 1. **Design scarcity of information, not incentives for behavior.**

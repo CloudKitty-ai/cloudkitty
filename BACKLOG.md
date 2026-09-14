@@ -1378,6 +1378,25 @@ Options, costed:
 
 ## P2 — the bigger pieces, for a proper sitting
 
+### The want law compares needs in the observation's encoded space (added 2026-09-14; owner: "backlog the engine fix"; Product thread; next corpus)
+The top-need clause of the want law (`meow.rs` `message_legal`,
+`needs.rs` `highest_pressure`) orders raw f32 needs; the observation
+stores need / 100 in f32, whose spacing near 0.28 is coarser than the
+raw spacing near 28, so two raw needs one float step apart can encode
+equal. The engine then orders them and the mask follows while the
+observation shows a tie it cannot break: a legality bit the policy
+cannot derive (schema_check A14, one row in 400,000 on the B3 corpus,
+Biscuit at tick 1755 with sleep and cuddle both at 27.899977). For
+Gen 1 the checker exempts exact observation ties and reports the
+count (owner ruled 2026-09-14, option 1; `fog-gen1-cert/PREREG.md`
+§Part A). The fix: compare needs in the encoded space (round through
+the observation's transform before the strict comparison, ties to
+kind order as now), so mask and observation agree bit for bit and the
+exemption can be retired. A teacher change under doctrine rule 9 (it
+moves scripted decisions on tie rows), so it lands with the next
+corpus collection, never on a frozen roster; red-first on a
+constructed tie.
+
 ### consent_line for needs_driven — SHELVED UNTIL GEN 2 (owner ruling 2026-09-10, on Experiments' read; added 2026-09-11; Product thread)
 
 Extend spec 047's consent line to the scripted chooser, so `needs_driven`
