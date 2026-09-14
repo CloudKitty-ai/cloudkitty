@@ -203,11 +203,32 @@ here-word; want emission per kind within ±15% of the source for kinds
 with ≥ 100 source rows. `expected_per_1000` refilled from the B3
 held-out traces; `schema_check.py` green on them.
 
-## Pins (filled as each artifact clears; none yet)
+## Pins (filled as each artifact clears)
 
-- `init_lesson` — B3 lesson clone (`results-raw/clones/b3-vocab-s2/`), bars: pending
-- `init_plain` — B3 plain clone (`b3-clone/`), bars: pending
-- `init_lesson_off` — B3-off lesson clone (`b3off-vocab-s2/`), bars: pending
+**Want bar on the proposed layer (2026-09-14, after the re-collection;
+`bars-proposed.json` beside each clone).** The mechanism is confirmed
+end to end: on the B3 held-out four the teacher proposed want_cuddle
+5,888 times and the tick applied 4,904 (984 downgrades, 17% of
+proposals; want_bath, the armed-only kind with no top-need or social
+clause, has zero). Read against proposals every clone passes, and the
+lesson clones slightly UNDER-emit:
+
+| clone | want_cuddle proposed / applied | worst want ratio | bars |
+|---|---|---|---|
+| `b3-vocab-s2` (init_lesson) | 0.962 / 1.155 | want_drink 0.902 | PASS |
+| `b3-clone` (init_plain) | 0.920 / 1.104 | want_play 0.892 | PASS |
+| `b3off-vocab-s2` (init_lesson_off) | 0.972 / 1.170 | want_drink 0.904 | PASS |
+
+- `init_lesson` — B3 lesson clone `results-raw/clones/b3-vocab-s2/b3-vocab-s2.pt`
+  (strip best epoch 115, val 0.8323, act@1 0.8278; teach best epoch
+  103, msg@1|here 0.953); reply mass .790 / .796 / .701 / .762, msg@1
+  .953, wants 0.90–1.00 on proposals. FILLED.
+- `init_plain` — B3 plain clone `b3-clone/b3-clone.pt` (best epoch
+  111, val 0.8845, act@1 0.8251); reply mass .829 / .849 / .763 / .786,
+  msg@1 .942, wants 0.89–1.04. FILLED.
+- `init_lesson_off` — B3-off lesson clone `b3off-vocab-s2/b3off-vocab-s2.pt`;
+  reply mass .794 / .789 / .684 / .775, msg@1 .953, wants 0.90–1.00.
+  FILLED.
 - `critic` — B3 critic (`b3-critic/`); the twin reuses it (declared).
   Trained 2026-09-13: best epoch 2, held-out EV 0.065 on targets of
   std 4.09 around 434 — the shakeout's flat-anchor-returns shape

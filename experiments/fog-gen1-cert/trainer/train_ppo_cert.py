@@ -42,10 +42,15 @@ PINS = {
     "beta_low": 0.04,               # F-019 low end, the pool's dose
     "beta_lo": 0.02,                # dose sweep, low  (owner 2026-09-13)
     "beta_hi": 0.10,                # dose sweep, high (owner 2026-09-13)
-    "init_lesson": None,            # B3 lesson clone, bars pending
-    "init_plain": None,             # B3 plain clone, bars pending
-    "init_lesson_off": None,        # B3-off lesson clone (twin), bars pending
-    "critic": None,                 # B3 critic
+    # B3 clones, bars PASS on the held-out four 2026-09-14 (PREREG §Pins:
+    # reply mass, msg@1, and the want bar read on the teacher's PROPOSED
+    # emissions, `readout_fog --want-source proposed`; bars-proposed.json
+    # beside each artifact).
+    "init_lesson": str(CLONES / "b3-vocab-s2" / "b3-vocab-s2.pt"),
+    "init_plain": str(CLONES / "b3-clone" / "b3-clone.pt"),
+    "init_lesson_off": str(CLONES / "b3off-vocab-s2" / "b3off-vocab-s2.pt"),
+    # B3 critic: EV 0.065 (flat-returns shape), #365 probe PASS 2026-09-13.
+    "critic": str(CLONES / "b3-critic" / "critic6-0p998.pt"),
 }
 
 # slot -> (radius rule, beta pin, init pin, seed, run_index); the
