@@ -53,6 +53,24 @@ structure (`Config.plugins` never serializes, so a remote endpoint
 can't learn a sibling's URL), docs-locator mutant behavior. Doc nit
 (demo comment "rest" vs idle) fixed.
 
+Post-review mutate cycles (all vs `seat_class_log` unless noted):
+- **drop `.instrument(self.span())`** → predicted red "carries the
+  declared class via the span". RED CONFIRMED.
+- **swap `as_str` arms** → red at the FIRST gate, "registration states
+  the declared class" (mind run logs scripted); first attempt recorded
+  wrong-reason against the later assertion, prediction corrected and
+  re-run. RED CONFIRMED.
+- **discard class at registration (wrapper gets Scripted)** → red at
+  "carries the declared class via the span" — the registration log
+  uses the local var, so the exchange-line guard is what catches the
+  wrapper-side discard (first attempt predicted the registration line;
+  corrected). RED CONFIRMED.
+- **rule-6 red for finding 5's contract change**: re-add taint to the
+  TooLarge arm → `an_oversized_reply_fails_at_the_cap_without_cooldown`
+  red at "does not cost a cooldown". RED CONFIRMED. (The old cooldown
+  assertions were deleted with the behavior; this mutant is their
+  inversion, proving the new assertions pin the new shape.)
+
 
 Every mutate cycle: prediction first, observed outcome after. All via
 `scripts/mutate.sh --expect` unless a stated reason says hand-rolled.

@@ -290,7 +290,7 @@ stdout → no stranded I/O thread; docs state the exec-bit's real meaning.
 - [x] T031 CHANGELOG.md: one-liner under `## Unreleased` (house practice —
       feature marker: server-owned config surface addition, no engine
       semantic, no served-config byte; PR number at merge time).
-- [ ] T032 Fresh-eyes review before merge (house pattern, the 371/372
+- [x] T032 Fresh-eyes review before merge (house pattern, the 371/372
       precedent): adversarial review agent on the full diff; record
       defects + fixes as a PR comment; then CI green and hold for the
       owner's merge word.
