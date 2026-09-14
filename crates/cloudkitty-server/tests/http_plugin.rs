@@ -398,7 +398,7 @@ fn the_documented_remote_declaration_parses_and_registers() {
     let doc = plugins_doc();
     let block = doc
         .split("```toml")
-        .find(|block| block.contains("url = "))
+        .find(|block| block.contains("[plugins.professor_whiskers]") && block.contains("class"))
         .expect("the remote quick start has a toml block")
         .split("```")
         .next()
