@@ -186,7 +186,7 @@ fn world_with_remote(
 fn legal_proposal(tick: u64) -> serde_json::Value {
     // The well_behaved.py alternation: both shapes are always parseable;
     // legality is the engine's second, separate layer.
-    if tick % 2 == 0 {
+    if tick.is_multiple_of(2) {
         serde_json::json!({"action": "idle"})
     } else {
         serde_json::json!({"action": "play"})
@@ -359,10 +359,8 @@ fn tick_provenance(
 /// decision exchanges again immediately (no cooldown for clean failures).
 #[test]
 fn clean_failures_fall_back_and_do_not_enter_cooldown() {
-    let cases: Vec<(
-        &str,
-        Box<dyn Fn(&stub::Request) -> stub::Reply + Send + Sync>,
-    )> = vec![
+    type Handler = Box<dyn Fn(&stub::Request) -> stub::Reply + Send + Sync>;
+    let cases: Vec<(&str, Handler)> = vec![
         (
             "non-200 status",
             Box::new(|_r: &stub::Request| stub::Reply::raw(500, b"boom".to_vec())),
