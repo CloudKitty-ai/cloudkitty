@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **The social card was advertising a cat that no longer exists.** The
+  OG image was drawn on 2026-08-02 and never redrawn, so every link
+  preview since — Slack, iMessage, Twitter, LinkedIn — has shown kitties
+  from before whiskers, before the muzzle, before the belly, before the
+  inner ear became fur-showing, and before a standing cat had four
+  pivoted legs rather than two stubs. `og-card.html` draws its scene
+  through the real v2 vocabulary, so this is a regenerate and not an
+  edit: the same four residents, the same composition, the same copy, in
+  the art they actually wear. Biscuit's eyes still close all the way
+  (owner, 2026-08-02) and the `og:image:alt` sentence still describes
+  the picture. Presentation only. (#PR)
+
 - **HttpBehavior: a remote endpoint can be a kitty's advisor.** The
   second speaker of the spec-016 plugin contract, deferred from that
   sitting: a `[plugins.<name>]` entry may declare `url` instead of
