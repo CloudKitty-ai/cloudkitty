@@ -908,7 +908,10 @@ carries ~100 gitignored 2.x record configs (`experiments/**/raw/`,
 trait-screen `configs/`) that no longer parse; the exclusion
 manifest cannot name them (it asserts each directory exists, which
 fails in CI). Reported, not fixed (rule 3): a sweep that skipped
-gitignored paths would read the same in both places. Cert anchors:
+gitignored paths would read the same in both places; HANDED TO
+PRODUCT 2026-09-13 on the owner's word (handover (e): drop
+git-ignored files from `collect()`, keep untracked ones in scope,
+red-first), kickoff in that session. Cert anchors:
 the scripted baseline re-derives on the B3 config at battery time
 (`fog-gen1-cert/PREREG.md` §Battery), after the beam pick; the
 probe-1 anchor traces for the pass's Part A read are collected on
