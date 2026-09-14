@@ -371,12 +371,21 @@ async fn run() -> Result<()> {
             // PluginChild, is now the only thing that cleans them up.
             #[cfg(unix)]
             {
-                let mut sigterm =
-                    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                        .expect("SIGTERM handler installs");
-                tokio::select! {
-                    _ = tokio::signal::ctrl_c() => {}
-                    _ = sigterm.recv() => {}
+                // Registration can fail in restrictive sandboxes; that
+                // must degrade to the old SIGINT-only behavior, never
+                // panic a server that just bound its port (Client-relay
+                // review 2026-09-14, finding 4).
+                match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+                    Ok(mut sigterm) => {
+                        tokio::select! {
+                            _ = tokio::signal::ctrl_c() => {}
+                            _ = sigterm.recv() => {}
+                        }
+                    }
+                    Err(error) => {
+                        tracing::warn!(%error, "SIGTERM handler failed to install; graceful shutdown on SIGINT only");
+                        let _ = tokio::signal::ctrl_c().await;
+                    }
                 }
             }
             #[cfg(not(unix))]

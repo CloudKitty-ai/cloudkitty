@@ -483,7 +483,8 @@ WorkingDirectory=${CK_APP_DIR}
 ExecStart=${CK_APP_DIR}/cloudkitty-server --config ${CK_APP_DIR}/cloudkitty.toml --snapshot ${CK_STATE_DIR}/snapshot.json
 
 # Graceful shutdown — "letting the kitties settle", final world save included —
-# listens for SIGINT only. systemd's default SIGTERM would skip it.
+# runs on SIGINT and, since spec 053, SIGTERM too; kept as belt-and-braces
+# for older binaries.
 KillSignal=SIGINT
 TimeoutStopSec=30
 Restart=on-failure

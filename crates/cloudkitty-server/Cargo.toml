@@ -21,8 +21,11 @@ serde_json = { workspace = true }
 async-trait = { workspace = true }
 # The remote plugin transport (spec 053): blocking client on the plugin's
 # dedicated I/O thread — never on a tokio worker. `json` stays a dev-only
-# feature; the transport handles bytes itself (capped reads).
-reqwest = { version = "0.12", features = ["blocking"] }
+# feature; the transport handles bytes itself (capped reads). Default
+# features OFF: the default TLS backend links the system OpenSSL, a
+# deploy-box dependency nothing else in the binary has — rustls keeps
+# the shipped binary self-contained (Client-relay review, finding 6).
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 toml = "0.8"
 anyhow = { workspace = true }
 thiserror = { workspace = true }

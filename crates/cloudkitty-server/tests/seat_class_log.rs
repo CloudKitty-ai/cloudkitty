@@ -90,8 +90,11 @@ fn the_declared_seat_class_rides_plugin_log_lines() {
             .with_writer(move || writer.clone())
             .finish();
         tracing::subscriber::with_default(subscriber, || {
+            // `plain` declares no class: a command entry must DEFAULT to
+            // scripted at registration (FR-015's other half — a vacuous
+            // guard until the Client-relayed review's mutant survived).
             let plugins: cloudkitty_server::PluginsConfig = toml::from_str(&format!(
-                "[plugins.classy]\nurl = \"{}\"\nclass = \"{class}\"\n",
+                "[plugins.classy]\nurl = \"{}\"\nclass = \"{class}\"\n\n[plugins.plain]\ncommand = \"/bin/cat\"\n",
                 stub_url
             ))
             .unwrap();
@@ -114,6 +117,13 @@ fn the_declared_seat_class_rides_plugin_log_lines() {
                 && l.contains("seat_class")
                 && l.contains("mind")),
         "registration states the declared class:\n{mind}"
+    );
+    assert!(
+        mind.lines()
+            .any(|l| l.contains("plugin behavior registered")
+                && l.contains("plugin=plain")
+                && l.contains("seat_class=\"scripted\"")),
+        "an undeclared command entry defaults to scripted at registration:\n{mind}"
     );
     assert!(
         mind.lines().any(|l| l.contains("non-200 status")

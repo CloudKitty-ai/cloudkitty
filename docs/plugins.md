@@ -289,7 +289,13 @@ didn't send, never a stalled world.
   relaunches your program — at most once per `relaunch_cooldown_ticks`
   (default 20), so a crash-looping program never becomes a spawn storm.
   The remote transport reuses the same cooldown for rebuilding its
-  exchange channel after a timeout, oversized reply, or desync.
+  exchange channel after a missed deadline (only — a consumed oversized
+  or mis-correlated reply costs one tick, no cooldown; see the table
+  above). One sizing note: the rebuilt exchange starts COLD — client,
+  DNS, TCP, and any TLS handshake all happen inside the same
+  `exchange_timeout_ms` a warm request meets easily — so keep the
+  deadline comfortably above your endpoint's cold-connection setup,
+  especially for https advisors with aggressive timeouts.
 - **Deadline**: each exchange must answer within `exchange_timeout_ms`
   (default 1000). Miss it and the proposal fails, your process is killed
   — as its whole process group, so a grandchild holding your stdout dies
