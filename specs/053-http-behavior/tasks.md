@@ -53,7 +53,10 @@ against.
       `parse_reply_line`, mapping `ReplyRejection` onto the existing
       `ExchangeFailure` variants; behavior-preserving — the whole core
       suite and the 016 round-trip tests stay green untouched (rule 6
-      must-pass pile: re-read them, don't just run them).
+      must-pass pile: re-read them, don't just run them). Also update the
+      `DecisionRequest.config` doc comment: the send-once v2 handshake
+      was considered and DEFERRED at this sitting (point at 053
+      research.md R10), no longer "noted for the HttpBehavior sitting".
 - [ ] T006 Mutate cycle proving the moved code is still guarded: commit
       T004–T005, then `scripts/mutate.sh --expect` (a) invert the
       correlation check in `exchange.rs` → predict the script desync test
@@ -207,6 +210,14 @@ example exercised by a test.
       warning pointer; seat-class meaning and the fallback-lineage note
       (fallback rows are scripted rows, excluded from a mind seat's
       lineage — FR-015/FR-016) — extend shared sections, don't duplicate.
+      Include the LLM-shaped operator guidance (research R10): one entry
+      per kitty for slow advisors (a shared entry serializes exchanges —
+      the FR-014 burst); internal harness retries within
+      `exchange_timeout_ms` are the endpoint's business, invisible to the
+      wire — one request, one reply, and the engine's validation stays
+      authoritative; auxiliary model output (e.g. train of thought) is
+      logged harness-side and stripped before replying — the strict
+      envelope refuses unknown fields by design.
 - [ ] T021 [US3] Config reference rows in `docs/plugins.md` (and wherever
       the `[plugins]`/`[behavior]` reference table lives): `url` (no
       default; selects the remote transport), `class` (required for url

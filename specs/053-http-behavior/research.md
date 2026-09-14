@@ -212,3 +212,39 @@ shape once the chain needs per-turn tier attribution); registration-line
 only (weakest reading of FR-015's "wherever"); per-transport asymmetry
 (FR-015 doesn't distinguish transports); amending FR-015 (narrowing a
 MUST to fit the implementation).
+
+## R10. LLM-harness direction (owner rulings 2026-09-14; recorded, not built)
+
+The remote-LLM use-case shapes were reviewed before implementation; all
+three land as conscious deferrals, with the harness — a service running
+local to the LLM, operator-owned — as the designated home:
+
+- **Wire v2 (send-once config handshake): DEFERRED at this sitting.**
+  script.rs's DecisionRequest comment marked it "a v2 candidate, noted
+  for the HttpBehavior sitting"; the sitting's ruling is to keep the
+  stateless resend wire. Token/size cost is mitigated harness-side
+  (cache the config, prune/diff the snapshot before prompting); a v2
+  bump would touch both transports and is not needed for correctness.
+  (T005 updates the script.rs note to point here.)
+- **Train of thought: harness-side, engine envelope stays strict.** The
+  strict `deny_unknown_fields` envelope is load-bearing (desync and
+  middlebox detection); the harness logs the model's reasoning to an
+  external file indexed by tick and strips it before replying.
+  Engine-side thought carriage is a possible much-later design (an
+  "all-LLM" future), entangled with rules 5/6 (students must never see
+  it; whether it enters lineage records) — LLM-seat sitting territory
+  at the earliest. IOU #3 for that sitting.
+- **Harness responsibilities (future build, LLM-seat sitting)**: config
+  caching, prompt assembly, thought logging, and UNTRUSTED
+  pre-validation of model output — malformed or illegal-looking
+  proposals may be retried against the model within the exchange
+  deadline, so one bad sample costs a retry, not the tick. The engine's
+  side is unchanged and remains authoritative: one request, one reply;
+  internal harness retries are invisible to the wire, and every reply
+  still passes the hardened gate and world validation (Article IV — the
+  harness's validation is a convenience, never trusted).
+- **Latency shape**: no new knobs. Slow advisors tune
+  `exchange_timeout_ms` and the budget stack; a shared entry serializes
+  exchanges (FR-014 burst), so the LLM-shaped deployment is one
+  `[plugins]` entry per kitty pointing at the same harness URL — the
+  harness parallelizes behind it. Documented in T020.
