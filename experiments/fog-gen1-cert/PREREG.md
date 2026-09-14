@@ -208,7 +208,15 @@ held-out traces; `schema_check.py` green on them.
 - `init_lesson` — B3 lesson clone (`results-raw/clones/b3-vocab-s2/`), bars: pending
 - `init_plain` — B3 plain clone (`b3-clone/`), bars: pending
 - `init_lesson_off` — B3-off lesson clone (`b3off-vocab-s2/`), bars: pending
-- `critic` — B3 critic (`b3-critic/`); the twin reuses it (declared)
+- `critic` — B3 critic (`b3-critic/`); the twin reuses it (declared).
+  Trained 2026-09-13: best epoch 2, held-out EV 0.065 on targets of
+  std 4.09 around 434 — the shakeout's flat-anchor-returns shape
+  (#365, EV −0.046), not a defect. Acceptance = the #365 probe bars,
+  declared here before the probe runs: on a random-legal policy (3
+  worlds, 4k ticks, seed base 870,004, the B3 config) every prediction
+  finite and inside [0, 2 × target mean], Spearman ≥ 0.3 against
+  realized returns. Pass = accept as the distribution-recalibrated
+  init ("Probe then accept", owner 2026-09-10); miss = owner call.
 - `radius` 4, `floor` 20 / 0.20, `beta_low` 0.04 (shakeout pins, carried);
   `beta_lo` 0.02, `beta_hi` 0.10 (ruled 2026-09-13)
 - `beam` 7 served; screen 10 / 15
