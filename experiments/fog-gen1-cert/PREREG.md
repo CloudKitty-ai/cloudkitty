@@ -182,8 +182,9 @@ checked against the intended world (D-003).
   0), the stress streak bar as a multiple of the re-measured baseline
   (F-021; the 006a arithmetic 225 / max(1, floor(0.05 n)) stands
   until the baseline is re-measured here), fallback bound zero (no
-  fallback path exists before the distress-intervention spec; once it
-  lands, its declared band replaces zero).
+  fallback path exists; the distress-gated intervention was deferred
+  past the reseat on 2026-09-13 and bundles with the LLM-seat fallback
+  chain, whose declared band will replace zero then).
 - **Compositions read**: the candidate five-network roster (the one
   seated), and, report-only, each candidate in every seat against the
   pool (the per-seat pick's evidence).

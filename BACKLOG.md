@@ -1456,6 +1456,26 @@ throughput reads short, not before.
 
 ### Distress-gated intervention — the behavioral safeguard (added 2026-08-20; owner-approved for investigation)
 
+**DEFERRED 2026-09-13 (owner): not before the Gen 1 reseat; bundled
+with the three-tier fallback chain that lands with LLM seats (LLM →
+local model → scripted; the HttpBehavior line, spec 053).** The
+2026-09-03 "before the step-7 cutover" sequencing below was ruled
+before the shakeout ran. Evidence for deferring: nine arms, 27 probe
+worlds, zero watchdog entries, three distress episodes in total, the
+longest 65 ticks against the 150 line, every policy above its
+scripted anchor on every distress measure (`fog-gen1-shakeout/RESULTS.md`);
+the 2.x all-policy roster has served since 2026-08-22 on the spec 040
+watchdog alone; the lock class this was designed against is the one
+five distinct networks were chosen to avoid. Cover meanwhile is
+doctrine rule 10's live layer (watchdog, soak, G5 census) and rule
+9's early revert. Reopen triggers: a live watchdog alarm on the Gen 1
+roster, or the LLM-seat sitting. Design note for then: keep the
+override state runtime-only rather than a snapshot field, so the
+change is law-class and can land inside a generation under rule 9's
+deploy test (teacher seats never fire it, so no corpus is touched);
+the per-seat fallback-chain shape below stands and the LLM tier is
+its prepended rung.
+
 Owner, 2026-08-20: "worth investigating, let's add it to the backlog to
 dig into after we finish this generation (definitely before fog lands).
 Disabled in testing, enabled on the server."

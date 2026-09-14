@@ -1062,6 +1062,14 @@ owner's word for seating/deploy — the standing machinery, unchanged.
 - **Finding 8, free register**: nothing further; the hearability
   ruling stands and the lesson clone ships chirp and purr as declared
   charm.
+- **Distress-gated intervention: DEFERRED past the reseat (owner,
+  2026-09-13: "I wasn't expecting our fog models to do so well. I
+  think we can bundle it with the planned 3-tier fallback model for
+  when LLMs land").** The step-4 clarify sequencing ("own spec before
+  the step-7 cutover") is superseded; nothing engine-side now stands
+  between LOCK and the reseat. Evidence, cover and the runtime-only
+  design note are in `BACKLOG.md` §Distress-gated intervention. The
+  step-7 battery's fallback bound stays zero.
 - **Seats = FIVE NETWORKS (owner, verbatim "Five networks",
   2026-09-13).** Each certification run trains one network driving
   all five seats in self-play; the served roster seats five distinct
