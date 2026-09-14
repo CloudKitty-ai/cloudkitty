@@ -415,6 +415,20 @@ flips a bar, capacity binds and a wider mind is a Gen 2 recipe input;
 nothing about step 7 changes either way (the pass runs the served
 shape). No PPO run is spent.
 
+**Result 2026-09-14: not capacity-bound; the prediction holds.** Wide
+clone (`b3-clone-w128`, 128 / 256) best epoch 62, val 0.8759, act@1
+0.8269, msg@1 0.9749; served shape (`b3-clone`, 64 / 128) best epoch
+111, val 0.8845, act@1 0.8251, msg@1 0.9730. act@1 +0.0018, inside
+the noise band (< 0.01); val loss −0.009. Bars PASS for both on the
+proposed layer with no bar moved: reply mass wide .809 / .851 / .772
+/ .754 vs served .829 / .849 / .763 / .786 (mixed by kind), msg@1 on
+here rows .934 vs .942, worst want ratio .860 (want_play) vs .892.
+Three times the parameters buy a slightly lower loss and nothing the
+bars can see, so driving all five seats does not cost the served mind
+capacity it needs; the question the owner asked (would a seat
+specialist free capacity) is closed with a number. Gen 2's recipe
+keeps 64 / 128 unless a wider observation changes the arithmetic.
+
 **Collected 2026-09-13 16:33–18:12 MDT.** Both corpora: 40 rollouts,
 seeds exactly the declared bands (40 unique each), every meta.json
 carrying the declared config sha, traces on 03/13/23/33 only, zero
