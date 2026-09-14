@@ -38,7 +38,7 @@ passes the floor. Inits are this directory's clones (§Pins).
 | 2 | `cand-s6, s7` | B3 lesson | ramp, beam 7 | 0.04 | 6–7 | pool to seven |
 | 1 | `twin-off` | B3-off lesson | ramp, beam 7 | 0.04 | 1 | consent-transfer pair vs `cand-s1` |
 | 2 | `plain-s1, s2` | B3 plain | ramp, beam 7 | 0.04 | 1–2 | charm contrast (free register); seatable insurance |
-| 3 | `flat-s1..s3` | B3 lesson | `groom_cuddle_floor` 0.5, `slope` 0, `ceiling` 0.5; beam 7 | 0.04 | 1–3 | 054 re-verify, paired with `cand-s1..s3` |
+| 3 | `flat-s1..s3` | B3 lesson | `groom_cuddle_floor` 0.25, `slope` 0, `ceiling` 0.25 (amended 2026-09-14, see §Amendments; declared 0.5 / 0 / 0.5); beam 7 | 0.04 | 1–3 | 054 re-verify, paired with `cand-s1..s3` |
 | 2 | `dose-lo-s1, s2` | B3 lesson | ramp, beam 7 | 0.02 | 1–2 | rule 7 dose diagnostic, low |
 | 2 | `dose-hi-s1, s2` | B3 lesson | ramp, beam 7 | 0.10 | 1–2 | rule 7 dose diagnostic, high |
 | 2 | `beam10-s1, s2` | B3 lesson | ramp, `sleep_relief_sunbeam` 10 | 0.04 | 1–2 | beam screen |
@@ -339,7 +339,7 @@ lesson clones slightly UNDER-emit:
 - `radius` 4, `floor` 20 / 0.20, `beta_low` 0.04 (shakeout pins, carried);
   `beta_lo` 0.02, `beta_hi` 0.10 (ruled 2026-09-13)
 - `beam` 7 served; screen 10 / 15
-- `flat` = floor 0.5, slope 0, ceiling 0.5 (spec 054 dials)
+- `flat` = floor 0.25, slope 0, ceiling 0.25 (spec 054 dials; amended 2026-09-14 from 0.5 / 0 / 0.5, §Amendments)
 
 ## Launch (owner's word)
 
@@ -456,3 +456,24 @@ shakeout's bar numbers stand until this file says otherwise),
 traces, critic on B3 (`train_critic_fog.py`; the twin reuses it, a
 declared assumption: the gate changes teacher rows, not returns'
 scale). Pins are filled here when each artifact clears its bar.
+
+## Amendments (dated, appended, owner-attributed)
+
+**2026-09-14, flat arms (owner: "Flat ruling: 1").** The pass launched
+at 14:34 MDT with 20 arms; `flat-s1..s3` died at world creation because
+the engine rejects the declared dials: `validate.rs` holds the
+unfarmable bound (doctrine rule 4 item 1, banked 2026-09-12 and landed
+with spec 054), the groom floor may never out-pay the larger drip, and
+both served drips are 0.25. The error was mine: the flat dial was
+declared without a run through the validator, and the smoke covered
+`beam15-s1` only. So the pre-054 flat 0.5 cannot be served on this
+world at all. Ruled: the flat contrast runs at the bound, `groom_cuddle_floor`
+0.25, `slope` 0, `ceiling` 0.25, the served floor with the
+delivered-bath coupling removed. The rule 7 read is unchanged in
+kind (curve vs no coupling: groom-other at plateau, groom latency vs
+bath, three seeds a side, paired with `cand-s1..s3` at the matched
+probe index) and no longer claims to reproduce the old 0.5 price. The
+three arms relaunch beside the seventeen already running; run indices,
+seeds and bands are as declared. The trainer's guard now constructs a
+world from every override slot's derived config, so a rejected dial is
+red before a launch.

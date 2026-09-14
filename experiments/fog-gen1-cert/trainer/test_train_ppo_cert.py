@@ -55,13 +55,30 @@ def test_overrides_move_only_the_declared_keys():
         tc.CURRENT["slot"] = "flat-s2"
         cfg = tc.derive_config_with_overrides(4, out)
         assert (cfg["actions"]["groom_cuddle_floor"], cfg["actions"]["groom_cuddle_slope"],
-                cfg["actions"]["groom_cuddle_ceiling"]) == (0.5, 0.0, 0.5)
+                cfg["actions"]["groom_cuddle_ceiling"]) == (0.25, 0.0, 0.25)
         assert cfg["actions"]["sleep_relief_sunbeam"] == 7.0
+        # the floor sits AT the unfarmable bound (2026-09-14 amendment)
+        assert cfg["actions"]["groom_cuddle_floor"] == max(
+            base["actions"]["rest_drip_relief"], base["actions"]["cosleep_drip_relief"])
         # a pool arm: nothing but the radius
         tc.CURRENT["slot"] = "cand-s3"
         cfg = tc.derive_config_with_overrides(4, out)
         want = dict(base); want["vision"] = dict(base["vision"], radius=4)
         assert cfg == want
+        tc.CURRENT["slot"] = None
+
+
+def test_every_override_slot_passes_the_engine_validator():
+    """The 2026-09-14 launch lost the flat arms to validate.rs (floor 0.5
+    over the drip bound); the smoke covered one slot. Every slot with an
+    override now has to construct a world."""
+    import cloudkitty
+    with tempfile.TemporaryDirectory() as d:
+        for slot in tc.OVERRIDES:
+            out = Path(d) / f"{slot}.toml"
+            tc.CURRENT["slot"] = slot
+            tc.derive_config_with_overrides(4, out)
+            cloudkitty.ParallelEnv(str(out), control=None, horizon=10)  # raises on a rejected config
         tc.CURRENT["slot"] = None
 
 

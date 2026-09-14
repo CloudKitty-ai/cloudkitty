@@ -76,9 +76,13 @@ assert _idx == 41
 MIX = {}  # all-policy, no exception (owner 2026-09-13)
 
 # slot -> [(section, key, value)]; every other slot trains at the anchor.
-FLAT = [("actions", "groom_cuddle_floor", 0.5),
+# Flat at the unfarmable bound (owner amendment 2026-09-14, "Flat ruling:
+# 1"): the declared 0.5 floor is rejected by the engine (validate.rs: the
+# floor may never out-pay the drip tier, both drips 0.25), so the flat
+# contrast is the served floor with the delivered-bath coupling removed.
+FLAT = [("actions", "groom_cuddle_floor", 0.25),
         ("actions", "groom_cuddle_slope", 0.0),
-        ("actions", "groom_cuddle_ceiling", 0.5)]
+        ("actions", "groom_cuddle_ceiling", 0.25)]
 OVERRIDES = {
     "flat-s1": FLAT, "flat-s2": FLAT, "flat-s3": FLAT,
     "beam10-s1": [("actions", "sleep_relief_sunbeam", 10.0)],
