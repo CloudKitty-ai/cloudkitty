@@ -81,6 +81,10 @@ mod stub {
         /// Requests that reached the endpoint (accepted connections that
         /// delivered a parseable decision request).
         pub hits: Arc<AtomicUsize>,
+        /// Raw accepted connections — counts even unparseable traffic
+        /// (e.g. a redirect-following client's bodyless GET), so "never
+        /// contacted" can be asserted at the socket, not the parser.
+        pub connections: Arc<AtomicUsize>,
     }
 
     fn read_request(stream: &mut TcpStream) -> Option<Request> {
@@ -132,10 +136,13 @@ mod stub {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind stub");
         let url = format!("http://{}/decide", listener.local_addr().unwrap());
         let hits = Arc::new(AtomicUsize::new(0));
+        let connections = Arc::new(AtomicUsize::new(0));
         let seen = hits.clone();
+        let accepted = connections.clone();
         std::thread::spawn(move || {
             for stream in listener.incoming() {
                 let Ok(mut stream) = stream else { continue };
+                accepted.fetch_add(1, Ordering::SeqCst);
                 let Some(request) = read_request(&mut stream) else {
                     continue;
                 };
@@ -150,7 +157,11 @@ mod stub {
                 write_response(&mut stream, &reply);
             }
         });
-        Stub { url, hits }
+        Stub {
+            url,
+            hits,
+            connections,
+        }
     }
 
     /// An address that refuses connections: bound once, then dropped.
@@ -420,10 +431,33 @@ fn a_redirect_is_a_failed_proposal_not_a_hop() {
         );
     }
     assert_eq!(
-        honeypot.hits.load(Ordering::SeqCst),
+        honeypot.connections.load(Ordering::SeqCst),
         0,
         "the redirect target is never contacted"
     );
+}
+
+/// The 200-only contract (contracts/http-transport.md): a byte-valid,
+/// correctly correlated envelope riding a non-200 status is STILL a failed
+/// proposal — a wrong status is not a reply, whatever its body says.
+#[test]
+fn a_valid_envelope_on_a_wrong_status_is_still_refused() {
+    let stub = stub::spawn(|request| {
+        let body = serde_json::json!({
+            "tick": request.tick,
+            "kitty_id": request.kitty_id,
+            "proposal": {"action": "play"},
+        });
+        stub::Reply::raw(500, serde_json::to_vec(&body).unwrap())
+    });
+    let (mut world, registry, config) = world_with_remote(&stub.url, SeatClass::Mind, |_| {});
+    for _ in 0..3 {
+        assert_eq!(
+            tick_provenance(&mut world, &registry, &config),
+            Provenance::FallbackTaken,
+            "a wrong status is still refused, valid body or not"
+        );
+    }
 }
 
 /// A refused connection is a per-tick fallback, never a startup error and
