@@ -27,10 +27,20 @@ registered before the candidate exists; scripted behaviors never
 leave the toolbox; the end state is the best world, not the most
 learned one. New, from this era's decisions:
 
-1. **Two-layer welfare gates** (owner, 2026-08-14): the scripted-
-   baseline hard floor never moves; each seating declares its own
-   budget vs the incumbent before instruments run. 0.002 is a noise
-   floor for reading parity, never a pass bar.
+1. **Two-layer welfare gates** (owner, 2026-08-14; reshaped
+   2026-09-13, doctrine rule 10): the floor is the scripted roster of
+   the same battery, seat-paired, plus the catastrophe gates; its
+   question is fixed, its number floats with the world it is measured
+   in. Each seating declares its trade before instruments run: what
+   it is for, the instrument that measures that benefit, and the
+   welfare it may cost, which is its own bar. The delta against the
+   incumbent at the same seat is a reading that charges that cost,
+   never a bar; when the incumbent cannot run in the new battery (a
+   schema wall, as at Fog Gen 1), the reading is taken live after the
+   seating against the incumbent's last record, with the world change
+   named as its confound, and only the catastrophe gates bound the
+   cost. 0.002 is a noise floor for reading parity, never a pass bar;
+   a result inside noise establishes nothing until replicated.
 2. **Seat-paired accounting** for trait-differentiated seats: every
    seat measures against the incumbent at the SAME seat. Absolute
    welfare comparison across trait structure is an accounting error.
