@@ -69,6 +69,52 @@ fn excluded_dirs(root: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
+/// Drops the files git ignores (handover (e), 2026-09-13): a lab checkout
+/// carries gitignored record configs of earlier engine generations that no
+/// longer parse, and the exclusion manifest cannot cover them -- it asserts
+/// every named directory exists, and those records exist only on the lab
+/// machine. Untracked-but-NOT-ignored files stay in scope (the manifest
+/// header's rule: new experiment output loads on the current engine by
+/// default). If git is unavailable or errors, the list is left unfiltered,
+/// so CI behavior -- which only ever sees the tracked tree -- is unchanged.
+fn drop_gitignored(root: &Path, files: &mut Vec<PathBuf>) {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let Ok(mut child) = Command::new("git")
+        .args(["check-ignore", "--stdin", "-z"])
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+    else {
+        return;
+    };
+    let mut input = Vec::new();
+    for f in files.iter() {
+        input.extend_from_slice(f.as_os_str().as_encoded_bytes());
+        input.push(0);
+    }
+    if child.stdin.take().unwrap().write_all(&input).is_err() {
+        let _ = child.wait();
+        return;
+    }
+    let Ok(out) = child.wait_with_output() else {
+        return;
+    };
+    // check-ignore: 0 = some paths ignored, 1 = none; anything else means
+    // the answer is unusable, and no filtering beats wrong filtering.
+    if !matches!(out.status.code(), Some(0 | 1)) {
+        return;
+    }
+    let ignored: std::collections::HashSet<&[u8]> = out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|s| !s.is_empty())
+        .collect();
+    files.retain(|f| !ignored.contains(f.as_os_str().as_encoded_bytes()));
+}
+
 #[test]
 fn every_shipped_toml_loads_through_validation() {
     let root = repo_root();
@@ -82,6 +128,7 @@ fn every_shipped_toml_loads_through_validation() {
     }
     let excluded = excluded_dirs(&root);
     files.retain(|f| !excluded.iter().any(|dir| f.starts_with(dir)));
+    drop_gitignored(&root, &mut files);
     assert!(
         files.iter().any(|p| p.ends_with("cloudkitty.toml")),
         "the served config is in the sweep"
@@ -206,4 +253,52 @@ fn the_frozen_eval_suites_still_pin_the_legacy_groom_key_and_load() {
         }
     }
     assert_eq!(checked, 12, "both suites fully swept (6 worlds each)");
+}
+
+/// Removes the self-test's scratch subtree even when the test panics.
+struct RemoveOnDrop(PathBuf);
+impl Drop for RemoveOnDrop {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// Self-test for `drop_gitignored`: plants a gitignored, deliberately
+/// unparseable TOML under a swept root and proves the filter -- and only
+/// the filter -- keeps it out of the sweep. The fixture lives under a
+/// `raw/` directory (gitignored at the root: `experiments/**/raw/`), so
+/// the concurrently-running sweep test filters it by path and never reads
+/// it; the directory name is unique to this binary so the rl sweep's
+/// self-test can never share the path.
+#[test]
+fn the_sweep_drops_gitignored_files_and_only_those() {
+    let root = repo_root();
+    let scratch = root.join("experiments/sweep-skip-selftest-core");
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    let dir = scratch.join("raw");
+    std::fs::create_dir_all(&dir).unwrap();
+    let fixture = dir.join("retired-generation.toml");
+    std::fs::write(
+        &fixture,
+        "cuddle_relief = 1.0 # retired 2.x key: must never reach the parser\n",
+    )
+    .unwrap();
+
+    let mut files = Vec::new();
+    collect(&root.join("experiments"), true, &mut files);
+    assert!(
+        files.contains(&fixture),
+        "collect sees the gitignored fixture pre-filter"
+    );
+    let tracked = root.join("cloudkitty.toml");
+    files.push(tracked.clone());
+    drop_gitignored(&root, &mut files);
+    assert!(
+        !files.contains(&fixture),
+        "the gitignored fixture must be dropped from the sweep"
+    );
+    assert!(
+        files.contains(&tracked),
+        "a tracked config survives the filter"
+    );
 }
