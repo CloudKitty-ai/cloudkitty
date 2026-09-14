@@ -166,23 +166,49 @@ class default asymmetry is the spec's own (FR-015).
 
 ## R9. Seat-class observability and fallback lineage (FR-015/FR-016)
 
-**Decision**: the class travels as a field on the behavior value
-(`ScriptBehavior` and `HttpBehavior` both carry it) and appears (a) in the
-registration log line, and (b) as a `seat_class` field on every
-plugin-attributed tracing line the transports already emit (exchange
-failures, relaunches, registrations) — decisions are attributed in logs by
-`plugin = name`, and the class now rides wherever that attribution
-appears. No provenance-enum change, no served surface, no artifact schema
-change: `FallbackTaken` provenance (seam.rs, spec 014 FR-017) is already
-the per-decision marker FR-016 keys on; the docs state the doctrine
-consequence (fallback rows are scripted rows, excluded from a mind seat's
-lineage) where corpus/lineage tooling authors will read it. The lab-side
-consumer (stamping name→class tables into corpus artifacts) belongs to
-the LLM-seat sitting per the scope fence.
+**Decision (owner ruled 2026-09-14, option A)**: the class is attached by
+a small server-crate wrapper behavior applied to BOTH transports at
+registration: it enters a tracing span carrying `seat_class` around the
+inner advisor's `try_decide` (via `.instrument()`), so every
+plugin-attributed log line the transports already emit (exchange
+failures, relaunches — attributed by `plugin = name`) inherits the field;
+the registration log line states it too. The wrapper MUST forward
+`try_decide` to the inner behavior (and the budget-exemption flag) — the
+documented wrapper-author contract in `behavior/mod.rs`; a wrapper that
+forwards only `decide` silently turns every plugin decision into a
+fallback. No class field enters core (`ScriptBehavior` and `HttpBehavior`
+are untouched by this concern); no provenance-enum change, no served
+surface, no artifact schema change: `FallbackTaken` provenance (seam.rs,
+spec 014 FR-017) is already the per-decision marker FR-016 keys on; the
+docs state the doctrine consequence (fallback rows are scripted rows,
+excluded from a mind seat's lineage) where corpus/lineage tooling authors
+will read it.
 
 **Rationale**: FR-015 asks for observability where decisions are
 attributed without reading the server config — logs are that surface
-today; extending `Provenance` or artifact schemas would be engine/schema
-change the spec forbids (FR-010, scope fence). Cheapest surface that a
-future corpus stamper can also query (the registration map is in server
-memory, one accessor away, when that sitting comes).
+today; a class field in core would be a third core touch carrying a
+config-domain concept, and extending `Provenance` or artifact schemas
+would be engine/schema change the spec forbids (FR-010, scope fence).
+The wrapper is also structurally a preview of the three-tier chain
+combinator the LLM-seat sitting will build (a chain is a wrapping
+behavior that picks an inner advisor and labels the turn), so the
+pattern — including the forward-`try_decide` discipline — is established
+where that sitting will reuse it.
+
+**Primary use-case (owner, 2026-09-14)**: a remote LLM as a kitty's
+advisor is the most likely consumer of this transport. Two IOUs are
+recorded for the LLM-seat sitting, deliberately NOT built here (scope
+fence): (1) a machine-readable name→class accessor on the server's
+registration map, for stamping class tables into corpus/lineage
+artifacts; (2) a possible move of `HttpBehavior` from the server crate to
+core or a transport crate IF training rollouts ever want remote teacher
+seats — headless lab drivers don't link the server crate. Both are
+contained moves (the contract parser is already core via R5; the
+behavior is one file).
+
+**Alternatives considered**: class as a field on the behavior values
+(option B — a third core touch, and a per-seat field is likely the wrong
+shape once the chain needs per-turn tier attribution); registration-line
+only (weakest reading of FR-015's "wherever"); per-transport asymmetry
+(FR-015 doesn't distinguish transports); amending FR-015 (narrowing a
+MUST to fit the implementation).

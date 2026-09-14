@@ -103,14 +103,22 @@ plugin-free.
       copy script.rs's ordering comment); serialize request only after
       liveness settled; replies validated by
       `cloudkitty_core::behavior::parse_reply_line`; `Ok` →
-      `Decision::silent`; failures logged with `seat_class` field; taint
+      `Decision::silent`; failures logged with a diagnosable reason
+      (`seat_class` arrives via T011's span, not a field here); taint
       table per data-model.md (timeout/oversized/desync tear down +
       `relaunch_cooldown_ticks`; status/refused/garbage don't);
       `decide()` = the same `unreachable!` contract as ScriptBehavior.
-- [ ] T011 [US1] Register `HttpBehavior` for `url` entries in
-      `register_plugin_behaviors`; registration log line carries
-      `seat_class`; thread `class` into `ScriptBehavior` registration
-      logging too (value stored where both transports' log lines reach it).
+- [ ] T011 [US1] Seat-class wrapper (owner ruled option A) + registration
+      in `crates/cloudkitty-server/src/lib.rs` (or beside
+      `http_behavior.rs`): a wrapper behavior holding
+      `(inner: Arc<dyn Behavior>, seat_class)` that enters a
+      `tracing` span carrying `seat_class` around the inner `try_decide`
+      via `.instrument()` — MUST forward `try_decide` and the
+      budget-exemption flag (the `behavior/mod.rs` wrapper-author
+      contract; forwarding only `decide` silently turns every plugin
+      decision into a fallback). Wrap BOTH transports with it at
+      registration in `register_plugin_behaviors`; registration log line
+      carries `seat_class`. No class field enters core.
 - [ ] T012 [US1] Stub-endpoint test helper in
       `crates/cloudkitty-server/tests/http_plugin.rs`: raw
       `std::net::TcpListener` on 127.0.0.1:0, scripted per-connection
@@ -129,7 +137,9 @@ plugin-free.
       predict the determinism/parity test red; (b) neuter a startup
       validation arm (`if false`) → predict its T009 test red; (c) point
       registration at `ScriptBehavior` for url entries → predict T013(a)
-      red at spawn.
+      red at spawn; (d) make the T011 wrapper forward only `decide` (drop
+      the `try_decide` forwarding) → predict T013(a) red — dispatch takes
+      the crashed-advisor path and no proposal is ever applied.
 
 **Checkpoint**: MVP — a remote brain demonstrably drives a kitty; startup
 surface locked.

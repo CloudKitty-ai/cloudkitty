@@ -21,10 +21,15 @@ validated in `register_plugin_behaviors`, error names the entry.
 ## SeatClass (new) — server crate
 
 `enum SeatClass { Scripted, Mind }`, serde lowercase (`"scripted"` /
-`"mind"`). Carried by both behavior values; appears in the registration
-log line and as `seat_class` on every plugin-attributed tracing line
-(research R9). Never served, never in provenance, never in an artifact
-schema (scope fence).
+`"mind"`). Attached by a server-crate wrapper behavior (owner ruled
+option A, 2026-09-14 — research R9): the wrapper enters a tracing span
+carrying `seat_class` around the inner advisor's `try_decide`
+(`.instrument()`), applied to both transports at registration, so every
+plugin-attributed log line inherits the field; the registration log line
+states it too. The wrapper forwards `try_decide` and the
+budget-exemption flag per the `behavior/mod.rs` wrapper-author contract.
+No class field in core, never served, never in provenance, never in an
+artifact schema (scope fence).
 
 ## HttpBehavior (new) — `crates/cloudkitty-server/src/http_behavior.rs`
 
@@ -34,8 +39,10 @@ Mirror of `ScriptBehavior` with the pipe transport swapped for HTTP:
 |---------|-----------------------|-------|
 | `name`  | `String`              | Registry/behavior name; log context. |
 | `url`   | `reqwest::Url`        | Parsed at startup; the configured trust boundary. |
-| `class` | `SeatClass`           | Research R9. |
 | `state` | `Mutex<ExchangeState>`| Lifecycle below. One shared behavior may advise several kitties; the mutex serializes exchanges (same shared-plugin semantics and mutex-burst caveat as script — FR-014). |
+
+(No `class` field — the seat class rides the registration wrapper's
+tracing span, not the transport value; research R9.)
 
 ### ExchangeState (lifecycle)
 

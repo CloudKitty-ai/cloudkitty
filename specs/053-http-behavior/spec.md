@@ -40,6 +40,22 @@ Checked against `experiments/DESIGN-DOCTRINE.md` (all ten rules banked
   LLM-seat sitting after the Gen 1 reseat. 053 keeps the existing
   Article IV budget/breaker/scripted-fallback shape (see Assumptions).
 
+### Session 2026-09-14
+
+- Q: How is the declared seat class made observable on the transports'
+  per-decision log lines (FR-015) without a third core touch? → A: Owner
+  ruled option A: a server-side wrapper behavior that attaches
+  `seat_class` as a tracing span around the inner advisor's `try_decide`
+  (forwarding it per the wrapper-author contract), applied to both
+  transports at registration. No class field enters core.
+- Q: What is the primary anticipated use of this feature? → A: A remote
+  LLM as a kitty's advisor (owner, 2026-09-14). Design choices stay
+  compatible with the deferred LLM-seat sitting; the two known IOUs for
+  that sitting (a machine-readable name→class accessor for artifact
+  stamping; a possible transport crate move if training rollouts want
+  remote teacher seats) are recorded in research.md R9 — noted, not
+  built here (scope fence).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A remote service drives a kitty (Priority: P1)
