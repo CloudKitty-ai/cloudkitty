@@ -59,7 +59,7 @@ change.
   cannot snap its water on. The three numbers are dials on the shipped
   code with a lab card judging them, and the owner's bake is
   `footY 0.38 / shoreFloor 0.40 / shoreCeil 0.62`. Presentation only.
-  (#PR)
+  (#375)
 
 - **The social card was advertising a cat that no longer exists.** The
   OG image was drawn on 2026-08-02 and never redrawn, so every link
