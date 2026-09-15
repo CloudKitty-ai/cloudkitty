@@ -361,6 +361,43 @@ const CRITTER_KINDS = new Set(['bug', 'greeble']);
 const PROP_KINDS = new Set(['chow']);
 
 /**
+ * Where the water field is READ, and where it STOPS.
+ *
+ * Both ship at 0, which reproduces today's drawing exactly. The shoreline
+ * card in `gallery-v2.html` dials them, and neither value is a taste
+ * question -- each is derived from geometry the rest of the client already
+ * states:
+ *
+ *   `footY`      `CAT_GROUND_Y - 0.5` = 0.38. `submersionFor` anchors a
+ *                tile's value at that tile's ORIGIN corner, so a point is
+ *                sampled half a tile up and to the left of itself -- while
+ *                `drawKitty` plants the cat's feet `CAT_GROUND_Y` down its
+ *                box. At 0 the two disagree by 0.38 of a tile and the whole
+ *                field sits that far SOUTH of the cat it describes.
+ *
+ *   `shoreFloor` `0.5 - shoreOverdraw` = 0.40. See `submersionFor` below.
+ *
+ * Measured 2026-09-14, as tiles of travel past the PAINTED shore before the
+ * cues switch off, on a cat leaving the water:
+ *
+ *              footY 0, floor 0      footY 0.38, floor 0.40
+ *     east          +0.39                    -0.01
+ *     west          +0.39                    -0.01
+ *     south         +0.77                    -0.01
+ *     north         +0.01                    -0.01
+ *
+ * South is the sum of the two faults and north very nearly their difference,
+ * which is why a cat walking out of a pond toward the viewer keeps its
+ * waterline three quarters of a tile onto the grass while one walking away
+ * looks right. A negative number errs DRY -- the cue is gone a hundredth of
+ * a tile before the paint does.
+ */
+const WATER_SAMPLE = {
+  footY: 0,
+  shoreFloor: 0,
+};
+
+/**
  * How much of the cat is in water, 0..1 -- sampled from WHERE IT IS.
  *
  * This replaces a 260ms timer keyed on the nearest tile, and the change
@@ -398,12 +435,21 @@ function submersionFor(pos, world, view) {
   const y0 = Math.floor(pos.y);
   const fx = pos.x - x0;
   const fy = pos.y - y0;
-  return (
+  const raw =
     at(x0, y0) * (1 - fx) * (1 - fy) +
     at(x0 + 1, y0) * fx * (1 - fy) +
     at(x0, y0 + 1) * (1 - fx) * fy +
-    at(x0 + 1, y0 + 1) * fx * fy
-  );
+    at(x0 + 1, y0 + 1) * fx * fy;
+  // The ramp is one tile wide and centred on the TILE boundary -- but the
+  // pond is PAINTED at that boundary pushed out by `shoreOverdraw`, so four
+  // tenths of the ramp lies outside any water a viewer can see. That band is
+  // the cat still dripping on the lawn. `raw` is 0.5 at the tile edge and
+  // falls 1:1 per tile, which puts the paint's own edge at
+  // `0.5 - shoreOverdraw`; rebasing on that stops the field where the water
+  // stops. At 0 this is the bare bilinear and nothing changes.
+  const floor = WATER_SAMPLE.shoreFloor;
+  if (!(floor > 0)) return raw;
+  return raw <= floor ? 0 : (raw - floor) / (1 - floor);
 }
 
 /**
@@ -1562,7 +1608,9 @@ class WorldRenderer {
     // pose reads the same number so the wade pose and the water level can
     // never disagree about where the shoreline is -- they used to be two
     // separate readings of it.
-    const submersion = v2Motion ? submersionFor(pos, world, view) : 0;
+    const submersion = v2Motion
+      ? submersionFor({ x: pos.x, y: pos.y + WATER_SAMPLE.footY }, world, view)
+      : 0;
     const onWater = submersion >= 0.5;
 
     // The approved vector cat (spec 005 US2/US4/US5): identity from the
