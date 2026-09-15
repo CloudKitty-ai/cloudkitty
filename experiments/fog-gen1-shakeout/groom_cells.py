@@ -9,6 +9,7 @@ friend per observer. A cell is grooms / (row present AND row bath >=
 the announce threshold AND GroomKitty legal), with the row's visible
 share in parentheses. Guard: test_groom_cells.py."""
 import glob
+import os
 import sys
 from pathlib import Path
 
@@ -78,10 +79,14 @@ def add(c1, c2):
 
 
 if __name__ == "__main__":
-    root = Path("/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-shakeout")
+    # FOG_ROOT / FOG_CORPUS point the read at another pass (the cert pass:
+    # root experiments/fog-gen1-cert, corpus results-raw/bc-corpus-b3/flat)
+    root = Path(os.environ.get(
+        "FOG_ROOT", "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-shakeout"))
+    corpus = os.environ.get("FOG_CORPUS", "results-raw/bc-corpus/flat")
     nroll = int(sys.argv[1]) if len(sys.argv) > 1 else 8
     ctot, n, dsum = {}, 0, {j: 0.0 for j in IDS}
-    for d in sorted(root.glob("results-raw/bc-corpus/flat/config-00-rollout-*"))[:nroll]:
+    for d in sorted(root.glob(f"{corpus}/config-00-rollout-*"))[:nroll]:
         obs = np.load(d / "obs.npy", mmap_mode="r")
         kitty = np.load(d / "kitty.npy")
         act = np.load(d / "label.npy").astype(int)
