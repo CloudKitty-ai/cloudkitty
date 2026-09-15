@@ -3843,7 +3843,8 @@
         'Both dials ship at ZERO, which is exactly what the world draws today. Measured then, in tiles of travel past the paint before the cues switch off: east +0.39, west +0.39, south +0.77, north +0.01, on every pond size. ' +
         '`shoreFloor` is the one to move. The bilinear ramp is a full tile wide and centred on the TILE edge while the paint stops `shoreOverdraw` further out, so four tenths of the ramp lies on visible grass — that is the east–west fault, and 0.40 (`0.5 - shoreOverdraw`) closes it exactly, on every size, with the interior still reading 1.00. ' +
         '`footY` alone was ruled OUT (owner, 2026-09-14) and it deserved to be: it reads 0.42 on a 1x1, a pond the cat is plainly standing in the middle of. But the reason was the SHAPE of the field, not the sample point. With a floor alone the field is a PYRAMID — it touches 1 at exactly one point, the lattice peak — so moving the sample anywhere off that peak costs depth. `shoreCeil` saturates it into a PLATEAU: fully submerged across the water, ramping only at the boundary. With the flat top the feet can have the sample without the small pond losing its depth. ' +
-        'Swept over all three dials against both pond sizes and all four shores: the best a floor alone can do is 0.39 of a tile out somewhere, and it must choose between north and south. `footY 0.38 / shoreFloor 0.30 / shoreCeil 0.62` holds 1.00 standing on BOTH ponds and lands every one of the eight shores within 0.10 of the paint — and 0.62 is the widest ceiling that keeps the 1.00, which makes the transition 0.32 tiles rather than a snap. ' +
+        'The number to judge on is the TABLE BELOW, not how close the cue lands: `cut` is `CAT_GROUND_Y - s * (CAT_GROUND_Y - surface)`, so even a quarter of submersion clips just under the ground line — exactly where the paws are. A first pass picked `shoreFloor 0.30` by scoring symmetrically on how close the cue landed, and the owner caught what that misses: at 0.30 a cat standing one tile north of the 2x2 still reads 0.25 and loses 2 to 4px off its feet. Going dry a little EARLY is invisible; staying wet a little late is not. ' +
+        '`footY 0.38 / shoreFloor 0.40 / shoreCeil 0.62` is clean: nothing wet once the feet are past the paint, on either pond and all four shores, with 1.00 standing on both. It pays for that by going dry about a quarter tile early — the cat is drawn dry while its paws are still over painted water, which reads as nothing much. 0.62 is the widest ceiling that keeps the 1.00 (0.70 drops the 1x1 to 0.73), and floor 0.42 is the other end of the clean window. ' +
         'What neither dial reaches: the field describes the cat’s BOX, but the clip and the meniscus are drawn against its FEET, 0.88 down that box. That is a drawing offset, and it is the whole of the remaining north/south asymmetry. Nor does this show `poseBlendMs` — a TIME lag, so the swim→land blend always trails in the direction of travel, hidden under the water going in and dragged a third of a tile onto the grass coming out.',
       v2Only: true,
       w: 940,
@@ -3880,25 +3881,30 @@
             const m = shoreMid(n);
             const f = dir.from(paint, m);
             const t2 = dir.to(paint);
-            let past = NaN;
+            // The worst submersion still showing once the FEET are clear of
+            // the paint. Not "where the cue switches off": `cut` is
+            // `CAT_GROUND_Y - s * (CAT_GROUND_Y - surface)`, so even a
+            // quarter of submersion clips just under the ground line, which
+            // is exactly where the paws are. Wants 0.00.
+            let worst = 0;
             for (let i = 0; i <= 4000; i += 1) {
               const at = f + (t2 - f) * (i / 4000);
+              if ((dir.ref(at) - paint) * dir.out < 0) continue;
               const pos = dir.axis === 'y' ? { x: m, y: at } : { x: at, y: m };
-              const sub = submersionFor({ x: pos.x, y: pos.y + WATER_SAMPLE.footY }, w, one);
-              if (sub <= 0.01) { past = (dir.ref(at) - paint) * dir.out; break; }
+              worst = Math.max(worst, submersionFor({ x: pos.x, y: pos.y + WATER_SAMPLE.footY }, w, one));
             }
-            return `${(past >= 0 ? '+' : '') + past.toFixed(2)}`.padStart(6);
+            return (worst > 0.005 ? worst.toFixed(2) : '  -  ').padStart(6);
           });
           return `  ${`${n}x${n}`.padEnd(5)} ${cells.join(' ')}`;
         });
         const over = (typeof meadowTunables === 'function' ? meadowTunables() : MEADOW_DEFAULTS).shoreOverdraw;
         return (
           `standing ON the pond (the interior invariant, wants 1.00):  ${standing.join('   ')}\n`
-          + '\ntiles PAST the painted shore before the cue switches off:\n'
+          + '\nsubmersion still showing once the FEET are past the paint (wants none):\n'
           + `         ${SHORE_DIRS.map((x) => x.name.padStart(6)).join(' ')}\n`
           + `${rows.join('\n')}\n`
           + `\nfootY ${WATER_SAMPLE.footY}  shoreFloor ${WATER_SAMPLE.shoreFloor}  shoreCeil ${WATER_SAMPLE.shoreCeil}`
-          + `   (ships 0 / 0 / 1; the candidate is 0.38 / 0.30 / 0.62)\n`
+          + `   (ships 0 / 0 / 1; the candidate is 0.38 / 0.40 / 0.62)\n`
           + `the transition is ${ramp.toFixed(2)} tiles of travel wide (ships 1.00)\n`
           + `dirIx ${SHORE_LAB.dirIx} drawn above (${d.name}); the table is all four either way.`
           + `   tilePx ${SHORE_LAB.tilePx}, guides ${SHORE_LAB.guides} -- viewing aids, not bake values`
