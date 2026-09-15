@@ -33,6 +33,34 @@ change.
 
 ## Unreleased
 
+- **A cat leaving a pond kept the water with it.** Reported from the
+  meadow: the exit read as a cat still swimming while standing on grass.
+  The water field was a bilinear over the served tiles, read at the cat's
+  box CORNER and ramping across a full tile centred on the tile edge —
+  but the cat is drawn standing `CAT_GROUND_Y` (0.88) down that box, and
+  the pond is *painted* `shoreOverdraw` past the tile edge. Measured as
+  tiles of travel past the painted shore with the cues still showing:
+  east and west 0.39, south 0.77 (the two faults adding), north 0.01
+  (very nearly their difference, which is why the one direction that
+  looked right was the one you rarely watch). The waterline at a small
+  submersion sits just under the ground line, so what that costs is the
+  cat's *paws*, not a band across its body. The field is now read where
+  the cat stands and shaped into a plateau — full depth over the water,
+  dropping to nothing across a fifth of a tile at the boundary — so
+  nothing is wet once the feet are past the paint, on either pond size
+  and all four shores. A cat standing in a pond still reads fully
+  submerged, including on a 1×1, which is three of the four ponds the
+  served world has and the case a naive fix gets wrong. One water level
+  for every pose survives (`e9ecc81`), now checked across all twelve
+  poses at four points of each one's cycle, three mid-blends, a pounce at
+  full lift, and both extremes of the curated kitty sizes. A pond fading
+  in still raises the water at its own alpha: the shape is taken over the
+  tiles as solid and the arrival put back afterwards, so a spawning pond
+  cannot snap its water on. The three numbers are dials on the shipped
+  code with a lab card judging them, and the owner's bake is
+  `footY 0.38 / shoreFloor 0.40 / shoreCeil 0.62`. Presentation only.
+  (#375)
+
 - **The social card was advertising a cat that no longer exists.** The
   OG image was drawn on 2026-08-02 and never redrawn, so every link
   preview since — Slack, iMessage, Twitter, LinkedIn — has shown kitties
