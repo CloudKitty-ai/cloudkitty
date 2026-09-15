@@ -33,5 +33,6 @@ THREADS.md — read it at kickoff, before anything below.
 7. Before designing experiments or training runs, read
    experiments/FINDINGS.md.
 8. A spec that prices, observes, or scripts behavior is checked against
-   experiments/DESIGN-DOCTRINE.md before /speckit-plan; rules that
-   change a choice are recorded in the spec.
+   experiments/DESIGN-DOCTRINE.md before /speckit-plan. The spec names
+   each rule that moved a choice and the choice it moved; a check that
+   moved nothing says so.
