@@ -42,6 +42,13 @@ sys.path.insert(0, str(EXPTS / "exp-006-character-gen"))
 sys.path.insert(0, str(EXPTS))
 
 LOW_HAPPINESS = 45.0
+# reward.rs: Nash welfare = exp(mean ln(h/100 + eps)) - eps at p = 0, eps 0.01 (the
+# [rl.reward] default; anchor-b3.toml sets none). The engine's reward uses UNCLAMPED
+# happiness; the state carries the engine's clamped value, so `nash_state` equals the
+# reward wherever no seat sits at the floor (floor_touches 0), which is every leg read
+# so far. It exists so the all-scripted roster, which has no policy agent and therefore
+# no reward stream, gets a paired team number.
+REWARD_EPS, TERM_FLOOR = 0.01, 1e-4
 PER_KITTY, HAP, DIST0 = 32, 6, 20
 N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
@@ -118,6 +125,7 @@ def run_one(args):
     max_dist_age = 0
     max_dist_age_seat = np.zeros(roster, np.int64)
     reward_sum, n_ticks = 0.0, 0
+    nash_state_sum = 0.0
 
     for _t in range(ticks):
         acts = {}
@@ -137,6 +145,8 @@ def run_one(args):
         if names:
             reward_sum += float(rew[names[0]])
         n_ticks += 1
+        h_norm = st[HAP:roster * PER_KITTY:PER_KITTY].astype(np.float64)
+        nash_state_sum += float(np.exp(np.log(np.maximum(h_norm + REWARD_EPS, TERM_FLOOR)).mean()) - REWARD_EPS)
         for k in range(roster):
             b = k * PER_KITTY
             h = float(st[b + HAP]) * 100
@@ -154,6 +164,7 @@ def run_one(args):
     return {
         "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks,
         "nash": (reward_sum / max(1, n_ticks)) if names else None,
+        "nash_state": nash_state_sum / max(1, n_ticks),
         "mean_happiness": (hap_sum / max(1, n_ticks)).round(4).tolist(),
         "low_share": (low_ticks / max(1, n_ticks)).round(6).tolist(),
         "floor_touches": floor_touches.tolist(),
