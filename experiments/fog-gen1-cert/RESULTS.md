@@ -263,9 +263,16 @@ network in every seat).
    `anchor-b3.toml` plus the beam pick, eval band 870,001–030, stress
    880,001–030, the scripted baseline re-derived on the same config.
    The catastrophe gate is expected to be the contested row (above).
-2. **Beam pick**: no screened price cleared the pool; the choices are
-   the served 7 (charm not achieved by price at Gen 1), a price outside
-   the screen (a new run), or leaving beam naps to the leash dose.
+2. **Beam pick — RULED 2026-09-15 (owner): the beam stays at 7.**
+   "It's clear that this vector is not influencing behavior
+   meaningfully." No screened price cleared the pool (beam10 0.066 /
+   0.033, beam15 0.029 against a pool of 0.014–0.051; no dose response
+   to the price), the plain arms out-nap every beam arm, and only the
+   leash dose moves the read. The certification world is
+   `anchor-b3.toml` as declared, no beam key moved; rules 3 and 4 at
+   the pick have nothing to check. Beam naps go to GEN2-INPUTS as a
+   world-valuation gap (rule 7: the world does not value the beam at
+   any price the sleep budget can see while sleep is cheap anywhere).
 3. **Charm ruling**, after the battery, on the seated composition.
 4. **The seven unspent runs**: a third seed per leash dose was the
    pencilled first use; the pass's own reads suggest the dose-hi shape

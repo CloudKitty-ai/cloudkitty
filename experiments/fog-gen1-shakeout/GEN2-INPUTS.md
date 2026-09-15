@@ -188,9 +188,22 @@ lands.
   the others give bath, reciprocity in another currency. Decide the
   two together: dirt the self form cannot clear makes a non-grooming
   seat one fifth of the givers missing.
+- Beam naps are not world-valued at Gen 1 (step-7 beam screen,
+  `fog-gen1-cert/RESULTS.md` §"Beam naps"; owner ruled 2026-09-15 the
+  beam stays at 7). Policies sleep 12–14% of ticks against the
+  teacher's 8% and take the plain 5.0 sleep wherever they are; a 7, 10
+  or 15 beam premium never moves the in-beam share out of the seed
+  spread (0.014–0.066), while the β 0.10 leash holds the teacher's
+  0.21–0.22. Rule 7 reading: while sleep is cheap anywhere, the beam
+  premium is invisible to the sleep budget. A Gen 2 world that wants
+  beam naps has to make off-beam sleep worse (rule 2, a state of the
+  world: colder ground, slower relief), not the beam better; the price
+  lever has been screened and does not work. Biscuit's seat naps on
+  beams least of all (0.006–0.022) at every price and dose.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
-  regimes.
+  regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across
+  every bin on twenty arms, no recurrence.
 - Here-word emergence proof (the `announce_here = 0` no-seeding
   control, the F-026 overturn test): DEFERRED here from step 7 (owner,
   2026-09-13). The current recipe cannot run it fairly: the leash sums
