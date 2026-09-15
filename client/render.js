@@ -375,7 +375,12 @@ const PROP_KINDS = new Set(['chow']);
  *                box. At 0 the two disagree by 0.38 of a tile and the whole
  *                field sits that far SOUTH of the cat it describes.
  *
- *   `shoreFloor` `0.5 - shoreOverdraw` = 0.40. See `submersionFor` below.
+ *   `shoreFloor` where the field reaches DRY. See `submersionFor` below.
+ *
+ *   `shoreCeil`  where it saturates to FULLY SUBMERGED. Ships at 1, which
+ *                never saturates -- the bare bilinear peak. Below 1 the
+ *                field gains a flat top, which is what a small pond needs
+ *                if the sample is to sit at the cat's feet.
  *
  * Measured 2026-09-14, as tiles of travel past the PAINTED shore before the
  * cues switch off, on a cat leaving the water:
@@ -395,6 +400,7 @@ const PROP_KINDS = new Set(['chow']);
 const WATER_SAMPLE = {
   footY: 0,
   shoreFloor: 0,
+  shoreCeil: 1,
 };
 
 /**
@@ -447,9 +453,19 @@ function submersionFor(pos, world, view) {
   // falls 1:1 per tile, which puts the paint's own edge at
   // `0.5 - shoreOverdraw`; rebasing on that stops the field where the water
   // stops. At 0 this is the bare bilinear and nothing changes.
+  // ...and `shoreCeil` is the other end of the same idea. With a floor
+  // alone the field is a PYRAMID: it touches 1 only at the one point the
+  // lattice peaks, which is why moving the sample to the cat's feet reads
+  // 0.62 on a lone tile -- a pond the cat is plainly standing in the
+  // middle of. Saturating at a ceiling makes it a PLATEAU instead: fully
+  // submerged across the water, ramping only at the boundary. That is what
+  // lets the sample sit at the feet, where the shore wants it, without
+  // costing the small pond its depth.
   const floor = WATER_SAMPLE.shoreFloor;
-  if (!(floor > 0)) return raw;
-  return raw <= floor ? 0 : (raw - floor) / (1 - floor);
+  const ceil = WATER_SAMPLE.shoreCeil;
+  if (!(floor > 0) && !(ceil < 1)) return raw;
+  if (!(ceil > floor)) return raw > floor ? 1 : 0;
+  return Math.max(0, Math.min(1, (raw - floor) / (ceil - floor)));
 }
 
 /**

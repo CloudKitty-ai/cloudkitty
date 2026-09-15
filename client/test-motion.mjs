@@ -1397,6 +1397,7 @@ check('the water dials ship at ZERO -- the shoreline card cannot move the world'
   // reprices every pond silently, so it is asserted rather than trusted.
   assert(WATER_SAMPLE.footY === 0, `footY ships at ${WATER_SAMPLE.footY}, not 0`);
   assert(WATER_SAMPLE.shoreFloor === 0, `shoreFloor ships at ${WATER_SAMPLE.shoreFloor}, not 0`);
+  assert(WATER_SAMPLE.shoreCeil === 1, `shoreCeil ships at ${WATER_SAMPLE.shoreCeil}, not 1`);
 });
 
 check('footY reaches the drawn cat, and moves the field toward its feet', () => {
