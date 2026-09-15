@@ -1336,11 +1336,13 @@ check('submersion is EXACTLY zero on dry ground, at any speed', () => {
 
 /** The submersion `drawKitty` actually computed, read where it hands it to
  *  the meniscus -- the production path, not a direct call to submersionFor. */
-function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null) {
+function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null, opts = {}) {
   const wasFoot = WATER_SAMPLE.footY;
   const wasFloor = WATER_SAMPLE.shoreFloor;
+  const wasCeil = WATER_SAMPLE.shoreCeil;
   WATER_SAMPLE.footY = footY;
   if (shoreFloor !== null) WATER_SAMPLE.shoreFloor = shoreFloor;
+  if (opts.shoreCeil !== undefined) WATER_SAMPLE.shoreCeil = opts.shoreCeil;
   let seen = null;
   let seenCut = null;
   const ctx = new Proxy({}, {
@@ -1357,7 +1359,7 @@ function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null) {
     drawWaterline(cx, y, cut, submersion) { seen = submersion; seenCut = cut; },
     drawBeat() {}, drawElement() {}, roundRect() {},
   };
-  const kitty = { id: 1, pos, activity: { state: 'walking' }, last_action: null, needs: {} };
+  const kitty = { id: opts.id ?? 1, pos, activity: { state: 'walking' }, last_action: null, needs: {} };
   const world = {
     width: 12, height: 12, tick: 10, kitties: [kitty],
     elements: water.map((q, i) => ({ id: i + 1, kind: 'water', pos: { x: q[0], y: q[1] } })),
@@ -1366,8 +1368,13 @@ function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null) {
     posFor: () => pos, elementPosFor: (e) => e.pos, elementAlphaFor: () => 1,
     tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now: 1000 },
     travelHFor: () => 1, wetFor: () => 0, movedFor: () => true,
-    motionFor: () => ({ phase: 0.2 }), facingFor: () => 'right',
-    velocityFor: () => ({ x: 0, y: 1 }), leanFor: () => null, leapFor: () => null,
+    motionFor: () => ({ phase: opts.phase ?? 0.2 }), facingFor: () => 'right',
+    velocityFor: () => ({ x: 0, y: 1 }), leanFor: () => null,
+    // A leap must RISE CLEAR of the water rather than take the water with
+    // it, and a blend must not change the level halfway through a pose
+    // change: both are drawn from the same `y` the clip is, on purpose.
+    leapFor: () => opts.leap ?? null,
+    tweenFor: () => opts.tween ?? null,
     // A forced pose goes in where the renderer asks for one, so the rest of
     // the draw is the production path.
     adjustPose: (id, p) => pose ?? p,
@@ -1384,6 +1391,7 @@ function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null) {
     if (hadMeadow) globalThis.MEADOW = savedMeadow; else delete globalThis.MEADOW;
     WATER_SAMPLE.footY = wasFoot;
     WATER_SAMPLE.shoreFloor = wasFloor;
+    WATER_SAMPLE.shoreCeil = wasCeil;
   }
   // No waterline drawn at all means the cat read as dry.
   return pose === null ? (seen ?? 0) : { submersion: seen ?? 0, cut: seenCut };
@@ -1438,35 +1446,35 @@ check('the water dials reach EVERY pose, and all twelve meet the surface alike',
   for (let y = 2; y <= 5; y += 1) for (let x = 2; x <= 7; x += 1) water.push([x, y]);
   assert(CatV2.POSES.length === 12, `the vocabulary has ${CatV2.POSES.length} poses, not 12`);
 
-  for (const [footY, shoreFloor] of [[0, 0], [0, 0.4], [0.38, 0.35]]) {
+  for (const [footY, shoreFloor, shoreCeil] of [[0, 0, 1], [0, 0.4, 1], [0.38, 0.4, 0.62]]) {
     // A setting dries the cat at different places, so find somewhere this
     // one is genuinely MID-ramp first. Twelve poses agreeing on zero would
     // pass while proving nothing.
     let pos = null;
     for (let y = 3; y <= 6 && !pos; y += 0.01) {
       const at = { x: 4, y };
-      const d = drawnSubmersion(at, water, footY, 'idle', shoreFloor).submersion;
+      const d = drawnSubmersion(at, water, footY, 'idle', shoreFloor, { shoreCeil }).submersion;
       if (d > 0.2 && d < 0.8) pos = at;
     }
     assert(pos, `no mid-ramp position exists at ${footY}/${shoreFloor}`);
     const seen = CatV2.POSES.map((pose) => ({
-      pose, ...drawnSubmersion(pos, water, footY, pose, shoreFloor),
+      pose, ...drawnSubmersion(pos, water, footY, pose, shoreFloor, { shoreCeil }),
     }));
     assert(
       seen.every((r) => r.submersion > 0.2 && r.submersion < 0.8),
-      `at ${footY}/${shoreFloor} some pose left the ramp: `
+      `at ${footY}/${shoreFloor}/${shoreCeil} some pose left the ramp: `
       + seen.map((r) => `${r.pose} ${r.submersion}`).join(', '),
     );
     const first = seen[0];
     for (const r of seen) {
       assert(
         Math.abs(r.submersion - first.submersion) < 1e-12,
-        `at ${footY}/${shoreFloor} '${r.pose}' is ${r.submersion} deep but `
+        `at ${footY}/${shoreFloor}/${shoreCeil} '${r.pose}' is ${r.submersion} deep but `
         + `'${first.pose}' is ${first.submersion}`,
       );
       assert(
         Math.abs(r.cut - first.cut) < 1e-12,
-        `at ${footY}/${shoreFloor} '${r.pose}' meets the surface at ${r.cut} but `
+        `at ${footY}/${shoreFloor}/${shoreCeil} '${r.pose}' meets the surface at ${r.cut} but `
         + `'${first.pose}' meets it at ${first.cut}`,
       );
     }
@@ -1481,6 +1489,81 @@ check('the water dials reach EVERY pose, and all twelve meet the surface alike',
     `shoreFloor did not move the shared surface: ${ships.submersion} -> ${floored.submersion}`);
   assert(floored.cut > ships.cut,
     `a shallower cat should be cut LOWER down its box: ${ships.cut} -> ${floored.cut}`);
+});
+
+check('nothing a cat can be DOING moves the water level under it', () => {
+  // The pose check above asks about the twelve poses standing still. This
+  // asks the rest of it: mid-animation, mid-pose-change, mid-leap, and at
+  // the two curated kitty sizes. One surface for every pose (`e9ecc81`) is
+  // only worth having if it also survives everything the rig does inside a
+  // pose -- a level that breathes with the paddle, or drops when a cat
+  // starts standing up, is the same fault wearing a different hat.
+  //
+  // The clip is `rect(x - tile, y - 2*tile, 3*tile, tile*(2 + cut))`, whose
+  // bottom edge is `y + cut*tile`: it reads the tile ORIGIN and the cut,
+  // and neither the settle, the leap lift, the box offset nor the phase is
+  // anywhere in it. This is that being true rather than said.
+  const water = [];
+  for (let y = 2; y <= 5; y += 1) for (let x = 2; x <= 7; x += 1) water.push([x, y]);
+  const SETTINGS = [
+    { footY: 0, floor: 0, ceil: 1, name: 'ships' },
+    { footY: 0.38, floor: 0.40, ceil: 0.62, name: 'the 2026-09-14 candidate' },
+  ];
+
+  for (const set of SETTINGS) {
+    // Each setting is dry and fully-submerged in different places, so find
+    // somewhere THIS one is genuinely mid-ramp: a level everything agrees
+    // on is worth nothing if that level is "all the way in".
+    let pos = null;
+    for (let y = 3; y <= 6 && !pos; y += 0.01) {
+      const at = { x: 4, y };
+      const d = drawnSubmersion(at, water, set.footY, 'idle', set.floor,
+        { shoreCeil: set.ceil }).submersion;
+      if (d > 0.2 && d < 0.8) pos = at;
+    }
+    assert(pos, `${set.name}: no mid-ramp position exists`);
+    const cuts = [];
+    const add = (what, opts, pose) => {
+      const r = drawnSubmersion(pos, water, set.footY, pose, set.floor,
+        { shoreCeil: set.ceil, ...opts });
+      cuts.push({ what, ...r });
+    };
+    // every pose, at four points around its own cycle
+    for (const pose of CatV2.POSES) {
+      for (const phase of [0, 0.25, 0.5, 0.75]) {
+        add(`${pose}@${phase}`, { phase }, pose);
+      }
+    }
+    // mid-blend, in both directions across the water's own boundary pose
+    add('walking->swim @0.5', { tween: { blend: { from: 'walking', t: 0.5, fromPhase: 0.3 } } }, 'swim');
+    add('swim->walking @0.5', { tween: { blend: { from: 'swim', t: 0.5, fromPhase: 0.3 } } }, 'walking');
+    add('swim->walking @0.1', { tween: { blend: { from: 'swim', t: 0.1, fromPhase: 0.3 } } }, 'walking');
+    // mid-leap: the cat rises, the water must not rise with it
+    add('pouncing mid-leap', { leap: { lift01: 1 } }, 'pouncing');
+    add('pouncing on the ground', { leap: { lift01: 0 } }, 'pouncing');
+    // and the curated sizes, which move the BOX but must not move the level.
+    // Real ids, not a stubbed dial: `VIEW.kittySize` is frozen, and the
+    // spread that actually ships is Biscuit 0.92 to Pumpkin 1.06.
+    for (const id of [2, 3]) add(`kitty ${id} (${VIEW.kittySize[id]}x)`, { id }, 'idle');
+
+    const first = cuts[0];
+    for (const c of cuts) {
+      assert(
+        Math.abs(c.cut - first.cut) < 1e-12,
+        `${set.name}: '${c.what}' meets the surface at ${c.cut}, `
+        + `but '${first.what}' meets it at ${first.cut}`,
+      );
+      assert(
+        Math.abs(c.submersion - first.submersion) < 1e-12,
+        `${set.name}: '${c.what}' is ${c.submersion} deep, `
+        + `but '${first.what}' is ${first.submersion}`,
+      );
+    }
+    assert(first.submersion > 0.05 && first.submersion < 0.95,
+      `${set.name}: the probe is not in water at all (${first.submersion}), so this proved nothing`);
+    assert(cuts.length === CatV2.POSES.length * 4 + 7,
+      `only ${cuts.length} states were tried`);
+  }
 });
 
 check('submersion is exactly 1 in the pond, and rises smoothly across the shore', () => {
