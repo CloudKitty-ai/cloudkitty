@@ -398,9 +398,9 @@ const PROP_KINDS = new Set(['chow']);
  * a tile before the paint does.
  */
 const WATER_SAMPLE = {
-  footY: 0,
-  shoreFloor: 0,
-  shoreCeil: 1,
+  footY: 0.38,
+  shoreFloor: 0.4,
+  shoreCeil: 0.62,
 };
 
 /**
@@ -441,11 +441,17 @@ function submersionFor(pos, world, view) {
   const y0 = Math.floor(pos.y);
   const fx = pos.x - x0;
   const fy = pos.y - y0;
-  const raw =
-    at(x0, y0) * (1 - fx) * (1 - fy) +
-    at(x0 + 1, y0) * fx * (1 - fy) +
-    at(x0, y0 + 1) * (1 - fx) * fy +
-    at(x0 + 1, y0 + 1) * fx * fy;
+  const wx = [(1 - fx) * (1 - fy), fx * (1 - fy), (1 - fx) * fy, fx * fy];
+  const alphas = [at(x0, y0), at(x0 + 1, y0), at(x0, y0 + 1), at(x0 + 1, y0 + 1)];
+  const raw = alphas.reduce((sum, a, i) => sum + a * wx[i], 0);
+  // The SHAPE is read off the tiles as solid, and the arrival is put back
+  // afterwards. `raw` carries both -- a pond at half alpha halves it, and
+  // so does standing half a tile from the shore -- and shaping that mixture
+  // would make a pond fading IN snap its water on the moment its alpha
+  // crossed `shoreFloor`, instead of rising with the pond as it arrives.
+  // Identical to `raw` whenever every tile is fully there, which is every
+  // frame except the fraction of a tick after a pond spawns.
+  const solid = alphas.reduce((sum, a, i) => sum + (a > 0 ? wx[i] : 0), 0);
   // The ramp is one tile wide and centred on the TILE boundary -- but the
   // pond is PAINTED at that boundary pushed out by `shoreOverdraw`, so four
   // tenths of the ramp lies outside any water a viewer can see. That band is
@@ -464,8 +470,11 @@ function submersionFor(pos, world, view) {
   const floor = WATER_SAMPLE.shoreFloor;
   const ceil = WATER_SAMPLE.shoreCeil;
   if (!(floor > 0) && !(ceil < 1)) return raw;
-  if (!(ceil > floor)) return raw > floor ? 1 : 0;
-  return Math.max(0, Math.min(1, (raw - floor) / (ceil - floor)));
+  if (!(solid > 0)) return 0;
+  const shaped = !(ceil > floor)
+    ? (solid > floor ? 1 : 0)
+    : Math.max(0, Math.min(1, (solid - floor) / (ceil - floor)));
+  return shaped * (raw / solid);
 }
 
 /**

@@ -1397,15 +1397,67 @@ function drawnSubmersion(pos, water, footY, pose = null, shoreFloor = null, opts
   return pose === null ? (seen ?? 0) : { submersion: seen ?? 0, cut: seenCut };
 }
 
-check('the water dials ship at ZERO -- the shoreline card cannot move the world', () => {
-  // `WATER_SAMPLE` exists so the shoreline lab can dial where the water
-  // field is read and where it stops, against the painted shore. Both
-  // halves ship OFF: the card is for judging, and the world draws exactly
-  // what it drew before the card existed. A default that drifts off zero
-  // reprices every pond silently, so it is asserted rather than trusted.
-  assert(WATER_SAMPLE.footY === 0, `footY ships at ${WATER_SAMPLE.footY}, not 0`);
-  assert(WATER_SAMPLE.shoreFloor === 0, `shoreFloor ships at ${WATER_SAMPLE.shoreFloor}, not 0`);
-  assert(WATER_SAMPLE.shoreCeil === 1, `shoreCeil ships at ${WATER_SAMPLE.shoreCeil}, not 1`);
+check("the water dials ship at the owner's bake", () => {
+  // Ruled on the shoreline card and the live world, 2026-09-14:
+  // "It looks better than staying in the water longer, and looks
+  // acceptable overall." These three are what the world draws now, and a
+  // default that drifts reprices every pond silently -- so they are
+  // asserted rather than trusted. Each one is derived, not taste:
+  //
+  //   footY 0.38      CAT_GROUND_Y - 0.5: the cat is read where it STANDS
+  //   shoreFloor 0.40 the lowest floor with nothing wet once the feet are
+  //                   past the paint (0.30 left 0.25 on the grass, which
+  //                   clips the paws; 0.42 is the other end of the window)
+  //   shoreCeil 0.62  the WIDEST ceiling that still reads 1.00 standing on
+  //                   a 1x1 pond, which is three of the four live ones
+  assert(WATER_SAMPLE.footY === 0.38, `footY ships at ${WATER_SAMPLE.footY}, not 0.38`);
+  assert(WATER_SAMPLE.shoreFloor === 0.4, `shoreFloor ships at ${WATER_SAMPLE.shoreFloor}, not 0.4`);
+  assert(WATER_SAMPLE.shoreCeil === 0.62, `shoreCeil ships at ${WATER_SAMPLE.shoreCeil}, not 0.62`);
+});
+
+check('the bake: a cat standing in a pond is FULLY in it, whatever size the pond', () => {
+  // The invariant `e9ecc81` was built on -- "exactly 1 in a pond's
+  // interior" -- and the reason `footY` alone was ruled out: it read 0.42
+  // on a lone tile. Three of the served world's four ponds are 1x1, so
+  // this is the common case and not the corner one.
+  for (const n of [1, 2, 5]) {
+    const tiles = [];
+    for (let y = 0; y < n; y += 1) for (let x = 0; x < n; x += 1) tiles.push({ x, y });
+    const w = { elements: tiles.map((pos, i) => ({ id: i + 1, kind: 'water', pos })) };
+    const m = Math.floor((n - 1) / 2);
+    const s = submersionFor({ x: m, y: m + WATER_SAMPLE.footY }, w, null);
+    close(s, 1, `a cat standing on a ${n}x${n} pond`);
+  }
+});
+
+check('the bake: nothing is still wet once the feet are past the painted shore', () => {
+  // The fault the owner caught at shoreFloor 0.30. `cut` is
+  // `CAT_GROUND_Y - s * (CAT_GROUND_Y - surface)`, so the waterline at a
+  // small submersion sits just under the ground line -- a quarter of
+  // submersion is invisible on the body and takes the FEET. Being dry a
+  // little early is invisible; being wet a little late is a cat on grass
+  // with no paws.
+  const over = 0.1; // MEADOW_DEFAULTS.shoreOverdraw -- the paint's own reach
+  for (const n of [1, 2]) {
+    const tiles = [];
+    for (let y = 0; y < n; y += 1) for (let x = 0; x < n; x += 1) tiles.push({ x, y });
+    const w = { elements: tiles.map((pos, i) => ({ id: i + 1, kind: 'water', pos })) };
+    const m = Math.floor((n - 1) / 2);
+    for (const d of [
+      { n: 'south', axis: 'y', out: 1, off: 0.88 }, { n: 'north', axis: 'y', out: -1, off: 0.88 },
+      { n: 'east', axis: 'x', out: 1, off: 0.5 }, { n: 'west', axis: 'x', out: -1, off: 0.5 },
+    ]) {
+      const paint = (d.out > 0 ? n : 0) + d.out * over;
+      for (let i = 0; i <= 600; i += 1) {
+        const at = m + d.out * (2.5 * i / 600);
+        if (((at + d.off) - paint) * d.out < 0) continue;   // feet still over water
+        const pos = d.axis === 'y' ? { x: m, y: at } : { x: at, y: m };
+        const s = submersionFor({ x: pos.x, y: pos.y + WATER_SAMPLE.footY }, w, null);
+        assert(s === 0, `${n}x${n} ${d.n}: still ${s.toFixed(3)} deep with the feet `
+          + `${(((at + d.off) - paint) * d.out).toFixed(2)} tiles onto the grass`);
+      }
+    }
+  }
 });
 
 check('footY reaches the drawn cat, and moves the field toward its feet', () => {
@@ -1419,16 +1471,21 @@ check('footY reaches the drawn cat, and moves the field toward its feet', () => 
   // this half submerged, because it is read at the cat's box CORNER while
   // the cat is drawn standing 0.88 of a tile lower.
   const pos = { x: 4, y: 5.5 };
-  const ships = drawnSubmersion(pos, water, 0);
-  const atFeet = drawnSubmersion(pos, water, 0.38);
-  close(ships, 0.5, 'the shipped reading half a tile past the last water row');
+  // Asked with the SHAPING off, so this is about the sample point alone --
+  // where the cat is read -- and not about the plateau the bake also puts
+  // in. Half a tile south of the last water row, reading the box corner
+  // calls the cat half submerged; reading its feet, which are 0.88 down
+  // that box, barely finds the water at all.
+  const ships = drawnSubmersion(pos, water, 0, 'idle', 0, { shoreCeil: 1 }).submersion;
+  const atFeet = drawnSubmersion(pos, water, 0.38, 'idle', 0, { shoreCeil: 1 }).submersion;
+  close(ships, 0.5, 'reading the box corner, half a tile past the last water row');
   assert(
     atFeet < ships - 0.2,
     `footY did not reach drawKitty: ${ships} -> ${atFeet}`,
   );
   // And it is the CAT that moved, not the pond: deep inside, both read 1.
-  close(drawnSubmersion({ x: 4, y: 3 }, water, 0), 1, 'interior, shipped');
-  close(drawnSubmersion({ x: 4, y: 3 }, water, 0.38), 1, 'interior, dialled');
+  close(drawnSubmersion({ x: 4, y: 3 }, water, 0, 'idle', 0, { shoreCeil: 1 }).submersion, 1, 'interior, box corner');
+  close(drawnSubmersion({ x: 4, y: 3 }, water, 0.38, 'idle', 0, { shoreCeil: 1 }).submersion, 1, 'interior, at the feet');
 });
 
 check('the water dials reach EVERY pose, and all twelve meet the surface alike', () => {
@@ -1570,14 +1627,31 @@ check('submersion is exactly 1 in the pond, and rises smoothly across the shore'
   const w = pondWorld();
   close(submersionFor({ x: 5, y: 5 }, w, null), 1, 'the pond interior');
   close(submersionFor({ x: 6, y: 5 }, w, null), 1, 'the other water tile');
-  close(submersionFor({ x: 6.5, y: 5 }, w, null), 0.5, 'halfway to the shore');
+  // Halfway to the shore used to read exactly 0.5, because the field was
+  // the bare bilinear: a PYRAMID, peaking at one point and falling across
+  // a full tile. The owner's 2026-09-14 bake makes it a PLATEAU -- 1 over
+  // the water, dropping to 0 across `shoreCeil - shoreFloor` of a tile --
+  // so the midpoint is no longer the middle of a ramp and pinning it to
+  // 0.5 is pinning the shape that was replaced. What is still true, and is
+  // what the number was standing in for, is below: full inside, none
+  // outside, monotone, and no step.
+  const ramp = WATER_SAMPLE.shoreCeil - WATER_SAMPLE.shoreFloor;
+  assert(ramp > 0.05, `a ${ramp.toFixed(2)}-tile transition would read as a snap`);
   // Monotonic on the way out, with no step: the smoothness comes from
-  // MOVING, which is why no fade is needed to avoid a pop.
+  // MOVING, which is why no fade is needed to avoid a pop. The bound is
+  // the ramp's OWN slope rather than a number that encoded the old one --
+  // anything steeper than the ramp is a discontinuity.
+  const STEP = 0.02;
+  const slope = STEP / ramp;
   let previous = Infinity;
-  for (let x = 6; x <= 7; x += 0.02) {
+  for (let x = 6; x <= 7; x += STEP) {
     const s = submersionFor({ x, y: 5 }, w, null);
     assert(s <= previous + 1e-12, `not monotonic leaving the pond at x=${x.toFixed(2)}`);
-    assert(Math.abs(s - previous) < 0.05 || previous === Infinity, `a step at x=${x.toFixed(2)}`);
+    assert(
+      Math.abs(s - previous) <= slope + 1e-9 || previous === Infinity,
+      `a step at x=${x.toFixed(2)}: ${Math.abs(s - previous).toFixed(4)} in ${STEP} of a tile, `
+      + `steeper than the ${ramp.toFixed(2)}-tile ramp allows (${slope.toFixed(4)})`,
+    );
     previous = s;
   }
   close(previous, 0, 'clear of the water by the next tile');
