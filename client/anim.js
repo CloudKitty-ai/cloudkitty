@@ -683,6 +683,16 @@ const VIEW = Object.freeze({
   // the engine's next instruction lands after it, not through it.
   stretchTicks: 2,
 
+  // ...and how often a wake is taken up on it (owner, 2026-09-14). It was
+  // 100%: every cat stretched every time it woke, which is right for one
+  // cat and reads as choreography across four. A coin flip buys the
+  // variety back without making the stretch rare -- the earlier ask was
+  // for a COMMON stretch, and half of every wake still is.
+  //
+  // The draw is keyed on the WAKE, never on the clock or an idle slot.
+  // See idlePoseFor: that is what keeps a stretch from flickering.
+  stretchChance: 0.5,
+
   // How often an idle cat sits down instead of standing. `sitChance` is
   // drawn once per `sitPeriodMs`, so a cat that stays put long enough
   // will sit, get up, and sit again -- all of it hashed from (id, slot),
@@ -953,7 +963,8 @@ const IDLE_SALTS = Object.freeze({
   side: 4, // and which ear a twitch belongs to
   look: 5, // where a scan looks
   sit: 6, // whether an idle cat is sitting this stretch of time
-  play: 7, // and whether a card portrait play-pounces in one
+  play: 7, // whether a card portrait play-pounces in one
+  stretch: 8, // and whether a cat takes a wake up on a stretch
 });
 
 /**
@@ -1963,9 +1974,27 @@ class Presentation {
       this.wokeAt.delete(id);
       return null;
     }
-    // A cat that just woke stretches. This is the one place the rarity
-    // budget is not consulted, because it is not scheduled: it happens
-    // exactly as often as cats wake up, which the engine decides.
+    // A cat that just woke MAY stretch -- `VIEW.stretchChance` of wakes,
+    // since 2026-09-14. It is still not scheduled the way sitting is: the
+    // engine decides when cats wake, and all this decides is whether a
+    // given wake is taken up on.
+    //
+    // The draw is keyed on `woke`, deliberately. `idlePoseFor` is pure in
+    // (id, now) -- a still frame, a reduced-motion frame and a test all
+    // ask what a cat is doing at time T and have to agree -- and a draw
+    // keyed on `now` or on an idle slot would be re-taken every frame,
+    // flickering the cat into and out of a stretch already begun. Keyed on
+    // the wake, the question is asked once and answered the same way for
+    // as long as that wake lasts. It is also per CAT: four cats woken by
+    // the same tick decide separately, which is the point of the change.
+    //
+    // A declined wake falls THROUGH, answering null so the served pose
+    // stands, and leaves its map entry to expire on the clock above. That
+    // is one stale key for two ticks and no bookkeeping on the decline
+    // that could re-open the draw. Nothing below is reachable inside the
+    // window regardless -- sitting wants `sitAfterTicks` (3) still ticks
+    // and the stretch lasts `stretchTicks` (2) -- so a decline is plainly
+    // a cat standing there, which is the whole of what was asked for.
     //
     // It fires on the OBSERVED wake, and cannot be moved to the last tick
     // of sleep however much better that would look: a tick is not known
@@ -1974,8 +2003,10 @@ class Presentation {
     const woke = this.wokeAt.get(id);
     if (woke !== undefined) {
       const t = (now - woke) / (VIEW.stretchTicks * this.tickMs);
-      if (t < 1) return { pose: 'stretch', phase: t };
-      this.wokeAt.delete(id);
+      if (t >= 1) this.wokeAt.delete(id);
+      else if (idleHash(id, woke, IDLE_SALTS.stretch) < VIEW.stretchChance) {
+        return { pose: 'stretch', phase: t };
+      }
     }
     if (pose !== 'idle') return null;
     const still = this.stillSince.get(id);
