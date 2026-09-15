@@ -47,7 +47,7 @@ change.
   whole point. Two existing checks asserted a stretch off a hard-coded
   clock reading and would have gone on passing by luck; they now go and
   find a wake the cat takes, by asking the pipeline rather than copying
-  the rule. Presentation only. (#PR)
+  the rule. Presentation only. (#376)
 
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
