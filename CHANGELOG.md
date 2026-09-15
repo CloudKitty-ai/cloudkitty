@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- **Every cat stretched every time it woke.** Which is lovely once and
+  choreography four times over: a nap ending is a common event, and the
+  meadow was answering it with the same flourish every time. A wake is a
+  coin flip now — `stretchChance` 0.5 — so the stretch stays common
+  without being certain, and a cat that declines simply stands up. The
+  draw is keyed on the *wake*, not on the clock or an idle slot, which is
+  what keeps a stretch from flickering on and off mid-pose: `idlePoseFor`
+  has to be a pure function of (cat, time) so a still frame, a
+  reduced-motion frame and a test all agree on what a cat is doing, and a
+  per-frame draw would be re-taken sixty times a second. It is keyed on
+  the cat too, so four cats woken by one tick decide separately — the
+  whole point. Two existing checks asserted a stretch off a hard-coded
+  clock reading and would have gone on passing by luck; they now go and
+  find a wake the cat takes, by asking the pipeline rather than copying
+  the rule. Presentation only. (#376)
+
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
   The water field was a bilinear over the served tiles, read at the cat's
