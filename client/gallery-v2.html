@@ -851,23 +851,73 @@
   // shipped numbers and cannot drift from them.
   const SHORE_LAB = { dirIx: 0, tilePx: 64, guides: 1 };
 
-  /** The shoreline card's pond: five by five, so the shore being crossed is
-   *  a straight run well away from the rounded corners AND the opposite
-   *  shore stays out of frame. Rebuilt per call because `drawPondLayer`
-   *  caches on the renderer, not on the world. */
-  const SHORE_POND = 4; // tiles 0..SHORE_POND inclusive
-  function shoreWorld() {
-    const elements = [];
-    let id = 1;
-    for (let y = 0; y <= SHORE_POND; y += 1) {
-      for (let x = 0; x <= SHORE_POND; x += 1) {
-        elements.push({ id: id++, kind: 'water', pos: { x, y } });
-      }
-    }
-    return { width: 10, height: 10, tick: 10, kitties: [], elements };
+  /** The shoreline card's ponds. 1x1 is the typical case in the served
+   *  world -- three of its four ponds -- and it behaves nothing like a big
+   *  one: `shoreRounding` clamps to half an edge, so a lone tile rounds all
+   *  the way to a disc and has no straight shore at all. Rebuilt per call
+   *  because `drawPondLayer` caches on the renderer, not on the world. */
+  const SHORE_SIZES = [1, 2, 5];
+  function shoreTiles(n) {
+    const out = [];
+    for (let y = 0; y < n; y += 1) for (let x = 0; x < n; x += 1) out.push({ x, y });
+    return out;
   }
-  /** The middle of that pond, which is where the cat crosses. */
-  const SHORE_MID = 2;
+  function shoreWorld(n) {
+    return {
+      width: 10, height: 10, tick: 10, kitties: [],
+      elements: shoreTiles(n).map((pos, i) => ({ id: i + 1, kind: 'water', pos })),
+    };
+  }
+  /** The tile the cat crosses on. */
+  const shoreMid = (n) => Math.floor((n - 1) / 2);
+
+  /** A scratch 2d context for `paintEdgeFor`, since the readout has no canvas
+   *  of its own. Built once; a page that cannot make one gets null and the
+   *  formula is used instead. */
+  let shoreProbe;
+  function shoreProbeCtx() {
+    if (shoreProbe === undefined) {
+      try { shoreProbe = document.createElement('canvas').getContext('2d'); }
+      catch (e) { shoreProbe = null; }
+    }
+    return shoreProbe;
+  }
+
+  /**
+   * Where the pond is actually PAINTED, along the line this cat walks, in
+   * tiles -- asked of the SHIPPED outline rather than derived from the tile
+   * edge. `edge + shoreOverdraw` is only right where the shore runs
+   * straight: a 2x2 rounds to a disc of radius 1 and the cat crosses it off
+   * centre, which puts the paint a seventh of a tile short of the formula.
+   * Getting that wrong would have shown up as the dials looking mis-set on
+   * exactly the pond sizes this card was added to judge.
+   */
+  function paintEdgeFor(d, n, probe) {
+    const over = (typeof meadowTunables === 'function' ? meadowTunables() : MEADOW_DEFAULTS).shoreOverdraw;
+    const formula = d.edge(n) + d.out * over;
+    if (!probe || typeof probe.isPointInPath !== 'function') return formula;
+    const T = 64;
+    let path;
+    try { path = buildPondPath(shoreTiles(n), T); } catch (e) { return formula; }
+    const cross = shoreMid(n) + 0.5;
+    const inAt = (v) => {
+      const px = d.axis === 'y' ? cross * T : v * T;
+      const py = d.axis === 'y' ? v * T : cross * T;
+      try { return probe.isPointInPath(path, px, py) === true; } catch (e) { return false; }
+    };
+    // A mock canvas answers every call truthily; if "miles away" is also
+    // inside, this is not a real context and the formula is the honest answer.
+    const start = cross;
+    const far = start + d.out * 6;
+    if (!inAt(start) || inAt(far)) return formula;
+    let lo = start;
+    let hi = far;
+    for (let i = 0; i < 60; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (inAt(mid)) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
 
   /**
    * `drawKitty` decides it is on the v2 path by `typeof drawCatTween`, and
@@ -909,20 +959,21 @@
    *  reference point on that axis -- its FEET north/south (render.js plants
    *  them `CAT_GROUND_Y` down the box) and its CENTRE east/west. */
   const SHORE_DIRS = [
-    { name: 'SOUTH', axis: 'y', out: 1, edge: SHORE_POND + 1, facing: 'south', vel: { x: 0, y: 1 } },
-    { name: 'NORTH', axis: 'y', out: -1, edge: 0, facing: 'north', vel: { x: 0, y: -1 } },
-    { name: 'EAST', axis: 'x', out: 1, edge: SHORE_POND + 1, facing: 'right', vel: { x: 1, y: 0 } },
-    { name: 'WEST', axis: 'x', out: -1, edge: 0, facing: 'left', vel: { x: -1, y: 0 } },
+    { name: 'SOUTH', axis: 'y', out: 1, facing: 'south', vel: { x: 0, y: 1 } },
+    { name: 'NORTH', axis: 'y', out: -1, facing: 'north', vel: { x: 0, y: -1 } },
+    { name: 'EAST', axis: 'x', out: 1, facing: 'right', vel: { x: 1, y: 0 } },
+    { name: 'WEST', axis: 'x', out: -1, facing: 'left', vel: { x: -1, y: 0 } },
   ].map((d) => ({
     ...d,
-    // Feet on the vertical axis, body centre on the horizontal one.
-    refOff: () => (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
-    // The paint runs `shoreOverdraw` past the tile edge, on the way out.
-    paint: (over) => d.edge + d.out * over,
+    // The cat's own visible reference point on the axis it is crossing: its
+    // FEET north/south (render.js plants them `CAT_GROUND_Y` down the box),
+    // its body CENTRE east/west.
+    refOff: d.axis === 'y' ? null : 0.5,
     ref: (at) => at + (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
+    edge: (n) => (d.out > 0 ? n : 0),
     // A tile and a fifth in, a tile out: enough to see both mistakes.
-    from: (over) => d.edge + d.out * over - d.out * 1.2 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
-    to: (over) => d.edge + d.out * over + d.out * 1.0 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
+    from: (paint) => paint - d.out * 1.2 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
+    to: (paint) => paint + d.out * 1.0 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
   }));
   for (const k of ['toeX', 'hockX', 'footW', 'inset', 'foreW']) {
     Object.defineProperty(SIT_FOOT_LAB, k, {
@@ -3779,19 +3830,20 @@
     {
       title: 'Shoreline crossing II — where the water FIELD sits against the PAINTED shore',
       note:
-        'The card above judges the pose schedule, and it places the crossing at the shore by construction — so it can never show this, which is most of why this shipped. Here the water is the real thing: a real pond from meadow.js, and every cue (the waterline clip, the meniscus, the lost ground shadow, the pose flip) computed by the SHIPPED `submersionFor` in render.js and drawn by the SHIPPED `drawKitty`. The dashed line is where the pond is actually PAINTED — the tile edge pushed out by `shoreOverdraw`. Nothing here is a redrawing; the two dials write straight into render.js’s own `WATER_SAMPLE`. ' +
-        'Both ship at ZERO, which is exactly what the world draws today. Measured 2026-09-14, in tiles of travel PAST the paint before the cues switch off: east +0.39, west +0.39, south +0.77, north +0.01 — so a cat leaving a pond toward the viewer keeps its waterline three quarters of a tile onto the grass, and one leaving away from you looks right. ' +
-        'Two separate faults, and the direction table is how you tell them apart. `footY` is the bigger one and it only bends north/south: `submersionFor` anchors a tile’s value at that tile’s ORIGIN corner, so a point is read half a tile up and left of itself, while `drawKitty` plants the feet `CAT_GROUND_Y` (0.88) down the box — the field sits 0.38 of a tile SOUTH of the cat it describes. `shoreFloor` is the one you see east–west: the bilinear ramp is a full tile wide and centred on the TILE edge, but the paint stops `shoreOverdraw` further out, so four tenths of the ramp lies on visible grass. ' +
-        'The derived values are 0.38 and 0.40 — at those, all four shores read −0.01, the cue gone a hundredth of a tile BEFORE the paint. The cost is the wade ramp compressing from a full tile to 0.6, all of it inside the shore, and that is the thing to actually judge here: dial `shoreFloor` up and watch the shallows, not the crossing. ' +
-        'A third fault is NOT dialled here and does not show in still frames: `poseBlendMs` (260ms) is a TIME lag, so the swim→land blend always trails in the direction of travel — hidden under the water going in, dragged 0.33 of a tile onto the grass coming out. That is the card above’s question.',
+        'The card above judges the pose schedule, and it places the crossing at the shore by construction — so it can never show this, which is most of why this shipped. Here the water is the real thing: real ponds from meadow.js, every cue (the waterline clip, the meniscus, the lost ground shadow, the pose flip) computed by the SHIPPED `submersionFor` and drawn by the SHIPPED `drawKitty`. The dashed line is where the pond is actually PAINTED, found by asking the shipped outline rather than by adding `shoreOverdraw` to a tile edge — that formula is only right on a straight run, and a small pond has none. Nothing here is a redrawing; the two dials write straight into render.js’s own `WATER_SAMPLE`. ' +
+        'THREE POND SIZES, because the small one is the live case: the served world has seven water tiles in four ponds, and THREE OF THE FOUR ARE 1x1. The reassuring result is that they behave IDENTICALLY at the crossing — measured off the shipped outline, the paint stops at 1.10, 2.10 and 5.10, all exactly `tile edge + shoreOverdraw`. At the shipped `shoreRounding: 0.35` even a lone tile is a rounded SQUARE, not the disc it becomes at 1.0, so a cat crossing at the tile’s midpoint always meets a straight run. Where the sizes differ is STANDING ON one, which is the `footY` row of the readout. ' +
+        'Both dials ship at ZERO, which is exactly what the world draws today. Measured then, in tiles of travel past the paint before the cues switch off: east +0.39, west +0.39, south +0.77, north +0.01, on every pond size. ' +
+        '`shoreFloor` is the one to move. The bilinear ramp is a full tile wide and centred on the TILE edge while the paint stops `shoreOverdraw` further out, so four tenths of the ramp lies on visible grass — that is the east–west fault, and 0.40 (`0.5 - shoreOverdraw`) closes it exactly, on every size, with the interior still reading 1.00. ' +
+        '`footY` was the other candidate and the owner ruled it OUT (2026-09-14): it moves the sample off the tile the cat is on, which reads too shallow on a 1x1 — 0.42 against 1.00 — and breaks the "exactly 1 in a pond’s interior" invariant `e9ecc81` was built on, alongside one surface for every pose. It is left here at 0 so the cost stays visible rather than becoming folklore. ' +
+        'What neither dial reaches: the field describes the cat’s BOX, but the clip and the meniscus are drawn against its FEET, 0.88 down that box. That is a drawing offset, and it is the whole of the remaining north/south asymmetry. Nor does this show `poseBlendMs` — a TIME lag, so the swim→land blend always trails in the direction of travel, hidden under the water going in and dragged a third of a tile onto the grass coming out.',
       v2Only: true,
       w: 940,
-      h: 320,
+      h: 660,
       ownShadows: true,
       bag: SHORE_LAB,
       dials: [
-        { key: 'footY', bag: WATER_SAMPLE, label: 'footY — how far down its own box the cat is READ (0 = ships; 0.38 = under its feet)', min: 0, max: 0.6, step: 0.01 },
         { key: 'shoreFloor', bag: WATER_SAMPLE, label: 'shoreFloor — the raw level that means DRY (0 = ships; 0.40 = where the paint stops)', min: 0, max: 0.6, step: 0.01 },
+        { key: 'footY', bag: WATER_SAMPLE, label: 'footY — ruled out 2026-09-14; moves the sample off the cat’s own tile (0 = ships)', min: 0, max: 0.6, step: 0.01 },
         { key: 'dirIx', label: 'which way OUT — lab only; 0 south (toward you), 1 north, 2 east, 3 west', min: 0, max: 3, step: 1 },
         { key: 'tilePx', label: 'tile — lab only; the camera draws 57–103', min: 40, max: 110, step: 1 },
       ],
@@ -3801,135 +3853,149 @@
       readout() {
         // Re-measured live off the SHIPPED function at whatever the dials
         // now say, so the table can never disagree with the pictures.
-        const over = (typeof meadowTunables === 'function' ? meadowTunables() : MEADOW_DEFAULTS).shoreOverdraw;
         const d = SHORE_DIRS[Math.round(SHORE_LAB.dirIx)] ?? SHORE_DIRS[0];
-        const rows = SHORE_DIRS.map((d) => {
-          const world = shoreWorld();
-          const view = { elementAlphaFor: () => 1 };
-          let past = NaN;
-          const f = d.from(over);
-          const t2 = d.to(over);
-          for (let i = 0; i <= 4000; i += 1) {
-            const at = f + (t2 - f) * (i / 4000);
-            const pos = d.axis === 'y' ? { x: SHORE_MID, y: at } : { x: at, y: SHORE_MID };
-            const sub = submersionFor(
-              { x: pos.x, y: pos.y + WATER_SAMPLE.footY }, world, view,
-            );
-            if (sub <= 0.01) { past = (d.ref(at) - d.paint(over)) * d.out; break; }
-          }
-          const flag = past > 0.05 ? '   <- still wet on the grass' : '';
-          return `  ${d.name.padEnd(6)} ${(past >= 0 ? '+' : '') + past.toFixed(2)}${flag}`;
+        const probe = shoreProbeCtx();
+        const one = { elementAlphaFor: () => 1 };
+        const standing = SHORE_SIZES.map((n) => {
+          const w = shoreWorld(n);
+          const m = shoreMid(n);
+          const s0 = submersionFor({ x: m, y: m + WATER_SAMPLE.footY }, w, one);
+          return `${n}x${n} ${s0.toFixed(2)}`;
         });
+        const rows = SHORE_SIZES.map((n) => {
+          const w = shoreWorld(n);
+          const cells = SHORE_DIRS.map((dir) => {
+            const paint = paintEdgeFor(dir, n, probe);
+            const f = dir.from(paint);
+            const t2 = dir.to(paint);
+            const m = shoreMid(n);
+            let past = NaN;
+            for (let i = 0; i <= 4000; i += 1) {
+              const at = f + (t2 - f) * (i / 4000);
+              const pos = dir.axis === 'y' ? { x: m, y: at } : { x: at, y: m };
+              const sub = submersionFor({ x: pos.x, y: pos.y + WATER_SAMPLE.footY }, w, one);
+              if (sub <= 0.01) { past = (dir.ref(at) - paint) * dir.out; break; }
+            }
+            return `${(past >= 0 ? '+' : '') + past.toFixed(2)}`.padStart(6);
+          });
+          return `  ${`${n}x${n}`.padEnd(5)} ${cells.join(' ')}`;
+        });
+        const over = (typeof meadowTunables === 'function' ? meadowTunables() : MEADOW_DEFAULTS).shoreOverdraw;
         return (
-          'tiles of travel PAST the painted shore before the cue switches off:\n'
+          `standing ON the pond (the interior invariant, wants 1.00):  ${standing.join('   ')}\n`
+          + '\ntiles PAST the painted shore before the cue switches off:\n'
+          + `         ${SHORE_DIRS.map((x) => x.name.padStart(6)).join(' ')}\n`
           + `${rows.join('\n')}\n`
-          + `\nfootY ${WATER_SAMPLE.footY}  shoreFloor ${WATER_SAMPLE.shoreFloor}`
-          + `   (ships 0 / 0; derived ${(CAT_GROUND_Y - 0.5).toFixed(2)} / ${(0.5 - over).toFixed(2)})\n`
+          + `\nshoreFloor ${WATER_SAMPLE.shoreFloor}  footY ${WATER_SAMPLE.footY}`
+          + `   (both ship 0; shoreFloor's derived value is ${(0.5 - over).toFixed(2)})\n`
           + `dirIx ${SHORE_LAB.dirIx} drawn above (${d.name}); the table is all four either way.`
           + `   tilePx ${SHORE_LAB.tilePx}, guides ${SHORE_LAB.guides} -- viewing aids, not bake values`
         );
       },
       draw(ctx, w, h, now) {
         const T = SHORE_LAB.tilePx;
-        const over = (typeof meadowTunables === 'function' ? meadowTunables() : MEADOW_DEFAULTS).shoreOverdraw;
         const d = SHORE_DIRS[Math.round(SHORE_LAB.dirIx)] ?? SHORE_DIRS[0];
-        const FRAMES = 6, GAP = 6;
+        const FRAMES = 6, GAP = 6, LABEL = 26;
         const fw = (w - GAP * (FRAMES + 1)) / FRAMES;
-        const fh = h - 34;
-        const world = shoreWorld();
-        const paint = d.paint(over);
+        const rowH = (h - 6) / SHORE_SIZES.length;
+        const fh = rowH - LABEL;
 
-        const from = d.from(over);
-        const to = d.to(over);
-        for (let i = 0; i < FRAMES; i += 1) {
-          const at = from + (to - from) * (i / (FRAMES - 1));
-          const pos = d.axis === 'y' ? { x: SHORE_MID, y: at } : { x: at, y: SHORE_MID };
-          const fx = GAP + i * (fw + GAP);
-          const fy = 4;
-          // Centre every frame on the CAT. Panning onto the shore instead
-          // was tried first and cannot work: the crossing is 2.2 tiles long
-          // and a frame is barely 2.3 tiles wide, so the far frames clipped
-          // the cat's head off. The shore line simply leaves the frame when
-          // the cat is far from it, and the number under each frame says how
-          // far by then.
-          const cx0 = (pos.x + 0.5) * T;
-          const cy0 = (pos.y + 0.5) * T;
-          const panX = cx0 - fw / 2;
-          const panY = cy0 - fh / 2;
+        SHORE_SIZES.forEach((n, row) => {
+          const world = shoreWorld(n);
+          const mid = shoreMid(n);
+          const paint = paintEdgeFor(d, n, ctx);
+          const from = d.from(paint);
+          const to = d.to(paint);
+          const top = 4 + row * rowH;
 
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(fx, fy, fw, fh);
-          ctx.clip();
-          ctx.translate(fx - panX, fy - panY);
+          for (let i = 0; i < FRAMES; i += 1) {
+            const at = from + (to - from) * (i / (FRAMES - 1));
+            const pos = d.axis === 'y' ? { x: mid, y: at } : { x: at, y: mid };
+            const fx = GAP + i * (fw + GAP);
 
-          const r = new WorldRenderer({
-            getContext: () => ctx, width: fw, height: fh, style: {},
-            clientWidth: fw, clientHeight: fh,
-          });
-          r.ctx = ctx;
-          r.tile = T;
-          r.dpr = window.devicePixelRatio || 1;
-          r.cssWidth = fw;
-          r.cssHeight = fh;
-          r.theme = 'day';
-          r.pondCache = null;
-          r.drawPondLayer(world, { elementAlphaFor: () => 1, expiredAlpha: 0, ambient: { now } });
-
-          const kitty = {
-            id: 4, pos, activity: { state: 'walking' }, last_action: null, needs: {},
-          };
-          const kWorld = { ...world, kitties: [kitty] };
-          const view = new Proxy({
-            posFor: () => pos,
-            elementPosFor: (e) => e.pos,
-            elementAlphaFor: () => 1,
-            tickMs: 800, expired: [], expiredAlpha: 0,
-            ambient: { now },
-            travelHFor: () => (d.axis === 'y' ? 0 : 1),
-            wetFor: () => 0,
-            movedFor: () => true,
-            motionFor: () => ({ phase: 0.25 }),
-            facingFor: () => d.facing,
-            velocityFor: () => d.vel,
-            leanFor: () => null,
-            leapFor: () => null,
-            adjustPose: (id, q) => q,
-            idlePoseFor: () => null,
-            meowFor: () => null,
-            tweenFor: () => null,
-          }, { get: (t2, k) => (k in t2 ? t2[k] : () => null) });
-          withV2Vocab(() => r.drawKitty(kitty, kWorld, view));
-
-          if (SHORE_LAB.guides) {
-            ctx.strokeStyle = '#e0245e';
-            ctx.setLineDash([4, 4]);
-            ctx.lineWidth = 1.5;
+            ctx.save();
             ctx.beginPath();
-            if (d.axis === 'y') {
-              ctx.moveTo(panX, paint * T); ctx.lineTo(panX + fw, paint * T);
-            } else {
-              ctx.moveTo(paint * T, panY); ctx.lineTo(paint * T, panY + fh);
-            }
-            ctx.stroke();
-            ctx.setLineDash([]);
-          }
-          ctx.restore();
+            ctx.rect(fx, top, fw, fh);
+            ctx.clip();
+            // Centre every frame on the CAT. Panning onto the shore cannot
+            // work: the crossing is 2.2 tiles long and a frame is barely
+            // 2.3 wide, so the far frames clipped the cat's head off. The
+            // shore line simply leaves frame when the cat is far from it,
+            // and the number under each frame says how far by then.
+            const panX = (pos.x + 0.5) * T - fw / 2;
+            const panY = (pos.y + 0.5) * T - fh / 2;
+            ctx.translate(fx - panX, top - panY);
 
-          // How far past the paint this frame is, so a still can be read.
-          const pastHere = (d.ref(at) - paint) * d.out;
-          ctx.fillStyle = pastHere > 0.02 ? '#c0392b' : '#6b7280';
-          ctx.font = '11px ui-monospace, monospace';
-          ctx.textAlign = 'center';
+            const r = new WorldRenderer({
+              getContext: () => ctx, width: fw, height: fh, style: {},
+              clientWidth: fw, clientHeight: fh,
+            });
+            r.ctx = ctx;
+            r.tile = T;
+            r.dpr = window.devicePixelRatio || 1;
+            r.cssWidth = fw;
+            r.cssHeight = fh;
+            r.theme = 'day';
+            r.pondCache = null;
+            r.drawPondLayer(world, { elementAlphaFor: () => 1, expiredAlpha: 0, ambient: { now } });
+
+            const kitty = {
+              id: 4, pos, activity: { state: 'walking' }, last_action: null, needs: {},
+            };
+            const kWorld = { ...world, kitties: [kitty] };
+            const view = new Proxy({
+              posFor: () => pos,
+              elementPosFor: (e) => e.pos,
+              elementAlphaFor: () => 1,
+              tickMs: 800, expired: [], expiredAlpha: 0,
+              ambient: { now },
+              travelHFor: () => (d.axis === 'y' ? 0 : 1),
+              wetFor: () => 0,
+              movedFor: () => true,
+              motionFor: () => ({ phase: 0.25 }),
+              facingFor: () => d.facing,
+              velocityFor: () => d.vel,
+              leanFor: () => null,
+              leapFor: () => null,
+              adjustPose: (id, q) => q,
+              idlePoseFor: () => null,
+              meowFor: () => null,
+              tweenFor: () => null,
+            }, { get: (t2, k) => (k in t2 ? t2[k] : () => null) });
+            withV2Vocab(() => r.drawKitty(kitty, kWorld, view));
+
+            if (SHORE_LAB.guides) {
+              ctx.strokeStyle = '#e0245e';
+              ctx.setLineDash([4, 4]);
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              if (d.axis === 'y') {
+                ctx.moveTo(panX, paint * T); ctx.lineTo(panX + fw, paint * T);
+              } else {
+                ctx.moveTo(paint * T, panY); ctx.lineTo(paint * T, panY + fh);
+              }
+              ctx.stroke();
+              ctx.setLineDash([]);
+            }
+            ctx.restore();
+
+            const pastHere = (d.ref(at) - paint) * d.out;
+            ctx.fillStyle = pastHere > 0.02 ? '#c0392b' : '#6b7280';
+            ctx.font = '11px ui-monospace, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+              `${pastHere >= 0 ? '+' : ''}${pastHere.toFixed(2)}`,
+              fx + fw / 2, top + fh + 13,
+            );
+          }
+          ctx.fillStyle = '#6b5a4e';
+          ctx.font = '600 11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
           ctx.fillText(
-            `${pastHere >= 0 ? '+' : ''}${pastHere.toFixed(2)}`,
-            fx + fw / 2, h - 18,
+            `${n}x${n}${n === 1 ? '  (three of the four live ponds)' : ''} — ${d.name} — tiles past the painted shore`,
+            GAP, top + fh + 24,
           );
-        }
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#6b5a4e';
-        ctx.font = '11px ui-monospace, monospace';
-        ctx.fillText(`${d.name} — tiles past the painted shore`, w / 2, h - 5);
+        });
         ctx.textAlign = 'left';
       },
     },
