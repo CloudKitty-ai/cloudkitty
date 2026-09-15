@@ -972,7 +972,15 @@
     ref: (at) => at + (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
     edge: (n) => (d.out > 0 ? n : 0),
     // A tile and a fifth in, a tile out: enough to see both mistakes.
-    from: (paint) => paint - d.out * 1.2 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
+    // A tile and a fifth in, a tile out -- but never further in than the
+    // cat's own tile. A 1x1 pond has no tile and a fifth of inside, and a
+    // span that ran off its far side started the crossing on DRY GROUND:
+    // the frames opened with a dry cat and the readout's scan tripped on
+    // its first sample, reporting the whole pond as never wet.
+    from: (paint, mid) => {
+      const want = paint - d.out * 1.2 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5);
+      return d.out > 0 ? Math.max(want, mid) : Math.min(want, mid);
+    },
     to: (paint) => paint + d.out * 1.0 - (d.axis === 'y' ? CAT_GROUND_Y : 0.5),
   }));
   for (const k of ['toeX', 'hockX', 'footW', 'inset', 'foreW']) {
@@ -3866,9 +3874,9 @@
           const w = shoreWorld(n);
           const cells = SHORE_DIRS.map((dir) => {
             const paint = paintEdgeFor(dir, n, probe);
-            const f = dir.from(paint);
-            const t2 = dir.to(paint);
             const m = shoreMid(n);
+            const f = dir.from(paint, m);
+            const t2 = dir.to(paint);
             let past = NaN;
             for (let i = 0; i <= 4000; i += 1) {
               const at = f + (t2 - f) * (i / 4000);
@@ -3904,7 +3912,7 @@
           const world = shoreWorld(n);
           const mid = shoreMid(n);
           const paint = paintEdgeFor(d, n, ctx);
-          const from = d.from(paint);
+          const from = d.from(paint, mid);
           const to = d.to(paint);
           const top = 4 + row * rowH;
 
