@@ -279,6 +279,49 @@ network in every seat).
    (teacher-level grooming, beam naps and consent at two points of
    nash) is the interesting arm if the owner wants more of anything.
 
+## Battery (launched on the owner's word 2026-09-15 ~17:40 MDT)
+
+Harness `cert_harness_fog.py` (the exp-006 harness at the schema-5
+surface, one torch policy per seat; validation (a) passed: the
+all-needs_driven leg matches `kitty-eval --brain needs_driven` on every
+seat and seed, and the state-derived Nash welfare matches kitty-eval's
+team welfare and the engine reward to four decimals). Certification
+world `anchor-b3.toml` (beam 7 as ruled). Bands eval 870,001–030 and
+stress 880,001–030, 30 × 20k, greedy. Scripted baseline = the
+configured roster (needs_driven at four seats, playful c30 + consent at
+Biscuit's), re-derived on the same config at battery time; note that
+`kitty-eval --brain needs_driven` seats needs_driven everywhere, so its
+line is record-only. Reader `battery_read.py`; raws
+`results-raw/battery/`.
+
+**Composition gen1-A** (Experiments' proposal from the reads; the seats
+are the owner's): Miso cand-s2 · Biscuit cand-s1 · Pumpkin dose-lo-s1 ·
+Kittybear cand-s4 · Clementine cand-s7. Five distinct networks.
+
+| gate | eval | stress |
+|---|---|---|
+| team Nash, paired | 0.9244 vs scripted 0.8700 (+0.054; 0 of 30 seeds below) PASS | 0.9244 vs 0.8702 (+0.054; 0 below) PASS |
+| Miso | 92.94 vs 88.58 (+4.36, min +3.89) PASS | 92.92 vs 88.62 (+4.30) PASS |
+| Biscuit | 91.06 vs 85.20 (+5.86, min +5.46) PASS | 91.01 vs 85.26 (+5.75) PASS |
+| Pumpkin | 93.06 vs 88.05 (+5.01, min +4.36) PASS | 93.12 vs 88.08 (+5.05) PASS |
+| Kittybear | 92.96 vs 88.13 (+4.83, min +4.20) PASS | 92.97 vs 88.20 (+4.77) PASS |
+| Clementine | 92.33 vs 85.77 (+6.56, min +5.82) PASS | 92.34 vs 85.67 (+6.67) PASS |
+| catastrophe: worst distress age / runs ≥ 150 / floor touches | 112 / 0 of 30 / 0 PASS | 47 / 0 of 30 / 0 PASS |
+| scripted roster's own worst age / runs ≥ 150 | 109 / 0 | 178 / 1 |
+
+Every declared gate passes on both bands, with no seed below the
+scripted cat at any seat and the team six points above the scripted
+roster. The catastrophe gate that the probe series predicted would be
+contested passed with room: 1.2M ticks of the five-network composition
+produced no distress age over 112, where the single-network probes
+produced nine over 150 in the same tick count. The probe tail was the
+twin artefact the five-network ruling exists for, not a property of
+these minds in distinct seats; the scripted roster itself produced one
+run over 150 on the stress band (age 178).
+
+Report-only per-seat swaps (every arm into every seat of gen1-A, eval
+band) run after the main legs; their table is appended when complete.
+
 ## Reads owed after the reseat (unchanged)
 
 FR-014 (spec 054) step-7 read on the served roster, refusal baseline
