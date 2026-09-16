@@ -52,7 +52,7 @@ change.
   the drifting clock breaks (3 vs 0 catastrophe runs in 120; RESULTS.md
   §"The clock input"; Gen 2 removes the dependence). World law changes,
   not world state: a saved world resumes, no `--fresh` required. (spec
-  049 step 7)
+  049 step 7, #377)
 
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
