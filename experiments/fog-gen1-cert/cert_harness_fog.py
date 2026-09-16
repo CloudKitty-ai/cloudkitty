@@ -67,7 +67,9 @@ SEATINGS = {
     #   Kittybear cand-s4 · Clementine cand-s7
     "gen1-A": ["ppo:cand-s2", "ppo:cand-s1", "ppo:dose-lo-s1", "ppo:cand-s4", "ppo:cand-s7"],
 }
-BANDS = {"eval": 870_001, "stress": 880_001, "probe": 40_001}
+# rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
+# disjoint 30-seed bands beyond the declared eval/stress pair
+BANDS = {"eval": 870_001, "stress": 880_001, "probe": 40_001, "rep1": 890_001, "rep2": 900_001}
 
 
 def load_model(spec):
