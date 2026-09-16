@@ -273,7 +273,15 @@ network in every seat).
    the pick have nothing to check. Beam naps go to GEN2-INPUTS as a
    world-valuation gap (rule 7: the world does not value the beam at
    any price the sleep budget can see while sleep is cheap anywhere).
-3. **Charm ruling**, after the battery, on the seated composition.
+3. **Charm ruling + seats — RULED 2026-09-15 (owner, after reviewing
+   the battery, the swap table and the arm glossary: "I'm comfortable
+   with this seating").** The Gen 1 roster is gen1-A: Miso cand-s2 ·
+   Biscuit cand-s1 · Pumpkin dose-lo-s1 · Kittybear cand-s4 ·
+   Clementine cand-s7. Charm accepted as declared: the free register is
+   the roster's voice at its chatter cost (every seat a lesson arm);
+   Biscuit's non-grooming holds (cand-s1's giver row 0); beam naps
+   settled by the beam ruling (stay at 7, not world-valued at Gen 1).
+   Nothing refused, no seat left scripted.
 4. **The seven unspent runs**: a third seed per leash dose was the
    pencilled first use; the pass's own reads suggest the dose-hi shape
    (teacher-level grooming, beam naps and consent at two points of

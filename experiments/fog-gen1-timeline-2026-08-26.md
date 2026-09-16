@@ -1066,6 +1066,13 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   0.006–0.022 in every all-policy arm. `fog-gen1-cert/RESULTS.md`
   §"Beam naps". No config key moves; rules 3/4 have nothing to check;
   beam naps go to GEN2-INPUTS as a world-valuation gap.
+- **STEP 7 SEATING + CHARM RULED 2026-09-15 (owner): gen1-A.** Miso
+  cand-s2 · Biscuit cand-s1 · Pumpkin dose-lo-s1 · Kittybear cand-s4 ·
+  Clementine cand-s7, five distinct networks; every declared battery
+  gate passed on both bands (`fog-gen1-cert/RESULTS.md` §Battery);
+  charm accepted as declared (free register at its cost, Biscuit's
+  non-grooming, beam at 7). Next: export the five policies to served
+  artifacts with parity checks, then the cutover handover to Product.
 - **Finding 9, instrument debt: nothing funded for step 7.**
   Rate-based A17 and the scene-span instrument stay on the Gen 2
   shelf (every step-7 arm runs at pin 4; the uptake reads served the
