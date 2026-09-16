@@ -25,7 +25,12 @@ fn fixtures_dir() -> PathBuf {
 /// The served config with every seat scripted: `needs_driven` on all five,
 /// made explicit rather than left to the policy-seat fallback so the
 /// fixture depends on no dispatch path. The served seed, `announce_here`
-/// 0 (asserted — the reference world is the ambient-here-off world).
+/// FORCED to 0 — the reference world is the ambient-here-off world by
+/// construction. Until the 0.3.0 cutover the served file left the knob
+/// unset and this was an assert; the cutover arms it at 1 (the
+/// certification world's density), and the served arming is priced by
+/// its own guard (`announce_here_gate_zero`), so the control pins it off
+/// here rather than asserting the serve state.
 fn served_all_scripted() -> Config {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let text = std::fs::read_to_string(root.join("cloudkitty.toml"))
@@ -34,10 +39,7 @@ fn served_all_scripted() -> Config {
     for kitty in &mut config.kitties {
         kitty.behavior = "needs_driven".into();
     }
-    assert_eq!(
-        config.behavior.announce_here, 0,
-        "the reference stream is recorded with the ambient here off"
-    );
+    config.behavior.announce_here = 0;
     config.validate().expect("the served config validates");
     config
 }
@@ -207,6 +209,13 @@ fn read_lines(name: &str) -> Vec<String> {
 /// streams first diverged at tick 562, downstream of the tick-550 groom
 /// scene) parts from the pre-054 reference. What this pins NOW is that
 /// the PreFog law era alone still moves nothing on the repriced engine.
+///
+/// Re-recorded at the 0.3.0 cutover (2026-09-16): the served
+/// `announce_threshold` moved 30 → 20 (the certification world's law,
+/// owner rulings 2026-09-15), and the control inherits it — every want
+/// arms earlier, so both reference streams move. Same doctrine as the
+/// spec-050/054 re-records: an intentional world-law move re-records the
+/// fixtures with its justification.
 #[test]
 fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
     let mut config = served_all_scripted();
@@ -438,7 +447,10 @@ fn record_prefog_streams() {
 
 // ---- spec 049 T065 / SC-011: the reply ladder is inert with the floor unset ----
 
-/// The served roster all scripted at the Gen 1 radius, `announce_here` 0,
+/// The served roster all scripted at the fixture's r = 5 (the FR-002
+/// placeholder these streams have always been recorded at; the served
+/// radius moved to 4 at the 0.3.0 cutover, and this control keeps the
+/// fixture's radius rather than tracking the serve), `announce_here` 0,
 /// `reply_intensity_floor` unset -- the exact configuration SC-011 names.
 fn served_all_scripted_r5_floor_unset() -> Config {
     let mut config = served_all_scripted();
@@ -476,6 +488,12 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 /// before, the repriced cuddle pressure's first visible fork). What this
 /// pins NOW is that the floor-unset streams of the repriced engine do
 /// not drift.
+///
+/// Re-recorded at the 0.3.0 cutover (2026-09-16): the served
+/// `announce_threshold` moved 30 → 20 (the certification world's law),
+/// so every want arms earlier and both streams move. The control keeps
+/// the fixture's r = 5 and the ambient here off; only the inherited
+/// threshold changed.
 #[test]
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");

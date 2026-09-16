@@ -26,7 +26,9 @@
 //! 3. **Element slots**: chow (5), water (4), sunbeam (6), critter (10)
 //!    exactly as schema 4, filled nearest-K over VISIBLE elements only
 //!    (FR-004); critters keep the target-priority fill.
-//! 4. **Episode clock**: tick/horizon (0 at deploy, where no episode runs).
+//! 4. **Episode clock**: tick/horizon — training's `tick_in_episode /
+//!    horizon`; serving passes `(world tick mod horizon) / horizon`, the
+//!    clock as trained (owner 2026-09-15, `behavior::served_clock`).
 //!
 //! The schema-4 global meow digest is gone: repetition and insistence are
 //! per-speaker fields on the rows (FR-016).
@@ -315,7 +317,8 @@ pub fn row_state(view: &FogView, friend: KittyId, window: u64) -> RowState {
 }
 
 /// Encodes `kitty_id`'s observation of its frozen fog `view`. `episode_clock`
-/// is tick/horizon in [0, 1] (0 at deploy, where no episode runs).
+/// is tick/horizon in [0, 1] — training's episode clock; serving cycles the
+/// world tick through the same horizon (`behavior::served_clock`).
 pub fn encode_observation(
     view: &FogView,
     kitty_id: KittyId,

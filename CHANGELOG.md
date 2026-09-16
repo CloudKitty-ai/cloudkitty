@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **The fog Gen 1 minds take the meadow — the 0.3.0 seating.** Every
+  seat moves from the wall's scripted interregnum to its own network,
+  five distinct minds trained under fog (roster gen1-A, owner's word
+  2026-09-15): Miso `fog-gen1-miso-cand-s2`, Biscuit
+  `fog-gen1-biscuit-cand-s1`, Pumpkin `fog-gen1-pumpkin-dose-lo-s1`,
+  Kittybear `fog-gen1-kittybear-cand-s4`, Clementine
+  `fog-gen1-clementine-cand-s7` — certified as this exact composition
+  (`experiments/fog-gen1-cert/RESULTS.md`, battery all gates on four
+  bands). The served config moves to the certification world's law:
+  vision radius 4 (pinned off the screen, #351), announce_threshold 20,
+  `announce_here` 1, `reply_intensity_floor` 0.20 (pinned #352),
+  Biscuit's `playful_comfort` 30 and the consent line at 30 (the
+  Biscuit 3.0 anchor); the sunbeam price stays 7 (the beam ruling). One
+  engine seam rides along: the policy observation's episode clock now
+  serves as trained — `(world tick mod horizon) / horizon` in place of
+  the deploy pin of 0, which re-opened a greedy two-tile limit cycle
+  the drifting clock breaks (3 vs 0 catastrophe runs in 120; RESULTS.md
+  §"The clock input"; Gen 2 removes the dependence). World law changes,
+  not world state: a saved world resumes, no `--fresh` required. (spec
+  049 step 7, #377)
+
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
   The water field was a bilinear over the served tiles, read at the cat's
