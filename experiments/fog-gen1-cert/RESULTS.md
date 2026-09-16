@@ -344,6 +344,18 @@ and the raws. The digest:
   Pumpkin-clean set is beam10-s1, cand-s6, cand-s7, dose-lo-s1,
   dose-lo-s2, flat-s1, flat-s3, plain-s1, twin-off; the worst Pumpkin
   seatings are beam15-s1 (6 runs, ages to 360) and plain-s2 (age 709).
+- **The Pumpkin failure replayed (seed 870011, Pumpkin = plain-s2,
+  age 709).** The cat spent 471 of 709 distress ticks on three corner
+  tiles, (0,0), (0,1), (1,0), alternating MoveE / MoveW (and N / S) with
+  the chosen move at p 0.53 against 0.19 for the runner-up, so not a
+  greedy near-tie. Chow was visible in 40% of those rows and Eat was
+  chosen in 26 of them; drink reached 100 and eat 90. A corner attractor
+  in a rarely-visited pocket of the state space, not a price signal:
+  the team Nash already makes a starving cat dominate the reward, and in
+  ordinary operation the policy feeds Pumpkin five points better than
+  the scripted cat (93.1 vs 88.1) with a smaller eat gap (E1 +0.01 vs
+  +0.05). The scripted Pumpkin had no distress in 60 runs; the scripted
+  roster's own tail (ages 102–178) is all Clementine's seat.
 - **Caveat on the passed catastrophe gate.** gen1-A read 0 runs ≥ 150
   in 60; compositions one seat away read 1.8% per run. At that rate a
   clean 60 has about a one-in-three chance, so the pass is consistent
