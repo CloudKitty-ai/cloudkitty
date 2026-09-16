@@ -115,40 +115,63 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_parks_every_seat_at_the_3_0_wall_and_refuses_the_2_x_minds() {
-    // The fourth tour (spec 049, the fog wall). This restores the
-    // generation-gap posture the third-tour test (`…seats_a_policy_this
-    // _binary_can_open`) said to restore "if the seats ever park again":
-    // observation schema 5 refuses every schema-4 artifact at load
-    // (FR-025 / SC-008), so the served roster is scripted until the Gen 1
-    // minds seat at the step-7 cutover. Two proofs: no seat names a
-    // policy, and every [rl.policy.*] artifact the config still lists --
-    // the 2.x registry, never opened for an unreferenced block -- IS
-    // refused by this binary, naming the observation schema and both
-    // versions, before any tick.
+fn the_shipped_config_seats_the_gen1_minds_and_still_refuses_the_2_x_minds() {
+    // The fifth tour (the 0.3.0 cutover, owner rulings 2026-09-15):
+    // supersedes `the_shipped_config_parks_every_seat_at_the_3_0_wall…`,
+    // whose parked assertion expired by its own terms when the Gen 1
+    // minds landed. This is the seats-open posture of the third tour
+    // (restored from 8c3db07, as that test instructed) plus the wall
+    // test's surviving half: every 2.x block the config still lists is
+    // schema-4 and refused by this binary. Two proofs:
+    // 1. every served seat names a policy, and registration opens every
+    //    seated artifact through the schema gate (a missing artifact, a
+    //    stale generation, or a blockless seat all fail here);
+    // 2. the UNREFERENCED [rl.policy.*] blocks -- the 2.x registry of
+    //    what WAS seated, never opened at boot -- still refuse at load,
+    //    naming the observation schema and both versions.
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().expect("the shipped config validates");
-    assert!(
-        config
-            .kitties
-            .iter()
-            .all(|k| !k.behavior.starts_with("policy:")),
-        "at the 3.0 wall every served seat is scripted; a policy seat means Gen 1 minds \
-         landed -- then restore the seats-open test from git history"
+    let seated: std::collections::BTreeSet<&str> = config
+        .kitties
+        .iter()
+        .filter_map(|k| k.behavior.strip_prefix("policy:"))
+        .collect();
+    assert_eq!(
+        seated.len(),
+        config.kitties.len(),
+        "the 0.3.0 seating: every served seat is a Gen 1 mind; if the seats ever park \
+         again, restore the wall test from git history instead of deleting this one"
     );
     let mut rl = RlConfig::from_toml_str(&text).unwrap();
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     for policy in rl.policy.values_mut() {
         policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
     }
+    // Proof 1: registration opens every SEATED artifact and runs it
+    // through the schema gate.
+    let mut registry = BehaviorRegistry::with_builtins();
+    let displays = register_policy_behaviors(&mut registry, &config, &rl)
+        .expect("every seated Gen 1 policy resolves to an artifact this binary can open");
+    assert_eq!(
+        displays.len(),
+        seated.len(),
+        "one registered display per seated mind"
+    );
+    config.validate_behavior_names(&registry.names()).unwrap();
+    // Proof 2: the 2.x registry blocks stay, and stay unservable here.
+    let retired: Vec<_> = rl
+        .policy
+        .iter()
+        .filter(|(name, _)| !seated.contains(name.as_str()))
+        .collect();
     assert!(
-        !rl.policy.is_empty(),
+        !retired.is_empty(),
         "the 2.x registry blocks stay as the record of what was seated"
     );
     let expectations = cloudkitty_rl::behavior::PolicyBehavior::expectations(&rl);
-    for (name, policy) in &rl.policy {
+    for (name, policy) in retired {
         let err = cloudkitty_rl::policy::PolicyArtifact::load(
             std::path::Path::new(&policy.artifact),
             &expectations,
@@ -164,12 +187,6 @@ fn the_shipped_config_parks_every_seat_at_the_3_0_wall_and_refuses_the_2_x_minds
             "[rl.policy.{name}]: the schema gate's own words -- found 4, expected 5: {text}"
         );
     }
-    // And a registry with no seated policy registers nothing -- boot
-    // proceeds scripted.
-    let mut registry = BehaviorRegistry::with_builtins();
-    let displays = register_policy_behaviors(&mut registry, &config, &rl).unwrap();
-    assert!(displays.is_empty());
-    config.validate_behavior_names(&registry.names()).unwrap();
 }
 
 #[tokio::test]

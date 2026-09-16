@@ -158,10 +158,13 @@ fn the_decision_reads_the_world_clock_through_the_trained_horizon() {
     );
     // One full horizon later the clock has wrapped to the same value, and
     // nothing else in this world moved: the decision comes back exactly.
-    // (An unwrapped tick / horizon would clamp to 1.0 out here instead.)
+    // (Consistency only — a monotone output row cannot tell a wrapped
+    // 0.25 from an unwrapped clamp to 1.0 at the decision layer; the
+    // wrap itself is pinned by the served_clock unit test, mutation-
+    // verified against `tick % horizon` -> `tick`.)
     assert_eq!(
         at(horizon / 4),
         at(horizon / 4 + horizon),
-        "the clock does not wrap at the trained horizon"
+        "a wrapped clock decides identically one horizon apart"
     );
 }

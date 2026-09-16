@@ -99,9 +99,11 @@ fn the_served_roster_asks_for_water() {
 #[test]
 fn a_want_drink_gets_a_here_water_reply() {
     let mut config = served_all_scripted();
-    assert!(
-        config.behavior.reply_intensity_floor.is_none(),
-        "the served floor stays unset; this test sets its own"
+    assert_eq!(
+        config.behavior.reply_intensity_floor,
+        Some(0.2),
+        "the served floor is the pinned 0.20 (#352, set at the 0.3.0 cutover); \
+         this test still sets its own permissive floor below"
     );
     config.behavior.reply_intensity_floor = Some(0.01);
     config.validate().expect("a floor > 0 is valid");
