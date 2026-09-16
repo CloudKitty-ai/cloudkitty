@@ -259,20 +259,35 @@ one seat's special case.
   ticks in the open to 13, so a beam saves ~7 ticks and pays for a
   6–7 tile walk, which is where the served 4–5 beams already sit
   (break-even today is 2–3 tiles, and reaching it by count alone would
-  take 20–25 beams on the 20×20 meadow). (b) Beams permanent (today
-  `ttl = 300`, then respawn elsewhere): under radius 4 the walk to a
-  beam is on memory, and a remembered beam that has expired makes the
-  walk a bet; permanence makes the memory true and gives the served
-  roster fixed landmarks, which the cosleep-on-beam charm needs (0–10
-  opportunities per probe today on every arm but β 0.10). (c) A couple
+  take 20–25 beams on the 20×20 meadow). (b) Beams long-lived (today
+  `ttl = 300`, then respawn elsewhere; the owner's refinement of
+  2026-09-15 is a much longer lifetime rather than permanence): under
+  radius 4 the walk to a beam is on memory, and a remembered beam that
+  has expired makes the walk a bet. The staleness odds are about
+  (memory age + walk) / lifetime: with a typical memory age near 100
+  ticks and a 6-tile walk, a 300-tick beam is gone about a third of the
+  time, a 3,000-tick beam about 3.5%, a 6,000-tick beam under 2%. A
+  lifetime of 2,000–4,000 ticks (25–55 minutes of watching at 800 ms a
+  tick, several naps and walks) buys nearly all of permanence's value
+  for the walk while keeping what permanence loses: a beam camp
+  dissolves when its beam moves, layouts keep changing so the mind
+  cannot memorise a map and the memory token stays load-bearing, and
+  the meadow still shifts over a sitting. The cosleep-on-beam charm
+  (0–10 opportunities per probe today on every arm but β 0.10) needs a
+  beam that outlasts a nap and a friend's approach, which any of these
+  lifetimes gives. The day/night cycle is client-side only
+  (`client/props.js`); the engine's beam lifetime is independent of
+  it, and the owner reads beam movement as marginal charm beside the
+  cycle, the cats and the bugs. (c) A couple
   more beams for the look of the meadow, a visual choice under the
   served-world density ruling. Costs to weigh: the moving sun is the
   only sign of time passing on the meadow (Client's call how to keep
   it); permanent beams with conduction and the cosleep drip are a
   reliable spot to farm cuddle by sleeping unsleepy (rule 4 check:
   sleeping ticks with sleep need under threshold, per seat); a fixed
-  layout invites map memorisation, so Gen 2 randomises the permanent
-  layout per episode beside the corner/edge starts. Prediction if
+  layout invites map memorisation, which the long-lived (not
+  permanent) variant avoids by itself; permanent beams would need the
+  layout randomised per episode beside the corner/edge starts. Prediction if
   adopted: in-beam sleep share rises toward the scripted 0.26–0.29 at
   β ≤ 0.04 without the leash carrying it; instruments = `step7_reads`
   beam share and `phase2_read` cosleep opportunities. Rule 9: the
