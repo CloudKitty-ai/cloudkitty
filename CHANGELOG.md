@@ -49,6 +49,28 @@ change.
   find a wake the cat takes, by asking the pipeline rather than copying
   the rule. Presentation only. (#376)
 
+- **A cat that woke and lay straight back down kept stretching.** Found
+  while measuring the above: 4.1% of wakes last a single tick — the cat
+  is up for 800ms and asleep again — and a stretch is two ticks, so it
+  ran 800ms past the wake and was drawn over a served `sleeping`. The fix
+  is to start the stretch a tick *earlier* rather than cut it short, and
+  that turns out to be possible without the client predicting anything.
+  The pacer holds a buffer — that is what the delay line is *for* — so by
+  the time the last sleeping tick is promoted, the wake has usually
+  already been served and is sitting in the queue. `promote` hands the
+  queue head to `pushState`, the wake is stamped on the sleeping tick,
+  and the stretch now spans the wake instead of trailing it: it ends
+  exactly as the next state lands, whatever that state says, because a
+  wake is awake by definition. It also simply reads better — a cat's
+  stretch belongs to waking up, not to the moment after. When the buffer
+  is empty there is no honest way to see a nap ending, so the wake goes
+  unmarked and no stretch happens; simulated against 226 real arrivals
+  through the shipped pacer that is 0.9% of promotions, and a skipped
+  stretch is invisible next to the half that `stretchChance` already
+  declines. The lookahead is checked to be the very next tick, since a
+  gap means a dropped state or a collapsed backlog. Presentation only.
+  (#376)
+
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
   The water field was a bilinear over the served tiles, read at the cat's
