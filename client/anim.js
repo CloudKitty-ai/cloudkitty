@@ -683,6 +683,16 @@ const VIEW = Object.freeze({
   // the engine's next instruction lands after it, not through it.
   stretchTicks: 2,
 
+  // ...and how often a wake is taken up on it (owner, 2026-09-14). It was
+  // 100%: every cat stretched every time it woke, which is right for one
+  // cat and reads as choreography across four. A coin flip buys the
+  // variety back without making the stretch rare -- the earlier ask was
+  // for a COMMON stretch, and half of every wake still is.
+  //
+  // The draw is keyed on the WAKE, never on the clock or an idle slot.
+  // See idlePoseFor: that is what keeps a stretch from flickering.
+  stretchChance: 0.5,
+
   // How often an idle cat sits down instead of standing. `sitChance` is
   // drawn once per `sitPeriodMs`, so a cat that stays put long enough
   // will sit, get up, and sit again -- all of it hashed from (id, slot),
@@ -953,7 +963,8 @@ const IDLE_SALTS = Object.freeze({
   side: 4, // and which ear a twitch belongs to
   look: 5, // where a scan looks
   sit: 6, // whether an idle cat is sitting this stretch of time
-  play: 7, // and whether a card portrait play-pounces in one
+  play: 7, // whether a card portrait play-pounces in one
+  stretch: 8, // and whether a cat takes a wake up on a stretch
 });
 
 /**
@@ -1319,8 +1330,17 @@ class Presentation {
     this.generation += 1;
   }
 
-  pushState(world, now, playMs) {
+  pushState(world, now, playMs, ahead) {
     const prev = this.curr;
+    // The next state, if the delay line is holding one. `Pacer` runs a
+    // `paceTargetDepth` buffer so an arrival may be a whole tick late with
+    // nothing visible, which means the state AFTER this one has usually
+    // already been served by the time this one is promoted. It is used for
+    // exactly one thing -- seeing a wake coming, below -- and it is checked
+    // to be the very next tick first: a gap means a dropped or collapsed
+    // state, and reading a wake two ticks out would start a stretch a tick
+    // before the cat is even awake.
+    const nextUp = ahead && ahead.tick === world.tick + 1 ? ahead : null;
     // Bank the distance the OUTGOING pair covered, so the odometer holds
     // whole ticks and strideFor adds the eased part of the current one.
     if (prev && this.prev) {
@@ -1533,8 +1553,46 @@ class Presentation {
       if (sleepingNow && was.activity?.state !== 'sleeping') {
         this.sleepingSince.set(kitty.id, world.tick);
       } else if (!sleepingNow) {
-        if (was.activity?.state === 'sleeping') this.wokeAt.set(kitty.id, now);
         this.sleepingSince.delete(kitty.id);
+      }
+
+      // The wake is read off the DELAY LINE (2026-09-16), one tick before
+      // it is drawn, so the stretch spans the last sleeping tick and the
+      // waking one rather than the waking tick and whatever follows it.
+      //
+      // Measured off the SOCKET, 114 wakes (2026-09-16), by what the tick
+      // after each wake actually served. With the window at (wake, wake+1)
+      // the stretch was cut off mid-reach 69.3% of the time, kept drawing
+      // over a cat that had gone back to sleep 27.2%, and completed 3.5%.
+      // app.js has carried "the stretch died at phase 0.49" since
+      // 2026-08-10; the card stopped consuming it rather than this being
+      // fixed.
+      //
+      // Started a tick earlier the window is (wake-1, wake), and the wake
+      // tick is 50 of 50 measured as idle / last_action sleep / unmoved --
+      // the engine never starts a scene on the tick a cat stops sleeping.
+      // Both ticks are structurally safe, so the stretch always finishes
+      // and it ends exactly as the next state lands, whatever that says.
+      //
+      // (An earlier read of this off `/events/activity` said 4.1%. That
+      // endpoint's scene boundaries do not line up tick-for-tick with what
+      // pushState sees; the socket is the instrument that observes exactly
+      // the states this code is handed.)
+      //
+      // This is not the client predicting the world, which it never does.
+      // The state has been served and is sitting in `Pacer.queue`; all that
+      // is borrowed is the latency the buffer exists to create.
+      //
+      // NO BUFFER, NO STRETCH. When the delay line is empty there is no
+      // honest way to know a nap is ending, and rather than fall back to
+      // starting late -- which is the bug -- the wake simply goes
+      // unmarked. Measured at 0.9% of promotions in steady state, and a
+      // skipped stretch is invisible: `stretchChance` already declines
+      // half of them, so this reads as one more cat that did not feel
+      // like it.
+      if (sleepingNow && nextUp) {
+        const then = nextUp.kitties.find((k) => k.id === kitty.id);
+        if (then && then.activity?.state !== 'sleeping') this.wokeAt.set(kitty.id, now);
       }
 
       // How long this kitty has had nothing asked of it, in served ticks:
@@ -1963,19 +2021,43 @@ class Presentation {
       this.wokeAt.delete(id);
       return null;
     }
-    // A cat that just woke stretches. This is the one place the rarity
-    // budget is not consulted, because it is not scheduled: it happens
-    // exactly as often as cats wake up, which the engine decides.
+    // A cat about to wake MAY stretch -- `VIEW.stretchChance` of the wakes
+    // that get marked, since 2026-09-14. It is still not scheduled the way
+    // sitting is: the engine decides when cats wake, and all this decides
+    // is whether a given wake is taken up on.
     //
-    // It fires on the OBSERVED wake, and cannot be moved to the last tick
-    // of sleep however much better that would look: a tick is not known
-    // to be the last one until the next state arrives, so anticipating it
-    // would mean predicting the world, which this layer never does.
+    // The draw is keyed on `woke`, deliberately. `idlePoseFor` is pure in
+    // (id, now) -- a still frame, a reduced-motion frame and a test all
+    // ask what a cat is doing at time T and have to agree -- and a draw
+    // keyed on `now` or on an idle slot would be re-taken every frame,
+    // flickering the cat into and out of a stretch already begun. Keyed on
+    // the wake, the question is asked once and answered the same way for
+    // as long as that wake lasts. It is also per CAT: four cats woken by
+    // the same tick decide separately, which is the point of the change.
+    //
+    // A declined wake falls THROUGH, answering null so the served pose
+    // stands, and leaves its map entry to expire on the clock above. That
+    // is one stale key for two ticks and no bookkeeping on the decline
+    // that could re-open the draw. Nothing below is reachable inside the
+    // window regardless -- sitting wants `sitAfterTicks` (3) still ticks
+    // and the stretch lasts `stretchTicks` (2) -- so a decline is plainly
+    // a cat standing there, which is the whole of what was asked for.
+    //
+    // `woke` is stamped on the last SLEEPING tick, not the waking one
+    // (2026-09-16), so the stretch spans the wake rather than trailing it.
+    // This comment used to say that was impossible -- a tick is not known
+    // to be the last one until the next state arrives -- which is true of
+    // ARRIVALS and false of PROMOTIONS: the pacer holds a buffer, so the
+    // wake has usually already been served when the tick before it plays.
+    // `pushState` reads it there, and records nothing when the buffer is
+    // empty. Still no prediction: every tick of it has been served.
     const woke = this.wokeAt.get(id);
     if (woke !== undefined) {
       const t = (now - woke) / (VIEW.stretchTicks * this.tickMs);
-      if (t < 1) return { pose: 'stretch', phase: t };
-      this.wokeAt.delete(id);
+      if (t >= 1) this.wokeAt.delete(id);
+      else if (idleHash(id, woke, IDLE_SALTS.stretch) < VIEW.stretchChance) {
+        return { pose: 'stretch', phase: t };
+      }
     }
     if (pose !== 'idle') return null;
     const still = this.stillSince.get(id);
@@ -3619,7 +3701,7 @@ const anim = {
 
   /** A state stops waiting and becomes the world on screen. */
   promote(world, now) {
-    this.presentation.pushState(world, now, this.pacer.playMs);
+    this.presentation.pushState(world, now, this.pacer.playMs, this.pacer.queue[0]);
     // Everything outside the canvas that reads the world -- the cards, the
     // sky dial, the tick counter -- moves on THIS beat rather than on
     // arrival, so the panel can never lead the meadow by the delay line.

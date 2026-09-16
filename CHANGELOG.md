@@ -54,6 +54,58 @@ change.
   not world state: a saved world resumes, no `--fresh` required. (spec
   049 step 7, #377)
 
+- **Every cat stretched every time it woke.** Which is lovely once and
+  choreography four times over: a nap ending is a common event, and the
+  meadow was answering it with the same flourish every time. A wake is a
+  coin flip now — `stretchChance` 0.5 — so the stretch stays common
+  without being certain, and a cat that declines simply stands up. The
+  draw is keyed on the *wake*, not on the clock or an idle slot, which is
+  what keeps a stretch from flickering on and off mid-pose: `idlePoseFor`
+  has to be a pure function of (cat, time) so a still frame, a
+  reduced-motion frame and a test all agree on what a cat is doing, and a
+  per-frame draw would be re-taken sixty times a second. It is keyed on
+  the cat too, so four cats woken by one tick decide separately — the
+  whole point. Two existing checks asserted a stretch off a hard-coded
+  clock reading and would have gone on passing by luck; they now go and
+  find a wake the cat takes, by asking the pipeline rather than copying
+  the rule. Presentation only. (#376)
+
+- **The waking stretch had never once worked, and nobody could see it.**
+  Reported from the meadow as a cat that slept, stretched and slept again
+  with no lie-down in between. Measured off the socket — 114 wakes, each
+  classified by the pose the next tick actually served — the two-tick
+  stretch was cut off mid-reach **69.3%** of the time, kept drawing over a
+  cat that had gone back to sleep **27.2%**, and completed **3.5%**. Its
+  window was (wake, wake+1), and the tick after a wake is a named scene or
+  a step 96.5% of the time, so the abandon guard fired inside the stretch
+  rather than before it. `app.js` has carried the note since 2026-08-10 —
+  "the stretch died at phase 0.49" — and the card stopped consuming the
+  world's wake-stretch rather than the meadow being fixed. The fix is to
+  start the stretch a tick *earlier* rather than cut it short, and that
+  turns out to be possible without the client predicting anything.
+  The pacer holds a buffer — that is what the delay line is *for* — so by
+  the time the last sleeping tick is promoted, the wake has usually
+  already been served and is sitting in the queue. `promote` hands the
+  queue head to `pushState`, the wake is stamped on the sleeping tick,
+  and the stretch now spans the wake instead of trailing it: it ends
+  exactly as the next state lands, whatever that state says, because a
+  wake is awake by definition. It also simply reads better — a cat's
+  stretch belongs to waking up, not to the moment after. When the buffer
+  is empty there is no honest way to see a nap ending, so the wake goes
+  unmarked and no stretch happens; simulated against 226 real arrivals
+  through the shipped pacer that is 0.9% of promotions, and a skipped
+  stretch is invisible next to the half that `stretchChance` already
+  declines. The lookahead is checked to be the very next tick, since a
+  gap means a dropped state or a collapsed backlog. The same overrun was
+  also eating the fall-asleep *settle*: `adjustPose` gives it as a half
+  tick of `loaf` on the tick sleep begins, and the idle overlay is
+  resolved after it and wins outright — so the stretch landed on the
+  settle tick and swallowed it, and the cat snapped from stretching back
+  to curled with no lie-down at all. Reported from the meadow as "sleep,
+  stretch, sleep, and I don't think a second lie-down played"; it did
+  not. One cause, two faults, and the shift fixes both. Presentation
+  only. (#376)
+
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
   The water field was a bilinear over the served tiles, read at the cat's
