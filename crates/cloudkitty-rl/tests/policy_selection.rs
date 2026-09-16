@@ -13,9 +13,9 @@ use cloudkitty_core::rng::DecisionRng;
 use cloudkitty_core::Config;
 use cloudkitty_rl::behavior::PolicyBehavior;
 use cloudkitty_rl::codec::ActionCodec;
+use cloudkitty_rl::codec::{MessageCodec, ACTION_SCHEMA_VERSION};
 use cloudkitty_rl::config::RlConfig;
 use cloudkitty_rl::mask::legal_action_mask;
-use cloudkitty_rl::codec::{MessageCodec, ACTION_SCHEMA_VERSION};
 use cloudkitty_rl::mask::MASK_SCHEMA_VERSION;
 use cloudkitty_rl::observe::{observation_len, TargetTable, OBSERVATION_SCHEMA_VERSION};
 use cloudkitty_rl::policy::{write_artifact, ArtifactHeader, ARTIFACT_VERSION};
@@ -139,12 +139,8 @@ fn the_decision_reads_the_world_clock_through_the_trained_horizon() {
     let dir = std::env::temp_dir().join("ck-policy-selection");
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("clock-listener.ckpolicy");
-    write_artifact(
-        &path,
-        &header,
-        &[(w1, vec![0.0]), (w2, vec![0.0; menu])],
-    )
-    .expect("the clock-listener artifact writes");
+    write_artifact(&path, &header, &[(w1, vec![0.0]), (w2, vec![0.0; menu])])
+        .expect("the clock-listener artifact writes");
     let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
 
     let horizon = rl.episode.horizon;
