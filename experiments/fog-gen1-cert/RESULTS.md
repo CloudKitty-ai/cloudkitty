@@ -483,6 +483,31 @@ seam code and every config value byte-identical (comments and trailing
 whitespace only, verified on the merged tree). Deploy is the owner's
 restart.
 
+## Water time (owner's question, 2026-09-16; report-only)
+
+gen1-A (the served artifacts, trained clock) against the scripted roster,
+anchor-b3 world law, seeds 870001–870005 × 5,000 ticks, occupancy read
+from the global state joined to the element list every tick
+(`results-raw/water/water_read.py`, uncommitted with its JSON).
+
+| seat | in water, % of ticks (scripted → gen1-A) | resting or sleeping in water, % of ticks | water entries per 1k ticks | mean bath need |
+|---|---|---|---|---|
+| Miso | 5.3 → 2.6 | 1.2 → 0.5 | 8.7 → 4.0 | 8.0 → 5.4 |
+| Biscuit | 3.5 → 3.2 | 0.5 → 0.5 | 4.9 → 4.0 | 11.0 → 9.9 |
+| Pumpkin | 3.0 → 1.4 | 0.4 → 0.3 | 8.0 → 4.1 | 6.7 → 3.9 |
+| Kittybear | 5.3 → 1.4 | 0.9 → 0.2 | 6.7 → 2.5 | 8.9 → 5.7 |
+| Clementine | 3.1 → 1.8 | 0.8 → 0.5 | 7.0 → 3.8 | 8.0 → 5.0 |
+
+Both rosters spend most in-water ticks idle (0.4–0.6 of them, transit)
+or grooming (0.13–0.41). The Gen 1 minds enter water about half as
+often as the scripted cats at the same spell length (about six ticks),
+so in-water time roughly halves on four seats and holds on Biscuit's.
+Resting or sleeping in water is under 1.2% of ticks on every seat of
+either roster and under 0.5% on the policies. Wet fur charges the bath
+need, and the policies carry a lower bath need on every seat, which is
+the self-grooming rate the dose reads already saw (2× the teacher).
+Five seeds; no seed spread reported.
+
 ## Reads owed after the reseat (unchanged)
 
 FR-014 (spec 054) step-7 read on the served roster, refusal baseline
