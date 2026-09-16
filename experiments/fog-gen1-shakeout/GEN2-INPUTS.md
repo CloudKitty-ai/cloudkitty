@@ -253,6 +253,31 @@ one seat's special case.
   world: colder ground, slower relief), not the beam better; the price
   lever has been screened and does not work. Biscuit's seat naps on
   beams least of all (0.006–0.022) at every price and dose.
+  **The beam package (owner's proposal 2026-09-15, under consideration,
+  not ruled):** three world changes together. (a) Off-beam sleep relief
+  down (5 → about 3 against the beam's 7): a need-40 nap goes from 8
+  ticks in the open to 13, so a beam saves ~7 ticks and pays for a
+  6–7 tile walk, which is where the served 4–5 beams already sit
+  (break-even today is 2–3 tiles, and reaching it by count alone would
+  take 20–25 beams on the 20×20 meadow). (b) Beams permanent (today
+  `ttl = 300`, then respawn elsewhere): under radius 4 the walk to a
+  beam is on memory, and a remembered beam that has expired makes the
+  walk a bet; permanence makes the memory true and gives the served
+  roster fixed landmarks, which the cosleep-on-beam charm needs (0–10
+  opportunities per probe today on every arm but β 0.10). (c) A couple
+  more beams for the look of the meadow, a visual choice under the
+  served-world density ruling. Costs to weigh: the moving sun is the
+  only sign of time passing on the meadow (Client's call how to keep
+  it); permanent beams with conduction and the cosleep drip are a
+  reliable spot to farm cuddle by sleeping unsleepy (rule 4 check:
+  sleeping ticks with sleep need under threshold, per seat); a fixed
+  layout invites map memorisation, so Gen 2 randomises the permanent
+  layout per episode beside the corner/edge starts. Prediction if
+  adopted: in-beam sleep share rises toward the scripted 0.26–0.29 at
+  β ≤ 0.04 without the leash carrying it; instruments = `step7_reads`
+  beam share and `phase2_read` cosleep opportunities. Rule 9: the
+  teacher walks to beams more when they are always there, so the whole
+  package waits for the Gen 2 collection.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across
