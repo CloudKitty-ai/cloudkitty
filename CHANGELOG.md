@@ -68,8 +68,15 @@ change.
   through the shipped pacer that is 0.9% of promotions, and a skipped
   stretch is invisible next to the half that `stretchChance` already
   declines. The lookahead is checked to be the very next tick, since a
-  gap means a dropped state or a collapsed backlog. Presentation only.
-  (#376)
+  gap means a dropped state or a collapsed backlog. The same overrun was
+  also eating the fall-asleep *settle*: `adjustPose` gives it as a half
+  tick of `loaf` on the tick sleep begins, and the idle overlay is
+  resolved after it and wins outright — so the stretch landed on the
+  settle tick and swallowed it, and the cat snapped from stretching back
+  to curled with no lie-down at all. Reported from the meadow as "sleep,
+  stretch, sleep, and I don't think a second lie-down played"; it did
+  not. One cause, two faults, and the shift fixes both. Presentation
+  only. (#376)
 
 - **A cat leaving a pond kept the water with it.** Reported from the
   meadow: the exit read as a cat still swimming while standing on grass.
