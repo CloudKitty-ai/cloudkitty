@@ -165,6 +165,59 @@ repeats the Gen 1 pattern. Verify with the fresh-start-conditioned
 response read (this week's instrument) before and after the rung
 lands.
 
+## Corner and edge coverage in training (RULED by the owner 2026-09-15, "Corner and edge coverage in training seems wise. Let's add that to Gen 2")
+
+**The finding.** The step-7 battery's only catastrophe shape is a corner
+attractor (`fog-gen1-cert/RESULTS.md` §Battery, swaps digest): a cat
+with eat or drink at 90–100 alternating two moves on the world's corner
+tiles, (0,0) / (0,1) / (1,0), for hundreds of ticks, with chow visible
+in 40% of those rows and Eat chosen in a tenth of them. The chosen move
+carries p ≈ 0.53 against 0.19, so it is a learned preference in that
+pocket, not a greedy tie. Across the 100 swap legs 1.8% of runs reached
+a distress age of 150 this way, more than half of them in a seat whose
+mind had not been swapped; Pumpkin's seat (eat rate 0.6, double the
+others') carries the most. The scripted roster never fails there.
+
+**Why the pocket is untrained.** Every episode, in corpus collection
+and in PPO, starts each cat on its configured tile (`[[kitty]] x, y`
+in the served config; the trainer's episodes reset the same world).
+Corners and edges are reached only by drift, so the corpus and the
+rollouts under-sample them, and a roster-wide mind that is asked to
+drive from a corner is off its data. Under fog this compounds: at a
+corner half the disc is off-world, the cat sees less, and the memory
+token is the only route back to a bowl it cannot see.
+
+**The recipe item (Gen 2; a training-distribution change, not a
+teacher or price change, so rule 9 orphans nothing scripted; the served
+config keeps its fixed starts).**
+
+1. Randomised start positions at corpus collection and in every PPO
+   episode: each cat's start tile drawn over the whole map, with the
+   edge ring and the four corners weighted so they appear at a declared
+   share (pencil 25% of starts on the edge ring, 5% on a corner; pick
+   from the coverage instrument below). Declared as a training-config
+   deviation beside the radius and the shakeout keys.
+2. Element placement draws where the served world allows (bowls and
+   beams already spawn under `[elements.*]` rules; check the rule
+   covers edge tiles rather than assuming it).
+3. **A coverage instrument before the pass**: visit share of the edge
+   ring and the corners per cat-tick, corpus vs probes vs the served
+   world's own logs, so the declared start shares are set from a
+   number and the pass can show the pocket got filled.
+4. **A stuck read as an INVESTIGATE row**: net-zero displacement over N
+   ticks with an armed need (the corner signature), per seat, off the
+   probe rows; the same detector is the decoding-time guard the
+   deferred distress intervention would key on (BACKLOG; the
+   LLM → local → scripted fallback chain).
+
+**What it is not.** Not a reprice: the Nash team reward already makes
+a starving cat dominate, and the Gen 1 minds feed Pumpkin five points
+better than the scripted cat in ordinary operation. The owner's
+question of 2026-09-15 (is eat worth more under fog?) was assessed
+against the replay and answered no for Gen 1; the Gen 2 identity
+vectors (trait draws in training) are where a high eat rate stops being
+one seat's special case.
+
 ## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
 
 - World-size × radius screen; first data point = the shakeout's r-3
