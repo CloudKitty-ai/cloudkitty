@@ -1,0 +1,21 @@
+{
+ "name": "fog-gen1-pumpkin-dose-lo-s1",
+ "slot": "dose-lo-s1",
+ "bytes": 332875,
+ "sha256": "02a36461c34c15354f069aa6c2a915af9f13a1d8698f51cf31380c7e6cc19c97",
+ "source": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-dose-lo-s1/policy-final.pt",
+ "source_sha256": "b45629ae9f60af2d598f3a638d10f2cfdabdc57a2f571b30824fd6cec20f8b2a",
+ "hyper": {
+  "d_model": 64,
+  "heads": 4,
+  "layers": 2,
+  "ffn": 128
+ },
+ "parity_rows": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-dose-lo-s1/probe-u3249.npz",
+ "n_rows": 2000,
+ "max_logit_delta": 3.62396240234375e-05,
+ "argmax_agree_act": true,
+ "argmax_agree_msg": true,
+ "negative_control_delta": 0.47926998138427734,
+ "pass": true
+}

@@ -21,6 +21,8 @@ before trusting a gap here, then add what you find.
 | 870001–870030 | battery convention | shared eval band (eval 870001+; trait screen anchor) |
 | 875001–875450 | exp-006 | class-credit batches A/B/C, post-wall stamp |
 | 880001–880030 | battery convention | shared stress band (stress 880001+) |
+| 890001–890030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 1 (owner 2026-09-15), the seated roster gen1-A + the scripted baseline, 30 × 20k |
+| 895001–895030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 2 (owner 2026-09-15), as above |
 | 900001 | bc-collect | smoke seed, burned |
 | 910001–928000 | exp-006 | dataset v5 cell B spread (910001 + ci×1000 + r, 18 configs) |
 | 940001–958000 | exp-006 | dataset v5 cell A pinned (same structure) |
@@ -32,6 +34,9 @@ before trusting a gap here, then add what you find.
 | 1040001–1057006 | exp-006a | dataset v6 far-spawn cell (D-001 re-base) |
 | 1060001–1060025 | here-word screen | density arms A0–A3 + A1b (period 2, owner-routed addendum) on the anchor composition; the SAME 25 seeds run in every arm BY DESIGN (paired gate-zero + within-seed contrasts; declaration `here-word-screen/collection-2026-08-31.md`) |
 | 1080001–1080100 | fog Gen 1 (fog-gen1-shakeout) | BC corpus on anchor.toml, 40 × 20k at 1080001–1080040 (owner ruled 2026-09-06, #350); the rest of the row reserved for a re-collection at a re-pinned radius or floor |
+| 1090001–1090040 | fog Gen 1 (fog-gen1-cert) | Biscuit 3.0 BC corpus on anchor-b3.toml (consent 30), 40 × 20k, held-out 03/13/23/33 (PREREG §Corpus, declared 2026-09-13; ledger row added late, 2026-09-15) |
+| 1091001–1091040 | fog Gen 1 (fog-gen1-cert) | consent-OFF twin corpus on anchor-b3-off.toml, 40 × 20k (as above) |
 | 100000000–259999999 | exp-006 | PPO episode seeds: base 100M + run_index×20M + segment×1k, worlds striding w×1M inside (train_ppo6.py). Sits above the 1M+ pool because the runner's per-world 1M stride makes 1M-scale sub-bands collide across arcs — exp-004/exp-005 chains already interleave there |
 | 260000000–339999999 | exp-006a | PPO episode seeds, run indices 8–11 (same formula and stride as the exp-006 row; claimed by prereg D-002 — the frozen §2 sentence had placed these inside exp-006's band in error) |
 | 340000000–519999999 | fog Gen 1 (fog-gen1-shakeout) | PPO episode seeds, run indices 12–20 (nine-arm pass; same formula and stride as the exp-006 row; #350) |
+| 520000000–919999999 | fog Gen 1 (fog-gen1-cert) | PPO episode seeds, run indices 21–40 (the 20-arm step-7 pass; same formula and stride as the exp-006 row; ledger row added late, 2026-09-15) |

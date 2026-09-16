@@ -1056,6 +1056,28 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   and non-negative, no shipped-config pin moves. Rules 3 and 4
   re-verify at the pick (the beam is a sleep-specialist form, not a
   rider; conduction pays the co-sleeper's own specialist).
+  **SCREEN READ + RULED 2026-09-15 (owner): THE BEAM STAYS AT 7.**
+  "It's clear that this vector is not influencing behavior
+  meaningfully." In-beam share of sleeping ticks pooled over the
+  plateau window: pool 0.014–0.051 (seven seeds), beam10 0.066 /
+  0.033, beam15 0.029, plain arms 0.081 / 0.061, anchor 0.257; no dose
+  response to the price, and only the leash dose moves the read
+  (β 0.10 holds 0.21–0.22, β 0.02 falls to 0.011). Biscuit's seat
+  0.006–0.022 in every all-policy arm. `fog-gen1-cert/RESULTS.md`
+  §"Beam naps". No config key moves; rules 3/4 have nothing to check;
+  beam naps go to GEN2-INPUTS as a world-valuation gap.
+- **STEP 7 SEATING + CHARM RULED 2026-09-15 (owner): gen1-A.** Miso
+  cand-s2 · Biscuit cand-s1 · Pumpkin dose-lo-s1 · Kittybear cand-s4 ·
+  Clementine cand-s7, five distinct networks; every declared battery
+  gate passed on both bands (`fog-gen1-cert/RESULTS.md` §Battery);
+  charm accepted as declared (free register at its cost, Biscuit's
+  non-grooming, beam at 7). Exported 2026-09-15 (`fog-gen1-cert/handoff/`).
+  **CLOCK RULED 2026-09-15 (owner): the seam serves the episode clock
+  as trained, (tick mod 2000) / 2000, in place of the pinned 0; the
+  pinned condition missed the catastrophe gate (3 of 120 runs ≥ 150),
+  the trained schedule passes every gate (0 of 120); Gen 2 stops
+  depending on the clock (GEN2-INPUTS, ruled).** Handover package:
+  `fog-gen1-cert/seating-handoff-2026-09-16.md`.
 - **Finding 9, instrument debt: nothing funded for step 7.**
   Rate-based A17 and the scene-span instrument stay on the Gen 2
   shelf (every step-7 arm runs at pin 4; the uptake reads served the

@@ -165,6 +165,77 @@ repeats the Gen 1 pattern. Verify with the fresh-start-conditioned
 response read (this week's instrument) before and after the rung
 lands.
 
+## Corner and edge coverage in training (RULED by the owner 2026-09-15, "Corner and edge coverage in training seems wise. Let's add that to Gen 2")
+
+**The finding.** The step-7 battery's only catastrophe shape is a corner
+attractor (`fog-gen1-cert/RESULTS.md` §Battery, swaps digest): a cat
+with eat or drink at 90–100 alternating two moves on the world's corner
+tiles, (0,0) / (0,1) / (1,0), for hundreds of ticks, with chow visible
+in 40% of those rows and Eat chosen in a tenth of them. The chosen move
+carries p ≈ 0.53 against 0.19, so it is a learned preference in that
+pocket, not a greedy tie. Across the 100 swap legs 1.8% of runs reached
+a distress age of 150 this way, more than half of them in a seat whose
+mind had not been swapped; Pumpkin's seat (eat rate 0.6, double the
+others') carries the most. The scripted roster never fails there.
+
+**Why the pocket is untrained.** Every episode, in corpus collection
+and in PPO, starts each cat on its configured tile (`[[kitty]] x, y`
+in the served config; the trainer's episodes reset the same world).
+Corners and edges are reached only by drift, so the corpus and the
+rollouts under-sample them, and a roster-wide mind that is asked to
+drive from a corner is off its data. Under fog this compounds: at a
+corner half the disc is off-world, the cat sees less, and the memory
+token is the only route back to a bowl it cannot see.
+
+**The recipe item (Gen 2; a training-distribution change, not a
+teacher or price change, so rule 9 orphans nothing scripted; the served
+config keeps its fixed starts).**
+
+1. Randomised start positions at corpus collection and in every PPO
+   episode: each cat's start tile drawn over the whole map, with the
+   edge ring and the four corners weighted so they appear at a declared
+   share (pencil 25% of starts on the edge ring, 5% on a corner; pick
+   from the coverage instrument below). Declared as a training-config
+   deviation beside the radius and the shakeout keys.
+2. Element placement draws where the served world allows (bowls and
+   beams already spawn under `[elements.*]` rules; check the rule
+   covers edge tiles rather than assuming it).
+3. **A coverage instrument before the pass**: visit share of the edge
+   ring and the corners per cat-tick, corpus vs probes vs the served
+   world's own logs, so the declared start shares are set from a
+   number and the pass can show the pocket got filled.
+4. **A stuck read as an INVESTIGATE row**: net-zero displacement over N
+   ticks with an armed need (the corner signature), per seat, off the
+   probe rows; the same detector is the decoding-time guard the
+   deferred distress intervention would key on (BACKLOG; the
+   LLM → local → scripted fallback chain).
+
+**What it is not.** Not a reprice: the Nash team reward already makes
+a starving cat dominate, and the Gen 1 minds feed Pumpkin five points
+better than the scripted cat in ordinary operation. The owner's
+question of 2026-09-15 (is eat worth more under fog?) was assessed
+against the replay and answered no for Gen 1; the Gen 2 identity
+vectors (trait draws in training) are where a high eat rate stops being
+one seat's special case.
+
+## The clock input is a de-synchroniser (found 2026-09-15 at the step-7 export; `fog-gen1-cert/RESULTS.md` §"The clock input"; **RULED a Gen 2 fix by the owner, 2026-09-15: "Let's ensure we fix this in gen 2"**)
+
+The served seam pins the episode-clock observation to 0; training ran
+it as t / 2000. Re-running the certified roster with the clock pinned
+raised the catastrophe tail from 0 to 3 runs in 120 while leaving
+welfare means untouched, and the worst case was a perfect two-tile
+limit cycle (MoveW / MoveE 174 / 174 at p 0.96 with the bowl in view).
+With a pinned clock the observation repeats exactly tick to tick, so a
+greedy policy that maps two adjacent states to opposite moves never
+escapes; a moving clock never repeats the state. The Gen 1 minds have
+been leaning on the clock as noise. Gen 2 recipe inputs: either drop
+the clock input entirely and train the mind to break its own cycles
+(the corner/edge coverage item above is the same family of fix), or
+keep it and serve it as trained. Independently of the clock, a stuck
+detector at decoding (net-zero displacement over N ticks with an armed
+need; the deferred distress intervention's trigger) is the served-side
+guard that does not depend on what the mind was trained with.
+
 ## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
 
 - World-size × radius screen; first data point = the shakeout's r-3
@@ -188,9 +259,62 @@ lands.
   the others give bath, reciprocity in another currency. Decide the
   two together: dirt the self form cannot clear makes a non-grooming
   seat one fifth of the givers missing.
+- Beam naps are not world-valued at Gen 1 (step-7 beam screen,
+  `fog-gen1-cert/RESULTS.md` §"Beam naps"; owner ruled 2026-09-15 the
+  beam stays at 7). Policies sleep 12–14% of ticks against the
+  teacher's 8% and take the plain 5.0 sleep wherever they are; a 7, 10
+  or 15 beam premium never moves the in-beam share out of the seed
+  spread (0.014–0.066), while the β 0.10 leash holds the teacher's
+  0.21–0.22. Rule 7 reading: while sleep is cheap anywhere, the beam
+  premium is invisible to the sleep budget. A Gen 2 world that wants
+  beam naps has to make off-beam sleep worse (rule 2, a state of the
+  world: colder ground, slower relief), not the beam better; the price
+  lever has been screened and does not work. Biscuit's seat naps on
+  beams least of all (0.006–0.022) at every price and dose.
+  **The beam package (owner's proposal 2026-09-15, under consideration,
+  not ruled):** three world changes together. (a) Off-beam sleep relief
+  down (5 → about 3 against the beam's 7): a need-40 nap goes from 8
+  ticks in the open to 13, so a beam saves ~7 ticks and pays for a
+  6–7 tile walk, which is where the served 4–5 beams already sit
+  (break-even today is 2–3 tiles, and reaching it by count alone would
+  take 20–25 beams on the 20×20 meadow). (b) Beams long-lived (today
+  `ttl = 300`, then respawn elsewhere; the owner's refinement of
+  2026-09-15 is a much longer lifetime rather than permanence): under
+  radius 4 the walk to a beam is on memory, and a remembered beam that
+  has expired makes the walk a bet. The staleness odds are about
+  (memory age + walk) / lifetime: with a typical memory age near 100
+  ticks and a 6-tile walk, a 300-tick beam is gone about a third of the
+  time, a 3,000-tick beam about 3.5%, a 6,000-tick beam under 2%. A
+  lifetime of 2,000–4,000 ticks (25–55 minutes of watching at 800 ms a
+  tick, several naps and walks) buys nearly all of permanence's value
+  for the walk while keeping what permanence loses: a beam camp
+  dissolves when its beam moves, layouts keep changing so the mind
+  cannot memorise a map and the memory token stays load-bearing, and
+  the meadow still shifts over a sitting. The cosleep-on-beam charm
+  (0–10 opportunities per probe today on every arm but β 0.10) needs a
+  beam that outlasts a nap and a friend's approach, which any of these
+  lifetimes gives. The day/night cycle is client-side only
+  (`client/props.js`); the engine's beam lifetime is independent of
+  it, and the owner reads beam movement as marginal charm beside the
+  cycle, the cats and the bugs. (c) A couple
+  more beams for the look of the meadow, a visual choice under the
+  served-world density ruling. Costs to weigh: the moving sun is the
+  only sign of time passing on the meadow (Client's call how to keep
+  it); permanent beams with conduction and the cosleep drip are a
+  reliable spot to farm cuddle by sleeping unsleepy (rule 4 check:
+  sleeping ticks with sleep need under threshold, per seat); a fixed
+  layout invites map memorisation, which the long-lived (not
+  permanent) variant avoids by itself; permanent beams would need the
+  layout randomised per episode beside the corner/edge starts. Prediction if
+  adopted: in-beam sleep share rises toward the scripted 0.26–0.29 at
+  β ≤ 0.04 without the leash carrying it; instruments = `step7_reads`
+  beam share and `phase2_read` cosleep opportunities. Rule 9: the
+  teacher walks to beams more when they are always there, so the whole
+  package waits for the Gen 2 collection.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
-  regimes.
+  regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across
+  every bin on twenty arms, no recurrence.
 - Here-word emergence proof (the `announce_here = 0` no-seeding
   control, the F-026 overturn test): DEFERRED here from step 7 (owner,
   2026-09-13). The current recipe cannot run it fairly: the leash sums

@@ -1,0 +1,21 @@
+{
+ "name": "fog-gen1-kittybear-cand-s4",
+ "slot": "cand-s4",
+ "bytes": 332875,
+ "sha256": "3aa42dd4cb13b2e5fcd18f35da06345b22e636a12939d5b639f061276b792ee0",
+ "source": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-cand-s4/policy-final.pt",
+ "source_sha256": "5fe1dafc01d4e56d79ce6e9d30eb197ef077c9aa30f90703eb56a026fd39a357",
+ "hyper": {
+  "d_model": 64,
+  "heads": 4,
+  "layers": 2,
+  "ffn": 128
+ },
+ "parity_rows": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-cand-s4/probe-u2899.npz",
+ "n_rows": 2000,
+ "max_logit_delta": 1.9073486328125e-05,
+ "argmax_agree_act": true,
+ "argmax_agree_msg": true,
+ "negative_control_delta": 0.13408708572387695,
+ "pass": true
+}
