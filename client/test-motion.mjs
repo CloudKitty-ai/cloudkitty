@@ -516,6 +516,25 @@ check('swim is in the v2 vocabulary with the wading silhouette', () => {
 });
 
 /**
+ * Pushes the standard nap-ending sequence and hands back the clock it ran
+ * on: three states, the middle one carrying the NEXT one on the delay line
+ * the way `anim.promote` hands over `pacer.queue[0]`.
+ *
+ *   base            tick 1, asleep
+ *   base + tickMs   tick 2, asleep  <- with tick 3 in hand: the wake is
+ *                                      stamped HERE, on the last sleeping
+ *                                      tick, so `woke` is this one
+ *   base + 2*tickMs tick 3, awake
+ */
+function napRun(p, base, asleep, waking) {
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  p.pushState(at(1, asleep), base, p.tickMs);
+  p.pushState(at(2, asleep), base + p.tickMs, p.tickMs, at(3, waking));
+  p.pushState(at(3, waking), base + p.tickMs * 2, p.tickMs);
+  return base + p.tickMs; // the tick the stretch starts on
+}
+
+/**
  * A clock offset whose wake this cat takes up on (`taken: true`) or
  * declines. Only `VIEW.stretchChance` of wakes end in a stretch since
  * 2026-09-14, so a check that wants to SEE one has to go and find it --
@@ -524,19 +543,14 @@ check('swim is in the v2 vocabulary with the wading silhouette', () => {
  * Found by ASKING `idlePoseFor` through the real pushState path, never by
  * re-deriving the draw here. A copy of the rule would go on agreeing with
  * itself long after the shipped rule moved, which is how pose-analyze
- * drifted. Returns the `now` the FIRST state is pushed at; the wake lands
- * two ticks later, matching the sequence every caller drives.
+ * drifted.
  */
 function wakeBase(taken, asleep, waking, from = 0, step = 97, limit = 400) {
-  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
   for (let i = 0; i < limit; i++) {
     const base = from + i * step;
     const p = new api.Presentation();
-    p.pushState(at(1, asleep), base, p.tickMs);
-    p.pushState(at(2, asleep), base + p.tickMs, p.tickMs);
-    p.pushState(at(3, waking), base + p.tickMs * 2, p.tickMs);
+    const woke = napRun(p, base, asleep, waking);
     if (!p.wokeAt.has(asleep.id)) return null; // the trigger moved; say so
-    const woke = base + p.tickMs * 2;
     if ((p.idlePoseFor(asleep.id, 'idle', woke)?.pose === 'stretch') === taken) return base;
   }
   return null;
@@ -573,8 +587,14 @@ check('a nap still ends in a stretch, through the REAL two-layer pipeline', () =
   // rather than by reaching into `wokeAt` and asserting our own bookkeeping.
   const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
   p.pushState(at(1, asleep), base, p.tickMs);
-  p.pushState(at(2, asleep), base + p.tickMs, p.tickMs);
-  assert(drawn(asleep, base + p.tickMs) === 'sleep-curl', 'a cat mid-nap should be curled up');
+  assert(drawn(asleep, base) === 'sleep-curl', 'a cat mid-nap should be curled up');
+
+  // ...and the wake arrives on the delay line, so the stretch starts on the
+  // LAST SLEEPING tick and is already running while the engine still says
+  // this cat is asleep. That is the point of it (2026-09-16).
+  p.pushState(at(2, asleep), base + p.tickMs, p.tickMs, at(3, waking));
+  assert(drawn(asleep, base + p.tickMs) === 'stretch',
+    `a cat one tick from waking drew ${drawn(asleep, base + p.tickMs)} -- the stretch spans the wake`);
 
   p.pushState(at(3, waking), base + p.tickMs * 2, p.tickMs);
   assert(drawn(waking, base + p.tickMs * 2) === 'stretch',
@@ -608,13 +628,9 @@ check('a wake is a coin flip, and the coin is the WAKE not the clock', () => {
   assert(yes !== null, 'no wake in the search window ends in a stretch');
   assert(no !== null, 'every wake in the search window ends in a stretch -- the draw is not biting');
 
-  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
   for (const [base, taken] of [[yes, true], [no, false]]) {
     const p = new api.Presentation();
-    p.pushState(at(1, asleep), base, p.tickMs);
-    p.pushState(at(2, asleep), base + p.tickMs, p.tickMs);
-    p.pushState(at(3, awake), base + p.tickMs * 2, p.tickMs);
-    const woke = base + p.tickMs * 2;
+    const woke = napRun(p, base, asleep, awake);
     const span = api.VIEW.stretchTicks * p.tickMs;
     const seen = new Set();
     for (let ms = 0; ms < span; ms += 13) {
@@ -634,6 +650,105 @@ check('a wake is a coin flip, and the coin is the WAKE not the clock', () => {
   }
 });
 
+check('the wake is read off the DELAY LINE, and promote is what hands it over', () => {
+  // The lookahead is the whole 2026-09-16 change, and a dropped fourth
+  // argument in `promote` would ship it inert -- Presentation would simply
+  // never see a next state, no wake would ever be stamped, and every cat in
+  // the world would quietly stop stretching. Nothing about Presentation on
+  // its own can catch that, so this drives the real promote path.
+  //
+  // Object.create keeps the singleton's own state out of it, the way the
+  // other wiring checks here do.
+  const a = Object.create(api.anim);
+  a.presentation = new api.Presentation();
+  a.pacer = new api.Pacer();
+  const T = a.presentation.tickMs;
+  const asleep = { ...kitty(1, 2, 2), activity: { state: 'sleeping' } };
+  const awake = { ...kitty(1, 2, 2), activity: { state: 'idle' } };
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+
+  a.promote(at(1, asleep), 0);
+  a.pacer.enqueue(at(3, awake)); // the wake, waiting its turn in the buffer
+  a.promote(at(2, asleep), T);
+  assert(
+    a.presentation.wokeAt.get(1) === T,
+    'promote no longer hands pushState the queue head -- the lookahead is inert and nothing will ever stretch',
+  );
+});
+
+check('no buffer, no stretch', () => {
+  // When the delay line is empty there is no honest way to know a nap is
+  // ending, and the rule is to skip rather than fall back to starting late
+  // (which is the overrun this change exists to remove). Measured at 0.9%
+  // of promotions in steady state; a skipped stretch is indistinguishable
+  // from one `stretchChance` declined.
+  const asleep = { ...kitty(1, 2, 2), activity: { state: 'sleeping' } };
+  const awake = { ...kitty(1, 2, 2), activity: { state: 'idle' } };
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  // Same sequence napRun drives, with the lookahead withheld.
+  for (let base = 0; base < 20000; base += 97) {
+    const p = new api.Presentation();
+    p.pushState(at(1, asleep), base, p.tickMs);
+    p.pushState(at(2, asleep), base + p.tickMs, p.tickMs);
+    p.pushState(at(3, awake), base + p.tickMs * 2, p.tickMs);
+    assert(!p.wokeAt.has(1), `a wake was stamped with an empty buffer at base ${base}`);
+    for (let ms = 0; ms <= p.tickMs * 3; ms += 97) {
+      assert(
+        p.idlePoseFor(1, 'idle', base + ms)?.pose !== 'stretch',
+        `a stretch was drawn with no lookahead at base ${base} + ${ms}ms`,
+      );
+    }
+  }
+});
+
+check('a lookahead that is not the very NEXT tick is not a wake', () => {
+  // A gap means a dropped state or a collapsed backlog, and the state in
+  // hand is then further out than one tick. Reading a wake off it would
+  // start the stretch before the cat is anywhere near awake.
+  const asleep = { ...kitty(1, 2, 2), activity: { state: 'sleeping' } };
+  const awake = { ...kitty(1, 2, 2), activity: { state: 'idle' } };
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  const p = new api.Presentation();
+  p.pushState(at(1, asleep), 0, p.tickMs);
+  p.pushState(at(2, asleep), p.tickMs, p.tickMs, at(4, awake)); // tick 4, not 3
+  assert(!p.wokeAt.has(1), 'a wake two ticks out was taken as the next one');
+});
+
+check('a cat that wakes for one tick is never drawn stretching over a served sleep', () => {
+  // THE regression this change exists for. Measured live 2026-09-16: 4.1%
+  // of wakes last a single tick, and a two-tick stretch that started AT the
+  // wake ran 800ms past it -- the cat lay back down and went on stretching
+  // over a served `sleeping`. Started a tick early it ends exactly as the
+  // next state lands, whatever that state says.
+  const asleep = { ...kitty(1, 2, 2), activity: { state: 'sleeping' } };
+  const awake = { ...kitty(1, 2, 2), activity: { state: 'idle' } };
+  const base = wakeBase(true, asleep, awake);
+  assert(base !== null, 'no wake in the search window ends in a stretch');
+
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  const p = new api.Presentation();
+  const T = p.tickMs;
+  p.pushState(at(1, asleep), base, T);
+  p.pushState(at(2, asleep), base + T, T, at(3, awake));
+  p.pushState(at(3, awake), base + 2 * T, T, at(4, asleep));
+  p.pushState(at(4, asleep), base + 3 * T, T); // awake for exactly one tick
+  const drawn = (kit, now) => {
+    const served = poseFor(kit, false, false, null);
+    const own = p.idlePoseFor(kit.id, served, now);
+    return own ? own.pose : served;
+  };
+  // It DID stretch -- otherwise this check proves nothing.
+  assert(drawn(asleep, base + T) === 'stretch', 'the stretch never started; this check is vacuous');
+  assert(drawn(awake, base + 2 * T) === 'stretch', 'the stretch must cover the one waking tick');
+  // ...and it is over the moment the cat is asleep again.
+  for (let ms = 0; ms <= T; ms += 37) {
+    assert(
+      drawn(asleep, base + 3 * T + ms) !== 'stretch',
+      `still stretching ${ms}ms after lying back down -- the overrun is back`,
+    );
+  }
+});
+
 check('about VIEW.stretchChance of wakes end in a stretch, and cats decide separately', () => {
   // The rate IS the dial. Dropped, the share would be 1; keyed on anything
   // constant, 0 or 1. Driven through pushState rather than by asking the
@@ -642,19 +757,15 @@ check('about VIEW.stretchChance of wakes end in a stretch, and cats decide separ
   // The band is binomial, not fitted: n = 480 at p = 0.5 has sd ~= 0.023,
   // so +/- 0.08 is over three sigma and nothing but a real change in the
   // rate reaches it.
-  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
   let stretched = 0;
   const n = 480;
   for (let i = 0; i < n; i++) {
     const id = 1 + (i % 6);
-    const base = 5000 + i * 131;
     const asleep = { ...kitty(id, 2, 2), activity: { state: 'sleeping' } };
     const awake = { ...kitty(id, 2, 2), activity: { state: 'idle' } };
     const p = new api.Presentation();
-    p.pushState(at(1, asleep), base, p.tickMs);
-    p.pushState(at(2, asleep), base + p.tickMs, p.tickMs);
-    p.pushState(at(3, awake), base + p.tickMs * 2, p.tickMs);
-    if (p.idlePoseFor(id, 'idle', base + p.tickMs * 2)?.pose === 'stretch') stretched++;
+    const woke = napRun(p, 5000 + i * 131, asleep, awake);
+    if (p.idlePoseFor(id, 'idle', woke)?.pose === 'stretch') stretched++;
   }
   const rate = stretched / n;
   assert(
@@ -668,16 +779,16 @@ check('about VIEW.stretchChance of wakes end in a stretch, and cats decide separ
   // goes red; an honest one splits about 97% of them.
   const ids = [1, 2, 3, 4, 5, 6];
   const herd = (state) => ids.map((id) => ({ ...kitty(id, 2, 2), activity: { state } }));
-  const world = (tick, state, ms) => ({ tick, width: 20, height: 20, elements: [], kitties: herd(state) });
+  const world = (tick, state) => ({ tick, width: 20, height: 20, elements: [], kitties: herd(state) });
   let split = 0;
   const instants = 12;
   for (let i = 0; i < instants; i++) {
     const base = 90000 + i * 997;
     const p = new api.Presentation();
     p.pushState(world(1, 'sleeping'), base, p.tickMs);
-    p.pushState(world(2, 'sleeping'), base + p.tickMs, p.tickMs);
+    p.pushState(world(2, 'sleeping'), base + p.tickMs, p.tickMs, world(3, 'idle'));
     p.pushState(world(3, 'idle'), base + p.tickMs * 2, p.tickMs);
-    const woke = base + p.tickMs * 2;
+    const woke = base + p.tickMs;
     const poses = new Set(ids.map((id) => p.idlePoseFor(id, 'idle', woke)?.pose ?? null));
     if (poses.size > 1) split++;
   }
@@ -4476,13 +4587,10 @@ check('the portrait pose beats are portrait-only and pure', () => {
   const awake = { ...kitty(1, 2, 2), activity: { state: 'idle' } };
   const base = wakeBase(true, asleep, awake);
   assert(base !== null, 'no wake in the search window ends in a stretch');
-  const woke = base + 1600;
   const woken = new api.Presentation();
   const before = [];
   for (let t = 0; t < 40000; t += 250) before.push(JSON.stringify(woken.idleCardBeatFor(1, 'idle', t)));
-  woken.pushState({ tick: 1, elements: [], kitties: [asleep] }, base, woken.tickMs);
-  woken.pushState({ tick: 2, elements: [], kitties: [asleep] }, base + 800, woken.tickMs);
-  woken.pushState({ tick: 3, elements: [], kitties: [awake] }, woke, woken.tickMs);
+  const woke = napRun(woken, base, asleep, awake);
   assert(woken.wokeAt.has(1), 'the wake was never recorded -- this check is testing nothing');
   assert(
     woken.idlePoseFor(1, 'idle', woke)?.pose === 'stretch',
