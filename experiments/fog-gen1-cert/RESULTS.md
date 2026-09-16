@@ -430,6 +430,11 @@ battery and every gate passes (re-verify action for action against the
 server after the change, as done today); (b) ship with the clock pinned
 and amend the gate to "tail no worse than the scripted roster's,
 paired" (3 vs 2 in 120); (c) anything else. Experiments recommends (a).
+**RULED 2026-09-15 (owner): (a), "Serve the clock as trained for now.
+Let's ensure we fix this in gen 2."** The seam change and its
+re-verification are in `seating-handoff-2026-09-16.md`; the `train`
+legs are the served-condition certification; the Gen 2 fix is a ruled
+recipe item in GEN2-INPUTS.
 Banked for Gen 2 either way: a clock the mind can lean on as a
 de-synchroniser is a crutch, and the fix that does not depend on it is
 a stuck detector at decoding or training without the clock input.

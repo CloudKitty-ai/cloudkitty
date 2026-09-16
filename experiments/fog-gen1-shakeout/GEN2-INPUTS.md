@@ -218,7 +218,7 @@ against the replay and answered no for Gen 1; the Gen 2 identity
 vectors (trait draws in training) are where a high eat rate stops being
 one seat's special case.
 
-## The clock input is a de-synchroniser (found 2026-09-15 at the step-7 export; `fog-gen1-cert/RESULTS.md` §"The clock input")
+## The clock input is a de-synchroniser (found 2026-09-15 at the step-7 export; `fog-gen1-cert/RESULTS.md` §"The clock input"; **RULED a Gen 2 fix by the owner, 2026-09-15: "Let's ensure we fix this in gen 2"**)
 
 The served seam pins the episode-clock observation to 0; training ran
 it as t / 2000. Re-running the certified roster with the clock pinned

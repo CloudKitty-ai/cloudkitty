@@ -1071,8 +1071,13 @@ owner's word for seating/deploy — the standing machinery, unchanged.
   Clementine cand-s7, five distinct networks; every declared battery
   gate passed on both bands (`fog-gen1-cert/RESULTS.md` §Battery);
   charm accepted as declared (free register at its cost, Biscuit's
-  non-grooming, beam at 7). Next: export the five policies to served
-  artifacts with parity checks, then the cutover handover to Product.
+  non-grooming, beam at 7). Exported 2026-09-15 (`fog-gen1-cert/handoff/`).
+  **CLOCK RULED 2026-09-15 (owner): the seam serves the episode clock
+  as trained, (tick mod 2000) / 2000, in place of the pinned 0; the
+  pinned condition missed the catastrophe gate (3 of 120 runs ≥ 150),
+  the trained schedule passes every gate (0 of 120); Gen 2 stops
+  depending on the clock (GEN2-INPUTS, ruled).** Handover package:
+  `fog-gen1-cert/seating-handoff-2026-09-16.md`.
 - **Finding 9, instrument debt: nothing funded for step 7.**
   Rate-based A17 and the scene-span instrument stay on the Gen 2
   shelf (every step-7 arm runs at pin 4; the uptake reads served the
