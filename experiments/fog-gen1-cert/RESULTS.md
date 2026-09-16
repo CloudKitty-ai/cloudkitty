@@ -319,8 +319,39 @@ twin artefact the five-network ruling exists for, not a property of
 these minds in distinct seats; the scripted roster itself produced one
 run over 150 on the stress band (age 178).
 
-Report-only per-seat swaps (every arm into every seat of gen1-A, eval
-band) run after the main legs; their table is appended when complete.
+### Report-only swaps (every arm into every seat of gen1-A; eval band, 30 × 20k each; 100 legs, 3,000 runs)
+
+Read with `battery_read.py --swaps`; full table in the session record
+and the raws. The digest:
+
+- **The per-seat floor is not a discriminator.** Every arm at every
+  seat beats the scripted cat in that seat on all 30 seeds. Arms differ
+  by under one happiness point at a seat, except the β 0.10 arms at
+  Biscuit's (−3 against gen1-A) and the β 0.02 arms, which sit highest
+  at every seat (+0.3 to +0.8 over gen1-A's pick).
+- **The catastrophe tail is where compositions differ, and it is a
+  roster property.** 55 seat-runs in 3,000 reached a distress age of
+  150 or more (1.8% of runs), in 38 of the 100 legs. Only 25 of the 55
+  were in the swapped seat; 30 landed in a seat whose mind had not
+  changed. By seat: Pumpkin 21, Biscuit 18, Kittybear 13, Miso 3,
+  Clementine 0. Pumpkin's failures are the pacing search shape (its own
+  seat, eat and drink at 100); Biscuit's come when the roster around
+  her changes (Miso = beam10-s1 fails Biscuit twice at ages 208–220).
+- **Arms clean at their seat (0 of 30 runs ≥ 150):** Miso 13 of 20,
+  Biscuit 15, Pumpkin 9, Kittybear 15, Clementine 14. Every gen1-A
+  member is in its seat's clean set (Miso cand-s2, Biscuit cand-s1,
+  Pumpkin dose-lo-s1, Kittybear cand-s4, Clementine cand-s7). The
+  Pumpkin-clean set is beam10-s1, cand-s6, cand-s7, dose-lo-s1,
+  dose-lo-s2, flat-s1, flat-s3, plain-s1, twin-off; the worst Pumpkin
+  seatings are beam15-s1 (6 runs, ages to 360) and plain-s2 (age 709).
+- **Caveat on the passed catastrophe gate.** gen1-A read 0 runs ≥ 150
+  in 60; compositions one seat away read 1.8% per run. At that rate a
+  clean 60 has about a one-in-three chance, so the pass is consistent
+  with a tail near 1 in 100 runs as much as with none. The declared
+  gate is met as declared; a replication of gen1-A on two further
+  disjoint bands (60 runs, minutes of compute) would tighten the tail
+  estimate before seating and is recommended, on the owner's word since
+  it extends the declared instrument.
 
 ## Reads owed after the reseat (unchanged)
 
