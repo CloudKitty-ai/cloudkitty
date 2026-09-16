@@ -62,12 +62,12 @@ def main():
     ap.add_argument("--legs", default="eval,stress")
     ap.add_argument("--seating", default="gen1-A")
     ap.add_argument("--swaps", action="store_true", help="also read every gen1-A_s*-eval swap leg")
-    ap.add_argument("--clock", choices=("served", "episode"), default="served",
+    ap.add_argument("--clock", choices=("served", "train", "episode"), default="served",
                     help="which candidate legs to read: served-clock (-c0 files, default) or episode-clock")
     a = ap.parse_args()
-    ap_suffix = "-c0" if a.clock == "served" else ""
+    ap_suffix = {"served": "-c0", "train": "-ctrain", "episode": ""}[a.clock]
     for leg in a.legs.split(","):
-        cand = BAT / f"{a.seating}-{leg}-30x20000{ap_suffix}.jsonl"
+        cand = BAT / f"{a.seating}{ap_suffix}-{leg}-30x20000.jsonl"  # the harness puts the clock tag before the band
         base = BAT / f"scripted-{leg}-30x20000.jsonl"
         if cand.exists() and base.exists():
             _h, c = load(cand.name)
@@ -77,12 +77,12 @@ def main():
             print(f"== {a.seating} {leg}: not yet ({cand.exists()}, {base.exists()})")
     if a.swaps:
         _h, base = load("scripted-eval-30x20000.jsonl")
-        _h, ref = load(f"{a.seating}-eval-30x20000{ap_suffix}.jsonl")
+        _h, ref = load(f"{a.seating}{ap_suffix}-eval-30x20000.jsonl")
         refm = {r["seed"]: r for r in ref}
         basem = {r["seed"]: r for r in base}
         print("\n== swaps (eval band): seat, arm -> seat happiness vs scripted (paired mean delta / seeds below), vs gen1-A's seat, team nash, worst age, runs >= 150")
-        for f in sorted(BAT.glob(f"{a.seating}_s*-eval-30x20000{ap_suffix}.jsonl")):
-            tag = f.name.split("_s", 1)[1].split("-eval")[0]
+        for f in sorted(BAT.glob(f"{a.seating}_s*{ap_suffix}-eval-30x20000.jsonl")):
+            tag = f.name.split("_s", 1)[1].split("-eval")[0].replace("-c0", "").replace("-ctrain", "")
             i, arm = int(tag[0]), tag[2:]
             _h, rows = load(f.name)
             if len(rows) < 30:

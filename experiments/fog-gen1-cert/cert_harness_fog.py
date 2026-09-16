@@ -91,6 +91,7 @@ def load_model(spec):
 
 
 CLOCK_INDEX = OBS_DIM - 1  # the episode-clock input, the last float of the observation
+TRAIN_HORIZON = 2000       # rl.episode.horizon default; the PPO episodes and the probes ran this clock
 
 
 def run_one(args):
@@ -143,6 +144,9 @@ def run_one(args):
             ob = np.stack([np.asarray(obs[a], np.float32) for a in names])
             if clock_mode == "served":
                 ob[:, CLOCK_INDEX] = 0.0
+            elif clock_mode == "train":
+                # the training schedule: t / rl.episode.horizon (default 2000), cycling, no world reset
+                ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), N_HEADS), np.float32)
             for s, fwd in models.items():
@@ -212,9 +216,10 @@ def main():
     ap.add_argument("--out-dir", type=Path, default=HERE / "results-raw" / "battery")
     ap.add_argument("--seat", action="append", default=[],
                     help="override one seat: INDEX=SPEC (report-only swaps)")
-    ap.add_argument("--clock", choices=("served", "episode"), default="served",
+    ap.add_argument("--clock", choices=("served", "train", "episode"), default="served",
                     help="served = clock input pinned to 0 as the engine seam does (default); "
-                         "episode = the binding's t/horizon clock (the training schedule)")
+                         "train = (t mod 2000)/2000, the PPO/probe schedule, without world resets; "
+                         "episode = the binding's t/horizon clock over the whole run (the pre-22:00 legs)")
     ap.add_argument("--control-brain", default=None,
                     help="validation only: force this engine brain on every scripted seat "
                          "(kitty-eval --brain NAME seats one brain everywhere)")
@@ -231,6 +236,8 @@ def main():
         tag += f"_val-{a.control_brain}"
     if a.clock == "served" and any(s != "scripted" for s in seats):
         tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
+    elif a.clock == "train" and any(s != "scripted" for s in seats):
+        tag += "-ctrain"
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"{tag}-{a.band}-{a.seeds}x{a.ticks}.jsonl"
     with out.open("w") as f:
