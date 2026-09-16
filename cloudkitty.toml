@@ -36,9 +36,13 @@ id = 1
 name = "Miso"
 x = 8
 y = 10
-# "The cuddler", carried onto the schema-4 surface (spec 035): the same
-# mind that took this seat 2026-08-14, resuming after the wall.
-behavior = "policy:fog-gen1-miso-cand-s2"  # Gen 1 mind (trained as cand-s2); the 2.x incumbent attn-a1-s1-o4 retired at the wall
+# NOW SERVING — fog-gen1-miso-cand-s2 (Gen 1, trained as cand-s2):
+# seated at the 0.3.0 cutover (roster gen1-A, owner 2026-09-15),
+# certified in experiments/fog-gen1-cert/RESULTS.md.
+# Lineage: "the cuddler" (attn-a1-s1, carried onto the schema-4 surface
+# by spec 035 as attn-a1-s1-o4) held this seat from 2026-08-14; retired
+# at the 3.0 wall.
+behavior = "policy:fog-gen1-miso-cand-s2"
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -52,13 +56,18 @@ id = 2
 name = "Biscuit"
 x = 16
 y = 15
-# BISCUIT 2.0 (seated 2026-08-22, owner's word): e006a-L-04-s3, the
-# exp-006a lineage PPO product — BC-cloned from this seat's e004
-# incumbent, then trained on the bugs-2.0 world. Battery 89.95 vs the
-# owner's bar 87.31, G3 character fingerprint PASS (experiments/
-# exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
-# incumbent it grew from moves to Clementine.
-behavior = "policy:fog-gen1-biscuit-cand-s1"  # Gen 1 mind (trained as cand-s1); the Biscuit 3.0 scripted anchor it clones from stays the c30 certification reference
+# NOW SERVING — fog-gen1-biscuit-cand-s1 (Gen 1, trained as cand-s1):
+# seated at the 0.3.0 cutover; lesson-cloned from the Biscuit 3.0
+# scripted anchor, which stays the c30 certification reference.
+# Lineage: Biscuit 2.0 (e006a-L-04-s3, seated 2026-08-22 on the owner's
+# word — BC-cloned from this seat's e004 incumbent, trained on the
+# bugs-2.0 world; battery 89.95 vs the owner's bar 87.31, G3 character
+# fingerprint PASS, experiments/exp-006a-biscuit-corner/
+# battery-2026-08-22.md; the e004 incumbent it grew from moved to
+# Clementine); retired at the 3.0 wall. The new playful anchor (spec 049
+# T091, owner 2026-09-03) held the seat through the wall's scripted
+# interregnum.
+behavior = "policy:fog-gen1-biscuit-cand-s1"
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -72,11 +81,14 @@ id = 3
 name = "Pumpkin"
 x = 13
 y = 6
-# "The doter", carried onto the schema-4 surface (spec 035). Seated ONCE
-# this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
-# deadlock was a twin artifact). The needs override below is world-law,
-# not behavior — it stays.
-behavior = "policy:fog-gen1-pumpkin-dose-lo-s1"  # Gen 1 mind (trained as dose-lo-s1, leash β 0.02); the 2.x incumbent attn-a1-s3-o4 retired at the wall
+# NOW SERVING — fog-gen1-pumpkin-dose-lo-s1 (Gen 1, the low-dose arm:
+# trained as dose-lo-s1, leash β 0.02): seated at the 0.3.0 cutover.
+# Lineage: "the doter" (attn-a1-s3, carried onto the schema-4 surface by
+# spec 035 as attn-a1-s3-o4) held this seat, seated ONCE — the
+# twin-seating pattern was retired (F-027: the r5 co-sleep deadlock was
+# a twin artifact); retired at the 3.0 wall. The needs override below is
+# world-law, not behavior — it stays.
+behavior = "policy:fog-gen1-pumpkin-dose-lo-s1"
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -93,10 +105,13 @@ id = 4
 name = "Kittybear"
 x = 4
 y = 4
-# e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
-# battery doc): the E1 dialect — here-meows and a meaningful mew — is
-# worth the recert. G2c says the swap is free at team level (+0.0003).
-behavior = "policy:fog-gen1-kittybear-cand-s4"  # Gen 1 mind (trained as cand-s4); the 2.x incumbent e006-E1-s1 retired at the wall
+# NOW SERVING — fog-gen1-kittybear-cand-s4 (Gen 1, trained as cand-s4):
+# seated at the 0.3.0 cutover.
+# Lineage: e006-E1-s1 (replaced the s3 twin here on the owner's ruling,
+# verbatim in the battery doc — the E1 dialect, here-meows and a
+# meaningful mew, was worth the recert; G2c: the swap free at team
+# level, +0.0003); retired at the 3.0 wall.
+behavior = "policy:fog-gen1-kittybear-cand-s4"
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -110,17 +125,20 @@ id = 5
 name = "Clementine"
 x = 10
 y = 16
-# THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with five cats
-# and three observation slots, someone is always unslotted -- want-meows
-# carry real signal). SEATED 2026-08-22 (owner's word), keeping the
-# interim-roster ruling's promise that a policy mind frees up for her at
-# bugs-2.0+: the e004 MLP incumbent moves here from Biscuit's seat.
-# Battery 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md). Her
-# look (the designed white cat) is a client-side palette override. Trait
-# vector owner-final, 3-dial: cuddlier, lighter on play and bath
+# NOW SERVING — fog-gen1-clementine-cand-s7 (Gen 1, trained as cand-s7):
+# seated at the 0.3.0 cutover.
+# Lineage: THE FIFTH CAT (spec 033 wall rider; comms Gen-B thesis: with
+# five cats and three observation slots, someone is always unslotted --
+# want-meows carry real signal). Her first mind seated 2026-08-22
+# (owner's word), keeping the interim-roster ruling's promise: the e004
+# MLP incumbent (e004-a1-s2-o4), moved here from Biscuit's seat, battery
+# 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md); retired at
+# the 3.0 wall. Her look (the designed white cat) is a client-side
+# palette override.
+behavior = "policy:fog-gen1-clementine-cand-s7"
+# Trait vector owner-final, 3-dial: cuddlier, lighter on play and bath
 # (verified -0.07 vs trait-flat under policy company -- the parity band);
 # stage-3 mortal like Pumpkin's.
-behavior = "policy:fog-gen1-clementine-cand-s7"  # Gen 1 mind (trained as cand-s7); the 2.x incumbent e004-a1-s2-o4 retired at the wall
 [kitty.needs]
 cuddle = 0.7
 play = 0.3

@@ -149,10 +149,15 @@ impl PolicyBehavior {
 
 /// The served episode clock: `(world tick mod horizon) / horizon`, the same
 /// cycling value training's `tick_in_episode / horizon` produced (episodes
-/// truncate AT the horizon, so training never saw 1.0 and neither does
-/// serving). `[rl.episode] horizon` is validated ≥ 1, and the served world's
-/// tick counter persists across restarts, so the modulus is well defined on
-/// a continuing world.
+/// truncate AT the horizon, so training never saw 1.0). Serving stays below
+/// 1.0 too at any realistic horizon; a horizon above 2^24 could round the
+/// f32 ratio up to exactly 1.0 (`encode_observation` clamps to [0, 1], so
+/// nothing escapes range either way — the served horizon is 2,000). A
+/// deliberate stopgap: Gen 2 removes the clock dependence entirely
+/// (GEN2-INPUTS, ruled 2026-09-15), retiring this function with it.
+/// `[rl.episode] horizon` is validated ≥ 1, and the served world's tick
+/// counter persists across restarts, so the modulus is well defined on a
+/// continuing world.
 fn served_clock(tick: u64, horizon: u64) -> f32 {
     (tick % horizon) as f32 / horizon as f32
 }

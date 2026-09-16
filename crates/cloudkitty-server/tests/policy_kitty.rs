@@ -133,17 +133,23 @@ fn the_shipped_config_seats_the_gen1_minds_and_still_refuses_the_2_x_minds() {
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().expect("the shipped config validates");
+    // Seats and minds counted separately on purpose: the same mind at two
+    // seats is legal (the pre-wall twin seating was exactly that; F-027
+    // retired the PATTERN as a design choice, not the capability), so the
+    // every-seat check counts seats and `seated` dedups to distinct minds.
+    assert!(
+        config
+            .kitties
+            .iter()
+            .all(|k| k.behavior.starts_with("policy:")),
+        "the 0.3.0 seating: every served seat is a Gen 1 mind; if the seats ever park \
+         again, restore the wall test from git history instead of deleting this one"
+    );
     let seated: std::collections::BTreeSet<&str> = config
         .kitties
         .iter()
         .filter_map(|k| k.behavior.strip_prefix("policy:"))
         .collect();
-    assert_eq!(
-        seated.len(),
-        config.kitties.len(),
-        "the 0.3.0 seating: every served seat is a Gen 1 mind; if the seats ever park \
-         again, restore the wall test from git history instead of deleting this one"
-    );
     let mut rl = RlConfig::from_toml_str(&text).unwrap();
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     for policy in rl.policy.values_mut() {
