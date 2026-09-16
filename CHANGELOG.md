@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- **A cat that never got up was lying down anyway.** Reported from the
+  meadow right after the stretch work shipped: sleep, a brief loaf, sleep
+  again. The fall-asleep settle — the half-tick of `loaf` that makes a
+  curl read as a transition — fired on "sleep began this tick" without
+  ever asking whether the cat had been *up*. It usually has been, so the
+  gap never showed. But 27% of wakes last a single tick, and that tick is
+  drawn `sleep-curl` because the engine's applied action is still `sleep`
+  — so the cat is never drawn upright, and then plays a lie-down it never
+  stood up from. This is older than the stretch work; until #376 an
+  overrunning stretch covered that tick and ate the loaf every time, and
+  making the stretch a coin flip uncovered it. The settle now asks what
+  the previous frame actually drew: a cat that was stretching, standing
+  or walking has something to settle from, and one already drawn curled
+  has not. The check added in #376 could not have caught this — it
+  composed the poses by hand and never called `tweenFor`, which is what
+  records the previous frame, so every settle looked earned; it now runs
+  through drawKitty's real order. Presentation only. (#PR)
+
 - **The fog Gen 1 minds take the meadow — the 0.3.0 seating.** Every
   seat moves from the wall's scripted interregnum to its own network,
   five distinct minds trained under fog (roster gen1-A, owner's word
