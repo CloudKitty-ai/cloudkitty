@@ -21,11 +21,13 @@ save_every_ticks = 100
 
 # The roster. At least two kitties, always (Article III: kitties cannot be alone).
 # `behavior` picks a strategy: "needs_driven", "playful", or "policy:<name>"
-# via the matching [rl.policy.<name>] block. FIVE SEATS, FIVE MINDS
-# (2026-08-22, owner's seating word): Biscuit 2.0 (e006a-L-04-s3) takes
-# Biscuit's seat and the e004 incumbent moves to Clementine — the first
-# roster with no scripted seat. Certified as this exact composition in
-# experiments/exp-006a-biscuit-corner/battery-2026-08-22.md (all gates).
+# via the matching [rl.policy.<name>] block. FIVE SEATS, FIVE MINDS —
+# FOG GEN 1 (roster gen1-A, owner's seating word 2026-09-15: "I'm
+# comfortable with this seating"): five distinct networks, the first
+# natively schema-5 generation, closing the 3.0 wall's scripted
+# interregnum. Certified as this exact composition in
+# experiments/fog-gen1-cert/RESULTS.md (battery all gates on four bands
+# under the trained clock); handoff seating-handoff-2026-09-16.md.
 # A seat swap on the served world: the world fingerprint doesn't move, so
 # no --fresh is needed (deploy stays the owner's restart, her call).
 
@@ -36,7 +38,7 @@ x = 8
 y = 10
 # "The cuddler", carried onto the schema-4 surface (spec 035): the same
 # mind that took this seat 2026-08-14, resuming after the wall.
-behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s1-o4 cannot cross the 3.0 wall (see [vision])
+behavior = "policy:fog-gen1-miso-cand-s2"  # Gen 1 mind (trained as cand-s2); the 2.x incumbent attn-a1-s1-o4 retired at the wall
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -56,7 +58,7 @@ y = 15
 # owner's bar 87.31, G3 character fingerprint PASS (experiments/
 # exp-006a-biscuit-corner/battery-2026-08-22.md, all gates). The e004
 # incumbent it grew from moves to Clementine.
-behavior = "playful"  # Gen 1 seat, owner ruled 2026-09-03 (spec 049 T091): Biscuit sits on the new playful (the 3.0 anchor); 2.x mind policy:e006a-L-04-s3 cannot cross the 3.0 wall (see [vision])
+behavior = "policy:fog-gen1-biscuit-cand-s1"  # Gen 1 mind (trained as cand-s1); the Biscuit 3.0 scripted anchor it clones from stays the c30 certification reference
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -74,7 +76,7 @@ y = 6
 # this phase — the twin-seating pattern is retired (F-027: the r5 co-sleep
 # deadlock was a twin artifact). The needs override below is world-law,
 # not behavior — it stays.
-behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:attn-a1-s3-o4 cannot cross the 3.0 wall (see [vision])
+behavior = "policy:fog-gen1-pumpkin-dose-lo-s1"  # Gen 1 mind (trained as dose-lo-s1, leash β 0.02); the 2.x incumbent attn-a1-s3-o4 retired at the wall
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -94,7 +96,7 @@ y = 4
 # e006-E1-s1 replaces the s3 twin here (owner's ruling, verbatim in the
 # battery doc): the E1 dialect — here-meows and a meaningful mew — is
 # worth the recert. G2c says the swap is free at team level (+0.0003).
-behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e006-E1-s1 cannot cross the 3.0 wall (see [vision])
+behavior = "policy:fog-gen1-kittybear-cand-s4"  # Gen 1 mind (trained as cand-s4); the 2.x incumbent e006-E1-s1 retired at the wall
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -118,7 +120,7 @@ y = 16
 # vector owner-final, 3-dial: cuddlier, lighter on play and bath
 # (verified -0.07 vs trait-flat under policy company -- the parity band);
 # stage-3 mortal like Pumpkin's.
-behavior = "needs_driven"  # Gen 1 seat; 2.x mind policy:e004-a1-s2-o4 cannot cross the 3.0 wall (see [vision])
+behavior = "policy:fog-gen1-clementine-cand-s7"  # Gen 1 mind (trained as cand-s7); the 2.x incumbent e004-a1-s2-o4 retired at the wall
 [kitty.needs]
 cuddle = 0.7
 play = 0.3
@@ -307,7 +309,9 @@ recent_window_ticks = 10
 # rate cell's maximum (window / cooldown = 3 calls) is exact.
 digest_window_ticks = 30
 # A want-kind arms at this need level (grounded legality)...
-announce_threshold = 30.0
+# 30 → 20 at the 0.3.0 cutover: the certification world's value
+# (fog-gen1-cert anchor-b3, owner rulings 2026-09-15).
+announce_threshold = 20.0
 # ...and disarms below threshold - hysteresis, so the mask holds steady
 # while an errand is in progress.
 announce_hysteresis = 5.0
@@ -384,7 +388,10 @@ pounce = true
 cuddle_real_threshold = 15.0
 # The pressure at which a "playful" kitty stops playing and attends to a need.
 # Lower means a better-kept cat; higher means more single-minded fun.
-playful_comfort = 55.0
+# 55 → 30 at the 0.3.0 cutover: the Biscuit 3.0 anchor c30 (owner
+# 2026-09-02, F-038), the value the Gen 1 minds were trained against and
+# certified under (fog-gen1-cert anchor-b3).
+playful_comfort = 30.0
 # Playful 2.0 (spec 042): the partner-value score and per-need comfort
 # weights, all launched at their identity values and ABSENT here on purpose
 # (absent = identity; the engine-defaults stamp stays unmoved). Priced by
@@ -403,7 +410,9 @@ playful_comfort = 55.0
 # adjacent opportunism). Play on top (ties included) = always fair game.
 # Friends only: critters, elements, solo play and needs_driven cats are
 # untouched. Absent (or 0.0) = off, byte-identical to pre-047.
-# consent_line = 0.0
+# ON at the 0.3.0 cutover: the Biscuit 3.0 anchor's consent gate (owner
+# 2026-09-02), certified in fog-gen1-cert anchor-b3.
+consent_line = 30.0
 # [behavior.comfort_weight]   # per-need multipliers, get-serious trigger ONLY
 #                             #   (strictly > 0; pair w_busy with w_value)
 # eat = 1.0
@@ -421,15 +430,18 @@ playful_comfort = 55.0
 # and want-words are untouched at any setting. Legality is unchanged law
 # (adjacency, vocabulary flags, per-kind cooldown). Serving a value here is
 # Experiments' density screen, not a welfare lever.
-# announce_here = 4
+# ARMED at 1 at the 0.3.0 cutover: the certification world's value (the
+# corpus-source density the Gen 1 minds trained and certified under;
+# fog-gen1-cert anchor-b3, teacher ruled out 2026-09-02).
+announce_here = 1
 # Spec 049 FR-043: the scripted reply listener floor. Set, a scripted cat
 # answers an audible want whose stamped intensity is at or above it with the
 # paired here-word (referent in view, cooldown clear); unset, scripted cats
 # never reply and the streams are byte-identical to the pre-ladder engine.
-# 0.30 is PROVISIONAL: it belongs on the step-5 corpus-collection config
-# (Experiments cut it), is revisited at the speaker-floor screen, and stays
-# unset on the served config.
-# reply_intensity_floor = 0.30
+# SET at the 0.3.0 cutover: 0.20 = speaker floor / 100, PINNED at the
+# speaker-floor screen (#352, owner 2026-09-08) and certified in
+# fog-gen1-cert anchor-b3 — superseding the provisional 0.30.
+reply_intensity_floor = 0.20
 # Need selection weighs pressure against travel. Pressure above the safeguard
 # threshold counts extra (urgency_weight per point), so urgent needs dominate --
 # but relief at zero distance still beats a hopeless cross-map trek.
@@ -517,23 +529,28 @@ distress_patience_ticks = 60
 # policies/retired/ with their records; shas + provenance in
 # policies/README.md and policies/registry.toml (spec 034 rows in this
 # same change, per the same-PR rule).
-# THE SERVED ROSTER AT THE 3.0 WALL (spec 049 FR-025 / SC-008): every
-# 2.x policy artifact is schema 4 and is refused at load on this engine
-# (observation schema 5), so the five seats are scripted here -- the
-# step-5 shakeout / corpus-collection state -- until the Gen 1 minds seat
-# at the step-7 cutover. The [rl.policy.*] blocks stay as the registry
-# of what WAS seated (unreferenced blocks are never opened).
+# THE 0.3.0 CUTOVER (fog Gen 1 step 7, owner rulings 2026-09-15): the
+# five fog-gen1-* artifacts are the first natively schema-5 generation,
+# ending the wall's scripted interregnum (spec 049 FR-025 / SC-008).
+# Every 2.x policy artifact is schema 4 and is refused at load on this
+# engine, so their [rl.policy.*] blocks below stay ONLY as the registry
+# of what WAS seated (unreferenced blocks are never opened). Certified:
+# experiments/fog-gen1-cert/RESULTS.md (battery all gates on four bands
+# under the trained clock, parity per-artifact in the handoff records);
+# seating: seating-handoff-2026-09-16.md. Greedy selection throughout,
+# matching the measured condition.
 #
 # Fog Gen 1 (spec 049): the vision disc. A cat knows the kitties and elements
 # within `radius` of itself (Euclidean, dx² + dy² ≤ r², edge included), every
 # recent meow (hearing is global), the roster's ids and its own one-slot-per-
 # kind element memory; the same disc for every seat -- built-ins, plugins and
-# policies decide from one fog view. 5 is the FR-002 PLACEHOLDER (81 tiles on
-# the 20x20 world); the step-5 pre-registration screens the radius set and
-# rules the served value. Every built-in cat explores for what it cannot see
+# policies decide from one fog view. Pinned 5 → 4 off the radius screen
+# (#351, owner 2026-09-08: "Pin at 4"), replacing the FR-002 placeholder;
+# the Gen 1 minds trained and certified at 4 (fog-gen1-cert anchor-b3).
+# Every built-in cat explores for what it cannot see
 # (FR-023) and asks for it (FR-036); see docs/meows.md.
 [vision]
-radius = 5
+radius = 4
 # Element-memory expiry in ticks; 0 = never (sight is the only corrector).
 memory_timeout_ticks = 0
 
@@ -555,6 +572,22 @@ artifact = "policies/e006-E1-s1.ckpolicy"
 
 [rl.policy.e006a-L-04-s3]
 artifact = "policies/e006a-L-04-s3.ckpolicy"
+
+# Fog Gen 1 (the 0.3.0 seating): the five served minds.
+[rl.policy.fog-gen1-miso-cand-s2]
+artifact = "policies/fog-gen1-miso-cand-s2.ckpolicy"
+
+[rl.policy.fog-gen1-biscuit-cand-s1]
+artifact = "policies/fog-gen1-biscuit-cand-s1.ckpolicy"
+
+[rl.policy.fog-gen1-pumpkin-dose-lo-s1]
+artifact = "policies/fog-gen1-pumpkin-dose-lo-s1.ckpolicy"
+
+[rl.policy.fog-gen1-kittybear-cand-s4]
+artifact = "policies/fog-gen1-kittybear-cand-s4.ckpolicy"
+
+[rl.policy.fog-gen1-clementine-cand-s7]
+artifact = "policies/fog-gen1-clementine-cand-s7.ckpolicy"
 
 # The serving welfare watchdog (spec 040) — a standing, read-only watch
 # over every cat's distress ages, the layer F-027 proved was missing: a

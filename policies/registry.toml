@@ -72,3 +72,39 @@ display = "Transformer"
 architecture = "Transformer"
 recipe = "BC+PPO"
 display = "Transformer"
+
+# Fog Gen 1 (the 0.3.0 seating, owner rulings 2026-09-15; certification
+# experiments/fog-gen1-cert/RESULTS.md, handoff seating-handoff-2026-09-16.md):
+# step-7 BC+PPO products — lesson clone of the Biscuit 3.0 corpus, leash
+# β 0.04 (β 0.02 for Pumpkin's dose-lo-s1), run indices 21–40; PREREG.md
+# and RESULTS.md in experiments/fog-gen1-cert/.
+
+[artifact."75abb7d948410e5634d0a09cb536ce42573d250a3543fdc66b1fd004aa0d83a8"]
+# fog-gen1-miso-cand-s2.ckpolicy — Miso's Gen 1 seat (trained as cand-s2).
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"
+
+[artifact."cecd89c8c53dd2ed28e81a778cc9e3a685cf18e21236fcca100f63a5708c2ca8"]
+# fog-gen1-biscuit-cand-s1.ckpolicy — Biscuit's Gen 1 seat (trained as cand-s1).
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"
+
+[artifact."02a36461c34c15354f069aa6c2a915af9f13a1d8698f51cf31380c7e6cc19c97"]
+# fog-gen1-pumpkin-dose-lo-s1.ckpolicy — Pumpkin's Gen 1 seat (trained as dose-lo-s1, leash β 0.02).
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"
+
+[artifact."3aa42dd4cb13b2e5fcd18f35da06345b22e636a12939d5b639f061276b792ee0"]
+# fog-gen1-kittybear-cand-s4.ckpolicy — Kittybear's Gen 1 seat (trained as cand-s4).
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"
+
+[artifact."507525314b35587d758e05736c671d60d74c8b4dd3896ffba62a92a3c7c4f1ae"]
+# fog-gen1-clementine-cand-s7.ckpolicy — Clementine's Gen 1 seat (trained as cand-s7).
+architecture = "Transformer"
+recipe = "BC+PPO"
+display = "Transformer"

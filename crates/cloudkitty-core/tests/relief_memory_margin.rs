@@ -39,7 +39,10 @@ fn served_all_scripted() -> Config {
     for kitty in &mut config.kitties {
         kitty.behavior = "needs_driven".into();
     }
-    assert_eq!(config.vision.radius, 5, "the served FR-002 placeholder");
+    assert_eq!(
+        config.vision.radius, 4,
+        "the served radius, pinned off the screen (#351, owner 2026-09-08)"
+    );
     config.validate().expect("the served config validates");
     config
 }
