@@ -439,6 +439,46 @@ Banked for Gen 2 either way: a clock the mind can lean on as a
 de-synchroniser is a crutch, and the fix that does not depend on it is
 a stuck detector at decoding or training without the clock input.
 
+## Pre-merge checks on the cutover PR (#377, 2026-09-16)
+
+Experiments' three checks from the handoff, run on the PR's bytes at
+f7924ba. The head moved to 00bfbaa (a rustfmt of one test file) while
+they ran; `policies/`, `cloudkitty.toml`, `behavior.rs` and
+`observe.rs` are byte-identical between the two heads, so the checks
+stand for the merge candidate.
+
+1. **Sha match.** Each `policies/fog-gen1-*.ckpolicy` blob in the PR
+   equals the `handoff/` file and the sha in its `.parity.json`. Five
+   of five.
+2. **Export parity on the shipped bytes.** `export_v5.parity` against
+   the battery-measured torch actors over the same 2,000 probe rows:
+   max logit delta 1.6e-05 to 3.6e-05, exact argmax on both heads under
+   the mask, flipped-byte control 3.6e-02 to 4.8e-01. Five PASS; the
+   numbers equal the handoff records to the digit.
+3. **The seam, action for action.** A `cloudkitty-server` built from the
+   PR, seed 40,001 on the PR's own `cloudkitty.toml` (five policy seats,
+   spec-034 rows beside the artifacts), polled every tick for 149 ticks
+   (745 cat-ticks), against a numpy loop of the PR's five artifacts on
+   `anchor-b3.toml` (identical in world law: the config diff, comments
+   stripped, is the five `behavior` lines and the five `[rl.policy]`
+   stanzas). The loop's clock is `(t mod 2000) / 2000`, the harness's
+   `--clock train` schedule. Result: positions match on all 745
+   cat-ticks; actions match on 740, and the five remaining are the
+   engine's partner-enforcement layer writing the applied action over a
+   play proposal (a proposer's `PlayKitty` shown as the partner's
+   `play`, or as `idle` when refused), the same enforcement the loop's
+   engine applied, which is why the positions agree. The pinned-clock
+   loop diverges from the server at the decision of tick 9 (Miso
+   `SleepSolo` under clock 0, `MoveE` under 9/2000) and never rejoins
+   (610 position mismatches), so the seam is live and serves the trained
+   schedule, not a coincidence of early ticks. Alignment: the server's
+   snapshot at tick k carries the decision of tick k−1; decisions are
+   taken at `world.tick` before the increment, so a fresh world's first
+   decision sees clock 0 in both.
+
+CI on the PR: build, fmt + clippy + test, python surface, all green at
+00bfbaa. Merge and deploy stay on the owner's word.
+
 ## Reads owed after the reseat (unchanged)
 
 FR-014 (spec 054) step-7 read on the served roster, refusal baseline
@@ -462,4 +502,9 @@ FOG_ROOT=experiments/fog-gen1-cert FOG_CORPUS=results-raw/bc-corpus-b3/flat ... 
 ... fog-gen1-cert/step7_reads.py <probe.npz|trace-dir ...> --json <json>
 # the table
 ... fog-gen1-cert/summarize_reads.py --at 2599,final --json results-raw/reads/summary.json
+# pre-merge seam check (PR #377): detached worktree at the PR head, release server build,
+# PR cloudkitty.toml with seed 40001 / bind 8097 / tick_ms 500 / scratch snapshot_path,
+# poller on /world started BEFORE the server, cwd = the worktree (registry.toml beside the artifacts);
+# numpy loop = the five PR artifacts on anchor-b3.toml, ParallelEnv.reset(seed=40001), obs[407] = (t % 2000) / 2000;
+# compare server tick k (pos, last_action) with loop tick k-1
 ```
