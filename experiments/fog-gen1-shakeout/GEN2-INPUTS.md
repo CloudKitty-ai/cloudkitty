@@ -236,6 +236,45 @@ detector at decoding (net-zero displacement over N ticks with an armed
 need; the deferred distress intervention's trigger) is the served-side
 guard that does not depend on what the mind was trained with.
 
+## Same mind in several seats: the twin fragility (RULED by the owner 2026-09-16, "options 3+4 for gen 2")
+
+Every twin failure on record is one mechanism: two copies of a greedy
+deterministic policy in near-symmetric states make mirror-image
+choices, the world returns them to the same state, and nothing breaks
+the loop. F-027's co-sleep deadlock, the plain-s1 social lock-in
+(`fog-gen1-cert/RESULTS.md` §Welfare), and the two-tile limit cycles
+are all of it; the drifting clock was breaking it by accident. Gen 1
+sidestepped it by seating five distinct networks, and that stays the
+rule until Gen 2.
+
+Options costed 2026-09-16, in order of cost: (1) a per-seat clock phase
+in the seam (zero training, leans harder on the crutch); (2)
+stochastic tie-breaking at decoding (zero training, changes the
+certified greedy condition everywhere, recert); (3) a stuck detector at
+decoding; (4) an identity input trained in; (5) population play against
+copies with randomized starts. None measured; the cheapest read is one
+Gen 1 mind in all five battery seats under the trained clock, counting
+limit cycles.
+
+**RULED: 3 + 4 for Gen 2.**
+
+- **Stuck detector at decoding.** Fires on an exact observation-and-
+  action repetition (or net-zero displacement with an armed need) over
+  a short window and perturbs: a random legal move, or the scripted
+  brain for one tick. Inert on healthy behavior; fires on the symptom
+  whatever the cause; the same trigger the deferred distress
+  intervention needs. Served-side, so it guards a mind regardless of
+  what it was trained with.
+- **Identity input.** A small fixed per-seat vector in the observation
+  (the 3-dial character, or a seat id), trained in, so copies never see
+  identical observations even in symmetric states. Removes the cause.
+  Costs a schema change and the Gen 2 training pass; it is the identity
+  vectors member already on the shelf below, now with its second job.
+
+Together with dropping the clock (the item above), the detector is the
+safety net and the identity input removes the cause, and the accident
+is no longer load-bearing.
+
 ## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
 
 - World-size × radius screen; first data point = the shakeout's r-3
