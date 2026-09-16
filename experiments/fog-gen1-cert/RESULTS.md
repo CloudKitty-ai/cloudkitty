@@ -364,7 +364,20 @@ and the raws. The digest:
   the scripted cat (93.1 vs 88.1) with a smaller eat gap (E1 +0.01 vs
   +0.05). The scripted Pumpkin had no distress in 60 runs; the scripted
   roster's own tail (ages 102–178) is all Clementine's seat.
-- **Caveat on the passed catastrophe gate.** gen1-A read 0 runs ≥ 150
+- **Tail replication (owner's word 2026-09-15; bands 890,001–030 and
+  895,001–030, claimed in SEED-BANDS).** gen1-A on both bands: every
+  gate PASS again (team +0.054, every seat +4.4 to +6.7, 0 seeds below
+  anywhere); catastrophe worst age 14 and 82, 0 runs ≥ 150, floor 0.
+  Pooled over the four bands: **120 runs, 0 at or over 150, one over
+  100 (112)**, top ages 112 / 82 / 69 / 53 / 47 / 42. At the swap
+  legs' 1.8% per-run rate a clean 120 has about a one-in-nine chance,
+  so the seated roster's tail is now read as materially below its
+  one-seat-away neighbours', though not as zero. The scripted roster
+  produced one run ≥ 150 on each of the stress and rep2 bands (178,
+  162), so on this evidence the seated roster's catastrophe tail is
+  lighter than the scripted roster's.
+- **Caveat on the passed catastrophe gate** (written before the
+  replication; the numbers above supersede its estimate). gen1-A read 0 runs ≥ 150
   in 60; compositions one seat away read 1.8% per run. At that rate a
   clean 60 has about a one-in-three chance, so the pass is consistent
   with a tail near 1 in 100 runs as much as with none. The declared
