@@ -49,7 +49,7 @@ change.
   has not. The check added in #376 could not have caught this — it
   composed the poses by hand and never called `tweenFor`, which is what
   records the previous frame, so every settle looked earned; it now runs
-  through drawKitty's real order. Presentation only. (#PR)
+  through drawKitty's real order. Presentation only. (#379)
 
 - **The fog Gen 1 minds take the meadow — the 0.3.0 seating.** Every
   seat moves from the wall's scripted interregnum to its own network,
