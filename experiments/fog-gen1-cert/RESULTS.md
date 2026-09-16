@@ -477,7 +477,11 @@ stand for the merge candidate.
    decision sees clock 0 in both.
 
 CI on the PR: build, fmt + clippy + test, python surface, all green at
-00bfbaa. Merge and deploy stay on the owner's word.
+00bfbaa. Merged on the owner's word as 91f3632; the one commit after the
+checked head (d86f1ac, review follow-ups) leaves the five artifacts, the
+seam code and every config value byte-identical (comments and trailing
+whitespace only, verified on the merged tree). Deploy is the owner's
+restart.
 
 ## Reads owed after the reseat (unchanged)
 
