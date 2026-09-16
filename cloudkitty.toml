@@ -528,35 +528,18 @@ distress_patience_ticks = 60
 # Artifacts live in the committed policies/ directory (owner decision
 # 2026-07-31); the README there maps each file to its sha256, its
 # certification record, and the naming convention these keys follow.
-# The phase-1 generation (seated 2026-08-21, closing the spec-033 wall),
-# plus the 2026-08-22 Biscuit 2.0 seating. Three seats are the pre-wall
-# incumbents carried onto the schema-4 surface by ckpolicy-expand (spec
-# 035): same minds, proven twice over — structural attestation at
-# expansion plus the bit-exact parity leg in Experiments' acceptance
-# (expansion-acceptance-2026-08-17.md). e006-E1-s1 is exp-006's E-arm
-# PPO product (actor-only export; forward parity vs the measured torch
-# actor 7.8e-05 max logit delta). e006a-L-04-s3 is exp-006a's lineage
-# PPO product (plain-V4 export, parity 2.29e-05 over 2,000
-# certification-world obs rows); with it seated, the e004 incumbent
-# moves from Biscuit to Clementine. Certified whole, twice:
-# experiments/exp-006-character-gen/results/deploy-battery-2026-08-21.md
-# for the phase-1 seating, experiments/exp-006a-biscuit-corner/
-# battery-2026-08-22.md for this roster (all gates; Biscuit 89.95 vs bar
-# 87.31, Clementine-e004 94.81 vs scripted bar 90.10). Greedy selection
-# throughout, matching the measured condition. Sources retired to
-# policies/retired/ with their records; shas + provenance in
-# policies/README.md and policies/registry.toml (spec 034 rows in this
-# same change, per the same-PR rule).
 # THE 0.3.0 CUTOVER (fog Gen 1 step 7, owner rulings 2026-09-15): the
 # five fog-gen1-* artifacts are the first natively schema-5 generation,
 # ending the wall's scripted interregnum (spec 049 FR-025 / SC-008).
-# Every 2.x policy artifact is schema 4 and is refused at load on this
-# engine, so their [rl.policy.*] blocks below stay ONLY as the registry
-# of what WAS seated (unreferenced blocks are never opened). Certified:
-# experiments/fog-gen1-cert/RESULTS.md (battery all gates on four bands
-# under the trained clock, parity per-artifact in the handoff records);
-# seating: seating-handoff-2026-09-16.md. Greedy selection throughout,
-# matching the measured condition.
+# Certified: experiments/fog-gen1-cert/RESULTS.md (battery all gates on
+# four bands under the trained clock, parity per-artifact in the handoff
+# records); seating: seating-handoff-2026-09-16.md. Greedy selection
+# throughout, matching the measured condition.
+# The 2.x generation is RETIRED (owner's word 2026-09-16, "Retire 2.x
+# artifacts"): every schema-4 artifact moved to policies/retired/ with
+# its retirement row — service history and succession in
+# policies/README.md §Retired; registry.toml rows stay (spec 034, rows
+# never leave). The stanzas here name exactly the served generation.
 #
 # Fog Gen 1 (spec 049): the vision disc. A cat knows the kitties and elements
 # within `radius` of itself (Euclidean, dx² + dy² ≤ r², edge included), every
@@ -575,21 +558,6 @@ memory_timeout_ticks = 0
 [water]
 bath_gain = 3.5
 bath_gain_ceiling = 60.0
-
-[rl.policy.attn-a1-s1-o4]
-artifact = "policies/attn-a1-s1-o4.ckpolicy"
-
-[rl.policy.attn-a1-s3-o4]
-artifact = "policies/attn-a1-s3-o4.ckpolicy"
-
-[rl.policy.e004-a1-s2-o4]
-artifact = "policies/e004-a1-s2-o4.ckpolicy"
-
-[rl.policy.e006-E1-s1]
-artifact = "policies/e006-E1-s1.ckpolicy"
-
-[rl.policy.e006a-L-04-s3]
-artifact = "policies/e006a-L-04-s3.ckpolicy"
 
 # Fog Gen 1 (the 0.3.0 seating): the five served minds.
 [rl.policy.fog-gen1-miso-cand-s2]

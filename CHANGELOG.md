@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **The 2.x generation retires to the shelf it earned.** On the owner's
+  word ("Retire 2.x artifacts", 2026-09-16), the five schema-4 minds the
+  0.3.0 seating replaced — `attn-a1-s1-o4`, `attn-a1-s3-o4`,
+  `e004-a1-s2-o4`, `e006-E1-s1`, `e006a-L-04-s3` — move to
+  `policies/retired/` with full service rows (who they drove, for how
+  long, who succeeded them) in `policies/README.md`; their
+  `[rl.policy.*]` stanzas leave the served config, whose stanzas now
+  name exactly the served generation, and the registry rows stay (spec
+  034: rows never leave). Housekeeping only — no serve change; the
+  seats-open guard now also checks the config-names-exactly-what-it-
+  serves correspondences. (#378)
+
 - **A cat that never got up was lying down anyway.** Reported from the
   meadow right after the stretch work shipped: sleep, a brief loaf, sleep
   again. The fall-asleep settle — the half-tick of `loaf` that makes a
