@@ -1,0 +1,21 @@
+{
+ "name": "fog-gen1-miso-cand-s2",
+ "slot": "cand-s2",
+ "bytes": 332875,
+ "sha256": "75abb7d948410e5634d0a09cb536ce42573d250a3543fdc66b1fd004aa0d83a8",
+ "source": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-cand-s2/policy-final.pt",
+ "source_sha256": "662936b35ef2a38bf56f19d0cee27e1c5926eba1648094418d22dc84b8c0d89b",
+ "hyper": {
+  "d_model": 64,
+  "heads": 4,
+  "layers": 2,
+  "ffn": 128
+ },
+ "parity_rows": "/Users/elizabethkelly/ai/cloudkitty/experiments/fog-gen1-cert/artifacts/ppo-fog-cand-s2/probe-u2899.npz",
+ "n_rows": 2000,
+ "max_logit_delta": 2.384185791015625e-05,
+ "argmax_agree_act": true,
+ "argmax_agree_msg": true,
+ "negative_control_delta": 0.03615069389343262,
+ "pass": true
+}

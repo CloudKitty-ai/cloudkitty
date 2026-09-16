@@ -90,9 +90,17 @@ def load_model(spec):
     return fwd
 
 
+CLOCK_INDEX = OBS_DIM - 1  # the episode-clock input, the last float of the observation
+
+
 def run_one(args):
-    seating_name, seed, ticks, config_path, seats_override, *rest = args
-    control_brain = rest[0] if rest else None  # validation only: force one brain on every scripted seat
+    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode = args
+    # clock_mode "served": the engine's policy seam pins the clock input to 0 at deploy
+    # (behavior.rs decide_sync: "No episode runs at deploy"); the harness does the same so
+    # the battery reads the served condition. Verified 2026-09-15: with the clock pinned the
+    # harness loop matches the served engine action for action (cloudkitty-server, seed
+    # 40001, 14 ticks, five seats). "episode": the binding's t/horizon clock, the training
+    # schedule, kept for the record.
     import cloudkitty
     import numpy as np
 
@@ -133,6 +141,8 @@ def run_one(args):
         acts = {}
         if names:
             ob = np.stack([np.asarray(obs[a], np.float32) for a in names])
+            if clock_mode == "served":
+                ob[:, CLOCK_INDEX] = 0.0
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), N_HEADS), np.float32)
             for s, fwd in models.items():
@@ -164,7 +174,7 @@ def run_one(args):
             max_dist_age = max(max_dist_age, age)
 
     return {
-        "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks,
+        "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks, "clock": clock_mode,
         "nash": (reward_sum / max(1, n_ticks)) if names else None,
         "nash_state": nash_state_sum / max(1, n_ticks),
         "mean_happiness": (hap_sum / max(1, n_ticks)).round(4).tolist(),
@@ -202,6 +212,9 @@ def main():
     ap.add_argument("--out-dir", type=Path, default=HERE / "results-raw" / "battery")
     ap.add_argument("--seat", action="append", default=[],
                     help="override one seat: INDEX=SPEC (report-only swaps)")
+    ap.add_argument("--clock", choices=("served", "episode"), default="served",
+                    help="served = clock input pinned to 0 as the engine seam does (default); "
+                         "episode = the binding's t/horizon clock (the training schedule)")
     ap.add_argument("--control-brain", default=None,
                     help="validation only: force this engine brain on every scripted seat "
                          "(kitty-eval --brain NAME seats one brain everywhere)")
@@ -213,9 +226,11 @@ def main():
         seats[int(i)] = spec
         tag += f"_s{i}-{spec.split(':', 1)[-1]}"
     seed0 = a.seed0 if a.seed0 is not None else BANDS[a.band]
-    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain) for i in range(a.seeds)]
+    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock) for i in range(a.seeds)]
     if a.control_brain:
         tag += f"_val-{a.control_brain}"
+    if a.clock == "served" and any(s != "scripted" for s in seats):
+        tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"{tag}-{a.band}-{a.seeds}x{a.ticks}.jsonl"
     with out.open("w") as f:
