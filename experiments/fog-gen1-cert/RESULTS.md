@@ -386,6 +386,54 @@ and the raws. The digest:
   estimate before seating and is recommended, on the owner's word since
   it extends the declared instrument.
 
+### The clock input: the battery re-run in the served condition (2026-09-15, 22:00–22:20)
+
+Found while exporting the five artifacts (`export_v5.py`, parity to the
+torch actor 1.6e-5 to 3.6e-5 on 2,000 real rows, exact argmax on both
+heads, bit-flip control diverges): the served policy seam
+(`behavior.rs decide_sync`) pins the observation's episode-clock input,
+the last float, to 0 ("No episode runs at deploy"). Training and the
+probes ran it as t / 2000 (the `rl.episode.horizon` default); the
+battery above ran it as t / 20,000. With the clock pinned to 0 the
+harness loop matches `cloudkitty-server` action for action (seed
+40,001, five seats, 14 ticks; the server needs a spec-034
+`registry.toml` row beside the artifact). So the legs above measured a
+condition the box does not serve, and gen1-A was re-run on all four
+bands in three clock modes (harness `--clock`):
+
+| clock mode | what it is | runs ≥ 150 / 120 | ≥ 100 | top ages | gates |
+|---|---|---|---|---|---|
+| episode (t / 20,000) | the legs above | 0 | 1 | 112, 82, 69 | all PASS |
+| **served (pinned 0)** | **what the box does today** | **3** | 5 | **364, 153, 150**, 147, 119 | floors PASS; **catastrophe MISS** on stress (1) and rep1 (2) |
+| train ((t mod 2000) / 2000) | the PPO and probe schedule | 0 | 1 | 145, 56, 51 | all PASS |
+
+Welfare is unchanged across modes (team 0.9243–0.9246, every seat
+within 0.1 of the numbers above, no seed below scripted anywhere). The
+tail is not. The served-clock age-364 case (seed 880,006, Pumpkin =
+dose-lo-s1) is a two-tile limit cycle: MoveW / MoveE 174 / 174 between
+(6,16) and (5,16), the chosen move at p 0.96, chow visible in every one
+of the 364 rows, eat at 100, never eaten. With the clock pinned the
+observation repeats exactly from one tick to the next, so a greedy
+policy that maps two adjacent states to opposite moves cycles forever;
+a moving clock never repeats the state and the cycle breaks within a
+few ticks. The clock input has been acting as a de-synchroniser, which
+is why the episode and train schedules read 0 in 120 and the pinned
+clock reads 3 (the scripted roster reads 2 in 120 on the same bands).
+
+**Gate status as declared: the catastrophe gate MISSES in the served
+condition; it stops and waits for the owner.** The training-schedule
+run is the certification of the roster under a seam that serves the
+clock as trained. Options for the owner: (a) Product serves the clock
+as (tick mod 2000) / 2000 in `decide_sync` instead of 0, a one-line
+seam change, after which the `train` legs above are the served-condition
+battery and every gate passes (re-verify action for action against the
+server after the change, as done today); (b) ship with the clock pinned
+and amend the gate to "tail no worse than the scripted roster's,
+paired" (3 vs 2 in 120); (c) anything else. Experiments recommends (a).
+Banked for Gen 2 either way: a clock the mind can lean on as a
+de-synchroniser is a crutch, and the fix that does not depend on it is
+a stuck detector at decoding or training without the clock input.
+
 ## Reads owed after the reseat (unchanged)
 
 FR-014 (spec 054) step-7 read on the served roster, refusal baseline

@@ -218,6 +218,24 @@ against the replay and answered no for Gen 1; the Gen 2 identity
 vectors (trait draws in training) are where a high eat rate stops being
 one seat's special case.
 
+## The clock input is a de-synchroniser (found 2026-09-15 at the step-7 export; `fog-gen1-cert/RESULTS.md` §"The clock input")
+
+The served seam pins the episode-clock observation to 0; training ran
+it as t / 2000. Re-running the certified roster with the clock pinned
+raised the catastrophe tail from 0 to 3 runs in 120 while leaving
+welfare means untouched, and the worst case was a perfect two-tile
+limit cycle (MoveW / MoveE 174 / 174 at p 0.96 with the bowl in view).
+With a pinned clock the observation repeats exactly tick to tick, so a
+greedy policy that maps two adjacent states to opposite moves never
+escapes; a moving clock never repeats the state. The Gen 1 minds have
+been leaning on the clock as noise. Gen 2 recipe inputs: either drop
+the clock input entirely and train the mind to break its own cycles
+(the corner/edge coverage item above is the same family of fix), or
+keep it and serve it as trained. Independently of the clock, a stuck
+detector at decoding (net-zero displacement over N ticks with an armed
+need; the deferred distress intervention's trigger) is the served-side
+guard that does not depend on what the mind was trained with.
+
 ## Also standing on the Gen 2 shelf (pointers, ruled elsewhere)
 
 - World-size × radius screen; first data point = the shakeout's r-3
