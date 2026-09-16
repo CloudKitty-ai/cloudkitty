@@ -749,6 +749,57 @@ check('a cat that wakes for one tick is never drawn stretching over a served sle
   }
 });
 
+check('a cat lying back down after a stretch still plays its settle', () => {
+  // Reported from the live meadow 2026-09-16: "sleep, stretch, sleep -- I
+  // don't think a second lie-down played." It did not. `adjustPose` gives
+  // the fall-asleep settle as `loaf` for the first half of the tick sleep
+  // begins, and drawKitty resolves it BEFORE the idle overlay and then
+  // lets the overlay win outright. An overrunning stretch landed exactly
+  // on the settle tick and swallowed it, so the cat snapped from stretch
+  // straight to sleep-curl.
+  //
+  // Two separate faults from one cause, and this pins the one you can see.
+  // Composed the way drawKitty composes, or it would not be testing the
+  // thing that broke.
+  const at = (tick, state) => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ ...kitty(1, 2, 2), activity: { state } }],
+  });
+  const SEQ = ['sleeping', 'sleeping', 'idle', 'sleeping', 'sleeping'];
+  const run = (base) => {
+    const p = new api.Presentation();
+    const T = p.tickMs;
+    const rows = [];
+    for (let i = 0; i < SEQ.length; i++) {
+      p.pushState(at(i + 1, SEQ[i]), base + i * T, T, i + 1 < SEQ.length ? at(i + 2, SEQ[i + 1]) : undefined);
+      for (let ms = 0; ms < T; ms += 40) {
+        const now = base + i * T + ms;
+        const kit = { ...kitty(1, 2, 2), activity: { state: SEQ[i] } };
+        const served = p.adjustPose(1, poseFor(kit, false, false, null), now);
+        const own = p.idlePoseFor(1, served, now);
+        rows.push({ t: i * T + ms, drawn: own ? own.pose : served });
+      }
+    }
+    return rows;
+  };
+  let rows = null;
+  for (let base = 0; base < 60000; base += 97) {
+    const r = run(base);
+    if (r.some((x) => x.drawn === 'stretch')) { rows = r; break; }
+  }
+  assert(rows, 'no wake in the search window ends in a stretch');
+  // The cat goes back to sleep on the fourth state.
+  const back = 3 * new api.Presentation().tickMs;
+  assert(
+    rows.some((r) => r.t >= back && r.drawn === 'loaf'),
+    'no settle after lying back down -- an overrunning stretch ate it, which is what the meadow showed',
+  );
+  assert(
+    rows.some((r) => r.t < back && r.drawn === 'stretch'),
+    'the stretch never happened; this check is vacuous',
+  );
+});
+
 check('about VIEW.stretchChance of wakes end in a stretch, and cats decide separately', () => {
   // The rate IS the dial. Dropped, the share would be 1; keyed on anything
   // constant, 0 or 1. Driven through pushState rather than by asking the
