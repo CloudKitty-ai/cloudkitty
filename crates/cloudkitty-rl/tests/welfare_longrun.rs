@@ -137,7 +137,10 @@ fn served_world_violations(radius: u32, label: &str) -> Vec<String> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let text = std::fs::read_to_string(root.join("cloudkitty.toml")).unwrap();
     let mut config: Config = toml::from_str(&text).unwrap();
-    assert_eq!(config.vision.radius, 5, "the served FR-002 placeholder");
+    assert_eq!(
+        config.vision.radius, 4,
+        "the served radius, pinned off the screen (#351, owner 2026-09-08)"
+    );
     for kitty in &mut config.kitties {
         kitty.behavior = "needs_driven".into();
     }
