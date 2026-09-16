@@ -115,20 +115,21 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_seats_the_gen1_minds_and_still_refuses_the_2_x_minds() {
-    // The fifth tour (the 0.3.0 cutover, owner rulings 2026-09-15):
-    // supersedes `the_shipped_config_parks_every_seat_at_the_3_0_wall…`,
-    // whose parked assertion expired by its own terms when the Gen 1
-    // minds landed. This is the seats-open posture of the third tour
-    // (restored from 8c3db07, as that test instructed) plus the wall
-    // test's surviving half: every 2.x block the config still lists is
-    // schema-4 and refused by this binary. Two proofs:
+fn the_shipped_config_seats_the_gen1_minds_and_names_exactly_what_it_serves() {
+    // The fifth tour (the 0.3.0 cutover, owner rulings 2026-09-15;
+    // 2.x retirement on the owner's word 2026-09-16): supersedes
+    // `the_shipped_config_parks_every_seat_at_the_3_0_wall…` (expired by
+    // its own terms when the Gen 1 minds landed) and, at the retirement,
+    // its "unreferenced 2.x blocks still refuse" half — those blocks are
+    // gone with their artifacts (policies/retired/, README rows). What
+    // remains to guard:
     // 1. every served seat names a policy, and registration opens every
     //    seated artifact through the schema gate (a missing artifact, a
     //    stale generation, or a blockless seat all fail here);
-    // 2. the UNREFERENCED [rl.policy.*] blocks -- the 2.x registry of
-    //    what WAS seated, never opened at boot -- still refuse at load,
-    //    naming the observation schema and both versions.
+    // 2. the config names exactly what it serves — every [rl.policy.*]
+    //    stanza is seated (retirement removes the stanza with the file),
+    //    and the policies/ top level holds exactly the stanza-named
+    //    files (the README's own top-level rule, machine-checked).
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
@@ -166,33 +167,38 @@ fn the_shipped_config_seats_the_gen1_minds_and_still_refuses_the_2_x_minds() {
         "one registered display per seated mind"
     );
     config.validate_behavior_names(&registry.names()).unwrap();
-    // Proof 2: the 2.x registry blocks stay, and stay unservable here.
-    let retired: Vec<_> = rl
-        .policy
-        .iter()
-        .filter(|(name, _)| !seated.contains(name.as_str()))
-        .collect();
-    assert!(
-        !retired.is_empty(),
-        "the 2.x registry blocks stay as the record of what was seated"
+    // Proof 2: the naming correspondences.
+    let stanza_names: std::collections::BTreeSet<&str> =
+        rl.policy.keys().map(|k| k.as_str()).collect();
+    assert_eq!(
+        stanza_names, seated,
+        "every [rl.policy.*] stanza is a seated mind and vice versa \
+         (a retired mind's stanza leaves with its artifact)"
     );
-    let expectations = cloudkitty_rl::behavior::PolicyBehavior::expectations(&rl);
-    for (name, policy) in retired {
-        let err = cloudkitty_rl::policy::PolicyArtifact::load(
-            std::path::Path::new(&policy.artifact),
-            &expectations,
-        )
-        .expect_err(&format!(
-            "[rl.policy.{name}]: a 2.x (schema-4) artifact must not cross the wall"
-        ));
-        let text = format!("{err}");
-        assert!(
-            text.contains("observation schema mismatch")
-                && text.contains("schema v4")
-                && text.contains("speaks v5"),
-            "[rl.policy.{name}]: the schema gate's own words -- found 4, expected 5: {text}"
-        );
-    }
+    let named_files: std::collections::BTreeSet<String> = rl
+        .policy
+        .values()
+        .map(|p| {
+            std::path::Path::new(&p.artifact)
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect();
+    let top_level: std::collections::BTreeSet<String> = std::fs::read_dir(repo.join("policies"))
+        .expect("policies/ is readable")
+        .filter_map(|e| {
+            let path = e.expect("dir entry").path();
+            (path.extension().and_then(|x| x.to_str()) == Some("ckpolicy"))
+                .then(|| path.file_name().unwrap().to_string_lossy().into_owned())
+        })
+        .collect();
+    assert_eq!(
+        top_level, named_files,
+        "policies/ top level holds exactly what the served config names \
+         (retired files live in policies/retired/)"
+    );
 }
 
 #[tokio::test]
