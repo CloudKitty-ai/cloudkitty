@@ -2176,12 +2176,32 @@ class Presentation {
    * The fall-asleep settle (US4): on the very tick sleep begins, the first
    * half of the tick still shows the loaf, so the curl reads as a
    * transition -- and later sleeping ticks hold the curl without replaying.
+   *
+   * A settle has to be EARNED (2026-09-16). "Sleep began this tick" is not
+   * the same as "this cat lay down": 27% of wakes last a single tick, and
+   * that tick is drawn `sleep-curl` because the engine's applied action is
+   * still `sleep` -- so the cat never visibly got up, and then played a
+   * lie-down it never stood up from. Reported from the meadow as
+   * sleep -> loaf -> sleep.
+   *
+   * It was there all along, hidden: until #376 an overrunning stretch
+   * covered that tick and ate the loaf every time. Making the stretch a
+   * coin flip uncovered it rather than caused it.
+   *
+   * `lastPose` is what the previous FRAME drew -- `tweenFor` records it,
+   * and drawKitty calls this first -- so it answers the only question that
+   * matters: was this cat already curled? A cat that was stretching, or
+   * standing, or walking has something to settle from. One that was
+   * already drawn curled has not. On the v1 path `tweenFor` never runs and
+   * the map stays empty, which reads as "not curled" and leaves v1 exactly
+   * as it was.
    */
   adjustPose(id, pose, now) {
     if (
       pose === 'sleep-curl' &&
       this.sleepingSince.get(id) === this.curr?.tick &&
-      this.progress(now) < 0.5
+      this.progress(now) < 0.5 &&
+      this.lastPose.get(id)?.pose !== 'sleep-curl'
     ) {
       return 'loaf';
     }

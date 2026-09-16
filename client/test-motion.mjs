@@ -749,6 +749,89 @@ check('a cat that wakes for one tick is never drawn stretching over a served sle
   }
 });
 
+/**
+ * One frame, composed the way `drawKitty` composes it -- adjustPose, then
+ * the idle overlay, then `tweenFor`. The last step is what records
+ * `lastPose`, and `adjustPose` reads it, so a check that skips tweenFor
+ * cannot see the settle rule at all: the map stays empty and every settle
+ * looks earned. Returns the pose actually drawn.
+ */
+function drawFrame(p, kit, now) {
+  const served = p.adjustPose(kit.id, poseFor(kit, false, false, null), now);
+  const own = p.idlePoseFor(kit.id, served, now);
+  const pose = own ? own.pose : served;
+  const motion = p.motionFor(kit.id, pose, now);
+  if (own && own.phase !== undefined) motion.phase = own.phase;
+  p.tweenFor(kit.id, pose, motion.phase, now);
+  return pose;
+}
+
+/** Drive a served sequence frame by frame and return every pose drawn. */
+function playOut(p, seq, base, step = 40) {
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  const rows = [];
+  for (let i = 0; i < seq.length; i++) {
+    p.pushState(at(i + 1, seq[i]), base + i * p.tickMs, p.tickMs,
+      i + 1 < seq.length ? at(i + 2, seq[i + 1]) : undefined);
+    for (let ms = 0; ms < p.tickMs; ms += step) {
+      const now = base + i * p.tickMs + ms;
+      rows.push({ t: i * p.tickMs + ms, tick: i + 1, drawn: drawFrame(p, seq[i], now) });
+    }
+  }
+  return rows;
+}
+
+const sleepRow = (state, action, extra = {}) => ({
+  ...kitty(1, 2, 2), activity: { state }, last_action: { action, ...extra },
+});
+
+check('a settle is EARNED: a cat that never got up does not lie down', () => {
+  // Reported from the deployed meadow 2026-09-16: sleep -> loaf -> sleep.
+  // 27% of wakes last one tick, and that tick draws `sleep-curl` because
+  // the applied action is still `sleep` -- so when the stretch is declined
+  // the cat is never drawn upright, and then plays a fall-asleep settle it
+  // never stood up from.
+  //
+  // Not caused by #376: an overrunning stretch used to cover that tick and
+  // eat the loaf every time. The coin flip uncovered it.
+  const SEQ = [
+    sleepRow('sleeping', 'sleep'), sleepRow('sleeping', 'sleep'),
+    sleepRow('idle', 'sleep'), // the one awake tick, drawn curled
+    sleepRow('sleeping', 'sleep'), sleepRow('sleeping', 'sleep'),
+  ];
+  let declined = null;
+  for (let base = 0; base < 60000; base += 97) {
+    const rows = playOut(new api.Presentation(), SEQ, base);
+    if (rows.some((r) => r.drawn === 'stretch')) continue; // want the DECLINED half
+    declined = rows;
+    break;
+  }
+  assert(declined, 'no wake in the search window declines its stretch');
+  assert(
+    declined.every((r) => r.drawn === 'sleep-curl'),
+    `a cat that never got up drew ${[...new Set(declined.map((r) => r.drawn))].join(', ')} -- it must stay curled`,
+  );
+});
+
+check('...but a cat that was actually up still settles when it lies down', () => {
+  // The kept half, and the reason the rule is `lastPose` rather than
+  // "never settle after sleep": a cat standing around and then napping is
+  // the ordinary case, and the loaf is what makes it read as lying down.
+  const SEQ = [
+    sleepRow('idle', 'idle'), sleepRow('idle', 'idle'),
+    sleepRow('sleeping', 'sleep'), sleepRow('sleeping', 'sleep'),
+  ];
+  const rows = playOut(new api.Presentation(), SEQ, 0);
+  const T = new api.Presentation().tickMs;
+  const settle = rows.filter((r) => r.drawn === 'loaf');
+  assert(settle.length > 0, 'a cat lying down from standing lost its settle');
+  assert(
+    settle.every((r) => r.t >= 2 * T && r.t < 2.5 * T),
+    `the settle drew at ${settle[0].t}..${settle.at(-1).t}ms -- it belongs to the first half of the tick sleep begins`,
+  );
+  assert(rows.at(-1).drawn === 'sleep-curl', 'the cat never reached the curl');
+});
+
 check('a cat lying back down after a stretch still plays its settle', () => {
   // Reported from the live meadow 2026-09-16: "sleep, stretch, sleep -- I
   // don't think a second lie-down played." It did not. `adjustPose` gives
@@ -761,30 +844,17 @@ check('a cat lying back down after a stretch still plays its settle', () => {
   // Two separate faults from one cause, and this pins the one you can see.
   // Composed the way drawKitty composes, or it would not be testing the
   // thing that broke.
-  const at = (tick, state) => ({
-    tick, width: 20, height: 20, elements: [],
-    kitties: [{ ...kitty(1, 2, 2), activity: { state } }],
-  });
-  const SEQ = ['sleeping', 'sleeping', 'idle', 'sleeping', 'sleeping'];
-  const run = (base) => {
-    const p = new api.Presentation();
-    const T = p.tickMs;
-    const rows = [];
-    for (let i = 0; i < SEQ.length; i++) {
-      p.pushState(at(i + 1, SEQ[i]), base + i * T, T, i + 1 < SEQ.length ? at(i + 2, SEQ[i + 1]) : undefined);
-      for (let ms = 0; ms < T; ms += 40) {
-        const now = base + i * T + ms;
-        const kit = { ...kitty(1, 2, 2), activity: { state: SEQ[i] } };
-        const served = p.adjustPose(1, poseFor(kit, false, false, null), now);
-        const own = p.idlePoseFor(1, served, now);
-        rows.push({ t: i * T + ms, drawn: own ? own.pose : served });
-      }
-    }
-    return rows;
-  };
+  // Driven through `playOut`, which calls `tweenFor` -- that is what records
+  // `lastPose`, and `adjustPose` reads it. Composed without tweenFor the map
+  // stays empty, every settle looks earned, and this passes vacuously.
+  //
+  // `last_action` stays `sleep` across the wake tick: measured 50 of 50, the
+  // engine never starts a scene on the tick a cat stops sleeping.
+  const SEQ = ['sleeping', 'sleeping', 'idle', 'sleeping', 'sleeping']
+    .map((state) => sleepRow(state, 'sleep'));
   let rows = null;
   for (let base = 0; base < 60000; base += 97) {
-    const r = run(base);
+    const r = playOut(new api.Presentation(), SEQ, base);
     if (r.some((x) => x.drawn === 'stretch')) { rows = r; break; }
   }
   assert(rows, 'no wake in the search window ends in a stretch');
