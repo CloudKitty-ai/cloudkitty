@@ -800,6 +800,59 @@ check('a cat lying back down after a stretch still plays its settle', () => {
   );
 });
 
+check('the stretch COMPLETES through the scene the engine assigns next', () => {
+  // Measured on the live socket 2026-09-16, 114 wakes: the tick AFTER a
+  // wake is a named scene or a step 96.5% of the time, and the abandon
+  // guard drops the stretch the moment the served pose stops being idle.
+  // With the window at (wake, wake+1) that tick was the stretch's SECOND
+  // half, so on main the stretch is cut off mid-reach 69.3% of the time,
+  // overruns a re-sleep 27.2%, and completes 3.5%. app.js has carried the
+  // note since 2026-08-10 -- "the stretch died at phase 0.49" -- and the
+  // card stopped consuming it rather than the meadow being fixed.
+  //
+  // Moved back a tick the window is (wake-1, wake), and the wake tick is
+  // measured at 50 of 50 to be idle / last_action sleep / unmoved -- the
+  // engine never starts a scene on the tick a cat stops sleeping. So both
+  // ticks are structurally safe and the stretch always finishes.
+  const row = (state, action, extra = {}) => ({
+    ...kitty(1, 2, 2), activity: { state }, last_action: { action, ...extra },
+  });
+  const SEQ = [
+    row('sleeping', 'sleep'), row('sleeping', 'sleep'),
+    row('idle', 'sleep'), // THE WAKE TICK, in its measured shape
+    row('grooming', 'groom', { target: 2 }), row('grooming', 'groom', { target: 2 }),
+  ];
+  const at = (tick, kit) => ({ tick, width: 20, height: 20, kitties: [kit], elements: [] });
+  const run = (base) => {
+    const p = new api.Presentation();
+    const T = p.tickMs;
+    const rows = [];
+    for (let i = 0; i < SEQ.length; i++) {
+      p.pushState(at(i + 1, SEQ[i]), base + i * T, T, i + 1 < SEQ.length ? at(i + 2, SEQ[i + 1]) : undefined);
+      for (let ms = 0; ms < T; ms += 40) {
+        const now = base + i * T + ms;
+        const served = p.adjustPose(1, poseFor(SEQ[i], false, false, null), now);
+        const own = p.idlePoseFor(1, served, now);
+        rows.push({ drawn: own ? own.pose : served, phase: own?.phase });
+      }
+    }
+    return rows;
+  };
+  let rows = null;
+  for (let base = 0; base < 60000; base += 97) {
+    const r = run(base);
+    if (r.some((x) => x.drawn === 'stretch')) { rows = r; break; }
+  }
+  assert(rows, 'no wake in the search window ends in a stretch');
+  const reached = Math.max(...rows.filter((r) => r.drawn === 'stretch').map((r) => r.phase));
+  assert(
+    reached > 0.9,
+    `the stretch was cut off at phase ${reached.toFixed(2)} -- it must finish before the engine's next scene draws`,
+  );
+  // ...and the scene the engine assigned still draws straight after it.
+  assert(rows.at(-1).drawn === 'grooming-other', 'the assigned scene never took over');
+});
+
 check('about VIEW.stretchChance of wakes end in a stretch, and cats decide separately', () => {
   // The rate IS the dial. Dropped, the share would be 1; keyed on anything
   // constant, 0 or 1. Driven through pushState rather than by asking the

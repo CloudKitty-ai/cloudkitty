@@ -1560,12 +1560,24 @@ class Presentation {
       // it is drawn, so the stretch spans the last sleeping tick and the
       // waking one rather than the waking tick and whatever follows it.
       //
-      // That is the whole fix for a cat that wakes and lies straight back
-      // down. Measured live: 4.1% of wakes are a single tick long, and a
-      // two-tick stretch starting at the wake outlived them -- the cat was
-      // drawn stretching over a served `sleeping` for 800ms. Started a tick
-      // earlier the stretch ENDS exactly as the next state lands, whatever
-      // that state says, because a wake is awake by definition.
+      // Measured off the SOCKET, 114 wakes (2026-09-16), by what the tick
+      // after each wake actually served. With the window at (wake, wake+1)
+      // the stretch was cut off mid-reach 69.3% of the time, kept drawing
+      // over a cat that had gone back to sleep 27.2%, and completed 3.5%.
+      // app.js has carried "the stretch died at phase 0.49" since
+      // 2026-08-10; the card stopped consuming it rather than this being
+      // fixed.
+      //
+      // Started a tick earlier the window is (wake-1, wake), and the wake
+      // tick is 50 of 50 measured as idle / last_action sleep / unmoved --
+      // the engine never starts a scene on the tick a cat stops sleeping.
+      // Both ticks are structurally safe, so the stretch always finishes
+      // and it ends exactly as the next state lands, whatever that says.
+      //
+      // (An earlier read of this off `/events/activity` said 4.1%. That
+      // endpoint's scene boundaries do not line up tick-for-tick with what
+      // pushState sees; the socket is the instrument that observes exactly
+      // the states this code is handed.)
       //
       // This is not the client predicting the world, which it never does.
       // The state has been served and is sitting in `Pacer.queue`; all that

@@ -49,12 +49,19 @@ change.
   find a wake the cat takes, by asking the pipeline rather than copying
   the rule. Presentation only. (#376)
 
-- **A cat that woke and lay straight back down kept stretching.** Found
-  while measuring the above: 4.1% of wakes last a single tick — the cat
-  is up for 800ms and asleep again — and a stretch is two ticks, so it
-  ran 800ms past the wake and was drawn over a served `sleeping`. The fix
-  is to start the stretch a tick *earlier* rather than cut it short, and
-  that turns out to be possible without the client predicting anything.
+- **The waking stretch had never once worked, and nobody could see it.**
+  Reported from the meadow as a cat that slept, stretched and slept again
+  with no lie-down in between. Measured off the socket — 114 wakes, each
+  classified by the pose the next tick actually served — the two-tick
+  stretch was cut off mid-reach **69.3%** of the time, kept drawing over a
+  cat that had gone back to sleep **27.2%**, and completed **3.5%**. Its
+  window was (wake, wake+1), and the tick after a wake is a named scene or
+  a step 96.5% of the time, so the abandon guard fired inside the stretch
+  rather than before it. `app.js` has carried the note since 2026-08-10 —
+  "the stretch died at phase 0.49" — and the card stopped consuming the
+  world's wake-stretch rather than the meadow being fixed. The fix is to
+  start the stretch a tick *earlier* rather than cut it short, and that
+  turns out to be possible without the client predicting anything.
   The pacer holds a buffer — that is what the delay line is *for* — so by
   the time the last sleeping tick is promoted, the wake has usually
   already been served and is sitting in the queue. `promote` hands the
