@@ -50,12 +50,16 @@ Work to date, all documented in this repository:
 - **Skill formation and transmission.** Some capabilities never emerge
   from reward alone; prey pursuit is one. These are studied through
   demonstration corpora and generation-over-generation policy lineages.
+- **Grounded language under partial observability.** The served world
+  runs under fog: each cat sees a small disc of the meadow, hears every
+  meow, and may speak a want-word only for its most pressing need, and
+  only while it knows no relief. The first generation of minds trained
+  under fog holds every seat.
 
-Next: partial observability and what it does to grounded language;
-hidden internal state and what agents can infer about each other;
+Next: hidden internal state and what agents can infer about each other;
 vocabularies whose meanings the cats assign themselves; detecting
 behavioral collapse in long-running multi-agent systems; and
-language-model agents through the existing plugin door.
+language-model agents through the plugin door's remote transport.
 
 The lab notebook is [experiments/](experiments/): preregistrations,
 manifests, and the findings register, governed separately from the
@@ -168,8 +172,8 @@ client/                     the viewer: vanilla JS on a canvas, no build step �
                             vector cats, props, and meadow; gallery.html is the standalone
                             art-approval page (opens from file://, no server needed)
 evals/v3/                   the exam room: frozen, hash-pinned held-out worlds at the
-                            served roster (spec 051); evals/v1/ and evals/v2/ are records —
-                            v1 excluded from the sweeps, v2 still loads in them
+                            roster of their cut (spec 051); evals/v1/ and evals/v2/ are
+                            records — v1 excluded from the sweeps, v2 still loads in them
 policies/                   deployed minds: every .ckpolicy artifact the served world
                             runs, committed byte-identical and hash-pinned to its
                             certification record in policies/README.md
@@ -246,13 +250,27 @@ name = "Biscuit"
 behavior = "professor_whiskers"
 ```
 
+The same behavior can live behind an HTTP endpoint instead of a local process:
+declare a `url` in place of the `command` and the server sends each decision as
+one POST carrying the same request JSON, expecting the same reply line back.
+Remote entries also declare a `class`, since nobody can read the code on the
+other end: `"scripted"` for a rule a person wrote, `"mind"` for a trained
+policy or a language model.
+
+```toml
+[plugins.remote_advisor]
+url = "http://127.0.0.1:9090/decide"
+class = "mind"
+```
+
 The failure ladder is Article IV made concrete: a malformed answer falls back, an
-illegal one idles, a desync or timeout restarts the process, and a crash relaunches
-it on a cooldown. A cat advised by a crashing script is a slightly less clever cat,
-and nothing else. The full contract (wire format, resync rules, startup checks, and
+illegal one idles, a desync or timeout restarts the process (for a remote entry,
+tears down the connection), and a crash relaunches it on a cooldown. A cat advised
+by a crashing script is a slightly less clever cat, and nothing else. The full
+contract (wire format for both transports, resync rules, startup checks, and
 every accepted and rejected example, each one enforced by a test) is in
-[docs/plugins.md](docs/plugins.md). It is also the door a language model would walk
-through.
+[docs/plugins.md](docs/plugins.md). The remote transport is the door a language
+model walks through.
 
 Or skip the writing and train one; see *Training a mind* below.
 
@@ -284,10 +302,11 @@ artifact = "policies/trained.ckpolicy"
 
 The server validates and hash-logs the artifact before the first tick, and the engine
 treats the policy like any other behavior: proposals only, validated, budgeted,
-benched if it misbehaves. None of this is hypothetical. **All four of the served
-world's kitties run a trained policy** — the same certified artifact on every seat
-since 2026-08-09 — and the hand-written cats' remaining job is teaching, as
-demonstrators in the training datasets. [policies/README.md](policies/README.md) is
+benched if it misbehaves. None of this is hypothetical. **All five of the served
+world's kitties run trained policies**: five distinct networks, trained and
+certified under fog, seated together at the 0.3.0 cutover. The hand-written cats'
+remaining job is teaching, as demonstrators in the training datasets.
+[policies/README.md](policies/README.md) is
 the registry; every deployed artifact is hash-pinned to its certification record.
 
 Start with the HOWTO, [docs/howto-rl.md](docs/howto-rl.md), a verified
