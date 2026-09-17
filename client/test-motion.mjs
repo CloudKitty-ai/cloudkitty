@@ -3506,6 +3506,205 @@ function meowWorld(tick, { pos = { x: 5, y: 5 }, action, meow, meowTick } = {}) 
   };
 }
 
+/** A world of `n` cats at distinct tiles, plus whatever meows are handed in. */
+function bubbleWorld(tick, meows, n = 3) {
+  return {
+    tick, width: 20, height: 20, elements: [],
+    kitties: Array.from({ length: n }, (_, i) => ({
+      id: i + 1, name: `K${i + 1}`, pos: { x: 2 + i * 3, y: 5 }, needs: {}, happiness: 90,
+    })),
+    recent_meows: meows,
+  };
+}
+
+// `drawBubbles` reaches PURR, which lives in props.js and is NOT in the shared
+// render eval -- so until 2026-09-16 this method was not reachable from the
+// harness at all and nothing about speech bubbles was checked. Its own scope,
+// rather than widening the shared one under 340 existing checks.
+const bubbleScope = eval(
+  readFileSync(join(here, 'props.js'), 'utf8') + '\n' + renderSrc
+    + ';({ WorldRenderer, MEOW_TEXT })',
+);
+
+/**
+ * The bubbles `drawBubbles` would draw, as [id, text] pairs. `poses` is what
+ * `drawKitty` left in `drawnPose` this frame -- the bubble gates on the pose
+ * the cat was ACTUALLY drawn as. Defaults every cat to `idle`, which is in
+ * the gate, so a check that is not about the gate does not have to say so.
+ */
+function bubblesFor(world, poses = null, stub = null) {
+  const said = [];
+  const r = stub ?? {};
+  r.drawnPose = new Map(
+    world.kitties.map((k) => [k.id, poses ? (poses[k.id] ?? 'idle') : 'idle']),
+  );
+  r.drawBubble = (kitty, text) => said.push([kitty.id, text]);
+  bubbleScope.WorldRenderer.prototype.drawBubbles.call(r, world, {});
+  return said;
+}
+
+check('an unprompted here-word gets no bubble; a REPLY does', () => {
+  // Owner, 2026-09-16. Here-words are 56% of everything said on the 0.3.0
+  // roster and an announcement nobody asked for is a cat narrating the map.
+  // A reply is the exchange the fog generation was bred for -- one cat asks,
+  // a friend answers -- so it keeps its bubble.
+  const said = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false },
+    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true },
+    { kitty_id: 3, kind: 'want_eat', tick: 9 },
+  ]));
+  const ids = said.map(([id]) => id).sort();
+  assert(
+    JSON.stringify(ids) === JSON.stringify([2, 3]),
+    `drew bubbles for ${JSON.stringify(said)} -- the announcement must be silent, the reply and the ask must not`,
+  );
+
+  // A want is never a reply on the served world, and must not be caught by
+  // the rule anyway: the test above would pass if the filter keyed on
+  // `reply` alone rather than on `reply` AND the here- prefix.
+  const wants = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false },
+  ]));
+  assert(wants.length === 1, 'an ask must keep its bubble whatever its reply flag says');
+
+  // A server that does not serve the flag draws no here bubbles -- loud,
+  // rather than silently half-working. Documented at the filter.
+  const absent = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'here_water', tick: 9 }]));
+  assert(absent.length === 0, 'a here-word with no reply flag must not be taken for a reply');
+});
+
+check('drawKitty records the drawn pose, or every cat falls silent', () => {
+  // The inert mode here is SILENCE, which reads as a working build: with no
+  // `drawnPose` the gate rejects every bubble and nobody says anything.
+  // Nothing about drawBubbles on its own could catch that, so this runs the
+  // real drawKitty and then the real drawBubbles on the same renderer.
+  const ctx = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'canvas') return { width: 900, height: 900 };
+      if (k === 'measureText') return () => ({ width: 10 });
+      return () => ctx;
+    },
+    set: () => true,
+  });
+  const said = [];
+  const stub = {
+    ctx, tile: 100, theme: 'day', pondCache: null,
+    tileOrigin: (p) => ({ x: p.x * 100, y: p.y * 100 }),
+    drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+    drawBubble: (kitty, text) => said.push([kitty.id, text]),
+  };
+  const pos = { x: 3, y: 3 };
+  const kitty = { id: 1, name: 'K', pos, activity: { state: 'idle' }, last_action: null, needs: {} };
+  const world = {
+    width: 12, height: 12, tick: 10, elements: [], kitties: [kitty],
+    recent_meows: [{ kitty_id: 1, kind: 'want_eat', tick: 9 }],
+  };
+  const view = new Proxy({
+    posFor: () => pos, elementPosFor: (e) => e.pos, elementAlphaFor: () => 1,
+    tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now: 1000 },
+    travelHFor: () => 1, wetFor: () => 0, movedFor: () => false,
+    motionFor: () => ({ phase: 0.2 }), facingFor: () => 'right',
+    velocityFor: () => ({ x: 0, y: 0 }), leanFor: () => null,
+    leapFor: () => null, tweenFor: () => null,
+    adjustPose: (id, p) => p, idlePoseFor: () => null,
+  }, { get: (t, k) => (k in t ? t[k] : () => null) });
+  const hadMeadow = 'MEADOW' in globalThis;
+  const savedMeadow = globalThis.MEADOW;
+  globalThis.MEADOW = new Proxy({}, {
+    get: (t, k) => (String(k).startsWith('shadow') && k !== 'shadowColor' ? 0 : '#000'),
+  });
+  try {
+    bubbleScope.WorldRenderer.prototype.drawKitty.call(stub, kitty, world, view);
+    bubbleScope.WorldRenderer.prototype.drawBubbles.call(stub, world, {});
+  } finally {
+    if (hadMeadow) globalThis.MEADOW = savedMeadow; else delete globalThis.MEADOW;
+  }
+  assert(
+    stub.drawnPose instanceof Map && stub.drawnPose.get(1) === 'idle',
+    'drawKitty no longer records the pose it drew -- the bubble gate has nothing to read',
+  );
+  assert(
+    said.length === 1 && said[0][1] === bubbleScope.MEOW_TEXT.want_eat,
+    `an idle cat's ask drew ${JSON.stringify(said)} -- the two passes are no longer wired together`,
+  );
+});
+
+check('a bubble only appears where the MOUTH CAN MOVE', () => {
+  // Owner, 2026-09-16. Text over a cat that is asleep, eating or mid-groom is
+  // the client asserting speech it cannot show -- the objection that demoted
+  // the purr. `VIEW.meowPoses` is the set with a gape animation, and the
+  // bubble now gates on the pose the cat was actually DRAWN as.
+  const meows = [1, 2, 3].map((id) => ({ kitty_id: id, kind: 'want_cuddle', tick: 9 }));
+  const said = bubblesFor(bubbleWorld(10, meows), { 1: 'idle', 2: 'sleep-curl', 3: 'grooming' });
+  assert(
+    JSON.stringify(said.map(([id]) => id)) === JSON.stringify([1]),
+    `drew ${JSON.stringify(said)} -- only the cat whose mouth can move may speak`,
+  );
+
+  // Every pose in the shipped gate must carry a bubble, read from VIEW rather
+  // than restated: the gate has grown twice (pouncing 2026-08-25, loaf
+  // 2026-08-27) and a copy here would have gone stale both times.
+  for (const pose of api.VIEW.meowPoses) {
+    const one = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), { 1: pose });
+    assert(one.length === 1, `${pose} is in VIEW.meowPoses but drew no bubble`);
+  }
+});
+
+check('the cooldown is NOT borrowed for the bubble', () => {
+  // `meowCooldownMs` stops an 800ms gape re-triggering on top of itself. That
+  // is an animation constraint, and applying it to text flattens the roster's
+  // chattiness to within 1.26x -- measured 2026-09-16, gate alone leaves
+  // Biscuit at 31% of its ticks against Miso's 19%, gate plus cooldown puts
+  // every cat at 11-14%. The owner keeps the variation: it is character.
+  //
+  // So two calls closer together than the cooldown must both be drawable.
+  //
+  // ONE renderer across both frames, or a per-renderer rate limit has nothing
+  // to remember and this passes whatever the code does. It did exactly that
+  // on the first cut, and `mutate.sh` called it vacuous.
+  const one = {};
+  const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), null, one);
+  const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1), null, one);
+  assert(1 * 800 < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
+  assert(early.length === 1, 'the first call must draw');
+  assert(late.length === 1,
+    'a second call one tick later must draw too -- the bubble does not share the gape cooldown');
+});
+
+check('a suppressed announcement does not mask the bubble underneath it', () => {
+  // `said` keeps ONE meow per cat and the newest wins, so a filter that ran
+  // after the pick would let an announcement swallow the ask it arrived on
+  // top of -- the cat would fall silent rather than say the thing worth
+  // saying. Filtering before the pick is what makes this pass.
+  const said = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'want_drink', tick: 8 },
+    { kitty_id: 1, kind: 'here_water', tick: 9, reply: false },
+  ]));
+  assert(
+    said.length === 1 && said[0][1] === bubbleScope.MEOW_TEXT.want_drink,
+    `drew ${JSON.stringify(said)} -- the ask underneath must survive the announcement`,
+  );
+});
+
+check('the GAPE is untouched: an announcement still opens the mouth', () => {
+  // The whole point of the cut. The two run on different paths -- `meowFor`
+  // gates the mouth on pose and a per-cat cooldown, `drawBubbles` reads
+  // recent_meows direct -- and only the second one was changed.
+  const p = new api.Presentation();
+  const w = (tick, meows) => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ id: 1, name: 'K', pos: { x: 5, y: 5 }, needs: {} }],
+    recent_meows: meows,
+  });
+  p.pushState(w(1, []), 1000);
+  p.pushState(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }]), 1800);
+  const at = p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle');
+  assert(at && at.kind === 'here_food', 'an announcement must still be mouthed');
+  assert(at.gape > 0.99, 'and open fully -- the cut is the bubble, not the call');
+  assert(bubblesFor(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }])).length === 0,
+    '...while drawing no bubble, which is the whole point');
+});
+
 check('a drawn call is a SERVED call: the client never invents one', () => {
   // Tied to the engine's message channel and nothing else. Spec 028 took the
   // meow off the activity menu, so this rides alongside whatever the cat did
