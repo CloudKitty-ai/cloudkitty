@@ -61,7 +61,7 @@ change.
   with each step is gone too — `pump` runs inside the animation frame and
   the live draw follows it there, so that repaint painted a still frame
   nothing ever composited, at the price of a whole extra scene draw every
-  tick through a crossing. Presentation only. (#PR)
+  tick through a crossing. Presentation only. (#388)
 
 - **Every so often, all five cats would meow at once — at nothing.** The
   client remembers which served meows it has already drawn, so a call in
