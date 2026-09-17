@@ -33,6 +33,25 @@ change.
 
 ## Unreleased
 
+- **Every so often, all five cats would meow at once — at nothing.** The
+  client remembers which served meows it has already drawn, so a call in
+  the rolling window is animated once rather than on every poll. That
+  memory was bounded by *count*: at 4,000 entries it emptied itself
+  completely. A total wipe throws away the newest keys along with the
+  oldest, and the newest are exactly the ones still being served — so the
+  next state treated every meow still in the window as unseen, and the
+  mouths replayed. The whole roster, in unison, for calls up to 24 seconds
+  old. It is bounded by **age** now: a meow can only be served while it is
+  inside the engine's digest window, so once it is older than that it can
+  never come back and the client may forget it. That window is served
+  (`meow.digest_window_ticks`) and is now read rather than assumed, like
+  the tick interval and the distress patience before it. The line had been
+  there for a year without anyone seeing it, because a count threshold
+  means the *interval* between wipes is set by how talkative the world is
+  rather than by anything in the code — every 11 hours on the old roster,
+  every 50 minutes once the fog generation seated and began speaking 13.6×
+  more. Presentation only. (#PR)
+
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
   events in twenty-five minutes against 147 — and `here_*` announcements
