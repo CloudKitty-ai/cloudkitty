@@ -123,6 +123,44 @@ The reading band applies to the amended read (`--control speaker
 The positive control (want_cuddle visible proposal ratio above 1.25)
 must hold on the amended read too.
 
+## Question 2 (owner, 2026-09-17): are mews and chirps clustered?
+
+"When I see one, it seems more likely than chance that other cats will
+echo." Two claims, read apart. Declared before `cluster_read.py` runs.
+
+Clustering (marginal): for word sets {mew}, {chirp}, {mew, chirp},
+{purr}, the number of pairs (emission by S at t, emission by another
+cat within lag ≤ k ticks after it), k = 1, 3, 10, on the lab trace,
+against two nulls of 200 draws each:
+
+- Null A, independent timing: each cat's emission series is
+  circularly shifted by a random offset within its seed. Keeps every
+  cat's own rate and cooldown rhythm, breaks cross-cat alignment.
+  Ratio above 1 = the words cluster in time beyond chance.
+- Null B, shared state: each cat's emissions are re-drawn among that
+  cat's ticks of the same activity class (rest, sleep, idle, ...),
+  keeping the count per class. Keeps "settled cats say settled words
+  at the same time", breaks the fine timing. A ratio above 1 that
+  survives null B is timing beyond shared state, the echo claim; a
+  ratio that falls to 1 under null B is cats settling together.
+
+Space: for the coincident pairs at lag ≤ 10, the Manhattan distance
+between the two cats at the second emission, against the same distance
+for the null-A pairs.
+
+Live confirmation: `results-raw/live_meows_poll.py` polls the served
+`recent_meows` ring every 8 s for 45 min (the ring holds about 30
+ticks, so 10-tick polling loses nothing); the marginal read (null A)
+repeats on it, with the kitties' states from the same polls for null B.
+
+Prediction: null A ratio above 1 at every lag on the lab trace (the
+words are settled-state words and cats settle in pairs and triads, the
+dispersion read's 3+2 shapes); most of it gone under null B; the
+coincident pairs closer than null pairs. Consistent with the echo
+ratios of the uptake read (0.92–1.13), i.e. clustering without echo.
+A null-B ratio above 1.25 on mew or chirp refutes the prediction and
+is the echo the owner sees. Report-only.
+
 ## Instrument guards
 
 `test_free_register_read.py`: plain-python asserts on synthetic rows
