@@ -34,7 +34,7 @@ const appNum = (name) => {
 const api = eval(
   animSrc +
     ';({ VIEW, Presentation, Pacer, easeSmooth, slowBlinkLid, idleHash, idlePeriodFor,' +
-    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc, meowGape, yawnGape })',
+    ' idlePickFor, idleOffsetFor, IDLE_SALTS, anim, nearestAdjacentOf, Camera, clampFrame, leapArc, meowGape, yawnGape, pairedAsksFor, meowIsSpoken, meowKey, WANT_FOR_HERE, HERE_FOR_WANT })',
 );
 
 /**
@@ -79,6 +79,11 @@ const SHIPPED_BLOCKS = Object.fromEntries(
 // the SAME object anim.js built, so a re-dialled tunable cannot diverge
 // between what the harness tests and what the page draws.
 const VIEW = api.VIEW;
+// render.js reads these four from anim.js at call time, the same way it reads
+// `VIEW`. The `bubbleScope` eval below is a DIRECT eval, so it resolves free
+// identifiers against this module scope -- which is the only reason binding
+// them here makes `drawBubbles` runnable without anim.js in its scope.
+const { pairedAsksFor, meowIsSpoken, meowKey, WANT_FOR_HERE, HERE_FOR_WANT } = api;
 const {
   poseFor, ACTION_POSE, WorldRenderer, waterlineFor, chaseDistanceFor, submersionFor, surfaceForPose, kittyBoxFor,
   swimAxialAllows, gazeTargetFor, MEOW_TEXT, SOUND_WORDS, pursuitDistanceFor, WATER_SAMPLE,
@@ -3535,7 +3540,7 @@ const bubbleScope = eval(
 function bubblesFor(world, poses = null, stub = null) {
   const said = [];
   // Built ON the prototype, not as a bare object: `drawBubbles` calls
-  // sibling methods (`pairedAsks`, `inViewport`) and a plain stub would
+  // a sibling method (`inViewport`) and a plain stub would
   // make those look like the feature being absent rather than the harness.
   const r = stub ?? Object.create(bubbleScope.WorldRenderer.prototype);
   r.drawnPose = new Map(
@@ -3554,34 +3559,62 @@ function bubblesFor(world, poses = null, stub = null) {
   return said;
 }
 
-check('an unprompted here-word gets no bubble; a REPLY does', () => {
-  // Owner, 2026-09-16. Here-words are 56% of everything said on the 0.3.0
-  // roster and an announcement nobody asked for is a cat narrating the map.
-  // A reply is the exchange the fog generation was bred for -- one cat asks,
-  // a friend answers -- so it keeps its bubble.
+check('a here-word earns its bubble by ANSWERING something', () => {
+  // Owner, 2026-09-17. Nothing else about a here-word is worth reading:
+  // "Here food!" unprompted is a cat narrating the map; the same words
+  // answering "I want to eat!" are a friend helping.
+  //
+  // This replaces the earlier `reply !== true` cut, which used the engine's
+  // stamp as a proxy for "was prompted". That stamp is EXISTENTIAL over the
+  // 30-tick digest window and the engine's own docs say an ambient here
+  // landing while a want is audible is stamped too -- measured, only 18% of
+  // stamped replies answered an ask inside the display window.
   const said = bubblesFor(bubbleWorld(10, [
-    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false },
-    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true },
-    { kitty_id: 3, kind: 'want_eat', tick: 9 },
-  ]));
-  const ids = said.map(([id]) => id).sort();
+    { kitty_id: 3, kind: 'want_eat', tick: 8, pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true, pos: { x: 3, y: 2 } },
+    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false, pos: { x: 3, y: 3 } },
+  ], 3)).map(([id]) => id).sort();
   assert(
-    JSON.stringify(ids) === JSON.stringify([2, 3]),
-    `drew bubbles for ${JSON.stringify(said)} -- the announcement must be silent, the reply and the ask must not`,
+    JSON.stringify(said) === JSON.stringify([2, 3]),
+    `drew ${JSON.stringify(said)} -- the ask and the here-word that answers it, and nothing else`,
   );
 
-  // A want is never a reply on the served world, and must not be caught by
-  // the rule anyway: the test above would pass if the filter keyed on
-  // `reply` alone rather than on `reply` AND the here- prefix.
+  // An ask keeps its bubble whatever its reply flag says: the rule is about
+  // here-words, and this would pass on a filter that keyed on `reply` alone.
   const wants = bubblesFor(bubbleWorld(10, [
-    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false },
-  ]));
+    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false, pos: { x: 2, y: 2 } },
+  ], 1));
   assert(wants.length === 1, 'an ask must keep its bubble whatever its reply flag says');
+});
 
-  // A server that does not serve the flag draws no here bubbles -- loud,
-  // rather than silently half-working. Documented at the filter.
-  const absent = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'here_water', tick: 9 }]));
-  assert(absent.length === 0, 'a here-word with no reply flag must not be taken for a reply');
+check('a here-word that answers nothing is silent', () => {
+  // The inverse, and the whole point: a reply with no ask in the window is
+  // an announcement however the engine stamped it. 62% of stamped replies
+  // are these, and they were the bulk of what reached the screen.
+  const lone = bubblesFor(bubbleWorld(11, [
+    { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } },
+  ], 2));
+  assert(lone.length === 0,
+    `drew ${JSON.stringify(lone)} -- a here-word answering nothing is a cat narrating the map`);
+
+  // ...and one whose ask is stale is equally silent: the window is the test.
+  const W = api.VIEW.meowPairWindowTicks;
+  const stale = bubblesFor(bubbleWorld(40, [
+    { kitty_id: 1, kind: 'want_eat', tick: 39 - (W + 1), pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 39, reply: true, pos: { x: 3, y: 2 } },
+  ], 2)).map(([id]) => id);
+  assert(!stale.includes(2),
+    `an ask ${W + 1} ticks back still bought a bubble -- the window is ${W}`);
+
+  // But an ask whose only answer is FAR AWAY still shows it. There is no
+  // distance cap: visibility is the test for that (owner), and the rescue
+  // already requires both cats in frame.
+  const far = bubblesFor(bubbleWorld(11, [
+    { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } },
+  ], 2)).map(([id]) => id).sort();
+  assert(JSON.stringify(far) === JSON.stringify([1, 2]),
+    `drew ${JSON.stringify(far)} -- there is no distance cap`);
 });
 
 check('drawKitty records the drawn pose, or every cat falls silent', () => {
@@ -3598,12 +3631,14 @@ check('drawKitty records the drawn pose, or every cat falls silent', () => {
     set: () => true,
   });
   const said = [];
-  const stub = {
+  // On the prototype: `drawBubbles` calls sibling methods, and a bare object
+  // makes those look like the feature being absent rather than the harness.
+  const stub = Object.assign(Object.create(bubbleScope.WorldRenderer.prototype), {
     ctx, tile: 100, theme: 'day', pondCache: null,
     tileOrigin: (p) => ({ x: p.x * 100, y: p.y * 100 }),
     drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
     drawBubble: (kitty, text) => said.push([kitty.id, text]),
-  };
+  });
   const pos = { x: 3, y: 3 };
   const kitty = { id: 1, name: 'K', pos, activity: { state: 'idle' }, last_action: null, needs: {} };
   const world = {
@@ -3715,6 +3750,38 @@ check('...but only when the ask was actually drawn, and both cats are in frame',
     'a reply was rescued with its asker off screen -- there is no exchange for the viewer to read');
 });
 
+check('one ask draws ONE reply: the nearest cat answers', () => {
+  // Reported from the live meadow 2026-09-17: a flurry of answers to a single
+  // want. The world really does have several cats reply -- measured, 54% of
+  // answered asks put two or more bubbles on screen together, up to four --
+  // and every one of them is true. None of them is legible.
+  //
+  // The owner's call: keep the nearest. Distance is Chebyshev between the two
+  // meows' OWN stamped positions, which the engine sets to where the cat was
+  // when it spoke, so it is a served fact rather than an inference.
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } };
+  const near = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } };
+  const far = { kitty_id: 3, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } };
+  const world = bubbleWorld(11, [ask, near, far], 3);
+  const said = bubblesFor(world, null, r).map(([id]) => id).sort();
+  assert(
+    JSON.stringify(said) === JSON.stringify([1, 2]),
+    `drew ${JSON.stringify(said)} -- the ask and the NEAREST reply, not the one across the meadow`,
+  );
+
+  // The far cat is not silenced everywhere: answering a DIFFERENT ask earns
+  // its bubble back. Being chosen anywhere is what counts.
+  const r2 = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask2 = { kitty_id: 4, kind: 'want_eat', tick: 9, pos: { x: 18, y: 2 } };
+  const both = bubblesFor(bubbleWorld(11, [ask, ask2, near, far], 4), null, r2)
+    .map(([id]) => id).sort();
+  assert(
+    both.includes(3),
+    `drew ${JSON.stringify(both)} -- cat 3 is the nearest answer to the second ask and must keep its bubble`,
+  );
+});
+
 check('the pairing is ONE TO ONE, inside the ruled window', () => {
   // The engine's answers-me relation is many-to-one: a want sitting in the
   // 30-tick digest window is "answered" by every matching here-word that
@@ -3728,12 +3795,12 @@ check('the pairing is ONE TO ONE, inside the ruled window', () => {
     { kitty_id: 3, kind: 'here_food', tick: 19, reply: true },
     { kitty_id: 4, kind: 'here_food', tick: 19, reply: true },
   ], 4);
-  const map = bubbleScope.WorldRenderer.prototype.pairedAsks.call(r, world);
+  const { map } = pairedAsksFor(world);
   const claimed = [...map.values()].map((a) => `${a.kitty_id}:${a.tick}`);
   assert(claimed.length === 1,
     `${claimed.length} replies claimed the one ask -- the pairing is not 1:1 (${JSON.stringify(claimed)})`);
   assert(map.has('3:19:here_food'),
-    'the tie did not fall to the lower kitty id, which is the engine\'s own freshest_audible key');
+    'the equal-distance tie did not fall to the lower kitty id');
 
   // ...and the window's edge, pinned on BOTH sides so an off-by-one in
   // either direction is caught. A gap of exactly W is inside it.
@@ -3742,8 +3809,7 @@ check('the pairing is ONE TO ONE, inside the ruled window', () => {
       { kitty_id: 1, kind: 'want_eat', tick: 39 - gap },
       { kitty_id: 2, kind: 'here_food', tick: 39, reply: true },
     ], 2);
-    return bubbleScope.WorldRenderer.prototype.pairedAsks.call(
-      Object.create(bubbleScope.WorldRenderer.prototype), w).size;
+    return pairedAsksFor(w).map.size;
   };
   assert(atGap(W) === 1, `an ask exactly ${W} ticks back did not pair -- the window is ${W}, inclusive`);
   assert(atGap(W + 1) === 0, `an ask ${W + 1} ticks back paired -- the window is ${W}`);
@@ -3756,7 +3822,7 @@ check('every here-word the client can draw knows which ask it answers', () => {
   // client actually renders.
   const heres = Object.keys(bubbleScope.MEOW_TEXT).filter((k) => k.startsWith('here_'));
   assert(heres.length > 0, 'no here-words in MEOW_TEXT -- this check is testing nothing');
-  const src = renderSrc.slice(renderSrc.indexOf('const WANT_FOR_HERE'));
+  const src = animSrc.slice(animSrc.indexOf('const WANT_FOR_HERE'));
   const table = src.slice(0, src.indexOf('};'));
   for (const kind of heres) {
     assert(new RegExp(`\\b${kind}:`).test(table),
@@ -3776,7 +3842,7 @@ check('the cooldown is NOT borrowed for the bubble', () => {
   // ONE renderer across both frames, or a per-renderer rate limit has nothing
   // to remember and this passes whatever the code does. It did exactly that
   // on the first cut, and `mutate.sh` called it vacuous.
-  const one = {};
+  const one = Object.create(bubbleScope.WorldRenderer.prototype);
   const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), null, one);
   const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1), null, one);
   assert(1 * 800 < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
@@ -3800,23 +3866,96 @@ check('a suppressed announcement does not mask the bubble underneath it', () => 
   );
 });
 
-check('the GAPE is untouched: an announcement still opens the mouth', () => {
-  // The whole point of the cut. The two run on different paths -- `meowFor`
-  // gates the mouth on pose and a per-cat cooldown, `drawBubbles` reads
-  // recent_meows direct -- and only the second one was changed.
-  const p = new api.Presentation();
-  const w = (tick, meows) => ({
+/** A Presentation that has been served `meows` at tick 2, and the world it
+ * saw -- so the mouth and the bubble can be asked about the SAME world. */
+function spokenWorld(meows, cats = [[1, 5], [2, 6]]) {
+  // The roster is FIXED across the pushes. A cat appearing between two states
+  // is a discontinuity, and a discontinuous Presentation draws no meow at all
+  // -- which would make any check here pass for a reason that is not the one
+  // it names. (It did exactly that on the first cut.)
+  const w = (tick, ms) => ({
     tick, width: 20, height: 20, elements: [],
-    kitties: [{ id: 1, name: 'K', pos: { x: 5, y: 5 }, needs: {} }],
-    recent_meows: meows,
+    kitties: cats.map(([id, x]) => ({ id, name: `K${id}`, pos: { x, y: 5 }, needs: {} })),
+    recent_meows: ms,
   });
+  const p = new api.Presentation();
   p.pushState(w(1, []), 1000);
-  p.pushState(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }]), 1800);
-  const at = p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle');
-  assert(at && at.kind === 'here_food', 'an announcement must still be mouthed');
-  assert(at.gape > 0.99, 'and open fully -- the cut is the bubble, not the call');
-  assert(bubblesFor(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }])).length === 0,
-    '...while drawing no bubble, which is the whole point');
+  p.pushState(w(2, meows), 1800);
+  assert(!p.discontinuous, 'the rig made a discontinuous Presentation -- nothing below would draw');
+  return { p, world: w(2, meows), w };
+}
+
+check('the mouth and the bubble agree: an unprompted announcement gets neither', () => {
+  // Owner, 2026-09-17. The here-word cut landed on the text alone, and the
+  // mismatch it left was worse than the one it fixed: measured on the live
+  // world, 48.7% of the cat-frames with a mouth open had nothing over them,
+  // every one an unpaired here-word. A moving mouth draws the eye.
+  //
+  // Both halves in ONE check, off ONE world: the whole point is that the two
+  // paths cannot answer differently, and two checks could each pass while
+  // disagreeing with each other.
+  const unprompted = [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }];
+  const { p, world } = spokenWorld(unprompted);
+  assert(p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle') === null,
+    'an unprompted announcement must not open the mouth');
+  assert(bubblesFor(world).length === 0, '...and must not draw a bubble either');
+
+  // ...while the REPLY that earned its bubble still gets its gape.
+  const answered = [
+    { kitty_id: 2, kind: 'want_eat', tick: 1, pos: { x: 6, y: 5 } },
+    { kitty_id: 1, kind: 'here_food', tick: 2, reply: true, pos: { x: 5, y: 5 } },
+  ];
+  const paired = spokenWorld(answered);
+  const at = paired.p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle');
+  assert(at && at.kind === 'here_food', 'the chosen answer must still be mouthed');
+  assert(at.gape > 0.99, 'and open fully');
+  assert(bubblesFor(paired.world).some(([id]) => id === 1),
+    '...and the bubble it agrees with must be there, or this check proves nothing');
+});
+
+check('a suppressed call does not spend the cooldown', () => {
+  // Owner asked for this explicitly, 2026-09-17. Same rule the pose gate
+  // already follows: a call the viewer never saw must not hold back the next
+  // one the viewer would. Getting this wrong is invisible -- the cat just
+  // seems quieter than the dial says -- so it is pinned rather than trusted.
+  const answered = [
+    { kitty_id: 2, kind: 'want_eat', tick: 1, pos: { x: 6, y: 5 } },
+    { kitty_id: 1, kind: 'here_water', tick: 2, reply: false, pos: { x: 5, y: 5 } },
+  ];
+  const { p, w } = spokenWorld(answered);
+  assert(p.meowFor(1, 1800, 'idle') === null, 'the unpaired here-word must be suppressed');
+
+  // A real call one frame later, well inside the cooldown, must still play.
+  p.pushState(w(3, [...answered, { kitty_id: 1, kind: 'mew', tick: 3 }]), 2600);
+  assert(!p.discontinuous, 'the third push broke continuity -- nothing would draw');
+  assert(2600 - 1800 < api.VIEW.meowCooldownMs,
+    'this check needs the second call INSIDE the cooldown to mean anything');
+  const at = p.meowFor(1, 2600 + api.VIEW.meowOpenMs, 'idle');
+  assert(at && at.kind === 'mew',
+    'the suppressed here-word spent the cooldown -- the mew it silenced is one the viewer would have seen');
+});
+
+check('a gape already running is not cut off when a nearer cat answers', () => {
+  // The pairing is re-read every tick, and the chosen answerer can LOSE it to
+  // a cat who replies from closer. A bubble popping out from under a cat is
+  // ruled acceptable; a mouth snapping shut mid-yawn is not, so the verdict
+  // is taken once, on the first frame, and latched.
+  const ask = { kitty_id: 2, kind: 'want_eat', tick: 1, pos: { x: 9, y: 5 } };
+  const far = { kitty_id: 1, kind: 'here_food', tick: 2, reply: true, pos: { x: 5, y: 5 } };
+  const { p, w } = spokenWorld([ask, far], [[1, 5], [2, 9], [3, 9]]);
+  const started = p.meowFor(1, 1800 + 10, 'idle');
+  assert(started, 'the only answer must gape -- this check needs a gape to interrupt');
+
+  // Now the cat standing on top of the asker answers, and steals the pairing.
+  const near = { kitty_id: 3, kind: 'here_food', tick: 3, reply: true, pos: { x: 9, y: 5 } };
+  const w3 = w(3, [ask, far, near]);
+  p.pushState(w3, 2600);
+  assert(!p.discontinuous, 'the third push broke continuity -- nothing would draw');
+  assert(!pairedAsksFor(w3).map.has(meowKey(far)),
+    'cat 1 must have LOST the pairing here, or this check is not testing the latch');
+  const mid = p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle');
+  assert(mid && mid.gape > 0.99,
+    'the gape was cut off mid-yawn when a nearer cat answered');
 });
 
 /**
@@ -4048,21 +4187,34 @@ check('the cooldown holds the rhythm whatever the engine says', () => {
   // charm now reads as a tic then.
   const V = api.VIEW;
   assert(V.meowCooldownMs > 0, 'there must be a ceiling at all');
-  // 20s -> 8s, owner 2026-09-01, off the gap census. Pinned because an
-  // unpinned dial is one careless bake from reverting, and this one was
+  // 20s -> 8s (owner 2026-09-01) -> 1.6s (owner 2026-09-17). Pinned because
+  // an unpinned dial is one careless bake from reverting, and this one was
   // unpinned while it dropped half the calls on the board.
   //
-  // 8s is the ENGINE's own `recent_window_ticks` (10 ticks x 800ms), which is
-  // its per-cat-per-KIND speech cooldown. Matching it means the client stops
-  // holding back calls the world has already decided are far enough apart,
-  // while still keeping a ceiling for a chattier generation -- the thing this
-  // dial was written for. Measured on the settled world: no gap between
-  // eligible calls overlapped the 800ms animation, and only 4% fell under 2s.
-  close(V.meowCooldownMs, 8000, 'the meow ceiling moved');
+  // THE OLD FLOOR WAS ARGUED WRONG, and this is the correction. It required
+  // the cooldown to be at least the engine's `recent_window_ticks` (8s), on
+  // the grounds that anything shorter "would redraw calls the world itself
+  // rate-limits". That does not follow: the engine's window is per-cat-per
+  // KIND -- `Kitty::set_meow_cooldown` keys a map by MessageKind, and
+  // action.rs calls it "one live digest entry per kind per emitter" -- so the
+  // world never EMITS the same word twice inside it and the client cannot
+  // redraw one. Different words were never rate-limited by that window at
+  // all, while the client's cooldown is per CAT and blocks them.
+  //
+  // Measured: at 8s the drawn mix skewed to 75% here-words against a true
+  // 65%, because here-words are the most frequent kind and won the races --
+  // mew ran at 70 gapes/hr against 310 uncapped.
+  //
+  // The real floor is the ANIMATION's: a gape is open+hold+close long, and
+  // below that two would run on one mouth. At exactly one gape they abut and
+  // the mouth closes fully between calls, which is the accident this dial was
+  // written to prevent and the only thing it must still prevent.
+  close(V.meowCooldownMs, 1600, 'the meow ceiling moved');
+  const gape = V.meowOpenMs + V.meowHoldMs + V.meowCloseMs;
   assert(
-    V.meowCooldownMs >= 800 * 10,
-    'the ceiling is now shorter than the engine\'s own speech window, so the '
-      + 'client would redraw calls the world itself rate-limits',
+    V.meowCooldownMs >= gape,
+    `the ceiling (${V.meowCooldownMs}ms) is under one gape (${gape}ms), so two `
+      + 'would run on the same mouth at once',
   );
   const p = new api.Presentation();
   let t = 1000;

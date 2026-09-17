@@ -33,6 +33,31 @@ change.
 
 ## Unreleased
 
+- **Four cats answered every question at once, and the ones nobody could
+  hear still moved their mouths.** A cat asking "I want to eat!" is answered
+  by every cat standing near food — the engine's answers-me relation is
+  many-to-one by design, a median of four — so a single question filled the
+  meadow with true, simultaneous, unreadable replies. Each ask now draws one
+  answer: the nearest cat, measured between where the two cats actually stood
+  when they spoke. And a here-word that answers nothing draws nothing at all.
+  Announcing "Here drink!" beside the pond for the four-hundredth time is a
+  cat narrating the map; the same words answering someone who just said they
+  were thirsty are a friend helping, and only the second is worth reading.
+  Here-word captions fall from 1,226 an hour to 271 — below the rate of the
+  questions they answer.
+  The cut landed on the words alone at first, which left the mouths moving
+  for calls that had no caption: measured against the live meadow, nearly
+  half the frames with a cat's jaw open had nothing over them, every one of
+  them an unheard announcement. A moving mouth draws the eye harder than text
+  does, so the fix read worse than the problem. The two are now one decision
+  rather than two that agree by habit, and a call the meadow will not caption
+  does not open a mouth either. A silenced call costs the cat nothing: the
+  next thing it really says is not held back by a word nobody saw.
+  With most of the chatter gone, the gape's own limit could come down from
+  eight seconds to 1.6 — it exists to stop one yawn landing on top of the
+  last, not to ration what the cats say, and at eight seconds it was doing
+  the second job by accident.
+
 - **The sky changed colour in jumps, and unevenly.** A crossing between
   hours was recomputed once per served tick — a colour change every 800ms —
   and the 32-step quantiser it went through was fed whole ticks. Twenty-four
