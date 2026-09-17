@@ -46,7 +46,7 @@ change.
   seen saying, three quarters of them an ask. **The mouth is untouched** —
   a cat still opens it for every call it makes, which was the point; the
   gape and the bubble already ran on separate paths and only the bubble
-  changed. Presentation only. (#PR)
+  changed. Presentation only. (#383)
 
 ## 0.3.0 — 2026-09-16 — the world goes under fog, and the first minds raised there take every seat
 
