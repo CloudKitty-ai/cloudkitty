@@ -1161,23 +1161,46 @@ const HERE_FOR_WANT = Object.fromEntries(
 );
 
 /**
- * Which here-word is the chosen answer to which ask, for one served world.
+ * The exchanges in this tick's window: for each ask, the ONE reply that
+ * answers it.
  *
- * ONE function, read by BOTH the mouth and the text. It lived on
- * `WorldRenderer` until 2026-09-17, when the owner ruled that a call the
- * client will not caption should not move a mouth either -- and the moment
- * two callers need the same verdict, a second copy of this rule is how they
- * start disagreeing. It sits beside `VIEW` because that is already the
- * shared-meow-semantics end of the client: `render.js` reads both from here
- * at call time, exactly as it reads the dials.
+ * Two problems, one pass.
  *
- * Nearest wins (Chebyshev on the stamped `pos`), ties to the earlier tick and
- * then the lower id, so the choice is stable across frames and across the two
- * callers rather than "whichever the filter met first".
+ * The engine's answers-me relation is many-to-one by design -- a want sits
+ * in the digest window and every matching here-word that rolls past it
+ * "answers" it, a median of four. That is a feature the minds observe, not
+ * an exchange a person can read.
  *
- * Memoised on the world OBJECT, never on `world.tick`. A tick number is not
- * an identity -- the harness builds many distinct worlds at tick 12, and a
- * tick-keyed cache would have handed the second one the first one's answer.
+ * And the world really does have several cats answer at once: measured on
+ * the served world, 54% of answered asks put two or more reply bubbles on
+ * screen together, up to four. All of them true, none of them legible.
+ *
+ * So each ask keeps its NEAREST replier (owner, 2026-09-17: "ideally I'd
+ * like the one closest cat to respond"), ties to the earlier tick and then
+ * the lower id. Distance is Chebyshev between the two meows' OWN stamped
+ * positions -- `pos` is where the cat was when it spoke, engine-stamped,
+ * not where it is now -- so it is a served fact rather than an inference.
+ *
+ * Nearest beat soonest on the owner's own criterion. Of chosen repliers,
+ * nearest puts 40% within four tiles against 23%, and 57% within six
+ * against 40%. Soonest wins on promptness (67% of replies still overlap
+ * the ask's bubble against 58%) but the pairing window already bounds
+ * lateness at 7 ticks, so timing was not the discriminator.
+ *
+ * A reply with no ask in the window is NOT touched: it is an ordinary
+ * here-word and #383 already ruled those keep their bubble. Only the
+ * losing siblings of a real exchange are dropped.
+ *
+ * Cached per served WORLD: a pure function of `recent_meows`, and
+ * recomputing it sixty times a second would be the same answer each time.
+ * Keyed on the object, never on `world.tick` -- a tick number is not an
+ * identity, and the harness builds many distinct worlds at tick 12.
+ *
+ * Read by BOTH the bubble and the mouth since 2026-09-17. It lived on
+ * `WorldRenderer` until then; the moment two callers need the same verdict,
+ * a second copy of this rule is how they start disagreeing. It sits beside
+ * `VIEW` because that is already the shared-meow-semantics end of the
+ * client -- render.js reads both from here at call time, as it always has.
  */
 let pairCache = { world: null, value: null };
 function pairedAsksFor(world) {
@@ -1185,8 +1208,7 @@ function pairedAsksFor(world) {
   const W = VIEW.meowPairWindowTicks;
   const all = world.recent_meows || [];
   const replies = all.filter((m) => m.reply === true && WANT_FOR_HERE[m.kind]);
-  const map = new Map();       // reply key -> the ask it answers
-  const duplicate = new Set(); // reply keys that lost to a nearer sibling
+  const map = new Map(); // reply key -> the ask it answers
   const apart = (a, b) => (a.pos && b.pos
     ? Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y))
     : Infinity);
@@ -1205,12 +1227,11 @@ function pairedAsksFor(world) {
         || (r.tick === best.tick && r.kitty_id < best.kitty_id)))) best = r;
     }
     map.set(meowKey(best), ask);
-    for (const r of mine) if (r !== best) duplicate.add(meowKey(r));
   }
   // A reply can be the chosen answer to one ask and a loser to another;
-  // being chosen anywhere is what earns the bubble.
-  for (const key of map.keys()) duplicate.delete(key);
-  pairCache = { world, value: { tick: world.tick, map, duplicate } };
+  // being chosen ANYWHERE is what earns it, which is why the losers are
+  // simply everything not in `map` rather than a set of their own.
+  pairCache = { world, value: { tick: world.tick, map } };
   return pairCache.value;
 }
 

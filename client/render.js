@@ -2145,41 +2145,6 @@ class WorldRenderer {
     ctx.fillRect(bx, by, width * clamp01(value / 100), height);
   }
 
-  /**
-   * The exchanges in this tick's window: for each ask, the ONE reply that
-   * answers it, and every other reply to that ask marked as a duplicate.
-   *
-   * Two problems, one pass.
-   *
-   * The engine's answers-me relation is many-to-one by design -- a want sits
-   * in the digest window and every matching here-word that rolls past it
-   * "answers" it, a median of four. That is a feature the minds observe, not
-   * an exchange a person can read.
-   *
-   * And the world really does have several cats answer at once: measured on
-   * the served world, 54% of answered asks put two or more reply bubbles on
-   * screen together, up to four. All of them true, none of them legible.
-   *
-   * So each ask keeps its NEAREST replier (owner, 2026-09-17: "ideally I'd
-   * like the one closest cat to respond"), ties to the earlier tick and then
-   * the lower id. Distance is Chebyshev between the two meows' OWN stamped
-   * positions -- `pos` is where the cat was when it spoke, engine-stamped,
-   * not where it is now -- so it is a served fact rather than an inference.
-   *
-   * Nearest beat soonest on the owner's own criterion. Of chosen repliers,
-   * nearest puts 40% within four tiles against 23%, and 57% within six
-   * against 40%. Soonest wins on promptness (67% of replies still overlap
-   * the ask's bubble against 58%) but the pairing window already bounds
-   * lateness at 7 ticks, so timing was not the discriminator.
-   *
-   * A reply with no ask in the window is NOT touched: it is an ordinary
-   * here-word and #383 already ruled those keep their bubble. Only the
-   * losing siblings of a real exchange are dropped.
-   *
-   * Cached per served tick: a pure function of `recent_meows`, and
-   * recomputing it sixty times a second would be the same answer each time.
-   */
-
   /** Is this kitty inside the frame right now? With camera mode off the
    * frame IS the whole world (`Camera.update` sets `across` to the world
    * width), so every cat is visible and this is simply true. */
@@ -2194,10 +2159,7 @@ class WorldRenderer {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
     );
-    // A purr never gets a speech bubble (2026-08-14). Nine of the ten meow
-    // kinds are things a viewer can act on; a purr is a mood, and the same
-    // bubble for both meant 98% of bubbles said nothing -- see PURR in
-    // props.js. One bubble per cat, newest wins.
+    // One bubble per cat, newest wins.
     const said = new Map();
     for (const meow of recent) {
       // ...and nor does an unprompted here-word (owner, 2026-09-16). Same
