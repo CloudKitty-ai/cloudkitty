@@ -592,12 +592,23 @@ sit at 51–71% of the client's 450-per-hour per-cat ceiling, a client
 budget question, not a behavioural one (memory: read meow rate off
 `recent_meows`, never drawn calls).
 
+### Refusal window (F-039 re-run; closed at tick 15,294)
+
+Scored in `refusal-baseline-2026-09-02/RESULTS.md` §"Second window".
+Every seat under the 3.5% INVESTIGATE line: Miso 1.05, Biscuit 1.48,
+Pumpkin 1.11, Kittybear 1.30, Clementine 1.56 (% of ticks taxed);
+retention floor 3,995 < 6,000, zero gaps, nothing to action. Biscuit's
+tax is still 86% partner play at a third of the scripted seat's volume;
+the groom tax the scripted three paid is gone (0–8 rows a seat), the
+FR-014 read from the other side. Unanswered from-the-fog calls
+(`partner_absent`) run 286/h for the roster, 45–68/h a seat, 86% of them
+cosleep or corest proposals; banked as a Gen 2 input, no line declared.
+
 ### Still running
 
-Refusal baseline (F-039) and unanswered from-the-fog calls per hour
-(reason `partner_absent` off the stamp) close with the 15,000-tick
-window; the soak record follows the Biscuit 2.0 convention (48 h,
-216,000 ticks).
+The 48 h poller and the soak tripwire; the soak record follows the
+Biscuit 2.0 convention (48 h, 216,000 ticks), with the live dispersion
+and FR-014 confirmation read off the poll at the same sitting.
 
 ## Commands
 

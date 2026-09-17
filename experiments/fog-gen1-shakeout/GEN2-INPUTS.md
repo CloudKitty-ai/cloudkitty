@@ -285,6 +285,15 @@ is no longer load-bearing.
   scene-span instrument (blocks the uptake reads).
 - consent_line for needs_driven and empty-bowl early end (owner
   shelvings, BACKLOG #368).
+- Calls at a partner not beside the caller (read 2026-09-16 off the
+  refusal stamp on the served Gen 1 roster,
+  `refusal-baseline-2026-09-02/RESULTS.md` §"Second window"): reason
+  `partner_absent` runs at 286/h for the roster, 45–68/h a seat, 86% of
+  them `sleep:with` / `rest:with`, 72% absorbed. The minds propose
+  cosleep and corest at a friend they cannot see beside them, which is
+  the T093 by-design refusal doing its job; whether Gen 2 should learn
+  the adjacency test (or the mask should carry it) is a design choice
+  with no line declared yet.
 - Social-grooming demand (corrected 2026-09-13, RESULTS.md
   `groom_cells.py`; the earlier "row 0–1 slot bias = corpus density"
   reading was wrong): all-policy rosters keep themselves clean
