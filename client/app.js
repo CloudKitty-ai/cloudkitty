@@ -1934,6 +1934,9 @@ async function fetchViewerConfig() {
     // The easing duration is the served tick interval (FR-005) -- already
     // in /config as world.tick_ms, so no server change was ever needed.
     anim.setTickMs(config?.world?.tick_ms);
+    // ...and how long a meow lingers in `recent_meows`, so the client knows
+    // when it may forget one. Already served; no server change needed.
+    anim.setMeowWindow(config?.meow?.digest_window_ticks);
     // The trait source. `config.needs` is the baseline rise rate per need
     // and `config.kitty[].needs` overrides it for one cat -- which is
     // already how the engine reads it (`need_rate_for`), and already how

@@ -3705,6 +3705,108 @@ check('the GAPE is untouched: an announcement still opens the mouth', () => {
     '...while drawing no bubble, which is the whole point');
 });
 
+/**
+ * Drive a Presentation through `ticks` of world, with every cat speaking on
+ * every tick, and hand back the Presentation plus a helper for pushing
+ * SILENT ticks after it. The meow record has to survive a long chatty run
+ * without ever replaying a call, which is the whole of the bug below.
+ */
+function chattyRun(ticks, cats = [1, 2, 3, 4, 5], window = 30) {
+  const p = new api.Presentation();
+  const spoken = [];
+  let tick = 1;
+  let now = 0;
+  const world = () => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: cats.map((id) => ({ ...kitty(id, id, 5), activity: { state: 'idle' } })),
+    recent_meows: spoken.filter((m) => m.tick > tick - window),
+  });
+  p.pushState(world(), now); tick += 1; now += 800;
+  for (let i = 0; i < ticks; i += 1) {
+    for (const id of cats) spoken.push({ kitty_id: id, kind: 'mew', tick });
+    p.pushState(world(), now); tick += 1; now += 800;
+  }
+  return {
+    p,
+    silent(n = 1) { for (let i = 0; i < n; i += 1) { p.pushState(world(), now); tick += 1; now += 800; } },
+    stamps: () => new Map(cats.map((id) => [id, p.meowAt.get(id)?.at])),
+  };
+}
+
+check('a long chatty run never replays a call the cat already made', () => {
+  // THE BUG, 2026-09-16. The meow record was bounded by SIZE and emptied by
+  // a total wipe: `if (this.meowSeen.size > 4000) this.meowSeen.clear()`.
+  // That throws away the newest keys along with the oldest, and the newest
+  // are exactly the ones still being served -- so the next state re-stamped
+  // every meow still inside the window as unseen and `meowFor` replayed the
+  // gape. All five cats opening their mouths in unison for calls up to 24s
+  // old, roughly every 50 minutes on the 0.3.0 roster.
+  //
+  // It hid for a year because the threshold is a COUNT: the interval
+  // between wipes is set by how chatty the world is, not by this file.
+  // 1,000 ticks of five cats speaking every tick is 5,000 keys, comfortably
+  // past the old 4,000.
+  const run = chattyRun(1000);
+  const before = run.stamps();
+  run.silent(3); // no new speech at all
+  const after = run.stamps();
+  for (const [id, at] of before) {
+    assert(after.get(id) === at,
+      `cat ${id} had its meow re-stamped with no new speech -- the gape will replay`);
+  }
+});
+
+check('the meow record is bounded by AGE, so it cannot grow for the life of the page', () => {
+  // The size bound is what has to go, but something must still bound it --
+  // the original comment was right that the set would otherwise grow
+  // forever. A meow can only be served while it is inside the digest
+  // window, so anything older is safe to forget and nothing else is.
+  const run = chattyRun(1000);
+  const live = 5 * 30 * 2; // five cats, the window, and the deliberate margin
+  assert(run.p.meowSeen.size <= live + 10,
+    `the record holds ${run.p.meowSeen.size} keys after 1,000 ticks -- it is not being pruned`);
+  assert(run.p.meowSeen.size > 5,
+    'the record is empty -- it is pruning keys that are still being served, which is the bug in reverse');
+});
+
+check('a fresh world does not leave its keys behind', () => {
+  // `--fresh` restarts the tick count. Keys from the old world are AHEAD of
+  // the new tick, so an age bound that only looks backwards would never
+  // prune them and they would outlive the world that made them. The old
+  // total wipe handled this by accident.
+  const run = chattyRun(200);
+  assert(run.p.meowSeen.size > 0, 'nothing was recorded -- this check is vacuous');
+  const p = run.p;
+  const fresh = (tick) => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ ...kitty(1, 1, 5), activity: { state: 'idle' } }],
+    recent_meows: [],
+  });
+  p.pushState(fresh(1), 900000);
+  p.pushState(fresh(2), 900800);
+  assert(p.meowSeen.size === 0,
+    `${p.meowSeen.size} keys from the retired world are still held after a fresh start`);
+});
+
+check('the meow window comes from the SERVED config, not a guess', () => {
+  // Same shape as distress_patience_ticks: served, so never hard-coded, with
+  // a fallback for a box that predates it. A dropped call here would leave
+  // the client pruning on a 30-tick guess against whatever the world does.
+  const p = new api.Presentation();
+  assert(p.meowWindowTicks === api.VIEW.meowWindowFallback, 'the fallback is not seated');
+  const a = Object.create(api.anim);
+  a.presentation = p;
+  a.setMeowWindow(48);
+  assert(p.meowWindowTicks === 48, 'setMeowWindow does not reach the presentation');
+  a.setMeowWindow(0);
+  a.setMeowWindow(undefined);
+  assert(p.meowWindowTicks === 48, 'a nonsense window must be refused, not seated');
+  assert(
+    /anim\.setMeowWindow\(config\?\.meow\?\.digest_window_ticks\)/.test(appSrc),
+    'app.js no longer plumbs the served digest window -- the dial would ship inert on its fallback',
+  );
+});
+
 check('a drawn call is a SERVED call: the client never invents one', () => {
   // Tied to the engine's message channel and nothing else. Spec 028 took the
   // meow off the activity menu, so this rides alongside whatever the cat did
