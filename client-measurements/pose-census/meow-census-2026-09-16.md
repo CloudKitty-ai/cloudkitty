@@ -273,6 +273,46 @@ window. Whether a 24-second gap still *reads* as an exchange is a judgement
 nobody has made; the owner has said some delay is fine, but not how much.
 Worth settling before building.
 
+## ⚠ REVIEW TRIGGER: half 2, when the PACER buffer gets deeper
+
+**Two different buffers, do not confuse them.** #385 bounded the *meow
+record* (`meowSeen`) by age — that is a memory of what has been drawn and has
+nothing to do with lookahead. What half 2 needs is the **pacer's delay line**,
+`VIEW.camera`-adjacent `paceTargetDepth`, which is what gives the client any
+view of the next served state at all.
+
+**Half 2** is the mirror rescue: drawing an *ask* whose pose fails, because a
+reply is already visible in the delay line. Ruled 2026-09-17 as NOT BUILT, for
+two reasons:
+
+1. At `paceTargetDepth: 1` it reaches only replies landing on the very next
+   tick — about **two pairs per 25 minutes** on either viewport.
+2. Its justification inverts half 1's. Half 1 says "you already saw the ask,
+   so this answer makes sense". Half 2 puts words over a silent cat *before*
+   the thing that explains them — the exact failure the pose gate exists to
+   prevent, with a weaker excuse.
+
+**Re-open it when the delay line is deeper.** Owner, 2026-09-17: *"Half 2
+we'll save for when we have a longer (and free of initial page load latency)
+buffer."*
+
+The costing already exists, in `client-measurements/README.md` under the
+0.3.0 camera baseline: `paceTargetDepth: 2` closes the lookahead gap
+completely (empty-buffer promotions 0.9% → 0.0%) but runs the first ~12
+seconds of every page load **17% slow** instead of 10%, because the pacer
+fills by *playing slow*. It was declined on that warmup alone.
+
+**So the unlock is not the depth, it is the fill.** The warmup cost is a
+page-LOAD problem, not a steady-state one. A pacer seeded at load — buffering
+a couple of states before the loop starts, rather than earning depth by
+running slow — would make depth 2+ free, and half 2 becomes worth revisiting
+at the same time. Nobody has costed that seeding; it is the piece of work
+this trigger is really pointing at.
+
+Re-measure half 2's yield on a settled window before building: at depth 2 it
+should reach replies 1–2 ticks out rather than 1, and the numbers above are
+for depth 1.
+
 ## The one ask that is NOT Client's to make
 
 ### A camera that knows about conversations
