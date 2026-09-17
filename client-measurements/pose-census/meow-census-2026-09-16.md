@@ -178,3 +178,87 @@ Re-cut after the next roster seats, as 2026-08-31 said and this census
 honoured. Both the rate and the category mix are **roster-bound**: `here` at
 56% of speech is a property of these five minds under `announce_here`, not
 of the client.
+
+---
+
+# Call and response: what a fix would cost, 2026-09-17
+
+Measured against the **real `Camera`**, not a distance proxy: the shipped
+`Camera` driven over the banked positions at each viewport width, asking
+whether both parties were actually in frame.
+
+Of 131 answered asks in the settled 25-minute window:
+
+|                                              | desktop 1000px | phone 380px |
+|---|---|---|
+| both cats in the camera frame at reply time  | 48 (37%)       | **20 (15%)** |
+| **shows as a pair today**                    | 30 — 63%       | 8 — **40%** |
+| + rescue the reply's pose                    | 35 — 73%       | 12 — 60% |
+| + rescue the ask via 1-tick lookahead        | **41 — 85%**   | **18 — 90%** |
+
+## The owner's rule, and which half of it is reachable
+
+> Ideally I'd like any call/response where both cats are visible to show. If
+> one is silenced due to cooldown or otherwise, both should be.
+
+**"Show both when both are visible" — reachable today.** At reply time the
+renderer holds the frame and both positions, so "both visible" is a fact it
+has. Rescuing the reply past its pose gate follows. Phone: 40% → 60% of
+in-frame pairs.
+
+**"If one is silenced, both are" — not reachable symmetrically.** The ask is
+drawn before the reply exists, so suppressing an ask because its reply will
+be silenced means knowing the future at ask time.
+
+**Except partly, via the delay line.** `Pacer` holds `paceTargetDepth` and
+gives one genuine tick of lookahead — the same mechanism that fixed the wake
+stretch in #376. The reply lands on the very next tick in **13 of 20**
+in-frame pairs on the phone, so for those the ask's fate IS knowable when the
+ask is promoted. Both rescues together reach **90% phone / 85% desktop**.
+
+The residual 10–15% are replies 2–10 ticks later whose ask's pose fails:
+genuinely unknowable without the engine.
+
+## The two asks that are NOT Client's to make
+
+### 1. Serve the reply's referent (Product)
+
+`recent_meows` carries `reply: bool` and nothing that says WHICH meow is
+being answered. Reading `crates/cloudkitty-core/src/meow.rs`, the stamp is
+weaker than it looks: `reply_condition` is *"a meow of the paired want from
+another cat is audible ... AND the referent is visible"*, and the field's own
+doc says **"an ambient here landing while a want is audible is stamped
+too"** — so `reply: true` does not by itself mean the cat was responding.
+
+But the engine does have a deterministic referent to hand: the
+audible-emitter rule (freshest wins on max tick, tie to the LOWER kitty id,
+own emissions never audible to self) is what both the observation digest and
+the scripted groom responder key on. The engine selects exactly one "the want
+I heard" and simply does not serve it.
+
+A client-side inference — match a `here_X` to the most recent `want_Y` from
+another cat inside the digest window — **only fires for 49% of replies**;
+the rest follow another here-word or a `mew`. A served referent (kitty id +
+tick) would roughly double the exchanges a viewer can be shown, and would
+stop the client re-deriving a rule whose own comment says *"do not re-derive
+it in place"*.
+
+⚠ Premise sent to Experiments 2026-09-17 for confirmation before this is
+proposed. Do not open it as a Product ask until that comes back.
+
+### 2. A camera that knows about conversations (Client, but a feature)
+
+**The dominant loss is neither of the above.** Both cats are in frame only
+**15% of the time on a phone**. A perfect pair rule still leaves 85% of real
+exchanges off-screen, because the shot picker has no idea two cats are
+talking to each other.
+
+Every camera criterion in spec 038 is about counts and framing; none is about
+holding a live exchange. A shot that widened to keep both parties in frame
+while one is running would recover more than everything above combined. That
+is a shot-grammar feature, wants a spec, and should be judged on screen —
+not a dial.
+
+Note for whoever picks it up: the camera is **healthy on its own criteria**
+(see `client-measurements/README.md`, the 0.3.0 baseline). This is a new
+criterion, not a regression.
