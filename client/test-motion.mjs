@@ -3706,12 +3706,18 @@ check('the GAPE is untouched: an announcement still opens the mouth', () => {
 });
 
 /**
- * Drive a Presentation through `ticks` of world, with every cat speaking on
- * every tick, and hand back the Presentation plus a helper for pushing
- * SILENT ticks after it. The meow record has to survive a long chatty run
- * without ever replaying a call, which is the whole of the bug below.
+ * Drive a Presentation through a long run where the cats speak on EVEN ticks
+ * and are silent on odd ones, checking after every push that no cat's meow
+ * was re-stamped on a tick it said nothing.
+ *
+ * The alternation is the point. A guard that samples only at the end cannot
+ * see a replay that happened in the middle -- the record is rebuilt from the
+ * window either way, so before and after agree and the check passes by luck.
+ * It did exactly that on the first cut and `mutate.sh` showed it: the old
+ * size-wipe went in and this stayed green. Sampling every tick, against
+ * whether that cat actually spoke, is timing-independent.
  */
-function chattyRun(ticks, cats = [1, 2, 3, 4, 5], window = 30) {
+function speakEveryOtherTick(ticks, cats = [1, 2, 3, 4, 5], window = 30) {
   const p = new api.Presentation();
   const spoken = [];
   let tick = 1;
@@ -3722,15 +3728,21 @@ function chattyRun(ticks, cats = [1, 2, 3, 4, 5], window = 30) {
     recent_meows: spoken.filter((m) => m.tick > tick - window),
   });
   p.pushState(world(), now); tick += 1; now += 800;
+  const replays = [];
   for (let i = 0; i < ticks; i += 1) {
-    for (const id of cats) spoken.push({ kitty_id: id, kind: 'mew', tick });
-    p.pushState(world(), now); tick += 1; now += 800;
+    const talking = tick % 2 === 0;
+    if (talking) for (const id of cats) spoken.push({ kitty_id: id, kind: 'mew', tick });
+    const before = new Map(cats.map((id) => [id, p.meowAt?.get(id)?.at]));
+    p.pushState(world(), now);
+    if (!talking) {
+      for (const id of cats) {
+        const after = p.meowAt?.get(id)?.at;
+        if (after !== before.get(id)) replays.push({ tick, id });
+      }
+    }
+    tick += 1; now += 800;
   }
-  return {
-    p,
-    silent(n = 1) { for (let i = 0; i < n; i += 1) { p.pushState(world(), now); tick += 1; now += 800; } },
-    stamps: () => new Map(cats.map((id) => [id, p.meowAt.get(id)?.at])),
-  };
+  return { p, replays, spoken: spoken.length };
 }
 
 check('a long chatty run never replays a call the cat already made', () => {
@@ -3742,18 +3754,15 @@ check('a long chatty run never replays a call the cat already made', () => {
   // gape. All five cats opening their mouths in unison for calls up to 24s
   // old, roughly every 50 minutes on the 0.3.0 roster.
   //
-  // It hid for a year because the threshold is a COUNT: the interval
-  // between wipes is set by how chatty the world is, not by this file.
-  // 1,000 ticks of five cats speaking every tick is 5,000 keys, comfortably
-  // past the old 4,000.
-  const run = chattyRun(1000);
-  const before = run.stamps();
-  run.silent(3); // no new speech at all
-  const after = run.stamps();
-  for (const [id, at] of before) {
-    assert(after.get(id) === at,
-      `cat ${id} had its meow re-stamped with no new speech -- the gape will replay`);
-  }
+  // It hid for a year because the threshold is a COUNT: the interval between
+  // wipes is set by how chatty the world is, not by this file.
+  const run = speakEveryOtherTick(2000);
+  assert(run.spoken > 4000, `only ${run.spoken} meows -- the run must pass the old 4,000 threshold to mean anything`);
+  assert(
+    run.replays.length === 0,
+    `${run.replays.length} replays, first at tick ${run.replays[0]?.tick} (cat ${run.replays[0]?.id}) `
+      + '-- a meow was re-stamped on a tick that cat said nothing, and the gape will play again',
+  );
 });
 
 check('the meow record is bounded by AGE, so it cannot grow for the life of the page', () => {
@@ -3761,7 +3770,7 @@ check('the meow record is bounded by AGE, so it cannot grow for the life of the 
   // the original comment was right that the set would otherwise grow
   // forever. A meow can only be served while it is inside the digest
   // window, so anything older is safe to forget and nothing else is.
-  const run = chattyRun(1000);
+  const run = speakEveryOtherTick(2000);
   const live = 5 * 30 * 2; // five cats, the window, and the deliberate margin
   assert(run.p.meowSeen.size <= live + 10,
     `the record holds ${run.p.meowSeen.size} keys after 1,000 ticks -- it is not being pruned`);
@@ -3774,7 +3783,7 @@ check('a fresh world does not leave its keys behind', () => {
   // the new tick, so an age bound that only looks backwards would never
   // prune them and they would outlive the world that made them. The old
   // total wipe handled this by accident.
-  const run = chattyRun(200);
+  const run = speakEveryOtherTick(200);
   assert(run.p.meowSeen.size > 0, 'nothing was recorded -- this check is vacuous');
   const p = run.p;
   const fresh = (tick) => ({
