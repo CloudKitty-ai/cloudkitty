@@ -33,6 +33,21 @@ change.
 
 ## Unreleased
 
+- **The cats would not stop telling you where the water was.** The fog
+  generation talks 13.6× more than the roster before it — 1,998 speech
+  events in twenty-five minutes against 147 — and `here_*` announcements
+  are 56% of it. Measured on the served world, text was sitting over
+  **1.89 of the five cats at any instant**. An unprompted "Here drink!" is
+  a cat narrating the map; a *reply* is one cat asking and a friend
+  answering "food is here, friend!", which is the exchange this generation
+  was bred for. So announcements lose their bubble and replies keep it,
+  and text over a cat drops to 1.47 of five. The conversation still reads:
+  of 637 reply here-words, 634 follow a bubble another cat can still be
+  seen saying, three quarters of them an ask. **The mouth is untouched** —
+  a cat still opens it for every call it makes, which was the point; the
+  gape and the bubble already ran on separate paths and only the bubble
+  changed. Presentation only. (#PR)
+
 ## 0.3.0 — 2026-09-16 — the world goes under fog, and the first minds raised there take every seat
 
 - **The 2.x generation retires to the shelf it earned.** On the owner's
