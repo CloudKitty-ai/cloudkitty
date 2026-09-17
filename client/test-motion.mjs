@@ -7776,6 +7776,9 @@ check('each sky crossing steps below the just-noticeable difference', () => {
   assert(rows.length === 4, `read ${rows.length} phase rows, expected 4 -- the table's shape moved`);
   const target = Number(/const BLEND_TARGET_DE = ([\d.]+);/.exec(app)?.[1]);
   assert(target > 0, 'BLEND_TARGET_DE is no longer readable from app.js');
+  const maxMs = Number(/const BLEND_MAX_STEP_MS = ([\d.]+);/.exec(app)?.[1]);
+  assert(maxMs > 0, 'BLEND_MAX_STEP_MS is no longer readable from app.js');
+  const tickMs = 800;
 
   const palettes = eval(
     readFileSync(join(here, 'meadow.js'), 'utf8')
@@ -7799,6 +7802,15 @@ check('each sky crossing steps below the just-noticeable difference', () => {
       if (Array.isArray(va) && Array.isArray(vb)) va.forEach((v, j) => one(v, vb[j]));
       else one(va, vb);
     }
+    // The second bound: a step may not LAST too long. Sizing by dE alone
+    // gives the least-moving crossing the slowest steps, and day->dusk was
+    // changing once every 686ms -- visible as an event whatever its size.
+    const heldMs = (from.fade * tickMs) / from.steps;
+    assert(
+      heldMs <= maxMs,
+      `${from.name} -> ${to.name} holds each step ${heldMs.toFixed(0)}ms, past the ${maxMs}ms bound. `
+        + `That row needs at least ${Math.ceil((from.fade * tickMs) / maxMs)} steps.`,
+    );
     const per = worst / from.steps;
     assert(
       per <= target,
@@ -7810,10 +7822,11 @@ check('each sky crossing steps below the just-noticeable difference', () => {
     // it cannot be seen to need. A rebake is ~1.3ms, so this is slack, not
     // a tight bound -- it exists to catch a count left behind by a palette
     // that got CLOSER.
+    const needed = Math.max(Math.ceil(worst / target), Math.ceil((from.fade * tickMs) / maxMs));
     assert(
-      from.steps <= Math.ceil(worst / target) * 3 + 8,
-      `${from.name} -> ${to.name} takes ${from.steps} steps for dE ${worst.toFixed(1)}; `
-        + `${Math.ceil(worst / target)} would hold the target`,
+      from.steps <= needed * 2,
+      `${from.name} -> ${to.name} takes ${from.steps} steps; ${needed} holds both bounds `
+        + `(dE ${Math.ceil(worst / target)}, cadence ${Math.ceil((from.fade * tickMs) / maxMs)})`,
     );
   }
 });

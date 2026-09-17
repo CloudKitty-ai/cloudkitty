@@ -125,27 +125,38 @@ const MODE_NAMES = {
  * single-constant scheme, without shortening the day much. */
 const WORLD_DAY_PHASES = Object.freeze([
   // [name, span, fadeOut, blendSteps]
-  ['day', 280, 24, 28],
-  ['dusk', 65, 16, 63], // sunset -> night: twilight hands over briskly
-  ['night', 190, 24, 54],
-  ['dawn', 65, 16, 38], // dawn -> day
+  ['day', 280, 24, 192],
+  ['dusk', 65, 16, 128], // sunset -> night: twilight hands over briskly
+  ['night', 190, 24, 192],
+  ['dawn', 65, 16, 128], // dawn -> day
 ]);
 
-/** The largest colour step a crossing may take, in CIE dE.
+/** A crossing is bounded on TWO axes, and a step must satisfy both.
  *
- * ~1.0 is the just-noticeable difference between adjacent patches, and a
- * large flat field changing over time is the easiest place in the meadow to
- * see one. Measured 2026-09-17 against the shipped palettes: the four
- * crossings move VERY unequally -- worst-key dE of 27.8 (day->dusk), 62.5
- * (dusk->night), 53.2 (night->dawn) and 37.5 (dawn->day) -- so one step
- * count cannot serve them. dusk->night moves 2.2x as far as day->dusk in
- * two-thirds of the time.
+ * `BLEND_TARGET_DE` is how far a step may move the colour, in CIE dE.
+ * Measured 2026-09-17 against the shipped palettes, the four crossings move
+ * very unequally -- worst-key dE of 27.8 (day->dusk), 62.5 (dusk->night),
+ * 53.2 (night->dawn), 37.5 (dawn->day) -- so one step count cannot serve
+ * them. ~1.0 is the just-noticeable difference between adjacent patches;
+ * 0.5 is the owner's call after watching a crossing at 1.0 and still seeing
+ * it step (2026-09-17).
  *
- * ⚠ THE STEP COUNTS ABOVE ARE DERIVED FROM THE PALETTES. Change a theme
- * colour and they are stale. A check recomputes the distance from the
- * shipped palettes and fails if any row no longer holds this target, so
- * the recalculation is forced rather than remembered. */
-const BLEND_TARGET_DE = 1.0;
+ * `BLEND_MAX_STEP_MS` is how long a step may LAST, and it is the axis dE
+ * alone gets wrong: sizing purely by distance gives the least-moving
+ * crossing the slowest steps, because it needs fewer of them. day->dusk was
+ * changing colour once every 686ms -- slow enough to read as an event
+ * whatever its size. A step held that long is a step you can watch arrive.
+ *
+ * Each row takes whichever bound asks for more. Cost is not the constraint:
+ * a step measured 0.9ms on the live page, essentially all of it the ground
+ * rebake, so 10 steps a second is under 1% of frame budget.
+ *
+ * ⚠ THE STEP COUNTS ABOVE ARE DERIVED FROM THE PALETTES AND THE FADE
+ * LENGTHS. Change a theme colour or a fade and they are stale. A check
+ * recomputes both bounds from the shipped values and fails with the number
+ * the row should carry, so the recalculation is forced, not remembered. */
+const BLEND_TARGET_DE = 0.5;
+const BLEND_MAX_STEP_MS = 100;
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
 function hourForTick(tick) {
