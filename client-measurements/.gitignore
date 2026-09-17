@@ -1,3 +1,9 @@
 # Raw samples: large, stale the moment the world moves on, and one command
 # away from being regenerated. Findings live in README.md instead.
 *.jsonl
+
+# ...except a BANKED BASELINE, which fails the clause that justifies ignoring
+# the rest: once the world it came from is retired by `--fresh`, no command
+# regenerates it. The same argument that keeps test-camera-preview.json.
+# Positions only, so it is small; see README for why one exists at all.
+!camera-aim/baseline-*.jsonl
