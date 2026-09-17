@@ -58,6 +58,22 @@ const VERTICAL_SLACK = 30;
  * config flip with no client change, which is the point of holding them. */
 const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
 
+/**
+ * Which ask each here-word answers. The engine's own `want_for_here`
+ * (core/src/meow.rs), restated here because it is not served -- so a check
+ * pins that every here-kind the client can draw has an entry, or a new one
+ * would silently never pair.
+ */
+/** A served meow's identity: the cat, the tick it was spoken, the word. */
+const meowKey = (m) => `${m.kitty_id}:${m.tick}:${m.kind}`;
+
+const WANT_FOR_HERE = {
+  here_food: 'want_eat',
+  here_water: 'want_drink',
+  here_sunbeam: 'want_sleep',
+  here_critter: 'want_play',
+};
+
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
   want_drink: 'I want to drink!',
@@ -2141,6 +2157,58 @@ class WorldRenderer {
     ctx.fillRect(bx, by, width * clamp01(value / 100), height);
   }
 
+  /**
+   * Which ask each reply answers, ONE TO ONE, as a map of reply key -> ask.
+   *
+   * The engine's answers-me relation is many-to-one by design -- it is a
+   * feature the minds observe, and a want sitting in the 30-tick digest
+   * window is "answered" by every matching here-word that rolls past it,
+   * a median of four and as many as twelve. That is not an exchange, so
+   * this narrows it: replies in (tick, id) order each claim the freshest
+   * UNCLAIMED ask within `meowPairWindowTicks`, freshest winning and a tie
+   * falling to the lower id -- the engine's own `freshest_audible` key.
+   * Measured on the settled world, that turns 637 replies into 138 pairs
+   * with a median gap of one tick.
+   *
+   * Cached per served tick: it is a pure function of `recent_meows`, and
+   * recomputing it sixty times a second would be the same answer each time.
+   */
+  pairedAsks(world) {
+    if (this.pairCache?.tick === world.tick) return this.pairCache.map;
+    const W = VIEW.meowPairWindowTicks;
+    const all = world.recent_meows || [];
+    const replies = all
+      .filter((m) => m.reply === true && WANT_FOR_HERE[m.kind])
+      .sort((a, b) => a.tick - b.tick || a.kitty_id - b.kitty_id);
+    const claimed = new Set();
+    const map = new Map();
+    for (const r of replies) {
+      const want = WANT_FOR_HERE[r.kind];
+      let best = null;
+      for (const a of all) {
+        if (a.kind !== want || a.kitty_id === r.kitty_id) continue;
+        if (!(a.tick < r.tick && r.tick - a.tick <= W)) continue;
+        if (claimed.has(meowKey(a))) continue;
+        if (!best || a.tick > best.tick || (a.tick === best.tick && a.kitty_id < best.kitty_id)) best = a;
+      }
+      if (!best) continue;
+      claimed.add(meowKey(best));
+      map.set(meowKey(r), best);
+    }
+    this.pairCache = { tick: world.tick, map };
+    return map;
+  }
+
+  /** Is this kitty inside the frame right now? With camera mode off the
+   * frame IS the whole world (`Camera.update` sets `across` to the world
+   * width), so every cat is visible and this is simply true. */
+  inViewport(kitty, view) {
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
+    const vp = this.viewportRect();
+    return x + this.tile > vp.left && x < vp.right
+      && y + this.tile > vp.top && y < vp.bottom;
+  }
+
   drawBubbles(world, view) {
     const recent = (world.recent_meows || []).filter(
       (m) => m.tick > world.tick - BUBBLE_TICKS,
@@ -2188,13 +2256,47 @@ class WorldRenderer {
       // worth keeping (owner: "charming to have cats with personality").
       // Measured: gate alone leaves Biscuit at 31% of its ticks against
       // Miso's 19%; gate plus cooldown puts every cat at 11-14%.
-      if (!VIEW.meowPoses.includes(this.drawnPose?.get(meow.kitty_id))) continue;
+      if (!VIEW.meowPoses.includes(this.drawnPose?.get(meow.kitty_id))) {
+        // ...unless it is the ANSWER to something the viewer just watched
+        // another cat say (owner ruled, 2026-09-17). The pose gate exists so
+        // the client never asserts speech it cannot show; a reply is the one
+        // case where the words are already explained by something on screen
+        // a moment ago, so it is allowed through without a mouth to move.
+        //
+        // All three conditions are present-tense facts, never a prediction:
+        // the pair is read off this tick's `recent_meows`, the ask's bubble
+        // is one this renderer actually drew, and both cats are in frame NOW.
+        // The mirror rescue -- drawing an ASK because a reply is coming --
+        // is deliberately not here: it would put words over a silent cat
+        // BEFORE the thing that explains them, and the delay line only
+        // reaches one tick, which is worth about two pairs per 25 minutes.
+        const ask = this.pairedAsks(world).get(meowKey(meow));
+        if (!ask) continue;
+        if (!this.bubbleDrawn?.has(meowKey(ask))) continue;
+        const asker = world.kitties.find((k) => k.id === ask.kitty_id);
+        const speaker = world.kitties.find((k) => k.id === meow.kitty_id);
+        if (!asker || !speaker) continue;
+        if (!this.inViewport(asker, view) || !this.inViewport(speaker, view)) continue;
+      }
       said.set(meow.kitty_id, meow);
     }
     for (const meow of said.values()) {
       const kitty = world.kitties.find((k) => k.id === meow.kitty_id);
       if (!kitty) continue;
       this.drawBubble(kitty, MEOW_TEXT[meow.kind] || '…', view, meow);
+      // Remembered so a reply can ask whether its ask was actually SEEN.
+      // Bounded by age for the same reason `meowSeen` is: a key older than
+      // the pairing window plus the bubble's own dwell can never be asked
+      // about again, and a size threshold emptied wholesale is what made
+      // the whole roster replay its mouths (#385).
+      (this.bubbleDrawn ??= new Set()).add(meowKey(meow));
+    }
+    if (this.bubbleDrawn) {
+      const keepFrom = world.tick - (VIEW.meowPairWindowTicks + BUBBLE_TICKS) * 2;
+      for (const key of this.bubbleDrawn) {
+        const at = Number(key.split(':')[1]);
+        if (at <= keepFrom || at > world.tick) this.bubbleDrawn.delete(key);
+      }
     }
 
     if (!PURR.on) return;

@@ -3534,12 +3534,23 @@ const bubbleScope = eval(
  */
 function bubblesFor(world, poses = null, stub = null) {
   const said = [];
-  const r = stub ?? {};
+  // Built ON the prototype, not as a bare object: `drawBubbles` calls
+  // sibling methods (`pairedAsks`, `inViewport`) and a plain stub would
+  // make those look like the feature being absent rather than the harness.
+  const r = stub ?? Object.create(bubbleScope.WorldRenderer.prototype);
   r.drawnPose = new Map(
     world.kitties.map((k) => [k.id, poses ? (poses[k.id] ?? 'idle') : 'idle']),
   );
   r.drawBubble = (kitty, text) => said.push([kitty.id, text]);
-  bubbleScope.WorldRenderer.prototype.drawBubbles.call(r, world, {});
+  // A whole-world viewport, which is what camera mode OFF gives: every cat
+  // is visible. A check about framing sets its own.
+  if (r.tile === undefined) r.tile = 40;
+  if (!r.camera) r.camera = null;
+  if (r.cssWidth === undefined) { r.cssWidth = 800; r.cssHeight = 800; }
+  if (!r.tileOrigin) r.tileOrigin = (pos) => ({ x: pos.x * r.tile, y: pos.y * r.tile });
+  bubbleScope.WorldRenderer.prototype.drawBubbles.call(r, world, {
+    posFor: (k) => k.pos,
+  });
   return said;
 }
 
@@ -3647,6 +3658,109 @@ check('a bubble only appears where the MOUTH CAN MOVE', () => {
   for (const pose of api.VIEW.meowPoses) {
     const one = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), { 1: pose });
     assert(one.length === 1, `${pose} is in VIEW.meowPoses but drew no bubble`);
+  }
+});
+
+check('a reply is rescued past the pose gate when its ask was SEEN', () => {
+  // Owner ruled 2026-09-17. The pose gate exists so the client never asserts
+  // speech it cannot show. A reply is the one case where the words are
+  // already explained by something the viewer watched a moment ago, so it
+  // is let through without a mouth to move.
+  //
+  // Three present-tense conditions, never a prediction: the pair is read off
+  // this tick's recent_meows, the ask's bubble is one this renderer ACTUALLY
+  // drew, and both cats are in frame now.
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9 };
+  const rep = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true };
+
+  // tick 10: the asker speaks, on a pose that draws. Its bubble is recorded.
+  const first = bubblesFor(bubbleWorld(10, [ask], 2), { 1: 'idle' }, r);
+  assert(first.length === 1 && first[0][0] === 1, `the ask did not draw: ${JSON.stringify(first)}`);
+
+  // tick 11: the reply lands while its speaker is GROOMING -- silenced today.
+  const rescued = bubblesFor(bubbleWorld(11, [ask, rep], 2), { 1: 'idle', 2: 'grooming' }, r);
+  assert(
+    rescued.some(([id]) => id === 2),
+    `the reply was not rescued: ${JSON.stringify(rescued)} -- its ask was on screen a tick ago`,
+  );
+});
+
+check('...but only when the ask was actually drawn, and both cats are in frame', () => {
+  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9 };
+  const rep = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true };
+
+  // The ask was SPOKEN but never drawn -- its own pose was no good. Then the
+  // reply explains nothing, and the gate stands.
+  const unseen = Object.create(bubbleScope.WorldRenderer.prototype);
+  bubblesFor(bubbleWorld(10, [ask], 2), { 1: 'sleep-curl' }, unseen);
+  const after = bubblesFor(bubbleWorld(11, [ask, rep], 2), { 1: 'sleep-curl', 2: 'grooming' }, unseen);
+  assert(after.length === 0,
+    `drew ${JSON.stringify(after)} -- a reply to something the viewer never saw is just words over a silent cat`);
+
+  // Both drawn, but the ASKER has left the frame: no exchange to read.
+  const gone = Object.create(bubbleScope.WorldRenderer.prototype);
+  gone.tile = 40; gone.cssWidth = 120; gone.cssHeight = 120; // a 3-tile window
+  gone.camera = { left: 0, top: 0 };
+  gone.tileOrigin = (pos) => ({ x: pos.x * 40, y: pos.y * 40 });
+  const near = { ...bubbleWorld(10, [ask], 2) };
+  near.kitties[0].pos = { x: 0, y: 0 };
+  near.kitties[1].pos = { x: 1, y: 0 };
+  bubblesFor(near, { 1: 'idle' }, gone);
+  const far = { ...bubbleWorld(11, [ask, rep], 2) };
+  far.kitties[0].pos = { x: 18, y: 18 }; // the asker is well outside
+  far.kitties[1].pos = { x: 1, y: 0 };
+  const out = bubblesFor(far, { 1: 'idle', 2: 'grooming' }, gone);
+  assert(!out.some(([id]) => id === 2),
+    'a reply was rescued with its asker off screen -- there is no exchange for the viewer to read');
+});
+
+check('the pairing is ONE TO ONE, inside the ruled window', () => {
+  // The engine's answers-me relation is many-to-one: a want sitting in the
+  // 30-tick digest window is "answered" by every matching here-word that
+  // rolls past, a median of four. That is a feature the minds observe, not
+  // an exchange, so the client narrows it -- freshest UNCLAIMED ask wins,
+  // ties to the lower id, inside `meowPairWindowTicks`.
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  const W = api.VIEW.meowPairWindowTicks;
+  const world = bubbleWorld(20, [
+    { kitty_id: 1, kind: 'want_eat', tick: 18 },
+    { kitty_id: 3, kind: 'here_food', tick: 19, reply: true },
+    { kitty_id: 4, kind: 'here_food', tick: 19, reply: true },
+  ], 4);
+  const map = bubbleScope.WorldRenderer.prototype.pairedAsks.call(r, world);
+  const claimed = [...map.values()].map((a) => `${a.kitty_id}:${a.tick}`);
+  assert(claimed.length === 1,
+    `${claimed.length} replies claimed the one ask -- the pairing is not 1:1 (${JSON.stringify(claimed)})`);
+  assert(map.has('3:19:here_food'),
+    'the tie did not fall to the lower kitty id, which is the engine\'s own freshest_audible key');
+
+  // ...and the window's edge, pinned on BOTH sides so an off-by-one in
+  // either direction is caught. A gap of exactly W is inside it.
+  const atGap = (gap) => {
+    const w = bubbleWorld(40, [
+      { kitty_id: 1, kind: 'want_eat', tick: 39 - gap },
+      { kitty_id: 2, kind: 'here_food', tick: 39, reply: true },
+    ], 2);
+    return bubbleScope.WorldRenderer.prototype.pairedAsks.call(
+      Object.create(bubbleScope.WorldRenderer.prototype), w).size;
+  };
+  assert(atGap(W) === 1, `an ask exactly ${W} ticks back did not pair -- the window is ${W}, inclusive`);
+  assert(atGap(W + 1) === 0, `an ask ${W + 1} ticks back paired -- the window is ${W}`);
+});
+
+check('every here-word the client can draw knows which ask it answers', () => {
+  // WANT_FOR_HERE restates the engine's own want_for_here, because it is not
+  // served. A here-kind missing from it would never pair and never be
+  // rescued, silently -- so the table is checked against the vocabulary the
+  // client actually renders.
+  const heres = Object.keys(bubbleScope.MEOW_TEXT).filter((k) => k.startsWith('here_'));
+  assert(heres.length > 0, 'no here-words in MEOW_TEXT -- this check is testing nothing');
+  const src = renderSrc.slice(renderSrc.indexOf('const WANT_FOR_HERE'));
+  const table = src.slice(0, src.indexOf('};'));
+  for (const kind of heres) {
+    assert(new RegExp(`\\b${kind}:`).test(table),
+      `${kind} can be drawn but has no ask to pair with -- it can never be rescued`);
   }
 });
 
