@@ -58,15 +58,15 @@ const VERTICAL_SLACK = 30;
  * config flip with no client change, which is the point of holding them. */
 const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
 
+/** A served meow's identity: the cat, the tick it was spoken, the word. */
+const meowKey = (m) => `${m.kitty_id}:${m.tick}:${m.kind}`;
+
 /**
  * Which ask each here-word answers. The engine's own `want_for_here`
  * (core/src/meow.rs), restated here because it is not served -- so a check
  * pins that every here-kind the client can draw has an entry, or a new one
  * would silently never pair.
  */
-/** A served meow's identity: the cat, the tick it was spoken, the word. */
-const meowKey = (m) => `${m.kitty_id}:${m.tick}:${m.kind}`;
-
 const WANT_FOR_HERE = {
   here_food: 'want_eat',
   here_water: 'want_drink',
@@ -2172,6 +2172,10 @@ class WorldRenderer {
    *
    * Cached per served tick: it is a pure function of `recent_meows`, and
    * recomputing it sixty times a second would be the same answer each time.
+   * The key is the tick alone, which a `--fresh` world could in principle
+   * collide with once, after its restarted counter climbs back to whatever
+   * was last cached. The cost is one frame of stale pairings, so it is left
+   * rather than carrying a generation through three call sites for it.
    */
   pairedAsks(world) {
     if (this.pairCache?.tick === world.tick) return this.pairCache.map;
