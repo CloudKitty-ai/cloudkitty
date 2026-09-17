@@ -108,33 +108,43 @@ def echo_outcome(said, w, window):
     return out
 
 
-def word_masks(said, w, window, digest):
-    """(event[t,L,S], control[t,L,S]) for word w, t < T - window."""
+def word_masks(said, w, window, digest, mode="any"):
+    """(event[t,L,S], control[t,L,S]) for word w, t < T - window. Control
+    mode "any" (declared): no cat other than L said w in [t - digest + 1,
+    t + window]. Mode "speaker" (amendment 1): S did not say w there."""
     T, K = said.shape
     Tv = T - window
     is_w = said == w
-    # any other cat said w in [t - digest + 1, t + window]
-    tainted = np.zeros((Tv, K), bool)
+    spoke = np.zeros((Tv, K), bool)  # cat said w in [t - digest + 1, t + window]
     for t in range(Tv):
         lo, hi = max(0, t - digest + 1), min(T, t + window + 1)
-        spoke = is_w[lo:hi].any(axis=0)  # per cat
-        tainted[t] = spoke.sum() - spoke > 0  # some cat other than L
+        spoke[t] = is_w[lo:hi].any(axis=0)
     off = ~np.eye(K, dtype=bool)[None]
     event = is_w[:Tv][:, None, :] & off
-    control = ~tainted[:, :, None] & off
+    if mode == "any":
+        tainted = spoke.sum(axis=1, keepdims=True) - spoke > 0  # some cat other than L
+        control = ~tainted[:, :, None] & off
+    elif mode == "speaker":
+        control = ~spoke[:, None, :] & off
+    else:
+        raise ValueError(mode)
     return event, control
 
 
-def ratio_read(event, control, outcome, eligible, present, actcls):
+def ratio_read(event, control, outcome, eligible, present, actcls, match_speaker=False):
     """observed / expected for one outcome[t,L,S] (bool), matched on key
-    (L, S, sees, activity). Returns dict with observed, expected, events,
-    dropped (events whose key has no control row)."""
+    (L, S, sees, L's activity[, S's activity with match_speaker]). Returns
+    dict with observed, expected, events, dropped (events whose key has
+    no control row)."""
     Tv, K, _ = event.shape
     Lax = np.arange(K)[None, :, None]
     Sax = np.arange(K)[None, None, :]
     key = ((Lax * K + Sax) * 2 + present[:Tv].astype(int)) * 7 + actcls[:Tv][:, :, None]
-    key = np.broadcast_to(key, event.shape)
     nkeys = K * K * 2 * 7
+    if match_speaker:
+        key = key * 7 + actcls[:Tv][:, None, :]
+        nkeys *= 7
+    key = np.broadcast_to(key, event.shape)
     cm = control & eligible
     c_n = np.bincount(key[cm], minlength=nkeys)
     c_hit = np.bincount(key[cm & outcome], minlength=nkeys)
@@ -148,7 +158,7 @@ def ratio_read(event, control, outcome, eligible, present, actcls):
             "ratio": (observed / expected) if expected > 0 else None}
 
 
-def read_seed(rows, window, digest):
+def read_seed(rows, window, digest, control="any", match_speaker=False):
     ids, pos, said, actcls, present, target, top = per_tick(rows)
     T, K = said.shape
     Tv = T - window
@@ -164,17 +174,18 @@ def read_seed(rows, window, digest):
             "top_need_mean": float(top[m].mean()) if m.any() else None,
             "n": int(m.sum()),
         }
-        event, control = word_masks(said, w, window, digest)
+        event, ctrl_all = word_masks(said, w, window, digest, control)
         echo = echo_outcome(said, w, window)
         out["uptake"][word] = {}
         for vis_name, vis in (("visible", present[:Tv]), ("unseen", ~present[:Tv])):
             ev = event & vis
-            ct = control & vis
+            ct = ctrl_all & vis
+            rr = lambda oc, el: ratio_read(ev, ct, oc, el, present, actcls, match_speaker)  # noqa: E731
             out["uptake"][word][vis_name] = {
-                "approach": ratio_read(ev, ct, approach, eligible, present, actcls),
-                "proposal_to_speaker": ratio_read(ev, ct, proposal, allT, present, actcls),
-                "echo": ratio_read(ev, ct, np.broadcast_to(echo[:, :, None], ev.shape), allT, present, actcls),
-                "any_speech": ratio_read(ev, ct, np.broadcast_to(speech[:, :, None], ev.shape), allT, present, actcls),
+                "approach": rr(approach, eligible),
+                "proposal_to_speaker": rr(proposal, allT),
+                "echo": rr(np.broadcast_to(echo[:, :, None], ev.shape), allT),
+                "any_speech": rr(np.broadcast_to(speech[:, :, None], ev.shape), allT),
             }
     return out
 
@@ -229,13 +240,15 @@ def main():
     ap.add_argument("--window", type=int, default=10)
     ap.add_argument("--digest", type=int, default=30)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--control", choices=("any", "speaker"), default="any", help="declared pool (any) or amendment 1 (speaker)")
+    ap.add_argument("--match-speaker", action="store_true", help="amendment 2: add the speaker's activity class to the key")
     a = ap.parse_args()
     z = np.load(a.trace)
-    per_seed = {s: read_seed(rows, a.window, a.digest) for s, rows in rows_by_seed(z).items()}
+    per_seed = {s: read_seed(rows, a.window, a.digest, a.control, a.match_speaker) for s, rows in rows_by_seed(z).items()}
     res = pool(per_seed)
     res["reading"] = band(res)
     res["per_seed"] = {str(s): v for s, v in per_seed.items()}
-    res["params"] = {"window": a.window, "digest": a.digest, "trace": str(a.trace)}
+    res["params"] = {"window": a.window, "digest": a.digest, "trace": str(a.trace), "control": a.control, "match_speaker": a.match_speaker}
     print(f"== emission per 1k decisions (seats in id order); rows {sum(v['rows'] for v in per_seed.values())}")
     for word in WORDS:
         e = res["emission"][word]

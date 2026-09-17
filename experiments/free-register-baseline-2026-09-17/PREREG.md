@@ -93,6 +93,36 @@ models cannot answer a reprice): this is a census of the served roster
 and the Gen 2 baseline, never a conclusion about what a repriced world
 would do. Rules 1–5, 8, 10 moved nothing.
 
+## Amendments (2026-09-17, after the first run of the declared read)
+
+The first run stands as declared and is reported in RESULTS.md. Two
+things it showed about the instrument, not the words:
+
+1. **The declared control pool is near-empty for frequent words.** Mew,
+   chirp and purr run at 37, 32 and 73 per 1k decisions, so a 40-tick
+   span with no other cat saying the word barely exists; 26–97% of
+   free-register events, by cell, had no matched control row (dropped
+   1,320–10,909 per cell; worst on the visible class, best on purr
+   unseen), while the rare want-words matched fully (dropped 0) and
+   passed the positive control. Amended control: rows (L, S, t′)
+   where the SPEAKER S did not say w in the 30 ticks up to and
+   including t′ nor in the 10-tick window after it. Other cats' words
+   are background in both arms. Audibility is per speaker in the
+   digest (each friend row carries its own recency and rate cells), so
+   the speaker is the right unit of silence. Reader flag
+   `--control speaker`; the declared pool stays as `--control any`.
+2. **The speaker's state is a confound the declared key did not
+   carry.** Purr is spoken 86% from rest or sleep, chirp 66%, mew 62%,
+   against 22% for want_cuddle; a listener's approach or proposal
+   towards a sleeping friend differs from one towards an idle friend
+   whatever was said. Amended key: (L, S, L sees S, L's activity
+   class, S's activity class). Reader flag `--match-speaker`.
+
+The reading band applies to the amended read (`--control speaker
+--match-speaker`); the declared read is kept beside it for the record.
+The positive control (want_cuddle visible proposal ratio above 1.25)
+must hold on the amended read too.
+
 ## Instrument guards
 
 `test_free_register_read.py`: plain-python asserts on synthetic rows

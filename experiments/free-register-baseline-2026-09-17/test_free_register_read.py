@@ -58,7 +58,14 @@ def main():
     assert list(ids) == IDS
     assert present[0, 1, 0] and not present[0, 2, 0], "kitty 2 sees 1, kitty 3 does not"
     assert target[28, 1] == 0 and target[3, 1] == 0 and target[10, 1] == -1, "PlayKitty slot decodes to kitty 1"
-    res = R.read_seed(rows, WINDOW, DIGEST)
+    for control, match in (("any", False), ("speaker", True)):
+        check(R.read_seed(rows, WINDOW, DIGEST, control, match))
+    print("ok: free_register_read guards")
+
+
+def check(res):
+    """The stage is built so the declared and amended reads coincide:
+    kitty 1 is the only speaker kitty 2 hears, and every cat is idle."""
     up = res["uptake"]["mew"]
     # visibility split: kitty 1's mew has one visible listener (kitty 2)
     # and one unseen (kitty 3); kitty 3's echo at tick 30 is itself an
@@ -77,7 +84,6 @@ def main():
     # emission census
     e = res["emission"]["mew"]
     assert e["n"] == 2 and e["activity_mix"]["idle"] == 1.0, e
-    print("ok: free_register_read guards")
 
 
 if __name__ == "__main__":
