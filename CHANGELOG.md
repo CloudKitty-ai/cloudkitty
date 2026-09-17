@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **Every so often, all five cats would meow at once — at nothing.** The
+  client remembers which served meows it has already drawn, so a call in
+  the rolling window is animated once rather than on every poll. When that
+  memory reached 4,000 entries it **emptied itself completely** — and a
+  truncation to zero discards the newest keys along with the oldest, while
+  the newest are exactly the ones still being served. The next state then
+  treated every meow still in the window as unseen, and the mouths
+  replayed: the whole roster, in unison, for calls up to 24 seconds old.
+  The defect was *emptying rather than evicting*; a buffer that dropped
+  its oldest entry instead would have been fine. It now forgets a meow
+  when that meow **ages out of the engine's digest window**, which is the
+  point after which the world can no longer serve it — so the rule is the
+  invariant itself rather than a capacity that has to be sized against it. That window is served
+  (`meow.digest_window_ticks`) and is now read rather than assumed, like
+  the tick interval and the distress patience before it. The line had been
+  there for a year without anyone seeing it, because a count threshold
+  means the *interval* between wipes is set by how talkative the world is
+  rather than by anything in the code — every 11 hours on the old roster,
+  every 50 minutes once the fog generation seated and began speaking 13.6×
+  more. Presentation only. (#385)
+
 - **Camera mode is on by default.** It is what the meadow is meant to look
   like — framed on the cats rather than the whole board — and whole-world
   is now the opt-out rather than the arrival. Two things had to change for
