@@ -1668,6 +1668,12 @@ class WorldRenderer {
     // tween gives the sitting-down and the standing-up for free.
     const own = v2Motion && view.idlePoseFor ? view.idlePoseFor(kitty.id, served) : null;
     const pose = own ? own.pose : served;
+    // What this cat is ACTUALLY drawn as, for `drawBubbles` to gate on. Every
+    // kitty passes through here before the bubble pass runs, so the record is
+    // this frame's. Recorded rather than re-derived: poseFor needs movement,
+    // water and the chase gate to answer, and a second copy of that call is
+    // the drift `pose-analyze` was fixed for.
+    (this.drawnPose ??= new Map()).set(kitty.id, pose);
 
     // The served meow. Resolved HERE because `meowFor` gates on the pose --
     // asking any earlier would ask about a pose the cat is not in -- and
@@ -2169,6 +2175,20 @@ class WorldRenderer {
       // the flag draws no here-word bubbles at all, which is loud rather than
       // silently half-working. Every meow this client is served carries it.
       if (meow.kind.startsWith('here_') && meow.reply !== true) continue;
+      // ...and a bubble only where the MOUTH CAN MOVE (owner, 2026-09-16).
+      // `VIEW.meowPoses` is the set with a gape animation; on anything else
+      // the text was the client asserting speech it could not show -- a cat
+      // asleep, eating or mid-groom with words over it. Same objection that
+      // demoted the purr.
+      //
+      // The per-cat `meowCooldownMs` is deliberately NOT applied here. It
+      // exists so an 800ms gape cannot re-trigger on top of itself, which is
+      // an animation constraint; borrowing it for text also flattens the
+      // roster's chattiness to within 1.26x, and that variation is character
+      // worth keeping (owner: "charming to have cats with personality").
+      // Measured: gate alone leaves Biscuit at 31% of its ticks against
+      // Miso's 19%; gate plus cooldown puts every cat at 11-14%.
+      if (!VIEW.meowPoses.includes(this.drawnPose?.get(meow.kitty_id))) continue;
       said.set(meow.kitty_id, meow);
     }
     for (const meow of said.values()) {

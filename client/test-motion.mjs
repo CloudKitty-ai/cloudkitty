@@ -3526,10 +3526,18 @@ const bubbleScope = eval(
     + ';({ WorldRenderer, MEOW_TEXT })',
 );
 
-/** The bubbles `drawBubbles` would draw, as [id, text] pairs. */
-function bubblesFor(world) {
+/**
+ * The bubbles `drawBubbles` would draw, as [id, text] pairs. `poses` is what
+ * `drawKitty` left in `drawnPose` this frame -- the bubble gates on the pose
+ * the cat was ACTUALLY drawn as. Defaults every cat to `idle`, which is in
+ * the gate, so a check that is not about the gate does not have to say so.
+ */
+function bubblesFor(world, poses = null) {
   const said = [];
-  const stub = { drawBubble: (kitty, text) => said.push([kitty.id, text]) };
+  const drawnPose = new Map(
+    world.kitties.map((k) => [k.id, poses ? (poses[k.id] ?? 'idle') : 'idle']),
+  );
+  const stub = { drawnPose, drawBubble: (kitty, text) => said.push([kitty.id, text]) };
   bubbleScope.WorldRenderer.prototype.drawBubbles.call(stub, world, {});
   return said;
 }
@@ -3562,6 +3570,99 @@ check('an unprompted here-word gets no bubble; a REPLY does', () => {
   // rather than silently half-working. Documented at the filter.
   const absent = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'here_water', tick: 9 }]));
   assert(absent.length === 0, 'a here-word with no reply flag must not be taken for a reply');
+});
+
+check('drawKitty records the drawn pose, or every cat falls silent', () => {
+  // The inert mode here is SILENCE, which reads as a working build: with no
+  // `drawnPose` the gate rejects every bubble and nobody says anything.
+  // Nothing about drawBubbles on its own could catch that, so this runs the
+  // real drawKitty and then the real drawBubbles on the same renderer.
+  const ctx = new Proxy({}, {
+    get: (t, k) => {
+      if (k === 'canvas') return { width: 900, height: 900 };
+      if (k === 'measureText') return () => ({ width: 10 });
+      return () => ctx;
+    },
+    set: () => true,
+  });
+  const said = [];
+  const stub = {
+    ctx, tile: 100, theme: 'day', pondCache: null,
+    tileOrigin: (p) => ({ x: p.x * 100, y: p.y * 100 }),
+    drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
+    drawBubble: (kitty, text) => said.push([kitty.id, text]),
+  };
+  const pos = { x: 3, y: 3 };
+  const kitty = { id: 1, name: 'K', pos, activity: { state: 'idle' }, last_action: null, needs: {} };
+  const world = {
+    width: 12, height: 12, tick: 10, elements: [], kitties: [kitty],
+    recent_meows: [{ kitty_id: 1, kind: 'want_eat', tick: 9 }],
+  };
+  const view = new Proxy({
+    posFor: () => pos, elementPosFor: (e) => e.pos, elementAlphaFor: () => 1,
+    tickMs: 800, expired: [], expiredAlpha: 0, ambient: { now: 1000 },
+    travelHFor: () => 1, wetFor: () => 0, movedFor: () => false,
+    motionFor: () => ({ phase: 0.2 }), facingFor: () => 'right',
+    velocityFor: () => ({ x: 0, y: 0 }), leanFor: () => null,
+    leapFor: () => null, tweenFor: () => null,
+    adjustPose: (id, p) => p, idlePoseFor: () => null,
+  }, { get: (t, k) => (k in t ? t[k] : () => null) });
+  const hadMeadow = 'MEADOW' in globalThis;
+  const savedMeadow = globalThis.MEADOW;
+  globalThis.MEADOW = new Proxy({}, {
+    get: (t, k) => (String(k).startsWith('shadow') && k !== 'shadowColor' ? 0 : '#000'),
+  });
+  try {
+    bubbleScope.WorldRenderer.prototype.drawKitty.call(stub, kitty, world, view);
+    bubbleScope.WorldRenderer.prototype.drawBubbles.call(stub, world, {});
+  } finally {
+    if (hadMeadow) globalThis.MEADOW = savedMeadow; else delete globalThis.MEADOW;
+  }
+  assert(
+    stub.drawnPose instanceof Map && stub.drawnPose.get(1) === 'idle',
+    'drawKitty no longer records the pose it drew -- the bubble gate has nothing to read',
+  );
+  assert(
+    said.length === 1 && said[0][1] === bubbleScope.MEOW_TEXT.want_eat,
+    `an idle cat's ask drew ${JSON.stringify(said)} -- the two passes are no longer wired together`,
+  );
+});
+
+check('a bubble only appears where the MOUTH CAN MOVE', () => {
+  // Owner, 2026-09-16. Text over a cat that is asleep, eating or mid-groom is
+  // the client asserting speech it cannot show -- the objection that demoted
+  // the purr. `VIEW.meowPoses` is the set with a gape animation, and the
+  // bubble now gates on the pose the cat was actually DRAWN as.
+  const meows = [1, 2, 3].map((id) => ({ kitty_id: id, kind: 'want_cuddle', tick: 9 }));
+  const said = bubblesFor(bubbleWorld(10, meows), { 1: 'idle', 2: 'sleep-curl', 3: 'grooming' });
+  assert(
+    JSON.stringify(said.map(([id]) => id)) === JSON.stringify([1]),
+    `drew ${JSON.stringify(said)} -- only the cat whose mouth can move may speak`,
+  );
+
+  // Every pose in the shipped gate must carry a bubble, read from VIEW rather
+  // than restated: the gate has grown twice (pouncing 2026-08-25, loaf
+  // 2026-08-27) and a copy here would have gone stale both times.
+  for (const pose of api.VIEW.meowPoses) {
+    const one = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), { 1: pose });
+    assert(one.length === 1, `${pose} is in VIEW.meowPoses but drew no bubble`);
+  }
+});
+
+check('the cooldown is NOT borrowed for the bubble', () => {
+  // `meowCooldownMs` stops an 800ms gape re-triggering on top of itself. That
+  // is an animation constraint, and applying it to text flattens the roster's
+  // chattiness to within 1.26x -- measured 2026-09-16, gate alone leaves
+  // Biscuit at 31% of its ticks against Miso's 19%, gate plus cooldown puts
+  // every cat at 11-14%. The owner keeps the variation: it is character.
+  //
+  // So two calls closer together than the cooldown must both be drawable.
+  const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1));
+  const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1));
+  const apartMs = 1 * 800;
+  assert(apartMs < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
+  assert(early.length === 1 && late.length === 1,
+    'consecutive calls must each draw -- the bubble does not share the gape cooldown');
 });
 
 check('a suppressed announcement does not mask the bubble underneath it', () => {
