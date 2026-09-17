@@ -7734,6 +7734,121 @@ check('the camera control seats beside the dial and scales with it', () => {
     'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
+/** CIE L*a*b* from a hex string, for measuring how far a colour moved.
+ * The pond restyle set the precedent: judge colour distance perceptually,
+ * not in sRGB, or a dark transition looks smaller than it reads. */
+function labOf(hex) {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex)
+    || /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(hex);
+  if (!m) return null;
+  const ch = (x) => parseInt(x.length === 1 ? x + x : x, 16) / 255;
+  const lin = (c) => (c > 0.04045 ? ((c + 0.055) / 1.055) ** 2.4 : c / 12.92);
+  const [R, G, B] = [ch(m[1]), ch(m[2]), ch(m[3])].map(lin);
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const X = f((R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047);
+  const Y = f(R * 0.2126 + G * 0.7152 + B * 0.0722);
+  const Z = f((R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+const deltaE = (a, b) => {
+  const A = labOf(a); const B = labOf(b);
+  if (!A || !B) return 0;
+  return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
+};
+
+check('each sky crossing steps below the just-noticeable difference', () => {
+  // ⚠ THIS IS THE RECALCULATION GUARD. The per-phase step counts in
+  // WORLD_DAY_PHASES are DERIVED from the palettes, so changing a theme
+  // colour makes them stale -- and stale means visible banding in the one
+  // place it is easiest to see, a large flat field changing over time.
+  //
+  // So the distance is recomputed here from the shipped palettes rather
+  // than trusted: a colour edit that outruns its step count fails, and the
+  // failure says what the count should be. Nobody has to remember.
+  //
+  // Measured 2026-09-17: the four crossings move very unequally -- worst-key
+  // dE 27.8 / 62.5 / 53.2 / 37.5 -- which is why one count cannot serve all
+  // four, and why the table carries a count per phase.
+  const app = appSrc;
+  const table = app.slice(app.indexOf('const WORLD_DAY_PHASES'), app.indexOf('const BLEND_TARGET_DE'));
+  const rows = [...table.matchAll(/\['(\w+)',\s*(\d+),\s*(\d+),\s*(\d+)\]/g)]
+    .map((m) => ({ name: m[1], span: +m[2], fade: +m[3], steps: +m[4] }));
+  assert(rows.length === 4, `read ${rows.length} phase rows, expected 4 -- the table's shape moved`);
+  const target = Number(/const BLEND_TARGET_DE = ([\d.]+);/.exec(app)?.[1]);
+  assert(target > 0, 'BLEND_TARGET_DE is no longer readable from app.js');
+
+  const palettes = eval(
+    readFileSync(join(here, 'meadow.js'), 'utf8')
+      + ';({ day: MEADOW_DAY, dusk: MEADOW_DUSK, night: MEADOW_NIGHT, dawn: MEADOW_DAWN })',
+  );
+  for (let i = 0; i < rows.length; i += 1) {
+    const from = rows[i];
+    const to = rows[(i + 1) % rows.length];
+    const A = palettes[from.name];
+    const B = palettes[to.name];
+    assert(A && B, `no palette for ${from.name} or ${to.name}`);
+    let worst = 0;
+    let worstKey = '';
+    for (const k of Object.keys(A)) {
+      const va = A[k];
+      const vb = B[k];
+      const one = (x, y) => {
+        const d = typeof x === 'string' && typeof y === 'string' ? deltaE(x, y) : 0;
+        if (d > worst) { worst = d; worstKey = k; }
+      };
+      if (Array.isArray(va) && Array.isArray(vb)) va.forEach((v, j) => one(v, vb[j]));
+      else one(va, vb);
+    }
+    const per = worst / from.steps;
+    assert(
+      per <= target,
+      `${from.name} -> ${to.name} steps at dE ${per.toFixed(2)} on \`${worstKey}\` (total ${worst.toFixed(1)} `
+        + `over ${from.steps} steps), past the ${target} target. The palettes moved: set that row's step `
+        + `count to at least ${Math.ceil(worst / target)}.`,
+    );
+    // ...and not wildly over-sampled either, or a crossing pays for rebakes
+    // it cannot be seen to need. A rebake is ~1.3ms, so this is slack, not
+    // a tight bound -- it exists to catch a count left behind by a palette
+    // that got CLOSER.
+    assert(
+      from.steps <= Math.ceil(worst / target) * 3 + 8,
+      `${from.name} -> ${to.name} takes ${from.steps} steps for dE ${worst.toFixed(1)}; `
+        + `${Math.ceil(worst / target)} would hold the target`,
+    );
+  }
+});
+
+check('a sky crossing steps EVENLY, on the frame clock', () => {
+  // The old quantiser was fed whole ticks, so a count that did not divide
+  // the fade produced uneven steps: 32 against a 24-tick fade gave gaps of
+  // 1,2,1,1,2 in 32nds and jumped twice as far every fourth tick. An
+  // irregular step reads worse than a coarse one.
+  //
+  // The input is fractional now, so every step is reachable and they are
+  // evenly spaced in TIME. Driven through the shipped function.
+  const app = appSrc;
+  const consts = app.slice(app.indexOf('const WORLD_DAY_PHASES'), app.indexOf('function hourForTick'));
+  const blendFor = new Function(
+    `${consts}\nconst BLEND_STEPS = 32;\n`
+      + app.slice(app.indexOf('function phaseBlendFor('), app.indexOf('\n}\n', app.indexOf('function phaseBlendFor(')) + 3)
+      + 'return phaseBlendFor;',
+  )();
+  // day -> dusk: the longest crossing, and the one 32 steps handled worst.
+  const seen = [];
+  for (let f = 0; f <= 24 * 16; f += 1) {
+    const b = blendFor(280 - 24 + f / 16);
+    if (b.next) seen.push(b.step);
+  }
+  const uniq = [...new Set(seen)].sort((a, b) => a - b);
+  assert(uniq.length >= 28,
+    `only ${uniq.length} distinct steps across the day->dusk crossing -- the sub-tick clock is not reaching the quantiser`);
+  const gaps = uniq.slice(1).map((v, i) => v - uniq[i]);
+  const lo = Math.min(...gaps);
+  const hi = Math.max(...gaps);
+  assert(hi - lo < 1e-9,
+    `the crossing steps unevenly: gaps run ${lo.toFixed(4)} to ${hi.toFixed(4)} -- that is the 24-against-32 defect back`);
+});
+
 check('camera mode is ON unless the viewer turned it off, and a load is not a choice', () => {
   // Owner, 2026-09-17: camera mode is what the meadow is meant to look
   // like, and whole-world is the opt-out.

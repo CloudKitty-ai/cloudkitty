@@ -46,7 +46,13 @@ let latestWorld = null;
 anim.init(renderer);
 // ...and the panel's portraits ride the same frames, so the cats on the
 // cards blink on the world's clock rather than a clock of their own.
-anim.onFrame = paintPortraits;
+anim.onFrame = (world, view) => {
+  paintPortraits(world, view);
+  // The sky crosses on the frame's clock. `applyTheme` returns after two
+  // compares when the step has not moved, so this is cheap sixty times a
+  // second -- and it is what turns a crossing from 24 jumps into a slide.
+  if (themeMode === 'auto') applyTheme(view.progress ?? 0);
+};
 // Served states reach the panel when the animation layer PROMOTES them,
 // not when they land: the delay line holds a state back by about a tick
 // (see `Pacer` in anim.js), and cards that updated on arrival would run
@@ -111,11 +117,28 @@ const MODE_NAMES = {
  * two short phases 49 settled ticks each, up from 25 under the old
  * single-constant scheme, without shortening the day much. */
 const WORLD_DAY_PHASES = Object.freeze([
-  ['day', 280, 24],
-  ['dusk', 65, 16], // sunset -> night: twilight hands over briskly
-  ['night', 190, 24],
-  ['dawn', 65, 16], // dawn -> day
+  // [name, span, fadeOut, blendSteps]
+  ['day', 280, 24, 28],
+  ['dusk', 65, 16, 63], // sunset -> night: twilight hands over briskly
+  ['night', 190, 24, 54],
+  ['dawn', 65, 16, 38], // dawn -> day
 ]);
+
+/** The largest colour step a crossing may take, in CIE dE.
+ *
+ * ~1.0 is the just-noticeable difference between adjacent patches, and a
+ * large flat field changing over time is the easiest place in the meadow to
+ * see one. Measured 2026-09-17 against the shipped palettes: the four
+ * crossings move VERY unequally -- worst-key dE of 27.8 (day->dusk), 62.5
+ * (dusk->night), 53.2 (night->dawn) and 37.5 (dawn->day) -- so one step
+ * count cannot serve them. dusk->night moves 2.2x as far as day->dusk in
+ * two-thirds of the time.
+ *
+ * ⚠ THE STEP COUNTS ABOVE ARE DERIVED FROM THE PALETTES. Change a theme
+ * colour and they are stale. A check recomputes the distance from the
+ * shipped palettes and fails if any row no longer holds this target, so
+ * the recalculation is forced rather than remembered. */
+const BLEND_TARGET_DE = 1.0;
 const WORLD_DAY_TICKS = WORLD_DAY_PHASES.reduce((sum, [, span]) => sum + span, 0);
 
 function hourForTick(tick) {
@@ -174,16 +197,22 @@ const BLEND_STEPS = 32;
  * The fade is clamped to the span as a guard: a table row asking to fade
  * for longer than its phase lasts would otherwise never settle. */
 function phaseBlendFor(tick) {
-  let t = Math.max(0, tick | 0) % WORLD_DAY_TICKS;
+  let t = Math.max(0, tick) % WORLD_DAY_TICKS;
   for (let i = 0; i < WORLD_DAY_PHASES.length; i += 1) {
-    const [theme, span, fadeOut = 0] = WORLD_DAY_PHASES[i];
+    const [theme, span, fadeOut = 0, steps = BLEND_STEPS] = WORLD_DAY_PHASES[i];
     if (t < span) {
       const fade = Math.min(fadeOut, span);
       const remaining = span - t;
       if (fade <= 0 || remaining > fade) return { theme, next: null, step: 0 };
       const next = WORLD_DAY_PHASES[(i + 1) % WORLD_DAY_PHASES.length][0];
       const k = 1 - remaining / fade;
-      return { theme, next, step: Math.round(k * BLEND_STEPS) / BLEND_STEPS };
+      // `tick` is FRACTIONAL (the served tick plus how far the frame is
+      // through it), so the input is continuous and the quantiser is the
+      // only thing setting the step. That is what makes an arbitrary count
+      // legal: it used to be fed whole ticks, so a count that did not
+      // divide the fade produced uneven steps -- 32 against a 24-tick fade
+      // gave gaps of 1,2,1,1,2, and jumped twice as far every fourth tick.
+      return { theme, next, step: Math.round(k * steps) / steps };
     }
     t -= span;
   }
@@ -193,6 +222,7 @@ function phaseBlendFor(tick) {
 let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
 let currentTheme = null; // the visual theme actually applied
 let currentBlend = null; // and the quantised blend key it was applied at
+let currentMode = null; // ...and the mode, so a mode change is never skipped
 
 /** Applies the mode's theme (auto reads the world clock) and syncs the
  * toggle. Cheap when nothing changed, so present() may call it per tick. */
@@ -294,11 +324,13 @@ function paintThemeTokens(blend) {
   }
 }
 
-function applyTheme() {
+function applyTheme(subTick = 0) {
   // A hand-picked theme is exactly itself; only the world clock blends.
+  // `subTick` is how far this FRAME is through the served tick, so the sky
+  // crosses on the frame's clock rather than in 800ms jumps.
   const blend =
     themeMode === 'auto'
-      ? phaseBlendFor(latestWorld?.tick ?? 0)
+      ? phaseBlendFor((latestWorld?.tick ?? 0) + subTick)
       : { theme: themeMode, next: null, step: 0 };
   // Which phase the page WEARS: its classes, its cat shading, its name in
   // the footer. Mid-crossing that is whichever end is nearer, the same
@@ -324,8 +356,14 @@ function applyTheme() {
   // Cheap when nothing moved: a settled phase produces the same key every
   // tick, so this returns before touching the cache.
   const key = `${blend.theme}>${blend.next ?? ''}@${blend.step}`;
-  if (key === currentBlend) return;
+  // Called every frame now, so this early return is the hot path: a settled
+  // phase, or a frame inside the same step, costs two string compares. The
+  // MODE is in the test because switching to a hand-picked theme the world
+  // is already wearing leaves the key identical while the button must still
+  // change -- which the old per-tick caller never had to worry about.
+  if (key === currentBlend && themeMode === currentMode) return;
   currentBlend = key;
+  currentMode = themeMode;
 
   // The classes still flip at the crossing's midpoint: they carry the
   // things that cannot be interpolated -- which phase the cats are shaded
