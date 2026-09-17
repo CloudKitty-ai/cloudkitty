@@ -33,6 +33,36 @@ change.
 
 ## Unreleased
 
+- **The sky changed colour in jumps, and unevenly.** A crossing between
+  hours was recomputed once per served tick — a colour change every 800ms —
+  and the 32-step quantiser it went through was fed whole ticks. Twenty-four
+  of them do not divide thirty-two, so the longest crossing of the day
+  stepped *1,2,1,1,2* and jumped twice as far every fourth tick; the dial's
+  own comment claimed both fades divided 32, and only one did. The crossing
+  now runs on the frame's clock, so the input is continuous and the
+  quantiser alone decides the step — which also retires the divisibility
+  rule that caused it.
+  And one step count cannot serve four crossings. Measured in CIE ΔE against
+  the shipped palettes, the worst-moving colour travels 27.8 (day→dusk),
+  62.5 (dusk→night), 53.2 (night→dawn) and 37.5 (dawn→day): dusk→night goes
+  more than twice as far as day→dusk in two-thirds the time. So the step
+  count joins the span and the fade in the phase table, and each row is
+  bounded twice — no step may move more than ΔE 0.5, and none may last
+  longer than 100ms. The second bound is the one distance alone gets
+  backwards: the *least*-moving crossing needs the fewest steps and so gets
+  the slowest ones, and day→dusk was changing colour once every 686ms, which
+  reads as an event whatever its size. Those counts are derived, so a check
+  recomputes both bounds from the shipped palettes and fade lengths and
+  fails with the number a row should carry — the recalculation is forced
+  rather than remembered.
+  Cost turned out not to be the constraint anywhere: a step measures 0.9ms
+  on the live page, almost all of it the ground rebake, so ten steps a
+  second is under 1% of frame budget. The old per-tick repaint that went
+  with each step is gone too — `pump` runs inside the animation frame and
+  the live draw follows it there, so that repaint painted a still frame
+  nothing ever composited, at the price of a whole extra scene draw every
+  tick through a crossing. Presentation only. (#PR)
+
 - **Every so often, all five cats would meow at once — at nothing.** The
   client remembers which served meows it has already drawn, so a call in
   the rolling window is animated once rather than on every poll. When that
