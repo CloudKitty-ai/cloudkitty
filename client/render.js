@@ -73,6 +73,11 @@ const WANT_FOR_HERE = {
   here_sunbeam: 'want_sleep',
   here_critter: 'want_play',
 };
+/** ...and the same table read the other way, to walk from an ask to the
+ * here-words that could answer it. Derived, so the two cannot disagree. */
+const HERE_FOR_WANT = Object.fromEntries(
+  Object.entries(WANT_FOR_HERE).map(([here, want]) => [want, here]),
+);
 
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
@@ -2158,49 +2163,71 @@ class WorldRenderer {
   }
 
   /**
-   * Which ask each reply answers, ONE TO ONE, as a map of reply key -> ask.
+   * The exchanges in this tick's window: for each ask, the ONE reply that
+   * answers it, and every other reply to that ask marked as a duplicate.
    *
-   * The engine's answers-me relation is many-to-one by design -- it is a
-   * feature the minds observe, and a want sitting in the 30-tick digest
-   * window is "answered" by every matching here-word that rolls past it,
-   * a median of four and as many as twelve. That is not an exchange, so
-   * this narrows it: replies in (tick, id) order each claim the freshest
-   * UNCLAIMED ask within `meowPairWindowTicks`, freshest winning and a tie
-   * falling to the lower id -- the engine's own `freshest_audible` key.
-   * Measured on the settled world, that turns 637 replies into 138 pairs
-   * with a median gap of one tick.
+   * Two problems, one pass.
    *
-   * Cached per served tick: it is a pure function of `recent_meows`, and
+   * The engine's answers-me relation is many-to-one by design -- a want sits
+   * in the digest window and every matching here-word that rolls past it
+   * "answers" it, a median of four. That is a feature the minds observe, not
+   * an exchange a person can read.
+   *
+   * And the world really does have several cats answer at once: measured on
+   * the served world, 54% of answered asks put two or more reply bubbles on
+   * screen together, up to four. All of them true, none of them legible.
+   *
+   * So each ask keeps its NEAREST replier (owner, 2026-09-17: "ideally I'd
+   * like the one closest cat to respond"), ties to the earlier tick and then
+   * the lower id. Distance is Chebyshev between the two meows' OWN stamped
+   * positions -- `pos` is where the cat was when it spoke, engine-stamped,
+   * not where it is now -- so it is a served fact rather than an inference.
+   *
+   * Nearest beat soonest on the owner's own criterion. Of chosen repliers,
+   * nearest puts 40% within four tiles against 23%, and 57% within six
+   * against 40%. Soonest wins on promptness (67% of replies still overlap
+   * the ask's bubble against 58%) but the pairing window already bounds
+   * lateness at 7 ticks, so timing was not the discriminator.
+   *
+   * A reply with no ask in the window is NOT touched: it is an ordinary
+   * here-word and #383 already ruled those keep their bubble. Only the
+   * losing siblings of a real exchange are dropped.
+   *
+   * Cached per served tick: a pure function of `recent_meows`, and
    * recomputing it sixty times a second would be the same answer each time.
-   * The key is the tick alone, which a `--fresh` world could in principle
-   * collide with once, after its restarted counter climbs back to whatever
-   * was last cached. The cost is one frame of stale pairings, so it is left
-   * rather than carrying a generation through three call sites for it.
    */
   pairedAsks(world) {
-    if (this.pairCache?.tick === world.tick) return this.pairCache.map;
+    if (this.pairCache?.tick === world.tick) return this.pairCache;
     const W = VIEW.meowPairWindowTicks;
     const all = world.recent_meows || [];
-    const replies = all
-      .filter((m) => m.reply === true && WANT_FOR_HERE[m.kind])
-      .sort((a, b) => a.tick - b.tick || a.kitty_id - b.kitty_id);
-    const claimed = new Set();
-    const map = new Map();
-    for (const r of replies) {
-      const want = WANT_FOR_HERE[r.kind];
+    const replies = all.filter((m) => m.reply === true && WANT_FOR_HERE[m.kind]);
+    const map = new Map();       // reply key -> the ask it answers
+    const duplicate = new Set(); // reply keys that lost to a nearer sibling
+    const apart = (a, b) => (a.pos && b.pos
+      ? Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y))
+      : Infinity);
+    for (const ask of all) {
+      if (!WANT_FOR_HERE[HERE_FOR_WANT[ask.kind] ?? ''] && !HERE_FOR_WANT[ask.kind]) continue;
+      const here = HERE_FOR_WANT[ask.kind];
+      const mine = replies.filter((r) => r.kind === here && r.kitty_id !== ask.kitty_id
+        && ask.tick < r.tick && r.tick - ask.tick <= W);
+      if (!mine.length) continue;
       let best = null;
-      for (const a of all) {
-        if (a.kind !== want || a.kitty_id === r.kitty_id) continue;
-        if (!(a.tick < r.tick && r.tick - a.tick <= W)) continue;
-        if (claimed.has(meowKey(a))) continue;
-        if (!best || a.tick > best.tick || (a.tick === best.tick && a.kitty_id < best.kitty_id)) best = a;
+      for (const r of mine) {
+        if (!best) { best = r; continue; }
+        const dr = apart(ask, r);
+        const db = apart(ask, best);
+        if (dr < db || (dr === db && (r.tick < best.tick
+          || (r.tick === best.tick && r.kitty_id < best.kitty_id)))) best = r;
       }
-      if (!best) continue;
-      claimed.add(meowKey(best));
-      map.set(meowKey(r), best);
+      map.set(meowKey(best), ask);
+      for (const r of mine) if (r !== best) duplicate.add(meowKey(r));
     }
-    this.pairCache = { tick: world.tick, map };
-    return map;
+    // A reply can be the chosen answer to one ask and a loser to another;
+    // being chosen anywhere is what earns the bubble.
+    for (const key of map.keys()) duplicate.delete(key);
+    this.pairCache = { tick: world.tick, map, duplicate };
+    return this.pairCache;
   }
 
   /** Is this kitty inside the frame right now? With camera mode off the
@@ -2247,6 +2274,14 @@ class WorldRenderer {
       // the flag draws no here-word bubbles at all, which is loud rather than
       // silently half-working. Every meow this client is served carries it.
       if (meow.kind.startsWith('here_') && meow.reply !== true) continue;
+      // ...and only the NEAREST answer to any one ask (owner, 2026-09-17).
+      // The world really does have several cats reply at once -- 54% of
+      // answered asks put two or more bubbles on screen together, up to four
+      // -- and they are all true and none of them legible. The losing
+      // siblings keep their GAPE; only the text goes, same as the
+      // announcement cut. A reply answering no ask in the window is left
+      // alone: that is an ordinary here-word, not a flurry.
+      if (this.pairedAsks(world).duplicate.has(meowKey(meow))) continue;
       // ...and a bubble only where the MOUTH CAN MOVE (owner, 2026-09-16).
       // `VIEW.meowPoses` is the set with a gape animation; on anything else
       // the text was the client asserting speech it could not show -- a cat
@@ -2274,7 +2309,7 @@ class WorldRenderer {
         // is deliberately not here: it would put words over a silent cat
         // BEFORE the thing that explains them, and the delay line only
         // reaches one tick, which is worth about two pairs per 25 minutes.
-        const ask = this.pairedAsks(world).get(meowKey(meow));
+        const ask = this.pairedAsks(world).map.get(meowKey(meow));
         if (!ask) continue;
         if (!this.bubbleDrawn?.has(meowKey(ask))) continue;
         const asker = world.kitties.find((k) => k.id === ask.kitty_id);

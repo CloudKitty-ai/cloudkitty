@@ -3598,12 +3598,14 @@ check('drawKitty records the drawn pose, or every cat falls silent', () => {
     set: () => true,
   });
   const said = [];
-  const stub = {
+  // On the prototype: `drawBubbles` calls sibling methods, and a bare object
+  // makes those look like the feature being absent rather than the harness.
+  const stub = Object.assign(Object.create(bubbleScope.WorldRenderer.prototype), {
     ctx, tile: 100, theme: 'day', pondCache: null,
     tileOrigin: (p) => ({ x: p.x * 100, y: p.y * 100 }),
     drawWaterline() {}, drawBeat() {}, drawElement() {}, roundRect() {},
     drawBubble: (kitty, text) => said.push([kitty.id, text]),
-  };
+  });
   const pos = { x: 3, y: 3 };
   const kitty = { id: 1, name: 'K', pos, activity: { state: 'idle' }, last_action: null, needs: {} };
   const world = {
@@ -3715,6 +3717,57 @@ check('...but only when the ask was actually drawn, and both cats are in frame',
     'a reply was rescued with its asker off screen -- there is no exchange for the viewer to read');
 });
 
+check('one ask draws ONE reply: the nearest cat answers', () => {
+  // Reported from the live meadow 2026-09-17: a flurry of answers to a single
+  // want. The world really does have several cats reply -- measured, 54% of
+  // answered asks put two or more bubbles on screen together, up to four --
+  // and every one of them is true. None of them is legible.
+  //
+  // The owner's call: keep the nearest. Distance is Chebyshev between the two
+  // meows' OWN stamped positions, which the engine sets to where the cat was
+  // when it spoke, so it is a served fact rather than an inference.
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } };
+  const near = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } };
+  const far = { kitty_id: 3, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } };
+  const world = bubbleWorld(11, [ask, near, far], 3);
+  const said = bubblesFor(world, null, r).map(([id]) => id).sort();
+  assert(
+    JSON.stringify(said) === JSON.stringify([1, 2]),
+    `drew ${JSON.stringify(said)} -- the ask and the NEAREST reply, not the one across the meadow`,
+  );
+
+  // The far cat is not silenced everywhere: answering a DIFFERENT ask earns
+  // its bubble back. Being chosen anywhere is what counts.
+  const r2 = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask2 = { kitty_id: 4, kind: 'want_eat', tick: 9, pos: { x: 18, y: 2 } };
+  const both = bubblesFor(bubbleWorld(11, [ask, ask2, near, far], 4), null, r2)
+    .map(([id]) => id).sort();
+  assert(
+    both.includes(3),
+    `drew ${JSON.stringify(both)} -- cat 3 is the nearest answer to the second ask and must keep its bubble`,
+  );
+});
+
+check('a here-word that answers nothing is left alone', () => {
+  // The flurry rule only settles a contest. A reply with no ask in the window
+  // is an ordinary here-word, and #383 already ruled those keep their bubble
+  // -- narrowing that here would be a second, unruled cut.
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  const lone = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } };
+  const said = bubblesFor(bubbleWorld(11, [lone], 2), null, r);
+  assert(said.length === 1 && said[0][0] === 2,
+    `drew ${JSON.stringify(said)} -- an unpaired reply keeps its bubble`);
+
+  // ...and an ask whose only answer is far away still shows that answer.
+  const r2 = Object.create(bubbleScope.WorldRenderer.prototype);
+  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } };
+  const far = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } };
+  const lonely = bubblesFor(bubbleWorld(11, [ask, far], 2), null, r2).map(([id]) => id).sort();
+  assert(JSON.stringify(lonely) === JSON.stringify([1, 2]),
+    `drew ${JSON.stringify(lonely)} -- there is no distance cap; visibility is the test for that`);
+});
+
 check('the pairing is ONE TO ONE, inside the ruled window', () => {
   // The engine's answers-me relation is many-to-one: a want sitting in the
   // 30-tick digest window is "answered" by every matching here-word that
@@ -3728,12 +3781,12 @@ check('the pairing is ONE TO ONE, inside the ruled window', () => {
     { kitty_id: 3, kind: 'here_food', tick: 19, reply: true },
     { kitty_id: 4, kind: 'here_food', tick: 19, reply: true },
   ], 4);
-  const map = bubbleScope.WorldRenderer.prototype.pairedAsks.call(r, world);
+  const { map } = bubbleScope.WorldRenderer.prototype.pairedAsks.call(r, world);
   const claimed = [...map.values()].map((a) => `${a.kitty_id}:${a.tick}`);
   assert(claimed.length === 1,
     `${claimed.length} replies claimed the one ask -- the pairing is not 1:1 (${JSON.stringify(claimed)})`);
   assert(map.has('3:19:here_food'),
-    'the tie did not fall to the lower kitty id, which is the engine\'s own freshest_audible key');
+    'the equal-distance tie did not fall to the lower kitty id');
 
   // ...and the window's edge, pinned on BOTH sides so an off-by-one in
   // either direction is caught. A gap of exactly W is inside it.
@@ -3743,7 +3796,7 @@ check('the pairing is ONE TO ONE, inside the ruled window', () => {
       { kitty_id: 2, kind: 'here_food', tick: 39, reply: true },
     ], 2);
     return bubbleScope.WorldRenderer.prototype.pairedAsks.call(
-      Object.create(bubbleScope.WorldRenderer.prototype), w).size;
+      Object.create(bubbleScope.WorldRenderer.prototype), w).map.size;
   };
   assert(atGap(W) === 1, `an ask exactly ${W} ticks back did not pair -- the window is ${W}, inclusive`);
   assert(atGap(W + 1) === 0, `an ask ${W + 1} ticks back paired -- the window is ${W}`);
@@ -3776,7 +3829,7 @@ check('the cooldown is NOT borrowed for the bubble', () => {
   // ONE renderer across both frames, or a per-renderer rate limit has nothing
   // to remember and this passes whatever the code does. It did exactly that
   // on the first cut, and `mutate.sh` called it vacuous.
-  const one = {};
+  const one = Object.create(bubbleScope.WorldRenderer.prototype);
   const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), null, one);
   const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1), null, one);
   assert(1 * 800 < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
