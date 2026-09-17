@@ -7868,10 +7868,20 @@ check('the sky is driven from the FRAME, or it silently steps per tick again', (
     'applyTheme is called from the frame without the sub-tick clock, so the quantiser still only sees whole ticks');
   assert(/paintPortraits\(/.test(hook),
     'the portraits lost their frame hook, which shared this slot');
-  // ...and it must still run per PROMOTED state too, or a settled phase
-  // never repaints after a mode change.
-  assert(/if \(themeMode === 'auto'\) applyTheme\(\);/.test(appSrc),
-    'present() no longer applies the theme on a promoted state');
+  // ...and it must still run per PROMOTED state, or reduced motion -- which
+  // never gets a frame hook -- would never change hour at all.
+  assert(/if \(themeMode === 'auto'\) applyTheme\(0, false\);/.test(appSrc),
+    'present() no longer applies the theme on a promoted state, or is asking it to repaint');
+  // That repaint would be a whole extra scene draw per tick through a
+  // crossing, and an invisible one: `pump` runs inside the rAF callback and
+  // the live draw follows it there, so the still frame never reaches the
+  // compositor. Reduced motion is covered because `push` promotes and THEN
+  // redraws -- pinned here because that ORDER is what makes it safe.
+  const push = animSrc.slice(animSrc.indexOf('  push(world) {'), animSrc.indexOf('\n  },', animSrc.indexOf('  push(world) {')));
+  const promoteAt = push.indexOf('this.promote(');
+  const redrawAt = push.indexOf('this.redraw()');
+  assert(promoteAt >= 0 && redrawAt > promoteAt,
+    'anim.push redraws before it promotes -- reduced motion would paint the previous hour');
 });
 
 check('a sky crossing steps EVENLY, on the frame clock', () => {

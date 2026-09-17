@@ -992,7 +992,14 @@ function present(world) {
   syncFollowMark();
   // The world's sky: on auto, the hour follows the served tick. applyTheme
   // early-returns when the hour hasn't changed, so this is per-tick cheap.
-  if (themeMode === 'auto') applyTheme();
+  //
+  // No repaint. `pump` runs INSIDE the rAF callback and the live draw
+  // follows it in the same callback, so a repaint here paints a still frame
+  // that is overwritten before the compositor ever sees it -- invisible, and
+  // a whole extra scene draw every tick through a crossing. Reduced motion
+  // does not need it either: `anim.push` promotes and THEN redraws, so the
+  // palette this sets is already in place when that paint happens.
+  if (themeMode === 'auto') applyTheme(0, false);
   drawSkyDial(world.tick);
   tickEl.textContent = world.tick;
   renderPanel(world);
