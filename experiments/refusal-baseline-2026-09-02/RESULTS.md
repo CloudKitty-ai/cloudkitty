@@ -74,3 +74,65 @@ pre-fog reference and not interpreted further.
 - Re-run the window after the next deploy that touches the selector
   or the roster (Biscuit 3.0 cutover at step 7); one window per deploy,
   same instrument.
+
+# Second window: the Fog Gen 1 roster (0.3.0, 2026-09-16)
+
+Same instrument, same prereg, one window after the reseat. Window
+valid: 15,041 ticks (254..15,294 of a fresh world), 101 polls at 120 s,
+zero ring gaps. Served config sha256 `4ce71e5f…547f73` (five
+`policy:fog-gen1-*` seats, vision radius 4, consent_line 30), engine
+head efc1a3c (tag 0.3.0), tick_ms 800. Raw:
+`results-raw/refusal-baseline-254.json`, uncommitted.
+
+| seat | taxed | absorbed | taxed rows by proposal |
+|---|---|---|---|
+| Miso | 1.05% | 3.86% | move 73, play:kitty 46, sleep:with 17, rest:with 14, groom:kitty 8 |
+| Biscuit | 1.48% | 3.78% | play:kitty 191, move 29, sleep:with 2 |
+| Pumpkin | 1.11% | 3.92% | move 103, play:kitty 32, rest:with 16, sleep:with 8 |
+| Kittybear | 1.30% | 4.04% | move 122, play:kitty 37, rest:with 27, sleep:with 5 |
+| Clementine | 1.56% | 4.55% | move 118, play:kitty 68, rest:with 35, sleep:with 12 |
+
+Roster: 4,006 rows, 977 taxed + 3,029 absorbed. Taxed density
+0.065/tick (was 0.119), combined 0.266/tick (was 0.334).
+
+Decision rules: every seat is under the 3.5% INVESTIGATE line, the
+highest Clementine at 1.56%. `retention_floor_15k` = 3,995 < 6,000, the
+default stands. Zero gaps. Nothing to action.
+
+Biscuit's 5.13% → 1.48% is a roster change, not a repricing read: the
+seat went from scripted playful (comfort 55, no consent gate) to a
+distinct network trained on the c30 + consent corpus, so doctrine rule 9
+applies and the number is the new composition's, comparable to the first
+window only as a reference. Her tax is still 86% partner play
+(191 of 222), the F-033 shape at a third of the volume. The other four
+seats now pay mostly in movement (bumped tiles) and play, where the
+scripted three paid in grooming; the groom tax went from 150–252 rows a
+seat to 0–8, which is the FR-014 read from the other side (the minds
+groom clean, adjacent friends).
+
+### Unanswered from-the-fog calls (reason `partner_absent`)
+
+`partner_absent` is a kitty-targeted proposal whose target exists but is
+not adjacent (spec 049 T093: under fog, a partnered proposal at a stale
+heard position is a refusal by design). Per seat, per hour at 4,500
+ticks/h over 3.34 h:
+
+| seat | calls/h | taxed/h | by proposal |
+|---|---|---|---|
+| Miso | 67.9 | 17.1 | sleep:with 142, rest:with 59, play:kitty 18, groom:kitty 8 |
+| Biscuit | 57.1 | 16.2 | sleep:with 137, play:kitty 52, rest:with 2 |
+| Pumpkin | 44.9 | 11.7 | rest:with 69, sleep:with 66, play:kitty 11 |
+| Kittybear | 51.8 | 15.0 | sleep:with 81, rest:with 73, play:kitty 18 |
+| Clementine | 64.0 | 20.0 | rest:with 105, sleep:with 86, play:kitty 23 |
+
+Roster 286/h, flat across the window (290, 283, 283 in the three full
+hour bins). 86% of them (820 of 955) are cosleep or corest proposals at
+a partner who is not beside the caller, and 72% are absorbed (the
+caller was already in a scene, so the miss cost no turn). The remaining
+reasons, for the record: `partner_busy` is play only (Biscuit 158/h,
+the others 82–137/h; Biscuit's 42 taxed/h is her F-033 tax), and
+`other` is eat at an empty tile and moves into an occupied one
+(21–99/h a seat). This is the first read of the stamp on a fog roster;
+no line is declared for it and none is proposed here. It is a Gen 2
+input (the minds keep proposing cosleep at a partner they cannot see
+beside them), banked in `fog-gen1-shakeout/GEN2-INPUTS.md`.

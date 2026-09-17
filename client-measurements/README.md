@@ -323,3 +323,108 @@ Caveats: one 4.7-minute daytime sample of one generation's clustering
 (perishable, per house rule); the sim models event rates, not camera easing;
 dwell counters key on exact member sets, so membership churn resets them —
 conservative, undercounts transitions if groups churn while staying put.
+
+---
+
+## camera baseline — 0.3.0, the fog Gen 1 roster, 2026-09-16
+
+**Two 25-minute windows of the SERVED world** (ticks 4003–5880 banked;
+373–2252 taken as a settling control), 1,875 ticks and 9,375 cat-ticks each,
+five seats `fog-gen1-*`, vision radius 4, `announce_threshold` 20, world
+`--fresh` that morning. Run:
+
+```
+node client-measurements/camera-aim/acceptance-replay.mjs \
+  client-measurements/camera-aim/baseline-0.3.0-2026-09-16.jsonl 380
+node client-measurements/camera-aim/shot-survival.mjs  <same file>
+node client-measurements/camera-aim/camera-analyze.mjs <same file>
+```
+
+### Why a sample is committed here at all
+
+**The 2026-08-20 record is 350 ticks, and that is too few to answer "did the
+world change the camera?"** Asked that question after the 0.3.0 cutover, this
+lane produced three findings that all dissolved on inspection — a collapse in
+`linkTiles` identity survival, a roster that had spread out, and a camera
+losing its subjects. Every one was the 350-tick baseline being compared
+against 25 minutes of new data.
+
+The demonstration, and the reason to trust the retraction over the finding:
+cut today's world into five 350-tick windows and measure the same things.
+
+    L=5 identity survival   21s   32s   55s   55s   280s
+    empty-frame episodes      2     0     10      3      5
+
+A quantity whose estimate ranges 21s–280s at that sample length cannot be
+compared to anything. The banked 88s was one draw from that distribution.
+
+So the file is committed under the `test-camera-preview.json` exception: once
+`--fresh` retires this world nothing regenerates it, and its absence is
+exactly what cost a day. Positions only, 314KB.
+
+### What the REAL camera does on this world
+
+Driven through `acceptance-replay.mjs`, which runs the shipped `Camera`
+rather than a model of it. Desktop 1000px / phone 380px:
+
+| | desktop | phone |
+|---|---|---|
+| rest | 76–82% | 77–83% |
+| ticks fully still | 71–78% | 71–78% |
+| calm spell, median | 2.8s | 4.7–5.5s |
+| re-framings | 2.08–2.16/min | 2.32–2.76/min |
+| **two or more cats in frame** | **100%** | **100%** |
+| at the ceiling | 3–11% | 61–62% |
+| median width | 9.3–9.8t | 7.6t |
+
+Against the 2026-08-22 dial pass (rest 81%, calm 4.4s) this is unchanged.
+**SC-001 and SC-003 hold; minimum-two holds on every tick at both widths.**
+
+### SC-002: read the metric before reading the number
+
+`acceptance-replay.mjs` counts a frame empty when no kitty's **tile centre**
+is inside it. A cat is drawn about a tile wide, so a near-miss scores as empty
+while most of the cat is still on screen. On the phone, 25 minutes:
+
+| nearest cat outside the frame by | episodes | rate |
+|---|---|---|
+| anything at all (what the metric counts) | 21 | 0.84/min |
+| more than 0.5 tiles (half-visible) | 5 | 0.20/min |
+| **more than 1.0 tiles (genuinely gone)** | **2** | **0.08/min** |
+| more than 1.5 tiles | 0 | — |
+
+Desktop is 3 episodes per 25 minutes at any threshold.
+
+Every episode falls inside a camera move (8 break, 6 pan, 4 correction, 3 at
+rest), median 0.4s, longest 1.5s. The median frame needs **0.4 tiles** more
+width to hold the nearest cat; +1 tile clears 76% of them and +3 clears all.
+So widening during transit is the fix if one is ever wanted — at roughly one
+0.4s blink every 12 minutes on one viewport, it was judged not worth changing
+how every pan looks (2026-09-16).
+
+**`safeZoneFrac` is NOT the cause**, though its 2026-08-22 note describes a
+tight clowder that no longer exists: swept 0.92 → 0.88 → 0.80 the count goes
+104 → 104 → 97 frames. Tested before proposing.
+
+### Grouping, for the next comparison
+
+    aim, centre of mass          0.21–0.23 tiles/tick, 4.5 releases/min
+    densest neighbourhood R=4/5/6  span 2.0–3.5t, holding 2.68–3.09 cats
+    groups at L=5                 mean 2.47–2.48
+    all five as one group         5.3–5.4% of ticks
+    all-five span                 median 12.0–14.0t, mean 12.4–13.4t
+    fit bound at the ceiling      88–89% of ticks
+    fit asks                      median 17.2–19.2t against a 13.33 ceiling
+    identity survival L=4/5/6     27/41/60s (early), 35/43/43s (late)
+
+Every one of these sits within noise of 2026-08-20's figures. The top group at
+L=6 is 3.16 cats in both. **Whatever changed in how these cats group, it did
+not move the camera** — and on this evidence `linkTiles: 5` needs no revisit.
+
+Caveats: one afternoon of one generation; both windows are from a world less
+than two hours old, and while mean unmet need was trendless across them
+(4.8–8.9, no drift, early and late agreeing on group count to 0.01) a social
+equilibrium may be slower than a needs equilibrium. `camera-analyze.mjs` and
+`shot-survival.mjs` freeze the 2026-08-20 dials as literals by design — they
+model grouping, not today's shipped grammar; `acceptance-replay.mjs` is the
+one that runs the real camera.
