@@ -33,6 +33,59 @@ change.
 
 ## Unreleased
 
+- **Every so often, all five cats would meow at once — at nothing.** The
+  client remembers which served meows it has already drawn, so a call in
+  the rolling window is animated once rather than on every poll. When that
+  memory reached 4,000 entries it **emptied itself completely** — and a
+  truncation to zero discards the newest keys along with the oldest, while
+  the newest are exactly the ones still being served. The next state then
+  treated every meow still in the window as unseen, and the mouths
+  replayed: the whole roster, in unison, for calls up to 24 seconds old.
+  The defect was *emptying rather than evicting*; a buffer that dropped
+  its oldest entry instead would have been fine. It now forgets a meow
+  when that meow **ages out of the engine's digest window**, which is the
+  point after which the world can no longer serve it — so the rule is the
+  invariant itself rather than a capacity that has to be sized against it. That window is served
+  (`meow.digest_window_ticks`) and is now read rather than assumed, like
+  the tick interval and the distress patience before it. The line had been
+  there for a year without anyone seeing it, because a count threshold
+  means the *interval* between wipes is set by how talkative the world is
+  rather than by anything in the code — every 11 hours on the old roster,
+  every 50 minutes once the fog generation seated and began speaking 13.6×
+  more. Presentation only. (#385)
+
+- **Camera mode is on by default.** It is what the meadow is meant to look
+  like — framed on the cats rather than the whole board — and whole-world
+  is now the opt-out rather than the arrival. Two things had to change for
+  that, not one: the restore read `mode === 'on'`, which treats "never
+  chose" as "chose off", *and* it wrote the preference back on every load.
+  That second one is why flipping a default would have reached nobody: the
+  first page view of a fresh browser stamped the default into storage, and
+  from then on that viewer was indistinguishable from one who had picked.
+  A load is not a choice, so storage now records only a real toggle — which
+  also means the next default change can actually land. (#386)
+
+- **A cat answering a question no longer has to be standing up to be
+  heard.** When one cat asks for something and another answers — "I want
+  to eat!", then "Here food!" — the answer used to vanish if its speaker
+  happened to be mid-groom, because a bubble only draws on a pose with a
+  mouth to move. That rule is right in general: text over a cat who
+  visibly isn't speaking is the client claiming something it can't show.
+  But a reply is the one case where the words are *already* explained by
+  something the viewer watched a moment ago, so it is now let through —
+  provided the ask's bubble really was drawn, and both cats are on screen
+  right now. All three are present-tense facts; nothing is predicted.
+  Pairing an answer to its question needed care, because the engine's own
+  relation is deliberately many-to-one: a want lingers in the digest
+  window and is "answered" by every matching announcement that rolls past
+  it, a median of four and as many as twelve. That is a feature the *cats*
+  observe, not an exchange a person can read. So the client narrows it to
+  one ask, one answer — the freshest unclaimed question within seven ticks
+  — which turns 637 replies into 138 exchanges with a median gap of a
+  single tick. Seven was measured rather than guessed: three ticks covers
+  65% of exchanges, five covers 73%, seven covers 83%, and the tail runs
+  to eight. Presentation only. (#387)
+
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
   events in twenty-five minutes against 147 — and `here_*` announcements

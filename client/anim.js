@@ -90,6 +90,17 @@ const VIEW = Object.freeze({
   tickMsFallback: 800, // easing duration <- config.world.tick_ms
   distressPatienceFallback: 60, // thought bubble <- config.viewer.distress_patience_ticks
 
+  // How many ticks a served meow can still be in `recent_meows`, so the
+  // client knows when it can stop remembering one. <- config.meow.
+  // digest_window_ticks, which is 30 on the served world.
+  //
+  // NOT `recent_window_ticks` (10). That is the engine's AUDIBILITY window
+  // and its per-cat-per-kind speech cooldown; the payload carries the
+  // DIGEST window, measured at a median 30 ticks of lingering. anim.js said
+  // "about ten" for a year and was wrong, which is half of why the bug
+  // below existed.
+  meowWindowFallback: 30,
+
   // Pacing (2026-08-11). How deep the delay line runs and how hard it
   // trims itself -- see `Pacer`. The depth is in whole states, so a target
   // of 1 means one spare arrival in hand at all times, which is a whole
@@ -643,6 +654,18 @@ const VIEW = Object.freeze({
    * `meowCooldownMs` holds the ceiling.
    */
   meowPoses: ['walking', 'idle', 'pouncing', 'loaf'],
+
+  // How far back a reply may look for the ask it answers (owner ruled 7,
+  // 2026-09-17). Measured on the settled 0.3.0 world: 3 ticks covers 65% of
+  // one-to-one exchanges, 5 covers 73%, 7 covers 83%, and the gap's p90 is
+  // 8 -- so 7 catches the shoulder. Past it you are holding a pairing open
+  // for eight seconds to gain one more sighting per 25 minutes.
+  //
+  // NOT the digest window (30). A want lingers there long after anyone has
+  // answered it, and pairing across the whole of it makes a single ask
+  // count against a median of FOUR later here-words that merely happened to
+  // roll past. That is what the minds observe; it is not an exchange.
+  meowPairWindowTicks: 7,
   // 20000 -> 8000 (owner, 2026-09-01). At most one drawn call per cat per
   // this, across all kinds.
   //
@@ -1285,6 +1308,7 @@ class Presentation {
     // that moved under a running tick would make a cat step BACKWARDS.
     this.currPlayMs = VIEW.tickMsFallback;
     this.distressPatienceTicks = VIEW.distressPatienceFallback;
+    this.meowWindowTicks = VIEW.meowWindowFallback;
     this.facings = new Map(); // id -> 'left' | 'right'
     this.movedNow = new Map(); // id -> bool, for this pair
     // Tiles of ground each kitty has covered, completed ticks only. The
@@ -1433,18 +1457,43 @@ class Presentation {
     // Purrs are excluded here rather than at the draw: a purr is engine-owned
     // background state drawn as a glyph, never speech, and it outnumbers
     // speech four to one.
-    if (!this.meowSeen) this.meowSeen = new Set();
+    if (!this.meowSeen) this.meowSeen = new Map();
     if (!this.meowAt) this.meowAt = new Map();
     for (const m of world.recent_meows || []) {
       if (m.kind === 'purr') continue;
       const key = `${m.kitty_id}:${m.tick}:${m.kind}`;
       if (this.meowSeen.has(key)) continue;
-      this.meowSeen.add(key);
+      this.meowSeen.set(key, m.tick);
       this.meowAt.set(m.kitty_id, { at: now, kind: m.kind, drawn: false });
     }
-    // The set would otherwise grow for the life of the page; the window is
-    // ten ticks, so anything this old can never come back.
-    if (this.meowSeen.size > 4000) this.meowSeen.clear();
+    // Bounded by AGE, not by size (2026-09-16). It used to be
+    // `if (size > 4000) clear()`, and a total wipe at a COUNT threshold
+    // throws away the newest keys along with the oldest -- which are
+    // exactly the ones still being served. The next state then re-stamped
+    // every meow still inside the window as unseen, and `meowFor` replayed
+    // the gape: the whole roster opening its mouth in unison for calls up
+    // to 24s old, and the per-cat cooldown re-spent with them.
+    //
+    // It went unnoticed for a year because the threshold is a COUNT, so the
+    // interval between wipes is set by how chatty the world is rather than
+    // by anything in this file: every ~11 hours on the pre-fog roster,
+    // every ~50 minutes once the fog generation seated and started speaking
+    // 13.6x more. Same line, same 4,000.
+    //
+    // A meow can only be served while it is inside the digest window, so
+    // once it is older than that it can never come back and the key is
+    // safe to forget. The margin is deliberate slack against a served
+    // window that turns out to be wider than /config claims -- the cost of
+    // being generous is a few hundred small strings, and the cost of being
+    // a tick too eager is the bug above.
+    //
+    // A key from AHEAD of this tick is dropped too: a `--fresh` world
+    // restarts the tick count, and without that those keys would outlive
+    // the world that made them and never prune.
+    const keepFrom = world.tick - this.meowWindowTicks * 2;
+    for (const [key, tick] of this.meowSeen) {
+      if (tick <= keepFrom || tick > world.tick) this.meowSeen.delete(key);
+    }
 
     for (const kitty of world.kitties) {
       const was = prev.kitties.find((p) => p.id === kitty.id);
@@ -3808,6 +3857,15 @@ const anim = {
   setDistressPatience(ticks) {
     if (Number.isFinite(ticks) && ticks >= 1) {
       this.presentation.distressPatienceTicks = ticks;
+    }
+  },
+
+  /** The served `meow.digest_window_ticks` -- how long a meow lingers in
+   * `recent_meows`, and so how long the client must remember having seen
+   * one. Served since spec 028; the fallback covers a box that predates it. */
+  setMeowWindow(ticks) {
+    if (Number.isFinite(ticks) && ticks >= 1) {
+      this.presentation.meowWindowTicks = ticks;
     }
   },
 

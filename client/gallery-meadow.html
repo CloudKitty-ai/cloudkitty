@@ -332,6 +332,10 @@
     // qualifies", which is silence rather than a visible break. The parity
     // test caught it the same day, again.
     meowPoses: ['walking', 'idle', 'pouncing', 'loaf'],
+    // ...and how far back a reply looks for its ask. This lab's cats never
+    // speak, but `drawBubbles` reads it, and the parity check has now caught
+    // three additions to that method in two days.
+    meowPairWindowTicks: 7,
     swimAxial: 'both',
     cloudPeriodMs: 60000,
     ambient: { waterShimmer: true },
