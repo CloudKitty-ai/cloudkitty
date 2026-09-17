@@ -7620,6 +7620,68 @@ check('the camera control seats beside the dial and scales with it', () => {
     'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
+check('camera mode is ON unless the viewer turned it off, and a load is not a choice', () => {
+  // Owner, 2026-09-17: camera mode is what the meadow is meant to look
+  // like, and whole-world is the opt-out.
+  //
+  // The half that is easy to get wrong is the persistence. `setCameraMode`
+  // used to call `storeCamera()` unconditionally and `initCameraState`
+  // called it on every load -- so the FIRST page view of a fresh browser
+  // stamped the default into localStorage, and from then on that viewer
+  // was indistinguishable from someone who had chosen. Changing a default
+  // could never reach anyone who had visited before.
+  //
+  // Run for real rather than matched as text: the three functions are
+  // sliced out and evaluated against stubs, so this exercises the shipped
+  // code instead of its spelling.
+  const slice = (name) => {
+    const from = appSrc.indexOf(`function ${name}(`);
+    assert(from >= 0, `${name} no longer exists`);
+    return appSrc.slice(from, appSrc.indexOf('\n}\n', from) + 3);
+  };
+  const build = (stored) => {
+    const store = new Map(Object.entries(stored));
+    const writes = [];
+    const localStorage = {
+      getItem: (k) => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => { writes.push([k, v]); store.set(k, v); },
+      removeItem: (k) => { writes.push([k, null]); store.delete(k); },
+    };
+    const anim = { camera: { on: null, followId: null }, redraw() {} };
+    const src = "const CAMERA_KEY = 'cloudkitty-camera';\nconst FOLLOW_KEY = 'cloudkitty-follow';\n"
+      + slice('storeCamera') + slice('setCameraMode') + slice('initCameraState')
+      + '\nreturn { initCameraState, setCameraMode };';
+    const api2 = new Function('anim', 'localStorage', 'document', 'markFollowedCard', src)(
+      anim, localStorage, { getElementById: () => null }, () => {},
+    );
+    return { anim, writes, ...api2 };
+  };
+
+  // A fresh browser: camera ON, and NOTHING written.
+  const fresh = build({});
+  fresh.initCameraState();
+  assert(fresh.anim.camera.on === true, 'a first-time viewer does not get camera mode');
+  assert(fresh.writes.length === 0,
+    `a load wrote ${JSON.stringify(fresh.writes)} -- a load is not a choice, and writing one makes the default unreachable forever after`);
+
+  // Someone who turned it OFF keeps it off, across loads.
+  const off = build({ 'cloudkitty-camera': 'off' });
+  off.initCameraState();
+  assert(off.anim.camera.on === false, 'an explicit opt-out was ignored');
+
+  // ...and someone who turned it on, likewise.
+  const on = build({ 'cloudkitty-camera': 'on' });
+  on.initCameraState();
+  assert(on.anim.camera.on === true, 'an explicit opt-in was ignored');
+
+  // A REAL toggle still persists, or the opt-out above could never be made.
+  const t = build({});
+  t.initCameraState();
+  t.setCameraMode(false);
+  assert(t.writes.some(([k, v]) => k === 'cloudkitty-camera' && v === 'off'),
+    'turning the camera off is not remembered');
+});
+
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
