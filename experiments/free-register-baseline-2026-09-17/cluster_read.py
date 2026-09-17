@@ -80,7 +80,7 @@ def read(series, draws, seed=0):
         for k in LAGS:
             obs = sum(coincidences(s[0][name], k) for s in series)
             na = np.array([sum(coincidences(null_a(s[0][name], rng), k) for s in series) for _ in range(draws)])
-            nb = np.array([sum(coincidences(null_b(s[0][name], s[1], rng), k) for s in series) for _ in range(draws)])
+            nb = np.array([sum(coincidences(null_b(s[0][name], s[1][name] if isinstance(s[1], dict) else s[1], rng), k) for s in series) for _ in range(draws)])
             cell = {"observed": obs,
                     "null_a_mean": float(na.mean()), "ratio_a": obs / na.mean() if na.mean() else None, "pct_a": float((na >= obs).mean()),
                     "null_b_mean": float(nb.mean()), "ratio_b": obs / nb.mean() if nb.mean() else None, "pct_b": float((nb >= obs).mean())}
@@ -103,13 +103,27 @@ def lab_series(path, state="activity"):
         ids, pos, said, actcls, present, target, top = R.per_tick(rows)
         E = {name: np.isin(said, [R.head_index(w) for w in words]) for name, words in SETS.items()}
         key = actcls
-        if state == "activity+sunbeam":
+        if state in ("activity+sunbeam", "activity+sunbeam+ask"):
             insun = np.zeros_like(actcls)
             tix = {t: n for n, t in enumerate(np.unique(rows["tick"]))}
             kix = {k: n for n, k in enumerate(ids)}
             for r in range(len(rows["tick"])):
                 insun[tix[rows["tick"][r]], kix[rows["kitty"][r]]] = int(rows["obs"][r][L.SELF_IN_SUNBEAM] > 0)
             key = actcls * 2 + insun
+        if state == "activity+sunbeam+ask":
+            # addendum 2: per here-word set, x "another cat said the paired want in the 30 audible ticks before t"
+            keyd = {}
+            for name, words in SETS.items():
+                want = L.WANT_FOR_HERE.get(words[0])
+                ask = np.zeros_like(actcls)
+                if want is not None:
+                    W_ = said == R.head_index(want)
+                    T = said.shape[0]
+                    for t in range(T):
+                        spoke = W_[max(0, t - 30):t].any(axis=0)  # earlier tick, inside the digest window
+                        ask[t] = (spoke.sum() - spoke) > 0  # some cat other than the speaker
+                keyd[name] = key * 2 + ask
+            key = keyd
         out.append((E, key, pos))
     return out
 
@@ -144,7 +158,7 @@ def main():
     ap.add_argument("--draws", type=int, default=200)
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--sets", choices=("free", "here"), default="free", help="word sets: the free register (declared) or the here-words (addendum)")
-    ap.add_argument("--state", choices=("activity", "activity+sunbeam"), default="activity", help="null B state key (lab only)")
+    ap.add_argument("--state", choices=("activity", "activity+sunbeam", "activity+sunbeam+ask"), default="activity", help="null B state key (lab only)")
     a = ap.parse_args()
     if a.sets == "here":
         SETS.clear()

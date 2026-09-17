@@ -175,6 +175,23 @@ here_sunbeam above 1.25 under null A and near 1.0 under the
 sunbeam-keyed null B (cats sharing a beam announce it together, the
 purr shape); here_food and here_water near 1.0 under both.
 
+### Addendum 2 (2026-09-17, after the addendum's run): the shared trigger
+
+The addendum's prediction failed: here_sunbeam 1.89× under null A and
+1.86× under the sunbeam-keyed null B, here_critter 1.58× / 1.58×,
+here_food and here_water 1.15–1.20× under both. Own state explains
+none of it, so the clustering is in the timing across cats. The
+candidate is a shared trigger: a here-word is a reply to the paired
+want (spec 049 FR-042), every cat that hears the want and sees the
+referent may answer, and the ask repeats on its 10-tick cooldown while
+the want lasts. Declared before running: null B keyed on activity ×
+own in-sunbeam bit × "another cat said the paired want within the 30
+audible ticks before t" (`--state activity+sunbeam+ask`; paired wants
+per `obs_layout_v5.WANT_FOR_HERE`). Prediction: every here-word near
+1.0 under this null, here_sunbeam included. If here_sunbeam stays above
+1.25, the ask is not the trigger and the read stops there for the
+owner's sitting.
+
 ## Instrument guards
 
 `test_free_register_read.py`: plain-python asserts on synthetic rows
