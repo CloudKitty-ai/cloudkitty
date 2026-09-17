@@ -123,6 +123,75 @@ The reading band applies to the amended read (`--control speaker
 The positive control (want_cuddle visible proposal ratio above 1.25)
 must hold on the amended read too.
 
+## Question 2 (owner, 2026-09-17): are mews and chirps clustered?
+
+"When I see one, it seems more likely than chance that other cats will
+echo." Two claims, read apart. Declared before `cluster_read.py` runs.
+
+Clustering (marginal): for word sets {mew}, {chirp}, {mew, chirp},
+{purr}, the number of pairs (emission by S at t, emission by another
+cat within lag ≤ k ticks after it), k = 1, 3, 10, on the lab trace,
+against two nulls of 200 draws each:
+
+- Null A, independent timing: each cat's emission series is
+  circularly shifted by a random offset within its seed. Keeps every
+  cat's own rate and cooldown rhythm, breaks cross-cat alignment.
+  Ratio above 1 = the words cluster in time beyond chance.
+- Null B, shared state: each cat's emissions are re-drawn among that
+  cat's ticks of the same activity class (rest, sleep, idle, ...),
+  keeping the count per class. Keeps "settled cats say settled words
+  at the same time", breaks the fine timing. A ratio above 1 that
+  survives null B is timing beyond shared state, the echo claim; a
+  ratio that falls to 1 under null B is cats settling together.
+
+Space: for the coincident pairs at lag ≤ 10, the Manhattan distance
+between the two cats at the second emission, against the same distance
+for the null-A pairs.
+
+Live confirmation: `results-raw/live_meows_poll.py` polls the served
+`recent_meows` ring every 8 s for 45 min (the ring holds about 30
+ticks, so 10-tick polling loses nothing); the marginal read (null A)
+repeats on it, with the kitties' states from the same polls for null B.
+
+Prediction: null A ratio above 1 at every lag on the lab trace (the
+words are settled-state words and cats settle in pairs and triads, the
+dispersion read's 3+2 shapes); most of it gone under null B; the
+coincident pairs closer than null pairs. Consistent with the echo
+ratios of the uptake read (0.92–1.13), i.e. clustering without echo.
+A null-B ratio above 1.25 on mew or chirp refutes the prediction and
+is the echo the owner sees. Report-only.
+
+### Addendum (2026-09-17, on Client's flag): the here-words
+
+Client's served-world read reproduced the engine numbers for mew and
+chirp (1.06–1.09× at one tick) and found here_sunbeam clustered
+(1.72× at one tick, 1.41× at ten) with no shared-state control.
+Declared before running: the same two nulls on the lab trace for the
+sets {here_sunbeam}, {here_food}, {here_water}, {here_critter}
+(`--sets here`), with null B's state key = activity class × the
+speaker's own in-sunbeam bit (`--state activity+sunbeam`), since a
+here_sunbeam is legal only beside a live beam or as a reply. Prediction:
+here_sunbeam above 1.25 under null A and near 1.0 under the
+sunbeam-keyed null B (cats sharing a beam announce it together, the
+purr shape); here_food and here_water near 1.0 under both.
+
+### Addendum 2 (2026-09-17, after the addendum's run): the shared trigger
+
+The addendum's prediction failed: here_sunbeam 1.89× under null A and
+1.86× under the sunbeam-keyed null B, here_critter 1.58× / 1.58×,
+here_food and here_water 1.15–1.20× under both. Own state explains
+none of it, so the clustering is in the timing across cats. The
+candidate is a shared trigger: a here-word is a reply to the paired
+want (spec 049 FR-042), every cat that hears the want and sees the
+referent may answer, and the ask repeats on its 10-tick cooldown while
+the want lasts. Declared before running: null B keyed on activity ×
+own in-sunbeam bit × "another cat said the paired want within the 30
+audible ticks before t" (`--state activity+sunbeam+ask`; paired wants
+per `obs_layout_v5.WANT_FOR_HERE`). Prediction: every here-word near
+1.0 under this null, here_sunbeam included. If here_sunbeam stays above
+1.25, the ask is not the trigger and the read stops there for the
+owner's sitting.
+
 ## Instrument guards
 
 `test_free_register_read.py`: plain-python asserts on synthetic rows
