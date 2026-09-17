@@ -33,6 +33,17 @@ change.
 
 ## Unreleased
 
+- **Camera mode is on by default.** It is what the meadow is meant to look
+  like — framed on the cats rather than the whole board — and whole-world
+  is now the opt-out rather than the arrival. Two things had to change for
+  that, not one: the restore read `mode === 'on'`, which treats "never
+  chose" as "chose off", *and* it wrote the preference back on every load.
+  That second one is why flipping a default would have reached nobody: the
+  first page view of a fresh browser stamped the default into storage, and
+  from then on that viewer was indistinguishable from one who had picked.
+  A load is not a choice, so storage now records only a real toggle — which
+  also means the next default change can actually land. (#PR)
+
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
   events in twenty-five minutes against 147 — and `here_*` announcements
