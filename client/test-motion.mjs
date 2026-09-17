@@ -3532,13 +3532,14 @@ const bubbleScope = eval(
  * the cat was ACTUALLY drawn as. Defaults every cat to `idle`, which is in
  * the gate, so a check that is not about the gate does not have to say so.
  */
-function bubblesFor(world, poses = null) {
+function bubblesFor(world, poses = null, stub = null) {
   const said = [];
-  const drawnPose = new Map(
+  const r = stub ?? {};
+  r.drawnPose = new Map(
     world.kitties.map((k) => [k.id, poses ? (poses[k.id] ?? 'idle') : 'idle']),
   );
-  const stub = { drawnPose, drawBubble: (kitty, text) => said.push([kitty.id, text]) };
-  bubbleScope.WorldRenderer.prototype.drawBubbles.call(stub, world, {});
+  r.drawBubble = (kitty, text) => said.push([kitty.id, text]);
+  bubbleScope.WorldRenderer.prototype.drawBubbles.call(r, world, {});
   return said;
 }
 
@@ -3657,12 +3658,17 @@ check('the cooldown is NOT borrowed for the bubble', () => {
   // every cat at 11-14%. The owner keeps the variation: it is character.
   //
   // So two calls closer together than the cooldown must both be drawable.
-  const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1));
-  const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1));
-  const apartMs = 1 * 800;
-  assert(apartMs < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
-  assert(early.length === 1 && late.length === 1,
-    'consecutive calls must each draw -- the bubble does not share the gape cooldown');
+  //
+  // ONE renderer across both frames, or a per-renderer rate limit has nothing
+  // to remember and this passes whatever the code does. It did exactly that
+  // on the first cut, and `mutate.sh` called it vacuous.
+  const one = {};
+  const early = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 1), null, one);
+  const late = bubblesFor(bubbleWorld(11, [{ kitty_id: 1, kind: 'want_drink', tick: 10 }], 1), null, one);
+  assert(1 * 800 < api.VIEW.meowCooldownMs, 'this check needs two calls INSIDE the cooldown to mean anything');
+  assert(early.length === 1, 'the first call must draw');
+  assert(late.length === 1,
+    'a second call one tick later must draw too -- the bubble does not share the gape cooldown');
 });
 
 check('a suppressed announcement does not mask the bubble underneath it', () => {
