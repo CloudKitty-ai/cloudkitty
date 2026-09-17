@@ -76,14 +76,21 @@ on it.
     purr     0% reply
 
 **Nothing but a here-word is ever a reply.** More than half the `here` volume
-is cats answering each other — one announces, two or three chorus back. That
-is `announce_here` and `reply_intensity_floor 0.20` doing what 0.3.0 seated
-them to do, and it is why `here` is 56% of all speech.
+is cats answering each other — one announces, two or three chorus back.
 
-Of the 637 replies, **49% follow the matching `want_*` from another cat**
-within ten ticks (`here_food` after `want_eat`, and so on), and 457 of 637
-land exactly **one tick** after the thing they answer. These are tight
-exchanges, not ambient noise.
+⚠ **Do NOT attribute this to `reply_intensity_floor`** (Experiments,
+2026-09-17, recorded in `fog-gen1-cert/RESULTS.md` §"Meow re-census" at
+`81f4c76`). That knob governs the *scripted* reply ladder only, and all five
+served seats are policies. The 56% reply share is **learned behaviour**, with
+the floor a bystander.
+
+Of the 637 replies, **98% pair with at least one asker** under the engine's
+own rule (below), and 457 land exactly one tick after a matching want. These
+are tight exchanges, not ambient noise.
+
+⚠ An earlier cut of this census said **49%**, using a ten-tick lookback. The
+digest window is **thirty**. The window was the whole error; nothing about
+the world changed.
 
 `intensity` is served too, and is **0.0 on every single here-word** while
 wants run 0.2–0.4. So intensity cannot rank here-words against each other,
@@ -219,46 +226,87 @@ ask is promoted. Both rescues together reach **90% phone / 85% desktop**.
 The residual 10–15% are replies 2–10 ticks later whose ask's pose fails:
 genuinely unknowable without the engine.
 
-## The two asks that are NOT Client's to make
+## How the client should pair a call with its response
 
-### 1. Serve the reply's referent (Product)
+**Mirror the engine's answers-me rule.** Experiments confirmed the shape
+(2026-09-17), and it is what the minds themselves observe
+(`rl/src/observe.rs:610`, spec 049 FR-041):
 
-`recent_meows` carries `reply: bool` and nothing that says WHICH meow is
-being answered. Reading `crates/cloudkitty-core/src/meow.rs`, the stamp is
-weaker than it looks: `reply_condition` is *"a meow of the paired want from
-another cat is audible ... AND the referent is visible"*, and the field's own
-doc says **"an ambient here landing while a want is audible is stamped
-too"** — so `reply: true` does not by itself mean the cat was responding.
+> For a `reply: true` here_X at tick t from cat S, pair it with **every**
+> other cat A whose freshest audible paired want_Y has `tick < t` and
+> `t - tick < digest_window_ticks`.
 
-But the engine does have a deterministic referent to hand: the
-audible-emitter rule (freshest wins on max tick, tie to the LOWER kitty id,
-own emissions never audible to self) is what both the observation digest and
-the scripted groom responder key on. The engine selects exactly one "the want
-I heard" and simply does not serve it.
+Every field needed is already on `recent_meows` — `kitty_id`, `kind`,
+`tick`, `reply` — and the window is served. Drawing this is drawing the
+world's own notion of an exchange rather than a client invention.
 
-A client-side inference — match a `here_X` to the most recent `want_Y` from
-another cat inside the digest window — **only fires for 49% of replies**;
-the rest follow another here-word or a `mew`. A served referent (kitty id +
-tick) would roughly double the exchanges a viewer can be shown, and would
-stop the client re-deriving a rule whose own comment says *"do not re-derive
-it in place"*.
+**It is many-to-one.** One here-word answers 1.20 askers on average; 106 of
+637 replies answer two cats and 10 answer three. A pair renderer has to
+expect a reply belonging to several asks at once.
 
-⚠ Premise sent to Experiments 2026-09-17 for confirmation before this is
-proposed. Do not open it as a Product ask until that comes back.
+Measured on the settled window: **625 of 637 replies (98%)** pair with at
+least one asker, giving **751 (ask, reply) pairs in 25 minutes**.
 
-### 2. A camera that knows about conversations (Client, but a feature)
+A stronger "this really was a response" signal exists if it is ever wanted,
+also from Experiments: the here law is *"referent adjacent OR
+reply_condition"* (`meow.rs:237–256`), so a `reply: true` here whose stamped
+`pos` is **not adjacent to its referent** was legal *only* because of the
+want. Still does not name the asker, but it separates a genuine answer from
+an ambient announcement that happened to land while a want was audible.
 
-**The dominant loss is neither of the above.** Both cats are in frame only
-**15% of the time on a phone**. A perfect pair rule still leaves 85% of real
-exchanges off-screen, because the shot picker has no idea two cats are
-talking to each other.
+## What a fix buys, on the corrected pairing
 
-Every camera criterion in spec 038 is about counts and framing; none is about
+Real `Camera`, both parties actually in frame at reply time:
+
+|                                        | desktop | phone |
+|---|---|---|
+| pairs with both cats in frame          | 314 (42%) | **174 (23%)** |
+| shows as a pair today                  | 194 — 62% | **102 — 59%** |
+| + rescue the reply's pose              | 244 — 78% | 132 — 76% |
+| + ask rescued via 1-tick lookahead     | 252 — 80% | **140 — 80%** |
+
+So a viewer on a phone already sees ~102 complete pairs per 25 minutes — one
+every 15 seconds — and the rescue would take that to 140, a **37% gain**.
+
+⚠ "Shows as a pair" counts both halves drawn, at any gap up to the 30-tick
+window. Whether a 24-second gap still *reads* as an exchange is a judgement
+nobody has made; the owner has said some delay is fine, but not how much.
+Worth settling before building.
+
+## The one ask that is NOT Client's to make
+
+### A camera that knows about conversations
+
+**The dominant loss.** Both cats are in frame for only **23% of pairs on a
+phone**. A perfect pair rule still leaves three-quarters of real exchanges
+off-screen, because the shot picker has no idea two cats are talking.
+
+Every criterion in spec 038 is about counts and framing; none is about
 holding a live exchange. A shot that widened to keep both parties in frame
-while one is running would recover more than everything above combined. That
-is a shot-grammar feature, wants a spec, and should be judged on screen —
-not a dial.
+while one is running would recover more than everything else here combined.
+That is a shot-grammar feature, wants a spec, and is judged on screen.
 
-Note for whoever picks it up: the camera is **healthy on its own criteria**
-(see `client-measurements/README.md`, the 0.3.0 baseline). This is a new
-criterion, not a regression.
+The camera is **healthy on its own criteria** (`client-measurements/
+README.md`, the 0.3.0 baseline). This is a new criterion, not a regression.
+
+### WITHDRAWN: "serve the reply's referent"
+
+An earlier draft proposed asking Product to stamp the meow with the want it
+answers, on the reasoning that the engine already selects one. **That
+reasoning was wrong** (Experiments, 2026-09-17):
+
+- The stamp is *existential* — `reply_condition` is an `.any()` over the
+  buffer. It asserts that a matching want was audible; it selects nothing.
+- There is no single referent even internally. The scripted ladder
+  (`reply_candidate`, `behavior/mod.rs:548`) picks by max **intensity**;
+  `freshest_audible` (`meow.rs:491`) picks by max **tick**. Two rules, two
+  possible answers.
+- All five served seats are **policies**, which pick a here-word off the
+  network's message head under `legal_message_mask`. No referent is selected
+  at all — the mind just says a legal word.
+- The engine's own pairing (the answers-me bits) is derived per **listener**
+  and is many-to-one. No engine state records "which".
+
+So serving a referent would be a **new engine rule for Product to spec**,
+not an existing selection exposed — and it is unnecessary, because mirroring
+answers-me client-side already pairs 98%.
