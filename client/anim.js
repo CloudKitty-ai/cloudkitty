@@ -654,6 +654,18 @@ const VIEW = Object.freeze({
    * `meowCooldownMs` holds the ceiling.
    */
   meowPoses: ['walking', 'idle', 'pouncing', 'loaf'],
+
+  // How far back a reply may look for the ask it answers (owner ruled 7,
+  // 2026-09-17). Measured on the settled 0.3.0 world: 3 ticks covers 65% of
+  // one-to-one exchanges, 5 covers 73%, 7 covers 83%, and the gap's p90 is
+  // 8 -- so 7 catches the shoulder. Past it you are holding a pairing open
+  // for eight seconds to gain one more sighting per 25 minutes.
+  //
+  // NOT the digest window (30). A want lingers there long after anyone has
+  // answered it, and pairing across the whole of it makes a single ask
+  // count against a median of FOUR later here-words that merely happened to
+  // roll past. That is what the minds observe; it is not an exchange.
+  meowPairWindowTicks: 7,
   // 20000 -> 8000 (owner, 2026-09-01). At most one drawn call per cat per
   // this, across all kinds.
   //
