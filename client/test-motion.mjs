@@ -3819,6 +3819,117 @@ check('the GAPE is untouched: an announcement still opens the mouth', () => {
     '...while drawing no bubble, which is the whole point');
 });
 
+/**
+ * Drive a Presentation through a long run where the cats speak on EVEN ticks
+ * and are silent on odd ones, checking after every push that no cat's meow
+ * was re-stamped on a tick it said nothing.
+ *
+ * The alternation is the point. A guard that samples only at the end cannot
+ * see a replay that happened in the middle -- the record is rebuilt from the
+ * window either way, so before and after agree and the check passes by luck.
+ * It did exactly that on the first cut and `mutate.sh` showed it: the old
+ * size-wipe went in and this stayed green. Sampling every tick, against
+ * whether that cat actually spoke, is timing-independent.
+ */
+function speakEveryOtherTick(ticks, cats = [1, 2, 3, 4, 5], window = 30) {
+  const p = new api.Presentation();
+  const spoken = [];
+  let tick = 1;
+  let now = 0;
+  const world = () => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: cats.map((id) => ({ ...kitty(id, id, 5), activity: { state: 'idle' } })),
+    recent_meows: spoken.filter((m) => m.tick > tick - window),
+  });
+  p.pushState(world(), now); tick += 1; now += 800;
+  const replays = [];
+  for (let i = 0; i < ticks; i += 1) {
+    const talking = tick % 2 === 0;
+    if (talking) for (const id of cats) spoken.push({ kitty_id: id, kind: 'mew', tick });
+    const before = new Map(cats.map((id) => [id, p.meowAt?.get(id)?.at]));
+    p.pushState(world(), now);
+    if (!talking) {
+      for (const id of cats) {
+        const after = p.meowAt?.get(id)?.at;
+        if (after !== before.get(id)) replays.push({ tick, id });
+      }
+    }
+    tick += 1; now += 800;
+  }
+  return { p, replays, spoken: spoken.length };
+}
+
+check('a long chatty run never replays a call the cat already made', () => {
+  // THE BUG, 2026-09-16. The meow record was bounded by SIZE and emptied by
+  // a total wipe: `if (this.meowSeen.size > 4000) this.meowSeen.clear()`.
+  // That throws away the newest keys along with the oldest, and the newest
+  // are exactly the ones still being served -- so the next state re-stamped
+  // every meow still inside the window as unseen and `meowFor` replayed the
+  // gape. All five cats opening their mouths in unison for calls up to 24s
+  // old, roughly every 50 minutes on the 0.3.0 roster.
+  //
+  // It hid for a year because the threshold is a COUNT: the interval between
+  // wipes is set by how chatty the world is, not by this file.
+  const run = speakEveryOtherTick(2000);
+  assert(run.spoken > 4000, `only ${run.spoken} meows -- the run must pass the old 4,000 threshold to mean anything`);
+  assert(
+    run.replays.length === 0,
+    `${run.replays.length} replays, first at tick ${run.replays[0]?.tick} (cat ${run.replays[0]?.id}) `
+      + '-- a meow was re-stamped on a tick that cat said nothing, and the gape will play again',
+  );
+});
+
+check('the meow record is bounded by AGE, so it cannot grow for the life of the page', () => {
+  // The size bound is what has to go, but something must still bound it --
+  // the original comment was right that the set would otherwise grow
+  // forever. A meow can only be served while it is inside the digest
+  // window, so anything older is safe to forget and nothing else is.
+  const run = speakEveryOtherTick(2000);
+  const live = 5 * 30 * 2; // five cats, the window, and the deliberate margin
+  assert(run.p.meowSeen.size <= live + 10,
+    `the record holds ${run.p.meowSeen.size} keys after 1,000 ticks -- it is not being pruned`);
+  assert(run.p.meowSeen.size > 5,
+    'the record is empty -- it is pruning keys that are still being served, which is the bug in reverse');
+});
+
+check('a fresh world does not leave its keys behind', () => {
+  // `--fresh` restarts the tick count. Keys from the old world are AHEAD of
+  // the new tick, so an age bound that only looks backwards would never
+  // prune them and they would outlive the world that made them. The old
+  // total wipe handled this by accident.
+  const run = speakEveryOtherTick(200);
+  assert(run.p.meowSeen.size > 0, 'nothing was recorded -- this check is vacuous');
+  const p = run.p;
+  const fresh = (tick) => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ ...kitty(1, 1, 5), activity: { state: 'idle' } }],
+    recent_meows: [],
+  });
+  p.pushState(fresh(1), 900000);
+  p.pushState(fresh(2), 900800);
+  assert(p.meowSeen.size === 0,
+    `${p.meowSeen.size} keys from the retired world are still held after a fresh start`);
+});
+
+check('the meow window comes from the SERVED config, not a guess', () => {
+  // Same shape as distress_patience_ticks: served, so never hard-coded, with
+  // a fallback for a box that predates it. A dropped call here would leave
+  // the client pruning on a 30-tick guess against whatever the world does.
+  const p = new api.Presentation();
+  assert(p.meowWindowTicks === api.VIEW.meowWindowFallback, 'the fallback is not seated');
+  const a = Object.create(api.anim);
+  a.presentation = p;
+  a.setMeowWindow(48);
+  assert(p.meowWindowTicks === 48, 'setMeowWindow does not reach the presentation');
+  a.setMeowWindow(0);
+  a.setMeowWindow(undefined);
+  assert(p.meowWindowTicks === 48, 'a nonsense window must be refused, not seated');
+  assert(
+    /anim\.setMeowWindow\(config\?\.meow\?\.digest_window_ticks\)/.test(appSrc),
+    'app.js no longer plumbs the served digest window -- the dial would ship inert on its fallback',
+  );
+});
+
 check('a drawn call is a SERVED call: the client never invents one', () => {
   // Tied to the engine's message channel and nothing else. Spec 028 took the
   // meow off the activity menu, so this rides alongside whatever the cat did
@@ -7623,6 +7734,68 @@ check('the camera control seats beside the dial and scales with it', () => {
     'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
+check('camera mode is ON unless the viewer turned it off, and a load is not a choice', () => {
+  // Owner, 2026-09-17: camera mode is what the meadow is meant to look
+  // like, and whole-world is the opt-out.
+  //
+  // The half that is easy to get wrong is the persistence. `setCameraMode`
+  // used to call `storeCamera()` unconditionally and `initCameraState`
+  // called it on every load -- so the FIRST page view of a fresh browser
+  // stamped the default into localStorage, and from then on that viewer
+  // was indistinguishable from someone who had chosen. Changing a default
+  // could never reach anyone who had visited before.
+  //
+  // Run for real rather than matched as text: the three functions are
+  // sliced out and evaluated against stubs, so this exercises the shipped
+  // code instead of its spelling.
+  const slice = (name) => {
+    const from = appSrc.indexOf(`function ${name}(`);
+    assert(from >= 0, `${name} no longer exists`);
+    return appSrc.slice(from, appSrc.indexOf('\n}\n', from) + 3);
+  };
+  const build = (stored) => {
+    const store = new Map(Object.entries(stored));
+    const writes = [];
+    const localStorage = {
+      getItem: (k) => (store.has(k) ? store.get(k) : null),
+      setItem: (k, v) => { writes.push([k, v]); store.set(k, v); },
+      removeItem: (k) => { writes.push([k, null]); store.delete(k); },
+    };
+    const anim = { camera: { on: null, followId: null }, redraw() {} };
+    const src = "const CAMERA_KEY = 'cloudkitty-camera';\nconst FOLLOW_KEY = 'cloudkitty-follow';\n"
+      + slice('storeCamera') + slice('setCameraMode') + slice('initCameraState')
+      + '\nreturn { initCameraState, setCameraMode };';
+    const api2 = new Function('anim', 'localStorage', 'document', 'markFollowedCard', src)(
+      anim, localStorage, { getElementById: () => null }, () => {},
+    );
+    return { anim, writes, ...api2 };
+  };
+
+  // A fresh browser: camera ON, and NOTHING written.
+  const fresh = build({});
+  fresh.initCameraState();
+  assert(fresh.anim.camera.on === true, 'a first-time viewer does not get camera mode');
+  assert(fresh.writes.length === 0,
+    `a load wrote ${JSON.stringify(fresh.writes)} -- a load is not a choice, and writing one makes the default unreachable forever after`);
+
+  // Someone who turned it OFF keeps it off, across loads.
+  const off = build({ 'cloudkitty-camera': 'off' });
+  off.initCameraState();
+  assert(off.anim.camera.on === false, 'an explicit opt-out was ignored');
+
+  // ...and someone who turned it on, likewise.
+  const on = build({ 'cloudkitty-camera': 'on' });
+  on.initCameraState();
+  assert(on.anim.camera.on === true, 'an explicit opt-in was ignored');
+
+  // A REAL toggle still persists, or the opt-out above could never be made.
+  const t = build({});
+  t.initCameraState();
+  t.setCameraMode(false);
+  assert(t.writes.some(([k, v]) => k === 'cloudkitty-camera' && v === 'off'),
+    'turning the camera off is not remembered');
+});
+
 check("the about survives a phase change, and the owner's words survive us", () => {
   const markup = readFileSync(join(here, 'index.html'), 'utf8');
 
