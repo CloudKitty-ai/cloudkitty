@@ -42,7 +42,7 @@ change.
   first page view of a fresh browser stamped the default into storage, and
   from then on that viewer was indistinguishable from one who had picked.
   A load is not a choice, so storage now records only a real toggle — which
-  also means the next default change can actually land. (#PR)
+  also means the next default change can actually land. (#386)
 
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
