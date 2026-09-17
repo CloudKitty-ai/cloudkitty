@@ -519,7 +519,18 @@ function initCameraState() {
     const id = Number(follow);
     if (Number.isFinite(id)) anim.camera.followId = id;
   }
-  setCameraMode(mode === 'on');
+  // ON unless the viewer has said otherwise (owner, 2026-09-17). Camera
+  // mode is what the meadow is meant to look like; whole-world is the
+  // opt-out. `=== 'on'` would have kept it off for everyone, since a null
+  // key means "never chose" rather than "chose off".
+  //
+  // `persist: false` matters as much as the default does. This used to
+  // write the preference back on every load, so the FIRST page view of a
+  // fresh browser stamped the default into storage -- and from then on the
+  // viewer looked like someone who had chosen. Changing a default could
+  // never reach anyone who had visited before. Storage now records only a
+  // real toggle, so a default is a default.
+  setCameraMode(mode !== 'off', false);
   markFollowedCard(anim.camera.followId);
 }
 
@@ -528,11 +539,11 @@ function initCameraState() {
  * releases a followed kitty -- turn it off and on again and the camera
  * comes back to the same cat (FR-027).
  */
-function setCameraMode(on) {
+function setCameraMode(on, persist = true) {
   anim.camera.on = on;
   const button = document.getElementById('camera-toggle');
   if (button) button.setAttribute('aria-pressed', on ? 'true' : 'false');
-  storeCamera();
+  if (persist) storeCamera();
   anim.redraw();
 }
 
