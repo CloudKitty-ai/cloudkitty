@@ -52,7 +52,7 @@ change.
   — which turns 637 replies into 138 exchanges with a median gap of a
   single tick. Seven was measured rather than guessed: three ticks covers
   65% of exchanges, five covers 73%, seven covers 83%, and the tail runs
-  to eight. Presentation only. (#PR)
+  to eight. Presentation only. (#387)
 
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
