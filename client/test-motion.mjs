@@ -7832,8 +7832,14 @@ check('a STILL frame never advances the sky, and never repaints on its own', () 
   assert(/!view\.still/.test(hook),
     'the frame hook advances the sky on a still view -- a still frame is the same moment again, so the clock must not move');
   const apply = appSrc.slice(appSrc.indexOf('function applyTheme('), appSrc.indexOf('\n}\n', appSrc.indexOf('function applyTheme(')));
-  assert(/if \(!anim\.rafId\) anim\.redraw\(\)/.test(apply),
-    'applyTheme repaints while the rAF loop is running -- that repaint is a still frame, and it snaps every cat a tick forward');
+  assert(/if \(repaint\) anim\.redraw\(\)/.test(apply),
+    'applyTheme repaints unconditionally -- that repaint is a still frame, and it snaps every cat a tick forward');
+  assert(/applyTheme\(view\.progress \?\? 0, false\)/.test(hook),
+    'the frame hook asks applyTheme to repaint -- it IS the frame, so the repaint is redundant and lands as a still draw');
+  // Comments stripped: the one below explains the trap and names the field.
+  const applyCode = apply.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  assert(!/anim\.rafId/.test(applyCode),
+    'applyTheme is gating on anim.rafId -- the loop clears it for the whole frame body, so it reads zero exactly when this runs');
 
   // The still view really does report progress 1, which is what made the
   // hook dangerous. Pinned so a change to viewAt cannot quietly defuse the

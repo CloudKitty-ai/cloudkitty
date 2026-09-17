@@ -58,7 +58,7 @@ anim.onFrame = (world, view) => {
   // for every repaint, and `applyTheme`'s own repaint would re-enter here.
   // A still frame means "the same moment again", which is exactly when the
   // clock must not move.
-  if (themeMode === 'auto' && !view.still) applyTheme(view.progress ?? 0);
+  if (themeMode === 'auto' && !view.still) applyTheme(view.progress ?? 0, false);
 };
 // Served states reach the panel when the animation layer PROMOTES them,
 // not when they land: the delay line holds a state back by about a tick
@@ -331,7 +331,7 @@ function paintThemeTokens(blend) {
   }
 }
 
-function applyTheme(subTick = 0) {
+function applyTheme(subTick = 0, repaint = true) {
   // A hand-picked theme is exactly itself; only the world clock blends.
   // `subTick` is how far this FRAME is through the served tick, so the sky
   // crosses on the frame's clock rather than in 800ms jumps.
@@ -405,13 +405,16 @@ function applyTheme(subTick = 0) {
   // frozen, `progress` forced to 1, cats at their served tile rather than
   // eased toward it -- which is right for a viewer who gets no rAF loop and
   // wrong while one is running: the still draw snapped every cat a whole
-  // tick forward and the next frame put it back, sixty times a second
-  // through a crossing. It read as the whole roster juddering.
+  // tick forward and the next frame put it back. It read as the whole roster
+  // juddering through a crossing.
   //
-  // Harmless when this ran once per tick; the sub-tick clock is what made it
-  // visible. The loop, reduced motion and the pre-world case are all covered
-  // by asking whether a frame is already coming.
-  if (!anim.rafId) anim.redraw(); // safe pre-world: redraw no-ops until a state exists
+  // The CALLER says whether to repaint, because nothing here can work it out.
+  // `anim.rafId` looks like the predicate and is a trap: the loop clears it
+  // at the top of each frame and sets it again at the bottom, so it is zero
+  // for the whole of the frame body -- which is precisely when this runs.
+  // Measured on a forced crossing, that guard let 61 still-frames through in
+  // 12 seconds while appearing to hold.
+  if (repaint) anim.redraw(); // safe pre-world: redraw no-ops until a state exists
 }
 
 function setThemeMode(mode) {
