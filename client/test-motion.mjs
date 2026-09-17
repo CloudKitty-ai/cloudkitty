@@ -3506,6 +3506,98 @@ function meowWorld(tick, { pos = { x: 5, y: 5 }, action, meow, meowTick } = {}) 
   };
 }
 
+/** A world of `n` cats at distinct tiles, plus whatever meows are handed in. */
+function bubbleWorld(tick, meows, n = 3) {
+  return {
+    tick, width: 20, height: 20, elements: [],
+    kitties: Array.from({ length: n }, (_, i) => ({
+      id: i + 1, name: `K${i + 1}`, pos: { x: 2 + i * 3, y: 5 }, needs: {}, happiness: 90,
+    })),
+    recent_meows: meows,
+  };
+}
+
+// `drawBubbles` reaches PURR, which lives in props.js and is NOT in the shared
+// render eval -- so until 2026-09-16 this method was not reachable from the
+// harness at all and nothing about speech bubbles was checked. Its own scope,
+// rather than widening the shared one under 340 existing checks.
+const bubbleScope = eval(
+  readFileSync(join(here, 'props.js'), 'utf8') + '\n' + renderSrc
+    + ';({ WorldRenderer, MEOW_TEXT })',
+);
+
+/** The bubbles `drawBubbles` would draw, as [id, text] pairs. */
+function bubblesFor(world) {
+  const said = [];
+  const stub = { drawBubble: (kitty, text) => said.push([kitty.id, text]) };
+  bubbleScope.WorldRenderer.prototype.drawBubbles.call(stub, world, {});
+  return said;
+}
+
+check('an unprompted here-word gets no bubble; a REPLY does', () => {
+  // Owner, 2026-09-16. Here-words are 56% of everything said on the 0.3.0
+  // roster and an announcement nobody asked for is a cat narrating the map.
+  // A reply is the exchange the fog generation was bred for -- one cat asks,
+  // a friend answers -- so it keeps its bubble.
+  const said = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false },
+    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true },
+    { kitty_id: 3, kind: 'want_eat', tick: 9 },
+  ]));
+  const ids = said.map(([id]) => id).sort();
+  assert(
+    JSON.stringify(ids) === JSON.stringify([2, 3]),
+    `drew bubbles for ${JSON.stringify(said)} -- the announcement must be silent, the reply and the ask must not`,
+  );
+
+  // A want is never a reply on the served world, and must not be caught by
+  // the rule anyway: the test above would pass if the filter keyed on
+  // `reply` alone rather than on `reply` AND the here- prefix.
+  const wants = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false },
+  ]));
+  assert(wants.length === 1, 'an ask must keep its bubble whatever its reply flag says');
+
+  // A server that does not serve the flag draws no here bubbles -- loud,
+  // rather than silently half-working. Documented at the filter.
+  const absent = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'here_water', tick: 9 }]));
+  assert(absent.length === 0, 'a here-word with no reply flag must not be taken for a reply');
+});
+
+check('a suppressed announcement does not mask the bubble underneath it', () => {
+  // `said` keeps ONE meow per cat and the newest wins, so a filter that ran
+  // after the pick would let an announcement swallow the ask it arrived on
+  // top of -- the cat would fall silent rather than say the thing worth
+  // saying. Filtering before the pick is what makes this pass.
+  const said = bubblesFor(bubbleWorld(10, [
+    { kitty_id: 1, kind: 'want_drink', tick: 8 },
+    { kitty_id: 1, kind: 'here_water', tick: 9, reply: false },
+  ]));
+  assert(
+    said.length === 1 && said[0][1] === bubbleScope.MEOW_TEXT.want_drink,
+    `drew ${JSON.stringify(said)} -- the ask underneath must survive the announcement`,
+  );
+});
+
+check('the GAPE is untouched: an announcement still opens the mouth', () => {
+  // The whole point of the cut. The two run on different paths -- `meowFor`
+  // gates the mouth on pose and a per-cat cooldown, `drawBubbles` reads
+  // recent_meows direct -- and only the second one was changed.
+  const p = new api.Presentation();
+  const w = (tick, meows) => ({
+    tick, width: 20, height: 20, elements: [],
+    kitties: [{ id: 1, name: 'K', pos: { x: 5, y: 5 }, needs: {} }],
+    recent_meows: meows,
+  });
+  p.pushState(w(1, []), 1000);
+  p.pushState(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }]), 1800);
+  const at = p.meowFor(1, 1800 + api.VIEW.meowOpenMs, 'idle');
+  assert(at && at.kind === 'here_food', 'an announcement must still be mouthed');
+  assert(at.gape > 0.99, 'and open fully -- the cut is the bubble, not the call');
+  assert(bubblesFor(w(2, [{ kitty_id: 1, kind: 'here_food', tick: 1, reply: false }])).length === 0,
+    '...while drawing no bubble, which is the whole point');
+});
+
 check('a drawn call is a SERVED call: the client never invents one', () => {
   // Tied to the engine's message channel and nothing else. Spec 028 took the
   // meow off the activity menu, so this rides alongside whatever the cat did
