@@ -1,6 +1,13 @@
 # Icon bubbles: the design state when we paused, 2026-09-16
 
-**PAUSED.** The owner is watching #383 land before reopening this. Everything
+**PAUSED.** The owner is watching the bubble work land before reopening
+this. Shipped since it was written, and worth re-reading against: #383 (the
+non-reply `here` cut and the pose gate), #385 (the meow record), #386
+(camera mode on by default) and #387 (the reply rescue). None of them touch
+the bubble's ART, so everything below still stands — but the *volume* it was
+reacting to is lower now, and the redesign should be judged against what
+ships today rather than against the 1.89-of-five-cats figure that prompted
+it. Everything
 below is worked out but nothing is built. Pick up at "Open questions".
 
 ## The brainstorm, in the owner's words

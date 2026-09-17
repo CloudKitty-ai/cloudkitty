@@ -149,35 +149,23 @@ is acceptable (owner), so it buys little.
 
 ---
 
-## Call/response visibility — TABLED for later investigation
+## Call/response visibility
 
-**93% of answerable asks get answered.** The world does this constantly. A
-complete exchange reaching a viewer is much rarer:
+Opened 2026-09-16 as a tabled question and **settled 2026-09-17** — the
+costing, the ruling and what shipped are in the second half of this
+document, from "Call and response" onward. Read that, not this: the figures
+first recorded here were taken before the pairing rule was corrected and are
+superseded.
 
-    asks that CAN be answered (eat/drink/sleep/play)   141    338/hr
-      ...that got at least one reply                   131    314/hr   93%
-      ...where the ASK is drawn                        101    242/hr
-      ...and a REPLY is drawn too                       90    216/hr   one every 17s
-         both cats in one frame, desktop                57             one every 26s
-         both cats in one frame, PHONE                  42             one every 36s
+What survives from the first pass, because it did not depend on the pairing:
 
-Where it goes:
-
-- **78 of 219 wants can never be answered at all.** `want_cuddle` and
+- **93% of answerable asks get answered.** The world does this constantly;
+  everything lost is lost downstream of the engine.
+- **78 of 219 wants can never be answered at all** — `want_cuddle` and
   `want_bath` have no `here_*` counterpart in the vocabulary.
-- The **pose gate** silences ~41 of 131 exchanges. That is the price of
-  ruling 2 above, and this is where it lands.
-- The **camera** costs ~48 more — both cats in one frame only 54% of the
-  time on a phone. This is the largest single loss, and no camera criterion
+- The **camera** is the largest single loss, and no criterion in spec 038
   has ever measured "both parties to a conversation in shot".
 
-**The owner's proposed fix, for when the ring buffer lands:** allow a
-call/response PAIR through even where one or both ends fail pose
-eligibility. The gate exists so the client never asserts speech it cannot
-show; in a pair the viewer has already seen one end, so the other is
-contextualised rather than unexplained. Nothing else here is clean.
-
----
 
 ## Standing re-verify trigger
 
@@ -188,7 +176,7 @@ of the client.
 
 ---
 
-# Call and response: what a fix would cost, 2026-09-17
+# Call and response: costed, ruled and shipped, 2026-09-17
 
 Measured against the **real `Camera`**, not a distance proxy: the shipped
 `Camera` driven over the banked positions at each viewport width, asking
@@ -203,75 +191,96 @@ Of 131 answered asks in the settled 25-minute window:
 | + rescue the reply's pose                    | 35 — 73%       | 12 — 60% |
 | + rescue the ask via 1-tick lookahead        | **41 — 85%**   | **18 — 90%** |
 
-## The owner's rule, and which half of it is reachable
+## The owner's rule, and what shipped (#387)
 
 > Ideally I'd like any call/response where both cats are visible to show. If
 > one is silenced due to cooldown or otherwise, both should be.
 
-**"Show both when both are visible" — reachable today.** At reply time the
-renderer holds the frame and both positions, so "both visible" is a fact it
-has. Rescuing the reply past its pose gate follows. Phone: 40% → 60% of
-in-frame pairs.
+**"Show both when both are visible" — SHIPPED 2026-09-17 in #387.** At reply
+time the renderer holds the frame and both positions, so "both visible" is a
+fact it has; a reply is let past the pose gate when its ask's bubble was
+actually drawn and both cats are in frame. Three present-tense conditions,
+nothing predicted.
 
-**"If one is silenced, both are" — not reachable symmetrically.** The ask is
-drawn before the reply exists, so suppressing an ask because its reply will
-be silenced means knowing the future at ask time.
+**"If one is silenced, both are" — NOT reachable symmetrically, not built.**
+The ask is drawn before the reply exists, so suppressing an ask because its
+reply will be silenced means knowing the future at ask time. The delay line
+reaches one tick and would recover about two pairs per 25 minutes; see the
+half-2 review trigger below for the conditions on re-opening it.
 
-**Except partly, via the delay line.** `Pacer` holds `paceTargetDepth` and
-gives one genuine tick of lookahead — the same mechanism that fixed the wake
-stretch in #376. The reply lands on the very next tick in **13 of 20**
-in-frame pairs on the phone, so for those the ask's fate IS knowable when the
-ask is promoted. Both rescues together reach **90% phone / 85% desktop**.
+## How the client pairs a call with its response
 
-The residual 10–15% are replies 2–10 ticks later whose ask's pose fails:
-genuinely unknowable without the engine.
+**The engine's answers-me relation is the right source of candidates and the
+WRONG display rule.** Both halves matter and the first was learned the hard
+way.
 
-## How the client should pair a call with its response
-
-**Mirror the engine's answers-me rule.** Experiments confirmed the shape
-(2026-09-17), and it is what the minds themselves observe
-(`rl/src/observe.rs:610`, spec 049 FR-041):
+The relation itself, confirmed by Experiments 2026-09-17, is what the minds
+observe (`rl/src/observe.rs:610`, spec 049 FR-041):
 
 > For a `reply: true` here_X at tick t from cat S, pair it with **every**
 > other cat A whose freshest audible paired want_Y has `tick < t` and
 > `t - tick < digest_window_ticks`.
 
-Every field needed is already on `recent_meows` — `kitty_id`, `kind`,
-`tick`, `reply` — and the window is served. Drawing this is drawing the
-world's own notion of an exchange rather than a client invention.
+Every field needed is already on `recent_meows`, and on that rule **625 of
+637 replies (98%) pair with at least one asker**. An earlier cut of this
+census said 49%, using a ten-tick lookback against a thirty-tick window; the
+window was the whole error.
 
-**It is many-to-one.** One here-word answers 1.20 askers on average; 106 of
-637 replies answer two cats and 10 answer three. A pair renderer has to
-expect a reply belonging to several asks at once.
+**But it is many-to-one by design, and drawing it directly is wrong.** A want
+lingers in the 30-tick digest window and is "answered" by every matching
+here-word that rolls past it — a **median of four, as many as twelve**. That
+is a feature vector, not an exchange a person can read. 751 "pairs" is 130
+asks smeared across 637 replies.
 
-Measured on the settled window: **625 of 637 replies (98%)** pair with at
-least one asker, giving **751 (ask, reply) pairs in 25 minutes**.
+**So #387 narrows it to one ask, one answer.** Replies in `(tick, id)` order
+each claim the freshest **unclaimed** ask within `meowPairWindowTicks`, ties
+to the lower id — the engine's own `freshest_audible` key. That yields **138
+pairs in 25 minutes with a median gap of one tick**, which is close to the
+131 the first (accidentally narrow) matcher found, and for the right reason
+this time.
+
+**The window is 7 ticks, ruled by the owner off this sweep:**
+
+    window   pairs   per min   covered
+     3         90      3.6       65%
+     5        101      4.0       73%
+     7        115      4.6       83%
+    10        128      5.1       93%
+    30        138      5.5      100%
+
+The gap's p90 is 8, so 7 catches the shoulder. Below it you discard real
+exchanges to buy nothing visible; above it you hold a pairing open for eight
+seconds to gain roughly one more sighting per 25 minutes.
 
 A stronger "this really was a response" signal exists if it is ever wanted,
 also from Experiments: the here law is *"referent adjacent OR
 reply_condition"* (`meow.rs:237–256`), so a `reply: true` here whose stamped
 `pos` is **not adjacent to its referent** was legal *only* because of the
-want. Still does not name the asker, but it separates a genuine answer from
-an ambient announcement that happened to land while a want was audible.
+want. Measured: 69% of replies. **Tried and not adopted** — after 1:1
+matching it removes only 12 pairs and worsens the gap profile (median 2
+ticks against 1, 51% overlapping against 64%). The greedy 1:1 is already
+selecting the tight ones.
 
-## What a fix buys, on the corrected pairing
+## What the rescue buys
 
-Real `Camera`, both parties actually in frame at reply time:
+Against the **real `Camera`**, both parties actually in frame at reply time,
+on the 1:1 pairing at the ruled 7-tick window:
 
 |                                        | desktop | phone |
 |---|---|---|
-| pairs with both cats in frame          | 314 (42%) | **174 (23%)** |
-| shows as a pair today                  | 194 — 62% | **102 — 59%** |
-| + rescue the reply's pose              | 244 — 78% | 132 — 76% |
-| + ask rescued via 1-tick lookahead     | 252 — 80% | **140 — 80%** |
+| pairs with both cats in frame          | 47      | 18 |
+| shown as a pair before #387            | 29      | 8 |
+| **shown after #387**                   | **36**  | **12** |
 
-So a viewer on a phone already sees ~102 complete pairs per 25 minutes — one
-every 15 seconds — and the rescue would take that to 140, a **37% gain**.
+⚠ **Camera mode became the default in #386**, so the camera-on rows are now
+the typical experience rather than the opt-in one. With the whole-world view
+every cat counts as visible and the rescue fires on every pair; with the
+camera on, both cats are in frame for 42% of pairs on desktop and 23% on a
+phone. **#386 therefore reduces #387's yield**, both measured, neither a bug.
 
-⚠ "Shows as a pair" counts both halves drawn, at any gap up to the 30-tick
-window. Whether a 24-second gap still *reads* as an exchange is a judgement
-nobody has made; the owner has said some delay is fine, but not how much.
-Worth settling before building.
+⚠ "Shown as a pair" counts both halves drawn, at any gap inside the window.
+Whether a 5-second gap still *reads* as an exchange is a judgement nobody has
+made; the owner has said some delay is fine, but not how much.
 
 ## ⚠ REVIEW TRIGGER: half 2, when the PACER buffer gets deeper
 
