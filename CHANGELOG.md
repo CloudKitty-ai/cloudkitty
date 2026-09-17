@@ -33,6 +33,27 @@ change.
 
 ## Unreleased
 
+- **A cat answering a question no longer has to be standing up to be
+  heard.** When one cat asks for something and another answers — "I want
+  to eat!", then "Here food!" — the answer used to vanish if its speaker
+  happened to be mid-groom, because a bubble only draws on a pose with a
+  mouth to move. That rule is right in general: text over a cat who
+  visibly isn't speaking is the client claiming something it can't show.
+  But a reply is the one case where the words are *already* explained by
+  something the viewer watched a moment ago, so it is now let through —
+  provided the ask's bubble really was drawn, and both cats are on screen
+  right now. All three are present-tense facts; nothing is predicted.
+  Pairing an answer to its question needed care, because the engine's own
+  relation is deliberately many-to-one: a want lingers in the digest
+  window and is "answered" by every matching announcement that rolls past
+  it, a median of four and as many as twelve. That is a feature the *cats*
+  observe, not an exchange a person can read. So the client narrows it to
+  one ask, one answer — the freshest unclaimed question within seven ticks
+  — which turns 637 replies into 138 exchanges with a median gap of a
+  single tick. Seven was measured rather than guessed: three ticks covers
+  65% of exchanges, five covers 73%, seven covers 83%, and the tail runs
+  to eight. Presentation only. (#PR)
+
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
   events in twenty-five minutes against 147 — and `here_*` announcements
