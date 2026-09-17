@@ -50,7 +50,7 @@ change.
   means the *interval* between wipes is set by how talkative the world is
   rather than by anything in the code — every 11 hours on the old roster,
   every 50 minutes once the fog generation seated and began speaking 13.6×
-  more. Presentation only. (#PR)
+  more. Presentation only. (#385)
 
 - **The cats would not stop telling you where the water was.** The fog
   generation talks 13.6× more than the roster before it — 1,998 speech
