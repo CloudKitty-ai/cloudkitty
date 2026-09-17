@@ -33,6 +33,8 @@ change.
 
 ## Unreleased
 
+## 0.3.0 — 2026-09-16 — the world goes under fog, and the first minds raised there take every seat
+
 - **The 2.x generation retires to the shelf it earned.** On the owner's
   word ("Retire 2.x artifacts", 2026-09-16), the five schema-4 minds the
   0.3.0 seating replaced — `attn-a1-s1-o4`, `attn-a1-s3-o4`,
@@ -407,7 +409,7 @@ change.
   043's gate-zero doctrine versus 049's heard-friend targeting; the exams' `kitty_slots = roster − 1` widths (SC-004 is now the
   ruled 4a/4b split, no longer a flag).
 
-## v2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
+## 0.2.10 — 2026-09-02 — rest becomes worth choosing, and every refusal goes on the record
 
 - No stale re-proposal (spec 048) **`[rng-sequence]`**: a cat no longer
   proposes the continuation of a scene whose counterpart the decision
@@ -805,7 +807,7 @@ change.
   first roster with no scripted cat. A seat swap on the served world: no
   `--fresh`, the world continues. (#291)
 
-## v2.9 — 2026-08-21 — the phase-1 world goes live, and the hunt becomes worth having
+## 0.2.9 — 2026-08-21 — the phase-1 world goes live, and the hunt becomes worth having
 
 - **Someone is standing at the window now.** The serving welfare
   watchdog (spec 040): every tick, the server reads the engine's own
@@ -1262,7 +1264,7 @@ change.
   new layout (oracle expanded from the certified attention clone;
   3.3e-6 over 144 rows, exact argmax).
 
-## v2.8 — 2026-08-17 — the attention era seats a cross-generation roster
+## 0.2.8 — 2026-08-17 — the attention era seats a cross-generation roster
 
 `[stamp]` (spec 031) — deliberately **not** `[world-fresh]`: the cutover
 continued the served world's history.
@@ -1711,7 +1713,7 @@ drifts, and the long war with the sub-pixel.
 
 ---
 
-## v2.7.1 — 2026-08-10 — the cat becomes an animal
+## 0.2.7.1 — 2026-08-10 — the cat becomes an animal
 
 No compatibility markers: everything here draws pixels or records
 measurements. The engine, the world, and the stamp are exactly v2.7's.
@@ -1781,7 +1783,7 @@ the first cat-art feature to clear the sub-pixel wall.
 
 ---
 
-## v2.7 — 2026-08-09 — the meow channel, and the world goes all-policy
+## 0.2.7 — 2026-08-09 — the meow channel, and the world goes all-policy
 
 `[obs-schema 2→3]` `[rng-sequence]` `[stamp]` — deliberately **not**
 `[world-fresh]`
@@ -1882,7 +1884,7 @@ and want_sleep (#162).
 
 ---
 
-## v2.6 — 2026-08-07 — exp-003 shipped, the world remade, client v3
+## 0.2.6 — 2026-08-07 — exp-003 shipped, the world remade, client v3
 
 `[obs-schema 1→2]` `[world-fresh]` `[rng-sequence]` `[stamp]`
 
@@ -2004,7 +2006,7 @@ exercised in anger for the 20×20 rollout the day after tagging.
 
 ---
 
-## v2.5 — 2026-07-31 — the first learned kitty, the purr batch, the deployment estate
+## 0.2.5 — 2026-07-31 — the first learned kitty, the purr batch, the deployment estate
 
 `[world-fresh]` `[stamp]`
 
@@ -2061,7 +2063,7 @@ project: zero lines.
 
 ---
 
-## v2.4 — 2026-07-26 — the refactor arc complete (specs 018–020)
+## 0.2.4 — 2026-07-26 — the refactor arc complete (specs 018–020)
 
 The three survey-ranked refactors shipped one at a time, each spec-first
 and behavior-proven — **zero unratified behavior change across the arc**,
@@ -2085,7 +2087,7 @@ withdrawal in v2.5.
 
 ---
 
-## v2.3 — 2026-07-26 — the lab notebook opens
+## 0.2.3 — 2026-07-26 — the lab notebook opens
 
 Zero engine changes — the release is the **experiments/ scaffold** (#55):
 a governance rule separating the lab from the product, a findings
@@ -2100,7 +2102,7 @@ up v2.4.
 
 ---
 
-## v2.2 — 2026-07-25 — the held-out evaluation suite (spec 017)
+## 0.2.2 — 2026-07-25 — the held-out evaluation suite (spec 017)
 
 Certification stopped meaning "passes on the default world."
 `kitty-eval --suite` scores a policy across **committed, frozen exam
@@ -2119,7 +2121,7 @@ reference training world — the gym, not the bar. (#54)
 
 ---
 
-## v2.1 — 2026-07-24 — RL hardened for round one; the meadow gets a sky
+## 0.2.1 — 2026-07-24 — RL hardened for round one; the meadow gets a sky
 
 Two stories share the span. The RL surface was hardened for the first
 real training round (#51–#53): a release-safe reward guard, a bounded
@@ -2139,7 +2141,7 @@ deploy estate.
 
 ---
 
-## v2.0 — 2026-07-23 — the world becomes a training environment
+## 0.2.0 — 2026-07-23 — the world becomes a training environment
 
 One spec, one merge, a new identity: **multi-agent RL** (spec 014, #22).
 The world gained a PettingZoo `ParallelEnv` face over a pyo3 bridge,
@@ -2152,7 +2154,7 @@ consequence of that decision.
 
 ---
 
-## v1.0 — 2026-07-23 — the living world
+## 0.1.0 — 2026-07-23 — the living world
 
 The state of the world at first tag (specs 001–013): a meadow grid
 served over WebSocket to a vanilla-JS viewer, inhabited by kitties with
