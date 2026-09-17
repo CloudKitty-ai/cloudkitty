@@ -562,12 +562,42 @@ rule 9 applies (a frozen model cannot answer a reprice); this is the
 served composition's shape, read for the record, and the live
 confirmation comes off the poll when the world has settled.
 
+### Meow re-census (Client's instrument; relayed 2026-09-16)
+
+Client's numbers, banked verbatim in
+`results-raw/live/meow-recensus-client-2026-09-16.json`. Settled
+window ticks 4003–5880 (9,375 cat-ticks; the 2026-08-31 baseline
+window was 9,380, so like-for-like), mean unmet need 4.8–8.9 and
+trendless over 20 minutes.
+
+| read | 0.3.0 live | 2026-08-31 (scripted, no here-words) | lab prior (lesson arms, per 1k decisions) |
+|---|---|---|---|
+| speech (non-purr) per cat-tick | 0.213 | 0.0157 | 0.278–0.361 (all meows) |
+| here-words per 1k cat-ticks | 121 | 0 | 128–151 |
+| here / sound / want / purr | 1,135 / 682 / 219 / 226 | | |
+| here-word reply share | 0.56 (sunbeam 0.65, food 0.64, water 0.57, critter 0.21) | | |
+| drawn calls per hour (client side) | 1,356 | 88.8 | |
+
+Here-word density matches the lab prior; total speech runs a little
+under it. The reply traffic is the minds' own: a policy seat picks its
+message off the network's message head under `legal_message_mask`
+(`cloudkitty-rl/src/behavior.rs:116`), and `reply_intensity_floor` only
+governs the scripted reply path, so the 56% reply share is the clone
+reproducing the scripted reply law it was taught, with the served floor
+as a bystander. 49% of the 637 reply here-words follow the matching
+`want_*` from another cat within 10 ticks, and 457 land exactly one tick
+after it. Intensity 0.0 on every here-word and 0.1–0.4 on the wants is
+the stamp law (`related_need` is want-only), not a reading. Drawn calls
+sit at 51–71% of the client's 450-per-hour per-cat ceiling, a client
+budget question, not a behavioural one (memory: read meow rate off
+`recent_meows`, never drawn calls).
+
 ### Still running
 
 Refusal baseline (F-039) and unanswered from-the-fog calls per hour
 (reason `partner_absent` off the stamp) close with the 15,000-tick
 window; the soak record follows the Biscuit 2.0 convention (48 h,
-216,000 ticks). Client's meow re-census is theirs.
+216,000 ticks).
 
 ## Commands
 
