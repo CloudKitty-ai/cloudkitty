@@ -7818,6 +7818,24 @@ check('each sky crossing steps below the just-noticeable difference', () => {
   }
 });
 
+check('the sky is driven from the FRAME, or it silently steps per tick again', () => {
+  // The inert mode is invisible: drop the onFrame wiring and the sky still
+  // crosses, just in 800ms jumps -- exactly what it did before, so nothing
+  // looks broken. The per-phase step counts would still be there, still
+  // correct, and still never reached.
+  const hook = appSrc.slice(appSrc.indexOf('anim.onFrame ='), appSrc.indexOf('\n};', appSrc.indexOf('anim.onFrame =')));
+  assert(/applyTheme\(/.test(hook),
+    'anim.onFrame no longer calls applyTheme -- the sky is back on the tick clock and looks the same as the bug');
+  assert(/view\.progress/.test(hook),
+    'applyTheme is called from the frame without the sub-tick clock, so the quantiser still only sees whole ticks');
+  assert(/paintPortraits\(/.test(hook),
+    'the portraits lost their frame hook, which shared this slot');
+  // ...and it must still run per PROMOTED state too, or a settled phase
+  // never repaints after a mode change.
+  assert(/if \(themeMode === 'auto'\) applyTheme\(\);/.test(appSrc),
+    'present() no longer applies the theme on a promoted state');
+});
+
 check('a sky crossing steps EVENLY, on the frame clock', () => {
   // The old quantiser was fed whole ticks, so a count that did not divide
   // the fade produced uneven steps: 32 against a 24-tick fade gave gaps of
