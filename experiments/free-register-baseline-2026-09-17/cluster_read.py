@@ -25,6 +25,7 @@ import obs_layout_v5 as L  # noqa: E402
 import free_register_read as R  # noqa: E402
 
 SETS = {"mew": ["mew"], "chirp": ["chirp"], "mew+chirp": ["mew", "chirp"], "purr": ["purr"]}
+HERE_SETS = {w: [w] for w in ("here_sunbeam", "here_food", "here_water", "here_critter")}
 LAGS = (1, 3, 10)
 STATES = {"idle": 0, "resting": 1, "sleeping": 2, "eating": 3, "drinking": 4, "playing": 5, "grooming": 6}
 
@@ -93,13 +94,23 @@ def read(series, draws, seed=0):
     return res
 
 
-def lab_series(path):
+def lab_series(path, state="activity"):
+    """state "activity": null B keyed on the activity class; "activity+sunbeam":
+    activity class x the cat's own in-sunbeam bit (addendum, the here-words)."""
     z = np.load(path)
     out = []
     for rows in R.rows_by_seed(z).values():
         ids, pos, said, actcls, present, target, top = R.per_tick(rows)
         E = {name: np.isin(said, [R.head_index(w) for w in words]) for name, words in SETS.items()}
-        out.append((E, actcls, pos))
+        key = actcls
+        if state == "activity+sunbeam":
+            insun = np.zeros_like(actcls)
+            tix = {t: n for n, t in enumerate(np.unique(rows["tick"]))}
+            kix = {k: n for n, k in enumerate(ids)}
+            for r in range(len(rows["tick"])):
+                insun[tix[rows["tick"][r]], kix[rows["kitty"][r]]] = int(rows["obs"][r][L.SELF_IN_SUNBEAM] > 0)
+            key = actcls * 2 + insun
+        out.append((E, key, pos))
     return out
 
 
@@ -132,13 +143,18 @@ def main():
     ap.add_argument("path", type=Path)
     ap.add_argument("--draws", type=int, default=200)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--sets", choices=("free", "here"), default="free", help="word sets: the free register (declared) or the here-words (addendum)")
+    ap.add_argument("--state", choices=("activity", "activity+sunbeam"), default="activity", help="null B state key (lab only)")
     a = ap.parse_args()
+    if a.sets == "here":
+        SETS.clear()
+        SETS.update(HERE_SETS)
     meta = {}
-    series = lab_series(a.path) if a.mode == "lab" else None
+    series = lab_series(a.path, a.state) if a.mode == "lab" else None
     if a.mode == "live":
         series, meta = live_series(a.path)
     res = read(series, a.draws)
-    res["_meta"] = {"mode": a.mode, "path": str(a.path), "draws": a.draws, **meta}
+    res["_meta"] = {"mode": a.mode, "path": str(a.path), "draws": a.draws, "sets": a.sets, "state": a.state, **meta}
     print(f"== {a.mode} {meta}")
     print(f"{'set':10s} {'n':>6s}  k   obs   nullA  ratioA pctA   nullB  ratioB pctB   dist/null")
     for name in SETS:

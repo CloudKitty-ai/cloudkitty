@@ -161,6 +161,20 @@ ratios of the uptake read (0.92–1.13), i.e. clustering without echo.
 A null-B ratio above 1.25 on mew or chirp refutes the prediction and
 is the echo the owner sees. Report-only.
 
+### Addendum (2026-09-17, on Client's flag): the here-words
+
+Client's served-world read reproduced the engine numbers for mew and
+chirp (1.06–1.09× at one tick) and found here_sunbeam clustered
+(1.72× at one tick, 1.41× at ten) with no shared-state control.
+Declared before running: the same two nulls on the lab trace for the
+sets {here_sunbeam}, {here_food}, {here_water}, {here_critter}
+(`--sets here`), with null B's state key = activity class × the
+speaker's own in-sunbeam bit (`--state activity+sunbeam`), since a
+here_sunbeam is legal only beside a live beam or as a reply. Prediction:
+here_sunbeam above 1.25 under null A and near 1.0 under the
+sunbeam-keyed null B (cats sharing a beam announce it together, the
+purr shape); here_food and here_water near 1.0 under both.
+
 ## Instrument guards
 
 `test_free_register_read.py`: plain-python asserts on synthetic rows
