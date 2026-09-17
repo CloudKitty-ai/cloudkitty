@@ -58,26 +58,9 @@ const VERTICAL_SLACK = 30;
  * config flip with no client change, which is the point of holding them. */
 const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
 
-/** A served meow's identity: the cat, the tick it was spoken, the word. */
-const meowKey = (m) => `${m.kitty_id}:${m.tick}:${m.kind}`;
-
-/**
- * Which ask each here-word answers. The engine's own `want_for_here`
- * (core/src/meow.rs), restated here because it is not served -- so a check
- * pins that every here-kind the client can draw has an entry, or a new one
- * would silently never pair.
- */
-const WANT_FOR_HERE = {
-  here_food: 'want_eat',
-  here_water: 'want_drink',
-  here_sunbeam: 'want_sleep',
-  here_critter: 'want_play',
-};
-/** ...and the same table read the other way, to walk from an ask to the
- * here-words that could answer it. Derived, so the two cannot disagree. */
-const HERE_FOR_WANT = Object.fromEntries(
-  Object.entries(WANT_FOR_HERE).map(([here, want]) => [want, here]),
-);
+/* `meowKey`, `WANT_FOR_HERE`, `HERE_FOR_WANT` and `pairedAsksFor` moved to
+ * anim.js on 2026-09-17, when the GAPE started asking the same question this
+ * file does. Read from there at call time, exactly as `VIEW` already is. */
 
 const MEOW_TEXT = {
   want_eat: 'I want to eat!',
@@ -2196,39 +2179,6 @@ class WorldRenderer {
    * Cached per served tick: a pure function of `recent_meows`, and
    * recomputing it sixty times a second would be the same answer each time.
    */
-  pairedAsks(world) {
-    if (this.pairCache?.tick === world.tick) return this.pairCache;
-    const W = VIEW.meowPairWindowTicks;
-    const all = world.recent_meows || [];
-    const replies = all.filter((m) => m.reply === true && WANT_FOR_HERE[m.kind]);
-    const map = new Map();       // reply key -> the ask it answers
-    const duplicate = new Set(); // reply keys that lost to a nearer sibling
-    const apart = (a, b) => (a.pos && b.pos
-      ? Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y))
-      : Infinity);
-    for (const ask of all) {
-      if (!WANT_FOR_HERE[HERE_FOR_WANT[ask.kind] ?? ''] && !HERE_FOR_WANT[ask.kind]) continue;
-      const here = HERE_FOR_WANT[ask.kind];
-      const mine = replies.filter((r) => r.kind === here && r.kitty_id !== ask.kitty_id
-        && ask.tick < r.tick && r.tick - ask.tick <= W);
-      if (!mine.length) continue;
-      let best = null;
-      for (const r of mine) {
-        if (!best) { best = r; continue; }
-        const dr = apart(ask, r);
-        const db = apart(ask, best);
-        if (dr < db || (dr === db && (r.tick < best.tick
-          || (r.tick === best.tick && r.kitty_id < best.kitty_id)))) best = r;
-      }
-      map.set(meowKey(best), ask);
-      for (const r of mine) if (r !== best) duplicate.add(meowKey(r));
-    }
-    // A reply can be the chosen answer to one ask and a loser to another;
-    // being chosen anywhere is what earns the bubble.
-    for (const key of map.keys()) duplicate.delete(key);
-    this.pairCache = { tick: world.tick, map, duplicate };
-    return this.pairCache;
-  }
 
   /** Is this kitty inside the frame right now? With camera mode off the
    * frame IS the whole world (`Camera.update` sets `across` to the world
@@ -2250,7 +2200,6 @@ class WorldRenderer {
     // props.js. One bubble per cat, newest wins.
     const said = new Map();
     for (const meow of recent) {
-      if (meow.kind === 'purr') continue;
       // ...and nor does an unprompted here-word (owner, 2026-09-16). Same
       // argument that demoted the purr, arriving for a different reason: on
       // the 0.3.0 roster here-words are 56% of everything said, and an
@@ -2265,10 +2214,12 @@ class WorldRenderer {
       // conversation stays legible with the announcements gone. Text over a
       // cat drops from 37.8% of cat-ticks to 29.4%.
       //
-      // The GAPE is untouched -- the cat still opens its mouth for these.
-      // The two already run on different paths: `meowFor` gates the mouth on
-      // pose and a per-cat cooldown, while this reads `recent_meows` direct
-      // and has neither.
+      // AND THE GAPE GOES WITH IT (owner, 2026-09-17). It did not, at first:
+      // the cut landed on the text alone, and 48.7% of the frames in which a
+      // mouth was open then had nothing over them -- every one an unpaired
+      // here-word. A moving mouth draws the eye harder than text does, so the
+      // mismatch read worse than the thing it replaced (61% of bubbles over a
+      // still mouth). `meowIsSpoken` is now the one verdict both paths take.
       //
       // `reply !== true` rather than `!reply`: a server that does not serve
       // the flag draws no here-word bubbles at all, which is loud rather than
@@ -2293,9 +2244,8 @@ class WorldRenderer {
       // true and none of them legible -- so `pairedAsks` keeps the NEAREST.
       //
       // Here-bubbles fall from 1,226/hr to 271/hr, below the rate of the asks
-      // they answer. The cats still GAPE for everything they say; only the
-      // text is rationed.
-      if (meow.kind.startsWith('here_') && !this.pairedAsks(world).map.has(meowKey(meow))) continue;
+      // they answer.
+      if (!meowIsSpoken(meow, world)) continue;
       if (!VIEW.meowPoses.includes(this.drawnPose?.get(meow.kitty_id))) {
         // ...unless it is the ANSWER to something the viewer just watched
         // another cat say (owner ruled, 2026-09-17). The pose gate exists so
@@ -2310,7 +2260,7 @@ class WorldRenderer {
         // is deliberately not here: it would put words over a silent cat
         // BEFORE the thing that explains them, and the delay line only
         // reaches one tick, which is worth about two pairs per 25 minutes.
-        const ask = this.pairedAsks(world).map.get(meowKey(meow));
+        const ask = pairedAsksFor(world).map.get(meowKey(meow));
         if (!ask) continue;
         if (!this.bubbleDrawn?.has(meowKey(ask))) continue;
         const asker = world.kitties.find((k) => k.id === ask.kitty_id);

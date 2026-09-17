@@ -1139,6 +1139,91 @@ function meowGape(at, dials = VIEW) {
   return 1 - easeSmooth((at - open - hold) / close);
 }
 
+/** A served meow's identity: the cat, the tick it was spoken, the word. */
+const meowKey = (m) => `${m.kitty_id}:${m.tick}:${m.kind}`;
+
+/**
+ * Which ask each here-word answers. The engine's own `want_for_here`
+ * (core/src/meow.rs), restated here because it is not served -- so a check
+ * pins that every here-kind the client can draw has an entry, or a new one
+ * would silently never pair.
+ */
+const WANT_FOR_HERE = {
+  here_food: 'want_eat',
+  here_water: 'want_drink',
+  here_sunbeam: 'want_sleep',
+  here_critter: 'want_play',
+};
+/** ...and the same table read the other way, to walk from an ask to the
+ * here-words that could answer it. Derived, so the two cannot disagree. */
+const HERE_FOR_WANT = Object.fromEntries(
+  Object.entries(WANT_FOR_HERE).map(([here, want]) => [want, here]),
+);
+
+/**
+ * Which here-word is the chosen answer to which ask, for one served world.
+ *
+ * ONE function, read by BOTH the mouth and the text. It lived on
+ * `WorldRenderer` until 2026-09-17, when the owner ruled that a call the
+ * client will not caption should not move a mouth either -- and the moment
+ * two callers need the same verdict, a second copy of this rule is how they
+ * start disagreeing. It sits beside `VIEW` because that is already the
+ * shared-meow-semantics end of the client: `render.js` reads both from here
+ * at call time, exactly as it reads the dials.
+ *
+ * Nearest wins (Chebyshev on the stamped `pos`), ties to the earlier tick and
+ * then the lower id, so the choice is stable across frames and across the two
+ * callers rather than "whichever the filter met first".
+ *
+ * Memoised on the world OBJECT, never on `world.tick`. A tick number is not
+ * an identity -- the harness builds many distinct worlds at tick 12, and a
+ * tick-keyed cache would have handed the second one the first one's answer.
+ */
+let pairCache = { world: null, value: null };
+function pairedAsksFor(world) {
+  if (pairCache.world === world) return pairCache.value;
+  const W = VIEW.meowPairWindowTicks;
+  const all = world.recent_meows || [];
+  const replies = all.filter((m) => m.reply === true && WANT_FOR_HERE[m.kind]);
+  const map = new Map();       // reply key -> the ask it answers
+  const duplicate = new Set(); // reply keys that lost to a nearer sibling
+  const apart = (a, b) => (a.pos && b.pos
+    ? Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y))
+    : Infinity);
+  for (const ask of all) {
+    if (!WANT_FOR_HERE[HERE_FOR_WANT[ask.kind] ?? ''] && !HERE_FOR_WANT[ask.kind]) continue;
+    const here = HERE_FOR_WANT[ask.kind];
+    const mine = replies.filter((r) => r.kind === here && r.kitty_id !== ask.kitty_id
+      && ask.tick < r.tick && r.tick - ask.tick <= W);
+    if (!mine.length) continue;
+    let best = null;
+    for (const r of mine) {
+      if (!best) { best = r; continue; }
+      const dr = apart(ask, r);
+      const db = apart(ask, best);
+      if (dr < db || (dr === db && (r.tick < best.tick
+        || (r.tick === best.tick && r.kitty_id < best.kitty_id)))) best = r;
+    }
+    map.set(meowKey(best), ask);
+    for (const r of mine) if (r !== best) duplicate.add(meowKey(r));
+  }
+  // A reply can be the chosen answer to one ask and a loser to another;
+  // being chosen anywhere is what earns the bubble.
+  for (const key of map.keys()) duplicate.delete(key);
+  pairCache = { world, value: { tick: world.tick, map, duplicate } };
+  return pairCache.value;
+}
+
+/** Whether the client will say this meow out loud at all -- the one rule the
+ * mouth and the bubble share. An unprompted here-word is a cat narrating the
+ * map, and a here-word that lost the race to a nearer answerer is true but
+ * illegible; neither earns a caption, so neither earns a gape. */
+function meowIsSpoken(meow, world) {
+  if (meow.kind === 'purr') return false;
+  if (!meow.kind.startsWith('here_')) return true;
+  return pairedAsksFor(world).map.has(meowKey(meow));
+}
+
 /** Where a wetness fade has got to. Resumed from `from` rather than from
  * the far end, so a cat darting in and out of the shallows never snaps. */
 function wetValue(w, now) {
@@ -1464,7 +1549,7 @@ class Presentation {
       const key = `${m.kitty_id}:${m.tick}:${m.kind}`;
       if (this.meowSeen.has(key)) continue;
       this.meowSeen.set(key, m.tick);
-      this.meowAt.set(m.kitty_id, { at: now, kind: m.kind, drawn: false });
+      this.meowAt.set(m.kitty_id, { at: now, tick: m.tick, kind: m.kind, drawn: false });
     }
     // Bounded by AGE, not by size (2026-09-16). It used to be
     // `if (size > 4000) clear()`, and a total wipe at a COUNT threshold
@@ -1891,6 +1976,22 @@ class Presentation {
     // The cooldown is spent when a call is first DRAWN, not when it is heard:
     // a meow skipped for its pose has cost nothing and the next one is free.
     if (!m.drawn) {
+      // A call the client will not caption does not move a mouth either
+      // (owner, 2026-09-17) -- `meowIsSpoken` is the SAME verdict `drawBubbles`
+      // takes, off the SAME world, so the two cannot answer differently.
+      //
+      // Asked here rather than at `pushState`, and only on the first frame.
+      // Only-once is what stops a gape being cut off mid-yawn: the chosen
+      // answerer can lose the pairing a tick later to a cat who replies from
+      // closer, and a mouth that snapped shut halfway would be worse than the
+      // thing this fixes. A bubble may pop out from under a cat that way, and
+      // the owner has ruled that acceptable; a mouth is not.
+      //
+      // And it returns BEFORE the cooldown is read or written (owner asked
+      // for this explicitly), so a suppressed call is free in both
+      // directions: it costs the cat nothing, and the next real thing it
+      // says is not held back by a word the viewer never saw.
+      if (!meowIsSpoken({ kitty_id: id, tick: m.tick, kind: m.kind }, this.curr)) return null;
       const last = this.meowDrawnAt?.get(id);
       if (last !== undefined && now - last < VIEW.meowCooldownMs) return null;
       m.drawn = true;
