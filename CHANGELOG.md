@@ -35,15 +35,17 @@ change.
 
 - **Every so often, all five cats would meow at once — at nothing.** The
   client remembers which served meows it has already drawn, so a call in
-  the rolling window is animated once rather than on every poll. That
-  memory was bounded by *count*: at 4,000 entries it emptied itself
-  completely. A total wipe throws away the newest keys along with the
-  oldest, and the newest are exactly the ones still being served — so the
-  next state treated every meow still in the window as unseen, and the
-  mouths replayed. The whole roster, in unison, for calls up to 24 seconds
-  old. It is bounded by **age** now: a meow can only be served while it is
-  inside the engine's digest window, so once it is older than that it can
-  never come back and the client may forget it. That window is served
+  the rolling window is animated once rather than on every poll. When that
+  memory reached 4,000 entries it **emptied itself completely** — and a
+  truncation to zero discards the newest keys along with the oldest, while
+  the newest are exactly the ones still being served. The next state then
+  treated every meow still in the window as unseen, and the mouths
+  replayed: the whole roster, in unison, for calls up to 24 seconds old.
+  The defect was *emptying rather than evicting*; a buffer that dropped
+  its oldest entry instead would have been fine. It now forgets a meow
+  when that meow **ages out of the engine's digest window**, which is the
+  point after which the world can no longer serve it — so the rule is the
+  invariant itself rather than a capacity that has to be sized against it. That window is served
   (`meow.digest_window_ticks`) and is now read rather than assumed, like
   the tick interval and the distress patience before it. The line had been
   there for a year without anyone seeing it, because a count threshold
