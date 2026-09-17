@@ -7734,6 +7734,200 @@ check('the camera control seats beside the dial and scales with it', () => {
     'setCameraMode touches the follow -- the toggle governs scale alone (FR-027)');
   assert(/initCameraControl\(\);/.test(app), 'the camera control is never wired up');
 });
+/** CIE L*a*b* from a hex string, for measuring how far a colour moved.
+ * The pond restyle set the precedent: judge colour distance perceptually,
+ * not in sRGB, or a dark transition looks smaller than it reads. */
+function labOf(hex) {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex)
+    || /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(hex);
+  if (!m) return null;
+  const ch = (x) => parseInt(x.length === 1 ? x + x : x, 16) / 255;
+  const lin = (c) => (c > 0.04045 ? ((c + 0.055) / 1.055) ** 2.4 : c / 12.92);
+  const [R, G, B] = [ch(m[1]), ch(m[2]), ch(m[3])].map(lin);
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const X = f((R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047);
+  const Y = f(R * 0.2126 + G * 0.7152 + B * 0.0722);
+  const Z = f((R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+const deltaE = (a, b) => {
+  const A = labOf(a); const B = labOf(b);
+  if (!A || !B) return 0;
+  return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
+};
+
+check('each sky crossing steps below the just-noticeable difference', () => {
+  // ⚠ THIS IS THE RECALCULATION GUARD. The per-phase step counts in
+  // WORLD_DAY_PHASES are DERIVED from the palettes, so changing a theme
+  // colour makes them stale -- and stale means visible banding in the one
+  // place it is easiest to see, a large flat field changing over time.
+  //
+  // So the distance is recomputed here from the shipped palettes rather
+  // than trusted: a colour edit that outruns its step count fails, and the
+  // failure says what the count should be. Nobody has to remember.
+  //
+  // Measured 2026-09-17: the four crossings move very unequally -- worst-key
+  // dE 27.8 / 62.5 / 53.2 / 37.5 -- which is why one count cannot serve all
+  // four, and why the table carries a count per phase.
+  const app = appSrc;
+  const table = app.slice(app.indexOf('const WORLD_DAY_PHASES'), app.indexOf('const BLEND_TARGET_DE'));
+  const rows = [...table.matchAll(/\['(\w+)',\s*(\d+),\s*(\d+),\s*(\d+)\]/g)]
+    .map((m) => ({ name: m[1], span: +m[2], fade: +m[3], steps: +m[4] }));
+  assert(rows.length === 4, `read ${rows.length} phase rows, expected 4 -- the table's shape moved`);
+  const target = Number(/const BLEND_TARGET_DE = ([\d.]+);/.exec(app)?.[1]);
+  assert(target > 0, 'BLEND_TARGET_DE is no longer readable from app.js');
+  const maxMs = Number(/const BLEND_MAX_STEP_MS = ([\d.]+);/.exec(app)?.[1]);
+  assert(maxMs > 0, 'BLEND_MAX_STEP_MS is no longer readable from app.js');
+  const tickMs = 800;
+
+  const palettes = eval(
+    readFileSync(join(here, 'meadow.js'), 'utf8')
+      + ';({ day: MEADOW_DAY, dusk: MEADOW_DUSK, night: MEADOW_NIGHT, dawn: MEADOW_DAWN })',
+  );
+  for (let i = 0; i < rows.length; i += 1) {
+    const from = rows[i];
+    const to = rows[(i + 1) % rows.length];
+    const A = palettes[from.name];
+    const B = palettes[to.name];
+    assert(A && B, `no palette for ${from.name} or ${to.name}`);
+    let worst = 0;
+    let worstKey = '';
+    for (const k of Object.keys(A)) {
+      const va = A[k];
+      const vb = B[k];
+      const one = (x, y) => {
+        const d = typeof x === 'string' && typeof y === 'string' ? deltaE(x, y) : 0;
+        if (d > worst) { worst = d; worstKey = k; }
+      };
+      if (Array.isArray(va) && Array.isArray(vb)) va.forEach((v, j) => one(v, vb[j]));
+      else one(va, vb);
+    }
+    // The second bound: a step may not LAST too long. Sizing by dE alone
+    // gives the least-moving crossing the slowest steps, and day->dusk was
+    // changing once every 686ms -- visible as an event whatever its size.
+    const heldMs = (from.fade * tickMs) / from.steps;
+    assert(
+      heldMs <= maxMs,
+      `${from.name} -> ${to.name} holds each step ${heldMs.toFixed(0)}ms, past the ${maxMs}ms bound. `
+        + `That row needs at least ${Math.ceil((from.fade * tickMs) / maxMs)} steps.`,
+    );
+    const per = worst / from.steps;
+    assert(
+      per <= target,
+      `${from.name} -> ${to.name} steps at dE ${per.toFixed(2)} on \`${worstKey}\` (total ${worst.toFixed(1)} `
+        + `over ${from.steps} steps), past the ${target} target. The palettes moved: set that row's step `
+        + `count to at least ${Math.ceil(worst / target)}.`,
+    );
+    // ...and not wildly over-sampled either, or a crossing pays for rebakes
+    // it cannot be seen to need. A rebake is ~1.3ms, so this is slack, not
+    // a tight bound -- it exists to catch a count left behind by a palette
+    // that got CLOSER.
+    const needed = Math.max(Math.ceil(worst / target), Math.ceil((from.fade * tickMs) / maxMs));
+    assert(
+      from.steps <= needed * 2,
+      `${from.name} -> ${to.name} takes ${from.steps} steps; ${needed} holds both bounds `
+        + `(dE ${Math.ceil(worst / target)}, cadence ${Math.ceil((from.fade * tickMs) / maxMs)})`,
+    );
+  }
+});
+
+check('a STILL frame never advances the sky, and never repaints on its own', () => {
+  // Reported from the meadow 2026-09-17: during a crossing the whole roster
+  // juddered. `anim.redraw()` draws a STILL view -- poses frozen, `progress`
+  // forced to 1, cats at their served tile instead of eased toward it -- and
+  // then hands that view to `onFrame`. So the frame hook asked the sky to
+  // advance with progress 1, `applyTheme` repainted, and the repaint
+  // re-entered the hook. Every frame, the still draw snapped each cat a whole
+  // tick forward and the next rAF frame put it back.
+  //
+  // Two separate rules, and both are needed:
+  const hook = appSrc.slice(appSrc.indexOf('anim.onFrame ='), appSrc.indexOf('\n};', appSrc.indexOf('anim.onFrame =')));
+  assert(/!view\.still/.test(hook),
+    'the frame hook advances the sky on a still view -- a still frame is the same moment again, so the clock must not move');
+  const apply = appSrc.slice(appSrc.indexOf('function applyTheme('), appSrc.indexOf('\n}\n', appSrc.indexOf('function applyTheme(')));
+  assert(/if \(repaint\) anim\.redraw\(\)/.test(apply),
+    'applyTheme repaints unconditionally -- that repaint is a still frame, and it snaps every cat a tick forward');
+  assert(/applyTheme\(view\.progress \?\? 0, false\)/.test(hook),
+    'the frame hook asks applyTheme to repaint -- it IS the frame, so the repaint is redundant and lands as a still draw');
+  // Comments stripped: the one below explains the trap and names the field.
+  const applyCode = apply.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+  assert(!/anim\.rafId/.test(applyCode),
+    'applyTheme is gating on anim.rafId -- the loop clears it for the whole frame body, so it reads zero exactly when this runs');
+
+  // The still view really does report progress 1, which is what made the
+  // hook dangerous. Pinned so a change to viewAt cannot quietly defuse the
+  // reason these guards exist.
+  const p = new api.Presentation();
+  const at = (tick) => ({ tick, width: 20, height: 20, elements: [],
+    kitties: [{ ...kitty(1, 2, 2), activity: { state: 'idle' } }] });
+  p.pushState(at(1), 0, 800);
+  p.pushState(at(2), 800, 800);
+  const live = p.viewAt(900, false);
+  const stillView = p.viewAt(900, true);
+  assert(stillView.still === true && stillView.progress === 1,
+    'a still view no longer reports progress 1 -- re-read why the frame hook skips it');
+  assert(live.progress < 1, 'a live view mid-tick should not be at progress 1');
+});
+
+check('the sky is driven from the FRAME, or it silently steps per tick again', () => {
+  // The inert mode is invisible: drop the onFrame wiring and the sky still
+  // crosses, just in 800ms jumps -- exactly what it did before, so nothing
+  // looks broken. The per-phase step counts would still be there, still
+  // correct, and still never reached.
+  const hook = appSrc.slice(appSrc.indexOf('anim.onFrame ='), appSrc.indexOf('\n};', appSrc.indexOf('anim.onFrame =')));
+  assert(/applyTheme\(/.test(hook),
+    'anim.onFrame no longer calls applyTheme -- the sky is back on the tick clock and looks the same as the bug');
+  assert(/view\.progress/.test(hook),
+    'applyTheme is called from the frame without the sub-tick clock, so the quantiser still only sees whole ticks');
+  assert(/paintPortraits\(/.test(hook),
+    'the portraits lost their frame hook, which shared this slot');
+  // ...and it must still run per PROMOTED state, or reduced motion -- which
+  // never gets a frame hook -- would never change hour at all.
+  assert(/if \(themeMode === 'auto'\) applyTheme\(0, false\);/.test(appSrc),
+    'present() no longer applies the theme on a promoted state, or is asking it to repaint');
+  // That repaint would be a whole extra scene draw per tick through a
+  // crossing, and an invisible one: `pump` runs inside the rAF callback and
+  // the live draw follows it there, so the still frame never reaches the
+  // compositor. Reduced motion is covered because `push` promotes and THEN
+  // redraws -- pinned here because that ORDER is what makes it safe.
+  const push = animSrc.slice(animSrc.indexOf('  push(world) {'), animSrc.indexOf('\n  },', animSrc.indexOf('  push(world) {')));
+  const promoteAt = push.indexOf('this.promote(');
+  const redrawAt = push.indexOf('this.redraw()');
+  assert(promoteAt >= 0 && redrawAt > promoteAt,
+    'anim.push redraws before it promotes -- reduced motion would paint the previous hour');
+});
+
+check('a sky crossing steps EVENLY, on the frame clock', () => {
+  // The old quantiser was fed whole ticks, so a count that did not divide
+  // the fade produced uneven steps: 32 against a 24-tick fade gave gaps of
+  // 1,2,1,1,2 in 32nds and jumped twice as far every fourth tick. An
+  // irregular step reads worse than a coarse one.
+  //
+  // The input is fractional now, so every step is reachable and they are
+  // evenly spaced in TIME. Driven through the shipped function.
+  const app = appSrc;
+  const consts = app.slice(app.indexOf('const WORLD_DAY_PHASES'), app.indexOf('function hourForTick'));
+  const blendFor = new Function(
+    `${consts}\nconst BLEND_STEPS = 32;\n`
+      + app.slice(app.indexOf('function phaseBlendFor('), app.indexOf('\n}\n', app.indexOf('function phaseBlendFor(')) + 3)
+      + 'return phaseBlendFor;',
+  )();
+  // day -> dusk: the longest crossing, and the one 32 steps handled worst.
+  const seen = [];
+  for (let f = 0; f <= 24 * 16; f += 1) {
+    const b = blendFor(280 - 24 + f / 16);
+    if (b.next) seen.push(b.step);
+  }
+  const uniq = [...new Set(seen)].sort((a, b) => a - b);
+  assert(uniq.length >= 28,
+    `only ${uniq.length} distinct steps across the day->dusk crossing -- the sub-tick clock is not reaching the quantiser`);
+  const gaps = uniq.slice(1).map((v, i) => v - uniq[i]);
+  const lo = Math.min(...gaps);
+  const hi = Math.max(...gaps);
+  assert(hi - lo < 1e-9,
+    `the crossing steps unevenly: gaps run ${lo.toFixed(4)} to ${hi.toFixed(4)} -- that is the 24-against-32 defect back`);
+});
+
 check('camera mode is ON unless the viewer turned it off, and a load is not a choice', () => {
   // Owner, 2026-09-17: camera mode is what the meadow is meant to look
   // like, and whole-world is the opt-out.
