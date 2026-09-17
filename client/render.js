@@ -2273,28 +2273,29 @@ class WorldRenderer {
       // `reply !== true` rather than `!reply`: a server that does not serve
       // the flag draws no here-word bubbles at all, which is loud rather than
       // silently half-working. Every meow this client is served carries it.
-      if (meow.kind.startsWith('here_') && meow.reply !== true) continue;
-      // ...and only the NEAREST answer to any one ask (owner, 2026-09-17).
-      // The world really does have several cats reply at once -- 54% of
-      // answered asks put two or more bubbles on screen together, up to four
-      // -- and they are all true and none of them legible. The losing
-      // siblings keep their GAPE; only the text goes, same as the
-      // announcement cut. A reply answering no ask in the window is left
-      // alone: that is an ordinary here-word, not a flurry.
-      if (this.pairedAsks(world).duplicate.has(meowKey(meow))) continue;
-      // ...and a bubble only where the MOUTH CAN MOVE (owner, 2026-09-16).
-      // `VIEW.meowPoses` is the set with a gape animation; on anything else
-      // the text was the client asserting speech it could not show -- a cat
-      // asleep, eating or mid-groom with words over it. Same objection that
-      // demoted the purr.
+      // A HERE-WORD EARNS ITS BUBBLE BY ANSWERING SOMETHING (owner,
+      // 2026-09-17). Nothing else about a here-word is worth reading: "Here
+      // drink!" for the four-hundredth time is a cat narrating the map,
+      // while the same words answering "I want to drink!" are a friend
+      // helping. Only the chosen answer to an ask is drawn.
       //
-      // The per-cat `meowCooldownMs` is deliberately NOT applied here. It
-      // exists so an 800ms gape cannot re-trigger on top of itself, which is
-      // an animation constraint; borrowing it for text also flattens the
-      // roster's chattiness to within 1.26x, and that variation is character
-      // worth keeping (owner: "charming to have cats with personality").
-      // Measured: gate alone leaves Biscuit at 31% of its ticks against
-      // Miso's 19%; gate plus cooldown puts every cat at 11-14%.
+      // This replaces two narrower cuts and is why they are gone. #383
+      // dropped here-words that were not stamped `reply`, using that flag as
+      // a proxy for "was prompted" -- but the engine's stamp is EXISTENTIAL
+      // over its 30-tick digest window, and its own docs say an ambient here
+      // landing while a want is audible is stamped too. Measured: of 637
+      // stamped replies, only 18% answered an ask inside the display window,
+      // 20% were losing siblings of one, and 62% answered nothing at all.
+      // The flag reads much tighter than it is.
+      //
+      // And several cats really do answer at once -- 54% of answered asks put
+      // two or more bubbles on screen together, up to four, every one of them
+      // true and none of them legible -- so `pairedAsks` keeps the NEAREST.
+      //
+      // Here-bubbles fall from 1,226/hr to 271/hr, below the rate of the asks
+      // they answer. The cats still GAPE for everything they say; only the
+      // text is rationed.
+      if (meow.kind.startsWith('here_') && !this.pairedAsks(world).map.has(meowKey(meow))) continue;
       if (!VIEW.meowPoses.includes(this.drawnPose?.get(meow.kitty_id))) {
         // ...unless it is the ANSWER to something the viewer just watched
         // another cat say (owner ruled, 2026-09-17). The pose gate exists so

@@ -3554,34 +3554,62 @@ function bubblesFor(world, poses = null, stub = null) {
   return said;
 }
 
-check('an unprompted here-word gets no bubble; a REPLY does', () => {
-  // Owner, 2026-09-16. Here-words are 56% of everything said on the 0.3.0
-  // roster and an announcement nobody asked for is a cat narrating the map.
-  // A reply is the exchange the fog generation was bred for -- one cat asks,
-  // a friend answers -- so it keeps its bubble.
+check('a here-word earns its bubble by ANSWERING something', () => {
+  // Owner, 2026-09-17. Nothing else about a here-word is worth reading:
+  // "Here food!" unprompted is a cat narrating the map; the same words
+  // answering "I want to eat!" are a friend helping.
+  //
+  // This replaces the earlier `reply !== true` cut, which used the engine's
+  // stamp as a proxy for "was prompted". That stamp is EXISTENTIAL over the
+  // 30-tick digest window and the engine's own docs say an ambient here
+  // landing while a want is audible is stamped too -- measured, only 18% of
+  // stamped replies answered an ask inside the display window.
   const said = bubblesFor(bubbleWorld(10, [
-    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false },
-    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true },
-    { kitty_id: 3, kind: 'want_eat', tick: 9 },
-  ]));
-  const ids = said.map(([id]) => id).sort();
+    { kitty_id: 3, kind: 'want_eat', tick: 8, pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 9, reply: true, pos: { x: 3, y: 2 } },
+    { kitty_id: 1, kind: 'here_food', tick: 9, reply: false, pos: { x: 3, y: 3 } },
+  ], 3)).map(([id]) => id).sort();
   assert(
-    JSON.stringify(ids) === JSON.stringify([2, 3]),
-    `drew bubbles for ${JSON.stringify(said)} -- the announcement must be silent, the reply and the ask must not`,
+    JSON.stringify(said) === JSON.stringify([2, 3]),
+    `drew ${JSON.stringify(said)} -- the ask and the here-word that answers it, and nothing else`,
   );
 
-  // A want is never a reply on the served world, and must not be caught by
-  // the rule anyway: the test above would pass if the filter keyed on
-  // `reply` alone rather than on `reply` AND the here- prefix.
+  // An ask keeps its bubble whatever its reply flag says: the rule is about
+  // here-words, and this would pass on a filter that keyed on `reply` alone.
   const wants = bubblesFor(bubbleWorld(10, [
-    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false },
-  ]));
+    { kitty_id: 1, kind: 'want_cuddle', tick: 9, reply: false, pos: { x: 2, y: 2 } },
+  ], 1));
   assert(wants.length === 1, 'an ask must keep its bubble whatever its reply flag says');
+});
 
-  // A server that does not serve the flag draws no here bubbles -- loud,
-  // rather than silently half-working. Documented at the filter.
-  const absent = bubblesFor(bubbleWorld(10, [{ kitty_id: 1, kind: 'here_water', tick: 9 }]));
-  assert(absent.length === 0, 'a here-word with no reply flag must not be taken for a reply');
+check('a here-word that answers nothing is silent', () => {
+  // The inverse, and the whole point: a reply with no ask in the window is
+  // an announcement however the engine stamped it. 62% of stamped replies
+  // are these, and they were the bulk of what reached the screen.
+  const lone = bubblesFor(bubbleWorld(11, [
+    { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } },
+  ], 2));
+  assert(lone.length === 0,
+    `drew ${JSON.stringify(lone)} -- a here-word answering nothing is a cat narrating the map`);
+
+  // ...and one whose ask is stale is equally silent: the window is the test.
+  const W = api.VIEW.meowPairWindowTicks;
+  const stale = bubblesFor(bubbleWorld(40, [
+    { kitty_id: 1, kind: 'want_eat', tick: 39 - (W + 1), pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 39, reply: true, pos: { x: 3, y: 2 } },
+  ], 2)).map(([id]) => id);
+  assert(!stale.includes(2),
+    `an ask ${W + 1} ticks back still bought a bubble -- the window is ${W}`);
+
+  // But an ask whose only answer is FAR AWAY still shows it. There is no
+  // distance cap: visibility is the test for that (owner), and the rescue
+  // already requires both cats in frame.
+  const far = bubblesFor(bubbleWorld(11, [
+    { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } },
+    { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } },
+  ], 2)).map(([id]) => id).sort();
+  assert(JSON.stringify(far) === JSON.stringify([1, 2]),
+    `drew ${JSON.stringify(far)} -- there is no distance cap`);
 });
 
 check('drawKitty records the drawn pose, or every cat falls silent', () => {
@@ -3747,25 +3775,6 @@ check('one ask draws ONE reply: the nearest cat answers', () => {
     both.includes(3),
     `drew ${JSON.stringify(both)} -- cat 3 is the nearest answer to the second ask and must keep its bubble`,
   );
-});
-
-check('a here-word that answers nothing is left alone', () => {
-  // The flurry rule only settles a contest. A reply with no ask in the window
-  // is an ordinary here-word, and #383 already ruled those keep their bubble
-  // -- narrowing that here would be a second, unruled cut.
-  const r = Object.create(bubbleScope.WorldRenderer.prototype);
-  const lone = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } };
-  const said = bubblesFor(bubbleWorld(11, [lone], 2), null, r);
-  assert(said.length === 1 && said[0][0] === 2,
-    `drew ${JSON.stringify(said)} -- an unpaired reply keeps its bubble`);
-
-  // ...and an ask whose only answer is far away still shows that answer.
-  const r2 = Object.create(bubbleScope.WorldRenderer.prototype);
-  const ask = { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } };
-  const far = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 17, y: 2 } };
-  const lonely = bubblesFor(bubbleWorld(11, [ask, far], 2), null, r2).map(([id]) => id).sort();
-  assert(JSON.stringify(lonely) === JSON.stringify([1, 2]),
-    `drew ${JSON.stringify(lonely)} -- there is no distance cap; visibility is the test for that`);
 });
 
 check('the pairing is ONE TO ONE, inside the ruled window', () => {
