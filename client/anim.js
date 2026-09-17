@@ -686,7 +686,7 @@ const VIEW = Object.freeze({
   // the engine's own window would redraw calls the world itself rate-limits.
   // The fog re-cut is where this is judged again -- on the screen, per the
   // owner's ruling, not off arithmetic.
-  meowCooldownMs: 8000,
+  meowCooldownMs: 1600,
 
   // The on-the-spot turn (2026-08-10). Short: this is a cat pivoting on
   // its front feet, not a considered about-face, and anything longer

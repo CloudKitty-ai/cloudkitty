@@ -4110,21 +4110,34 @@ check('the cooldown holds the rhythm whatever the engine says', () => {
   // charm now reads as a tic then.
   const V = api.VIEW;
   assert(V.meowCooldownMs > 0, 'there must be a ceiling at all');
-  // 20s -> 8s, owner 2026-09-01, off the gap census. Pinned because an
-  // unpinned dial is one careless bake from reverting, and this one was
+  // 20s -> 8s (owner 2026-09-01) -> 1.6s (owner 2026-09-17). Pinned because
+  // an unpinned dial is one careless bake from reverting, and this one was
   // unpinned while it dropped half the calls on the board.
   //
-  // 8s is the ENGINE's own `recent_window_ticks` (10 ticks x 800ms), which is
-  // its per-cat-per-KIND speech cooldown. Matching it means the client stops
-  // holding back calls the world has already decided are far enough apart,
-  // while still keeping a ceiling for a chattier generation -- the thing this
-  // dial was written for. Measured on the settled world: no gap between
-  // eligible calls overlapped the 800ms animation, and only 4% fell under 2s.
-  close(V.meowCooldownMs, 8000, 'the meow ceiling moved');
+  // THE OLD FLOOR WAS ARGUED WRONG, and this is the correction. It required
+  // the cooldown to be at least the engine's `recent_window_ticks` (8s), on
+  // the grounds that anything shorter "would redraw calls the world itself
+  // rate-limits". That does not follow: the engine's window is per-cat-per
+  // KIND -- `Kitty::set_meow_cooldown` keys a map by MessageKind, and
+  // action.rs calls it "one live digest entry per kind per emitter" -- so the
+  // world never EMITS the same word twice inside it and the client cannot
+  // redraw one. Different words were never rate-limited by that window at
+  // all, while the client's cooldown is per CAT and blocks them.
+  //
+  // Measured: at 8s the drawn mix skewed to 75% here-words against a true
+  // 65%, because here-words are the most frequent kind and won the races --
+  // mew ran at 70 gapes/hr against 310 uncapped.
+  //
+  // The real floor is the ANIMATION's: a gape is open+hold+close long, and
+  // below that two would run on one mouth. At exactly one gape they abut and
+  // the mouth closes fully between calls, which is the accident this dial was
+  // written to prevent and the only thing it must still prevent.
+  close(V.meowCooldownMs, 1600, 'the meow ceiling moved');
+  const gape = V.meowOpenMs + V.meowHoldMs + V.meowCloseMs;
   assert(
-    V.meowCooldownMs >= 800 * 10,
-    'the ceiling is now shorter than the engine\'s own speech window, so the '
-      + 'client would redraw calls the world itself rate-limits',
+    V.meowCooldownMs >= gape,
+    `the ceiling (${V.meowCooldownMs}ms) is under one gape (${gape}ms), so two `
+      + 'would run on the same mouth at once',
   );
   const p = new api.Presentation();
   let t = 1000;
