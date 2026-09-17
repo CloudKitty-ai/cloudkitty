@@ -508,11 +508,66 @@ need, and the policies carry a lower bath need on every seat, which is
 the self-grooming rate the dose reads already saw (2× the teacher).
 Five seeds; no seed spread reported.
 
-## Reads owed after the reseat (unchanged)
+## Post-reseat reads (0.3.0 live 2026-09-16)
 
-FR-014 (spec 054) step-7 read on the served roster, refusal baseline
-re-run (F-039), unanswered from-the-fog calls per hour off the refusal
-stamp `reason` field, and the client meow re-census.
+Deploy verified off the box: five `fog-gen1-*` policy seats, radius 4,
+`announce_here` 1, reply floor 0.20; watchdog quiet. The world is fresh
+(tick ~120 at the first read; 1.25 ticks/s, about 4,500 ticks an hour).
+Collectors started the same hour, all under
+`results-raw/live/` unless noted: `live_poll.py` (every 20 s for 48 h;
+positions, needs, activity, welfare), the F-039 refusal window
+(`refusal-baseline-2026-09-02/refusal_baseline.py 15000 120`, its own
+results-raw), `soak_watch.sh` at 300 s. Client has the meow re-census.
+
+### Dispersion (owner's question: "two distant groups")
+
+Groups link at Chebyshev distance ≤ 2. Lab = the served artifacts under
+the trained clock on anchor-b3, seeds 870001–870005 × 5,000 ticks
+(`lab-dispersion.json`); live = the first polls (ticks 254–381, thin).
+
+| read | scripted (lab) | gen1-A (lab) | gen1-A (live, 8 polls) |
+|---|---|---|---|
+| all five in one group, share of ticks | 0.28 | 0.03 | 0.00 |
+| two or more groups of ≥ 2 cats | 0.23 | 0.54 | 0.50 |
+| most common shapes | 5, 4+1, 3+1+1 | 3+2, 2+2+1, 2+1+1+1 | 2+1+1+1, 2+2+1 |
+| mean pairwise Manhattan distance | 6.1 | 11.0 | 10.3 |
+| mean farthest pair | 11.3 | 19.1 | 17.8 |
+| mean nearest-neighbour distance, by seat | 2.4–2.8 | 2.6–3.4 | 2.3–4.5 |
+
+The owner's impression is the composition, not the fresh world: the
+Gen 1 roster lives as two or three small groups (3+2 and 2+2+1 are its
+modal shapes) with the groups far apart, while the scripted roster
+piles up (all five together 28% of ticks). Nearest-neighbour distance
+barely moves, so the cats are not lonelier, the groups are just
+further from each other. Corner and edge occupancy in the lab trace is
+close to uniform (corner-within-3 share 0.13–0.19 against 0.16
+uniform), so this is pairs and triads spreading over the map, not
+corner camping. Duets run at 87 per 1k ticks on the composition. Not a
+gate; a character read, and a Gen 2 input if the owner wants the
+roster to pile more (the scripted pile is the needs-driven brain's
+shared errands, which the minds do not share).
+
+### FR-014 (spec 054): groom latency vs bath on the served composition (lab)
+
+`step7_reads.py` on the gen1-A trace above (`lab-gen1A-trace.npz`,
+125k decisions): dirty-visible spells 330, groomed share 0.052, latency
+median 3.0 (the pass read the same on the candidates, 0.027–0.046;
+the scripted anchor 0.226). Groom-other by the target's bath level
+(rows where the friend is visible): 280 of 304 grooms land on friends
+with bath < 10; per 1k visible rows 2.24 at bath < 10, 0.64 at 10–20,
+1.48 at 20–35 (n = 3), none above. The spec 054 ramp prices dirty
+targets up and the minds do not follow it: their grooming of friends is
+social, not hygienic, and no more frequent on dirty friends. Doctrine
+rule 9 applies (a frozen model cannot answer a reprice); this is the
+served composition's shape, read for the record, and the live
+confirmation comes off the poll when the world has settled.
+
+### Still running
+
+Refusal baseline (F-039) and unanswered from-the-fog calls per hour
+(reason `partner_absent` off the stamp) close with the 15,000-tick
+window; the soak record follows the Biscuit 2.0 convention (48 h,
+216,000 ticks). Client's meow re-census is theirs.
 
 ## Commands
 
