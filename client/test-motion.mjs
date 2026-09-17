@@ -7818,6 +7818,38 @@ check('each sky crossing steps below the just-noticeable difference', () => {
   }
 });
 
+check('a STILL frame never advances the sky, and never repaints on its own', () => {
+  // Reported from the meadow 2026-09-17: during a crossing the whole roster
+  // juddered. `anim.redraw()` draws a STILL view -- poses frozen, `progress`
+  // forced to 1, cats at their served tile instead of eased toward it -- and
+  // then hands that view to `onFrame`. So the frame hook asked the sky to
+  // advance with progress 1, `applyTheme` repainted, and the repaint
+  // re-entered the hook. Every frame, the still draw snapped each cat a whole
+  // tick forward and the next rAF frame put it back.
+  //
+  // Two separate rules, and both are needed:
+  const hook = appSrc.slice(appSrc.indexOf('anim.onFrame ='), appSrc.indexOf('\n};', appSrc.indexOf('anim.onFrame =')));
+  assert(/!view\.still/.test(hook),
+    'the frame hook advances the sky on a still view -- a still frame is the same moment again, so the clock must not move');
+  const apply = appSrc.slice(appSrc.indexOf('function applyTheme('), appSrc.indexOf('\n}\n', appSrc.indexOf('function applyTheme(')));
+  assert(/if \(!anim\.rafId\) anim\.redraw\(\)/.test(apply),
+    'applyTheme repaints while the rAF loop is running -- that repaint is a still frame, and it snaps every cat a tick forward');
+
+  // The still view really does report progress 1, which is what made the
+  // hook dangerous. Pinned so a change to viewAt cannot quietly defuse the
+  // reason these guards exist.
+  const p = new api.Presentation();
+  const at = (tick) => ({ tick, width: 20, height: 20, elements: [],
+    kitties: [{ ...kitty(1, 2, 2), activity: { state: 'idle' } }] });
+  p.pushState(at(1), 0, 800);
+  p.pushState(at(2), 800, 800);
+  const live = p.viewAt(900, false);
+  const stillView = p.viewAt(900, true);
+  assert(stillView.still === true && stillView.progress === 1,
+    'a still view no longer reports progress 1 -- re-read why the frame hook skips it');
+  assert(live.progress < 1, 'a live view mid-tick should not be at progress 1');
+});
+
 check('the sky is driven from the FRAME, or it silently steps per tick again', () => {
   // The inert mode is invisible: drop the onFrame wiring and the sky still
   // crosses, just in 800ms jumps -- exactly what it did before, so nothing

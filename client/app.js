@@ -51,7 +51,14 @@ anim.onFrame = (world, view) => {
   // The sky crosses on the frame's clock. `applyTheme` returns after two
   // compares when the step has not moved, so this is cheap sixty times a
   // second -- and it is what turns a crossing from 24 jumps into a slide.
-  if (themeMode === 'auto') applyTheme(view.progress ?? 0);
+  //
+  // NOT on a still view. `anim.redraw()` draws one and then calls this hook
+  // with it, and a still view reports `progress: 1` -- so asking the sky to
+  // advance on it would walk the crossing forward by a fraction of a tick
+  // for every repaint, and `applyTheme`'s own repaint would re-enter here.
+  // A still frame means "the same moment again", which is exactly when the
+  // clock must not move.
+  if (themeMode === 'auto' && !view.still) applyTheme(view.progress ?? 0);
 };
 // Served states reach the panel when the animation layer PROMOTES them,
 // not when they land: the delay line holds a state back by about a tick
@@ -394,7 +401,17 @@ function applyTheme(subTick = 0) {
   // dusk and night until 2026-08-17.
   renderer.groundCache = null; // the cache bakes the palette; rebake
   renderer.paletteKey = key;
-  anim.redraw(); // safe pre-world: redraw no-ops until a state exists
+  // Only when nothing else will paint. `redraw` is a STILL frame -- poses
+  // frozen, `progress` forced to 1, cats at their served tile rather than
+  // eased toward it -- which is right for a viewer who gets no rAF loop and
+  // wrong while one is running: the still draw snapped every cat a whole
+  // tick forward and the next frame put it back, sixty times a second
+  // through a crossing. It read as the whole roster juddering.
+  //
+  // Harmless when this ran once per tick; the sub-tick clock is what made it
+  // visible. The loop, reduced motion and the pre-world case are all covered
+  // by asking whether a frame is already coming.
+  if (!anim.rafId) anim.redraw(); // safe pre-world: redraw no-ops until a state exists
 }
 
 function setThemeMode(mode) {
