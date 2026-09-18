@@ -136,7 +136,7 @@ const VISION = {
   // rather than a distance in tiles, because the maximum is different at every
   // corner (half the shorter arm) and a distance dial goes dead the moment it
   // passes the smallest one. Owner asked for a 0-1 range, 2026-09-17.
-  cornerSmoothness: 0.8,
+  cornerSmoothness: 1, // owner ruled 2026-09-17: the roundest legal
   anchorR: 0.16, // the owner cue, in tiles
   anchorAlpha: 0.85,
   hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
@@ -681,7 +681,7 @@ function traceTileLoops(seen, onEdge = () => false) {
  * `suppressed` segments are walked but not drawn, which is how the world's
  * outer edge stops being mistaken for a limit of the cat's sight.
  */
-function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
+function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed = true) {
   const px = (v) => ox + v * tile;
   const py = (v) => oy + v * tile;
   const n = loop.length;
@@ -717,7 +717,7 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
   for (let i = 0; i < n; i += 1) {
     const from = V[(i - 1 + n) % n];
     const at = V[i];
-    const inSuppressed = from.outSuppressed;
+    const inSuppressed = honourSuppressed && from.outSuppressed;
 
     // The straight run between two arcs. It begins at the PREVIOUS corner's
     // exit, not at this corner's entry -- picking it up at the entry is what
@@ -730,13 +730,22 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
       lineTo(at.start);
     }
 
-    // The corner belongs to neither side, so it is drawn when either is.
-    if (!inSuppressed || !at.outSuppressed) {
+    const outSuppressed = honourSuppressed && at.outSuppressed;
+    if (!inSuppressed && !outSuppressed) {
+      // Both sides drawn: round the corner between them.
       if (!pen) moveTo(at.start);
       if (at.r > 0) path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
       else lineTo(at.cur);
+    } else if (!inSuppressed || !outSuppressed) {
+      // Exactly one side drawn -- a corner where the contour meets the edge of
+      // the meadow. It runs to that corner and STOPS. Rounding it here sent
+      // the arc back along the map's edge, because at full smoothness the arc
+      // begins at the midpoint of the side it is leaving: the fence this was
+      // meant to remove, creeping back in as the roundness came up.
+      if (inSuppressed) { moveTo(at.cur); lineTo(at.end); }
+      else lineTo(at.cur);
     }
-    if (at.outSuppressed) pen = false;
+    if (outSuppressed) pen = false;
   }
 }
 
@@ -2394,11 +2403,6 @@ class WorldRenderer {
       if (tx < 0 || ty < 0 || tx >= world.width || ty >= world.height) continue;
       seen.add(`${dx},${dy}`);
     }
-    const fill = new Path2D();
-    for (const key of seen) {
-      const [dx, dy] = key.split(',').map(Number);
-      fill.rect(x + dx * t, y + dy * t, t, t);
-    }
 
     // A boundary segment lying ON the world's outer edge is not a limit of
     // this cat's sight -- it is the meadow running out. Drawing it made a cat
@@ -2408,9 +2412,21 @@ class WorldRenderer {
       (a[0] === b[0] && (base.x + a[0] === 0 || base.x + a[0] === world.width))
       || (a[1] === b[1] && (base.y + a[1] === 0 || base.y + a[1] === world.height))
     );
+    // ONE shape, drawn twice. The wash used to be built from raw tile rects
+    // while the outline was the rounded curve, so as the roundness came up the
+    // square corners pushed out past the contour and the fog stopped wrapping
+    // to it (owner, 2026-09-17, at smoothness 1.0 where the gap is widest).
+    //
+    // The two differ in one respect only: the outline leaves out the segments
+    // lying on the world's edge, and the wash keeps them. An open path would
+    // be closed by canvas with a straight chord across the region, which is
+    // the opposite of what suppressing that edge is for.
+    const loops = traceTileLoops(seen, atEdge);
+    const fill = new Path2D();
     const edge = new Path2D();
-    for (const loop of traceTileLoops(seen, atEdge)) {
-      roundedLoopPath(loop, edge, x, y, t, VISION.cornerSmoothness);
+    for (const loop of loops) {
+      roundedLoopPath(loop, fill, x, y, t, VISION.cornerSmoothness, false);
+      roundedLoopPath(loop, edge, x, y, t, VISION.cornerSmoothness, true);
     }
     return { fill, edge };
   }

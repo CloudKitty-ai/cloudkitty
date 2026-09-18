@@ -7916,12 +7916,43 @@ const deltaE = (a, b) => {
  */
 class RecordingPath {
   constructor() { this.rects = []; this.segs = []; this.at = null; this.curves = []; this.subpaths = []; }
-  quadraticCurveTo(cx, cy, x, y) { this.segs.push([...this.at, x, y]); this.curves.push([cx, cy]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
+  // SAMPLED, not chorded. A quadratic's bulge lives in the middle, so
+  // recording only its endpoints hides exactly what the excursion and area
+  // checks below are trying to measure.
+  quadraticCurveTo(cx, cy, x, y) {
+    const [x0, y0] = this.at;
+    this.curves.push([cx, cy]);
+    for (let i = 1; i <= 8; i += 1) {
+      const s = i / 8; const u = 1 - s;
+      const px = u * u * x0 + 2 * u * s * cx + s * s * x;
+      const py = u * u * y0 + 2 * u * s * cy + s * s * y;
+      this.segs.push([this.at[0], this.at[1], px, py]);
+      this.at = [px, py];
+      this.subpaths.at(-1).push([px, py]);
+    }
+  }
   addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
   rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
   moveTo(x, y) { this.at = [x, y]; this.subpaths.push([[x, y]]); }
   lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
 }
+/** The area a recorded path encloses, in square tiles (shoelace over every
+ * subpath). The wash is a filled shape now rather than a bag of rectangles,
+ * so "how much ground does it cover" is the only question worth asking of it. */
+function pathAreaTiles(path, tile) {
+  let total = 0;
+  for (const pts of path.subpaths) {
+    let a = 0;
+    for (let i = 0; i < pts.length; i += 1) {
+      const [x1, y1] = pts[i];
+      const [x2, y2] = pts[(i + 1) % pts.length];
+      a += x1 * y2 - x2 * y1;
+    }
+    total += Math.abs(a) / 2;
+  }
+  return total / (tile * tile);
+}
+
 /** Run `fn` with a Path2D node can actually construct. */
 function withPaths(fn) {
   const had = 'Path2D' in globalThis;
@@ -7982,7 +8013,13 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
   const { fill, edge } = withPaths(() => r.visionPaths(kitty, world, view, 4));
 
   const tiles = r.visionOffsets(4).length;
-  assert(fill.rects.length === tiles, `the fill covers ${fill.rects.length} tiles, not the ${tiles} seen`);
+  // The wash follows the SAME rounded contour as the outline now, so it is
+  // measured by the ground it covers rather than by a rectangle count. It was
+  // built from raw tile rects until 2026-09-17, which is why the fog stopped
+  // wrapping to the outline as the roundness came up.
+  const area = pathAreaTiles(fill, r.tile);
+  assert(area > tiles * 0.9 && area <= tiles,
+    `the wash covers ${area.toFixed(1)} tiles against the ${tiles} the cat sees -- rounding may only trim the corners`);
 
   // Measured by LENGTH, not by segment count. The outline is corners-and-arcs
   // now, so how many segments it takes to say a thing is an implementation
@@ -8154,9 +8191,11 @@ check('the region is clipped to the world and rides the cat through the tween', 
   const full = withPaths(() => r.visionPaths(
     { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
   ));
-  assert(corner.fill.rects.length < full.fill.rects.length,
-    'a cat in the corner sees as many tiles as one in the middle -- the region is not clipped to the world');
-  assert(corner.fill.rects.every(([x, y]) => x >= -0.001 && y >= -0.001),
+  const cornerArea = pathAreaTiles(corner.fill, r.tile);
+  const fullArea = pathAreaTiles(full.fill, r.tile);
+  assert(cornerArea < fullArea * 0.4,
+    `a cat in the corner washes ${cornerArea.toFixed(1)} tiles against ${fullArea.toFixed(1)} in the open -- the region is not clipped to the world`);
+  assert(corner.fill.subpaths.flat().every(([x, y]) => x >= -0.001 && y >= -0.001),
     'the region is drawn off the top-left of the meadow');
 
   // Anchored on the DRAWN position: mid-tween the region has to travel with
@@ -8164,9 +8203,9 @@ check('the region is clipped to the world and rides the cat through the tween', 
   const mid = withPaths(() => r.visionPaths(
     { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
   ));
-  const dx = mid.fill.rects[0][0] - full.fill.rects[0][0];
+  const dx = mid.fill.subpaths[0][0][0] - full.fill.subpaths[0][0][0];
   close(dx, r.tile * 0.5, 'the region ignores the tween and sits on the served tile while the cat moves');
-  assert(mid.fill.rects.length === full.fill.rects.length,
+  close(pathAreaTiles(mid.fill, r.tile), fullArea,
     'the tween changed WHICH tiles are seen -- the shape is the served one, only its position moves');
 });
 
