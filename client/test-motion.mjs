@@ -8006,6 +8006,51 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
     `the contour is ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is not tracing it once`);
 });
 
+check('a corner arc cannot round past its own neighbours', () => {
+  // THE CLAMP, which nothing guarded until `mutate.sh` said so. Raising
+  // `cornerRadius` to 3 tiles stayed green -- correctly, because the radius is
+  // clamped to half the shorter arm at each corner, so the dial saturates.
+  // But that meant the clamp itself was load-bearing and unchecked: without
+  // it a big radius sends a reflex corner bulging tiles outward, claiming
+  // sight the cat has not got.
+  //
+  // So: drive it at a radius far past anything legal, and require the pen to
+  // stay within half a tile of the region it is outlining.
+  const V = bubbleScope.VISION;
+  const was = V.cornerRadius;
+  try {
+    V.cornerRadius = 3;
+    const r = visionRig(4);
+    const world = { width: 20, height: 20, kitties: [] };
+    const { edge } = withPaths(() => r.visionPaths(
+      { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+    ));
+    const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+    // Distance from a point (in tile units, relative to the cat's own tile)
+    // to the union of seen tiles. Zero inside.
+    const outside = (tx, ty) => {
+      let best = Infinity;
+      for (const key of seen) {
+        const [dx, dy] = key.split(',').map(Number);
+        const ox = Math.max(dx - tx, 0, tx - (dx + 1));
+        const oy = Math.max(dy - ty, 0, ty - (dy + 1));
+        best = Math.min(best, Math.hypot(ox, oy));
+      }
+      return best;
+    };
+    let worst = 0;
+    for (const [x1, y1, x2, y2] of edge.segs) {
+      for (const [px, py] of [[x1, y1], [x2, y2]]) {
+        worst = Math.max(worst, outside(px / r.tile - 9, py / r.tile - 9));
+      }
+    }
+    assert(worst <= 0.5,
+      `the contour strays ${worst.toFixed(2)} tiles outside the region -- the corner radius is not clamped, and it is claiming sight the cat has not got`);
+  } finally {
+    V.cornerRadius = was;
+  }
+});
+
 check('the meadow running out is not a limit of the cat\'s sight', () => {
   // Owner, 2026-09-17: "when cats hit the edge of the screen the border
   // truncates oddly with each step." It did, and the truncation was the bug
