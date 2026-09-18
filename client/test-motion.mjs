@@ -8033,7 +8033,7 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
   const world = { width: 20, height: 20, kitties: [] };
   const kitty = { id: 1, pos: { x: 9, y: 9 } };
   const view = { posFor: () => ({ x: 9, y: 9 }) };
-  const shape = withPaths(() => r.visionShape(kitty, world, view, 4));
+  const shape = withPaths(() => r.visionShape(kitty, view, 4));
 
   const tiles = r.visionOffsets(4).length;
   // The wash follows the SAME rounded contour as the outline now, so it is
@@ -8118,7 +8118,7 @@ check('a contour is one closed loop that comes back to where it started', () => 
   const r = visionRig(4);
   const world = { width: 20, height: 20, kitties: [] };
   const shape = withPaths(() => r.visionShape(
-    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
   ));
   assert(shape.subpaths.length === 1,
     `the contour is ${shape.subpaths.length} separate strokes -- a closed region must be drawn in one`);
@@ -8329,14 +8329,14 @@ check('the meadow\'s own corner is INSIDE a cat standing on it', () => {
   const r = visionRig(4);
   const world = { width: 20, height: 20 };
   const shape = withPaths(() => r.visionShape(
-    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
+    { id: 1, pos: { x: 0, y: 0 } }, { posFor: () => ({ x: 0, y: 0 }) }, 4,
   ));
   assert(insidePath(shape, 0.5, 0.5), "the meadow's corner is not inside the sight of a cat standing on it");
   // ...and it stays inside right through a step away from the corner, which
   // is where the sliver used to open up.
   for (const at of [0.25, 0.5, 0.75, 1]) {
     const moving = withPaths(() => r.visionShape(
-      { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: at, y: at }) }, 4,
+      { id: 1, pos: { x: 0, y: 0 } }, { posFor: () => ({ x: at, y: at }) }, 4,
     ));
     assert(insidePath(moving, 0.5, 0.5),
       `stepping away from the corner (drawn at ${at}) uncovers it -- fog in the corner of the meadow`);
@@ -8365,7 +8365,7 @@ check('a corner arc cannot round past its own neighbours', () => {
     const r = visionRig(4);
     const world = { width: 20, height: 20, kitties: [] };
     const shape = withPaths(() => r.visionShape(
-      { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+      { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
     ));
     const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
     // Distance from a point (in tile units, relative to the cat's own tile)
@@ -8413,7 +8413,7 @@ check('the meadow running out does not clip the cat\'s sight', () => {
   const world = { width: 20, height: 20 };
   for (const at of [1, 1.25, 1.5, 1.75, 2]) {
     const shape = withPaths(() => r.visionShape(
-      { id: 1, pos: { x: 1, y: 10 } }, world, { posFor: () => ({ x: at, y: 10 }) }, 4,
+      { id: 1, pos: { x: 1, y: 10 } }, { posFor: () => ({ x: at, y: 10 }) }, 4,
     ));
     const leftmost = Math.min(...shape.subpaths.flat().map(([x]) => x)) / r.tile;
     assert(leftmost <= 0.001,
@@ -8423,7 +8423,7 @@ check('the meadow running out does not clip the cat\'s sight', () => {
 
   // ...and the bottom-left corner, where it shows on both axes at once.
   const corner = withPaths(() => r.visionShape(
-    { id: 1, pos: { x: 1, y: 18 } }, world, { posFor: () => ({ x: 1.5, y: 18.5 }) }, 4,
+    { id: 1, pos: { x: 1, y: 18 } }, { posFor: () => ({ x: 1.5, y: 18.5 }) }, 4,
   ));
   const pts = corner.subpaths.flat();
   assert(Math.min(...pts.map(([x]) => x)) <= 0.001, 'the left rim is left foggy mid-tween');
@@ -8439,10 +8439,10 @@ check('the shape is the served one, and only its POSITION rides the tween', () =
   const r = visionRig(4);
   const world = { width: 20, height: 20 };
   const still = withPaths(() => r.visionShape(
-    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
   ));
   const mid = withPaths(() => r.visionShape(
-    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
   ));
   const dx = mid.subpaths[0][0][0] - still.subpaths[0][0][0];
   close(dx, r.tile * 0.5, 'the region ignores the tween and sits on the served tile while the cat moves');

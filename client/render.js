@@ -632,14 +632,11 @@ const MENISCUS = {
  * head-to-tail into closed loops -- one for the outline, one more for each
  * hole, though a vision disc has no holes.
  *
- * Coordinates are TILE units; the caller scales. `onEdge(p, q)` marks a
- * segment the caller wants suppressed later, so the flag survives the
- * collinear merge below rather than being recomputed against a shape that no
- * longer has the same vertices.
+ * Coordinates are TILE units; the caller scales.
  */
-function traceTileLoops(seen, onEdge = () => false) {
+function traceTileLoops(seen) {
   const key = (x, y) => `${x},${y}`;
-  const out = new Map(); // start point -> [end point, suppressed]
+  const out = new Map(); // start point -> end point
   for (const cell of seen) {
     const [x, y] = cell.split(',').map(Number);
     // Counter-clockwise in screen space (y down), so the region is on the left.
@@ -676,10 +673,7 @@ function traceTileLoops(seen, onEdge = () => false) {
       const b = [next[0] - cur[0], next[1] - cur[1]];
       if (a[0] * b[1] - a[1] * b[0] !== 0) merged.push(cur); // a real corner
     }
-    return merged.map((p, i) => {
-      const nxt = merged[(i + 1) % merged.length];
-      return { p, suppressed: onEdge(p, nxt) };
-    });
+    return merged.map((p) => ({ p }));
   });
 }
 
@@ -737,10 +731,8 @@ function nearerHalf(a, b, reach) {
  * at the shipped 0.4 of a tile that is well under the half-tile it would take
  * to read as a different tile.
  *
- * `suppressed` segments are walked but not drawn, which is how the world's
- * outer edge stops being mistaken for a limit of the cat's sight.
  */
-function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed = true) {
+function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
   const px = (v) => ox + v * tile;
   const py = (v) => oy + v * tile;
   const n = loop.length;
@@ -760,22 +752,12 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed 
     // a corner can never round past its own neighbours however the dial is
     // set, and the curve cannot cross the polygon.
     const share = Math.min(1, Math.max(0, smoothness));
-    // ...except where the MEADOW ends. A corner with an arm on the world's
-    // edge is not a corner of the cat's sight, it is the map's own corner, and
-    // rounding it pulls the region off the edge -- which the fog then fills,
-    // leaving a dark wedge in the literal corner of the world INSIDE the
-    // cat's sight (owner, 2026-09-17). Square there, whatever the dial says.
-    // Zeroing the radius rather than special-casing the walk: at r = 0 the
-    // arc's ends collapse onto the corner and it draws as a straight join,
-    // which is exactly the shape wanted, in both the wash and the outline.
-    const onMapEdge = loop[(i - 1 + n) % n].suppressed || vertex.suppressed;
-    const r = onMapEdge ? 0 : share * Math.min(len(prev, cur), len(cur, next)) / 2;
+    const r = share * Math.min(len(prev, cur), len(cur, next)) / 2;
     return {
       cur,
       r,
       start: lerp(cur, prev, r / len(prev, cur) || 0),
       end: lerp(cur, next, r / len(cur, next) || 0),
-      outSuppressed: vertex.suppressed,
     };
   });
 
@@ -796,42 +778,16 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed 
   for (let i = 0; i < n; i += 1) {
     const from = V[(i - 1 + n) % n];
     const at = V[i];
-    const inSuppressed = honourSuppressed && from.outSuppressed;
-
-    // The straight run between two arcs. It begins at the PREVIOUS corner's
-    // exit, not at this corner's entry -- picking it up at the entry is what
-    // left one side of one tile undrawn on every loop, at whichever vertex
-    // the trace happened to start from (owner spotted it: "a gap on the left
-    // side of the topmost square").
-    if (inSuppressed) pen = false;
-    else {
-      if (!pen) moveTo(from.end);
-      lineTo(at.start);
-    }
-
-    const outSuppressed = honourSuppressed && at.outSuppressed;
-    if (!inSuppressed && !outSuppressed) {
-      // Both sides drawn: round the corner between them.
-      if (!pen) moveTo(at.start);
-      if (at.r > 0) {
-        path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
-        cursor = at.end;
-      } else lineTo(at.cur);
-    } else if (!inSuppressed || !outSuppressed) {
-      // Exactly one side drawn -- a corner where the contour meets the edge of
-      // the meadow. It runs to that corner and STOPS. Rounding it here sent
-      // the arc back along the map's edge, because at full smoothness the arc
-      // begins at the midpoint of the side it is leaving: the fence this was
-      // meant to remove, creeping back in as the roundness came up.
-      // Nothing to draw at a SQUARE corner being entered from the meadow's
-      // edge: its arc has collapsed onto the corner point, and a zero-length
-      // stroke under a round cap is a painted DOT -- the fence again, one pip
-      // at a time. The contour picks up at the straight run after it.
-      if (inSuppressed) { if (at.r > 0) { moveTo(at.cur); lineTo(at.end); } }
-      else lineTo(at.cur);
-
-    }
-    if (outSuppressed) pen = false;
+    // The straight run between two arcs BEGINS where the previous corner's
+    // arc ended. Picking it up at this corner's entry instead left one side of
+    // one tile undrawn on every loop, at whichever vertex the trace happened
+    // to start from (owner: "a gap on the left side of the topmost square").
+    if (!pen) moveTo(from.end);
+    lineTo(at.start);
+    if (at.r > 0) {
+      path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
+      cursor = at.end;
+    } else lineTo(at.cur);
   }
 }
 
@@ -2477,10 +2433,9 @@ class WorldRenderer {
    * what keeps region and cat locked together through the tween, instead of
    * the region snapping a tile while the cat glides.
    */
-  visionShape(kitty, world, view, radius) {
+  visionShape(kitty, view, radius) {
     const { x, y } = this.tileOrigin(view.posFor(kitty));
     const t = this.tile;
-    const base = kitty.pos;
     // NOT clipped to the world, and that is the fix for a bug that survived
     // two goes at it (owner, 2026-09-18: "lower left corner, and left lateral
     // edge... 1 or less tile not drawing the circle").
@@ -2740,7 +2695,7 @@ class WorldRenderer {
     const drawn = world.kitties.map((kitty) => ({
       kitty,
       hue: VISION.hues[kitty.id % VISION.hues.length],
-      shape: this.visionShape(kitty, world, view, radius),
+      shape: this.visionShape(kitty, view, radius),
     }));
     ctx.save();
     this.washUnseen(world, drawn);
