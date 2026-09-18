@@ -136,6 +136,11 @@ const VISION = {
   // tinted and shared ground stays bare. Both keep the one guarantee that
   // matters -- one colour per pixel, so nothing can ever mix.
   tintMode: 'solo',
+  // How much of a contour is taken away where it crosses another cat's sight.
+  // It COMPOUNDS -- a line through two other regions keeps 0.4 x 0.4 -- so the
+  // busiest knot gets the most relief, which is where the mess was. 0 draws
+  // every line at full strength, as before.
+  ringOverlapFade: 0.6,
   ringAlpha: 0.4, // a contour, not a fence
   // In TILES, like everything else here, so the contour keeps its weight as
   // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
@@ -2669,6 +2674,71 @@ class WorldRenderer {
     }
   }
 
+  /**
+   * Every cat's contour, faded where it runs through another cat's sight.
+   *
+   * Five contours crossing in one knot is a mess, and the mess is worst
+   * exactly where the cats are (owner, 2026-09-18). Fading the crossings
+   * leaves the OUTER boundary -- the part that says how far a cat can see --
+   * at full strength, and lets the interior tangle recede.
+   *
+   * Cut rather than drawn: a line cannot be made fainter by painting over it,
+   * so each contour is stroked at full strength on the scratch layer, the
+   * other regions are ERASED out of it at `ringOverlapFade`, and the result
+   * is composited at `ringAlpha`. Erasing at a partial alpha takes that
+   * fraction of the line away, and because it runs once per other cat it
+   * compounds with crowding.
+   *
+   * A cat never erases with its OWN region. Its contour lies on that region's
+   * boundary, so doing that would eat half its own line width all the way
+   * round.
+   *
+   * Costed before building, on a phone at tile 50: the whole overlay ran 0.4ms
+   * median and 1.5ms worst against a 16.7ms frame, so five more layer passes
+   * are affordable. Measured rather than assumed -- I had talked myself out of
+   * this shape on a performance worry that turned out to be imaginary.
+   */
+  strokeContours(drawn, vp) {
+    const ctx = this.ctx;
+    const width = Math.max(VISION.ringWidthFloor, this.tile * VISION.ringWidthTiles);
+    const fade = VISION.ringOverlapFade;
+    if (!fade || drawn.length < 2) {
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = width;
+      for (const { hue, edge } of drawn) {
+        ctx.globalAlpha = VISION.ringAlpha;
+        ctx.strokeStyle = hue;
+        ctx.stroke(edge);
+      }
+      return;
+    }
+    const dpr = this.dpr || 1;
+    for (const mine of drawn) {
+      const lg = this.visionScratch(this.cssWidth, this.cssHeight, dpr);
+      if (!lg) return;
+      lg.setTransform(dpr, 0, 0, dpr, -vp.left * dpr, -vp.top * dpr);
+      lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+      lg.globalCompositeOperation = 'source-over';
+      lg.globalAlpha = 1;
+      lg.lineJoin = 'round';
+      lg.lineCap = 'round';
+      lg.lineWidth = width;
+      lg.strokeStyle = mine.hue;
+      lg.stroke(mine.edge);
+      lg.globalCompositeOperation = 'destination-out';
+      lg.globalAlpha = fade;
+      for (const other of drawn) {
+        if (other.kitty.id === mine.kitty.id) continue;
+        lg.fill(other.fill);
+      }
+      lg.globalAlpha = 1;
+      lg.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = VISION.ringAlpha;
+      ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+    }
+  }
+
   drawVisionRadii(world, view) {
     const radius = this.visionRadius;
     if (!radius) return;
@@ -2682,14 +2752,7 @@ class WorldRenderer {
     this.washUnseen(world, drawn);
     this.tintTerritories(world, view, drawn);
 
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = Math.max(VISION.ringWidthFloor, this.tile * VISION.ringWidthTiles);
-    for (const { hue, edge } of drawn) {
-      ctx.globalAlpha = VISION.ringAlpha;
-      ctx.strokeStyle = hue;
-      ctx.stroke(edge);
-    }
+    this.strokeContours(drawn, this.viewportRect());
 
     // WHOSE contour is that? Nested outlines around a huddle are unreadable
     // without an answer (owner, 2026-09-17), and the cat is often not even in

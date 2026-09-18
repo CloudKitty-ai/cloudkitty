@@ -8206,7 +8206,9 @@ check('solo: a cat colours only the ground nobody else can see', () => {
   // sibling, and nothing is painted through a clip stack.
   const V = bubbleScope.VISION;
   const wasMode = V.tintMode;
+  const wasFade = V.ringOverlapFade;
   V.tintMode = 'solo';
+  V.ringOverlapFade = 0; // the contour fade shares this layer; not its subject
   const ops = [];
   const ctx = new Proxy({}, {
     get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
@@ -8237,6 +8239,53 @@ check('solo: a cat colours only the ground nobody else can see', () => {
   assert(ops.filter(([k]) => k === 'clip').length === 0,
     'solo is clipping -- clipping cannot subtract, so shared ground would keep its tint');
   V.tintMode = wasMode;
+  V.ringOverlapFade = wasFade;
+});
+
+check('a contour fades where it crosses another cat, and never itself', () => {
+  // Owner, 2026-09-18: "it looks a little messy at the point in the middle
+  // when a bunch of circles intersect. Can we make the lines in the
+  // overlapping portion more transparent?"
+  //
+  // A line cannot be made fainter by painting over it, so each contour is
+  // stroked at full strength on the layer and the OTHER regions are erased
+  // out of it. The count is the invariant that matters: n - 1 knockouts per
+  // cat, never n. A cat's contour lies on its own region's boundary, so
+  // erasing with that would eat half its own line width the whole way round
+  // -- and it would look like a thinner line rather than like a bug.
+  const V = bubbleScope.VISION;
+  const wasTint = V.tintAlpha;
+  const wasFade = V.ringOverlapFade;
+  V.tintAlpha = 0; // the tint shares this layer; not its subject
+  const r = visionRig(4);
+  r.ctx = new Proxy({}, { get: () => () => {}, set: () => true });
+  const n = 4;
+  const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 6 + i * 2, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  const lay = r.wash.calls;
+
+  const strokes = lay.filter(([k]) => k === 'stroke').length;
+  assert(strokes === n, `${strokes} contours stroked on the layer for ${n} cats`);
+  const fills = lay.filter(([k]) => k === 'fill').length;
+  assert(fills === n + n * (n - 1),
+    `${fills} layer fills, expected ${n + n * (n - 1)}: ${n} wash knockouts, then each cat fading the ${n - 1} OTHERS. `
+      + `${n + n * n} would mean a cat is erasing with its own region and eating its own line.`);
+  assert(lay.some(([k, v]) => k === 'set:globalAlpha' && v === V.ringOverlapFade),
+    'the knockout is at full alpha -- that erases the crossing outright instead of fading it');
+
+  // Turning the dial off must go back to stroking straight onto the canvas,
+  // or a zero fade would still pay for five layer passes.
+  V.ringOverlapFade = 0;
+  const plain = visionRig(4);
+  plain.ctx = new Proxy({}, { get: () => () => {}, set: () => true });
+  withPaths(() => plain.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  assert(plain.wash.calls.filter(([k]) => k === 'stroke').length === 0,
+    'the contours still go through the layer with the fade off');
+
+  // Restored to what SHIPPED, not to a literal. Writing 0.6 back here would
+  // re-dial the bag for every check after this one the day the owner moves it.
+  V.ringOverlapFade = wasFade;
+  V.tintAlpha = wasTint;
 });
 
 check('the wash darkens at every hour and can never lighten', () => {
@@ -8453,18 +8502,22 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   });
   const run = (n) => {
     paint.stroke = 0; paint.anchors = 0; paint.widths = [];
-    // Tint off: this check is about the WASH, and both tint modes also paint
-    // on the scratch layer. Measuring them together was how it started
-    // counting 30 erases for five cats and calling it a stacking fog.
+    // ISOLATED. Three passes share one scratch layer -- the wash, the tint and
+    // the contour fade -- so a guard that counts everything on it breaks every
+    // time a new one joins. That happened three times before this comment.
+    // Each layer check now silences the others and measures only its subject.
     const V = bubbleScope.VISION;
     const wasTint = V.tintAlpha;
+    const wasFade = V.ringOverlapFade;
     V.tintAlpha = 0;
+    V.ringOverlapFade = 0;
     const r = visionRig(4);
     r.ctx = ctx;
     const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
     withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties },
       { posFor: (k) => k.pos }));
     V.tintAlpha = wasTint;
+    V.ringOverlapFade = wasFade;
     const lay = r.wash.calls;
     return {
       ...paint,
