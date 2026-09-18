@@ -1292,8 +1292,17 @@
   }
 
   /* The toggle is a real button with `aria-expanded`, so a screen reader is
-     told the state rather than having to infer it from the word on it. */
-  #cards-toggle {
+     told the state rather than having to infer it from the word on it.
+
+     ONE rule for both footer buttons, not a copy each (owner, 2026-09-18:
+     "the color of the vision button didn't match the night theme like expand
+     does"). It did not match because it had no styling at all and fell back
+     to browser chrome, which is the same grey at every hour. Everything that
+     makes this follow the sky is inherited -- `color: inherit` from the
+     footer and `--rule` from the theme -- so sharing the selector is what
+     stops the two drifting apart the next time one is re-dialled. */
+  #cards-toggle,
+  #vision-toggle {
     font: inherit;
     color: inherit;
     background: none;

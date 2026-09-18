@@ -8622,6 +8622,12 @@ check('the key and the button are the same switch', () => {
   // The button exists, starts off, and says what it does.
   assert(/id="vision-toggle" aria-pressed="false">show</.test(page),
     'the footer has no vision button, or it does not start in the off state');
+  // It must SHARE the cards toggle's rule rather than carry a copy. Both
+  // follow the sky only by inheritance -- `color: inherit` and `--rule` -- so
+  // a button with its own block, or with none, is the one that stops matching
+  // at night. It shipped with none, and looked like browser chrome.
+  assert(/#cards-toggle,\s*\n\s*#vision-toggle \{/.test(page),
+    'the vision button does not share the cards toggle\'s styling -- it will not follow the theme');
   // NO note, deliberately: the button says `hide` while the overlay is up, and
   // a note as well reflowed the footer -- measured, the button jumped 184px
   // left and a line down when it appeared, out from under the finger that had
