@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- **You can see what the cats can see.** Press `v`, or use the new *vision*
+  button in the footer, and each cat's sight is drawn on the meadow: the
+  ground it can reach is left clear, everything hidden takes a wash, and the
+  boundary is outlined in that cat's own colour. Inside the clearing the
+  ground is tinted by whichever cat is nearest, so five cats reading the same
+  patch of grass still divide it into five legible territories.
+  It is drawn as the rule really is, which is the part worth saying. A cat's
+  sight is not a circle: the engine asks whether `dx² + dy² ≤ r²` in whole
+  tiles, so at the served radius of four a cat sees four tiles along the axes
+  and only two diagonally, and the tile at (3,3) — eighteen against sixteen —
+  is not seen at all. Drawing a smooth disc would have claimed sight on
+  exactly the diagonals somebody checking this would look at first. So the
+  overlay draws the true stair-stepped set of tiles and then rounds its
+  corners, which reads as an organic shape without moving the boundary more
+  than an eighth of a tile.
+  The radius comes from the server. A box too old to serve it draws nothing at
+  all rather than a confident guess.
+
 - **Four cats answered every question at once, and the ones nobody could
   hear still moved their mouths.** A cat asking "I want to eat!" is answered
   by every cat standing near food — the engine's answers-me relation is
