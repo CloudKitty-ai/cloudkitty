@@ -114,12 +114,12 @@ const BUBBLE_TICKS = 3;
  * about 1.0, so both are enormous margins. A test recomputes them from these
  * values rather than trusting this comment.
  *
- * The fill is ONE wash over the union, in one neutral -- never one fill per
- * cat. See `drawVisionRadii` for why; it is the thing that went wrong.
+ * The wash lies OUTSIDE the union, in one neutral -- the fog, not the sight.
+ * See `drawVisionRadii` for why it ended up that way round.
  */
 const VISION = {
-  fill: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
-  fillAlpha: 0.1,
+  wash: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
+  washAlpha: 0.1,
   ringAlpha: 0.4, // a contour, not a fence
   // In TILES, like everything else here, so the contour keeps its weight as
   // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
@@ -2442,6 +2442,57 @@ class WorldRenderer {
    * failure owner call #362 was opened for, and a plausible-looking default
    * would be that failure wearing a disguise.
    */
+  /**
+   * The scratch layer the wash is cut out of. Its own method so a harness can
+   * hand one in: `??=` never reaches `document` once the slot is filled.
+   */
+  visionScratch(cssW, cssH, dpr) {
+    const c = (this.visionLayer ??= document.createElement('canvas'));
+    const w = Math.max(1, Math.ceil(cssW * dpr));
+    const h = Math.max(1, Math.ceil(cssH * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    return c.getContext('2d');
+  }
+
+  /**
+   * The wash, OUTSIDE the union of every cat's sight.
+   *
+   * THE FOG, not the sight (owner, 2026-09-17). It was the other way round
+   * until then -- a wash over the seen ground -- and that put the ink on the
+   * least interesting thing on the map and grew it as the cats saw MORE. This
+   * way the meadow stays clean where the cats are and the tint falls on what
+   * is hidden, which is the thing the fog generation is actually about.
+   *
+   * Measured on the live roster over 180 ticks: the union covers a median
+   * 32.8% of the map (24.5-45.5%), so the wash sits on about two thirds of
+   * the meadow. That is why it is a WASH and not a fog-of-war darkening --
+   * at 40% brightness two thirds of the screen would simply be dark.
+   *
+   * Cut on a scratch layer with `destination-out` rather than as one
+   * even-odd path, and the reason is the tween, not the winding: each cat's
+   * region rides its OWN drawn position, so there is no single tile set to
+   * trace. Erasing is idempotent, so five overlapping regions punch exactly
+   * the same hole as one -- which the even-odd and nonzero rules both get
+   * wrong, flipping an overlap back to "outside".
+   */
+  washUnseen(world, drawn) {
+    const dpr = this.dpr || 1;
+    const vp = this.viewportRect();
+    const lg = this.visionScratch(this.cssWidth, this.cssHeight, dpr);
+    if (!lg) return;
+    // The same world-pixel space the main context is in, so the paths built
+    // for the outline can be reused here without a second projection.
+    lg.setTransform(dpr, 0, 0, dpr, -vp.left * dpr, -vp.top * dpr);
+    lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+    lg.fillStyle = VISION.wash;
+    lg.fillRect(0, 0, world.width * this.tile, world.height * this.tile);
+    lg.globalCompositeOperation = 'destination-out';
+    for (const { fill } of drawn) lg.fill(fill);
+    lg.globalCompositeOperation = 'source-over';
+    this.ctx.globalAlpha = VISION.washAlpha;
+    this.ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+  }
+
   drawVisionRadii(world, view) {
     const radius = this.visionRadius;
     if (!radius) return;
@@ -2452,22 +2503,7 @@ class WorldRenderer {
       ...this.visionPaths(kitty, world, view, radius),
     }));
     ctx.save();
-
-    // ONE wash over the union, in one neutral. Built and judged the other way
-    // first -- a tinted fill per cat -- and the worst case killed it: five
-    // cats standing together stack five alphas exactly where the cats are,
-    // and five hues spaced evenly round the wheel average to grey by
-    // construction. The most-seen ground went the muddiest, which is both
-    // ugly and backwards. Filling the union once costs one alpha whatever the
-    // roster does, so the five-cat huddle looks like the one-cat case.
-    //
-    // It also says the true thing. The fill means "some cat can see this";
-    // WHICH cat is the rings' job, and they never accumulate.
-    const union = new Path2D();
-    for (const { fill } of drawn) union.addPath(fill);
-    ctx.globalAlpha = VISION.fillAlpha;
-    ctx.fillStyle = VISION.fill;
-    ctx.fill(union);
+    this.washUnseen(world, drawn);
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';

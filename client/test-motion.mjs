@@ -7963,11 +7963,27 @@ function withPaths(fn) {
   }
 }
 /** A renderer stub with just what the vision overlay reaches. */
-function visionRig(radius, { tile = 40, width = 20, height = 20 } = {}) {
+function visionRig(radius, { tile = 40, width = 20, height = 20, onWash = null } = {}) {
   const r = Object.create(bubbleScope.WorldRenderer.prototype);
   r.tile = tile;
   r.visionRadius = radius;
+  r.dpr = 2;
+  r.cssWidth = width * tile;
+  r.cssHeight = height * tile;
+  r.camera = null;
   r.tileOrigin = (pos) => ({ x: pos.x * tile, y: pos.y * tile });
+  // The wash is cut on a scratch canvas. `visionScratch` fills its slot with
+  // `??=`, so handing one in here means `document` is never reached -- and it
+  // lets a check watch what gets painted onto the layer, which is where the
+  // wash lives now.
+  const wash = onWash || { calls: [] };
+  wash.calls = wash.calls || [];
+  const layerCtx = new Proxy({}, {
+    get: (o, k) => (...args) => wash.calls.push([String(k), ...args.map((a) => (a && a.segs ? 'path' : a))]),
+    set: (o, k, v) => { wash.calls.push(['set:' + String(k), v]); return true; },
+  });
+  r.visionLayer = { width: 0, height: 0, getContext: () => layerCtx };
+  r.wash = wash;
   return r;
 }
 
@@ -8249,33 +8265,42 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   //
   // So the fill is ONE wash over the union. This counts the paint rather than
   // looking at it: one `fill` whatever the roster does, one `stroke` per cat.
-  // Counted BY STYLE. The overlay also fills a small anchor dot per cat in
-  // that cat's hue, so a bare count of `fill` calls rises with the roster for
-  // an entirely correct reason -- which is exactly how a guard starts
-  // reporting the wrong thing. Only fills in the neutral are the wash.
-  const paint = { fill: 0, stroke: 0, anchors: 0, widths: [] };
-  let style = null;
+  // The wash lives on the SCRATCH LAYER now, so this watches that: one
+  // `fillRect` laying the fog down, then one erase per cat punching its sight
+  // back out of it. Erasing is idempotent, which is the whole reason the
+  // five-cat huddle costs what the one-cat case costs.
+  const paint = { anchors: 0, stroke: 0, widths: [] };
   const ctx = new Proxy({}, {
     get: (o, k) => {
-      if (k === 'fill') return () => { if (style === bubbleScope.VISION.fill) paint.fill += 1; else paint.anchors += 1; };
+      if (k === 'fill') return () => { paint.anchors += 1; };
       if (k === 'stroke') return () => { paint.stroke += 1; };
       return () => {};
     },
-    set: (o, k, v) => { if (k === 'fillStyle') style = v; if (k === 'lineWidth') paint.widths.push(v); return true; },
+    set: (o, k, v) => { if (k === 'lineWidth') paint.widths.push(v); return true; },
   });
   const run = (n) => {
-    paint.fill = 0; paint.stroke = 0; paint.anchors = 0; paint.widths = [];
+    paint.stroke = 0; paint.anchors = 0; paint.widths = [];
     const r = visionRig(4);
     r.ctx = ctx;
     const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
     withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties },
       { posFor: (k) => k.pos }));
-    return { ...paint };
+    const lay = r.wash.calls;
+    return {
+      ...paint,
+      fogLaid: lay.filter(([k]) => k === 'fillRect').length,
+      erased: lay.filter(([k, , ...rest]) => k === 'fill').length,
+      erasing: lay.some(([k, v]) => k === 'set:globalCompositeOperation' && v === 'destination-out'),
+      composited: lay.filter(([k]) => k === 'drawImage').length,
+    };
   };
   const five = run(5);
   const one = run(1);
-  assert(five.fill === 1, `five cats painted ${five.fill} fills -- the wash stacks, and the huddle goes muddy`);
-  assert(one.fill === 1, `one cat painted ${one.fill} fills`);
+  assert(five.fogLaid === 1 && one.fogLaid === 1,
+    `the fog was laid ${five.fogLaid} times for five cats and ${one.fogLaid} for one -- it stacks, and the huddle goes muddy`);
+  assert(five.erasing, 'the regions are not being ERASED from the fog -- overlaps will not be idempotent');
+  assert(five.erased === 5 && one.erased === 1,
+    `${five.erased} regions punched out for five cats, ${one.erased} for one -- every cat clears its own sight`);
   assert(five.stroke === 5, `five cats drew ${five.stroke} outlines -- each cat needs its own`);
   assert(one.stroke === 1, `one cat drew ${one.stroke} outlines`);
   assert(five.anchors === 5 && one.anchors === 1,
