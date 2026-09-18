@@ -8120,6 +8120,33 @@ check('a contour with nothing suppressed comes back to where it started', () => 
     `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
 });
 
+check('the wash darkens at every hour and can never lighten', () => {
+  // Owner, 2026-09-17: "the wash looks inverted at night (lightening instead
+  // of darkening)." It was a mid green-teal laid over the meadow, which
+  // darkens day grass (L* 93) and lightens night grass (L* 28) -- the same
+  // paint, the opposite reading, twice a day.
+  //
+  // The invariant, not the appearance: multiplying by a colour with no
+  // channel above mid can only ever move a pixel DOWN, whatever is underneath
+  // and whatever themes get added later. Checked as state because it is the
+  // mechanism -- there is no canvas here to rasterise, and the four themes
+  // were measured on the running client instead.
+  const V = bubbleScope.VISION;
+  const lab = labOf(V.wash);
+  assert(lab, `the wash ${V.wash} is not a plain hex colour`);
+  assert(lab[0] <= 50, `the wash is L* ${lab[0].toFixed(1)} -- multiplied by that it may lighten a dark meadow`);
+
+  // ...and it must actually be multiplied. Laid over normally, a dark wash
+  // darkens the day and lightens nothing, but it also tints every hue it
+  // crosses; multiply is what makes `washAlpha` mean "this much darker".
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  const wash = src.slice(src.indexOf('washUnseen(world, drawn) {'));
+  const body = wash.slice(0, wash.indexOf('\n  }\n'));
+  assert(/globalCompositeOperation = 'multiply'/.test(body),
+    'the wash is composited normally again -- it will invert on a dark theme');
+  assert(/globalAlpha = VISION\.washAlpha/.test(body), 'the wash no longer reads its own dial');
+});
+
 check('the wash reaches the meadow\'s own corner', () => {
   // Owner, 2026-09-17: "the edge bug issue we had before still happens in
   // corners." A different bug wearing the first one's clothes. The OUTLINE

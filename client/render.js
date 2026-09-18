@@ -118,8 +118,18 @@ const BUBBLE_TICKS = 3;
  * See `drawVisionRadii` for why it ended up that way round.
  */
 const VISION = {
-  wash: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
-  washAlpha: 0.1,
+  // MULTIPLIED, not laid over. A tint composited normally darkens a light
+  // meadow and LIGHTENS a dark one -- the old green-teal did exactly that,
+  // and at night the fog read as a glow (owner, 2026-09-17). Multiplying by
+  // black cannot lighten anything, on any theme, including ones not written
+  // yet: `washAlpha` IS the fraction darker, the same fraction at every hour.
+  //
+  // Chosen over a per-theme table of wash colours for that last reason. A
+  // table would be DERIVED from the four palettes, so it would go stale the
+  // day a theme colour moves and would need its own recalculation guard, the
+  // way the sky crossings do. There is nothing here to go stale.
+  wash: '#000000',
+  washAlpha: 0.1, // = 10% darker, everywhere
   ringAlpha: 0.4, // a contour, not a fence
   // In TILES, like everything else here, so the contour keeps its weight as
   // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
@@ -2516,8 +2526,13 @@ class WorldRenderer {
     lg.globalCompositeOperation = 'destination-out';
     for (const { fill } of drawn) lg.fill(fill);
     lg.globalCompositeOperation = 'source-over';
+    // `multiply` only applies where the source has alpha, so the cleared
+    // sight -- punched to transparent above -- leaves the meadow untouched.
+    this.ctx.save();
     this.ctx.globalAlpha = VISION.washAlpha;
+    this.ctx.globalCompositeOperation = 'multiply';
     this.ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+    this.ctx.restore();
   }
 
   drawVisionRadii(world, view) {
