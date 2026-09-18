@@ -8006,6 +8006,40 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
     `the contour is ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is not tracing it once`);
 });
 
+check('the contour keeps its weight as the camera zooms', () => {
+  // Owner, 2026-09-17: "border thickness should scale with camera zoom." It
+  // was the one fixed-pixel number in an overlay where the corner radius and
+  // the anchor were already in tiles -- the same defect the speech bubble
+  // has, which is exactly the thing the bubble redesign is trying to get away
+  // from. Zooming in thinned it to a hair; zooming out fattened it.
+  const V = bubbleScope.VISION;
+  const widthAt = (tile) => {
+    let width = null;
+    const ctx = new Proxy({}, {
+      get: () => () => {},
+      set: (o, k, v) => { if (k === 'lineWidth') width = v; return true; },
+    });
+    const r = visionRig(4, { tile });
+    r.ctx = ctx;
+    withPaths(() => r.drawVisionRadii(
+      { width: 20, height: 20, kitties: [{ id: 1, pos: { x: 9, y: 9 } }] },
+      { posFor: (k) => k.pos },
+    ));
+    return width;
+  };
+  // The two the camera actually produces: a phone with camera mode on, and a
+  // desktop zoomed right in. Measured off the running client, not guessed.
+  const phone = widthAt(52);
+  const zoomed = widthAt(106);
+  assert(zoomed > phone * 1.5,
+    `the contour is ${phone} at tile 52 and ${zoomed} at tile 106 -- it is not scaling with the zoom`);
+  close(phone / 52, zoomed / 106, 'the contour is not a constant fraction of a tile');
+
+  // ...and it never thins to nothing when the whole world is in frame.
+  assert(widthAt(19) >= V.ringWidthFloor,
+    `at tile 19 the contour is ${widthAt(19)}, under the floor of ${V.ringWidthFloor}`);
+});
+
 check('a contour with nothing suppressed comes back to where it started', () => {
   // THE GAP (owner, 2026-09-17: "there's a gap on the left side of the topmost
   // square on the outline"). One per loop, at whichever vertex the trace
@@ -8175,7 +8209,7 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   // that cat's hue, so a bare count of `fill` calls rises with the roster for
   // an entirely correct reason -- which is exactly how a guard starts
   // reporting the wrong thing. Only fills in the neutral are the wash.
-  const paint = { fill: 0, stroke: 0, anchors: 0 };
+  const paint = { fill: 0, stroke: 0, anchors: 0, widths: [] };
   let style = null;
   const ctx = new Proxy({}, {
     get: (o, k) => {
@@ -8183,10 +8217,10 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
       if (k === 'stroke') return () => { paint.stroke += 1; };
       return () => {};
     },
-    set: (o, k, v) => { if (k === 'fillStyle') style = v; return true; },
+    set: (o, k, v) => { if (k === 'fillStyle') style = v; if (k === 'lineWidth') paint.widths.push(v); return true; },
   });
   const run = (n) => {
-    paint.fill = 0; paint.stroke = 0; paint.anchors = 0;
+    paint.fill = 0; paint.stroke = 0; paint.anchors = 0; paint.widths = [];
     const r = visionRig(4);
     r.ctx = ctx;
     const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));

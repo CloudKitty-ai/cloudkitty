@@ -121,7 +121,15 @@ const VISION = {
   fill: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
   fillAlpha: 0.1,
   ringAlpha: 0.4, // a contour, not a fence
-  ringWidth: 3.5, // thicker and softer reads better than thin and hard
+  // In TILES, like everything else here, so the contour keeps its weight as
+  // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
+  // in the overlay -- the same defect the speech bubble has -- so zooming in
+  // thinned it to a hair and zooming out fattened it. 0.067 is the 3.5 CSS px
+  // the owner judged, over the tile she judged it at: 52, which is what the
+  // phone shows with camera mode on. That lands at 7px zoomed right in and
+  // 1.3px with the camera off, which is the point.
+  ringWidthTiles: 0.067,
+  ringWidthFloor: 1, // ...and never thinner than a line, the house minimum
   cornerRadius: 0.4, // in TILES; 0 is the raw staircase, 0.5 the roundest legal
   anchorR: 0.16, // the owner cue, in tiles
   anchorAlpha: 0.85,
@@ -2437,7 +2445,7 @@ class WorldRenderer {
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = VISION.ringWidth;
+    ctx.lineWidth = Math.max(VISION.ringWidthFloor, this.tile * VISION.ringWidthTiles);
     for (const { hue, edge } of drawn) {
       ctx.globalAlpha = VISION.ringAlpha;
       ctx.strokeStyle = hue;
