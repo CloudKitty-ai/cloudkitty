@@ -3528,7 +3528,7 @@ function bubbleWorld(tick, meows, n = 3) {
 // rather than widening the shared one under 340 existing checks.
 const bubbleScope = eval(
   readFileSync(join(here, 'props.js'), 'utf8') + '\n' + renderSrc
-    + ';({ WorldRenderer, MEOW_TEXT, VISION })',
+    + ';({ WorldRenderer, MEOW_TEXT, VISION, nearerHalf })',
 );
 
 /**
@@ -7932,8 +7932,15 @@ class RecordingPath {
     }
   }
   addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
-  rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
+  // Recorded as a closed subpath too, not just in `rects`: a rect is a polygon
+  // like any other, and the point-in-path checks below have to see it.
+  rect(x, y, w, h) {
+    this.rects.push([x, y, w, h]);
+    this.subpaths.push([[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]);
+    this.at = [x, y];
+  }
   moveTo(x, y) { this.at = [x, y]; this.subpaths.push([[x, y]]); }
+  closePath() { const s = this.subpaths.at(-1); if (s && s.length) this.lineTo(s[0][0], s[0][1]); }
   lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
 }
 /** The area a recorded path encloses, in square tiles (shoelace over every
@@ -8118,6 +8125,71 @@ check('a contour with nothing suppressed comes back to where it started', () => 
   const gap = Math.hypot(pts.at(-1)[0] - pts[0][0], pts.at(-1)[1] - pts[0][1]);
   assert(gap < 0.01,
     `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
+});
+
+/** Is a point inside a recorded polygon? Ray casting over the subpath. */
+function insidePath(path, px, py) {
+  return path.subpaths.some((pts) => {
+    let hit = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i, i += 1) {
+      const [xi, yi] = pts[i];
+      const [xj, yj] = pts[j];
+      if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit;
+  });
+}
+
+check('a territory is the ground nearer to its own cat', () => {
+  // NEAREST OWNER. The tint is each cat's sight clipped by one half-plane per
+  // other cat, and the half-plane is the thing worth checking: get its side
+  // backwards and every territory belongs to the wrong cat, which reads as a
+  // palette choice rather than as a bug.
+  const { nearerHalf } = bubbleScope;
+  const a = { x: 100, y: 100, id: 1 };
+  const b = { x: 300, y: 100, id: 2 };
+  const half = withPaths(() => nearerHalf(a, b, 4000));
+
+  assert(insidePath(half, 100, 100), "the cat's own position is not in its half");
+  assert(insidePath(half, 0, 100), 'ground well behind the cat is not in its half');
+  assert(!insidePath(half, 300, 100), "the OTHER cat's position is in this half -- the side is flipped");
+  assert(!insidePath(half, 399, 100), 'ground behind the other cat is in this half');
+  // The bisector sits at x = 200: a hair either side decides it.
+  assert(insidePath(half, 199, 100), 'a point just on this cat\'s side of the bisector is excluded');
+  assert(!insidePath(half, 201, 100), 'a point just past the bisector is still claimed');
+  // ...and it is a BISECTOR, not an axis-aligned split: off-axis cats tilt it.
+  const diag = withPaths(() => nearerHalf({ x: 0, y: 0, id: 1 }, { x: 200, y: 200, id: 2 }, 4000));
+  assert(insidePath(diag, 90, 90) && !insidePath(diag, 110, 110),
+    'the diagonal bisector does not fall between the two cats');
+
+  // Coincident cats have no bisector at all. The lower id keeps the ground and
+  // the other gets nothing, or they would both paint it.
+  const tie = withPaths(() => nearerHalf({ x: 50, y: 50, id: 1 }, { x: 50, y: 50, id: 2 }, 4000));
+  const tieLost = withPaths(() => nearerHalf({ x: 50, y: 50, id: 2 }, { x: 50, y: 50, id: 1 }, 4000));
+  assert(insidePath(tie, 50, 50), 'the lower id lost the tie');
+  assert(tieLost.subpaths.length === 0, 'both cats claim ground they are standing on together');
+});
+
+check('every cat tints its own territory, and only through its own sight', () => {
+  const ops = [];
+  const ctx = new Proxy({}, {
+    get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
+    set: (o, k, v) => { ops.push(['set:' + String(k), v]); return true; },
+  });
+  const r = visionRig(4);
+  r.ctx = ctx;
+  const kitties = [1, 2, 3].map((id) => ({ id, pos: { x: 5 + id * 3, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+
+  const tints = ops.filter(([k]) => k === 'fillRect');
+  assert(tints.length === 3, `${tints.length} territories painted for three cats`);
+  // Each one is clipped by its own sight plus one half-plane per OTHER cat.
+  const clips = ops.filter(([k]) => k === 'clip').length;
+  assert(clips === 3 * 3, `${clips} clips -- each cat needs its sight and a bisector against every other`);
+  // The tint keeps the meadow's brightness and changes only its hue, the same
+  // reason the wash multiplies: otherwise it reads differently at midnight.
+  assert(ops.some(([k, v]) => k === 'set:globalCompositeOperation' && v === 'color'),
+    'the tint is laid over normally -- it will lighten a dark meadow and darken a light one');
 });
 
 check('the wash darkens at every hour and can never lighten', () => {

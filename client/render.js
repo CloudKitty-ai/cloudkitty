@@ -130,6 +130,7 @@ const VISION = {
   // way the sky crossings do. There is nothing here to go stale.
   wash: '#000000',
   washAlpha: 0.1, // = 10% darker, everywhere
+  tintAlpha: 0.35, // territory, in the owner's hue; 0 turns it off
   ringAlpha: 0.4, // a contour, not a fence
   // In TILES, like everything else here, so the contour keeps its weight as
   // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
@@ -670,6 +671,44 @@ function traceTileLoops(seen, onEdge = () => false) {
       return { p, suppressed: onEdge(p, nxt) };
     });
   });
+}
+
+/**
+ * The half of the world nearer to `a` than to `b`, as a path.
+ *
+ * The perpendicular bisector of two points is a straight line whatever shape
+ * their regions are, so a cat's territory is its sight clipped by one of these
+ * per other cat -- exact, continuous, and it rides the tween because it is
+ * built from the DRAWN positions rather than from a tile grid. Tile-space
+ * Voronoi would have snapped a tile at a time while the contours glided.
+ *
+ * `reach` only has to exceed anything that can be on screen: the polygon is a
+ * clip, so running off the canvas costs nothing.
+ *
+ * Coincident cats have no bisector. The lower id keeps the ground, which is
+ * the same tie-break the meow pairing uses, and the other gets an empty path
+ * rather than a degenerate one.
+ */
+function nearerHalf(a, b, reach) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const d = Math.hypot(dx, dy);
+  const path = new Path2D();
+  if (d < 1e-6) {
+    if (a.id < b.id) path.rect(a.x - reach, a.y - reach, reach * 2, reach * 2);
+    return path; // otherwise empty: the other cat has it
+  }
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const ux = dx / d;
+  const uy = dy / d;
+  // Along the bisector, then back down the axis away from `b`.
+  path.moveTo(mx - uy * reach, my + ux * reach);
+  path.lineTo(mx + uy * reach, my - ux * reach);
+  path.lineTo(mx + uy * reach - ux * reach, my - ux * reach - uy * reach);
+  path.lineTo(mx - uy * reach - ux * reach, my + ux * reach - uy * reach);
+  path.closePath();
+  return path;
 }
 
 /**
@@ -2535,6 +2574,56 @@ class WorldRenderer {
     this.ctx.restore();
   }
 
+  /**
+   * Each cat's territory, in its own hue.
+   *
+   * NEAREST OWNER, not sole owner. The owner's first shape for this was to
+   * tint only the ground a cat sees ALONE, which has the same virtue -- one
+   * colour per pixel, so nothing can ever mix -- but the roster killed it on
+   * the numbers: measured over 200 ticks, only 48% of the union is exclusive
+   * to one cat (30% in the worst tenth), and a cat's own colour would have
+   * marked between 9.6 and 19 of the 49 tiles it can see. Miso, the most
+   * sociable, would have been nearly invisible. These cats cluster; a rule
+   * that only speaks when they are apart cannot carry identity.
+   *
+   * Nearest owner keeps the guarantee and covers the whole clearing. What it
+   * asserts is weaker -- "this cat is closest", not "only this cat sees it" --
+   * and that is the trade: the tint carries identity, and the contours, drawn
+   * at full strength, carry the truth about sight.
+   *
+   * Composited with `color`, which takes the source's hue and keeps the
+   * destination's LUMINANCE. Same reasoning as the wash multiplying: a tint
+   * laid over normally lightens a dark meadow and darkens a light one, so it
+   * would read as a different thing at midnight than at noon. This way the
+   * fog owns brightness and the tint owns hue, and neither moves the other.
+   */
+  tintTerritories(world, view, drawn) {
+    if (!VISION.tintAlpha || !drawn.length) return;
+    const ctx = this.ctx;
+    const vp = this.viewportRect();
+    const reach = (this.cssWidth + this.cssHeight) * 2;
+    const centre = (kitty) => {
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      return { x: x + this.tile / 2, y: y + this.tile / 2, id: kitty.id };
+    };
+    ctx.save();
+    ctx.globalAlpha = VISION.tintAlpha;
+    ctx.globalCompositeOperation = 'color';
+    for (const mine of drawn) {
+      ctx.save();
+      ctx.clip(mine.fill);
+      const a = centre(mine.kitty);
+      for (const other of drawn) {
+        if (other.kitty.id === mine.kitty.id) continue;
+        ctx.clip(nearerHalf(a, centre(other.kitty), reach));
+      }
+      ctx.fillStyle = mine.hue;
+      ctx.fillRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
   drawVisionRadii(world, view) {
     const radius = this.visionRadius;
     if (!radius) return;
@@ -2546,6 +2635,7 @@ class WorldRenderer {
     }));
     ctx.save();
     this.washUnseen(world, drawn);
+    this.tintTerritories(world, view, drawn);
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
