@@ -8170,7 +8170,10 @@ check('a territory is the ground nearer to its own cat', () => {
   assert(tieLost.subpaths.length === 0, 'both cats claim ground they are standing on together');
 });
 
-check('every cat tints its own territory, and only through its own sight', () => {
+check('nearest-owner: every cat tints its own territory through its own sight', () => {
+  const V = bubbleScope.VISION;
+  const wasMode = V.tintMode;
+  V.tintMode = 'nearest'; // named, not inherited: the shipped default moves
   const ops = [];
   const ctx = new Proxy({}, {
     get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
@@ -8190,6 +8193,50 @@ check('every cat tints its own territory, and only through its own sight', () =>
   // reason the wash multiplies: otherwise it reads differently at midnight.
   assert(ops.some(([k, v]) => k === 'set:globalCompositeOperation' && v === 'color'),
     'the tint is laid over normally -- it will lighten a dark meadow and darken a light one');
+  V.tintMode = wasMode;
+});
+
+check('solo: a cat colours only the ground nobody else can see', () => {
+  // The owner's own rule, kept as a mode so the two can be judged against
+  // each other on the live world rather than from memory.
+  //
+  // Clipping cannot subtract, so this is built by ERASING every other
+  // region out of a cat's own -- on the layer, one pass per cat. The check is
+  // that shape: each cat lays its hue down once and then knocks out every
+  // sibling, and nothing is painted through a clip stack.
+  const V = bubbleScope.VISION;
+  const wasMode = V.tintMode;
+  V.tintMode = 'solo';
+  const ops = [];
+  const ctx = new Proxy({}, {
+    get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
+    set: (o, k, v) => { ops.push(['set:' + String(k), v]); return true; },
+  });
+  const r = visionRig(4);
+  r.ctx = ctx;
+  const kitties = [1, 2, 3].map((id) => ({ id, pos: { x: 5 + id * 3, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  const lay = r.wash.calls;
+
+  // Derived, because the accounting is not obvious and I got it wrong first
+  // time: the WASH erases once per cat (n), and then each cat lays its hue and
+  // knocks out every sibling (n x n). The wash's own fillRect is not a fill.
+  const n = kitties.length;
+  const fills = lay.filter(([k]) => k === 'fill').length;
+  assert(fills === n + n * n,
+    `${fills} layer fills, expected ${n + n * n}: ${n} wash knockouts, then ${n} hues each erasing ${n - 1} siblings`);
+  const erasing = lay.filter(([k, v]) => k === 'set:globalCompositeOperation' && v === 'destination-out').length;
+  assert(erasing >= 3, `${erasing} knockout passes -- a cat that never erases its siblings tints shared ground`);
+  // Composited per cat, since each is built separately on the shared layer --
+  // plus the wash's own one. Same miscount as the fills above: the wash is
+  // part of this pipeline and has to be accounted for, not assumed away.
+  const composites = ops.filter(([k]) => k === 'drawImage').length;
+  assert(composites === 1 + n,
+    `${composites} composites, expected ${1 + n}: the wash, then one per cat`);
+  // And no clip stack: that is the other mode's mechanism.
+  assert(ops.filter(([k]) => k === 'clip').length === 0,
+    'solo is clipping -- clipping cannot subtract, so shared ground would keep its tint');
+  V.tintMode = wasMode;
 });
 
 check('the wash darkens at every hour and can never lighten', () => {
@@ -8406,11 +8453,18 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   });
   const run = (n) => {
     paint.stroke = 0; paint.anchors = 0; paint.widths = [];
+    // Tint off: this check is about the WASH, and both tint modes also paint
+    // on the scratch layer. Measuring them together was how it started
+    // counting 30 erases for five cats and calling it a stacking fog.
+    const V = bubbleScope.VISION;
+    const wasTint = V.tintAlpha;
+    V.tintAlpha = 0;
     const r = visionRig(4);
     r.ctx = ctx;
     const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
     withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties },
       { posFor: (k) => k.pos }));
+    V.tintAlpha = wasTint;
     const lay = r.wash.calls;
     return {
       ...paint,
