@@ -114,15 +114,13 @@ const BUBBLE_TICKS = 3;
  * about 1.0, so both are enormous margins. A test recomputes them from these
  * values rather than trusting this comment.
  *
- * The fill stacks: five overlapping regions read as a deeper pool, which is
- * the honest reading -- more cats can see that tile. It is order-dependent in
- * hue (the last cat drawn tints an overlap slightly more), stable across
- * frames because kitty order is, and cheap to replace with an additive
- * offscreen layer if the owner judges the overlaps muddy.
+ * The fill is ONE wash over the union, in one neutral -- never one fill per
+ * cat. See `drawVisionRadii` for why; it is the thing that went wrong.
  */
 const VISION = {
-  fillAlpha: 0.11,
-  ringAlpha: 0.9,
+  fill: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
+  fillAlpha: 0.1,
+  ringAlpha: 0.95,
   ringWidth: 2,
   hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
 };
@@ -2268,17 +2266,33 @@ class WorldRenderer {
     const radius = this.visionRadius;
     if (!radius) return;
     const ctx = this.ctx;
+    const drawn = world.kitties.map((kitty) => ({
+      hue: VISION.hues[kitty.id % VISION.hues.length],
+      ...this.visionPaths(kitty, world, view, radius),
+    }));
     ctx.save();
-    for (const kitty of world.kitties) {
-      const hue = VISION.hues[kitty.id % VISION.hues.length];
-      const { fill, edge } = this.visionPaths(kitty, world, view, radius);
-      ctx.globalAlpha = VISION.fillAlpha;
-      ctx.fillStyle = hue;
-      ctx.fill(fill);
-      ctx.globalAlpha = VISION.ringAlpha;
+
+    // ONE wash over the union, in one neutral. Built and judged the other way
+    // first -- a tinted fill per cat -- and the worst case killed it: five
+    // cats standing together stack five alphas exactly where the cats are,
+    // and five hues spaced evenly round the wheel average to grey by
+    // construction. The most-seen ground went the muddiest, which is both
+    // ugly and backwards. Filling the union once costs one alpha whatever the
+    // roster does, so the five-cat huddle looks like the one-cat case.
+    //
+    // It also says the true thing. The fill means "some cat can see this";
+    // WHICH cat is the rings' job, and they never accumulate.
+    const union = new Path2D();
+    for (const { fill } of drawn) union.addPath(fill);
+    ctx.globalAlpha = VISION.fillAlpha;
+    ctx.fillStyle = VISION.fill;
+    ctx.fill(union);
+
+    ctx.globalAlpha = VISION.ringAlpha;
+    ctx.lineWidth = VISION.ringWidth;
+    ctx.lineJoin = 'round';
+    for (const { hue, edge } of drawn) {
       ctx.strokeStyle = hue;
-      ctx.lineWidth = VISION.ringWidth;
-      ctx.lineJoin = 'round';
       ctx.stroke(edge);
     }
     ctx.restore();

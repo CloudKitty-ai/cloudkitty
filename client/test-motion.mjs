@@ -7916,6 +7916,7 @@ const deltaE = (a, b) => {
  */
 class RecordingPath {
   constructor() { this.rects = []; this.segs = []; this.at = null; }
+  addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
   rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
   moveTo(x, y) { this.at = [x, y]; }
   lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; }
@@ -8054,6 +8055,47 @@ check('no served radius draws nothing at all, never a guess', () => {
   const app = readFileSync(join(here, 'app.js'), 'utf8');
   assert(/renderer\.visionRadius = config\?\.vision\?\.radius \?\? null;/.test(app),
     'app.js no longer plumbs the served vision radius -- the overlay would ship inert');
+});
+
+check('the fill does not accumulate: five cats cost the same alpha as one', () => {
+  // THE WORST CASE IS THE DESIGN CASE (owner's method, 2026-09-17: build for
+  // all five overlapping, then subtract one at a time). Built the other way
+  // first -- one tinted fill per cat -- and five cats standing together
+  // stacked five alphas exactly where the cats were, while five hues spaced
+  // evenly round the wheel averaged to grey. The most-seen ground came out
+  // the muddiest, which is backwards as well as ugly.
+  //
+  // So the fill is ONE wash over the union. This counts the paint rather than
+  // looking at it: one `fill` whatever the roster does, one `stroke` per cat.
+  const paint = { fill: 0, stroke: 0, alphas: [] };
+  const ctx = new Proxy({}, {
+    get: (o, k) => {
+      if (k === 'fill' || k === 'stroke') return () => { paint[k] += 1; };
+      return () => {};
+    },
+    set: (o, k, v) => { if (k === 'globalAlpha') paint.alphas.push(v); return true; },
+  });
+  const run = (n) => {
+    paint.fill = 0; paint.stroke = 0; paint.alphas = [];
+    const r = visionRig(4);
+    r.ctx = ctx;
+    const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
+    withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties },
+      { posFor: (k) => k.pos }));
+    return { ...paint };
+  };
+  const five = run(5);
+  const one = run(1);
+  assert(five.fill === 1, `five cats painted ${five.fill} fills -- the wash stacks, and the huddle goes muddy`);
+  assert(one.fill === 1, `one cat painted ${one.fill} fills`);
+  assert(five.stroke === 5, `five cats drew ${five.stroke} outlines -- each cat needs its own`);
+  assert(one.stroke === 1, `one cat drew ${one.stroke} outlines`);
+
+  // ...and the fill is the NEUTRAL, never a cat's hue: a union filled in one
+  // cat's colour would claim that cat sees all of it.
+  const hues = new Set(bubbleScope.VISION.hues);
+  assert(!hues.has(bubbleScope.VISION.fill),
+    'the union wash is one of the per-cat hues -- it reads as that cat seeing the whole union');
 });
 
 check('the vision hues stay apart from each other and from every sky', () => {
