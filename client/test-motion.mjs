@@ -7915,7 +7915,8 @@ const deltaE = (a, b) => {
  * edges it leaves out.
  */
 class RecordingPath {
-  constructor() { this.rects = []; this.segs = []; this.at = null; }
+  constructor() { this.rects = []; this.segs = []; this.at = null; this.curves = []; }
+  quadraticCurveTo(cx, cy, x, y) { this.segs.push([...this.at, x, y]); this.curves.push([cx, cy]); this.at = [x, y]; }
   addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
   rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
   moveTo(x, y) { this.at = [x, y]; }
@@ -7982,22 +7983,53 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
 
   const tiles = r.visionOffsets(4).length;
   assert(fill.rects.length === tiles, `the fill covers ${fill.rects.length} tiles, not the ${tiles} seen`);
-  assert(edge.segs.length < tiles * 4,
-    `every side of every tile was stroked (${edge.segs.length}) -- this is the fill path, not a boundary`);
 
-  // The boundary of a set of unit squares is one edge per tile side whose
-  // neighbour is outside it. Computed here from the same offsets, so the
-  // number is derived rather than transcribed.
+  // Measured by LENGTH, not by segment count. The outline is corners-and-arcs
+  // now, so how many segments it takes to say a thing is an implementation
+  // detail -- how far the pen travels is not. The boundary of the tile set is
+  // one unit edge per exposed side, derived here from the same offsets.
   const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
-  let want = 0;
+  let perimeter = 0;
   for (const key of seen) {
     const [dx, dy] = key.split(',').map(Number);
     for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
-      if (!seen.has(`${dx + ax},${dy + ay}`)) want += 1;
+      if (!seen.has(`${dx + ax},${dy + ay}`)) perimeter += 1;
     }
   }
-  assert(edge.segs.length === want,
-    `${edge.segs.length} boundary edges drawn, ${want} on the region's outline`);
+  const drawnLen = edge.segs.reduce((n, [x1, y1, x2, y2]) => n + Math.hypot(x2 - x1, y2 - y1), 0) / r.tile;
+  // Stroking the FILL path would walk every side of every tile.
+  assert(drawnLen < tiles * 4 * 0.5,
+    `the pen travelled ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is tracing tile borders, not the outline`);
+  // Rounding cuts corners, so the contour is a little SHORTER than the
+  // staircase; it must not be longer, and must not be missing a side.
+  assert(drawnLen > perimeter * 0.7 && drawnLen <= perimeter * 1.02,
+    `the contour is ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is not tracing it once`);
+});
+
+check('the meadow running out is not a limit of the cat\'s sight', () => {
+  // Owner, 2026-09-17: "when cats hit the edge of the screen the border
+  // truncates oddly with each step." It did, and the truncation was the bug
+  // rather than the look -- the region is clipped to the world, so the clip
+  // ran along the world's outer edge and drew there, fencing the cat in and
+  // shedding a step every time it walked. That edge is the meadow ending, not
+  // the cat stopping seeing; it is walked and not drawn.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  const corner = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
+  ));
+  // The cat sits at tile 0,0, so its own origin IS the world corner: anything
+  // drawn at x <= 0 or y <= 0 in local pixels is on the meadow's edge.
+  const onEdge = corner.edge.segs.filter(([x1, y1, x2, y2]) => (
+    (Math.abs(x1) < 0.5 && Math.abs(x2) < 0.5) || (Math.abs(y1) < 0.5 && Math.abs(y2) < 0.5)
+  ));
+  assert(onEdge.length === 0,
+    `${onEdge.length} segments drawn along the world's own edge -- the cat reads as fenced in`);
+
+  // ...and the rest of its contour is still there, or this passes by drawing
+  // nothing at all.
+  assert(corner.edge.segs.length > 8,
+    `only ${corner.edge.segs.length} segments left -- the whole contour was suppressed, not just the meadow's edge`);
 });
 
 check('the region is clipped to the world and rides the cat through the tween', () => {
@@ -8067,16 +8099,22 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   //
   // So the fill is ONE wash over the union. This counts the paint rather than
   // looking at it: one `fill` whatever the roster does, one `stroke` per cat.
-  const paint = { fill: 0, stroke: 0, alphas: [] };
+  // Counted BY STYLE. The overlay also fills a small anchor dot per cat in
+  // that cat's hue, so a bare count of `fill` calls rises with the roster for
+  // an entirely correct reason -- which is exactly how a guard starts
+  // reporting the wrong thing. Only fills in the neutral are the wash.
+  const paint = { fill: 0, stroke: 0, anchors: 0 };
+  let style = null;
   const ctx = new Proxy({}, {
     get: (o, k) => {
-      if (k === 'fill' || k === 'stroke') return () => { paint[k] += 1; };
+      if (k === 'fill') return () => { if (style === bubbleScope.VISION.fill) paint.fill += 1; else paint.anchors += 1; };
+      if (k === 'stroke') return () => { paint.stroke += 1; };
       return () => {};
     },
-    set: (o, k, v) => { if (k === 'globalAlpha') paint.alphas.push(v); return true; },
+    set: (o, k, v) => { if (k === 'fillStyle') style = v; return true; },
   });
   const run = (n) => {
-    paint.fill = 0; paint.stroke = 0; paint.alphas = [];
+    paint.fill = 0; paint.stroke = 0; paint.anchors = 0;
     const r = visionRig(4);
     r.ctx = ctx;
     const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
@@ -8090,6 +8128,8 @@ check('the fill does not accumulate: five cats cost the same alpha as one', () =
   assert(one.fill === 1, `one cat painted ${one.fill} fills`);
   assert(five.stroke === 5, `five cats drew ${five.stroke} outlines -- each cat needs its own`);
   assert(one.stroke === 1, `one cat drew ${one.stroke} outlines`);
+  assert(five.anchors === 5 && one.anchors === 1,
+    `${five.anchors} anchors for five cats and ${one.anchors} for one -- every contour needs one, or it cannot be traced to a cat`);
 
   // ...and the fill is the NEUTRAL, never a cat's hue: a union filled in one
   // cat's colour would claim that cat sees all of it.

@@ -120,8 +120,11 @@ const BUBBLE_TICKS = 3;
 const VISION = {
   fill: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
   fillAlpha: 0.1,
-  ringAlpha: 0.95,
-  ringWidth: 2,
+  ringAlpha: 0.55, // a contour, not a fence
+  ringWidth: 1.5,
+  cornerRadius: 0.4, // in TILES; 0 is the raw staircase, 0.5 the roundest legal
+  anchorR: 0.16, // the owner cue, in tiles
+  anchorAlpha: 0.85,
   hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
 };
 
@@ -580,6 +583,121 @@ const MENISCUS = {
   ry: 0.062,
   breathe: 0.015, // how much rx pulses
 };
+
+/**
+ * Trace a set of unit tiles into ordered, closed boundary loops.
+ *
+ * The overlay drew its boundary as a BAG of segments before 2026-09-17, which
+ * is enough to stroke a stair-step and not enough to do anything else with it.
+ * Softening a corner needs to know which two edges meet there, and that needs
+ * the walk.
+ *
+ * Each tile contributes a directed edge per side whose neighbour is missing,
+ * oriented so the region is always on the same hand. Those edges chain
+ * head-to-tail into closed loops -- one for the outline, one more for each
+ * hole, though a vision disc has no holes.
+ *
+ * Coordinates are TILE units; the caller scales. `onEdge(p, q)` marks a
+ * segment the caller wants suppressed later, so the flag survives the
+ * collinear merge below rather than being recomputed against a shape that no
+ * longer has the same vertices.
+ */
+function traceTileLoops(seen, onEdge = () => false) {
+  const key = (x, y) => `${x},${y}`;
+  const out = new Map(); // start point -> [end point, suppressed]
+  for (const cell of seen) {
+    const [x, y] = cell.split(',').map(Number);
+    // Counter-clockwise in screen space (y down), so the region is on the left.
+    if (!seen.has(key(x, y - 1))) out.set(key(x, y), [x + 1, y]);
+    if (!seen.has(key(x + 1, y))) out.set(key(x + 1, y), [x + 1, y + 1]);
+    if (!seen.has(key(x, y + 1))) out.set(key(x + 1, y + 1), [x, y + 1]);
+    if (!seen.has(key(x - 1, y))) out.set(key(x, y + 1), [x, y]);
+  }
+  const loops = [];
+  while (out.size) {
+    const startKey = out.keys().next().value;
+    const pts = [startKey.split(',').map(Number)];
+    let at = startKey;
+    while (out.has(at)) {
+      const next = out.get(at);
+      out.delete(at);
+      pts.push(next);
+      at = key(next[0], next[1]);
+      if (at === startKey) break;
+    }
+    if (pts.length > 2) loops.push(pts);
+  }
+  // Merge collinear runs so a straight side is ONE segment with two ends,
+  // not four unit steps -- a corner radius has to know how long its arms are.
+  return loops.map((pts) => {
+    const closed = pts[pts.length - 1][0] === pts[0][0] && pts[pts.length - 1][1] === pts[0][1]
+      ? pts.slice(0, -1) : pts;
+    const merged = [];
+    for (let i = 0; i < closed.length; i += 1) {
+      const prev = closed[(i - 1 + closed.length) % closed.length];
+      const cur = closed[i];
+      const next = closed[(i + 1) % closed.length];
+      const a = [cur[0] - prev[0], cur[1] - prev[1]];
+      const b = [next[0] - cur[0], next[1] - cur[1]];
+      if (a[0] * b[1] - a[1] * b[0] !== 0) merged.push(cur); // a real corner
+    }
+    return merged.map((p, i) => {
+      const nxt = merged[(i + 1) % merged.length];
+      return { p, suppressed: onEdge(p, nxt) };
+    });
+  });
+}
+
+/**
+ * A rounded rectilinear loop, as a path.
+ *
+ * THE HAPPY MEDIUM the owner asked for between a false circle and a harsh
+ * squared-off staircase (2026-09-17). The polygon is still exactly the tile
+ * set the engine sees -- nothing is added or removed -- but each corner is
+ * cut by an arc, so the contour reads as an organic shape rather than as
+ * pixel art. At `radius` 0 it is the exact staircase again.
+ *
+ * The arc radius is clamped to half of the SHORTER of the two arms meeting at
+ * a corner, so a one-tile step never rounds past its own neighbours and the
+ * curve cannot cross the polygon. A convex corner is cut inward, a reflex
+ * corner bulges outward, and both stay inside `radius` of the true edge --
+ * at the shipped 0.4 of a tile that is well under the half-tile it would take
+ * to read as a different tile.
+ *
+ * `suppressed` segments are walked but not drawn, which is how the world's
+ * outer edge stops being mistaken for a limit of the cat's sight.
+ */
+function roundedLoopPath(loop, path, ox, oy, tile, radius) {
+  const px = (v) => ox + v * tile;
+  const py = (v) => oy + v * tile;
+  const n = loop.length;
+  if (n < 3) return;
+  const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const lerp = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  let pen = false;
+  for (let i = 0; i < n; i += 1) {
+    const prev = loop[(i - 1 + n) % n].p;
+    const cur = loop[i].p;
+    const next = loop[(i + 1) % n].p;
+    const r = Math.min(radius, len(prev, cur) / 2, len(cur, next) / 2);
+    const inEdge = loop[(i - 1 + n) % n].suppressed;
+    const outEdge = loop[i].suppressed;
+    const start = lerp(cur, prev, r / len(prev, cur) || 0);
+    const end = lerp(cur, next, r / len(cur, next) || 0);
+    if (inEdge) { pen = false; } else {
+      if (!pen) { path.moveTo(px(start[0]), py(start[1])); pen = true; }
+      else path.lineTo(px(start[0]), py(start[1]));
+    }
+    // The corner itself belongs to neither side: drawn when either is drawn,
+    // so a suppressed run does not eat the curve of the segment beside it.
+    if (!inEdge || !outEdge) {
+      if (!pen) { path.moveTo(px(start[0]), py(start[1])); pen = true; }
+      if (r > 0) path.quadraticCurveTo(px(cur[0]), py(cur[1]), px(end[0]), py(end[1]));
+      else path.lineTo(px(cur[0]), py(cur[1]));
+    }
+    if (outEdge) pen = false;
+  }
+}
 
 class WorldRenderer {
   constructor(canvas) {
@@ -2236,17 +2354,22 @@ class WorldRenderer {
       seen.add(`${dx},${dy}`);
     }
     const fill = new Path2D();
-    const edge = new Path2D();
     for (const key of seen) {
       const [dx, dy] = key.split(',').map(Number);
-      const px = x + dx * t;
-      const py = y + dy * t;
-      fill.rect(px, py, t, t);
-      // Four sides, each drawn only where the neighbour is not also seen.
-      if (!seen.has(`${dx},${dy - 1}`)) { edge.moveTo(px, py); edge.lineTo(px + t, py); }
-      if (!seen.has(`${dx},${dy + 1}`)) { edge.moveTo(px, py + t); edge.lineTo(px + t, py + t); }
-      if (!seen.has(`${dx - 1},${dy}`)) { edge.moveTo(px, py); edge.lineTo(px, py + t); }
-      if (!seen.has(`${dx + 1},${dy}`)) { edge.moveTo(px + t, py); edge.lineTo(px + t, py + t); }
+      fill.rect(x + dx * t, y + dy * t, t, t);
+    }
+
+    // A boundary segment lying ON the world's outer edge is not a limit of
+    // this cat's sight -- it is the meadow running out. Drawing it made a cat
+    // near the edge look like it was fenced in, with the staircase truncating
+    // a step at a time as it walked (owner, 2026-09-17). Walked, not drawn.
+    const atEdge = (a, b) => (
+      (a[0] === b[0] && (base.x + a[0] === 0 || base.x + a[0] === world.width))
+      || (a[1] === b[1] && (base.y + a[1] === 0 || base.y + a[1] === world.height))
+    );
+    const edge = new Path2D();
+    for (const loop of traceTileLoops(seen, atEdge)) {
+      roundedLoopPath(loop, edge, x, y, t, VISION.cornerRadius);
     }
     return { fill, edge };
   }
@@ -2267,6 +2390,7 @@ class WorldRenderer {
     if (!radius) return;
     const ctx = this.ctx;
     const drawn = world.kitties.map((kitty) => ({
+      kitty,
       hue: VISION.hues[kitty.id % VISION.hues.length],
       ...this.visionPaths(kitty, world, view, radius),
     }));
@@ -2288,12 +2412,28 @@ class WorldRenderer {
     ctx.fillStyle = VISION.fill;
     ctx.fill(union);
 
-    ctx.globalAlpha = VISION.ringAlpha;
-    ctx.lineWidth = VISION.ringWidth;
     ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = VISION.ringWidth;
     for (const { hue, edge } of drawn) {
+      ctx.globalAlpha = VISION.ringAlpha;
       ctx.strokeStyle = hue;
       ctx.stroke(edge);
+    }
+
+    // WHOSE contour is that? Nested outlines around a huddle are unreadable
+    // without an answer (owner, 2026-09-17), and the cat is often not even in
+    // frame with its own boundary once the camera zooms. A dot at the cat's
+    // feet in the contour's own colour is the whole cue -- it costs no space,
+    // it never overlaps another cat's, and it puts the two things that have
+    // to be connected as close together as they can be.
+    for (const { hue, kitty } of drawn) {
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      ctx.globalAlpha = VISION.anchorAlpha;
+      ctx.fillStyle = hue;
+      ctx.beginPath();
+      ctx.arc(x + this.tile / 2, y + this.tile * 0.96, this.tile * VISION.anchorR, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }
