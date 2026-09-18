@@ -13,6 +13,11 @@ here belongs on the box.
 Everything is plain Node with no dependencies — `node <tool>.mjs`, no install
 step, matching the client's own no-build-step house style.
 
+**[VISION-OVERLAY.md](VISION-OVERLAY.md) is the design record for the `v`
+overlay** — the engine rule it draws, every dial, and the measurement behind
+each. Read it before re-tuning how sight is drawn, and note the bug that took
+three attempts: the geometry was fine, the clip was not.
+
 **[MEOW-GATES.md](MEOW-GATES.md) is the design record for meow density** —
 every filter between a served meow and something a viewer can see, in the
 order it runs, with the ruling and the measurement behind each. Read it before

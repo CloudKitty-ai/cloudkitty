@@ -104,6 +104,66 @@ const GREEBLE_FACE = 'grin';
 const BUBBLE_TICKS = 3;
 
 /**
+ * The vision overlay (owner's backlog ask, 2026-09-10): what Fog Gen 1's
+ * sight actually covers, one region per cat, off unless `v` is pressed.
+ *
+ * `hues` are PLACED, not picked: six evenly-spaced hues at one lightness and
+ * one chroma (CIE L* 62, C* 52), so no cat's ring reads louder than another's
+ * and the set survives a sixth seat. Worst pairwise dE is 43.9 and the
+ * nearest any hue comes to any of the four meadow grasses is 34.5 -- a JND is
+ * about 1.0, so both are enormous margins. A test recomputes them from these
+ * values rather than trusting this comment.
+ *
+ * The wash lies OUTSIDE the union, in one neutral -- the fog, not the sight.
+ * See `drawVisionRadii` for why it ended up that way round.
+ */
+const VISION = {
+  // MULTIPLIED, not laid over. A tint composited normally darkens a light
+  // meadow and LIGHTENS a dark one -- the old green-teal did exactly that,
+  // and at night the fog read as a glow (owner, 2026-09-17). Multiplying by
+  // black cannot lighten anything, on any theme, including ones not written
+  // yet: `washAlpha` IS the fraction darker, the same fraction at every hour.
+  //
+  // Chosen over a per-theme table of wash colours for that last reason. A
+  // table would be DERIVED from the four palettes, so it would go stale the
+  // day a theme colour moves and would need its own recalculation guard, the
+  // way the sky crossings do. There is nothing here to go stale.
+  wash: '#000000',
+  washAlpha: 0.1, // = 10% darker, everywhere
+  tintAlpha: 0.35, // territory, in the owner's hue; 0 turns it off
+  // 'nearest': every seen tile takes the colour of the closest cat that sees
+  // it, so the clearing is covered. 'solo': only ground a cat sees ALONE is
+  // tinted and shared ground stays bare. Both keep the one guarantee that
+  // matters -- one colour per pixel, so nothing can ever mix.
+  tintMode: 'solo',
+  // How much of a contour is taken away where it crosses another cat's sight.
+  // It COMPOUNDS -- a line through two other regions keeps 0.4 x 0.4 -- so the
+  // busiest knot gets the most relief, which is where the mess was. 0 draws
+  // every line at full strength, as before.
+  ringOverlapFade: 0.6,
+  ringAlpha: 0.4, // a contour, not a fence
+  // In TILES, like everything else here, so the contour keeps its weight as
+  // the camera zooms (owner, 2026-09-17). It was the one fixed-pixel number
+  // in the overlay -- the same defect the speech bubble has -- so zooming in
+  // thinned it to a hair and zooming out fattened it. 0.067 is the 3.5 CSS px
+  // the owner judged, over the tile she judged it at: 52, which is what the
+  // phone shows with camera mode on. That lands at 7px zoomed right in and
+  // 1.3px with the camera off, which is the point.
+  ringWidthTiles: 0.067,
+  ringWidthFloor: 1, // ...and never thinner than a line, the house minimum
+  // 0 is the raw staircase; 1 is as round as a corner can legally go -- the
+  // arc starting at the MIDPOINT of each side, which turns the polygon into a
+  // smooth closed curve through those midpoints. A FRACTION of the maximum
+  // rather than a distance in tiles, because the maximum is different at every
+  // corner (half the shorter arm) and a distance dial goes dead the moment it
+  // passes the smallest one. Owner asked for a 0-1 range, 2026-09-17.
+  cornerSmoothness: 1, // owner ruled 2026-09-17: the roundest legal
+  anchorR: 0.16, // the owner cue, in tiles
+  anchorAlpha: 0.85,
+  hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
+};
+
+/**
  * The drawn box for a kitty at its curated size (VIEW.kittySize).
  *
  * Scaled about the FEET and centred on the tile: `dy` keeps the pose's own
@@ -559,6 +619,178 @@ const MENISCUS = {
   breathe: 0.015, // how much rx pulses
 };
 
+/**
+ * Trace a set of unit tiles into ordered, closed boundary loops.
+ *
+ * The overlay drew its boundary as a BAG of segments before 2026-09-17, which
+ * is enough to stroke a stair-step and not enough to do anything else with it.
+ * Softening a corner needs to know which two edges meet there, and that needs
+ * the walk.
+ *
+ * Each tile contributes a directed edge per side whose neighbour is missing,
+ * oriented so the region is always on the same hand. Those edges chain
+ * head-to-tail into closed loops -- one for the outline, one more for each
+ * hole, though a vision disc has no holes.
+ *
+ * Coordinates are TILE units; the caller scales.
+ */
+function traceTileLoops(seen) {
+  const key = (x, y) => `${x},${y}`;
+  const out = new Map(); // start point -> end point
+  for (const cell of seen) {
+    const [x, y] = cell.split(',').map(Number);
+    // Counter-clockwise in screen space (y down), so the region is on the left.
+    if (!seen.has(key(x, y - 1))) out.set(key(x, y), [x + 1, y]);
+    if (!seen.has(key(x + 1, y))) out.set(key(x + 1, y), [x + 1, y + 1]);
+    if (!seen.has(key(x, y + 1))) out.set(key(x + 1, y + 1), [x, y + 1]);
+    if (!seen.has(key(x - 1, y))) out.set(key(x, y + 1), [x, y]);
+  }
+  const loops = [];
+  while (out.size) {
+    const startKey = out.keys().next().value;
+    const pts = [startKey.split(',').map(Number)];
+    let at = startKey;
+    while (out.has(at)) {
+      const next = out.get(at);
+      out.delete(at);
+      pts.push(next);
+      at = key(next[0], next[1]);
+      if (at === startKey) break;
+    }
+    if (pts.length > 2) loops.push(pts);
+  }
+  // Merge collinear runs so a straight side is ONE segment with two ends,
+  // not four unit steps -- a corner radius has to know how long its arms are.
+  return loops.map((pts) => {
+    const closed = pts[pts.length - 1][0] === pts[0][0] && pts[pts.length - 1][1] === pts[0][1]
+      ? pts.slice(0, -1) : pts;
+    const merged = [];
+    for (let i = 0; i < closed.length; i += 1) {
+      const prev = closed[(i - 1 + closed.length) % closed.length];
+      const cur = closed[i];
+      const next = closed[(i + 1) % closed.length];
+      const a = [cur[0] - prev[0], cur[1] - prev[1]];
+      const b = [next[0] - cur[0], next[1] - cur[1]];
+      if (a[0] * b[1] - a[1] * b[0] !== 0) merged.push(cur); // a real corner
+    }
+    return merged.map((p) => ({ p }));
+  });
+}
+
+/**
+ * The half of the world nearer to `a` than to `b`, as a path.
+ *
+ * The perpendicular bisector of two points is a straight line whatever shape
+ * their regions are, so a cat's territory is its sight clipped by one of these
+ * per other cat -- exact, continuous, and it rides the tween because it is
+ * built from the DRAWN positions rather than from a tile grid. Tile-space
+ * Voronoi would have snapped a tile at a time while the contours glided.
+ *
+ * `reach` only has to exceed anything that can be on screen: the polygon is a
+ * clip, so running off the canvas costs nothing.
+ *
+ * Coincident cats have no bisector. The lower id keeps the ground, which is
+ * the same tie-break the meow pairing uses, and the other gets an empty path
+ * rather than a degenerate one.
+ */
+function nearerHalf(a, b, reach) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const d = Math.hypot(dx, dy);
+  const path = new Path2D();
+  if (d < 1e-6) {
+    if (a.id < b.id) path.rect(a.x - reach, a.y - reach, reach * 2, reach * 2);
+    return path; // otherwise empty: the other cat has it
+  }
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const ux = dx / d;
+  const uy = dy / d;
+  // Along the bisector, then back down the axis away from `b`.
+  path.moveTo(mx - uy * reach, my + ux * reach);
+  path.lineTo(mx + uy * reach, my - ux * reach);
+  path.lineTo(mx + uy * reach - ux * reach, my - ux * reach - uy * reach);
+  path.lineTo(mx - uy * reach - ux * reach, my + ux * reach - uy * reach);
+  path.closePath();
+  return path;
+}
+
+/**
+ * A rounded rectilinear loop, as a path.
+ *
+ * THE HAPPY MEDIUM the owner asked for between a false circle and a harsh
+ * squared-off staircase (2026-09-17). The polygon is still exactly the tile
+ * set the engine sees -- nothing is added or removed -- but each corner is
+ * cut by an arc, so the contour reads as an organic shape rather than as
+ * pixel art. At `radius` 0 it is the exact staircase again.
+ *
+ * The arc radius is clamped to half of the SHORTER of the two arms meeting at
+ * a corner, so a one-tile step never rounds past its own neighbours and the
+ * curve cannot cross the polygon. A convex corner is cut inward, a reflex
+ * corner bulges outward, and both stay inside `radius` of the true edge --
+ * at the shipped 0.4 of a tile that is well under the half-tile it would take
+ * to read as a different tile.
+ *
+ */
+function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
+  const px = (v) => ox + v * tile;
+  const py = (v) => oy + v * tile;
+  const n = loop.length;
+  if (n < 3) return;
+  const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const lerp = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+
+  // Where each corner's arc leaves the side coming in and rejoins the side
+  // going out. Precomputed for the WHOLE loop first, because a straight run
+  // belongs to two corners -- it starts where one arc ended -- and walking
+  // the loop while working that out is what produced the gap below.
+  const V = loop.map((vertex, i) => {
+    const prev = loop[(i - 1 + n) % n].p;
+    const cur = vertex.p;
+    const next = loop[(i + 1) % n].p;
+    // Clamped to [0,1] and then taken as a share of half the SHORTER arm, so
+    // a corner can never round past its own neighbours however the dial is
+    // set, and the curve cannot cross the polygon.
+    const share = Math.min(1, Math.max(0, smoothness));
+    const r = share * Math.min(len(prev, cur), len(cur, next)) / 2;
+    return {
+      cur,
+      r,
+      start: lerp(cur, prev, r / len(prev, cur) || 0),
+      end: lerp(cur, next, r / len(cur, next) || 0),
+    };
+  });
+
+  let pen = false;
+  let cursor = null;
+  const moveTo = (p) => { path.moveTo(px(p[0]), py(p[1])); pen = true; cursor = p; };
+  // A zero-length segment is not nothing: under a round cap it paints a DOT,
+  // and a row of those along the meadow's edge is the fence this spent three
+  // commits removing. Square corners produce them by construction -- their
+  // arc has collapsed onto the corner, so the run into it and the corner
+  // itself land on the same point -- so they are dropped here once rather
+  // than guarded against at each of the four places they can arise.
+  const lineTo = (p) => {
+    if (cursor && Math.abs(cursor[0] - p[0]) < 1e-9 && Math.abs(cursor[1] - p[1]) < 1e-9) return;
+    path.lineTo(px(p[0]), py(p[1]));
+    cursor = p;
+  };
+  for (let i = 0; i < n; i += 1) {
+    const from = V[(i - 1 + n) % n];
+    const at = V[i];
+    // The straight run between two arcs BEGINS where the previous corner's
+    // arc ended. Picking it up at this corner's entry instead left one side of
+    // one tile undrawn on every loop, at whichever vertex the trace happened
+    // to start from (owner: "a gap on the left side of the topmost square").
+    if (!pen) moveTo(from.end);
+    lineTo(at.start);
+    if (at.r > 0) {
+      path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
+      cursor = at.end;
+    } else lineTo(at.cur);
+  }
+}
+
 class WorldRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -571,6 +803,8 @@ class WorldRenderer {
     // near its ceiling anyway -- so four near-full bars said little while
     // sitting exactly where the ground shadows fall. `h` brings them back.
     this.showHappiness = false;
+    this.showVision = false; // the fog overlay, `v`, off by default
+    this.visionRadius = null; // served by /config; null draws nothing
     this.theme = 'day'; // 'day' | 'dusk' | 'night' -- set by setTheme
     // (app.js), which also swaps the MEADOW/PROPS palettes and clears
     // the ground cache
@@ -966,6 +1200,9 @@ class WorldRenderer {
     if (this.showGrid && VIEW.meadow.gridOverlay) {
       drawGridOverlay(ctx, { width: world.width, height: world.height, tile: this.tile });
     }
+    // Sight sits with the other debug chrome, on the grass and under
+    // everything that lives -- a cat is never obscured by what it can see.
+    if (this.showVision) this.drawVisionRadii(world, view);
     this.drawGroundAmbient(world, view);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
@@ -2153,6 +2390,334 @@ class WorldRenderer {
     const vp = this.viewportRect();
     return x + this.tile > vp.left && x < vp.right
       && y + this.tile > vp.top && y < vp.bottom;
+  }
+
+  /**
+   * The tiles one cat can see, as offsets from its own.
+   *
+   * THE RULE IS NOT A CIRCLE. `Position::visible_from` (core/src/grid.rs) is
+   * `dx² + dy² <= r²` in INTEGER tile coordinates, so at the served radius 4
+   * a cat sees four tiles along the axes but only two diagonally -- tile
+   * (3,3) is 18 against 16 and is not seen. Drawing a smooth disc of r tiles
+   * would claim sight the cat does not have, in exactly the places someone
+   * checking this overlay would look. The stair-steps ARE the feature.
+   *
+   * Recomputed per call rather than cached: it is a handful of integers, it
+   * only runs while the overlay is on, and a cache keyed on a radius that can
+   * change under a re-deploy is a bug waiting for a quiet afternoon.
+   */
+  visionOffsets(radius) {
+    const out = [];
+    for (let dy = -radius; dy <= radius; dy += 1) {
+      for (let dx = -radius; dx <= radius; dx += 1) {
+        if (dx * dx + dy * dy <= radius * radius) out.push([dx, dy]);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * One cat's sight as two paths: the filled region, and only the edges on
+   * its BOUNDARY.
+   *
+   * An edge is a boundary when the tile across it is not itself seen, which
+   * is what turns a bag of squares into one outline -- stroking the fill path
+   * would draw every internal tile border and five cats would be a lattice.
+   *
+   * Clipped to the world. The engine's predicate does not clamp, but there is
+   * nothing out there to see, and a region spilling off the meadow reads as a
+   * drawing bug rather than as law.
+   *
+   * Anchored on the DRAWN position, not the served tile. The shape is the one
+   * computed at the served tile either way; translating it with the cat is
+   * what keeps region and cat locked together through the tween, instead of
+   * the region snapping a tile while the cat glides.
+   */
+  visionShape(kitty, view, radius) {
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
+    const t = this.tile;
+    // NOT clipped to the world, and that is the fix for a bug that survived
+    // two goes at it (owner, 2026-09-18: "lower left corner, and left lateral
+    // edge... 1 or less tile not drawing the circle").
+    //
+    // The tile set is computed from the SERVED position and the path is drawn
+    // at the TWEENED one. Clipping the set at build time baked the served
+    // position's idea of where the meadow ends into a shape that then slid --
+    // so mid-move the clipped edge slid inward with it and left a sliver of
+    // unlit fog against the rim, up to a full tile wide at the far end of a
+    // step. Reproduced exactly: gaps of 0.25, 0.50, 0.75 and 1.00 tiles across
+    // one tween.
+    //
+    // So the region keeps its full disc and simply runs off the map. Nothing
+    // outside the meadow can be seen anyway -- the fog is painted into the
+    // world rect and the canvas IS the world -- which is what makes the
+    // simplification safe, and it retires the whole world-edge apparatus that
+    // was trying to solve this from the wrong end.
+    const seen = new Set(this.visionOffsets(radius).map(([dx, dy]) => `${dx},${dy}`));
+
+    // ONE shape, filled AND stroked. They were two paths while the outline had
+    // to leave out the segments running along the meadow's edge and the wash
+    // had to keep them; with nothing clipped there is no such segment and no
+    // reason for them to differ.
+    const shape = new Path2D();
+    for (const loop of traceTileLoops(seen)) {
+      roundedLoopPath(loop, shape, x, y, t, VISION.cornerSmoothness);
+    }
+    return shape;
+  }
+
+  /**
+   * Every cat's sight, one colour each (owner: "each cat should have a
+   * different color, and the colors should overlap in a way that is still
+   * aesthetically appealing even when all 5 cats are together").
+   *
+   * The radius is SERVED and never guessed. `/config` carries
+   * `vision.radius`, app.js hands it over, and with nothing handed over this
+   * draws nothing at all -- a client-side copy of an engine value is the
+   * failure owner call #362 was opened for, and a plausible-looking default
+   * would be that failure wearing a disguise.
+   */
+  /**
+   * The scratch layer the wash is cut out of. Its own method so a harness can
+   * hand one in: `??=` never reaches `document` once the slot is filled.
+   */
+  visionScratch(cssW, cssH, dpr) {
+    const c = (this.visionLayer ??= document.createElement('canvas'));
+    const w = Math.max(1, Math.ceil(cssW * dpr));
+    const h = Math.max(1, Math.ceil(cssH * dpr));
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    return c.getContext('2d');
+  }
+
+  /**
+   * The wash, OUTSIDE the union of every cat's sight.
+   *
+   * THE FOG, not the sight (owner, 2026-09-17). It was the other way round
+   * until then -- a wash over the seen ground -- and that put the ink on the
+   * least interesting thing on the map and grew it as the cats saw MORE. This
+   * way the meadow stays clean where the cats are and the tint falls on what
+   * is hidden, which is the thing the fog generation is actually about.
+   *
+   * Measured on the live roster over 180 ticks: the union covers a median
+   * 32.8% of the map (24.5-45.5%), so the wash sits on about two thirds of
+   * the meadow. That is why it is a WASH and not a fog-of-war darkening --
+   * at 40% brightness two thirds of the screen would simply be dark.
+   *
+   * Cut on a scratch layer with `destination-out` rather than as one
+   * even-odd path, and the reason is the tween, not the winding: each cat's
+   * region rides its OWN drawn position, so there is no single tile set to
+   * trace. Erasing is idempotent, so five overlapping regions punch exactly
+   * the same hole as one -- which the even-odd and nonzero rules both get
+   * wrong, flipping an overlap back to "outside".
+   */
+  washUnseen(world, drawn) {
+    const dpr = this.dpr || 1;
+    const vp = this.viewportRect();
+    const lg = this.visionScratch(this.cssWidth, this.cssHeight, dpr);
+    if (!lg) return;
+    // The same world-pixel space the main context is in, so the paths built
+    // for the outline can be reused here without a second projection.
+    lg.setTransform(dpr, 0, 0, dpr, -vp.left * dpr, -vp.top * dpr);
+    lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+    lg.fillStyle = VISION.wash;
+    lg.fillRect(0, 0, world.width * this.tile, world.height * this.tile);
+    lg.globalCompositeOperation = 'destination-out';
+    for (const { shape } of drawn) lg.fill(shape);
+    lg.globalCompositeOperation = 'source-over';
+    // `multiply` only applies where the source has alpha, so the cleared
+    // sight -- punched to transparent above -- leaves the meadow untouched.
+    this.ctx.save();
+    this.ctx.globalAlpha = VISION.washAlpha;
+    this.ctx.globalCompositeOperation = 'multiply';
+    this.ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+    this.ctx.restore();
+  }
+
+  /**
+   * Each cat's territory, in its own hue.
+   *
+   * NEAREST OWNER, not sole owner. The owner's first shape for this was to
+   * tint only the ground a cat sees ALONE, which has the same virtue -- one
+   * colour per pixel, so nothing can ever mix -- but the roster killed it on
+   * the numbers: measured over 200 ticks, only 48% of the union is exclusive
+   * to one cat (30% in the worst tenth), and a cat's own colour would have
+   * marked between 9.6 and 19 of the 49 tiles it can see. Miso, the most
+   * sociable, would have been nearly invisible. These cats cluster; a rule
+   * that only speaks when they are apart cannot carry identity.
+   *
+   * Nearest owner keeps the guarantee and covers the whole clearing. What it
+   * asserts is weaker -- "this cat is closest", not "only this cat sees it" --
+   * and that is the trade: the tint carries identity, and the contours, drawn
+   * at full strength, carry the truth about sight.
+   *
+   * Composited with `color`, which takes the source's hue and keeps the
+   * destination's LUMINANCE. Same reasoning as the wash multiplying: a tint
+   * laid over normally lightens a dark meadow and darkens a light one, so it
+   * would read as a different thing at midnight than at noon. This way the
+   * fog owns brightness and the tint owns hue, and neither moves the other.
+   */
+  tintTerritories(world, view, drawn) {
+    if (!VISION.tintAlpha || !drawn.length) return;
+    const ctx = this.ctx;
+    const vp = this.viewportRect();
+    const reach = (this.cssWidth + this.cssHeight) * 2;
+    const centre = (kitty) => {
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      return { x: x + this.tile / 2, y: y + this.tile / 2, id: kitty.id };
+    };
+    ctx.save();
+    ctx.globalAlpha = VISION.tintAlpha;
+    ctx.globalCompositeOperation = 'color';
+    if (VISION.tintMode === 'solo') this.tintSolo(drawn, vp);
+    else {
+      for (const mine of drawn) {
+        ctx.save();
+        ctx.clip(mine.shape);
+        const a = centre(mine.kitty);
+        for (const other of drawn) {
+          if (other.kitty.id === mine.kitty.id) continue;
+          ctx.clip(nearerHalf(a, centre(other.kitty), reach));
+        }
+        ctx.fillStyle = mine.hue;
+        ctx.fillRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+
+  /**
+   * The owner's own rule: tint only the ground a cat sees ALONE.
+   *
+   * Clipping cannot subtract, so each cat's colour is built on the scratch
+   * layer -- its region in its hue, then every other region ERASED out of it
+   * -- and composited one cat at a time. That is one layer pass per cat
+   * rather than the clip-stack `nearest` gets away with, which is the honest
+   * price of the rule: "not seen by anyone else" is a subtraction and
+   * subtraction needs a knockout.
+   *
+   * The layer is the wash's, reused. The wash has already been composited by
+   * the time this runs, so there is nothing left on it to protect.
+   *
+   * Measured cost of the rule itself, over 200 ticks: only 48% of the union
+   * is exclusive, so about half the clearing stays bare, and a cat's colour
+   * marks 9.6-19 of the 49 tiles it can see.
+   */
+  tintSolo(drawn, vp) {
+    const dpr = this.dpr || 1;
+    for (const mine of drawn) {
+      const lg = this.visionScratch(this.cssWidth, this.cssHeight, dpr);
+      if (!lg) return;
+      lg.setTransform(dpr, 0, 0, dpr, -vp.left * dpr, -vp.top * dpr);
+      lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+      lg.globalCompositeOperation = 'source-over';
+      lg.fillStyle = mine.hue;
+      lg.fill(mine.shape);
+      lg.globalCompositeOperation = 'destination-out';
+      for (const other of drawn) {
+        if (other.kitty.id === mine.kitty.id) continue;
+        lg.fill(other.shape);
+      }
+      lg.globalCompositeOperation = 'source-over';
+      this.ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+    }
+  }
+
+  /**
+   * Every cat's contour, faded where it runs through another cat's sight.
+   *
+   * Five contours crossing in one knot is a mess, and the mess is worst
+   * exactly where the cats are (owner, 2026-09-18). Fading the crossings
+   * leaves the OUTER boundary -- the part that says how far a cat can see --
+   * at full strength, and lets the interior tangle recede.
+   *
+   * Cut rather than drawn: a line cannot be made fainter by painting over it,
+   * so each contour is stroked at full strength on the scratch layer, the
+   * other regions are ERASED out of it at `ringOverlapFade`, and the result
+   * is composited at `ringAlpha`. Erasing at a partial alpha takes that
+   * fraction of the line away, and because it runs once per other cat it
+   * compounds with crowding.
+   *
+   * A cat never erases with its OWN region. Its contour lies on that region's
+   * boundary, so doing that would eat half its own line width all the way
+   * round.
+   *
+   * Costed before building, on a phone at tile 50: the whole overlay ran 0.4ms
+   * median and 1.5ms worst against a 16.7ms frame, so five more layer passes
+   * are affordable. Measured rather than assumed -- I had talked myself out of
+   * this shape on a performance worry that turned out to be imaginary.
+   */
+  strokeContours(drawn, vp) {
+    const ctx = this.ctx;
+    const width = Math.max(VISION.ringWidthFloor, this.tile * VISION.ringWidthTiles);
+    const fade = VISION.ringOverlapFade;
+    if (!fade || drawn.length < 2) {
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.lineWidth = width;
+      for (const { hue, shape } of drawn) {
+        ctx.globalAlpha = VISION.ringAlpha;
+        ctx.strokeStyle = hue;
+        ctx.stroke(shape);
+      }
+      return;
+    }
+    const dpr = this.dpr || 1;
+    for (const mine of drawn) {
+      const lg = this.visionScratch(this.cssWidth, this.cssHeight, dpr);
+      if (!lg) return;
+      lg.setTransform(dpr, 0, 0, dpr, -vp.left * dpr, -vp.top * dpr);
+      lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
+      lg.globalCompositeOperation = 'source-over';
+      lg.globalAlpha = 1;
+      lg.lineJoin = 'round';
+      lg.lineCap = 'round';
+      lg.lineWidth = width;
+      lg.strokeStyle = mine.hue;
+      lg.stroke(mine.shape);
+      lg.globalCompositeOperation = 'destination-out';
+      lg.globalAlpha = fade;
+      for (const other of drawn) {
+        if (other.kitty.id === mine.kitty.id) continue;
+        lg.fill(other.shape);
+      }
+      lg.globalAlpha = 1;
+      lg.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = VISION.ringAlpha;
+      ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
+    }
+  }
+
+  drawVisionRadii(world, view) {
+    const radius = this.visionRadius;
+    if (!radius) return;
+    const ctx = this.ctx;
+    const drawn = world.kitties.map((kitty) => ({
+      kitty,
+      hue: VISION.hues[kitty.id % VISION.hues.length],
+      shape: this.visionShape(kitty, view, radius),
+    }));
+    ctx.save();
+    this.washUnseen(world, drawn);
+    this.tintTerritories(world, view, drawn);
+
+    this.strokeContours(drawn, this.viewportRect());
+
+    // WHOSE contour is that? Nested outlines around a huddle are unreadable
+    // without an answer (owner, 2026-09-17), and the cat is often not even in
+    // frame with its own boundary once the camera zooms. A dot at the cat's
+    // feet in the contour's own colour is the whole cue -- it costs no space,
+    // it never overlaps another cat's, and it puts the two things that have
+    // to be connected as close together as they can be.
+    for (const { hue, kitty } of drawn) {
+      const { x, y } = this.tileOrigin(view.posFor(kitty));
+      ctx.globalAlpha = VISION.anchorAlpha;
+      ctx.fillStyle = hue;
+      ctx.beginPath();
+      ctx.arc(x + this.tile / 2, y + this.tile * 0.96, this.tile * VISION.anchorR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   drawBubbles(world, view) {

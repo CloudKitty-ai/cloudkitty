@@ -3528,7 +3528,7 @@ function bubbleWorld(tick, meows, n = 3) {
 // rather than widening the shared one under 340 existing checks.
 const bubbleScope = eval(
   readFileSync(join(here, 'props.js'), 'utf8') + '\n' + renderSrc
-    + ';({ WorldRenderer, MEOW_TEXT })',
+    + ';({ WorldRenderer, MEOW_TEXT, VISION, nearerHalf })',
 );
 
 /**
@@ -7907,6 +7907,744 @@ const deltaE = (a, b) => {
   if (!A || !B) return 0;
   return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
 };
+
+/**
+ * `visionPaths` builds `Path2D`s, which node does not have. This records the
+ * segments instead, so a check can ask WHICH edges were drawn rather than
+ * trusting that some were -- the whole point of the boundary walk is the
+ * edges it leaves out.
+ */
+class RecordingPath {
+  constructor() { this.rects = []; this.segs = []; this.at = null; this.curves = []; this.subpaths = []; }
+  // SAMPLED, not chorded. A quadratic's bulge lives in the middle, so
+  // recording only its endpoints hides exactly what the excursion and area
+  // checks below are trying to measure.
+  quadraticCurveTo(cx, cy, x, y) {
+    const [x0, y0] = this.at;
+    this.curves.push([cx, cy]);
+    for (let i = 1; i <= 8; i += 1) {
+      const s = i / 8; const u = 1 - s;
+      const px = u * u * x0 + 2 * u * s * cx + s * s * x;
+      const py = u * u * y0 + 2 * u * s * cy + s * s * y;
+      this.segs.push([this.at[0], this.at[1], px, py]);
+      this.at = [px, py];
+      this.subpaths.at(-1).push([px, py]);
+    }
+  }
+  addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
+  // Recorded as a closed subpath too, not just in `rects`: a rect is a polygon
+  // like any other, and the point-in-path checks below have to see it.
+  rect(x, y, w, h) {
+    this.rects.push([x, y, w, h]);
+    this.subpaths.push([[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]);
+    this.at = [x, y];
+  }
+  moveTo(x, y) { this.at = [x, y]; this.subpaths.push([[x, y]]); }
+  closePath() { const s = this.subpaths.at(-1); if (s && s.length) this.lineTo(s[0][0], s[0][1]); }
+  lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
+}
+/** The area a recorded path encloses, in square tiles (shoelace over every
+ * subpath). The wash is a filled shape now rather than a bag of rectangles,
+ * so "how much ground does it cover" is the only question worth asking of it. */
+function pathAreaTiles(path, tile) {
+  let total = 0;
+  for (const pts of path.subpaths) {
+    let a = 0;
+    for (let i = 0; i < pts.length; i += 1) {
+      const [x1, y1] = pts[i];
+      const [x2, y2] = pts[(i + 1) % pts.length];
+      a += x1 * y2 - x2 * y1;
+    }
+    total += Math.abs(a) / 2;
+  }
+  return total / (tile * tile);
+}
+
+/** Run `fn` with a Path2D node can actually construct. */
+function withPaths(fn) {
+  const had = 'Path2D' in globalThis;
+  const saved = globalThis.Path2D;
+  globalThis.Path2D = RecordingPath;
+  try { return fn(); } finally {
+    if (had) globalThis.Path2D = saved; else delete globalThis.Path2D;
+  }
+}
+/** A renderer stub with just what the vision overlay reaches. */
+function visionRig(radius, { tile = 40, width = 20, height = 20, onWash = null } = {}) {
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  r.tile = tile;
+  r.visionRadius = radius;
+  r.dpr = 2;
+  r.cssWidth = width * tile;
+  r.cssHeight = height * tile;
+  r.camera = null;
+  r.tileOrigin = (pos) => ({ x: pos.x * tile, y: pos.y * tile });
+  // The wash is cut on a scratch canvas. `visionScratch` fills its slot with
+  // `??=`, so handing one in here means `document` is never reached -- and it
+  // lets a check watch what gets painted onto the layer, which is where the
+  // wash lives now.
+  const wash = onWash || { calls: [] };
+  wash.calls = wash.calls || [];
+  const layerCtx = new Proxy({}, {
+    get: (o, k) => (...args) => wash.calls.push([String(k), ...args.map((a) => (a && a.segs ? 'path' : a))]),
+    set: (o, k, v) => { wash.calls.push(['set:' + String(k), v]); return true; },
+  });
+  r.visionLayer = { width: 0, height: 0, getContext: () => layerCtx };
+  r.wash = wash;
+  return r;
+}
+
+check('the vision overlay draws the ENGINE rule, which is not a circle', () => {
+  // `Position::visible_from` (core/src/grid.rs) is `dx² + dy² <= r²` in
+  // INTEGER tile coordinates. A smooth disc of r tiles would claim sight the
+  // cat does not have, and it would do it on the diagonals -- exactly where
+  // someone checking this overlay would look.
+  const rust = readFileSync(join(here, '../crates/cloudkitty-core/src/grid.rs'), 'utf8');
+  const fn = rust.slice(rust.indexOf('pub fn visible_from'));
+  assert(/self\.euclid_sq\(other\) <= r\.saturating_mul\(r\)/.test(fn.slice(0, 300)),
+    'the engine no longer decides sight by `dx² + dy² <= r²` -- this overlay is drawing a rule that moved');
+
+  const r = visionRig(4);
+  const got = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+
+  // The named cases come FIRST, and deliberately. They are the ones that
+  // separate the rule from a circle, and a set comparison that subsumes them
+  // would fire first and report an unhelpful count -- leaving these three
+  // unable to go red on their own, which makes them documentation rather than
+  // guards. `mutate.sh` caught exactly that, 2026-09-17.
+  assert(got.has('4,0'), 'the cat cannot see four tiles along the axis -- the radius is not being applied');
+  assert(!got.has('3,3'), 'tile (3,3) is drawn as seen: 9+9=18 against 16, so this is a CIRCLE, not the rule');
+  assert(!got.has('4,1'), 'tile (4,1) is drawn as seen: 16+1=17 against 16');
+
+  // ...and then the whole set, which is the guard the three above explain.
+  const want = new Set();
+  for (let dy = -4; dy <= 4; dy += 1) {
+    for (let dx = -4; dx <= 4; dx += 1) if (dx * dx + dy * dy <= 16) want.add(`${dx},${dy}`);
+  }
+  assert(got.size === want.size && [...want].every((k) => got.has(k)),
+    `the offsets are not the engine's set (${got.size} vs ${want.size})`);
+});
+
+check('the overlay strokes the region OUTLINE, not every tile it contains', () => {
+  // Stroking the fill path would draw all four sides of all 49 tiles, and
+  // five cats would be a lattice rather than five regions. An edge is drawn
+  // only where the tile across it is not itself seen.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  const kitty = { id: 1, pos: { x: 9, y: 9 } };
+  const view = { posFor: () => ({ x: 9, y: 9 }) };
+  const shape = withPaths(() => r.visionShape(kitty, view, 4));
+
+  const tiles = r.visionOffsets(4).length;
+  // The wash follows the SAME rounded contour as the outline now, so it is
+  // measured by the ground it covers rather than by a rectangle count. It was
+  // built from raw tile rects until 2026-09-17, which is why the fog stopped
+  // wrapping to the outline as the roundness came up.
+  const area = pathAreaTiles(shape, r.tile);
+  assert(area > tiles * 0.9 && area <= tiles,
+    `the wash covers ${area.toFixed(1)} tiles against the ${tiles} the cat sees -- rounding may only trim the corners`);
+
+  // Measured by LENGTH, not by segment count. The outline is corners-and-arcs
+  // now, so how many segments it takes to say a thing is an implementation
+  // detail -- how far the pen travels is not. The boundary of the tile set is
+  // one unit edge per exposed side, derived here from the same offsets.
+  const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+  let perimeter = 0;
+  for (const key of seen) {
+    const [dx, dy] = key.split(',').map(Number);
+    for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+      if (!seen.has(`${dx + ax},${dy + ay}`)) perimeter += 1;
+    }
+  }
+  const drawnLen = shape.segs.reduce((n, [x1, y1, x2, y2]) => n + Math.hypot(x2 - x1, y2 - y1), 0) / r.tile;
+  // Stroking the FILL path would walk every side of every tile.
+  assert(drawnLen < tiles * 4 * 0.5,
+    `the pen travelled ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is tracing tile borders, not the outline`);
+  // Rounding cuts corners, so the contour is a little SHORTER than the
+  // staircase; it must not be longer, and must not be missing a side.
+  assert(drawnLen > perimeter * 0.7 && drawnLen <= perimeter * 1.02,
+    `the contour is ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is not tracing it once`);
+});
+
+check('the contour keeps its weight as the camera zooms', () => {
+  // Owner, 2026-09-17: "border thickness should scale with camera zoom." It
+  // was the one fixed-pixel number in an overlay where the corner radius and
+  // the anchor were already in tiles -- the same defect the speech bubble
+  // has, which is exactly the thing the bubble redesign is trying to get away
+  // from. Zooming in thinned it to a hair; zooming out fattened it.
+  const V = bubbleScope.VISION;
+  const widthAt = (tile) => {
+    let width = null;
+    const ctx = new Proxy({}, {
+      get: () => () => {},
+      set: (o, k, v) => { if (k === 'lineWidth') width = v; return true; },
+    });
+    const r = visionRig(4, { tile });
+    r.ctx = ctx;
+    withPaths(() => r.drawVisionRadii(
+      { width: 20, height: 20, kitties: [{ id: 1, pos: { x: 9, y: 9 } }] },
+      { posFor: (k) => k.pos },
+    ));
+    return width;
+  };
+  // The two the camera actually produces: a phone with camera mode on, and a
+  // desktop zoomed right in. Measured off the running client, not guessed.
+  const phone = widthAt(52);
+  const zoomed = widthAt(106);
+  assert(zoomed > phone * 1.5,
+    `the contour is ${phone} at tile 52 and ${zoomed} at tile 106 -- it is not scaling with the zoom`);
+  close(phone / 52, zoomed / 106, 'the contour is not a constant fraction of a tile');
+
+  // ...and it never thins to nothing when the whole world is in frame.
+  assert(widthAt(19) >= V.ringWidthFloor,
+    `at tile 19 the contour is ${widthAt(19)}, under the floor of ${V.ringWidthFloor}`);
+});
+
+check('a contour is one closed loop that comes back to where it started', () => {
+  // THE GAP (owner, 2026-09-17: "there's a gap on the left side of the topmost
+  // square on the outline"). One per loop, at whichever vertex the trace
+  // happened to begin from, so it moved around the shape as the cat walked and
+  // looked like a rendering glitch rather than a geometry bug.
+  //
+  // The cause: a straight run between two arcs starts where the PREVIOUS
+  // corner's arc ended. The walk picked it up at the next corner's entry
+  // instead, so on the first vertex -- pen still up -- it moved to that entry
+  // and the run before it was never drawn.
+  //
+  // Every contour is one closed subpath now -- one pen-down, last point back
+  // on the first. It used to be conditional on the cat being clear of the
+  // meadow's edge, because a clipped region was drawn as an open path; with
+  // nothing clipped there is no such case left.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  const shape = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+  ));
+  assert(shape.subpaths.length === 1,
+    `the contour is ${shape.subpaths.length} separate strokes -- a closed region must be drawn in one`);
+  const pts = shape.subpaths[0];
+  const gap = Math.hypot(pts.at(-1)[0] - pts[0][0], pts.at(-1)[1] - pts[0][1]);
+  assert(gap < 0.01,
+    `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
+});
+
+/** Is a point inside a recorded polygon? Ray casting over the subpath. */
+function insidePath(path, px, py) {
+  return path.subpaths.some((pts) => {
+    let hit = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i, i += 1) {
+      const [xi, yi] = pts[i];
+      const [xj, yj] = pts[j];
+      if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit;
+  });
+}
+
+check('a territory is the ground nearer to its own cat', () => {
+  // NEAREST OWNER. The tint is each cat's sight clipped by one half-plane per
+  // other cat, and the half-plane is the thing worth checking: get its side
+  // backwards and every territory belongs to the wrong cat, which reads as a
+  // palette choice rather than as a bug.
+  const { nearerHalf } = bubbleScope;
+  const a = { x: 100, y: 100, id: 1 };
+  const b = { x: 300, y: 100, id: 2 };
+  const half = withPaths(() => nearerHalf(a, b, 4000));
+
+  assert(insidePath(half, 100, 100), "the cat's own position is not in its half");
+  assert(insidePath(half, 0, 100), 'ground well behind the cat is not in its half');
+  assert(!insidePath(half, 300, 100), "the OTHER cat's position is in this half -- the side is flipped");
+  assert(!insidePath(half, 399, 100), 'ground behind the other cat is in this half');
+  // The bisector sits at x = 200: a hair either side decides it.
+  assert(insidePath(half, 199, 100), 'a point just on this cat\'s side of the bisector is excluded');
+  assert(!insidePath(half, 201, 100), 'a point just past the bisector is still claimed');
+  // ...and it is a BISECTOR, not an axis-aligned split: off-axis cats tilt it.
+  const diag = withPaths(() => nearerHalf({ x: 0, y: 0, id: 1 }, { x: 200, y: 200, id: 2 }, 4000));
+  assert(insidePath(diag, 90, 90) && !insidePath(diag, 110, 110),
+    'the diagonal bisector does not fall between the two cats');
+
+  // Coincident cats have no bisector at all. The lower id keeps the ground and
+  // the other gets nothing, or they would both paint it.
+  const tie = withPaths(() => nearerHalf({ x: 50, y: 50, id: 1 }, { x: 50, y: 50, id: 2 }, 4000));
+  const tieLost = withPaths(() => nearerHalf({ x: 50, y: 50, id: 2 }, { x: 50, y: 50, id: 1 }, 4000));
+  assert(insidePath(tie, 50, 50), 'the lower id lost the tie');
+  assert(tieLost.subpaths.length === 0, 'both cats claim ground they are standing on together');
+});
+
+check('nearest-owner: every cat tints its own territory through its own sight', () => {
+  const V = bubbleScope.VISION;
+  const wasMode = V.tintMode;
+  V.tintMode = 'nearest'; // named, not inherited: the shipped default moves
+  const ops = [];
+  const ctx = new Proxy({}, {
+    get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
+    set: (o, k, v) => { ops.push(['set:' + String(k), v]); return true; },
+  });
+  const r = visionRig(4);
+  r.ctx = ctx;
+  const kitties = [1, 2, 3].map((id) => ({ id, pos: { x: 5 + id * 3, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+
+  const tints = ops.filter(([k]) => k === 'fillRect');
+  assert(tints.length === 3, `${tints.length} territories painted for three cats`);
+  // Each one is clipped by its own sight plus one half-plane per OTHER cat.
+  const clips = ops.filter(([k]) => k === 'clip').length;
+  assert(clips === 3 * 3, `${clips} clips -- each cat needs its sight and a bisector against every other`);
+  // The tint keeps the meadow's brightness and changes only its hue, the same
+  // reason the wash multiplies: otherwise it reads differently at midnight.
+  assert(ops.some(([k, v]) => k === 'set:globalCompositeOperation' && v === 'color'),
+    'the tint is laid over normally -- it will lighten a dark meadow and darken a light one');
+  V.tintMode = wasMode;
+});
+
+check('solo: a cat colours only the ground nobody else can see', () => {
+  // The owner's own rule, kept as a mode so the two can be judged against
+  // each other on the live world rather than from memory.
+  //
+  // Clipping cannot subtract, so this is built by ERASING every other
+  // region out of a cat's own -- on the layer, one pass per cat. The check is
+  // that shape: each cat lays its hue down once and then knocks out every
+  // sibling, and nothing is painted through a clip stack.
+  const V = bubbleScope.VISION;
+  const wasMode = V.tintMode;
+  const wasFade = V.ringOverlapFade;
+  V.tintMode = 'solo';
+  V.ringOverlapFade = 0; // the contour fade shares this layer; not its subject
+  const ops = [];
+  const ctx = new Proxy({}, {
+    get: (o, k) => (...args) => ops.push([String(k), ...args.map((v) => (v && v.subpaths ? 'path' : v))]),
+    set: (o, k, v) => { ops.push(['set:' + String(k), v]); return true; },
+  });
+  const r = visionRig(4);
+  r.ctx = ctx;
+  const kitties = [1, 2, 3].map((id) => ({ id, pos: { x: 5 + id * 3, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  const lay = r.wash.calls;
+
+  // Derived, because the accounting is not obvious and I got it wrong first
+  // time: the WASH erases once per cat (n), and then each cat lays its hue and
+  // knocks out every sibling (n x n). The wash's own fillRect is not a fill.
+  const n = kitties.length;
+  const fills = lay.filter(([k]) => k === 'fill').length;
+  assert(fills === n + n * n,
+    `${fills} layer fills, expected ${n + n * n}: ${n} wash knockouts, then ${n} hues each erasing ${n - 1} siblings`);
+  const erasing = lay.filter(([k, v]) => k === 'set:globalCompositeOperation' && v === 'destination-out').length;
+  assert(erasing >= 3, `${erasing} knockout passes -- a cat that never erases its siblings tints shared ground`);
+  // Composited per cat, since each is built separately on the shared layer --
+  // plus the wash's own one. Same miscount as the fills above: the wash is
+  // part of this pipeline and has to be accounted for, not assumed away.
+  const composites = ops.filter(([k]) => k === 'drawImage').length;
+  assert(composites === 1 + n,
+    `${composites} composites, expected ${1 + n}: the wash, then one per cat`);
+  // And no clip stack: that is the other mode's mechanism.
+  assert(ops.filter(([k]) => k === 'clip').length === 0,
+    'solo is clipping -- clipping cannot subtract, so shared ground would keep its tint');
+  V.tintMode = wasMode;
+  V.ringOverlapFade = wasFade;
+});
+
+check('a contour fades where it crosses another cat, and never itself', () => {
+  // Owner, 2026-09-18: "it looks a little messy at the point in the middle
+  // when a bunch of circles intersect. Can we make the lines in the
+  // overlapping portion more transparent?"
+  //
+  // A line cannot be made fainter by painting over it, so each contour is
+  // stroked at full strength on the layer and the OTHER regions are erased
+  // out of it. The count is the invariant that matters: n - 1 knockouts per
+  // cat, never n. A cat's contour lies on its own region's boundary, so
+  // erasing with that would eat half its own line width the whole way round
+  // -- and it would look like a thinner line rather than like a bug.
+  const V = bubbleScope.VISION;
+  const wasTint = V.tintAlpha;
+  const wasFade = V.ringOverlapFade;
+  V.tintAlpha = 0; // the tint shares this layer; not its subject
+  const r = visionRig(4);
+  r.ctx = new Proxy({}, { get: () => () => {}, set: () => true });
+  const n = 4;
+  const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 6 + i * 2, y: 9 } }));
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  const lay = r.wash.calls;
+
+  const strokes = lay.filter(([k]) => k === 'stroke').length;
+  assert(strokes === n, `${strokes} contours stroked on the layer for ${n} cats`);
+  const fills = lay.filter(([k]) => k === 'fill').length;
+  assert(fills === n + n * (n - 1),
+    `${fills} layer fills, expected ${n + n * (n - 1)}: ${n} wash knockouts, then each cat fading the ${n - 1} OTHERS. `
+      + `${n + n * n} would mean a cat is erasing with its own region and eating its own line.`);
+  assert(lay.some(([k, v]) => k === 'set:globalAlpha' && v === V.ringOverlapFade),
+    'the knockout is at full alpha -- that erases the crossing outright instead of fading it');
+
+  // Turning the dial off must go back to stroking straight onto the canvas,
+  // or a zero fade would still pay for five layer passes.
+  V.ringOverlapFade = 0;
+  const plain = visionRig(4);
+  plain.ctx = new Proxy({}, { get: () => () => {}, set: () => true });
+  withPaths(() => plain.drawVisionRadii({ width: 20, height: 20, kitties }, { posFor: (k) => k.pos }));
+  assert(plain.wash.calls.filter(([k]) => k === 'stroke').length === 0,
+    'the contours still go through the layer with the fade off');
+
+  // Restored to what SHIPPED, not to a literal. Writing 0.6 back here would
+  // re-dial the bag for every check after this one the day the owner moves it.
+  V.ringOverlapFade = wasFade;
+  V.tintAlpha = wasTint;
+});
+
+check('the wash darkens at every hour and can never lighten', () => {
+  // Owner, 2026-09-17: "the wash looks inverted at night (lightening instead
+  // of darkening)." It was a mid green-teal laid over the meadow, which
+  // darkens day grass (L* 93) and lightens night grass (L* 28) -- the same
+  // paint, the opposite reading, twice a day.
+  //
+  // The invariant, not the appearance: multiplying by a colour with no
+  // channel above mid can only ever move a pixel DOWN, whatever is underneath
+  // and whatever themes get added later. Checked as state because it is the
+  // mechanism -- there is no canvas here to rasterise, and the four themes
+  // were measured on the running client instead.
+  const V = bubbleScope.VISION;
+  const lab = labOf(V.wash);
+  assert(lab, `the wash ${V.wash} is not a plain hex colour`);
+  assert(lab[0] <= 50, `the wash is L* ${lab[0].toFixed(1)} -- multiplied by that it may lighten a dark meadow`);
+
+  // ...and it must actually be multiplied. Laid over normally, a dark wash
+  // darkens the day and lightens nothing, but it also tints every hue it
+  // crosses; multiply is what makes `washAlpha` mean "this much darker".
+  const src = readFileSync(join(here, 'render.js'), 'utf8');
+  const wash = src.slice(src.indexOf('washUnseen(world, drawn) {'));
+  const body = wash.slice(0, wash.indexOf('\n  }\n'));
+  assert(/globalCompositeOperation = 'multiply'/.test(body),
+    'the wash is composited normally again -- it will invert on a dark theme');
+  assert(/globalAlpha = VISION\.washAlpha/.test(body), 'the wash no longer reads its own dial');
+});
+
+check('the meadow\'s own corner is INSIDE a cat standing on it', () => {
+  // Owner, 2026-09-17, on the first version of this: a dark wedge sat in the
+  // literal corner of the world, inside the cat's sight, because the region
+  // was rounded off where the map ended.
+  //
+  // Asked as containment rather than as distance-to-the-boundary, which is
+  // what it was before. That only made sense while the region was CLIPPED and
+  // its outline therefore ran through the corner; unclipped, the outline
+  // encircles the corner from three tiles away and the old phrasing measured
+  // a number with no meaning.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20 };
+  const shape = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 0, y: 0 } }, { posFor: () => ({ x: 0, y: 0 }) }, 4,
+  ));
+  assert(insidePath(shape, 0.5, 0.5), "the meadow's corner is not inside the sight of a cat standing on it");
+  // ...and it stays inside right through a step away from the corner, which
+  // is where the sliver used to open up.
+  for (const at of [0.25, 0.5, 0.75, 1]) {
+    const moving = withPaths(() => r.visionShape(
+      { id: 1, pos: { x: 0, y: 0 } }, { posFor: () => ({ x: at, y: at }) }, 4,
+    ));
+    assert(insidePath(moving, 0.5, 0.5),
+      `stepping away from the corner (drawn at ${at}) uncovers it -- fog in the corner of the meadow`);
+  }
+});
+
+check('a corner arc cannot round past its own neighbours', () => {
+  // THE CLAMP, which nothing guarded until `mutate.sh` said so, and which
+  // went vacuous a second time when the dial changed from a distance in tiles
+  // to a 0-1 share -- the old guard went on setting `cornerRadius`, a property
+  // that no longer existed, and passed without testing anything.
+  //
+  // Without the clamp a big value sends a reflex corner bulging outward,
+  // claiming sight the cat has not got. So: drive it far past the dial's own
+  // range and require the pen to stay near the region it is outlining.
+  //
+  // The bar is a QUARTER of a tile. Measured across the range, the contour
+  // strays 0.000 tiles at 0, 0.100 at the shipped 0.8, and 0.125 at 1.0 --
+  // where it saturates, which is the clamp doing its job. Half a tile would
+  // start reading as a different tile; a quarter is comfortably inside that
+  // and still twice the worst legal setting.
+  const V = bubbleScope.VISION;
+  const was = V.cornerSmoothness;
+  try {
+    V.cornerSmoothness = 5; // absurd on purpose: the dial's range is 0-1
+    const r = visionRig(4);
+    const world = { width: 20, height: 20, kitties: [] };
+    const shape = withPaths(() => r.visionShape(
+      { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+    ));
+    const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+    // Distance from a point (in tile units, relative to the cat's own tile)
+    // to the union of seen tiles. Zero inside.
+    const outside = (tx, ty) => {
+      let best = Infinity;
+      for (const key of seen) {
+        const [dx, dy] = key.split(',').map(Number);
+        const ox = Math.max(dx - tx, 0, tx - (dx + 1));
+        const oy = Math.max(dy - ty, 0, ty - (dy + 1));
+        best = Math.min(best, Math.hypot(ox, oy));
+      }
+      return best;
+    };
+    let worst = 0;
+    for (const [x1, y1, x2, y2] of shape.segs) {
+      for (const [px, py] of [[x1, y1], [x2, y2]]) {
+        worst = Math.max(worst, outside(px / r.tile - 9, py / r.tile - 9));
+      }
+    }
+    assert(worst <= 0.25,
+      `the contour strays ${worst.toFixed(3)} tiles outside the region -- the smoothness is not clamped, and it is claiming sight the cat has not got`);
+  } finally {
+    V.cornerSmoothness = was;
+  }
+});
+
+check('the meadow running out does not clip the cat\'s sight', () => {
+  // THE BUG THAT SURVIVED TWO FIXES (owner, 2026-09-18: "lower left corner,
+  // and left lateral edge was showing a similar issue to before, 1 or less
+  // tile not drawing the circle").
+  //
+  // The tile set is computed from the SERVED position; the path is drawn at
+  // the TWEENED one. Clipping the set to the world at build time baked the
+  // served position's idea of where the meadow ended into a shape that then
+  // slid, so mid-move the clipped edge slid inward and left a sliver of unlit
+  // fog against the rim. The first two attempts fixed what the clip LOOKED
+  // like -- the fence, then the corner wedge -- and never questioned the clip.
+  //
+  // Nothing is clipped now. The disc runs off the map, the fog is painted into
+  // the world rect, and the canvas is the world, so what is off the meadow
+  // cannot be seen. This drives a whole tween and requires the shape to cover
+  // the rim at every point in it.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20 };
+  for (const at of [1, 1.25, 1.5, 1.75, 2]) {
+    const shape = withPaths(() => r.visionShape(
+      { id: 1, pos: { x: 1, y: 10 } }, { posFor: () => ({ x: at, y: 10 }) }, 4,
+    ));
+    const leftmost = Math.min(...shape.subpaths.flat().map(([x]) => x)) / r.tile;
+    assert(leftmost <= 0.001,
+      `drawn at x=${at} the sight stops ${leftmost.toFixed(2)} tiles short of the meadow's edge -- `
+        + 'a sliver of fog is left against the rim, which is the bug the owner keeps seeing');
+  }
+
+  // ...and the bottom-left corner, where it shows on both axes at once.
+  const corner = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 1, y: 18 } }, { posFor: () => ({ x: 1.5, y: 18.5 }) }, 4,
+  ));
+  const pts = corner.subpaths.flat();
+  assert(Math.min(...pts.map(([x]) => x)) <= 0.001, 'the left rim is left foggy mid-tween');
+  assert(Math.max(...pts.map(([, y]) => y)) / r.tile >= 20 - 0.001, 'the bottom rim is left foggy mid-tween');
+});
+
+check('the shape is the served one, and only its POSITION rides the tween', () => {
+  // The region's shape comes from the served tile the cat is on; the tween
+  // moves it, and must not reshape it. That separation is what lets the
+  // contour glide with the cat instead of snapping a tile at a time -- and
+  // now that nothing is clipped to the world, it is the only thing the tween
+  // touches at all.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20 };
+  const still = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+  ));
+  const mid = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 9, y: 9 } }, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
+  ));
+  const dx = mid.subpaths[0][0][0] - still.subpaths[0][0][0];
+  close(dx, r.tile * 0.5, 'the region ignores the tween and sits on the served tile while the cat moves');
+  close(pathAreaTiles(mid, r.tile), pathAreaTiles(still, r.tile),
+    'the tween changed the SHAPE, not just where it sits');
+
+  // A cat in open ground covers every tile the engine says it can see.
+  const tiles = r.visionOffsets(4).length;
+  const area = pathAreaTiles(still, r.tile);
+  assert(area > tiles * 0.9 && area <= tiles,
+    `the sight covers ${area.toFixed(1)} tiles against the ${tiles} the cat sees`);
+});
+
+check('no served radius draws nothing at all, never a guess', () => {
+  // A client-side copy of an engine value is the failure owner call #362 was
+  // opened for. A box too old to serve `vision.radius` must leave the overlay
+  // blank rather than draw a confident, wrong disc.
+  const calls = [];
+  const ctx = new Proxy({}, {
+    get: (t2, k) => (k === 'save' || k === 'restore' || k === 'fill' || k === 'stroke'
+      ? (...a) => calls.push(String(k)) : () => {}),
+    set: () => true,
+  });
+  const r = visionRig(null);
+  r.ctx = ctx;
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties: [{ id: 1, pos: { x: 5, y: 5 } }] },
+    { posFor: () => ({ x: 5, y: 5 }) }));
+  assert(!calls.includes('fill') && !calls.includes('stroke'),
+    `an unserved radius still painted (${calls.join(',')})`);
+
+  // ...and with one served, it does paint, or the check above passes for the
+  // wrong reason.
+  const r2 = visionRig(4);
+  r2.ctx = ctx;
+  withPaths(() => r2.drawVisionRadii({ width: 20, height: 20, kitties: [{ id: 1, pos: { x: 5, y: 5 } }] },
+    { posFor: () => ({ x: 5, y: 5 }) }));
+  assert(calls.includes('fill') && calls.includes('stroke'), 'a served radius drew nothing');
+
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/renderer\.visionRadius = config\?\.vision\?\.radius \?\? null;/.test(app),
+    'app.js no longer plumbs the served vision radius -- the overlay would ship inert');
+});
+
+check('the fill does not accumulate: five cats cost the same alpha as one', () => {
+  // THE WORST CASE IS THE DESIGN CASE (owner's method, 2026-09-17: build for
+  // all five overlapping, then subtract one at a time). Built the other way
+  // first -- one tinted fill per cat -- and five cats standing together
+  // stacked five alphas exactly where the cats were, while five hues spaced
+  // evenly round the wheel averaged to grey. The most-seen ground came out
+  // the muddiest, which is backwards as well as ugly.
+  //
+  // So the fill is ONE wash over the union. This counts the paint rather than
+  // looking at it: one `fill` whatever the roster does, one `stroke` per cat.
+  // The wash lives on the SCRATCH LAYER now, so this watches that: one
+  // `fillRect` laying the fog down, then one erase per cat punching its sight
+  // back out of it. Erasing is idempotent, which is the whole reason the
+  // five-cat huddle costs what the one-cat case costs.
+  const paint = { anchors: 0, stroke: 0, widths: [] };
+  const ctx = new Proxy({}, {
+    get: (o, k) => {
+      if (k === 'fill') return () => { paint.anchors += 1; };
+      if (k === 'stroke') return () => { paint.stroke += 1; };
+      return () => {};
+    },
+    set: (o, k, v) => { if (k === 'lineWidth') paint.widths.push(v); return true; },
+  });
+  const run = (n) => {
+    paint.stroke = 0; paint.anchors = 0; paint.widths = [];
+    // ISOLATED. Three passes share one scratch layer -- the wash, the tint and
+    // the contour fade -- so a guard that counts everything on it breaks every
+    // time a new one joins. That happened three times before this comment.
+    // Each layer check now silences the others and measures only its subject.
+    const V = bubbleScope.VISION;
+    const wasTint = V.tintAlpha;
+    const wasFade = V.ringOverlapFade;
+    V.tintAlpha = 0;
+    V.ringOverlapFade = 0;
+    const r = visionRig(4);
+    r.ctx = ctx;
+    const kitties = Array.from({ length: n }, (_, i) => ({ id: i + 1, pos: { x: 9 + (i % 2), y: 9 + ((i / 2) | 0) } }));
+    withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties },
+      { posFor: (k) => k.pos }));
+    V.tintAlpha = wasTint;
+    V.ringOverlapFade = wasFade;
+    const lay = r.wash.calls;
+    return {
+      ...paint,
+      fogLaid: lay.filter(([k]) => k === 'fillRect').length,
+      erased: lay.filter(([k, , ...rest]) => k === 'fill').length,
+      erasing: lay.some(([k, v]) => k === 'set:globalCompositeOperation' && v === 'destination-out'),
+      composited: lay.filter(([k]) => k === 'drawImage').length,
+    };
+  };
+  const five = run(5);
+  const one = run(1);
+  assert(five.fogLaid === 1 && one.fogLaid === 1,
+    `the fog was laid ${five.fogLaid} times for five cats and ${one.fogLaid} for one -- it stacks, and the huddle goes muddy`);
+  assert(five.erasing, 'the regions are not being ERASED from the fog -- overlaps will not be idempotent');
+  assert(five.erased === 5 && one.erased === 1,
+    `${five.erased} regions punched out for five cats, ${one.erased} for one -- every cat clears its own sight`);
+  assert(five.stroke === 5, `five cats drew ${five.stroke} outlines -- each cat needs its own`);
+  assert(one.stroke === 1, `one cat drew ${one.stroke} outlines`);
+  assert(five.anchors === 5 && one.anchors === 1,
+    `${five.anchors} anchors for five cats and ${one.anchors} for one -- every contour needs one, or it cannot be traced to a cat`);
+
+  // ...and the fill is the NEUTRAL, never a cat's hue: a union filled in one
+  // cat's colour would claim that cat sees all of it.
+  const hues = new Set(bubbleScope.VISION.hues);
+  assert(!hues.has(bubbleScope.VISION.fill),
+    'the union wash is one of the per-cat hues -- it reads as that cat seeing the whole union');
+});
+
+check('the vision hues stay apart from each other and from every sky', () => {
+  // ⚠ RECALCULATION GUARD. The hues are PLACED at one lightness and chroma so
+  // no cat reads louder than another; re-dialling one by eye is how that
+  // stops being true. The owner's ask was explicit: "each cat should have a
+  // different color, and the colors should overlap in a way that is still
+  // aesthetically appealing even when all 5 cats are together."
+  const hues = bubbleScope.VISION.hues;
+  assert(hues.length >= 5, `only ${hues.length} hues for a five-cat roster`);
+
+  let worst = Infinity; let pair = null;
+  for (let i = 0; i < hues.length; i += 1) {
+    for (let j = i + 1; j < hues.length; j += 1) {
+      const d = deltaE(hues[i], hues[j]);
+      if (d < worst) { worst = d; pair = [hues[i], hues[j]]; }
+    }
+  }
+  // A JND is about 1.0. The bar is 20 rather than 1 because these are thin
+  // rings over a textured, moving background and have to separate at a
+  // glance, not under comparison -- the standard BUTTERFLY_COLORWAYS is held
+  // to ("pairwise distinguishable at 22px").
+  assert(worst >= 20, `${pair?.join(' and ')} are only dE ${worst.toFixed(1)} apart`);
+
+  // The lightness band: one loud hue among five quiet ones reads as one cat
+  // mattering more.
+  const Ls = hues.map((h) => labOf(h)[0]);
+  const spread = Math.max(...Ls) - Math.min(...Ls);
+  assert(spread <= 6, `the hues span L* ${spread.toFixed(1)} -- one ring is brighter than the others`);
+
+  // And none may sink into a meadow. These are the grass mid-tones from
+  // meadow.js, read from the shipped file rather than copied.
+  const meadow = readFileSync(join(here, 'meadow.js'), 'utf8');
+  const grasses = [...meadow.matchAll(/grassTones: Object\.freeze\(\['(#[0-9a-f]{6})'/g)].map((m) => m[1]);
+  assert(grasses.length >= 4, `found ${grasses.length} meadow palettes, expected at least four`);
+  for (const g of grasses) {
+    for (const h of hues) {
+      assert(deltaE(h, g) >= 10, `${h} is dE ${deltaE(h, g).toFixed(1)} from the grass ${g} -- it disappears`);
+    }
+  }
+});
+
+check('the key and the button are the same switch', () => {
+  // Sight gained a footer BUTTON as well as its key (owner, 2026-09-18: "I may
+  // hide it later, but for now I'd like to be able to turn it on on the live
+  // world"). Every other debug overlay is keyboard-only, which is unreachable
+  // on a phone -- and this is the one worth looking at on one.
+  //
+  // Two ways in is two chances to disagree about the state: a button that
+  // flips the flag itself would leave the label wrong after the key was
+  // pressed, and vice versa. So the guard is that BOTH go through one
+  // function, not that both work.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const page = readFileSync(join(here, 'index.html'), 'utf8');
+
+  assert(/function setVision\(on\)/.test(app), 'there is no single place that owns the overlay state');
+  assert(/key === 'v'\)\s*\{\s*setVision\(!renderer\.showVision\);/.test(app),
+    'the v key does not go through setVision -- it can leave the button reading the wrong thing');
+  assert(/getElementById\('vision-toggle'\)\?\.addEventListener\('click', \(\) => \{\s*setVision\(!renderer\.showVision\);/.test(app),
+    'the footer button does not go through setVision -- it can leave the note reading the wrong thing');
+
+  // Exactly one place assigns the flag, or the sentence above is decoration.
+  const writes = app.match(/renderer\.showVision = /g) || [];
+  assert(writes.length === 1,
+    `${writes.length} places set renderer.showVision -- one of them will drift from the label`);
+
+  // The button exists, starts off, and says what it does.
+  assert(/id="vision-toggle" aria-pressed="false">show</.test(page),
+    'the footer has no vision button, or it does not start in the off state');
+  // It must SHARE the cards toggle's rule rather than carry a copy. Both
+  // follow the sky only by inheritance -- `color: inherit` and `--rule` -- so
+  // a button with its own block, or with none, is the one that stops matching
+  // at night. It shipped with none, and looked like browser chrome.
+  assert(/#cards-toggle,\s*\n\s*#vision-toggle \{/.test(page),
+    'the vision button does not share the cards toggle\'s styling -- it will not follow the theme');
+  // NO note, deliberately: the button says `hide` while the overlay is up, and
+  // a note as well reflowed the footer -- measured, the button jumped 184px
+  // left and a line down when it appeared, out from under the finger that had
+  // just tapped it, so the second tap missed.
+  assert(!/id="vision-note"/.test(page),
+    'the vision note is back -- revealing it reflows the footer and moves the button mid-tap');
+  assert(!/visionNoteEl/.test(app), 'app.js still reaches for a note that no longer exists');
+  assert(/<kbd>v<\/kbd> for vision radius/.test(page),
+    'the key is not in the developer legend, so nothing makes it discoverable');
+  // ...and setVision is called once at startup so the button and the flag
+  // agree before anyone touches either.
+  assert(/\nsetVision\(false\);/.test(app), 'the button is never initialised from the real state');
+
+  // `v` must not be claimed twice: the other toggles live in the same mold.
+  const taken = [...app.matchAll(/key === '([a-z])'/g)].map((m) => m[1]);
+  assert(new Set(taken).size === taken.length, `a debug key is handled twice: ${taken.join(',')}`);
+});
 
 check('each sky crossing steps below the just-noticeable difference', () => {
   // ⚠ THIS IS THE RECALCULATION GUARD. The per-phase step counts in

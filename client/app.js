@@ -2024,6 +2024,12 @@ async function fetchViewerConfig() {
     // ...and how long a meow lingers in `recent_meows`, so the client knows
     // when it may forget one. Already served; no server change needed.
     anim.setMeowWindow(config?.meow?.digest_window_ticks);
+    // The fog's radius, for the `v` overlay. Served, so never copied into a
+    // client constant -- and the two homes agree: `/config` carries it under
+    // `vision`, and spec 052's `GET /settings` reports the same value under
+    // group `vision`, key `radius`. A box too old to serve either leaves this
+    // null and the overlay simply draws nothing rather than a confident lie.
+    renderer.visionRadius = config?.vision?.radius ?? null;
     // The trait source. `config.needs` is the baseline rise rate per need
     // and `config.kitty[].needs` overrides it for one cat -- which is
     // already how the engine reads it (`need_rate_for`), and already how
@@ -2155,9 +2161,39 @@ new ResizeObserver(() => {
   centreMapWhenShort();
 }).observe(canvas);
 
+/**
+ * Fog Gen 1's sight, one region per cat. Off by default, so the footer note
+ * reads the ordinary way round: it appears while the overlay is up.
+ *
+ * Its own function because it has TWO ways in -- the `v` key and a footer
+ * button (owner, 2026-09-18). Every other debug overlay is keyboard-only,
+ * which is unreachable on a phone, and this is the one she wants to look at
+ * on a phone. One function so the two can never disagree about the state.
+ *
+ * No footer note, unlike every other overlay here. A note is how the others
+ * announce themselves, having no visible control; this one's button already
+ * reads `hide` while it is up. Adding one as well only reflowed the footer --
+ * measured, the button jumped 184px left and a whole line down the moment the
+ * note appeared, which on a phone means it moves out from under the finger
+ * that just tapped it, and the second tap misses.
+ *
+ * Not persisted, like every other toggle in this mold: a fresh load starts
+ * from the default.
+ */
+function setVision(on) {
+  renderer.showVision = on;
+  const toggle = document.getElementById('vision-toggle');
+  if (toggle) {
+    toggle.textContent = on ? 'hide' : 'show';
+    toggle.setAttribute('aria-pressed', String(on));
+    toggle.setAttribute('aria-label', on ? 'hide the vision radius' : 'show the vision radius');
+  }
+  anim.redraw();
+}
+
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths, `h`
-// happiness bars. Each flips a flag, syncs its footer note, and redraws --
+// happiness bars, `v` what each cat can see. Each flips a flag, syncs its footer note, and redraws --
 // and every fresh load starts from the default.
 //
 // `b` is the odd one out and its note reads the other way round: the delay
@@ -2190,6 +2226,8 @@ window.addEventListener('keydown', (event) => {
     // "disable" when pressing b would re-enable is teaching the reader
     // to distrust the footer.
     pacedHintEl.textContent = anim.paced ? 'disable' : 'enable';
+  } else if (key === 'v') {
+    setVision(!renderer.showVision);
   } else if (key === 'r') {
     // Off by default, so this note reads the ordinary way round: it
     // appears when the hearts are showing. The key itself is in the
@@ -2201,6 +2239,11 @@ window.addEventListener('keydown', (event) => {
   }
   anim.redraw();
 });
+
+document.getElementById('vision-toggle')?.addEventListener('click', () => {
+  setVision(!renderer.showVision);
+});
+setVision(false);
 
 initTheme();
 initCards();
