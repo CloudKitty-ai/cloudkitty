@@ -8033,14 +8033,14 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
   const world = { width: 20, height: 20, kitties: [] };
   const kitty = { id: 1, pos: { x: 9, y: 9 } };
   const view = { posFor: () => ({ x: 9, y: 9 }) };
-  const { fill, edge } = withPaths(() => r.visionPaths(kitty, world, view, 4));
+  const shape = withPaths(() => r.visionShape(kitty, world, view, 4));
 
   const tiles = r.visionOffsets(4).length;
   // The wash follows the SAME rounded contour as the outline now, so it is
   // measured by the ground it covers rather than by a rectangle count. It was
   // built from raw tile rects until 2026-09-17, which is why the fog stopped
   // wrapping to the outline as the roundness came up.
-  const area = pathAreaTiles(fill, r.tile);
+  const area = pathAreaTiles(shape, r.tile);
   assert(area > tiles * 0.9 && area <= tiles,
     `the wash covers ${area.toFixed(1)} tiles against the ${tiles} the cat sees -- rounding may only trim the corners`);
 
@@ -8056,7 +8056,7 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
       if (!seen.has(`${dx + ax},${dy + ay}`)) perimeter += 1;
     }
   }
-  const drawnLen = edge.segs.reduce((n, [x1, y1, x2, y2]) => n + Math.hypot(x2 - x1, y2 - y1), 0) / r.tile;
+  const drawnLen = shape.segs.reduce((n, [x1, y1, x2, y2]) => n + Math.hypot(x2 - x1, y2 - y1), 0) / r.tile;
   // Stroking the FILL path would walk every side of every tile.
   assert(drawnLen < tiles * 4 * 0.5,
     `the pen travelled ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is tracing tile borders, not the outline`);
@@ -8100,7 +8100,7 @@ check('the contour keeps its weight as the camera zooms', () => {
     `at tile 19 the contour is ${widthAt(19)}, under the floor of ${V.ringWidthFloor}`);
 });
 
-check('a contour with nothing suppressed comes back to where it started', () => {
+check('a contour is one closed loop that comes back to where it started', () => {
   // THE GAP (owner, 2026-09-17: "there's a gap on the left side of the topmost
   // square on the outline"). One per loop, at whichever vertex the trace
   // happened to begin from, so it moved around the shape as the cat walked and
@@ -8111,17 +8111,18 @@ check('a contour with nothing suppressed comes back to where it started', () => 
   // instead, so on the first vertex -- pen still up -- it moved to that entry
   // and the run before it was never drawn.
   //
-  // A cat in the middle of the world has no suppressed edges, so its contour
-  // must be exactly one closed subpath: one pen-down, and the last point back
-  // on the first.
+  // Every contour is one closed subpath now -- one pen-down, last point back
+  // on the first. It used to be conditional on the cat being clear of the
+  // meadow's edge, because a clipped region was drawn as an open path; with
+  // nothing clipped there is no such case left.
   const r = visionRig(4);
   const world = { width: 20, height: 20, kitties: [] };
-  const { edge } = withPaths(() => r.visionPaths(
+  const shape = withPaths(() => r.visionShape(
     { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
   ));
-  assert(edge.subpaths.length === 1,
-    `the contour is ${edge.subpaths.length} separate strokes -- a closed region must be drawn in one`);
-  const pts = edge.subpaths[0];
+  assert(shape.subpaths.length === 1,
+    `the contour is ${shape.subpaths.length} separate strokes -- a closed region must be drawn in one`);
+  const pts = shape.subpaths[0];
   const gap = Math.hypot(pts.at(-1)[0] - pts[0][0], pts.at(-1)[1] - pts[0][1]);
   assert(gap < 0.01,
     `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
@@ -8315,31 +8316,31 @@ check('the wash darkens at every hour and can never lighten', () => {
   assert(/globalAlpha = VISION\.washAlpha/.test(body), 'the wash no longer reads its own dial');
 });
 
-check('the wash reaches the meadow\'s own corner', () => {
-  // Owner, 2026-09-17: "the edge bug issue we had before still happens in
-  // corners." A different bug wearing the first one's clothes. The OUTLINE
-  // stopped drawing along the world's edge two commits earlier, but the WASH
-  // is cut from the same loops with the suppression ignored -- and it was
-  // still ROUNDING the corner where the map ends. So the cleared region
-  // pulled off the square corner of the meadow and the fog filled the gap: a
-  // dark wedge in the literal corner of the world, inside the cat's sight.
+check('the meadow\'s own corner is INSIDE a cat standing on it', () => {
+  // Owner, 2026-09-17, on the first version of this: a dark wedge sat in the
+  // literal corner of the world, inside the cat's sight, because the region
+  // was rounded off where the map ended.
+  //
+  // Asked as containment rather than as distance-to-the-boundary, which is
+  // what it was before. That only made sense while the region was CLIPPED and
+  // its outline therefore ran through the corner; unclipped, the outline
+  // encircles the corner from three tiles away and the old phrasing measured
+  // a number with no meaning.
   const r = visionRig(4);
-  const world = { width: 20, height: 20, kitties: [] };
-  // A cat ON the corner tile, so the meadow's corner is its own tile origin.
-  const { fill } = withPaths(() => r.visionPaths(
+  const world = { width: 20, height: 20 };
+  const shape = withPaths(() => r.visionShape(
     { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
   ));
-  const pts = fill.subpaths.flat();
-  const toCorner = Math.min(...pts.map(([x, y]) => Math.hypot(x, y)));
-  assert(toCorner < 0.01,
-    `the wash stops ${(toCorner / r.tile).toFixed(2)} tiles short of the meadow's corner -- fog leaks into it`);
-
-  // ...and the two sides leaving that corner run along the map, not away from
-  // it: a point on each axis, a couple of tiles out.
-  const onTop = pts.some(([x, y]) => Math.abs(y) < 0.01 && x > r.tile * 1.5);
-  const onLeft = pts.some(([x, y]) => Math.abs(x) < 0.01 && y > r.tile * 1.5);
-  assert(onTop && onLeft,
-    'the wash leaves the corner on a curve instead of following the meadow\'s edges');
+  assert(insidePath(shape, 0.5, 0.5), "the meadow's corner is not inside the sight of a cat standing on it");
+  // ...and it stays inside right through a step away from the corner, which
+  // is where the sliver used to open up.
+  for (const at of [0.25, 0.5, 0.75, 1]) {
+    const moving = withPaths(() => r.visionShape(
+      { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: at, y: at }) }, 4,
+    ));
+    assert(insidePath(moving, 0.5, 0.5),
+      `stepping away from the corner (drawn at ${at}) uncovers it -- fog in the corner of the meadow`);
+  }
 });
 
 check('a corner arc cannot round past its own neighbours', () => {
@@ -8363,7 +8364,7 @@ check('a corner arc cannot round past its own neighbours', () => {
     V.cornerSmoothness = 5; // absurd on purpose: the dial's range is 0-1
     const r = visionRig(4);
     const world = { width: 20, height: 20, kitties: [] };
-    const { edge } = withPaths(() => r.visionPaths(
+    const shape = withPaths(() => r.visionShape(
       { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
     ));
     const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
@@ -8380,7 +8381,7 @@ check('a corner arc cannot round past its own neighbours', () => {
       return best;
     };
     let worst = 0;
-    for (const [x1, y1, x2, y2] of edge.segs) {
+    for (const [x1, y1, x2, y2] of shape.segs) {
       for (const [px, py] of [[x1, y1], [x2, y2]]) {
         worst = Math.max(worst, outside(px / r.tile - 9, py / r.tile - 9));
       }
@@ -8392,59 +8393,67 @@ check('a corner arc cannot round past its own neighbours', () => {
   }
 });
 
-check('the meadow running out is not a limit of the cat\'s sight', () => {
-  // Owner, 2026-09-17: "when cats hit the edge of the screen the border
-  // truncates oddly with each step." It did, and the truncation was the bug
-  // rather than the look -- the region is clipped to the world, so the clip
-  // ran along the world's outer edge and drew there, fencing the cat in and
-  // shedding a step every time it walked. That edge is the meadow ending, not
-  // the cat stopping seeing; it is walked and not drawn.
+check('the meadow running out does not clip the cat\'s sight', () => {
+  // THE BUG THAT SURVIVED TWO FIXES (owner, 2026-09-18: "lower left corner,
+  // and left lateral edge was showing a similar issue to before, 1 or less
+  // tile not drawing the circle").
+  //
+  // The tile set is computed from the SERVED position; the path is drawn at
+  // the TWEENED one. Clipping the set to the world at build time baked the
+  // served position's idea of where the meadow ended into a shape that then
+  // slid, so mid-move the clipped edge slid inward and left a sliver of unlit
+  // fog against the rim. The first two attempts fixed what the clip LOOKED
+  // like -- the fence, then the corner wedge -- and never questioned the clip.
+  //
+  // Nothing is clipped now. The disc runs off the map, the fog is painted into
+  // the world rect, and the canvas is the world, so what is off the meadow
+  // cannot be seen. This drives a whole tween and requires the shape to cover
+  // the rim at every point in it.
   const r = visionRig(4);
-  const world = { width: 20, height: 20, kitties: [] };
-  const corner = withPaths(() => r.visionPaths(
-    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
-  ));
-  // The cat sits at tile 0,0, so its own origin IS the world corner: anything
-  // drawn at x <= 0 or y <= 0 in local pixels is on the meadow's edge.
-  const onEdge = corner.edge.segs.filter(([x1, y1, x2, y2]) => (
-    (Math.abs(x1) < 0.5 && Math.abs(x2) < 0.5) || (Math.abs(y1) < 0.5 && Math.abs(y2) < 0.5)
-  ));
-  assert(onEdge.length === 0,
-    `${onEdge.length} segments drawn along the world's own edge -- the cat reads as fenced in`);
+  const world = { width: 20, height: 20 };
+  for (const at of [1, 1.25, 1.5, 1.75, 2]) {
+    const shape = withPaths(() => r.visionShape(
+      { id: 1, pos: { x: 1, y: 10 } }, world, { posFor: () => ({ x: at, y: 10 }) }, 4,
+    ));
+    const leftmost = Math.min(...shape.subpaths.flat().map(([x]) => x)) / r.tile;
+    assert(leftmost <= 0.001,
+      `drawn at x=${at} the sight stops ${leftmost.toFixed(2)} tiles short of the meadow's edge -- `
+        + 'a sliver of fog is left against the rim, which is the bug the owner keeps seeing');
+  }
 
-  // ...and the rest of its contour is still there, or this passes by drawing
-  // nothing at all.
-  assert(corner.edge.segs.length > 8,
-    `only ${corner.edge.segs.length} segments left -- the whole contour was suppressed, not just the meadow's edge`);
+  // ...and the bottom-left corner, where it shows on both axes at once.
+  const corner = withPaths(() => r.visionShape(
+    { id: 1, pos: { x: 1, y: 18 } }, world, { posFor: () => ({ x: 1.5, y: 18.5 }) }, 4,
+  ));
+  const pts = corner.subpaths.flat();
+  assert(Math.min(...pts.map(([x]) => x)) <= 0.001, 'the left rim is left foggy mid-tween');
+  assert(Math.max(...pts.map(([, y]) => y)) / r.tile >= 20 - 0.001, 'the bottom rim is left foggy mid-tween');
 });
 
-check('the region is clipped to the world and rides the cat through the tween', () => {
+check('the shape is the served one, and only its POSITION rides the tween', () => {
+  // The region's shape comes from the served tile the cat is on; the tween
+  // moves it, and must not reshape it. That separation is what lets the
+  // contour glide with the cat instead of snapping a tile at a time -- and
+  // now that nothing is clipped to the world, it is the only thing the tween
+  // touches at all.
   const r = visionRig(4);
-  const world = { width: 20, height: 20, kitties: [] };
-  // A cat in the corner: most of its disc is off the meadow, where there is
-  // nothing to see. A region spilling off the grass reads as a drawing bug.
-  const corner = withPaths(() => r.visionPaths(
-    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
-  ));
-  const full = withPaths(() => r.visionPaths(
+  const world = { width: 20, height: 20 };
+  const still = withPaths(() => r.visionShape(
     { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
   ));
-  const cornerArea = pathAreaTiles(corner.fill, r.tile);
-  const fullArea = pathAreaTiles(full.fill, r.tile);
-  assert(cornerArea < fullArea * 0.4,
-    `a cat in the corner washes ${cornerArea.toFixed(1)} tiles against ${fullArea.toFixed(1)} in the open -- the region is not clipped to the world`);
-  assert(corner.fill.subpaths.flat().every(([x, y]) => x >= -0.001 && y >= -0.001),
-    'the region is drawn off the top-left of the meadow');
-
-  // Anchored on the DRAWN position: mid-tween the region has to travel with
-  // the cat, or it snaps a whole tile while the cat glides.
-  const mid = withPaths(() => r.visionPaths(
+  const mid = withPaths(() => r.visionShape(
     { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
   ));
-  const dx = mid.fill.subpaths[0][0][0] - full.fill.subpaths[0][0][0];
+  const dx = mid.subpaths[0][0][0] - still.subpaths[0][0][0];
   close(dx, r.tile * 0.5, 'the region ignores the tween and sits on the served tile while the cat moves');
-  close(pathAreaTiles(mid.fill, r.tile), fullArea,
-    'the tween changed WHICH tiles are seen -- the shape is the served one, only its position moves');
+  close(pathAreaTiles(mid, r.tile), pathAreaTiles(still, r.tile),
+    'the tween changed the SHAPE, not just where it sits');
+
+  // A cat in open ground covers every tile the engine says it can see.
+  const tiles = r.visionOffsets(4).length;
+  const area = pathAreaTiles(still, r.tile);
+  assert(area > tiles * 0.9 && area <= tiles,
+    `the sight covers ${area.toFixed(1)} tiles against the ${tiles} the cat sees`);
 });
 
 check('no served radius draws nothing at all, never a guess', () => {

@@ -2477,44 +2477,38 @@ class WorldRenderer {
    * what keeps region and cat locked together through the tween, instead of
    * the region snapping a tile while the cat glides.
    */
-  visionPaths(kitty, world, view, radius) {
+  visionShape(kitty, world, view, radius) {
     const { x, y } = this.tileOrigin(view.posFor(kitty));
     const t = this.tile;
     const base = kitty.pos;
-    const seen = new Set();
-    const offsets = this.visionOffsets(radius);
-    for (const [dx, dy] of offsets) {
-      const tx = base.x + dx;
-      const ty = base.y + dy;
-      if (tx < 0 || ty < 0 || tx >= world.width || ty >= world.height) continue;
-      seen.add(`${dx},${dy}`);
-    }
-
-    // A boundary segment lying ON the world's outer edge is not a limit of
-    // this cat's sight -- it is the meadow running out. Drawing it made a cat
-    // near the edge look like it was fenced in, with the staircase truncating
-    // a step at a time as it walked (owner, 2026-09-17). Walked, not drawn.
-    const atEdge = (a, b) => (
-      (a[0] === b[0] && (base.x + a[0] === 0 || base.x + a[0] === world.width))
-      || (a[1] === b[1] && (base.y + a[1] === 0 || base.y + a[1] === world.height))
-    );
-    // ONE shape, drawn twice. The wash used to be built from raw tile rects
-    // while the outline was the rounded curve, so as the roundness came up the
-    // square corners pushed out past the contour and the fog stopped wrapping
-    // to it (owner, 2026-09-17, at smoothness 1.0 where the gap is widest).
+    // NOT clipped to the world, and that is the fix for a bug that survived
+    // two goes at it (owner, 2026-09-18: "lower left corner, and left lateral
+    // edge... 1 or less tile not drawing the circle").
     //
-    // The two differ in one respect only: the outline leaves out the segments
-    // lying on the world's edge, and the wash keeps them. An open path would
-    // be closed by canvas with a straight chord across the region, which is
-    // the opposite of what suppressing that edge is for.
-    const loops = traceTileLoops(seen, atEdge);
-    const fill = new Path2D();
-    const edge = new Path2D();
-    for (const loop of loops) {
-      roundedLoopPath(loop, fill, x, y, t, VISION.cornerSmoothness, false);
-      roundedLoopPath(loop, edge, x, y, t, VISION.cornerSmoothness, true);
+    // The tile set is computed from the SERVED position and the path is drawn
+    // at the TWEENED one. Clipping the set at build time baked the served
+    // position's idea of where the meadow ends into a shape that then slid --
+    // so mid-move the clipped edge slid inward with it and left a sliver of
+    // unlit fog against the rim, up to a full tile wide at the far end of a
+    // step. Reproduced exactly: gaps of 0.25, 0.50, 0.75 and 1.00 tiles across
+    // one tween.
+    //
+    // So the region keeps its full disc and simply runs off the map. Nothing
+    // outside the meadow can be seen anyway -- the fog is painted into the
+    // world rect and the canvas IS the world -- which is what makes the
+    // simplification safe, and it retires the whole world-edge apparatus that
+    // was trying to solve this from the wrong end.
+    const seen = new Set(this.visionOffsets(radius).map(([dx, dy]) => `${dx},${dy}`));
+
+    // ONE shape, filled AND stroked. They were two paths while the outline had
+    // to leave out the segments running along the meadow's edge and the wash
+    // had to keep them; with nothing clipped there is no such segment and no
+    // reason for them to differ.
+    const shape = new Path2D();
+    for (const loop of traceTileLoops(seen)) {
+      roundedLoopPath(loop, shape, x, y, t, VISION.cornerSmoothness);
     }
-    return { fill, edge };
+    return shape;
   }
 
   /**
@@ -2573,7 +2567,7 @@ class WorldRenderer {
     lg.fillStyle = VISION.wash;
     lg.fillRect(0, 0, world.width * this.tile, world.height * this.tile);
     lg.globalCompositeOperation = 'destination-out';
-    for (const { fill } of drawn) lg.fill(fill);
+    for (const { shape } of drawn) lg.fill(shape);
     lg.globalCompositeOperation = 'source-over';
     // `multiply` only applies where the source has alpha, so the cleared
     // sight -- punched to transparent above -- leaves the meadow untouched.
@@ -2623,7 +2617,7 @@ class WorldRenderer {
     else {
       for (const mine of drawn) {
         ctx.save();
-        ctx.clip(mine.fill);
+        ctx.clip(mine.shape);
         const a = centre(mine.kitty);
         for (const other of drawn) {
           if (other.kitty.id === mine.kitty.id) continue;
@@ -2663,11 +2657,11 @@ class WorldRenderer {
       lg.clearRect(vp.left, vp.top, this.cssWidth, this.cssHeight);
       lg.globalCompositeOperation = 'source-over';
       lg.fillStyle = mine.hue;
-      lg.fill(mine.fill);
+      lg.fill(mine.shape);
       lg.globalCompositeOperation = 'destination-out';
       for (const other of drawn) {
         if (other.kitty.id === mine.kitty.id) continue;
-        lg.fill(other.fill);
+        lg.fill(other.shape);
       }
       lg.globalCompositeOperation = 'source-over';
       this.ctx.drawImage(this.visionLayer, vp.left, vp.top, this.cssWidth, this.cssHeight);
@@ -2706,10 +2700,10 @@ class WorldRenderer {
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.lineWidth = width;
-      for (const { hue, edge } of drawn) {
+      for (const { hue, shape } of drawn) {
         ctx.globalAlpha = VISION.ringAlpha;
         ctx.strokeStyle = hue;
-        ctx.stroke(edge);
+        ctx.stroke(shape);
       }
       return;
     }
@@ -2725,12 +2719,12 @@ class WorldRenderer {
       lg.lineCap = 'round';
       lg.lineWidth = width;
       lg.strokeStyle = mine.hue;
-      lg.stroke(mine.edge);
+      lg.stroke(mine.shape);
       lg.globalCompositeOperation = 'destination-out';
       lg.globalAlpha = fade;
       for (const other of drawn) {
         if (other.kitty.id === mine.kitty.id) continue;
-        lg.fill(other.fill);
+        lg.fill(other.shape);
       }
       lg.globalAlpha = 1;
       lg.globalCompositeOperation = 'source-over';
@@ -2746,7 +2740,7 @@ class WorldRenderer {
     const drawn = world.kitties.map((kitty) => ({
       kitty,
       hue: VISION.hues[kitty.id % VISION.hues.length],
-      ...this.visionPaths(kitty, world, view, radius),
+      shape: this.visionShape(kitty, world, view, radius),
     }));
     ctx.save();
     this.washUnseen(world, drawn);
