@@ -7915,12 +7915,12 @@ const deltaE = (a, b) => {
  * edges it leaves out.
  */
 class RecordingPath {
-  constructor() { this.rects = []; this.segs = []; this.at = null; this.curves = []; }
-  quadraticCurveTo(cx, cy, x, y) { this.segs.push([...this.at, x, y]); this.curves.push([cx, cy]); this.at = [x, y]; }
+  constructor() { this.rects = []; this.segs = []; this.at = null; this.curves = []; this.subpaths = []; }
+  quadraticCurveTo(cx, cy, x, y) { this.segs.push([...this.at, x, y]); this.curves.push([cx, cy]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
   addPath(other) { this.rects.push(...other.rects); this.segs.push(...other.segs); }
   rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
-  moveTo(x, y) { this.at = [x, y]; }
-  lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; }
+  moveTo(x, y) { this.at = [x, y]; this.subpaths.push([[x, y]]); }
+  lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; this.subpaths.at(-1).push([x, y]); }
 }
 /** Run `fn` with a Path2D node can actually construct. */
 function withPaths(fn) {
@@ -8004,6 +8004,33 @@ check('the overlay strokes the region OUTLINE, not every tile it contains', () =
   // staircase; it must not be longer, and must not be missing a side.
   assert(drawnLen > perimeter * 0.7 && drawnLen <= perimeter * 1.02,
     `the contour is ${drawnLen.toFixed(1)} tiles against a ${perimeter}-tile boundary -- it is not tracing it once`);
+});
+
+check('a contour with nothing suppressed comes back to where it started', () => {
+  // THE GAP (owner, 2026-09-17: "there's a gap on the left side of the topmost
+  // square on the outline"). One per loop, at whichever vertex the trace
+  // happened to begin from, so it moved around the shape as the cat walked and
+  // looked like a rendering glitch rather than a geometry bug.
+  //
+  // The cause: a straight run between two arcs starts where the PREVIOUS
+  // corner's arc ended. The walk picked it up at the next corner's entry
+  // instead, so on the first vertex -- pen still up -- it moved to that entry
+  // and the run before it was never drawn.
+  //
+  // A cat in the middle of the world has no suppressed edges, so its contour
+  // must be exactly one closed subpath: one pen-down, and the last point back
+  // on the first.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  const { edge } = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+  ));
+  assert(edge.subpaths.length === 1,
+    `the contour is ${edge.subpaths.length} separate strokes -- a closed region must be drawn in one`);
+  const pts = edge.subpaths[0];
+  const gap = Math.hypot(pts.at(-1)[0] - pts[0][0], pts.at(-1)[1] - pts[0][1]);
+  assert(gap < 0.01,
+    `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
 });
 
 check('a corner arc cannot round past its own neighbours', () => {

@@ -120,8 +120,8 @@ const BUBBLE_TICKS = 3;
 const VISION = {
   fill: '#3f6f5a', // one neutral, never the hues -- see drawVisionRadii
   fillAlpha: 0.1,
-  ringAlpha: 0.55, // a contour, not a fence
-  ringWidth: 1.5,
+  ringAlpha: 0.4, // a contour, not a fence
+  ringWidth: 3.5, // thicker and softer reads better than thin and hard
   cornerRadius: 0.4, // in TILES; 0 is the raw staircase, 0.5 the roundest legal
   anchorR: 0.16, // the owner cue, in tiles
   anchorAlpha: 0.85,
@@ -674,28 +674,51 @@ function roundedLoopPath(loop, path, ox, oy, tile, radius) {
   if (n < 3) return;
   const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
   const lerp = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
-  let pen = false;
-  for (let i = 0; i < n; i += 1) {
+
+  // Where each corner's arc leaves the side coming in and rejoins the side
+  // going out. Precomputed for the WHOLE loop first, because a straight run
+  // belongs to two corners -- it starts where one arc ended -- and walking
+  // the loop while working that out is what produced the gap below.
+  const V = loop.map((vertex, i) => {
     const prev = loop[(i - 1 + n) % n].p;
-    const cur = loop[i].p;
+    const cur = vertex.p;
     const next = loop[(i + 1) % n].p;
     const r = Math.min(radius, len(prev, cur) / 2, len(cur, next) / 2);
-    const inEdge = loop[(i - 1 + n) % n].suppressed;
-    const outEdge = loop[i].suppressed;
-    const start = lerp(cur, prev, r / len(prev, cur) || 0);
-    const end = lerp(cur, next, r / len(cur, next) || 0);
-    if (inEdge) { pen = false; } else {
-      if (!pen) { path.moveTo(px(start[0]), py(start[1])); pen = true; }
-      else path.lineTo(px(start[0]), py(start[1]));
+    return {
+      cur,
+      r,
+      start: lerp(cur, prev, r / len(prev, cur) || 0),
+      end: lerp(cur, next, r / len(cur, next) || 0),
+      outSuppressed: vertex.suppressed,
+    };
+  });
+
+  let pen = false;
+  const moveTo = (p) => { path.moveTo(px(p[0]), py(p[1])); pen = true; };
+  const lineTo = (p) => path.lineTo(px(p[0]), py(p[1]));
+  for (let i = 0; i < n; i += 1) {
+    const from = V[(i - 1 + n) % n];
+    const at = V[i];
+    const inSuppressed = from.outSuppressed;
+
+    // The straight run between two arcs. It begins at the PREVIOUS corner's
+    // exit, not at this corner's entry -- picking it up at the entry is what
+    // left one side of one tile undrawn on every loop, at whichever vertex
+    // the trace happened to start from (owner spotted it: "a gap on the left
+    // side of the topmost square").
+    if (inSuppressed) pen = false;
+    else {
+      if (!pen) moveTo(from.end);
+      lineTo(at.start);
     }
-    // The corner itself belongs to neither side: drawn when either is drawn,
-    // so a suppressed run does not eat the curve of the segment beside it.
-    if (!inEdge || !outEdge) {
-      if (!pen) { path.moveTo(px(start[0]), py(start[1])); pen = true; }
-      if (r > 0) path.quadraticCurveTo(px(cur[0]), py(cur[1]), px(end[0]), py(end[1]));
-      else path.lineTo(px(cur[0]), py(cur[1]));
+
+    // The corner belongs to neither side, so it is drawn when either is.
+    if (!inSuppressed || !at.outSuppressed) {
+      if (!pen) moveTo(at.start);
+      if (at.r > 0) path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
+      else lineTo(at.cur);
     }
-    if (outEdge) pen = false;
+    if (at.outSuppressed) pen = false;
   }
 }
 
