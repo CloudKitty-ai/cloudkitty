@@ -104,6 +104,30 @@ const GREEBLE_FACE = 'grin';
 const BUBBLE_TICKS = 3;
 
 /**
+ * The vision overlay (owner's backlog ask, 2026-09-10): what Fog Gen 1's
+ * sight actually covers, one region per cat, off unless `v` is pressed.
+ *
+ * `hues` are PLACED, not picked: six evenly-spaced hues at one lightness and
+ * one chroma (CIE L* 62, C* 52), so no cat's ring reads louder than another's
+ * and the set survives a sixth seat. Worst pairwise dE is 43.9 and the
+ * nearest any hue comes to any of the four meadow grasses is 34.5 -- a JND is
+ * about 1.0, so both are enormous margins. A test recomputes them from these
+ * values rather than trusting this comment.
+ *
+ * The fill stacks: five overlapping regions read as a deeper pool, which is
+ * the honest reading -- more cats can see that tile. It is order-dependent in
+ * hue (the last cat drawn tints an overlap slightly more), stable across
+ * frames because kitty order is, and cheap to replace with an additive
+ * offscreen layer if the owner judges the overlaps muddy.
+ */
+const VISION = {
+  fillAlpha: 0.11,
+  ringAlpha: 0.9,
+  ringWidth: 2,
+  hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
+};
+
+/**
  * The drawn box for a kitty at its curated size (VIEW.kittySize).
  *
  * Scaled about the FEET and centred on the tile: `dy` keeps the pose's own
@@ -571,6 +595,8 @@ class WorldRenderer {
     // near its ceiling anyway -- so four near-full bars said little while
     // sitting exactly where the ground shadows fall. `h` brings them back.
     this.showHappiness = false;
+    this.showVision = false; // the fog overlay, `v`, off by default
+    this.visionRadius = null; // served by /config; null draws nothing
     this.theme = 'day'; // 'day' | 'dusk' | 'night' -- set by setTheme
     // (app.js), which also swaps the MEADOW/PROPS palettes and clears
     // the ground cache
@@ -966,6 +992,9 @@ class WorldRenderer {
     if (this.showGrid && VIEW.meadow.gridOverlay) {
       drawGridOverlay(ctx, { width: world.width, height: world.height, tile: this.tile });
     }
+    // Sight sits with the other debug chrome, on the grass and under
+    // everything that lives -- a cat is never obscured by what it can see.
+    if (this.showVision) this.drawVisionRadii(world, view);
     this.drawGroundAmbient(world, view);
     // Sunbeams are warmth on the ground, so they go under everything else.
     for (const el of world.elements) {
@@ -2153,6 +2182,106 @@ class WorldRenderer {
     const vp = this.viewportRect();
     return x + this.tile > vp.left && x < vp.right
       && y + this.tile > vp.top && y < vp.bottom;
+  }
+
+  /**
+   * The tiles one cat can see, as offsets from its own.
+   *
+   * THE RULE IS NOT A CIRCLE. `Position::visible_from` (core/src/grid.rs) is
+   * `dx² + dy² <= r²` in INTEGER tile coordinates, so at the served radius 4
+   * a cat sees four tiles along the axes but only two diagonally -- tile
+   * (3,3) is 18 against 16 and is not seen. Drawing a smooth disc of r tiles
+   * would claim sight the cat does not have, in exactly the places someone
+   * checking this overlay would look. The stair-steps ARE the feature.
+   *
+   * Recomputed per call rather than cached: it is a handful of integers, it
+   * only runs while the overlay is on, and a cache keyed on a radius that can
+   * change under a re-deploy is a bug waiting for a quiet afternoon.
+   */
+  visionOffsets(radius) {
+    const out = [];
+    for (let dy = -radius; dy <= radius; dy += 1) {
+      for (let dx = -radius; dx <= radius; dx += 1) {
+        if (dx * dx + dy * dy <= radius * radius) out.push([dx, dy]);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * One cat's sight as two paths: the filled region, and only the edges on
+   * its BOUNDARY.
+   *
+   * An edge is a boundary when the tile across it is not itself seen, which
+   * is what turns a bag of squares into one outline -- stroking the fill path
+   * would draw every internal tile border and five cats would be a lattice.
+   *
+   * Clipped to the world. The engine's predicate does not clamp, but there is
+   * nothing out there to see, and a region spilling off the meadow reads as a
+   * drawing bug rather than as law.
+   *
+   * Anchored on the DRAWN position, not the served tile. The shape is the one
+   * computed at the served tile either way; translating it with the cat is
+   * what keeps region and cat locked together through the tween, instead of
+   * the region snapping a tile while the cat glides.
+   */
+  visionPaths(kitty, world, view, radius) {
+    const { x, y } = this.tileOrigin(view.posFor(kitty));
+    const t = this.tile;
+    const base = kitty.pos;
+    const seen = new Set();
+    const offsets = this.visionOffsets(radius);
+    for (const [dx, dy] of offsets) {
+      const tx = base.x + dx;
+      const ty = base.y + dy;
+      if (tx < 0 || ty < 0 || tx >= world.width || ty >= world.height) continue;
+      seen.add(`${dx},${dy}`);
+    }
+    const fill = new Path2D();
+    const edge = new Path2D();
+    for (const key of seen) {
+      const [dx, dy] = key.split(',').map(Number);
+      const px = x + dx * t;
+      const py = y + dy * t;
+      fill.rect(px, py, t, t);
+      // Four sides, each drawn only where the neighbour is not also seen.
+      if (!seen.has(`${dx},${dy - 1}`)) { edge.moveTo(px, py); edge.lineTo(px + t, py); }
+      if (!seen.has(`${dx},${dy + 1}`)) { edge.moveTo(px, py + t); edge.lineTo(px + t, py + t); }
+      if (!seen.has(`${dx - 1},${dy}`)) { edge.moveTo(px, py); edge.lineTo(px, py + t); }
+      if (!seen.has(`${dx + 1},${dy}`)) { edge.moveTo(px + t, py); edge.lineTo(px + t, py + t); }
+    }
+    return { fill, edge };
+  }
+
+  /**
+   * Every cat's sight, one colour each (owner: "each cat should have a
+   * different color, and the colors should overlap in a way that is still
+   * aesthetically appealing even when all 5 cats are together").
+   *
+   * The radius is SERVED and never guessed. `/config` carries
+   * `vision.radius`, app.js hands it over, and with nothing handed over this
+   * draws nothing at all -- a client-side copy of an engine value is the
+   * failure owner call #362 was opened for, and a plausible-looking default
+   * would be that failure wearing a disguise.
+   */
+  drawVisionRadii(world, view) {
+    const radius = this.visionRadius;
+    if (!radius) return;
+    const ctx = this.ctx;
+    ctx.save();
+    for (const kitty of world.kitties) {
+      const hue = VISION.hues[kitty.id % VISION.hues.length];
+      const { fill, edge } = this.visionPaths(kitty, world, view, radius);
+      ctx.globalAlpha = VISION.fillAlpha;
+      ctx.fillStyle = hue;
+      ctx.fill(fill);
+      ctx.globalAlpha = VISION.ringAlpha;
+      ctx.strokeStyle = hue;
+      ctx.lineWidth = VISION.ringWidth;
+      ctx.lineJoin = 'round';
+      ctx.stroke(edge);
+    }
+    ctx.restore();
   }
 
   drawBubbles(world, view) {

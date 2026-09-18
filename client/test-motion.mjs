@@ -3528,7 +3528,7 @@ function bubbleWorld(tick, meows, n = 3) {
 // rather than widening the shared one under 340 existing checks.
 const bubbleScope = eval(
   readFileSync(join(here, 'props.js'), 'utf8') + '\n' + renderSrc
-    + ';({ WorldRenderer, MEOW_TEXT })',
+    + ';({ WorldRenderer, MEOW_TEXT, VISION })',
 );
 
 /**
@@ -7907,6 +7907,203 @@ const deltaE = (a, b) => {
   if (!A || !B) return 0;
   return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
 };
+
+/**
+ * `visionPaths` builds `Path2D`s, which node does not have. This records the
+ * segments instead, so a check can ask WHICH edges were drawn rather than
+ * trusting that some were -- the whole point of the boundary walk is the
+ * edges it leaves out.
+ */
+class RecordingPath {
+  constructor() { this.rects = []; this.segs = []; this.at = null; }
+  rect(x, y, w, h) { this.rects.push([x, y, w, h]); }
+  moveTo(x, y) { this.at = [x, y]; }
+  lineTo(x, y) { this.segs.push([...this.at, x, y]); this.at = [x, y]; }
+}
+/** Run `fn` with a Path2D node can actually construct. */
+function withPaths(fn) {
+  const had = 'Path2D' in globalThis;
+  const saved = globalThis.Path2D;
+  globalThis.Path2D = RecordingPath;
+  try { return fn(); } finally {
+    if (had) globalThis.Path2D = saved; else delete globalThis.Path2D;
+  }
+}
+/** A renderer stub with just what the vision overlay reaches. */
+function visionRig(radius, { tile = 40, width = 20, height = 20 } = {}) {
+  const r = Object.create(bubbleScope.WorldRenderer.prototype);
+  r.tile = tile;
+  r.visionRadius = radius;
+  r.tileOrigin = (pos) => ({ x: pos.x * tile, y: pos.y * tile });
+  return r;
+}
+
+check('the vision overlay draws the ENGINE rule, which is not a circle', () => {
+  // `Position::visible_from` (core/src/grid.rs) is `dx² + dy² <= r²` in
+  // INTEGER tile coordinates. A smooth disc of r tiles would claim sight the
+  // cat does not have, and it would do it on the diagonals -- exactly where
+  // someone checking this overlay would look.
+  const rust = readFileSync(join(here, '../crates/cloudkitty-core/src/grid.rs'), 'utf8');
+  const fn = rust.slice(rust.indexOf('pub fn visible_from'));
+  assert(/self\.euclid_sq\(other\) <= r\.saturating_mul\(r\)/.test(fn.slice(0, 300)),
+    'the engine no longer decides sight by `dx² + dy² <= r²` -- this overlay is drawing a rule that moved');
+
+  const r = visionRig(4);
+  const got = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+  const want = new Set();
+  for (let dy = -4; dy <= 4; dy += 1) {
+    for (let dx = -4; dx <= 4; dx += 1) if (dx * dx + dy * dy <= 16) want.add(`${dx},${dy}`);
+  }
+  assert(got.size === want.size && [...want].every((k) => got.has(k)),
+    `the offsets are not the engine's set (${got.size} vs ${want.size})`);
+
+  // The two cases that separate the rule from a circle, named rather than
+  // left to the set comparison: a smooth disc of radius 4 covers most of the
+  // (3,3) tile, and the rule does not.
+  assert(got.has('4,0'), 'the cat cannot see four tiles along the axis -- the radius is not being applied');
+  assert(!got.has('3,3'), 'tile (3,3) is drawn as seen: 9+9=18 against 16, so this is a CIRCLE, not the rule');
+  assert(!got.has('4,1'), 'tile (4,1) is drawn as seen: 16+1=17 against 16');
+});
+
+check('the overlay strokes the region OUTLINE, not every tile it contains', () => {
+  // Stroking the fill path would draw all four sides of all 49 tiles, and
+  // five cats would be a lattice rather than five regions. An edge is drawn
+  // only where the tile across it is not itself seen.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  const kitty = { id: 1, pos: { x: 9, y: 9 } };
+  const view = { posFor: () => ({ x: 9, y: 9 }) };
+  const { fill, edge } = withPaths(() => r.visionPaths(kitty, world, view, 4));
+
+  const tiles = r.visionOffsets(4).length;
+  assert(fill.rects.length === tiles, `the fill covers ${fill.rects.length} tiles, not the ${tiles} seen`);
+  assert(edge.segs.length < tiles * 4,
+    `every side of every tile was stroked (${edge.segs.length}) -- this is the fill path, not a boundary`);
+
+  // The boundary of a set of unit squares is one edge per tile side whose
+  // neighbour is outside it. Computed here from the same offsets, so the
+  // number is derived rather than transcribed.
+  const seen = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+  let want = 0;
+  for (const key of seen) {
+    const [dx, dy] = key.split(',').map(Number);
+    for (const [ax, ay] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+      if (!seen.has(`${dx + ax},${dy + ay}`)) want += 1;
+    }
+  }
+  assert(edge.segs.length === want,
+    `${edge.segs.length} boundary edges drawn, ${want} on the region's outline`);
+});
+
+check('the region is clipped to the world and rides the cat through the tween', () => {
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  // A cat in the corner: most of its disc is off the meadow, where there is
+  // nothing to see. A region spilling off the grass reads as a drawing bug.
+  const corner = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
+  ));
+  const full = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9, y: 9 }) }, 4,
+  ));
+  assert(corner.fill.rects.length < full.fill.rects.length,
+    'a cat in the corner sees as many tiles as one in the middle -- the region is not clipped to the world');
+  assert(corner.fill.rects.every(([x, y]) => x >= -0.001 && y >= -0.001),
+    'the region is drawn off the top-left of the meadow');
+
+  // Anchored on the DRAWN position: mid-tween the region has to travel with
+  // the cat, or it snaps a whole tile while the cat glides.
+  const mid = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 9, y: 9 } }, world, { posFor: () => ({ x: 9.5, y: 9 }) }, 4,
+  ));
+  const dx = mid.fill.rects[0][0] - full.fill.rects[0][0];
+  close(dx, r.tile * 0.5, 'the region ignores the tween and sits on the served tile while the cat moves');
+  assert(mid.fill.rects.length === full.fill.rects.length,
+    'the tween changed WHICH tiles are seen -- the shape is the served one, only its position moves');
+});
+
+check('no served radius draws nothing at all, never a guess', () => {
+  // A client-side copy of an engine value is the failure owner call #362 was
+  // opened for. A box too old to serve `vision.radius` must leave the overlay
+  // blank rather than draw a confident, wrong disc.
+  const calls = [];
+  const ctx = new Proxy({}, {
+    get: (t2, k) => (k === 'save' || k === 'restore' || k === 'fill' || k === 'stroke'
+      ? (...a) => calls.push(String(k)) : () => {}),
+    set: () => true,
+  });
+  const r = visionRig(null);
+  r.ctx = ctx;
+  withPaths(() => r.drawVisionRadii({ width: 20, height: 20, kitties: [{ id: 1, pos: { x: 5, y: 5 } }] },
+    { posFor: () => ({ x: 5, y: 5 }) }));
+  assert(!calls.includes('fill') && !calls.includes('stroke'),
+    `an unserved radius still painted (${calls.join(',')})`);
+
+  // ...and with one served, it does paint, or the check above passes for the
+  // wrong reason.
+  const r2 = visionRig(4);
+  r2.ctx = ctx;
+  withPaths(() => r2.drawVisionRadii({ width: 20, height: 20, kitties: [{ id: 1, pos: { x: 5, y: 5 } }] },
+    { posFor: () => ({ x: 5, y: 5 }) }));
+  assert(calls.includes('fill') && calls.includes('stroke'), 'a served radius drew nothing');
+
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  assert(/renderer\.visionRadius = config\?\.vision\?\.radius \?\? null;/.test(app),
+    'app.js no longer plumbs the served vision radius -- the overlay would ship inert');
+});
+
+check('the vision hues stay apart from each other and from every sky', () => {
+  // ⚠ RECALCULATION GUARD. The hues are PLACED at one lightness and chroma so
+  // no cat reads louder than another; re-dialling one by eye is how that
+  // stops being true. The owner's ask was explicit: "each cat should have a
+  // different color, and the colors should overlap in a way that is still
+  // aesthetically appealing even when all 5 cats are together."
+  const hues = bubbleScope.VISION.hues;
+  assert(hues.length >= 5, `only ${hues.length} hues for a five-cat roster`);
+
+  let worst = Infinity; let pair = null;
+  for (let i = 0; i < hues.length; i += 1) {
+    for (let j = i + 1; j < hues.length; j += 1) {
+      const d = deltaE(hues[i], hues[j]);
+      if (d < worst) { worst = d; pair = [hues[i], hues[j]]; }
+    }
+  }
+  // A JND is about 1.0. The bar is 20 rather than 1 because these are thin
+  // rings over a textured, moving background and have to separate at a
+  // glance, not under comparison -- the standard BUTTERFLY_COLORWAYS is held
+  // to ("pairwise distinguishable at 22px").
+  assert(worst >= 20, `${pair?.join(' and ')} are only dE ${worst.toFixed(1)} apart`);
+
+  // The lightness band: one loud hue among five quiet ones reads as one cat
+  // mattering more.
+  const Ls = hues.map((h) => labOf(h)[0]);
+  const spread = Math.max(...Ls) - Math.min(...Ls);
+  assert(spread <= 6, `the hues span L* ${spread.toFixed(1)} -- one ring is brighter than the others`);
+
+  // And none may sink into a meadow. These are the grass mid-tones from
+  // meadow.js, read from the shipped file rather than copied.
+  const meadow = readFileSync(join(here, 'meadow.js'), 'utf8');
+  const grasses = [...meadow.matchAll(/grassTones: Object\.freeze\(\['(#[0-9a-f]{6})'/g)].map((m) => m[1]);
+  assert(grasses.length >= 4, `found ${grasses.length} meadow palettes, expected at least four`);
+  for (const g of grasses) {
+    for (const h of hues) {
+      assert(deltaE(h, g) >= 10, `${h} is dE ${deltaE(h, g).toFixed(1)} from the grass ${g} -- it disappears`);
+    }
+  }
+});
+
+check('the v key is wired, and the footer says so', () => {
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const page = readFileSync(join(here, 'index.html'), 'utf8');
+  assert(/key === 'v'/.test(app), 'the v key is not handled');
+  assert(/renderer\.showVision = !renderer\.showVision/.test(app), 'the v key does not flip the overlay');
+  assert(/id="vision-note"/.test(page), 'the overlay has no footer note to reveal');
+  assert(/<kbd>v<\/kbd> for vision radius/.test(page),
+    'the key is not in the legend, so nothing makes it discoverable');
+  // `v` must not be claimed twice: the other toggles live in the same mold.
+  const taken = [...app.matchAll(/key === '([a-z])'/g)].map((m) => m[1]);
+  assert(new Set(taken).size === taken.length, `a debug key is handled twice: ${taken.join(',')}`);
+});
 
 check('each sky crossing steps below the just-noticeable difference', () => {
   // ⚠ THIS IS THE RECALCULATION GUARD. The per-phase step counts in
