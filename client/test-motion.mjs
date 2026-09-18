@@ -8595,14 +8595,46 @@ check('the vision hues stay apart from each other and from every sky', () => {
   }
 });
 
-check('the v key is wired, and the footer says so', () => {
+check('the key and the button are the same switch', () => {
+  // Sight gained a footer BUTTON as well as its key (owner, 2026-09-18: "I may
+  // hide it later, but for now I'd like to be able to turn it on on the live
+  // world"). Every other debug overlay is keyboard-only, which is unreachable
+  // on a phone -- and this is the one worth looking at on one.
+  //
+  // Two ways in is two chances to disagree about the state: a button that
+  // flips the flag itself would leave the label wrong after the key was
+  // pressed, and vice versa. So the guard is that BOTH go through one
+  // function, not that both work.
   const app = readFileSync(join(here, 'app.js'), 'utf8');
   const page = readFileSync(join(here, 'index.html'), 'utf8');
-  assert(/key === 'v'/.test(app), 'the v key is not handled');
-  assert(/renderer\.showVision = !renderer\.showVision/.test(app), 'the v key does not flip the overlay');
-  assert(/id="vision-note"/.test(page), 'the overlay has no footer note to reveal');
+
+  assert(/function setVision\(on\)/.test(app), 'there is no single place that owns the overlay state');
+  assert(/key === 'v'\)\s*\{\s*setVision\(!renderer\.showVision\);/.test(app),
+    'the v key does not go through setVision -- it can leave the button reading the wrong thing');
+  assert(/getElementById\('vision-toggle'\)\?\.addEventListener\('click', \(\) => \{\s*setVision\(!renderer\.showVision\);/.test(app),
+    'the footer button does not go through setVision -- it can leave the note reading the wrong thing');
+
+  // Exactly one place assigns the flag, or the sentence above is decoration.
+  const writes = app.match(/renderer\.showVision = /g) || [];
+  assert(writes.length === 1,
+    `${writes.length} places set renderer.showVision -- one of them will drift from the label`);
+
+  // The button exists, starts off, and says what it does.
+  assert(/id="vision-toggle" aria-pressed="false">show</.test(page),
+    'the footer has no vision button, or it does not start in the off state');
+  // NO note, deliberately: the button says `hide` while the overlay is up, and
+  // a note as well reflowed the footer -- measured, the button jumped 184px
+  // left and a line down when it appeared, out from under the finger that had
+  // just tapped it, so the second tap missed.
+  assert(!/id="vision-note"/.test(page),
+    'the vision note is back -- revealing it reflows the footer and moves the button mid-tap');
+  assert(!/visionNoteEl/.test(app), 'app.js still reaches for a note that no longer exists');
   assert(/<kbd>v<\/kbd> for vision radius/.test(page),
-    'the key is not in the legend, so nothing makes it discoverable');
+    'the key is not in the developer legend, so nothing makes it discoverable');
+  // ...and setVision is called once at startup so the button and the flag
+  // agree before anyone touches either.
+  assert(/\nsetVision\(false\);/.test(app), 'the button is never initialised from the real state');
+
   // `v` must not be claimed twice: the other toggles live in the same mold.
   const taken = [...app.matchAll(/key === '([a-z])'/g)].map((m) => m[1]);
   assert(new Set(taken).size === taken.length, `a debug key is handled twice: ${taken.join(',')}`);

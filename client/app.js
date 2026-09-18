@@ -19,7 +19,6 @@ const happyNoteEl = document.getElementById('happy-note');
 const pacedNoteEl = document.getElementById('paced-note');
 const pacedHintEl = document.getElementById('paced-hint');
 const purrNoteEl = document.getElementById('purr-note');
-const visionNoteEl = document.getElementById('vision-note');
 
 const NEED_LABELS = {
   eat: 'eat',
@@ -2162,6 +2161,36 @@ new ResizeObserver(() => {
   centreMapWhenShort();
 }).observe(canvas);
 
+/**
+ * Fog Gen 1's sight, one region per cat. Off by default, so the footer note
+ * reads the ordinary way round: it appears while the overlay is up.
+ *
+ * Its own function because it has TWO ways in -- the `v` key and a footer
+ * button (owner, 2026-09-18). Every other debug overlay is keyboard-only,
+ * which is unreachable on a phone, and this is the one she wants to look at
+ * on a phone. One function so the two can never disagree about the state.
+ *
+ * No footer note, unlike every other overlay here. A note is how the others
+ * announce themselves, having no visible control; this one's button already
+ * reads `hide` while it is up. Adding one as well only reflowed the footer --
+ * measured, the button jumped 184px left and a whole line down the moment the
+ * note appeared, which on a phone means it moves out from under the finger
+ * that just tapped it, and the second tap misses.
+ *
+ * Not persisted, like every other toggle in this mold: a fresh load starts
+ * from the default.
+ */
+function setVision(on) {
+  renderer.showVision = on;
+  const toggle = document.getElementById('vision-toggle');
+  if (toggle) {
+    toggle.textContent = on ? 'hide' : 'show';
+    toggle.setAttribute('aria-pressed', String(on));
+    toggle.setAttribute('aria-label', on ? 'hide the vision radius' : 'show the vision radius');
+  }
+  anim.redraw();
+}
+
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths, `h`
 // happiness bars, `v` what each cat can see. Each flips a flag, syncs its footer note, and redraws --
@@ -2198,10 +2227,7 @@ window.addEventListener('keydown', (event) => {
     // to distrust the footer.
     pacedHintEl.textContent = anim.paced ? 'disable' : 'enable';
   } else if (key === 'v') {
-    // Fog Gen 1's sight, one region per cat. Off by default, so the note
-    // reads the ordinary way round: it appears while the overlay is up.
-    renderer.showVision = !renderer.showVision;
-    visionNoteEl.hidden = !renderer.showVision;
+    setVision(!renderer.showVision);
   } else if (key === 'r') {
     // Off by default, so this note reads the ordinary way round: it
     // appears when the hearts are showing. The key itself is in the
@@ -2213,6 +2239,11 @@ window.addEventListener('keydown', (event) => {
   }
   anim.redraw();
 });
+
+document.getElementById('vision-toggle')?.addEventListener('click', () => {
+  setVision(!renderer.showVision);
+});
+setVision(false);
 
 initTheme();
 initCards();

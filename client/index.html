@@ -1766,9 +1766,24 @@
     <span id="happy-note" hidden>· 💚 happiness bars visible</span>
     <span id="paced-note" hidden>· ⏩ buffering disabled</span>
     <span id="purr-note" hidden>· 💗 purr hearts visible — <kbd>r</kbd> to hide</span>
-    <span id="vision-note" hidden>· 👁 vision radius visible — <kbd>v</kbd> to hide</span>
     · <span class="theme-control">cards
       <button id="cards-toggle" aria-expanded="false">expand</button></span>
+    <!-- Sight is the one debug overlay with a CLICK toggle as well as a key
+         (owner, 2026-09-18: "I may hide it later, but for now I'd like to be
+         able to turn it on on the live world"). Every other one is
+         keyboard-only on purpose, which is unreachable on a phone -- and this
+         is the one worth looking at on a phone. It sits with `cards` rather
+         than in the developer group so it is reachable without pressing `d`
+         first, which is itself a key.
+
+         And it has NO footer note, where every other overlay does. The note
+         is how those announce themselves, because they have no visible
+         control; this one's button already says `hide` while it is up. A note
+         as well would only reflow the row -- measured, the button jumped
+         184px left and a whole line down when the note appeared, out from
+         under the finger that had just tapped it. -->
+    · <span class="theme-control">vision
+      <button id="vision-toggle" aria-pressed="false">show</button></span>
     <!-- The developer group (owner, 2026-08-21): hints and click-toggles
          the everyday footer does not need. Every KEY in here works with
          the group hidden -- this is a visual simplification, not a
