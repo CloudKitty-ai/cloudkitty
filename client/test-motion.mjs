@@ -7950,19 +7950,23 @@ check('the vision overlay draws the ENGINE rule, which is not a circle', () => {
 
   const r = visionRig(4);
   const got = new Set(r.visionOffsets(4).map(([x, y]) => `${x},${y}`));
+
+  // The named cases come FIRST, and deliberately. They are the ones that
+  // separate the rule from a circle, and a set comparison that subsumes them
+  // would fire first and report an unhelpful count -- leaving these three
+  // unable to go red on their own, which makes them documentation rather than
+  // guards. `mutate.sh` caught exactly that, 2026-09-17.
+  assert(got.has('4,0'), 'the cat cannot see four tiles along the axis -- the radius is not being applied');
+  assert(!got.has('3,3'), 'tile (3,3) is drawn as seen: 9+9=18 against 16, so this is a CIRCLE, not the rule');
+  assert(!got.has('4,1'), 'tile (4,1) is drawn as seen: 16+1=17 against 16');
+
+  // ...and then the whole set, which is the guard the three above explain.
   const want = new Set();
   for (let dy = -4; dy <= 4; dy += 1) {
     for (let dx = -4; dx <= 4; dx += 1) if (dx * dx + dy * dy <= 16) want.add(`${dx},${dy}`);
   }
   assert(got.size === want.size && [...want].every((k) => got.has(k)),
     `the offsets are not the engine's set (${got.size} vs ${want.size})`);
-
-  // The two cases that separate the rule from a circle, named rather than
-  // left to the set comparison: a smooth disc of radius 4 covers most of the
-  // (3,3) tile, and the rule does not.
-  assert(got.has('4,0'), 'the cat cannot see four tiles along the axis -- the radius is not being applied');
-  assert(!got.has('3,3'), 'tile (3,3) is drawn as seen: 9+9=18 against 16, so this is a CIRCLE, not the rule');
-  assert(!got.has('4,1'), 'tile (4,1) is drawn as seen: 16+1=17 against 16');
 });
 
 check('the overlay strokes the region OUTLINE, not every tile it contains', () => {
