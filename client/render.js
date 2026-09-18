@@ -701,7 +701,16 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed 
     // a corner can never round past its own neighbours however the dial is
     // set, and the curve cannot cross the polygon.
     const share = Math.min(1, Math.max(0, smoothness));
-    const r = share * Math.min(len(prev, cur), len(cur, next)) / 2;
+    // ...except where the MEADOW ends. A corner with an arm on the world's
+    // edge is not a corner of the cat's sight, it is the map's own corner, and
+    // rounding it pulls the region off the edge -- which the fog then fills,
+    // leaving a dark wedge in the literal corner of the world INSIDE the
+    // cat's sight (owner, 2026-09-17). Square there, whatever the dial says.
+    // Zeroing the radius rather than special-casing the walk: at r = 0 the
+    // arc's ends collapse onto the corner and it draws as a straight join,
+    // which is exactly the shape wanted, in both the wash and the outline.
+    const onMapEdge = loop[(i - 1 + n) % n].suppressed || vertex.suppressed;
+    const r = onMapEdge ? 0 : share * Math.min(len(prev, cur), len(cur, next)) / 2;
     return {
       cur,
       r,
@@ -712,8 +721,19 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed 
   });
 
   let pen = false;
-  const moveTo = (p) => { path.moveTo(px(p[0]), py(p[1])); pen = true; };
-  const lineTo = (p) => path.lineTo(px(p[0]), py(p[1]));
+  let cursor = null;
+  const moveTo = (p) => { path.moveTo(px(p[0]), py(p[1])); pen = true; cursor = p; };
+  // A zero-length segment is not nothing: under a round cap it paints a DOT,
+  // and a row of those along the meadow's edge is the fence this spent three
+  // commits removing. Square corners produce them by construction -- their
+  // arc has collapsed onto the corner, so the run into it and the corner
+  // itself land on the same point -- so they are dropped here once rather
+  // than guarded against at each of the four places they can arise.
+  const lineTo = (p) => {
+    if (cursor && Math.abs(cursor[0] - p[0]) < 1e-9 && Math.abs(cursor[1] - p[1]) < 1e-9) return;
+    path.lineTo(px(p[0]), py(p[1]));
+    cursor = p;
+  };
   for (let i = 0; i < n; i += 1) {
     const from = V[(i - 1 + n) % n];
     const at = V[i];
@@ -734,16 +754,23 @@ function roundedLoopPath(loop, path, ox, oy, tile, smoothness, honourSuppressed 
     if (!inSuppressed && !outSuppressed) {
       // Both sides drawn: round the corner between them.
       if (!pen) moveTo(at.start);
-      if (at.r > 0) path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
-      else lineTo(at.cur);
+      if (at.r > 0) {
+        path.quadraticCurveTo(px(at.cur[0]), py(at.cur[1]), px(at.end[0]), py(at.end[1]));
+        cursor = at.end;
+      } else lineTo(at.cur);
     } else if (!inSuppressed || !outSuppressed) {
       // Exactly one side drawn -- a corner where the contour meets the edge of
       // the meadow. It runs to that corner and STOPS. Rounding it here sent
       // the arc back along the map's edge, because at full smoothness the arc
       // begins at the midpoint of the side it is leaving: the fence this was
       // meant to remove, creeping back in as the roundness came up.
-      if (inSuppressed) { moveTo(at.cur); lineTo(at.end); }
+      // Nothing to draw at a SQUARE corner being entered from the meadow's
+      // edge: its arc has collapsed onto the corner point, and a zero-length
+      // stroke under a round cap is a painted DOT -- the fence again, one pip
+      // at a time. The contour picks up at the straight run after it.
+      if (inSuppressed) { if (at.r > 0) { moveTo(at.cur); lineTo(at.end); } }
       else lineTo(at.cur);
+
     }
     if (outSuppressed) pen = false;
   }

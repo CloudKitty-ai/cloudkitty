@@ -8120,6 +8120,33 @@ check('a contour with nothing suppressed comes back to where it started', () => 
     `the contour ends ${(gap / r.tile).toFixed(2)} tiles from where it started -- there is a hole in the outline`);
 });
 
+check('the wash reaches the meadow\'s own corner', () => {
+  // Owner, 2026-09-17: "the edge bug issue we had before still happens in
+  // corners." A different bug wearing the first one's clothes. The OUTLINE
+  // stopped drawing along the world's edge two commits earlier, but the WASH
+  // is cut from the same loops with the suppression ignored -- and it was
+  // still ROUNDING the corner where the map ends. So the cleared region
+  // pulled off the square corner of the meadow and the fog filled the gap: a
+  // dark wedge in the literal corner of the world, inside the cat's sight.
+  const r = visionRig(4);
+  const world = { width: 20, height: 20, kitties: [] };
+  // A cat ON the corner tile, so the meadow's corner is its own tile origin.
+  const { fill } = withPaths(() => r.visionPaths(
+    { id: 1, pos: { x: 0, y: 0 } }, world, { posFor: () => ({ x: 0, y: 0 }) }, 4,
+  ));
+  const pts = fill.subpaths.flat();
+  const toCorner = Math.min(...pts.map(([x, y]) => Math.hypot(x, y)));
+  assert(toCorner < 0.01,
+    `the wash stops ${(toCorner / r.tile).toFixed(2)} tiles short of the meadow's corner -- fog leaks into it`);
+
+  // ...and the two sides leaving that corner run along the map, not away from
+  // it: a point on each axis, a couple of tiles out.
+  const onTop = pts.some(([x, y]) => Math.abs(y) < 0.01 && x > r.tile * 1.5);
+  const onLeft = pts.some(([x, y]) => Math.abs(x) < 0.01 && y > r.tile * 1.5);
+  assert(onTop && onLeft,
+    'the wash leaves the corner on a curve instead of following the meadow\'s edges');
+});
+
 check('a corner arc cannot round past its own neighbours', () => {
   // THE CLAMP, which nothing guarded until `mutate.sh` said so, and which
   // went vacuous a second time when the dial changed from a distance in tiles
