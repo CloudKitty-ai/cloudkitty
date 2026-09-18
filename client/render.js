@@ -130,7 +130,13 @@ const VISION = {
   // 1.3px with the camera off, which is the point.
   ringWidthTiles: 0.067,
   ringWidthFloor: 1, // ...and never thinner than a line, the house minimum
-  cornerRadius: 0.4, // in TILES; 0 is the raw staircase, 0.5 the roundest legal
+  // 0 is the raw staircase; 1 is as round as a corner can legally go -- the
+  // arc starting at the MIDPOINT of each side, which turns the polygon into a
+  // smooth closed curve through those midpoints. A FRACTION of the maximum
+  // rather than a distance in tiles, because the maximum is different at every
+  // corner (half the shorter arm) and a distance dial goes dead the moment it
+  // passes the smallest one. Owner asked for a 0-1 range, 2026-09-17.
+  cornerSmoothness: 0.8,
   anchorR: 0.16, // the owner cue, in tiles
   anchorAlpha: 0.85,
   hues: ['#eb6f76', '#ba8f36', '#56a75b', '#00acb7', '#009ff1', '#c27ccf'],
@@ -675,7 +681,7 @@ function traceTileLoops(seen, onEdge = () => false) {
  * `suppressed` segments are walked but not drawn, which is how the world's
  * outer edge stops being mistaken for a limit of the cat's sight.
  */
-function roundedLoopPath(loop, path, ox, oy, tile, radius) {
+function roundedLoopPath(loop, path, ox, oy, tile, smoothness) {
   const px = (v) => ox + v * tile;
   const py = (v) => oy + v * tile;
   const n = loop.length;
@@ -691,7 +697,11 @@ function roundedLoopPath(loop, path, ox, oy, tile, radius) {
     const prev = loop[(i - 1 + n) % n].p;
     const cur = vertex.p;
     const next = loop[(i + 1) % n].p;
-    const r = Math.min(radius, len(prev, cur) / 2, len(cur, next) / 2);
+    // Clamped to [0,1] and then taken as a share of half the SHORTER arm, so
+    // a corner can never round past its own neighbours however the dial is
+    // set, and the curve cannot cross the polygon.
+    const share = Math.min(1, Math.max(0, smoothness));
+    const r = share * Math.min(len(prev, cur), len(cur, next)) / 2;
     return {
       cur,
       r,
@@ -2400,7 +2410,7 @@ class WorldRenderer {
     );
     const edge = new Path2D();
     for (const loop of traceTileLoops(seen, atEdge)) {
-      roundedLoopPath(loop, edge, x, y, t, VISION.cornerRadius);
+      roundedLoopPath(loop, edge, x, y, t, VISION.cornerSmoothness);
     }
     return { fill, edge };
   }

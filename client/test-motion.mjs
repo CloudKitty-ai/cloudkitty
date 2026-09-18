@@ -8068,19 +8068,24 @@ check('a contour with nothing suppressed comes back to where it started', () => 
 });
 
 check('a corner arc cannot round past its own neighbours', () => {
-  // THE CLAMP, which nothing guarded until `mutate.sh` said so. Raising
-  // `cornerRadius` to 3 tiles stayed green -- correctly, because the radius is
-  // clamped to half the shorter arm at each corner, so the dial saturates.
-  // But that meant the clamp itself was load-bearing and unchecked: without
-  // it a big radius sends a reflex corner bulging tiles outward, claiming
-  // sight the cat has not got.
+  // THE CLAMP, which nothing guarded until `mutate.sh` said so, and which
+  // went vacuous a second time when the dial changed from a distance in tiles
+  // to a 0-1 share -- the old guard went on setting `cornerRadius`, a property
+  // that no longer existed, and passed without testing anything.
   //
-  // So: drive it at a radius far past anything legal, and require the pen to
-  // stay within half a tile of the region it is outlining.
+  // Without the clamp a big value sends a reflex corner bulging outward,
+  // claiming sight the cat has not got. So: drive it far past the dial's own
+  // range and require the pen to stay near the region it is outlining.
+  //
+  // The bar is a QUARTER of a tile. Measured across the range, the contour
+  // strays 0.000 tiles at 0, 0.100 at the shipped 0.8, and 0.125 at 1.0 --
+  // where it saturates, which is the clamp doing its job. Half a tile would
+  // start reading as a different tile; a quarter is comfortably inside that
+  // and still twice the worst legal setting.
   const V = bubbleScope.VISION;
-  const was = V.cornerRadius;
+  const was = V.cornerSmoothness;
   try {
-    V.cornerRadius = 3;
+    V.cornerSmoothness = 5; // absurd on purpose: the dial's range is 0-1
     const r = visionRig(4);
     const world = { width: 20, height: 20, kitties: [] };
     const { edge } = withPaths(() => r.visionPaths(
@@ -8105,10 +8110,10 @@ check('a corner arc cannot round past its own neighbours', () => {
         worst = Math.max(worst, outside(px / r.tile - 9, py / r.tile - 9));
       }
     }
-    assert(worst <= 0.5,
-      `the contour strays ${worst.toFixed(2)} tiles outside the region -- the corner radius is not clamped, and it is claiming sight the cat has not got`);
+    assert(worst <= 0.25,
+      `the contour strays ${worst.toFixed(3)} tiles outside the region -- the smoothness is not clamped, and it is claiming sight the cat has not got`);
   } finally {
-    V.cornerRadius = was;
+    V.cornerSmoothness = was;
   }
 });
 
