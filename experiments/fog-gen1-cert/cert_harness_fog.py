@@ -50,6 +50,11 @@ LOW_HAPPINESS = 45.0
 # no reward stream, gets a paired team number.
 REWARD_EPS, TERM_FLOOR = 0.01, 1e-4
 PER_KITTY, HAP, DIST0 = 32, 6, 20
+# global_state.rs per-kitty layout: needs 6 (sleep at 2), happiness, pos 2, activity one-hot 7
+# (idle, rest, sleep, eat, drink, play, groom), social flag, partner present, partner index /
+# (roster - 1), progress, distress 6, traits 6.
+NEED_SLEEP, POS0, ACT0, SLEEP_ACT, PARTNER_PRESENT, PARTNER_IDX = 2, 7, 9, 2, 17, 18
+NEED_BINS = (5.0, 10.0, 20.0, 40.0)  # beam-world screen: sleep need at a sleep start, bins <5, 5-10, 10-20, 20-40, >=40 (rule 4 read)
 N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
 OBS_DIM = 408
@@ -88,6 +93,50 @@ def load_model(spec):
         with torch.no_grad():
             return policy(torch.from_numpy(rows)).numpy()
     return fwd
+
+
+def beam_acc(roster):
+    return {"sleep": [0] * roster, "on_beam": [0] * roster, "conducted": [0] * roster,
+            "starts": [0] * roster, "start_dist": [[0, 0, 0, 0] for _ in range(roster)],
+            "start_need_bins": [[0] * (len(NEED_BINS) + 1) for _ in range(roster)], "start_need_sum": [0.0] * roster}
+
+
+def beam_account(st, beams, roster, width, height, prev_sleep, acc):
+    """One tick of beam accounting on the global state (beam-world screen, 2026-09-19).
+
+    Per seat: sleeping ticks; ticks asleep ON a beam tile; ticks asleep off-beam beside a
+    direct partner who is on a beam (the spec-031 conduction case, read from the state's
+    partner slot, without the engine's settled check); sleep starts (a tick asleep after a
+    tick not asleep), the Chebyshev distance from the start tile to the nearest beam in the
+    WORLD (0 / 1 / 2 / 3-or-more-or-none), and the sleep need at the start (binned by
+    NEED_BINS; the low bins are the rule-4 farming read). Returns this tick's sleeping mask.
+    """
+    import numpy as np
+    sleeping = np.zeros(roster, bool)
+    pos = []
+    for k in range(roster):
+        b = k * PER_KITTY
+        pos.append((int(round(float(st[b + POS0]) * width)), int(round(float(st[b + POS0 + 1]) * height))))
+        sleeping[k] = int(st[b + ACT0:b + ACT0 + 7].argmax()) == SLEEP_ACT
+    for k in range(roster):
+        if not sleeping[k]:
+            continue
+        b = k * PER_KITTY
+        acc["sleep"][k] += 1
+        if pos[k] in beams:
+            acc["on_beam"][k] += 1
+        elif st[b + PARTNER_PRESENT] > 0.5:
+            p = int(round(float(st[b + PARTNER_IDX]) * (roster - 1)))
+            if pos[p] in beams:
+                acc["conducted"][k] += 1
+        if not prev_sleep[k]:
+            acc["starts"][k] += 1
+            d = min((max(abs(pos[k][0] - x), abs(pos[k][1] - y)) for x, y in beams), default=3)
+            acc["start_dist"][k][min(d, 3)] += 1
+            need = float(st[b + NEED_SLEEP]) * 100
+            acc["start_need_bins"][k][sum(need >= edge for edge in NEED_BINS)] += 1
+            acc["start_need_sum"][k] += need
+    return sleeping
 
 
 CLOCK_INDEX = OBS_DIM - 1  # the episode-clock input, the last float of the observation
@@ -137,6 +186,9 @@ def run_one(args):
     max_dist_age_seat = np.zeros(roster, np.int64)
     reward_sum, n_ticks = 0.0, 0
     nash_state_sum = 0.0
+    width, height = cfg["world"]["width"], cfg["world"]["height"]
+    beams_acc = beam_acc(roster)
+    prev_sleep = np.zeros(roster, bool)
 
     for _t in range(ticks):
         acts = {}
@@ -176,8 +228,11 @@ def run_one(args):
             age = int(dist_streak[k].max())
             max_dist_age_seat[k] = max(max_dist_age_seat[k], age)
             max_dist_age = max(max_dist_age, age)
+        beams = {(x, y) for (_id, ty, x, y) in env.elements() if ty == "Sunbeam"}
+        prev_sleep = beam_account(st, beams, roster, width, height, prev_sleep, beams_acc)
 
     return {
+        "beam": beams_acc,
         "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks, "clock": clock_mode,
         "nash": (reward_sum / max(1, n_ticks)) if names else None,
         "nash_state": nash_state_sum / max(1, n_ticks),
