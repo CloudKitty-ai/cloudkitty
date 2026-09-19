@@ -76,6 +76,14 @@ evidence; this register is the evolving knowledge layer on top of them.
 | F-039 | active | Live refusal tax is Biscuit's alone and it is partner play (5.13%); other seats under 2.3% in groom and move |
 | F-040 | active | Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls/1000 ticks and adds ~12 eat calls (re-verified 2026-09-05 with spec 050 landed: 6–15 drink, +9 to +11 eat; the ~1.2 read was an all-scripted roster, Biscuit's playful seat carries 60–70% of the calls, #349) |
 | F-041 | active | The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase (3 of 169 replies invisible in the anchor smoke) |
+| F-042 | active | The cert battery on the served composition under the trained clock is the live prior: every Fog Gen 1 seat's 48 h live mean within 0.25 of its battery mean (roster 92.40 vs 92.47) |
+| F-043 | active | The distress tail of a policy roster is a roster property: 30 of 55 swap-leg crossings land in an unchanged seat; live, six brief eat-led episodes in 216k ticks at the pacing-search seat |
+| F-044 | active | Single-network probes overstate the catastrophe tail: nine crossings in 618 world-probes with one mind in every seat, none in 1.2 M ticks of the five-network composition (F-027 under fog) |
+| F-045 | active | Distinct minds disperse: two or three small groups far apart (pairwise 11 vs scripted 6), nearest neighbour unchanged, lab shape reproduced live to the second decimal |
+| F-046 | active | A priced target feature the corpus never conditioned on stays unused: under the 054 ramp the minds groom clean friends (74 of 76 live grooms on bath < 10); the scripted groom refusal tax left with the scripted seats |
+| F-047 | active | A one-tick relief differential does not move sleep placement: on-beam 2.8× the all-rows rate, the adjacent ring at chance (0.93×), price 7/10/15 inside the seed spread, only the leash held the beam share; 25% of adjacent sleep starts face an occupied beam |
+| F-048 | active | The free register (mew, chirp, purr) is inert for a visible listener (0.88–1.07) and an unseen listener does less (heard row, not word); want_cuddle moves listeners 1.37× / 2.50× on the same instrument |
+| F-049 | active | Mews and chirps are not echoed (1.0–1.2× chance, lag 1 only); purr piles are cosleep; the visible echo is several cats answering one ask with here-words (1.9× at lag 1, two thirds keyed on the ask) |
 
 ---
 
@@ -2329,3 +2337,202 @@ cadence that differs from the want cadence. **Re-verify when**: the
 step-5 reply-here bar is read (a miss with A7/A8 green points here
 first).
 
+
+## F-042 · active · The cert battery run on the served composition under the trained clock is the live prior: every Fog Gen 1 seat's 48 h live mean sits within 0.25 of its battery mean
+
+Fog Gen 1 soak, `fog-gen1-cert/soak-2026-09-18.md` (48 h, 216,000 ticks
+on a fresh 0.3.0 world, 8,507 polls). The cert battery
+(`fog-gen1-cert/RESULTS.md` §"Welfare gates", eval band, 30 × 20k, the
+five served artifacts under the trained clock on the served config)
+gave per-seat means Miso 92.94, Biscuit 91.06, Pumpkin 93.06, Kittybear
+92.96, Clementine 92.33. Live over the whole window: 92.93, 91.02,
+92.84, 92.81, 92.38 (roster 92.40 against 92.47); open-to-close moves
+under 0.35 at every seat. The scripted priors in the same seats are
+85.2–88.6, so the transfer is not a coincidence of a flat landscape.
+
+The Biscuit 2.0 soak (`exp-006a-biscuit-corner/soak-2026-08-25.md`) had
+to read its roster against a probe band from a different four-seat
+roster and sat 0.7 under it; the gap was the comparator, not the world.
+**Promotion**: the soak prior for a deployed roster is the battery on
+that composition, run with the seam check green (positions and actions
+matching the box for a pinned seed), and nothing else. **Scope**: five
+distinct networks, 20×20, vision radius 4, tick 800 ms, the battery
+under the trained clock. **Invalidated by**: a live seat mean more than
+1.0 from its battery mean over a 48 h window with an unchanged config.
+**Re-verify when**: every deploy soak, and whenever the clock or config
+between battery and box differs (the seam check is the first suspect).
+
+## F-043 · active · The distress tail of a policy roster is a roster property, not a seat's: in the swap legs 30 of 55 crossings land in a seat whose mind did not change, and live it shows as brief eat episodes at the pacing-search seat
+
+Report-only swaps in `fog-gen1-cert/RESULTS.md` (every arm into every
+seat of gen1-A, eval band, 100 legs × 30 runs): 55 of 3,000 seat-runs
+reached distress age ≥ 150, 25 in the swapped seat and 30 in an
+unchanged one; by seat Pumpkin 21, Biscuit 18, Kittybear 13, Miso 3,
+Clementine 0. The served composition crossed 0 times in 1.2 M lab ticks
+(worst age 112) and 0 in the two replication bands (14, 82). Live, 48 h
+on the box: six episodes in 216,000 ticks (0.028 per 1k), five `eat` and
+one `cuddle`, Pumpkin 3 / Biscuit 2 / Kittybear 1, longest sampled age
+76; Pumpkin's is the pacing-search shape the probe series named (eat
+and drink at 100, a two-step dither with chow in view). The Biscuit 2.0
+roster's soak produced one episode in 229,510 ticks.
+
+The reading: the tail is set by who the neighbours are, because the
+starving cat's relief runs through partners and shared food pressure,
+so a seat's clean 30 runs certify the seat only in that roster.
+**Scope**: five-network rosters on the 20×20 fog config; distress age
+≥ 150 as the crossing. **Invalidated by**: a swap battery where over
+80% of crossings sit in the swapped seat. **Re-verify when**: each Gen 2
+battery (the stuck detector, #389, is the intended fix for the pacing
+shape), and any live rate over 0.1 per 1k ticks.
+
+## F-044 · active · Single-network probes overstate the catastrophe tail: nine crossings in 618 world-probes with one mind in every seat, none in 1.2 M ticks of the five-network composition
+
+`fog-gen1-cert/RESULTS.md` §"Welfare and the stop rows" and §"Welfare
+gates": the probe series (206 reads, 618 world-probes of 2,000 ticks,
+one candidate network seated five times) produced nine watchdog
+entries, two long (ages 1,162 and 525), three of them the pacing-search
+shape and one a social lock-in (Miso and Biscuit in a mutual
+RestWith/SleepWith/PlayKitty loop with eat 0.96). The five distinct
+networks in their own seats produced no age over 112 in 30 × 20k on two
+bands. The probe tail is F-027's twin artefact under fog: a mind
+partnered with copies of itself locks in a way it does not with other
+minds.
+
+**Promotion**: five distinct networks is the seating rule (owner
+2026-09-16), and a probe's welfare stop rows are read as a training
+tripwire, not a live prediction; Gen 2 adds the identity input so a
+twin knows it is one. **Scope**: fog Gen 1 lineage, single-network
+probes vs a five-network eval. **Invalidated by**: a five-network
+composition crossing at the probe rate (about 1.5 per 100 world-probes
+of 2,000 ticks). **Re-verify when**: the seating rule is relaxed (Gen 2
+identity input), or a probe series is used to gate a deploy.
+
+## F-045 · active · Distinct minds disperse: the policy roster lives as two or three small groups far apart (pairwise 11 against the scripted roster's 6) with nearest-neighbour distance unchanged, and the lab shape reproduces live to the second decimal
+
+`fog-gen1-cert/RESULTS.md` §"Dispersion" and the soak record. Groups
+linked at Chebyshev ≤ 2. Scripted roster (lab, 25k ticks): all five
+together 28% of ticks, modal shapes 5 / 4+1 / 3+1+1, mean pairwise
+Manhattan 6.1, farthest pair 11.3. gen1-A (lab): all five together 3%,
+two or more groups of ≥ 2 on 54% of ticks, modal 3+2 / 2+2+1 / 2+1+1+1,
+pairwise 11.0, farthest 19.1, nearest neighbour 2.6–3.4 (scripted
+2.4–2.8). Live, 48 h and 8,507 polls: 0.04 / 0.32 / 0.42 / 0.19 / 0.03
+by group count, split 0.50, pairwise 10.9, farthest 19.1, nearest
+3.2–3.7. Corner and edge occupancy near uniform (corner-within-3 share
+0.13–0.19 against 0.16), so it is pairs and triads spreading, not
+camping. Cosleep persists inside the groups (a friend on 57–93% of
+sleeping polls, partners rotating).
+
+The scripted pile is the needs-driven brain's shared errands (the same
+chow, the same beam at the same time); distinct minds do not share them.
+A character read, not a gate. **Scope**: five policy seats, 20×20,
+radius 4, the served element density. **Invalidated by**: pairwise
+distance within 1.0 of the scripted 6.1, or a single pile over 15% of
+ticks, on the same map. **Re-verify when**: Gen 2 seating, and any
+change that anchors piles (the beam package #390, a cuddle drip).
+
+## F-046 · active · A priced target feature the corpus never conditioned on stays unused: under the spec 054 ramp the minds groom clean friends (74 of 76 live grooms on bath < 10, none in the paid bin), and the scripted groom refusal tax leaves with the scripted seats
+
+FR-014 (spec 054) read in `fog-gen1-cert/RESULTS.md` and confirmed in
+the soak record. Lab (gen1-A trace, 125k decisions): grooms of a friend
+by the target's bath, per 1k visible friend-rows, 2.24 at bath < 10,
+0.64 at 10–20, 1.48 at 20–35 (n = 3), none above; 280 of 304 grooms on
+friends under 10. Live (48 h poll, disc-rule visibility): 74 / 2 / 0 /
+0 / 0 grooms across 46,179 / 8,730 / 970 / 42 / 13 visible friend-rows,
+1.6 / 0.23 / 0 / 0 / 0 per 1k. The dirtiest cat (Biscuit, mean bath
+9.5) is the most groomed (49 of 76) and never grooms, which is her
+character, not the ramp. Groomed share of dirty-visible spells 0.027–
+0.052 on the candidates against the scripted anchor's 0.226; the
+scripted seats' refusal tax in grooming (F-039) is 0–8 rows a seat
+after the reseat.
+
+The clones learned grooming as affinity (who is beside me and settled),
+because that is what the pre-054 corpus contained; the ramp reprices a
+feature no policy ever read, and doctrine rule 9 says a frozen model
+cannot answer it. **Scope**: Gen 1 clones trained before spec 054 on
+the c30 corpus; the ramp min(2.0, 0.25 + 3.5x). **Invalidated by**: a
+Gen 2 clone trained on a 054-priced corpus whose grooms concentrate in
+the ≥ 20 bins at or above the scripted rate. **Re-verify when**: the
+Gen 2 teacher is re-recorded under 054 (rule 9), and at the next groom
+reprice.
+
+## F-047 · active · A relief differential worth one tick per nap does not move sleep placement: sleeping cats lie on a beam 2.8× as often as cats in general but the adjacent ring is at chance (0.93×), price 7 / 10 / 15 never left the seed spread, and only the leash held the beam share
+
+`fog-gen1-cert/RESULTS.md` §"3. Beam naps" and
+`results-raw/live/beam_adjacency.py` on the gen1-A trace
+(`beam-adjacency-gen1A.json`, uncommitted): 16,299 sleeping cat-ticks, a
+beam visible in 41% of them. Chebyshev distance to the nearest visible
+beam, 0 / 1 / 2 / 3 / 4 tiles: 12.7 / 19.2 / 28.4 / 32.9 / 6.8% of
+sleeping rows, against 4.6 / 20.7 / 31.6 / 35.9 / 7.2% over every row
+with a beam visible (ratio 2.76 / 0.93 / 0.90 / 0.92 / 0.94; against
+the geometric disc prior, 6.4 / 1.18 / 0.87 / 0.81 / 0.83). Of 3,255
+sleep starts, 259 begin one tile from a visible beam and the beam is
+occupied for 64 of them (25%): one tile, one cat, so the friend on the
+beam makes the cosleeper's adjacent tile structural. In-beam share of
+sleeping ticks: candidate pool 0.014–0.052 across seven seeds, beam
+price 10 → 0.068 / 0.033, price 15 → 0.031, the tight leash (dose-hi)
+0.21, the scripted teacher 0.26–0.29; live pooled 0.041.
+
+The arithmetic: a need-40 nap is 8 ticks in the open and 6 on the beam
+at relief 5 / 7, the step costs one, so stepping in nets one tick, and
+the gradient does not find one tick. The cats on beams are the ones who
+lay down there. **Scope**: sleep relief 5.0 off-beam, beam 7 / 10 / 15,
+beam ttl 300, radius 4, Gen 1 lineage. **Invalidated by**: the in-beam
+share clearing 0.10 without a leash at a price ≤ 15, or the adjacent
+ring above 1.25× its prior. **Re-verify when**: the beam package (#390:
+off-beam relief to 3, long-lived beams) is adopted; predicted in-beam
+share then rises toward the scripted 0.26–0.29 at leash ≤ 0.04.
+
+## F-048 · active · The free register (mew, chirp, purr) is inert for a visible listener and an unseen listener does less after it, which is the heard row, not the word; the want words move listeners on the same instrument
+
+`free-register-baseline-2026-09-17/RESULTS.md` (PREREG 251c67f, amended
+28e2bce; gen1-A trace, 125k decisions, message head recomputed by
+`add_msg.py`; read `free_register_read.py --control speaker
+--match-speaker`, window 10). Emission per 1k decisions: purr 72.8, mew
+36.8, chirp 31.7 (want_cuddle 4.7), spoken from rest or sleep 86 / 62 /
+66%. Uptake, ratio to a matched control (speaker silent, keyed on both
+cats' activity class): visible listener, approach 0.88–1.07, proposal
+to the speaker 0.94–1.02, echo 1.11–1.13, any speech 1.00, INERT on all
+three words. Unseen listener: approach 0.78–0.85, proposal 0.53–0.73,
+29 of 30 per-seed ratios under 1.0. Positive control on the same
+instrument: want_cuddle from a visible caller 1.37× the proposals, from
+the fog approach 1.51× and proposal 2.50×.
+
+The unseen-listener drop reads as the heard row itself (a fresh
+position for an unseen cat, whose state is "asleep or resting" for
+these words) rather than the word, since the control cannot yet
+separate the two; the next control is a speaker who said some other
+word. The register carries no fact under visible needs (F-026); Gen 2
+hides needs, which is the first condition under which it could. **Scope**:
+Gen 1 clones with needs visible, cooldown-only legality, intensity 0.
+**Invalidated by**: a visible-class ratio outside [0.8, 1.25] or an
+unseen ratio above 1.0 on a settled word. **Re-verify when**: the Gen 2
+collection (hidden needs), and if option 1 or 2 of #391 is adopted.
+Trap on record: the declared `--control any` pool starves (26–97% of
+events dropped) and is never read.
+
+## F-049 · active · Mews and chirps are not echoed: cross-cat coincidence is 1.0–1.2× chance and only at lag 1, purr piles are cosleep, and the echo the owner sees is several cats answering one ask with here-words (1.9× at lag 1, two thirds of it explained by keying on the ask)
+
+`free-register-baseline-2026-09-17/RESULTS.md` §Question 2 and
+§Addenda (`cluster_read.py`; null A = circular shift per cat, null B =
+redraw within the cat's state class; lab trace + a 45-minute live poll
+of `recent_meows`, ticks 88,095–91,495, 3,798 rows). Lab, lag 1 / 3 /
+10 against null A: mew 1.14 / 1.09 / 1.01, chirp 1.19 / 1.09 / 1.00,
+purr 1.57 / 1.41 / 1.14; against null B (same state) mew 1.05, chirp
+1.08, purr 1.30. Live: mew 0.99 / 1.07 / 1.03, chirp 1.20 / 1.00 /
+0.97, purr 1.61 / 1.18 / 1.03. Here-words: here_sunbeam 1.89 at lag 1
+in the lab (1.86 keyed on being in a beam, 1.31 keyed on the ask, the
+declared stop point), 1.91 live within 10; here_critter 1.4–1.6×. On
+the client side (Client, 2026-09-17) drawing disperses the sounds (mew
+0.65×, chirp 0.57× of the served coincidence) while here-words pass the
+pose gate 69–80% against 36–47% for sounds, and 54% of answered asks
+draw two or more reply bubbles.
+
+Purr's 1.3–1.6 is cats purring in the same pile at the same time; the
+free words cluster only as far as shared state explains. The visible
+flurry is the reply law: every cat that hears a want and sees its
+referent answers on the next tick. **Scope**: Gen 1 roster, cooldown 10,
+digest 30, the served reply law (answers stamped on the next tick).
+**Invalidated by**: mew or chirp over 1.25× at lag 1 under null B.
+**Re-verify when**: F-048's register comes alive under Gen 2, or the
+engine's reply law changes (one reply per ask is a client change, #395,
+and does not touch this).
