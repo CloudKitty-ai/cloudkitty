@@ -604,11 +604,21 @@ FR-014 read from the other side. Unanswered from-the-fog calls
 (`partner_absent`) run 286/h for the roster, 45–68/h a seat, 86% of them
 cosleep or corest proposals; banked as a Gen 2 input, no line declared.
 
-### Still running
+### Soak (48 h, 216,000 ticks): PASS, the keep stands
 
-The 48 h poller and the soak tripwire; the soak record follows the
-Biscuit 2.0 convention (48 h, 216,000 ticks), with the live dispersion
-and FR-014 confirmation read off the poll at the same sitting.
+Recorded in [soak-2026-09-18.md](soak-2026-09-18.md). One process from
+the fresh start, zero alarms, roster identical on all 8,507 polls; six
+brief distress episodes (longest sampled age 76, line at 150, five of
+them eat, three Pumpkin's); every seat within 0.25 of its cert-battery
+prior over the window (roster mean 92.40 against 92.47). The live
+dispersion over the whole window reproduces the lab gen1-A shape (3+2 /
+2+2+1 modal, pairwise 10.9 against 11.0). FR-014 confirmed live: 74 of
+76 sampled grooms of a friend land on bath under 10 and none on the
+20–35 bin in 970 chances. Closing refusal window (203,824–218,823):
+every seat 1.03–1.57% taxed, partner_absent 299/h. Raws in
+`results-raw/live/` (`soak_reads.py`, `soak-verdict-218831.json`) and
+`refusal-baseline-2026-09-02/results-raw/refusal-baseline-close-203824.json`,
+uncommitted.
 
 ## Commands
 
