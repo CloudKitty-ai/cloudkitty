@@ -45,6 +45,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "futures",
+ "libc",
  "rand",
  "rand_chacha",
  "serde",

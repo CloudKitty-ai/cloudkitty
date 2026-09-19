@@ -36,7 +36,9 @@ before trusting a gap here, then add what you find.
 | 1080001–1080100 | fog Gen 1 (fog-gen1-shakeout) | BC corpus on anchor.toml, 40 × 20k at 1080001–1080040 (owner ruled 2026-09-06, #350); the rest of the row reserved for a re-collection at a re-pinned radius or floor |
 | 1090001–1090040 | fog Gen 1 (fog-gen1-cert) | Biscuit 3.0 BC corpus on anchor-b3.toml (consent 30), 40 × 20k, held-out 03/13/23/33 (PREREG §Corpus, declared 2026-09-13; ledger row added late, 2026-09-15) |
 | 1091001–1091040 | fog Gen 1 (fog-gen1-cert) | consent-OFF twin corpus on anchor-b3-off.toml, 40 × 20k (as above) |
+| 1092001–1092040 | beam-world screen tier 2 (beam-world-screen-2026-09-19) | package-world BC corpus on `package.toml`, 40 × 20k, held-out 03/13/23/33 (PREREG-tier2 §Corpus, declared 2026-09-19) |
 | 100000000–259999999 | exp-006 | PPO episode seeds: base 100M + run_index×20M + segment×1k, worlds striding w×1M inside (train_ppo6.py). Sits above the 1M+ pool because the runner's per-world 1M stride makes 1M-scale sub-bands collide across arcs — exp-004/exp-005 chains already interleave there |
 | 260000000–339999999 | exp-006a | PPO episode seeds, run indices 8–11 (same formula and stride as the exp-006 row; claimed by prereg D-002 — the frozen §2 sentence had placed these inside exp-006's band in error) |
 | 340000000–519999999 | fog Gen 1 (fog-gen1-shakeout) | PPO episode seeds, run indices 12–20 (nine-arm pass; same formula and stride as the exp-006 row; #350) |
 | 520000000–919999999 | fog Gen 1 (fog-gen1-cert) | PPO episode seeds, run indices 21–40 (the 20-arm step-7 pass; same formula and stride as the exp-006 row; ledger row added late, 2026-09-15) |
+| 920000000–999999999 | beam-world screen tier 2 (beam-world-screen-2026-09-19) | PPO episode seeds, run indices 41–44 (pkg-s1/s2, floor5-s1/s2; same formula and stride as the exp-006 row; PREREG-tier2, declared 2026-09-19) |
