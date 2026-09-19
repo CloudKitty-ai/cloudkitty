@@ -365,9 +365,10 @@ is no longer load-bearing.
   and 7, with `max` 8). Notes for the count: only the nearest two beams
   are observed (two sunbeam slots), the world holds `min` beams and
   `max` is inert for the world (it feeds the critic's chow scale only),
-  and the training world today runs `min = max = 2` (turn-taking
-  pressure by design) against the served 4–5, so the Gen 2 collection
-  has to say which count the teacher is recorded under. Conduction
+  and the fog lineage trains and collects on `anchor.toml`, which is
+  the served world (4–5 beams, ttl 300), not the 2.x gym
+  `training.toml` (2 beams); the Gen 2 teacher is recorded under the
+  package world, whatever count it carries. Conduction
   (spec 031) already pays the beam rate to a mutual cosleeper beside a
   partner on the beam, so the occupied-adjacent quarter of F-047's
   adjacent sleep starts is not lost value when the pair is mutual.
