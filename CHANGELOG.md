@@ -33,6 +33,18 @@ change.
 
 ## Unreleased
 
+- **The tab icon is drawn by the world now.** Biscuit still naps on the
+  meadow in the favicon, but she is the cat the viewer actually draws: the
+  icon's geometry is lifted off a recording of the shipped `loaf` pose
+  rather than drawn alongside it, down to the tabby stripes on her back and
+  the tail wrapped along her front. Her eyes are closed because the pose
+  closes them. Three things are tuned for a 16px tab and say so in the file:
+  a darker outline, a heavier one, and no whiskers — which the cat art
+  itself fades out below eight tenths of a pixel, and which would land at
+  four tenths here. The PNG fallbacks iPhone Safari needs are rebuilt from
+  that same file by a script, because the last set left its
+  recipe in a comment and nothing could tell you when it had gone stale.
+
 - **You can see what the cats can see.** Press `v`, or use the new *vision*
   button in the footer, and each cat's sight is drawn on the meadow: the
   ground it can reach is left clear, everything hidden takes a wash, and the
