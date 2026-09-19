@@ -51,7 +51,7 @@ def aggregate(rows):
                    "start_need_bins": [share(x, b["starts"][i]) for x in b["start_need_bins"][i]],
                    "start_need_mean": share(b["start_need_sum"][i], b["starts"][i]), "happiness": hap[i] / n}
     S, O, C, T = sum(b["sleep"]), sum(b["on_beam"]), sum(b["conducted"]), sum(b["starts"])
-    pooled = {"in_beam": share(O, S), "conducted": share(C, S), "sleep_share": S / ticks, "starts": T,
+    pooled = {"in_beam": share(O, S), "conducted": share(C, S), "sleep_share": S / (ticks * R), "starts": T,
               "start_dist": [share(sum(b["start_dist"][i][j] for i in range(R)), T) for j in range(4)],
               "start_need_bins": [share(sum(b["start_need_bins"][i][j] for i in range(R)), T) for j in range(5)],
               "start_need_mean": share(sum(b["start_need_sum"]), T), "happiness": sum(hap) / n / R,

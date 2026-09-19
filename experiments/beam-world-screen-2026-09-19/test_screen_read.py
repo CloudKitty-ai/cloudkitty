@@ -16,7 +16,8 @@ for fn in ("scripted-eval-2x400.jsonl", "gen1-A-c0-eval-2x400.jsonl"):
     starts = sum(r["beam"]["starts"][i] for r in rows for i in range(R))
     assert agg["ticks"] == sum(r["ticks"] for r in rows) == 800
     assert abs(agg["pooled"]["in_beam"] - on / sleep) < 1e-12, (agg["pooled"]["in_beam"], on / sleep)
-    assert abs(agg["pooled"]["sleep_share"] - sleep / 800) < 1e-12
+    assert abs(agg["pooled"]["sleep_share"] - sleep / (800 * R)) < 1e-12, "pooled sleep share is per cat-tick (ticks x seats), not per world tick"
+    assert abs(sum(agg["seats"][nm]["sleep_share"] for nm in S.SEATS) / R - agg["pooled"]["sleep_share"]) < 1e-12
     assert agg["pooled"]["starts"] == starts
     assert abs(sum(agg["pooled"]["start_dist"]) - 1.0) < 1e-9, agg["pooled"]["start_dist"]
     assert abs(sum(agg["pooled"]["start_need_bins"]) - 1.0) < 1e-9
