@@ -372,6 +372,27 @@ is no longer load-bearing.
   (spec 031) already pays the beam rate to a mutual cosleeper beside a
   partner on the beam, so the occupied-adjacent quarter of F-047's
   adjacent sleep starts is not lost value when the pair is mutual.
+  **Teacher under the package (owner "Agreed" 2026-09-19 to
+  Experiments' recommendation):** the scripted `needs_driven` teacher
+  is re-recorded as is under the package world (rule 9), reach left at
+  8. The engine fact behind it: the teacher's beam walk is gated by
+  `sunbeam_reach` (`selection.rs` `sunbeam_worth_walking`, priced cost
+  ≤ 8), never by the relief numbers, so (b) and (c) change the corpus
+  and (a) changes only the RL reward. The beam-price screen already
+  tested the reward path on a shared corpus (price 15 ≈ a 5-tick gain a
+  nap, share never left the seed spread; floor 3 ≈ 7 ticks), and only
+  the leash to the same corpus moved the share, so the corpus is the
+  lever. (a) stays as the rule-2 world-state change, and the Gen 2
+  prereg treats its effect as the F-047 re-verify, not an assumption.
+  Declared before any PPO: read the teacher's in-beam sleep share on
+  the new corpus (`step7_reads` beam share); the bar is about 0.4, to
+  be pinned in the prereg, and a corpus under it moves the count or the
+  lifetime before training. New corpus → the here-word density pins
+  (F-034, A1b) are re-checked, since more and longer beams raise
+  here_sunbeam. Rejected: raising reach past break-even (teaches losing
+  walks), a beam-shaped teacher (a new lineage, distorts the rest),
+  Gen 1 minds as teachers (schema changes under hidden needs, and they
+  do not go to beams). The leash stays a fallback only.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across
