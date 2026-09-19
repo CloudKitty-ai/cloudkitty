@@ -27,6 +27,7 @@ convention, so the all-scripted leg must EXACT-MATCH kitty-eval
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tomllib
@@ -59,7 +60,9 @@ N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
 OBS_DIM = 408
 NEG_INF = float("-inf")
-ARTS = HERE / "artifacts"
+# CERT_ARTS: another pass's artifact root (beam-world screen tier 2, 2026-09-19); read at import so
+# spawned workers see it too. Seat specs stay `ppo:<slot>` -> <root>/ppo-fog-<slot>/policy-final.pt.
+ARTS = Path(os.environ["CERT_ARTS"]) if os.environ.get("CERT_ARTS") else HERE / "artifacts"
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
 # Seat order = kitty id order in the config: Miso, Biscuit, Pumpkin, Kittybear, Clementine.
@@ -244,7 +247,9 @@ def run_one(args):
     }
 
 
-def provenance(config_path):
+def provenance(config_path, seats):
+    """Stamp the run: config sha, binding, toolchain, and the sha of every policy artifact the
+    seating actually uses (was: every artifact in SEATINGS, which breaks under CERT_ARTS)."""
     from census_provenance import binding_identity, stamp
     import cloudkitty
     rustc = subprocess.run(["rustc", "-V"], capture_output=True, text=True)
@@ -254,8 +259,9 @@ def provenance(config_path):
         "binding_engine": getattr(cloudkitty, "ENGINE_COMMIT", None),
         "rustc": rustc.stdout.strip() or None,
         "binding_artifacts": binding_identity(cloudkitty),
+        "artifacts_root": str(ARTS),
         "artifacts": {s: hashlib.sha256((ARTS / f"ppo-fog-{s.split(':', 1)[1]}" / "policy-final.pt").read_bytes()).hexdigest()
-                      for seats in SEATINGS.values() for s in seats if s != "scripted"},
+                      for s in sorted(set(seats)) if s != "scripted"},
     })
 
 
@@ -296,7 +302,7 @@ def main():
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"{tag}-{a.band}-{a.seeds}x{a.ticks}.jsonl"
     with out.open("w") as f:
-        f.write(json.dumps({"provenance": provenance(a.config), "seats": seats,
+        f.write(json.dumps({"provenance": provenance(a.config, seats), "seats": seats,
                             "band": a.band, "seed0": seed0}) + "\n")
         with ProcessPoolExecutor(max_workers=a.workers) as ex:
             for r in ex.map(run_one, jobs):
