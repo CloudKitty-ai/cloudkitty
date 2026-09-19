@@ -2481,6 +2481,10 @@ share clearing 0.10 without a leash at a price ≤ 15, or the adjacent
 ring above 1.25× its prior. **Re-verify when**: the beam package (#390:
 off-beam relief to 3, long-lived beams) is adopted; predicted in-beam
 share then rises toward the scripted 0.26–0.29 at leash ≤ 0.04.
+Note (2026-09-18): warmth conducts (spec 031, `action.rs` sleep rate),
+so a mutual cosleeper beside a partner on the beam is paid the beam rate
+already; of the 25% occupied-adjacent starts, only the non-mutual ones
+lose the differential. Owner ruled (a) and (b) of #390 the same day.
 
 ## F-048 · active · The free register (mew, chirp, purr) is inert for a visible listener and an unseen listener does less after it, which is the heard row, not the word; the want words move listeners on the same instrument
 

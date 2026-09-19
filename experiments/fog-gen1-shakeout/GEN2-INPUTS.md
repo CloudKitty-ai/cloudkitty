@@ -359,6 +359,18 @@ is no longer load-bearing.
   beam share and `phase2_read` cosleep opportunities. Rule 9: the
   teacher walks to beams more when they are always there, so the whole
   package waits for the Gen 2 collection.
+  **RULED 2026-09-18 (owner, #390): "a) yes, b) yes-3000"**: off-beam
+  sleep relief 5 → 3 and beam `ttl` 300 → 3,000 for the Gen 2 world.
+  (c), the count, under discussion on the issue (the owner is between 6
+  and 7, with `max` 8). Notes for the count: only the nearest two beams
+  are observed (two sunbeam slots), the world holds `min` beams and
+  `max` is inert for the world (it feeds the critic's chow scale only),
+  and the training world today runs `min = max = 2` (turn-taking
+  pressure by design) against the served 4–5, so the Gen 2 collection
+  has to say which count the teacher is recorded under. Conduction
+  (spec 031) already pays the beam rate to a mutual cosleeper beside a
+  partner on the beam, so the occupied-adjacent quarter of F-047's
+  adjacent sleep starts is not lost value when the pair is mutual.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across
