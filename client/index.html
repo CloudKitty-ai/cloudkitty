@@ -4,9 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CloudKitty</title>
-<!-- The PNGs are rendered from favicon.svg (the touch icon from a
+<!-- The PNGs are rendered from favicon.svg by
+     `node client-measurements/favicon/render.mjs` (the touch icon from a
      full-bleed variant, since iOS masks its own rounded corners). iPhone
-     Safari ignores SVG favicons, so it takes the PNG fallbacks instead. -->
+     Safari ignores SVG favicons, so it takes the PNG fallbacks instead --
+     which means an SVG-only edit ships a stale icon to the phone. -->
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">

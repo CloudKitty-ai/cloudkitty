@@ -24,6 +24,15 @@ order it runs, with the ruling and the measurement behind each. Read it before
 re-tuning how much the cats say, and re-read it when a new roster seats: most
 of its numbers are roster-bound and Gen 2 will move them.
 
+**[favicon/](favicon/) is the one build step here rather than a
+measurement** — `node client-measurements/favicon/render.mjs` re-renders
+`client/favicon-32.png` and `client/apple-touch-icon.png` from
+`client/favicon.svg`. Run it after any edit to the SVG: iPhone Safari ignores
+SVG favicons, so an SVG-only change ships an icon that is right on the desktop
+and stale on the phone. It lives here for the same reason everything else
+does, and because a committed raster whose recipe is a code comment is exactly
+how the social card drifted for six weeks.
+
 ## Conventions for future tools
 
 - One directory per tool, named for the question it answers.
