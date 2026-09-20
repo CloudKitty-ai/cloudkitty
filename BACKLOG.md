@@ -13,6 +13,17 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Shallow ground sleep — IN FLIGHT (spec 056, kicked off 2026-09-20)
+
+Owner-approved world law from the beam-world screen (handover
+`experiments/beam-world-screen-2026-09-19/HANDOVER-product-shallow-ground-2026-09-20.md`):
+off-beam sleep relieves sleep need only down to a floor
+(`actions.sleep_floor_off_beam`, default 0 = today's law); a sunbeam, or
+conducted warmth beside a mutual partner on one (spec 031), clears it
+fully. Early-end becomes "finished at the floor this tile can reach".
+No served deploy: floor stays 0 until the owner rules after Experiments'
+tier-5 screen (floors 10/15/20/25). Spec: `specs/056-shallow-ground-sleep/`.
+
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 
 Costed, then dropped the same day: the charm gain did not justify the
