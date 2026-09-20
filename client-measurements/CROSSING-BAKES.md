@@ -147,6 +147,15 @@ That ordering is why the ground splits in two.
 
 Per theme, two static ground layers and one pond pair:
 
+⚠ **`drawGroundCover` is NOT in the bake.** `render.js:1478` bakes with
+`cover: false` — shrubs are drawn per frame at `this.tile` and sorted against
+the cats so they can pass behind them (`render.js:1274`). So the `over` layer
+is `drawGroundDetail` ONLY. Getting this wrong puts shrubs behind cats.
+It also means the sharpest things on screen — shrubs, cats, bubbles, the pond
+meniscus — are drawn per frame at full resolution and **no bake cap can touch
+them**. What a cap softens is only the tone field (blurred already) and the
+detail scatter.
+
 ```
 under = tone + jitter + blur          (everything below the wash)
 [ the sun wash, drawn per frame at the live lean ]
@@ -168,7 +177,7 @@ becomes continuous — better than today, not merely equal.**
 
 ---
 
-## 5. The two open decisions
+## 5. The decisions, ruled 2026-09-20
 
 ### 5a. When to bake, and how many to hold
 
@@ -209,7 +218,7 @@ it — the failure `GROUND_BAKE_MAX_PX` already exists to prevent
 (`render.js:17`, "a correctness bound and not a tuning knob"). A blank
 meadow on phones is a worse bug than the lag.
 
-**Recommended: hold two.** You only ever need the theme you are in and the
+**RULED: hold two.** You only ever need the theme you are in and the
 one you are crossing to. Bake the current theme on load — it is baked today
 anyway — and bake the next during the lull: day runs 280 ticks and only the
 last 24 fade, so there are ~256 ticks (≈3.4 minutes) of nothing happening
@@ -220,24 +229,95 @@ bake is sized for the tightest camera on purpose). A rotation or a window
 drag invalidates every held theme at once. Needs a rebake path that does not
 stall; probably the same lull mechanism, seeded by the resize.
 
-### 5b. Whether to split the ground at the wash
+### 5b. Whether to split the ground at the wash — RULED: split it
 
-The split costs **2× the ground memory** (81 MB vs 40 MB per theme on the
-phone). Not splitting means baking the wash in, which makes the wash
-cross-dissolve between two angles instead of sweeping — the "lean pinned"
-row, 7.5% of pixels over a JND.
+The split costs 2x the ground memory. At full resolution that was 81 MB against
+40 MB per theme on the phone, which made it a real trade against the sun sweep.
+**At the 2048 cap it is 16 MB against 8 MB**, and the pond (already capped at
+2048) dominates either way — so the split costs ~32 MB rather than ~90 MB.
 
-| | ground per theme (phone) | the wash |
+Ruled: **split**, and keep the continuous sun sweep. The cap is what made it
+affordable.
+
+### 5c. The bake resolution — RULED: cap at 2048
+
+`GROUND_BAKE_MAX_PX` is **already 4096** and already binds on a 4K (the 4096
+in the probe panel *is* the cap). The phone bakes 3257, under it. So "cap at
+4K" is a no-op; the ruling is to lower it.
+
+Lowering was dismissed earlier in this investigation and that dismissal is
+void: it was judged against the *per-step* jank, where 2048 left 206 janky
+frames. The cross-fade removes the per-step problem entirely, and what is
+left — the one-off stall and the resident memory — **both scale with pixels**,
+which is exactly what the cap controls.
+
+| cap | linear | phone stall | 2 themes resident |
+|---|---|---|---|
+| 4096 (today) | 100% | ~400 ms | 226 MB |
+| 2560 | 79% | ~247 ms | 164 MB |
+| **2048** | 63% | **~158 ms** | **128 MB** |
+| 1536 | 47% | ~89 ms | 100 MB |
+
+**Judged on the art, at 1:1 and at 3:1, against the blooms** — which are the
+finest thing in the bake, located by scanning the detail layer for opaque ink
+rather than picked by eye:
+
+- **At 1:1, at maximum zoom, all three caps are the same picture.** The
+  flower reads as a flower at every one. Owner: "the difference is pretty
+  marginal."
+- At 3:1 the ranking is clear — 2560 slightly soft, 2048 blurs petals into
+  each other.
+
+Since 1:1 is the only size anyone sees, 2048 is ruled. 1536 is where it
+starts to show even in the tone field, so it is the floor, not a candidate.
+
+⚠ The constant is documented as a **correctness** bound (mobile Safari caps
+total canvas area and returns a BLANK canvas past it). Lowering it is safe in
+that direction, but it now serves two masters and the comment must say so.
+
+### 5d. Interpolating the upscale — nothing better is available
+
+Canvas 2D upscaling is bilinear. `imageSmoothingQuality` is the only knob and
+in most engines it affects *downscaling*; bicubic or Lanczos would need
+`getImageData` per-pixel work, which is the cost being escaped. **The client
+never sets it at all**, so today's blit is default `'low'` — set it to
+`'high'` because it is one free line, and expect nothing from it.
+
+**SHELVED, with the numbers already taken: split resolution.** Because the
+ground is split for the wash anyway, the halves can carry *different* caps —
+`under` is blurred and has no high frequencies to lose, `over` (the blooms) is
+the only thing that suffers. `under 1536 + over 3257` is **49 MB** per theme
+against 81 MB. Chrome prices the two layers at 50/50, but that is a
+command-count measure and the wrong instrument; in Safari the tone field
+touches 100% of pixels and the scatter perhaps 5-10%, so `under` should
+dominate far more. Not built: it adds a second resolution dial to protect
+detail the owner cannot distinguish at 1:1. Reach for it if blooms ever
+bother you at some future zoom.
+
+## 6. The design, as ruled
+
+1. **Bake each theme once** into two static ground layers (`under`, `over`)
+   plus its pond pair. 184 bakes per crossing become 2.
+2. **Cap the bake at 2048 device px** per side (`GROUND_BAKE_MAX_PX`).
+3. **Hold two themes** — the current and the next. Bake the current on load,
+   the next during the lull (~256 quiet ticks before each fade).
+4. **Draw the sun wash per frame**, between `under` and `over`, at the live
+   lean. The sweep becomes continuous rather than quantised into 192 steps.
+5. **Set `imageSmoothingQuality = 'high'`** on the blit.
+6. Accept one ~158 ms stall per theme pair, placed on load and in the lull.
+   Chunking it does not work (§5a); a worker would fix it and is not costed.
+
+Expected, from the measured cross-fade at full resolution, with the cap
+making the stall and the memory smaller again:
+
+| | as shipped | ruled design |
 |---|---|---|
-| split | 81 MB | exact, continuous, better than today |
-| single layer | 40 MB | cross-dissolves between two angles |
+| iPhone, frames >20 ms | 47–54% | ~3% |
+| 4K, frames >20 ms | 14.3% | ~0.4% |
+| phone stall | n/a (continuous jank) | ~158 ms, twice per crossing |
+| resident canvas | 72 MB | ~128 MB |
 
-Owner's call. It is the sun sweeping across the meadow at dusk against
-roughly 90 MB on a phone.
-
----
-
-## 6. Still open
+## 7. Still open
 
 - **The blade-lean residual.** With the wash out of the bake, the blades are
   the only lean-driven geometry left. Never isolated. Measure it before
@@ -249,7 +329,7 @@ roughly 90 MB on a phone.
 - **Whether the pond needs the wash treatment too.** It has no `shadowLean`
   in it, so probably not, but it was never checked at every blend position.
 
-## 7. The rig
+## 8. The rig
 
 Everything above was measured with a probe in the session scratchpad: a node
 server that serves the worktree's `client/` with a captured `/world`, stubs
