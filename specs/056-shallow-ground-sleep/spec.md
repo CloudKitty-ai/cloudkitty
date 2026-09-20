@@ -22,6 +22,23 @@ real rest. Experiments' tier-5 screen (declared, PREREG-tier5.md) runs
 floors 10/15/20/25 the night this lands; the served world keeps floor 0
 until the owner rules after the screen.
 
+## Clarifications
+
+### Session 2026-09-20
+
+- Q: Should a ground nap under a floor end early once the sleep need
+  reaches the floor (the lowest level that tile can reach), rather than
+  running to the 12-tick maximum because zero is unreachable? → A: Yes —
+  finished = the floor this tile can reach (D1 CONFIRMED by the owner;
+  FR-004 stands as written).
+- Q: Is `actions.sleep_floor_off_beam` the final name for the config
+  key? → A: Yes (D2 CONFIRMED by the owner; the name is frozen —
+  Experiments' PREREG-tier5.md wires to it).
+- Q: Should the floor's upper validation bound track the world's
+  configured distress threshold, rather than the fixed number 90? → A:
+  Yes — the bound is the configured `needs.distress`, whatever that
+  world sets it to (FR-006 tightened).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The floor holds on the ground (Priority: P1)
@@ -114,9 +131,9 @@ minimum duration ends on that tick, not at the cap.
   7–9; a floor of 10+ exceeds it): ground naps relieve nothing, end at
   the minimum, and the cat stays at its starting need — legal, and
   exactly the pressure the screen wants to price.
-- Invalid floors: negative, or at/above the distress threshold (90) —
-  rejected at startup with a clear error, like every bounded config
-  value (Article I pressure must stay relievable somewhere; the beam
+- Invalid floors: negative, or at/above the configured distress
+  threshold — rejected at startup with a clear error, like every
+  bounded config value (Article I pressure must stay relievable somewhere; the beam
   always relieves fully, so distress remains escapable at any legal
   floor, but a floor at distress level would let ground sleep *sustain*
   distress pressure, which the bound forbids).
@@ -155,9 +172,11 @@ minimum duration ends on that tick, not at the cap.
   play, cuddle relief riding a co-sleep pile, and every other need and
   scene keep today's law verbatim — the change is scoped to sleep-need
   relief and the sleep scene's finished level.
-- **FR-006**: The floor MUST be validated at startup: `0 ≤ floor <
-  distress threshold` (90). Out-of-range values are a startup
-  configuration error with a clear message, never a clamp.
+- **FR-006**: The floor MUST be validated at startup: `0 ≤ floor <` the
+  world's **configured** distress threshold (`needs.distress`, default
+  90) — the bound tracks the configured value, not the number 90.
+  Out-of-range values are a startup configuration error with a clear
+  message, never a clamp.
 - **FR-007**: With the key absent or 0, the simulation MUST be
   step-for-step identical to today: same worlds, same seeds, same
   actions, same needs, tick for tick.
@@ -172,9 +191,10 @@ minimum duration ends on that tick, not at the cap.
 
 ### Key Entities
 
-- **The floor** (`actions.sleep_floor_off_beam`): a need level 0–100
-  (validated < 90); the lowest sleep-need value plain-ground sleep can
-  reach. Default 0 — today's law.
+- **The floor** (`actions.sleep_floor_off_beam`): a need level
+  (validated `< needs.distress`, the configured value); the lowest
+  sleep-need value plain-ground sleep can reach. Default 0 — today's
+  law.
 - **The escape**: the spec 031 warmth circumstance (own tile is a
   sunbeam, or conducted from a mutual partner's sunbeam tile). One
   predicate selects both the sunbeam-grade rate and the full-clear.
