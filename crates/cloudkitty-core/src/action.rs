@@ -903,10 +903,20 @@ fn apply_sleep_relief(
     // `World::sleep_warmth`, shared with the nap's finished level
     // (spec 056), so the rate and the floor can never disagree.
     let warm = world.sleep_warmth(in_sunbeam, partner);
+    // Shallow ground (spec 056): plain-tile relief stops at the floor —
+    // the amount is capped so a need at or under the floor moves by
+    // zero, never toward it. Warm sleep keeps the full rate to 0.
     let relief = if warm {
         config.actions.sleep_relief_sunbeam
     } else {
-        config.actions.sleep_relief
+        let need = world
+            .kitty(kitty_id)
+            .map(|k| k.needs.get(NeedKind::Sleep))
+            .unwrap_or(0.0);
+        config
+            .actions
+            .sleep_relief
+            .min((need - config.actions.sleep_floor_off_beam).max(0.0))
     };
     lower_need(world, kitty_id, NeedKind::Sleep, relief);
     if let Some(friend) = partner {
@@ -1433,6 +1443,54 @@ mod tests {
         assert!(sunny > plain, "sunbeam {sunny} should beat plain {plain}");
     }
 
+    /// Spec 056 US1 scenario 1: off-beam relief clamps at the floor —
+    /// the need lands exactly there and never below.
+    #[test]
+    fn the_floor_holds_on_plain_ground() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        world.kitties[idx].needs.add(NeedKind::Sleep, 40.0);
+
+        // More than enough serviced ticks to relieve 40 at 5/tick: the
+        // clamp, not exhaustion, must be what stops the fall. `apply`
+        // begins the nap and services one tick; the loop services the
+        // rest the way the engine does.
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        for _ in 0..11 {
+            apply_activity_effects(&mut world, 1, &config);
+        }
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
+            20.0,
+            "plain ground relieves exactly to the floor"
+        );
+    }
+
+    /// Spec 056 US1 scenario 2: a need already under the floor is left
+    /// where it is — the floor never raises a need.
+    #[test]
+    fn a_need_under_the_floor_is_never_raised() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        world.kitties[idx].needs.add(NeedKind::Sleep, 12.0);
+
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        for _ in 0..2 {
+            apply_activity_effects(&mut world, 1, &config);
+        }
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
+            12.0,
+            "an under-floor need moves by zero, never toward the floor"
+        );
+    }
+
     #[test]
     fn warmth_conducts_from_a_mutual_partner_on_a_beam() {
         // Spec 031 US1 scenarios 1-3: the sleeper is off-beam; its mutual
@@ -1485,6 +1543,108 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Spec 056 US2 scenarios 1–2: warmth escapes the floor — a beam
+    /// nap and a conducted nap both clear to 0 in a floored world.
+    #[test]
+    fn warm_sleep_clears_under_a_floor() {
+        // On the beam directly.
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        world.kitties[idx].needs.add(NeedKind::Sleep, 40.0);
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(6, 6),
+            ttl: Some(50),
+        });
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        for _ in 0..11 {
+            apply_activity_effects(&mut world, 1, &config);
+        }
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
+            0.0,
+            "a beam nap clears fully, floor or no floor"
+        );
+
+        // Conducted from a mutual partner on the beam (spec 031).
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 40.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 5),
+            ttl: Some(50),
+        });
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        for _ in 0..11 {
+            apply_activity_effects(&mut world, 1, &config);
+        }
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
+            0.0,
+            "conduction escapes the floor exactly as it upgrades the rate"
+        );
+    }
+
+    /// Spec 056 US2 scenario 3 (analyze A1, the beam-departure form):
+    /// the escape is per-tick circumstance — a warm partner stepping
+    /// off the beam mid-nap re-imposes the floor on later ticks.
+    #[test]
+    fn a_wandered_partner_reimposes_the_floor() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(4, 4);
+        world.kitties[a].needs.add(NeedKind::Sleep, 40.0);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(4, 5);
+        world.kitties[b].activity = Activity::Sleeping {
+            in_sunbeam: true,
+            with_friend: Some(1),
+        };
+        world.kitties[b].activity_clock = Some(ActivityClock::start(world.tick));
+        world.push_element(Element {
+            id: 903,
+            kind: ElementKind::Sunbeam,
+            pos: Position::new(4, 5),
+            ttl: Some(50),
+        });
+
+        // Two conducted ticks at the sunbeam rate: 40 → 26.
+        apply(&mut world, 1, Action::Sleep { with: Some(2) }, &config);
+        apply_activity_effects(&mut world, 1, &config);
+        assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Sleep), 26.0);
+
+        // The partner steps off the beam (adjacency kept, still settled):
+        // conduction is gone, and the remaining ticks clamp at the floor.
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(3, 4);
+        for _ in 0..4 {
+            apply_activity_effects(&mut world, 1, &config);
+        }
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
+            20.0,
+            "the floor returns the tick the warmth leaves"
+        );
     }
 
     #[test]
