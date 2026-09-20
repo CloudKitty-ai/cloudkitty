@@ -199,6 +199,9 @@ def run_one(args):
     width, height = cfg["world"]["width"], cfg["world"]["height"]
     beams_acc = beam_acc(roster)
     prev_sleep = np.zeros(roster, bool)
+    # message head per policy seat: counts of the chosen head index per tick (0 = Silent, then HEAD_KINDS
+    # order); scripted seats decide inside the engine and are not counted (beam-world screen tier 5, P4)
+    msg_counts = {a: [0] * N_MSG for a in names}
 
     for _t in range(ticks):
         acts = {}
@@ -218,6 +221,8 @@ def run_one(args):
             a0 = np.where(mk[:, :N_ACT], lg[:, :N_ACT], NEG_INF).argmax(1)
             g0 = np.where(mk[:, N_ACT:], lg[:, N_ACT:], NEG_INF).argmax(1)
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}
+            for i, a in enumerate(names):
+                msg_counts[a][int(g0[i])] += 1
         obs, rew, _term, _trunc, infos = env.step(acts)
         st = np.asarray(env.state(), np.float32)
         if names:
@@ -244,6 +249,7 @@ def run_one(args):
     return {
         "beam": beams_acc,
         "plan": {s: dict(m.stats) for s, m in models.items() if hasattr(m, "stats")},
+        "msg": msg_counts,
         "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks, "clock": clock_mode,
         "nash": (reward_sum / max(1, n_ticks)) if names else None,
         "nash_state": nash_state_sum / max(1, n_ticks),

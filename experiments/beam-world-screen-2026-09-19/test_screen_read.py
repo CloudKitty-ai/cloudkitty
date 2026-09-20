@@ -37,6 +37,14 @@ for fn in ("scripted-eval-2x400.jsonl", "gen1-A-c0-eval-2x400.jsonl"):
     assert agg["pooled"]["max_distress_age"] == max(r["max_distress_age"] for r in rows)
     assert agg["pooled"]["seeds_over_line"] == [] if agg["pooled"]["max_distress_age"] < S.DIST_LINE else True
 
+# the message-head counter (tier 5, P4): one count per policy seat per tick, 16 heads wide, none for scripted seats
+head, rows = S.load_rows(HERE / "fixtures" / "gen1-A-c0-eval-2x400.jsonl")
+for r in rows:
+    assert set(r["msg"]) == {f"kitty_{i}" for i in range(1, 6)} and all(len(v) == 16 for v in r["msg"].values())
+    assert all(sum(v) == r["ticks"] for v in r["msg"].values()), "every policy tick chooses exactly one head"
+head, rows = S.load_rows(HERE / "fixtures" / "scripted-eval-2x400.jsonl")
+assert all(r["msg"] == {} for r in rows), "scripted seats are not counted"
+
 # variant naming and the level parse
 m = S.NAME.match("s3-b10-t3000-n7"); assert m and m.group("ttl") == "3000" and m.group("count") == "7"
 assert S.NAME.match("anchor") is None

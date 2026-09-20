@@ -18,7 +18,7 @@ print("floor worlds derived and match the prereg shas")
 PYEOF
 echo "== tier5 start $(date -u +%FT%TZ) head $(git rev-parse --short HEAD) binding $($PY -c 'import cloudkitty;print(getattr(cloudkitty,"ENGINE_COMMIT",None))')"
 for f in 10 15 20 25; do
-  w=$D/results-raw/configs/shallow-$f.toml; out=$R/battery/shallow-$f; mkdir -p "$out"
+  w=$D/shallow-$f.toml; out=$R/battery/shallow-$f; mkdir -p "$out"
   for seating in scripted gen1-A; do
     fn="$out/$seating-eval-30x20000.jsonl"; [ "$seating" = gen1-A ] && fn="$out/gen1-A-c0-eval-30x20000.jsonl"
     if [ -f "$fn" ] && [ "$(wc -l < "$fn")" -ge 31 ]; then echo "skip comparator $f $seating"; continue; fi
@@ -37,7 +37,7 @@ for slot in sg10-s1 sg10-s2 sg15-s1 sg15-s2 sg20-s1 sg20-s2 sg25-s1 sg25-s2; do 
 echo "== reads $(date -u +%FT%TZ)"
 for slot in sg10-s1 sg10-s2 sg15-s1 sg15-s2 sg20-s1 sg20-s2 sg25-s1 sg25-s2; do
   [ -f "$A/ppo-fog-$slot/policy-final.pt" ] || { echo "no final for $slot"; continue; }
-  f=${slot#sg}; f=${f%-s*}; w=$D/results-raw/configs/shallow-$f.toml; out=$R/battery/$slot; mkdir -p "$out"
+  f=${slot#sg}; f=${f%-s*}; w=$D/shallow-$f.toml; out=$R/battery/$slot; mkdir -p "$out"
   for k in 0 1 2 3 4; do
     fn="$out/gen1-A_s$k-$slot-c0-eval-30x20000.jsonl"
     if [ -f "$fn" ] && [ "$(wc -l < "$fn")" -ge 31 ]; then echo "skip $slot seat $k"; continue; fi
