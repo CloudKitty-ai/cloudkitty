@@ -31,7 +31,7 @@ use std::sync::{mpsc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use cloudkitty_core::action::{Action, ProposalError, PROPOSAL_WIRE_VERSION};
+use cloudkitty_core::action::{Action, ProposalError};
 use cloudkitty_core::behavior::{
     parse_reply_line, Behavior, DecisionContext, DecisionRequest, ReplyRejection,
 };
