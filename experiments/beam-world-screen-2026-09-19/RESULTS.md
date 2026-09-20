@@ -161,3 +161,94 @@ nohup bash experiments/beam-world-screen-2026-09-19/run_screen.sh \
 experiments/exp-006-character-gen/.venv/bin/python experiments/beam-world-screen-2026-09-19/screen_read.py \
   experiments/beam-world-screen-2026-09-19/results-raw/battery --md --out experiments/beam-world-screen-2026-09-19/results-raw/screen-read.json
 ```
+
+# Tier 2 — results, 2026-09-20
+
+Prereg `PREREG-tier2.md` (ab6a6c9, before collection). Stage 1 corpus
+and clone 2026-09-19 19:07–22:36Z, stage 2 PPO 22:36–04:15Z, stage 3
+battery 04:18–05:04Z. Reader `tier2_read.py` →
+`results-raw/tier2/tier2-read.json`. Raws uncommitted under
+`results-raw/tier2/` (corpus 8.5 GB, clones, pass logs, battery) and
+`artifacts/ppo-fog-{pkg,floor5}-s{1,2}/`.
+
+## The short version: letter (a)
+
+The corpus carries beam seeking into the clone in full, and β 0.04 PPO
+takes all of it away on both worlds. Neither the count-6 / 3,000-tick
+corpus nor the floor-3 reward holds it. The leash is the remaining
+lever, and F-047 stands in full.
+
+| stage | placement (naps begun on a beam) | tick share |
+|---|---|---|
+| teacher on the package corpus (40 rollouts) | 0.458 | 0.364 |
+| package clone `pkg-vocab`, all five seats, package world, 5 seeds | 0.511 | 0.418 |
+| pkg-s1 in its gen1-A seat, package world, 30 seeds | 0.070 | 0.065 |
+| pkg-s2 | 0.037 | 0.035 |
+| floor5-s1 in its gen1-A seat, floor5 world | 0.019 | 0.019 |
+| floor5-s2 | 0.028 | 0.028 |
+| gen1-A itself on the package / floor5 world (tier 1) | 0.068 / 0.067 | 0.063 / 0.067 |
+
+Every arm ends where the Gen 1 minds already are, at or under the
+mind it replaced. The probe series puts the loss between 2.5 M and
+4.6 M ticks, the stretch where KL to the anchor climbs from 0.05 to
+0.5 as the leash relaxes toward its 0.04 pin: pkg-s1 0.57 → 0.48 →
+0.13 → 0.09, pkg-s2 0.55 → 0.48 → 0.19 → 0.04, floor5-s1 0.50 → 0.39 →
+0.08 → 0.03, floor5-s2 0.48 → 0.48 → 0.15 → 0.04 (probe 1, ~2.5 M,
+~4.6 M, plateau). Arms plateaued at 9.0 / 10.0 / 11.0 / 9.0 M ticks.
+
+## Predictions
+
+1. **Holds.** Teacher placement 0.458 (declared 0.42–0.50), tick share
+   0.364 (0.33–0.40); per-seat tick shares Miso .34 / Biscuit .28 /
+   Pumpkin .44 / Kittybear .41 / Clementine .38, tier 1's numbers.
+2. **Holds, above the bar.** The clone clears the BC bars on the
+   proposed read (reply mass .70–.79, msg@1 .954, wants 0.91–0.99);
+   the applied read misses want_cuddle at 1.154, the tick's downgrade
+   bias to the third decimal of the Gen 1 clone's 1.155. Its placement
+   before PPO is 0.511 (declared ≥ 0.30), Nash 0.871 against the
+   scripted 0.868.
+3. **Letter (a).** Package 0.070 / 0.037, floor5 0.019 / 0.028, all
+   under the 0.10 line.
+4. **Holds on welfare, with crossings to name.** Package arms' team
+   Nash in a gen1-A roster 0.923 on both seeds against the scripted
+   0.868; no welfare stop fired. Distress age ≥ 150 in the swap legs,
+   one seed of 150 per arm: pkg-s1 seed 870011 at seat 2 (215), pkg-s2
+   870019 seat 0 (209), floor5-s1 870007 seat 0 (223), floor5-s2 870006
+   seat 2 (250); in the all-arm rosters pkg-s2 870004 seat 2 (177) and
+   floor5-s2 870008 seat 2 (192). About 0.7% of swap-leg seeds, under
+   F-043's 1.8% swap rate, and tier 1's gen1-A on the same worlds read
+   133 and 162.
+
+## Reading
+
+The BC clone is the beam-seeking mind the package was meant to produce:
+it starts more naps on beams than its teacher. PPO at the pool's dose
+then removes the behaviour as thoroughly as it did for Gen 1, and the
+floor-3 reward, which pays about seven ticks a nap for the walk, does
+not change that. So the Gen 2 collection can expect the same: whatever
+count and lifetime the corpus carries, a β 0.04 fine-tune will not keep
+the walk unless something else holds it. The candidates, in the order
+Experiments would try them: a tighter leash (dose-hi held 0.21 on Gen
+1), a leash that stays tight for the sleep decision only, or a planner
+above the mind (tier 3, the owner's word 2026-09-20). The corpus bar on
+#390 is moot as a lever on the mind, and the count stays the owner's
+visual call.
+
+Not read here: whether PPO loses the walk because it does not pay
+(seven ticks a nap against the pile's cuddle drip and the play budget)
+or because the leash simply lets it drift; the dose-hi contrast would
+say, and is not run.
+
+## Regeneration
+
+```
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/stage1.sh > .../results-raw/tier2/stage1.log 2>&1 &
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/stage2.sh > .../results-raw/tier2/stage2.log 2>&1 &
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/stage3.sh > .../results-raw/tier2/stage3.log 2>&1 &
+experiments/exp-006-character-gen/.venv/bin/python experiments/beam-world-screen-2026-09-19/tier2_read.py \
+  experiments/beam-world-screen-2026-09-19/results-raw/tier2/battery experiments/beam-world-screen-2026-09-19/results-raw/battery
+```
+Stage 3 needs the gen1-A artifacts reachable under `CERT_ARTS`
+(symlinks `artifacts/ppo-fog-{cand-s2,cand-s1,dose-lo-s1,cand-s4,cand-s7}`
+→ `fog-gen1-cert/artifacts/`); the first launch failed without them
+(`stage3-first-attempt.log`).

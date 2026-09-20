@@ -81,9 +81,16 @@ BANDS = {"eval": 870_001, "stress": 880_001, "probe": 40_001, "rep1": 890_001, "
 
 
 def load_model(spec):
+    """`scripted` -> None; `ppo:<slot>` -> a forward over observation rows; `plan:<slot>` -> the
+    same forward under the beam planner (beam-world screen tier 3), which also reads the masks.
+    Every callable takes (rows, masks); the plain forward ignores the masks."""
     if spec == "scripted":
         return None
     kind, name = spec.split(":", 1)
+    if kind == "plan":
+        sys.path.insert(0, str(EXPTS / "beam-world-screen-2026-09-19"))
+        from beam_plan import BeamPlanner
+        return BeamPlanner(load_model(f"ppo:{name}"))
     if kind != "ppo":
         raise ValueError(spec)
     import torch
@@ -92,7 +99,7 @@ def load_model(spec):
     policy, _ck = load_policy_ckpt(ARTS / f"ppo-fog-{name}" / "policy-final.pt")
     policy.eval()
 
-    def fwd(rows):
+    def fwd(rows, masks=None):
         with torch.no_grad():
             return policy(torch.from_numpy(rows)).numpy()
     return fwd
@@ -207,7 +214,7 @@ def run_one(args):
             for s, fwd in models.items():
                 rows = [i for i, a in enumerate(names) if seat_of[a] == s]
                 if rows:
-                    lg[rows] = np.asarray(fwd(ob[rows]), np.float32)
+                    lg[rows] = np.asarray(fwd(ob[rows], mk[rows]), np.float32)
             a0 = np.where(mk[:, :N_ACT], lg[:, :N_ACT], NEG_INF).argmax(1)
             g0 = np.where(mk[:, N_ACT:], lg[:, N_ACT:], NEG_INF).argmax(1)
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}
@@ -236,6 +243,7 @@ def run_one(args):
 
     return {
         "beam": beams_acc,
+        "plan": {s: dict(m.stats) for s, m in models.items() if hasattr(m, "stats")},
         "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks, "clock": clock_mode,
         "nash": (reward_sum / max(1, n_ticks)) if names else None,
         "nash_state": nash_state_sum / max(1, n_ticks),
