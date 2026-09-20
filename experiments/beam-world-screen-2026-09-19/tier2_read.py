@@ -26,14 +26,16 @@ def swap_leg_seat(rows, slot):
 
 
 def arm_in_seat(files, slot):
-    """The arm's own placement / tick share pooled over its seat in each swap leg."""
-    on = sleep = starts = d0 = 0
+    """The arm's own placement / tick share / happiness pooled over its seat in each swap leg."""
+    on = sleep = starts = d0 = n = 0; hap = 0.0
     for f in files:
         _h, rows = S.load_rows(f)
         for r in rows:
             for i in swap_leg_seat(rows, slot):
                 b = r["beam"]; on += b["on_beam"][i]; sleep += b["sleep"][i]; starts += b["starts"][i]; d0 += b["start_dist"][i][0]
-    return {"placement": d0 / starts if starts else None, "in_beam": on / sleep if sleep else None, "starts": starts, "sleep": sleep}
+                hap += r["mean_happiness"][i]; n += 1
+    return {"placement": d0 / starts if starts else None, "in_beam": on / sleep if sleep else None, "starts": starts, "sleep": sleep,
+            "happiness": hap / n if n else None}
 
 
 def letter(pkg, floor5):

@@ -56,10 +56,13 @@ def checks(out):
         if g:
             c["P3_arms_vs_frozen"][f] = {}
             for s in (1, 2):
-                r = fl["arms"].get(f"sg{f}-s{s}", {}).get("roster_with_arm")
+                r = fl["arms"].get(f"sg{f}-s{s}", {}).get("roster_with_arm"); o = fl["arms"].get(f"sg{f}-s{s}", {}).get("own_seat", {})
                 if r:
-                    c["P3_arms_vs_frozen"][f][f"s{s}"] = {"hap_over_frozen": r["happiness"] - g["happiness"], "nash_over_frozen": r["nash_state"] - g["nash_state"],
-                                                          "recovers_floor_cost": (r["happiness"] - g["happiness"]) >= (g0["happiness"] - g["happiness"])}
+                    # the roster mean carries four frozen minds; the arm's own-seat happiness against the frozen roster's
+                    # per-seat mean on the same floor is the read the prereg means (the seat the arm replaced, averaged over seats)
+                    c["P3_arms_vs_frozen"][f][f"s{s}"] = {"roster_hap_over_frozen": r["happiness"] - g["happiness"], "nash_over_frozen": r["nash_state"] - g["nash_state"],
+                                                          "own_seat_hap": o.get("happiness"), "own_seat_hap_over_frozen_mean": (o.get("happiness") - g["happiness"]) if o.get("happiness") is not None else None,
+                                                          "recovers_floor_cost": ((o.get("happiness") or 0) - g["happiness"]) >= (g0["happiness"] - g["happiness"])}
         c["P5_over_line"][f] = {"frozen": (g or {}).get("seeds_over_line"), **{f"s{s}": fl["arms"].get(f"sg{f}-s{s}", {}).get("roster_with_arm", {}).get("seeds_over_line") for s in (1, 2)}}
     p2 = c["P2_placement"]
     c["P2_holds_at_20_and_25"] = all(p2.get(f, {}).get("both_ge_keep") for f in (20, 25)) if all(f in p2 for f in (20, 25)) else None

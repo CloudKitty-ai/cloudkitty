@@ -23,6 +23,7 @@ with tempfile.TemporaryDirectory() as d:
     starts = sum(r["beam"]["starts"][2] for r in rows); d0 = sum(r["beam"]["start_dist"][2][0] for r in rows)
     sleep = sum(r["beam"]["sleep"][2] for r in rows); on = sum(r["beam"]["on_beam"][2] for r in rows)
     assert own["starts"] == starts and own["sleep"] == sleep
+    assert abs(own["happiness"] - sum(r["mean_happiness"][2] for r in rows) / len(rows)) < 1e-9, "the arm's happiness is its own seat's, averaged over seeds"
     assert (own["placement"] is None and starts == 0) or abs(own["placement"] - d0 / starts) < 1e-12, "placement is the ARM'S seat only"
     assert (own["in_beam"] is None and sleep == 0) or abs(own["in_beam"] - on / sleep) < 1e-12
     # the same leg twice pools to the same shares with doubled counts

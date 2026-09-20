@@ -11,17 +11,18 @@ assert r["placement"] == a["start_dist"][0] and r["happiness"] == a["happiness"]
 # staged checks: floor 0 gen1-A at 92.3; a floor where the frozen roster drops 3.8 and the arms recover it
 out = {"floor0": {"gen1-A": {"happiness": 92.3}},
        "floors": {20: {"reference": {"gen1-A": {"happiness": 88.5, "nash_state": 0.885, "sleep_share": 0.35, "start_need_mean": 20.4, "seeds_over_line": []}},
-                       "arms": {"sg20-s1": {"own_seat": {"placement": 0.52}, "roster_with_arm": {"happiness": 92.4, "nash_state": 0.92, "seeds_over_line": []}},
-                                "sg20-s2": {"own_seat": {"placement": 0.16}, "roster_with_arm": {"happiness": 91.0, "nash_state": 0.91, "seeds_over_line": [(1, 0, 200)]}}}},
+                       "arms": {"sg20-s1": {"own_seat": {"placement": 0.52, "happiness": 92.4}, "roster_with_arm": {"happiness": 89.4, "nash_state": 0.92, "seeds_over_line": []}},
+                                "sg20-s2": {"own_seat": {"placement": 0.16, "happiness": 91.0}, "roster_with_arm": {"happiness": 89.0, "nash_state": 0.91, "seeds_over_line": [(1, 0, 200)]}}}},
                   25: {"reference": {"gen1-A": {"happiness": 87.2, "nash_state": 0.871, "sleep_share": 0.40, "start_need_mean": 24.8, "seeds_over_line": []}},
-                       "arms": {"sg25-s1": {"own_seat": {"placement": 0.09}, "roster_with_arm": {"happiness": 88.0, "nash_state": 0.88, "seeds_over_line": []}},
-                                "sg25-s2": {"own_seat": {"placement": 0.60}, "roster_with_arm": {"happiness": 92.0, "nash_state": 0.92, "seeds_over_line": []}}}}}}
+                       "arms": {"sg25-s1": {"own_seat": {"placement": 0.09, "happiness": 88.0}, "roster_with_arm": {"happiness": 87.5, "nash_state": 0.88, "seeds_over_line": []}},
+                                "sg25-s2": {"own_seat": {"placement": 0.60, "happiness": 92.0}, "roster_with_arm": {"happiness": 88.2, "nash_state": 0.92, "seeds_over_line": []}}}}}}
 c = R.checks(out)
 assert c["P1_floor_felt"][20]["felt_over_0.3"] and abs(c["P1_floor_felt"][20]["gen1A_hap_drop"] - 3.8) < 1e-9
 assert c["P2_placement"][20]["both_ge_keep"] and not c["P2_placement"][20]["both_lt_lose"]
 assert not c["P2_placement"][25]["both_ge_keep"], "one seed under the keep line fails the floor"   # 0.09 < 0.15
 assert c["P2_holds_at_20_and_25"] is False
-assert c["P3_arms_vs_frozen"][20]["s1"]["recovers_floor_cost"] and not c["P3_arms_vs_frozen"][20]["s2"]["recovers_floor_cost"]   # 2.5 < 3.8
+assert c["P3_arms_vs_frozen"][20]["s1"]["recovers_floor_cost"] and not c["P3_arms_vs_frozen"][20]["s2"]["recovers_floor_cost"]   # own seat 92.4-88.5=3.9 >= 3.8; 91.0-88.5=2.5 < 3.8
+assert abs(c["P3_arms_vs_frozen"][20]["s1"]["own_seat_hap_over_frozen_mean"] - 3.9) < 1e-9
 assert c["P5_over_line"][20]["s2"] == [(1, 0, 200)] and c["P5_over_line"][25]["s1"] == []
 # an unreadable floor yields None, not a verdict
 assert R.checks({"floor0": {"gen1-A": {"happiness": 92.3}}, "floors": {10: {"reference": {}, "arms": {}}}})["P2_holds_at_20_and_25"] is None
