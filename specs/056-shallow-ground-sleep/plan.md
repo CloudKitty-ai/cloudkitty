@@ -39,13 +39,14 @@ predicate so the rate choice and the floor escape can never drift.
 *GATE: evaluated pre-Phase 0; re-checked post-design — PASS both times.*
 
 - **Article I (no suffering)**: needs stay bounded 0–100; the floor never
-  raises a need, and relief remains guaranteed — the beam relieves fully
-  and safeguard spawning already guarantees a reachable sunbeam when
-  Sleep exceeds the safeguard threshold. The `floor < needs.distress`
-  bound (configured value, owner-confirmed) structurally prevents ground
-  sleep from sustaining distress-level pressure. Guarded by the FR-006
-  validation test plus the existing Article I property suite, which runs
-  randomized configs.
+  raises a need, and a beam always relieves fully. Corrected at review
+  (2026-09-20): safeguard spawning covers Eat and Drink only — beam
+  supply is the world's element rules, not a spawned guarantee — and the
+  `floor < [thresholds] distress` bound (configured value,
+  owner-confirmed) prevents distress from being plain ground's *parked*
+  state; the need still regrows between naps. Distress stays a signal,
+  never a punishment (Article I's own framing), and the Article I
+  property suite runs randomized configs over the new law.
 - **Article II (no death)**: untouched.
 - **Article III (never alone)**: untouched.
 - **Article IV (engine is the law)**: the law lands in the engine's
@@ -81,7 +82,7 @@ specs/056-shallow-ground-sleep/
 crates/cloudkitty-core/src/
 ├── config/mod.rs        # ActionsConfig: sleep_floor_off_beam field, serde default 0.0,
 │                        #   doc comment; Default impl; unit test (absent = 0, bounds)
-├── config/validate.rs   # finite/≥0 sweep row + cross-field bound: floor < needs.distress
+├── config/validate.rs   # finite/≥0 sweep row + cross-field bound: floor < [thresholds] distress
 ├── action.rs            # apply_sleep_relief: clamp off-beam relief at the floor;
 │                        #   warmth predicate extracted so world.rs shares it;
 │                        #   unit tests beside sleeping_in_a_sunbeam_is_more_restful
@@ -120,7 +121,7 @@ drift" edge case, and rule 6's changed-behavior sort depends on it.
   the spec's edge cases.
 - **Validation**: the floor joins the finite/≥0 `[actions]` sweep in
   `validate.rs`, plus one cross-field check against the configured
-  `needs.distress` (the sweep's rows are single-key; the bound needs the
+  `[thresholds] distress` (the sweep's rows are single-key; the bound needs the
   needs section, so it lands beside the other cross-field checks).
 - **Settings**: one row in `settings.rs` (pattern: the
   `relief_memory_margin` rows at ~201/382/451 — value, default, and the

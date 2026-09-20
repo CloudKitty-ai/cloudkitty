@@ -14,7 +14,7 @@ sleep_floor_off_beam = 0.0
 ```
 
 - Absent key = 0.0 = pre-056 law, byte-for-byte (FR-001/FR-007).
-- Accepted: finite f32, `0 ≤ value < needs.distress` (the configured
+- Accepted: finite f32, `0 ≤ value < [thresholds] distress` (the configured
   threshold). Anything else: startup `ConfigError` naming
   `[actions] sleep_floor_off_beam`, the offending value, and the bound —
   never a clamp.

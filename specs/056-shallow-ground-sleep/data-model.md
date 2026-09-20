@@ -4,7 +4,7 @@
 
 | Field | Home | Type | Default | Bounds |
 |---|---|---|---|---|
-| `sleep_floor_off_beam` | `ActionsConfig` (`[actions]` in TOML) | f32 | 0.0 (serde default; absent = 0) | `0 ≤ floor < needs.distress` (configured value), finite — else startup ConfigError |
+| `sleep_floor_off_beam` | `ActionsConfig` (`[actions]` in TOML) | f32 | 0.0 (serde default; absent = 0) | `0 ≤ floor < [thresholds] distress` (configured value), finite — else startup ConfigError |
 
 Semantics: the lowest Sleep-need value plain-ground sleep can reach.
 Never raises a need. Fixed for the world's life like every config dial.

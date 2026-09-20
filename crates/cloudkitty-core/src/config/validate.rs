@@ -774,18 +774,21 @@ impl Config {
                 ));
             }
         }
-        // Spec 056: ground sleep may leave a cat a little tired, never
-        // distressed — a floor at or past the distress threshold would let
-        // plain-ground sleep sustain distress-level pressure, which
-        // Article I forbids. The bound is the CONFIGURED threshold
-        // (owner-confirmed 2026-09-20), never the literal 90.
+        // Spec 056: the floor bounds how tired a nap can leave a cat
+        // PARKED — a floor at or past the distress threshold would make
+        // distress the resting state of plain ground. The bound is the
+        // CONFIGURED threshold (owner-confirmed 2026-09-20), never the
+        // literal 90. It does NOT promise a floored cat never crosses
+        // distress: the need regrows from the floor between naps like
+        // any other (review 2026-09-20 finding 6; a tighter bound
+        // against safeguard is an owner call for a later spec).
         if a.sleep_floor_off_beam >= self.thresholds.distress {
             return Err(ConfigError::invalid(
                 "[actions] sleep_floor_off_beam",
                 a.sleep_floor_off_beam.to_string(),
                 format!(
-                    "must be below [thresholds] distress ({}): ground sleep \
-                     may leave a cat a little tired, never distressed",
+                    "must be below [thresholds] distress ({}): a nap may \
+                     leave a cat a little tired, never parked at distress",
                     self.thresholds.distress
                 ),
             ));

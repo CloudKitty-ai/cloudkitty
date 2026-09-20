@@ -20,11 +20,11 @@ below close the plan-level choices.
 
 - **Decision**: two checks in `config/validate.rs`: the key joins the
   `[actions]` finite/≥0 sweep (~line 746), and one cross-field check
-  `floor < needs.distress` beside the existing cross-section checks.
+  `floor < [thresholds] distress` beside the existing cross-section checks.
 - **Rationale**: the sweep rows are single-key by construction; the
   bound reads another section, so it cannot live in the sweep. The
   configured threshold (owner-confirmed) means the check reads
-  `config.needs.distress`, never 90.
+  `config.thresholds.distress`, never 90.
 - **Alternatives considered**: clamping — forbidden by FR-006 (reject,
   never clamp).
 

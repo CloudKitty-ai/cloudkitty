@@ -890,18 +890,18 @@ fn apply_sleep_relief(
     config: &Config,
 ) {
     // The FR-014/15 mutual predicate -- `World::is_settled`, the one shared
-    // definition (spec 041 FR-002). Evaluated ONCE, above both uses: it
-    // prices the cuddle tier below and gates warmth conduction in the sleep
-    // rate (spec 031), so the two can never disagree about whether the pile
-    // is mutual.
+    // definition (spec 041 FR-002). Since spec 056 the cuddle tier below
+    // and the warmth gate share the DEFINITION, not one evaluation:
+    // `sleep_warmth` re-reads `is_settled` inside its own body, so moving
+    // the mutual predicate means moving it there too.
     let mutual = partner.is_some_and(|friend| world.is_settled(friend));
     // Warmth conducts through the pile (spec 031): a mutual partner on a
     // sunbeam tile gives the sleeper sunbeam-grade sleep. Direct partner
     // only, and the rate is selected, never stacked -- any combination of
     // beams pays exactly sleep_relief_sunbeam. A failed lookup is simply
     // no warmth (the plain rate), never an error. The circumstance is
-    // `World::sleep_warmth`, shared with the nap's finished level
-    // (spec 056), so the rate and the floor can never disagree.
+    // `World::sleep_warmth`, one rule shared with the nap's finished level
+    // (spec 056; see its doc for the one-phase lag within a tick).
     let warm = world.sleep_warmth(in_sunbeam, partner);
     // Shallow ground (spec 056): plain-tile relief stops at the floor —
     // the amount is capped so a need at or under the floor moves by
@@ -918,7 +918,13 @@ fn apply_sleep_relief(
             .sleep_relief
             .min((need - config.actions.sleep_floor_off_beam).max(0.0))
     };
-    lower_need(world, kitty_id, NeedKind::Sleep, relief);
+    // Review finding 4: a tick the floor clamped to nothing must not
+    // stamp `last_relief` as delivered relief (the selection tie-break
+    // reads that stamp). Scoped to a NONZERO floor: at floor 0 the old
+    // law stamped even at need 0, and floor 0 stays byte-identical.
+    if warm || config.actions.sleep_floor_off_beam <= 0.0 || relief > 0.0 {
+        lower_need(world, kitty_id, NeedKind::Sleep, relief);
+    }
     if let Some(friend) = partner {
         // Cosleep priced by presence (spec 028 FR-014/FR-015): the mutual
         // tier when the partner is itself sleeping or resting, the passive
@@ -1600,6 +1606,45 @@ mod tests {
             world.kitty(1).unwrap().needs.get(NeedKind::Sleep),
             0.0,
             "conduction escapes the floor exactly as it upgrades the rate"
+        );
+    }
+
+    /// Spec 056 (review 2026-09-20 finding 4): a serviced tick the tile
+    /// cannot relieve delivers nothing and must not stamp `last_relief`
+    /// as if it had — a cat parked at the floor is not "freshly
+    /// relieved", and the selection tie-break must not treat it so. At
+    /// floor 0 the old stamp law (which stamps even at need 0) is kept
+    /// byte-identical.
+    #[test]
+    fn a_clamped_to_zero_tick_does_not_stamp_last_relief() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        world.kitties[idx].needs.add(NeedKind::Sleep, 20.0);
+        let before = world.kitty(1).unwrap().last_relief_tick(NeedKind::Sleep);
+
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        apply_activity_effects(&mut world, 1, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().last_relief_tick(NeedKind::Sleep),
+            before,
+            "no relief landed, so no relief is recorded"
+        );
+
+        // Floor 0 keeps the old stamp law exactly, even at need 0.
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        world.tick = 100;
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].pos = Position::new(6, 6);
+        apply(&mut world, 1, Action::Sleep { with: None }, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().last_relief_tick(NeedKind::Sleep),
+            100,
+            "the pre-056 stamp at floor 0, pinned"
         );
     }
 

@@ -36,7 +36,7 @@ until the owner rules after the screen.
   Experiments' PREREG-tier5.md wires to it).
 - Q: Should the floor's upper validation bound track the world's
   configured distress threshold, rather than the fixed number 90? → A:
-  Yes — the bound is the configured `needs.distress`, whatever that
+  Yes — the bound is the configured `[thresholds] distress`, whatever that
   world sets it to (FR-006 tightened).
 
 ## User Scenarios & Testing *(mandatory)*
@@ -173,7 +173,7 @@ minimum duration ends on that tick, not at the cap.
   scene keep today's law verbatim — the change is scoped to sleep-need
   relief and the sleep scene's finished level.
 - **FR-006**: The floor MUST be validated at startup: `0 ≤ floor <` the
-  world's **configured** distress threshold (`needs.distress`, default
+  world's **configured** distress threshold (`[thresholds] distress`, default
   90) — the bound tracks the configured value, not the number 90.
   Out-of-range values are a startup configuration error with a clear
   message, never a clamp.
@@ -192,7 +192,7 @@ minimum duration ends on that tick, not at the cap.
 ### Key Entities
 
 - **The floor** (`actions.sleep_floor_off_beam`): a need level
-  (validated `< needs.distress`, the configured value); the lowest
+  (validated `< [thresholds] distress`, the configured value); the lowest
   sleep-need value plain-ground sleep can reach. Default 0 — today's
   law.
 - **The escape**: the spec 031 warmth circumstance (own tile is a
@@ -227,14 +227,24 @@ minimum duration ends on that tick, not at the cap.
   rule 8 asks for; it is also a louder meadow. The tier-5 screen reads
   meow rates per level so the owner can see the trade before any served
   ruling.
-- **Distress**: legal floors sit far below the distress threshold; the
-  watchdog and Article I relief guarantee are untouched (the beam always
-  relieves fully and safeguard spawning already guarantees a reachable
-  relief source).
-- **The scripted teacher**: `needs_driven` chooses where to sleep
-  without reading relief amounts, so the teacher's corpus is unchanged
-  under any floor; the floor acts on the RL reward — which is the point
-  of the screen.
+- **Distress** (corrected at review, 2026-09-20): the bound keeps
+  distress from being plain ground's *resting* state, but a floored
+  cat's need still regrows from the floor between naps, and safeguard
+  spawning covers Eat and Drink only — no mechanism spawns a sunbeam
+  for a tired cat; beam supply is the world's element rules. The
+  tier-5 floors (10–25) sit far under distress (90), so the screen is
+  unaffected; a world that pushes the floor near distress buys watchdog
+  traffic, and a tighter bound (safeguard, the wet-fur precedent) is an
+  owner call for a later spec if the screen ever makes it matter.
+- **The scripted teacher** (corrected at review, 2026-09-20):
+  `needs_driven` chooses *where* to sleep without reading relief
+  amounts, and that choice is unchanged. The corpus's shape does change
+  under a floor: plain naps end earlier (at the floor), the freed ticks
+  are re-decided, and a nap begun at or under the floor is a
+  minimum-length scene that relieves nothing and repeats as the need
+  regrows. The floor acts on the RL reward, which is the point of the
+  screen; the re-decide churn is a dynamics fact the tier-5 read should
+  expect at floors 10/15.
 - **Client**: nothing to draw; needs are not shown.
 - **No served deploy**: the served world keeps floor 0 until the owner
   rules after the tier-5 screen.

@@ -637,14 +637,17 @@ impl World {
             // is possible where the sleeper lies -- 0 for warm sleep
             // (`sleep_warmth`, the predicate the relief tick uses), the
             // shallow-ground floor otherwise; each duet side carries its
-            // own level. Every other activity keeps the literal 0, and at
-            // floor 0 this IS the pre-056 rule.
+            // own level. The floor is a SLEEP law: it applies only when
+            // the governing need is Sleep AND the examined kitty is the
+            // one sleeping (review 2026-09-20 finding 1 -- a groomed
+            // sleeper's Bath keeps the literal 0). Every other need and
+            // activity keeps 0, and at floor 0 this IS the pre-056 rule.
             let need_zero = |kind: NeedKind, of: &Kitty| {
                 let level = match of.activity {
                     Activity::Sleeping {
                         in_sunbeam,
                         with_friend,
-                    } => {
+                    } if kind == NeedKind::Sleep => {
                         if self.sleep_warmth(in_sunbeam, with_friend) {
                             0.0
                         } else {
@@ -1435,7 +1438,13 @@ impl World {
     /// co-sleep partner ([`Self::is_settled`], the spec-041 shared
     /// definition) standing on one. One predicate decides the relief
     /// rate, the shallow-ground floor escape, and the nap's finished
-    /// level, so the three can never disagree.
+    /// level -- one RULE, though not one evaluation: relief is paid
+    /// mid-phase at the sleeper's slot and the finished level is read at
+    /// resolve, so within a tick the rate and the level can lag by one
+    /// phase (a partner stepping off a beam mid-phase), deterministically
+    /// (owner-ruled 2026-09-20: engine semantics, same class as the
+    /// serviced-in-id-order mid-tick view; a measured disagreement rate
+    /// would earn a two-pass end loop as its own spec, never a rider).
     pub fn sleep_warmth(&self, in_sunbeam: bool, partner: Option<KittyId>) -> bool {
         in_sunbeam
             || partner.is_some_and(|friend| {
@@ -3558,6 +3567,51 @@ mod tests {
             Activity::Idle,
             "the pre-056 end tick, pinned"
         );
+    }
+
+    /// Spec 056 FR-005 (review 2026-09-20 finding 1): the floor is a
+    /// SLEEP law. Grooming a sleeping off-beam friend under a floor
+    /// still washes the friend's Bath need to 0 and the scene runs its
+    /// full course — the finished level never leaks onto another need
+    /// just because the examined kitty happens to be asleep.
+    #[test]
+    fn the_floor_never_leaks_onto_a_groomed_sleepers_bath() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let groomer = world.kitty_index(1).unwrap();
+        world.kitties[groomer].pos = Position::new(5, 5);
+        let friend = world.kitty_index(2).unwrap();
+        world.kitties[friend].pos = Position::new(5, 6);
+        world.kitties[friend].activity = Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        world.kitties[friend].activity_clock = Some(crate::kitty::ActivityClock::start(world.tick));
+        world.kitties[friend].needs.add(NeedKind::Bath, 65.0);
+
+        run_slot(&mut world, &config, 1, Action::Groom { target: Some(2) });
+        close_tick(&mut world, &config);
+        for _ in 0..2 {
+            run_slot(&mut world, &config, 1, Action::Idle);
+            close_tick(&mut world, &config);
+        }
+        // 3 groomed ticks: bath 5 — under the SLEEP floor, but bath is
+        // not sleep: the scene must still be running.
+        assert_eq!(world.kitty(2).unwrap().needs.get(NeedKind::Bath), 5.0);
+        assert!(
+            world.kitty(1).unwrap().activity_clock.is_some(),
+            "a bath under the sleep floor does not end the grooming"
+        );
+
+        run_slot(&mut world, &config, 1, Action::Idle);
+        close_tick(&mut world, &config);
+        assert_eq!(
+            world.kitty(2).unwrap().needs.get(NeedKind::Bath),
+            0.0,
+            "the friend is washed clean, floor or no floor"
+        );
+        assert_eq!(world.kitty(1).unwrap().activity, Activity::Idle);
     }
 
     /// Spec 056 edge case (analyze C1): a nap begun exactly at the floor

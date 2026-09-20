@@ -82,7 +82,10 @@ impl NeedsDriven {
 /// rested (or the engine's maximum calls time). Grooming reads the need off
 /// the friend being groomed, matching the engine's own end rule. Solo rest is
 /// posture, not relief -- it carries no governing need and is re-decided
-/// freely. Shared with `Playful`: finishing what you started is good sense,
+/// freely. Spec 056 note: under a shallow-ground floor the ENGINE ends a
+/// plain nap at the reachable floor while this continuation still aims at
+/// 0 -- the engine's end simply arrives first and the kitty re-decides.
+/// Deliberately floor-blind: the teacher reads needs, never relief law. Shared with `Playful`: finishing what you started is good sense,
 /// not a personality trait.
 pub(crate) fn finish_what_you_started(ctx: &DecisionContext) -> Option<Action> {
     let activity = ctx.me.activity;
