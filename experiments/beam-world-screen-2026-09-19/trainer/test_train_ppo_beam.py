@@ -30,7 +30,10 @@ for slot, (levels, committed) in tb.WORLD.items():
         out = Path(d) / "config.toml"
         tb.CURRENT["slot"] = slot
         cfg = tb.derive_config_beam(4, out)
-        assert out.read_bytes() == committed.read_bytes(), slot
+        if len(levels) == 5:
+            assert hashlib.sha256(out.read_bytes()).hexdigest() == tb.declared_sha(committed.stem), slot
+        else:
+            assert out.read_bytes() == committed.read_bytes(), slot
         sb = cfg["elements"]["sunbeam"]
         assert (cfg["actions"]["sleep_relief"], cfg["actions"]["sleep_relief_sunbeam"], sb["ttl"], sb["min"], sb["max"]) == (*levels[:4], levels[3] + 1)
         if len(levels) == 5:
@@ -43,9 +46,11 @@ for slot, (levels, committed) in tb.WORLD.items():
             moved_sections.add("actions")
         assert {k for k in cfg if cfg[k] != base[k]} == moved_sections, (slot, {k for k in cfg if cfg[k] != base[k]})
         meta = (Path(d) / "beam-world.json").read_text()
-        assert hashlib.sha256(committed.read_bytes()).hexdigest() in meta
+        assert hashlib.sha256(out.read_bytes()).hexdigest() in meta
 # a shallow world is the package world plus the floor key, nothing else
-sg = tomllib.load(open(tb.WORLD["sg20-s1"][1], "rb")); pk = tomllib.load(open(tb.WORLD["pkg-s1"][1], "rb"))
+with tempfile.TemporaryDirectory() as d:
+    tb.CURRENT["slot"] = "sg20-s1"; sg = tb.derive_config_beam(4, Path(d) / "c.toml")
+pk = tomllib.load(open(tb.WORLD["pkg-s1"][1], "rb"))
 assert sg["actions"].pop(tb.dc.FLOOR_KEY) == 20 and sg == pk
 # the two tier-2 worlds differ in the off-beam relief only
 p = tomllib.load(open(tb.WORLD["pkg-s1"][1], "rb")); f5 = tomllib.load(open(tb.WORLD["floor5-s1"][1], "rb"))

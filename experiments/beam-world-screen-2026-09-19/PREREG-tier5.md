@@ -110,6 +110,15 @@ the same world and seeds.
 
 ## Floor worlds, derived 2026-09-20 (key `actions.sleep_floor_off_beam`, pinned by spec 056 D2)
 
+Not committed until spec 056 is on main: the shipped-config sweep
+(`shipped_configs.rs`) loads every experiments toml through the engine,
+which rejects the key until then (CI red at 927e216, fixed by removing
+them, and kept off disk in the native checkout too, since the local
+sweep reads untracked files). `stage5.sh` derives them into
+`results-raw/configs/` at launch and the trainer checks the derivation
+against these hashes; they are committed with the same bytes the day
+056 merges.
+
 - shallow-10 `fb0db42bef389f865db244b3d6695d39bf0e9a2840537419409ee72d5afb2e15`
 - shallow-15 `40951d94f765b7f71329525a4792f59fc4e04c4c89a53d760421699d34710bc1`
 - shallow-20 `6f680de37e802b9240129bb87d4d8de1f11b398bc25c5ad1aace6fee2d72be7a`
