@@ -365,17 +365,9 @@ impl Behavior for HttpBehavior {
 
         // Built unconditionally -- the seed draw must advance the kitty's
         // decision stream identically whether or not the endpoint is
-        // reachable (Article V; script.rs's rule).
-        let request = DecisionRequest {
-            v: PROPOSAL_WIRE_VERSION,
-            tick: now,
-            kitty_id: kitty,
-            me: &ctx.me,
-            // Spec 049 FR-048: the plugin sees the fog view's snapshot.
-            world: &ctx.world.snapshot,
-            seed: ctx.rng.gen_u64(),
-            config: &ctx.config,
-        };
+        // reachable (Article V; script.rs's rule). Construction is the
+        // shared spec-055 body; only the draw is ours.
+        let request = DecisionRequest::for_context(ctx, ctx.rng.gen_u64());
 
         let mut state = self.lock();
         if !self.ensure_running(

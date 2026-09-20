@@ -85,6 +85,29 @@ pub struct DecisionRequest<'a> {
     pub config: &'a Config,
 }
 
+impl<'a> DecisionRequest<'a> {
+    /// THE one construction of the wire document (spec 055): every field
+    /// but the seed comes from the context. The seed is the callers' only
+    /// lawful difference -- the served paths pass their consumed Article-V
+    /// draw (the stream advances whether or not the advisor answers), the
+    /// lab render passes the identical value derived on a local stream
+    /// without consuming (spec 055 D1, owner-confirmed). One body, so a
+    /// lab prompt can never drift from the wire's own text (F-042).
+    pub fn for_context(ctx: &'a DecisionContext, seed: u64) -> Self {
+        Self {
+            v: PROPOSAL_WIRE_VERSION,
+            tick: ctx.world.tick,
+            kitty_id: ctx.me.id,
+            me: &ctx.me,
+            // Spec 049 FR-048: the fog view's snapshot -- the same shape
+            // as ever, fogged contents.
+            world: &ctx.world.snapshot,
+            seed,
+            config: &ctx.config,
+        }
+    }
+}
+
 /// One unit of work for a child's I/O thread: write this line, read one
 /// capped reply line back.
 struct IoRequest {
@@ -370,17 +393,7 @@ impl Behavior for ScriptBehavior {
 
         // Built unconditionally -- the seed draw must advance the kitty's
         // decision stream identically whether or not the plugin is alive.
-        let request = DecisionRequest {
-            v: PROPOSAL_WIRE_VERSION,
-            tick: now,
-            kitty_id: kitty,
-            me: &ctx.me,
-            // Spec 049 FR-048: the plugin sees the fog view's snapshot --
-            // the same shape as ever, fogged contents.
-            world: &ctx.world.snapshot,
-            seed: ctx.rng.gen_u64(),
-            config: &ctx.config,
-        };
+        let request = DecisionRequest::for_context(ctx, ctx.rng.gen_u64());
 
         let mut state = self.lock();
         if !self.ensure_running(&mut state, now, behavior_config.relaunch_cooldown_ticks) {
