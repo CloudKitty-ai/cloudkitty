@@ -197,3 +197,12 @@ family); Gemma and Llama at 4B and 8B for a second lineage; instruct
 variants first, base variants only if a fine-tune is planned. The small
 end matters: a 1.7B actor at 8-bit may be enough on the tick and leaves
 the budget for a planner. Nothing here is scheduled.
+
+**Pencilled extension arm (owner): a 30B-class model**, run only if the
+1.7B → 4B → 8B arc on the decision-agreement read is still climbing at
+8B. A flat arc means the seat is prompt- or executor-bound and a bigger
+model buys nothing; a rising one says capacity is still paying and the
+30B point tells whether it keeps paying. On the Mac a 30B runs at 4-bit
+(about 17 GB, MLX) at planner cadence only; on the GH200 it runs at
+bf16 or fp8 for the screen. The decision to run it is read off the
+arc, not scheduled in advance.
