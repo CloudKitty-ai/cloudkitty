@@ -44,3 +44,4 @@ before trusting a gap here, then add what you find.
 | 520000000–919999999 | fog Gen 1 (fog-gen1-cert) | PPO episode seeds, run indices 21–40 (the 20-arm step-7 pass; same formula and stride as the exp-006 row; ledger row added late, 2026-09-15) |
 | 920000000–999999999 | beam-world screen tier 2 (beam-world-screen-2026-09-19) | PPO episode seeds, run indices 41–44 (pkg-s1/s2, floor5-s1/s2; same formula and stride as the exp-006 row; PREREG-tier2, declared 2026-09-19) |
 | 1000000000–1159999999 | beam-world screen tier 5 (beam-world-screen-2026-09-19) | PPO episode seeds, run indices 45–52 (sg10/15/20/25 × s1/s2; same formula and stride as the exp-006 row; PREREG-tier5, declared 2026-09-20) |
+| 1160000000–1279999999 | beam-world screen tier 6 (beam-world-screen-2026-09-19) | PPO episode seeds, run indices 53–58 (cnt5/7/8 × s1/s2 at floor 15; same formula and stride as the exp-006 row; PREREG-tier6, declared 2026-09-20) |

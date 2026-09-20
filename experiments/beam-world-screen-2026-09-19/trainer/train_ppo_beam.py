@@ -59,14 +59,23 @@ WORLD = {
 for _f in (10, 15, 20, 25):
     for _s in (1, 2):
         WORLD[f"sg{_f}-s{_s}"] = ((3.0, 7.0, 3000, 6, _f), BEAM / f"shallow-{_f}.toml")
+# Tier 6 (PREREG-tier6.md): floor 15 at counts 5 / 7 / 8 (count 6 = sg15-s1/s2 as trained).
+for _n in (5, 7, 8):
+    for _s in (1, 2):
+        WORLD[f"cnt{_n}-s{_s}"] = ((3.0, 7.0, 3000, _n, 15), BEAM / f"count-{_n}.toml")
+
+PREREGS = ("PREREG-tier5.md", "PREREG-tier6.md")
 
 
 def declared_sha(name):
-    """The SHA-256 PREREG-tier5.md declares for a floor world (`- shallow-N `<sha>``)."""
+    """The SHA-256 a prereg declares for a derived world (`- <name> `<sha>``): PREREG-tier5.md for the
+    shallow-N floor worlds, PREREG-tier6.md for the count-N worlds."""
     import re
-    m = re.search(rf"^- {re.escape(name)} `([0-9a-f]{{64}})`", (BEAM / "PREREG-tier5.md").read_text(), re.M)
-    assert m, f"{name} has no declared sha in PREREG-tier5.md"
-    return m.group(1)
+    for p in PREREGS:
+        m = re.search(rf"^- {re.escape(name)} `([0-9a-f]{{64}})`", (BEAM / p).read_text(), re.M)
+        if m:
+            return m.group(1)
+    raise AssertionError(f"{name} has no declared sha in {PREREGS}")
 # slot -> (radius rule, beta pin, init pin, seed, run_index); run indices 41-44 follow the cert's 21-40,
 # 45-52 are tier 5's (PREREG-tier5.md)
 SLOTS = {
@@ -79,6 +88,10 @@ _idx = 45
 for _f in (10, 15, 20, 25):
     for _s in (1, 2):
         SLOTS[f"sg{_f}-s{_s}"] = ("pin", "beta_low", "init_lesson", _s, _idx); _idx += 1
+# 53-58 are tier 6's (PREREG-tier6.md; bands [1160M, 1280M))
+for _n in (5, 7, 8):
+    for _s in (1, 2):
+        SLOTS[f"cnt{_n}-s{_s}"] = ("pin", "beta_low", "init_lesson", _s, _idx); _idx += 1
 MIX = {}
 CURRENT = {"slot": None}
 

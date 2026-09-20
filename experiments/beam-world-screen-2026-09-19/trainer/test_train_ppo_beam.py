@@ -12,10 +12,14 @@ import train_ppo_beam as tb  # noqa: E402
 
 # four slots claim run indices 41-44 once each; pairs share seeds across the two worlds
 idx = sorted(v[4] for v in tb.SLOTS.values())
-assert idx == list(range(41, 53)), idx
+assert idx == list(range(41, 59)), idx
 assert tb.SLOTS["pkg-s1"][3] == tb.SLOTS["floor5-s1"][3] == 1 and tb.SLOTS["pkg-s2"][3] == tb.SLOTS["floor5-s2"][3] == 2
 for f in (10, 15, 20, 25):
     assert tb.SLOTS[f"sg{f}-s1"][3] == 1 and tb.SLOTS[f"sg{f}-s2"][3] == 2 and tb.WORLD[f"sg{f}-s1"][0][4] == f
+# tier 6: the count slots sit on floor 15 at counts 5/7/8, run indices 53-58 in count order
+for n, i in zip((5, 7, 8), (53, 55, 57)):
+    assert tb.SLOTS[f"cnt{n}-s1"] == ("pin", "beta_low", "init_lesson", 1, i) and tb.SLOTS[f"cnt{n}-s2"][3:] == (2, i + 1), n
+    assert tb.WORLD[f"cnt{n}-s1"][0] == (3.0, 7.0, 3000, n, 15) and tb.WORLD[f"cnt{n}-s1"][1].name == f"count-{n}.toml"
 assert all(v[0] == "pin" and v[1] == "beta_low" and v[2] == "init_lesson" for v in tb.SLOTS.values())
 assert set(tb.WORLD) == set(tb.SLOTS)
 assert tb.MIX == {}
@@ -51,6 +55,15 @@ with tempfile.TemporaryDirectory() as d:
     tb.CURRENT["slot"] = "sg20-s1"; sg = tb.derive_config_beam(4, Path(d) / "c.toml")
 pk = tomllib.load(open(tb.WORLD["pkg-s1"][1], "rb"))
 assert sg["actions"].pop(tb.dc.FLOOR_KEY) == 20 and sg == pk
+# a count world is the floor-15 world with the count (and the inert max) moved, nothing else
+s15 = tomllib.load(open(tb.WORLD["sg15-s1"][1], "rb"))
+for n in (5, 7, 8):
+    with tempfile.TemporaryDirectory() as d:
+        tb.CURRENT["slot"] = f"cnt{n}-s1"; cn = tb.derive_config_beam(4, Path(d) / "c.toml")
+    assert (cn["elements"]["sunbeam"].pop("min"), cn["elements"]["sunbeam"].pop("max")) == (n, n + 1)
+    import copy
+    t = copy.deepcopy(s15); del t["elements"]["sunbeam"]["min"], t["elements"]["sunbeam"]["max"]
+    assert cn == t, n
 # the two tier-2 worlds differ in the off-beam relief only
 p = tomllib.load(open(tb.WORLD["pkg-s1"][1], "rb")); f5 = tomllib.load(open(tb.WORLD["floor5-s1"][1], "rb"))
 assert p["actions"]["sleep_relief"] == 3.0 and f5["actions"]["sleep_relief"] == 5.0
