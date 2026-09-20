@@ -342,6 +342,26 @@ welfare (F-019).
   defect. Rule 4's edge and charm are pay, not builds, and owe no
   contrast; a seeded act they touch still does.
 - **Known cost**: the served roster waits a generation.
+- **Worked example, beam sleep (2026-09-20; F-047, F-050)**. The Gen 1
+  minds learned the walk to a sunbeam from the corpus and PPO removed
+  it. Four screens tried the other levers first: relief rate (moved
+  nothing), beam count and lifetime (moved the teacher, not the minds),
+  a stronger clone (lost it again by 4.6 M ticks), and hand-written
+  planners (placement without welfare). The nap-length addendum found
+  the reason: a nap is a six-tick minimum that ends once the need
+  clears, and a mind that naps at need 7–9 clears it on any tile, so
+  the beam changed nothing about the outcome. The repair was world
+  work, one key: off-beam sleep relieves only to a floor (spec 056). At
+  every floor tested the same clone under the same trainer kept
+  0.46–0.81 of its naps on beams and learned cosleep for conduction on
+  top, at a flat cost of about 1.5 happiness. The owner's reading: a
+  small but real welfare benefit that only the wanted behaviour can
+  provide is enough, and it worked the first time the world carried
+  it. Gen 2 world floor 15 (#390). **Revisit at the Gen 2 read**: the
+  Gen 2 roster's placement and welfare under floor 15 with the
+  re-recorded teacher, and whether the welfare curve moves with beam
+  density (the owner's caveat, GEN2-INPUTS); update this example and
+  F-050 with what it shows.
 - **Re-verify**: a contrast, never a level. After the retrain (rule 9),
   the rate at the lowest dose in the sweep under the valuing world
   against the same recipe under the world without the value, or the

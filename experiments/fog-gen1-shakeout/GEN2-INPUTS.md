@@ -420,7 +420,10 @@ is no longer load-bearing.
   Tier 5 read one density only (six beams, lifetime 3,000, five cats).
   Any future welfare comparison across worlds, and any density pin
   (#390 (c), the here-word pins), is read on the floor-15 world with
-  its own comparator, never against floor-0 priors. Two prerequisites
+  its own comparator, never against floor-0 priors. **Revisit after the
+  Gen 2 read (owner, 2026-09-20)**: update F-050, the rule 7 worked
+  example in DESIGN-DOCTRINE, and this entry with the Gen 2 roster's
+  placement and welfare under floor 15. Two prerequisites
   before the Gen 2 collection: (1) the scripted teacher's sleep rule
   must read the floor (today it naps on the spot into nothing and its
   placement falls 0.46 → 0.25 with the floor; a small Product spec);
