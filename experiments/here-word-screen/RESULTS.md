@@ -114,7 +114,12 @@ full percentage point of density for each of the four kinds.
   dial).
 - The fog prereg's vocabulary arms can assume a seedable register at
   period 1 and must not assume one at period ≥ 4.
-- Half B (does density change USE) stays post-fog per F-026, unchanged.
+- Half B (does density change USE) stayed post-fog per F-026 and was
+  **retired by the owner on 2026-09-20 (#393, "retire")**: the served
+  Gen 1 roster answers the use question at the pinned density (here-words
+  121 per 1k cat-ticks live, 56% as replies to a matching want; the
+  fog-gen1-cert meow re-census). The artifacts stay. It returns only
+  inside the Gen 2 prereg if that generation moves the density pin.
 
 ## Addendum 2 — the training-budget extension (2026-08-31)
 
