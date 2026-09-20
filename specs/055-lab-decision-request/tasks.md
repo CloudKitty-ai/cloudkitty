@@ -10,12 +10,12 @@ its mutation red is run) before the claim is trusted.
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm clean baseline: `cargo test --workspace` green at HEAD (fa6678c, post-main-merge) in /Users/elizabethkelly/ai/cloudkitty-lab-request
+- [x] T001 Confirm clean baseline: `cargo test --workspace` green at HEAD (fa6678c, post-main-merge) in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
 ## Phase 2: Foundational (blocking prerequisites)
 
-- [ ] T002 Add `DecisionRequest::for_context(ctx: &DecisionContext, seed: u64) -> DecisionRequest<'_>` — the one construction (v = PROPOSAL_WIRE_VERSION, tick = ctx.world.tick, kitty_id = ctx.me.id, me = &ctx.me, world = &ctx.world.snapshot, seed, config = &ctx.config); doc comment states the seed-parameter rationale (R1: the callers' only lawful difference), in crates/cloudkitty-core/src/behavior/script.rs
-- [ ] T003 Refactor `try_decide` to `DecisionRequest::for_context(ctx, ctx.rng.gen_u64())` — the draw stays exactly where it is (Article V comment kept verbatim), serialization stays after the liveness check; kept pile: the full 18-test http_plugin suite green, in crates/cloudkitty-server/src/http_behavior.rs
+- [x] T002 Add `DecisionRequest::for_context(ctx: &DecisionContext, seed: u64) -> DecisionRequest<'_>` — the one construction (v = PROPOSAL_WIRE_VERSION, tick = ctx.world.tick, kitty_id = ctx.me.id, me = &ctx.me, world = &ctx.world.snapshot, seed, config = &ctx.config); doc comment states the seed-parameter rationale (R1: the callers' only lawful difference), in crates/cloudkitty-core/src/behavior/script.rs
+- [x] T003 Refactor `try_decide` to `DecisionRequest::for_context(ctx, ctx.rng.gen_u64())` — the draw stays exactly where it is (Article V comment kept verbatim), serialization stays after the liveness check; kept pile: the full 18-test http_plugin suite green, in crates/cloudkitty-server/src/http_behavior.rs
 
 ## Phase 3: User Story 1 — The lab prompt is the served prompt (P1) [US1]
 
@@ -23,9 +23,9 @@ its mutation red is run) before the claim is trusted.
 
 **Independent test**: same world/tick/kitty/dealt seed/config through both paths → identical bytes.
 
-- [ ] T004 [US1] Implement `pub fn decision_request(&self, kitty: KittyId) -> Result<String, …>` on Episode: valid while `pending_seeds` is Some and the episode is not truncated/poisoned; renders on demand (snapshot → `fog_for(kitty, radius)`, me from the snapshot, seed = first `gen_u64()` of a LOCAL `DecisionRng::from_seed(dealt.seed_for(kitty))` — nothing stored, nothing consumed), `serde_json::to_string` of `for_context`'s struct, in crates/cloudkitty-rl/src/episode.rs
-- [ ] T005 [US1] The byte test (analyze C1: a sweep, not one decision): over several ticks of a stepped episode × the FULL roster, render each decision through the server-path construction and through `Episode::decision_request` and compare the full strings byte for byte; also assert the seven documented fields, `v == PROPOSAL_WIRE_VERSION`, and that `world` blanks an out-of-disc friend (FR-004, US1 scenario 2), in crates/cloudkitty-rl/src/episode.rs (or tests/)
-- [ ] T006 [US1] Mutation cycle, ledger item 1: perturb `for_context` (e.g. tick from the wrong source) via `scripts/mutate.sh --expect` with the byte-test failure predicted first; restore green, in /Users/elizabethkelly/ai/cloudkitty-lab-request
+- [x] T004 [US1] Implement `pub fn decision_request(&self, kitty: KittyId) -> Result<String, …>` on Episode: valid while `pending_seeds` is Some and the episode is not truncated/poisoned; renders on demand (snapshot → `fog_for(kitty, radius)`, me from the snapshot, seed = first `gen_u64()` of a LOCAL `DecisionRng::from_seed(dealt.seed_for(kitty))` — nothing stored, nothing consumed), `serde_json::to_string` of `for_context`'s struct, in crates/cloudkitty-rl/src/episode.rs
+- [x] T005 [US1] The byte test (analyze C1: a sweep, not one decision): over several ticks of a stepped episode × the FULL roster, render each decision through the server-path construction and through `Episode::decision_request` and compare the full strings byte for byte; also assert the seven documented fields, `v == PROPOSAL_WIRE_VERSION`, and that `world` blanks an out-of-disc friend (FR-004, US1 scenario 2), in crates/cloudkitty-rl/src/episode.rs (or tests/)
+- [x] T006 [US1] Mutation cycle, ledger item 1: perturb `for_context` (e.g. tick from the wrong source) via `scripts/mutate.sh --expect` with the byte-test failure predicted first; restore green, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
 ## Phase 4: User Story 2 — Policy seats pay nothing (P2) [US2]
 
@@ -33,9 +33,9 @@ its mutation red is run) before the claim is trusted.
 
 **Independent test**: identical seeded episodes with and without per-tick `decision_request` calls produce identical trajectories.
 
-- [ ] T007 [US2] The no-consume test (FR-005/SC-002): two episodes, same seeds and actions; one calls `decision_request` for every roster kitty every tick, the other never — assert identical observations, positions, and actions end to end; plus same-tick double-call returns identical bytes, in crates/cloudkitty-rl/src/episode.rs (or tests/)
-- [ ] T008 [US2] Mutation cycle, ledger item 2: make the render draw from a stored/kitty stream instead of a local one → the no-consume test reds (prediction stated first), in /Users/elizabethkelly/ai/cloudkitty-lab-request
-- [ ] T009 [US2] Loud errors (owner-confirmed): unknown kitty id, and a call after the episode ends, each error naming the kitty and the reason — never None/placeholder; mutation cycle, ledger item 3 (placeholder render on unknown id → error test reds), in crates/cloudkitty-rl/src/episode.rs
+- [x] T007 [US2] The no-consume test (FR-005/SC-002): two episodes, same seeds and actions; one calls `decision_request` for every roster kitty every tick, the other never — assert identical observations, positions, and actions end to end; plus same-tick double-call returns identical bytes, in crates/cloudkitty-rl/src/episode.rs (or tests/)
+- [x] T008 [US2] Mutation cycle, ledger item 2: make the render draw from a stored/kitty stream instead of a local one → the no-consume test reds (prediction stated first), in /Users/elizabethkelly/ai/cloudkitty-lab-request
+- [x] T009 [US2] Loud errors (owner-confirmed): unknown kitty id, and a call after the episode ends, each error naming the kitty and the reason — never None/placeholder; mutation cycle, ledger item 3 (placeholder render on unknown id → error test reds), in crates/cloudkitty-rl/src/episode.rs
 
 ## Phase 5: User Story 3 — Lab users can find it (P3) [US3]
 
@@ -43,14 +43,14 @@ its mutation red is run) before the claim is trusted.
 
 **Independent test**: pytest drives `env.decision_request` through the built binding; plugins.md gains exactly one sentence.
 
-- [ ] T010 [US3] `ParallelEnv#decision_request(kitty_id: int) -> str` — thin PyO3 wrapper, engine error → `ValueError` with the engine's message verbatim (R3); VectorEnv deliberately not touched (R4), in crates/cloudkitty-py/src/lib.rs
-- [ ] T011 [US3] Python-surface test: reset → `decision_request(id)` parses as JSON with the seven fields; unknown id raises `ValueError` naming it, in crates/cloudkitty-py/tests/test_parallel_env.py (analyze U1: the existing ParallelEnv suite)
-- [ ] T012 [US3] One sentence at the end of docs/plugins.md §"The request" pointing lab users at `decision_request(kitty_id)` (contract wording from contracts/render-surface.md); no other wire doc text changes, in docs/plugins.md
+- [x] T010 [US3] `ParallelEnv#decision_request(kitty_id: int) -> str` — thin PyO3 wrapper, engine error → `ValueError` with the engine's message verbatim (R3); VectorEnv deliberately not touched (R4), in crates/cloudkitty-py/src/lib.rs
+- [x] T011 [US3] Python-surface test: reset → `decision_request(id)` parses as JSON with the seven fields; unknown id raises `ValueError` naming it, in crates/cloudkitty-py/tests/test_parallel_env.py (analyze U1: the existing ParallelEnv suite)
+- [x] T012 [US3] One sentence at the end of docs/plugins.md §"The request" pointing lab users at `decision_request(kitty_id)` (contract wording from contracts/render-surface.md); no other wire doc text changes, in docs/plugins.md
 
 ## Phase 6: Polish & cross-cutting
 
 - [ ] T013 [P] Changelog one-liner under `## Unreleased` (public-voice at write time; no compatibility marker — no wire, config, or world change; PR number stamped at PR-open time), in CHANGELOG.md
-- [ ] T014 Full sweep: `cargo fmt --check`, clippy clean, `cargo test --workspace`, and the binding build + pytest (VIRTUAL_ENV set before `maturin develop` — house gotcha); quickstart hand-check (call the method, read the line, trigger the ValueError), in /Users/elizabethkelly/ai/cloudkitty-lab-request
+- [x] T014 Full sweep: `cargo fmt --check`, clippy clean, `cargo test --workspace`, and the binding build + pytest (VIRTUAL_ENV set before `maturin develop` — house gotcha); quickstart hand-check (call the method, read the line, trigger the ValueError), in /Users/elizabethkelly/ai/cloudkitty-lab-request
 - [ ] T015 Push branch, open the PR (house body: summary, three-item red ledger with predictions, the three owner confirmations cited, generated-with + session lines), CI green, ping Experiments mergeable (their first lab read — 5 seeds × 5000 ticks, tier 2 package world — runs the day the surface lands) — merge on the owner's word, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
 ## Dependencies

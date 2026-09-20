@@ -317,6 +317,18 @@ impl ParallelEnv {
         })
     }
 
+    /// The wire's own DecisionRequest for `kitty_id`'s upcoming decision,
+    /// rendered exactly as the served transport would send it (spec 055):
+    /// one JSON string with the documented seven fields, the fog view as
+    /// `world`, and the seed the served request would carry — derived
+    /// without consuming, so calling this never moves the episode. Valid
+    /// between reset/step and the next step, for ANY roster kitty
+    /// (policy, scripted, external). Outside the window or for an
+    /// unknown kitty: ValueError naming the kitty and the reason.
+    fn decision_request(&self, kitty_id: KittyId) -> PyResult<String> {
+        self.episode.decision_request(kitty_id).map_err(episode_err)
+    }
+
     /// Live agents: the constant external set while the episode runs, empty
     /// after truncation (PettingZoo convention) until the next reset.
     #[getter]

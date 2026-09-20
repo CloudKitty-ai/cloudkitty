@@ -424,3 +424,24 @@ def test_elements_positions_types_and_determinism():
     before = {eid: (x, y) for eid, _, x, y in elems}
     moved = [eid for eid in before if eid in after and after[eid] != before[eid]]
     assert moved, "ten ticks of greebles never moving would be a frozen world"
+
+
+def test_decision_request_is_the_wire_line():
+    """Spec 055: the lab binding serves the wire's own DecisionRequest —
+    the documented seven fields, pull-only, loud on misuse."""
+    import json
+
+    env = make_env()
+    env.reset(seed=7)
+    # possible_agents are "kitty_N" names; the method takes the numeric id.
+    ids = [int(a.split("_")[1]) for a in env.possible_agents]
+    for kitty_id in ids:
+        line = env.decision_request(kitty_id)
+        req = json.loads(line)
+        assert set(req) == {"v", "tick", "kitty_id", "me", "world", "seed", "config"}
+        assert req["kitty_id"] == kitty_id
+        # Pull-only and repeatable: same window, same bytes.
+        assert env.decision_request(kitty_id) == line
+
+    with pytest.raises(ValueError, match="999.*unknown kitty id"):
+        env.decision_request(999)
