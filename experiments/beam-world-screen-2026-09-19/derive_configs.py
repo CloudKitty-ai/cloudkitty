@@ -5,6 +5,8 @@
   elements.sunbeam.ttl          (beam lifetime, ticks)
   elements.sunbeam.min          (beam count; the world holds `min`)
   elements.sunbeam.max          (= min + 1; inert for the world, kept apart from min)
+  actions.sleep_floor_off_beam  (tier 5, spec 056: off-beam sleep relieves only to this need level;
+                                 absent from the anchor, inserted under [actions] when asked for)
 
 Every other byte of the anchor is untouched. Usage: derive_configs.py OUT_DIR [--sha JSON]
 """
@@ -16,7 +18,8 @@ SLEEP = (5.0, 3.0)
 BEAM = (7.0, 10.0)
 TTL = (300, 3000)
 COUNT = (5, 6, 7)
-MOVED = {("actions", "sleep_relief"), ("actions", "sleep_relief_sunbeam"),
+FLOOR_KEY = "sleep_floor_off_beam"
+MOVED = {("actions", "sleep_relief"), ("actions", "sleep_relief_sunbeam"), ("actions", FLOOR_KEY),
          ("elements", "sunbeam", "ttl"), ("elements", "sunbeam", "min"), ("elements", "sunbeam", "max")}
 
 
@@ -26,7 +29,7 @@ def _sub_once(text, pattern, repl):
     return out
 
 
-def derive(anchor_text, sleep, beam, ttl, count):
+def derive(anchor_text, sleep, beam, ttl, count, floor=None):
     head, sep, tail = anchor_text.partition("[elements.sunbeam]")
     assert sep, "no [elements.sunbeam] block"
     block, sep2, rest = tail.partition("\n[")
@@ -36,11 +39,14 @@ def derive(anchor_text, sleep, beam, ttl, count):
     text = head + sep + block + sep2 + rest
     text = _sub_once(text, r"^sleep_relief = [\d.]+$", f"sleep_relief = {sleep}")
     text = _sub_once(text, r"^sleep_relief_sunbeam = [\d.]+$", f"sleep_relief_sunbeam = {beam}")
+    if floor is not None:
+        assert not re.search(rf"(?m)^{FLOOR_KEY} = ", text), "the anchor already carries the floor key"
+        text = _sub_once(text, r"^\[actions\]$", f"[actions]\n{FLOOR_KEY} = {floor}  # beam-world screen tier 5 (spec 056)")
     return text
 
 
-def name(sleep, beam, ttl, count):
-    return f"s{sleep:g}-b{beam:g}-t{ttl}-n{count}"
+def name(sleep, beam, ttl, count, floor=None):
+    return f"s{sleep:g}-b{beam:g}-t{ttl}-n{count}" + (f"-f{floor}" if floor is not None else "")
 
 
 def flat(d, prefix=()):
@@ -53,8 +59,8 @@ def flat(d, prefix=()):
 
 def moved_keys(anchor_cfg, cfg):
     a, b = dict(flat(anchor_cfg)), dict(flat(cfg))
-    assert a.keys() == b.keys(), set(a) ^ set(b)
-    return {k for k in a if a[k] != b[k]}
+    assert set(a) - set(b) == set() and set(b) - set(a) <= {("actions", FLOOR_KEY)}, set(a) ^ set(b)
+    return {k for k in b if k not in a or a[k] != b[k]}
 
 
 def grid():

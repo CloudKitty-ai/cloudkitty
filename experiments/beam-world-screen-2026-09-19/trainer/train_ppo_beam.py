@@ -46,20 +46,29 @@ PINS = {
     "critic": str(CERT / "results-raw" / "clones" / "b3-critic" / "critic6-0p998.pt"),
 }
 
-# slot -> (sleep_relief, sleep_relief_sunbeam, sunbeam ttl, sunbeam count); the committed file it must equal
+# slot -> (sleep_relief, sleep_relief_sunbeam, sunbeam ttl, sunbeam count[, off-beam sleep floor]); the
+# committed file it must equal. Tier 5 (spec 056, PREREG-tier5.md): the package world plus the floor key.
 WORLD = {
     "pkg-s1": ((3.0, 7.0, 3000, 6), BEAM / "package.toml"),
     "pkg-s2": ((3.0, 7.0, 3000, 6), BEAM / "package.toml"),
     "floor5-s1": ((5.0, 7.0, 3000, 6), BEAM / "floor5.toml"),
     "floor5-s2": ((5.0, 7.0, 3000, 6), BEAM / "floor5.toml"),
 }
-# slot -> (radius rule, beta pin, init pin, seed, run_index); run indices 41-44 follow the cert's 21-40
+for _f in (10, 15, 20, 25):
+    for _s in (1, 2):
+        WORLD[f"sg{_f}-s{_s}"] = ((3.0, 7.0, 3000, 6, _f), BEAM / f"shallow-{_f}.toml")
+# slot -> (radius rule, beta pin, init pin, seed, run_index); run indices 41-44 follow the cert's 21-40,
+# 45-52 are tier 5's (PREREG-tier5.md)
 SLOTS = {
     "pkg-s1": ("pin", "beta_low", "init_lesson", 1, 41),
     "pkg-s2": ("pin", "beta_low", "init_lesson", 2, 42),
     "floor5-s1": ("pin", "beta_low", "init_lesson", 1, 43),
     "floor5-s2": ("pin", "beta_low", "init_lesson", 2, 44),
 }
+_idx = 45
+for _f in (10, 15, 20, 25):
+    for _s in (1, 2):
+        SLOTS[f"sg{_f}-s{_s}"] = ("pin", "beta_low", "init_lesson", _s, _idx); _idx += 1
 MIX = {}
 CURRENT = {"slot": None}
 
@@ -77,7 +86,11 @@ def derive_config_beam(radius, out_path):
         base = tomllib.load(f)
     assert dc.moved_keys(base, cfg) <= dc.MOVED, dc.moved_keys(base, cfg)
     sb = cfg["elements"]["sunbeam"]
-    assert (cfg["actions"]["sleep_relief"], cfg["actions"]["sleep_relief_sunbeam"], sb["ttl"], sb["min"]) == levels
+    assert (cfg["actions"]["sleep_relief"], cfg["actions"]["sleep_relief_sunbeam"], sb["ttl"], sb["min"]) == levels[:4]
+    if len(levels) == 5:
+        assert cfg["actions"][dc.FLOOR_KEY] == levels[4], (cfg["actions"].get(dc.FLOOR_KEY), levels)
+    else:
+        assert dc.FLOOR_KEY not in cfg["actions"]
     assert out_path.read_bytes() == committed.read_bytes(), f"derived world differs from {committed.name}"
     (out_path.parent / "beam-world.json").write_text(json.dumps({
         "slot": CURRENT["slot"], "levels": levels, "world": committed.name,
