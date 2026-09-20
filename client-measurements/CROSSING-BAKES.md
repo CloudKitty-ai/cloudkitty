@@ -176,6 +176,24 @@ The bakes have to happen somewhere. Lazily, at the first step of a crossing,
 they land in **one frame**: worst frame **310 ms on the phone**, 65 ms on the
 4K. That is a visible stall — smaller than today's, and rarer, but sharper.
 
+**Spreading the bake over frames does not work.** Measured on the phone,
+2026-09-20: the six units (2 themes × {ground under, ground over, pond pair})
+built back to back give a worst frame of **424 ms**; built one per frame with
+two frames of yield between, **388 ms**. An 8% difference across a six-way
+split. Safari batches the rasterization on the GPU thread whatever the main
+thread does — the same reason its JS timers cannot see this cost, and the
+same reason pooling the canvases did nothing. Finer chunking will not help;
+layer granularity was the coarsest useful test and it showed nothing.
+
+So the bake is a **~400 ms main-thread stall on the phone, once per theme
+pair**, and the only ways out are to move it off the main thread entirely
+(OffscreenCanvas in a worker — but `blurredLayer` and `buildPondLayers` both
+call `document.createElement`, so that is a real refactor of meadow.js), to
+make it smaller (not splitting the ground roughly halves it — see 5b), or to
+place it where a freeze is cheapest. Note the cadence: four crossings per
+600-tick day is **one stall every ~2 minutes**, against today's 19 seconds of
+stutter on the same cadence.
+
 Owner's proposal (2026-09-20): bake on load instead, where 1–2 seconds is
 forgivable. Right instinct; **all four themes is the version that breaks.**
 Resident canvas memory:
