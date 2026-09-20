@@ -752,6 +752,7 @@ impl Config {
             ("[actions] drink_relief", a.drink_relief),
             ("[actions] sleep_relief", a.sleep_relief),
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
+            ("[actions] sleep_floor_off_beam", a.sleep_floor_off_beam),
             ("[actions] groom_relief", a.groom_relief),
             ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
@@ -772,6 +773,22 @@ impl Config {
                     "must be a finite number of at least 0",
                 ));
             }
+        }
+        // Spec 056: ground sleep may leave a cat a little tired, never
+        // distressed — a floor at or past the distress threshold would let
+        // plain-ground sleep sustain distress-level pressure, which
+        // Article I forbids. The bound is the CONFIGURED threshold
+        // (owner-confirmed 2026-09-20), never the literal 90.
+        if a.sleep_floor_off_beam >= self.thresholds.distress {
+            return Err(ConfigError::invalid(
+                "[actions] sleep_floor_off_beam",
+                a.sleep_floor_off_beam.to_string(),
+                format!(
+                    "must be below [thresholds] distress ({}): ground sleep \
+                     may leave a cat a little tired, never distressed",
+                    self.thresholds.distress
+                ),
+            ));
         }
         // Spec 054: the curve's one ordering rule beyond the sweep
         // (slope ≥ 0 is already the sweep's non-negativity; it is what

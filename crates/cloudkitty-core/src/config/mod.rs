@@ -619,6 +619,14 @@ pub struct ActionEffects {
     pub drink_relief: f32,
     pub sleep_relief: f32,
     pub sleep_relief_sunbeam: f32,
+    /// Off-beam sleep relieves the sleep need only down to this floor; a
+    /// sunbeam, or conducted warmth beside a mutual partner on one (spec
+    /// 031), clears it fully. 0 (the default, and what an absent key
+    /// means) is the pre-056 law. Validated below the configured
+    /// `[thresholds] distress`, so ground sleep can never sustain
+    /// distress-level pressure in any world.
+    #[serde(default)]
+    pub sleep_floor_off_beam: f32,
     pub groom_relief: f32,
     /// The kitty/duet play value: what each partner gains per tick of
     /// social play. The name predates the per-target split (spec 025)
@@ -702,6 +710,7 @@ impl Default for ActionEffects {
             drink_relief: 40.0,
             sleep_relief: 5.0,
             sleep_relief_sunbeam: 7.0,
+            sleep_floor_off_beam: 0.0,
             // Groom/play/cuddle lowered (owner tuning, 2026-07-27): scenes
             // clear less per tick, so the cats spend more of their lives
             // being playful and cuddly -- the point of the retune.
@@ -1666,6 +1675,32 @@ mod tests {
         assert!(msg.contains("below"), "{msg}");
     }
 
+    /// Spec 056 FR-006: the sleep floor is bounded by the CONFIGURED
+    /// distress threshold (owner-confirmed 2026-09-20), never the
+    /// literal 90 — lowering distress lowers the legal floors with it.
+    #[test]
+    fn a_sleep_floor_at_or_above_configured_distress_is_rejected() {
+        let mut c = cfg();
+        c.actions.sleep_floor_off_beam = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("sleep_floor_off_beam"), "{msg}");
+
+        c.actions.sleep_floor_off_beam = c.thresholds.distress;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("sleep_floor_off_beam"), "{msg}");
+        assert!(msg.contains("distress"), "{msg}");
+
+        // The bound is the configured value, not the literal 90: with
+        // distress raised to 95, a floor of 92 is legal (a literal-90
+        // implementation would reject it) and 95 is not. Raising, not
+        // lowering, keeps the safeguard/water couplings out of the probe.
+        c.thresholds.distress = 95.0;
+        c.actions.sleep_floor_off_beam = 95.0;
+        assert!(c.validate().is_err(), "at the configured bound is refused");
+        c.actions.sleep_floor_off_beam = 92.0;
+        assert!(c.validate().is_ok(), "under the configured bound is legal");
+    }
+
     #[test]
     fn a_budget_at_or_over_one_tick_is_rejected() {
         let mut c = cfg();
@@ -2002,6 +2037,25 @@ mod tests {
         .expect_err("a negative margin is refused");
         let msg = err.to_string();
         assert!(msg.contains("relief_memory_margin"), "names the key: {msg}");
+    }
+
+    /// Spec 056 FR-001: `[actions] sleep_floor_off_beam` defaults to 0 —
+    /// an absent key parses to the pre-056 law, so every shipped and
+    /// frozen toml is unchanged. Bounds are `validate`'s (a floor at or
+    /// past the configured distress threshold is a startup error, never
+    /// a clamp).
+    #[test]
+    fn the_sleep_floor_defaults_to_zero_when_absent() {
+        let full = toml::to_string(&ActionEffects::default()).unwrap();
+        assert!(full.contains("sleep_floor_off_beam"), "the key serializes");
+        let without: String = full
+            .lines()
+            .filter(|line| !line.starts_with("sleep_floor_off_beam"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let parsed: ActionEffects = toml::from_str(&without).unwrap();
+        assert_eq!(parsed.sleep_floor_off_beam, 0.0, "absent = the pre-056 law");
+        assert_eq!(parsed, ActionEffects::default());
     }
 
     #[test]
