@@ -23,7 +23,7 @@ if (T5 / "shallow-15" / S.FILES["gen1-A"]).exists():
 def cell(hap, nash, pl, cd, need=0.03, over=()):
     return {"happiness": hap, "nash_state": nash, "placement": pl, "conducted": cd, "need_lt5": need, "seeds_over_line": list(over)}
 staged = {"counts": {}}
-hap = {5: (90.2, 90.4), 6: (90.9, 91.1), 7: (91.3, 91.4), 8: (91.35, 91.45)}   # spreads 0.2 / 0.2 / 0.1 / 0.1; gains 0.7 / 0.35 / 0.05
+hap = {5: (90.2, 90.4), 6: (90.9, 91.1), 7: (91.25, 91.5), 8: (91.5, 91.75)}   # spreads 0.2 / 0.2 / 0.25 / 0.25; gains 0.7 / 0.375 / 0.25 (7->8 EQUALS count 7's spread: inside, on the line)
 for n in R.COUNTS:
     staged["counts"][n] = {"reference": {"gen1-A": {"happiness": 89.8 + 0.05 * n, "placement": 0.05, "nash_state": 0.9, "seeds_over_line": []},
                                          "scripted": {"happiness": 93.0, "placement": 0.30 + 0.02 * n}},
@@ -35,9 +35,9 @@ for n in (5, 7, 8):
 c = R.checks(staged)
 p1 = c["P1_welfare_with_count"]
 assert p1["orders_both_seeds"] and p1["nash_orders_both_seeds"] and p1["gain_shrinks"]
-assert abs(p1["gain_5_6"] - 0.7) < 1e-9 and abs(p1["gain_7_8"] - 0.05) < 1e-9
+assert abs(p1["gain_5_6"] - 0.7) < 1e-9 and abs(p1["gain_7_8"] - 0.25) < 1e-9
 assert p1["count8_within_1_of_floor0"] and p1["count5_over_1p5_under_floor0"]
-assert p1["line"] == 7, p1   # 7->8 gain 0.05 sits inside count 7's spread 0.1; 6->7 (0.35) does not sit inside 0.2
+assert p1["line"] == 7, p1   # 7->8 gain 0.25 equals count 7's spread 0.25 (inside); 6->7 (0.375) is past 0.2
 # every gain past the spread -> the largest count, with the note
 big = {n: (hap[n][0], hap[n][1] + 0.0) for n in R.COUNTS}; big[8] = (91.8, 91.9)
 for n in R.COUNTS:
@@ -50,9 +50,13 @@ for n in R.COUNTS:
 # one seed out of order breaks the ordering, not the line
 staged["counts"][7]["arms"]["s2"]["all_arm"]["happiness"] = 91.0
 c2 = R.checks(staged); assert not c2["P1_welfare_with_count"]["orders_both_seeds"]
-staged["counts"][7]["arms"]["s2"]["all_arm"]["happiness"] = 91.4
+staged["counts"][7]["arms"]["s2"]["all_arm"]["happiness"] = 91.5
 p2 = c["P2_frozen_flat"]; assert abs(p2["gen1A_span"] - 0.15) < 1e-9 and p2["frozen_flat"] and p2["teacher_placement_rises"]
 p3 = c["P3_placement"]; assert p3["all_kept"] and p3["placement_orders"] and p3["conducted_falls"]
+# a tie between two counts is not a fall
+for s in (1, 2): staged["counts"][8]["arms"][f"s{s}"]["all_arm"]["conducted"] = staged["counts"][7]["arms"][f"s{s}"]["all_arm"]["conducted"]
+assert not R.checks(staged)["P3_placement"]["conducted_falls"]
+for s in (1, 2): staged["counts"][8]["arms"][f"s{s}"]["all_arm"]["conducted"] = 0.30 - 0.02 * 8
 p4 = c["P4_transfer"]; assert p4["7-s1"]["holds"] and not p4["8-s2"]["holds"] and p4["holds_everywhere"] is False   # 0.7 > 0.5 on hap
 assert abs(p4["8-s2"]["hap_transfer_minus_retrained"] - 0.7) < 1e-9
 # placement past the line fails a cell on its own
