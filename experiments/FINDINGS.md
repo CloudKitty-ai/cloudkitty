@@ -2567,7 +2567,11 @@ floor 0 (all-arm rosters 90.5–91.1 vs 92.3), while a frozen mind pays
 armed for `want_sleep` most of the time from floor 15 up. **Scope**:
 the package world (six beams, lifetime 3,000, off-beam rate 3), the Gen
 1 lineage clone, β 0.04, floors 10–25; nap durations 6–12 with spec
-056's early end at the reachable floor. **Invalidated by**: an arm under
+056's early end at the reachable floor. One beam density only: under a
+floor, welfare depends on beam access, so the welfare numbers here do
+not transfer across beam count, lifetime, reach or roster size (owner's
+caveat, 2026-09-20), and floor-0 welfare priors are not comparators for
+a floored world. **Invalidated by**: an arm under
 a floor ≥ 10 ending under 0.15 placement in its seat, or the floor's
 cost to a learning mind exceeding 3 happiness. **Re-verify when**: the
 Gen 2 teacher is re-recorded under the floor (the scripted sleep rule

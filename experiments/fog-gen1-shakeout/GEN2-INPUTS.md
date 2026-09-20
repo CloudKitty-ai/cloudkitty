@@ -412,7 +412,15 @@ is no longer load-bearing.
   the same world on placement and cost to a learned mind; 15 keeps the
   floor clear of the announce line (arm 20, disarm 15) and costs a
   naive mind 2.5 not 3.8. Distress crossings across floors are noise
-  (0 / 3–4 / 1 / 0 in 30), a roster property (F-043). Two prerequisites
+  (0 / 3–4 / 1 / 0 in 30), a roster property (F-043). **Standing
+  caveat (owner, 2026-09-20): under a floor, welfare becomes a function
+  of beam density.** Full sleep relief now needs beam access, so beam
+  count, lifetime, reach and roster size set the welfare curve where at
+  floor 0 they did not (tier 1: frozen minds ignored count and relief).
+  Tier 5 read one density only (six beams, lifetime 3,000, five cats).
+  Any future welfare comparison across worlds, and any density pin
+  (#390 (c), the here-word pins), is read on the floor-15 world with
+  its own comparator, never against floor-0 priors. Two prerequisites
   before the Gen 2 collection: (1) the scripted teacher's sleep rule
   must read the floor (today it naps on the spot into nothing and its
   placement falls 0.46 → 0.25 with the floor; a small Product spec);
