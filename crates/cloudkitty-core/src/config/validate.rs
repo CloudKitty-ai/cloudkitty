@@ -752,6 +752,7 @@ impl Config {
             ("[actions] drink_relief", a.drink_relief),
             ("[actions] sleep_relief", a.sleep_relief),
             ("[actions] sleep_relief_sunbeam", a.sleep_relief_sunbeam),
+            ("[actions] sleep_floor_off_beam", a.sleep_floor_off_beam),
             ("[actions] groom_relief", a.groom_relief),
             ("[actions] cosleep_drip_relief", a.cosleep_drip_relief),
             ("[actions] cosleep_mutual_relief", a.cosleep_mutual_relief),
@@ -772,6 +773,25 @@ impl Config {
                     "must be a finite number of at least 0",
                 ));
             }
+        }
+        // Spec 056: the floor bounds how tired a nap can leave a cat
+        // PARKED — a floor at or past the distress threshold would make
+        // distress the resting state of plain ground. The bound is the
+        // CONFIGURED threshold (owner-confirmed 2026-09-20), never the
+        // literal 90. It does NOT promise a floored cat never crosses
+        // distress: the need regrows from the floor between naps like
+        // any other (review 2026-09-20 finding 6; a tighter bound
+        // against safeguard is an owner call for a later spec).
+        if a.sleep_floor_off_beam >= self.thresholds.distress {
+            return Err(ConfigError::invalid(
+                "[actions] sleep_floor_off_beam",
+                a.sleep_floor_off_beam.to_string(),
+                format!(
+                    "must be below [thresholds] distress ({}): a nap may \
+                     leave a cat a little tired, never parked at distress",
+                    self.thresholds.distress
+                ),
+            ));
         }
         // Spec 054: the curve's one ordering rule beyond the sweep
         // (slope ≥ 0 is already the sweep's non-negativity; it is what

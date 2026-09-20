@@ -247,6 +247,10 @@ sleep_relief = 5.0
 # the spec-033 wall (owner preference, screened welfare-indistinguishable;
 # conducts to adjacent sleepers per spec 031 either way).
 sleep_relief_sunbeam = 7.0
+# Shallow ground (spec 056): `sleep_floor_off_beam` bounds how rested a
+# plain-ground nap can leave a cat; a beam (or conducted warmth) clears
+# fully. Absent = 0 = every nap clears anywhere — this world stays on the
+# pre-056 law until the owner rules after the tier-5 screen.
 groom_relief = 20.0
 play_relief = 20.0
 # The bugs-2.0 sticker (spec 039, owner's pre-merge ask): bug play priced on

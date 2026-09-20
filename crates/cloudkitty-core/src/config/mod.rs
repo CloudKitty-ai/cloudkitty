@@ -619,6 +619,17 @@ pub struct ActionEffects {
     pub drink_relief: f32,
     pub sleep_relief: f32,
     pub sleep_relief_sunbeam: f32,
+    /// Off-beam sleep relieves the sleep need only down to this floor; a
+    /// sunbeam, or conducted warmth beside a mutual partner on one (spec
+    /// 031), clears it fully. 0 (the default, and what an absent key
+    /// means) is the pre-056 law. Validated below the configured
+    /// `[thresholds] distress` — a bound on how tired ground sleep can
+    /// leave a cat parked, though the need still regrows from the floor
+    /// between naps like any other. Skipped from serialization at 0.0 so
+    /// the launch is byte-identical and `engine_defaults_sha256` does not
+    /// move (the 039-D5 stamp discipline).
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub sleep_floor_off_beam: f32,
     pub groom_relief: f32,
     /// The kitty/duet play value: what each partner gains per tick of
     /// social play. The name predates the per-target split (spec 025)
@@ -702,6 +713,7 @@ impl Default for ActionEffects {
             drink_relief: 40.0,
             sleep_relief: 5.0,
             sleep_relief_sunbeam: 7.0,
+            sleep_floor_off_beam: 0.0,
             // Groom/play/cuddle lowered (owner tuning, 2026-07-27): scenes
             // clear less per tick, so the cats spend more of their lives
             // being playful and cuddly -- the point of the retune.
@@ -1666,6 +1678,38 @@ mod tests {
         assert!(msg.contains("below"), "{msg}");
     }
 
+    /// Spec 056 FR-006: the sleep floor is bounded by the CONFIGURED
+    /// distress threshold (owner-confirmed 2026-09-20), never the
+    /// literal 90 — lowering distress lowers the legal floors with it.
+    #[test]
+    fn a_sleep_floor_at_or_above_configured_distress_is_rejected() {
+        let mut c = cfg();
+        // The negative leg is the finiteness/negativity SWEEP's catch —
+        // assert its wording so this leg can never be mistaken for the
+        // distress bound's (review 2026-09-20, superseding finding).
+        c.actions.sleep_floor_off_beam = -1.0;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("sleep_floor_off_beam"), "{msg}");
+        assert!(msg.contains("at least 0"), "{msg}");
+
+        // The distress legs assert the bound's own wording ("must be
+        // below"), which only the cross-field check emits.
+        c.actions.sleep_floor_off_beam = c.thresholds.distress;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("sleep_floor_off_beam"), "{msg}");
+        assert!(msg.contains("must be below"), "{msg}");
+
+        // The bound is the configured value, not the literal 90: with
+        // distress raised to 95, a floor of 92 is legal (a literal-90
+        // implementation would reject it) and 95 is not. Raising, not
+        // lowering, keeps the safeguard/water couplings out of the probe.
+        c.thresholds.distress = 95.0;
+        c.actions.sleep_floor_off_beam = 95.0;
+        assert!(c.validate().is_err(), "at the configured bound is refused");
+        c.actions.sleep_floor_off_beam = 92.0;
+        assert!(c.validate().is_ok(), "under the configured bound is legal");
+    }
+
     #[test]
     fn a_budget_at_or_over_one_tick_is_rejected() {
         let mut c = cfg();
@@ -2002,6 +2046,29 @@ mod tests {
         .expect_err("a negative margin is refused");
         let msg = err.to_string();
         assert!(msg.contains("relief_memory_margin"), "names the key: {msg}");
+    }
+
+    /// Spec 056 FR-001: `[actions] sleep_floor_off_beam` defaults to 0 —
+    /// an absent key parses to the pre-056 law, so every shipped and
+    /// frozen toml is unchanged — and at 0 the key is skipped from
+    /// serialization (039-D5 stamp discipline), so `engine_defaults_sha256`
+    /// does not move for a value nobody set. Bounds are `validate`'s (a
+    /// floor at or past the configured distress threshold is a startup
+    /// error, never a clamp).
+    #[test]
+    fn the_sleep_floor_defaults_to_zero_and_leaves_the_stamp_unmoved() {
+        let default_toml = toml::to_string(&ActionEffects::default()).unwrap();
+        assert!(
+            !default_toml.contains("sleep_floor_off_beam"),
+            "0.0 is skipped from serialization, keeping the defaults stamp still"
+        );
+        let parsed: ActionEffects = toml::from_str(&default_toml).unwrap();
+        assert_eq!(parsed.sleep_floor_off_beam, 0.0, "absent = the pre-056 law");
+        assert_eq!(parsed, ActionEffects::default());
+
+        let with_floor: ActionEffects =
+            toml::from_str(&format!("sleep_floor_off_beam = 20.0\n{default_toml}")).unwrap();
+        assert_eq!(with_floor.sleep_floor_off_beam, 20.0, "a set floor parses");
     }
 
     #[test]
