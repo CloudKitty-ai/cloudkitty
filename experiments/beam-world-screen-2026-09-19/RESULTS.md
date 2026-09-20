@@ -252,3 +252,91 @@ Stage 3 needs the gen1-A artifacts reachable under `CERT_ARTS`
 (symlinks `artifacts/ppo-fog-{cand-s2,cand-s1,dose-lo-s1,cand-s4,cand-s7}`
 → `fog-gen1-cert/artifacts/`); the first launch failed without them
 (`stage3-first-attempt.log`).
+
+# Tier 3 — results, 2026-09-20
+
+Prereg `PREREG-tier3.md` (c42f308, before the legs). The beam order over
+all five Gen 1 minds (`plan:` seats), two worlds, 30 seeds × 20k, served
+clock; comparators = tier 1's gen1-A legs on the same worlds and seeds.
+Raws `results-raw/tier3/{package,anchor}/`, uncommitted.
+
+## The short version
+
+The order does what it was told at a 91% completion rate and costs the
+cat nothing measurable; what it was told covers 9% of naps. Placement
+more than doubles on both worlds and misses the declared lines, because
+the trigger is a solo nap with a known beam in reach and most of these
+minds' naps are cosleeps, which the order never touches.
+
+| | package: gen1-A → with the order | anchor (served): gen1-A → with the order |
+|---|---|---|
+| naps begun on a beam | 0.068 → **0.153** | 0.046 → **0.112** |
+| tick share on a beam | 0.063 → 0.144 | 0.046 → 0.111 |
+| roster happiness | 92.32 → 92.25 | 92.49 → 92.39 |
+| team Nash | 0.923 → 0.922 | 0.925 → 0.924 |
+| sleep share of cat-ticks | 0.135 → 0.132 | 0.130 → 0.128 |
+| nap starts under sleep need 5 | 0.28 → 0.30 | 0.42 → 0.41 |
+| orders, share of nap starts | 0.091 | 0.072 |
+| arrived / stuck / long / gone / emergency | 0.91 / 0.08 / 0.00 / 0.02 / 0.00 | 0.88 / 0.07 / 0.00 / 0.05 / 0.00 |
+| forced ticks, share of cat-ticks | 0.012 | 0.010 |
+| worst distress age (seeds over 150) | 133 → 183 (870019, Miso's seat) | 49 → 208 (870027, Miso's seat) |
+
+Per seat, package, gen1-A → order: Miso 0.128 → 0.229, Pumpkin 0.014
+→ 0.211, Kittybear 0.071 → 0.205, Clementine 0.087 → 0.104, Biscuit
+0.014 → 0.028. Anchor: Miso 0.088 → 0.172, Pumpkin 0.008 → 0.147,
+Kittybear 0.044 → 0.145, Clementine 0.056 → 0.075, Biscuit 0.009 →
+0.019. Per-seat happiness moves 0.01–0.15 down, every seat. Conducted
+warmth (asleep off-beam beside a partner on a beam) rises at every seat,
+0.012–0.023 → 0.019–0.035 on the package world: more partners now lie
+on beams.
+
+The arithmetic closes: on the package world the order fired on 9.1% of
+nap starts and arrived on 8.3%, and placement rose by 8.5 points.
+
+## Predictions
+
+1. **Fails on both worlds.** 0.153 against ≥ 0.30, 0.112 against ≥
+   0.20. Not the walk: arrivals 91% / 88%, stalls 8% / 7%, no order hit
+   the 30-tick limit. The trigger window binds. The seats that nap
+   alone (Miso, Pumpkin, Kittybear) tripled; Biscuit, who cosleeps on
+   93% of her sleeping polls live, barely moved. The prereg declared
+   cosleep out of scope and predicted around the teacher's solo share
+   without checking how few of the minds' naps are solo; that is on the
+   prereg.
+2. **Holds.** Happiness within 0.10, Nash within 0.001, sleep share
+   within 0.003, on both worlds.
+3. **Holds.** Arrivals 0.91 / 0.88; forced ticks 1.2% / 1.0%.
+4. **Holds.** Under-5 share moves 0.02 / 0.01.
+5. **Fails as stated, one seed per world.** 870019 at Miso's seat (183)
+   on the package world, 870027 at Miso's seat (208) on the anchor,
+   where the comparators read 133 and 49. Both at the seat the order
+   fires most at. One seed in thirty on each world, the same order as
+   tier 1's count-and-lifetime crossings and F-043's swap rate; the
+   order's forced walks are the plausible cause (a cat marched away
+   from food or a partner for up to 30 ticks), and the emergency
+   release at need 60 did not fire once, so it sits too high to catch
+   it. Reported, not tuned.
+
+## Reading
+
+A standing order above a frozen mind recovers the part of beam seeking
+it is pointed at, completely and at no welfare cost the battery can
+see, on the served world as it is. The ceiling is the trigger, not the
+executor. The next parameter, if the owner wants the number, is the
+trigger's scope: intercepting cosleep starts (walk the pair to a beam,
+or walk to a beam and wait for the friend) would reach the majority of
+naps, and is a different order with its own give-up rules, declared as
+a new tier. The emergency release wants a lower line or a distress
+flag as its trigger before any served use.
+
+For the LLM lab seat: this is the executor baseline a model planner is
+read against. A planner that emits the same order gains exactly this;
+what a model would add is choosing when to emit it, and orders this
+hand-written one does not know.
+
+## Regeneration
+
+```
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/results-raw/tier3/run.sh > .../results-raw/tier3/run.log 2>&1 &
+```
+(`run.sh` in the raws: the two harness invocations with all five `plan:` seats, `CERT_ARTS` at this directory's artifacts.)
