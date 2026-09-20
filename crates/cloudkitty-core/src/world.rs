@@ -633,11 +633,33 @@ impl World {
             };
             let elapsed = clock.elapsed(tick);
 
-            let need_zero = |kind: NeedKind, of: &Kitty| of.needs.get(kind) <= 0.0;
+            // Spec 056: a sleep scene is "finished" when no further relief
+            // is possible where the sleeper lies -- 0 for warm sleep
+            // (`sleep_warmth`, the predicate the relief tick uses), the
+            // shallow-ground floor otherwise; each duet side carries its
+            // own level. Every other activity keeps the literal 0, and at
+            // floor 0 this IS the pre-056 rule.
+            let need_zero = |kind: NeedKind, of: &Kitty| {
+                let level = match of.activity {
+                    Activity::Sleeping {
+                        in_sunbeam,
+                        with_friend,
+                    } => {
+                        if self.sleep_warmth(in_sunbeam, with_friend) {
+                            0.0
+                        } else {
+                            config.actions.sleep_floor_off_beam
+                        }
+                    }
+                    _ => 0.0,
+                };
+                of.needs.get(kind) <= level
+            };
             // The governing need (one mapping, on Activity) ends the scene at
-            // 0 -- read off the friend being groomed (a missing friend also
-            // ends it), and off *either* side of a duet. An eating kitty's
-            // emptied or vanished bowl is the meal's own extra way out.
+            // its finished level -- read off the friend being groomed (a
+            // missing friend also ends it), and off *either* side of a duet.
+            // An eating kitty's emptied or vanished bowl is the meal's own
+            // extra way out.
             let governed_done = match activity.governing_need() {
                 None => false,
                 Some(need) => {
@@ -3478,6 +3500,92 @@ mod tests {
             world.kitty(1).unwrap().activity,
             Activity::Idle,
             "minimum met and need at 0: the meal is over"
+        );
+    }
+
+    /// Spec 056 US3: a ground nap under a floor ends the first lawful
+    /// tick the need reaches the floor — the reachable level, not an
+    /// unreachable 0 — instead of grinding to the cap.
+    #[test]
+    fn a_ground_nap_ends_at_the_reachable_floor() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Sleep, 45.0);
+
+        run_slot(&mut world, &config, 1, Action::Sleep { with: None });
+        close_tick(&mut world, &config);
+        for _ in 0..3 {
+            run_slot(&mut world, &config, 1, Action::Idle);
+            close_tick(&mut world, &config);
+        }
+        // 4 serviced ticks: need 25, min (3) long met, floor not reached.
+        assert!(world.kitty(1).unwrap().activity_clock.is_some());
+
+        run_slot(&mut world, &config, 1, Action::Idle);
+        close_tick(&mut world, &config);
+        assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Sleep), 20.0);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Idle,
+            "no further relief is possible on this tile: the nap is over"
+        );
+    }
+
+    /// Spec 056 FR-007 (the unit half): at floor 0 the finished level is
+    /// exactly today's rule — the end tick must not move.
+    #[test]
+    fn a_floor_zero_nap_ends_exactly_as_today() {
+        let (mut world, config) = test_world();
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Sleep, 25.0);
+
+        run_slot(&mut world, &config, 1, Action::Sleep { with: None });
+        close_tick(&mut world, &config);
+        for _ in 0..3 {
+            run_slot(&mut world, &config, 1, Action::Idle);
+            close_tick(&mut world, &config);
+        }
+        assert!(world.kitty(1).unwrap().activity_clock.is_some());
+
+        run_slot(&mut world, &config, 1, Action::Idle);
+        close_tick(&mut world, &config);
+        assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Sleep), 0.0);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Idle,
+            "the pre-056 end tick, pinned"
+        );
+    }
+
+    /// Spec 056 edge case (analyze C1): a nap begun exactly at the floor
+    /// can relieve nothing — it ends at the minimum duration, not the cap.
+    #[test]
+    fn a_nap_begun_at_the_floor_ends_at_the_minimum() {
+        let (mut world, mut config) = test_world();
+        config.actions.sleep_floor_off_beam = 20.0;
+        world.elements.clear();
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Sleep, 20.0);
+
+        run_slot(&mut world, &config, 1, Action::Sleep { with: None });
+        close_tick(&mut world, &config);
+        run_slot(&mut world, &config, 1, Action::Idle);
+        close_tick(&mut world, &config);
+        assert!(
+            world.kitty(1).unwrap().activity_clock.is_some(),
+            "finished from the start, but the scene holds until its minimum"
+        );
+
+        run_slot(&mut world, &config, 1, Action::Idle);
+        close_tick(&mut world, &config);
+        assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Sleep), 20.0);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Idle,
+            "no relief was ever possible: the nap ends at the minimum"
         );
     }
 
