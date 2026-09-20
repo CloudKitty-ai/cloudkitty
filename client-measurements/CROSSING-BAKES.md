@@ -331,6 +331,10 @@ making the stall and the memory smaller again:
 
 ## 8. The rig
 
+**[crossing-probe/](crossing-probe/)** — committed, because every number above
+came out of it and it is the acceptance test for the implementation.
+
+
 Everything above was measured with a probe in the session scratchpad: a node
 server that serves the worktree's `client/` with a captured `/world`, stubs
 the WebSocket so the world clock is driven locally, and walks a real crossing
