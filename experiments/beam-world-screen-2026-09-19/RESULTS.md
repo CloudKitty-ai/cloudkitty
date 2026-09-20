@@ -418,3 +418,33 @@ have to earn its keep on.
 ```
 caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/results-raw/tier4/run.sh > .../results-raw/tier4/run.log 2>&1 &
 ```
+
+## Addendum, 2026-09-20: nap lengths (owner's question)
+
+A nap runs `[actions.durations] sleep = { min = 6, max = 12 }`: relief
+every tick, and a cleared need ends it early once six ticks have
+passed. Read off the tier 1 and tier 4 legs (sleeping snapshots per
+nap; the post-apply snapshot counts one fewer than the engine's
+duration, so 5.0 here is the six-tick minimum):
+
+| | beam nap | off-beam nap |
+|---|---|---|
+| scripted teacher, served world | 6 | 6.4 |
+| scripted teacher, package world (floor 3) | 6 | 8.4 |
+| gen1-A, either world | 6 | 6.0–6.4 |
+| gen1-A under the orders (tier 4), either world | 6 | 6.0–6.4 |
+
+Every beam nap is the minimum, and for the minds every nap is the
+minimum whatever the tile: they begin naps at a sleep need of 7–9 on
+average (tier 1's start-need bins), and six ticks at the off-beam rate
+clear 30. The beam's higher rate therefore changes nothing about a
+mind's nap, not its length and not its outcome; it pays only to a cat
+that sleeps needy, which is the scripted teacher (mean start need 16,
+naps to 8.4 ticks under floor 3) and never these minds. That is the
+mechanism under F-047's "one tick per nap": for the served minds the
+differential is worth zero ticks, and floor 3 moves that only for a cat
+whose nap runs past the minimum. It also bounds what any beam order can
+buy a frozen mind in welfare: nothing, which is what tiers 3 and 4
+measured (happiness within 0.1). A beam matters to a mind that naps
+needy, which is a Gen 2 question about when the mind chooses to sleep,
+not where.
