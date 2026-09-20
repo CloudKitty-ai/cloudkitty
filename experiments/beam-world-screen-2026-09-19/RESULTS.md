@@ -340,3 +340,81 @@ hand-written one does not know.
 caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/results-raw/tier3/run.sh > .../results-raw/tier3/run.log 2>&1 &
 ```
 (`run.sh` in the raws: the two harness invocations with all five `plan:` seats, `CERT_ARTS` at this directory's artifacts.)
+
+# Tier 4 — results, 2026-09-20
+
+Prereg `PREREG-tier4.md` (b9b01a1, before the legs). The friend order
+(cosleep beside a friend asleep on a beam within 3) over the solo beam
+order (reach lowered to 5), release on distress flags; all five gen1-A
+seats, two worlds, 30 seeds × 20k. Raws `results-raw/tier4/`,
+uncommitted.
+
+## The short version
+
+The friend order fires on 1–2% of nap starts and changes nothing the
+battery can see: warm share (on a beam or conducted beside a partner
+on one) is tier 3's on both worlds. The precondition binds. At any
+moment few friends are asleep on a beam, fewer within three tiles, and
+when one is, the mind already chooses to cosleep with it, so the order
+confirms a choice more than it changes one. The lower solo reach cost
+nothing and bought nothing.
+
+| | package: gen1-A / tier 3 / tier 4 | anchor: gen1-A / tier 3 / tier 4 |
+|---|---|---|
+| warm share of sleeping ticks | 0.079 / 0.169 / **0.166** | 0.057 / 0.129 / **0.124** |
+| placement (naps begun on a beam) | 0.068 / 0.153 / 0.148 | 0.046 / 0.112 / 0.105 |
+| conducted share | 0.016 / 0.025 / 0.027 | 0.012 / 0.018 / 0.020 |
+| roster happiness | 92.32 / 92.25 / 92.26 | 92.49 / 92.39 / 92.39 |
+| team Nash | 0.923 / 0.922 / 0.922 | 0.925 / 0.924 / 0.924 |
+| nap starts under sleep need 5 | 0.28 / 0.30 / 0.30 | 0.42 / 0.41 / 0.42 |
+| worst distress age | 133 / 183 / **62** | 49 / 208 / **104** |
+| friend order: share of starts, arrived / gone | 0.016, 0.80 / 0.20 | 0.011, 0.82 / 0.18 |
+| beam order: share of starts, arrived / stuck / gone | 0.083, 0.92 / 0.07 / 0.01 | 0.062, 0.91 / 0.07 / 0.02 |
+| forced ticks, share of cat-ticks | 0.011 | 0.009 |
+
+Per seat warm share, package, gen1-A → tier 4: Miso 0.123 → 0.217,
+Pumpkin 0.025 → 0.213, Kittybear 0.083 → 0.213, Clementine 0.098 →
+0.130, Biscuit 0.037 → 0.064. Tier 3's per-seat numbers sit within
+0.01 of each.
+
+## Predictions
+
+1. **Fails.** Warm share 0.166 / 0.124 against ≥ 0.30 / ≥ 0.20; Biscuit
+   0.064 against ≥ 0.20. The friend order's opportunity is the bind,
+   not its execution (80–82% arrivals, no stalls, the rest a friend who
+   woke or left the beam).
+2. **Holds.** Happiness within 0.10, Nash within 0.001 of gen1-A; the
+   lower solo reach did not recover tier 3's 0.07–0.10 dip.
+3. **Holds.** Arrivals 0.80–0.92 per order kind; forced ticks about 1%.
+4. **Holds.** Under-5 share within 0.02.
+5. **Half holds.** No seed crossed 150 on either world (package worst
+   62, anchor 104), which reads tier 3's two crossings as seed variance
+   rather than the walks; the flag release never fired, so the "fires
+   at least once" clause fails for the good reason that no cat under an
+   order reached distress.
+
+## Reading
+
+Two orders above the frozen minds recover about a tenth of sleeping
+ticks as beam-rate sleep on the package world and eight points on the
+served one, at no measurable welfare cost, and that number is the solo
+order's. To reach the cosleeping majority a third precondition is
+needed, and the two candidates are different orders: a wider friend
+reach (six tiles would roughly quadruple the opportunities; the walk
+gets longer and the friend more likely to wake), or the case both
+prereg files declared out, walking a pair to a free beam (the partner
+does not follow; the order becomes "go to the beam and wait", with a
+give-up when the friend does not come). Either is a tier on the
+owner's word. Tier 4's solo-reach 5 and the flag release stay as the
+planner's pins.
+
+For the LLM lab seat: the executor baseline is tier 3's number; tier 4
+adds that a second hand-written order with a rare precondition is
+nearly free and nearly inert, which is the case a model planner would
+have to earn its keep on.
+
+## Regeneration
+
+```
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/results-raw/tier4/run.sh > .../results-raw/tier4/run.log 2>&1 &
+```

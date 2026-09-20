@@ -218,3 +218,9 @@ the trigger (solo naps only, most naps are cosleeps), not the executor.
 Numbers and the crossings in `beam-world-screen-2026-09-19/RESULTS.md`
 §Tier 3. A model planner emitting the same order gains the same; what
 it is read for is when it emits it and which other orders it finds.
+Tier 4 added a second order (cosleep beside a friend asleep on a beam
+within 3): it fires on 1–2% of nap starts and moves nothing; the
+precondition is rare and, when met, the mind already makes that choice.
+The lesson for a model planner: an order only pays where the mind's own
+choice and the order's differ, and the hand-written orders so far cover
+about a tenth of naps. Details in RESULTS.md §Tier 4.
