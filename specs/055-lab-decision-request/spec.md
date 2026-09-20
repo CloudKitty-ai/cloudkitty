@@ -19,6 +19,25 @@ seat (F-042: a lab read predicts the served seat only when both read the
 same thing). The model must be able to read the wire's own text in both
 places.
 
+## Clarifications
+
+### Session 2026-09-20
+
+- Q: Should the lab render carry the exact seed the served request
+  would, computed without consuming the kitty's private decision
+  stream? → A: Yes — render without consuming (D1 CONFIRMED by the
+  owner; FR-005 stands as written).
+- Q: Should the surface be a pull method the harness calls per kitty
+  (`env.decision_request(kitty_id)`), rather than a rendered line
+  delivered automatically in `infos` behind an env flag? → A: Yes — the
+  pull method is the surface (owner-confirmed); nothing renders unless
+  asked, which subsumes FR-003's opt-in.
+- Q: When the method is called where no request exists (unknown kitty
+  id, before the first decision point, after the episode ends), should
+  it raise a clear error rather than return an empty or placeholder
+  value? → A: Yes — always a clear error naming the kitty and why
+  (owner-confirmed); never None, never stale or placeholder bytes.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The lab prompt is the served prompt (Priority: P1)
@@ -103,8 +122,8 @@ section; the wire text itself is unchanged.
 - Asking for a kitty id not on the roster: a clear error, never a partial
   or empty render.
 - Asking before the first tick's decision point or after an episode ends:
-  a clear error or a documented "not available yet" — never stale bytes
-  from a previous tick.
+  a clear error naming the kitty and why (owner-confirmed at clarify) —
+  never None, never stale bytes from a previous tick.
 - The request must render against the same start-of-tick snapshot the
   seats decide against (snapshots are post-apply; a render taken after
   `step` must not leak the post-step world into a request stamped with the
@@ -125,8 +144,10 @@ section; the wire text itself is unchanged.
   decision request rendered exactly as the served wire would send it for
   that kitty's decision at that tick — regardless of what kind of seat the
   kitty holds in the lab.
-- **FR-003**: The surface MUST be opt-in. An env opened without it MUST
-  perform no request rendering and behave identically to today.
+- **FR-003**: The surface is a pull method (`env.decision_request(kitty_id)`
+  or the binding's idiomatic equivalent, owner-confirmed at clarify):
+  nothing renders unless called, so an env that never calls it performs
+  no request rendering and behaves identically to today.
 - **FR-004**: The rendered `world` MUST be the deciding kitty's fog view
   and nothing more (design doctrine rule 5; spec 049 FR-048 — the request
   is the fog snapshot by construction).
@@ -216,9 +237,8 @@ Checked against `experiments/DESIGN-DOCTRINE.md`:
   the documented tie-break.
 - "Per tick" means at the tick's decision point: the render is against the
   same start-of-tick snapshot the seats decide against.
-- The exact accessor shape (a per-kitty method vs. an info field behind a
-  flag) is a plan-time choice; the spec constrains it only to be opt-in
-  and per-kitty-per-tick.
+- The accessor is the pull method (owner-confirmed at clarify); only its
+  idiomatic surface details (naming, error type) are plan-time choices.
 - Harness-side work (LLM seat spec, batching, journal, prompt prefix,
   retries) is Experiments' and out of scope; no LLM code enters the
   engine.
