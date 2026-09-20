@@ -42,7 +42,9 @@ schema change, only a consequence. The ladder, as discussed:
    cuddle-economy doctrine applied — rider tier, no stacking with the
    mutual tier — or a purr-pile is the next F-027-class attractor.
 3. **Do nothing; let Gen 2's world supply the value** — RULED for
-   Gen 1. Under hidden needs an honest state signal is information a
+   Gen 1, and **RULED for Gen 2 2026-09-20 (owner, #391: "#391 ruled
+   3")**; the 2026-09-17 baseline (F-048, F-049) is the test, the
+   revisit trigger below stands. Under hidden needs an honest state signal is information a
    teammate cannot get otherwise, the same mechanism that anchored
    here-words under fog. The risk to carry into the sitting: value
    that is merely available has not been enough; the gradient has to
