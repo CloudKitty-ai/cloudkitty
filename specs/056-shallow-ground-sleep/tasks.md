@@ -35,7 +35,7 @@ tasks; red-first means the guard is written and RED before the law lands.
 
 **Independent test**: same floor-20 world; on-beam sleeper reaches 0; conducted sleeper reaches 0; wandered partner re-imposes the floor next tick.
 
-- [ ] T009 [US2] RED FIRST: unit tests: (a) `a_beam_nap_clears_under_a_floor` (floor 20, sleeper on sunbeam → 0); (b) `a_conducted_nap_clears_under_a_floor` (floor 20, off-beam sleeper, mutual partner on sunbeam → 0); (c) `a_wandered_partner_reimposes_the_floor` (conduction ends mid-nap → later ticks clamp), in crates/cloudkitty-core/src/action.rs
+- [ ] T009 [US2] RED FIRST: unit tests: (a) `a_beam_nap_clears_under_a_floor` (floor 20, sleeper on sunbeam → 0); (b) `a_conducted_nap_clears_under_a_floor` (floor 20, off-beam sleeper, mutual partner on sunbeam → 0); (c) `a_wandered_partner_reimposes_the_floor` (analyze A1: stage the beam-departure form — partner steps off the sunbeam mid-nap, adjacency kept — conduction lost → later ticks clamp), in crates/cloudkitty-core/src/action.rs
 - [ ] T010 [US2] Confirm the escape rides the T005 shared predicate (no second warmth computation anywhere in the relief path); mutation cycle ledger items 2 and 3 (apply the clamp unconditionally → (a) reds; drop `partner_warm` from the escape → (b) reds), in crates/cloudkitty-core/src/action.rs
 
 ## Phase 5: User Story 3 — Naps still end honestly (P1) [US3]
@@ -44,7 +44,7 @@ tasks; red-first means the guard is written and RED before the law lands.
 
 **Independent test**: floor 20 ground nap ends the tick need hits 20 (after min 6); floor-0 nap's end tick unchanged.
 
-- [ ] T011 [US3] RED FIRST: tests beside `a_finished_need_ends_the_meal_at_the_first_lawful_tick` (~line 3448): (a) `a_ground_nap_ends_at_the_reachable_floor` (floor 20: ends the first lawful tick need ≤ 20, NOT at the 12-tick cap); (b) `a_floor_zero_nap_ends_exactly_as_today` (pin the end tick — the unit half of FR-007), in crates/cloudkitty-core/src/world.rs
+- [ ] T011 [US3] RED FIRST: tests beside `a_finished_need_ends_the_meal_at_the_first_lawful_tick` (~line 3448): (a) `a_ground_nap_ends_at_the_reachable_floor` (floor 20: ends the first lawful tick need ≤ 20, NOT at the 12-tick cap); (b) `a_floor_zero_nap_ends_exactly_as_today` (pin the end tick — the unit half of FR-007); (c) analyze C1: `a_nap_begun_at_the_floor_ends_at_the_minimum` (need starts exactly at floor 20, off-beam → no relief possible, nap ends at the 6-tick minimum), in crates/cloudkitty-core/src/world.rs
 - [ ] T012 [US3] Implement the finished level in `resolve_activity_ends` (~line 636): for `Activity::Sleeping` the `need_zero` comparison becomes `≤ (warm ? 0.0 : floor)` via the T005 shared helper, each duet side its own level, either-side rule untouched, every other activity keeps literal 0, in crates/cloudkitty-core/src/world.rs
 - [ ] T013 [US3] Mutation cycle ledger item 5 (keep finished = 0 for sleeping → (a) reds by running to the cap); then rule-6 sort: re-read and run the kept pile — all existing sleep/cosleep/duet-end tests, the Article I property suite, both config sweeps — and confirm zero reds, in /Users/elizabethkelly/ai/cloudkitty-shallow-ground
 
@@ -54,7 +54,7 @@ tasks; red-first means the guard is written and RED before the law lands.
 - [ ] T015 [P] One comment line in `[actions]` beside `sleep_relief_sunbeam` (contract wording from contracts/config-key.md); NO value line — the served world keeps the default, in cloudkitty.toml
 - [ ] T016 [P] Changelog one-liner under `## Unreleased`, passed through the public-voice tell budget at write time; no compatibility marker — state the default-0 equivalence as the reason (a missing marker is a claim), in CHANGELOG.md
 - [ ] T017 Full sweep: `cargo fmt --check`, clippy clean, `cargo test --workspace`; then the quickstart hand-check (floor 20 scratch toml: watch one ground nap end at 20; floor 95: server refuses naming the key), in /Users/elizabethkelly/ai/cloudkitty-shallow-ground
-- [ ] T018 Push branch, open the PR (house body: summary, the red ledger with predictions, D1/D2 owner confirmations cited, generated-with + session lines), wait CI green, then ping Experiments that the branch is mergeable (their eight tier-5 arms run that night) — merge stays on the owner's word, in /Users/elizabethkelly/ai/cloudkitty-shallow-ground
+- [ ] T018 Push branch, open the PR (house body: summary, the red ledger with predictions, D1/D2 owner confirmations cited, analyze C2 note — SC-001's world-level evidence is Experiments' pinned-seed action-for-action run, the in-repo proof is unit-layer plus the untouched seeded suites — generated-with + session lines), wait CI green, then ping Experiments that the branch is mergeable (their eight tier-5 arms run that night) — merge stays on the owner's word, in /Users/elizabethkelly/ai/cloudkitty-shallow-ground
 
 ## Dependencies
 
