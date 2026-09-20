@@ -166,3 +166,34 @@ as of 2026-09-20.
    GPU trains and certifies).
 6. Actor versus planner, now testable in the same lab world on the
    same seeds once the binding renders the request.
+
+## Preliminary model screen (owner, later in the day: "not yet, just brainstorming"; comfortable compiling)
+
+A screen over models, sizes and quantisations before any fine-tune, on
+the Mac, so the seat's shape is chosen on numbers. Three reads, each a
+script to mock up first:
+
+1. **Serving numbers on real prompts** (`bench_serve.py`): for each
+   model and quant, time to first token with and without prefix caching,
+   decode tokens/s, and a batch of five, on prompts of the served shape
+   (rules prefix plus a rendered request of real length), not benchmark
+   prompts. MLX server as the default runtime, llama.cpp as the check.
+2. **Zero-shot decision agreement** (`eval_decisions.py`): prompts built
+   from the held-out corpus traces (`trace.jsonl` carries the
+   start-of-tick snapshot the wire's `world` is built from, plus the
+   legal mask), the model's choice constrained to the legal set, scored
+   as agreement with the teacher's applied action and with a Gen 1
+   mind's argmax on the same rows, by activity class. Reads prompt
+   design (what to render, how to name legality) as much as the model.
+   Until the binding renders the request (handover), the prompt is a
+   lab rendering and is marked as such.
+3. **Quantisation sensitivity** (`quant_agreement.py`): the same prompts
+   through bf16, 8-bit and 4-bit of one model; disagreement rate against
+   bf16 is the number that decides the served precision, before any
+   fine-tune exists.
+
+Candidates worth a row: Qwen 3.5 at 1.7B, 4B, 8B (the owner's benchmark
+family); Gemma and Llama at 4B and 8B for a second lineage; instruct
+variants first, base variants only if a fine-tune is planned. The small
+end matters: a 1.7B actor at 8-bit may be enough on the tick and leaves
+the budget for a planner. Nothing here is scheduled.
