@@ -10,6 +10,12 @@ out of it is `HANDOVER-product-2026-09-20.md`.
 - **#392 (dataset generator) is not a kickoff.** Owner: "I'd like to
   spend more time defining exactly what we're building, and the future
   of LLMs in this project."
+- **Sequencing (owner, 2026-09-20)**: "no hurry on this one, right now
+  my mental roadmap is gen 2 (hidden states), gen 3 (free time), and
+  THEN we can consider our first LLM candidates." The LLM lab seat
+  waits behind two generations; this note and the merged
+  `decision_request` surface (spec 055, first read in `RESULTS.md`) are
+  what it picks up from.
 - **Served-world LLM seats are tabled** (owner). LLM seats are tested
   first in the lab's tickless world, which already exists: the headless
   env advances only when the harness calls `step`, so an LLM seat is the
