@@ -899,14 +899,11 @@ fn apply_sleep_relief(
     // sunbeam tile gives the sleeper sunbeam-grade sleep. Direct partner
     // only, and the rate is selected, never stacked -- any combination of
     // beams pays exactly sleep_relief_sunbeam. A failed lookup is simply
-    // no warmth (the plain rate), never an error.
-    let partner_warm = mutual
-        && partner
-            .and_then(|friend| world.kitty(friend))
-            .is_some_and(|k| {
-                world.element_at(k.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
-            });
-    let relief = if in_sunbeam || partner_warm {
+    // no warmth (the plain rate), never an error. The circumstance is
+    // `World::sleep_warmth`, shared with the nap's finished level
+    // (spec 056), so the rate and the floor can never disagree.
+    let warm = world.sleep_warmth(in_sunbeam, partner);
+    let relief = if warm {
         config.actions.sleep_relief_sunbeam
     } else {
         config.actions.sleep_relief

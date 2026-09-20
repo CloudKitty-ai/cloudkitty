@@ -1408,6 +1408,23 @@ impl World {
         })
     }
 
+    /// Spec 031's warmth circumstance, in one place (spec 056): the
+    /// sleeper lies in a sunbeam, or warmth conducts from a mutual
+    /// co-sleep partner ([`Self::is_settled`], the spec-041 shared
+    /// definition) standing on one. One predicate decides the relief
+    /// rate, the shallow-ground floor escape, and the nap's finished
+    /// level, so the three can never disagree.
+    pub fn sleep_warmth(&self, in_sunbeam: bool, partner: Option<KittyId>) -> bool {
+        in_sunbeam
+            || partner.is_some_and(|friend| {
+                self.is_settled(friend)
+                    && self.kitty(friend).is_some_and(|k| {
+                        self.element_at(k.pos).map(|e| e.element_type())
+                            == Some(ElementType::Sunbeam)
+                    })
+            })
+    }
+
     pub fn push_element(&mut self, element: Element) {
         self.next_element_id = self.next_element_id.max(element.id + 1);
         self.elements.push(element);
