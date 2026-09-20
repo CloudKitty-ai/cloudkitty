@@ -209,6 +209,17 @@ pub fn build(config: &Config, watchdog: &WatchdogConfig, raw: Option<&toml::Valu
         )),
     ));
 
+    // Shallow ground (spec 056): off-beam sleep relieves the sleep need
+    // only down to this floor; a beam, or conducted warmth beside a
+    // mutual partner on one, clears it fully. 0 = the pre-056 law.
+    entries.push(entry(
+        raw,
+        "actions",
+        "sleep_floor_off_beam",
+        json!(config.actions.sleep_floor_off_beam),
+        Some(json!(d.actions.sleep_floor_off_beam)),
+    ));
+
     // The groom-other pricing curve (spec 054): pay per groomed tick is
     // min(ceiling, floor + slope · delivered/groom_relief). The retired
     // flat groom_cuddle_relief is an inert legacy key — never listed.
@@ -374,12 +385,13 @@ mod tests {
     use std::io::Write;
     use std::sync::{Arc, Mutex};
 
-    /// The eleven optional listed keys: every dial on the list that carries
+    /// The twelve optional listed keys: every dial on the list that carries
     /// a per-key default (the 3.0 rule: sections are required, only inert
     /// launch dials default). Removing them from a serialized
     /// `Config::default()` leaves a file that still loads.
     const OPTIONAL: &[(&str, &str)] = &[
         ("meow", "relief_memory_margin"),
+        ("actions", "sleep_floor_off_beam"),
         ("actions", "groom_cuddle_floor"),
         ("actions", "groom_cuddle_slope"),
         ("actions", "groom_cuddle_ceiling"),
@@ -449,6 +461,7 @@ mod tests {
             "vision.radius",
             "vision.memory_timeout_ticks",
             "meow.relief_memory_margin",
+            "actions.sleep_floor_off_beam",
             "actions.groom_cuddle_floor",
             "actions.groom_cuddle_slope",
             "actions.groom_cuddle_ceiling",
@@ -521,7 +534,7 @@ mod tests {
     #[test]
     fn no_config_file_means_every_source_is_default() {
         let block = build(&minimal_config(), &WatchdogConfig::default(), None);
-        assert_eq!(block.entries.len(), 20);
+        assert_eq!(block.entries.len(), 21); // +1: spec 056's sleep floor
         for e in &block.entries {
             assert_eq!(e.source, Source::Default, "{}.{}", e.group, e.key);
         }

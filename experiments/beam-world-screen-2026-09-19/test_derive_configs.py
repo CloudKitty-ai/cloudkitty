@@ -30,6 +30,19 @@ same = D.derive(anchor_text, anchor["actions"]["sleep_relief"], anchor["actions"
 assert tomllib.loads(same)["elements"]["sunbeam"]["max"] == anchor["elements"]["sunbeam"]["min"] + 1
 assert D.moved_keys(anchor, tomllib.loads(same)) <= {("elements", "sunbeam", "max")}
 
+# tier 5: the floor key is inserted under [actions], absent from the anchor, and nothing else moves
+assert ("actions", D.FLOOR_KEY) not in dict(D.flat(anchor))
+for floor in (10, 15, 20, 25):
+    text = D.derive(anchor_text, 3.0, 7.0, 3000, 6, floor); cfg = tomllib.loads(text)
+    assert cfg["actions"][D.FLOOR_KEY] == floor
+    want = D.MOVED - {("actions", "sleep_relief_sunbeam")}   # beam 7 is the anchor's own value
+    assert D.moved_keys(anchor, cfg) == want, D.moved_keys(anchor, cfg) ^ want
+    assert text.count(D.FLOOR_KEY) == 1
+    assert D.name(3.0, 7.0, 3000, 6, floor) == f"s3-b7-t3000-n6-f{floor}"
+    # the package world is the same file with the one line added
+    pkg = D.derive(anchor_text, 3.0, 7.0, 3000, 6)
+    assert text.replace(f"{D.FLOOR_KEY} = {floor}  # beam-world screen tier 5 (spec 056)\n", "") == pkg, "shallow-N.toml = package.toml + one line"
+
 # grid size and naming
 assert len(D.grid()) == 24
 assert len({D.name(*g) for g in D.grid()}) == 24

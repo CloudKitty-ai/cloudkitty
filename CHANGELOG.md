@@ -33,6 +33,16 @@ change.
 
 ## Unreleased
 
+- **Ground naps can be made shallow (spec 056, #399).** A new
+  `[actions] sleep_floor_off_beam` dial lets a world declare that a nap
+  on plain grass only rests a cat down to a floor, while a sunbeam, or a
+  mutual partner lying on one, still clears the need entirely; a nap
+  that reaches its floor ends there instead of dozing on to the cap.
+  The served world keeps the dial at 0, which is the old law exactly,
+  so no compatibility marker applies. Built so the beam-world screen's
+  tier-5 arms can ask whether a beam that finally changes a nap's
+  outcome is worth walking to.
+
 - **The tab icon is drawn by the world now.** Biscuit still naps on the
   meadow in the favicon, but she is the cat the viewer actually draws: the
   icon's geometry is lifted off a recording of the shipped `loaf` pose

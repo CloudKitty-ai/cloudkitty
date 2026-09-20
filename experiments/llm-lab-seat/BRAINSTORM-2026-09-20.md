@@ -206,3 +206,21 @@ model buys nothing; a rising one says capacity is still paying and the
 (about 17 GB, MLX) at planner cadence only; on the GH200 it runs at
 bf16 or fp8 for the screen. The decision to run it is read off the
 arc, not scheduled in advance.
+
+## Executor baseline (tier 3 of the beam-world screen, 2026-09-20)
+
+A hand-written beam order over the frozen Gen 1 minds, through the
+lab harness, no model: naps begun on a beam 0.068 → 0.153 on the
+package world and 0.046 → 0.112 on the served world, 91% / 88% of
+orders arriving, happiness within 0.1 and Nash within 0.001 of the same
+minds without it, forced ticks about 1% of cat-ticks. The ceiling was
+the trigger (solo naps only, most naps are cosleeps), not the executor.
+Numbers and the crossings in `beam-world-screen-2026-09-19/RESULTS.md`
+§Tier 3. A model planner emitting the same order gains the same; what
+it is read for is when it emits it and which other orders it finds.
+Tier 4 added a second order (cosleep beside a friend asleep on a beam
+within 3): it fires on 1–2% of nap starts and moves nothing; the
+precondition is rare and, when met, the mind already makes that choice.
+The lesson for a model planner: an order only pays where the mind's own
+choice and the order's differ, and the hand-written orders so far cover
+about a tenth of naps. Details in RESULTS.md §Tier 4.
