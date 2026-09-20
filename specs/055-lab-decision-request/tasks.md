@@ -49,7 +49,7 @@ its mutation red is run) before the claim is trusted.
 
 ## Phase 6: Polish & cross-cutting
 
-- [ ] T013 [P] Changelog one-liner under `## Unreleased` (public-voice at write time; no compatibility marker — no wire, config, or world change; PR number stamped at PR-open time), in CHANGELOG.md
+- [x] T013 [P] Changelog one-liner under `## Unreleased` (public-voice at write time; no compatibility marker — no wire, config, or world change; PR number stamped at PR-open time), in CHANGELOG.md
 - [x] T014 Full sweep: `cargo fmt --check`, clippy clean, `cargo test --workspace`, and the binding build + pytest (VIRTUAL_ENV set before `maturin develop` — house gotcha); quickstart hand-check (call the method, read the line, trigger the ValueError), in /Users/elizabethkelly/ai/cloudkitty-lab-request
 - [ ] T015 Push branch, open the PR (house body: summary, three-item red ledger with predictions, the three owner confirmations cited, generated-with + session lines), CI green, ping Experiments mergeable (their first lab read — 5 seeds × 5000 ticks, tier 2 package world — runs the day the surface lands) — merge on the owner's word, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
