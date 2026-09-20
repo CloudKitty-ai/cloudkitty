@@ -258,23 +258,37 @@ impl Episode {
                 reason: "unknown kitty id",
             })?;
         let snapshot = self.world.snapshot();
-        let me = snapshot
-            .kitty(kitty)
-            .cloned()
-            .expect("dealt seeds cover exactly the roster");
-        let ctx = DecisionContext {
-            me,
-            world: Arc::new(snapshot.fog_for(kitty, self.core.vision.radius)),
-            rng: DecisionRng::from_seed(seed0),
-            config: self.core.clone(),
-        };
-        // The served value without the served consumption (D1): first
-        // draw of a local stream seeded exactly as the kitty's would be.
-        let seed = DecisionRng::from_seed(seed0).gen_u64();
+        let ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        // The served value without the served consumption (D1): the first
+        // draw of THIS context's own stream — local to the render, seeded
+        // exactly as the kitty's would be, and the same expression the
+        // served call sites write (`ctx.rng.gen_u64()`). One seeding, no
+        // second seed path (review 2026-09-20 finding 7).
+        let seed = ctx.rng.gen_u64();
         Ok(
             serde_json::to_string(&DecisionRequest::for_context(&ctx, seed))
                 .expect("requests serialize"),
         )
+    }
+
+    /// THE lab-side `DecisionContext` construction (review 2026-09-20
+    /// finding 3): scripted seats in `step_inner` and the
+    /// `decision_request` render share it, so the render can never build
+    /// a different view than the seats decide from. (The served
+    /// dispatch's own construction lives in core's `behavior/mod.rs`,
+    /// engine-fed — outside this crate, noted for the Gen 2 fog work.)
+    fn decision_context_for(
+        &self,
+        snapshot: &cloudkitty_core::world::WorldSnapshot,
+        kitty: KittyId,
+        seed: u64,
+    ) -> DecisionContext {
+        DecisionContext {
+            me: snapshot.kitty(kitty).cloned().expect("roster kitty"),
+            world: Arc::new(snapshot.fog_for(kitty, self.core.vision.radius)),
+            rng: DecisionRng::from_seed(seed),
+            config: self.core.clone(),
+        }
     }
 
     /// The externally controlled agents, stable id order — constant for the
@@ -406,12 +420,7 @@ impl Episode {
                         .as_ref()
                         .and_then(|dealt| dealt.seed_for(id))
                         .expect("seeds are dealt for every roster kitty");
-                    let ctx = DecisionContext {
-                        me: snapshot.kitty(id).cloned().expect("roster kitty"),
-                        world: Arc::new(snapshot.fog_for(id, self.core.vision.radius)),
-                        rng: DecisionRng::from_seed(seed),
-                        config: self.core.clone(),
-                    };
+                    let ctx = self.decision_context_for(snapshot, id, seed);
                     let (action, provenance) = resolve_one(self.registry.get(name), &ctx, seed);
                     proposals.propose(id, action);
                     scripted_marks.insert(id, provenance);
@@ -697,10 +706,13 @@ mod tests {
         Episode::new(Config::default(), RlConfig::default(), BTreeMap::new()).unwrap()
     }
 
-    /// Spec 055 T005 (SC-001): over several ticks and the FULL roster,
-    /// the lab render equals the served path's line byte for byte — the
-    /// served side built here exactly as `try_decide` builds it (same
-    /// context, same dealt seed, the Article-V draw consumed).
+    /// Spec 055 T005 — honest scope (review 2026-09-20 finding 1): both
+    /// sides of this sweep go through `for_context`, so it can NOT catch
+    /// a bug inside that shared body (core's plugin e2e owns the wire's
+    /// absolute shape). What it does pin, over several ticks × the full
+    /// roster: the render's INPUTS — the dealt-seed derivation (the raw
+    /// seed0 mutation reds here), the window, and the documented shape.
+    /// The caller-path proof is `the_lab_render_matches_what_a_real_advisor_receives`.
     #[test]
     fn the_lab_render_is_the_wire_line_byte_for_byte() {
         use cloudkitty_core::action::PROPOSAL_WIRE_VERSION;
@@ -747,6 +759,71 @@ mod tests {
             }
             episode.step(&empty).unwrap();
         }
+    }
+
+    /// Spec 055 review finding 1's fix: the lab render must equal what a
+    /// REAL advisor receives — the line ScriptBehavior's own try_decide
+    /// writes to its child's stdin, captured with `tee`. This drives the
+    /// served serialization path end to end; the reply (tee's echo) is
+    /// lawfully rejected and the kitty falls back, which is beside the
+    /// point — the capture is the request as actually sent.
+    #[test]
+    fn the_lab_render_matches_what_a_real_advisor_receives() {
+        use cloudkitty_core::behavior::{Behavior, ScriptBehavior};
+        let mut episode = episode_all_external();
+        episode.reset(43);
+        let id = episode.roster()[0];
+        let lab = episode.decision_request(id).unwrap();
+
+        let dir = std::env::temp_dir().join(format!("ck055-capture-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let capture = dir.join("request.jsonl");
+        let _ = std::fs::remove_file(&capture);
+
+        let seed0 = episode
+            .pending_seeds
+            .as_ref()
+            .unwrap()
+            .seed_for(id)
+            .unwrap();
+        let snapshot = episode.world().snapshot();
+        let ctx = episode.decision_context_for(&snapshot, id, seed0);
+        let behavior: Arc<dyn Behavior> = Arc::new(ScriptBehavior::new(
+            "capture",
+            "/bin/sh",
+            vec!["-c".into(), format!("exec tee {}", capture.display())],
+        ));
+        let _ = resolve_one(Some(behavior), &ctx, seed0);
+
+        // tee writes through as it reads; give a slow machine a moment.
+        let mut sent = String::new();
+        for _ in 0..40 {
+            sent = std::fs::read_to_string(&capture).unwrap_or_default();
+            if !sent.is_empty() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(50));
+        }
+        assert_eq!(
+            sent.trim_end(),
+            lab,
+            "the advisor's stdin line IS the lab render"
+        );
+    }
+
+    /// Spec 055 FR-002 (review finding 6): the surface serves ANY roster
+    /// kitty — a builtin-scripted seat, invisible to external_agents,
+    /// renders like any other, at reset and after a step.
+    #[test]
+    fn scripted_seats_render_too() {
+        let control = BTreeMap::from([(1, Control::Builtin("needs_driven".into()))]);
+        let mut episode = Episode::new(Config::default(), RlConfig::default(), control).unwrap();
+        episode.reset(11);
+        assert!(!episode.external_agents().contains(&1), "1 is scripted");
+        let line = episode.decision_request(1).unwrap();
+        assert!(line.contains("\"kitty_id\":1"), "{line}");
+        episode.step(&BTreeMap::new()).unwrap();
+        episode.decision_request(1).unwrap();
     }
 
     /// Spec 055 FR-004 (US1 scenario 2): the rendered `world` is the fog

@@ -25,7 +25,7 @@ its mutation red is run) before the claim is trusted.
 
 - [x] T004 [US1] Implement `pub fn decision_request(&self, kitty: KittyId) -> Result<String, …>` on Episode: valid while `pending_seeds` is Some and the episode is not truncated/poisoned; renders on demand (snapshot → `fog_for(kitty, radius)`, me from the snapshot, seed = first `gen_u64()` of a LOCAL `DecisionRng::from_seed(dealt.seed_for(kitty))` — nothing stored, nothing consumed), `serde_json::to_string` of `for_context`'s struct, in crates/cloudkitty-rl/src/episode.rs
 - [x] T005 [US1] The byte test (analyze C1: a sweep, not one decision): over several ticks of a stepped episode × the FULL roster, render each decision through the server-path construction and through `Episode::decision_request` and compare the full strings byte for byte; also assert the seven documented fields, `v == PROPOSAL_WIRE_VERSION`, and that `world` blanks an out-of-disc friend (FR-004, US1 scenario 2), in crates/cloudkitty-rl/src/episode.rs (or tests/)
-- [x] T006 [US1] Mutation cycle, ledger item 1: perturb `for_context` (e.g. tick from the wrong source) via `scripts/mutate.sh --expect` with the byte-test failure predicted first; restore green, in /Users/elizabethkelly/ai/cloudkitty-lab-request
+- [x] T006 [US1] Mutation cycle, ledger item 1 (as actually run — review corrected the planned tick mutation, which co-moves both sides of a shared body and is core e2e's guard): render the raw dealt seed instead of the first draw → the byte sweep AND the real-advisor capture test red; `scripts/mutate.sh --expect`, prediction first, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
 ## Phase 4: User Story 2 — Policy seats pay nothing (P2) [US2]
 

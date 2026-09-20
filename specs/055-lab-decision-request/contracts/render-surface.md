@@ -7,9 +7,15 @@ rendered without consuming, misuse always errors.
 ## Python
 
 ```python
-line: str = env.decision_request(kitty_id)   # ParallelEnv
+line: str = env.decision_request(kitty_id)   # ParallelEnv; int id or "kitty_N"
 request = json.loads(line)                    # the spec 053 wire document
 ```
+
+Amended at review (2026-09-20): the method accepts the numeric id or the
+`"kitty_N"` agent-name form; calls before the first `reset()` raise
+`ValueError` ("reset first" — the window opens at reset, exactly as
+promised below); a poisoned episode raises `RuntimeError`, matching
+`step()`'s exception class for the same fault. Everything else stands.
 
 - Callable after `reset()`/`step()` returns and before the next
   `step()` — the current decision window. Each call renders fresh; no

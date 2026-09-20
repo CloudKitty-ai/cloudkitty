@@ -69,6 +69,13 @@ fn episode_err(e: EpisodeError) -> PyErr {
         EpisodeError::SteppedAfterTruncation | EpisodeError::Panicked { .. } => {
             PyRuntimeError::new_err(e.to_string())
         }
+        // Spec 055 review finding 5: an over/poisoned episode is the same
+        // fault class step() raises RuntimeError for — one exception type
+        // per fault class. Misuse (unknown id, no window) stays ValueError.
+        EpisodeError::NoDecisionRequest {
+            reason: "episode over (reset first)",
+            ..
+        } => PyRuntimeError::new_err(e.to_string()),
         other => PyValueError::new_err(other.to_string()),
     }
 }
@@ -317,16 +324,43 @@ impl ParallelEnv {
         })
     }
 
-    /// The wire's own DecisionRequest for `kitty_id`'s upcoming decision,
+    /// The wire's own DecisionRequest for a kitty's upcoming decision,
     /// rendered exactly as the served transport would send it (spec 055):
     /// one JSON string with the documented seven fields, the fog view as
     /// `world`, and the seed the served request would carry — derived
     /// without consuming, so calling this never moves the episode. Valid
-    /// between reset/step and the next step, for ANY roster kitty
-    /// (policy, scripted, external). Outside the window or for an
-    /// unknown kitty: ValueError naming the kitty and the reason.
-    fn decision_request(&self, kitty_id: KittyId) -> PyResult<String> {
-        self.episode.decision_request(kitty_id).map_err(episode_err)
+    /// between reset()/step() and the next step(), for ANY roster kitty
+    /// (policy, scripted, external) — including builtin seats absent
+    /// from possible_agents. Takes the numeric id or the "kitty_N"
+    /// agent name. Before reset() (or after truncation): ValueError
+    /// "reset first"; unknown kitty: ValueError naming it; poisoned
+    /// episode: RuntimeError, like step().
+    fn decision_request(&self, py: Python<'_>, kitty: &Bound<'_, PyAny>) -> PyResult<String> {
+        // Review finding 6: speak both id vocabularies — the raw id and
+        // the "kitty_N" name every other agent surface uses.
+        let kitty_id: KittyId = if let Ok(id) = kitty.extract::<KittyId>() {
+            id
+        } else {
+            let name: String = kitty.extract().map_err(|_| {
+                PyValueError::new_err("kitty must be an int id or a 'kitty_N' agent name")
+            })?;
+            parse_agent(&name).ok_or_else(|| {
+                PyValueError::new_err(format!("not a kitty id or agent name: {name:?}"))
+            })?
+        };
+        // Review finding 2: the Rust constructor arms a throwaway world
+        // (Episode::new -> arm()), but the Python contract's window opens
+        // at reset(). `live` is false before the first reset and after
+        // truncation — both are "reset first", loudly.
+        if !self.live {
+            return Err(PyValueError::new_err(format!(
+                "no decision request for kitty {kitty_id}: no decision window (reset first)"
+            )));
+        }
+        // Review finding 8: engine work releases the GIL, like reset/step
+        // (the crate doc's promise) — a full snapshot + config render per
+        // call must not stall sibling Python threads.
+        py.detach(|| self.episode.decision_request(kitty_id).map_err(episode_err))
     }
 
     /// Live agents: the constant external set while the episode runs, empty

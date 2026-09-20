@@ -445,3 +445,21 @@ def test_decision_request_is_the_wire_line():
 
     with pytest.raises(ValueError, match="999.*unknown kitty id"):
         env.decision_request(999)
+
+    # Review finding 6: the "kitty_N" agent-name form is the same call.
+    agent = env.possible_agents[0]
+    assert env.decision_request(agent) == env.decision_request(int(agent.split("_")[1]))
+
+
+def test_decision_request_window_and_seats():
+    """Spec 055 review findings 2 and 6: no window before reset(), and a
+    builtin-scripted seat (absent from possible_agents) still renders."""
+    env = make_env()
+    with pytest.raises(ValueError, match="reset first"):
+        env.decision_request(1)
+
+    env = cloudkitty.ParallelEnv(horizon=10, control={1: "needs_driven"})
+    env.reset(seed=3)
+    assert "kitty_1" not in env.possible_agents
+    line = env.decision_request("kitty_1")
+    assert '"kitty_id":1' in line
