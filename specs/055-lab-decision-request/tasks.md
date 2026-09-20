@@ -24,7 +24,7 @@ its mutation red is run) before the claim is trusted.
 **Independent test**: same world/tick/kitty/dealt seed/config through both paths → identical bytes.
 
 - [ ] T004 [US1] Implement `pub fn decision_request(&self, kitty: KittyId) -> Result<String, …>` on Episode: valid while `pending_seeds` is Some and the episode is not truncated/poisoned; renders on demand (snapshot → `fog_for(kitty, radius)`, me from the snapshot, seed = first `gen_u64()` of a LOCAL `DecisionRng::from_seed(dealt.seed_for(kitty))` — nothing stored, nothing consumed), `serde_json::to_string` of `for_context`'s struct, in crates/cloudkitty-rl/src/episode.rs
-- [ ] T005 [US1] The byte test: build one decision's inputs, render through the server-path construction and through `Episode::decision_request`, compare the full strings byte for byte; also assert the seven documented fields and `v == PROPOSAL_WIRE_VERSION`, and that `world` blanks an out-of-disc friend (FR-004, US1 scenario 2), in crates/cloudkitty-rl/src/episode.rs (or tests/)
+- [ ] T005 [US1] The byte test (analyze C1: a sweep, not one decision): over several ticks of a stepped episode × the FULL roster, render each decision through the server-path construction and through `Episode::decision_request` and compare the full strings byte for byte; also assert the seven documented fields, `v == PROPOSAL_WIRE_VERSION`, and that `world` blanks an out-of-disc friend (FR-004, US1 scenario 2), in crates/cloudkitty-rl/src/episode.rs (or tests/)
 - [ ] T006 [US1] Mutation cycle, ledger item 1: perturb `for_context` (e.g. tick from the wrong source) via `scripts/mutate.sh --expect` with the byte-test failure predicted first; restore green, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
 ## Phase 4: User Story 2 — Policy seats pay nothing (P2) [US2]
@@ -44,12 +44,12 @@ its mutation red is run) before the claim is trusted.
 **Independent test**: pytest drives `env.decision_request` through the built binding; plugins.md gains exactly one sentence.
 
 - [ ] T010 [US3] `ParallelEnv#decision_request(kitty_id: int) -> str` — thin PyO3 wrapper, engine error → `ValueError` with the engine's message verbatim (R3); VectorEnv deliberately not touched (R4), in crates/cloudkitty-py/src/lib.rs
-- [ ] T011 [US3] Python-surface test: reset → `decision_request(id)` parses as JSON with the seven fields; unknown id raises `ValueError` naming it; matches the binding's existing pytest layout, in the python surface test dir (locate at implement time beside existing binding tests)
+- [ ] T011 [US3] Python-surface test: reset → `decision_request(id)` parses as JSON with the seven fields; unknown id raises `ValueError` naming it, in crates/cloudkitty-py/tests/test_parallel_env.py (analyze U1: the existing ParallelEnv suite)
 - [ ] T012 [US3] One sentence at the end of docs/plugins.md §"The request" pointing lab users at `decision_request(kitty_id)` (contract wording from contracts/render-surface.md); no other wire doc text changes, in docs/plugins.md
 
 ## Phase 6: Polish & cross-cutting
 
-- [ ] T013 Changelog one-liner under `## Unreleased` (public-voice at write time; no compatibility marker — no wire, config, or world change; PR number stamped at PR-open time), in CHANGELOG.md
+- [ ] T013 [P] Changelog one-liner under `## Unreleased` (public-voice at write time; no compatibility marker — no wire, config, or world change; PR number stamped at PR-open time), in CHANGELOG.md
 - [ ] T014 Full sweep: `cargo fmt --check`, clippy clean, `cargo test --workspace`, and the binding build + pytest (VIRTUAL_ENV set before `maturin develop` — house gotcha); quickstart hand-check (call the method, read the line, trigger the ValueError), in /Users/elizabethkelly/ai/cloudkitty-lab-request
 - [ ] T015 Push branch, open the PR (house body: summary, three-item red ledger with predictions, the three owner confirmations cited, generated-with + session lines), CI green, ping Experiments mergeable (their first lab read — 5 seeds × 5000 ticks, tier 2 package world — runs the day the surface lands) — merge on the owner's word, in /Users/elizabethkelly/ai/cloudkitty-lab-request
 
