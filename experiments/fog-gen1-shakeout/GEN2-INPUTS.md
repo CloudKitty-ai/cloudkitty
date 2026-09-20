@@ -395,6 +395,22 @@ is no longer load-bearing.
   walks), a beam-shaped teacher (a new lineage, distorts the rest),
   Gen 1 minds as teachers (schema changes under hidden needs, and they
   do not go to beams). The leash stays a fallback only.
+- **Shallow ground sleep (spec 056, merged 2026-09-20; F-050).** The
+  beam-world screen's answer to why the minds never take the last step:
+  on flat ground a beam is worth zero ticks to a cat that naps at need
+  7–9 (every nap is the six-tick minimum), and PPO correctly unlearns
+  the walk. Under `actions.sleep_floor_off_beam` (off-beam sleep
+  relieves only to a floor; beam or conducted sleep clears) the package
+  clone keeps 0.46–0.81 of naps on beams through β 0.04 PPO at floors
+  10–25, learns conduction cosleep on top, and pays a flat ~1.5
+  happiness for it. **Gen 2 world: a floor; which one is the owner's
+  (#390; Experiments leans 25, 20 conservative).** Two prerequisites
+  before the Gen 2 collection: (1) the scripted teacher's sleep rule
+  must read the floor (today it naps on the spot into nothing and its
+  placement falls 0.46 → 0.25 with the floor; a small Product spec);
+  (2) the corpus read on the new teacher (tier 1's declared pre-PPO
+  read, on placement). The served Gen 1 world stays at floor 0: the
+  frozen minds under a floor lose 1.4–5.2 happiness and nap uselessly.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across

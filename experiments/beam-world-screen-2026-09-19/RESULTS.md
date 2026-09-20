@@ -448,3 +448,128 @@ buy a frozen mind in welfare: nothing, which is what tiers 3 and 4
 measured (happiness within 0.1). A beam matters to a mind that naps
 needy, which is a Gen 2 question about when the mind chooses to sleep,
 not where.
+
+# Tier 5 — results, 2026-09-20: shallow ground sleep
+
+Prereg `PREREG-tier5.md` (9f24321, before the engine change; floor
+worlds 4a57e83 after spec 056 merged at fbd06e0). Comparators and eight
+arms on the merged engine (a first staging on a pre-review build was
+stopped and parked as `results-raw/tier5-stale-c6b8481/`, nothing from
+it cited). Arms plateaued at 9.0 M (six), 10.0 M (sg25-s1) and 11.0 M
+(sg15-s2); Part A clean at probe 1 on all eight. Reader `tier5_read.py`
+→ `results-raw/tier5/tier5-read.json`; meow rates from
+`results-raw/tier5/meow/` (5 seeds × 5k per leg, the harness's new
+message counter). Raws uncommitted.
+
+## The short version
+
+Once the tile changes a nap's outcome, beam seeking survives the
+fine-tune, at every floor. The package clone that lost everything under
+β 0.04 PPO in tier 2 (0.04–0.07 in its seat) keeps 0.46–0.81 of its naps
+on beams under shallow ground, more the deeper the floor, and learns
+to cosleep beside beam sleepers for conduction on top. A learning mind
+pays about 1.5 happiness for any floor; a frozen mind pays 1.4 to 5.2
+and spends up to 40% of its ticks in naps that relieve nothing.
+
+## Per floor (package world, 30 seeds × 20k)
+
+| floor | frozen gen1-A: placement / hap / sleep share | arm in its seat: placement s1 / s2 | arm own-seat hap s1 / s2 (gain over frozen mean) | all-arm roster: hap / Nash / sleep / placement / conducted | over 150: frozen ; swap legs (of 150) ; all-arm (of 30) |
+|---|---|---|---|---|---|
+| 0 (tier 2) | 0.068 / 92.32 / 0.135 | 0.070 / 0.037 | 92.3 / 92.4 | 91.9 / 0.919 / — / 0.067 / — | 0 ; 1, 1 ; 0, 1 |
+| 10 | 0.057 / 90.89 / 0.221 | **0.508 / 0.460** | 91.41 / 91.28 (+0.5 / +0.4) | 91.04, 90.93 / 0.910, 0.909 / 0.145, 0.158 / 0.399, 0.396 / 0.114, 0.127 | 2 ; 6, 4 ; 0, 0 |
+| 15 | 0.054 / 89.81 / 0.285 | **0.443 / 0.724** | 90.91 / 91.30 (+1.1 / +1.5) | 90.86, 91.13 / 0.908, 0.911 / 0.172, 0.133 / 0.355, 0.579 / 0.246, 0.190 | 0 ; 6, 5 ; 3, 4 |
+| 20 | 0.044 / 88.55 / 0.347 | **0.686 / 0.502** | 90.85 / 90.75 (+2.3 / +2.2) | 90.61, 90.71 / 0.905, 0.906 / 0.135, 0.137 / 0.468, 0.414 / 0.257, 0.217 | 0 ; 10, 10 ; 1, 1 |
+| 25 | 0.037 / 87.15 / 0.399 | **0.808 / 0.649** | 90.88 / 90.70 (+3.7 / +3.6) | 90.90, 90.55 / 0.908, 0.905 / 0.097, 0.162 / 0.606, 0.497 / 0.262, 0.259 | 1 ; 15, 13 ; 0, 0 |
+
+The teacher's placement on the same floor worlds: 0.395 / 0.341 /
+0.272 / 0.249 (floor 0: 0.458). It falls because the scripted sleep
+rule does not read the floor: the teacher naps on the spot when no
+beam is within reach and those naps now relieve nothing, so it naps
+again, and the extra ground naps dilute its placement (its sleep share
+0.088 → 0.163).
+
+Probe trajectories (same network in all seats, 2k ticks × 3 seeds):
+every arm held 0.32–0.62 through 2.5–4.6 M ticks, the stretch where
+tier 2's arms fell to 0.13–0.19, and the plateau values order by floor
+(10: 0.37–0.39, 15: 0.44–0.59, 20: 0.45–0.52, 25: 0.52–0.63).
+
+Nap lengths stay at the six-tick minimum on and off beams at every
+floor, for teacher, frozen minds and arms alike: under spec 056's
+early-end rule a ground nap finishes at the floor. What moves is the
+need at nap start (frozen minds 8.8 → 12.9 / 16.3 / 20.4 / 24.8; arms
+9.5–13.2) and, for the frozen minds, the nap count.
+
+## Meows (5 seeds × 5k, per 1k cat-ticks, policy seats)
+
+| | want_sleep | here_sunbeam | all wants | any speech |
+|---|---|---|---|---|
+| gen1-A floor 0 | 2.1 | 27.8 | 22.0 | 302.8 |
+| gen1-A floor 10 / 15 / 20 / 25 | 7.5 / 44.3 / 57.5 / 63.0 | 43.2 / 64.8 / 60.5 / 57.5 | 30.8 / 73.6 / 93.0 / 97.4 | 352 / 416 / 449 / 452 |
+| arms (all-arm), floor 10 / 15 / 20 / 25 | 6.2 / 10.6 / 13.9 / 13.9 | 51.1 / 62.1 / 67.3 / 65.7 | 33.5 / 38.6 / 40.6 / 42.4 | 244 / 234 / 245 / 237 |
+
+A frozen mind under a floor is armed for `want_sleep` most of the time
+from floor 15 up (the need spends its time above the announce line
+between useless naps); a mind that sleeps on beams asks four to five
+times less. `here_sunbeam` replies double for everyone, since beams are
+asked about more.
+
+## Predictions
+
+1. **Holds on the cost, fails on the mechanism.** The frozen roster's
+   happiness drops 1.4 / 2.5 / 3.8 / 5.2, well past 0.3 at every floor,
+   with sleep share up to 0.40 and need at nap start rising with the
+   floor. The predicted longer off-beam naps did not happen: the
+   early-end rule ends a ground nap at the floor, so naps stay at the
+   minimum and the cost arrives as more naps, not longer ones.
+2. **Holds at 20 and 25, and at 10 and 15 too.** Own-seat placement
+   0.51 / 0.46 (10), 0.44 / 0.72 (15), 0.69 / 0.50 (20), 0.81 / 0.65
+   (25), all above the 0.15 line. The floor-10 clause, "under 0.10
+   like tier 2", fails in the good direction: even a floor under the
+   minds' own start need is enough once the need climbs to it between
+   naps.
+3. **Holds on direction, fails on size.** Every arm is happier in its
+   seat than the frozen roster's mean on the same floor (+0.4 to +3.7)
+   with Nash above; the arms recover 30–70% of the floor's cost, not
+   all of it. An all-arm roster sits at 90.5–91.1 on every floor
+   against 92.3 at floor 0: about 1.5 happiness is the price of shallow
+   ground to a mind that has learned it, flat across floors.
+4. **Holds in shape, off in place.** `want_sleep` rises with the floor
+   and jumps between 10 and 15 rather than 15 and 20 (the need spends
+   time above the announce line before the floor reaches it).
+5. **Farming: holds. Distress: reported.** Nap starts under need 5 fall
+   from 0.28 to 0.02–0.05. Swap-leg crossings run 3–10% of seed-legs,
+   rising with the floor, almost all at the frozen seats beside the arm
+   (Miso's, Biscuit's, Kittybear's), F-043's mixed-roster tail under a
+   law those minds never learned; all-arm rosters cross 0 / 3–4 / 1 / 0
+   times in 30 at floors 10 / 15 / 20 / 25, with floor 15's pair the
+   only ones above the floor-0 comparator.
+
+## Decision rules, applied
+
+- **The finding stands**: the beam matters to a mind once the tile
+  changes the nap's outcome, and the Gen 2 world gets a floor. Which
+  floor is the owner's. Read against predictions 1, 3 and 4: the
+  learning mind's cost is flat across floors (about 1.5), placement and
+  warm sleep rise with the floor, the all-arm distress tail does not
+  rise with it, and `want_sleep` for a roster that sleeps on beams
+  stays under 15 per 1k at every floor. Experiments' lean is 25, with
+  20 as the conservative pick if the owner wants the frozen-roster
+  numbers to carry weight (they do not for a Gen 2 roster, which is
+  retrained under the floor).
+- **The teacher needs the law before the Gen 2 re-record.** Under a
+  floor the scripted `needs_driven` naps on the spot into nothing; its
+  sleep rule has to know that a ground nap under the floor is worth
+  nothing (walk to a beam within reach, or do something else), or the
+  corpus teaches the loop the frozen minds show. A Product spec, small,
+  before the Gen 2 collection; flagged on the shelf.
+- **Nothing deploys.** The served world keeps floor 0; the Gen 1 minds
+  under a floor are the frozen column above.
+
+## Regeneration
+
+```
+caffeinate -s nohup bash experiments/beam-world-screen-2026-09-19/stage5.sh > .../results-raw/tier5/stage5.log 2>&1 &
+experiments/exp-006-character-gen/.venv/bin/python experiments/beam-world-screen-2026-09-19/tier5_read.py \
+  experiments/beam-world-screen-2026-09-19/results-raw/tier5/battery experiments/beam-world-screen-2026-09-19/results-raw/battery --out .../tier5-read.json
+```
+Meow legs: the harness with `--seeds 5 --ticks 5000` on each floor world for gen1-A and each arm's all-arm seating (`results-raw/tier5/meow/`).
