@@ -54,13 +54,11 @@ WORLD = {
     "floor5-s1": ((5.0, 7.0, 3000, 6), BEAM / "floor5.toml"),
     "floor5-s2": ((5.0, 7.0, 3000, 6), BEAM / "floor5.toml"),
 }
-# The floor worlds are not committed, nor kept on disk, until spec 056 is on main: the shipped-config
-# sweep loads every experiments toml (tracked in CI, untracked-but-not-ignored locally) through the
-# engine, which rejects the key until then. stage5.sh derives them into results-raw at launch; here they
-# are pinned by the SHA-256 declared in PREREG-tier5.md, which derive_config_beam checks.
+# The floor worlds are committed (spec 056 merged 2026-09-20, fbd06e0) and also pinned by the SHA-256
+# PREREG-tier5.md declares; derive_config_beam checks both.
 for _f in (10, 15, 20, 25):
     for _s in (1, 2):
-        WORLD[f"sg{_f}-s{_s}"] = ((3.0, 7.0, 3000, 6, _f), BEAM / "results-raw" / "configs" / f"shallow-{_f}.toml")
+        WORLD[f"sg{_f}-s{_s}"] = ((3.0, 7.0, 3000, 6, _f), BEAM / f"shallow-{_f}.toml")
 
 
 def declared_sha(name):
@@ -103,10 +101,9 @@ def derive_config_beam(radius, out_path):
         assert cfg["actions"][dc.FLOOR_KEY] == levels[4], (cfg["actions"].get(dc.FLOOR_KEY), levels)
     else:
         assert dc.FLOOR_KEY not in cfg["actions"]
+    assert out_path.read_bytes() == committed.read_bytes(), f"derived world differs from {committed.name}"
     if len(levels) == 5:
         assert hashlib.sha256(out_path.read_bytes()).hexdigest() == declared_sha(committed.stem), f"derived world differs from the sha PREREG-tier5.md declares for {committed.stem}"
-    else:
-        assert out_path.read_bytes() == committed.read_bytes(), f"derived world differs from {committed.name}"
     (out_path.parent / "beam-world.json").write_text(json.dumps({
         "slot": CURRENT["slot"], "levels": levels, "world": committed.name,
         "world_sha256": hashlib.sha256(out_path.read_bytes()).hexdigest()}, indent=2) + "\n")

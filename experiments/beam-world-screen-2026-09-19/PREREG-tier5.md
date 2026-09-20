@@ -110,7 +110,7 @@ the same world and seeds.
 
 ## Floor worlds, derived 2026-09-20 (key `actions.sleep_floor_off_beam`, pinned by spec 056 D2)
 
-Not committed until spec 056 is on main: the shipped-config sweep
+Committed 2026-09-20 once spec 056 merged (fbd06e0). Until then the shipped-config sweep
 (`shipped_configs.rs`) loads every experiments toml through the engine,
 which rejects the key until then (CI red at 927e216, fixed by removing
 them, and kept off disk in the native checkout too, since the local

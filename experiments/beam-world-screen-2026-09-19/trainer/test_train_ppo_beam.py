@@ -30,10 +30,9 @@ for slot, (levels, committed) in tb.WORLD.items():
         out = Path(d) / "config.toml"
         tb.CURRENT["slot"] = slot
         cfg = tb.derive_config_beam(4, out)
+        assert out.read_bytes() == committed.read_bytes(), slot
         if len(levels) == 5:
             assert hashlib.sha256(out.read_bytes()).hexdigest() == tb.declared_sha(committed.stem), slot
-        else:
-            assert out.read_bytes() == committed.read_bytes(), slot
         sb = cfg["elements"]["sunbeam"]
         assert (cfg["actions"]["sleep_relief"], cfg["actions"]["sleep_relief_sunbeam"], sb["ttl"], sb["min"], sb["max"]) == (*levels[:4], levels[3] + 1)
         if len(levels) == 5:
