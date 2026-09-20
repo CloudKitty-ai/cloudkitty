@@ -13,6 +13,13 @@ here belongs on the box.
 Everything is plain Node with no dependencies — `node <tool>.mjs`, no install
 step, matching the client's own no-build-step house style.
 
+**[CROSSING-BAKES.md](CROSSING-BAKES.md) is the design record for what a
+time-of-day crossing costs to draw** — why it lags Safari and not Chrome, what
+was ruled out and by whom, and the cross-fade that fixes it. Read it before
+touching `applyTheme`, `blitGround` or `buildPondLayers`, and note the two
+measurement traps in it: Safari's JS timers cannot see this cost at all, and
+shrinking a bake canvas tests two things at once.
+
 **[VISION-OVERLAY.md](VISION-OVERLAY.md) is the design record for the `v`
 overlay** — the engine rule it draws, every dial, and the measurement behind
 each. Read it before re-tuning how sight is drawn, and note the bug that took
