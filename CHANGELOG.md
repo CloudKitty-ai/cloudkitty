@@ -33,6 +33,16 @@ change.
 
 ## Unreleased
 
+- **The lab can read the wire's own words (spec 055, #400).** The Python
+  binding's parallel env gains `decision_request(kitty_id)`: the exact
+  JSON line the plugin wire would send for that kitty's decision this
+  tick, fog view and all, built by the same code that serves it. It
+  exists so a language-model harness in the lab prompts with the served
+  world's own text and its results keep predicting a served seat.
+  Reading it never advances the world or any random stream, and calling
+  it wrong raises an error that names the kitty. The wire itself is
+  unchanged.
+
 - **Ground naps can be made shallow (spec 056, #399).** A new
   `[actions] sleep_floor_off_beam` dial lets a world declare that a nap
   on plain grass only rests a cat down to a floor, while a sunbeam, or a

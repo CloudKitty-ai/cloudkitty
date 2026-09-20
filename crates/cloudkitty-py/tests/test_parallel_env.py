@@ -424,3 +424,42 @@ def test_elements_positions_types_and_determinism():
     before = {eid: (x, y) for eid, _, x, y in elems}
     moved = [eid for eid in before if eid in after and after[eid] != before[eid]]
     assert moved, "ten ticks of greebles never moving would be a frozen world"
+
+
+def test_decision_request_is_the_wire_line():
+    """Spec 055: the lab binding serves the wire's own DecisionRequest —
+    the documented seven fields, pull-only, loud on misuse."""
+    import json
+
+    env = make_env()
+    env.reset(seed=7)
+    # possible_agents are "kitty_N" names; the method takes the numeric id.
+    ids = [int(a.split("_")[1]) for a in env.possible_agents]
+    for kitty_id in ids:
+        line = env.decision_request(kitty_id)
+        req = json.loads(line)
+        assert set(req) == {"v", "tick", "kitty_id", "me", "world", "seed", "config"}
+        assert req["kitty_id"] == kitty_id
+        # Pull-only and repeatable: same window, same bytes.
+        assert env.decision_request(kitty_id) == line
+
+    with pytest.raises(ValueError, match="999.*unknown kitty id"):
+        env.decision_request(999)
+
+    # Review finding 6: the "kitty_N" agent-name form is the same call.
+    agent = env.possible_agents[0]
+    assert env.decision_request(agent) == env.decision_request(int(agent.split("_")[1]))
+
+
+def test_decision_request_window_and_seats():
+    """Spec 055 review findings 2 and 6: no window before reset(), and a
+    builtin-scripted seat (absent from possible_agents) still renders."""
+    env = make_env()
+    with pytest.raises(ValueError, match="reset first"):
+        env.decision_request(1)
+
+    env = cloudkitty.ParallelEnv(horizon=10, control={1: "needs_driven"})
+    env.reset(seed=3)
+    assert "kitty_1" not in env.possible_agents
+    line = env.decision_request("kitty_1")
+    assert '"kitty_id":1' in line

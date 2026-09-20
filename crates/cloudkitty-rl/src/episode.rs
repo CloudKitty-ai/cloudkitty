@@ -15,7 +15,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use cloudkitty_core::action::Action;
-use cloudkitty_core::behavior::{resolve_one, BehaviorRegistry, DecisionContext};
+use cloudkitty_core::behavior::{resolve_one, BehaviorRegistry, DecisionContext, DecisionRequest};
 use cloudkitty_core::kitty::KittyId;
 use cloudkitty_core::rng::DecisionRng;
 use cloudkitty_core::seam::{DealtSeeds, JointProposal, Provenance, TickReport};
@@ -58,6 +58,11 @@ pub enum EpisodeError {
     Panicked { message: String },
     #[error("reset() required first: {reason}")]
     ResetRequired { reason: &'static str },
+    #[error("no decision request for kitty {kitty}: {reason}")]
+    NoDecisionRequest {
+        kitty: KittyId,
+        reason: &'static str,
+    },
 }
 
 /// Who decides for one kitty.
@@ -218,6 +223,74 @@ impl Episode {
         self.world.kitties.iter().map(|k| k.id).collect()
     }
 
+    /// The wire's own `DecisionRequest` for `kitty`'s upcoming decision,
+    /// rendered exactly as the served transport would send it (spec 055):
+    /// one JSON line — `v`, `tick`, `kitty_id`, `me`, `world` (the fog
+    /// view, doctrine rule 5), `seed`, `config` — built by the shared
+    /// [`DecisionRequest::for_context`] body, so a lab prompt can never
+    /// drift from the served one (F-042).
+    ///
+    /// Pull-only and side-effect-free (owner-confirmed 2026-09-20): the
+    /// `seed` is the value the served request would carry — the first
+    /// draw of the kitty's per-decision stream — derived on a LOCAL
+    /// stream; the kitty's own stream is untouched, so calling this any
+    /// number of times moves no trajectory. Valid in the current decision
+    /// window (after reset/step, before the next step); outside it, or
+    /// for an unknown kitty, the error names the kitty and the reason —
+    /// never a placeholder.
+    pub fn decision_request(&self, kitty: KittyId) -> Result<String, EpisodeError> {
+        if self.poisoned.is_some() || self.truncated {
+            return Err(EpisodeError::NoDecisionRequest {
+                kitty,
+                reason: "episode over (reset first)",
+            });
+        }
+        let seed0 = self
+            .pending_seeds
+            .as_ref()
+            .ok_or(EpisodeError::NoDecisionRequest {
+                kitty,
+                reason: "no decision window (reset first)",
+            })?
+            .seed_for(kitty)
+            .ok_or(EpisodeError::NoDecisionRequest {
+                kitty,
+                reason: "unknown kitty id",
+            })?;
+        let snapshot = self.world.snapshot();
+        let ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        // The served value without the served consumption (D1): the first
+        // draw of THIS context's own stream — local to the render, seeded
+        // exactly as the kitty's would be, and the same expression the
+        // served call sites write (`ctx.rng.gen_u64()`). One seeding, no
+        // second seed path (review 2026-09-20 finding 7).
+        let seed = ctx.rng.gen_u64();
+        Ok(
+            serde_json::to_string(&DecisionRequest::for_context(&ctx, seed))
+                .expect("requests serialize"),
+        )
+    }
+
+    /// THE lab-side `DecisionContext` construction (review 2026-09-20
+    /// finding 3): scripted seats in `step_inner` and the
+    /// `decision_request` render share it, so the render can never build
+    /// a different view than the seats decide from. (The served
+    /// dispatch's own construction lives in core's `behavior/mod.rs`,
+    /// engine-fed — outside this crate, noted for the Gen 2 fog work.)
+    fn decision_context_for(
+        &self,
+        snapshot: &cloudkitty_core::world::WorldSnapshot,
+        kitty: KittyId,
+        seed: u64,
+    ) -> DecisionContext {
+        DecisionContext {
+            me: snapshot.kitty(kitty).cloned().expect("roster kitty"),
+            world: Arc::new(snapshot.fog_for(kitty, self.core.vision.radius)),
+            rng: DecisionRng::from_seed(seed),
+            config: self.core.clone(),
+        }
+    }
+
     /// The externally controlled agents, stable id order — constant for the
     /// episode's life (Article II/III as API guarantees).
     pub fn external_agents(&self) -> Vec<KittyId> {
@@ -347,12 +420,7 @@ impl Episode {
                         .as_ref()
                         .and_then(|dealt| dealt.seed_for(id))
                         .expect("seeds are dealt for every roster kitty");
-                    let ctx = DecisionContext {
-                        me: snapshot.kitty(id).cloned().expect("roster kitty"),
-                        world: Arc::new(snapshot.fog_for(id, self.core.vision.radius)),
-                        rng: DecisionRng::from_seed(seed),
-                        config: self.core.clone(),
-                    };
+                    let ctx = self.decision_context_for(snapshot, id, seed);
                     let (action, provenance) = resolve_one(self.registry.get(name), &ctx, seed);
                     proposals.propose(id, action);
                     scripted_marks.insert(id, provenance);
@@ -636,6 +704,220 @@ mod tests {
 
     fn episode_all_external() -> Episode {
         Episode::new(Config::default(), RlConfig::default(), BTreeMap::new()).unwrap()
+    }
+
+    /// Spec 055 T005 — honest scope (review 2026-09-20 finding 1): both
+    /// sides of this sweep go through `for_context`, so it can NOT catch
+    /// a bug inside that shared body (core's plugin e2e owns the wire's
+    /// absolute shape). What it does pin, over several ticks × the full
+    /// roster: the render's INPUTS — the dealt-seed derivation (the raw
+    /// seed0 mutation reds here), the window, and the documented shape.
+    /// The caller-path proof is `the_lab_render_matches_what_a_real_advisor_receives`.
+    #[test]
+    fn the_lab_render_is_the_wire_line_byte_for_byte() {
+        use cloudkitty_core::action::PROPOSAL_WIRE_VERSION;
+        let mut episode = episode_all_external();
+        episode.reset(41);
+        let empty = BTreeMap::new();
+        for tick in 0..5u64 {
+            for id in episode.roster() {
+                let lab = episode.decision_request(id).unwrap();
+
+                let dealt = episode
+                    .pending_seeds
+                    .as_ref()
+                    .unwrap()
+                    .seed_for(id)
+                    .unwrap();
+                let snapshot = episode.world().snapshot();
+                let ctx = DecisionContext {
+                    me: snapshot.kitty(id).cloned().unwrap(),
+                    world: Arc::new(snapshot.fog_for(id, episode.core_config().vision.radius)),
+                    rng: DecisionRng::from_seed(dealt),
+                    config: episode.core_config().clone(),
+                };
+                let served =
+                    serde_json::to_string(&DecisionRequest::for_context(&ctx, ctx.rng.gen_u64()))
+                        .unwrap();
+                assert_eq!(lab, served, "tick {tick} kitty {id}");
+
+                let value: serde_json::Value = serde_json::from_str(&lab).unwrap();
+                let keys: Vec<&str> = value
+                    .as_object()
+                    .unwrap()
+                    .keys()
+                    .map(|k| k.as_str())
+                    .collect();
+                let mut sorted = keys.clone();
+                sorted.sort_unstable();
+                assert_eq!(
+                    sorted,
+                    ["config", "kitty_id", "me", "seed", "tick", "v", "world"],
+                    "exactly the seven documented fields, no lab extras"
+                );
+                assert_eq!(value["v"], u64::from(PROPOSAL_WIRE_VERSION));
+            }
+            episode.step(&empty).unwrap();
+        }
+    }
+
+    /// Spec 055 review finding 1's fix: the lab render must equal what a
+    /// REAL advisor receives — the line ScriptBehavior's own try_decide
+    /// writes to its child's stdin. The child is a complete advisor: it
+    /// saves its request to a file, then answers with a lawful proposal.
+    /// The engine blocks on that reply, so the capture is on disk before
+    /// resolve_one returns — no sleep, no race — and the accepted
+    /// proposal (PolicyMade) proves the exchange the capture came from
+    /// ran to completion. (Reply-less captures — `tee`, `cat > file` —
+    /// are killed mid-pipe when the engine sees stdout close: red on CI
+    /// 2026-09-20.)
+    #[test]
+    fn the_lab_render_matches_what_a_real_advisor_receives() {
+        use cloudkitty_core::behavior::{Behavior, ScriptBehavior};
+        let mut episode = episode_all_external();
+        episode.reset(43);
+        let id = episode.roster()[0];
+        let lab = episode.decision_request(id).unwrap();
+
+        let dir = std::env::temp_dir().join(format!("ck055-capture-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let capture = dir.join("request.jsonl");
+        let _ = std::fs::remove_file(&capture);
+
+        let seed0 = episode
+            .pending_seeds
+            .as_ref()
+            .unwrap()
+            .seed_for(id)
+            .unwrap();
+        let snapshot = episode.world().snapshot();
+        let ctx = episode.decision_context_for(&snapshot, id, seed0);
+        let behavior: Arc<dyn Behavior> = Arc::new(ScriptBehavior::new(
+            "capture",
+            "/bin/sh",
+            vec![
+                "-c".into(),
+                format!(
+                    concat!(
+                        "IFS= read -r line; printf '%s\\n' \"$line\" > {}; ",
+                        r#"printf '{{"tick":0,"kitty_id":{},"proposal":{{"action":"rest"}}}}\n'"#
+                    ),
+                    capture.display(),
+                    id
+                ),
+            ],
+        ));
+        let (_decision, provenance) = resolve_one(Some(behavior), &ctx, seed0);
+        assert_eq!(
+            provenance,
+            Provenance::PolicyMade,
+            "the advisor's reply was accepted — the captured exchange completed"
+        );
+
+        let sent = std::fs::read_to_string(&capture).expect("the advisor saved its request");
+        assert_eq!(
+            sent.trim_end(),
+            lab,
+            "the advisor's stdin line IS the lab render"
+        );
+    }
+
+    /// Spec 055 FR-002 (review finding 6): the surface serves ANY roster
+    /// kitty — a builtin-scripted seat, invisible to external_agents,
+    /// renders like any other, at reset and after a step.
+    #[test]
+    fn scripted_seats_render_too() {
+        let control = BTreeMap::from([(1, Control::Builtin("needs_driven".into()))]);
+        let mut episode = Episode::new(Config::default(), RlConfig::default(), control).unwrap();
+        episode.reset(11);
+        assert!(!episode.external_agents().contains(&1), "1 is scripted");
+        let line = episode.decision_request(1).unwrap();
+        assert!(line.contains("\"kitty_id\":1"), "{line}");
+        episode.step(&BTreeMap::new()).unwrap();
+        episode.decision_request(1).unwrap();
+    }
+
+    /// Spec 055 FR-004 (US1 scenario 2): the rendered `world` is the fog
+    /// view — a friend outside the vision disc is absent from the render
+    /// while the real world still holds it (the independent oracle).
+    #[test]
+    fn the_rendered_world_is_the_fog_view() {
+        let mut config = Config::default();
+        config.vision.radius = 2;
+        config.kitties[0].x = 1;
+        config.kitties[0].y = 1;
+        for (i, kitty) in config.kitties.iter_mut().enumerate().skip(1) {
+            kitty.x = 15;
+            kitty.y = 10 + i as u32;
+        }
+        let me = config.kitties[0].id;
+        let roster_size = config.kitties.len();
+        let mut episode = Episode::new(config, RlConfig::default(), BTreeMap::new()).unwrap();
+        episode.reset(7);
+
+        assert_eq!(
+            episode.world().kitties.len(),
+            roster_size,
+            "the world holds the full roster"
+        );
+        let value: serde_json::Value =
+            serde_json::from_str(&episode.decision_request(me).unwrap()).unwrap();
+        let rendered = value["world"]["kitties"].as_array().unwrap();
+        assert_eq!(
+            rendered.len(),
+            1,
+            "only the deciding kitty is inside its own disc"
+        );
+    }
+
+    /// Spec 055 FR-005/SC-002 (T007): reading the render never moves the
+    /// world — an episode probed every kitty every tick stays byte-equal
+    /// to an unprobed twin, and a same-window double call is identical.
+    #[test]
+    fn reading_the_render_never_moves_the_world() {
+        let mut probed = episode_all_external();
+        let mut silent = episode_all_external();
+        probed.reset(99);
+        silent.reset(99);
+        let empty = BTreeMap::new();
+        for tick in 0..30u64 {
+            for id in probed.roster() {
+                let first = probed.decision_request(id).unwrap();
+                let second = probed.decision_request(id).unwrap();
+                assert_eq!(first, second, "same window, same bytes");
+            }
+            probed.step(&empty).unwrap();
+            silent.step(&empty).unwrap();
+            assert_eq!(
+                serde_json::to_string(probed.world()).unwrap(),
+                serde_json::to_string(silent.world()).unwrap(),
+                "diverged at tick {tick}: the render consumed something"
+            );
+        }
+    }
+
+    /// Spec 055 (T009, owner-confirmed): misuse errors loudly, naming the
+    /// kitty and the reason — never None, never placeholder bytes.
+    #[test]
+    fn out_of_window_render_calls_error_naming_the_kitty() {
+        let mut episode = episode_all_external();
+        episode.reset(5);
+        let msg = episode.decision_request(999).unwrap_err().to_string();
+        assert!(msg.contains("999"), "{msg}");
+        assert!(msg.contains("unknown kitty id"), "{msg}");
+
+        let mut rl = RlConfig::default();
+        rl.episode.horizon = 2;
+        let mut short = Episode::new(Config::default(), rl, BTreeMap::new()).unwrap();
+        short.reset(5);
+        let empty = BTreeMap::new();
+        short.step(&empty).unwrap();
+        let step = short.step(&empty).unwrap();
+        assert!(step.truncated, "horizon 2 reached");
+        let kitty = short.roster()[0];
+        let msg = short.decision_request(kitty).unwrap_err().to_string();
+        assert!(msg.contains(&kitty.to_string()), "{msg}");
+        assert!(msg.contains("episode over"), "{msg}");
     }
 
     #[test]

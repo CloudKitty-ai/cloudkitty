@@ -13,16 +13,16 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-### Shallow ground sleep — IN FLIGHT (spec 056, kicked off 2026-09-20)
+### The wire's DecisionRequest on the lab binding — IN FLIGHT (spec 055, kicked off 2026-09-19)
 
-Owner-approved world law from the beam-world screen (handover
-`experiments/beam-world-screen-2026-09-19/HANDOVER-product-shallow-ground-2026-09-20.md`):
-off-beam sleep relieves sleep need only down to a floor
-(`actions.sleep_floor_off_beam`, default 0 = today's law); a sunbeam, or
-conducted warmth beside a mutual partner on one (spec 031), clears it
-fully. Early-end becomes "finished at the floor this tile can reach".
-No served deploy: floor stays 0 until the owner rules after Experiments'
-tier-5 screen (floors 10/15/20/25). Spec: `specs/056-shallow-ground-sleep/`.
+The one engine ask from the LLM-lab-seat direction (owner, 2026-09-20;
+handover `experiments/llm-lab-seat/HANDOVER-product-2026-09-20.md`): the
+lab binding returns the spec 053 `DecisionRequest` rendered exactly as
+the served wire sends it, per kitty per tick, opt-in, so a lab prompt is
+the served prompt and lab reads keep predicting the served seat (F-042).
+One shared renderer, one binding surface, one byte-comparison test, one
+doc sentence; no wire, clock, or config change, no LLM code in the
+engine. Spec: `specs/055-lab-decision-request/`.
 
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 

@@ -134,6 +134,11 @@ One JSON object per line, with exactly these fields:
 | `seed` | A number from your kitty's own private randomness stream: deterministic to the world, never synchronized between kitties. Use it whenever you need a tie-break (see the livelock warning below). |
 | `config` | The simulation config, so your thresholds can match the world's. |
 
+Building a harness against the lab instead of a live server? The Python
+binding serves this exact line — `env.decision_request(kitty_id)` on the
+parallel env — so a lab prompt is the wire's own text, never a
+re-derivation.
+
 ### The reply
 
 A strict envelope around one proposal:
