@@ -45,11 +45,13 @@ matters into exactly one bucket:
 ## Step 2 — The resume anchor
 
 One anchor per thread, at
-`<memory-dir>/resume-<thread>.md` with `type: project`. It is a state
-file **rewritten in place, never appended**; the arc's running log
-stays in the per-arc memory file. Delete the anchor when the arc
-closes. Keep it pointer-heavy: next action, exact strings, and `[[links]]`
-to the arc files — never a second copy of arc history.
+`<memory-dir>/resume-<thread>.md`, with the house memory frontmatter
+(`type: project`) and a `MEMORY.md` index line so a fresh session
+actually finds it. It is a state file **rewritten in place, never
+appended**; the arc's running log stays in the per-arc memory file.
+When the arc closes, delete the anchor and its index line. Keep it
+pointer-heavy: next action, exact strings, and `[[links]]` to the arc
+files — never a second copy of arc history.
 
 The anchor answers "where were we?" in one read. Sections, in order:
 
