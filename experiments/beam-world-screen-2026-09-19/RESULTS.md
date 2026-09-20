@@ -552,10 +552,13 @@ asked about more.
   learning mind's cost is flat across floors (about 1.5), placement and
   warm sleep rise with the floor, the all-arm distress tail does not
   rise with it, and `want_sleep` for a roster that sleeps on beams
-  stays under 15 per 1k at every floor. Experiments' lean is 25, with
-  20 as the conservative pick if the owner wants the frozen-roster
-  numbers to carry weight (they do not for a Gen 2 roster, which is
-  retrained under the floor).
+  stays under 15 per 1k at every floor. Experiments' lean was 25, with
+  20 as the conservative pick. **Owner ruled 15 (2026-09-20, #390)**:
+  the aim is a floor that ensures beam behaviour and marks a bend point
+  for future minds, not one that maximises it; 15 and 20 read the same
+  on placement and learned-mind cost, and 15 keeps the floor clear of
+  the announce line (arm 20, disarm 15) so a naive mind's `want_sleep`
+  cycles instead of saturating.
 - **The teacher needs the law before the Gen 2 re-record.** Under a
   floor the scripted `needs_driven` naps on the spot into nothing; its
   sleep rule has to know that a ground nap under the floor is worth

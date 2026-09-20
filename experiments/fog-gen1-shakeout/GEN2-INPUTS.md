@@ -403,8 +403,16 @@ is no longer load-bearing.
   relieves only to a floor; beam or conducted sleep clears) the package
   clone keeps 0.46–0.81 of naps on beams through β 0.04 PPO at floors
   10–25, learns conduction cosleep on top, and pays a flat ~1.5
-  happiness for it. **Gen 2 world: a floor; which one is the owner's
-  (#390; Experiments leans 25, 20 conservative).** Two prerequisites
+  happiness for it. **Gen 2 world: `sleep_floor_off_beam = 15`, owner
+  ruled 2026-09-20 ("Ruled 15", #390).** Her reasoning: the floor
+  ensures beam behaviour exists rather than maximising it, and marks a
+  bend point for future minds (a mind that never clears its sleep need
+  parks it at the floor; at 15 the want channel cycles on that, at 20 it
+  saturates on the announce line). Read against tier 5: 15 and 20 are
+  the same world on placement and cost to a learned mind; 15 keeps the
+  floor clear of the announce line (arm 20, disarm 15) and costs a
+  naive mind 2.5 not 3.8. Distress crossings across floors are noise
+  (0 / 3–4 / 1 / 0 in 30), a roster property (F-043). Two prerequisites
   before the Gen 2 collection: (1) the scripted teacher's sleep rule
   must read the floor (today it naps on the spot into nothing and its
   placement falls 0.46 → 0.25 with the floor; a small Product spec);

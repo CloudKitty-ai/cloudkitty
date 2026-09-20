@@ -2574,5 +2574,7 @@ Gen 2 teacher is re-recorded under the floor (the scripted sleep rule
 does not read the floor today and naps on the spot into nothing:
 placement 0.46 → 0.25 from floor 0 to 25), and at any change of the nap
 duration law or the announce threshold. **Promotion**: a floor is the
-Gen 2 world's beam law (which floor is the owner's, #390); the served
-Gen 1 world stays at floor 0 (the frozen column).
+Gen 2 world's beam law; the owner ruled 15 on 2026-09-20 (#390: keeps
+the floor clear of the announce line at 20, so a naive mind's want
+channel cycles rather than saturates); the served Gen 1 world stays at
+floor 0 (the frozen column).
