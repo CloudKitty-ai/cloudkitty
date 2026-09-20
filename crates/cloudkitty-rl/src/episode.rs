@@ -763,10 +763,14 @@ mod tests {
 
     /// Spec 055 review finding 1's fix: the lab render must equal what a
     /// REAL advisor receives — the line ScriptBehavior's own try_decide
-    /// writes to its child's stdin, captured with `tee`. This drives the
-    /// served serialization path end to end; the reply (tee's echo) is
-    /// lawfully rejected and the kitty falls back, which is beside the
-    /// point — the capture is the request as actually sent.
+    /// writes to its child's stdin. The child is a complete advisor: it
+    /// saves its request to a file, then answers with a lawful proposal.
+    /// The engine blocks on that reply, so the capture is on disk before
+    /// resolve_one returns — no sleep, no race — and the accepted
+    /// proposal (PolicyMade) proves the exchange the capture came from
+    /// ran to completion. (Reply-less captures — `tee`, `cat > file` —
+    /// are killed mid-pipe when the engine sees stdout close: red on CI
+    /// 2026-09-20.)
     #[test]
     fn the_lab_render_matches_what_a_real_advisor_receives() {
         use cloudkitty_core::behavior::{Behavior, ScriptBehavior};
@@ -791,19 +795,26 @@ mod tests {
         let behavior: Arc<dyn Behavior> = Arc::new(ScriptBehavior::new(
             "capture",
             "/bin/sh",
-            vec!["-c".into(), format!("exec tee {}", capture.display())],
+            vec![
+                "-c".into(),
+                format!(
+                    concat!(
+                        "IFS= read -r line; printf '%s\\n' \"$line\" > {}; ",
+                        r#"printf '{{"tick":0,"kitty_id":{},"proposal":{{"action":"rest"}}}}\n'"#
+                    ),
+                    capture.display(),
+                    id
+                ),
+            ],
         ));
-        let _ = resolve_one(Some(behavior), &ctx, seed0);
+        let (_decision, provenance) = resolve_one(Some(behavior), &ctx, seed0);
+        assert_eq!(
+            provenance,
+            Provenance::PolicyMade,
+            "the advisor's reply was accepted — the captured exchange completed"
+        );
 
-        // tee writes through as it reads; give a slow machine a moment.
-        let mut sent = String::new();
-        for _ in 0..40 {
-            sent = std::fs::read_to_string(&capture).unwrap_or_default();
-            if !sent.is_empty() {
-                break;
-            }
-            std::thread::sleep(std::time::Duration::from_millis(50));
-        }
+        let sent = std::fs::read_to_string(&capture).expect("the advisor saved its request");
         assert_eq!(
             sent.trim_end(),
             lab,
