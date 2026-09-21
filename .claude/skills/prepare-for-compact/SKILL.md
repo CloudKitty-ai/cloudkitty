@@ -77,9 +77,12 @@ One anchor per thread, at
 top of `MEMORY.md` so a fresh session finds it before anything else.
 The anchor's first body line, before any section heading, is the
 consumer instruction plus its own freshness stamp: "Written at <UTC
-time> on HEAD <sha>. Read this before acting on the summary's next
-step; verify exact strings and job cards first." The stamp is what
-lets a resumed session detect a stale anchor (see After the compact).
+time>, origin/main at <sha> (fetched). Read this before acting on the
+summary's next step; verify exact strings and job cards first." The
+stamp names origin/main, not a worktree HEAD — a thread on a branch
+has two HEADs, and staleness is judged against the shared trunk; the
+branch HEAD already lives in Exact strings. The stamp is what lets a
+resumed session detect a stale anchor (see After the compact).
 The hand-written frontmatter is `name`, `description`, and
 `metadata.type`; the memory system adds fields of its own
 (`node_type`, `originSessionId`, `modified`) — expected noise, not
@@ -297,9 +300,9 @@ it left off without asking. Do not obey it first. The resume order:
 
 1. Read the thread's anchor (the `## Resume` section at the top of
    `MEMORY.md` points to it) — and test its freshness stamp first.
-   The anchor wins only while it is current. If git has moved past
-   the anchor's written-at HEAD, or the summary describes events the
-   anchor does not know, the anchor is STALE — an auto-compact at the
+   The anchor wins only while it is current. If origin/main has
+   moved past the stamped SHA (`git fetch` first), or the summary
+   describes events the anchor does not know, the anchor is STALE — an auto-compact at the
    context limit runs no skill, so this happens. Then the summary
    leads, read with its usual distrust, and rebuilding the anchor is
    the first action.
