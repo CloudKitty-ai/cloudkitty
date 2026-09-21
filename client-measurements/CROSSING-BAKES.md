@@ -299,17 +299,25 @@ bother you at some future zoom.
 1. **Bake each theme once** into two static ground layers (`under`, `over`)
    plus its pond pair. 184 bakes per crossing become 2.
 2. **Cap the bake at 2048 device px** per side (`GROUND_BAKE_MAX_PX`).
-3. **Hold two themes** — the current and the next. Bake the current on load,
-   the next during the lull (~256 quiet ticks before each fade).
+3. **Hold two themes** — the current and the next, both baked on demand.
+
+   > **Reversed 2026-09-21, and the code removed.** This originally read
+   > "bake the next during the lull (~256 quiet ticks before each fade)",
+   > which item 6 justified. Measured with the prewarm stubbed, so the bake
+   > lands inside a frame that is also compositing the crossing: **17 ms,
+   > against that same row's p99 of 20 ms.** A frame carrying a full
+   > two-layer 2048 bake was better than the row's ordinary bad frames, and
+   > the sustained share barely moved (0.9% with, 0.8% without). The cache
+   > holds two themes as before; nothing schedules the second one.
 4. **Draw the sun wash per frame**, between `under` and `over`, at the live
    lean. The sweep becomes continuous rather than quantised into 192 steps.
 5. **Set `imageSmoothingQuality = 'high'`** on the blit.
-6. Accept one stall per theme pair, placed on load and in the lull.
-   Chunking it does not work (§5a).
-
-   > **Corrected 2026-09-20, from the implementation runs (§9).** The stall
-   > is ~400 ms, not ~158 ms, and the cap does **not** make it smaller: 490 ms
-   > uncapped against 428 ms at 2048, where the pixel ratio predicts 171 ms.
+6. ~~Accept one stall per theme pair, placed on load and in the lull.~~
+   **WITHDRAWN 2026-09-21 — there is no stall.** A bake costs 18 ms against a
+   control's 17 (§7, §9). Both the "~158 ms" this item was ruled on and the
+   "~400 ms" that corrected it were the `worst` column of a crossing row
+   reading the device's outlier tail; the same runs show 305–375 ms frames
+   with nothing baking. Nothing is accepted because nothing is paid.
    > "A worker would fix it" is unverified and the evidence now runs against
    > it -- 8-17 ms of that frame is inside the draw calls, so relocating the
    > JavaScript relocates 2-4% of the cost.
