@@ -1,0 +1,207 @@
+---
+name: "prepare-for-compact"
+description: "Persist session state before a context compact so the auto-summary is not load-bearing: triage live facts into durable stores, write a resume anchor, run the repo hard checks, report compact-ready."
+compatibility: "CloudKitty threads (THREADS.md); assumes the session memory directory and MEMORY.md index"
+metadata:
+  author: "cloudkitty"
+user-invocable: true
+disable-model-invocation: false
+---
+
+# Prepare for compact
+
+Run before the user compacts the session. The compact summary is lossy
+and mangles exact strings; this skill's job is to make the summary not
+load-bearing. Anything the summary could get wrong must be recoverable
+from durable stores: the repo, git history, the memory directory, PR
+comments, GitHub issues.
+
+The skill prepares; it never triggers the compact. That is a hard
+limit, not only a design choice: the Skill tool cannot invoke built-in
+commands, and `/compact` is one. The user runs `/compact` herself
+after reading the compact-ready report.
+
+**Deploy state is not a durable store.** The repo and git history can
+be read offline; a claim about the running box decays the moment it is
+written down. The anchor records when deploy state was last read off
+the box, never a bare "deployed at SHA" — that is the fictional
+baseline in durable form, worse than nothing.
+
+**Acceptance test for everything below**: a fresh session with only the
+memory directory and the repo could pick up in one read of the resume
+anchor, with zero reliance on the summary.
+
+## Step 1 — Four-bucket triage
+
+Sweep the live state of the conversation and sort every fact that still
+matters into exactly one bucket:
+
+1. **Already durable** — in the repo, git history, a memory file, a PR
+   comment, or a GitHub issue. Do nothing. Do NOT re-copy it into the
+   anchor or a new memory file; duplication rots, and the resume
+   re-reads the durable store anyway.
+2. **Durable-worthy, conversation-only** — decisions with their
+   rationale, lessons learned, owner rulings not yet recorded. Rulings
+   include casual design closures ("B looks great, ship that",
+   "0.92, don't re-open") — record them so a resumed session does not
+   re-litigate by helpfully offering alternatives again. Write each to
+   the memory directory now, following the house frontmatter format,
+   and add its `MEMORY.md` index line.
+3. **In-flight working state** — the current task and exactly where it
+   stands. Goes in the resume anchor (step 2), including the fixed
+   sub-lists: job cards, verification debt, and the scratchpad
+   inventory (which scratchpad paths are still live and what each is;
+   delete the dead ends now, so a resumed session cannot pick the
+   wrong file from identical-looking names).
+4. **Ephemeral** — narration, dead ends, superseded reads. Dropped
+   deliberately; do not persist.
+
+## Step 2 — The resume anchor
+
+One anchor per thread, at
+`<memory-dir>/resume-<thread>.md`, with the house memory frontmatter
+(`type: project`) and a `MEMORY.md` index line so a fresh session
+actually finds it. It is a state file **rewritten in place, never
+appended**; the arc's running log stays in the per-arc memory file.
+Between arcs the anchor stays, set to `idle: waits on <ledger items>`,
+rather than being deleted and recreated. Keep it under about sixty
+lines and pointer-heavy: next action, exact strings, and `[[links]]`
+to the arc files. Anything older moves to the arc file, or the anchor
+becomes the second copy this design forbids.
+
+The anchor answers "where were we?" in one read. Sections, in order:
+
+### Task and next action
+The current task in one line, then the exact next action phrased as an
+imperative ("send the owner X", "run mutate on Y expecting Z"). If
+there is no next action, the `idle:` state above.
+
+### Exact strings (verbatim)
+The summary most reliably mangles: commit SHAs, seed numbers, paths
+with dates in them, and quoted owner words. Also record verbatim:
+worktree path, branch, HEAD SHA, PR and issue numbers, comment IDs,
+and the precise command invocation that worked. On resume, re-verify
+every state claim here against git and the filesystem before acting —
+and treat the summary's own injected git-status block as untrusted; it
+has shown commits from a stale head.
+
+### Verification state and verification debt
+What is proven red/green so far, and what is still owed: guards
+written but not yet redded, reds that came back vacuous or
+wrong-reason and are still owed, predictions declared but not yet
+checked. A summary records "guard committed" and drops the debt; the
+anchor keeps the debt explicit so a resumed session never re-trusts
+unproven work.
+
+For surfaces CI does not run (the client suites are the standing
+case), "CI green" is no evidence about the change. Record which local
+suites were run, their pass counts, and at which SHA; if a suite has
+not run since the last edit to its surface, record that as debt.
+Counts matter: a suite that silently stops loading a file still says
+"pass".
+
+### Authorization state
+What has the owner's word (her exact words and the date), what is a
+peer relay (never approval — THREADS.md §1), and what is banked
+awaiting her word. For each open ledger item: its default-if-unruled
+and needed-by. A resumed session must never treat a relay as a
+kickoff.
+
+### Job cards
+One card per running background job, because monitors and task ids die
+with the session. Two shapes.
+
+**Training-shaped** (long jobs with a log):
+
+- driver script path and log path
+- the log's phase markers in order (e.g. `== arms`, `== reads`,
+  `== transfer`, `== tierN done`) and which was last reached — the
+  done marker alone cannot tell "reads underway" from "hung after
+  arms"
+- alive-vs-dead test: driver PID check, the log's last timestamp, and
+  the per-unit done files (e.g. each arm's `policy-final.pt`; a driver
+  that died mid-arms leaves finals missing, and a skip-if-done restart
+  resumes exactly those)
+- PID and launch time; HEAD SHA at launch
+- the binding, recorded as "built by maturin from HEAD <sha> at
+  <time>" — the binding exposes no commit attribute of its own
+- the restart command including its launch wrapper (e.g.
+  `caffeinate -s nohup bash <driver> > <log> 2>&1 &`; a restart
+  without `caffeinate` sleeps the Mac mid-run)
+- how to stop it: drivers launch children with `&`, so killing the
+  driver PID alone leaves the workers running — name the child kill
+  first (e.g. `pkill -f <trainer>`), then the driver
+- the do-not-edit list while it runs (driver, trainer wrapper, cert
+  harness, config derivation; never rebuild the binding under a
+  running arm)
+
+**Server-shaped** (local servers, headless-browser sessions): no log,
+no done marker; they die with the shell. The risk is the opposite of a
+lost job — a stale one: a `serve.mjs` still holding its port makes the
+next probe silently serve the old build, and everything looks fine.
+Card: port, shutdown command, and which build it is serving. Prefer
+shutting servers down before compact; card only what must stay up.
+
+On resume, read the log's tail and check the markers and PID; never
+take the summary's word for a job's state.
+
+### Unsent messages
+Any outbound message drafted but not sent — to the owner or to a peer
+thread — recorded as verbatim text. A compacted session sometimes
+believes it already sent a message it only drafted; the anchor is the
+proof either way.
+
+## Step 3 — Hard checks
+
+These are checks, not judgment calls. Run all that apply; the report
+lists the ones skipped and why.
+
+1. **Git state**: `git status` in every worktree this thread holds.
+   WIP commits are for tracked files only, staged by name, never by
+   directory. Untracked raws and artifacts are check 4's business:
+   listed, never committed. An untracked toml carrying a key the
+   engine on main rejects comes off the disk entirely — the
+   shipped-config sweep loads every experiments toml and a stray key
+   reddens CI; keep its bytes in the anchor or a scratch path outside
+   the repo.
+2. **Mutate cycle**: never compact mid-cycle. Finish the cycle or
+   restore first.
+3. **Unreproducible measurements**: any measurement that cannot be
+   re-run inside this session — the owner's device, a display no
+   longer attached, a live-world capture — must be in a committed file
+   before compact, naming the source device and the date. This is a
+   different question from "is the tree dirty"; `git status` cannot
+   see it (gitignored rig output, raws that live in the native
+   checkout by standing rule).
+4. **Declaration state** (experiment threads): prereg committed at
+   which SHA, collection started at what time, which seed bands are
+   claimed — so a resumed session never edits predictions or decision
+   rules after data exists.
+5. **Raws and artifacts** (experiment threads): uncommitted
+   results-raw and artifact dirs listed by path, with poisoned dirs
+   named explicitly (a stale dir that must never be cited is exactly
+   the qualifier a summary loses).
+6. **Binding staleness** (lab threads): the lab venv binding built
+   from which SHA, whether that equals main, and whether a rebuild is
+   owed and currently forbidden because an arm is running.
+7. **Outbound messages**: send what should be sent now; record the
+   rest verbatim (anchor, Unsent messages).
+8. **MEMORY.md index**: re-read the index line for every open arc this
+   thread owns and fix any that no longer reflect truth. A stale index
+   line is worse than a missing one, because the index loads every
+   session. Four threads share this file: edit it per line, fresh-read
+   then targeted replacement, never a whole-file rewrite.
+
+## Step 4 — Compact-ready report
+
+End with a short report to the user:
+
+- what was written where (memory files created or updated, the anchor
+  path)
+- the anchor's next-action line, quoted
+- job cards on file, by name
+- hard checks skipped, and why they did not apply
+- anything that could NOT be made durable, so the user knows what the
+  summary alone carries
+
+Then stop. The user runs `/compact`.
