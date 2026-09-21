@@ -4,6 +4,11 @@ What each live trial of /prepare-for-compact dropped, and which change
 patched it. Edits to SKILL.md check themselves against this file: the
 skill is shaped by what actually failed, not what plausibly could.
 
+The thread that delivers a gap report appends its section here (or
+relays the content to Product with the PR that patches the gaps —
+whichever PR lands first carries the record). A trial that drops
+nothing still gets a section; a clean run is evidence too.
+
 ## Trial 1 — Product thread, Fable, 2026-09-20
 
 First real compact after PR #402 merged the skill. The post-compact
