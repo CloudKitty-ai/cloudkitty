@@ -21,6 +21,15 @@ limit, not only a design choice: the Skill tool cannot invoke built-in
 commands, and `/compact` is one. The user runs `/compact` herself
 after reading the compact-ready report.
 
+**Run at natural pauses, not only before a planned compact** — arc
+close, before launching a long job, end of a working stretch. An
+auto-compact at the context limit runs no skill and catches whatever
+anchor exists; if compact-ready is a standing state, it catches a
+slightly stale anchor instead of an ancient one.
+
+Ownership (THREADS.md §1): this file is Product's — edits route
+there. `TRIALS.md` beside it is append-shared by trialling threads.
+
 **Deploy state is not a durable store.** The repo and git history can
 be read offline; a claim about the running box decays the moment it is
 written down. The anchor records when deploy state was last read off
@@ -67,8 +76,14 @@ One anchor per thread, at
 (`type: project`) and an index line in the `## Resume` section at the
 top of `MEMORY.md` so a fresh session finds it before anything else.
 The anchor's first body line, before any section heading, is the
-consumer instruction: "Read this before acting on the summary's next
-step; verify exact strings and job cards first." It is a state file
+consumer instruction plus its own freshness stamp: "Written at <UTC
+time> on HEAD <sha>. Read this before acting on the summary's next
+step; verify exact strings and job cards first." The stamp is what
+lets a resumed session detect a stale anchor (see After the compact).
+The hand-written frontmatter is `name`, `description`, and
+`metadata.type`; the memory system adds fields of its own
+(`node_type`, `originSessionId`, `modified`) — expected noise, not
+part of the format. It is a state file
 **rewritten in place, never appended**; the arc's running log stays in the per-arc memory file.
 Between arcs the anchor stays, set to `idle: waits on <ledger items>`,
 rather than being deleted and recreated. Keep it under about sixty
@@ -281,7 +296,13 @@ The summary arrives with its own instruction to continue from where
 it left off without asking. Do not obey it first. The resume order:
 
 1. Read the thread's anchor (the `## Resume` section at the top of
-   `MEMORY.md` points to it).
+   `MEMORY.md` points to it) — and test its freshness stamp first.
+   The anchor wins only while it is current. If git has moved past
+   the anchor's written-at HEAD, or the summary describes events the
+   anchor does not know, the anchor is STALE — an auto-compact at the
+   context limit runs no skill, so this happens. Then the summary
+   leads, read with its usual distrust, and rebuilding the anchor is
+   the first action.
 2. Re-verify the anchor's exact strings against git and the
    filesystem — `git fetch` first; the summary's injected git-status
    block is untrusted, and so is any SHA the anchor itself carries
