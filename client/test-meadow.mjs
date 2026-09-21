@@ -2596,6 +2596,38 @@ check('a crossing tints the pond, it does not re-bake it', () => {
   assert(tints.size < 193, `the tint is not being reused at all: ${tints.size} paints in 193 steps`);
 });
 
+check('the ground cache holds TWO hours, across consecutive crossings', () => {
+  // The bound was three while a lull prewarm reached ahead for an hour
+  // nothing was wearing. That is gone, and so is the spare slot: a crossing
+  // wants the hour it is leaving and the one it is entering, and nothing
+  // else. Weighed at dpr 3 a pair is 32 MB, so the third slot was a 96 MB
+  // ceiling the page never reached.
+  //
+  // One crossing cannot show this -- it only ever asks for two hours. It
+  // takes a SECOND crossing, sharing an hour with the first, for a third to
+  // accumulate.
+  const r = camRenderer();
+  r.camera.on = true;
+  const world = camWorldFor();
+  const walk = (theme, next) => {
+    for (let i = 0; i <= 8; i += 1) {
+      r.blend = { theme, next, step: i / 8 };
+      r.blitGround(world);
+      assert(
+        r.groundLayers.size <= 2,
+        `the cache grew to ${r.groundLayers.size} hours during ${theme}>${next}`,
+      );
+    }
+  };
+  walk('day', 'dusk');
+  walk('dusk', 'night');
+  const held = [...r.groundLayers.keys()].map((k) => k.split('|')[0]).sort();
+  assert(
+    String(held) === 'dusk,night',
+    `after two crossings it should hold exactly the second pair, holds ${held}`,
+  );
+});
+
 check('the sun wash is live, in neither baked half', () => {
   // `shadowLean` moves continuously through a crossing while the layers
   // either side of it are two fixed hours, so a baked wash would quantise

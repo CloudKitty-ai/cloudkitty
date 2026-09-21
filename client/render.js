@@ -1577,7 +1577,23 @@ class WorldRenderer {
       bakeTile,
       dpr,
     }));
-    while (this.groundLayers.size >= 3) {
+    // TWO hours, which is every hour a crossing can want: the one being
+    // left and the one being entered. The bound was three when a lull
+    // prewarm reached ahead for a theme nothing was wearing yet; that was
+    // removed once the stall it hid measured below ordinary frame noise,
+    // and the spare slot went with its reason.
+    //
+    // Weighed at dpr 3: a pair is 32 MB, so three is a 96 MB ceiling the
+    // page never uses -- the cache holds two. The cost of the tighter bound
+    // is that flipping the manual day/dusk/night toggle back and forth
+    // re-bakes instead of finding a third hour retained, and a bake is 18ms
+    // against a control's 17.
+    //
+    // Two is stable, not merely small. `blitGround` asks for the near hour
+    // then the far one, so after both requests the cache holds exactly that
+    // pair whatever it held before: a miss can evict a hour that is still
+    // wanted, but only on the frame that repopulates it, and never twice.
+    while (this.groundLayers.size >= 2) {
       this.groundLayers.delete(this.groundLayers.keys().next().value);
     }
     this.groundLayers.set(key, built);
