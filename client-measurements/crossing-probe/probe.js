@@ -23,7 +23,7 @@
 // `renderer` is a top-level const in a classic script, so it is a global
 // LEXICAL binding and not a property of window. Reach it bare.
 (() => {
-  const M = (window.__probe = { rows: [], done: false });
+  const M = (window.__probe = { rows: [], stalls: [], done: false });
   const wrapped = { ground: { n: 0, ms: 0 }, pond: { n: 0, ms: 0 } };
 
   // --- canvas pool -------------------------------------------------------
@@ -177,12 +177,16 @@
   function installLullInstrument() {
     const real = renderer.groundLayersFor.bind(renderer);
     renderer.groundLayersFor = (...a) => {
-      const before = renderer.groundLayers.size;
+      const n0 = wrapped.ground.n;
       const built = real(...a);
-      // Only a MISS did any baking. A hit must not be charged for a blit it
-      // would never have done -- and, more importantly, a lull row that HITS
-      // measured nothing at all and has to say so.
-      if (renderer.groundLayers.size !== before && inLull) {
+      // A real bake calls drawMeadowGround twice, once per layer. Cache SIZE
+      // cannot detect it: the provider evicts down to the cap before it
+      // inserts, so a miss on a full cache leaves the size exactly where it
+      // was. That read blind for every row after the cache filled.
+      //
+      // Only a bake may be charged for a blit it would otherwise not have
+      // done -- and a lull row that HIT measured nothing and has to say so.
+      if (wrapped.ground.n !== n0 && inLull) {
         lullBakes++;
         warmSide = built.under ? built.under.width : 0;
         if (blitAfterBake) forceRaster(built);
@@ -321,6 +325,90 @@
     return row;
   }
 
+
+  // --- the stall, measured directly ------------------------------------
+  // The crossing rows cannot see this. A bake is ONE frame, `worst` is one
+  // sample out of ~660, and the phone throws 350ms outliers unprompted --
+  // measured: the FROZEN row, with nothing baking and nothing compositing,
+  // came back at 351ms against baselines climbing 171 -> 353. Every number
+  // that column has ever reported about the stall is one draw from that
+  // distribution.
+  //
+  // So measure the bake frame itself, many times, against a control that
+  // does the same nothing. Two intervals per repetition:
+  //
+  //   W -- the frame containing the bake
+  //   D -- the next frame, containing the first DRAW from what was baked
+  //
+  // Section 7 predicts the cost sits in whichever of those two first touches
+  // the pixels. If Safari defers rasterization until something draws from an
+  // offscreen, then plain gives small W and large D, blitting at bake time
+  // gives large W and small D, and W+D barely moves. If instead the bake is
+  // simply expensive, W is large either way and D is small either way.
+  const REPS = 12;
+  function evictTheme(theme) {
+    for (const k of [...renderer.groundLayers.keys()]) {
+      if (k.startsWith(`${theme}|`)) renderer.groundLayers.delete(k);
+    }
+  }
+  const median = (xs) => {
+    const a = [...xs].sort((x, y) => x - y);
+    return a.length ? +a[Math.floor(a.length / 2)].toFixed(0) : 0;
+  };
+  const top = (xs) => (xs.length ? +Math.max(...xs).toFixed(0) : 0);
+
+  async function stallRow(world, label, { bake = true, blit = false }) {
+    // The crossing rows leave their flags set, and the ceiling leaves `frozen`
+    // true -- under which the layer provider is memoized and NOTHING can bake,
+    // so every repetition is a cache hit. Caught by the guard below rather
+    // than reported as a very fast bake.
+    frozen = false;
+    blitAfterBake = false;
+    flatBake = false;
+    reuseCanvases = false;
+    targetDevice = 0;
+    bakeScale = 1;
+    const W = [], D = [];
+    for (let i = 0; i < REPS; i++) {
+      await nextFrame();
+      // Start on a fresh frame so the interval is ours, not the tail of the
+      // previous one.
+      await nextFrame();
+      let layers = null;
+      const t0 = performance.now();
+      if (bake) {
+        // Evict INSIDE the measured window. Evicting before the two settling
+        // frames does not work: the render loop composites the crossing from
+        // this very cache, so it refills the entry within a frame and the
+        // measured call is a hit. The delete itself is a Map operation and
+        // costs nothing against a bake.
+        evictTheme('dusk');
+        inLull = true; lullBakes = 0;
+        const draws0 = wrapped.ground.n;
+        layers = renderer.groundLayersFor(world, 'dusk', renderer.bakeTileFor(world),
+          renderer.dpr || devicePixelRatio || 1);
+        inLull = false;
+        if (!lullBakes) {
+          throw new Error(`${label}: rep ${i} baked nothing -- ${wrapped.ground.n - draws0} draws, `
+            + `keys [${[...renderer.groundLayers.keys()].join(', ')}], frozen=${frozen}`);
+        }
+        if (blit) forceRaster(layers);
+      }
+      await nextFrame();
+      const t1 = performance.now();
+      if (bake) forceRaster(layers);
+      await nextFrame();
+      const t2 = performance.now();
+      W.push(t1 - t0);
+      D.push(t2 - t1);
+    }
+    const row = { label, reps: REPS, wMed: median(W), wMax: top(W), dMed: median(D), dMax: top(D),
+      sumMed: median(W.map((w, i) => w + D[i])) };
+    M.stalls.push(row);
+    render();
+    return row;
+  }
+
   function render() {
     let el = document.getElementById('probe-panel');
     if (!el) {
@@ -350,6 +438,22 @@
         + `${r.warmSide && r.warmSide !== r.side ? `<span style="color:#b4462f"> ⚠warm ${r.warmSide}</span>` : ''}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bakeMs + r.pondMs}ms</td></tr>`).join('')
       + '</table>'
+      + (M.stalls.length ? '<div style="margin-top:10px"><b>the bake frame, measured directly</b>'
+        + '<table style="border-collapse:collapse;margin-top:6px">'
+        + '<tr style="color:#9c8a7c"><td>condition</td><td style="padding-left:14px">reps</td>'
+        + '<td style="padding-left:14px">W median</td><td style="padding-left:14px">W max</td>'
+        + '<td style="padding-left:14px">D median</td><td style="padding-left:14px">D max</td>'
+        + '<td style="padding-left:14px">W+D median</td></tr>'
+        + M.stalls.map(r => `<tr><td>${r.label}</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.reps}</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.wMed}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.wMax}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.dMed}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.dMax}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${r.sumMed}ms</td></tr>`).join('')
+        + '</table><div style="margin-top:4px;color:#9c8a7c">W = the frame that bakes. '
+        + 'D = the next frame, which first draws from it. Read the CONTROL first: it is '
+        + 'what a frame costs when nothing happens.</div></div>' : '')
       + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — read WORST on the two lull rows against each other, then both against the baselines either side</div>'
                 : '<div style="margin-top:8px;color:#9c8a7c">running… ~12s per row, seven rows (~1.5 min). WORST is the column that matters here. KEEP THE SCREEN AWAKE.</div>');
   }
@@ -362,13 +466,15 @@
     // Every treatment is bracketed by a baseline. If the baselines hold
     // steady the treatments are comparable; if they drift, the drift is
     // visible instead of being silently attributed to the treatment.
-    await condition(world, 'baseline 1', {});
-    await condition(world, '  LULL BAKE (as shipped)', { lull: 'plain' });
-    await condition(world, 'baseline 2', {});
-    await condition(world, '  LULL BAKE + blit each layer once', { lull: 'blit' });
-    await condition(world, 'baseline 3', {});
+    // Sustained jank, which is the thing that was actually fixed: one
+    // baseline and the ceiling, enough to show it has not regressed. The
+    // treatments that used to live here could not separate and are gone.
+    await condition(world, 'baseline', {});
     await condition(world, '  FROZEN (the ceiling)', { freeze: true });
-    await condition(world, 'baseline 4', {});
+    // The stall, which needed a different instrument entirely.
+    await stallRow(world, 'control (no bake)', { bake: false });
+    await stallRow(world, 'bake, draw next frame', {});
+    await stallRow(world, 'bake + blit, draw next frame', { blit: true });
     setTransitions(true); setBlur(true); reuseCanvases = false; frozen = false; flatBake = false;
     M.done = true;
     render();

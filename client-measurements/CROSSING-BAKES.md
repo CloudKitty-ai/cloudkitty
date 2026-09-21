@@ -404,6 +404,25 @@ re-derives the fade from its own timebase — so a tick-only guard passes while
 the image is wrong. Two capture runs were invalid before this landed, and
 both produced plausible pictures of the wrong moment.
 
+### ⚠ The ~400ms stall is UNVERIFIED (2026-09-21)
+
+Every number this document gives for the stall — the 490/428/407ms in §6.6,
+the "fixed cost per burst" — is the `worst` column of a crossing row: a single
+maximum over ~660 frames. A phone run on 2026-09-21 shows that column cannot
+carry the claim. Its baselines climbed 171 -> 232 -> 243 -> 353ms, which is
+the rig's own stop condition, and **the FROZEN row, with nothing baking and
+nothing compositing, produced a 351ms frame.**
+
+So the device emits outliers the size of the effect, and none of the earlier
+readings were bracketed against a frozen row's *worst*. The stall may be
+smaller than believed, or may not exist as a distinct phenomenon at all. What
+is NOT in doubt is the sustained jank, which is measured as a share of
+hundreds of frames: 32-47% over 20ms became 0.5-0.8%.
+
+`crossing-probe` now measures the bake frame directly and repeatedly against a
+control, which is what settling this needs. Until that runs on a phone, treat
+§6.6's numbers and §7's first item as open questions rather than findings.
+
 ## 9. What the implementation runs measured
 
 Three runs on **the owner's iPhone, Safari, dpr 3, bake 3257 px, 2026-09-20**,

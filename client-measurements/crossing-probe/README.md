@@ -55,16 +55,53 @@ the lull is cheap and the stall is really the first blit, landing wherever the
 crossing first composites — and the fix is to blit each layer once, in the
 lull, on purpose.
 
-| condition | what it is |
-|---|---|
-| `baseline N` | the shipped renderer, untouched |
-| `LULL BAKE (as shipped)` | one theme baked inside the counter against a warm cache — §6.3's recurring cost |
-| `LULL BAKE + blit each layer once` | the same, plus one full-canvas blit into a 1×1 scratch per layer |
-| `FROZEN (the ceiling)` | `blend` pinned null, both layer providers memoized: nothing bakes, nothing composites |
+### Two tables, two instruments
 
-**Read `worst` on the two lull rows against each other**, then both against the
-baselines either side. If the blit row's stall moves to the blit and the
-crossing comes out clean, §7 is right and the fix is four lines in `app.js`.
+**The crossing rows** — `baseline` and `FROZEN (the ceiling)` — are about
+*sustained* jank, which is what the cross-fade fixed. They are here to show it
+has not regressed. Read `frames>20ms`.
+
+**The stall rows** measure a single frame, and they exist because the crossing
+rows provably cannot. Each repeats 12 times and reports two intervals:
+
+| | |
+|---|---|
+| **W** | the frame that bakes a theme |
+| **D** | the next frame, which is the first to draw from what was baked |
+
+| row | what it is |
+|---|---|
+| `control (no bake)` | the same skeleton doing nothing — what a frame costs here |
+| `bake, draw next frame` | a real bake, then a draw from it |
+| `bake + blit, draw next frame` | the blit moved forward into the bake frame |
+
+§7 predicts the cost sits in whichever interval first touches the pixels. If
+Safari defers rasterization until something draws from an offscreen, plain
+gives small W and large D, blitting gives large W and small D, and **W+D barely
+moves**. If instead the bake is simply expensive, W is large either way.
+
+⚠ **Read `control` first.** Both intervals end at the next animation frame, so
+nothing under one frame is visible — every row reads ~17ms on a clean 60Hz
+desktop no matter what it did. The instrument is built for a ~400ms effect,
+not a 4ms one.
+
+## Why `worst` on a crossing row cannot answer this
+
+It was tried, on the phone, 2026-09-21. `worst` is one sample out of ~660
+frames and the device throws outliers of the same magnitude as the effect:
+
+```
+baseline 1  worst 171ms      LULL BAKE           worst 141ms
+baseline 2  worst 232ms      LULL BAKE + blit    worst 388ms
+baseline 3  worst 243ms      FROZEN (ceiling)    worst 351ms
+baseline 4  worst 353ms
+```
+
+The baselines climb monotonically — the run drifted, which this rig's own rule
+says to stop on — and **the frozen ceiling, with nothing baking and nothing
+compositing, produced a 351ms frame.** No arrangement of those numbers
+supports a claim about a bake. That is the whole reason the stall rows exist,
+and it is why the `~400ms` in CROSSING-BAKES.md §6.6 is marked unverified.
 
 ## To measure the defect instead
 
@@ -108,6 +145,15 @@ the burst is thrown away and happens again, lazily, inside the crossing. A
 fixed delay is a guess about frame time, and frame time is the subject: 32ms
 spanned a frame in Chrome and did not on the phone, where a baseline frame
 runs 20–170ms.
+
+⚠ **Evict inside the measured window.** The render loop composites the
+crossing from the very cache the stall rows evict from, so it refills the
+entry within a frame — evict two frames early and the measured call is a hit.
+
+⚠ **A cache miss is not a size change.** The layer provider evicts down to its
+cap *before* it inserts, so a miss on a full cache leaves `groundLayers.size`
+exactly where it was. Detect a bake by counting `drawMeadowGround` calls.
+Both of these shipped as bugs here and both were caught by the same guard.
 
 ⚠ **Verify the meadow still draws before trusting a treatment's timings.** A
 broken draw is fast.
