@@ -304,25 +304,60 @@ bother you at some future zoom.
 4. **Draw the sun wash per frame**, between `under` and `over`, at the live
    lean. The sweep becomes continuous rather than quantised into 192 steps.
 5. **Set `imageSmoothingQuality = 'high'`** on the blit.
-6. Accept one ~158 ms stall per theme pair, placed on load and in the lull.
-   Chunking it does not work (§5a); a worker would fix it and is not costed.
+6. Accept one stall per theme pair, placed on load and in the lull.
+   Chunking it does not work (§5a).
+
+   > **Corrected 2026-09-20, from the implementation runs (§9).** The stall
+   > is ~400 ms, not ~158 ms, and the cap does **not** make it smaller: 490 ms
+   > uncapped against 428 ms at 2048, where the pixel ratio predicts 171 ms.
+   > "A worker would fix it" is unverified and the evidence now runs against
+   > it -- 8-17 ms of that frame is inside the draw calls, so relocating the
+   > JavaScript relocates 2-4% of the cost.
 
 Expected, from the measured cross-fade at full resolution, with the cap
 making the stall and the memory smaller again:
 
-| | as shipped | ruled design |
-|---|---|---|
-| iPhone, frames >20 ms | 47–54% | ~3% |
-| 4K, frames >20 ms | 14.3% | ~0.4% |
-| phone stall | n/a (continuous jank) | ~158 ms, twice per crossing |
-| resident canvas | 72 MB | ~128 MB |
+| | as shipped | ruled design (expected) | **measured** (§9) |
+|---|---|---|---|
+| iPhone, frames >20 ms | 47–54% | ~3% | **0.5–0.8%** |
+| iPhone, frames >33 ms | ~61 | — | **1** |
+| 4K, frames >20 ms | 14.3% | ~0.4% | not re-run |
+| phone stall | n/a (continuous jank) | ~158 ms, twice | **~400 ms, twice** |
+| resident canvas | 72 MB | ~128 MB | not measured |
 
 ## 7. Still open
 
 - **The blade-lean residual.** With the wash out of the bake, the blades are
   the only lean-driven geometry left. Never isolated. Measure it before
   believing the cross-fade is clean; if it shimmers, static blades are the
-  cheap answer (they cost ~0.5 points of fidelity and buy the rest).
+  cheap answer (they cost ~0.5 points of fidelity and buy the rest). This is
+  a FIDELITY question, not a cost one: the blades are inside the baked `over`
+  layer and cost nothing per frame.
+
+- **What the ~400 ms stall actually is.** It is indifferent to canvas area
+  (the cap bought 13%), indifferent to how much is baked (one theme cost the
+  same as two, §9), and nearly invisible to `performance.now()` (8-17 ms of
+  it). That combination points at Safari deferring an offscreen's
+  rasterization until something draws FROM it -- the bake records commands
+  cheaply and the bill arrives on first use. If that is right the fix is to
+  blit each layer once during the lull, which is a line. **The one probe row
+  worth running next.**
+
+- **The pond's tighter bound is now vacuous.** §6.2 dropped
+  `GROUND_BAKE_MAX_PX` to 2048, which is exactly `POND_BAKE_MAX_PX`, so
+  `pondBakeTileFor` can no longer bind -- the ground is as coarse as the
+  pond, and the asymmetry the bound exists for ("a blurred band carries a
+  coarse bake better than grass does") is gone. Restoring it means lowering
+  the pond ceiling, which changes shipped art. **Owner's call.** The equality
+  is pinned in test-motion so moving either ceiling reddens.
+
+- **Detail double-draws at mid-fade.** `over` is transparent glass, and the
+  composite draws the near hour at full alpha then the far hour at the step.
+  That is exact where the ink is opaque and slightly over-inks the
+  anti-aliased edges. Measured against the old renderer at four points
+  through a day->dusk fade: settled hours are essentially identical (mean
+  channel delta 0.56/255), mid-fade runs a mean of 1.2-1.4/255 -- under a
+  JND -- with localised maxima of 56-67 on ~6% of pixels, at detail edges.
 - **Why the pond is disproportionate.** Four allocations vs one, eight blurs
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
@@ -348,3 +383,41 @@ Two things it taught, worth keeping whatever happens to this design:
 - **Write probe pages async.** A synchronous test page blocks its own CDP
   polling, so the driver reads an empty document and reports nothing. Put
   `await new Promise(r => setTimeout(r, 0))` between steps.
+
+
+## 9. What the implementation runs measured
+
+Three phone runs (Safari, dpr 3, bake 3257 px), each treatment bracketed by
+repeated baselines. Baseline bad-frame counts held at 60-68 throughout, so
+the runs are comparable; the baseline PERCENTAGES drift only because the
+baseline delivers ~150 frames where a treatment delivers ~650.
+
+| condition | frames | >20 ms | >33 ms | worst |
+|---|---|---|---|---|
+| baseline (as shipped) | 136-197 | 32-47% | 60-68 | 163-225 ms |
+| cross-fade, 3257 px | 642-651 | 5.5-10.7% | 1-2 | 371-490 ms |
+| cross-fade + 2048 cap | 649-650 | **0.5-0.8%** | **1-2** | 363-438 ms |
+| cross-fade + cap, ONE theme | 652 | **0.2%** | 1 | 407 ms |
+| rebakes FROZEN (the ceiling) | 665-692 | 0.3-0.8% | 0-1 | 21-159 ms |
+
+Three levers were tried against the stall and none of them moved it:
+
+- **The cap.** 490 ms -> 428 ms, where the pixel ratio predicts 171 ms.
+- **Halving the work.** Baking one theme against a warm cache cost 407 ms
+  against two themes' 428 ms -- 5%, inside the run's noise. The recurring
+  lull bake is NOT half the cold one.
+- **Spreading it over frames.** 401 ms against 432 ms burst on the phone,
+  388 against 424 on the desktop. One canvas is already the whole cost, so
+  there is nothing below it to spread to (§5a).
+
+Two rig defects were found and fixed while measuring, both of which had
+already produced numbers:
+
+- `prewarm` keyed its layers on `o.tile` but read the PREVIOUS condition's
+  opts, so every size-changing condition prewarmed at the wrong size and the
+  burst happened again inside the crossing. The first 2048 reading (438 ms)
+  is that, not a prewarm stall.
+- The fix for it waited 32 ms, which spans a frame in Chrome and does not on
+  a phone where a baseline frame runs 20-170 ms. It waits on the draw now.
+  The panel prints the size the prewarm actually baked at and flags a
+  mismatch in red, which is what caught the second bug.
