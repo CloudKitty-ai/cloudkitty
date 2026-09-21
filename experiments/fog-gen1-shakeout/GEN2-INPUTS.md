@@ -371,7 +371,11 @@ is no longer load-bearing.
   than arms retrained there, so the count can move at the Gen 2
   collection without a new screen. Experiments' offer: 6; the only
   case for 7 or 8 is the teacher's corpus placement (0.34 / 0.40 / 0.44
-  against the ~0.4 bar), read after the sleep-rule spec.** Notes for the count: only the nearest two beams
+  against the ~0.4 bar), read after the sleep-rule spec. OWNER RULED 6
+  (2026-09-21, "6 beams"): the package is complete, and the teacher
+  sleep-rule spec went to Product the same day
+  (`beam-world-screen-2026-09-19/HANDOVER-product-2026-09-21.md`).**
+  Notes for the count: only the nearest two beams
   are observed (two sunbeam slots), the world holds `min` beams and
   `max` is inert for the world (it feeds the critic's chow scale only),
   and the fog lineage trains and collects on `anchor.toml`, which is

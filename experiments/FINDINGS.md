@@ -2622,6 +2622,7 @@ in 6–8 leaving the seed spread on both seeds, or a transferred arm
 landing more than 0.5 happiness under a retrained one on any count.
 **Re-verify when**: the floor, lifetime, reach or roster size changes
 (the owner's density caveat, F-050), and at the Gen 2 read on the
-re-recorded teacher. **Promotion**: Experiments' offer on #390 (c) is
-count 6, the package world as it stands; a later move to 7 or 8 needs
-no new screen.
+re-recorded teacher. **Promotion**: the owner ruled count 6 on #390 (c)
+(2026-09-21, "6 beams"): the Gen 2 world is the package world as it
+stands (floor 15, lifetime 3,000, six beams); a later move to 7 or 8
+needs no new screen.

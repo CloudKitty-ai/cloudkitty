@@ -729,7 +729,9 @@ for sleep 41–47 times per 1k at every count.
   and tier 5's numbers intact. The transfer read makes 7 or 8 a free
   move later; the case for it is the teacher's corpus placement (0.34
   at six, 0.40 at seven, 0.44 at eight against the shelf's ~0.4 bar),
-  which the sleep-rule spec should lift first.
+  which the sleep-rule spec should lift first. **Owner ruled 6
+  (2026-09-21, #390: "6 beams")**, and sent the teacher sleep-rule
+  spec to Product the same day (`HANDOVER-product-2026-09-21.md`).
 - **Prediction 4 holding in substance means the count can move at the
   Gen 2 collection without a new screen**; a mind trained at one count
   reads the others. Recorded as F-051.
