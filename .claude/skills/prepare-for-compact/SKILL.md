@@ -224,6 +224,10 @@ End with a short report to the user:
 - what was written where (memory files created or updated, the anchor
   path)
 - the anchor's next-action line, quoted
+- open-with-the-owner items: her outstanding asks by name, and any
+  question still awaiting her answer re-stated in full — the cheapest
+  resolution is her answering it before /compact, not the anchor
+  carrying it across
 - job cards on file, by name
 - hard checks skipped, and why they did not apply
 - anything that could NOT be made durable, so the user knows what the
