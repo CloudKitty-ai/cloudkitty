@@ -16,6 +16,13 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 `docs/` and `README.md` are shared: each thread writes its own area
 (2026-09-08).
 
+The prepare-for-compact skill files (2026-09-21):
+`.claude/skills/prepare-for-compact/SKILL.md` is Product's — edits
+route there. `TRIALS.md` beside it is append-shared: a trialling
+thread appends its own section and never touches another thread's,
+MEMORY.md discipline. Product and Client append through a worktree
+and a PR as usual; Experiments appends on main directly, its lane.
+
 - **You are the thread the kickoff or session name says you are**,
   never the one the branch or dirty files suggest; the checkout is
   shared (2026-08-04).
