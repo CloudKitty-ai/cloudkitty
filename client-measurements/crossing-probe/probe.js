@@ -159,10 +159,6 @@
   // is deliberate: sampling one texel might let a tile-based rasterizer
   // realise one tile and defer the rest.
   let blitAfterBake = false;
-  // `app.js` warms the incoming theme during a lull so the bake lands in a
-  // quiet tick. With this on, that call is a no-op and the bake happens
-  // lazily, inside the crossing, in a frame that is also compositing.
-  let noPrewarm = false;
   let warmSide = 0;
   // Scoped to the lull call itself. A counter that any bake anywhere in the
   // counted window can satisfy proves nothing -- the crossing bakes too, so
@@ -178,11 +174,6 @@
       if (c && c.width) scratchCtx.drawImage(c, 0, 0, c.width, c.height, 0, 0, 1, 1);
     }
   }
-  function installPrewarmSwitch() {
-    const realWarm = renderer.warmGroundLayers.bind(renderer);
-    renderer.warmGroundLayers = (...a) => (noPrewarm ? undefined : realWarm(...a));
-  }
-
   function installLullInstrument() {
     const real = renderer.groundLayersFor.bind(renderer);
     renderer.groundLayersFor = (...a) => {
@@ -249,7 +240,7 @@
   const QUIET = 248;
 
   async function condition(world, label, { transitions = true, blur = true, reuse = false,
-    scale = 1, device = 0, flat = false, freeze = false, lull = null, prewarm = true }) {
+    scale = 1, device = 0, flat = false, freeze = false, lull = null }) {
     setTransitions(transitions);
     setBlur(blur);
     reuseCanvases = reuse;
@@ -258,7 +249,6 @@
     targetDevice = device;
     frozen = false;
     blitAfterBake = false;
-    noPrewarm = !prewarm;
     firstSide = 0;
     warmSide = 0;
     renderer.groundLayers = new Map();
@@ -491,7 +481,6 @@
   window.__runProbe = async (world) => {
     installFreeze();
     installLullInstrument();
-    installPrewarmSwitch();
     installBakeScale();
     render();
     // Every treatment is bracketed by a baseline. If the baselines hold
@@ -500,10 +489,13 @@
     // Sustained jank, which is the thing that was actually fixed: one
     // baseline and the ceiling, enough to show it has not regressed. The
     // treatments that used to live here could not separate and are gone.
-    await condition(world, 'baseline (prewarm ON, as shipped)', {});
-    await condition(world, '  prewarm OFF -- bake lands in the crossing', { prewarm: false });
-    await condition(world, 'baseline 2 (prewarm ON)', {});
+    // The shipped path bakes the incoming theme lazily, inside the fade, so
+    // the baseline's own `frames that BAKED` column is the measurement: read
+    // it against that same row's p99. The prewarm that used to move this bake
+    // into the lull was removed once it measured below ordinary frame noise.
+    await condition(world, 'baseline (as shipped)', {});
     await condition(world, '  FROZEN (the ceiling)', { freeze: true });
+    await condition(world, 'baseline 2', {});
     // The stall, which needed a different instrument entirely.
     await stallRow(world, 'control (no bake)', { bake: false });
     await stallRow(world, 'bake, draw next frame', {});

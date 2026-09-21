@@ -1570,17 +1570,6 @@ class WorldRenderer {
   }
 
   /**
-   * Bake a theme the world is not wearing yet, so the cost lands in a quiet
-   * tick instead of in the first frame of a fade. Section 6.3 of
-   * CROSSING-BAKES.md: one stall, placed where nothing is crossing.
-   */
-  warmGroundLayers(world, theme) {
-    if (!world || !theme) return;
-    const dpr = this.dpr || window.devicePixelRatio || 1;
-    this.groundLayersFor(world, theme, this.bakeTileFor(world), dpr);
-  }
-
-  /**
    * The pond's baked pair for the hour, cross-faded when a fade is in
    * progress. The blurred silhouettes are the expensive half and they are
    * per theme, so a step composites two FINISHED pairs into a reused

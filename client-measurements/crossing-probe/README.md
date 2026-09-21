@@ -68,14 +68,13 @@ destroys any between-row comparison of `worst` — cannot reach the comparison.
 
 | row | what it is |
 |---|---|
-| `baseline (prewarm ON, as shipped)` | `app.js` warms the incoming theme in the lull, so no bake lands in the crossing at all |
-| `prewarm OFF — bake lands in the crossing` | that warm call is a no-op, so the theme bakes lazily, in a frame that is also compositing |
+| `baseline (as shipped)` | the shipped renderer: the incoming theme bakes lazily, inside the fade |
 | `FROZEN (the ceiling)` | `blend` pinned null, both layer providers memoized: nothing bakes, nothing composites |
 
-**The prewarm question:** compare the `prewarm OFF` row's baked frame against
-its own `p99`. If a bake inside a live crossing frame is worth nothing above a
-normal frame, the lull prewarm is protecting against nothing. Headless Chrome
-reads 20ms against a p99 of 19.
+The baseline's own `frames that BAKED` column is the measurement — read it
+against that same row's `p99`. On the phone it came back at **17ms against a
+p99 of 20ms**: a frame containing a full two-layer bake was better than that
+row's ordinary bad frames. That is what retired §6.3's lull prewarm.
 
 **The stall rows** measure a single frame, and they exist because the crossing
 rows provably cannot. Each repeats 12 times and reports two intervals:
