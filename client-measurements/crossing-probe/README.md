@@ -57,9 +57,25 @@ lull, on purpose.
 
 ### Two tables, two instruments
 
-**The crossing rows** — `baseline` and `FROZEN (the ceiling)` — are about
-*sustained* jank, which is what the cross-fade fixed. They are here to show it
-has not regressed. Read `frames>20ms`.
+**The crossing rows** are about *sustained* jank, which is what the cross-fade
+fixed. Read `frames>20ms` and `p99`, never `worst`.
+
+They also carry the **within-row control** this rig needed all along. Every
+frame is tagged with whether a bake happened inside it, and the `frames that
+BAKED` column lists those durations. A baked frame and a quiet frame from the
+*same* run are paired by construction, so the device's outlier tail — which
+destroys any between-row comparison of `worst` — cannot reach the comparison.
+
+| row | what it is |
+|---|---|
+| `baseline (prewarm ON, as shipped)` | `app.js` warms the incoming theme in the lull, so no bake lands in the crossing at all |
+| `prewarm OFF — bake lands in the crossing` | that warm call is a no-op, so the theme bakes lazily, in a frame that is also compositing |
+| `FROZEN (the ceiling)` | `blend` pinned null, both layer providers memoized: nothing bakes, nothing composites |
+
+**The prewarm question:** compare the `prewarm OFF` row's baked frame against
+its own `p99`. If a bake inside a live crossing frame is worth nothing above a
+normal frame, the lull prewarm is protecting against nothing. Headless Chrome
+reads 20ms against a p99 of 19.
 
 **The stall rows** measure a single frame, and they exist because the crossing
 rows provably cannot. Each repeats 12 times and reports two intervals:

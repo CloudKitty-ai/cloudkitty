@@ -159,6 +159,10 @@
   // is deliberate: sampling one texel might let a tile-based rasterizer
   // realise one tile and defer the rest.
   let blitAfterBake = false;
+  // `app.js` warms the incoming theme during a lull so the bake lands in a
+  // quiet tick. With this on, that call is a no-op and the bake happens
+  // lazily, inside the crossing, in a frame that is also compositing.
+  let noPrewarm = false;
   let warmSide = 0;
   // Scoped to the lull call itself. A counter that any bake anywhere in the
   // counted window can satisfy proves nothing -- the crossing bakes too, so
@@ -174,6 +178,11 @@
       if (c && c.width) scratchCtx.drawImage(c, 0, 0, c.width, c.height, 0, 0, 1, 1);
     }
   }
+  function installPrewarmSwitch() {
+    const realWarm = renderer.warmGroundLayers.bind(renderer);
+    renderer.warmGroundLayers = (...a) => (noPrewarm ? undefined : realWarm(...a));
+  }
+
   function installLullInstrument() {
     const real = renderer.groundLayersFor.bind(renderer);
     renderer.groundLayersFor = (...a) => {
@@ -240,7 +249,7 @@
   const QUIET = 248;
 
   async function condition(world, label, { transitions = true, blur = true, reuse = false,
-    scale = 1, device = 0, flat = false, freeze = false, lull = null }) {
+    scale = 1, device = 0, flat = false, freeze = false, lull = null, prewarm = true }) {
     setTransitions(transitions);
     setBlur(blur);
     reuseCanvases = reuse;
@@ -249,6 +258,7 @@
     targetDevice = device;
     frozen = false;
     blitAfterBake = false;
+    noPrewarm = !prewarm;
     firstSide = 0;
     warmSide = 0;
     renderer.groundLayers = new Map();
@@ -283,9 +293,22 @@
     frozen = freeze;
 
     const g0 = { ...wrapped.ground }, p0 = { ...wrapped.pond };
+    // Frames are tagged with whether a bake happened inside them. That is the
+    // within-row control this rig needed all along: `worst` compares a
+    // treatment against a different run, where this device's outlier tail
+    // swamps it, but a baked frame and a quiet frame from the SAME run are
+    // paired by construction.
     const frames = [];
-    let last = performance.now(), stop = false;
-    const tick = () => { const n = performance.now(); frames.push(n - last); last = n; if (!stop) requestAnimationFrame(tick); };
+    const bakeFrames = [];
+    let last = performance.now(), stop = false, lastN = wrapped.ground.n;
+    const tick = () => {
+      const n = performance.now();
+      const dur = n - last;
+      frames.push(dur);
+      if (wrapped.ground.n !== lastN) { bakeFrames.push(Math.round(dur)); lastN = wrapped.ground.n; }
+      last = n;
+      if (!stop) requestAnimationFrame(tick);
+    };
     requestAnimationFrame(tick);
 
     // The lull bake, inside the counter and before the crossing: exactly what
@@ -310,10 +333,16 @@
     }
     stop = true;
     const over = (ms) => frames.filter(f => f > ms).length;
+    // p99 over the whole row: the shape of a typical bad frame, which `worst`
+    // (the single maximum) cannot show. Bake frames are at most a handful of
+    // 660 and do not move it.
+    const sorted = [...frames].sort((a, b) => a - b);
     const row = {
       label,
       frames: frames.length,
       janky: over(20), bad: over(33), worst: Math.round(Math.max(0, ...frames)),
+      bakeFrames,
+      p99: Math.round(sorted[Math.floor(sorted.length * 0.99)] || 0),
       side: firstSide,
       warmSide,
       bakeMs: +(wrapped.ground.ms - g0.ms).toFixed(0),
@@ -428,14 +457,15 @@
       + '<table style="border-collapse:collapse;margin-top:8px">'
       + '<tr style="color:#9c8a7c"><td>condition</td><td style="padding-left:14px">frames</td><td style="padding-left:14px">frames&gt;20ms</td>'
       + '<td style="padding-left:14px">&gt;33ms</td><td style="padding-left:14px">worst</td>'
-      + '<td style="padding-left:14px">device px</td><td style="padding-left:14px">in canvas</td></tr>'
+      + '<td style="padding-left:14px">p99</td><td style="padding-left:14px">frames that BAKED</td>'
+      + '<td style="padding-left:14px">in canvas</td></tr>'
       + M.rows.map(r => `<tr><td>${r.label}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.frames}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.janky} (${pct(r)}%)</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bad}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.worst}ms</td>`
-        + `<td style="padding-left:14px;text-align:right">${r.side}`
-        + `${r.warmSide && r.warmSide !== r.side ? `<span style="color:#b4462f"> ⚠warm ${r.warmSide}</span>` : ''}</td>`
+        + `<td style="padding-left:14px;text-align:right">${r.p99}ms</td>`
+        + `<td style="padding-left:14px;text-align:right">${r.bakeFrames.length ? r.bakeFrames.join(', ') + 'ms' : '—'}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bakeMs + r.pondMs}ms</td></tr>`).join('')
       + '</table>'
       + (M.stalls.length ? '<div style="margin-top:10px"><b>the bake frame, measured directly</b>'
@@ -461,6 +491,7 @@
   window.__runProbe = async (world) => {
     installFreeze();
     installLullInstrument();
+    installPrewarmSwitch();
     installBakeScale();
     render();
     // Every treatment is bracketed by a baseline. If the baselines hold
@@ -469,7 +500,9 @@
     // Sustained jank, which is the thing that was actually fixed: one
     // baseline and the ceiling, enough to show it has not regressed. The
     // treatments that used to live here could not separate and are gone.
-    await condition(world, 'baseline', {});
+    await condition(world, 'baseline (prewarm ON, as shipped)', {});
+    await condition(world, '  prewarm OFF -- bake lands in the crossing', { prewarm: false });
+    await condition(world, 'baseline 2 (prewarm ON)', {});
     await condition(world, '  FROZEN (the ceiling)', { freeze: true });
     // The stall, which needed a different instrument entirely.
     await stallRow(world, 'control (no bake)', { bake: false });
