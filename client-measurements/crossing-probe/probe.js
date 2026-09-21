@@ -160,6 +160,11 @@
   // realise one tile and defer the rest.
   let blitAfterBake = false;
   let warmSide = 0;
+  // Scoped to the lull call itself. A counter that any bake anywhere in the
+  // counted window can satisfy proves nothing -- the crossing bakes too, so
+  // the row passes while the lull did nothing. Measured: it does.
+  let inLull = false;
+  let lullBakes = 0;
   const scratch = document.createElement('canvas');
   scratch.width = 1; scratch.height = 1;
   const scratchCtx = scratch.getContext('2d');
@@ -177,7 +182,8 @@
       // Only a MISS did any baking. A hit must not be charged for a blit it
       // would never have done -- and, more importantly, a lull row that HITS
       // measured nothing at all and has to say so.
-      if (renderer.groundLayers.size !== before) {
+      if (renderer.groundLayers.size !== before && inLull) {
+        lullBakes++;
         warmSide = built.under ? built.under.width : 0;
         if (blitAfterBake) forceRaster(built);
       }
@@ -281,9 +287,16 @@
     // The lull bake, inside the counter and before the crossing: exactly what
     // `app.js` does when it sees a quiet tick and warms the next phase.
     if (lull) {
+      inLull = true;
+      lullBakes = 0;
       blitAfterBake = lull === 'blit';
       renderer.warmGroundLayers(world, 'dusk');
+      inLull = false;
       blitAfterBake = false;
+      if (!lullBakes) {
+        throw new Error(`${label}: the lull bake was a cache HIT -- nothing was baked by the `
+          + 'warm call, so this row measures nothing. The settle tick or the dusk eviction is wrong.');
+      }
       await nextFrame();
     }
 
@@ -292,10 +305,6 @@
       await new Promise(r => setTimeout(r, TICK_MS));
     }
     stop = true;
-    if (lull && !warmSide) {
-      throw new Error(`${label}: the lull bake was a cache HIT -- nothing was baked inside the counter, `
-        + 'so this row measures nothing. The settle tick or the dusk eviction is wrong.');
-    }
     const over = (ms) => frames.filter(f => f > ms).length;
     const row = {
       label,
