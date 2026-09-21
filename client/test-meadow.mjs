@@ -2373,7 +2373,11 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   };
   const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
 
+  // Both, because `applyTheme` publishes both: the key is what the
+  // signature used to carry, and a guard that leaves it unset cannot tell
+  // whether the signature went back to carrying it.
   renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
+  renderer.paletteKey = 'day>dusk@0';
   renderer.drawPondLayer(world, view);
   const first = renderer.pondCache;
   assert(first, 'no pond cache was built at all');
@@ -2387,6 +2391,7 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now and the
   // two hours are baked once each and cross-faded.
   renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
+  renderer.paletteKey = 'day>dusk@0.5';
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
   assert(
