@@ -25,9 +25,24 @@ const GROUND_BAKE_MAX_PX = 2048;
 // one -- two that persist and two scratch. Bounding each canvas's side
 // while the feature multiplied the canvas COUNT is guarding the wrong
 // quantity, and mobile Safari caps total canvas memory and hands back a
-// blank canvas rather than an error. Halving the side quarters the area,
-// which is what brings four layers back to roughly one ground bake.
-const POND_BAKE_MAX_PX = 2048;
+// blank canvas rather than an error.
+//
+// Lowered 2048 -> 1536 on 2026-09-21, on measurement rather than
+// arithmetic. Weighed in the page at dpr 3: the pond holds FOUR
+// world-sized canvases -- two masks and two tinted outputs -- which at
+// 2048 is 64 MB persistent and 96 MB while a bake is in flight, equal to
+// the entire ground cache rather than the minor cost it was assumed to be.
+// 1536 takes that to 37.7 MB and 56.6 MB.
+//
+// It is bought for nothing visible. The cap reaches only the two BLURRED
+// bands; the waterline itself is a vector fill drawn live at screen
+// resolution and stays crisp at any cap. Rendered at the camera's floor
+// tile at dpr 3 and compared: mean 0.24/255, max 24, 0.7% of pixels over
+// 2 -- indistinguishable at 3x, and an order of magnitude inside the
+// cross-fade's own accepted deviation. The bands are already upscaled
+// 2.76x at 2048 on that display, which is why a further step down cannot
+// be seen.
+const POND_BAKE_MAX_PX = 1536;
 
 /** Slack for the margins between header, map and footer, which are not
  * worth measuring individually. Too small and the page gains a scrollbar;

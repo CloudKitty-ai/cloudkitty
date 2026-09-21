@@ -400,13 +400,26 @@ making the stall and the memory smaller again:
   > 0.09-0.24 through the fade -- an order of magnitude inside the
   > cross-fade's own 0.56 and 1.19-1.42.
   >
-  > ⚠ **This does NOT retire `POND_BAKE_MAX_PX`,** and an earlier scope of
-  > mine said it would. The bound's stated premise is the FOUR canvases a
-  > single bake allocates at once (two persist, two scratch), and that peak
-  > is unchanged -- `buildPondLayers` still needs a scratch and a mask to
-  > isolate each pond's composite. What changed is how many persist and how
-  > often the peak is paid. The bound keeps its argument; the equality stays
-  > pinned in test-motion.
+  > ⚠ **This does NOT retire `POND_BAKE_MAX_PX`** -- an earlier scope of mine
+  > said it would. The bound's premise is the FOUR canvases a single bake
+  > allocates at once, and that peak is unchanged; `buildPondLayers` still
+  > needs a scratch and a mask to isolate each pond's composite.
+  >
+  > **It LOWERS it instead, 2048 -> 1536, ruled 2026-09-21.** Weighed in the
+  > page at dpr 3 rather than reasoned about: the pond holds four
+  > world-sized canvases, which at 2048 is **64 MB persistent and 96 MB
+  > mid-bake -- equal to the whole ground cache**, not the minor cost it was
+  > assumed to be. 1536 takes that to 37.7 MB and 56.6 MB. The visible cost
+  > is 0.24/255 mean, max 24, 0.7% of pixels, indistinguishable at 3x,
+  > because the cap reaches only the two BLURRED bands -- the waterline is a
+  > vector fill at screen resolution -- and those bands are already upscaled
+  > 2.76x at 2048 on that display.
+  >
+  > The old ratio argument ("four pond layers ~ one ground bake") no longer
+  > maps: it was written when the ground baked ONE canvas, and the ground
+  > now holds two layers per theme. The guard asserts the measured
+  > quantities instead -- that the bound binds, and that the pond's four
+  > canvases stay inside a stated MB budget.
 - **Whether the pond needs the wash treatment too.** It has no `shadowLean`
   in it, so probably not, but it was never checked at every blend position.
 
