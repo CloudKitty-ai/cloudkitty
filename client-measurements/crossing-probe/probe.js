@@ -356,11 +356,20 @@
     // reads `lastGroundOpts`, which is whatever the PREVIOUS condition drew.
     // Prewarming against a stale tile keys every layer at the wrong size, so
     // the burst we believe we measured is thrown away and happens again,
-    // lazily, inside the crossing. One real draw refreshes the opts.
+    // lazily, inside the crossing.
+    //
+    // Wait for the DRAW, never for a duration. A fixed delay is a guess about
+    // frame time, and the frame time here is the thing under measurement: 32ms
+    // spanned a frame in Chrome and did not on the phone, where a baseline
+    // frame runs 20-170ms. Nulling the opts first means a settle that never
+    // lands leaves `prewarm` with nothing, which its own guard reports as
+    // warm 0 -- a loud failure instead of a quiet wrong number.
     const wasCrossfade = crossfade;
     crossfade = false;
+    lastGroundOpts = null; lastPondArgs = null;
     for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: FROM }) });
-    await new Promise(r => setTimeout(r, 32));
+    const deadline = performance.now() + 4000;
+    while (!(lastGroundOpts && lastPondArgs) && performance.now() < deadline) await nextFrame();
     crossfade = wasCrossfade;
     renderer.groundCache = null; renderer.pondCache = null;
 
