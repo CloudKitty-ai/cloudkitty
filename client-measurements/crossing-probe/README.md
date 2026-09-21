@@ -51,6 +51,8 @@ Edit the list at the bottom of `probe.js`. Each takes flags:
 | `reuse: true` | pool the disposable canvases instead of allocating |
 | `blur: false` | zero the blur *radii* ⚠ this still assigns `ctx.filter`, so it does NOT rule blur out |
 | `xfade: true` | the two-layer cross-fade, ground and pond |
+| `wash: false` | with `xfade`, drop the live sun wash — separates the per-frame
+wash from the per-frame composite. ⚠ timing read only, the meadow is wrong |
 | `warm: 'burst' \| 'spread'` | build the cross-fade layers all at once, or one per frame |
 
 ⚠ **Verify the meadow still draws before trusting a treatment's timings.**

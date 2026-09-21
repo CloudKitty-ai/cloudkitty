@@ -58,6 +58,9 @@
   // If the jank survives this, the cost is producing and uploading a new
   // full-size image, and no amount of drawing faster will touch it.
   let flatBake = false;
+  // The cross-fade's per-frame cost is 4 drawImages plus this wash. Zeroing
+  // the wash alone says which of the two the residual is.
+  let liveWash = true;
   // ---- the two-layer cross-fade, as a drop-in for drawMeadowGround --------
   // Each theme is baked ONCE into two static layers, split at the sun wash:
   //   under = tone + jitter + blur      (everything below the wash)
@@ -117,6 +120,7 @@
   }
 
   function drawSunWash(ctx, w, h) {
+    if (!liveWash) return;
     const t = meadowTunables();
     if (!(t.groundWashSun || t.groundWashShade)) return;
     const lean = MEADOW.shadowLean || 0;
@@ -324,7 +328,7 @@
   const TICK_MS = 800;
   const FROM = 256, TO = 269;   // 13 ticks of the day -> dusk fade, ~130 blend steps
 
-  async function condition(world, label, { transitions = true, bakes = true, blur = true, reuse = false, scale = 1, device = 0, flat = false, xfade = false, pond = true, warm = 'none' }) {
+  async function condition(world, label, { transitions = true, bakes = true, blur = true, reuse = false, scale = 1, device = 0, flat = false, xfade = false, pond = true, warm = 'none', wash = true }) {
     setTransitions(transitions);
     setBlur(blur);
     reuseCanvases = reuse;
@@ -332,6 +336,7 @@
     bakeScale = scale;
     flatBake = flat;
     crossfade = xfade;
+    liveWash = wash;
     freezePond = !pond;
     if (!xfade) layerCache.clear();
     targetDevice = device;
@@ -381,10 +386,11 @@
       + `<span style="color:#9c8a7c">${navigator.userAgent.includes('Chrome') ? 'Chrome' : navigator.userAgent.includes('Safari') ? 'Safari' : '?'}`
       + ` · dpr ${devicePixelRatio} · bake ${renderer.groundCache ? renderer.groundCache.width + 'px' : '—'}</span>`
       + '<table style="border-collapse:collapse;margin-top:8px">'
-      + '<tr style="color:#9c8a7c"><td>condition</td><td style="padding-left:14px">frames&gt;20ms</td>'
+      + '<tr style="color:#9c8a7c"><td>condition</td><td style="padding-left:14px">frames</td><td style="padding-left:14px">frames&gt;20ms</td>'
       + '<td style="padding-left:14px">&gt;33ms</td><td style="padding-left:14px">worst</td>'
       + '<td style="padding-left:14px">device px</td><td style="padding-left:14px">in canvas</td></tr>'
       + M.rows.map(r => `<tr><td>${r.label}</td>`
+        + `<td style="padding-left:14px;text-align:right">${r.frames}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.janky} (${pct(r)}%)</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bad}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.worst}ms</td>`
@@ -392,7 +398,7 @@
         + `<td style="padding-left:14px;text-align:right">${r.bakeMs + r.pondMs}ms</td></tr>`).join('')
       + '</table>'
       + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — if the five baselines agree, the treatments are comparable; if they climb, the run drifted</div>'
-                : '<div style="margin-top:8px;color:#9c8a7c">running… ~11s per row, seven rows (~1.5 min). WORST is the column that matters here. KEEP THE SCREEN AWAKE. Treatments are indented; compare each to the baselines either side.</div>');
+                : '<div style="margin-top:8px;color:#9c8a7c">running… ~11s per row, nine rows (~1.7 min). WORST is the column that matters here. KEEP THE SCREEN AWAKE. Treatments are indented; compare each to the baselines either side.</div>');
   }
 
   window.__runProbe = async (world) => {
@@ -405,11 +411,17 @@
     await condition(world, 'baseline 1', {});
     await condition(world, '  x-fade, bake in ONE burst', { xfade: true, warm: 'burst' });
     await condition(world, 'baseline 2', {});
-    await condition(world, '  x-fade, bake SPREAD over frames', { xfade: true, warm: 'spread' });
+    // The ruled design of CROSSING-BAKES.md section 6: cross-fade AND the
+    // 2048 cap together. Measured, not extrapolated from the full-res stall.
+    await condition(world, '  x-fade + 2048 cap (THE RULED DESIGN)', { xfade: true, warm: 'burst', device: 2048 });
     await condition(world, 'baseline 3', {});
-    await condition(world, '  FROZEN (the ceiling)', { bakes: false });
+    // Same cross-fade, live wash off: separates the per-frame wash from the
+    // per-frame composite. Only a timing read -- the meadow is wrong here.
+    await condition(world, '  x-fade, live wash OFF (timing only)', { xfade: true, warm: 'burst', wash: false });
     await condition(world, 'baseline 4', {});
-    setTransitions(true); setBlur(true); reuseCanvases = false; freezeBakes = false;
+    await condition(world, '  FROZEN (the ceiling)', { bakes: false });
+    await condition(world, 'baseline 5', {});
+    setTransitions(true); setBlur(true); reuseCanvases = false; freezeBakes = false; liveWash = true;
     M.done = true;
     render();
     document.title = 'PROBE DONE';
