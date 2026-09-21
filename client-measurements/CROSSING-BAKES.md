@@ -355,16 +355,18 @@ making the stall and the memory smaller again:
   composite draws the near hour at full alpha then the far hour at the step.
   That is exact where the ink is opaque and slightly over-inks the
   anti-aliased edges. Measured against the old renderer at four points
-  through a day->dusk fade: settled hours are essentially identical (mean
-  channel delta 0.56/255), mid-fade runs a mean of 1.2-1.4/255 -- under a
-  JND -- with localised maxima of 56-67 on ~6% of pixels, at detail edges.
+  through a day->dusk fade: the settled hour is essentially identical (mean
+  channel delta 0.56/255, which is the rig's own noise floor), and the three
+  points inside the fade run a mean of 1.19-1.42/255 -- under a JND -- with
+  localised maxima of 56-67 on ~6% of pixels, at detail edges. The instrument
+  is `crossing-shots/` (below); those are its numbers, reproducible.
 - **Why the pond is disproportionate.** Four allocations vs one, eight blurs
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
 - **Whether the pond needs the wash treatment too.** It has no `shadowLean`
   in it, so probably not, but it was never checked at every blend position.
 
-## 8. The rig
+## 8. The rigs
 
 **[crossing-probe/](crossing-probe/)** — committed, because every number above
 came out of it and it is the acceptance test for the implementation.
@@ -384,6 +386,23 @@ Two things it taught, worth keeping whatever happens to this design:
   polling, so the driver reads an empty document and reports nothing. Put
   `await new Promise(r => setTimeout(r, 0))` between steps.
 
+
+### `crossing-shots/` — the second rig, for the picture rather than the clock
+
+`crossing-probe/` answers "does it drop frames". It cannot answer "does it
+still look right", and the two questions failed in opposite directions here:
+the design's arithmetic guaranteed the colour and said nothing about the
+anti-aliased edges. `crossing-shots/run.mjs` serves two worktrees with no
+injection, photographs both at four points through one crossing and subtracts
+them. Its README carries the reading rules; §9's fidelity numbers are its
+output.
+
+⚠ It pins the app clock by stubbing `requestAnimationFrame`, and asserts the
+**blend** afterwards rather than the tick. Under a live clock the tick stays
+exactly where it is put while the blend has already moved — the app
+re-derives the fade from its own timebase — so a tick-only guard passes while
+the image is wrong. Two capture runs were invalid before this landed, and
+both produced plausible pictures of the wrong moment.
 
 ## 9. What the implementation runs measured
 
