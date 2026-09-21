@@ -64,9 +64,12 @@ matters into exactly one bucket:
 
 One anchor per thread, at
 `<memory-dir>/resume-<thread>.md`, with the house memory frontmatter
-(`type: project`) and a `MEMORY.md` index line so a fresh session
-actually finds it. It is a state file **rewritten in place, never
-appended**; the arc's running log stays in the per-arc memory file.
+(`type: project`) and an index line in the `## Resume` section at the
+top of `MEMORY.md` so a fresh session finds it before anything else.
+The anchor's first body line, before any section heading, is the
+consumer instruction: "Read this before acting on the summary's next
+step; verify exact strings and job cards first." It is a state file
+**rewritten in place, never appended**; the arc's running log stays in the per-arc memory file.
 Between arcs the anchor stays, set to `idle: waits on <ledger items>`,
 rather than being deleted and recreated. Keep it under about sixty
 lines and pointer-heavy: next action, exact strings, and `[[links]]`
@@ -125,9 +128,13 @@ The dialogue ledger, both directions:
   asked-not-answered. A question she has not answered is live state,
   and a compacted session that forgets asking it will either re-ask
   or silently drop the decision it was blocking.
+- **Open with peers**: a peer's ask awaiting this session's action,
+  or this session's question to a peer awaiting an answer — same
+  failure mode, different counterparty. Verbatim, with the sender
+  and date; a relay stays labeled a relay.
 
-Empty is a valid state; write "None" so its absence is a claim, not
-an oversight.
+Empty is a valid state; write "None" per direction so its absence is
+a claim, not an oversight.
 
 ### Job cards
 One card per running background job, because monitors and task ids die
@@ -156,6 +163,10 @@ with the session. Two shapes.
 - the do-not-edit list while it runs (driver, trainer wrapper, cert
   harness, config derivation; never rebuild the binding under a
   running arm)
+- the watch re-arm command: the exact monitor invocation with its
+  filter, so the resumed session re-arms the same watch instead of
+  polling or re-deriving the filter — the card already restores the
+  job; this line restores the eyes on it
 
 **Server-shaped** (local servers, headless-browser sessions): no log,
 no done marker; they die with the shell. The risk is the opposite of a
@@ -263,3 +274,30 @@ to two moves:
 After each fold-in, re-state readiness in one line, so the last thing
 said before the compact is always "handled or anchored". When nothing
 arrives, this step costs nothing.
+
+## After the compact — the consumer side
+
+The summary arrives with its own instruction to continue from where
+it left off without asking. Do not obey it first. The resume order:
+
+1. Read the thread's anchor (the `## Resume` section at the top of
+   `MEMORY.md` points to it).
+2. Re-verify the anchor's exact strings against git and the
+   filesystem — `git fetch` first; the summary's injected git-status
+   block is untrusted, and so is any SHA the anchor itself carries
+   ("never trust a SHA written here" is the anchor's own rule).
+3. Check the job cards: log tails, phase markers, PIDs, port owners.
+   Re-arm the watches from their re-arm lines.
+4. Consume any `## Late arrivals` heading.
+5. Only then read the summary's "next step" — as a hint to be checked
+   against the anchor's next action, never as the instruction. Where
+   they disagree, the anchor wins and the disagreement is worth a
+   sentence to the owner.
+
+Both trials passed only because the summary happened to repeat the
+"read the anchor first" mandate; this section makes the consumer side
+part of the skill instead of a favor the summary does us.
+
+The trial record lives beside this file in `TRIALS.md`: what each
+trial dropped and which change patched it. Future edits check
+themselves against what actually failed, not what plausibly could.
