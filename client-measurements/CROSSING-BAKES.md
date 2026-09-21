@@ -387,8 +387,10 @@ Two things it taught, worth keeping whatever happens to this design:
 
 ## 9. What the implementation runs measured
 
-Three phone runs (Safari, dpr 3, bake 3257 px), each treatment bracketed by
-repeated baselines. Baseline bad-frame counts held at 60-68 throughout, so
+Three runs on **the owner's iPhone, Safari, dpr 3, bake 3257 px, 2026-09-20**,
+driven from `crossing-probe`. The device is hers and the runs are not
+repeatable from this session, so the numbers live here rather than in a
+scratch file. Each treatment is bracketed by repeated baselines. Baseline bad-frame counts held at 60-68 throughout, so
 the runs are comparable; the baseline PERCENTAGES drift only because the
 baseline delivers ~150 frames where a treatment delivers ~650.
 
