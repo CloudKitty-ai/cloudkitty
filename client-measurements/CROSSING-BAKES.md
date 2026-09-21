@@ -334,14 +334,34 @@ making the stall and the memory smaller again:
   a FIDELITY question, not a cost one: the blades are inside the baked `over`
   layer and cost nothing per frame.
 
-- **What the ~400 ms stall actually is.** It is indifferent to canvas area
-  (the cap bought 13%), indifferent to how much is baked (one theme cost the
-  same as two, §9), and nearly invisible to `performance.now()` (8-17 ms of
-  it). That combination points at Safari deferring an offscreen's
-  rasterization until something draws FROM it -- the bake records commands
-  cheaply and the bill arrives on first use. If that is right the fix is to
-  blit each layer once during the lull, which is a line. **The one probe row
-  worth running next.**
+- ~~**What the ~400 ms stall actually is.**~~ **CLOSED 2026-09-21: there is no
+  stall.** Measured directly on the phone, 12 repetitions per condition, the
+  frame that bakes a theme costs **18 ms against a control's 17** (max 22 vs
+  19), and bake-plus-first-draw is **33-34 ms in every condition including the
+  control**. A full two-layer 2048 bake is a couple of milliseconds.
+
+  The ~400 ms never existed. It was the `worst` column -- one sample out of
+  ~660 frames -- reading this device's own outliers, which the same run puts
+  at 122-177 ms with *nothing baking*. Everything built on it is void: the
+  cap "bought 13%", one theme "cost the same as two", the 310 ms first-bake
+  frame in §4, and the Safari-defers-rasterization hypothesis that was going
+  to explain it all. Blitting each layer at bake time moves ~2 ms from the
+  draw into the bake (D 15 -> 13, W 18 -> 20), which is the predicted
+  direction and a thousandth of the predicted size. **Not worth shipping.**
+
+  ⚠ The caveat, stated: the forced draw goes into a 1x1 scratch, and Safari
+  may rasterize a downsampled version of a 2048 source more cheaply than a
+  full-size composite would. The crossing rows bound that independently --
+  the whole crossing runs 2 frames over 33 ms against the frozen ceiling's 1,
+  and its worst frame (122 ms) is *lower* than the ceiling's (177 ms).
+  Whatever the first full-size draw costs, it is not hundreds of
+  milliseconds.
+
+  **The lesson, which cost three sessions: `worst` is an order statistic over
+  one run.** It cannot be read as a treatment effect on a device with a heavy
+  outlier tail, and every conclusion this document drew from it was wrong in
+  the same direction. Judge sustained jank by the share of frames; judge a
+  single-frame cost by repeating it against a control.
 
 - **The pond's tighter bound is now vacuous.** §6.2 dropped
   `GROUND_BAKE_MAX_PX` to 2048, which is exactly `POND_BAKE_MAX_PX`, so
@@ -404,7 +424,28 @@ re-derives the fade from its own timebase — so a tick-only guard passes while
 the image is wrong. Two capture runs were invalid before this landed, and
 both produced plausible pictures of the wrong moment.
 
-### ⚠ The ~400ms stall is UNVERIFIED (2026-09-21)
+### The run that closed it (owner's iPhone, Safari, dpr 3, 2026-09-21)
+
+Bake at the 2048 cap, 12 repetitions per row. W is the frame that bakes; D is
+the next frame, the first to draw from what was baked.
+
+| condition | W median | W max | D median | D max | W+D median |
+|---|---|---|---|---|---|
+| control (no bake) | 17ms | 19ms | 17ms | 19ms | 34ms |
+| bake, draw next frame | 18ms | 22ms | 15ms | 16ms | 33ms |
+| bake + blit, draw next frame | 20ms | 22ms | 13ms | 16ms | 34ms |
+
+And the sustained rows from the same run, which is the result that holds:
+
+| condition | frames >20ms | >33ms | worst |
+|---|---|---|---|
+| baseline (the shipped cross-fade) | 0.6% | 2 | 122ms |
+| FROZEN (the ceiling) | 0.3% | 1 | 177ms |
+
+The guard matters here: a row whose bake was a cache hit throws rather than
+reporting a fast frame, so those 12 bakes per row are real bakes.
+
+### ⚠ The ~400ms stall did not exist (2026-09-21)
 
 Every number this document gives for the stall — the 490/428/407ms in §6.6,
 the "fixed cost per burst" — is the `worst` column of a crossing row: a single
@@ -420,8 +461,10 @@ is NOT in doubt is the sustained jank, which is measured as a share of
 hundreds of frames: 32-47% over 20ms became 0.5-0.8%.
 
 `crossing-probe` now measures the bake frame directly and repeatedly against a
-control, which is what settling this needs. Until that runs on a phone, treat
-§6.6's numbers and §7's first item as open questions rather than findings.
+control. **That run happened the same day and closed it: the bake costs 18 ms
+against a control's 17.** See §7's first item for the numbers and the lesson.
+§6.6's stall figures are withdrawn -- not adjusted, withdrawn; the instrument
+that produced them cannot measure a single frame on this device.
 
 ## 9. What the implementation runs measured
 
