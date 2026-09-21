@@ -204,4 +204,33 @@ End with a short report to the user:
 - anything that could NOT be made durable, so the user knows what the
   summary alone carries
 
-Then stop. The user runs `/compact`.
+Close the report with "ready — anything you send before /compact gets
+folded in first", not a bare "ready". The user runs `/compact`.
+
+## Step 5 — Late arrivals
+
+The report is not the end of the skill. Anything that lands between
+the compact-ready report and the compact itself — a question, a
+ruling, a peer message — exists only in the conversation, and the
+conversation is what the compact is about to destroy. Trial 1 exposed
+exactly this: the owner asked a question after the report, the compact
+fired before the answer went out, and the pending question survived
+nowhere durable — only the summary happened to carry it.
+
+The moment a message arrives, the session is no longer compact-ready.
+Triage the message with the step 1 buckets; in practice it collapses
+to two moves:
+
+- **Answerable now**: answer it before the compact. A resolved
+  exchange is bucket 4 — nothing else to persist.
+- **Not resolvable now** (a ruling that changes the plan, a question
+  the session cannot yet answer, a new task): rewrite the anchor in
+  place — update the next-action line, or add the item under a
+  `## Late arrivals` heading with the owner's words verbatim, same
+  rules as the rest of the anchor. The resumed session consumes the
+  heading: act on the items, then fold what remains into the normal
+  sections at the next rewrite.
+
+After each fold-in, re-state readiness in one line, so the last thing
+said before the compact is always "handled or anchored". When nothing
+arrives, this step costs nothing.
