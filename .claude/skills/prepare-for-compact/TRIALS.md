@@ -71,3 +71,45 @@ the top of MEMORY.md, and this file.
 
 Experiments' first real run — with the stage6 overnight job as the
 training-shaped card — is the next trial.
+
+## Trial 3 — Experiments thread, Fable, 2026-09-21
+
+First run on the skill at 6e12ec6, the version with the consumer side
+written. State carried: tier 6 of the beam-world screen collected and
+first-read, write-up owed; three declaration and guard SHAs; a
+five-item read command; poisoned raw dirs; four owner rulings by
+quote; one promise to the owner ("Full write-up follows"). The skill
+ran twice before the compact (once by the thread, once invoked by the
+owner); the second run changed only the stamp.
+
+Resume went in the skill's order. Freshness stamp passed: origin/main
+still 6e12ec6, stamp 18:12Z equal to the file's mtime. Every exact
+string re-verified against git and the filesystem: the four SHAs
+resolve to the commits the anchor names, both done markers match the
+log tails byte for byte, the raw and poisoned paths exist, no driver
+process alive. The anchor's next-action line and the summary's next
+step agreed word for word, because the summary quoted the anchor. No
+gaps found. Zero items were summary-only.
+
+Two things this trial could not test:
+
+- **The training-shaped card never ran live.** stage6 and the meow
+  legs both finished hours before the compact, so the card on file
+  read `None running` and the alive-vs-dead test, the re-arm line and
+  the child-kill order were not exercised.
+- **Step 5 was not exercised.** Nothing arrived between the report and
+  the compact. The owner's ask ("Report on skill efficacy?") landed
+  after the compact and was answerable from the anchor's authorization
+  line ("the compact trial here").
+
+Confirmed again: the summary's injected git-status block was stale
+(its "recent commits" ended at 945933a, weeks behind). The anchor's
+"never trust a SHA written here" rule and the fetch-first resume order
+are what caught it. One reading note: the memory system's `modified`
+field on the anchor read 08:23Z while the body stamp read 18:12Z; the
+body stamp was right (mtime agrees) and the frontmatter field lags,
+which is the noise SKILL.md already names.
+
+**Patched by**: nothing. A live training card and a step-5 arrival
+remain untested; the next Experiments compact with a driver running is
+the trial for those.
