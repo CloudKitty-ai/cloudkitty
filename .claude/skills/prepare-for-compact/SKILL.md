@@ -52,7 +52,11 @@ matters into exactly one bucket:
    sub-lists: job cards, verification debt, and the scratchpad
    inventory (which scratchpad paths are still live and what each is;
    delete the dead ends now, so a resumed session cannot pick the
-   wrong file from identical-looking names).
+   wrong file from identical-looking names). An obligation is
+   in-flight state even when it produces no code: a report the owner
+   asked for, a question of hers not yet answered, a question of yours
+   she has not yet answered. Trial 2 dropped exactly these — every gap
+   it found was a dialogue obligation, none a fact about the code.
 4. **Ephemeral** — narration, dead ends, superseded reads. Dropped
    deliberately; do not persist.
 
@@ -107,6 +111,24 @@ awaiting her word. For each open ledger item: its default-if-unruled
 and needed-by. A resumed session must never treat a relay as a
 kickoff.
 
+### Open with the owner
+The dialogue ledger, both directions:
+
+- **Her asks of this session**, verbatim with the date — including
+  non-code asks (a report, an assessment, a trial protocol), which
+  the task section tends to drop because they change no files. If an
+  ask is a re-ask, record the round history: what the earlier round
+  was and how it was answered, so the resumed session neither
+  re-delivers an old answer nor treats the re-ask as new.
+- **This session's open questions to her**, verbatim. "Unsent
+  messages" below covers drafted-not-sent; this covers
+  asked-not-answered. A question she has not answered is live state,
+  and a compacted session that forgets asking it will either re-ask
+  or silently drop the decision it was blocking.
+
+Empty is a valid state; write "None" so its absence is a claim, not
+an oversight.
+
 ### Job cards
 One card per running background job, because monitors and task ids die
 with the session. Two shapes.
@@ -139,8 +161,11 @@ with the session. Two shapes.
 no done marker; they die with the shell. The risk is the opposite of a
 lost job — a stale one: a `serve.mjs` still holding its port makes the
 next probe silently serve the old build, and everything looks fine.
-Card: port, shutdown command, and which build it is serving. Prefer
-shutting servers down before compact; card only what must stay up.
+Card: port, shutdown command, which build it is serving, and who owns
+the port (`lsof -i :<port>` — PID and owning command; a listener this
+thread does not own is recorded as foreign, or it becomes a
+post-compact mystery). Prefer shutting servers down before compact;
+card only what must stay up.
 
 On resume, read the log's tail and check the markers and PID; never
 take the summary's word for a job's state.
