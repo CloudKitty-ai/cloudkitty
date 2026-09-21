@@ -166,15 +166,15 @@
   // GPU thread -- which is exactly what this measures.
   const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
 
-  async function prewarm(mode) {
-    layerCache.clear(); pondCacheByTheme.clear(); pondOut = null;
+  async function prewarm(mode, themes = ['day', 'dusk'], reset = true) {
+    if (reset) { layerCache.clear(); pondCacheByTheme.clear(); pondOut = null; }
     if (mode === 'none' || !lastGroundOpts || !lastPondArgs) return;
     const o = lastGroundOpts;
     const [ponds, po] = lastPondArgs;
     const water = ponds.map((q) => q.tiles.map((t) => `${t.x},${t.y}`).join(';')).join('|');
     // One unit of work per entry; 'spread' yields a frame between each.
     const units = [];
-    for (const theme of ['day', 'dusk']) {
+    for (const theme of themes) {
       units.push(() => layersFor(theme, o));
       units.push(() => pondLayersFor(theme, ponds, po, water));
     }
@@ -182,6 +182,8 @@
       unit();
       if (mode === 'spread') { await nextFrame(); await nextFrame(); }
     }
+    const firstLayer = layerCache.values().next().value;
+    if (firstLayer) warmSide = firstLayer.under.width;
   }
   const pondCacheByTheme = new Map();
   let pondOut = null;
@@ -309,6 +311,11 @@
   let bakeScale = 1;
   let firstSide = 0;
   let targetDevice = 0;   // device px per side; 0 = leave the shipped clamp alone
+  // The size the PREWARM actually baked at. If it disagrees with the size the
+  // crossing then draws at, every prewarmed layer was a cache miss and the
+  // burst happened again inside the run -- so the rig says so instead of
+  // quietly reporting someone else's number.
+  let warmSide = 0;
   function installBakeScale() {
     for (const m of ['bakeTileFor', 'pondBakeTileFor']) {
       const real = renderer[m] ? renderer[m].bind(renderer) : Object.getPrototypeOf(renderer)[m].bind(renderer);
@@ -328,7 +335,7 @@
   const TICK_MS = 800;
   const FROM = 256, TO = 269;   // 13 ticks of the day -> dusk fade, ~130 blend steps
 
-  async function condition(world, label, { transitions = true, bakes = true, blur = true, reuse = false, scale = 1, device = 0, flat = false, xfade = false, pond = true, warm = 'none', wash = true }) {
+  async function condition(world, label, { transitions = true, bakes = true, blur = true, reuse = false, scale = 1, device = 0, flat = false, xfade = false, pond = true, warm = 'none', wash = true, preheat = null }) {
     setTransitions(transitions);
     setBlur(blur);
     reuseCanvases = reuse;
@@ -341,13 +348,34 @@
     if (!xfade) layerCache.clear();
     targetDevice = device;
     firstSide = 0;
+    warmSide = 0;
     renderer.groundCache = null; renderer.pondCache = null;
+
+    // Settle the bake size BEFORE anything is prewarmed or counted. The layer
+    // key carries `o.tile`, and `device`/`scale` change it -- but `prewarm`
+    // reads `lastGroundOpts`, which is whatever the PREVIOUS condition drew.
+    // Prewarming against a stale tile keys every layer at the wrong size, so
+    // the burst we believe we measured is thrown away and happens again,
+    // lazily, inside the crossing. One real draw refreshes the opts.
+    const wasCrossfade = crossfade;
+    crossfade = false;
+    for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: FROM }) });
+    await new Promise(r => setTimeout(r, 32));
+    crossfade = wasCrossfade;
+    renderer.groundCache = null; renderer.pondCache = null;
+
+    // A lull bake builds the NEXT theme against a cache that already holds the
+    // current one. Preheating here -- before the counter -- makes the measured
+    // burst a single theme, which is what section 6.3 actually ships; the
+    // two-theme burst only ever happens once, on load.
+    if (preheat) await prewarm('burst', [preheat], true);
+
     const g0 = { ...wrapped.ground }, p0 = { ...wrapped.pond };
     const frames = [];
     let last = performance.now(), stop = false;
     const tick = () => { const n = performance.now(); frames.push(n - last); last = n; if (!stop) requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
-    await prewarm(warm);
+    await prewarm(warm, ['day', 'dusk'], !preheat);
     for (let t = FROM; t <= TO; t++) {
       for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: t }) });
       await new Promise(r => setTimeout(r, TICK_MS));
@@ -360,6 +388,7 @@
       janky: over(20), bad: over(33), worst: Math.round(Math.max(0, ...frames)),
       bakes: wrapped.ground.n - g0.n,
       side: firstSide || (renderer.groundCache ? renderer.groundCache.width : 0),
+      warmSide,
       bakeMs: +(wrapped.ground.ms - g0.ms).toFixed(0),
       pondMs: +(wrapped.pond.ms - p0.ms).toFixed(0),
     };
@@ -394,7 +423,8 @@
         + `<td style="padding-left:14px;text-align:right">${r.janky} (${pct(r)}%)</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bad}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.worst}ms</td>`
-        + `<td style="padding-left:14px;text-align:right">${r.side}</td>`
+        + `<td style="padding-left:14px;text-align:right">${r.side}`
+        + `${r.warmSide && r.warmSide !== r.side ? `<span style="color:#b4462f"> \u26a0warm ${r.warmSide}</span>` : ''}</td>`
         + `<td style="padding-left:14px;text-align:right">${r.bakeMs + r.pondMs}ms</td></tr>`).join('')
       + '</table>'
       + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — if the five baselines agree, the treatments are comparable; if they climb, the run drifted</div>'
@@ -415,9 +445,8 @@
     // 2048 cap together. Measured, not extrapolated from the full-res stall.
     await condition(world, '  x-fade + 2048 cap (THE RULED DESIGN)', { xfade: true, warm: 'burst', device: 2048 });
     await condition(world, 'baseline 3', {});
-    // Same cross-fade, live wash off: separates the per-frame wash from the
-    // per-frame composite. Only a timing read -- the meadow is wrong here.
-    await condition(world, '  x-fade, live wash OFF (timing only)', { xfade: true, warm: 'burst', wash: false });
+    // The recurring cost as shipped: one theme baked against a warm cache.
+    await condition(world, '  x-fade + cap, ONE theme (THE LULL BAKE)', { xfade: true, warm: 'burst', device: 2048, preheat: 'day' });
     await condition(world, 'baseline 4', {});
     await condition(world, '  FROZEN (the ceiling)', { bakes: false });
     await condition(world, 'baseline 5', {});
