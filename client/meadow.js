@@ -754,68 +754,116 @@ function blurredLayer(ctx, w, h, radius, paint) {
   ctx.restore();
 }
 
-function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
+/**
+ * Run `fn` with the meadow palette pinned to ONE pure theme, then put back
+ * whatever was there. The palette is a module global that every draw reads,
+ * so baking a named theme means borrowing it: `finally` rather than a plain
+ * restore, because a throw mid-bake would otherwise leave the whole meadow
+ * wearing the wrong hour for the rest of the session.
+ */
+function withMeadowTheme(theme, fn) {
+  const saved = MEADOW;
+  try {
+    setMeadowPalette(theme, null, 0);
+    return fn();
+  } finally {
+    MEADOW = saved;
+  }
+}
+
+/**
+ * One field-wide wash, so the whole meadow knows where the sun is. Keyed
+ * to `shadowLean` -- the same number the cat and shrub shadows read -- so
+ * the light can never disagree with itself across the world. At noon the
+ * lean is near zero and this is a faint top-to-bottom gradient; at dusk
+ * it rakes hard across the field.
+ *
+ * Its own function because it is the one part of the ground that must NOT
+ * be baked per theme. `shadowLean` moves continuously through a crossing
+ * while the layers either side of it are two fixed hours, so baking the
+ * wash in would quantise the sweep to whatever the layer cache holds. Drawn
+ * live between `under` and `over` it stays continuous and costs one
+ * gradient fill a frame.
+ */
+function drawGroundWash(ctx, { width, height, tile }) {
   const t = meadowTunables();
-  const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
+  if (typeof ctx.createLinearGradient !== 'function') return;
+  if (!(t.groundWashSun || t.groundWashShade)) return;
+  const w = width * tile;
+  const h = height * tile;
+  const lean = MEADOW.shadowLean || 0;
+  const sun = withAlpha(MEADOW.sunTint || MEADOW.glowCore, t.groundWashSun);
+  const shade = withAlpha(MEADOW.jitterShade, t.groundWashShade);
+  // The sun sits on the side the shadows point AWAY from.
+  const dx = -Math.max(-1, Math.min(1, lean));
+  const wash = ctx.createLinearGradient(
+    w * (0.5 - dx * 0.5), 0,
+    w * (0.5 + dx * 0.5), h,
+  );
+  wash.addColorStop(0, sun);
+  wash.addColorStop(0.55, withAlpha(MEADOW.sunTint || MEADOW.glowCore, 0));
+  wash.addColorStop(1, shade);
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, w, h);
+}
+
+/**
+ * `layer` splits the ground into the two halves a cross-fade needs:
+ *
+ *   'under'  tone, second tone field, jitter -- opaque, blurred, no wash
+ *   'over'   the detail scatter on transparent glass
+ *   'all'    both, with the wash between them (the default, unchanged)
+ *
+ * The split is where it is because the wash sits between the two and has
+ * to stay live (see drawGroundWash). Callers that bake per theme ask for
+ * the halves; every other caller asks for nothing and gets what shipped.
+ */
+function drawMeadowGround(ctx, { width, height, tile, cover = true, layer = 'all' }) {
+  const t = meadowTunables();
   const span = tile + TILE_BLEED * 2;
   const w = width * tile;
   const h = height * tile;
 
-  blurredLayer(ctx, w, h, (t.groundBlurTiles || 0) * tile, (g, ox, oy) => {
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
-        g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
-        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
-        // A second, BROADER tone field over the first. One grain size blurs
-        // into mush; two keeps the ground reading as painted rather than as
-        // out of focus, which is the failure mode the blur invites.
-        if (t.toneCells2) {
-          const n2 = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells2);
-          g.globalAlpha = 0.5;
-          g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n2 * ramp.length))];
+  if (layer !== 'over') {
+    const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
+    blurredLayer(ctx, w, h, (t.groundBlurTiles || 0) * tile, (g, ox, oy) => {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
+          g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
+          g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+          // A second, BROADER tone field over the first. One grain size blurs
+          // into mush; two keeps the ground reading as painted rather than as
+          // out of focus, which is the failure mode the blur invites.
+          if (t.toneCells2) {
+            const n2 = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells2);
+            g.globalAlpha = 0.5;
+            g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n2 * ramp.length))];
+            g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+            g.globalAlpha = 1;
+          }
+          // The jitter stays finer-grained than the tone -- it is the grass's
+          // own texture rather than the ground's shape -- but smoothed too,
+          // on a tighter lattice, so it grains the meadow instead of tiling it.
+          const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
+          g.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
+          g.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
           g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
           g.globalAlpha = 1;
         }
-        // The jitter stays finer-grained than the tone -- it is the grass's
-        // own texture rather than the ground's shape -- but smoothed too,
-        // on a tighter lattice, so it grains the meadow instead of tiling it.
-        const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
-        g.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
-        g.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
-        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
-        g.globalAlpha = 1;
       }
-    }
-  });
-
-  // One field-wide wash, so the whole meadow knows where the sun is. Keyed
-  // to `shadowLean` -- the same number the cat and shrub shadows read -- so
-  // the light can never disagree with itself across the world. At noon the
-  // lean is near zero and this is a faint top-to-bottom gradient; at dusk
-  // it rakes hard across the field.
-  if (typeof ctx.createLinearGradient === 'function' && (t.groundWashSun || t.groundWashShade)) {
-    const lean = MEADOW.shadowLean || 0;
-    const sun = withAlpha(MEADOW.sunTint || MEADOW.glowCore, t.groundWashSun);
-    const shade = withAlpha(MEADOW.jitterShade, t.groundWashShade);
-    // The sun sits on the side the shadows point AWAY from.
-    const dx = -Math.max(-1, Math.min(1, lean));
-    const wash = ctx.createLinearGradient(
-      w * (0.5 - dx * 0.5), 0,
-      w * (0.5 + dx * 0.5), h,
-    );
-    wash.addColorStop(0, sun);
-    wash.addColorStop(0.55, withAlpha(MEADOW.sunTint || MEADOW.glowCore, 0));
-    wash.addColorStop(1, shade);
-    ctx.fillStyle = wash;
-    ctx.fillRect(0, 0, w, h);
+    });
   }
 
-  drawGroundDetail(ctx, { width, height, tile, t });
-  // Ground cover is drawn here only for callers that are not sorting
-  // it themselves (the lab, the harness). render.js passes false and
-  // draws it interleaved with the cats -- see bushesFor/drawBushAt.
-  if (cover) drawGroundCover(ctx, { width, height, tile, t });
+  if (layer === 'all') drawGroundWash(ctx, { width, height, tile });
+
+  if (layer !== 'under') {
+    drawGroundDetail(ctx, { width, height, tile, t });
+    // Ground cover is drawn here only for callers that are not sorting
+    // it themselves (the lab, the harness). render.js passes false and
+    // draws it interleaved with the cats -- see bushesFor/drawBushAt.
+    if (cover) drawGroundCover(ctx, { width, height, tile, t });
+  }
 }
 
 /**

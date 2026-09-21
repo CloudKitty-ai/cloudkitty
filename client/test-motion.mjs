@@ -9845,16 +9845,23 @@ check('the wiring that would ship inert is asserted, not assumed', () => {
 check('the pond cache keys on everything it bakes', () => {
   // Two independent staleness bugs, found a day apart. The PALETTE is
   // baked into the shore and lip layers (fixed on main); the TILE is what
-  // the paths are built at (the camera's doing). Either one missing from
-  // the key is a silent wrong-looking pond, so both are pinned here --
-  // and a merge that keeps one side of this line is exactly how one of
-  // them would get dropped.
+  // the paths are built at (the camera's doing). Either one missing is a
+  // silent wrong-looking pond.
+  //
+  // The palette is no longer in this signature and must not come back: it
+  // keyed the whole cache to the blend STEP, so a crossing rebuilt the
+  // shorelines 192 times. It is keyed per THEME instead -- same guarantee,
+  // two bakes -- and `the pond layers hold one pair per hour` in
+  // test-meadow.mjs is the state check that the paint still follows the
+  // hour. What is left here is the GEOMETRY, which is what the signature
+  // is for.
   const body = renderSrc.slice(renderSrc.indexOf('drawPondLayer(world, view) {'));
   const fn = body.slice(0, body.indexOf('\n  }'));
   const sig = fn.match(/const signature = `([^`]*)`/);
   assert(sig, 'the pond signature is no longer a template literal');
-  assert(/\$\{this\.paletteKey\}/.test(sig[1]), 'the pond signature dropped the palette');
+  assert(!/paletteKey/.test(sig[1]), 'the pond signature keys on the blend step again');
   assert(/\$\{bakeTile\}/.test(sig[1]), 'the pond signature dropped the tile');
+  assert(/\$\{water\}/.test(sig[1]), 'the pond signature dropped the water');
   assert(/buildPondPath\(tiles, bakeTile\)/.test(fn), 'pond paths are not built at the bake tile');
 });
 
@@ -10401,8 +10408,15 @@ check('the fit, the anchor and the bake read ONE derivation', () => {
   const baked = WorldRenderer.prototype.bakeTileFor.call(
     { cssWidth: 1000, dpr: 1, camera: cam }, world,
   );
-  assert(baked === 1000 / floorTiles,
-    `the bake used ${baked}px, not the floor's ${1000 / floorTiles}px`);
+  // ...held under GROUND_BAKE_MAX_PX, which section 6.2 of
+  // CROSSING-BAKES.md dropped to 2048 and which binds at this width. Read
+  // off the source rather than repeated here: a copy of the constant would
+  // agree with a broken copy of it.
+  const cap = Number(renderSrc.match(/GROUND_BAKE_MAX_PX = (\d+)/)[1]);
+  const want = Math.min(1000 / floorTiles, cap / 1 / Math.max(world.width, world.height));
+  assert(cap / 1 / Math.max(world.width, world.height) < 1000 / floorTiles,
+    'the cap does not bind at this width, so this proves nothing about it');
+  assert(baked === want, `the bake used ${baked}px, not ${want}px`);
 });
 
 check('a fit that binds keeps every kitty clear of the frame edge', () => {
@@ -10896,14 +10910,28 @@ check('the pond bake leaves the camera-off state alone, at every dpr', () => {
     assert(pond === tile, `off at tile ${tile} dpr ${dpr}: pond bakes at ${pond}`);
     assert(pond === r.bakeTileFor(world), 'the pond and ground bakes disagree while off');
   }
-  // With the camera ON the bound applies, which is the whole point of it.
+  // With the camera ON the pond bound used to be the TIGHTER of the two,
+  // because a blurred band carries a coarse bake better than grass does.
+  // Section 6.2 dropped GROUND_BAKE_MAX_PX to 2048, which is exactly
+  // POND_BAKE_MAX_PX, so the pond clamp can no longer bind: the ground is
+  // now as coarse as the pond. That asymmetry is worth restoring or
+  // retiring deliberately -- OPEN, owner's call -- and pinning the
+  // equality here means moving either ceiling reddens this instead of
+  // silently changing which layer governs.
   const cam = new api.Camera();
   cam.on = true;
   const on = Object.assign(Object.create(WorldRenderer.prototype), {
     cssWidth: 1200, dpr: 2, camera: cam,
   });
-  assert(on.pondBakeTileFor(world) < on.bakeTileFor(world),
-    'the pond bound does nothing when the camera is on');
+  const ground = Number(renderSrc.match(/GROUND_BAKE_MAX_PX = (\d+)/)[1]);
+  const pondCap = Number(renderSrc.match(/POND_BAKE_MAX_PX = (\d+)/)[1]);
+  assert(pondCap <= ground, `the pond ceiling ${pondCap} is above the ground's ${ground}`);
+  assert(on.pondBakeTileFor(world) <= on.bakeTileFor(world),
+    'the pond bakes COARSER than the ground, which its bound exists to prevent');
+  assert(
+    (pondCap === ground) === (on.pondBakeTileFor(world) === on.bakeTileFor(world)),
+    'the two ceilings and the two bakes disagree about whether the pond bound binds',
+  );
 });
 
 check('the pond layers blit only what is on screen', () => {
@@ -13177,14 +13205,14 @@ check('a height-only resize keeps the baked ground; a width change still drops i
   // can least afford it.
   //
   // Safe to skip because neither cache is keyed on the canvas: the ground
-  // checks `dpr|bakeTile|width` against its own dataset, the ponds sign
-  // `paletteKey|bakeTile|water`. This asserts the SKIP, which is the half a
+  // keys each baked pair on `theme|bakeTile|dpr`, the ponds sign
+  // `bakeTile|water`. This asserts the SKIP, which is the half a
   // mutation can reach -- their own signatures already have their own checks.
   const world = { width: 20, height: 20 };
   const first = replayLayout(LANDSCAPE, world, cameraOn(true));
   const r = first.renderer;
-  const baked = { ground: 'ground-bake', pond: 'pond-bake' };
-  r.groundCache = baked.ground;
+  const baked = { ground: new Map([['day|57|2', 'a baked pair']]), pond: 'pond-bake' };
+  r.groundLayers = baked.ground;
   r.pondCache = baked.pond;
 
   // A taller large viewport at the same width -- a short desktop window
@@ -13198,7 +13226,7 @@ check('a height-only resize keeps the baked ground; a width change still drops i
   assert(taller.cssHeight !== first.cssHeight,
     `the height did not move (${taller.cssHeight}), so this proves nothing`);
   assert(taller.cssWidth === first.cssWidth, 'the width moved too -- not a height-only resize');
-  assert(r.groundCache === baked.ground,
+  assert(r.groundLayers === baked.ground,
     'a height-only resize threw the baked ground away -- that is a full re-bake per scroll frame');
   assert(r.pondCache === baked.pond, 'a height-only resize threw the shorelines away');
   assert(r.canvas.height === Math.floor(taller.cssHeight * LANDSCAPE.dpr),
@@ -13209,7 +13237,7 @@ check('a height-only resize keeps the baked ground; a width change still drops i
   const narrower = replayLayout(
     { ...LANDSCAPE, docClientWidth: 600, layoutClientWidth: 580 }, world, cameraOn(true), r);
   assert(narrower.cssWidth !== first.cssWidth, 'the width did not move, so this proves nothing');
-  assert(r.groundCache === null && r.pondCache === null,
+  assert(r.groundLayers.size === 0 && r.pondCache === null,
     'a width change kept the caches, so the ground is baked at the previous tile');
 });
 

@@ -237,6 +237,22 @@ function phaseBlendFor(tick) {
   return { theme: 'day', next: null, step: 0 };
 }
 
+/**
+ * The hour AFTER the one `tick` sits in -- what a quiet tick should be
+ * baking. `phaseBlendFor` only names the next phase once a fade has
+ * started, which is too late: the point is to have it already baked by
+ * then (CROSSING-BAKES.md section 6.3).
+ */
+function nextPhaseTheme(tick) {
+  let t = Math.max(0, tick) % WORLD_DAY_TICKS;
+  for (let i = 0; i < WORLD_DAY_PHASES.length; i += 1) {
+    const [, span] = WORLD_DAY_PHASES[i];
+    if (t < span) return WORLD_DAY_PHASES[(i + 1) % WORLD_DAY_PHASES.length][0];
+    t -= span;
+  }
+  return WORLD_DAY_PHASES[0][0];
+}
+
 let themeMode = 'auto'; // 'auto' | 'day' | 'dusk' | 'night'
 let currentTheme = null; // the visual theme actually applied
 let currentBlend = null; // and the quantised blend key it was applied at
@@ -405,13 +421,23 @@ function applyTheme(subTick = 0, repaint = true) {
 
   setMeadowPalette(blend.theme, blend.next, blend.step);
   setPropPalette(blend.theme, blend.next, blend.step);
-  // Both caches bake palette colours into themselves. The ground is
-  // nulled outright; the pond layers carry this key in their own
-  // signature instead, so they cannot go stale by someone forgetting a
-  // line here -- which is how they held daylight shore paint through
-  // dusk and night until 2026-08-17.
-  renderer.groundCache = null; // the cache bakes the palette; rebake
+  // Neither cache is thrown away here any more. Both bake palette colours
+  // into themselves, and this line used to null the ground on every one of
+  // a crossing's 192 steps -- 184 rebakes where two would do, which is the
+  // whole of the crossing lag (CROSSING-BAKES.md). The renderer holds one
+  // baked pair per HOUR instead and cross-fades them, so what it needs from
+  // here is the blend itself, not an invalidation.
+  renderer.blend = blend;
   renderer.paletteKey = key;
+  // Bake the hour after this one now, while nothing is crossing. It costs
+  // one stall of a few hundred ms, and this is the whole reason for
+  // choosing where it lands: settled phases are long and quiet, and the
+  // alternative is paying it in the first frame of a fade. Only on the
+  // world's own clock -- a hand-picked theme never crosses, so there is
+  // nothing to be ready for. Section 6.3.
+  if (!blend.next && themeMode === 'auto' && latestWorld) {
+    renderer.warmGroundLayers(latestWorld, nextPhaseTheme(latestWorld.tick ?? 0));
+  }
   // Only when nothing else will paint. `redraw` is a STILL frame -- poses
   // frozen, `progress` forced to 1, cats at their served tile rather than
   // eased toward it -- which is right for a viewer who gets no rAF loop and

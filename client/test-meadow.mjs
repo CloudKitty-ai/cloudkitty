@@ -962,7 +962,8 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
   );
   const sizes = renderer.pondCache.ponds.map((p) => p.tiles.length).sort();
   assert(String(sizes) === '1,1,1,4', `one lake and three lone tiles, got ${sizes}`);
-  assert(renderer.pondCache.layers, 'and the depth layers baked');
+  const pair = [...renderer.pondCache.byTheme.values()][0];
+  assert(pair && pair.shore && pair.lip, 'and the depth layers baked');
 });
 
 /* ---- a cat IN the water, drawn as a whole frame ----
@@ -2372,7 +2373,7 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   };
   const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
 
-  renderer.paletteKey = 'day>dusk@0';
+  renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
   renderer.drawPondLayer(world, view);
   const first = renderer.pondCache;
   assert(first, 'no pond cache was built at all');
@@ -2381,22 +2382,36 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'the cache rebuilt with nothing changed');
 
-  // The palette steps. `applyTheme` publishes the key it already computes
-  // for its own early-return, and the layers key on it.
-  renderer.paletteKey = 'day>dusk@0.5';
+  // The palette steps. This used to throw the shorelines away and rebuild
+  // them -- correct paint, bought 192 times a crossing, which is most of
+  // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now and the
+  // two hours are baked once each and cross-faded.
+  renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
   renderer.drawPondLayer(world, view);
-  assert(renderer.pondCache !== first, 'the pond layers survived a palette step');
+  assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
+  assert(
+    renderer.pondCache.byTheme.size === 2,
+    `mid-fade should hold both hours, holds ${renderer.pondCache.byTheme.size}`,
+  );
+  // ...and the paint is still per hour, which is the bug the palette key
+  // was added for on 2026-08-17: shore and lip must not stay in daylight.
+  const [day, dusk] = [...renderer.pondCache.byTheme.values()];
+  assert(day.shore !== dusk.shore, 'both hours share one shore canvas');
 });
 
-check('applyTheme publishes the palette key the pond layers key on', () => {
+check('applyTheme publishes the blend the ground and pond layers read', () => {
   // Two halves in two files, and the failure mode if they drift is silent
-  // -- the layers simply never rebuild. Worth pinning the join.
+  // -- the meadow simply stops crossing. Worth pinning the join.
   const app = readFileSync(join(here, 'app.js'), 'utf8');
-  assert(/renderer\.paletteKey = key;/.test(app), 'applyTheme no longer publishes the palette key');
+  assert(/renderer\.blend = blend;/.test(app), 'applyTheme no longer publishes the blend');
+  assert(
+    !/renderer\.groundCache = null/.test(app),
+    'applyTheme nulls the ground again -- that is the 184-bake crossing back',
+  );
   const render = readFileSync(join(here, 'render.js'), 'utf8');
   assert(
-    /const signature = `\$\{this\.paletteKey\}\|/.test(render),
-    'the pond signature no longer carries the palette key',
+    /this\.blend \|\| \{ theme: this\.theme/.test(render),
+    'the renderer no longer reads the published blend',
   );
 });
 
@@ -2451,12 +2466,53 @@ check('camera movement never rebakes the ground', () => {
   let last = null;
   sweep(r, world, () => {
     r.blitGround(world);
-    if (r.groundCache !== last) {
+    const pair = [...r.groundLayers.values()][0];
+    if (pair !== last) {
       bakes += 1;
-      last = r.groundCache;
+      last = pair;
     }
   });
   assert(bakes === 1, `the ground rebaked ${bakes} times across a zoom sweep`);
+});
+
+check('a crossing bakes each hour ONCE, not once per blend step', () => {
+  // The defect this path exists to remove. `applyTheme` nulled the ground
+  // on every quantised step, so a 192-step crossing baked the meadow 184
+  // times: on the phone that was ~60 consecutive frames over 33ms and
+  // roughly a fifth of the frame rate, for the length of the fade
+  // (CROSSING-BAKES.md sections 2-3). Two hours, two baked pairs, however
+  // many steps sit between them.
+  const r = camRenderer();
+  r.camera.on = true;
+  const world = camWorldFor();
+  const seen = new Set();
+  for (let i = 0; i <= 192; i += 1) {
+    r.blend = { theme: 'day', next: 'dusk', step: i / 192 };
+    r.blitGround(world);
+    for (const pair of r.groundLayers.values()) seen.add(pair);
+  }
+  assert(seen.size === 2, `the crossing baked ${seen.size} pairs across 193 steps, not 2`);
+  assert(r.groundLayers.size === 2, `it is holding ${r.groundLayers.size} hours, not 2`);
+});
+
+check('the sun wash is live, in neither baked half', () => {
+  // `shadowLean` moves continuously through a crossing while the layers
+  // either side of it are two fixed hours, so a baked wash would quantise
+  // the sweep to whatever the cache holds -- and the lean is the same
+  // number the cat and shrub shadows read, so it would disagree with them.
+  const gradientsFor = (layer) => {
+    const log = [];
+    api.drawMeadowGround(guardCtx(log), { width: 6, height: 6, tile: 10, cover: false, layer });
+    return log.filter((e) => e[0] === 'createLinearGradient').length;
+  };
+  // The halves draw their own gradients (blooms, shrubs), so the claim is
+  // the DIFFERENCE: the whole-ground draw makes exactly one gradient the
+  // two halves between them do not, and that one is the wash.
+  const under = gradientsFor('under');
+  const over = gradientsFor('over');
+  const all = gradientsFor('all');
+  assert(all === under + over + 1,
+    `whole ground made ${all} gradients, the halves ${under} + ${over} -- the wash is in a half`);
 });
 
 check('camera movement never rebuilds the pond layers', () => {
@@ -2502,9 +2558,10 @@ check('the ground the camera bakes is the WORLD, at every zoom', () => {
     const realGround = globalThis.drawMeadowGround;
     void realGround;
     sweep(r, world, () => {
-      r.groundCache = null; // force the bake so its arguments can be read
+      r.groundLayers = new Map(); // force the bake so its arguments can be read
       r.blitGround(world);
-      seen.push({ w: r.groundCache.width, h: r.groundCache.height, tile: Number(r.groundCache.dataset.bakeTile) });
+      const baked = [...r.groundLayers.values()][0];
+      seen.push({ w: baked.under.width, h: baked.under.height, tile: baked.bakeTile });
     });
   } finally {
     globalThis.document.createElement = realCreate;
