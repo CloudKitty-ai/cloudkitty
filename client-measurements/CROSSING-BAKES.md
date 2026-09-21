@@ -391,6 +391,22 @@ making the stall and the memory smaller again:
 - **Why the pond is disproportionate.** Four allocations vs one, eight blurs
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
+
+  > **Followed up 2026-09-21 (`client-pond-tint`).** Every theme-dependent
+  > value `buildPondLayers` read was a flat colour, so the bake is now a
+  > white MASK and the hour is a tint applied at blit. Pond bakes per
+  > crossing: 2-3 -> 0. Persistent canvases: 8 -> 4. Measured against this
+  > branch with `crossing-shots`: settled hour mean 0.01/255 (max 1), and
+  > 0.09-0.24 through the fade -- an order of magnitude inside the
+  > cross-fade's own 0.56 and 1.19-1.42.
+  >
+  > ⚠ **This does NOT retire `POND_BAKE_MAX_PX`,** and an earlier scope of
+  > mine said it would. The bound's stated premise is the FOUR canvases a
+  > single bake allocates at once (two persist, two scratch), and that peak
+  > is unchanged -- `buildPondLayers` still needs a scratch and a mask to
+  > isolate each pond's composite. What changed is how many persist and how
+  > often the peak is paid. The bound keeps its argument; the equality stays
+  > pinned in test-motion.
 - **Whether the pond needs the wash treatment too.** It has no `shadowLean`
   in it, so probably not, but it was never checked at every blend position.
 
