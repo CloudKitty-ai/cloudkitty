@@ -212,10 +212,10 @@ folded in first", not a bare "ready". The user runs `/compact`.
 The report is not the end of the skill. Anything that lands between
 the compact-ready report and the compact itself — a question, a
 ruling, a peer message — exists only in the conversation, and the
-conversation is what the compact is about to destroy. Trial 1 lost
+conversation is what the compact is about to destroy. Trial 1 exposed
 exactly this: the owner asked a question after the report, the compact
 fired before the answer went out, and the pending question survived
-nowhere durable.
+nowhere durable — only the summary happened to carry it.
 
 The moment a message arrives, the session is no longer compact-ready.
 Triage the message with the step 1 buckets; in practice it collapses
@@ -227,7 +227,9 @@ to two moves:
   the session cannot yet answer, a new task): rewrite the anchor in
   place — update the next-action line, or add the item under a
   `## Late arrivals` heading with the owner's words verbatim, same
-  rules as the rest of the anchor.
+  rules as the rest of the anchor. The resumed session consumes the
+  heading: act on the items, then fold what remains into the normal
+  sections at the next rewrite.
 
 After each fold-in, re-state readiness in one line, so the last thing
 said before the compact is always "handled or anchored". When nothing
