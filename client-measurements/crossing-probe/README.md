@@ -37,6 +37,26 @@ comparable.
 clean, so every row lands at 0-3 janky frames and nothing separates. Use it
 to check the rig renders correctly, then measure on Safari.
 
+## ⚠ Written against the PRE-cross-fade renderer
+
+The conditions below were built to measure the defect. The fix has landed
+(`client-crossing-xfade`), and against that renderer most of them no longer
+mean what their labels say:
+
+| flag | state after the fix |
+|---|---|
+| baseline (no flags) | is now the cross-fade itself, not the defect |
+| `xfade: true` | re-implements what the renderer already does |
+| `warm: 'burst' \| 'spread'` | the renderer prewarms in the lull instead |
+| `bakes: false` | froze `renderer.groundCache`, which no longer exists |
+| `pond: false` | froze `paletteKey`, which no longer keys the pond |
+
+`device`, `scale`, `flat`, `reuse` and `blur` still do what they say.
+
+To measure the defect again, run this against `origin/main` before the
+cross-fade merged (`9b06c4f`). To measure the SHIPPED path, the rig needs
+the freeze rewritten onto `groundLayers` and `blend` -- not done.
+
 ## The conditions
 
 Edit the list at the bottom of `probe.js`. Each takes flags:

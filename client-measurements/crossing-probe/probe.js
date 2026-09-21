@@ -468,7 +468,7 @@
   // Self-start once the client has a world, so opening the URL is the whole
   // interaction -- no console, no clicking.
   const boot = setInterval(async () => {
-    if (typeof renderer === 'undefined' || !renderer.groundCache) return;
+    if (typeof renderer === 'undefined' || !renderer.groundLayers?.size) return;
     clearInterval(boot);
     const w = await (await fetch('/world')).json();
     window.__runProbe(w);
