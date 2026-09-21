@@ -1570,27 +1570,31 @@ class WorldRenderer {
   }
 
   /**
-   * The pond's baked pair for the hour, cross-faded when a fade is in
-   * progress. The blurred silhouettes are the expensive half and they are
-   * per theme, so a step composites two FINISHED pairs into a reused
-   * output instead of blurring the shorelines again -- which is what the
-   * palette-keyed signature used to do, 192 times a crossing.
+   * The pond's layers for the hour. The blurred silhouettes are the
+   * expensive half, and they are now theme-INDEPENDENT: `buildPondLayers`
+   * bakes white masks, because every value it ever read that varied by hour
+   * was a flat colour. So the bake happens once per water change, and an
+   * hour -- or any point between two hours -- is that mask tinted.
+   *
+   * Cross-fading two tinted copies of one mask and tinting once with the
+   * lerped colour are the same arithmetic at fixed alpha, so this is exact
+   * rather than close: one composite and one rounding instead of two.
    */
   pondLayersFor(blend) {
     const cache = this.pondCache;
-    const bake = (theme) => {
-      const hit = cache.byTheme.get(theme);
-      if (hit) return hit;
-      const built = withMeadowTheme(theme, () => buildPondLayers(cache.ponds, cache.opts));
-      while (cache.byTheme.size >= 3) {
-        cache.byTheme.delete(cache.byTheme.keys().next().value);
-      }
-      cache.byTheme.set(theme, built);
-      return built;
-    };
-    const A = bake(blend.theme);
-    if (!blend.next || !(blend.step > 0)) return A;
-    const B = bake(blend.next);
+    if (!cache.masks) cache.masks = buildPondLayers(cache.ponds, cache.opts);
+    const masks = cache.masks;
+    const read = (theme) => withMeadowTheme(theme, () => ({
+      shore: MEADOW.pondShore,
+      lip: MEADOW.pondLip,
+    }));
+    const near = read(blend.theme);
+    const far = blend.next && blend.step > 0 ? read(blend.next) : null;
+    const paint = far
+      ? { shore: mixPaletteColor(near.shore, far.shore, blend.step),
+          lip: mixPaletteColor(near.lip, far.lip, blend.step) }
+      : near;
+
     const w = cache.opts.widthPx;
     const h = cache.opts.heightPx;
     if (!cache.out || cache.out.shore.width !== w || cache.out.shore.height !== h) {
@@ -1601,20 +1605,37 @@ class WorldRenderer {
         return c;
       };
       cache.out = { shore: mk(), lip: mk(), dpr: cache.opts.dpr };
+      cache.outKey = null;
     }
-    for (const which of ['shore', 'lip']) {
+    // A settled hour holds one colour for ~256 ticks. Re-tinting every frame
+    // would be strictly more per-frame work than the per-theme bakes this
+    // replaces, which only ever composited while a fade was running. Keyed
+    // on the paint, a settled hour tints once and a fade tints per step --
+    // the same count the cross-fade did, doing less each time.
+    const key = `${paint.shore}|${paint.lip}`;
+    if (cache.outKey === key) return cache.out;
+
+    for (const [which, mask, colour] of [
+      ['shore', masks.shoreMask, paint.shore],
+      ['lip', masks.lipMask, paint.lip],
+    ]) {
       const g = cache.out[which].getContext('2d');
-      // A context-less stand-in (the harness) gets the near hour rather
-      // than a blank pond: unfaded is wrong by a step, blank is wrong by
-      // a pond.
-      if (!g) return A;
+      // A context-less stand-in (the harness) gets the untinted mask rather
+      // than a blank pond: white is wrong by a colour, blank is wrong by a
+      // pond.
+      if (!g) return { shore: masks.shoreMask, lip: masks.lipMask, dpr: cache.opts.dpr };
       g.setTransform(1, 0, 0, 1, 0, 0);
+      g.globalCompositeOperation = 'source-over';
       g.clearRect(0, 0, w, h);
-      g.drawImage(A[which], 0, 0);
-      g.globalAlpha = blend.step;
-      g.drawImage(B[which], 0, 0);
-      g.globalAlpha = 1;
+      g.drawImage(mask, 0, 0);
+      // Replace the colour, keep the alpha. That alpha is the whole bake --
+      // the blur, the punched silhouette, the ring outside the water.
+      g.globalCompositeOperation = 'source-in';
+      g.fillStyle = colour;
+      g.fillRect(0, 0, w, h);
+      g.globalCompositeOperation = 'source-over';
     }
+    cache.outKey = key;
     return cache.out;
   }
 
@@ -1681,8 +1702,9 @@ class WorldRenderer {
           heightPx: Math.round(world.height * bakeTile * dpr),
           dpr,
         },
-        byTheme: new Map(),
+        masks: null,
         out: null,
+        outKey: null,
       };
     }
     const blend = this.blend || { theme: this.theme || 'day', next: null, step: 0 };

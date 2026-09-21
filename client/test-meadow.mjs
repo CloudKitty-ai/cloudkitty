@@ -164,7 +164,7 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' buildPondPath, buildPondLayers, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
   ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
 const api = eval(src + EXPORTS);
@@ -962,8 +962,8 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
   );
   const sizes = renderer.pondCache.ponds.map((p) => p.tiles.length).sort();
   assert(String(sizes) === '1,1,1,4', `one lake and three lone tiles, got ${sizes}`);
-  const pair = [...renderer.pondCache.byTheme.values()][0];
-  assert(pair && pair.shore && pair.lip, 'and the depth layers baked');
+  const masks = renderer.pondCache.masks;
+  assert(masks && masks.shoreMask && masks.lipMask, 'and the depth masks baked');
 });
 
 /* ---- a cat IN the water, drawn as a whole frame ----
@@ -2388,20 +2388,41 @@ check('the pond layers rebuild when the palette steps, not only when the water m
 
   // The palette steps. This used to throw the shorelines away and rebuild
   // them -- correct paint, bought 192 times a crossing, which is most of
-  // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now and the
-  // two hours are baked once each and cross-faded.
+  // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now, and the
+  // bake is a white MASK that no hour owns: an hour is that mask tinted.
+  const baked = renderer.pondCache.masks;
   renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
   renderer.paletteKey = 'day>dusk@0.5';
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
-  assert(
-    renderer.pondCache.byTheme.size === 2,
-    `mid-fade should hold both hours, holds ${renderer.pondCache.byTheme.size}`,
-  );
-  // ...and the paint is still per hour, which is the bug the palette key
-  // was added for on 2026-08-17: shore and lip must not stay in daylight.
-  const [day, dusk] = [...renderer.pondCache.byTheme.values()];
-  assert(day.shore !== dusk.shore, 'both hours share one shore canvas');
+  assert(renderer.pondCache.masks === baked, 'a palette step rebuilt the pond MASKS');
+
+  // ...and the paint still moves with the hour, which is the bug the palette
+  // key was added for on 2026-08-17: shore and lip must not stay in
+  // daylight. The mechanism changed; the requirement did not. Read the
+  // colour the tint actually laid down, at each end of the fade.
+  const shoreAt = (step) => {
+    const log = [];
+    renderer.pondCache.out = null;   // force the tint to run
+    renderer.pondCache.outKey = null;
+    const realCreate = globalThis.document.createElement;
+    globalThis.document.createElement = (tag) => {
+      const c = realCreate(tag);
+      if (tag === 'canvas') c.getContext = () => guardCtx(log);
+      return c;
+    };
+    try {
+      renderer.pondLayersFor({ theme: 'day', next: 'dusk', step });
+    } finally {
+      globalThis.document.createElement = realCreate;
+    }
+    const fills = log.filter((e) => e[0] === 'set' && e[1] === 'fillStyle').map((e) => e[2]);
+    return fills[0];
+  };
+  const atDay = shoreAt(0);
+  const atDusk = shoreAt(1);
+  assert(atDay && atDusk, `the tint laid down no colour: ${atDay} / ${atDusk}`);
+  assert(atDay !== atDusk, `shore stays in one hour's paint across the fade (${atDay})`);
 });
 
 check('applyTheme publishes the blend the ground and pond layers read', () => {
@@ -2498,6 +2519,81 @@ check('a crossing bakes each hour ONCE, not once per blend step', () => {
   }
   assert(seen.size === 2, `the crossing baked ${seen.size} pairs across 193 steps, not 2`);
   assert(r.groundLayers.size === 2, `it is holding ${r.groundLayers.size} hours, not 2`);
+});
+
+check('the pond bake is a MASK -- no hour is painted into it', () => {
+  // The whole basis of tinting at blit. `buildPondLayers` used to read
+  // MEADOW.pondShore and MEADOW.pondLip, which is why it had to run once
+  // per hour; every other value it touches is geometry. Bake it under two
+  // hours as far apart as the palette goes and the drawing must be
+  // identical, command for command -- if an hour leaks back in, it lands
+  // here as a different fill.
+  const bakeUnder = (theme) => {
+    const log = [];
+    const realCreate = globalThis.document.createElement;
+    globalThis.document.createElement = (tag) => {
+      const c = realCreate(tag);
+      if (tag === 'canvas') c.getContext = () => guardCtx(log);
+      return c;
+    };
+    try {
+      api.setMeadowPalette(theme, null, 0);
+      const tiles = [{ x: 1, y: 1 }, { x: 2, y: 1 }];
+      api.buildPondLayers(
+        [{ tiles, path: api.buildPondPath(tiles, 10) }],
+        { tile: 10, widthPx: 80, heightPx: 80, dpr: 1 },
+      );
+    } finally {
+      globalThis.document.createElement = realCreate;
+      api.setMeadowPalette('day', null, 0);
+    }
+    return log;
+  };
+  const day = JSON.stringify(bakeUnder('day'));
+  const night = JSON.stringify(bakeUnder('night'));
+  assert(day.length > 0, 'the bake drew nothing at all');
+  assert(day === night, 'the pond bake differs by hour -- a palette colour is baked in');
+});
+
+check('a crossing tints the pond, it does not re-bake it', () => {
+  // The pond half of the same claim the ground guard above makes. The bake
+  // is per WATER CHANGE now, not per hour and emphatically not per step:
+  // 192 steps between two hours must not touch buildPondLayers once.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  renderer.dpr = 1;
+  const world = {
+    width: 20,
+    height: 20,
+    elements: [
+      { kind: 'water', id: 1, pos: { x: 5, y: 5 } },
+      { kind: 'water', id: 2, pos: { x: 6, y: 5 } },
+    ],
+  };
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+  renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
+  renderer.drawPondLayer(world, view);
+  const masks = renderer.pondCache.masks;
+  assert(masks, 'no masks were baked at all');
+
+  const tints = new Set();
+  for (let i = 0; i <= 192; i += 1) {
+    renderer.blend = { theme: 'day', next: 'dusk', step: i / 192 };
+    renderer.drawPondLayer(world, view);
+    tints.add(renderer.pondCache.outKey);
+  }
+  assert(
+    renderer.pondCache.masks === masks,
+    'the crossing re-baked the pond masks',
+  );
+  // 193 steps yield ~76 distinct paints, not 193: `mixPaletteColor` lands on
+  // 8-bit hex, so neighbouring steps round together. That is the colour
+  // depth rather than a defect -- and it means the per-theme composite this
+  // replaces was paying 192 times for ~76 distinguishable results.
+  assert(tints.size > 10, `the tint is not tracking the fade, only ${tints.size} distinct paints`);
+  assert(tints.size < 193, `the tint is not being reused at all: ${tints.size} paints in 193 steps`);
 });
 
 check('the sun wash is live, in neither baked half', () => {

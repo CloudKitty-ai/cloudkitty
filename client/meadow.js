@@ -2128,6 +2128,12 @@ function simplifyLoop(points) {
  * two `drawImage` calls.
  */
 function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
+  // MASKS, not paint. Every theme-dependent value this function ever read
+  // was a flat colour -- `pondShore` and `pondLip`, hex in all four
+  // palettes -- so the layers differ between hours by a uniform tint and
+  // nothing else. Baking them white and tinting at blit makes the whole
+  // bake theme-independent: one per water change instead of one per hour,
+  // and no blur runs during a crossing at all.
   const t = meadowTunables();
   const make = () => {
     const c = document.createElement('canvas');
@@ -2159,7 +2165,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     // Shore: pale everywhere the water is, then the blurred silhouette
     // punched out of it. What survives is strongest where it is shallow.
     clear(scratch);
-    scratch.g.fillStyle = MEADOW.pondShore;
+    scratch.g.fillStyle = '#fff';
     scratch.g.fill(pond.path);
     scratch.g.save();
     scratch.g.globalCompositeOperation = 'destination-out';
@@ -2177,7 +2183,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     scratch.g.restore();
     scratch.g.save();
     scratch.g.globalCompositeOperation = 'source-in';
-    scratch.g.fillStyle = MEADOW.pondLip;
+    scratch.g.fillStyle = '#fff';
     scratch.g.fillRect(0, 0, cssW, cssH);
     scratch.g.globalCompositeOperation = 'destination-out';
     scratch.g.fill(pond.path);
@@ -2185,7 +2191,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     lip.g.drawImage(scratch.c, 0, 0, cssW, cssH);
   }
   // The scratches are the peak, not the resting cost; drop them here.
-  return { shore: shore.c, lip: lip.c, dpr };
+  return { shoreMask: shore.c, lipMask: lip.c, dpr };
 }
 
 /**
