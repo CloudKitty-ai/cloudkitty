@@ -110,6 +110,14 @@ field on the anchor read 08:23Z while the body stamp read 18:12Z; the
 body stamp was right (mtime agrees) and the frontmatter field lags,
 which is the noise SKILL.md already names.
 
+One inaccuracy surfaced while acting on the anchor, after the report
+above was filed: the next-action line paraphrased the distress flag as
+"all in seat 1", and the raw says 10 of 16 (the rest at seat 2). A
+paraphrase of data is not an exact string, and the resume re-derived
+the number from the raw before writing anything, so nothing was built
+on it; recorded because the anchor's data claims deserve the same
+distrust as its SHAs.
+
 **Patched by**: nothing. A live training card and a step-5 arrival
 remain untested; the next Experiments compact with a driver running is
 the trial for those.

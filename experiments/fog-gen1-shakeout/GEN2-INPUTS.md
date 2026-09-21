@@ -364,7 +364,14 @@ is no longer load-bearing.
   **RULED 2026-09-18 (owner, #390): "a) yes, b) yes-3000"**: off-beam
   sleep relief 5 → 3 and beam `ttl` 300 → 3,000 for the Gen 2 world.
   (c), the count, under discussion on the issue (the owner is between 6
-  and 7, with `max` 8). Notes for the count: only the nearest two beams
+  and 7, with `max` 8). **Tier 6 read (2026-09-21, F-051): under floor
+  15 count is a welfare step at six and flat past it (five costs a
+  learned mind about 0.6, six to eight are one level, frozen minds span
+  0.14), and the count-6 arms on the 5 / 7 / 8 worlds are never worse
+  than arms retrained there, so the count can move at the Gen 2
+  collection without a new screen. Experiments' offer: 6; the only
+  case for 7 or 8 is the teacher's corpus placement (0.34 / 0.40 / 0.44
+  against the ~0.4 bar), read after the sleep-rule spec.** Notes for the count: only the nearest two beams
   are observed (two sunbeam slots), the world holds `min` beams and
   `max` is inert for the world (it feeds the critic's chow scale only),
   and the fog lineage trains and collects on `anchor.toml`, which is
