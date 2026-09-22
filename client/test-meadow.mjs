@@ -2351,7 +2351,7 @@ check('the sideways nudge cannot disagree with the depth sort', () => {
   );
 });
 
-check('the pond layers rebuild when the palette steps, not only when the water moves', () => {
+check('a palette step re-tints the pond without rebuilding its geometry', () => {
   // `buildPondLayers` bakes MEADOW.pondShore and MEADOW.pondLip INTO the
   // shore and lip canvases, but the cache used to key on the water tiles
   // alone -- and `applyTheme` nulls only the ground cache. So a world
@@ -2374,11 +2374,11 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   };
   const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
 
-  // Both, because `applyTheme` publishes both: the key is what the
-  // signature used to carry, and a guard that leaves it unset cannot tell
-  // whether the signature went back to carrying it.
+  // `applyTheme` publishes the blend and nothing else. It used to publish a
+  // `paletteKey` too, which the pond signature once carried; both are gone,
+  // and `the pond cache keys on everything it bakes` in test-motion.mjs is
+  // what holds the signature to it.
   renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
-  renderer.paletteKey = 'day>dusk@0';
   renderer.drawPondLayer(world, view);
   const first = renderer.pondCache;
   assert(first, 'no pond cache was built at all');
@@ -2392,7 +2392,6 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now and the
   // two hours are baked once each and cross-faded.
   renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
-  renderer.paletteKey = 'day>dusk@0.5';
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
   assert(

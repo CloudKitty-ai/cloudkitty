@@ -829,7 +829,6 @@ class WorldRenderer {
     // Set by applyTheme. The pond layers bake palette colours, so the
     // palette belongs in their key rather than in a null someone has to
     // remember to write.
-    this.paletteKey = '';
     // The devicePixelRatio the backing store was actually sized with, not
     // whatever the display reports right now (issue #102). Null until the
     // first fit.
@@ -1063,11 +1062,16 @@ class WorldRenderer {
     // on the one device that can least afford it.
     //
     // Safe because neither cache is keyed on the canvas at all: the ground
-    // bake checks `dpr|bakeTile|width` against its own dataset and the pond
-    // cache signs `paletteKey|bakeTile|water`. Both rebuild themselves when
-    // something they actually bake moves. The nulling here is belt to their
-    // braces, and belt is only wanted where the braces could slip -- a width
-    // or dpr change, not a taller window.
+    // bake signs `theme|bakeTile|dpr` and the pond signs `bakeTile|water`.
+    // Both rebuild themselves when something they actually bake moves. The
+    // nulling here is belt to their braces, and belt is only wanted where
+    // the braces could slip -- a width or dpr change, not a taller window.
+    //
+    // Those key names were `dpr|bakeTile|width` and `paletteKey|bakeTile|water`
+    // until the cross-fade landed, and this comment kept the old ones while
+    // being the stated reason a height-only resize may keep the caches. The
+    // conclusion held -- no canvas dimension is in either key, then or now --
+    // but a justification nobody can check against the code is not one.
     const shapeChanged = this.canvas.style.width !== displayWidth || this.dpr !== dpr;
     if (shapeChanged || this.canvas.style.height !== displayHeight) {
       this.canvas.style.width = displayWidth;

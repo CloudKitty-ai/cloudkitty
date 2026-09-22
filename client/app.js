@@ -412,7 +412,6 @@ function applyTheme(subTick = 0, repaint = true) {
   // baked pair per HOUR instead and cross-fades them, so what it needs from
   // here is the blend itself, not an invalidation.
   renderer.blend = blend;
-  renderer.paletteKey = key;
   // Only when nothing else will paint. `redraw` is a STILL frame -- poses
   // frozen, `progress` forced to 1, cats at their served tile rather than
   // eased toward it -- which is right for a viewer who gets no rAF loop and
