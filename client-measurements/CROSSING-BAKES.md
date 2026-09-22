@@ -675,3 +675,46 @@ tested that the baked halves are independent of the lean, that a stem draws
 under its own flower, or that the composite is a lerp. Four guards added,
 each seen red under a mutation that reintroduces the exact defect; the
 composite itself is held by the rig's boundary check, seen red the same way.
+
+### The run that measured the lean (owner's iPhone, Safari, dpr 3, 2026-09-21)
+
+Recorded whole, including the parts that are not readable, because the device
+is hers and the run cannot be repeated from a session. **Read the two
+baselines against each other before anything else: they are the same
+condition and they are 5x apart, so every between-row number below is void.**
+
+| condition | frames | >20 ms | >33 ms | worst | p99 | frames that BAKED | in canvas |
+|---|---|---|---|---|---|---|---|
+| baseline (as shipped) | 660 | 10 (1.5%) | 2 | 103 ms | 21 ms | 22 ms | 4 ms |
+| FROZEN (the ceiling) | 668 | 1 (0.1%) | 1 | 112 ms | 19 ms | — | 0 ms |
+| baseline 2 | 637 | 50 (**7.8%**) | 1 | 221 ms | 24 ms | — | 0 ms |
+| lean sweep ⚠ | 615 | 106 (17.2%) | 2 | 147 ms | 26 ms | 24 ms | 6 ms |
+
+⚠ The lean sweep's row is **not comparable to the baselines by construction**:
+a third of its frames draw the lean 8 times on purpose, so its jank columns
+are inflated by the instrument. Only the lean table in section 7 is a read on
+that row. The panel now says so.
+
+The stall table from the same run, which is where the 36 ms bake frame comes
+from:
+
+| condition | reps | W median | W max | D median | D max | W+D median |
+|---|---|---|---|---|---|---|
+| control (no bake) | 12 | 17 ms | 25 ms | 16 ms | 19 ms | 33 ms |
+| bake, draw next frame | 12 | 36 ms | 40 ms | 16 ms | 18 ms | 52 ms |
+| bake + blit, draw next frame | 12 | 40 ms | 46 ms | 17 ms | 19 ms | 57 ms |
+
+The control matches the earlier run exactly (17/16/33). The bake frame does
+not: 36 ms where 2026-09-20 measured 18. But the *same run's* crossing rows
+put a bake at **22-24 ms** in situ, the stall rows run later in the sequence
+than their own control, and the baselines moved 5x across that sequence. Two
+instruments, one run, disagreeing by 50%.
+
+No mechanism was found by which this branch could make a bake more expensive
+-- the blades and stems moved OUT of the bake and the patches moved between
+halves, so the total is neutral at worst. **Owed: one stall-table re-run on a
+cool device.** Not blocking: it does not touch the lean cost, and the in-situ
+number agrees with the record.
+
+`bake + blit` remains worse than `bake` here too (40/46 against 36/40), which
+is the third run to say so. Still not shipped.
