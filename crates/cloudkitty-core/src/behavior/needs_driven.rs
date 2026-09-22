@@ -591,6 +591,16 @@ pub(crate) fn warm_friend_beside(ctx: &DecisionContext) -> Option<crate::kitty::
     if ctx.config.meow.law_era == crate::config::LawEra::PreFog {
         return None;
     }
+    conducted_partner_beside(ctx)
+}
+
+/// The era-blind conduction read (spec 057): `World::sleep_warmth` pays a
+/// settled partner on a beam in EVERY law era, so the sleep PRESSURE must
+/// read the same law everywhere — only the T092 pursuit gate above is
+/// fog-era (PreFog keeps the 2.x arm for SC-004a's replay, but a PreFog
+/// nap beside such a partner is still paid warm by the engine, and a
+/// score that called it cold would skip a nap the world honors in full).
+pub(crate) fn conducted_partner_beside(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
     ctx.world
         .others(ctx.me.id)
         .filter(|k| ctx.me.pos.is_adjacent(&k.pos))

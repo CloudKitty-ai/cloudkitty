@@ -88,9 +88,14 @@ pub fn choose_need(ctx: &DecisionContext) -> NeedKind {
     choose(ctx).need
 }
 
-/// The selection score for one need, or `None` when the need has no relief
-/// path (see [`travel_distance`]). Public so tests (and curious plugin
-/// authors) can check the arithmetic directly.
+/// The selection score for one need, or `None` when the need is skipped
+/// this tick: no relief path exists (see [`travel_distance`]) — or, for
+/// sleep under a positive `sleep_floor_off_beam` with no warm option, a
+/// nap here would relieve nothing (spec 057). The two `None`s are
+/// deliberately one channel: a skipped need must never win by scoring
+/// zero. Callers reading `None` as "unrelievable" alone read too much.
+/// Public so tests (and curious plugin authors) can check the
+/// arithmetic directly.
 pub fn score(ctx: &DecisionContext, kind: NeedKind) -> Option<f32> {
     scored(ctx, kind, nearest_viable_playmate(ctx))
 }
@@ -108,18 +113,23 @@ fn scored(
     // (spec 056, `action.rs`), so the score reads the same law. A nap
     // that would relieve nothing is skipped outright, not scored 0: a
     // zero score can still win an all-quiet tick, and a worthless nap
-    // must not (FR-003). At floor 0 — every served config — the
-    // subtraction is a no-op and the skip gate is off: byte-identical.
-    // Urgency rides on the same binding: panic about relief the world
-    // will not pay is a nudge, not physics. The need→relief pairing
-    // stays with `relief.rs` (spec 019).
-    let pressure = if matches!(kind.relief(), ReliefSource::Sunbeam) && !warm_option_in_play(ctx) {
+    // must not (FR-003). The floor gates FIRST: at floor 0 — every
+    // served config — the warm-option scan never runs, so floor 0 is
+    // cost-identical as well as byte-identical. Urgency rides on the
+    // same binding: panic about relief the world will not pay is a
+    // nudge, not physics. The need→relief pairing stays with
+    // `relief.rs` (spec 019).
+    let pressure = if matches!(kind.relief(), ReliefSource::Sunbeam) {
         let floor = ctx.config.actions.sleep_floor_off_beam;
-        let effective = (pressure - floor).max(0.0);
-        if floor > 0.0 && effective <= 0.0 {
-            return None;
+        if floor > 0.0 && !warm_option_in_play(ctx) {
+            let effective = (pressure - floor).max(0.0);
+            if effective <= 0.0 {
+                return None;
+            }
+            effective
+        } else {
+            pressure
         }
-        effective
     } else {
         pressure
     };
@@ -182,8 +192,11 @@ fn scene_exposure_for(
 /// "No way" is deliberately not encoded as a huge distance: a sentinel is
 /// only as strong as the weight multiplying it, so a legal `tile_cost = 0`
 /// would cancel it and let an unrelievable need win selection -- the exact
-/// shape of the lock-in spec 004 removed. A skipped need is skipped under
-/// every configuration.
+/// shape of the lock-in spec 004 removed. A DISTANCE skip is skipped
+/// under every configuration; [`score`] adds one configuration-gated
+/// skip of its own (spec 057's worthless-nap rule), so
+/// `travel_distance(Sleep)` returning `Some` no longer implies
+/// `score(Sleep)` does.
 pub fn travel_distance(ctx: &DecisionContext, need: NeedKind) -> Option<f32> {
     distance_given(ctx, need, nearest_viable_playmate(ctx))
 }
@@ -455,16 +468,24 @@ pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
 }
 
 /// Spec 057: a warm option is in play when a nap would clear the sleep
-/// need in full — the cat stands on a sunbeam, a settled mutual partner
-/// is warm beside it (spec 031 conduction, T092), or a sunbeam is within
-/// `sunbeam_reach` (priced). Inputs are the fog view and global config
-/// constants only, never per-cat hidden state (contract P3, doctrine
-/// rule 5). The cuddle-driven cosleep walk (spec 028 FR-020) is
-/// deliberately NOT a warm option: an off-beam cosleep relieves sleep
-/// only to the floor, and that walk is the cuddle need's business.
+/// need in full. Two disjuncts, not three: a beam UNDERFOOT prices at 0
+/// through `sunbeam_worth_walking` (`priced_nearest_element`'s occupied
+/// filter drops only beams under OTHER cats), so "standing on a beam" is
+/// subsumed at every legal `sunbeam_reach`, 0 included. Conduction is
+/// checked era-blind because `World::sleep_warmth` pays it in every law
+/// era — see `conducted_partner_beside` — and it survives
+/// `sunbeam_reach = 0`, where the priced walk cannot stand in for it.
+/// Inputs are the fog view — the kitty's own memory cells included; they
+/// are carried in the observation, which is what doctrine rule 5 asks —
+/// and global config constants (contract P3). A REMEMBERED beam counts:
+/// stale memory of an expired beam keeps full pressure and the cat walks
+/// to it, exactly as sleep pursuit already behaves; the discount begins
+/// when the memory does not exist, not when it is wrong. The
+/// cuddle-driven cosleep walk (spec 028 FR-020) is deliberately NOT a
+/// warm option: an off-beam cosleep relieves sleep only to the floor,
+/// and that walk is the cuddle need's business.
 pub(crate) fn warm_option_in_play(ctx: &DecisionContext) -> bool {
-    ctx.world.element_at(ctx.me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
-        || super::needs_driven::warm_friend_beside(ctx).is_some()
+    super::needs_driven::conducted_partner_beside(ctx).is_some()
         || sunbeam_worth_walking(ctx).is_some()
 }
 
@@ -2752,6 +2773,13 @@ mod playful2_tests {
             None
         );
     }
+}
+
+#[cfg(test)]
+mod spec_057_sleep_floor_tests {
+    use super::*;
+    use crate::element::{Element, ElementKind};
+    use crate::test_support::decision_context;
 
     // ---- Spec 057: the teacher's sleep pressure reads the floor -------
 
@@ -2942,5 +2970,81 @@ mod playful2_tests {
                 "{name}: a warm nap clears the need, so the floor must not discount it"
             );
         }
+    }
+
+    /// Review round 2: conduction is the disjunct the priced walk cannot
+    /// stand in for. At `sunbeam_reach = 0` the beam beside the settled
+    /// partner prices at 1 > 0, so `sunbeam_worth_walking` is None and
+    /// only `conducted_partner_beside` keeps the nap warm — this is the
+    /// fixture that goes red if the predicate collapses to the walk
+    /// alone.
+    #[test]
+    fn sleep_floor_conducted_warm_at_reach_zero() {
+        let stage = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = crate::kitty::Activity::Resting { with_friend: None };
+            world.push_element(Element {
+                id: 980,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 5),
+                ttl: Some(100),
+            });
+        };
+        let mut floored = sleep_floor_ctx(15.0, stage);
+        let mut config = (*floored.config).clone();
+        config.behavior.sunbeam_reach = 0;
+        floored.config = std::sync::Arc::new(config);
+        assert!(warm_option_in_play(&floored), "conduction needs no walk");
+        assert_eq!(
+            score(&floored, NeedKind::Sleep),
+            Some(18.0),
+            "full pressure beside the settled partner, reach 0 or not"
+        );
+    }
+
+    /// Review round 2: `World::sleep_warmth` pays conduction in EVERY law
+    /// era; the T092 pursuit gate is fog-era, but the PRESSURE must not
+    /// call a PreFog conducted nap cold (the engine would pay it warm).
+    #[test]
+    fn sleep_floor_conducted_warm_under_prefog() {
+        let stage = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = crate::kitty::Activity::Resting { with_friend: None };
+            world.push_element(Element {
+                id: 981,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 5),
+                ttl: Some(100),
+            });
+        };
+        let prefog = |floor: f32| {
+            let mut ctx = sleep_floor_ctx(floor, stage);
+            let mut config = (*ctx.config).clone();
+            config.meow.law_era = crate::config::LawEra::PreFog;
+            ctx.config = std::sync::Arc::new(config);
+            ctx
+        };
+        let floored = prefog(15.0);
+        assert!(
+            warm_option_in_play(&floored),
+            "conduction reads era-blind; only the T092 pursuit gate is fog-era"
+        );
+        // Full pressure; the 1-tile walk price is PreFog pursuit law and
+        // must match floor 0 exactly (the walk, unlike the pressure, is
+        // allowed to differ from the Fog era's T092 zero).
+        assert_eq!(
+            score(&floored, NeedKind::Sleep),
+            score(&prefog(0.0), NeedKind::Sleep)
+        );
     }
 }
