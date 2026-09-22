@@ -2512,6 +2512,15 @@ mod tests {
             let a = world.kitty_index(1).unwrap();
             world.kitties[a].pos = Position::new(4, 4);
             world.kitties[a].needs.add(NeedKind::Sleep, sleep);
+            // Every OTHER need was relieved recently, sleep never: if the
+            // skip gate were deleted and a zero-relief nap scored 0, the
+            // relief-recency tie-break would hand sleep the all-quiet
+            // tick — so these fixtures pin the GATE, not a lucky tie.
+            for kind in NeedKind::ALL {
+                if kind != NeedKind::Sleep {
+                    world.kitties[a].last_relief.insert(kind, 50);
+                }
+            }
             let b = world.kitty_index(2).unwrap();
             world.kitties[b].pos = Position::new(15, 15);
             world.push_element(Element {
