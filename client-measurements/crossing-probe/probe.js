@@ -256,9 +256,17 @@
     if (typeof real !== 'function') {
       throw new Error('drawGroundLean is not on window -- the renderer moved it, and the lean sweep would silently measure nothing');
     }
+    // Counted at the point of WORK, not the point of intent. Counting
+    // `+= leanRepeats` up front looks equivalent and is not: it tallies what
+    // the loop meant to do, so a loop that draws anyway at level 0 still
+    // reports zero draws and the guard waves it through. That exact mutation
+    // came back green once.
+    const counted = function (...a) {
+      leanCalls.set(leanRepeats, (leanCalls.get(leanRepeats) || 0) + 1);
+      return real.apply(this, a);
+    };
     window.drawGroundLean = function (...a) {
-      leanCalls.set(leanRepeats, (leanCalls.get(leanRepeats) || 0) + leanRepeats);
-      for (let i = 0; i < leanRepeats; i++) real.apply(this, a);
+      for (let i = 0; i < leanRepeats; i++) counted.apply(this, a);
     };
   }
 
