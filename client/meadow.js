@@ -2296,10 +2296,12 @@ function tintPondLayers(masks, paint = null, out = null) {
   }
   for (const which of ['shore', 'lip']) {
     const g = out[which].getContext('2d');
-    // A context-less stand-in gets the untinted MASK rather than a blank
-    // pond: white is wrong by a colour, blank is wrong by a pond. Either
-    // way the caller gets something drawable, which is the contract.
-    if (!g) return { shore: src.shore, lip: src.lip, dpr: masks.dpr };
+    // A context-less stand-in gets NULL, which `drawPonds` already answers
+    // with the flat shallow band it drew before these layers existed. The
+    // white masks would be worse than what this replaced: the old fallback
+    // returned the near hour's real paint, so a white pond is wrong by a
+    // colour where the flat band is only wrong by a blur.
+    if (!g) return null;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalCompositeOperation = 'source-over';
     g.clearRect(0, 0, w, h);
@@ -2354,6 +2356,21 @@ function drawCaustics(ctx, pond, tile, now) {
 }
 
 function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, clip = null }) {
+  if (layers && layers.shoreMask) {
+    // BEFORE `ctx.save()`. The gallery catches errors and keeps rendering,
+    // so a throw below the save pushes an unbalanced save every frame for
+    // as long as the page is open -- and the banner tells the reader to
+    // hard-reload for a stale script, which is the wrong trail.
+    //
+    // The bake's own shape, handed straight in. It is WHITE -- masks, not
+    // paint -- so drawing it would put a white pond on the grass, and
+    // reading `layers.shore` off it throws on `undefined.width` further
+    // down, which is how this arrived: a rename, a green suite, and three
+    // gallery cards that threw on first render.
+    throw new Error(
+      'drawPonds was given pond MASKS; pass buildPondLayers through tintPondLayers first',
+    );
+  }
   const t = meadowTunables();
   ctx.save();
   // `clip` is the visible rectangle in this layer's own pixel space --
@@ -2379,16 +2396,6 @@ function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, cl
     if (sw <= 0 || sh <= 0) return;
     ctx.drawImage(layer, sx * layers.dpr, sy * layers.dpr, sw * layers.dpr, sh * layers.dpr, sx, sy, sw, sh);
   };
-  if (layers && layers.shoreMask) {
-    // The bake's own shape, handed straight in. It is WHITE -- masks, not
-    // paint -- so drawing it would put a white pond on the grass, and
-    // reading `layers.shore` off it throws on `undefined.width` two lines
-    // down, which is how this arrived: a rename, a green suite, and three
-    // gallery cards that threw on first render.
-    throw new Error(
-      'drawPonds was given pond MASKS; pass buildPondLayers through tintPondLayers first',
-    );
-  }
   // The damp ring first: it lives outside the water, on the grass.
   if (layers) {
     ctx.globalAlpha = t.pondLipAlpha;

@@ -2352,8 +2352,9 @@ check('the sideways nudge cannot disagree with the depth sort', () => {
 });
 
 check('a palette step re-tints the pond without rebuilding its geometry', () => {
-  // `buildPondLayers` bakes MEADOW.pondShore and MEADOW.pondLip INTO the
-  // shore and lip canvases, but the cache used to key on the water tiles
+  // `buildPondLayers` USED TO bake MEADOW.pondShore and MEADOW.pondLip into
+  // the shore and lip canvases (it bakes white masks now, and the hour is a
+  // tint at blit), and the cache keyed on the water tiles
   // alone -- and `applyTheme` nulls only the ground cache. So a world
   // running from day into night kept its shore band and damp lip in
   // daylight paint while the grass, the pond body and the meniscus all
@@ -2401,7 +2402,14 @@ check('a palette step re-tints the pond without rebuilding its geometry', () => 
   // key was added for on 2026-08-17: shore and lip must not stay in
   // daylight. The mechanism changed; the requirement did not. Read the
   // colour the tint actually laid down, at each end of the fade.
-  const shoreAt = (step) => {
+  // Read what the tint actually laid down -- the colours AND the composite
+  // op it laid them down with. The op is the entire mechanism: `source-in`
+  // replaces the colour and keeps the mask's alpha. `source-over` there
+  // fills the whole world-sized canvas opaque and blits a solid rectangle
+  // over the meadow, and this check stayed green under exactly that
+  // mutation until code review ran it (2026-09-22). A string compare of two
+  // fills is rule 5's first named lie: the contract is state, not wording.
+  const tintAt = (step) => {
     const log = [];
     renderer.pondCache.out = null;   // force the tint to run
     renderer.pondCache.outKey = null;
@@ -2416,13 +2424,33 @@ check('a palette step re-tints the pond without rebuilding its geometry', () => 
     } finally {
       globalThis.document.createElement = realCreate;
     }
-    const fills = log.filter((e) => e[0] === 'set' && e[1] === 'fillStyle').map((e) => e[2]);
-    return fills[0];
+    // Every fill that lays paint, with the op in force when it landed. The
+    // loop runs shore then lip, so the order is the layer order.
+    const paints = [];
+    let op = null;
+    for (const e of log) {
+      if (e[0] === 'set' && e[1] === 'globalCompositeOperation') op = e[2];
+      if (e[0] === 'set' && e[1] === 'fillStyle') paints.push({ colour: e[2], op });
+    }
+    return paints;
   };
-  const atDay = shoreAt(0);
-  const atDusk = shoreAt(1);
-  assert(atDay && atDusk, `the tint laid down no colour: ${atDay} / ${atDusk}`);
-  assert(atDay !== atDusk, `shore stays in one hour's paint across the fade (${atDay})`);
+  const day = tintAt(0);
+  const dusk = tintAt(1);
+  assert(day.length === 2, `the tint painted ${day.length} layers, not 2`);
+  assert(dusk.length === 2, `the tint painted ${dusk.length} layers, not 2`);
+  for (const paint of [...day, ...dusk]) {
+    assert(
+      paint.op === 'source-in',
+      `the tint painted under ${paint.op}, which does not keep the mask's alpha`,
+    );
+  }
+  // At step 0 there is no far hour, so the paint is day's own, exactly.
+  // This is what reads the LIP: `fills[0]` alone never did, so painting the
+  // damp ring in shore blue at every hour was invisible to this suite.
+  assert(day[0].colour === api.MEADOW_DAY.pondShore, `shore painted ${day[0].colour}`);
+  assert(day[1].colour === api.MEADOW_DAY.pondLip, `lip painted ${day[1].colour}`);
+  assert(day[0].colour !== dusk[0].colour, `shore stays in one hour's paint (${day[0].colour})`);
+  assert(day[1].colour !== dusk[1].colour, `lip stays in one hour's paint (${day[1].colour})`);
 });
 
 check('applyTheme publishes the blend the ground and pond layers read', () => {
@@ -2628,7 +2656,13 @@ check('a bake with no masks draws the flat pond, not a throw', () => {
   renderer.drawPondLayer(world, view);
   assert(log.length > 0, 'the flat pond drew nothing at all');
   assert(!log.some((c) => c[0] === 'drawImage'), 'it blitted a layer it never baked');
-  assert(log.some((c) => c[0] === 'stroke'), 'the flat shallow band was never drawn');
+  // Not `some(stroke)`: `drawPonds` strokes the meniscus for every pond and
+  // `drawCaustics` strokes too, so that was true however the fallback was
+  // mutated. The band's own colour is the thing being claimed.
+  assert(
+    log.some((c) => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === api.MEADOW.pondShallow),
+    'the flat shallow band was never drawn',
+  );
 });
 
 check('no gallery card draws a pond it has not tinted', () => {
@@ -2667,6 +2701,19 @@ check('a crossing tints the pond, it does not re-bake it', () => {
   const masks = renderer.pondCache.masks;
   assert(masks, 'no masks were baked at all');
 
+  // Count the tint EXECUTIONS. `tints.size` below is a property of
+  // `mixPaletteColor` landing on 8-bit hex -- it reads ~76 whether the
+  // cache short-circuits or not -- so it cannot see a cache that has
+  // stopped working. Deleting the short-circuit re-tints two world-sized
+  // canvases on every frame of a settled hour, forever, and this check
+  // stayed green under that mutation until code review ran it.
+  let ctxGets = 0;   // the tint takes one context per layer, so two per run
+  for (const which of ['shore', 'lip']) {
+    const c = renderer.pondCache.out[which];
+    const real = c.getContext.bind(c);
+    c.getContext = (...a) => { ctxGets += 1; return real(...a); };
+  }
+
   const tints = new Set();
   for (let i = 0; i <= 192; i += 1) {
     renderer.blend = { theme: 'day', next: 'dusk', step: i / 192 };
@@ -2683,6 +2730,14 @@ check('a crossing tints the pond, it does not re-bake it', () => {
   // replaces was paying 192 times for ~76 distinguishable results.
   assert(tints.size > 10, `the tint is not tracking the fade, only ${tints.size} distinct paints`);
   assert(tints.size < 193, `the tint is not being reused at all: ${tints.size} paints in 193 steps`);
+  // The property: at most one run per distinct paint. Without the cache it
+  // is one run per STEP, which is 193 against ~76.
+  const tintRuns = ctxGets / 2;
+  assert(tintRuns > 10, `the tint never ran at all: ${tintRuns} runs`);
+  assert(
+    tintRuns <= tints.size,
+    `the tint ran ${tintRuns} times for ${tints.size} distinct paints -- the cache is not holding`,
+  );
 });
 
 check('the ground cache holds TWO hours, across consecutive crossings', () => {

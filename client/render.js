@@ -1709,10 +1709,10 @@ class WorldRenderer {
     // gallery cards need the same step and a second copy of it is how a
     // shipped rule drifts from the one that ships.
     const painted = tintPondLayers(masks, paint, cache.out);
-    // A context-less stand-in gets the untinted masks back, which are not
-    // ours to cache under a colour key -- the next frame with a real
-    // context must still tint.
-    if (painted.shore === masks.shoreMask) return painted;
+    // A context-less stand-in gets null back, which `drawPonds` draws as its
+    // flat band. Not ours to cache under a colour key either -- the next
+    // frame with a real context must still tint.
+    if (!painted) return null;
     cache.out = painted;
     cache.outKey = key;
     return cache.out;

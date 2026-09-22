@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- **The pond holds its shape while the light changes (#408).** The
+  blurred shore band and the damp ring of earth just outside the water
+  are now baked once as a shape and simply painted for the hour, rather
+  than rebuilt for each one. A crossing rebuilds nothing at all, and the
+  pond asks the browser for a little over a third of the picture memory
+  it used to hold — which is what keeps the meadow drawable on a phone,
+  where the limit is total canvas memory and the failure is a blank
+  rectangle rather than an error.
+
+- **Dawn and dusk arrive as a fade, not a flicker (#405).** The meadow
+  used to repaint its whole ground at every step of a crossing, and on a
+  phone that showed: sixty-one frames over a thirty-third of a second
+  through one sunset, now one. The two hours are cross-faded instead,
+  and the grass that leans away from the sun — blades, flower stems and
+  all — is drawn live, so the shadows swing round continuously through
+  the crossing rather than stepping with the fade.
+
 - **The built-in teacher knows a shallow nap when it sees one
   (spec 057, #409).** Under a `sleep_floor_off_beam` world, the needs-driven
   cat now weighs an off-beam nap by the rest it would actually get:

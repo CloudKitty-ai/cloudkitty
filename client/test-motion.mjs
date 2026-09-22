@@ -10891,6 +10891,19 @@ check('the pond layers are bounded tighter than the ground, being four of them',
   // ceilings were equal and the pond clamp could not reach -- it asserted
   // an ordering that the ground's own clamp already guaranteed. Strict is
   // the claim: the pond is deliberately coarser than the grass.
+  // ...but `pond < ground` is a claim about THIS FIXTURE unless the clamp is
+  // actually reaching. On a smaller world, a narrower viewport or dpr 1 both
+  // tiles are the same unclamped `cssWidth/floorTiles` and the strict `<`
+  // fails for a correct build. Pin the precondition rather than leave it
+  // implicit -- a rig encodes a belief, and this one believes its own
+  // fixture.
+  const pondCap = Number(
+    readFileSync(join(here, 'render.js'), 'utf8').match(/POND_BAKE_MAX_PX = (\d+)/)[1],
+  );
+  assert(
+    Math.round(side) === pondCap,
+    `the pond clamp is not reaching on this fixture: ${Math.round(side)}px against a cap of ${pondCap}`,
+  );
   assert(pond < ground, `the pond bound does not bind: pond ${pond}, ground ${ground}`);
 
   // And the quantity Safari actually caps, which is total canvas MEMORY.
