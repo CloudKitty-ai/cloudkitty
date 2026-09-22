@@ -1571,6 +1571,11 @@ class WorldRenderer {
     // Live, between the halves: the lean moves continuously through the
     // crossing while the layers either side of it are two fixed hours.
     drawGroundWash(this.ctx, { width: world.width, height: world.height, tile: this.tile });
+    // Live, like the wash and for the same reason: the blades and the
+    // flower stems lean with `shadowLean`, which moves continuously while
+    // the layers either side of it are two fixed hours. See drawGroundLean.
+    // Between the halves, so a stem still sits under its own flower.
+    drawGroundLean(this.ctx, { width: world.width, height: world.height, tile: this.tile });
     cross((l) => l.over);
     this.ctx.imageSmoothingQuality = quality;
     // A settled hour holds no scratch. Dropping it here rather than never
