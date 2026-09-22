@@ -13,19 +13,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-### The teacher's sleep rule reads the floor — IN FLIGHT (spec 057, kicked off 2026-09-21)
-
-The shelf's named prerequisite for the Gen 2 re-record (handover
-`experiments/beam-world-screen-2026-09-19/HANDOVER-product-2026-09-21.md`;
-world fully ruled on #390: floor 15, ttl 3000, relief 3, count 6).
-When no warm option is in play the teacher's sleep pressure becomes
-the relief a nap here would deliver — `max(need − floor, 0)` — so the
-nap-regrow loop (sleep share 0.088 → 0.118, placement 0.458 → 0.341)
-stops teaching itself into the corpus. Walk pricing unchanged;
-`sunbeam_reach` stays 8 for the first corpus (the pre-PPO read moves
-it, or nothing does). Floor 0 byte-identical (056's pin); nothing
-deploys. Spec: `specs/057-teacher-sleep-floor/`.
-
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 
 Costed, then dropped the same day: the charm gain did not justify the
