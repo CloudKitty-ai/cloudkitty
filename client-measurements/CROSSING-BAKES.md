@@ -479,9 +479,12 @@ making the stall and the memory smaller again:
   >
   > **It LOWERS it instead, 2048 -> 1536, ruled 2026-09-21.** Weighed in the
   > page at dpr 3 rather than reasoned about: the pond holds four
-  > world-sized canvases, which at 2048 is **64 MB persistent and 96 MB
+  > world-sized canvases, which at 2048 is **64 MiB persistent and 96 MiB
   > mid-bake -- equal to the whole ground cache**, not the minor cost it was
-  > assumed to be. 1536 takes that to 37.7 MB and 56.6 MB. The visible cost
+  > assumed to be. 1536 takes that to 36 MiB and 54 MiB. (MiB throughout;
+  > the same figures in decimal MB are 67.1/100.7 and 37.7/56.6. An earlier
+  > draft of this paragraph mixed the two and the guard ended up measuring
+  > 36 against a comment that said 37.7.) The visible cost
   > is 0.24/255 mean, max 24, 0.7% of pixels, indistinguishable at 3x,
   > because the cap reaches only the two BLURRED bands -- the waterline is a
   > vector fill at screen resolution -- and those bands are already upscaled

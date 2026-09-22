@@ -30,9 +30,13 @@ const GROUND_BAKE_MAX_PX = 2048;
 // Lowered 2048 -> 1536 on 2026-09-21, on measurement rather than
 // arithmetic. Weighed in the page at dpr 3: the pond holds FOUR
 // world-sized canvases -- two masks and two tinted outputs -- which at
-// 2048 is 64 MB persistent and 96 MB while a bake is in flight, equal to
+// 2048 is 64 MiB persistent and 96 MiB while a bake is in flight, equal to
 // the entire ground cache rather than the minor cost it was assumed to be.
-// 1536 takes that to 37.7 MB and 56.6 MB.
+// 1536 takes that to 36 MiB and 54 MiB. (MiB throughout, which is what the
+// guard in test-motion divides by and what Safari's cap is quoted in; the
+// same figures in decimal MB are 67.1/100.7 and 37.7/56.6, and mixing the
+// two units is how the guard came to measure 36 against a comment saying
+// 37.7.)
 //
 // It is bought for nothing visible. The cap reaches only the two BLURRED
 // bands; the waterline itself is a vector fill drawn live at screen
@@ -1607,9 +1611,11 @@ class WorldRenderer {
   /**
    * The baked halves for one PURE theme, built once and held.
    *
-   * Three is the right ceiling: a crossing reads two, and the hour after
-   * next is prewarmed into the third during the lull so its bake does not
-   * land inside a fade. The oldest goes when a fourth arrives.
+   * TWO is the ceiling, and why it is stable rather than merely small is
+   * argued where the eviction happens, at the end of this function. The
+   * docblock used to argue for three, on a lull prewarm that no longer
+   * exists; two comments in one function disagreeing about the bound is
+   * worse than either of them.
    */
   groundLayersFor(world, theme, bakeTile, dpr) {
     const key = `${theme}|${bakeTile}|${dpr}`;
@@ -1728,21 +1734,24 @@ class WorldRenderer {
       this.pondCache = null;
       return;
     }
-    // This cache is built from three things and used to key on one.
+    // This cache now bakes exactly what it keys on. It did not always, and
+    // the two staleness bugs that came of it are why the key is spelled out
+    // here rather than left to be inferred.
     //
-    // The PALETTE, because `buildPondLayers` bakes MEADOW.pondShore and
-    // MEADOW.pondLip into the shore and lip canvases. Keyed on the water
-    // tiles alone, the layers survived every palette step: the grass, the
-    // pond body and the meniscus all crossed into night while the shore
-    // band and the damp lip stayed in daylight paint, for the rest of the
-    // session. Fixed on main, 2026-08-17.
+    // The PALETTE used to belong in it, because `buildPondLayers` baked
+    // MEADOW.pondShore and MEADOW.pondLip into the shore and lip canvases.
+    // Keyed on the water tiles alone, the layers survived every palette
+    // step: the grass, the pond body and the meniscus all crossed into
+    // night while the shore band and the damp lip stayed in daylight paint,
+    // for the rest of the session. Fixed on main 2026-08-17 by keying on
+    // the theme.
     //
-    // It is keyed on the THEME now rather than on the blend step, which
-    // fixes that same bug at a hundredth of the cost: every hour still
-    // gets its own paint, but the 192 steps between two hours are a
-    // cross-fade of two baked pairs instead of 192 rebuilds. The geometry
-    // below -- paths, blurred silhouettes -- is what the signature covers,
-    // and it does not know what hour it is.
+    // The bake carries NO hour at all now. It is a white mask, painted at
+    // blit time by `tintPondLayers`, so the palette is out of the key
+    // entirely and that failure can no longer be expressed -- which is a
+    // better answer than a longer key. The geometry below -- paths, blurred
+    // silhouettes -- is what the signature covers, and it does not know
+    // what hour it is.
     //
     // The TILE, because the paths and layers are built at one. That was
     // safe for a reason that is not the obvious one -- `resizeFor` nulls
@@ -1764,11 +1773,11 @@ class WorldRenderer {
       this.pondCache = {
         signature,
         ponds,
-        // Depth and lip bake per theme, where the paths are already being
-        // rebuilt -- so the blur is paid once per water change per hour,
-        // not once per frame. Two layers for the whole world, not two per
-        // pond. Built at the bake tile like the ground, so camera movement
-        // never reaches this blur.
+        // Depth and lip bake ONCE PER WATER CHANGE, where the paths are
+        // already being rebuilt -- not per hour and not per frame, because
+        // the bake is a mask with no hour in it. Two layers for the whole
+        // world, not two per pond. Built at the bake tile like the ground,
+        // so camera movement never reaches this blur.
         opts: {
           tile: bakeTile,
           widthPx: Math.round(world.width * bakeTile * dpr),

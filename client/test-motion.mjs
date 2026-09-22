@@ -10894,12 +10894,13 @@ check('the pond layers are bounded tighter than the ground, being four of them',
   assert(pond < ground, `the pond bound does not bind: pond ${pond}, ground ${ground}`);
 
   // And the quantity Safari actually caps, which is total canvas MEMORY.
-  // Four world-sized canvases -- two masks, two tinted outputs. Weighed in
-  // the page at dpr 3 this is 37.7 MB at 1536 and 64 MB at 2048; the budget
-  // below is the measured figure with a little room, so raising the ceiling
-  // reddens here rather than silently doubling what a phone holds.
-  const pondMB = (4 * side * side * 4) / 1048576;
-  assert(pondMB <= 40, `the pond's four layers come to ${pondMB.toFixed(1)} MB`);
+  // Four world-sized canvases -- two masks, two tinted outputs. MiB, since
+  // that is what the divisor below produces and what the cap is quoted in:
+  // 36 MiB at 1536 and 64 MiB at 2048. The budget is the measured figure
+  // with a little room, so raising the ceiling reddens here rather than
+  // silently doubling what a phone holds.
+  const pondMiB = (4 * side * side * 4) / 1048576;
+  assert(pondMiB <= 40, `the pond's four layers come to ${pondMiB.toFixed(1)} MiB`);
   // The replaced assertion here read `4 * side * side <= 4 * groundSide *
   // groundSide`, which cancels to `side <= groundSide` -- it looked like
   // four-against-one and compared four against four.
