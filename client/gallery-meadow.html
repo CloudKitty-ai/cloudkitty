@@ -516,9 +516,9 @@
           }));
           return {
             ponds,
-            layers: buildPondLayers(ponds, {
+            layers: tintPondLayers(buildPondLayers(ponds, {
               tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
-            }),
+            })),
             radius: pondInradius(tiles),
           };
         }),
@@ -712,9 +712,9 @@
           return {
             ph,
             ponds,
-            layers: buildPondLayers(ponds, {
+            layers: tintPondLayers(buildPondLayers(ponds, {
               tile: mTile, widthPx: Math.ceil(cw), heightPx: Math.ceil(rowH), dpr: 1,
-            }),
+            })),
           };
         }),
       };
@@ -820,9 +820,9 @@
           return {
             ph,
             ponds,
-            layers: buildPondLayers(ponds, {
+            layers: tintPondLayers(buildPondLayers(ponds, {
               tile, widthPx: Math.round(cw), heightPx: c.height, dpr: 1,
-            }),
+            })),
           };
         }),
       };

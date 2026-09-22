@@ -2195,6 +2195,12 @@ function simplifyLoop(points) {
  * two `drawImage` calls.
  */
 function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
+  // MASKS, not paint. Every theme-dependent value this function ever read
+  // was a flat colour -- `pondShore` and `pondLip`, hex in all four
+  // palettes -- so the layers differ between hours by a uniform tint and
+  // nothing else. Baking them white and tinting at blit makes the whole
+  // bake theme-independent: one per water change instead of one per hour,
+  // and no blur runs during a crossing at all.
   const t = meadowTunables();
   const make = () => {
     const c = document.createElement('canvas');
@@ -2226,7 +2232,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     // Shore: pale everywhere the water is, then the blurred silhouette
     // punched out of it. What survives is strongest where it is shallow.
     clear(scratch);
-    scratch.g.fillStyle = MEADOW.pondShore;
+    scratch.g.fillStyle = '#fff';
     scratch.g.fill(pond.path);
     scratch.g.save();
     scratch.g.globalCompositeOperation = 'destination-out';
@@ -2244,7 +2250,7 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     scratch.g.restore();
     scratch.g.save();
     scratch.g.globalCompositeOperation = 'source-in';
-    scratch.g.fillStyle = MEADOW.pondLip;
+    scratch.g.fillStyle = '#fff';
     scratch.g.fillRect(0, 0, cssW, cssH);
     scratch.g.globalCompositeOperation = 'destination-out';
     scratch.g.fill(pond.path);
@@ -2252,7 +2258,60 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
     lip.g.drawImage(scratch.c, 0, 0, cssW, cssH);
   }
   // The scratches are the peak, not the resting cost; drop them here.
-  return { shore: shore.c, lip: lip.c, dpr };
+  return { shoreMask: shore.c, lipMask: lip.c, dpr };
+}
+
+/**
+ * A baked mask pair, painted for one hour.
+ *
+ * `buildPondLayers` bakes WHITE. Every theme-dependent value it ever read
+ * was a flat colour, so an hour -- or any point between two hours -- is that
+ * mask with its colour replaced and its ALPHA kept. `source-in` is what
+ * keeps the alpha, and the alpha is the entire bake: the blur, the punched
+ * silhouette, the ring that exists only outside the water.
+ *
+ * This lives here, beside the bake, because it is the other half of the same
+ * contract: `buildPondLayers` hands back masks and `drawPonds` draws paint,
+ * so SOMETHING has to sit between them, and a second copy of it in the
+ * gallery is how a shipped rule drifts from the one the renderer uses.
+ *
+ * The renderer passes its own cached `out` canvases, so a settled hour tints
+ * once and only a fade tints per step. A caller that just wants the layers
+ * -- a gallery card, the lab -- omits it and gets a fresh pair painted in
+ * whatever palette is currently set.
+ */
+function tintPondLayers(masks, paint = null, out = null) {
+  const colours = paint || { shore: MEADOW.pondShore, lip: MEADOW.pondLip };
+  const src = { shore: masks.shoreMask, lip: masks.lipMask };
+  const w = src.shore.width;
+  const h = src.shore.height;
+  if (!out || out.shore.width !== w || out.shore.height !== h) {
+    const mk = () => {
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      return c;
+    };
+    out = { shore: mk(), lip: mk(), dpr: masks.dpr };
+  }
+  for (const which of ['shore', 'lip']) {
+    const g = out[which].getContext('2d');
+    // A context-less stand-in gets NULL, which `drawPonds` already answers
+    // with the flat shallow band it drew before these layers existed. The
+    // white masks would be worse than what this replaced: the old fallback
+    // returned the near hour's real paint, so a white pond is wrong by a
+    // colour where the flat band is only wrong by a blur.
+    if (!g) return null;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.clearRect(0, 0, w, h);
+    g.drawImage(src[which], 0, 0);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = colours[which];
+    g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'source-over';
+  }
+  return out;
 }
 
 /**
@@ -2297,6 +2356,21 @@ function drawCaustics(ctx, pond, tile, now) {
 }
 
 function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, clip = null }) {
+  if (layers && layers.shoreMask) {
+    // BEFORE `ctx.save()`. The gallery catches errors and keeps rendering,
+    // so a throw below the save pushes an unbalanced save every frame for
+    // as long as the page is open -- and the banner tells the reader to
+    // hard-reload for a stale script, which is the wrong trail.
+    //
+    // The bake's own shape, handed straight in. It is WHITE -- masks, not
+    // paint -- so drawing it would put a white pond on the grass, and
+    // reading `layers.shore` off it throws on `undefined.width` further
+    // down, which is how this arrived: a rename, a green suite, and three
+    // gallery cards that threw on first render.
+    throw new Error(
+      'drawPonds was given pond MASKS; pass buildPondLayers through tintPondLayers first',
+    );
+  }
   const t = meadowTunables();
   ctx.save();
   // `clip` is the visible rectangle in this layer's own pixel space --

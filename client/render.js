@@ -25,9 +25,28 @@ const GROUND_BAKE_MAX_PX = 2048;
 // one -- two that persist and two scratch. Bounding each canvas's side
 // while the feature multiplied the canvas COUNT is guarding the wrong
 // quantity, and mobile Safari caps total canvas memory and hands back a
-// blank canvas rather than an error. Halving the side quarters the area,
-// which is what brings four layers back to roughly one ground bake.
-const POND_BAKE_MAX_PX = 2048;
+// blank canvas rather than an error.
+//
+// Lowered 2048 -> 1536 on 2026-09-21, on measurement rather than
+// arithmetic. Weighed in the page at dpr 3: the pond holds FOUR
+// world-sized canvases -- two masks and two tinted outputs -- which at
+// 2048 is 64 MiB persistent and 96 MiB while a bake is in flight, equal to
+// the entire ground cache rather than the minor cost it was assumed to be.
+// 1536 takes that to 36 MiB and 54 MiB. (MiB throughout, which is what the
+// guard in test-motion divides by and what Safari's cap is quoted in; the
+// same figures in decimal MB are 67.1/100.7 and 37.7/56.6, and mixing the
+// two units is how the guard came to measure 36 against a comment saying
+// 37.7.)
+//
+// It is bought for nothing visible. The cap reaches only the two BLURRED
+// bands; the waterline itself is a vector fill drawn live at screen
+// resolution and stays crisp at any cap. Rendered at the camera's floor
+// tile at dpr 3 and compared: mean 0.24/255, max 24, 0.7% of pixels over
+// 2 -- indistinguishable at 3x, and an order of magnitude inside the
+// cross-fade's own accepted deviation. The bands are already upscaled
+// 2.76x at 2048 on that display, which is why a further step down cannot
+// be seen.
+const POND_BAKE_MAX_PX = 1536;
 
 /** Slack for the margins between header, map and footer, which are not
  * worth measuring individually. Too small and the page gains a scrollbar;
@@ -1592,9 +1611,11 @@ class WorldRenderer {
   /**
    * The baked halves for one PURE theme, built once and held.
    *
-   * Three is the right ceiling: a crossing reads two, and the hour after
-   * next is prewarmed into the third during the lull so its bake does not
-   * land inside a fade. The oldest goes when a fourth arrives.
+   * TWO is the ceiling, and why it is stable rather than merely small is
+   * argued where the eviction happens, at the end of this function. The
+   * docblock used to argue for three, on a lull prewarm that no longer
+   * exists; two comments in one function disagreeing about the bound is
+   * worse than either of them.
    */
   groundLayersFor(world, theme, bakeTile, dpr) {
     const key = `${theme}|${bakeTile}|${dpr}`;
@@ -1620,7 +1641,23 @@ class WorldRenderer {
       bakeTile,
       dpr,
     }));
-    while (this.groundLayers.size >= 3) {
+    // TWO hours, which is every hour a crossing can want: the one being
+    // left and the one being entered. The bound was three when a lull
+    // prewarm reached ahead for a theme nothing was wearing yet; that was
+    // removed once the stall it hid measured below ordinary frame noise,
+    // and the spare slot went with its reason.
+    //
+    // Weighed at dpr 3: a pair is 32 MB, so three is a 96 MB ceiling the
+    // page never uses -- the cache holds two. The cost of the tighter bound
+    // is that flipping the manual day/dusk/night toggle back and forth
+    // re-bakes instead of finding a third hour retained, and a bake is 18ms
+    // against a control's 17.
+    //
+    // Two is stable, not merely small. `blitGround` asks for the near hour
+    // then the far one, so after both requests the cache holds exactly that
+    // pair whatever it held before: a miss can evict a hour that is still
+    // wanted, but only on the frame that repopulates it, and never twice.
+    while (this.groundLayers.size >= 2) {
       this.groundLayers.delete(this.groundLayers.keys().next().value);
     }
     this.groundLayers.set(key, built);
@@ -1628,60 +1665,56 @@ class WorldRenderer {
   }
 
   /**
-   * The pond's baked pair for the hour, cross-faded when a fade is in
-   * progress. The blurred silhouettes are the expensive half and they are
-   * per theme, so a step composites two FINISHED pairs into a reused
-   * output instead of blurring the shorelines again -- which is what the
-   * palette-keyed signature used to do, 192 times a crossing.
+   * The pond's layers for the hour. The blurred silhouettes are the
+   * expensive half, and they are now theme-INDEPENDENT: `buildPondLayers`
+   * bakes white masks, because every value it ever read that varied by hour
+   * was a flat colour. So the bake happens once per water change, and an
+   * hour -- or any point between two hours -- is that mask tinted.
+   *
+   * Cross-fading two tinted copies of one mask and tinting once with the
+   * lerped colour are the same arithmetic at fixed alpha, so this is exact
+   * rather than close: one composite and one rounding instead of two.
    */
   pondLayersFor(blend) {
     const cache = this.pondCache;
-    const bake = (theme) => {
-      const hit = cache.byTheme.get(theme);
-      if (hit) return hit;
-      const built = withMeadowTheme(theme, () => buildPondLayers(cache.ponds, cache.opts));
-      while (cache.byTheme.size >= 3) {
-        cache.byTheme.delete(cache.byTheme.keys().next().value);
-      }
-      cache.byTheme.set(theme, built);
-      return built;
-    };
-    const A = bake(blend.theme);
-    if (!blend.next || !(blend.step > 0)) return A;
-    const B = bake(blend.next);
-    const w = cache.opts.widthPx;
-    const h = cache.opts.heightPx;
-    if (!cache.out || cache.out.shore.width !== w || cache.out.shore.height !== h) {
-      const mk = () => {
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        return c;
-      };
-      cache.out = { shore: mk(), lip: mk(), dpr: cache.opts.dpr };
-    }
-    for (const which of ['shore', 'lip']) {
-      const g = cache.out[which].getContext('2d');
-      // A context-less stand-in (the harness) gets the near hour rather
-      // than a blank pond: unfaded is wrong by a step, blank is wrong by
-      // a pond.
-      if (!g) return A;
-      // The same isolated lerp `cross` does for the ground, and for the same
-      // reason: a shore and a lip are blurred silhouettes on transparent
-      // glass, so drawing A whole and B over it at the step ACCUMULATES the
-      // two hours instead of crossing them. Free here -- this composite was
-      // already happening on its own offscreen, which is the part that costs
-      // something; only the arithmetic was wrong.
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, w, h);
-      g.globalAlpha = 1 - blend.step;
-      g.drawImage(A[which], 0, 0);
-      g.globalAlpha = blend.step;
-      g.globalCompositeOperation = 'lighter';
-      g.drawImage(B[which], 0, 0);
-      g.globalAlpha = 1;
-      g.globalCompositeOperation = 'source-over';
-    }
+    if (!cache.masks) cache.masks = buildPondLayers(cache.ponds, cache.opts);
+    const masks = cache.masks;
+    // A bake that produced no masks -- the probe's flat-bake stub, which
+    // exists to price a crossing with the bake taken out. `drawPonds` has a
+    // designed answer for "no baked layers": the one flat shallow band it
+    // drew before any of this. Handing it a pair of nulls instead is not
+    // that answer, it is a throw on `null.width`, and it has been there
+    // since the stub was written.
+    if (!masks.shoreMask) return null;
+    const read = (theme) => withMeadowTheme(theme, () => ({
+      shore: MEADOW.pondShore,
+      lip: MEADOW.pondLip,
+    }));
+    const near = read(blend.theme);
+    const far = blend.next && blend.step > 0 ? read(blend.next) : null;
+    const paint = far
+      ? { shore: mixPaletteColor(near.shore, far.shore, blend.step),
+          lip: mixPaletteColor(near.lip, far.lip, blend.step) }
+      : near;
+
+    // A settled hour holds one colour for ~256 ticks. Re-tinting every frame
+    // would be strictly more per-frame work than the per-theme bakes this
+    // replaces, which only ever composited while a fade was running. Keyed
+    // on the paint, a settled hour tints once and a fade tints per step --
+    // the same count the cross-fade did, doing less each time.
+    const key = `${paint.shore}|${paint.lip}`;
+    if (cache.outKey === key) return cache.out;
+
+    // The tint itself lives in meadow.js beside the bake, because the
+    // gallery cards need the same step and a second copy of it is how a
+    // shipped rule drifts from the one that ships.
+    const painted = tintPondLayers(masks, paint, cache.out);
+    // A context-less stand-in gets null back, which `drawPonds` draws as its
+    // flat band. Not ours to cache under a colour key either -- the next
+    // frame with a real context must still tint.
+    if (!painted) return null;
+    cache.out = painted;
+    cache.outKey = key;
     return cache.out;
   }
 
@@ -1701,21 +1734,24 @@ class WorldRenderer {
       this.pondCache = null;
       return;
     }
-    // This cache is built from three things and used to key on one.
+    // This cache now bakes exactly what it keys on. It did not always, and
+    // the two staleness bugs that came of it are why the key is spelled out
+    // here rather than left to be inferred.
     //
-    // The PALETTE, because `buildPondLayers` bakes MEADOW.pondShore and
-    // MEADOW.pondLip into the shore and lip canvases. Keyed on the water
-    // tiles alone, the layers survived every palette step: the grass, the
-    // pond body and the meniscus all crossed into night while the shore
-    // band and the damp lip stayed in daylight paint, for the rest of the
-    // session. Fixed on main, 2026-08-17.
+    // The PALETTE used to belong in it, because `buildPondLayers` baked
+    // MEADOW.pondShore and MEADOW.pondLip into the shore and lip canvases.
+    // Keyed on the water tiles alone, the layers survived every palette
+    // step: the grass, the pond body and the meniscus all crossed into
+    // night while the shore band and the damp lip stayed in daylight paint,
+    // for the rest of the session. Fixed on main 2026-08-17 by keying on
+    // the theme.
     //
-    // It is keyed on the THEME now rather than on the blend step, which
-    // fixes that same bug at a hundredth of the cost: every hour still
-    // gets its own paint, but the 192 steps between two hours are a
-    // cross-fade of two baked pairs instead of 192 rebuilds. The geometry
-    // below -- paths, blurred silhouettes -- is what the signature covers,
-    // and it does not know what hour it is.
+    // The bake carries NO hour at all now. It is a white mask, painted at
+    // blit time by `tintPondLayers`, so the palette is out of the key
+    // entirely and that failure can no longer be expressed -- which is a
+    // better answer than a longer key. The geometry below -- paths, blurred
+    // silhouettes -- is what the signature covers, and it does not know
+    // what hour it is.
     //
     // The TILE, because the paths and layers are built at one. That was
     // safe for a reason that is not the obvious one -- `resizeFor` nulls
@@ -1737,19 +1773,20 @@ class WorldRenderer {
       this.pondCache = {
         signature,
         ponds,
-        // Depth and lip bake per theme, where the paths are already being
-        // rebuilt -- so the blur is paid once per water change per hour,
-        // not once per frame. Two layers for the whole world, not two per
-        // pond. Built at the bake tile like the ground, so camera movement
-        // never reaches this blur.
+        // Depth and lip bake ONCE PER WATER CHANGE, where the paths are
+        // already being rebuilt -- not per hour and not per frame, because
+        // the bake is a mask with no hour in it. Two layers for the whole
+        // world, not two per pond. Built at the bake tile like the ground,
+        // so camera movement never reaches this blur.
         opts: {
           tile: bakeTile,
           widthPx: Math.round(world.width * bakeTile * dpr),
           heightPx: Math.round(world.height * bakeTile * dpr),
           dpr,
         },
-        byTheme: new Map(),
+        masks: null,
         out: null,
+        outKey: null,
       };
     }
     const blend = this.blend || { theme: this.theme || 'day', next: null, step: 0 };

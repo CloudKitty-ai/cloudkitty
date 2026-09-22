@@ -164,7 +164,7 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' buildPondPath, buildPondLayers, tintPondLayers, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
   ' drawGroundLean, drawGroundPatches,' +
   ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
@@ -963,8 +963,8 @@ check('the renderer draws the live world\'s ponds without throwing', () => {
   );
   const sizes = renderer.pondCache.ponds.map((p) => p.tiles.length).sort();
   assert(String(sizes) === '1,1,1,4', `one lake and three lone tiles, got ${sizes}`);
-  const pair = [...renderer.pondCache.byTheme.values()][0];
-  assert(pair && pair.shore && pair.lip, 'and the depth layers baked');
+  const masks = renderer.pondCache.masks;
+  assert(masks && masks.shoreMask && masks.lipMask, 'and the depth masks baked');
 });
 
 /* ---- a cat IN the water, drawn as a whole frame ----
@@ -2352,8 +2352,9 @@ check('the sideways nudge cannot disagree with the depth sort', () => {
 });
 
 check('a palette step re-tints the pond without rebuilding its geometry', () => {
-  // `buildPondLayers` bakes MEADOW.pondShore and MEADOW.pondLip INTO the
-  // shore and lip canvases, but the cache used to key on the water tiles
+  // `buildPondLayers` USED TO bake MEADOW.pondShore and MEADOW.pondLip into
+  // the shore and lip canvases (it bakes white masks now, and the hour is a
+  // tint at blit), and the cache keyed on the water tiles
   // alone -- and `applyTheme` nulls only the ground cache. So a world
   // running from day into night kept its shore band and damp lip in
   // daylight paint while the grass, the pond body and the meniscus all
@@ -2389,19 +2390,67 @@ check('a palette step re-tints the pond without rebuilding its geometry', () => 
 
   // The palette steps. This used to throw the shorelines away and rebuild
   // them -- correct paint, bought 192 times a crossing, which is most of
-  // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now and the
-  // two hours are baked once each and cross-faded.
+  // the crossing lag (CROSSING-BAKES.md). The GEOMETRY is held now, and the
+  // bake is a white MASK that no hour owns: an hour is that mask tinted.
+  const baked = renderer.pondCache.masks;
   renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
-  assert(
-    renderer.pondCache.byTheme.size === 2,
-    `mid-fade should hold both hours, holds ${renderer.pondCache.byTheme.size}`,
-  );
-  // ...and the paint is still per hour, which is the bug the palette key
-  // was added for on 2026-08-17: shore and lip must not stay in daylight.
-  const [day, dusk] = [...renderer.pondCache.byTheme.values()];
-  assert(day.shore !== dusk.shore, 'both hours share one shore canvas');
+  assert(renderer.pondCache.masks === baked, 'a palette step rebuilt the pond MASKS');
+
+  // ...and the paint still moves with the hour, which is the bug the palette
+  // key was added for on 2026-08-17: shore and lip must not stay in
+  // daylight. The mechanism changed; the requirement did not. Read the
+  // colour the tint actually laid down, at each end of the fade.
+  // Read what the tint actually laid down -- the colours AND the composite
+  // op it laid them down with. The op is the entire mechanism: `source-in`
+  // replaces the colour and keeps the mask's alpha. `source-over` there
+  // fills the whole world-sized canvas opaque and blits a solid rectangle
+  // over the meadow, and this check stayed green under exactly that
+  // mutation until code review ran it (2026-09-22). A string compare of two
+  // fills is rule 5's first named lie: the contract is state, not wording.
+  const tintAt = (step) => {
+    const log = [];
+    renderer.pondCache.out = null;   // force the tint to run
+    renderer.pondCache.outKey = null;
+    const realCreate = globalThis.document.createElement;
+    globalThis.document.createElement = (tag) => {
+      const c = realCreate(tag);
+      if (tag === 'canvas') c.getContext = () => guardCtx(log);
+      return c;
+    };
+    try {
+      renderer.pondLayersFor({ theme: 'day', next: 'dusk', step });
+    } finally {
+      globalThis.document.createElement = realCreate;
+    }
+    // Every fill that lays paint, with the op in force when it landed. The
+    // loop runs shore then lip, so the order is the layer order.
+    const paints = [];
+    let op = null;
+    for (const e of log) {
+      if (e[0] === 'set' && e[1] === 'globalCompositeOperation') op = e[2];
+      if (e[0] === 'set' && e[1] === 'fillStyle') paints.push({ colour: e[2], op });
+    }
+    return paints;
+  };
+  const day = tintAt(0);
+  const dusk = tintAt(1);
+  assert(day.length === 2, `the tint painted ${day.length} layers, not 2`);
+  assert(dusk.length === 2, `the tint painted ${dusk.length} layers, not 2`);
+  for (const paint of [...day, ...dusk]) {
+    assert(
+      paint.op === 'source-in',
+      `the tint painted under ${paint.op}, which does not keep the mask's alpha`,
+    );
+  }
+  // At step 0 there is no far hour, so the paint is day's own, exactly.
+  // This is what reads the LIP: `fills[0]` alone never did, so painting the
+  // damp ring in shore blue at every hour was invisible to this suite.
+  assert(day[0].colour === api.MEADOW_DAY.pondShore, `shore painted ${day[0].colour}`);
+  assert(day[1].colour === api.MEADOW_DAY.pondLip, `lip painted ${day[1].colour}`);
+  assert(day[0].colour !== dusk[0].colour, `shore stays in one hour's paint (${day[0].colour})`);
+  assert(day[1].colour !== dusk[1].colour, `lip stays in one hour's paint (${day[1].colour})`);
 });
 
 check('applyTheme publishes the blend the ground and pond layers read', () => {
@@ -2498,6 +2547,229 @@ check('a crossing bakes each hour ONCE, not once per blend step', () => {
   }
   assert(seen.size === 2, `the crossing baked ${seen.size} pairs across 193 steps, not 2`);
   assert(r.groundLayers.size === 2, `it is holding ${r.groundLayers.size} hours, not 2`);
+});
+
+check('the pond bake is a MASK -- no hour is painted into it', () => {
+  // The whole basis of tinting at blit. `buildPondLayers` used to read
+  // MEADOW.pondShore and MEADOW.pondLip, which is why it had to run once
+  // per hour; every other value it touches is geometry. Bake it under two
+  // hours as far apart as the palette goes and the drawing must be
+  // identical, command for command -- if an hour leaks back in, it lands
+  // here as a different fill.
+  const bakeUnder = (theme) => {
+    const log = [];
+    const realCreate = globalThis.document.createElement;
+    globalThis.document.createElement = (tag) => {
+      const c = realCreate(tag);
+      if (tag === 'canvas') c.getContext = () => guardCtx(log);
+      return c;
+    };
+    try {
+      api.setMeadowPalette(theme, null, 0);
+      const tiles = [{ x: 1, y: 1 }, { x: 2, y: 1 }];
+      api.buildPondLayers(
+        [{ tiles, path: api.buildPondPath(tiles, 10) }],
+        { tile: 10, widthPx: 80, heightPx: 80, dpr: 1 },
+      );
+    } finally {
+      globalThis.document.createElement = realCreate;
+      api.setMeadowPalette('day', null, 0);
+    }
+    return log;
+  };
+  const day = JSON.stringify(bakeUnder('day'));
+  const night = JSON.stringify(bakeUnder('night'));
+  assert(day.length > 0, 'the bake drew nothing at all');
+  assert(day === night, 'the pond bake differs by hour -- a palette colour is baked in');
+});
+
+check('the pond pipeline is bake -> tint -> draw, and the seam says so', () => {
+  // `buildPondLayers` hands back WHITE MASKS and `drawPonds` draws paint, so
+  // something has to sit between them. The renderer tints with a lerped
+  // colour and its own cache; every other caller -- the gallery cards, the
+  // lab -- calls `tintPondLayers` and gets the current palette. A check that
+  // drives the renderer cannot see this seam at all, which is how the rename
+  // shipped past a full green suite and threw `undefined.width` on every
+  // pond card in the gallery.
+  const tiles = [{ x: 1, y: 1 }, { x: 2, y: 1 }];
+  const ponds = [{ tiles, path: api.buildPondPath(tiles, 10) }];
+  const bake = () => api.buildPondLayers(ponds, { tile: 10, widthPx: 80, heightPx: 80, dpr: 1 });
+
+  const log = [];
+  api.drawPonds(guardCtx(log), { ponds, tile: 10, layers: api.tintPondLayers(bake()) });
+  assert(
+    log.filter((c) => c[0] === 'drawImage').length >= 2,
+    'the tinted shore and lip never reached the canvas',
+  );
+
+  // And the seam is self-describing: handed the bake's own shape, it must
+  // name the missing step rather than dying on a property that is not there.
+  let err = null;
+  try {
+    api.drawPonds(guardCtx([]), { ponds, tile: 10, layers: bake() });
+  } catch (e) {
+    err = e;
+  }
+  assert(err, 'drawPonds silently accepted untinted masks');
+  assert(
+    /tintPondLayers/.test(err.message),
+    `drawPonds failed without naming the fix: ${err.message}`,
+  );
+});
+
+check('a bake with no masks draws the flat pond, not a throw', () => {
+  // The probe's flat-bake stub takes the pond bake out to price a crossing
+  // without it. It returned a pair of nulls, and every consumer of that
+  // dereferenced them: `null.width` in `drawPonds`, one frame in. That
+  // branch of the rig has never run to completion -- it is older than the
+  // mask rewrite and still on main.
+  //
+  // `drawPonds` already has the right answer for "nothing was baked": the
+  // flat shallow band it drew before the layers existed. So a mask-less
+  // bake has to arrive as NULL layers, which is what this pins.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  renderer.dpr = 1;
+  const world = {
+    width: 20,
+    height: 20,
+    elements: [
+      { kind: 'water', id: 1, pos: { x: 5, y: 5 } },
+      { kind: 'water', id: 2, pos: { x: 6, y: 5 } },
+    ],
+  };
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+  renderer.blend = { theme: 'day', next: null, step: 0 };
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache.masks, 'the real bake produced no masks');
+
+  // Now the stub's shape: a bake that ran and made nothing.
+  renderer.pondCache.masks = { shoreMask: null, lipMask: null, dpr: 1 };
+  renderer.pondCache.out = null;
+  renderer.pondCache.outKey = null;
+  assert(renderer.pondLayersFor(renderer.blend) === null, 'a mask-less bake did not come back as null layers');
+
+  const log = [];
+  renderer.ctx = guardCtx(log);
+  renderer.drawPondLayer(world, view);
+  assert(log.length > 0, 'the flat pond drew nothing at all');
+  assert(!log.some((c) => c[0] === 'drawImage'), 'it blitted a layer it never baked');
+  // Not `some(stroke)`: `drawPonds` strokes the meniscus for every pond and
+  // `drawCaustics` strokes too, so that was true however the fallback was
+  // mutated. The band's own colour is the thing being claimed.
+  assert(
+    log.some((c) => c[0] === 'set' && c[1] === 'strokeStyle' && c[2] === api.MEADOW.pondShallow),
+    'the flat shallow band was never drawn',
+  );
+});
+
+check('no gallery card draws a pond it has not tinted', () => {
+  // The three pond cards bake per palette and hand the result straight to
+  // `drawPonds`, with nothing in between -- the exact shape of caller the
+  // check above says cannot exist. Nothing else executes this file, so this
+  // reads it: every `layers:` the gallery builds from a bake must go through
+  // the tint on its way.
+  const src = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const raw = src.match(/layers:\s*buildPondLayers\(/g) || [];
+  assert(raw.length === 0, `${raw.length} gallery card(s) draw the raw bake`);
+  const tinted = src.match(/layers:\s*tintPondLayers\(buildPondLayers\(/g) || [];
+  assert(tinted.length === 3, `expected 3 tinted pond cards, found ${tinted.length}`);
+});
+
+check('a crossing tints the pond, it does not re-bake it', () => {
+  // The pond half of the same claim the ground guard above makes. The bake
+  // is per WATER CHANGE now, not per hour and emphatically not per step:
+  // 192 steps between two hours must not touch buildPondLayers once.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  renderer.dpr = 1;
+  const world = {
+    width: 20,
+    height: 20,
+    elements: [
+      { kind: 'water', id: 1, pos: { x: 5, y: 5 } },
+      { kind: 'water', id: 2, pos: { x: 6, y: 5 } },
+    ],
+  };
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+  renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
+  renderer.drawPondLayer(world, view);
+  const masks = renderer.pondCache.masks;
+  assert(masks, 'no masks were baked at all');
+
+  // Count the tint EXECUTIONS. `tints.size` below is a property of
+  // `mixPaletteColor` landing on 8-bit hex -- it reads ~76 whether the
+  // cache short-circuits or not -- so it cannot see a cache that has
+  // stopped working. Deleting the short-circuit re-tints two world-sized
+  // canvases on every frame of a settled hour, forever, and this check
+  // stayed green under that mutation until code review ran it.
+  let ctxGets = 0;   // the tint takes one context per layer, so two per run
+  for (const which of ['shore', 'lip']) {
+    const c = renderer.pondCache.out[which];
+    const real = c.getContext.bind(c);
+    c.getContext = (...a) => { ctxGets += 1; return real(...a); };
+  }
+
+  const tints = new Set();
+  for (let i = 0; i <= 192; i += 1) {
+    renderer.blend = { theme: 'day', next: 'dusk', step: i / 192 };
+    renderer.drawPondLayer(world, view);
+    tints.add(renderer.pondCache.outKey);
+  }
+  assert(
+    renderer.pondCache.masks === masks,
+    'the crossing re-baked the pond masks',
+  );
+  // 193 steps yield ~76 distinct paints, not 193: `mixPaletteColor` lands on
+  // 8-bit hex, so neighbouring steps round together. That is the colour
+  // depth rather than a defect -- and it means the per-theme composite this
+  // replaces was paying 192 times for ~76 distinguishable results.
+  assert(tints.size > 10, `the tint is not tracking the fade, only ${tints.size} distinct paints`);
+  assert(tints.size < 193, `the tint is not being reused at all: ${tints.size} paints in 193 steps`);
+  // The property: at most one run per distinct paint. Without the cache it
+  // is one run per STEP, which is 193 against ~76.
+  const tintRuns = ctxGets / 2;
+  assert(tintRuns > 10, `the tint never ran at all: ${tintRuns} runs`);
+  assert(
+    tintRuns <= tints.size,
+    `the tint ran ${tintRuns} times for ${tints.size} distinct paints -- the cache is not holding`,
+  );
+});
+
+check('the ground cache holds TWO hours, across consecutive crossings', () => {
+  // The bound was three while a lull prewarm reached ahead for an hour
+  // nothing was wearing. That is gone, and so is the spare slot: a crossing
+  // wants the hour it is leaving and the one it is entering, and nothing
+  // else. Weighed at dpr 3 a pair is 32 MB, so the third slot was a 96 MB
+  // ceiling the page never reached.
+  //
+  // One crossing cannot show this -- it only ever asks for two hours. It
+  // takes a SECOND crossing, sharing an hour with the first, for a third to
+  // accumulate.
+  const r = camRenderer();
+  r.camera.on = true;
+  const world = camWorldFor();
+  const walk = (theme, next) => {
+    for (let i = 0; i <= 8; i += 1) {
+      r.blend = { theme, next, step: i / 8 };
+      r.blitGround(world);
+      assert(
+        r.groundLayers.size <= 2,
+        `the cache grew to ${r.groundLayers.size} hours during ${theme}>${next}`,
+      );
+    }
+  };
+  walk('day', 'dusk');
+  walk('dusk', 'night');
+  const held = [...r.groundLayers.keys()].map((k) => k.split('|')[0]).sort();
+  assert(
+    String(held) === 'dusk,night',
+    `after two crossings it should hold exactly the second pair, holds ${held}`,
+  );
 });
 
 check('the sun wash is live, in neither baked half', () => {

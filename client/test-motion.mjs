@@ -10884,13 +10884,40 @@ check('the pond layers are bounded tighter than the ground, being four of them',
   });
   const ground = r.bakeTileFor(world);
   const pond = r.pondBakeTileFor(world);
-  assert(pond <= ground, `pond bakes larger than the ground: ${pond} > ${ground}`);
   const side = pond * Math.max(world.width, world.height) * r.dpr;
-  assert(side <= 2048, `each pond layer would be ${Math.round(side)} device px a side`);
-  // Four of them must not cost more than one ground bake.
   const groundSide = ground * Math.max(world.width, world.height) * r.dpr;
-  assert(4 * side * side <= 4 * groundSide * groundSide,
-    'four pond layers outweigh the ground bake they were bounded against');
+
+  // The bound must BIND. `pond <= ground` passed for free while the two
+  // ceilings were equal and the pond clamp could not reach -- it asserted
+  // an ordering that the ground's own clamp already guaranteed. Strict is
+  // the claim: the pond is deliberately coarser than the grass.
+  // ...but `pond < ground` is a claim about THIS FIXTURE unless the clamp is
+  // actually reaching. On a smaller world, a narrower viewport or dpr 1 both
+  // tiles are the same unclamped `cssWidth/floorTiles` and the strict `<`
+  // fails for a correct build. Pin the precondition rather than leave it
+  // implicit -- a rig encodes a belief, and this one believes its own
+  // fixture.
+  const pondCap = Number(
+    readFileSync(join(here, 'render.js'), 'utf8').match(/POND_BAKE_MAX_PX = (\d+)/)[1],
+  );
+  assert(
+    Math.round(side) === pondCap,
+    `the pond clamp is not reaching on this fixture: ${Math.round(side)}px against a cap of ${pondCap}`,
+  );
+  assert(pond < ground, `the pond bound does not bind: pond ${pond}, ground ${ground}`);
+
+  // And the quantity Safari actually caps, which is total canvas MEMORY.
+  // Four world-sized canvases -- two masks, two tinted outputs. MiB, since
+  // that is what the divisor below produces and what the cap is quoted in:
+  // 36 MiB at 1536 and 64 MiB at 2048. The budget is the measured figure
+  // with a little room, so raising the ceiling reddens here rather than
+  // silently doubling what a phone holds.
+  const pondMiB = (4 * side * side * 4) / 1048576;
+  assert(pondMiB <= 40, `the pond's four layers come to ${pondMiB.toFixed(1)} MiB`);
+  // The replaced assertion here read `4 * side * side <= 4 * groundSide *
+  // groundSide`, which cancels to `side <= groundSide` -- it looked like
+  // four-against-one and compared four against four.
+  assert(side < groundSide, `pond layer ${Math.round(side)}px is not under the ground's ${Math.round(groundSide)}px`);
 });
 
 check('the pond bake leaves the camera-off state alone, at every dpr', () => {

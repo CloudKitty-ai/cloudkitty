@@ -96,7 +96,12 @@
             ctx.fillRect(0, 0, o.width * o.tile, o.height * o.tile);
             return undefined;
           }
-          return { shore: null, lip: null };
+          // The MASK shape the renderer reads, with nothing in it. The
+          // old `{ shore, lip }` was the pre-mask field names AND it threw
+          // downstream on `null.width`; this branch has never run to
+          // completion. `pondLayersFor` turns a mask-less bake into null
+          // layers, which `drawPonds` draws as its flat fallback.
+          return { shoreMask: null, lipMask: null, dpr: 1 };
         }
         return real.apply(this, a);
       } finally {

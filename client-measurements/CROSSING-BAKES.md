@@ -389,33 +389,37 @@ making the stall and the memory smaller again:
   from the blended palette rather than quantised to the step — closer to the
   per-step rebake than the bake was.
 
-  **Cost, measured on the owner's iPhone, Safari, dpr 3, 2026-09-21:
-  ~0.25 ms per draw at the median, ~0.75 ms at p90** — 1.5% and 4.5% of a
-  16.7 ms frame. Its JavaScript is 37 µs (headless Chrome, where the whole
-  sweep is invisible: all three levels sit on the 60 Hz vsync floor), so
-  essentially all of it is rasterisation, which is why no timer on the JS
-  side could see it.
+  **Cost, measured on the owner's iPhone, Safari, dpr 3, re-run on a COOL
+  device 2026-09-22: ~0.125 ms per draw at the median, ~0.25 ms at p90** —
+  0.75% and 1.5% of a 16.7 ms frame. Its JavaScript is 37 µs (headless
+  Chrome, where the whole sweep is invisible: all three levels sit on the
+  60 Hz vsync floor), so essentially all of it is rasterisation, which is why
+  no timer on the JS side could see it.
 
   The instrument is the probe's lean sweep: 0, 1 and 8 draws per frame in
   blocks of 12 **within one run**, first 2 frames of each block dropped.
-  1× cannot be resolved against 0× (both 17 ms median) — the 8× row supplies
-  the slope, and that is what it is there for.
+  1× cannot be resolved against 0× (identical median AND p90) — the 8× row
+  supplies the slope, and that is what it is there for.
 
-  | draws/frame | frames | median | p90 |
-  |---|---|---|---|
-  | 0 | 171 | 17 ms | 19 ms |
-  | 1 (shipped) | 170 | 17 ms | 21 ms |
-  | 8 | 170 | 19 ms | 25 ms |
+  | draws/frame | frames | median | p90 | | 2026-09-21 (hot) |
+  |---|---|---|---|---|---|
+  | 0 | 180 | 17 ms | 19 ms | | 17 / 19 |
+  | 1 (shipped) | 180 | 17 ms | 19 ms | | 17 / 21 |
+  | 8 | 172 | 18 ms | 21 ms | | 19 / 25 |
 
-  ⚠ **That run's baselines drifted 5× (1.5% → 7.8% of frames over 20 ms for
-  the SAME condition), so nothing between rows in it is readable** — including
-  its stall table, which put the bake frame at 36 ms against a 17 ms control
-  where the record says 18 vs 17. The same run measured the bake *in situ*,
-  in the crossing rows' own `frames that BAKED` column, at **22–24 ms**. Two
-  instruments, one run, disagreeing by 50%. The lean numbers above are
-  unaffected because the sweep interleaves its levels through the row, which
-  is the entire reason it is built that way. **Owed: one stall-table re-run on
-  a cool device**, to settle whether the bake frame moved.
+  ⚠ **CORRECTION 2026-09-22 — "the lean numbers are unaffected" was wrong.**
+  The 2026-09-21 run's baselines drifted 5× (1.5% → 7.8% of frames over
+  20 ms for the SAME condition), and this file argued its lean numbers
+  survived that because the sweep interleaves its levels through one row.
+  Interleaving does protect the *comparison* — both runs agree that 1× is
+  unresolvable and that the 8× row carries the slope. It does **not** protect
+  the magnitude: a throttled device is slower at every level, so the marginal
+  cost per draw is inflated along with everything else. The hot run put the
+  slope at 0.25 ms median / 0.75 ms p90; the cool run puts it at **half the
+  median and a third the p90**.
+
+  Within-row beats between-row when the device drifts *across* a run. Neither
+  survives a device that is slow *throughout* one.
 
 - ~~**What the ~400 ms stall actually is.**~~ **CLOSED 2026-09-21: there is no
   stall.** Measured directly on the phone, 12 repetitions per condition, the
@@ -463,6 +467,99 @@ making the stall and the memory smaller again:
 - **Why the pond is disproportionate.** Four allocations vs one, eight blurs
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
+
+- **The probe's flat-bake branch is DEAD, not merely broken.** Review
+  finding 2 said the stub returned the wrong shape and threw one frame in.
+  Both true, and it is worse and better than that: driving the probe
+  headless after the fix reports four rows -- `baseline`, `FROZEN`,
+  `baseline 2`, `lean sweep` -- and **no caller passes `flat: true` at all**.
+  The condition that did was removed in `918c986` with the withdrawn
+  stall's leftovers; the machinery behind it stayed. So no measurement was
+  ever taken through that branch and none of this arc's numbers came from
+  it. The stub is fixed rather than deleted -- it is an instrument knob
+  worth re-enabling, and it now returns the shape the renderer reads -- but
+  the branch is unexercised until someone adds the caller back, and a rig
+  that cannot be run is not evidence of anything.
+
+  Corrects this session's own commit message on `235fbcc`, which said every
+  `flat` row had died instead of measuring. There are no `flat` rows.
+
+- **REPORTED, NOT FIXED (code review, 2026-09-21): `POND_BAKE_MAX_PX`
+  governs nothing while the camera is off.** `pondBakeTileFor` returns the
+  unclamped tile before it reaches the bound, so at `MAP_MAX_PX` and dpr 3
+  the four persistent pond canvases are ~3600 px a side -- roughly 200 MiB,
+  which is the mobile-Safari failure the constant exists to prevent, and far
+  outside the "36 MiB persistent" this branch claims. The early return is
+  DELIBERATE: it keeps the camera-off output byte-identical, which is what
+  the comment above it argues for, and the mask rewrite HALVES that path
+  (8 canvases to 4) rather than worsening it. But `test-motion`'s budget
+  guard only exercises camera-on, so the unbounded state is asserted
+  nowhere. Not this branch's to fix (CLAUDE.md rule 3) -- it predates it and
+  changing it changes shipped art at every zoom. **Owner's call**, and it
+  belongs beside the `GROUND_BAKE_MAX_PX` equality item above, which is the
+  same question from the other side.
+
+  > **Followed up 2026-09-21 (`client-pond-tint`).** Every theme-dependent
+  > value `buildPondLayers` read was a flat colour, so the bake is now a
+  > white MASK and the hour is a tint applied at blit. Pond bakes per
+  > crossing: 2-3 -> 0. Persistent canvases: 8 -> 4.
+  >
+  > ~~Measured against this branch with `crossing-shots`: settled hour mean
+  > 0.01/255 (max 1), and 0.09-0.24 through the fade.~~ **RETRACTED
+  > 2026-09-22 — the baseline it compared to no longer exists.** Those
+  > numbers were taken against #405 *before* its review, when the cross-fade
+  > was still two source-over blits. The isolated lerp moved #405 by more
+  > than this branch ever moved against it, so "an order of magnitude inside
+  > the cross-fade's own deviation" is a comparison to a build nobody will
+  > run.
+  >
+  > **Re-measured after the merge**, both branches against the same oracle
+  > (`cloudkitty-crossing` @ `9b06c4f`, the per-step rebake):
+  >
+  > | tick | #405 as merged | this branch |
+  > |------|----------------|-------------|
+  > | 256 (settled) | 0.48 | 0.49 |
+  > | 262 | 0.98 | 0.98 |
+  > | 266 | 0.94 | 0.94 |
+  > | 272 | 1.00 | 1.01 |
+  > | 279 | 1.11 | 1.12 |
+  > | 279.99 | 0.51 | 0.53 |
+  > | 280 (settled) | 0.51 | 0.53 |
+  >
+  > Mean deviation per 255, whole frame. The two are the same build to
+  > within 0.02 on every row -- the mask and the tint give back what the
+  > cross-fade gave, and the 1536 cap is inside that. At the phase boundary,
+  > the read this rig says to trust, this branch is **better**: 2 px of
+  > 1,642,230 past the JND (max 7) against #405's 12 (max 10).
+  >
+  > The settled rows sit near 0.5 rather than near zero in BOTH builds, so
+  > that is #405's live lean pass against a baked oracle, not anything this
+  > branch does. The rig's own note to read fade rows against the settled
+  > floor is doing real work here.
+  >
+  > ⚠ **This does NOT retire `POND_BAKE_MAX_PX`** -- an earlier scope of mine
+  > said it would. The bound's premise is the FOUR canvases a single bake
+  > allocates at once, and that peak is unchanged; `buildPondLayers` still
+  > needs a scratch and a mask to isolate each pond's composite.
+  >
+  > **It LOWERS it instead, 2048 -> 1536, ruled 2026-09-21.** Weighed in the
+  > page at dpr 3 rather than reasoned about: the pond holds four
+  > world-sized canvases, which at 2048 is **64 MiB persistent and 96 MiB
+  > mid-bake -- equal to the whole ground cache**, not the minor cost it was
+  > assumed to be. 1536 takes that to 36 MiB and 54 MiB. (MiB throughout;
+  > the same figures in decimal MB are 67.1/100.7 and 37.7/56.6. An earlier
+  > draft of this paragraph mixed the two and the guard ended up measuring
+  > 36 against a comment that said 37.7.) The visible cost
+  > is 0.24/255 mean, max 24, 0.7% of pixels, indistinguishable at 3x,
+  > because the cap reaches only the two BLURRED bands -- the waterline is a
+  > vector fill at screen resolution -- and those bands are already upscaled
+  > 2.76x at 2048 on that display.
+  >
+  > The old ratio argument ("four pond layers ~ one ground bake") no longer
+  > maps: it was written when the ground baked ONE canvas, and the ground
+  > now holds two layers per theme. The guard asserts the measured
+  > quantities instead -- that the bound binds, and that the pond's four
+  > canvases stay inside a stated MB budget.
 - ~~**Whether the pond needs the wash treatment too.**~~ **ANSWERED
   2026-09-21 — no, but it had the other bug.** No `shadowLean` reaches it, so
   it needs nothing drawn live. Checking it at every blend position was the
@@ -695,26 +792,67 @@ a third of its frames draw the lean 8 times on purpose, so its jank columns
 are inflated by the instrument. Only the lean table in section 7 is a read on
 that row. The panel now says so.
 
-The stall table from the same run, which is where the 36 ms bake frame comes
-from:
+The stall table. **DEBT CLOSED 2026-09-22 by a re-run on a cool device**,
+on the post-merge build (`395d0c1`, so #405 and #408 together):
 
 | condition | reps | W median | W max | D median | D max | W+D median |
 |---|---|---|---|---|---|---|
-| control (no bake) | 12 | 17 ms | 25 ms | 16 ms | 19 ms | 33 ms |
-| bake, draw next frame | 12 | 36 ms | 40 ms | 16 ms | 18 ms | 52 ms |
-| bake + blit, draw next frame | 12 | 40 ms | 46 ms | 17 ms | 19 ms | 57 ms |
+| control (no bake) | 12 | 17 ms | 20 ms | 16 ms | 19 ms | 33 ms |
+| bake, draw next frame | 12 | 22 ms | 45 ms | 14 ms | 17 ms | 34 ms |
+| bake + blit, draw next frame | 12 | 21 ms | 43 ms | 14 ms | 17 ms | 35 ms |
 
-The control matches the earlier run exactly (17/16/33). The bake frame does
-not: 36 ms where 2026-09-20 measured 18. But the *same run's* crossing rows
-put a bake at **22-24 ms** in situ, the stall rows run later in the sequence
-than their own control, and the baselines moved 5x across that sequence. Two
-instruments, one run, disagreeing by 50%.
+The 2026-09-21 hot run, retained so the correction is visible rather than
+overwritten: control 17/25/16/19/33, bake **36**/40/16/18/52, bake+blit
+40/46/17/19/57.
 
-No mechanism was found by which this branch could make a bake more expensive
--- the blades and stems moved OUT of the bake and the patches moved between
-halves, so the total is neutral at worst. **Owed: one stall-table re-run on a
-cool device.** Not blocking: it does not touch the lean cost, and the in-situ
-number agrees with the record.
+**The 36 ms bake frame is retired.** It was the device, as suspected: the
+control reproduces exactly (17/16/33) for the third run running, and the bake
+frame comes back at **22 ms**, which now AGREES with the same run's in-situ
+reading — the crossing row's `frames that BAKED` column says 21 ms. Two
+instruments, one run, agreeing to 1 ms, where before they disagreed by 50%.
 
-`bake + blit` remains worse than `bake` here too (40/46 against 36/40), which
-is the third run to say so. Still not shipped.
+**Read W+D, not W.** Over the two-frame window a bake costs **+1 ms**
+(34 against the control's 33), and `bake + blit` +2 ms. The W column alone
+says +5 ms, but D comes back *cheaper* after a bake (14 ms against 16) —
+Safari records the commands on one frame and rasterises them across the next,
+so neither frame alone is the cost. +1 ms is what the 2026-09-20 record
+already said (18 against 17).
+
+⚠ **`bake + blit` is NOT worse than `bake` on a cool device.** Three hot runs
+said it was, the last by 5 ms (57 against 52). Here they are 34 and 35 W+D,
+21 and 22 W median — indistinguishable. That gap was thermal too. The
+conclusion is unchanged (still not shipped, for want of a reason to), but the
+evidence that was cited for it no longer holds.
+
+## 11. The cool-device re-run, 2026-09-22
+
+The owner's iPhone, Safari, dpr 3, on the post-merge build (`395d0c1`: #405
+merged plus #408's mask and tint). Recorded whole, including the columns that
+are not readable, because the 2026-09-21 entry quoted a 36 ms bake frame
+without its surrounding baselines and that is exactly how a void number
+outlives its caveat.
+
+**This run IS readable.** The two baselines agree — 0.6% and 0.1% of frames
+over 20 ms, p99 19 ms and 19 ms — where 2026-09-21 had 1.5% against 7.8% and
+p99 21 against 24. That is the check the panel tells you to make first, and
+it is the only reason anything below can be compared between rows.
+
+| condition | frames | >20 ms | >33 ms | worst | p99 | BAKED | in canvas |
+|---|---|---|---|---|---|---|---|
+| baseline (as shipped) | 670 | 4 (0.6%) | 1 | 59 ms | 19 ms | 21 ms | 2 ms |
+| FROZEN (the ceiling) | 670 | 1 (0.1%) | 1 | 74 ms | 18 ms | — | 0 ms |
+| baseline 2 | 669 | 1 (0.1%) | 1 | 80 ms | 19 ms | — | 0 ms |
+| lean sweep ⚠ not comparable | 640 | 69 (10.8%) | 3 | 128 ms | 26 ms | 23 ms | 3 ms |
+
+`baseline 2` bakes nothing because the caches are warm by then — it is the
+steady state, not a repeat of the first row. So `baseline` against
+`baseline 2` is the cost of the first crossing's bakes: **3 extra frames over
+20 ms out of 670**, and no difference at p99 at all.
+
+⚠ **Do not read `worst`.** 59 / 74 / 80 ms across three rows that each have
+exactly ONE frame over 33 ms: that column is a single sample of the device's
+outlier tail, and it is the column that produced the fictional ~400 ms stall
+this whole arc chased. It is retained here only so the row is complete.
+
+The stall table and the lean table from this run are in §10 and §7, beside
+the hot-run numbers they correct.
