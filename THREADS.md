@@ -117,7 +117,7 @@ before the command runs.
 - **Owner-authored text ships verbatim.** Flag a typo; never fix it;
   don't restructure a supplied document (2026-07-23).
 
-## 6. What lives where (DRAFT for the owner's ruling, Harness 2026-09-22)
+## 6. What lives where (owner ruled 2026-09-22)
 
 One home per fact; every other mention is a pointer to it. The
 rows below the first ten were added on the owner's word (2026-09-22:
@@ -141,4 +141,4 @@ a rule or a ruling restated outside its home is a condense cut.
 | the design record of a change: what was ruled, why, what it touched | `specs/NNN-*/` | "spec NNN"; the owner's ruling copied there with its issue number | future work (BACKLOG), evidence |
 | the live box: seatings, censuses, welfare reads as deployed | `policies/purrsonality.md` | — | the next deploy (that is checked-in config) |
 | a skill's trial record: what dropped, what patched it, clean runs | `TRIALS.md` beside the skill | — | the skill's rules (SKILL.md) |
-| a trap or lesson about code a thread owns (PENDING the owner's ruling on shape) | per thread, beside the code it owns: `client/TRAPS.md`, `crates/TRAPS.md`, `experiments/TRAPS.md`, `.claude/TRAPS.md` | the memory index carries a pointer, never the trap | user-facing docs (`docs/`), findings |
+| a trap or lesson about the code a thread owns (owner ruled 2026-09-22: one file per thread, co-located) | `client/TRAPS.md`, `crates/TRAPS.md`, `experiments/TRAPS.md`, `.claude/TRAPS.md`; sections *Traps* (what the code does that bites) and *Lessons* (a method change); entry = date, the trap in a sentence, where it bites, the evidence, the guard if any | the memory index carries a pointer, never the trap; a lesson that holds across threads is promoted to CLAUDE.md, THREADS.md or README §Design discipline | user-facing docs (`docs/`), findings, any trap with a mechanical guard (test, hook, CI check): the guard is its home and the entry is deleted |
