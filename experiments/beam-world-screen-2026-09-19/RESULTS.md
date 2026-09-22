@@ -746,3 +746,86 @@ experiments/exp-006-character-gen/.venv/bin/python experiments/beam-world-screen
 bash experiments/beam-world-screen-2026-09-19/results-raw/tier6/meow/run.sh
 CERT_ARTS=<arts> .../distress_inspect.py experiments/beam-world-screen-2026-09-19/count-7.toml 870015 --seat 0=ppo:cnt7-s1 ... --seat 4=ppo:cnt7-s1
 ```
+
+# Spec 057 acceptance read, 2026-09-22: the teacher's sleep rule reads the floor
+
+Product's branch `057-teacher-sleep-floor` at d850df8 (not merged; the
+owner reviews after this read), against main at 705290d. The branch's
+binding was built into a throwaway venv; the lab venv stays on main.
+Scripted comparator legs through `cert_harness_fog.py scripted eval`
+(30 × 20k, served clock) on both bindings, and the nap cross-tab
+`teacher_nap_crosstab.py` (10 seeds × 20k) on both. Raws
+`results-raw/spec057-d850df8/` (uncommitted).
+
+| measure, teacher on the floor-15 package world (count 6) | main 705290d | branch d850df8 | package world at floor 0 |
+|---|---|---|---|
+| naps begun on a beam (placement) | 0.341 | **0.606** | 0.458 |
+| ticks asleep on a beam | 0.333 | 0.583 | 0.365 |
+| conducted cosleep share | 0.050 | 0.094 | — |
+| sleep share of ticks | 0.118 | **0.078** | 0.088 |
+| nap starts (30 seeds) | 68,547 | 44,669 | — |
+| mean sleep need at nap start | 18.5 | 19.9 | 17.8 |
+| happiness (per-seed range) | 86.18 (85.84–86.55) | 86.62 (86.32–87.03) | 86.90 |
+| Nash | 0.860 | 0.865 | 0.868 |
+| max distress age; seeds over 150 | 134; 0 | 138; 0 | 93; 0 |
+
+Nap starts by need and warmth, 10 seeds (`crosstab-main.jsonl`,
+`crosstab-057.jsonl`), share of all starts:
+
+| | need ≤ 15, ground, solo | need ≤ 15, ground, partner | need ≤ 15, beam | need > 15, ground solo | need > 15, ground partner | need > 15, beam |
+|---|---|---|---|---|---|---|
+| main | **0.045 (1,019)** | 0.036 | 0.145 | 0.260 | 0.317 | 0.197 |
+| branch | **0.000 (1)** | 0.054 | 0.251 | 0.054 | 0.282 | 0.359 |
+
+## Against the handover's acceptance list
+
+- **Floor 0 byte-identical: holds.** The all-scripted leg on
+  `anchor-b3.toml` (the served world) gives 30 of 30 rows identical
+  between the two bindings, every field. (Tier 5's shallow-15 rows
+  differ from a fresh main run only by the later `msg` key; the
+  dynamics are unchanged.)
+- **The loop is gone: holds.** Naps begun at or under the floor with no
+  beam underfoot and no partner fall from 1,019 to 1 in 10 seeds. The
+  one is on seed 870003 and is most likely the post-apply read: a nap
+  begun a fraction above the floor relieves to the floor in its first
+  tick and the state then reads need = 15.0 (inferred from the layout,
+  not traced). Sleep share falls 0.118 → 0.078, under the package
+  world's floor-0 value; nap starts fall by a third; the need at nap
+  start rises to 19.9 and the 20–40 bin takes 0.45 of starts (0.31
+  before). Solo ground naps above the floor fall 0.26 → 0.05: the
+  teacher now waits for a beam, a partner, or a need worth a ground nap.
+- **Welfare not worse: holds.** Happiness +0.44, Nash +0.005, no seed
+  over the distress line on either binding. The branch's per-seed range
+  sits above main's, so "within the seed spread" is exceeded in the
+  good direction.
+- **Placement, reported**: 0.341 → 0.606, past the shelf's ~0.4 corpus
+  bar and past the floor-0 package world's 0.458. The bar itself is
+  read on the recorded corpus, not here.
+- **Mutate reds**: Product reports three on the branch (raw-need term,
+  gate disabled, warm predicate always true), predictions declared
+  first. Not re-run here. The cross-tab instrument has its own live
+  guard in `test_distress_inspect.py` (starts and sleep share equal the
+  harness's on the same leg) with a red on the start definition.
+
+Product's two fixture traps (the potter gate wanders 40% of ticks
+under pressure 20, so the no-nap rule is partly stochastic at floor 15;
+a world with no beam known takes the exploration rung) are consistent
+with the read: the cross-tab shows the rule holding at the population
+level on the real world, which is what the corpus records.
+
+## What this changes downstream
+
+The Gen 2 re-record can proceed on the merged rule with the floor-15
+count-6 package world as ruled. The teacher's placement under the floor
+is now higher than at floor 0, so the corpus read's ~0.4 bar is
+expected to clear with margin; the here-word density pins (F-034, A1b)
+still need their re-check on the new corpus, since `here_sunbeam` rises
+with beam use. Regeneration:
+
+```
+# branch binding into a scratch venv, from <worktree>/crates/cloudkitty-py:
+VIRTUAL_ENV=<venv> PATH=<venv>/bin:$PATH maturin develop --release
+<venv>/bin/python experiments/fog-gen1-cert/cert_harness_fog.py scripted eval --config experiments/beam-world-screen-2026-09-19/shallow-15.toml --workers 6 --out-dir .../spec057-d850df8/shallow-15
+<venv>/bin/python experiments/fog-gen1-cert/cert_harness_fog.py scripted eval --config experiments/fog-gen1-cert/anchor-b3.toml --workers 6 --out-dir .../spec057-d850df8/floor0
+<venv>/bin/python experiments/beam-world-screen-2026-09-19/teacher_nap_crosstab.py experiments/beam-world-screen-2026-09-19/shallow-15.toml 870001 10
+```

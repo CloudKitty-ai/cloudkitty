@@ -30,4 +30,11 @@ assert all(w["need"] in D.NEEDS and w["len"] == w["end"] - w["start"] for w in w
 t = L.crosstab(CFG, SEED, SLOT, TICKS)
 assert t["starts"] == sum(r["beam"]["starts"]), (t["starts"], r["beam"]["starts"])
 assert t["starts"] == sum(v for v, _ in t["table"].values())
-print("test_distress_inspect ok", r["max_distress_age_seat"], t["starts"])
+
+# the scripted teacher's cross-tab (spec 057 acceptance read) against the harness's all-scripted leg
+import teacher_nap_crosstab as TN  # noqa: E402
+rs = C.run_one(("scripted", SEED, TICKS, str(CFG), None, None, "served"))
+tt = TN.crosstab(CFG, SEED, TICKS)
+assert tt["starts"] == sum(rs["beam"]["starts"]) > 0, (tt["starts"], rs["beam"]["starts"])
+assert tt["floor"] == 15.0 and abs(tt["sleep_share"] - sum(rs["beam"]["sleep"]) / (TICKS * 5)) < 1e-9
+print("test_distress_inspect ok", r["max_distress_age_seat"], t["starts"], tt["starts"])
