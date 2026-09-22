@@ -119,7 +119,10 @@ before the command runs.
 
 ## 6. What lives where (DRAFT for the owner's ruling, Harness 2026-09-22)
 
-One home per fact; every other mention is a pointer to it. A number,
+One home per fact; every other mention is a pointer to it. The
+rows below the first ten were added on the owner's word (2026-09-22:
+"key information in one place"; TODO owner: update rigor for these
+key files and the user-facing docs at tag time). A number,
 a rule or a ruling restated outside its home is a condense cut.
 
 | the fact | its one home | pointers elsewhere look like | does not hold |
@@ -134,3 +137,8 @@ a rule or a ruling restated outside its home is a condense cut.
 | a thread's session state: where it is, job cards, open asks | the memory directory (resume anchor + `MEMORY.md` index) | — | numbers, rules, findings, rulings: a pointer to the home instead |
 | who owns what, where each thread works, how much process | `THREADS.md` | CLAUDE.md line 1 | how to do the work |
 | how the work is done | `CLAUDE.md` | — | who does it |
+| what shipped and what it invalidates (saved worlds, policies, baselines) | `CHANGELOG.md` (`## Unreleased`, compatibility markers) | the PR number | design, intent, priority |
+| the design record of a change: what was ruled, why, what it touched | `specs/NNN-*/` | "spec NNN"; the owner's ruling copied there with its issue number | future work (BACKLOG), evidence |
+| the live box: seatings, censuses, welfare reads as deployed | `policies/purrsonality.md` | — | the next deploy (that is checked-in config) |
+| a skill's trial record: what dropped, what patched it, clean runs | `TRIALS.md` beside the skill | — | the skill's rules (SKILL.md) |
+| a trap or lesson about code a thread owns (PENDING the owner's ruling on shape) | per thread, beside the code it owns: `client/TRAPS.md`, `crates/TRAPS.md`, `experiments/TRAPS.md`, `.claude/TRAPS.md` | the memory index carries a pointer, never the trap | user-facing docs (`docs/`), findings |

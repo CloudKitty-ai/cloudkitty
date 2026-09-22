@@ -1,4 +1,4 @@
-Four sessions share this repo. Who you are and what you own:
+Five sessions share this repo. Who you are and what you own:
 THREADS.md — read it at kickoff, before anything below.
 
 1. Surface assumptions, confusion, and tradeoffs. State reversible
