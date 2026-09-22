@@ -829,3 +829,32 @@ VIRTUAL_ENV=<venv> PATH=<venv>/bin:$PATH maturin develop --release
 <venv>/bin/python experiments/fog-gen1-cert/cert_harness_fog.py scripted eval --config experiments/fog-gen1-cert/anchor-b3.toml --workers 6 --out-dir .../spec057-d850df8/floor0
 <venv>/bin/python experiments/beam-world-screen-2026-09-19/teacher_nap_crosstab.py experiments/beam-world-screen-2026-09-19/shallow-15.toml 870001 10
 ```
+
+## Addendum, 2026-09-22: the partnered cell, on the round-2 head (02d4c46)
+
+Product's round-2 review (PR #409) found that the cross-tab surfaced
+only the solo cell, while a surviving loop variant would live in the
+partnered one: with cuddle above `cuddle_real_threshold` and an awake
+friend adjacent, the spec-028 cosleep route fires before any warm
+check and the nap lands off-beam at floored relief. The instrument
+now splits a partnered ground nap by the partner's tile (beside a
+partner on a beam it conducts, spec 031) and counts, for ground
+cosleeps beside a ground partner, how many had a beam within Chebyshev
+8 (an upper bound on the priced reach). Re-run on both bindings, 10
+seeds × 20k (`crosstab-{main,02d4c46}-reach.jsonl`); the round-2 head
+reproduces d850df8's dynamics on this world exactly (14,801 starts,
+same cells).
+
+| ground cosleep beside a ground partner | main | 02d4c46 |
+|---|---|---|
+| at or under the floor (the loop variant) | 299 (295 with a beam within 8) | **2** (2) |
+| above the floor (floored relief, need − 15) | 6,262 (6,053) | 2,909 (2,907) |
+| beside a partner on a beam, at or under the floor (conducts) | 531 | 804 |
+
+So the variant is 2 naps in 14,801 starts at the floor. Above the
+floor the 028 route is a fifth of all naps, nearly always with a beam
+within eight tiles, each relieving to the floor rather than clearing,
+and paying cuddle. Whether that route should read the floor is the
+owner's call on #409; this table is the input. The reach flag is a
+reported count with no guard of its own; the instrument's guard covers
+starts and sleep share.
