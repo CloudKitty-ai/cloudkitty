@@ -24,7 +24,7 @@ cargo test -p cloudkitty-core          # includes the 056 floor-0 regression pin
 Cert leg (exact match, validation (a) of the 006 protocol):
 
 ```sh
-kitty-eval --brain needs_driven --config evals/anchor-b3.toml
+kitty-eval --brain needs_driven --config experiments/fog-gen1-cert/anchor-b3.toml
 ```
 
 Expected: identical output to the same command on main (SC-001); any

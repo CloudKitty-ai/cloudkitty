@@ -98,11 +98,29 @@
   relief-recency tie-winner so the skip gate, not a lucky tie, is what
   the tests pin. All three change-guards were observed red before
   T007/T008.
-- T013: three cycles, all RED CONFIRMED with predictions matched —
-  (a) raw-need term → worthless_nap_loses red; (b) gate disabled →
-  exactly the two gate fixtures red (the tie-boost proved the gate
-  load-bearing); (c) warm predicate always-true → worthless_nap_loses
-  + gate fixtures + warm_option_branches red.
+- T013: three cycles, all RED CONFIRMED — (a) raw-need term →
+  worthless_nap_loses red; (b) gate disabled → exactly the two gate
+  fixtures red (the tie-boost proved the gate load-bearing); (c) warm
+  predicate always-true → worthless_nap_loses + gate fixtures +
+  warm_option_branches red. CORRECTION (review round 2, rule 5): cycle
+  (c)'s prediction named "T003/T006 red family" and T006 CANNOT red
+  under that mutation (always-warm keeps raw pressure 40 and Sleep
+  still wins) — a predicted must-fail that stayed green, misrecorded
+  at the time as "predictions matched". T006's real red is cycle (a).
+  Also missing at round 1: no cycle mutated the predicate toward
+  FALSE, so T009's positive assertions had never been seen red.
+- Review round 2 (2026-09-21, after /code-review): predicate collapsed
+  to two disjuncts (on-beam subsumed by the priced walk at every legal
+  reach), conduction era-blind (`conducted_partner_beside`), floor
+  gates before the warm scan (floor 0 cost-identical), two new
+  fixtures (conducted at reach 0; PreFog pressure pinned to the
+  floor-0 score), tests moved to their own module. Cycles re-run on
+  the new shape, predictions declared first, all RED CONFIRMED:
+  (d) predicate → false ⇒ warm_options_keep_full_pressure +
+  conducted_at_reach_zero + prefog + branches red; (b′) skip gate →
+  `if false` ⇒ both gate fixtures red; (a) re-confirmed. Byte pin
+  re-verified after the changes: cert leg empty-diff vs 705290d,
+  suite 536 green.
 
 ## Dependencies & Execution Order
 

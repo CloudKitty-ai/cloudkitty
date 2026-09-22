@@ -150,10 +150,13 @@ with zero diffs.
   (The term reduces to `need` arithmetically; the requirement is that
   the implementation preserves this exactly — no reordered draws, no
   changed tie-breaks.)
-- **FR-005**: The rule MUST read only the observation-derived warm
-  options and global configuration constants — no per-cat hidden
-  state, no new observation fields (doctrine rule 5; the student can
-  learn a world constant from consequences).
+- **FR-005**: The rule MUST read only the fog view — which carries the
+  kitty's own element-memory cells (doctrine rule 5 names them as part
+  of the observation) — and global configuration constants; no state
+  the observation does not carry, no new observation fields. A
+  REMEMBERED beam therefore counts as a warm option even when stale:
+  the discount begins when no beam is known, not when the memory is
+  wrong, matching how sleep pursuit already treats memory.
 - **FR-006**: The walk pricing MUST NOT change: `sunbeam_reach` stays
   at 8 and `sleep_travel_distance` keeps its meaning. (Design
   decision D1 below records why and what would reopen it.)

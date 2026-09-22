@@ -20,10 +20,13 @@ implementation decisions the code reconnaissance settled.
   — rejected, two bindings and a nudge-shaped inconsistency; (b) a
   separate sleep-score function — rejected, duplicates the formula
   the module keeps in one place.
-- **Constitution note (Article I)**: above the safeguard threshold
-  (75) the world guarantees a reachable sleep resource, so the floored
-  branch describes low-stakes pressure only; SC-003's
-  zero-distress-crossings bound is the check.
+- **Constitution note (Article I), corrected at review round 2**: the
+  safeguard spawner covers Eat and Drink only (`spawn.rs`) — no world
+  machinery spawns sunbeams on demand, so the floored branch is NOT
+  backed by a guaranteed resource. Urgency riding the discounted
+  pressure moves the off-beam knee to safeguard + floor. On the ruled
+  world (floor 15, count 6) SC-003 passed with welfare up; the
+  floor-vs-safeguard bound for other floors is an open owner call.
 
 ## D4 — the warm-option predicate composes three existing helpers
 

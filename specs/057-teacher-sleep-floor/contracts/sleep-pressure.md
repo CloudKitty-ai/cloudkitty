@@ -28,9 +28,12 @@ At a decision point, for the scripted `needs_driven` teacher:
   kitty with nothing better to do still ground-naps (D2). Only
   zero-relief naps are skipped.
 - **P3 (no new reads)**: inputs are the kitty's own need, tile
-  contents, partner adjacency, priced beam distance, and two global
-  config constants. No per-cat hidden state, no observation change
-  (doctrine rule 5).
+  contents, partner adjacency, priced beam distance — which includes
+  the kitty's own element-memory cells, carried in the observation
+  (doctrine rule 5's parenthetical) — and two global config
+  constants. Nothing outside the observation, no observation change.
+  Corollary: a stale remembered beam keeps full pressure until the
+  memory is gone, same as sleep pursuit.
 - **P4 (scope)**: `pursue`'s sleep arm, cosleep routing (028 FR-020),
   scene endings (056), announcements, and the served config are
   untouched.

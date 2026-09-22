@@ -47,10 +47,18 @@ key added (056's key is read, not defined)
 *GATE: evaluated pre-Phase 0; re-checked post-Phase 1 — PASS both.*
 
 - **Article I (no suffering)**: needs stay bounded; the rule changes
-  proposals, not need dynamics. Above the safeguard threshold (75) the
-  world guarantees a reachable sleep resource, so sustained floored
-  pressure is a low-need regime; SC-003 (0 distress crossings on the
-  comparator leg) is the empirical check. PASS.
+  proposals, not need dynamics. CORRECTED at review round 2: the
+  original claim here ("the safeguard guarantees a reachable sleep
+  resource") was FALSE — `spawn.rs` safeguard-spawns Eat and Drink
+  only, and nothing ever spawns a sunbeam on demand. Under a floor,
+  sleep welfare rides beam density (the owner's 2026-09-20 caveat),
+  and the urgency knee for off-beam sleep sits at safeguard + floor
+  (90 at the ruled floor 15 — exactly the distress line). The
+  empirical check is SC-003 on the ruled package world (passed:
+  happiness up, zero distress seeds); the structural bound
+  (floor vs safeguard) is an OPEN OWNER CALL recorded at review,
+  deferred by validate.rs's own comment. PASS on the ruled world,
+  conditional on that call for other floors.
 - **Article II (no death)**: untouched. PASS.
 - **Article III (never alone)**: untouched. PASS.
 - **Article IV (engine is law)**: the teacher is the built-in advisor;
