@@ -164,7 +164,7 @@ const EXPORTS =
   ';({ get MEADOW() { return MEADOW; }, MEADOW_DAY, MEADOW_DUSK, MEADOW_NIGHT, setMeadowPalette,' +
   ' mixPaletteColor, mixPalettes, parsePaletteColor,' +
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
-  ' buildPondPath, buildPondLayers, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
+  ' buildPondPath, buildPondLayers, tintPondLayers, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
   ' drawGroundLean, drawGroundPatches,' +
   ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
@@ -2553,6 +2553,53 @@ check('the pond bake is a MASK -- no hour is painted into it', () => {
   const night = JSON.stringify(bakeUnder('night'));
   assert(day.length > 0, 'the bake drew nothing at all');
   assert(day === night, 'the pond bake differs by hour -- a palette colour is baked in');
+});
+
+check('the pond pipeline is bake -> tint -> draw, and the seam says so', () => {
+  // `buildPondLayers` hands back WHITE MASKS and `drawPonds` draws paint, so
+  // something has to sit between them. The renderer tints with a lerped
+  // colour and its own cache; every other caller -- the gallery cards, the
+  // lab -- calls `tintPondLayers` and gets the current palette. A check that
+  // drives the renderer cannot see this seam at all, which is how the rename
+  // shipped past a full green suite and threw `undefined.width` on every
+  // pond card in the gallery.
+  const tiles = [{ x: 1, y: 1 }, { x: 2, y: 1 }];
+  const ponds = [{ tiles, path: api.buildPondPath(tiles, 10) }];
+  const bake = () => api.buildPondLayers(ponds, { tile: 10, widthPx: 80, heightPx: 80, dpr: 1 });
+
+  const log = [];
+  api.drawPonds(guardCtx(log), { ponds, tile: 10, layers: api.tintPondLayers(bake()) });
+  assert(
+    log.filter((c) => c[0] === 'drawImage').length >= 2,
+    'the tinted shore and lip never reached the canvas',
+  );
+
+  // And the seam is self-describing: handed the bake's own shape, it must
+  // name the missing step rather than dying on a property that is not there.
+  let err = null;
+  try {
+    api.drawPonds(guardCtx([]), { ponds, tile: 10, layers: bake() });
+  } catch (e) {
+    err = e;
+  }
+  assert(err, 'drawPonds silently accepted untinted masks');
+  assert(
+    /tintPondLayers/.test(err.message),
+    `drawPonds failed without naming the fix: ${err.message}`,
+  );
+});
+
+check('no gallery card draws a pond it has not tinted', () => {
+  // The three pond cards bake per palette and hand the result straight to
+  // `drawPonds`, with nothing in between -- the exact shape of caller the
+  // check above says cannot exist. Nothing else executes this file, so this
+  // reads it: every `layers:` the gallery builds from a bake must go through
+  // the tint on its way.
+  const src = readFileSync(join(here, 'gallery-meadow.html'), 'utf8');
+  const raw = src.match(/layers:\s*buildPondLayers\(/g) || [];
+  assert(raw.length === 0, `${raw.length} gallery card(s) draw the raw bake`);
+  const tinted = src.match(/layers:\s*tintPondLayers\(buildPondLayers\(/g) || [];
+  assert(tinted.length === 3, `expected 3 tinted pond cards, found ${tinted.length}`);
 });
 
 check('a crossing tints the pond, it does not re-bake it', () => {

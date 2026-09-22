@@ -2262,6 +2262,57 @@ function buildPondLayers(ponds, { tile, widthPx, heightPx, dpr }) {
 }
 
 /**
+ * A baked mask pair, painted for one hour.
+ *
+ * `buildPondLayers` bakes WHITE. Every theme-dependent value it ever read
+ * was a flat colour, so an hour -- or any point between two hours -- is that
+ * mask with its colour replaced and its ALPHA kept. `source-in` is what
+ * keeps the alpha, and the alpha is the entire bake: the blur, the punched
+ * silhouette, the ring that exists only outside the water.
+ *
+ * This lives here, beside the bake, because it is the other half of the same
+ * contract: `buildPondLayers` hands back masks and `drawPonds` draws paint,
+ * so SOMETHING has to sit between them, and a second copy of it in the
+ * gallery is how a shipped rule drifts from the one the renderer uses.
+ *
+ * The renderer passes its own cached `out` canvases, so a settled hour tints
+ * once and only a fade tints per step. A caller that just wants the layers
+ * -- a gallery card, the lab -- omits it and gets a fresh pair painted in
+ * whatever palette is currently set.
+ */
+function tintPondLayers(masks, paint = null, out = null) {
+  const colours = paint || { shore: MEADOW.pondShore, lip: MEADOW.pondLip };
+  const src = { shore: masks.shoreMask, lip: masks.lipMask };
+  const w = src.shore.width;
+  const h = src.shore.height;
+  if (!out || out.shore.width !== w || out.shore.height !== h) {
+    const mk = () => {
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      return c;
+    };
+    out = { shore: mk(), lip: mk(), dpr: masks.dpr };
+  }
+  for (const which of ['shore', 'lip']) {
+    const g = out[which].getContext('2d');
+    // A context-less stand-in gets the untinted MASK rather than a blank
+    // pond: white is wrong by a colour, blank is wrong by a pond. Either
+    // way the caller gets something drawable, which is the contract.
+    if (!g) return { shore: src.shore, lip: src.lip, dpr: masks.dpr };
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.clearRect(0, 0, w, h);
+    g.drawImage(src[which], 0, 0);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = colours[which];
+    g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'source-over';
+  }
+  return out;
+}
+
+/**
  * Ripple lines across a pond, replacing the per-tile shimmer.
  *
  * Count scales with the blob rather than being flat: the spec's 8-per-pond
@@ -2328,6 +2379,16 @@ function drawPonds(ctx, { ponds, tile, layers = null, now = 0, motion = true, cl
     if (sw <= 0 || sh <= 0) return;
     ctx.drawImage(layer, sx * layers.dpr, sy * layers.dpr, sw * layers.dpr, sh * layers.dpr, sx, sy, sw, sh);
   };
+  if (layers && layers.shoreMask) {
+    // The bake's own shape, handed straight in. It is WHITE -- masks, not
+    // paint -- so drawing it would put a white pond on the grass, and
+    // reading `layers.shore` off it throws on `undefined.width` two lines
+    // down, which is how this arrived: a rename, a green suite, and three
+    // gallery cards that threw on first render.
+    throw new Error(
+      'drawPonds was given pond MASKS; pass buildPondLayers through tintPondLayers first',
+    );
+  }
   // The damp ring first: it lives outside the water, on the grass.
   if (layers) {
     ctx.globalAlpha = t.pondLipAlpha;

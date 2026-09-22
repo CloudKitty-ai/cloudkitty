@@ -1684,18 +1684,6 @@ class WorldRenderer {
           lip: mixPaletteColor(near.lip, far.lip, blend.step) }
       : near;
 
-    const w = cache.opts.widthPx;
-    const h = cache.opts.heightPx;
-    if (!cache.out || cache.out.shore.width !== w || cache.out.shore.height !== h) {
-      const mk = () => {
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        return c;
-      };
-      cache.out = { shore: mk(), lip: mk(), dpr: cache.opts.dpr };
-      cache.outKey = null;
-    }
     // A settled hour holds one colour for ~256 ticks. Re-tinting every frame
     // would be strictly more per-frame work than the per-theme bakes this
     // replaces, which only ever composited while a fade was running. Keyed
@@ -1704,26 +1692,15 @@ class WorldRenderer {
     const key = `${paint.shore}|${paint.lip}`;
     if (cache.outKey === key) return cache.out;
 
-    for (const [which, mask, colour] of [
-      ['shore', masks.shoreMask, paint.shore],
-      ['lip', masks.lipMask, paint.lip],
-    ]) {
-      const g = cache.out[which].getContext('2d');
-      // A context-less stand-in (the harness) gets the untinted mask rather
-      // than a blank pond: white is wrong by a colour, blank is wrong by a
-      // pond.
-      if (!g) return { shore: masks.shoreMask, lip: masks.lipMask, dpr: cache.opts.dpr };
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      g.globalCompositeOperation = 'source-over';
-      g.clearRect(0, 0, w, h);
-      g.drawImage(mask, 0, 0);
-      // Replace the colour, keep the alpha. That alpha is the whole bake --
-      // the blur, the punched silhouette, the ring outside the water.
-      g.globalCompositeOperation = 'source-in';
-      g.fillStyle = colour;
-      g.fillRect(0, 0, w, h);
-      g.globalCompositeOperation = 'source-over';
-    }
+    // The tint itself lives in meadow.js beside the bake, because the
+    // gallery cards need the same step and a second copy of it is how a
+    // shipped rule drifts from the one that ships.
+    const painted = tintPondLayers(masks, paint, cache.out);
+    // A context-less stand-in gets the untinted masks back, which are not
+    // ours to cache under a colour key -- the next frame with a real
+    // context must still tint.
+    if (painted.shore === masks.shoreMask) return painted;
+    cache.out = painted;
     cache.outKey = key;
     return cache.out;
   }
