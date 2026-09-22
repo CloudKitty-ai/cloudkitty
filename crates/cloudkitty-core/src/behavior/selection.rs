@@ -2927,7 +2927,10 @@ mod playful2_tests {
             });
         };
         for (name, stage) in [
-            ("on-beam", &stage_on_beam as &dyn Fn(&mut crate::world::World)),
+            (
+                "on-beam",
+                &stage_on_beam as &dyn Fn(&mut crate::world::World),
+            ),
             ("in-reach", &stage_in_reach),
             ("conducted", &stage_conducted),
         ] {
