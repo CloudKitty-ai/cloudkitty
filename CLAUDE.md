@@ -36,3 +36,12 @@ THREADS.md — read it at kickoff, before anything below.
    experiments/DESIGN-DOCTRINE.md before /speckit-plan. The spec names
    each rule that moved a choice and the choice it moved; a check that
    moved nothing says so.
+9. Delegate by task shape, not by habit. Spawn a subagent (the settings
+   file sets its model) for work that must not share your context or
+   would flood it: independent verification of an artifact (accuracy,
+   provenance), broad file or raw sweeps, mechanical passes over a
+   written rule set. Keep in the main session anything that decides or
+   applies: owner rulings and their records, write-ups, guard design
+   and the rule-5 prediction. A subagent's report is evidence to read,
+   never a result to paste. The resume anchor records what was
+   delegated this arc; the Harness thread reads those for drift.
