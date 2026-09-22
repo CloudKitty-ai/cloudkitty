@@ -2589,6 +2589,48 @@ check('the pond pipeline is bake -> tint -> draw, and the seam says so', () => {
   );
 });
 
+check('a bake with no masks draws the flat pond, not a throw', () => {
+  // The probe's flat-bake stub takes the pond bake out to price a crossing
+  // without it. It returned a pair of nulls, and every consumer of that
+  // dereferenced them: `null.width` in `drawPonds`, one frame in. That
+  // branch of the rig has never run to completion -- it is older than the
+  // mask rewrite and still on main.
+  //
+  // `drawPonds` already has the right answer for "nothing was baked": the
+  // flat shallow band it drew before the layers existed. So a mask-less
+  // bake has to arrive as NULL layers, which is what this pins.
+  const renderer = new api.WorldRenderer(mockCanvas(640, 640));
+  renderer.tile = 32;
+  renderer.cssWidth = 640;
+  renderer.cssHeight = 640;
+  renderer.dpr = 1;
+  const world = {
+    width: 20,
+    height: 20,
+    elements: [
+      { kind: 'water', id: 1, pos: { x: 5, y: 5 } },
+      { kind: 'water', id: 2, pos: { x: 6, y: 5 } },
+    ],
+  };
+  const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
+  renderer.blend = { theme: 'day', next: null, step: 0 };
+  renderer.drawPondLayer(world, view);
+  assert(renderer.pondCache.masks, 'the real bake produced no masks');
+
+  // Now the stub's shape: a bake that ran and made nothing.
+  renderer.pondCache.masks = { shoreMask: null, lipMask: null, dpr: 1 };
+  renderer.pondCache.out = null;
+  renderer.pondCache.outKey = null;
+  assert(renderer.pondLayersFor(renderer.blend) === null, 'a mask-less bake did not come back as null layers');
+
+  const log = [];
+  renderer.ctx = guardCtx(log);
+  renderer.drawPondLayer(world, view);
+  assert(log.length > 0, 'the flat pond drew nothing at all');
+  assert(!log.some((c) => c[0] === 'drawImage'), 'it blitted a layer it never baked');
+  assert(log.some((c) => c[0] === 'stroke'), 'the flat shallow band was never drawn');
+});
+
 check('no gallery card draws a pond it has not tinted', () => {
   // The three pond cards bake per palette and hand the result straight to
   // `drawPonds`, with nothing in between -- the exact shape of caller the

@@ -1673,6 +1673,13 @@ class WorldRenderer {
     const cache = this.pondCache;
     if (!cache.masks) cache.masks = buildPondLayers(cache.ponds, cache.opts);
     const masks = cache.masks;
+    // A bake that produced no masks -- the probe's flat-bake stub, which
+    // exists to price a crossing with the bake taken out. `drawPonds` has a
+    // designed answer for "no baked layers": the one flat shallow band it
+    // drew before any of this. Handing it a pair of nulls instead is not
+    // that answer, it is a throw on `null.width`, and it has been there
+    // since the stub was written.
+    if (!masks.shoreMask) return null;
     const read = (theme) => withMeadowTheme(theme, () => ({
       shore: MEADOW.pondShore,
       lip: MEADOW.pondLip,
