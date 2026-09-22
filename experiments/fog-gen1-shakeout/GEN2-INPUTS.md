@@ -436,8 +436,17 @@ is no longer load-bearing.
   example in DESIGN-DOCTRINE, and this entry with the Gen 2 roster's
   placement and welfare under floor 15. Two prerequisites
   before the Gen 2 collection: (1) the scripted teacher's sleep rule
-  must read the floor (today it naps on the spot into nothing and its
-  placement falls 0.46 → 0.25 with the floor; a small Product spec);
+  must read the floor. **DONE: spec 057 MERGED 2026-09-22 (PR #409 →
+  befe5f0, owner "B on both")**: the sleep score's pressure is
+  `max(need − floor, 0)` when no warm option is in play; Experiments'
+  acceptance read (`beam-world-screen-2026-09-19/RESULTS.md`, "Spec
+  057 acceptance read"): floor 0 byte-identical, worthless naps 1,019
+  → 1 in 10 seeds, teacher placement 0.34 → 0.61 under the floor,
+  welfare up. Named follow-up candidate (owner, 1b): the spec-028
+  cuddle-cosleep route above the floor (a fifth of naps, floored
+  relief) is the first suspect if the corpus placement read misses the
+  ~0.4 bar; at the floor it is 2 naps in 14,801. Re-verify triggers
+  (owner, 2b) recorded under F-051.
   (2) the corpus read on the new teacher (tier 1's declared pre-PPO
   read, on placement). The served Gen 1 world stays at floor 0: the
   frozen minds under a floor lose 1.4–5.2 happiness and nap uselessly.

@@ -2622,7 +2622,12 @@ in 6–8 leaving the seed spread on both seeds, or a transferred arm
 landing more than 0.5 happiness under a retrained one on any count.
 **Re-verify when**: the floor, lifetime, reach or roster size changes
 (the owner's density caveat, F-050), and at the Gen 2 read on the
-re-recorded teacher. **Promotion**: the owner ruled count 6 on #390 (c)
+re-recorded teacher. Owner's triggers from the spec 057 merge
+(2026-09-22, PR #409, "B on both"): any floor change re-reads distress
+on the scripted comparator leg, and a floor past `safeguard −
+announce_threshold` needs the validator bound before it runs (the
+off-beam urgency knee sits at safeguard + floor; at floor 15 that is
+the distress line, measured clean). **Promotion**: the owner ruled count 6 on #390 (c)
 (2026-09-21, "6 beams"): the Gen 2 world is the package world as it
 stands (floor 15, lifetime 3,000, six beams); a later move to 7 or 8
 needs no new screen.
