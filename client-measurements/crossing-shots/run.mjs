@@ -41,10 +41,62 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-// day -> dusk. 256 is settled day (blend 0); the rest are progressively
-// deeper into the fade (0.25, 0.42, 0.67), which is the only place a
-// cross-fade can differ from a per-step rebake at all.
-const TICKS = [256, 262, 266, 272];
+// day -> dusk, sampled to the END of the fade. 256 is the fade's first tick
+// (step 0, both builds drawing the same settled hour); 262/266/272 are
+// 0.25/0.42/0.67; 279 is 0.958; 279.99 is step 1; 280 is settled dusk, the
+// frame a step-1 frame snaps to. The day row quantises to 192 steps, so
+// `Math.round(k * 192) / 192` reaches exactly 1 once `k >= 1 - 1/384` -- the
+// last ~60ms of every crossing.
+//
+// Sampling to the end matters, but NOT because the divergence grows to step 1.
+// Measured 2026-09-21 (mean channel delta / share of meadow pixels over
+// 2/255): 0.25 -> 1.30/6.4%, 0.42 -> 1.19/5.4%, 0.67 -> 1.42/6.6%,
+// 0.958 -> 1.46/10.8%, 1 -> 1.18/7.6%, against a 0.54-0.56/0.5% noise floor
+// read off the two settled rows. It peaks just BEFORE step 1 and falls back.
+//
+// Two predictions died here and both are worth keeping. An earlier version of
+// this file claimed mid-fade was "the only place a cross-fade can differ from
+// a per-step rebake at all" and stopped at 0.67 -- which is why the first
+// capture run reported the cross-fade exact while shipping a defect. Its
+// replacement claimed the opposite, that divergence is monotone to step 1.
+// Also wrong. The two hours' detail scatters are DETERMINISTIC and land on the
+// same tiles, so the far hour's ink stacks on the near hour's rather than
+// beside it; at alpha 1 it covers that ink most completely, and just under 1
+// it covers it least. The extra ink is widest where the far layer is nearly,
+// but not quite, opaque.
+//
+// So the mean is a poor instrument here and the share-over-JND is better --
+// but the load-bearing read is BOUNDARY_PAIR below, which is exact.
+//
+// Fractional ticks are legal. applyTheme feeds `latestWorld.tick + subTick` to
+// phaseBlendFor, so the clock the blend reads is continuous and 279.99 is a
+// moment the running app passes through on every crossing.
+const TICKS = [256, 262, 266, 272, 279, 279.99, 280];
+// The last frame of a crossing and the first frame of the next hour are the
+// SAME PICTURE when the blend is right: at step 1 the lerp is pure dusk, and
+// the frame after the boundary is settled dusk. A build where those two
+// differ POPS once per crossing. So this one pair is allowed to collide --
+// whether it does is a RESULT this rig reports, not an error it raises.
+// Every other pair colliding still means a page that stopped repainting, and
+// a dead page collides at t262 long before it reaches here.
+const BOUNDARY_PAIR = [279.99, 280];
+// How far apart those two frames may be, as a share of the compared pixels
+// moving more than the 2/255 this file already treats as the JND.
+//
+// NOT byte-identity, though the per-step-rebake baseline does achieve it.
+// The baseline bakes one layer per step and never has to isolate anything;
+// a cross-fade of TRANSPARENT layers has to composite the pair on its own
+// surface first, and that intermediate is 8-bit premultiplied, so it costs
+// about one LSB. Demanding bit-equality of the fixed renderer would only
+// force an `if (step === 1) drawTheFarHour()` special case -- which would
+// make this very check tautological.
+//
+// Measured on the day->dusk boundary, 1,642,230 pixels compared
+// (2026-09-21): the two-blit source-over moved 96,180 of them past the JND,
+// max 66. The isolated lerp moves 12, max 10, with 21,657 of its 21,676
+// differing pixels off by exactly 1. The bar below sits ~8,000x from one and
+// ~13x from the other, so it is nowhere near either edge.
+const BOUNDARY_MAX_SHARE = 0.0001;
 const PRESENT_MS = 400; // compositor only; see the docblock.
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 
@@ -162,6 +214,7 @@ async function capture(root, tag) {
     await sleep(PRESENT_MS);
 
     const digests = new Map();
+    const byTick = new Map();
     for (const tick of TICKS) {
       const blend = await cdp.ev(`(() => { latestWorld.tick = ${tick}; applyTheme(0, true); return JSON.stringify(currentBlend); })()`);
       if (!blend) throw new Error(`${tag} t${tick}: applyTheme returned no blend -- the clock stub or the world shape moved`);
@@ -180,14 +233,19 @@ async function capture(root, tag) {
       const png = Buffer.from(data, 'base64');
       fs.writeFileSync(path.join(OUT, `${tag}-t${tick}.png`), png);
       const digest = createHash('sha256').update(png).digest('hex');
-      if (digests.has(digest)) {
+      byTick.set(tick, digest);
+      const twin = digests.get(digest);
+      if (twin !== undefined && !(BOUNDARY_PAIR.includes(tick) && BOUNDARY_PAIR.includes(twin))) {
         // Not the clock -- the guard above owns that. This is the page not
         // repainting between ticks at all.
-        throw new Error(`${tag}: t${tick} is byte-identical to t${digests.get(digest)}. The page is not repainting. Do NOT read these numbers.`);
+        throw new Error(`${tag}: t${tick} is byte-identical to t${twin}. The page is not repainting. Do NOT read these numbers.`);
       }
       digests.set(digest, tick);
       console.log(`  ${tag} t${tick}  blend ${blend}`);
     }
+    const [a, b] = BOUNDARY_PAIR;
+    return byTick.get(a) === byTick.get(b);
+    // (byte-identity, reported alongside the pixel read -- see the verdict)
   } finally {
     cdp.close();
     server.close();
@@ -209,7 +267,16 @@ async function compare() {
       if (!raw) throw new Error(`t${tick}: the diff page returned nothing`);
       rows.push({ tick, ...JSON.parse(raw) });
     }
-    return rows;
+    // The boundary pair, WITHIN each build: does its last crossing frame
+    // match the settled hour it is about to become?
+    const [a, b] = BOUNDARY_PAIR;
+    const boundary = {};
+    for (const tag of ['base', 'change']) {
+      const raw = await cdp.ev(`run('/${tag}-t${a}.png','/${tag}-t${b}.png')`);
+      if (!raw) throw new Error(`${tag} boundary: the diff page returned nothing`);
+      boundary[tag] = JSON.parse(raw);
+    }
+    return { rows, boundary };
   } finally {
     cdp.close();
     server.close();
@@ -217,15 +284,33 @@ async function compare() {
 }
 
 console.log(`shots -> ${OUT}`);
-await capture(baseRoot, 'base');
-await capture(changeRoot, 'change');
-const rows = await compare();
+const baseHeld = await capture(baseRoot, 'base');
+const changeHeld = await capture(changeRoot, 'change');
+const { rows, boundary } = await compare();
 console.log('\n tick | mean d | max d | % over 2/255');
 console.log('------+--------+-------+-------------');
 for (const r of rows) {
   console.log(` ${String(r.tick).padStart(4)} | ${String(r.mean).padStart(6)} | ${String(r.max).padStart(5)} | ${String(r.pctOver2).padStart(11)}`);
 }
-console.log('\nThe first row is a settled hour -- the two builds drawing the same thing,');
-console.log('so it should sit near zero. The rest are inside the fade, where a mean');
+console.log('\nRows 256 and 280 are settled hours -- the two builds drawing the same');
+console.log('thing -- so both should sit near zero. The rest are inside the fade. A mean');
 console.log('under ~2/255 is below a just-noticeable difference even though isolated');
-console.log('pixels at detail edges move much further.');
+console.log('pixels at detail edges move much further, and the two settled rows are');
+console.log('this rig\'s own noise floor -- read every fade row against those, not zero.');
+console.log('The fade rows peak just BEFORE step 1, not at it (see the TICKS note), so');
+console.log('no single row bounds the others. The boundary verdict below is the exact');
+console.log('read and the one to trust.');
+console.log(`\nPhase boundary -- t${BOUNDARY_PAIR[0]} (step 1) against t${BOUNDARY_PAIR[1]} (settled),`);
+console.log('WITHIN each build. This is the exact read and the one to trust: a build');
+console.log('whose last crossing frame is not the hour it becomes POPS, once a crossing.');
+const say = (tag, r, byteSame) => {
+  const share = r.overJND / r.n;
+  const held = share <= BOUNDARY_MAX_SHARE;
+  console.log(`  ${tag.padEnd(9)} ${held ? 'HOLDS' : 'POPS '}  ${r.overJND} of ${r.n} px over the JND` +
+    ` (${(100 * share).toFixed(4)}%, bar ${(100 * BOUNDARY_MAX_SHARE).toFixed(2)}%), max ${r.max}` +
+    `${byteSame ? ', byte-identical' : ''}`);
+  return held;
+};
+say('baseline', boundary.base, baseHeld);
+const ok = say('change', boundary.change, changeHeld);
+if (!ok) process.exitCode = 1;
