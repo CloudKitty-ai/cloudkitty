@@ -103,6 +103,26 @@ fn scored(
     let behavior = &ctx.config.behavior;
     let distance = distance_given(ctx, kind, playmate)?;
     let pressure = ctx.me.needs.get(kind);
+    // Spec 057: off warm options, sleep pressure is the relief a nap HERE
+    // can deliver — the engine clamps a plain-tile nap at the floor
+    // (spec 056, `action.rs`), so the score reads the same law. A nap
+    // that would relieve nothing is skipped outright, not scored 0: a
+    // zero score can still win an all-quiet tick, and a worthless nap
+    // must not (FR-003). At floor 0 — every served config — the
+    // subtraction is a no-op and the skip gate is off: byte-identical.
+    // Urgency rides on the same binding: panic about relief the world
+    // will not pay is a nudge, not physics. The need→relief pairing
+    // stays with `relief.rs` (spec 019).
+    let pressure = if matches!(kind.relief(), ReliefSource::Sunbeam) && !warm_option_in_play(ctx) {
+        let floor = ctx.config.actions.sleep_floor_off_beam;
+        let effective = (pressure - floor).max(0.0);
+        if floor > 0.0 && effective <= 0.0 {
+            return None;
+        }
+        effective
+    } else {
+        pressure
+    };
     let urgency = (pressure - ctx.config.thresholds.safeguard).max(0.0);
     Some(
         pressure + behavior.urgency_weight * urgency
@@ -432,6 +452,20 @@ pub(crate) fn heard_unseen_targets(ctx: &DecisionContext) -> Vec<(KittyId, Posit
 pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
     let (pos, cost) = priced_nearest_element(ctx, ElementType::Sunbeam)?;
     (cost <= ctx.config.behavior.sunbeam_reach as f32).then_some((pos, cost))
+}
+
+/// Spec 057: a warm option is in play when a nap would clear the sleep
+/// need in full — the cat stands on a sunbeam, a settled mutual partner
+/// is warm beside it (spec 031 conduction, T092), or a sunbeam is within
+/// `sunbeam_reach` (priced). Inputs are the fog view and global config
+/// constants only, never per-cat hidden state (contract P3, doctrine
+/// rule 5). The cuddle-driven cosleep walk (spec 028 FR-020) is
+/// deliberately NOT a warm option: an off-beam cosleep relieves sleep
+/// only to the floor, and that walk is the cuddle need's business.
+pub(crate) fn warm_option_in_play(ctx: &DecisionContext) -> bool {
+    ctx.world.element_at(ctx.me.pos).map(|e| e.element_type()) == Some(ElementType::Sunbeam)
+        || super::needs_driven::warm_friend_beside(ctx).is_some()
+        || sunbeam_worth_walking(ctx).is_some()
 }
 
 /// The distance sleep pursuit would actually cover: a sunbeam within
@@ -2717,5 +2751,193 @@ mod playful2_tests {
             travel_distance(&build(27, Position::new(0, 19)), NeedKind::Eat),
             None
         );
+    }
+
+    // ---- Spec 057: the teacher's sleep pressure reads the floor -------
+
+    /// A context whose config carries the given off-beam sleep floor;
+    /// everything else is the staged test world.
+    fn sleep_floor_ctx(
+        floor: f32,
+        setup: impl FnOnce(&mut crate::world::World),
+    ) -> DecisionContext {
+        let mut ctx = decision_context(setup);
+        let mut config = (*ctx.config).clone();
+        config.actions.sleep_floor_off_beam = floor;
+        ctx.config = std::sync::Arc::new(config);
+        ctx
+    }
+
+    /// T002: each branch of the warm-option disjunction, alone.
+    #[test]
+    fn sleep_floor_warm_option_branches() {
+        // No elements, friend far away: no warm option.
+        let bare = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+        });
+        assert!(!warm_option_in_play(&bare));
+
+        // (a) standing on a beam.
+        let on_beam = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 950,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        });
+        assert!(warm_option_in_play(&on_beam));
+
+        // (b) a beam within sunbeam_reach (8), not underfoot.
+        let in_reach = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 951,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(7, 4),
+                ttl: Some(100),
+            });
+        });
+        assert!(warm_option_in_play(&in_reach));
+
+        // (c) a settled partner on a beam beside the cat (T092/031).
+        let conducted = decision_context(|world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = crate::kitty::Activity::Resting { with_friend: None };
+            world.push_element(Element {
+                id: 952,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 5),
+                ttl: Some(100),
+            });
+        });
+        assert!(warm_option_in_play(&conducted));
+    }
+
+    /// T003: floor 15, sleep 18, no warm option, eat 8 with chow adjacent
+    /// (distance held to 1 so no travel cost erodes the 8). Effective
+    /// sleep pressure is 3; the mild adjacent need must win.
+    #[test]
+    fn sleep_floor_worthless_nap_loses() {
+        let ctx = sleep_floor_ctx(15.0, |world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            world.kitties[a].needs.add(NeedKind::Eat, 8.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 960,
+                kind: ElementKind::Chow { servings: 3 },
+                pos: Position::new(4, 5),
+                ttl: None,
+            });
+        });
+        assert_eq!(
+            choose_need(&ctx),
+            NeedKind::Eat,
+            "pressure 3 (18 - floor 15) must lose to an adjacent 8"
+        );
+    }
+
+    /// T006: floor 15, sleep 40, no warm option, everything else quiet —
+    /// effective pressure 25 is real relief, so the ground nap still
+    /// wins (D2: a discount, never a ban).
+    #[test]
+    fn sleep_floor_discount_not_ban() {
+        let ctx = sleep_floor_ctx(15.0, |world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 40.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+        });
+        assert_eq!(
+            choose_need(&ctx),
+            NeedKind::Sleep,
+            "a nap that relieves 25 points is still worth choosing"
+        );
+    }
+
+    /// T009: with a warm option in play the pressure stays the full need —
+    /// the floor-15 score equals the floor-0 score on the identical world,
+    /// for all three warm shapes.
+    #[test]
+    fn sleep_floor_warm_options_keep_full_pressure() {
+        let stage_on_beam = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 970,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 4),
+                ttl: Some(100),
+            });
+        };
+        let stage_in_reach = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 971,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(7, 4),
+                ttl: Some(100),
+            });
+        };
+        let stage_conducted = |world: &mut crate::world::World| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, 18.0);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(4, 5);
+            world.kitties[b].activity = crate::kitty::Activity::Resting { with_friend: None };
+            world.push_element(Element {
+                id: 972,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(4, 5),
+                ttl: Some(100),
+            });
+        };
+        for (name, stage) in [
+            ("on-beam", &stage_on_beam as &dyn Fn(&mut crate::world::World)),
+            ("in-reach", &stage_in_reach),
+            ("conducted", &stage_conducted),
+        ] {
+            let floored = sleep_floor_ctx(15.0, stage);
+            let today = decision_context(stage);
+            assert_eq!(
+                score(&floored, NeedKind::Sleep),
+                score(&today, NeedKind::Sleep),
+                "{name}: a warm nap clears the need, so the floor must not discount it"
+            );
+        }
     }
 }

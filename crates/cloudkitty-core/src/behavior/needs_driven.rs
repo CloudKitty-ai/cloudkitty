@@ -2495,4 +2495,58 @@ mod tests {
             Some(Action::Groom { target: Some(2) })
         );
     }
+
+    // ---- Spec 057: no scene starts for a nap that relieves nothing ----
+
+    /// A floor-25 context staging the handover's loop. Two traps this
+    /// fixture had to dodge: a world with NO beam takes the
+    /// fog-exploration rung and never reaches the nap, so one beam
+    /// EXISTS but out of reach (priced 11 > sunbeam_reach 8); and below
+    /// pressure 20 `decide_action`'s potter gate wanders 40% of ticks,
+    /// so the floor is 25 (the handover's own tier value, valid under
+    /// `floor < distress`) and the need sits at 20+ — deterministic
+    /// pursue, no RNG luck in the assertion.
+    fn floored_ground_ctx(sleep: f32) -> crate::behavior::DecisionContext {
+        let mut ctx = decision_context(move |world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, sleep);
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 940,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(15, 4), // distance 11: out of reach, in view
+                ttl: Some(1000),
+            });
+        });
+        let mut config = (*ctx.config).clone();
+        config.actions.sleep_floor_off_beam = 25.0;
+        ctx.config = std::sync::Arc::new(config);
+        ctx
+    }
+
+    /// T004: at the floor exactly, a ground nap relieves nothing — no
+    /// sleep scene may begin, even with every other need quiet.
+    #[tokio::test]
+    async fn sleep_floor_at_floor_no_scene() {
+        let ctx = floored_ground_ctx(25.0);
+        assert!(
+            !matches!(NeedsDriven.decide_action(&ctx), Action::Sleep { .. }),
+            "a nap ending where it starts must not begin"
+        );
+    }
+
+    /// T005: under the floor (the beam expired out from under an earlier
+    /// nap), no re-nap decision. Need dynamics are spec 056's engine law
+    /// and deliberately NOT asserted here.
+    #[tokio::test]
+    async fn sleep_floor_under_floor_no_renap() {
+        let ctx = floored_ground_ctx(22.0);
+        assert!(
+            !matches!(NeedsDriven.decide_action(&ctx), Action::Sleep { .. }),
+            "under the floor a ground nap relieves nothing; the loop must not restart"
+        );
+    }
 }
