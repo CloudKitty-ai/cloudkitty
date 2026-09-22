@@ -464,13 +464,58 @@ making the stall and the memory smaller again:
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
 
+- **REPORTED, NOT FIXED (code review, 2026-09-21): `POND_BAKE_MAX_PX`
+  governs nothing while the camera is off.** `pondBakeTileFor` returns the
+  unclamped tile before it reaches the bound, so at `MAP_MAX_PX` and dpr 3
+  the four persistent pond canvases are ~3600 px a side -- roughly 200 MiB,
+  which is the mobile-Safari failure the constant exists to prevent, and far
+  outside the "36 MiB persistent" this branch claims. The early return is
+  DELIBERATE: it keeps the camera-off output byte-identical, which is what
+  the comment above it argues for, and the mask rewrite HALVES that path
+  (8 canvases to 4) rather than worsening it. But `test-motion`'s budget
+  guard only exercises camera-on, so the unbounded state is asserted
+  nowhere. Not this branch's to fix (CLAUDE.md rule 3) -- it predates it and
+  changing it changes shipped art at every zoom. **Owner's call**, and it
+  belongs beside the `GROUND_BAKE_MAX_PX` equality item above, which is the
+  same question from the other side.
+
   > **Followed up 2026-09-21 (`client-pond-tint`).** Every theme-dependent
   > value `buildPondLayers` read was a flat colour, so the bake is now a
   > white MASK and the hour is a tint applied at blit. Pond bakes per
-  > crossing: 2-3 -> 0. Persistent canvases: 8 -> 4. Measured against this
-  > branch with `crossing-shots`: settled hour mean 0.01/255 (max 1), and
-  > 0.09-0.24 through the fade -- an order of magnitude inside the
-  > cross-fade's own 0.56 and 1.19-1.42.
+  > crossing: 2-3 -> 0. Persistent canvases: 8 -> 4.
+  >
+  > ~~Measured against this branch with `crossing-shots`: settled hour mean
+  > 0.01/255 (max 1), and 0.09-0.24 through the fade.~~ **RETRACTED
+  > 2026-09-22 — the baseline it compared to no longer exists.** Those
+  > numbers were taken against #405 *before* its review, when the cross-fade
+  > was still two source-over blits. The isolated lerp moved #405 by more
+  > than this branch ever moved against it, so "an order of magnitude inside
+  > the cross-fade's own deviation" is a comparison to a build nobody will
+  > run.
+  >
+  > **Re-measured after the merge**, both branches against the same oracle
+  > (`cloudkitty-crossing` @ `9b06c4f`, the per-step rebake):
+  >
+  > | tick | #405 as merged | this branch |
+  > |------|----------------|-------------|
+  > | 256 (settled) | 0.48 | 0.49 |
+  > | 262 | 0.98 | 0.98 |
+  > | 266 | 0.94 | 0.94 |
+  > | 272 | 1.00 | 1.01 |
+  > | 279 | 1.11 | 1.12 |
+  > | 279.99 | 0.51 | 0.53 |
+  > | 280 (settled) | 0.51 | 0.53 |
+  >
+  > Mean deviation per 255, whole frame. The two are the same build to
+  > within 0.02 on every row -- the mask and the tint give back what the
+  > cross-fade gave, and the 1536 cap is inside that. At the phase boundary,
+  > the read this rig says to trust, this branch is **better**: 2 px of
+  > 1,642,230 past the JND (max 7) against #405's 12 (max 10).
+  >
+  > The settled rows sit near 0.5 rather than near zero in BOTH builds, so
+  > that is #405's live lean pass against a baked oracle, not anything this
+  > branch does. The rig's own note to read fade rows against the settled
+  > floor is doing real work here.
   >
   > ⚠ **This does NOT retire `POND_BAKE_MAX_PX`** -- an earlier scope of mine
   > said it would. The bound's premise is the FOUR canvases a single bake
