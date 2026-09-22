@@ -387,9 +387,35 @@ making the stall and the memory smaller again:
 
   Both now draw live in `drawGroundLean`, which gets the lean continuously
   from the blended palette rather than quantised to the step — closer to the
-  per-step rebake than the bake was. Cost: **37 µs/frame** of path building
-  at 20×20 (the wash is 1 µs). ⚠ That is command-recording time in headless
-  Chrome; the rasterisation cost is **not** measured and wants a phone run.
+  per-step rebake than the bake was.
+
+  **Cost, measured on the owner's iPhone, Safari, dpr 3, 2026-09-21:
+  ~0.25 ms per draw at the median, ~0.75 ms at p90** — 1.5% and 4.5% of a
+  16.7 ms frame. Its JavaScript is 37 µs (headless Chrome, where the whole
+  sweep is invisible: all three levels sit on the 60 Hz vsync floor), so
+  essentially all of it is rasterisation, which is why no timer on the JS
+  side could see it.
+
+  The instrument is the probe's lean sweep: 0, 1 and 8 draws per frame in
+  blocks of 12 **within one run**, first 2 frames of each block dropped.
+  1× cannot be resolved against 0× (both 17 ms median) — the 8× row supplies
+  the slope, and that is what it is there for.
+
+  | draws/frame | frames | median | p90 |
+  |---|---|---|---|
+  | 0 | 171 | 17 ms | 19 ms |
+  | 1 (shipped) | 170 | 17 ms | 21 ms |
+  | 8 | 170 | 19 ms | 25 ms |
+
+  ⚠ **That run's baselines drifted 5× (1.5% → 7.8% of frames over 20 ms for
+  the SAME condition), so nothing between rows in it is readable** — including
+  its stall table, which put the bake frame at 36 ms against a 17 ms control
+  where the record says 18 vs 17. The same run measured the bake *in situ*,
+  in the crossing rows' own `frames that BAKED` column, at **22–24 ms**. Two
+  instruments, one run, disagreeing by 50%. The lean numbers above are
+  unaffected because the sweep interleaves its levels through the row, which
+  is the entire reason it is built that way. **Owed: one stall-table re-run on
+  a cool device**, to settle whether the bake frame moved.
 
 - ~~**What the ~400 ms stall actually is.**~~ **CLOSED 2026-09-21: there is no
   stall.** Measured directly on the phone, 12 repetitions per condition, the

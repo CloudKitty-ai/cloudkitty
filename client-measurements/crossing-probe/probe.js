@@ -544,7 +544,13 @@
             + `<td style="padding-left:14px;text-align:right">${l.level && base ? ((l.med - base.med) / l.level).toFixed(3) + 'ms' : '—'}</td></tr>`).join('')
           + '</table><div style="margin-top:4px;color:#9c8a7c">Blocks of 12 frames inside ONE run, '
           + 'first 2 of each block dropped. Read the last column: 8 draws is there for slope, so if '
-          + '1 cannot be resolved against 0, 8 still bounds what one costs.</div></div>';
+          + '1 cannot be resolved against 0, 8 still bounds what one costs.<br>'
+          + '⚠ The lean sweep\'s row in the table above is NOT comparable to the baselines: a third '
+          + 'of its frames draw the lean 8 times on purpose, so its jank columns are inflated by this '
+          + 'instrument. Only this table is a read on that row.<br>'
+          + 'This table is within-row and survives a drifting device; every OTHER comparison here is '
+          + 'between rows. Check the two baselines against each other first -- if they disagree, the '
+          + 'crossing rows and the stall table are not telling you about the treatment.</div></div>';
       })()
       + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — the lean table is the new read; the crossing rows are the standing regression check</div>'
                 : '<div style="margin-top:8px;color:#9c8a7c">running… ~12s per row, seven rows (~1.5 min). KEEP THE SCREEN AWAKE.</div>');
@@ -575,7 +581,7 @@
     await stallRow(world, 'bake + blit, draw next frame', { blit: true });
     // The live lean pass, by frame time. Its JavaScript is 37us; what this
     // asks is what the RASTER costs, which no timer on this side can see.
-    await condition(world, 'lean sweep', { leanSweep: true });
+    await condition(world, 'lean sweep ⚠ not comparable', { leanSweep: true });
     setTransitions(true); setBlur(true); reuseCanvases = false; frozen = false; flatBake = false;
     M.done = true;
     render();
