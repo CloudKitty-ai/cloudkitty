@@ -9,6 +9,9 @@ toolchain per the repo pin, Python venv only if running the cert leg.
 cargo test -p cloudkitty-core sleep_floor -- --nocapture
 ```
 
+(All 057 fixtures carry the `sleep_floor_` name prefix — tasks
+T003–T006 and T009 — so this filter matches exactly the new pile.)
+
 Expected: the new fixtures pass — worthless nap loses, at/under-floor
 skip, warm options keep full pressure, floor-0 branch untouched.
 

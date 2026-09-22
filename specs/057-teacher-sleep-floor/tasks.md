@@ -36,10 +36,10 @@
 
 ### Tests (write first, watch them fail)
 
-- [ ] T003 [US1] Failing fixture: floor 15, sleep 18, no warm option, competing need 8 → the competing need wins (pressure 3 loses) in `selection.rs` test module
-- [ ] T004 [P] [US1] Failing fixture: floor 15, sleep 15 (at floor), no warm option, all else quiet → no Sleep action this tick, in `needs_driven.rs` test module
-- [ ] T005 [P] [US1] Failing fixture: floor 15, sleep 12 (under floor, beam expired mid-scene precondition), no warm option → no re-nap; need untouched, in `needs_driven.rs` test module
-- [ ] T006 [P] [US1] Failing fixture: floor 15, sleep 40, no warm option, nothing else to do → still naps (D2: discount, never ban) in `selection.rs` test module
+- [ ] T003 [US1] Failing fixture `sleep_floor_worthless_nap_loses`: floor 15, sleep 18, no warm option, competing need 8 with its relief ADJACENT (distance 0, so no travel/exposure cost erodes the 8) → the competing need wins (pressure 3 loses) in `selection.rs` test module
+- [ ] T004 [P] [US1] Failing fixture `sleep_floor_at_floor_no_scene`: floor 15, sleep 15 (at floor), no warm option, all else quiet → no Sleep action this tick, in `needs_driven.rs` test module
+- [ ] T005 [P] [US1] Failing fixture `sleep_floor_under_floor_no_renap`: floor 15, sleep 12 (under floor, beam expired mid-scene precondition), no warm option → no re-nap decision (need dynamics are 056's engine law, NOT asserted here), in `needs_driven.rs` test module
+- [ ] T006 [P] [US1] Failing fixture `sleep_floor_discount_not_ban`: floor 15, sleep 40, no warm option, nothing else to do → still naps (D2: discount, never ban) in `selection.rs` test module
 
 ### Implementation
 
@@ -58,8 +58,8 @@
 
 ### Tests
 
-- [ ] T009 [US2] Fixtures ×3: floor 15, sleep 18 with (a) on-beam, (b) beam within `sunbeam_reach`, (c) settled partner warm beside — each scores pressure 18 and matches the floor-0 decision, in `selection.rs` test module
-- [ ] T010 [US2] Kept-behavior re-read (CLAUDE.md rule 6): re-read the existing sleep tests in `needs_driven.rs` and `selection.rs` (opportunism rung, pursue arm, T092, cosleep routing) and confirm each still asserts the behavior this spec promises not to move; run the pile green; report any vacuous must-fail found (rule 3 if pre-existing)
+- [ ] T009 [US2] Fixtures ×3 (`sleep_floor_warm_*`): floor 15, sleep 18 with (a) on-beam, (b) beam within `sunbeam_reach`, (c) settled partner warm beside — each scores pressure 18 and matches the floor-0 decision, in `selection.rs` test module
+- [ ] T010 [US2] Kept-behavior re-read (CLAUDE.md rule 6): re-read the existing sleep tests in `needs_driven.rs` and `selection.rs` (opportunism rung, pursue arm, T092, cosleep routing) and confirm each still asserts the behavior this spec promises not to move; ALSO confirm `warm_option_in_play` reads only `ctx.world`/`ctx.me`/`ctx.config` (FR-005, doctrine rule 5); run the pile green; report any vacuous must-fail found (rule 3 if pre-existing)
 
 **Checkpoint**: warm path pinned by fixtures, not by reading the diff.
 
