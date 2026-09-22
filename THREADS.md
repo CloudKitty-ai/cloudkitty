@@ -112,8 +112,11 @@ before the command runs.
 - **Every open owner decision is a GitHub issue** labelled
   `owner-call` + `oc:ready` / `oc:discussing` / `oc:blocked`; bar and
   shape in `experiments/README.md` §"Owner calls: the ledger"
-  (2026-09-05). Only the owner closes one; the ruling is copied
-  verbatim, with issue number, into the owning document.
+  (2026-09-05). The owning thread closes one once it and the owner
+  are both satisfied everything in it is answered and ruled
+  (2026-09-22): the closing comment quotes the owner's words verbatim,
+  and the ruling is copied, with issue number, into the owning
+  document.
 - **Owner-authored text ships verbatim.** Flag a typo; never fix it;
   don't restructure a supplied document (2026-07-23).
 
