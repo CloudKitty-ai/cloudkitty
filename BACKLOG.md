@@ -13,17 +13,6 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
-### The wire's DecisionRequest on the lab binding — IN FLIGHT (spec 055, kicked off 2026-09-19)
-
-The one engine ask from the LLM-lab-seat direction (owner, 2026-09-20;
-handover `experiments/llm-lab-seat/HANDOVER-product-2026-09-20.md`): the
-lab binding returns the spec 053 `DecisionRequest` rendered exactly as
-the served wire sends it, per kitty per tick, opt-in, so a lab prompt is
-the served prompt and lab reads keep predicting the served seat (F-042).
-One shared renderer, one binding surface, one byte-comparison test, one
-doc sentence; no wire, clock, or config change, no LLM code in the
-engine. Spec: `specs/055-lab-decision-request/`.
-
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 
 Costed, then dropped the same day: the charm gain did not justify the
