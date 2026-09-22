@@ -839,20 +839,22 @@ friend adjacent, the spec-028 cosleep route fires before any warm
 check and the nap lands off-beam at floored relief. The instrument
 now splits a partnered ground nap by the partner's tile (beside a
 partner on a beam it conducts, spec 031) and counts, for ground
-cosleeps beside a ground partner, how many had a beam within Chebyshev
-8 (an upper bound on the priced reach). Re-run on both bindings, 10
-seeds × 20k (`crosstab-{main,02d4c46}-reach.jsonl`); the round-2 head
+cosleeps beside a ground partner, how many had a beam within Manhattan
+8 (the engine's priced cost is Manhattan plus terrain, so still an upper
+bound on the priced reach; a first pass used Chebyshev and read 2,907 of
+2,909 above the floor). Re-run on both bindings, 10
+seeds × 20k (`crosstab-{main,02d4c46}-manhattan.jsonl`); the round-2 head
 reproduces d850df8's dynamics on this world exactly (14,801 starts,
 same cells).
 
 | ground cosleep beside a ground partner | main | 02d4c46 |
 |---|---|---|
-| at or under the floor (the loop variant) | 299 (295 with a beam within 8) | **2** (2) |
-| above the floor (floored relief, need − 15) | 6,262 (6,053) | 2,909 (2,907) |
+| at or under the floor (the loop variant) | 299 (254 with a beam within 8) | **2** (2) |
+| above the floor (floored relief, need − 15) | 6,262 (5,205) | 2,909 (2,828) |
 | beside a partner on a beam, at or under the floor (conducts) | 531 | 804 |
 
 So the variant is 2 naps in 14,801 starts at the floor. Above the
-floor the 028 route is a fifth of all naps, nearly always with a beam
+floor the 028 route is a fifth of all naps, 97% of them with a beam
 within eight tiles, each relieving to the floor rather than clearing,
 and paying cuddle. Whether that route should read the floor is the
 owner's call on #409; this table is the input. The reach flag is a
