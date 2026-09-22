@@ -34,7 +34,7 @@ change.
 ## Unreleased
 
 - **The built-in teacher knows a shallow nap when it sees one
-  (spec 057).** Under a `sleep_floor_off_beam` world, the needs-driven
+  (spec 057, #409).** Under a `sleep_floor_off_beam` world, the needs-driven
   cat now weighs an off-beam nap by the rest it would actually get:
   need minus the floor, zero when the nap would give nothing — so it
   tends to another need instead of dozing in place all afternoon. A
