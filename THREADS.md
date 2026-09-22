@@ -116,3 +116,21 @@ before the command runs.
   verbatim, with issue number, into the owning document.
 - **Owner-authored text ships verbatim.** Flag a typo; never fix it;
   don't restructure a supplied document (2026-07-23).
+
+## 6. What lives where (DRAFT for the owner's ruling, Harness 2026-09-22)
+
+One home per fact; every other mention is a pointer to it. A number,
+a rule or a ruling restated outside its home is a condense cut.
+
+| the fact | its one home | pointers elsewhere look like | does not hold |
+|---|---|---|---|
+| a claim about the system that outlives one arc | `experiments/FINDINGS.md` (F-nnn, edited by supersession) | the F-number | per-arc narrative, raw numbers beyond the claim's own |
+| the evidence for a claim: numbers, the command that made them, the read | the arc's `RESULTS.md`; its `results-raw/` in the native checkout, uncommitted | FINDINGS cites the file and section | conclusions that generalise past the arc |
+| a Gen 2 decision input | `experiments/fog-gen1-shakeout/GEN2-INPUTS.md` | a "revisit at the Gen 2 read" note naming the entry | findings (those go to FINDINGS and get cited) |
+| a design rule for worlds, rewards, behaviour | `experiments/DESIGN-DOCTRINE.md` (rules 1–10) | a spec names the rule number it moved on (CLAUDE.md rule 8) | process rules, findings |
+| lab process: how to design, run, read, and post an owner call | `experiments/README.md` (§Design discipline, §Ownership, §Owner calls) | "per README §…" | design rules, thread ownership |
+| future product work, its priority and intent | `BACKLOG.md` | the PR that ships it removes the entry | design, owner decisions |
+| an open owner decision | a GitHub issue `owner-call` + `oc:*` | the ruling, verbatim with the issue number, in the document that owns the subject | anything after close: the owning document is the record |
+| a thread's session state: where it is, job cards, open asks | the memory directory (resume anchor + `MEMORY.md` index) | — | numbers, rules, findings, rulings: a pointer to the home instead |
+| who owns what, where each thread works, how much process | `THREADS.md` | CLAUDE.md line 1 | how to do the work |
+| how the work is done | `CLAUDE.md` | — | who does it |
