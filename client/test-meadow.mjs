@@ -166,6 +166,7 @@ const EXPORTS =
   ' MEADOW_DAWN, bushesFor, drawBushAt, drawGroundCover, MEADOW_SALTS, MEADOW_DEFAULTS, tileHash, drawMeadowGround, drawGridOverlay, groupWaterTiles,' +
   ' buildPondPath, buildPondLayers, drawPonds, pondInradius, drawSunbeamGlow, drawWornPaths, VIEW, Presentation,' +
   ' driftField, spriteOrder, SPRITE_RANK, coverSortKey, catSortKey, coverStands,' +
+  ' drawGroundLean, drawGroundPatches,' +
   ' WorldRenderer, PURR, drawPurrGlyph, Camera, drawBowl, drawButterfly, butterflyColorwayFor })';
 const api = eval(src + EXPORTS);
 
@@ -2350,7 +2351,7 @@ check('the sideways nudge cannot disagree with the depth sort', () => {
   );
 });
 
-check('the pond layers rebuild when the palette steps, not only when the water moves', () => {
+check('a palette step re-tints the pond without rebuilding its geometry', () => {
   // `buildPondLayers` bakes MEADOW.pondShore and MEADOW.pondLip INTO the
   // shore and lip canvases, but the cache used to key on the water tiles
   // alone -- and `applyTheme` nulls only the ground cache. So a world
@@ -2373,11 +2374,11 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   };
   const view = { elementAlphaFor: () => 1, ambient: { now: 0 } };
 
-  // Both, because `applyTheme` publishes both: the key is what the
-  // signature used to carry, and a guard that leaves it unset cannot tell
-  // whether the signature went back to carrying it.
+  // `applyTheme` publishes the blend and nothing else. It used to publish a
+  // `paletteKey` too, which the pond signature once carried; both are gone,
+  // and `the pond cache keys on everything it bakes` in test-motion.mjs is
+  // what holds the signature to it.
   renderer.blend = { theme: 'day', next: 'dusk', step: 0 };
-  renderer.paletteKey = 'day>dusk@0';
   renderer.drawPondLayer(world, view);
   const first = renderer.pondCache;
   assert(first, 'no pond cache was built at all');
@@ -2392,7 +2393,6 @@ check('the pond layers rebuild when the palette steps, not only when the water m
   // bake is a white MASK that no hour owns: an hour is that mask tinted.
   const baked = renderer.pondCache.masks;
   renderer.blend = { theme: 'day', next: 'dusk', step: 0.5 };
-  renderer.paletteKey = 'day>dusk@0.5';
   renderer.drawPondLayer(world, view);
   assert(renderer.pondCache === first, 'a palette step threw the pond geometry away');
   assert(renderer.pondCache.masks === baked, 'a palette step rebuilt the pond MASKS');
@@ -2646,6 +2646,97 @@ check('the sun wash is live, in neither baked half', () => {
   const all = gradientsFor('all');
   assert(all === under + over + 1,
     `whole ground made ${all} gradients, the halves ${under} + ${over} -- the wash is in a half`);
+});
+
+check('neither baked half moves when the sun does', () => {
+  // The whole point of the split: `shadowLean` travels continuously through
+  // a crossing while the layers either side of it are two FIXED hours, so
+  // anything baked at the lean is frozen at one hour's angle. Cross-fading
+  // two frozen angles is a cross-dissolve, not a rotation -- both sets of
+  // blades on screen at partial alpha a couple of CSS px apart, which reads
+  // as ghosted tufts. Measured at 0.87-1.1% of the layer past a 2/255 JND
+  // before the lean came out (2026-09-21, day->dusk).
+  //
+  // Dawn against dusk because they are the lean's extremes, -0.85 and 0.8.
+  // The palettes are frozen, so the lean cannot be injected on its own --
+  // but it does not need to be: `shadowLean` and `shadowLength` are the ONLY
+  // numbers that differ between two themes, and with `cover: false` nothing
+  // in the ground reads `shadowLength` (it belongs to the shrub and cat
+  // shadows). So a difference in GEOMETRY between two themes is the lean by
+  // elimination, and colours are blanked to leave only geometry.
+  //
+  // Asserted on the draw log rather than a call count: the claim is that the
+  // baked halves are independent of the lean, and two identical logs at
+  // opposite extremes of it is that claim exactly.
+  const geometryAt = (layer, theme) => {
+    api.setMeadowPalette(theme);
+    const log = [];
+    api.drawMeadowGround(guardCtx(log), { width: 12, height: 12, tile: 10, cover: false, layer });
+    return JSON.stringify(log.map((e) => e.map((a, i) =>
+      (i > 0 && typeof a === 'string' && /^(#|rgb|hsl)/.test(a) ? '' : a))));
+  };
+  try {
+    for (const layer of ['under', 'over']) {
+      assert(geometryAt(layer, 'dawn') === geometryAt(layer, 'dusk'),
+        `the ${layer} half redraws when shadowLean moves -- it is baking the lean`);
+    }
+  } finally {
+    api.setMeadowPalette('day');
+  }
+});
+
+check('the live lean pass follows the sun', () => {
+  // The converse, so the guard above cannot pass by the lean doing nothing
+  // anywhere -- which is exactly how it would read if drawGroundLean were
+  // dropped and never called.
+  const geometryAt = (theme) => {
+    api.setMeadowPalette(theme);
+    const log = [];
+    api.drawGroundLean(guardCtx(log), { width: 12, height: 12, tile: 10 });
+    return JSON.stringify(log.map((e) => e.map((a, i) =>
+      (i > 0 && typeof a === 'string' && /^(#|rgb|hsl)/.test(a) ? '' : a))));
+  };
+  try {
+    const dawn = geometryAt('dawn');
+    assert(dawn !== geometryAt('dusk'),
+      'drawGroundLean draws the same geometry at both extremes of shadowLean');
+    assert(dawn.length > 2, 'drawGroundLean drew nothing at all');
+  } finally {
+    api.setMeadowPalette('day');
+  }
+});
+
+check('a stem is drawn under its own flower', () => {
+  // What the patches moving down a layer BUYS. The leaning geometry has to
+  // sit at a boundary between two baked layers, and this is the only
+  // boundary that keeps a stem behind its petals; drawing the lean after
+  // `over` instead put every flower's stem in front of its own bloom.
+  //
+  // With `cover: false` the vocabularies do not overlap: the lean pass is
+  // the only source of quadraticCurveTo, and the flowers are the only
+  // source of arc.
+  const log = [];
+  api.drawMeadowGround(guardCtx(log), { width: 12, height: 12, tile: 10, cover: false, layer: 'all' });
+  const at = (name) => log.reduce((acc, e, i) => (e[0] === name ? [...acc, i] : acc), []);
+  const lean = at('quadraticCurveTo');
+  const petals = at('arc');
+  assert(lean.length > 0 && petals.length > 0,
+    `nothing to order: ${lean.length} lean strokes, ${petals.length} petals`);
+  assert(Math.max(...lean) < Math.min(...petals),
+    'a flower petal is drawn before the leaning geometry -- the stem is on top of its bloom');
+});
+
+check('the worn-earth patches bake into the under half', () => {
+  // They moved there so the lean pass has a boundary to sit at. They are
+  // the only ellipse in the ground with `cover: false`, which is what makes
+  // this countable.
+  const ellipses = (layer) => {
+    const log = [];
+    api.drawMeadowGround(guardCtx(log), { width: 12, height: 12, tile: 10, cover: false, layer });
+    return log.filter((e) => e[0] === 'ellipse').length;
+  };
+  assert(ellipses('under') > 0, 'the under half draws no patches');
+  assert(ellipses('over') === 0, `the over half still draws ${ellipses('over')} patches`);
 });
 
 check('camera movement never rebuilds the pond layers', () => {

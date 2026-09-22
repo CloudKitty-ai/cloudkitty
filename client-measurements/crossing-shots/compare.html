@@ -43,6 +43,6 @@ window.run = async (a, b) => {
       n++;
     }
   }
-  return JSON.stringify({ mean: +(sum / n).toFixed(2), max, pctOver2: +(100 * over2 / n).toFixed(1), n });
+  return JSON.stringify({ mean: +(sum / n).toFixed(2), max, pctOver2: +(100 * over2 / n).toFixed(1), overJND: over2, n });
 };
 </script></body>

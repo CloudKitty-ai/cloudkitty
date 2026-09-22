@@ -591,6 +591,16 @@ pub(crate) fn warm_friend_beside(ctx: &DecisionContext) -> Option<crate::kitty::
     if ctx.config.meow.law_era == crate::config::LawEra::PreFog {
         return None;
     }
+    conducted_partner_beside(ctx)
+}
+
+/// The era-blind conduction read (spec 057): `World::sleep_warmth` pays a
+/// settled partner on a beam in EVERY law era, so the sleep PRESSURE must
+/// read the same law everywhere — only the T092 pursuit gate above is
+/// fog-era (PreFog keeps the 2.x arm for SC-004a's replay, but a PreFog
+/// nap beside such a partner is still paid warm by the engine, and a
+/// score that called it cold would skip a nap the world honors in full).
+pub(crate) fn conducted_partner_beside(ctx: &DecisionContext) -> Option<crate::kitty::KittyId> {
     ctx.world
         .others(ctx.me.id)
         .filter(|k| ctx.me.pos.is_adjacent(&k.pos))
@@ -2493,6 +2503,69 @@ mod tests {
         assert_eq!(
             groom_response(&dirty),
             Some(Action::Groom { target: Some(2) })
+        );
+    }
+
+    // ---- Spec 057: no scene starts for a nap that relieves nothing ----
+
+    /// A floor-25 context staging the handover's loop. Two traps this
+    /// fixture had to dodge: a world with NO beam takes the
+    /// fog-exploration rung and never reaches the nap, so one beam
+    /// EXISTS but out of reach (priced 11 > sunbeam_reach 8); and below
+    /// pressure 20 `decide_action`'s potter gate wanders 40% of ticks,
+    /// so the floor is 25 (the handover's own tier value, valid under
+    /// `floor < distress`) and the need sits at 20+ — deterministic
+    /// pursue, no RNG luck in the assertion.
+    fn floored_ground_ctx(sleep: f32) -> crate::behavior::DecisionContext {
+        let mut ctx = decision_context(move |world| {
+            world.elements.clear();
+            let a = world.kitty_index(1).unwrap();
+            world.kitties[a].pos = Position::new(4, 4);
+            world.kitties[a].needs.add(NeedKind::Sleep, sleep);
+            // Every OTHER need was relieved recently, sleep never: if the
+            // skip gate were deleted and a zero-relief nap scored 0, the
+            // relief-recency tie-break would hand sleep the all-quiet
+            // tick — so these fixtures pin the GATE, not a lucky tie.
+            for kind in NeedKind::ALL {
+                if kind != NeedKind::Sleep {
+                    world.kitties[a].last_relief.insert(kind, 50);
+                }
+            }
+            let b = world.kitty_index(2).unwrap();
+            world.kitties[b].pos = Position::new(15, 15);
+            world.push_element(Element {
+                id: 940,
+                kind: ElementKind::Sunbeam,
+                pos: Position::new(15, 4), // distance 11: out of reach, in view
+                ttl: Some(1000),
+            });
+        });
+        let mut config = (*ctx.config).clone();
+        config.actions.sleep_floor_off_beam = 25.0;
+        ctx.config = std::sync::Arc::new(config);
+        ctx
+    }
+
+    /// T004: at the floor exactly, a ground nap relieves nothing — no
+    /// sleep scene may begin, even with every other need quiet.
+    #[tokio::test]
+    async fn sleep_floor_at_floor_no_scene() {
+        let ctx = floored_ground_ctx(25.0);
+        assert!(
+            !matches!(NeedsDriven.decide_action(&ctx), Action::Sleep { .. }),
+            "a nap ending where it starts must not begin"
+        );
+    }
+
+    /// T005: under the floor (the beam expired out from under an earlier
+    /// nap), no re-nap decision. Need dynamics are spec 056's engine law
+    /// and deliberately NOT asserted here.
+    #[tokio::test]
+    async fn sleep_floor_under_floor_no_renap() {
+        let ctx = floored_ground_ctx(22.0);
+        assert!(
+            !matches!(NeedsDriven.decide_action(&ctx), Action::Sleep { .. }),
+            "under the floor a ground nap relieves nothing; the loop must not restart"
         );
     }
 }

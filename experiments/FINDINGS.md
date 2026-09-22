@@ -2567,7 +2567,7 @@ floor 0 (all-arm rosters 90.5–91.1 vs 92.3), while a frozen mind pays
 armed for `want_sleep` most of the time from floor 15 up. **Scope**:
 the package world (six beams, lifetime 3,000, off-beam rate 3), the Gen
 1 lineage clone, β 0.04, floors 10–25; nap durations 6–12 with spec
-056's early end at the reachable floor. One beam density only: under a
+056's early end at the reachable floor. One beam density only (the count axis was read next, F-051): under a
 floor, welfare depends on beam access, so the welfare numbers here do
 not transfer across beam count, lifetime, reach or roster size (owner's
 caveat, 2026-09-20), and floor-0 welfare priors are not comparators for
@@ -2585,3 +2585,49 @@ Gen 2 world's beam law; the owner ruled 15 on 2026-09-20 (#390: keeps
 the floor clear of the announce line at 20, so a naive mind's want
 channel cycles rather than saturates); the served Gen 1 world stays at
 floor 0 (the frozen column).
+
+## F-051 · active · Under a sleep floor, beam count is a step at six for a learned mind and flat past it: five beams cost about 0.6 happiness, six to eight are one level inside the seed spread, frozen minds span 0.14 across the four counts, and a mind trained at six beams seated on five, seven or eight is never worse than one retrained there
+
+`beam-world-screen-2026-09-19/RESULTS.md` §Tier 6 (prereg
+`PREREG-tier6.md`). The floor-15 package world at count 5 / 6 / 7 / 8,
+two PPO arms per count from the package clone (count 6 = F-050's
+sg15 arms), 30 × 20k on the served clock. All-arm happiness by seed:
+89.78 / 90.92, 90.86 / 91.13, 90.58 / 90.66, 90.81 / 91.30; own-seat
+placement 0.44–0.72 at every count; the frozen gen1-A roster 89.77 →
+89.90. The count-6 arms on the 5 / 7 / 8 worlds without retraining:
++0.78 / +0.13, +0.36 / +0.57, +0.21 / −0.01 happiness against the
+retrained arms, placement carried with the arm (0.28–0.43 and
+0.54–0.63 on every world). The teacher's placement rises with count
+(0.29 → 0.44) at flat happiness; `here_sunbeam` rises with count for
+everyone; the learned rosters' `want_sleep` is 8–11 per 1k from six
+beams up and 15–17 at five.
+
+Why: full sleep relief under the floor needs beam access (F-050), so
+a count under what the roster can share costs the minds naps that
+clear, and above it the sixth beam and up are slack; a frozen mind
+naps into the floor on any tile and never reads the count. Count
+changes what the policy observes (two nearest-beam slots), not what
+any action is worth, so doctrine rule 9 does not bite on this knob.
+**Scope**: floor 15, beam lifetime 3,000, reach 8, the five-cat
+gen1-A roster, the Gen 1 lineage clone, β 0.04, two seeds per count;
+the ordering 6 < 7 < 8 was not found (7 under 6 on both seeds, 8 over
+7 on both, all inside 0.75). Also on record: learned rosters under the
+floor start 0.16–0.33 of naps with sleep need under 5, three fifths on
+a beam and two fifths as ground cosleep joins, never solo on the
+ground; tier 5's 0.02–0.05 was the same measure pooled over frozen
+seats. One arm (cnt7-s1) under-serves drink at Biscuit's seat (a
+3,015-tick streak, 9 of 30 seeds in its swap leg), a mind property
+carried into the count-7 all-arm numbers. **Invalidated by**: a count
+in 6–8 leaving the seed spread on both seeds, or a transferred arm
+landing more than 0.5 happiness under a retrained one on any count.
+**Re-verify when**: the floor, lifetime, reach or roster size changes
+(the owner's density caveat, F-050), and at the Gen 2 read on the
+re-recorded teacher. Owner's triggers from the spec 057 merge
+(2026-09-22, PR #409, "B on both"): any floor change re-reads distress
+on the scripted comparator leg, and a floor past `safeguard −
+announce_threshold` needs the validator bound before it runs (the
+off-beam urgency knee sits at safeguard + floor; at floor 15 that is
+the distress line, measured clean). **Promotion**: the owner ruled count 6 on #390 (c)
+(2026-09-21, "6 beams"): the Gen 2 world is the package world as it
+stands (floor 15, lifetime 3,000, six beams); a later move to 7 or 8
+needs no new screen.

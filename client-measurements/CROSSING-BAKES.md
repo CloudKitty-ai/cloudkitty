@@ -111,20 +111,60 @@ This is exact for colour, and that is provable rather than hopeful: every
 meadow colour is a per-channel lerp (`mixPaletteColor`), canvas compositing
 is affine in the colour operands at fixed alpha, and blur is a linear
 operator — so `bake(mix(A,B,t))` equals `mix(bake(A),bake(B),t)` pixel for
-pixel. The two bakes share geometry, so their alpha masks are identical and
-the cross-fade is a true per-pixel lerp.
+pixel. ~~The two bakes share geometry, so their alpha masks are identical and
+the cross-fade is a true per-pixel lerp.~~
+
+> **The last sentence was false, and it was load-bearing.** Found in review
+> of #405, 2026-09-21. Identical alpha masks do not make source-over a lerp.
+> Drawing A whole and then B at the step gives `t·α·Cb + (1 − t·α)·α·Ca`,
+> not `(1 − t)·Ca + t·Cb`; the two agree only where `α = 1`. So the identity
+> above is the property the cross-fade needed and **not** the property two
+> source-over blits had.
+>
+> Three layers were affected, and the shipped code assumed all three opaque:
+>
+> | | alpha | |
+> |---|---|---|
+> | `over` | transparent by construction | detail on glass |
+> | `under` | **8.6% of pixels below 255, min 73** | a 45 px fringe at the world's edge from `blurredLayer`; the interior is opaque to the last pixel |
+> | pond `shore`/`lip` | blurred silhouettes | same shape of error |
+>
+> `under` is why "opaque where it matters" survived review twice: it is true
+> in the middle of the map and false around its frame.
+>
+> **The fix** is to make the composite the lerp it claimed to be: A at
+> `1 − t` onto a transparent scratch, then B at `t` with
+> `globalCompositeOperation = 'lighter'`, which is PLUS on premultiplied
+> values and so adds colour *and* alpha. Isolation is required — on the main
+> canvas `lighter` would add to the ground beneath — and there is no
+> two-draw equivalent: compositing A then B onto the destination leaves a
+> `(1 − t·αb)` cross term on A that no choice of alphas removes. The pond
+> already composited on its own offscreen and only had the arithmetic wrong.
+>
+> **Why the original measurement missed it.** `crossing-shots` sampled steps
+> 0.25/0.42/0.67 and stopped, on the stated belief that mid-fade was the only
+> place a cross-fade could differ from a rebake. The worst case is at the
+> END: `step` reaches exactly 1 for the last ~60 ms of every crossing (the
+> day row quantises to 192, and `Math.round(k·192)/192` hits 1 once
+> `k ≥ 1 − 1/384`), which drew both hours at full strength and then snapped
+> to one at the phase boundary. The rig now samples 0.958, 1 and the settled
+> frame after it. See §10.
 
 ### `MEADOW.shadowLean` is the sole exception
 
 It is **geometry, not colour**, and it lerps only because `mixPalettes`
 lerps any number. It drives four things:
 
-| | |
-|---|---|
-| `meadow.js:803` | the sun wash gradient's **direction** |
-| `meadow.js:868` | `bladeLean` — the grass blades **rotate** |
-| `meadow.js:937` | a bloom's stem offset |
-| `meadow.js:1322` | bush shadow lean |
+| | | drawn |
+|---|---|---|
+| the sun wash gradient's **direction** | `drawGroundWash` | live, since #405 |
+| `bladeLean` — the grass blades **rotate** | `drawGroundLean` | **live, since the review fix** |
+| a bloom's stem offset | `drawGroundLean` | **live, since the review fix** |
+| bush shadow lean | `drawBushAt` | live already — `cover: false`, never baked |
+
+> All four are live now. Only the wash was, until review of #405 found the
+> other two still inside the baked `over` (§10). The line numbers this table
+> used to carry are gone: they were stale within a day of being written.
 
 Rotating geometry cannot cross-fade: two gradients at different angles do
 not blend into one at the intermediate angle. Measured, worst crossing, % of
@@ -335,12 +375,47 @@ making the stall and the memory smaller again:
 
 ## 7. Still open
 
-- **The blade-lean residual.** With the wash out of the bake, the blades are
-  the only lean-driven geometry left. Never isolated. Measure it before
-  believing the cross-fade is clean; if it shimmers, static blades are the
-  cheap answer (they cost ~0.5 points of fidelity and buy the rest). This is
-  a FIDELITY question, not a cost one: the blades are inside the baked `over`
-  layer and cost nothing per frame.
+- ~~**The blade-lean residual.**~~ **CLOSED 2026-09-21 — measured, then
+  removed.** This item said "measure it before believing the cross-fade is
+  clean", and nobody did before shipping. Isolated at last: cross-fading two
+  bakes at different leans against one bake at the interpolated lean costs
+  **0.87–1.1% of the layer past a 2/255 JND, max 23**, peaking mid-fade
+  exactly as a cross-dissolve does. It also understated the scope — the
+  bloom stem is a second baked consumer, so "the blades are the only
+  lean-driven geometry left" was wrong when written (§4's own table lists
+  four).
+
+  Both now draw live in `drawGroundLean`, which gets the lean continuously
+  from the blended palette rather than quantised to the step — closer to the
+  per-step rebake than the bake was.
+
+  **Cost, measured on the owner's iPhone, Safari, dpr 3, 2026-09-21:
+  ~0.25 ms per draw at the median, ~0.75 ms at p90** — 1.5% and 4.5% of a
+  16.7 ms frame. Its JavaScript is 37 µs (headless Chrome, where the whole
+  sweep is invisible: all three levels sit on the 60 Hz vsync floor), so
+  essentially all of it is rasterisation, which is why no timer on the JS
+  side could see it.
+
+  The instrument is the probe's lean sweep: 0, 1 and 8 draws per frame in
+  blocks of 12 **within one run**, first 2 frames of each block dropped.
+  1× cannot be resolved against 0× (both 17 ms median) — the 8× row supplies
+  the slope, and that is what it is there for.
+
+  | draws/frame | frames | median | p90 |
+  |---|---|---|---|
+  | 0 | 171 | 17 ms | 19 ms |
+  | 1 (shipped) | 170 | 17 ms | 21 ms |
+  | 8 | 170 | 19 ms | 25 ms |
+
+  ⚠ **That run's baselines drifted 5× (1.5% → 7.8% of frames over 20 ms for
+  the SAME condition), so nothing between rows in it is readable** — including
+  its stall table, which put the bake frame at 36 ms against a 17 ms control
+  where the record says 18 vs 17. The same run measured the bake *in situ*,
+  in the crossing rows' own `frames that BAKED` column, at **22–24 ms**. Two
+  instruments, one run, disagreeing by 50%. The lean numbers above are
+  unaffected because the sweep interleaves its levels through the row, which
+  is the entire reason it is built that way. **Owed: one stall-table re-run on
+  a cool device**, to settle whether the bake frame moved.
 
 - ~~**What the ~400 ms stall actually is.**~~ **CLOSED 2026-09-21: there is no
   stall.** Measured directly on the phone, 12 repetitions per condition, the
@@ -379,15 +454,12 @@ making the stall and the memory smaller again:
   the pond ceiling, which changes shipped art. **Owner's call.** The equality
   is pinned in test-motion so moving either ceiling reddens.
 
-- **Detail double-draws at mid-fade.** `over` is transparent glass, and the
-  composite draws the near hour at full alpha then the far hour at the step.
-  That is exact where the ink is opaque and slightly over-inks the
-  anti-aliased edges. Measured against the old renderer at four points
-  through a day->dusk fade: the settled hour is essentially identical (mean
-  channel delta 0.56/255, which is the rig's own noise floor), and the three
-  points inside the fade run a mean of 1.19-1.42/255 -- under a JND -- with
-  localised maxima of 56-67 on ~6% of pixels, at detail edges. The instrument
-  is `crossing-shots/` (below); those are its numbers, reproducible.
+- ~~**Detail double-draws at mid-fade.**~~ **CLOSED 2026-09-21 — it was not
+  "slightly", and it was not only `over`.** This item had the mechanism right
+  and the size wrong, because the numbers under it stop at step 0.667. At
+  step 1 the two-blit composite moved **96,180 of 1,642,230 px past the JND,
+  max 66**. Fixed by the isolated lerp (§4); the same comparison now moves
+  **12 px, max 10**. See §10.
 - **Why the pond is disproportionate.** Four allocations vs one, eight blurs
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
@@ -420,8 +492,13 @@ making the stall and the memory smaller again:
   > now holds two layers per theme. The guard asserts the measured
   > quantities instead -- that the bound binds, and that the pond's four
   > canvases stay inside a stated MB budget.
-- **Whether the pond needs the wash treatment too.** It has no `shadowLean`
-  in it, so probably not, but it was never checked at every blend position.
+- ~~**Whether the pond needs the wash treatment too.**~~ **ANSWERED
+  2026-09-21 — no, but it had the other bug.** No `shadowLean` reaches it, so
+  it needs nothing drawn live. Checking it at every blend position was the
+  right instinct for the wrong reason: at step 1 the pond was the *largest*
+  remaining artefact on screen, and the cause was `pondLayersFor` running the
+  same source-over composite as the ground (§4). Free to fix — it was already
+  compositing on its own offscreen.
 
 ## 8. The rigs
 
@@ -541,3 +618,132 @@ already produced numbers:
   a phone where a baseline frame runs 20-170 ms. It waits on the draw now.
   The panel prints the size the prewarm actually baked at and flags a
   mismatch in red, which is what caught the second bug.
+
+## 10. What the review found, 2026-09-21
+
+`/code-review high 405` returned six findings after the PR was green and the
+arc was being closed. Two were real defects in this design, two were already
+fixed on the stacked #408, two were stale claims. They are recorded here
+because five of the six are failures of *verification*, not of code — the
+rig, the guards and this document all said the cross-fade was exact.
+
+### The composite was never a lerp (§4)
+
+Covered above. The one-line version: **the argument was checked and the
+implementation was not.** `bake(mix(A,B,t)) == mix(bake(A),bake(B),t)` is
+true and was proved; two source-over blits do not compute it. Every
+instrument pointed at the identity and none at the composite.
+
+Measured on the day→dusk boundary, t279.99 (step 1) against t280 (settled),
+1,642,230 px inside the meadow:
+
+| | px past the JND | max | byte-identical |
+|---|---|---|---|
+| per-step rebake (the oracle) | 0 | 0 | yes |
+| two source-over blits (shipped) | 96,180 | 66 | no |
+| isolated lerp (`lighter`) | **12** | 10 | no |
+
+The oracle is byte-identical because it bakes one layer and never isolates
+anything. The fixed renderer cannot be: isolating costs an 8-bit
+premultiplied intermediate, worth about one LSB (21,657 of its 21,676
+differing pixels are off by exactly 1). The rig's bar is 0.01% of compared
+pixels past the JND — ~8,000× from the broken build and ~13× from the fixed
+one — rather than bit-equality, which could only have been met by special-
+casing `step === 1` and would have made the check tautological.
+
+### Three wrong theories, each killed by measuring
+
+Worth keeping, because each was plausible and each would have shipped a
+wrong explanation into this file:
+
+1. **"The scratch is rescaled on the way back."** `ceil(cssW·dpr)` vs
+   `floor(cssW·dpr)` — measured equal at 1360, and the pan cancels to device
+   (0,0) exactly. No rescale.
+2. **"The 8-bit intermediate costs the residual."** Measured in the page over
+   an upscaled `over` layer: mean 0.012/255, max 1, 0% past the JND. Not it.
+3. **"`mixPalettes` is inexact at its endpoint."** 0 differing keys at t=1.
+
+What actually remained was the pond, and it was found by amplifying the
+difference image and *looking at it* — a shape with a soft halo, plainly not
+a ground layer. Two minutes of that beat an hour of inference.
+
+### The rig was built so it could not see the defect
+
+`crossing-shots` sampled 0.25/0.42/0.67 and stopped, on a belief written into
+its own docblock: mid-fade is "the only place a cross-fade can differ from a
+per-step rebake at all". The replacement claim — that divergence is monotone
+to step 1 — was **also wrong**, and measurement killed it too: it peaks at
+0.958 and falls back, because the two hours' detail scatters are
+deterministic and land on the same tiles, so the far hour's ink stacks on the
+near hour's and covers it most completely at alpha 1.
+
+Both wrong beliefs are recorded beside `TICKS` in `run.mjs`. The lesson is
+narrower than "sample more points": **a rig that encodes a belief about where
+the defect can be cannot falsify that belief.** The boundary check added here
+encodes no such belief — it compares the last crossing frame against the hour
+it becomes, which is a property, not a location.
+
+### Also found
+
+- **Ground cache cap 3 → 2** and **`pondLayersFor` re-compositing every
+  frame**: already fixed on #408, which the reviewer did not have. The
+  reviewer's arithmetic for #405 alone reaches ~235 MB after three crossings.
+- **`resizeFor`'s comment named cache keys that no longer exist**, and that
+  comment is the stated reason a height-only resize may keep the caches.
+  Conclusion held; justification did not.
+- **`renderer.paletteKey` was write-only** since the pond signature stopped
+  carrying the blend step. Removed.
+- **Two cross-references pointed at checks that do not exist**, and one check
+  was titled the opposite of what it asserts.
+
+### Guard debt this closed
+
+The suites went 380/94 → 380/98 **without a single existing check failing at
+any point during the fix** — which is the finding under the findings. Nothing
+tested that the baked halves are independent of the lean, that a stem draws
+under its own flower, or that the composite is a lerp. Four guards added,
+each seen red under a mutation that reintroduces the exact defect; the
+composite itself is held by the rig's boundary check, seen red the same way.
+
+### The run that measured the lean (owner's iPhone, Safari, dpr 3, 2026-09-21)
+
+Recorded whole, including the parts that are not readable, because the device
+is hers and the run cannot be repeated from a session. **Read the two
+baselines against each other before anything else: they are the same
+condition and they are 5x apart, so every between-row number below is void.**
+
+| condition | frames | >20 ms | >33 ms | worst | p99 | frames that BAKED | in canvas |
+|---|---|---|---|---|---|---|---|
+| baseline (as shipped) | 660 | 10 (1.5%) | 2 | 103 ms | 21 ms | 22 ms | 4 ms |
+| FROZEN (the ceiling) | 668 | 1 (0.1%) | 1 | 112 ms | 19 ms | — | 0 ms |
+| baseline 2 | 637 | 50 (**7.8%**) | 1 | 221 ms | 24 ms | — | 0 ms |
+| lean sweep ⚠ | 615 | 106 (17.2%) | 2 | 147 ms | 26 ms | 24 ms | 6 ms |
+
+⚠ The lean sweep's row is **not comparable to the baselines by construction**:
+a third of its frames draw the lean 8 times on purpose, so its jank columns
+are inflated by the instrument. Only the lean table in section 7 is a read on
+that row. The panel now says so.
+
+The stall table from the same run, which is where the 36 ms bake frame comes
+from:
+
+| condition | reps | W median | W max | D median | D max | W+D median |
+|---|---|---|---|---|---|---|
+| control (no bake) | 12 | 17 ms | 25 ms | 16 ms | 19 ms | 33 ms |
+| bake, draw next frame | 12 | 36 ms | 40 ms | 16 ms | 18 ms | 52 ms |
+| bake + blit, draw next frame | 12 | 40 ms | 46 ms | 17 ms | 19 ms | 57 ms |
+
+The control matches the earlier run exactly (17/16/33). The bake frame does
+not: 36 ms where 2026-09-20 measured 18. But the *same run's* crossing rows
+put a bake at **22-24 ms** in situ, the stall rows run later in the sequence
+than their own control, and the baselines moved 5x across that sequence. Two
+instruments, one run, disagreeing by 50%.
+
+No mechanism was found by which this branch could make a bake more expensive
+-- the blades and stems moved OUT of the bake and the patches moved between
+halves, so the total is neutral at worst. **Owed: one stall-table re-run on a
+cool device.** Not blocking: it does not touch the lean cost, and the in-situ
+number agrees with the record.
+
+`bake + blit` remains worse than `bake` here too (40/46 against 36/40), which
+is the third run to say so. Still not shipped.

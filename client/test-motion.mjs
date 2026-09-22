@@ -9851,9 +9851,9 @@ check('the pond cache keys on everything it bakes', () => {
   // The palette is no longer in this signature and must not come back: it
   // keyed the whole cache to the blend STEP, so a crossing rebuilt the
   // shorelines 192 times. It is keyed per THEME instead -- same guarantee,
-  // two bakes -- and `the pond layers hold one pair per hour` in
-  // test-meadow.mjs is the state check that the paint still follows the
-  // hour. What is left here is the GEOMETRY, which is what the signature
+  // two bakes -- and `a palette step re-tints the pond without rebuilding
+  // its geometry` in test-meadow.mjs is the state check that the paint
+  // still follows the hour. What is left here is the GEOMETRY, which is what the signature
   // is for.
   const body = renderSrc.slice(renderSrc.indexOf('drawPondLayer(world, view) {'));
   const fn = body.slice(0, body.indexOf('\n  }'));

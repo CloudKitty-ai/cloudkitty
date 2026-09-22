@@ -364,7 +364,18 @@ is no longer load-bearing.
   **RULED 2026-09-18 (owner, #390): "a) yes, b) yes-3000"**: off-beam
   sleep relief 5 → 3 and beam `ttl` 300 → 3,000 for the Gen 2 world.
   (c), the count, under discussion on the issue (the owner is between 6
-  and 7, with `max` 8). Notes for the count: only the nearest two beams
+  and 7, with `max` 8). **Tier 6 read (2026-09-21, F-051): under floor
+  15 count is a welfare step at six and flat past it (five costs a
+  learned mind about 0.6, six to eight are one level, frozen minds span
+  0.14), and the count-6 arms on the 5 / 7 / 8 worlds are never worse
+  than arms retrained there, so the count can move at the Gen 2
+  collection without a new screen. Experiments' offer: 6; the only
+  case for 7 or 8 is the teacher's corpus placement (0.34 / 0.40 / 0.44
+  against the ~0.4 bar), read after the sleep-rule spec. OWNER RULED 6
+  (2026-09-21, "6 beams"): the package is complete, and the teacher
+  sleep-rule spec went to Product the same day
+  (`beam-world-screen-2026-09-19/HANDOVER-product-2026-09-21.md`).**
+  Notes for the count: only the nearest two beams
   are observed (two sunbeam slots), the world holds `min` beams and
   `max` is inert for the world (it feeds the critic's chow scale only),
   and the fog lineage trains and collects on `anchor.toml`, which is
@@ -425,8 +436,17 @@ is no longer load-bearing.
   example in DESIGN-DOCTRINE, and this entry with the Gen 2 roster's
   placement and welfare under floor 15. Two prerequisites
   before the Gen 2 collection: (1) the scripted teacher's sleep rule
-  must read the floor (today it naps on the spot into nothing and its
-  placement falls 0.46 → 0.25 with the floor; a small Product spec);
+  must read the floor. **DONE: spec 057 MERGED 2026-09-22 (PR #409 →
+  befe5f0, owner "B on both")**: the sleep score's pressure is
+  `max(need − floor, 0)` when no warm option is in play; Experiments'
+  acceptance read (`beam-world-screen-2026-09-19/RESULTS.md`, "Spec
+  057 acceptance read"): floor 0 byte-identical, worthless naps 1,019
+  → 1 in 10 seeds, teacher placement 0.34 → 0.61 under the floor,
+  welfare up. Named follow-up candidate (owner, 1b): the spec-028
+  cuddle-cosleep route above the floor (a fifth of naps, floored
+  relief) is the first suspect if the corpus placement read misses the
+  ~0.4 bar; at the floor it is 2 naps in 14,801. Re-verify triggers
+  (owner, 2b) recorded under F-051.
   (2) the corpus read on the new teacher (tier 1's declared pre-PPO
   read, on placement). The served Gen 1 world stays at floor 0: the
   frozen minds under a floor lose 1.4–5.2 happiness and nap uselessly.

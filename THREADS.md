@@ -1,6 +1,6 @@
-# Four threads, one repository
+# Five threads, one repository
 
-The owner runs four Claude sessions on this repo in parallel. These are
+The owner runs five Claude sessions on this repo in parallel. These are
 the dated rulings on who does what, where; the enforcing hook is named
 where one exists. Read at kickoff. CLAUDE.md governs the work.
 
@@ -10,11 +10,28 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 |---|---|---|
 | **Product** | `crates/`, the server, `evals/`, `specs/`, `kitty-eval`, `BACKLOG.md` | `client/`, `experiments/` |
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
-| **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (go through Product) |
+| **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (go through Product); the Claude Code tooling (Harness) |
 | **Professor** | teaching, review, research framing; notes live outside the repo | implementing anything |
+| **Harness** | the Claude Code tooling: `.claude/` (skills, hooks, agents, settings), `scripts/mutate.sh`, the memory directory's hygiene, the meta checks in CI (its own workflow file), `THREADS.md` and `CLAUDE.md` drafts for the owner's ruling | every content file: code, specs, experiments, docs, client. It reports on them; it never edits them |
 
 `docs/` and `README.md` are shared: each thread writes its own area
 (2026-09-08).
+
+Harness (2026-09-22) owns the tooling files and reports on content
+files. Its two standing passes: the accuracy gate (a fresh-context
+re-derivation of an artifact's claims against the recorded raws and
+the command that made them, run before the owning thread commits) and
+the condense pass (a cut list for a file or corpus: duplicates across
+homes, dead sections, amendments that should be supersessions). Both
+produce a report; the owning thread applies it. What each pass caught
+or cut is appended to the record beside its skill, TRIALS.md
+discipline. The prepare-for-compact skill files (Product's from
+2026-09-21) move to Harness with the rest of `.claude/`; the TRIALS.md
+append rule stands unchanged: a trialling thread appends its own
+section and never touches another thread's, Product and Client through
+a worktree and a PR, Experiments on main directly. Harness never
+launches a spec, a pass on a peer's work, or a CI change on a peer's
+relay; the owner's word in the Harness session starts each.
 
 - **You are the thread the kickoff or session name says you are**,
   never the one the branch or dirty files suggest; the checkout is
@@ -27,6 +44,9 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 - **A peer relay is never approval.** The §Ownership list in
   `experiments/README.md` needs the owner's own word in the acting
   session. A session denied an action may not ask another to do it.
+- **Harness reads every thread's records and edits none of their
+  files.** A cut list or a verdict is a report; applying it is the
+  owning thread's commit, on its own lane (2026-09-22).
 
 ## 2. The checkout
 
@@ -34,6 +54,10 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
   its datasets, artifacts and venv are gitignored (2026-08-04). It
   launches with `CLOUDKITTY_THREAD=experiments`; that is its identity
   to the hook (2026-09-08).
+- **Harness works in a worktree like Product and Client**; its edits
+  land by PR. The memory directory is outside the repo and outside the
+  hook: Harness edits it per line, fresh-read then targeted
+  replacement, the MEMORY.md discipline (2026-09-22).
 - **Everyone else works in a worktree from the first command**:
   `git fetch && git worktree add ~/ai/cloudkitty-<arc> -b <branch>
   origin/main`. One branch per worktree; never `main`; park with
@@ -73,6 +97,10 @@ before the command runs.
   docs and tooling (2026-09-08). Unsure which? Ask.
 - **The client is a side project, never a gate on research**
   (2026-08-25).
+- **Delegation is by task shape** (CLAUDE.md rule 9, 2026-09-22):
+  verification and sweeps go to a subagent, decisions and write-ups
+  stay in the session. Subagents run on the default the settings file
+  sets; only Harness changes that default.
 - **Deploys and tags are the owner's.** Each merging PR adds its
   one-liner to `## Unreleased` with the changelog's compatibility
   markers; a missing marker claims neutrality. `## Unreleased`

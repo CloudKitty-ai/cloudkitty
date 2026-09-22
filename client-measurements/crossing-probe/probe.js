@@ -6,19 +6,23 @@
 // sustained jank this rig was built to find is gone (32-47% of frames over
 // 20ms -> 0.5-0.8%, against a frozen ceiling of 0.3-0.8%).
 //
-// What is left is ONE stall, ~400ms, when a theme is baked. Section 6.3 puts
-// that bake in the lull before a crossing rather than inside it, which moves
-// the stall somewhere harmless but does not remove it -- and nothing shrinks
-// it. The 2048 cap bought 13%, baking one theme instead of two bought 5%,
-// spreading it over frames bought nothing, and only 8-17ms of the frame is
-// inside the draw calls at all. A cost indifferent to area, to volume and to
-// JS timers is not a cost in JavaScript.
+// ⚠ THE ~400ms STALL DOES NOT EXIST. This file used to open by asserting it
+// did, and by naming a Safari-defers-rasterization hypothesis that was going
+// to explain it. Both are withdrawn (CROSSING-BAKES section 7, 2026-09-21).
+// Measured directly, 12 reps against a control, the frame that bakes a theme
+// costs 18ms against a control's 17. The ~400ms was the `worst` column --
+// ONE sample of ~660 -- reading this device's outlier tail, which the same
+// runs put at 122-177ms with nothing baking. `stallRow` below is the
+// instrument that settled it; read its control row first.
 //
-// THE HYPOTHESIS UNDER TEST (section 7): Safari defers an offscreen canvas's
-// rasterization until something draws FROM it. If that is right, the bake in
-// the lull is cheap and the stall is really the FIRST BLIT, landing wherever
-// the crossing first composites -- and the fix is to blit each layer once, in
-// the lull, on purpose. `lull: 'blit'` does exactly that and nothing else.
+// THE OPEN QUESTION (2026-09-21): `drawGroundLean` draws the grass blades and
+// the flower stems live, on EVERY frame, because they lean with the sun and a
+// baked lean cross-dissolves into a ghost. Its JavaScript costs 37us/frame in
+// headless Chrome -- but Safari records 2D canvas commands and rasterizes
+// them elsewhere, so that number is command-building and not the cost. The
+// lean sweep measures it the only way that works here: by frame time, in
+// BLOCKS within one run, at 0, 1 and 8 draws per frame. 8 is for slope --
+// if 1x cannot be resolved against 0x, 8x still bounds it.
 //
 // `renderer` is a top-level const in a classic script, so it is a global
 // LEXICAL binding and not a property of window. Reach it bare.
@@ -158,7 +162,6 @@
   // is the SOURCE being made real. Scaling the whole canvas into that pixel
   // is deliberate: sampling one texel might let a tile-based rasterizer
   // realise one tile and defer the rest.
-  let blitAfterBake = false;
   let warmSide = 0;
   // Scoped to the lull call itself. A counter that any bake anywhere in the
   // counted window can satisfy proves nothing -- the crossing bakes too, so
@@ -189,7 +192,6 @@
       if (wrapped.ground.n !== n0 && inLull) {
         lullBakes++;
         warmSide = built.under ? built.under.width : 0;
-        if (blitAfterBake) forceRaster(built);
       }
       return built;
     };
@@ -229,6 +231,45 @@
     }
   }
 
+  // --- the lean sweep ----------------------------------------------------
+  // `drawGroundLean` is a function DECLARATION in a classic script, so it is
+  // a property of window and reassigning it changes what render.js's bare
+  // call resolves to. Same trick as drawMeadowGround above.
+  //
+  // Blocks, not alternate frames. Safari hands the command list to another
+  // process, so a frame's raster cost can land in the NEXT frame's rAF delta;
+  // strict alternation would smear the treatment across both populations.
+  // A block lets the pipeline reach steady state, and the first LEAN_SETTLE
+  // frames after each switch are dropped for the same reason.
+  const LEAN_LEVELS = [0, 1, 8];
+  const LEAN_BLOCK = 12;
+  const LEAN_SETTLE = 2;
+  let leanRepeats = 1;
+  // Counted, per level, because the whole failure mode of this row is that it
+  // measures nothing and reports three identical medians as "below the noise
+  // floor". If the wrapper never fires -- render.js stops calling it, the name
+  // stops being global, the sweep never rotates -- the numbers still come out
+  // and still look like an answer. The tally below turns that into a refusal.
+  const leanCalls = new Map();
+  function installLeanInstrument() {
+    const real = window.drawGroundLean;
+    if (typeof real !== 'function') {
+      throw new Error('drawGroundLean is not on window -- the renderer moved it, and the lean sweep would silently measure nothing');
+    }
+    // Counted at the point of WORK, not the point of intent. Counting
+    // `+= leanRepeats` up front looks equivalent and is not: it tallies what
+    // the loop meant to do, so a loop that draws anyway at level 0 still
+    // reports zero draws and the guard waves it through. That exact mutation
+    // came back green once.
+    const counted = function (...a) {
+      leanCalls.set(leanRepeats, (leanCalls.get(leanRepeats) || 0) + 1);
+      return real.apply(this, a);
+    };
+    window.drawGroundLean = function (...a) {
+      for (let i = 0; i < leanRepeats; i++) counted.apply(this, a);
+    };
+  }
+
   const nextFrame = () => new Promise(r => requestAnimationFrame(r));
   const TICK_MS = 800;
   const FROM = 256, TO = 269;   // 13 ticks of the day -> dusk fade
@@ -240,7 +281,7 @@
   const QUIET = 248;
 
   async function condition(world, label, { transitions = true, blur = true, reuse = false,
-    scale = 1, device = 0, flat = false, freeze = false, lull = null }) {
+    scale = 1, device = 0, flat = false, freeze = false, leanSweep = false }) {
     setTransitions(transitions);
     setBlur(blur);
     reuseCanvases = reuse;
@@ -248,7 +289,6 @@
     flatBake = flat;
     targetDevice = device;
     frozen = false;
-    blitAfterBake = false;
     firstSide = 0;
     warmSide = 0;
     renderer.groundLayers = new Map();
@@ -270,16 +310,6 @@
     const deadline = performance.now() + 4000;
     while (!(lastGroundOpts && lastPondArgs) && performance.now() < deadline) await nextFrame();
 
-    // The settle leaves the quiet hour baked -- and `app.js` prewarms the NEXT
-    // phase during a lull, so dusk is warm too. Drop dusk on purpose: the
-    // measurement is the bake of ONE theme against a cache that already holds
-    // the current one, which is what section 6.3 ships, and it has to land
-    // inside the counter rather than before it.
-    if (lull) {
-      for (const k of [...renderer.groundLayers.keys()]) {
-        if (k.startsWith('dusk|')) renderer.groundLayers.delete(k);
-      }
-    }
     frozen = freeze;
 
     const g0 = { ...wrapped.ground }, p0 = { ...wrapped.pond };
@@ -290,38 +320,62 @@
     // paired by construction.
     const frames = [];
     const bakeFrames = [];
+    const leanTags = [];
+    let blockFrame = 0, levelIdx = 0;
+    if (leanSweep) { levelIdx = 0; leanRepeats = LEAN_LEVELS[0]; leanCalls.clear(); }
     let last = performance.now(), stop = false, lastN = wrapped.ground.n;
     const tick = () => {
       const n = performance.now();
       const dur = n - last;
       frames.push(dur);
+      // Tag with the level that was in force DURING this frame, before the
+      // rotation below moves it on.
+      if (leanSweep) leanTags.push({ level: leanRepeats, pos: blockFrame, dur });
       if (wrapped.ground.n !== lastN) { bakeFrames.push(Math.round(dur)); lastN = wrapped.ground.n; }
       last = n;
+      if (leanSweep) {
+        blockFrame += 1;
+        if (blockFrame >= LEAN_BLOCK) {
+          blockFrame = 0;
+          levelIdx = (levelIdx + 1) % LEAN_LEVELS.length;
+          leanRepeats = LEAN_LEVELS[levelIdx];
+        }
+      }
       if (!stop) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
-
-    // The lull bake, inside the counter and before the crossing: exactly what
-    // `app.js` does when it sees a quiet tick and warms the next phase.
-    if (lull) {
-      inLull = true;
-      lullBakes = 0;
-      blitAfterBake = lull === 'blit';
-      renderer.warmGroundLayers(world, 'dusk');
-      inLull = false;
-      blitAfterBake = false;
-      if (!lullBakes) {
-        throw new Error(`${label}: the lull bake was a cache HIT -- nothing was baked by the `
-          + 'warm call, so this row measures nothing. The settle tick or the dusk eviction is wrong.');
-      }
-      await nextFrame();
-    }
 
     for (let t = FROM; t <= TO; t++) {
       for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: t }) });
       await new Promise(r => setTimeout(r, TICK_MS));
     }
     stop = true;
+    leanRepeats = 1;
+    const pct50 = (xs) => { const s2 = [...xs].sort((a, b) => a - b); return s2.length ? +s2[Math.floor(s2.length * 0.5)].toFixed(2) : 0; };
+    const pct90 = (xs) => { const s2 = [...xs].sort((a, b) => a - b); return s2.length ? +s2[Math.floor(s2.length * 0.9)].toFixed(2) : 0; };
+    if (leanSweep) {
+      const drew = (lvl) => leanCalls.get(lvl) || 0;
+      if (drew(0) !== 0) {
+        throw new Error(`${label}: level 0 drew the lean ${drew(0)} times -- the skip does not skip, so every level is the same condition`);
+      }
+      if (!drew(1) || !drew(8)) {
+        throw new Error(`${label}: the lean wrapper did not fire (1x drew ${drew(1)}, 8x drew ${drew(8)}). `
+          + 'render.js is not reaching window.drawGroundLean, and this row measures nothing.');
+      }
+      // Per FRAME the ratio is 8; per row it is 8x the frame ratio, and the
+      // blocks are equal length, so the call ratio lands near 8 as well. Loose
+      // bounds: this is catching "the sweep never rotated", not drift.
+      const ratio = drew(8) / drew(1);
+      if (ratio < 4 || ratio > 16) {
+        throw new Error(`${label}: 8x drew ${ratio.toFixed(1)}x what 1x drew, not ~8 -- the block rotation is wrong`);
+      }
+    }
+    const lean = leanSweep ? LEAN_LEVELS.map((level) => {
+      // Steady-state frames only: the first LEAN_SETTLE of each block are the
+      // pipeline catching up with the switch, not the treatment.
+      const d = leanTags.filter(x => x.level === level && x.pos >= LEAN_SETTLE).map(x => x.dur);
+      return { level, n: d.length, med: pct50(d), p90: pct90(d) };
+    }) : null;
     const over = (ms) => frames.filter(f => f > ms).length;
     // p99 over the whole row: the shape of a typical bad frame, which `worst`
     // (the single maximum) cannot show. Bake frames are at most a handful of
@@ -337,6 +391,7 @@
       warmSide,
       bakeMs: +(wrapped.ground.ms - g0.ms).toFixed(0),
       pondMs: +(wrapped.pond.ms - p0.ms).toFixed(0),
+      lean,
     };
     M.rows.push(row);
     render();
@@ -382,7 +437,6 @@
     // so every repetition is a cache hit. Caught by the guard below rather
     // than reported as a very fast bake.
     frozen = false;
-    blitAfterBake = false;
     flatBake = false;
     reuseCanvases = false;
     targetDevice = 0;
@@ -474,14 +528,39 @@
         + '</table><div style="margin-top:4px;color:#9c8a7c">W = the frame that bakes. '
         + 'D = the next frame, which first draws from it. Read the CONTROL first: it is '
         + 'what a frame costs when nothing happens.</div></div>' : '')
-      + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — read WORST on the two lull rows against each other, then both against the baselines either side</div>'
-                : '<div style="margin-top:8px;color:#9c8a7c">running… ~12s per row, seven rows (~1.5 min). WORST is the column that matters here. KEEP THE SCREEN AWAKE.</div>');
+      + (() => {
+        const r = M.rows.find(x => x.lean);
+        if (!r) return '';
+        const base = r.lean.find(l => l.level === 0);
+        return '<div style="margin-top:10px"><b>drawGroundLean, by frame time</b>'
+          + '<table style="border-collapse:collapse;margin-top:6px">'
+          + '<tr style="color:#9c8a7c"><td>draws/frame</td><td style="padding-left:14px">frames</td>'
+          + '<td style="padding-left:14px">median</td><td style="padding-left:14px">p90</td>'
+          + '<td style="padding-left:14px">vs 0, per draw</td></tr>'
+          + r.lean.map(l => `<tr><td>${l.level}${l.level === 1 ? ' (shipped)' : ''}</td>`
+            + `<td style="padding-left:14px;text-align:right">${l.n}</td>`
+            + `<td style="padding-left:14px;text-align:right">${l.med}ms</td>`
+            + `<td style="padding-left:14px;text-align:right">${l.p90}ms</td>`
+            + `<td style="padding-left:14px;text-align:right">${l.level && base ? ((l.med - base.med) / l.level).toFixed(3) + 'ms' : '—'}</td></tr>`).join('')
+          + '</table><div style="margin-top:4px;color:#9c8a7c">Blocks of 12 frames inside ONE run, '
+          + 'first 2 of each block dropped. Read the last column: 8 draws is there for slope, so if '
+          + '1 cannot be resolved against 0, 8 still bounds what one costs.<br>'
+          + '⚠ The lean sweep\'s row in the table above is NOT comparable to the baselines: a third '
+          + 'of its frames draw the lean 8 times on purpose, so its jank columns are inflated by this '
+          + 'instrument. Only this table is a read on that row.<br>'
+          + 'This table is within-row and survives a drifting device; every OTHER comparison here is '
+          + 'between rows. Check the two baselines against each other first -- if they disagree, the '
+          + 'crossing rows and the stall table are not telling you about the treatment.</div></div>';
+      })()
+      + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — the lean table is the new read; the crossing rows are the standing regression check</div>'
+                : '<div style="margin-top:8px;color:#9c8a7c">running… ~12s per row, seven rows (~1.5 min). KEEP THE SCREEN AWAKE.</div>');
   }
 
   window.__runProbe = async (world) => {
     installFreeze();
     installLullInstrument();
     installBakeScale();
+    installLeanInstrument();
     render();
     // Every treatment is bracketed by a baseline. If the baselines hold
     // steady the treatments are comparable; if they drift, the drift is
@@ -500,6 +579,9 @@
     await stallRow(world, 'control (no bake)', { bake: false });
     await stallRow(world, 'bake, draw next frame', {});
     await stallRow(world, 'bake + blit, draw next frame', { blit: true });
+    // The live lean pass, by frame time. Its JavaScript is 37us; what this
+    // asks is what the RASTER costs, which no timer on this side can see.
+    await condition(world, 'lean sweep ⚠ not comparable', { leanSweep: true });
     setTransitions(true); setBlur(true); reuseCanvases = false; frozen = false; flatBake = false;
     M.done = true;
     render();

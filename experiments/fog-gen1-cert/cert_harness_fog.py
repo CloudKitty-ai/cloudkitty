@@ -118,7 +118,8 @@ def beam_account(st, beams, roster, width, height, prev_sleep, acc):
     direct partner who is on a beam (the spec-031 conduction case, read from the state's
     partner slot, without the engine's settled check); sleep starts (a tick asleep after a
     tick not asleep), the Chebyshev distance from the start tile to the nearest beam in the
-    WORLD (0 / 1 / 2 / 3-or-more-or-none), and the sleep need at the start (binned by
+    WORLD (0 / 1 / 2 / 3-or-more-or-none; Chebyshev by tier 1's declaration, a ring measure, NOT
+    the engine's walk distance, which is `walk_distance`), and the sleep need at the start (binned by
     NEED_BINS; the low bins are the rule-4 farming read). Returns this tick's sleeping mask.
     """
     import numpy as np
@@ -147,6 +148,15 @@ def beam_account(st, beams, roster, width, height, prev_sleep, acc):
             acc["start_need_bins"][k][sum(need >= edge for edge in NEED_BINS)] += 1
             acc["start_need_sum"][k] += need
     return sleeping
+
+
+def walk_distance(a, b):
+    """The engine's walking distance between two tiles: Manhattan. Direction is strictly N/E/S/W, so
+    a walk costs |dx| + |dy| steps, adjacency is Manhattan 1, and priced travel is Manhattan plus terrain
+    (`grid.rs`: Chebyshev "is *not* a walk cost", its one engine consumer is spawn spreading). Every
+    lab instrument that asks "how far is X" or "is X within reach" uses this; the one Chebyshev measure
+    in the lab is `beam_account`'s nearest-beam bin, kept as declared in tier 1 and labelled there."""
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 CLOCK_INDEX = OBS_DIM - 1  # the episode-clock input, the last float of the observation
