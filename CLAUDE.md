@@ -13,35 +13,30 @@ THREADS.md — read it at kickoff, before anything below.
 4. Fix success criteria before coding, then loop until verified. Never
    weaken tests or criteria to pass. If stuck after ~3 real attempts,
    stop and say exactly where.
-5. A green check proves nothing until you've seen it red. For any
-   assertion you add, modify, or cite as evidence: introduce the exact
-   bug it should catch, at the cheapest layer that exercises it. 
-   Predict the failure first — green, wrong assertion, or wrong reason
-   means unverified. scripts/mutate.sh --expect <prediction> is that
-   cycle: the prediction is the argument, and it refuses a dirty file,
-   a mutation that stays green or fails for another reason, and a restore
-   that moves the count. Hand-rolling it needs a stated reason.
-   Three lies survive this: string matches (assert on state, not wording
-   — unless the wording is the contract), hand-written fixtures (record
-   real payloads), wrong layer (put the check where the bug occurs).
-6. Changed behavior: sort its checks before running. Guards of the
-   change must go red; kept behavior must stay green. A must-fail that
-   stays green is vacuous — fix it if you made it so, report it (rule 3)
-   if it already was. Re-read the must-pass pile; running is not
-   reading. Point the failed guards at the new behavior — that's rule
-   5's red, for free.
+5. Green proves nothing until you have seen it red. Every assertion
+   you add, change, or cite as evidence: introduce the exact bug it
+   should catch, at the cheapest layer that exercises it, predicting
+   the failure first. Green, the wrong assertion, or the wrong reason
+   means unverified. The cycle is `scripts/mutate.sh --expect
+   <prediction>`; hand-rolling it needs a stated reason. Three lies
+   survive it: asserting on wording (assert on state, unless the
+   wording is the contract), hand-written fixtures (record real
+   payloads), the wrong layer (check where the bug occurs).
+6. Changed behaviour: sort its checks before running. Guards of the
+   change must go red; kept behaviour must stay green. A must-fail
+   that stays green is vacuous: fix it if you made it so, report it
+   (rule 3) if not. Read the must-pass pile, don't only run it. The
+   failed guards, pointed at the new behaviour, are rule 5's red.
 7. Before designing experiments or training runs, read
    experiments/FINDINGS.md.
 8. A spec that prices, observes, or scripts behavior is checked against
    experiments/DESIGN-DOCTRINE.md before /speckit-plan. The spec names
    each rule that moved a choice and the choice it moved; a check that
    moved nothing says so.
-9. Delegate by task shape, not by habit. Spawn a subagent (the settings
-   file sets its model) for work that must not share your context or
-   would flood it: independent verification of an artifact (accuracy,
-   provenance), broad file or raw sweeps, mechanical passes over a
-   written rule set. Keep in the main session anything that decides or
-   applies: owner rulings and their records, write-ups, guard design
-   and the rule-5 prediction. A subagent's report is evidence to read,
-   never a result to paste. The resume anchor records what was
-   delegated this arc; the Harness thread reads those for drift.
+9. Delegate by task shape. A subagent takes work whose output must be
+   independent of your context or would flood it: verifying an
+   artifact's claims, sweeping files or raws, applying a written rule
+   set mechanically. The session keeps what decides or applies:
+   rulings and their records, write-ups, guard design, the rule-5
+   prediction. A subagent's report is evidence you read, never a
+   result you paste. The resume anchor lists what was delegated.
