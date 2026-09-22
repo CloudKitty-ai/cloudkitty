@@ -57,11 +57,11 @@ def crosstab(config, seed, ticks=20_000):
                     who = "solo"
                 key = ("need<=floor" if need <= floor else "need>floor", "beam" if pos in beams else "ground", who)
                 tab[key] = tab.get(key, 0) + 1
-                # the spec-028 route beside a ground partner while a beam sits within reach: Manhattan
-                # distance <= sunbeam_reach to the nearest beam stands in for the priced walk (the engine's
-                # priced cost is Manhattan plus terrain, so this is still an upper bound on "in reach")
+                # the spec-028 route beside a ground partner while a beam sits within reach: the walk
+                # distance <= sunbeam_reach stands in for the priced walk (priced = walk plus terrain, so
+                # this is an upper bound on "in reach")
                 if who == "partner-on-ground" and pos not in beams:
-                    d = min((abs(pos[0] - x) + abs(pos[1] - y) for x, y in beams), default=99)
+                    d = min((C.walk_distance(pos, xy) for xy in beams), default=99)
                     near[key[0]] += d <= reach
             prev[k] = asleep
     tot = sum(tab.values())

@@ -37,4 +37,5 @@ rs = C.run_one(("scripted", SEED, TICKS, str(CFG), None, None, "served"))
 tt = TN.crosstab(CFG, SEED, TICKS)
 assert tt["starts"] == sum(rs["beam"]["starts"]) > 0, (tt["starts"], rs["beam"]["starts"])
 assert tt["floor"] == 15.0 and abs(tt["sleep_share"] - sum(rs["beam"]["sleep"]) / (TICKS * 5)) < 1e-9
+assert C.walk_distance((0, 0), (3, 4)) == 7 and C.walk_distance((2, 2), (2, 2)) == 0, "walking is Manhattan (grid.rs), never king-moves"
 print("test_distress_inspect ok", r["max_distress_age_seat"], t["starts"], tt["starts"])
