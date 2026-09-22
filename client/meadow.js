@@ -754,89 +754,141 @@ function blurredLayer(ctx, w, h, radius, paint) {
   ctx.restore();
 }
 
-function drawMeadowGround(ctx, { width, height, tile, cover = true }) {
+/**
+ * Run `fn` with the meadow palette pinned to ONE pure theme, then put back
+ * whatever was there. The palette is a module global that every draw reads,
+ * so baking a named theme means borrowing it: `finally` rather than a plain
+ * restore, because a throw mid-bake would otherwise leave the whole meadow
+ * wearing the wrong hour for the rest of the session.
+ */
+function withMeadowTheme(theme, fn) {
+  const saved = MEADOW;
+  try {
+    setMeadowPalette(theme, null, 0);
+    return fn();
+  } finally {
+    MEADOW = saved;
+  }
+}
+
+/**
+ * One field-wide wash, so the whole meadow knows where the sun is. Keyed
+ * to `shadowLean` -- the same number the cat and shrub shadows read -- so
+ * the light can never disagree with itself across the world. At noon the
+ * lean is near zero and this is a faint top-to-bottom gradient; at dusk
+ * it rakes hard across the field.
+ *
+ * Its own function because it is the one part of the ground that must NOT
+ * be baked per theme. `shadowLean` moves continuously through a crossing
+ * while the layers either side of it are two fixed hours, so baking the
+ * wash in would quantise the sweep to whatever the layer cache holds. Drawn
+ * live between `under` and `over` it stays continuous and costs one
+ * gradient fill a frame.
+ */
+function drawGroundWash(ctx, { width, height, tile }) {
   const t = meadowTunables();
-  const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
+  if (typeof ctx.createLinearGradient !== 'function') return;
+  if (!(t.groundWashSun || t.groundWashShade)) return;
+  const w = width * tile;
+  const h = height * tile;
+  const lean = MEADOW.shadowLean || 0;
+  const sun = withAlpha(MEADOW.sunTint || MEADOW.glowCore, t.groundWashSun);
+  const shade = withAlpha(MEADOW.jitterShade, t.groundWashShade);
+  // The sun sits on the side the shadows point AWAY from.
+  const dx = -Math.max(-1, Math.min(1, lean));
+  const wash = ctx.createLinearGradient(
+    w * (0.5 - dx * 0.5), 0,
+    w * (0.5 + dx * 0.5), h,
+  );
+  wash.addColorStop(0, sun);
+  wash.addColorStop(0.55, withAlpha(MEADOW.sunTint || MEADOW.glowCore, 0));
+  wash.addColorStop(1, shade);
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, w, h);
+}
+
+/**
+ * `layer` splits the ground into the two halves a cross-fade needs:
+ *
+ *   'under'  tone, second tone field, jitter -- opaque, blurred, no wash
+ *   'over'   the detail scatter on transparent glass
+ *   'all'    both, with the wash between them (the default, unchanged)
+ *
+ * The split is where it is because the wash sits between the two and has
+ * to stay live (see drawGroundWash). Callers that bake per theme ask for
+ * the halves; every other caller asks for nothing and gets what shipped.
+ */
+function drawMeadowGround(ctx, { width, height, tile, cover = true, layer = 'all' }) {
+  const t = meadowTunables();
   const span = tile + TILE_BLEED * 2;
   const w = width * tile;
   const h = height * tile;
 
-  blurredLayer(ctx, w, h, (t.groundBlurTiles || 0) * tile, (g, ox, oy) => {
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
-        g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
-        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
-        // A second, BROADER tone field over the first. One grain size blurs
-        // into mush; two keeps the ground reading as painted rather than as
-        // out of focus, which is the failure mode the blur invites.
-        if (t.toneCells2) {
-          const n2 = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells2);
-          g.globalAlpha = 0.5;
-          g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n2 * ramp.length))];
+  if (layer !== 'over') {
+    const ramp = grassRamp(MEADOW.grassTones, t.toneSteps);
+    blurredLayer(ctx, w, h, (t.groundBlurTiles || 0) * tile, (g, ox, oy) => {
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const n = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells);
+          g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n * ramp.length))];
+          g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+          // A second, BROADER tone field over the first. One grain size blurs
+          // into mush; two keeps the ground reading as painted rather than as
+          // out of focus, which is the failure mode the blur invites.
+          if (t.toneCells2) {
+            const n2 = smoothNoise(x, y, MEADOW_SALTS.tone, t.toneCells2);
+            g.globalAlpha = 0.5;
+            g.fillStyle = ramp[Math.min(ramp.length - 1, Math.floor(n2 * ramp.length))];
+            g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
+            g.globalAlpha = 1;
+          }
+          // The jitter stays finer-grained than the tone -- it is the grass's
+          // own texture rather than the ground's shape -- but smoothed too,
+          // on a tighter lattice, so it grains the meadow instead of tiling it.
+          const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
+          g.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
+          g.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
           g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
           g.globalAlpha = 1;
         }
-        // The jitter stays finer-grained than the tone -- it is the grass's
-        // own texture rather than the ground's shape -- but smoothed too,
-        // on a tighter lattice, so it grains the meadow instead of tiling it.
-        const j = smoothNoise(x, y, MEADOW_SALTS.jitter, t.jitterCells);
-        g.globalAlpha = t.jitterAlpha * Math.abs(j * 2 - 1);
-        g.fillStyle = j < 0.5 ? MEADOW.jitterShade : MEADOW.jitterTint;
-        g.fillRect(ox + x * tile - TILE_BLEED, oy + y * tile - TILE_BLEED, span, span);
-        g.globalAlpha = 1;
       }
-    }
-  });
-
-  // One field-wide wash, so the whole meadow knows where the sun is. Keyed
-  // to `shadowLean` -- the same number the cat and shrub shadows read -- so
-  // the light can never disagree with itself across the world. At noon the
-  // lean is near zero and this is a faint top-to-bottom gradient; at dusk
-  // it rakes hard across the field.
-  if (typeof ctx.createLinearGradient === 'function' && (t.groundWashSun || t.groundWashShade)) {
-    const lean = MEADOW.shadowLean || 0;
-    const sun = withAlpha(MEADOW.sunTint || MEADOW.glowCore, t.groundWashSun);
-    const shade = withAlpha(MEADOW.jitterShade, t.groundWashShade);
-    // The sun sits on the side the shadows point AWAY from.
-    const dx = -Math.max(-1, Math.min(1, lean));
-    const wash = ctx.createLinearGradient(
-      w * (0.5 - dx * 0.5), 0,
-      w * (0.5 + dx * 0.5), h,
-    );
-    wash.addColorStop(0, sun);
-    wash.addColorStop(0.55, withAlpha(MEADOW.sunTint || MEADOW.glowCore, 0));
-    wash.addColorStop(1, shade);
-    ctx.fillStyle = wash;
-    ctx.fillRect(0, 0, w, h);
+    });
   }
 
-  drawGroundDetail(ctx, { width, height, tile, t });
-  // Ground cover is drawn here only for callers that are not sorting
-  // it themselves (the lab, the harness). render.js passes false and
-  // draws it interleaved with the cats -- see bushesFor/drawBushAt.
-  if (cover) drawGroundCover(ctx, { width, height, tile, t });
+  if (layer !== 'over') drawGroundPatches(ctx, { width, height, tile, t });
+
+  if (layer === 'all') drawGroundWash(ctx, { width, height, tile });
+
+  if (layer !== 'under') {
+    // `all` is the whole ground for one hour -- the lab, the harness, the
+    // gallery. It draws the lean here so that path stays complete; the
+    // split path draws it live, which is the entire point of the split.
+    if (layer === 'all') drawGroundLean(ctx, { width, height, tile, t });
+    drawGroundDetail(ctx, { width, height, tile, t });
+    // Ground cover is drawn here only for callers that are not sorting
+    // it themselves (the lab, the harness). render.js passes false and
+    // draws it interleaved with the cats -- see bushesFor/drawBushAt.
+    if (cover) drawGroundCover(ctx, { width, height, tile, t });
+  }
 }
 
 /**
- * What makes it a meadow rather than a green field (v3, 2026-08-05):
- * worn earth and moss, tufts of grass, the odd flower, and low shrubs.
- * This is the flora that was scrapped at the 2026-07-20 gate and sent to
- * the backlog -- back now that phase 1 gave the tiles the size to carry
- * it, and softened so it reads as ground rather than as sprites.
+ * The broad worn-earth and moss patches.
  *
- * Every layer is a sparse scatter over the tile grid from its own salt,
- * so it is deterministic and it never lands on the same tiles as another
- * layer. Patches and shrubs are drawn from the tile CENTRE and are wider
- * than a tile on purpose: crossing the boundaries is what stops them
- * re-drawing the grid the tone work just removed.
+ * In the `under` half, not the `over` one, and that is a z-order call the
+ * cross-fade forced. The leaning blades and stems have to be drawn live
+ * (see drawGroundLean), which means they have to sit at a boundary between
+ * two baked layers -- and the only boundary that keeps a stem UNDER its own
+ * flower is the one with the patches below it. So the patches moved down a
+ * layer and now sit under the light wash instead of over it.
  *
- * All of it bakes into the ground cache, so it costs nothing per frame.
+ * What that costs is the wash tinting the patches along with everything
+ * else, where before the patches were painted on top of the tinted ground.
+ * Measured against the per-step rebake at a settled hour, it is the smaller
+ * of the two available orders: the alternative put every flower's stem in
+ * front of its own petals.
  */
-function drawGroundDetail(ctx, { width, height, tile, t }) {
-  // Cover grows in drifts (spec 03): the same fertility field gates the
-  // tufts, the flowers and the shrubs, so they thicken together.
-  const drift = driftField(width, height, t);
+function drawGroundPatches(ctx, { width, height, tile, t = meadowTunables() }) {
   // --- worn earth and moss: broad, soft, crossing tile lines ---
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -852,7 +904,31 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
     }
   }
   ctx.globalAlpha = 1;
+}
 
+/**
+ * The parts of the ground that LEAN, drawn live rather than baked.
+ *
+ * `shadowLean` moves continuously through a crossing while the baked layers
+ * either side of it are two fixed hours. Anything baked at the lean is
+ * therefore frozen at one hour's angle, and a cross-fade of two frozen
+ * angles is a cross-DISSOLVE, not a rotation: both sets of blades are on
+ * screen at partial alpha, a couple of CSS px apart, which reads as ghosted
+ * tufts rather than as one leaning set. Measured on the shipped bake
+ * (2026-09-21, day->dusk, the widest of the four crossings at dLean 0.86):
+ * 0.87-1.1% of the layer past a 2/255 JND, max 23, peaking mid-fade exactly
+ * as a dissolve does.
+ *
+ * `drawGroundWash` had this problem first and solved it the same way. These
+ * are the other two consumers of the same number -- the review of #405
+ * found them, and "draw the wash live" had fixed one of three.
+ *
+ * Cheap enough to sit in every frame: `driftField` is memoised, the blades
+ * are three stroked paths for the whole meadow however many tufts there
+ * are, and the stems are a few dozen short strokes.
+ */
+function drawGroundLean(ctx, { width, height, tile, t = meadowTunables() }) {
+  const drift = driftField(width, height, t);
   // --- grass tufts: three blades each, leaning away from the sun ---
   //
   // Everything here is a fraction of a TILE. The old tuft was one stroke at
@@ -898,6 +974,55 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
   }
   ctx.globalAlpha = 1;
 
+  // The flower stems, which lean with the same number the blades do. Their
+  // own pass over the bloom tiles rather than a line inside the flower loop:
+  // the petals stay baked and only the stem moves, so the two can no longer
+  // be drawn together. Same salts and same arithmetic, so a stem lands under
+  // its own flower to the pixel.
+  //
+  // Stroked one at a time, not batched into a single path like the blades:
+  // at alpha 0.75 two overlapping stems in one path would not double-darken
+  // where they cross, and the baked version did.
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tileHash(x, y, MEADOW_SALTS.bloom) < 1 - drift.bloom[y * width + x]) continue;
+      const k = tileHash(x, y, MEADOW_SALTS.bloomX);
+      const bx = (x + 0.25 + k * 0.5) * tile;
+      const by = (y + 0.25 + tileHash(x, y, MEADOW_SALTS.bloomY) * 0.5) * tile;
+      const r = tile * (0.085 + k * 0.03);
+      ctx.strokeStyle = MEADOW.bush;
+      ctx.globalAlpha = 0.75;
+      ctx.lineWidth = Math.max(0.6, tile * 0.022);
+      ctx.beginPath();
+      ctx.moveTo(bx - (MEADOW.shadowLean ?? 0) * r * 0.4, by + r * 2.1);
+      ctx.quadraticCurveTo(bx, by + r * 1.1, bx, by + r * 0.5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/**
+ * What makes it a meadow rather than a green field (v3, 2026-08-05):
+ * worn earth and moss, tufts of grass, the odd flower, and low shrubs.
+ * This is the flora that was scrapped at the 2026-07-20 gate and sent to
+ * the backlog -- back now that phase 1 gave the tiles the size to carry
+ * it, and softened so it reads as ground rather than as sprites.
+ *
+ * Every layer is a sparse scatter over the tile grid from its own salt,
+ * so it is deterministic and it never lands on the same tiles as another
+ * layer. Patches and shrubs are drawn from the tile CENTRE and are wider
+ * than a tile on purpose: crossing the boundaries is what stops them
+ * re-drawing the grid the tone work just removed.
+ *
+ * All of it bakes into the ground cache, so it costs nothing per frame.
+ */
+function drawGroundDetail(ctx, { width, height, tile, t }) {
+  // Cover grows in drifts (spec 03): the same fertility field gates the
+  // tufts, the flowers and the shrubs, so they thicken together.
+  const drift = driftField(width, height, t);
+
+
   // --- flowers: five petals and a heart, at every tile size.
   //
   //     The 44px gate is GONE, 2026-08-18, along with the one the cats and
@@ -928,16 +1053,6 @@ function drawGroundDetail(ctx, { width, height, tile, t }) {
       const petal = cool ? MEADOW.bloomCool || MEADOW.bloom : MEADOW.bloom;
       const heart = cool ? MEADOW.bloomCoolHeart || MEADOW.bloomHeart : MEADOW.bloomHeart;
       {
-        // A stem, so the flower grows out of the ground instead of lying
-        // on it. Drawn first and leaning with the light, like the blades.
-        ctx.strokeStyle = MEADOW.bush;
-        ctx.globalAlpha = 0.75;
-        ctx.lineWidth = Math.max(0.6, tile * 0.022);
-        ctx.beginPath();
-        ctx.moveTo(bx - (MEADOW.shadowLean ?? 0) * r * 0.4, by + r * 2.1);
-        ctx.quadraticCurveTo(bx, by + r * 1.1, bx, by + r * 0.5);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
         for (let i = 0; i < 5; i++) {
           const a = (i / 5) * TAU + k * 3;
           const dy = Math.sin(a);

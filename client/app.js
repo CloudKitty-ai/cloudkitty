@@ -405,13 +405,13 @@ function applyTheme(subTick = 0, repaint = true) {
 
   setMeadowPalette(blend.theme, blend.next, blend.step);
   setPropPalette(blend.theme, blend.next, blend.step);
-  // Both caches bake palette colours into themselves. The ground is
-  // nulled outright; the pond layers carry this key in their own
-  // signature instead, so they cannot go stale by someone forgetting a
-  // line here -- which is how they held daylight shore paint through
-  // dusk and night until 2026-08-17.
-  renderer.groundCache = null; // the cache bakes the palette; rebake
-  renderer.paletteKey = key;
+  // Neither cache is thrown away here any more. Both bake palette colours
+  // into themselves, and this line used to null the ground on every one of
+  // a crossing's 192 steps -- 184 rebakes where two would do, which is the
+  // whole of the crossing lag (CROSSING-BAKES.md). The renderer holds one
+  // baked pair per HOUR instead and cross-fades them, so what it needs from
+  // here is the blend itself, not an invalidation.
+  renderer.blend = blend;
   // Only when nothing else will paint. `redraw` is a STILL frame -- poses
   // frozen, `progress` forced to 1, cats at their served tile rather than
   // eased toward it -- which is right for a viewer who gets no rAF loop and

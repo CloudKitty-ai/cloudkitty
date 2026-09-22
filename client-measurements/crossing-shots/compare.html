@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>crossing-shots diff</title>
+<body><script>
+// Subtracts two screenshots inside the meadow card. Driven by run.mjs; a
+// browser is here because nothing in node's standard library decodes a PNG.
+const load = (src) => new Promise((resolve, reject) => {
+  const img = new Image();
+  img.onload = () => resolve(img);
+  img.onerror = () => reject(new Error(`could not load ${src}`));
+  img.src = src;
+});
+window.run = async (a, b) => {
+  const [A, B] = await Promise.all([load(a), load(b)]);
+  if (A.width !== B.width || A.height !== B.height) {
+    throw new Error(`size mismatch: ${A.width}x${A.height} vs ${B.width}x${B.height}`);
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = A.width;
+  canvas.height = A.height;
+  const g = canvas.getContext('2d', { willReadFrequently: true });
+  g.drawImage(A, 0, 0);
+  const da = g.getImageData(0, 0, canvas.width, canvas.height).data;
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  g.drawImage(B, 0, 0);
+  const db = g.getImageData(0, 0, canvas.width, canvas.height).data;
+  // The meadow only. The card sits inside the page, and page chrome would
+  // dilute the mean with a large field of pixels that cannot differ.
+  const x0 = Math.round(canvas.width * 0.14), x1 = Math.round(canvas.width * 0.85);
+  const y0 = Math.round(canvas.height * 0.13), y1 = Math.round(canvas.height * 0.92);
+  let sum = 0, max = 0, n = 0, over2 = 0;
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = (y * canvas.width + x) * 4;
+      const d = Math.max(
+        Math.abs(da[i] - db[i]),
+        Math.abs(da[i + 1] - db[i + 1]),
+        Math.abs(da[i + 2] - db[i + 2]),
+      );
+      sum += d;
+      if (d > max) max = d;
+      if (d > 2) over2++;
+      n++;
+    }
+  }
+  return JSON.stringify({ mean: +(sum / n).toFixed(2), max, pctOver2: +(100 * over2 / n).toFixed(1), overJND: over2, n });
+};
+</script></body>

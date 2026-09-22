@@ -19,7 +19,7 @@ const MAP_MAX_PX = 1200;
 // a slow one, so this is a correctness bound and not a tuning knob. Past
 // it the ground magnifies slightly, which is the graceful failure; an
 // empty meadow is not.
-const GROUND_BAKE_MAX_PX = 4096;
+const GROUND_BAKE_MAX_PX = 2048;
 // The pond layers get a tighter bound than the ground, because
 // `buildPondLayers` allocates FOUR canvases where the ground allocates
 // one -- two that persist and two scratch. Bounding each canvas's side
@@ -811,7 +811,16 @@ class WorldRenderer {
     this.tile = 22;
     this.cssWidth = 0;
     this.cssHeight = 0;
-    this.groundCache = null;
+    // One baked PAIR per theme, not one canvas per palette step. A crossing
+    // quantises the palette into 192 steps and the old cache was keyed on
+    // the step, so every one of them threw the ground away and drew it
+    // again: 184 bakes where two would do. See CROSSING-BAKES.md.
+    this.groundLayers = new Map(); // "theme|tile|dpr" -> { under, over }
+    this.crossLayer = null; // surface-sized scratch, held only mid-crossing
+    // Which hour the ground is wearing, as `applyTheme` computed it. Null
+    // until the page has a clock; `blitGround` then falls back to the
+    // settled theme, which is what the lab and the harness hand it.
+    this.blend = null;
     this.pondCache = null; // { signature, ponds } -- rebuilt on water change
     // Handed over by anim.init (spec 036). Undefined for a renderer used
     // without anim -- the lab, the harness -- which draws the whole world,
@@ -820,7 +829,6 @@ class WorldRenderer {
     // Set by applyTheme. The pond layers bake palette colours, so the
     // palette belongs in their key rather than in a null someone has to
     // remember to write.
-    this.paletteKey = '';
     // The devicePixelRatio the backing store was actually sized with, not
     // whatever the display reports right now (issue #102). Null until the
     // first fit.
@@ -1054,11 +1062,16 @@ class WorldRenderer {
     // on the one device that can least afford it.
     //
     // Safe because neither cache is keyed on the canvas at all: the ground
-    // bake checks `dpr|bakeTile|width` against its own dataset and the pond
-    // cache signs `paletteKey|bakeTile|water`. Both rebuild themselves when
-    // something they actually bake moves. The nulling here is belt to their
-    // braces, and belt is only wanted where the braces could slip -- a width
-    // or dpr change, not a taller window.
+    // bake signs `theme|bakeTile|dpr` and the pond signs `bakeTile|water`.
+    // Both rebuild themselves when something they actually bake moves. The
+    // nulling here is belt to their braces, and belt is only wanted where
+    // the braces could slip -- a width or dpr change, not a taller window.
+    //
+    // Those key names were `dpr|bakeTile|width` and `paletteKey|bakeTile|water`
+    // until the cross-fade landed, and this comment kept the old ones while
+    // being the stated reason a height-only resize may keep the caches. The
+    // conclusion held -- no canvas dimension is in either key, then or now --
+    // but a justification nobody can check against the code is not one.
     const shapeChanged = this.canvas.style.width !== displayWidth || this.dpr !== dpr;
     if (shapeChanged || this.canvas.style.height !== displayHeight) {
       this.canvas.style.width = displayWidth;
@@ -1069,7 +1082,7 @@ class WorldRenderer {
       this.dpr = dpr;
     }
     if (shapeChanged) {
-      this.groundCache = null; // new size, new ground
+      this.groundLayers = new Map(); // new size, new ground
       this.pondCache = null; // and shorelines rebuilt at the new tile size
     }
     this.cssWidth = cssWidth;
@@ -1460,26 +1473,15 @@ class WorldRenderer {
     // cache without a resize.
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const bakeTile = this.bakeTileFor(world);
-    const bakeW = Math.round(world.width * bakeTile * dpr);
-    const bakeH = Math.round(world.height * bakeTile * dpr);
-    const stale =
-      !this.groundCache ||
-      this.groundCache.dataset.dpr !== String(dpr) ||
-      this.groundCache.dataset.bakeTile !== String(bakeTile) ||
-      this.groundCache.width !== bakeW;
-    if (stale) {
-      const off = document.createElement('canvas');
-      off.width = bakeW;
-      off.height = bakeH;
-      const g = off.getContext('2d');
-      g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // `cover: false` -- ground cover is drawn per frame instead, sorted
-      // against the cats so they can pass behind it (see draw()).
-      drawMeadowGround(g, { width: world.width, height: world.height, tile: bakeTile, cover: false });
-      off.dataset.dpr = String(dpr);
-      off.dataset.bakeTile = String(bakeTile);
-      this.groundCache = off;
-    }
+    const blend = this.blend || { theme: this.theme || 'day', next: null, step: 0 };
+    const A = this.groundLayersFor(world, blend.theme, bakeTile, dpr);
+    // The far hour is only fetched once the fade has actually started, so a
+    // settled phase never pays for a theme it is not wearing.
+    const B = blend.next && blend.step > 0
+      ? this.groundLayersFor(world, blend.next, bakeTile, dpr)
+      : null;
+    const bakeW = A.under.width;
+    const bakeH = A.under.height;
     // Source rect in bake pixels, destination in world pixels -- the
     // context is panned, so the destination is where the frame sits in
     // the world, not at the canvas origin. With the camera off this is
@@ -1498,17 +1500,189 @@ class WorldRenderer {
     // disagree with itself this way.
     const sx = Math.min(left * bakeTile * dpr, bakeW);
     const sy = Math.min(top * bakeTile * dpr, bakeH);
-    this.ctx.drawImage(
-      this.groundCache,
-      sx,
-      sy,
-      Math.min(across * bakeTile * dpr, bakeW - sx),
-      Math.min(down * bakeTile * dpr, bakeH - sy),
-      left * this.tile,
-      top * this.tile,
-      across * this.tile,
-      down * this.tile,
-    );
+    const sw = Math.min(across * bakeTile * dpr, bakeW - sx);
+    const sh = Math.min(down * bakeTile * dpr, bakeH - sy);
+    const blitTo = (ctx, img, dx, dy) => {
+      ctx.drawImage(
+        img, sx, sy, sw, sh,
+        dx, dy, across * this.tile, down * this.tile,
+      );
+    };
+    const blit = (img) => blitTo(this.ctx, img, left * this.tile, top * this.tile);
+    /**
+     * One half of the ground, crossed from the near hour to the far one.
+     *
+     * Source-over is NOT a lerp for a layer with any transparency in it:
+     * drawing A at full alpha and then B at the step leaves A's ink at full
+     * strength underneath, so the two hours ACCUMULATE instead of crossing.
+     * At step 1 that draws both hours at full alpha and then snaps to one at
+     * the phase boundary -- and step 1 IS reached, for the last ~60ms of
+     * every crossing: the day row quantises to 192, and
+     * `Math.round(k * 192) / 192` hits exactly 1 once `k >= 1 - 1/384`.
+     *
+     * This shipped as two source-over blits on the argument that the layers
+     * are "opaque where it matters". They are not, and BOTH halves needed
+     * this. Measured on the shipped bake at 2048x2048 (2026-09-21):
+     *
+     *   `over`   detail scatter on transparent glass -- transparent by
+     *            construction, and the accumulation is plainly visible.
+     *   `under`  8.6% of its pixels are below alpha 255, minimum 73. Every
+     *            one of them is in a 45px band at the world's outer edge,
+     *            the soft fringe `blurredLayer` leaves behind; the interior
+     *            is opaque to the last pixel. So the old argument held in
+     *            the middle of the map and failed around its frame.
+     *
+     * The lerp has to happen in ISOLATION: A at `1 - t` onto a transparent
+     * scratch, then B at `t` with `lighter`. `lighter` is PLUS on
+     * premultiplied values -- it adds colour AND alpha -- which makes the
+     * result exactly `(1 - t) * A + t * B` in both, the true lerp. It cannot
+     * run on the main canvas, where `lighter` would add to the ground
+     * already sitting under it. There is no two-draw equivalent: compositing
+     * A then B onto the destination leaves a `(1 - t*alphaB)` cross term on
+     * A's contribution that no choice of alphas removes.
+     *
+     * The round trip through the scratch is close to free -- measured in the
+     * page at mean 0.012/255, max 1, over an upscaled `over` layer -- so the
+     * endpoints are NOT special-cased. `t = 1` reaches pure B through the
+     * same arithmetic as every other step, which is what lets the capture
+     * rig's boundary check mean something.
+     *
+     * The scratch is the size of the DRAWING SURFACE, not of the bake, one
+     * canvas is reused for both halves, and it is dropped the moment a
+     * crossing ends -- so a settled hour, which is almost every frame, pays
+     * nothing for it.
+     */
+    const cross = (pick) => {
+      if (!B) { blit(pick(A)); return; }
+      const g = this.crossScratch(this.cssWidth, this.cssHeight, dpr);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, this.cssWidth, this.cssHeight);
+      g.imageSmoothingQuality = 'high';
+      g.globalAlpha = 1 - blend.step;
+      blitTo(g, pick(A), 0, 0);
+      g.globalAlpha = blend.step;
+      g.globalCompositeOperation = 'lighter';
+      blitTo(g, pick(B), 0, 0);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'source-over';
+      this.ctx.drawImage(g.canvas, left * this.tile, top * this.tile, this.cssWidth, this.cssHeight);
+    };
+    // The bake is capped, so this blit is an UPSCALE on a dense display --
+    // which is the one place the quality hint earns its keep.
+    const quality = this.ctx.imageSmoothingQuality;
+    this.ctx.imageSmoothingQuality = 'high';
+    cross((l) => l.under);
+    // Live, between the halves: the lean moves continuously through the
+    // crossing while the layers either side of it are two fixed hours.
+    drawGroundWash(this.ctx, { width: world.width, height: world.height, tile: this.tile });
+    // Live, like the wash and for the same reason: the blades and the
+    // flower stems lean with `shadowLean`, which moves continuously while
+    // the layers either side of it are two fixed hours. See drawGroundLean.
+    // Between the halves, so a stem still sits under its own flower.
+    drawGroundLean(this.ctx, { width: world.width, height: world.height, tile: this.tile });
+    cross((l) => l.over);
+    this.ctx.imageSmoothingQuality = quality;
+    // A settled hour holds no scratch. Dropping it here rather than never
+    // is what keeps the fix off the steady-state canvas budget: the layer
+    // is the size of the map, and the map is already the largest canvas
+    // on the page.
+    if (!B) this.crossLayer = null;
+  }
+
+  /**
+   * The baked halves for one PURE theme, built once and held.
+   *
+   * Three is the right ceiling: a crossing reads two, and the hour after
+   * next is prewarmed into the third during the lull so its bake does not
+   * land inside a fade. The oldest goes when a fourth arrives.
+   */
+  groundLayersFor(world, theme, bakeTile, dpr) {
+    const key = `${theme}|${bakeTile}|${dpr}`;
+    const hit = this.groundLayers.get(key);
+    if (hit) return hit;
+    const bakeW = Math.round(world.width * bakeTile * dpr);
+    const bakeH = Math.round(world.height * bakeTile * dpr);
+    // `cover: false` -- ground cover is drawn per frame instead, sorted
+    // against the cats so they can pass behind it (see draw()).
+    const opts = { width: world.width, height: world.height, tile: bakeTile, cover: false };
+    const bake = (layer) => {
+      const off = document.createElement('canvas');
+      off.width = bakeW;
+      off.height = bakeH;
+      const g = off.getContext('2d');
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawMeadowGround(g, { ...opts, layer });
+      return off;
+    };
+    const built = withMeadowTheme(theme, () => ({
+      under: bake('under'),
+      over: bake('over'),
+      bakeTile,
+      dpr,
+    }));
+    while (this.groundLayers.size >= 3) {
+      this.groundLayers.delete(this.groundLayers.keys().next().value);
+    }
+    this.groundLayers.set(key, built);
+    return built;
+  }
+
+  /**
+   * The pond's baked pair for the hour, cross-faded when a fade is in
+   * progress. The blurred silhouettes are the expensive half and they are
+   * per theme, so a step composites two FINISHED pairs into a reused
+   * output instead of blurring the shorelines again -- which is what the
+   * palette-keyed signature used to do, 192 times a crossing.
+   */
+  pondLayersFor(blend) {
+    const cache = this.pondCache;
+    const bake = (theme) => {
+      const hit = cache.byTheme.get(theme);
+      if (hit) return hit;
+      const built = withMeadowTheme(theme, () => buildPondLayers(cache.ponds, cache.opts));
+      while (cache.byTheme.size >= 3) {
+        cache.byTheme.delete(cache.byTheme.keys().next().value);
+      }
+      cache.byTheme.set(theme, built);
+      return built;
+    };
+    const A = bake(blend.theme);
+    if (!blend.next || !(blend.step > 0)) return A;
+    const B = bake(blend.next);
+    const w = cache.opts.widthPx;
+    const h = cache.opts.heightPx;
+    if (!cache.out || cache.out.shore.width !== w || cache.out.shore.height !== h) {
+      const mk = () => {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        return c;
+      };
+      cache.out = { shore: mk(), lip: mk(), dpr: cache.opts.dpr };
+    }
+    for (const which of ['shore', 'lip']) {
+      const g = cache.out[which].getContext('2d');
+      // A context-less stand-in (the harness) gets the near hour rather
+      // than a blank pond: unfaded is wrong by a step, blank is wrong by
+      // a pond.
+      if (!g) return A;
+      // The same isolated lerp `cross` does for the ground, and for the same
+      // reason: a shore and a lip are blurred silhouettes on transparent
+      // glass, so drawing A whole and B over it at the step ACCUMULATES the
+      // two hours instead of crossing them. Free here -- this composite was
+      // already happening on its own offscreen, which is the part that costs
+      // something; only the arithmetic was wrong.
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, w, h);
+      g.globalAlpha = 1 - blend.step;
+      g.drawImage(A[which], 0, 0);
+      g.globalAlpha = blend.step;
+      g.globalCompositeOperation = 'lighter';
+      g.drawImage(B[which], 0, 0);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = 'source-over';
+    }
+    return cache.out;
   }
 
   /**
@@ -1536,6 +1710,13 @@ class WorldRenderer {
     // band and the damp lip stayed in daylight paint, for the rest of the
     // session. Fixed on main, 2026-08-17.
     //
+    // It is keyed on the THEME now rather than on the blend step, which
+    // fixes that same bug at a hundredth of the cost: every hour still
+    // gets its own paint, but the 192 steps between two hours are a
+    // cross-fade of two baked pairs instead of 192 rebuilds. The geometry
+    // below -- paths, blurred silhouettes -- is what the signature covers,
+    // and it does not know what hour it is.
+    //
     // The TILE, because the paths and layers are built at one. That was
     // safe for a reason that is not the obvious one -- `resizeFor` nulls
     // this cache on canvas resize, and before the camera every way the
@@ -1549,26 +1730,30 @@ class WorldRenderer {
     const dpr = this.dpr || window.devicePixelRatio || 1;
     const bakeTile = this.pondBakeTileFor(world);
     const water = stable.map((p) => `${p.x},${p.y}`).sort().join(';');
-    const signature = `${this.paletteKey}|${bakeTile}|${water}`;
+    const signature = `${bakeTile}|${water}`;
     if (!this.pondCache || this.pondCache.signature !== signature) {
       const groups = groupWaterTiles(stable);
       const ponds = groups.map((tiles) => ({ tiles, path: buildPondPath(tiles, bakeTile) }));
       this.pondCache = {
         signature,
         ponds,
-        // Depth and lip bake here, where the paths are already being
-        // rebuilt -- so the blur is paid once per water change, not once
-        // per frame. Two layers for the whole world, not two per pond.
-        // Built at the bake tile like the ground, so camera movement
+        // Depth and lip bake per theme, where the paths are already being
+        // rebuilt -- so the blur is paid once per water change per hour,
+        // not once per frame. Two layers for the whole world, not two per
+        // pond. Built at the bake tile like the ground, so camera movement
         // never reaches this blur.
-        layers: buildPondLayers(ponds, {
+        opts: {
           tile: bakeTile,
           widthPx: Math.round(world.width * bakeTile * dpr),
           heightPx: Math.round(world.height * bakeTile * dpr),
           dpr,
-        }),
+        },
+        byTheme: new Map(),
+        out: null,
       };
     }
+    const blend = this.blend || { theme: this.theme || 'day', next: null, step: 0 };
+    const layers = this.pondLayersFor(blend);
     // Bake geometry drawn at camera scale. The factor is 1 whenever the
     // camera is off, and the guard keeps the no-op transform out of the
     // draw log so the off state stays command-for-command what it was.
@@ -1582,7 +1767,7 @@ class WorldRenderer {
     drawPonds(this.ctx, {
       ponds: this.pondCache.ponds,
       tile: bakeTile,
-      layers: this.pondCache.layers,
+      layers,
       // Only the visible slice of the world-sized layers. In bake-tile
       // pixels, because that is the space this call draws in.
       clip: cam
@@ -2482,7 +2667,28 @@ class WorldRenderer {
    * hand one in: `??=` never reaches `document` once the slot is filled.
    */
   visionScratch(cssW, cssH, dpr) {
-    const c = (this.visionLayer ??= document.createElement('canvas'));
+    return this.scratchLayer('visionLayer', cssW, cssH, dpr);
+  }
+
+  /**
+   * The ground cross-fade's scratch layer. Separate slot from the vision
+   * wash's: both are live in the same frame, and sharing one canvas would
+   * make the ground blit depend on the overlay having finished with it.
+   *
+   * `crossLayer`, not `groundLayer`: `groundLayers` one letter away is the
+   * per-theme BAKE CACHE, and the two hold entirely different things.
+   */
+  crossScratch(cssW, cssH, dpr) {
+    return this.scratchLayer('crossLayer', cssW, cssH, dpr);
+  }
+
+  /**
+   * A surface-sized offscreen held in `this[slot]`, sized in DEVICE pixels.
+   * `??=` never reaches `document` once the slot is filled, so a harness can
+   * hand one in.
+   */
+  scratchLayer(slot, cssW, cssH, dpr) {
+    const c = (this[slot] ??= document.createElement('canvas'));
     const w = Math.max(1, Math.ceil(cssW * dpr));
     const h = Math.max(1, Math.ceil(cssH * dpr));
     if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
