@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **The built-in teacher knows a shallow nap when it sees one
+  (spec 057).** Under a `sleep_floor_off_beam` world, the needs-driven
+  cat now weighs an off-beam nap by the rest it would actually get:
+  need minus the floor, zero when the nap would give nothing — so it
+  tends to another need instead of dozing in place all afternoon. A
+  sunbeam underfoot, a beam within walking reach, or a settled friend
+  to curl up beside still counts in full. Worlds at floor 0 — every
+  shipped configuration — behave exactly as before, byte for byte.
+
 - **The lab can read the wire's own words (spec 055, #400).** The Python
   binding's parallel env gains `decision_request(kitty_id)`: the exact
   JSON line the plugin wire would send for that kitty's decision this
