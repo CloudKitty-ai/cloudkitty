@@ -389,33 +389,37 @@ making the stall and the memory smaller again:
   from the blended palette rather than quantised to the step — closer to the
   per-step rebake than the bake was.
 
-  **Cost, measured on the owner's iPhone, Safari, dpr 3, 2026-09-21:
-  ~0.25 ms per draw at the median, ~0.75 ms at p90** — 1.5% and 4.5% of a
-  16.7 ms frame. Its JavaScript is 37 µs (headless Chrome, where the whole
-  sweep is invisible: all three levels sit on the 60 Hz vsync floor), so
-  essentially all of it is rasterisation, which is why no timer on the JS
-  side could see it.
+  **Cost, measured on the owner's iPhone, Safari, dpr 3, re-run on a COOL
+  device 2026-09-22: ~0.125 ms per draw at the median, ~0.25 ms at p90** —
+  0.75% and 1.5% of a 16.7 ms frame. Its JavaScript is 37 µs (headless
+  Chrome, where the whole sweep is invisible: all three levels sit on the
+  60 Hz vsync floor), so essentially all of it is rasterisation, which is why
+  no timer on the JS side could see it.
 
   The instrument is the probe's lean sweep: 0, 1 and 8 draws per frame in
   blocks of 12 **within one run**, first 2 frames of each block dropped.
-  1× cannot be resolved against 0× (both 17 ms median) — the 8× row supplies
-  the slope, and that is what it is there for.
+  1× cannot be resolved against 0× (identical median AND p90) — the 8× row
+  supplies the slope, and that is what it is there for.
 
-  | draws/frame | frames | median | p90 |
-  |---|---|---|---|
-  | 0 | 171 | 17 ms | 19 ms |
-  | 1 (shipped) | 170 | 17 ms | 21 ms |
-  | 8 | 170 | 19 ms | 25 ms |
+  | draws/frame | frames | median | p90 | | 2026-09-21 (hot) |
+  |---|---|---|---|---|---|
+  | 0 | 180 | 17 ms | 19 ms | | 17 / 19 |
+  | 1 (shipped) | 180 | 17 ms | 19 ms | | 17 / 21 |
+  | 8 | 172 | 18 ms | 21 ms | | 19 / 25 |
 
-  ⚠ **That run's baselines drifted 5× (1.5% → 7.8% of frames over 20 ms for
-  the SAME condition), so nothing between rows in it is readable** — including
-  its stall table, which put the bake frame at 36 ms against a 17 ms control
-  where the record says 18 vs 17. The same run measured the bake *in situ*,
-  in the crossing rows' own `frames that BAKED` column, at **22–24 ms**. Two
-  instruments, one run, disagreeing by 50%. The lean numbers above are
-  unaffected because the sweep interleaves its levels through the row, which
-  is the entire reason it is built that way. **Owed: one stall-table re-run on
-  a cool device**, to settle whether the bake frame moved.
+  ⚠ **CORRECTION 2026-09-22 — "the lean numbers are unaffected" was wrong.**
+  The 2026-09-21 run's baselines drifted 5× (1.5% → 7.8% of frames over
+  20 ms for the SAME condition), and this file argued its lean numbers
+  survived that because the sweep interleaves its levels through one row.
+  Interleaving does protect the *comparison* — both runs agree that 1× is
+  unresolvable and that the 8× row carries the slope. It does **not** protect
+  the magnitude: a throttled device is slower at every level, so the marginal
+  cost per draw is inflated along with everything else. The hot run put the
+  slope at 0.25 ms median / 0.75 ms p90; the cool run puts it at **half the
+  median and a third the p90**.
+
+  Within-row beats between-row when the device drifts *across* a run. Neither
+  survives a device that is slow *throughout* one.
 
 - ~~**What the ~400 ms stall actually is.**~~ **CLOSED 2026-09-21: there is no
   stall.** Measured directly on the phone, 12 repetitions per condition, the
@@ -788,26 +792,67 @@ a third of its frames draw the lean 8 times on purpose, so its jank columns
 are inflated by the instrument. Only the lean table in section 7 is a read on
 that row. The panel now says so.
 
-The stall table from the same run, which is where the 36 ms bake frame comes
-from:
+The stall table. **DEBT CLOSED 2026-09-22 by a re-run on a cool device**,
+on the post-merge build (`395d0c1`, so #405 and #408 together):
 
 | condition | reps | W median | W max | D median | D max | W+D median |
 |---|---|---|---|---|---|---|
-| control (no bake) | 12 | 17 ms | 25 ms | 16 ms | 19 ms | 33 ms |
-| bake, draw next frame | 12 | 36 ms | 40 ms | 16 ms | 18 ms | 52 ms |
-| bake + blit, draw next frame | 12 | 40 ms | 46 ms | 17 ms | 19 ms | 57 ms |
+| control (no bake) | 12 | 17 ms | 20 ms | 16 ms | 19 ms | 33 ms |
+| bake, draw next frame | 12 | 22 ms | 45 ms | 14 ms | 17 ms | 34 ms |
+| bake + blit, draw next frame | 12 | 21 ms | 43 ms | 14 ms | 17 ms | 35 ms |
 
-The control matches the earlier run exactly (17/16/33). The bake frame does
-not: 36 ms where 2026-09-20 measured 18. But the *same run's* crossing rows
-put a bake at **22-24 ms** in situ, the stall rows run later in the sequence
-than their own control, and the baselines moved 5x across that sequence. Two
-instruments, one run, disagreeing by 50%.
+The 2026-09-21 hot run, retained so the correction is visible rather than
+overwritten: control 17/25/16/19/33, bake **36**/40/16/18/52, bake+blit
+40/46/17/19/57.
 
-No mechanism was found by which this branch could make a bake more expensive
--- the blades and stems moved OUT of the bake and the patches moved between
-halves, so the total is neutral at worst. **Owed: one stall-table re-run on a
-cool device.** Not blocking: it does not touch the lean cost, and the in-situ
-number agrees with the record.
+**The 36 ms bake frame is retired.** It was the device, as suspected: the
+control reproduces exactly (17/16/33) for the third run running, and the bake
+frame comes back at **22 ms**, which now AGREES with the same run's in-situ
+reading — the crossing row's `frames that BAKED` column says 21 ms. Two
+instruments, one run, agreeing to 1 ms, where before they disagreed by 50%.
 
-`bake + blit` remains worse than `bake` here too (40/46 against 36/40), which
-is the third run to say so. Still not shipped.
+**Read W+D, not W.** Over the two-frame window a bake costs **+1 ms**
+(34 against the control's 33), and `bake + blit` +2 ms. The W column alone
+says +5 ms, but D comes back *cheaper* after a bake (14 ms against 16) —
+Safari records the commands on one frame and rasterises them across the next,
+so neither frame alone is the cost. +1 ms is what the 2026-09-20 record
+already said (18 against 17).
+
+⚠ **`bake + blit` is NOT worse than `bake` on a cool device.** Three hot runs
+said it was, the last by 5 ms (57 against 52). Here they are 34 and 35 W+D,
+21 and 22 W median — indistinguishable. That gap was thermal too. The
+conclusion is unchanged (still not shipped, for want of a reason to), but the
+evidence that was cited for it no longer holds.
+
+## 11. The cool-device re-run, 2026-09-22
+
+The owner's iPhone, Safari, dpr 3, on the post-merge build (`395d0c1`: #405
+merged plus #408's mask and tint). Recorded whole, including the columns that
+are not readable, because the 2026-09-21 entry quoted a 36 ms bake frame
+without its surrounding baselines and that is exactly how a void number
+outlives its caveat.
+
+**This run IS readable.** The two baselines agree — 0.6% and 0.1% of frames
+over 20 ms, p99 19 ms and 19 ms — where 2026-09-21 had 1.5% against 7.8% and
+p99 21 against 24. That is the check the panel tells you to make first, and
+it is the only reason anything below can be compared between rows.
+
+| condition | frames | >20 ms | >33 ms | worst | p99 | BAKED | in canvas |
+|---|---|---|---|---|---|---|---|
+| baseline (as shipped) | 670 | 4 (0.6%) | 1 | 59 ms | 19 ms | 21 ms | 2 ms |
+| FROZEN (the ceiling) | 670 | 1 (0.1%) | 1 | 74 ms | 18 ms | — | 0 ms |
+| baseline 2 | 669 | 1 (0.1%) | 1 | 80 ms | 19 ms | — | 0 ms |
+| lean sweep ⚠ not comparable | 640 | 69 (10.8%) | 3 | 128 ms | 26 ms | 23 ms | 3 ms |
+
+`baseline 2` bakes nothing because the caches are warm by then — it is the
+steady state, not a repeat of the first row. So `baseline` against
+`baseline 2` is the cost of the first crossing's bakes: **3 extra frames over
+20 ms out of 670**, and no difference at p99 at all.
+
+⚠ **Do not read `worst`.** 59 / 74 / 80 ms across three rows that each have
+exactly ONE frame over 33 ms: that column is a single sample of the device's
+outlier tail, and it is the column that produced the fictional ~400 ms stall
+this whole arc chased. It is retained here only so the row is complete.
+
+The stall table and the lean table from this run are in §10 and §7, beside
+the hot-run numbers they correct.
