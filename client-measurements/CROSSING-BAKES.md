@@ -464,6 +464,22 @@ making the stall and the memory smaller again:
   vs one, on smaller canvases. The cross-fade removes both so it stopped
   mattering, but nobody knows which.
 
+- **The probe's flat-bake branch is DEAD, not merely broken.** Review
+  finding 2 said the stub returned the wrong shape and threw one frame in.
+  Both true, and it is worse and better than that: driving the probe
+  headless after the fix reports four rows -- `baseline`, `FROZEN`,
+  `baseline 2`, `lean sweep` -- and **no caller passes `flat: true` at all**.
+  The condition that did was removed in `918c986` with the withdrawn
+  stall's leftovers; the machinery behind it stayed. So no measurement was
+  ever taken through that branch and none of this arc's numbers came from
+  it. The stub is fixed rather than deleted -- it is an instrument knob
+  worth re-enabling, and it now returns the shape the renderer reads -- but
+  the branch is unexercised until someone adds the caller back, and a rig
+  that cannot be run is not evidence of anything.
+
+  Corrects this session's own commit message on `235fbcc`, which said every
+  `flat` row had died instead of measuring. There are no `flat` rows.
+
 - **REPORTED, NOT FIXED (code review, 2026-09-21): `POND_BAKE_MAX_PX`
   governs nothing while the camera is off.** `pondBakeTileFor` returns the
   unclamped tile before it reaches the bound, so at `MAP_MAX_PX` and dpr 3
