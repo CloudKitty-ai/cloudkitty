@@ -2607,15 +2607,18 @@ a count under what the roster can share costs the minds naps that
 clear, and above it the sixth beam and up are slack; a frozen mind
 naps into the floor on any tile and never reads the count. Count
 changes what the policy observes (two nearest-beam slots), not what
-any action is worth, so doctrine rule 9 does not bite on this knob.
+any action is worth, so doctrine rule 9's mechanism (a reprice a
+frozen model cannot answer) is absent on this knob; the prereg's
+mechanical trigger (a gap past both lines) fired once at count 7, in
+the transfer's favour (RESULTS §Tier 6, addendum 2026-09-23).
 **Scope**: floor 15, beam lifetime 3,000, reach 8, the five-cat
 gen1-A roster, the Gen 1 lineage clone, β 0.04, two seeds per count;
 the ordering 6 < 7 < 8 was not found (7 under 6 on both seeds, 8 over
 7 on both, all inside 0.75). Also on record: learned rosters under the
 floor start 0.16–0.33 of naps with sleep need under 5, three fifths on
-a beam and two fifths as ground cosleep joins, never solo on the
-ground; tier 5's 0.02–0.05 was the same measure pooled over frozen
-seats. One arm (cnt7-s1) under-serves drink at Biscuit's seat (a
+a beam and two fifths as ground cosleep joins, solo on the ground 0–1
+times in ~2,700 starts per slot; tier 5's 0.02–0.05 was the same
+measure pooled over frozen seats. One arm (cnt7-s1) under-serves drink at Biscuit's seat (a
 3,015-tick streak, 9 of 30 seeds in its swap leg), a mind property
 carried into the count-7 all-arm numbers. **Invalidated by**: a count
 in 6–8 leaving the seed spread on both seeds, or a transferred arm

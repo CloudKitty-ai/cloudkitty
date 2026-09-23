@@ -747,6 +747,48 @@ bash experiments/beam-world-screen-2026-09-19/results-raw/tier6/meow/run.sh
 CERT_ARTS=<arts> .../distress_inspect.py experiments/beam-world-screen-2026-09-19/count-7.toml 870015 --seat 0=ppo:cnt7-s1 ... --seat 4=ppo:cnt7-s1
 ```
 
+## Addendum, 2026-09-23: three corrections and one qualification (accuracy gate, first pass)
+
+The accuracy-gate skill's rule-5 red (Harness, PR #412) surfaced three
+number errors in this tier's prose and one scoring tension, re-verified
+here against the recorded raws. The tables and the decision inputs are
+untouched.
+
+- The nap section reads "The all-arm rosters start 0.16 (count 5) to
+  0.32–0.33 (counts 6–8) of their naps with sleep need under 5", and
+  prediction 5 "(0.16 at five, 0.32–0.33 from six)". cnt8-s2's all-arm
+  share is 0.223 (`results-raw/tier6/tier6-read.json`,
+  `checks.P5_report.8.need_lt5_all_arm`); the counts 6–8 range is
+  0.22–0.33. The conclusion both lines carry, that the share does not
+  order with count, stands either way.
+- The cross-tab sentence reads "a solo ground nap under need 5 happens
+  0–1 times in 2,700–2,900 starts". The three slots' starts are 2,833,
+  2,879 and 2,660 (`results-raw/tier6/lowneed-crosstab.txt`); the range
+  is 2,660–2,880. The 0–1 count is right.
+- The distress paragraph reads "Re-running the three longest seeds with
+  the state traced". The replay
+  (`results-raw/tier6/distress-inspect-cnt7-s1.txt`) covers 870015
+  (3,015), 870022 (779) and 870009 (520): the longest, the second, and
+  the fourth. The third-longest all-arm crossing, 870028 (589), was not
+  traced, so "every long streak is drink" is read off those three
+  seeds.
+- The decision line reads "Prediction 4 holding in substance means the
+  count can move at the Gen 2 collection without a new screen", and
+  prediction 4 above it "Rule 9 did not bite". As declared, prediction
+  4 failed, and the prereg's rule-9 trigger (a gap past both lines on a
+  count) is met at count 7 on the s2 side: +0.57 happiness, +0.153
+  placement. Both gaps are the transfer's surplus. The arms retrained
+  per count carry placement 0.43–0.45 on the s2 side against the
+  transferred sg15-s2's 0.54–0.63 on every world; the retrained arm
+  landed low, the seed property prediction 3 records, not a reprice the
+  transferred mind failed to answer. The decision needs only the
+  one-sided reading, and F-051's invalidation line already encodes it
+  (a transferred arm more than 0.5 happiness under a retrained one).
+  "Did not bite" stands for rule 9's mechanism and falls for the
+  declared test; the trigger's declared consequence, retraining at
+  future count screens, was written for a deficit and is not taken from
+  a surplus.
+
 # Spec 057 acceptance read, 2026-09-22: the teacher's sleep rule reads the floor
 
 Product's branch `057-teacher-sleep-floor` at d850df8 (not merged; the
