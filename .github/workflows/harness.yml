@@ -1,0 +1,37 @@
+name: harness (condense budget)
+
+# The Harness thread's meta checks (THREADS.md §1). The growth budget on
+# the files every session loads: net lines since the last condense pass,
+# tiers and numbers in .claude/CONDENSE-LOG.md, logic in
+# scripts/condense-budget.sh. A pull request is gated (tier 1 and a
+# frozen file block; tier 2 blocks past its second line); a push to main
+# reports only, so Experiments' direct commits show their count.
+#
+# Reads git only. It never loads a toml, so the shipped-config sweep's
+# rule about tomls under experiments/ does not apply here.
+
+on:
+  push:
+    branches: [main]
+  # No branch filter, for the reason ci.yml gives: a stacked PR must
+  # still get its checks.
+  pull_request:
+
+jobs:
+  budget:
+    name: condense budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The base SHA on the log's last pass line has to be reachable.
+          fetch-depth: 0
+      - name: Self-test the budget script
+        run: bash scripts/test-condense-budget.sh
+      - name: Growth since the last condense pass
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            bash scripts/condense-budget.sh --gate
+          else
+            bash scripts/condense-budget.sh --report
+          fi
