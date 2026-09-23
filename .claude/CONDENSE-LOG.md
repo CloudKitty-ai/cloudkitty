@@ -30,7 +30,7 @@ Tiers and budgets (net lines since the last pass):
 One line each: `- <date> <origin/main sha> <what> (PR #n)`. The script
 reads the SHA on the last line.
 
-- 2026-09-22 b50fc2c budgets set; no pass applied (PR #TBD)
+- 2026-09-22 b50fc2c budgets set; no pass applied (PR #411)
 
 ## Frozen
 
