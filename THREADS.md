@@ -112,7 +112,36 @@ before the command runs.
 - **Every open owner decision is a GitHub issue** labelled
   `owner-call` + `oc:ready` / `oc:discussing` / `oc:blocked`; bar and
   shape in `experiments/README.md` §"Owner calls: the ledger"
-  (2026-09-05). Only the owner closes one; the ruling is copied
-  verbatim, with issue number, into the owning document.
+  (2026-09-05). The owning thread closes one once it and the owner
+  are both satisfied everything in it is answered and ruled
+  (2026-09-22): the closing comment quotes the owner's words verbatim,
+  and the ruling is copied, with issue number, into the owning
+  document.
 - **Owner-authored text ships verbatim.** Flag a typo; never fix it;
   don't restructure a supplied document (2026-07-23).
+
+## 6. What lives where (owner ruled 2026-09-22)
+
+One home per fact; every other mention is a pointer to it. The
+rows below the first ten were added on the owner's word (2026-09-22:
+"key information in one place"; TODO owner: update rigor for these
+key files and the user-facing docs at tag time). A number,
+a rule or a ruling restated outside its home is a condense cut.
+
+| the fact | its one home | pointers elsewhere look like | does not hold |
+|---|---|---|---|
+| a claim about the system that outlives one arc | `experiments/FINDINGS.md` (F-nnn, edited by supersession) | the F-number | per-arc narrative, raw numbers beyond the claim's own |
+| the evidence for a claim: numbers, the command that made them, the read | the arc's `RESULTS.md`; its `results-raw/` in the native checkout, uncommitted | FINDINGS cites the file and section | conclusions that generalise past the arc |
+| a Gen 2 decision input | `experiments/fog-gen1-shakeout/GEN2-INPUTS.md` | a "revisit at the Gen 2 read" note naming the entry | findings (those go to FINDINGS and get cited) |
+| a design rule for worlds, rewards, behaviour | `experiments/DESIGN-DOCTRINE.md` (rules 1–10) | a spec names the rule number it moved on (CLAUDE.md rule 8) | process rules, findings |
+| lab process: how to design, run, read, and post an owner call | `experiments/README.md` (§Design discipline, §Ownership, §Owner calls) | "per README §…" | design rules, thread ownership |
+| future product work, its priority and intent | `BACKLOG.md` | the PR that ships it removes the entry | design, owner decisions |
+| an open owner decision | a GitHub issue `owner-call` + `oc:*` | the ruling, verbatim with the issue number, in the document that owns the subject | anything after close: the owning document is the record |
+| a thread's session state: where it is, job cards, open asks | the memory directory (resume anchor + `MEMORY.md` index) | — | numbers, rules, findings, rulings: a pointer to the home instead |
+| who owns what, where each thread works, how much process | `THREADS.md` | CLAUDE.md line 1 | how to do the work |
+| how the work is done | `CLAUDE.md` | — | who does it |
+| what shipped and what it invalidates (saved worlds, policies, baselines) | `CHANGELOG.md` (`## Unreleased`, compatibility markers) | the PR number | design, intent, priority |
+| the design record of a change: what was ruled, why, what it touched | `specs/NNN-*/` | "spec NNN"; the owner's ruling copied there with its issue number | future work (BACKLOG), evidence |
+| the live box: seatings, censuses, welfare reads as deployed | `policies/purrsonality.md` | — | the next deploy (that is checked-in config) |
+| a skill's trial record: what dropped, what patched it, clean runs | `TRIALS.md` beside the skill | — | the skill's rules (SKILL.md) |
+| a trap or lesson about the code a thread owns (owner ruled 2026-09-22: one file per thread, co-located) | `client/TRAPS.md`, `crates/TRAPS.md`, `experiments/TRAPS.md`, `.claude/TRAPS.md`; sections *Traps* (what the code does that bites) and *Lessons* (a method change); entry = date, the trap in a sentence, where it bites, the evidence, the guard if any | the memory index carries a pointer, never the trap; a lesson that holds across threads is promoted to CLAUDE.md, THREADS.md or README §Design discipline | user-facing docs (`docs/`), findings, any trap with a mechanical guard (test, hook, CI check): the guard is its home and the entry is deleted |
