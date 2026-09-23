@@ -107,6 +107,20 @@ from memory.
   [blend-sweep-pattern.md](blend-sweep-pattern.md) (owner-flagged
   2026-08-21; every outcome class is informative, including "the
   basin isn't connected").
+- **Every generation keeps a timeline** (owner, 2026-09-22; first
+  instance `fog-gen1-timeline-2026-08-26.md`). It is the tracker, not
+  the design record: the owner-ruled step sequence, each step's gate
+  and status, the outstanding action items, and where the process
+  stands, so the owner can refresh on the generation in one read after
+  time away. Design lives in the prereg and the shelf, claims in
+  FINDINGS, evidence in RESULTS; the timeline points at them. It opens
+  as a fresh file when the sequence is ruled, seeded with pointers to
+  the standing machinery and the rulings the generation re-opens (the
+  extract is never copied text). Detail scales with the generation:
+  a world change is a short file, hidden needs or an LLM seat a long
+  one. At the generation's close it is frozen in one commit with a
+  stamp under the title and a closing pointer, and never changes
+  again; the next generation's file starts fresh.
 
 ## Ownership
 
