@@ -1,6 +1,13 @@
 # Fog Gen 1: sequencing timeline + shakeout criteria
 ## (2026-08-26, Experiments + owner, hashed out live. Owner-ruled sequence.)
 
+**FROZEN at the 0.3.0 cutover (8cbb446, 2026-09-16); nothing below
+changes** (owner, 2026-09-22, "Ruled as recommended"). Later Gen 1
+reads live in `fog-gen1-cert/RESULTS.md` and `FINDINGS.md`; Gen 2
+inputs on the shelf, `fog-gen1-shakeout/GEN2-INPUTS.md`; the Gen 2
+tracker is a fresh file, `experiments/fog-gen2-timeline-<date>.md`,
+created at the #389 sitting and linked from the shelf's head.
+
 Goal: land every compatibility-breaking change before the schema locks,
 then train the next certifiable generation (5 seats incl. Biscuit 3.0)
 against a stable target. Fog Gen 1 scope is ROADMAP @ a6eb3c8: radius
