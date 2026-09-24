@@ -96,6 +96,15 @@ def main():
     if "free" in out["paired"]:
         out["checks"]["P5_free_delta"] = mean_of("free")
         out["checks"]["P5_free_more_negative_than_want"] = mean_of("free") < mean_of("want")
+    # Third collection (prereg-3.md): the direction-only R sweep.
+    dirs = sorted(n for n in out["paired"] if n.startswith("dir"))
+    if dirs:
+        out["checks"]["dir_deltas"] = {n: mean_of(n) for n in dirs}
+        out["checks"]["P7_all_dirs_between_rows_and_intact"] = all(
+            mean_of("rows") <= mean_of(n) <= 0.0 for n in dirs
+        )
+        out["checks"]["P8_smallest_abs_is_dir16"] = min(dirs, key=lambda n: abs(mean_of(n))) == "dir16"
+        out["checks"]["P9_dir16_recovers_over_half"] = mean_of("dir16") > mean_of("rows") / 2
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1))
     print(f"wrote {a.out}")
@@ -126,6 +135,11 @@ def main():
                      f"P6 rows not below all-deaf: {c['P6_rows_not_below_all']}.")
         if "P5_free_delta" in c:
             L.append(f"P5 free-deaf paired mean delta {c['P5_free_delta']:+.4f}; more negative than want-deaf: {c['P5_free_more_negative_than_want']}.")
+        if "dir_deltas" in c:
+            L.append("Dir sweep deltas: " + ", ".join(f"{n} {d:+.4f}" for n, d in c["dir_deltas"].items()) + ".")
+            L.append(f"P7 all dir arms between rows-deaf and intact: {c['P7_all_dirs_between_rows_and_intact']}. "
+                     f"P8 smallest |delta| is dir16: {c['P8_smallest_abs_is_dir16']}. "
+                     f"P9 dir16 recovers over half of rows-deaf: {c['P9_dir16_recovers_over_half']}.")
         L.append("")
         a.md.write_text("\n".join(L))
         print(f"wrote {a.md}")
