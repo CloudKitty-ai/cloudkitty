@@ -103,3 +103,26 @@ claims, not just a diff. The declaration itself is now twice a
 source of gate-caught errors (mis-citation, hash wording): worth a
 line in the skill someday — the gate reads the prereg as ground
 truth, and preregs carry prose too.
+
+## Third collection addendum (R sweep) — Experiments thread, Fable, 2026-09-24
+
+Gated the direction-sweep addendum plus F-052's appended sentences.
+Fresh twelve-arm read byte-identical to the recorded
+deafen-read-3.json; 60 arithmetic claims matched, P7-P9 all held.
+
+**Run 1: FAIL, three WEAK on F-052 lines.** (1) The 0.97 recovery
+credited to "bearing" where the dir arms also keep unseen-cat words
+(the same over-attribution the second addendum's first run caught —
+twice now, same author, same shape: crediting the named manipulation
+and forgetting what rides along). (2)+(3) "sounding too near is mild"
+claimed on welfare where the asymmetry lives in the distress tail;
+at matched offsets welfare is level (dir28 − dir5 = −0.037). The
+gate computed the matched-offset comparison itself.
+
+**Run 2: PASS** after rewording; the gate re-derived the new per-seed
+counts (dir16's 53 ticks from 2 seeds; intact's 4 nonzero seeds).
+
+**Verdict on the gate**: third write-up, still zero number errors
+reaching main and every fail a claim-scope error. The repeat pattern
+(over-crediting the named variable) is now a known author failure
+mode the gate reliably catches; worth a fixture plant someday.

@@ -2669,7 +2669,15 @@ together; the arm does not separate them) carries the load; free-deaf
 costs 0.237 (28 of 30), an upper bound on free-word meaning (free
 calls also create rows). Single-family costs (want −0.020, here
 −0.455, free −0.237) sum to 0.712 against all-deaf's 6.716: strongly
-non-additive. **Scope**: frozen minds (hearing's value to cats that grew up
+non-additive. Third collection (`prereg-3.md`, the direction sweep):
+the row without its exact range — bearing plus the in-fog words,
+both kept by the dir arms, shares unmeasured — recovers 0.97 of the
+rows-deaf loss (dir16 −0.203 against rows −6.371); exact range is
+worth at most 0.203 (the clean intact-vs-dir16 contrast); the cost
+is V-shaped in the fake range with its minimum at the true median
+(R = 16); the bias asymmetry is in the distress tail (dir5 99 ticks
+against dir28's 1,725 and dir37's 8,685, longest streak 612) while
+matched-offset welfare is level (dir28 − dir5 = −0.037). **Scope**: frozen minds (hearing's value to cats that grew up
 hearing), the served composition and world, one band; nothing here
 attributes the change to fog alone vs the bugs-2.0 economy (F-026
 SC-005). **Invalidated by**: a replication band where all-deaf lands

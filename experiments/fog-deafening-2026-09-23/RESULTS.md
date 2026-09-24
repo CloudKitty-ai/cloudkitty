@@ -168,3 +168,61 @@ decision-rule deviations: the headline clause, reverted, and the
 unquoted replaced bound, now quoted above; fixed and re-verified) ·
 addendum claims: 43 arithmetic, 4 threshold, 6 characterisation, 1
 UNDECIDABLE (the mutate reds), 8 provenance · raws 483a9a822b3f.
+
+## Addendum, 2026-09-24 (2): direction without range — the R sweep (third collection, prereg-3.md)
+
+The second collection's split sentence reads: "erasing heard rows
+alone — position and in-fog words of unseen cats, seen-row content
+intact; the arm does not separate the two — costs 6.371 of the
+all-deaf 6.716". This collection separates the geometry: six arms on
+the same 30 paired seeds keep every heard row's true bearing and
+project its range to a fixed R ∈ {5, 11, 16, 20, 28, 37} tiles
+(declared dcd9a83 before collection; mask at 60d899a, two mutate
+reds; R anchored on the measured heard-distance distribution,
+`results-raw/r-probe.json`: median 16, q25 11, q75 20, max 37).
+
+| arm | team happiness | paired delta vs intact | worse/n | nash_state | dist ticks | max distress age |
+|---|---|---|---|---|---|---|
+| dir5 | 92.106 | -0.365 [-0.577, -0.006] | 30/30 | 0.9207 | 99 | 67 |
+| dir11 | 92.255 | -0.216 [-0.479, +0.066] | 28/30 | 0.9222 | 352 | 81 |
+| dir16 | 92.268 | -0.203 [-0.503, +0.021] | 28/30 | 0.9223 | 53 | 37 |
+| dir20 | 92.176 | -0.295 [-0.573, -0.049] | 30/30 | 0.9213 | 683 | 261 |
+| dir28 | 92.069 | -0.402 [-0.713, -0.093] | 30/30 | 0.9201 | 1725 | 246 |
+| dir37 | 91.864 | -0.607 [-0.878, -0.358] | 30/30 | 0.9179 | 8685 | 612 |
+
+Predictions 7–9 (prereg-3) all hold: every dir arm lands between
+rows-deaf (−6.371) and intact (P7); the smallest |delta| is dir16,
+the true median (P8); dir16's −0.203 is far above −3.186, half of
+rows-deaf (P9).
+
+The reading. The row without its exact range — bearing plus the
+in-fog words, both of which the dir arms keep — recovers 0.97 of the
+rows-deaf loss (dir16 −0.203 against −6.371). No arm separates
+bearing from those words, so their shares are unmeasured; what the
+sweep isolates cleanly is range itself, the intact-vs-dir16
+contrast: exact range is worth at most 0.203 to these minds, and
+some of that is the fixed-range distortion, not missing information
+(0.203 is also the best of six sample means, not a bound with a
+confidence statement). The cost is V-shaped in the fake range with
+its minimum at the true median — 0.365 / 0.216 / 0.203 / 0.295 /
+0.402 / 0.607 across R 5 / 11 / 16 / 20 / 28 / 37. The bias
+asymmetry lives in the distress tail, not the mean: at the matched
+offset (R 5 against R 28, eleven-ish tiles either side) welfare is
+level — the paired difference dir28 − dir5 is −0.037, dir28 worse on
+16 of 30 — while distress is not (dir5: 99 ticks on 4 seeds; dir28:
+1,725 on 22; dir37: 8,685 on all 30, longest streak 612). Sounding
+too near still costs the mean (dir5 −0.365, 30 of 30 worse); an
+everyone-sounds-far bias costs the same in the mean at the matched
+offset and much more in the tail. dir16's distress ticks landing
+under intact's 125 is not claimed as an improvement: at these
+magnitudes the totals rest on a few seeds (dir16's 53 come from 2
+seeds; 26 of 30 intact seeds have zero distress ticks).
+
+Gate (addendum 2): **PASS** 2026-09-24 (first run FAILED three WEAK
+characterisations on the F-052 lines — the 0.97 credited to bearing
+where the dir arms also keep the in-fog words, and a near/far
+asymmetry claimed on welfare where it lives in the distress tail —
+reworded and re-verified; the matched-offset comparison is now in the
+text) · addendum claims: 60 arithmetic (one inherited rounding note,
+−3.186 for −3.185), 3 threshold, 9 characterisation, 1 UNDECIDABLE
+(the mutate reds), 9 provenance · raws 489d3a744b78.
