@@ -183,10 +183,16 @@ DEAF_ARMS = {
     # live position) whole, leaving seen-row word content intact -- the
     # position-of-the-unseen channel alone (second collection, prereg-2.md).
     "rows": None,
+    # "dir" keeps every heard row's true bearing and destroys its range:
+    # the caller is projected to Manhattan distance --dir-r (tiles) along
+    # the same bearing (third collection, prereg-3.md: a sweep of R values
+    # anchored on dir_r_probe.py's measured heard-distance distribution).
+    # Words and answers-me stay.
+    "dir": None,
 }
 
 
-def deafen(ob, deaf):
+def deafen(ob, deaf, dims=None):
     """Zero what hearing put in these observations, in place. Per kitty row:
     the deafened kinds' (recency, rate) pairs, their want intensities, and
     (here-derived) answers-me bits; then any row that exists only by a
@@ -202,6 +208,18 @@ def deafen(ob, deaf):
             row = KITTY0 + r * KSLOT
             heard = (ob[:, row] == 0.0) & (ob[:, row + 3] > 0.0)
             ob[heard, row:row + KSLOT] = 0.0
+        return
+    if deaf == "dir":
+        width, height, dir_r = dims
+        for r in range(N_KITTY_ROWS):
+            row = KITTY0 + r * KSLOT
+            heard = (ob[:, row] == 0.0) & (ob[:, row + 3] > 0.0)
+            dx = ob[heard, row + 1] * width
+            dy = ob[heard, row + 2] * height
+            k = dir_r / (np.abs(dx) + np.abs(dy))
+            ob[heard, row + 1] = dx * k / width
+            ob[heard, row + 2] = dy * k / height
+            ob[heard, row + 3] = dir_r / (width + height)
         return
     kinds, wants, heres = DEAF_ARMS[deaf]
     for r in range(N_KITTY_ROWS):
@@ -221,7 +239,7 @@ def deafen(ob, deaf):
 
 
 def run_one(args):
-    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf = args
+    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf, dir_r = args
     # clock_mode "served": the engine's policy seam pins the clock input to 0 at deploy
     # (behavior.rs decide_sync: "No episode runs at deploy"); the harness does the same so
     # the battery reads the served condition. Verified 2026-09-15: with the clock pinned the
@@ -281,7 +299,7 @@ def run_one(args):
                 # the training schedule: t / rl.episode.horizon (default 2000), cycling, no world reset
                 ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
             if deaf:
-                deafen(ob, deaf)
+                deafen(ob, deaf, (width, height, dir_r))
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), N_HEADS), np.float32)
             for s, fwd in models.items():
@@ -374,7 +392,10 @@ def main():
     ap.add_argument("--deaf", choices=tuple(DEAF_ARMS), default=None,
                     help="hearer-side deafening arm (fog-deafening-2026-09-23): zero the named "
                          "kind family in every policy observation before the forward")
+    ap.add_argument("--dir-r", type=float, default=None,
+                    help="dir arm only: the fixed heard Manhattan distance in tiles")
     a = ap.parse_args()
+    assert (a.deaf == "dir") == (a.dir_r is not None), "--dir-r goes with --deaf dir, both or neither"
     seats = list(SEATINGS[a.seating])
     tag = a.seating
     for ov in a.seat:
@@ -382,10 +403,12 @@ def main():
         seats[int(i)] = spec
         tag += f"_s{i}-{spec.split(':', 1)[-1]}"
     seed0 = a.seed0 if a.seed0 is not None else BANDS[a.band]
-    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf) for i in range(a.seeds)]
+    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf, a.dir_r) for i in range(a.seeds)]
     if a.control_brain:
         tag += f"_val-{a.control_brain}"
-    if a.deaf:
+    if a.deaf == "dir":
+        tag += f"-deaf-dir-r{int(a.dir_r)}"
+    elif a.deaf:
         tag += f"-deaf-{a.deaf}"
     if a.clock == "served" and any(s != "scripted" for s in seats):
         tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix

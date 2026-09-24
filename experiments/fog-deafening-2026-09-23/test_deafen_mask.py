@@ -33,9 +33,15 @@ ARMS = {"want": (WANT_K, list(range(6)), []),
         "free": (FREE_K, [], []),
         "all": (list(range(15)), list(range(6)), list(range(4))),
         "rows": None}
+# The dir arm is tested separately at several R values; the world dims are
+# read from the config here, independently of the harness's cfg plumbing.
+import tomllib  # noqa: E402
+with open(Path(__file__).resolve().parent.parent / "fog-gen1-cert" / "anchor-b3.toml", "rb") as _f:
+    _cfg = tomllib.load(_f)
+WH = (_cfg["world"]["width"], _cfg["world"]["height"])
 
 
-def reference_mask(ob, arm):
+def reference_mask(ob, arm, wh=None, dir_r=None):
     """The declared deafening, written independently of the harness."""
     out = ob.copy()
     if arm == "rows":
@@ -43,6 +49,18 @@ def reference_mask(ob, arm):
             row = SELF + r * SLOT
             heard = (out[:, row] == 0.0) & (out[:, row + 3] > 0.0)
             out[heard, row:row + SLOT] = 0.0
+        return out
+    if arm == "dir":
+        width, height = wh
+        for r in range(ROWS):
+            row = SELF + r * SLOT
+            heard = (out[:, row] == 0.0) & (out[:, row + 3] > 0.0)
+            dx = out[heard, row + 1] * width
+            dy = out[heard, row + 2] * height
+            k = dir_r / (np.abs(dx) + np.abs(dy))
+            out[heard, row + 1] = dx * k / width
+            out[heard, row + 2] = dy * k / height
+            out[heard, row + 3] = dir_r / (width + height)
         return out
     kinds, wants, heres = ARMS[arm]
     for r in range(ROWS):
@@ -103,6 +121,11 @@ def main():
             got = ob.copy()
             H.deafen(got, arm)
             assert np.array_equal(got, want), f"deafen({arm}) diverges from the reference mask"
+        for r_val in (5.0, 16.0, 37.0):
+            want = reference_mask(ob, "dir", wh=WH, dir_r=r_val)
+            got = ob.copy()
+            H.deafen(got, "dir", (WH[0], WH[1], r_val))
+            assert np.array_equal(got, want), f"deafen(dir R={r_val}) diverges from the reference mask"
             if arm == "all":
                 for r in range(ROWS):
                     row = SELF + r * SLOT
