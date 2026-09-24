@@ -113,3 +113,16 @@ experiments/exp-006-character-gen/.venv/bin/python experiments/fog-deafening-202
   --out experiments/fog-deafening-2026-09-23/results-raw/deafen-read.json \
   --md experiments/fog-deafening-2026-09-23/results-raw/deafen-read.md
 ```
+
+## Deviations (2026-09-24, post-collection; the declared lines and rules are unchanged)
+
+- Prediction 1's motivating citation read "the same deafening measured
+  −0.011". F-026 had no arm that silenced everything: purr-deaf
+  measured −0.011, follow-me-deaf −0.014, both-deaf +0.013, and no
+  pre-fog arm touched the want words. The declared −0.15 line does not
+  depend on the citation. Caught by the accuracy gate's first pass.
+- "Instrument at 207f8c9": the mask and its reds are 207f8c9's; the
+  copy that collected is afc43ae's, whose only change is the `deaf`
+  band entry (`tool_sha256` 3be2a687… in every battery header).
+- Collect runtime was about 2.7 minutes per arm against the declared
+  30–60; the read command and its outputs are as declared.
