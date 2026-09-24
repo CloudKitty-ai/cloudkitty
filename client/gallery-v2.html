@@ -1253,6 +1253,113 @@
       range: ceilingTiles / floorTiles,
     };
   };
+  // The sigil size study (2026-09-23, owner: "incorporate bubble scaling ...
+  // so they look the same proportionally regardless of size, and then
+  // validate the sigils at min/max zoom"). SIZE only: the bubble's style,
+  // want-vs-here, and the distress-cue collision are still open in
+  // client-measurements/pose-census/bubble-redesign-2026-09-16.md, so the
+  // bubble here is a plain round one and the icons are the shipped art.
+  // Opens on the thought bubble's own proportions (r = tile * 0.34, icon at
+  // r * 1.5), which is the one tile-scaled bubble the client already draws.
+  const SIGIL_LAB = { scale: 0.68, floorPx: 24, iconFrac: 0.75, night: false };
+  // The tile sizes a sigil actually lands at. The whole-map tiles were
+  // measured off the live page in headless Chrome, 2026-09-23 (map width / 20):
+  // 360x780 -> 340px map, 390..402 wide -> 380px, 1440x900 -> 740px. The camera
+  // rows come from the shipped Camera via zoomLimitsFor, not from constants.
+  const sigilRows = () => {
+    const phone = zoomLimitsFor(380);
+    return [
+      [17, 'full map, small Android'],
+      [19, 'full map, iPhone'],
+      [37, 'full map, laptop'],
+      [phone.ceilingTile, 'camera widest, iPhone'],
+      [phone.floorTile, 'camera zoomed in, iPhone'],
+      [113, 'camera zoomed in, desktop'],
+    ].sort((a, b) => a[0] - b[0]);
+  };
+  const sigilDiameter = (tile) => Math.max(SIGIL_LAB.floorPx, tile * SIGIL_LAB.scale);
+  // Every subject that has art today. The sunbeam has none (a sun is not a
+  // Z -- open question 3 in the redesign doc), so it is absent, not faked.
+  const SIGIL_SUBJECTS = [
+    ['eat', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'eat', size, x, y })],
+    ['drink', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'drink', size, x, y })],
+    ['play', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'play', size, x, y })],
+    ['sleep', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'sleep', size, x, y })],
+    ['cuddle', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'cuddle', size, x, y })],
+    ['bath', (ctx, size, x, y) => drawNeedIcon(ctx, { need: 'bath', size, x, y })],
+    ['bug', (ctx, size, x, y) => drawButterfly(ctx, { colorway: BUTTERFLY_COLORWAYS[0], phase: 0.25, size, x, y })],
+  ];
+  // A plain round bubble with a short tail, sitting on `bottom` at `cx`.
+  // Lab art: the rim widens with the bubble so a 77px sigil is not ringed
+  // by a 1px hairline, which is the one thing that does NOT scale for free
+  // (the icons draw in a unit box, so their own strokes already do).
+  function drawSigilBubble(ctx, cx, bottom, D, subject) {
+    const tail = Math.max(3, D * 0.12);
+    const cy = bottom - tail - D / 2;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 253, 250, 0.96)';
+    ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
+    ctx.lineWidth = Math.max(1, D / 40);
+    ctx.beginPath();
+    ctx.arc(cx, cy, D / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - tail * 0.8, cy + D / 2 - tail * 0.4);
+    ctx.lineTo(cx, bottom);
+    ctx.lineTo(cx + tail * 0.8, cy + D / 2 - tail * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    const icon = D * SIGIL_LAB.iconFrac;
+    subject[1](ctx, icon, cx - icon / 2, cy - icon / 2);
+  }
+  // The SHIPPED speech bubble, called on a stand-in renderer so it draws
+  // exactly what the map draws: fixed 18px, 11px type, at every tile size.
+  function drawShippedBubble(ctx, w, h, x, y, tile, text) {
+    const stand = {
+      ctx, tile,
+      tileOrigin: () => ({ x, y }),
+      viewportRect: () => ({ left: 0, top: 0, right: w, bottom: h }),
+      roundRect: WorldRenderer.prototype.roundRect,
+    };
+    WorldRenderer.prototype.drawBubble.call(
+      stand, {}, text, { posFor: () => null, bubbleScaleFor: () => 1 }, null,
+    );
+  }
+  const SIGIL_W = 320;
+  const SIGIL_GAP = 6;
+  // One row's height: a label, the two cats with their bubbles, then the
+  // strip of every subject at this row's size, wrapped to the card.
+  const sigilRowHeight = (tile) => {
+    const D = sigilDiameter(tile);
+    const tail = Math.max(3, D * 0.12);
+    const scene = Math.max(18 + 4, D + tail) + 4 + tile;
+    const perLine = Math.max(1, Math.floor((SIGIL_W - 16) / (D + SIGIL_GAP)));
+    const lines = Math.ceil(SIGIL_SUBJECTS.length / perLine);
+    return 18 + scene + 10 + lines * (D + tail + SIGIL_GAP) + 8;
+  };
+  const sigilCardHeight = () => sigilRows().reduce((sum, [tile]) => sum + sigilRowHeight(tile), 0);
+  const SIGIL_GROUND = new Map();
+  // The shipped meadow ground at this row's tile, baked once per size and
+  // hour: a sigil is judged against the grass it will sit on, texture and all.
+  function sigilGround(theme, tile, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    const key = `${theme}|${tile}|${w}|${h}|${dpr}`;
+    if (!SIGIL_GROUND.has(key)) {
+      const c = document.createElement('canvas');
+      c.width = Math.ceil(w * dpr);
+      c.height = Math.ceil(h * dpr);
+      const g = c.getContext('2d');
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      withMeadowTheme(theme, () => drawMeadowGround(g, {
+        width: Math.ceil(w / tile) + 1, height: Math.ceil(h / tile) + 1, tile, cover: false,
+      }));
+      SIGIL_GROUND.set(key, c);
+    }
+    return SIGIL_GROUND.get(key);
+  }
+
   // A REAL sampled tick, not invented positions: the median-spread frame
   // (16.2 tiles) of a 1500-tick capture of the served world at five kitties,
   // tick 1681. See client-measurements/037-zoom/sc006-2026-08-18.md. Hand-
@@ -4015,6 +4122,88 @@
           );
         });
         ctx.textAlign = 'left';
+      },
+    },
+    {
+      title: 'Meow sigils: one bubble, every size (size study, 2026-09-23)',
+      note: 'Every row is drawn at TRUE pixel size. Open this on your phone and do not pinch-zoom: a zoomed page is not what the map draws. Each row is one tile size a sigil really lands at: the whole map on a phone (17 and 19px), on a laptop (37px), and the camera\'s widest and closest frames. Left cat: today\'s speech bubble, the shipped code, which is 18px tall at every size. Right cat: the proposed sigil bubble, which is scaled to the tile but never smaller than the floor. The strip under each pair is every subject that has art today, all at that row\'s size. The sunbeam has no icon yet, so it is missing. TO FIND THE FLOOR: drag "floor" down until the smallest rows stop reading, then back up one notch. The bubble\'s style (want vs. here, thought vs. speech) is NOT being judged here, only its size.',
+      v2Only: true,
+      w: SIGIL_W,
+      // A getter: the floor and scale dials change every row's height.
+      get h() { return sigilCardHeight(); },
+      ownShadows: true,
+      bag: SIGIL_LAB,
+      dials: [
+        { key: 'floorPx', label: 'floor: smallest bubble diameter, px', min: 10, max: 44, step: 1 },
+        { key: 'scale', label: 'scale: bubble diameter as a share of the tile', min: 0.3, max: 1.2, step: 0.02 },
+        { key: 'iconFrac', label: 'icon: share of the bubble the icon fills', min: 0.5, max: 0.95, step: 0.01 },
+      ],
+      toggles: [
+        { key: 'night', label: 'night meadow (lab only)' },
+      ],
+      readout() {
+        const lines = sigilRows().map(([tile, name]) => {
+          const D = sigilDiameter(tile);
+          const floors = tile * SIGIL_LAB.scale < SIGIL_LAB.floorPx;
+          return `${tile.toFixed(0).padStart(3)}px tile  ${name.padEnd(26)} `
+            + `bubble ${D.toFixed(0).padStart(2)}px, icon ${(D * SIGIL_LAB.iconFrac).toFixed(0).padStart(2)}px`
+            + `${floors ? '  (at the floor)' : ''}`;
+        });
+        return (
+          `SIGIL = { floorPx: ${SIGIL_LAB.floorPx}, scale: ${SIGIL_LAB.scale}, iconFrac: ${SIGIL_LAB.iconFrac} }\n`
+          + `${lines.join('\n')}\n`
+          + `the bubble scales with the tile above ${(SIGIL_LAB.floorPx / SIGIL_LAB.scale).toFixed(0)}px tiles `
+          + `and holds at the floor below that. Today's text bubble is 18px tall and 38 to 84px wide at every size.`
+        );
+      },
+      draw(ctx, w, h, now) {
+        const theme = SIGIL_LAB.night ? 'night' : 'day';
+        const phase = (now % 3400) / 3400;
+        let top = 0;
+        for (const [tile, name] of sigilRows()) {
+          const rowH = sigilRowHeight(tile);
+          ctx.drawImage(sigilGround(theme, tile, w, rowH), 0, top, w, rowH);
+          const D = sigilDiameter(tile);
+          const tail = Math.max(3, D * 0.12);
+          ctx.fillStyle = SIGIL_LAB.night ? 'rgba(255, 250, 240, 0.85)' : 'rgba(80, 66, 56, 0.85)';
+          ctx.font = '600 11px ui-monospace, monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(`${tile.toFixed(0)}px tile: ${name}`, 8, top + 13);
+
+          // The pair: today's bubble on the left cat, the sigil on the right.
+          const catY = top + 18 + Math.max(18 + 4, D + tail) + 4;
+          const leftX = 8 + Math.max(0, 42 - tile / 2);
+          const rightX = Math.min(Math.max(leftX + tile + 90, SIGIL_W / 2), SIGIL_W - tile - 4);
+          for (const [x, which] of [[leftX, 'today'], [rightX, 'sigil']]) {
+            CatV2.drawCat(ctx, {
+              pose: 'idle',
+              appearance: CatV2.appearanceFor(PUMPKIN),
+              facing: 'right',
+              size: tile,
+              x,
+              y: catY,
+              phase,
+            });
+            if (which === 'today') drawShippedBubble(ctx, w, top + rowH, x, catY, tile, 'Want cuddle!');
+            else drawSigilBubble(ctx, x + tile / 2, catY - 4, D, SIGIL_SUBJECTS[4]);
+          }
+
+          // The strip: every subject at this row's size.
+          const stripTop = catY + tile + 10;
+          const perLine = Math.max(1, Math.floor((SIGIL_W - 16) / (D + SIGIL_GAP)));
+          SIGIL_SUBJECTS.forEach((subject, i) => {
+            const col = i % perLine;
+            const line = Math.floor(i / perLine);
+            const cx = 8 + col * (D + SIGIL_GAP) + D / 2;
+            const bottom = stripTop + (line + 1) * (D + tail + SIGIL_GAP) - SIGIL_GAP;
+            drawSigilBubble(ctx, cx, bottom, D, subject);
+          });
+          top += rowH;
+          if (top < h) {
+            ctx.strokeStyle = 'rgba(107, 90, 78, 0.35)';
+            ctx.beginPath(); ctx.moveTo(0, top + 0.5); ctx.lineTo(w, top + 0.5); ctx.stroke();
+          }
+        }
       },
     },
   ];
