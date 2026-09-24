@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **The asking words say what they ask for.** A kitty's request bubble
+  now reads "Want food!", "Want drink!", "Want play!", "Want sleep!",
+  "Want cuddle!" or "Want bath!", matching the icons planned for them.
+
 - **The about page tells the fog generation's story.** Generation 7 is
   no longer listed as coming next: kitties see four tiles, and they use
   their words to tell a friend where to find what they asked for.

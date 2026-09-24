@@ -82,15 +82,15 @@ const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
  * file does. Read from there at call time, exactly as `VIEW` already is. */
 
 const MEOW_TEXT = {
-  want_eat: 'I want to eat!',
-  want_drink: 'I want to drink!',
+  want_eat: 'Want food!',
+  want_drink: 'Want drink!',
   // Pre-wall only. The served box still runs its pre-wall binary and emits
   // this, so it is load-bearing until the phase-1 --fresh; the engine has no
   // FollowMe variant after that, so it simply stops arriving and this line
   // becomes housekeeping. Both keys carry the same copy across the cutover.
   follow_me: 'Follow me!',
-  want_play: 'I want to play!',
-  want_cuddle: 'I want to cuddle!',
+  want_play: 'Want play!',
+  want_cuddle: 'Want cuddle!',
   // Kept, but no longer reached: a purr draws a glyph rather than a bubble
   // (see drawBubbles). A test pins that, so this entry is provably unused
   // rather than merely believed to be.
@@ -99,8 +99,8 @@ const MEOW_TEXT = {
   // Spec 028 gave the two silent needs their words. Appended in the engine's
   // own order -- a kind missing here renders as the '…' fallback, not a crash,
   // so the only symptom would have been a bubble with nothing to say.
-  want_bath: 'Bath time!',
-  want_sleep: 'I’m sleepy!',
+  want_bath: 'Want bath!',
+  want_sleep: 'Want sleep!',
   // The Here family (spec 033), owner's copy, verbatim. Law-named, and the
   // law is ADJACENCY: the cat is standing beside the thing it announces, so
   // these read as "right here" rather than as a report from across the
@@ -2997,7 +2997,7 @@ class WorldRenderer {
       // A HERE-WORD EARNS ITS BUBBLE BY ANSWERING SOMETHING (owner,
       // 2026-09-17). Nothing else about a here-word is worth reading: "Here
       // drink!" for the four-hundredth time is a cat narrating the map,
-      // while the same words answering "I want to drink!" are a friend
+      // while the same words answering "Want drink!" are a friend
       // helping. Only the chosen answer to an ask is drawn.
       //
       // This replaces two narrower cuts and is why they are gone. #383

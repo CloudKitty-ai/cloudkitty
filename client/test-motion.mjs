@@ -3562,7 +3562,7 @@ function bubblesFor(world, poses = null, stub = null) {
 check('a here-word earns its bubble by ANSWERING something', () => {
   // Owner, 2026-09-17. Nothing else about a here-word is worth reading:
   // "Here food!" unprompted is a cat narrating the map; the same words
-  // answering "I want to eat!" are a friend helping.
+  // answering "Want food!" are a friend helping.
   //
   // This replaces the earlier `reply !== true` cut, which used the engine's
   // stamp as a proxy for "was prompted". That stamp is EXISTENTIAL over the
