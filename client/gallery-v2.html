@@ -1314,6 +1314,45 @@
     const icon = D * SIGIL_LAB.iconFrac;
     subject[1](ctx, icon, cx - icon / 2, cy - icon / 2);
   }
+  // The two-icon form (owner, 2026-09-23: "an additional cat with 2 side by
+  // side icons"): the same height and icon size as the round bubble, so the
+  // only thing that changes between the two is the width. There is no
+  // want/here modifier art yet (the begging kitty, the pointing paw), so the
+  // pair is two shipped icons standing in for "modifier + subject".
+  const sigilPillWidth = (D) => {
+    const icon = D * SIGIL_LAB.iconFrac;
+    return 2 * icon + (D - icon) + D * 0.08;
+  };
+  function drawSigilPill(ctx, cx, bottom, D, pair) {
+    const tail = Math.max(3, D * 0.12);
+    const W = sigilPillWidth(D);
+    const x0 = cx - W / 2;
+    const y0 = bottom - tail - D;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 253, 250, 0.96)';
+    ctx.strokeStyle = 'rgba(150, 125, 105, 0.28)';
+    ctx.lineWidth = Math.max(1, D / 40);
+    ctx.beginPath();
+    ctx.moveTo(x0 + D / 2, y0);
+    ctx.lineTo(x0 + W - D / 2, y0);
+    ctx.arc(x0 + W - D / 2, y0 + D / 2, D / 2, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(x0 + D / 2, y0 + D);
+    ctx.arc(x0 + D / 2, y0 + D / 2, D / 2, Math.PI / 2, Math.PI * 1.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - tail * 0.8, y0 + D - tail * 0.4);
+    ctx.lineTo(cx, bottom);
+    ctx.lineTo(cx + tail * 0.8, y0 + D - tail * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    const icon = D * SIGIL_LAB.iconFrac;
+    const iy = y0 + (D - icon) / 2;
+    pair[0][1](ctx, icon, x0 + (D - icon) / 2, iy);
+    pair[1][1](ctx, icon, x0 + (D - icon) / 2 + icon + D * 0.08, iy);
+  }
   // The SHIPPED speech bubble, called on a stand-in renderer so it draws
   // exactly what the map draws: fixed 18px, 11px type, at every tile size.
   function drawShippedBubble(ctx, w, h, x, y, tile, text) {
@@ -1335,9 +1374,10 @@
     const D = sigilDiameter(tile);
     const tail = Math.max(3, D * 0.12);
     const scene = Math.max(18 + 4, D + tail) + 4 + tile;
+    const pillScene = 8 + D + tail + 4 + tile;
     const perLine = Math.max(1, Math.floor((SIGIL_W - 16) / (D + SIGIL_GAP)));
     const lines = Math.ceil(SIGIL_SUBJECTS.length / perLine);
-    return 18 + scene + 10 + lines * (D + tail + SIGIL_GAP) + 8;
+    return 18 + scene + pillScene + 10 + lines * (D + tail + SIGIL_GAP) + 8;
   };
   const sigilCardHeight = () => sigilRows().reduce((sum, [tile]) => sum + sigilRowHeight(tile), 0);
   const SIGIL_GROUND = new Map();
@@ -4126,7 +4166,7 @@
     },
     {
       title: 'Meow sigils: one bubble, every size (size study, 2026-09-23)',
-      note: 'Every row is drawn at TRUE pixel size. Open this on your phone and do not pinch-zoom: a zoomed page is not what the map draws. Each row is one tile size a sigil really lands at: the whole map on a phone (17 and 19px), on a laptop (37px), and the camera\'s widest and closest frames. Left cat: today\'s speech bubble, the shipped code, which is 18px tall at every size. Right cat: the proposed sigil bubble, which is scaled to the tile but never smaller than the floor. The strip under each pair is every subject that has art today, all at that row\'s size. The sunbeam has no icon yet, so it is missing. TO FIND THE FLOOR: drag "floor" down until the smallest rows stop reading, then back up one notch. The bubble\'s style (want vs. here, thought vs. speech) is NOT being judged here, only its size.',
+      note: 'Every row is drawn at TRUE pixel size. Open this on your phone and do not pinch-zoom: a zoomed page is not what the map draws. Each row is one tile size a sigil really lands at: the whole map on a phone (17 and 19px), on a laptop (37px), and the camera\'s widest and closest frames. Left cat: today\'s speech bubble, the shipped code, which is 18px tall at every size. Right cat: the proposed sigil bubble, which is scaled to the tile but never smaller than the floor. The cat below it carries TWO icons side by side at the same height and icon size, so only the width changes; there is no want/here modifier art yet, so a heart and a bowl stand in for the pair. The strip under each pair is every subject that has art today, all at that row\'s size. The sunbeam has no icon yet, so it is missing. TO FIND THE FLOOR: drag "floor" down until the smallest rows stop reading, then back up one notch. The bubble\'s style (want vs. here, thought vs. speech) is NOT being judged here, only its size.',
       v2Only: true,
       w: SIGIL_W,
       // A getter: the floor and scale dials change every row's height.
@@ -4146,7 +4186,8 @@
           const D = sigilDiameter(tile);
           const floors = tile * SIGIL_LAB.scale < SIGIL_LAB.floorPx;
           return `${tile.toFixed(0).padStart(3)}px tile  ${name.padEnd(26)} `
-            + `bubble ${D.toFixed(0).padStart(2)}px, icon ${(D * SIGIL_LAB.iconFrac).toFixed(0).padStart(2)}px`
+            + `bubble ${D.toFixed(0).padStart(2)}px, icon ${(D * SIGIL_LAB.iconFrac).toFixed(0).padStart(2)}px, `
+            + `two-icon ${sigilPillWidth(D).toFixed(0)}x${D.toFixed(0)}px`
             + `${floors ? '  (at the floor)' : ''}`;
         });
         return (
@@ -4188,8 +4229,25 @@
             else drawSigilBubble(ctx, x + tile / 2, catY - 4, D, SIGIL_SUBJECTS[4]);
           }
 
+          // The third cat: two icons side by side, at the same height.
+          const pillCatY = catY + tile + 8 + D + tail + 4;
+          const pillX = Math.min(
+            Math.max(8, rightX + tile / 2 - sigilPillWidth(D) / 2),
+            SIGIL_W - tile - 4,
+          );
+          CatV2.drawCat(ctx, {
+            pose: 'idle',
+            appearance: CatV2.appearanceFor(PUMPKIN),
+            facing: 'right',
+            size: tile,
+            x: pillX,
+            y: pillCatY,
+            phase,
+          });
+          drawSigilPill(ctx, pillX + tile / 2, pillCatY - 4, D, [SIGIL_SUBJECTS[4], SIGIL_SUBJECTS[0]]);
+
           // The strip: every subject at this row's size.
-          const stripTop = catY + tile + 10;
+          const stripTop = pillCatY + tile + 10;
           const perLine = Math.max(1, Math.floor((SIGIL_W - 16) / (D + SIGIL_GAP)));
           SIGIL_SUBJECTS.forEach((subject, i) => {
             const col = i % perLine;
