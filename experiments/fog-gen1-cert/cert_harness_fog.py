@@ -162,9 +162,52 @@ def walk_distance(a, b):
 CLOCK_INDEX = OBS_DIM - 1  # the episode-clock input, the last float of the observation
 TRAIN_HORIZON = 2000       # rl.episode.horizon default; the PPO episodes and the probes ran this clock
 
+# --- Hearer-side deafening (fog-deafening-2026-09-23: F-026's fog-era re-run) ---
+# Schema-5 layout (observe.rs block_widths; guarded by test_deafen_mask.py):
+# SELF_BLOCK 85, KITTY_SLOT 63, four rows. Row-relative: message (recency,
+# rate) pairs at 23 (HEAD_KINDS order, 15 kinds), want intensities at 53
+# (WANT_KINDS order, 6), answers-me bits at 59 (HERE_KINDS order, 4).
+KITTY0, KSLOT, N_KITTY_ROWS = 85, 63, 4
+ROW_MSG, ROW_WANT, ROW_ANS, ROW_END = 23, 53, 59, 63
+HEAD_WANT = [0, 1, 3, 4, 6, 7]   # HEAD_KINDS indices of the six want kinds
+HEAD_HERE = [8, 9, 10, 11]       # HEAD_KINDS indices of the Here family
+DEAF_ARMS = {
+    "want": (HEAD_WANT, list(range(6)), []),
+    "here": (HEAD_HERE, [], list(range(4))),
+    "all": (list(range(15)), list(range(6)), list(range(4))),
+}
+
+
+def deafen(ob, deaf):
+    """Zero what hearing put in these observations, in place. Per kitty row:
+    the deafened kinds' (recency, rate) pairs, their want intensities, and
+    (here-derived) answers-me bits; then any row that exists only by a
+    deafened call -- present 0, a live position, and no surviving message
+    float -- is zeroed whole, because a deaf hearer would have had a Silent
+    row (heard rows carry the call's position). Self-speech (the own message
+    block in SELF) and element memory (sight-only, world.rs) stay: neither
+    is hearing. The served roster seats no scripted brain, so no WaitForMe
+    row exists to survive a mask that only knows HEAD_KINDS."""
+    import numpy as np
+    kinds, wants, heres = DEAF_ARMS[deaf]
+    for r in range(N_KITTY_ROWS):
+        row = KITTY0 + r * KSLOT
+        for k in kinds:
+            ob[:, row + ROW_MSG + 2 * k:row + ROW_MSG + 2 * k + 2] = 0.0
+        for w in wants:
+            ob[:, row + ROW_WANT + w] = 0.0
+        for h in heres:
+            ob[:, row + ROW_ANS + h] = 0.0
+        heard_only = (
+            (ob[:, row] == 0.0)
+            & (ob[:, row + 3] > 0.0)
+            & (np.abs(ob[:, row + ROW_MSG:row + ROW_END]).max(1) == 0.0)
+        )
+        ob[heard_only, row:row + KSLOT] = 0.0
+
 
 def run_one(args):
-    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode = args
+    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf = args
     # clock_mode "served": the engine's policy seam pins the clock input to 0 at deploy
     # (behavior.rs decide_sync: "No episode runs at deploy"); the harness does the same so
     # the battery reads the served condition. Verified 2026-09-15: with the clock pinned the
@@ -200,6 +243,7 @@ def run_one(args):
 
     hap_sum = np.zeros(roster)
     low_ticks = np.zeros(roster, np.int64)
+    dist_ticks = np.zeros(roster, np.int64)  # ticks with any distress flag up (F-026's whisper measure)
     floor_touches = np.zeros(roster, np.int64)
     dist_streak = np.zeros((roster, 6), np.int64)
     max_dist_age = 0
@@ -222,6 +266,8 @@ def run_one(args):
             elif clock_mode == "train":
                 # the training schedule: t / rl.episode.horizon (default 2000), cycling, no world reset
                 ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
+            if deaf:
+                deafen(ob, deaf)
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), N_HEADS), np.float32)
             for s, fwd in models.items():
@@ -249,6 +295,8 @@ def run_one(args):
             if h < LOW_HAPPINESS:
                 low_ticks[k] += 1
             flags = st[b + DIST0:b + DIST0 + 6] > 0
+            if flags.any():
+                dist_ticks[k] += 1
             dist_streak[k] = np.where(flags, dist_streak[k] + 1, 0)
             age = int(dist_streak[k].max())
             max_dist_age_seat[k] = max(max_dist_age_seat[k], age)
@@ -268,6 +316,7 @@ def run_one(args):
         "floor_touches": floor_touches.tolist(),
         "max_distress_age": max_dist_age,
         "max_distress_age_seat": max_dist_age_seat.tolist(),
+        "dist_ticks": dist_ticks.tolist(),
     }
 
 
@@ -308,6 +357,9 @@ def main():
     ap.add_argument("--control-brain", default=None,
                     help="validation only: force this engine brain on every scripted seat "
                          "(kitty-eval --brain NAME seats one brain everywhere)")
+    ap.add_argument("--deaf", choices=tuple(DEAF_ARMS), default=None,
+                    help="hearer-side deafening arm (fog-deafening-2026-09-23): zero the named "
+                         "kind family in every policy observation before the forward")
     a = ap.parse_args()
     seats = list(SEATINGS[a.seating])
     tag = a.seating
@@ -316,9 +368,11 @@ def main():
         seats[int(i)] = spec
         tag += f"_s{i}-{spec.split(':', 1)[-1]}"
     seed0 = a.seed0 if a.seed0 is not None else BANDS[a.band]
-    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock) for i in range(a.seeds)]
+    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf) for i in range(a.seeds)]
     if a.control_brain:
         tag += f"_val-{a.control_brain}"
+    if a.deaf:
+        tag += f"-deaf-{a.deaf}"
     if a.clock == "served" and any(s != "scripted" for s in seats):
         tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
     elif a.clock == "train" and any(s != "scripted" for s in seats):
