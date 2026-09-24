@@ -38,6 +38,11 @@ cooldown, so "three calls in a window" is exact). Every word can be
 disabled by the world's `[meow.vocabulary]` config. Flags gate legality
 only; no flag ever changes what an observation looks like.
 
+This file documents the words by their engine names. The short strings
+visitors see in the client's speech bubbles are display text, owned by
+`client/render.js` (`MEOW_TEXT`); they rename freely without touching
+the vocabulary, and nothing here restates them.
+
 ## The words
 
 Each entry: **law** (when the engine allows it), **intent** (the designed
