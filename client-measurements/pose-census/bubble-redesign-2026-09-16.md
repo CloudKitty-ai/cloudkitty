@@ -10,6 +10,34 @@ ships today rather than against the 1.89-of-five-cats figure that prompted
 it. Everything
 below is worked out but nothing is built. Pick up at "Open questions".
 
+## Size: RULED 2026-09-23
+
+Judged on the owner's phone in the gallery-v2 card "Meow sigils" (branch
+`client-sigil-scale`), which draws every tile size a sigil actually lands at.
+Her paste, verbatim:
+
+> SIGIL = { floorPx: 20, scale: 0.68, iconFrac: 0.9 }
+>
+> That looks good. We can probably go even higher than 0.9 if we customize
+> the icons to fit more centered (no action on that yet)
+
+So the bubble diameter is `max(20, tile * 0.68)` and the icon fills 0.9 of it.
+The floor holds below a 29px tile, which covers every phone's whole-map view.
+A two-icon bubble is the same height and `1.98 x` the diameter wide.
+
+    tile  17-21px  (whole map, phone)    bubble 20px  icon 18px  two-icon 40 x 20
+    tile  37px     (whole map, laptop)   bubble 25px  icon 23px  two-icon 50 x 25
+    tile  50-54px  (camera, iPhone)      bubble 34-37px  icon 31-33px  two-icon 67-73 x 34-37
+    tile  113px    (camera, desktop)     bubble 77px  icon 69px  two-icon 152 x 77
+
+Whole-map tiles were measured off the live page on 2026-09-23 (map width / 20):
+340px map on a 360-wide phone, 380px on 390-402, 420px on 430, 740px on a
+1440x900 laptop, 920px on 1920x1080. The iPhone camera only spans 50-54px,
+so a phone viewer sees two sizes in practice.
+
+Still open: everything below this section except geometry. Raising `iconFrac`
+past 0.9 waits on redrawing the icons to sit centred in their box.
+
 ## The brainstorm, in the owner's words
 
 Kept close to verbatim, because the reasoning is the part worth re-reading
