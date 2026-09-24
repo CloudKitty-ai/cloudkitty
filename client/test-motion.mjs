@@ -9275,14 +9275,20 @@ check('the AI topic runs generation by generation, and stays honest about the la
     assert(topic.includes(name), `the generation name "${name}" has drifted`);
   }
 
-  // The fog generation has NOT happened. It is numbered beside seven that
-  // have, so the tense is what stops that reading as a claim -- and its spec
-  // line says so outright rather than inventing one.
+  // The fog generation shipped (owner's copy, 2026-09-23). Its entry names a
+  // sight distance, and that number belongs to the served world, not the
+  // page: if `[vision] radius` moves, the copy is wrong and nothing else says so.
   const fog = topic.slice(topic.indexOf('The Fog Generation'));
-  assert(fog.includes('Coming next'), 'the fog generation must not claim a specification it does not have');
+  assert(!fog.includes('Coming next'), 'the fog generation has shipped; its spec line still says it is coming');
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+  const said = fog.match(/only see (\w+) tiles away/);
+  assert(said, 'the fog generation no longer says how far a kitty can see');
+  const served = Number(
+    readFileSync(join(here, '..', 'cloudkitty.toml'), 'utf8').match(/\[vision\]\s*\nradius = (\d+)/)[1],
+  );
   assert(
-    /they&rsquo;ll see only what/.test(fog),
-    'the fog generation must stay in the future tense -- it ships nothing yet',
+    words.indexOf(said[1]) === served,
+    `the about page says kitties see ${said[1]} tiles; the served world's vision radius is ${served}`,
   );
 });
 

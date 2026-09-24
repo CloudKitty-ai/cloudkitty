@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **The about page tells the fog generation's story.** Generation 7 is
+  no longer listed as coming next: kitties see four tiles, and they use
+  their words to tell a friend where to find what they asked for.
+
 - **The pond holds its shape while the light changes (#408).** The
   blurred shore band and the damp ring of earth just outside the water
   are now baked once as a shape and simply painted for the hour, rather
