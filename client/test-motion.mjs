@@ -3561,8 +3561,8 @@ function bubblesFor(world, poses = null, stub = null) {
 
 check('a here-word earns its bubble by ANSWERING something', () => {
   // Owner, 2026-09-17. Nothing else about a here-word is worth reading:
-  // "Here food!" unprompted is a cat narrating the map; the same words
-  // answering "I want to eat!" are a friend helping.
+  // "Here eat!" unprompted is a cat narrating the map; the same words
+  // answering "Want eat!" are a friend helping.
   //
   // This replaces the earlier `reply !== true` cut, which used the engine's
   // stamp as a proxy for "was prompted". That stamp is EXISTENTIAL over the
@@ -9435,8 +9435,12 @@ check('every word the engine can say has a bubble', () => {
   // The owner's copy ships verbatim, and each Here word must land on the
   // kind whose law it describes -- warm is the sunbeam, bug is the critter.
   // Mapping these by the order she wrote them would have crossed both.
-  for (const [kind, copy] of [['here_food', 'Here food!'], ['here_water', 'Here drink!'],
-    ['here_critter', 'Here bug!'], ['here_sunbeam', 'Here warm!']]) {
+  // The want words are hers too (2026-09-23), shaped to the icons planned
+  // for them: "Want <thing>!", with eat on both sides of the pair.
+  for (const [kind, copy] of [['here_food', 'Here eat!'], ['here_water', 'Here drink!'],
+    ['here_critter', 'Here bug!'], ['here_sunbeam', 'Here warm!'],
+    ['want_eat', 'Want eat!'], ['want_drink', 'Want drink!'], ['want_play', 'Want play!'],
+    ['want_sleep', 'Want sleep!'], ['want_cuddle', 'Want cuddle!'], ['want_bath', 'Want bath!']]) {
     assert(MEOW_TEXT[kind] === copy,
       `${kind} reads "${MEOW_TEXT[kind]}", not "${copy}"`);
   }
