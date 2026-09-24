@@ -87,3 +87,14 @@ experiments/exp-006-character-gen/.venv/bin/python experiments/fog-deafening-202
   --out experiments/fog-deafening-2026-09-23/results-raw/deafen-read-2.json \
   --md experiments/fog-deafening-2026-09-23/results-raw/deafen-read-2.md
 ```
+
+## Deviations (2026-09-24, post-collection; the declared predictions and rules are unchanged)
+
+- §Instrument said the pairing rests on the "same binding, config and
+  tool hashes, asserted by the reader's seed guard". Two corrections:
+  the reader asserts seeds only, not hashes; and the tool hash differs
+  between collections by construction (3be2a687… at afc43ae for the
+  first four arms, b4adc714… at e7ec874 for free and rows — the arms
+  commit). The binding and config hashes are identical across all six
+  arms, which is what the pairing needs. Caught by the gate's second
+  run.
