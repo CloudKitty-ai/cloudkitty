@@ -8,12 +8,22 @@ framing's home is the Professor thread —
 `~/ai/professor/reading/two-channel-reward.md` — this file records the
 queue item and what it touches in this directory.
 
-## Her stated intent (via the handover)
+## Her stated intent (via the handover, scoped in-session)
 
 Build a two-channel / floor-style reward treatment on the sunbeam
 implementation now; complete Gen 2 (hidden needs); carry the approach
 into Gen 3 (free time), replacing the current Gen 3 reward idea, which
 she judges functionally similar to the current sunbeam floor.
+
+Scope of the "now" piece, owner in the Experiments session,
+2026-09-24: "The before gen 2 was potentially testing other shapes on
+sunbeams nowish while that work is fresh, not a full implementation
+for free time." So: a reward-shape screen on the existing
+sunbeam-sleep setup — floor as shipped vs convex drive vs cost
+channel — at screen scale, while the tier 5/6 machinery and its
+comparators are warm. The Gen 3 implementation is a later, separate
+decision. Sequencing against the Gen 2 re-record is hers when she
+says go.
 
 ## The question, in this directory's terms
 
