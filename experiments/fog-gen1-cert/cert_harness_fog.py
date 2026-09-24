@@ -173,10 +173,16 @@ KITTY0, KSLOT, N_KITTY_ROWS = 85, 63, 4
 ROW_MSG, ROW_WANT, ROW_ANS, ROW_END = 23, 53, 59, 63
 HEAD_WANT = [0, 1, 3, 4, 6, 7]   # HEAD_KINDS indices of the six want kinds
 HEAD_HERE = [8, 9, 10, 11]       # HEAD_KINDS indices of the Here family
+HEAD_FREE = [2, 5, 12, 13, 14]  # HEAD_KINDS indices of the free register: mew, purr, chirp (+ trill, ekekek reserves)
 DEAF_ARMS = {
     "want": (HEAD_WANT, list(range(6)), []),
     "here": (HEAD_HERE, [], list(range(4))),
+    "free": (HEAD_FREE, [], []),
     "all": (list(range(15)), list(range(6)), list(range(4))),
+    # "rows" is not a kind mask: it erases every heard-only row (present 0,
+    # live position) whole, leaving seen-row word content intact -- the
+    # position-of-the-unseen channel alone (second collection, prereg-2.md).
+    "rows": None,
 }
 
 
@@ -191,6 +197,12 @@ def deafen(ob, deaf):
     is hearing. The served roster seats no scripted brain, so no WaitForMe
     row exists to survive a mask that only knows HEAD_KINDS."""
     import numpy as np
+    if deaf == "rows":
+        for r in range(N_KITTY_ROWS):
+            row = KITTY0 + r * KSLOT
+            heard = (ob[:, row] == 0.0) & (ob[:, row + 3] > 0.0)
+            ob[heard, row:row + KSLOT] = 0.0
+        return
     kinds, wants, heres = DEAF_ARMS[deaf]
     for r in range(N_KITTY_ROWS):
         row = KITTY0 + r * KSLOT

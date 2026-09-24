@@ -27,15 +27,24 @@ SELF, SLOT, ROWS = 85, 63, 4
 MSG, WANT, ANS, END = 23, 53, 59, 63
 WANT_K = [0, 1, 3, 4, 6, 7]
 HERE_K = [8, 9, 10, 11]
+FREE_K = [2, 5, 12, 13, 14]
 ARMS = {"want": (WANT_K, list(range(6)), []),
         "here": (HERE_K, [], list(range(4))),
-        "all": (list(range(15)), list(range(6)), list(range(4)))}
+        "free": (FREE_K, [], []),
+        "all": (list(range(15)), list(range(6)), list(range(4))),
+        "rows": None}
 
 
 def reference_mask(ob, arm):
     """The declared deafening, written independently of the harness."""
-    kinds, wants, heres = ARMS[arm]
     out = ob.copy()
+    if arm == "rows":
+        for r in range(ROWS):
+            row = SELF + r * SLOT
+            heard = (out[:, row] == 0.0) & (out[:, row + 3] > 0.0)
+            out[heard, row:row + SLOT] = 0.0
+        return out
+    kinds, wants, heres = ARMS[arm]
     for r in range(ROWS):
         row = SELF + r * SLOT
         for k in kinds:
