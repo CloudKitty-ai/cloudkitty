@@ -22,7 +22,7 @@ ablation.
   seeds run in every arm by design: the primary quantity is the paired
   per-seed delta (the here-word screen's precedent, band 1060001+).
 - **Harness**: `experiments/fog-gen1-cert/cert_harness_fog.py` `--deaf`
-  at 96579ae. Hearer-side only; emission stays legal, so the deafened
+  at 207f8c9. Hearer-side only; emission stays legal, so the deafened
   world settles into its own equilibrium (F-026's design). Per kitty
   row the mask zeroes the deafened kinds' (recency, rate) pairs, their
   want intensities, and the here-derived answers-me bits, then erases
@@ -32,7 +32,7 @@ ablation.
   not hearing) and the element memory (sight-only,
   `world.rs::refresh_memories`). The mask is guarded by
   `test_deafen_mask.py` against an independent reference; three mutate
-  reds at 96579ae (message-offset shift, dropped heard-row erasure,
+  reds at 207f8c9 (message-offset shift, dropped heard-row erasure,
   wrong here-kind set), each red for the predicted reason.
 - **Arms**: `intact`; `want`-deaf (the six want kinds); `here`-deaf
   (the four Here kinds plus all answers-me bits); `all`-deaf (all 15
@@ -42,7 +42,7 @@ ablation.
 
 Per seed per arm: team happiness (mean of per-seat means), nash_state,
 low_share, floor_touches, dist_ticks (any-flag distress ticks per seat,
-added at 96579ae for F-026's registered whisper), max_distress_age,
+added at 207f8c9 for F-026's registered whisper), max_distress_age,
 message-head counts. Primary: the paired per-seed team-happiness delta
 (arm − intact), mean over the 30 disjoint worlds (per-world means,
 F-004).
