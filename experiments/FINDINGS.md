@@ -2660,11 +2660,16 @@ the mean, a 31× distress rise beside the 0.455 cost — the direction
 of F-026's registered whisper, though that whisper was purr-deafening
 at flat welfare and here-deaf's mean cost is real. Want-words remain
 function without fitness (they move listeners, F-048, and buy no
-happiness) even under fog. **Attribution bound**: the two family arms
-measure 0.475 of the 6.716 between them, additivity untested; the
-rest is the free register, the heard-row position channel and
-interactions, not separated by this design (no heard-rows-only
-arm). **Scope**: frozen minds (hearing's value to cats that grew up
+happiness) even under fog. **Attribution (second collection, `prereg-2.md`,
+2026-09-24; replaces the bound quoted in RESULTS §Addendum
+2026-09-24)**: the heard-rows-only arm ran — erasing every heard row
+alone costs 6.371 (30 of 30), 0.95 of the all-deaf 6.716, so what a
+cat hears about unseen cats (their position and their in-fog words
+together; the arm does not separate them) carries the load; free-deaf
+costs 0.237 (28 of 30), an upper bound on free-word meaning (free
+calls also create rows). Single-family costs (want −0.020, here
+−0.455, free −0.237) sum to 0.712 against all-deaf's 6.716: strongly
+non-additive. **Scope**: frozen minds (hearing's value to cats that grew up
 hearing), the served composition and world, one band; nothing here
 attributes the change to fog alone vs the bugs-2.0 economy (F-026
 SC-005). **Invalidated by**: a replication band where all-deaf lands

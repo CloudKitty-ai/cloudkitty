@@ -77,3 +77,29 @@ numbers were 100% clean. The claim-kind rubric (kinds 3 and 5) did
 the work. Standing gap it named: mutate.sh keeps no log, so rule-5
 reds are permanently UNDECIDABLE to the gate — a mutate.sh log file
 would close it (Harness's call).
+
+## Second collection addendum — Experiments thread, Fable, 2026-09-24
+
+Gated the residual-split addendum (free and rows arms, prereg-2.md)
+plus F-052's updated attribution. Fresh six-arm read byte-identical
+to the recorded deafen-read-2.json; 43 arithmetic claims all matched.
+
+**Run 1: FAIL.** (1) WEAK-on-F-line: "the position of unseen cats
+carries the load" — the rows arm erases position AND unseen-cat words
+together; reworded to "what a cat hears about unseen cats". (2) The
+F-052 headline gained a clause against prereg-2's own "headline does
+not change" rule — reverted. (3) prereg-2's quoting rule was broken:
+the replaced attribution bound was overwritten unquoted — the
+addendum now quotes it verbatim. It also caught a wrong hash claim in
+frozen prereg-2 text (tool hash differs between collections by
+construction) — deviations appendix 8390b28.
+
+**Run 2: PASS**, quotes verified verbatim against f4d66d7.
+
+**Verdict on the gate**: second write-up in a row where every number
+was clean and the fails were attribution wording and the write-up's
+own declared rules — the gate is functioning as a discipline on
+claims, not just a diff. The declaration itself is now twice a
+source of gate-caught errors (mis-citation, hash wording): worth a
+line in the skill someday — the gate reads the prereg as ground
+truth, and preregs carry prose too.
