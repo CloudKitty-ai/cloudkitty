@@ -82,7 +82,7 @@ const SOUND_WORDS = ['mew', 'chirp', 'trill', 'ekekek'];
  * file does. Read from there at call time, exactly as `VIEW` already is. */
 
 const MEOW_TEXT = {
-  want_eat: 'Want food!',
+  want_eat: 'Want eat!',
   want_drink: 'Want drink!',
   // Pre-wall only. The served box still runs its pre-wall binary and emits
   // this, so it is load-bearing until the phase-1 --fresh; the engine has no
@@ -105,7 +105,7 @@ const MEOW_TEXT = {
   // law is ADJACENCY: the cat is standing beside the thing it announces, so
   // these read as "right here" rather than as a report from across the
   // meadow. here_critter is play-predicate only.
-  here_food: 'Here food!',
+  here_food: 'Here eat!',
   here_water: 'Here drink!',
   here_critter: 'Here bug!',
   here_sunbeam: 'Here warm!',

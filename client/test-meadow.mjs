@@ -1104,13 +1104,13 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
     'a purr still drew its speech bubble -- the whole point was to take it out');
 
   const asks = frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]);
-  assert(asks.some((t) => t.includes('Want food')), 'a request must keep its bubble');
+  assert(asks.some((t) => t.includes('Want eat')), 'a request must keep its bubble');
   assert(!asks.some((t) => t.includes('\u{1F497}')), 'a request should not summon the purr glyph');
 
   // Both live at once: they want the same space above the cat, and the
   // thing a viewer can act on wins.
   const both = frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }], 14);
-  assert(both.some((t) => t.includes('Want food')), 'the request must survive a purr');
+  assert(both.some((t) => t.includes('Want eat')), 'the request must survive a purr');
   assert(!both.some((t) => t.includes('\u{1F497}')), 'the mood must give way to the request');
 
   // And nothing at all when the cat has said nothing.
@@ -1124,7 +1124,7 @@ check('a purr draws its glyph; a request still draws its bubble', () => {
   api.PURR.on = 0;
   assert(!frame([], 14).some((t) => t.includes('\u{1F497}')),
     'the purr glyph drew with the switch off');
-  assert(frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]).some((t) => t.includes('Want food')),
+  assert(frame([{ kitty_id: 1, kind: 'want_eat', tick: 9 }]).some((t) => t.includes('Want eat')),
     'turning purrs off must not touch request bubbles');
   api.PURR.on = wasOn;
   assert(api.PURR.on === 0,

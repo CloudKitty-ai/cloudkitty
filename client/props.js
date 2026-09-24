@@ -446,7 +446,7 @@ function drawSleepZs(ctx, opts) {
  * The purr glyph (owner's bake, 2026-08-14).
  *
  * A purr is a MOOD, not a request, and it used to wear the same speech
- * bubble as "Want food!". Measured on the candidate roster (attn-a1,
+ * bubble as "Want eat!". Measured on the candidate roster (attn-a1,
  * 246 ticks) that was 98% of every meow, and a bubble on screen 50.2% of
  * ticks -- so almost every bubble carried nothing a viewer could act on,
  * which is what devalues the ones that do. With purr taken out, request
