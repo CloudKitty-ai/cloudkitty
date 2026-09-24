@@ -31,13 +31,19 @@ def summarise(vals):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("batteries", nargs=4, help="intact, want-deaf, here-deaf, all-deaf jsonl")
+    ap.add_argument("batteries", nargs="+", help="battery jsonl per arm; the first is intact")
+    ap.add_argument("--names", default=None,
+                    help="comma-separated arm names matching the batteries "
+                         "(default intact,want,here,all; prereg-2 adds free,rows)")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--md", type=Path, default=None)
     a = ap.parse_args()
+    names = a.names.split(",") if a.names else list(ARM_NAMES)
+    assert len(names) == len(a.batteries), (names, len(a.batteries))
+    assert names[0] == "intact", "the first battery is the intact arm"
 
     arms = {}
-    for name, path in zip(ARM_NAMES, a.batteries):
+    for name, path in zip(names, a.batteries):
         header, runs = load(path)
         arms[name] = {"path": str(path), "provenance": header.get("provenance"), "runs": runs}
     seed_sets = {name: sorted(arm["runs"]) for name, arm in arms.items()}
@@ -62,7 +68,7 @@ def main():
                 for k in range(len(runs[base[0]]["mean_happiness"]))
             ],
         }
-    for name in ("want", "here", "all"):
+    for name in names[1:]:
         deltas = [team_hap(arms[name]["runs"][s]) - team_hap(arms["intact"]["runs"][s]) for s in base]
         out["paired"][name] = {
             "team_happiness_delta": summarise(deltas),
@@ -70,19 +76,26 @@ def main():
             "per_seed": {str(s): d for s, d in zip(base, deltas)},
         }
     intact_dist = out["arms"]["intact"]["dist_ticks_total"]
+    mean_of = lambda n: out["paired"][n]["team_happiness_delta"]["mean"]  # noqa: E731
     out["checks"] = {
-        "P1_all_deaf_delta": out["paired"]["all"]["team_happiness_delta"]["mean"],
-        "P1_below_minus_0.15": out["paired"]["all"]["team_happiness_delta"]["mean"] < -0.15,
+        "P1_all_deaf_delta": mean_of("all"),
+        "P1_below_minus_0.15": mean_of("all") < -0.15,
         "P2_families_between": all(
-            out["paired"]["all"]["team_happiness_delta"]["mean"]
-            <= out["paired"][f]["team_happiness_delta"]["mean"] <= 0.0
-            or out["paired"][f]["team_happiness_delta"]["mean"] > 0.0
+            mean_of("all") <= mean_of(f) <= 0.0 or mean_of(f) > 0.0
             for f in ("want", "here")
         ),
         "P3_dist_ratio_all_over_intact": (
             (out["arms"]["all"]["dist_ticks_total"] / intact_dist) if intact_dist else None
         ),
     }
+    # Second collection (prereg-2.md): the residual-splitting arms.
+    if "rows" in out["paired"]:
+        out["checks"]["P4_rows_delta"] = mean_of("rows")
+        out["checks"]["P4_below_minus_0.15"] = mean_of("rows") < -0.15
+        out["checks"]["P6_rows_not_below_all"] = mean_of("rows") >= mean_of("all")
+    if "free" in out["paired"]:
+        out["checks"]["P5_free_delta"] = mean_of("free")
+        out["checks"]["P5_free_more_negative_than_want"] = mean_of("free") < mean_of("want")
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1))
     print(f"wrote {a.out}")
@@ -92,7 +105,7 @@ def main():
              f"{len(base)} paired seeds per arm ({base[0]}..{base[-1]}).", "",
              "| arm | team happiness | paired delta vs intact | worse/n | nash_state | dist ticks | max distress age |",
              "|---|---|---|---|---|---|---|"]
-        for name in ARM_NAMES:
+        for name in names:
             m = out["arms"][name]
             if name == "intact":
                 d, w = "--", "--"
@@ -107,7 +120,13 @@ def main():
         L += ["",
               f"P1 all-deaf paired mean delta {c['P1_all_deaf_delta']:+.4f}; past the -0.15 line: {c['P1_below_minus_0.15']}.",
               f"P2 family arms between intact and all-deaf: {c['P2_families_between']}.",
-              f"P3 distress-tick ratio all-deaf / intact: {ratio if ratio is None else f'{ratio:.2f}'}.", ""]
+              f"P3 distress-tick ratio all-deaf / intact: {ratio if ratio is None else f'{ratio:.2f}'}."]
+        if "P4_rows_delta" in c:
+            L.append(f"P4 rows-deaf paired mean delta {c['P4_rows_delta']:+.4f}; past the -0.15 line: {c['P4_below_minus_0.15']}. "
+                     f"P6 rows not below all-deaf: {c['P6_rows_not_below_all']}.")
+        if "P5_free_delta" in c:
+            L.append(f"P5 free-deaf paired mean delta {c['P5_free_delta']:+.4f}; more negative than want-deaf: {c['P5_free_more_negative_than_want']}.")
+        L.append("")
         a.md.write_text("\n".join(L))
         print(f"wrote {a.md}")
 

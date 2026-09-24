@@ -24,7 +24,7 @@ before trusting a gap here, then add what you find.
 | 890001–890030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 1 (owner 2026-09-15), the seated roster gen1-A + the scripted baseline, 30 × 20k |
 | 895001–895030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 2 (owner 2026-09-15), as above |
 | 900001 | bc-collect | smoke seed, burned |
-| 900101–900130 | fog deafening (fog-deafening-2026-09-23) | F-026 fog-era re-run on anchor-b3, gen1-A served roster, 4 arms × the SAME 30 seeds × 20k (paired by design; declaration `fog-deafening-2026-09-23/prereg.md`) |
+| 900101–900130 | fog deafening (fog-deafening-2026-09-23) | F-026 fog-era re-run on anchor-b3, gen1-A served roster, 4 arms × the SAME 30 seeds × 20k (paired by design; declaration `fog-deafening-2026-09-23/prereg.md`), + 2 residual-splitting arms free/rows on the same seeds (`prereg-2.md`, 2026-09-24) |
 | 910001–928000 | exp-006 | dataset v5 cell B spread (910001 + ci×1000 + r, 18 configs) |
 | 940001–958000 | exp-006 | dataset v5 cell A pinned (same structure) |
 | 970001–970100 | exp-006 | anchor demonstrations (100 rollouts) |
