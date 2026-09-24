@@ -45,3 +45,35 @@ only because the fixture's source document carried real errors — a
 fact about the doc, not the gate, and itself evidence the gate earns
 its keep. The real-doc findings go to Experiments (their file) on
 the owner's word.
+
+## First real use — Experiments thread, Fable, 2026-09-24
+
+Gated `experiments/fog-deafening-2026-09-23/RESULTS.md` plus the
+same-commit F-052 entry and the edited F-026 line. Fresh read
+byte-identical to the recorded JSON; 30/30 seeds asserted; ~58
+arithmetic claims all matched, zero ROUNDING flags.
+
+**Run 1: FAIL, four items, all real.** (1) "the same deafening
+measured −0.011" — F-026 had no all-kinds arm; −0.011 was purr-deaf
+alone, both-deaf measured +0.013 (the prereg inherited the
+mis-citation; fixed by deviations appendix 1c457ab). (2) "the F-026
+signature exactly" for here-deaf — contradicted by the doc's own
+table (−0.455 is a real mean cost; the whisper was flat-welfare
+purr-deafening). (3) "its redundancy claim is a global-vision
+property" — attribution-shaped wording in Decision rules on an
+F-number line, barred by F-026's own SC-005. (4) instrument SHA: the
+collecting harness copy was afc43ae's, not 207f8c9's (caught from
+tool_sha256 in the battery headers). Advisories also fixed:
+family-arm additivity wording, mid-collection HEAD move disclosed,
+reader's one-sided P2 check disclosed.
+
+**Runs 2–3: re-verified the fixes; PASS.** Run 2 caught one more
+provenance overpromise in the fix itself ("predictions and outcomes
+named in prereg §Instrument" — the prereg names the mutations only).
+
+**Verdict on the gate**: it caught source mis-citations and
+SHA-provenance errors a numeric diff cannot see, on a doc whose
+numbers were 100% clean. The claim-kind rubric (kinds 3 and 5) did
+the work. Standing gap it named: mutate.sh keeps no log, so rule-5
+reds are permanently UNDECIDABLE to the gate — a mutate.sh log file
+would close it (Harness's call).

@@ -1346,7 +1346,7 @@ fog-era experiments inherit a clean before/after design.
 moves welfare outside the parity band (would mean the ablation
 missed a load-bearing path).
 
-**Re-verify when**: the fog generation (the entire point); any
+**Re-verify when**: the fog generation (the entire point) -- RUN, 2026-09-24: F-052, the channel pays under fog (all-deaf -6.716 team happiness, 30 of 30 worlds); this entry keeps its own scope (global vision, the pre-039 world -- see the confound note below). Any
 same-generation ablation at scale that can power the
 distress-doubling whisper.
 
@@ -2634,3 +2634,41 @@ the distress line, measured clean). **Promotion**: the owner ruled count 6 on #3
 (2026-09-21, "6 beams"): the Gen 2 world is the package world as it
 stands (floor 15, lifetime 3,000, six beams); a later move to 7 or 8
 needs no new screen.
+
+## F-052 · active · Under fog the meow channel is load-bearing: hearer-side deafening of every kind costs the served roster 6.716 team happiness on 30 of 30 worlds and multiplies distress ticks 3,762×; here-words alone cost 0.455 (30 of 30), want-words are welfare-null, and F-026's global-vision redundancy does not carry into the fog generation
+
+`fog-deafening-2026-09-23/RESULTS.md` (declaration `prereg.md`,
+committed before collection at d5c6c74; the
+`fog-gen1-cert/cert_harness_fog.py --deaf` mask landed at 207f8c9
+with three mutate reds, and afc43ae's copy collected — its only
+change the `deaf` band entry). The served gen1-A roster on `anchor-b3.toml`, served clock, 4
+arms × the same 30 seeds (900101–900130) × 20,000 ticks, hearer-side
+only, emission legal. Paired mean team-happiness deltas vs intact:
+want-deaf −0.020 (15 of 30 worse — a null), here-deaf −0.455 (30 of
+30), all-deaf −6.716 (30 of 30, range −4.948 to −11.935). Distress
+ticks 125 → 299 / 3,891 / 470,286; the longest all-deaf streak runs
+6,150 ticks. The all-deaf cost is unevenly carried: Clementine's seat
+loses 15.1 happiness, Miso's 7.3, the other three 3.1–4.2.
+
+Why (the fog-thesis reading; the worlds also differ, so this is
+mechanism, not attribution — see the scope line): under fog a cat
+outside the vision disc is knowable only by sound — heard rows carry
+the caller's position, here-words carry what it found — where under
+global vision no F-026 arm moved team happiness more than 0.015 (no
+arm there silenced everything; both-deaf measured +0.013). Here-deaf moves the tail far more than
+the mean, a 31× distress rise beside the 0.455 cost — the direction
+of F-026's registered whisper, though that whisper was purr-deafening
+at flat welfare and here-deaf's mean cost is real. Want-words remain
+function without fitness (they move listeners, F-048, and buy no
+happiness) even under fog. **Attribution bound**: the two family arms
+measure 0.475 of the 6.716 between them, additivity untested; the
+rest is the free register, the heard-row position channel and
+interactions, not separated by this design (no heard-rows-only
+arm). **Scope**: frozen minds (hearing's value to cats that grew up
+hearing), the served composition and world, one band; nothing here
+attributes the change to fog alone vs the bugs-2.0 economy (F-026
+SC-005). **Invalidated by**: a replication band where all-deaf lands
+inside ±0.15, or a here-deaf sign flip. **Re-verify when**: any
+roster or world reseating; Gen 2 (hidden needs raise the channel's
+load by design — re-run before the Gen 2 cert so the gate has its
+prior).
