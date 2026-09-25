@@ -512,3 +512,59 @@ is no longer load-bearing.
   valuation reads the groomee's bath through `groom_cuddle_pay`
   (`crates/cloudkitty-core/src/behavior/needs_driven.rs:426`), legal
   while needs are visible.
+
+## Distance encoding rider: fixed spatial normalizers at the Gen 2 schema bump (owner, 2026-09-25)
+
+Owner's words, Experiments session, 2026-09-25: "I definitely want
+this in gen 2. Our served world will likely continue at 20x20 for a
+while at least, but my expectation is that trained and seated models
+should beat scripted at any map size, not just 20x20."
+
+**What changes**: spatial observation features stop being normalized
+by world dimensions and take frozen constants, the pattern spec 049
+already ruled for the time features ("never derived from config at
+observation time"). Hidden needs bump the schema anyway, so the
+lineage pays one wall, not two. The evidence home is F-053
+(`world-size-screen-2026-09-24/RESULTS.md`): displaced Gen 1 minds
+collapse past 2× area (92.471 → 77.935 → 52.813 at 40×40/100×100)
+while the scripted teacher holds (86.343 / 82.898), because every
+spatial float changes meaning with world size.
+
+**The owner's dispersion argument** (2026-09-25, recorded because it
+scopes F-052/F-053): range's value scales with cat dispersion, not
+world size; a larger world permits dispersion; under world-normalized
+encoding the regimes where dispersion is possible are exactly where
+distance floats distort, so the scenario in which range on meows
+becomes valuable is structurally denied. The "range is a luxury"
+findings are scoped to a clustered roster at calibrated size. Gen 3's
+free time plausibly loosens the cluster, so the encoding must not
+bake the luxury conclusion in.
+
+**Options compared** (Experiments, 2026-09-25; recommendation 4):
+
+1. Status quo (world-normalized): free, stable within one fixed-size
+   generation; unreadable under displacement, incoherent for
+   mixed-size training, denies the dispersion regime.
+2. Absolute linear, frozen /40, clamped: byte-identical to schema 5
+   on the 20×20 world (the acceptance check), native walk-cost units,
+   meaning fixed across sizes; blind past 40 tiles — flattens the
+   dispersed regime.
+3. Absolute log-scaled: ordering survives at all ranges (the
+   dispersion regime stays learnable); nothing carries over anywhere,
+   nonlinear pricing tax on policy and critic, warped ruler under the
+   teacher's demonstrations.
+4. **Hybrid (recommended)**: existing cells as (2) — home identity,
+   near-field in native units — plus one added log-range cell per
+   kitty row and element slot for far ordering. A few cells wider;
+   the schema bump is already being paid. One constant (the log base)
+   to rule.
+
+**The any-size bar**: her expectation above is a certification-shaped
+statement. Instantiating it — which sizes the Gen 2/Gen 3 cert
+battery runs, the scripted comparator legs per size, whether training
+mixes sizes — belongs to the #389 sitting and the Gen 2 prereg; the
+world-size screen's harm rule stands until then (no frozen-roster
+legs on the flagged configs), and minds trained under the new
+encoding are the intended occupants of those worlds. Route: a Product
+spec at the Gen 2 kickoff, doctrine-checked; self-position stays
+fractional for wall awareness (a spec-level choice to confirm).
