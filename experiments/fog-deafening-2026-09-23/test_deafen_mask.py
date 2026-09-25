@@ -78,9 +78,9 @@ def reference_mask(ob, arm, wh=None, dir_r=None):
     return out
 
 
-def collect(ticks=1500, seed=40001):
+def collect(ticks=1500, seed=40001, config=None):
     import cloudkitty
-    config = str(HERE.parent / "fog-gen1-cert" / "anchor-b3.toml")
+    config = config or str(HERE.parent / "fog-gen1-cert" / "anchor-b3.toml")
     with open(config, "rb") as f:
         cfg = tomllib.load(f)
     seats = list(H.SEATINGS["gen1-A"])

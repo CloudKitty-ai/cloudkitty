@@ -22,21 +22,23 @@ from test_deafen_mask import collect, SELF, SLOT, ROWS  # noqa: E402
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=3)
+    ap.add_argument("--seed0", type=int, default=900101)
     ap.add_argument("--ticks", type=int, default=5000)
+    ap.add_argument("--config", type=Path, default=HERE.parent / "fog-gen1-cert" / "anchor-b3.toml")
     ap.add_argument("--out", required=True, type=Path)
     a = ap.parse_args()
-    with open(HERE.parent / "fog-gen1-cert" / "anchor-b3.toml", "rb") as f:
+    with open(a.config, "rb") as f:
         cfg = tomllib.load(f)
     wh = cfg["world"]["width"] + cfg["world"]["height"]
     dists = []
     for i in range(a.seeds):
-        for ob in collect(ticks=a.ticks, seed=900101 + i):
+        for ob in collect(ticks=a.ticks, seed=a.seed0 + i, config=str(a.config)):
             for r in range(ROWS):
                 row = SELF + r * SLOT
                 heard = (ob[:, row] == 0.0) & (ob[:, row + 3] > 0.0)
                 dists.extend((ob[heard, row + 3] * wh).tolist())
     d = np.asarray(dists)
-    out = {"seeds": [900101 + i for i in range(a.seeds)], "ticks": a.ticks,
+    out = {"config": str(a.config), "seeds": [a.seed0 + i for i in range(a.seeds)], "ticks": a.ticks,
            "n_heard": int(d.size), "median": float(np.median(d)),
            "q25": float(np.percentile(d, 25)), "q75": float(np.percentile(d, 75)),
            "max": float(d.max()), "width_plus_height": wh}
