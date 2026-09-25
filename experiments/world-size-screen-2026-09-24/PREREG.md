@@ -139,15 +139,36 @@ sensitivity); retraining at size (rule 9's answer, a later screen);
 roster-size changes (five cats everywhere; the owner's density caveat
 names roster a separate knob).
 
-## Regeneration (filled at freeze)
+## Freeze-time values (2026-09-24, before any leg)
+
+Config SHA-256s: the derive output at c326fe0's tree (size28
+814404be…, size40 760ad9b5…, size100 1a26f926…, size40-d2 2a418672…,
+size40-d4 1d031d42…, size100-d2 5a74df3b…, size100-d4 202bcd3a…).
+Per-size R (median heard-caller Manhattan distance, 3 seeds × 5,000 at
+900201–900203 on each size's own intact world, recorded
+`results-raw/r-probe-<size>.json`): **28 → 19, 40 → 20, 100 → 25**
+(q25/q75/max: 13/25/51, 12/28/61, 14/45/157; the 20×20 reference was
+16). The median grows sublinearly with the world while the tail
+stretches — the roster clusters (F-045) — noted here because it means
+the dir arms' fixed R stays near-typical even at 100×100.
+
+## Regeneration
 
 ### Collect
 
-The derive step, the three R probes, the pilot, then the twenty legs
-(exact commands with full paths land here at freeze, before any leg
-runs). Never run by the gate.
+Runtime: pilot measured first; Set A/B legs recorded in
+`results-raw/stage.log`. Never run by the gate.
+
+```
+cd /Users/elizabethkelly/ai/cloudkitty
+experiments/exp-006-character-gen/.venv/bin/python experiments/world-size-screen-2026-09-24/derive_configs.py
+for s in 28 40 100; do experiments/exp-006-character-gen/.venv/bin/python experiments/fog-deafening-2026-09-23/dir_r_probe.py --config experiments/world-size-screen-2026-09-24/size$s.toml --seed0 900201 --out experiments/world-size-screen-2026-09-24/results-raw/r-probe-$s.json; done
+caffeinate -s nohup bash experiments/world-size-screen-2026-09-24/wsize_stage.sh > experiments/world-size-screen-2026-09-24/results-raw/stage.log 2>&1 &
+```
 
 ### Read
 
-The reader for this screen ships `--out` and `--md` and prints every
-derived column its write-up uses; its command lands here at freeze.
+The reader (`wsize_read.py`, this directory, written before the
+write-up) ships `--out` and `--md` and prints every derived column the
+write-up uses; runtime under 10 seconds; its exact invocation lands in
+RESULTS.md's Regeneration per the accuracy-gate contract.
