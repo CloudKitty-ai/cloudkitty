@@ -18,14 +18,17 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 (2026-09-08).
 
 Harness (2026-09-22) owns the tooling files and reports on content
-files. Its two standing passes: the accuracy gate (a fresh-context
+files. Harness owns the two standing pass skills; the owning thread
+runs them on its own files: the accuracy gate (a fresh-context
 re-derivation of an artifact's claims against the recorded raws and
 the command that made them, run before the owning thread commits) and
-the condense pass (a cut list for a file or corpus: duplicates across
-homes, dead sections, amendments that should be supersessions). Both
-produce a report; the owning thread applies it. What each pass caught
-or cut is appended to the record beside its skill, TRIALS.md
-discipline. The prepare-for-compact skill files (Product's from
+the condense pass (the owning thread compresses its own over-budget
+file under `.claude/skills/condense/SKILL.md` — tier 1 on the owner's
+word with her ruling on the diff, tier 2 self-serve on a gate block
+or advisory; owner ruled 2026-09-24). The gate produces a report the
+owning thread reads; a condense pass is the owning thread's own
+commit end to end. What each pass caught or cut is appended to the
+record beside its skill, TRIALS.md discipline. The prepare-for-compact skill files (Product's from
 2026-09-21) move to Harness with the rest of `.claude/`; the TRIALS.md
 append rule stands unchanged: a trialling thread appends its own
 section and never touches another thread's, Product and Client through

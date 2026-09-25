@@ -7,6 +7,8 @@ plausibly could.
 
 This file is append-shared (THREADS.md §1): the thread that runs a
 pass appends its own section and never touches another thread's.
+Product and Client append through a worktree and a PR; Experiments
+appends on main directly; Harness through a worktree and a PR.
 
 ## Fixture red — Harness thread, Fable, 2026-09-24
 
@@ -35,3 +37,16 @@ recoverability standard exactly as SKILL.md states it.
 
 **Verdict**: red confirmed; no checker bug. First real pass is
 whichever file next owes one under the gate.
+
+## Fixture red, round 2 — Harness thread, Fable, 2026-09-24
+
+Re-run owed by the skill's own rule after the review round changed
+the checker handoff (document bodies with headers stripped, native
+checkout named). Predicted the same three losses, nothing else; got
+exactly the three, and the round-2 checker additionally traced that
+F-051's re-verify clause points BACK to F-050 as the caveat's home —
+the §6 home logic applied unprompted. The review round's other
+outcomes: two blockers fixed in SKILL.md (merge-commit-only landing;
+the global base documented with the pre-pass `--report` guard),
+her ruling-2 sentence now quoted verbatim, T2 advisory self-serve
+confirmed by her word, THREADS.md §1 refreshed in the same PR.

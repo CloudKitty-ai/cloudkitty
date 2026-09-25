@@ -1,7 +1,8 @@
 <!-- FIXTURE — a condense pass over original.md with three planted
-losses, one per silently-droppable never-cut category. The answer key
-is expected-findings.md beside it — the fact-loss checker must not
-read that file. NEVER cite this file as evidence. -->
+losses, one per silently-droppable never-cut category. NEVER cite
+this file as evidence. Per SKILL.md, the checker receives the
+document BODY only: strip this comment before handing the pair
+over. -->
 
 ## F-050 · active · Beam seeking survives β 0.04 PPO once the tile changes a nap's outcome: under shallow ground (off-beam sleep relieves only to a floor, spec 056) the package clone keeps 0.46–0.81 of its naps on beams through the fine-tune at every floor from 10 to 25, where the same clone on the same world without a floor kept 0.04–0.07
 

@@ -28,10 +28,12 @@ The owning thread condenses its own file, never a peer's. Authority:
   a gate block goes to the owner FIRST; the pass starts on her word
   and she rules on the diff before it merges — these files are her
   ruleset, in her voice.
-- **Tier 2**: a thread blocked by the gate mid-arc may run the pass
-  at once to unblock, as its own reviewable commit, never folded
-  into the arc's changes. An advisory (`T2_ADVISE`) is not a block:
-  flag it, run the pass at the thread's next natural pause.
+- **Tier 2**: self-serve on either gate signal (owner, 2026-09-24:
+  "self serve is fine for t2 advisory"). A thread blocked mid-arc
+  runs the pass at once to unblock; an advisory (`T2_ADVISE`) is
+  flagged and run at the thread's next natural pause. Either way the
+  pass is its own reviewable commit, never folded into the arc's
+  changes.
 - A pass never starts on a thread's own initiative with no gate
   signal, and never on a peer's relay.
 - **Frozen files** (the log's `## Frozen` list) are never condensed —
@@ -42,18 +44,20 @@ The owning thread condenses its own file, never a peer's. Authority:
 These survive the pass EXACTLY — never summarized, never paraphrased:
 
 1. Owner rulings and her verbatim quotes, with their dates.
-2. Key design decisions and the reasoning required to reproduce an
-   experimental arc — including decisions the owner delegated to the
-   owning thread, which no ruling or quote covers (owner,
-   2026-09-24). The test: could a fresh session re-run the arc and
-   understand why each choice was made, from the condensed text plus
-   the files it points to?
+2. In the owner's words (2026-09-24): "key design decisions and
+   reasoning required to reproduce experimental arcs (I delegate
+   some of that to Experiments and it wouldn't be covered under
+   owner rulings/verbatim quotes)". The test: could a fresh session
+   re-run the arc and understand why each choice was made, from the
+   condensed text plus the files it points to?
 3. F-numbers, issue numbers, SHAs, dates, paths.
 4. Every number, at its printed precision.
 
-Everything else is wording, and wording compresses. A fact whose home
-is another file (THREADS.md §6) may become a pointer to that home —
-that is deduplication, not loss.
+Everything else is wording, and wording compresses. "Exactly" means
+exactly in the fact's home: a fact whose §6 home is another file may
+become a pointer to that home — that is deduplication, not loss, and
+under §6 a ruling restated outside its home is itself a condense
+cut.
 
 ## Delete in place — git history is the archive
 
@@ -68,28 +72,49 @@ under that file's own rules.
 ## Verification — the fact-loss check
 
 Before the PR opens (tier 2) or goes to the owner (tier 1): one
-subagent, fresh context, given the OLD text and the NEW text and the
-never-cut list above — never this skill's fixture answer key, never
-the session's reasons for each cut. It lists every fact in the old
-text not recoverable from the new text plus the files the new text
-points to, each with the old sentence quoted. The pass is clean only
-when that list is empty; anything on it goes back into the file or
-is defended to the owner by name. The subagent's report is evidence
-the owning thread reads (CLAUDE.md rule 9), never a verdict to
-paste.
+subagent, fresh context, run in the NATIVE checkout (it judges
+recoverability by following the new text's pointers, and a worktree
+may be missing what they lead to). It gets the OLD document body and
+the NEW document body — fixture or scaffolding comments stripped —
+and the never-cut list above; never this skill's fixture answer key,
+never the session's reasons for each cut. It lists every fact in the
+old text not recoverable from the new text plus the files the new
+text points to, each with the old sentence quoted. The pass is clean
+only when that list is empty; anything on it goes back into the file
+or is defended to the owner by name. The subagent's report is
+evidence the owning thread reads (CLAUDE.md rule 9), never a verdict
+to paste.
 
 ## Mechanics of landing a pass
 
-Two commits, in order:
+The base is GLOBAL: the budget script measures every tier from the
+one SHA on the log's last pass line, so any pass resets every
+file's counter, not just the condensed file's. Two consequences,
+both mandatory:
 
-1. The pass itself — one file, nothing else in the commit.
-2. The log line — append to `.claude/CONDENSE-LOG.md` `## Passes`:
-   `- YYYY-MM-DD <sha of commit 1> <file>: <what came out, one
-   clause> (PR #N)`. Commit 1's SHA is what the budget script reads
-   as the new growth base once the PR merges.
+- Run `scripts/condense-budget.sh --report` BEFORE the pass. If any
+  tier 1 file shows nonzero growth the pass would wipe, name it and
+  its count in the pass PR's body — the owner sees what the reset
+  swallows instead of losing the block silently.
+- **The pass PR merges with a MERGE COMMIT, never squash or rebase.**
+  The log names a branch commit; squash or rebase discards it, the
+  base stops being an ancestor of HEAD, and every later PR's gate
+  exits 3 repo-wide.
 
-Then `scripts/condense-budget.sh --report` in the worktree to
-confirm the file's growth reads from the new base.
+The landing order:
+
+1. Commit the pass — one file, nothing else in the commit.
+2. Run the fact-loss check (above); a loss means amending commit 1
+   and re-checking.
+3. Open the PR (tier 1: take the diff to the owner first).
+4. Commit the log line — append to `.claude/CONDENSE-LOG.md`
+   `## Passes`: `- YYYY-MM-DD <sha> <file>: <what came out, one
+   clause> (PR #N)`, where `<sha>` is the LAST commit in the PR that
+   touches the condensed file. If review changes the pass after
+   this, the fix and the updated log SHA land in one commit.
+
+After merge, `scripts/condense-budget.sh --report` on main confirms
+growth reads from the new base.
 
 ## The fixture (rule 5)
 

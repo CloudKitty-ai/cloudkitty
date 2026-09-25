@@ -29,7 +29,9 @@ unlearns (F-047, tier 2); under a floor a ground nap leaves the need
 at the floor. This is the delegated design reasoning the owner named
 2026-09-24: without it a fresh session cannot reproduce why floors
 10–25 were the arms, or predict where the effect breaks (the
-nap-start need band).
+nap-start need band). The dropped "(F-047, tier 2)" pointer is part
+of this plant — a checker that lists it inside plant B, or as its
+own line, is scoring the same loss, not a fourth.
 
 ## Plant C — silently changed number (never-cut category 4)
 
