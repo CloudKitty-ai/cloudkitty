@@ -1,4 +1,4 @@
-# World-size × density screen, with the meow-range axis — prereg DRAFT, 2026-09-24
+# World-size × density screen, with the meow-range axis — prereg, 2026-09-24 (FROZEN)
 
 **FROZEN** (owner, 2026-09-24: "Freezes approved. Run the world-size
 first, then the arms"). Changes below only as dated deviations; the
@@ -172,3 +172,11 @@ The reader (`wsize_read.py`, this directory, written before the
 write-up) ships `--out` and `--md` and prints every derived column the
 write-up uses; runtime under 10 seconds; its exact invocation lands in
 RESULTS.md's Regeneration per the accuracy-gate contract.
+
+## Deviations (2026-09-25, post-collection; predictions and rules unchanged)
+
+- §Legs listed a scripted cell in the borrowed 20×20 column; the
+  fog-deafening screen ran no scripted leg, so the teacher's size
+  curve rests on 28 → 100. Caught by the accuracy gate.
+- The title line still read "prereg DRAFT" after the freeze stamp
+  landed in the body; corrected with this appendix.

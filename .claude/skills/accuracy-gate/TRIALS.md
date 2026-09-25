@@ -126,3 +126,26 @@ counts (dir16's 53 ticks from 2 seeds; intact's 4 nonzero seeds).
 reaching main and every fail a claim-scope error. The repeat pattern
 (over-crediting the named variable) is now a known author failure
 mode the gate reliably catches; worth a fixture plant someday.
+
+## World-size screen — Experiments thread, Fable, 2026-09-25
+
+Gated world-size-screen-2026-09-24/RESULTS.md + F-053 + the GEN2
+shelf pointer. Fresh read byte-identical; ~183 numbers all matched;
+P1/P2 correctly scored as failing as declared.
+
+**Run 1: FAIL, and the catch mattered more than usual.** The
+harm-rule cell list — the passage that BLOCKS follow-up runs — was
+under-inclusive: size28/rows (streak 9,278), size40/dir (2,293) and
+size40-d2 (1,796) all had worse tails than named cells. A judgment
+list under-protects; the fix was a declared threshold (every cell
+over a 1,000-tick streak), which the gate then verified captures
+exactly 13 cells with no unnamed crossing. Advisories fixed: P4
+rescored "mixed as declared" (the dir cells fail the tail
+prediction — a finding), a mislabeled saturation range, an
+overclaimed "worst streaks" list (twice — the gate ordered all 13
+streaks itself and pre-approved the final wording).
+
+**Verdict on the gate**: fourth gated write-up; the recurring author
+failure mode is now precise — lists framed as complete that were
+assembled by eye. Threshold-defined lists are the fix the gate keeps
+converging on.

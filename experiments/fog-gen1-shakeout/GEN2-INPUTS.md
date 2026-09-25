@@ -281,6 +281,11 @@ is no longer load-bearing.
 
 - World-size × radius screen; first data point = the shakeout's r-3
   tolerance (policy holds welfare at pin−1 where the anchor degrades).
+  Size half RUN 2026-09-25 (F-053,
+  `world-size-screen-2026-09-24/RESULTS.md`): displaced Gen 1 minds
+  tolerate ~2× area at served density and break by 4× while the
+  teacher holds; density cuts compound; range on meows stays
+  near-worthless at every size. The radius axis stays open.
 - Hidden needs (the Gen 2 half of the fog split); F-026 deferred here;
   F-035 waterline contagion input.
 - Rate-based A17 + config-aware declarations (#367's root fix) and the

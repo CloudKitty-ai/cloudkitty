@@ -2685,3 +2685,37 @@ inside ±0.15, or a here-deaf sign flip. **Re-verify when**: any
 roster or world reseating; Gen 2 (hidden needs raise the channel's
 load by design — re-run before the Gen 2 cert so the gate has its
 prior).
+
+## F-053 · active · Under fog, frozen Gen 1 minds do not survive world-size displacement: intact happiness falls 92.471 → 77.935 → 52.813 at 40×40 and 100×100 (the scripted teacher reads 86.343 / 82.898 on the same worlds), distress streaks reach 15,927 ticks, and exact range on meows stays near-worthless at every size (dir gaps 0.203–0.715)
+
+`world-size-screen-2026-09-24/RESULTS.md` (PREREG frozen 2026-09-24,
+configs and per-size R in its freeze-time section; band 900201–900230,
+20 legs × 30 × 20k, served clock; size20 cells from the fog-deafening
+screen). Sizes 20/28/40/100 at served per-tile density plus ½× and ¼×
+density at 40 and 100, elements scaled with area, radius pinned 4,
+five-cat gen1-A roster displaced unretrained.
+
+Why (the declared displacement reading): observations normalise
+positions by world dimensions, so a familiar float means 2× the tiles
+at 40×40 and 5× at 100×100 — the frozen minds mis-read every distance
+while the sight-and-memory-gated teacher keeps working; the worlds are
+livable, the displacement is what fails. The channel's absolute load
+peaks at 40×40 (intact-vs-rows 37.025) and compresses at 100×100
+(21.205) because the intact baseline itself collapses; density cuts
+hurt both rosters monotonically, the teacher more than size hurts it
+(74.508 at 40×40 ¼-density) and the roster less than size hurts it.
+**Scope**: frozen minds displaced at read time (doctrine rule 9: a
+generation trained at size is the unanswered branch), r = 4, five
+cats, one band per cell, element density scaled with area.
+**Invalidated by**: a replication band where size40 intact lands
+within 2 happiness of size28 intact. **Re-verify when**: the radius
+pin, roster size or element scaling rule changes; any generation
+trained at a larger size (the rule-9 answer supersedes this entry's
+displacement half). **Harm rule** (PREREG, fired; the named
+set is every cell whose longest distress streak exceeds 1,000 ticks):
+no further legs on size28, size40 at any density, size100 at any
+density, or the rows arm on the served world, before the owner's
+word — the full cell list with streaks is RESULTS §"The harm rule,
+fired" (the longest streaks: size40/rows 19,872; size100/rows and
+size100-d4 intact 19,776 each). **Promotion**: feeds the Gen 2 sitting
+(#389) as the shelf's world-size input; no number here picks a world.
