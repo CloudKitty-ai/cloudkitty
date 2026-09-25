@@ -1,7 +1,9 @@
 # World-size × density screen, with the meow-range axis — prereg DRAFT, 2026-09-24
 
-**DRAFT — not frozen.** Freezes on the owner's word; nothing collects
-before that. Her words (Experiments session, 2026-09-24): "I'd like to
+**FROZEN** (owner, 2026-09-24: "Freezes approved. Run the world-size
+first, then the arms"). Changes below only as dated deviations; the
+freeze-time values (config SHAs, per-size R) land in their declared
+slots before collection. Her words (Experiments session, 2026-09-24): "I'd like to
 see what happens on substantially larger worlds, with and without
 distance on meows", then "Let's add 100x100 as well, with similar
 element density, and a sweep of lower densities to get an idea of

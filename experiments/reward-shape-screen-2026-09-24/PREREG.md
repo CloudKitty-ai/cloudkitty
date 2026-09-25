@@ -1,7 +1,8 @@
 # Reward-shape screen: the sunbeam floor as a reward counterfactual — prereg DRAFT 2, 2026-09-24
 
-**DRAFT — not frozen.** Freezes on the owner's word; nothing trains
-before that. This replaces the first draft (f66455e), whose shapes a
+**FROZEN** (owner, 2026-09-24: "Freezes approved. Run the world-size
+first, then the arms" — the arms launch after the world-size screen's
+collection). Changes below only as dated deviations. This replaces the first draft (f66455e), whose shapes a
 baseline probe showed were null by construction: on the floor-0 world
 nothing in need-space separates the target behavior from the failure —
 the floor-0 arms keep sleep need LOWER than the floor arms (grass fully

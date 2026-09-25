@@ -79,7 +79,9 @@ SEATINGS = {
 # disjoint 30-seed bands beyond the declared eval/stress pair
 BANDS = {"eval": 870_001, "stress": 880_001, "probe": 40_001, "rep1": 890_001, "rep2": 895_001,
          # fog-deafening-2026-09-23: 4 arms x the SAME 30 seeds (paired by design)
-         "deaf": 900_101}
+         "deaf": 900_101,
+         # world-size-screen-2026-09-24: the size x density grid, paired within config
+         "wsize": 900_201}
 
 
 def load_model(spec):
