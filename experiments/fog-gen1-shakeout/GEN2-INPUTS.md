@@ -540,24 +540,35 @@ findings are scoped to a clustered roster at calibrated size. Gen 3's
 free time plausibly loosens the cluster, so the encoding must not
 bake the luxury conclusion in.
 
-**Options compared** (Experiments, 2026-09-25; recommendation 4):
+**The ruled form (owner, 2026-09-25: "Approved"** on Experiments'
+final recommendation; it supersedes the four-option sketch this entry
+first carried):
 
-1. Status quo (world-normalized): free, stable within one fixed-size
-   generation; unreadable under displacement, incoherent for
-   mixed-size training, denies the dispersion regime.
-2. Absolute linear, frozen /40, clamped: byte-identical to schema 5
-   on the 20×20 world (the acceptance check), native walk-cost units,
-   meaning fixed across sizes; blind past 40 tiles — flattens the
-   dispersed regime.
-3. Absolute log-scaled: ordering survives at all ranges (the
-   dispersion regime stays learnable); nothing carries over anywhere,
-   nonlinear pricing tax on policy and critic, warped ruler under the
-   teacher's demonstrations.
-4. **Hybrid (recommended)**: existing cells as (2) — home identity,
-   near-field in native units — plus one added log-range cell per
-   kitty row and element slot for far ordering. A few cells wider;
-   the schema bump is already being paid. One constant (the log base)
-   to rule.
+Every spatial feature decomposes into exact bearing plus two-scale
+magnitude, all frozen-normalized:
+
+1. **Bearing, exact at every range**: unit direction (dx/d, dy/d),
+   never clamped — F-052 proved bearing is the channel's value, and
+   the owner's dispersion argument requires it lossless at any
+   distance on any map.
+2. **Magnitude, two scales**: a linear cell, distance/40 clamped at 1
+   (native walk-cost units for the near field), plus a log cell,
+   log1p(d)/log1p(400), so far distances stay ordered into the
+   dispersed regime. Both denominators frozen literals by ruling
+   (the spec-049 pattern). Two constants to rule at the spec: 40, 400.
+3. **Walls**: four distance-to-wall cells (linear /40 only),
+   replacing fractional self-position (above).
+4. **Time normalizers untouched.**
+
+Costs accepted with the ruling: net +1 cell per entity slot and kitty
+row, +2 for walls; and the byte-identity-at-20×20 property is given
+up (dx/dy change shape) — its value was policy carryover, and Gen 2
+re-records and retrains regardless.
+
+**Any-size bar, staging**: train Gen 2 at the served 20×20, then a
+declared cross-size TRANSFER read against scripted comparators; mixed-
+size training only if that read misses. Sizes and the per-size bar
+are the #389 sitting's to instantiate.
 
 **The any-size bar**: her expectation above is a certification-shaped
 statement. Instantiating it — which sizes the Gen 2/Gen 3 cert
