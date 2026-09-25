@@ -87,19 +87,12 @@ to paste.
 
 ## Mechanics of landing a pass
 
-The base is GLOBAL: the budget script measures every tier from the
-one SHA on the log's last pass line, so any pass resets every
-file's counter, not just the condensed file's. Two consequences,
-both mandatory:
-
-- Run `scripts/condense-budget.sh --report` BEFORE the pass. If any
-  tier 1 file shows nonzero growth the pass would wipe, name it and
-  its count in the pass PR's body — the owner sees what the reset
-  swallows instead of losing the block silently.
-- **The pass PR merges with a MERGE COMMIT, never squash or rebase.**
-  The log names a branch commit; squash or rebase discards it, the
-  base stops being an ancestor of HEAD, and every later PR's gate
-  exits 3 repo-wide.
+Bases are per tier (owner ruled 2026-09-25): a pass line naming a
+tiered file resets THAT TIER's counter only, so a FINDINGS pass no
+longer swallows tier 1 growth. Within the tier the reset still
+covers the siblings, so run `scripts/condense-budget.sh --report`
+BEFORE the pass and name in the PR body any sibling growth the
+reset swallows — the owner sees it instead of losing it silently.
 
 The landing order:
 
@@ -108,13 +101,33 @@ The landing order:
    and re-checking.
 3. Open the PR (tier 1: take the diff to the owner first).
 4. Commit the log line — append to `.claude/CONDENSE-LOG.md`
-   `## Passes`: `- YYYY-MM-DD <sha> <file>: <what came out, one
-   clause> (PR #N)`, where `<sha>` is the LAST commit in the PR that
-   touches the condensed file. If review changes the pass after
-   this, the fix and the updated log SHA land in one commit.
+   `## Passes`: `- YYYY-MM-DD <blob> <file>: <what came out, one
+   clause> (PR #N)`, where `<blob>` is `git rev-parse HEAD:<file>`
+   run after commit 1. A blob hash names the condensed CONTENT, so
+   it survives any merge style — squash, rebase, the UI button —
+   from any thread (owner ruled 2026-09-25; Client consulted). If
+   review changes the pass after this, the fix and the re-derived
+   blob land in one commit; a stale blob resolves to the older
+   commit and over-counts, never under-counts.
 
 After merge, `scripts/condense-budget.sh --report` on main confirms
-growth reads from the new base.
+the tier reads from the new base.
+
+## TRIALS lifetime — shakeout, then frozen
+
+A skill's `TRIALS.md` is shakeout evidence, not a permanent ledger
+(owner ruled 2026-09-25). While a skill is in shakeout, its TRIALS
+appends one section per run and is unmetered. Shakeout closes on the
+owner's word per skill — the suggested trigger is three consecutive
+real runs needing no skill edit — with a backstop date on the file's
+header so it cannot drift. At close, Harness runs the close-out:
+every un-promoted lesson moves into its skill's SKILL.md or becomes
+a fixture plant (the TRAPS retirement rule: the guard is the home),
+routine sections are pruned, and the file goes on
+`.claude/CONDENSE-LOG.md` `## Frozen`, where the budget gate already
+enforces zero growth. Appends stop at the freeze; from then on the
+per-run record is the accuracy-gate stamp line or the condense pass
+line.
 
 ## The fixture (rule 5)
 

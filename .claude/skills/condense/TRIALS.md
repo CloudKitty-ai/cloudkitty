@@ -10,6 +10,10 @@ pass appends its own section and never touches another thread's.
 Product and Client append through a worktree and a PR; Experiments
 appends on main directly; Harness through a worktree and a PR.
 
+Lifetime: shakeout evidence, then frozen (owner ruled 2026-09-25;
+the close-out procedure is in SKILL.md §TRIALS lifetime beside this
+file). Shakeout closes on the owner's word, backstop 2026-10-15.
+
 ## Fixture red — Harness thread, Fable, 2026-09-24
 
 The rule-5 red for the skill's first commit. mutate.sh does not fit
