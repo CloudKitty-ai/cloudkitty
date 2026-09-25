@@ -59,4 +59,27 @@ git checkout -q "$br"; git branch -q -D fork
 printf '# log\n' > $log; c nolog
 case_ 2 "log without a pass line: exit 2"
 case_ 2 "unreadable log: exit 2" --log /nonexistent
+
+# ---- per-tier bases and blob-hash lines (owner ruled 2026-09-25) ----
+f0=$(git rev-parse --short HEAD)
+printf '# log\n\n## Passes\n\n- 2026-09-25 %s budgets set (PR #0)\n\n## Frozen\n\n' "$f0" > $log; c relog
+grow CLAUDE.md 81; c pt-t1-81
+case_ 1 "per-tier setup: tier 1 at +81 blocked"
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: trimmed (PR #3)\n' "$(git rev-parse --short HEAD)" >> $log; c pt-t2pass
+case_ 1 "a tier 2 pass does NOT reset tier 1: still blocked"
+printf -- '- 2026-09-25 %s CLAUDE.md: condensed (PR #4)\n' "$(git rev-parse --short HEAD)" >> $log; c pt-t1pass
+case_ 0 "a tier 1 pass resets tier 1: passes"
+# a blob-hash pass line survives a squash merge: shrink FINDINGS on a
+# branch, squash it in (the branch commit is discarded), log the blob
+git checkout -q -b pass-br
+seq 1 1500 > experiments/FINDINGS.md; blob=$(git hash-object experiments/FINDINGS.md); c blob-pass
+git checkout -q "$br"; git merge --squash -q pass-br >/dev/null 2>&1; c squashed-pass; git branch -q -D pass-br
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: shrunk on a squashed branch (PR #5)\n' "$blob" >> $log; c blob-line
+case_ 0 "blob-hash line after a squash merge: resolves, passes"
+grow experiments/FINDINGS.md 2001; c blob-growth
+case_ 1 "tier 2 growth from the blob-resolved base: blocked"
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: again (PR #6)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c blob-line2
+case_ 0 "rev-parse HEAD:<file> blob line: resolves, passes"
+printf -- '- 2026-09-25 deadbeefdeadbeefdeadbeefdeadbeefdeadbeef experiments/FINDINGS.md: bogus (PR #7)\n' >> $log; c bogus-line
+case_ 3 "unresolvable hash on a pass line: exit 3"
 exit $fail
