@@ -102,21 +102,33 @@ def main():
         assert cf_mean == term == 0.0
         for k in buf0:
             assert np.array_equal(buf[k], buf0[k]), f"shape {shape} changed {k}"
-    picks = [3, T // 2, T - 2]
+    # The discriminating cases for the bit offsets must occur in the run,
+    # or an off-by-one on the in-sunbeam column could pass unexercised:
+    # a cat asleep ON a beam under the floor separates the sunbeam bit
+    # from its neighbours.
+    beam_asleep_low = 0
+    for t in range(T):
+        ob = obs_stack[t]
+        beam_asleep_low += int(((ob[:, OBS_ACT_SLEEP] > 0.5) & (ob[:, OBS_IN_SUNBEAM] > 0.5)
+                                & (ob[:, OBS_SLEEP_NEED] < FLOOR100 / 100.0)).sum())
+    assert beam_asleep_low > 10, f"vacuous for the sunbeam column: only {beam_asleep_low} on-beam low-need sleep seat-ticks"
+
     for shape, coef in (("hard", ts.C1), ("cvx", ts.C2), ("lam", 0.77)):
         buf = {k: v.copy() for k, v in buf0.items()}
         ts.shape_rewards(buf, shape, 0.77)
         for k in ("obs", "valid", "act"):
             assert np.array_equal(buf[k], buf0[k]), f"shape {shape} changed {k}"
-        for t in picks:
-            cf = obs_cf(obs_stack[t])
-            if shape == "cvx":
-                need = obs_stack[t][:, OBS_SLEEP_NEED]
-                want = coef * float(np.where(cf, ((0.15 - need) / 0.15) ** 2, 0.0).sum()) / roster
-            else:
-                want = coef * float(cf.sum()) / roster
-            got = float(buf0["reward"][t, 0] - buf["reward"][t, 0])
-            assert abs(got - want) < 1e-9, f"{shape} term mismatch at tick {t}: {got} vs {want}"
+        cf_all = np.stack([obs_cf(obs_stack[t]) for t in range(T)])
+        if shape == "cvx":
+            need = obs_stack[:, :, OBS_SLEEP_NEED]
+            want = coef * np.where(cf_all, ((0.15 - need) / 0.15) ** 2, 0.0).sum(1) / roster
+        else:
+            want = coef * cf_all.sum(1) / roster
+        got = buf0["reward"][:, 0] - buf["reward"][:, 0]
+        # 1e-6: float32 op-order slack (measured 3e-9); a wrong column or
+        # sign moves terms by ~1e-2, four orders above this line.
+        bad = np.where(np.abs(got - want) > 1e-6)[0]
+        assert bad.size == 0, f"{shape} term mismatch at tick {bad[0]}: {got[bad[0]]} vs {want[bad[0]]}"
 
     # 3. lam_step dynamics.
     lam = 0.0
@@ -132,7 +144,7 @@ def main():
     assert lam == 0.0, f"lam did not decay to zero under compliance: {lam}"
 
     print(f"ok: {T} ticks; cf seat-ticks {n_cf}; obs/state agreement 1.0; "
-          f"terms match at ticks {picks}; lam dynamics clean")
+          f"terms match at every tick; lam dynamics clean")
 
 
 if __name__ == "__main__":
