@@ -566,5 +566,19 @@ mixes sizes — belongs to the #389 sitting and the Gen 2 prereg; the
 world-size screen's harm rule stands until then (no frozen-roster
 legs on the flagged configs), and minds trained under the new
 encoding are the intended occupants of those worlds. Route: a Product
-spec at the Gen 2 kickoff, doctrine-checked; self-position stays
-fractional for wall awareness (a spec-level choice to confirm).
+spec at the Gen 2 kickoff, doctrine-checked.
+
+**Edge awareness** (owner asked for the cleaner form, 2026-09-25):
+the two fractional self-position floats are replaced by four
+distance-to-wall floats (N/E/S/W), absolute tiles under the same
+frozen normalizer and cap as every other distance. Rationale:
+fractional position was the one allocentric feature and carries the
+same size-entanglement (0.5 = 10 tiles from a wall at 20×20, 50 at
+100×100); distance-to-wall is the quantity the edge matters through
+(movement bounds; the spawn interior preference and `edge_penalty`
+make it predict element density), it is size-invariant, and it makes
+the observation fully egocentric — walls become four more entities at
+a distance. Known loss: global self-localization, for which no
+consumer is known (memory is ego-relative, waypoints engine-internal,
+the critic reads the state vector, not the observation). Net +2
+cells. Spec-level confirm at the Gen 2 kickoff.
