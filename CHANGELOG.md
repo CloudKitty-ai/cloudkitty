@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **Greebles can be revealed from a phone.** A `greebles` button now sits
+  in the footer beside `vision`, doing what the `g` key does, so a touch
+  screen can show them too.
+
 - **Kitty cards make room for About.** With About open on a desktop,
   the right-hand cards no longer run past the bottom of the meadow: a
   cat moves to the left side instead, where there was space.

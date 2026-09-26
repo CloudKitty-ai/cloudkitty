@@ -12,7 +12,6 @@ const renderer = new WorldRenderer(canvas);
 const statusEl = document.getElementById('status');
 const tickEl = document.getElementById('tick');
 const panelEl = document.getElementById('panel');
-const debugNoteEl = document.getElementById('debug-note');
 const gridNoteEl = document.getElementById('grid-note');
 const pathsNoteEl = document.getElementById('paths-note');
 const happyNoteEl = document.getElementById('happy-note');
@@ -2213,6 +2212,23 @@ function setVision(on) {
   anim.redraw();
 }
 
+/**
+ * Greebles, in the vision toggle's mold: the `g` key and a footer button
+ * (owner, 2026-09-26: "Can we add a show greebles option on phone as
+ * well?"). One function so the two can never disagree, and no footer note
+ * for the same reason sight has none: the button already reads `hide`.
+ */
+function setGreebles(on) {
+  renderer.showGreebles = on;
+  const toggle = document.getElementById('greebles-toggle');
+  if (toggle) {
+    toggle.textContent = on ? 'hide' : 'show';
+    toggle.setAttribute('aria-pressed', String(on));
+    toggle.setAttribute('aria-label', on ? 'hide the greebles' : 'show the greebles');
+  }
+  anim.redraw();
+}
+
 // The debug toggles, all in one mold (spec 008 FR-004/FR-009): `g` reveals
 // greebles, `l` the demoted grid lines, `p` the session's worn paths, `h`
 // happiness bars, `v` what each cat can see. Each flips a flag, syncs its footer note, and redraws --
@@ -2224,8 +2240,7 @@ function setVision(on) {
 window.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
   if (key === 'g') {
-    renderer.showGreebles = !renderer.showGreebles;
-    debugNoteEl.hidden = !renderer.showGreebles;
+    setGreebles(!renderer.showGreebles);
   } else if (key === 'l' && VIEW.meadow.gridOverlay) {
     renderer.showGrid = !renderer.showGrid;
     gridNoteEl.hidden = !renderer.showGrid;
@@ -2266,6 +2281,11 @@ document.getElementById('vision-toggle')?.addEventListener('click', () => {
   setVision(!renderer.showVision);
 });
 setVision(false);
+
+document.getElementById('greebles-toggle')?.addEventListener('click', () => {
+  setGreebles(!renderer.showGreebles);
+});
+setGreebles(false);
 
 // Opening or closing About changes the right column's height, and nothing
 // else would re-place the cats until the next world update arrived.
