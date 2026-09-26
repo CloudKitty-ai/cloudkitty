@@ -88,6 +88,7 @@ f1=$(git rev-parse --short HEAD)
 printf '# log\n\n## Passes\n\n- 2026-09-25 %s budgets set (PR #0)\n\n## Frozen\n\n' "$f1" > $log; c relog2
 grow experiments/FINDINGS.md 2001; c d2-t2grow
 case_ 1 "direction setup: tier 2 at +2001 blocked"
+seq 1 100 > CLAUDE.md; c d2-t1shrink   # a real pass changes the file
 printf -- '- 2026-09-25 %s CLAUDE.md: condensed (PR #8)\n' "$(git rev-parse HEAD:CLAUDE.md)" >> $log; c d2-t1pass
 case_ 1 "a tier 1 pass does NOT reset tier 2: still blocked"
 printf -- '- 2026-09-25 %s experiments/FINDINGS.md: condensed (PR #9)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c d2-t2pass
