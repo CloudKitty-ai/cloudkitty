@@ -1304,7 +1304,8 @@
      footer and `--rule` from the theme -- so sharing the selector is what
      stops the two drifting apart the next time one is re-dialled. */
   #cards-toggle,
-  #vision-toggle {
+  #vision-toggle,
+  #greebles-toggle {
     font: inherit;
     color: inherit;
     background: none;
@@ -1403,7 +1404,6 @@
   #tick { font-variant-numeric: tabular-nums; }
 
   #status.disconnected { color: var(--meh); font-weight: 700; }
-  #debug-note { color: var(--meh); font-weight: 700; }
   [hidden] { display: none !important; }
 
   /* Reduced motion (spec 005 FR-015): the panel's bar transitions join the
@@ -1771,7 +1771,6 @@
          (owner, 2026-08-21): a mode that is ON announces itself whether
          or not the toggles are showing, so an unusual state never looks
          silently broken. The hints hide; live state does not. -->
-    <span id="debug-note" hidden>· 👻 greebles visible</span>
     <span id="grid-note" hidden>· ⌗ grid lines visible</span>
     <span id="paths-note" hidden>· 🐾 worn paths visible</span>
     <span id="happy-note" hidden>· 💚 happiness bars visible</span>
@@ -1795,6 +1794,14 @@
          under the finger that had just tapped it. -->
     · <span class="theme-control">vision
       <button id="vision-toggle" aria-pressed="false">show</button></span>
+    <!-- Greebles got the same button (owner, 2026-09-26: "Can we add a show
+         greebles option on phone as well?"), in the same mold and for the
+         same reasons: outside the developer group so a phone reaches it
+         without a key, and no footer note -- the button reads `hide` while
+         they are up, and the note it replaces would reflow the row under
+         the finger. -->
+    · <span class="theme-control">greebles
+      <button id="greebles-toggle" aria-pressed="false">show</button></span>
     <!-- The developer group (owner, 2026-08-21): hints and click-toggles
          the everyday footer does not need. Every KEY in here works with
          the group hidden -- this is a visual simplification, not a

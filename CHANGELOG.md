@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **Greebles can be revealed from a phone.** A `greebles` button now sits
+  in the footer beside `vision`, doing what the `g` key does, so a touch
+  screen can show them too.
+
 - **Generation 7's spec line states what fog changed.** The about page
   now says limited vision makes communication sustain welfare, which
   was measured before it was written (F-052).

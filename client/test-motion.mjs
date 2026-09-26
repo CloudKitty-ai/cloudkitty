@@ -8626,7 +8626,7 @@ check('the key and the button are the same switch', () => {
   // follow the sky only by inheritance -- `color: inherit` and `--rule` -- so
   // a button with its own block, or with none, is the one that stops matching
   // at night. It shipped with none, and looked like browser chrome.
-  assert(/#cards-toggle,\s*\n\s*#vision-toggle \{/.test(page),
+  assert(/#cards-toggle,\s*\n\s*#vision-toggle(,\s*\n\s*#[\w-]+)*\s*\{/.test(page),
     'the vision button does not share the cards toggle\'s styling -- it will not follow the theme');
   // NO note, deliberately: the button says `hide` while the overlay is up, and
   // a note as well reflowed the footer -- measured, the button jumped 184px
@@ -8644,6 +8644,35 @@ check('the key and the button are the same switch', () => {
   // `v` must not be claimed twice: the other toggles live in the same mold.
   const taken = [...app.matchAll(/key === '([a-z])'/g)].map((m) => m[1]);
   assert(new Set(taken).size === taken.length, `a debug key is handled twice: ${taken.join(',')}`);
+});
+
+check('greebles: the key and the button are the same switch', () => {
+  // The vision toggle's mold, for the second overlay a phone can reach
+  // (owner, 2026-09-26: "Can we add a show greebles option on phone as
+  // well?"). Same guard, same reasons: both ways in go through ONE function,
+  // exactly one line writes the flag, and there is no note to reflow the
+  // footer under the finger.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const page = readFileSync(join(here, 'index.html'), 'utf8');
+
+  assert(/function setGreebles\(on\)/.test(app), 'there is no single place that owns the greeble state');
+  assert(/key === 'g'\)\s*\{\s*setGreebles\(!renderer\.showGreebles\);/.test(app),
+    'the g key does not go through setGreebles -- it can leave the button reading the wrong thing');
+  assert(/getElementById\('greebles-toggle'\)\?\.addEventListener\('click', \(\) => \{\s*setGreebles\(!renderer\.showGreebles\);/.test(app),
+    'the footer button does not go through setGreebles');
+  const writes = app.match(/renderer\.showGreebles = /g) || [];
+  assert(writes.length === 1,
+    `${writes.length} places set renderer.showGreebles -- one of them will drift from the label`);
+  assert(/id="greebles-toggle" aria-pressed="false">show</.test(page),
+    'the footer has no greebles button, or it does not start in the off state');
+  assert(/#cards-toggle,\s*\n\s*#vision-toggle,\s*\n\s*#greebles-toggle(,\s*\n\s*#[\w-]+)*\s*\{/.test(page),
+    'the greebles button does not share the footer toggles\' styling -- it will not follow the theme');
+  assert(!/id="debug-note"/.test(page),
+    'the greebles note is back -- revealing it reflows the footer and moves the button mid-tap');
+  assert(!/debugNoteEl/.test(app), 'app.js still reaches for a note that no longer exists');
+  assert(/<kbd>g<\/kbd> to reveal greebles/.test(page),
+    'the key is not in the developer legend');
+  assert(/\nsetGreebles\(false\);/.test(app), 'the button is never initialised from the real state');
 });
 
 check('each sky crossing steps below the just-noticeable difference', () => {
@@ -10802,7 +10831,7 @@ check('the click lifecycle is one table, and every row is here', () => {
     'vocab-toggle', 'theme-toggle']) {
     assert(dev.includes(inside), `${inside} escaped the developer group`);
   }
-  for (const outside of ['cards-toggle', 'purr hearts', 'debug-note', 'paced-note']) {
+  for (const outside of ['cards-toggle', 'purr hearts', 'greebles-toggle', 'paced-note']) {
     assert(!dev.includes(outside), `${outside} was swallowed by the developer group`);
   }
   assert(/<kbd>d<\/kbd> for developer toggles/.test(page),
