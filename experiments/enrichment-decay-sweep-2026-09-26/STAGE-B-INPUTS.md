@@ -17,10 +17,14 @@ Stage B arm families, to be pinned at freeze:
    the a-priori arithmetic says the whole channel may sit one to two
    orders below the pressure that worked (one marginal play tick's
    discounted stream ≈ 0.08 team-reward units against ~0.92/tick
-   engine reward). Candidate β 0.10 (and 0.06 if two points are
-   affordable), on the winning decay corner. If stage A's P1 failed
-   with unsaturated traces, this pair is the adjudicator between
-   "structure fixed, magnitude short" and "channel dead".
+   engine reward). BOTH points run (owner, 2026-09-26: "Let's add
+   0.06 as well"): β 0.10 and 0.06 on the winning decay corner —
+   0.10 sits at the natural ceiling (the full-glow lift ≈ the
+   roster's whole p5–p95 happiness spread, ~87–96; past it the
+   bonus rivals real welfare differences in the Nash mean), 0.06
+   gives the slope. If stage A's P1 failed with unsaturated traces,
+   this pair is the adjudicator between "structure fixed, magnitude
+   short" and "channel dead".
 3. **A true accrual-gate arm** (memo finding 5; the owner's original
    mechanism and F-055's recommendation (a)): closed-gate play earns
    NOTHING (E_closed gain = 0), against the decay throttle which
