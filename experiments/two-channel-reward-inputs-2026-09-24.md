@@ -55,6 +55,11 @@ question proper.
   pass bar) under a reshaped reward; any change to gates or budgets is
   the owner's word by the §Ownership list.
 
+Update 2026-09-26: the Gen 3 discussion moved to a third direction (an
+enrichment need under an unamended rule 1) in
+`gen3-free-time-inputs-2026-09-26.md`; the question list above still
+applies where the two overlap. Unruled either way.
+
 ## Standing constraints it lands inside
 
 Gen-order is ruled: Gen 2 (hidden needs) → Gen 3 (free time) → LLM
