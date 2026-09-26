@@ -20,8 +20,11 @@ Tiers and budgets (net lines since the last pass):
   `experiments/FINDINGS.md`, `experiments/DESIGN-DOCTRINE.md`,
   `experiments/ROADMAP.md`, `experiments/README.md`,
   `experiments/fog-gen1-shakeout/GEN2-INPUTS.md`, `BACKLOG.md`,
-  `policies/purrsonality.md`, the skill `TRIALS.md`, and each
-  thread's `TRAPS.md` once it exists
+  `policies/purrsonality.md`, and each thread's `TRAPS.md` once it
+  exists
+- skill `TRIALS.md` files: unmetered during shakeout, frozen at its
+  close (owner ruled 2026-09-25; the condense SKILL.md §TRIALS
+  lifetime carries the rule)
 - tier 3, report only: every other markdown file under `experiments/`
 - outside the budget: `CHANGELOG.md` (a human record; growth is not a
   concern), `specs/`, `docs/`

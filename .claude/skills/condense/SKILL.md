@@ -105,10 +105,12 @@ The landing order:
    clause> (PR #N)`, where `<blob>` is `git rev-parse HEAD:<file>`
    run after commit 1. A blob hash names the condensed CONTENT, so
    it survives any merge style — squash, rebase, the UI button —
-   from any thread (owner ruled 2026-09-25; Client consulted). If
-   review changes the pass after this, the fix and the re-derived
-   blob land in one commit; a stale blob resolves to the older
-   commit and over-counts, never under-counts.
+   from any thread (owner ruled 2026-09-25; Client consulted). One
+   file per line, the field ending `:`; the script exits 2 on any
+   other shape rather than guessing. If review changes the pass
+   after this, the fix and the re-derived blob land in ONE commit —
+   a blob made stale by a fix stops resolving, and every gate run
+   repo-wide exits 3 loudly until the line is corrected.
 
 After merge, `scripts/condense-budget.sh --report` on main confirms
 the tier reads from the new base.

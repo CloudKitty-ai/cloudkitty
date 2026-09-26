@@ -28,7 +28,8 @@ word with her ruling on the diff, tier 2 self-serve on a gate block
 or advisory; owner ruled 2026-09-24). The gate produces a report the
 owning thread reads; a condense pass is the owning thread's own
 commit end to end. What each pass caught or cut is appended to the
-record beside its skill, TRIALS.md discipline. The prepare-for-compact skill files (Product's from
+record beside its skill, TRIALS.md discipline. The
+prepare-for-compact skill files (Product's from
 2026-09-21) move to Harness with the rest of `.claude/`; the TRIALS.md
 append rule stands unchanged: a trialling thread appends its own
 section and never touches another thread's, Product and Client through
@@ -48,7 +49,7 @@ relay; the owner's word in the Harness session starts each.
   `experiments/README.md` needs the owner's own word in the acting
   session. A session denied an action may not ask another to do it.
 - **Harness reads every thread's records and edits none of their
-  files.** A cut list or a verdict is a report; applying it is the
+  files.** A finding or a verdict is a report; applying it is the
   owning thread's commit, on its own lane (2026-09-22).
 
 ## 2. The checkout

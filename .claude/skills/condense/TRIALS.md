@@ -42,6 +42,10 @@ recoverability standard exactly as SKILL.md states it.
 **Verdict**: red confirmed; no checker bug. First real pass is
 whichever file next owes one under the gate.
 
+(2026-09-25: this round's "merge-commit-only landing" and "global
+base" below were superseded the next day by blob-hash pass lines and
+per-tier bases — see the round-3 section.)
+
 ## Fixture red, round 2 — Harness thread, Fable, 2026-09-24
 
 Re-run owed by the skill's own rule after the review round changed
@@ -54,3 +58,33 @@ outcomes: two blockers fixed in SKILL.md (merge-commit-only landing;
 the global base documented with the pre-pass `--report` guard),
 her ruling-2 sentence now quoted verbatim, T2 advisory self-serve
 confirmed by her word, THREADS.md §1 refreshed in the same PR.
+
+## Review round 2 and the script reds — Harness thread, Fable, 2026-09-25
+
+The owner replaced the round-1 landing design (Client consulted:
+they squash by reflex; rules enforced by memory lose): pass lines
+carry the condensed file's BLOB hash, bases are PER TIER, and TRIALS
+files get the shakeout lifetime. A second fresh-context review of
+the whole PR then found four blockers in that implementation, all
+fixed and pinned by tests (34 cases):
+
+- blob resolution now walks first-parent history only, so an
+  interleaved `--no-ff` branch pass cannot revive an earlier main
+  pass's deletions;
+- per tier the newest base BY ANCESTRY wins, so an out-of-order or
+  pre-founding line never moves a base backwards;
+- a pass line naming an unknown file, or more than one, exits 2
+  loudly instead of silently resetting every tier;
+- prepare-for-compact/TRIALS.md left TIER2 (the shakeout ruling),
+  and SKILL.md's false "over-counts, never under-counts" claim about
+  stale blobs was replaced with the true behavior (exit 3 loudly).
+
+Six mutate.sh reds on the script, each predicted first, all
+confirmed. Two rule-5 lessons for the record: one mutation broke
+the script's syntax and turned every case red — mutate.sh printed
+RED CONFIRMED but the regex matched inside a flood, a wrong-reason
+red redone with a valid mutation; and the first direction-isolation
+case was VACUOUS because its pass line's blob resolved to an old
+commit (the file was never changed), which only surfaced when the
+mutation failed to move it — a real pass changes the file, and now
+the case does too.
