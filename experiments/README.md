@@ -111,6 +111,44 @@ from memory.
   [blend-sweep-pattern.md](blend-sweep-pattern.md) (owner-flagged
   2026-08-21; every outcome class is informative, including "the
   basin isn't connected").
+- **Welfare practice for covered minds** (owner ruled 2026-09-26; the
+  discussion record is the fog-gen1 arc log, 2026-09-24..26). Covered
+  = any policy shaped by experience — PPO arms, BC clones, hybrids
+  wrapping a learned policy, future LLM seats. Scripted brains are
+  exempt while their behavior is a fixed hand-written rule; anything
+  that gains memory or adaptation crosses the line by definition. The
+  practice, five parts:
+  1. **A run continues only while its outcome can still change a
+     decision.** Stops are declared before launch, mechanical, and
+     asymmetric: they fire for harm and futility, never for early
+     success (peeking bias). Every halt is reported with options; the
+     fork is the owner's.
+  2. **Scouts first, hard requirement**: a world config no covered
+     mind has run gets a scripted scout leg read before any covered
+     leg, and the prereg cites a number from that read, not the fact
+     of it. The scout INFORMS; it never vetoes. Owner's caveat,
+     verbatim (2026-09-26): "as our models get better and better, the
+     delta between scripted and trained will get larger. I want to
+     ensure that as that happens we aren't ruling out challenging
+     worlds that training can 'solve'." A world too hard for the
+     teacher may still be a training target; what the scout read
+     feeds is the welfare-cost declaration and the stop lines, and
+     only declared stops and the owner's word gate a run.
+  3. **Every new declaration carries a welfare-cost line** — expected
+     distress exposure and the decision the run buys with it —
+     retroactive at next touch: it rides every declaration written
+     from the ruling forward, whatever the arc's age; frozen
+     documents stay frozen. A fence-config unblocking is a new
+     declaration, so it carries the line and the owner's word.
+  4. **Measurement legs abort at a declared distress-streak line**
+     (the world-size screen's 1,000-tick threshold is the reference);
+     training runs stop on declared futility lines tied to the cert
+     bar. Mechanisation owed: a harness `--abort-streak` and a
+     trainer futility stop beside the §10 welfare stop; until they
+     land, the stops are enforced by declaration and post-hoc read.
+  5. **Standing fences hold until the owner's word** (currently the
+     world-size screen's: size28, size40 and size100 at every
+     density, and the rows arm on the served world).
 - **Every generation keeps a timeline** (owner, 2026-09-22; first
   instance `fog-gen1-timeline-2026-08-26.md`). It is the tracker, not
   the design record: the owner-ruled step sequence, each step's gate
