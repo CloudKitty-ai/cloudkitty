@@ -8646,6 +8646,73 @@ check('the key and the button are the same switch', () => {
   assert(new Set(taken).size === taken.length, `a debug key is handled twice: ${taken.join(',')}`);
 });
 
+check('the About card counts toward the right column when the cats are placed', () => {
+  // Owner, 2026-09-26: "when kitty cards are open and 'about cloudkitty' is
+  // open on desktop, the bottom right card extends past the bottom of the map
+  // instead of moving to the left side where there's space". About sits at
+  // the top of the right column, and placeCards measured only the cats, so a
+  // tall About never counted.
+  //
+  // RUNS the shipped placeCards against the heights the live page reported
+  // (2026-09-26, headless Chrome, cards expanded): every card 231.72px, About
+  // 80.53px closed and 463.47px open, a 12px gap, and a 960px map at
+  // 1728x1117 or a 740px one at 1440x900.
+  const app = readFileSync(join(here, 'app.js'), 'utf8');
+  const from = app.indexOf('function placeCards() {');
+  const src = app.slice(from, app.indexOf('\n}\n', from) + 2);
+  const CARD = 231.71875;
+  const GAP = 12;
+  const place = (mapH, aboutH) => {
+    const box = (h) => ({ getBoundingClientRect: () => ({ height: h }) });
+    const cards = [0, 1, 2, 3, 4].map((i) => ({ ...box(CARD), cls: 'kitty-card', id: i }));
+    const about = { ...box(aboutH), cls: 'about-card' };
+    const column = (kids) => ({
+      kids,
+      querySelectorAll: (sel) => (sel === '.kitty-card' ? kids.filter((k) => k.cls === 'kitty-card') : []),
+      querySelector: (sel) => (sel === '.about-card' ? kids.find((k) => k.cls === 'about-card') ?? null : null),
+      appendChild(card) {
+        for (const col of cols) col.kids = col.kids.filter((k) => k !== card);
+        this.kids.push(card);
+      },
+    });
+    // Everything starts on the right, the way renderPanel builds it.
+    const cols = [column([]), column([about, ...cards])];
+    const panelEl = {
+      querySelectorAll: (sel) => (sel === '.panel-col' ? cols
+        : sel === '.kitty-card' ? cols.flatMap((c) => c.kids.filter((k) => k.cls === 'kitty-card')) : []),
+    };
+    const canvas = box(mapH);
+    const getComputedStyle = () => ({ display: 'flex', rowGap: `${GAP}px` });
+    new Function('panelEl', 'canvas', 'getComputedStyle', `${src}\nplaceCards();`)(panelEl, canvas, getComputedStyle);
+    const height = (kids) => kids.reduce((sum, k) => sum + k.getBoundingClientRect().height, 0)
+      + GAP * Math.max(0, kids.length - 1);
+    return {
+      left: cols[0].kids.length,
+      leftH: height(cols[0].kids),
+      rightH: height(cols[1].kids),
+      aboutRight: cols[1].kids[0] === about && !cols[0].kids.includes(about),
+    };
+  };
+
+  // The reported case: About open at 1728x1117. The right column must fit.
+  const open = place(960, 463.46875);
+  assert(open.rightH <= 960,
+    `About open on a 960px map: the right column is ${open.rightH.toFixed(0)}px, past the map by ${(open.rightH - 960).toFixed(0)}px, with ${open.left} cats on the left`);
+  assert(open.leftH <= 960, `...and the left column overflows instead (${open.leftH.toFixed(0)}px)`);
+  assert(open.aboutRight, 'About left the right column, or is no longer at its top');
+
+  // Kept: About closed on the same map is today's even split, two on the left.
+  const closed = place(960, 80.53125);
+  assert(closed.left === 2 && closed.rightH <= 960,
+    `About closed on a 960px map: expected the even split (2 left) inside the map, got ${closed.left} left, right ${closed.rightH.toFixed(0)}px`);
+
+  // Where nothing fits (1440x900, About open), the split with the shortest
+  // TALLER column wins, and the cats do not all pile on the left.
+  const tight = place(740, 463.46875);
+  assert(tight.left === 3,
+    `About open on a 740px map: expected 3 cats left (least overflow), got ${tight.left}`);
+});
+
 check('greebles: the key and the button are the same switch', () => {
   // The vision toggle's mold, for the second overlay a phone can reach
   // (owner, 2026-09-26: "Can we add a show greebles option on phone as
