@@ -203,6 +203,40 @@ the session's recommendation), alongside non-saturating stock
 dynamics; both would precede any engine work if she takes the
 branch. Evidence: RESULTS.md there; register entry F-055.
 
+## Professor review, same date — adopted into the plan
+
+The critical memo is `2026-09-26-free-time-arc.md` (Professor thread,
+at the owner's request); the owner adopted its program 2026-09-26
+("Yes please, incorporate all of this into our plan"). What changed:
+
+- **Cross-world cost reads ran as batteries**
+  (`cross-world-cost-reads-2026-09-26/`): finding 2's one-footing
+  comparison (floor-trained minds on floor 0, shaped minds on floor
+  15). Finding 7 closed without collection — the β = 0 all-arm legs
+  already existed (tier-2 pkg: 91.931/92.563 vs 92.320; the recipe
+  is ~free).
+- **Stage B grows two arm families** beyond the bracket sweep
+  (`enrichment-decay-sweep-2026-09-26/STAGE-B-INPUTS.md`): a β-up
+  pair (finding 3 — the channel may be an order or two below the
+  pressure that worked, and F-055 dosed the wrong direction) and a
+  true accrual-gate arm (finding 5 — what runs now is a banking
+  THROTTLE, not the accrual gating this document recommended; the
+  record says so).
+- **F-054's cost-channel recommendation is scoped** (finding 1): the
+  priced arm ran at ~1/5 the hard fine's pressure, so
+  "cheapest shape" and "smallest dose" are currently
+  indistinguishable; the hard-vs-convex form claim (pressure-matched
+  pair) stands. The equal-pressure arm runs only if the penalty
+  fallback revives.
+- **Finding 4 is the owner's framing fork, not a test**: positive-only
+  changes what the happiness number MEANS (absence neutral), never
+  the gradient — a bonus for playing and a penalty for not playing
+  teach identically, and F-055's measured costs demonstrated it. If
+  the owner rules enrichment IS part of welfare, rule 1 holds by
+  construction and the measured costs re-base as the price of a
+  richer welfare definition; if enrichment is a lever for behavior,
+  it is shaping in costume. Flagged for the Gen 2/3 session.
+
 ## What is not settled
 
 The owner is not fully satisfied with the landing point; these are the

@@ -2767,6 +2767,17 @@ feeds the Gen 3 free-time design as its reward machinery candidate
 (the shelf's two-channel entry); the rule-1 structural question is
 the owner's fork, RESULTS §Decision rules.
 
+**Review caveat (2026-09-26, Professor memo
+`2026-09-26-free-time-arc.md`, adopted by the owner):** the priced
+arm ran at λ ≈ 0.12 against the hard fine's 0.6 — one fifth the
+pressure — so the cost-channel-cheapest recommendation is
+confounded with dose until an equal-pressure arm runs; the
+hard-vs-convex form claim (the pressure-matched pair) stands. The
+0.75–1.98 cost was measured on floor 0, where beam-seeking has no
+welfare function; the cross-world reads
+(`cross-world-cost-reads-2026-09-26/`) put it on one footing with
+the world-side cost.
+
 ## F-055 · active · An impact-only gate failed with a persistent bonus stock: the enrichment glow saturated into a level shift (play share 0.0775/0.0885 vs 0.0749 baseline against a 0.10 bar), play starts shifted into the closed-gate region (0.1172–0.1801 vs 0.0843, consistent with banking glow through the need gate), and the residual pressure cost 0.729–0.839 happiness (30/30) without buying the behavior
 
 `enrichment-bonus-screen-2026-09-26/RESULTS.md` (PREREG frozen
