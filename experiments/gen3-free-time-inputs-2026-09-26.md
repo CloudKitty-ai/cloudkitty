@@ -250,11 +250,18 @@ demonstration data itself. Two constraints recorded: (1) rule 5,
 imitability — a trigger keyed to ALL cats' true happiness acts on
 what a fogged student cannot see; the spec form needs an observable
 trigger (own needs low + roster peace as seen/heard), her numbers
-kept as scale-setters only; (2) rule 6 scoping — its letter covers
-the free register (vocalizations); demonstrating recreation acts
-needs it either scoped to its letter or carved out for a rule-fixed
-demonstrating teacher — a one-line doctrine touch on the amendment
-path, queued for #389/Gen 3. Boundary kept: demonstration
+kept as scale-setters only; (2) rule 6 scoping — RESOLVED by
+the owner, same date, verbatim: "free-register was designed to
+allow representation of communication then fixed register didn't
+allow. While in theory information could be gleaned from free time
+actions, their purpose is distinct from free register
+communication." Rule 6 guards the communication register, which its
+text already says; no amendment needed, and the teacher may
+demonstrate frolic/snuggle. Sequencing, her word: this lands "into
+the gen 3 design after gen 2" — and the TRAINED form of the
+surplus trigger is expected to be the Gen 2 mini-friend-model's
+roster estimate (see GEN2-INPUTS §mini-friend-model, friend-state
+head). Boundary kept: demonstration
 establishes existence and context; PREFERENCE (">90, frolic/snuggle
 dominate") stays trained, so the screens' emergence question stands.
 The scripted teacher remains rule-fixed, so the welfare practice's

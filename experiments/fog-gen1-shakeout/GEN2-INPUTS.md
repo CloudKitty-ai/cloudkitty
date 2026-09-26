@@ -144,6 +144,17 @@ discussion; her words verbatim where quoted):
   abundant); the reduced-density worlds are the regime where eating
   deprives, and the here/want machinery plus hidden needs make it a
   theory-of-mind read. Design lands in the Gen 2 prereg.
+- **A friend-STATE estimate as an explicit output (owner-prompted,
+  2026-09-26)**: asked whether the mini-model already includes "an
+  estimate of friend needs/happiness" — it does not; the banked
+  design predicts acts, with state inference only implicit. Her
+  frolic/snuggle trigger (Gen 3: recreation initiated when the
+  roster seems well) is the second consumer that wants the estimate
+  explicit, beside harm prediction (a distress estimate is more
+  directly actionable than an act forecast). Joins the capacity
+  design-session agenda above as the states-vs-acts output question;
+  rule-5 legal (reads only what the mind sees), rule-1
+  outside-the-rule loss, internal (no schema change).
 - **Scoped out of Gen 2, owner's word**: comparing multiple
   counterfactuals ("I would like to tackle it later, once we
   validate the mini-model approach"); and recursive mini-mini minds
