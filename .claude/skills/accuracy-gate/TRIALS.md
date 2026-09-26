@@ -10,6 +10,11 @@ gate appends its own section and never touches another thread's.
 Harness appends through a worktree and a PR; the owning experiment
 thread appends beside its write-up commit.
 
+Lifetime: shakeout evidence, then frozen (owner ruled 2026-09-25;
+the close-out procedure is in the condense skill's SKILL.md
+§TRIALS lifetime). Shakeout closes on the owner's word, backstop
+2026-10-15.
+
 ## Fixture red — Harness thread, Fable, 2026-09-23
 
 The rule-5 red for the skill's first commit. mutate.sh does not fit

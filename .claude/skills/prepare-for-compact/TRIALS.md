@@ -10,6 +10,11 @@ another thread's. Product and Client append through a worktree and a
 PR; Experiments appends on main directly. A trial that drops nothing
 still gets a section; a clean run is evidence too.
 
+Lifetime: shakeout evidence, then frozen (owner ruled 2026-09-25;
+the close-out procedure is in the condense skill's SKILL.md
+§TRIALS lifetime). Shakeout closes on the owner's word, backstop
+2026-10-15.
+
 ## Trial 1 — Product thread, Fable, 2026-09-20
 
 First real compact after PR #402 merged the skill. The post-compact

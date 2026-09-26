@@ -18,14 +18,18 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 (2026-09-08).
 
 Harness (2026-09-22) owns the tooling files and reports on content
-files. Its two standing passes: the accuracy gate (a fresh-context
+files. Harness owns the two standing pass skills; the owning thread
+runs them on its own files: the accuracy gate (a fresh-context
 re-derivation of an artifact's claims against the recorded raws and
 the command that made them, run before the owning thread commits) and
-the condense pass (a cut list for a file or corpus: duplicates across
-homes, dead sections, amendments that should be supersessions). Both
-produce a report; the owning thread applies it. What each pass caught
-or cut is appended to the record beside its skill, TRIALS.md
-discipline. The prepare-for-compact skill files (Product's from
+the condense pass (the owning thread compresses its own over-budget
+file under `.claude/skills/condense/SKILL.md` — tier 1 on the owner's
+word with her ruling on the diff, tier 2 self-serve on a gate block
+or advisory; owner ruled 2026-09-24). The gate produces a report the
+owning thread reads; a condense pass is the owning thread's own
+commit end to end. What each pass caught or cut is appended to the
+record beside its skill, TRIALS.md discipline. The
+prepare-for-compact skill files (Product's from
 2026-09-21) move to Harness with the rest of `.claude/`; the TRIALS.md
 append rule stands unchanged: a trialling thread appends its own
 section and never touches another thread's, Product and Client through
@@ -45,7 +49,7 @@ relay; the owner's word in the Harness session starts each.
   `experiments/README.md` needs the owner's own word in the acting
   session. A session denied an action may not ask another to do it.
 - **Harness reads every thread's records and edits none of their
-  files.** A cut list or a verdict is a report; applying it is the
+  files.** A finding or a verdict is a report; applying it is the
   owning thread's commit, on its own lane (2026-09-22).
 
 ## 2. The checkout

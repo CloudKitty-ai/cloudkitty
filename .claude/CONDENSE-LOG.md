@@ -1,10 +1,12 @@
 # Condense log
 
 The reset points for the growth budget in `scripts/condense-budget.sh`
-(THREADS.md §1, Harness; owner ruled 2026-09-22). The budget is
-accumulation since the last pass, never a stamp: net lines added to
-each tier's files from the SHA on the last pass line to the commit
-under test.
+(THREADS.md §1, Harness; owner ruled 2026-09-22, per-tier bases
+2026-09-25). The budget is accumulation since the last pass, never a
+stamp: net lines added to each tier's files from that tier's base to
+the commit under test. A tier's base is the newest pass line naming a
+file in that tier; a line naming no tiered file (the founding line)
+resets every tier.
 
 Append rule: the PR that applies a condense pass appends its own line,
 whichever thread owns the file; the commit that freezes a tracker
@@ -18,8 +20,11 @@ Tiers and budgets (net lines since the last pass):
   `experiments/FINDINGS.md`, `experiments/DESIGN-DOCTRINE.md`,
   `experiments/ROADMAP.md`, `experiments/README.md`,
   `experiments/fog-gen1-shakeout/GEN2-INPUTS.md`, `BACKLOG.md`,
-  `policies/purrsonality.md`, the skill `TRIALS.md`, and each
-  thread's `TRAPS.md` once it exists
+  `policies/purrsonality.md`, and each thread's `TRAPS.md` once it
+  exists
+- skill `TRIALS.md` files: unmetered during shakeout, frozen at its
+  close (owner ruled 2026-09-25; the condense SKILL.md §TRIALS
+  lifetime carries the rule)
 - tier 3, report only: every other markdown file under `experiments/`
 - outside the budget: `CHANGELOG.md` (a human record; growth is not a
   concern), `specs/`, `docs/`
@@ -27,8 +32,11 @@ Tiers and budgets (net lines since the last pass):
 
 ## Passes
 
-One line each: `- <date> <origin/main sha> <what> (PR #n)`. The script
-reads the SHA on the last line.
+One line each: `- <date> <hash> <file>: <what> (PR #n)`. The hash on
+a new line is the condensed file's blob hash (`git rev-parse
+HEAD:<file>` at the pass commit) — it names content, so it survives
+any merge style (owner ruled 2026-09-25); a commit SHA also resolves,
+which keeps the founding line valid.
 
 - 2026-09-22 b50fc2c budgets set; no pass applied (PR #411)
 

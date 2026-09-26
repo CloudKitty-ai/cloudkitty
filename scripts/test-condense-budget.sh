@@ -59,4 +59,59 @@ git checkout -q "$br"; git branch -q -D fork
 printf '# log\n' > $log; c nolog
 case_ 2 "log without a pass line: exit 2"
 case_ 2 "unreadable log: exit 2" --log /nonexistent
+
+# ---- per-tier bases and blob-hash lines (owner ruled 2026-09-25) ----
+f0=$(git rev-parse --short HEAD)
+printf '# log\n\n## Passes\n\n- 2026-09-25 %s budgets set (PR #0)\n\n## Frozen\n\n' "$f0" > $log; c relog
+grow CLAUDE.md 81; c pt-t1-81
+case_ 1 "per-tier setup: tier 1 at +81 blocked"
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: trimmed (PR #3)\n' "$(git rev-parse --short HEAD)" >> $log; c pt-t2pass
+case_ 1 "a tier 2 pass does NOT reset tier 1: still blocked"
+printf -- '- 2026-09-25 %s CLAUDE.md: condensed (PR #4)\n' "$(git rev-parse --short HEAD)" >> $log; c pt-t1pass
+case_ 0 "a tier 1 pass resets tier 1: passes"
+# a blob-hash pass line survives a squash merge: shrink FINDINGS on a
+# branch, squash it in (the branch commit is discarded), log the blob
+git checkout -q -b pass-br
+seq 1 1500 > experiments/FINDINGS.md; blob=$(git hash-object experiments/FINDINGS.md); c blob-pass
+git checkout -q "$br"; git merge --squash -q pass-br >/dev/null 2>&1; c squashed-pass; git branch -q -D pass-br
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: shrunk on a squashed branch (PR #5)\n' "$blob" >> $log; c blob-line
+case_ 0 "blob-hash line after a squash merge: resolves, passes"
+grow experiments/FINDINGS.md 2001; c blob-growth
+case_ 1 "tier 2 growth from the blob-resolved base: blocked"
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: again (PR #6)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c blob-line2
+case_ 0 "rev-parse HEAD:<file> blob line: resolves, passes"
+printf -- '- 2026-09-25 deadbeefdeadbeefdeadbeefdeadbeefdeadbeef experiments/FINDINGS.md: bogus (PR #7)\n' >> $log; c bogus-line
+case_ 3 "unresolvable hash on a pass line: exit 3"
+
+# ---- round-2 review cases (owner ruled 2026-09-25) ----
+f1=$(git rev-parse --short HEAD)
+printf '# log\n\n## Passes\n\n- 2026-09-25 %s budgets set (PR #0)\n\n## Frozen\n\n' "$f1" > $log; c relog2
+grow experiments/FINDINGS.md 2001; c d2-t2grow
+case_ 1 "direction setup: tier 2 at +2001 blocked"
+seq 1 100 > CLAUDE.md; c d2-t1shrink   # a real pass changes the file
+printf -- '- 2026-09-25 %s CLAUDE.md: condensed (PR #8)\n' "$(git rev-parse HEAD:CLAUDE.md)" >> $log; c d2-t1pass
+case_ 1 "a tier 1 pass does NOT reset tier 2: still blocked"
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: condensed (PR #9)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c d2-t2pass
+case_ 0 "the tier 2 pass then resets tier 2: passes"
+printf -- '- 2026-09-25 %s `experiments/FINDINGS.md`: tick (PR #10)\n' "$(git rev-parse --short HEAD)" >> $log; c malformed
+case_ 2 "backticked file on a pass line: exit 2, not a silent global reset"
+sed '$d' "$log" > "$log.t" && mv "$log.t" "$log"; c unmalform
+printf -- '- 2026-09-25 %s CLAUDE.md, THREADS.md: two at once (PR #10b)\n' "$(git rev-parse --short HEAD)" >> $log; c malformed2
+case_ 2 "two files on a pass line: exit 2, not a silent global reset"
+sed '$d' "$log" > "$log.t" && mv "$log.t" "$log"; c unmalform2
+# interleaved --no-ff: a branch pass logged after a main pass must not
+# revive the main pass's deletions (blob resolves on first-parent history)
+git checkout -q -b pb2
+seq 1 200 > experiments/ROADMAP.md; rb=$(git hash-object experiments/ROADMAP.md); c pb2-pass
+git checkout -q "$br"
+seq 1 300 > experiments/FINDINGS.md; c main-shrink
+printf -- '- 2026-09-25 %s experiments/FINDINGS.md: shrunk on main (PR #11)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c main-line
+git -c user.name=t -c user.email=t@t merge -q --no-ff pb2 -m mrg; git branch -q -D pb2
+printf -- '- 2026-09-25 %s experiments/ROADMAP.md: condensed on a branch (PR #12)\n' "$rb" >> $log; c branch-line
+grow experiments/ROADMAP.md 2100; c after-grow
+case_ 1 "interleaved --no-ff pass cannot revive earlier deletions: +2100 blocked"
+printf -- '- 2026-09-25 %s budgets reset (PR #13)\n' "$(git rev-parse --short HEAD)" >> $log; c refound
+case_ 0 "a later founding line resets every tier: passes"
+printf -- '- 2026-09-25 %s budgets re-noted (PR #14)\n' "$f0" >> $log; c oldfound
+case_ 0 "an out-of-order older line never moves a base backwards: passes"
 exit $fail
