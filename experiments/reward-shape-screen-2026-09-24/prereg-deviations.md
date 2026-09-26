@@ -12,3 +12,12 @@
   3-tick sample missed the discriminating on-beam case); the guard now
   compares every tick and asserts the discriminating case occurs
   (44be2fa), and all three reds are red for the predicted reason.
+- 2026-09-26, post-collection: P1's probe-series clause ("the probe
+  series holds above 0.30 through the leash relaxation") cannot be
+  scored — the shakeout trainer's probes record nash / lounge /
+  in-water / meow rate, not beam placement, and no placement probe
+  was added. The prediction's placement bar is scored on the declared
+  end-state battery instead; a behavior present at 0.92 pooled
+  placement after 9M ticks under β 0.04 either survived the
+  relaxation or re-emerged past it, either of which satisfies the
+  clause's substance. Predictions and rules otherwise unchanged.

@@ -112,6 +112,44 @@ see, so it learns when to discount the prior) and shortcutting (where
 the mind can read the friend's needs directly, as at Gen 1, it will
 ignore the model; train it where the direct route is closed).
 
+**Owner amendments, 2026-09-26** (from the welfare-practice
+discussion; her words verbatim where quoted):
+
+- **Harm-prediction is a first-class consumer** (the fourth, beside
+  proposal acceptance, pursuit and consent): "when it comes to theory
+  of mind, we are not in any way impairing the ability of our cats to
+  predict and avoid harm." The Nash team reward already prefers the
+  compassionate branch (a geometric mean punishes a starving friend
+  far more than it rewards a fed self); with needs hidden, the
+  binding constraint is epistemic — a mind is only as kind as its
+  predictions are accurate — and there is no ostrich incentive
+  anywhere (Nash reads true happiness whether or not the actor knows
+  it, so ignorance is never rewarded).
+- **The capacity question is a DESIGN-SESSION AGENDA ITEM, discussed
+  before any arm runs** (owner: "I'd like to determine how to make
+  optimal use of our limited model space. Where does the balance lie
+  between predicting the common actions, and emphasizing the less
+  common but more distress associated actions. This seems like a
+  reasonable thing to run one or more arms on. Let's make sure we
+  discuss first"). The design tension on record: the entry's
+  frequency-shaped cap ("most common behaviours") prices out exactly
+  the rare, grave states harm-prediction needs; the candidate
+  resolution is capping capacity (parameters), never coverage, with
+  a welfare-critical coverage floor and training weight toward
+  distress-adjacent states (legal as a rule-1 outside-the-rule
+  device).
+- **A food-yielding-under-scarcity screen joins the Gen 2 legs**
+  (owner, 2026-09-26). Whether a mind yields food to a hungrier
+  friend has never been measured (Gen 1: needs visible, worlds
+  abundant); the reduced-density worlds are the regime where eating
+  deprives, and the here/want machinery plus hidden needs make it a
+  theory-of-mind read. Design lands in the Gen 2 prereg.
+- **Scoped out of Gen 2, owner's word**: comparing multiple
+  counterfactuals ("I would like to tackle it later, once we
+  validate the mini-model approach"); and recursive mini-mini minds
+  — cat A predicting what cat B would predict a third cat does —
+  recorded as her speculative note, "clearly a 'for later' thing".
+
 ## Encouraging emergence without shaping — the levers, ranked
 
 1. **Design scarcity of information, not incentives for behavior.**

@@ -2723,3 +2723,37 @@ word — the full cell list with streaks is RESULTS §"The harm rule,
 fired" (the longest streaks: size40/rows 19,872; size100/rows and
 size100-d4 intact 19,776 each). **Promotion**: feeds the Gen 2 sitting
 (#389) as the shelf's world-size input; no number here picks a world.
+
+## F-054 · active · Objective-side pressure substitutes for the world floor: on floor 0 all three counterfactual-floor reward shapes restore beam placement (hard 0.920/0.937, convex 0.768/0.767, priced 0.516/0.496 against the 0.033–0.062 null), pressure shape doses behavior against welfare (happiness orders the reverse), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12
+
+`reward-shape-screen-2026-09-24/RESULTS.md` (PREREG frozen 2026-09-24
++ deviations; owner: "Freezes approved"). Six PPO arms from the
+package clone on `package.toml` (floor 0), β 0.04, plateau stops at
+8–9M ticks; per arm the five swap legs + all-arm, 30 × 20k, eval
+band, against the recorded gen1-A and pkg-arm comparators on the same
+world and seeds. The shapes read the counterfactual state (asleep,
+off-beam, sleep need < 15) from each cat's own observation at
+magnitude-matched coefficients (c1 0.6, c2 1.0, d 0.06; probe-based
+pins).
+
+Why: the world floor worked by making the tile change a nap's outcome
+(F-050); these shapes make the objective price the state the floor
+world forbids, and the gradient finds beams either way. The dose
+ordering (hard > convex > priced on placement, reversed on happiness)
+says the discontinuity is not required — pressure magnitude buys
+behavior at welfare cost. The priced arm hit the declared occupancy
+target (0.054–0.057 vs d = 0.06, from 0.126 baseline) at the least
+cost with a stable interior λ (0.117–0.119, stability 8–10% against
+the 20% line): a readable exchange rate, "the counterfactual state
+costs about 0.12 team reward per tick of occupancy". **Scope**: lab
+training variants only — rules 1 and 2 stand for shipped policy;
+one world, one init, two seeds per shape; the shaped arms' happiness
+deficit is against a baseline optimizing pure welfare on an easy
+world. **Invalidated by**: a replication seed pair where any shape's
+placement lands under 0.15, or a priced arm whose λ diverges or
+pins the clamp. **Re-verify when**: any shape is considered for the
+Gen 3 free-time objective (the amendment path, the owner's ruling);
+the Gen 2 encoding change lands (retrain, new schema). **Promotion**:
+feeds the Gen 3 free-time design as its reward machinery candidate
+(the shelf's two-channel entry); the rule-1 structural question is
+the owner's fork, RESULTS §Decision rules.
