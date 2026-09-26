@@ -30,9 +30,10 @@ session starts each.
   the sentence-level brevity pass. It stays where it is; Harness edits
   it on the owner's word.
 - **Two hooks** in `.claude/hooks/`: `checkout-guard.py` (#356) and
-  `revert-guard.py` (#353). The files are Harness's now; the rules they
-  enforce are Product's (THREADS.md §2), so a change to either is a
-  Harness PR that Product reviews.
+  `revert-guard.py` (#353). The files and the rules they enforce are
+  both Harness's (owner ruled 2026-09-26, superseding this handover's
+  split); a change to either is a Harness PR with a second-thread
+  review, Product by default.
 - **`scripts/mutate.sh`**, the rule-5 cycle. Its lessons live in the
   memory file `mutate-cycle-lessons`.
 - **The memory directory** (`~/.claude/projects/-Users-elizabethkelly-ai-cloudkitty/memory/`):
