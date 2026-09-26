@@ -24,6 +24,7 @@ before trusting a gap here, then add what you find.
 | 890001–890030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 1 (owner 2026-09-15), the seated roster gen1-A + the scripted baseline, 30 × 20k |
 | 895001–895030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 2 (owner 2026-09-15), as above |
 | 900001 | bc-collect | smoke seed, burned |
+| 900401–900430 | enrichment-decay sweep (enrichment-decay-sweep-2026-09-26) | term-guard leg on package.toml, gen1-A seating (the recorded guard run at 900401; PREREG frozen 2026-09-26) |
 | 900301–900330 | enrichment-bonus screen (enrichment-bonus-screen-2026-09-26) | calibration + term-guard probes on package.toml, gen1-A seating (calibration at 900301–900303, the guard's recorded leg at 900304; PREREG frozen 2026-09-26) |
 | 900201–900230 | world-size screen (world-size-screen-2026-09-24) | size × density grid on anchor-b3 derivatives, 20 legs × the SAME 30 seeds (paired within config; PREREG frozen 2026-09-24), + R/exceedance probes at 900201–900203 |
 | 900101–900130 | fog deafening (fog-deafening-2026-09-23) | F-026 fog-era re-run on anchor-b3, gen1-A served roster, 4 arms × the SAME 30 seeds × 20k (paired by design; declaration `fog-deafening-2026-09-23/prereg.md`), + 2 residual-splitting arms free/rows on the same seeds (`prereg-2.md`, 2026-09-24), + 6 direction-only arms dir-r{5,11,16,20,28,37} on the same seeds (`prereg-3.md`, 2026-09-24) |
@@ -50,3 +51,4 @@ before trusting a gap here, then add what you find.
 | 1160000000–1279999999 | beam-world screen tier 6 (beam-world-screen-2026-09-19) | PPO episode seeds, run indices 53–58 (cnt5/7/8 × s1/s2 at floor 15; same formula and stride as the exp-006 row; PREREG-tier6, declared 2026-09-20) |
 | 1280000000–1399999999 | reward-shape screen (reward-shape-screen-2026-09-24) | PPO episode seeds, run indices 59–64 (hard/cvx/lam × s1/s2 on package floor-0; same formula and stride as the exp-006 row; PREREG frozen 2026-09-24) |
 | 1400000000–1479999999 | enrichment-bonus screen (enrichment-bonus-screen-2026-09-26) | PPO episode seeds, run indices 65–68 (bonus/bonus-lo × s1/s2 on package; same formula and stride as the exp-006 row; PREREG frozen 2026-09-26) |
+| 1480000000–1679999999 | enrichment-decay sweep (enrichment-decay-sweep-2026-09-26) | PPO episode seeds, run indices 69–76 stage A corners + 77–78 pre-declared midpoint contingency (decay corners × s1/s2 on package; same formula and stride as the exp-006 row; PREREG frozen 2026-09-26) |
