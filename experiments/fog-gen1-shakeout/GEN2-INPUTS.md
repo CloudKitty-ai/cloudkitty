@@ -144,17 +144,32 @@ discussion; her words verbatim where quoted):
   abundant); the reduced-density worlds are the regime where eating
   deprives, and the here/want machinery plus hidden needs make it a
   theory-of-mind read. Design lands in the Gen 2 prereg.
-- **A friend-STATE estimate as an explicit output (owner-prompted,
-  2026-09-26)**: asked whether the mini-model already includes "an
-  estimate of friend needs/happiness" — it does not; the banked
-  design predicts acts, with state inference only implicit. Her
-  frolic/snuggle trigger (Gen 3: recreation initiated when the
-  roster seems well) is the second consumer that wants the estimate
-  explicit, beside harm prediction (a distress estimate is more
-  directly actionable than an act forecast). Joins the capacity
-  design-session agenda above as the states-vs-acts output question;
-  rule-5 legal (reads only what the mind sees), rule-1
-  outside-the-rule loss, internal (no schema change).
+- **A friend-STATE estimate as an explicit output — RULED IN
+  (owner, 2026-09-26: "let's add happiness/need prediction, being
+  wary of potential for the ostrich effect")**. Background: asked
+  whether the mini-model already includes an estimate of friend
+  needs/happiness — it did not; the banked design predicts acts,
+  with state inference only implicit. Consumers: harm prediction (a
+  distress estimate is more directly actionable than an act
+  forecast) and Gen 3 recreation initiation (the trained form of the
+  frolic/snuggle surplus trigger). Rule-5 legal (reads only what the
+  mind sees), rule-1 outside-the-rule loss, internal (no schema
+  change). **The ostrich wariness, unpacked**: the REWARD side
+  carries no ostrich incentive (Nash reads true happiness whether or
+  not the actor knows it), so the risk is representational, not
+  incentive — three named forms with candidate mitigations for the
+  design session: (a) policy gradients bending shared
+  representations toward convenient estimates → train the estimate
+  head on its own supervised loss with policy gradients stopped at
+  the head; (b) estimates accurate but IGNORED when inconvenient →
+  the consumer reads (does behavior track the estimate in
+  distress-adjacent cases?) are the instrument; (c) calibration
+  degrading exactly in rare grave states → the welfare-critical
+  coverage floor above, plus a standing OSTRICH METRIC: estimate
+  bias conditioned on the friend's true state, per generation —
+  optimism concentrated in the friend's bad states is the signature,
+  and it joins the certification-adjacent reads. Capacity/arm
+  choices stay with the design session.
 - **Scoped out of Gen 2, owner's word**: comparing multiple
   counterfactuals ("I would like to tackle it later, once we
   validate the mini-model approach"); and recursive mini-mini minds
