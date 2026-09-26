@@ -126,17 +126,31 @@ welfare, and be unable to move happiness at low welfare)."
 The session's read of her two mechanisms:
 
 - **The separate happiness channel is the design.** Enrichment is a
-  stock, not a need: it never drags happiness, it only lifts it.
-  Recommended form is multiplicative — happiness = base(survival
-  needs) × (1 + bonus·enrichment) — which yields both of her
-  properties as arithmetic rather than gates: at low base the
-  multiplier moves almost nothing in absolute terms (a hungry cat's
-  gradient from playing is near zero; eating dominates), and at high
-  base the same multiplier is a large lift, so the top of the
-  happiness range only opens through free-register life. The stock
-  rises with enrichment acts, decays slowly toward zero-bonus (a
-  fading glow, which gives PPO the credit-assignment window), and
+  stock, not a need: it never drags happiness, it only lifts it. The
+  stock rises with enrichment acts, decays slowly toward zero-bonus
+  (a fading glow, which gives PPO the credit-assignment window), and
   caps so it cannot be farmed (rule 4).
+- **The bonus is gated in need space** (owner's correction, same
+  session). A first-draft plain multiplier — happiness ×
+  (1 + bonus·enrichment) — fails on the realistic operating range:
+  with rosters at 90–92 and "struggling" meaning 75–85, the
+  enrichment gradient at base 80 is still about 84% of its strength
+  at 95, so multiplication alone never suppresses play. Her words:
+  "with our trained agents even a 70-80 happiness would be 'low
+  welfare' and at that point straight multiplication is still almost
+  as effective as it would be at 100." The revised form: happiness =
+  base + bonus·enrichment·g(worst survival need), where g is a
+  smooth, steep ramp — zero while any need sits below its comfort
+  margin, one as the worst need approaches fully met. Gating on the
+  minimum need rather than the happiness scalar is the faithful
+  reading of "once needs are above a certain threshold" (an
+  aggregate can read high while one need is low), and need space is
+  where thresholds keep stable meaning across rosters. The ramp's
+  threshold and steepness are set from measured gen1 need
+  distributions, never by feel (the F-054 calibration practice, and
+  the same baseline instinct that caught the reward draft 1 flaw).
+  Steepness is the design tension: sharp enough to discriminate 80
+  from 95, smooth enough to avoid an F-047-style cliff.
 - **This retires open items 1 and 2.** The boredom ceiling is zero: a
   cat that never plays is neutral, never suffering — no new way to be
   unhappy, and the certification floor layer is untouched because
@@ -147,7 +161,7 @@ The session's read of her two mechanisms:
   filled.
 - **The gated-relief mechanism is held in reserve, not shipped.**
   Hard-blocking relief until all cats clear a threshold buys little
-  once impact is bonus-shaped (playing at low welfare already pays
+  once impact is gated per cat (playing with a low need already pays
   nothing), and a roster-wide gate lets one struggling cat switch off
   everyone's joy while adding the kind of discontinuity F-047 says
   dominates behavior. The roster coupling she wants is mostly already
@@ -165,9 +179,9 @@ New considerations this form adds:
 - Happiness under this definition is a new scale; gen1/gen2
   comparators need re-basing, and rule 9 applies (only a generation
   retrained under it answers questions about it).
-- The multiplicative form is convex in base welfare — high-base cats
-  gain more per unit of everything. A mild new dynamic, worth one
-  screen read.
+- The gate makes the bonus contingent on the worst need, so cats gain
+  a new (positive-only) return on keeping every need topped up. A
+  mild new dynamic, worth one screen read.
 
 ## What is not settled
 
