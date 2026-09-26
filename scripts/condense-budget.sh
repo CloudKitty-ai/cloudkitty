@@ -71,8 +71,8 @@ resolve_base() {
   local h=$1 p=${2:-} c
   case "$(git cat-file -t "$h" 2>/dev/null)" in
     commit) echo "$h" ;;
-    blob) if [ -n "$p" ]; then c=$(git log --first-parent --diff-merges=first-parent -s --format=%H --find-object="$h" HEAD -- "$p" | tail -n 1)
-          else c=$(git log --first-parent --diff-merges=first-parent -s --format=%H --find-object="$h" HEAD | tail -n 1); fi
+    blob) if [ -n "$p" ]; then c=$(git log --first-parent --diff-merges=first-parent --format=%H --find-object="$h" HEAD -- "$p" | grep -E '^[0-9a-f]{40}$' | tail -n 1)
+          else c=$(git log --first-parent --diff-merges=first-parent --format=%H --find-object="$h" HEAD | grep -E '^[0-9a-f]{40}$' | tail -n 1); fi
           [ -n "$c" ] && echo "$c" ;;
   esac
 }
