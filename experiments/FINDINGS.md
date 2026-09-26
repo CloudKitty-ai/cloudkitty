@@ -2766,3 +2766,54 @@ the Gen 2 encoding change lands (retrain, new schema). **Promotion**:
 feeds the Gen 3 free-time design as its reward machinery candidate
 (the shelf's two-channel entry); the rule-1 structural question is
 the owner's fork, RESULTS §Decision rules.
+
+## F-055 · active · An impact-only gate failed with a persistent bonus stock: the enrichment glow saturated into a level shift (play share 0.0775/0.0885 vs 0.0749 baseline against a 0.10 bar), play starts shifted into the closed-gate region (0.1172–0.1801 vs 0.0843, consistent with banking glow through the need gate), and the residual pressure cost 0.729–0.839 happiness (30/30) without buying the behavior
+
+`enrichment-bonus-screen-2026-09-26/RESULTS.md` (PREREG frozen
+2026-09-26 on the owner's overnight word). Four PPO arms from the
+package clone on `package.toml`, the Gen 3 free-time prototype: a
+positive-only bonus b = β·E·g entering each cat's happiness before
+the Nash mean (exact recomposition; the gap, the ramp 15→25 from the
+gen1-A p50/~p90, the glow gain 0.25 and half-life ~139 ticks, and
+β 0.03/0.015 × two seeds are the PREREG pins, frozen 61d7fc8);
+plateau stops; all-arm batteries 30 × 20k under
+`--abort-streak 1000` against the recorded gen1-A cell (happiness)
+and a fresh gen1-A leg (play baselines, which reproduced the
+recorded cell's shared fields exactly).
+
+The plausible mechanics of the P1 miss (diagnosis, not proof — no
+non-saturating control ran, and bonus-s2 still lifted play 18%):
+baseline-rate play alone pins the glow near its cap (last-quarter
+trace E 0.917–0.921 with the gate partly open, g 0.637–0.646, the
+term a roughly steady ~58% of β per tick), so marginal play buys
+almost nothing — a level shift teaches little. The stock's persistence leaves the gate pricing only the
+payout, never the act — a cat that plays while needy still holds the
+glow when the gate reopens — and the closed-gate start shift is
+consistent with exactly that banking (not proven: the data cannot
+separate it from needs generally running closer to the edge). Both dose arms sit inside
+the full arms' play range (0.0833/0.0858 vs 0.0775–0.0885), so β
+did not bind within the tested 0.015–0.03 (two seeds per β; larger
+β untested); the welfare cost tracked β (full −0.729/−0.839,
+dose −0.251/−0.381) while behavior did not. The F-054 sleep dodge
+splits by training seed (bonus-s2 inside the ±0.015 sleep band,
+0.1282 vs 0.1354; bonus-s1 breaks it, 0.1174); low-need nap starts
+fell (0.132–0.273 vs 0.284), which does not discriminate from
+F-054; part of bonus-s1's cost plausibly rides the old dodge, and
+the split of the remainder is unmeasured — what was measured:
+distress ticks 1,124/2,286 vs
+360, teammate-distressed play-start share up to 0.0021 vs 0.0003,
+all screen-scale, max streak 492, zero aborts. **Scope**: lab
+trainer prototype only, one world, one init, two seeds per β; the
+gate form tested is impact-only with these stock dynamics — the
+finding is about that combination, not about bonus channels as a
+class. **Invalidated by**: an accrual-gated or non-saturating
+variant failing the same way (which would indict the channel, not
+the gate), or a replication where these pins do lift play past the
+bar. **Re-verify when**: the Gen 3 free-time design fixes its
+mechanism. **Promotion**: redesign direction into the Gen 3 inputs
+(`gen3-free-time-inputs-2026-09-26.md`), as the session's
+RECOMMENDATION at the owner's fork, not a declared branch: gate the
+ACCRUAL (the owner's original mechanism; per cat is this session's
+recommendation) and de-saturate the stock so marginal play carries
+marginal value — both preceding any engine work if she takes the
+branch at all; RESULTS §Decision rules.

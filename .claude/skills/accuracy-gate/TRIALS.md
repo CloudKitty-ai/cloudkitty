@@ -182,3 +182,45 @@ match; adopted), (2) citing the flattering member of a pair (the
 what the prose claims" suggestion is the recoverability rule working
 in reverse — the write-up wanted numbers the reader did not print,
 and the fix was the reader, not the prose.
+
+## 2026-09-26 · enrichment-bonus screen (Experiments) · PASS round 7 of 7
+
+Gated: `experiments/enrichment-bonus-screen-2026-09-26/RESULTS.md` +
+F-055 copy + gen3 inputs §Screen verdict copy. Every number clean
+from round 1 (fresh read byte-identical to recorded all seven
+rounds); all six failures were prose. Author failure modes, for the
+fixture:
+
+1. **Rewrote the frozen decision branches into the recommendation**
+   (round 1): merged P1-fail and a not-fired P2 branch, dropped "the
+   fork is the owner's", presented the session's redesign as a fired
+   branch. Same shape as the reward-shape screen's dose framing:
+   the write-up wants the story it already believes.
+2. **Paraphrase in quote marks** (rounds 1, 2): the owner's proposal
+   and a shelf bullet both got quotation marks around words they
+   never said. Quote marks now mean verbatim-or-nothing.
+3. **A statistical claim with no test behind it** (round 1):
+   "statistically indistinguishable" — a paired test actually
+   separates the arms; the honest statement was a range overlap.
+4. **The prereg's own definition contradicted a convenient claim**
+   (round 3): "not the F-054 dodge" while bonus-s1 broke the ±0.015
+   band P4 itself labels "the F-054 dodge, watched", plus a
+   non-discriminating discriminator (low-need fall — F-054 moved the
+   same way). The gate caught it by reading PREREG, not the numbers.
+5. **NEW CLASS — hedges and labels do not survive copying** (rounds
+   4, 5, 6): RESULTS said "consistent with / plausibly / this
+   session's recommendation / if she takes the branch"; the F-entry
+   and shelf copies dropped them and stated cause, attribution, and
+   precedence as fact. Three consecutive rounds each caught another
+   stripped qualifier. The copy check must compare HEDGES at the
+   same fidelity as numbers — added to the round-6/7 subagent brief
+   as "hedges and labels must survive the copy"; recommend the
+   fixture grow a stripped-hedge plant.
+6. **Unscoped generalisation from two points** (round 5): "β was not
+   the binding constraint" from two β values × two seeds; scoped to
+   the tested 0.015–0.03.
+
+Also of note: round 7's watch items (title cost attribution rides
+the dose gradient; "not an incentive" is diagnosis under a blanket
+label) were judged SUPPORTED but are the same genus as item 5 —
+titles compress, and compression strips hedges.

@@ -183,6 +183,26 @@ New considerations this form adds:
   a new (positive-only) return on keeping every need topped up. A
   mild new dynamic, worth one screen read.
 
+## Screen verdict, same date (F-055)
+
+The overnight prototype (`../enrichment-bonus-screen-2026-09-26/`,
+PREREG frozen on her word) FAILED its bars, informatively: play share
+0.0775/0.0885 against the 0.10 bar (baseline 0.0749), closed-gate
+play starts 0.1172–0.1801 against 0.0843, paired happiness
+−0.729/−0.839 on the full arms. The screen's diagnosis (no control
+arm proves either reading): the glow saturated into a level shift
+(marginal play bought almost nothing), and the persistent
+stock lets a cat that plays while needy still hold the glow once the
+gate reopens — the closed-gate shift is consistent with exactly that
+banking. The dodge that this document's bullet "The gated-relief
+mechanism is held in reserve, not shipped" dismissed is consistent
+with the first screen's closed-gate shift (not proven; the data
+cannot separate it from needs running closer to the edge); the owner's original accrual-gating mechanism is the session's
+recommended fix at her fork, not a declared branch (per cat likewise
+the session's recommendation), alongside non-saturating stock
+dynamics; both would precede any engine work if she takes the
+branch. Evidence: RESULTS.md there; register entry F-055.
+
 ## What is not settled
 
 The owner is not fully satisfied with the landing point; these are the
