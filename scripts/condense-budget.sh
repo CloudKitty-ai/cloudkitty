@@ -22,9 +22,15 @@
 # be an ancestor of HEAD: on a pull request the checkout is the merge
 # commit, so it is; locally, merge origin/main in first.
 #
+# Per tier, the base is the newest resolved commit by ancestry across
+# that tier's pass lines and the founding lines, so an out-of-order or
+# pre-founding line can never move a base backwards. Needs git >= 2.31
+# (--diff-merges=first-parent).
+#
 # Exit codes: 0 within budget · 1 over a blocking budget or frozen file
-# changed · 2 usage, log unreadable, or a tier with no base line ·
-# 3 a base does not resolve or is not an ancestor of HEAD.
+# changed · 2 usage, log unreadable, a malformed pass line, or a tier
+# with no base line · 3 a pass-line hash does not resolve (stale blob?)
+# or a base is not an ancestor of HEAD.
 set -u
 
 T1_BLOCK=80
@@ -35,8 +41,10 @@ TIER1=(CLAUDE.md THREADS.md .claude/skills/prepare-for-compact/SKILL.md)
 TIER2=(experiments/FINDINGS.md experiments/DESIGN-DOCTRINE.md
   experiments/ROADMAP.md experiments/README.md
   experiments/fog-gen1-shakeout/GEN2-INPUTS.md BACKLOG.md
-  policies/purrsonality.md .claude/skills/prepare-for-compact/TRIALS.md
+  policies/purrsonality.md
   client/TRAPS.md crates/TRAPS.md experiments/TRAPS.md .claude/TRAPS.md)
+# Skill TRIALS.md files are unmetered during shakeout and frozen at its
+# close (owner ruled 2026-09-25; the condense SKILL.md carries the rule).
 TIER3_GLOB=('experiments/*.md' 'experiments/**/*.md')
 
 mode=gate; log=.claude/CONDENSE-LOG.md
@@ -50,45 +58,57 @@ done
 [ -r "$log" ] || { echo "condense-budget: cannot read $log" >&2; exit 2; }
 
 in_list() { local x=$1 m; shift; for m in "$@"; do [ "$x" = "$m" ] && return 0; done; return 1; }
-tier_of() {  # file (4th field of a pass line, ':' stripped) -> 1|2|3|0=global
+tier_of() {  # file (4th field of a pass line, ':' stripped) -> 1|2|3|0=unknown
   in_list "$1" "${TIER1[@]}" && { echo 1; return; }
   in_list "$1" "${TIER2[@]}" && { echo 2; return; }
   case "$1" in experiments/*.md) echo 3 ;; *) echo 0 ;; esac
 }
-resolve_base() {  # hash [path] -> the base commit; blob = oldest commit carrying it
+# hash [path] -> the base commit. A blob resolves on HEAD's FIRST-PARENT
+# history (git >= 2.31): the commit where the content landed on the main
+# line, whatever merge style carried it there. A blob a fix made stale
+# stops resolving, which fails loudly below.
+resolve_base() {
   local h=$1 p=${2:-} c
   case "$(git cat-file -t "$h" 2>/dev/null)" in
     commit) echo "$h" ;;
-    blob) if [ -n "$p" ]; then c=$(git log --format=%H --find-object="$h" HEAD -- "$p" | tail -n 1)
-          else c=$(git log --format=%H --find-object="$h" HEAD | tail -n 1); fi
+    blob) if [ -n "$p" ]; then c=$(git log --first-parent --diff-merges=first-parent -s --format=%H --find-object="$h" HEAD -- "$p" | tail -n 1)
+          else c=$(git log --first-parent --diff-merges=first-parent -s --format=%H --find-object="$h" HEAD | tail -n 1); fi
           [ -n "$c" ] && echo "$c" ;;
   esac
+}
+newer() {  # of two commits, the descendant; incomparable -> the later line's
+  if [ -z "$1" ]; then echo "$2"
+  elif git merge-base --is-ancestor "$1" "$2"; then echo "$2"
+  elif git merge-base --is-ancestor "$2" "$1"; then echo "$1"
+  else echo "$2"; fi
 }
 
 pass_lines=$(grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9a-f]{7,40} ' "$log")
 [ -n "$pass_lines" ] || { echo "condense-budget: no pass line in $log" >&2; exit 2; }
-h1=""; f1=""; h2=""; f2=""; h3=""; f3=""
+base1=""; base2=""; base3=""
 while read -r _ _ h f _; do
-  f=${f%:}
-  case "$(tier_of "$f")" in
-    1) h1=$h; f1=$f ;;
-    2) h2=$h; f2=$f ;;
-    3) h3=$h; f3=$f ;;
-    *) h1=$h; f1=""; h2=$h; f2=""; h3=$h; f3="" ;;
+  file=""
+  case "$f" in
+    *:) file=${f%:}
+        if [ "$(tier_of "$file")" = 0 ]; then
+          echo "condense-budget: pass line names '$file', which is not a tiered file" >&2; exit 2
+        fi ;;
+    */*|*.md*) echo "condense-budget: malformed pass line field '$f' (one tiered file per line, ending ':')" >&2; exit 2 ;;
   esac
+  c=$(resolve_base "$h" "$file")
+  [ -n "$c" ] || { echo "condense-budget: pass-line hash $h does not resolve (a fix made the blob stale, or fetch needed)" >&2; exit 3; }
+  git merge-base --is-ancestor "$c" HEAD || { echo "condense-budget: base $c is not an ancestor of HEAD; merge origin/main in first" >&2; exit 3; }
+  if [ -n "$file" ]; then
+    case "$(tier_of "$file")" in
+      1) base1=$(newer "$base1" "$c") ;;
+      2) base2=$(newer "$base2" "$c") ;;
+      3) base3=$(newer "$base3" "$c") ;;
+    esac
+  else  # founding line: resets every tier
+    base1=$(newer "$base1" "$c"); base2=$(newer "$base2" "$c"); base3=$(newer "$base3" "$c")
+  fi
 done <<< "$pass_lines"
-[ -n "$h1" ] && [ -n "$h2" ] && [ -n "$h3" ] || { echo "condense-budget: a tier has no pass line and no founding line covers it in $log" >&2; exit 2; }
-
-base_for() {  # hash path-or-empty tier-label -> commit, or exit 3 via caller
-  local c
-  c=$(resolve_base "$1" "$2")
-  [ -n "$c" ] || { echo "condense-budget: tier $3 base $1 does not resolve to a commit or a blob in history (fetch?)" >&2; return 3; }
-  git merge-base --is-ancestor "$c" HEAD || { echo "condense-budget: tier $3 base $c is not an ancestor of HEAD; merge origin/main in first" >&2; return 3; }
-  echo "$c"
-}
-base1=$(base_for "$h1" "$f1" 1) || exit 3
-base2=$(base_for "$h2" "$f2" 2) || exit 3
-base3=$(base_for "$h3" "$f3" 3) || exit 3
+[ -n "$base1" ] && [ -n "$base2" ] && [ -n "$base3" ] || { echo "condense-budget: a tier has no pass line and no founding line covers it in $log" >&2; exit 2; }
 
 fail=0
 ci=${GITHUB_ACTIONS:-}
