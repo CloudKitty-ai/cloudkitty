@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **Generation 7's spec line states what fog changed.** The about page
+  now says limited vision makes communication sustain welfare, which
+  was measured before it was written (F-052).
+
 - **The asking words say what they ask for.** A kitty's request bubble
   now reads "Want eat!", "Want drink!", "Want play!", "Want sleep!",
   "Want cuddle!" or "Want bath!", matching the icons planned for them,
