@@ -224,3 +224,27 @@ Also of note: round 7's watch items (title cost attribution rides
 the dose gradient; "not an incentive" is diagnosis under a blanket
 label) were judged SUPPORTED but are the same genus as item 5 —
 titles compress, and compression strips hedges.
+
+## 2026-09-26 · cross-world cost reads (Experiments) · PASS round 4 of 4
+
+Gated: `experiments/cross-world-cost-reads-2026-09-26/RESULTS.md`.
+Numbers clean every round; the four-round arc was all synthesis.
+New failure modes for the fixture:
+
+1. **An abort the author missed** (round 1): the welfare stop fired
+   (lam-s1 seed 870015, 1,000-tick streak) and the write-up said "no
+   leg aborted" — the author read the driver log's markers, not the
+   rows. The gate's seed/abort audit caught it. Lesson mechanised in
+   the brief: list every aborted_streak row and every short row.
+2. **Synthesis outran the design** (rounds 1, 3): "no measured gap",
+   "one fact, two views", "costs every mind" — each a narrative the
+   comparison could not support (confounded with training world;
+   same-mind pairing showed the world cost is mind-dependent). The
+   fix each time was letting the sharper decomposition replace the
+   story.
+3. **A comparator that predates its field** (round 3): citing 0
+   distress ticks from a cell with no dist_ticks field; the honest
+   number came from the fresh same-config leg (360).
+4. **Universals over eight legs** ("across the board", "generally")
+   falsified by one leg (hard-s2 at 347). Check every leg before
+   writing a quantifier.
