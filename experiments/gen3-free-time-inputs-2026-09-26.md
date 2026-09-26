@@ -228,16 +228,37 @@ itself says which); intent becomes observable rather than inferred
 (banking and over-tending reads, free-time share, and her ">90,
 play/cuddle should dominate" intent all become direct action-table
 counts); rules 3 and 4 become structural (a no-relief act cannot
-obsolete a specialist or be farmed). Costs: discovery is harder — a
-recreation act's only payoff is the glow, the scripted teacher
-never performs it, BC cannot seed it, so the β response curve
-(stage B) becomes the critical path; and it is engine work with a
+obsolete a specialist or be farmed). Costs: engine work with a
 schema bump, which Gen 3 pays anyway under rule 9. Spec detail
 flagged early: pairing semantics when a relief-cuddle seeker meets
 a recreation-cuddle partner (one physical act, two ledger entries —
 recommended, but Product's call at spec). The mechanism screens
 (pure play, existing acts) remain valid: glow, gate, decay, and
 banking dynamics are act-agnostic.
+
+**Discovery, resolved by demonstration (owner, same date).** The
+session had flagged cold discovery as the cost (a glow-only act the
+teacher never performs, BC cannot seed). Her answer, verbatim:
+"there's no reason we couldn't update scripted to demonstrate the
+new actions (let's call them frolic and snuggle for now). E.g. any
+time all cats are >85% happiness and the individual cat has all
+needs <10-15 they demonstrate frolic/snuggle (off the cuff numbers,
+don't take them as a spec)." So BC seeds the acts and the bonus
+channel retains rather than teaches (F-050's regime), and the
+teacher's surplus-only trigger writes the gate's semantics into the
+demonstration data itself. Two constraints recorded: (1) rule 5,
+imitability — a trigger keyed to ALL cats' true happiness acts on
+what a fogged student cannot see; the spec form needs an observable
+trigger (own needs low + roster peace as seen/heard), her numbers
+kept as scale-setters only; (2) rule 6 scoping — its letter covers
+the free register (vocalizations); demonstrating recreation acts
+needs it either scoped to its letter or carved out for a rule-fixed
+demonstrating teacher — a one-line doctrine touch on the amendment
+path, queued for #389/Gen 3. Boundary kept: demonstration
+establishes existence and context; PREFERENCE (">90, frolic/snuggle
+dominate") stays trained, so the screens' emergence question stands.
+The scripted teacher remains rule-fixed, so the welfare practice's
+scripted exemption is unchanged.
 
 ## Professor review, same date — adopted into the plan
 
