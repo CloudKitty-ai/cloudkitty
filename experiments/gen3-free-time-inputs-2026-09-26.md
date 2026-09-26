@@ -100,7 +100,10 @@ Design elements from the session:
 - **Rule 6 makes discovery the test.** The scripted teacher never
   performs free-register acts, so BC data cannot seed them; PPO must
   find them from the welfare gradient. If the need design works, that
-  is where it shows.
+  is where it shows. *(Superseded 2026-09-26: the owner scoped rule 6
+  to the communication register and ruled the teacher demonstrates
+  frolic/snuggle — see §The act set, "Discovery, resolved by
+  demonstration". Preference, not existence, is what stays trained.)*
 - **Lambda demoted to an instrument**: the occupancy read and
   learned-price probe become certification and diagnostic tools,
   measured post hoc, never a reward term.
