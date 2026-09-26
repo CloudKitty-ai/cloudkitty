@@ -2724,7 +2724,7 @@ fired" (the longest streaks: size40/rows 19,872; size100/rows and
 size100-d4 intact 19,776 each). **Promotion**: feeds the Gen 2 sitting
 (#389) as the shelf's world-size input; no number here picks a world.
 
-## F-054 · active · Objective-side pressure substitutes for the world floor: on floor 0 all three counterfactual-floor reward shapes restore beam placement (hard 0.920/0.937, convex 0.768/0.767, priced 0.516/0.496 against the 0.033–0.062 null), pressure shape doses behavior against welfare (happiness orders the reverse), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12
+## F-054 · active · Objective-side pressure substitutes for the world floor: on floor 0 all three counterfactual-floor reward shapes restore beam placement (hard 0.920/0.937, convex 0.768/0.767, priced 0.516/0.496 against the 0.033–0.062 null), the shapes trade placement for welfare along an ordered frontier (happiness orders the reverse), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12
 
 `reward-shape-screen-2026-09-24/RESULTS.md` (PREREG frozen 2026-09-24
 + deviations; owner: "Freezes approved"). Six PPO arms from the
@@ -2738,14 +2738,23 @@ pins).
 
 Why: the world floor worked by making the tile change a nap's outcome
 (F-050); these shapes make the objective price the state the floor
-world forbids, and the gradient finds beams either way. The dose
+world forbids, and the gradient finds beams either way. The frontier
 ordering (hard > convex > priced on placement, reversed on happiness)
-says the discontinuity is not required — pressure magnitude buys
-behavior at welfare cost. The priced arm hit the declared occupancy
-target (0.054–0.057 vs d = 0.06, from 0.126 baseline) at the least
+is a property of form for the magnitude-matched pair — hard and
+convex shared expected magnitude at baseline, and the realized
+per-tick terms order the other way — while the priced arm's lower
+placement rides a genuinely lower marginal price (λ ≈ 0.12 against
+c1 = 0.6). The discontinuity is not required to clear the bar
+(convex reaches 0.77), though reproducing the fine's full placement
+did need the fine (P2's failed clause). The arms buy placement
+partly by sleeping less (sleep share 0.086–0.114 against gen1-A's
+0.135, least suppressed under the price). The priced arm hit the
+declared occupancy target (final-update 0.054–0.057, last-quarter
+mean 0.060, against d = 0.06, from the 0.126 baseline) at the least
 cost with a stable interior λ (0.117–0.119, stability 8–10% against
-the 20% line): a readable exchange rate, "the counterfactual state
-costs about 0.12 team reward per tick of occupancy". **Scope**: lab
+the 20% line): a readable exchange rate: a tick with the whole
+roster in the counterfactual state costs about 0.12 team reward
+(about 0.024 per cat-tick). **Scope**: lab
 training variants only — rules 1 and 2 stand for shipped policy;
 one world, one init, two seeds per shape; the shaped arms' happiness
 deficit is against a baseline optimizing pure welfare on an easy

@@ -149,3 +149,31 @@ streaks itself and pre-approved the final wording).
 failure mode is now precise — lists framed as complete that were
 assembled by eye. Threshold-defined lists are the fix the gate keeps
 converging on.
+
+## Reward-shape screen — Experiments thread, Fable, 2026-09-26
+
+Gated reward-shape-screen-2026-09-24/RESULTS.md + F-054. Fresh read
+byte-identical each round; the reader was extended mid-gate (trace
+finals, sleep shares) at the gate's own suggestion so P3/P4 claims
+became recoverable, and the additions changed no prior value.
+
+**Run 1: FAIL.** An 8x headline figure that was really the ratio to
+the null; a last-quarter label on final-update values; a doubled wall
+time; and the substantive catch — "pressure doses behavior" was
+backwards (the prereg magnitude-matched hard and cvx; the gate
+computed realized per-tick terms, which order the OTHER way) — plus
+the sleep-share gap: the prereg's named harmful dodge was unread, and
+reading it revealed the arms buy placement partly by sleeping less.
+**Run 2: FAIL.** Caught that my F-054 edit had silently no-opd (a
+str.replace mismatch under different line wrapping, with a success
+print that lied) — the register still said "dose"; also a
+distress-tick claim that hid hard-s1's 4,737 behind hard-s2's 187.
+**Run 3: PASS.**
+
+**Verdict on the gate**: two new author failure shapes on record —
+(1) unasserted text replacement (fix: every scripted edit asserts its
+match; adopted), (2) citing the flattering member of a pair (the
+187). And one instrument lesson: the gate's "make the reader emit
+what the prose claims" suggestion is the recoverability rule working
+in reverse — the write-up wanted numbers the reader did not print,
+and the fix was the reader, not the prose.

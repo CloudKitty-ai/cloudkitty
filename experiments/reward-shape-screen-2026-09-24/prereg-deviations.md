@@ -17,7 +17,7 @@
   scored — the shakeout trainer's probes record nash / lounge /
   in-water / meow rate, not beam placement, and no placement probe
   was added. The prediction's placement bar is scored on the declared
-  end-state battery instead; a behavior present at 0.92 pooled
-  placement after 9M ticks under β 0.04 either survived the
-  relaxation or re-emerged past it, either of which satisfies the
-  clause's substance. Predictions and rules otherwise unchanged.
+  end-state battery instead. Whether placement held THROUGH the
+  relaxation is unknown and stays unknown for these arms; the
+  end-state bar shows only that the behavior is present after
+  training. Predictions and rules otherwise unchanged.

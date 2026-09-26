@@ -64,9 +64,11 @@ def main():
     gen1a = load(GEN1A_PKG)
     base_seeds = sorted(gen1a)
     out = {"arms": {}, "comparators": {}, "checks": {}}
+    g_ticks = sum(r["ticks"] for r in gen1a.values())
     out["comparators"]["gen1A_package"] = {
         "path": str(GEN1A_PKG),
         "team_happiness_mean": sum(team_hap(gen1a[s]) for s in base_seeds) / len(base_seeds),
+        "sleep_share": sum(sum(r["beam"]["sleep"]) for r in gen1a.values()) / (5 * g_ticks),
     }
     for name, path in PKG_ARMS.items():
         runs = load(path)
@@ -103,11 +105,14 @@ def main():
         arm["trace"] = {
             "n_updates": len(rows),
             "final_lam": rows[-1]["lam_next"],
+            "final_cf": rows[-1]["mean_cf"],
             "lastq_lam_mean": mean_lam,
             "lastq_lam_std_over_mean": (var ** 0.5 / mean_lam) if mean_lam else None,
             "lastq_mean_cf": sum(cf_vals) / len(cf_vals),
             "lastq_mean_term": sum(r["mean_term"] for r in q) / len(q),
         }
+        ticks = sum(r["ticks"] for r in allarm.values())
+        arm["all_arm_sleep_share"] = sum(sum(r["beam"]["sleep"]) for r in allarm.values()) / (5 * ticks)
         out["arms"][slot] = arm
 
     A = out["arms"]
@@ -132,6 +137,8 @@ def main():
                                        "cf_within_0.02_of_d": abs(A[s]["trace"]["lastq_mean_cf"] - D_TARGET) <= 0.02}
                                    for s in ("lam-s1", "lam-s2")},
         "P4_lowneed_start_share": {s: A[s]["all_arm_lowneed_start_share"] for s in SLOTS},
+        "P4_sleep_share": {**{s: A[s]["all_arm_sleep_share"] for s in SLOTS},
+                           "gen1A": out["comparators"]["gen1A_package"]["sleep_share"]},
         "P4_vs_gen1A": {s: {"delta": A[s]["vs_gen1A_paired_delta_mean"], "n_worse": A[s]["vs_gen1A_n_worse"]} for s in SLOTS},
     }
 
@@ -157,6 +164,8 @@ def main():
                  f"happiness gap {ck['P2_happiness_gap_vs_band']['gap']:.3f} vs band {ck['P2_happiness_gap_vs_band']['band']:.3f}.")
         L.append(f"P3 lam placement {ck['P3_lam_placement_both']}; bar both: {ck['P3_bar_0.15_both']}; lam stats {json.dumps(ck['P3_lam_interior_stable'])}.")
         L.append(f"P4 low-need shares {json.dumps({k: round(v, 3) for k, v in ck['P4_lowneed_start_share'].items()})}.")
+        L.append(f"P4 sleep shares {json.dumps({k: round(v, 4) for k, v in ck['P4_sleep_share'].items()})}.")
+        L.append("Trace finals: " + "; ".join(f"{s} lam {A[s]['trace']['final_lam']:.4f} cf {A[s]['trace']['final_cf']:.4f}" for s in ("lam-s1", "lam-s2")) + ".")
         L.append("")
         a.md.write_text("\n".join(L))
         print(f"wrote {a.md}")
