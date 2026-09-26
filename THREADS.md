@@ -84,6 +84,16 @@ writes into the native tree (`sed -i`, redirection), and a
 dirty-then-revert inside a single compound command — the hook checks
 before the command runs.
 
+The hooks are wholly Harness's, files and rules alike (owner ruled
+2026-09-26, superseding the 2026-09-22 handover's split; the split
+was path-dependence — Product is where they were spawned because no
+Harness thread existed). Every hook PR gets a second-thread review —
+Product by default, or whichever thread the change most constrains;
+never self-reviewed. Carve-out: a hook enforcing a welfare gate or
+certification invariant carries that rule's ownership per the
+constitution, not the tooling. Every hook change still gets its
+rule-5 red before merge.
+
 ## 3. Before you diagnose or report
 
 - **Pull first** (2026-08-23): `git fetch && git rev-parse HEAD
