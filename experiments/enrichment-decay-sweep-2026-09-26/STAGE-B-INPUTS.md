@@ -32,6 +32,57 @@ Stage B arm families, to be pinned at freeze:
    the running mechanism is the throttle, not accrual gating; this
    arm is the clean comparison.
 
+## Professor shape inputs (second note, 2026-09-26, at the owner's
+request; source `~/ai/professor/notes/for-experiments-gen3-shape-inputs.md`)
+
+Recorded as inputs; the starred items need the owner's word at the
+stage-B freeze.
+
+- **Dominance arithmetic for β** (their correction of the earlier
+  crossover: a cat's alternative to play is tending its WORST need,
+  and the gate ramps simultaneously): play dominates tending when
+  25·β·g(worst) > 0.15·worst. Against the calibration percentiles:
+  β 0.03 dominates only below worst ≈ 5 (under p5 — consistent with
+  F-055's null), 0.06 below 10 (~p17), 0.10 below ~15.3 (~p52, the
+  gate starting to bite), 0.14 below ~17.5 (~p65), and NO β
+  dominates above worst ≈ 20: **β sets the onset, the gate bracket
+  sets the ceiling (~p75–80)**. Her ">90 global happiness,
+  play/cuddle should dominate" intent therefore prices as a JOINT
+  dial: β and the gate bracket together, not β alone.
+- ***β 0.14 as the informative high point**: approaches the gate
+  ceiling, adjudicates β-binds vs gate-binds, and is the
+  falsification arm for over-tending and welfare cost. Their read:
+  0.06 and 0.10 are well placed; below 0.06 adds little; beyond
+  ~0.2 buys nothing.
+- ***Method: three seeds at three β values beats two seeds at four**
+  — declare a response curve, not a winner. (The owner has ruled
+  0.06 and 0.10 run; the 0.14 point and the 3×3 layout are hers at
+  the freeze.)
+- **Conditions on any β reading**: glow must be unsaturated (read
+  stage A's glow distribution FIRST); gain stays 0.25 (gain·β is
+  the real quantity if gain ever moves).
+- **Behavioral-unit parameterization for the eventual Gen 3
+  battery**: report dominance threshold instead of β, half-life in
+  ticks instead of decay fraction, learned price in happiness
+  points — so Gen 2 and Gen 3 arms compare across constants.
+- **Instruments to make standard** (adopting into `enrich2_read.py`
+  when written): glow distribution per arm (fraction of cat-ticks
+  at cap; mean marginal glow per play tick); costs reported on OLD
+  and NEW welfare definitions both, so the finding-4 ruling applies
+  retroactively; per-seat dominance threshold. The
+  teammate-distressed read should record what the actor COULD HAVE
+  KNOWN at the start tick (fog) — under Gen 2 hidden needs this
+  becomes inference, not observation.
+- **Gen 2 spec question for the #389 sitting**: which needs are
+  hidden from whom decides whether the per-cat gate stays
+  policy-visible or becomes reward-side privileged information
+  (centralized-critic pattern). Belongs in the encoding/world spec
+  conversation before Gen 2 training.
+- **Two-channel restated**: the bonus is a third formalization
+  (satiation-relative incentive); a per-seat λ INSTRUMENT (post
+  hoc, never a reward term) reads what free time is worth to each
+  personality at no cost.
+
 Standing corrections the stage-B write-up inherits from the memo:
 
 - "Positive-only" is a welfare-semantics / governance claim, never a
