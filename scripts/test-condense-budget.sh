@@ -106,7 +106,7 @@ seq 1 200 > experiments/ROADMAP.md; rb=$(git hash-object experiments/ROADMAP.md)
 git checkout -q "$br"
 seq 1 300 > experiments/FINDINGS.md; c main-shrink
 printf -- '- 2026-09-25 %s experiments/FINDINGS.md: shrunk on main (PR #11)\n' "$(git rev-parse HEAD:experiments/FINDINGS.md)" >> $log; c main-line
-git merge -q --no-ff pb2 -m mrg >/dev/null 2>&1; git branch -q -D pb2
+git -c user.name=t -c user.email=t@t merge -q --no-ff pb2 -m mrg; git branch -q -D pb2
 printf -- '- 2026-09-25 %s experiments/ROADMAP.md: condensed on a branch (PR #12)\n' "$rb" >> $log; c branch-line
 grow experiments/ROADMAP.md 2100; c after-grow
 case_ 1 "interleaved --no-ff pass cannot revive earlier deletions: +2100 blocked"
