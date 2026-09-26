@@ -215,6 +215,30 @@ design question this creates: whether Cuddle leaves the gate-need
 set the way Play did, since a cuddle act would otherwise be gated by
 the very need it relieves — to the Gen 3 spec conversation.
 
+**Refinement, same date — dedicated recreation actions (owner's
+proposal, leading direction pending her confirmation).** Her words:
+"What if we jump straight to new actions for free-time (we could use
+variants of play/cuddle not designed for relief, with new action
+table entries, and this gives us clear delineation between
+action-for-relief and action-for-recreation)". The session's read:
+this dissolves the gate question above (recreation-cuddle relieves
+nothing, so Cuddle stays a gate need with no self-reference; a
+needy cuddle is relief, a surplus cuddle is recreation, and the act
+itself says which); intent becomes observable rather than inferred
+(banking and over-tending reads, free-time share, and her ">90,
+play/cuddle should dominate" intent all become direct action-table
+counts); rules 3 and 4 become structural (a no-relief act cannot
+obsolete a specialist or be farmed). Costs: discovery is harder — a
+recreation act's only payoff is the glow, the scripted teacher
+never performs it, BC cannot seed it, so the β response curve
+(stage B) becomes the critical path; and it is engine work with a
+schema bump, which Gen 3 pays anyway under rule 9. Spec detail
+flagged early: pairing semantics when a relief-cuddle seeker meets
+a recreation-cuddle partner (one physical act, two ledger entries —
+recommended, but Product's call at spec). The mechanism screens
+(pure play, existing acts) remain valid: glow, gate, decay, and
+banking dynamics are act-agnostic.
+
 ## Professor review, same date — adopted into the plan
 
 The critical memo is `2026-09-26-free-time-arc.md` (Professor thread,
