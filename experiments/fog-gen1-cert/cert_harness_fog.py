@@ -56,6 +56,13 @@ PER_KITTY, HAP, DIST0 = 32, 6, 20
 # (roster - 1), progress, distress 6, traits 6.
 NEED_SLEEP, POS0, ACT0, SLEEP_ACT, PARTNER_PRESENT, PARTNER_IDX = 2, 7, 9, 2, 17, 18
 NEED_BINS = (5.0, 10.0, 20.0, 40.0)  # beam-world screen: sleep need at a sleep start, bins <5, 5-10, 10-20, 20-40, >=40 (rule 4 read)
+# enrichment-bonus screen (2026-09-26): play accounting on the global state.
+# GATE_NEED_IDX = the five gate needs (Eat, Drink, Sleep, Cuddle, Bath; Play=3
+# excluded); GATE_BINS bins a play start's WORST gate need (x100) as <15,
+# 15-25, >=25 -- the trainer ramp's full / interior / zero regions.
+PLAY_ACT = 5
+GATE_NEED_IDX = (0, 1, 2, 4, 5)
+GATE_BINS = (15.0, 25.0)
 N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
 OBS_DIM = 408
@@ -240,8 +247,42 @@ def deafen(ob, deaf, dims=None):
         ob[heard_only, row:row + KSLOT] = 0.0
 
 
+def play_acc(roster):
+    return {"ticks": [0] * roster, "starts": [0] * roster,
+            "start_gate_bins": [[0] * (len(GATE_BINS) + 1) for _ in range(roster)],
+            "starts_teammate_distressed": [0] * roster}
+
+
+def play_account(st, roster, prev_play, acc):
+    """One tick of play accounting on the global state (enrichment-bonus
+    screen, 2026-09-26). Per seat: ticks in Playing; play STARTS (this tick
+    Playing, previous tick not); the starter's worst gate need binned by
+    GATE_BINS; starts while any TEAMMATE held an active distress flag."""
+    playing = [False] * roster
+    dist_any = [False] * roster
+    for k in range(roster):
+        b = k * PER_KITTY
+        playing[k] = int(st[b + ACT0:b + ACT0 + 7].argmax()) == PLAY_ACT
+        dist_any[k] = bool((st[b + DIST0:b + DIST0 + 6] > 0).any())
+    for k in range(roster):
+        if not playing[k]:
+            continue
+        acc["ticks"][k] += 1
+        if not prev_play[k]:
+            acc["starts"][k] += 1
+            worst = max(float(st[k * PER_KITTY + g]) for g in GATE_NEED_IDX) * 100
+            acc["start_gate_bins"][k][sum(worst >= edge for edge in GATE_BINS)] += 1
+            if any(dist_any[j] for j in range(roster) if j != k):
+                acc["starts_teammate_distressed"][k] += 1
+    return playing
+
+
 def run_one(args):
-    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf, dir_r = args
+    # The tail args are optional (older callers pass shorter tuples; the
+    # deaf/dir_r extension silently broke the 7-tuple guard tests, found
+    # 2026-09-26): pad with None = feature off.
+    args = tuple(args) + (None,) * (10 - len(args))
+    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf, dir_r, abort_streak = args
     # clock_mode "served": the engine's policy seam pins the clock input to 0 at deploy
     # (behavior.rs decide_sync: "No episode runs at deploy"); the harness does the same so
     # the battery reads the served condition. Verified 2026-09-15: with the clock pinned the
@@ -287,6 +328,9 @@ def run_one(args):
     width, height = cfg["world"]["width"], cfg["world"]["height"]
     beams_acc = beam_acc(roster)
     prev_sleep = np.zeros(roster, bool)
+    plays_acc = play_acc(roster)
+    prev_play = [False] * roster
+    aborted_at = None
     # message head per policy seat: counts of the chosen head index per tick (0 = Silent, then HEAD_KINDS
     # order); scripted seats decide inside the engine and are not counted (beam-world screen tier 5, P4)
     msg_counts = {a: [0] * N_MSG for a in names}
@@ -337,8 +381,18 @@ def run_one(args):
             max_dist_age = max(max_dist_age, age)
         beams = {(x, y) for (_id, ty, x, y) in env.elements() if ty == "Sunbeam"}
         prev_sleep = beam_account(st, beams, roster, width, height, prev_sleep, beams_acc)
+        prev_play = play_account(st, roster, prev_play, plays_acc)
+        # Welfare-practice streak abort (owner ruled 2026-09-26; the F-053
+        # 1,000-tick line is the reference): the leg stops the tick any
+        # cat's distress streak REACHES the limit. None = never fires.
+        if abort_streak is not None and max_dist_age >= abort_streak:
+            aborted_at = n_ticks
+            break
 
     return {
+        **({"aborted_streak": {"limit": abort_streak, "at_tick": aborted_at}}
+           if aborted_at is not None else {}),
+        "play": plays_acc,
         "beam": beams_acc,
         "plan": {s: dict(m.stats) for s, m in models.items() if hasattr(m, "stats")},
         "msg": msg_counts,
@@ -396,6 +450,10 @@ def main():
                          "kind family in every policy observation before the forward")
     ap.add_argument("--dir-r", type=float, default=None,
                     help="dir arm only: the fixed heard Manhattan distance in tiles")
+    ap.add_argument("--abort-streak", type=int, default=None,
+                    help="welfare-practice stop (owner ruled 2026-09-26): abort the leg "
+                         "when any cat's distress streak reaches N ticks; the row records "
+                         "aborted_streak and its shortened tick count")
     a = ap.parse_args()
     assert (a.deaf == "dir") == (a.dir_r is not None), "--dir-r goes with --deaf dir, both or neither"
     seats = list(SEATINGS[a.seating])
@@ -405,7 +463,7 @@ def main():
         seats[int(i)] = spec
         tag += f"_s{i}-{spec.split(':', 1)[-1]}"
     seed0 = a.seed0 if a.seed0 is not None else BANDS[a.band]
-    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf, a.dir_r) for i in range(a.seeds)]
+    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf, a.dir_r, a.abort_streak) for i in range(a.seeds)]
     if a.control_brain:
         tag += f"_val-{a.control_brain}"
     if a.deaf == "dir":

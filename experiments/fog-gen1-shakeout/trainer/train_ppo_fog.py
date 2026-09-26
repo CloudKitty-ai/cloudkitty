@@ -443,6 +443,12 @@ def main():
     ap.add_argument("--probe-config", type=Path, default=None,
                     help="world the probe runs on (default: the arm's "
                          "derived config)")
+    ap.add_argument("--futility-bar", type=float, default=None,
+                    help="welfare-practice futility stop (owner ruled 2026-09-26, "
+                         "beside the Section-10 welfare stop): abort when probe nash "
+                         "sits below this bar on --futility-probes consecutive probes. "
+                         "The bar is the prereg's decision-relevance line, not 0.5.")
+    ap.add_argument("--futility-probes", type=int, default=5)
     ap.add_argument("--ckpt-every", type=int, default=50)
     ap.add_argument("--wall-min", type=float, default=None)
     ap.add_argument("--resume", action="store_true")
@@ -533,6 +539,7 @@ def main():
     ticks_per_update = args.fragment * args.n_worlds
     total_updates = args.total_ticks // ticks_per_update
     start_update, segment, stop_strikes = 0, 0, 0
+    futility_strikes = 0
     # Part C plateau state: closed bins as {"ret", "kl"}, the open bin's
     # running sums, and the flat streak.
     bins, open_bin = [], {"ret_sum": 0.0, "ret_n": 0, "kl_sum": 0.0, "kl_n": 0}
@@ -548,6 +555,7 @@ def main():
         np.random.set_state(rk["np_rng"])
         start_update, segment = rk["update"], rk["segment"] + 1
         stop_strikes = rk.get("stop_strikes", 0)
+        futility_strikes = rk.get("futility_strikes", 0)
         vstats = rk.get("vstats", vstats)
         bins, open_bin = rk["bins"], rk["open_bin"]
         flat_streak = rk["flat_streak"]
@@ -731,8 +739,8 @@ def main():
               "torch_rng": torch.get_rng_state(),
               "np_rng": np.random.get_state(),
               "update": update + 1, "segment": segment, "vstats": vstats,
-              "stop_strikes": stop_strikes, "bins": bins,
-              "open_bin": open_bin, "flat_streak": flat_streak}
+              "stop_strikes": stop_strikes, "futility_strikes": futility_strikes,
+              "bins": bins, "open_bin": open_bin, "flat_streak": flat_streak}
 
         if (update + 1) % args.probe_every == 0:
             probe = run_probe(policy, probe_config, PROBE_SEEDS,
@@ -752,6 +760,20 @@ def main():
                 print("STOP RULE (§10): welfare < 0.5 on 3 consecutive "
                       "probes; checkpointed. Deviation entry required.")
                 return
+            # Welfare-practice futility stop (owner ruled 2026-09-26):
+            # asymmetric by design -- it fires only on sustained failure
+            # against the declared bar, never on early success.
+            if args.futility_bar is not None:
+                futility_strikes = (futility_strikes + 1
+                                    if probe["nash"] < args.futility_bar else 0)
+                rk["futility_strikes"] = futility_strikes
+                if futility_strikes >= args.futility_probes:
+                    torch.save(rk, ckpt_path)
+                    save_final("futility-stop")
+                    print(f"FUTILITY STOP: nash < {args.futility_bar} on "
+                          f"{args.futility_probes} consecutive probes; "
+                          "checkpointed. The fork is the owner's.")
+                    return
 
         if closed is not None and flat_streak >= PLATEAU_BINS:
             torch.save(rk, ckpt_path)
