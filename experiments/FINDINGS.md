@@ -1,8 +1,12 @@
 # Findings register
 
 Distilled, generalizable research conclusions — the claims that outlive any
-one experiment. Results files under `exp-*/results/` are the immutable
-evidence; this register is the evolving knowledge layer on top of them.
+one experiment. Evidence lives in each arc's directory: `RESULTS.md`
+(arcs since 2026-08-06) or a `results/` directory of dated reads
+(exp-001 to exp-006). Both are append-only once cited: corrections are
+addenda, never edits. Raws sit in uncommitted `results-raw/`; a claim
+here cites a committed file. This register is the evolving knowledge
+layer on top of that evidence (owner ruled A, 2026-09-25).
 
 **Rules:**
 

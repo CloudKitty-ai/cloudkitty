@@ -35,3 +35,4 @@ experiments/**/artifacts/
 
 # handoffs from designer
 design-handoffs/
+experiments/**/results-raw/

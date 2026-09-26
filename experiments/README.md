@@ -32,11 +32,15 @@ configs are frozen and versioned; nothing here may train on them.
   analysis scripts. One directory per tool.
 - `exp-NNN-slug/` — one directory per experiment, holding everything that
   experiment produced: `prereg.md` (frozen at first run; deviations go in
-  its appendix), `figures/`, `results/`, and a manifest tying each result
-  to code commit + config hash + artifact hash + seeds.
-- Raw outputs (JSONL traces, rollout dumps) live in `raw/` subdirectories,
-  which are gitignored. Commit pre-registrations, manifests, and final
-  figures; never commit bulk data or build output.
+  its appendix), `figures/`, the evidence (`RESULTS.md` for arcs since
+  2026-08-06; a `results/` directory of dated reads in exp-001 to
+  exp-006, grandfathered where they stand — owner ruled A, 2026-09-25),
+  and a manifest tying each result to code commit + config hash +
+  artifact hash + seeds.
+- Raw outputs (JSONL traces, rollout dumps) live in `results-raw/`
+  subdirectories, which are gitignored and never committed. Commit
+  pre-registrations, manifests, and final figures; never commit bulk
+  data or build output.
 
 ## Measurement discipline (promoted findings)
 
@@ -181,9 +185,10 @@ Shape, skim layer first (six lines), detail under `<details>`:
 State label alongside `owner-call`: `oc:ready` (meets the bar above;
 a thread may not post one that does not), `oc:discussing` (a dialog is
 open, in the issue comments or a live session), `oc:blocked` (waiting
-on data, named in the body). Only the owner closes an entry; a thread
-closes only by quoting the owner's words verbatim in the closing
-comment. The ruling is then copied into the document that owns it
+on data, named in the body). The owning thread closes an entry once it
+and the owner are both satisfied everything in it is answered and
+ruled (owner, 2026-09-22; THREADS.md §5); the closing comment quotes
+the owner's words verbatim. The ruling is then copied into the document that owns it
 (prereg, timeline, spec) with the issue number: the ledger is inbox
 and index, the owning document stays the record. After a live
 discussion the thread posts a summary comment (what changed, what
