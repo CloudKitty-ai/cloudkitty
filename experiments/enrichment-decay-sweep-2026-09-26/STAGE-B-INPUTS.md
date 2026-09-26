@@ -13,18 +13,17 @@ Stage B arm families, to be pinned at freeze:
    (finding 5): once the decay brackets leave 15→25, gate-caused and
    decay-caused effects interleave — the reader must attribute
    through the split traces explicitly.
-2. **A β-up pair** (memo finding 3): F-055 tested the dose downward;
-   the a-priori arithmetic says the whole channel may sit one to two
-   orders below the pressure that worked (one marginal play tick's
-   discounted stream ≈ 0.08 team-reward units against ~0.92/tick
-   engine reward). BOTH points run (owner, 2026-09-26: "Let's add
-   0.06 as well"): β 0.10 and 0.06 on the winning decay corner —
-   0.10 sits at the natural ceiling (the full-glow lift ≈ the
-   roster's whole p5–p95 happiness spread, ~87–96; past it the
-   bonus rivals real welfare differences in the Nash mean), 0.06
-   gives the slope. If stage A's P1 failed with unsaturated traces,
-   this pair is the adjudicator between "structure fixed, magnitude
-   short" and "channel dead".
+2. **The β family** (memo finding 3, then the Professor shape note
+   below): F-055 tested the dose downward; the a-priori arithmetic
+   says the whole channel may sit one to two orders below the
+   pressure that worked (one marginal play tick's discounted stream
+   ≈ 0.08 team-reward units against ~0.92/tick engine reward).
+   RULED (owner, 2026-09-26, in two words: "Let's add 0.06 as well"
+   then "Yes to 1 and 2"): **β {0.06, 0.10, 0.14} × three seeds
+   each on the winning decay corner — a declared response curve**.
+   If stage A's P1 failed with unsaturated traces, this family is
+   the adjudicator between "structure fixed, magnitude short" and
+   "channel dead".
 3. **A true accrual-gate arm** (memo finding 5; the owner's original
    mechanism and F-055's recommendation (a)): closed-gate play earns
    NOTHING (E_closed gain = 0), against the decay throttle which
@@ -32,11 +31,24 @@ Stage B arm families, to be pinned at freeze:
    the running mechanism is the throttle, not accrual gating; this
    arm is the clean comparison.
 
+**Free-time act set, RULED for Gen 3** (owner, 2026-09-26,
+verbatim): "it's fine to test this with pure play for simplicity,
+but for gen 3 I'd like both play and cuddle to be free time
+activities, and to leave the door open for additional activities."
+So: the screens stay pure-play; the Gen 3 design carries an
+extensible act set with play and cuddle at launch. Design question
+this opens for the Gen 3 spec (not for stage B): Cuddle currently
+sits in the GATE-need set the way Play does not — if cuddling earns
+glow, does Cuddle leave the gate set as Play did, or does a cat's
+own high cuddle need gate it out of cuddle-glow while the act also
+relieves that need? Unresolved; goes to the #389 / Gen 3 design
+conversation.
+
 ## Professor shape inputs (second note, 2026-09-26, at the owner's
 request; source `~/ai/professor/notes/for-experiments-gen3-shape-inputs.md`)
 
-Recorded as inputs; the starred items need the owner's word at the
-stage-B freeze.
+Recorded as inputs; the β and layout items were ruled the same day
+(above).
 
 - **Dominance arithmetic for β** (their correction of the earlier
   crossover: a cat's alternative to play is tending its WORST need,
@@ -49,15 +61,13 @@ stage-B freeze.
   sets the ceiling (~p75–80)**. Her ">90 global happiness,
   play/cuddle should dominate" intent therefore prices as a JOINT
   dial: β and the gate bracket together, not β alone.
-- ***β 0.14 as the informative high point**: approaches the gate
-  ceiling, adjudicates β-binds vs gate-binds, and is the
-  falsification arm for over-tending and welfare cost. Their read:
-  0.06 and 0.10 are well placed; below 0.06 adds little; beyond
-  ~0.2 buys nothing.
-- ***Method: three seeds at three β values beats two seeds at four**
-  — declare a response curve, not a winner. (The owner has ruled
-  0.06 and 0.10 run; the 0.14 point and the 3×3 layout are hers at
-  the freeze.)
+- **β 0.14 RULED IN and the 3×3 layout RULED** (owner, 2026-09-26:
+  "Yes to 1 and 2"): the β family is {0.06, 0.10, 0.14} × THREE
+  seeds each — a declared response curve, not a winner. 0.14
+  approaches the gate ceiling, adjudicates β-binds vs gate-binds,
+  and is the falsification arm for over-tending and welfare cost.
+  Their read stands: below 0.06 adds little; beyond ~0.2 buys
+  nothing.
 - **Conditions on any β reading**: glow must be unsaturated (read
   stage A's glow distribution FIRST); gain stays 0.25 (gain·β is
   the real quantity if gain ever moves).

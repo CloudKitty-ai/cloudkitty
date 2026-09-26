@@ -203,6 +203,18 @@ the session's recommendation), alongside non-saturating stock
 dynamics; both would precede any engine work if she takes the
 branch. Evidence: RESULTS.md there; register entry F-055.
 
+## The act set, ruled (2026-09-26)
+
+Owner, verbatim: "it's fine to test this with pure play for
+simplicity, but for gen 3 I'd like both play and cuddle to be free
+time activities, and to leave the door open for additional
+activities." Screens stay pure-play; Gen 3 launches with play AND
+cuddle earning enrichment, and the act set is extensible by design
+(the enrichment-only activities above join it when built). Open
+design question this creates: whether Cuddle leaves the gate-need
+set the way Play did, since a cuddle act would otherwise be gated by
+the very need it relieves — to the Gen 3 spec conversation.
+
 ## Professor review, same date — adopted into the plan
 
 The critical memo is `2026-09-26-free-time-arc.md` (Professor thread,
