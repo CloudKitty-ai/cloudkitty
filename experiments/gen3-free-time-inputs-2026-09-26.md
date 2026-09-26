@@ -110,24 +110,90 @@ Doctrine touchpoints if this proceeds: rules 1 (unamended), 2, 3, 4,
 headroom), 9 (a retrained generation answers it, not the frozen
 roster).
 
+## Refinement, same day: the bonus channel (owner's mechanism)
+
+The owner confirmed open item 2 below was the dissatisfaction ("Yes,
+that's it exactly") and proposed the fix, verbatim: "The thought was
+once needs are above a certain threshold, the cats can do whatever
+they enjoy most. I do think it's possible to do with an enrichment
+need, but it would need to function different than other needs. Maybe
+it can only relieve when the other needs (of all cats) are all
+fulfilled beyond a certain threshold. Maybe it could have a separate
+impact on the happiness value (rather than giving it a % like the
+other needs, so it could have a disproportionate impact at high
+welfare, and be unable to move happiness at low welfare)."
+
+The session's read of her two mechanisms:
+
+- **The separate happiness channel is the design.** Enrichment is a
+  stock, not a need: it never drags happiness, it only lifts it.
+  Recommended form is multiplicative — happiness = base(survival
+  needs) × (1 + bonus·enrichment) — which yields both of her
+  properties as arithmetic rather than gates: at low base the
+  multiplier moves almost nothing in absolute terms (a hungry cat's
+  gradient from playing is near zero; eating dominates), and at high
+  base the same multiplier is a large lift, so the top of the
+  happiness range only opens through free-register life. The stock
+  rises with enrichment acts, decays slowly toward zero-bonus (a
+  fading glow, which gives PPO the credit-assignment window), and
+  caps so it cannot be farmed (rule 4).
+- **This retires open items 1 and 2.** The boredom ceiling is zero: a
+  cat that never plays is neutral, never suffering — no new way to be
+  unhappy, and the certification floor layer is untouched because
+  nothing new can push happiness down. Free time becomes genuinely
+  free: absence is neutral, presence is joy. With several enrichment
+  activities and trait-scaled relief per activity, each personality's
+  peak comes from a different act — preference revealed, not quota
+  filled.
+- **The gated-relief mechanism is held in reserve, not shipped.**
+  Hard-blocking relief until all cats clear a threshold buys little
+  once impact is bonus-shaped (playing at low welfare already pays
+  nothing), and a roster-wide gate lets one struggling cat switch off
+  everyone's joy while adding the kind of discontinuity F-047 says
+  dominates behavior. The roster coupling she wants is mostly already
+  in the Nash mean (the lowest cat drags the team reward, so playing
+  while a friend suffers pays less than helping). Declared screen
+  read instead: does anyone start an enrichment bout while a teammate
+  is in distress? If that dodge shows, the roster gate is the ready
+  counter, added as an arm.
+- Everything else in the preferred direction above survives unchanged
+  (trait weighting, social relief, company multiplier, enrichment-only
+  acts, rule 6 discovery, lambda as instrument, rule 1 unamended).
+
+New considerations this form adds:
+
+- Happiness under this definition is a new scale; gen1/gen2
+  comparators need re-basing, and rule 9 applies (only a generation
+  retrained under it answers questions about it).
+- The multiplicative form is convex in base welfare — high-base cats
+  gain more per unit of everything. A mild new dynamic, worth one
+  screen read.
+
 ## What is not settled
 
 The owner is not fully satisfied with the landing point; these are the
-open items the session knows about, hers to add to:
+open items the session knows about, hers to add to. Items 1 and 2 are
+RETIRED by the same-day refinement above; kept for the record.
 
-1. **The ceiling value**: how unhappy is maximum boredom allowed to
-   make a cat? It is the single number that sets how hard the world
-   asks for free time, and it is a welfare design decision (the need
-   introduces a new, bounded way to suffer).
-2. **Is a need still "free" time?** Enrichment-as-need makes free
-   time another homeostat to tend. Whether that captures what free
-   time is for, or merely relabels a chore, was not resolved.
-3. **Engine cost**: a new need is product work (spec, cert-gate
-   re-read, served welfare semantics), not an experiments-side patch.
+1. ~~**The ceiling value**~~: retired — the bonus channel has no drag,
+   so the ceiling is zero by construction. (Original question: how
+   unhappy is maximum boredom allowed to make a cat?)
+2. ~~**Is a need still "free" time?**~~: retired — confirmed by the
+   owner as the dissatisfaction, resolved by the bonus channel
+   (absence neutral, presence joy).
+3. **Engine cost**: the bonus channel is product work (spec touching
+   the happiness computation in `welfare.rs` and the activity relief
+   mapping, cert-gate re-read, served welfare semantics), not an
+   experiments-side patch.
 4. **Screen before spec**: the cheap validation is a lab prototype of
-   the need with pure-welfare PPO, checking that free-register
-   behavior emerges and scales with a trait dial. Not designed, not
+   the bonus channel with pure-welfare PPO, checking that
+   free-register behavior emerges, scales with a trait dial, and does
+   not start bouts over a distressed teammate. Not designed, not
    declared, waits on her word.
 5. **Relation to the queued two-channel item**: this path is a third
    direction, neither the shipped floor nor a reshaped reward. The
    queue item's question list still applies where the two overlap.
+6. **The bonus constant and stock dynamics**: the multiplier's size,
+   decay rate, cap, and per-activity relief rates — screen-scale
+   questions once a prototype exists (the F-047 lesson: expect the
+   structure to decide and the constants to matter less).
