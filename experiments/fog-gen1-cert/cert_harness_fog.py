@@ -63,6 +63,11 @@ NEED_BINS = (5.0, 10.0, 20.0, 40.0)  # beam-world screen: sleep need at a sleep 
 PLAY_ACT = 5
 GATE_NEED_IDX = (0, 1, 2, 4, 5)
 GATE_BINS = (15.0, 25.0)
+# enrichment-decay sweep (2026-09-26): the needs block. NEED_HIST_BINS
+# histograms every cat-tick's worst gate need (x100) — the over-tending
+# read; EAT_ACT/DRINK_ACT tick counts catch the tending shift itself.
+NEED_HIST_BINS = (10.0, 15.0, 20.0, 25.0, 30.0)
+EAT_ACT, DRINK_ACT = 3, 4
 N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
 OBS_DIM = 408
@@ -247,6 +252,27 @@ def deafen(ob, deaf, dims=None):
         ob[heard_only, row:row + KSLOT] = 0.0
 
 
+def needs_acc(roster):
+    return {"worst_need_bins": [[0] * (len(NEED_HIST_BINS) + 1) for _ in range(roster)],
+            "eat_ticks": [0] * roster, "drink_ticks": [0] * roster}
+
+
+def needs_account(st, roster, acc):
+    """One tick of needs accounting on the global state (enrichment-decay
+    sweep, 2026-09-26). Per seat: the worst gate need binned by
+    NEED_HIST_BINS (<10, 10-15, 15-20, 20-25, 25-30, >=30), and ticks in
+    Eating / Drinking."""
+    for k in range(roster):
+        b = k * PER_KITTY
+        worst = max(float(st[b + g]) for g in GATE_NEED_IDX) * 100
+        acc["worst_need_bins"][k][sum(worst >= edge for edge in NEED_HIST_BINS)] += 1
+        act = int(st[b + ACT0:b + ACT0 + 7].argmax())
+        if act == EAT_ACT:
+            acc["eat_ticks"][k] += 1
+        elif act == DRINK_ACT:
+            acc["drink_ticks"][k] += 1
+
+
 def play_acc(roster):
     return {"ticks": [0] * roster, "starts": [0] * roster,
             "start_gate_bins": [[0] * (len(GATE_BINS) + 1) for _ in range(roster)],
@@ -330,6 +356,7 @@ def run_one(args):
     prev_sleep = np.zeros(roster, bool)
     plays_acc = play_acc(roster)
     prev_play = [False] * roster
+    needs_hist = needs_acc(roster)
     aborted_at = None
     # message head per policy seat: counts of the chosen head index per tick (0 = Silent, then HEAD_KINDS
     # order); scripted seats decide inside the engine and are not counted (beam-world screen tier 5, P4)
@@ -382,6 +409,7 @@ def run_one(args):
         beams = {(x, y) for (_id, ty, x, y) in env.elements() if ty == "Sunbeam"}
         prev_sleep = beam_account(st, beams, roster, width, height, prev_sleep, beams_acc)
         prev_play = play_account(st, roster, prev_play, plays_acc)
+        needs_account(st, roster, needs_hist)
         # Welfare-practice streak abort (owner ruled 2026-09-26; the F-053
         # 1,000-tick line is the reference): the leg stops the tick any
         # cat's distress streak REACHES the limit. None = never fires.
@@ -393,6 +421,7 @@ def run_one(args):
         **({"aborted_streak": {"limit": abort_streak, "at_tick": aborted_at}}
            if aborted_at is not None else {}),
         "play": plays_acc,
+        "needs": needs_hist,
         "beam": beams_acc,
         "plan": {s: dict(m.stats) for s, m in models.items() if hasattr(m, "stats")},
         "msg": msg_counts,

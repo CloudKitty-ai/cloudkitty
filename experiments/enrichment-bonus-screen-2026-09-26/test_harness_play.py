@@ -38,4 +38,15 @@ for k in range(5):
 # greedy, same seed) which carried zero distress ticks, so no start can
 # see a distressed teammate here.
 assert p["starts_teammate_distressed"] == [0] * 5, p["starts_teammate_distressed"]
-print("test_harness_play ok", {"share": [round(s, 3) for s in share], "starts": p["starts"]})
+# The needs block (enrichment-decay sweep): bins partition the ticks, and
+# Biscuit — the roster's neediest profile in the calibration and kept-green
+# reads — spends a large share of ticks with worst gate need >= 20. A
+# min-for-max slip collapses everyone into the low bins and fails here.
+n = r["needs"]
+for k in range(5):
+    assert sum(n["worst_need_bins"][k]) == TICKS, (k, n)
+    assert n["eat_ticks"][k] + n["drink_ticks"][k] + p["ticks"][k] <= TICKS, (k, n)
+hi20 = sum(n["worst_need_bins"][1][3:]) / TICKS
+assert hi20 > 0.2, ("Biscuit's worst-need >= 20 share", hi20)
+print("test_harness_play ok", {"share": [round(s, 3) for s in share], "starts": p["starts"],
+                               "biscuit_hi20": round(hi20, 3)})
