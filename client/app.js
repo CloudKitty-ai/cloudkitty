@@ -1099,6 +1099,13 @@ function renderPanel(world) {
  * preference; if that stack is taller than the map, split it as evenly as
  * possible across both sides instead.
  *
+ * The right column also holds the About card, above the cats, so its height
+ * is charged to the right side. It used to be left out, and opening About on
+ * a desktop pushed the right column 234px past the map (1728x1117) while
+ * the left one had 486px to spare (owner, 2026-09-26). So when the even split
+ * still leaves the right side over, cats keep moving left, one at a time, for
+ * as long as each move lowers the taller column.
+ *
  * The test compares against the map's current height, and cannot chase its
  * own decision: both sides reserve a card column whether or not they hold
  * cards (index.html), so the map's width budget is the same under either
@@ -1117,14 +1124,29 @@ function placeCards() {
   if (getComputedStyle(columns[0]).display === 'contents') return;
 
   const gap = parseFloat(getComputedStyle(columns[0]).rowGap) || 0;
-  const stack =
-    cards.reduce((sum, card) => sum + card.getBoundingClientRect().height, 0) +
-    gap * (cards.length - 1);
+  const heights = cards.map((card) => card.getBoundingClientRect().height);
+  const about = columns[columns.length - 1].querySelector('.about-card');
+  const aboutH = about ? about.getBoundingClientRect().height : 0;
+  const span = (list) => list.reduce((sum, h) => sum + h, 0) + gap * Math.max(0, list.length - 1);
+  const left = (k) => span(heights.slice(0, k));
+  const right = (k) => {
+    const cats = span(heights.slice(k));
+    return aboutH ? aboutH + (k < heights.length ? gap + cats : 0) : cats;
+  };
+  const mapH = canvas.getBoundingClientRect().height;
   // An odd roster splits with the spare card on the right, the side the
   // cards prefer anyway -- both halves are the same height either way, so
   // the tie goes to keeping the rule's story straight.
-  const onLeft =
-    stack <= canvas.getBoundingClientRect().height ? 0 : Math.floor(cards.length / 2);
+  let onLeft = right(0) <= mapH ? 0 : Math.floor(cards.length / 2);
+  // Past the even split, move one more cat left only while the right side is
+  // still over AND the move lowers the taller of the two columns. Where no
+  // split fits (a short window with About open) that settles on the least
+  // overflow rather than piling everything on one side.
+  const taller = (k) => Math.max(left(k), right(k));
+  while (onLeft > 0 && onLeft < cards.length && right(onLeft) > mapH
+    && taller(onLeft + 1) < taller(onLeft)) {
+    onLeft += 1;
+  }
 
   // Appending a card that is already in place would restart its transitions,
   // so only touch the DOM when the split actually changes. The count is
@@ -2244,6 +2266,10 @@ document.getElementById('vision-toggle')?.addEventListener('click', () => {
   setVision(!renderer.showVision);
 });
 setVision(false);
+
+// Opening or closing About changes the right column's height, and nothing
+// else would re-place the cats until the next world update arrived.
+document.querySelector('.about-card details')?.addEventListener('toggle', () => placeCards());
 
 initTheme();
 initCards();

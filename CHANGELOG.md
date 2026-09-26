@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **Kitty cards make room for About.** With About open on a desktop,
+  the right-hand cards no longer run past the bottom of the meadow: a
+  cat moves to the left side instead, where there was space.
+
 - **Generation 7's spec line states what fog changed.** The about page
   now says limited vision makes communication sustain welfare, which
   was measured before it was written (F-052).
