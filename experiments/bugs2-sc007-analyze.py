@@ -18,7 +18,7 @@ from pathlib import Path
 SP = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location(
     "grid_analyze",
-    "/Users/elizabethkelly/ai/cloudkitty/experiments/bugs2-grid-analyze.py")
+    "experiments/bugs2-grid-analyze.py")
 ga = importlib.util.module_from_spec(spec)
 spec.loader.exec_module.__self__ if False else spec.loader.exec_module(ga)
 

@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-SRC = Path("/Users/elizabethkelly/ai/cloudkitty/cloudkitty.toml").read_text()
+SRC = Path("cloudkitty.toml").read_text()
 # Configs and world snapshots are transient — write them OUTSIDE the repo
 # (pass the scratch dir; raws are the record, these are regenerable).
 OUT = Path(sys.argv[1]) / "configs" if len(sys.argv) > 1 else \
