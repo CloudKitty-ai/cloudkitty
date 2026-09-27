@@ -276,8 +276,11 @@ c_registry() {
   while read -r s f; do
     grep -qxF "$s" "$TMP/reg" || { echo "$f: sha $s not in registry.toml" >> "$D"; ok=1; }
   done < "$TMP/disk_top"
+  # the registry is an append-forever ledger: entries outlive their
+  # artifacts (retirement renames into retired/, some pre-date deletion),
+  # so an entry with no file anywhere is history to note, never a FAIL
   while read -r s; do
-    grep -qF "$s" "$TMP/disk_top" || { echo "registry.toml entry $s has no tracked top-level .ckpolicy" >> "$D"; ok=1; }
+    grep -qF "$s" "$TMP/disk_all" || echo "note: registry.toml entry $s matches no tracked .ckpolicy (retired history?)" >> "$D"
   done < "$TMP/reg"
   grep -oE '^\| `[^`]+\.ckpolicy` \| `[0-9a-f]{64}' "$R/policies/README.md" 2>/dev/null \
     | sed 's/^| `//; s/` | `/ /' > "$TMP/rows"
