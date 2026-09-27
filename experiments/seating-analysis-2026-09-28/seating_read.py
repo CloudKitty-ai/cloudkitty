@@ -32,6 +32,19 @@ HIST_SPREAD = 4  # attach the full histogram when p95 - median > this (tiles)
 MSG_NAMES = ["Silent", "WantFood", "WantWater", "Mew", "WantSleep", "WantPlay", "Purr",
              "WantCuddle", "WantBath", "HereFood", "HereWater", "HereCritter",
              "HereSunbeam", "Chirp", "Trill", "Ekekek"]
+# The SERVED behavior string per seat (what the live /config kitty[] carries),
+# so the heatmap artifact can be staleness-checked against the served roster
+# (Client request 2026-09-28). Source: the handoff table
+# (fog-gen1-cert/seating-handoff-2026-09-16.md), hashes verified against the
+# running server 2026-09-28. The lab replay seats the SAME minds via
+# SEATINGS["gen1-A"] (handoff parity record).
+SERVED_BEHAVIOR = {
+    "Miso": "policy:fog-gen1-miso-cand-s2",
+    "Biscuit": "policy:fog-gen1-biscuit-cand-s1",
+    "Pumpkin": "policy:fog-gen1-pumpkin-dose-lo-s1",
+    "Kittybear": "policy:fog-gen1-kittybear-cand-s4",
+    "Clementine": "policy:fog-gen1-clementine-cand-s7",
+}
 
 
 def pair_dist(pos):
@@ -322,7 +335,14 @@ def main():
     Path(a.out).write_text(json.dumps(out, indent=1))
     print("wrote", a.out)
     if a.heatmap:
-        art = {"seating": "gen1-A", "world": metas[0]["config"],
+        import tomllib
+        cfg_path = Path(__file__).resolve().parent.parent / "fog-gen1-cert" / metas[0]["config"]
+        with open(cfg_path, "rb") as f:
+            kitties = tomllib.load(f)["kitty"]
+        assert [k["name"] for k in kitties] == CATS, kitties
+        seats = {k["name"]: {"behavior": SERVED_BEHAVIOR[k["name"]], "needs": k["needs"]}
+                 for k in kitties}
+        art = {"seating": "gen1-A", "seats": seats, "world": metas[0]["config"],
                "config_sha256": metas[0]["config_sha256"],
                "width": metas[0]["width"], "height": metas[0]["height"],
                "seeds": [m["seed"] for m in metas],
