@@ -33,6 +33,12 @@ change.
 
 ## Unreleased
 
+- **The crates and the Python wheel now declare the repo's actual
+  license.** The workspace metadata said MIT, a leftover from the very
+  first commit, and the wheel declared nothing at all; the repo went
+  Apache 2.0 in August and the LICENSE file has said so since. Every
+  crate and the wheel now declare Apache-2.0 to match.
+
 - **Greebles can be revealed from a phone.** A `greebles` button now sits
   in the footer beside `vision`, doing what the `g` key does, so a touch
   screen can show them too.
