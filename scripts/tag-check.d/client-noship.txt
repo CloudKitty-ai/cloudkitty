@@ -7,4 +7,5 @@ client/gallery.html
 client/gallery-v2.html
 client/gallery-meadow.html
 client/bench-ground.html
+client/og-card.html
 client/fixtures/scene-ends.json

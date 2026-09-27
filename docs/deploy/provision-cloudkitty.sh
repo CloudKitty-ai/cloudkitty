@@ -330,7 +330,17 @@ step "Install to ${CK_APP_DIR}"
 # sandbox below. Root-owned code plus a narrow writable state dir closes that.
 install -o root -g root -m 755 "$BIN" "${CK_APP_DIR}/cloudkitty-server"
 install -o root -g root -m 644 "${CK_BUILD_DIR}/cloudkitty.toml" "${CK_APP_DIR}/cloudkitty.toml"
-rsync -a --delete "${CK_BUILD_DIR}/client/" "${CK_APP_DIR}/client/"
+# The viewer ships from the allowlist in scripts/tag-check.d/client-ship.txt,
+# the same call update.sh's sync_client makes (owner, 2026-09-27: harnesses and
+# galleries never ship). A missing or empty list stops the provision rather
+# than installing an empty viewer.
+CK_CLIENT_LIST="$(mktemp)"
+sed -n 's#^client/##p' "${CK_BUILD_DIR}/scripts/tag-check.d/client-ship.txt" > "$CK_CLIENT_LIST"
+[[ -s "$CK_CLIENT_LIST" ]] || die "scripts/tag-check.d/client-ship.txt is missing or empty"
+rsync -a -m --delete --delete-excluded \
+    --include='*/' --include-from="$CK_CLIENT_LIST" --exclude='*' \
+    "${CK_BUILD_DIR}/client/" "${CK_APP_DIR}/client/"
+rm -f "$CK_CLIENT_LIST"
 # The deployed policy artifacts are committed to policies/ (owner decision
 # 2026-07-31, policies/README.md), so they arrive with the clone and deploy
 # exactly like the viewer -- same --delete, for the same reason: a retired
