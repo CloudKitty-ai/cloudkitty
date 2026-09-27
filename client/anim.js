@@ -2814,6 +2814,16 @@ function clampFrame(edge, worldSpan, frameSpan) {
 }
 
 /**
+ * The nearest aim whose frame fits inside the world -- clampFrame stated
+ * for the centre, so `clampFrame(legalAim(a) - s/2)` is always
+ * `clampFrame(a - s/2)`: the same frame, reached from inside.
+ */
+function legalAim(aim, worldSpan, frameSpan) {
+  if (frameSpan >= worldSpan) return worldSpan / 2;
+  return Math.min(Math.max(aim, frameSpan / 2), worldSpan - frameSpan / 2);
+}
+
+/**
  * The camera (spec 036): a window over the world rather than a map of it.
  *
  * It reports where to look in WORLD TILES and how many of them fit across.
@@ -2880,6 +2890,9 @@ class Camera {
     /** {cssWidth, aspect} the last decision consumed -- a resize is a
      *  discrete retarget (one episode), never a per-frame pursuit. */
     this.lastBounds = null;
+    // The world and aspect of the frame being updated, read by startEpisode
+    // for the drawn curve (see `drawn` there). Set at the top of every update.
+    this.span = null;
     /** Disjoint-group evidence chains: [{ids:Set, members, nearTicks,
      *  farTicks}]. See evidenceFor -- the spec-032 seam. */
     this.chains = [];
@@ -3483,6 +3496,7 @@ class Camera {
       kind,
       from: { aimX: this.aimX, aimY: this.aimY, across: this.across },
       goal,
+      drawn: this.drawnCurve(kind, goal),
       // The velocity this move INHERITS (per-ms, zeros from rest). A
       // re-latch mid-flight hands its momentum to the next curve, so
       // motion between two rest states never passes through a stop while
@@ -3492,6 +3506,64 @@ class Camera {
       elapsed: 0,
       duration: kind === 'pan' ? this.dials.panMs : this.dials.moveMs,
       committed: kind === 'pan',
+    };
+  }
+
+  /**
+   * The curve the FRAME rides during an episode, beside the aim's own.
+   *
+   * The aim may sit past the world's edge -- the shot's centre is where the
+   * decisions are made, and they read it -- and `clampFrame` pins the frame
+   * there. Easing the aim and clamping afterwards made the FRAME start and
+   * stop in one frame whenever the aim crossed that line: measured
+   * 2026-09-27 on the live world at 2560x1440, all 8 sudden speed changes
+   * in 3.5 minutes sat exactly where the frame met an edge (0 -> 6 -> 9.5
+   * px/frame on a start, 2.3 -> 0 on a stop). The owner saw it as hitching.
+   *
+   * So the frame gets its own Hermite between the LEGAL versions of the
+   * two ends, carrying the frame's own velocity. Both ends are the frames
+   * the old path reached, so rest and arrival are unchanged; only frames
+   * mid-move differ. The aim, and everything that decides, is untouched.
+   * (A cap on carried velocity at a wall was tried and removed: on 450
+   * recorded live ticks and a sweep of constructed corner runs it never
+   * changed a single frame.)
+   */
+  drawnCurve(kind, goal) {
+    const span = this.span;
+    if (!span) return null;
+    const down = (a) => a * (span.aspect || 1);
+    // From where the frame IS: mid-flight that is the running drawn curve,
+    // which need not equal the aim made legal -- starting from the aim
+    // instead jumped the frame at every re-latch (measured, 2026-09-27).
+    const at = this.drawnAt();
+    const fromX = at ? at.x : legalAim(this.aimX, span.width, this.across);
+    const fromY = at ? at.y : legalAim(this.aimY, span.height, down(this.across));
+    const toX = legalAim(goal.aimX, span.width, goal.across);
+    const toY = legalAim(goal.aimY, span.height, down(goal.across));
+    const v = this.drawnVelocity();
+    return { fromX, fromY, toX, toY, vx: v.x, vy: v.y };
+  }
+
+  /** Where the running drawn curve has the frame now, or null at rest. */
+  drawnAt() {
+    const ep = this.episode;
+    if (!ep || !ep.drawn) return null;
+    const lead = ep.duration * Camera.AIM_LEAD;
+    const tA = Math.min(1, ep.elapsed / lead);
+    const d = ep.drawn;
+    return { x: hermite(d.fromX, d.toX, d.vx * lead, tA), y: hermite(d.fromY, d.toY, d.vy * lead, tA) };
+  }
+
+  /** The drawn curve's current per-ms velocity, or zeros at rest. */
+  drawnVelocity() {
+    const ep = this.episode;
+    if (!ep || !ep.drawn) return { x: 0, y: 0 };
+    const lead = ep.duration * Camera.AIM_LEAD;
+    const tA = Math.min(1, ep.elapsed / lead);
+    const d = ep.drawn;
+    return {
+      x: hermiteVel(d.fromX, d.toX, d.vx * lead, tA) / lead,
+      y: hermiteVel(d.fromY, d.toY, d.vy * lead, tA) / lead,
     };
   }
 
@@ -3535,6 +3607,7 @@ class Camera {
   update(world, view, opts = {}) {
     const aspect = opts.aspect || 1; // cssHeight / cssWidth
     const cssWidth = opts.cssWidth;
+    this.span = { width: world.width, height: world.height, aspect };
     const now = view?.ambient?.now;
     const dt = this.dtFor(view);
     // A frame with no clock leaves the clock alone. See `dtFor`.
@@ -3767,8 +3840,11 @@ class Camera {
     // inputs, which is what bit-stillness means.
 
     const down = this.across * aspect;
-    this.left = clampFrame(this.aimX - this.across / 2, world.width, this.across);
-    this.top = clampFrame(this.aimY - down / 2, world.height, down);
+    const drawn = this.drawnAt();
+    const frameX = drawn ? drawn.x : this.aimX;
+    const frameY = drawn ? drawn.y : this.aimY;
+    this.left = clampFrame(frameX - this.across / 2, world.width, this.across);
+    this.top = clampFrame(frameY - down / 2, world.height, down);
   }
 }
 

@@ -11973,6 +11973,97 @@ check('sixty RECORDED seconds where the flap LIVES: two events, no more', () => 
   assert(rest >= 0.75, `at rest ${(100 * rest).toFixed(0)}% of the window -- measured 78%`);
 });
 
+check('a pan never changes speed in one frame, even where the frame meets the world edge', () => {
+  // Owner, 2026-09-27: hitching while the camera panned. Measured on the live
+  // world at 2560x1440: every sudden speed change in 3.5 minutes (8 of 8) sat
+  // exactly where the frame met the world's edge, because the aim eased
+  // past the edge and clampFrame then pinned the frame -- a pan that stopped
+  // dead (2.3 -> 0 px/frame) or leapt off the wall (0 -> 6 -> 9.5). Paired on
+  // the same live 4 minutes, old and fixed side by side: 6 events, then 0.
+  //
+  // Replays BOTH recorded windows embedded above (house rule 5: recorded
+  // positions, not a hand-built edge), at 60Hz, and takes the largest
+  // frame-to-frame change in the velocity of the frame's CENTRE on EVERY
+  // frame, zooming ones included (a pan+zoom kink would otherwise pass).
+  // Measured: shipped camera 0.057 (sixty-second window) and 0.039 (fifty
+  // ticks); fixed 0.0022 and 0.0024. The bar sits between, ~4x the fixed.
+  const src = readFileSync(fileURLToPath(import.meta.url), 'utf8');
+  const windows = ['fifty RECORDED ticks', 'sixty RECORDED seconds'].map((title) => {
+    const at = src.indexOf(`check('${title}`);
+    const line = src.slice(src.indexOf('const SAMPLE = ', at), src.indexOf('\n', src.indexOf('const SAMPLE = ', at)));
+    return { title, rows: JSON.parse(line.replace('const SAMPLE = ', '').replace(/;\s*$/, '')) };
+  });
+  const FRAME = 1000 / 60;
+  const PER_TICK = 48; // 800ms ticks at 60Hz
+  const BAR = 0.01; // tiles per frame
+  for (const { title, rows } of windows) {
+    assert(rows.length >= 50, `${title}: the recorded window did not load`);
+    const cam = new api.Camera();
+    cam.on = true;
+    let clock = 0;
+    let prev = null;
+    let prevV = null;
+    let worst = 0;
+    let worstTick = null;
+    let panned = 0;
+    for (const row of rows) {
+      const world = {
+        width: 20, height: 20, tick: row[0], elements: [],
+        kitties: [1, 2, 3, 4, 5].map((id) => ({ id, pos: { x: row[id * 2 - 1], y: row[id * 2] } })),
+      };
+      for (let f = 0; f < PER_TICK; f += 1) {
+        clock += FRAME;
+        cam.update(world, camView(false, clock), { aspect: 1, cssWidth: 1000 });
+        const cur = [cam.left + cam.across / 2, cam.top + cam.across / 2];
+        if (prev) {
+          const v = [cur[0] - prev[0], cur[1] - prev[1]];
+          if (v[0] || v[1]) panned += 1;
+          if (prevV) {
+            const dv = Math.hypot(v[0] - prevV[0], v[1] - prevV[1]);
+            if (dv > worst) { worst = dv; worstTick = row[0]; }
+          }
+          prevV = v;
+        }
+        prev = cur;
+      }
+    }
+    assert(panned > 0, `${title}: the camera never panned, so this measured nothing`);
+    assert(worst <= BAR,
+      `${title}: the frame's centre changed speed by ${worst.toFixed(4)} tiles in one frame at tick ${worstTick} (bar ${BAR}) -- the frame is starting or stopping against the world edge`);
+  }
+});
+
+check('a new move starts the drawn frame exactly where the last one had it', () => {
+  // The drawn curve rides between the LEGAL versions of the aim, so mid-move
+  // the frame need not sit at the legal aim. A re-latch that restarted the
+  // curve from the legal aim instead jumped the frame at the hand-off --
+  // seen once live, 2026-09-27, a correction handing to a shed (the vertical
+  // step went 0.004 -> 0.025 tiles in one frame). Recorded play rarely lands
+  // a re-latch there, so this sets the state directly and asserts the
+  // property: across a hand-off the drawn frame does not move.
+  const world = camAt([10, 10], [11, 10]);
+  const cam = new api.Camera();
+  cam.on = true;
+  cam.update(world, camView(false, 0), { aspect: 1, cssWidth: 1000 });
+  // An aim past the left edge (the shot's centre can sit there), easing
+  // toward the middle: its drawn curve starts at the legal aim instead.
+  cam.aimX = 1;
+  cam.episode = null;
+  cam.startEpisode('correction', { aimX: 10, aimY: cam.aimY, across: cam.across });
+  const legalStart = cam.episode.drawn.fromX;
+  assert(legalStart > 1 + 1e-6, `the drawn curve did not start at the legal aim (${legalStart})`);
+  // Halfway through: move the aim along its own curve as update would.
+  cam.episode.elapsed = cam.episode.duration * 0.4;
+  const at = cam.drawnAt();
+  cam.aimX = 5; // the aim's own curve is elsewhere; only the drawn one is on screen
+  assert(Math.abs(at.x - Math.min(Math.max(cam.aimX, cam.across / 2), 20 - cam.across / 2)) > 0.05,
+    'the fixture lost its point: the drawn frame sits at the legal aim, so any restart would pass');
+  cam.startEpisode('correction', { aimX: 14, aimY: cam.aimY, across: cam.across });
+  const after = cam.drawnAt();
+  assert(Math.abs(after.x - at.x) < 1e-9 && Math.abs(after.y - at.y) < 1e-9,
+    `the hand-off moved the drawn frame from ${at.x.toFixed(3)} to ${after.x.toFixed(3)} in no time`);
+});
+
 /* ---- 038 US4: following composes with the grammar (T019-T020) ------ */
 
 check('a solitary followed kitty is framed alone, at the floor', () => {
