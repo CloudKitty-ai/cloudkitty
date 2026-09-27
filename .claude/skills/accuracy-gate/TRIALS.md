@@ -308,3 +308,27 @@ torch_threads field (doc now cites the code); a modal overclaim
 cross-platform drift surfaced by the gate itself: 1 ulp in a
 Python-side exp/log reduction — worth a doc bullet, invisible to
 the headline claim.
+
+## 2026-09-28 · seating analysis v1, gen1-A baseline (Experiments) · PASS round 2 of 2
+
+Gated: `experiments/seating-analysis-2026-09-28/RESULTS.md` (first
+run of the standing instrument). Round 1 found a REAL INSTRUMENT
+DEFECT the write-up inherited: PRINTER-TIE NONDETERMINISM —
+`max(set(xs), key=xs.count)` resolves ties by hash seed, and two
+per-seed top-partner votes were genuine 2–2 ties, so the doc's
+"verbatim" block failed to reproduce on one cell per run. Lesson: a
+"verbatim" fence is a determinism claim about the PRINTER, not just
+the reader; gate briefs should re-run printers under two or more
+PYTHONHASHSEED values. Also round 1: two social-structure sentences
+CONTRADICTED BY THE DOC'S OWN TABLE (a "mutual modal" claim over a
+tie; a "top-two with every cat but X" claim where X's side also
+ranked the cat top-two — the author narrated the matrix from
+memory instead of re-reading it by row); an F-047 clause carrying
+F-050's "removed" language (F-inheritance across sibling findings);
+"statistically stationary" asserted off nine successive-window
+values with an unmeasured causal attribution. Round 2 clean; one
+WEAK ("closest spatial pair" where the distance column ties)
+adopted as the verifier's exact wording. Guard side, same arc: the
+worst-gate mutate red came back VACUOUS once — the test sampled
+only the one cat whose fixture median is insensitive to the dropped
+index (rig-encodes-a-belief, in a guard); reference all rows.
