@@ -89,6 +89,11 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-048 | active | The free register (mew, chirp, purr) is inert for a visible listener (0.88–1.07) and an unseen listener does less (heard row, not word); want_cuddle moves listeners 1.37× / 2.50× on the same instrument |
 | F-049 | active | Mews and chirps are not echoed (1.0–1.2× chance, lag 1 only); purr piles are cosleep; the visible echo is several cats answering one ask with here-words (1.9× at lag 1, two thirds keyed on the ask) |
 | F-050 | active | Beam seeking survives β 0.04 PPO once the tile changes a nap's outcome: under shallow ground (spec 056 floor 10–25) the package clone keeps 0.46–0.81 of naps on beams through the fine-tune, against 0.04–0.07 at floor 0; a learning mind pays a flat ~1.5 happiness, a frozen mind 1.4–5.2 |
+| F-051 | active | Under a sleep floor, beam count is a step at six for a learned mind and flat past it: five beams cost ~0.6 happiness, six to eight are one level inside the seed spread; a mind trained at six seated on five, seven or eight is never worse than one retrained there |
+| F-052 | active | Under fog the meow channel is load-bearing: hearer-side deafening of every kind costs the served roster 6.716 team happiness on 30 of 30 worlds; here-words alone cost 0.455; want-words are welfare-null |
+| F-053 | active | Under fog, frozen Gen 1 minds do not survive world-size displacement: intact happiness falls 92.471 → 77.935 → 52.813 at 40×40 and 100×100 (teacher 86.343 / 82.898 on the same worlds); exact range on meows stays near-worthless at every size |
+| F-054 | active | Objective-side pressure substitutes for the world floor: all three reward shapes restore beam placement on floor 0 (0.516–0.937 against a 0.033–0.062 null), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12 |
+| F-055 | active | An impact-only gate failed with a persistent bonus stock: the glow saturated into a level shift, play starts shifted into the closed-gate region (consistent with banking), and the pressure cost 0.729–0.839 happiness (30/30) without buying the behavior |
 
 ---
 
@@ -395,7 +400,7 @@ slot-structured encoding; the 1/3 seed rate is specific to this class.
 
 **Evidence**: [collapse forensics](exp-001-bc-mappo/results/collapse-forensics-2026-07-30.md);
 [served-world re-measurement](exp-001-bc-mappo/results/served-world-remeasure-2026-07-30.md);
-tool `trainer/forensics_replay.py`.
+tool `trainer/forensics_replay.py` (recorded (local): untracked, evidence-archive ruling 2026-09-27).
 
 **Implications**:
 - **exp-002's primary robustness target**: make empty-slot patterns
@@ -1077,7 +1082,7 @@ the generalizable claim; the shares are engine-mortal.
 **Evidence**:
 [grid-2026-08-07.md](exp-003-water-schema/results/grid-2026-08-07.md)
 (§9.1, the standout, the lake section);
-[water-band summary](exp-003-water-schema/results/water-band-2026-08-07/);
+[water-band summary](exp-003-water-schema/results/water-band-2026-08-07/) (recorded (local): untracked, evidence-archive ruling 2026-09-27);
 exp-003 prereg §1–§3 (the registered refusal to escalate the dial).
 
 **Implications**: when a behavior needs steering, reach for
@@ -2463,7 +2468,7 @@ reprice.
 ## F-047 · active · A relief differential worth one tick per nap does not move sleep placement: sleeping cats lie on a beam 2.8× as often as cats in general but the adjacent ring is at chance (0.93×), price 7 / 10 / 15 never left the seed spread, and only the leash held the beam share
 
 `fog-gen1-cert/RESULTS.md` §"3. Beam naps" and
-`results-raw/live/beam_adjacency.py` on the gen1-A trace
+`results-raw/live/beam_adjacency.py` (recorded (local): untracked, evidence-archive ruling 2026-09-27) on the gen1-A trace
 (`beam-adjacency-gen1A.json`, uncommitted): 16,299 sleeping cat-ticks, a
 beam visible in 41% of them. Chebyshev distance to the nearest visible
 beam, 0 / 1 / 2 / 3 / 4 tiles: 12.7 / 19.2 / 28.4 / 32.9 / 6.8% of
