@@ -229,7 +229,9 @@ has "docs/extra.md -> nope/missing.md" "dead link named with source"
 printf '[maybe](../evals/v4/plan.md)\n' >> docs/extra.md
 printf 'docs/nope/missing.md\n' >> scripts/tag-check.d/link-allow.txt
 case_ 0 "allowlisted link + evals/v4 hypothetical: PASS" links
-printf '[up](../GLOSSARY.md)\n' > docs/deep.md; git add docs/deep.md
+printf '[up](../GLOSSARY.md)\n' > docs/deep.md
+mkdir -p docs/sub && printf '[upup](../../GLOSSARY.md)\n' > docs/sub/inner.md
+git add docs/deep.md docs/sub/inner.md
 case_ 0 "dot-dot traversal resolves: PASS" links
 reset_
 
