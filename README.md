@@ -92,6 +92,7 @@ Other options:
 
 ```bash
 cargo run -- --fresh            # start a new world (the old one is backed up)
+cargo run -- --fresh --no-backup  # start a new world, overwriting the old save in place
 cargo run -- --config my.toml   # a different world (its own size, port, roster…)
 cargo run -- --snapshot w.json  # a different save file
 cargo run -- --client path/     # serve the viewer from a different directory
@@ -101,7 +102,8 @@ cargo run -- --help
 The world saves itself to `snapshot.json` every 100 ticks and on `Ctrl-C`,
 including its random state, so a restart continues the same world. Worlds are
 never lost by accident: `--fresh` moves the old save aside before anything
-else. Running several worlds side by side, backups and restores, and the
+else, unless `--no-backup` says to overwrite it in place. Running several
+worlds side by side, backups and restores, and the
 recommended public shape (Caddy + systemd) are all covered in
 [docs/deployment.md](docs/deployment.md).
 
@@ -127,6 +129,7 @@ All read-only: the viewer is a window, not a control surface.
 | `GET /events/distress` | Recent distress events, oldest first |
 | `GET /events/activity` | Recently finished activities with their true tick spans |
 | `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `other`; spec 049) |
+| `GET /welfare` | The standing welfare watch: every live distress age, the alarm threshold, and whether an alarm is live (spec 040) |
 | `GET /config` | The active, validated configuration |
 | `GET /settings` | The key settings — every dial anyone has needed to verify after a deploy, each as effective value, engine default and source (`toml` / `default`); `Accept: text/plain` returns the boot-log block verbatim |
 | `WS /ws` | The full world, pushed after every tick |
@@ -182,7 +185,14 @@ experiments/                the lab notebook — trainer territory, no constitut
                             the reverse. FINDINGS.md is the register; PIPELINE.md is
                             the policy-pipeline doctrine (how a mind gets certified)
 specs/                      one directory per shipped feature: spec, plan, research,
-                            data model, contracts, tasks, quickstart
+                            data model, contracts, tasks, quickstart; INDEX.md is the
+                            generated register
+scripts/                    house tooling: mutate.sh (the rule-5 mutation cycle),
+                            tag-check.sh (release-time drift audit), the index
+                            generators, and their own tests
+client-measurements/        the rigs that judge client art from outside: headless-
+                            Chrome captures, pose and crossing probes, the favicon
+                            renderer; measurement records live beside their rigs
 cloudkitty.toml             the served world
 training.toml               the gym: the world policies are trained in
 ```
@@ -349,3 +359,7 @@ changes (evolving it means a new `evals/v4/` alongside), and the suite refuses
 every adjustable knob: an instrument you can adjust is not a bar. Exit codes,
 report stamping, the mixed-roster compositions, and what each verdict means are
 in [docs/rl-training.md](docs/rl-training.md).
+
+## License
+
+Apache-2.0; see [LICENSE](LICENSE).

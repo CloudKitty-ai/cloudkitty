@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **The crates now carry the release version.** The workspace said
+  0.1.0 since the first commit while the tags moved on to 0.3.0; the
+  binaries and the wheel now report the version the repo actually
+  ships. The README caught up with the code in the same pass: it names
+  the license, documents `--no-backup` and `GET /welfare`, and its
+  layout section now lists `scripts/` and `client-measurements/`.
+  `specs/INDEX.md` is new — a generated register of every spec
+  directory, regenerated when specs change.
+
 - **The crates and the Python wheel now declare the repo's actual
   license.** The workspace metadata said MIT, a leftover from the very
   first commit, and the wheel declared nothing at all; the repo went
