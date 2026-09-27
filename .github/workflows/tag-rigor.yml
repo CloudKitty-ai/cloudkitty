@@ -1,0 +1,44 @@
+name: tag rigor
+
+# The Harness thread's tag-time checks (THREADS.md §6; Professor checklist
+# 2026-09-26; owner's word 2026-09-27). Runs the full tag-check suite and
+# the quickstart smoke on every release tag and on demand (dispatch it on
+# the release PR's branch before asking for the four sign-offs).
+#
+# This is deliberately NOT part of per-PR CI: tag-check compares the whole
+# tree against its documentation homes, so unrelated PRs would inherit
+# every open drift. Per-PR meta CI (harness.yml) runs only the self-tests.
+
+on:
+  push:
+    tags: ["0.*"]
+  workflow_dispatch:
+
+jobs:
+  tag-check:
+    name: tag-check (full suite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gate-scope and staleness need the previous tag and its history.
+          fetch-depth: 0
+      - name: Full consistency suite
+        run: bash scripts/tag-check.sh
+
+  quickstart:
+    name: quickstart smoke (README commands, literally)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install maturin
+        run: pip install maturin
+      - name: README quickstart, end to end
+        run: bash scripts/quickstart-smoke.sh

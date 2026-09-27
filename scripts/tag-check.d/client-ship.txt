@@ -1,0 +1,22 @@
+# client/ files production serves: the rsync allowlist source of truth.
+# Client thread owns classification; a new tracked client/ file must be
+# added here or to client-noship.txt, or tag-check fails.
+client/anim.js
+client/app.js
+client/apple-touch-icon.png
+client/cat-v2.js
+client/cat.js
+client/favicon-32.png
+client/favicon.svg
+client/fixtures/scene-ends.json
+client/fonts/OFL-baloo2.txt
+client/fonts/OFL-nunito.txt
+client/fonts/baloo2-latin.woff2
+client/fonts/nunito-latin.woff2
+client/index.html
+client/meadow.js
+client/og-card.html
+client/og-image.png
+client/props.js
+client/record-layout.js
+client/render.js

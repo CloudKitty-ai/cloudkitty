@@ -1,0 +1,1 @@
+# FINDINGS.md citations exempt from the tracked-or-archived rule.

@@ -1,4 +1,4 @@
-name: harness (condense budget)
+name: harness (meta checks)
 
 # The Harness thread's meta checks (THREADS.md §1). The growth budget on
 # the files every session loads: net lines since the last condense pass,
@@ -6,6 +6,11 @@ name: harness (condense budget)
 # scripts/condense-budget.sh. A pull request is gated (tier 1 and a
 # frozen file block; tier 2 blocks past its second line); a push to main
 # reports only, so Experiments' direct commits show their count.
+#
+# tag-check's SELF-TEST also runs here on every PR; the full tag-check
+# suite runs only in tag-rigor.yml (tags + dispatch), because it compares
+# the whole tree against its documentation homes and unrelated PRs would
+# inherit every open drift.
 #
 # Reads git only. It never loads a toml, so the shipped-config sweep's
 # rule about tomls under experiments/ does not apply here.
@@ -35,3 +40,11 @@ jobs:
           else
             bash scripts/condense-budget.sh --report
           fi
+
+  tag-check-selftest:
+    name: tag-check self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test the tag-check suite
+        run: bash scripts/test-tag-check.sh

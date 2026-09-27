@@ -138,9 +138,11 @@ rule-5 red before merge.
 
 One home per fact; every other mention is a pointer to it. The
 rows below the first ten were added on the owner's word (2026-09-22:
-"key information in one place"; TODO owner: update rigor for these
-key files and the user-facing docs at tag time). A number,
-a rule or a ruling restated outside its home is a condense cut.
+"key information in one place"). Tag-time rigor for these homes is
+mechanised (owner's word 2026-09-27): `scripts/tag-check.sh` gates the
+tag via `tag-rigor.yml`, and the release PR template carries the
+human rows and the four sign-offs. A number, a rule or a ruling
+restated outside its home is a condense cut.
 
 | the fact | its one home | pointers elsewhere look like | does not hold |
 |---|---|---|---|

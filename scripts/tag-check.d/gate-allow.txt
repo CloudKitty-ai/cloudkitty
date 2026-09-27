@@ -1,0 +1,2 @@
+# RESULTS.md files exempt from the tag-time gate-stamp requirement.
+# Owner-approved exemptions only (e.g. pre-gate arcs); one path per line.
