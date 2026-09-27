@@ -109,3 +109,19 @@ Standing corrections the stage-B write-up inherits from the memo:
   four-tick bout; if stage A traces still show pinned glow, the
   de-saturation lever (lower gain or per-bout caps, F-055
   recommendation (b)) joins stage B rather than waiting.
+
+## Stage-A advisories for the stage-B freeze (gate round 3, 2026-09-27)
+
+- **Greedy-vs-training play divergence**: the stage-A play orderings
+  (d25 above d100) are GREEDY-EVAL orderings; the training traces'
+  last-quarter play orders the other way (d100-1000 0.0861/0.0871
+  above d25-250 0.0819/0.0813). The stage-B reader should report
+  both and the prereg should name which one its bars ride on.
+- **The recommended corner carries the highest bin0 read**
+  (0.201/0.180 against the comparator's 0.161, inside the 0.211
+  over-tending bar but nearest it of any arm) — the stage-B
+  over-tending bar watches this corner from a smaller margin.
+- **The at-cap glow fraction is still unread**: the stage-B trainer
+  extends the trace with an E histogram (or at-cap share) so the
+  Professor's read-glow-distribution-first condition is satisfiable
+  from the record, not inferred from means.
