@@ -11983,7 +11983,8 @@ check('a pan never changes speed in one frame, even where the frame meets the wo
   //
   // Replays BOTH recorded windows embedded above (house rule 5: recorded
   // positions, not a hand-built edge), at 60Hz, and takes the largest
-  // frame-to-frame change in pan velocity on frames where the width holds.
+  // frame-to-frame change in the velocity of the frame's CENTRE on EVERY
+  // frame, zooming ones included (a pan+zoom kink would otherwise pass).
   // Measured: shipped camera 0.057 (sixty-second window) and 0.039 (fifty
   // ticks); fixed 0.0022 and 0.0024. The bar sits between, ~4x the fixed.
   const src = readFileSync(fileURLToPath(import.meta.url), 'utf8');
@@ -12013,8 +12014,8 @@ check('a pan never changes speed in one frame, even where the frame meets the wo
       for (let f = 0; f < PER_TICK; f += 1) {
         clock += FRAME;
         cam.update(world, camView(false, clock), { aspect: 1, cssWidth: 1000 });
-        const cur = [cam.left, cam.top, cam.across];
-        if (prev && cur[2] === prev[2]) {
+        const cur = [cam.left + cam.across / 2, cam.top + cam.across / 2];
+        if (prev) {
           const v = [cur[0] - prev[0], cur[1] - prev[1]];
           if (v[0] || v[1]) panned += 1;
           if (prevV) {
@@ -12022,15 +12023,13 @@ check('a pan never changes speed in one frame, even where the frame meets the wo
             if (dv > worst) { worst = dv; worstTick = row[0]; }
           }
           prevV = v;
-        } else {
-          prevV = null;
         }
         prev = cur;
       }
     }
     assert(panned > 0, `${title}: the camera never panned, so this measured nothing`);
     assert(worst <= BAR,
-      `${title}: the pan changed speed by ${worst.toFixed(4)} tiles in one frame at tick ${worstTick} (bar ${BAR}) -- the frame is starting or stopping against the world edge`);
+      `${title}: the frame's centre changed speed by ${worst.toFixed(4)} tiles in one frame at tick ${worstTick} (bar ${BAR}) -- the frame is starting or stopping against the world edge`);
   }
 });
 
