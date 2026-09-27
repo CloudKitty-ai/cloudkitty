@@ -61,7 +61,9 @@ def test_contact_company_nearest():
 def test_worst_gate():
     z, leg = _leg()
     needs = z["needs"]
-    for k in (2,):  # Pumpkin
+    # ALL cats: the first red attempt tested only Pumpkin, the one cat
+    # whose fixture median is insensitive to dropping Bath (VACUOUS).
+    for k in range(needs.shape[1]):
         worst = np.array([max(needs[t, k, i] for i in R_GATE) for t in range(needs.shape[0])])
         wg = leg["cats"][k]["worst_gate"]
         assert wg["median"] == float(np.median(worst))
