@@ -18,6 +18,21 @@ top-left; it needs ~11s per row and the screen kept awake.
 The two captures are gitignored: they are raw samples, and the two curls
 above rebuild them.
 
+## Camera mode: `?camera`
+
+`http://127.0.0.1:8911/?camera` runs only the camera rows (2026-09-27; the
+owner saw lag panning during a time change on the 4K). A settled hour and
+the day→dusk crossing, each twice, and inside every row the camera rotates
+through **still / pan / zoom** in blocks of 24 frames, first 3 dropped. The
+three are paired inside one run, so compare pan to still in the SAME row;
+the repeats are the drift check. A settled row must show no fading frames,
+and a row whose override never moved the camera refuses to report.
+
+The pan is a triangle wave across the world at 1.5 tiles/s; the zoom sweeps
+the camera's own floor-to-ceiling band over 2.4s. Chrome at 3840x2160 (dpr 2)
+reads clean on every block (median 16.7ms, nothing over 20ms), which is the
+rig check and not an answer: read it in Safari on the display that lagged.
+
 ## Reading it
 
 **Judge by dropped frames, never by `in canvas`.** Safari records 2D canvas

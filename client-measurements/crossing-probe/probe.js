@@ -557,11 +557,137 @@
           + 'between rows. Check the two baselines against each other first -- if they disagree, the '
           + 'crossing rows and the stall table are not telling you about the treatment.</div></div>';
       })()
+      + (M.camera && M.camera.length ? '<div style="margin-top:10px"><b>camera: still / pan / zoom, paired inside each run</b>'
+        + '<table style="border-collapse:collapse;margin-top:6px">'
+        + '<tr style="color:#9c8a7c"><td>row</td><td style="padding-left:14px">camera</td><td style="padding-left:14px">frames</td>'
+        + '<td style="padding-left:14px">median</td><td style="padding-left:14px">p90</td><td style="padding-left:14px">p99</td>'
+        + '<td style="padding-left:14px">&gt;20ms</td><td style="padding-left:14px">&gt;33ms</td></tr>'
+        + M.camera.flatMap(r => r.modes.map((m, i) => `<tr><td>${i ? '' : r.label + (r.crossingFrames ? ` (${r.crossingFrames} fading)` : ' (no fade)')}</td>`
+          + `<td style="padding-left:14px">${m.mode}</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.n}</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.med}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.p90}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.p99}ms</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.janky} (${m.n ? (100 * m.janky / m.n).toFixed(1) : 0}%)</td>`
+          + `<td style="padding-left:14px;text-align:right">${m.bad}</td></tr>`)).join('')
+        + '</table><div style="margin-top:4px;color:#9c8a7c">Blocks of 24 frames rotating still, pan, zoom inside ONE run, '
+        + 'first 3 of each block dropped. Compare pan to still in the SAME row. "fading" counts frames drawn mid-crossing; '
+        + 'a settled row must show none.</div></div>' : '')
       + (M.done ? '<div style="margin-top:8px;color:#3f7a45">done — the lean table is the new read; the crossing rows are the standing regression check</div>'
                 : '<div style="margin-top:8px;color:#9c8a7c">running… ~12s per row, seven rows (~1.5 min). KEEP THE SCREEN AWAKE.</div>');
   }
 
+  // --- camera motion (2026-09-27) --------------------------------------
+  // The owner saw lag panning the camera during a time change on the 4K.
+  // Every row above holds the camera still, so pan + crossing was never
+  // measured. These rows rotate the camera through STILL / PAN / ZOOM in
+  // blocks inside ONE run, so the three are paired by construction and a
+  // drifting device moves all three together (the lesson from the lean sweep).
+  //
+  // The override writes the camera's OUTPUT after its own update and puts the
+  // camera's own state back before the next one, so a STILL block never
+  // inherits an ease back from the pan before it.
+  const MOTION_MODES = ['still', 'pan', 'zoom'];
+  const MOTION_BLOCK = 24;
+  const MOTION_SETTLE = 3;
+  const PAN_TILES_PER_S = 1.5;
+  const ZOOM_PERIOD_MS = 2400;
+  let motion = null;           // null = camera untouched
+  let motionFrames = 0;        // frames in which the override actually moved the frame
+  let crossingFrames = 0;      // frames drawn with a live blend pair
+  function installCameraMotion() {
+    const cam = renderer.camera;
+    if (!cam) throw new Error('renderer.camera is missing -- the camera rows cannot run');
+    const real = cam.update.bind(cam);
+    let own = null;
+    cam.update = (world, view, opts) => {
+      if (own) { cam.left = own.left; cam.top = own.top; cam.across = own.across; }
+      const out = real(world, view, opts);
+      own = { left: cam.left, top: cam.top, across: cam.across };
+      if (renderer.blend && renderer.blend.next && renderer.blend.step > 0) crossingFrames += 1;
+      if (!motion || motion === 'still') return out;
+      const t = performance.now();
+      const aspect = (opts && opts.aspect) || 1;
+      if (motion === 'zoom') {
+        const L = cam.limitsFor(world, opts.cssWidth, aspect);
+        const k = 0.5 - 0.5 * Math.cos((2 * Math.PI * t) / ZOOM_PERIOD_MS);
+        cam.across = L.floorTiles + (L.ceilingTiles - L.floorTiles) * k;
+      }
+      const spanX = world.width - cam.across;
+      const spanY = world.height - cam.across * aspect;
+      if (motion === 'pan') {
+        if (spanX <= 0.5) throw new Error(`the frame is ${cam.across.toFixed(1)} of ${world.width} tiles -- there is nowhere to pan, so the PAN block measures nothing`);
+        // A triangle wave across the whole range, at a walking-cat pace.
+        const d = (t / 1000) * PAN_TILES_PER_S;
+        const phase = d % (2 * spanX);
+        cam.left = phase < spanX ? phase : 2 * spanX - phase;
+        cam.top = Math.max(0, Math.min(spanY, own.top));
+      }
+      cam.left = Math.max(0, Math.min(Math.max(0, spanX), cam.left));
+      cam.top = Math.max(0, Math.min(Math.max(0, spanY), cam.top));
+      if (cam.left !== own.left || cam.across !== own.across || cam.top !== own.top) motionFrames += 1;
+      return out;
+    };
+  }
+
+  async function cameraRow(world, label, { from, to }) {
+    renderer.camera.on = true;
+    motion = 'still';
+    lastGroundOpts = null; lastPondArgs = null;
+    for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: from - 8 }) });
+    const deadline = performance.now() + 4000;
+    while (!(lastGroundOpts && lastPondArgs) && performance.now() < deadline) await nextFrame();
+    motionFrames = 0; crossingFrames = 0;
+    const tags = [];
+    let blockFrame = 0, modeIdx = 0, last = performance.now(), stop = false;
+    motion = MOTION_MODES[0];
+    const tick = () => {
+      const n = performance.now();
+      tags.push({ mode: motion, pos: blockFrame, dur: n - last });
+      last = n;
+      blockFrame += 1;
+      if (blockFrame >= MOTION_BLOCK) {
+        blockFrame = 0;
+        modeIdx = (modeIdx + 1) % MOTION_MODES.length;
+        motion = MOTION_MODES[modeIdx];
+      }
+      if (!stop) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    for (let t = from; t <= to; t++) {
+      for (const s of sockets) s.fire('message', { data: JSON.stringify({ ...world, tick: t }) });
+      await new Promise(r => setTimeout(r, TICK_MS));
+    }
+    stop = true;
+    motion = null;
+    if (!motionFrames) throw new Error(`${label}: the camera override never moved the frame -- every block is STILL, and this row measures nothing`);
+    const pct = (xs, q) => { const s2 = [...xs].sort((a, b) => a - b); return s2.length ? +s2[Math.floor(s2.length * q)].toFixed(1) : 0; };
+    const modes = MOTION_MODES.map((mode) => {
+      const d = tags.filter(x => x.mode === mode && x.pos >= MOTION_SETTLE).map(x => x.dur);
+      return { mode, n: d.length, med: pct(d, 0.5), p90: pct(d, 0.9), p99: pct(d, 0.99),
+        janky: d.filter(x => x > 20).length, bad: d.filter(x => x > 33).length };
+    });
+    const row = { label, crossingFrames, modes };
+    (M.camera ||= []).push(row);
+    render();
+    await new Promise(r => setTimeout(r, 1200));
+    return row;
+  }
+
   window.__runProbe = async (world) => {
+    if (new URLSearchParams(location.search).has('camera')) {
+      installCameraMotion();
+      render();
+      // Settled, crossing, and both again: the repeats are the drift check.
+      await cameraRow(world, 'settled day', { from: 100, to: 113 });
+      await cameraRow(world, 'day -> dusk', { from: FROM, to: TO });
+      await cameraRow(world, 'settled day 2', { from: 100, to: 113 });
+      await cameraRow(world, 'day -> dusk 2', { from: FROM, to: TO });
+      M.done = true;
+      render();
+      document.title = 'PROBE DONE';
+      return;
+    }
     installFreeze();
     installLullInstrument();
     installBakeScale();
