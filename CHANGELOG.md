@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **CI now holds the line on copy-paste.** A duplication ratchet
+  (jscpd) fails any PR that pushes duplicated code past thresholds
+  set just above today's measured values — rust production 3.5%,
+  rust tests 6.5%, client JS 3.0% — and the thresholds only ever
+  move down. A refactor that must duplicate temporarily fences the
+  block with `jscpd:ignore` markers carrying a reason and a removal
+  target; a release cannot ship while any fence remains. The survey
+  behind the numbers is Harness's (#422).
+
 - **The crates now carry the release version.** The workspace said
   0.1.0 since the first commit while the tags moved on to 0.3.0; the
   binaries and the wheel now report the version the repo actually
