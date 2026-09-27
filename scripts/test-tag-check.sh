@@ -189,9 +189,9 @@ has "SKIP" "gate-scope skip line printed"
 case_ 0 "staleness with no tag: SKIP" staleness
 
 printf 'x\n' > .tag-marker && c marker 2026-09-20T11:00:00
-GIT_COMMITTER_DATE=2026-09-20T12:00:00 git -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t 0.3.9
+GIT_COMMITTER_DATE=2026-09-20T12:00:00 git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t 0.3.9
 c post-tag
-git -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t green
+git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t green
 
 # ---------------------------------------------------------------- green
 case_ 0 "green fixture: full suite passes"
