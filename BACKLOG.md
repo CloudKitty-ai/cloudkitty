@@ -747,6 +747,28 @@ real meadow, day and night, before it goes near the map. When it lands it
 takes over the `p` key, which is inert today; docs/viewer.md marks `p`
 unavailable and the on-page legend omits it, so both change with it.
 
+**Plan, owner 2026-09-27: a static heatmap generated at seating.** Not
+the live per-session accumulation, and no server change. The owner: "we
+can pre-calculate the heatmap on the laptop by running the world in
+headless mode, and just render a static heatmap overlay", and "A
+per-seating heatmap could be useful data as well, so I'll make that part
+of our seating process." The next generation breaks schema and needs a
+`--fresh` anyway, so the first heatmap comes from clean data.
+
+- What it shows: where this roster, on this map, tends to spend its time
+  over a long headless run. Not the live world's own history, which a run
+  from the seed does not retrace. F-045 (lab dispersal reproduces live)
+  and F-042 (battery means within 0.25 of live) are the evidence that
+  the lab picture transfers.
+- Producer: the seating process (Experiments' lane, her call). Consumer:
+  the client draws it as a static overlay behind the `p` key.
+- ⚠ Staleness is the trap (cf. the OG card). The file must carry what it
+  was generated from (world fingerprint, config hash, the seated
+  policies), and the client must check that against the served `/config`,
+  hiding or labelling the overlay on a mismatch rather than drawing a
+  heatmap of a world that no longer exists.
+- Per-kitty and per-activity layers are nearly free from the same run.
+
 ### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
 
 **The idea (owner):** use 032's buffer for smoother camera pan and zoom, not
