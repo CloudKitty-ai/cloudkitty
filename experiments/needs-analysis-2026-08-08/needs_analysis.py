@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/Users/elizabethkelly/ai/cloudkitty/experiments/exp-003-water-schema/raw/bc-v3")
+ROOT = Path(__file__).resolve().parents[2] / "experiments/exp-003-water-schema/raw/bc-v3"
 NEEDS = ["eat", "drink", "sleep", "play", "cuddle", "bath"]
 THRESHOLDS = [0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.75, 0.80, 0.90]
 COOLDOWN = 10

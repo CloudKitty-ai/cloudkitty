@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/Users/elizabethkelly/ai/cloudkitty/experiments/exp-003-water-schema/raw/bc-v3")
+ROOT = Path(__file__).resolve().parents[2] / "experiments/exp-003-water-schema/raw/bc-v3"
 NEEDS = ["eat", "drink", "sleep", "play", "cuddle", "bath"]
 COOLDOWN = 10
 GROUPS = {"eat": ([16], 0), "drink": ([17], 1), "sleep_solo": ([8], 2),

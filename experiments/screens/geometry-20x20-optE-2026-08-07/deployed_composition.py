@@ -4,7 +4,7 @@ Miso and Kittybear beside scripted Biscuit (playful) and Pumpkin
 import sys, json
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
-REPO = Path("/Users/elizabethkelly/ai/cloudkitty")
+REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(1, str(REPO/"experiments/exp-001-bc-mappo/trainer"))
 NEEDS=["eat","drink","sleep","play","cuddle","bath"]
 TICKS,TH=20_000,0.90
