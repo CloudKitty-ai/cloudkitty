@@ -287,3 +287,24 @@ Also this window (stage-B guard): SHARED-CONSTANT VACUITY — a
 reference implementation importing the trainer's constants moves
 with the mutation; independent literals only (one vacuous red caught
 it live).
+
+## 2026-09-28 · cross-platform determinism (Experiments) · PASS round 4 of 4
+
+Gated: `experiments/cross-platform-determinism-2026-09-27/RESULTS.md`.
+All numbers clean every round; all four rounds' failures were SCOPE
+on the owner-ruling line (the evidence-archive consequence bullet):
+r1 extended one checkpoint/world/greedy to "eval batteries"; r2
+dropped all-seats + the zeroed observation clock; r3 dropped seeds ×
+horizon. New failure class for the fixture: CONSEQUENCE-LINE SCOPE
+EROSION — the bullet that applies a result to a ruling re-states the
+scope from memory and loses a clause per hop; the fix is carrying
+the full measured scope INTO the consequence sentence, plus naming
+the extension ("an inference from the rate, not a measurement").
+Also caught: a characterisation literally false against the code
+("asserted before any comparison" when layer 1 prints first);
+"single-threaded" contradicted by the raws' pre-set-call
+torch_threads field (doc now cites the code); a modal overclaim
+("would flip" where the drift stats support "could"). One real
+cross-platform drift surfaced by the gate itself: 1 ulp in a
+Python-side exp/log reduction — worth a doc bullet, invisible to
+the headline claim.

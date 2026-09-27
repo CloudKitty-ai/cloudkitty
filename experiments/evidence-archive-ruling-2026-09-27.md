@@ -35,3 +35,17 @@ architectures, BLAS implementations, and thread counts can flip a
 greedy argmax and fork a trajectory while leaving every conclusion
 intact. Old arcs get the tuple stamped at bundling time (one
 machine throughout).
+
+**Measured 2026-09-27** (`cross-platform-determinism-2026-09-27/`,
+gate PASS r4): the a-priori "can flip a greedy argmax" clause above
+did not materialize in the one measured case — greedy eval of
+cand-s2 (all five seats, observation clock zeroed, package world,
+seeds 900401–900405 × 5,000 ticks) reproduced bitwise across
+arm64-Mac and x86-server at matched torch/numpy, an empirical
+per-decision flip rate of zero at n ≈ 250,000 (not a guarantee;
+other checkpoints/worlds/eval modes unmeasured; logit drift is real
+at ≤ 1.6e-05, and one 1-ulp Python-side drift reached a
+statistical-tier scalar). Within that measured scope the bitwise
+tier binds retraining rather than the archived greedy reads; reads
+outside it keep the tuple as their reproducibility condition until
+measured. The two-tier label stands unchanged.

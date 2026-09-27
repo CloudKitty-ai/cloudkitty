@@ -14,7 +14,8 @@ Layers:
    report carries their sha and both heads' argmaxes. Isolates
    torch/BLAS.
 3. END-TO-END GREEDY: the checkpoint in all five seats, seeds
-   900401–900405 x 5,000 ticks, served clock; per-tick cumulative
+   900401–900405 x 5,000 ticks, observation clock zeroed (docstring
+   corrected post-collection; code unchanged); per-tick cumulative
    action-stream digests (8 hex chars each) so the first divergence
    tick is recoverable offline; per-seed mean happiness and state
    nash for the statistical tier.
