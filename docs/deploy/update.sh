@@ -203,6 +203,30 @@ print_key_settings() {
     return 0
 }
 
+# The viewer ships from an ALLOWLIST: only the files
+# scripts/tag-check.d/client-ship.txt names reach the box (owner, 2026-09-27:
+# harnesses, galleries and test suites stay home; "If we need to test on the
+# public server, I can manually copy"). Everything else under client/ is
+# excluded AND deleted from the box (--delete-excluded), so a gallery page an
+# older deploy shipped goes away rather than lingering. tag-check fails on any
+# tracked client/ file in neither list, so a new asset cannot ship silently
+# unlisted: it is refused at tag time instead of missing at runtime.
+# provision-cloudkitty.sh makes the same call for a fresh box.
+sync_client() {
+    local list
+    list="$(mktemp)"
+    sed -n 's#^client/##p' scripts/tag-check.d/client-ship.txt > "$list"
+    if [[ ! -s "$list" ]]; then
+        rm -f "$list"
+        echo "scripts/tag-check.d/client-ship.txt is missing or empty; refusing to deploy an empty client" >&2
+        return 1
+    fi
+    rsync -a -m --delete --delete-excluded \
+        --include='*/' --include-from="$list" --exclude='*' \
+        client/ "${APP}/client/"
+    rm -f "$list"
+}
+
 cd "$REPO"
 git pull --ff-only
 DEPLOYED_REV="$(git rev-parse --short HEAD)"
@@ -213,7 +237,7 @@ if [[ "$CLIENT_ONLY" == "1" ]]; then
     # either ("it is static and does not affect startup"), and every prior
     # version is one `git checkout` away in this checkout. If the rsync dies
     # midway the site stays up (the server keeps running); rerun to finish.
-    rsync -a --delete client/ "${APP}/client/"
+    sync_client
     chown -R root:root "${APP}/client"
     if curl -fsS --max-time 3 "http://${UPSTREAM}/world" >/dev/null 2>&1; then
         log "client ${DEPLOYED_REV} live — server still serving"
@@ -325,8 +349,8 @@ fi
 
 install -o root -g root -m 755 target/release/cloudkitty-server "${APP}/cloudkitty-server"
 # --delete, not cp -r: a merge would leave assets deleted upstream behind, and
-# the server would keep serving them.
-rsync -a --delete client/ "${APP}/client/"
+# the server would keep serving them. sync_client is the allowlisted form.
+sync_client
 install -o root -g root -m 644 cloudkitty.toml "${APP}/cloudkitty.toml"
 if [[ -d policies ]]; then
     rsync -a --delete policies/ "${APP}/policies/"

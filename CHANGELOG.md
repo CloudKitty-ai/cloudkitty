@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- **Only the viewer ships.** A deploy now copies the files the viewer
+  actually serves and nothing else: the art galleries, the benchmark
+  page, the social-card generator and the test suites stay in the
+  repository, and the next deploy removes any copies an earlier one
+  left on the server. The viewer guide also documents every key and
+  footer button the viewer has.
+
 - **The crates now carry the release version.** The workspace said
   0.1.0 since the first commit while the tags moved on to 0.3.0; the
   binaries and the wheel now report the version the repo actually

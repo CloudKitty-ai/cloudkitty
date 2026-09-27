@@ -15,7 +15,6 @@ client/fonts/baloo2-latin.woff2
 client/fonts/nunito-latin.woff2
 client/index.html
 client/meadow.js
-client/og-card.html
 client/og-image.png
 client/props.js
 client/record-layout.js
