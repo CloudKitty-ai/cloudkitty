@@ -12,10 +12,15 @@ name: harness (meta checks)
 # the whole tree against its documentation homes and unrelated PRs would
 # inherit every open drift.
 #
-# The budget job reads git only. The tag-check self-test builds a
-# throwaway fixture repo (with its own Cargo.toml/pyproject.toml) in a
-# temp dir OUTSIDE this checkout, so the shipped-config sweep's rule
-# about tomls under experiments/ still does not apply.
+# The budget job reads git only. The tag-check and chebyshev-guard
+# self-tests build throwaway fixture repos (tag-check's with its own
+# Cargo.toml/pyproject.toml) in temp dirs OUTSIDE this checkout, so
+# the shipped-config sweep's rule about tomls under experiments/
+# still does not apply.
+#
+# chebyshev-guard also sweeps the real tree here on every PR:
+# undeclared `max(abs(` in lab/client code blocks (walk distance is
+# Manhattan; allowlist scripts/chebyshev-allow.txt).
 
 on:
   push:
@@ -50,3 +55,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Self-test the tag-check suite
         run: bash scripts/test-tag-check.sh
+
+  chebyshev-guard:
+    name: chebyshev guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test the guard
+        run: bash scripts/test-chebyshev-guard.sh
+      - name: Undeclared Chebyshev sweep
+        run: bash scripts/chebyshev-guard.sh
