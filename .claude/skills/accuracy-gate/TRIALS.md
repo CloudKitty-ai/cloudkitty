@@ -332,3 +332,20 @@ adopted as the verifier's exact wording. Guard side, same arc: the
 worst-gate mutate red came back VACUOUS once — the test sampled
 only the one cat whose fixture median is insensitive to the dropped
 index (rig-encodes-a-belief, in a guard); reference all rows.
+
+## 2026-09-28 · seating-analysis flags addendum (Experiments) · PASS scoped round 2
+
+Gated: the flagged-values addendum appended to
+`experiments/seating-analysis-2026-09-28/RESULTS.md` (owner's
+representation rule: |x − group median| / sample σ, † 1–2σ, ‡ ≥2σ).
+Design note that worked: the flags mode is OPT-IN (`--flags-only`)
+so the already-gated fence stays byte-identical — verified by md5
+against the r2 stamp; no re-gate of the main doc needed. Round-1
+FAIL was pure CORRECTOR-NEEDS-THE-GATE: the reading paragraph
+miscounted the ‡ rows in the block pasted two lines above it (said
+7, block has 8; said five-of-seven Biscuit, is six-of-eight) and
+cited "the doc's first bullet" for what is the second. Count claims
+about a pasted block must be grepped from the block, not recalled.
+Verifier extra: simulated the "third of cells pass 1σ by chance at
+n=5" hedge (0.322 at 100k draws) — hedges are claims too and this
+one held.

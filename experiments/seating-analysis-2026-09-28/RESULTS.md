@@ -228,3 +228,87 @@ adopted: "most overlapping pair"), undecidable 5, provenance ~14;
 raw-dir hash 9a318ef70d8c4938. Round 1 FAIL: printer tie-break
 nondeterminism (fixed, block re-pasted), two contradicted
 social-structure sentences, F-047 wording, steady-state overclaim.
+
+## Addendum 2026-09-28 — flagged values (owner's representation rule)
+
+Owner's rule (2026-09-28): "flag values for individual cats that
+are 1-2 sigma from the group median … easier to quickly identify
+interesting values during review." Implemented as a printer mode
+(`--flags-only`; the default output is byte-identical to the gated
+fence above): per metric, each cat's |x − group median| in units of
+the group's sample σ (ddof=1, n = 5 cats); † = 1–2σ, ‡ = ≥ 2σ. A
+review-highlighting heuristic, not a statistic — at n = 5 roughly a
+third of cells pass 1σ by chance, and one extreme value inflates σ,
+so ‡ marks only strong standouts. Flag math under the guard
+(`test_flag_z`, mutate red: median→mean, confirmed).
+
+Output, verbatim:
+
+```
+FLAGGED VALUES (|x - group median| / group sigma, ddof=1, n=5 cats;
+dagger 1-2 sigma, double-dagger >=2; heuristic, not a statistic --
+at n=5 about a third of cells pass 1 sigma by chance)
+  † Pumpkin · activity Idle: 0.6152 (group median 0.57306, 1.32σ)
+  † Biscuit · activity Rest: 0.01493 (group median 0.11652, 1.66σ)
+  † Clementine · activity Rest: 0.18423 (group median 0.11652, 1.11σ)
+  † Miso · activity Sleep: 0.18787 (group median 0.11504, 1.85σ)
+  † Pumpkin · activity Eat: 0.0479 (group median 0.02419, 1.81σ)
+  † Biscuit · activity Drink: 0.01652 (group median 0.02517, 1.58σ)
+  ‡ Biscuit · activity Play: 0.22659 (group median 0.03619, 2.24σ)
+  ‡ Kittybear · activity Groom: 0.11427 (group median 0.04747, 2.07σ)
+  † Pumpkin · contact: 0.41133 (group median 0.46788, 1.55σ)
+  † Clementine · contact: 0.5139 (group median 0.46788, 1.26σ)
+  † Pumpkin · company: 0.74814 (group median 0.7826, 1.08σ)
+  † Clementine · company: 0.83483 (group median 0.7826, 1.63σ)
+  † Clementine · partnered: 0.27258 (group median 0.20508, 1.81σ)
+  ‡ Clementine · nearest median: 1 (group median 2, 2.24σ)
+  † Clementine · nearest p95: 10 (group median 11.6, 1.85σ)
+  ‡ Biscuit · happiness mean: 90.9731 (group median 92.9093, 2.20σ)
+  ‡ Biscuit · happiness p5: 85.7169 (group median 88.0769, 2.09σ)
+  † Miso · entropy bits: 1.99852 (group median 1.88257, 1.50σ)
+  † Biscuit · transition entropy bits: 1.11099 (group median 1.1769, 1.40σ)
+  † Clementine · transition entropy bits: 1.10082 (group median 1.1769, 1.61σ)
+  † Miso · home range: 203.8 (group median 225.4, 1.33σ)
+  † Biscuit · home range: 208.6 (group median 225.4, 1.03σ)
+  ‡ Biscuit · worst-gate median: 19.32 (group median 13.58, 2.28σ)
+  † Biscuit · worst-gate p95: 31.82 (group median 26.64, 1.60σ)
+  † Miso · max streak >=25: 94 (group median 152, 1.03σ)
+  † Kittybear · max streak >=25: 233 (group median 152, 1.44σ)
+  † Biscuit · eat cadence: 82.2 (group median 39.8, 1.81σ)
+  † Biscuit · drink cadence: 62.2 (group median 38.6, 1.96σ)
+  † Biscuit · water directness: -0.244765 (group median -0.386474, 1.91σ)
+  ‡ Biscuit · play ticks: 22659 (group median 3619, 2.24σ)
+  ‡ Biscuit · element-play ticks: 5898 (group median 557, 2.22σ)
+  † Miso · sleep ticks: 18787 (group median 11504, 1.85σ)
+  † Miso · beam-sleep ticks: 1525 (group median 513, 1.74σ)
+  † Biscuit · silent share: 0.63029 (group median 0.68981, 1.09σ)
+  † Clementine · silent share: 0.77338 (group median 0.68981, 1.53σ)
+  † Miso · partner concentration: 0.351154 (group median 0.333666, 1.02σ)
+  † Biscuit · partner concentration: 0.366756 (group median 0.333666, 1.93σ)
+```
+
+Reading: 37 flags, 8 at ‡. Biscuit carries six of the eight ‡
+(the play economy and its welfare price, already the doc's second
+bullet). The two ‡ the prose had not led with: Kittybear's groom
+share (0.114 vs group median 0.047) and Clementine's nearest-cat
+median (1 tile vs 2 — the connector reading, sharpened). Miso's
+† profile (sleep 0.188, beam-sleep 1,525, home range 203.8) reads
+as the sleeper-homebody of the roster.
+
+### Read (addendum)
+
+Runtime: under 10 seconds. No environment variables required.
+
+```
+cd /Users/elizabethkelly/ai/cloudkitty
+experiments/exp-006-character-gen/.venv/bin/python experiments/seating-analysis-2026-09-28/seating_summary.py --flags-only \
+  experiments/seating-analysis-2026-09-28/results-raw/seating-read.json
+```
+
+GATE (addendum): PASS scoped round 2, 2026-09-28 — arithmetic 14,
+hedge/characterisation 6, implementation/guard 4, undecidable 2;
+block reproduces byte-identical; default-mode md5 unchanged from
+the r2 stamp. Scoped round 1 FAIL: the reading paragraph miscounted
+the ‡ rows in the block pasted directly above it (7 for 8; five for
+six) and mis-cited a bullet position — the corrector-needs-the-gate
+class again.
