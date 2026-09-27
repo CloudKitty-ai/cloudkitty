@@ -25,8 +25,7 @@ raws and manifests, which are this thread's.
    upload is publishing: it happens on the owner's word, batched
    for one approval at tag time.
 
-**Platform addendum (owner's question, recommendation delivered,
-awaiting her confirm)**: a platform tuple in every run-manifest
+**Platform addendum — RULED (owner, 2026-09-27: "Yes")**: a platform tuple in every run-manifest
 (CPU arch, OS, python/torch/numpy/BLAS versions, thread count,
 beside the existing rustc/binding identity), and a two-tier
 reproducibility label per bundle — bitwise on the recorded tuple;
