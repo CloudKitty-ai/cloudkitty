@@ -5,6 +5,7 @@ build-backend = "maturin"
 [project]
 name = "cloudkitty"
 description = "CloudKitty multi-agent RL environment (PettingZoo parallel convention)"
+license = "Apache-2.0"
 requires-python = ">=3.9"
 dependencies = ["numpy"]
 dynamic = ["version"]
