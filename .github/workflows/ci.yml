@@ -118,3 +118,31 @@ jobs:
         run: |
           pip install "pettingzoo==1.26.1"
           pytest crates/cloudkitty-py/tests/test_pettingzoo_conformance.py -v
+
+  # Duplication ratchet (jscpd survey 2026-09-27, .claude/reports/;
+  # owner accepted 2026-09-27). Thresholds sit just above the values
+  # measured at 8592583 and only ever move DOWN: when a PR genuinely
+  # reduces duplication, re-measure and lower the number in that PR.
+  # Never widen a threshold to pass — a mid-refactor PR that must
+  # temporarily duplicate fences the block instead:
+  #     // jscpd:ignore-start -- <reason>, out by <target>
+  #     ...
+  #     // jscpd:ignore-end
+  # Fences are debt with a deadline: tag-check fails a release while
+  # any jscpd:ignore marker remains in the tree (Harness's rule).
+  # jscpd is pinned to the survey's version; bumping it means
+  # re-measuring the baselines in the same PR.
+  duplication:
+    name: duplication ratchet (jscpd)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: rust prod (measured 3.20)
+        run: npx --yes jscpd@5.3.2 crates/ --pattern "**/*.rs" --ignore "**/tests/**" --threshold 3.5 --silent
+
+      - name: rust tests (measured 5.90; shipped_configs core-rl pair is deliberate)
+        run: npx --yes jscpd@5.3.2 crates/cloudkitty-core/tests crates/cloudkitty-rl/tests crates/cloudkitty-server/tests --pattern "**/*.rs" --threshold 6.5 --silent
+
+      - name: client prod js (measured 2.71; rigs excluded like the ship list)
+        run: npx --yes jscpd@5.3.2 client/ --pattern "**/*.{js,mjs}" --ignore "**/test-motion.mjs,**/test-meadow.mjs" --threshold 3.0 --silent

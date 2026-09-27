@@ -33,6 +33,15 @@ change.
 
 ## Unreleased
 
+- **CI now holds the line on copy-paste.** A duplication ratchet
+  (jscpd) fails any PR that pushes duplicated code past thresholds
+  set just above today's measured values — rust production 3.5%,
+  rust tests 6.5%, client JS 3.0% — and the thresholds only ever
+  move down. A refactor that must duplicate temporarily fences the
+  block with `jscpd:ignore` markers carrying a reason and a removal
+  target; a release cannot ship while any fence remains. The survey
+  behind the numbers is Harness's (#422).
+
 - **Only the viewer ships.** A deploy now copies the files the viewer
   actually serves and nothing else: the art galleries, the benchmark
   page, the social-card generator and the test suites stay in the
