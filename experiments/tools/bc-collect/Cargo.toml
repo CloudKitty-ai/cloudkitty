@@ -2,6 +2,7 @@
 name = "bc-collect"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 publish = false
 description = "BC dataset collector for exp-001: behavior-driven rollouts recorded as (observation, mask, applied-action label, team reward) npy shards."
 

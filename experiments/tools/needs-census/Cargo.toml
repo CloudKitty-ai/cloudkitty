@@ -2,6 +2,7 @@
 name = "needs-census"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 publish = false
 description = "Need-occupancy census by replay: per kitty x need histograms, dwell dynamics and activity-initiation conditioning, for the meow announce-threshold decision (exp-004)."
 

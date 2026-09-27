@@ -2,6 +2,7 @@
 name = "contact-census"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 publish = false
 description = "Scripted contact census: co-sleep episodes, contact durations and the cuddle economy on a behavior-driven world (exp-004 cosleep-pricing baseline)."
 

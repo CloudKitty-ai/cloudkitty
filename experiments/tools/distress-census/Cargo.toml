@@ -2,6 +2,7 @@
 name = "distress-census"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 publish = false
 description = "Retro-replay of kitty-eval runs with a distress-tick counter: per-run x kitty x need ticks at/above the distress threshold, on the exact eval code path (exp-004 gate work)."
 
