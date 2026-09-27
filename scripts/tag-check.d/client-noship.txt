@@ -1,0 +1,9 @@
+# client/ files that never ship to production (owner ruled 2026-09-27:
+# allowlist; testing on the public box = manual copy). Deploy excludes
+# these; tag-check fails on any tracked client/ file in neither list.
+client/test-motion.mjs
+client/test-meadow.mjs
+client/gallery.html
+client/gallery-v2.html
+client/gallery-meadow.html
+client/bench-ground.html

@@ -1,0 +1,3 @@
+# Deliberate hypotheticals: markdown links allowed to not resolve.
+# One path per line, repo-relative, exact match (dirs end with /).
+evals/v4/

@@ -1,0 +1,5 @@
+# Tracked .py/.sh allowed to contain /Users/ or ~/ai/ — message strings,
+# not load-bearing paths. One repo-relative path per line.
+.claude/hooks/checkout-guard.py
+scripts/tag-check.sh
+scripts/test-tag-check.sh

@@ -12,7 +12,7 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
 | **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (go through Product); the Claude Code tooling (Harness) |
 | **Professor** | teaching, review, research framing; notes live outside the repo | implementing anything |
-| **Harness** | the Claude Code tooling: `.claude/` (skills, hooks, agents, settings), `scripts/mutate.sh`, the memory directory's hygiene, the meta checks in CI (its own workflow file), `THREADS.md` and `CLAUDE.md` drafts for the owner's ruling | every content file: code, specs, experiments, docs, client. It reports on them; it never edits them |
+| **Harness** | the Claude Code tooling: `.claude/` (skills, hooks, agents, settings), `scripts/mutate.sh`, the memory directory's hygiene, the meta checks in CI (its own workflow files — as few as maintainability allows; owner ruled 2026-09-27 the singular was incidental, not a cap), `THREADS.md` and `CLAUDE.md` drafts for the owner's ruling | every content file: code, specs, experiments, docs, client. It reports on them; it never edits them |
 
 `docs/` and `README.md` are shared: each thread writes its own area
 (2026-09-08).
@@ -138,9 +138,13 @@ rule-5 red before merge.
 
 One home per fact; every other mention is a pointer to it. The
 rows below the first ten were added on the owner's word (2026-09-22:
-"key information in one place"; TODO owner: update rigor for these
-key files and the user-facing docs at tag time). A number,
-a rule or a ruling restated outside its home is a condense cut.
+"key information in one place"). Tag-time rigor for these homes is
+mechanised (owner's word 2026-09-27): `scripts/tag-check.sh` checks
+the release branch (dispatch `tag-rigor.yml` on the release PR) and
+the pushed tag, and the release PR template carries the human rows
+and the four sign-offs — the tag waits for those, not for CI. A
+number, a rule or a ruling restated outside its home is a condense
+cut.
 
 | the fact | its one home | pointers elsewhere look like | does not hold |
 |---|---|---|---|
