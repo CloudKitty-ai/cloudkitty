@@ -181,6 +181,21 @@ def test_entropy_analytic():
     assert sr.transition_entropy(np.array([0, 1] * 50), n_states=2) == 0.0
 
 
+def test_flag_z():
+    import seating_summary as ss
+    # independent reference: plain-python median and ddof=1 sd
+    vals = [0.036, 0.227, 0.041, 0.035, 0.033]
+    med = sorted(vals)[2]
+    mean = sum(vals) / 5
+    sd = (sum((x - mean) ** 2 for x in vals) / 4) ** 0.5
+    zs = ss.flag_z(vals)
+    for i, x in enumerate(vals):
+        assert abs(zs[i] - abs(x - med) / sd) < 1e-12, i
+    assert zs[1] >= 2.0  # the Biscuit-play shape is a double-dagger
+    assert ss.mark(2.0) == "‡" and ss.mark(1.0) == "†" and ss.mark(0.999) == ""
+    assert ss.flag_z([3.0] * 5) == [0.0] * 5  # flat group flags nothing
+
+
 def test_welfare_gap():
     z, leg = _leg()
     hap = z["hap"]
