@@ -1,0 +1,6 @@
+# Version-bearing locations (owner ask 2026-09-27): each line is
+# "<path> :: <sed -n expression extracting the version>". Every listed
+# location must state the release version at tag time. Promote spots
+# here from the version-mentions REPORT; fixture labels and historical
+# mentions stay out (allowlist them in version-grep-allow.txt instead).
+Cargo.toml :: s/^version = "\([^"]*\)".*/\1/p

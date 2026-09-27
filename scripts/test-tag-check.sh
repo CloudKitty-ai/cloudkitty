@@ -176,6 +176,9 @@ cat > policies/README.md <<EOF
 | \`retired/b.ckpolicy\` | \`$SB\` | fixture | none |
 EOF
 printf 'results-raw/\n' > .gitignore
+printf 'Install cloudkitty 0.4.0 from the wheel.\n' > docs/install.md
+printf '%s\n' '# locations' 'Cargo.toml :: s/^version = "\([^"]*\)".*/\1/p' 'docs/install.md :: s/^Install cloudkitty \([0-9.]*\) .*/\1/p' > scripts/tag-check.d/version-locations.txt
+printf '%s\n' '# allow' > scripts/tag-check.d/version-grep-allow.txt
 printf '%s\n' '# allow' 'evals/v4/' > scripts/tag-check.d/link-allow.txt
 printf '%s\n' '# allow' > scripts/tag-check.d/abspath-allow.txt
 printf '%s\n' '# allow' > scripts/tag-check.d/citation-allow.txt
@@ -191,6 +194,8 @@ c indexes 2026-09-01T12:00:00
 case_ 0 "gate-scope with no tag: SKIP" gate-scope
 has "SKIP" "gate-scope skip line printed"
 case_ 0 "staleness with no tag: SKIP" staleness
+case_ 0 "version-mentions with no tag: SKIP" version-mentions
+has "SKIP" "version-mentions skip line printed"
 
 printf 'x\n' > .tag-marker && c marker 2026-09-20T11:00:00
 GIT_COMMITTER_DATE=2026-09-20T12:00:00 git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t 0.3.9
@@ -223,6 +228,28 @@ case_ 0 "--tag matching everywhere: PASS" --tag 0.4.0 version
 case_ 1 "--tag mismatching Cargo and CHANGELOG: FAIL" --tag 0.9.9 version
 has "Cargo.toml 0.4.0 != tag 0.9.9" "cargo-vs-tag named"
 has "CHANGELOG head 0.4.0 != tag 0.9.9" "changelog-vs-tag named"
+
+# ---- version locations (owner ask 2026-09-27)
+sed -i.bak 's/Install cloudkitty 0.4.0/Install cloudkitty 0.3.0/' docs/install.md && rm docs/install.md.bak
+case_ 1 "listed location states the wrong version: FAIL" version
+has "docs/install.md states 0.3.0, Cargo.toml says 0.4.0" "location drift named"
+reset_
+sed -i.bak 's/^Install cloudkitty/Get cloudkitty/' docs/install.md && rm docs/install.md.bak
+case_ 1 "location pattern extracts nothing: FAIL" version
+has "extracted nothing" "dead pattern named"
+reset_
+printf 'docs/install.md missing separator\n' >> scripts/tag-check.d/version-locations.txt
+case_ 1 "malformed locations line: FAIL" version
+has "lacks ' :: '" "malformed line named"
+reset_
+printf 'The old 0.3.9 way still described here.\n' >> docs/install.md
+case_ 0 "old version on a present-state surface: REPORT" version-mentions
+has "REPORT" "mention reported"
+has "docs/install.md" "mention file named"
+printf 'docs/install.md old 0.3.9 way\n' >> scripts/tag-check.d/version-grep-allow.txt
+case_ 0 "allowlisted mention: PASS" version-mentions
+has "PASS    version-mentions" "allowlist absorbed the mention"
+reset_
 
 # ---------------------------------------------------------------- license
 sed -i.bak 's/Apache-2.0/MIT/' crates/cloudkitty-py/pyproject.toml && rm crates/cloudkitty-py/pyproject.toml.bak

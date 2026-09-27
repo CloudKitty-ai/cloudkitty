@@ -1,0 +1,7 @@
+# version-mentions allowlist: "<path-prefix> <line-substring>" pairs;
+# a hit on that path whose line contains the substring is history, not drift.
+README.md seated together at the 0.3.0 cutover
+policies/README.md 0.3.0
+client/anim.js settled 0.3.0 world
+client/render.js 0.3.0 roster
+client/test-motion.mjs 0.3.0 roster
