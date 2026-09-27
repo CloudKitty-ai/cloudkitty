@@ -158,3 +158,12 @@ train-to-plateau (patience ~10), sets NO epoch floor for the
 vocabulary, and gates each clone on a here-conditioned acceptance
 bar instead (opportunity-use + msg@1|here, held-out; this screen's
 readout is the instrument). Recorded in the fog timeline §step 5.
+
+---
+
+Gate: **UNGATEABLE** 2026-09-27 (pre-gate document, no Regeneration
+block; forward-only contract, accuracy-gate skill #412). Owner
+approved this stamp 2026-09-27 ("Approved", the five-file package):
+the F-034/A1b density pins this file supports are re-measured by
+design in the Gen 2 prereg, so fresh measurement supersedes
+retro-verification here.

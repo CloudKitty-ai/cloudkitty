@@ -47,3 +47,11 @@ recent meows trimmed to the window that matters). The seed changes per
 tick and per kitty, so it is the per-decision tie-break the served
 advisor would see and nothing the prompt needs. Nothing further waits
 on Product for the seat; the next step is the owner's #392 definition.
+
+---
+
+Gate: **UNGATEABLE** 2026-09-27 (pre-gate document, no Regeneration
+block; forward-only contract, accuracy-gate skill #412). Owner
+approved this stamp 2026-09-27 ("Approved", the five-file package):
+not Gen-2-relevant (LLM seats sit two generations out, #392
+deferred); gates fresh work when the seat arc reopens.
