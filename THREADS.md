@@ -12,7 +12,7 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
 | **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (go through Product); the Claude Code tooling (Harness) |
 | **Professor** | teaching, review, research framing; notes live outside the repo | implementing anything |
-| **Harness** | the Claude Code tooling: `.claude/` (skills, hooks, agents, settings), `scripts/mutate.sh`, the memory directory's hygiene, the meta checks in CI (its own workflow file), `THREADS.md` and `CLAUDE.md` drafts for the owner's ruling | every content file: code, specs, experiments, docs, client. It reports on them; it never edits them |
+| **Harness** | the Claude Code tooling: `.claude/` (skills, hooks, agents, settings), `scripts/mutate.sh`, the memory directory's hygiene, the meta checks in CI (its own workflow files — as few as maintainability allows; owner ruled 2026-09-27 the singular was incidental, not a cap), `THREADS.md` and `CLAUDE.md` drafts for the owner's ruling | every content file: code, specs, experiments, docs, client. It reports on them; it never edits them |
 
 `docs/` and `README.md` are shared: each thread writes its own area
 (2026-09-08).
