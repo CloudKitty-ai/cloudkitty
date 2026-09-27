@@ -740,6 +740,13 @@ the ground rather than per-tile bare-earth patches. The 008 machinery
 (`pathHeat`, decay, `wornPaths()`) still runs underneath and is the
 obvious data source; the work is the presentation. No deadline.
 
+**Re-asked 2026-09-27** (owner, verbatim): "let's add a backlog entry to
+replace it with a real, high quality heatmap". The bar is quality, not
+just existence: judge it in a gallery lab card at true size against the
+real meadow, day and night, before it goes near the map. When it lands it
+takes over the `p` key, which is inert today; docs/viewer.md marks `p`
+unavailable and the on-page legend omits it, so both change with it.
+
 ### Lookahead for the camera — spec 032, revisited 2026-08-20 (Client thread)
 
 **The idea (owner):** use 032's buffer for smoother camera pan and zoom, not
