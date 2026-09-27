@@ -86,7 +86,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-045 | active | Distinct minds disperse: two or three small groups far apart (pairwise 11 vs scripted 6), nearest neighbour unchanged, lab shape reproduced live to the second decimal |
 | F-046 | active | A priced target feature the corpus never conditioned on stays unused: under the 054 ramp the minds groom clean friends (74 of 76 live grooms on bath < 10); the scripted groom refusal tax left with the scripted seats |
 | F-047 | active | A one-tick relief differential does not move sleep placement: on-beam 2.8× the all-rows rate, the adjacent ring at chance (0.93×), price 7/10/15 inside the seed spread, only the leash held the beam share; 25% of adjacent sleep starts face an occupied beam |
-| F-048 | active | The free register (mew, chirp, purr) is inert for a visible listener (0.88–1.07) and an unseen listener does less (heard row, not word); want_cuddle moves listeners 1.37× / 2.50× on the same instrument |
+| F-048 | active | The free register (mew, chirp, purr) is inert for a visible listener (0.88–1.07) and an unseen listener does less (row-vs-word attribution OPEN, 2026-09-27 caveat); want_cuddle moves listeners 1.37× / 2.50× on the same instrument |
 | F-049 | active | Mews and chirps are not echoed (1.0–1.2× chance, lag 1 only); purr piles are cosleep; the visible echo is several cats answering one ask with here-words (1.9× at lag 1, two thirds keyed on the ask) |
 | F-050 | active | Beam seeking survives β 0.04 PPO once the tile changes a nap's outcome: under shallow ground (spec 056 floor 10–25) the package clone keeps 0.46–0.81 of naps on beams through the fine-tune, against 0.04–0.07 at floor 0; a learning mind pays a flat ~1.5 happiness, a frozen mind 1.4–5.2 |
 | F-051 | active | Under a sleep floor, beam count is a step at six for a learned mind and flat past it: five beams cost ~0.6 happiness, six to eight are one level inside the seed spread; a mind trained at six seated on five, seven or eight is never worse than one retrained there |
@@ -2496,26 +2496,32 @@ so a mutual cosleeper beside a partner on the beam is paid the beam rate
 already; of the 25% occupied-adjacent starts, only the non-mutual ones
 lose the differential. Owner ruled (a) and (b) of #390 the same day.
 
-## F-048 · active · The free register (mew, chirp, purr) is inert for a visible listener and an unseen listener does less after it, which is the heard row, not the word; the want words move listeners on the same instrument
+## F-048 · active · The free register (mew, chirp, purr) is inert for a visible listener and an unseen listener does less after it (row-vs-word attribution OPEN — 2026-09-27 review caveat below; retitled from "which is the heard row, not the word"); the want words move listeners on the same instrument
 
 `free-register-baseline-2026-09-17/RESULTS.md` (PREREG 251c67f, amended
 28e2bce; gen1-A trace, 125k decisions, message head recomputed by
 `add_msg.py`; read `free_register_read.py --control speaker
 --match-speaker`, window 10). Emission per 1k decisions: purr 72.8, mew
-36.8, chirp 31.7 (want_cuddle 4.7), spoken from rest or sleep 86 / 62 /
-66%. Uptake, ratio to a matched control (speaker silent, keyed on both
+36.8, chirp 31.7 (want_cuddle 4.7), spoken from rest or sleep 86 / 63 /
+65% (corrected 2026-09-27 with the baseline doc). Uptake, ratio to a
+matched control (the speaker's same-word speech excluded, keyed on both
 cats' activity class): visible listener, approach 0.88–1.07, proposal
-to the speaker 0.94–1.02, echo 1.11–1.13, any speech 1.00, INERT on all
+to the speaker 0.94–1.02, echo 1.11–1.13, any speech 0.99–1.00, INERT on all
 three words. Unseen listener: approach 0.78–0.85, proposal 0.53–0.73,
 29 of 30 per-seed ratios under 1.0. Positive control on the same
 instrument: want_cuddle from a visible caller 1.37× the proposals, from
 the fog approach 1.51× and proposal 2.50×.
 
-The unseen-listener drop reads as the heard row itself (a fresh
-position for an unseen cat, whose state is "asleep or resting" for
-these words) rather than the word, since the control cannot yet
-separate the two; the next control is a speaker who said some other
-word. The register carries no fact under visible needs (F-026); Gen 2
+The unseen-listener drop's attribution is OPEN (see the review
+caveat below, which retires this paragraph's original claims —
+quoted: "The unseen-listener drop reads as the heard row itself (a
+fresh position for an unseen cat, whose state is "asleep or
+resting" for these words) rather than the word, since the control
+cannot yet separate the two; the next control is a speaker who said
+some other word." — the measured control pool already consists of
+other-word speakers, 99.49–99.61% of unseen-class rows, so the read
+largely separates word from row and the contrast points toward the
+word if anywhere). The register carries no fact under visible needs (F-026); Gen 2
 hides needs, which is the first condition under which it could. **Scope**:
 Gen 1 clones with needs visible, cooldown-only legality, intensity 0.
 **Invalidated by**: a visible-class ratio outside [0.8, 1.25] or an
@@ -2523,6 +2529,19 @@ unseen ratio above 1.0 on a settled word. **Re-verify when**: the Gen 2
 collection (hidden needs), and if option 1 or 2 of #391 is adopted.
 Trap on record: the declared `--control any` pool starves (26–97% of
 events dropped) and is never read.
+
+**Review caveat (2026-09-27, the retroactive gate on the baseline
+doc, its addendum entries 10/14/15):** the "heard row, not the
+word" attribution's stated support — a control whose speaker had
+been silent 30+ ticks with a stale or empty row — was refuted by
+measurement: the amended control excludes same-word speech only,
+and 99.49–99.61% of unseen-class control rows carry a speaker who
+said another word within the window (rows populated 99.19–99.34%). The measured
+ratios stand (visible in-band, unseen below 1, want_cuddle
+active);
+the row-vs-word attribution is OPEN, and the contrast as built
+points toward the word if anywhere. Gen 2's free-register read
+should treat the mechanism as undetermined.
 
 ## F-049 · active · Mews and chirps are not echoed: cross-cat coincidence is 1.0–1.2× chance and only at lag 1, purr piles are cosleep, and the echo the owner sees is several cats answering one ask with here-words (1.9× at lag 1, two thirds of it explained by keying on the ask)
 

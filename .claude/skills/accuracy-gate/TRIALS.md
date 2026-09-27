@@ -248,3 +248,42 @@ New failure modes for the fixture:
 4. **Universals over eight legs** ("across the board", "generally")
    falsified by one leg (hard-s2 at 347). Check every leg before
    writing a quantifier.
+
+## 2026-09-27 · enrichment-decay stage A (Experiments) · PASS round 3 of 3
+
+Gated: `experiments/enrichment-decay-sweep-2026-09-26/RESULTS.md`.
+Numbers clean; failure modes: (1) an inverted ordering claim ("below
+as often as above" where 14/16 pairings ran one way) — the write-up
+resisted a result unflattering to its own prediction; (2) an
+unreported WELFARE-EXPECTATION BREACH (4,108 > the prereg's ≤2,286
+line) — the author again read markers, not rows, for welfare
+accounting; (3) a phantom "seed-matched pairs" control (run indices
+differ; no shared randomness exists); (4) a wrong PREREG hash copied
+from the previous screen. Round 3's advisories (greedy-vs-training
+divergence; the recommended corner nearest the over-tending bar)
+went to STAGE-B-INPUTS rather than post-PASS edits.
+
+## 2026-09-27 · free-register baseline (Experiments) · PASS round 10 of 10 · RETROACTIVE
+
+First retroactive gate under the owner-approved five-file package.
+Found and fixed real damage in a nine-day-old doc: three wrong
+emission percentages carried forward as Gen 2 comparison numbers
+(also frozen into PREREG amendment 2 — noted, not edited); a
+double-rounded cell; and a control-mechanism story ("speaker silent
+30+ ticks, stale row") REFUTED by measuring the control pool the
+reader actually builds (99.5% other-word speakers, median 2 ticks) —
+which re-opened F-048's row-vs-word attribution, retitled the
+finding, and killed a planned instrument refinement that already
+described the existing instrument. New failure modes for the
+fixture: (a) DOUBLE-ROUNDING — deriving printed figures from
+already-rounded reader outputs instead of raws (three instances);
+(b) THE CORRECTOR NEEDS THE GATE TOO — the correction addendum
+itself failed three rounds (wrong per-word claim, truncated quote
+that failed to retire, count-slip after a list edit); (c)
+F-INHERITANCE SURFACES — title, index row, and body paragraph of the
+downstream finding each carried the refuted claim and each needed
+its own retirement; a caveat below the fold does not retire a title.
+Also this window (stage-B guard): SHARED-CONSTANT VACUITY — a
+reference implementation importing the trainer's constants moves
+with the mutation; independent literals only (one vacuous red caught
+it live).

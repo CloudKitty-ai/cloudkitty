@@ -16,9 +16,9 @@ boundary, control aftermath, speaker-vs-listener silence).
 | word | roster | by seat | spoken from rest or sleep | speaker's top need (all rows 0.162) |
 |---|---|---|---|---|
 | purr | 72.8 | 110, 117, 86, 29, 22 | 86% | 0.153 |
-| mew | 36.8 | 43, 56, 32, 36, 16 | 62% | 0.147 |
-| chirp | 31.7 | 13, 30, 41, 47, 28 | 66% | 0.144 |
-| want_cuddle | 4.7 | 2.5, 7.1, 3.6, 2.4, 7.8 | 22% | 0.238 |
+| mew | 36.8 | 43, 56, 32, 36, 16 | 63% | 0.147 |
+| chirp | 31.7 | 13, 30, 41, 47, 28 | 65% | 0.144 |
+| want_cuddle | 4.7 | 2.5, 7.1, 3.6, 2.4, 7.8 | 23% | 0.238 |
 | want_play | 0.5 | 0.4–0.6 | 33% | 0.230 |
 
 The free register is a settled-state register: all three words are
@@ -56,7 +56,7 @@ shakeout's result reproduced on the served composition.
 | mew | unseen | 0.80 (0.66–0.91) | 0.63 (0.54–0.95) | 0.92 | 1.00 | 10,432 (1,205) |
 | chirp | visible | 1.07 (0.78–1.34) | 1.02 (0.94–1.21) | 1.12 | 0.99 | 3,502 (2,269) |
 | chirp | unseen | 0.85 (0.80–0.89) | 0.73 (0.52–0.85) | 1.00 | 1.00 | 8,344 (1,685) |
-| purr | visible | 0.88 (0.57–1.48) | 0.94 (0.86–1.05) | 1.12 | 0.99 | 8,862 (5,794) |
+| purr | visible | 0.88 (0.57–1.48) | 0.94 (0.86–1.05) | 1.11 | 0.99 | 8,862 (5,794) |
 | purr | unseen | 0.78 (0.65–1.00) | 0.53 (0.25–0.96) | 0.95 | 1.00 | 18,297 (3,363) |
 
 Parentheses: the five per-seed ratios' range. Approach events are the
@@ -264,3 +264,196 @@ purring piles.
   (speaker said another word), and distance in the unseen key.
 - The Gen 2 shelf (`fog-gen1-shakeout/GEN2-INPUTS.md` §"The free
   register") is unchanged: three options, option 3 ruled for Gen 1.
+
+## Regeneration
+
+(Added 2026-09-27 under the owner-approved five-file package: this
+file predates the accuracy-gate skill; the block below was written
+retroactively and verified to reproduce the recorded reads before
+the gate ran.)
+
+### Collect
+
+The lab trace: five served gen1-A artifacts on `anchor-b3.toml`,
+trained clock, greedy, seeds 870001–870005 × 5,000 ticks, message
+head recomputed by `add_msg.py` onto
+`results-raw/gen1A-trace-msg.npz`. The live poll:
+`results-raw/live_meows_poll.py` against the served box, recorded to
+`results-raw/live-meows-20260917T153356.jsonl` (unreproducible
+source; the recorded file is the input of record). Never run by the
+gate.
+
+### Read
+
+Runtime: each line under 3 minutes. No environment variables
+required. The --out paths below point at the recorded raws;
+regeneration is byte-exact for five of the seven, while the
+declared read and cluster-lab.json regenerate with the added
+fields listed below — so running verbatim rewrites those two raws
+with slightly different bytes. A verifier redirects --out to a
+scratch directory and compares. Known benign differences on regeneration: the DECLARED
+read's `params` block gains two fields (`control`, `match_speaker`)
+added to the reader by the amendment — every data key reproduces
+exactly; `cluster-lab.json` regenerates equal on every key except
+two fields added to `_meta` (`sets`, `state`).
+
+```
+cd /Users/elizabethkelly/ai/cloudkitty
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/free_register_read.py \
+  experiments/free-register-baseline-2026-09-17/results-raw/gen1A-trace-msg.npz \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/free-register-read.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/free_register_read.py \
+  experiments/free-register-baseline-2026-09-17/results-raw/gen1A-trace-msg.npz \
+  --control speaker --match-speaker \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/free-register-read-amended.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/cluster_read.py \
+  lab experiments/free-register-baseline-2026-09-17/results-raw/gen1A-trace-msg.npz \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/cluster-lab.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/cluster_read.py \
+  live experiments/free-register-baseline-2026-09-17/results-raw/live-meows-20260917T153356.jsonl \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/cluster-live-free.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/cluster_read.py \
+  lab experiments/free-register-baseline-2026-09-17/results-raw/gen1A-trace-msg.npz \
+  --sets here --state activity+sunbeam \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/cluster-lab-here-sunbeamkey.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/cluster_read.py \
+  lab experiments/free-register-baseline-2026-09-17/results-raw/gen1A-trace-msg.npz \
+  --sets here --state activity+sunbeam+ask \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/cluster-lab-here-askkey.json
+experiments/exp-006-character-gen/.venv/bin/python experiments/free-register-baseline-2026-09-17/cluster_read.py \
+  live experiments/free-register-baseline-2026-09-17/results-raw/live-meows-20260917T153356.jsonl \
+  --sets here \
+  --out experiments/free-register-baseline-2026-09-17/results-raw/cluster-live-here.json
+```
+
+## Correction (2026-09-27, found by the retroactive accuracy gate)
+
+The emission table's "spoken from rest or sleep" column originally
+read 86 / 62 / 66 / 22 / 33; the gate's recompute from the trace
+(the reader's own per_tick, activity at the emission tick, pooled
+weighted by emission count) gives 86.37 / 62.80 / 65.34 / 22.60 /
+32.79, so under the document's own round-to-nearest convention the
+column is 86 / 63 / 65 / 23 / 33 — corrected above. No qualitative
+reading changes. Four of the five original figures also appear in
+PREREG.md amendment 2 (28e2bce; want_play's 33 is not there), which
+is frozen and stays as written; this
+note is its correction of record, and the carried-forward Gen 2
+comparison numbers are the corrected ones.
+
+## Corrections and re-readings (2026-09-27, retroactive gate round 2)
+
+Each entry quotes the original sentence verbatim and states the
+corrected reading; the quoted sentences are retired from the gate by
+this addendum. Beyond the emission column (the Correction section)
+and one double-rounded uptake cell (purr visible echo, originally
+1.12, exact 1.1145 → 1.11, corrected in the table), the table
+numbers reproduce; the rest are prose corrections.
+
+1. Quoted: "Mew keeps a 17% play share and chirp 18%, the one
+   non-settled context either word has." The shares are right (16.5%
+   and 17.5%), the exclusivity is wrong: eat (11.2% mew / 9.1%
+   chirp), drink, groom and idle are also non-settled contexts;
+   non-settled totals are 37% (mew) and 35% (chirp), of which play
+   is 44% (mew) and 51% (chirp).
+2. Quoted: "from an unseen caller, approach 1.51 (1.48–1.59) and
+   proposal 2.50 (2.13–2.93), the shakeout's result reproduced on
+   the served composition." The shakeout found unseen-caller
+   approach INERT (at or below chance); this read's 1.51 on a
+   different instrument (within-policy matched control vs the
+   shakeout's between-arm share) is the opposite reading, so
+   "reproduced" is unsupported in either direction. The declared
+   positive-control criterion itself passes (visible proposal
+   1.37 > 1.25), which is all the decision used.
+3. Quoted: "Any-speech is 1.00 everywhere: no word makes anyone
+   talk more." The recorded values run
+   0.988–1.003; the conclusion (no word makes anyone talk more)
+   stands, the stated precision does not.
+4. Quoted: "(and beams and critters being announced by everyone
+   beside them)". Untested: the referent-adjacency null was never
+   run, as this document says elsewhere; the residual is unnamed.
+5. Quoted: "The served world agrees with the lab and with Client's
+   window." Five cells disagree:
+   purr at k=10 (lab 1.14 pct 0.000, live 1.03 pct 0.185),
+   here_sunbeam's shape (lab decays 1.89→1.69, live grows
+   1.17→1.91), purr at k=1 (Client engine 0.99, live 1.61), mew at
+   k=1 (lab 1.14 pct 0.000, live 0.99 pct 0.55), chirp at k=3 (lab
+   1.09 pct 0.000, live 1.00 pct 0.52). "Agrees" overstated a mixed
+   picture.
+6. Quoted (Carry forward): "visible-class ratios at 1.0". The Gen 2
+   comparison values to carry are the recorded bands, not 1.0:
+   approach 0.88–1.07, proposal 0.94–1.02, visible echo 1.11–1.13,
+   per-seed ranges straddling 1.0.
+7. Quoted: "(1.89× at one tick, and it does not decay by ten
+   ticks)". The lab series goes 1.89 → 1.72 → 1.69: it stays high
+   but does decay.
+8. Quoted: "explains here_water, most of here_food". The ask key
+   removes 42–55% of here_food's excess across lags against the ask
+   file's own null A (40–54% against the own-state null B; k1
+   1.20 → 1.11) — about half on every baseline, not most. The here_water clause stands (a
+   1.04 residual at k=10, pct 0.000).
+9. Quoted: "the other exactly 1.0 (purr approach, seed 870001)."
+   The exact value is 1.00025 — a hair above 1.0, not exactly 1.0;
+   "29 of 30 under 1.0" stands, and purr's ACTIVE reading rides its
+   proposal ratios (all five seeds below 1) either way.
+10. Quoted: "in the control the speaker has been silent for 30 ticks
+   or more and its row is stale or empty." Measured on the trace,
+   this is not how the amended control was built: it excludes only
+   speakers of the SAME word, and in 99.5–99.6% of unseen-class
+   control rows the speaker said some other word within the prior
+   30 ticks (median 2 ticks since its last word; 21–27% spoke at
+   the control tick itself). The listener's row for that speaker is
+   populated in 99.19–99.34% of unseen-class control rows against
+   99.9–100% of event rows. The fresh-row-vs-stale-row mechanism does not follow
+   from the control's construction.
+11. Quoted: "Until then the honest Gen 2 baseline is: the free
+   register carries no cue a visible listener acts on, and from the
+   fog it acts as a position report." The measured ratios stand
+   (visible in-band, unseen below 1); the "position report"
+   mechanism rests on the stale-row story corrected in entry 10 and
+   is a hypothesis, not a measured reading.
+12. Quoted: "Instrument refinement before the Gen 2 read: the
+   fresh-row control (speaker said another word), and distance in
+   the unseen key." The first half is largely vacuous as stated —
+   the current control pool already consists overwhelmingly
+   (99.5%+) of speakers who said another word in the window; a
+   refinement that separates row freshness would have to key on
+   the ROW's own staleness, not the speaker's other-word speech.
+   The distance-key half stands.
+13. Quoted: "Every pct is 0.000 except here_water under the ask key
+   (0.075–0.185, at chance)." The 0.075–0.185 range covers k=1 and
+   k=3; the table's k=10 ask-key cell for here_water is 1.04 with
+   pct 0.000 — not at chance — as entry 8 records.
+14. Quoted: "This read cannot separate "the word" from "a fresh
+   row"; the control that would is a speaker who said some OTHER
+   word in the window (fresh row, different word), the next
+   refinement of this instrument." Entry 10's measurement shows the
+   current control already IS that pool (99.49–99.61% of control
+   unseen-class rows have the speaker saying another word in the
+   window), so the
+   read does largely separate the word from a fresh row, and the
+   named refinement is the instrument as it stands.
+15. Quoted: "The unseen effect is most likely the heard row, not
+   the word." Its stated support was the stale-control-row story
+   corrected in entry 10. With the control pool measured (other-word
+   rows, populated 99.19–99.34%), the event/control contrast is
+   mostly "row carrying w" vs "row carrying another word" — which
+   points toward the word, not the row. The attribution is OPEN;
+   F-048's title inherits this and carries a review caveat dated
+   2026-09-27.
+16. Quoted: "proposing less is the mind reading the row, and the
+   want-words do the opposite with the same row because they carry
+   an ask." The want-word numbers stand (1.51 / 2.50); the
+   row-reading mechanism is a hypothesis resting on the corrected
+   entry-10 story, not a measured reading.
+
+
+Gate: **PASS** 2026-09-27 (retroactive, ten rounds; the owner-approved
+five-file package). What the rounds corrected: three emission
+percentages wrong for nine days and mirrored in the frozen PREREG
+(the carried-forward Gen 2 numbers), one double-rounded uptake cell,
+a refuted control-mechanism story (the row-vs-word attribution is
+now OPEN, F-048 retitled), a near-vacuous proposed instrument
+refinement, and the correction addendum's own errors three times
+over. All seven Read lines regenerate as declared; 16 retired
+quotes; ~330 arithmetic values verified round 10 with 3 non-failing
+WEAK · raws f263fbddab39.
