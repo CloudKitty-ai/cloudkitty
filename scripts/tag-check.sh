@@ -32,7 +32,7 @@ esac; done
 }
 CFG="$R/scripts/tag-check.d"
 
-CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout gate-scope client-ship threads staleness glossary"
+CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary"
 if [ "$LIST" = 1 ]; then for c in $CHECKS; do echo "$c"; done; exit 0; fi
 if [ -n "$ONLY" ]; then
   for c in $ONLY; do case " $CHECKS " in *" $c "*) ;; *) echo "tag-check: no such check: $c" >&2; exit 2 ;; esac; done
@@ -417,6 +417,22 @@ c_layout() {
     grep -qE "(^|[[:space:]])$(esc "$d")/" "$block" ||
       { echo "tracked directory $d/ absent from README §Layout" >> "$D"; ok=1; }
   done < <(cut -d/ -f1 "$TRACKED" | sort -u)
+  return $ok
+}
+
+# ---------------------------------------------------------------- fences
+# A duplication fence is a mid-refactor loan (owner ruled 2026-09-27:
+# mid-refactor PRs may fence temporary duplication, reason + removal
+# target on the start line; Product's ci.yml ratchet honors fences).
+# A release repays loans: any marker still tracked FAILS the tag.
+# Marker presence IS the violation — no jscpd run needed. The marker
+# literal is split below so this suite never flags itself.
+c_fences() {
+  local ok=0 hit M='jscpd:ig'
+  M="${M}nore"
+  while IFS= read -r hit; do
+    echo "$hit" >> "$D"; ok=1
+  done < <(git -C "$R" grep -nF "$M" -- . 2>/dev/null || true)
   return $ok
 }
 

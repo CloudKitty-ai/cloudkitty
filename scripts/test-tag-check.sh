@@ -373,6 +373,18 @@ case_ 1 "new tracked dir missing from Layout: FAIL" layout
 has "newtool/ absent" "dir named"
 reset_
 
+# ---------------------------------------------------------------- fences
+# marker written by concatenation so this test file never carries the token
+printf '// jscpd:ig%s-start refactor loan, remove by 0.5.0\nvar x = 1;\n// jscpd:ig%s-end\n' 'nore' 'nore' > client/loan.js
+printf 'client/loan.js\n' >> scripts/tag-check.d/client-ship.txt
+git add client/loan.js
+case_ 1 "fence marker blocks the release: FAIL" fences
+has "client/loan.js" "fenced file named"
+reset_
+printf '# jscpd:ig%s-end stray\n' 'nore' >> experiments/clean.py
+case_ 1 "a stray end marker alone blocks: FAIL" fences
+reset_
+
 # ---------------------------------------------------------------- gate-scope
 # the PASS branch first: a stamped file changed this release satisfies the
 # check (guards the stamp regex against never-matching)
