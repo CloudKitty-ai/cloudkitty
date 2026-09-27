@@ -27,8 +27,9 @@ auto-compact at the context limit runs no skill and catches whatever
 anchor exists; if compact-ready is a standing state, it catches a
 slightly stale anchor instead of an ancient one.
 
-Ownership (THREADS.md §1): this file is Product's — edits route
-there. `TRIALS.md` beside it is append-shared by trialling threads.
+Ownership (THREADS.md §1): this file is Harness's (moved from
+Product 2026-09-22) — edits route there. `TRIALS.md` beside it is
+append-shared by trialling threads.
 
 **Deploy state is not a durable store.** The repo and git history can
 be read offline; a claim about the running box decays the moment it is
@@ -205,6 +206,13 @@ thread — recorded as verbatim text. A compacted session sometimes
 believes it already sent a message it only drafted; the anchor is the
 proof either way.
 
+### Delegated this arc
+What went to subagents (CLAUDE.md rule 9's shapes): each task in one
+line, with where its report or evidence now lives. A report is
+evidence read, never a result pasted; this line lets the resumed
+session re-weigh the evidence instead of trusting a conclusion it
+cannot see. "None" is a valid state; write it.
+
 ## Step 3 — Hard checks
 
 These are checks, not judgment calls. Run all that apply; the report
@@ -244,7 +252,10 @@ lists the ones skipped and why.
    thread owns and fix any that no longer reflect truth. A stale index
    line is worse than a missing one, because the index loads every
    session. Four threads share this file: edit it per line, fresh-read
-   then targeted replacement, never a whole-file rewrite.
+   then targeted replacement, never a whole-file rewrite. Then
+   `wc -c` the index: past 20,000 bytes, trim per its own header rule
+   (drop index lines for closed arcs with no live trap; topic files
+   stay on disk). The budget only tightens — trim, never raise it.
 
 ## Step 4 — Compact-ready report
 
