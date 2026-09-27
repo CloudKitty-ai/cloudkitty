@@ -24,7 +24,15 @@ jobs:
           # gate-scope and staleness need the previous tag and its history.
           fetch-depth: 0
       - name: Full consistency suite
-        run: bash scripts/tag-check.sh
+        # On a tag push, the tag itself is the version under test; the
+        # script's default --against already excludes tags pointing at
+        # HEAD, so the release compares against the PREVIOUS release.
+        run: |
+          if [ "${{ github.ref_type }}" = tag ]; then
+            bash scripts/tag-check.sh --tag "${{ github.ref_name }}"
+          else
+            bash scripts/tag-check.sh
+          fi
 
   quickstart:
     name: quickstart smoke (README commands, literally)

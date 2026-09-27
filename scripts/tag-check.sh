@@ -15,6 +15,7 @@
 #            empty-Unreleased assertion to the version check.
 # Config lives in scripts/tag-check.d/ (allowlists, the client ship lists).
 set -u
+export LC_ALL=C   # byte-order sorts and comm everywhere; CI and macOS agree
 
 R=$(git rev-parse --show-toplevel 2>/dev/null || true)
 AGAINST="" TAG="" LIST=0 ONLY=""
@@ -38,7 +39,20 @@ if [ -n "$ONLY" ]; then
   CHECKS=$ONLY
 fi
 
-[ -n "$AGAINST" ] || AGAINST=$(git -C "$R" tag --list '0.*' --merged HEAD 2>/dev/null | sort -V | tail -n 1)
+R=$(git -C "$R" rev-parse --show-toplevel)   # normalize a subdir --repo
+
+# Default: the newest 0.* tag merged into HEAD that is NOT HEAD itself —
+# on a tag-push run HEAD is the new tag, and a release compared against
+# itself gates nothing (review B1).
+if [ -z "$AGAINST" ]; then
+  AGAINST=$( { git -C "$R" tag --list '0.*' --merged HEAD 2>/dev/null;
+               git -C "$R" tag --points-at HEAD 2>/dev/null;
+               git -C "$R" tag --points-at HEAD 2>/dev/null; } \
+             | sort | uniq -u | sort -V | tail -n 1)
+fi
+if [ -n "$AGAINST" ] && ! git -C "$R" rev-parse --verify -q "$AGAINST^{commit}" >/dev/null; then
+  echo "tag-check: --against '$AGAINST' is not a commit" >&2; exit 2
+fi
 
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 TRACKED="$TMP/tracked"; git -C "$R" ls-files > "$TRACKED"
@@ -146,11 +160,12 @@ c_ignored() {
 # ---------------------------------------------------------------- abspaths
 c_abspaths() {
   local f ok=0
-  for f in $(git -C "$R" ls-files '*.py' '*.sh'); do
+  while IFS= read -r f; do
     grep -q -e '/Users/' -e '~/ai/' "$R/$f" || continue
     allow abspath-allow.txt "$f" && continue
     echo "$f" >> "$D"; ok=1
-  done
+  done < <(git -C "$R" ls-files '*.py' '*.sh')
+  [ -s "$D" ] && ok=1
   return $ok
 }
 
@@ -162,7 +177,8 @@ c_findings_index() {
   local FF="$R/experiments/FINDINGS.md" ok=0 id hs is
   [ -f "$FF" ] || { echo "experiments/FINDINGS.md missing" >> "$D"; return 1; }
   awk -F' · ' '/^## F-[0-9][0-9][0-9] /{sub(/^## /,""); print $1 "|" $2}' "$FF" \
-    | sed 's/superseded by \(F-[0-9]*\)/superseded → \1/; s/ (20[0-9-]*)$//' | LC_ALL=C sort > "$TMP/fh"
+    | sed 's/superseded by \(F-[0-9]*\)/superseded → \1/; s/ (20[0-9-]*)$//' | sort > "$TMP/fh"
+  [ -s "$TMP/fh" ] || { echo "no '## F-NNN · status · claim' headings found (format moved?)" >> "$D"; return 1; }
   awk -F'|' '/^\| *F-[0-9][0-9][0-9] /{
       gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$3); print $2 "|" $3}' "$FF" \
     | sed 's/ · \*\*promoted\*\*//' | LC_ALL=C sort > "$TMP/fi"
@@ -188,7 +204,7 @@ c_indexes() {
     fi
     if ! "$R/scripts/$gen" "$R" | diff -q - "$R/$target" >/dev/null 2>&1; then
       echo "$target is stale (regenerate with scripts/$gen; a hand edit to a generated file is the bug):" >> "$D"
-      "$R/scripts/$gen" "$R" | diff - "$R/$target" | head -n 8 >> "$D"; ok=1
+      "$R/scripts/$gen" "$R" | diff -u -L "generated (scripts/$gen)" -L "committed ($target)" - "$R/$target" | head -n 12 >> "$D"; ok=1
     fi
   done
   return $ok
@@ -206,7 +222,10 @@ c_citations() {
     { if (id) body = body "\n" $0 }
     END { if (id) dump() }
     function dump(   f) {
-      f = (body ~ /recorded \(local\)/ || body ~ /10\.[0-9]+\/[A-Za-z0-9._\/-]+/ || body ~ /[Zz]enodo/) ? "ok" : "check"
+      # absolving marks: the register label, a real DOI (4+ digit prefix),
+      # or a concrete zenodo record/url — the bare word "Zenodo" in prose
+      # ("not yet on Zenodo") absolves nothing
+      f = (body ~ /recorded \(local\)/ || body ~ /10\.[0-9][0-9][0-9][0-9][0-9]*\/[A-Za-z0-9._\/-]+/ || body ~ /[Zz]enodo\.[0-9]/ || body ~ /zenodo\.org\//) ? "ok" : "check"
       n = split(body, L, "\n")
       for (i = 1; i <= n; i++) {
         line = L[i]
@@ -225,8 +244,8 @@ c_citations() {
       }
     }' "$FF" | sort -u > "$TMP/cit"
   while IFS='|' read -r id flag p; do
-    tracked "$p" && continue
-    tracked "experiments/$p" && continue
+    tracked "$(norm "$p")" && continue
+    tracked "$(norm "experiments/$p")" && continue
     [ "$flag" = ok ] && continue
     allow citation-allow.txt "$p" && continue
     echo "$id cites untracked '$p' (no DOI, not labeled recorded (local))" >> "$D"; ok=1
@@ -240,30 +259,38 @@ c_citations() {
 # the policies/README.md Active/Retired tables. (The served-roster leg is
 # registry_integrity.rs's, already in CI.)
 c_registry() {
-  local ok=0 f s row rfile rsha
+  local ok=0 f s rfile rsha
   grep -oE '^\[artifact\."[0-9a-f]{64}"\]' "$R/policies/registry.toml" 2>/dev/null \
-    | grep -oE '[0-9a-f]{64}' | LC_ALL=C sort > "$TMP/reg"
-  : > "$TMP/disk"
-  for f in $(git -C "$R" ls-files 'policies/*.ckpolicy' 'policies/retired/*.ckpolicy'); do
-    echo "$(sha256 "$R/$f")  $f" >> "$TMP/disk"
+    | grep -oE '[0-9a-f]{64}' | sort > "$TMP/reg"
+  # registry.toml covers TOP-LEVEL artifacts only (spec 034: a row is cut
+  # when an artifact lands at top level; pre-registry retirees are exempt).
+  # The README tables cover everything tracked, retired included.
+  : > "$TMP/disk_top"; : > "$TMP/disk_all"
+  # git pathspec globs cross '/'; the top-level set needs an anchored filter
+  git -C "$R" ls-files 'policies/*.ckpolicy' | grep -E '^policies/[^/]+\.ckpolicy$' | while IFS= read -r f; do
+    echo "$(sha256 "$R/$f")  $f" >> "$TMP/disk_top"
+  done
+  git -C "$R" ls-files 'policies/*.ckpolicy' 'policies/retired/*.ckpolicy' | sort -u | while IFS= read -r f; do
+    echo "$(sha256 "$R/$f")  $f" >> "$TMP/disk_all"
   done
   while read -r s f; do
     grep -qxF "$s" "$TMP/reg" || { echo "$f: sha $s not in registry.toml" >> "$D"; ok=1; }
-  done < "$TMP/disk"
+  done < "$TMP/disk_top"
   while read -r s; do
-    grep -qF "$s" "$TMP/disk" || { echo "registry.toml entry $s has no tracked .ckpolicy" >> "$D"; ok=1; }
+    grep -qF "$s" "$TMP/disk_top" || { echo "registry.toml entry $s has no tracked top-level .ckpolicy" >> "$D"; ok=1; }
   done < "$TMP/reg"
   grep -oE '^\| `[^`]+\.ckpolicy` \| `[0-9a-f]{64}' "$R/policies/README.md" 2>/dev/null \
     | sed 's/^| `//; s/` | `/ /' > "$TMP/rows"
+  cut -d' ' -f1 "$TMP/rows" > "$TMP/rowfiles"
   while read -r rfile rsha; do
     f="policies/$rfile"
     if ! tracked "$f"; then echo "policies/README.md row names missing file $f" >> "$D"; ok=1; continue; fi
-    s=$(grep -F "  $f" "$TMP/disk" | awk '{print $1}')
+    s=$(grep -F "  $f" "$TMP/disk_all" | awk '{print $1}')
     [ "$s" = "$rsha" ] || { echo "policies/README.md sha for $rfile != file on disk" >> "$D"; ok=1; }
   done < "$TMP/rows"
   while read -r s f; do
-    grep -qF "${f#policies/}" "$TMP/rows" || { echo "$f has no policies/README.md row" >> "$D"; ok=1; }
-  done < "$TMP/disk"
+    grep -qxF "${f#policies/}" "$TMP/rowfiles" || { echo "$f has no policies/README.md row" >> "$D"; ok=1; }
+  done < "$TMP/disk_all"
   return $ok
 }
 
@@ -335,11 +362,12 @@ c_layout() {
   local ok=0 d block="$TMP/layout"
   sed -n '/^## Layout/,/^## [^L]/p' "$R/README.md" 2>/dev/null > "$block"
   [ -s "$block" ] || { echo "README.md has no ## Layout section" >> "$D"; return 1; }
-  for d in $(cut -d/ -f1 "$TRACKED" | LC_ALL=C sort -u); do
-    case "$d" in .*) continue ;; esac
+  while IFS= read -r d; do
+    case "$d" in .*|'') continue ;; esac
     tracked_dir "$d" || continue
-    grep -qF "$d/" "$block" || { echo "tracked directory $d/ absent from README §Layout" >> "$D"; ok=1; }
-  done
+    grep -qE "(^|[[:space:]])$(esc "$d")/" "$block" ||
+      { echo "tracked directory $d/ absent from README §Layout" >> "$D"; ok=1; }
+  done < <(cut -d/ -f1 "$TRACKED" | sort -u)
   return $ok
 }
 
@@ -349,7 +377,7 @@ c_layout() {
 c_gate_scope() {
   local ok=0 f
   [ -n "$AGAINST" ] || { echo "no previous 0.* tag to scope against" >> "$D"; return 2; }
-  git -C "$R" diff --name-only "$AGAINST"..HEAD -- 'experiments/*' 2>/dev/null \
+  git -C "$R" diff --name-only "$AGAINST"..HEAD -- 'experiments/*' \
     | grep -E '/RESULTS\.md$' > "$TMP/changed" || true
   [ -s "$TMP/changed" ] || { echo "no RESULTS.md changed since $AGAINST" >> "$D"; return 0; }
   while IFS= read -r f; do
@@ -368,34 +396,34 @@ c_gate_scope() {
 c_client_ship() {
   local ok=0 f ship="$CFG/client-ship.txt" noship="$CFG/client-noship.txt"
   [ -f "$ship" ] && [ -f "$noship" ] || { echo "missing scripts/tag-check.d/client-ship.txt or client-noship.txt" >> "$D"; return 1; }
-  for f in $(grep -h -v '^#' "$ship" "$noship" | grep -v '^$'); do
+  while IFS= read -r f; do
     tracked "$f" || { echo "listed but not tracked (stale entry): $f" >> "$D"; ok=1; }
-  done
-  for f in $(grep -v '^#' "$ship" | grep -v '^$'); do
+  done < <(grep -h -v '^#' "$ship" "$noship" | grep -v '^$')
+  while IFS= read -r f; do
     grep -v '^#' "$noship" | grep -qxF "$f" && { echo "in both ship and noship: $f" >> "$D"; ok=1; }
-  done
-  for f in $(grep '^client/' "$TRACKED"); do
+  done < <(grep -v '^#' "$ship" | grep -v '^$')
+  while IFS= read -r f; do
     allow client-ship.txt "$f" && continue
     allow client-noship.txt "$f" && continue
     echo "unclassified client file (add to ship or noship): $f" >> "$D"; ok=1
-  done
+  done < <(grep '^client/' "$TRACKED")
   return $ok
 }
 
 # ---------------------------------------------------------------- threads
 c_threads() {
   local ok=0 t
-  grep -n 'TODO' "$R/THREADS.md" 2>/dev/null | sed 's/^/THREADS.md /' >> "$D"
+  [ -f "$R/THREADS.md" ] || { echo "THREADS.md missing" >> "$D"; return 1; }
+  [ -n "$(sec6)" ] || { echo "THREADS.md has no '## 6.' section (renumbered? update sec6 here)" >> "$D"; return 1; }
+  grep -n 'TODO' "$R/THREADS.md" | sed 's/^/THREADS.md /' >> "$D"
   [ -s "$D" ] && ok=1
-  sec6 | grep -oE '`[A-Za-z0-9_./-]+`' | tr -d '\`' | LC_ALL=C sort -u | while IFS= read -r t; do
+  while IFS= read -r t; do
     t=${t%/}
     case "$t" in */*) ;; *) continue ;; esac   # bare names (results-raw/, TRIALS.md) are descriptors, not homes
-    case "$t" in *\**) continue ;; esac
     tracked "$t" && continue
-    tracked_dir "${t%/}" && continue
-    echo "§6 home does not exist in the tree: $t" >> "$D"
-  done
-  grep -q '§6 home' "$D" 2>/dev/null && ok=1
+    tracked_dir "$t" && continue
+    echo "§6 home does not exist in the tree: $t" >> "$D"; ok=1
+  done < <(sec6 | grep -oE '`[A-Za-z0-9_./-]+`' | tr -d '\`' | sort -u)
   return $ok
 }
 sec6() { awk '/^## 6\./{f=1} f && /^## [0-9]/ && !/^## 6\./{f=0} f' "$R/THREADS.md" 2>/dev/null; }
@@ -419,8 +447,9 @@ c_staleness() {
 }
 
 # ---------------------------------------------------------------- glossary
-# REPORT only until the file exists (owner ruled 2026-09-27: home is
-# GLOSSARY.md at the root, with a pointer in docs/).
+# REPORT only, both branches — the file's existence and its docs/ pointer
+# are content-thread work the release PR reviews (owner ruled 2026-09-27:
+# home is GLOSSARY.md at the root, with a pointer in docs/).
 c_glossary() {
   if ! tracked "GLOSSARY.md"; then
     echo "GLOSSARY.md not yet created (owner ruling 2026-09-27: root home + docs/ pointer; content threads write it)" >> "$D"

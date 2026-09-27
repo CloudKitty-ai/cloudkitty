@@ -31,8 +31,14 @@ echo "== viewer meadow checks =="
 node client/test-meadow.mjs
 
 echo "== python surface: build + random rollout =="
+# maturin develop refuses to run outside a venv (house trap on record);
+# the smoke makes its own so a bare CI runner works.
 ( cd crates/cloudkitty-py \
+  && python3 -m venv .venv-smoke \
+  && . .venv-smoke/bin/activate \
+  && pip install --quiet maturin \
   && maturin develop --release --quiet \
-  && python examples/random_rollout.py --seed 7 )
+  && python examples/random_rollout.py --seed 7 \
+  && rm -rf .venv-smoke )
 
 echo "quickstart smoke: all green"

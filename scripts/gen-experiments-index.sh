@@ -12,9 +12,11 @@ echo "hand; regenerate and commit (owning thread) when arcs change."
 echo
 echo "| arc | declaration | results |"
 echo "|---|---|---|"
+# NF==3 keeps declaration/results detection to the arc's TOP level;
+# nested files (results/…, tooling) would otherwise flood the row.
 git -C "$R" ls-files 'experiments/*/*' | cut -d/ -f2 | LC_ALL=C sort -u | while IFS= read -r d; do
-  pre=$(git -C "$R" ls-files "experiments/$d/*" | awk -F/ 'tolower($3) ~ /^(prereg|declaration)/ {print $3}' | LC_ALL=C sort | tr '\n' ' ')
-  res=$(git -C "$R" ls-files "experiments/$d/*" | awk -F/ 'tolower($3) ~ /^results/ {print $3}' | LC_ALL=C sort | tr '\n' ' ')
+  pre=$(git -C "$R" ls-files "experiments/$d/*" | awk -F/ 'NF==3 && tolower($3) ~ /^(prereg|declaration)/ {print $3}' | LC_ALL=C sort -u | tr '\n' ' ')
+  res=$(git -C "$R" ls-files "experiments/$d/*" | awk -F/ 'NF==3 && tolower($3) ~ /^results/ {print $3}' | LC_ALL=C sort -u | tr '\n' ' ')
   pre=${pre% }; res=${res% }
   echo "| \`$d\` | ${pre:-—} | ${res:-—} |"
 done

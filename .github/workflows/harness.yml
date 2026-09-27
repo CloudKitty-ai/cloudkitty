@@ -12,8 +12,10 @@ name: harness (meta checks)
 # the whole tree against its documentation homes and unrelated PRs would
 # inherit every open drift.
 #
-# Reads git only. It never loads a toml, so the shipped-config sweep's
-# rule about tomls under experiments/ does not apply here.
+# The budget job reads git only. The tag-check self-test builds a
+# throwaway fixture repo (with its own Cargo.toml/pyproject.toml) in a
+# temp dir OUTSIDE this checkout, so the shipped-config sweep's rule
+# about tomls under experiments/ still does not apply.
 
 on:
   push:

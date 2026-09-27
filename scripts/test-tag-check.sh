@@ -137,6 +137,7 @@ claim: 1 = 1.
 Gate: **PASS** 2026-09-27 (fixture) · claims: 1 arithmetic · raws abcdef123456.
 EOF
 printf 'ok\n' > experiments/clean.py
+mkdir -p experiments/arc-a/results && printf 'nested\n' > experiments/arc-a/results/deep-read.md
 printf '%s\n' '# spec' '' '' '' '' '' '**Status**: Draft' > specs/001-alpha/spec.md
 cat > THREADS.md <<'EOF'
 # Threads
@@ -155,7 +156,10 @@ printf 'policy-a-bytes\n' > policies/a.ckpolicy
 printf 'policy-b-bytes\n' > policies/retired/b.ckpolicy
 shaf() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'; else shasum -a 256 "$1" | awk '{print $1}'; fi; }
 SA=$(shaf policies/a.ckpolicy); SB=$(shaf policies/retired/b.ckpolicy)
-{ printf '[artifact."%s"]\narchitecture = "MLP"\n\n' "$SA"; printf '[artifact."%s"]\narchitecture = "MLP"\n' "$SB"; } > policies/registry.toml
+# registry covers top level only (spec 034); the retired file has a README
+# row but deliberately NO registry entry — the green run proves the check
+# does not demand one.
+printf '[artifact."%s"]\narchitecture = "MLP"\n' "$SA" > policies/registry.toml
 cat > policies/README.md <<EOF
 # Policies
 
@@ -199,6 +203,9 @@ case_ 0 "green fixture: full suite passes"
 has "PASS    findings-index" "date-suffixed superseded-by heading tolerated"
 has "PASS    endpoints" ":id vs {id} normalization holds"
 has "PASS    threads" "results-raw/ descriptor not flagged as a home"
+scripts/gen-experiments-index.sh "$T" > "$O"
+grep -qF '| `arc-a` | — | RESULTS.md |' "$O" && echo "ok   nested arc row stays one clean line" || { echo "FAIL nested arc row flooded: $(grep arc-a "$O")"; fail=1; }
+"$TC" --repo "$T" --against no-such-ref version >"$O" 2>&1; [ $? = 2 ] && echo "ok   bad --against: exit 2" || { echo "FAIL bad --against: not exit 2"; sed 's/^/     /' "$O"; fail=1; }
 case_ 0 "--list exits 0" --list
 "$TC" --repo "$T" no-such-check >"$O" 2>&1; [ $? = 2 ] && echo "ok   unknown check: exit 2" || { echo "FAIL unknown check: not exit 2"; fail=1; }
 
@@ -213,6 +220,9 @@ case_ 1 "--tag with content under Unreleased: FAIL" --tag 0.4.0 version
 has "still has content" "unreleased content named"
 reset_
 case_ 0 "--tag matching everywhere: PASS" --tag 0.4.0 version
+case_ 1 "--tag mismatching Cargo and CHANGELOG: FAIL" --tag 0.9.9 version
+has "Cargo.toml 0.4.0 != tag 0.9.9" "cargo-vs-tag named"
+has "CHANGELOG head 0.4.0 != tag 0.9.9" "changelog-vs-tag named"
 
 # ---------------------------------------------------------------- license
 sed -i.bak 's/Apache-2.0/MIT/' crates/cloudkitty-py/pyproject.toml && rm crates/cloudkitty-py/pyproject.toml.bak
@@ -276,8 +286,13 @@ case_ 0 "recorded (local) label absolves: PASS" citations
 reset_
 sed -i.bak 's#§1.#§1. Also `2026-01-01-loose-note.md`.#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
 case_ 1 "dated bare-filename citation, untracked: FAIL" citations
-sed -i.bak 's#Also #DOI 10.5281/zenodo.1234 covers #' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
-case_ 0 "DOI absolves the entry: PASS" citations
+sed -i.bak 's#Also #DOI 10.5281/cksk.55 covers #' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
+case_ 0 "DOI alone absolves the entry: PASS" citations
+reset_
+sed -i.bak 's#§1.#§1. Cites `2026-01-01-loose-note.md`, not yet on Zenodo.#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
+case_ 1 "the bare word Zenodo in prose absolves nothing: FAIL" citations
+sed -i.bak 's#not yet on Zenodo#now zenodo.9876#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
+case_ 0 "a concrete zenodo record absolves: PASS" citations
 reset_
 
 # ---------------------------------------------------------------- registry
@@ -288,6 +303,14 @@ reset_
 sed -i.bak '/a.ckpolicy/d' policies/README.md && rm policies/README.md.bak
 case_ 1 "README row removed: FAIL" registry
 has "no policies/README.md row" "missing row named"
+reset_
+# exact row matching: a top-level bb.ckpolicy must not be satisfied by the
+# retired/b.ckpolicy row (substring trap)
+printf 'policy-bb\n' > policies/bb.ckpolicy && SBB=$(shaf policies/bb.ckpolicy)
+printf '[artifact."%s"]\narchitecture = "MLP"\n' "$SBB" >> policies/registry.toml
+git add policies/bb.ckpolicy
+case_ 1 "row match is exact, not substring: FAIL" registry
+has "policies/bb.ckpolicy has no policies/README.md row" "bb named"
 reset_
 
 # ---------------------------------------------------------------- viewer-keys
@@ -324,6 +347,13 @@ has "newtool/ absent" "dir named"
 reset_
 
 # ---------------------------------------------------------------- gate-scope
+# the PASS branch first: a stamped file changed this release satisfies the
+# check (guards the stamp regex against never-matching)
+printf '\nA new paragraph this release.\n' >> experiments/arc-a/RESULTS.md && c arc-a-edit
+case_ 0 "changed RESULTS with a PASS stamp: PASS" gate-scope
+printf '\nGate (addendum 2): **UNGATEABLE** 2026-09-27 (fixture) · claims: 0 · raws feedbeef0000.\n' >> experiments/arc-a/RESULTS.md && c arc-a-add
+case_ 0 "addendum UNGATEABLE stamp also satisfies: PASS" gate-scope
+reset_; git reset -q --hard green
 mkdir -p experiments/arc-b && printf '# arc-b\n\nclaims here.\n' > experiments/arc-b/RESULTS.md && git add experiments/arc-b/RESULTS.md && c arc-b
 case_ 1 "RESULTS changed since tag, no stamp: FAIL" gate-scope
 has "no gate PASS/UNGATEABLE stamp" "unstamped file named"
@@ -352,6 +382,14 @@ reset_
 printf '| ghosts | `docs/ghosts.md` | — | — |\n' >> THREADS.md
 case_ 1 "nonexistent §6 home: FAIL" threads
 has "docs/ghosts.md" "missing home named"
+reset_
+sed -i.bak 's/^## 6\. What lives where/## 7. What lives where/' THREADS.md && rm THREADS.md.bak
+case_ 1 "renumbered §6: loud FAIL, not silent PASS" threads
+has "no '## 6.' section" "renumber named"
+reset_
+printf '# empty\n' > experiments/FINDINGS.md
+case_ 1 "FINDINGS with no headings: loud FAIL" findings-index
+has "no '## F-NNN" "format-moved named"
 reset_
 
 # ---------------------------------------------------------------- staleness + glossary
