@@ -60,6 +60,14 @@ def run(ticks=1200, seed=900401):
     return np.stack(obs_stack), np.asarray(rewards)
 
 
+# Independent copies of the pins (PREREG-B): never read from the
+# trainer, or a mutated trainer constant moves both sides and the
+# guard goes vacuous (the at-cap red proved it).
+R_THETA_LO, R_THETA_HI, R_GAIN = 0.15, 0.25, 0.25
+R_D_MIN, R_D_MAX = 0.01, 0.10
+R_EPS, R_FLOOR, R_AT_CAP = 0.01, 1e-4, 0.95
+
+
 def ref_terms(obs_stack, trunc, beta, accrual_gate):
     import math
     T, roster, _ = obs_stack.shape
@@ -74,11 +82,11 @@ def ref_terms(obs_stack, trunc, beta, accrual_gate):
         base, lifted = [], []
         for k in range(roster):
             worst = max(ob[k][i] for i in OBS_GATE)
-            frac = min(1.0, max(0.0, (worst - te.THETA_LO) / (te.THETA_HI - te.THETA_LO)))
-            g = min(1.0, max(0.0, (te.THETA_HI - worst) / (te.THETA_HI - te.THETA_LO)))
-            d = te.D_MIN + frac * (te.D_MAX - te.D_MIN)
+            frac = min(1.0, max(0.0, (worst - R_THETA_LO) / (R_THETA_HI - R_THETA_LO)))
+            g = min(1.0, max(0.0, (R_THETA_HI - worst) / (R_THETA_HI - R_THETA_LO)))
+            d = R_D_MIN + frac * (R_D_MAX - R_D_MIN)
             if ob[k][OBS_ACT_PLAY] > 0.5:
-                add = min(te.GAIN, max(0.0, 1.0 - (Eo[k] + Ec[k])))
+                add = min(R_GAIN, max(0.0, 1.0 - (Eo[k] + Ec[k])))
                 if g > 0.0:
                     Eo[k] += add
                 elif not accrual_gate:
@@ -88,14 +96,14 @@ def ref_terms(obs_stack, trunc, beta, accrual_gate):
                 Ec[k] *= (1.0 - d)
             E = Eo[k] + Ec[k]
             h = ob[k][OBS_HAP]
-            base.append(max(h + te.EPS, te.TERM_FLOOR))
-            lifted.append(max(h + beta * E * g + te.EPS, te.TERM_FLOOR))
+            base.append(max(h + R_EPS, R_FLOOR))
+            lifted.append(max(h + beta * E * g + R_EPS, R_FLOOR))
             pay += beta * g * E
             banked += beta * g * Ec[k]
-            cap += 1.0 if E >= te.AT_CAP else 0.0
+            cap += 1.0 if E >= R_AT_CAP else 0.0
             es.append(E)
             n_ct += 1
-        W = lambda xs: math.exp(sum(math.log(x) for x in xs) / len(xs)) - te.EPS  # noqa: E731
+        W = lambda xs: math.exp(sum(math.log(x) for x in xs) / len(xs)) - R_EPS  # noqa: E731
         out[t] = W(lifted) - W(base)
         if trunc[t]:
             Eo = [0.0] * roster
@@ -120,7 +128,7 @@ def main():
     T, roster, _ = obs_stack.shape
     worst_all = np.stack([obs_stack[t][:, OBS_GATE].max(-1) for t in range(T)])
     play_all = np.stack([obs_stack[t][:, OBS_ACT_PLAY] > 0.5 for t in range(T)])
-    n_closed_play = int((play_all & (worst_all >= te.THETA_HI)).sum())
+    n_closed_play = int((play_all & (worst_all >= R_THETA_HI)).sum())
     assert n_closed_play > 10, ("the accrual gate's discriminating case must occur", n_closed_play)
 
     trunc = np.zeros((T, 1), bool)
