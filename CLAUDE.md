@@ -39,4 +39,4 @@ THREADS.md — read it at kickoff, before anything below.
    set mechanically. The session keeps what decides or applies:
    rulings and their records, write-ups, guard design, the rule-5
    prediction. A subagent's report is evidence you read, never a
-   result you paste. The resume anchor lists what was delegated.
+   result you paste.
