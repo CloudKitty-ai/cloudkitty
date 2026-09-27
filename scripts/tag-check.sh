@@ -32,7 +32,7 @@ esac; done
 }
 CFG="$R/scripts/tag-check.d"
 
-CHECKS="version license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout gate-scope client-ship threads staleness glossary"
+CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary"
 if [ "$LIST" = 1 ]; then for c in $CHECKS; do echo "$c"; done; exit 0; fi
 if [ -n "$ONLY" ]; then
   for c in $ONLY; do case " $CHECKS " in *" $c "*) ;; *) echo "tag-check: no such check: $c" >&2; exit 2 ;; esac; done
@@ -102,7 +102,53 @@ c_version() {
     unrel=$(awk '/^## Unreleased/{f=1;next} /^## /{f=0} f && NF' "$R/CHANGELOG.md" | head -n 1)
     [ -z "$unrel" ] || { echo "## Unreleased still has content at tag time" >> "$D"; ok=1; }
   fi
+  # Curated version-bearing locations (owner ask 2026-09-27, relayed by
+  # Product and confirmed here): every location listed in
+  # version-locations.txt must state the release version. Curated, not a
+  # blind grep — fixture labels and historical mentions are not claims;
+  # the version-mentions REPORT is what finds candidates for this list.
+  local line p expr v
+  if [ -f "$CFG/version-locations.txt" ]; then
+    while IFS= read -r line; do
+      case "$line" in ''|'#'*) continue ;; esac
+      p=${line%% :: *}; expr=${line#* :: }
+      [ "$p" = "$line" ] && { echo "version-locations.txt line lacks ' :: ': $line" >> "$D"; ok=1; continue; }
+      [ -f "$R/$p" ] || { echo "version location missing from tree: $p" >> "$D"; ok=1; continue; }
+      v=$(sed -n "$expr" "$R/$p" | head -n 1)
+      if [ -z "$v" ]; then
+        echo "$p: version pattern extracted nothing (pattern moved?)" >> "$D"; ok=1
+      elif [ -n "$TAG" ] && [ "$v" != "$TAG" ]; then
+        echo "$p states $v, tag is $TAG" >> "$D"; ok=1
+      elif [ -z "$TAG" ] && [ -n "$cv" ] && [ "$v" != "$cv" ]; then
+        echo "$p states $v, Cargo.toml says $cv" >> "$D"; ok=1
+      fi
+    done < "$CFG/version-locations.txt"
+  else
+    echo "scripts/tag-check.d/version-locations.txt missing" >> "$D"; ok=1
+  fi
   return $ok
+}
+
+# ---------------------------------------------------------------- version-mentions
+# REPORT only: the previous release's version string still appearing on a
+# present-state surface (README, docs/, policies/README.md, client/) after
+# the bump. A hit is either drift (promote the spot into
+# version-locations.txt) or history (allowlist it, one substring per line).
+c_version_mentions() {
+  local hit p rest allowed any=0
+  [ -n "$AGAINST" ] || { echo "no previous 0.* tag" >> "$D"; return 2; }
+  while IFS= read -r hit; do
+    p=${hit%%:*}; rest=${hit#*:}
+    allowed=0
+    while IFS= read -r line; do
+      case "$line" in ''|'#'*) continue ;; esac
+      case "$hit" in "${line%% *}"*) case "$rest" in *"${line#* }"*) allowed=1; break ;; esac ;; esac
+    done < "$CFG/version-grep-allow.txt"
+    [ "$allowed" = 1 ] && continue
+    echo "$hit" >> "$D"; any=1
+  done < <(git -C "$R" grep -nF "$AGAINST" -- README.md docs policies/README.md client 2>/dev/null || true)
+  [ "$any" = 1 ] && return 3
+  return 0
 }
 
 # ---------------------------------------------------------------- license
@@ -371,6 +417,22 @@ c_layout() {
     grep -qE "(^|[[:space:]])$(esc "$d")/" "$block" ||
       { echo "tracked directory $d/ absent from README §Layout" >> "$D"; ok=1; }
   done < <(cut -d/ -f1 "$TRACKED" | sort -u)
+  return $ok
+}
+
+# ---------------------------------------------------------------- fences
+# A duplication fence is a mid-refactor loan (owner ruled 2026-09-27:
+# mid-refactor PRs may fence temporary duplication, reason + removal
+# target on the start line; Product's ci.yml ratchet honors fences).
+# A release repays loans: any marker still tracked FAILS the tag.
+# Marker presence IS the violation — no jscpd run needed. The marker
+# literal is split below so this suite never flags itself.
+c_fences() {
+  local ok=0 hit M='jscpd:ig'
+  M="${M}nore"
+  while IFS= read -r hit; do
+    echo "$hit" >> "$D"; ok=1
+  done < <(git -C "$R" grep -nF "$M" -- . 2>/dev/null || true)
   return $ok
 }
 
