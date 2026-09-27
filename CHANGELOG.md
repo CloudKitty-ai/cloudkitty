@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- **A dead endpoint stays dead in the test suite.** The http-plugin
+  fallback test built its "refusing" address by binding a port and
+  dropping it, trusting the port to stay free; on a busy CI runner a
+  concurrent test stub could land on it and answer, failing the run.
+  The fixture now holds its listener and hangs up at accept, and the
+  test asserts the port cannot be re-bound.
+
 - **CI now holds the line on copy-paste.** A duplication ratchet
   (jscpd) fails any PR that pushes duplicated code past thresholds
   set just above today's measured values — rust production 3.5%,
