@@ -69,6 +69,17 @@ relay; the owner's word in the Harness session starts each.
 - **Merge `origin/main` in; never rebase in a worktree.** Experiments'
   `git pull --rebase --autostash origin main` on native `main` is the
   one exception (hook-allowed).
+- **The branch name claims the lane** (2026-09-28, incident 6): PR
+  branches are `client/…`, `product/…`, `harness/…` (`experiments/…`
+  for Experiments' rare PRs). CI (`lane-check` in harness.yml,
+  mapping in `scripts/lanes.txt`) fails a PR whose diff leaves its
+  branch's lane, naming the foreign paths; genuinely cross-lane work
+  says so with a `cross-lane: <reason>` line in the PR body, which
+  downgrades the gate to a report the reviewer reads. Never squash
+  onto `origin/main` locally — a fetch may have moved it, and the
+  reset re-parents your work onto the newer trunk (PR #429 carried a
+  941-line reversal through green CI); squash onto
+  `git merge-base HEAD origin/main`, or let GitHub squash-merge.
 - **Use the worktree's absolute path for every read, edit and write.**
   The declared cwd is the native checkout (2026-08-19).
 - **Commit real work before any destructive check.** The red-first
@@ -76,7 +87,9 @@ relay; the owner's word in the Harness session starts each.
 
 Enforced by two PreToolUse hooks in `.claude/hooks/`:
 `checkout-guard.py` (#356) refuses rebase, `gh pr merge
---delete-branch`, moving a worktree onto any branch, and git mutation
+--delete-branch`, `git reset` onto `origin/main` (incident 6; native
+`--hard` stays open as Experiments' sync hatch), moving a worktree
+onto any branch, and git mutation
 or Edit/Write in the native checkout without the Experiments variable;
 `revert-guard.py` (#353) refuses `git checkout --`, `git restore` and
 `git reset --hard` on files dirty against HEAD. Not covered: shell

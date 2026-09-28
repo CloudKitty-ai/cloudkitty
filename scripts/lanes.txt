@@ -1,0 +1,19 @@
+# lanes.txt — branch-prefix -> path prefixes, scripts/lane-check.sh
+# config (THREADS.md §1 is the source of truth; this file mechanises
+# it). Format: `<branch-prefix> <path>...`; a <path> ending '/' covers
+# the tree under it, otherwise exact. The `*` line is shared by every
+# lane (docs/ and README.md are shared by ruling 2026-09-08;
+# CHANGELOG.md gets a line from whichever thread ships). '#' starts a
+# comment at line start. Professor opens no PRs; Experiments works on
+# main and only rarely PRs.
+* docs/ README.md CHANGELOG.md
+client/ client/ client-measurements/
+# product/: pyproject.toml is future-proofing for a root file that does
+# not exist yet — the live one is crates/cloudkitty-py/pyproject.toml,
+# covered by crates/ (owner 2026-09-28: Product owns, Experiments
+# consumes). Root config files per shipped Product specs: cloudkitty.toml
+# (056), training.toml (054), config-sweep-exclusions.txt (049);
+# rust-toolchain.toml pin is engine posture (886fdc2).
+product/ crates/ evals/ specs/ BACKLOG.md Cargo.toml Cargo.lock pyproject.toml policies/ .github/workflows/ci.yml cloudkitty.toml training.toml config-sweep-exclusions.txt LICENSE rust-toolchain.toml
+harness/ .claude/ scripts/ .github/ THREADS.md CLAUDE.md
+experiments/ experiments/ policies/

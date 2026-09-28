@@ -73,3 +73,25 @@ jobs:
           else
             bash scripts/chebyshev-guard.sh --report
           fi
+
+  # Incident 6 (PR #429): a squash onto a moved origin/main carried a
+  # 941-line reversal of another thread's files through green CI. The
+  # branch prefix claims the lane (scripts/lanes.txt, from THREADS §1);
+  # a path outside it fails by name. 'cross-lane: <reason>' in the PR
+  # body downgrades to report. PR-only: a push to main has no lane.
+  lane-check:
+    name: lane check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Self-test the lane check
+        run: bash scripts/test-lane-check.sh
+      - name: PR paths stay in the branch's lane
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/lane-check.sh "$HEAD_REF" "origin/$BASE_REF"
