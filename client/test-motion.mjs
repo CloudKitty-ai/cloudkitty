@@ -3756,9 +3756,11 @@ check('one ask draws ONE reply: the nearest cat answers', () => {
   // answered asks put two or more bubbles on screen together, up to four --
   // and every one of them is true. None of them is legible.
   //
-  // The owner's call: keep the nearest. Distance is Chebyshev between the two
-  // meows' OWN stamped positions, which the engine sets to where the cat was
-  // when it spoke, so it is a served fact rather than an inference.
+  // The owner's call: keep the nearest. Distance is WALK distance (Manhattan)
+  // between the two meows' OWN stamped positions, which the engine sets to
+  // where the cat was when it spoke, so it is a served fact rather than an
+  // inference. It was Chebyshev until 2026-09-28 (owner: "Let's resolve the
+  // distance disparity"); the diagonal case at the end is where they differ.
   const r = Object.create(bubbleScope.WorldRenderer.prototype);
   const ask = { kitty_id: 1, kind: 'want_eat', tick: 9, pos: { x: 2, y: 2 } };
   const near = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 4, y: 2 } };
@@ -3780,6 +3782,15 @@ check('one ask draws ONE reply: the nearest cat answers', () => {
     both.includes(3),
     `drew ${JSON.stringify(both)} -- cat 3 is the nearest answer to the second ask and must keep its bubble`,
   );
+
+  // Where walk and Chebyshev disagree: a replier three tiles off on BOTH axes
+  // is 3 by Chebyshev but a six-tile walk; one five tiles straight along a row
+  // is five either way. The walk says the straight-line cat is nearer.
+  const diag = { kitty_id: 2, kind: 'here_food', tick: 10, reply: true, pos: { x: 5, y: 5 } };
+  const row = { kitty_id: 3, kind: 'here_food', tick: 10, reply: true, pos: { x: 7, y: 2 } };
+  const { map } = pairedAsksFor(bubbleWorld(11, [ask, diag, row], 3));
+  assert(map.has(meowKey(row)) && !map.has(meowKey(diag)),
+    'the diagonal replier (walk 6) won over the one along the row (walk 5) -- the pairing is measuring Chebyshev, not walk distance');
 });
 
 check('the pairing is ONE TO ONE, inside the ruled window', () => {
