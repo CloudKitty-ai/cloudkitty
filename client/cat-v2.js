@@ -4420,7 +4420,7 @@ const BELLY = {
 
 /**
  * Whiskers, attempt three (2026-08-13). Off by default -- the first two
- * were built and cut, and BACKLOG says cut again is an acceptable outcome.
+ * were built and cut, and client/BACKLOG.md says cut again is an acceptable outcome.
  *
  * Ported from kitten.me, which draws them without ever using the word, and
  * whose trick is not resolution but ALPHA. Its stroke is

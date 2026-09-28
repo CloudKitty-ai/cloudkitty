@@ -37,6 +37,10 @@ change.
   one ask, the reply the viewer shows is the one from the kitty with the
   shortest walk, the same distance every other kitty decision uses.
 
+- **The viewer keeps its own backlog.** Future work for the viewer now
+  lives in `client/BACKLOG.md`, beside the code it describes; the root
+  backlog keeps the engine and product work.
+
 - **A dead endpoint stays dead in the test suite.** The http-plugin
   fallback test built its "refusing" address by binding a port and
   dropping it, trusting the port to stay free; on a busy CI runner a

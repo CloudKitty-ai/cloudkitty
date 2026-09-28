@@ -398,7 +398,7 @@ function drawnPosOf(obj, view, isElement) {
  *
  * The fix is a vertical channel for `gaze.y`, not more sources, and it wants
  * judging at camera zoom where the pupil (0.48px here) and the head follow
- * (0.35px) become legible. See the gaze entry in BACKLOG.md; the reader for
+ * (0.35px) become legible. See the gaze entry in client/BACKLOG.md; the reader for
  * the parked shapes is recoverable from PR #221.
  *
  * `sleep.with` names a real co-sleeper and was never read: the eyes are shut
@@ -597,7 +597,7 @@ function surfaceForPose(pose, dials = VIEW) {
 
 /**
  * Where the surface cuts the cat, in its unit space -- or null when
- * nothing should be clipped (BACKLOG P1, the owner's idea).
+ * nothing should be clipped (client/BACKLOG.md P1, the owner's idea).
  *
  * The clip is what makes the water+activity case work without a water
  * variant of every pose: `poseFor` deliberately lets drinking and
@@ -1464,7 +1464,7 @@ class WorldRenderer {
     // tile on a 20-tile world wants a 2000 CSS px bake and is clamped to
     // 1365 -- a 1.46x UPSCALE at the zoom floor, in steady state. It predates
     // 037 (a 1200px map at dpr 2 was already 1.17x on the old fixed floor);
-    // 037 improves the worst case and widens the band. Parked in BACKLOG.md,
+    // 037 improves the worst case and widens the band. Parked in client/BACKLOG.md,
     // because the fix couples the camera's floor to this budget.
     //
     // The downscale is also a STEADY-STATE claim in TIME. `cssWidth`
@@ -1957,7 +1957,7 @@ class WorldRenderer {
 
     // (Grass sway retired 2026-07-22: its fixed-pixel blades read as stray
     // diagonal lines at small tile sizes. A tile-proportional return is
-    // queued with the meadow finishing touches in BACKLOG.md.)
+    // queued with the meadow finishing touches in client/BACKLOG.md.)
   }
 
   drawSunbeam(el, alpha = 1, view) {
@@ -2361,7 +2361,7 @@ class WorldRenderer {
       }
       ctx.restore();
     }
-    // Water occlusion (BACKLOG P1, the owner's idea): clip the cat against
+    // Water occlusion (client/BACKLOG.md P1, the owner's idea): clip the cat against
     // the waterline so a cat standing in a pond is visibly in it, whatever
     // pose it is wearing. This is what makes the water+activity case work
     // without a second pose per activity -- a cat drinking at the edge of a
@@ -2383,7 +2383,7 @@ class WorldRenderer {
     // THE V1 LANDING SETTLE ONLY, as of 2026-08-20. At the camera's 57-103px
     // a uniform scale squashes the SKULL and the cat reads as rubber -- and
     // it scales STROKE WIDTHS with everything else, which is what made the
-    // ear and tail outlines vanish and reappear (BACKLOG 4a). v2 deforms the
+    // ear and tail outlines vanish and reappear (client/BACKLOG.md 4a). v2 deforms the
     // cat in pose space instead (`applySettle`), so the mechanism is gone
     // there by construction rather than tuned away. v1's tile never gets big
     // enough for either fault, so it keeps the cheat.

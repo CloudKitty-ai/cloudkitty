@@ -128,7 +128,7 @@ const VIEW = Object.freeze({
   // running slow, measured at ~14.6s of visible slow motion at depth 5, on
   // every page load and every reconnect. Spec 032 is what removes that, which
   // is why a lookahead camera needs 032 to ship rather than merely to be
-  // judged (BACKLOG, camera-logic entry).
+  // judged (client/BACKLOG.md, camera-logic entry).
   paceTargetDepth: 1,
   paceTrimMs: 60, // how far off the measured interval a full state of depth pulls
   paceDepthSmoothing: 0.34, // ~3 promotions
@@ -435,7 +435,7 @@ const VIEW = Object.freeze({
    */
   /**
    * Where the pond surface cuts a cat standing in it, in the cat's own
-   * unit space (0 top, ground at 0.88) -- BACKLOG P1, the owner's idea.
+   * unit space (0 top, ground at 0.88) -- client/BACKLOG.md P1, the owner's idea.
    *
    * The cat is clipped below this line, so a cat on a water tile reads as
    * half-submerged whatever pose it is in. That is the point: `poseFor`
@@ -777,7 +777,7 @@ const VIEW = Object.freeze({
   cardEarsWeight: 14,
   // 0 (2026-08-10): the gaze is TABLED for a longer session, so the card
   // does not scan for now. Kept as a weight rather than deleted -- turning
-  // it back on is one number, and the branch stays exercised. See BACKLOG:
+  // it back on is one number, and the branch stays exercised. See client/BACKLOG.md:
   // the look is one coupled gesture (gaze drives pupils, head and ears) but
   // only the ears clear the visibility floor at portrait size, so it wants
   // dialling as a whole rather than switching on as-is.
@@ -863,7 +863,7 @@ const VIEW = Object.freeze({
     glow: true, // sunbeams as radial light (off: plain warm tile)
     // Worn paths are UNAVAILABLE for now (owner, 2026-08-21): visitors
     // never saw them (showPaths defaults false, 008 FR-009) and the p-key
-    // debug overlay goes inert with this. The BACKLOG carries the
+    // debug overlay goes inert with this. The client/BACKLOG.md carries the
     // successor: real heatmaps, low priority. One boolean turns the 008
     // machinery back on.
     paths: false,
