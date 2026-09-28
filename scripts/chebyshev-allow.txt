@@ -6,7 +6,14 @@
 
 # fog-gen1-cert: the beam_account nearest-beam bin IS Chebyshev by
 # tier 1's declaration (a ring measure, labelled in the docstring).
-experiments/fog-gen1-cert/cert_harness_fog.py for x, y in beams
+# Pinned to the bin's own arithmetic; a marker comment on the line
+# would be better and is relayed to Experiments (review 2026-09-28).
+experiments/fog-gen1-cert/cert_harness_fog.py abs(pos[k][0] - x)
+
+# client: the meow-pair 'apart' distance (anim.js). Surfaced by this
+# guard's review 2026-09-28; waived pending Client's ruling on whether
+# it should be a walk distance — flagged to their lane, not settled.
+client/anim.js Math.abs(a.pos.x - b.pos.x)
 
 # beam-world-screen: REACH/FRIEND_REACH declared Chebyshev (tier 3),
 # tests assert that declared bin.

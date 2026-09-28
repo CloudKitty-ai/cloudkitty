@@ -18,9 +18,12 @@ name: harness (meta checks)
 # the shipped-config sweep's rule about tomls under experiments/
 # still does not apply.
 #
-# chebyshev-guard also sweeps the real tree here on every PR:
-# undeclared `max(abs(` in lab/client code blocks (walk distance is
-# Manhattan; allowlist scripts/chebyshev-allow.txt).
+# chebyshev-guard also sweeps the real tree here: undeclared
+# `max(abs(` / `Math.max(Math.abs(` in lab/client code (walk distance
+# is Manhattan; allowlist scripts/chebyshev-allow.txt). A PR is gated;
+# a push to main reports only — most hits live under experiments/ and
+# Experiments commits to main directly, so for them this is a tripwire
+# in the log, not a gate.
 
 on:
   push:
@@ -64,4 +67,9 @@ jobs:
       - name: Self-test the guard
         run: bash scripts/test-chebyshev-guard.sh
       - name: Undeclared Chebyshev sweep
-        run: bash scripts/chebyshev-guard.sh
+        run: |
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            bash scripts/chebyshev-guard.sh --gate
+          else
+            bash scripts/chebyshev-guard.sh --report
+          fi
