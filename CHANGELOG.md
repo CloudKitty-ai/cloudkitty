@@ -40,6 +40,11 @@ change.
   The fixture now holds its listener and hangs up at accept, and the
   test asserts the port cannot be re-bound.
 
+- **The camera no longer hitches at the edge of the meadow.** A pan that
+  reached the world's edge used to stop dead in one frame, and one
+  leaving it leapt to full speed; the frame now eases in and out there
+  like everywhere else. Where the camera decides to look is unchanged.
+
 - **CI now holds the line on copy-paste.** A duplication ratchet
   (jscpd) fails any PR that pushes duplicated code past thresholds
   set just above today's measured values — rust production 3.5%,
