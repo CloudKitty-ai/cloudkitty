@@ -33,6 +33,10 @@ change.
 
 ## Unreleased
 
+- **"Nearest" means nearest to walk to.** When several kitties answer
+  one ask, the reply the viewer shows is the one from the kitty with the
+  shortest walk, the same distance every other kitty decision uses.
+
 - **The viewer keeps its own backlog.** Future work for the viewer now
   lives in `client/BACKLOG.md`, beside the code it describes; the root
   backlog keeps the engine and product work.

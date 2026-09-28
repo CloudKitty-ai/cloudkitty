@@ -1209,8 +1209,12 @@ function pairedAsksFor(world) {
   const all = world.recent_meows || [];
   const replies = all.filter((m) => m.reply === true && WANT_FOR_HERE[m.kind]);
   const map = new Map(); // reply key -> the ask it answers
+  // WALK distance, Manhattan, like every other decision distance in this
+  // file (owner, 2026-09-28: "Let's resolve the distance disparity"). It was
+  // Chebyshev, which grid.rs says is not a walk cost; the two disagree on
+  // which replier is nearer whenever one sits on a diagonal.
   const apart = (a, b) => (a.pos && b.pos
-    ? Math.max(Math.abs(a.pos.x - b.pos.x), Math.abs(a.pos.y - b.pos.y))
+    ? Math.abs(a.pos.x - b.pos.x) + Math.abs(a.pos.y - b.pos.y)
     : Infinity);
   for (const ask of all) {
     if (!WANT_FOR_HERE[HERE_FOR_WANT[ask.kind] ?? ''] && !HERE_FOR_WANT[ask.kind]) continue;
