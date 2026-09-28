@@ -164,11 +164,20 @@ mod stub {
         }
     }
 
-    /// An address that refuses connections: bound once, then dropped.
-    pub fn refused_url() -> String {
+    /// An endpoint that hangs up at accept, before reading a byte. The
+    /// accept thread holds the listener for the process lifetime, so the
+    /// port can never be re-bound by a concurrent stub — the race that
+    /// made the old bound-then-dropped "refused" address answerable (CI
+    /// run 36355339650). Distinct from `Reply::drop_connection`, which
+    /// resets after the request is read.
+    pub fn hangup_url() -> String {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
         let url = format!("http://{}/decide", listener.local_addr().unwrap());
-        drop(listener);
+        std::thread::spawn(move || {
+            for stream in listener.incoming() {
+                drop(stream);
+            }
+        });
         url
     }
 }
@@ -591,12 +600,30 @@ fn a_valid_envelope_on_a_wrong_status_is_still_refused() {
     }
 }
 
-/// A refused connection is a per-tick fallback, never a startup error and
-/// never a stall (FR-005 runtime side).
+/// A dead endpoint is a per-tick fallback, never a startup error and
+/// never a stall (FR-005 runtime side). The fixture hangs up at accept
+/// rather than refusing outright: a true ECONNREFUSED cannot be tested
+/// race-free, because knowing a port refuses means nothing holds it, and
+/// a dropped ephemeral port can be re-bound by a concurrent stub — CI run
+/// 36355339650 saw exactly that, the "refusing" endpoint answering a
+/// legal proposal. Both errors land in the plugin's single
+/// `HttpFailure::Transport` arm, which never inspects the kind; if
+/// kind-specific handling is ever added, refusal needs its own coverage
+/// story here.
 #[test]
 fn a_refusing_endpoint_is_a_per_tick_fallback() {
-    let (mut world, registry, config) =
-        world_with_remote(&stub::refused_url(), SeatClass::Mind, |_| {});
+    let url = stub::hangup_url();
+    let addr = url
+        .strip_prefix("http://")
+        .unwrap()
+        .strip_suffix("/decide")
+        .unwrap()
+        .to_string();
+    assert!(
+        std::net::TcpListener::bind(&addr).is_err(),
+        "the fixture holds its port; nothing concurrent can answer in its place"
+    );
+    let (mut world, registry, config) = world_with_remote(&url, SeatClass::Mind, |_| {});
     for _ in 0..5 {
         assert_eq!(
             tick_provenance(&mut world, &registry, &config),

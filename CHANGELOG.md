@@ -33,6 +33,13 @@ change.
 
 ## Unreleased
 
+- **A dead endpoint stays dead in the test suite.** The http-plugin
+  fallback test built its "refusing" address by binding a port and
+  dropping it, trusting the port to stay free; on a busy CI runner a
+  concurrent test stub could land on it and answer, failing the run.
+  The fixture now holds its listener and hangs up at accept, and the
+  test asserts the port cannot be re-bound.
+
 - **The camera no longer hitches at the edge of the meadow.** A pan that
   reached the world's edge used to stop dead in one frame, and one
   leaving it leapt to full speed; the frame now eases in and out there
