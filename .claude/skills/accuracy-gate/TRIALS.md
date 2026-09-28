@@ -349,3 +349,18 @@ about a pasted block must be grepped from the block, not recalled.
 Verifier extra: simulated the "third of cells pass 1σ by chance at
 n=5" hedge (0.322 at 100k draws) — hedges are claims too and this
 one held.
+
+## 2026-09-28 · seating-analysis pair-structure addendum (Experiments) · PASS scoped round 2
+
+Gated: the pair-structure addendum (owner's territory-map reading,
+confirmed and recorded). Every pair/modal/JS number survived both
+rounds; the two round-1 failures were both COMPRESSION ERRORS IN
+THE SUMMARY SENTENCE: "south in ALL five seeds" silently switched
+referent from south-of-Miso (true, 5/5) to south-of-midline (false
+for three cat-seeds), and "attached through Clementine" dropped a
+94%-as-large tie to Biscuit. Same lesson shape as the flags round:
+the table is safe, the sentence ABOUT the table is where errors
+live — a summary clause that names a set ("all five", "through X")
+gets re-derived against the set, not remembered. Verifier practice
+worth keeping: it graded "west of center" and "south" against the
+SAME midline, catching the referent switch.

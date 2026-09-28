@@ -312,3 +312,64 @@ the r2 stamp. Scoped round 1 FAIL: the reading paragraph miscounted
 the ‡ rows in the block pasted directly above it (7 for 8; five for
 six) and mis-cited a bullet position — the corrector-needs-the-gate
 class again.
+
+## Addendum 2026-09-28 — pair structure (owner's reading, confirmed)
+
+Owner, reviewing the territory map: "It also looks like the two
+pairs are biscuit/clem and pumpkin/kittybear." Confirmed against
+the pair table, and recorded because it names the roster's social
+architecture in one line:
+
+- **Biscuit–Clementine** is the #1 pair by partnered time (1,952
+  pair ticks, 471 scenes) and it is mutual: Biscuit's modal top
+  partner is Clementine and Clementine's is Biscuit.
+- **Pumpkin–Kittybear** is #1 from both of its own sides (1,616
+  pair ticks) with the roster's lowest territory JS (0.077; every
+  other pair ≥ 0.113), mutual up to Kittybear's 2–2 modal tie
+  (Clementine/Pumpkin).
+- **Miso is the odd cat out**: its top pair is Miso–Clementine
+  (1,793 ticks, the roster's second-highest), but Clementine's top
+  is Biscuit, and no cat's #1 pair is Miso. The structure is two
+  dyads plus Miso attached to the Biscuit–Clementine pair (to
+  Clementine 1,793, to Biscuit 1,679 — both members, Clementine
+  slightly ahead).
+- Spatially the dyads are the map's clusters: the north group
+  (Miso, with Biscuit and Clementine ranging between halves) and
+  the southern Pumpkin–Kittybear ground. Verified in the raws
+  beyond the summed map: per-seed mean y puts Miso north (4.9–7.3)
+  and Pumpkin and Kittybear south of Miso in all five seeds
+  (y 9.1–11.4; three of those ten cat-seeds sit just north of the
+  9.5 midline);
+  per-seed mean x puts Pumpkin west of center in all five
+  (7.6–9.2), Kittybear roughly neutral (8.2–10.5), and the
+  Biscuit/Clementine east lean holds in three of five seeds
+  (both neutral-to-west in 900504/900505) — a pooled tendency,
+  softer than the north–south axis.
+
+Watch across reseats (a reading, not a bar): whether "who ends up
+unpaired" tracks traits or is a seating accident — the standing
+analysis now measures this per generation.
+
+### Read (pair-structure addendum)
+
+Pair/modal/JS numbers: the main Read fence (pairs, reciprocity,
+territory_js, SOCIAL table). Per-seed spatial means, from the raws:
+
+```
+cd /Users/elizabethkelly/ai/cloudkitty
+experiments/exp-006-character-gen/.venv/bin/python -c "
+import numpy as np
+for s in [900501,900502,900503,900504,900505]:
+    z=np.load(f'experiments/seating-analysis-2026-09-28/results-raw/streams-{s}.npz')
+    print(s, z['pos'][:,:,0].mean(0).round(1).tolist(), z['pos'][:,:,1].mean(0).round(1).tolist())
+"
+```
+
+GATE (pair-structure addendum): PASS scoped round 2, 2026-09-28 —
+pair/structure 11, spatial 8, characterisation 3, hedges 2,
+undecidable 1 (the quote's verbatimness — it is verbatim; the
+owner typed it in this session). Scoped round 1 FAIL: "south in
+ALL five seeds" conflated south-of-midline with south-of-Miso
+(three cat-seeds sit north of 9.5), and "through Clementine"
+understated Miso's tie to Biscuit (1,679, 94% of 1,793) — both
+compression errors in the summary sentence, not the table.
