@@ -8,6 +8,12 @@
 # main and only rarely PRs.
 * docs/ README.md CHANGELOG.md
 client/ client/ client-measurements/
-product/ crates/ evals/ specs/ BACKLOG.md Cargo.toml Cargo.lock pyproject.toml policies/ .github/workflows/ci.yml
+# product/: pyproject.toml is future-proofing for a root file that does
+# not exist yet — the live one is crates/cloudkitty-py/pyproject.toml,
+# covered by crates/ (owner 2026-09-28: Product owns, Experiments
+# consumes). Root config files per shipped Product specs: cloudkitty.toml
+# (056), training.toml (054), config-sweep-exclusions.txt (049);
+# rust-toolchain.toml pin is engine posture (886fdc2).
+product/ crates/ evals/ specs/ BACKLOG.md Cargo.toml Cargo.lock pyproject.toml policies/ .github/workflows/ci.yml cloudkitty.toml training.toml config-sweep-exclusions.txt LICENSE rust-toolchain.toml
 harness/ .claude/ scripts/ .github/ THREADS.md CLAUDE.md
 experiments/ experiments/ policies/

@@ -91,6 +91,14 @@ TRUNK_REFS = ("origin/main", "origin/HEAD")
 RESET_MODES = ("--soft", "--mixed", "--hard", "--keep", "--merge")
 
 
+def trunk_target(tok):
+    """True for a trunk ref with or without a ^/~ suffix (origin/main,
+    origin/main~1, origin/main^): the suffixed forms are the first thing
+    reached for when the literal ref is refused, same re-parent hazard.
+    `$(git merge-base ...)` tokens never match — that remedy stays open."""
+    return tok.split("~", 1)[0].split("^", 1)[0] in TRUNK_REFS
+
+
 def worktree_branch_move(d, sub, toks):
     """Reason text if `git checkout/switch <toks>` would move this worktree
     onto a branch, else None."""
@@ -132,7 +140,7 @@ def check_bash(cmd, cwd, native):
         toks = tokens(args)
         if sub == "rebase" and not any(t in ("--abort", "--quit") for t in toks):
             return deny("`git rebase` is off in this repo: merge origin/main IN (rule: merge, never rebase).")
-        if sub == "reset" and "--" not in toks and any(t in TRUNK_REFS for t in toks):
+        if sub == "reset" and "--" not in toks and any(trunk_target(t) for t in toks):
             modes = [t for t in toks if t in RESET_MODES]
             squashy = not modes or any(m in ("--soft", "--mixed") for m in modes)
             if top != native or squashy:
@@ -143,7 +151,7 @@ def check_bash(cmd, cwd, native):
                     "reversal of everything that landed in between (incident 6, "
                     "PR #429, 941 lines; memory: squash-onto-moved-main). Squash onto "
                     "your true fork point: `git reset --soft $(git merge-base HEAD "
-                    "origin/main)`, or push and let GitHub squash-merge."
+                    "origin/main)`, or push and merge through GitHub."
                 )
         if top == native:
             if sub in NATIVE_MUTATORS and not is_experiments():

@@ -43,8 +43,13 @@ while read -r p rest; do
   case "$branch" in "$p"*) lane=$p; lanepaths=$rest ;; esac
 done < "$lanes"
 
+# the override must START a line of the body: a PR that merely quotes
+# the syntax (this gate's own error text, or THREADS §2) stays gated
 override=""
-case "${BODY:-}" in *cross-lane:*) override=1 ;; esac
+while IFS= read -r bl; do
+  bl=${bl%$'\r'}
+  case "$bl" in cross-lane:*) override=1; break ;; esac
+done <<< "${BODY:-}"
 verdict() { if [ -n "$override" ]; then echo "REPORT $*"; else echo "BLOCK $*"; fail=1; fi; }
 
 in_set() {  # path, set of entries -> 0 iff covered

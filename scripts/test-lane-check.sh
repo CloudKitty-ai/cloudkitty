@@ -53,6 +53,10 @@ O=$(BODY='cross-lane: owner-approved sweep' bash "$CHECK" client/fix main 2>&1);
 want_exit 0 "cross-lane override is green"
 has "REPORT experiments/data.py" "override still prints the crossing"
 has "cross-lane override" "summary says it was reported, not gated"
+O=$(BODY='the gate said add a cross-lane: line, but this PR must not cross' bash "$CHECK" client/fix main 2>&1); E=$?
+want_exit 1 "quoted cross-lane syntax mid-line does not override"
+O=$(BODY=$'context first\r\ncross-lane: owner-approved sweep\r\n' bash "$CHECK" client/fix main 2>&1); E=$?
+want_exit 0 "line-start override in a CRLF body works"
 
 # 4. a shared exact file never needs the lane (CHANGELOG.md is on the * line);
 #    an exact entry is not a prefix
