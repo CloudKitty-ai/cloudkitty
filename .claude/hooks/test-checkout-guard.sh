@@ -43,6 +43,9 @@ echo "# native checkout, Experiments"
 CLOUDKITTY_THREAD=experiments b 0 "experiments: commit"      "$N" "git commit -m x"
 CLOUDKITTY_THREAD=experiments b 0 "experiments: checkout -b" "$N" "git checkout -b exp/x main"
 CLOUDKITTY_THREAD=experiments b 2 "experiments: rebase"      "$N" "git rebase origin/main"
+CLOUDKITTY_THREAD=experiments b 2 "experiments: reset --soft origin/main" "$N" "git reset --soft origin/main"
+CLOUDKITTY_THREAD=experiments b 2 "experiments: bare reset origin/main"   "$N" "git reset origin/main"
+CLOUDKITTY_THREAD=experiments b 0 "experiments: reset --hard origin/main (sync hatch)" "$N" "git reset --hard origin/main"
 # PINNED (Experiments, PR #356 review): the only writer to main lands local commits over a
 # just-merged PR with pull --rebase. Rule 2 (no rebase) is for worktree branches; if it is
 # ever tightened past sub == "rebase", this case is what breaks.
@@ -56,6 +59,12 @@ b 2 "worktree: checkout -b other"        "$W" "git checkout -b other origin/main
 b 2 "worktree: switch -c other"          "$W" "git switch -c other"
 b 2 "worktree: checkout existing branch" "$W" "git checkout existing"
 b 2 "worktree: rebase"                   "$W" "git rebase origin/main"
+b 2 "worktree: reset --soft origin/main" "$W" "git reset --soft origin/main"
+b 2 "worktree: reset --hard origin/main" "$W" "git reset --hard origin/main"
+b 2 "worktree: bare reset origin/main"   "$W" "git reset origin/main"
+b 0 "worktree: reset --soft merge-base"  "$W" "git reset --soft \$(git merge-base HEAD origin/main)"
+b 0 "worktree: reset --hard HEAD~1"      "$W" "git reset --hard HEAD~1"
+b 0 "worktree: path reset from trunk"    "$W" "git reset origin/main -- f"
 b 2 "worktree: cd from native"           "$N" "cd $W && git checkout main"
 b 2 "worktree: checkout - (previous)"    "$W" "git checkout -"
 b 2 "worktree: switch -"                 "$W" "git switch -"

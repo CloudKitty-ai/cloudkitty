@@ -15,6 +15,13 @@ refuses them at the command:
                                        local commits over a merged PR),
                                        which is not `git rebase` and must
                                        stay open (pinned in the test)
+    git reset ... origin/main          re-parents your work onto a trunk
+                                       another session's fetch moved
+                                       (incident 6, PR #429: a green PR
+                                       carrying 941 lines of reversal);
+                                       squash onto `git merge-base HEAD
+                                       origin/main` instead. Native keeps
+                                       --hard as Experiments' sync hatch
     gh pr merge ... --delete-branch    the flag checks out the default
                                        branch in the worktree you ran it
                                        from; delete with git push --delete
@@ -74,6 +81,14 @@ def branch_target(d, tok):
 
 
 CREATE_FLAGS = ("-b", "-B", "-c", "-C", "--create", "--force-create", "--orphan", "-t", "--track")
+# git reset onto the shared trunk. In a linked worktree every mode is
+# refused (a moved origin/main re-parents or discards the branch's work);
+# in the native checkout only the squash idiom (--soft/--mixed, or bare =
+# --mixed) is, so Experiments keeps `reset --hard origin/main` as a
+# deliberate sync escape hatch. Path form (`git reset <ref> -- <path>`)
+# never moves HEAD and stays revert-guard's business.
+TRUNK_REFS = ("origin/main", "origin/HEAD")
+RESET_MODES = ("--soft", "--mixed", "--hard", "--keep", "--merge")
 
 
 def worktree_branch_move(d, sub, toks):
@@ -117,6 +132,19 @@ def check_bash(cmd, cwd, native):
         toks = tokens(args)
         if sub == "rebase" and not any(t in ("--abort", "--quit") for t in toks):
             return deny("`git rebase` is off in this repo: merge origin/main IN (rule: merge, never rebase).")
+        if sub == "reset" and "--" not in toks and any(t in TRUNK_REFS for t in toks):
+            modes = [t for t in toks if t in RESET_MODES]
+            squashy = not modes or any(m in ("--soft", "--mixed") for m in modes)
+            if top != native or squashy:
+                return deny(
+                    "`git reset` onto origin/main: a fetch from any worktree may have "
+                    "moved that ref since you branched, and the reset re-parents your "
+                    "work onto the newer trunk — the next commit then carries a "
+                    "reversal of everything that landed in between (incident 6, "
+                    "PR #429, 941 lines; memory: squash-onto-moved-main). Squash onto "
+                    "your true fork point: `git reset --soft $(git merge-base HEAD "
+                    "origin/main)`, or push and let GitHub squash-merge."
+                )
         if top == native:
             if sub in NATIVE_MUTATORS and not is_experiments():
                 return deny(
