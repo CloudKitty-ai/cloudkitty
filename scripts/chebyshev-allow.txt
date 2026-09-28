@@ -1,0 +1,29 @@
+# Declared Chebyshev measures — scripts/chebyshev-guard.sh config.
+# <path> alone = whole file (frozen archival arcs, constitution:
+# non-blocking); <path> <line-substring> pins one declared measure in
+# a live file. Allowing is for declared ring measures only; walk
+# distance stays cert_harness_fog.walk_distance.
+
+# fog-gen1-cert: the beam_account nearest-beam bin IS Chebyshev by
+# tier 1's declaration (a ring measure, labelled in the docstring).
+# Pinned to the bin's own arithmetic; a marker comment on the line
+# would be better and is relayed to Experiments (review 2026-09-28).
+experiments/fog-gen1-cert/cert_harness_fog.py abs(pos[k][0] - x)
+
+# client: the meow-pair 'apart' distance (anim.js). Surfaced by this
+# guard's review 2026-09-28; waived pending Client's ruling on whether
+# it should be a walk distance — flagged to their lane, not settled.
+client/anim.js Math.abs(a.pos.x - b.pos.x)
+
+# beam-world-screen: REACH/FRIEND_REACH declared Chebyshev (tier 3),
+# tests assert that declared bin.
+experiments/beam-world-screen-2026-09-19/beam_plan.py
+experiments/beam-world-screen-2026-09-19/test_beam_metrics.py
+experiments/beam-world-screen-2026-09-19/test_beam_plan.py
+
+# Frozen archival arcs (pre-rule; adjacency-vs-Chebyshev drift in
+# these is reported to Experiments, never edited here).
+experiments/attn-cert-2026-08-14/nn_distance.py
+experiments/attn-cert-2026-08-14/waterline_exposure.py
+experiments/biscuit3-comfort-sweep-2026-09-01/consent_price.py
+experiments/biscuit3-comfort-sweep-2026-09-01/path_split.py
