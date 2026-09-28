@@ -1749,7 +1749,7 @@
     },
     {
       title: 'The sit rump — the seat that was stated by hand (FIXED 2026-08-24)',
-      note: 'FIXED 2026-08-24 — the right-hand cat is what ships now. `sit` was the one TILTED pose that stated its `cy` literally instead of deriving it: 0.665 + ry 0.215 is exactly CAT_GROUND, so the number put the UNROTATED bottom on the grass, and the -0.4rad tilt then carried the real lowest point 0.0184 of a tile below it — about 2px at a 113px tile. `grooming` and `grooming-other` never had it; both run their seat through `seatCy`. The left column replays the OLD RULE through the shipped `proportionedBody` rather than remembering numbers, so it stays honest as the proportion dials move; test-motion pins the depth it replays to. Both columns are the same pose painted by the same painter against ONE ground line. Note what the fix did NOT buy: the hind legs were fully covered before and show about a pixel now, which is the SIT.hindX entry in BACKLOG, not this one. Nothing in the served world occludes any of this — the ground shadow is drawn UNDER the cat — but there is no drawn ground line out there either, so this was never a visible defect. It is the invariant every other tilted pose already held.',
+      note: 'FIXED 2026-08-24 — the right-hand cat is what ships now. `sit` was the one TILTED pose that stated its `cy` literally instead of deriving it: 0.665 + ry 0.215 is exactly CAT_GROUND, so the number put the UNROTATED bottom on the grass, and the -0.4rad tilt then carried the real lowest point 0.0184 of a tile below it — about 2px at a 113px tile. `grooming` and `grooming-other` never had it; both run their seat through `seatCy`. The left column replays the OLD RULE through the shipped `proportionedBody` rather than remembering numbers, so it stays honest as the proportion dials move; test-motion pins the depth it replays to. Both columns are the same pose painted by the same painter against ONE ground line. Note what the fix did NOT buy: the hind legs were fully covered before and show about a pixel now, which is the SIT.hindX entry in client/BACKLOG.md, not this one. Nothing in the served world occludes any of this — the ground shadow is drawn UNDER the cat — but there is no drawn ground line out there either, so this was never a visible defect. It is the invariant every other tilted pose already held.',
       v2Only: true,
       w: 940,
       h: 400,
@@ -1772,7 +1772,7 @@
           + `drop:        ${worst.delta.toFixed(5)} of a tile = ${(worst.delta * T).toFixed(2)}px at this ${T}px tile\n`
           + `hind leg:    ${(worst.runShipped * T).toFixed(2)}px of its run showed before, `
           + `${(worst.runFixed * T).toFixed(2)}px now -- a sliver either way,\n`
-          + `             which is the SIT.hindX entry in BACKLOG, not this one. This was about the GROUND LINE.\n`
+          + `             which is the SIT.hindX entry in client/BACKLOG.md, not this one. This was about the GROUND LINE.\n`
           + `sit now:     cy: seatCy(0.275, 0.215 + 0.007 * breathe, -0.4)   -- what grooming already did\n`
           + `card view:   tilePx ${SIT_SINK_LAB.tilePx}, speed ${SIT_SINK_LAB.speed}, guides ${SIT_SINK_LAB.guides}`
           + ` -- viewing aids, not shipped dials`

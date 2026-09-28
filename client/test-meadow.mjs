@@ -171,7 +171,7 @@ const EXPORTS =
 const api = eval(src + EXPORTS);
 
 /**
- * The one place a harness draws a V2 cat THROUGH the renderer (BACKLOG,
+ * The one place a harness draws a V2 cat THROUGH the renderer (client/BACKLOG.md,
  * 2026-08-20: "No harness drives the v2 cat through the RENDERER").
  *
  * `src` above loads cat.js first, so its `function drawCat` declaration
@@ -3027,7 +3027,7 @@ check("the meadow lab's VIEW stand-in matches the VIEW that ships", () => {
   }
 });
 
-/* ---- the renderer, driven with a V2 cat (BACKLOG 2026-08-20) --------
+/* ---- the renderer, driven with a V2 cat (client/BACKLOG.md 2026-08-20) --------
  * Everything render.js does AROUND a v2 cat was unguarded: the settle it
  * passes, the squash it must NOT apply, the ears it leaves to the rig.
  */

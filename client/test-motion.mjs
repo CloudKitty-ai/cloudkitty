@@ -1038,7 +1038,7 @@ check('the other target shapes are PARKED, and that is a decision', () => {
     return gazeTargetFor(me, w, me.pos, null);
   };
   assert(at({ action: 'groom', target: 2 }) === null,
-    'grooming a friend is parked -- see the gaze entry in BACKLOG.md');
+    'grooming a friend is parked -- see the gaze entry in client/BACKLOG.md');
   assert(at({ action: 'eat' }) === null, 'eating is parked');
   assert(at({ action: 'drink' }) === null, 'drinking is parked');
   // The pose now says WHICH thing the positional way (GROOM-OTHER-EDITS,
@@ -5006,7 +5006,7 @@ check('an axial cat paints its far legs first', () => {
 });
 
 check('the settle deforms the cat and never touches the transform', () => {
-  // BACKLOG 4a, and the owner's gate on this work: "we need to verify that is
+  // client/BACKLOG.md 4a, and the owner's gate on this work: "we need to verify that is
   // squashed when we implement the new settle."
   //
   // The old settle was `ctx.scale(1 + (1 - sy) * 0.7, sy)` around the whole
@@ -5055,7 +5055,7 @@ check('the settle deforms the cat and never touches the transform', () => {
   // changes nothing in either suite.
   //
   // That gap is structural, not an oversight here, and it is the same one
-  // that let the axial feature ship inert once before. Recorded in BACKLOG.
+  // that let the axial feature ship inert once before. Recorded in client/BACKLOG.md.
   //
   // Swept, because the curve passes through a rebound PAST neutral and a
   // negative amount is the one most likely to be handled by a different code
@@ -5911,7 +5911,7 @@ check('every cat draw leaves the canvas state exactly as it found it', () => {
 
 check('whiskers ship OFF, and a cat walking away never grows any', () => {
   // Attempt three (2026-08-13), ported from kitten.me. Off until judged --
-  // the first two were built and cut, and BACKLOG records that cutting
+  // the first two were built and cut, and client/BACKLOG.md records that cutting
   // again is an acceptable outcome.
   // This asserted whiskers shipped OFF, which was the point while they were
   // unjudged. The owner turned them on (2026-08-13) after two previous
@@ -11173,7 +11173,7 @@ check('every camera requirement holds at 3, 4 and 5 kitties', () => {
   // the EASED frame can miss her mid-flight. Measured at the failing frame,
   // the anchor sat 0.13 tiles outside the left edge. The remedy is behaviour
   // -- track the largest group, cut rather than pan between groups, close in
-  // when nobody is on the periphery -- and is parked in BACKLOG.md. If empty
+  // when nobody is on the periphery -- and is parked in client/BACKLOG.md. If empty
   // frames survive THAT work, they stop being acceptable.
   let emptyFrames = 0;
   let checked = 0;
@@ -13080,7 +13080,7 @@ check('the debug hint bar tells the truth: b flips, p is gone', () => {
 
 check('worn paths are UNAVAILABLE for now, through their own master switch', () => {
   // Owner, 2026-08-21: the worn paths go dark for the time being -- the
-  // BACKLOG carries their successor (real heatmaps, low priority). The
+  // client/BACKLOG.md carries their successor (real heatmaps, low priority). The
   // OFF is the switch spec 008 already built: visitors never saw paths
   // (showPaths defaults false, FR-009); `VIEW.meadow.paths` is the
   // availability master, and false makes the p-key debug overlay inert
