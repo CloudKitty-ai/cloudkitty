@@ -18,24 +18,21 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 (2026-09-08).
 
 Harness (2026-09-22) owns the tooling files and reports on content
-files. Harness owns the two standing pass skills; the owning thread
-runs them on its own files: the accuracy gate (a fresh-context
-re-derivation of an artifact's claims against the recorded raws and
-the command that made them, run before the owning thread commits) and
-the condense pass (the owning thread compresses its own over-budget
-file under `.claude/skills/condense/SKILL.md` — tier 1 on the owner's
-word with her ruling on the diff, tier 2 self-serve on a gate block
-or advisory; owner ruled 2026-09-24). The gate produces a report the
-owning thread reads; a condense pass is the owning thread's own
-commit end to end. What each pass caught or cut is appended to the
-record beside its skill, TRIALS.md discipline. The
-prepare-for-compact skill files (Product's from
-2026-09-21) move to Harness with the rest of `.claude/`; the TRIALS.md
-append rule stands unchanged: a trialling thread appends its own
-section and never touches another thread's, Product and Client through
-a worktree and a PR, Experiments on main directly. Harness never
-launches a spec, a pass on a peer's work, or a CI change on a peer's
-relay; the owner's word in the Harness session starts each.
+files, including the two standing pass skills, which the owning
+thread runs on its own files per each SKILL.md: the accuracy gate
+(`.claude/skills/accuracy-gate/`, run before the owning thread
+commits) yields a report the owning thread reads; a condense pass
+(`.claude/skills/condense/`) is the owning thread's own commit end
+to end — tier 1 on the owner's word with her ruling on the diff,
+tier 2 self-serve on a gate block or advisory (owner ruled
+2026-09-24). What a pass caught or cut is appended beside its skill,
+TRIALS.md discipline: a trialling thread appends its own section and
+never touches another thread's — Product and Client through a
+worktree and a PR, Experiments on main directly. The
+prepare-for-compact files (Product's from 2026-09-21) moved to
+Harness with the rest of `.claude/`. Harness never launches a spec,
+a pass on a peer's work, or a CI change on a peer's relay; the
+owner's word in the Harness session starts each.
 
 - **You are the thread the kickoff or session name says you are**,
   never the one the branch or dirty files suggest; the checkout is
@@ -69,15 +66,14 @@ relay; the owner's word in the Harness session starts each.
 - **Merge `origin/main` in; never rebase in a worktree.** Experiments'
   `git pull --rebase --autostash origin main` on native `main` is the
   one exception (hook-allowed).
-- **The branch name claims the lane** (2026-09-28, incident 6): PR
-  branches are `client/…`, `product/…`, `harness/…` (`experiments/…`
-  for Experiments' rare PRs). CI (`lane-check` in harness.yml,
-  mapping in `scripts/lanes.txt`) fails a PR whose diff leaves its
-  branch's lane, naming the foreign paths; genuinely cross-lane work
-  says so with a `cross-lane: <reason>` line in the PR body, which
-  downgrades the gate to a report the reviewer reads. Never squash
-  onto `origin/main` locally — a fetch may have moved it, and the
-  reset re-parents your work onto the newer trunk (PR #429 carried a
+- **The branch name claims the lane** (2026-09-28, incident 6):
+  `client/…`, `product/…`, `harness/…`, `experiments/…`. CI
+  (`lane-check` in harness.yml, map in `scripts/lanes.txt`) fails a
+  PR whose diff leaves its branch's lane, naming the foreign paths;
+  a deliberate crossing says `cross-lane: <reason>` in the PR body,
+  which downgrades the gate to a report. Never squash onto
+  `origin/main` — a fetch may have moved it, and the reset
+  re-parents your work onto the newer trunk (PR #429 carried a
   941-line reversal through green CI); squash onto
   `git merge-base HEAD origin/main`, or let GitHub squash-merge.
 - **Use the worktree's absolute path for every read, edit and write.**
@@ -89,8 +85,8 @@ Enforced by two PreToolUse hooks in `.claude/hooks/`:
 `checkout-guard.py` (#356) refuses rebase, `gh pr merge
 --delete-branch`, `git reset` onto `origin/main` (incident 6; native
 `--hard` stays open as Experiments' sync hatch), moving a worktree
-onto any branch, and git mutation
-or Edit/Write in the native checkout without the Experiments variable;
+onto any branch, and git mutation or Edit/Write in the native
+checkout without the Experiments variable;
 `revert-guard.py` (#353) refuses `git checkout --`, `git restore` and
 `git reset --hard` on files dirty against HEAD. Not covered: shell
 writes into the native tree (`sed -i`, redirection), and a
@@ -98,14 +94,13 @@ dirty-then-revert inside a single compound command — the hook checks
 before the command runs.
 
 The hooks are wholly Harness's, files and rules alike (owner ruled
-2026-09-26, superseding the 2026-09-22 handover's split; the split
-was path-dependence — Product is where they were spawned because no
-Harness thread existed). Every hook PR gets a second-thread review —
-Product by default, or whichever thread the change most constrains;
-never self-reviewed. Carve-out: a hook enforcing a welfare gate or
-certification invariant carries that rule's ownership per the
-constitution, not the tooling. Every hook change still gets its
-rule-5 red before merge.
+2026-09-26, superseding the 2026-09-22 handover's split — path
+dependence: Product is where they were spawned before Harness
+existed). Every hook PR gets its rule-5 red and a second-thread
+review — Product by default, or whichever thread the change most
+constrains; never self-reviewed. Carve-out: a hook enforcing a
+welfare gate or certification invariant carries that rule's
+ownership per the constitution, not the tooling.
 
 ## 3. Before you diagnose or report
 
@@ -149,15 +144,14 @@ rule-5 red before merge.
 
 ## 6. What lives where (owner ruled 2026-09-22)
 
-One home per fact; every other mention is a pointer to it. The
-rows below the first ten were added on the owner's word (2026-09-22:
+One home per fact; every other mention is a pointer to it. Rows
+below the first ten were added on the owner's word (2026-09-22:
 "key information in one place"). Tag-time rigor for these homes is
 mechanised (owner's word 2026-09-27): `scripts/tag-check.sh` checks
 the release branch (dispatch `tag-rigor.yml` on the release PR) and
-the pushed tag, and the release PR template carries the human rows
-and the four sign-offs — the tag waits for those, not for CI. A
-number, a rule or a ruling restated outside its home is a condense
-cut.
+the pushed tag; the release PR template carries the human rows and
+the four sign-offs — the tag waits for those, not for CI. A number,
+a rule or a ruling restated outside its home is a condense cut.
 
 | the fact | its one home | pointers elsewhere look like | does not hold |
 |---|---|---|---|
