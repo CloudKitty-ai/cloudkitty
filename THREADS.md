@@ -17,9 +17,9 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 `docs/` and `README.md` are shared: each thread writes its own area
 (2026-09-08).
 
-Harness (2026-09-22) owns the tooling files and reports on content
-files, including the two standing pass skills, which the owning
-thread runs on its own files per each SKILL.md: the accuracy gate
+Harness (2026-09-22) owns the tooling files, including the two
+standing pass skills, and reports on content files. The owning
+thread runs each pass on its own files per each SKILL.md: the accuracy gate
 (`.claude/skills/accuracy-gate/`, run before the owning thread
 commits) yields a report the owning thread reads; a condense pass
 (`.claude/skills/condense/`) is the owning thread's own commit end
@@ -67,12 +67,13 @@ owner's word in the Harness session starts each.
   `git pull --rebase --autostash origin main` on native `main` is the
   one exception (hook-allowed).
 - **The branch name claims the lane** (2026-09-28, incident 6):
-  `client/…`, `product/…`, `harness/…`, `experiments/…`. CI
-  (`lane-check` in harness.yml, map in `scripts/lanes.txt`) fails a
-  PR whose diff leaves its branch's lane, naming the foreign paths;
-  a deliberate crossing says `cross-lane: <reason>` in the PR body,
-  which downgrades the gate to a report. Never squash onto
-  `origin/main` — a fetch may have moved it, and the reset
+  `client/…`, `product/…`, `harness/…`, `experiments/…` (rare —
+  Experiments works on main). CI (`lane-check` in harness.yml, map
+  in `scripts/lanes.txt`) fails a PR whose diff leaves its branch's
+  lane, naming the foreign paths; a deliberate crossing says
+  `cross-lane: <reason>` in the PR body, which downgrades the gate
+  to a report the reviewer reads. Never squash onto
+  `origin/main` locally — a fetch may have moved it, and the reset
   re-parents your work onto the newer trunk (PR #429 carried a
   941-line reversal through green CI); squash onto
   `git merge-base HEAD origin/main`, or let GitHub squash-merge.
@@ -81,24 +82,16 @@ owner's word in the Harness session starts each.
 - **Commit real work before any destructive check.** The red-first
   cycle is `scripts/mutate.sh` (CLAUDE.md rule 5).
 
-Enforced by two PreToolUse hooks in `.claude/hooks/`:
-`checkout-guard.py` (#356) refuses rebase, `gh pr merge
---delete-branch`, `git reset` onto `origin/main` (incident 6; native
-`--hard` stays open as Experiments' sync hatch), moving a worktree
-onto any branch, and git mutation or Edit/Write in the native
-checkout without the Experiments variable;
-`revert-guard.py` (#353) refuses `git checkout --`, `git restore` and
-`git reset --hard` on files dirty against HEAD. Not covered: shell
-writes into the native tree (`sed -i`, redirection), and a
-dirty-then-revert inside a single compound command — the hook checks
-before the command runs.
+Enforced by the PreToolUse hooks in `.claude/hooks/` (#356
+checkout-guard, #353 revert-guard): what each refuses, and what
+stays uncovered, is inventoried in `.claude/hooks/README.md`.
 
 The hooks are wholly Harness's, files and rules alike (owner ruled
 2026-09-26, superseding the 2026-09-22 handover's split — path
 dependence: Product is where they were spawned before Harness
 existed). Every hook PR gets its rule-5 red and a second-thread
-review — Product by default, or whichever thread the change most
-constrains; never self-reviewed. Carve-out: a hook enforcing a
+review before merge — Product by default, or whichever thread the
+change most constrains; never self-reviewed. Carve-out: a hook enforcing a
 welfare gate or certification invariant carries that rule's
 ownership per the constitution, not the tooling.
 
@@ -170,4 +163,5 @@ a rule or a ruling restated outside its home is a condense cut.
 | the design record of a change: what was ruled, why, what it touched | `specs/NNN-*/` | "spec NNN"; the owner's ruling copied there with its issue number | future work (BACKLOG), evidence |
 | the live box: seatings, censuses, welfare reads as deployed | `policies/purrsonality.md` | — | the next deploy (that is checked-in config) |
 | a skill's trial record: what dropped, what patched it, clean runs | `TRIALS.md` beside the skill | — | the skill's rules (SKILL.md) |
+| what the hooks refuse, and what they cannot see | `.claude/hooks/README.md` (owner's word 2026-09-28) | THREADS §2 points there; each hook's docstring carries its rules' detail | ownership and review of the hooks (THREADS §2) |
 | a trap or lesson about the code a thread owns (owner ruled 2026-09-22: one file per thread, co-located) | `client/TRAPS.md`, `crates/TRAPS.md`, `experiments/TRAPS.md`, `.claude/TRAPS.md`; sections *Traps* (what the code does that bites) and *Lessons* (a method change); entry = date, the trap in a sentence, where it bites, the evidence, the guard if any | the memory index carries a pointer, never the trap; a lesson that holds across threads is promoted to CLAUDE.md, THREADS.md or README §Design discipline | user-facing docs (`docs/`), findings, any trap with a mechanical guard (test, hook, CI check): the guard is its home and the entry is deleted |

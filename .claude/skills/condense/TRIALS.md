@@ -89,18 +89,26 @@ commit (the file was never changed), which only surfaced when the
 mutation failed to move it — a real pass changes the file, and now
 the case does too.
 
-## 2026-09-28 — Harness, THREADS.md (tier 1, first tier-1 run) — clean
+## 2026-09-28 — Harness, THREADS.md (tier 1, first tier-1 run) — clean after 3 rounds
 
 Owner's word: "Can we do a test run of the tier 1 condense with
-diffs?" Pass: 179 -> 173 lines (+37/-43); one dedup (accuracy-gate
-definition to its skill home), four wording tightenings. Fact-loss
-check clean on the first run: 8 reworded/dedup spots, each verified
-at its pointed-to home. Lesson for the skill: tier-1 growth is
-mostly NEW RULINGS — never-cut material — so a tier-1 pass yields
-few lines and its real payload is the base reset under the owner's
-eyes; expect thin diffs and say so in the PR rather than forcing
-cuts. Second lesson: the fact-loss subagent flagged that pointer
-targets (scripts/lanes.txt) existed only on origin/main, not the
-native working tree — the check ran in the native checkout per the
-skill, and followed pointers via origin/main; a future pass whose
-pointers are branch-new should name that in the subagent brief.
+diffs?" then "Let's start with 3" (the structural extension). Final
+pass: 179 -> 167 lines; two dedups (accuracy-gate definition to its
+skill home; the hook refusal inventory to a NEW home,
+.claude/hooks/README.md, named by a new §6 row) plus wording
+tightenings. Residual +49 of THREADS' growth is kept rulings —
+never-cut — re-baselined under the owner's ruling on the diff.
+Fact-loss rounds: 1 clean (wording only); 2 flagged FOUR dropped
+qualifiers ("rare PRs", "the reviewer reads", "locally", "before
+merge") — all restored verbatim; 3 clean. Lessons: (a) tier-1
+growth is mostly new rulings, so a pass yields few lines and its
+real payload is the re-baseline under the owner's eyes — say so in
+the PR, with the residual named, rather than forcing cuts; (b) a
+fact-loss checker that cannot REACH a pointer target excuses losses
+— round 1 excused via origin/main files a later round could not
+see; hand branch-new pointer targets to the checker explicitly;
+(c) appending a pass line with >> lands it under ## Frozen — insert
+under ## Passes (an impact reviewer caught it; the fixture's own
+frozen-section append was the same bug); (d) a records section
+written mid-pass goes stale by landing — write TRIALS last, at the
+final diff.

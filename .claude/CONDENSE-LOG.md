@@ -40,9 +40,9 @@ which keeps the founding line valid.
 
 - 2026-09-22 b50fc2c budgets set; no pass applied (PR #411)
 - 2026-09-28 ea29098dfa24 BACKLOG.md: viewer entries split out to client/BACKLOG.md, −1502 lines (PR #435; logged by #437 so the split is not a −1500 tier-2 credit that hides real growth. Whether client/BACKLOG.md joins tier 2 is an open owner call)
+- 2026-09-28 0c0db2642601 THREADS.md: accuracy-gate definition and the hook inventory deduped to their homes (hooks README new, §6 row); wording tightened; residual +49 of THREADS' growth is kept rulings, re-baselined under the owner's ruling on the diff (PR #439)
 
 ## Frozen
 
 One line each: `- <path> @ <sha of the freezing commit>`.
 - experiments/fog-gen1-timeline-2026-08-26.md @ 48af87d
-- 2026-09-28 6c82ff21ff85 THREADS.md: accuracy-gate inline definition deduped to its skill home; pass-skills, lane, hook-ownership and §6-intro wording tightened (PR #439)
