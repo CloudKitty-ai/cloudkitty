@@ -64,7 +64,15 @@ while [ $# -gt 0 ]; do
     *) sed -n '2,20p' "$0" >&2; exit 2 ;;
   esac; shift
 done
-[ -r "$log" ] || { echo "condense-budget: cannot read $log" >&2; exit 2; }
+# die: loud stderr + code, EXCEPT --owed, which runs from the
+# SessionStart/PreCompact hooks where exit 2 BLOCKS: there a broken
+# log must never hold a compact or a session start hostage, so it
+# prints a loud stdout line and exits 0 (Product review of #437, F1).
+die() {
+  if [ "$mode" = owed ]; then echo "condense owed: $1 — fix the condense log before it hides real debt"; exit 0; fi
+  echo "condense-budget: $1" >&2; exit "$2"
+}
+[ -r "$log" ] || die "cannot read $log" 2
 
 in_list() { local x=$1 m; shift; for m in "$@"; do [ "$x" = "$m" ] && return 0; done; return 1; }
 tier_of() {  # file (4th field of a pass line, ':' stripped) -> 1|2|3|0=unknown
@@ -93,20 +101,20 @@ newer() {  # of two commits, the descendant; incomparable -> the later line's
 }
 
 pass_lines=$(grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9a-f]{7,40} ' "$log")
-[ -n "$pass_lines" ] || { echo "condense-budget: no pass line in $log" >&2; exit 2; }
+[ -n "$pass_lines" ] || die "no pass line in $log" 2
 base1=""; base2=""; base3=""
 while read -r _ _ h f _; do
   file=""
   case "$f" in
     *:) file=${f%:}
         if [ "$(tier_of "$file")" = 0 ]; then
-          echo "condense-budget: pass line names '$file', which is not a tiered file" >&2; exit 2
+          die "pass line names '$file', which is not a tiered file" 2
         fi ;;
-    */*|*.md*) echo "condense-budget: malformed pass line field '$f' (one tiered file per line, ending ':')" >&2; exit 2 ;;
+    */*|*.md*) die "malformed pass line field '$f' (one tiered file per line, ending ':')" 2 ;;
   esac
   c=$(resolve_base "$h" "$file")
-  [ -n "$c" ] || { echo "condense-budget: pass-line hash $h does not resolve (a fix made the blob stale, or fetch needed)" >&2; exit 3; }
-  git merge-base --is-ancestor "$c" HEAD || { echo "condense-budget: base $c is not an ancestor of HEAD; merge origin/main in first" >&2; exit 3; }
+  [ -n "$c" ] || die "pass-line hash $h does not resolve (a fix made the blob stale, or fetch needed)" 3
+  git merge-base --is-ancestor "$c" HEAD || die "base $c is not an ancestor of HEAD; merge origin/main in first" 3
   if [ -n "$file" ]; then
     case "$(tier_of "$file")" in
       1) base1=$(newer "$base1" "$c") ;;
@@ -117,7 +125,7 @@ while read -r _ _ h f _; do
     base1=$(newer "$base1" "$c"); base2=$(newer "$base2" "$c"); base3=$(newer "$base3" "$c")
   fi
 done <<< "$pass_lines"
-[ -n "$base1" ] && [ -n "$base2" ] && [ -n "$base3" ] || { echo "condense-budget: a tier has no pass line and no founding line covers it in $log" >&2; exit 2; }
+[ -n "$base1" ] && [ -n "$base2" ] && [ -n "$base3" ] || die "a tier has no pass line and no founding line covers it in $log" 2
 
 fail=0
 ci=${GITHUB_ACTIONS:-}

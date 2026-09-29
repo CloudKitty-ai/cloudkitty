@@ -134,4 +134,13 @@ printf -- '- experiments/tracker.md @ %s\n' "$(cd "$T" && git rev-parse --short 
 grow experiments/tracker.md 1; c owedFrozen
 case_ 0 "owed: frozen change exits 0" --owed
 grep -q 'condense owed: frozen file experiments/tracker.md changed' "$O" && echo "ok   owed: frozen change as owed line" || { echo "FAIL owed: no frozen owed line"; sed 's/^/     /' "$O"; fail=1; }
+# broken-log paths must never block the hooks (#437 review F1): exit 0
+# with a loud stdout line in --owed; the gate keeps its loud exit 2
+case_ 0 "owed: unreadable log exits 0" --owed --log /nonexistent
+grep -q 'condense owed: cannot read /nonexistent' "$O" && echo "ok   owed: unreadable log says so on stdout" || { echo "FAIL owed: no loud line for unreadable log"; sed 's/^/     /' "$O"; fail=1; }
+case_ 2 "gate: unreadable log still exits 2" --gate --log /nonexistent
+printf '# log\n\n## Passes\n\n## Frozen\n\n' > "$T/empty-log.md"
+case_ 0 "owed: log with no pass line exits 0" --owed --log "$T/empty-log.md"
+grep -q 'condense owed: no pass line' "$O" && echo "ok   owed: no-pass-line says so on stdout" || { echo "FAIL owed: no loud line for empty log"; fail=1; }
+case_ 2 "gate: log with no pass line still exits 2" --gate --log "$T/empty-log.md"
 exit $fail
