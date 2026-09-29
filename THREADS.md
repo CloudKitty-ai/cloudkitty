@@ -8,7 +8,7 @@ where one exists. Read at kickoff. CLAUDE.md governs the work.
 
 | thread | owns | leaves alone |
 |---|---|---|
-| **Product** | `crates/`, the server, `evals/`, `specs/`, `kitty-eval`, `BACKLOG.md` | `client/`, `experiments/` |
+| **Product** | `crates/`, the server, `evals/`, `specs/`, `kitty-eval`, `BACKLOG.md` (root: engine/product work; viewer entries moved to Client's `client/BACKLOG.md`, owner 2026-09-28) | `client/`, `experiments/` |
 | **Client** | `client/`, `client-measurements/` | the engine, `experiments/` |
 | **Experiments** | `experiments/`, its tooling, the native checkout | engine and harness changes (go through Product); the Claude Code tooling (Harness) |
 | **Professor** | teaching, review, research framing; notes live outside the repo | implementing anything |
@@ -167,6 +167,7 @@ cut.
 | a design rule for worlds, rewards, behaviour | `experiments/DESIGN-DOCTRINE.md` (rules 1–10) | a spec names the rule number it moved on (CLAUDE.md rule 8) | process rules, findings |
 | lab process: how to design, run, read, and post an owner call | `experiments/README.md` (§Design discipline, §Ownership, §Owner calls) | "per README §…" | design rules, thread ownership |
 | future product work, its priority and intent | `BACKLOG.md` | the PR that ships it removes the entry | design, owner decisions |
+| future viewer work, same shape | `client/BACKLOG.md` (Client's; split from the root 2026-09-28, PR #435) | the PR that ships it removes the entry | design, owner decisions |
 | an open owner decision | a GitHub issue `owner-call` + `oc:*` | the ruling, verbatim with the issue number, in the document that owns the subject | anything after close: the owning document is the record |
 | a thread's session state: where it is, job cards, open asks | the memory directory (resume anchor + `MEMORY.md` index) | — | numbers, rules, findings, rulings: a pointer to the home instead |
 | who owns what, where each thread works, how much process | `THREADS.md` | CLAUDE.md line 1 | how to do the work |

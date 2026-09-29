@@ -1,5 +1,15 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=$(jq -r '.cwd // empty' 2>/dev/null); cd \"${d:-${CLAUDE_PROJECT_DIR:?}}\" && bash scripts/condense-budget.sh --owed"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",

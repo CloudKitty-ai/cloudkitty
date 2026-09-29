@@ -8,6 +8,14 @@
 #             frozen file changed; a pull request runs this
 #   --report  print the same report, always exit 0; a push to main runs
 #             this so direct commits show their count without a PR
+#   --owed    print ONLY what is condense-owed (tier 1 past its early
+#             warning, tier 2 past advisory, a frozen file changed) and
+#             always exit 0; the SessionStart hook runs this, so a
+#             session learns it owes a pass before any gate reds.
+#             Silence means nothing is owed. (Not wired at PreCompact:
+#             stdout is invisible to the model there and exit 2 would
+#             block compaction — #437 subagent review; a resume after
+#             compact re-fires SessionStart with source "compact".)
 #   --log     the condense log to read (default .claude/CONDENSE-LOG.md)
 #
 # Bases are per tier (owner ruled 2026-09-25): each tier measures from
@@ -34,6 +42,10 @@
 set -u
 
 T1_BLOCK=80
+# --owed early warning at 75% of blocking: first cut 2026-09-28 on
+# three days of budget data (owner's word to proceed); re-tune when the
+# week is in (~2026-10-02). Only tightens or is re-ruled, like budgets.
+T1_WARN=60
 T2_ADVISE=800
 T2_BLOCK=2000
 
@@ -50,12 +62,22 @@ TIER3_GLOB=('experiments/*.md' 'experiments/**/*.md')
 mode=gate; log=.claude/CONDENSE-LOG.md
 while [ $# -gt 0 ]; do
   case "$1" in
-    --gate) mode=gate ;; --report) mode=report ;;
+    --gate) mode=gate ;; --report) mode=report ;; --owed) mode=owed ;;
     --log) log=$2; shift ;;
     *) sed -n '2,20p' "$0" >&2; exit 2 ;;
   esac; shift
 done
-[ -r "$log" ] || { echo "condense-budget: cannot read $log" >&2; exit 2; }
+# die: loud stderr + code, EXCEPT --owed, which runs from the
+# SessionStart hook where a nonzero exit is noise and exit 2 blocks in
+# some hook events: a broken log or stale checkout must never hold a
+# session start hostage, so owed prints a loud stdout line and exits 0
+# (Product review of #437 F1; advice lives in each message, since
+# "fix the log" is wrong for the stale-checkout exits).
+die() {
+  if [ "$mode" = owed ]; then echo "condense owed: $1"; exit 0; fi
+  echo "condense-budget: $1" >&2; exit "$2"
+}
+[ -r "$log" ] || die "cannot read $log (fix the condense log path)" 2
 
 in_list() { local x=$1 m; shift; for m in "$@"; do [ "$x" = "$m" ] && return 0; done; return 1; }
 tier_of() {  # file (4th field of a pass line, ':' stripped) -> 1|2|3|0=unknown
@@ -84,20 +106,20 @@ newer() {  # of two commits, the descendant; incomparable -> the later line's
 }
 
 pass_lines=$(grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9a-f]{7,40} ' "$log")
-[ -n "$pass_lines" ] || { echo "condense-budget: no pass line in $log" >&2; exit 2; }
+[ -n "$pass_lines" ] || die "no pass line in $log (fix the condense log)" 2
 base1=""; base2=""; base3=""
 while read -r _ _ h f _; do
   file=""
   case "$f" in
     *:) file=${f%:}
         if [ "$(tier_of "$file")" = 0 ]; then
-          echo "condense-budget: pass line names '$file', which is not a tiered file" >&2; exit 2
+          die "pass line names '$file', which is not a tiered file" 2
         fi ;;
-    */*|*.md*) echo "condense-budget: malformed pass line field '$f' (one tiered file per line, ending ':')" >&2; exit 2 ;;
+    */*|*.md*) die "malformed pass line field '$f' (one tiered file per line, ending ':')" 2 ;;
   esac
   c=$(resolve_base "$h" "$file")
-  [ -n "$c" ] || { echo "condense-budget: pass-line hash $h does not resolve (a fix made the blob stale, or fetch needed)" >&2; exit 3; }
-  git merge-base --is-ancestor "$c" HEAD || { echo "condense-budget: base $c is not an ancestor of HEAD; merge origin/main in first" >&2; exit 3; }
+  [ -n "$c" ] || die "pass-line hash $h does not resolve (a fix made the blob stale, or fetch needed)" 3
+  git merge-base --is-ancestor "$c" HEAD || die "base $c is not an ancestor of HEAD; merge origin/main in first" 3
   if [ -n "$file" ]; then
     case "$(tier_of "$file")" in
       1) base1=$(newer "$base1" "$c") ;;
@@ -108,13 +130,19 @@ while read -r _ _ h f _; do
     base1=$(newer "$base1" "$c"); base2=$(newer "$base2" "$c"); base3=$(newer "$base3" "$c")
   fi
 done <<< "$pass_lines"
-[ -n "$base1" ] && [ -n "$base2" ] && [ -n "$base3" ] || { echo "condense-budget: a tier has no pass line and no founding line covers it in $log" >&2; exit 2; }
+[ -n "$base1" ] && [ -n "$base2" ] && [ -n "$base3" ] || die "a tier has no pass line and no founding line covers it in $log" 2
 
 fail=0
 ci=${GITHUB_ACTIONS:-}
-say() { echo "$*"; }
-warn() { echo "WARN  $*"; [ -n "$ci" ] && echo "::warning::$*"; }
-block() { echo "BLOCK $*"; [ -n "$ci" ] && echo "::error::$*"; [ "$mode" = gate ] && fail=1; }
+say() { [ "$mode" = owed ] || echo "$*"; }
+warn() {
+  if [ "$mode" = owed ]; then echo "condense owed: $*"; return 0; fi
+  echo "WARN  $*"; [ -n "$ci" ] && echo "::warning::$*"
+}
+block() {
+  if [ "$mode" = owed ]; then echo "condense owed: $*"; return 0; fi
+  echo "BLOCK $*"; [ -n "$ci" ] && echo "::error::$*"; [ "$mode" = gate ] && fail=1
+}
 
 # numstat over paths, printing "net path" per file; deleted files count too.
 growth() { local b=$1; shift; git diff --numstat "$b" HEAD -- "$@" | awk '$1 != "-" {print $1-$2, $3}'; }
@@ -124,16 +152,19 @@ say "condense-budget: HEAD $(git rev-parse --short HEAD), mode $mode; bases: tie
 say
 
 t1=$(growth "$base1" "${TIER1[@]}"); n1=$(echo "$t1" | total)
-say "tier 1  net ${n1:+$n1} (blocking past +$T1_BLOCK)"; [ -n "$t1" ] && echo "$t1" | awk '{printf "        %+d  %s\n", $1, $2}'
-if [ "$n1" -gt "$T1_BLOCK" ]; then block "tier 1 is +$n1 net lines since its last condense pass ($base1); budget +$T1_BLOCK. Condense, log the pass, do not raise the budget."; fi
+say "tier 1  net ${n1:+$n1} (blocking past +$T1_BLOCK)"; [ "$mode" != owed ] && [ -n "$t1" ] && echo "$t1" | awk '{printf "        %+d  %s\n", $1, $2}'
+if [ "$n1" -gt "$T1_BLOCK" ]; then block "tier 1 is +$n1 net lines since its last condense pass ($base1); budget +$T1_BLOCK. Condense, log the pass, do not raise the budget."
+elif [ "$mode" = owed ] && [ "$n1" -gt "$T1_WARN" ]; then
+  echo "condense owed: tier 1 is +$n1 net lines (early warning past +$T1_WARN, blocking past +$T1_BLOCK). Condense before the gate reds: .claude/skills/condense/SKILL.md — tier 1 lands on the owner's word."
+fi
 
 t2=$(growth "$base2" "${TIER2[@]}"); n2=$(echo "$t2" | total)
-say "tier 2  net $n2 (advisory past +$T2_ADVISE, blocking past +$T2_BLOCK)"; [ -n "$t2" ] && echo "$t2" | awk '{printf "        %+d  %s\n", $1, $2}'
+say "tier 2  net $n2 (advisory past +$T2_ADVISE, blocking past +$T2_BLOCK)"; [ "$mode" != owed ] && [ -n "$t2" ] && echo "$t2" | awk '{printf "        %+d  %s\n", $1, $2}'
 if [ "$n2" -gt "$T2_BLOCK" ]; then block "tier 2 is +$n2 net lines since its last condense pass ($base2); budget +$T2_BLOCK. A pass is overdue."
 elif [ "$n2" -gt "$T2_ADVISE" ]; then warn "tier 2 is +$n2 net lines since its last condense pass ($base2); a pass is due past +$T2_ADVISE."; fi
 
 t3=$(growth "$base3" "${TIER3_GLOB[@]}" | grep -v -F -f <(printf '%s\n' "${TIER2[@]}" | sed 's/^/ /') ); n3=$(echo "$t3" | total)
-say "tier 3  net $n3 (report only); top growers:"; [ -n "$t3" ] && echo "$t3" | sort -rn | head -n 5 | awk '{printf "        %+d  %s\n", $1, $2}'
+say "tier 3  net $n3 (report only); top growers:"; [ "$mode" != owed ] && [ -n "$t3" ] && echo "$t3" | sort -rn | head -n 5 | awk '{printf "        %+d  %s\n", $1, $2}'
 
 say
 frozen=$(sed -n '/^## Frozen/,$p' "$log" | grep -E '^- \S+ @ [0-9a-f]{7,40}$' || true)
