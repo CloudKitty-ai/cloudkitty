@@ -364,3 +364,24 @@ live — a summary clause that names a set ("all five", "through X")
 gets re-derived against the set, not remembered. Verifier practice
 worth keeping: it graded "west of center" and "south" against the
 SAME midline, catching the referent switch.
+
+## 2026-09-29 · enrichment-decay stage B (Experiments) · PASS round 3 of 3
+
+Gated: `enrichment-decay-sweep-2026-09-26/RESULTS-B.md` + F-056 +
+the F-055 dated note. Regeneration clean every round; all failures
+prose. New failure classes: (1) UNIT RELABELING ACROSS A QUOTE
+BOUNDARY — "leg" meant a 30-seed battery leg in the prereg and in
+the doc's own header, then silently shrank to one seed-episode in
+the welfare accounting, minting a fake order-of-magnitude margin
+(real: ~5×); (2) MEANING-INVERTING COPY DRIFT — "ran both variants
+past the traction bar" (= cleared it, in F-055's own idiom) for
+"both missed"; the F-entry paraphrased the RESULTS sentence and
+flipped it; (3) CROSS-DOC NUMBER PAIRING — the Professor
+percentiles quoted from memory paired p17 with the wrong β
+(STAGE-B-INPUTS says under-p5 for 0.03). Also: the prereg's
+decision bullet must be QUOTED AND ITS BINARY STATED (round 1
+substituted a third reading for mechanism-vs-corner), and a
+register cross-reference (F-055's Invalidated-by) is a claim needing
+character-exact quoting plus an explicit consistency resolution —
+here a dated note in F-055, with the interpretation stated openly
+for the owner's strict-reading call.

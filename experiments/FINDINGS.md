@@ -94,6 +94,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-053 | active | Under fog, frozen Gen 1 minds do not survive world-size displacement: intact happiness falls 92.471 → 77.935 → 52.813 at 40×40 and 100×100 (teacher 86.343 / 82.898 on the same worlds); exact range on meows stays near-worthless at every size |
 | F-054 | active | Objective-side pressure substitutes for the world floor: all three reward shapes restore beam placement on floor 0 (0.516–0.937 against a 0.033–0.062 null), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12 |
 | F-055 | active | An impact-only gate failed with a persistent bonus stock: the glow saturated into a level shift, play starts shifted into the closed-gate region (consistent with banking), and the pressure cost 0.729–0.839 happiness (30/30) without buying the behavior |
+| F-056 | active | β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism |
 
 ---
 
@@ -2852,3 +2853,62 @@ ACCRUAL (the owner's original mechanism; per cat is this session's
 recommendation) and de-saturate the stock so marginal play carries
 marginal value — both preceding any engine work if she takes the
 branch at all; RESULTS §Decision rules.
+
+**2026-09-29 note (F-056)**: the Invalidated-by's first arm ran —
+stage B's accrual-gated and non-saturating variants also missed
+the traction bar, with glow OFF the cap (a different signature
+than the saturation measured here). Per that clause the
+indictment moves to the channel; the measured failures above
+stand unchanged.
+
+## F-056 · active · β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism
+
+Stage B of the enrichment-decay sweep
+(`enrichment-decay-sweep-2026-09-26/RESULTS-B.md`, PREREG-B frozen
+ddd2301): eleven arms on the d100-1000 corner — β {0.06, 0.10,
+0.14} × 3 seeds under the decay throttle, plus the accrual gate at
+β 0.10 × 2 seeds — read on the stage-A instrument (11 all-arm legs
+× 30 × 20,000, zero aborts on 330 rows). The response curve, with
+stage A's β 0.03 as the fourth point: family-mean pooled greedy
+play 0.0773 → 0.0848 → 0.0879 → 0.0885 against the 0.10 bar and a
+0.0749 baseline. Monotone, saturating (per-step gains 0.0075,
+0.0031, 0.0006), and cheap to summarize: β up 4.7×, play up 14%.
+Glow was off the cap on every arm (last-quarter at-cap share
+0.091–0.116, E p50 0.436–0.512), so the saturating curve is not
+saturation of the stock — the prereg's ruled branch fired: "the
+channel is dead as designed ('channel dead' branch of the ruled
+adjudication); report; the fork is the owner's". Trace banking
+stayed dead (0.0353–0.0399 throttle, 0.0000 structural on the
+accrual arms), but the closed-gate START share exceeded the 0.1043
+stage-A band on every arm (0.1087–0.2540 vs comparator 0.0843) —
+including both accrual-gated arms, where a closed-gate start earns
+structurally nothing, so per PREREG-B's adjudicator the CORNER,
+not the mechanism, is at fault for P2. F-055 anticipated this
+stage in its Invalidated-by clause — "an accrual-gated or
+non-saturating variant failing the same way (which would indict
+the channel, not the gate), or a replication where these pins do
+lift play past the bar" — and stage B ran both variants and both
+missed the traction bar, though not with F-055's signature (its
+glow was saturated; stage B's is off the cap): the clause's
+channel-indicting arm fires, F-055's measured facts stand, and
+F-055 carries a dated note rather than a status change
+(RESULTS-B §Decision rules). Welfare priced the curve
+non-monotonically — family paired
+deltas b06 −0.806 (breaching its −0.50 bar), b10 −0.464, b14
+−0.605 — with the under-tending sign everywhere (eat+drink
+0.0432–0.0478, all below the comparator's 0.0499) and the
+teammate-distressed watch line (0.001) exceeded on four arms (max
+0.0022 vs 0.0003). **Scope**: lab trainer only, one world, the
+d100-1000 corner with 15→25 brackets fixed (the stage-C bracket
+sweep is unrun — its premise needed a β winner and there is none),
+one init family, 2–3 seeds per family. **Invalidated by**: a
+bracket/gain configuration, or a world change, at which this
+β range clears the 0.10 bar. **Re-verify when**: the Gen 3
+free-time design's leading refinement lands — dedicated recreation
+actions (frolic/snuggle), recorded in the inputs doc as "leading
+direction pending her confirmation" (what she HAS ruled there:
+play and cuddle as free-time activities with the door open to
+more, and scripted demonstration of the new actions).
+**Promotion**: closes the β lever in the Gen 3
+free-time inputs (`gen3-free-time-inputs-2026-09-26.md`); the fork
+past channel-dead is the owner's (RESULTS-B §Decision rules).
