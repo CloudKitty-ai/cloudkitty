@@ -45,3 +45,4 @@ which keeps the founding line valid.
 
 One line each: `- <path> @ <sha of the freezing commit>`.
 - experiments/fog-gen1-timeline-2026-08-26.md @ 48af87d
+- 2026-09-28 6c82ff21ff85 THREADS.md: accuracy-gate inline definition deduped to its skill home; pass-skills, lane, hook-ownership and §6-intro wording tightened (PR #439)

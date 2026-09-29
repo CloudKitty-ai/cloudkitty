@@ -88,3 +88,19 @@ case was VACUOUS because its pass line's blob resolved to an old
 commit (the file was never changed), which only surfaced when the
 mutation failed to move it — a real pass changes the file, and now
 the case does too.
+
+## 2026-09-28 — Harness, THREADS.md (tier 1, first tier-1 run) — clean
+
+Owner's word: "Can we do a test run of the tier 1 condense with
+diffs?" Pass: 179 -> 173 lines (+37/-43); one dedup (accuracy-gate
+definition to its skill home), four wording tightenings. Fact-loss
+check clean on the first run: 8 reworded/dedup spots, each verified
+at its pointed-to home. Lesson for the skill: tier-1 growth is
+mostly NEW RULINGS — never-cut material — so a tier-1 pass yields
+few lines and its real payload is the base reset under the owner's
+eyes; expect thin diffs and say so in the PR rather than forcing
+cuts. Second lesson: the fact-loss subagent flagged that pointer
+targets (scripts/lanes.txt) existed only on origin/main, not the
+native working tree — the check ran in the native checkout per the
+skill, and followed pointers via origin/main; a future pass whose
+pointers are branch-new should name that in the subagent brief.
