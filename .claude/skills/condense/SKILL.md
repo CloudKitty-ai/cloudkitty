@@ -94,6 +94,22 @@ covers the siblings, so run `scripts/condense-budget.sh --report`
 BEFORE the pass and name in the PR body any sibling growth the
 reset swallows — the owner sees it instead of losing it silently.
 
+Two more statements the pass must make (owner approved 2026-09-28,
+the #439 impact review's recommendation):
+
+- **Residual growth, per file**: how much of each condensed file's
+  accrual the pass KEEPS (never-cut material the reset re-baselines
+  rather than removes), stated in the PR body and on the pass line.
+  A tier-1 pass is often mostly re-baseline — legitimate exactly
+  because the owner rules on the diff, and only when labelled as
+  re-baseline, never sold as compression.
+- **New home files get a budget status**: a file a pass creates as a
+  fact's new home is, in the same PR, either added to a tier or
+  explicitly ruled unmetered on its CONDENSE-LOG line, with the
+  reason (e.g. "not loaded at kickoff"). Move-to-home must never be
+  an unmetered escape route from tier 1: text that sessions load at
+  kickoff cannot leave the budget by changing files.
+
 The landing order:
 
 1. Commit the pass — one file, nothing else in the commit.
