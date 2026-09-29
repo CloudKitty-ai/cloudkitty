@@ -20,6 +20,8 @@ Tiers and budgets (net lines since the last pass):
   `experiments/FINDINGS.md`, `experiments/DESIGN-DOCTRINE.md`,
   `experiments/ROADMAP.md`, `experiments/README.md`,
   `experiments/fog-gen1-shakeout/GEN2-INPUTS.md`, `BACKLOG.md`,
+  `client/BACKLOG.md` (owner 2026-09-28: "Client backlog same tier
+  as main backlog"),
   `policies/purrsonality.md`, and each thread's `TRAPS.md` once it
   exists
 - skill `TRIALS.md` files: unmetered during shakeout, frozen at its

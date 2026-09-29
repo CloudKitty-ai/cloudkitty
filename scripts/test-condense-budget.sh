@@ -163,4 +163,11 @@ case_ 0 "owed: unresolvable pass-line hash exits 0" --owed
 grep -q 'condense owed: pass-line hash deadbeef' "$O" && echo "ok   owed: stale hash says so on stdout" || { echo "FAIL owed: no stale-hash line"; fail=1; }
 case_ 3 "gate: unresolvable hash still exits 3"
 sed '$d' "$log" > "$log.t" && mv "$log.t" "$log"; c b-unbogus
+
+# ---- client/BACKLOG.md is tier 2 (owner 2026-09-28) ----
+mkdir -p client && seq 1 10 > client/BACKLOG.md; c cb-add
+grow client/BACKLOG.md 1300; c cb-grow
+case_ 1 "client/BACKLOG.md growth counts toward tier 2: blocked past +2000"
+printf -- '- 2026-09-28 %s client/BACKLOG.md: condensed (PR #17)\n' "$(git rev-parse HEAD:client/BACKLOG.md)" >> $log; c cb-pass
+case_ 0 "a client/BACKLOG.md pass line resets tier 2: passes"
 exit $fail

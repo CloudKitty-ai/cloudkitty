@@ -53,6 +53,7 @@ TIER1=(CLAUDE.md THREADS.md .claude/skills/prepare-for-compact/SKILL.md)
 TIER2=(experiments/FINDINGS.md experiments/DESIGN-DOCTRINE.md
   experiments/ROADMAP.md experiments/README.md
   experiments/fog-gen1-shakeout/GEN2-INPUTS.md BACKLOG.md
+  client/BACKLOG.md
   policies/purrsonality.md
   client/TRAPS.md crates/TRAPS.md experiments/TRAPS.md .claude/TRAPS.md)
 # Skill TRIALS.md files are unmetered during shakeout and frozen at its
