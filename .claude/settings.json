@@ -5,17 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && bash scripts/condense-budget.sh --owed"
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && bash scripts/condense-budget.sh --owed"
+            "command": "d=$(jq -r '.cwd // empty' 2>/dev/null); cd \"${d:-${CLAUDE_PROJECT_DIR:?}}\" && bash scripts/condense-budget.sh --owed"
           }
         ]
       }

@@ -10,9 +10,12 @@
 #             this so direct commits show their count without a PR
 #   --owed    print ONLY what is condense-owed (tier 1 past its early
 #             warning, tier 2 past advisory, a frozen file changed) and
-#             always exit 0; the SessionStart/PreCompact hooks run this,
-#             so a session learns it owes a pass before any gate reds.
-#             Silence means nothing is owed.
+#             always exit 0; the SessionStart hook runs this, so a
+#             session learns it owes a pass before any gate reds.
+#             Silence means nothing is owed. (Not wired at PreCompact:
+#             stdout is invisible to the model there and exit 2 would
+#             block compaction — #437 subagent review; a resume after
+#             compact re-fires SessionStart with source "compact".)
 #   --log     the condense log to read (default .claude/CONDENSE-LOG.md)
 #
 # Bases are per tier (owner ruled 2026-09-25): each tier measures from
@@ -65,14 +68,16 @@ while [ $# -gt 0 ]; do
   esac; shift
 done
 # die: loud stderr + code, EXCEPT --owed, which runs from the
-# SessionStart/PreCompact hooks where exit 2 BLOCKS: there a broken
-# log must never hold a compact or a session start hostage, so it
-# prints a loud stdout line and exits 0 (Product review of #437, F1).
+# SessionStart hook where a nonzero exit is noise and exit 2 blocks in
+# some hook events: a broken log or stale checkout must never hold a
+# session start hostage, so owed prints a loud stdout line and exits 0
+# (Product review of #437 F1; advice lives in each message, since
+# "fix the log" is wrong for the stale-checkout exits).
 die() {
-  if [ "$mode" = owed ]; then echo "condense owed: $1 — fix the condense log before it hides real debt"; exit 0; fi
+  if [ "$mode" = owed ]; then echo "condense owed: $1"; exit 0; fi
   echo "condense-budget: $1" >&2; exit "$2"
 }
-[ -r "$log" ] || die "cannot read $log" 2
+[ -r "$log" ] || die "cannot read $log (fix the condense log path)" 2
 
 in_list() { local x=$1 m; shift; for m in "$@"; do [ "$x" = "$m" ] && return 0; done; return 1; }
 tier_of() {  # file (4th field of a pass line, ':' stripped) -> 1|2|3|0=unknown
@@ -101,7 +106,7 @@ newer() {  # of two commits, the descendant; incomparable -> the later line's
 }
 
 pass_lines=$(grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9a-f]{7,40} ' "$log")
-[ -n "$pass_lines" ] || die "no pass line in $log" 2
+[ -n "$pass_lines" ] || die "no pass line in $log (fix the condense log)" 2
 base1=""; base2=""; base3=""
 while read -r _ _ h f _; do
   file=""

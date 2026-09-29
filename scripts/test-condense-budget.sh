@@ -143,4 +143,24 @@ printf '# log\n\n## Passes\n\n## Frozen\n\n' > "$T/empty-log.md"
 case_ 0 "owed: log with no pass line exits 0" --owed --log "$T/empty-log.md"
 grep -q 'condense owed: no pass line' "$O" && echo "ok   owed: no-pass-line says so on stdout" || { echo "FAIL owed: no loud line for empty log"; fail=1; }
 case_ 2 "gate: log with no pass line still exits 2" --gate --log "$T/empty-log.md"
+
+# ---- owed boundary + purity (subagent review of #437, F6) ----
+sed '$d' experiments/tracker.md > "$T/tk" && mv "$T/tk" experiments/tracker.md; c b-restore
+printf -- '- 2026-09-28 %s boundary reset (PR #15)\n' "$(git rev-parse --short HEAD)" >> $log; c b-found
+grow CLAUDE.md 60; c b-60
+case_ 0 "owed: exactly +60 is silent (warning is strictly past)" --owed
+[ -s "$O" ] && { echo "FAIL owed: +60 must be silent"; sed 's/^/     /' "$O"; fail=1; } || echo "ok   owed: +60 boundary is silent"
+grow CLAUDE.md 1; c b-61
+case_ 0 "gate: +61 passes" 
+grep -q 'condense owed:' "$O" && { echo "FAIL gate: owed line leaked into gate output"; fail=1; } || echo "ok   gate: no owed line at +61"
+grow experiments/FINDINGS.md 801; c b-t2
+grow experiments/arc/RESULTS.md 5; c b-t3
+case_ 0 "owed: t1, t2, t3 all nonzero exits 0" --owed
+grep -q 'condense owed: tier 2 is +801' "$O" && echo "ok   owed: tier 2 present in mixed output" || { echo "FAIL owed: tier 2 line missing"; fail=1; }
+[ "$(grep -cv '^condense owed:' "$O")" -eq 0 ] && echo "ok   owed: every line carries the owed prefix" || { echo "FAIL owed: unprefixed output leaked"; sed 's/^/     /' "$O"; fail=1; }
+printf -- '- 2026-09-25 deadbeefdeadbeefdeadbeefdeadbeefdeadbeef experiments/FINDINGS.md: bogus (PR #16)\n' >> $log; c b-bogus
+case_ 0 "owed: unresolvable pass-line hash exits 0" --owed
+grep -q 'condense owed: pass-line hash deadbeef' "$O" && echo "ok   owed: stale hash says so on stdout" || { echo "FAIL owed: no stale-hash line"; fail=1; }
+case_ 3 "gate: unresolvable hash still exits 3"
+sed '$d' "$log" > "$log.t" && mv "$log.t" "$log"; c b-unbogus
 exit $fail
