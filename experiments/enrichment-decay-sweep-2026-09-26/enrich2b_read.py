@@ -45,10 +45,28 @@ def fam_stat(vals):
             "sd": statistics.stdev(vals) if len(vals) > 1 else None}
 
 
+def print_seat_lift(out):
+    """--seat-lift: per-seat play lift over the fresh gen1-A baseline,
+    family means (the Professor review's free read, owner-ordered
+    2026-09-30). Opt-in so the gated default fence stays byte-identical."""
+    base = out["comparators"]["gen1A_fresh"]["per_seat_play_share"]
+    cats = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
+    print("PER-SEAT PLAY LIFT over fresh gen1-A baseline (family means)")
+    print("baseline: " + " ".join(f"{cats[k]} {base[k]:.4f}" for k in range(5)))
+    print("| family | " + " | ".join(cats) + " | lift ex-Biscuit (sum) | Biscuit lift |")
+    print("|---|---|---|---|---|---|---|")
+    for fam, slots in FAMILIES.items():
+        means = [sum(out["arms"][s]["per_seat_play_share"][k] for s in slots) / len(slots) for k in range(5)]
+        lift = [means[k] - base[k] for k in range(5)]
+        print(f"| {fam} | " + " | ".join(f"{lift[k]:+.4f}" for k in range(5))
+              + f" | {sum(lift) - lift[1]:+.4f} | {lift[1]:+.4f} |")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--md", type=Path, default=None)
+    ap.add_argument("--seat-lift", action="store_true")
     a = ap.parse_args()
 
     recorded = load(GEN1A_RECORDED)
@@ -142,6 +160,8 @@ def main():
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1))
     print(f"wrote {a.out}")
+    if a.seat_lift:
+        print_seat_lift(out)
     if a.md:
         L = ["# Enrichment-decay stage B read", "",
              "| arm | play (greedy) | play (trace lastq) | closed-gate | banked | at-cap | E p50 | happiness | vs recorded | worse/30 | sleep | bin0 | eat+drink | tm-dist | dist ticks | mda |",
