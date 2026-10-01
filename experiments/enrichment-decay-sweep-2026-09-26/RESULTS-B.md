@@ -187,3 +187,64 @@ traction bar" for "missed"); round 3 clean, no undecidables.
 Raw hash dc9219517f403fb4 (battery jsonls + enrich2b traces).
 F-entry F-056 + the F-055 dated note copy-checked in the same
 package.
+
+## Addendum 2026-09-30 — per-seat play lift (the Professor review's free read, owner-ordered)
+
+The Professor's stage-B review (memo
+`~/ai/professor/reviews/2026-09-29-stage-b-review.md`, relayed
+2026-09-30) offered this as its zero-training discriminator: "If
+Biscuit (anchor play dial 0.8) moved and the other four seats
+moved ~0, the anchor sets the ceiling." The owner ordered the read
+("Add the biscuit-lift read"). Reader mode `--seat-lift` (opt-in;
+the gated default fence above stays byte-identical). Output,
+verbatim:
+
+```
+PER-SEAT PLAY LIFT over fresh gen1-A baseline (family means)
+baseline: Miso 0.0344 Biscuit 0.2283 Pumpkin 0.0428 Kittybear 0.0366 Clementine 0.0322
+| family | Miso | Biscuit | Pumpkin | Kittybear | Clementine | lift ex-Biscuit (sum) | Biscuit lift |
+|---|---|---|---|---|---|---|
+| b06 | -0.0014 | +0.0591 | -0.0023 | -0.0044 | -0.0015 | -0.0096 | +0.0591 |
+| b10 | +0.0015 | +0.0609 | +0.0003 | -0.0001 | +0.0025 | +0.0043 | +0.0609 |
+| b14 | +0.0011 | +0.0696 | -0.0015 | -0.0020 | +0.0008 | -0.0016 | +0.0696 |
+| ag10 | -0.0024 | +0.0439 | -0.0057 | -0.0048 | -0.0011 | -0.0139 | +0.0439 |
+```
+
+Reading: the whole family-level rise is Biscuit — its contribution
+is 94–147% of each family's pooled rise. Its lift is +0.0439 to
++0.0696 while the other four seats' summed lift sits between
+−0.0139 and +0.0043: for the throttle families the per-seed sums
+straddle zero (no declared noise line exists to test them
+against); ag10 is the one consistent mover — summed lift negative
+on both seeds (−0.0061, −0.0218), all four seats negative at the
+family mean, 7 of 8 seat-seed cells (−0.0139 pooled, ≈ −9.5% of
+those seats' combined 0.146 baseline). So the four seats whose
+corpus is nearly play-free (the memo's premise) show family-mean
+summed gains of at most +0.0043 at any prize, and under the
+accrual gate they drifted down. That is the memo's discriminator
+outcome in direction — the anchor sets the ceiling — and the
+motivating evidence for the dead-or-held probe (declared
+separately, PREREG-C.md). It does not change stage B's scored
+predictions (P6's Biscuit-top-seat check is the one per-seat
+verdict, re-verified unchanged) or the channel-dead branch; it
+narrows WHERE the non-response lives.
+
+### Read (seat-lift addendum)
+
+Runtime: under 30 seconds. No environment variables required.
+
+```
+cd /Users/elizabethkelly/ai/cloudkitty/experiments/enrichment-decay-sweep-2026-09-26
+../exp-006-character-gen/.venv/bin/python enrich2b_read.py \
+  --out <scratch>/enrich2b-read-fresh.json --seat-lift
+```
+
+GATE (seat-lift addendum): PASS scoped round 3, 2026-10-01 —
+arithmetic 40, characterisation 7, provenance 6 (2 undecidable:
+the owner quote's verbatimness — it is verbatim, typed in this
+session — and the relay date), mechanical 3; block byte-identical,
+default fence unchanged from the r3 stamp. Round 1: a memo
+paraphrase inside quotation marks ("predicted" for the memo's
+"discriminator"). Round 2: the tightened rewrite minted a new
+false universal ("all four seats negative on both seeds" — 7 of 8
+cells). Round 3 clean.

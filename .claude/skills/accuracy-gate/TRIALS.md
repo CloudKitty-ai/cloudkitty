@@ -385,3 +385,21 @@ register cross-reference (F-055's Invalidated-by) is a claim needing
 character-exact quoting plus an explicit consistency resolution —
 here a dated note in F-055, with the interpretation stated openly
 for the owner's strict-reading call.
+
+## 2026-10-01 · stage-B seat-lift addendum (Experiments) · PASS scoped round 3
+
+Gated: the per-seat play-lift addendum to
+`enrichment-decay-sweep-2026-09-26/RESULTS-B.md`. All 40 arithmetic
+claims clean in every round (verifier re-derived every lift cell
+independently, grouping arms by name prefix, not the reader's
+FAMILIES). Round-1 fail: QUOTATION MARKS AROUND A PARAPHRASE — the
+memo's discriminator compressed to "if only Biscuit moved…" and
+quoted, with "predicted" where the memo says "Discriminator, zero
+training"; an out-of-repo memo is quotable only verbatim, and the
+gate could read it (full path in the doc). Round-2 fail: THE
+CORRECTION MINTED A NEW FALSE UNIVERSAL — "all four seats negative
+on both seeds" for a 7-of-8 fact; precision-raising rewrites need
+the same cell-level re-derivation as the original claim. Also
+adopted: name the absent noise line instead of leaning on "line
+noise"; "unpaid mechanism" → "accrual gate" (open-gate play IS
+paid).
