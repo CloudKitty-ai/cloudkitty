@@ -153,8 +153,11 @@ def test_collect_writes_E():
 
 
 def test_leash_pins():
+    # BOTH dicts: tb.install() replaces tf.PINS with tb.PINS, so the
+    # pin must be in tb's dict to survive install (the l14 crash).
+    assert c.tb.PINS["beta_probe"] == R_LEASH_PROBE
     assert c.tf.PINS["beta_probe"] == R_LEASH_PROBE
-    assert c.tf.PINS["beta_low"] == R_LEASH_STD
+    assert c.tb.PINS["beta_low"] == R_LEASH_STD
     assert c.tb.SLOTS["l14-s1"][1] == "beta_probe" and c.tb.SLOTS["l14-s2"][1] == "beta_probe"
     assert c.tb.SLOTS["o14-s1"][1] == "beta_low" and c.tb.SLOTS["o14-s2"][1] == "beta_low"
     assert c.tb.SLOTS["l14-s1"][4] == 90 and c.tb.SLOTS["o14-s2"][4] == 93

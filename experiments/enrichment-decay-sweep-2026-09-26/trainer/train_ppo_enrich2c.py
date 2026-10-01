@@ -50,6 +50,11 @@ for _fam, (_pin, _eobs) in FAMS.items():
         tb.WORLD[slot] = ((3.0, 7.0, 3000, 6), BEAM / "package.toml")
         tb.SLOTS[slot] = ("pin", _pin, "init_lesson", _s, _idx)
         _idx += 1
+# tb.install() REPLACES tf.PINS with tb's own dict (train_ppo_beam
+# line "tf.PINS = PINS"), so the probe pin must live in tb.PINS — the
+# dict that survives install. (First l14 launch crashed on exactly
+# this: KeyError 'beta_probe'; prereg-c-deviations.md.)
+tb.PINS["beta_probe"] = LEASH_PROBE
 tf.PINS["beta_probe"] = LEASH_PROBE
 
 ROLL = {"Eo": None, "Ec": None}
