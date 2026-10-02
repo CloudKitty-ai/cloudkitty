@@ -10,3 +10,11 @@
    relaunched with the same slots/seeds/band; relaunch timestamp in
    `results-raw/train-logs/l14-*.log`. No prediction, bar, or read
    changed.
+
+2. Erratum, noted not edited (the prereg is frozen): §Predictions 4
+   paraphrases F-019 as predicting a happiness PRICE for a loosened
+   leash ("the leash carries personality and its removal costs
+   welfare"). F-019's actual direction is the reverse: loosening
+   buys mean welfare and costs personality. RESULTS-C cites F-019
+   correctly; the gate's round-1 report caught the inheritance
+   (2026-10-01).

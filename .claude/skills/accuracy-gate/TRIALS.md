@@ -403,3 +403,25 @@ the same cell-level re-derivation as the original claim. Also
 adopted: name the absent noise line instead of leaning on "line
 noise"; "unpaid mechanism" → "accrual gate" (open-gate play IS
 paid).
+
+## 2026-10-01 · dead-or-held probe (Experiments) · PASS (RESULTS-C r2 + F-057 copy-check r2)
+
+Gated: `enrichment-decay-sweep-2026-09-26/RESULTS-C.md` + F-057 +
+the stamp. Regeneration byte-clean throughout (~100 arithmetic
+checks matched every round). Round-1 fails: the "LEG" UNIT
+MISLABEL'S THIRD APPEARANCE (an aborted seed's episode is not a
+leg); an arc-scope claim ("the arc's worst") contradicted by stage
+A's own table; a "whole program" first-ever claim contradicted by
+a different arc's doc (cross-world's positive deltas — scope
+superlatives need a sweep, not a memory); a WEAK inherited from
+THE FROZEN PREREG ITSELF (PREREG-C paraphrased F-019's direction
+backwards — recorded as an erratum note in the deviations file,
+noted not edited, free-register precedent); and a decision-rule
+branch applied without stating no branch condition was met as
+written. F-entry copy-check then caught the SAME nearest-branch
+qualifier dropped again in compression, numbers cited from the
+VERIFIER'S OWN DERIVATIONS with no printed source (now printed in
+RESULTS-C), a deviations count gone stale inside the package, and
+a confound hedge dropped. New practice from the verifier: the
+stamp's raw hash now states its recipe in one clause (no prior
+stamp recorded one — relay to Harness, SKILL.md is theirs).

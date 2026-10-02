@@ -95,6 +95,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-054 | active | Objective-side pressure substitutes for the world floor: all three reward shapes restore beam placement on floor 0 (0.516–0.937 against a 0.033–0.062 null), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12 |
 | F-055 | active | An impact-only gate failed with a persistent bonus stock: the glow saturated into a level shift, play starts shifted into the closed-gate region (consistent with banking), and the pressure cost 0.729–0.839 happiness (30/30) without buying the behavior |
 | F-056 | active | β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism |
+| F-057 | active | The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms) |
 
 ---
 
@@ -2912,3 +2913,52 @@ more, and scripted demonstration of the new actions).
 **Promotion**: closes the β lever in the Gen 3
 free-time inputs (`gen3-free-time-inputs-2026-09-26.md`); the fork
 past channel-dead is the owner's (RESULTS-B §Decision rules).
+## F-057 · active · The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms)
+
+The dead-or-held probe
+(`enrichment-decay-sweep-2026-09-26/RESULTS-C.md`, PREREG-C frozen
+d5bf7fca; the Professor review's recommended test): two arms at β
+0.14 with the KL leash dropped 0.04 → 0.01 (l14 × 2 seeds), two
+with the enrichment stock written into the obs clock slot at leash
+0.04 (o14 × 2), read on the stage-B instrument (l14) and the
+declared E-fed runner (o14). Totals stayed under the 0.10 bar on
+every arm (greedy 0.0722–0.0915) and under b14's 0.0885 mean on 3
+of 4 — so the channel cannot raise play even with its suspected
+jailers removed one at a time, and F-056 stands at the total
+level (the nearest-branch reading — the declared "flat" condition
+missed downward on two arms). What the leash
+release DID do: the four seats whose corpus is nearly play-free
+moved for the first time anywhere in the arc (ex-Biscuit summed
+lift +0.0479 and +0.0893 vs stage B's per-seed extremes −0.0315 to
++0.0160) while Biscuit's own lift went negative (−0.0612, −0.0300),
+and the closed-gate start share fell to 0.0305–0.0424 — a third to
+a half of the 0.0843 baseline, a fifth of b14's family mean — with
+96–97% of play starts below worst-need 25: the policy, unleashed,
+starts play almost exclusively with the gate open. Welfare split:
+the l14 arms posted the enrichment arc's first positive paired
+happiness deltas (+0.224, +0.441 — F-019's buy-the-mean direction,
+Biscuit's play fingerprint eroding as F-019's trade predicts) with
+a widened distress tail (3,262 dist ticks, a 952-tick streak,
+tm-dist 0.0039 — the probe's worst arm; F-019 measured no tails);
+the o14 arms moved the other way on the mean (−0.248, −0.887) and
+carried the probe's one ABORT (seed 870011, episode cut at tick
+1,224 — the welfare mechanism's second firing in anger).
+**Scope**: lab trainer, one world, the d100-1000 corner, β 0.14,
+one leash value below standard, 2 seeds per arm; the E-visibility
+arm carries a declared confound (E rode the clock slot, so the
+cycling clock vanished in the same move — moot for its null under
+the attribution rule, though an E-helps / clock-removal-hurts
+cancellation cannot be excluded from a null, and a clock-zero
+control is owed before any future positive o14-style result is
+attributed). **Invalidated by**: a leash schedule or
+value at which the total clears 0.10 (that would make the leash
+the level constraint after all), or a seat-level release that
+fails to reproduce at other seeds/corners. **Re-verify when**: Gen
+3 sets its leash dose — the composition effect and the tail cost
+are both direct inputs to that choice, with the abort line as the
+declared police. **Promotion**: Gen 3 inputs — the free-time SHAPE
+(open-gate play, all seats) is purchasable by leash dose; the
+free-time LEVEL is not purchasable by this channel at any tested
+β or leash, and not by visibility as tested (a confounded null;
+the clock-zero control is the owed discriminator) (RESULTS-C
+§Decision rules; the fork is the owner's).
