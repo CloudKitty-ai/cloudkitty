@@ -217,7 +217,11 @@ def main(argv=None):
     # from the final row.
     import json
     orig_collect = tf.collect_fragment
-    diag_path = SCREEN / "artifacts" / f"ppo-fog-{slot}" / "clip-diag.jsonl"
+    # e2b.SCREEN == SCREEN in a real run; smoke redirects e2b.SCREEN,
+    # and the diag must land beside the trace it annotates (the first
+    # smoke learned this: the diag leaked into the real arm dir, set
+    # aside as clip-diag-SMOKE-2026-10-03.jsonl.aside)
+    diag_path = e2b.SCREEN / "artifacts" / f"ppo-fog-{slot}" / "clip-diag.jsonl"
     seen = {"u": 0}
 
     def collect_with_diag(*a, **kw):
