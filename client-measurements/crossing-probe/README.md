@@ -33,6 +33,30 @@ the camera's own floor-to-ceiling band over 2.4s. Chrome at 3840x2160 (dpr 2)
 reads clean on every block (median 16.7ms, nothing over 20ms), which is the
 rig check and not an answer: read it in Safari on the display that lagged.
 
+### First reading — the owner's WQHD, Safari, dpr 1 (2026-09-27)
+
+The display she saw the pan hitch on. Pasted verbatim:
+
+```
+row    camera    frames    median    p90    p99    >20ms    >33ms
+settled day (no fade)    still    244    14ms    15ms    15ms    1 (0.4%)    1
+pan    231    14ms    14ms    15ms    0 (0.0%)    0
+zoom    231    14ms    14ms    15ms    0 (0.0%)    0
+day -> dusk (807 fading)    still    244    14ms    15ms    17ms    1 (0.4%)    0
+pan    231    14ms    15ms    16ms    0 (0.0%)    0
+zoom    231    14ms    15ms    16ms    0 (0.0%)    0
+settled day 2 (no fade)    still    244    14ms    14ms    15ms    0 (0.0%)    0
+pan    231    14ms    14ms    15ms    0 (0.0%)    0
+zoom    231    14ms    14ms    15ms    0 (0.0%)    0
+day -> dusk 2 (807 fading)    still    244    14ms    15ms    17ms    0 (0.0%)    0
+pan    231    14ms    15ms    16ms    0 (0.0%)    0
+zoom    231    14ms    15ms    16ms    0 (0.0%)    0
+```
+
+Draw cost is not the hitch: pan and zoom cost what still does, crossing or not.
+⚠ This rig pans SYNTHETICALLY, so it cannot see a fault in the camera's own path
+— and that is where the hitch was (fixed in #430: the frame met the world edge).
+
 ## Reading it
 
 **Judge by dropped frames, never by `in canvas`.** Safari records 2D canvas
