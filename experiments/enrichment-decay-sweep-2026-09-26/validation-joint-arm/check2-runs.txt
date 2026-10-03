@@ -1,0 +1,29 @@
+== stock 19:09:39Z
+/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/model_attn.py:28: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(layer, layers)
+u    0 ep_ret None H 1.332 KL 0.0213 EV 0.756 clip 0.15 viol 0.753 meow/1k 421.03
+u   10 ep_ret None H 1.304 KL 0.1677 EV 0.772 clip 0.10 viol 0.768 meow/1k 451.30
+CAP: 20 updates, 61440 ticks -> /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/3902a686-16c5-4dcc-a2ae-be04a4b0fed8/scratchpad/joint-arm-validation/run-stock/policy-final.pt
+== stock2 19:12:24Z
+/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/model_attn.py:28: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(layer, layers)
+u    0 ep_ret None H 1.332 KL 0.0213 EV 0.756 clip 0.15 viol 0.753 meow/1k 421.03
+u   10 ep_ret None H 1.304 KL 0.1677 EV 0.772 clip 0.10 viol 0.768 meow/1k 451.30
+CAP: 20 updates, 61440 ticks -> /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/3902a686-16c5-4dcc-a2ae-be04a4b0fed8/scratchpad/joint-arm-validation/run-stock2/policy-final.pt
+== fork 19:15:13Z
+/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/model_attn.py:28: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(layer, layers)
+u    0 ep_ret None H 1.332 KL 0.0213 EV 0.756 clip 0.15 viol 0.753 meow/1k 421.03
+u   10 ep_ret None H 1.297 KL 0.1671 EV 0.516 clip 0.11 viol 0.767 meow/1k 431.77
+CAP: 20 updates, 61440 ticks -> /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/3902a686-16c5-4dcc-a2ae-be04a4b0fed8/scratchpad/joint-arm-validation/run-fork/policy-final.pt
+== fork-red 19:18:04Z
+/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/model_attn.py:28: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(layer, layers)
+u    0 ep_ret None H 1.340 KL 0.0213 EV 0.744 clip 0.15 viol 0.754 meow/1k 423.24
+u   10 ep_ret None H 1.282 KL 0.1596 EV 0.578 clip 0.12 viol 0.770 meow/1k 434.18
+CAP: 20 updates, 61440 ticks -> /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/3902a686-16c5-4dcc-a2ae-be04a4b0fed8/scratchpad/joint-arm-validation/run-fork-red/policy-final.pt
+/Users/elizabethkelly/ai/cloudkitty/experiments/attn-critic-2026-08-12/model_attn.py:28: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(layer, layers)
+u    0 ep_ret None H 1.332 KL 0.0213 EV 0.756 clip 0.15 viol 0.753 meow/1k 421.03
+u   10 ep_ret None H 1.304 KL 0.1677 EV 0.772 clip 0.10 viol 0.768 meow/1k 451.30
+CAP: 20 updates, 61440 ticks -> /private/tmp/claude-501/-Users-elizabethkelly-ai-cloudkitty/3902a686-16c5-4dcc-a2ae-be04a4b0fed8/scratchpad/joint-arm-validation/run-fork-split/policy-final.pt
