@@ -425,3 +425,30 @@ RESULTS-C), a deviations count gone stale inside the package, and
 a confound hedge dropped. New practice from the verifier: the
 stamp's raw hash now states its recipe in one clause (no prior
 stamp recorded one — relay to Harness, SKILL.md is theirs).
+
+## 2026-10-03 — RESULTS-D (joint release arm) — FAIL r1, PASS r2
+
+Gated: `enrichment-decay-sweep-2026-09-26/RESULTS-D.md` + F-058 +
+the stamp. Regeneration byte-clean (verbatim block byte-identical,
+fresh == recorded JSON on a full recursive compare, every trainer-
+side number confirmed from the artifacts). Round-1 fails, all
+prose: (1) MAGNITUDE-WORD SHORTHAND — "two orders inside the line"
+for a 14.7× ratio; compute the ratio BEFORE choosing a magnitude
+word, "roughly 15× and 900×" is both shorter and true. (2) A
+UNIVERSAL MINTED IN COMPRESSION — "under every reference" on the
+F-line, when both totals exceed l14-s1's 0.0722; the doc's own
+sentence had it right ("within/below l14's totals") and the
+F-entry compression upgraded it to a universal — the F-056-era
+"corrections mint new false universals" class, now appearing at
+first writing. (3) SEED-COMPRESSION DROPPING A TWIN — "s2 improves
+all 30 pairs" when BOTH j14 seeds do; naming one seed implies the
+other failed. (4) CITATION FROM MEMORY — F-058 cited "RESULTS-D
+§Decision rules", a section that document does not have; cite
+sections by LOOKING at the document's own headings, and name the
+prereg when the rules live there. Also fixed from reported-only:
+the "asymmetric stops never fired" wording (plateau is itself a
+declared stop and is what fired — name WHICH stops never fired)
+and a provenance line that over-claimed what VALIDATION.md records
+about the first replay attempt. Verifier practice note: it
+accepted the hash-recipe clause introduced at RESULTS-C without
+reverse-engineering — the recipe line pays for itself.

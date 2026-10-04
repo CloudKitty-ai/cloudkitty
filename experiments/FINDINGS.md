@@ -96,6 +96,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-055 | active | An impact-only gate failed with a persistent bonus stock: the glow saturated into a level shift, play starts shifted into the closed-gate region (consistent with banking), and the pressure cost 0.729–0.839 happiness (30/30) without buying the behavior |
 | F-056 | active | β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism |
 | F-057 | active | The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms) |
+| F-058 | active | The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238) |
 
 ---
 
@@ -2962,3 +2963,49 @@ free-time LEVEL is not purchasable by this channel at any tested
 β or leash, and not by visibility as tested (a confounded null;
 the clock-zero control is the owed discriminator) (RESULTS-C
 §Decision rules; the fork is the owner's).
+
+## F-058 · active · The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238)
+
+The joint release arm
+(`enrichment-decay-sweep-2026-09-26/RESULTS-D.md`, PREREG-D frozen
+3d274e70; the Professor's joint-arm spec as upgraded by their
+validation critique): j14 × 2 seeds at β 0.14, leash 0.01, E
+appended as obs column 408 (additive e_col policy — bit-identical
+to stock at zero, validated pre-freeze; the clock kept, so the o14
+confound does not arise), split clip declared, the recorded l14
+runs serving as the bitwise-validated control. Primary was the
+banded test the critique demanded: live high-E-minus-low-E play
+contrast per seat MINUS the control's same contrast (the confound
+floor — E tracks recent play at 0.085–0.094 per non-Biscuit seat
+even when the policy cannot see it), against a margin frozen from
+the control's between-seed spread. Result: the live contrasts sit
+AT the floor (seven of eight non-Biscuit cells negative), e_col
+trained to 0.09 with the main clip firing 100% of steps (full-rate
+E gradient all run — the generous-to-discovery semantics), and the
+totals stayed under the 0.10 bar and b14's 0.0885 mean, within
+l14's 0.0722–0.0867 range. l14's composition shift
+reproduced under E-visibility (ex-Biscuit +0.0727/+0.0765, Biscuit
+−0.0751/−0.0508, closed-gate 0.0230–0.0379): the leash, not
+observability, sets who plays. Welfare: largest positive paired
+deltas of the arc's battery reads (+0.714/+0.809; both seeds
+improve all 30 pairs) with the tail COLLAPSED rather than widened
+(l14's buy-the-mean-pay-in-tail trade did not recur: max streak
+162 vs 952, tm-dist inside the watch both arms, no abort). Two
+tending watches crossed in the MORE-tending direction (s1
+eat+drink 0.07004 vs ≤0.0699; s2 bin0 0.224 vs ≤0.211) — stage B's
+under-tending dodge inverted. **Scope**: lab trainer, one world,
+the d100-1000 corner, β 0.14, leash 0.01, 2 seeds; the null stands
+on the recorded-l14 control per the declared asymmetry (the
+joint-clip replication rider is owed only on a positive and is not
+owed). **Invalidated by**: any setting of this channel at which
+the banded excess clears its control-derived margin, or the total
+clears 0.10. **Re-verify when**: Gen 3 designs its enrichment
+need — whether E-VISIBILITY is what tamed the tail (two seeds, no
+E-blind twin at these exact settings beyond l14) is the open
+welfare question this arm raises and cannot answer. **Promotion**:
+paper 1's negative-control paragraph (the route tested with both
+constraints lifted at once); Gen 3 proceeds on recreation-actions
+exactly as PREREG-C's consequence set, with the tail-collapse
+observation flagged as the open welfare question for that design
+(RESULTS-D §The negative control, closed; PREREG-D §Decision
+rules; the fork is the owner's).
