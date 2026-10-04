@@ -154,6 +154,22 @@ def test_split_clip():
     assert float(ecol.grad.norm()) <= 0.5 + 1e-6
 
 
+def test_lesion_invariance():
+    """PREREG-L guard (e): the lesioned loader must make the forward
+    bitwise invariant to the appended E value — an intact trained
+    e_col (~0.09) cannot be. The reference is the j14-s1 artifact
+    itself: the property IS about that artifact under the lesion."""
+    import torch
+    import lesion_eval_j14 as le
+    fwd = le.load_lesioned("j14-s1")
+    o = _obs409(n=32, seed=11)
+    a = fwd(o, None)
+    o2 = o.copy()
+    o2[:, 408] = 0.0
+    b = fwd(o2, None)
+    assert np.array_equal(a, b), float(np.abs(a - b).max())
+
+
 def test_pins_and_slots():
     assert d.tb.PINS["beta_probe"] == R_LEASH_PROBE
     assert d.tf.PINS["beta_probe"] == R_LEASH_PROBE
@@ -165,7 +181,7 @@ def test_pins_and_slots():
 
 if __name__ == "__main__":
     for name in ("test_additive_anchor_equivalence", "test_collect_appends_E",
-                 "test_split_clip", "test_pins_and_slots"):
+                 "test_split_clip", "test_lesion_invariance", "test_pins_and_slots"):
         globals()[name]()
         print(name, "OK")
-    print("4 tests OK")
+    print("5 tests OK")
