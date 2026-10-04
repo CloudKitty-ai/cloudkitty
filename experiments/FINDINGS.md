@@ -3009,3 +3009,22 @@ exactly as PREREG-C's consequence set, with the tail-collapse
 observation flagged as the open welfare question for that design
 (RESULTS-D §The negative control, closed; PREREG-D §Decision
 rules; the fork is the owner's).
+
+**Dated note, 2026-10-04 (RESULTS-L, gated PASS r2 — facts stand,
+no status change made):** the PREREG-L lesion probe evaluated the
+trained j14 policies with e_col zeroed (the E-invisible form of
+the same weights). Blinded, pooled greedy play rose to
+0.1273/0.1270 — past the 0.10 bar no trained arm reached (arc
+maximum 0.0955, b14-s2) — while the tail STAYED at the collapsed
+scale (282/92 dist ticks, zero aborts) and the paired mean gave
+back most of its gain (−0.830/−0.727 on lesion; s1 to −0.116, s2
+to +0.082). With F-058's own banded excess small-negative on 7 of
+8 cells, the coherent reading is E-conditioned SUPPRESSION: the
+policy learned satiation (hold play down when E is high; eval E
+median 0.685/0.735), expressed as a level effect under the F-058
+margin. F-058's claims about the TRAINED condition are untouched.
+OPEN TO THE OWNER: whether the invalidation clause's "any setting
+of this channel at which … the total clears 0.10" includes an
+off-training-condition lesioned eval. As written the clause makes
+a yes invalidate F-058; a no keeps F-058 active with a scope line
+an option. Her reading, not this note's.

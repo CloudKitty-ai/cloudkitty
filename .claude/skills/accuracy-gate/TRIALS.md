@@ -496,3 +496,18 @@ proxy — erratum note, prereg never edited; the same wording sits
 in gated RESULTS-D's provenance paragraph and e_edges_replay's
 docstring (same proxy there), flagged here rather than silently
 rewritten post-gate.
+
+## 2026-10-04 — F-058 dated note copy-check — FAIL r1, PASS r2
+
+The note's numbers were all clean; the fails were framing. (1)
+QUOTE WITH A SILENT CUT — the invalidation clause quoted without
+an ellipsis for its dropped middle clause; RESULTS-L's own copy
+kept the "…" and the note's didn't survive the re-type. (2) A
+NOTE THAT PRE-DECIDED THE OWNER'S CALL — "a yes invalidates
+nothing by itself" contradicted the clause's own "or" (the total
+clearing 0.10 is sufficient as written) while ending "her
+reading, not this note's". A note that frames an owner ruling
+states each answer's consequence FROM THE TEXT and stops; it
+never predicts or softens the outcome. (3) "gave back its gain"
+compression (s2 kept ~10%) — print the endpoints and the
+universal corrects itself.
