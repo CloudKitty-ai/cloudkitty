@@ -452,3 +452,19 @@ and a provenance line that over-claimed what VALIDATION.md records
 about the first replay attempt. Verifier practice note: it
 accepted the hash-recipe clause introduced at RESULTS-C without
 reverse-engineering — the recipe line pays for itself.
+
+## 2026-10-04 — RESULTS-D control-provenance addendum — PASS scoped r3
+
+The OWNER caught what the gate structurally cannot: a LOAD-BEARING
+OMISSION. RESULTS-D leaned on "the recorded l14 runs are the
+control" without stating that the control's provenance check (the
+bitwise replay of current code against the recorded runs) ran —
+the chain lived only in PREREG-D §Control and VALIDATION.md. The
+gate verifies claims that are PRESENT; it has no inventory of the
+claims a conclusion NEEDS. Writer-side rule from this: when a
+conclusion leans on a verification, the gated doc states in one
+line that the verification ran and where its record lives — "the
+control claim leans on it, so it needs one line in the results
+either way" (her words). Addendum paragraph gated scoped r3, all
+SUPPORTED; the verifier's one improvement (name the regeneration
+path for non-archived evidence) taken.

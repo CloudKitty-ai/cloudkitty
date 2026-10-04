@@ -81,6 +81,16 @@ ran 61,595–232,084.)
 
 ## The negative control, closed (what the arm settles)
 
+The control's provenance check ran before the freeze: the current
+code re-ran the first 20 updates of both recorded l14 seeds with
+the recorded invocation and every metrics row matched the recorded
+rows at full JSON float precision, at the recorded `--threads 2`
+(PREREG-D §Control; `validation-joint-arm/VALIDATION.md` §Replay
+check; outputs not archived — regenerate via
+`validation-joint-arm/replay_driver.py`). The recorded-l14-as-
+control claim leans on that check and on the fork's bit-identity
+at E = 0 (validation check 2).
+
 With both suspected jailers removed TOGETHER — the leash released
 to 0.01 and the stock in the observation — the channel still cannot
 raise play's level (totals 0.0744/0.0800 vs the 0.10 bar), and the
@@ -138,7 +148,13 @@ env CERT_ARTS=artifacts ../exp-006-character-gen/.venv/bin/python enrich2d_read.
 The doc's verbatim block is the `--md` tables and trailing lines;
 the recorded copy is `results-raw/enrich2d-read.json`.
 
-GATE: PASS round 2 of 2, 2026-10-03 — arithmetic ~24, threshold 9
+GATE: PASS round 2 of 2, 2026-10-03, + control-provenance addendum
+PASS scoped round 3, 2026-10-04 (the owner caught a load-bearing
+OMISSION: the doc leaned on the recorded-l14 control without
+stating the bitwise replay check ran; paragraph added at the top
+of §The negative control, closed — 5 provenance + 2
+characterisation claims, all SUPPORTED). Round 2 record:
+arithmetic ~24, threshold 9
 (all sourced), characterisation ~14, provenance ~10, undecidable 0
 after round 2 (round 1's one resolved by rewording). Round 1: 1
 CONTRADICTED in the doc ("two orders inside the line" — 559 is
