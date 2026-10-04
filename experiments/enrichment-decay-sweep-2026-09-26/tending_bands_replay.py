@@ -139,8 +139,8 @@ def band_rates(E, act):
     return out
 
 
-def summarize(out_path):
-    d = out_path.parent
+def summarize(out_path, npz_dir=None):
+    d = npz_dir or out_path.parent
     data = {}
     for p in sorted(d.glob("*.npz")):
         z = np.load(p)
@@ -197,9 +197,13 @@ def main():
     ap.add_argument("--slot")
     ap.add_argument("--out", type=Path)
     ap.add_argument("--summary", type=Path)
+    ap.add_argument("--npz-dir", type=Path, default=None,
+                    help="where the replay npz live (default: the summary "
+                         "path's parent) — lets a verifier write a fresh "
+                         "summary to scratch without touching the recorded one")
     a = ap.parse_args()
     if a.summary:
-        summarize(a.summary)
+        summarize(a.summary, a.npz_dir)
     else:
         run_slot(a.slot, a.out)
 

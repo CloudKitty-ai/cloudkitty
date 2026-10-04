@@ -468,3 +468,31 @@ control claim leans on it, so it needs one line in the results
 either way" (her words). Addendum paragraph gated scoped r3, all
 SUPPORTED; the verifier's one improvement (name the regeneration
 path for non-archived evidence) taken.
+
+## 2026-10-04 — RESULTS-L (E-visibility discriminators) — FAIL r1, PASS r2
+
+Gated: `enrichment-decay-sweep-2026-09-26/RESULTS-L.md` (no
+F-entry; the F-058 dated note follows separately). Round-1 fails:
+(1) BORROWED COMPARATOR, SCOPE WIDENED — "arc maximum 0.0915"
+lifted from RESULTS-C where it was the PROBE's maximum; the arc
+maximum is b14-s2's 0.0955, sitting in RESULTS-C's own comparator
+line one table up. A borrowed superlative inherits the scope of
+the doc it came from until a sweep says otherwise. (2)
+TRAINING-TRACE NUMBER WEARING AN EVAL LABEL — "E p50 at eval
+~0.55–0.62" was lastq trace values; the real eval medians
+(0.685/0.735, from the raws) were never printed anywhere, and the
+fix had to derive them and name the derivation in Regeneration.
+Side-label every stock/stat with its SIDE (train trace vs eval
+battery) at first write. (3) "VERBATIM" ON A REFORMATTED BLOCK —
+the doc's compact one-line-per-kind form is faithful in values
+and key order but is not what the reader prints; label the
+transformation. (4) READ FENCE NOT REPRODUCIBLE AS WRITTEN — the
+summary globbed npz from the output path's parent, so the
+verifier's scratch --out found nothing; a fence must be runnable
+to a scratch path without touching recorded copies (--npz-dir
+added; fence re-run byte-identical). Also surfaced: the frozen
+prereg's "tick-exact" described a mean-happiness-at-4dp checksum
+proxy — erratum note, prereg never edited; the same wording sits
+in gated RESULTS-D's provenance paragraph and e_edges_replay's
+docstring (same proxy there), flagged here rather than silently
+rewritten post-gate.
