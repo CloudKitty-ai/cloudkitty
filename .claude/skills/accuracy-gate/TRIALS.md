@@ -511,3 +511,20 @@ states each answer's consequence FROM THE TEXT and stops; it
 never predicts or softens the outcome. (3) "gave back its gain"
 compression (s2 kept ~10%) — print the endpoints and the
 universal corrects itself.
+
+## 2026-10-04 — RESULTS-L E-occupancy addendum — FAIL r1, PASS r2
+
+Her free-read ask (sighted-vs-blind E occupancy) confirmed the
+satiation story with non-overlapping means/p25 at matched play.
+Round-1 fails: (1) THE ASK QUOTED TWO WAYS — the reader docstring
+dropped her "before Gen 3" while the doc header kept it; when the
+same owner words appear in two places, ONE is the copy of record
+and the other is checked against it at write time. (2)
+"rarely" FOR A 22–27% SHARE — an intensity word standing in for a
+number the reader did not yet print; the fix added the low-edge
+column so the comparison (22–27% vs 31–36%) regenerates instead
+of living in prose. (3) "near full" WEAK — at-cap shares were no
+higher than blind's; the supported claim was HIGHER, not near
+full. Self-caught before the round: a two-cell table
+transcription error (values from the neighboring row) — pasted
+tables get re-diffed against the print, not retyped.

@@ -93,6 +93,41 @@ visibility (PREREG-L §Decision rules).
    reading to make — flagged as a dated note on F-058, no status
    change made here.
 
+## Addendum — E occupancy, sighted vs blind training (owner's ask,
+2026-10-04)
+
+Declared before reading (the ask verbatim: "E occupancy, sighted
+versus blind training. If the sighted policy holds the stock
+higher at the same play total, the satiation story gets direct
+evidence before Gen 3"): per-slot eval-side E distribution from
+the recorded replay npz, beside each slot's recorded pooled play.
+Reader `e_occupancy_read.py`; recorded copy
+`results-raw/e-occupancy-read.json`.
+
+```
+| slot | training | play (recorded) | E p25 | E p50 | E p75 | E mean | share >= 0.8066 | share <= 0.4366 | share >= 0.95 |
+|---|---|---|---|---|---|---|---|---|---|
+| l14-s1 | blind | 0.0722 | 0.318 | 0.586 | 0.857 | 0.571 | 0.303 | 0.360 | 0.129 |
+| l14-s2 | blind | 0.0867 | 0.368 | 0.662 | 0.898 | 0.616 | 0.364 | 0.306 | 0.166 |
+| j14-s1 | sighted | 0.0744 | 0.413 | 0.685 | 0.886 | 0.631 | 0.358 | 0.269 | 0.144 |
+| j14-s2 | sighted | 0.0800 | 0.473 | 0.735 | 0.904 | 0.669 | 0.408 | 0.223 | 0.167 |
+```
+
+The prediction holds, with clean separation at n = 2 + 2: the
+sighted slots' play totals sit inside the blind slots' range
+(0.0744/0.0800 vs 0.0722–0.0867), yet on E mean and E p25 the
+conditions do not overlap — the lower sighted slot (mean 0.631,
+p25 0.413) exceeds the higher blind slot (0.616, 0.368). The
+largest gap is at p25: sighted training lets the stock drain low
+LESS OFTEN (22–27% of ticks at or below the frozen low edge vs
+the blind slots' 31–36%). Share of ticks at or above the frozen
+high edge is higher for sighted within each seed pairing (0.358
+vs 0.303; 0.408 vs 0.364); the at-cap shares are similar
+(0.129–0.167). Direct evidence for the satiation story: at the
+same play total, the sighted policy holds the stock HIGHER rather
+than playing more. Two seeds per condition; scope as the rest of
+this document.
+
 ## Welfare accounting
 
 Declared: stage 1 ≤ 1,600 per 5-seed leg with any abort a hard
@@ -138,6 +173,8 @@ env CERT_ARTS=artifacts ../exp-006-character-gen/.venv/bin/python tending_bands_
   --summary <scratch>/tending-summary-fresh.json --npz-dir results-raw/tending-bands
 ../exp-006-character-gen/.venv/bin/python lesion_read.py \
   --out <scratch>/lesion-read-fresh.json --md
+../exp-006-character-gen/.venv/bin/python e_occupancy_read.py \
+  --out <scratch>/e-occupancy-fresh.json --md
 ```
 
 The doc's step-1 block restates the fresh summary json's
@@ -166,3 +203,14 @@ recorded as erratum note 1 (noted, never edited). Raw hash
 lines of the four lesion jsonls, lesion-read.json, the four
 tending-bands npz, and tending-bands/summary.json, paths relative
 to this dir, first 16 hex).
+
+ADDENDUM GATE (E occupancy, the owner's ask): PASS scoped round 2,
+2026-10-04. Round 1: the ask quoted two ways (the reader docstring
+dropped "before Gen 3" — the doc header was the faithful copy);
+"rarely lets the stock drain low" CONTRADICTED (sighted spends
+22–27% of ticks at or below the low edge — a reduction from
+31–36%, not rarity; the low-edge share column added to the reader
+so the comparison regenerates); "managing it near full" WEAK
+(at-cap shares are no higher than blind's), reworded to "holds the
+stock HIGHER". Addendum raw: results-raw/e-occupancy-read.json,
+sha256 first 16 hex 14d9302c9aad1a91.
