@@ -27,7 +27,13 @@ B = HERE / "results-raw" / "battery"
 EDGE_LOW = 0.43660981456438697
 EDGE_HIGH = 0.8065612316131592
 MIN_OCC = 10_000
-ACT_SLEEP, ACT_EAT, ACT_DRINK = 11, 12, 13  # self one-hot, encodings.md order
+# act stores the ARGMAX INDEX over self cols 9..15, so codes are
+# 0-based enum positions (Idle 0, Resting 1, Sleeping 2, Eating 3,
+# Drinking 4, Playing 5, Grooming 6 — encodings.md activity order),
+# NOT absolute obs columns. First summary run compared against
+# columns 11/12/13 and read all-zero — the vacuous output was the
+# tell; fixed before any write-up.
+ACT_SLEEP, ACT_EAT, ACT_DRINK = 2, 3, 4
 TEND = {"eat": ACT_EAT, "drink": ACT_DRINK, "sleep": ACT_SLEEP}
 CATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
 
