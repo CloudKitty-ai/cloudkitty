@@ -43,8 +43,11 @@ set -u
 
 T1_BLOCK=80
 # --owed early warning at 75% of blocking: first cut 2026-09-28 on
-# three days of budget data (owner's word to proceed); re-tune when the
-# week is in (~2026-10-02). Only tightens or is re-ruled, like budgets.
+# three days of budget data (owner's word to proceed). Re-tuned
+# 2026-10-05 on the week since the #439 pass: tier 1 net 0, no warn or
+# block fired — zero growth is no signal either way, threshold kept.
+# Next re-tune when a warn first fires in --owed, or when tier 1 shows
+# a week of real drift. Only tightens or is re-ruled, like budgets.
 T1_WARN=60
 T2_ADVISE=800
 T2_BLOCK=2000
