@@ -528,3 +528,24 @@ higher than blind's; the supported claim was HIGHER, not near
 full. Self-caught before the round: a two-cell table
 transcription error (values from the neighboring row) — pasted
 tables get re-diffed against the print, not retyped.
+
+## 2026-10-04 — F-058 ruling edits + F-059 mint + doctrine 11/12 — FAIL r1, PASS r2
+
+Copy-check of a ruling's execution (owner "A) confirmed" / "B) all
+items confirmed"). Round-1 fails: (1) CELLS-VS-DIRECTION — "the
+cells the test was not aimed at" when the signature sat in the
+TESTED cells in the untested SIGN; name which axis the instrument
+missed. (2) A MECHANISM MINTED IN A SUMMARY — "timing play against
+decay" appears in no gated read; the gated claim was "holds the
+stock higher". (3) DOMAIN LINE INCOHERENT WITH ITS OWN NEW RULE —
+F-059 declared "trained arms at declared settings" while its first
+trigger requires an eval-time ablation; rule 11's wider form
+existed one file over. (4) A PEER'S FRAMING RELAYED INTO DOCTRINE
+UNCHECKED — the Professor's "self-blind + loose leash = the
+measured wide-tail recipe" is CONTRADICTED by the register (arc's
+widest tail: stage A d100-1000-s2 at 4,108, blind at STANDARD
+leash; an E-visible arm carried the abort): relayed authority gets
+the same fact-check as my own prose before it lands in a doctrine
+file. Post-round: the unsourced "project ≥3-seed bar" got a
+checkable home (gen3-roadmap-inputs-2026-10-04.md) and rule 12's
+normative stretch clause was cut on the verifier's caution.

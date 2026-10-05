@@ -96,7 +96,8 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-055 | active | An impact-only gate failed with a persistent bonus stock: the glow saturated into a level shift, play starts shifted into the closed-gate region (consistent with banking), and the pressure cost 0.729–0.839 happiness (30/30) without buying the behavior |
 | F-056 | active | β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism |
 | F-057 | active | The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms) |
-| F-058 | active | The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238) |
+| F-058 | active | The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238); SCOPED 2026-10-04 (owner ruling, no invalidation): holds for the trained channel AS EXPRESSED — see F-059 for the in-weights capacity |
+| F-059 | active | Training on the E-channel taught E-conditioned SUPPRESSION, not inability: above-bar play capacity (0.1273/0.1270 blinded, vs 0.0955 arc trained max) sits in the j14 weights behind satiation conditioning — the policy holds the stock high (no overlap on eval E mean/p25 vs the blind twin at matched play) and holds play DOWN, relative to the blind twin, while E is high |
 
 ---
 
@@ -3023,8 +3024,65 @@ to +0.082). With F-058's own banded excess small-negative on 7 of
 policy learned satiation (hold play down when E is high; eval E
 median 0.685/0.735), expressed as a level effect under the F-058
 margin. F-058's claims about the TRAINED condition are untouched.
-OPEN TO THE OWNER: whether the invalidation clause's "any setting
-of this channel at which … the total clears 0.10" includes an
-off-training-condition lesioned eval. As written the clause makes
-a yes invalidate F-058; a no keeps F-058 active with a scope line
-an option. Her reading, not this note's.
+RULED by the owner 2026-10-04 ("A) confirmed", on the Professor's
+concurring second opinion): DOES NOT INVALIDATE — the clause's
+triggers quantify over trained arms at declared settings; an
+off-training-condition ablation is a probe of the weights, not a
+setting of the channel. Conditions executed with the ruling: the
+scope line below; F-059 minted (the suppression/capacity finding,
+three evidence legs); the paper-1 wording rule (the negative
+control is against ELEVATED play under the aggregate route — "the
+channel had no behavioral effect" is false and must not be
+implied; the suppression result is the companion sentence);
+doctrine line added (invalidation clauses state their
+quantification domain — experiments/DESIGN-DOCTRINE.md).
+**SCOPE LINE (mandatory, per the ruling):** F-058's "level not
+purchasable" holds for the trained channel AS EXPRESSED — the
+lesion probe (RESULTS-L) shows above-bar play capacity
+(0.1273/0.1270) exists in the trained weights behind E-conditioned
+suppression; see F-059.
+
+## F-059 · active · Training on the E-channel taught E-conditioned SUPPRESSION, not inability: above-bar play capacity (0.1273/0.1270 blinded, vs 0.0955 arc trained max) sits in the j14 weights behind satiation conditioning — the policy holds the stock high (no overlap on eval E mean/p25 vs the blind twin at matched play) and holds play DOWN, relative to the blind twin, while E is high
+
+Minted on the owner's ruling (2026-10-04, with the F-058
+no-invalidation call; the Professor's second opinion specified the
+three-leg evidence form). The claim stands on three independent
+legs, each gated:
+1. **The banded signature** (RESULTS-D): j14's excess banded play
+   contrast ran small-NEGATIVE on 7 of 8 non-Biscuit seat-cells
+   (−0.0126..+0.0020 vs the +0.02804 margin) — under the declared
+   one-sided margin, which had no suppression branch; the
+   maintenance signature sat in the TESTED cells, in the direction
+   (sign) the one-sided reward-chasing test was not aimed at.
+2. **The lesion capacity reveal** (RESULTS-L): e_col zeroed on the
+   same weights, pooled greedy play rose to 0.1273/0.1270 — past
+   the 0.10 bar no trained arm of the arc reached (max 0.0955,
+   b14-s2) — while the tail stayed at the collapsed scale (282/92
+   dist ticks, zero aborts) and the paired mean gave back most of
+   its gain (−0.830/−0.727).
+3. **The occupancy hold** (RESULTS-L addendum, the owner's read):
+   at matched play totals (sighted 0.0744/0.0800 inside blind's
+   0.0722–0.0867), sighted training holds the stock higher with NO
+   overlap on eval E mean/p25 across conditions (worst sighted
+   0.631/0.413 vs best blind 0.616/0.368), drains below the low
+   edge less often (22–27% vs 31–36%), and does not peg the cap
+   (at-cap 0.129–0.167 both conditions) — holding the stock
+   higher rather than playing more.
+Welfare reading attached to the mechanism: live E is load-bearing
+for the MEAN (deltas fell −0.830/−0.727 when blinded) while tail
+protection is in-weights — a sighted-trained policy is never
+deployed blind; the lesion is a probe, not a configuration.
+**Scope**: the j14 arms only (β 0.14, leash 0.01, d100-1000,
+2 seeds per condition — below the ≥3-seed bar the owner confirmed
+for paper-cited cells, 2026-10-04 Gen 3 input set; Gen 3's twin
+legs are the confirmation sample). **Invalidated by** (domain:
+trained arms at declared settings, INCLUDING eval-time ablations
+of their weights — the wider form doctrine rule 11 names): a
+sighted-trained arm whose lesioned eval
+does NOT exceed its intact play, or a blind-trained arm matching
+the sighted condition's E-occupancy profile at matched play.
+**Re-verify when**: Gen 3's twin legs run (eval lesions declared
+on both legs). **Promotion**: Gen 3 design inputs — two-sided
+banded margins with a declared suppression branch; E-occupancy
+(mean, p25, floor-drain share) as a declared secondary; the
+paper-1 companion sentence to the F-058 negative control.

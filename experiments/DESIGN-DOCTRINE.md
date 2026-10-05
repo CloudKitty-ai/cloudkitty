@@ -44,6 +44,12 @@ Each has its full form and sources below.
 10. **Two-layer welfare gates; a noise reading is never a pass bar**:
     the floor's question is fixed; above it a seating declares a trade,
     never inherits a bar.
+11. **An invalidation clause states its quantification domain**:
+    trained arms at declared settings, or probes of the weights —
+    named at drafting, never argued after a trigger fires.
+12. **Relief is always available; kitties cannot suffer**: own state
+    visible, others' states hidden, the world beyond the fog hidden —
+    hide what gates cooperation, never what gates survival.
 
 ## Banked rules
 
@@ -533,3 +539,35 @@ could never seat.
   failures (F-010) in the deployed company (F-012, F-023); the floor and
   noise floor are re-measured, clustered by world (F-004), at any change
   of them, and every fixed dimension is stated with the claim.
+
+### 11. An invalidation clause states its quantification domain
+*(The F-058 ruling's drafting-debt condition. Banked 2026-10-04,
+owner "A) confirmed".)*
+
+F-058's clause said "any setting of this channel at which … the
+total clears 0.10"; a lesioned eval of the trained weights then
+cleared 0.10, and whether a probe of the weights counts as "a
+setting" had to be ruled rather than read (her ruling: it does
+not; the triggers quantify over trained arms). The debt this
+leaves on every future prereg and F-entry: name the domain when
+the clause is drafted — "a TRAINED ARM at declared settings", or
+explicitly wider ("including eval-time ablations of the trained
+weights") — so no trigger's firing ever turns on a scope argument
+the drafter is a party to.
+
+### 12. Relief is always available; kitties cannot suffer
+*(The owner's constitutional statement, her words, from the
+2026-10-04 design session; confirmed in the Experiments session
+"B) all items confirmed". Refines rule 8's information-scarcity
+principle with a floor.)*
+
+Implemented as: a kitty's OWN state is always visible to it;
+other kitties' states are hidden (Gen 2's hidden needs are
+others' needs only — owner, 2026-10-04: "Only other needs hidden,
+as planned"); the world beyond the fog is hidden. The dividing
+line for any future observability choice: hide what gates
+COOPERATION, never what gates SURVIVAL. The measured tie to the
+register is F-059's welfare reading: live E carried the MEAN of
+welfare (paired deltas fell −0.830/−0.727 when the sighted policy
+was blinded), so a sighted-trained policy is never deployed
+blind.
