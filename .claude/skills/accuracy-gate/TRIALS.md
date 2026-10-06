@@ -549,3 +549,16 @@ the same fact-check as my own prose before it lands in a doctrine
 file. Post-round: the unsourced "project ≥3-seed bar" got a
 checkable home (gen3-roadmap-inputs-2026-10-04.md) and rule 12's
 normative stretch clause was cut on the verifier's caution.
+
+## 2026-10-05 — roadmap-inputs-2026-10-05.md (RLHF=1.2 + self-other pilot) — FAIL r1, PASS r2
+
+Copy-check of a confirmations record built from a peer relay (her
+in-session word: "Confirmed"). Round-1 fails: (1) MODALITY DROPPED
+— the source's "must be co-designed" became "is co-designed",
+turning a banked requirement into settled design; a requirement
+keeps its modal verb. (2) PROFESSOR'S REASONING UNLABELED — the
+ladder/pump argument sat as plain content in a doc titled "owner
+confirmations" when only the 1.2 slot is hers; in a confirmations
+record, every sentence carries its author. Also took the "One
+trap" note (the source leaves room for more traps). Quotes,
+numbers, formulas clean both rounds.
