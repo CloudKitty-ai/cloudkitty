@@ -91,7 +91,12 @@ The hooks are wholly Harness's, files and rules alike (owner ruled
 dependence: Product is where they were spawned before Harness
 existed). Every hook PR gets its rule-5 red and a second-thread
 review before merge — Product by default, or whichever thread the
-change most constrains; never self-reviewed. Carve-out: a hook enforcing a
+change most constrains; never self-reviewed. Carve-out: a
+comment-only hook or tooling edit that records — data, dates,
+decisions already made — skips the review and says so on the PR; a
+comment change that restructures a rule's objectives or the
+toolchain's perspective is reviewed like any hook PR. Unsure means
+reviewed. Carve-out: a hook enforcing a
 welfare gate or certification invariant carries that rule's
 ownership per the constitution, not the tooling.
 
