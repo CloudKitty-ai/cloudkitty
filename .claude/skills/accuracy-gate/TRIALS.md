@@ -562,3 +562,21 @@ confirmations" when only the 1.2 slot is hers; in a confirmations
 record, every sentence carries its author. Also took the "One
 trap" note (the source leaves room for more traps). Quotes,
 numbers, formulas clean both rounds.
+
+## 2026-10-06 — roadmap-inputs-2026-10-06.md (nine-item walkthrough record) — FAIL r1, FAIL r2, PASS r3
+
+Copy-check of the 1.3 + versioning confirmations walkthrough.
+Round-1 fail: PUNCTUATION INSIDE A QUOTE — the framing line
+carried my semicolon where the source (Professor's stage-b
+review) has a full stop and capital; the verifier found the true
+source file unprompted, and a quote is verbatim down to its
+punctuation or it is a paraphrase without quote marks. Round-2
+fail: ACCEPTANCE OVERREACH — "Experiments' reading, which she
+accepted" when her "Yes" answered a proposal that itself left
+that reading open; a yes to a proposal is not a yes to every
+clause inside it, least of all one the proposal deferred.
+Verifier-side lesson both rounds: the coordinator's KEY-LINES
+source summary omitted relay lines ("agreed on all of these",
+the transfer-story parenthetical), producing flags the full text
+cleared — hand the verifier whole sources, or expect to adjudicate
+its misses yourself and say so in the record.
