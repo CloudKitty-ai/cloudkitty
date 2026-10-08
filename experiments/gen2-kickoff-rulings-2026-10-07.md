@@ -28,7 +28,7 @@ mirror-symmetry cause, the stuck detector is the served-side net —
 and day/night is client-side only, so no legitimate consumer loses a
 signal. The schema bump is already paid; the cell comes out.
 
-## 3) Calls at an absent partner — refusal stays, data-driven
+## 3) Calls at an absent partner — RULED: refusal stays, data-driven
 
 Sequence: she asked (2026-10-07) "are they proposing to an adjacent
 partner that moves, or a partner that was never a legal target?" —
@@ -67,10 +67,17 @@ shows the race/taxed share grown into a real welfare or formation
 cost, the propose/accept protocol is the costed option on the
 table, decided with that data.
 
-Standing: refusal stays (shape 3) with the riders and the trigger.
-Experiments announced this as the recorded outcome in-session
-(2026-10-08) with an explicit flag-if-otherwise; her direct words
-above carry the data-driven basis and the engine-alternative close.
+RULED 2026-10-08. The close, in sequence: Experiments announced
+shape 3 as the recorded outcome in-session with an explicit
+flag-if-otherwise; she then asked "What are the riders for 3?",
+the three riders were restated — (1) the declared post-Gen 2
+re-read as an INVESTIGATE row with this split's fog = 0 as its
+baseline, (2) the parameterized Gen 2 teacher demonstrates only
+adjacency-legal proposals,
+(3) the propose/accept protocol as the banked revisit option if
+the re-read shows real cost — and her word was "Agreed". With the
+data-driven basis and the engine-alternative close above, item 3
+is ruled: the refusal stays, with those three riders.
 
 ## 4) Dispersion — RULED: character, measure, no intervention
 

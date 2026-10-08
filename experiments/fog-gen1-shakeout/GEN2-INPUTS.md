@@ -366,13 +366,15 @@ is no longer load-bearing.
   cosleep and corest at a friend they cannot see beside them, which is
   the T093 by-design refusal doing its job; whether Gen 2 should learn
   the adjacency test (or the mask should carry it) is a design choice
-  with no line declared yet. **Resolved 2026-10-07/08 on a
-  position-joined split** (`partner-absent-split-2026-10-07/
-  RESULTS.md`: zero from-the-fog calls; 64.9% turn-order races, 35.1%
-  absorbed near-misses): the refusal stays, no mask, no price; a
-  post-Gen 2 re-read is declared with fog = 0 as its baseline, and a
-  propose/accept protocol is the banked revisit option if that
-  re-read shows real cost (`gen2-kickoff-rulings-2026-10-07.md` §3).
+  with no line declared yet. **RULED 2026-10-08 on a position-joined
+  split** (`partner-absent-split-2026-10-07/RESULTS.md`: zero
+  from-the-fog calls; 64.9% turn-order races, 35.1% absorbed
+  near-misses): the refusal stays, no mask, no price; three riders —
+  a declared post-Gen 2 re-read with fog = 0 as its baseline, the
+  parameterized Gen 2 teacher demonstrates only adjacency-legal
+  proposals, and a propose/accept protocol is the banked revisit
+  option if that re-read shows real cost
+  (`gen2-kickoff-rulings-2026-10-07.md` §3).
 - Social-grooming demand (corrected 2026-09-13, RESULTS.md
   `groom_cells.py`; the earlier "row 0–1 slot bias = corpus density"
   reading was wrong): all-policy rosters keep themselves clean
