@@ -136,3 +136,17 @@ the others 82–137/h; Biscuit's 42 taxed/h is her F-033 tax), and
 no line is declared for it and none is proposed here. It is a Gen 2
 input (the minds keep proposing cosleep at a partner they cannot see
 beside them), banked in `fog-gen1-shakeout/GEN2-INPUTS.md`.
+
+**Addendum 2026-10-08 — the from-the-fog characterization was
+wrong.** This section's title, "Unanswered from-the-fog calls
+(reason `partner_absent`)", and its reading of the rows as "a
+partnered proposal at a stale heard position" do not describe the
+served volume. A position-joined window
+(`partner-absent-split-2026-10-07/RESULTS.md`, 539 rows, all joined)
+found ZERO proposals at a partner outside the caller's vision disc:
+64.9% were adjacent at decision time and moved earlier in the same
+tick's turn order, 35.1% were visible one-to-two tiles short of
+adjacency, all of those absorbed. The definition sentence stays true
+as spec text (a stale heard position IS a refusal by design); the
+error was assuming the volume was that case. The split doc is the
+current reading.

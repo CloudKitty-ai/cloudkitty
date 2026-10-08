@@ -297,7 +297,9 @@ escapes; a moving clock never repeats the state. The Gen 1 minds have
 been leaning on the clock as noise. Gen 2 recipe inputs: either drop
 the clock input entirely and train the mind to break its own cycles
 (the corner/edge coverage item above is the same family of fix), or
-keep it and serve it as trained. Independently of the clock, a stuck
+keep it and serve it as trained. **RULED 2026-10-07 (owner, "2)
+drop"): the clock input is dropped at the Gen 2 schema bump**
+(`gen2-kickoff-rulings-2026-10-07.md` §2). Independently of the clock, a stuck
 detector at decoding (net-zero displacement over N ticks with an armed
 need; the deferred distress intervention's trigger) is the served-side
 guard that does not depend on what the mind was trained with.
@@ -364,7 +366,13 @@ is no longer load-bearing.
   cosleep and corest at a friend they cannot see beside them, which is
   the T093 by-design refusal doing its job; whether Gen 2 should learn
   the adjacency test (or the mask should carry it) is a design choice
-  with no line declared yet.
+  with no line declared yet. **Resolved 2026-10-07/08 on a
+  position-joined split** (`partner-absent-split-2026-10-07/
+  RESULTS.md`: zero from-the-fog calls; 64.9% turn-order races, 35.1%
+  absorbed near-misses): the refusal stays, no mask, no price; a
+  post-Gen 2 re-read is declared with fog = 0 as its baseline, and a
+  propose/accept protocol is the banked revisit option if that
+  re-read shows real cost (`gen2-kickoff-rulings-2026-10-07.md` §3).
 - Social-grooming demand (corrected 2026-09-13, RESULTS.md
   `groom_cells.py`; the earlier "row 0–1 slot bias = corpus density"
   reading was wrong): all-policy rosters keep themselves clean
@@ -632,7 +640,11 @@ re-records and retrains regardless.
 **Any-size bar, staging**: train Gen 2 at the served 20×20, then a
 declared cross-size TRANSFER read against scripted comparators; mixed-
 size training only if that read misses. Sizes and the per-size bar
-are the #389 sitting's to instantiate.
+are the #389 sitting's to instantiate. **RULED 2026-10-07 (owner,
+"as recommended", cost headroom granted): gates at 20×20 and 40×40,
+strict beat-scripted paired; 100×100 characterize-only; no frozen
+Gen 1 legs; scouts-first covered legs; mixed-size only on a 40×40
+miss** (`gen2-kickoff-rulings-2026-10-07.md` §5).
 
 **The any-size bar**: her expectation above is a certification-shaped
 statement. Instantiating it — which sizes the Gen 2/Gen 3 cert

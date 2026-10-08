@@ -580,3 +580,31 @@ source summary omitted relay lines ("agreed on all of these",
 the transfer-story parenthetical), producing flags the full text
 cleared — hand the verifier whole sources, or expect to adjudicate
 its misses yourself and say so in the record.
+
+## 2026-10-08 — partner-absent-split RESULTS.md (full gate, r1 FAIL → r2 PASS)
+
+Full gate (Read fence re-run, three-way compare byte-identical) on
+`experiments/partner-absent-split-2026-10-07/RESULTS.md`, with copy
+checks on the refusal-baseline addendum, gen2-kickoff-rulings §3/§5,
+and three GEN2-INPUTS insertions. First stamp under the rawdir-hash
+v1 recipe (#443).
+
+r1 FAIL, two classes, both wording while all 22 arithmetic claims
+held:
+- Owner-ruling overreach in prose: the decision feed wrote "the
+  owner ruled" where the named record itself says announced-outcome
+  with flag-if-otherwise. Same class as the 10-06 r2 acceptance
+  overreach — the write-up firmed a scope the record kept soft.
+- Cross-doc precision drop: the ruling record compressed "185 of
+  189 at distance 2, 4 at distance 3" into "one tile short",
+  contradicted for 4 rows. A summary line in a SECOND doc rounded
+  away a tail the gated doc kept.
+Also reported (non-failing, fixed anyway): an over-broad "no
+learning, mask or price can touch these"; a "same day" date
+ambiguity; an unsourced "welfare-null"; the <= 2-tick run-gap
+reader constant now disclosed as not prereg'd.
+
+r2 PASS on the five edits, full-set verdict PASS. Coordinator-side
+lesson: derivative summaries of a gated doc (ruling records, shelf
+lines) are where precision quietly drops — gate them as companions
+every time, it is exactly where both failures lived.
