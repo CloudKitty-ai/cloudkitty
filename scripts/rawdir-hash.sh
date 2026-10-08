@@ -6,9 +6,15 @@
 # directory:
 #   1. List every regular file as "./relative/path" — raw path bytes,
 #      no unicode normalization, dotfiles and files under dot-dirs
-#      INCLUDED (so platform droppings like .DS_Store move the hash);
-#      symlinks anywhere under <dir> abort instead (exit 3) — in an
-#      archived bundle a symlink is a portability bug. Other
+#      INCLUDED — except macOS platform droppings, excluded BY NAME
+#      at any depth: ".DS_Store" and "._*" (AppleDouble). A Finder
+#      browse or a Mac tar/copy adds those after archiving, and a
+#      bundle must not fail its own integrity check for being looked
+#      at (owner ruled 2026-10-08: "B"). Experiment data never
+#      carries those names; a real file named "._…" would be a
+#      bundle bug first. Symlinks anywhere under <dir> abort instead
+#      (exit 3) — in an archived bundle a symlink is a portability
+#      bug. Other
 #      non-regular files (FIFOs, sockets, devices) and empty
 #      directories are ignored: trees differing only in those share
 #      a hash, by design.
@@ -40,12 +46,14 @@ case $dir in /*) ;; *) dir=./$dir ;; esac   # a dir named "-x" must not read as 
 links=$(find "$dir/." -type l | head -1)
 [ -n "$links" ] && { echo "rawdir-hash: symlink in bundle: $links" >&2; exit 3; }
 
-first=$(find "$dir/." -type f -print -quit) \
+first=$(find "$dir/." -type f ! -name .DS_Store ! -name '._*' -print -quit) \
   || { echo "rawdir-hash: cannot walk $dir" >&2; exit 2; }
 [ -n "$first" ] || { echo "rawdir-hash: no regular files under $dir" >&2; exit 4; }
 
-listing=$(cd "$dir" && find . -type f -print0 | LC_ALL=C sort -z \
+listing=$(cd "$dir" && find . -type f ! -name .DS_Store ! -name '._*' -print0 \
+  | LC_ALL=C sort -z \
   | xargs -0 shasum -a 256 --) || { echo "rawdir-hash: hashing failed" >&2; exit 2; }
+[ -n "$listing" ] || { echo "rawdir-hash: empty listing for $dir" >&2; exit 2; }
 
 full=$(printf '%s\n' "$listing" | shasum -a 256 | cut -d' ' -f1)
 printf 'v1:%s  %s  %s\n' "${full:0:16}" "$full" "${1}"

@@ -103,6 +103,19 @@ mkdir -p "$T/dx"; printf 'alpha\n' > "$T/dx/a.json"
 [ "$(awk '{print $2}' "$T/hx.out")" = "$(h "$T/dx" | awk '{print $2}')" ] \
   && ok "flag-named dir handled" || bad "flag-named dir handled"
 
+# 20a. platform droppings are inert (owner ruled B, 2026-10-08): a
+#      KA-identical tree plus .DS_Store and ._* still hits the KA literal
+mkdir -p "$T/ka3/sub"
+printf 'alpha\n' > "$T/ka3/a.json"; printf 'beta\n' > "$T/ka3/sub/b.json"
+printf 'dot\n'   > "$T/ka3/.hidden"; printf 'gamma\n' > "$T/ka3/with space.json"
+printf 'junk\n'  > "$T/ka3/.DS_Store"; printf 'junk\n' > "$T/ka3/sub/.DS_Store"
+printf 'junk\n'  > "$T/ka3/._a.json"
+[ "$(h "$T/ka3" | awk '{print $2}')" = "$KA" ] && ok "platform droppings inert" || bad "platform droppings inert"
+
+# 20b. a dir holding only droppings is empty: exit 4
+mkdir -p "$T/ka4"; printf 'junk\n' > "$T/ka4/.DS_Store"; printf 'junk\n' > "$T/ka4/._x"
+h "$T/ka4" >/dev/null 2>&1; [ $? -eq 4 ] && ok "droppings-only dir exits 4" || bad "droppings-only dir exits 4"
+
 # 20. a find failure is fatal: a partial tree must never hash (exit 2, no stdout)
 if [ "$(id -u)" = 0 ]; then
   ok "find failure fatal (skipped: root reads everything)"
