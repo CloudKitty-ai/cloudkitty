@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test for scripts/rawdir-hash.sh. Run from the repo root.
+# Self-test for scripts/rawdir-hash.sh. Runs from any CWD.
 set -u
 HASH="$(cd "$(dirname "$0")" && pwd)/rawdir-hash.sh"
 T=$(mktemp -d) || exit 2
@@ -103,7 +103,7 @@ mkdir -p "$T/dx"; printf 'alpha\n' > "$T/dx/a.json"
 [ "$(awk '{print $2}' "$T/hx.out")" = "$(h "$T/dx" | awk '{print $2}')" ] \
   && ok "flag-named dir handled" || bad "flag-named dir handled"
 
-# 20a. platform droppings are inert (owner ruled B, 2026-10-08): a
+# 20. platform droppings are inert (owner ruled B, 2026-10-07): a
 #      KA-identical tree plus .DS_Store and ._* still hits the KA literal
 mkdir -p "$T/ka3/sub"
 printf 'alpha\n' > "$T/ka3/a.json"; printf 'beta\n' > "$T/ka3/sub/b.json"
@@ -112,11 +112,11 @@ printf 'junk\n'  > "$T/ka3/.DS_Store"; printf 'junk\n' > "$T/ka3/sub/.DS_Store"
 printf 'junk\n'  > "$T/ka3/._a.json"
 [ "$(h "$T/ka3" | awk '{print $2}')" = "$KA" ] && ok "platform droppings inert" || bad "platform droppings inert"
 
-# 20b. a dir holding only droppings is empty: exit 4
+# 21. a dir holding only droppings is empty: exit 4
 mkdir -p "$T/ka4"; printf 'junk\n' > "$T/ka4/.DS_Store"; printf 'junk\n' > "$T/ka4/._x"
 h "$T/ka4" >/dev/null 2>&1; [ $? -eq 4 ] && ok "droppings-only dir exits 4" || bad "droppings-only dir exits 4"
 
-# 20. a find failure is fatal: a partial tree must never hash (exit 2, no stdout)
+# 22. a find failure is fatal: a partial tree must never hash (exit 2, no stdout)
 if [ "$(id -u)" = 0 ]; then
   ok "find failure fatal (skipped: root reads everything)"
 else
@@ -126,5 +126,14 @@ else
   chmod 755 "$T/pd/sub"
   [ "$rc" -eq 2 ] && [ -z "$out" ] && ok "find failure fatal" || bad "find failure fatal (rc=$rc out=$out)"
 fi
+
+# 23. known-answer for shasum's escaping (a backslash in the name makes
+#     the listing line lead with "\" and double the backslash). Pinned
+#     like case 17; CI's ubuntu run is the cross-platform check of the
+#     escaping claim in the header.
+KAE=91e68f1dee8a52c5363a93eb27016342e5d117885ea363693284fd2ab5cafd72
+mkdir -p "$T/kae"
+printf 'delta\n' > "$T/kae/esc\\ape.json"
+[ "$(h "$T/kae" | awk '{print $2}')" = "$KAE" ] && ok "known-answer escaping" || bad "known-answer escaping"
 
 exit $fail

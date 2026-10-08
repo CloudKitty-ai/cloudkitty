@@ -120,10 +120,11 @@ form is a deliberate choice: it detects corruption and drift, not
 tampering (the full hash is in the script's output when a run wants
 to record it). A hand-rolled hash
 needs its full recipe stated inline on the stamp, and a reason.
-Stamps written before this rule are grandfathered recipe-unknown;
-they are re-derived with the script when their bundle is actually
-archived (forward-only, retroactive at citation — the
-evidence-archive scope).
+Stamps written before this rule are grandfathered as written —
+recipe-unknown unless the stamp itself stated one (the RESULTS-C/D
+stamps did; theirs is known, just not v1); all are re-derived with
+the script when their bundle is actually archived (forward-only,
+retroactive at citation — the evidence-archive scope).
 
 ## The fixture (rule 5)
 
