@@ -79,4 +79,39 @@ echo "$o1" | grep -q '^v1:' && ok "recipe id v1 leads the line" || bad "recipe i
 out=$(h "$T/d10" 2>/dev/null)
 [ -z "$out" ] && ok "error path stdout empty" || bad "error path stdout empty"
 
+# 17. known-answer vector: the recipe is pinned to a literal hash.
+#     Fixture fixed forever (names, contents, a dotfile, a space);
+#     computed on macOS 2026-10-07 and re-checked by CI on ubuntu, so
+#     this line is also the cross-platform check. If it ever fails,
+#     the recipe moved: that is a v2, never a fixture edit.
+KA=c7031689f79f36657d42de2a0d885e64539cc37f31daba36d700025bc9dbb6ee
+mkdir -p "$T/ka/sub"
+printf 'alpha\n' > "$T/ka/a.json"; printf 'beta\n' > "$T/ka/sub/b.json"
+printf 'dot\n'   > "$T/ka/.hidden"; printf 'gamma\n' > "$T/ka/with space.json"
+[ "$(h "$T/ka" | awk '{print $2}')" = "$KA" ] && ok "known-answer vector" || bad "known-answer vector"
+
+# 18. dotfiles are part of the recipe (the KA fixture carries .hidden)
+mkdir -p "$T/ka2/sub"
+printf 'alpha\n' > "$T/ka2/a.json"; printf 'beta\n' > "$T/ka2/sub/b.json"
+printf 'gamma\n' > "$T/ka2/with space.json"
+[ "$(h "$T/ka2" | awk '{print $2}')" != "$KA" ] && ok "dotfile moves hash" || bad "dotfile moves hash"
+
+# 19. a dir named like a flag is a dir, not a flag
+( cd "$T" && mkdir -p -- '-x' && printf 'alpha\n' > './-x/a.json' )
+mkdir -p "$T/dx"; printf 'alpha\n' > "$T/dx/a.json"
+( cd "$T" && bash "$HASH" '-x' > hx.out 2>/dev/null )
+[ "$(awk '{print $2}' "$T/hx.out")" = "$(h "$T/dx" | awk '{print $2}')" ] \
+  && ok "flag-named dir handled" || bad "flag-named dir handled"
+
+# 20. a find failure is fatal: a partial tree must never hash (exit 2, no stdout)
+if [ "$(id -u)" = 0 ]; then
+  ok "find failure fatal (skipped: root reads everything)"
+else
+  mkdir -p "$T/pd/sub"; printf 'alpha\n' > "$T/pd/a.json"; printf 'beta\n' > "$T/pd/sub/s.json"
+  chmod 000 "$T/pd/sub"
+  out=$(h "$T/pd" 2>/dev/null); rc=$?
+  chmod 755 "$T/pd/sub"
+  [ "$rc" -eq 2 ] && [ -z "$out" ] && ok "find failure fatal" || bad "find failure fatal (rc=$rc out=$out)"
+fi
+
 exit $fail
