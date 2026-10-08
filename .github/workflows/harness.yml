@@ -12,11 +12,13 @@ name: harness (meta checks)
 # the whole tree against its documentation homes and unrelated PRs would
 # inherit every open drift.
 #
-# The budget job reads git only. The tag-check and chebyshev-guard
-# self-tests build throwaway fixture repos (tag-check's with its own
-# Cargo.toml/pyproject.toml) in temp dirs OUTSIDE this checkout, so
-# the shipped-config sweep's rule about tomls under experiments/
-# still does not apply.
+# The budget job reads git only. The tag-check, chebyshev-guard and
+# rawdir-hash self-tests build throwaway fixtures (tag-check's with
+# its own Cargo.toml/pyproject.toml) in temp dirs OUTSIDE this
+# checkout, so the shipped-config sweep's rule about tomls under
+# experiments/ still does not apply. rawdir-hash's known-answer case
+# was computed on macOS, so this ubuntu run doubles as the recipe's
+# cross-platform check.
 #
 # chebyshev-guard also sweeps the real tree here: undeclared
 # `max(abs(` / `Math.max(Math.abs(` in lab/client code (walk distance
@@ -58,6 +60,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Self-test the tag-check suite
         run: bash scripts/test-tag-check.sh
+
+  rawdir-hash-selftest:
+    name: rawdir-hash self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test the raw-dir hash recipe
+        run: bash scripts/test-rawdir-hash.sh
 
   chebyshev-guard:
     name: chebyshev guard

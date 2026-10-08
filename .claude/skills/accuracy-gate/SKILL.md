@@ -110,6 +110,22 @@ UNGATEABLE**. The owning thread then writes one stamp line at the end
 of the section's Regeneration block — verdict, date, claim counts,
 raw-dir hash — and appends the run to `TRIALS.md` beside this file.
 
+The raw-dir hash states its recipe (owner's word, relayed
+2026-10-04; the stamp is the Zenodo bundle integrity check per the
+evidence-archive ruling, so a stranger must be able to recompute
+it). The canonical recipe is `scripts/rawdir-hash.sh <raw-dir>`;
+the stamp carries its output's first column verbatim — `v1:<16
+hex>` — so the recipe id travels with the hash. The 16-hex short
+form is a deliberate choice: it detects corruption and drift, not
+tampering (the full hash is in the script's output when a run wants
+to record it). A hand-rolled hash
+needs its full recipe stated inline on the stamp, and a reason.
+Stamps written before this rule are grandfathered as written —
+recipe-unknown unless the stamp itself stated one (the RESULTS-C/D
+stamps did; theirs is known, just not v1); all are re-derived with
+the script when their bundle is actually archived (forward-only,
+retroactive at citation — the evidence-archive scope).
+
 ## The fixture (rule 5)
 
 `fixture/RESULTS-tier6-planted.md` is the tier 6 read with four
