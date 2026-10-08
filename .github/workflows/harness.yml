@@ -59,6 +59,14 @@ jobs:
       - name: Self-test the tag-check suite
         run: bash scripts/test-tag-check.sh
 
+  rawdir-hash-selftest:
+    name: rawdir-hash self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Self-test the raw-dir hash recipe
+        run: bash scripts/test-rawdir-hash.sh
+
   chebyshev-guard:
     name: chebyshev guard
     runs-on: ubuntu-latest
