@@ -83,6 +83,22 @@ class Score(unittest.TestCase):
         sc = score(raw([late], {"111": {"2": [5, 5], "5": [5, 6]}}))
         self.assertEqual(sc["partner_absent_rows"], 0)
 
+    def test_seen_histogram_and_runs(self):
+        # Two seen rows, same pair, 1 tick apart -> one run of length 2
+        # at distance 2; a third row for a different pair is its own
+        # run of length 1 at distance 3.
+        a = dict(SLEEP_WITH, tick=100)
+        b = dict(SLEEP_WITH, tick=101)
+        c = dict(GROOM, tick=102)
+        positions = {
+            "100": {"2": [5, 5], "5": [6, 6]},          # d=2
+            "101": {"2": [5, 5], "5": [6, 6]},          # d=2
+            "102": {"5": [10, 10], "3": [12, 11]},      # d=3, d^2=5
+        }
+        sc = score(raw([a, b, c], positions))
+        self.assertEqual(sc["seen_manhattan_hist"], {"2": 2, "3": 1})
+        self.assertEqual(sc["seen_run_lengths"], {"1": 1, "2": 1})
+
     def test_radius_read_from_stored_config(self):
         # Same geometry, radius 2: (0,0)->(3,3) stays fog, and a d^2=4
         # pair sits on the smaller disc's edge.

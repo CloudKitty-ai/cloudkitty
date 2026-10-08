@@ -58,6 +58,28 @@ def bucket(caller_pos, target_pos, radius):
     return "fog"
 
 
+def seen_runs(joined):
+    """Same-pair repeat runs inside the seen bucket: consecutive seen
+    rows of one (caller, target) pair at tick gaps <= 2 count as one
+    run. A histogram of run lengths; all-ones means every seen row is
+    a one-off."""
+    runs = Counter()
+    cur = None  # (pair, last_tick, length)
+    rows = sorted(((e, tid) for e, b, tid in joined if b == "seen"),
+                  key=lambda r: (r[0]["kitty_id"], r[0]["tick"]))
+    for e, tid in rows:
+        pair = (e["kitty_id"], tid)
+        if cur and cur[0] == pair and e["tick"] - cur[1] <= 2:
+            cur = (pair, e["tick"], cur[2] + 1)
+        else:
+            if cur:
+                runs[cur[2]] += 1
+            cur = (pair, e["tick"], 1)
+    if cur:
+        runs[cur[2]] += 1
+    return {str(k): v for k, v in sorted(runs.items())}
+
+
 def score(raw):
     radius = raw["config"]["vision"]["radius"]
     window = raw["window"]
@@ -67,6 +89,7 @@ def score(raw):
             if e["reason"] == "partner_absent"
             and start <= e["tick"] <= end]
     joined, dropped, unparsed = [], 0, 0
+    seen_dist = Counter()
     for e in rows:
         snap = positions.get(str(e["tick"]))
         if snap is None:
@@ -78,12 +101,16 @@ def score(raw):
         if caller is None or target is None:
             unparsed += 1
             continue
-        joined.append((e, bucket(caller, target, radius)))
+        b = bucket(caller, target, radius)
+        if b == "seen":
+            seen_dist[abs(caller[0] - target[0])
+                      + abs(caller[1] - target[1])] += 1
+        joined.append((e, b, tid))
 
     per_bucket = {b: {"rows": 0, "absorbed": 0, "by_action": Counter()}
                   for b in BUCKETS}
     per_seat = defaultdict(lambda: Counter())
-    for e, b in joined:
+    for e, b, _ in joined:
         s = per_bucket[b]
         s["rows"] += 1
         s["absorbed"] += 1 if e["absorbed"] else 0
@@ -118,6 +145,9 @@ def score(raw):
         "dropped_no_snapshot": dropped,
         "dropped_unparsed": unparsed,
         "buckets": buckets,
+        "seen_manhattan_hist": {str(k): v
+                                for k, v in sorted(seen_dist.items())},
+        "seen_run_lengths": seen_runs(joined),
         "seats": seats,
     }
 
@@ -141,6 +171,11 @@ def render(sc):
         top = ", ".join(f"{k} {v}" for k, v in
                         list(s["by_action"].items())[:3]) or "--"
         out.append(f"| {b} | {s['rows']} | {share} | {ab} | {top} |")
+    out.append("")
+    out.append(f"seen manhattan-distance histogram: "
+               f"{sc['seen_manhattan_hist']}")
+    out.append(f"seen same-pair run lengths (gap <= 2 ticks): "
+               f"{sc['seen_run_lengths']}")
     out.append("")
     out.append("| seat | race | seen | fog | rows |")
     out.append("|---|---|---|---|---|")
