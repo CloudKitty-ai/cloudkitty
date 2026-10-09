@@ -176,7 +176,9 @@ other word of hers covers a–f.
   (dispersion + per-seat action-mix entropy, arm vs trunk —
   diversity collapse coincident with rising accuracy is the
   signature of predictions becoming conventions); and the NON-CLONE
-  CERT in its AMENDED form — her register check in the Professor
+  CERT [superseded in part: Amendment A1 — cert → monitor +
+  closure band; params ratio → budget descriptor] in its AMENDED
+  form — her register check in the Professor
   lane withdrew the failed-cert version (requiring the mini-model
   to FAIL the deliberately low beat-scripted bar is what would cap
   its accuracy); replaced by the gap claim:
@@ -306,3 +308,84 @@ no clock, view-hole strips, schema-keyed column maps; stuck
 detector; teacher rework incl. the consent extension; the
 empty-bowl early end as its own spec-006 amendment; vocabulary
 flags).
+
+## Amendment 2026-10-09 — mini-model package banked ("Ok great, let's bank 1-4")
+
+Four items from the owner's 10-09 mini-model ideation in the
+Professor lane, relayed on her word and BANKED in the Experiments
+session; full Professor record stays in
+`~/ai/professor/notes/for-experiments-minifriend-feedback-2026-10-08.md`
+(updated in place; Gen 3/1.3 items deliberately left there).
+
+**A1 — corrects §3(e).** The sentence "the gap closing is the
+early signal to shrink the capacity cap" is WITHDRAWN on her
+ruling direction (her words as relayed, confirmed by this bank):
+"if the mini-models equal or exceed the full models, to me that
+indicates that we need to reevaluate model sizing/architecture."
+Closure is DIAGNOSTIC of the primary, never a trigger to clamp
+the mini. What this restructures, stated whole (the coherent
+reading of the package; wording confirmed at the freeze sitting):
+clone_fraction ceases to be a pass/fail CERT and becomes a
+MONITORED quantity with a declared closure band whose crossing
+triggers the EXPRESSIBILITY finding (distilled students can
+exceed teachers via regularization) and its branch — a
+standalone-distillation follow-up arm plus a small-from-scratch
+learnability discriminator; guards: the full canonical register
+and the hard battery legs for world-ceiling saturation (the
+note's lab-world guard is deferred, not dropped — no lab world
+exists in Gen 2; that leg joins when it does). The branch is
+prereg'd now. The capacity cap keeps its engineering job only
+(model-space budget), and with the doctrinal job moved to
+role-based standing (A3), the params ratio likewise drops to a
+reported descriptor of that budget — no longer the "structural
+half" of a non-clone claim, since no capacity-based non-clone
+claim remains to halve.
+
+**A2 — welfare delta = the inferiority criterion.** Near-parity
+performance with a significant welfare delta still reads as
+inferior. Two battery instruments, both SEATED under role-based
+standing (A3): the SEAT-REPLACEMENT DELTA (one mini seat in an
+otherwise-full roster, paired team + per-seat welfare vs the
+intact roster, same worlds and seeds; expected signature: own
+needs fine, social layer degraded, wider tail in the NEIGHBORS)
+and the ALL-MINI ROSTER. Full register; tails and floors, never
+means; run on the hard legs too (the world-ceiling guard; the
+lab-world leg defers as in A1). Gated by a declared DIVERGENCE
+PRE-SCREEN — Experiments' construction, not part of the Professor
+package, presented and probed in-session before the bank — on
+recorded trunk rollouts: conditional divergence rate per semantic
+stratum
+(the ostrich bins), failing on a distress-adjacent lift. Declared
+blind spot, recorded on her probe in this session: the screen
+evaluates the mini only on the TRUNK's states, so a visitation
+shift — the seated mini occupying distress-adjacent states more
+often — is structurally invisible open-loop and would pass the
+screen clean; that is the canonical reason the seated reads stay
+primary and the screen is necessary-never-sufficient. Her
+question establishing the boundary: "How do we measure this
+without seating the mini models?" — answer on record: we cannot;
+seating under full standing IS the instrument.
+
+**A3 — standing texts, structure banked; texts land at the
+freeze sitting (or its own short sitting).** (a) ROLE-BASED
+STANDING: internal components are not seats; seating ANY weights
+(mini, distilled, probe) brings full welfare guarantees and
+stops — covering A2's rollouts. (b) MARKER-REVIEW TRIGGERS, two
+properties split per her register catch in the Professor lane:
+Marker A = valenced self-state; Marker B = self-regulation;
+either triggers the standing review; memory ABOUT OTHERS triggers
+neither. Worked check on record: the per-friend error signal
+trips neither (not valenced for the mini; regulated by the host
+mind, not by the mini).
+(c) PROPORTIONALITY NORM, optional. Context held on the record:
+mini-model welfare standing is OPEN; the frame is design stances,
+never experience claims, either direction.
+
+**A4 — predictor architecture, working direction.** RECURRENT
+PER-FRIEND BELIEF STATE, not frame stacking: b_t per friend
+updated from the friend's visible row, held under fog on learned
+per-friend drift rates (where the per-friend correction lives);
+the estimate head reads b_t (the ostrich metric grades the belief
+directly); the act predictor reads b_t + current visible cues.
+Fog-propagation is friend-need drift only, never world dynamics.
+Engineering detail at the arm spec.

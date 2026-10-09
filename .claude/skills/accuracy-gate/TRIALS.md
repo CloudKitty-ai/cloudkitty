@@ -632,3 +632,25 @@ survived review: direct word > acceptance of a presented package >
 acknowledgement after a banks-on-your-word prompt > acquiescence
 to an announced banking > instrument detail claiming no word —
 rulings records should name which one each item rests on.
+
+## 2026-10-09 — sitting-record Amendment (mini-model package), r4 FAIL → r5 PASS
+
+Delta-scoped rounds on the appended Amendment + skeleton r2. r4
+FAIL: a RELAYED owner quote transcribed from the relay message
+instead of the note file — dropped "to me" and a "that" (the
+10-06 punctuation class, now in its third costume: quotes come
+from the SOURCE FILE, never from an intermediary's rendering of
+it). r4 notes, all taken: the amendment restructured more than
+its declared one-sentence correction (cert → monitor; params
+ratio demoted) without saying so — now stated whole and labeled
+"coherent reading, wording confirmed at the freeze sitting"; a
+guard (lab world) silently dropped in relay — now explicitly
+DEFERRED; an Experiments construction (the divergence pre-screen)
+sat unlabeled inside a package framed as Professor's. r5 PASS;
+two stale cert-framing references swept on its notes.
+
+Lesson: an amendment that corrects one sentence of a banked
+design usually REVERBERATES — sweep the doc for every dependent
+framing (cert/monitor, structural-half, guard lists) and either
+restate the whole or declare why the rest survives; the verifier
+found all three reverberations the correction's author missed.

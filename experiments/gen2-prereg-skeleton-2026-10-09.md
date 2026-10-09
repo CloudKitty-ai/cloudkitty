@@ -21,6 +21,12 @@ lines are what the freeze sitting must pin. Rulings sources:
   (hides what gates cooperation, never survival).
 - [BLANK — owner call at freeze] Whether rule 12's text gains the
   exception clause or the prereg declaration alone carries it.
+- [BANKED S§Amendment A3 — TEXTS land at the freeze sitting, or
+  its own short sitting]
+  Role-based standing (seating any weights brings full welfare
+  guarantees + stops); marker-review triggers (A = valenced
+  self-state, B = self-regulation; memory about others triggers
+  neither); proportionality norm (optional).
 - [RULED R§7] CTDE declaration: three training-time global
   channels declared here and in the paper's methods — centralized
   critic sees global state incl. hidden needs; reward is the
@@ -181,7 +187,7 @@ lines are what the freeze sitting must pin. Rulings sources:
 - [RULED R§roadmap] ≥3 seeds on paper-cited cells; probes 1–2.
 - Battery carries: the standing cert suite at the new schema,
   swaps digest, the dispersion read (§9.5) on all three sizes,
-  the clone_fraction cert when the mini-model arm runs (§9.7).
+  the clone_fraction monitor when the mini-model arm runs (§9.7).
 
 ## 8. Declared arms (all post-trunk or beside it; each its own
 timebox)
@@ -214,13 +220,40 @@ timebox)
    separately (pipeline-noise bound, never inference skill).
    [BLANK] the coverage floor definition and number; stratum
    definitions.
-4. [RULED S§3b] MINI-FRIEND Phase 2: winner-only imagination
-   feedback, one live arm vs trunk; canalization watch (dispersion
-   + per-seat action-mix entropy vs trunk); non-clone cert =
-   params ratio + clone_fraction = (policy − mini) /
-   (policy − scripted) above a declared threshold on the full
-   battery incl. hard legs, monitored across training. [BLANK]
-   the clone_fraction threshold and the capacity cap (params).
+4. [RULED S§3b, amended S§Amendment A1/A2/A4] MINI-FRIEND
+   Phase 2: winner-only imagination feedback, one live arm vs
+   trunk; canalization watch (dispersion + per-seat action-mix
+   entropy vs trunk); clone_fraction = (policy − mini) /
+   (policy − scripted), a MONITORED quantity across training on
+   the full battery incl. hard legs — not a pass/fail cert [A1].
+   Closure response: crossing the declared closure band = the
+   EXPRESSIBILITY finding (never a cap-shrink trigger) →
+   standalone-distillation follow-up arm + small-from-scratch
+   learnability discriminator, guarded by the full register and
+   the hard legs (lab-world guard defers until a lab world
+   exists) — branch prereg'd here. The capacity cap is
+   engineering budget only; params ratio reported as its
+   descriptor, carrying no doctrinal non-clone claim (that job
+   lives in role-based standing). [BLANK] the closure band and
+   the cap (params).
+   WELFARE-DELTA instruments [A2], SEATED under role-based
+   standing: seat-replacement delta (one mini seat vs intact
+   roster, paired, same worlds/seeds; signature watch: neighbors'
+   tails) and the all-mini roster; full register, tails/floors
+   never means, hard legs included (lab-world leg defers); gated
+   by the declared DIVERGENCE PRE-SCREEN (Experiments'
+   construction, banked with the package)
+   (conditional divergence per ostrich stratum on recorded trunk
+   rollouts; fails on distress-adjacent lift; declared blind
+   spot: visitation shift is invisible open-loop, so the screen
+   is necessary-never-sufficient and the seated reads stay
+   primary). [BLANK] pre-screen lift threshold; welfare-delta
+   bars.
+   ARCHITECTURE [A4, working direction]: recurrent per-friend
+   belief state b_t (updated from the friend's visible row, held
+   under fog on learned drift rates; estimate head and act
+   predictor both read it; fog-propagation = friend-need drift
+   only). Detail at the arm spec.
    CONSUMER READS (the claim's evidence — review r1 fix: the S§3f
    claim is about BEHAVIOR, and these are what evidence it):
    the gating pair = harm-prediction instrument + the
