@@ -79,12 +79,22 @@ lines are what the freeze sitting must pin. Rulings sources:
   ships the keyed map via the binding, and flipping the
   downstream readers onto it is an EXPERIMENTS-lane edit after
   the spec lands — budgeted in §10.2.
-- [BLANK] The final cell map (authoritative layout table), the
-  schema version ids — PER SCHEMA, four ids in the binding
-  (OBSERVATION_/ACTION_/MASK_/GLOBAL_STATE_SCHEMA_VERSION; the
-  bump moves at least observation, whether global_state moves is
-  a spec question) — and the Product spec numbers implementing
-  the package.
+- [BLANK, partially filled 2026-10-09] The final cell map
+  (authoritative layout table) and the schema version ids — PER
+  SCHEMA, four ids in the binding: observation bumps 5 → 6;
+  action and mask hold; GLOBAL_STATE rides the critic-side
+  identity-block exposure (spec 058 FR-009). Schema-bump spec =
+  **058** (specs/058-gen2-observation-schema). Metric pin at 058:
+  MANHATTAN throughout the new distance/bearing cells (walk-cost
+  units; the ruled (dx/d, dy/d) form preserved as the L1 unit
+  pair; constants 40/400 hold — max Manhattan 198 at 100×100);
+  the vision disc stays Euclidean engine-side; Experiments
+  confirmed no instrument constrains Euclidean (F-052/F-053
+  deafening reads are metric-agnostic and sat on schema-5
+  encodings; lab reads use the Manhattan walk_distance helper).
+  Guard asked of the spec: a visible entity's Manhattan distance
+  can exceed r (up to ~6 inside the r=4 disc) — no consumer may
+  clamp the distance cell at r.
 - [BLANK — owner QUESTION at freeze, sixty seconds] Reserve Gen 3
   cells (season / weather / the two ruled spares) at THIS bump
   too? A hedge, not a necessity — Gen 3 likely pays its own wall
