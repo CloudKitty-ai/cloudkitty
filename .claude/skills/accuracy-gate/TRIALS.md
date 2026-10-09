@@ -608,3 +608,27 @@ r2 PASS on the five edits, full-set verdict PASS. Coordinator-side
 lesson: derivative summaries of a gated doc (ruling records, shelf
 lines) are where precision quietly drops — gate them as companions
 every time, it is exactly where both failures lived.
+
+## 2026-10-09 — gen2-sitting-rulings record (copy check, r1 FAIL → r2 FAIL → r3 PASS)
+
+Ruling-record copy check, fresh verifier, her thirteen in-session
+quotes handed over whole. r1: 3 FAILs — wrong line refs
+(needs_driven 406–410 were comment lines; the decision reads live
+at 398–400/423–430), empty-bowl misclassed as a teacher change
+(BACKLOG bills a spec-006 amendment affecting every cat), and her
+item-2 words stretched across riders and contrasts from different
+turns; 9 labeling NOTEs, all taken. r2: 1 new FAIL — a rule-12
+misquote the FIX introduced ("others hidden" for "others' states
+hidden"); plus the verifier exposed a wrong fact the COORDINATOR
+had supplied (claimed the latency bridge was in the banking prompt;
+it was not — re-derived from the session and corrected to
+instrument-detail-no-owner-word). r3: PASS, full set.
+
+Two lessons. (1) Conversation facts the coordinator hands a
+verifier are themselves a failure surface the verifier cannot
+check — re-derive each one from the transcript before supplying
+it, and correct on record when wrong. (2) The basis taxonomy that
+survived review: direct word > acceptance of a presented package >
+acknowledgement after a banks-on-your-word prompt > acquiescence
+to an announced banking > instrument detail claiming no word —
+rulings records should name which one each item rests on.

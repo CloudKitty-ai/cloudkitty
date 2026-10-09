@@ -132,4 +132,7 @@ F-053 / `world-size-screen-2026-09-24/RESULTS.md`):
 These four land in the Gen 2 prereg skeleton as filled blanks; the
 rest of the #389 agenda (hidden-needs scope confirm, teacher rework,
 mini-friend-model capacity session, grooming pair, here-word control
-arm, the smaller in/outs) still waits on the sitting.
+arm, the smaller in/outs) still waits on the sitting. — Since
+RULED: the sitting ran 2026-10-08/09; record
+`gen2-sitting-rulings-2026-10-08.md` (its item numbers are the
+sitting list, not this file's).

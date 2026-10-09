@@ -112,6 +112,12 @@ see, so it learns when to discount the prior) and shortcutting (where
 the mind can read the friend's needs directly, as at Gen 1, it will
 ignore the model; train it where the direct route is closed).
 
+**Capacity session HELD 2026-10-08** — the discuss-first item below
+is discharged: one staged arm (offline dual heads, stratified eval,
+dissolution test), trunk-first placement, probe-battery yielding
+screen, pinned ostrich metric, clone-fraction non-clone cert
+(`gen2-sitting-rulings-2026-10-08.md` §3).
+
 **Owner amendments, 2026-09-26** (from the welfare-practice
 discussion; her words verbatim where quoted):
 
@@ -353,11 +359,18 @@ is no longer load-bearing.
   teacher holds; density cuts compound; range on meows stays
   near-worthless at every size. The radius axis stays open.
 - Hidden needs (the Gen 2 half of the fog split); F-026 deferred here;
-  F-035 waterline contagion input.
+  F-035 waterline contagion input. **RULED 2026-10-08: scope =
+  others' needs/happiness/distress/traits hidden, BATH VISIBLE as
+  control (five of six); F-035 waterline OUT of Gen 2; the F-026
+  overturn arm ruled with a four-rung ladder**
+  (`gen2-sitting-rulings-2026-10-08.md` §1, §5, §6).
 - Rate-based A17 + config-aware declarations (#367's root fix) and the
   scene-span instrument (blocks the uptake reads).
 - consent_line for needs_driven and empty-bowl early end (owner
-  shelvings, BACKLOG #368).
+  shelvings, BACKLOG #368). **RULED IN 2026-10-08 ("Consent in" /
+  "Empty bowl end early in"): consent rides the teacher re-record;
+  empty-bowl is its own spec-006 amendment**
+  (`gen2-sitting-rulings-2026-10-08.md` §6).
 - Calls at a partner not beside the caller (read 2026-09-16 off the
   refusal stamp on the served Gen 1 roster,
   `refusal-baseline-2026-09-02/RESULTS.md` §"Second window"): reason
@@ -387,7 +400,13 @@ is no longer load-bearing.
   Biscuit's non-grooming a declared trait: Biscuit gives play where
   the others give bath, reciprocity in another currency. Decide the
   two together: dirt the self form cannot clear makes a non-grooming
-  seat one fifth of the givers missing.
+  seat one fifth of the givers missing. **RULED 2026-10-08 ("no need
+  to artificially keep the suppressed grooming"); per the
+  construction presented: Biscuit's seat gains the groom response
+  via the one-teacher design, trait kept as favourite weighting;
+  the dirt half defers to the banked dirt-as-world-state package
+  arm**
+  (`gen2-sitting-rulings-2026-10-08.md` §4, §2).
 - Beam naps are not world-valued at Gen 1 (step-7 beam screen,
   `fog-gen1-cert/RESULTS.md` §"Beam naps"; owner ruled 2026-09-15 the
   beam stays at 7). Policies sleep 12–14% of ticks against the
