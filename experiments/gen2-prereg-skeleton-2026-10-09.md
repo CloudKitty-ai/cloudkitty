@@ -70,6 +70,11 @@ lines are what the freeze sitting must pin. Rulings sources:
   otherwise. No raw indices anywhere downstream.
 - [BLANK] The final cell map (authoritative layout table), its
   schema version id, and the Product spec number implementing it.
+- [BLANK — owner QUESTION at freeze, sixty seconds] Reserve Gen 3
+  cells (season / weather / the two ruled spares) at THIS bump
+  too? A hedge, not a necessity — Gen 3 likely pays its own wall
+  (warmth enters the self needs block) — but the inert-cell
+  pattern is already being exercised here for dirt.
 - [BLANK] Observation rows for others carry WHICH visible fields
   exactly (position, activity, bath, message digest, purr;
   confirm nothing else leaks at the field level — audit at spec).
@@ -99,8 +104,14 @@ lines are what the freeze sitting must pin. Rulings sources:
   favourite weighting.
 - [RULED shelf, owner 2026-09-15] Corner/edge randomized starts at
   collection and in every PPO episode. [BLANK] declared edge-ring
-  and corner start shares, set FROM the coverage instrument
-  (§9.9), pencil 25%/5%.
+  and corner start shares. DECLARED LOOP RESOLUTION (review r1):
+  shares are set FROM the coverage instrument, but the instrument
+  reads a corpus collected WITH shares — so: collection runs on
+  the pencil shares (25% edge ring / 5% corner); the instrument
+  reads that corpus; the FINAL shares pinned at freeze apply to
+  PPO episodes; and the remedy if the instrument moves the shares
+  materially is declared at freeze (recollect vs keep-if-the-
+  placement-bar-and-density-pins-pass).
 - [RULED S§6] Corpus placement bar: teacher in-beam sleep share
   ≥ **0.40** on the fresh corpus, read pre-PPO. Remedy on a miss
   (Experiments' recommendation, re-ruled here at freeze): lifetime
@@ -113,9 +124,19 @@ lines are what the freeze sitting must pin. Rulings sources:
   bounds, comfort slack range, consent-line range, favourite
   vectors), and the empty-bowl early end's spec-006 amendment
   (own spec, every cat — ruled IN S§6) landing BEFORE collection.
-- [BLANK, F-040] Want-law memory reach: keep `radius + 0`
-  (want_drink structurally silent) or revive it — decide and
-  declare; it shapes the register the emergence arm reads.
+- [BLANK — owner ruling, F-040] Want-law memory reach: keep
+  `radius + 0` (want_drink structurally silent) or revive.
+  Decision criterion (Professor, review r1): every declared
+  contrast cell must be STRUCTURALLY LIVE or declared dead and
+  excluded — at radius+0 the drink cell of §9.1a is a structural
+  zero that would read as an empirical null. Professor's lean:
+  REVIVE, scoped to structural liveness per kind (hidden needs
+  raise the value of self-expression; the social-response reads
+  and the emergence register both get cleaner). Fallback if the
+  change-set budget binds: keep radius+0 and declare want_drink
+  dead — dropped from every contrast denominator, an honest
+  null-by-construction. Experiments' cost read governs whether
+  revival touches more than the memory-reach knob.
 
 ## 5. Training recipe (trunk)
 
@@ -200,6 +221,18 @@ timebox)
    (policy − scripted) above a declared threshold on the full
    battery incl. hard legs, monitored across training. [BLANK]
    the clone_fraction threshold and the capacity cap (params).
+   CONSUMER READS (the claim's evidence — review r1 fix: the S§3f
+   claim is about BEHAVIOR, and these are what evidence it):
+   the gating pair = harm-prediction instrument + the
+   partnered-refusal tax (by `reason`), arm vs trunk, [BLANK]
+   bars for both; consent and fog-pursuit OBSERVATIONAL-ONLY in
+   Gen 2 [RULED S§3f]. Without passed consumer reads the claim
+   does not graduate past prediction accuracy. [BLANK — owner
+   call] whether the per-friend observed-behavior CORRECTION +
+   running error signal (the 09-26 over-trust mitigation) ships
+   in Gen 2's Phase 2 or defers.
+   Phase 1 may overlap the trunk's training TAIL (it needs frozen
+   rollouts, not a finished trunk).
 5. [RULED S§6] RADIUS AXIS leg (the world-size screen's open
    axis). [BLANK] design: which radii, frozen-vs-trained-at-radius
    arms, harm-rule carryover.
@@ -213,7 +246,9 @@ timebox)
 
 1. [RULED S§2 contrasts] Bath-as-control: (a) want-word
    development hidden-needs vs want-bath (null PRE-DECLARED,
-   F-026 class); (b) social-response latency/accuracy seen vs
+   F-026 class — with TWO-SIDED brackets and a declared surprise
+   branch, the F-058 one-sided lesson); (b) social-response
+   latency/accuracy seen vs
    hidden, bridged by Gen 2-vs-Gen 1 bath latency; (c) estimate
    head's bath accuracy = pipeline-noise upper bound.
 2. [RULED S§3d] Ostrich metric: subgroup calibration binned on
@@ -222,8 +257,9 @@ timebox)
    = grave-bin minus benign-bin mean signed bias; minimum-n
    sparsity floor with insufficient-coverage as a first-class
    outcome; mind-visible AND all-states versions; per-friend
-   before pooled. [BLANK] the gap threshold that counts as a
-   signature, and n.
+   before pooled. Read on BOTH estimates, per phase: the Phase-1
+   offline heads and the Phase-2 live head. [BLANK] the gap
+   threshold that counts as a signature, and n.
 3. [RULED S§3c] Food-yielding probe battery: DIFFERENCE =
    yield-to-truly-hungry − yield-to-cue-scrambled-sated;
    eval-only unmask oracle leg; scarcity dial; arm must
@@ -244,6 +280,11 @@ timebox)
 9. Free-register baseline re-declaration (four kinds), density-pin
    re-check (F-034/A1b), refusal-baseline window re-run on deploy
    [standing practices].
+9b. [RULED R§4] Per-tick need-vector logging (component
+   persistence, never aggregates alone) on paper-cited cells and
+   bridge reads — Gen 2 is the first generation under the
+   versioning ruling, and this future-proofs its numbers against
+   the W3 bridge.
 10. [BLANK] Which reads are paper-cited (⇒ ≥3 seeds) — marked at
     freeze.
 
@@ -267,4 +308,6 @@ timebox)
   accuracy-gate contract on every RESULTS; raws in the native
   checkout; set-asides never cited.
 - This skeleton is superseded by the frozen PREREG; discrepancies
-  resolve toward the RULING RECORDS, never toward this file.
+  resolve toward the RULING RECORDS, never toward this file — and
+  the frozen PREREG carries the same resolve-toward-the-records
+  line, pointed at the records as of freeze.
