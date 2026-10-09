@@ -73,9 +73,18 @@ lines are what the freeze sitting must pin. Rulings sources:
 - [RULED R§carried] Schema-keyed column maps: GATE_OBS, ACT_PLAY,
   l14-derived band edges and every obs/action index become
   schema-version-keyed lookups — they break silently at this bump
-  otherwise. No raw indices anywhere downstream.
-- [BLANK] The final cell map (authoritative layout table), its
-  schema version id, and the Product spec number implementing it.
+  otherwise. No raw indices anywhere downstream. Lane fact
+  (Product, 2026-10-09): the raw indices live in experiments/
+  Python (enrichment trainer, fog-gen1-cert readers); the spec
+  ships the keyed map via the binding, and flipping the
+  downstream readers onto it is an EXPERIMENTS-lane edit after
+  the spec lands — budgeted in §10.2.
+- [BLANK] The final cell map (authoritative layout table), the
+  schema version ids — PER SCHEMA, four ids in the binding
+  (OBSERVATION_/ACTION_/MASK_/GLOBAL_STATE_SCHEMA_VERSION; the
+  bump moves at least observation, whether global_state moves is
+  a spec question) — and the Product spec numbers implementing
+  the package.
 - [BLANK — owner QUESTION at freeze, sixty seconds] Reserve Gen 3
   cells (season / weather / the two ruled spares) at THIS bump
   too? A hedge, not a necessity — Gen 3 likely pays its own wall
@@ -326,9 +335,11 @@ timebox)
 1. Product specs land: schema bump package, teacher rework (incl.
    consent), empty-bowl spec-006 amendment, stuck detector,
    vocabulary flags. Each doctrine-checked (CLAUDE.md rule 8).
-2. Scripted comparator legs + coverage instrument + fresh-corpus
-   collection; placement bar read (≥0.40) and density-pin
-   re-check BEFORE any PPO.
+2. Experiments-lane reader flips onto the schema-keyed maps (the
+   Product spec ships the map; our Python readers consume it) —
+   then scripted comparator legs + coverage instrument +
+   fresh-corpus collection; placement bar read (≥0.40) and
+   density-pin re-check BEFORE any PPO.
 3. Prereg FREEZE (every [BLANK] above pinned; owner's word).
 4. Trunk training; battery; declared reads.
 5. Arms per §8 order; addenda as ruled.
