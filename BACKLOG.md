@@ -549,7 +549,15 @@ Kitties visiting other worlds / servers. Largest and least-defined item;
 cross-world determinism and snapshot identity are open design problems. Last
 on purpose.
 
-### Plugin advisor wire vs the Gen 2 visibility line — SHELVED UNTIL THE SEATED-PLUGIN BOUNDARY (Experiments ruling 2026-10-09, on the owner's delegation; Experiments thread)
+### Plugin advisor wire vs the Gen 2 visibility line — OWNER RULED 2026-10-10: TABLED UNTIL THE WIRE IS USED (Experiments thread)
+
+Owner, in-session 2026-10-10: "Confirm tabling plugin wire state
+until we start using it (currently targeted for LLM PoC in 1.0)"
+— confirming the ruling first relayed by Product the same day.
+The shelf condition below (the seated-plugin boundary / wire-format
+sitting with Harness) is the mechanism; the target is the LLM PoC
+in 1.0. Original entry, 2026-10-09 (Experiments ruling on the
+owner's delegation):
 
 `DecisionRequest::for_context` (crates/cloudkitty-core/src/behavior/
 script.rs:104) serializes the fog view's snapshot to external
