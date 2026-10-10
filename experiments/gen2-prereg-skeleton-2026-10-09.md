@@ -106,6 +106,13 @@ lines are what the freeze sitting must pin. Rulings sources:
 - [BLANK] Observation rows for others carry WHICH visible fields
   exactly (position, activity, bath, message digest, purr;
   confirm nothing else leaks at the field level — audit at spec).
+- DECLARED SURFACE CAVEAT (sweep finding, 2026-10-09): the plugin
+  advisor wire (DecisionRequest, script.rs:104) carries the fog
+  snapshot with visible friends' FULL state — a second visibility
+  surface spec 058 does not touch. Gen 2's hidden-needs claims
+  scope to TRAINED SEATS; no plugin-driven seat sits in the Gen 2
+  battery; alignment is shelved to the seated-plugin boundary
+  (BACKLOG §"Plugin advisor wire vs the Gen 2 visibility line").
 
 ## 4. Teacher and corpus
 

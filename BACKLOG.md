@@ -567,3 +567,20 @@ long-term.
 Kitties visiting other worlds / servers. Largest and least-defined item;
 cross-world determinism and snapshot identity are open design problems. Last
 on purpose.
+
+### Plugin advisor wire vs the Gen 2 visibility line — SHELVED UNTIL THE SEATED-PLUGIN BOUNDARY (Experiments ruling 2026-10-09, on the owner's delegation; Experiments thread)
+
+`DecisionRequest::for_context` (crates/cloudkitty-core/src/behavior/
+script.rs:104) serializes the fog view's snapshot to external
+plugins, and visible friends' rows carry their full state — all six
+needs and happiness. Legal today (Gen 1: needs visible); a second
+visibility surface the day Gen 2's hidden-needs line lands
+observation-side (spec 058 touches the obs encoder, not this wire).
+No Gen 2 exposure: the Gen 2 battery seats no plugin-driven mind,
+and the Gen 2 prereg scopes its hidden-needs claims to trained
+seats. MUST be aligned before any plugin-driven seat (HTTP, seated
+LLM at 1.1, the LLM-PoC seat) counts as under-fog — and it
+interacts with the LLM track's train/serve wire-format-identity
+hard requirement, so the fix belongs in that wire-format sitting
+with Harness. Until then a plugin advisor is an UNMASKED reader by
+design, stated wherever a plugin seat is described.
