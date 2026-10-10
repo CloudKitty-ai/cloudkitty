@@ -95,11 +95,14 @@ lines are what the freeze sitting must pin. Rulings sources:
   Guard asked of the spec: a visible entity's Manhattan distance
   can exceed r (up to ~6 inside the r=4 disc) — no consumer may
   clamp the distance cell at r.
-- [BLANK — owner QUESTION at freeze, sixty seconds] Reserve Gen 3
-  cells (season / weather / the two ruled spares) at THIS bump
-  too? A hedge, not a necessity — Gen 3 likely pays its own wall
-  (warmth enters the self needs block) — but the inert-cell
-  pattern is already being exercised here for dirt.
+- [RULED 2026-10-09, "Confirm don't reserve" (first given in the
+  Product session, confirmed here)] NO Gen 3 cell reservation at
+  this bump: Gen 3 pays its own wall regardless (warmth enters
+  the self needs block) and season/weather granularity is
+  undesigned — unlike dirt, whose consumer (the banked B arm on
+  the Gen 2 trunk) is specified. Named flip trigger: a ruled
+  followups-window pilot needing world-state observation reserves
+  at that moment's next schema touch.
 - [BLANK] Observation rows for others carry WHICH visible fields
   exactly (position, activity, bath, message digest, purr;
   confirm nothing else leaks at the field level — audit at spec).
