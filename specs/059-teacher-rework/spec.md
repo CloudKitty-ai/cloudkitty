@@ -325,7 +325,12 @@ kinds.
   DETERMINISTIC (clarified 2026-10-10): a feasible call that clears
   it at the hearer's current state always applies the term; no RNG
   draw. Graded response ("louder is likelier answered") is a
-  property across hearer states, not a probability within one.
+  property across hearer states, not a probability within one. On a
+  world where the digest window cannot cover typical approach
+  (window < typical Manhattan distance at 1 tile/tick), the bar
+  binds the COLLECTION config, not every legal config: config
+  validation emits a WARNING naming the shortfall, and the
+  feasibility filter (FR-016) keeps behavior lawful everywhere.
 - **FR-016**: Same-kind call contention MUST resolve to ONE winner
   (confirmed 2026-10-10): first a hard feasibility filter — a caller
   the hearer cannot reach and complete with inside its remaining

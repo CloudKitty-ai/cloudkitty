@@ -90,7 +90,9 @@ consent-gate guard battery (quickstart.md map).
       wander with its exact RNG short-circuit, pursue) in
       crates/cloudkitty-core/src/behavior/teacher.rs; the
       `needs_driven` registration is the toggled Teacher; existing
-      needs_driven.rs unit tests (680-2574) stay green against it
+      needs_driven.rs unit tests (680-2574) stay green against it,
+      including the 057 sleep-floor guards — FR-006's must-pass pile;
+      read, not only run
 - [ ] T011 [US1] Move playful into Teacher (get-serious weighted line,
       luxury `scored_play_action`) with playful toggles; the
       comfort_weight battery (playful.rs:367-479) and remaining playful
@@ -120,7 +122,8 @@ consent-gate guard battery (quickstart.md map).
 - [ ] T016 [US1] Must-pass confirmations: `evolution_golden` green with
       the fixture SHA unchanged; SC-004 per-kitty consent test (a
       kitty's own line refuses at ITS value — target-side); full
-      cloudkitty-core suite counts recorded
+      cloudkitty-core suite counts recorded, with the 057 floor tests
+      individually named in the self-review must-pass list (FR-006)
 
 ## Phase 4: US2 — The imitability audit (P1)
 
@@ -162,20 +165,33 @@ and bounded per contracts/cue-answer.md.
       `intensity ≥ max(reply_intensity_floor, top_pressure(me)/100)`,
       valuation-only on partnered rest (WantCuddle) / friend play
       (WantPlay) via `meow::freshest_audible`; derived constants
-      (I_min, HANDSHAKE_TICKS, D_w, k, h) in their one documented home
+      (I_min, HANDSHAKE_TICKS, D_w, k, h) in their one documented
+      home; response terms apply in serious pursuit only, never
+      inside `scored_play_action` (no double-count); and the FR-011
+      validator WARN (digest_window_ticks vs typical approach
+      distance) in crates/cloudkitty-core/src/config/validate.rs with
+      its own mutate cycle
 - [ ] T022 [US3] FR-016 contention in teacher.rs: feasibility filter
       (`d ≤ window_remaining − HANDSHAKE_TICKS`), `score =
       intensity − k·d`, tie chain score → intensity → nearer → lower
-      id, commitment margin h against a mid-approach challenger
-      (incumbent = current pursuit target)
+      id, commitment margin h against a mid-approach challenger.
+      FIRST verify the incumbent (the answered caller mid-walk) is
+      derivable from existing state (activity/pursuit target); if it
+      is not, STOP and surface the choice — a new Kitty field is a
+      serialization + golden-digest change the plan currently claims
+      to avoid (it would ride the FR-014 re-record, but the plan.md
+      Storage line and data-model.md must be amended before coding it)
 - [ ] T023 [US3] The guards-owed battery
       (contracts/cue-answer.md), each via scripts/mutate.sh --expect:
       term present in-window / absent one tick past; threshold both
       directions; feasibility drops a louder-unreachable caller;
       iso-line flip (spec US3 scenario 5); margin holds an in-margin
       challenger; free-register deafness (armed trill/ekekek moves
-      nothing); consent + adjacency unchanged after the term (staging
-      per research R13: emit while hearer busy)
+      nothing); scripted emission stays want/here-only (a guard on
+      `announce` that reds if any free-register kind is emitted —
+      FR-012's emission half, pinning behavior/mod.rs:504-537);
+      consent + adjacency unchanged after the term (staging per
+      research R13: emit while hearer busy)
 - [ ] T024 [US3] SC-005 sample: run
       experiments/tools/bc-collect on a seeded `teacher` roster;
       confirm nonzero answered-call rate, zero response outside digest
