@@ -236,8 +236,7 @@ async fn run() -> Result<()> {
     // Spec 059 FR-011: a digest window too short for a typical approach
     // makes most cue answers infeasible — lawful, but a collection config
     // should hear about it at startup.
-    if let Some(shortfall) =
-        cloudkitty_core::behavior::teacher::response_window_shortfall(&config)
+    if let Some(shortfall) = cloudkitty_core::behavior::teacher::response_window_shortfall(&config)
     {
         tracing::warn!("{shortfall}");
     }

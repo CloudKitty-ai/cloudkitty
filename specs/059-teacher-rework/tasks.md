@@ -17,24 +17,24 @@ imitability audit, US3 cue-answer rungs).
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the rule-6 baseline: run `cargo test --workspace` in
+- [X] T001 Record the rule-6 baseline: run `cargo test --workspace` in
       the worktree and note suite counts (the must-pass pile is read,
       not only run) in the eventual PR self-review notes
 
 ## Phase 2: Foundational (blocking all stories)
 
-- [ ] T002 [P] Move `COMFORT_SLACK_NORMALISER` (40.0) into
+- [X] T002 [P] Move `COMFORT_SLACK_NORMALISER` (40.0) into
       crates/cloudkitty-core/src/config/mod.rs and add
       `Config::slack_cell_for(kitty_id) -> f32`; rewire
       crates/cloudkitty-rl/src/observe.rs:765-771 to call it and
       re-export the constant for crates/cloudkitty-rl/tests/schema_six_pins.rs
       (which must stay green UNEDITED — must-pass)
-- [ ] T003 [P] Add `[behavior] response_commitment_ticks` (f32, default
+- [X] T003 [P] Add `[behavior] response_commitment_ticks` (f32, default
       3.0) in crates/cloudkitty-core/src/config/mod.rs; validation in
       the shared finite-non-negative loop in
       crates/cloudkitty-core/src/config/validate.rs; mutate red on the
       validation guard (prediction: a negative value passes validate)
-- [ ] T004 Create crates/cloudkitty-core/src/behavior/teacher.rs
+- [X] T004 Create crates/cloudkitty-core/src/behavior/teacher.rs
       skeleton (`Teacher { preset, wander, groom_response, luxury }`
       per data-model.md) and register the three preset rows in
       `with_builtins` (behavior/mod.rs:141-146); rewire the hard-wired
@@ -50,7 +50,7 @@ ruling eb9e860b; each dial moves behavior independently.
 **Independent test**: SC-001 recorder + SC-004 dial tests + the
 consent-gate guard battery (quickstart.md map).
 
-- [ ] T005 [US1] RED FIRST (rule 6 must-fail pile): with predictions
+- [X] T005 [US1] RED FIRST (rule 6 must-fail pile): with predictions
       stated per test, observe the four old consent guards fail
       against the coming change — playful.rs:156-240 battery
       (`a_serious_playful_cat_honors_the_consent_line`,
@@ -59,7 +59,7 @@ consent-gate guard battery (quickstart.md map).
       `needs_driven_opportunism_ignores_the_consent_line`
       (needs_driven.rs:688-720); record each red in the self-review
       notes
-- [ ] T006 [US1] Implement the engine consent gate per
+- [X] T006 [US1] Implement the engine consent gate per
       contracts/consent-gate.md: a step after `action::validate` in
       `run_applied_phases_from_decisions`
       (crates/cloudkitty-core/src/world.rs:352-376) AND
@@ -69,23 +69,23 @@ consent-gate guard battery (quickstart.md map).
       `RefusalReason::ConsentDeclined` in
       crates/cloudkitty-core/src/events.rs:93-104 and the consent arm
       in `refusal_reason` (crates/cloudkitty-core/src/action.rs:442-460)
-- [ ] T007 [US1] Delete proposer-side consent: the filters at
+- [X] T007 [US1] Delete proposer-side consent: the filters at
       crates/cloudkitty-core/src/behavior/selection.rs:564, :618, :929;
       collapse `take_what_is_here_consenting` (needs_driven.rs:143) and
       `choose_consenting` (selection.rs:55) into the plain forms;
       rewrite the T005 guards against the engine gate (same protected
       scenarios, new enforcement site) and see them green for the
       stated reason
-- [ ] T008 [P] [US1] Mask consent-blindness guard in
+- [X] T008 [P] [US1] Mask consent-blindness guard in
       crates/cloudkitty-rl/tests/: `legal_action_mask` output is
       identical under hidden target-need extremes with a consent line
       set; mutate red (prediction: moving the gate inside
       `action::validate` flips PlayKitty mask bits → guard fails)
-- [ ] T009 [US1] Gate guards via scripts/mutate.sh --expect, one cycle
+- [X] T009 [US1] Gate guards via scripts/mutate.sh --expect, one cycle
       each in crates/cloudkitty-core/tests/: refuses at the TARGET's
       per-kitty line not the world line; stamps `consent_declined`;
       a line ≤ 0 world is byte-identical at consent sites
-- [ ] T010 [US1] Move the needs_driven ladder into Teacher
+- [X] T010 [US1] Move the needs_driven ladder into Teacher
       (finish_what_you_started, take_what_is_here, groom_response,
       wander with its exact RNG short-circuit, pursue) in
       crates/cloudkitty-core/src/behavior/teacher.rs; the
@@ -93,33 +93,33 @@ consent-gate guard battery (quickstart.md map).
       needs_driven.rs unit tests (680-2574) stay green against it,
       including the 057 sleep-floor guards — FR-006's must-pass pile;
       read, not only run
-- [ ] T011 [US1] Move playful into Teacher (get-serious weighted line,
+- [X] T011 [US1] Move playful into Teacher (get-serious weighted line,
       luxury `scored_play_action`) with playful toggles; the
       comfort_weight battery (playful.rs:367-479) and remaining playful
       tests stay green against the preset
-- [ ] T012 [US1] Slack gate on luxury entry in teacher.rs:
+- [X] T012 [US1] Slack gate on luxury entry in teacher.rs:
       `now − last_relief_tick ≥ slack_cell_for(me) × 40` (kitty.rs:436
       state, no new field); slack-0 inert; SC-004 unit test (higher
       slack returns to luxury later by the tick difference, gate reads
       the cell value incl. clamp); mutate red (prediction: gate reading
       raw slack instead of the cell breaks the clamp case)
-- [ ] T013 [US1] Favourite weights in the partnered pursuit comparison
+- [X] T013 [US1] Favourite weights in the partnered pursuit comparison
       (`value × (1 + favourite_weight_for(me, kind))`) in teacher.rs /
       selection.rs; all-zero byte-inert; SC-004 equal-value tip test;
       mutate red
-- [ ] T014 [US1] Stream recorder (fog_continuity.rs `record_streams`
+- [X] T014 [US1] Stream recorder (fog_continuity.rs `record_streams`
       pattern, crates/cloudkitty-core/tests/): per-tick action+message
       digests, old brains vs presets, on cloudkitty.toml AND
       experiments/fog-gen1-cert/anchor-b3.toml; emits the per-site
       fired/decision-moved counts as JSON
-- [ ] T015 [US1] FR-015 (ordering gate: BEFORE SC-001 freezes): run the
+- [X] T015 [US1] FR-015 (ordering gate: BEFORE SC-001 freezes): run the
       recorder, fill the counter columns in
       specs/059-teacher-rework/contracts/audit-record.md, commit the
       raw JSON beside the recorder fixtures; THEN freeze the SC-001
       stream-equality assertions (equal everywhere except
       recorder-marked consent ticks; scale sanity vs
       experiments/biscuit3-comfort-sweep-2026-09-01/RESULTS.md:370-395)
-- [ ] T016 [US1] Must-pass confirmations: `evolution_golden` green with
+- [X] T016 [US1] Must-pass confirmations: `evolution_golden` green with
       the fixture SHA unchanged; SC-004 per-kitty consent test (a
       kitty's own line refuses at ITS value — target-side); full
       cloudkitty-core suite counts recorded, with the 057 floor tests
@@ -132,23 +132,23 @@ per-site record complete.
 
 **Independent test**: SC-002 sweep + SC-003 twin (quickstart.md).
 
-- [ ] T017 [US2] Re-key `partner_value`
+- [X] T017 [US2] Re-key `partner_value`
       (crates/cloudkitty-core/src/behavior/selection.rs:693): play-need
       term → freshest audible WantPlay intensity (0 when silent);
       w_serious term → sum of the partner's audible non-play want
       intensities; byte-inert at the committed all-zero 042 dials
       (recorder confirms); unit test at nonzero dials + mutate red
-- [ ] T018 [US2] Remove `top_non_play` from the behavior layer
+- [X] T018 [US2] Remove `top_non_play` from the behavior layer
       (selection.rs:702) — its only home is the engine consent step;
       grep-level sweep of crates/cloudkitty-core/src/behavior/ for
       friend `needs.get`/`happiness` reads, confirming only the
       retained bath sites (audit-record.md rows 1-3) remain
-- [ ] T019 [P] [US2] SC-003 twin test in crates/cloudkitty-core/tests/:
+- [X] T019 [P] [US2] SC-003 twin test in crates/cloudkitty-core/tests/:
       paired teacher decisions over randomized hidden friend states are
       identical (consent gate excluded — engine-side, target-keyed);
       mutate red (prediction: reintroducing the selection.rs:693 hidden
       play read fails the pair)
-- [ ] T020 [US2] Finalize
+- [X] T020 [US2] Finalize
       specs/059-teacher-rework/contracts/audit-record.md: every row
       resolved with its enforcement test named; SC-002's sweep output
       recorded in the file
@@ -160,7 +160,7 @@ and bounded per contracts/cue-answer.md.
 
 **Independent test**: SC-005 + the guards-owed list.
 
-- [ ] T021 [US3] Response term + fire condition in
+- [X] T021 [US3] Response term + fire condition in
       crates/cloudkitty-core/src/behavior/teacher.rs:
       `intensity ≥ max(reply_intensity_floor, top_pressure(me)/100)`,
       valuation-only on partnered rest (WantCuddle) / friend play
@@ -181,7 +181,7 @@ and bounded per contracts/cue-answer.md.
       serialization + golden-digest change the plan currently claims
       to avoid (it would ride the FR-014 re-record, but the plan.md
       Storage line and data-model.md must be amended before coding it)
-- [ ] T023 [US3] The guards-owed battery
+- [X] T023 [US3] The guards-owed battery
       (contracts/cue-answer.md), each via scripts/mutate.sh --expect:
       term present in-window / absent one tick past; threshold both
       directions; feasibility drops a louder-unreachable caller;
@@ -192,7 +192,7 @@ and bounded per contracts/cue-answer.md.
       FR-012's emission half, pinning behavior/mod.rs:504-537);
       consent + adjacency unchanged after the term (staging per
       research R13: emit while hearer busy)
-- [ ] T024 [US3] SC-005 sample: run
+- [X] T024 [US3] SC-005 sample: run
       experiments/tools/bc-collect on a seeded `teacher` roster;
       confirm nonzero answered-call rate, zero response outside digest
       visibility, zero consent/adjacency bypass; record the numbers in
@@ -205,21 +205,21 @@ and bounded per contracts/cue-answer.md.
 
 ## Phase 6: Polish & close
 
-- [ ] T025 [P] Update the dial doc comment
+- [X] T025 [P] Update the dial doc comment
       (crates/cloudkitty-core/src/config/mod.rs:346-353 — "the teacher
       doesn't read them yet" is now false) and the `[behavior]` docs
       for response_commitment_ticks
-- [ ] T026 [P] CHANGELOG.md Unreleased entry (public-voice at write
+- [X] T026 [P] CHANGELOG.md Unreleased entry (public-voice at write
       time) and specs/INDEX.md gains 059
-- [ ] T027 Fresh binding: `VIRTUAL_ENV=… maturin develop` then
+- [X] T027 Fresh binding: `VIRTUAL_ENV=… maturin develop` then
       `pytest crates/cloudkitty-py/tests` (local merge gate; the
       scratchpad ckpy venv is stale until rebuilt); confirm
       `ParallelEnv(control={…:"teacher"})` resolves
-- [ ] T028 SC-006: both shipped-config sweeps green with ZERO config
+- [X] T028 SC-006: both shipped-config sweeps green with ZERO config
       edits (`cargo test -p cloudkitty-core --test shipped_configs`,
       `-p cloudkitty-rl --test shipped_configs_rl`); full workspace run
       with counts vs the T001 baseline
-- [ ] T029 Spec-058 T024 obligation (FR-014): re-run the friend-field
+- [X] T029 Spec-058 T024 obligation (FR-014): re-run the friend-field
       read sweep over the final tree, re-verify 058's FR-011 strip
       list, record the result in
       specs/058-gen2-observation-schema/contracts/observation-v6.md

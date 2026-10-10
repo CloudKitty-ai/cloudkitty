@@ -3671,7 +3671,10 @@ mod refusal_reason_tests {
             target: Some(TargetRef::Kitty { id: 2 }),
         };
         assert_eq!(validate(&world, 1, play, &config), Action::Idle);
-        assert_eq!(refusal_reason(&world, 1, play, &config), RefusalReason::PartnerBusy);
+        assert_eq!(
+            refusal_reason(&world, 1, play, &config),
+            RefusalReason::PartnerBusy
+        );
         assert_eq!(
             validate(&world, 1, Action::Rest { with: Some(2) }, &config),
             Action::Rest { with: Some(2) }
@@ -3736,7 +3739,12 @@ mod refusal_reason_tests {
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(9, 9);
         assert_eq!(
-            refusal_reason(&world, 1, Action::Chase(TargetRef::Kitty { id: 2 }), &config),
+            refusal_reason(
+                &world,
+                1,
+                Action::Chase(TargetRef::Kitty { id: 2 }),
+                &config
+            ),
             RefusalReason::Other,
             "a chase is legal whenever the friend exists: never a partner reason"
         );

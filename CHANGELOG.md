@@ -52,6 +52,7 @@ change.
   menu at 35.
 
 - **One teacher, and consent belongs to the one asked.** `[rng-sequence]`
+  `[stamp]`
   The two scripted brains became one parameterized teacher (spec 059):
   the identity dials the observation already shows — need rates, comfort
   slack, consent line, favourites — now drive the behavior itself,

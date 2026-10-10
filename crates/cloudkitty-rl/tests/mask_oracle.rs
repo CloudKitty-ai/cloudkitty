@@ -576,9 +576,10 @@ fn the_mask_is_consent_blind_by_design() {
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(5, 6); // adjacent, idle
         world.kitties[b].needs = Default::default();
-        world.kitties[b].needs.add(cloudkitty_core::needs::NeedKind::Eat, eat);
-        world
-            .kitties[b]
+        world.kitties[b]
+            .needs
+            .add(cloudkitty_core::needs::NeedKind::Eat, eat);
+        world.kitties[b]
             .needs
             .add(cloudkitty_core::needs::NeedKind::Play, 10.0);
         world

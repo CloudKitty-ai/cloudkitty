@@ -17,12 +17,7 @@ use cloudkitty_core::{BehaviorRegistry, Config, World};
 /// whose consent comes from the CONFIG the gate reads (`consent_line_for`:
 /// per-kitty override, else the world line). Kitty 1 stands adjacent so a
 /// play proposal is validate-legal and only consent can refuse it.
-fn staged(
-    world_line: f32,
-    kitty2_line: Option<f32>,
-    eat: f32,
-    play: f32,
-) -> (World, Arc<Config>) {
+fn staged(world_line: f32, kitty2_line: Option<f32>, eat: f32, play: f32) -> (World, Arc<Config>) {
     let mut config = Config::default();
     config.behavior.consent_line = world_line;
     if let Some(line) = kitty2_line {
@@ -36,8 +31,12 @@ fn staged(
     let b = world.kitty_index(2).unwrap();
     world.kitties[b].pos = cloudkitty_core::Position::new(5, 6);
     world.kitties[b].needs = Default::default();
-    world.kitties[b].needs.add(cloudkitty_core::NeedKind::Eat, eat);
-    world.kitties[b].needs.add(cloudkitty_core::NeedKind::Play, play);
+    world.kitties[b]
+        .needs
+        .add(cloudkitty_core::NeedKind::Eat, eat);
+    world.kitties[b]
+        .needs
+        .add(cloudkitty_core::NeedKind::Play, play);
     (world, config)
 }
 
@@ -142,13 +141,19 @@ async fn a_burdened_friend_is_never_conscripted_end_to_end() {
     let a = world.kitty_index(1).unwrap();
     world.kitties[a].pos = cloudkitty_core::Position::new(5, 5);
     world.kitties[a].needs = Default::default();
-    world.kitties[a].needs.add(cloudkitty_core::NeedKind::Play, 45.0); // real play urge
+    world.kitties[a]
+        .needs
+        .add(cloudkitty_core::NeedKind::Play, 45.0); // real play urge
     let b = world.kitty_index(2).unwrap();
     world.kitties[b].pos = cloudkitty_core::Position::new(5, 6); // adjacent
     world.kitties[b].needs = Default::default();
-    world.kitties[b].needs.add(cloudkitty_core::NeedKind::Eat, 40.0);
-    world.kitties[b].needs.add(cloudkitty_core::NeedKind::Play, 10.0); // burdened: blocked at 30
-    // Park every other seat far away so the staging is the pair's.
+    world.kitties[b]
+        .needs
+        .add(cloudkitty_core::NeedKind::Eat, 40.0);
+    world.kitties[b]
+        .needs
+        .add(cloudkitty_core::NeedKind::Play, 10.0); // burdened: blocked at 30
+                                                     // Park every other seat far away so the staging is the pair's.
     for k in &mut world.kitties {
         if k.id > 2 {
             k.pos = cloudkitty_core::Position::new(15, 15);
@@ -157,10 +162,7 @@ async fn a_burdened_friend_is_never_conscripted_end_to_end() {
     world.tick(&registry, &config).await;
     let kitty2 = world.kitty(2).unwrap();
     assert!(
-        !matches!(
-            kitty2.activity,
-            cloudkitty_core::Activity::Playing { .. }
-        ),
+        !matches!(kitty2.activity, cloudkitty_core::Activity::Playing { .. }),
         "the burdened friend was conscripted: {:?}",
         kitty2.activity
     );
@@ -318,10 +320,7 @@ async fn record_spec059_fire_counter() {
     let mut out = serde_json::Map::new();
     for (arm, path) in [
         ("served_cloudkitty_toml", "cloudkitty.toml"),
-        (
-            "cert_anchor_b3",
-            "experiments/fog-gen1-cert/anchor-b3.toml",
-        ),
+        ("cert_anchor_b3", "experiments/fog-gen1-cert/anchor-b3.toml"),
     ] {
         let text = std::fs::read_to_string(root.join(path)).expect("config readable");
         let config: Config = toml::from_str(&text).expect("config parses");

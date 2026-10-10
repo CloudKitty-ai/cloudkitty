@@ -125,9 +125,7 @@ impl Teacher {
                 .iter()
                 .map(|kind| weights.get(*kind) * ctx.me.needs.get(*kind))
                 .fold(0.0f32, f32::max);
-            if weighted_pressure < ctx.config.behavior.playful_comfort
-                && slack_gate_open(ctx)
-            {
+            if weighted_pressure < ctx.config.behavior.playful_comfort && slack_gate_open(ctx) {
                 return selection::scored_play_action(ctx);
             }
         }
@@ -349,9 +347,10 @@ mod tests {
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = crate::grid::Position::new(5, 5);
             world.kitties[idx].needs = crate::needs::Needs::default();
-            world.kitties[idx].needs.add(crate::needs::NeedKind::Bath, 10.0);
-            world
-                .kitties[idx]
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Bath, 10.0);
+            world.kitties[idx]
                 .last_relief
                 .insert(crate::needs::NeedKind::Eat, 200 - ticks_since);
             // Park the other seats out of reach AND mid-scene: at default
@@ -426,8 +425,12 @@ mod tests {
                 let idx = world.kitty_index(1).unwrap();
                 world.kitties[idx].pos = crate::grid::Position::new(5, 5);
                 world.kitties[idx].needs = crate::needs::Needs::default();
-                world.kitties[idx].needs.add(crate::needs::NeedKind::Eat, 40.0);
-                world.kitties[idx].needs.add(crate::needs::NeedKind::Cuddle, 40.0);
+                world.kitties[idx]
+                    .needs
+                    .add(crate::needs::NeedKind::Eat, 40.0);
+                world.kitties[idx]
+                    .needs
+                    .add(crate::needs::NeedKind::Cuddle, 40.0);
                 // Both reliefs underfoot: chow adjacent, an idle friend adjacent.
                 world.push_element(crate::element::Element {
                     id: 800,
@@ -494,7 +497,9 @@ mod tests {
                 // presets take the LUXURY path (scored_playmate — the one
                 // place a reintroduced partner read could hide), and well
                 // over the wander line so no RNG draw complicates the pair.
-                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 40.0);
+                world.kitties[idx]
+                    .needs
+                    .add(crate::needs::NeedKind::Play, 40.0);
                 // A competing critter at the friend's exact distance: a
                 // score moved by hidden state FLIPS the pick instead of
                 // vanishing into a one-candidate scan.
@@ -564,13 +569,7 @@ mod tests {
 
     /// Stages an audible want-call from `id`, stamped `age` ticks before
     /// the staged now (tick 100), at the caller's position.
-    fn call(
-        world: &mut crate::world::World,
-        id: u32,
-        kind: MessageKind,
-        intensity: f32,
-        age: u64,
-    ) {
+    fn call(world: &mut crate::world::World, id: u32, kind: MessageKind, intensity: f32, age: u64) {
         let pos = world.kitties.iter().find(|k| k.id == id).unwrap().pos;
         world.recent_meows.push(crate::meow::Meow {
             kitty_id: id,
@@ -595,7 +594,9 @@ mod tests {
             let idx = world.kitty_index(1).unwrap();
             world.kitties[idx].pos = crate::grid::Position::new(5, 5);
             world.kitties[idx].needs = crate::needs::Needs::default();
-            world.kitties[idx].needs.add(crate::needs::NeedKind::Sleep, own_top);
+            world.kitties[idx]
+                .needs
+                .add(crate::needs::NeedKind::Sleep, own_top);
             for k in &mut world.kitties {
                 if k.id != 1 {
                     k.pos = crate::grid::Position::new(18, 18);
@@ -794,8 +795,12 @@ mod tests {
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = crate::grid::Position::new(5, 6);
         world.kitties[b].needs = crate::needs::Needs::default();
-        world.kitties[b].needs.add(crate::needs::NeedKind::Play, 35.0);
-        world.kitties[b].needs.add(crate::needs::NeedKind::Eat, 60.0);
+        world.kitties[b]
+            .needs
+            .add(crate::needs::NeedKind::Play, 35.0);
+        world.kitties[b]
+            .needs
+            .add(crate::needs::NeedKind::Eat, 60.0);
         assert_eq!(
             world.apply_slot_verdict(1, action, &config),
             Action::Idle,
@@ -826,7 +831,9 @@ mod tests {
         // contracts/presets-and-dials.md, pinned: a toggle edit must be a
         // deliberate contract change, not a drive-by.
         let nd = Teacher::NEEDS_DRIVEN;
-        assert!((nd.wander, nd.groom_response, nd.luxury, nd.responses) == (true, true, false, false));
+        assert!(
+            (nd.wander, nd.groom_response, nd.luxury, nd.responses) == (true, true, false, false)
+        );
         let p = Teacher::PLAYFUL;
         assert!((p.wander, p.groom_response, p.luxury, p.responses) == (false, false, true, false));
         let g = Teacher::GEN2;

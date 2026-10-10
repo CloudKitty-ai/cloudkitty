@@ -162,11 +162,7 @@ fn scored(
     let value = (pressure + behavior.urgency_weight * urgency)
         * (1.0 + ctx.config.favourite_weight_for(ctx.me.id, kind));
     let answer = terms.for_need(kind).map(|t| t.boost).unwrap_or(0.0);
-    Some(
-        value + answer
-            - behavior.tile_cost * distance
-            - scene_exposure_for(ctx, kind, playmate),
-    )
+    Some(value + answer - behavior.tile_cost * distance - scene_exposure_for(ctx, kind, playmate))
 }
 
 /// Spec 045 seam 1: the expected exposure of the concrete candidate this
@@ -638,31 +634,28 @@ pub fn scored_playmate(ctx: &DecisionContext) -> Option<(TargetRef, Position)> {
     });
     // (Spec 047's site-1 consent filter left with the 2026-10-10 re-key:
     // the engine's target-side gate is the one consent authority.)
-    let friends = ctx
-        .world
-        .others(me.id)
-        .map(|k| {
-            (
-                TargetRef::Kitty { id: k.id },
-                k.pos,
-                1u8,
-                k.id,
-                // Value AND exposure computed ONCE per candidate, here at
-                // construction (the module's recorded 2026-08-29 rule: no
-                // re-derivation inside the comparator). Exposure is 0.0 the
-                // moment the ladder gate is off — the helper's short-circuit.
-                Some((
-                    partner_value(ctx, k),
-                    expected_scene_exposure(
-                        ctx,
-                        crate::kitty::Activity::Playing {
-                            target: Some(TargetRef::Kitty { id: k.id }),
-                        },
-                        k.id,
-                    ),
-                )),
-            )
-        });
+    let friends = ctx.world.others(me.id).map(|k| {
+        (
+            TargetRef::Kitty { id: k.id },
+            k.pos,
+            1u8,
+            k.id,
+            // Value AND exposure computed ONCE per candidate, here at
+            // construction (the module's recorded 2026-08-29 rule: no
+            // re-derivation inside the comparator). Exposure is 0.0 the
+            // moment the ladder gate is off — the helper's short-circuit.
+            Some((
+                partner_value(ctx, k),
+                expected_scene_exposure(
+                    ctx,
+                    crate::kitty::Activity::Playing {
+                        target: Some(TargetRef::Kitty { id: k.id }),
+                    },
+                    k.id,
+                ),
+            )),
+        )
+    });
 
     critters
         .chain(friends)
@@ -1976,12 +1969,7 @@ mod playful2_tests {
     /// digest-keyed now — what a test used to say with a hidden need it
     /// says with a call). The world is pinned at tick 100 so the call,
     /// stamped one tick earlier, is audible by the start-of-tick rule.
-    fn say_want(
-        world: &mut crate::world::World,
-        id: u32,
-        kind: MessageKind,
-        intensity: f32,
-    ) {
+    fn say_want(world: &mut crate::world::World, id: u32, kind: MessageKind, intensity: f32) {
         world.tick = 100;
         let pos = world.kitties.iter().find(|k| k.id == id).unwrap().pos;
         world.recent_meows.push(crate::meow::Meow {
