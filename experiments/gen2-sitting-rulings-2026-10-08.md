@@ -523,3 +523,75 @@ on the re-pointed trigger, and banked the assembled package with
    resting on the ablated standalone cert. Professor: "Declared
    choice, not an accident of trunk exposure." Until the
    world-model era, cap + monitoring carry the load.
+
+## Ruling 2026-10-10 — the Phase-2 correction: "4) split as amended"
+
+Her word, in-session 2026-10-10: "4) split as amended" — the split
+Experiments proposed, as amended by the Professor review
+(`~/ai/professor/notes/for-experiments-minifriend-feedback-2026-10-08.md`
+§"Phase-2 correction split review (2026-10-10)"). Closes the
+skeleton's open owner-call slot on the 09-26 over-trust mitigation.
+
+1. DEFERRED: the correction's feedback path (error reshaping the
+   belief / per-friend downweighting of imagination). Rationale on
+   record: Phase 2 stays architecture + imagination, one live arm
+   vs trunk; a bundled correction deletes attribution.
+2. SHIPPED in Phase 2: the per-friend running error signal,
+   PASSIVE-LOGGED only — no path into belief or policy. The mini's
+   weights are FROZEN in Phase 2, pinned from Phase 1, declared at
+   the arm spec. The freeze is load-bearing, not hygiene
+   (Experiments' suspicion, called "correct and decisive" by
+   Professor): the logged quantity IS the act
+   predictor's per-sample prediction loss, so unfrozen heads would
+   already be the feedback path — "gradient descent performing the
+   per-friend correction uninvited". Live mini training belongs to
+   online mini-updating (1.3, banked) regardless.
+3. DECLARED TRIGGER with DUAL consequence (the hole Professor
+   closed: deferring removes a live mitigation, and detection
+   without a declared response is a hole). Evidence role: the trigger fires the correction as
+   a named follow-up arm. Protection role: the ostrich-gap
+   disjunct DOUBLES as the live arm's demotion/stop condition —
+   graft reverts to trunk for the affected roster / arm halts
+   (house canary-gate + rollback pattern). Trigger shape:
+   per-friend SIGNED bias (optimism direction, matching the
+   ostrich signature) in grave strata, ostrich-gap shape, ONE
+   binning shared with the ostrich metric (semantic edges, pinned
+   in Rm; both disjuncts read it; bins "not re-litigable later");
+   min-n per friend × stratum; per-friend before pooled. WORD
+   DISCIPLINE: the logged quantity detects MISCALIBRATION (the
+   mini's property); over-trust is the policy's property, so the
+   follow-up arm must carry the confirmatory use-side read —
+   response degradation concentrated on wrong-prediction ticks,
+   logged error crossed with the harm-prediction/refusal
+   instruments — before any over-trust claim.
+4. SUPERSESSION, marked explicitly: the Professor-lane online
+   addendum's banked line "Gen 2 ships the error-signal INPUT
+   only" is superseded — Gen 2 ships it LOGGED only; the as-input
+   variant moves into the follow-up arm (the defer rationale
+   applies to input too: signal-as-input is a third component in
+   the arm). Professor amends both their records (the online addendum AND
+   their banked item 1); this repo carried the
+   question only as the skeleton's owner-call slot, closed by this
+   ruling.
+5. SIX PRE-COMMITMENTS binding the follow-up arm (never
+   re-litigated): (i) estimate-head TARGETS = instrumented ground
+   truth, immutable — moving targets would collapse the ostrich
+   metric into the trained objective ("if targets move, the
+   instrument measures itself"); (ii) the correction enters as INPUT/STATE
+   only — error signal as input, belief-update modulation,
+   per-friend drift-rate adaptation (A4's natural home) — never
+   loss-target modification; (iii) any online-weight-update
+   variant inherits the online-addendum caveats unmodified
+   (governor-in-miniature, ostrich-by-data rehearsal buffer,
+   coverage floor on the updated model); (iv) marker hygiene — the A3 worked check's wording stays true
+   only while the correction lives in the host's use of mini
+   outputs or the mini's inputs; a correction giving the mini an
+   internal error-driven state variable it maintains approaches
+   Marker B, so the follow-up arm
+   re-runs the A3 worked check as a standing step; (v) baselines
+   pre-pinned: trunk + uncorrected Phase 2, both already run — no
+   new baseline design;
+   (vi) trigger bins/edges pinned NOW, shared with the ostrich
+   metric: the existing semantic edges (happiness 45/70, the 90
+   distress edge, per §3 item (d) above); only the margin and min-n
+   VALUES wait for the freeze.

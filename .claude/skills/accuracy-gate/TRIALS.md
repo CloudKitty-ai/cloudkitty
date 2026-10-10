@@ -673,3 +673,23 @@ in summary. Dispositions (parked/dropped/deferred/retired) get quoted
 or checked like numbers. Second lesson: when a ruled list is copied
 into a second document, copy the NUMBERING, not just the content — two
 different four-item cuts of the same material read as different rules.
+
+## 2026-10-10 — copy-check: item-4 ruling (Phase-2 correction split) + skeleton slot (Experiments)
+
+r1 FAIL (1 + drift): one quote inexact ("would measure itself" vs the
+source's "measures itself"); a merged-claims paraphrase (two source
+claims compressed to one inside a parenthetical); "decisive" credited
+to the reviewer when the source credits the suspicion to us and only
+the verdict to them; "their record" singular where the source names
+TWO records; two dropped commitment qualifiers; a timing flip
+(bins "pinned at the freeze" vs the source's "pinned NOW").
+r2 FAIL: a fix INTRODUCED a contradiction — the bins-timing fix
+updated one of the document's two statements of the fact and left the
+other stale; plus one mis-scoped cross-reference. r3 PASS.
+
+Lessons: (1) a fix that changes a fact sweeps the document for that
+fact's OTHER statements — reverberation applies within a single doc,
+not only across docs; (2) timing words (now / at the freeze) are
+disposition words and get the disposition treatment: quoted or
+checked like numbers; (3) attribution of evaluative words ("decisive")
+is itself a checkable fact — who said it about whose claim.

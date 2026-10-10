@@ -343,10 +343,31 @@ timebox)
    partnered-refusal tax (by `reason`), arm vs trunk, [BLANK]
    bars for both; consent and fog-pursuit OBSERVATIONAL-ONLY in
    Gen 2 [RULED S§3f]. Without passed consumer reads the claim
-   does not graduate past prediction accuracy. [BLANK — owner
-   call] whether the per-friend observed-behavior CORRECTION +
-   running error signal (the 09-26 over-trust mitigation) ships
-   in Gen 2's Phase 2 or defers.
+   does not graduate past prediction accuracy.
+   THE CORRECTION [RULED, owner 2026-10-10 in-session: "4) split
+   as amended" — full record at S§Ruling 2026-10-10]: the
+   feedback path DEFERS; the per-friend running error signal
+   ships in Phase 2 PASSIVE-LOGGED only; the mini's weights are
+   FROZEN in Phase 2 (pinned from Phase 1, declared at the arm
+   spec — unfrozen heads would BE the feedback path, since the
+   logged quantity is the act predictor's per-sample prediction
+   loss). Declared trigger, DUAL consequence: evidence (fires the
+   correction follow-up arm) and protection (the ostrich-gap
+   disjunct doubles as the live arm's demotion/stop — graft
+   reverts to trunk for the affected roster / arm halts). Trigger shape: per-friend
+   SIGNED bias, optimism direction, grave strata, ostrich-gap
+   shape, bins SHARED with the ostrich metric, pinned NOW
+   (not re-litigable later); min-n per friend × stratum;
+   per-friend before pooled. Word discipline: the logged quantity
+   detects MISCALIBRATION; the follow-up arm must carry the
+   error-conditioned consumer read before any over-trust claim.
+   Six pre-commitments bind the follow-up arm (S§Ruling
+   2026-10-10 item 5). Supersedes the Professor-lane line "Gen 2
+   ships the error-signal INPUT only" (as-input moves into the
+   follow-up arm). [BLANK] the trigger's signed-bias
+   (miscalibration-concentration) margin and the min-n floor —
+   VALUES at the freeze; the bins/edges themselves are pinned NOW
+   (the ostrich metric's existing semantic edges).
    Phase 1 may overlap the trunk's training TAIL (it needs frozen
    rollouts, not a finished trunk).
 5. [RULED S§6] RADIUS AXIS leg (the world-size screen's open
