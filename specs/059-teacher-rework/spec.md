@@ -18,7 +18,10 @@ bath-visible control), S§4 (grooming pair, no suppression), S§6
 `experiments/gen2-kickoff-rulings-2026-10-07.md` K§3 rider 2
 (adjacency-legal demonstrations), the 2026-09-13 shelf ruling (one
 teacher, identity dials), spec 057 (sleep rule reads the floor),
-prereg skeleton §4. Design discussion settled with Experiments
+prereg skeleton §4, and the 2026-10-10 consent re-key ruling
+(`gen2-sitting-rulings-2026-10-08.md` §"Ruling 2026-10-10 — consent
+re-keyed to the consent-giver", commit eb9e860b — supersedes the S§6
+proposer-side mechanism). Design discussion settled with Experiments
 2026-10-10 on the owner's relay word (slack gates entry; cue-answer
 shape pins; presets, not rename) — their answers quoted in the
 Assumptions.
@@ -34,6 +37,28 @@ own observation shows, and every teacher read of another cat's hidden
 state comes out or re-keys to visible signals. It lands before corpus
 collection (skeleton §10 step 1), and the mandatory Gen 2 re-record
 absorbs every behavioral change in one `[rng-sequence]` boundary.
+
+## Clarifications
+
+### Session 2026-10-10
+
+- Q: When the imitability audit removes or re-keys a hidden read that
+  today's brains exercise, must the presets still reproduce today's
+  decisions byte-for-byte everywhere, or only on the reference suite
+  with audited divergences documented? → A: Option B as amended by
+  the owner's consent re-key ruling (reviewed with Experiments on her
+  word; ruled in the Experiments sitting, eb9e860b): byte-equality
+  holds on the reference suite everywhere EXCEPT consent sites.
+  Consent moves target-side and engine-validated — the proposer never
+  reads the target's hidden state; the TARGET declines when its own
+  top non-play need presses past its consent line, enforced at
+  proposal validation. The divergence at consent sites is accepted
+  and declared ("This design is better, and worth accepting the
+  divergence"); each site is documented in the audit record. No
+  rule-5 exception mechanism is needed. The S§6 proposer-side
+  `_consenting` call-site flips are superseded. A per-site fire
+  counter over the reference replay (site fired / decision moved) is
+  produced BEFORE SC-001 is pinned and kept as a permanent artifact.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -55,14 +80,15 @@ the dials its teacher ran on") is the design's honesty condition.
 **Independent Test**: configure two cats with different dials; the one
 teacher produces behaviors that differ exactly as the dials say, and a
 cat whose preset is `playful` behaves identically to today's playful
-on the same seeds.
+on the same seeds, consent sites excepted (SC-001).
 
 **Acceptance Scenarios**:
 
 1. **Given** a cat with preset `playful` and no dial overrides,
    **When** it runs on the deterministic suite the presets pin,
-   **Then** its decisions match the frozen preset reference — the c30
-   anchor's certification reference still holds.
+   **Then** its decisions match the frozen preset reference, consent
+   sites excepted and declared — the c30 anchor stays the
+   certification reference (SC-001).
 2. **Given** two cats identical except one has a higher comfort slack,
    **When** both satisfy a need, **Then** the higher-slack cat returns
    to luxury behavior later, by the slack difference, and the gate
@@ -71,9 +97,10 @@ on the same seeds.
    chooses among partnered activities of equal relief value, **Then**
    the favourite tips the choice as its weight says.
 4. **Given** any cat, **When** its consent line is set per-kitty,
-   **Then** partnered proposals against it are blocked at ITS line,
-   not the world line (the two call-site flips to the `_consenting`
-   variants, folded into this spec by recorded call).
+   **Then** partnered proposals against it are refused at ITS line,
+   not the world line — enforced target-side at proposal validation
+   (the 2026-10-10 ruling; supersedes the folded-in call-site
+   flips), and the refusal is observable to the proposer.
 
 ---
 
@@ -173,6 +200,11 @@ kinds.
 - The teacher reads the slack CELL's value (post-encode), so clamping
   (slack/40 capped at 1) is part of the semantics the teacher and
   student share.
+- A proposal at a past-the-line target under the re-keyed gate: it is
+  made (the proposer sees no hidden state), refused at validation,
+  and costs the proposer its tick — physics, not a nudge; trained
+  seats may learn to anticipate refusals from estimated friend needs
+  (emergent courtesy, never scripted — ruling 2026-10-10 item 4).
 
 ## Requirements *(mandatory)*
 
@@ -190,8 +222,10 @@ kinds.
   aliases resolving to the one teacher with frozen dial defaults. The
   spec's contract carries the preset→dial table as the citable
   reference; a config naming either string loads and behaves
-  byte-identically to today on the preset's reference suite (the
-  Biscuit 3.0 c30 anchor stays a valid certification reference — S§2).
+  byte-identically to today on the preset's reference suite, consent
+  sites excepted per SC-001 (the Biscuit 3.0 c30 anchor stays the
+  certification reference — S§2, with its consent-site divergences
+  declared per the 2026-10-10 ruling).
 - **FR-003**: Comfort slack MUST gate ENTRY to luxury behavior only
   (return-to-play after needs are satisfied); exit stays on the
   existing pressure × comfort-weight line. The gate MUST read the
@@ -200,11 +234,16 @@ kinds.
 - **FR-004**: Favourite weights MUST tip selection among partnered
   activities as per-cat preference (the Biscuit trait's new home);
   all-zero favourite reproduces today's unweighted selection.
-- **FR-005**: The consent_line gate MUST read the per-kitty line
-  (`consent_line_for`) at the two needs_driven call sites by flipping
-  them to the existing `_consenting` variants (S§6, folded in by
-  recorded call). The step-7 consent-transfer read's numbers become
-  reference-only (ruled).
+- **FR-005**: Consent MUST be enforced TARGET-SIDE at proposal
+  validation (ruling 2026-10-10, eb9e860b): the target declines when
+  its OWN top non-play need presses past its per-kitty line
+  (`consent_line_for`) — own state, legal for every mind — and the
+  gate binds every proposer type (scripted, plugin, future LLM
+  seats). This supersedes the S§6 proposer-side `_consenting`
+  call-site flips; no proposer-side consent read survives the audit.
+  The refusal MUST be observable to the proposer (failed proposal +
+  refusal stamp, the existing refusal-machinery pattern). The step-7
+  consent-transfer read's numbers become reference-only (ruled).
 - **FR-006**: The sleep rule MUST keep reading the floor (057,
   carried).
 
@@ -216,12 +255,22 @@ kinds.
   partner-value / top-non-play / consent-blocks) is resolved
   one-by-one — removed, or re-keyed to visible/audible signals — and
   the resolution of each site is recorded in the spec's contract.
+  Pre-resolved by record: finish-what-you-started's groomee read is
+  NOT an audited site (grooming's governing need is bath, the visible
+  need — the spec-054 valuation reads groomee bath pressure);
+  consent-blocks resolves by the target-side re-key (FR-005).
 - **FR-008**: The bath reads STAY (the announce-threshold decline and
   the exposure-vs-value comparison): bath is the ruled visible need.
   Effect-body pays at apply time stay: world pricing, exempt.
 - **FR-009**: Demonstrations MUST be adjacency-legal only (K§3 rider
   2): the teacher never proposes a partnered activity at a
   non-adjacent partner.
+- **FR-015**: Before SC-001 is pinned, a per-site FIRE COUNTER over
+  the reference-suite replay (per audited site: fired count /
+  decision-moved count) MUST be produced and kept as a permanent
+  artifact — the guarantee is written against measured conflict, and
+  the counter is Experiments' attribution tool when a re-check pin
+  moves post-059.
 
 **Cue-answer rungs (S§2; settled shape 2026-10-10)**
 
@@ -259,7 +308,9 @@ kinds.
 - **Response term**: a bounded, intensity-keyed, digest-gated valuation
   modifier — the demonstrable form of answering a call.
 - **The audit record**: the per-site resolution list for every hidden
-  read — the contract's evidence that rule 5 holds.
+  read, plus the per-site fire counter from the reference replay
+  (FR-015) and each declared consent-site divergence — the contract's
+  evidence that rule 5 holds.
 
 ## Success Criteria *(mandatory)*
 
@@ -267,7 +318,15 @@ kinds.
 
 - **SC-001**: On the preset reference suite, `playful` and
   `needs_driven` presets reproduce today's two brains decision-for-
-  decision on the same seeds (byte-stable c30 anchor included).
+  decision on the same seeds, EXCEPT at consent sites (ruling
+  2026-10-10: divergence accepted and declared) — there, proposals
+  the old gate silently suppressed become propose-then-refuse
+  exchanges, each site documented in the audit record. Acceptance
+  tests size to the measured scale (biscuit3 c30-off2 vs
+  c30-consent30: R7 0.208 → 0.013; Biscuit duet starts 67.3 → 49.0
+  per 1k ticks), not to residual poll-resolution reads. The c30
+  anchor stays the certification reference with its consent-site
+  divergences declared.
 - **SC-002**: The friend-field read sweep over the reworked behavior
   rules reports zero decision reads of hidden needs or happiness;
   bath and digest reads only (T024's re-verify doubles as this
@@ -307,9 +366,13 @@ Checked against `experiments/DESIGN-DOCTRINE.md`, 2026-10-10:
 - **Rule 9 (frozen models cannot answer a reprice)** moved FR-014:
   every behavioral change lands inside the one mandatory re-record;
   no frozen-corpus claim survives.
-- **Rules 1, 3, 4, 8, 10, 11, 12** were checked and moved nothing:
-  no reward term, no relief rider, no observation change (058's wall
-  stands), no gate semantics.
+- **Rule 12 (own current state is readable)** moved FR-005's shape
+  (via the 2026-10-10 ruling's gloss): the target declining on its
+  OWN pressing need is legal for every mind, which is what lets
+  consent re-key target-side instead of taking a rule-5 exception.
+- **Rules 1, 3, 4, 8, 10, 11** were checked and moved nothing: no
+  reward term, no relief rider, no observation change (058's wall
+  stands).
 
 ## Assumptions
 
