@@ -233,6 +233,13 @@ async fn run() -> Result<()> {
         cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl_config)?;
     cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins_config)?;
     config.validate_behavior_names(&registry.names())?;
+    // Spec 059 FR-011: a digest window too short for a typical approach
+    // makes most cue answers infeasible — lawful, but a collection config
+    // should hear about it at startup.
+    if let Some(shortfall) = cloudkitty_core::behavior::teacher::response_window_shortfall(&config)
+    {
+        tracing::warn!("{shortfall}");
+    }
 
     let config = Arc::new(config);
     // Spec 052: the key settings block, built here — after validation and

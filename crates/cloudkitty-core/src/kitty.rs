@@ -437,6 +437,19 @@ impl Kitty {
         self.last_relief.get(&kind).copied().unwrap_or(0)
     }
 
+    /// The highest of this kitty's NON-play needs. One home for the fold
+    /// (spec 047 FR-009, re-homed by spec 059): the engine's target-side
+    /// consent gate reads it about the TARGET's own state — a cat reading
+    /// its own needs, legal for every mind (rule 12). No behavior-layer
+    /// caller remains (the proposer-side gate is gone).
+    pub fn top_non_play_pressure(&self) -> f32 {
+        NeedKind::ALL
+            .iter()
+            .filter(|kind| **kind != NeedKind::Play)
+            .map(|kind| self.needs.get(*kind))
+            .fold(0.0f32, f32::max)
+    }
+
     /// Whether `target` is currently excluded after an abandoned chase.
     pub fn is_chase_excluded(&self, target: TargetRef, tick: u64) -> bool {
         self.abandoned_chases

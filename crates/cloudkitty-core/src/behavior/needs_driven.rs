@@ -12,7 +12,7 @@ use async_trait::async_trait;
 
 use super::relief::ReliefSource;
 use super::{selection, Behavior, DecisionContext};
-use crate::action::Action;
+use crate::action::{Action, TargetRef};
 use crate::element::ElementType;
 use crate::grid::Direction;
 use crate::needs::NeedKind;
@@ -41,37 +41,11 @@ impl Behavior for NeedsDriven {
 }
 
 impl NeedsDriven {
+    // Spec 059: the ladder lives in `Teacher` now — one parameterized
+    // teacher, this struct kept as the preset's test-facing name and the
+    // engine's fallback type. The delegation is total by construction.
     pub(crate) fn decide_action(&self, ctx: &DecisionContext) -> Action {
-        // A scene in progress that is still doing its job gets finished first.
-        if let Some(action) = finish_what_you_started(ctx) {
-            return action;
-        }
-
-        // Never walk away from something you were going to want anyway.
-        if let Some(action) = take_what_is_here(ctx) {
-            return action;
-        }
-
-        // Answer an audible ask before pottering off (spec 028): kindness
-        // sits above idle wandering, below the cat's own urgent errands.
-        if let Some(action) = groom_response(ctx) {
-            return action;
-        }
-
-        let (_, pressure) = ctx.me.needs.highest_pressure();
-
-        // (Announcing left the ladder in spec 028: the message channel
-        // rides along every decision -- see `decide` -- so speaking up no
-        // longer costs a rung or a turn. Purring left in spec 011.)
-
-        // Nothing pressing: potter about.
-        if pressure < 20.0 && ctx.rng.gen_bool(0.4) {
-            return wander(ctx);
-        }
-
-        // One scored pass over every need: urgency weighs in, travel counts
-        // against, and nothing gets locked out (see `selection`).
-        pursue(ctx, selection::choose(ctx))
+        super::teacher::Teacher::NEEDS_DRIVEN.decide_action(ctx)
     }
 }
 
@@ -132,19 +106,10 @@ const OPPORTUNISM_LADDER: [NeedKind; 4] = [
 /// real. Shared with `Playful`: opportunism is good sense, not a personality
 /// trait. The need→relief pairing comes from the one authoritative definition
 /// (`relief.rs`, spec 019); this function owns only the underfoot checks.
+/// (Spec 047's consenting twin left with the 2026-10-10 re-key: one
+/// opportunism rung for every preset; consent is the engine's
+/// target-side gate now.)
 pub(crate) fn take_what_is_here(ctx: &DecisionContext) -> Option<Action> {
-    take_what_is_here_with(ctx, false)
-}
-
-/// [`take_what_is_here`] with the spec-047 consent gate armed on the
-/// Playmate rung — the playful behavior's opportunism entry (site 3).
-/// Every other rung is identical; needs_driven keeps the classic entry
-/// point above, untouched by the dial.
-pub(crate) fn take_what_is_here_consenting(ctx: &DecisionContext) -> Option<Action> {
-    take_what_is_here_with(ctx, true)
-}
-
-fn take_what_is_here_with(ctx: &DecisionContext, consent: bool) -> Option<Action> {
     let me = &ctx.me;
     let detour = ctx.config.behavior.worth_a_detour;
 
@@ -181,7 +146,7 @@ fn take_what_is_here_with(ctx: &DecisionContext, consent: bool) -> Option<Action
             }
             // A bug within paw's reach gets batted at, whatever the errand was.
             ReliefSource::Playmate => {
-                if let Some(target) = selection::adjacent_playmate_with(ctx, consent) {
+                if let Some(target) = selection::adjacent_playmate(ctx) {
                     return Some(Action::play_with(target));
                 }
             }
@@ -260,10 +225,41 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
 
         // Play targeting, give-up and the solo backstop live in `selection` so
         // both built-in profiles pursue fun by exactly the same rules -- against
-        // the playmate the scored pass already found.
-        ReliefSource::Playmate => selection::play_action_with(ctx, choice.playmate),
+        // the playmate the scored pass already found. An ANSWERED play call
+        // (spec 059 US3) retargets the pursuit at the caller: the answer is
+        // to THAT cat, at its call's stamp when unseen; the engine's
+        // consent and adjacency gates hear the proposal unchanged.
+        ReliefSource::Playmate => match choice.answered {
+            // A reached stamp with no caller in view drops the answer and
+            // falls through to the ordinary playmate pick — the cuddle
+            // arm's rule, mirrored (review 2026-10-10 finding 3: an
+            // unseen "playmate" reads mid-scene and pinned the cat at
+            // solo pounces on the empty stamp).
+            Some((caller, stamp))
+                if ctx.world.kitty(caller).is_some() || !me.pos.is_adjacent(&stamp) =>
+            {
+                let pos = ctx.world.kitty(caller).map(|k| k.pos).unwrap_or(stamp);
+                selection::play_action_with(ctx, Some((TargetRef::Kitty { id: caller }, pos)))
+            }
+            _ => selection::play_action_with(ctx, choice.playmate),
+        },
 
         ReliefSource::Friend => {
+            // An answered cuddle call (spec 059 US3): walk to the CALLER —
+            // at its seen position, or the call's stamp when unseen (the
+            // groom_response precedent) — and propose partnered rest on
+            // arrival. A reached stamp with no caller in view drops the
+            // answer and falls through to the ordinary cuddle pursuit.
+            if let Some((caller, stamp)) = choice.answered {
+                match ctx.world.kitty(caller) {
+                    Some(k) if me.pos.is_adjacent(&k.pos) => {
+                        return Action::Rest { with: Some(caller) };
+                    }
+                    Some(k) => return step_toward(ctx, k.pos),
+                    None if !me.pos.is_adjacent(&stamp) => return step_toward(ctx, stamp),
+                    None => {}
+                }
+            }
             // Only an idle friend can be drawn into a cuddle (spec 006
             // conscription) -- proposing at a busy one would just bounce to
             // Idle. Seek the nearest *free* VISIBLE friend -- or, under fog
@@ -350,7 +346,7 @@ pub(crate) fn explore(ctx: &DecisionContext) -> Action {
 /// (the imitability principle). Yields to the responder's own urgency:
 /// any need at or above the safeguard threshold is its own errand first,
 /// so urgent eat still wins the ladder.
-fn groom_response(ctx: &DecisionContext) -> Option<Action> {
+pub(crate) fn groom_response(ctx: &DecisionContext) -> Option<Action> {
     let me = &ctx.me;
     if me.needs.get(NeedKind::Cuddle) < ctx.config.behavior.cuddle_real_threshold {
         return None;
@@ -459,7 +455,7 @@ fn groom_response(ctx: &DecisionContext) -> Option<Action> {
 /// paddle when paddling is the only way forward. The sidestep fallback
 /// prefers dry tiles for the same reason a cat standing in a puddle gets out
 /// of it.
-fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
+pub(crate) fn step_toward(ctx: &DecisionContext, target: crate::grid::Position) -> Action {
     let me = ctx.me.pos;
     let occupied = |dest: &crate::grid::Position| {
         ctx.world
@@ -667,7 +663,7 @@ fn cosleep_worth_the_exposure(ctx: &DecisionContext, friend: crate::kitty::Kitty
     exposure <= ctx.me.needs.get(NeedKind::Cuddle) + relief
 }
 
-fn wander(ctx: &DecisionContext) -> Action {
+pub(crate) fn wander(ctx: &DecisionContext) -> Action {
     let direction = ctx
         .rng
         .choose(&Direction::ALL)

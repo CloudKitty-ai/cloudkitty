@@ -96,6 +96,12 @@ pub enum RefusalReason {
     /// The target is adjacent but not conscriptable -- mid-scene or asleep
     /// (only social play conscripts; rest, sleep and groom bind nobody).
     PartnerBusy,
+    /// Spec 059 (ruling eb9e860b): the target's own consent line declined
+    /// the conscription — its top non-play need presses past its line and
+    /// past its own play need. Target-side, engine-validated; the
+    /// proposer sees the refusal, never the reason's inputs. Wire name
+    /// `consent_declined`.
+    ConsentDeclined,
     /// Everything else: a Move into an occupied tile, Eat/Drink with
     /// nothing adjacent, play or chase at a vanished or distant critter, a
     /// stale Meow/Purr, a target that does not exist.

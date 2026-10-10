@@ -385,6 +385,12 @@ impl Config {
             // Spec 058: comfort slack (ticks) shares it too — it feeds an
             // observation cell, so a NaN would poison a schema value.
             ("[behavior] comfort_slack", b.comfort_slack),
+            // Spec 059: the cue-answer commitment margin (ticks) shares
+            // the rule — a NaN would poison the contention comparison.
+            (
+                "[behavior] response_commitment_ticks",
+                b.response_commitment_ticks,
+            ),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(

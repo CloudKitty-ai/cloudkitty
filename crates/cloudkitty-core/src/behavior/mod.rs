@@ -51,6 +51,7 @@ pub mod playful;
 mod relief;
 pub mod script;
 pub mod selection;
+pub mod teacher;
 pub mod test_behaviors;
 
 pub use exchange::{parse_reply_line, ReplyRejection};
@@ -137,11 +138,16 @@ impl BehaviorRegistry {
         Self::default()
     }
 
-    /// The behaviors CloudKitty ships with.
+    /// The behaviors CloudKitty ships with. All three rows are the ONE
+    /// parameterized teacher (spec 059): the two historical names resolve
+    /// to its compat presets (byte-equal outside consent sites), and
+    /// `teacher` — every rung on — is the Gen 2 collection seat
+    /// (contracts/presets-and-dials.md is the citable table).
     pub fn with_builtins() -> Self {
         let mut registry = Self::new();
-        registry.register("needs_driven", Arc::new(NeedsDriven));
-        registry.register("playful", Arc::new(Playful));
+        registry.register("needs_driven", Arc::new(teacher::Teacher::NEEDS_DRIVEN));
+        registry.register("playful", Arc::new(teacher::Teacher::PLAYFUL));
+        registry.register("teacher", Arc::new(teacher::Teacher::GEN2));
         registry
     }
 
@@ -367,7 +373,7 @@ async fn decide_one(job: DecisionJob, budget: Duration, registry: &BehaviorRegis
     match job.behavior {
         // A name that resolves to nothing is a config error caught at startup; if
         // one somehow reaches here, the kitty still gets a sensible turn.
-        None => NeedsDriven.decide(&job.ctx).await,
+        None => teacher::Teacher::NEEDS_DRIVEN.decide(&job.ctx).await,
 
         Some(b) if b.is_builtin() => match run_catching(b.as_ref(), &job.ctx).await {
             Some(decision) => decision,
@@ -480,10 +486,11 @@ async fn run_catching(behavior: &dyn Behavior, ctx: &DecisionContext) -> Option<
         .flatten()
 }
 
-/// `NeedsDriven` is total: it always returns something sensible, so it is the one
-/// behavior the engine can rely on when another fails.
+/// The needs_driven preset is total: it always returns something sensible,
+/// so it is the one behavior the engine can rely on when another fails
+/// (spec 059: the preset instance, not the shim struct — one teacher).
 async fn fallback(ctx: &DecisionContext) -> Decision {
-    NeedsDriven.decide(ctx).await
+    teacher::Teacher::NEEDS_DRIVEN.decide(ctx).await
 }
 
 /// The deterministic announce rule (spec 028 FR-018), shared by every
@@ -657,10 +664,12 @@ mod tests {
 
     #[test]
     fn builtins_are_registered_and_marked() {
+        // Spec 059: three rows, one Teacher (BTreeMap order).
         let r = BehaviorRegistry::with_builtins();
-        assert_eq!(r.names(), vec!["needs_driven", "playful"]);
+        assert_eq!(r.names(), vec!["needs_driven", "playful", "teacher"]);
         assert!(r.get("needs_driven").unwrap().is_builtin());
         assert!(r.get("playful").unwrap().is_builtin());
+        assert!(r.get("teacher").unwrap().is_builtin());
         assert!(r.get("nonexistent").is_none());
     }
 

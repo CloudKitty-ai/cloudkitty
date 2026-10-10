@@ -1,0 +1,12 @@
+{
+  "cert_anchor_b3": {
+    "consent_declined_fires": 442,
+    "ticks": 20000,
+    "total_refusals": 10350
+  },
+  "served_cloudkitty_toml": {
+    "consent_declined_fires": 442,
+    "ticks": 20000,
+    "total_refusals": 10350
+  }
+}

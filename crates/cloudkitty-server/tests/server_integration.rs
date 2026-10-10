@@ -667,7 +667,13 @@ async fn refusals_appear_on_the_refusal_events_endpoint() {
     for row in window["events"].as_array().unwrap() {
         let reason = row["reason"].as_str().expect("reason is a string");
         assert!(
-            ["partner_absent", "partner_busy", "other"].contains(&reason),
+            [
+                "partner_absent",
+                "partner_busy",
+                "consent_declined",
+                "other"
+            ]
+            .contains(&reason),
             "{reason}"
         );
     }

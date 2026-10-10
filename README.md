@@ -128,7 +128,7 @@ All read-only: the viewer is a window, not a control surface.
 | `GET /kitties/{id}` | One kitty (404 with `{"error": "..."}` if unknown) |
 | `GET /events/distress` | Recent distress events, oldest first |
 | `GET /events/activity` | Recently finished activities with their true tick spans |
-| `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `other`; spec 049) |
+| `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `consent_declined` / `other`; specs 049, 059) |
 | `GET /welfare` | The standing welfare watch: every live distress age, the alarm threshold, and whether an alarm is live (spec 040) |
 | `GET /config` | The active, validated configuration |
 | `GET /settings` | The key settings — every dial anyone has needed to verify after a deploy, each as effective value, engine default and source (`toml` / `default`); `Accept: text/plain` returns the boot-log block verbatim |

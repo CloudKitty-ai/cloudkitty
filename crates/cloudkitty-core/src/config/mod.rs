@@ -52,6 +52,14 @@ impl ConfigError {
     }
 }
 
+/// The comfort-slack identity cell's frozen normalizer (spec 058 review
+/// finding 6; moved here from the RL encoder by spec 059 R5 so the
+/// teacher's gate and the observation read one definition — core cannot
+/// depend on rl). Numerically equal to the spatial near field today, but
+/// a separate constant: a re-ruling of the spatial /40 must not silently
+/// rescale an identity cell.
+pub const COMFORT_SLACK_NORMALISER: f32 = 40.0;
+
 /// The whole configuration. Spec 049 FR-030 (the 3.0 wall): every
 /// section is REQUIRED -- a file that omits one fails to load naming it;
 /// there are no section-absence defaults. Per-field defaults survive
@@ -345,12 +353,14 @@ pub struct KittyConfig {
     pub needs: Option<NeedRateOverrides>,
     /// Gen 2 identity dials (spec 058). Each is an optional per-kitty
     /// override behind an accessor (`comfort_slack_for`, `consent_line_for`,
-    /// `favourite_weight_for`). Until spec 059 reseats the teacher on the
-    /// same accessors, the scripted rules read only the WORLD-level
-    /// values: a per-kitty dial set today reaches the observation, not
-    /// the behavior — set them only once the parameterized teacher
-    /// lands. Unset falls back to the `[behavior]` world value
-    /// (favourite: 0.0, no favourite).
+    /// `favourite_weight_for`) — and since spec 059 the SAME accessors
+    /// drive both the observation and the behavior: slack gates the
+    /// teacher's luxury entry (via the slack CELL's value), the consent
+    /// line is read by the ENGINE about this kitty as a TARGET (ruling
+    /// eb9e860b — it protects this cat from conscription, and gates no
+    /// proposal this cat makes), and favourites weight this cat's own
+    /// selection values. Unset falls back to the `[behavior]` world
+    /// value (favourite: 0.0, no favourite).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub comfort_slack: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1263,6 +1273,15 @@ pub struct BehaviorConfig {
     /// Skip-serialized when absent (the 039-D5 stamp discipline).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reply_intensity_floor: Option<f32>,
+    /// Spec 059 FR-016: the cue-answer commitment margin, in ticks. A
+    /// mid-approach challenger call displaces the incumbent answer only
+    /// when its contention score beats the incumbent's by
+    /// `k × response_commitment_ticks` — a challenger must be worth the
+    /// ticks already invested. Read only by the Gen 2 teacher's response
+    /// rungs (the compat presets never answer); the margin's k is the
+    /// derived constant in `behavior::teacher`. Default 3.0.
+    #[serde(default = "default_response_commitment_ticks")]
+    pub response_commitment_ticks: f32,
 }
 
 impl Default for BehaviorConfig {
@@ -1297,8 +1316,13 @@ impl Default for BehaviorConfig {
             announce_here: 0,
             contagion_aware_ladder: false,
             reply_intensity_floor: None,
+            response_commitment_ticks: default_response_commitment_ticks(),
         }
     }
+}
+
+fn default_response_commitment_ticks() -> f32 {
+    3.0
 }
 
 fn f32_is_zero(v: &f32) -> bool {
@@ -1518,6 +1542,15 @@ impl Config {
             .find(|k| k.id == kitty_id)
             .and_then(|k| k.comfort_slack)
             .unwrap_or(self.behavior.comfort_slack)
+    }
+
+    /// The value the comfort-slack observation CELL encodes (spec 059
+    /// FR-003): slack / [`COMFORT_SLACK_NORMALISER`], clamped to [0, 1].
+    /// ONE home on purpose — the observation encoder and the teacher's
+    /// luxury-entry gate both read this, so clamping (slack past 40
+    /// saturates) is semantics the teacher and the student share.
+    pub fn slack_cell_for(&self, kitty_id: KittyId) -> f32 {
+        (self.comfort_slack_for(kitty_id) / COMFORT_SLACK_NORMALISER).clamp(0.0, 1.0)
     }
 
     /// The effective consent line for one kitty (spec 058): its own
@@ -3649,6 +3682,27 @@ trill = true",
             c.behavior.reply_intensity_floor = ok;
             c.validate()
                 .unwrap_or_else(|e| panic!("{ok:?} is a legal floor: {e}"));
+        }
+    }
+
+    #[test]
+    fn response_commitment_ticks_must_be_finite_and_non_negative() {
+        // Spec 059 FR-016: the margin is a tick count; a NaN would poison
+        // the contention comparison, a negative has no meaning.
+        for bad in [-0.01f32, -3.0, f32::NAN, f32::NEG_INFINITY] {
+            let mut c = cfg();
+            c.behavior.response_commitment_ticks = bad;
+            let err = c.validate().unwrap_err().to_string();
+            assert!(
+                err.contains("[behavior] response_commitment_ticks"),
+                "{err}"
+            );
+        }
+        for ok in [0.0f32, 3.0, 10.0] {
+            let mut c = cfg();
+            c.behavior.response_commitment_ticks = ok;
+            c.validate()
+                .unwrap_or_else(|e| panic!("{ok} is a legal margin: {e}"));
         }
     }
 

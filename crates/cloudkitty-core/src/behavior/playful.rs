@@ -13,8 +13,7 @@
 
 use async_trait::async_trait;
 
-use super::needs_driven::{finish_what_you_started, pursue, take_what_is_here_consenting};
-use super::{selection, Behavior, DecisionContext};
+use super::{Behavior, DecisionContext};
 use crate::action::Action;
 use crate::seam::Decision;
 
@@ -41,52 +40,13 @@ impl Behavior for Playful {
 }
 
 impl Playful {
+    // Spec 059: the ladder lives in `Teacher` now — one parameterized
+    // teacher, this struct kept as the preset's test-facing name. The
+    // comfort line, its weights and the luxury mode are the Teacher's
+    // luxury rung; the spec-047 proposer-side consent sites are GONE
+    // (ruling 2026-10-10: consent is the engine's target-side gate).
     fn decide_action(&self, ctx: &DecisionContext) -> Action {
-        // Even a playful cat finishes the nap it is in the middle of.
-        if let Some(action) = finish_what_you_started(ctx) {
-            return action;
-        }
-
-        // Opportunism is good sense, not a personality trait: a playful cat still
-        // eats the food it is standing next to before running off after a bug.
-        // Spec 047 site 3: but even a game within paw's reach honors the
-        // consent line — adjacency is not a bypass.
-        if let Some(action) = take_what_is_here_consenting(ctx) {
-            return action;
-        }
-
-        // Some things cannot wait, even for a good game. The comfort line is
-        // configurable ([behavior] playful_comfort, default 55): well below the
-        // safeguard threshold, so a playful cat keeps itself in reasonable shape
-        // instead of skirting the edge of distress between games. Since spec 042
-        // each need's pressure is weighed first ([behavior.comfort_weight],
-        // all 1.0 = exactly the classic unweighted check) -- so a demo config
-        // can make a cat food-attentive without tripping seriousness on a
-        // routine bath peak. The weights move only THIS trigger: getting
-        // serious means the same scored selection the sensible cat uses, read
-        // from unweighted needs -- a playful personality is a different life,
-        // never a different immune system.
-        let weights = &ctx.config.behavior.comfort_weight;
-        let weighted_pressure = crate::needs::NeedKind::ALL
-            .iter()
-            .map(|kind| weights.get(*kind) * ctx.me.needs.get(*kind))
-            .fold(0.0f32, f32::max);
-        if weighted_pressure >= ctx.config.behavior.playful_comfort {
-            // Spec 047 site 2: getting serious still honors the consent
-            // line — the same scored selection the sensible cat uses, but
-            // a blocked friend never enters its playmate scan.
-            return pursue(ctx, selection::choose_consenting(ctx));
-        }
-
-        // (Purring left the proposal surface in spec 011: the engine rumbles
-        // a contented cat in the background, no turn required.)
-
-        // The game is wherever the nearest playmate worth having is -- critter
-        // or friend, minus anything already written off as uncatchable. Shared
-        // rules (viability, give-up, the solo backstop) live in `selection`.
-        // (The chase-announce lottery died in spec 028: the shared announce
-        // rule speaks WantPlay whenever it is genuinely armed and legal.)
-        selection::scored_play_action(ctx)
+        super::teacher::Teacher::PLAYFUL.decide_action(ctx)
     }
 }
 
@@ -148,13 +108,16 @@ mod tests {
             .consent_line = line;
     }
 
-    /// Spec 047 site 2 (get-serious, T009): above the comfort line with
-    /// play the winning need, the gate still holds — the cat does not
-    /// walk after the burdened friend, it pounces at nothing where it
-    /// stands (the Article III degradation: play stays satisfiable,
-    /// solo — assert the positive, analysis C1).
+    /// Spec 059 (ruling eb9e860b — the inversion of spec 047 site 2):
+    /// the serious proposer is CONSENT-BLIND. Above the comfort line with
+    /// play the winning need, the cat pursues the burdened friend —
+    /// reading no hidden state — and the ENGINE's target-side gate
+    /// refuses the eventual proposal (the world.rs consent battery pins
+    /// that half; the friend is still never conscripted, end to end).
+    /// Rule-6 record: the spec-047 form of this guard was seen RED on
+    /// 2026-10-10 before this rewrite.
     #[tokio::test]
-    async fn a_serious_playful_cat_honors_the_consent_line() {
+    async fn a_serious_playful_cat_is_consent_blind_the_engine_refuses() {
         let mut ctx = decision_context(|world| {
             world.elements.clear();
             let idx = world.kitty_index(1).unwrap();
@@ -167,20 +130,26 @@ mod tests {
             stage_burdened_friend(world, Position::new(5, 8));
         });
         set_consent_line(&mut ctx, 30.0);
-        assert_eq!(
-            Playful.decide_action(&ctx),
+        let action = Playful.decide_action(&ctx);
+        assert!(
+            matches!(action, Action::Chase(_) | Action::Move { .. }),
+            "the proposer walks after the friend it cannot read; got {action:?}"
+        );
+        assert_ne!(
+            action,
             Action::play_solo(),
-            "play is the errand, the friend is off the table: solo, never a chase"
+            "solo-first was the proposer-side gate's shape; it is repealed"
         );
     }
 
-    /// Spec 047 site 3 (opportunism, T011): a burdened idle friend within
-    /// paw's reach is NOT batted into a game. With real play urge (over
-    /// `worth_a_detour` 30, under comfort 55), no critter anywhere and the
-    /// only friend blocked, the whole decision degrades to solo play —
-    /// adjacency is not a bypass, and play stays satisfiable (analysis C1).
+    /// Spec 059 (ruling eb9e860b — the inversion of spec 047 site 3):
+    /// opportunism is consent-blind too. The adjacent burdened friend IS
+    /// proposed to; the engine refuses at the apply slot with
+    /// `consent_declined` (world.rs battery) and the exchange is the
+    /// propose-then-refuse demonstration the re-key makes visible.
+    /// Rule-6 record: the spec-047 form was seen RED on 2026-10-10.
     #[tokio::test]
-    async fn an_adjacent_burdened_friend_is_not_batted_into_a_game() {
+    async fn opportunism_is_consent_blind_the_engine_hears_the_proposal() {
         let mut ctx = decision_context(|world| {
             world.elements.clear();
             let idx = world.kitty_index(1).unwrap();
@@ -191,24 +160,19 @@ mod tests {
         set_consent_line(&mut ctx, 30.0);
         assert_eq!(
             Playful.decide_action(&ctx),
-            Action::play_solo(),
-            "the opportunism rung must skip the burdened friend; solo, not conscription"
+            Action::play_with(TargetRef::Kitty { id: 2 }),
+            "adjacency proposes; consent is the engine's call now"
         );
     }
 
-    /// Spec 047, medium-review finding 1 — ACCEPTED BY THE OWNER
-    /// 2026-09-01 and pinned here as INTENDED: blocking the only playmate
-    /// re-prices play as solo (distance 0, the pre-047 absent-friend
-    /// rule), which near the play/eat crossover can flip one tick from
-    /// "walk to the bowl" to "pounce at nothing first". Rationale on
-    /// record: the scripted cat is a training teacher; marginal scoring
-    /// detours wash out in training — what matters is that considering
-    /// the OTHER cat's needs is modeled at all, so it can be learned.
-    /// Bounded: solo play relieves play, eat keeps rising, safeguard
-    /// urgency buries play past 75. Experiments' R2 (hungry-play share)
-    /// watches the aggregate.
+    /// Spec 059: the consent line no longer moves the DECISION layer at
+    /// all — the spec-047 solo-repricing side effect (owner-accepted
+    /// 2026-09-01, medium-review finding 1) is repealed with its gate.
+    /// The decision is identical with the line off and on; what changes
+    /// is the engine's verdict on the proposal. Rule-6 record: the
+    /// spec-047 form was seen RED on 2026-10-10.
     #[tokio::test]
-    async fn blocking_the_only_playmate_may_buy_solo_play_a_tick_over_eating() {
+    async fn the_consent_line_never_moves_the_decision_layer() {
         let stage = |line: f32| {
             let mut ctx = decision_context(|world| {
                 world.elements.clear();
@@ -228,14 +192,15 @@ mod tests {
             set_consent_line(&mut ctx, line);
             Playful.decide_action(&ctx)
         };
+        let off = stage(0.0);
+        let on = stage(30.0);
         assert!(
-            matches!(stage(0.0), Action::Move { .. }),
-            "line off: play pays the 5-tile walk to the friend, eat wins"
+            matches!(off, Action::Move { .. }),
+            "play pays the 5-tile walk to the friend, eat wins the walk race"
         );
         assert_eq!(
-            stage(30.0),
-            Action::play_solo(),
-            "line 30: the friend is blocked, play prices as solo (0 tiles) and outscores eat for a tick"
+            off, on,
+            "the line is invisible to the proposer: identical decisions"
         );
     }
 
@@ -370,6 +335,7 @@ mod tests {
 #[cfg(test)]
 mod comfort_weight_tests {
     use super::*;
+    use crate::behavior::needs_driven::pursue;
     use crate::behavior::selection;
     use crate::element::{Element, ElementKind};
     use crate::grid::Position;

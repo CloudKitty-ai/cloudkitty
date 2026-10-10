@@ -351,6 +351,12 @@ impl World {
             // proposal gets its normal hearing.
             self.prune_dead_activity(kitty_id);
             let validated = action::validate(self, kitty_id, proposal, config);
+            // The consent gate (spec 059, ruling eb9e860b): a SEPARATE step
+            // after validate, deliberately outside what the RL legal mask
+            // replays — the mask must stay consent-blind (the target's
+            // needs are hidden state; anticipation is emergent, never
+            // handed to a seat). The TARGET declines on its OWN line.
+            let validated = self.consent_verdict(kitty_id, validated, config);
             // Duration enforcement (spec 006): inside an activity's minimum the
             // engine continues the scene whatever was proposed; past it, a
             // different action lawfully interrupts (ending a duet for both).
@@ -372,7 +378,7 @@ impl World {
                     tick: self.tick,
                     absorbed: enforced != action::Action::Idle,
                     // Spec 049 T093: named on the world `validate` judged.
-                    reason: action::refusal_reason(self, kitty_id, proposal),
+                    reason: action::refusal_reason(self, kitty_id, proposal, config),
                 });
             }
             // Record what actually happened, not what was proposed: the viewer's
@@ -577,11 +583,14 @@ impl World {
     }
 
     /// The apply slot's gauntlet, run for real (spec 014): counterpart
-    /// pruning, validation, then duration enforcement — mutations included.
-    /// Returns the action that would be applied. Exists for the mask's
-    /// pure-oracle property test, which checks the read-only
-    /// [`World::enforcement_verdict`] path against this genuine one on a
-    /// probe world; the served tick never calls it.
+    /// pruning, validation, the consent gate (spec 059), then duration
+    /// enforcement — mutations included. Returns the action that would be
+    /// applied. Exists for the mask's pure-oracle property test, which
+    /// checks the read-only [`World::enforcement_verdict`] path against
+    /// this genuine one on a probe world; the served tick never calls it.
+    /// The consent step makes the two paths diverge EXACTLY at consent
+    /// sites — the mask's documented blindness (ruling eb9e860b item 4),
+    /// which that property test must therefore stage with the gate open.
     pub fn apply_slot_verdict(
         &mut self,
         kitty_id: KittyId,
@@ -590,7 +599,50 @@ impl World {
     ) -> crate::action::Action {
         self.prune_dead_activity(kitty_id);
         let validated = action::validate(self, kitty_id, proposal, config);
+        let validated = self.consent_verdict(kitty_id, validated, config);
         self.enforce_durations(kitty_id, validated, config)
+    }
+
+    /// The target-side consent gate (spec 059 FR-005; ruling 2026-10-10,
+    /// eb9e860b). For a CONSCRIPTING proposal — social play is the only
+    /// binding arm (rest, sleep and groom bind nobody) — the target
+    /// declines when its own top non-play need presses strictly past its
+    /// per-kitty consent line AND strictly past its own play need (spec
+    /// 047's predicate, moved target-side whole). The proposer never
+    /// reads the target's state: the ENGINE does, about the target, at
+    /// the apply slot — rule 12's own-state read. A line ≤ 0 is
+    /// structurally open (`Config::default()` and every pre-047 world
+    /// pass untouched). Binds EVERY proposer type: scripted, policy,
+    /// plugin, future LLM seats (ruling item 2's universality).
+    fn consent_verdict(
+        &self,
+        proposer: KittyId,
+        validated: crate::action::Action,
+        config: &Config,
+    ) -> crate::action::Action {
+        use crate::action::{Action, TargetRef};
+        let Action::Play {
+            target: Some(TargetRef::Kitty { id: target }),
+        } = validated
+        else {
+            return validated;
+        };
+        if target == proposer {
+            return validated;
+        }
+        let line = config.consent_line_for(target);
+        if line <= 0.0 {
+            return validated;
+        }
+        let Some(k) = self.kitty(target) else {
+            return validated;
+        };
+        let top = k.top_non_play_pressure();
+        if top > line && top > k.needs.get(crate::needs::NeedKind::Play) {
+            Action::Idle
+        } else {
+            validated
+        }
     }
 
     /// The read-only twin of `enforce_durations` (spec 014): what duration
