@@ -90,12 +90,15 @@ lines are what the freeze sitting must pin. Rulings sources:
   base/stride/count + observation_len + slot_config; v5
   oracle-locked to the 049 contract) and `ACTION_MENU`. Schema
   spec = **058** (specs/058-gen2-observation-schema).
-- [OPEN — owner word, CATCHES THIS WALL OR WAITS A GENERATION]
-  critter_slots 4 → 2 was banked "for Gen 2" (BACKLOG,
-  2026-09-04) but is NOT in the ruled package; it moves the
-  observation layout AND the action menu, so if ruled in it must
-  land in 058's wall before collection. Surfaced to her by
-  Product 2026-10-09; freezing §3 waits on her word either way. Metric pin at 058:
+- [RULED, owner 2026-10-10 in-session: "I ruled critter slots 4
+  to 2, product is working on it now"] critter_slots 4 → 2 IN.
+  #444 merged at 4 slots, so this lands as a follow-up re-cut of
+  the 058 wall (observation layout AND action menu move;
+  OBSERVATION and ACTION/MASK versions bump again), BEFORE
+  collection per the order in §10. Evidence basis: BACKLOG
+  §critter_slots (slot 4 = 0 fills, slot 3 = 35 seed-clustered
+  in 320k cat-ticks). Freezing §3 waits on the re-cut landing,
+  no longer on a word. Metric pin at 058:
   MANHATTAN throughout the new distance/bearing cells (walk-cost
   units; the ruled (dx/d, dy/d) form preserved as the L1 unit
   pair; constants 40/400 hold — max Manhattan 198 at 100×100);
