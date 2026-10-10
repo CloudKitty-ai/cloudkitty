@@ -59,6 +59,22 @@ absorbs every behavioral change in one `[rng-sequence]` boundary.
   `_consenting` call-site flips are superseded. A per-site fire
   counter over the reference replay (site fired / decision moved) is
   produced BEFORE SC-001 is pinned and kept as a permanent artifact.
+- Q: When two friends' want-calls of the SAME kind are digest-visible
+  at once, which does the hearer answer — strongest, stacked, or
+  nearest? → A: Owner confirmed the Professor's recommendation
+  (advisory banked 2026-10-10,
+  `professor/notes/for-product-spec059-cue-answer-2026-10-10.md`;
+  her "Confirm" in-session): a hard feasibility filter first (drop
+  callers unreachable inside the remaining window), then linear
+  net-surplus scoring `intensity − k·d` (Manhattan) with
+  `k = (I_max − I_min) / D_w` anchored to declared constants; a
+  single winner sets the response term AND names the answered
+  partner — no stacking. Tie chain: score → higher intensity →
+  nearer → lower id. Against mid-approach flips from NEW calls, a
+  small commitment margin `h = k × a few ticks`; geometry already
+  stabilizes the incumbent (approach shrinks its distance). The rule
+  maximizes INTENSITY, the audible proxy — "greatest need" is
+  unobservable by rule 5.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -176,6 +192,12 @@ kinds.
 4. **Given** FR-036's cuddle-clause revisit changes consent semantics
    later, **When** the response fires, **Then** it inherits the change
    with no amendment (valuation-only placement).
+5. **Given** two feasible same-kind calls where
+   `intensity_diff > k · distance_diff`, **When** the hearer answers,
+   **Then** the louder caller is the named partner; with the
+   inequality reversed, the nearer one — and a mid-approach
+   challenger within the commitment margin never displaces the
+   incumbent (FR-016).
 
 ---
 
@@ -191,6 +213,14 @@ kinds.
 - Two simultaneous digest-visible cues of different kinds: each
   response term applies to its own activity's valuation; selection
   proceeds normally.
+- Two simultaneous digest-visible cues of the SAME kind: the FR-016
+  contention rule picks one winner (feasibility filter, then
+  intensity − k·d); on larger maps the iso-line
+  `intensity_diff = k · distance_diff` is where the choice flips from
+  louder to nearer — the prereg-able signature for the cloned policy.
+- A louder-but-farther caller that fails the feasibility filter: the
+  nearer, quieter caller wins outright — infeasible calls never enter
+  the score.
 - A cue from a cat that then left the audible window mid-approach: the
   response term expires with digest visibility; the engine's normal
   counterpart-gone handling covers an in-flight scene.
@@ -281,7 +311,23 @@ kinds.
 - **FR-011**: The response threshold MUST key to the call's intensity
   cells (graded: louder is likelier answered), and the response
   window MUST be at least the typical approach time at walk speed so
-  an answer can physically complete.
+  an answer can physically complete. Intensity is the audible PROXY
+  for the caller's need — "greatest need" is unobservable (rule 5);
+  the rule maximizes what the student can hear.
+- **FR-016**: Same-kind call contention MUST resolve to ONE winner
+  (confirmed 2026-10-10): first a hard feasibility filter — a caller
+  the hearer cannot reach and complete with inside its remaining
+  window is dropped — then linear net-surplus scoring,
+  `score = intensity − k·d` with d Manhattan and
+  `k = (I_max − I_min) / D_w` (D_w = max feasible Manhattan distance
+  inside the digest window), both derived from declared constants,
+  not new tunables. The winner sets the response term and names the
+  answered partner; calls never stack. Tie chain: score → higher
+  intensity → nearer → lower id (deterministic, seed-stable). A
+  challenger arriving mid-approach displaces the incumbent only past
+  a small declared commitment margin `h = k × a few ticks` (exact
+  tick count pinned at plan time); with no new calls, approach
+  geometry alone keeps the incumbent stable.
 - **FR-012**: The scripted teacher MUST NOT emit or decide by any
   free-register kind (mew, chirp, trill, ekekek) — doctrine rule 6
   carried through the rework; the rungs key to want-kinds only.
