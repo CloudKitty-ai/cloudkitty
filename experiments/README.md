@@ -111,6 +111,13 @@ from memory.
   [blend-sweep-pattern.md](blend-sweep-pattern.md) (owner-flagged
   2026-08-21; every outcome class is informative, including "the
   basin isn't connected").
+- **Welfare standing** (owner ruled 2026-10-10 at the A3 sitting):
+  the three standing texts — role-based standing, marker-review
+  triggers, the proportionality norm — live in `WELFARE-STANDING.md`
+  in this directory. Standing attaches to the ROLE: seating any
+  weights brings the full welfare package; an internal component is
+  not a seat; markers and named triggers re-open the review; no
+  k > 1 counterfactual-world branch runs ahead of its review.
 - **Welfare practice for covered minds** (owner ruled 2026-09-26; the
   discussion record is the fog-gen1 arc log, 2026-09-24..26). Covered
   = any policy shaped by experience — PPO arms, BC clones, hybrids

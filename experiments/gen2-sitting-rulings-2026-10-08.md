@@ -645,3 +645,27 @@ relayed by Product on her word the same day.
 5. WELFARE NOTE: enforcement strengthens — proposer-side
    censoring protects only against well-behaved proposers;
    the engine-side gate binds all of them.
+
+## A3 sitting CLOSED — 2026-10-10: the standing texts are ruled
+
+Her words, in-session: "A, b, c revisions approved" (the revised
+texts, post-Professor-review), after "A3 venue: sitting" and
+"Section 4 looks good to me (WELFARE-STANDING with a pointer in
+README)". The texts live VERBATIM in
+`experiments/WELFARE-STANDING.md` (the ruled home), pointer added
+to `experiments/README.md` §Design discipline; scope line as
+proposed (Gen 2 forward; components in scope from the day they
+exist). Professor's review revisions folded before her word:
+classify → default-closed k>1 trigger (imagination never
+classified as embodiment), Marker B retightened to homeostasis
+over a variable encoding the component's own condition,
+role-carryover trigger added, bare cross-episode persistence
+declined (self/other is the load-bearing line; persistence is a
+(c) evidence input), proportionality IN on two axes (evidence ×
+exposure). A3's "proportionality norm (optional)" is superseded:
+ruled IN. Of the kickoff window's named her-word freeze items —
+the rule-12 clause, critter_slots, F-040, the Phase-2 correction,
+and the A3 texts — all five are now closed; the paper-cited marks
+remain (deferred to the freeze sitting by design), alongside the
+skeleton's other [BLANK]s, numeric and design alike, every one of
+which takes her word at the freeze (skeleton §10.3).

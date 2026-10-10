@@ -705,3 +705,21 @@ DUET STARTS (18.3/1k — "proposals" is an inference, now labeled as
 one). Pre-gate self-catch on record: the residual "25 of 1,960" had
 been misread as a blocked count in two outbound messages; the record
 carries the correction and the corrected scale.
+
+## 2026-10-10 — copy-check: A3 sitting closure set (WELFARE-STANDING.md + 3 companions) (Experiments)
+
+r1 FAIL (1) + advisory: the closure paragraph's "only the
+paper-cited marks and the numeric pins remain" understated the open
+set — the skeleton still carries DESIGN blanks (field list, response
+shape, critic-blind blinding, radius-axis design), and §10.3 makes
+every [BLANK] a her-word item; fixed by naming the five closed items
+explicitly and scoping the remainder to §10.3. Advisory taken as a
+provenance NOTE, not an edit: ruled text approved verbatim by the
+owner stays byte-identical even when a letter-vs-record nuance is
+found — the nuance is recorded beside it, labeled as the file's
+reading. r2 PASS.
+
+Lesson: closure claims ("only X remains") are counting claims —
+enumerate against the artifact, never against the summary list in
+one's head. And post-approval, the record's own sections are the
+place for corrections; the ruled text is not.
