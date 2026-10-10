@@ -35,7 +35,7 @@ impl fmt::Display for SchemaMapError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnknownSchemaVersion(v) => {
-                write!(f, "no column map for schema version {v} (maps exist for 5)")
+                write!(f, "no column map for schema version {v} (maps exist for 5 and 6)")
             }
             Self::UnknownCell(n) => write!(f, "no cell named '{n}' in this schema version"),
             Self::UnknownBlock(n) => write!(f, "no block named '{n}' in this schema version"),
@@ -182,12 +182,122 @@ static V5: SchemaMap = SchemaMap {
     ],
 };
 
+/// Schema 6 (spec 058, contracts/observation-v6.md): DERIVED from the
+/// live encoder's offset constants — one source, never a second literal
+/// table. `schema_six_pins.rs` asserts the constants against the
+/// contract; `tests/schema_map.rs` asserts this map against the pins
+/// and the default slot config.
+static V6: SchemaMap = {
+    use crate::observe::offsets as o;
+    const SPATIAL: usize = 4;
+    SchemaMap {
+        observation_version: 6,
+        observation_len: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5 + 2 * 7 + 4 * 11,
+        slot_config: (4, 2, 2, 2, 4),
+        blocks: &[
+            BlockSpec { name: "kitty_row", base: o::SELF_BLOCK, stride: o::KITTY_SLOT, count: 4 },
+            BlockSpec { name: "chow", base: o::SELF_BLOCK + 4 * o::KITTY_SLOT, stride: 6, count: 2 },
+            BlockSpec {
+                name: "water",
+                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6,
+                stride: 5,
+                count: 2,
+            },
+            BlockSpec {
+                name: "sunbeam",
+                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5,
+                stride: 7,
+                count: 2,
+            },
+            BlockSpec {
+                name: "critter",
+                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5 + 2 * 7,
+                stride: 11,
+                count: 4,
+            },
+        ],
+        cells: &[
+            // Self block (absolute). No clock cell exists at v6.
+            ("self.needs.eat", 0),
+            ("self.needs.drink", 1),
+            ("self.needs.sleep", 2),
+            ("self.needs.play", 3),
+            ("self.needs.cuddle", 4),
+            ("self.needs.bath", 5),
+            ("self.happiness", 6),
+            ("self.wall.n", o::SELF_WALLS),
+            ("self.wall.e", o::SELF_WALLS + 1),
+            ("self.wall.s", o::SELF_WALLS + 2),
+            ("self.wall.w", o::SELF_WALLS + 3),
+            ("self.activity_block", o::SELF_WALLS + 4),
+            ("self.social", o::SELF_WALLS + 11),
+            ("self.in_sunbeam", o::SELF_WALLS + 12),
+            ("self.in_water", o::SELF_WALLS + 13),
+            ("self.progress", o::SELF_WALLS + 14),
+            ("self.distress_block", o::SELF_WALLS + 15),
+            ("self.pursuit_block", o::SELF_WALLS + 21),
+            ("self.identity_block", o::SELF_IDENTITY),
+            ("self.identity.need_rates", o::SELF_IDENTITY),
+            ("self.identity.comfort_slack", o::SELF_IDENTITY + 6),
+            ("self.identity.consent_line", o::SELF_IDENTITY + 7),
+            ("self.identity.favourite_block", o::SELF_IDENTITY + 8),
+            ("self.scene_age", o::SELF_SCENE_AGE),
+            ("self.msg_block", o::SELF_MSG_BLOCK),
+            ("self.memory_block", o::SELF_MEMORY),
+            ("self.waypoint_block", o::SELF_WAYPOINT),
+            ("self.dirt_reserve_block", o::SELF_DIRT_RESERVE),
+            // Kitty row (stride-relative, stride 58).
+            ("kitty_row.present", 0),
+            ("kitty_row.bearing_x", 1),
+            ("kitty_row.bearing_y", 2),
+            ("kitty_row.linear", 3),
+            ("kitty_row.log", 4),
+            ("kitty_row.bath", o::ROW_BATH),
+            ("kitty_row.activity_block", o::ROW_BATH + 1),
+            ("kitty_row.partner", o::ROW_BATH + 8),
+            ("kitty_row.is_my_target", o::ROW_BATH + 9),
+            ("kitty_row.in_water", o::ROW_WATER_BIT),
+            ("kitty_row.on_sunbeam", o::ROW_SUNBEAM_BIT),
+            ("kitty_row.scene_age", o::ROW_SCENE_AGE),
+            ("kitty_row.msg_block", o::ROW_MSG_BLOCK),
+            ("kitty_row.want_block", o::ROW_INTENSITY),
+            ("kitty_row.answers_me_block", o::ROW_ANSWERS_ME),
+            // Element slots: present + the spatial group, then v5 extras.
+            ("chow.present", 0),
+            ("chow.bearing_x", 1),
+            ("chow.bearing_y", 2),
+            ("chow.linear", 3),
+            ("chow.log", 4),
+            ("chow.servings", 1 + SPATIAL),
+            ("water.present", 0),
+            ("water.bearing_x", 1),
+            ("water.bearing_y", 2),
+            ("water.linear", 3),
+            ("water.log", 4),
+            ("sunbeam.present", 0),
+            ("sunbeam.bearing_x", 1),
+            ("sunbeam.bearing_y", 2),
+            ("sunbeam.linear", 3),
+            ("sunbeam.log", 4),
+            ("sunbeam.ttl", 1 + SPATIAL),
+            ("sunbeam.occupied", 1 + SPATIAL + 1),
+            ("critter.present", 0),
+            ("critter.bearing_x", 1),
+            ("critter.bearing_y", 2),
+            ("critter.linear", 3),
+            ("critter.log", 4),
+            ("critter.is_greeble", 1 + SPATIAL),
+            ("critter.heading_block", 1 + SPATIAL + 1),
+            ("critter.is_activity_target", 1 + SPATIAL + 5),
+        ],
+    }
+};
+
 /// The column map for one observation schema version.
 pub fn column_map(version: u32) -> Result<&'static SchemaMap, SchemaMapError> {
     match version {
         5 => Ok(&V5),
-        // 6 is added when the v6 encoder lands (spec 058 T015), derived
-        // from the live offset constants — never a second literal table.
+        6 => Ok(&V6),
         v => Err(SchemaMapError::UnknownSchemaVersion(v)),
     }
 }

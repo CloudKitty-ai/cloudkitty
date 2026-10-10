@@ -59,22 +59,22 @@ waypoint bearing, reserve cells present-at-zero.
 
 ### Tests first (red before implementation)
 
-- [ ] T006 [US1] Write crates/cloudkitty-rl/tests/schema_six_pins.rs
+- [X] T006 [US1] Write crates/cloudkitty-rl/tests/schema_six_pins.rs
   asserting every contract offset literally (self 109, row 58, slots
   6/5/7/11, no clock, versions 6 and 2) — RED against the v5 encoder
   by construction; mutate prediction post-green: any single offset
   literal edit reds it
-- [ ] T007 [P] [US1] Write the size-invariance test (quickstart 2) in
+- [X] T007 [P] [US1] Write the size-invariance test (quickstart 2) in
   crates/cloudkitty-rl/tests/size_invariance.rs: same relative scene
   at 20×20 vs 100×100, spatial cells identical — prediction: RED
   under the v5 width/height-normalized encoder (cells differ), green
   only after FR-001
-- [ ] T008 [P] [US1] Write the row-visibility property test
+- [X] T008 [P] [US1] Write the row-visibility property test
   (quickstart 3) in crates/cloudkitty-rl/tests/row_visibility.rs:
   randomized friend states; row carries bath, layout has no cell for
   the five needs/happiness; heard rows carry bath 0 — prediction:
   RED (v5 rows carry needs+happiness)
-- [ ] T009 [P] [US1] Write the no-clock, overshoot, and
+- [X] T009 [P] [US1] Write the no-clock, overshoot, and
   waypoint-value tests (quickstart 6, 8; FR-012) in
   crates/cloudkitty-rl/tests/clock_and_range.rs: stationary world
   encodes tick-stable; dx=2,dy=3 at r=4 encodes Manhattan 5 unclamped
@@ -87,7 +87,7 @@ waypoint bearing, reserve cells present-at-zero.
 
 ### Implementation
 
-- [ ] T010 [US1] Rewrite the encoder in
+- [X] T010 [US1] Rewrite the encoder in
   crates/cloudkitty-rl/src/observe.rs per the contract: spatial
   group helper (Manhattan bearing + /40 + log400, zero-distance
   (0,0)), wall cells, identity block via T002 accessors, row
@@ -98,16 +98,16 @@ waypoint bearing, reserve cells present-at-zero.
   green; rule 6 sort: schema_five_pins stays GREEN (literal table,
   T004), encoder-coupled v5 row tests in observe.rs's test module go
   red and are updated to v6 with each rename listed in the PR
-- [ ] T011 [US1] Remove `behavior::served_clock` and its serving
+- [X] T011 [US1] Remove `behavior::served_clock` and its serving
   plumbing in crates/cloudkitty-core/src/behavior/mod.rs and callers
   (R9) — rule 6: its unit tests are deleted with it, stated in the
   PR
-- [ ] T012 [US1] Extend crates/cloudkitty-rl/src/global_state.rs per
+- [X] T012 [US1] Extend crates/cloudkitty-rl/src/global_state.rs per
   kitty with the +8 identity extension via T002 accessors;
   `GLOBAL_STATE_SCHEMA_VERSION = 2`; `global_state_len` updated —
   test first: global-state pins for the new per-kitty width, mutate
   prediction: dropping the consent cell reds the width pin
-- [ ] T013 [US1] Verify the artifact version gate end to end
+- [X] T013 [US1] Verify the artifact version gate end to end
   (quickstart 7): a v5-pinned policy refuses to load against v6 with
   a clear error, and the served Gen 1 path still loads v5 — test in
   the existing version-gate suite, mutate prediction: forcing the
@@ -121,17 +121,17 @@ waypoint bearing, reserve cells present-at-zero.
 
 **Independent Test**: quickstart scenario 4.
 
-- [ ] T014 [P] [US2] Write
+- [X] T014 [P] [US2] Write
   crates/cloudkitty-rl/tests/schema_map.rs: v5 lookups equal the
   T004 literal table; v6 lookups equal the T006 pins; unknown
   version/name are errors; action-menu names match the codec table —
   RED (module absent); mutate prediction post-green: swapping two
   v5 entries reds the oracle cross-check
-- [ ] T015 [US2] Implement crates/cloudkitty-rl/src/schema_map.rs:
+- [X] T015 [US2] Implement crates/cloudkitty-rl/src/schema_map.rs:
   `column_map(version)` with v6 derived from the encoder's offset
   constants, v5 as the literal table, action menu v2 names,
   `UnknownSchemaVersion`/`UnknownCell` errors (R8)
-- [ ] T016 [US2] Export `COLUMN_MAPS` and `ACTION_MENU` from
+- [X] T016 [US2] Export `COLUMN_MAPS` and `ACTION_MENU` from
   crates/cloudkitty-py/src/lib.rs beside the `*_SCHEMA_VERSION`
   constants; python-side check per quickstart 4 (maturin develop,
   VIRTUAL_ENV set)
@@ -144,13 +144,13 @@ waypoint bearing, reserve cells present-at-zero.
 
 **Independent Test**: quickstart scenario 5.
 
-- [ ] T017 [US3] Write the inertness property test in
+- [X] T017 [US3] Write the inertness property test in
   crates/cloudkitty-rl/tests/dirt_reserve.rs: both cells exactly 0.0
   over randomized worlds/configs, and no encoder write path reaches
   the reserve range (offsets 107–108 written only by the reserve
   push) — mutate prediction: making the encoder write any nonzero
   into offset 107 reds it
-- [ ] T018 [US3] Record the inertness result in the contract
+- [X] T018 [US3] Record the inertness result in the contract
   (contracts/observation-v6.md, "proven inert" line with date and
   test name) — the pre-freeze proof the prereg cites
 

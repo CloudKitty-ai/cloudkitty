@@ -42,7 +42,7 @@ phase's `schema_six_pins.rs` asserts every number here literally;
 | 45–74 | 30 | own message block: per `HEAD_KINDS` kind (recency, rate) |
 | 75–104 | 30 | element memory: per `ElementType::ALL` kind — present, spatial group (4), staleness /40 |
 | 105–106 | 2 | waypoint bearing pair: L1 unit direction from own position to `Lattice::waypoint(own explore index)`; (0, 0) on the waypoint |
-| 107–108 | 2 | dirt reserve: always 0.0 until armed (future dirt-package arm); no engine write path exists |
+| 107–108 | 2 | dirt reserve: always 0.0 until armed (future dirt-package arm); no engine write path exists. PROVEN INERT 2026-10-09 pre-freeze (`tests/dirt_reserve.rs`): exactly 0.0 over the randomized battery (32 seeds × sizes 16/58/100 × 2 observers) and the reserve push is the block's final write — the F-058 check-1 bar |
 
 ## Kitty row — width 58, K rows, by id, permanent (FR-011 of 049)
 
