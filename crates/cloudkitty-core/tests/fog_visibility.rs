@@ -47,6 +47,9 @@ proptest! {
                 y,
                 behavior: "needs_driven".into(),
                 needs: None,
+                comfort_slack: None,
+                consent_line: None,
+                favourite: None,
             })
             .collect();
         prop_assume!(config.kitties.len() >= 2);

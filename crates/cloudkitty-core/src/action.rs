@@ -1794,6 +1794,9 @@ mod tests {
             y: 6,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         });
         let mut world = World::generate(&config);
         world.elements.clear();

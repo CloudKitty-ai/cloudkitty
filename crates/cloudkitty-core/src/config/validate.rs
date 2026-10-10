@@ -982,6 +982,58 @@ impl Config {
         Ok(())
     }
 
+    /// Spec 058 (Gen 2 identity dials): the observation encodes these, so a
+    /// bad dial poisons a schema cell, not just a behavior. World
+    /// comfort_slack is finite and non-negative; per-kitty overrides hold
+    /// the same bounds their world siblings do (consent 0–100, slack >= 0,
+    /// favourite weights [0, 1]); NaN rejected everywhere.
+    pub(super) fn validate_identity_dials(&self) -> Result<(), ConfigError> {
+        let slack = self.behavior.comfort_slack;
+        if !slack.is_finite() || slack < 0.0 {
+            return Err(ConfigError::invalid(
+                "[behavior] comfort_slack",
+                slack.to_string(),
+                "must be a finite number of at least 0 (ticks of slack)",
+            ));
+        }
+        for k in &self.kitties {
+            if let Some(s) = k.comfort_slack {
+                if !s.is_finite() || s < 0.0 {
+                    return Err(ConfigError::invalid(
+                        format!("[[kitty]] '{}' comfort_slack", k.name),
+                        s.to_string(),
+                        "must be a finite number of at least 0 (ticks of slack)",
+                    ));
+                }
+            }
+            if let Some(c) = k.consent_line {
+                if !c.is_finite() || !(0.0..=100.0).contains(&c) {
+                    return Err(ConfigError::invalid(
+                        format!("[[kitty]] '{}' consent_line", k.name),
+                        c.to_string(),
+                        "must be a finite number in 0..=100 (needs cap at 100, \
+                         the [behavior] consent_line rule)",
+                    ));
+                }
+            }
+            if let Some(f) = &k.favourite {
+                for (kind, w) in crate::needs::NeedKind::ALL
+                    .iter()
+                    .filter_map(|kind| f.get(*kind).map(|w| (kind, w)))
+                {
+                    if !w.is_finite() || !(0.0..=1.0).contains(&w) {
+                        return Err(ConfigError::invalid(
+                            format!("[[kitty]] '{}' favourite.{:?}", k.name, kind),
+                            w.to_string(),
+                            "must be a finite weight in 0..=1",
+                        ));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Confirms every configured behavior name is registered. Called once the
     /// behavior registry is known.
     pub fn validate_behavior_names(&self, known: &[String]) -> Result<(), ConfigError> {
