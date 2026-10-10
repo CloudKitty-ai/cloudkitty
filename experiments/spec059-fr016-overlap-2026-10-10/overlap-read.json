@@ -1,0 +1,35 @@
+{
+ "rollouts": 40,
+ "total_world_ticks": 800000,
+ "window_ticks": 30,
+ "walk_ticks": 15,
+ "expert_mixes": {
+  "needs_driven + needs_driven + needs_driven + needs_driven + playful": 40
+ },
+ "min_emission_gap": {
+  "want_play": 10,
+  "want_cuddle": 10
+ },
+ "kinds": {
+  "want_play": {
+   "emissions": 4625,
+   "episodes": 4072,
+   "episodes_per_1k_ticks_roster": 5.09,
+   "ticks_ge1_pct": 14.68,
+   "ticks_ge2_pct": 1.327,
+   "overlap_share_of_audible_pct": 9.04,
+   "coaudible_at_emit_pct": 15.94,
+   "fresh_challenger_pct": 7.55
+  },
+  "want_cuddle": {
+   "emissions": 57846,
+   "episodes": 26514,
+   "episodes_per_1k_ticks_roster": 33.14,
+   "ticks_ge1_pct": 82.8,
+   "ticks_ge2_pct": 48.427,
+   "overlap_share_of_audible_pct": 58.49,
+   "coaudible_at_emit_pct": 77.63,
+   "fresh_challenger_pct": 29.35
+  }
+ }
+}

@@ -723,3 +723,23 @@ Lesson: closure claims ("only X remains") are counting claims —
 enumerate against the artifact, never against the summary list in
 one's head. And post-approval, the record's own sections are the
 place for corrections; the ruled text is not.
+
+## 2026-10-10 — full gate: spec059-fr016-overlap read (Experiments)
+
+Target: experiments/spec059-fr016-overlap-2026-10-10/RESULTS.md
+(whole doc, fresh measurement note). Verdict PASS r1; four precision
+fixes applied post-gate, each from a verifier finding: a
+double-rounded 7.6 (rounded the printed 7.55 instead of the raw
+7.5459 — quote the cell, don't re-round it); an owner quote that
+existed only as Product's relay rendering, presented bare (relabeled
+as the relay's rendering per the sources-not-relays rule); a premise
+"quoted" that was a paraphrase in quote marks (replaced with the
+relay's verbatim words); a cross-population comparison printed in
+mismatched units (episodes/world-tick vs emissions/decision — the
+verifier derived the matched-units 3×, now in the doc).
+
+Lesson: quote marks are a provenance claim. A paraphrase in quote
+marks and a relay rendering presented as the speaker's words are the
+same bug at different distances from the source. And when comparing
+two rates, convert to one denominator in the doc itself — readers
+will ratio whatever two numbers sit side by side.
