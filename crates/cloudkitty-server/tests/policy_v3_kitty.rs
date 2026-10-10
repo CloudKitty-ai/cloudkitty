@@ -172,7 +172,10 @@ fn pre_wall_artifacts_fail_startup_and_the_schema_six_oracle_boots() {
             result.expect("the schema-6 oracle seats");
             assert!(registry.get("policy:oracle").is_some());
         } else {
-            let err = format!("{:#}", result.expect_err("a pre-wall schema is refused at startup"));
+            let err = format!(
+                "{:#}",
+                result.expect_err("a pre-wall schema is refused at startup")
+            );
             assert!(
                 err.contains("[rl.policy.oracle]"),
                 "names the config field: {err}"

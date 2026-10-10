@@ -1,4 +1,5 @@
-//! Global state v1 (spec 014 FR-019): the privileged critic view.
+//! Global state v2 (spec 014 FR-019; identity extension spec 058
+//! FR-009): the privileged critic view.
 //!
 //! A fixed-size vector (for a given configuration) derived from the same
 //! frozen snapshot as the observations: every kitty's full state **without
@@ -8,7 +9,10 @@
 //!
 //! Layout: per kitty in stable id order — needs (/100), happiness (/100),
 //! position, activity one-hot (7), social flag, partner (present flag +
-//! roster index / (n−1)), progress, distress flags (6), traits (6) — then
+//! roster index / (n−1)), progress, distress flags (6), the identity
+//! block (14: need-rate multipliers 6, comfort slack /40, consent line
+//! /100, favourite weights 6 — the observation's own cells, spec 058
+//! FR-009) — then
 //! per element type (water, chow, bug, greeble, sunbeam): count / hard max,
 //! plus (chow only) total servings / (max elements × servings each), plus
 //! the K nearest elements to the world center (present, x/width, y/height);

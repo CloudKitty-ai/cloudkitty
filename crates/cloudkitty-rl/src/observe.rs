@@ -11,17 +11,17 @@
 //!
 //! 1. **Self block (109)**: needs /100, happiness /100, four
 //!    distance-to-wall cells N/E/S/W (linear /40 — replacing fractional
-//!    position: fully egocentric, spec 058 FR-003), activity one-hot (7)
-//!    + social flag + in-sunbeam + in-water + progress, distress flags
-//!    (6), pursuit (2), the IDENTITY BLOCK (14: need-rate multipliers 6,
-//!    comfort slack /40, consent line /100, favourite weights 6 — spec
-//!    058 FR-008, self-only), own scene age, own message block (per
-//!    `HEAD_KINDS` kind: recency, rate), the element memory (per
-//!    `ElementType::ALL` kind: present, spatial group, staleness), the
-//!    waypoint bearing pair (L1 unit direction to the exploration
-//!    waypoint; (0,0) on it — FR-012), and two DIRT RESERVE cells
-//!    (always 0.0 until the banked dirt arm arms them — FR-013). Never
-//!    fogged.
+//!    position: fully egocentric, spec 058 FR-003), then activity
+//!    one-hot (7) with social flag, in-sunbeam, in-water and progress,
+//!    then distress flags (6) and pursuit (2), the IDENTITY BLOCK of 14
+//!    cells (need-rate multipliers 6, comfort slack /40, consent line
+//!    /100, favourite weights 6 — spec 058 FR-008, self-only), own
+//!    scene age, own message block (per `HEAD_KINDS` kind: recency,
+//!    rate), the element memory (per `ElementType::ALL` kind: present,
+//!    spatial group, staleness), the waypoint bearing pair (L1 unit
+//!    direction to the exploration waypoint, zero on it — FR-012), and
+//!    two DIRT RESERVE cells, always 0.0 until the banked dirt arm
+//!    arms them (FR-013). Never fogged.
 //! 2. **Kitty rows × K (58 each)**: one PERMANENT row per friend, in
 //!    kitty id order, never re-sorted (049 FR-011). Visibility is FIVE
 //!    OF SIX (spec 058 FR-005/FR-006): a row carries presence, the
@@ -129,16 +129,14 @@ const MSG_BLOCK: usize = HEAD_KINDS.len() * 2;
 const MEMORY_BLOCK: usize = ElementType::ALL.len() * (1 + SPATIAL_GROUP + 1);
 /// Self block = core + own scene age + own message block + memory +
 /// waypoint + dirt reserve = 109.
-const SELF_BLOCK: usize =
-    SELF_CORE + 1 + MSG_BLOCK + MEMORY_BLOCK + WAYPOINT_CELLS + DIRT_RESERVE;
+const SELF_BLOCK: usize = SELF_CORE + 1 + MSG_BLOCK + MEMORY_BLOCK + WAYPOINT_CELLS + DIRT_RESERVE;
 /// The v6 kitty core: present, spatial group, bath, activity 7, partner
 /// flag, is-my-target bit. The five hidden needs, happiness, distress and
 /// traits have NO cells (spec 058 FR-006 — removed, not zeroed).
 const KITTY_CORE: usize = 1 + SPATIAL_GROUP + 1 + 7 + 1 + 1;
 /// Kitty row = core + water bit + sunbeam bit + scene age + message
 /// block + want intensities (6) + answers-me bits (4) = 58.
-const KITTY_SLOT: usize =
-    KITTY_CORE + 1 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
+const KITTY_SLOT: usize = KITTY_CORE + 1 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
 const HERE_KINDS_LEN: usize = MessageKind::HERE_KINDS.len();
 const CHOW_SLOT: usize = 1 + SPATIAL_GROUP + 1;
 const WATER_SLOT: usize = 1 + SPATIAL_GROUP;
@@ -443,16 +441,10 @@ pub fn encode_observation(
     // exploration rule derives its step target; (0, 0) when standing on
     // it. The lattice is stateless and the observer's own tour index is
     // never blanked by `fog_for`.
-    let lattice = cloudkitty_core::explore::Lattice::for_world(
-        view.width,
-        view.height,
-        core.vision.radius,
-    );
+    let lattice =
+        cloudkitty_core::explore::Lattice::for_world(view.width, view.height, core.vision.radius);
     let wp = lattice.waypoint(me.explore_waypoint);
-    let (wdx, wdy) = (
-        wp.x as f32 - me.pos.x as f32,
-        wp.y as f32 - me.pos.y as f32,
-    );
+    let (wdx, wdy) = (wp.x as f32 - me.pos.x as f32, wp.y as f32 - me.pos.y as f32);
     let wd = wdx.abs() + wdy.abs();
     if wd == 0.0 {
         v.extend([0.0, 0.0]);
@@ -1006,10 +998,7 @@ mod tests {
             obs.values[bit_index], 1.0,
             "row 0 (kitty 2) carries the target bit"
         );
-        assert_eq!(
-            obs.values[SELF_BLOCK + KITTY_SLOT + KITTY_CORE - 1],
-            0.0
-        );
+        assert_eq!(obs.values[SELF_BLOCK + KITTY_SLOT + KITTY_CORE - 1], 0.0);
     }
 
     #[test]
@@ -1178,7 +1167,10 @@ mod tests {
         assert_eq!(r3[0], 0.0, "present means seen");
         let (dx, dy) = (2.0f32 - 10.0, 5.0f32 - 10.0);
         let d = dx.abs() + dy.abs();
-        assert!((r3[1] - dx / d).abs() < 1e-6, "bearing-x to T, not to the cat");
+        assert!(
+            (r3[1] - dx / d).abs() < 1e-6,
+            "bearing-x to T, not to the cat"
+        );
         assert!((r3[2] - dy / d).abs() < 1e-6, "bearing-y to T");
         assert!((r3[3] - d / 40.0).abs() < 1e-6, "linear magnitude to T");
         assert!(
@@ -1289,7 +1281,10 @@ mod tests {
         // (14, 7) from (10, 10): dx 4, dy -3, Manhattan 7 — the spatial
         // group, not the retired width-normalized dx/dy.
         assert!((obs.values[chow + 1] - 4.0 / 7.0).abs() < 1e-6, "bearing-x");
-        assert!((obs.values[chow + 2] - (-3.0) / 7.0).abs() < 1e-6, "bearing-y");
+        assert!(
+            (obs.values[chow + 2] - (-3.0) / 7.0).abs() < 1e-6,
+            "bearing-y"
+        );
         assert!((obs.values[chow + 3] - 7.0 / 40.0).abs() < 1e-6, "linear");
         assert!(
             (obs.values[chow + 4] - 7.0f32.ln_1p() / 400f32.ln_1p()).abs() < 1e-6,

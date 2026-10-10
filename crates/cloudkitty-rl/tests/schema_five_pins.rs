@@ -33,7 +33,11 @@ fn the_schema_five_numbers_match_the_contract() {
     );
     assert_eq!(m.slot_config, (4, 2, 2, 2, 4), "the served slot defaults");
     assert_eq!(HEAD_KINDS.len(), 15, "fifteen speakable kinds, frozen");
-    assert_eq!(MessageCodec::LEN, 16, "message head: Silent + 15, unchanged");
+    assert_eq!(
+        MessageCodec::LEN,
+        16,
+        "message head: Silent + 15, unchanged"
+    );
 }
 
 /// The v5 offset table (contract §Self block / §Kitty row / §Element
@@ -109,9 +113,18 @@ fn the_offset_table_matches_the_contract() {
     assert_eq!(m.cell("critter.is_activity_target").unwrap(), 9);
 
     // Resolution: base + slot*stride + rel, and the loud failure modes.
-    assert_eq!(m.index("kitty_row", 2, "kitty_row.happiness").unwrap(), 85 + 2 * 63 + 10);
-    assert!(m.cell("self.waypoint_block").is_err(), "a v6 name is not a v5 cell");
-    assert!(m.index("kitty_row", 4, "kitty_row.present").is_err(), "slot past count");
+    assert_eq!(
+        m.index("kitty_row", 2, "kitty_row.happiness").unwrap(),
+        85 + 2 * 63 + 10
+    );
+    assert!(
+        m.cell("self.waypoint_block").is_err(),
+        "a v6 name is not a v5 cell"
+    );
+    assert!(
+        m.index("kitty_row", 4, "kitty_row.present").is_err(),
+        "slot past count"
+    );
     assert!(column_map(4).is_err(), "retired pre-5 versions have no map");
 }
 
@@ -122,7 +135,11 @@ fn the_offset_table_matches_the_contract() {
 fn the_logit_budget_is_fifty_five() {
     let cfg = ObservationConfig::default();
     let menu = ActionCodec::v2(&cfg).len();
-    assert_eq!(menu + MessageCodec::LEN, 55, "activity logits + message head");
+    assert_eq!(
+        menu + MessageCodec::LEN,
+        55,
+        "activity logits + message head"
+    );
     assert_eq!(5 * cfg.kitty_slots, 20, "kitty-pointer logits");
     assert_eq!(2 * cfg.critter_slots, 8, "critter-pointer logits");
     assert_eq!(menu, 11 + 20 + 8, "dense + kitty-pointer + critter-pointer");
@@ -132,7 +149,10 @@ fn the_logit_budget_is_fifty_five() {
 /// FR-014: only moved layouts bump). Live on purpose.
 #[test]
 fn action_and_mask_versions_hold() {
-    assert_eq!(ACTION_SCHEMA_VERSION, 3, "unchanged: the menu is config-derived");
+    assert_eq!(
+        ACTION_SCHEMA_VERSION, 3,
+        "unchanged: the menu is config-derived"
+    );
     assert_eq!(MASK_SCHEMA_VERSION, 3, "unchanged");
     let cfg = ObservationConfig::default();
     assert_eq!(
@@ -140,7 +160,11 @@ fn action_and_mask_versions_hold() {
         39,
         "FR-027 of 049: 34 + one kitty-verb group for the fourth row"
     );
-    assert_eq!(ActionCodec::v2(&cfg).len() + MessageCodec::LEN, 55, "mask width");
+    assert_eq!(
+        ActionCodec::v2(&cfg).len() + MessageCodec::LEN,
+        55,
+        "mask width"
+    );
 }
 
 /// T003 of spec 033, the rename pin: Mew answers for follow_me's position

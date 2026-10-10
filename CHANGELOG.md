@@ -33,6 +33,20 @@ change.
 
 ## Unreleased
 
+- **The world a Gen 2 mind will see.** `[obs-schema]` The observation
+  grew into its second-generation shape (spec 058): every distance is
+  now a bearing and two magnitudes under fixed constants, so the same
+  scene reads the same at any map size; a cat sees its own identity —
+  how fast its needs rise, its comfort slack, its consent line, its
+  favourites — and sees of its friends only what a real cat could:
+  position, activity, coat state, calls, and purring. The episode clock
+  is gone, two cells wait quietly for the dirt arm, and every cell now
+  answers to a name (`COLUMN_MAPS` in the Python binding), so readers
+  survive the next bump too. Schema-5 policy artifacts refuse to load
+  on this engine — the five served seats are parked on their scripted
+  behaviors until the Gen 2 minds certify; the deployed 0.3.0 world
+  keeps serving its Gen 1 roster on its own binary, untouched.
+
 - **"Nearest" means nearest to walk to.** When several kitties answer
   one ask, the reply the viewer shows is the one from the kitty with the
   shortest walk, the same distance every other kitty decision uses.

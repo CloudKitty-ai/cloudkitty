@@ -86,6 +86,9 @@ fn wall_cells_are_absolute_tiles_not_fractions() {
     // is exactly the point: the edge is an entity at a distance, not a
     // fraction of an arbitrary map.
     assert_eq!(w20[1], 14.0 / 40.0, "E at 20x20");
-    assert_eq!(w100[1], 1.0, "E at 100x100: 94 tiles clamps the linear cell");
+    assert_eq!(
+        w100[1], 1.0,
+        "E at 100x100: 94 tiles clamps the linear cell"
+    );
     let _ = block_widths();
 }

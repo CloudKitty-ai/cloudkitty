@@ -28,19 +28,29 @@ pub enum SchemaMapError {
     UnknownSchemaVersion(u32),
     UnknownCell(String),
     UnknownBlock(String),
-    SlotOutOfRange { block: &'static str, slot: usize, count: usize },
+    SlotOutOfRange {
+        block: &'static str,
+        slot: usize,
+        count: usize,
+    },
 }
 
 impl fmt::Display for SchemaMapError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnknownSchemaVersion(v) => {
-                write!(f, "no column map for schema version {v} (maps exist for 5 and 6)")
+                write!(
+                    f,
+                    "no column map for schema version {v} (maps exist for 5 and 6)"
+                )
             }
             Self::UnknownCell(n) => write!(f, "no cell named '{n}' in this schema version"),
             Self::UnknownBlock(n) => write!(f, "no block named '{n}' in this schema version"),
             Self::SlotOutOfRange { block, slot, count } => {
-                write!(f, "slot {slot} out of range for block '{block}' (count {count})")
+                write!(
+                    f,
+                    "slot {slot} out of range for block '{block}' (count {count})"
+                )
             }
         }
     }
@@ -90,7 +100,11 @@ impl SchemaMap {
     pub fn index(&self, block: &str, slot: usize, cell: &str) -> Result<usize, SchemaMapError> {
         let b = self.block(block)?;
         if slot >= b.count {
-            return Err(SchemaMapError::SlotOutOfRange { block: b.name, slot, count: b.count });
+            return Err(SchemaMapError::SlotOutOfRange {
+                block: b.name,
+                slot,
+                count: b.count,
+            });
         }
         Ok(b.base + slot * b.stride + self.cell(cell)?)
     }
@@ -105,11 +119,36 @@ static V5: SchemaMap = SchemaMap {
     observation_len: 408,
     slot_config: (4, 2, 2, 2, 4),
     blocks: &[
-        BlockSpec { name: "kitty_row", base: 85, stride: 63, count: 4 },
-        BlockSpec { name: "chow", base: 337, stride: 5, count: 2 },
-        BlockSpec { name: "water", base: 347, stride: 4, count: 2 },
-        BlockSpec { name: "sunbeam", base: 355, stride: 6, count: 2 },
-        BlockSpec { name: "critter", base: 367, stride: 10, count: 4 },
+        BlockSpec {
+            name: "kitty_row",
+            base: 85,
+            stride: 63,
+            count: 4,
+        },
+        BlockSpec {
+            name: "chow",
+            base: 337,
+            stride: 5,
+            count: 2,
+        },
+        BlockSpec {
+            name: "water",
+            base: 347,
+            stride: 4,
+            count: 2,
+        },
+        BlockSpec {
+            name: "sunbeam",
+            base: 355,
+            stride: 6,
+            count: 2,
+        },
+        BlockSpec {
+            name: "critter",
+            base: 367,
+            stride: 10,
+            count: 4,
+        },
     ],
     cells: &[
         // Self block (absolute), 0..85.
@@ -195,8 +234,18 @@ static V6: SchemaMap = {
         observation_len: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5 + 2 * 7 + 4 * 11,
         slot_config: (4, 2, 2, 2, 4),
         blocks: &[
-            BlockSpec { name: "kitty_row", base: o::SELF_BLOCK, stride: o::KITTY_SLOT, count: 4 },
-            BlockSpec { name: "chow", base: o::SELF_BLOCK + 4 * o::KITTY_SLOT, stride: 6, count: 2 },
+            BlockSpec {
+                name: "kitty_row",
+                base: o::SELF_BLOCK,
+                stride: o::KITTY_SLOT,
+                count: 4,
+            },
+            BlockSpec {
+                name: "chow",
+                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT,
+                stride: 6,
+                count: 2,
+            },
             BlockSpec {
                 name: "water",
                 base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6,

@@ -1539,11 +1539,7 @@ impl Config {
     /// The favourite weight of one need source for one kitty (spec 058):
     /// its own override when set, 0.0 (no favourite) otherwise — there is
     /// no world-level favourite by design; a favourite is per-cat identity.
-    pub fn favourite_weight_for(
-        &self,
-        kitty_id: KittyId,
-        kind: crate::needs::NeedKind,
-    ) -> f32 {
+    pub fn favourite_weight_for(&self, kitty_id: KittyId, kind: crate::needs::NeedKind) -> f32 {
         self.kitties
             .iter()
             .find(|k| k.id == kitty_id)

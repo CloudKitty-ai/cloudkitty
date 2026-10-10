@@ -209,7 +209,8 @@ fn schema_five_artifact_is_refused() {
     let expect = PolicyBehavior::expectations(&rl);
     let old =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/oracle-schema5.ckpolicy");
-    let err = PolicyArtifact::load(&old, &expect).expect_err("schema 5 cannot cross the Gen 2 wall");
+    let err =
+        PolicyArtifact::load(&old, &expect).expect_err("schema 5 cannot cross the Gen 2 wall");
     match err {
         ArtifactError::SchemaMismatch {
             schema,

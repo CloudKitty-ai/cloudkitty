@@ -64,7 +64,9 @@ fn hidden_friend_fields_cannot_reach_any_cell() {
         }
         let i = w.kitty_index(2).unwrap();
         w.kitties[i].happiness = 8.0;
-        w.kitties[i].in_distress = [cloudkitty_core::needs::NeedKind::Eat].into_iter().collect();
+        w.kitties[i].in_distress = [cloudkitty_core::needs::NeedKind::Eat]
+            .into_iter()
+            .collect();
     });
     assert_eq!(
         quiet, desperate,
@@ -76,7 +78,9 @@ fn hidden_friend_fields_cannot_reach_any_cell() {
 fn bath_moves_exactly_one_row_cell() {
     let clean = encode_with(|w| set_need(w, 2, NeedKind::Bath, 10.0));
     let scruffy = encode_with(|w| set_need(w, 2, NeedKind::Bath, 80.0));
-    let diff: Vec<usize> = (0..clean.len()).filter(|&i| clean[i] != scruffy[i]).collect();
+    let diff: Vec<usize> = (0..clean.len())
+        .filter(|&i| clean[i] != scruffy[i])
+        .collect();
     let bath_cell = offsets::SELF_BLOCK + offsets::ROW_BATH;
     assert_eq!(
         diff,

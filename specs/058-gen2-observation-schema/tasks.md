@@ -156,17 +156,17 @@ waypoint bearing, reserve cells present-at-zero.
 
 ## Phase 6: Polish & cross-cutting
 
-- [ ] T019 [P] CHANGELOG.md `## Unreleased` bullet with compatibility
+- [X] T019 [P] CHANGELOG.md `## Unreleased` bullet with compatibility
   markers: observation v6 + global state v2 invalidate all schema-5
   policies/corpora for Gen 2 training; served Gen 1 world unaffected
   (public-voice at write time)
-- [ ] T020 [P] Update specs/INDEX.md with spec 058
-- [ ] T021 [P] Doc comment pass: observe.rs/global_state.rs headers
+- [X] T020 [P] Update specs/INDEX.md with spec 058
+- [X] T021 [P] Doc comment pass: observe.rs/global_state.rs headers
   describe v6/v2 (the 049-style module docs), contract path named
-- [ ] T022 Full gate: `cargo test --workspace`, config sweeps,
+- [X] T022 Full gate: `cargo test --workspace`, config sweeps,
   `vocabulary_flags` with trill/ekekek armed (FR-017, quickstart 10),
   every mutate cycle's predictions recorded for the PR self-review
-- [ ] T023 Remove BACKLOG.md entries this spec ships (distance
+- [X] T023 Remove BACKLOG.md entries this spec ships (distance
   encoding / schema-bump items if present; shipped-P1-comes-out-at-
   merge rule) and verify `gh pr view --json files` shows only
   product-lane paths before the PR

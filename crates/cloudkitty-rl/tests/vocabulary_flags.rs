@@ -40,6 +40,28 @@ fn flags_never_move_a_single_layout_number() {
             .unwrap()],
         "grounded and enabled: legal"
     );
+    // Spec 058 FR-017 (S§7, Gen 2 arms all four free kinds): trill and
+    // ekekek — reserves since spec 033, OFF in the default vocabulary —
+    // become legal when armed, on the SAME layout. The Gen 2 training
+    // config's flip is exactly this: flags gate legality only.
+    {
+        let mut armed = config.clone();
+        armed.meow.vocabulary.trill = true;
+        armed.meow.vocabulary.ekekek = true;
+        let armed_obs = encode_observation(&snapshot, 1, &armed, &cfg);
+        let armed_msg = legal_message_mask(&snapshot, 1, &armed);
+        assert_eq!(armed_obs.values.len(), all_on_obs.values.len());
+        assert_eq!(
+            armed_obs.values, all_on_obs.values,
+            "arming trill/ekekek moves no cell (FR-017)"
+        );
+        for kind in [MessageKind::Trill, MessageKind::Ekekek] {
+            assert!(
+                armed_msg[1 + HEAD_KINDS.iter().position(|&k| k == kind).unwrap()],
+                "{kind:?} armed: legal (free register, no grounding)"
+            );
+        }
+    }
 
     // Flip EVERY flag off (Silent needs no flag; the engine's word has none).
     config.meow.vocabulary = toml::from_str::<cloudkitty_core::config::VocabularyConfig>(

@@ -947,12 +947,11 @@ fn cloudkitty(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // The action menu v2 names at the default slot config (the menu is
     // config-derived; ACTION_SCHEMA_VERSION 3 is unchanged by the bump).
     let menu = PyDict::new(_py);
-    for (i, entry) in cloudkitty_rl::codec::ActionCodec::v2(
-        &cloudkitty_rl::config::ObservationConfig::default(),
-    )
-    .entries()
-    .iter()
-    .enumerate()
+    for (i, entry) in
+        cloudkitty_rl::codec::ActionCodec::v2(&cloudkitty_rl::config::ObservationConfig::default())
+            .entries()
+            .iter()
+            .enumerate()
     {
         menu.set_item(format!("{entry:?}").to_lowercase(), i)?;
     }

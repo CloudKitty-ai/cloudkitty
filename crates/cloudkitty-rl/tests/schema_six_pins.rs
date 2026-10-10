@@ -19,7 +19,10 @@ use cloudkitty_rl::observe::{
 fn the_schema_six_numbers_match_the_contract() {
     let cfg = ObservationConfig::default();
     assert_eq!(OBSERVATION_SCHEMA_VERSION, 6, "FR-014");
-    assert_eq!(GLOBAL_STATE_SCHEMA_VERSION, 2, "FR-009: the critic sees the dials");
+    assert_eq!(
+        GLOBAL_STATE_SCHEMA_VERSION, 2,
+        "FR-009: the critic sees the dials"
+    );
     let w = block_widths();
     assert_eq!(
         (w.self_, w.kitty, w.chow, w.water, w.sunbeam, w.critter, w.clock),
@@ -31,7 +34,11 @@ fn the_schema_six_numbers_match_the_contract() {
         421,
         "self 109 | kitty 4 x 58 | chow 2 x 6 | water 2 x 5 | sunbeam 2 x 7 | critter 4 x 11 | no clock"
     );
-    assert_eq!((w.memory, w.msg_self, w.msg_kitty), (30, 30, 40), "sub-block widths");
+    assert_eq!(
+        (w.memory, w.msg_self, w.msg_kitty),
+        (30, 30, 40),
+        "sub-block widths"
+    );
     // The frozen normalizers ARE the schema (FR-002; the 049 pattern).
     assert_eq!(NEAR_DISTANCE_NORMALISER, 40.0, "walk-cost near field");
     assert_eq!(FAR_DISTANCE_NORMALISER, 400.0, "log far field");

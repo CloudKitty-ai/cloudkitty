@@ -28,7 +28,10 @@ fn a_stationary_world_encodes_identically_across_ticks() {
     let view_later = w.snapshot().fog_for(1, c.vision.radius);
     let a = encode_observation(&view_now, 1, &c, &ObservationConfig::default());
     let b = encode_observation(&view_later, 1, &c, &ObservationConfig::default());
-    assert_eq!(a.values, b.values, "no cell varies with the tick alone (SC-005)");
+    assert_eq!(
+        a.values, b.values,
+        "no cell varies with the tick alone (SC-005)"
+    );
 }
 
 #[test]
@@ -53,7 +56,11 @@ fn a_visible_friends_manhattan_distance_exceeds_the_euclidean_radius_unclamped()
     let obs = encode_observation(&view, 1, &c, &ObservationConfig::default());
     let base = offsets::SELF_BLOCK;
     assert_eq!(obs.values[base], 1.0, "seen");
-    assert_eq!(obs.values[base + 3], 5.0 / 40.0, "Manhattan 5 > r=4, unclamped");
+    assert_eq!(
+        obs.values[base + 3],
+        5.0 / 40.0,
+        "Manhattan 5 > r=4, unclamped"
+    );
     assert_eq!(
         obs.values[base + 4],
         5.0f32.ln_1p() / 400f32.ln_1p(),
@@ -89,8 +96,16 @@ fn waypoint_cells_carry_the_lattice_bearing_and_zero_on_arrival() {
     let dy = wp.y as f32 - off.y as f32;
     let d = dx.abs() + dy.abs();
     assert!(d > 0.0, "the probe stands off the waypoint");
-    assert_eq!(obs.values[offsets::SELF_WAYPOINT], dx / d, "waypoint bearing-x");
-    assert_eq!(obs.values[offsets::SELF_WAYPOINT + 1], dy / d, "waypoint bearing-y");
+    assert_eq!(
+        obs.values[offsets::SELF_WAYPOINT],
+        dx / d,
+        "waypoint bearing-x"
+    );
+    assert_eq!(
+        obs.values[offsets::SELF_WAYPOINT + 1],
+        dy / d,
+        "waypoint bearing-y"
+    );
 
     // On the waypoint: (0, 0) — "stop" is a position fact, not a cell.
     w.kitties[i].pos = wp;
