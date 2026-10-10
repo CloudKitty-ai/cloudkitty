@@ -246,6 +246,31 @@ fn k_constant(ctx: &DecisionContext) -> f32 {
     (1.0 - i_min) / d_w
 }
 
+/// FR-011's window bar, scoped to the config being served (clarify
+/// 2026-10-10): on a world whose digest window cannot cover a typical
+/// approach — D_w below ≈(width+height)/3 tiles, the mean Manhattan
+/// separation of uniform points, at the implicit 1 tile/tick — most cue
+/// answers are infeasible. That is lawful (the feasibility filter holds
+/// everywhere) but collection-hostile, so startup WARNS rather than
+/// refuses. Pure and unit-tested here; the server logs it.
+pub fn response_window_shortfall(config: &crate::config::Config) -> Option<String> {
+    let d_w = config
+        .meow
+        .digest_window_ticks
+        .saturating_sub(HANDSHAKE_TICKS);
+    let typical = ((config.world.width + config.world.height) / 3) as u64;
+    (d_w < typical).then(|| {
+        format!(
+            "[meow] digest_window_ticks {} leaves D_w {} ticks below the typical \
+             approach distance {} tiles (≈(width+height)/3 at 1 tile/tick): most \
+             cue answers will be infeasible on this world (spec 059 FR-011; the \
+             feasibility filter keeps behavior lawful, but a collection config \
+             should not look like this)",
+            config.meow.digest_window_ticks, d_w, typical
+        )
+    })
+}
+
 fn response_terms(ctx: &DecisionContext) -> ResponseTerms {
     let k = k_constant(ctx);
     ResponseTerms {
@@ -523,6 +548,274 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Adds an extra idle friend (the test roster has only kitties 1-2).
+    fn push_friend(world: &mut crate::world::World, id: u32, pos: crate::grid::Position) {
+        let mut k = world.kitties[0].clone();
+        k.id = id;
+        k.name = format!("Extra{id}");
+        k.pos = pos;
+        k.needs = crate::needs::Needs::default();
+        k.activity = crate::kitty::Activity::Idle;
+        k.activity_clock = None;
+        world.kitties.push(k);
+    }
+
+    /// Stages an audible want-call from `id`, stamped `age` ticks before
+    /// the staged now (tick 100), at the caller's position.
+    fn call(
+        world: &mut crate::world::World,
+        id: u32,
+        kind: MessageKind,
+        intensity: f32,
+        age: u64,
+    ) {
+        let pos = world.kitties.iter().find(|k| k.id == id).unwrap().pos;
+        world.recent_meows.push(crate::meow::Meow {
+            kitty_id: id,
+            kind,
+            tick: 100 - age,
+            intensity,
+            pos,
+            reply: false,
+        });
+    }
+
+    /// A GEN2 hearer at (5,5) with its own top pressure pinned, friends
+    /// parked busy out of reach (no luxury candidates, no groomable asks)
+    /// — the cue-answer rungs' clean room. Callers are staged by `call`.
+    fn hearer_ctx(
+        own_top: f32,
+        stage_calls: impl Fn(&mut crate::world::World) + Send + Sync + 'static,
+    ) -> super::super::DecisionContext {
+        decision_context(move |world| {
+            world.tick = 100;
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+            world.kitties[idx].needs = crate::needs::Needs::default();
+            world.kitties[idx].needs.add(crate::needs::NeedKind::Sleep, own_top);
+            for k in &mut world.kitties {
+                if k.id != 1 {
+                    k.pos = crate::grid::Position::new(18, 18);
+                    k.activity = crate::kitty::Activity::Grooming { target: None };
+                    k.activity_clock = Some(crate::kitty::ActivityClock::start(100));
+                }
+            }
+            stage_calls(world);
+        })
+    }
+
+    /// FR-010: the term exists while the call's remaining window still
+    /// covers the answer and is gone one tick later — expiry IS the
+    /// digest window, met through the feasibility margin (an adjacent
+    /// caller, d 1, needs 1 + HANDSHAKE ticks of window left), with no
+    /// stored state. A call past the window itself is simply inaudible.
+    #[test]
+    fn the_term_expires_with_the_digest_window() {
+        let window = crate::config::Config::default().meow.digest_window_ticks;
+        let edge = window - 1 - HANDSHAKE_TICKS; // remaining = d + handshake exactly
+        let inside = hearer_ctx(20.0, move |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6); // adjacent
+            call(w, 2, MessageKind::WantCuddle, 0.60, edge);
+        });
+        assert!(
+            response_terms(&inside).cuddle.is_some(),
+            "remaining window exactly covers d + handshake: live"
+        );
+        let past = hearer_ctx(20.0, move |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6);
+            call(w, 2, MessageKind::WantCuddle, 0.60, edge + 1);
+        });
+        assert!(
+            response_terms(&past).cuddle.is_none(),
+            "one tick later the answer cannot complete: expired"
+        );
+        let inaudible = hearer_ctx(20.0, move |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6);
+            call(w, 2, MessageKind::WantCuddle, 0.60, window);
+        });
+        assert!(
+            response_terms(&inaudible).cuddle.is_none(),
+            "at the window the call is not even audible"
+        );
+    }
+
+    /// FR-011 (clarify Q3): deterministic threshold — the call must
+    /// outrank the hearer's own loudest need, in both directions.
+    #[test]
+    fn the_threshold_compares_the_call_to_the_hearers_own_loudest_need() {
+        let quiet_call_busy_hearer = hearer_ctx(70.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 9);
+            call(w, 2, MessageKind::WantCuddle, 0.60, 1);
+        });
+        assert!(
+            response_terms(&quiet_call_busy_hearer).cuddle.is_none(),
+            "intensity 0.60 under own top 70/100: no term"
+        );
+        let same_call_idle_hearer = hearer_ctx(40.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 9);
+            call(w, 2, MessageKind::WantCuddle, 0.60, 1);
+        });
+        assert!(
+            response_terms(&same_call_idle_hearer).cuddle.is_some(),
+            "intensity 0.60 over own top 40/100: the term fires"
+        );
+    }
+
+    /// FR-016: the feasibility filter is hard — a louder caller the
+    /// hearer cannot reach inside the remaining window never enters the
+    /// score; the quieter, reachable one wins outright.
+    #[test]
+    fn feasibility_drops_a_louder_unreachable_caller() {
+        let ctx = hearer_ctx(20.0, |w| {
+            // Loud but stale-and-far: 25 ticks already spent, d = 13 — the
+            // remaining 5-tick window cannot cover 13 + handshake.
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(18, 5);
+            call(w, 2, MessageKind::WantPlay, 0.95, 25);
+            // Quiet and near and fresh: d = 3, feasible.
+            push_friend(w, 3, crate::grid::Position::new(5, 8));
+            call(w, 3, MessageKind::WantPlay, 0.40, 1);
+        });
+        let term = response_terms(&ctx).play.expect("the near call is live");
+        assert_eq!(
+            term.caller, 3,
+            "the infeasible loud call never enters the score"
+        );
+    }
+
+    /// Spec US3 scenario 5: the iso-line. Two feasible same-kind calls —
+    /// louder wins while intensity_diff > k·distance_diff; nearer wins
+    /// when the inequality reverses. k at the default config is
+    /// (1 − 0.20) / 28 ≈ 0.0286.
+    #[test]
+    fn the_choice_flips_from_louder_to_nearer_across_the_iso_line() {
+        // intensity_diff 0.25 > k·(d 3 − d 2 = 1) ≈ 0.029: louder wins.
+        let louder = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 8); // d 3
+            call(w, 2, MessageKind::WantPlay, 0.95, 1);
+            push_friend(w, 3, crate::grid::Position::new(5, 7)); // d 2
+            call(w, 3, MessageKind::WantPlay, 0.70, 1);
+        });
+        assert_eq!(response_terms(&louder).play.unwrap().caller, 2);
+        // intensity_diff 0.1 < k·(d 10 − d 2 = 8) ≈ 0.229: nearer wins.
+        let nearer = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 15); // d 10
+            call(w, 2, MessageKind::WantPlay, 0.80, 1);
+            push_friend(w, 3, crate::grid::Position::new(5, 7)); // d 2
+            call(w, 3, MessageKind::WantPlay, 0.70, 1);
+        });
+        assert_eq!(response_terms(&nearer).play.unwrap().caller, 3);
+    }
+
+    /// FR-012: the free register moves nothing — an armed trill/ekekek in
+    /// the digest produces no term and leaves the whole decision
+    /// untouched; and the scripted emitter can never answer in it (a
+    /// world where only free-register words would be legal gets Silence).
+    #[tokio::test]
+    async fn free_register_kinds_move_nothing_and_are_never_spoken() {
+        let silent = hearer_ctx(20.0, |_| {});
+        let noisy = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 9);
+            call(w, 2, MessageKind::Trill, 0.90, 1);
+            call(w, 2, MessageKind::Ekekek, 0.90, 1);
+            call(w, 2, MessageKind::Mew, 0.90, 1);
+        });
+        assert_eq!(response_terms(&noisy), ResponseTerms::NONE);
+        assert_eq!(
+            Teacher::GEN2.decide_action(&noisy),
+            Teacher::GEN2.decide_action(&silent),
+            "free-register noise is invisible to the ladder"
+        );
+        // Emission half: the hearer's own needs are all below arming, so
+        // no want is legal; the decision's message channel must be empty,
+        // never a free-register word.
+        let decision = Teacher::GEN2.decide(&silent).await;
+        assert!(
+            !matches!(
+                decision.message,
+                Some(
+                    MessageKind::Mew
+                        | MessageKind::Chirp
+                        | MessageKind::Trill
+                        | MessageKind::Ekekek
+                )
+            ),
+            "the scripted teacher never speaks the free register: {:?}",
+            decision.message
+        );
+    }
+
+    /// FR-010 scenarios 1-2 end to end: an answered play call walks to
+    /// the CALLER and the resulting proposal still passes the engine's
+    /// unchanged gates — a burdened caller's own line refuses the answer
+    /// at the apply slot (valuation is never a consent bypass).
+    #[test]
+    fn an_answer_never_bypasses_the_consent_gate() {
+        let ctx = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6); // adjacent
+            w.kitties[f].activity = crate::kitty::Activity::Idle;
+            w.kitties[f].activity_clock = None;
+            w.kitties[f].needs = crate::needs::Needs::default();
+            w.kitties[f].needs.add(crate::needs::NeedKind::Play, 35.0);
+            w.kitties[f].needs.add(crate::needs::NeedKind::Eat, 60.0); // past line 30
+            call(w, 2, MessageKind::WantPlay, 0.35, 1);
+        });
+        // The term is live and the decide proposes play at the caller.
+        assert_eq!(response_terms(&ctx).play.unwrap().caller, 2);
+        let action = Teacher::GEN2.decide_action(&ctx);
+        assert_eq!(
+            action,
+            Action::play_with(crate::action::TargetRef::Kitty { id: 2 }),
+            "the answer proposes at the caller"
+        );
+        // The engine's gate refuses it: the term raised a valuation, not
+        // a permission (staged on a fresh world with the same shape).
+        let mut config = crate::config::Config::default();
+        config.behavior.consent_line = 30.0;
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = crate::grid::Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = crate::grid::Position::new(5, 6);
+        world.kitties[b].needs = crate::needs::Needs::default();
+        world.kitties[b].needs.add(crate::needs::NeedKind::Play, 35.0);
+        world.kitties[b].needs.add(crate::needs::NeedKind::Eat, 60.0);
+        assert_eq!(
+            world.apply_slot_verdict(1, action, &config),
+            Action::Idle,
+            "consent and adjacency gates run unchanged after the term"
+        );
+    }
+
+    /// FR-011's config bar: the served shape clears it; a world the
+    /// digest cannot cover does not, and the shortfall names the numbers.
+    #[test]
+    fn the_window_shortfall_warns_exactly_when_the_digest_cannot_cover_approach() {
+        let config = crate::config::Config::default();
+        assert_eq!(
+            response_window_shortfall(&config),
+            None,
+            "20x20 with window 30: D_w 28 covers the typical 13"
+        );
+        let mut big = crate::config::Config::default();
+        big.world.width = 58;
+        big.world.height = 100;
+        let s = response_window_shortfall(&big).expect("58x100 cannot be covered by 30");
+        assert!(s.contains("digest_window_ticks 30"), "{s}");
+        assert!(s.contains("52"), "names the typical distance: {s}");
     }
 
     #[test]
