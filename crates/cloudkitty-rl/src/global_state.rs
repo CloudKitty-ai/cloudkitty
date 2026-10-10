@@ -1,4 +1,5 @@
-//! Global state v1 (spec 014 FR-019): the privileged critic view.
+//! Global state v2 (spec 014 FR-019; identity extension spec 058
+//! FR-009): the privileged critic view.
 //!
 //! A fixed-size vector (for a given configuration) derived from the same
 //! frozen snapshot as the observations: every kitty's full state **without
@@ -8,7 +9,10 @@
 //!
 //! Layout: per kitty in stable id order — needs (/100), happiness (/100),
 //! position, activity one-hot (7), social flag, partner (present flag +
-//! roster index / (n−1)), progress, distress flags (6), traits (6) — then
+//! roster index / (n−1)), progress, distress flags (6), the identity
+//! block (14: need-rate multipliers 6, comfort slack /40, consent line
+//! /100, favourite weights 6 — the observation's own cells, spec 058
+//! FR-009) — then
 //! per element type (water, chow, bug, greeble, sunbeam): count / hard max,
 //! plus (chow only) total servings / (max elements × servings each), plus
 //! the K nearest elements to the world center (present, x/width, y/height);
@@ -21,14 +25,22 @@ use cloudkitty_core::Config;
 
 use crate::config::{GlobalStateConfig, ObservationConfig};
 use crate::observe::{
-    activity_progress, push_activity, push_distress_flags, push_needs_and_happiness, push_traits,
+    activity_progress, push_activity, push_distress_flags, push_identity, push_needs_and_happiness,
     sort_by_proximity,
 };
 
 /// Versioned like the observation schema (FR-019).
-pub const GLOBAL_STATE_SCHEMA_VERSION: u32 = 1;
+/// v2 (spec 058 FR-009): each kitty block's traits (6) grew into the
+/// full identity block (14) so the centralized critic sees every seat's
+/// dials. The episode clock STAYS (research R7): the critic is
+/// training-only and finite-horizon value legitimately reads time — the
+/// clock pathology was actor-side. Positions stay width-normalized:
+/// training is single-size by ruled staging.
+pub const GLOBAL_STATE_SCHEMA_VERSION: u32 = 2;
 
-const PER_KITTY: usize = 6 + 1 + 2 + 7 + 1 + 2 + 1 + 6 + 6;
+// needs 6, happiness, position 2, activity 7, social, partner 2,
+// progress, distress 6, identity 14 (v2: was traits 6).
+const PER_KITTY: usize = 6 + 1 + 2 + 7 + 1 + 2 + 1 + 6 + 14;
 const PER_TYPE_BASE: usize = 1;
 const PER_CENTER_ELEMENT: usize = 3;
 
@@ -78,7 +90,7 @@ pub fn encode_global_state(
         }
         v.push(activity_progress(kitty, snapshot.tick, core));
         push_distress_flags(&mut v, kitty);
-        push_traits(&mut v, kitty.id, core, observation);
+        push_identity(&mut v, kitty.id, core, observation);
     }
 
     // Element summary, bounded by configuration.

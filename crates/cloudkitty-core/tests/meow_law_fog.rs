@@ -30,6 +30,9 @@ fn stage() -> (World, Config) {
             y,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         })
         .collect();
     config.validate().unwrap();
@@ -361,7 +364,7 @@ proptest! {
         config.meow.relief_memory_margin = margin;
         config.kitties = [(1u32, 10u32, 10u32), (2, 3, 4), (3, 15, 15), (4, 8, 12)]
             .iter()
-            .map(|&(id, x, y)| KittyConfig { id, name: format!("K{id}"), x, y, behavior: "needs_driven".into(), needs: None })
+            .map(|&(id, x, y)| KittyConfig { id, name: format!("K{id}"), x, y, behavior: "needs_driven".into(), needs: None, comfort_slack: None, consent_line: None, favourite: None })
             .collect();
         config.validate().unwrap();
         let config = Arc::new(config);
@@ -422,7 +425,7 @@ proptest! {
         config.vision.radius = radius;
         config.kitties = [(1u32, 10u32, 10u32), (2, 3, 4), (3, 15, 15), (4, 8, 12)]
             .iter()
-            .map(|&(id, x, y)| KittyConfig { id, name: format!("K{id}"), x, y, behavior: "needs_driven".into(), needs: None })
+            .map(|&(id, x, y)| KittyConfig { id, name: format!("K{id}"), x, y, behavior: "needs_driven".into(), needs: None, comfort_slack: None, consent_line: None, favourite: None })
             .collect();
         config.validate().unwrap();
         let config = Arc::new(config);

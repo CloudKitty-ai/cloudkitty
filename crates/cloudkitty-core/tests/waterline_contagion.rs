@@ -680,6 +680,9 @@ async fn two_wet_groomers_referencing_one_dry_cat_charge_it_once() {
             y: 1,
             behavior: "always_invalid".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         });
         for k in &mut config.kitties {
             k.behavior = "always_invalid".into();

@@ -59,3 +59,4 @@ regenerate and commit (owning thread) when specs change.
 | `055-lab-decision-request` | Draft |
 | `056-shallow-ground-sleep` | Draft |
 | `057-teacher-sleep-floor` | Draft |
+| `058-gen2-observation-schema` | Draft |

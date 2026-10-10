@@ -77,11 +77,10 @@ pub(crate) struct Group {
 /// sequence order and the total type-embedding row count.
 pub(crate) fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
     let w = block_widths();
-    // emb indices: self 0, kitty 1, chow 2, water 3, sunbeam 4, critter 5,
-    // clock 6. type rows: self 0, kitty 1, chow 2, water 3, sunbeam 4,
-    // critter 5, clock 6 -- seven (spec 049: the message-kind token group
-    // went with the global digest; repetition rides the kitty rows).
-    let clock_row = 6;
+    // emb indices and type rows: self 0, kitty 1, chow 2, water 3,
+    // sunbeam 4, critter 5 -- six (spec 058: the clock token went with
+    // the clock cell; spec 049 had dropped the message-kind group).
+    let last_row = 5;
     let groups = vec![
         Group {
             emb: 0,
@@ -131,16 +130,9 @@ pub(crate) fn token_layout(cfg: &ObservationConfig) -> (Vec<Group>, usize) {
             per_token_row: false,
             always_present: false,
         },
-        Group {
-            emb: 6,
-            width: w.clock,
-            count: 1,
-            type_row0: clock_row,
-            per_token_row: false,
-            always_present: true,
-        },
     ];
-    (groups, clock_row + 1)
+    debug_assert_eq!(w.clock, 0, "spec 058: no clock cell, no clock token");
+    (groups, last_row + 1)
 }
 
 /// A per-type embedding linear: `w` row-major `[d][width]`, `b` `[d]`. The
@@ -855,19 +847,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_token_layout_sums_to_the_observation_length_and_16_tokens() {
+    fn the_token_layout_sums_to_the_observation_length_and_15_tokens() {
         let cfg = ObservationConfig::default();
         let (groups, type_rows) = token_layout(&cfg);
         let width_sum: usize = groups.iter().map(|g| g.count * g.width).sum();
         let token_count: usize = groups.iter().map(|g| g.count).sum();
         assert_eq!(width_sum, crate::observe::observation_len(&cfg));
         assert_eq!(
-            token_count, 16,
-            "1 self + 4 kitty + 2 chow + 2 water + 2 sun + 4 critter + 1 clock (schema 5)"
+            token_count, 15,
+            "1 self + 4 kitty + 2 chow + 2 water + 2 sun + 4 critter -- no clock token (schema 6)"
         );
         assert_eq!(
-            type_rows, 7,
-            "self, kitty, chow, water, sunbeam, critter, clock -- no message group (schema 5)"
+            type_rows, 6,
+            "self, kitty, chow, water, sunbeam, critter -- no clock, no message group (schema 6)"
         );
         assert!(
             groups.iter().all(|g| !g.per_token_row),

@@ -917,5 +917,44 @@ fn cloudkitty(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
         "GLOBAL_STATE_SCHEMA_VERSION",
         cloudkitty_rl::global_state::GLOBAL_STATE_SCHEMA_VERSION,
     )?;
+    // Spec 058 FR-015: the schema-version-keyed column maps, so no
+    // downstream reader hardcodes an index a bump silently moves.
+    // COLUMN_MAPS[version] holds "cells" (self.* and clock absolute;
+    // block-prefixed names stride-relative), "blocks"
+    // (name -> (base, stride, count)), "observation_len" and
+    // "slot_config". Resolve a repeated cell as
+    // base + slot * stride + cells[name].
+    let maps = PyDict::new(_py);
+    for version in [5u32, 6] {
+        let sm = cloudkitty_rl::schema_map::column_map(version)
+            .expect("shipped versions always have maps");
+        let d = PyDict::new(_py);
+        d.set_item("observation_len", sm.observation_len)?;
+        d.set_item("slot_config", sm.slot_config)?;
+        let cells = PyDict::new(_py);
+        for (name, at) in sm.cells {
+            cells.set_item(name, at)?;
+        }
+        d.set_item("cells", cells)?;
+        let blocks = PyDict::new(_py);
+        for b in sm.blocks {
+            blocks.set_item(b.name, (b.base, b.stride, b.count))?;
+        }
+        d.set_item("blocks", blocks)?;
+        maps.set_item(version, d)?;
+    }
+    m.add("COLUMN_MAPS", maps)?;
+    // The action menu v2 names at the default slot config (the menu is
+    // config-derived; ACTION_SCHEMA_VERSION 3 is unchanged by the bump).
+    let menu = PyDict::new(_py);
+    for (i, entry) in
+        cloudkitty_rl::codec::ActionCodec::v2(&cloudkitty_rl::config::ObservationConfig::default())
+            .entries()
+            .iter()
+            .enumerate()
+    {
+        menu.set_item(format!("{entry:?}").to_lowercase(), i)?;
+    }
+    m.add("ACTION_MENU", menu)?;
     Ok(())
 }

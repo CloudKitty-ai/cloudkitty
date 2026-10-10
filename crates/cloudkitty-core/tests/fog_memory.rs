@@ -120,6 +120,9 @@ fn stage() -> (World, Arc<Config>) {
             y: 10,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         },
         KittyConfig {
             id: 2,
@@ -128,6 +131,9 @@ fn stage() -> (World, Arc<Config>) {
             y: 0,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         },
     ];
     config.validate().unwrap();

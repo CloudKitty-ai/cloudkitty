@@ -1302,6 +1302,9 @@ mod tests {
             y: 0,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         });
         config.validate().unwrap();
         let lower = here_ctx_with(config, 100, |w| {

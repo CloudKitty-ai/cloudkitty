@@ -110,16 +110,15 @@ fn garbage_logits_still_select_a_masked_in_action() {
 }
 
 #[test]
-fn the_decision_reads_the_world_clock_through_the_trained_horizon() {
-    // The 0.3.0 seam (owner ruling 2026-09-15, "serve the clock as
-    // trained"): decide_sync feeds (world.tick mod horizon) / horizon into
-    // the observation's clock column — the retired deploy pin passed 0
-    // forever. The artifact here listens to exactly that column: one
-    // hidden unit wired to the clock input alone, an output row growing
-    // with the index — a zero clock leaves every logit at 0 (ties pick
-    // the LOWEST masked-in entry) and a positive clock picks the HIGHEST,
-    // so a regression back to the pin makes every tick decide like tick 0
-    // and the inequality below fails.
+fn the_decision_is_clock_free_and_the_reserve_is_silent() {
+    // Spec 058 FR-010 retired the clock cell (this test's predecessor
+    // guarded the 0.3.0 served-clock seam; it went red at the v6 wall as
+    // rule 6 demands and is replaced by its inverse). The artifact here
+    // listens to the LAST observation element — now a dirt-reserve cell
+    // that must read 0.0 forever (FR-013) — with an output row growing
+    // with the index: all-zero logits tie and ties pick the LOWEST
+    // masked-in entry, so if ticking the world ever moves the decision,
+    // either a clock crept back in or the reserve went live.
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
     let menu = ActionCodec::v2(&rl.observation).len() + MessageCodec::LEN;
@@ -131,36 +130,27 @@ fn the_decision_reads_the_world_clock_through_the_trained_horizon() {
         layers: vec![[input, 1], [1, menu]],
         activation: "relu".into(),
     };
-    // w1: zeros everywhere except the clock column (the LAST observation
-    // element — observe.rs appends it after every slot block).
     let mut w1 = vec![0.0f32; input];
     w1[input - 1] = 1.0;
     let w2: Vec<f32> = (0..menu).map(|i| i as f32).collect();
     let dir = std::env::temp_dir().join("ck-policy-selection");
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("clock-listener.ckpolicy");
+    let path = dir.join("reserve-listener.ckpolicy");
     write_artifact(&path, &header, &[(w1, vec![0.0]), (w2, vec![0.0; menu])])
-        .expect("the clock-listener artifact writes");
+        .expect("the reserve-listener artifact writes");
     let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
 
     let horizon = rl.episode.horizon;
     let at = |tick: u64| behavior.decide_sync(&context_at_tick(1, tick));
 
-    // Mid-cycle the clock is positive, so the decision moves off tick 0's.
-    assert_ne!(
+    assert_eq!(
         at(0),
         at(horizon / 4),
-        "the clock column never reached the network: the deploy pin is back"
+        "a tick moved the decision: a clock column is back, or the reserve went live"
     );
-    // One full horizon later the clock has wrapped to the same value, and
-    // nothing else in this world moved: the decision comes back exactly.
-    // (Consistency only — a monotone output row cannot tell a wrapped
-    // 0.25 from an unwrapped clamp to 1.0 at the decision layer; the
-    // wrap itself is pinned by the served_clock unit test, mutation-
-    // verified against `tick % horizon` -> `tick`.)
     assert_eq!(
         at(horizon / 4),
         at(horizon / 4 + horizon),
-        "a wrapped clock decides identically one horizon apart"
+        "and it stays still across a full former horizon"
     );
 }

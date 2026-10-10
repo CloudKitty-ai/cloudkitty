@@ -56,6 +56,9 @@ fn blind_world(seed: u64) -> (World, Arc<Config>) {
             y: START.y,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         },
         KittyConfig {
             id: 2,
@@ -64,6 +67,9 @@ fn blind_world(seed: u64) -> (World, Arc<Config>) {
             y: 0,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         },
     ];
     config.validate().unwrap();

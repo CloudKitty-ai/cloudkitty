@@ -45,6 +45,9 @@ fn test_config() -> Config {
                 y: 4,
                 behavior: "needs_driven".into(),
                 needs: None,
+                comfort_slack: None,
+                consent_line: None,
+                favourite: None,
             },
             KittyConfig {
                 id: 2,
@@ -53,6 +56,9 @@ fn test_config() -> Config {
                 y: 11,
                 behavior: "playful".into(),
                 needs: None,
+                comfort_slack: None,
+                consent_line: None,
+                favourite: None,
             },
         ],
         elements: ElementsConfig {

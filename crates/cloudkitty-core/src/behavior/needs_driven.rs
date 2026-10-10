@@ -1061,6 +1061,9 @@ mod tests {
             y,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         })
         .collect();
         let config = Arc::new(config);

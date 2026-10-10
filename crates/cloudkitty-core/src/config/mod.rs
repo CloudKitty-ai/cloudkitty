@@ -343,6 +343,18 @@ pub struct KittyConfig {
     /// hungry" without restating the other five.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub needs: Option<NeedRateOverrides>,
+    /// Gen 2 identity dials (spec 058). Each is an optional per-kitty
+    /// override behind an accessor (`comfort_slack_for`, `consent_line_for`,
+    /// `favourite_weight_for`) — the ONE home spec 059's parameterized
+    /// teacher reads too, so a cat's observation always shows the dials its
+    /// teacher ran on. Unset falls back to the `[behavior]` world value
+    /// (favourite: 0.0, no favourite).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub comfort_slack: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub consent_line: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub favourite: Option<FavouriteWeights>,
 }
 
 impl KittyConfig {
@@ -370,6 +382,42 @@ pub struct NeedRateOverrides {
 }
 
 impl NeedRateOverrides {
+    pub fn get(&self, kind: crate::needs::NeedKind) -> Option<f32> {
+        use crate::needs::NeedKind::*;
+        match kind {
+            Eat => self.eat,
+            Drink => self.drink,
+            Sleep => self.sleep,
+            Play => self.play,
+            Cuddle => self.cuddle,
+            Bath => self.bath,
+        }
+    }
+}
+
+/// Per-kitty favourite-source weights (spec 058, the Gen 2 identity
+/// block): one weight per need in [0, 1]; unset reads 0 (no favourite).
+/// One-hot is the single-source case the 2026-09-13 identity ruling
+/// names; until Gen 3's enjoyment economy, a favourite is one of the
+/// needs and is valued through that need's relief.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FavouriteWeights {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eat: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drink: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sleep: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub play: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cuddle: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bath: Option<f32>,
+}
+
+impl FavouriteWeights {
     pub fn get(&self, kind: crate::needs::NeedKind) -> Option<f32> {
         use crate::needs::NeedKind::*;
         match kind {
@@ -1082,6 +1130,13 @@ pub struct BehaviorConfig {
     /// structurally byte-identical to pre-047.
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     pub consent_line: f32,
+    /// World-default comfort slack (spec 058, the Gen 2 identity block):
+    /// ticks a cat sits on a satisfied need before acting again. 0.0 (the
+    /// default, skip-serialized) = no slack configured. Per-kitty overrides
+    /// live in `[[kitties]] comfort_slack`; read through
+    /// `Config::comfort_slack_for` only.
+    #[serde(default, skip_serializing_if = "f32_is_zero")]
+    pub comfort_slack: f32,
     /// Per-need multipliers inside the playful get-serious trigger ONLY
     /// (spec 042): pressure × weight compared to `playful_comfort`. All 1.0
     /// = exactly the classic unweighted check; skip-serialized at identity.
@@ -1212,6 +1267,7 @@ impl Default for BehaviorConfig {
             t_partner: 0.0,
             critter_appeal: 0.0,
             consent_line: 0.0,
+            comfort_slack: 0.0,
             comfort_weight: ComfortWeights::default(),
             announce_here: 0,
             contagion_aware_ladder: false,
@@ -1352,6 +1408,9 @@ impl Default for Config {
                     y: 12,
                     behavior: "needs_driven".into(),
                     needs: None,
+                    comfort_slack: None,
+                    consent_line: None,
+                    favourite: None,
                 },
                 KittyConfig {
                     id: 2,
@@ -1360,6 +1419,9 @@ impl Default for Config {
                     y: 18,
                     behavior: "playful".into(),
                     needs: None,
+                    comfort_slack: None,
+                    consent_line: None,
+                    favourite: None,
                 },
                 KittyConfig {
                     id: 3,
@@ -1368,6 +1430,9 @@ impl Default for Config {
                     y: 8,
                     behavior: "needs_driven".into(),
                     needs: None,
+                    comfort_slack: None,
+                    consent_line: None,
+                    favourite: None,
                 },
             ],
             needs: NeedsConfig::default(),
@@ -1431,6 +1496,8 @@ impl Config {
         self.validate_water()?;
         // Position 17: appended by spec 049 (fog).
         self.validate_vision()?;
+        // Position 18: appended by spec 058 (Gen 2 identity dials).
+        self.validate_identity_dials()?;
         Ok(())
     }
 
@@ -1444,6 +1511,41 @@ impl Config {
             .and_then(|k| k.needs.as_ref())
             .and_then(|o| o.get(kind))
             .unwrap_or_else(|| self.needs.rate(kind))
+    }
+
+    /// The effective comfort slack for one kitty (spec 058): its own
+    /// override when set, the `[behavior] comfort_slack` world value
+    /// otherwise. Unknown ids get the world value, mirroring
+    /// `need_rate_for`.
+    pub fn comfort_slack_for(&self, kitty_id: KittyId) -> f32 {
+        self.kitties
+            .iter()
+            .find(|k| k.id == kitty_id)
+            .and_then(|k| k.comfort_slack)
+            .unwrap_or(self.behavior.comfort_slack)
+    }
+
+    /// The effective consent line for one kitty (spec 058): its own
+    /// override when set, the `[behavior] consent_line` world value
+    /// otherwise.
+    pub fn consent_line_for(&self, kitty_id: KittyId) -> f32 {
+        self.kitties
+            .iter()
+            .find(|k| k.id == kitty_id)
+            .and_then(|k| k.consent_line)
+            .unwrap_or(self.behavior.consent_line)
+    }
+
+    /// The favourite weight of one need source for one kitty (spec 058):
+    /// its own override when set, 0.0 (no favourite) otherwise — there is
+    /// no world-level favourite by design; a favourite is per-cat identity.
+    pub fn favourite_weight_for(&self, kitty_id: KittyId, kind: crate::needs::NeedKind) -> f32 {
+        self.kitties
+            .iter()
+            .find(|k| k.id == kitty_id)
+            .and_then(|k| k.favourite.as_ref())
+            .and_then(|f| f.get(kind))
+            .unwrap_or(0.0)
     }
 
     /// The wet-fur trait scale for one kitty (spec 024): its own bath rise
@@ -1782,6 +1884,65 @@ mod tests {
         assert_eq!(c.need_rate_for(plain, NeedKind::Eat), c.needs.eat);
         // Unknown ids get globals, never a panic.
         assert_eq!(c.need_rate_for(9_999, NeedKind::Eat), c.needs.eat);
+    }
+
+    #[test]
+    fn identity_dials_read_override_then_world_default() {
+        let mut c = cfg();
+        c.behavior.comfort_slack = 6.0;
+        c.behavior.consent_line = 30.0;
+        c.kitties[0].comfort_slack = Some(12.0);
+        c.kitties[0].consent_line = Some(55.0);
+        c.kitties[0].favourite = Some(FavouriteWeights {
+            play: Some(1.0),
+            ..Default::default()
+        });
+        c.validate().expect("dials in range are valid config");
+
+        use crate::needs::NeedKind;
+        let dialed = c.kitties[0].id;
+        let plain = c.kitties[1].id;
+        assert_eq!(c.comfort_slack_for(dialed), 12.0);
+        assert_eq!(c.consent_line_for(dialed), 55.0);
+        assert_eq!(c.favourite_weight_for(dialed, NeedKind::Play), 1.0);
+        // Unset kinds on the same favourite vector read 0.
+        assert_eq!(c.favourite_weight_for(dialed, NeedKind::Eat), 0.0);
+        // Undialed kitties fall back to the world values (favourite: none).
+        assert_eq!(c.comfort_slack_for(plain), 6.0);
+        assert_eq!(c.consent_line_for(plain), 30.0);
+        assert_eq!(c.favourite_weight_for(plain, NeedKind::Play), 0.0);
+        // Unknown ids get the world values, never a panic.
+        assert_eq!(c.comfort_slack_for(9_999), 6.0);
+    }
+
+    #[test]
+    fn out_of_range_identity_dials_are_rejected_by_name() {
+        // A favourite weight past 1 names the kitty and the kind.
+        let mut c = cfg();
+        c.kitties[1].favourite = Some(FavouriteWeights {
+            bath: Some(1.5),
+            ..Default::default()
+        });
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("favourite.Bath"), "{msg}");
+        assert!(msg.contains(&c.kitties[1].name), "names the kitty: {msg}");
+
+        // A NaN slack is rejected, world-level and per-kitty alike.
+        let mut c = cfg();
+        c.behavior.comfort_slack = f32::NAN;
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("[behavior] comfort_slack"), "{msg}");
+
+        let mut c = cfg();
+        c.kitties[0].comfort_slack = Some(f32::NAN);
+        assert!(c.validate().is_err());
+
+        // A per-kitty consent line past the need cap is rejected like the
+        // world line (spec 047's never-blocks rationale).
+        let mut c = cfg();
+        c.kitties[0].consent_line = Some(101.0);
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(msg.contains("consent_line"), "{msg}");
     }
 
     #[test]

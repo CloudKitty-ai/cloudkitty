@@ -22,6 +22,7 @@ pub mod mask;
 pub mod observe;
 pub mod policy;
 pub mod reward;
+pub mod schema_map;
 pub mod suite;
 pub mod test_support;
 pub mod vector;

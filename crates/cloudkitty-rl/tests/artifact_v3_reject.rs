@@ -193,7 +193,32 @@ fn schema_four_artifact_is_refused() {
             expected,
         } => {
             assert_eq!(schema, "observation");
-            assert_eq!((found, expected), (4, 5));
+            assert_eq!((found, expected), (4, 6));
+        }
+        other => panic!("wrong error class: {other}"),
+    }
+}
+
+/// The Gen 1 wall (spec 058 SC-006): a schema-5 artifact — the retired
+/// v5 parity oracle, a REAL recorded v5-pinned mind — refuses to load
+/// against the v6 surface, named versions, before any tick. The served
+/// Gen 1 world never sees this path: it stays on schema 5 end to end.
+#[test]
+fn schema_five_artifact_is_refused() {
+    let rl = RlConfig::default();
+    let expect = PolicyBehavior::expectations(&rl);
+    let old =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/oracle-schema5.ckpolicy");
+    let err =
+        PolicyArtifact::load(&old, &expect).expect_err("schema 5 cannot cross the Gen 2 wall");
+    match err {
+        ArtifactError::SchemaMismatch {
+            schema,
+            found,
+            expected,
+        } => {
+            assert_eq!(schema, "observation");
+            assert_eq!((found, expected), (5, 6));
         }
         other => panic!("wrong error class: {other}"),
     }

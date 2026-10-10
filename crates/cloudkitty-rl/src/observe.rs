@@ -1,37 +1,50 @@
-//! Observation schema 5 (spec 049 — the fog wall; generation 2 since
-//! spec 026, schema 4 since spec 033) and the target table.
+//! Observation schema 6 (spec 058 — the Gen 2 wall; schema 5 was spec
+//! 049's fog wall) and the target table.
 //!
 //! A fixed-size per-kitty vector, a deterministic pure function of the
 //! deciding cat's frozen start-of-tick [`FogView`] — the same information
-//! its behavior's decision context exposes, nothing more (FR-021). The
-//! normative layout, offsets and masks live in
-//! specs/049-fog-gen1/contracts/observation-v5.md; `schema_five_pins.rs`
-//! asserts every derived number literally. In order:
+//! its behavior's decision context exposes, nothing more (049 FR-021,
+//! held through the bump). The normative layout lives in
+//! specs/058-gen2-observation-schema/contracts/observation-v6.md;
+//! `schema_six_pins.rs` asserts every derived number literally and
+//! `schema_map::column_map(6)` publishes it by name. In order:
 //!
-//! 1. **Self block (85)**: the schema-4 block unchanged (needs /100,
-//!    happiness /100, position, activity one-hot (7) + social flag +
-//!    in-sunbeam + in-water + progress, distress flags (6), pursuit (2),
-//!    traits (6)), then own scene age, then the own message block (per
-//!    `HEAD_KINDS` kind: recency, rate), then the element memory (per
-//!    `ElementType::ALL` kind: present, dx, dy, staleness). Never fogged
-//!    (FR-005).
-//! 2. **Kitty rows × K (63 each)**: one PERMANENT row per friend, in kitty
-//!    id order, never re-sorted (FR-011). A row's contents follow the
-//!    friend's state for the observer this tick (FR-012): **seen** (inside
-//!    the disc) → every field; **heard** (outside the disc, a call inside
-//!    the digest window) → present 0, dx/dy/distance to the friend's
-//!    position at its last audible meow, the message block live,
-//!    knowledge fields 0; **silent** → all zero. A vacant row (roster
-//!    smaller than K + 1) is always zero.
-//! 3. **Element slots**: chow (5), water (4), sunbeam (6), critter (10)
-//!    exactly as schema 4, filled nearest-K over VISIBLE elements only
-//!    (FR-004); critters keep the target-priority fill.
-//! 4. **Episode clock**: tick/horizon — training's `tick_in_episode /
-//!    horizon`; serving passes `(world tick mod horizon) / horizon`, the
-//!    clock as trained (owner 2026-09-15, `behavior::served_clock`).
+//! 1. **Self block (109)**: needs /100, happiness /100, four
+//!    distance-to-wall cells N/E/S/W (linear /40 — replacing fractional
+//!    position: fully egocentric, spec 058 FR-003), then activity
+//!    one-hot (7) with social flag, in-sunbeam, in-water and progress,
+//!    then distress flags (6) and pursuit (2), the IDENTITY BLOCK of 14
+//!    cells (need-rate multipliers 6, comfort slack /40, consent line
+//!    /100, favourite weights 6 — spec 058 FR-008, self-only), own
+//!    scene age, own message block (per `HEAD_KINDS` kind: recency,
+//!    rate), the element memory (per `ElementType::ALL` kind: present,
+//!    spatial group, staleness), the waypoint bearing pair (L1 unit
+//!    direction to the exploration waypoint, zero on it — FR-012), and
+//!    two DIRT RESERVE cells, always 0.0 until the banked dirt arm
+//!    arms them (FR-013). Never fogged.
+//! 2. **Kitty rows × K (58 each)**: one PERMANENT row per friend, in
+//!    kitty id order, never re-sorted (049 FR-011). Visibility is FIVE
+//!    OF SIX (spec 058 FR-005/FR-006): a row carries presence, the
+//!    spatial group, BATH /100 (the one visible need — sight-and-scent
+//!    grounded), activity one-hot + partner + is-my-target, the
+//!    water/sunbeam context bits, scene age, the message block, want
+//!    intensities and answers-me bits. The other five needs, happiness,
+//!    distress and traits have NO cells. **seen** → every field;
+//!    **heard** → present 0, spatial group to the last audible meow
+//!    position, bath 0 (hearing carries no coat state), knowledge
+//!    fields 0, message block live; **silent** → all zero.
+//! 3. **Element slots**: chow (6), water (5), sunbeam (7), critter (11)
+//!    — the v5 extras unchanged behind the spatial group; nearest-K over
+//!    VISIBLE elements only; critters keep the target-priority fill.
 //!
-//! The schema-4 global meow digest is gone: repetition and insistence are
-//! per-speaker fields on the rows (FR-016).
+//! There is NO clock cell (spec 058 FR-010; K§2 "drop").
+//!
+//! **The spatial group** (4 cells, every entity reference, FR-001):
+//! Manhattan bearing (dx/d, dy/d with d = |dx|+|dy|; (0,0) at d = 0),
+//! linear magnitude d/40 clamped at 1, log magnitude
+//! log1p(d)/log1p(400). The constants are frozen literals; cells are
+//! NEVER clamped at the vision radius (FR-001a: a visible entity's
+//! Manhattan distance exceeds the Euclidean radius routinely).
 //!
 //! **Slot fill**: kitty rows are by id (FR-011); the target-priority fill
 //! (research R1 of spec 014) stays for critters — the played-with critter
@@ -51,13 +64,14 @@ use cloudkitty_core::Config;
 
 use crate::config::ObservationConfig;
 
-/// Version pinned into policy artifacts (FR-007/FR-016). Schema 3
-/// (spec 028): the meow digest became coherent, 183 → 197. Schema 4
+/// Version pinned into policy artifacts (049 FR-007/FR-016). Schema 4
 /// (spec 033): the say-surface finalized, 197 → 225. Schema 5 (spec 049,
-/// the fog wall): permanent by-id kitty rows (4), per-speaker message
-/// blocks in place of the global digest, scene age, the water and
-/// sunbeam bits, the element memory, 225 → 408.
-pub const OBSERVATION_SCHEMA_VERSION: u32 = 5;
+/// the fog wall): permanent by-id kitty rows, per-speaker message
+/// blocks, scene age, the water and sunbeam bits, the element memory,
+/// 225 → 408. Schema 6 (spec 058, the Gen 2 wall): Manhattan spatial
+/// groups + wall cells, five-of-six row visibility, the identity block,
+/// waypoint bearing, dirt reserve, no clock, 408 → 421.
+pub const OBSERVATION_SCHEMA_VERSION: u32 = 6;
 
 /// The message-head kinds (spec 028, finalized by spec 033): every kind a
 /// policy can hear and speak — all but the engine-reserved `wait_for_me`
@@ -96,30 +110,39 @@ pub const WANT_KINDS: [MessageKind; 6] = [
     MessageKind::WantSleep,
 ];
 
-/// The schema-4 self block, unchanged (FR-026): needs 6, happiness, pos 2,
-/// activity 7, partner flag, in-sunbeam, in-water, progress, distress 6,
-/// pursuit 2, traits 6.
-const SELF_SCHEMA_4: usize = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6;
+/// The v6 self core (spec 058): needs 6, happiness, walls 4, activity 7,
+/// partner flag, in-sunbeam, in-water, progress, distress 6, pursuit 2,
+/// identity 14.
+const SELF_CORE: usize = 6 + 1 + 4 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + IDENTITY_BLOCK;
+/// The identity block (spec 058 FR-008): need-rate multipliers 6, comfort
+/// slack, consent line, favourite weights 6.
+const IDENTITY_BLOCK: usize = 6 + 1 + 1 + 6;
+/// The spatial group (spec 058 FR-001): bearing pair + linear + log.
+const SPATIAL_GROUP: usize = 4;
+/// The waypoint bearing pair (FR-012) and the dirt reserve (FR-013).
+const WAYPOINT_CELLS: usize = 2;
+const DIRT_RESERVE: usize = 2;
 /// Per-speaker message block: (recency, rate) per `HEAD_KINDS` kind.
 const MSG_BLOCK: usize = HEAD_KINDS.len() * 2;
-/// The element memory: (present, dx, dy, staleness) per `ElementType::ALL`
-/// kind.
-const MEMORY_BLOCK: usize = ElementType::ALL.len() * 4;
-/// Self block = schema 4 + own scene age + own message block + memory = 85.
-const SELF_BLOCK: usize = SELF_SCHEMA_4 + 1 + MSG_BLOCK + MEMORY_BLOCK;
-/// The schema-4 kitty slot, unchanged: present, dx, dy, distance, needs 6,
-/// happiness, activity 7, partner flag, is-my-target bit.
-const KITTY_SCHEMA_4: usize = 1 + 2 + 1 + 6 + 1 + 7 + 1 + 1;
-/// Kitty row = schema 4 + water bit + sunbeam bit + scene age + message
-/// block + want intensities (6) + answers-me bits (4) = 63.
-const KITTY_SLOT: usize =
-    KITTY_SCHEMA_4 + 1 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
+/// The element memory: (present, spatial group, staleness) per
+/// `ElementType::ALL` kind.
+const MEMORY_BLOCK: usize = ElementType::ALL.len() * (1 + SPATIAL_GROUP + 1);
+/// Self block = core + own scene age + own message block + memory +
+/// waypoint + dirt reserve = 109.
+const SELF_BLOCK: usize = SELF_CORE + 1 + MSG_BLOCK + MEMORY_BLOCK + WAYPOINT_CELLS + DIRT_RESERVE;
+/// The v6 kitty core: present, spatial group, bath, activity 7, partner
+/// flag, is-my-target bit. The five hidden needs, happiness, distress and
+/// traits have NO cells (spec 058 FR-006 — removed, not zeroed).
+const KITTY_CORE: usize = 1 + SPATIAL_GROUP + 1 + 7 + 1 + 1;
+/// Kitty row = core + water bit + sunbeam bit + scene age + message
+/// block + want intensities (6) + answers-me bits (4) = 58.
+const KITTY_SLOT: usize = KITTY_CORE + 1 + 1 + 1 + MSG_BLOCK + WANT_KINDS.len() + HERE_KINDS_LEN;
 const HERE_KINDS_LEN: usize = MessageKind::HERE_KINDS.len();
-const CHOW_SLOT: usize = 1 + 2 + 1 + 1;
-const WATER_SLOT: usize = 1 + 2 + 1;
-const SUNBEAM_SLOT: usize = 1 + 2 + 1 + 1 + 1;
-const CRITTER_SLOT: usize = 1 + 2 + 1 + 1 + 4 + 1;
-const CLOCK: usize = 1;
+const CHOW_SLOT: usize = 1 + SPATIAL_GROUP + 1;
+const WATER_SLOT: usize = 1 + SPATIAL_GROUP;
+const SUNBEAM_SLOT: usize = 1 + SPATIAL_GROUP + 1 + 1;
+const CRITTER_SLOT: usize = 1 + SPATIAL_GROUP + 1 + 4 + 1;
+const CLOCK: usize = 0;
 
 /// Frozen normalisers (spec 049 FR-009 / FR-019): scene age is
 /// `elapsed / 24`; memory staleness is `(tick − last_seen) / 40`. Literals
@@ -128,22 +151,36 @@ const CLOCK: usize = 1;
 pub const SCENE_AGE_NORMALISER: f32 = 24.0;
 pub const STALENESS_NORMALISER: f32 = 40.0;
 
+/// Frozen spatial normalizers (spec 058 FR-001/FR-002, owner "Approved"
+/// 2026-09-25): near field d/40 clamped (native walk-cost units), far
+/// field log1p(d)/log1p(400). Literals by ruling — never derived from
+/// config or world size; the constants ARE the schema.
+pub const NEAR_DISTANCE_NORMALISER: f32 = 40.0;
+pub const FAR_DISTANCE_NORMALISER: f32 = 400.0;
+
 /// Offsets inside the self block and a kitty row
 /// (contracts/observation-v5.md), public so the pin and row tests read
 /// cells by name rather than by hand-summed literals.
 pub mod offsets {
     use super::*;
-    /// Self block: own scene age; the own message block; the memory.
-    pub const SELF_SCENE_AGE: usize = SELF_SCHEMA_4;
-    pub const SELF_MSG_BLOCK: usize = SELF_SCHEMA_4 + 1;
+    /// Self block (v6 order): walls after happiness; identity replaces
+    /// the schema-4 traits; waypoint and dirt reserve close the block.
+    pub const SELF_WALLS: usize = 6 + 1;
+    pub const SELF_IDENTITY: usize = SELF_CORE - IDENTITY_BLOCK;
+    pub const SELF_SCENE_AGE: usize = SELF_CORE;
+    pub const SELF_MSG_BLOCK: usize = SELF_CORE + 1;
     pub const SELF_MEMORY: usize = SELF_MSG_BLOCK + MSG_BLOCK;
-    /// Kitty row: the water bit; the sunbeam bit (owner ruled 2026-09-04,
-    /// flag 13 follow-on); scene age; message block; the six want
-    /// intensities; the four answers-me bits.
-    pub const ROW_WATER_BIT: usize = KITTY_SCHEMA_4;
-    pub const ROW_SUNBEAM_BIT: usize = KITTY_SCHEMA_4 + 1;
-    pub const ROW_SCENE_AGE: usize = KITTY_SCHEMA_4 + 2;
-    pub const ROW_MSG_BLOCK: usize = KITTY_SCHEMA_4 + 3;
+    pub const SELF_WAYPOINT: usize = SELF_MEMORY + MEMORY_BLOCK;
+    pub const SELF_DIRT_RESERVE: usize = SELF_WAYPOINT + WAYPOINT_CELLS;
+    /// Kitty row: bath is the one visible need (spec 058 FR-005), right
+    /// after the spatial group; the water bit, the sunbeam bit, scene
+    /// age, message block, want intensities, answers-me bits follow the
+    /// activity cells as in v5.
+    pub const ROW_BATH: usize = 1 + SPATIAL_GROUP;
+    pub const ROW_WATER_BIT: usize = KITTY_CORE;
+    pub const ROW_SUNBEAM_BIT: usize = KITTY_CORE + 1;
+    pub const ROW_SCENE_AGE: usize = KITTY_CORE + 2;
+    pub const ROW_MSG_BLOCK: usize = KITTY_CORE + 3;
     pub const ROW_INTENSITY: usize = ROW_MSG_BLOCK + MSG_BLOCK;
     pub const ROW_ANSWERS_ME: usize = ROW_INTENSITY + WANT_KINDS.len();
     /// Block widths, by name.
@@ -316,15 +353,14 @@ pub fn row_state(view: &FogView, friend: KittyId, window: u64) -> RowState {
         .map_or(RowState::Silent, |(_, pos, _)| RowState::Heard { pos })
 }
 
-/// Encodes `kitty_id`'s observation of its frozen fog `view`. `episode_clock`
-/// is tick/horizon in [0, 1] — training's episode clock; serving cycles the
-/// world tick through the same horizon (`behavior::served_clock`).
+/// Encodes `kitty_id`'s observation of its frozen fog `view`. There is
+/// no clock parameter: spec 058 FR-010 dropped the episode-clock cell
+/// (K§2 "drop"), and with it the serving-side `served_clock` plumbing.
 pub fn encode_observation(
     view: &FogView,
     kitty_id: KittyId,
     core: &Config,
     cfg: &ObservationConfig,
-    episode_clock: f32,
 ) -> Observation {
     debug_assert_eq!(
         view.observer, kitty_id,
@@ -337,15 +373,19 @@ pub fn encode_observation(
     let (kitty_target, critter_target) = activity_targets(me, view);
     let width = view.width as f32;
     let height = view.height as f32;
-    let max_distance = (view.width + view.height) as f32;
     let window = core.meow.digest_window_ticks;
 
     let mut v = Vec::with_capacity(observation_len(cfg));
 
-    // 1. Self block: the schema-4 block, verbatim.
+    // 1. Self block. Walls replace fractional position (FR-003): absolute
+    // tiles to each edge, linear /40 clamped, N/E/S/W — fully egocentric;
+    // a corner cat carries two legal zeros.
     push_needs_and_happiness(&mut v, me);
-    v.push(me.pos.x as f32 / width);
-    v.push(me.pos.y as f32 / height);
+    let near = |d: f32| (d / NEAR_DISTANCE_NORMALISER).min(1.0);
+    v.push(near(me.pos.y as f32)); // N
+    v.push(near(width - 1.0 - me.pos.x as f32)); // E
+    v.push(near(height - 1.0 - me.pos.y as f32)); // S
+    v.push(near(me.pos.x as f32)); // W
     push_activity(&mut v, &me.activity);
     v.push(if me.activity.partner().is_some() {
         1.0
@@ -374,28 +414,47 @@ pub fn encode_observation(
             v.push(0.0);
         }
     }
-    push_traits(&mut v, kitty_id, core, cfg);
-    debug_assert_eq!(v.len(), SELF_SCHEMA_4);
-    // Own scene age (FR-019): elapsed / 24, clamped; 0 with no scene.
+    push_identity(&mut v, kitty_id, core, cfg);
+    debug_assert_eq!(v.len(), SELF_CORE);
+    // Own scene age (049 FR-019): elapsed / 24, clamped; 0 with no scene.
     v.push(scene_age(me, view.tick));
-    // Own message block (FR-016): recency + rate of my own calls; no
+    // Own message block (049 FR-016): recency + rate of my own calls; no
     // intensity cells on the self row (my needs are already here).
     push_message_block(&mut v, view, kitty_id, core, false);
-    // Element memory (FR-009): per kind, present, dx, dy relative to the
-    // CURRENT position, staleness = (tick − last_seen) / 40, clamped.
+    // Element memory (049 FR-009, spatial group per spec 058): per kind,
+    // present, spatial group relative to the CURRENT position, staleness
+    // = (tick − last_seen) / 40, clamped.
     for kind in ElementType::ALL {
         match me.memory[cloudkitty_core::kitty::memory_index(kind)] {
             Some(slot) => {
                 v.push(1.0);
-                v.push((slot.pos.x as f32 - me.pos.x as f32) / width);
-                v.push((slot.pos.y as f32 - me.pos.y as f32) / height);
+                push_spatial(&mut v, me.pos, slot.pos);
                 let staleness =
                     view.tick.saturating_sub(slot.last_seen) as f32 / STALENESS_NORMALISER;
                 v.push(staleness.clamp(0.0, 1.0));
             }
-            None => v.extend(std::iter::repeat_n(0.0, 4)),
+            None => v.extend(std::iter::repeat_n(0.0, 1 + SPATIAL_GROUP + 1)),
         }
     }
+    // Waypoint bearing (spec 058 FR-012): the L1 unit direction to the
+    // exploration tour's current waypoint, derived exactly as the
+    // exploration rule derives its step target; (0, 0) when standing on
+    // it. The lattice is stateless and the observer's own tour index is
+    // never blanked by `fog_for`.
+    let lattice =
+        cloudkitty_core::explore::Lattice::for_world(view.width, view.height, core.vision.radius);
+    let wp = lattice.waypoint(me.explore_waypoint);
+    let (wdx, wdy) = (wp.x as f32 - me.pos.x as f32, wp.y as f32 - me.pos.y as f32);
+    let wd = wdx.abs() + wdy.abs();
+    if wd == 0.0 {
+        v.extend([0.0, 0.0]);
+    } else {
+        v.extend([wdx / wd, wdy / wd]);
+    }
+    // Dirt reserve (spec 058 FR-013): two cells for the banked dirt
+    // compartments, 0.0 until armed — this push is the ONLY write path
+    // into the reserve range, which is what the inertness test pins.
+    v.extend([0.0, 0.0]);
     debug_assert_eq!(v.len(), SELF_BLOCK);
 
     // 2. Kitty rows: permanent, by id; contents by row state (FR-012).
@@ -408,10 +467,11 @@ pub fn encode_observation(
             RowState::Seen => {
                 let other = view.kitty(friend).expect("seen means in the view");
                 v.push(1.0);
-                v.push((other.pos.x as f32 - me.pos.x as f32) / width);
-                v.push((other.pos.y as f32 - me.pos.y as f32) / height);
-                v.push(me.pos.manhattan_distance(&other.pos) as f32 / max_distance);
-                push_needs_and_happiness(&mut v, other);
+                push_spatial(&mut v, me.pos, other.pos);
+                // Five of six (spec 058 FR-005/FR-006): bath is the one
+                // visible need — coat state reads by sight and scent. The
+                // other five needs and happiness have no cells at all.
+                v.push(other.needs.get(NeedKind::Bath) / 100.0);
                 push_activity(&mut v, &other.activity);
                 v.push(if other.activity.partner().is_some() {
                     1.0
@@ -446,13 +506,14 @@ pub fn encode_observation(
             }
             RowState::Heard { pos } => {
                 v.push(0.0);
-                v.push((pos.x as f32 - me.pos.x as f32) / width);
-                v.push((pos.y as f32 - me.pos.y as f32) / height);
-                v.push(me.pos.manhattan_distance(&pos) as f32 / max_distance);
-                // Knowledge fields masked: needs, happiness, activity,
-                // partner flag, target bit, water bit, sunbeam bit, scene
-                // age.
-                v.extend(std::iter::repeat_n(0.0, 6 + 1 + 7 + 1 + 1 + 1 + 1 + 1));
+                // The spatial group points at the last audible meow
+                // position — routinely past the vision radius (FR-001a),
+                // never clamped.
+                push_spatial(&mut v, me.pos, pos);
+                // Knowledge fields masked: bath (hearing carries no coat
+                // state), activity, partner flag, target bit, water bit,
+                // sunbeam bit, scene age.
+                v.extend(std::iter::repeat_n(0.0, 1 + 7 + 1 + 1 + 1 + 1 + 1));
                 // The message block is live on a heard row (FR-012).
                 push_message_block(&mut v, view, friend, core, true);
                 push_answers_me(&mut v, view, friend, core);
@@ -467,7 +528,7 @@ pub fn encode_observation(
     for slot in &chow {
         match slot {
             Some(e) => {
-                push_element_common(&mut v, me, e, width, height, max_distance);
+                push_element_common(&mut v, me, e);
                 let servings = match e.kind {
                     ElementKind::Chow { servings } => servings,
                     _ => 0,
@@ -480,7 +541,7 @@ pub fn encode_observation(
     let water = nearest_elements(view, me, ElementType::Water, cfg.water_slots);
     for slot in &water {
         match slot {
-            Some(e) => push_element_common(&mut v, me, e, width, height, max_distance),
+            Some(e) => push_element_common(&mut v, me, e),
             None => v.extend(std::iter::repeat_n(0.0, WATER_SLOT)),
         }
     }
@@ -488,7 +549,7 @@ pub fn encode_observation(
     for slot in &sunbeams {
         match slot {
             Some(e) => {
-                push_element_common(&mut v, me, e, width, height, max_distance);
+                push_element_common(&mut v, me, e);
                 let ttl_fraction = match (e.ttl, core.elements.sunbeam.ttl) {
                     (Some(left), Some(total)) if total > 0 => {
                         (left as f32 / total as f32).clamp(0.0, 1.0)
@@ -505,7 +566,7 @@ pub fn encode_observation(
     for slot in &table.critters {
         match slot.and_then(|id| view.elements.iter().find(|e| e.id == id)) {
             Some(e) => {
-                push_element_common(&mut v, me, e, width, height, max_distance);
+                push_element_common(&mut v, me, e);
                 match e.kind {
                     ElementKind::Greeble { heading } => {
                         v.push(1.0);
@@ -528,9 +589,7 @@ pub fn encode_observation(
         }
     }
 
-    // 4. Episode clock.
-    v.push(episode_clock.clamp(0.0, 1.0));
-
+    // There is no clock cell (spec 058 FR-010).
     debug_assert_eq!(v.len(), observation_len(cfg));
     Observation { values: v, table }
 }
@@ -685,7 +744,14 @@ pub(crate) fn push_distress_flags(v: &mut Vec<f32>, kitty: &Kitty) {
 /// clamped to [0, 4] (the schema's documented bound). Shared with the
 /// global-state encoder — the critic's view of a trait must scale exactly
 /// as the actors' do.
-pub(crate) fn push_traits(
+/// The identity block (spec 058 FR-008, self-only): the six need-rate
+/// multipliers (the schema-4 traits, unchanged semantics), then comfort
+/// slack (ticks /40, clamped), the consent line (/100), and the six
+/// favourite weights (raw [0, 1], all-zero = no favourite). Shared with
+/// the global-state encoder (FR-009: the critic sees every seat's
+/// dials); the dials come from the SAME config accessors spec 059's
+/// parameterized teacher reads.
+pub(crate) fn push_identity(
     v: &mut Vec<f32>,
     kitty_id: cloudkitty_core::kitty::KittyId,
     core: &Config,
@@ -694,6 +760,11 @@ pub(crate) fn push_traits(
     for kind in NeedKind::ALL {
         let trait_value = core.need_rate_for(kitty_id, kind) / cfg.reference_need_rate;
         v.push(trait_value.clamp(0.0, 4.0));
+    }
+    v.push((core.comfort_slack_for(kitty_id) / NEAR_DISTANCE_NORMALISER).clamp(0.0, 1.0));
+    v.push(core.consent_line_for(kitty_id) / 100.0);
+    for kind in NeedKind::ALL {
+        v.push(core.favourite_weight_for(kitty_id, kind));
     }
 }
 
@@ -709,18 +780,28 @@ pub(crate) fn activity_progress(me: &Kitty, tick: u64, core: &Config) -> f32 {
     (clock.elapsed(tick) as f32 / bounds.min.max(1) as f32).clamp(0.0, 1.0)
 }
 
-fn push_element_common(
-    v: &mut Vec<f32>,
-    me: &Kitty,
-    e: &cloudkitty_core::element::Element,
-    width: f32,
-    height: f32,
-    max_distance: f32,
-) {
+fn push_element_common(v: &mut Vec<f32>, me: &Kitty, e: &cloudkitty_core::element::Element) {
     v.push(1.0);
-    v.push((e.pos.x as f32 - me.pos.x as f32) / width);
-    v.push((e.pos.y as f32 - me.pos.y as f32) / height);
-    v.push(me.pos.manhattan_distance(&e.pos) as f32 / max_distance);
+    push_spatial(v, me.pos, e.pos);
+}
+
+/// The spatial group (spec 058 FR-001): Manhattan bearing + two-scale
+/// magnitude under the frozen literals. d = |dx| + |dy| — the walk cost,
+/// the metric of every decision consumer (doctrine rule 5 keeps teacher
+/// context and student observation on one metric); the bearing pair is
+/// the L1 unit vector, (0, 0) on the observer's own tile. NEVER bounded
+/// by the vision radius (FR-001a).
+fn push_spatial(v: &mut Vec<f32>, from: Position, to: Position) {
+    let dx = to.x as f32 - from.x as f32;
+    let dy = to.y as f32 - from.y as f32;
+    let d = dx.abs() + dy.abs();
+    if d == 0.0 {
+        v.extend([0.0, 0.0]);
+    } else {
+        v.extend([dx / d, dy / d]);
+    }
+    v.push((d / NEAR_DISTANCE_NORMALISER).min(1.0));
+    v.push(d.ln_1p() / FAR_DISTANCE_NORMALISER.ln_1p());
 }
 
 /// The one proximity ordering (spec 014 review): Manhattan distance from
@@ -759,33 +840,36 @@ mod tests {
     use cloudkitty_core::test_support::test_world;
 
     #[test]
-    fn the_default_layout_is_408_values() {
-        // Schema 5 (spec 049): self 85 | 4 x 63 | 2 x 5 | 2 x 4 | 2 x 6 |
-        // 4 x 10 | clock 1. (History: 197 at schema 3, 225 at schema 4,
-        // 404 before the kitty-row sunbeam bit.)
-        assert_eq!(observation_len(&ObservationConfig::default()), 408);
+    fn the_default_layout_is_421_values() {
+        // Schema 6 (spec 058): self 109 | 4 x 58 | 2 x 6 | 2 x 5 | 2 x 7 |
+        // 4 x 11 | no clock. (History: 408 at schema 5, 225 at schema 4,
+        // 197 at schema 3.)
+        assert_eq!(observation_len(&ObservationConfig::default()), 421);
     }
 
     #[test]
     fn the_self_block_is_carried_exactly_once_at_any_slot_config() {
         // Growing a slot count adds slot-sized steps on top of the same
-        // single self block (spec 026 US1 scenario 4, re-pinned at 85).
-        assert_eq!(SELF_BLOCK, 85, "34 (schema 4) + scene age + 30 + 20");
+        // single self block (spec 026 US1 scenario 4, re-pinned at 109).
         assert_eq!(
-            KITTY_SLOT, 63,
-            "20 (schema 4) + water + sunbeam + scene age + 30 + 6 + 4"
+            SELF_BLOCK, 109,
+            "44 (v6 core) + scene age + 30 + 30 + waypoint 2 + reserve 2"
+        );
+        assert_eq!(
+            KITTY_SLOT, 58,
+            "15 (v6 core) + water + sunbeam + scene age + 30 + 6 + 4"
         );
         let cfg = ObservationConfig {
             kitty_slots: ObservationConfig::default().kitty_slots + 2,
             ..ObservationConfig::default()
         };
-        assert_eq!(observation_len(&cfg), 408 + 2 * KITTY_SLOT);
+        assert_eq!(observation_len(&cfg), 421 + 2 * KITTY_SLOT);
     }
 
     /// The in-water flag's fixed self-block index: needs (6) + happiness +
-    /// position (2) + activity one-hot (7) + social flag + in-sunbeam flag.
+    /// walls (4) + activity one-hot (7) + social flag + in-sunbeam flag.
     /// A layout drift moves the flag and fails these tests loudly.
-    const IN_WATER_INDEX: usize = 6 + 1 + 2 + 7 + 1 + 1;
+    const IN_WATER_INDEX: usize = 6 + 1 + 4 + 7 + 1 + 1;
 
     #[test]
     fn the_in_water_flag_is_tile_occupancy_not_proximity() {
@@ -804,7 +888,6 @@ mod tests {
             1,
             &config,
             &cfg,
-            0.0,
         );
         assert_eq!(dry.values[IN_WATER_INDEX], 0.0, "no water: dry");
 
@@ -821,7 +904,6 @@ mod tests {
             1,
             &config,
             &cfg,
-            0.0,
         );
         assert_eq!(
             beside.values[IN_WATER_INDEX], 0.0,
@@ -841,7 +923,6 @@ mod tests {
             1,
             &config,
             &cfg,
-            0.0,
         );
         assert_eq!(wet.values[IN_WATER_INDEX], 1.0, "water underfoot: wet");
     }
@@ -871,7 +952,6 @@ mod tests {
             1,
             &config,
             &cfg,
-            0.0,
         );
         assert_eq!(obs.values[IN_WATER_INDEX], 1.0);
         // And the neighboring sunbeam flag stayed activity-derived: not
@@ -912,16 +992,13 @@ mod tests {
             vec![Some(2), Some(3), Some(4), Some(5)],
             "rows by id"
         );
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
-        let bit_index = SELF_BLOCK + KITTY_SCHEMA_4 - 1;
+        let obs = encode_observation(&view, 1, &config, &cfg);
+        let bit_index = SELF_BLOCK + KITTY_CORE - 1;
         assert_eq!(
             obs.values[bit_index], 1.0,
             "row 0 (kitty 2) carries the target bit"
         );
-        assert_eq!(
-            obs.values[SELF_BLOCK + KITTY_SLOT + KITTY_SCHEMA_4 - 1],
-            0.0
-        );
+        assert_eq!(obs.values[SELF_BLOCK + KITTY_SLOT + KITTY_CORE - 1], 0.0);
     }
 
     #[test]
@@ -958,8 +1035,8 @@ mod tests {
         let view = world.snapshot().fog_for(1, config.vision.radius);
         let cfg = ObservationConfig::default();
 
-        let a = encode_observation(&view, 1, &config, &cfg, 0.25);
-        let b = encode_observation(&view, 1, &config, &cfg, 0.25);
+        let a = encode_observation(&view, 1, &config, &cfg);
+        let b = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(a.values, b.values, "same snapshot, identical vector");
         assert_eq!(a.table, b.table);
         assert_eq!(a.values.len(), observation_len(&cfg));
@@ -993,6 +1070,9 @@ mod tests {
             y,
             behavior: "needs_driven".into(),
             needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
         })
         .collect();
         config.validate().unwrap();
@@ -1023,7 +1103,7 @@ mod tests {
             let idx = world.kitty_index(4).unwrap();
             world.kitties[idx].pos = Position::new(x, y);
             let view = world.snapshot().fog_for(1, config.vision.radius);
-            let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+            let obs = encode_observation(&view, 1, &config, &cfg);
             assert_eq!(
                 obs.table.kitties,
                 vec![Some(2), Some(3), Some(4), Some(5)],
@@ -1036,18 +1116,22 @@ mod tests {
                 "friend 4 at ({x}, {y}): present"
             );
             if inside {
+                let (dx, dy) = (x as f32 - 10.0, y as f32 - 10.0);
+                let d = dx.abs() + dy.abs();
                 assert!(
-                    (r4[1] - (x as f32 - 10.0) / 20.0).abs() < 1e-6,
-                    "dx to the live position"
+                    (r4[1] - dx / d).abs() < 1e-6,
+                    "bearing-x to the live position"
                 );
+                assert!((r4[2] - dy / d).abs() < 1e-6, "bearing-y");
+                assert!((r4[3] - d / 40.0).abs() < 1e-6, "linear magnitude");
                 assert!(
-                    (r4[3] - ((x as f32 - 10.0).abs() + (y as f32 - 10.0).abs()) / 40.0).abs()
-                        < 1e-6
+                    (r4[4] - d.ln_1p() / 400f32.ln_1p()).abs() < 1e-6,
+                    "log magnitude"
                 );
                 assert_eq!(
-                    r4[10],
-                    world.kitty(4).unwrap().happiness / 100.0,
-                    "knowledge shown"
+                    r4[offsets::ROW_BATH],
+                    world.kitty(4).unwrap().needs.get(NeedKind::Bath) / 100.0,
+                    "bath is the one visible need (spec 058 FR-005)"
                 );
             } else {
                 assert!(r4.iter().all(|&v| v == 0.0), "silent: all zero");
@@ -1078,18 +1162,24 @@ mod tests {
         world.kitties[idx].happiness = 42.0;
         let view = world.snapshot().fog_for(1, config.vision.radius);
         assert!(view.kitty(3).is_none(), "outside the disc");
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         let r3 = row(&obs, 1);
         assert_eq!(r3[0], 0.0, "present means seen");
+        let (dx, dy) = (2.0f32 - 10.0, 5.0f32 - 10.0);
+        let d = dx.abs() + dy.abs();
         assert!(
-            (r3[1] - (2.0 - 10.0) / 20.0).abs() < 1e-6,
-            "dx to T, not to the cat"
+            (r3[1] - dx / d).abs() < 1e-6,
+            "bearing-x to T, not to the cat"
         );
-        assert!((r3[2] - (5.0 - 10.0) / 20.0).abs() < 1e-6, "dy to T");
-        assert!((r3[3] - (8.0 + 5.0) / 40.0).abs() < 1e-6, "distance to T");
+        assert!((r3[2] - dy / d).abs() < 1e-6, "bearing-y to T");
+        assert!((r3[3] - d / 40.0).abs() < 1e-6, "linear magnitude to T");
         assert!(
-            r3[4..KITTY_SCHEMA_4].iter().all(|&v| v == 0.0),
-            "needs, happiness, activity, flags masked"
+            (r3[4] - d.ln_1p() / 400f32.ln_1p()).abs() < 1e-6,
+            "log magnitude to T"
+        );
+        assert!(
+            r3[offsets::ROW_BATH..KITTY_CORE].iter().all(|&v| v == 0.0),
+            "bath (no coat state by ear), activity, flags masked"
         );
         assert_eq!(r3[offsets::ROW_WATER_BIT], 0.0);
         assert_eq!(r3[offsets::ROW_SCENE_AGE], 0.0);
@@ -1103,12 +1193,12 @@ mod tests {
         w3.elements.clear();
         cloudkitty_core::test_support::forget_everything(&mut w3);
         let view3 = w3.snapshot().fog_for(1, 40);
-        let obs3 = encode_observation(&view3, 1, &three, &cfg, 0.0);
+        let obs3 = encode_observation(&view3, 1, &three, &cfg);
         assert_eq!(obs3.table.kitties, vec![Some(2), Some(3), None, None]);
         assert!(row(&obs3, 2).iter().all(|&v| v == 0.0) && row(&obs3, 3).iter().all(|&v| v == 0.0));
         assert_eq!(
             obs3.values.len(),
-            408,
+            421,
             "the slot config does not change per lab"
         );
     }
@@ -1145,7 +1235,7 @@ mod tests {
             reply: false,
         });
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(
             row(&obs, 0)[offsets::ROW_SUNBEAM_BIT],
             1.0,
@@ -1162,7 +1252,7 @@ mod tests {
         // The beam expires: the bit follows the tile, not the cat.
         world.elements.retain(|e| e.id != 900);
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(row(&obs, 0)[offsets::ROW_SUNBEAM_BIT], 0.0);
     }
 
@@ -1185,18 +1275,28 @@ mod tests {
             last_seen: 90,
         });
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
-        let chow = offsets::SELF_MEMORY + 4 * memory_index(ElementType::Chow);
+        let obs = encode_observation(&view, 1, &config, &cfg);
+        let chow = offsets::SELF_MEMORY + 6 * memory_index(ElementType::Chow);
         assert_eq!(obs.values[chow], 1.0, "present");
-        assert!((obs.values[chow + 1] - 4.0 / 24.0).abs() < 1e-6, "dx");
-        assert!((obs.values[chow + 2] - (-3.0) / 24.0).abs() < 1e-6, "dy");
+        // (14, 7) from (10, 10): dx 4, dy -3, Manhattan 7 — the spatial
+        // group, not the retired width-normalized dx/dy.
+        assert!((obs.values[chow + 1] - 4.0 / 7.0).abs() < 1e-6, "bearing-x");
         assert!(
-            (obs.values[chow + 3] - 10.0 / 40.0).abs() < 1e-6,
+            (obs.values[chow + 2] - (-3.0) / 7.0).abs() < 1e-6,
+            "bearing-y"
+        );
+        assert!((obs.values[chow + 3] - 7.0 / 40.0).abs() < 1e-6, "linear");
+        assert!(
+            (obs.values[chow + 4] - 7.0f32.ln_1p() / 400f32.ln_1p()).abs() < 1e-6,
+            "log"
+        );
+        assert!(
+            (obs.values[chow + 5] - 10.0 / 40.0).abs() < 1e-6,
             "staleness 10/40"
         );
-        let water = offsets::SELF_MEMORY + 4 * memory_index(ElementType::Water);
+        let water = offsets::SELF_MEMORY + 6 * memory_index(ElementType::Water);
         assert!(
-            obs.values[water..water + 4].iter().all(|&v| v == 0.0),
+            obs.values[water..water + 6].iter().all(|&v| v == 0.0),
             "never seen: zero"
         );
         // Clamped at a full traverse and beyond; the normaliser is the
@@ -1206,8 +1306,8 @@ mod tests {
             last_seen: 10,
         });
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
-        assert_eq!(obs.values[chow + 3], 1.0, "90/40 clamps to 1");
+        let obs = encode_observation(&view, 1, &config, &cfg);
+        assert_eq!(obs.values[chow + 5], 1.0, "90/40 clamps to 1");
         assert_eq!(STALENESS_NORMALISER, 40.0);
     }
     // ---- spec 049 T037: repetition and insistence are fields (US3) ----
@@ -1265,7 +1365,7 @@ mod tests {
             .push(meow_at(4, MessageKind::WantEat, t - 30, 0.7));
         let cfg = ObservationConfig::default();
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         let col = offsets::ROW_MSG_BLOCK + 2 * head_col(MessageKind::WantPlay);
         let a = row(&obs, 0);
         assert!((a[col] - (1.0 - 5.0 / 30.0)).abs() < 1e-6, "A recency");
@@ -1313,7 +1413,7 @@ mod tests {
             .push(meow_at(1, MessageKind::HereFood, t - 2, 0.0));
         let cfg = ObservationConfig::default();
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         let sc = offsets::SELF_MSG_BLOCK + 2 * head_col(MessageKind::HereFood);
         assert!((obs.values[sc] - (1.0 - 2.0 / 30.0)).abs() < 1e-6);
         assert!((obs.values[sc + 1] - 1.0 / 3.0).abs() < 1e-6);
@@ -1326,7 +1426,7 @@ mod tests {
             .recent_meows
             .push(meow_at(1, MessageKind::HereWater, t, 0.0));
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(
             obs.values[offsets::SELF_MSG_BLOCK + 2 * head_col(MessageKind::HereWater)],
             0.0
@@ -1353,7 +1453,7 @@ mod tests {
                 .position(|&k| k == MessageKind::WantEat)
                 .unwrap();
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(row(&obs, 0)[0], 1.0, "A is seen");
         assert!(
             (row(&obs, 0)[cell] - 0.62).abs() < 1e-6,
@@ -1362,7 +1462,7 @@ mod tests {
         let idx = world.kitty_index(2).unwrap();
         world.kitties[idx].pos = Position::new(19, 0); // out of sight, heard
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(row(&obs, 0)[0], 0.0, "A is heard");
         assert!(
             (row(&obs, 0)[cell] - 0.62).abs() < 1e-6,
@@ -1370,7 +1470,7 @@ mod tests {
         );
         world.tick = t + 40; // both calls outside the window
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert!(
             row(&obs, 0).iter().all(|&x| x == 0.0),
             "silent: nothing in the window"
@@ -1398,7 +1498,7 @@ mod tests {
             world.kitties[me].activity = Activity::Grooming { target: None };
             world.kitties[me].activity_clock = Some(ActivityClock::start(t + 1 - elapsed));
             let view = world.snapshot().fog_for(1, config.vision.radius);
-            let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+            let obs = encode_observation(&view, 1, &config, &cfg);
             assert!(
                 (obs.values[offsets::SELF_SCENE_AGE] - expect).abs() < 1e-6,
                 "{elapsed} ticks in"
@@ -1410,7 +1510,7 @@ mod tests {
         world.kitties[friend].activity_clock = Some(ActivityClock::start(t + 1 - 6));
         config.actions.durations.sleep.max = 200; // a repriced table changes nothing
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(obs.values[offsets::SELF_SCENE_AGE], 0.0, "no scene: 0");
         assert!(
             (row(&obs, 0)[offsets::ROW_SCENE_AGE] - 0.25).abs() < 1e-6,
@@ -1436,7 +1536,7 @@ mod tests {
         });
         let cfg = ObservationConfig::default();
         let view = world.snapshot().fog_for(1, config.vision.radius);
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(row(&obs, 0)[offsets::ROW_WATER_BIT], 1.0, "seen and wet");
         assert!(row(&obs, 0)[offsets::ROW_SCENE_AGE] > 0.0);
         // Walk the friend out of the disc but keep it heard -- its call
@@ -1454,11 +1554,15 @@ mod tests {
             view.element_at(Position::new(13, 10)).is_some(),
             "the pond is in view"
         );
-        let obs = encode_observation(&view, 1, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 1, &config, &cfg);
         assert_eq!(row(&obs, 0)[0], 0.0, "heard");
         assert!(
-            (row(&obs, 0)[1] - 3.0 / 20.0).abs() < 1e-6,
-            "dx to the stamped pond tile"
+            (row(&obs, 0)[1] - 1.0).abs() < 1e-6,
+            "bearing-x to the stamped pond tile (dx 3, dy 0)"
+        );
+        assert!(
+            (row(&obs, 0)[3] - 3.0 / 40.0).abs() < 1e-6,
+            "linear magnitude to the pond tile"
         );
         assert_eq!(
             row(&obs, 0)[offsets::ROW_WATER_BIT],
@@ -1502,7 +1606,7 @@ mod tests {
         world.tick = t + 2;
         let cfg = ObservationConfig::default();
         let view = world.snapshot().fog_for(2, config.vision.radius);
-        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 2, &config, &cfg);
         // From B's seat, row 0 is friend 1.
         assert_eq!(obs.table.kitties[0], Some(1));
         assert_eq!(
@@ -1524,7 +1628,7 @@ mod tests {
         // tick buffer).
         world.tick = t + 1;
         let view = world.snapshot().fog_for(2, config.vision.radius);
-        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 2, &config, &cfg);
         assert_eq!(
             answers_me(&obs, 0, MessageKind::HereWater),
             0.0,
@@ -1544,7 +1648,7 @@ mod tests {
         world.tick = t + 1;
         let cfg = ObservationConfig::default();
         let view = world.snapshot().fog_for(2, config.vision.radius);
-        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 2, &config, &cfg);
         assert_eq!(
             answers_me(&obs, 0, MessageKind::HereWater),
             0.0,
@@ -1555,7 +1659,7 @@ mod tests {
             .recent_meows
             .push(meow_at(2, MessageKind::WantDrink, t - 2, 0.4));
         let view = world.snapshot().fog_for(2, config.vision.radius);
-        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 2, &config, &cfg);
         assert_eq!(
             answers_me(&obs, 0, MessageKind::HereWater),
             0.0,
@@ -1570,7 +1674,7 @@ mod tests {
         world.kitties[a].pos = Position::new(0, 19);
         let view = world.snapshot().fog_for(2, config.vision.radius);
         assert!(view.kitty(1).is_none(), "A is out of B's sight");
-        let obs = encode_observation(&view, 2, &config, &cfg, 0.0);
+        let obs = encode_observation(&view, 2, &config, &cfg);
         assert_eq!(row(&obs, 0)[0], 0.0, "heard");
         assert_eq!(
             answers_me(&obs, 0, MessageKind::HereWater),

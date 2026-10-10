@@ -135,19 +135,21 @@ fn a_stale_generation_v3_artifact_fails_startup_naming_its_field() {
     );
 }
 
-/// Spec 049 SC-008 at the boot seam: a config seating the schema-4 oracle
-/// (a real pre-wall artifact) is refused at registration -- before any
-/// tick -- naming the observation schema, found 4, expected 5; and the
-/// schema-5 oracle beside it boots.
+/// Spec 049 SC-008 / spec 058 SC-006 at the boot seam: a config seating
+/// a pre-wall oracle (schema 4 AND schema 5, both real retired
+/// artifacts) is refused at registration -- before any tick -- naming
+/// the observation schema and both versions; and the schema-6 oracle
+/// beside them boots.
 #[test]
-fn a_schema_four_artifact_fails_startup_and_the_schema_five_oracle_boots() {
+fn pre_wall_artifacts_fail_startup_and_the_schema_six_oracle_boots() {
     let fixtures =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../cloudkitty-rl/tests/fixtures");
     let dir = std::env::temp_dir().join("ck-server-schema-gate");
     std::fs::create_dir_all(&dir).unwrap();
-    for (name, seats) in [
-        ("oracle-schema4.ckpolicy", false),
-        ("oracle.ckpolicy", true),
+    for (name, seats, found) in [
+        ("oracle-schema4.ckpolicy", false, "v4"),
+        ("oracle-schema5.ckpolicy", false, "v5"),
+        ("oracle.ckpolicy", true, ""),
     ] {
         let artifact = dir.join(name);
         std::fs::copy(fixtures.join(name), &artifact).unwrap();
@@ -167,19 +169,22 @@ fn a_schema_four_artifact_fails_startup_and_the_schema_five_oracle_boots() {
         let mut registry = BehaviorRegistry::with_builtins();
         let result = register_policy_behaviors(&mut registry, &config, &rl);
         if seats {
-            result.expect("the schema-5 oracle seats");
+            result.expect("the schema-6 oracle seats");
             assert!(registry.get("policy:oracle").is_some());
         } else {
-            let err = format!("{:#}", result.expect_err("schema 4 is refused at startup"));
+            let err = format!(
+                "{:#}",
+                result.expect_err("a pre-wall schema is refused at startup")
+            );
             assert!(
                 err.contains("[rl.policy.oracle]"),
                 "names the config field: {err}"
             );
             assert!(
                 err.contains("observation schema mismatch")
-                    && err.contains("schema v4")
-                    && err.contains("speaks v5"),
-                "the schema gate's own words -- found 4, expected 5: {err}"
+                    && err.contains(&format!("schema {found}"))
+                    && err.contains("speaks v6"),
+                "the schema gate's own words -- found {found}, expected v6: {err}"
             );
         }
     }

@@ -42,7 +42,7 @@ y = 10
 # Lineage: "the cuddler" (attn-a1-s1, carried onto the schema-4 surface
 # by spec 035 as attn-a1-s1-o4) held this seat from 2026-08-14; retired
 # at the 3.0 wall.
-behavior = "policy:fog-gen1-miso-cand-s2"
+behavior = "needs_driven"  # Gen 2 wall (spec 058): parked until Gen 2 minds certify; the Gen 1 mind (cand-s2) stays below in [rl.policy.*], schema-5, refused by this binary
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -67,7 +67,7 @@ y = 15
 # Clementine); retired at the 3.0 wall. The new playful anchor (spec 049
 # T091, owner 2026-09-03) held the seat through the wall's scripted
 # interregnum.
-behavior = "policy:fog-gen1-biscuit-cand-s1"
+behavior = "playful"  # Gen 2 wall (spec 058): parked until Gen 2 minds certify; the Gen 1 mind (cand-s1) stays below in [rl.policy.*], schema-5, refused by this binary
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -88,7 +88,7 @@ y = 6
 # twin-seating pattern was retired (F-027: the r5 co-sleep deadlock was
 # a twin artifact); retired at the 3.0 wall. The needs override below is
 # world-law, not behavior — it stays.
-behavior = "policy:fog-gen1-pumpkin-dose-lo-s1"
+behavior = "needs_driven"  # Gen 2 wall (spec 058): parked until Gen 2 minds certify; the Gen 1 mind (dose-lo-s1) stays below in [rl.policy.*], schema-5, refused by this binary
 # Any kitty may override the global [needs] rise rates; unset needs keep the
 # defaults. Pumpkin is a snacky little cat -- the 3-dial character vector
 # (owner-final at the spec-033 wall, verified -0.11 vs trait-flat under
@@ -111,7 +111,7 @@ y = 4
 # verbatim in the battery doc — the E1 dialect, here-meows and a
 # meaningful mew, was worth the recert; G2c: the swap free at team
 # level, +0.0003); retired at the 3.0 wall.
-behavior = "policy:fog-gen1-kittybear-cand-s4"
+behavior = "needs_driven"  # Gen 2 wall (spec 058): parked until Gen 2 minds certify; the Gen 1 mind (cand-s4) stays below in [rl.policy.*], schema-5, refused by this binary
 # The 3-dial character vector (owner-locked 2026-08-15 trait sheets;
 # certification world constructed per prereg D-003 — the served config
 # plus exactly the three sheets the wall rider deferred).
@@ -135,7 +135,7 @@ y = 16
 # 94.81 vs the scripted bar 90.10 (battery-2026-08-22.md); retired at
 # the 3.0 wall. Her look (the designed white cat) is a client-side
 # palette override.
-behavior = "policy:fog-gen1-clementine-cand-s7"
+behavior = "needs_driven"  # Gen 2 wall (spec 058): parked until Gen 2 minds certify; the Gen 1 mind (cand-s7) stays below in [rl.policy.*], schema-5, refused by this binary
 # Trait vector owner-final, 3-dial: cuddlier, lighter on play and bath
 # (verified -0.07 vs trait-flat under policy company -- the parity band);
 # stage-3 mortal like Pumpkin's.

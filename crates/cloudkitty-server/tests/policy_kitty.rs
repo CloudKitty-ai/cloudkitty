@@ -115,66 +115,59 @@ fn a_corrupted_artifact_fails_startup_naming_the_config_field() {
 }
 
 #[test]
-fn the_shipped_config_seats_the_gen1_minds_and_names_exactly_what_it_serves() {
-    // The fifth tour (the 0.3.0 cutover, owner rulings 2026-09-15;
-    // 2.x retirement on the owner's word 2026-09-16): supersedes
-    // `the_shipped_config_parks_every_seat_at_the_3_0_wall…` (expired by
-    // its own terms when the Gen 1 minds landed) and, at the retirement,
-    // its "unreferenced 2.x blocks still refuse" half — those blocks are
-    // gone with their artifacts (policies/retired/, README rows). What
-    // remains to guard:
-    // 1. every served seat names a policy, and registration opens every
-    //    seated artifact through the schema gate (a missing artifact, a
-    //    stale generation, or a blockless seat all fail here);
-    // 2. the config names exactly what it serves — every [rl.policy.*]
-    //    stanza is seated (retirement removes the stanza with the file),
-    //    and the policies/ top level holds exactly the stanza-named
-    //    files (the README's own top-level rule, machine-checked).
+fn the_shipped_config_parks_every_seat_at_the_gen2_wall_and_refuses_the_gen1_minds() {
+    // The sixth tour (spec 058, the Gen 2 wall). This restores the
+    // generation-gap posture the fifth-tour test
+    // (`…seats_the_gen1_minds_and_names_exactly_what_it_serves`, in git
+    // history) said to restore "if the seats ever park again":
+    // observation schema 6 refuses every schema-5 artifact at load
+    // (spec 058 SC-006), so the served roster is scripted until the
+    // Gen 2 minds seat at their cutover. Two proofs: no seat names a
+    // policy, and every [rl.policy.*] artifact the config still lists --
+    // the Gen 1 registry of what WAS seated, never opened for an
+    // unreferenced block -- IS refused by this binary, naming the
+    // observation schema and both versions, before any tick. The
+    // deployed 0.3.0 box keeps serving its Gen 1 roster on the old
+    // binary; this guards the NEXT deploy's config.
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../cloudkitty.toml");
     let text = std::fs::read_to_string(&root).expect("the shipped config is readable");
     let config: Config = toml::from_str(&text).unwrap();
     config.validate().expect("the shipped config validates");
-    // Seats and minds counted separately on purpose: the same mind at two
-    // seats is legal (the pre-wall twin seating was exactly that; F-027
-    // retired the PATTERN as a design choice, not the capability), so the
-    // every-seat check counts seats and `seated` dedups to distinct minds.
     assert!(
         config
             .kitties
             .iter()
-            .all(|k| k.behavior.starts_with("policy:")),
-        "the 0.3.0 seating: every served seat is a Gen 1 mind; if the seats ever park \
-         again, restore the wall test from git history instead of deleting this one"
+            .all(|k| !k.behavior.starts_with("policy:")),
+        "at the Gen 2 wall every served seat is scripted; a policy seat means Gen 2 minds \
+         landed -- then restore the seats-open test from git history"
     );
-    let seated: std::collections::BTreeSet<&str> = config
-        .kitties
-        .iter()
-        .filter_map(|k| k.behavior.strip_prefix("policy:"))
-        .collect();
     let mut rl = RlConfig::from_toml_str(&text).unwrap();
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     for policy in rl.policy.values_mut() {
         policy.artifact = repo.join(&policy.artifact).to_string_lossy().into_owned();
     }
-    // Proof 1: registration opens every SEATED artifact and runs it
-    // through the schema gate.
-    let mut registry = BehaviorRegistry::with_builtins();
-    let displays = register_policy_behaviors(&mut registry, &config, &rl)
-        .expect("every seated Gen 1 policy resolves to an artifact this binary can open");
-    assert_eq!(
-        displays.len(),
-        seated.len(),
-        "one registered display per seated mind"
+    assert!(
+        !rl.policy.is_empty(),
+        "the Gen 1 registry blocks stay as the record of what was seated"
     );
-    config.validate_behavior_names(&registry.names()).unwrap();
-    // Proof 2: the naming correspondences.
-    let stanza_names: std::collections::BTreeSet<&str> =
-        rl.policy.keys().map(|k| k.as_str()).collect();
-    assert_eq!(
-        stanza_names, seated,
-        "every [rl.policy.*] stanza is a seated mind and vice versa \
-         (a retired mind's stanza leaves with its artifact)"
-    );
+    let expectations = cloudkitty_rl::behavior::PolicyBehavior::expectations(&rl);
+    for (name, policy) in &rl.policy {
+        let err = cloudkitty_rl::policy::PolicyArtifact::load(
+            std::path::Path::new(&policy.artifact),
+            &expectations,
+        )
+        .expect_err(&format!(
+            "[rl.policy.{name}]: a Gen 1 (schema-5) artifact must not cross the wall"
+        ));
+        let msg = format!("{err}");
+        assert!(
+            msg.contains("v5") && msg.contains("v6"),
+            "[rl.policy.{name}] names both versions: {msg}"
+        );
+    }
+    // The naming correspondence survives the parking: policies/ top level
+    // holds exactly the stanza-named files (retired files live in
+    // policies/retired/).
     let named_files: std::collections::BTreeSet<String> = rl
         .policy
         .values()
@@ -196,8 +189,7 @@ fn the_shipped_config_seats_the_gen1_minds_and_names_exactly_what_it_serves() {
         .collect();
     assert_eq!(
         top_level, named_files,
-        "policies/ top level holds exactly what the served config names \
-         (retired files live in policies/retired/)"
+        "policies/ top level holds exactly what the config's registry names"
     );
 }
 

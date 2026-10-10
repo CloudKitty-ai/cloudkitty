@@ -68,6 +68,9 @@ async fn a_crowded_out_kitty_is_fed_by_retarget_and_respawn_not_by_reaching_acro
         y: *y,
         behavior: "needs_driven".into(),
         needs: None,
+        comfort_slack: None,
+        consent_line: None,
+        favourite: None,
     })
     .collect();
     config.validate().expect("the crowded-bowl config is valid");
@@ -133,6 +136,9 @@ async fn a_pre_009_scene_stranded_on_a_diagonal_ends_gracefully() {
         y: 1,
         behavior: "needs_driven".into(),
         needs: None,
+        comfort_slack: None,
+        consent_line: None,
+        favourite: None,
     });
     config.validate().expect("valid");
     let config = Arc::new(config);
