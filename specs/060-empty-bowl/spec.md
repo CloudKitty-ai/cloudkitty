@@ -38,11 +38,25 @@ policies were frozen against today's eating dynamics) — the mandatory
 Gen 2 re-record absorbs the whole change in the one `[rng-sequence]`
 boundary, alongside spec 059's.
 
+## Clarifications
+
+### Session 2026-10-10
+
+- Q: An eating scene doesn't record which bowl it eats from — when a
+  cat sits adjacent to TWO bowls and one empties, does the meal
+  continue off the other stocked bowl, or end because "its" bowl
+  emptied? (FR-001/FR-004) → A: The scene ends when NO adjacent
+  stocked bowl remains — the meal's feeding condition (an adjacent
+  stocked bowl exists, the engine's own meal predicate) fails; a
+  second stocked bowl within reach keeps the meal alive. A meal has
+  never been bound to a single bowl, and no bowl-identity state is
+  introduced.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - The bowl ends the meal when it empties (Priority: P1)
 
-An eating scene whose bowl has run out of servings ends at that tick's
+An eating scene left with no adjacent stocked bowl ends at that tick's
 scene resolution — minimum met or not. The minimum-duration hold
 remains for every scene still delivering relief (the spec-006 purpose,
 untouched): need-at-zero before the minimum still "licks the bowl"
@@ -55,8 +69,8 @@ propose its way around or into it.
 accounting.
 
 **Independent Test**: in a deterministic run, no eating scene survives
-a tick whose resolution finds the bowl empty; every other scene-end
-behavior is byte-identical to spec 006's.
+a tick whose resolution finds no stocked bowl adjacent to the eater;
+every other scene-end behavior is byte-identical to spec 006's.
 
 **Acceptance Scenarios**:
 
@@ -71,9 +85,13 @@ behavior is byte-identical to spec 006's.
 3. **Given** a kitty mid-meal past the minimum, **When** the bowl
    empties or the belly fills, **Then** the scene ends exactly as
    spec 006 already rules (unchanged behavior, kept green).
-4. **Given** two kitties eating from the same bowl when it empties,
-   **When** the tick resolves, **Then** BOTH scenes end — the rule
-   reads the bowl, not the eater.
+4. **Given** two kitties eating at the same bowl when it empties and
+   neither has another stocked bowl within reach, **When** the tick
+   resolves, **Then** BOTH scenes end — the rule reads the world, not
+   the eater.
+5. **Given** a kitty eating with TWO stocked bowls adjacent, **When**
+   one of them empties, **Then** the scene continues — the feeding
+   condition still holds (clarified 2026-10-10).
 
 ---
 
@@ -106,9 +124,10 @@ served world (0.3.0 box) is untouched.
 ### Edge Cases
 
 - A bowl emptied by ANOTHER eater mid-tick: turn order decides who
-  got the last serving; every eater still mid-scene at resolution
-  ends (scenario 4). No cat is charged a "refusal" — a scene end is
-  not a refusal and touches no refusal machinery.
+  got the last serving; every eater left without an adjacent stocked
+  bowl at resolution ends (scenario 4). No cat is charged a
+  "refusal" — a scene end is not a refusal and touches no refusal
+  machinery.
 - The bowl ELEMENT disappearing entirely (despawn/expiry) is already
   spec-048's counterpart-gone pruning; this rule covers the bowl that
   still stands but holds nothing.
@@ -128,11 +147,13 @@ served world (0.3.0 box) is untouched.
 ### Functional Requirements
 
 - **FR-001**: An eating scene MUST end at the scene-end resolution of
-  any tick at which its bowl has no servings remaining, regardless of
-  the scene's minimum duration. One home: the same engine resolution
-  step where spec 006's ends live — never a behavior-layer rule, so
-  it binds every seat identically (S§6: an engine scene rule
-  affecting every cat).
+  any tick at which its feeding condition fails: no stocked bowl
+  remains adjacent to the eater (clarified 2026-10-10 — a meal is not
+  bound to one bowl; another stocked bowl within reach keeps it
+  alive), regardless of the scene's minimum duration. One home: the
+  same engine resolution step where spec 006's ends live — never a
+  behavior-layer rule, so it binds every seat identically (S§6: an
+  engine scene rule affecting every cat).
 - **FR-002**: Every OTHER spec-006 end rule is unchanged and kept
   green: need-0-before-minimum continues to the minimum; minimum-met
   ends on need 0 or bowl empty exactly as today. The amendment
@@ -141,9 +162,11 @@ served world (0.3.0 box) is untouched.
   refusal-log row, no reason stamp, `last_action`/census semantics of
   scene ends unchanged. The freed kitty decides freely on the next
   tick through the normal machinery.
-- **FR-004**: The rule reads the BOWL's state (servings) at
-  resolution — never the eater's hidden state, never per-eater: all
-  scenes at the emptied bowl end together.
+- **FR-004**: The rule reads WORLD state only at resolution — bowl
+  servings and positions, never the eater's hidden state. It is
+  evaluated per seat position (which bowls are within reach), so all
+  eaters left without an adjacent stocked bowl end together; an eater
+  that still has a second stocked bowl within reach continues.
 - **FR-005**: The change rides the Gen 2 boundary: `[rng-sequence]`
   in CHANGELOG; every moved stream pin re-recorded with this spec
   named and first-divergence ticks captured (the 059 artifact
@@ -163,7 +186,8 @@ served world (0.3.0 box) is untouched.
 - **The eating scene**: spec 006's minimum-held activity; gains one
   early end keyed to its consumable.
 - **The bowl (chow element)**: the consumable whose emptiness now
-  ends scenes it can no longer feed.
+  ends scenes it can no longer feed — unless another stocked bowl
+  within the eater's reach still can.
 - **The re-record artifact**: divergence declaration in the 059
   style — reasons named, first-divergence ticks on file.
 
@@ -172,8 +196,9 @@ served world (0.3.0 box) is untouched.
 ### Measurable Outcomes
 
 - **SC-001**: In a deterministic run across randomized worlds, ZERO
-  eating-scene ticks occur at a bowl with no servings: every such
-  scene ends at the first resolution that finds the bowl empty.
+  eating-scene ticks occur with no stocked bowl adjacent to the
+  eater: every such scene ends at the first resolution that finds
+  the feeding condition failed.
 - **SC-002**: Every non-bowl-empty scene-end behavior is
   byte-identical to the pre-amendment engine on the same seeds: a
   stream recorded with bowls that never empty mid-scene below the
