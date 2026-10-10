@@ -1,128 +1,146 @@
-//! The schema-5 pin (spec 049 SC-001 / FR-026 / FR-027): every derived
-//! number asserted against the literals in
-//! specs/049-fog-gen1/contracts/observation-v5.md.
+//! The schema-5 oracle (spec 049 SC-001 / FR-026 / FR-027, converted by
+//! spec 058 T004): every v5 number asserted as a LITERAL against
+//! `schema_map::column_map(5)`, decoupled from the live encoder so the
+//! Gen 2 bump (observation v6) can move the encoder without silently
+//! dragging this oracle along. The literals are the contract's table
+//! (specs/049-fog-gen1/contracts/observation-v5.md); the map is the
+//! shipped copy readers flip onto; this file is what keeps the two
+//! identical. (History: the schema-4 pins were observed red at the
+//! schema-5 wall; the live-offset form of THIS file was retired at the
+//! v6 wall for the same reason — a live read follows the encoder and
+//! pins nothing.)
 //!
-//! These are deliberately literal: the engine derives every one of these
-//! numbers from the block constants, `HEAD_KINDS` and the slot config, so
-//! a drive-by width move would shift them all silently. This file makes
-//! any such move loud, and makes the contract's table executable. (The
-//! schema-4 pins -- 225 / 34 / 50 / 3 slots -- were observed red at the
-//! wall before this file replaced them: redden list, cycle 15.)
+//! Evergreen pins (message-kind order, codec sizes, action/mask
+//! versions) stay live: they are frozen-through-the-fog-era claims that
+//! v6 must also satisfy, so a red here at the bump is a REAL violation.
 
 use cloudkitty_core::meow::MessageKind;
 use cloudkitty_rl::codec::{ActionCodec, MessageCodec, ACTION_SCHEMA_VERSION};
 use cloudkitty_rl::config::ObservationConfig;
-use cloudkitty_rl::global_state::GLOBAL_STATE_SCHEMA_VERSION;
 use cloudkitty_rl::mask::MASK_SCHEMA_VERSION;
-use cloudkitty_rl::observe::{
-    observation_len, HEAD_KINDS, OBSERVATION_SCHEMA_VERSION, SCENE_AGE_NORMALISER,
-    STALENESS_NORMALISER,
-};
+use cloudkitty_rl::observe::HEAD_KINDS;
+use cloudkitty_rl::schema_map::column_map;
 
-/// The whole derived chain, one assertion per contract row.
+/// The v5 top-line numbers, as map literals vs contract literals.
 #[test]
 fn the_schema_five_numbers_match_the_contract() {
-    let cfg = ObservationConfig::default();
-
-    assert_eq!(HEAD_KINDS.len(), 15, "fifteen speakable kinds, frozen");
+    let m = column_map(5).expect("v5 map exists forever");
+    assert_eq!(m.observation_version, 5, "FR-025");
     assert_eq!(
-        MessageCodec::LEN,
-        16,
-        "message head: Silent + 15, unchanged"
-    );
-    assert_eq!(
-        cfg.kitty_slots, 4,
-        "FR-011: roster - 1, one permanent row per friend"
-    );
-    assert_eq!(
-        observation_len(&cfg),
+        m.observation_len,
         408,
         "self 85 | kitty 4 x 63 | chow 2 x 5 | water 2 x 4 | sunbeam 2 x 6 | critter 4 x 10 | clock 1"
     );
-    assert_eq!(
-        ActionCodec::v2(&cfg).len(),
-        39,
-        "FR-027: 34 + one kitty-verb group for the fourth row"
-    );
-
-    assert_eq!(OBSERVATION_SCHEMA_VERSION, 5, "FR-025");
-    assert_eq!(
-        ACTION_SCHEMA_VERSION, 3,
-        "unchanged: the menu is config-derived"
-    );
-    assert_eq!(MASK_SCHEMA_VERSION, 3, "unchanged");
-    assert_eq!(
-        GLOBAL_STATE_SCHEMA_VERSION, 1,
-        "the critic's view is unfogged and unmoved"
-    );
-
-    assert_eq!(SCENE_AGE_NORMALISER, 24.0, "FR-019: H frozen");
-    assert_eq!(STALENESS_NORMALISER, 40.0, "FR-009: 20 + 20 frozen");
+    assert_eq!(m.slot_config, (4, 2, 2, 2, 4), "the served slot defaults");
+    assert_eq!(HEAD_KINDS.len(), 15, "fifteen speakable kinds, frozen");
+    assert_eq!(MessageCodec::LEN, 16, "message head: Silent + 15, unchanged");
 }
 
-/// The offset table (contract §Self block / §Kitty row) as LITERALS,
-/// independent of the derivation (review 3 finding 3, 2026-09-04): the
-/// row tests in `observe.rs` read their cells THROUGH these constants,
-/// so a reordered block tail that keeps the width left the suite green and
-/// silently reinterpreted every trained artifact's input. Seen red on an
-/// induced self-tail swap (memory before the message block): redden
-/// list, cycle r3b.
+/// The v5 offset table (contract §Self block / §Kitty row / §Element
+/// slots) as literals, every named map entry pinned. A reordered table
+/// or a transposed base reds exactly one named line.
 #[test]
 fn the_offset_table_matches_the_contract() {
-    use cloudkitty_rl::observe::{block_widths, offsets};
-    assert_eq!(offsets::SELF_SCENE_AGE, 34, "own scene age");
-    assert_eq!(offsets::SELF_MSG_BLOCK, 35, "own message block 35-64");
-    assert_eq!(offsets::SELF_MEMORY, 65, "element memory 65-84");
-    assert_eq!(offsets::SELF_BLOCK, 85, "self block");
-    assert_eq!(offsets::ROW_WATER_BIT, 20, "neighbour in water");
-    assert_eq!(
-        offsets::ROW_SUNBEAM_BIT,
-        21,
-        "neighbour on a sunbeam (owner ruled 2026-09-04)"
-    );
-    assert_eq!(offsets::ROW_SCENE_AGE, 22, "their scene age");
-    assert_eq!(offsets::ROW_MSG_BLOCK, 23, "their message block 23-52");
-    assert_eq!(offsets::ROW_INTENSITY, 53, "want intensities 53-58");
-    assert_eq!(offsets::ROW_ANSWERS_ME, 59, "answers-me 59-62");
-    assert_eq!(offsets::KITTY_SLOT, 63, "kitty row");
-    assert_eq!(offsets::MEMORY_BLOCK, 20, "5 kinds x 4");
-    assert_eq!(offsets::MSG_BLOCK, 30, "15 kinds x 2");
-    let w = block_widths();
-    assert_eq!(
-        (w.self_, w.kitty, w.chow, w.water, w.sunbeam, w.critter, w.clock),
-        (85, 63, 5, 4, 6, 10, 1),
-        "token widths"
-    );
-    assert_eq!(
-        (w.memory, w.msg_self, w.msg_kitty),
-        (20, 30, 40),
-        "sub-block widths"
-    );
+    let m = column_map(5).expect("v5 map exists forever");
+
+    // Self block, absolute.
+    for (name, at) in [
+        ("self.needs.eat", 0),
+        ("self.needs.bath", 5),
+        ("self.happiness", 6),
+        ("self.pos.x", 7),
+        ("self.pos.y", 8),
+        ("self.activity_block", 9),
+        ("self.social", 16),
+        ("self.in_sunbeam", 17),
+        ("self.in_water", 18),
+        ("self.progress", 19),
+        ("self.distress_block", 20),
+        ("self.pursuit_block", 26),
+        ("self.traits_block", 28),
+        ("self.scene_age", 34),
+        ("self.msg_block", 35),
+        ("self.memory_block", 65),
+        ("clock", 407),
+    ] {
+        assert_eq!(m.cell(name).unwrap(), at, "{name}");
+    }
+
+    // Kitty row, stride-relative (spec 049 row order).
+    for (name, at) in [
+        ("kitty_row.present", 0),
+        ("kitty_row.dx", 1),
+        ("kitty_row.dy", 2),
+        ("kitty_row.distance", 3),
+        ("kitty_row.needs.eat", 4),
+        ("kitty_row.needs.bath", 9),
+        ("kitty_row.happiness", 10),
+        ("kitty_row.activity_block", 11),
+        ("kitty_row.partner", 18),
+        ("kitty_row.is_my_target", 19),
+        ("kitty_row.in_water", 20),
+        ("kitty_row.on_sunbeam", 21),
+        ("kitty_row.scene_age", 22),
+        ("kitty_row.msg_block", 23),
+        ("kitty_row.want_block", 53),
+        ("kitty_row.answers_me_block", 59),
+    ] {
+        assert_eq!(m.cell(name).unwrap(), at, "{name}");
+    }
+
+    // Blocks: base / stride / count.
+    for (name, base, stride, count) in [
+        ("kitty_row", 85, 63, 4),
+        ("chow", 337, 5, 2),
+        ("water", 347, 4, 2),
+        ("sunbeam", 355, 6, 2),
+        ("critter", 367, 10, 4),
+    ] {
+        let b = m.block(name).unwrap();
+        assert_eq!((b.base, b.stride, b.count), (base, stride, count), "{name}");
+    }
+
+    // Element extras.
+    assert_eq!(m.cell("chow.servings").unwrap(), 4);
+    assert_eq!(m.cell("sunbeam.ttl").unwrap(), 4);
+    assert_eq!(m.cell("sunbeam.occupied").unwrap(), 5);
+    assert_eq!(m.cell("critter.is_greeble").unwrap(), 4);
+    assert_eq!(m.cell("critter.heading_block").unwrap(), 5);
+    assert_eq!(m.cell("critter.is_activity_target").unwrap(), 9);
+
+    // Resolution: base + slot*stride + rel, and the loud failure modes.
+    assert_eq!(m.index("kitty_row", 2, "kitty_row.happiness").unwrap(), 85 + 2 * 63 + 10);
+    assert!(m.cell("self.waypoint_block").is_err(), "a v6 name is not a v5 cell");
+    assert!(m.index("kitty_row", 4, "kitty_row.present").is_err(), "slot past count");
+    assert!(column_map(4).is_err(), "retired pre-5 versions have no map");
 }
 
 /// The v3 forward's logit budget: dense 11, kitty-ptr 20 (5 verbs x 4),
-/// critter-ptr 8 (2 x 4), message head 16 -- 55 in all. Asserted via the
-/// codec (menu 39) and head rather than a hand sum, so the test derives
-/// exactly as the forward does.
+/// critter-ptr 8 (2 x 4), message head 16 -- 55 in all. Live on purpose:
+/// the action surface is untouched by the v6 bump.
 #[test]
 fn the_logit_budget_is_fifty_five() {
     let cfg = ObservationConfig::default();
     let menu = ActionCodec::v2(&cfg).len();
-    assert_eq!(
-        menu + MessageCodec::LEN,
-        55,
-        "activity logits + message head"
-    );
+    assert_eq!(menu + MessageCodec::LEN, 55, "activity logits + message head");
     assert_eq!(5 * cfg.kitty_slots, 20, "kitty-pointer logits");
     assert_eq!(2 * cfg.critter_slots, 8, "critter-pointer logits");
     assert_eq!(menu, 11 + 20 + 8, "dense + kitty-pointer + critter-pointer");
 }
 
-/// The mask is the two-head concat: menu 39 | message 16 = 55.
+/// Action and mask schemas hold at 3 across the v6 bump (spec 058
+/// FR-014: only moved layouts bump). Live on purpose.
 #[test]
-fn the_mask_is_fifty_five_wide() {
+fn action_and_mask_versions_hold() {
+    assert_eq!(ACTION_SCHEMA_VERSION, 3, "unchanged: the menu is config-derived");
+    assert_eq!(MASK_SCHEMA_VERSION, 3, "unchanged");
     let cfg = ObservationConfig::default();
-    assert_eq!(ActionCodec::v2(&cfg).len() + MessageCodec::LEN, 55);
+    assert_eq!(
+        ActionCodec::v2(&cfg).len(),
+        39,
+        "FR-027 of 049: 34 + one kitty-verb group for the fourth row"
+    );
+    assert_eq!(ActionCodec::v2(&cfg).len() + MessageCodec::LEN, 55, "mask width");
 }
 
 /// T003 of spec 033, the rename pin: Mew answers for follow_me's position
