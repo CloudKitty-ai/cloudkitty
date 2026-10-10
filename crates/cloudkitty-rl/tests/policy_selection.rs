@@ -114,11 +114,17 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
     // Spec 058 FR-010 retired the clock cell (this test's predecessor
     // guarded the 0.3.0 served-clock seam; it went red at the v6 wall as
     // rule 6 demands and is replaced by its inverse). The artifact here
-    // listens to the LAST observation element — now a dirt-reserve cell
-    // that must read 0.0 forever (FR-013) — with an output row growing
-    // with the index: all-zero logits tie and ties pick the LOWEST
-    // masked-in entry, so if ticking the world ever moves the decision,
-    // either a clock crept back in or the reserve went live.
+    // listens to BOTH dirt-reserve cells (offsets 107-108 — review
+    // finding 2: the first cut listened to the vector's last cell, a
+    // critter bit, and guarded nothing). Two claims, each with its own
+    // teeth: (a) the listener's decision is IDENTICAL to an all-zero
+    // network's — a reserve that goes live at ANY constant value moves
+    // the growing output row off the tie-break and reds this (the
+    // tick-equality alone cannot see a constant signal — found by the
+    // fix's own mutate cycle); (b) nothing the policy reads varies with
+    // the tick in a still world. Clock-freedom at the cell level stays
+    // pinned by clock_and_range.rs; reserve zeroness at the encoding
+    // level by dirt_reserve.rs — this is the policy-layer net over both.
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
     let menu = ActionCodec::v2(&rl.observation).len() + MessageCodec::LEN;
@@ -131,7 +137,8 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
         activation: "relu".into(),
     };
     let mut w1 = vec![0.0f32; input];
-    w1[input - 1] = 1.0;
+    w1[cloudkitty_rl::observe::offsets::SELF_DIRT_RESERVE] = 1.0;
+    w1[cloudkitty_rl::observe::offsets::SELF_DIRT_RESERVE + 1] = 1.0;
     let w2: Vec<f32> = (0..menu).map(|i| i as f32).collect();
     let dir = std::env::temp_dir().join("ck-policy-selection");
     std::fs::create_dir_all(&dir).unwrap();
@@ -140,13 +147,32 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
         .expect("the reserve-listener artifact writes");
     let behavior = PolicyBehavior::from_artifact_path(path.to_str().unwrap(), &rl, false).unwrap();
 
+    // The all-zero twin: same shape, no listener. Identical decisions
+    // prove the reserve contributed nothing at any constant value.
+    let zero_path = dir.join("zero-listener.ckpolicy");
+    write_artifact(
+        &zero_path,
+        &header,
+        &[
+            (vec![0.0f32; input], vec![0.0]),
+            ((0..menu).map(|i| i as f32).collect(), vec![0.0; menu]),
+        ],
+    )
+    .expect("the zero-listener artifact writes");
+    let zero = PolicyBehavior::from_artifact_path(zero_path.to_str().unwrap(), &rl, false).unwrap();
+
     let horizon = rl.episode.horizon;
     let at = |tick: u64| behavior.decide_sync(&context_at_tick(1, tick));
 
     assert_eq!(
         at(0),
+        zero.decide_sync(&context_at_tick(1, 0)),
+        "the reserve listener decides exactly like an all-zero network: the reserve went live"
+    );
+    assert_eq!(
+        at(0),
         at(horizon / 4),
-        "a tick moved the decision: a clock column is back, or the reserve went live"
+        "a tick moved the decision through the policy"
     );
     assert_eq!(
         at(horizon / 4),

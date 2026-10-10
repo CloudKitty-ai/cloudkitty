@@ -113,28 +113,8 @@ fn stage() -> (World, Arc<Config>) {
     config.world.height = 20;
     config.vision.radius = 5;
     config.kitties = vec![
-        KittyConfig {
-            id: 1,
-            name: "Miso".into(),
-            x: 10,
-            y: 10,
-            behavior: "needs_driven".into(),
-            needs: None,
-            comfort_slack: None,
-            consent_line: None,
-            favourite: None,
-        },
-        KittyConfig {
-            id: 2,
-            name: "Biscuit".into(),
-            x: 0,
-            y: 0,
-            behavior: "needs_driven".into(),
-            needs: None,
-            comfort_slack: None,
-            consent_line: None,
-            favourite: None,
-        },
+        KittyConfig::new(1, "Miso", 10, 10, "needs_driven"),
+        KittyConfig::new(2, "Biscuit", 0, 0, "needs_driven"),
     ];
     config.validate().unwrap();
     let config = Arc::new(config);

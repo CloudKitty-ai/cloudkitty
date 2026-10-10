@@ -91,6 +91,42 @@ pub enum MenuEntry {
     Idle,
 }
 
+impl MenuEntry {
+    /// The stable reader-facing name (spec 058 review finding 3): the
+    /// binding's `ACTION_MENU` keys. Snake_case like every wire
+    /// spelling; slot-indexed verbs carry their slot. NEVER derived
+    /// from `Debug` — a rename or formatting change must not move a
+    /// published key; `tests/schema_map.rs` pins the spellings.
+    pub fn wire_name(&self) -> String {
+        use MenuEntry::*;
+        match self {
+            Move(d) => format!(
+                "move_{}",
+                match d {
+                    Direction::North => "north",
+                    Direction::East => "east",
+                    Direction::South => "south",
+                    Direction::West => "west",
+                }
+            ),
+            RestSolo => "rest_solo".into(),
+            RestWithKitty(i) => format!("rest_with_kitty_{i}"),
+            SleepSolo => "sleep_solo".into(),
+            SleepWithKitty(i) => format!("sleep_with_kitty_{i}"),
+            GroomSelf => "groom_self".into(),
+            GroomKitty(i) => format!("groom_kitty_{i}"),
+            Eat => "eat".into(),
+            Drink => "drink".into(),
+            ChaseCritter(i) => format!("chase_critter_{i}"),
+            ChaseKitty(i) => format!("chase_kitty_{i}"),
+            PlaySolo => "play_solo".into(),
+            PlayCritter(i) => format!("play_critter_{i}"),
+            PlayKitty(i) => format!("play_kitty_{i}"),
+            Idle => "idle".into(),
+        }
+    }
+}
+
 /// The versioned menu for a slot configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActionCodec {

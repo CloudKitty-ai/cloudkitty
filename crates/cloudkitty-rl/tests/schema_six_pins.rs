@@ -10,8 +10,9 @@
 use cloudkitty_rl::config::ObservationConfig;
 use cloudkitty_rl::global_state::GLOBAL_STATE_SCHEMA_VERSION;
 use cloudkitty_rl::observe::{
-    block_widths, observation_len, offsets, FAR_DISTANCE_NORMALISER, NEAR_DISTANCE_NORMALISER,
-    OBSERVATION_SCHEMA_VERSION, SCENE_AGE_NORMALISER, STALENESS_NORMALISER,
+    block_widths, observation_len, offsets, COMFORT_SLACK_NORMALISER, FAR_DISTANCE_NORMALISER,
+    NEAR_DISTANCE_NORMALISER, OBSERVATION_SCHEMA_VERSION, SCENE_AGE_NORMALISER,
+    STALENESS_NORMALISER,
 };
 
 /// The top-line v6 numbers, one assertion per contract row.
@@ -52,6 +53,10 @@ fn the_schema_six_numbers_match_the_contract() {
     );
     // The frozen normalizers ARE the schema (FR-002; the 049 pattern).
     assert_eq!(NEAR_DISTANCE_NORMALISER, 40.0, "walk-cost near field");
+    assert_eq!(
+        COMFORT_SLACK_NORMALISER, 40.0,
+        "the identity cell's own constant — decoupled from the spatial /40"
+    );
     assert_eq!(FAR_DISTANCE_NORMALISER, 400.0, "log far field");
     assert_eq!(SCENE_AGE_NORMALISER, 24.0, "FR-004: untouched");
     assert_eq!(STALENESS_NORMALISER, 40.0, "FR-004: untouched");

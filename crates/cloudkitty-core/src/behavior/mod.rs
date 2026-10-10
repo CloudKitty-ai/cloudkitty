@@ -1295,17 +1295,13 @@ mod tests {
         let mut config = test_config();
         config.vision.radius = 5;
         config.behavior.reply_intensity_floor = Some(0.30);
-        config.kitties.push(crate::config::KittyConfig {
-            id: 3,
-            name: "Clementine".into(),
-            x: 0,
-            y: 0,
-            behavior: "needs_driven".into(),
-            needs: None,
-            comfort_slack: None,
-            consent_line: None,
-            favourite: None,
-        });
+        config.kitties.push(crate::config::KittyConfig::new(
+            3,
+            "Clementine",
+            0,
+            0,
+            "needs_driven",
+        ));
         config.validate().unwrap();
         let lower = here_ctx_with(config, 100, |w| {
             chow_near(w);

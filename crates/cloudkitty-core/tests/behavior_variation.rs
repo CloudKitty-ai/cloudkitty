@@ -47,28 +47,8 @@ fn test_config() -> Config {
             bind: "127.0.0.1:0".to_string(),
         },
         kitties: vec![
-            KittyConfig {
-                id: 1,
-                name: "Sensible".into(),
-                x: 3,
-                y: 3,
-                behavior: "counted_needs_driven".into(),
-                needs: None,
-                comfort_slack: None,
-                consent_line: None,
-                favourite: None,
-            },
-            KittyConfig {
-                id: 2,
-                name: "Playful".into(),
-                x: 12,
-                y: 12,
-                behavior: "counted_playful".into(),
-                needs: None,
-                comfort_slack: None,
-                consent_line: None,
-                favourite: None,
-            },
+            KittyConfig::new(1, "Sensible", 3, 3, "counted_needs_driven"),
+            KittyConfig::new(2, "Playful", 12, 12, "counted_playful"),
         ],
         elements: ElementsConfig {
             water: ElementRule {

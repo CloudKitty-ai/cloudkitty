@@ -36,19 +36,38 @@ pub struct Lattice {
 /// half up. A span that does not fit two waypoints collapses to the
 /// axis's middle tile (a narrow world).
 fn axis(len: u32, radius: u32) -> Vec<u32> {
+    (0..axis_count(len, radius))
+        .map(|k| axis_at(len, radius, k))
+        .collect()
+}
+
+/// How many waypoints one axis holds — the counting half of `axis`,
+/// split out so [`Lattice::waypoint_at`] can read one tour position
+/// without materializing the vectors (spec 058 review: the encoder
+/// reads exactly one waypoint per tick).
+fn axis_count(len: u32, radius: u32) -> u32 {
     let inset = ((radius as f64) / std::f64::consts::SQRT_2).floor() as u32;
     let spacing = ((radius as f64) * std::f64::consts::SQRT_2)
         .floor()
         .max(1.0) as u32;
     let last = len.saturating_sub(1);
     if last < 2 * inset + 1 {
-        return vec![last / 2];
+        return 1;
+    }
+    (last - 2 * inset).div_ceil(spacing) + 1
+}
+
+/// The `k`-th waypoint coordinate on one axis — the closed form `axis`
+/// maps over. One definition for both paths.
+fn axis_at(len: u32, radius: u32, k: u32) -> u32 {
+    let inset = ((radius as f64) / std::f64::consts::SQRT_2).floor() as u32;
+    let last = len.saturating_sub(1);
+    if last < 2 * inset + 1 {
+        return last / 2;
     }
     let span = last - 2 * inset;
-    let n = span.div_ceil(spacing) + 1;
-    (0..n)
-        .map(|k| inset + ((k as f64) * (span as f64) / ((n - 1) as f64) + 0.5).floor() as u32)
-        .collect()
+    let n = axis_count(len, radius);
+    inset + ((k as f64) * (span as f64) / ((n - 1) as f64) + 0.5).floor() as u32
 }
 
 impl Lattice {
@@ -108,6 +127,27 @@ impl Lattice {
         }
     }
 
+    /// The waypoint at cycle position `index`, computed without building
+    /// the lattice: the same snake arithmetic as [`Lattice::waypoint`]
+    /// over the closed-form axis (one definition, `axis_at`). For the
+    /// per-tick single-waypoint read on the observation's hot path.
+    pub fn waypoint_at(width: u32, height: u32, radius: u32, index: u32) -> Position {
+        let nx = axis_count(width, radius);
+        let ny = axis_count(height, radius);
+        let n = nx * ny;
+        let cycle = if n >= 2 { 2 * n - 2 } else { 1 };
+        let i = index % cycle;
+        let i = if i < n { i } else { 2 * n - 2 - i };
+        let row = i / nx;
+        let col = i % nx;
+        let col = if row.is_multiple_of(2) {
+            col
+        } else {
+            nx - 1 - col
+        };
+        Position::new(axis_at(width, radius, col), axis_at(height, radius, row))
+    }
+
     /// Where a cat starts the tour: spread by id, no draw.
     pub fn start_index(&self, kitty_id: u32) -> u32 {
         kitty_id % self.cycle_len()
@@ -116,6 +156,30 @@ impl Lattice {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn waypoint_at_matches_the_built_lattice_everywhere() {
+        // The allocation-free single read and the built lattice share
+        // one axis definition; this pins that they can never diverge —
+        // squares, rectangles, a narrow world, and a radius that
+        // collapses an axis.
+        for (w, h, r) in [
+            (20, 20, 5),
+            (100, 100, 5),
+            (7, 31, 4),
+            (5, 5, 8),
+            (40, 20, 6),
+        ] {
+            let l = Lattice::for_world(w, h, r);
+            for i in 0..l.cycle_len().min(600) {
+                assert_eq!(
+                    Lattice::waypoint_at(w, h, r, i),
+                    l.waypoint(i),
+                    "({w},{h},{r}) index {i}"
+                );
+            }
+        }
+    }
+
     use super::*;
 
     #[test]

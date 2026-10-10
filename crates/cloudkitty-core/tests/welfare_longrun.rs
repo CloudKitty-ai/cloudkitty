@@ -61,17 +61,7 @@ async fn a_crowded_out_kitty_is_fed_by_retarget_and_respawn_not_by_reaching_acro
     ]
     .iter()
     .enumerate()
-    .map(|(i, (name, x, y))| KittyConfig {
-        id: (i + 1) as u32,
-        name: (*name).into(),
-        x: *x,
-        y: *y,
-        behavior: "needs_driven".into(),
-        needs: None,
-        comfort_slack: None,
-        consent_line: None,
-        favourite: None,
-    })
+    .map(|(i, (name, x, y))| KittyConfig::new((i + 1) as u32, *name, *x, *y, "needs_driven"))
     .collect();
     config.validate().expect("the crowded-bowl config is valid");
     let config = Arc::new(config);
@@ -129,17 +119,9 @@ async fn a_pre_009_scene_stranded_on_a_diagonal_ends_gracefully() {
 
     let mut config = test_config();
     // A third kitty keeps the world legal while the two under test are posed.
-    config.kitties.push(KittyConfig {
-        id: 3,
-        name: "Bystander".into(),
-        x: 1,
-        y: 1,
-        behavior: "needs_driven".into(),
-        needs: None,
-        comfort_slack: None,
-        consent_line: None,
-        favourite: None,
-    });
+    config
+        .kitties
+        .push(KittyConfig::new(3, "Bystander", 1, 1, "needs_driven"));
     config.validate().expect("valid");
     let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();

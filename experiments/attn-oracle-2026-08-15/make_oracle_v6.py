@@ -1,10 +1,12 @@
-"""Spec-049 oracle fixtures (schema 5, T031): a seeded synthetic
-entity-attention mind at the new surface -- no trained checkpoint can
-carry across the fog wall (every embedding width moved), and a parity
-oracle needs no training, only an INDEPENDENT reference forward --
-exported v3-FORMAT at the schema-5 pins, plus a 408/55 parity file with
-seeded synthetic rows covering per-class vacancy, the self+clock
-extreme and every-kitty-row-heard (present 0, message block live). numpy only (no torch in any venv on the build machine); the
+"""Spec-058 oracle fixtures (schema 6; re-cut again at the critter-slot
+trim, owner 2026-10-09): the spec-049 pattern at the Gen 2 wall -- no
+trained checkpoint carries across (the spatial cells, the identity
+block and the row visibility all moved; the clock token is gone), so
+the parity oracle is a fresh seeded synthetic entity-attention mind at
+the v6 surface, exported v3-FORMAT at the schema-6 pins, plus a 399/51
+parity file with seeded synthetic rows covering per-class vacancy, the
+self-only extreme and every-kitty-row-heard (present 0, message block
+live). numpy only (no torch in any venv on the build machine); the
 Rust forward (`artifact_v3_parity.rs`) is checked against
 `numpy_forward_v6` within 1e-4.
 """

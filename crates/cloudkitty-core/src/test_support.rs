@@ -79,28 +79,8 @@ pub fn test_config() -> Config {
             bind: "127.0.0.1:0".to_string(),
         },
         kitties: vec![
-            KittyConfig {
-                id: 1,
-                name: "Miso".into(),
-                x: 3,
-                y: 3,
-                behavior: "needs_driven".into(),
-                needs: None,
-                comfort_slack: None,
-                consent_line: None,
-                favourite: None,
-            },
-            KittyConfig {
-                id: 2,
-                name: "Biscuit".into(),
-                x: 12,
-                y: 12,
-                behavior: "playful".into(),
-                needs: None,
-                comfort_slack: None,
-                consent_line: None,
-                favourite: None,
-            },
+            KittyConfig::new(1, "Miso", 3, 3, "needs_driven"),
+            KittyConfig::new(2, "Biscuit", 12, 12, "playful"),
         ],
         elements: ElementsConfig {
             water: ElementRule {
