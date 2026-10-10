@@ -128,12 +128,23 @@ fn the_offset_table_matches_the_contract() {
     assert!(column_map(4).is_err(), "retired pre-5 versions have no map");
 }
 
-/// The v3 forward's logit budget: dense 11, kitty-ptr 20 (5 verbs x 4),
-/// critter-ptr 8 (2 x 4), message head 16 -- 55 in all. Live on purpose:
-/// the action surface is untouched by the v6 bump.
+/// The v5-ERA slot config, pinned explicitly: the live default moved
+/// to critter_slots 2 (owner ruled 2026-10-09), but every schema-5
+/// artifact was built at 4 — this historical cfg is what the v5 map's
+/// numbers describe.
+fn v5_era_cfg() -> ObservationConfig {
+    ObservationConfig {
+        critter_slots: 4,
+        ..ObservationConfig::default()
+    }
+}
+
+/// The v5-era v3 forward's logit budget: dense 11, kitty-ptr 20
+/// (5 verbs x 4), critter-ptr 8 (2 x 4), message head 16 -- 55 in all,
+/// at the v5-era slot config.
 #[test]
-fn the_logit_budget_is_fifty_five() {
-    let cfg = ObservationConfig::default();
+fn the_v5_era_logit_budget_was_fifty_five() {
+    let cfg = v5_era_cfg();
     let menu = ActionCodec::v2(&cfg).len();
     assert_eq!(
         menu + MessageCodec::LEN,
@@ -145,8 +156,10 @@ fn the_logit_budget_is_fifty_five() {
     assert_eq!(menu, 11 + 20 + 8, "dense + kitty-pointer + critter-pointer");
 }
 
-/// Action and mask schemas hold at 3 across the v6 bump (spec 058
-/// FR-014: only moved layouts bump). Live on purpose.
+/// Action and mask schemas hold at 3 across the v6 bump AND the
+/// critter-slot cut (spec 058 FR-014: only moved layouts bump; the menu
+/// is config-derived, so a slot-count change is config, never a schema
+/// version).
 #[test]
 fn action_and_mask_versions_hold() {
     assert_eq!(
@@ -154,16 +167,15 @@ fn action_and_mask_versions_hold() {
         "unchanged: the menu is config-derived"
     );
     assert_eq!(MASK_SCHEMA_VERSION, 3, "unchanged");
-    let cfg = ObservationConfig::default();
     assert_eq!(
-        ActionCodec::v2(&cfg).len(),
+        ActionCodec::v2(&v5_era_cfg()).len(),
         39,
-        "FR-027 of 049: 34 + one kitty-verb group for the fourth row"
+        "the v5-era menu (FR-027 of 049)"
     );
     assert_eq!(
-        ActionCodec::v2(&cfg).len() + MessageCodec::LEN,
-        55,
-        "mask width"
+        ActionCodec::v2(&ObservationConfig::default()).len(),
+        35,
+        "the live menu at critter_slots 2 (owner ruled 2026-10-09)"
     );
 }
 

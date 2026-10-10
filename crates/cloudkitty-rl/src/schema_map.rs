@@ -229,40 +229,51 @@ static V5: SchemaMap = SchemaMap {
 static V6: SchemaMap = {
     use crate::observe::offsets as o;
     const SPATIAL: usize = 4;
+    // Strides and bases come from the encoder's own block widths (a
+    // const fn) — never a second literal table. The slot COUNTS are the
+    // documented served defaults (critter_slots 4 -> 2, owner ruled
+    // 2026-10-09), cross-checked against ObservationConfig::default()
+    // in tests/schema_map.rs.
+    const W: crate::observe::BlockWidths = crate::observe::block_widths();
+    const KITTY_BASE: usize = o::SELF_BLOCK;
+    const CHOW_BASE: usize = KITTY_BASE + 4 * W.kitty;
+    const WATER_BASE: usize = CHOW_BASE + 2 * W.chow;
+    const SUNBEAM_BASE: usize = WATER_BASE + 2 * W.water;
+    const CRITTER_BASE: usize = SUNBEAM_BASE + 2 * W.sunbeam;
     SchemaMap {
         observation_version: 6,
-        observation_len: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5 + 2 * 7 + 4 * 11,
-        slot_config: (4, 2, 2, 2, 4),
+        observation_len: CRITTER_BASE + 2 * W.critter,
+        slot_config: (4, 2, 2, 2, 2),
         blocks: &[
             BlockSpec {
                 name: "kitty_row",
-                base: o::SELF_BLOCK,
-                stride: o::KITTY_SLOT,
+                base: KITTY_BASE,
+                stride: W.kitty,
                 count: 4,
             },
             BlockSpec {
                 name: "chow",
-                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT,
-                stride: 6,
+                base: CHOW_BASE,
+                stride: W.chow,
                 count: 2,
             },
             BlockSpec {
                 name: "water",
-                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6,
-                stride: 5,
+                base: WATER_BASE,
+                stride: W.water,
                 count: 2,
             },
             BlockSpec {
                 name: "sunbeam",
-                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5,
-                stride: 7,
+                base: SUNBEAM_BASE,
+                stride: W.sunbeam,
                 count: 2,
             },
             BlockSpec {
                 name: "critter",
-                base: o::SELF_BLOCK + 4 * o::KITTY_SLOT + 2 * 6 + 2 * 5 + 2 * 7,
-                stride: 11,
-                count: 4,
+                base: CRITTER_BASE,
+                stride: W.critter,
+                count: 2,
             },
         ],
         cells: &[

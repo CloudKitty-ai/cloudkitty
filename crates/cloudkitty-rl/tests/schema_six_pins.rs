@@ -31,8 +31,19 @@ fn the_schema_six_numbers_match_the_contract() {
     );
     assert_eq!(
         observation_len(&cfg),
-        421,
-        "self 109 | kitty 4 x 58 | chow 2 x 6 | water 2 x 5 | sunbeam 2 x 7 | critter 4 x 11 | no clock"
+        399,
+        "self 109 | kitty 4 x 58 | chow 2 x 6 | water 2 x 5 | sunbeam 2 x 7 | critter 2 x 11 | no clock (critter_slots 4 -> 2, owner ruled 2026-10-09)"
+    );
+    assert_eq!(
+        (
+            cfg.kitty_slots,
+            cfg.chow_slots,
+            cfg.water_slots,
+            cfg.sunbeam_slots,
+            cfg.critter_slots
+        ),
+        (4, 2, 2, 2, 2),
+        "the served slot defaults; critter 2 covers everything a radius-5 disc ever showed"
     );
     assert_eq!(
         (w.memory, w.msg_self, w.msg_kitty),

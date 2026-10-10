@@ -840,11 +840,12 @@ mod tests {
     use cloudkitty_core::test_support::test_world;
 
     #[test]
-    fn the_default_layout_is_421_values() {
-        // Schema 6 (spec 058): self 109 | 4 x 58 | 2 x 6 | 2 x 5 | 2 x 7 |
-        // 4 x 11 | no clock. (History: 408 at schema 5, 225 at schema 4,
-        // 197 at schema 3.)
-        assert_eq!(observation_len(&ObservationConfig::default()), 421);
+    fn the_default_layout_is_399_values() {
+        // Schema 6 (spec 058; critter_slots 4 -> 2 owner-ruled
+        // 2026-10-09 before any v6 artifact existed): self 109 | 4 x 58 |
+        // 2 x 6 | 2 x 5 | 2 x 7 | 2 x 11 | no clock. (History: 421 at
+        // the 058 merge for one day, 408 at schema 5, 225 at schema 4.)
+        assert_eq!(observation_len(&ObservationConfig::default()), 399);
     }
 
     #[test]
@@ -863,7 +864,7 @@ mod tests {
             kitty_slots: ObservationConfig::default().kitty_slots + 2,
             ..ObservationConfig::default()
         };
-        assert_eq!(observation_len(&cfg), 421 + 2 * KITTY_SLOT);
+        assert_eq!(observation_len(&cfg), 399 + 2 * KITTY_SLOT);
     }
 
     /// The in-water flag's fixed self-block index: needs (6) + happiness +
@@ -1198,7 +1199,7 @@ mod tests {
         assert!(row(&obs3, 2).iter().all(|&v| v == 0.0) && row(&obs3, 3).iter().all(|&v| v == 0.0));
         assert_eq!(
             obs3.values.len(),
-            421,
+            399,
             "the slot config does not change per lab"
         );
     }

@@ -12,7 +12,7 @@ fn arb_table() -> impl Strategy<Value = TargetTable> {
     let critter_slot = prop_oneof![Just(None), (100u32..200).prop_map(Some)];
     (
         prop::collection::vec(kitty_slot, 3),
-        prop::collection::vec(critter_slot, 4),
+        prop::collection::vec(critter_slot, 2),
     )
         .prop_map(|(mut kitties, mut critters)| {
             // Slot identities are unique by construction in real tables.
@@ -38,7 +38,7 @@ proptest! {
     #[test]
     fn every_index_decodes_and_expressible_actions_round_trip(table in arb_table()) {
         let codec = ActionCodec::v2(&ObservationConfig::default());
-        prop_assert_eq!(codec.len(), 39);
+        prop_assert_eq!(codec.len(), 35);
 
         for index in 0..codec.len() {
             let action = codec.decode(index, &table).expect("in-range decodes are total");

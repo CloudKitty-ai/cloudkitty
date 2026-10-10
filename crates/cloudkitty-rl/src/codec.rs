@@ -123,7 +123,7 @@ impl ActionCodec {
         ActionCodec { entries }
     }
 
-    /// The menu length (34 with default slots).
+    /// The menu length (35 with default slots: kitty 4, critter 2).
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -260,14 +260,17 @@ mod tests {
     fn table() -> TargetTable {
         TargetTable {
             kitties: vec![Some(2), Some(3), None, Some(5)],
-            critters: vec![Some(11), None, None, Some(14)],
+            critters: vec![Some(11), None],
         }
     }
 
     #[test]
-    fn the_default_menu_has_exactly_thirty_nine_entries_in_normative_order() {
+    fn the_default_menu_has_exactly_thirty_five_entries_in_normative_order() {
+        // critter_slots 4 -> 2 (owner ruled 2026-10-09): ChaseCritter and
+        // PlayCritter lose two rows each, 39 -> 35, Idle 38 -> 34. The
+        // menu is config-derived; ACTION_SCHEMA_VERSION holds at 3.
         let codec = ActionCodec::v2(&ObservationConfig::default());
-        assert_eq!(codec.len(), 39);
+        assert_eq!(codec.len(), 35);
         let t = table();
         // Spot-check the normative index table.
         assert_eq!(
@@ -290,21 +293,17 @@ mod tests {
             Action::Chase(TargetRef::Element { id: 11 })
         );
         assert_eq!(
-            codec.decode(25, &t).unwrap(),
+            codec.decode(23, &t).unwrap(),
             Action::Chase(TargetRef::Kitty { id: 2 })
         );
-        assert_eq!(codec.decode(29, &t).unwrap(), Action::Play { target: None });
+        assert_eq!(codec.decode(27, &t).unwrap(), Action::Play { target: None });
         assert_eq!(
-            codec.decode(33, &t).unwrap(),
+            codec.decode(28, &t).unwrap(),
             Action::Play {
-                target: Some(TargetRef::Element { id: 14 })
+                target: Some(TargetRef::Element { id: 11 })
             }
         );
-        assert_eq!(
-            codec.decode(38, &t).unwrap(),
-            Action::Idle,
-            "Idle renumbered onto the retired meow block's first row"
-        );
+        assert_eq!(codec.decode(34, &t).unwrap(), Action::Idle);
     }
 
     #[test]
@@ -371,8 +370,8 @@ mod tests {
         );
         // Out of range is the one caller error.
         assert!(matches!(
-            codec.decode(39, &t),
-            Err(CodecError::OutOfRange { index: 39, len: 39 })
+            codec.decode(35, &t),
+            Err(CodecError::OutOfRange { index: 35, len: 35 })
         ));
     }
 

@@ -11,27 +11,31 @@ the generator.
 WIDTHS = [("self", 109), ("kitty", 58), ("chow", 6), ("water", 5),
           ("sunbeam", 7), ("critter", 11)]
 COUNTS = {"self": 1, "kitty": 4, "chow": 2, "water": 2, "sunbeam": 2,
-          "critter": 4}
+          "critter": 2}
 TYPE_ROW = {"self": [0], "kitty": [1] * 4, "chow": [2], "water": [3],
-            "sunbeam": [4], "critter": [5] * 4}
+            "sunbeam": [4], "critter": [5] * 2}
 N_TYPE_ROWS = 6
 OBS_DIM = sum(w * COUNTS[n] for n, w in WIDTHS)
-assert OBS_DIM == 421
-# Menu 39 at kitty_slots 4 (ActionCodec::v2): Move 0-3, RestSolo 4,
-# RestWith 5-8, SleepSolo 9, SleepWith 10-13, GroomSelf 14, GroomKitty
-# 15-18, Eat 19, Drink 20, ChaseCritter 21-24, ChaseKitty 25-28, PlaySolo
-# 29, PlayCritter 30-33, PlayKitty 34-37, Idle 38.
-N_ACT = 39
-DENSE_ACT = [0, 1, 2, 3, 4, 9, 14, 19, 20, 29, 38]
-KITTY_MENU = [[5 + k, 10 + k, 15 + k, 25 + k, 34 + k] for k in range(4)]
-CRIT_MENU = [[21 + j, 30 + j] for j in range(4)]
+assert OBS_DIM == 399
+# critter_slots 4 -> 2 (owner ruled 2026-10-09, the entry BACKLOG
+# banked for Gen 2 on 2026-09-04): two slots cover everything a
+# radius-5 disc ever showed (0 cat-ticks with 3 visible in the anchor
+# smoke). Menu 35 at kitty_slots 4 (ActionCodec::v2): Move 0-3,
+# RestSolo 4, RestWith 5-8, SleepSolo 9, SleepWith 10-13, GroomSelf
+# 14, GroomKitty 15-18, Eat 19, Drink 20, ChaseCritter 21-22,
+# ChaseKitty 23-26, PlaySolo 27, PlayCritter 28-29, PlayKitty 30-33,
+# Idle 34.
+N_ACT = 35
+DENSE_ACT = [0, 1, 2, 3, 4, 9, 14, 19, 20, 27, 34]
+KITTY_MENU = [[5 + k, 10 + k, 15 + k, 23 + k, 30 + k] for k in range(4)]
+CRIT_MENU = [[21 + j, 28 + j] for j in range(2)]
 N_HEAD = 16
 N_LOGITS = N_ACT + N_HEAD
-assert N_LOGITS == 55
+assert N_LOGITS == 51
 # token positions: self 0, kitty 1..5, chow 5..7, water 7..9, sunbeam
-# 9..11, critter 11..15, clock 15
+# 9..11, critter 11..13
 KITTY_TOK = slice(1, 5)
-CRIT_TOK = slice(11, 15)
+CRIT_TOK = slice(11, 13)
 # Block offsets derived from WIDTHS x COUNTS (one row per slot, self
 # excluded): kitty 109.., chow 341.., water 353.., sunbeam 363..,
 # critter 377..; the last block ends at 421 (no clock cell).
@@ -41,11 +45,11 @@ for _name, _w in WIDTHS[1:]:
     for _j in range(COUNTS[_name]):
         BLOCKS.append((_off, _w))
         _off += _w
-assert BLOCKS[-1][0] + BLOCKS[-1][1] == 421 == OBS_DIM
+assert BLOCKS[-1][0] + BLOCKS[-1][1] == 399 == OBS_DIM
 # Named spans the generator's stress rows zero out.
 KITTY_SPAN = (109, 109 + 4 * 58)        # 109..341
 ELEMENT_SPAN = (341, 377)               # chow, water, sunbeam
-CRITTER_SPAN = (377, 421)
+CRITTER_SPAN = (377, 399)
 KITTY_W = 58
 
 # Intra-block offsets, the engine's `observe.rs::offsets` in Python. Built
