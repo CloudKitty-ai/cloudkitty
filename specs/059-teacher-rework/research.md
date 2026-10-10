@@ -199,8 +199,12 @@ type-level removal; type-level narrowing is OUT (it would touch the
 `experiments/tools/bc-collect` labels the applied action
 (main.rs:356-395): a propose-then-refuse exchange lands in the corpus
 as Idle, not as the proposal. Experiments informed (their lane, rule
-3) — it interacts with their placement bar (≥ 0.40) and with how
-refusal exchanges appear to the student.
+3). Their call (2026-10-10, recorded at e1b3e095): bc-collect gains a
+`label_proposed` action column mirroring `label_msg_proposed`; applied
+labels unchanged; the consume rule is pinned at their prereg freeze.
+Out of 059's scope — the one check owed here is T024's mask-legality
+spot check (a consent-refused proposal should always be mask-legal;
+counterexamples are reported findings).
 
 ## R10 — Favourite weights placement
 
