@@ -79,26 +79,31 @@ lines are what the freeze sitting must pin. Rulings sources:
   ships the keyed map via the binding, and flipping the
   downstream readers onto it is an EXPERIMENTS-lane edit after
   the spec lands — budgeted in §10.2.
-- [BLANK, near-final 2026-10-09 — pins at #444's merge] The cell
-  map and schema version ids, per spec 058 / PR #444:
-  OBSERVATION 5 → 6 (421 cells: self 109, kitty row 58 × 4, chow
-  6, water 5, sunbeam 7, critter 11, no clock); GLOBAL_STATE
+- [PINNED 2026-10-10, at #444 + #445 + #446] The cell map and
+  schema version ids, per spec 058: OBSERVATION 5 → 6, final 399
+  cells (self 109, kitty row 58 × 4, chow 6 × 2, water 5 × 2,
+  sunbeam 7 × 2, critter 11 × 2, no clock; verified
+  observe.rs §the_default_layout_is_399_values); GLOBAL_STATE
   1 → 2 (critic-side identity block, 14 per kitty; critic keeps
   its clock and width-normalized positions, documented R7);
-  ACTION/MASK hold at 3. Reader surface:
-  `cloudkitty.COLUMN_MAPS[version]` (cells + blocks
-  base/stride/count + observation_len + slot_config; v5
-  oracle-locked to the 049 contract) and `ACTION_MENU`. Schema
-  spec = **058** (specs/058-gen2-observation-schema).
+  ACTION/MASK hold at 3; menu 35 (Idle 34), 13 attention tokens.
+  Reader surface: `cloudkitty.COLUMN_MAPS[version]` (cells +
+  blocks base/stride/count + observation_len + slot_config; v5
+  oracle-locked to the 049 contract at critter 4 / 408 / menu 39)
+  and `ACTION_MENU` — menu keys are PINNED wire spellings
+  (snake_case, slot-indexed: move_north, rest_with_kitty_0,
+  chase_critter_0, idle; spelling+uniqueness test in
+  schema_map.rs, #446). Schema spec = **058**
+  (specs/058-gen2-observation-schema).
 - [RULED, owner 2026-10-10 in-session: "I ruled critter slots 4
-  to 2, product is working on it now"] critter_slots 4 → 2 IN.
-  #444 merged at 4 slots, so this lands as a follow-up re-cut of
-  the 058 wall (observation layout AND action menu move;
-  OBSERVATION and ACTION/MASK versions bump again), BEFORE
-  collection per the order in §10. Evidence basis: BACKLOG
-  §critter_slots (slot 4 = 0 fills, slot 3 = 35 seed-clustered
-  in 320k cat-ticks). Freezing §3 waits on the re-cut landing,
-  no longer on a word. Metric pin at 058:
+  to 2, product is working on it now"] critter_slots 4 → 2 IN —
+  LANDED: #444 merged at 4 slots; the follow-up re-cut merged
+  same day at #445 → 55805272 INSIDE the v6 wall (no reader had
+  flipped onto v6, so v6 was re-cut in place: critter block count
+  2, base 377; versions hold — no v7), before collection per §10.
+  Evidence basis: BACKLOG §critter_slots (slot 4 = 0 fills,
+  slot 3 = 35 seed-clustered in 320k cat-ticks). §3 freeze is
+  unblocked. Metric pin at 058:
   MANHATTAN throughout the new distance/bearing cells (walk-cost
   units; the ruled (dx/d, dy/d) form preserved as the L1 unit
   pair; constants 40/400 hold — max Manhattan 198 at 100×100);
