@@ -100,6 +100,17 @@ idx14-22 v1:294492bac80d54d2 · idx23 v1:7276669ad40902a2 ·
 idx24-32 v1:821f811c01db5836 · idx33 v1:30413d82efd5e7f5 ·
 idx34-39 v1:dafc7b2ce880bb27
 
+Outcome (added 2026-10-10, after the gate; alters no gated number):
+the owner ruled option B in the Product session; FR-016 landed at
+PR #447 with the observability framing quoted in
+contracts/cue-answer.md, and `consent_declined` is live in the wire
+enum. Attribution anchor for post-059 baseline moves at
+consent_line = 30 configs (the gate now binds ALL proposers,
+RL seats included): Product's committed fire counter,
+`crates/cloudkitty-core/tests/fixtures/spec059-fire-counter.json`
+(442 consent_declined / 20k on the served/anchor shape; the two
+arms there are one data point — the configs are twins).
+
 Accuracy gate: PASS 2026-10-10 — arithmetic 27 (26 match, 1 rounding
 fixed post-gate: Reading's 7.6 → the printed 7.55), threshold 2
 (unsourced "rare", numbers inline), characterisation 9 (8 supported,
