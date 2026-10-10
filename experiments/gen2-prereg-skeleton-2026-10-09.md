@@ -171,6 +171,19 @@ lines are what the freeze sitting must pin. Rulings sources:
   vs folded into teacher rework) = Product's call. The step-7
   consent-transfer read becomes reference-only. Trained-seat
   consent-anticipation = emergent, observational-only (S§3f).
+  CORPUS LABELING under the re-key (Experiments' call, 2026-10-10,
+  on Product's rule-3 report: bc-collect labels APPLIED actions,
+  main.rs:356, so a refused proposal would land as Idle): bc-collect
+  gains a label_proposed column for the ACTION half, mirroring the
+  message half's existing label_msg_proposed; applied labels stay.
+  The trunk trainer consumes PROPOSED-where-consent-refused
+  (imitate the teacher's DECISION; the refusal is physics the
+  student experiences, not a demonstration), applied everywhere
+  else — pinned at the freeze with the trainer config. Both
+  columns in the corpus keep the choice data-visible and
+  reversible without recollection. Readers on the flip checklist
+  also take the new RefusalReason variant (consent_declined):
+  reason-enumerating readers must tolerate unknown variants.
 - [RULED K§3 rider] The teacher demonstrates only adjacency-legal
   proposals.
 - [RULED 057] Sleep rule reads the floor.
