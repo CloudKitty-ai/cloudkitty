@@ -153,7 +153,10 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
     write_artifact(
         &zero_path,
         &header,
-        &[(vec![0.0f32; input], vec![0.0]), ((0..menu).map(|i| i as f32).collect(), vec![0.0; menu])],
+        &[
+            (vec![0.0f32; input], vec![0.0]),
+            ((0..menu).map(|i| i as f32).collect(), vec![0.0; menu]),
+        ],
     )
     .expect("the zero-listener artifact writes");
     let zero = PolicyBehavior::from_artifact_path(zero_path.to_str().unwrap(), &rl, false).unwrap();

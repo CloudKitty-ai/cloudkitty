@@ -140,7 +140,11 @@ impl Lattice {
         let i = if i < n { i } else { 2 * n - 2 - i };
         let row = i / nx;
         let col = i % nx;
-        let col = if row.is_multiple_of(2) { col } else { nx - 1 - col };
+        let col = if row.is_multiple_of(2) {
+            col
+        } else {
+            nx - 1 - col
+        };
         Position::new(axis_at(width, radius, col), axis_at(height, radius, row))
     }
 
@@ -158,7 +162,13 @@ mod tests {
         // one axis definition; this pins that they can never diverge —
         // squares, rectangles, a narrow world, and a radius that
         // collapses an axis.
-        for (w, h, r) in [(20, 20, 5), (100, 100, 5), (7, 31, 4), (5, 5, 8), (40, 20, 6)] {
+        for (w, h, r) in [
+            (20, 20, 5),
+            (100, 100, 5),
+            (7, 31, 4),
+            (5, 5, 8),
+            (40, 20, 6),
+        ] {
             let l = Lattice::for_world(w, h, r);
             for i in 0..l.cycle_len().min(600) {
                 assert_eq!(

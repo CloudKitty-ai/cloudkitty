@@ -673,7 +673,13 @@ async fn two_wet_groomers_referencing_one_dry_cat_charge_it_once() {
     const SECOND_WET_TILE: Position = Position { x: 9, y: 9 };
     async fn run(membership: ContagionMembership) -> f32 {
         let mut config = test_config();
-        config.kitties.push(KittyConfig::new(THIRD_CAT, "Pumpkin", 1, 1, "always_invalid"));
+        config.kitties.push(KittyConfig::new(
+            THIRD_CAT,
+            "Pumpkin",
+            1,
+            1,
+            "always_invalid",
+        ));
         for k in &mut config.kitties {
             k.behavior = "always_invalid".into();
         }

@@ -1787,7 +1787,13 @@ mod tests {
         // mutual); C stands on a beam cosleeping with B. The beam is two
         // hops from A -- A gets the plain rate.
         let mut config = crate::test_support::test_config();
-        config.kitties.push(crate::config::KittyConfig::new(3, "Pumpkin", 4, 6, "needs_driven"));
+        config.kitties.push(crate::config::KittyConfig::new(
+            3,
+            "Pumpkin",
+            4,
+            6,
+            "needs_driven",
+        ));
         let mut world = World::generate(&config);
         world.elements.clear();
         let a = world.kitty_index(1).unwrap();

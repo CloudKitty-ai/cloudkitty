@@ -119,7 +119,9 @@ async fn a_pre_009_scene_stranded_on_a_diagonal_ends_gracefully() {
 
     let mut config = test_config();
     // A third kitty keeps the world legal while the two under test are posed.
-    config.kitties.push(KittyConfig::new(3, "Bystander", 1, 1, "needs_driven"));
+    config
+        .kitties
+        .push(KittyConfig::new(3, "Bystander", 1, 1, "needs_driven"));
     config.validate().expect("valid");
     let config = Arc::new(config);
     let registry = BehaviorRegistry::with_builtins();
