@@ -654,3 +654,54 @@ design usually REVERBERATES — sweep the doc for every dependent
 framing (cert/monitor, structural-half, guard lists) and either
 restate the whole or declare why the rest survives; the verifier
 found all three reverberations the correction's author missed.
+
+## 2026-10-10 — copy-check: Amendment A2′ (sitting record) + skeleton §8/§1 sweep (Experiments)
+
+r1 FAIL (4): one case mismatch inside quote marks ("welfare-equivalence
+unmeasured" quoted across a sentence boundary — resolved by unquoting);
+one MEANING SHIFT — the Professor record parks the seatability pins as
+"the prerequisite spec to recall", my compression said "dropped with
+it"; one dropped qualifier set — item 7 lost the doctrine-flavored fork
+question and "Declared choice, not an accident of trunk exposure"; one
+record-vs-skeleton pin-list divergence (the four pins numbered
+differently in the two documents). r2 PASS.
+
+Lesson: compressing a source I HAD read is its own failure surface —
+r4's lesson was transcribe-from-the-file, this round's is that even
+file-sourced content can flip a disposition word ("parked" → "dropped")
+in summary. Dispositions (parked/dropped/deferred/retired) get quoted
+or checked like numbers. Second lesson: when a ruled list is copied
+into a second document, copy the NUMBERING, not just the content — two
+different four-item cuts of the same material read as different rules.
+
+## 2026-10-10 — copy-check: item-4 ruling (Phase-2 correction split) + skeleton slot (Experiments)
+
+r1 FAIL (1 + drift): one quote inexact ("would measure itself" vs the
+source's "measures itself"); a merged-claims paraphrase (two source
+claims compressed to one inside a parenthetical); "decisive" credited
+to the reviewer when the source credits the suspicion to us and only
+the verdict to them; "their record" singular where the source names
+TWO records; two dropped commitment qualifiers; a timing flip
+(bins "pinned at the freeze" vs the source's "pinned NOW").
+r2 FAIL: a fix INTRODUCED a contradiction — the bins-timing fix
+updated one of the document's two statements of the fact and left the
+other stale; plus one mis-scoped cross-reference. r3 PASS.
+
+Lessons: (1) a fix that changes a fact sweeps the document for that
+fact's OTHER statements — reverberation applies within a single doc,
+not only across docs; (2) timing words (now / at the freeze) are
+disposition words and get the disposition treatment: quoted or
+checked like numbers; (3) attribution of evaluative words ("decisive")
+is itself a checkable fact — who said it about whose claim.
+
+## 2026-10-10 — copy-check: consent re-key ruling (Experiments)
+
+r1 PASS with two precision notes, both taken before commit: the
+record cited "rule 12" for the own-state line when the content now
+lives in rule 12's demoted implementation GLOSS (status, not content
+— and this ruling window is exactly where gloss-vs-rule precision
+matters); and "suppressed proposals" where the source measures LOST
+DUET STARTS (18.3/1k — "proposals" is an inference, now labeled as
+one). Pre-gate self-catch on record: the residual "25 of 1,960" had
+been misread as a blocked count in two outbound messages; the record
+carries the correction and the corrected scale.

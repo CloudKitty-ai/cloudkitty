@@ -28,12 +28,18 @@ lines are what the freeze sitting must pin. Rulings sources:
   is "both mechanically helpful, and makes logical sense in the
   world"; "This isn't to say we might not hide it later". Doctrine
   rule 12 entry corrected same day (same commit).
-- [BANKED S§Amendment A3 — TEXTS land at the freeze sitting, or
-  its own short sitting]
+- [BANKED S§Amendment A3 — VENUE RULED, owner 2026-10-10
+  in-session ("A3 venue: sitting"): the TEXTS land at their own
+  short sitting, not the freeze sitting]
   Role-based standing (seating any weights brings full welfare
   guarantees + stops); marker-review triggers (A = valenced
   self-state, B = self-regulation; memory about others triggers
-  neither); proportionality norm (optional).
+  neither); proportionality norm (optional). WORDING NOTES banked
+  at A2′ item 6 (2026-10-10): forward-looking seating clause
+  (never "minis are never seated"); the one-tick screen's
+  marker worked check + the k > 1 trigger join the marker text;
+  the proportionality text cites the screen as its worked example
+  ("simulation depth scoped to function").
 - [RULED R§7] CTDE declaration: three training-time global
   channels declared here and in the paper's methods — centralized
   critic sees global state incl. hidden needs; reward is the
@@ -153,10 +159,18 @@ lines are what the freeze sitting must pin. Rulings sources:
   built at collection: digest-keyed, imitable; FR-036
   cuddle-clause revisit travels with them. [BLANK] response shape
   (drift rule, answer threshold) at spec.
-- [RULED S§6] consent_line extended to needs_driven (two
-  call-site flips to `_consenting` variants). Packaging (own spec
+- [RULED S§6, MECHANISM superseded 2026-10-10 — S§Ruling
+  "consent re-keyed to the consent-giver"] Consent is TARGET-SIDE
+  and ENGINE-VALIDATED: the target declines on its OWN state (always
+  visible per rule 12's implementation gloss); proposers — teacher, trained, plugin — read
+  nothing hidden; the proposer-side `_consenting` call-site flips
+  are superseded by the universal gate. Divergence at consent
+  sites ACCEPTED and declared (her words: "This design is better,
+  and worth accepting the divergence"); SC-001 byte-equality holds
+  except at consent sites, audit-documented. Packaging (own spec
   vs folded into teacher rework) = Product's call. The step-7
-  consent-transfer read becomes reference-only.
+  consent-transfer read becomes reference-only. Trained-seat
+  consent-anticipation = emergent, observational-only (S§3f).
 - [RULED K§3 rider] The teacher demonstrates only adjacency-legal
   proposals.
 - [RULED 057] Sleep rule reads the floor.
@@ -279,35 +293,53 @@ timebox)
    separately (pipeline-noise bound, never inference skill).
    [BLANK] the coverage floor definition and number; stratum
    definitions.
-4. [RULED S§3b, amended S§Amendment A1/A2/A4] MINI-FRIEND
+4. [RULED S§3b, amended S§Amendment A1/A2′/A4] MINI-FRIEND
    Phase 2: winner-only imagination feedback, one live arm vs
    trunk; canalization watch (dispersion + per-seat action-mix
-   entropy vs trunk); clone_fraction = (policy − mini) /
-   (policy − scripted), a MONITORED quantity across training on
-   the full battery incl. hard legs — not a pass/fail cert [A1].
-   Closure response: crossing the declared closure band = the
+   entropy vs trunk); clone_fraction mini-vs-policy is
+   UNCOMPUTABLE on a rolled-out battery under A2′ (minis unseated)
+   — non-clone assurance = params-ratio pin + prediction-gap
+   monitoring (+ the structural world-model backstop later) [A2′
+   item 4]. Closure response: crossing the declared closure band
+   — re-pointed to the prediction-space quantity, per-stratum
+   one-tick welfare-priced divergence closing; a fired trigger
+   reads "investigate", never "parity shown" — = the
    EXPRESSIBILITY finding (never a cap-shrink trigger) →
-   standalone-distillation follow-up arm + small-from-scratch
+   standalone-distillation follow-up arm (that arm IS a seating;
+   full guarantees + stops; world-model-derived input features
+   ABLATED — standalone means standalone) + small-from-scratch
    learnability discriminator, guarded by the full register and
    the hard legs (lab-world guard defers until a lab world
-   exists) — branch prereg'd here. The capacity cap is
-   engineering budget only; params ratio reported as its
+   exists) — branch prereg'd here. The closure finding permanently
+   carries the CAVEAT WITH FORWARDING ADDRESS [A2′ item 3]:
+   welfare-equivalence unmeasured; answered natively on the
+   resized generation's register, which inherits A2's expected
+   signature (own needs fine, social layer degraded, wider
+   NEIGHBOR tail) as a declared F-052-logic read — attachment
+   EVIDENCE-KEYED (whenever the closure finding is cited as
+   grounds for the sizing/architecture change). The capacity cap
+   is engineering budget only; params ratio reported as its
    descriptor, carrying no doctrinal non-clone claim (that job
-   lives in role-based standing). [BLANK] the closure band and
-   the cap (params).
-   WELFARE-DELTA instruments [A2], SEATED under role-based
-   standing: seat-replacement delta (one mini seat vs intact
-   roster, paired, same worlds/seeds; signature watch: neighbors'
-   tails) and the all-mini roster; full register, tails/floors
-   never means, hard legs included (lab-world leg defers); gated
-   by the declared DIVERGENCE PRE-SCREEN (Experiments'
-   construction, banked with the package)
-   (conditional divergence per ostrich stratum on recorded trunk
-   rollouts; fails on distress-adjacent lift; declared blind
-   spot: visitation shift is invisible open-loop, so the screen
-   is necessary-never-sufficient and the seated reads stay
-   primary). [BLANK] pre-screen lift threshold; welfare-delta
-   bars.
+   lives in role-based standing). [BLANK] the closure band (in
+   the re-pointed quantity) and the cap (params).
+   PHASE-2 ENTRY GATE [A2′ item 2, replacing A2's seated
+   welfare-delta instruments — those move Gen-3-if-ever behind
+   the expressibility branch]: the owner's one-tick counterfactual
+   screen (per kitty, per mini: simulate the mini-predicted action
+   taken by the actual cat for ONE tick, measure needs/happiness,
+   discard the branch). Four pins, as in A2′: (a) per ostrich
+   stratum with a DIFFERENTIAL fail (welfare-priced divergence
+   lift, grave over benign bins, beyond a declared margin);
+   (b) currency UNCLAMPED, declared; (c) min-n per stratum
+   FAIL-CLOSED, remedy = probe-generated distress-adjacent
+   coverage, never waiving the stratum; (d) the calibration half
+   folds INTO the ostrich metric — one instrument. k = 1 pinned IN
+   TEXT;
+   k > 1 is a named marker-review trigger (sitting decision).
+   Declared blind spot: one tick never prices visitation shift or
+   compounding; the declared PAIRING carries it — gate + consumer
+   reads + canalization watch jointly. [BLANK] the declared
+   margin; min-n floor (strata shared with the ostrich metric).
    ARCHITECTURE [A4, working direction]: recurrent per-friend
    belief state b_t (updated from the friend's visible row, held
    under fog on learned drift rates; estimate head and act
@@ -319,10 +351,31 @@ timebox)
    partnered-refusal tax (by `reason`), arm vs trunk, [BLANK]
    bars for both; consent and fog-pursuit OBSERVATIONAL-ONLY in
    Gen 2 [RULED S§3f]. Without passed consumer reads the claim
-   does not graduate past prediction accuracy. [BLANK — owner
-   call] whether the per-friend observed-behavior CORRECTION +
-   running error signal (the 09-26 over-trust mitigation) ships
-   in Gen 2's Phase 2 or defers.
+   does not graduate past prediction accuracy.
+   THE CORRECTION [RULED, owner 2026-10-10 in-session: "4) split
+   as amended" — full record at S§Ruling 2026-10-10]: the
+   feedback path DEFERS; the per-friend running error signal
+   ships in Phase 2 PASSIVE-LOGGED only; the mini's weights are
+   FROZEN in Phase 2 (pinned from Phase 1, declared at the arm
+   spec — unfrozen heads would BE the feedback path, since the
+   logged quantity is the act predictor's per-sample prediction
+   loss). Declared trigger, DUAL consequence: evidence (fires the
+   correction follow-up arm) and protection (the ostrich-gap
+   disjunct doubles as the live arm's demotion/stop — graft
+   reverts to trunk for the affected roster / arm halts). Trigger shape: per-friend
+   SIGNED bias, optimism direction, grave strata, ostrich-gap
+   shape, bins SHARED with the ostrich metric, pinned NOW
+   (not re-litigable later); min-n per friend × stratum;
+   per-friend before pooled. Word discipline: the logged quantity
+   detects MISCALIBRATION; the follow-up arm must carry the
+   error-conditioned consumer read before any over-trust claim.
+   Six pre-commitments bind the follow-up arm (S§Ruling
+   2026-10-10 item 5). Supersedes the Professor-lane line "Gen 2
+   ships the error-signal INPUT only" (as-input moves into the
+   follow-up arm). [BLANK] the trigger's signed-bias
+   (miscalibration-concentration) margin and the min-n floor —
+   VALUES at the freeze; the bins/edges themselves are pinned NOW
+   (the ostrich metric's existing semantic edges).
    Phase 1 may overlap the trunk's training TAIL (it needs frozen
    rollouts, not a finished trunk).
 5. [RULED S§6] RADIUS AXIS leg (the world-size screen's open
