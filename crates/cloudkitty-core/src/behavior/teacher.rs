@@ -465,7 +465,20 @@ mod tests {
                 let idx = world.kitty_index(1).unwrap();
                 world.kitties[idx].pos = crate::grid::Position::new(5, 5);
                 world.kitties[idx].needs = crate::needs::Needs::default();
-                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 60.0);
+                // Play 40: under the comfort line, so the playful/teacher
+                // presets take the LUXURY path (scored_playmate — the one
+                // place a reintroduced partner read could hide), and well
+                // over the wander line so no RNG draw complicates the pair.
+                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 40.0);
+                // A competing critter at the friend's exact distance: a
+                // score moved by hidden state FLIPS the pick instead of
+                // vanishing into a one-candidate scan.
+                world.push_element(crate::element::Element {
+                    id: 900,
+                    kind: crate::element::ElementKind::Bug,
+                    pos: crate::grid::Position::new(8, 5),
+                    ttl: Some(1000),
+                });
                 let f = world.kitty_index(2).unwrap();
                 world.kitties[f].pos = crate::grid::Position::new(5, 8);
                 world.kitties[f].needs = crate::needs::Needs::default();
