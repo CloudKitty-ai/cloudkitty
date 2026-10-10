@@ -6,6 +6,7 @@
 //! of range). Mutation-verified: a swapped v5 entry reds the pins file;
 //! a v6 lookup moved off its offset reds the cross-derivation here.
 
+use cloudkitty_rl::codec::ActionCodec;
 use cloudkitty_rl::config::ObservationConfig;
 use cloudkitty_rl::observe::{observation_len, offsets, OBSERVATION_SCHEMA_VERSION};
 use cloudkitty_rl::schema_map::{column_map, SchemaMapError};
@@ -104,4 +105,23 @@ fn v5_lookups_reproduce_the_retired_layout_and_failures_are_loud() {
         m.block("nothing"),
         Err(SchemaMapError::UnknownBlock(_))
     ));
+}
+
+#[test]
+fn action_menu_wire_names_are_pinned_spellings() {
+    // Spec 058 review finding 3: the binding's ACTION_MENU keys are a
+    // published reader surface — pinned spellings, never Debug output.
+    let menu = ActionCodec::v2(&ObservationConfig::default());
+    let names: Vec<String> = menu.entries().iter().map(|e| e.wire_name()).collect();
+    assert_eq!(names.len(), 35);
+    assert_eq!(names[0], "move_north");
+    assert_eq!(names[4], "rest_solo");
+    assert_eq!(names[5], "rest_with_kitty_0");
+    assert_eq!(names[14], "groom_self");
+    assert_eq!(names[21], "chase_critter_0");
+    assert_eq!(names[28], "play_critter_0");
+    assert_eq!(names[33], "play_kitty_3");
+    assert_eq!(names[34], "idle");
+    let unique: std::collections::BTreeSet<&String> = names.iter().collect();
+    assert_eq!(unique.len(), names.len(), "names are unique keys");
 }

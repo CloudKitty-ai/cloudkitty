@@ -156,10 +156,17 @@ pub const STALENESS_NORMALISER: f32 = 40.0;
 /// field log1p(d)/log1p(400). Literals by ruling — never derived from
 /// config or world size; the constants ARE the schema.
 pub const NEAR_DISTANCE_NORMALISER: f32 = 40.0;
+
+/// The comfort-slack identity cell's own frozen normalizer (spec 058
+/// review finding 6): numerically equal to the spatial near field
+/// today, but a separate constant — a re-ruling of the spatial /40
+/// must not silently rescale an identity cell.
+pub const COMFORT_SLACK_NORMALISER: f32 = 40.0;
 pub const FAR_DISTANCE_NORMALISER: f32 = 400.0;
 
 /// Offsets inside the self block and a kitty row
-/// (contracts/observation-v5.md), public so the pin and row tests read
+/// (specs/058-gen2-observation-schema/contracts/observation-v6.md),
+/// public so the pin and row tests read
 /// cells by name rather than by hand-summed literals.
 pub mod offsets {
     use super::*;
@@ -381,11 +388,10 @@ pub fn encode_observation(
     // tiles to each edge, linear /40 clamped, N/E/S/W — fully egocentric;
     // a corner cat carries two legal zeros.
     push_needs_and_happiness(&mut v, me);
-    let near = |d: f32| (d / NEAR_DISTANCE_NORMALISER).min(1.0);
-    v.push(near(me.pos.y as f32)); // N
-    v.push(near(width - 1.0 - me.pos.x as f32)); // E
-    v.push(near(height - 1.0 - me.pos.y as f32)); // S
-    v.push(near(me.pos.x as f32)); // W
+    v.push(near_cell(me.pos.y as f32)); // N
+    v.push(near_cell(width - 1.0 - me.pos.x as f32)); // E
+    v.push(near_cell(height - 1.0 - me.pos.y as f32)); // S
+    v.push(near_cell(me.pos.x as f32)); // W
     push_activity(&mut v, &me.activity);
     v.push(if me.activity.partner().is_some() {
         1.0
@@ -439,18 +445,16 @@ pub fn encode_observation(
     // Waypoint bearing (spec 058 FR-012): the L1 unit direction to the
     // exploration tour's current waypoint, derived exactly as the
     // exploration rule derives its step target; (0, 0) when standing on
-    // it. The lattice is stateless and the observer's own tour index is
-    // never blanked by `fog_for`.
-    let lattice =
-        cloudkitty_core::explore::Lattice::for_world(view.width, view.height, core.vision.radius);
-    let wp = lattice.waypoint(me.explore_waypoint);
-    let (wdx, wdy) = (wp.x as f32 - me.pos.x as f32, wp.y as f32 - me.pos.y as f32);
-    let wd = wdx.abs() + wdy.abs();
-    if wd == 0.0 {
-        v.extend([0.0, 0.0]);
-    } else {
-        v.extend([wdx / wd, wdy / wd]);
-    }
+    // it. `waypoint_at` is the lattice's allocation-free single-read
+    // (review finding 5 — this runs per kitty per tick); the observer's
+    // own tour index is never blanked by `fog_for`.
+    let wp = cloudkitty_core::explore::Lattice::waypoint_at(
+        view.width,
+        view.height,
+        core.vision.radius,
+        me.explore_waypoint,
+    );
+    push_bearing(&mut v, me.pos, wp);
     // Dirt reserve (spec 058 FR-013): two cells for the banked dirt
     // compartments, 0.0 until armed — this push is the ONLY write path
     // into the reserve range, which is what the inertness test pins.
@@ -761,7 +765,7 @@ pub(crate) fn push_identity(
         let trait_value = core.need_rate_for(kitty_id, kind) / cfg.reference_need_rate;
         v.push(trait_value.clamp(0.0, 4.0));
     }
-    v.push((core.comfort_slack_for(kitty_id) / NEAR_DISTANCE_NORMALISER).clamp(0.0, 1.0));
+    v.push((core.comfort_slack_for(kitty_id) / COMFORT_SLACK_NORMALISER).clamp(0.0, 1.0));
     v.push(core.consent_line_for(kitty_id) / 100.0);
     for kind in NeedKind::ALL {
         v.push(core.favourite_weight_for(kitty_id, kind));
@@ -792,6 +796,16 @@ fn push_element_common(v: &mut Vec<f32>, me: &Kitty, e: &cloudkitty_core::elemen
 /// the L1 unit vector, (0, 0) on the observer's own tile. NEVER bounded
 /// by the vision radius (FR-001a).
 fn push_spatial(v: &mut Vec<f32>, from: Position, to: Position) {
+    let d = push_bearing(v, from, to);
+    v.push(near_cell(d));
+    v.push(d.ln_1p() / FAR_DISTANCE_NORMALISER.ln_1p());
+}
+
+/// The L1 unit bearing pair, one definition for every consumer (entity
+/// spatial groups and the waypoint cells — review finding 8): (0, 0) at
+/// d = 0, else (dx/d, dy/d) with d Manhattan. Returns d for the
+/// magnitude cells.
+fn push_bearing(v: &mut Vec<f32>, from: Position, to: Position) -> f32 {
     let dx = to.x as f32 - from.x as f32;
     let dy = to.y as f32 - from.y as f32;
     let d = dx.abs() + dy.abs();
@@ -800,8 +814,13 @@ fn push_spatial(v: &mut Vec<f32>, from: Position, to: Position) {
     } else {
         v.extend([dx / d, dy / d]);
     }
-    v.push((d / NEAR_DISTANCE_NORMALISER).min(1.0));
-    v.push(d.ln_1p() / FAR_DISTANCE_NORMALISER.ln_1p());
+    d
+}
+
+/// The near-field linear magnitude, d/40 clamped — one definition for
+/// the spatial groups and the wall cells.
+fn near_cell(d: f32) -> f32 {
+    (d / NEAR_DISTANCE_NORMALISER).min(1.0)
 }
 
 /// The one proximity ordering (spec 014 review): Manhattan distance from

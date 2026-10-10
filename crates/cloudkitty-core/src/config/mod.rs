@@ -345,9 +345,11 @@ pub struct KittyConfig {
     pub needs: Option<NeedRateOverrides>,
     /// Gen 2 identity dials (spec 058). Each is an optional per-kitty
     /// override behind an accessor (`comfort_slack_for`, `consent_line_for`,
-    /// `favourite_weight_for`) — the ONE home spec 059's parameterized
-    /// teacher reads too, so a cat's observation always shows the dials its
-    /// teacher ran on. Unset falls back to the `[behavior]` world value
+    /// `favourite_weight_for`). Until spec 059 reseats the teacher on the
+    /// same accessors, the scripted rules read only the WORLD-level
+    /// values: a per-kitty dial set today reaches the observation, not
+    /// the behavior — set them only once the parameterized teacher
+    /// lands. Unset falls back to the `[behavior]` world value
     /// (favourite: 0.0, no favourite).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub comfort_slack: Option<f32>,
@@ -358,6 +360,29 @@ pub struct KittyConfig {
 }
 
 impl KittyConfig {
+    /// A seat with every optional field unset (spec 058 review finding
+    /// 10): the construction every literal site wants, so the next
+    /// per-kitty field is one line here instead of a 25-site sweep.
+    pub fn new(
+        id: KittyId,
+        name: impl Into<String>,
+        x: u32,
+        y: u32,
+        behavior: impl Into<String>,
+    ) -> Self {
+        Self {
+            id,
+            name: name.into(),
+            x,
+            y,
+            behavior: behavior.into(),
+            needs: None,
+            comfort_slack: None,
+            consent_line: None,
+            favourite: None,
+        }
+    }
+
     pub fn position(&self) -> Position {
         Position::new(self.x, self.y)
     }
@@ -1401,39 +1426,9 @@ impl Default for Config {
             world: WorldConfig::default(),
             persistence: PersistenceConfig::default(),
             kitties: vec![
-                KittyConfig {
-                    id: 1,
-                    name: "Miso".into(),
-                    x: 10,
-                    y: 12,
-                    behavior: "needs_driven".into(),
-                    needs: None,
-                    comfort_slack: None,
-                    consent_line: None,
-                    favourite: None,
-                },
-                KittyConfig {
-                    id: 2,
-                    name: "Biscuit".into(),
-                    x: 20,
-                    y: 18,
-                    behavior: "playful".into(),
-                    needs: None,
-                    comfort_slack: None,
-                    consent_line: None,
-                    favourite: None,
-                },
-                KittyConfig {
-                    id: 3,
-                    name: "Pumpkin".into(),
-                    x: 16,
-                    y: 8,
-                    behavior: "needs_driven".into(),
-                    needs: None,
-                    comfort_slack: None,
-                    consent_line: None,
-                    favourite: None,
-                },
+                KittyConfig::new(1, "Miso", 10, 12, "needs_driven"),
+                KittyConfig::new(2, "Biscuit", 20, 18, "playful"),
+                KittyConfig::new(3, "Pumpkin", 16, 8, "needs_driven"),
             ],
             needs: NeedsConfig::default(),
             happiness: HappinessConfig::default(),

@@ -49,28 +49,8 @@ fn blind_world(seed: u64) -> (World, Arc<Config>) {
     config.world.seed = 1000 + seed;
     config.vision.radius = R;
     config.kitties = vec![
-        KittyConfig {
-            id: 1,
-            name: "Miso".into(),
-            x: START.x,
-            y: START.y,
-            behavior: "needs_driven".into(),
-            needs: None,
-            comfort_slack: None,
-            consent_line: None,
-            favourite: None,
-        },
-        KittyConfig {
-            id: 2,
-            name: "Biscuit".into(),
-            x: 0,
-            y: 0,
-            behavior: "needs_driven".into(),
-            needs: None,
-            comfort_slack: None,
-            consent_line: None,
-            favourite: None,
-        },
+        KittyConfig::new(1, "Miso", START.x, START.y, "needs_driven"),
+        KittyConfig::new(2, "Biscuit", 0, 0, "needs_driven"),
     ];
     config.validate().unwrap();
     let config = Arc::new(config);

@@ -953,7 +953,7 @@ fn cloudkitty(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
             .iter()
             .enumerate()
     {
-        menu.set_item(format!("{entry:?}").to_lowercase(), i)?;
+        menu.set_item(entry.wire_name(), i)?;
     }
     m.add("ACTION_MENU", menu)?;
     Ok(())

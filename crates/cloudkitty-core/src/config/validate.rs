@@ -382,6 +382,9 @@ impl Config {
             // Spec 047: the consent line shares the rule — a NaN would
             // poison the gate's comparisons, a negative has no meaning.
             ("[behavior] consent_line", b.consent_line),
+            // Spec 058: comfort slack (ticks) shares it too — it feeds an
+            // observation cell, so a NaN would poison a schema value.
+            ("[behavior] comfort_slack", b.comfort_slack),
         ] {
             if !value.is_finite() || value < 0.0 {
                 return Err(ConfigError::invalid(
@@ -988,14 +991,10 @@ impl Config {
     /// the same bounds their world siblings do (consent 0–100, slack >= 0,
     /// favourite weights [0, 1]); NaN rejected everywhere.
     pub(super) fn validate_identity_dials(&self) -> Result<(), ConfigError> {
-        let slack = self.behavior.comfort_slack;
-        if !slack.is_finite() || slack < 0.0 {
-            return Err(ConfigError::invalid(
-                "[behavior] comfort_slack",
-                slack.to_string(),
-                "must be a finite number of at least 0 (ticks of slack)",
-            ));
-        }
+        // The world-level comfort_slack is checked by validate_behavior's
+        // shared finite-and-non-negative loop (one home for that rule —
+        // spec 058 review finding 7); only the per-kitty overrides live
+        // here.
         for k in &self.kitties {
             if let Some(s) = k.comfort_slack {
                 if !s.is_finite() || s < 0.0 {

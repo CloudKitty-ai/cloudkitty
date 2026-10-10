@@ -114,11 +114,14 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
     // Spec 058 FR-010 retired the clock cell (this test's predecessor
     // guarded the 0.3.0 served-clock seam; it went red at the v6 wall as
     // rule 6 demands and is replaced by its inverse). The artifact here
-    // listens to the LAST observation element — now a dirt-reserve cell
-    // that must read 0.0 forever (FR-013) — with an output row growing
-    // with the index: all-zero logits tie and ties pick the LOWEST
-    // masked-in entry, so if ticking the world ever moves the decision,
-    // either a clock crept back in or the reserve went live.
+    // listens to BOTH dirt-reserve cells (offsets 107-108 — review
+    // finding 2: the first cut listened to the vector's last cell, a
+    // critter bit, and guarded nothing) — cells that must read 0.0
+    // forever (FR-013) — with an output row growing with the index:
+    // all-zero logits tie and ties pick the LOWEST masked-in entry, so
+    // if ticking the world ever moves the decision, the reserve went
+    // live at the policy layer. (Clock-freedom itself is pinned at the
+    // encoding layer by clock_and_range.rs.)
     let rl = RlConfig::default();
     let input = observation_len(&rl.observation);
     let menu = ActionCodec::v2(&rl.observation).len() + MessageCodec::LEN;
@@ -131,7 +134,8 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
         activation: "relu".into(),
     };
     let mut w1 = vec![0.0f32; input];
-    w1[input - 1] = 1.0;
+    w1[cloudkitty_rl::observe::offsets::SELF_DIRT_RESERVE] = 1.0;
+    w1[cloudkitty_rl::observe::offsets::SELF_DIRT_RESERVE + 1] = 1.0;
     let w2: Vec<f32> = (0..menu).map(|i| i as f32).collect();
     let dir = std::env::temp_dir().join("ck-policy-selection");
     std::fs::create_dir_all(&dir).unwrap();
@@ -146,7 +150,7 @@ fn the_decision_is_clock_free_and_the_reserve_is_silent() {
     assert_eq!(
         at(0),
         at(horizon / 4),
-        "a tick moved the decision: a clock column is back, or the reserve went live"
+        "a tick moved the decision: the reserve went live at the policy layer"
     );
     assert_eq!(
         at(horizon / 4),
