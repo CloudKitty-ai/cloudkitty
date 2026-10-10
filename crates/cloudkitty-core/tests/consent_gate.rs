@@ -176,6 +176,132 @@ async fn a_burdened_friend_is_never_conscripted_end_to_end() {
     assert_eq!(consent_refusals[0].kitty_id, 1, "the proposer is stamped");
 }
 
+/// SC-005's seeded sample (ignored; tasks T024): the served world with
+/// every seat on the `teacher` registration, 20k ticks. Counts partnered
+/// scene STARTS whose partner audibly asked for exactly that scene
+/// within the digest window (the demonstrable answers), total partnered
+/// starts, and the zero-bypass checks: no applied partnered scene at a
+/// consent-refusing partner (the gate runs before apply, so one would
+/// be an engine bug), and no answer without an in-window call.
+///
+///   cargo test -p cloudkitty-core --test consent_gate -- --ignored record_spec059_answer
+#[tokio::test]
+#[ignore]
+async fn record_spec059_answer_sample() {
+    use cloudkitty_core::meow::MessageKind;
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let text = std::fs::read_to_string(root.join("cloudkitty.toml")).expect("served config");
+    let mut config: Config = toml::from_str(&text).expect("config parses");
+    for k in &mut config.kitties {
+        k.behavior = "teacher".into();
+    }
+    config.validate().expect("validates");
+    let window = config.meow.digest_window_ticks;
+    let config = Arc::new(config);
+    let registry = BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+    let mut prev: std::collections::BTreeMap<u32, cloudkitty_core::Activity> =
+        world.kitties.iter().map(|k| (k.id, k.activity)).collect();
+    let (mut answered, mut partnered_starts, mut consent_bypass) = (0u64, 0u64, 0u64);
+    for _ in 0..20_000u64 {
+        // The gate judges DECISION-time state; snapshots are post-apply
+        // (the house trap: scene-start reads need t−1), so the bypass
+        // check reads each kitty's needs BEFORE the tick.
+        let pre: std::collections::BTreeMap<u32, (f32, f32)> = world
+            .kitties
+            .iter()
+            .map(|k| {
+                (
+                    k.id,
+                    (
+                        k.top_non_play_pressure(),
+                        k.needs.get(cloudkitty_core::NeedKind::Play),
+                    ),
+                )
+            })
+            .collect();
+        world.tick(&registry, &config).await;
+        let now = world.tick;
+        for k in &world.kitties {
+            let started = prev.get(&k.id) != Some(&k.activity);
+            if !started {
+                continue;
+            }
+            let (partner, want) = match k.activity {
+                cloudkitty_core::Activity::Resting {
+                    with_friend: Some(p),
+                } => (Some(p), MessageKind::WantCuddle),
+                cloudkitty_core::Activity::Playing {
+                    target: Some(TargetRef::Kitty { id: p }),
+                } => (Some(p), MessageKind::WantPlay),
+                _ => (None, MessageKind::WantCuddle),
+            };
+            let Some(partner) = partner else { continue };
+            partnered_starts += 1;
+            let asked = world.recent_meows.iter().any(|m| {
+                m.kitty_id == partner && m.kind == want && now.saturating_sub(m.tick) <= window
+            });
+            if asked {
+                answered += 1;
+            }
+            // Zero-bypass: the partner's own line must not refuse this
+            // scene at its start (Play only — rest binds nobody).
+            // Only the PROPOSER's side carries the guarantee: the gate
+            // protects the conscripted TARGET, never the proposer from
+            // its own proposal (a past-line cat may lawfully propose).
+            // The proposer is the side whose own applied action was the
+            // play proposal; the conscripted side's activity was set by
+            // the engine, not by its action.
+            // A conscripted cat's absorbed continuation ALSO records as
+            // Play{proposer} in last_action, so when both sides show
+            // play-at-each-other the proposer is unattributable from the
+            // post-tick state alone (the burdened cat may have been the
+            // lawful proposer — its line gates only conscription OF it).
+            // Count only the unambiguous proposer side.
+            let x_proposed = k.last_action
+                == Some(cloudkitty_core::Action::Play {
+                    target: Some(TargetRef::Kitty { id: partner }),
+                })
+                && world.kitty(partner).is_some_and(|p| {
+                    p.last_action
+                        != Some(cloudkitty_core::Action::Play {
+                            target: Some(TargetRef::Kitty { id: k.id }),
+                        })
+                });
+            if want == MessageKind::WantPlay && x_proposed {
+                let line = config.consent_line_for(partner);
+                if line > 0.0 {
+                    // The gate reads the LIVE mid-tick world; this replay
+                    // reads only tick boundaries. A target relieved
+                    // mid-tick (pre-refusing, post-clean) was lawfully
+                    // clean when the gate looked, so a genuine bypass
+                    // must refuse on BOTH sides of the tick.
+                    let pre_refuses = pre
+                        .get(&partner)
+                        .is_some_and(|&(top, play)| top > line && top > play);
+                    let post_refuses = world.kitty(partner).is_some_and(|p| {
+                        let top = p.top_non_play_pressure();
+                        top > line && top > p.needs.get(cloudkitty_core::NeedKind::Play)
+                    });
+                    if pre_refuses && post_refuses {
+                        consent_bypass += 1;
+                    }
+                }
+            }
+        }
+        prev = world.kitties.iter().map(|k| (k.id, k.activity)).collect();
+    }
+    let json = serde_json::json!({
+        "ticks": 20000,
+        "partnered_scene_starts": partnered_starts,
+        "answered_call_starts": answered,
+        "consent_bypass_scenes": consent_bypass,
+    });
+    println!("{json:#}");
+    assert!(answered > 0, "SC-005: a nonzero answered-call rate");
+    assert_eq!(consent_bypass, 0, "SC-005: no consent bypass ever");
+}
+
 /// The FR-015 fire-counter recorder (ignored; run once per reference
 /// re-cut): drives the two reference configs — the served
 /// `cloudkitty.toml` and the c30 certification anchor — for 20k ticks on

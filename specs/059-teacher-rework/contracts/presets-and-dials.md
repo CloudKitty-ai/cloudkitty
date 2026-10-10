@@ -11,6 +11,7 @@ settings; `teacher` is the Gen 2 collection seat.
 | wander rung | **on** | off | on |
 | groom_response rung | **on** | off | on |
 | luxury rung | off | **on** | on |
+| cue-answer rungs (US3) | off | off | **on** — implementation finding 2026-10-10: a fourth toggle, forced by the same byte-equality argument as the other three (today's brains never answer, so the compat presets must not either) |
 | need-rate multipliers | world/`[needs]` fallback | same | same (Gen 2: drawn per cat) |
 | comfort slack | world `[behavior] comfort_slack` fallback (default 0 ticks) | same — **0, NOT a playful_comfort equivalent** (research R2) | same (drawn) |
 | consent line | world `[behavior] consent_line` fallback — enforced TARGET-side (ruling eb9e860b) | same | same (drawn) |
@@ -46,6 +47,12 @@ config/mod.rs:1502-1544).
 - **consent line** (`consent_line_for`): read by the ENGINE at the
   apply slot for the TARGET (contracts/consent-gate.md). No
   behavior-layer read anywhere.
-- **favourite weights** (`favourite_weight_for`): multiplies partnered
-  relief value, `value × (1 + w)`, w ∈ [0,1]; all-zero reproduces
-  unweighted selection byte-for-byte.
+- **favourite weights** (`favourite_weight_for`): multiplies the VALUE
+  side of the shared selection score for ITS need kind —
+  `(pressure + urgency term) × (1 + w)`, w ∈ [0,1], costs untouched.
+  Implementation finding 2026-10-10: applied to every kind (the dial
+  struct carries all six and the observation shows all six — a
+  partnered-only read would leave four observed dials dead), which
+  contains "tips among partnered activities of equal relief value" as
+  the FR-004 case. All-zero multiplies by exactly 1.0: bit-identical
+  to the unweighted pass.
