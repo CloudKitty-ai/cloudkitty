@@ -286,6 +286,17 @@ fn response_terms(ctx: &DecisionContext) -> ResponseTerms {
 /// graded across states, never a draw. Tie chain: score → higher
 /// intensity → nearer → lower id. Free-register kinds never reach here:
 /// the rung keys on the two want kinds alone (FR-012).
+///
+/// The commitment margin (owner ruled B, 2026-10-10, on Experiments'
+/// measured read a3abffb7): the margin exists exactly where commitment
+/// is OBSERVABLE, and nowhere else. A play answer walks as a Chase, so
+/// the engine's pursuit record — surfaced to the student as the pursuit
+/// cells and the activity-target bits — names the incumbent; a
+/// challenger displaces it only past `h = k × response_commitment_ticks`.
+/// A cuddle answer walks as bare Moves with no observable commitment,
+/// so it stays a pure function of the observation and switches freely
+/// to any new net-surplus winner — an unobservable commitment would be
+/// the exact rule-5 violation this spec removes elsewhere.
 fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<ResponseTerm> {
     let me = &ctx.me;
     let floor = ctx.config.behavior.reply_intensity_floor.unwrap_or(0.0);
@@ -294,7 +305,8 @@ fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<Res
     let window = ctx.config.meow.digest_window_ticks;
     let now = ctx.world.tick;
 
-    ctx.world
+    let candidates: Vec<&crate::meow::Meow> = ctx
+        .world
         .recent_meows
         .iter()
         .filter(|m| m.kind == kind && m.kitty_id != me.id && ctx.world.audible(m, window))
@@ -305,28 +317,45 @@ fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<Res
             let d = me.pos.manhattan_distance(&m.pos) as u64;
             d + HANDSHAKE_TICKS <= remaining
         })
+        .collect();
+    let score = |m: &crate::meow::Meow| m.intensity - k * me.pos.manhattan_distance(&m.pos) as f32;
+    let best = candidates
+        .iter()
         .max_by(|a, b| {
-            let (da, db) = (
-                me.pos.manhattan_distance(&a.pos) as f32,
-                me.pos.manhattan_distance(&b.pos) as f32,
-            );
-            let (sa, sb) = (a.intensity - k * da, b.intensity - k * db);
+            let (sa, sb) = (score(a), score(b));
             sa.total_cmp(&sb)
                 .then(a.intensity.total_cmp(&b.intensity))
-                .then(db.total_cmp(&da)) // nearer wins
+                .then(
+                    (me.pos.manhattan_distance(&b.pos)).cmp(&me.pos.manhattan_distance(&a.pos)), // nearer wins
+                )
                 .then(b.kitty_id.cmp(&a.kitty_id)) // lower id wins
         })
-        .map(|m| {
-            let d = me.pos.manhattan_distance(&m.pos) as f32;
-            ResponseTerm {
-                caller: m.kitty_id,
-                pos: m.pos,
-                // Net surplus, re-inflated to pressure units: the same
-                // currency the selection score speaks (derived, not a
-                // tunable — contracts/cue-answer.md).
-                boost: (m.intensity - k * d) * 100.0,
+        .copied()?;
+    // The play-side incumbent: the caller this cat's recorded pursuit
+    // already chases. Holds unless the best challenger clears the margin.
+    let incumbent = (kind == MessageKind::WantPlay)
+        .then_some(me.pursuit)
+        .flatten()
+        .and_then(|p| match p.target {
+            crate::action::TargetRef::Kitty { id } => {
+                candidates.iter().find(|m| m.kitty_id == id).copied()
             }
-        })
+            crate::action::TargetRef::Element { .. } => None,
+        });
+    let h = k * ctx.config.behavior.response_commitment_ticks;
+    let winner = match incumbent {
+        Some(inc) if inc.kitty_id != best.kitty_id && score(best) <= score(inc) + h => inc,
+        _ => best,
+    };
+    let d = me.pos.manhattan_distance(&winner.pos) as f32;
+    Some(ResponseTerm {
+        caller: winner.kitty_id,
+        pos: winner.pos,
+        // Net surplus, re-inflated to pressure units: the same currency
+        // the selection score speaks (derived, not a tunable —
+        // contracts/cue-answer.md).
+        boost: (winner.intensity - k * d) * 100.0,
+    })
 }
 
 #[cfg(test)]
@@ -805,6 +834,70 @@ mod tests {
             world.apply_slot_verdict(1, action, &config),
             Action::Idle,
             "consent and adjacency gates run unchanged after the term"
+        );
+    }
+
+    /// FR-016 margin (owner ruled B, 2026-10-10): a recorded play
+    /// pursuit of a live caller is the incumbent; a challenger within
+    /// `h = k × response_commitment_ticks` never displaces it, one past
+    /// the margin does. At default config h ≈ 0.0857 score units.
+    #[test]
+    fn the_margin_holds_a_play_incumbent_against_an_in_margin_challenger() {
+        let stage = |challenger_intensity: f32| {
+            hearer_ctx(20.0, move |w| {
+                // The incumbent: caller 2 at d 4, already pursued.
+                let f = w.kitty_index(2).unwrap();
+                w.kitties[f].pos = crate::grid::Position::new(5, 9);
+                call(w, 2, MessageKind::WantPlay, 0.70, 2);
+                // The challenger: caller 3 at the same distance.
+                push_friend(w, 3, crate::grid::Position::new(9, 5));
+                call(w, 3, MessageKind::WantPlay, challenger_intensity, 1);
+                let me = w.kitty_index(1).unwrap();
+                w.kitties[me].pursuit = Some(crate::kitty::Pursuit {
+                    target: crate::action::TargetRef::Kitty { id: 2 },
+                    started: 95,
+                    closest: 4,
+                    improved_at: 99,
+                });
+            })
+        };
+        // Equal distances: the score gap is the intensity gap.
+        assert_eq!(
+            response_terms(&stage(0.75)).play.unwrap().caller,
+            2,
+            "0.05 over the incumbent is inside h ≈ 0.0857: the incumbent holds"
+        );
+        assert_eq!(
+            response_terms(&stage(0.80)).play.unwrap().caller,
+            3,
+            "0.10 over the incumbent clears h: the challenger takes it"
+        );
+    }
+
+    /// The cuddle side has no observable commitment, so it has no margin
+    /// (ruled B): the same in-margin challenger that a play incumbent
+    /// resists takes a cuddle answer immediately.
+    #[test]
+    fn a_cuddle_answer_switches_freely_no_margin() {
+        let ctx = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 9);
+            call(w, 2, MessageKind::WantCuddle, 0.70, 2);
+            push_friend(w, 3, crate::grid::Position::new(9, 5));
+            call(w, 3, MessageKind::WantCuddle, 0.75, 1);
+            // Even a recorded pursuit of caller 2 confers no cuddle hold.
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me].pursuit = Some(crate::kitty::Pursuit {
+                target: crate::action::TargetRef::Kitty { id: 2 },
+                started: 95,
+                closest: 4,
+                improved_at: 99,
+            });
+        });
+        assert_eq!(
+            response_terms(&ctx).cuddle.unwrap().caller,
+            3,
+            "cuddle answers are a pure function of the observation"
         );
     }
 

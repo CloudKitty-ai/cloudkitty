@@ -39,9 +39,21 @@ winner           = argmax score, ties: intensity → nearer → lower id
 ```
 
 The winner alone sets the term and names the answered partner — calls
-never stack. With an incumbent (the hearer is already pursuing an
-answer, derivable from its pursuit target), a challenger displaces it
-only if `score_challenger > score_incumbent + h`.
+never stack. The commitment margin is PRINCIPLED ASYMMETRY (owner
+ruled B, 2026-10-10; Experiments' measured read a3abffb7): it exists
+exactly where commitment is observable to the student, and nowhere
+else. A play answer walks as a Chase, so the engine's pursuit record —
+the pursuit cells + activity-target bits in the observation — names
+the incumbent, and a challenger displaces it only if
+`score_challenger > score_incumbent + h`. A cuddle answer walks as
+bare Moves with no observable commitment: NO margin, a pure function
+of the observation, one clean switch per fresh net-surplus winner
+(geometry then locks the new target). An unobservable commitment
+would be the spec's own named rule-5 violation. Corpus note: cuddle
+contention runs ~half of all ticks on the reference roster (48.4%
+≥2 co-audible), so the feasibility filter + score sit on the corpus
+hot path — contention-heavy cuddle windows are the designated target
+for T024-style spot checks.
 
 ## Derived constants (single home: `behavior/teacher.rs`, documented)
 

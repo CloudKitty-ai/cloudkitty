@@ -75,6 +75,18 @@ absorbs every behavioral change in one `[rng-sequence]` boundary.
   stabilizes the incumbent (approach shrinks its distance). The rule
   maximizes INTENSITY, the audible proxy — "greatest need" is
   unobservable by rule 5.
+- Q: FR-016's commitment margin needs an incumbent, derivable for play
+  answers (the walk is a recorded Chase → the pursuit record) but not
+  for cuddle answers (bare Moves) — margin via new state, where
+  derivable, or dropped? → A: Owner ruled B (2026-10-10), on
+  Experiments' measured read (a3abffb7: cuddle contention is the norm —
+  48.4% of ticks ≥2 co-audible cuddle callers — but the deciding ground
+  is OBSERVABILITY): the margin exists exactly where commitment is
+  observable to the student — play answers, via the pursuit cells and
+  activity-target bits — and nowhere else. Cuddle answers stay a pure
+  function of the observation and switch freely to a new net-surplus
+  winner; an unobservable commitment would be the rule-5 violation this
+  spec removes elsewhere. The asymmetry is principled, not residual.
 - Q: Is the response deterministic (a threshold-clearing call always
   raises the valuation) or a seeded draw whose probability rises
   with intensity? → A: Deterministic. The response term applies
@@ -340,11 +352,13 @@ kinds.
   inside the digest window), both derived from declared constants,
   not new tunables. The winner sets the response term and names the
   answered partner; calls never stack. Tie chain: score → higher
-  intensity → nearer → lower id (deterministic, seed-stable). A
-  challenger arriving mid-approach displaces the incumbent only past
-  a small declared commitment margin `h = k × a few ticks` (exact
-  tick count pinned at plan time); with no new calls, approach
-  geometry alone keeps the incumbent stable.
+  intensity → nearer → lower id (deterministic, seed-stable). The
+  commitment margin `h = k × response_commitment_ticks` applies
+  EXACTLY where commitment is observable (ruled B, 2026-10-10): a
+  play answer's incumbent is its recorded pursuit, and a challenger
+  displaces it only past h; a cuddle answer has no observable
+  commitment and carries NO margin — it switches freely to any new
+  net-surplus winner, geometry alone stabilizing it between calls.
 - **FR-012**: The scripted teacher MUST NOT emit or decide by any
   free-register kind (mew, chirp, trill, ekekek) — doctrine rule 6
   carried through the rework; the rungs key to want-kinds only.

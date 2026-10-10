@@ -171,7 +171,7 @@ and bounded per contracts/cue-answer.md.
       validator WARN (digest_window_ticks vs typical approach
       distance) in crates/cloudkitty-core/src/config/validate.rs with
       its own mutate cycle
-- [ ] T022 [US3] FR-016 contention in teacher.rs: feasibility filter
+- [X] T022 [US3] FR-016 contention in teacher.rs: feasibility filter
       (`d ≤ window_remaining − HANDSHAKE_TICKS`), `score =
       intensity − k·d`, tie chain score → intensity → nearer → lower
       id, commitment margin h against a mid-approach challenger.
@@ -223,7 +223,7 @@ and bounded per contracts/cue-answer.md.
       read sweep over the final tree, re-verify 058's FR-011 strip
       list, record the result in
       specs/058-gen2-observation-schema/contracts/observation-v6.md
-- [ ] T030 Quickstart end-to-end smoke (server starts with the three
+- [X] T030 Quickstart end-to-end smoke (server starts with the three
       registry names; consent refusal visible as `consent_declined`;
       a staged answer walk completes) and assemble the PR self-review
       (rule-6 sorted lists, every mutate cycle's prediction/outcome)
