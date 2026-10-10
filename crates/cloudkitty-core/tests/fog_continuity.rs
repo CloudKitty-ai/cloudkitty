@@ -216,6 +216,16 @@ fn read_lines(name: &str) -> Vec<String> {
 /// arms earlier, so both reference streams move. Same doctrine as the
 /// spec-050/054 re-records: an intentional world-law move re-records the
 /// fixtures with its justification.
+///
+/// Re-recorded for spec 059 (2026-10-10, ruling eb9e860b): consent moved
+/// target-side into the engine, so the served `consent_line = 30` now
+/// binds needs_driven proposers the old gate never touched — the
+/// pre-fog streams first diverge at tick 78 and the pre-ladder streams
+/// at tick 687 (a refused play pair), cascade thereafter; the diff
+/// stats are in `fixtures/spec059-fire-counter.json`. The divergence is
+/// the ruling's declared one ("worth accepting the divergence"); what
+/// these tests pin is unchanged — the LAW-ERA toggles alone move
+/// nothing on the current engine.
 #[test]
 fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
     let mut config = served_all_scripted();

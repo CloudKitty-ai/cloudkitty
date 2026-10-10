@@ -1,0 +1,462 @@
+//! The one parameterized teacher (spec 059).
+//!
+//! One ladder, four dial groups, three registrations. The dials — need
+//! rates, comfort slack, consent line, favourite weights — are read per
+//! decision through the SAME config accessors the observation encoder
+//! uses, so teacher behavior and the observed identity cells can never
+//! diverge (FR-001). What the dials cannot express — the structural
+//! differences between the two historical brains — rides preset RUNG
+//! TOGGLES, frozen at registration (research R1): compatibility shims,
+//! never identity. The `needs_driven` and `playful` registrations are
+//! byte-equal to the old brains outside consent sites (SC-001); the
+//! `teacher` registration (every rung on) is the Gen 2 collection seat.
+//!
+//! Consent is NOT here: the gate moved target-side into the engine's
+//! apply slot (ruling 2026-10-10, eb9e860b). This file never reads
+//! another cat's hidden needs; the response rungs key to the audible
+//! digest alone (doctrine rule 5).
+
+use async_trait::async_trait;
+
+use super::needs_driven::{
+    finish_what_you_started, groom_response, pursue, take_what_is_here, wander,
+};
+use super::{selection, Behavior, DecisionContext};
+use crate::action::Action;
+use crate::config::COMFORT_SLACK_NORMALISER;
+use crate::grid::Position;
+use crate::kitty::KittyId;
+use crate::meow::MessageKind;
+use crate::needs::NeedKind;
+use crate::seam::Decision;
+
+/// Ticks a call's answer spends on overheads the walk cannot cover: the
+/// 1-tick hearing lag (a call is audible from the NEXT tick) plus one
+/// propose tick at arrival. Feeds the feasibility filter and `D_w`
+/// (contracts/cue-answer.md).
+pub(crate) const HANDSHAKE_TICKS: u64 = 2;
+
+/// The scripted teacher. Toggles are per-registration structure
+/// (research R1); every quantity that is identity comes from the config
+/// accessors at decide time, never from this struct.
+#[derive(Debug, Clone, Copy)]
+pub struct Teacher {
+    /// The low-pressure pottering rung (RNG-drawing). Historical
+    /// needs_driven character.
+    wander: bool,
+    /// The WantBath answer rung. Historical needs_driven character.
+    groom_response: bool,
+    /// The luxury mode below the comfort line. Historical playful
+    /// character; entry is slack-gated (FR-003).
+    luxury: bool,
+    /// The cue-answer rungs (US3). On only for the Gen 2 teacher: the
+    /// compat presets never answered, and byte-equality holds them to
+    /// that (research R1 addendum).
+    responses: bool,
+}
+
+impl Teacher {
+    /// The `needs_driven` preset: today's default brain, exactly.
+    pub const NEEDS_DRIVEN: Teacher = Teacher {
+        wander: true,
+        groom_response: true,
+        luxury: false,
+        responses: false,
+    };
+    /// The `playful` preset: today's playful brain, exactly.
+    pub const PLAYFUL: Teacher = Teacher {
+        wander: false,
+        groom_response: false,
+        luxury: true,
+        responses: false,
+    };
+    /// The `teacher` registration: every rung on — the Gen 2 corpus
+    /// demonstrator. Biscuit gains the groom response by construction
+    /// (S§4: no suppression).
+    pub const GEN2: Teacher = Teacher {
+        wander: true,
+        groom_response: true,
+        luxury: true,
+        responses: true,
+    };
+
+    pub(crate) fn decide_action(&self, ctx: &DecisionContext) -> Action {
+        // A scene in progress that is still doing its job gets finished first.
+        if let Some(action) = finish_what_you_started(ctx) {
+            return action;
+        }
+
+        // Never walk away from something you were going to want anyway.
+        // (Consent left this rung with the 2026-10-10 re-key: the engine's
+        // target-side gate hears every proposal; adjacency is unchanged.)
+        if let Some(action) = take_what_is_here(ctx) {
+            return action;
+        }
+
+        // Answer an audible ask before pottering off (spec 028): kindness
+        // sits above idle wandering, below the cat's own urgent errands.
+        if self.groom_response {
+            if let Some(action) = groom_response(ctx) {
+                return action;
+            }
+        }
+
+        // The cue-answer terms (spec 059 US3): digest-keyed, valuation
+        // only — they raise the matching need's score in the serious
+        // selection below and name the answered caller for pursuit.
+        // Recomputed from the digest every decide; expiry IS digest
+        // visibility.
+        let terms = if self.responses {
+            response_terms(ctx)
+        } else {
+            ResponseTerms::NONE
+        };
+
+        // Luxury (historical playful character): below the weighted
+        // comfort line AND past the slack gate, every spare moment is
+        // play. The slack gate (FR-003) delays RE-ENTRY after a relief:
+        // it reads the slack CELL's value — the exact number the
+        // observation encodes, clamp included — times the normalizer,
+        // against ticks since the most recent relief. Slack 0 (both
+        // compat presets, the world default) is structurally inert.
+        if self.luxury {
+            let weights = &ctx.config.behavior.comfort_weight;
+            let weighted_pressure = NeedKind::ALL
+                .iter()
+                .map(|kind| weights.get(*kind) * ctx.me.needs.get(*kind))
+                .fold(0.0f32, f32::max);
+            if weighted_pressure < ctx.config.behavior.playful_comfort
+                && slack_gate_open(ctx)
+            {
+                return selection::scored_play_action(ctx);
+            }
+        }
+
+        // Nothing pressing: potter about (historical needs_driven
+        // character). A live answer term suppresses the potter — kindness
+        // sits above idle wandering, the groom_response shelf — so the
+        // RNG draw is skipped exactly when there is a call to answer.
+        if self.wander && !terms.any_live() {
+            let (_, pressure) = ctx.me.needs.highest_pressure();
+            if pressure < 20.0 && ctx.rng.gen_bool(0.4) {
+                return wander(ctx);
+            }
+        }
+
+        // One scored pass over every need: urgency weighs in, travel
+        // counts against, favourites and answer terms tip the values
+        // (spec 059), and nothing gets locked out (see `selection`).
+        pursue(ctx, selection::choose_with_terms(ctx, &terms))
+    }
+}
+
+#[async_trait]
+impl Behavior for Teacher {
+    async fn decide(&self, ctx: &DecisionContext) -> Decision {
+        // Two channels (spec 028): the ladder picks the activity; the
+        // announce rule rides along, never displacing it.
+        let mut decision = Decision::from_legacy(self.decide_action(ctx));
+        if decision.message.is_none() {
+            decision.message = super::announce(ctx);
+        }
+        decision
+    }
+
+    fn is_builtin(&self) -> bool {
+        true
+    }
+}
+
+/// The slack gate (FR-003): luxury re-entry waits until
+/// `ticks since the most recent relief ≥ slack_cell × 40`. The cell value
+/// is `Config::slack_cell_for` — the observation's own number, clamp
+/// included (slack past 40 saturates at 40 ticks; shared semantics with
+/// the student). Slack 0 compares `elapsed ≥ 0`, which is always true:
+/// structurally inert for both compat presets.
+fn slack_gate_open(ctx: &DecisionContext) -> bool {
+    let slack_ticks = ctx.config.slack_cell_for(ctx.me.id) * COMFORT_SLACK_NORMALISER;
+    if slack_ticks <= 0.0 {
+        return true;
+    }
+    let last_relief = NeedKind::ALL
+        .iter()
+        .map(|kind| ctx.me.last_relief_tick(*kind))
+        .max()
+        .unwrap_or(0);
+    ctx.world.tick.saturating_sub(last_relief) as f32 >= slack_ticks
+}
+
+/// One live answer term: the winning caller of one want kind, its
+/// position (the call's stamp — a heard-unseen caller is walked to where
+/// it called from, the groom_response precedent), and the valuation
+/// boost in pressure units.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct ResponseTerm {
+    pub caller: KittyId,
+    pub pos: Position,
+    pub boost: f32,
+}
+
+/// The per-kind answer terms a decide carries into selection. Empty for
+/// every registration but `teacher` — and `NONE` adds exactly 0.0, so
+/// the scored pass is byte-identical without them.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub(crate) struct ResponseTerms {
+    pub cuddle: Option<ResponseTerm>,
+    pub play: Option<ResponseTerm>,
+}
+
+impl ResponseTerms {
+    pub(crate) const NONE: ResponseTerms = ResponseTerms {
+        cuddle: None,
+        play: None,
+    };
+
+    pub(crate) fn for_need(&self, kind: NeedKind) -> Option<&ResponseTerm> {
+        match kind {
+            NeedKind::Cuddle => self.cuddle.as_ref(),
+            NeedKind::Play => self.play.as_ref(),
+            _ => None,
+        }
+    }
+
+    fn any_live(&self) -> bool {
+        self.cuddle.is_some() || self.play.is_some()
+    }
+}
+
+/// The linear net-surplus constant `k = (I_max − I_min) / D_w`
+/// (contracts/cue-answer.md, owner-confirmed 2026-10-10): I_max is the
+/// emission clamp (1.0), I_min the armed-emission floor
+/// (`announce_threshold / 100` — a quieter want-call cannot exist), and
+/// D_w the longest Manhattan walk the digest window can still cover
+/// after the handshake, at the implicit 1 tile/tick. A degenerate window
+/// yields k = 0: distance stops discounting but feasibility still
+/// filters.
+fn k_constant(ctx: &DecisionContext) -> f32 {
+    let i_min = (ctx.config.meow.announce_threshold / 100.0).clamp(0.0, 1.0);
+    let d_w = ctx
+        .config
+        .meow
+        .digest_window_ticks
+        .saturating_sub(HANDSHAKE_TICKS) as f32;
+    if d_w <= 0.0 {
+        return 0.0;
+    }
+    (1.0 - i_min) / d_w
+}
+
+fn response_terms(ctx: &DecisionContext) -> ResponseTerms {
+    let k = k_constant(ctx);
+    ResponseTerms {
+        cuddle: response_term(ctx, MessageKind::WantCuddle, k),
+        play: response_term(ctx, MessageKind::WantPlay, k),
+    }
+}
+
+/// The one winner for one want kind (FR-016): feasibility filter first
+/// (a caller the hearer cannot reach and complete with inside the
+/// remaining window is dropped — hard, not scored), then the linear
+/// net-surplus score `intensity − k·d`, Manhattan. The fire threshold is
+/// deterministic (clarify Q3): the call must outrank the hearer's own
+/// loudest need (`intensity ≥ max(reply_intensity_floor, top/100)`) —
+/// graded across states, never a draw. Tie chain: score → higher
+/// intensity → nearer → lower id. Free-register kinds never reach here:
+/// the rung keys on the two want kinds alone (FR-012).
+fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<ResponseTerm> {
+    let me = &ctx.me;
+    let floor = ctx.config.behavior.reply_intensity_floor.unwrap_or(0.0);
+    let (_, top) = me.needs.highest_pressure();
+    let threshold = (top / 100.0).max(floor);
+    let window = ctx.config.meow.digest_window_ticks;
+    let now = ctx.world.tick;
+
+    ctx.world
+        .recent_meows
+        .iter()
+        .filter(|m| m.kind == kind && m.kitty_id != me.id && ctx.world.audible(m, window))
+        .filter(|m| m.intensity >= threshold)
+        .filter(|m| {
+            // Feasible: d + handshake fits in the window still open.
+            let remaining = window.saturating_sub(now.saturating_sub(m.tick));
+            let d = me.pos.manhattan_distance(&m.pos) as u64;
+            d + HANDSHAKE_TICKS <= remaining
+        })
+        .max_by(|a, b| {
+            let (da, db) = (
+                me.pos.manhattan_distance(&a.pos) as f32,
+                me.pos.manhattan_distance(&b.pos) as f32,
+            );
+            let (sa, sb) = (a.intensity - k * da, b.intensity - k * db);
+            sa.total_cmp(&sb)
+                .then(a.intensity.total_cmp(&b.intensity))
+                .then(db.total_cmp(&da)) // nearer wins
+                .then(b.kitty_id.cmp(&a.kitty_id)) // lower id wins
+        })
+        .map(|m| {
+            let d = me.pos.manhattan_distance(&m.pos) as f32;
+            ResponseTerm {
+                caller: m.kitty_id,
+                pos: m.pos,
+                // Net surplus, re-inflated to pressure units: the same
+                // currency the selection score speaks (derived, not a
+                // tunable — contracts/cue-answer.md).
+                boost: (m.intensity - k * d) * 100.0,
+            }
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::action::Action;
+    use crate::test_support::decision_context;
+
+    /// A cat with nothing pressing (weighted pressure under comfort) whose
+    /// most recent relief was `ticks_since` ticks ago, with a per-kitty
+    /// slack override — the luxury gate's own staging. No playmates in
+    /// reach, so luxury is the solo pounce and the gated path is the
+    /// scored selection's in-place choice: two distinguishable actions.
+    fn luxury_ctx(slack: f32, ticks_since: u64) -> super::super::DecisionContext {
+        let mut ctx = decision_context(move |world| {
+            world.tick = 200;
+            world.elements.clear();
+            let idx = world.kitty_index(1).unwrap();
+            world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+            world.kitties[idx].needs = crate::needs::Needs::default();
+            world.kitties[idx].needs.add(crate::needs::NeedKind::Bath, 10.0);
+            world
+                .kitties[idx]
+                .last_relief
+                .insert(crate::needs::NeedKind::Eat, 200 - ticks_since);
+            // Park the other seats out of reach AND mid-scene: at default
+            // dials a busy friend is not a luxury candidate, so luxury is
+            // the solo pounce — distinguishable from the serious path.
+            for k in &mut world.kitties {
+                if k.id != 1 {
+                    k.pos = crate::grid::Position::new(15, 15);
+                    k.activity = crate::kitty::Activity::Grooming { target: None };
+                    k.activity_clock = Some(crate::kitty::ActivityClock::start(200));
+                }
+            }
+        });
+        let config = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+        let k1 = config.kitties.iter_mut().find(|k| k.id == 1).unwrap();
+        k1.comfort_slack = Some(slack);
+        ctx
+    }
+
+    /// FR-003: slack gates luxury ENTRY by exactly its tick count, read
+    /// off the per-kitty accessor — inside the slack window the cat runs
+    /// the serious selection; at the boundary it returns to luxury.
+    #[test]
+    fn slack_delays_the_return_to_luxury_by_its_tick_count() {
+        let gated = Teacher::PLAYFUL.decide_action(&luxury_ctx(12.0, 11));
+        assert!(
+            !matches!(gated, Action::Play { target: None }),
+            "11 < 12 ticks since relief: still inside the slack window, got {gated:?}"
+        );
+        let open = Teacher::PLAYFUL.decide_action(&luxury_ctx(12.0, 12));
+        assert_eq!(
+            open,
+            Action::play_solo(),
+            "12 >= 12: the gate opens exactly at the slack count"
+        );
+    }
+
+    /// FR-003: the gate reads the CELL's value, clamp included — slack 80
+    /// saturates at 40 effective ticks (slack_cell 1.0 × normalizer),
+    /// exactly what the observation shows the student.
+    #[test]
+    fn the_slack_gate_reads_the_clamped_cell_not_raw_slack() {
+        let open = Teacher::PLAYFUL.decide_action(&luxury_ctx(80.0, 45));
+        assert_eq!(
+            open,
+            Action::play_solo(),
+            "45 >= the clamped 40: a raw-slack read (45 < 80) would still gate"
+        );
+    }
+
+    /// Slack 0 — both compat presets and the world default — is inert:
+    /// luxury entry is today's stateless comparison.
+    #[test]
+    fn slack_zero_is_structurally_inert() {
+        assert_eq!(
+            Teacher::PLAYFUL.decide_action(&luxury_ctx(0.0, 0)),
+            Action::play_solo(),
+            "relief THIS tick, slack 0: luxury immediately, as today"
+        );
+    }
+
+    /// FR-004: a favourite tips selection between equal-value options —
+    /// equal pressures, both reliefs underfoot, where the deterministic
+    /// tie falls to Eat by ALL-order; a Cuddle favourite flips it, an Eat
+    /// favourite keeps it (each dial moves exactly its own thing), and
+    /// all-zero is the unweighted pass by construction.
+    #[test]
+    fn a_favourite_tips_an_equal_value_choice() {
+        let stage = |favourite: Option<(crate::needs::NeedKind, f32)>| {
+            let mut ctx = decision_context(|world| {
+                world.elements.clear();
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+                world.kitties[idx].needs = crate::needs::Needs::default();
+                world.kitties[idx].needs.add(crate::needs::NeedKind::Eat, 40.0);
+                world.kitties[idx].needs.add(crate::needs::NeedKind::Cuddle, 40.0);
+                // Both reliefs underfoot: chow adjacent, an idle friend adjacent.
+                world.push_element(crate::element::Element {
+                    id: 800,
+                    kind: crate::element::ElementKind::Chow { servings: 5 },
+                    pos: crate::grid::Position::new(5, 6),
+                    ttl: None,
+                });
+                let f = world.kitty_index(2).unwrap();
+                world.kitties[f].pos = crate::grid::Position::new(4, 5);
+                for k in &mut world.kitties {
+                    if k.id > 2 {
+                        k.pos = crate::grid::Position::new(15, 15);
+                    }
+                }
+            });
+            if let Some((kind, w)) = favourite {
+                let config = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+                let k1 = config.kitties.iter_mut().find(|k| k.id == 1).unwrap();
+                let mut fav = crate::config::FavouriteWeights::default();
+                match kind {
+                    NeedKind::Eat => fav.eat = Some(w),
+                    NeedKind::Cuddle => fav.cuddle = Some(w),
+                    _ => unreachable!("only eat/cuddle staged here"),
+                }
+                k1.favourite = Some(fav);
+            }
+            crate::behavior::selection::choose(&ctx).need
+        };
+        assert_eq!(
+            stage(None),
+            crate::needs::NeedKind::Eat,
+            "equal values: the deterministic tie falls to Eat"
+        );
+        assert_eq!(
+            stage(Some((crate::needs::NeedKind::Cuddle, 0.5))),
+            crate::needs::NeedKind::Cuddle,
+            "a cuddle favourite tips the equal-value choice"
+        );
+        assert_eq!(
+            stage(Some((crate::needs::NeedKind::Eat, 0.5))),
+            crate::needs::NeedKind::Eat,
+            "an eat favourite moves only its own kind"
+        );
+    }
+
+    #[test]
+    fn the_preset_toggle_table_is_the_contract_table() {
+        // contracts/presets-and-dials.md, pinned: a toggle edit must be a
+        // deliberate contract change, not a drive-by.
+        let nd = Teacher::NEEDS_DRIVEN;
+        assert!((nd.wander, nd.groom_response, nd.luxury, nd.responses) == (true, true, false, false));
+        let p = Teacher::PLAYFUL;
+        assert!((p.wander, p.groom_response, p.luxury, p.responses) == (false, false, true, false));
+        let g = Teacher::GEN2;
+        assert!((g.wander, g.groom_response, g.luxury, g.responses) == (true, true, true, true));
+    }
+}

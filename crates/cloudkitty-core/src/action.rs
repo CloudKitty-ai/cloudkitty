@@ -439,7 +439,12 @@ pub fn validate(world: &World, kitty_id: KittyId, proposal: Action, config: &Con
 /// `Chase(Kitty)` is legal whenever the friend exists, so it never carries
 /// a partner reason. Meaningful only for a proposal `validate` resolved to
 /// Idle; on a legal proposal it still answers (`Other`), never panics.
-pub fn refusal_reason(world: &World, kitty_id: KittyId, proposal: Action) -> RefusalReason {
+pub fn refusal_reason(
+    world: &World,
+    kitty_id: KittyId,
+    proposal: Action,
+    config: &Config,
+) -> RefusalReason {
     let target = match proposal {
         Action::Rest { with: Some(id) }
         | Action::Sleep { with: Some(id) }
@@ -451,6 +456,28 @@ pub fn refusal_reason(world: &World, kitty_id: KittyId, proposal: Action) -> Ref
     };
     if target == kitty_id || world.kitty(target).is_none() {
         return RefusalReason::Other;
+    }
+    // Spec 059 (ruling eb9e860b): a conscription that VALIDATE would
+    // allow but the target's own consent line declines is named for what
+    // it is. Read before the partner predicates — a consent refusal of an
+    // adjacent idle target would otherwise mislabel as PartnerBusy. Only
+    // social play conscripts, so only it can carry the reason.
+    if matches!(
+        proposal,
+        Action::Play {
+            target: Some(TargetRef::Kitty { .. })
+        }
+    ) && world.is_conscriptable_friend(kitty_id, target)
+    {
+        let line = config.consent_line_for(target);
+        if line > 0.0 {
+            if let Some(k) = world.kitty(target) {
+                let top = k.top_non_play_pressure();
+                if top > line && top > k.needs.get(crate::needs::NeedKind::Play) {
+                    return RefusalReason::ConsentDeclined;
+                }
+            }
+        }
     }
     if !world.is_available_friend(kitty_id, target) {
         RefusalReason::PartnerAbsent
@@ -3629,7 +3656,7 @@ mod refusal_reason_tests {
                 "{proposal:?}"
             );
             assert_eq!(
-                refusal_reason(&world, 1, proposal),
+                refusal_reason(&world, 1, proposal, &config),
                 RefusalReason::PartnerAbsent,
                 "{proposal:?}"
             );
@@ -3644,7 +3671,7 @@ mod refusal_reason_tests {
             target: Some(TargetRef::Kitty { id: 2 }),
         };
         assert_eq!(validate(&world, 1, play, &config), Action::Idle);
-        assert_eq!(refusal_reason(&world, 1, play), RefusalReason::PartnerBusy);
+        assert_eq!(refusal_reason(&world, 1, play, &config), RefusalReason::PartnerBusy);
         assert_eq!(
             validate(&world, 1, Action::Rest { with: Some(2) }, &config),
             Action::Rest { with: Some(2) }
@@ -3654,18 +3681,18 @@ mod refusal_reason_tests {
             with_friend: None,
         };
         assert_eq!(
-            refusal_reason(&world, 1, play),
+            refusal_reason(&world, 1, play, &config),
             RefusalReason::PartnerBusy,
             "asleep is busy"
         );
         // Other: a missing target, a self target, an element, a move, a meal.
         let (mut world, config) = stage();
         assert_eq!(
-            refusal_reason(&world, 1, Action::Groom { target: Some(9) }),
+            refusal_reason(&world, 1, Action::Groom { target: Some(9) }, &config),
             RefusalReason::Other
         );
         assert_eq!(
-            refusal_reason(&world, 1, Action::Rest { with: Some(1) }),
+            refusal_reason(&world, 1, Action::Rest { with: Some(1) }, &config),
             RefusalReason::Other
         );
         assert_eq!(
@@ -3674,7 +3701,8 @@ mod refusal_reason_tests {
                 1,
                 Action::Play {
                     target: Some(TargetRef::Element { id: 77 })
-                }
+                },
+                &config
             ),
             RefusalReason::Other
         );
@@ -3696,15 +3724,19 @@ mod refusal_reason_tests {
                 1,
                 Action::Move {
                     direction: Direction::South
-                }
+                },
+                &config
             ),
             RefusalReason::Other
         );
-        assert_eq!(refusal_reason(&world, 1, Action::Eat), RefusalReason::Other);
+        assert_eq!(
+            refusal_reason(&world, 1, Action::Eat, &config),
+            RefusalReason::Other
+        );
         let b = world.kitty_index(2).unwrap();
         world.kitties[b].pos = Position::new(9, 9);
         assert_eq!(
-            refusal_reason(&world, 1, Action::Chase(TargetRef::Kitty { id: 2 })),
+            refusal_reason(&world, 1, Action::Chase(TargetRef::Kitty { id: 2 }), &config),
             RefusalReason::Other,
             "a chase is legal whenever the friend exists: never a partner reason"
         );

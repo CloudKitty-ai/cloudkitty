@@ -553,3 +553,74 @@ fn a_default_population_critter_cluster_keeps_an_ongoing_play_expressible() {
     );
     assert_continuation_masked_in(&world, &config, "critter cluster");
 }
+
+/// Spec 059 (ruling eb9e860b item 4): the mask is CONSENT-BLIND by
+/// design — the one documented divergence between the mask and the apply
+/// slot. The target's hidden needs must not reach the mask (a
+/// target-need bit would hand the seat knowledge its observation lacks
+/// and make refusal-anticipation scripted instead of emergent), so a
+/// consent-refused proposal is mask-LEGAL and refused at apply time.
+/// Two assertions: the observer's mask is bit-identical across the
+/// target's hidden-need extremes, and the PlayKitty entry at a refusing
+/// target is mask-legal while the engine's gauntlet refuses it.
+/// (The oracle above stages consent 0 everywhere — Config::default —
+/// which is why its no-carve-out equality and this divergence coexist.)
+#[test]
+fn the_mask_is_consent_blind_by_design() {
+    let mut config = Config::default();
+    config.behavior.consent_line = 30.0;
+    let stage = |eat: f32| {
+        let mut world = World::generate(&config);
+        let a = world.kitty_index(1).unwrap();
+        world.kitties[a].pos = Position::new(5, 5);
+        let b = world.kitty_index(2).unwrap();
+        world.kitties[b].pos = Position::new(5, 6); // adjacent, idle
+        world.kitties[b].needs = Default::default();
+        world.kitties[b].needs.add(cloudkitty_core::needs::NeedKind::Eat, eat);
+        world
+            .kitties[b]
+            .needs
+            .add(cloudkitty_core::needs::NeedKind::Play, 10.0);
+        world
+    };
+    let obs_cfg = ObservationConfig::default();
+    let codec = ActionCodec::v2(&obs_cfg);
+
+    // The target's hidden extreme never reaches the observer's mask.
+    let masks: Vec<Vec<bool>> = [95.0f32, 0.0]
+        .iter()
+        .map(|&eat| {
+            let world = stage(eat);
+            let view = world.snapshot().fog_for(1, config.vision.radius);
+            let table = TargetTable::build(&view, 1, &obs_cfg);
+            legal_action_mask(&view, 1, &table, &codec, &config)
+        })
+        .collect();
+    assert_eq!(
+        masks[0], masks[1],
+        "the observer's mask moved with the TARGET's hidden needs: a rule-5 leak"
+    );
+
+    // And the divergence class is exactly consent: the PlayKitty entry is
+    // mask-legal while the apply slot refuses it.
+    let world = stage(95.0);
+    let view = world.snapshot().fog_for(1, config.vision.radius);
+    let table = TargetTable::build(&view, 1, &obs_cfg);
+    let mask = legal_action_mask(&view, 1, &table, &codec, &config);
+    let play_at_2 = cloudkitty_core::Action::Play {
+        target: Some(TargetRef::Kitty { id: 2 }),
+    };
+    let index = (0..codec.len())
+        .find(|&i| codec.decode(i, &table).ok() == Some(play_at_2))
+        .expect("the adjacent friend holds a PlayKitty menu slot");
+    assert!(
+        mask[index],
+        "the proposal is mask-legal: the seat may propose and learn the refusal"
+    );
+    let mut probe = World::from_snapshot(&world.snapshot());
+    assert_eq!(
+        probe.apply_slot_verdict(1, play_at_2, &config),
+        cloudkitty_core::Action::Idle,
+        "the engine's gauntlet refuses what the mask lawfully offered"
+    );
+}
