@@ -159,10 +159,18 @@ lines are what the freeze sitting must pin. Rulings sources:
   built at collection: digest-keyed, imitable; FR-036
   cuddle-clause revisit travels with them. [BLANK] response shape
   (drift rule, answer threshold) at spec.
-- [RULED S§6] consent_line extended to needs_driven (two
-  call-site flips to `_consenting` variants). Packaging (own spec
+- [RULED S§6, MECHANISM superseded 2026-10-10 — S§Ruling
+  "consent re-keyed to the consent-giver"] Consent is TARGET-SIDE
+  and ENGINE-VALIDATED: the target declines on its OWN state (always
+  visible per rule 12's implementation gloss); proposers — teacher, trained, plugin — read
+  nothing hidden; the proposer-side `_consenting` call-site flips
+  are superseded by the universal gate. Divergence at consent
+  sites ACCEPTED and declared (her words: "This design is better,
+  and worth accepting the divergence"); SC-001 byte-equality holds
+  except at consent sites, audit-documented. Packaging (own spec
   vs folded into teacher rework) = Product's call. The step-7
-  consent-transfer read becomes reference-only.
+  consent-transfer read becomes reference-only. Trained-seat
+  consent-anticipation = emergent, observational-only (S§3f).
 - [RULED K§3 rider] The teacher demonstrates only adjacency-legal
   proposals.
 - [RULED 057] Sleep rule reads the floor.

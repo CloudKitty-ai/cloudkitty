@@ -693,3 +693,15 @@ not only across docs; (2) timing words (now / at the freeze) are
 disposition words and get the disposition treatment: quoted or
 checked like numbers; (3) attribution of evaluative words ("decisive")
 is itself a checkable fact — who said it about whose claim.
+
+## 2026-10-10 — copy-check: consent re-key ruling (Experiments)
+
+r1 PASS with two precision notes, both taken before commit: the
+record cited "rule 12" for the own-state line when the content now
+lives in rule 12's demoted implementation GLOSS (status, not content
+— and this ruling window is exactly where gloss-vs-rule precision
+matters); and "suppressed proposals" where the source measures LOST
+DUET STARTS (18.3/1k — "proposals" is an inference, now labeled as
+one). Pre-gate self-catch on record: the residual "25 of 1,960" had
+been misread as a blocked count in two outbound messages; the record
+carries the correction and the corrected scale.

@@ -595,3 +595,53 @@ skeleton's open owner-call slot on the 09-26 over-trust mitigation.
    metric: the existing semantic edges (happiness 45/70, the 90
    distress edge, per §3 item (d) above); only the margin and min-n
    VALUES wait for the freeze.
+
+## Ruling 2026-10-10 — consent re-keyed to the consent-giver
+
+Her words, in-session 2026-10-10, on the Experiments proposal:
+"This design is better, and worth accepting the divergence." Her
+probe that opened it: "Lack of hidden information access is a
+problem I hadn't considered. The trained models could attempt it
+using their estimated friend needs, but we won't have those for
+the teacher model." Context: spec 059's SC-001/US2 conflict,
+relayed by Product on her word the same day.
+
+1. CONSENT MOVES TARGET-SIDE, ENGINE-VALIDATED. The proposer
+   proposes on visible cues alone; the TARGET declines when its
+   own top non-play need presses past the consent line — own
+   state, always visible per rule 12's implementation gloss
+   (current state), legal for every mind;
+   enforcement at proposal validation (the refusal-machinery
+   pattern). No mind reads hidden state; no rule-5 exception is
+   needed anywhere in the teacher audit.
+2. SUPERSEDES the S§6 consent-extension MECHANISM (proposer-side
+   call-site flips to `_consenting` variants). The extension's
+   INTENT — consent binds needs_driven proposers too — is
+   satisfied universally by the engine-side gate, which binds
+   every proposer type, future plugin/LLM seats included.
+   Packaging within spec 059 stays Product's call.
+3. DIVERGENCE ACCEPTED, DECLARED. Decision streams change at
+   consent sites: proposals the old gate silently suppressed
+   become propose-then-refuse exchanges. Measured scale (biscuit3
+   sweep, c30-off2 vs c30-consent30): the gate moved R7 — the
+   share of duet starts with the partner past the line — 0.208 →
+   0.013, and Biscuit's duet starts 67.3 → 49.0 per 1k ticks; the
+   lost duet starts (the source's 18.3/1k for Biscuit, plus
+   roster-side shifts; "proposals" is the inference) are the
+   exchanges the re-key makes visible. (Correction on the record: an earlier Experiments
+   message misread the residual "25 of 1,960 duet starts" — those
+   are poll-resolution reads that still crossed the line, not the
+   blocked count.) Spec 059's SC-001 byte-equality holds
+   everywhere EXCEPT consent sites, each documented in the audit
+   record (Product's option B, as amended); the [rng-sequence]
+   re-record absorbs the corpus side; the partnered-refusal tax
+   instrument prices the exchanges.
+4. TRAINED-SEAT ANTICIPATION (her observation): seats may
+   anticipate refusals from estimated friend needs — an EMERGENT
+   courtesy, never scripted; a refusal costs a tick, physics not
+   nudge. Consent claims stay OBSERVATIONAL-ONLY in Gen 2 (S§3f
+   unchanged); refusal-rate-vs-belief calibration joins the
+   observational read family.
+5. WELFARE NOTE: enforcement strengthens — proposer-side
+   censoring protects only against well-behaved proposers;
+   the engine-side gate binds all of them.
