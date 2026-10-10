@@ -173,19 +173,23 @@ lines are what the freeze sitting must pin. Rulings sources:
   bounds, comfort slack range, consent-line range, favourite
   vectors), and the empty-bowl early end's spec-006 amendment
   (own spec, every cat — ruled IN S§6) landing BEFORE collection.
-- [BLANK — owner ruling, F-040] Want-law memory reach: keep
-  `radius + 0` (want_drink structurally silent) or revive.
-  Decision criterion (Professor, review r1): every declared
-  contrast cell must be STRUCTURALLY LIVE or declared dead and
-  excluded — at radius+0 the drink cell of §9.1a is a structural
-  zero that would read as an empirical null. Professor's lean:
-  REVIVE, scoped to structural liveness per kind (hidden needs
-  raise the value of self-expression; the social-response reads
-  and the emergence register both get cleaner). Fallback if the
-  change-set budget binds: keep radius+0 and declare want_drink
-  dead — dropped from every contrast denominator, an honest
-  null-by-construction. Experiments' cost read governs whether
-  revival touches more than the memory-reach knob.
+- [RULED, owner 2026-10-10 in-session: "revive"] Want-law memory
+  reach: REVIVED. Pin: `relief_memory_margin = 0` in the Gen 2
+  world toml — spec 050's shipped knob (config/mod.rs §MeowConfig),
+  config-only, no engine change, no Product spec. Cost read
+  (Experiments, 2026-10-10, preceded the ruling): measured at
+  margin 0 per F-040's 2026-09-05 re-verify — 6–15 drink calls
+  and +9 to +11 eat calls per 1,000 ticks, announcements not
+  consumption, so the food economy does not move; the knob is
+  uniform across want_eat/drink/play (no per-kind revival; drink
+  was the only dead kind). Every §9.1a contrast cell is now
+  structurally live; the declared-dead fallback is retired.
+  Downstream re-checks (free-register baseline, F-034 density
+  pins, declared-constant re-derivation) were already ruled to
+  re-run on the fresh Gen 2 corpus. (Correction note: this slot's
+  earlier draft parenthetical had the knob inverted — ABSENT is
+  the unbounded rule that silences want_drink; margin 0 is the
+  revival, per the config doc and F-040's own wording.)
 
 ## 5. Training recipe (trunk)
 
