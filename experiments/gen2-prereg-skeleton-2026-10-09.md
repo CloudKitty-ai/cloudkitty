@@ -28,8 +28,9 @@ lines are what the freeze sitting must pin. Rulings sources:
   is "both mechanically helpful, and makes logical sense in the
   world"; "This isn't to say we might not hide it later". Doctrine
   rule 12 entry corrected same day (same commit).
-- [BANKED S§Amendment A3 — TEXTS land at the freeze sitting, or
-  its own short sitting]
+- [BANKED S§Amendment A3 — VENUE RULED, owner 2026-10-10
+  in-session ("A3 venue: sitting"): the TEXTS land at their own
+  short sitting, not the freeze sitting]
   Role-based standing (seating any weights brings full welfare
   guarantees + stops); marker-review triggers (A = valenced
   self-state, B = self-regulation; memory about others triggers
