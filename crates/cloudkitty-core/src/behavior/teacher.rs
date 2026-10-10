@@ -448,6 +448,70 @@ mod tests {
         );
     }
 
+    /// SC-003, the behavior-layer twin of spec 058's row-visibility
+    /// property: a friend's HIDDEN state (the five non-bath needs;
+    /// happiness) cannot move any teacher decision. Paired decides over
+    /// a sweep of hidden extremes — same world, same seed, same digest,
+    /// live 042 dials so every re-keyed path is exercised — must be
+    /// identical. Bath is deliberately NOT varied (the ruled visible
+    /// need, lawfully read); the engine's consent gate is out of frame
+    /// (it is target-side and runs at the apply slot, not here).
+    #[test]
+    fn hidden_friend_extremes_cannot_move_any_teacher_decision() {
+        let decide = |preset: Teacher, hidden: [f32; 5]| {
+            let mut ctx = decision_context(move |world| {
+                world.tick = 100;
+                world.elements.clear();
+                let idx = world.kitty_index(1).unwrap();
+                world.kitties[idx].pos = crate::grid::Position::new(5, 5);
+                world.kitties[idx].needs = crate::needs::Needs::default();
+                world.kitties[idx].needs.add(crate::needs::NeedKind::Play, 60.0);
+                let f = world.kitty_index(2).unwrap();
+                world.kitties[f].pos = crate::grid::Position::new(5, 8);
+                world.kitties[f].needs = crate::needs::Needs::default();
+                for (kind, v) in [
+                    crate::needs::NeedKind::Eat,
+                    crate::needs::NeedKind::Drink,
+                    crate::needs::NeedKind::Sleep,
+                    crate::needs::NeedKind::Play,
+                    crate::needs::NeedKind::Cuddle,
+                ]
+                .into_iter()
+                .zip(hidden)
+                {
+                    world.kitties[f].needs.add(kind, v);
+                }
+                for k in &mut world.kitties {
+                    if k.id > 2 {
+                        k.pos = crate::grid::Position::new(15, 15);
+                    }
+                }
+            });
+            let config = std::sync::Arc::get_mut(&mut ctx.config).unwrap();
+            config.behavior.w_value = 1.0;
+            config.behavior.w_busy = 1.0;
+            config.behavior.w_serious = 1.0;
+            config.behavior.consent_line = 30.0;
+            preset.decide_action(&ctx)
+        };
+        let sweeps: [[f32; 5]; 4] = [
+            [0.0; 5],
+            [95.0; 5],
+            [95.0, 0.0, 95.0, 0.0, 95.0],
+            [0.0, 95.0, 0.0, 95.0, 0.0],
+        ];
+        for preset in [Teacher::NEEDS_DRIVEN, Teacher::PLAYFUL, Teacher::GEN2] {
+            let reference = decide(preset, sweeps[0]);
+            for hidden in &sweeps[1..] {
+                assert_eq!(
+                    decide(preset, *hidden),
+                    reference,
+                    "a hidden extreme moved the decision (preset {preset:?}, hidden {hidden:?})"
+                );
+            }
+        }
+    }
+
     #[test]
     fn the_preset_toggle_table_is_the_contract_table() {
         // contracts/presets-and-dials.md, pinned: a toggle edit must be a
