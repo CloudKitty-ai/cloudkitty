@@ -125,7 +125,14 @@ fn scored(
     terms: &super::teacher::ResponseTerms,
 ) -> Option<f32> {
     let behavior = &ctx.config.behavior;
-    let distance = distance_given(ctx, kind, playmate)?;
+    // Score and walk must not disagree (the 004 agreement rule): with a
+    // live answer term the pursuit walks to the CALLER, so the score
+    // prices that walk — plain Manhattan, the feasibility filter's own
+    // metric (review 2026-10-10 finding 4).
+    let distance = match terms.for_need(kind) {
+        Some(t) => ctx.me.pos.manhattan_distance(&t.pos) as f32,
+        None => distance_given(ctx, kind, playmate)?,
+    };
     let pressure = ctx.me.needs.get(kind);
     // Spec 057: off warm options, sleep pressure is the relief a nap HERE
     // can deliver — the engine clamps a plain-tile nap at the floor
@@ -805,7 +812,7 @@ fn is_viable(ctx: &DecisionContext, target: TargetRef) -> bool {
 /// The chase bookkeeping every candidate set honors (FR-008): exclusion
 /// after a give-up, and a stalled current pursuit. Shared by the classic
 /// and scored picks so neither can resurrect a written-off target.
-fn chase_bookkeeping_allows(ctx: &DecisionContext, target: TargetRef) -> bool {
+pub(crate) fn chase_bookkeeping_allows(ctx: &DecisionContext, target: TargetRef) -> bool {
     let tick = ctx.world.tick;
     if ctx.me.is_chase_excluded(target, tick) {
         return false;

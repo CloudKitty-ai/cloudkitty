@@ -225,14 +225,17 @@ impl ResponseTerms {
 
 /// The linear net-surplus constant `k = (I_max − I_min) / D_w`
 /// (contracts/cue-answer.md, owner-confirmed 2026-10-10): I_max is the
-/// emission clamp (1.0), I_min the armed-emission floor
-/// (`announce_threshold / 100` — a quieter want-call cannot exist), and
-/// D_w the longest Manhattan walk the digest window can still cover
-/// after the handshake, at the implicit 1 tile/tick. A degenerate window
-/// yields k = 0: distance stops discounting but feasibility still
-/// filters.
+/// emission clamp (1.0), I_min the true armed-emission floor —
+/// `(announce_threshold − announce_hysteresis) / 100`, because an armed
+/// kind stays emittable down to the bottom of the hysteresis band
+/// (review 2026-10-10 finding 6) — and D_w the longest Manhattan walk
+/// the digest window can still cover after the handshake, at the
+/// implicit 1 tile/tick. A degenerate window yields k = 0: distance
+/// stops discounting but feasibility still filters.
 fn k_constant(ctx: &DecisionContext) -> f32 {
-    let i_min = (ctx.config.meow.announce_threshold / 100.0).clamp(0.0, 1.0);
+    let i_min = ((ctx.config.meow.announce_threshold - ctx.config.meow.announce_hysteresis)
+        / 100.0)
+        .clamp(0.0, 1.0);
     let d_w = ctx
         .config
         .meow
@@ -301,21 +304,53 @@ fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<Res
     let me = &ctx.me;
     let floor = ctx.config.behavior.reply_intensity_floor.unwrap_or(0.0);
     let (_, top) = me.needs.highest_pressure();
+    // The groom_response precedent (review 2026-10-10 finding 4): a cat
+    // whose own top need is at or past the safeguard has its own errand
+    // first — no answer term, ever, at safeguard pressure. Below it, the
+    // deterministic threshold: the call must outrank the hearer's own
+    // loudest need.
+    if top >= ctx.config.thresholds.safeguard {
+        return None;
+    }
     let threshold = (top / 100.0).max(floor);
     let window = ctx.config.meow.digest_window_ticks;
     let now = ctx.world.tick;
 
-    let candidates: Vec<&crate::meow::Meow> = ctx
+    // Each caller is represented by its FRESHEST audible call of this
+    // kind, and nothing else (review 2026-10-10 finding 1): the
+    // observation's digest cell and heard row carry only the freshest,
+    // so a superseded call is state the student cannot see — scoring it
+    // would be the rule-5 violation this spec removes elsewhere.
+    let audible: Vec<&crate::meow::Meow> = ctx
         .world
         .recent_meows
         .iter()
         .filter(|m| m.kind == kind && m.kitty_id != me.id && ctx.world.audible(m, window))
+        .collect();
+    let candidates: Vec<&crate::meow::Meow> = audible
+        .iter()
+        .filter(|m| {
+            !audible
+                .iter()
+                .any(|m2| m2.kitty_id == m.kitty_id && m2.tick > m.tick)
+        })
+        .copied()
         .filter(|m| m.intensity >= threshold)
         .filter(|m| {
             // Feasible: d + handshake fits in the window still open.
             let remaining = window.saturating_sub(now.saturating_sub(m.tick));
             let d = me.pos.manhattan_distance(&m.pos) as u64;
             d + HANDSHAKE_TICKS <= remaining
+        })
+        // A written-off or stalled chase target is not resurrected by its
+        // own calling (review 2026-10-10 finding 2): the same chase
+        // bookkeeping every playmate scan honors gates the answer too.
+        .filter(|m| {
+            kind != MessageKind::WantPlay
+                || selection::chase_bookkeeping_allows(
+                    ctx,
+                    crate::action::TargetRef::Kitty { id: m.kitty_id },
+                )
         })
         .collect();
     let score = |m: &crate::meow::Meow| m.intensity - k * me.pos.manhattan_distance(&m.pos) as f32;
@@ -347,6 +382,12 @@ fn response_term(ctx: &DecisionContext, kind: MessageKind, k: f32) -> Option<Res
         Some(inc) if inc.kitty_id != best.kitty_id && score(best) <= score(inc) + h => inc,
         _ => best,
     };
+    // A non-positive net surplus is no answer at all (review 2026-10-10
+    // finding 6): a quiet-and-far call must never LOWER the pull toward
+    // its own need, and a zero-value term must not retarget pursuit.
+    if score(winner) <= 0.0 {
+        return None;
+    }
     let d = me.pos.manhattan_distance(&winner.pos) as f32;
     Some(ResponseTerm {
         caller: winner.kitty_id,
@@ -834,6 +875,114 @@ mod tests {
             world.apply_slot_verdict(1, action, &config),
             Action::Idle,
             "consent and adjacency gates run unchanged after the term"
+        );
+    }
+
+    /// Review 2026-10-10 finding 1: only a caller's FRESHEST call of a
+    /// kind speaks for it — the observation carries nothing older, so a
+    /// superseded call is invisible state. A loud old call must neither
+    /// clear the threshold nor aim the answer at its stale stamp.
+    #[test]
+    fn only_a_callers_freshest_call_speaks_for_it() {
+        let ctx = hearer_ctx(50.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6);
+            call(w, 2, MessageKind::WantPlay, 0.90, 20); // loud, superseded
+            w.kitties[f].pos = crate::grid::Position::new(5, 12);
+            call(w, 2, MessageKind::WantPlay, 0.30, 5); // the freshest: quiet
+        });
+        assert!(
+            response_terms(&ctx).play.is_none(),
+            "the freshest call (0.30) is under the hearer's 0.50 threshold; \
+             the superseded 0.90 must not fire"
+        );
+    }
+
+    /// Review 2026-10-10 finding 2: a written-off chase target cannot
+    /// call itself back — the same chase bookkeeping every playmate scan
+    /// honors gates the answer.
+    #[test]
+    fn a_written_off_chase_target_cannot_call_itself_back() {
+        let ctx = hearer_ctx(20.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 9);
+            call(w, 2, MessageKind::WantPlay, 0.80, 1);
+            let me = w.kitty_index(1).unwrap();
+            w.kitties[me]
+                .abandoned_chases
+                .push(crate::kitty::AbandonedChase {
+                    target: crate::action::TargetRef::Kitty { id: 2 },
+                    until: 1000,
+                });
+        });
+        assert!(
+            response_terms(&ctx).play.is_none(),
+            "an excluded target's call raises no term"
+        );
+    }
+
+    /// Review 2026-10-10 finding 3: a reached stamp with no caller in
+    /// view releases the PLAY answer to the ordinary playmate pick (the
+    /// cuddle arm's rule) instead of pinning solo pounces at the stamp.
+    #[test]
+    fn a_reached_empty_stamp_releases_the_play_answer() {
+        let ctx = hearer_ctx(20.0, |w| {
+            // A real critter the ordinary pick would chase.
+            w.push_element(crate::element::Element {
+                id: 910,
+                kind: crate::element::ElementKind::Bug,
+                pos: crate::grid::Position::new(5, 9),
+                ttl: Some(1000),
+            });
+        });
+        let choice = crate::behavior::selection::Choice {
+            need: NeedKind::Play,
+            playmate: Some((
+                crate::action::TargetRef::Element { id: 910 },
+                crate::grid::Position::new(5, 9),
+            )),
+            // Caller 99 does not exist; the stamp is adjacent: reached.
+            answered: Some((99, crate::grid::Position::new(5, 6))),
+        };
+        let action = super::super::needs_driven::pursue(&ctx, choice);
+        assert_eq!(
+            action,
+            Action::Chase(crate::action::TargetRef::Element { id: 910 }),
+            "the dropped answer falls through to the ordinary pick"
+        );
+    }
+
+    /// Review 2026-10-10 finding 4 (the groom_response precedent): a
+    /// hearer at safeguard pressure has its own errand first — no answer
+    /// term, however loud the call.
+    #[test]
+    fn safeguard_pressure_silences_every_answer() {
+        let ctx = hearer_ctx(80.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 6);
+            call(w, 2, MessageKind::WantCuddle, 0.95, 1);
+            call(w, 2, MessageKind::WantPlay, 0.95, 1);
+        });
+        assert_eq!(
+            response_terms(&ctx),
+            ResponseTerms::NONE,
+            "safeguard first: eat at 80 is not outranked by any call"
+        );
+    }
+
+    /// Review 2026-10-10 finding 6: a non-positive net surplus is no
+    /// answer — a quiet far call must never lower the pull toward its
+    /// own need or retarget pursuit for nothing.
+    #[test]
+    fn a_non_positive_surplus_is_no_answer() {
+        let ctx = hearer_ctx(15.0, |w| {
+            let f = w.kitty_index(2).unwrap();
+            w.kitties[f].pos = crate::grid::Position::new(5, 15); // d 10
+            call(w, 2, MessageKind::WantPlay, 0.20, 1); // k·10 ≈ 0.30 > 0.20
+        });
+        assert!(
+            response_terms(&ctx).play.is_none(),
+            "intensity 0.20 minus k·10 is negative: no term"
         );
     }
 

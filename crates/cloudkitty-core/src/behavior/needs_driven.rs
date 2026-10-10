@@ -230,11 +230,18 @@ pub(crate) fn pursue(ctx: &DecisionContext, choice: selection::Choice) -> Action
         // to THAT cat, at its call's stamp when unseen; the engine's
         // consent and adjacency gates hear the proposal unchanged.
         ReliefSource::Playmate => match choice.answered {
-            Some((caller, stamp)) => {
+            // A reached stamp with no caller in view drops the answer and
+            // falls through to the ordinary playmate pick — the cuddle
+            // arm's rule, mirrored (review 2026-10-10 finding 3: an
+            // unseen "playmate" reads mid-scene and pinned the cat at
+            // solo pounces on the empty stamp).
+            Some((caller, stamp))
+                if ctx.world.kitty(caller).is_some() || !me.pos.is_adjacent(&stamp) =>
+            {
                 let pos = ctx.world.kitty(caller).map(|k| k.pos).unwrap_or(stamp);
                 selection::play_action_with(ctx, Some((TargetRef::Kitty { id: caller }, pos)))
             }
-            None => selection::play_action_with(ctx, choice.playmate),
+            _ => selection::play_action_with(ctx, choice.playmate),
         },
 
         ReliefSource::Friend => {

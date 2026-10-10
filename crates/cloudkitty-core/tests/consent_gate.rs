@@ -178,24 +178,46 @@ async fn a_burdened_friend_is_never_conscripted_end_to_end() {
     assert_eq!(consent_refusals[0].kitty_id, 1, "the proposer is stamped");
 }
 
-/// SC-005's seeded sample (ignored; tasks T024): the served world with
-/// every seat on the `teacher` registration, 20k ticks. Counts partnered
-/// scene STARTS whose partner audibly asked for exactly that scene
-/// within the digest window (the demonstrable answers), total partnered
-/// starts, and the zero-bypass checks: no applied partnered scene at a
-/// consent-refusing partner (the gate runs before apply, so one would
-/// be an engine bug), and no answer without an in-window call.
+/// SC-005's seeded sample (ignored; tasks T024): the served world, 20k
+/// ticks, TWO arms — every seat on `teacher`, and a `needs_driven`
+/// control (review 2026-10-10 finding 5: the first cut's "answered"
+/// count passed without the feature; coincidental partnered starts
+/// beside a caller are the base rate, so the claim is now DIFFERENTIAL:
+/// the teacher's PROPOSER-side answered rate must beat the control's).
+/// Zero-bypass stays absolute on both arms.
 ///
 ///   cargo test -p cloudkitty-core --test consent_gate -- --ignored record_spec059_answer
 #[tokio::test]
 #[ignore]
 async fn record_spec059_answer_sample() {
+    let teacher = answer_sample_arm("teacher").await;
+    let control = answer_sample_arm("needs_driven").await;
+    let json = serde_json::json!({ "teacher": teacher, "needs_driven_control": control });
+    println!("{json:#}");
+    let (t_ans, t_bypass) = (
+        teacher["proposer_answered_starts"].as_u64().unwrap(),
+        teacher["consent_bypass_scenes"].as_u64().unwrap(),
+    );
+    let (c_ans, c_bypass) = (
+        control["proposer_answered_starts"].as_u64().unwrap(),
+        control["consent_bypass_scenes"].as_u64().unwrap(),
+    );
+    assert!(t_ans > 0, "SC-005: a nonzero answered-call rate");
+    assert!(
+        t_ans > c_ans,
+        "SC-005: the teacher's proposer-side answered rate ({t_ans}) must beat the \
+         no-rung control's coincidence rate ({c_ans})"
+    );
+    assert_eq!(t_bypass + c_bypass, 0, "SC-005: no consent bypass ever");
+}
+
+async fn answer_sample_arm(brain: &str) -> serde_json::Value {
     use cloudkitty_core::meow::MessageKind;
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let text = std::fs::read_to_string(root.join("cloudkitty.toml")).expect("served config");
     let mut config: Config = toml::from_str(&text).expect("config parses");
     for k in &mut config.kitties {
-        k.behavior = "teacher".into();
+        k.behavior = brain.into();
     }
     config.validate().expect("validates");
     let window = config.meow.digest_window_ticks;
@@ -240,10 +262,28 @@ async fn record_spec059_answer_sample() {
             };
             let Some(partner) = partner else { continue };
             partnered_starts += 1;
+            // PROPOSER-side only (finding 5): this cat's own applied
+            // action made the partnered proposal; a cat merely
+            // conscripted by the caller is the caller being relieved,
+            // not an answer demonstrated.
+            let proposed = match want {
+                MessageKind::WantCuddle => {
+                    k.last_action
+                        == Some(cloudkitty_core::Action::Rest {
+                            with: Some(partner),
+                        })
+                }
+                _ => {
+                    k.last_action
+                        == Some(cloudkitty_core::Action::Play {
+                            target: Some(TargetRef::Kitty { id: partner }),
+                        })
+                }
+            };
             let asked = world.recent_meows.iter().any(|m| {
                 m.kitty_id == partner && m.kind == want && now.saturating_sub(m.tick) <= window
             });
-            if asked {
+            if proposed && asked {
                 answered += 1;
             }
             // Zero-bypass: the partner's own line must not refuse this
@@ -293,15 +333,12 @@ async fn record_spec059_answer_sample() {
         }
         prev = world.kitties.iter().map(|k| (k.id, k.activity)).collect();
     }
-    let json = serde_json::json!({
+    serde_json::json!({
         "ticks": 20000,
         "partnered_scene_starts": partnered_starts,
-        "answered_call_starts": answered,
+        "proposer_answered_starts": answered,
         "consent_bypass_scenes": consent_bypass,
-    });
-    println!("{json:#}");
-    assert!(answered > 0, "SC-005: a nonzero answered-call rate");
-    assert_eq!(consent_bypass, 0, "SC-005: no consent bypass ever");
+    })
 }
 
 /// The FR-015 fire-counter recorder (ignored; run once per reference
