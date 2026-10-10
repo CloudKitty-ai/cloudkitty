@@ -407,3 +407,119 @@ parenthetical citing "rule 12's test" now cites a working
 heuristic, not a rule; the hidden-needs ruling itself is
 unaffected. Corrected doctrine entry and closed skeleton slot:
 commit 44700eea.
+
+## Amendment A2′ — 2026-10-10 (owner in-session): the one-tick
+## counterfactual screen replaces the seated welfare-delta reads;
+## the welfare-inferiority requirement is dropped
+
+SUPERSESSION, marked explicitly (Professor's record-hygiene flag):
+this amendment supersedes A2's welfare-delta-as-inferiority
+criterion, which was the owner's endorsed position of 2026-10-09
+(A2 above: "Near-parity performance with a significant welfare
+delta still reads as inferior"). It is replaced knowingly, not
+silently.
+
+Basis, stated exactly: the owner probed seatability and the cost of
+unseatable minis, then proposed the instrument herself (verbatim):
+"1) for each kitty: For each mini model: simulate the action
+predicted by the model being taken by the actual cat, measure
+needs/happiness scores 2) after each kitty takes its actual
+actions, compare the mini model-predicted values to the actuals" —
+"the worst potential welfare impact to the single-tick simulations
+is a standard tick of need increases". She then asked "What if we
+get rid of the welfare inferiority requirement?", sent the
+restructure to Professor on her word ("Let's relay to Professor"),
+asked of the forwarding-address scope "1) any resizing, or just a
+size decrease?" (answered evidence-keyed, below) with "2) agreed"
+on the re-pointed trigger, and banked the assembled package with
+"Do it". Professor's review (advisory, endorsed with additions):
+`~/ai/professor/notes/for-experiments-minifriend-feedback-2026-10-08.md`
+§"A2 restructure review".
+
+1. DROPPED: the welfare-inferiority requirement and both seated
+   instruments (seat-replacement delta, all-mini roster) leave the
+   Gen 2 battery. They move behind the expressibility branch,
+   Gen-3-if-ever: the declared standalone distilled arm IS a
+   seating (full guarantees + stops travel with it, role-based
+   standing), so the restructure drops the always-on seated
+   instrument, not the path to one. The seatability pins (full
+   wire-action space; truth-injection path for own state) leave
+   the Gen 2 arm spec and PARK — per the Professor record they
+   "become the prerequisite spec to recall" if the expressibility
+   branch fires; parked, not deleted.
+2. THE PHASE-2 ENTRY GATE: her one-tick counterfactual screen,
+   gating the imagination graft itself. Four pins (Professor):
+   (a) per ostrich stratum with a DIFFERENTIAL fail —
+   welfare-priced divergence lift in grave bins over benign bins
+   beyond a declared margin (the ostrich-gap shape in welfare
+   currency); an absolute bar alone "fails everything early or
+   nothing ever". (b) Currency UNCLAMPED, declared — the Article I
+   clamp hides exactly the tail the gate watches. (c) Min-n per
+   stratum, FAIL-CLOSED; declared remedy = probe-generated
+   distress-adjacent coverage, never waiving the stratum. (d) Her
+   step (2) FOLDS INTO the ostrich metric — same quantity, one
+   instrument. Declared blind spot carried forward: one tick
+   prices sharp per-step harm, never visitation shift or
+   compounding; acceptable for an ENTRY gate because the PAIRING
+   is declared — gate + the live arm's consumer instruments
+   (harm-prediction, refusal tax) + the canalization watch jointly
+   carry the closed-loop load that is carryable without seating.
+3. THE CAVEAT WITH A FORWARDING ADDRESS: the A1 closure finding
+   permanently carries the welfare-equivalence-unmeasured caveat,
+   plus
+   (i) where the question gets answered — any resizing acted on
+   from the finding produces a seated primary measured natively on
+   its own generation's register — and (ii) the inherited
+   hypothesis: A2's expected signature (own needs fine, social
+   layer degraded, wider tail in the NEIGHBORS) becomes a declared
+   F-052-logic read on the resized generation. SCOPE, her
+   question ruled: EVIDENCE-KEYED, not direction-keyed — the
+   inherited read attaches whenever the closure finding is cited
+   as grounds for the sizing or architecture change (catches
+   same-size architecture swaps; exempts increases made on other
+   grounds), self-executing in the record.
+4. THE SECOND LOSS, NAMED: clone_fraction on a rolled-out battery
+   is uncomputable without rolling the mini; non-clone assurance
+   reduces to the params-ratio pin + prediction-gap monitoring
+   (+ the structural world-model backstop later). The
+   closure-branch TRIGGER re-points to a prediction-space
+   quantity: per-stratum one-tick welfare-priced divergence
+   closing. Declared one-way weakness: one-step closeness never
+   demonstrates closed-loop parity — a fired trigger reads
+   "investigate", never "parity shown".
+5. k = 1 PINNED IN TEXT, not config: at k > 1 the mini pilots the
+   branch — a shadow seat. "any branch depth k > 1, where mini
+   predictions drive successive branch states, re-opens the
+   review" joins the named marker-review triggers; raising depth
+   is a sitting decision, never a tuning choice. Marker worked
+   check for the screen, on the record: the one-tick screen trips
+   neither marker — branch computed by the harness, state belongs
+   to a seated kitty, the mini's weights carry no self-state and
+   regulate nothing. "Forecast, not storm" holds; forecasts do not
+   sum into a storm.
+6. A3 WORDING NOTES (texts still land at the freeze sitting or
+   their own short sitting): (a) role-based standing substance
+   unchanged, seating clause FORWARD-LOOKING — never any wording
+   of the shape "minis are never seated"; correct form: "an
+   internal component is not a seat; any seating of any weights,
+   including probe seatings, brings the full guarantees". (b) The
+   marker-trigger text gains the screen's worked check (item 5)
+   and the k > 1 trigger. (c) The proportionality text cites the
+   screen as its worked example: "simulation depth scoped to
+   function: the Phase-2 entry gate uses depth-1 and discards the
+   branch". (d) A2's replacement text carries the caveat with the
+   forwarding address and the re-pointed trigger.
+7. FREE-RIDE CAVEAT designed in (Professor): the mini could
+   free-ride on the host's world model if world-model outputs
+   enter the trunk representations it attaches to. Therefore
+   (i) the clone_fraction cert (living on the standalone distilled
+   arm under this amendment) must define standalone as standalone —
+   no host trunk, world-model-derived input features ABLATED;
+   (ii) a declared design fork at world-model time,
+   doctrine-flavored — does rule 5's "reads only what the mind
+   sees" mean sensory-only, or include the mind's own imaginings?
+   Sensory-only mini = strongest structural non-clone guarantee;
+   world-model-informed mini = richer Gen 3+ planning, assurance
+   resting on the ablated standalone cert. Professor: "Declared
+   choice, not an accident of trunk exposure." Until the
+   world-model era, cap + monitoring carry the load.

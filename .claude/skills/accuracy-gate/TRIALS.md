@@ -654,3 +654,22 @@ design usually REVERBERATES — sweep the doc for every dependent
 framing (cert/monitor, structural-half, guard lists) and either
 restate the whole or declare why the rest survives; the verifier
 found all three reverberations the correction's author missed.
+
+## 2026-10-10 — copy-check: Amendment A2′ (sitting record) + skeleton §8/§1 sweep (Experiments)
+
+r1 FAIL (4): one case mismatch inside quote marks ("welfare-equivalence
+unmeasured" quoted across a sentence boundary — resolved by unquoting);
+one MEANING SHIFT — the Professor record parks the seatability pins as
+"the prerequisite spec to recall", my compression said "dropped with
+it"; one dropped qualifier set — item 7 lost the doctrine-flavored fork
+question and "Declared choice, not an accident of trunk exposure"; one
+record-vs-skeleton pin-list divergence (the four pins numbered
+differently in the two documents). r2 PASS.
+
+Lesson: compressing a source I HAD read is its own failure surface —
+r4's lesson was transcribe-from-the-file, this round's is that even
+file-sourced content can flip a disposition word ("parked" → "dropped")
+in summary. Dispositions (parked/dropped/deferred/retired) get quoted
+or checked like numbers. Second lesson: when a ruled list is copied
+into a second document, copy the NUMBERING, not just the content — two
+different four-item cuts of the same material read as different rules.
