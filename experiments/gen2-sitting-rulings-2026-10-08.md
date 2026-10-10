@@ -389,3 +389,21 @@ the estimate head reads b_t (the ostrich metric grades the belief
 directly); the act predictor reads b_t + current visible cues.
 Fog-propagation is friend-need drift only, never world dynamics.
 Engineering detail at the arm spec.
+
+## Correction addendum — 2026-10-10 (rule 12 scope, owner in-session)
+
+Item 1's closing framing is retired. The record said: "This is a
+declared departure from the LETTER of doctrine rule 12 ('own state
+visible, others' states hidden'), kept inside its spirit (what is
+hidden still gates cooperation, never survival); the Gen 2 prereg
+states the exception, and whether rule 12's text gains an exception
+clause is an owner call at the prereg sitting." The owner ruled
+2026-10-10: the dividing-line sentence "Was never ruled, we don't
+need to be enforcing it" — rule 12's ruled content is the
+constitutional statement alone ("relief is always available,
+kitties cannot suffer"), so bath-visible is no departure and the
+exception-clause owner call is CLOSED, no clause. Item 1's
+parenthetical citing "rule 12's test" now cites a working
+heuristic, not a rule; the hidden-needs ruling itself is
+unaffected. Corrected doctrine entry and closed skeleton slot:
+commit 44700eea.
