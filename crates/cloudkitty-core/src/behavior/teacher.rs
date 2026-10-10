@@ -762,7 +762,10 @@ mod tests {
     /// at the apply slot (valuation is never a consent bypass).
     #[test]
     fn an_answer_never_bypasses_the_consent_gate() {
-        let ctx = hearer_ctx(20.0, |w| {
+        // Own top 60: OVER the comfort line, so the luxury rung is shut
+        // and only the answer term can put play on top — the boost itself
+        // is what moves this decision (its own mutate witness).
+        let ctx = hearer_ctx(60.0, |w| {
             let f = w.kitty_index(2).unwrap();
             w.kitties[f].pos = crate::grid::Position::new(5, 6); // adjacent
             w.kitties[f].activity = crate::kitty::Activity::Idle;
@@ -770,7 +773,7 @@ mod tests {
             w.kitties[f].needs = crate::needs::Needs::default();
             w.kitties[f].needs.add(crate::needs::NeedKind::Play, 35.0);
             w.kitties[f].needs.add(crate::needs::NeedKind::Eat, 60.0); // past line 30
-            call(w, 2, MessageKind::WantPlay, 0.35, 1);
+            call(w, 2, MessageKind::WantPlay, 0.95, 1);
         });
         // The term is live and the decide proposes play at the caller.
         assert_eq!(response_terms(&ctx).play.unwrap().caller, 2);
