@@ -135,13 +135,13 @@ fn every_expansion_is_refused_at_the_3_0_wall_naming_both_surfaces() {
         let out = dir.join("out.ckpolicy");
         let err = expand_file(&source, &out).expect_err("no map across the wall");
         assert!(
-            matches!(err, ExpandError::UnmappedTarget { o: 5, a: 3, m: 3 }),
+            matches!(err, ExpandError::UnmappedTarget { o: 6, a: 3, m: 3 }),
             "{}: {err}",
             source.display()
         );
         let text = format!("{err}");
         assert!(
-            text.contains("observation 5") && text.contains("observation 4"),
+            text.contains("observation 6") && text.contains("observation 4"),
             "{text}"
         );
         assert!(!out.exists(), "nothing is written");

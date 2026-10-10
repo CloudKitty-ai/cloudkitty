@@ -30,7 +30,7 @@ fn flags_never_move_a_single_layout_number() {
     let table = TargetTable::build(&snapshot, 1, &cfg);
     let codec = ActionCodec::v2(&cfg);
 
-    let all_on_obs = encode_observation(&snapshot, 1, &config, &cfg, 0.0);
+    let all_on_obs = encode_observation(&snapshot, 1, &config, &cfg);
     let all_on_msg = legal_message_mask(&snapshot, 1, &config);
     let all_on_act = legal_action_mask(&snapshot, 1, &table, &codec, &config);
     assert!(
@@ -48,7 +48,7 @@ fn flags_never_move_a_single_layout_number() {
          here_critter=false\nhere_sunbeam=false\nchirp=false\ntrill=false\nekekek=false",
     )
     .unwrap();
-    let all_off_obs = encode_observation(&snapshot, 1, &config, &cfg, 0.0);
+    let all_off_obs = encode_observation(&snapshot, 1, &config, &cfg);
     let all_off_msg = legal_message_mask(&snapshot, 1, &config);
     let all_off_act = legal_action_mask(&snapshot, 1, &table, &codec, &config);
 

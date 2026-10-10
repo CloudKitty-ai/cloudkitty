@@ -516,7 +516,7 @@ impl Episode {
             // would decide from.
             let view = snapshot.fog_for(id, self.core.vision.radius);
             let observation =
-                encode_observation(&view, id, &self.core, &self.rl.observation, clock);
+                encode_observation(&view, id, &self.core, &self.rl.observation);
             // The serialized mask is the two-head concat (mask schema 3):
             // [activity (menu_len) | message (16)] -- 55 at default slots.
             let mut mask =

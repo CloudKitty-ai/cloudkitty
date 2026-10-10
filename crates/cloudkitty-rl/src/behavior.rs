@@ -93,19 +93,8 @@ impl PolicyBehavior {
     /// FR-015 pins, two-headed since spec 028. Public so selection tests
     /// drive it directly.
     pub fn decide_sync(&self, ctx: &DecisionContext) -> Decision {
-        let observation = encode_observation(
-            &ctx.world,
-            ctx.me.id,
-            &ctx.config,
-            &self.rl.observation,
-            // Serve the clock as trained (owner 2026-09-15): the minds saw
-            // tick_in_episode / horizon cycling in every training and
-            // certification tick, and pinning it to 0 at deploy re-opens a
-            // greedy limit cycle the drifting clock breaks
-            // (experiments/fog-gen1-cert/RESULTS.md §"The clock input").
-            // Gen 2 removes the dependence (GEN2-INPUTS).
-            served_clock(ctx.world.tick, self.rl.episode.horizon),
-        );
+        let observation =
+            encode_observation(&ctx.world, ctx.me.id, &ctx.config, &self.rl.observation);
         let activity_mask = legal_action_mask(
             &ctx.world,
             ctx.me.id,
