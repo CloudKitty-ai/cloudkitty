@@ -79,12 +79,23 @@ lines are what the freeze sitting must pin. Rulings sources:
   ships the keyed map via the binding, and flipping the
   downstream readers onto it is an EXPERIMENTS-lane edit after
   the spec lands — budgeted in §10.2.
-- [BLANK, partially filled 2026-10-09] The final cell map
-  (authoritative layout table) and the schema version ids — PER
-  SCHEMA, four ids in the binding: observation bumps 5 → 6;
-  action and mask hold; GLOBAL_STATE rides the critic-side
-  identity-block exposure (spec 058 FR-009). Schema-bump spec =
-  **058** (specs/058-gen2-observation-schema). Metric pin at 058:
+- [BLANK, near-final 2026-10-09 — pins at #444's merge] The cell
+  map and schema version ids, per spec 058 / PR #444:
+  OBSERVATION 5 → 6 (421 cells: self 109, kitty row 58 × 4, chow
+  6, water 5, sunbeam 7, critter 11, no clock); GLOBAL_STATE
+  1 → 2 (critic-side identity block, 14 per kitty; critic keeps
+  its clock and width-normalized positions, documented R7);
+  ACTION/MASK hold at 3. Reader surface:
+  `cloudkitty.COLUMN_MAPS[version]` (cells + blocks
+  base/stride/count + observation_len + slot_config; v5
+  oracle-locked to the 049 contract) and `ACTION_MENU`. Schema
+  spec = **058** (specs/058-gen2-observation-schema).
+- [OPEN — owner word, CATCHES THIS WALL OR WAITS A GENERATION]
+  critter_slots 4 → 2 was banked "for Gen 2" (BACKLOG,
+  2026-09-04) but is NOT in the ruled package; it moves the
+  observation layout AND the action menu, so if ruled in it must
+  land in 058's wall before collection. Surfaced to her by
+  Product 2026-10-09; freezing §3 waits on her word either way. Metric pin at 058:
   MANHATTAN throughout the new distance/bearing cells (walk-cost
   units; the ruled (dx/d, dy/d) form preserved as the L1 unit
   pair; constants 40/400 hold — max Manhattan 198 at 100×100);
