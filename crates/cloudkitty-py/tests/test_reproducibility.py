@@ -14,7 +14,7 @@ def rollout_digest():
 
     import cloudkitty
 
-    MENU = 39  # menu v2 at kitty_slots 4 (spec 049)
+    MENU = 35  # menu v2 at kitty_slots 4, critter_slots 2 (owner ruled 2026-10-09)
 
     env = cloudkitty.ParallelEnv(horizon=60)
     obs, infos = env.reset(seed=7)
