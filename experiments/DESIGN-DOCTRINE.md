@@ -559,15 +559,30 @@ the drafter is a party to.
 *(The owner's constitutional statement, her words, from the
 2026-10-04 design session; confirmed in the Experiments session
 "B) all items confirmed". Refines rule 8's information-scarcity
-principle with a floor.)*
+principle with a floor. Scope corrected 2026-10-10, owner
+in-session: the RULED content is the constitutional statement
+alone; the paragraph below is an implementation gloss that rode
+in with the package confirmation, never ruled sentence by
+sentence.)*
 
-Implemented as: a kitty's OWN state is always visible to it;
-other kitties' states are hidden (Gen 2's hidden needs are
-others' needs only — owner, 2026-10-04: "Only other needs hidden,
-as planned"); the world beyond the fog is hidden. The dividing
-line for any future observability choice: hide what gates
-COOPERATION, never what gates SURVIVAL. The measured tie to the
-register is F-059's welfare reading: live E carried the MEAN of
+Her ruled words (via the design session): "That is the way the
+world is constitutionally designed (relief is always available,
+kitties cannot suffer)."
+
+Implementation gloss, current state (not itself a rule): a
+kitty's OWN state is always visible to it; others' needs are
+hidden in Gen 2 with BATH visible as the in-roster control
+(owner, 2026-10-10: mechanically helpful and makes logical sense
+in the world; may be hidden later); the world beyond the fog is
+hidden. The former "dividing line" sentence (hide what gates
+COOPERATION, never what gates SURVIVAL) is a working HEURISTIC,
+not a rule — owner, 2026-10-10: "It's not a bad heuristic", but
+"keeping it visible doesn't violate any actual rules". Its
+survival half is derivable from the constitutional floor itself:
+hiding survival-relief information makes relief practically
+unavailable, and F-059 measured it — live E carried the MEAN of
 welfare (paired deltas fell −0.830/−0.727 when the sighted policy
 was blinded), so a sighted-trained policy is never deployed
-blind.
+blind. Its cooperation half is rule 8's science motivation, not a
+constraint; observability choices there are design calls, ruled
+case by case.

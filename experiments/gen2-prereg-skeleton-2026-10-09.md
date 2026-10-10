@@ -17,10 +17,17 @@ lines are what the freeze sitting must pin. Rulings sources:
 - [RULED S§1] Hidden needs = FIVE OF SIX: others' need values,
   happiness, distress flags, and trait block hidden; others' BATH
   visible as the in-roster control (perceptibility grounding).
-  Declared departure from doctrine rule 12's letter; spirit kept
-  (hides what gates cooperation, never survival).
-- [BLANK — owner call at freeze] Whether rule 12's text gains the
-  exception clause or the prereg declaration alone carries it.
+- [RULED, owner 2026-10-10 in-session — the former
+  exception-clause blank is CLOSED, no clause needed] Bath-visible
+  is NOT a departure from doctrine rule 12: the ruled content of
+  rule 12 is the constitutional statement alone ("relief is always
+  available, kitties cannot suffer"); the observability
+  dividing-line sentence was an implementation gloss, never ruled
+  — demoted to working heuristic, owner's words 2026-10-10: it
+  "Was never ruled, we don't need to be enforcing it"; bath-visible
+  is "both mechanically helpful, and makes logical sense in the
+  world"; "This isn't to say we might not hide it later". Doctrine
+  rule 12 entry corrected same day (same commit).
 - [BANKED S§Amendment A3 — TEXTS land at the freeze sitting, or
   its own short sitting]
   Role-based standing (seating any weights brings full welfare
