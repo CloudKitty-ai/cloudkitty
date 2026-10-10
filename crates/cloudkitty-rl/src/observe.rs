@@ -157,11 +157,11 @@ pub const STALENESS_NORMALISER: f32 = 40.0;
 /// config or world size; the constants ARE the schema.
 pub const NEAR_DISTANCE_NORMALISER: f32 = 40.0;
 
-/// The comfort-slack identity cell's own frozen normalizer (spec 058
-/// review finding 6): numerically equal to the spatial near field
-/// today, but a separate constant — a re-ruling of the spatial /40
-/// must not silently rescale an identity cell.
-pub const COMFORT_SLACK_NORMALISER: f32 = 40.0;
+/// The comfort-slack identity cell's own frozen normalizer. The
+/// definition moved to cloudkitty-core (spec 059 R5: the teacher's
+/// luxury gate reads the same cell value); re-exported here so the
+/// schema pins and every rl reader keep their path.
+pub use cloudkitty_core::config::COMFORT_SLACK_NORMALISER;
 pub const FAR_DISTANCE_NORMALISER: f32 = 400.0;
 
 /// Offsets inside the self block and a kitty row
@@ -765,7 +765,9 @@ pub(crate) fn push_identity(
         let trait_value = core.need_rate_for(kitty_id, kind) / cfg.reference_need_rate;
         v.push(trait_value.clamp(0.0, 4.0));
     }
-    v.push((core.comfort_slack_for(kitty_id) / COMFORT_SLACK_NORMALISER).clamp(0.0, 1.0));
+    // One home (spec 059 R5): the cell value is core's `slack_cell_for`,
+    // the same number the teacher's luxury gate reads.
+    v.push(core.slack_cell_for(kitty_id));
     v.push(core.consent_line_for(kitty_id) / 100.0);
     for kind in NeedKind::ALL {
         v.push(core.favourite_weight_for(kitty_id, kind));
