@@ -45,7 +45,11 @@ change.
   survive the next bump too. Schema-5 policy artifacts refuse to load
   on this engine — the five served seats are parked on their scripted
   behaviors until the Gen 2 minds certify; the deployed 0.3.0 world
-  keeps serving its Gen 1 roster on its own binary, untouched.
+  keeps serving its Gen 1 roster on its own binary, untouched. And the
+  critter slots came down from four to two: a cat's fog disc has never
+  shown three critters at once, so the two empty slots were dead cells
+  and four dead menu rows — the observation settles at 399 values, the
+  menu at 35.
 
 - **"Nearest" means nearest to walk to.** When several kitties answer
   one ask, the reply the viewer shows is the one from the kitty with the

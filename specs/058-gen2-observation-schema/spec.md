@@ -328,6 +328,24 @@ itself, so nothing upstream can contribute through them.
   suite and certification battery encode under the new layout without
   reading a removed cell.
 
+## Amendment 2026-10-09 — critter_slots 4 → 2 (owner's word in-session)
+
+Owner, Product session, 2026-10-09, after the 058 merge and before any
+v6 artifact or corpus existed: "we're going to cut critter slots from 4
+to 2." This executes the entry BACKLOG banked for Gen 2 on 2026-09-04
+(owner's side thought at the A1 walk): under fog a radius-5 disc showed
+0 / 1 / 2 visible critters in 2326 / 2335 / 339 cat-ticks and NEVER 3,
+so two slots cover everything a cat can see; the banked price (two dead
+tokens, four masked actions) stops being paid. Effects, inside the same
+v6 wall (no artifact was trained at 421, so v6 amends in place):
+observation 421 → 399 (critter 2 × 11); action menu 39 → 35 (Idle 34);
+logits 55 → 51; tokens 15 → 13. ACTION_SCHEMA_VERSION stays 3 — the
+menu is config-derived, so a slot count is config, never a schema
+version. The v5 historical record keeps critter_slots 4 (the v5 map and
+pins now carry an explicit v5-era config). The free re-verify the
+BACKLOG entry named (step-5 corpus, ≥3-visible count) is superseded by
+the same read on the Gen 2 corpus at collection.
+
 ## Doctrine check (CLAUDE.md rule 8)
 
 Checked against `experiments/DESIGN-DOCTRINE.md`, 2026-10-09:

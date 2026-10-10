@@ -847,15 +847,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_token_layout_sums_to_the_observation_length_and_15_tokens() {
+    fn the_token_layout_sums_to_the_observation_length_and_13_tokens() {
         let cfg = ObservationConfig::default();
         let (groups, type_rows) = token_layout(&cfg);
         let width_sum: usize = groups.iter().map(|g| g.count * g.width).sum();
         let token_count: usize = groups.iter().map(|g| g.count).sum();
         assert_eq!(width_sum, crate::observe::observation_len(&cfg));
         assert_eq!(
-            token_count, 15,
-            "1 self + 4 kitty + 2 chow + 2 water + 2 sun + 4 critter -- no clock token (schema 6)"
+            token_count, 13,
+            "1 self + 4 kitty + 2 chow + 2 water + 2 sun + 2 critter -- no clock              token; critter_slots 4 -> 2 (owner ruled 2026-10-09)"
         );
         assert_eq!(
             type_rows, 6,

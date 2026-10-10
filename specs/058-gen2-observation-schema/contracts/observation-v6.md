@@ -77,6 +77,11 @@ vacant → all 58 cells zero.
 
 ## Element slots
 
+Served slot defaults: kitty 4, chow 2, water 2, sunbeam 2, **critter 2**
+(4 → 2 by the owner's word 2026-10-09, the banked Gen 2 trim — two
+slots cover a radius-5 disc's maximum ever observed). Default
+observation length 399; menu 35; logits 51.
+
 Each slot: present, spatial group (4), then its v5 extras unchanged —
 chow + servings fraction (width 6); water (5); sunbeam + ttl fraction
 + occupied bit (7); critter + kind one-hot (4) + is-activity-target

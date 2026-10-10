@@ -112,14 +112,18 @@ mod tests {
         let table = TargetTable::build(&snapshot, 1, &cfg);
 
         let mask = legal_action_mask(&snapshot, 1, &table, &codec, &config);
-        assert_eq!(mask.len(), 39, "menu v2 at kitty_slots 4 (spec 049)");
+        assert_eq!(
+            mask.len(),
+            35,
+            "menu v2 at kitty_slots 4, critter_slots 2 (owner ruled 2026-10-09)"
+        );
         assert!(
-            mask[38],
-            "idle (last row; 33 at kitty_slots 3) is genuinely legal"
+            mask[34],
+            "idle (last row; 38 before the critter-slot cut) is genuinely legal"
         );
         assert!(mask[4], "solo rest is always legal");
         assert!(mask[14], "self-groom is always legal");
-        assert!(mask[29], "solo play is always legal");
+        assert!(mask[27], "solo play is always legal");
         assert!(mask.iter().filter(|&&b| b).count() >= 4);
     }
 

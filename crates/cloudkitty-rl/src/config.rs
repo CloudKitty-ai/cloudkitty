@@ -85,7 +85,7 @@ impl Default for ObservationConfig {
     fn default() -> Self {
         Self {
             kitty_slots: 4,
-            critter_slots: 4,
+            critter_slots: 2,
             chow_slots: 2,
             water_slots: 2,
             sunbeam_slots: 2,
@@ -432,7 +432,7 @@ mod tests {
     fn an_empty_file_yields_the_documented_defaults() {
         let rl = RlConfig::from_toml_str("").expect("defaults are valid");
         assert_eq!(rl.observation.kitty_slots, 4, "spec 049 FR-011: roster - 1");
-        assert_eq!(rl.observation.critter_slots, 4);
+        assert_eq!(rl.observation.critter_slots, 2);
         assert_eq!(rl.observation.chow_slots, 2);
         assert_eq!(rl.observation.water_slots, 2);
         assert_eq!(rl.observation.sunbeam_slots, 2);
