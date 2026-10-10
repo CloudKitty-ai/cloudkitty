@@ -124,3 +124,25 @@ and base), `ACTION_MENU: dict[str, int]`, beside the four
 A policy artifact pinned to v5 refuses to load against v6 and vice
 versa (existing mechanism, SC-006). Gen 1 serving is untouched: the
 served world stays schema 5 end to end.
+
+## T024 re-verify (executed at spec 059's close, 2026-10-10)
+
+The deferred obligation (tasks.md T024; 059 FR-014): the friend-field
+read sweep re-ran over the post-059 behavior layer, and the FR-011
+strip list re-verified against it.
+
+- Sweep result: the only friend `needs.get` reads left in
+  `crates/cloudkitty-core/src/behavior/` are the three retained BATH
+  sites (finish_what_you_started's groomee read; groom_response's
+  announce-threshold decline and exposure-vs-value comparison;
+  expected_scene_exposure's partner bath) — bath is the ruled visible
+  need. Zero reads of friends' other needs or happiness. The spec-047
+  proposer-side consent reads (partner play, top_non_play) are GONE:
+  consent moved target-side into the engine (ruling eb9e860b), where
+  the target reads its OWN state.
+- The strip list stands: every field FR-011 removed from the friend
+  row remains unread by deciders as well as unencoded;
+  `row_visibility.rs` (hidden-extremes encode identically) stays green,
+  and spec 059 added its behavior-layer twin
+  (`hidden_friend_extremes_cannot_move_any_teacher_decision`).
+- Per-site record: specs/059-teacher-rework/contracts/audit-record.md.

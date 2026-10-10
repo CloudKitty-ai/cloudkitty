@@ -51,6 +51,27 @@ change.
   and four dead menu rows — the observation settles at 399 values, the
   menu at 35.
 
+- **One teacher, and consent belongs to the one asked.** `[rng-sequence]`
+  The two scripted brains became one parameterized teacher (spec 059):
+  the identity dials the observation already shows — need rates, comfort
+  slack, consent line, favourites — now drive the behavior itself,
+  through the same accessors, so a cat's teacher and its self-image can
+  never disagree. The old names survive as presets of the one teacher,
+  decision-for-decision equal to the brains they replace, with one ruled
+  exception: the consent line moved out of the proposer and into the
+  engine. A cat no longer reads its friend's hidden needs to decide
+  whether to ask — it asks, and the friend's own line declines at the
+  door (`consent_declined` in the refusal log), whoever the proposer is:
+  scripted, trained, or plugged in. Proposals the old gate silently
+  suppressed become visible ask-and-refusal exchanges, so every seeded
+  world with a consent line walks a new path from its first refusal
+  (the continuity fixtures re-recorded, divergence counted and filed).
+  The new `teacher` seat runs every rung at once — including two new
+  ones: a cat that hears a friend call for cuddles or play may now
+  answer, walking to the caller it heard rather than the nearest body,
+  when the call is loud enough to outrank its own worries and near
+  enough to reach while the call still hangs in the air.
+
 - **"Nearest" means nearest to walk to.** When several kitties answer
   one ask, the reply the viewer shows is the one from the kitty with the
   shortest walk, the same distance every other kitty decision uses.

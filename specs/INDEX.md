@@ -60,3 +60,4 @@ regenerate and commit (owning thread) when specs change.
 | `056-shallow-ground-sleep` | Draft |
 | `057-teacher-sleep-floor` | Draft |
 | `058-gen2-observation-schema` | Draft |
+| `059-teacher-rework` | Draft |

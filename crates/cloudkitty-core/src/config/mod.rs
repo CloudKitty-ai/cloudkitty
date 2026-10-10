@@ -353,12 +353,14 @@ pub struct KittyConfig {
     pub needs: Option<NeedRateOverrides>,
     /// Gen 2 identity dials (spec 058). Each is an optional per-kitty
     /// override behind an accessor (`comfort_slack_for`, `consent_line_for`,
-    /// `favourite_weight_for`). Until spec 059 reseats the teacher on the
-    /// same accessors, the scripted rules read only the WORLD-level
-    /// values: a per-kitty dial set today reaches the observation, not
-    /// the behavior — set them only once the parameterized teacher
-    /// lands. Unset falls back to the `[behavior]` world value
-    /// (favourite: 0.0, no favourite).
+    /// `favourite_weight_for`) — and since spec 059 the SAME accessors
+    /// drive both the observation and the behavior: slack gates the
+    /// teacher's luxury entry (via the slack CELL's value), the consent
+    /// line is read by the ENGINE about this kitty as a TARGET (ruling
+    /// eb9e860b — it protects this cat from conscription, and gates no
+    /// proposal this cat makes), and favourites weight this cat's own
+    /// selection values. Unset falls back to the `[behavior]` world
+    /// value (favourite: 0.0, no favourite).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub comfort_slack: Option<f32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
