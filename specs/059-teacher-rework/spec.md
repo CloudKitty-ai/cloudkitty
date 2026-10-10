@@ -447,11 +447,13 @@ Checked against `experiments/DESIGN-DOCTRINE.md`, 2026-10-10:
   Biscuit c30 anchor's certification reference depends on 'playful'
   resolving to today's exact dials").
 - The preset dial defaults are DERIVED from today's two brains'
-  effective behavior (playful: today's playful_comfort-equivalent
-  slack and Play favourite; needs_driven: zero slack, no favourite),
-  pinned at plan time against the deterministic reference suite —
-  byte-equality on the suite is the acceptance bar, not a hand-waved
-  "similar".
+  effective behavior, pinned at plan time against the deterministic
+  reference suite — byte-equality on the suite is the acceptance bar,
+  not a hand-waved "similar". (Plan finding, 2026-10-10: BOTH presets
+  derive to all-world-fallback dials — slack is ticks and today's
+  playful has no entry delay, so playful slack is 0, not a
+  playful_comfort equivalent; the structural brain differences ride
+  preset rung toggles instead — research.md R1/R2.)
 - "Typical approach time" for the response window is derived at plan
   time from the digest window and walk speed already in config —
   stated as a frozen relation, not a new tunable, unless planning
