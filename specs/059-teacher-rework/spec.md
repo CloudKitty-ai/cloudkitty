@@ -75,6 +75,14 @@ absorbs every behavioral change in one `[rng-sequence]` boundary.
   stabilizes the incumbent (approach shrinks its distance). The rule
   maximizes INTENSITY, the audible proxy — "greatest need" is
   unobservable by rule 5.
+- Q: Is the response deterministic (a threshold-clearing call always
+  raises the valuation) or a seeded draw whose probability rises
+  with intensity? → A: Deterministic. The response term applies
+  whenever a feasible call's intensity clears the state-keyed
+  threshold (intensity vs the hearer's own current pressures); no
+  new RNG stream. "Louder is likelier answered" holds ACROSS states
+  — a louder call clears the threshold in strictly more hearer
+  states — never within one.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -313,7 +321,11 @@ kinds.
   window MUST be at least the typical approach time at walk speed so
   an answer can physically complete. Intensity is the audible PROXY
   for the caller's need — "greatest need" is unobservable (rule 5);
-  the rule maximizes what the student can hear.
+  the rule maximizes what the student can hear. The threshold is
+  DETERMINISTIC (clarified 2026-10-10): a feasible call that clears
+  it at the hearer's current state always applies the term; no RNG
+  draw. Graded response ("louder is likelier answered") is a
+  property across hearer states, not a probability within one.
 - **FR-016**: Same-kind call contention MUST resolve to ONE winner
   (confirmed 2026-10-10): first a hard feasibility filter — a caller
   the hearer cannot reach and complete with inside its remaining
