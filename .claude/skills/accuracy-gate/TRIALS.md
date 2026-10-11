@@ -743,3 +743,36 @@ marks and a relay rendering presented as the speaker's words are the
 same bug at different distances from the source. And when comparing
 two rates, convert to one denominator in the doc itself — readers
 will ratio whatever two numbers sit side by side.
+
+## 2026-10-11 — full gate: minifriend pre-sitting reads (Experiments)
+
+Target: experiments/minifriend-presitting-2026-10-11/RESULTS.md (the
+assessment of the Professor relay + the grave-density and
+relief-latency power reads). Verdict PASS r1; four post-gate
+precision fixes, no number wrong.
+
+Findings worth keeping:
+- The verifier caught an UNSOURCED threshold the session believed
+  was ruled: "45/70/90 are the sitting's pinned bins". The ruling
+  (gen2-sitting-rulings-2026-10-08.md §3(d)) pins happiness 45/70
+  plus the 90 distress edge — 45/70 are happiness edges, not need
+  bins. The doc had borrowed the numbers onto a different axis and
+  inherited the word "pinned" with them. Fixed to read-time choices
+  with the real citation, in the doc and both reader docstrings.
+- Method label: "two-sample power" overstated a
+  shift-against-null-reference design (baseline treated as known →
+  printed powers optimistic). The direction strengthened the doc's
+  conclusion, but the label was still wrong. Named the design and
+  the direction in the doc.
+- A stated n-range ("needs 200–500 episodes") silently assumed one
+  stratum's latency shape generalized; eat@0.70 sat inside the range
+  with half the power. Restated in power terms with the
+  counterexample inline.
+- Mixed CI bases in one table column (@200/@100/@20 beside @full-n)
+  — unified at full n.
+
+Lesson: a number carried from a ruling keeps its axis, not just its
+value. "45/70" pinned for happiness is not "45/70" pinned for need
+pressure, and the word "pinned" travels with the axis. And name the
+statistical design you actually ran, even when the honest label only
+makes your conclusion stronger.
