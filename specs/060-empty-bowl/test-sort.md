@@ -1,0 +1,53 @@
+# Spec 060 rule-6 test sort (T002/T003)
+
+Sorted 2026-10-12 at branch e16da92d, BEFORE the engine edit. Baseline:
+`cargo test --workspace` 1017 passed / 0 failed / clean tree (T001).
+Every body below was READ, not just run. `elapsed = tick - started + 1`;
+test config eat bounds min 2 (interrupt lawful on the 3rd tick).
+
+## Must flip (guards of the change — red before T007, green after)
+
+| Test | Pre-edit prediction |
+|---|---|
+| `an_emptied_bowl_pauses_below_the_minimum_and_ends_at_it` (world.rs:3718) | REWRITTEN as `an_emptied_bowl_ends_the_meal_below_the_minimum`: asserts end at the FIRST resolution (activity Idle, clock None, span 1, exactly one serving's relief, freed kitty's Move applies next tick). On the unamended engine the first `close_tick` leaves the scene live (elapsed 1 < min 2 gates the old condition), so the `activity == Idle` assert fails with `Eating`. Covers acceptance scenario 1 + the one-tick-meal edge case (T005 a+d — `dinner_table(1)` IS the start-on-last-serving meal). |
+| NEW `a_shared_bowl_emptying_ends_every_meal_at_it` (T005 b, scenario 4) | Two eaters, one bowl, servings 2, both start tick 100, both consume in their slots; resolution finds servings 0 → BOTH end, span 1 each, regardless of slot order. Pre-edit: both continue (below min) → `activity == Idle` asserts fail with `Eating`. |
+| NEW `a_meal_never_stretches_across_to_a_farther_bowl` (T005 c, scenario 5 end case + id tie) | Bowl underfoot (d0) drains beside a stocked d1 bowl → predicate None → end below min; same for two d1 bowls where the lower-id one drains (tie-break reads the empty one). Pre-edit: scenes continue → `Idle` asserts fail with `Eating`. |
+| NEW `a_vanished_bowl_ends_the_meal_at_the_next_resolution` (T005 e) | Mid-meal bowl removed (the env-phase ttl/despawn pathway, applied directly — close_tick does not run the environment phase); next resolution: predicate None → end below min, and the Idle-proposal continuation records NO refusal row. Pre-edit: paused meal continues to min → `Idle` assert fails with `Eating`. |
+| NEW FR-003 assertions inside the above (T006) | Early end writes exactly one activity_log end record and refusal_log stays EMPTY. Pre-edit the log-record asserts fail (no end has happened yet) — red for the right reason alongside the state asserts. |
+
+## Must stay green (kept behavior — read and re-run, not weakened)
+
+- `need_zero_before_the_minimum_waits_for_the_minimum` (world.rs:3699)
+  — pins the exact clause 060 keeps (FR-002). Asserts clock LIVE after
+  tick 1 (need 0, bowl stocked at 5 servings), end at min.
+- `a_meal_runs_its_minimum_with_relief_every_tick` (3470) — 5 servings;
+  mid-min Move superseded; relief every tick.
+- `a_finished_need_ends_the_meal_at_the_first_lawful_tick` (3548) —
+  min-met + need-0 end, 5 servings.
+- `an_ended_scene_records_its_true_span_in_the_activity_log` (3435) —
+  3-tick meal, 5 servings; span accounting unchanged.
+- `instant_bounds_reproduce_pre_006_pacing` (3751) — min=max=1.
+- `re_proposing_sleep_never_resets_the_clock_and_the_cap_holds` (3511),
+  `a_ground_nap_ends_at_the_reachable_floor` (3571),
+  `a_floor_zero_nap_ends_exactly_as_today` (3600),
+  `the_floor_never_leaks_onto_a_groomed_sleepers_bath` (3630),
+  `a_nap_begun_at_the_floor_ends_at_the_minimum` (3672) — non-Eating
+  activities; `out_of_chow` is Eating-gated, nothing moves.
+- `a_refused_proposal_is_stamped_with_kitty_proposal_and_tick` (3229),
+  `duration_enforcement_decides_the_absorbed_flag_never_the_refusal`
+  (3273), `a_refusal_past_the_scene_minimum_is_still_absorbed` (3328),
+  `a_same_tick_duet_race_is_still_a_stamped_refusal` (3774) — refusal
+  surface; scene ends route through end_activity only.
+- action.rs: `eating_requires_nearby_chow` (1103),
+  `empty_chow_cannot_be_eaten` (1213),
+  `eating_consumes_one_serving_and_relieves_hunger` (1228) — validate
+  and effect, untouched.
+- action.rs `announcing_food_and_eating_it_all_is_lawful` (3542) —
+  T003 verdict: calls `apply` directly, never starts a clocked scene
+  or runs `resolve_activity_ends`; asserts emission-time truth,
+  despawn-at-env-resolve, full relief. NOT in the must-flip pile.
+- `welfare_longrun.rs:41` crowded-out kitty — retarget/respawn path.
+
+## Mutate cycles (T009 record — filled as run)
+
+(pending)
