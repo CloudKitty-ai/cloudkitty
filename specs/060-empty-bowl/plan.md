@@ -119,11 +119,11 @@ modules.
 - **The edit** (research R1): `done_naturally = (elapsed >= bounds.min
   && governed_done) || out_of_chow;` — `bounds.max` cap, `end_activity`
   routing, `duration_ruling` mid-slot hold all untouched.
-- **Predicate** (R2, ⚠ owner flag): reuse `adjacent_stocked_chow`
-  as-is (nearest-adjacent-then-stocked). The end rule, validate, and
-  the per-tick effect must agree or SC-003 fails. Spec wording for the
-  nearest-empty-beside-stocked geometry is adjusted on her word
-  (research R2 states the catch).
+- **Predicate** (R2, RESOLVED — owner ruled Option 1, 2026-10-11):
+  reuse `adjacent_stocked_chow` as-is (nearest-adjacent-then-stocked;
+  a meal never stretches across). The end rule, validate, and the
+  per-tick effect must agree or SC-003 fails. Spec wording folded in
+  (Clarifications Session 2026-10-11).
 - **No refusal interaction** (FR-003): scene ends route through
   `end_activity` only; refusal writes live only in the apply slot
   (world.rs:374-383). Pinned today by

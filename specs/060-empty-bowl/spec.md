@@ -102,7 +102,7 @@ other scene-end behavior is byte-identical to spec 006's.
    the eater.
 5. **Given** a kitty eating with TWO stocked bowls within reach,
    **When** the farther one empties, **Then** the scene continues —
-   its feeding read still finds a stocked bowl. **When** instead the
+   its feeding condition still holds. **When** instead the
    bowl the meal feeds from empties (the nearer one, or the tied one
    it reads first), **Then** the scene ends even though the other
    bowl is stocked — a meal never stretches across (clarified
@@ -143,9 +143,12 @@ served world (0.3.0 box) is untouched.
   bowl at resolution ends (scenario 4). No cat is charged a
   "refusal" — a scene end is not a refusal and touches no refusal
   machinery.
-- The bowl ELEMENT disappearing entirely (despawn/expiry) is already
-  spec-048's counterpart-gone pruning; this rule covers the bowl that
-  still stands but holds nothing.
+- The bowl ELEMENT disappearing entirely (ttl expiry mid-meal): for
+  eating this is THIS rule's business, not spec-048 pruning — the
+  engine deliberately exempts meals from counterpart-gone pruning and
+  routes the gone bowl to the scene-end resolution, where the feeding
+  condition fails at the next resolution after the removal. Spec 048
+  keeps owning partnered counterparts; nothing there moves.
 - Need reaching 0 AND bowl emptying on the same tick: one end, same
   tick, indistinguishable outcome — no double accounting.
 - A one-tick meal (last serving consumed on the scene's first tick):
@@ -181,15 +184,17 @@ served world (0.3.0 box) is untouched.
   servings and positions, never the eater's hidden state. It is
   evaluated per seat position (which bowls are within reach), so all
   eaters left without an adjacent stocked bowl end together; an eater
-  whose feeding read still finds a stocked bowl continues.
+  whose feeding condition still holds continues.
 - **FR-005**: The change rides the Gen 2 boundary: `[rng-sequence]`
   in CHANGELOG; every moved stream pin re-recorded with this spec
   named and first-divergence ticks captured (the 059 artifact
   pattern); the deployed 0.3.0 Gen 1 world untouched (cloudkitty.toml
   is the NEXT deploy; seats stay parked).
 - **FR-006**: OUT of this spec: drinking (water has no servings; its
-  end rules are untouched), counterpart-gone pruning (spec 048 owns
-  the vanished bowl), any reward, observation, or teacher-ladder
+  end rules are untouched), counterpart-gone pruning (spec 048,
+  unchanged — meals are deliberately exempt from it, so the vanished
+  bowl mid-meal is covered by FR-001's feeding condition, not by any
+  new pruning), any reward, observation, or teacher-ladder
   change (the 058 wall and the 059 teacher stand as merged), and any
   duration-config change ([actions.durations] values are untouched).
 - **FR-007**: The shelved BACKLOG entry ("Spec-006 empty-bowl early
@@ -201,8 +206,8 @@ served world (0.3.0 box) is untouched.
 - **The eating scene**: spec 006's minimum-held activity; gains one
   early end keyed to its consumable.
 - **The bowl (chow element)**: the consumable whose emptiness now
-  ends scenes it can no longer feed — unless the meal's own feeding
-  read still finds a stocked bowl in reach.
+  ends scenes it can no longer feed — unless the meal's feeding
+  condition still holds (a stocked bowl in its reach).
 - **The re-record artifact**: divergence declaration in the 059
   style — reasons named, first-divergence ticks on file.
 
@@ -217,10 +222,13 @@ served world (0.3.0 box) is untouched.
   byte-identical to the pre-amendment engine on the same seeds: a
   stream recorded with bowls that never empty mid-scene below the
   minimum shows zero divergence.
-- **SC-003**: Welfare direction: on the reference config, ticks spent
-  in zero-relief eating scenes drop to zero while total eat relief
-  delivered is unchanged (the meals deliver the same servings, just
-  without the empty tail).
+- **SC-003**: Welfare direction: on the reference config, same seeds,
+  ticks spent in zero-relief eating scenes are >0 pre-change and ZERO
+  post-change, and in EACH arm relief delivered equals servings
+  consumed × the per-serving relief (the empty tail is gone, not the
+  servings). Cross-arm relief totals are NOT compared: the arms are
+  divergent streams (US2), so downstream behavior may differ
+  legitimately.
 - **SC-004**: The moved stream pins are re-recorded with the
   divergence declared (spec named, first-divergence tick), and the
   config sweeps stay green with zero config edits.
