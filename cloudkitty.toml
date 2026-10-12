@@ -299,9 +299,10 @@ solo_play_relief = 10.0
 
 # How long each activity runs, in ticks (1 <= min <= max). The engine holds an
 # activity at least `min` ticks -- long enough to watch -- and never lets it
-# pass `max`. Relief applies on every tick, and a finished need (or an empty
-# bowl) ends the activity early once `min` is met. `bath` governs grooming;
-# `cuddle` governs resting, alone or together.
+# pass `max`. Relief applies on every tick; a finished need ends the activity
+# early once `min` is met, and an empty bowl ends a meal at that very tick,
+# `min` met or not (spec 060). `bath` governs grooming; `cuddle` governs
+# resting, alone or together.
 [actions.durations]
 eat = { min = 2, max = 3 }
 drink = { min = 2, max = 3 }

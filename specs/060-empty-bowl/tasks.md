@@ -83,10 +83,10 @@ sweeps green with zero config edits.
 
 ## Phase 5: Polish & Cross-Cutting
 
-- [ ] T016 Fix the now-stale comment in cloudkitty.toml:300-304 ("a finished need (or an empty bowl) ends the activity early once `min` is met") to state the amended rule — comment-only recording edit, stated on the PR per the hook-review carve-out; no key or value changes
-- [ ] T017 Remove the shelved BACKLOG entry at BACKLOG.md:90-111 ("Spec-006 empty-bowl early end — SHELVED UNTIL GEN 2") so it lands with the merge (FR-007); verify the surrounding entries are untouched
-- [ ] T018 Update specs/INDEX.md with the 060 row; verify specs/060-empty-bowl/ package complete (spec, plan, research, data-model, contracts, quickstart, tasks, test-sort)
-- [ ] T019 Full verification pass: `cargo fmt --all`, `cargo test --workspace` (record the count against T001's baseline — expected delta is the new guards), quickstart.md steps 1-5 executed as written; assemble the verification record (mutate cycles, sorted piles, fixture declarations, SC counts) for the PR self-review comment
+- [x] T016 Fix the now-stale comment in cloudkitty.toml:300-304 ("a finished need (or an empty bowl) ends the activity early once `min` is met") to state the amended rule — comment-only recording edit, stated on the PR per the hook-review carve-out; no key or value changes
+- [x] T017 Remove the shelved BACKLOG entry at BACKLOG.md:90-111 ("Spec-006 empty-bowl early end — SHELVED UNTIL GEN 2") so it lands with the merge (FR-007); verify the surrounding entries are untouched
+- [x] T018 Update specs/INDEX.md with the 060 row; verify specs/060-empty-bowl/ package complete (spec, plan, research, data-model, contracts, quickstart, tasks, test-sort)
+- [x] T019 Full verification pass: `cargo fmt --all`, `cargo test --workspace` (record the count against T001's baseline — expected delta is the new guards), quickstart.md steps 1-5 executed as written; assemble the verification record (mutate cycles, sorted piles, fixture declarations, SC counts) for the PR self-review comment
 
 ---
 
