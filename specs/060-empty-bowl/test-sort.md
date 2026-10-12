@@ -48,6 +48,35 @@ test config eat bounds min 2 (interrupt lawful on the 3rd tick).
   despawn-at-env-resolve, full relief. NOT in the must-flip pile.
 - `welfare_longrun.rs:41` crowded-out kitty — retarget/respawn path.
 
-## Mutate cycles (T009 record — filled as run)
+## Red record (T004-T009)
 
-(pending)
+Pre-edit reds (all four guards against the unamended engine, predicted
+failures confirmed verbatim): `an_emptied_bowl_ends…` ("the first
+resolution…" left Eating / right Idle), `a_shared_bowl_emptying…`
+("kitty 1's meal ends with the bowl"), `a_meal_never_stretches…` ("the
+fed-from bowl is empty…"). VACUOUS FIRST-CUT on record:
+`a_vanished_bowl…` v1 removed the bowl a tick too late (elapsed had
+reached the minimum, where the OLD rule ends the meal too) and stayed
+green; restaged to remove the bowl inside the meal's first tick, then
+RED with the predicted failure.
+
+Mutate cycles (scripts/mutate.sh, all RED CONFIRMED, baseline ==
+restored):
+
+1. Revert `done_naturally` to the spec-006 grouping → the four guards
+   red (`--expect` matched "the first resolution…"); `need_zero_before`
+   in the same run stayed green (kept clause intact under mutation).
+2. Feeding-blind end (`out_of_chow` forced false) → four guards red
+   (`--expect` matched the vanished-bowl message).
+3. Stretch-across predicate (filter stocked BEFORE picking nearest in
+   `adjacent_stocked_chow_in`) → no-stretching guard red (`--expect`
+   matched "fed-from bowl is empty|tied lower-id bowl drained") — pins
+   the clarify-2026-10-11 ruling in code.
+4. Double-record in `end_activity` → log-count asserts red (`--expect`
+   "one ordinary end record").
+
+Not separately mutated, with reason: the `refusal_log.is_empty()`
+asserts are absence pins whose positive surface is already guarded by
+`duration_enforcement_decides_the_absorbed_flag_never_the_refusal`
+(kept pile); no one-line mutation produces a refusal from the
+resolution path without inventing the very code the design forbids.
