@@ -662,11 +662,14 @@ impl World {
         }
     }
 
-    /// Spec 006 FR-005/006/008: the closing step of the apply phase. Every
-    /// ongoing activity is examined -- by clock presence, never by whether
-    /// effects landed this tick, so a paused meal stays reachable -- and ends
-    /// when it has run its maximum, or has met its minimum with its governing
-    /// need at 0 (either partner's, for a duet) or its bowl empty.
+    /// Spec 006 FR-005/006/008 as amended by spec 060: the closing step of
+    /// the apply phase. Every ongoing activity is examined -- by clock
+    /// presence, never by whether effects landed this tick -- and ends when
+    /// it has run its maximum, or has met its minimum with its governing
+    /// need at 0 (either partner's, for a duet). A meal whose feeding
+    /// condition fails (the bowl it feeds from is empty or gone) ends here
+    /// regardless of the minimum: a scene delivering no relief holds no
+    /// steadiness purpose (spec 060 FR-001).
     fn resolve_activity_ends(&mut self, config: &Config) {
         let tick = self.tick;
 
@@ -735,7 +738,7 @@ impl World {
             };
             let out_of_chow = matches!(activity, Activity::Eating)
                 && self.adjacent_stocked_chow(kitty.pos).is_none();
-            let done_naturally = elapsed >= bounds.min && (governed_done || out_of_chow);
+            let done_naturally = (elapsed >= bounds.min && governed_done) || out_of_chow;
 
             if elapsed >= bounds.max || done_naturally {
                 self.end_activity(id);
@@ -3714,36 +3717,187 @@ mod tests {
         assert_eq!(world.kitty(1).unwrap().activity, Activity::Idle);
     }
 
+    /// Spec 060 FR-001 (supersedes the spec-006 pause-to-minimum rule this
+    /// test used to pin): a meal whose feeding condition fails ends at that
+    /// tick's resolution, minimum met or not. `dinner_table(1)` is also the
+    /// one-tick meal: span 1, exactly one serving's relief (edge case).
     #[test]
-    fn an_emptied_bowl_pauses_below_the_minimum_and_ends_at_it() {
+    fn an_emptied_bowl_ends_the_meal_below_the_minimum() {
         let (mut world, config) = dinner_table(1);
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
 
         run_slot(&mut world, &config, 1, Action::Eat);
-        assert_eq!(world.kitty(1).unwrap().needs.get(NeedKind::Eat), 60.0);
+        assert_eq!(
+            world.kitty(1).unwrap().needs.get(NeedKind::Eat),
+            60.0,
+            "exactly one serving's relief before the bowl ran out"
+        );
         close_tick(&mut world, &config);
 
-        // The bowl is empty and the minimum unmet: the cat licks the bowl --
-        // no relief, no consumption -- but the clock still stamps, so the end
-        // rules can reach the paused meal (analyze C1).
-        run_slot(&mut world, &config, 1, Action::Idle);
         let kitty = world.kitty(1).unwrap();
         assert_eq!(
-            kitty.needs.get(NeedKind::Eat),
-            60.0,
-            "no relief from an empty bowl"
+            kitty.activity,
+            Activity::Idle,
+            "the first resolution that finds the feeding condition failed ends the meal"
         );
+        assert!(kitty.activity_clock.is_none(), "the clock is cleared");
+        let ends = world.activity_log.to_vec();
+        assert_eq!(ends.len(), 1, "one ordinary end record: {ends:?}");
+        assert_eq!(ends[0].activity, Activity::Eating);
+        assert_eq!(ends[0].span(), 1, "the one-tick meal is on the books");
+        assert!(
+            world.refusal_log.is_empty(),
+            "a scene end is not a refusal (FR-003)"
+        );
+
+        // The freed kitty decides freely on the very next tick.
+        let enforced = run_slot(&mut world, &config, 1, Action::move_to(Direction::North));
         assert_eq!(
-            kitty.activity_clock.unwrap().applied,
-            world.tick,
-            "the pause still services the clock"
+            enforced,
+            Action::move_to(Direction::North),
+            "no minimum holds a meal the bowl already ended"
+        );
+    }
+
+    /// Spec 060 FR-004 / acceptance scenario 4: the rule reads the world
+    /// after every slot of the tick, so all eaters a drained bowl leaves
+    /// unfed end at the same resolution, whoever drew the last serving.
+    #[test]
+    fn a_shared_bowl_emptying_ends_every_meal_at_it() {
+        let (mut world, config) = dinner_table(2);
+        let near = world.kitty_index(2).unwrap();
+        world.kitties[near].pos = Position::new(5, 7); // other side of the bowl
+        for id in [1, 2] {
+            let idx = world.kitty_index(id).unwrap();
+            world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+        }
+
+        run_slot(&mut world, &config, 1, Action::Eat);
+        run_slot(&mut world, &config, 2, Action::Eat);
+        assert!(
+            matches!(
+                world.element(900).unwrap().kind,
+                ElementKind::Chow { servings: 0 }
+            ),
+            "two slots, two servings: the bowl drains inside the tick"
+        );
+        close_tick(&mut world, &config);
+
+        for id in [1, 2] {
+            let kitty = world.kitty(id).unwrap();
+            assert_eq!(
+                kitty.activity,
+                Activity::Idle,
+                "kitty {id}'s meal ends with the bowl, minimum unmet"
+            );
+            assert!(kitty.activity_clock.is_none());
+        }
+        assert_eq!(world.activity_log.to_vec().len(), 2, "both ends recorded");
+        assert!(world.refusal_log.is_empty(), "ends, not refusals (FR-003)");
+    }
+
+    /// Spec 060 clarify 2026-10-11 (acceptance scenario 5): the feeding
+    /// condition is the engine's meal predicate as it stands -- the bowl the
+    /// meal feeds from (nearest in reach, ties by lower id) must be stocked.
+    /// A farther bowl emptying leaves the meal alone; the fed-from bowl
+    /// emptying ends it even beside a stocked one.
+    #[test]
+    fn a_meal_never_stretches_across_to_a_farther_bowl() {
+        // Fed-from bowl underfoot (d0) drains beside a stocked d1 bowl.
+        let (mut world, config) = dinner_table(1);
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+        let eater = world.kitties[idx].pos;
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Chow { servings: 1 },
+            pos: eater, // nearer than the d1 bowl at (5,6): read first
+            ttl: None,
+        });
+        run_slot(&mut world, &config, 1, Action::Eat);
+        assert!(
+            matches!(
+                world.element(901).unwrap().kind,
+                ElementKind::Chow { servings: 0 }
+            ),
+            "the meal fed from the underfoot bowl"
         );
         close_tick(&mut world, &config);
         assert_eq!(
             world.kitty(1).unwrap().activity,
             Activity::Idle,
-            "minimum met over an empty bowl: the meal ends"
+            "the fed-from bowl is empty: the meal ends despite the stocked bowl one step away"
+        );
+
+        // Two d1 bowls: the tie-break (lower id) reads the drained one.
+        let (mut world, config) = dinner_table(1); // id 900 at (5,6)
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Chow { servings: 5 },
+            pos: Position::new(5, 4), // also d1, higher id: never read first
+            ttl: None,
+        });
+        run_slot(&mut world, &config, 1, Action::Eat);
+        close_tick(&mut world, &config);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Idle,
+            "the tied lower-id bowl drained: the meal ends, no stretching across"
+        );
+
+        // The kept half of scenario 5: a FARTHER bowl emptying is nothing.
+        let (mut world, config) = dinner_table(5); // fed-from: id 900, d1
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+        world.push_element(Element {
+            id: 901,
+            kind: ElementKind::Chow { servings: 1 },
+            pos: Position::new(5, 4), // d1 but higher id: not the fed-from bowl
+            ttl: None,
+        });
+        run_slot(&mut world, &config, 1, Action::Eat);
+        let other = world.elements.iter_mut().find(|e| e.id == 901).unwrap();
+        other.kind = ElementKind::Chow { servings: 0 }; // drained by the world
+        close_tick(&mut world, &config);
+        assert!(
+            world.kitty(1).unwrap().activity_clock.is_some(),
+            "the fed-from bowl is stocked: the other bowl's fate is not this meal's"
+        );
+    }
+
+    /// Spec 060 edge case: a bowl the environment phase removed mid-meal
+    /// (ttl expiry / despawn) ends the meal at the NEXT resolution through
+    /// the same feeding condition -- meals are deliberately exempt from
+    /// spec-048 counterpart pruning, and no refusal row is written.
+    #[test]
+    fn a_vanished_bowl_ends_the_meal_at_the_next_resolution() {
+        let (mut world, config) = dinner_table(5);
+        let idx = world.kitty_index(1).unwrap();
+        world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
+
+        // The bowl vanishes inside the meal's FIRST tick (ttl expiry runs
+        // in the environment phase, between this slot and the next; applied
+        // directly because close_tick runs only the resolution step). The
+        // first restaging of this guard removed the bowl a tick later and
+        // was vacuous: elapsed had reached the minimum, where the old rule
+        // ends the meal too.
+        run_slot(&mut world, &config, 1, Action::Eat);
+        world.elements.retain(|e| e.id != 900);
+        close_tick(&mut world, &config);
+
+        let kitty = world.kitty(1).unwrap();
+        assert_eq!(
+            kitty.activity,
+            Activity::Idle,
+            "the gone bowl fails the feeding condition below the minimum"
+        );
+        assert!(kitty.activity_clock.is_none());
+        assert!(
+            world.refusal_log.is_empty(),
+            "a scene end is never a refusal (FR-003)"
         );
     }
 
