@@ -73,6 +73,25 @@ change.
   when the call is loud enough to outrank its own worries and near
   enough to reach while the call still hangs in the air.
 
+- **An empty bowl no longer holds its cat.** `[rng-sequence]` A meal
+  used to run out its minimum even when the bowl ran out first — the
+  cat licking an empty bowl for the tick the scene minimum still owed.
+  The minimum exists to keep scenes steady, and a scene with no relief
+  left has nothing to steady (spec 060, shelved for the generation
+  boundary at the 048 merge and landed inside it). The engine now ends
+  an eating scene at the first resolution that finds nothing left where
+  the meal feeds from, and the freed cat decides for itself on the next
+  tick. Minimums are untouched wherever relief still flows: a cat whose
+  belly fills early still finishes its licks. The rule is the world's,
+  not an advisor's. It binds every seat identically, ends the scene for
+  every cat the drained bowl leaves unfed, and writes an ordinary scene
+  end, never a refusal. On the reference world it removes every
+  zero-relief eating tick (235 to 0 per 20,000, both arms counted in
+  the committed artifact), so every seeded world whose bowls drain
+  mid-meal walks a new path from the first such meal (the continuity
+  fixtures and evolution goldens re-recorded, divergence declared and
+  filed).
+
 - **"Nearest" means nearest to walk to.** When several kitties answer
   one ask, the reply the viewer shows is the one from the kitty with the
   shortest walk, the same distance every other kitty decision uses.
