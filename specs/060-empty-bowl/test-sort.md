@@ -80,3 +80,28 @@ asserts are absence pins whose positive surface is already guarded by
 `duration_enforcement_decides_the_absorbed_flag_never_the_refusal`
 (kept pile); no one-line mutation produces a refusal from the
 resolution path without inventing the very code the design forbids.
+
+## Pin sweep record (T010-T012)
+
+- fog_continuity: first-divergence ticks captured pre-re-record — pre-fog
+  76/76 (a cat Moves where it held an absorbed Eat), preladder r=5 at 52;
+  justification paragraphs appended in both history blocks; fixtures
+  re-recorded via the ignored mains; comparisons green.
+- evolution_golden: BOTH pins moved (whole-world dynamics change) —
+  golden a3fd38e5… → 1ceba1bf…, strip witness 3c4e86cd… → 8f59ef5c…,
+  history paragraphs appended in-file.
+- activity_durations.rs `twenty_thousand_ticks_of_activities_respect_their_bounds`
+  reddened — a spec-006 SC-001 property pin MISSED BY THE T002 SORT
+  (reported per rule 6, then moved with the spec): Eating added to
+  `counterpart_can_leave` (a drained/vanished bowl is the meal's
+  counterpart leaving), module doc updated. Its red was observed before
+  the edit; it is the property-layer red for FR-001.
+- Everything else green unchanged: snapshot_resume, joint_action_parity,
+  roam_tether, consent_gate, waterline_contagion; ALL rl pins
+  (run_json_golden, eval_suite, welfare_longrun, harness_policy,
+  mixed_control, clock_and_range, artifact_v3_parity, vocabulary_flags)
+  — their runs contain no below-minimum bowl-drain event, a legitimate
+  no-divergence (they are not guards of 060), recorded here so the
+  green is a claim, not an oversight.
+- Workspace after sweep: 1019 passed / 0 failed (core lib 554 → 557:
+  one test rewritten, three added).

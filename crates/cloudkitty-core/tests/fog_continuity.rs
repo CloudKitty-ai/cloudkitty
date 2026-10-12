@@ -226,6 +226,15 @@ fn read_lines(name: &str) -> Vec<String> {
 /// the ruling's declared one ("worth accepting the divergence"); what
 /// these tests pin is unchanged — the LAW-ERA toggles alone move
 /// nothing on the current engine.
+///
+/// Re-recorded for spec 060 (2026-10-12): the empty-bowl early end — a
+/// meal whose feeding condition fails ends at that resolution, minimum
+/// unmet or not — frees every cat an emptied bowl used to hold, so the
+/// pre-fog streams first diverge at tick 76 (a cat Moves where it held
+/// an absorbed Eat over a drained bowl), cascade thereafter. The
+/// divergence is the shelf ruling's declared one (BACKLOG entry, owner
+/// 2026-09-02/-10; S§6), landed inside the Gen 2 `[rng-sequence]`
+/// boundary. What these tests pin is unchanged.
 #[test]
 fn world_covering_radius_under_the_pre_fog_law_is_byte_identical() {
     let mut config = served_all_scripted();
@@ -504,6 +513,13 @@ fn served_all_scripted_r5_floor_unset() -> Config {
 /// so every want arms earlier and both streams move. The control keeps
 /// the fixture's r = 5 and the ambient here off; only the inherited
 /// threshold changed.
+///
+/// Re-recorded for spec 060 (2026-10-12): the empty-bowl early end
+/// moves every stream in which a bowl drains mid-meal below the eat
+/// minimum — the r = 5 streams first diverge at tick 52. Same
+/// declaration as the pre-fog block above: the shelf-ruled reprice
+/// rides the Gen 2 `[rng-sequence]` boundary; what this pins is
+/// unchanged.
 #[test]
 fn reply_floor_unset_is_byte_identical() {
     let expected_actions = read_lines("preladder-r5-20k.actions.digest");

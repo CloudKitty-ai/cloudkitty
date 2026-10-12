@@ -9,9 +9,10 @@
 //!
 //! - SC-001: no instance shorter than its minimum (except the documented
 //!   counterpart-loss ends: a critter that vanished or scurried off, a
-//!   groomed friend who walked away, a water source that dried up) and none
-//!   longer than its maximum -- checked on every ended event, and against
-//!   still-running clocks each tick.
+//!   groomed friend who walked away, a water source that dried up, and --
+//!   spec 060 -- a meal whose bowl drained or vanished, which ends at that
+//!   resolution) and none longer than its maximum -- checked on every ended
+//!   event, and against still-running clocks each tick.
 //! - SC-002 (sampled): eat and drink instances end promptly -- never past the
 //!   ticks their starting pressure could possibly justify.
 //! - SC-004: every activity kind is observed lasting at least 2 ticks.
@@ -47,13 +48,16 @@ fn kind_key(activity: &Activity) -> &'static str {
 }
 
 /// Whether this activity's counterpart can leave mid-scene, lawfully ending
-/// it below the minimum (FR-010). Duet partners cannot leave (they are bound
-/// and never move mid-activity), so duets are not in this list.
+/// it below the minimum (FR-010, and spec 060 for meals: a bowl that drains
+/// or vanishes fails the feeding condition and ends the scene at that
+/// resolution). Duet partners cannot leave (they are bound and never move
+/// mid-activity), so duets are not in this list.
 fn counterpart_can_leave(activity: &Activity) -> bool {
     use cloudkitty_core::action::TargetRef;
     matches!(
         activity,
-        Activity::Drinking
+        Activity::Eating
+            | Activity::Drinking
             | Activity::Playing {
                 target: Some(TargetRef::Element { .. })
             }

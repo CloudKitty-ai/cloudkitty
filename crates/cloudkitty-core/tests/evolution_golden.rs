@@ -119,8 +119,15 @@ use sha2::{Digest, Sha256};
 /// kitty-directed groom on (tick 119 on this seed) and the trajectories
 /// part -- re-pinned again (a5091adf… was the flag-13 pin). Justified
 /// red-first in specs/054-groom-reprice/redden-list.md.
+/// Spec 060 (2026-10-12): an INTENTIONAL dynamics move -- a meal whose
+/// feeding condition fails (bowl drained or gone) ends at that tick's
+/// resolution, minimum unmet or not, so every cat an emptied bowl used
+/// to hold decides a tick or two earlier and the trajectories part --
+/// re-pinned again (a3fd38e5… was the spec-054 pin). The shelf-ruled
+/// reprice rides the Gen 2 [rng-sequence] boundary; red-first record in
+/// specs/060-empty-bowl/test-sort.md.
 const GOLDEN_DIGEST_SPEC_049: &str =
-    "a3fd38e57a13de811dbf2088c58d7af899074f6465b61ca6bff5293432724001";
+    "1ceba1bf1caf87b5e5bb762544ad000b1b22ccb5368ee132ef4c876ba3fc822e";
 
 /// The world-minus-ring digest of the SAME 10k-tick run the 048 golden
 /// pins (re-derived at 048, since the dynamics themselves moved). The
@@ -134,8 +141,10 @@ const GOLDEN_DIGEST_SPEC_049: &str =
 /// (408dc1a7… was the T087 pin); T092: again (dc480760… was the T088 pin);
 /// review 3 finding 1: again (6d1acfe0… was the T092/T093 pin); flag 13:
 /// again (ab932287… was the review-3 pin); spec 054: again, from the
-/// same repriced run as the golden above (7918bb21… was the flag-13 pin).
-const STRIP_PIN_SPEC_049: &str = "3c4e86cd8c72cad699dc3f3642cdb971d31f5b8d3c0172098637c2c33f9d8520";
+/// same repriced run as the golden above (7918bb21… was the flag-13 pin);
+/// spec 060: again, from the same early-end run as the golden above
+/// (3c4e86cd… was the spec-054 pin).
+const STRIP_PIN_SPEC_049: &str = "8f59ef5cdf07860a7143b0d76c2e382b107c8b3b7b206b8a5e05a75ca29bea71";
 
 /// One 10k-tick run shared by both pins: the golden and the strip witness
 /// must describe the same serialized bytes, not two runs.
