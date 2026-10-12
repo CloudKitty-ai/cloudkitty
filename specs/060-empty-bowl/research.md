@@ -55,6 +55,12 @@ meal the effect cannot feed. One predicate, four consumers (end rule,
 validate, effect, HereFood grounding at meow.rs:241) stays the
 property.
 
+**RESOLVED — owner ruled "1" 2026-10-11** (keep the predicate as-is;
+the meal ends in the nearest-empty geometry; spec wording folded in:
+Clarifications Session 2026-10-11, FR-001, FR-004, scenario 5, Key
+Entities, US1/SC-001 re-keyed to "feeding condition"). The original
+flag, kept for the record:
+
 **The catch (owner should see this)**: the predicate is "the NEAREST
 adjacent chow is stocked", not "SOME adjacent stocked chow exists".
 The two differ only when ≥2 bowls sit within Manhattan 1 of one eater
