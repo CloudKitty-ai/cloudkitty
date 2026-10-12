@@ -222,6 +222,52 @@ Reading:
   "absent an alarm, thin strata never auto-demote" guard is doing
   real work, not belt-and-braces.
 
+## Read 3 — happiness mass at the ruled edges (added 2026-10-12)
+
+Owner ask, 2026-10-12 (the bins discussion): where do the ostrich
+bins' happiness edges come from, and should training vs trained get
+different values? Edge provenance, verified in source: 45 =
+`LOW_HAPPINESS` (`crates/cloudkitty-rl/src/welfare.rs:20`), 70 =
+`MIN_MEAN_HAPPINESS` (`welfare.rs:31`) — the welfare-gate constants
+(specs 004/006 lineage, tighten-only compile-time asserts at
+`welfare.rs:40-44`); 70 was defined as a bar on each kitty's
+run-MEAN happiness (one check per kitty, `welfare.rs:314`), borrowed
+by the S§3(d) ruling onto a per-state axis. The occupancy
+question is measurable, same corpus and state channel as reads 1–2
+(happiness at block offset 6, scale /100):
+
+| | scripted bc-corpus, 4,000,000 kitty-ticks |
+|---|---|
+| mean / p5 / p50 / p95 / min | 85.1 / 71.1 / 87.0 / 93.8 / 28.8 |
+| below 45 | 0.0236% |
+| 45 to 70 | 3.95% |
+| at least 70 | 96.027% |
+
+For the trained side, the committed cert record
+(`experiments/fog-gen1-cert/RESULTS.md`): the gen1-A gate table puts
+every certified seat's mean happiness +4.36 to +6.56 points above
+the scripted cat in that seat on the paired band (+4.30 to +6.67 on
+the eval band), no seed below at any seat; §Report-only swaps adds
+"Every arm at every seat beats the scripted cat in that seat on all
+30 seeds" (the swaps' under-one-point spread is arm-vs-arm, not
+trained-vs-scripted).
+
+Reading: the below-45 bin is already near-empty at scripted
+(= BC-start) density (0.0236%), the 45–70 bin small but readable
+(3.95%, about 158k of the 4M ticks), and trained seats sit 4–7
+happiness points above scripted in-seat — so the training-era shift
+should thin the low bins further. That direction is an inference
+from per-seat means; the low-happiness tail of trained seats is not
+directly measured here (no trained-seat state raws exist on disk).
+Either way it is an occupancy problem, not an edge
+problem: era-relative edges would keep bins full by relabeling
+ordinary ticks as grave, and every cross-era comparison the
+instruments make (Phase-1 certificate vs Phase-2 lived, lived vs
+probe) depends on "grave" naming the same state on both sides. The
+fixed probe battery, not the edges, is the era knob. Candidate pin
+lines drafted into the skeleton's §9 item 2 slot travel with this
+read.
+
 ## Caveats
 
 - **Gen 1 scripted config, no answering teacher.** Gen 2 collection
@@ -256,9 +302,17 @@ experiments/exp-006-character-gen/.venv/bin/python \
 # runtime ~1 second; bootstrap is seeded (20261011), output deterministic
 ```
 
-Recorded outputs: `grave-density.json` and `relief-latency.json`
-beside this file. Both readers print every derived column the doc
-uses.
+```
+cd /Users/elizabethkelly/ai/cloudkitty && \
+experiments/exp-006-character-gen/.venv/bin/python \
+  experiments/minifriend-presitting-2026-10-11/happiness_mass_read.py \
+  --out <scratch>/happiness-mass.json
+# runtime ~5 seconds; no env beyond the venv interpreter
+```
+
+Recorded outputs: `grave-density.json`, `relief-latency.json` and
+`happiness-mass.json` beside this file. All readers print every
+derived column the doc uses.
 
 Raw-dir hashes (`scripts/rawdir-hash.sh`, per real idx dir; the
 canonical recipe refuses `flat/`'s symlinks, so the bundle is the
@@ -285,3 +339,16 @@ Professor quote verbatim, nine raw-dir hashes recomputed, state
 layout re-derived over all 40 rollouts, flag-cell total 11,976
 cross-channel identity). Fresh JSONs byte-identical to recorded,
 re-verified after the post-gate docstring edits.
+
+Accuracy gate, Read 3 addendum + skeleton [CANDIDATE] copy check:
+PASS 2026-10-12 — arithmetic 11 (all match), provenance 9 (8
+verified incl. the welfare.rs constants at :20/:31, asserts
+:40-44, the S§3(d) edges; 1 weak fixed post-gate: "population
+MEAN" → each kitty's run-mean, welfare.rs:314), characterisation 3
+(3 weak, all fixed post-gate: "near-empty" scoped to the below-45
+bin; "slightly above" replaced with the gate table's +4.36..+6.56
+paired / +4.30..+6.67 eval per-seat deltas — the swaps
+under-one-point spread is arm-vs-arm, not trained-vs-scripted;
+"thins the low bins" marked as an inference from per-seat means,
+tail unmeasured). Fresh happiness-mass.json byte-identical to
+recorded. Same raw bundle and hashes as above.

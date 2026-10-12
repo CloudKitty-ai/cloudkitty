@@ -776,3 +776,29 @@ value. "45/70" pinned for happiness is not "45/70" pinned for need
 pressure, and the word "pinned" travels with the axis. And name the
 statistical design you actually ran, even when the honest label only
 makes your conclusion stronger.
+
+## 2026-10-12 — addendum gate: happiness-mass read + skeleton candidates (Experiments)
+
+Target: Read 3 of experiments/minifriend-presitting-2026-10-11/RESULTS.md
+plus copy check of the new [CANDIDATE] block in the Gen 2 skeleton §9
+item 2. PASS; four post-gate fixes, no number wrong.
+
+Findings worth keeping:
+- "A bar on the population MEAN" — welfare.rs's MIN_MEAN_HAPPINESS is
+  per kitty (one run-mean check each, :314), not a population
+  aggregate. The doc's point survived; the word "population" was
+  invented in the retelling.
+- The session quoted the swaps digest's "under one happiness point"
+  as trained-vs-scripted. It is arm-vs-arm; the real
+  trained-vs-scripted lift is +4.30 to +6.67 per seat in the gate
+  table three paragraphs earlier. Two comparisons living in one
+  section, and the wrong one got carried.
+- "Thins the low bins" was stated as fact off per-seat means; the
+  trained tail is unmeasured (no trained-seat state raws exist).
+  Marked as inference.
+
+Lesson: a section can hold two deltas with different comparators;
+check which comparator a quoted number belongs to before carrying
+it. And a directional claim about a TAIL needs tail evidence or an
+inference label — means do not measure tails (house rule already:
+tails and floors, never means).

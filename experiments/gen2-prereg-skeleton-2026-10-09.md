@@ -5,7 +5,9 @@ NOT a declaration; nothing here is frozen, and no collection may
 cite it. One slot per ruling: **[RULED]** lines carry their source
 record and are restatements (re-verify against the record at
 freeze — the records, not this file, are authoritative); **[BLANK]**
-lines are what the freeze sitting must pin. Rulings sources:
+lines are what the freeze sitting must pin; **[CANDIDATE]** lines
+are drafted proposals awaiting her word at the freeze — neither
+rulings nor answers to blanks until she rules. Rulings sources:
 `gen2-kickoff-rulings-2026-10-07.md` (K§n),
 `gen2-sitting-rulings-2026-10-08.md` (S§n),
 `roadmap-inputs-2026-10-06.md` (R§n), #390, #391, GEN2-INPUTS
@@ -417,6 +419,35 @@ timebox)
    before pooled. Read on BOTH estimates, per phase: the Phase-1
    offline heads and the Phase-2 live head. [BLANK] the gap
    threshold that counts as a signature, and n.
+   [CANDIDATE, Experiments draft 2026-10-12 on her ask; data in
+   minifriend-presitting-2026-10-11 read 3] Three riders on the
+   bins:
+   (a) Edge sources stated in the frozen prereg: 45 =
+   `LOW_HAPPINESS` (`crates/cloudkitty-rl/src/welfare.rs:20`), 70
+   = `MIN_MEAN_HAPPINESS` (`welfare.rs:31` — defined as a bar on
+   each kitty's run-mean happiness, borrowed here onto a per-state
+   axis: documented, not re-derived), 90 = the need `distress`
+   edge.
+   ONE fixed set across eras; no era-indexed or quantile-relative
+   edges anywhere in the doctrine texts — every cross-era read
+   (Phase-1 certificate vs Phase-2 lived, lived vs probe,
+   generation over generation) depends on "grave" naming the same
+   state on both sides.
+   (b) Expected-occupancy statement: trained-era lived mass below
+   45 is expected near-zero and the 45–70 bin thin (scripted
+   density 0.0236% below 45, 3.95% in 45–70; trained seats sit
+   +4.3 to +6.7 happiness points above scripted in-seat per the
+   cert gate table — further thinning inferred from means, tail
+   unmeasured), so insufficient-coverage there is the ANTICIPATED
+   outcome — a
+   coverage fact to remedy by probes, never an alarm, and thin
+   strata never auto-demote absent an alarm.
+   (c) The probe battery is the era knob: the FIXED battery
+   oversamples the low-happiness and grave-distress bins to its
+   own declared per-bin n ([BLANK] that n, pinned with the
+   margin/min-n values), independent of lived density; lived
+   reads serve demotion/stop, the battery serves the certificate,
+   and the lived-vs-probe gap carries the shift signature.
 3. [RULED S§3c] Food-yielding probe battery: DIFFERENCE =
    yield-to-truly-hungry − yield-to-cue-scrambled-sated;
    eval-only unmask oracle leg; scarcity dial; arm must
