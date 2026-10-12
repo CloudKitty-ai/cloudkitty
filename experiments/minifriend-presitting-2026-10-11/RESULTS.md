@@ -252,14 +252,48 @@ the eval band), no seed below at any seat; §Report-only swaps adds
 30 seeds" (the swaps' under-one-point spread is arm-vs-arm, not
 trained-vs-scripted).
 
+Trained-tail addendum (2026-10-12, same day; restated after a gate
+FAIL caught the first version comparing across corpora): the
+below-45 tail of the certified roster is already measured in the
+committed battery raws — the scorecards carry `low_share`, the
+cert harness's share of ticks strictly below 45
+(`cert_harness_fog.py:432`, its `LOW_HAPPINESS = 45.0` mirroring
+`welfare.rs:20`), per seat per seed. The battery also holds
+SAME-WORLD all-scripted legs (same config_sha256, same seed base;
+same harness file, though the trained-eval leg's tool sha differs —
+stamped mid-edit, and only the current harness's strict `< 45`
+definition is byte-checkable), so the trained-vs-scripted tail read
+is paired, 30 seeds × 20,000 ticks × 5 seats per leg:
+
+| band | trained low ticks /3M | scripted low ticks /3M | ratio | worst cell: trained / scripted |
+|---|---|---|---|---|
+| eval | 1 | 61 (0.00203%) | 61.0 | 5e-05 / 0.0016 |
+| stress | 6 | 51 (0.0017%) | 8.5 | 0.0003 / 0.0006 |
+| pooled | 7 | 112 | 16.0 | |
+
+Training thins the below-45 tail about 1.2 orders pooled (61× on
+the eval band, 8.5× on stress), cell-to-cell the trained worst
+(0.03%) sits below the scripted worst (0.16% eval / 0.06% stress),
+and 149 of 150 trained cells per band are exactly 0. Read 1-3's
+bc-corpus scripted rate (0.0236%) is a DIFFERENT corpus and config
+— itself about 12× the cert-band scripted rate — so it is
+collection-density context, never the training comparator. The
+trained 45–70 occupancy stays unmeasured (the scorecards carry the
+below-45 share, the mean, floor touches and distress ages — no
+45–70 field) until the ostrich metric's own bin-occupancy read,
+first available at Phase 1 on the frozen-trunk rollouts (the
+skeleton's "Phase-1 offline heads" leg), with insufficient-coverage
+first-class per S§3(d). Owner, 2026-10-12: no dedicated
+trained-seat rollout pre-sitting — "we'll skip the rollout".
+
 Reading: the below-45 bin is already near-empty at scripted
-(= BC-start) density (0.0236%), the 45–70 bin small but readable
-(3.95%, about 158k of the 4M ticks), and trained seats sit 4–7
-happiness points above scripted in-seat — so the training-era shift
-should thin the low bins further. That direction is an inference
-from per-seat means; the low-happiness tail of trained seats is not
-directly measured here (no trained-seat state raws exist on disk).
-Either way it is an occupancy problem, not an edge
+(= BC-start) density (0.0236% on bc-corpus, 0.0017–0.00203% on the
+cert bands), the 45–70 bin small but readable at collection density
+(3.95%, about 158k of the 4M bc-corpus ticks), trained seats sit
+4–7 happiness points above scripted in-seat, and training thins the
+below-45 tail about 16× in the paired same-world read. For 45–70
+the thinning is still an inference from the mean shift. It is an
+occupancy problem, not an edge
 problem: era-relative edges would keep bins full by relabeling
 ordinary ticks as grave, and every cross-era comparison the
 instruments make (Phase-1 certificate vs Phase-2 lived, lived vs
@@ -310,9 +344,18 @@ experiments/exp-006-character-gen/.venv/bin/python \
 # runtime ~5 seconds; no env beyond the venv interpreter
 ```
 
-Recorded outputs: `grave-density.json`, `relief-latency.json` and
-`happiness-mass.json` beside this file. All readers print every
-derived column the doc uses.
+```
+cd /Users/elizabethkelly/ai/cloudkitty && \
+experiments/exp-006-character-gen/.venv/bin/python \
+  experiments/minifriend-presitting-2026-10-11/trained_tail_read.py \
+  --out <scratch>/trained-tail.json
+# runtime ~1 second; reads the two committed gen1-A battery jsonl
+# scorecards, not the bc-corpus bundle
+```
+
+Recorded outputs: `grave-density.json`, `relief-latency.json`,
+`happiness-mass.json` and `trained-tail.json` beside this file. All
+readers print every derived column the doc uses.
 
 Raw-dir hashes (`scripts/rawdir-hash.sh`, per real idx dir; the
 canonical recipe refuses `flat/`'s symlinks, so the bundle is the
@@ -352,3 +395,16 @@ under-one-point spread is arm-vs-arm, not trained-vs-scripted;
 "thins the low bins" marked as an inference from per-seat means,
 tail unmeasured). Fresh happiness-mass.json byte-identical to
 recorded. Same raw bundle and hashes as above.
+
+Accuracy gate, trained-tail addendum: FAIL r1 2026-10-12 — the
+first version compared the trained tail against the bc-corpus
+scripted rate (cross-corpus; the battery's own same-world scripted
+legs give 16× pooled where the cross-corpus framing implied ~100×)
+and put a worst cell beside a mean. Restated against the paired
+legs; PASS r2 same day — 20/20 numbers, pairing verified
+(config_sha256 782f9690… and seed bases shared across all four
+legs), harness low_share definition verified strict < 45 at
+cert_harness_fog.py:400/:432/:45; one weak fixed post-gate ("same
+harness" softened to same harness file, trained-eval tool sha
+stamped mid-edit). The trained-tail JSON here reads the four
+battery jsonl scorecards, not the bc-corpus bundle.

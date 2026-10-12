@@ -802,3 +802,27 @@ check which comparator a quoted number belongs to before carrying
 it. And a directional claim about a TAIL needs tail evidence or an
 inference label — means do not measure tails (house rule already:
 tails and floors, never means).
+
+## 2026-10-12 — addendum gate r1 FAIL, r2 PASS: trained-tail read (Experiments)
+
+Target: the trained-tail addendum to minifriend-presitting RESULTS.md
+Read 3 + skeleton rider (b). r1 FAIL — the first real FAIL on a live
+doc. The session compared the trained below-45 tail (cert battery)
+against the bc-corpus scripted rate and called it "roughly two
+orders thinner". The verifier found the battery's own SAME-WORLD
+all-scripted legs (same config_sha256, same seed0, same files
+directory): paired, the thinning is 16x pooled (61x eval, 8.5x
+stress). Most of the claimed effect was the gap between two
+corpora, not training. Also caught: a worst CELL quoted beside a
+MEAN (same-world worst cells: trained 0.03% vs scripted 0.16%), and
+"Phase 2's own bin-occupancy output" when the skeleton's own text
+puts the first trained bin read at Phase 1 (frozen-trunk offline
+heads). r2 PASS after restating on the paired legs, with the reader
+extended to print both legs.
+
+Lesson: before reaching across corpora for a comparator, ask
+whether the raw bundle you are already holding contains its own
+paired control — this one did, two files away, with the seed base
+in the filename. Paired within-run controls beat between-run maxima
+is already the house rule for measurements; it is the rule for
+COMPARATORS too. And a worst cell never sits beside a mean.

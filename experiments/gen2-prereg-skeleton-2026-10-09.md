@@ -437,9 +437,14 @@ timebox)
    45 is expected near-zero and the 45–70 bin thin (scripted
    density 0.0236% below 45, 3.95% in 45–70; trained seats sit
    +4.3 to +6.7 happiness points above scripted in-seat per the
-   cert gate table — further thinning inferred from means, tail
-   unmeasured), so insufficient-coverage there is the ANTICIPATED
-   outcome — a
+   cert gate table, and the trained below-45 tail is MEASURED
+   against the SAME-WORLD scripted battery legs: training thins it
+   16× pooled (61× eval / 8.5× stress), 149 of 150 trained
+   seed×seat cells exactly 0 per band, worst trained cell 0.03% vs
+   worst scripted cell 0.16% — read 3's trained-tail addendum;
+   trained 45–70 occupancy first lands at Phase 1's frozen-trunk
+   ostrich read), so insufficient-coverage there is the
+   ANTICIPATED outcome — a
    coverage fact to remedy by probes, never an alarm, and thin
    strata never auto-demote absent an alarm.
    (c) The probe battery is the era knob: the FIXED battery

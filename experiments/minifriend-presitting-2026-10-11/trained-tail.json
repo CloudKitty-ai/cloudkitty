@@ -1,0 +1,113 @@
+{
+ "eval": {
+  "trained": {
+   "file": "experiments/fog-gen1-cert/results-raw/battery/gen1-A-eval-30x20000.jsonl",
+   "seeds": 30,
+   "seats": 5,
+   "low_ticks_total": 1,
+   "kitty_ticks_total": 3000000,
+   "low_share_pooled_pct": 3e-05,
+   "low_share_per_seat_mean": [
+    0.0,
+    0.0,
+    1.67e-06,
+    0.0,
+    0.0
+   ],
+   "low_share_worst_cell": 5e-05,
+   "cells_at_zero": 149,
+   "cells_total": 150,
+   "mean_happiness_per_seat": [
+    92.94,
+    91.06,
+    93.06,
+    92.96,
+    92.33
+   ]
+  },
+  "scripted": {
+   "file": "experiments/fog-gen1-cert/results-raw/battery/scripted-eval-30x20000.jsonl",
+   "seeds": 30,
+   "seats": 5,
+   "low_ticks_total": 61,
+   "kitty_ticks_total": 3000000,
+   "low_share_pooled_pct": 0.00203,
+   "low_share_per_seat_mean": [
+    1.67e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0001
+   ],
+   "low_share_worst_cell": 0.0016,
+   "cells_at_zero": 146,
+   "cells_total": 150,
+   "mean_happiness_per_seat": [
+    88.58,
+    85.2,
+    88.05,
+    88.13,
+    85.77
+   ]
+  },
+  "trained_vs_scripted_low_tick_ratio": 61.0
+ },
+ "stress": {
+  "trained": {
+   "file": "experiments/fog-gen1-cert/results-raw/battery/gen1-A-stress-30x20000.jsonl",
+   "seeds": 30,
+   "seats": 5,
+   "low_ticks_total": 6,
+   "kitty_ticks_total": 3000000,
+   "low_share_pooled_pct": 0.0002,
+   "low_share_per_seat_mean": [
+    0.0,
+    0.0,
+    0.0,
+    1e-05,
+    0.0
+   ],
+   "low_share_worst_cell": 0.0003,
+   "cells_at_zero": 149,
+   "cells_total": 150,
+   "mean_happiness_per_seat": [
+    92.92,
+    91.01,
+    93.12,
+    92.97,
+    92.34
+   ]
+  },
+  "scripted": {
+   "file": "experiments/fog-gen1-cert/results-raw/battery/scripted-stress-30x20000.jsonl",
+   "seeds": 30,
+   "seats": 5,
+   "low_ticks_total": 51,
+   "kitty_ticks_total": 3000000,
+   "low_share_pooled_pct": 0.0017,
+   "low_share_per_seat_mean": [
+    0.0,
+    0.0,
+    6.67e-06,
+    0.0,
+    7.833e-05
+   ],
+   "low_share_worst_cell": 0.0006,
+   "cells_at_zero": 144,
+   "cells_total": 150,
+   "mean_happiness_per_seat": [
+    88.62,
+    85.26,
+    88.08,
+    88.2,
+    85.67
+   ]
+  },
+  "trained_vs_scripted_low_tick_ratio": 8.5
+ },
+ "pooled_low_ticks": {
+  "trained": 7,
+  "scripted": 112
+ },
+ "pooled_ratio_scripted_over_trained": 16.0
+}
