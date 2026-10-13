@@ -3,6 +3,17 @@
 
     test_schema_check.py TRACE_DIR
 
+Canonical TRACE_DIR (run from the repo root; meta stores a
+root-relative config path):
+results-raw/anchor-resmoke-050-20k/config-00-rollout-00 — a 20k
+margin-keyed anchor trace, where every rare-group column has moved.
+The 1k re-smoke (anchor-resmoke-050/) legitimately carries starved
+want columns (its own declaration says a 1k smoke holds 0-3 drink
+calls), and the nokey 20k traces red the want_drink group BY DESIGN
+(F-040 dead channel; note their meta config paths were scratchpad
+tomls, gone — load_trace needs its config= override) — neither is
+instrument rot, and neither is this suite's baseline.
+
 Every row A1-A18 is shown red once: a real trace is loaded, one named
 defect is planted in a copy (an observation cell, a mask bit, a snapshot
 field or a table entry), and the row must stop being "ok". The unplanted
