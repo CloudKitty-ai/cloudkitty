@@ -139,6 +139,27 @@ def test_e1_gap_is_biscuit_minus_roster():
     assert e["cuddle"]["gap"] == 0.0
 
 
+def test_wrong_era_rows_refuse_by_name():
+    # The Gen 2 reader-flip ruling: a v6 (399-wide) trace dir must be
+    # refused at load, never misread cell-by-cell. Self-contained: a
+    # fake dir with 399-wide obs is all load_rows touches before the
+    # width check.
+    import json
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        np.save(d / "obs.npy", np.zeros((2, 399), np.float32))
+        for n in ("mask", "tick", "kitty", "label"):
+            np.save(d / f"{n}.npy", np.zeros(2))
+        (d / "meta.json").write_text(json.dumps({"observation_schema": 6}))
+        try:
+            S.load_rows(d)
+        except SystemExit as e:
+            assert "schema-5" in str(e) and "399" in str(e), e
+        else:
+            raise AssertionError("399-wide rows must refuse, not misread")
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:

@@ -50,17 +50,33 @@ PLAY = L.NEED_KINDS.index("play")
 GROOM_MENU = 15      # GroomKitty index for row k is GROOM_MENU + k (groom_cells.py)
 
 
+def _check_era(obs, src):
+    # Schema-5 instrument (the Gen 2 reader-flip ruling): the duet,
+    # E1 and groom reads use v5-only kitty-row facts (full needs
+    # block), so wrong-era rows refuse by name instead of misreading.
+    # The Gen 2 home of the beam read is
+    # gen2-corpus-reads-2026-10-13/placement_read.py (schema-keyed).
+    if obs.shape[-1] != L.OBS_DIM:
+        raise SystemExit(
+            f"step7_reads is a schema-5 ({L.OBS_DIM}-cell) instrument; "
+            f"{src} has rows of width {obs.shape[-1]}. For the corpus "
+            "placement bar use placement_read.py, which keys the layout "
+            "by observation_schema.")
+    return obs
+
+
 def load_rows(path):
     p = Path(path)
     if p.is_dir():
-        return {"obs": np.load(p / "obs.npy").astype(np.float32),
+        return {"obs": _check_era(np.load(p / "obs.npy").astype(np.float32), p),
                 "mask": np.load(p / "mask.npy").astype(bool),
                 "tick": np.load(p / "tick.npy").astype(np.int64),
                 "kitty": np.load(p / "kitty.npy").astype(np.int64),
                 "act": np.load(p / "label.npy").astype(np.int64),
                 "seed": np.zeros(len(np.load(p / "tick.npy")), np.int64)}
     z = np.load(p)
-    return {"obs": z["obs"].astype(np.float32), "mask": z["mask"][:, :L.N_ACT].astype(bool),
+    return {"obs": _check_era(z["obs"].astype(np.float32), p),
+            "mask": z["mask"][:, :L.N_ACT].astype(bool),
             "tick": z["tick"].astype(np.int64), "kitty": z["kitty"].astype(np.int64),
             "act": z["act"].astype(np.int64), "seed": z["seed"].astype(np.int64)}
 
