@@ -826,3 +826,34 @@ paired control — this one did, two files away, with the seed base
 in the filename. Paired within-run controls beat between-run maxima
 is already the house rule for measurements; it is the rule for
 COMPARATORS too. And a worst cell never sits beside a mean.
+
+## 2026-10-12 — copy check r1 FAIL, r2 PASS: relay-integration candidates (Experiments)
+
+Target: four new [CANDIDATE] blocks in gen2-prereg-skeleton
+(§6 reward-provenance + flow trigger; §9 items 11–13), drafted on
+the owner's word "Let's integrate all three into the freeze" from
+the banked Professor relay + the pre-sitting reads. Copy check
+only (no Regeneration block; sources = the relay note, RESULTS
+reads 1–2, relief-latency.json). r1 FAIL, six findings: a power
+RANGE cut to its top end (0.71–0.77 at 200 became "0.77");
+"usable episode counts" where the source says usable READ (the
+source's own counterexample: eat@0.70 holds 465 episodes yet
+power 0.45); the wrong receipt id (our banking-confirmation
+receipt 8f53f409 written where the relay's receipt 93afbe70
+belongs); "stays rejected" implying a ruling no source records
+(the relay says the flat invariant "overreaches as written" — and
+its round 2 item 4 orders the distinction recorded so her
+efficacy quote is never used as a burden-shifter, which the draft
+also hadn't done); the assessment's own carve-out dropped
+(observation-feature consumption with ground-truth reward must
+not trip the trigger); a dissolution claim stripped of its
+condition ("unless implementation conflates the two legs"). r2
+PASS on the changed lines.
+
+Lesson: integration drafting is a third kind of carry — not
+numbers from a JSON, not quotes from a ruling, but POSITIONS from
+an advisory source — and positions decay the same ways: a range
+becomes its best end, a verdict ("overreaches") becomes a ruling
+("rejected"), a conditional loses its condition. And two receipt
+ids for one exchange (theirs and ours) will swap unless each is
+labeled with whose it is at first write.

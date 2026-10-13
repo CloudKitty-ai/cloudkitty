@@ -256,6 +256,47 @@ rulings nor answers to blanks until she rules. Rulings sources:
   Gen 1 legs anywhere (F-053 harm rule).
 - [BLANK] The realized-distress stop numbers for trunk training
   (precedent values carried forward or re-pinned).
+- [CANDIDATE, Professor relay point 2 + round 2 item 3 —
+  integrated on the owner's word 2026-10-12 "Let's integrate all
+  three into the freeze"; rules only at the sitting, and it
+  AMENDS standing text (b), so it is a standing-texts ruling,
+  not a prereg-only pin] Reward-provenance pre-commitment plus
+  the flow trigger, three lines:
+  (1) the mini's own training targets remain instrumented ground
+  truth, immutable — pre-commitment 1 extended beyond the
+  correction arm to any architecture;
+  (2) CERTIFIED welfare quantities, and any reward whose value is
+  claimed, are computed from engine ground truth, never from a
+  model's predictions;
+  (3) any architecture in which reward or a decision is computed
+  from a mini's predictions — at ANY depth, including depth-1 —
+  convenes the standing review before it runs: a gradient/
+  decision-flow trigger added beside k > 1 in text (b), closing
+  the depth-1 (one-step Dyna) gap the depth trigger slips.
+  ADD, never substitute: k > 1 guards EXPOSURE, flow guards
+  INSTRUMENT INTEGRITY — two harms, two triggers. The sitting
+  agenda names the two flow directions separately (gradient INTO
+  the mini = instrument corruption; optimization AGAINST it =
+  delusion-seeking), and under flow the ostrich-gap margins
+  tighten (text (c)'s exposure axis). Carve-out stated plainly
+  in the trigger text (Experiments assessment of relay point 2,
+  minifriend-presitting-2026-10-11 RESULTS): observation-feature
+  consumption with ground-truth reward does not trip it —
+  otherwise the ruled correction follow-up arm (mini output as
+  policy input features) convenes a review nobody intended. The
+  flat "never from an agent's model" invariant is NOT drafted:
+  it overreaches as written (it would ban model-based policy
+  training per se); the owner's efficacy word is on record ("I'm
+  not convinced that I want anything limiting the efficacy of
+  the mini-models", 2026-10-09) and, per the relay's round 2
+  item 4, governs remedy shape inside the sitting, never the
+  gate — recorded here so the quote is never used as a
+  burden-shifter; hers to weigh. Under this shape
+  imagined-reward training is not banned, it is default-closed
+  pending its own sitting — the doctrine's existing pattern.
+  Source: the banked Professor relay 2026-10-10 (relay receipt
+  93afbe70; full text in the Professor-lane note
+  for-experiments-philosophy-feedback-review-2026-10-10.md).
 
 ## 7. Certification battery (the any-size bar, K§5)
 
@@ -349,7 +390,9 @@ timebox)
    coverage, never waiving the stratum; (d) the calibration half
    folds INTO the ostrich metric — one instrument. k = 1 pinned IN
    TEXT;
-   k > 1 is a named marker-review trigger (sitting decision).
+   k > 1 is a named marker-review trigger (sitting decision); a
+   gradient/decision-flow trigger beside it is drafted as a
+   [CANDIDATE] in §6.
    Declared blind spot: one tick never prices visitation shift or
    compounding; the declared PAIRING carries it — gate + consumer
    reads + canalization watch jointly. [BLANK] the declared
@@ -480,6 +523,82 @@ timebox)
    the W3 bridge.
 10. [BLANK] Which reads are paper-cited (⇒ ≥3 seeds) — marked at
     freeze.
+11. [CANDIDATE, Professor relay point 1 + round 2 item 1 + round 3
+    item 3 residue — integrated on the owner's word 2026-10-12
+    "Let's integrate all three into the freeze"; rules only at
+    the sitting] APPROACH-PROPENSITY DIFFERENTIAL, the per-host
+    behavioral read beside the ostrich metric — the metric reads
+    the MODEL's blindness given data, this reads the POLICY's
+    data avoidance; the grave failure mode is their conjunction
+    (accurate model, averted path), which neither catches alone.
+    Shape: approach propensity toward grave-signalling friends vs
+    matched benign encounters (same distance band, same fog
+    visibility, same competing own-need state — raw approach rate
+    is feasibility-confounded), stated in MOVEMENT terms (did the
+    host's path reduce or increase expected visibility of the
+    signalling friend — under fog, observation is a function of
+    movement, never gaze), CONDITIONAL on the harness-computed
+    best-placed feasible host (spec 059's cue-answer definition:
+    feasibility filter + net-surplus score; rule 5 binds agents,
+    not instruments), paired with a team-level attendance read
+    (redundancy: one helper suffices, so non-approach can be
+    efficient). Read on PROPOSALS as well as realized paths (the
+    refusal log keeps proposals verbatim — a blocked approacher
+    is not avoidant). Spec text names it an approach-propensity
+    differential; "kindness measure" at most a gloss — design
+    stances, never experience claims. Power groundwork
+    (minifriend-presitting-2026-10-11 read 1, bc-corpus): powered
+    for cuddle at every severity tier including ≥0.90; the
+    non-cuddle grave tier is starved at lived density (median 0
+    per rollout) — probe coverage per item 13's order is the
+    path to n there. [BLANK] the differential margin and min-n
+    per cell.
+12. [CANDIDATE, Professor relay round 2 items 5–7 + round 3
+    item 1 — integrated on the owner's word 2026-10-12; rules
+    only at the sitting] ATTRIBUTABLE OUTCOME READ (relief
+    latency × best-placed host), the lived-vs-probe alarm's
+    RESOLVER and the PRIMARY evidence/attribution instrument
+    (the welfare watch attributes nothing; other reads turn
+    diagnostic) — GUARD: primacy never demotes the ruled stop
+    roles; stops keep firing on LEADING indicators (ostrich-gap
+    demotion/stop, distress-streak lines) as well as outcomes.
+    Composed rule: the lived-vs-probe gap alarms → the outcome
+    read resolves it — relief latency HELD where reliance
+    dropped = benign substitution; DEGRADED = abandonment →
+    demotion path. Latency read at a declared TAIL quantile per
+    stratum, never the mean (house register discipline: tails
+    and floors never means); discriminator unreadable at declared
+    min-n in the strata where reliance dropped → the alarm
+    resolves conservatively (demotion path), remedy =
+    probe-generated episodes with their cost line; absent an
+    alarm, thin strata alone never auto-demote. Certificate-scope
+    wording carried into the frozen spec verbatim: "the battery
+    number licenses 'the mini is calibrated on battery B', never
+    'hosts are not blind to friends'". Power groundwork
+    (minifriend-presitting-2026-10-11 read 2, bc-corpus): a p90
+    relief-latency read needs ~200–500 episodes per stratum
+    (power 0.71–0.77 at 200, 0.94 at 500; ≤0.49 at ≤100); only
+    the cuddle strata reach a usable read at lived density —
+    episode count alone is not enough (eat@0.70 holds 465
+    episodes yet power 0.45 at 200) — probe-generated episodes
+    are the path elsewhere.
+    [BLANK] the tail quantile, pinned with the margin/min-n
+    values.
+13. [CANDIDATE, Professor relay round 2 item 2 + round 3 item 2 —
+    integrated on the owner's word 2026-10-12; rules only at the
+    sitting] PROBE-COST ORDER, one pin for every probe-coverage
+    remedy in this section (rider 2(c), items 11–12): replay (no
+    new seated state) > scripted probe worlds (cost line naming
+    the manufactured seated states; floor-bounded; never
+    covered-mind exposure) > synthesis (validity checks —
+    off-manifold streams mis-measure); live probes only for what
+    the offline legs cannot reach, each with its welfare-cost
+    line (practice, owner 2026-09-26). The split: CALIBRATION
+    certificates need no covered seating (replayed slices /
+    scripted-only probe worlds / synthesized streams fed to the
+    frozen mini offline); BEHAVIORAL reads need a seated covered
+    host — the coverage dilemma dissolves unless implementation
+    conflates the two legs.
 
 ## 10. Order of operations
 
