@@ -857,3 +857,35 @@ becomes its best end, a verdict ("overreaches") becomes a ruling
 ("rejected"), a conditional loses its condition. And two receipt
 ids for one exchange (theirs and ours) will swap unless each is
 labeled with whose it is at first write.
+
+## 2026-10-13 — copy check r1 FAIL, r2 FAIL, r3 PASS: freeze-sitting agenda (Experiments)
+
+Document: experiments/gen2-freeze-agenda-2026-10-13.md — a
+navigation agenda compiling every skeleton [BLANK]/[CANDIDATE]
+with recommendations where measured grounds exist. Three rounds,
+fresh subagent each.
+
+r1 FAIL (one completeness gap, five fidelity findings): the
+two-half §4 blank's empty-bowl half dropped entirely; "never the
+gate" stripped from the efficacy-word sentence (the same
+condition-stripping class as the relay-integration r1); the
+quoted invariant reworded inside quotation marks ("never from a
+model" for "never from an agent's model"); margin/min-n VALUES
+claimed shared across gate/trigger/§9.2 where the skeleton shares
+only bins/strata; read-2's power table moved from §9.12 (its
+home) to §9.2 and stated as settled, cuddle-only caveat dropped;
+sitting decisions (final start shares + remedy) filed under a
+"no sitting decision" heading.
+
+r2 FAIL (two new, smaller): an unattributed source phrase
+("pinned with the margin/min-n values") grew an invented owner
+(§8.4); a one-item blank widened ("tail quantile" became "tail
+quantile + min-n"). r3 PASS, five fresh spot checks held.
+
+Lesson: compilation drafting decays like integration drafting,
+plus two of its own modes — a phrase the source leaves
+unattributed gets an owner INFERRED at the copy (name the
+ambiguity instead), and a blank's scope grows to cover what the
+surrounding body text declares (quote the blank line itself,
+file the body's declarations separately). Headings are claims
+too: an item filed under "no decision" inherits that claim.
