@@ -36,9 +36,14 @@ def synth_rollout(td, positions, w=20, h=20, state_width=197, pk=32):
             "state_width": state_width, "ticks": T, "config": str(toml)}
     (rd / "meta.json").write_text(json.dumps(meta))
     state = np.zeros((T, state_width), np.float32)
+    # Independent literal, never cr.POS_OFF (a fixture that writes with
+    # the reader's own constant moves with its bugs — mutate cycle 2
+    # came back VACUOUS exactly so): global_state.rs puts position
+    # after needs (6) and happiness (1).
+    pos_off = 7
     for i in range(roster):
-        state[:, i * pk + cr.POS_OFF] = pos[:, i, 0] / w
-        state[:, i * pk + cr.POS_OFF + 1] = pos[:, i, 1] / h
+        state[:, i * pk + pos_off] = pos[:, i, 0] / w
+        state[:, i * pk + pos_off + 1] = pos[:, i, 1] / h
     np.save(rd / "state.npy", state)
     return rd
 
