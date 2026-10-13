@@ -22,6 +22,6 @@
    "engine": "f6ae6650+ (spec-060 rule; recorded at 2cdfcdfa)"
   }
  },
- "reading": "zero-relief eating ticks 235 -> 0 (starved_boundaries; with eat min 2 every pre-change hold is exactly one tick, so held_ticks is 0 in both arms by construction); absorbed Eat refusal rows 235 -> 5 (the 5 survivors are same-tick turn-order drains, research R6); servings_consumed reported per arm only (divergent streams, no cross-arm equality claim -- analyze H1)",
+ "reading": "eating ticks held past a resolution that saw a failed feeding condition: 235 -> 0 (starved_boundaries; with eat min 2 every pre-change hold is exactly one tick, so held_ticks is 0 in both arms by construction). This is a BOUNDARY count, not an in-tick lick count: a bowl drained under an earlier eater in the same tick still buys one zero-relief lick the rule deliberately leaves, invisible to boundary reads -- the 5 surviving absorbed Eat rows are exactly those same-tick turn-order drains (research R6, review 2026-10-12 M1). absorbed Eat refusal rows 235 -> 5; servings_consumed reported per arm only (divergent streams, no cross-arm equality claim -- analyze H1)",
  "caveat": "ONE config, ONE seed: a single data point in the 059 fire-counter sense; the per-arm relief identity is pinned at the unit layer, not here"
 }

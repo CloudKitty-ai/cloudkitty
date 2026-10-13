@@ -21,9 +21,12 @@ byte-identical to spec 006 (SC-002).
 
 ## C2 — Observable guarantees
 
-1. **No zero-relief eating ticks** (SC-001/SC-003): a scene never
-   survives a resolution at which the per-tick eat effect could not
-   have fed it — the end rule and the effect read the same predicate.
+1. **No meal held past a failed resolution** (SC-001/SC-003): a scene
+   never survives a resolution at which the per-tick eat effect could
+   not have fed it — the end rule and the effect read the same
+   predicate. (Not "no zero-relief tick": a bowl drained under an
+   earlier eater, or removed by the environment after a resolution,
+   still buys one in-tick lick before the resolution that sees it.)
 2. **Span accounting**: an early end writes an ordinary activity-log
    end record; a meal started on a last serving records span 1 and
    delivers exactly one serving's relief.

@@ -798,9 +798,11 @@ fn apply_activity_effects(world: &mut World, kitty_id: KittyId, config: &Config)
                 }
                 lower_need(world, kitty_id, NeedKind::Eat, effects.eat_relief);
             }
-            // An empty bowl is a paused meal: the cat licks the bowl clean --
-            // no relief, no consumption; the caller's serviced stamp keeps
-            // the end rules in reach so the meal ends once its minimum is met.
+            // A lick with nothing in it: no relief, no consumption. Reached
+            // only when the bowl drained under an earlier eater this same
+            // tick or the environment phase removed it after the last
+            // resolution -- this tick's resolution then ends the scene,
+            // minimum or not (spec 060).
         }
 
         Activity::Drinking => {

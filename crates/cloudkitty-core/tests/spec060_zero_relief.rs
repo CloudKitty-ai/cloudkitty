@@ -1,7 +1,10 @@
 //! Spec 060 SC-003 differential recorder (both arms, same recorder, same
 //! seed): counts the welfare quantity the amendment removes — eating-scene
-//! ticks held at a failed feeding condition — on the default reference
-//! config over 20,000 ticks.
+//! ticks held PAST a resolution that saw a failed feeding condition — on
+//! the default reference config over 20,000 ticks. Boundary reads cannot
+//! see the one in-tick lick a same-tick turn-order drain still buys
+//! (review 2026-10-12 M1); those survivors show up here only as the post
+//! arm's absorbed Eat refusal rows.
 //!
 //! Two arms, two ENGINES: the post arm runs at the spec-060 HEAD, the pre
 //! arm runs this same file copied into a scratch worktree at the pre-edit
@@ -72,7 +75,11 @@ async fn record_zero_relief_eating_ticks() {
         world.tick(&registry, &config).await;
 
         // Servings consumed: per-element decreases (spawns appear as new
-        // ids or increases and are not consumption).
+        // ids or increases and are not consumption). A vanished id counts
+        // its remaining servings as consumed, which is exact on the default
+        // config (chow has no ttl, so a bowl only despawns empty); a config
+        // whose chow expires stocked would inflate this per-arm volume
+        // datum (review 2026-10-12 L5).
         let mut cur: BTreeMap<u32, u32> = BTreeMap::new();
         for e in &world.elements {
             if let ElementKind::Chow { servings } = e.kind {

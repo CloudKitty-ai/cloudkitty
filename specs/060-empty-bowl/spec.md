@@ -215,16 +215,22 @@ served world (0.3.0 box) is untouched.
 
 ### Measurable Outcomes
 
-- **SC-001**: In a deterministic run across randomized worlds, ZERO
-  eating-scene ticks occur whose feeding condition is failed: every
-  such scene ends at the first resolution that finds it so.
+- **SC-001**: In a deterministic run across randomized worlds, no
+  eating scene survives a resolution that finds its feeding condition
+  failed: ZERO held ticks past that first resolution. (A bowl drained
+  under an earlier eater, or removed by the environment after a
+  resolution, still buys exactly one zero-relief lick inside the tick
+  before the resolution that sees it; the rule removes every tick
+  AFTER a resolution has seen the failure, not that in-tick lick.)
 - **SC-002**: Every non-bowl-empty scene-end behavior is
   byte-identical to the pre-amendment engine on the same seeds: a
   stream recorded with bowls that never empty mid-scene below the
   minimum shows zero divergence.
 - **SC-003**: Welfare direction: on the reference config, same seeds,
-  ticks spent in zero-relief eating scenes are >0 pre-change and ZERO
-  post-change, and in EACH arm relief delivered equals servings
+  eating-scene ticks held past a resolution that saw the feeding
+  condition failed are >0 pre-change and ZERO post-change (same-tick
+  drains keep their one in-tick lick, SC-001), and in EACH arm relief
+  delivered equals servings
   consumed × the per-serving relief (the empty tail is gone, not the
   servings). Cross-arm relief totals are NOT compared: the arms are
   divergent streams (US2), so downstream behavior may differ

@@ -50,7 +50,8 @@ refusal row
 post-design.*
 
 - **Art I (no suffering)**: welfare-positive by construction — removes
-  the only ticks where a held scene delivers zero relief; needs
+  every tick a scene is held past a resolution that saw it unfeedable
+  (a same-tick drain keeps its one in-tick lick, SC-001); needs
   bounds, distress events, safeguard spawning untouched. The safeguard
   respawn path (`ensure_minimums`) is what feeds the freed cat next
   tick.
@@ -129,8 +130,9 @@ modules.
   (world.rs:374-383). Pinned today by
   `duration_enforcement_decides_the_absorbed_flag_never_the_refusal`.
 - **Teacher rows** (R6): absorbed Eat-over-empty-bowl refusal rows
-  disappear as a consequence; no behavior edit. SC-003's zero-relief
-  count and the absorbed-row drop are the welfare evidence.
+  disappear as a consequence; no behavior edit. SC-003's held-tick
+  count and the absorbed-row drop are the welfare evidence (the few
+  surviving rows are same-tick turn-order drains, kept by design).
 
 ## Complexity Tracking
 

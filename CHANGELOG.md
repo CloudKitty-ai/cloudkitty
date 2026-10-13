@@ -85,12 +85,14 @@ change.
   belly fills early still finishes its licks. The rule is the world's,
   not an advisor's. It binds every seat identically, ends the scene for
   every cat the drained bowl leaves unfed, and writes an ordinary scene
-  end, never a refusal. On the reference world it removes every
-  zero-relief eating tick (235 to 0 per 20,000, both arms counted in
-  the committed artifact), so every seeded world whose bowls drain
-  mid-meal walks a new path from the first such meal (the continuity
-  fixtures and evolution goldens re-recorded, divergence declared and
-  filed).
+  end, never a refusal. A cat whose bowl is drained by a faster eater
+  in the same tick still spends that one last lick before the tick
+  closes; what the rule removes is every tick a meal was held after
+  the world had already seen the bowl fail (235 such ticks per 20,000
+  on the reference world, now zero, both arms counted in the committed
+  artifact). Every seeded world whose bowls drain mid-meal walks a new
+  path from the first such meal (the continuity fixtures and evolution
+  goldens re-recorded, divergence declared and filed).
 
 - **"Nearest" means nearest to walk to.** When several kitties answer
   one ask, the reply the viewer shows is the one from the kitty with the

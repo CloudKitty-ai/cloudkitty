@@ -49,7 +49,9 @@ nearest adjacent chow by `(manhattan, id)` within Manhattan ≤ 1
 (action.rs:397) AND the per-tick eat effect reads (action.rs:792-803).
 If the effect's read returns None, the meal delivers no relief that
 tick — so ending exactly when THIS predicate fails is the only choice
-that makes SC-003 true (zero zero-relief eating ticks). Any broader
+that makes SC-003 true (zero ticks held past a resolution that saw
+the feeding condition failed; a same-tick drain's one in-tick lick
+stays, SC-001 as reworded at review 2026-10-12 M1). Any broader
 "some adjacent stocked bowl exists" end-check would hold a cat at a
 meal the effect cannot feed. One predicate, four consumers (end rule,
 validate, effect, HereFood grounding at meow.rs:241) stays the

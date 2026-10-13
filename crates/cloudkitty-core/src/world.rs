@@ -1422,8 +1422,8 @@ impl World {
     /// quietly mean different things, and a cat can never announce food it
     /// could not itself eat. Deliberately the *nearest* adjacent bowl
     /// filtered for servings, not the nearest stocked one: a cat at an empty
-    /// bowl beside a fuller one pauses (and then ends) rather than
-    /// stretching across.
+    /// bowl beside a fuller one ends its meal at that resolution (spec 060)
+    /// rather than stretching across.
     pub fn adjacent_stocked_chow(&self, pos: Position) -> Option<&Element> {
         adjacent_stocked_chow_in(&self.elements, pos)
     }
@@ -3871,21 +3871,39 @@ mod tests {
     /// Spec 060 edge case: a bowl the environment phase removed mid-meal
     /// (ttl expiry / despawn) ends the meal at the NEXT resolution through
     /// the same feeding condition -- meals are deliberately exempt from
-    /// spec-048 counterpart pruning, and no refusal row is written.
+    /// spec-048 counterpart pruning, and the end writes no refusal row.
+    ///
+    /// Staged in the real tick's order (review 2026-10-12 M2; the earlier
+    /// cuts are on record in test-sort.md): the environment phase runs
+    /// AFTER resolution, so a bowl that vanishes on the meal's first tick
+    /// is first seen by the SECOND tick's resolution -- which at the test
+    /// minimum of 2 sits exactly at the minimum, where the old rule ends
+    /// too. The eat minimum is raised to 3 so the discriminating end stays
+    /// below it.
     #[test]
     fn a_vanished_bowl_ends_the_meal_at_the_next_resolution() {
-        let (mut world, config) = dinner_table(5);
+        let (mut world, mut config) = dinner_table(5);
+        config.actions.durations.eat = crate::config::DurationBounds::new(3, 10);
         let idx = world.kitty_index(1).unwrap();
         world.kitties[idx].needs.add(NeedKind::Eat, 100.0);
 
-        // The bowl vanishes inside the meal's FIRST tick (ttl expiry runs
-        // in the environment phase, between this slot and the next; applied
-        // directly because close_tick runs only the resolution step). The
-        // first restaging of this guard removed the bowl a tick later and
-        // was vacuous: elapsed had reached the minimum, where the old rule
-        // ends the meal too.
+        // Tick 100: the meal starts; its first resolution sees a stocked
+        // bowl and holds the scene.
         run_slot(&mut world, &config, 1, Action::Eat);
+        close_tick(&mut world, &config);
+        assert!(world.kitty(1).unwrap().activity_clock.is_some());
+        let fed_once = world.kitty(1).unwrap().needs.get(NeedKind::Eat);
+
+        // The environment phase of tick 100 (after that resolution --
+        // close_tick runs only the resolution step, so the expiry lands
+        // here) removes the bowl.
         world.elements.retain(|e| e.id != 900);
+
+        // Tick 101: the held continuation slot runs over the gone bowl (a
+        // zero-relief lick; the Idle proposal writes no refusal row), then
+        // resolution finds the feeding condition failed at elapsed 2 <
+        // min 3 and ends the meal.
+        run_slot(&mut world, &config, 1, Action::Idle);
         close_tick(&mut world, &config);
 
         let kitty = world.kitty(1).unwrap();
@@ -3895,9 +3913,21 @@ mod tests {
             "the gone bowl fails the feeding condition below the minimum"
         );
         assert!(kitty.activity_clock.is_none());
+        assert_eq!(
+            kitty.needs.get(NeedKind::Eat),
+            fed_once,
+            "the held tick delivered nothing: one serving's relief in total"
+        );
+        let ends = world.activity_log.to_vec();
+        assert_eq!(ends.len(), 1, "one ordinary end record: {ends:?}");
+        assert_eq!(
+            ends[0].span(),
+            2,
+            "held one tick past the vanishing, ended at the next resolution"
+        );
         assert!(
             world.refusal_log.is_empty(),
-            "a scene end is never a refusal (FR-003)"
+            "neither the held continuation nor the end is a refusal (FR-003)"
         );
     }
 
