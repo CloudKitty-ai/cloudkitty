@@ -81,6 +81,7 @@ async fn twenty_thousand_ticks_of_activities_respect_their_bounds() {
     let mut observed_two_plus: BTreeSet<&'static str> = BTreeSet::new();
     let mut completed = 0u64;
     let mut prev_needs: BTreeMap<u32, (f32, f32)> = BTreeMap::new(); // (eat, drink)
+
     // Every bowl on the books at the previous boundary, for the spec-060
     // feeding-condition check: the environment phase (the element vec's
     // only writer) runs after resolution, so this is the bowl set the
@@ -207,14 +208,13 @@ async fn twenty_thousand_ticks_of_activities_respect_their_bounds() {
                         .map(|(&id, &bowl_pos)| Element {
                             id,
                             kind: ElementKind::Chow {
-                                servings: world
-                                    .elements
-                                    .iter()
-                                    .find(|e| e.id == id)
-                                    .map_or(0, |e| match e.kind {
+                                servings: world.elements.iter().find(|e| e.id == id).map_or(
+                                    0,
+                                    |e| match e.kind {
                                         ElementKind::Chow { servings } => servings,
                                         _ => 0,
-                                    }),
+                                    },
+                                ),
                             },
                             pos: bowl_pos,
                             ttl: None,
