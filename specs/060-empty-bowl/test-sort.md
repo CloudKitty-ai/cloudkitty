@@ -105,3 +105,30 @@ resolution path without inventing the very code the design forbids.
   green is a claim, not an oversight.
 - Workspace after sweep: 1019 passed / 0 failed (core lib 554 → 557:
   one test rewritten, three added).
+
+## Review remediation record (2026-10-12, subagent review, 6 findings)
+
+All six remediated at 48947837. The two that changed test substance
+got fresh rule-5 reds (scripts/mutate.sh, both RED CONFIRMED,
+baseline == restored):
+
+5. M2 restage — revert `done_naturally` to the spec-006 grouping →
+   `a_vanished_bowl_ends_the_meal_at_the_next_resolution` red with the
+   predicted "the gone bowl fails the feeding condition below the
+   minimum" (left `Eating`), now through the REAL tick order: the v2
+   red (cycle 1 above) had reached the same code path only via an
+   ordering the tick cannot produce, and its refusal assert could not
+   fail. v2's record stands above as the vacuous-adjacent lesson.
+6. M3 narrowing — unlawful early end (`|| (Eating && governed_done)`,
+   the review's demonstration mutation: a need-0 meal ends below min
+   at a stocked bowl, violating FR-002) → the 20k property red at the
+   NEW feeding-condition assert ("feeding condition still holding").
+   Before the narrowing this mutation left the property GREEN (the
+   blanket Eating exemption, review M3); only unit guards caught it.
+
+M1 (claim re-key), L4 (comments), L5 (recorder caveat), L6 (this
+file's two rows) are wording; no assertion changed, no red owed.
+The M1 quantity as now stated everywhere: no meal is held past a
+resolution that saw its feeding condition failed; a same-tick
+turn-order drain keeps exactly one in-tick lick (the artifact's 5
+surviving absorbed rows).
