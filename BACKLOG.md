@@ -87,29 +87,6 @@ Bill at pick-up: own spec; the two call-site flips; every scripted-stream
 pin re-recorded; if the Gen 2 prereg screens pins against scripted cats,
 screen against the NEW teacher.
 
-### Spec-006 empty-bowl early end — SHELVED UNTIL GEN 2 (owner ruling 2026-09-10, on Experiments' read; added 2026-09-11; Product thread)
-
-End an eating scene when the bowl empties instead of holding the cat at
-an empty bowl for the scene minimum. Tabled at the 048 merge (owner,
-2026-09-02): scene minimums exist to prevent frantic alternation, and
-locking a cat at an EMPTY bowl serves neither. Analysis on record: the
-window is ≤ the eat minimum (~2 ticks), the rows are `absorbed=true`
-(never in R8's tax), and the engine's min-hold is spec 006's deliberate
-meal-end rule — so this is a spec-006 amendment, its own spec, not 048.
-
-Why it waits for Gen 2 (Experiments' read, 2026-09-10, unconditional;
-reasons restated 2026-09-13 under doctrine rule 9): (a) it is a teacher
-change, a scripted rule deciding differently in the same state, which
-orphans the corpus at seeds 1080001–40, `expected_per_1000`, and the
-declared rates feeding the live Part A probe, so it waits for the
-boundary; the `[rng-sequence]` marker it would carry records the
-consequence and is not the test. (b) It is a food-scene reprice, and
-the Gen 1 policies reseating are frozen against today's eating
-dynamics: shipping them onto an early-end engine is the
-frozen-models-cannot-answer-a-reprice trap, and the post-reseat census
-would measure the skew, not the roster. Gen 2's fresh prereg cycle
-absorbs both for free.
-
 ### Fog hot-loop allocations in the training tick (added 2026-09-04; Product thread, from `/code-review high 049` findings 8–10)
 
 Three per-tick allocation sites spec 049 added, all LOW and none

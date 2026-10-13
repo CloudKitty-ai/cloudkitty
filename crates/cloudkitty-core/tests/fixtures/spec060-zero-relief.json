@@ -1,0 +1,27 @@
+{
+ "what": "spec 060 SC-003 differential: eating-scene ticks held at a failed feeding condition, default reference config, 20k ticks, same seed, same recorder (tests/spec060_zero_relief.rs) run once per engine arm",
+ "arms": {
+  "pre": {
+   "absorbed_eat_refusals": 235,
+   "arm": "pre",
+   "config": "Config::default() (the reference default world)",
+   "held_ticks": 0,
+   "servings_consumed": 1364,
+   "starved_boundaries": 235,
+   "ticks": 20000,
+   "engine": "78fa5e6d (pre-edit, spec-006 rule)"
+  },
+  "post": {
+   "absorbed_eat_refusals": 5,
+   "arm": "post",
+   "config": "Config::default() (the reference default world)",
+   "held_ticks": 0,
+   "servings_consumed": 1352,
+   "starved_boundaries": 0,
+   "ticks": 20000,
+   "engine": "f6ae6650+ (spec-060 rule; recorded at 2cdfcdfa)"
+  }
+ },
+ "reading": "eating ticks held past a resolution that saw a failed feeding condition: 235 -> 0 (starved_boundaries; with eat min 2 every pre-change hold is exactly one tick, so held_ticks is 0 in both arms by construction). This is a BOUNDARY count, not an in-tick lick count: a bowl drained under an earlier eater in the same tick still buys one zero-relief lick the rule deliberately leaves, invisible to boundary reads -- the 5 surviving absorbed Eat rows are exactly those same-tick turn-order drains (research R6, review 2026-10-12 M1). absorbed Eat refusal rows 235 -> 5; servings_consumed reported per arm only (divergent streams, no cross-arm equality claim -- analyze H1)",
+ "caveat": "ONE config, ONE seed: a single data point in the 059 fire-counter sense; the per-arm relief identity is pinned at the unit layer, not here"
+}
