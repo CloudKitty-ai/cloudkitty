@@ -9,6 +9,17 @@ self-only extreme and every-kitty-row-heard (present 0, message block
 live). numpy only (no torch in any venv on the build machine); the
 Rust forward (`artifact_v3_parity.rs`) is checked against
 `numpy_forward_v6` within 1e-4.
+
+Regenerate (seed inside; byte-stable):
+
+    python -B make_oracle_v6.py    # writes fixtures/oracle-v6.{ckpolicy,parity}
+
+then copy both into the Rust gate's fixture dir as the LIVE pair
+(the v6 gate reads the unsuffixed names; the suffixed copies are the
+frozen v4/v5 refusal witnesses):
+
+    cp fixtures/oracle-v6.ckpolicy ../../crates/cloudkitty-rl/tests/fixtures/oracle.ckpolicy
+    cp fixtures/oracle-v6.parity   ../../crates/cloudkitty-rl/tests/fixtures/oracle.parity
 """
 import hashlib
 import json

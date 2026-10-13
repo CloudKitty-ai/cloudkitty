@@ -64,6 +64,11 @@ def make_add_e(e_col_init, e_fill):
 
         def forward(self, obs):
             from obs_layout_v5 import OBS_DIM
+            if obs.shape[-1] != OBS_DIM + 1:
+                raise SystemExit(
+                    f"check2_driver replays the recorded schema-5 l14 "
+                    f"run ({OBS_DIM}+1 wide with E appended); got obs "
+                    f"width {obs.shape[-1]}. Wrong-era input, refusing.")
             base, e = obs[:, :OBS_DIM], obs[:, OBS_DIM:]
             toks, pads = __import__("obs_tokens_v5").tokenize_obs(base)
             xs, ms = [], []

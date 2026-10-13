@@ -13,28 +13,38 @@ Everything else, including the message head, is the mind's. An order gives up wh
 stalls, runs long, its target is gone, or any of the cat's distress flags is up (tier 4; tier 3
 released on eat or drink need >= 0.60 and never fired).
 
-Reads only the observation row (obs layout v5) and the legal mask, like any advisor. No engine
+Reads only the observation row and the legal mask, like any advisor. No engine
 change: the planner is a `plan:<slot>` seat spec in cert_harness_fog.py wrapping `ppo:<slot>`.
+
+SCHEMA-5 INSTRUMENT (the Gen 2 reader-flip ruling): every index below
+comes by name from the keyed layout (obs_layouts.layout_for, verified
+against the binding's COLUMN_MAPS where importable), and the planner
+refuses rows of any other width by name — it wraps a 408-input Gen 1
+policy, so a v6 planner is new work, not a flip.
 """
 import sys
 from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "attn-oracle-2026-08-15"))
-import obs_layout_v5 as L  # noqa: E402
+import obs_layouts  # noqa: E402
+
+SCHEMA = 5
+L = obs_layouts.layout_for(SCHEMA)
 
 W = H = 20
-MOVES = (0, 1, 2, 3)                      # North (y-1), East (x+1), South (y+1), West (x-1): Direction::ALL
-STEP = {0: (0, -1), 1: (1, 0), 2: (0, 1), 3: (-1, 0)}
-SLEEP_SOLO = 9
-SLEEP_WITH = [10 + k for k in range(L.COUNTS["kitty"])]      # SleepWith kitty row k; row k <-> menu slot k
+# North (y-1), East (x+1), South (y+1), West (x-1): Direction::ALL
+MOVES = tuple(L.DENSE_MENU[f"move_{d}"] for d in ("north", "east", "south", "west"))
+STEP = dict(zip(MOVES, ((0, -1), (1, 0), (0, 1), (-1, 0))))
+SLEEP_SOLO = L.DENSE_MENU["sleep_solo"]
+SLEEP_WITH = [L.KITTY_MENU[k][1] for k in range(L.COUNTS["kitty"])]  # [rest, SLEEP, groom, chase, play] per row; row k <-> menu slot k
 SLEEPS = {SLEEP_SOLO, *SLEEP_WITH}
-KITTY_ROWS = [85 + k * L.KITTY_W for k in range(L.COUNTS["kitty"])]
-ROW_ASLEEP = L.ROW_ACTIVITY + 2                               # activity one-hot: idle, rest, sleep, ...
+KITTY_ROWS = [L.KITTY_SPAN[0] + k * L.KITTY_W for k in range(L.COUNTS["kitty"])]
+ROW_ASLEEP = L.ROW_ACTIVITY + L.ACTIVITY_KINDS.index("sleeping")
 SUNBEAM_SLOTS = [b for b, w in L.BLOCKS if w == 6]           # two nearest-K beam slots, width 6
-SLOT_TTL, SLOT_OCCUPIED = 4, 5                                # after present, dx, dy, dist
+SLOT_TTL, SLOT_OCCUPIED = L.SLOT_DIST + 1, L.SLOT_DIST + 2   # after present, dx, dy, dist
 MEM_SUNBEAM = L.SELF_MEMORY + L.ELEMENT_KINDS.index("sunbeam") * L.MEMORY_SLOT   # present, dx, dy, staleness/40
-SELF_DISTRESS = 20                                            # six flags after progress (observe.rs self block)
+SELF_DISTRESS = L.SELF_DISTRESS                               # six flags after progress
 FORCE = 1e6
 
 # Order parameters (declared in PREREG-tier4.md)
@@ -102,7 +112,7 @@ def step_toward(row, mask, target, metric="beam"):
 
 
 def asleep_now(row):
-    return row[L.SELF_ACTIVITY + 2] > 0.5
+    return row[L.SELF_ACTIVITY + L.ACTIVITY_KINDS.index("sleeping")] > 0.5
 
 
 def trigger_friend(row, mask, mind):
@@ -145,6 +155,13 @@ class BeamPlanner:
         self.stats = {f"{kind}_{k}": 0 for kind in ("beam", "friend") for k in self.KEYS}
 
     def __call__(self, rows, masks):
+        rows = np.asarray(rows)
+        if rows.shape[-1] != L.OBS_DIM:
+            raise ValueError(
+                f"beam_plan is a schema-{SCHEMA} ({L.OBS_DIM}-cell) "
+                f"instrument; got rows of width {rows.shape[-1]}. It "
+                "wraps a Gen 1 policy — a Gen 2 planner is new work, "
+                "not a flip.")
         logits = np.array(self.fwd(rows), np.float32)
         for i in range(len(rows)):
             logits[i, :L.N_ACT] = self.overlay(i, rows[i], masks[i], logits[i, :L.N_ACT])
