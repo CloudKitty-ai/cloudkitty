@@ -127,6 +127,12 @@ class PolicyV5AddE(EntityPolicyV5):
 
 def collect_obs():
     import cloudkitty
+    if cloudkitty.OBSERVATION_SCHEMA_VERSION != 5:
+        raise SystemExit(
+            "check1_pad_equiv feeds real schema-5 obs to a v5 clone "
+            f"(self 85 -> 86 pad); the binding serves schema "
+            f"{cloudkitty.OBSERVATION_SCHEMA_VERSION}. Its recorded "
+            "verdict stands; re-running it needs a schema-5 binding.")
     env = cloudkitty.ParallelEnv(str(CONFIG), horizon=TICKS + 1)
     obs, infos = env.reset(seed=SEED)
     names = list(env.possible_agents)
@@ -137,9 +143,8 @@ def collect_obs():
         for a in names:
             rows.append(np.asarray(obs[a], np.float32))
             mk = np.asarray(infos[a]["mask"], np.uint8).astype(bool)
-            n_act = 39
-            acts[a] = (int(rng.choice(np.flatnonzero(mk[:n_act]))),
-                       int(rng.choice(np.flatnonzero(mk[n_act:]))))
+            acts[a] = (int(rng.choice(np.flatnonzero(mk[:N_ACT]))),
+                       int(rng.choice(np.flatnonzero(mk[N_ACT:]))))
         obs, _r, _te, _tr, infos = env.step(acts)
     return np.stack(rows)
 

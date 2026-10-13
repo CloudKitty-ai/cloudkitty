@@ -27,6 +27,20 @@ from schema_check import (  # noqa: E402
 BASE = None
 DECLARED = json.loads((HERE / "declared_constant.json").read_text())
 
+# Wrong-era refusal: a v6 trace dir must be refused by name at load,
+# never misread cell-by-cell (the Gen 2 reader-flip ruling). Self-
+# contained: a fake meta.json is all load_trace reads before the check.
+import tempfile  # noqa: E402
+
+with tempfile.TemporaryDirectory() as _d:
+    (Path(_d) / "meta.json").write_text(json.dumps(
+        {"trace": True, "observation_schema": 6, "obs_width": 399}))
+    try:
+        sc.load_trace(_d)
+        raise AssertionError("a schema-6 trace must be refused by name")
+    except SystemExit as e:
+        assert "schema-5" in str(e) and "observation_schema=6" in str(e), e
+
 
 def fresh():
     """A copy of the loaded trace the test may deface."""

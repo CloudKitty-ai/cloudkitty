@@ -31,12 +31,16 @@ BEAM = EXPTS / "beam-world-screen-2026-09-19"
 sys.path.insert(0, str(BEAM / "trainer"))
 sys.path.insert(0, str(BEAM))
 sys.path.insert(0, str(EXPTS / "fog-gen1-shakeout" / "trainer"))
+sys.path.insert(0, str(EXPTS / "attn-oracle-2026-08-15"))
 import train_ppo_beam as tb  # noqa: E402
 import train_ppo_fog as tf  # noqa: E402
 import train_ppo_enrich2b as e2b  # noqa: E402
+import obs_layouts  # noqa: E402
 
 BETA = 0.14
-E_COL = 407  # the clock slot (obs_layout_v5: clock token, width 1)
+SCHEMA = 5  # E rides the clock slot — a schema-5 design by construction
+L = obs_layouts.layout_for(SCHEMA)
+E_COL = L.CLOCK_COL  # 407, the clock slot (schema 6 has no clock cell)
 LEASH_PROBE = 0.01
 
 # slot -> (leash pin key, e_in_obs)
@@ -91,6 +95,13 @@ def install_collect_e():
         mean, std = vstats
         n = runner.n_worlds
         obs_dim, mask_dim = runner.dims
+        if obs_dim != L.OBS_DIM:
+            raise SystemExit(
+                f"train_ppo_enrich2c is a schema-{SCHEMA} probe (E in "
+                f"the clock slot, col {E_COL}); the runner serves obs "
+                f"width {obs_dim}. Schema 6 has no clock cell — this "
+                "design does not flip, it ends with v5 (declared in "
+                "PREREG-C.md).")
         buf = {
             "obs": np.zeros((T, n, tf.MAX_SEATS, obs_dim), np.float32),
             "mask": np.zeros((T, n, tf.MAX_SEATS, mask_dim), bool),

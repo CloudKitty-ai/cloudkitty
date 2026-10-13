@@ -96,4 +96,11 @@ o4, m4, lg4 = F["friend_obs"][0], F["friend_mask"][0], F["friend_logits"][0].cop
 lg4[:L.N_ACT] = -1.0; lg4[38] = 5.0  # Idle
 pl = planner_for(lg4[None]); out = pl(o4[None], m4[None])[0]
 assert pl.stats["friend_orders"] == 0 and np.array_equal(out, lg4), "the trigger is the mind's own nap"
+# schema guard: a 399-wide (v6) row is refused by name, never misread
+pl = planner_for(F["trigger_logits"][:1])
+try:
+    pl(np.zeros((1, 399), np.float32), F["trigger_mask"][:1])
+    raise SystemExit("a v6-width row must be refused")
+except ValueError as e:
+    assert "schema-5" in str(e), e
 print("test_beam_plan ok")

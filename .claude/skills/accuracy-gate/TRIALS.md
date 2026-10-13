@@ -743,3 +743,117 @@ marks and a relay rendering presented as the speaker's words are the
 same bug at different distances from the source. And when comparing
 two rates, convert to one denominator in the doc itself — readers
 will ratio whatever two numbers sit side by side.
+
+## 2026-10-11 — full gate: minifriend pre-sitting reads (Experiments)
+
+Target: experiments/minifriend-presitting-2026-10-11/RESULTS.md (the
+assessment of the Professor relay + the grave-density and
+relief-latency power reads). Verdict PASS r1; four post-gate
+precision fixes, no number wrong.
+
+Findings worth keeping:
+- The verifier caught an UNSOURCED threshold the session believed
+  was ruled: "45/70/90 are the sitting's pinned bins". The ruling
+  (gen2-sitting-rulings-2026-10-08.md §3(d)) pins happiness 45/70
+  plus the 90 distress edge — 45/70 are happiness edges, not need
+  bins. The doc had borrowed the numbers onto a different axis and
+  inherited the word "pinned" with them. Fixed to read-time choices
+  with the real citation, in the doc and both reader docstrings.
+- Method label: "two-sample power" overstated a
+  shift-against-null-reference design (baseline treated as known →
+  printed powers optimistic). The direction strengthened the doc's
+  conclusion, but the label was still wrong. Named the design and
+  the direction in the doc.
+- A stated n-range ("needs 200–500 episodes") silently assumed one
+  stratum's latency shape generalized; eat@0.70 sat inside the range
+  with half the power. Restated in power terms with the
+  counterexample inline.
+- Mixed CI bases in one table column (@200/@100/@20 beside @full-n)
+  — unified at full n.
+
+Lesson: a number carried from a ruling keeps its axis, not just its
+value. "45/70" pinned for happiness is not "45/70" pinned for need
+pressure, and the word "pinned" travels with the axis. And name the
+statistical design you actually ran, even when the honest label only
+makes your conclusion stronger.
+
+## 2026-10-12 — addendum gate: happiness-mass read + skeleton candidates (Experiments)
+
+Target: Read 3 of experiments/minifriend-presitting-2026-10-11/RESULTS.md
+plus copy check of the new [CANDIDATE] block in the Gen 2 skeleton §9
+item 2. PASS; four post-gate fixes, no number wrong.
+
+Findings worth keeping:
+- "A bar on the population MEAN" — welfare.rs's MIN_MEAN_HAPPINESS is
+  per kitty (one run-mean check each, :314), not a population
+  aggregate. The doc's point survived; the word "population" was
+  invented in the retelling.
+- The session quoted the swaps digest's "under one happiness point"
+  as trained-vs-scripted. It is arm-vs-arm; the real
+  trained-vs-scripted lift is +4.30 to +6.67 per seat in the gate
+  table three paragraphs earlier. Two comparisons living in one
+  section, and the wrong one got carried.
+- "Thins the low bins" was stated as fact off per-seat means; the
+  trained tail is unmeasured (no trained-seat state raws exist).
+  Marked as inference.
+
+Lesson: a section can hold two deltas with different comparators;
+check which comparator a quoted number belongs to before carrying
+it. And a directional claim about a TAIL needs tail evidence or an
+inference label — means do not measure tails (house rule already:
+tails and floors, never means).
+
+## 2026-10-12 — addendum gate r1 FAIL, r2 PASS: trained-tail read (Experiments)
+
+Target: the trained-tail addendum to minifriend-presitting RESULTS.md
+Read 3 + skeleton rider (b). r1 FAIL — the first real FAIL on a live
+doc. The session compared the trained below-45 tail (cert battery)
+against the bc-corpus scripted rate and called it "roughly two
+orders thinner". The verifier found the battery's own SAME-WORLD
+all-scripted legs (same config_sha256, same seed0, same files
+directory): paired, the thinning is 16x pooled (61x eval, 8.5x
+stress). Most of the claimed effect was the gap between two
+corpora, not training. Also caught: a worst CELL quoted beside a
+MEAN (same-world worst cells: trained 0.03% vs scripted 0.16%), and
+"Phase 2's own bin-occupancy output" when the skeleton's own text
+puts the first trained bin read at Phase 1 (frozen-trunk offline
+heads). r2 PASS after restating on the paired legs, with the reader
+extended to print both legs.
+
+Lesson: before reaching across corpora for a comparator, ask
+whether the raw bundle you are already holding contains its own
+paired control — this one did, two files away, with the seed base
+in the filename. Paired within-run controls beat between-run maxima
+is already the house rule for measurements; it is the rule for
+COMPARATORS too. And a worst cell never sits beside a mean.
+
+## 2026-10-12 — copy check r1 FAIL, r2 PASS: relay-integration candidates (Experiments)
+
+Target: four new [CANDIDATE] blocks in gen2-prereg-skeleton
+(§6 reward-provenance + flow trigger; §9 items 11–13), drafted on
+the owner's word "Let's integrate all three into the freeze" from
+the banked Professor relay + the pre-sitting reads. Copy check
+only (no Regeneration block; sources = the relay note, RESULTS
+reads 1–2, relief-latency.json). r1 FAIL, six findings: a power
+RANGE cut to its top end (0.71–0.77 at 200 became "0.77");
+"usable episode counts" where the source says usable READ (the
+source's own counterexample: eat@0.70 holds 465 episodes yet
+power 0.45); the wrong receipt id (our banking-confirmation
+receipt 8f53f409 written where the relay's receipt 93afbe70
+belongs); "stays rejected" implying a ruling no source records
+(the relay says the flat invariant "overreaches as written" — and
+its round 2 item 4 orders the distinction recorded so her
+efficacy quote is never used as a burden-shifter, which the draft
+also hadn't done); the assessment's own carve-out dropped
+(observation-feature consumption with ground-truth reward must
+not trip the trigger); a dissolution claim stripped of its
+condition ("unless implementation conflates the two legs"). r2
+PASS on the changed lines.
+
+Lesson: integration drafting is a third kind of carry — not
+numbers from a JSON, not quotes from a ruling, but POSITIONS from
+an advisory source — and positions decay the same ways: a range
+becomes its best end, a verdict ("overreaches") becomes a ruling
+("rejected"), a conditional loses its condition. And two receipt
+ids for one exchange (theirs and ours) will swap unless each is
+labeled with whose it is at first write.

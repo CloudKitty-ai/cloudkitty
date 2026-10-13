@@ -19,7 +19,16 @@ assert OBS_DIM == 408
 # 15-18, Eat 19, Drink 20, ChaseCritter 21-24, ChaseKitty 25-28, PlaySolo
 # 29, PlayCritter 30-33, PlayKitty 34-37, Idle 38.
 N_ACT = 39
-DENSE_ACT = [0, 1, 2, 3, 4, 9, 14, 19, 20, 29, 38]
+# The dense (non-pointer) menu entries by wire spelling, so a reader
+# names an action instead of counting to it. The v5-era codec ran
+# critter_slots 4 (menu 39); the live binding's ACTION_MENU is the
+# current codec and no longer serves these indices.
+DENSE_MENU = {"move_north": 0, "move_east": 1, "move_south": 2,
+              "move_west": 3, "rest_solo": 4, "sleep_solo": 9,
+              "groom_self": 14, "eat": 19, "drink": 20,
+              "play_solo": 29, "idle": 38}
+DENSE_ACT = sorted(DENSE_MENU.values())
+assert DENSE_ACT == [0, 1, 2, 3, 4, 9, 14, 19, 20, 29, 38]
 KITTY_MENU = [[5 + k, 10 + k, 15 + k, 25 + k, 34 + k] for k in range(4)]
 CRIT_MENU = [[21 + j, 30 + j] for j in range(4)]
 N_HEAD = 16
@@ -65,7 +74,12 @@ MSG_BLOCK = 2 * len(HEAD_KINDS)                                  # recency, rate
 # scene age, own message block, element memory (present, dx, dy, staleness).
 SELF_NEEDS, SELF_HAPPINESS, SELF_POS, SELF_ACTIVITY = 0, 6, 7, 9
 SELF_PARTNERED, SELF_IN_SUNBEAM, SELF_IN_WATER = 16, 17, 18
+SELF_PROGRESS = SELF_IN_WATER + 1
+SELF_DISTRESS = SELF_PROGRESS + 1            # six flags, NEED_KINDS order
+SELF_PURSUIT = SELF_DISTRESS + 6             # two cells
+SELF_TRAITS = SELF_PURSUIT + 2               # six dials
 SELF_SCHEMA_4 = 6 + 1 + 2 + 7 + 1 + 1 + 1 + 1 + 6 + 2 + 6
+assert SELF_TRAITS + 6 == SELF_SCHEMA_4
 SELF_SCENE_AGE = SELF_SCHEMA_4
 SELF_MSG_BLOCK = SELF_SCENE_AGE + 1
 SELF_MEMORY = SELF_MSG_BLOCK + MSG_BLOCK
@@ -85,5 +99,12 @@ ROW_ANSWERS_ME = ROW_INTENSITY + len(WANT_KINDS)
 assert ROW_ANSWERS_ME + len(HERE_KINDS) == KITTY_W
 # Element slots: present, dx, dy, distance first in every kind.
 SLOT_PRESENT, SLOT_DX, SLOT_DY, SLOT_DIST = 0, 1, 2, 3
+# Activity one-hot order: the engine's push_activity
+# (observe.rs; kitty.rs Activity serde snake_case tags), shared by the
+# self block and the kitty rows.
+ACTIVITY_KINDS = ["idle", "resting", "sleeping", "eating", "drinking",
+                  "playing", "grooming"]
+# The clock cell, schema 5's last column (gone in schema 6).
+CLOCK_COL = OBS_DIM - 1
 # Normalisers (observe.rs): scene age / 24, memory staleness / 40.
 SCENE_AGE_NORMALISER, STALENESS_NORMALISER = 24.0, 40.0

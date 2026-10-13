@@ -33,9 +33,19 @@ sys.path.insert(0, str(EXPTS / "fog-gen1-shakeout" / "trainer"))
 import train_ppo_beam as tb  # noqa: E402
 import train_ppo_fog as tf  # noqa: E402
 
-GATE_OBS = (0, 1, 2, 4, 5)
-HAP_OBS = 6
-ACT_PLAY = 14
+# Obs indices by name from the keyed layout (the Gen 2 reader-flip
+# ruling: no raw indices downstream). The gate reads every need but
+# play; values unchanged: GATE_OBS (0, 1, 2, 4, 5), HAP_OBS 6,
+# ACT_PLAY 14 — test_enrich2c pins them as independent literals.
+sys.path.insert(0, str(EXPTS / "attn-oracle-2026-08-15"))
+import obs_layouts  # noqa: E402
+
+SCHEMA = 5
+L = obs_layouts.layout_for(SCHEMA)
+GATE_OBS = tuple(L.SELF_NEEDS + L.NEED_KINDS.index(k)
+                 for k in ("eat", "drink", "sleep", "cuddle", "bath"))
+HAP_OBS = L.SELF_HAPPINESS
+ACT_PLAY = L.SELF_ACTIVITY + L.ACTIVITY_KINDS.index("playing")
 THETA_LO, THETA_HI = 0.15, 0.25
 GAIN = 0.25
 D_MIN, D_MAX = 0.01, 0.10

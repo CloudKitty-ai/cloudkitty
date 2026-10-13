@@ -136,6 +136,12 @@ def install_collect_e_append():
         mean, std = vstats
         n = runner.n_worlds
         obs_dim, mask_dim = runner.dims
+        if obs_dim != OBS_DIM:
+            raise SystemExit(
+                f"train_ppo_enrich2d is a schema-5 probe (E appended "
+                f"as col {E_COL} on {OBS_DIM}-wide obs); the runner "
+                f"serves obs width {obs_dim}. A Gen 2 enrichment arm "
+                "is new work on the v6 layout, not a flip.")
         buf = {
             "obs": np.zeros((T, n, tf.MAX_SEATS, obs_dim + 1), np.float32),
             "mask": np.zeros((T, n, tf.MAX_SEATS, mask_dim), bool),

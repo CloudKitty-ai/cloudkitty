@@ -101,7 +101,14 @@ def load_trace(d, config=None):
     d = Path(d)
     meta = json.loads((d / "meta.json").read_text())
     assert meta.get("trace"), f"{d} was not recorded with --trace"
-    assert meta["observation_schema"] == 5 and meta["obs_width"] == OBS_DIM, meta
+    if meta["observation_schema"] != 5:
+        raise SystemExit(
+            f"schema_check.py is the schema-5 Part A instrument "
+            f"(obs_layout_v5 names); {d}/meta.json says "
+            f"observation_schema={meta['observation_schema']}. The "
+            "Gen 2 checker lands with the Gen 2 prereg — do not point "
+            "this one at a newer trace.")
+    assert meta["obs_width"] == OBS_DIM, meta
     cfg_path = Path(config) if config else Path(meta["config"])
     with open(cfg_path, "rb") as f:
         cfg = tomllib.load(f)
