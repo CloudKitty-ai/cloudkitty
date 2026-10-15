@@ -1235,3 +1235,172 @@ fn a_roster_above_the_slot_count_plus_one_is_refused_at_boot() {
         "{err}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Spec 061: the stuck detector's serving surface (T013, T016 integration).
+
+/// The state-dependent doctored mind from the unit suite: dithers
+/// East/West on its home row, idles anywhere else.
+struct HomeDither {
+    home_y: u32,
+}
+
+#[async_trait::async_trait]
+impl cloudkitty_core::Behavior for HomeDither {
+    async fn decide(
+        &self,
+        ctx: &cloudkitty_core::DecisionContext,
+    ) -> cloudkitty_core::Decision {
+        use cloudkitty_core::action::Action;
+        use cloudkitty_core::Direction;
+        if ctx.me.pos.y == self.home_y {
+            let direction = if ctx.me.pos.x % 2 == 0 {
+                Direction::East
+            } else {
+                Direction::West
+            };
+            cloudkitty_core::Decision::silent(Action::move_to(direction))
+        } else {
+            cloudkitty_core::Decision::silent(Action::Idle)
+        }
+    }
+}
+
+#[tokio::test]
+async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
+    use cloudkitty_server::stuck::{StuckConfig, StuckDetector, StuckMode, StuckShared};
+
+    // A mind seat pinned in the dither loop with an armed need, and a
+    // scripted seat beside it that must never appear on the surface.
+    let mut config = test_config();
+    config.kitties = vec![
+        KittyConfig::new(1, "Pacer", 4, 4, "policy:dither"),
+        KittyConfig::new(2, "Biscuit", 11, 11, "needs_driven"),
+    ];
+    config.validate().expect("valid");
+    let config = Arc::new(config);
+
+    let mut registry = BehaviorRegistry::with_builtins();
+    registry.register(
+        "policy:dither".to_string(),
+        Arc::new(HomeDither { home_y: 4 }),
+    );
+    let stuck_config = StuckConfig {
+        mode: StuckMode::Enforce,
+        window: 5, // small window: a fire within ~6 served ticks
+        ..StuckConfig::default()
+    };
+    let shared = StuckShared::new(stuck_config);
+    let (registry, mind_plugins) =
+        cloudkitty_server::wrap_mind_seats(registry, &Default::default(), &shared);
+    assert!(mind_plugins.is_empty(), "no plugins declared; policy wraps by prefix");
+    let detector = StuckDetector::new(shared, mind_plugins);
+
+    let mut world = World::generate(&config);
+    world.kitties[0].needs.add(cloudkitty_core::NeedKind::Eat, 200.0); // armed
+    let sim = sim_task::spawn(
+        world,
+        config.clone(),
+        registry,
+        None,
+        cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+        detector,
+    );
+    let state = AppState {
+        published: sim.receiver.clone(),
+        config: config.clone(),
+        welfare: sim.welfare.clone(),
+        stuck: sim.stuck.clone(),
+        settings: settings(&config),
+    };
+    let app = build_router(state, std::path::Path::new("../../client"));
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        let _ = axum::serve(listener, app).await;
+    });
+    let url = format!("http://{addr}/stuck");
+
+    // Poll until the first fire lands on the surface (window 5 at 25ms
+    // ticks: well under a second; the loop bounds the wait).
+    let mut body = Value::Null;
+    for _ in 0..200 {
+        body = reqwest::get(&url).await.expect("GET /stuck").json().await.expect("JSON");
+        let fired = body["per_seat"]
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|r| r["enforced"].as_u64() >= Some(1)));
+        if fired {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(25)).await;
+    }
+
+    // Config echo (contract §2).
+    assert_eq!(body["mode"], "enforce");
+    assert_eq!(body["window"], 5);
+    assert_eq!(body["radius"], 1);
+
+    // US2/AC2: per-seat counts without log archaeology — and ONLY the
+    // mind seat (SC-005: the scripted seat appears on no collection).
+    let per_seat = body["per_seat"].as_array().expect("per_seat");
+    assert_eq!(per_seat.len(), 1, "only the mind-class seat is listed");
+    assert_eq!(per_seat[0]["kitty"], 1);
+    assert_eq!(per_seat[0]["name"], "Pacer");
+    assert!(per_seat[0]["enforced"].as_u64() >= Some(1), "{body}");
+    let armed = body["armed"].as_array().expect("armed");
+    assert!(
+        armed.iter().all(|row| row["kitty"] == 1),
+        "FR-012: the live trigger surface lists tracked seats only"
+    );
+    assert_eq!(armed.len(), 1, "the one mind seat has a live trigger row");
+    assert!(armed[0]["confined"].is_u64() && armed[0]["streak"].is_u64());
+
+    // US2/AC1 + SC-003: the record carries every contract field.
+    let recent = body["recent"].as_array().expect("recent");
+    let fire = &recent[0];
+    assert_eq!(fire["kitty"], 1);
+    assert_eq!(fire["name"], "Pacer");
+    assert_eq!(fire["mode"], "enforce");
+    assert_eq!(fire["window"], 5);
+    // Exact tick (analysis C2), served convention: the spawn-time
+    // observation steps the signature once at world.tick == 0, so a
+    // fresh world's first fire substitutes the decisions of tick
+    // window - 1. An equality: a late (or early) fire fails here.
+    assert_eq!(fire["tick"].as_u64(), Some(4), "{fire}");
+    assert_eq!(fire["anchor"].as_array().map(|a| a.len()), Some(2));
+    assert!(fire["confined_span"].as_u64() >= Some(5));
+    assert_eq!(fire["armed_need"], "eat");
+    assert!(fire["need_value"].as_f64() >= Some(75.0));
+    assert!(
+        fire["proposal_replaced"]["activity"].is_object()
+            || fire["proposal_replaced"]["activity"].is_string(),
+        "the replaced proposal is on the record: {fire}"
+    );
+    assert!(
+        !fire["substitute"].is_null(),
+        "the substitute is on the record: {fire}"
+    );
+
+    sim.shutdown().await;
+}
+
+#[tokio::test]
+async fn stuck_endpoint_serves_the_dark_shape_when_off() {
+    // FR-009/contract §2: the surface exists dark — config echo, empty
+    // collections, never an error.
+    let server = start_server().await;
+    let body: Value = reqwest::get(server.url("/stuck"))
+        .await
+        .expect("GET /stuck")
+        .json()
+        .await
+        .expect("JSON");
+    assert_eq!(body["mode"], "off");
+    assert_eq!(body["window"], 30);
+    assert_eq!(body["armed_line"], 75.0);
+    assert_eq!(body["radius"], 1);
+    assert_eq!(body["per_seat"], serde_json::json!([]));
+    assert_eq!(body["armed"], serde_json::json!([]));
+    assert_eq!(body["recent"], serde_json::json!([]));
+    server.shutdown().await;
+}

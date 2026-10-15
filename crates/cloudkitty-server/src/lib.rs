@@ -197,36 +197,41 @@ pub fn register_policy_behaviors(
 /// behavior in a [`stuck::StuckGuard`] — `policy:*` registrations and
 /// plugins declared `class = "mind"`; scripted seats and built-ins are
 /// never wrapped, so the detector has no code path that can reach them.
-/// Registration is last-write-wins, so this runs AFTER both registrars
-/// and re-registers each mind name wrapped. Seats are wrapped in every
-/// mode, off included (the wrapper forwards when idle): mode changes
-/// gate behavior, never code paths. Returns the mind-class plugin names
-/// for the observer's tracking rule.
+/// Names are unique by construction (`register` panics on a duplicate),
+/// so this runs AFTER both registrars and rebuilds the registry with
+/// each mind name wrapped — startup-time only, before any tick, so the
+/// rebuilt (empty) circuit breaker is equivalent to the fresh one.
+/// Seats are wrapped in every mode, off included (the wrapper forwards
+/// when idle): mode changes gate behavior, never code paths. Returns
+/// the wrapped registry and the mind-class plugin names for the
+/// observer's tracking rule.
 pub fn wrap_mind_seats(
-    registry: &mut BehaviorRegistry,
+    registry: BehaviorRegistry,
     plugins: &PluginsConfig,
     shared: &Arc<stuck::StuckShared>,
-) -> BTreeSet<String> {
+) -> (BehaviorRegistry, BTreeSet<String>) {
     let mut mind_plugins = BTreeSet::new();
+    let mut wrapped = BehaviorRegistry::new();
     for name in registry.names() {
+        let inner = registry.get(&name).expect("the registry just listed it");
         let is_policy = name.starts_with("policy:");
         let is_mind_plugin = plugins
             .plugins
             .get(&name)
             .is_some_and(|entry| entry.class == Some(SeatClass::Mind));
-        if !(is_policy || is_mind_plugin) {
-            continue;
-        }
-        let inner = registry.get(&name).expect("the registry just listed it");
-        registry.register(
-            name.clone(),
-            Arc::new(stuck::StuckGuard::new(inner, shared.clone())),
-        );
-        if is_mind_plugin {
-            mind_plugins.insert(name);
+        if is_policy || is_mind_plugin {
+            wrapped.register(
+                name.clone(),
+                Arc::new(stuck::StuckGuard::new(inner, shared.clone())),
+            );
+            if is_mind_plugin {
+                mind_plugins.insert(name);
+            }
+        } else {
+            wrapped.register(name, inner);
         }
     }
-    mind_plugins
+    (wrapped, mind_plugins)
 }
 
 /// External plugin declarations — `[plugins.<name>]` blocks parsed from the

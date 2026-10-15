@@ -248,8 +248,8 @@ async fn run() -> Result<()> {
     // mode (off forwards); the shared state links the wrappers to the
     // post-tick observer in sim_task.
     let stuck_shared = cloudkitty_server::stuck::StuckShared::new(stuck_config);
-    let mind_plugins =
-        cloudkitty_server::wrap_mind_seats(&mut registry, &plugins_config, &stuck_shared);
+    let (registry, mind_plugins) =
+        cloudkitty_server::wrap_mind_seats(registry, &plugins_config, &stuck_shared);
     // Spec 059 FR-011: a digest window too short for a typical approach
     // makes most cue answers infeasible — lawful, but a collection config
     // should hear about it at startup.

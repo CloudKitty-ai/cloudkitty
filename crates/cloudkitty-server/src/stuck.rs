@@ -1284,6 +1284,93 @@ mod tests {
         assert!(shared.plans.lock().unwrap().is_empty(), "no plan");
     }
 
+    // ---------- T010: the fire log line (contract §3) ----------
+
+    /// A capture target for the fmt subscriber.
+    #[derive(Clone, Default)]
+    struct Captured(Arc<Mutex<Vec<u8>>>);
+
+    impl std::io::Write for Captured {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().extend_from_slice(buf);
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Captured {
+        type Writer = Captured;
+        fn make_writer(&'a self) -> Captured {
+            self.clone()
+        }
+    }
+
+    #[test]
+    fn the_fire_log_line_carries_the_contract_fields_at_the_contract_levels() {
+        // Contract §3: WARN for enforce, INFO for observe, and these
+        // exact flattened field names — the corpus INVESTIGATE consumer
+        // parses them; a rename is a breaking change.
+        let record = |mode: StuckMode| FireRecord {
+            tick: 42,
+            kitty: 1,
+            name: "Biscuit".to_string(),
+            mode,
+            window: 30,
+            anchor: [18, 0],
+            confined_span: 31,
+            armed_need: NeedKind::Eat,
+            need_value: 83.0,
+            proposal_replaced: None,
+            substitute: Decision::silent(cloudkitty_core::action::Action::Idle),
+        };
+        let captured = Captured::default();
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_writer(captured.clone())
+            .with_ansi(false)
+            .finish();
+        tracing::subscriber::with_default(subscriber, || {
+            log_fire(&record(StuckMode::Enforce));
+            log_fire(&record(StuckMode::Observe));
+        });
+        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 2, "one line per fire:\n{text}");
+        assert!(
+            lines[0].contains("WARN") && lines[0].contains("stuck fire"),
+            "enforce logs at WARN: {}",
+            lines[0]
+        );
+        assert!(
+            lines[1].contains("INFO") && lines[1].contains("stuck fire (observe-only)"),
+            "an observe-only record logs at INFO: {}",
+            lines[1]
+        );
+        for field in [
+            "kitty=1",
+            "name=Biscuit",
+            "tick=42",
+            "window=30",
+            "anchor_x=18",
+            "anchor_y=0",
+            "confined_span=31",
+            "armed_need=Eat",
+            "need_value=83",
+            "proposal_replaced=none",
+            "replaced_message=",
+            "substitute=Idle",
+            "substitute_message=",
+        ] {
+            assert!(
+                lines[0].contains(field),
+                "contract field {field} missing from: {}",
+                lines[0]
+            );
+        }
+    }
+
     // ---------- FR-005: the substitute never speaks the free register ----------
 
     #[test]
