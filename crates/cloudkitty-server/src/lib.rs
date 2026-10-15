@@ -8,6 +8,7 @@ pub mod http_behavior;
 pub mod persist;
 pub mod settings;
 pub mod sim_task;
+pub mod stuck;
 pub mod watchdog;
 pub mod ws;
 
