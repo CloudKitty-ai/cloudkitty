@@ -254,6 +254,19 @@ rulings nor answers to blanks until she rules. Rulings sources:
   scouts-first: one-world scout with a stop at the F-053
   1,000-tick distress-streak line before each full leg. No frozen
   Gen 1 legs anywhere (F-053 harm rule).
+- [AMENDED owner 2026-10-15 in-session: "Let's add scout
+  coverage"] Mechanism (Experiments' design, not her words — hers
+  is the quoted "Let's add scout coverage"): the scout stage
+  covers several
+  worlds per displaced size, run_legs driver default 3 — the
+  band's first seeds, so every scouted world recurs in the full
+  leg — all gated on the same F-053 line; that one-world stays
+  the ruled minimum is Experiments'
+  reading of the K§5 interaction. Also Experiments'
+  reading, not her ruling: a scout trip on a legitimate per-seed
+  start draw is a finding taken to the owner, not an
+  infrastructure failure — consistent with her 2026-10-15 framing
+  that tail draws "identify more "hard" seeds".
 - [BLANK] The realized-distress stop numbers for trunk training
   (precedent values carried forward or re-pinned).
 - [CANDIDATE, Professor relay point 2 + round 2 item 3 —
@@ -308,6 +321,45 @@ rulings nor answers to blanks until she rules. Rulings sources:
 - [RULED] Scripted comparator legs at 20/40/100 run PRE-freeze,
   battery shape (30 × 20k), and the prereg pins the realized
   numbers. [BLANK] those numbers.
+- [RULED owner 2026-10-15 in-session, per-seed deterministic
+  placement: "I think as long as placement is deterministic for
+  seed, we should do that for every unique seed". The legs
+  application was asked as a one-line confirm and she CONFIRMED
+  later the same session: "Starts should be deterministically
+  randomized by seed yes"] Comparator and
+  cert legs take PER-SEED randomized starts. Mechanism
+  (Experiments' design, not her words — including that the legs
+  draw under the collection share law): a
+  seed-keyed deterministic draw at the shares in force, written as
+  one derived config per seed — the pairing artifact; the
+  trained-roster leg on seed s reuses the comparator's config, so
+  the gate comparison shares starts by construction. The
+  implementation HOME is open: she proposed, same message,
+  "Perhaps we can build this in the engine, and allow overriding
+  in the toml? Is there a better approach?" — Experiments
+  recommended engine-native with the toml override (needed anyway
+  for the ruled per-PPO-episode starts), which would be a Product
+  spec; Experiments' interim plan, not yet built: extend
+  collect_corpus's derived-config approach to run_legs until the
+  engine mechanism lands. (That this extends the shelf-ruled
+  randomized-start scope — which named collection and PPO
+  episodes — to the legs is Experiments' framing; the extension
+  itself is her (f) confirm.)
+- [RULED owner 2026-10-15 in-session. Her ask: "Re: share-timing,
+  what do you think about making always rerun comparator legs our
+  rule?"; ruled via "Mark it ruled (with your change)" — the
+  change being the exact-trigger phrasing, recorded verbatim here
+  (that it narrows her "always" to the rule's "any difference" is
+  Experiments' framing)] Share-timing
+  re-run rule: if the freeze pins final shares ≠ pencil shares —
+  any difference, no materiality judgment — the comparator legs
+  re-run at the final shares (scouts included, fresh draws) before
+  the trained cert legs run, and the re-run becomes the gate
+  baseline; the prereg pins the pencil-share numbers as realized
+  and records the re-run as a declared addendum. (Experiments'
+  closure of the trigger, not her text: final = pencil means no
+  re-run. Experiments' note: §4's collection remedy keeps its own
+  "materially" test — that governs recollection, not this re-run.)
 - [RULED] Mixed-size trigger: fires only on a 40×40 gated miss;
   the mixed recipe is a declared arm via prereg addendum (episode
   sizes over {20, 28, 40} at declared shares, served world

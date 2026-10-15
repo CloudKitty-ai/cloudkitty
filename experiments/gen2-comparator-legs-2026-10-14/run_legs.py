@@ -2,19 +2,26 @@
 """Scripted comparator-leg driver (Gen 2 prereg skeleton §7, RULED):
 legs at 20/40/100 run PRE-freeze in battery shape (30 x 20k, scripted
 seating); the prereg pins the realized numbers. Displaced sizes (40,
-100) are SCOUTS-FIRST (skeleton §6, RULED K§5): one-world scout with a
-stop at the F-053 1,000-tick distress-streak line gates each full leg;
-a scout miss STOPS that leg and the driver — the stop is asymmetric,
-never auto-continued.
+100) are SCOUTS-FIRST (skeleton §6, RULED K§5; coverage amended owner
+2026-10-15): --scout-seeds worlds (the default of 3 and the
+band's-first-seeds selection are Experiments' design), each with a
+stop at the F-053 1,000-tick distress-streak line, gate each full
+leg; a scout miss STOPS that leg and the driver — the stop is
+asymmetric, never auto-continued.
 
 The driver orchestrates cert_harness_fog.py (which keys its state
 stride off the live binding, 2026-10-14) and decides nothing the
 sitting owns: band, seeds, ticks and the three config paths are
 inputs. The Gen 2 size configs do not exist yet — they land with the
-§2 toml diff at freeze prep, and their 40/100 kitty START POSITIONS
-need deliberate placement (world-size-screen's size100.toml kept the
-20x20 starts, clustering all five cats in one corner — do not reuse
-them for a welfare-bearing comparator).
+§2 toml diff at freeze prep. Starts: PER-SEED randomized (owner
+ruled 2026-10-15, skeleton §7; that the legs draw under the
+collection share law is Experiments' design) — this driver does
+not implement that yet; Experiments recommends it lands
+engine-native (a Product spec), with per-seed derived configs
+extending collect_corpus's approach only as the interim until the
+engine mechanism ships. Never reuse world-size-screen's
+size100.toml starts (the 20x20 layout clusters all five cats in one
+corner).
 
     experiments/exp-006-character-gen/.venv/bin/python \\
         experiments/gen2-comparator-legs-2026-10-14/run_legs.py \\
@@ -82,8 +89,9 @@ def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
          scout_seeds=3):
     """Ordered stages: per size (ascending), scout-then-gate for the
     displaced sizes, then the full leg. Each stage: (name, cmd,
-    scout_file_to_gate_on_or_None). Scout coverage (owner 2026-10-15):
-    scout_seeds worlds per displaced size — the band's FIRST seeds, so
+    scout_file_to_gate_on_or_None). Scout coverage (owner-amended
+    2026-10-15; the count and band's-first-seeds selection are
+    Experiments' design): scout_seeds worlds per displaced size, so
     every scouted world recurs in the full leg — all gated on the
     F-053 line before the leg runs."""
     out_dir = Path(out_dir)

@@ -889,3 +889,29 @@ ambiguity instead), and a blank's scope grows to cover what the
 surrounding body text declares (quote the blank line itself,
 file the body's declarations separately). Headings are claims
 too: an item filed under "no decision" inherits that claim.
+
+## 2026-10-15 — copy check r1-r16: in-session ruling records + the held randomized-starts note (Experiments)
+
+Scope: skeleton §6/§7 ruling records + agenda §7 line (cleared r11),
+run_legs docstrings (cleared r11/r10-r11), then the held requirements
+note (r11-r16, committed after r16's fixes on the owning thread's
+read — a held draft for Product, re-scrutinized at relay). Sixteen
+rounds, fresh subagent each; findings narrowed monotonically: quote
+fidelity → stripped conditions → attribution of mechanism under
+RULED/AMENDED tags → attribution of framing → runnability of claimed
+checks. New decay modes for the lesson set:
+- Design detail INHERITS a RULED tag: anything in a ruled bullet not
+  explicitly marked Experiments' reads as the owner's. Mark every
+  clause; "her words are the quoted X" must itself be exactly true.
+- An acceptance check written from intent, not surfaces: "byte
+  equality of the world" when only arrays are readable; "category
+  per its draw" when no draw echo exists; a cross-check sampler that
+  cannot reproduce the engine's stream. State the runnable form or
+  name the missing capability.
+- UNDERSTATING the repo is a miss too: the note demanded a kitty
+  snapshot accessor that --trace already ships (r16). Claiming a
+  capability is missing gets checked like claiming one exists.
+- The checker is blind to session-only facts: owner quotes and
+  session context must be supplied in the prompt as ground truth,
+  and anything only the session can back gets cited to the session
+  or cut (the worst-case-bench clause, r13).

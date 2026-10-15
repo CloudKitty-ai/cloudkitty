@@ -18,7 +18,20 @@ pinned until her word at the sitting (skeleton header rule).
 - §5 binding SHA at launch — recorded, not decided.
 - §7 scripted comparator realized numbers — the pre-freeze
   comparator legs (30 × 20k at 20/40/100) produce them; the prereg
-  pins what they realize.
+  pins what they realize. RULED since (owner 2026-10-15,
+  in-session; skeleton §7 carries the full text and tags): legs
+  take per-seed randomized starts (her word, confirmed for the
+  legs same session: "Starts should be deterministically
+  randomized by seed yes"; that the legs draw under the collection
+  share law is Experiments' design), and
+  if the freeze pins final shares ≠ pencil shares — any
+  difference, no materiality judgment — the comparator legs re-run
+  at the final shares (scouts included, fresh draws) before the
+  trained cert legs run; the re-run becomes the gate baseline, the
+  prereg pins the pencil-share numbers as realized, and the prereg
+  records the re-run as a declared addendum. Agenda framing, Experiments': the
+  sitting confirms-and-cites; the share values themselves stay
+  section C's.
   (The §5 recipe blank, skeleton L242, is split across this list
   and section C: the binding SHA sits here, the recipe values
   there.)
