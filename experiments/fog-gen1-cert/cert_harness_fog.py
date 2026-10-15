@@ -53,7 +53,11 @@ REWARD_EPS, TERM_FLOOR = 0.01, 1e-4
 PER_KITTY, HAP, DIST0 = 32, 6, 20
 # global_state.rs per-kitty layout: needs 6 (sleep at 2), happiness, pos 2, activity one-hot 7
 # (idle, rest, sleep, eat, drink, play, groom), social flag, partner present, partner index /
-# (roster - 1), progress, distress 6, traits 6.
+# (roster - 1), progress, distress 6, traits 6 (v1) / identity 14 (v2, spec 058 FR-009).
+# Every within-block offset above sits in the prefix the two versions share; only the
+# block STRIDE differs (32 vs 40). run_one re-keys PER_KITTY from the live state width
+# via coverage_read.infer_block (one home for the inference), refusing unknown widths —
+# before 2026-10-14 the 32 was unconditional and a v2 state was misread silently.
 NEED_SLEEP, POS0, ACT0, SLEEP_ACT, PARTNER_PRESENT, PARTNER_IDX = 2, 7, 9, 2, 17, 18
 NEED_BINS = (5.0, 10.0, 20.0, 40.0)  # beam-world screen: sleep need at a sleep start, bins <5, 5-10, 10-20, 20-40, >=40 (rule 4 read)
 # enrichment-bonus screen (2026-09-26): play accounting on the global state.
@@ -333,6 +337,13 @@ def run_one(args):
 
     env = cloudkitty.ParallelEnv(str(config_path), control=control or None, horizon=ticks)
     obs, infos = env.reset(seed=seed)
+    # Key the global-state stride off the live width (v1 32 / v2 40); the
+    # within-block offsets (HAP, DIST0, ...) are prefix-shared. Module
+    # global: the account helpers read it, one run per worker at a time.
+    global PER_KITTY
+    sys.path.insert(0, str(EXPTS / "gen2-corpus-reads-2026-10-13"))
+    from coverage_read import infer_block
+    PER_KITTY = infer_block(np.asarray(env.state()).size, roster)[1]
     names = list(env.possible_agents)
     expect = [f"kitty_{k['id']}" for k, s in zip(kitties, seats) if s != "scripted"]
     assert names == expect, (names, expect)
