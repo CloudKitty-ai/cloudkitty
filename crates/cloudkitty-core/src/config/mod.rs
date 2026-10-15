@@ -92,19 +92,22 @@ pub struct Config {
     /// no absence default; `Config::default()` documents the served
     /// values.
     pub vision: VisionConfig,
-    /// The `[rl]`, `[plugins]`, and `[watchdog]` tables are parsed from
-    /// the same file text by cloudkitty-rl and the server respectively --
-    /// everything under them is someone else's business. They are
-    /// recognised here only so `deny_unknown_fields` can hold on
-    /// everything that is actually ours, and they never serialize:
-    /// `GET /config` must not grow keys, and `engine_defaults_sha256`
-    /// hashes this struct's serialized defaults.
+    /// The `[rl]`, `[plugins]`, `[watchdog]`, and `[stuck_detector]`
+    /// tables are parsed from the same file text by cloudkitty-rl and
+    /// the server respectively -- everything under them is someone
+    /// else's business. They are recognised here only so
+    /// `deny_unknown_fields` can hold on everything that is actually
+    /// ours, and they never serialize: `GET /config` must not grow
+    /// keys, and `engine_defaults_sha256` hashes this struct's
+    /// serialized defaults.
     #[serde(default, skip_serializing)]
     pub rl: ForeignTable,
     #[serde(default, skip_serializing)]
     pub plugins: ForeignTable,
     #[serde(default, skip_serializing)]
     pub watchdog: ForeignTable,
+    #[serde(default, skip_serializing)]
+    pub stuck_detector: ForeignTable,
 }
 
 /// A table this struct accepts and discards because another parser owns
@@ -1469,6 +1472,7 @@ impl Default for Config {
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
+            stuck_detector: ForeignTable,
         }
     }
 }
@@ -3219,7 +3223,9 @@ mod tests {
     fn the_rl_and_plugins_tables_belong_to_other_parsers_and_still_load() {
         let text = "[world]\nwidth = 24\nheight = 24\ntick_ms = 800\nseed = 7\n\n\
                     [rl.observation]\nkitty_slots = 4\n\n\
-                    [plugins.greeter]\ncommand = \"/bin/true\"\n[vision]\nradius = 40\nmemory_timeout_ticks = 0\n";
+                    [plugins.greeter]\ncommand = \"/bin/true\"\n\n\
+                    [stuck_detector]\nmode = \"observe\"\nwindow = 30\n\n\
+                    [vision]\nradius = 40\nmemory_timeout_ticks = 0\n";
         let c: Config =
             toml::from_str(&complete(text)).expect("foreign tables are recognised, not rejected");
         let plain: Config =
@@ -3242,6 +3248,10 @@ mod tests {
         assert!(
             !obj.contains_key("watchdog"),
             "watchdog leaked into serialization (spec 040: server-owned, stamp must not move)"
+        );
+        assert!(
+            !obj.contains_key("stuck_detector"),
+            "stuck_detector leaked into serialization (spec 061: server-owned, stamp must not move)"
         );
     }
 

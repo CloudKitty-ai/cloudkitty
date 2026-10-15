@@ -40,7 +40,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 HEADER_RE = re.compile(r"^\s*\[\[?([A-Za-z0-9_.-]+)\]\]?\s*(#.*)?$")
-FOREIGN_TABLES = {"rl", "plugins", "watchdog"}
+FOREIGN_TABLES = {"rl", "plugins", "watchdog", "stuck_detector"}
 
 
 def parse_kv(items: list[str]) -> dict[str, str]:
