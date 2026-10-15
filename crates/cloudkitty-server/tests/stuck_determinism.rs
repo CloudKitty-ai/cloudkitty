@@ -24,7 +24,7 @@ struct HomeDither {
 impl Behavior for HomeDither {
     async fn decide(&self, ctx: &DecisionContext) -> Decision {
         if ctx.me.pos.y == self.home_y {
-            let direction = if ctx.me.pos.x % 2 == 0 {
+            let direction = if ctx.me.pos.x.is_multiple_of(2) {
                 Direction::East
             } else {
                 Direction::West
