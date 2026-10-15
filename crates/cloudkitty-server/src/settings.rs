@@ -326,8 +326,7 @@ pub fn build(
     // The stuck detector (spec 061): server-owned like the watchdog; the
     // mode row is the one that says whether the served world can perturb
     // a mind seat at all (off = shipped dark, FR-009).
-    let mode_value =
-        |m: crate::stuck::StuckMode| serde_json::to_value(m).expect("modes serialize");
+    let mode_value = |m: crate::stuck::StuckMode| serde_json::to_value(m).expect("modes serialize");
     entries.push(entry(
         raw,
         "stuck_detector",
@@ -546,7 +545,12 @@ mod tests {
             "groom_cuddle_floor".into(),
             toml::Value::Float(default_floor.into()),
         );
-        let block = build(&minimal_config(), &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), Some(&raw));
+        let block = build(
+            &minimal_config(),
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            Some(&raw),
+        );
 
         for name in [
             "world.width",
@@ -586,7 +590,12 @@ mod tests {
     /// FR-011a: no file loaded → every source is `default`, the block still complete.
     #[test]
     fn no_config_file_means_every_source_is_default() {
-        let block = build(&minimal_config(), &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), None);
+        let block = build(
+            &minimal_config(),
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
         assert_eq!(block.entries.len(), 26); // +1: spec 056's sleep floor; +5: spec 061's [stuck_detector]
         for e in &block.entries {
             assert_eq!(e.source, Source::Default, "{}.{}", e.group, e.key);
@@ -598,7 +607,12 @@ mod tests {
     #[test]
     fn option_dials_render_their_rule_never_null() {
         let mut config = minimal_config();
-        let block = build(&config, &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), None);
+        let block = build(
+            &config,
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
         let margin = block
             .entries
             .iter()
@@ -618,7 +632,12 @@ mod tests {
         }
 
         config.meow.relief_memory_margin = Some(0);
-        let block = build(&config, &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), None);
+        let block = build(
+            &config,
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
         let margin = block
             .entries
             .iter()
@@ -694,7 +713,12 @@ mod tests {
         config.behavior.reply_intensity_floor = Some(0.2);
         config.water.contagion_factor = 0.1;
         config.actions.groom_cuddle_floor = 0.5;
-        let block = build(&config, &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), None);
+        let block = build(
+            &config,
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
         let text = block.render_text();
         assert!(
             text.contains("behavior.reply_intensity_floor = 0.2 (default: none) [default]"),
@@ -743,7 +767,12 @@ mod tests {
     /// anything else (structured fields, JSON, a summary) goes red here.
     #[test]
     fn announce_logs_the_rendered_block_verbatim() {
-        let block = build(&minimal_config(), &WatchdogConfig::default(), &crate::stuck::StuckConfig::default(), None);
+        let block = build(
+            &minimal_config(),
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
         let sink = Captured::default();
         let subscriber = tracing_subscriber::fmt()
             .with_writer(sink.clone())

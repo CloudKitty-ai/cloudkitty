@@ -12,9 +12,7 @@ use cloudkitty_core::test_support::test_config;
 use cloudkitty_core::{
     Behavior, BehaviorRegistry, Config, Decision, DecisionContext, Direction, NeedKind, World,
 };
-use cloudkitty_server::stuck::{
-    FireRecord, StuckConfig, StuckDetector, StuckMode, StuckShared,
-};
+use cloudkitty_server::stuck::{FireRecord, StuckConfig, StuckDetector, StuckMode, StuckShared};
 
 /// The deterministic firing seat: dithers on its home row, idles
 /// elsewhere, draws nothing from the decision stream.
@@ -70,7 +68,10 @@ fn run(ticks: u64) -> (Vec<FireRecord>, String) {
         detector.observe(&world);
     }
     let records = detector.observe(&world).recent;
-    (records, serde_json::to_string(&world).expect("worlds serialize"))
+    (
+        records,
+        serde_json::to_string(&world).expect("worlds serialize"),
+    )
 }
 
 #[test]

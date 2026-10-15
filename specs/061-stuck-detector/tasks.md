@@ -20,7 +20,7 @@ the shared signature engine and configuration.
 
 **Purpose**: the module exists and compiles; no behavior.
 
-- [ ] T001 Create `crates/cloudkitty-server/src/stuck.rs` (module doc
+- [X] T001 Create `crates/cloudkitty-server/src/stuck.rs` (module doc
       naming spec 061 and the verified rule) and declare `mod stuck;`
       in `crates/cloudkitty-server/src/lib.rs`; `cargo check -p
       cloudkitty-server` green.
@@ -34,18 +34,18 @@ every story consumes both.
 
 **⚠️ CRITICAL**: no user story work before this phase completes.
 
-- [ ] T002 [P] Core config passthrough: add `#[serde(default,
+- [X] T002 [P] Core config passthrough: add `#[serde(default,
       skip_serializing)] pub stuck_detector: ForeignTable` beside the
       `watchdog` field in `crates/cloudkitty-core/src/config/mod.rs`
       plus the `Default` impl; extend
       `the_foreign_tables_never_serialize` to cover it. Red cycle:
       predict the leak test red with `skip_serializing` removed
       (`engine_defaults_sha256` must not move — research.md R7).
-- [ ] T003 [P] Add `stuck_detector` to `FOREIGN_TABLES` in
+- [X] T003 [P] Add `stuck_detector` to `FOREIGN_TABLES` in
       `experiments/tools/complete_config_3.py` (keeps the config sweeps
       green; rust-toolchain-pin trap: no new root `.toml` anywhere in
       this feature).
-- [ ] T004 `StuckConfig` in `crates/cloudkitty-server/src/stuck.rs`:
+- [X] T004 `StuckConfig` in `crates/cloudkitty-server/src/stuck.rs`:
       `from_toml_str` + `validate` on the watchdog loader shape
       (`deny_unknown_fields`), doc-commented defaults `mode="off"`,
       `window=30`, `armed_line=75.0`, `radius=1` (the replay-verified
@@ -55,7 +55,7 @@ every story consumes both.
       each failing at load with the key named (quickstart §6, contract
       §1). Red cycle: stage `validate` accepting `window = 1`, predict
       the rejection test red.
-- [ ] T005 Write the first cut of
+- [X] T005 Write the first cut of
       `specs/061-stuck-detector/test-sort.md` (CLAUDE.md rule 6 —
       BEFORE any suite runs: sort changed-behaviour guards that must
       go red from kept behaviour that must stay green; extend it as
@@ -76,7 +76,7 @@ every story consumes both.
       clears while groom-other does not, a scene-free below-line tick
       clears (an in-scene below-line tick only pauses), escape resets
       anchor, mid-window arming starts at the crossing.
-- [ ] T006 `StuckDetector` observer in
+- [X] T006 `StuckDetector` observer in
       `crates/cloudkitty-server/src/stuck.rs`: per-mind-seat tracking
       from `&World`, mind-class rule (`policy:*` prefix OR plugin
       `class = "mind"` — research.md R6), `FirePlan` emission for the
@@ -103,7 +103,7 @@ never fire.
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] `StuckGuard` `Behavior` wrapper in
+- [X] T007 [US1] `StuckGuard` `Behavior` wrapper in
       `crates/cloudkitty-server/src/stuck.rs` (SeatClassed pattern,
       forwards `decide`/`try_decide`/`is_builtin` per the wrapper
       contract; wraps in EVERY mode, forwarding when idle): consume
@@ -117,7 +117,7 @@ never fire.
       the FR-005 guard is the T009 test). Red cycle: stage enforce
       returning the inner decision, predict the applied-action assert
       (T009) red.
-- [ ] T008 [US1] Wiring: thread the shared fire-set/record handle and
+- [X] T008 [US1] Wiring: thread the shared fire-set/record handle and
       mode from `load_config` (`crates/cloudkitty-server/src/main.rs`,
       `[stuck_detector]` parse) to BOTH registry builders in
       `crates/cloudkitty-server/src/lib.rs` (~:189 policy seats, ~:332
@@ -126,7 +126,7 @@ never fire.
       `sim_task::spawn`'s signature (its in-file tests ~:337/364/399
       and the `server_integration.rs:130` harness update with it) and
       call `detector.observe(&world)` beside the watchdog observe.
-- [ ] T009 [US1] Scenario-1 suite (unit in
+- [X] T009 [US1] Scenario-1 suite (unit in
       `crates/cloudkitty-server/src/stuck.rs` + integration in
       `crates/cloudkitty-server/tests/server_integration.rs`,
       STATE-DEPENDENT doctored advisor per quickstart §1 — dithers on
@@ -164,7 +164,7 @@ log reading.
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] `FireRecord` + ring + per-seat counts in
+- [X] T010 [US2] `FireRecord` + ring + per-seat counts in
       `crates/cloudkitty-server/src/stuck.rs`: wrapper constructs the
       record with every field mandatory (SC-003) including the anchor
       tile and confinement span (FR-011), emits one structured tracing
@@ -173,7 +173,7 @@ log reading.
       message = `""`), pushes to the bounded ring (`recent_fires`).
       Red cycle: stage the observe-mode event at WARN, predict the
       level assert red.
-- [ ] T011 [US2] Status surface: `StuckStatus` (config echo incl.
+- [X] T011 [US2] Status surface: `StuckStatus` (config echo incl.
       radius, per-seat enforced/observed counts, `armed` live trigger
       state — the FR-012 forward hook — and the ring) published on a
       watch channel from `crates/cloudkitty-server/src/sim_task.rs`
@@ -181,13 +181,13 @@ log reading.
       `GET /stuck` handler + route in
       `crates/cloudkitty-server/src/lib.rs` (the `/welfare` pattern;
       serves config echo and empty collections when off).
-- [ ] T012 [P] [US2] `/settings` rows for `[stuck_detector]` in
+- [X] T012 [P] [US2] `/settings` rows for `[stuck_detector]` in
       `crates/cloudkitty-server/src/settings.rs` (extend
       `settings::build`'s signature and the pinned-key test), and the
       boot log line in `crates/cloudkitty-server/src/main.rs`
       (watchdog precedent). Red cycle: stage a renamed settings key,
       predict the pinned-key test red.
-- [ ] T013 [US2] Scenario-2 suite: unit assert on the record's fields
+- [X] T013 [US2] Scenario-2 suite: unit assert on the record's fields
       (`proposal_replaced` equals the doctored advisor's known
       output, anchor and confinement span correct); integration in
       `crates/cloudkitty-server/tests/server_integration.rs` via the
@@ -213,7 +213,7 @@ fingerprint-identical replays, scripted-seat absence.
 
 ### Implementation for User Story 3
 
-- [ ] T014 [P] [US3] Non-interference tests (watchdog
+- [X] T014 [P] [US3] Non-interference tests (watchdog
       `watched_and_unwatched_worlds_are_identical` template,
       `crates/cloudkitty-server/src/stuck.rs`, budgetless): paired
       worlds with the detector constructed-and-OFF (mind seats
@@ -224,7 +224,7 @@ fingerprint-identical replays, scripted-seat absence.
       no-divergence arm; enforce diverges by design and is not
       paired). Red cycle: mutate world-visible state in the observe
       path, predict byte-identity red.
-- [ ] T015 [P] [US3] Determinism replay test in
+- [X] T015 [P] [US3] Determinism replay test in
       `crates/cloudkitty-server/tests/stuck_determinism.rs`
       (fingerprint pattern from `cloudkitty-core/tests/determinism.rs`,
       budgetless): two runs, same seed/config, enforce, deterministic
@@ -232,7 +232,7 @@ fingerprint-identical replays, scripted-seat absence.
       fire-record sequences end to end (SC-004, US3/AC2). Red cycle:
       key a fire decision off wall-clock, predict the sequence-equality
       red.
-- [ ] T016 [P] [US3] Boundary tests (SC-005, US3/AC1): a scripted-class
+- [X] T016 [P] [US3] Boundary tests (SC-005, US3/AC1): a scripted-class
       seat driven through the firing loop shape shows no tracking
       entry, no fire, and absence from every `/stuck` collection
       (not-wrapped by construction, asserted anyway) — unit in
@@ -247,15 +247,15 @@ fingerprint-identical replays, scripted-seat absence.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T017 Finalize `specs/061-stuck-detector/test-sort.md` (started
+- [X] T017 Finalize `specs/061-stuck-detector/test-sort.md` (started
       at T005, extended each phase): reconcile the full sort — every
       changed-behaviour guard's red on record with its prediction,
       kept-behaviour pile read not just run, any vacuous guard
       restaged on record (CLAUDE.md rule 6).
-- [ ] T018 CHANGELOG entry under Unreleased in `CHANGELOG.md`
+- [X] T018 CHANGELOG entry under Unreleased in `CHANGELOG.md`
       (public-voice at write time; never retag) naming the three-state
       detector, shipped dark, defaults window 30 / armed 75 / radius 1.
-- [ ] T019 Full validation: workspace `cargo test` + fmt + clippy;
+- [X] T019 Full validation: workspace `cargo test` + fmt + clippy;
       run the quickstart §5 anchor
       (`python3 specs/061-stuck-detector/stuck_rule_replay.py` from the
       native checkout root, both `--relief` rules) and confirm the

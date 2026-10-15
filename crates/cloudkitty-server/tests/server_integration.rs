@@ -1247,10 +1247,7 @@ struct HomeDither {
 
 #[async_trait::async_trait]
 impl cloudkitty_core::Behavior for HomeDither {
-    async fn decide(
-        &self,
-        ctx: &cloudkitty_core::DecisionContext,
-    ) -> cloudkitty_core::Decision {
+    async fn decide(&self, ctx: &cloudkitty_core::DecisionContext) -> cloudkitty_core::Decision {
         use cloudkitty_core::action::Action;
         use cloudkitty_core::Direction;
         if ctx.me.pos.y == self.home_y {
@@ -1293,11 +1290,16 @@ async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
     let shared = StuckShared::new(stuck_config);
     let (registry, mind_plugins) =
         cloudkitty_server::wrap_mind_seats(registry, &Default::default(), &shared);
-    assert!(mind_plugins.is_empty(), "no plugins declared; policy wraps by prefix");
+    assert!(
+        mind_plugins.is_empty(),
+        "no plugins declared; policy wraps by prefix"
+    );
     let detector = StuckDetector::new(shared, mind_plugins);
 
     let mut world = World::generate(&config);
-    world.kitties[0].needs.add(cloudkitty_core::NeedKind::Eat, 200.0); // armed
+    world.kitties[0]
+        .needs
+        .add(cloudkitty_core::NeedKind::Eat, 200.0); // armed
     let sim = sim_task::spawn(
         world,
         config.clone(),
@@ -1325,7 +1327,12 @@ async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
     // ticks: well under a second; the loop bounds the wait).
     let mut body = Value::Null;
     for _ in 0..200 {
-        body = reqwest::get(&url).await.expect("GET /stuck").json().await.expect("JSON");
+        body = reqwest::get(&url)
+            .await
+            .expect("GET /stuck")
+            .json()
+            .await
+            .expect("JSON");
         let fired = body["per_seat"]
             .as_array()
             .is_some_and(|rows| rows.iter().any(|r| r["enforced"].as_u64() >= Some(1)));

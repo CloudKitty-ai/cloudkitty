@@ -143,7 +143,11 @@ impl StuckConfig {
             })
         };
         if self.window < 2 {
-            return invalid("window", self.window.to_string(), "a 1-tick window is noise; must be at least 2");
+            return invalid(
+                "window",
+                self.window.to_string(),
+                "a 1-tick window is noise; must be at least 2",
+            );
         }
         if !(self.armed_line > 0.0 && self.armed_line <= 100.0) {
             return invalid(
@@ -156,7 +160,11 @@ impl StuckConfig {
             return invalid("radius", "0".to_string(), "must be at least 1 tile");
         }
         if self.recent_fires == 0 {
-            return invalid("recent_fires", "0".to_string(), "must hold at least 1 record");
+            return invalid(
+                "recent_fires",
+                "0".to_string(),
+                "must hold at least 1 record",
+            );
         }
         Ok(())
     }
@@ -201,7 +209,11 @@ impl SeatSignature {
     /// completed signature when both window conditions close this tick.
     /// The post-fire reset IS FR-007's stand-down: a refire needs a
     /// fresh full window by construction.
-    fn step(&mut self, kitty: &Kitty, config: &StuckConfig) -> Option<(Position, u64, NeedKind, f32)> {
+    fn step(
+        &mut self,
+        kitty: &Kitty,
+        config: &StuckConfig,
+    ) -> Option<(Position, u64, NeedKind, f32)> {
         let escaped = match self.anchor {
             None => true,
             Some(anchor) => anchor.manhattan_distance(&kitty.pos) > config.radius,
@@ -676,7 +688,12 @@ mod tests {
         assert_eq!(config, StuckConfig::default());
         assert_eq!(config.mode, StuckMode::Off, "shipped dark (FR-009)");
         assert_eq!(
-            (config.window, config.armed_line, config.radius, config.recent_fires),
+            (
+                config.window,
+                config.armed_line,
+                config.radius,
+                config.recent_fires
+            ),
             (30, 75.0, 1, 256),
             "the measured defaults of research.md R4"
         );
@@ -693,8 +710,8 @@ mod tests {
             ("[stuck_detector]\nrecent_fires = 0\n", "recent_fires"),
             ("[stuck_detector]\nmode = \"on\"\n", "mode"),
         ] {
-            let err = StuckConfig::from_toml_str(toml)
-                .expect_err(&format!("{toml:?} must fail at load"));
+            let err =
+                StuckConfig::from_toml_str(toml).expect_err(&format!("{toml:?} must fail at load"));
             assert!(
                 err.to_string().contains(needle),
                 "{toml:?} error must name {needle}: {err}"
@@ -785,7 +802,9 @@ mod tests {
             let mut fire_at = None;
             for t in 0..60u64 {
                 kitty.activity = if t == 10 {
-                    Activity::Grooming { target: groom_target }
+                    Activity::Grooming {
+                        target: groom_target,
+                    }
                 } else {
                     Activity::Idle
                 };
@@ -915,12 +934,20 @@ mod tests {
         );
         let status = detector.observe(&world);
         let tracked: Vec<KittyId> = status.per_seat.iter().map(|r| r.kitty).collect();
-        assert_eq!(tracked, vec![1, 2], "policy:* and class=mind plugins, nothing else");
+        assert_eq!(
+            tracked,
+            vec![1, 2],
+            "policy:* and class=mind plugins, nothing else"
+        );
 
         world.kitties[1].behavior = "needs_driven".to_string();
         let status = detector.observe(&world);
         let tracked: Vec<KittyId> = status.per_seat.iter().map(|r| r.kitty).collect();
-        assert_eq!(tracked, vec![1], "a scripted seat has no entry anywhere (FR-003)");
+        assert_eq!(
+            tracked,
+            vec![1],
+            "a scripted seat has no entry anywhere (FR-003)"
+        );
         assert!(status.armed.iter().all(|row| row.kitty == 1));
     }
 
@@ -940,7 +967,9 @@ mod tests {
         }
         {
             let plans = shared.plans.lock().unwrap();
-            let plan = plans.get(&1).expect("20 confined armed observations complete the window");
+            let plan = plans
+                .get(&1)
+                .expect("20 confined armed observations complete the window");
             assert_eq!(
                 plan.target_tick, 20,
                 "the post-tick stamp IS the next decisions' snapshot stamp"
@@ -970,9 +999,14 @@ mod tests {
             world.tick = t;
             let status = detector.observe(&world);
             assert_eq!(status.mode, StuckMode::Off);
-            assert!(status.per_seat.is_empty() && status.armed.is_empty() && status.recent.is_empty());
+            assert!(
+                status.per_seat.is_empty() && status.armed.is_empty() && status.recent.is_empty()
+            );
         }
-        assert!(shared.plans.lock().unwrap().is_empty(), "off emits no plans ever");
+        assert!(
+            shared.plans.lock().unwrap().is_empty(),
+            "off emits no plans ever"
+        );
     }
 
     // ---------- T007/T009: the guard wrapper, through real dispatch ----------
@@ -1010,12 +1044,11 @@ mod tests {
         }
     }
 
-    fn registry_with(
-        shared: Option<&Arc<StuckShared>>,
-        dither_home_y: u32,
-    ) -> BehaviorRegistry {
+    fn registry_with(shared: Option<&Arc<StuckShared>>, dither_home_y: u32) -> BehaviorRegistry {
         let mut registry = BehaviorRegistry::with_builtins();
-        let dither: Arc<dyn Behavior> = Arc::new(HomeDither { home_y: dither_home_y });
+        let dither: Arc<dyn Behavior> = Arc::new(HomeDither {
+            home_y: dither_home_y,
+        });
         match shared {
             Some(shared) => registry.register(
                 "policy:dither".to_string(),
@@ -1070,8 +1103,7 @@ mod tests {
 
         let dispatched = run_world(&mut world, &registry, &config, &mut detector, 1, 3 * window);
 
-        let records: Vec<FireRecord> =
-            shared.log.lock().unwrap().ring.iter().cloned().collect();
+        let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
         assert!(!records.is_empty(), "the dither loop fires");
         // Exactness (analysis C2): the first observation runs after the
         // first tick (world.tick == 1), so the window completes at the
@@ -1135,11 +1167,10 @@ mod tests {
         let mut detector = StuckDetector::new(shared.clone(), BTreeSet::new());
 
         for _ in 0..2 * window {
-            drive_tick(&mut world, &registry, &config, );
+            drive_tick(&mut world, &registry, &config);
             detector.observe(&world);
         }
-        let records: Vec<FireRecord> =
-            shared.log.lock().unwrap().ring.iter().cloned().collect();
+        let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
         let seats: BTreeSet<KittyId> = records.iter().map(|r| r.kitty).collect();
         assert_eq!(
             seats,
@@ -1147,8 +1178,15 @@ mod tests {
             "one shared Arc serves both seats, each with its own window"
         );
         for record in &records {
-            let expected_need = if record.kitty == 1 { NeedKind::Eat } else { NeedKind::Drink };
-            assert_eq!(record.armed_need, expected_need, "per-seat attribution never crosses");
+            let expected_need = if record.kitty == 1 {
+                NeedKind::Eat
+            } else {
+                NeedKind::Drink
+            };
+            assert_eq!(
+                record.armed_need, expected_need,
+                "per-seat attribution never crosses"
+            );
         }
     }
 
@@ -1177,8 +1215,7 @@ mod tests {
             drive_tick(&mut world, &registry, &config);
             detector.observe(&world);
         }
-        let records: Vec<FireRecord> =
-            shared.log.lock().unwrap().ring.iter().cloned().collect();
+        let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
         assert_eq!(records.len(), 1, "one fire, no in-tick retry");
         assert_eq!(records[0].tick, window);
         assert_eq!(
@@ -1217,7 +1254,10 @@ mod tests {
             fingerprint(&guarded_world),
             "an off detector changes nothing, wrapper included"
         );
-        assert!(shared.log.lock().unwrap().ring.is_empty(), "and records nothing");
+        assert!(
+            shared.log.lock().unwrap().ring.is_empty(),
+            "and records nothing"
+        );
     }
 
     #[test]
@@ -1246,12 +1286,17 @@ mod tests {
             fingerprint(&observed_world),
             "observe substitutes nothing: the applied decisions are the mind's own"
         );
-        let records: Vec<FireRecord> =
-            shared.log.lock().unwrap().ring.iter().cloned().collect();
+        let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
         assert!(!records.is_empty(), "while the fires are on the record");
         assert_eq!(records[0].mode, StuckMode::Observe);
-        assert_eq!(records[0].tick, window, "same exact fire tick as enforce would see");
-        assert!(records[0].proposal_replaced.is_some(), "full attribution (SC-003)");
+        assert_eq!(
+            records[0].tick, window,
+            "same exact fire tick as enforce would see"
+        );
+        assert!(
+            records[0].proposal_replaced.is_some(),
+            "full attribution (SC-003)"
+        );
     }
 
     // ---------- T016 (unit): the scripted boundary ----------
@@ -1400,6 +1445,9 @@ mod tests {
                 }
             }
         }
-        assert!(checked > 0, "the sweep saw real messages, or this test is vacuous");
+        assert!(
+            checked > 0,
+            "the sweep saw real messages, or this test is vacuous"
+        );
     }
 }
