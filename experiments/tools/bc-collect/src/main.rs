@@ -13,9 +13,9 @@
 //! pretraining can compute discounted MC targets offline. Rollouts run
 //! long (default 8,000 ticks; deviation 27c) — value targets downstream
 //! use only states with >= 1,500 ticks of realized future; the episode
-//! clock recorded in the observation cycles (tick mod horizon)/horizon so
-//! the input covers the training range while the expert (clock-blind)
-//! teaches clock-invariance.
+//! clock cycles (tick mod horizon)/horizon and reaches only the GLOBAL
+//! state (critic-only — spec 058 FR-010 dropped the observation's clock
+//! cell and encode_observation's clock parameter with it).
 //!
 //! Two-channel rows (spec 028): the message half is recorded alongside the
 //! activity half — mask_msg.npy from the engine's `legal_message_mask`,
@@ -291,7 +291,7 @@ fn main() {
                     .iter()
                     .map(|&id| {
                         let view = snap.fog_for(id, config.vision.radius);
-                        let obs = encode_observation(&view, id, &config, &rl.observation, clock);
+                        let obs = encode_observation(&view, id, &config, &rl.observation);
                         let mask = legal_action_mask(&view, id, &obs.table, &codec, &config);
                         let msg_mask = legal_message_mask(&view, id, &config);
                         (id, obs, mask, msg_mask)
@@ -320,7 +320,6 @@ fn main() {
                             *id,
                             &config,
                             &rl.observation,
-                            clock,
                         );
                         let same = again.values.len() == obs.values.len()
                             && again
