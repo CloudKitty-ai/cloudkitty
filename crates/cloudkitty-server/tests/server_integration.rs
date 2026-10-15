@@ -22,8 +22,17 @@ fn settings(config: &Config) -> Arc<cloudkitty_server::settings::KeySettings> {
     Arc::new(cloudkitty_server::settings::build(
         config,
         &Default::default(),
+        &Default::default(),
         None,
     ))
+}
+
+/// Spec 061: a default (off) detector for harnesses that do not watch it.
+fn dark_detector() -> cloudkitty_server::stuck::StuckDetector {
+    cloudkitty_server::stuck::StuckDetector::new(
+        cloudkitty_server::stuck::StuckShared::new(Default::default()),
+        Default::default(),
+    )
 }
 
 /// A small, fast world guaranteed to contain a greeble.
@@ -141,12 +150,14 @@ async fn start_server_with(
         registry,
         None,
         cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+        dark_detector(),
     );
 
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        stuck: sim.stuck.clone(),
         settings: settings(&config),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
@@ -304,7 +315,12 @@ async fn config_and_distress_endpoints_are_served() {
 #[tokio::test]
 async fn settings_endpoint_serves_the_built_block_as_json_and_as_text() {
     let server = start_server().await;
-    let expected = cloudkitty_server::settings::build(&test_config(), &Default::default(), None);
+    let expected = cloudkitty_server::settings::build(
+        &test_config(),
+        &Default::default(),
+        &Default::default(),
+        None,
+    );
 
     let json: Value = reqwest::get(server.url("/settings"))
         .await
@@ -442,11 +458,13 @@ async fn distress_ages_appear_in_the_payload_once_a_distress_exists() {
         BehaviorRegistry::with_builtins(),
         None,
         cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+        dark_detector(),
     );
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        stuck: sim.stuck.clone(),
         settings: settings(&config),
     };
     let app = build_router(state, std::path::Path::new("../../client"));
@@ -1032,6 +1050,7 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
         BehaviorRegistry::with_builtins(),
         None,
         cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+        dark_detector(),
     );
     // Read the seeded surface with NO `.await` in between: the ticking
     // task cannot have been polled yet, so this is the spawn-time
@@ -1044,6 +1063,7 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     // fixture does not replace it, because a real streak ages and is
     // relievable. Do not put live ticking back.
     let seeded = sim.welfare.borrow().clone();
+    let sim_stuck = sim.stuck.borrow().clone();
     let published = sim.receiver.clone();
     assert!(
         seeded.alarm_live,
@@ -1054,10 +1074,13 @@ async fn welfare_endpoint_serves_healthy_and_distressed_shapes() {
     // hand-built fixture.
     sim.shutdown().await;
     let (_welfare_tx, welfare) = watch::channel(seeded);
+    let stuck_surface = sim_stuck;
+    let (_stuck_tx, stuck) = watch::channel(stuck_surface);
     let state = AppState {
         published,
         config: arc.clone(),
         welfare,
+        stuck,
         settings: settings(&arc),
     };
     let app = build_router(state, std::path::Path::new("../../client"));

@@ -28,6 +28,9 @@ pub struct AppState {
     pub config: Arc<Config>,
     /// Spec 040: the watchdog's latest welfare surface, served on /welfare.
     pub welfare: watch::Receiver<Arc<crate::watchdog::WelfareStatus>>,
+    /// Spec 061: the stuck detector's latest surface, served on /stuck —
+    /// the dark shape (config echo, empty collections) when off.
+    pub stuck: watch::Receiver<Arc<crate::stuck::StuckStatus>>,
     /// Spec 052: the key settings block, built at boot before the listener
     /// binds (FR-006a) and served on /settings for the life of the process.
     pub settings: Arc<crate::settings::KeySettings>,
@@ -95,6 +98,14 @@ pub async fn get_welfare(
     State(state): State<AppState>,
 ) -> Json<Arc<crate::watchdog::WelfareStatus>> {
     Json(state.welfare.borrow().clone())
+}
+
+/// Spec 061 FR-012: the stuck detector's surface — live config echo,
+/// per-seat fire counts, each tracked seat's live trigger state, and the
+/// recent-fires ring. Scripted seats never appear (FR-003); with the
+/// detector off this serves the dark shape, never an error.
+pub async fn get_stuck(State(state): State<AppState>) -> Json<Arc<crate::stuck::StuckStatus>> {
+    Json(state.stuck.borrow().clone())
 }
 
 /// Finished activities with the true tick spans they ran (spec 006): the

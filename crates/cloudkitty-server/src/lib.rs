@@ -12,7 +12,7 @@ pub mod stuck;
 pub mod watchdog;
 pub mod ws;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -193,6 +193,42 @@ pub fn register_policy_behaviors(
     Ok(displays)
 }
 
+/// Spec 061 FR-003/FR-009: wraps every mind-class seat's registered
+/// behavior in a [`stuck::StuckGuard`] — `policy:*` registrations and
+/// plugins declared `class = "mind"`; scripted seats and built-ins are
+/// never wrapped, so the detector has no code path that can reach them.
+/// Registration is last-write-wins, so this runs AFTER both registrars
+/// and re-registers each mind name wrapped. Seats are wrapped in every
+/// mode, off included (the wrapper forwards when idle): mode changes
+/// gate behavior, never code paths. Returns the mind-class plugin names
+/// for the observer's tracking rule.
+pub fn wrap_mind_seats(
+    registry: &mut BehaviorRegistry,
+    plugins: &PluginsConfig,
+    shared: &Arc<stuck::StuckShared>,
+) -> BTreeSet<String> {
+    let mut mind_plugins = BTreeSet::new();
+    for name in registry.names() {
+        let is_policy = name.starts_with("policy:");
+        let is_mind_plugin = plugins
+            .plugins
+            .get(&name)
+            .is_some_and(|entry| entry.class == Some(SeatClass::Mind));
+        if !(is_policy || is_mind_plugin) {
+            continue;
+        }
+        let inner = registry.get(&name).expect("the registry just listed it");
+        registry.register(
+            name.clone(),
+            Arc::new(stuck::StuckGuard::new(inner, shared.clone())),
+        );
+        if is_mind_plugin {
+            mind_plugins.insert(name);
+        }
+    }
+    mind_plugins
+}
+
 /// External plugin declarations — `[plugins.<name>]` blocks parsed from the
 /// same TOML file as everything else, into a struct the served `Config`
 /// never contains: program paths and arguments must not be reachable
@@ -359,6 +395,7 @@ pub fn build_router(state: AppState, client_dir: &Path) -> Router {
         .route("/events/activity", get(api::get_activity_ends))
         .route("/events/refusal", get(api::get_refusals))
         .route("/welfare", get(api::get_welfare))
+        .route("/stuck", get(api::get_stuck))
         .route("/config", get(api::get_config))
         .route("/settings", get(api::get_settings))
         .route("/ws", get(ws::ws_handler))
