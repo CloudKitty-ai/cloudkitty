@@ -32,7 +32,8 @@ def synth_map(cells=None, block=(109, 58, 4)):
 
 
 def test_contract_shaped_map_passes():
-    assert af.audit(synth_map()) == []
+    problems = af.audit(synth_map())
+    assert problems == [], problems
 
 
 def test_real_binding_passes():
