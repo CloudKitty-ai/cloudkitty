@@ -1,0 +1,240 @@
+[
+ {
+  "arm": "A-scripted",
+  "tick": 136,
+  "needs": [
+   "cuddle"
+  ],
+  "pos": [
+   16,
+   10
+  ],
+  "need_values": {
+   "cuddle": 95.2
+  },
+  "rollout": "config-00-rollout-00",
+  "seat": "Clementine",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "A-scripted",
+  "tick": 3872,
+  "needs": [
+   "cuddle"
+  ],
+  "pos": [
+   13,
+   6
+  ],
+  "need_values": {
+   "cuddle": 88.7
+  },
+  "rollout": "config-00-rollout-00",
+  "seat": "Clementine",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1603,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 80.7
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1631,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   19,
+   0
+  ],
+  "need_values": {
+   "eat": 89.1
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1661,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 98.1
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1724,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 100.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1663,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 98.7
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=90"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1724,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 100.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=20 armed>=90"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1614,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 84.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=30 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1654,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 96.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=30 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1735,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 100.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=30 armed>=75"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1673,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 100.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=30 armed>=90"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1735,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 100.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=30 armed>=90"
+ },
+ {
+  "arm": "B-policy",
+  "tick": 1634,
+  "needs": [
+   "eat"
+  ],
+  "pos": [
+   18,
+   0
+  ],
+  "need_values": {
+   "eat": 90.0
+  },
+  "seed": 870005,
+  "seat": "Biscuit",
+  "params": "N=50 armed>=75"
+ }
+]
