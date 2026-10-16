@@ -174,12 +174,13 @@ Sorted checks, predictions written before any run:
   goes RED under the quoted rendering — predicted failure message
   "contract field name=Biscuit missing" — proving the old assert
   guarded the old rendering; it is then updated to `name="Biscuit"`.
+  OUTCOME: RED as predicted, exact message, then updated and green.
 - **Must pass (kept behavior)**: every other T010 field assert
   (levels, names, Idle shapes), the full server suite, byte-identity
   pairings (rendering is log-only; no decision path touched).
 
 | # | Mutation (production) | Predicted red | Outcome |
 |---|---|---|---|
-| 24 | `log_fire` name reverts `?record.name` → `%record.name` (the unquoted rendering) | rendering test: "a spaced name stays one quoted token" | |
-| 25 | `substitute = %substitute` → `?substitute` (quotes the action) | rendering test: exact `substitute=Move { direction: East }` | |
-| 26 | `mode = "enforce"` → `mode = %"enforce"` (unquotes mode) | rendering test: `mode="enforce"` quoted | |
+| 24 | `log_fire` name reverts `?record.name` → `%record.name` (the unquoted rendering) | rendering test: "a spaced name stays one quoted token" | RED CONFIRMED |
+| 25 | `substitute = %substitute` → `?substitute` (quotes the action) | rendering test: exact `substitute=Move { direction: East }` | RED CONFIRMED |
+| 26 | `mode = "enforce"` → `mode = %"enforce"` (unquotes mode) | rendering test: `mode="enforce"` quoted | RED CONFIRMED |
