@@ -20,12 +20,17 @@ Parsing law (what the shipped formatter actually emits, verified on
 captured serving logs — the contract §3 prose example differs in value
 shapes):
   - ANSI escape sequences are present even when piped; stripped first.
-  - Values are the emit site's Display/Debug renderings: `name` and
-    `armed_need` unquoted, `mode` quoted, an absent message is empty,
-    and action values may contain SPACES AND BRACES
+  - Values are the emit site's Display/Debug renderings: `armed_need`
+    unquoted, `mode` quoted, an absent message is empty, and action
+    values may contain SPACES AND BRACES
     (`substitute=Sleep { with: Some(3) }`) — so fields are parsed by
     the contract's fixed key order, each value running to the next
     key's anchor, never by whitespace split.
+  - `name` has TWO legal shapes: unquoted Display (pre-change logs,
+    the captured fixtures here) and quoted Debug (name="Mr Whiskers"
+    — the spaced-names change Product relayed 2026-10-15, their
+    captured line; the corrected contract §3 says readers handle
+    both). A quoted name is Debug-unescaped; unquoted passes through.
   - A line carrying the target and a fire message that fails the
     field parse is a HARD ERROR naming the line — a half-read record
     is a silent undercount of scripted turns.
@@ -97,6 +102,12 @@ def parse_fire_line(line, where):
         record[key] = int(record[key])
     record["need_value"] = float(record["need_value"])
     record["mode"] = record["mode"].strip('"')
+    name = record["name"]
+    if len(name) >= 2 and name[0] == '"' and name[-1] == '"':
+        # Quoted Debug shape: one-pass unescape of the two sequences
+        # String's Debug produces for characters a name can smuggle in
+        # (two sequential replaces mis-read adjacent escapes).
+        record["name"] = re.sub(r'\\(["\\])', r"\1", name[1:-1])
     expected = {"WARN": "enforce", "INFO": "observe"}[level]
     if record["mode"] != expected:
         raise SystemExit(

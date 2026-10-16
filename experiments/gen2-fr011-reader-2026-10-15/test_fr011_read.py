@@ -155,6 +155,41 @@ def test_doubled_log_flags_nonmonotonic_and_doubles_counts():
     assert r["logs"]["d"]["ticks_nonmonotonic"]
 
 
+# The quoted-Debug name shape (spaced kitty names). Source: a REAL
+# captured line relayed verbatim by Product 2026-10-15 (their rendering
+# change in flight; the corrected contract §3 says readers handle both
+# shapes). Re-pin from our own rig capture once their change merges.
+QUOTED_NAME_LINE = (
+    'WARN cloudkitty_server::stuck: stuck fire kitty=2 name="Mr Whiskers" '
+    "tick=4412 mode=\"enforce\" window=30 anchor_x=4 anchor_y=7 "
+    "confined_span=31 armed_need=Eat need_value=83.19999694824219 "
+    "proposal_replaced=Sleep { with: Some(3) } replaced_message=WantEat "
+    "substitute=Move { direction: East } substitute_message=")
+
+
+def test_quoted_debug_name_shape_parses_and_unescapes():
+    # The relayed line lacks a timestamp column; give it one like the
+    # captured logs' (the parser's line shape starts at a \S+ stamp).
+    line = "2026-10-15T00:00:00.000000Z  " + QUOTED_NAME_LINE
+    mixed = planted(ENFORCE, lambda t: t + line + "\n")
+    recs = fr.read_log(mixed)
+    last = recs[-1]
+    assert last["name"] == "Mr Whiskers", last["name"]
+    assert last["kitty"] == 2 and last["tick"] == 4412
+    assert last["proposal_replaced"] == "Sleep { with: Some(3) }"
+    assert last["replaced_message"] == "WantEat"
+    assert last["substitute"] == "Move { direction: East }"
+    # And the pre-change unquoted shape still passes through untouched:
+    assert recs[0]["name"] == "Miso"
+
+
+def test_quoted_name_with_an_escaped_quote_unescapes_once():
+    line = ("2026-10-15T00:00:00.000000Z  " + QUOTED_NAME_LINE.replace(
+        'name="Mr Whiskers"', 'name="Mr \\"Paws\\" Whiskers"', 1))
+    mixed = planted(ENFORCE, lambda t: t + line + "\n")
+    assert fr.read_log(mixed)[-1]["name"] == 'Mr "Paws" Whiskers'
+
+
 def test_investigate_rows_and_markdown_cover_every_log_kitty_pair():
     r = run(f"enforce={ENFORCE}", f"observe={OBSERVE}")
     rows = r["investigate_rows"]
