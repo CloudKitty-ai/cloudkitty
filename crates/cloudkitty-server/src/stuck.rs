@@ -619,6 +619,12 @@ pub fn log_boot(config: &StuckConfig) {
 /// flattened field names are what the corpus INVESTIGATE consumer and
 /// the Gen 2 battery re-read parse; a rename is a breaking change).
 /// WARN for an enforced substitution, INFO for an observe-only record.
+/// `name` and `mode` are the quoted fields — `name` because a config
+/// may give a kitty a spaced name, which unquoted would destroy the
+/// key=value boundary (owner 2026-10-15); every other value renders
+/// unquoted (actions carry spaces and braces: parse by the fixed field
+/// order, not by whitespace). A rendering change here is a §3 breaking
+/// change and takes a relay to Experiments before it lands.
 fn log_fire(record: &FireRecord) {
     let replaced = match &record.proposal_replaced {
         Some(decision) => format!("{:?}", decision.activity),
@@ -638,7 +644,7 @@ fn log_fire(record: &FireRecord) {
     match record.mode {
         StuckMode::Enforce => tracing::warn!(
             kitty = record.kitty,
-            name = %record.name,
+            name = ?record.name,
             tick = record.tick,
             mode = "enforce",
             window = record.window,
@@ -655,7 +661,7 @@ fn log_fire(record: &FireRecord) {
         ),
         StuckMode::Observe => tracing::info!(
             kitty = record.kitty,
-            name = %record.name,
+            name = ?record.name,
             tick = record.tick,
             mode = "observe",
             window = record.window,
@@ -1617,7 +1623,7 @@ mod tests {
         );
         for field in [
             "kitty=1",
-            "name=Biscuit",
+            "name=\"Biscuit\"",
             "tick=42",
             "window=30",
             "anchor_x=18",
@@ -1636,6 +1642,77 @@ mod tests {
                 lines[0]
             );
         }
+    }
+
+    #[test]
+    fn the_fire_log_line_renders_values_the_way_consumers_must_parse_them() {
+        // Experiments' rule-3 report 2026-10-15: the contract §3 example
+        // showed value SHAPES the formatter never emits, and T010 above
+        // pinned only space-free cases. This test pins the rendering a
+        // consumer actually parses: `name` and `mode` are the quoted
+        // fields (a spaced kitty name stays one token — owner
+        // 2026-10-15), actions render unquoted with spaces and braces,
+        // an absent message is a bare `key=`, and need_value is the f64
+        // widened from the record's f32 at full precision. Field order
+        // is the parse anchor, not whitespace.
+        let record = FireRecord {
+            tick: 4412,
+            kitty: 2,
+            name: "Mr Whiskers".to_string(),
+            mode: StuckMode::Enforce,
+            window: 30,
+            anchor: [4, 7],
+            confined_span: 31,
+            armed_need: NeedKind::Eat,
+            need_value: 83.2,
+            proposal_replaced: Some(Decision {
+                activity: Action::Sleep { with: Some(3) },
+                message: Some(MessageKind::WantEat),
+            }),
+            substitute: Decision::silent(Action::Move {
+                direction: Direction::East,
+            }),
+        };
+        let captured = Captured::default();
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_writer(captured.clone())
+            .with_ansi(false)
+            .finish();
+        tracing::subscriber::with_default(subscriber, || {
+            log_fire(&record);
+        });
+        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
+        let line = text.lines().next().unwrap();
+        assert!(
+            line.contains("name=\"Mr Whiskers\""),
+            "a spaced name stays one quoted token: {line}"
+        );
+        assert!(
+            line.contains("mode=\"enforce\""),
+            "mode=\"enforce\" quoted: {line}"
+        );
+        assert!(
+            line.contains("substitute=Move { direction: East }"),
+            "actions render unquoted with spaces and braces, exactly \
+             substitute=Move {{ direction: East }}: {line}"
+        );
+        assert!(
+            line.contains("proposal_replaced=Sleep { with: Some(3) }"),
+            "the replaced action keeps its full Debug shape: {line}"
+        );
+        assert!(
+            line.contains("replaced_message=WantEat"),
+            "a present message is its unquoted kind name: {line}"
+        );
+        assert!(
+            line.contains("need_value=83.19999694824219"),
+            "need_value is the f64 widened from the f32, full precision: {line}"
+        );
+        assert!(
+            line.trim_end().ends_with("substitute_message="),
+            "an absent message renders as a bare key=: {line}"
+        );
     }
 
     #[test]

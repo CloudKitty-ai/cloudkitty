@@ -69,21 +69,42 @@ attribution as a `recent` entry, FLATTENED to exactly these structured
 field names (not interpolated prose): `kitty`, `name`, `tick`, `mode`,
 `window`, `anchor_x`, `anchor_y`, `confined_span`, `armed_need`,
 `need_value`, `proposal_replaced`, `replaced_message`, `substitute`,
-`substitute_message`. An absent message is the empty string `""` (JSON
-`null` exists only on the `/stuck` surface); an inner advisor that
-yielded no proposal flattens to `proposal_replaced="none"`.
+`substitute_message`. An absent message is the empty string, rendered
+as a bare `key=` (JSON `null` exists only on the `/stuck` surface); an
+inner advisor that yielded no proposal flattens to
+`proposal_replaced=none`.
+
+A real captured line (the rendering-shapes test in `stuck.rs` pins
+every shape below; corrected 2026-10-15 after Experiments' report —
+the original example showed value shapes the formatter never emitted):
 
 ```text
-WARN cloudkitty_server::stuck: stuck fire
-  kitty=1 name="Biscuit" tick=4412 mode="enforce" window=30
-  anchor_x=18 anchor_y=0 confined_span=31 armed_need="eat"
-  need_value=83.0 proposal_replaced="MoveE" replaced_message=""
-  substitute="MoveN" substitute_message="WantEat"
+WARN cloudkitty_server::stuck: stuck fire kitty=2 name="Mr Whiskers" tick=4412 mode="enforce" window=30 anchor_x=4 anchor_y=7 confined_span=31 armed_need=Eat need_value=83.19999694824219 proposal_replaced=Sleep { with: Some(3) } replaced_message=WantEat substitute=Move { direction: East } substitute_message=
 ```
 
+Value rendering rules (what a consumer must parse):
+
+- `name` and `mode` are the only QUOTED fields. `name` is quoted
+  because a config may give a kitty a spaced name (owner 2026-10-15;
+  before that date served logs rendered it unquoted — a reader of
+  pre-change logs handles both).
+- Everything else is unquoted. Action values (`proposal_replaced`,
+  `substitute`) render in the engine's debug shape, WITH spaces and
+  braces: `Idle`, `Move { direction: East }`, `Sleep { with: Some(3) }`.
+  Never split a line on whitespace; the FIXED FIELD ORDER above is the
+  parse anchor (every boundary is ` <known_key>=`).
+- `armed_need` is the need's bare kind name (`Eat`, `Sleep`, …);
+  message values are bare kind names (`WantEat`).
+- `need_value` is the f64 widened from the engine's f32, full
+  precision (`83.19999694824219`), with a trailing `.0` on whole
+  numbers.
+- As served, lines carry ANSI escapes even when piped (the formatter's
+  default); strip them before parsing.
+
 These names are the contract (the corpus INVESTIGATE-row consumer and
-the Gen 2 battery re-read parse them); a rename is a breaking change
-and takes a spec touch.
+the Gen 2 battery re-read parse them); a rename — or any change to the
+rendering rules above — is a breaking change and takes a spec touch
+plus a relay to Experiments before it lands.
 
 ## Invariants across all surfaces
 
