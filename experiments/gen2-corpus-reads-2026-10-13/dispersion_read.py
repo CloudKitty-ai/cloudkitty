@@ -75,7 +75,20 @@ def visible_pairs(pos_t, radius):
     return n
 
 
-def read_rollout(rd, early, config_override=None):
+def max_streaks(dist_any):
+    """Per kitty, the longest run of consecutive any-flag distress
+    ticks — the F-053 line's own quantity."""
+    out = []
+    for k in range(dist_any.shape[1]):
+        best = cur = 0
+        for v in dist_any[:, k]:
+            cur = cur + 1 if v else 0
+            best = max(best, cur)
+        out.append(int(best))
+    return out
+
+
+def read_rollout(rd, early, config_override=None, block=None):
     rd = Path(rd)
     meta = json.load(open(rd / "meta.json"))
     w, h = world_size(meta, config_override)
@@ -92,7 +105,15 @@ def read_rollout(rd, early, config_override=None):
          for i in range(roster)], axis=1)
     start_mean, start_min = pairwise_manhattan(pos[0])
     trace_means = [pairwise_manhattan(pos[t])[0] for t in range(ticks)]
+    extra = {}
+    if block:
+        extra["block_ticks"] = int(block)
+        extra["block_happiness"] = [
+            round(float(hap[i:i + block].mean()), 2)
+            for i in range(0, ticks, block)]
+        extra["max_distress_streaks"] = max_streaks(dist_any)
     return {
+        **extra,
         "dir": str(rd), "ticks": ticks, "roster": roster,
         "world": [w, h], "vision_radius": radius, "early_window": e,
         "start_mean_pairwise": start_mean,
@@ -139,8 +160,8 @@ def correlations(rollouts):
     return out
 
 
-def read_source(label, path, early, config_override=None):
-    rollouts = [read_rollout(rd, early, config_override)
+def read_source(label, path, early, config_override=None, block=None):
+    rollouts = [read_rollout(rd, early, config_override, block)
                 for rd in rollout_dirs(path)]
     return {"source": label, "path": str(path), "rollouts": rollouts,
             "spearman": correlations(rollouts)}
@@ -151,6 +172,10 @@ def main(argv=None):
     ap.add_argument("sources", nargs="+", metavar="label=path")
     ap.add_argument("--early", type=int, default=2000,
                     help="early/late window in ticks (default 2000)")
+    ap.add_argument("--block", type=int, default=None,
+                    help="also report mean happiness per BLOCK ticks and "
+                         "per-kitty max distress streaks (trajectory read "
+                         "for flag A/Bs and convergence checks)")
     ap.add_argument("--config", default=None)
     ap.add_argument("--out", type=Path, default=None)
     a = ap.parse_args(argv)
@@ -159,7 +184,7 @@ def main(argv=None):
         label, _, path = s.partition("=")
         if not path:
             raise SystemExit(f"dispersion_read: source {s!r} is not label=path")
-        r = read_source(label, path, a.early, a.config)
+        r = read_source(label, path, a.early, a.config, a.block)
         out.append(r)
         print(f"{r['source']}: {len(r['rollouts'])} rollouts")
         for ro in r["rollouts"]:
@@ -169,6 +194,10 @@ def main(argv=None):
                   f"{ro['early_happiness']:.2f} distress {ro['early_distress_share']:.4f} "
                   f"| late hap {ro['late_happiness']:.2f} | trace disp "
                   f"{ro['trace_mean_pairwise']:.1f}")
+            if "block_happiness" in ro:
+                print(f"    hap per {ro['block_ticks']}: "
+                      + " ".join(f"{b:.1f}" for b in ro["block_happiness"])
+                      + f" | max streaks {ro['max_distress_streaks']}")
         sp = r["spearman"]
         if "note" in sp:
             print(f"  spearman: {sp['note']}")
