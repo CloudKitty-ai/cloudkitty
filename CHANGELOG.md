@@ -33,6 +33,24 @@ change.
 
 ## Unreleased
 
+- **A net under every seated mind.** The stuck detector (spec 061)
+  watches each mind-class seat for the one failure shape every twin
+  incident on record shares: a cat confined to a tile's reach for a
+  full window of ticks while a need stays armed with no scene
+  relieving it. On a fire it can substitute that seat's next proposal
+  with the scripted needs-driven brain's decision for one tick. The
+  engine validates the substitute like any proposal, and the mind
+  resumes on the next. Three-state `[stuck_detector]` switch: `off`,
+  `observe` (fires recorded in full, nothing substituted: seat, tick,
+  anchor, confinement span, armed need, the proposal replaced, the
+  substitute), and `enforce`. It ships `off`: the served
+  world is unchanged by this release, byte for byte, wrapper in
+  place, and replays reproduce fire sequences exactly. Defaults
+  (window 30, armed line 75, radius 1) come from replaying the rule
+  over 425,000 recorded cat-ticks: zero false positives, and the one
+  real corner-starvation episode in the recordings caught at every
+  setting swept. Scripted seats are never watched and never touched.
+  Per-seat counts and recent fires on `GET /stuck`.
 - **The world a Gen 2 mind will see.** `[obs-schema]` The observation
   grew into its second-generation shape (spec 058): every distance is
   now a bearing and two magnitudes under fixed constants, so the same

@@ -20,6 +20,7 @@ use tokio::sync::{oneshot, watch};
 use tokio::time::{interval, Duration, MissedTickBehavior};
 
 use crate::persist;
+use crate::stuck::{StuckDetector, StuckStatus};
 use crate::watchdog::{AlarmEvent, Watchdog, WelfareStatus};
 
 /// Everything the HTTP layer serves, republished once per tick.
@@ -93,6 +94,10 @@ pub struct SimTask {
     /// Latest welfare surface (spec 040): refreshed by the watchdog after
     /// every tick, served on GET /welfare.
     pub welfare: watch::Receiver<Arc<WelfareStatus>>,
+    /// Latest stuck-detector surface (spec 061): refreshed by the
+    /// observer after every tick, served on GET /stuck. The dark shape
+    /// when the detector is off.
+    pub stuck: watch::Receiver<Arc<StuckStatus>>,
     pub handle: tokio::task::JoinHandle<()>,
     shutdown: oneshot::Sender<()>,
 }
@@ -115,6 +120,7 @@ pub fn spawn(
     registry: BehaviorRegistry,
     snapshot_path: Option<PathBuf>,
     mut watchdog: Watchdog,
+    mut stuck: StuckDetector,
 ) -> SimTask {
     let (tx, receiver) = watch::channel(Arc::new(Published::from_world(&world)));
     // The first observation happens at spawn: a world loaded mid-streak
@@ -123,6 +129,11 @@ pub fn spawn(
     let (initial_status, initial_events) = watchdog.observe(&world);
     log_alarms(&initial_events);
     let (welfare_tx, welfare) = watch::channel(Arc::new(initial_status));
+    // Spec 061: the stuck observer starts at spawn too, so GET /stuck has
+    // a real answer before the first tick. Signature windows always start
+    // from scratch on a (re)start — unlike distress ages, the window
+    // state lives here, not in the world.
+    let (stuck_tx, stuck_rx) = watch::channel(Arc::new(stuck.observe(&world)));
     let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
 
     let handle = tokio::spawn(async move {
@@ -148,6 +159,11 @@ pub fn spawn(
                     let (status, events) = watchdog.observe(&world);
                     log_alarms(&events);
                     let _ = welfare_tx.send(Arc::new(status));
+                    // Spec 061: the stuck observer reads the same post-tick
+                    // world (= the next tick's start-of-tick snapshot) and
+                    // installs the next tick's fire plans. Fire log lines
+                    // are emitted by the guard wrapper at decision time.
+                    let _ = stuck_tx.send(Arc::new(stuck.observe(&world)));
 
                     if world.tick.is_multiple_of(save_every) {
                         save_now(&world, snapshot_path.as_deref(), "periodic");
@@ -165,6 +181,7 @@ pub fn spawn(
     SimTask {
         receiver,
         welfare,
+        stuck: stuck_rx,
         handle,
         shutdown: shutdown_tx,
     }
@@ -230,6 +247,14 @@ fn save_now(world: &World, path: Option<&std::path::Path>, reason: &str) {
 mod tests {
     use super::*;
     use cloudkitty_core::test_support::test_config;
+
+    /// A default (off) detector: the dark shape, tracking nothing.
+    fn dark_detector() -> StuckDetector {
+        StuckDetector::new(
+            crate::stuck::StuckShared::new(Default::default()),
+            Default::default(),
+        )
+    }
 
     #[test]
     fn published_refusals_are_the_ring_verbatim_and_a_fresh_world_serves_none() {
@@ -335,6 +360,7 @@ mod tests {
             BehaviorRegistry::with_builtins(),
             None,
             crate::watchdog::Watchdog::new(Default::default()),
+            dark_detector(),
         );
         let mut rx = sim.receiver.clone();
 
@@ -362,6 +388,7 @@ mod tests {
             BehaviorRegistry::with_builtins(),
             None,
             crate::watchdog::Watchdog::new(Default::default()),
+            dark_detector(),
         );
         let mut rx = sim.receiver.clone();
         rx.changed().await.expect("a tick was published");
@@ -397,6 +424,7 @@ mod tests {
             BehaviorRegistry::with_builtins(),
             Some(path.clone()),
             crate::watchdog::Watchdog::new(Default::default()),
+            dark_detector(),
         );
         let mut rx = sim.receiver.clone();
         rx.changed().await.unwrap();

@@ -8,10 +8,11 @@ pub mod http_behavior;
 pub mod persist;
 pub mod settings;
 pub mod sim_task;
+pub mod stuck;
 pub mod watchdog;
 pub mod ws;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -192,6 +193,47 @@ pub fn register_policy_behaviors(
     Ok(displays)
 }
 
+/// Spec 061 FR-003/FR-009: wraps every mind-class seat's registered
+/// behavior in a [`stuck::StuckGuard`] — `policy:*` registrations and
+/// plugins declared `class = "mind"`; scripted seats and built-ins are
+/// never wrapped, so the detector has no code path that can reach them.
+/// Names are unique by construction (`register` panics on a duplicate),
+/// so this runs AFTER both registrars and rebuilds the registry with
+/// each mind name wrapped — startup-time only, before any tick, so the
+/// rebuilt (empty) circuit breaker is equivalent to the fresh one.
+/// Seats are wrapped in every mode, off included (the wrapper forwards
+/// when idle): mode changes gate behavior, never code paths. Returns
+/// the wrapped registry and the mind-class plugin names for the
+/// observer's tracking rule.
+pub fn wrap_mind_seats(
+    registry: BehaviorRegistry,
+    plugins: &PluginsConfig,
+    shared: &Arc<stuck::StuckShared>,
+) -> (BehaviorRegistry, BTreeSet<String>) {
+    let mut mind_plugins = BTreeSet::new();
+    let mut wrapped = BehaviorRegistry::new();
+    for name in registry.names() {
+        let inner = registry.get(&name).expect("the registry just listed it");
+        let is_policy = name.starts_with("policy:");
+        let is_mind_plugin = plugins
+            .plugins
+            .get(&name)
+            .is_some_and(|entry| entry.class == Some(SeatClass::Mind));
+        if is_policy || is_mind_plugin {
+            wrapped.register(
+                name.clone(),
+                Arc::new(stuck::StuckGuard::new(inner, shared.clone())),
+            );
+            if is_mind_plugin {
+                mind_plugins.insert(name);
+            }
+        } else {
+            wrapped.register(name, inner);
+        }
+    }
+    (wrapped, mind_plugins)
+}
+
 /// External plugin declarations — `[plugins.<name>]` blocks parsed from the
 /// same TOML file as everything else, into a struct the served `Config`
 /// never contains: program paths and arguments must not be reachable
@@ -358,6 +400,7 @@ pub fn build_router(state: AppState, client_dir: &Path) -> Router {
         .route("/events/activity", get(api::get_activity_ends))
         .route("/events/refusal", get(api::get_refusals))
         .route("/welfare", get(api::get_welfare))
+        .route("/stuck", get(api::get_stuck))
         .route("/config", get(api::get_config))
         .route("/settings", get(api::get_settings))
         .route("/ws", get(ws::ws_handler))
@@ -370,6 +413,53 @@ pub fn build_router(state: AppState, client_dir: &Path) -> Router {
 #[cfg(test)]
 mod plugin_registration_tests {
     use super::*;
+
+    #[test]
+    fn wrap_mind_seats_wraps_declared_mind_plugins_and_nothing_scripted() {
+        // Review 2026-10-15 finding 2: the plugin arm of the mind rule,
+        // exercised through wrap_mind_seats itself (FR-009's future LLM
+        // seat arrives as a `class = "mind"` plugin; FR-003's scripted
+        // seats and built-ins must pass through untouched). Identity is
+        // the assertion: a wrapped name holds a NEW Arc (the StuckGuard),
+        // an unwrapped name holds the SAME Arc it was registered with.
+        let plugins: PluginsConfig = toml::from_str(
+            "[plugins.brainiac]\nurl = \"http://127.0.0.1:9/decide\"\nclass = \"mind\"\n\
+             [plugins.scripted_pal]\nurl = \"http://127.0.0.1:9/decide\"\nclass = \"scripted\"\n",
+        )
+        .unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        let stand_in = registry
+            .get("needs_driven")
+            .expect("built-ins include needs_driven");
+        registry.register("brainiac".to_string(), stand_in.clone());
+        registry.register("scripted_pal".to_string(), stand_in.clone());
+        registry.register("policy:someone".to_string(), stand_in.clone());
+        let shared = stuck::StuckShared::new(Default::default());
+
+        let (wrapped, mind_plugins) = wrap_mind_seats(registry, &plugins, &shared);
+
+        assert_eq!(
+            mind_plugins,
+            ["brainiac".to_string()].into_iter().collect(),
+            "exactly the class = \"mind\" plugin feeds the observer's tracking rule"
+        );
+        assert!(
+            !std::sync::Arc::ptr_eq(&wrapped.get("brainiac").unwrap(), &stand_in),
+            "a declared mind plugin is wrapped"
+        );
+        assert!(
+            !std::sync::Arc::ptr_eq(&wrapped.get("policy:someone").unwrap(), &stand_in),
+            "a policy seat wraps by prefix"
+        );
+        assert!(
+            std::sync::Arc::ptr_eq(&wrapped.get("scripted_pal").unwrap(), &stand_in),
+            "a scripted plugin passes through untouched (FR-003)"
+        );
+        assert!(
+            std::sync::Arc::ptr_eq(&wrapped.get("needs_driven").unwrap(), &stand_in),
+            "a built-in passes through untouched (stand_in IS the registry's own needs_driven Arc)"
+        );
+    }
 
     #[test]
     fn a_missing_plugin_program_fails_startup_with_a_clear_error() {

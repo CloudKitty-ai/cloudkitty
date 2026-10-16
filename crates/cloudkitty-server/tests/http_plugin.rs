@@ -314,6 +314,7 @@ async fn served_surfaces_are_byte_identical_with_a_remote_plugin_declared() {
         Arc::new(cloudkitty_server::settings::build(
             config,
             &Default::default(),
+            &Default::default(),
             None,
         ))
     }
@@ -339,11 +340,16 @@ async fn served_surfaces_are_byte_identical_with_a_remote_plugin_declared() {
             registry,
             None,
             cloudkitty_server::watchdog::Watchdog::new(Default::default()),
+            cloudkitty_server::stuck::StuckDetector::new(
+                cloudkitty_server::stuck::StuckShared::new(Default::default()),
+                Default::default(),
+            ),
         );
         let state = cloudkitty_server::api::AppState {
             published: sim.receiver.clone(),
             config: config.clone(),
             welfare: sim.welfare.clone(),
+            stuck: sim.stuck.clone(),
             settings: settings(&config),
         };
         let app = build_router(state, std::path::Path::new("../../client"));

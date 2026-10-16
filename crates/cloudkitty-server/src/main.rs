@@ -143,6 +143,7 @@ fn load_config(
     RlConfig,
     PluginsConfig,
     cloudkitty_server::watchdog::WatchdogConfig,
+    cloudkitty_server::stuck::StuckConfig,
     // Spec 052: the raw tree of the same text, so the key settings block
     // can say whether a dial was WRITTEN in the file (its source) — the
     // typed parse cannot, serde has filled the defaults by then. `None`
@@ -162,6 +163,7 @@ fn load_config(
             RlConfig::default(),
             PluginsConfig::default(),
             cloudkitty_server::watchdog::WatchdogConfig::default(),
+            cloudkitty_server::stuck::StuckConfig::default(),
             None,
         ));
     }
@@ -189,10 +191,18 @@ fn load_config(
                 args.config_path.display()
             )
         })?;
+    // Spec 061: the [stuck_detector] table is server-owned, like
+    // [watchdog] -- the engine never sees it.
+    let stuck = cloudkitty_server::stuck::StuckConfig::from_toml_str(&text).with_context(|| {
+        format!(
+            "could not load the [stuck_detector] table of {}",
+            args.config_path.display()
+        )
+    })?;
     let raw: toml::Value = text
         .parse()
         .with_context(|| format!("could not load {}", args.config_path.display()))?;
-    Ok((config, rl_config, plugins, watchdog, Some(raw)))
+    Ok((config, rl_config, plugins, watchdog, stuck, Some(raw)))
 }
 
 #[tokio::main]
@@ -220,7 +230,8 @@ async fn run() -> Result<()> {
         return Ok(());
     };
 
-    let (config, rl_config, plugins_config, watchdog_config, raw_config) = load_config(&args)?;
+    let (config, rl_config, plugins_config, watchdog_config, stuck_config, raw_config) =
+        load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
 
@@ -233,6 +244,12 @@ async fn run() -> Result<()> {
         cloudkitty_server::register_policy_behaviors(&mut registry, &config, &rl_config)?;
     cloudkitty_server::register_plugin_behaviors(&mut registry, &plugins_config)?;
     config.validate_behavior_names(&registry.names())?;
+    // Spec 061: every mind-class seat rides the stuck guard, in every
+    // mode (off forwards); the shared state links the wrappers to the
+    // post-tick observer in sim_task.
+    let stuck_shared = cloudkitty_server::stuck::StuckShared::new(stuck_config);
+    let (registry, mind_plugins) =
+        cloudkitty_server::wrap_mind_seats(registry, &plugins_config, &stuck_shared);
     // Spec 059 FR-011: a digest window too short for a typical approach
     // makes most cue answers infeasible — lawful, but a collection config
     // should hear about it at startup.
@@ -248,6 +265,7 @@ async fn run() -> Result<()> {
     let settings = Arc::new(cloudkitty_server::settings::build(
         &config,
         &watchdog_config,
+        &stuck_config,
         raw_config.as_ref(),
     ));
     let snapshot_path = args
@@ -337,6 +355,9 @@ async fn run() -> Result<()> {
         remind_every = watchdog_config.remind_every,
         "welfare watchdog standing by"
     );
+    // Spec 061: the detector's one boot line -- the mode row is the fact
+    // a deploy verifies (off = the shipped dark state, FR-009).
+    cloudkitty_server::stuck::log_boot(&stuck_config);
     // Spec 052: the key settings block, said once here — after validation,
     // before the first tick (FR-006) — and the SAME Arc the endpoint serves
     // (FR-006a), so the journal and GET /settings cannot disagree. The
@@ -345,18 +366,22 @@ async fn run() -> Result<()> {
     // them, not in place of them.
     settings.announce();
     let watchdog = cloudkitty_server::watchdog::Watchdog::new(watchdog_config);
+    let stuck_detector =
+        cloudkitty_server::stuck::StuckDetector::new(stuck_shared.clone(), mind_plugins);
     let sim = sim_task::spawn(
         world,
         config.clone(),
         registry,
         Some(snapshot_path.clone()),
         watchdog,
+        stuck_detector,
     );
 
     let state = AppState {
         published: sim.receiver.clone(),
         config: config.clone(),
         welfare: sim.welfare.clone(),
+        stuck: sim.stuck.clone(),
         settings: settings.clone(),
     };
     let client_dir = resolve_client_dir(&args)?;
