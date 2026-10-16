@@ -80,17 +80,19 @@ def test_early_late_windows_read_happiness_and_distress():
 
 
 def test_block_trajectory_and_max_streaks():
-    # 6 ticks, 2 cats; happiness steps 100->0; cat 1 distressed ticks
-    # 1-3 (streak 3), cat 2 ticks 4-5 (streak 2). Blocks of 2:
-    # means 90, 50, 10.
+    # 6 ticks, 2 cats; happiness steps 100->0. Cat 1's distress has TWO
+    # separated runs (2 then 1): a counter that fails to reset between
+    # runs reads 3, the true max is 2 — the first fixture here had one
+    # run per cat and a no-reset mutation survived it (VACUOUS,
+    # 2026-10-15). Cat 2: one run of 2. Blocks of 2: means 90, 50, 10.
     pos = np.tile(np.array([[(1, 1), (2, 2)]]), (6, 1, 1))
     hap = np.array([[100, 100], [80, 80], [60, 60], [40, 40], [20, 20], [0, 0]])
-    distress = np.array([[0, 0], [1, 0], [1, 0], [1, 0], [0, 1], [0, 1]], bool)
+    distress = np.array([[1, 0], [1, 0], [0, 0], [1, 0], [0, 1], [0, 1]], bool)
     with tempfile.TemporaryDirectory() as td:
         r = dr.read_rollout(synth_rollout(td, pos, hap, distress),
                             early=2, block=2)
     assert r["block_happiness"] == [90.0, 50.0, 10.0], r["block_happiness"]
-    assert r["max_distress_streaks"] == [3, 2], r["max_distress_streaks"]
+    assert r["max_distress_streaks"] == [2, 2], r["max_distress_streaks"]
     assert r["block_ticks"] == 2
     # without the flag, the trajectory keys stay absent
     with tempfile.TemporaryDirectory() as td:
