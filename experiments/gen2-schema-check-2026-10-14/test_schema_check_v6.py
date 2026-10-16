@@ -117,6 +117,58 @@ def test_planted_reencode_flag_reds_a18():
     assert f["A18"].status == "RED", f["A18"].summary
 
 
+def test_clean_trace_tranche2_green_and_exercised():
+    f = run(DEV)
+    for row in ("A2", "A12"):
+        assert f[row].status == "ok", (row, f[row].summary)
+    assert f["A2"].detail["refutations"] > 0, "refutation path never exercised"
+    assert f["A12"].detail["beam_rows"] > 0 and f["A12"].detail["critter_rows"] > 0
+    assert f["A13"].detail["missing_required"] == []
+
+
+def test_planted_memory_staleness_reds_a2():
+    # self memory block starts at 75 (058 contract); slot = present,
+    # spatial 4, staleness. Find a row whose first kind's slot is
+    # present (engine's own bit) and bend its staleness cell.
+    MEM0 = 75
+    with tempfile.TemporaryDirectory() as td:
+        dst = copy_trace(td)
+        plant_obs(dst, lambda o: (int(np.flatnonzero(o[:, MEM0] > 0)[0]),
+                                  MEM0 + 5), 0.4)
+        f = run(dst)
+    assert f["A2"].status == "RED", f["A2"].summary
+    assert f["A2"].detail["token_bad"] >= 1
+
+
+def test_planted_chow_servings_reds_a12():
+    # chow block at 341 (058 contract): present 0, spatial 1-4,
+    # servings 5. Bend a filled slot's servings cell.
+    CHOW0 = 341
+    with tempfile.TemporaryDirectory() as td:
+        dst = copy_trace(td)
+        plant_obs(dst, lambda o: (int(np.flatnonzero(o[:, CHOW0] > 0)[0]),
+                                  CHOW0 + 5), 0.3)
+        f = run(dst)
+    assert f["A12"].status == "RED", f["A12"].summary
+
+
+def test_zeroed_sunbeam_bits_make_a13_required_missing():
+    # Zero every kitty-row on-sunbeam bit (row offset 16 of each 58-wide
+    # row starting at 109): the A13 census must name the missing
+    # required category rather than stay quiet.
+    with tempfile.TemporaryDirectory() as td:
+        dst = copy_trace(td)
+        p = dst / "trace_obs.npy"
+        obs = np.load(p)
+        for k in range(4):
+            obs[:, 109 + k * 58 + 16] = 0.0
+        np.save(p, obs)
+        f = run(dst)
+    assert "kitty_row.on_sunbeam@seen" in f["A13"].detail["missing_required"], \
+        f["A13"].detail["missing_required"]
+    assert f["A13"].status == "unproven"
+
+
 def test_v5_trace_refuses_by_name():
     try:
         sc.load_trace(V5_TRACE, config=ANCHOR)

@@ -33,9 +33,28 @@ checker is fog-gen1-shakeout/schema_check.py). Rows implemented:
   A15  row maps permanent: roster minus me in id order, constant.
   A18  re-encode determinism (the collector's own byte check).
 
-NOT HERE (lands with the prereg's checklist): memory token (A2), meow
-stamp/position laws (A4-A9), lattice (A10), element slots (A12/A13),
-mask implication (A14), policy-trace can-vary (A17).
+Tranche 2 (2026-10-15 — the element/memory laws the 058 contract and
+observe.rs pin):
+
+  A2   element-memory token: the self memory block re-derived from the
+       snapshot slots (present, spatial group to the CURRENT position,
+       staleness /40), and the refresh law itself (sight-only nearest,
+       refuted in view, expiry) via the v5 checker's refresh_memory —
+       the law is unchanged, only the token spelling moved.
+  A12  element slots: chow/water/sunbeam re-derived as nearest-K over
+       VISIBLE elements (Manhattan, ties by id, None-padded) with
+       their extras (servings / max_chow_servings; ttl fraction over
+       the configured total; occupied = a visible kitty on the tile);
+       critter slots follow the trace table's target-priority ids,
+       with is-greeble, the greeble heading one-hot (N/E/S/W) and the
+       is-activity-target bit from the observer's own activity.
+  A13  first-emission census, v6 spellings — required: the kitty-row
+       on-sunbeam and in-water bits at 1 on a Seen row (unproven when
+       never emitted, per the v5 practice).
+
+NOT HERE (lands with the prereg's checklist): meow stamp/position
+laws (A4-A9), lattice (A10), mask implication (A14), policy-trace
+can-vary (A17).
 
 Snapshot-law helpers come from the v5 checker (one home): visibility,
 row state, message digests and scene age are layout-agnostic.
@@ -57,12 +76,13 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "fog-gen1-shakeout"))
 sys.path.insert(0, str(HERE.parent / "attn-oracle-2026-08-15"))
 from schema_check import (  # noqa: E402  (v5 checker: layout-agnostic law)
-    Finding, answers_me, audible, kitties_by_id, msg_block, need_rate,
-    ok_or_red, row_state, scene_age, tile_holds, visible)
+    Finding, answers_me, audible, kitties_by_id, manhattan, msg_block,
+    need_rate, ok_or_red, refresh_memory, row_state, scene_age,
+    tile_holds, visible)
 import obs_layout_v6 as L6  # noqa: E402
 
 ATOL = 1e-5
-ASSERTING = {"A3", "A11", "AID", "A15", "A18"}
+ASSERTING = {"A2", "A3", "A11", "A12", "AID", "A15", "A18"}
 
 
 @dataclass
@@ -314,6 +334,177 @@ def check_a18(tr):
                      {"bad": bad, "n": n})
 
 
+def expected_memory(tr, snap, me):
+    """The self memory block from the snapshot's own slots: per
+    ElementType::ALL kind — present, spatial group to the CURRENT
+    position, staleness /40 clamped (observe.rs)."""
+    out = []
+    for slot in me["memory"]:
+        if slot is None:
+            out += [0.0] * L6.MEMORY_SLOT
+        else:
+            out += [1.0] + spatial(me["pos"], slot["pos"]) + [
+                min((snap["tick"] - slot["last_seen"]) / L6.STALENESS_NORMALISER, 1.0)]
+    return out
+
+
+def check_a2(tr):
+    r = tr.radius
+    timeout = int(tr.cfg["vision"].get("memory_timeout_ticks", 0))
+    token_bad, drift, refutations = 0, 0, 0
+    for i, line in enumerate(tr.lines):
+        snap = line["snapshot"]
+        prev = kitties_by_id(tr.snap(i - 1)) if i > 0 else None
+        for k in snap["kitties"]:
+            if prev is not None:
+                want = refresh_memory(prev[k["id"]]["memory"], k["pos"],
+                                      snap["elements"], r, timeout, snap["tick"])
+                drift += want != k["memory"]
+                refutations += sum(a is not None and b is None
+                                   for a, b in zip(prev[k["id"]]["memory"], k["memory"]))
+            if (snap["tick"], k["id"]) not in tr.row_of:
+                continue
+            tok = tr.row(snap["tick"], k["id"])[
+                L6.SELF_MEMORY:L6.SELF_MEMORY + len(L6.ELEMENT_KINDS) * L6.MEMORY_SLOT]
+            token_bad += not np.allclose(tok, expected_memory(tr, snap, k), atol=ATOL)
+    bad = token_bad or drift
+    f = ok_or_red("A2", bad, f"memory drift {drift}, token mismatches "
+                  f"{token_bad}; refutations {refutations}",
+                  {"drift": drift, "token_bad": token_bad,
+                   "refutations": refutations})
+    if not bad and refutations == 0:
+        f.status = "unproven"
+    return f
+
+
+def sorted_visible(snap, me, kinds, r):
+    """nearest_elements over the VIEW: visible elements of the kinds,
+    Manhattan-ordered, ties by id (observe.rs sort_by_proximity)."""
+    cands = [e for e in snap["elements"] if e["kind"] in kinds
+             and visible(me["pos"], e["pos"], r)]
+    return sorted(cands, key=lambda e: (manhattan(me["pos"], e["pos"]), e["id"]))
+
+
+def expected_element_blocks(tr, snap, me, table):
+    """Every element-slot cell (chow, water, sunbeam, critter) from the
+    snapshot — one list, in block order."""
+    r = tr.radius
+    out = []
+    chow_max = float(tr.rl.get("observation", {}).get("max_chow_servings", 5))
+    beam_total = tr.cfg["elements"]["sunbeam"].get("ttl")
+    chow = sorted_visible(snap, me, ("chow",), r)[:L6.COUNTS["chow"]]
+    for e in chow:
+        out += [1.0] + spatial(me["pos"], e["pos"]) + [
+            min(max(e.get("servings", 0) / chow_max, 0.0), 1.0)]
+    out += [0.0] * 6 * (L6.COUNTS["chow"] - len(chow))
+    water = sorted_visible(snap, me, ("water",), r)[:L6.COUNTS["water"]]
+    for e in water:
+        out += [1.0] + spatial(me["pos"], e["pos"])
+    out += [0.0] * 5 * (L6.COUNTS["water"] - len(water))
+    beams = sorted_visible(snap, me, ("sunbeam",), r)[:L6.COUNTS["sunbeam"]]
+    for e in beams:
+        ttl_frac = 1.0
+        if e.get("ttl") is not None and beam_total:
+            ttl_frac = min(max(e["ttl"] / beam_total, 0.0), 1.0)
+        occupied = any(visible(me["pos"], k["pos"], r) and k["pos"] == e["pos"]
+                       for k in snap["kitties"])
+        out += [1.0] + spatial(me["pos"], e["pos"]) + [ttl_frac,
+                                                       1.0 if occupied else 0.0]
+    out += [0.0] * 7 * (L6.COUNTS["sunbeam"] - len(beams))
+    # critter slots follow the trace table's target-priority ids
+    my_act = me["activity"]
+    my_critter_target = ((my_act.get("target") or {}).get("id")
+                         if my_act.get("state") == "playing"
+                         and (my_act.get("target") or {}).get("target") == "element"
+                         else None)
+    byid = {e["id"]: e for e in snap["elements"]}
+    for cid in table["critters"]:
+        e = byid.get(cid) if cid is not None else None
+        if e is None:
+            out += [0.0] * 11
+            continue
+        heading = [0.0] * 4
+        is_greeble = 0.0
+        if e["kind"] == "greeble":
+            is_greeble = 1.0
+            heading[["north", "east", "south", "west"].index(e["heading"])] = 1.0
+        out += [1.0] + spatial(me["pos"], e["pos"]) + [is_greeble] + heading
+        out += [1.0 if my_critter_target == e["id"] else 0.0]
+    return out
+
+
+def check_a12(tr):
+    bad = 0
+    span = (L6.BLOCKS[L6.COUNTS["kitty"]][0], L6.OBS_DIM)
+    for line in tr.lines:
+        snap = line["snapshot"]
+        byid = kitties_by_id(snap)
+        for me_id, table in line["tables"].items():
+            me = byid[int(me_id)]
+            got = tr.row(snap["tick"], me["id"])[span[0]:span[1]]
+            want = expected_element_blocks(tr, snap, me, table)
+            bad += not np.allclose(got, want, atol=ATOL)
+    # emission counters for the unproven call
+    any_beam = int((tr.obs[:, L6.BLOCKS[L6.COUNTS["kitty"] + 4][0]] > 0).sum())
+    any_critter = int((tr.obs[:, L6.BLOCKS[L6.COUNTS["kitty"] + 6][0]] > 0).sum())
+    f = ok_or_red("A12", bad,
+                  f"{bad} observer-ticks whose element blocks disagree with "
+                  f"the snapshot; beam-slot rows {any_beam}, critter-slot "
+                  f"rows {any_critter}",
+                  {"bad": bad, "beam_rows": any_beam,
+                   "critter_rows": any_critter})
+    if not bad and (any_beam == 0 or any_critter == 0):
+        f.status = "unproven"
+    return f
+
+
+def check_a13(tr):
+    first = {}
+
+    def hit(name, tick):
+        first.setdefault(name, int(tick))
+
+    rows = tr.obs[:, L6.KITTY_SPAN[0]:L6.KITTY_SPAN[1]].reshape(
+        len(tr.obs), L6.COUNTS["kitty"], L6.KITTY_W)
+    present = rows[..., L6.ROW_PRESENT] > 0
+    live = (rows != 0).any(-1)
+    for name, hits in (
+            ("kitty_row.seen", present.any(1)),
+            ("kitty_row.heard", (live & ~present).any(1)),
+            ("kitty_row.silent", (~live).any(1)),
+            ("kitty_row.on_sunbeam@seen",
+             (present & (rows[..., L6.ROW_SUNBEAM_BIT] > 0)).any(1)),
+            ("kitty_row.in_water@seen",
+             (present & (rows[..., L6.ROW_WATER_BIT] > 0)).any(1)),
+            ("kitty_row.bath@seen",
+             (present & (rows[..., L6.ROW_BATH] > 0)).any(1)),
+            ("kitty_row.partner@seen",
+             (present & (rows[..., L6.ROW_PARTNERED] > 0)).any(1)),
+            ("kitty_row.answers_me",
+             (rows[..., L6.ROW_ANSWERS_ME:L6.ROW_ANSWERS_ME + 4] > 0).any((1, 2))),
+            ("self.in_water", tr.obs[:, L6.SELF_IN_WATER] > 0),
+            ("self.in_sunbeam", tr.obs[:, L6.SELF_IN_SUNBEAM] > 0),
+            ("self.distress", (tr.obs[:, L6.SELF_DISTRESS:L6.SELF_DISTRESS + 6] > 0).any(1)),
+            ("self.pursuit", tr.obs[:, L6.SELF_PURSUIT] > 0)):
+        idx = np.flatnonzero(hits)
+        if len(idx):
+            hit(name, tr.tick[idx[0]])
+    for j, kind in enumerate(L6.ELEMENT_KINDS):
+        idx = np.flatnonzero(
+            tr.obs[:, L6.SELF_MEMORY + j * L6.MEMORY_SLOT] > 0)
+        if len(idx):
+            hit(f"self.memory.{kind}", tr.tick[idx[0]])
+    for line in tr.lines:
+        for m in line["snapshot"]["recent_meows"]:
+            hit(f"meow.{m['kind']}", m["tick"])
+    required = ["kitty_row.on_sunbeam@seen", "kitty_row.in_water@seen"]
+    missing = [n for n in required if n not in first]
+    return Finding("A13", "unproven" if missing else "ok",
+                   f"{len(first)} categories emitted; required missing: {missing}",
+                   {"first_emission": dict(sorted(first.items(), key=lambda kv: kv[1])),
+                    "missing_required": missing})
+
+
 def col_name(i):
     if i < 109:
         return f"self[{i}]"
@@ -334,7 +525,8 @@ def check_a1(tr):
                    {"constant": constant})
 
 
-CHECKS = [check_a1, check_a3, check_a11, check_aid, check_a15, check_a18]
+CHECKS = [check_a1, check_a2, check_a3, check_a11, check_a12, check_a13,
+          check_aid, check_a15, check_a18]
 
 
 def run_all(tr):
