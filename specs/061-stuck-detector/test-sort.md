@@ -145,12 +145,12 @@ prediction written before its run; outcomes recorded below):
 
 | # | Mutation (production) | Predicted red | Outcome |
 |---|---|---|---|
-| 15 | StuckGuard `try_decide` forwarding arm gains `let _ = ctx.rng.gen_u64();` (the review's exact staged bug) | off-paired byte-identity: "an off detector changes nothing" (observe pairing reds too) | pending |
-| 16 | lib.rs `is_mind_plugin` gated `&& false` (the review's staged bug) | wrap test: "exactly the class = \"mind\" plugin feeds the observer's tracking rule" | pending |
-| 17 | settings mode row renders `sd.mode` (the default) | "stuck_detector.mode is the live value" | pending |
-| 18 | signature armed check `>=` → `>` | "exactly at the line arms (>=)" | pending |
-| 19 | fire record anchor `[x, y]` → `[y, x]` | "the anchor is the window-opening tile, [x, y]" | pending |
-| 20 | observer ArmedRow `confined` → `0` | "live trigger values after ten confined armed observations" | pending |
-| 21 | `fire()` drops `self.shared.record(record)` | refused-substitute test: "the refused fire is still on the record, once" | pending |
-| 22 | teacher decide stamps `Some(Mew)` (cycle 9 restaged under the narrowed vacuity guard) | FR-005 sweep: "a scripted brain spoke the free register" | pending |
-| 23 | `log_boot` drops the `radius` field | boot-line test: "the boot line renders the LIVE dial radius" | pending |
+| 15 | StuckGuard `try_decide` forwarding arm gains `let _ = ctx.rng.gen_u64();` (the review's exact staged bug) | off-paired byte-identity: "an off detector changes nothing" (observe pairing reds too) | RED CONFIRMED |
+| 16 | lib.rs `is_mind_plugin` gated `&& false` (the review's staged bug) | wrap test: "exactly the class = \"mind\" plugin feeds the observer's tracking rule" | RED CONFIRMED |
+| 17 | settings mode row renders `sd.mode` (the default) | "stuck_detector.mode is the live value" | RED CONFIRMED |
+| 18 | signature armed check `>=` → `>` | "exactly at the line arms (>=)" | RED CONFIRMED |
+| 19 | fire record anchor `[x, y]` → `[y, x]` | "the anchor is the window-opening tile, [x, y]" | RED CONFIRMED |
+| 20 | observer ArmedRow `confined` → `0` | "live trigger values after ten confined armed observations" | RED CONFIRMED |
+| 21 | `fire()` drops `self.shared.record(record)` | refused-substitute test: "the refused fire is still on the record, once" | RED CONFIRMED |
+| 22 | teacher decide stamps `Some(Mew)` (cycle 9 restaged under the narrowed vacuity guard) | FR-005 sweep: "a scripted brain spoke the free register" | RED CONFIRMED |
+| 23 | `log_boot` drops the `radius` field | boot-line test: "the boot line renders the LIVE dial radius" | RED CONFIRMED |
