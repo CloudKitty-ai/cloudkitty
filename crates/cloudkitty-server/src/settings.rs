@@ -534,6 +534,53 @@ mod tests {
         );
     }
 
+    /// Review 2026-10-15 finding 3: every stuck row renders the LIVE
+    /// config, with the documented default beside it — on a non-default
+    /// config, so a row quietly rendering the default goes red here (the
+    /// mode row is the one that says whether the served world can
+    /// perturb a mind seat at all).
+    #[test]
+    fn the_stuck_rows_render_the_live_values_not_the_defaults() {
+        let live = crate::stuck::StuckConfig {
+            mode: crate::stuck::StuckMode::Observe,
+            window: 42,
+            armed_line: 80.5,
+            radius: 2,
+            recent_fires: 7,
+        };
+        let block = build(
+            &minimal_config(),
+            &WatchdogConfig::default(),
+            &live,
+            Some(&minimal_raw()),
+        );
+        let row = |key: &str| {
+            block
+                .entries
+                .iter()
+                .find(|e| e.group == "stuck_detector" && e.key == key)
+                .unwrap_or_else(|| panic!("stuck_detector.{key} row exists"))
+        };
+        for (key, value, default) in [
+            ("mode", json!("observe"), json!("off")),
+            ("window", json!(42), json!(30)),
+            ("armed_line", json!(80.5), json!(75.0)),
+            ("radius", json!(2), json!(1)),
+            ("recent_fires", json!(7), json!(256)),
+        ] {
+            assert_eq!(
+                row(key).value,
+                value,
+                "stuck_detector.{key} is the live value"
+            );
+            assert_eq!(
+                row(key).default,
+                Some(default),
+                "stuck_detector.{key} carries the documented default"
+            );
+        }
+    }
+
     /// FR-011a / FR-003a: source is PRESENCE in the file, not value == default.
     /// The one optional key is written AT its default, so a mutant that
     /// compares values reads `default` here and goes red.

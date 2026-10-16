@@ -357,13 +357,7 @@ async fn run() -> Result<()> {
     );
     // Spec 061: the detector's one boot line -- the mode row is the fact
     // a deploy verifies (off = the shipped dark state, FR-009).
-    tracing::info!(
-        mode = ?stuck_config.mode,
-        window = stuck_config.window,
-        armed_line = stuck_config.armed_line,
-        radius = stuck_config.radius,
-        "stuck detector standing by (off = dark; observe = record only; enforce = substitute)"
-    );
+    cloudkitty_server::stuck::log_boot(&stuck_config);
     // Spec 052: the key settings block, said once here — after validation,
     // before the first tick (FR-006) — and the SAME Arc the endpoint serves
     // (FR-006a), so the journal and GET /settings cannot disagree. The

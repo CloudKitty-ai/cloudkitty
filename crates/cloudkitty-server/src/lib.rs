@@ -415,6 +415,53 @@ mod plugin_registration_tests {
     use super::*;
 
     #[test]
+    fn wrap_mind_seats_wraps_declared_mind_plugins_and_nothing_scripted() {
+        // Review 2026-10-15 finding 2: the plugin arm of the mind rule,
+        // exercised through wrap_mind_seats itself (FR-009's future LLM
+        // seat arrives as a `class = "mind"` plugin; FR-003's scripted
+        // seats and built-ins must pass through untouched). Identity is
+        // the assertion: a wrapped name holds a NEW Arc (the StuckGuard),
+        // an unwrapped name holds the SAME Arc it was registered with.
+        let plugins: PluginsConfig = toml::from_str(
+            "[plugins.brainiac]\nurl = \"http://127.0.0.1:9/decide\"\nclass = \"mind\"\n\
+             [plugins.scripted_pal]\nurl = \"http://127.0.0.1:9/decide\"\nclass = \"scripted\"\n",
+        )
+        .unwrap();
+        let mut registry = BehaviorRegistry::with_builtins();
+        let stand_in = registry
+            .get("needs_driven")
+            .expect("built-ins include needs_driven");
+        registry.register("brainiac".to_string(), stand_in.clone());
+        registry.register("scripted_pal".to_string(), stand_in.clone());
+        registry.register("policy:someone".to_string(), stand_in.clone());
+        let shared = stuck::StuckShared::new(Default::default());
+
+        let (wrapped, mind_plugins) = wrap_mind_seats(registry, &plugins, &shared);
+
+        assert_eq!(
+            mind_plugins,
+            ["brainiac".to_string()].into_iter().collect(),
+            "exactly the class = \"mind\" plugin feeds the observer's tracking rule"
+        );
+        assert!(
+            !std::sync::Arc::ptr_eq(&wrapped.get("brainiac").unwrap(), &stand_in),
+            "a declared mind plugin is wrapped"
+        );
+        assert!(
+            !std::sync::Arc::ptr_eq(&wrapped.get("policy:someone").unwrap(), &stand_in),
+            "a policy seat wraps by prefix"
+        );
+        assert!(
+            std::sync::Arc::ptr_eq(&wrapped.get("scripted_pal").unwrap(), &stand_in),
+            "a scripted plugin passes through untouched (FR-003)"
+        );
+        assert!(
+            std::sync::Arc::ptr_eq(&wrapped.get("needs_driven").unwrap(), &stand_in),
+            "a built-in passes through untouched (stand_in IS the registry's own needs_driven Arc)"
+        );
+    }
+
+    #[test]
     fn a_missing_plugin_program_fails_startup_with_a_clear_error() {
         // Spec 016 FR-011: detectable config errors stop the world before it
         // starts, naming the field and the path.

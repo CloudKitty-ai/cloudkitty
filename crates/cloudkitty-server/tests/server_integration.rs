@@ -1271,7 +1271,7 @@ async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
     // scripted seat beside it that must never appear on the surface.
     let mut config = test_config();
     config.kitties = vec![
-        KittyConfig::new(1, "Pacer", 4, 4, "policy:dither"),
+        KittyConfig::new(1, "Pacer", 4, 7, "policy:dither"),
         KittyConfig::new(2, "Biscuit", 11, 11, "needs_driven"),
     ];
     config.validate().expect("valid");
@@ -1280,7 +1280,7 @@ async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
     let mut registry = BehaviorRegistry::with_builtins();
     registry.register(
         "policy:dither".to_string(),
-        Arc::new(HomeDither { home_y: 4 }),
+        Arc::new(HomeDither { home_y: 7 }),
     );
     let stuck_config = StuckConfig {
         mode: StuckMode::Enforce,
@@ -1374,7 +1374,10 @@ async fn stuck_endpoint_serves_fires_with_full_attribution_end_to_end() {
     // fresh world's first fire substitutes the decisions of tick
     // window - 1. An equality: a late (or early) fire fails here.
     assert_eq!(fire["tick"].as_u64(), Some(4), "{fire}");
-    assert_eq!(fire["anchor"].as_array().map(|a| a.len()), Some(2));
+    // Anchor pinned on an asymmetric tile (review 2026-10-15 finding
+    // 5): the spawn-time observation anchors the window at the spawn
+    // tile (4, 7) before the first move — a [y, x] swap fails here.
+    assert_eq!(fire["anchor"], serde_json::json!([4, 7]));
     assert!(fire["confined_span"].as_u64() >= Some(5));
     assert_eq!(fire["armed_need"], "eat");
     assert!(fire["need_value"].as_f64() >= Some(75.0));

@@ -91,12 +91,23 @@ no-fire path beyond map upkeep.
 `engine_defaults_sha256` unchanged (FR-006, Assumptions); no new
 randomness and master-RNG isolation by type (FR-008); scripted seats
 never wrapped (FR-003); certified Gen 1 served default = off (FR-009).
-Two accepted served-path residuals, both invisible on budgetless runs:
+Three accepted served-path residuals, all invisible on budgetless runs:
 a bench (wall-clock event) can delay a fire's delivery by one tick
-(the bench fallback applies the scripted brain anyway), and observe
+(the bench fallback applies the scripted brain anyway); observe
 mode spends record-computation time inside the seat's decision budget
 (off-vs-observe byte-identity is exact budgetless; FR-010 states the
-scoping).
+scoping); and — named by the 2026-10-15 independent review, finding 4 —
+a fire-tick decision that outlives its wall-clock budget leaves a stray
+thread that still writes the enforce record (WARN line and count)
+although the engine applied the fresh-stream fallback, so that one
+record can be wrong about delivery and can land after the next
+observation. The substitute's own compute time also counts inside the
+seat's budget. The timeout lives in core's `decide_one`, which FR-006
+forbids touching; a true fix needs a budget-aware decide seam and
+belongs to a future spec (the deferred distress intervention is the
+natural owner). The shipped default is off and every deterministic
+suite is budgetless, so no test or baseline on record can carry a
+false fire.
 
 **Scale/Scope**: 5 seats, 6 needs, windows in the tens of ticks; ring
 buffer bounded (default 256 fires); fire rate on healthy behavior

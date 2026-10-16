@@ -600,6 +600,21 @@ impl Behavior for StuckGuard {
     }
 }
 
+/// The boot line (FR-009/FR-010): one INFO line at startup carrying the
+/// LIVE enablement and trigger dials, so a serving log's first page says
+/// whether this world can perturb a mind seat. Lives here, not in
+/// main.rs, so the contract test below can drive it (review 2026-10-15
+/// finding 3).
+pub fn log_boot(config: &StuckConfig) {
+    tracing::info!(
+        mode = ?config.mode,
+        window = config.window,
+        armed_line = config.armed_line,
+        radius = config.radius,
+        "stuck detector standing by (off = dark; observe = record only; enforce = substitute)"
+    );
+}
+
 /// Renders one fire as a structured serving-log line (contract §3: these
 /// flattened field names are what the corpus INVESTIGATE consumer and
 /// the Gen 2 battery re-read parse; a rename is a breaking change).
@@ -884,6 +899,39 @@ mod tests {
     }
 
     #[test]
+    fn a_need_exactly_at_the_armed_line_is_armed() {
+        // FR-001 says "at or above the armed line": the boundary itself
+        // arms (review 2026-10-15 finding 6 — every other fixture arms
+        // at 100, so only this one sits ON the line). The twin arm a
+        // hair below never fires.
+        let fires_at = |value: f32| {
+            let config = cfg(StuckMode::Enforce, 20, 75.0);
+            let mut signature = SeatSignature::default();
+            let mut kitty = seat();
+            let delta = value - kitty.needs.get(NeedKind::Eat);
+            kitty.needs.add(NeedKind::Eat, delta);
+            assert_eq!(
+                kitty.needs.get(NeedKind::Eat),
+                value,
+                "fixture precondition: the value is pinned exactly"
+            );
+            let mut fires = 0u64;
+            for _ in 0..40u64 {
+                if signature.step(&kitty, &config).is_some() {
+                    fires += 1;
+                }
+            }
+            fires
+        };
+        assert_eq!(
+            fires_at(75.0),
+            2,
+            "exactly at the line arms (>=): two full windows in 40 ticks"
+        );
+        assert_eq!(fires_at(74.9), 0, "a hair below the line never arms");
+    }
+
+    #[test]
     fn arming_mid_window_starts_the_streak_at_the_crossing() {
         let config = cfg(StuckMode::Enforce, 20, 75.0);
         let mut signature = SeatSignature::default();
@@ -989,6 +1037,32 @@ mod tests {
     }
 
     #[test]
+    fn the_armed_surface_reports_the_live_trigger_values() {
+        // FR-012's forward hook carries VALUES, not just typed shape
+        // (review 2026-10-15 finding 5): mid-window, `confined` and
+        // `streak` equal the observed tick count and the hottest need is
+        // the armed one — the deferred distress intervention keys on
+        // these numbers without re-deriving the rule.
+        let config = observer_config();
+        let mut world = World::generate(&config);
+        arm(&mut world.kitties[0], NeedKind::Eat);
+        let shared = StuckShared::new(cfg(StuckMode::Observe, 30, 75.0));
+        let mut detector = StuckDetector::new(shared.clone(), BTreeSet::new());
+        let mut status = StuckStatus::dark(shared.config());
+        for t in 1..=10u64 {
+            world.tick = t;
+            status = detector.observe(&world);
+        }
+        assert_eq!(status.armed.len(), 1, "the one mind seat has a row");
+        let row = &status.armed[0];
+        assert_eq!(
+            (row.kitty, row.confined, row.hottest_need, row.streak),
+            (1, 10, Some(NeedKind::Eat), 10),
+            "live trigger values after ten confined armed observations"
+        );
+    }
+
+    #[test]
     fn off_mode_tracks_nothing_and_serves_the_dark_shape() {
         let config = observer_config();
         let mut world = World::generate(&config);
@@ -1034,6 +1108,35 @@ mod tests {
         }
     }
 
+    /// The sampling twin of `HomeDither` (review 2026-10-15 finding 1):
+    /// draws exactly ONE `u64` per decision — the shape of a sampling
+    /// policy seat (`cloudkitty-rl/src/behavior.rs`) — and folds it into
+    /// the choice, so the byte-identity pairings go red if the wrapper
+    /// adds, drops, or reorders a per-decision draw. A fixture that draws
+    /// nothing cannot see that bug class. Still confined (both dither
+    /// tiles sit within radius 1 of the anchor) and scene-free, so the
+    /// exact-fire-tick convention is unchanged.
+    struct SamplingDither {
+        home_y: u32,
+    }
+
+    #[async_trait]
+    impl Behavior for SamplingDither {
+        async fn decide(&self, ctx: &DecisionContext) -> Decision {
+            let bits = ctx.rng.gen_u64();
+            if ctx.me.pos.y == self.home_y && !bits.is_multiple_of(8) {
+                let direction = if ctx.me.pos.x.is_multiple_of(2) {
+                    Direction::East
+                } else {
+                    Direction::West
+                };
+                Decision::silent(Action::move_to(direction))
+            } else {
+                Decision::silent(Action::Idle)
+            }
+        }
+    }
+
     /// A scripted anchor that never moves (for boxing and boundaries).
     struct HoldStill;
 
@@ -1044,20 +1147,29 @@ mod tests {
         }
     }
 
-    fn registry_with(shared: Option<&Arc<StuckShared>>, dither_home_y: u32) -> BehaviorRegistry {
+    fn registry_with_mind(
+        shared: Option<&Arc<StuckShared>>,
+        mind: Arc<dyn Behavior>,
+    ) -> BehaviorRegistry {
         let mut registry = BehaviorRegistry::with_builtins();
-        let dither: Arc<dyn Behavior> = Arc::new(HomeDither {
-            home_y: dither_home_y,
-        });
         match shared {
             Some(shared) => registry.register(
                 "policy:dither".to_string(),
-                Arc::new(StuckGuard::new(dither, shared.clone())),
+                Arc::new(StuckGuard::new(mind, shared.clone())),
             ),
-            None => registry.register("policy:dither".to_string(), dither),
+            None => registry.register("policy:dither".to_string(), mind),
         }
         registry.register("hold".to_string(), Arc::new(HoldStill));
         registry
+    }
+
+    fn registry_with(shared: Option<&Arc<StuckShared>>, dither_home_y: u32) -> BehaviorRegistry {
+        registry_with_mind(
+            shared,
+            Arc::new(HomeDither {
+                home_y: dither_home_y,
+            }),
+        )
     }
 
     /// Drives `ticks` world ticks with the observer in the loop, exactly
@@ -1110,6 +1222,15 @@ mod tests {
         // observation stamped `window`, and that IS the decision tick it
         // substitutes. An equality — a late fire fails here.
         assert_eq!(records[0].tick, window, "fires on the exact predicted tick");
+        // Anchor orientation pinned on an asymmetric tile (review
+        // 2026-10-15 finding 5): the window opened where the dither
+        // parked after its first West step off (3,3) — a [y, x] swap
+        // fails here.
+        assert_eq!(
+            records[0].anchor,
+            [2, 3],
+            "the anchor is the window-opening tile, [x, y]"
+        );
         for record in &records {
             assert_eq!(record.mode, StuckMode::Enforce);
             assert_eq!(record.armed_need, NeedKind::Eat);
@@ -1218,10 +1339,105 @@ mod tests {
         let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
         assert_eq!(records.len(), 1, "one fire, no in-tick retry");
         assert_eq!(records[0].tick, window);
+        // Honest shape (review 2026-10-15 finding 7): with all four
+        // neighbors held, the substitute brain proposes Idle — it checks
+        // occupancy at decision time, so a fully boxed seat gets a safe
+        // no-op, not a refused move. The refused-substitute arm lives in
+        // its own test below (a same-tick tile contest).
+        assert!(
+            matches!(records[0].substitute.activity, Action::Idle),
+            "fully boxed: the substitute is the safe no-op, not a doomed move"
+        );
         assert_eq!(
             world.kitties[0].pos,
             Position::new(5, 5),
-            "boxed in: every move (the dither's and any substitute's) was refused"
+            "boxed in: the dither's refused moves and an idle substitute leave it in place"
+        );
+    }
+
+    /// Claims the tile at `claim_x` on alternating ticks: steps West
+    /// onto it, then East off it — the same-tick tile contest that is
+    /// the one way the engine refuses a needs-driven substitute (its
+    /// `step_toward` checks occupancy against the start-of-tick view,
+    /// so only an apply-order loss can refuse it).
+    struct Claimer {
+        claim_x: u32,
+    }
+
+    #[async_trait]
+    impl Behavior for Claimer {
+        async fn decide(&self, ctx: &DecisionContext) -> Decision {
+            let direction = if ctx.me.pos.x > self.claim_x {
+                Direction::West
+            } else {
+                Direction::East
+            };
+            Decision::silent(Action::move_to(direction))
+        }
+    }
+
+    #[test]
+    fn a_refused_substitute_resolves_through_the_ordinary_path_and_stays_on_the_record() {
+        // Spec edge case (review 2026-10-15 finding 7): a well-formed
+        // substitute refused at apply time. The substitute brain checks
+        // occupancy against the start-of-tick view, so the ONE way to
+        // refuse it is a same-tick tile contest: a claimer also steps
+        // onto the substitute's target and wins the turn-order draw.
+        // Turn order is a seeded permutation, so the losing tick is
+        // pinned by consequence (the [rng-sequence] precedent): window
+        // 14 on this fixture is a tick the claimer wins — re-pin on
+        // purpose if the engine's draw ever moves.
+        let window = 14u64;
+        let mut config = observer_config();
+        config.kitties = vec![
+            KittyConfig::new(1, "Boxed", 5, 5, "policy:dither"),
+            KittyConfig::new(2, "N", 5, 4, "hold"),
+            KittyConfig::new(3, "S", 5, 6, "hold"),
+            KittyConfig::new(4, "W", 4, 5, "hold"),
+            KittyConfig::new(5, "Claimer", 7, 5, "claimer"),
+        ];
+        let config = Arc::new(config);
+        let mut world = World::generate(&config);
+        arm(&mut world.kitties[0], NeedKind::Eat);
+        let shared = StuckShared::new(cfg(StuckMode::Enforce, window, 75.0));
+        let mut registry = registry_with(Some(&shared), 5);
+        registry.register("claimer".to_string(), Arc::new(Claimer { claim_x: 6 }));
+        let mut detector = StuckDetector::new(shared.clone(), BTreeSet::new());
+        for _ in 0..=window {
+            drive_tick(&mut world, &registry, &config);
+            detector.observe(&world);
+        }
+        let records: Vec<FireRecord> = shared.log.lock().unwrap().ring.iter().cloned().collect();
+        assert_eq!(
+            records.len(),
+            1,
+            "the refused fire is still on the record, once"
+        );
+        assert_eq!(records[0].tick, window);
+        assert!(
+            matches!(
+                records[0].substitute.activity,
+                Action::Move {
+                    direction: Direction::East
+                }
+            ),
+            "fixture sanity: the substitute really was a doomed move, not an idle: {:?}",
+            records[0].substitute.activity
+        );
+        assert_eq!(
+            world.kitties[4].pos,
+            Position::new(6, 5),
+            "fixture sanity: the claimer won the contested tile that tick"
+        );
+        assert_eq!(
+            world.kitties[0].pos,
+            Position::new(5, 5),
+            "the refused substitute resolves to a safe no-op (Article IV), no in-tick retry"
+        );
+        assert_eq!(
+            world.kitties[0].last_action,
+            Some(Action::Idle),
+            "last_action reads the ordinary refusal resolution, not the doomed move"
         );
     }
 
@@ -1235,13 +1451,16 @@ mod tests {
     fn off_paired_worlds_are_byte_identical_with_the_wrapper_in_place() {
         // The off pairing exercises the real forwarding path (analysis
         // C4): mind seats are WRAPPED and the detector constructed, mode
-        // off — against a bare registry with no detector at all.
+        // off — against a bare registry with no detector at all. The
+        // seat SAMPLES (one u64 per decision, the policy-seat shape), so
+        // a wrapper that adds or reorders a draw on the forwarding path
+        // diverges here (review 2026-10-15 finding 1).
         let config = Arc::new(observer_config());
         let mut plain_world = World::generate(&config);
         let mut guarded_world = World::generate(&config);
-        let plain = registry_with(None, 3);
+        let plain = registry_with_mind(None, Arc::new(SamplingDither { home_y: 3 }));
         let shared = StuckShared::new(cfg(StuckMode::Off, 20, 75.0));
-        let guarded = registry_with(Some(&shared), 3);
+        let guarded = registry_with_mind(Some(&shared), Arc::new(SamplingDither { home_y: 3 }));
         let mut detector = StuckDetector::new(shared.clone(), BTreeSet::new());
 
         for _ in 0..2000 {
@@ -1265,15 +1484,18 @@ mod tests {
         // FR-008's extension made testable: on the budgetless path an
         // observe-mode world is tick-for-tick the plain world, while the
         // fire record exists with full attribution.
+        // The firing seat SAMPLES one u64 per decision (finding 1): an
+        // observe path that so much as computes the substitute before
+        // the inner advisor, or draws anything itself, diverges here.
         let window = 20u64;
         let config = Arc::new(observer_config());
         let mut plain_world = World::generate(&config);
         let mut observed_world = World::generate(&config);
         arm(&mut plain_world.kitties[0], NeedKind::Eat);
         arm(&mut observed_world.kitties[0], NeedKind::Eat);
-        let plain = registry_with(None, 3);
+        let plain = registry_with_mind(None, Arc::new(SamplingDither { home_y: 3 }));
         let shared = StuckShared::new(cfg(StuckMode::Observe, window, 75.0));
-        let observed = registry_with(Some(&shared), 3);
+        let observed = registry_with_mind(Some(&shared), Arc::new(SamplingDither { home_y: 3 }));
         let mut detector = StuckDetector::new(shared.clone(), BTreeSet::new());
 
         for _ in 0..3 * window {
@@ -1416,6 +1638,39 @@ mod tests {
         }
     }
 
+    #[test]
+    fn the_boot_line_carries_the_live_dials() {
+        // Review 2026-10-15 finding 3: the boot line interpolates the
+        // live config — a deploy's first-page fact — so it is pinned on
+        // non-default values, same capture rig as the fire line.
+        let captured = Captured::default();
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::TRACE)
+            .with_writer(captured.clone())
+            .with_ansi(false)
+            .finish();
+        tracing::subscriber::with_default(subscriber, || {
+            log_boot(&StuckConfig {
+                mode: StuckMode::Observe,
+                window: 42,
+                armed_line: 80.5,
+                radius: 2,
+                recent_fires: 7,
+            });
+        });
+        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
+        assert!(
+            text.contains("INFO") && text.contains("stuck detector standing by"),
+            "one INFO boot line: {text}"
+        );
+        for field in ["mode=Observe", "window=42", "armed_line=80.5", "radius=2"] {
+            assert!(
+                text.contains(field),
+                "the boot line renders the LIVE dial {field}: {text}"
+            );
+        }
+    }
+
     // ---------- FR-005: the substitute never speaks the free register ----------
 
     #[test]
@@ -1426,12 +1681,19 @@ mod tests {
         let config = Arc::new(test_config());
         let registry = BehaviorRegistry::with_builtins();
         let mut world = World::generate(&config);
-        let mut checked = 0u32;
+        let mut needs_driven_spoke = 0u32;
         for _ in 0..500 {
             let driven = drive_tick(&mut world, &registry, &config);
             for record in &driven.report.records {
                 if let Some(message) = record.proposed_message {
-                    checked += 1;
+                    // Vacuity accounting counts the NEEDS_DRIVEN seat
+                    // only (review 2026-10-15 finding 8): Miso, kitty 1
+                    // in test_config — the substitute brain this test
+                    // exists to pin. The assert still sweeps every
+                    // scripted seat.
+                    if record.kitty_id == 1 {
+                        needs_driven_spoke += 1;
+                    }
                     assert!(
                         !matches!(
                             message,
@@ -1446,8 +1708,8 @@ mod tests {
             }
         }
         assert!(
-            checked > 0,
-            "the sweep saw real messages, or this test is vacuous"
+            needs_driven_spoke > 0,
+            "the needs_driven seat spoke real messages, or this test is vacuous"
         );
     }
 }

@@ -93,3 +93,64 @@ module. The cycle table at the bottom records each run.
   names — the uniqueness law found by the first integration run; the
   lib.rs shadow-check comment I initially read as last-write-wins is
   the opposite: a backstop panic).
+
+## Review remediation record (2026-10-15)
+
+An independent high-effort review (fresh subagent, scratch-clone staged
+mutations) found no production defect and eight test-side findings; the
+owner ruled "Remediate 1-8". What changed, and the new cycles (each
+prediction written before its run; outcomes recorded below):
+
+1. **RNG-blind byte-identity guards** (review staged an extra
+   `ctx.rng.gen_u64()` on the forwarding path: GREEN — every wrapped
+   fixture drew nothing). Both pairings now run `SamplingDither`, which
+   draws one u64 per decision (the sampling policy-seat shape), so an
+   added, dropped, or reordered draw diverges the worlds.
+2. **`wrap_mind_seats` plugin arm untested** (review staged
+   `is_mind_plugin && false`: GREEN). New lib.rs test drives
+   wrap_mind_seats with a declared `class = "mind"` plugin, a scripted
+   plugin, a policy seat, and a built-in; Arc identity asserts wrapped
+   vs pass-through, set equality asserts the observer feed.
+3. **Settings rows never asserted live values** (review rendered
+   defaults in all five rows: GREEN). New settings test builds on a
+   non-default StuckConfig and pins each row's live value AND default
+   column. The boot line moved from main.rs into `stuck::log_boot`
+   and gained a capture-rig contract test on non-default dials.
+4. **Timed-out fire tick can log a false enforce record** (served,
+   budgeted path only): not fixable here — the timeout lives in core's
+   `decide_one` (FR-006 forbids the edit). Recorded as the third
+   accepted served-path residual in plan.md Constraints, with the
+   budget-cost note; a real fix needs a budget-aware decide seam
+   (deferred distress intervention is the natural owner).
+5. **Anchor orientation and armed values unpinned** (review swapped
+   anchor x/y and zeroed ArmedRow: GREEN — diagonal fixtures,
+   type-only asserts). The unit enforce test now pins
+   `anchor == [2, 3]` (asymmetric), the integration fixture moved to
+   (4, 7) and pins `[4, 7]`, and a new armed-surface test pins
+   confined/streak/hottest-need values mid-window.
+6. **Armed-line boundary unguarded** (review staged `>=` → `>`:
+   GREEN — every fixture armed at 100). New boundary test sits a need
+   exactly AT 75.0 (fires) and at 74.9 (never fires).
+7. **Boxed-in test's message claimed a refused substitute** (false:
+   the substitute brain checks occupancy at decision time, so a fully
+   boxed seat gets Idle). Message fixed and the Idle substitute pinned;
+   a NEW test constructs the genuine refusal — a same-tick tile
+   contest the substitute loses on the turn-order draw (window 14
+   pinned by consequence, the [rng-sequence] precedent; scan record:
+   windows 6/14/20 refuse on this fixture) — and asserts the safe
+   no-op resolution, `last_action == Idle`, and the record standing.
+8. **FR-005 vacuity guard counted the playful seat too.** Narrowed to
+   the needs_driven seat (kitty 1); the assert still sweeps every
+   scripted seat.
+
+| # | Mutation (production) | Predicted red | Outcome |
+|---|---|---|---|
+| 15 | StuckGuard `try_decide` forwarding arm gains `let _ = ctx.rng.gen_u64();` (the review's exact staged bug) | off-paired byte-identity: "an off detector changes nothing" (observe pairing reds too) | pending |
+| 16 | lib.rs `is_mind_plugin` gated `&& false` (the review's staged bug) | wrap test: "exactly the class = \"mind\" plugin feeds the observer's tracking rule" | pending |
+| 17 | settings mode row renders `sd.mode` (the default) | "stuck_detector.mode is the live value" | pending |
+| 18 | signature armed check `>=` → `>` | "exactly at the line arms (>=)" | pending |
+| 19 | fire record anchor `[x, y]` → `[y, x]` | "the anchor is the window-opening tile, [x, y]" | pending |
+| 20 | observer ArmedRow `confined` → `0` | "live trigger values after ten confined armed observations" | pending |
+| 21 | `fire()` drops `self.shared.record(record)` | refused-substitute test: "the refused fire is still on the record, once" | pending |
+| 22 | teacher decide stamps `Some(Mew)` (cycle 9 restaged under the narrowed vacuity guard) | FR-005 sweep: "a scripted brain spoke the free register" | pending |
+| 23 | `log_boot` drops the `radius` field | boot-line test: "the boot line renders the LIVE dial radius" | pending |
