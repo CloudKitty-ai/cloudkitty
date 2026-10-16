@@ -10,7 +10,7 @@ doctrine rule-8 check travels with their spec.
 
 Scope: engine-native per-seed randomized kitty START POSITIONS with a
 toml override. The companion teacher-side dispersion-coping package
-(waypoint start-index by position, heard-beacon generalization, the
+(waypoint start-index by position, heard-beacon kind pinning, the
 gated bounded-detour social drift) is being designed separately and is
 NOT in this note.
 
