@@ -229,7 +229,13 @@ rulings nor answers to blanks until she rules. Rulings sources:
   the favourite screened ON Biscuit was PLAY (the trait-sheet
   stand-in), and that one was invisible against her 0.8 play rise; a
   groom/bath favourite on her seat was never screened — the Gen 3
-  rerun covers the reevaluation.
+  rerun covers the reevaluation. Owner clarification at the note
+  (2026-10-17, verbatim): "I meant her play favorite didn't have a
+  comparable effect on her groom other behavior/overall character" —
+  which the raws back: across w 0..1 Biscuit's groom-other share is
+  flat 0.025–0.029 and her whole activity mix is unchanged (idle
+  0.615–0.630, resting 0.135–0.148, playing 0.134–0.137; flat scan of
+  results-raw/favourite/v*/, 8 seeds x 4000 ticks per value).
 - [RULED, owner 2026-10-10 in-session: "revive"] Want-law memory
   reach: REVIVED. Pin: `relief_memory_margin = 0` in the Gen 2
   world toml — spec 050's shipped knob (config/mod.rs §MeowConfig),
