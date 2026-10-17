@@ -13,7 +13,9 @@ still gets a section; a clean run is evidence too.
 Lifetime: shakeout evidence, then frozen (owner ruled 2026-09-25;
 the close-out procedure is in the condense skill's SKILL.md
 §TRIALS lifetime). Shakeout closes on the owner's word, backstop
-2026-10-15.
+2026-11-15 (extended from 2026-10-15 on her word, 2026-10-16 —
+two cards still untested: the live training card, step-5 arrival;
+closing then would have frozen before the evidence exists).
 
 ## Trial 1 — Product thread, Fable, 2026-09-20
 
