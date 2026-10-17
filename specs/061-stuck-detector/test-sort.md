@@ -154,3 +154,33 @@ prediction written before its run; outcomes recorded below):
 | 21 | `fire()` drops `self.shared.record(record)` | refused-substitute test: "the refused fire is still on the record, once" | RED CONFIRMED |
 | 22 | teacher decide stamps `Some(Mew)` (cycle 9 restaged under the narrowed vacuity guard) | FR-005 sweep: "a scripted brain spoke the free register" | RED CONFIRMED |
 | 23 | `log_boot` drops the `radius` field | boot-line test: "the boot line renders the LIVE dial radius" | RED CONFIRMED |
+
+## Contract §3 rendering correction (2026-10-15, post-merge)
+
+Experiments' rule-3 report (verified): the §3 example block's VALUE
+renderings never matched the shipped formatter — names held, shapes
+did not (name was unquoted Display, armed_need Debug, actions render
+with spaces and braces, empty messages bare, need_value full-precision
+f64). While fixing the example the owner asked for spaced kitty names
+to be handled: an unquoted spaced name (`name=Mr Whiskers tick=…`)
+destroys the key=value boundary for every consumer. The fix quotes
+`name` (Debug rendering) — the one deliberate rendering change, relayed
+to Experiments before landing since their FR-011 reader (8bd65364)
+parses the old shape.
+
+Sorted checks, predictions written before any run:
+
+- **Must fail (guards of the change)**: T010's `name=Biscuit` assert
+  goes RED under the quoted rendering — predicted failure message
+  "contract field name=Biscuit missing" — proving the old assert
+  guarded the old rendering; it is then updated to `name="Biscuit"`.
+  OUTCOME: RED as predicted, exact message, then updated and green.
+- **Must pass (kept behavior)**: every other T010 field assert
+  (levels, names, Idle shapes), the full server suite, byte-identity
+  pairings (rendering is log-only; no decision path touched).
+
+| # | Mutation (production) | Predicted red | Outcome |
+|---|---|---|---|
+| 24 | `log_fire` name reverts `?record.name` → `%record.name` (the unquoted rendering) | rendering test: "a spaced name stays one quoted token" | RED CONFIRMED |
+| 25 | `substitute = %substitute` → `?substitute` (quotes the action) | rendering test: exact `substitute=Move { direction: East }` | RED CONFIRMED |
+| 26 | `mode = "enforce"` → `mode = %"enforce"` (unquotes mode) | rendering test: `mode="enforce"` quoted | RED CONFIRMED |
