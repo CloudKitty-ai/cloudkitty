@@ -33,8 +33,14 @@
 //! the codec cannot express falls back to the applied label and is counted
 //! (meta proposed_inexpressible) — a divergent row (label_proposed !=
 //! label, counted as meta action_downgraded) is therefore always a real,
-//! expressible disagreement. Applied labels and the consume rule are
-//! untouched: which column trains is Experiments' prereg call.
+//! expressible disagreement. Unlike label.npy, label_proposed rows are NOT
+//! mask-guaranteed: a proposal the tick rewrote is often exactly the
+//! mask-illegal one (~3% of rows on the Gen 2 draft world), so a consumer
+//! training this column under a masked softmax must handle
+//! mask[i][label_proposed[i]] == 0 — the activity-half mirror of the
+//! message half's over-emitting caveat above. Applied labels and the
+//! consume rule are untouched: which column trains is Experiments' prereg
+//! call.
 //!
 //! Output: one directory per rollout with obs.npy (N x obs_width f32),
 //! mask.npy (N x mask_width u8), label.npy (N u16), mask_msg.npy
@@ -549,7 +555,7 @@ fn main() {
             total_dropped += dropped;
             total_mask_mismatch += mask_mismatch + msg_mask_mismatch;
             eprintln!(
-                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible, {msg_downgraded} msg-downgraded"
+                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible, {msg_downgraded} msg-downgraded, {action_downgraded} action-downgraded, {proposed_inexpressible} proposed-inexpressible"
             );
         }
     }
