@@ -191,27 +191,71 @@ fn golden_draws_are_byte_stable() {
 }
 
 /// The raw stream in the file is the DOCUMENTED derivation; this ties the
-/// engine's placements to that same stream: replaying the file's u64s
-/// through the law's arithmetic must land every drawn kitty on the file's
-/// tile. (A port does exactly this, from the JSON alone.)
+/// engine's placements to that same stream by restating the WHOLE law
+/// in-test — category boundaries AND tile selection (row-major category
+/// enumeration, occupied filter, `v2 mod len`) — independently of
+/// `starts::draw`'s internals. Without the tile half, the goldens pin only
+/// self-consistency: an enumeration-order change would redden the
+/// byte-stable pin with a message inviting a re-emit, and the engine would
+/// drift from the normative contract under a stable law version
+/// (subagent review of PR #458, finding 1).
 #[test]
 fn placements_follow_from_the_recorded_stream() {
     for case in cases() {
         let config = config_for(&case);
         let engine = starts::draw(&config).unwrap();
         let mut rng = documented_sub_stream(case.seed);
+        // The law's occupied set starts as the explicit pins.
+        let mut occupied: Vec<(u32, u32)> = case
+            .roster
+            .iter()
+            .filter_map(|&(_, coords)| coords)
+            .collect();
         for s in engine.iter().filter(|s| s.drawn) {
             let v1 = rng.next_u64();
             let u = (v1 >> 11) as f64 * (1.0 / (1u64 << 53) as f64);
-            let expected = if u < case.shares.corner_share {
+            let expected_category = if u < case.shares.corner_share {
                 "corner"
             } else if u < case.shares.edge_ring_share {
                 "edge_ring"
             } else {
                 "interior"
             };
-            assert_eq!(s.category.as_str(), expected, "case {}", case.name);
-            let _v2 = rng.next_u64(); // tile index; placement pinned by the goldens
+            assert_eq!(
+                s.category.as_str(),
+                expected_category,
+                "case {} kitty {}",
+                case.name,
+                s.kitty
+            );
+            // Contract §2: row-major, y outer ascending, x inner ascending,
+            // filtered to the category, minus occupied — restated here.
+            let mut free: Vec<(u32, u32)> = Vec::new();
+            for y in 0..case.height {
+                for x in 0..case.width {
+                    let on_x = x == 0 || x == case.width - 1;
+                    let on_y = y == 0 || y == case.height - 1;
+                    let category = match (on_x, on_y) {
+                        (true, true) => "corner",
+                        (false, false) => "interior",
+                        _ => "edge_ring",
+                    };
+                    if category == expected_category && !occupied.contains(&(x, y)) {
+                        free.push((x, y));
+                    }
+                }
+            }
+            let v2 = rng.next_u64();
+            let expected_tile = free[(v2 % free.len() as u64) as usize];
+            assert_eq!(
+                (s.position.x, s.position.y),
+                expected_tile,
+                "case {} kitty {}: tile selection diverged from the \
+                 documented law (contract §2/§4)",
+                case.name,
+                s.kitty
+            );
+            occupied.push(expected_tile);
         }
     }
 }

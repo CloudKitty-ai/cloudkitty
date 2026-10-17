@@ -33,6 +33,29 @@ change.
 
 ## Unreleased
 
+- **A world that seats its own cats.** Randomized starts (spec 062): a
+  config may now carry a `[starts]` table — an edge-ring share and a
+  corner share — instead of pinning every kitty's tile, and the engine
+  draws each start at world build: corner with the corner share,
+  non-corner edge with the remainder of the edge share, interior
+  otherwise, uniform within the drawn category. The draw is a versioned
+  pure law (same seed, same config, same build → same tiles, any
+  machine), documented precisely enough to reimplement from prose — an
+  independent reimplementation reproduced the engine's recorded golden
+  draws byte-exactly. Explicit coordinates still work, per kitty: a
+  pinned cat keeps its tile and drawn cats treat it as occupied. The
+  draw feeds from its own seeded stream, so a world with drawn starts
+  and a world with the same starts written out explicitly are
+  byte-identical over a full run. Collection metadata now ties every
+  recorded run to the engine build that drew its starts
+  (`engine_commit`, `starts_law_version`) and, when the knob is on,
+  echoes each kitty's drawn tile and category. No existing config,
+  golden, pin, or saved world moves: the table's absence *is* the old
+  behavior, engineered byte-identical — no compatibility marker
+  applies, and proving that (unchanged defaults stamp, unchanged
+  fingerprint, full-run byte-equality under mutation testing) was much
+  of the work. The served world does not use the knob; turning it on
+  anywhere served is a separate ruling. (#458)
 - **A net under every seated mind.** The stuck detector (spec 061)
   watches each mind-class seat for the one failure shape every twin
   incident on record shares: a cat confined to a tile's reach for a

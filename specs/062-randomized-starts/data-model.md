@@ -69,7 +69,7 @@ two against tick-0 state.
 ### `StartsError`
 
 Only world-build failure: category exhaustion. Message names the category,
-how many kitties drew it, and its free-tile capacity (spec Edge Cases,
+how many kitties drew it, and its total tile capacity (spec Edge Cases,
 verbatim shape). Surfaced by `World::try_generate(config) -> Result<World,
 StartsError>`; `World::generate` delegates and `expect`s (signature and all
 68 call sites unchanged).

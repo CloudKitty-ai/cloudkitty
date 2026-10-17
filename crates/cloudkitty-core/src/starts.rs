@@ -329,7 +329,15 @@ mod tests {
 
     #[test]
     fn explicit_kitties_keep_their_tile_consume_no_draws_and_block_it() {
-        let shares = default_shares();
+        // Edge-heavy shares, deliberately: with the served 0.25/0.05 every
+        // drawn kitty on the original seed landed Interior and the
+        // cross-category arm below never executed (PR #458 review,
+        // finding 2 — a deterministic, permanently vacuous branch). The
+        // closing assert makes any future re-vacuation loud.
+        let shares = StartsConfig {
+            edge_ring_share: 0.6,
+            corner_share: 0.2,
+        };
         let mut mixed = share_config(16, 12, 11, 4, shares);
         // Pin kitty 2 explicitly; ids 1, 3, 4 stay drawn.
         mixed.kitties[1].x = Some(7);
@@ -352,6 +360,7 @@ mod tests {
         // CATEGORY (same v1 sequence), and kitties outside the pinned
         // tile's category (interior here) keep their exact position —
         // their free lists never saw the pin.
+        let mut non_interior_checked = 0;
         for s in &drawn_only {
             let same = with_pin.iter().find(|w| w.kitty == s.kitty).unwrap();
             assert_eq!(
@@ -366,8 +375,14 @@ mod tests {
                     "the interior pin reached kitty {}'s {:?} free list",
                     s.kitty, s.category
                 );
+                non_interior_checked += 1;
             }
         }
+        assert!(
+            non_interior_checked > 0,
+            "no drawn kitty left the interior on this seed: the \
+             cross-category arm is vacuous again — pick a new seed/shares"
+        );
 
         // ...and its tile is genuinely blocked: pin a tile a kitty would
         // have drawn and that kitty must land elsewhere, still lawful.

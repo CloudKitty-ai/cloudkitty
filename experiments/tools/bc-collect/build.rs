@@ -28,6 +28,17 @@ fn main() {
     // incremental rebuild would carry a stale clean SHA (#452 finding 1).
     println!("cargo:rerun-if-changed=../../../crates");
     println!("cargo:rerun-if-changed=src");
+    // Everything the dirty probe reads must also be watched, or an
+    // uncommitted edit to it (a [workspace.dependencies] bump rebuilds the
+    // engine via inheritance) relinks this binary under a cached clean
+    // stamp — the #452 stale-SHA class (PR #458 review, finding 4). And
+    // printing any rerun-if turns off the watch-everything default, so
+    // build.rs must name itself.
+    println!("cargo:rerun-if-changed=../../../Cargo.toml");
+    println!("cargo:rerun-if-changed=../../../Cargo.lock");
+    println!("cargo:rerun-if-changed=Cargo.toml");
+    println!("cargo:rerun-if-changed=Cargo.lock");
+    println!("cargo:rerun-if-changed=build.rs");
     // HEAD holds a ref NAME; a commit moves refs/heads (or packed-refs)
     // under the common dir without touching HEAD, so watch all three.
     if let Some(dir) = git(&["rev-parse", "--absolute-git-dir"]) {

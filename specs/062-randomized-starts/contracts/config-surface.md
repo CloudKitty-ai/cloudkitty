@@ -51,8 +51,8 @@ not previously parse, so no existing config's first-failing message changes:
 
 | Condition | Error names |
 |---|---|
-| kitty with exactly one of x/y | the kitty id and the missing field |
-| knob off, kitty missing coordinates | the kitty id and that `[starts]` is absent |
+| kitty with exactly one of x/y | the kitty name and the missing field |
+| knob off, kitty missing coordinates | the kitty name and that `[starts]` is absent |
 
 Explicit coordinates keep today's checks unchanged: in-bounds, no shared
 tile ("same tile" error).
