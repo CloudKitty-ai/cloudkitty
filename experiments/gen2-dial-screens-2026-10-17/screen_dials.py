@@ -50,12 +50,12 @@ def derive(dial, value):
     text = BASE_CONFIG.read_text()
     if dial == "consent":
         assert text.count(CONSENT_LINE) == 1, "consent anchor line moved"
-        text = text.replace(CONSENT_LINE, f"consent_line = {value}.0  # SCREEN VALUE")
+        text = text.replace(CONSENT_LINE, f"consent_line = {value:.1f}  # SCREEN VALUE")
     elif dial == "slack":
         assert "comfort_slack" not in text, "draft grew a slack line; re-anchor"
         assert text.count("[behavior]\n") == 1
         text = text.replace("[behavior]\n",
-                            f"[behavior]\ncomfort_slack = {value}.0  # SCREEN VALUE\n")
+                            f"[behavior]\ncomfort_slack = {value:.1f}  # SCREEN VALUE\n")
     elif dial == "favourite":
         assert "favourite" not in text, "draft grew a favourite; re-anchor"
         if value != 0:
