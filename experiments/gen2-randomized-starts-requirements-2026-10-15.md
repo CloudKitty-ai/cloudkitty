@@ -94,7 +94,19 @@ episodes, legs, server and any future consumer with one law.
    world seed, engine build). Today: bc-collect's meta.json stamps
    config_sha256 and world_seed but NO engine identity, while the
    cert-harness jsonl additionally stamps binding_engine
-   (ENGINE_COMMIT). The spec should add an engine-identity field to
+   (ENGINE_COMMIT). [CORRECTION 2026-10-16, Product's 062-planning
+   report, verified in-session: the sentence before this one
+   overstates the harness side. The binding_engine field EXISTS in
+   the cert-harness jsonl but has always carried None — nothing
+   defines ENGINE_COMMIT in the binding or the workspace
+   (getattr fallback at cert_harness_fog.py:460, cert_harness6.py:300,
+   cross-platform determinism_check.py:138, and the stage5/6 banner
+   lines). So today no surface stamps an engine SOURCE identity —
+   the cert harnesses do stamp binding_artifacts (per-file sha256 +
+   mtime of the compiled binding, census_provenance.py), which
+   identifies the build artifact but not the commit it came from.
+   The spec-gap claim below stands, wider than written.] The spec should add an
+   engine-identity field to
    bc-collect's meta.json so a trace's drawn starts tie to the draw
    law's build; until it exists, collection runs must record the
    binary's provenance beside the corpus. Echoing the drawn starts
