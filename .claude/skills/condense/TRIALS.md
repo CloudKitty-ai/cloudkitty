@@ -1,114 +1,33 @@
-# Trial record
+# Trial record — FROZEN
 
-Every run of /condense lands a section here: fixture reds and real
-passes, clean or not. Edits to SKILL.md check themselves against
-this file — the skill is shaped by what actually failed, not what
-plausibly could.
+Shakeout CLOSED 2026-10-16 on the owner's word ("Land it, then the
+troops backstop" — "troops" her autocorrect for TRIALS; the backstop
+date on this header was 2026-10-15). Close-out per SKILL.md §TRIALS
+lifetime: every un-promoted lesson moved to its home (ledger in PR
+#454), routine sections pruned, file listed on
+`.claude/CONDENSE-LOG.md` `## Frozen`. Appends stop here; from now
+on the per-run record is the condense pass line.
 
-This file is append-shared (THREADS.md §1): the thread that runs a
-pass appends its own section and never touches another thread's.
-Product and Client append through a worktree and a PR; Experiments
-appends on main directly; Harness through a worktree and a PR.
+## Run ledger (pruned at close; full narratives in git history)
 
-Lifetime: shakeout evidence, then frozen (owner ruled 2026-09-25;
-the close-out procedure is in SKILL.md §TRIALS lifetime beside this
-file). Shakeout closes on the owner's word, backstop 2026-10-15.
-
-## Fixture red — Harness thread, Fable, 2026-09-24
-
-The rule-5 red for the skill's first commit. mutate.sh does not fit
-(the assertion under test is a subagent procedure; the mutation is
-the fixture's three plants) — hand-rolled with the prediction
-written in the session before the run.
-
-**Predicted**: exactly three losses — the owner's density caveat of
-2026-09-20 (category 1); the dropped mechanism reasoning (six-tick
-minimum, need 7–9, zero-tick walk, F-047; category 2); the
-frozen-mind cost range 1.4–5.2 silently printed as 1.4–4.2
-(category 4). Nothing else flagged.
-
-**Got**: 3 LOSSES, exactly the three plants, each with the old
-sentence quoted verbatim and the category named. No false positive:
-the merged comparator sentence, the tightened conducted prose, and
-the scope relocation were all correctly cleared as rewording.
-Two catches worth keeping: the checker flagged the changed number as
-WRONG, not merely missing (it looked the real 5.2 up in RESULTS.md
-§Tier 5), and it checked recoverability by actually following the
-new text's pointers — it found the nap mechanism DOES exist in
-RESULTS.md's 2026-09-20 addendum but ruled it unrecoverable because
-the condensed text's pointers do not lead there. That is the
-recoverability standard exactly as SKILL.md states it.
-
-**Verdict**: red confirmed; no checker bug. First real pass is
-whichever file next owes one under the gate.
-
-(2026-09-25: this round's "merge-commit-only landing" and "global
-base" below were superseded the next day by blob-hash pass lines and
-per-tier bases — see the round-3 section.)
-
-## Fixture red, round 2 — Harness thread, Fable, 2026-09-24
-
-Re-run owed by the skill's own rule after the review round changed
-the checker handoff (document bodies with headers stripped, native
-checkout named). Predicted the same three losses, nothing else; got
-exactly the three, and the round-2 checker additionally traced that
-F-051's re-verify clause points BACK to F-050 as the caveat's home —
-the §6 home logic applied unprompted. The review round's other
-outcomes: two blockers fixed in SKILL.md (merge-commit-only landing;
-the global base documented with the pre-pass `--report` guard),
-her ruling-2 sentence now quoted verbatim, T2 advisory self-serve
-confirmed by her word, THREADS.md §1 refreshed in the same PR.
-
-## Review round 2 and the script reds — Harness thread, Fable, 2026-09-25
-
-The owner replaced the round-1 landing design (Client consulted:
-they squash by reflex; rules enforced by memory lose): pass lines
-carry the condensed file's BLOB hash, bases are PER TIER, and TRIALS
-files get the shakeout lifetime. A second fresh-context review of
-the whole PR then found four blockers in that implementation, all
-fixed and pinned by tests (34 cases):
-
-- blob resolution now walks first-parent history only, so an
-  interleaved `--no-ff` branch pass cannot revive an earlier main
-  pass's deletions;
-- per tier the newest base BY ANCESTRY wins, so an out-of-order or
-  pre-founding line never moves a base backwards;
-- a pass line naming an unknown file, or more than one, exits 2
-  loudly instead of silently resetting every tier;
-- prepare-for-compact/TRIALS.md left TIER2 (the shakeout ruling),
-  and SKILL.md's false "over-counts, never under-counts" claim about
-  stale blobs was replaced with the true behavior (exit 3 loudly).
-
-Six mutate.sh reds on the script, each predicted first, all
-confirmed. Two rule-5 lessons for the record: one mutation broke
-the script's syntax and turned every case red — mutate.sh printed
-RED CONFIRMED but the regex matched inside a flood, a wrong-reason
-red redone with a valid mutation; and the first direction-isolation
-case was VACUOUS because its pass line's blob resolved to an old
-commit (the file was never changed), which only surfaced when the
-mutation failed to move it — a real pass changes the file, and now
-the case does too.
-
-## 2026-09-28 — Harness, THREADS.md (tier 1, first tier-1 run) — clean after 3 rounds
-
-Owner's word: "Can we do a test run of the tier 1 condense with
-diffs?" then "Let's start with 3" (the structural extension). Final
-pass: 179 -> 167 lines; two dedups (accuracy-gate definition to its
-skill home; the hook refusal inventory to a NEW home,
-.claude/hooks/README.md, named by a new §6 row) plus wording
-tightenings. Residual +49 of THREADS' growth is kept rulings —
-never-cut — re-baselined under the owner's ruling on the diff.
-Fact-loss rounds: 1 clean (wording only); 2 flagged FOUR dropped
-qualifiers ("rare PRs", "the reviewer reads", "locally", "before
-merge") — all restored verbatim; 3 clean. Lessons: (a) tier-1
-growth is mostly new rulings, so a pass yields few lines and its
-real payload is the re-baseline under the owner's eyes — say so in
-the PR, with the residual named, rather than forcing cuts; (b) a
-fact-loss checker that cannot REACH a pointer target excuses losses
-— round 1 excused via origin/main files a later round could not
-see; hand branch-new pointer targets to the checker explicitly;
-(c) appending a pass line with >> lands it under ## Frozen — insert
-under ## Passes (an impact reviewer caught it; the fixture's own
-frozen-section append was the same bug); (d) a records section
-written mid-pass goes stale by landing — write TRIALS last, at the
-final diff.
+- **Fixture red, 2026-09-24 (Harness)**: predicted the three plants,
+  got exactly the three, no false positives. The checker looked the
+  changed number up in RESULTS.md and judged recoverability by
+  following the new text's pointers — the standard SKILL.md states.
+- **Fixture red round 2, 2026-09-24 (Harness)**: re-run owed after
+  the review changed the checker handoff; same three plants, clean.
+  Review outcomes landed in SKILL.md the same day.
+- **Review round 2 + script reds, 2026-09-25 (Harness)**: owner
+  replaced the landing design (blob-hash pass lines, per-tier bases;
+  Client consulted). Four blockers fixed and pinned by the budget
+  script's test cases — the guards are the home. Six mutate reds;
+  the two rule-5 traps hit (a flood-matched --expect; a vacuous
+  stale-blob case) are promoted to the mutate-cycle-lessons memory.
+- **First tier-1 run, 2026-09-28 (Harness, THREADS.md)**: owner's
+  words "Can we do a test run of the tier 1 condense with diffs?"
+  then "Let's start with 3". 179 -> 167, two dedups, clean after 3
+  fact-loss rounds (round 2 restored four dropped qualifiers).
+  Lessons promoted to SKILL.md at close: residual named in the PR
+  (was already in, #440); pointer targets new on the branch handed
+  to the checker explicitly; pass lines INSERTED under ## Passes,
+  never >>-appended; a TRIALS section is written at the final diff.
