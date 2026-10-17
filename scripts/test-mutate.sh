@@ -35,4 +35,17 @@ case_dirty() { "$M" cfg "$MUT" "$T_OK" >/dev/null 2>&1; local got=$?
   if [ "$got" -eq 3 ] && grep -q 'unlanded work' cfg; then echo "ok   dirty file refused, work intact"; else echo "FAIL dirty file: got $got, work $(grep -c unlanded cfg)"; fail=1; fi; }
 case_dirty
 git checkout -q -- cfg
+
+# pytest-style wall times ("2 passed in 0.15s" — no "finished", suffix glued
+# to the number) must normalize away even when they differ between the
+# baseline and post-restore runs. Time::HiRes makes them always differ, so
+# this case is red under the \b form BSD sed ignores (the 2026-10-16 flake).
+cat > tp.sh <<'S'
+t=$(perl -MTime::HiRes=time -e 'printf "%.4f", time')
+if grep -q 'answer=42' cfg; then echo "===== 2 passed in ${t}s ====="; exit 0
+else echo "E assert 42; ===== 1 failed in ${t}s ====="; exit 1; fi
+S
+git add tp.sh && git -c user.name=t -c user.email=t@t commit -q -m pytest-style
+case_ 0 "pytest-style wall times normalized"             cfg "$MUT" "bash tp.sh"
+
 exit $fail

@@ -29,7 +29,10 @@ file=$1 mutation=$2 test=$3
 log=$(mktemp "${TMPDIR:-/tmp}/mutate.XXXXXX"); trap 'rm -f "$log" "$log.m" "$log.r"' EXIT
 
 summary() {  # the suite's count lines; a suite with none is compared by line count
-  local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | sed -E 's/;? *finished in [0-9.]+ ?s//; s/ in [0-9.]+ ?s\b//' | tr -s ' ' | sort)
+  # No \b: BSD/macOS sed ignores it in an ERE, so pytest wall-times
+  # ("2 passed in 0.15s") survived and healthy cycles flaked exit 9 on
+  # Macs (Product's report, 2026-10-16). The capture keeps the delimiter.
+  local s; s=$(grep -E 'passed|failed|# (pass|fail)' "$1" | sed -E 's/;? *finished in [0-9.]+ ?s//; s/ in [0-9.]+ ?s([^a-zA-Z0-9_]|$)/\1/' | tr -s ' ' | sort)
   [ -n "$s" ] && echo "$s" || echo "lines=$(wc -l < "$1" | tr -d ' ')"
 }
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
