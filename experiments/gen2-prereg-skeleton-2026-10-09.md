@@ -209,10 +209,19 @@ rulings nor answers to blanks until she rules. Rulings sources:
   reach past break-even).
 - [RULED shelf] New corpus ⇒ the here-word density pins (F-034
   cliff 5.6–8.2%, A1b) are re-checked.
-- [BLANK] Teacher dial ranges per trait draw (need-rate multiplier
-  bounds, comfort slack range, consent-line range), and the
-  empty-bowl early end's spec-006 amendment (own spec, every cat —
-  ruled IN S§6) landing BEFORE collection. Favourite vectors are OUT
+- [PART-RULED 2026-10-17] Teacher dial ranges per trait draw,
+  landing BEFORE collection (screens: gen2-dial-screens-2026-10-17/
+  RESULTS.md; rulings record: gen2-consent-design-2026-10-17.md):
+  need-rate multiplier bounds RULED ("ruled 0.5-2"; draw SHAPE still
+  open — log vs linear, all-6 vs K-of-6); comfort slack RULED ("2-5
+  still, default 0" — variations draw 2-5, majority/deployed 0; the
+  slack-1 default question was dissolved by the 24-seed check,
+  01f76b42); consent RULED (base 0 gate-off; enrichment episodes draw
+  PER-EPISODE uniform [20, 25], "20-25 it is"; deployed/PPO-episode
+  line deferrable to the three-leg readout). STILL BLANK: need-rate
+  draw shape, mix shares (majority M, enrichment E, rollout count).
+  Also here: the empty-bowl early end's spec-006 amendment (own spec,
+  every cat — ruled IN S§6) landing BEFORE collection. Favourite vectors are OUT
   of this blank: TABLED to Gen 3 (owner 2026-10-17 verbatim: "Ok,
   let's table it, and add a note to our gen 3 plan to rerun the
   sweep after we implement stratified needs" —
