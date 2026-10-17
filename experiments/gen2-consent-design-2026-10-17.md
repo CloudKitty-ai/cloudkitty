@@ -68,7 +68,7 @@ Mechanism notes the design rests on (all source-verified 2026-10-17):
   stands unchanged on the play-only gate.
 - Corpus-enrichment option on record: BC collection is scripted-only
   (welfare-exempt), so collection variations may run LOW consent lines
-  (15-25: refusals at 8-11% of kitty-ticks vs 2.3% at 30) for
+  (refusal density 7.8% of kitty-ticks at line 25, 10.8% at 20, 14.6% at 15, vs 2.3% at 30) for
   demonstration density, while the PPO-episode/deployed draw range is
   ruled separately on the welfare numbers.
 - Dial-range blanks still open with her: consent range (now reframed:
