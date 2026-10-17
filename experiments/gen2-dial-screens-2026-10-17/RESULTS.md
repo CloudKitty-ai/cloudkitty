@@ -140,6 +140,18 @@ at 0 with a short upper tail, keeps both. Low-end distress is small
 996104: 32, 996105: 25); the only events exceeding the anchor's own
 worst streak (86) remain the single-seed ones at 20/30 noted below.
 
+Slack 0-vs-1 default check (2026-10-17, her question: "it appears 1
+is strictly superior to 0"): at 24 fresh seeds (996301–996324,
+`results-raw-default-check/slack/`, read in
+`slack-default-check.json`) the 8-seed pattern dissolves — paired
+happiness v1−v0 mean −0.279, positive on only 13/24 seeds, range
+[−4.547, +0.861]; refusal delta flips sign (+92.7 mean); distress
+deltas scatter both directions (−383 to +1,388 on single seeds). The
+apparent superiority was the trajectory lottery: a 1-tick gate
+perturbation re-rolls rare events. Slack 0 and 1 are the same teacher
+within this screen's resolution; the deployed default has no welfare
+reason to move off 0.
+
 The fall in consent refusals along the ramp (456 → 116–258 at 2–7,
 74–138 at 10–30) is consistent with reclaimed ticks going to need
 service, though the screen does not measure that mechanism directly,
