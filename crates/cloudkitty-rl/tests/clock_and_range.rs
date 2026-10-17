@@ -42,10 +42,10 @@ fn a_visible_friends_manhattan_distance_exceeds_the_euclidean_radius_unclamped()
     // distance cells to the vision geometry.
     let mut c = test_config();
     c.vision.radius = 4;
-    c.kitties[0].x = 10;
-    c.kitties[0].y = 10;
-    c.kitties[1].x = 12;
-    c.kitties[1].y = 13;
+    c.kitties[0].x = Some(10);
+    c.kitties[0].y = Some(10);
+    c.kitties[1].x = Some(12);
+    c.kitties[1].y = Some(13);
     c.validate().unwrap();
     let c = Arc::new(c);
     let mut w = World::generate(&c);

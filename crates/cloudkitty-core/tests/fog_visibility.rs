@@ -43,8 +43,8 @@ proptest! {
             .map(|(i, &(x, y))| KittyConfig {
                 id: i as u32 + 1,
                 name: format!("K{i}"),
-                x,
-                y,
+                x: Some(x),
+                y: Some(y),
                 behavior: "needs_driven".into(),
                 needs: None,
                 comfort_slack: None,

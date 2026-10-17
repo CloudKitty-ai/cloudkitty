@@ -92,6 +92,14 @@ pub struct Config {
     /// no absence default; `Config::default()` documents the served
     /// values.
     pub vision: VisionConfig,
+    /// Randomized starts (spec 062): share-based placement. OPTIONAL by
+    /// design, the one deliberate exception to the 3.0 every-section rule:
+    /// the table's absence IS the knob's off state — today's explicit
+    /// `[[kitty]]` x/y behavior, byte for byte — and skip-if-none keeps
+    /// `Config::default()`'s serialization (hence `engine_defaults_sha256`)
+    /// unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub starts: Option<StartsConfig>,
     /// The `[rl]`, `[plugins]`, `[watchdog]`, and `[stuck_detector]`
     /// tables are parsed from the same file text by cloudkitty-rl and
     /// the server respectively -- everything under them is someone
@@ -114,6 +122,22 @@ pub struct Config {
 /// it. Deserializes from any value; carries nothing.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct ForeignTable;
+
+/// `[starts]` (spec 062): share-based placement. Shares are per-kitty
+/// PROBABILITIES, not quotas (owner ruling 2026-10-15): each drawn kitty
+/// independently lands on a corner with `corner_share`, on the non-corner
+/// edge ring with `edge_ring_share - corner_share` (the edge-ring share
+/// CONTAINS the corner share, matching the coverage instrument's edge
+/// count), interior otherwise. Both fields required; the draw law lives in
+/// `crate::starts`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StartsConfig {
+    /// P(a drawn kitty starts on the edge ring), corners INCLUSIVE.
+    pub edge_ring_share: f64,
+    /// P(a drawn kitty starts on one of the 4 corner tiles).
+    pub corner_share: f64,
+}
 
 /// `[vision]` (spec 049): the fog. Every cat -- policy, built-in, plugin
 /// -- sees the kitties and elements inside a Euclidean disc of `radius`
@@ -346,8 +370,16 @@ impl Default for PersistenceConfig {
 pub struct KittyConfig {
     pub id: KittyId,
     pub name: String,
-    pub x: u32,
-    pub y: u32,
+    /// Start coordinates. Both set = explicit (today's behavior, the
+    /// default; with `[starts]` on, the per-kitty override — the tile is
+    /// pre-marked occupied). Neither set = drawn by the spec-062 law,
+    /// legal only with `[starts]` present. Exactly one set is always a
+    /// load error. `Some(n)` serializes as the bare integer, so existing
+    /// configs round-trip byte-identically.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub x: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub y: Option<u32>,
     pub behavior: String,
     /// Optional per-kitty overrides for need rise rates. Unset needs fall back
     /// to the global `[needs]` rates, so a config can say "Pumpkin is always
@@ -386,8 +418,8 @@ impl KittyConfig {
         Self {
             id,
             name: name.into(),
-            x,
-            y,
+            x: Some(x),
+            y: Some(y),
             behavior: behavior.into(),
             needs: None,
             comfort_slack: None,
@@ -396,8 +428,12 @@ impl KittyConfig {
         }
     }
 
-    pub fn position(&self) -> Position {
-        Position::new(self.x, self.y)
+    /// The explicit start tile — `None` for a drawn kitty (spec 062).
+    pub fn position(&self) -> Option<Position> {
+        match (self.x, self.y) {
+            (Some(x), Some(y)) => Some(Position::new(x, y)),
+            _ => None,
+        }
     }
 }
 
@@ -1469,6 +1505,7 @@ impl Default for Config {
             events: EventsConfig::default(),
             viewer: ViewerConfig::default(),
             vision: VisionConfig::default(),
+            starts: None,
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
@@ -1521,6 +1558,8 @@ impl Config {
         self.validate_vision()?;
         // Position 18: appended by spec 058 (Gen 2 identity dials).
         self.validate_identity_dials()?;
+        // Position 19: appended by spec 062 (randomized starts).
+        self.validate_starts()?;
         Ok(())
     }
 
@@ -1766,7 +1805,7 @@ mod tests {
     #[test]
     fn off_grid_positions_are_rejected() {
         let mut c = cfg();
-        c.kitties[0].x = c.world.width;
+        c.kitties[0].x = Some(c.world.width);
         let msg = c.validate().unwrap_err().to_string();
         assert!(msg.contains("within the world"), "{msg}");
     }
@@ -3854,5 +3893,144 @@ trill = true",
                 "[{section}] {key} is an unknown field: {err}"
             );
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Spec 062: the [starts] surface (contracts/config-surface.md).
+    // ------------------------------------------------------------------
+
+    /// A knob-on config: one drawn kitty, one pinned, shares as given.
+    fn starts_toml(starts: &str) -> String {
+        complete(&format!(
+            "{starts}\n\
+             [[kitty]]\nid = 1\nname = \"Drawn\"\nbehavior = \"needs_driven\"\n\
+             [[kitty]]\nid = 2\nname = \"Pinned\"\nx = 3\ny = 3\nbehavior = \"needs_driven\"\n"
+        ))
+    }
+
+    #[test]
+    fn a_mixed_share_config_parses_and_validates() {
+        let c: Config =
+            toml::from_str(&starts_toml("[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n"))
+                .expect("a [starts] config with a coordinate-free kitty parses");
+        c.validate().expect("mixed explicit+drawn is legal (spec 062)");
+        let s = c.starts.expect("the table landed");
+        assert_eq!((s.edge_ring_share, s.corner_share), (0.25, 0.05));
+        assert_eq!(c.kitties[0].position(), None);
+        assert_eq!(c.kitties[1].position(), Some(crate::grid::Position::new(3, 3)));
+    }
+
+    #[test]
+    fn an_unknown_starts_key_is_rejected_at_load() {
+        let err = toml::from_str::<Config>(
+            "[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\nquota = true\n",
+        )
+        .expect_err("deny_unknown_fields holds on [starts]");
+        assert!(err.to_string().contains("quota"), "{err}");
+    }
+
+    #[test]
+    fn share_bounds_and_relation_are_validated_naming_the_field() {
+        for (fragment, must_name) in [
+            (
+                "[starts]\nedge_ring_share = 1.5\ncorner_share = 0.05\n",
+                "[starts] edge_ring_share",
+            ),
+            (
+                "[starts]\nedge_ring_share = 0.25\ncorner_share = -0.1\n",
+                "[starts] corner_share",
+            ),
+            (
+                "[starts]\nedge_ring_share = 0.25\ncorner_share = nan\n",
+                "[starts] corner_share",
+            ),
+            // corner > edge: the non-corner edge probability would be negative.
+            (
+                "[starts]\nedge_ring_share = 0.25\ncorner_share = 0.5\n",
+                "must be at most edge_ring_share",
+            ),
+        ] {
+            let c: Config = toml::from_str(&starts_toml(fragment)).unwrap();
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(msg.contains(must_name), "expected '{must_name}' in: {msg}");
+        }
+    }
+
+    #[test]
+    fn shares_on_a_degenerate_world_are_rejected_at_load() {
+        // 2x256 satisfies every area-driven element rule but has no interior and no
+        // 4 distinct corners; explicit-starts configs this size stay legal.
+        let mut text = starts_toml("[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n");
+        text = text
+            .replace("width = 32", "width = 2")
+            .replace("height = 32", "height = 256")
+            // keep the pinned kitty in bounds so the roster slot stays quiet
+            .replace("x = 3", "x = 1");
+        let c: Config = toml::from_str(&text).unwrap();
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("at least 3 when [starts]"),
+            "the <3 dimension must be rejected naming the rule: {msg}"
+        );
+        let explicit: Config = toml::from_str(&complete(
+            "[world]\nwidth = 2\nheight = 256\ntick_ms = 800\nseed = 7\n\
+             [[kitty]]\nid = 1\nname = \"A\"\nx = 0\ny = 0\nbehavior = \"needs_driven\"\n\
+             [[kitty]]\nid = 2\nname = \"B\"\nx = 1\ny = 3\nbehavior = \"needs_driven\"\n",
+        ))
+        .unwrap();
+        explicit
+            .validate()
+            .expect("the same tiny world without [starts] stays legal as today");
+    }
+
+    #[test]
+    fn a_coordinate_free_kitty_without_starts_is_rejected_naming_it() {
+        let c: Config = toml::from_str(&complete(
+            "[[kitty]]\nid = 1\nname = \"Lost\"\nbehavior = \"needs_driven\"\n\
+             [[kitty]]\nid = 2\nname = \"Here\"\nx = 3\ny = 3\nbehavior = \"needs_driven\"\n",
+        ))
+        .unwrap();
+        let msg = c.validate().unwrap_err().to_string();
+        assert!(
+            msg.contains("'Lost'") && msg.contains("[starts]"),
+            "must name the kitty and the absent table: {msg}"
+        );
+    }
+
+    #[test]
+    fn exactly_one_coordinate_is_rejected_knob_on_or_off() {
+        for starts in [
+            "",
+            "[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n",
+        ] {
+            let c: Config = toml::from_str(&complete(&format!(
+                "{starts}\n\
+                 [[kitty]]\nid = 1\nname = \"Half\"\nx = 3\nbehavior = \"needs_driven\"\n\
+                 [[kitty]]\nid = 2\nname = \"Whole\"\nx = 5\ny = 5\nbehavior = \"needs_driven\"\n"
+            )))
+            .unwrap();
+            let msg = c.validate().unwrap_err().to_string();
+            assert!(
+                msg.contains("'Half'") && msg.contains("set together"),
+                "must name the kitty and the pairing rule: {msg}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_starts_knob_never_serializes_when_absent() {
+        // engine_defaults_sha256 hashes the default serialization and
+        // GET /config serves it: knob-off must not grow a key (FR-001).
+        let json: serde_json::Value =
+            serde_json::from_str(&serde_json::to_string(&Config::default()).unwrap()).unwrap();
+        assert!(
+            !json.as_object().unwrap().contains_key("starts"),
+            "starts leaked into the default serialization"
+        );
+        let kitty = &json["kitty"][0];
+        assert!(
+            kitty["x"].is_u64() && kitty["y"].is_u64(),
+            "explicit coordinates must serialize as plain integers, not null/absent"
+        );
     }
 }

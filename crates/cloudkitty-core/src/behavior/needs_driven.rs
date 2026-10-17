@@ -1053,8 +1053,8 @@ mod tests {
         .map(|(i, (name, x, y))| KittyConfig {
             id: (i + 1) as u32,
             name: name.into(),
-            x,
-            y,
+            x: Some(x),
+            y: Some(y),
             behavior: "needs_driven".into(),
             needs: None,
             comfort_slack: None,
@@ -2060,10 +2060,10 @@ mod tests {
         config.world.width = 20;
         config.world.height = 20;
         config.vision.radius = radius;
-        config.kitties[0].x = 10;
-        config.kitties[0].y = 10;
-        config.kitties[1].x = 0;
-        config.kitties[1].y = 0;
+        config.kitties[0].x = Some(10);
+        config.kitties[0].y = Some(10);
+        config.kitties[1].x = Some(0);
+        config.kitties[1].y = Some(0);
         config.validate().unwrap();
         let config = std::sync::Arc::new(config);
         let mut world = crate::world::World::generate(&config);

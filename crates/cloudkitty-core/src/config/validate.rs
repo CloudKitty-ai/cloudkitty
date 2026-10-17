@@ -95,22 +95,52 @@ impl Config {
                      mean \"no kitty\", so no live kitty may ever carry it)",
                 ));
             }
-            if !k.position().in_bounds(self.world.width, self.world.height) {
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' position", k.name),
-                    format!("({}, {})", k.x, k.y),
-                    format!(
-                        "must be within the world: x in 0..{}, y in 0..{}",
-                        self.world.width, self.world.height
-                    ),
-                ));
-            }
-            if !seen_positions.insert((k.x, k.y)) {
-                return Err(ConfigError::invalid(
-                    format!("[[kitty]] '{}' position", k.name),
-                    format!("({}, {})", k.x, k.y),
-                    "two kitties may not start on the same tile",
-                ));
+            // Spec 062: coordinates are optional in the schema so the
+            // starts law can draw them. The two new arms fire only on
+            // input that could not previously parse, so no existing
+            // config's first-failing message changes; an explicit kitty
+            // keeps today's checks byte for byte.
+            match (k.x, k.y) {
+                (Some(x), Some(y)) => {
+                    if !crate::grid::Position::new(x, y)
+                        .in_bounds(self.world.width, self.world.height)
+                    {
+                        return Err(ConfigError::invalid(
+                            format!("[[kitty]] '{}' position", k.name),
+                            format!("({x}, {y})"),
+                            format!(
+                                "must be within the world: x in 0..{}, y in 0..{}",
+                                self.world.width, self.world.height
+                            ),
+                        ));
+                    }
+                    if !seen_positions.insert((x, y)) {
+                        return Err(ConfigError::invalid(
+                            format!("[[kitty]] '{}' position", k.name),
+                            format!("({x}, {y})"),
+                            "two kitties may not start on the same tile",
+                        ));
+                    }
+                }
+                (None, None) => {
+                    if self.starts.is_none() {
+                        return Err(ConfigError::invalid(
+                            format!("[[kitty]] '{}' position", k.name),
+                            "unset".to_string(),
+                            "x and y are required: [starts] is absent, so there \
+                             is no law to draw this kitty's start (spec 062)",
+                        ));
+                    }
+                }
+                (set, _) => {
+                    let (have, missing) = if set.is_some() { ("x", "y") } else { ("y", "x") };
+                    return Err(ConfigError::invalid(
+                        format!("[[kitty]] '{}' position", k.name),
+                        format!("{have} set, {missing} unset"),
+                        "x and y must be set together: a kitty is explicit \
+                         with both or drawn with neither (spec 062)",
+                    ));
+                }
             }
             if k.behavior.trim().is_empty() {
                 return Err(ConfigError::invalid(
@@ -1035,6 +1065,50 @@ impl Config {
                     }
                 }
             }
+        }
+        Ok(())
+    }
+
+    /// `[starts]` (spec 062): shares are probabilities, the edge-ring share
+    /// contains the corner share, and share-based placement needs a world
+    /// where the edge ring, interior, and 4 distinct corners all exist.
+    /// Errors name the field and the allowed relation.
+    pub(super) fn validate_starts(&self) -> Result<(), ConfigError> {
+        let Some(s) = &self.starts else {
+            return Ok(());
+        };
+        for (field, value) in [
+            ("[starts] edge_ring_share", s.edge_ring_share),
+            ("[starts] corner_share", s.corner_share),
+        ] {
+            if !(0.0..=1.0).contains(&value) || value.is_nan() {
+                return Err(ConfigError::invalid(
+                    field,
+                    value.to_string(),
+                    "must be between 0 and 1 (a per-kitty probability)",
+                ));
+            }
+        }
+        if s.corner_share > s.edge_ring_share {
+            return Err(ConfigError::invalid(
+                "[starts] corner_share",
+                s.corner_share.to_string(),
+                format!(
+                    "must be at most edge_ring_share ({}) -- the edge-ring share \
+                     contains the corner share, so the non-corner edge probability \
+                     (edge_ring_share - corner_share) must not be negative",
+                    s.edge_ring_share
+                ),
+            ));
+        }
+        if self.world.width < 3 || self.world.height < 3 {
+            return Err(ConfigError::invalid(
+                "[world] width/height",
+                format!("{}x{}", self.world.width, self.world.height),
+                "both must be at least 3 when [starts] is present: the edge ring \
+                 and interior must be distinct and the 4 corners distinct tiles \
+                 (explicit-starts configs on tiny worlds stay legal)",
+            ));
         }
         Ok(())
     }

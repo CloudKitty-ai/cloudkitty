@@ -30,8 +30,8 @@ fn the_reserve_reads_exactly_zero_over_a_randomized_battery() {
         c.world.width = size;
         c.world.height = size;
         for (i, k) in c.kitties.iter_mut().enumerate() {
-            k.x = (seed as u32 * 3 + i as u32 * 5) % size;
-            k.y = (seed as u32 * 7 + i as u32 * 11) % size;
+            k.x = Some((seed as u32 * 3 + i as u32 * 5) % size);
+            k.y = Some((seed as u32 * 7 + i as u32 * 11) % size);
         }
         c.validate().unwrap();
         let c = Arc::new(c);

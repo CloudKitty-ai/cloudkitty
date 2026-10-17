@@ -235,10 +235,10 @@ fn a_cat_spawned_on_its_waypoint_starts_past_it() {
     config.world.height = W;
     config.vision.radius = R;
     config.kitties[0].id = 1;
-    config.kitties[0].x = 10; // index 1 = (10, 3)
-    config.kitties[0].y = 3;
-    config.kitties[1].x = 0;
-    config.kitties[1].y = 0;
+    config.kitties[0].x = Some(10); // index 1 = (10, 3)
+    config.kitties[0].y = Some(3);
+    config.kitties[1].x = Some(0);
+    config.kitties[1].y = Some(0);
     config.validate().unwrap();
     let world = World::generate(&Arc::new(config));
     assert_eq!(world.kitty(1).unwrap().explore_waypoint, 2);

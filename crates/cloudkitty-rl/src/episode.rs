@@ -843,11 +843,11 @@ mod tests {
     fn the_rendered_world_is_the_fog_view() {
         let mut config = Config::default();
         config.vision.radius = 2;
-        config.kitties[0].x = 1;
-        config.kitties[0].y = 1;
+        config.kitties[0].x = Some(1);
+        config.kitties[0].y = Some(1);
         for (i, kitty) in config.kitties.iter_mut().enumerate().skip(1) {
-            kitty.x = 15;
-            kitty.y = 10 + i as u32;
+            kitty.x = Some(15);
+            kitty.y = Some(10 + i as u32);
         }
         let me = config.kitties[0].id;
         let roster_size = config.kitties.len();

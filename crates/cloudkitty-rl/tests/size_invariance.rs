@@ -20,10 +20,10 @@ fn row_cells(size: u32, mx: u32) -> (Vec<f32>, Vec<f32>) {
     let mut c = test_config();
     c.world.width = size;
     c.world.height = size;
-    c.kitties[0].x = mx;
-    c.kitties[0].y = mx;
-    c.kitties[1].x = mx + 2;
-    c.kitties[1].y = mx + 1;
+    c.kitties[0].x = Some(mx);
+    c.kitties[0].y = Some(mx);
+    c.kitties[1].x = Some(mx + 2);
+    c.kitties[1].y = Some(mx + 1);
     c.validate().unwrap();
     let c = Arc::new(c);
     let mut w = World::generate(&c);
@@ -67,8 +67,8 @@ fn wall_cells_are_absolute_tiles_not_fractions() {
         let mut c = test_config();
         c.world.width = size;
         c.world.height = size;
-        c.kitties[0].x = 5;
-        c.kitties[0].y = 5;
+        c.kitties[0].x = Some(5);
+        c.kitties[0].y = Some(5);
         c.validate().unwrap();
         let c = Arc::new(c);
         let mut w = World::generate(&c);

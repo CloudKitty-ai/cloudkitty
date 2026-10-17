@@ -32,8 +32,8 @@ fn tethered_config(width: u32, height: u32, seed: u64) -> Arc<Config> {
         (width / 2, height / 2),
     ];
     for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
-        kitty.x = x;
-        kitty.y = y;
+        kitty.x = Some(x);
+        kitty.y = Some(y);
     }
     config.validate().expect("tethered config is valid");
     Arc::new(config)
@@ -196,8 +196,8 @@ fn roam_cell_larger_than_world_is_no_tether_at_all() {
     config.elements.bug.roam_cell = Some(64);
     let spots = [(2, 2), (17, 2), (2, 17), (17, 17), (10, 10)];
     for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
-        kitty.x = x;
-        kitty.y = y;
+        kitty.x = Some(x);
+        kitty.y = Some(y);
     }
     config.validate().expect("world-sized cell is legal");
     let config = Arc::new(config);
@@ -411,8 +411,8 @@ fn pounce_chase_tick(
         spots[1] = b;
     }
     for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
-        kitty.x = x;
-        kitty.y = y;
+        kitty.x = Some(x);
+        kitty.y = Some(y);
     }
     config.validate().expect("pounce scenario config is valid");
     let config = Arc::new(config);
@@ -468,8 +468,8 @@ fn roam_pounce_never_fires_on_kitty_targets() {
     config.behavior.pounce = true;
     let spots = [(5, 5), (8, 5), (16, 18), (18, 16), (16, 16)];
     for (kitty, &(x, y)) in config.kitties.iter_mut().zip(spots.iter()) {
-        kitty.x = x;
-        kitty.y = y;
+        kitty.x = Some(x);
+        kitty.y = Some(y);
     }
     config.validate().expect("kitty-chase config is valid");
     let config = Arc::new(config);

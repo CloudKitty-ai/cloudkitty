@@ -1,0 +1,42 @@
+{
+  "starts_law_version": 1,
+  "cases": [
+    {
+      "name": "served-shares-all-drawn",
+      "seed": 20261016, "width": 20, "height": 16,
+      "edge_ring_share": 0.25, "corner_share": 0.05,
+      "roster": [{"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}],
+      "u64_draws": [10845486539636465579, 16874489473453945502, 14723383819457221195, 7784794092740441429, 1106866007295787484, 1943194702056951142, 3923343736050327200, 12402388854267271705],
+      "starts": [
+        {"kitty": 1, "x": 9, "y": 8, "category": "interior", "drawn": true},
+        {"kitty": 2, "x": 12, "y": 14, "category": "interior", "drawn": true},
+        {"kitty": 3, "x": 0, "y": 11, "category": "edge_ring", "drawn": true},
+        {"kitty": 4, "x": 11, "y": 15, "category": "edge_ring", "drawn": true}
+      ]
+    },
+    {
+      "name": "edge-heavy-small-world",
+      "seed": 42, "width": 19, "height": 17,
+      "edge_ring_share": 1, "corner_share": 0.25,
+      "roster": [{"id": 1}, {"id": 2}, {"id": 3}],
+      "u64_draws": [7302353111491542503, 2875807214956952688, 7659414076609976777, 2981757604998882598, 7882183644759267420, 5092148705478545318],
+      "starts": [
+        {"kitty": 1, "x": 2, "y": 16, "category": "edge_ring", "drawn": true},
+        {"kitty": 2, "x": 8, "y": 0, "category": "edge_ring", "drawn": true},
+        {"kitty": 3, "x": 0, "y": 8, "category": "edge_ring", "drawn": true}
+      ]
+    },
+    {
+      "name": "mixed-explicit-pin",
+      "seed": 7, "width": 23, "height": 15,
+      "edge_ring_share": 0.3, "corner_share": 0.1,
+      "roster": [{"id": 1}, {"id": 2, "x": 5, "y": 5}, {"id": 3}],
+      "u64_draws": [2257466971919008622, 381381400669304740, 8058027567825312575, 15706536338574018846],
+      "starts": [
+        {"kitty": 1, "x": 6, "y": 14, "category": "edge_ring", "drawn": true},
+        {"kitty": 2, "x": 5, "y": 5, "category": "interior", "drawn": false},
+        {"kitty": 3, "x": 19, "y": 10, "category": "interior", "drawn": true}
+      ]
+    }
+  ]
+}

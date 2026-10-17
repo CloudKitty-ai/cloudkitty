@@ -94,8 +94,15 @@ pub(crate) enum PurrOrigin {
 
 impl World {
     /// Builds a fresh world from configuration. Assumes `config.validate()` has
-    /// already passed.
+    /// already passed. Panics on the one build-time failure, starts-category
+    /// exhaustion (spec 062) — [`Self::try_generate`] returns it instead.
     pub fn generate(config: &Config) -> Self {
+        Self::try_generate(config).unwrap_or_else(|e| panic!("{e}"))
+    }
+
+    /// Fallible world build (spec 062): the only error is the starts law
+    /// drawing a kitty into an exhausted category.
+    pub fn try_generate(config: &Config) -> Result<Self, crate::starts::StartsError> {
         let mut world = World {
             width: config.world.width,
             height: config.world.height,
@@ -112,13 +119,30 @@ impl World {
             pending_endings: Vec::new(),
         };
 
+        // Spec 062: with `[starts]` on, positions come from the one draw
+        // site (`starts::draw`, a pure sub-stream law — the master `rng`
+        // above is never touched). Knob off keeps today's explicit path.
+        let drawn = if config.starts.is_some() {
+            Some(crate::starts::draw(config)?)
+        } else {
+            None
+        };
         for kc in &config.kitties {
-            world.kitties.push(Kitty::new(
-                kc.id,
-                kc.name.clone(),
-                kc.position(),
-                kc.behavior.clone(),
-            ));
+            let position = match &drawn {
+                Some(starts) => {
+                    starts
+                        .iter()
+                        .find(|s| s.kitty == kc.id)
+                        .expect("starts::draw resolves every rostered kitty")
+                        .position
+                }
+                None => kc
+                    .position()
+                    .expect("validated: explicit coordinates are required without [starts]"),
+            };
+            world
+                .kitties
+                .push(Kitty::new(kc.id, kc.name.clone(), position, kc.behavior.clone()));
         }
         world.kitties.sort_by_key(|k| k.id);
         // Spec 049 FR-023 (T088): each cat starts the lattice tour at
@@ -147,7 +171,7 @@ impl World {
             );
         }
 
-        world
+        Ok(world)
     }
 
     pub fn snapshot(&self) -> WorldSnapshot {
