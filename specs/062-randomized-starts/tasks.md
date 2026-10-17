@@ -23,8 +23,8 @@ attribution (P2), US3 = provenance (P3, cross-lane into Experiments' bc-collect)
 
 **Purpose**: bring the branch current and make the tree mutate.sh-clean.
 
-- [ ] T001 Merge `origin/main` into `product/randomized-starts` (fetch first; merge, NEVER rebase — main has moved past 0c40d8bb through #453, #452, and 84a74a75), then `cargo test --workspace` to confirm a green baseline
-- [ ] T002 Commit the 062 design artifacts `specs/062-randomized-starts/` (spec, plan, research, data-model, quickstart, contracts/, this file) — mutate.sh compares files against HEAD, so implementation files must land on top of a committed tree
+- [X] T001 Merge `origin/main` into `product/randomized-starts` (fetch first; merge, NEVER rebase — main has moved past 0c40d8bb through #453, #452, and 84a74a75), then `cargo test --workspace` to confirm a green baseline
+- [X] T002 Commit the 062 design artifacts `specs/062-randomized-starts/` (spec, plan, research, data-model, quickstart, contracts/, this file) — mutate.sh compares files against HEAD, so implementation files must land on top of a committed tree
 
 **Checkpoint**: branch current, baseline green, tree clean.
 
@@ -35,13 +35,13 @@ attribution (P2), US3 = provenance (P3, cross-lane into Experiments' bc-collect)
 **Purpose**: the config surface and the starts module's types — every story
 parses `[starts]` and speaks `DrawnStart`.
 
-- [ ] T003 Add `StartsConfig` (`edge_ring_share: f64`, `corner_share: f64`, `deny_unknown_fields`) and `Config.starts: Option<StartsConfig>` with `#[serde(default, skip_serializing_if = "Option::is_none")]` in `crates/cloudkitty-core/src/config/mod.rs` per data-model.md
-- [ ] T004 Change `KittyConfig.x/y` to `Option<u32>` (`default`, `skip_serializing_if`) in `crates/cloudkitty-core/src/config/mod.rs`; `KittyConfig::new` keeps `u32` params and wraps `Some` (research R2 — no call-site sweep); fix any direct-field construction sites the compiler names
-- [ ] T005 Append `validate_starts()` as position 19 in `Config::validate()` in `crates/cloudkitty-core/src/config/mod.rs`: share bounds [0,1], `corner_share ≤ edge_ring_share`, table-present ⇒ both dimensions ≥ 3 — error wording per contracts/config-surface.md §3 (spec-020 order contract: append, never reorder)
-- [ ] T006 Add roster-slot (position 2) checks in `crates/cloudkitty-core/src/config/mod.rs`: exactly one of x/y set → error naming the kitty (always); knob off + missing coords → error naming the kitty and that `[starts]` is absent (fires only on newly-parseable input, so no existing config's first-failing message changes)
-- [ ] T007 [P] Create `crates/cloudkitty-core/src/starts.rs` skeleton + `pub mod starts` in `crates/cloudkitty-core/src/lib.rs`: `StartCategory` (Corner|EdgeRing|Interior, serde `"corner"|"edge_ring"|"interior"`), `DrawnStart {kitty, position, category, drawn}`, `StartsError` (Display names category, drawn count, capacity), `pub const STARTS_LAW_VERSION: u32 = 1`
-- [ ] T008 Config-surface guard tests in `crates/cloudkitty-core/src/config/mod.rs` (or its test module): `[starts]` parses; each §3 validation row rejects with the named field; unknown key rejected; mixed explicit+drawn config legal; knob-off missing-x/y rejected naming the kitty. Rule-5 red each guard via `scripts/mutate.sh --expect <prediction>` (prediction declared first)
-- [ ] T009 Knob-off serialization invariance check: run the existing defaults-stamp test (`engine_defaults_sha256`, `crates/cloudkitty-rl/.../suite.rs`) and the full config suite — both must pass UNTOUCHED (SC-004's serialization half; if the stamp moves, the Option/skip wiring is wrong — fix the wiring, never re-cut the stamp)
+- [X] T003 Add `StartsConfig` (`edge_ring_share: f64`, `corner_share: f64`, `deny_unknown_fields`) and `Config.starts: Option<StartsConfig>` with `#[serde(default, skip_serializing_if = "Option::is_none")]` in `crates/cloudkitty-core/src/config/mod.rs` per data-model.md
+- [X] T004 Change `KittyConfig.x/y` to `Option<u32>` (`default`, `skip_serializing_if`) in `crates/cloudkitty-core/src/config/mod.rs`; `KittyConfig::new` keeps `u32` params and wraps `Some` (research R2 — no call-site sweep); fix any direct-field construction sites the compiler names
+- [X] T005 Append `validate_starts()` as position 19 in `Config::validate()` in `crates/cloudkitty-core/src/config/mod.rs`: share bounds [0,1], `corner_share ≤ edge_ring_share`, table-present ⇒ both dimensions ≥ 3 — error wording per contracts/config-surface.md §3 (spec-020 order contract: append, never reorder)
+- [X] T006 Add roster-slot (position 2) checks in `crates/cloudkitty-core/src/config/mod.rs`: exactly one of x/y set → error naming the kitty (always); knob off + missing coords → error naming the kitty and that `[starts]` is absent (fires only on newly-parseable input, so no existing config's first-failing message changes)
+- [X] T007 [P] Create `crates/cloudkitty-core/src/starts.rs` skeleton + `pub mod starts` in `crates/cloudkitty-core/src/lib.rs`: `StartCategory` (Corner|EdgeRing|Interior, serde `"corner"|"edge_ring"|"interior"`), `DrawnStart {kitty, position, category, drawn}`, `StartsError` (Display names category, drawn count, capacity), `pub const STARTS_LAW_VERSION: u32 = 1`
+- [X] T008 Config-surface guard tests in `crates/cloudkitty-core/src/config/mod.rs` (or its test module): `[starts]` parses; each §3 validation row rejects with the named field; unknown key rejected; mixed explicit+drawn config legal; knob-off missing-x/y rejected naming the kitty. Rule-5 red each guard via `scripts/mutate.sh --expect <prediction>` (prediction declared first)
+- [X] T009 Knob-off serialization invariance check: run the existing defaults-stamp test (`engine_defaults_sha256`, `crates/cloudkitty-rl/.../suite.rs`) and the full config suite — both must pass UNTOUCHED (SC-004's serialization half; if the stamp moves, the Option/skip wiring is wrong — fix the wiring, never re-cut the stamp)
 
 **Checkpoint**: knob parses and validates; knob-off world byte-identical in
 config space; `starts` types compile. Stories can begin.
@@ -57,14 +57,14 @@ start in-bounds, unique, lawfully categorized by an independent classifier,
 realized shares within binomial tolerance; any seed rebuilt = identical
 positions (quickstart §2).
 
-- [ ] T010 [US1] Implement `starts::draw(config) -> Result<Vec<DrawnStart>, StartsError>` in `crates/cloudkitty-core/src/starts.rs` exactly per contracts/draw-law-v1.md: 32-byte sub-stream seed (seed LE ∥ `ck-starts-v1` ∥ zeros) into `ChaCha8Rng::from_seed`; per drawn kitty (id ascending) v1→category via `(v1>>11)×2⁻⁵³` against the shares, v2→`free[v2 mod len]` over the canonical row-major free list; explicit kitties consume zero draws, tiles pre-marked occupied; exhaustion = `StartsError`
-- [ ] T011 [US1] Add `World::try_generate(&Config) -> Result<World, StartsError>` in `crates/cloudkitty-core/src/world.rs`; `World::generate` delegates + `expect`s (signature frozen, 68 call sites untouched); knob on resolves positions via `starts::draw`, knob off takes today's explicit path unchanged
-- [ ] T012 [P] [US1] Determinism tests in `crates/cloudkitty-core/src/starts.rs` tests: same (config, seed) drawn twice → identical positions; `[[kitty]]` file-order reorder → identical positions per id (acceptance 1 & 3)
-- [ ] T013 [P] [US1] Sweep test (SC-001/SC-002) in `crates/cloudkitty-core/src/starts.rs` tests: many seeds, every start in-bounds + unique; category verified by an IN-TEST independent classifier (coverage_read.py's geometry re-stated, not calling the draw's own classifier); realized shares within binomial tolerance
-- [ ] T014 [P] [US1] Exhaustion test: roster larger than a category's capacity (e.g. corner_share 1.0, 5 kitties) → error naming the category, the drawn count, and the capacity — never spilling into another category
-- [ ] T015 [P] [US1] Mixed-config test: explicit kitty's tile never drawn (occupied); adding/removing an explicit kitty does NOT shift any drawn kitty's position (zero draws consumed — draw-law §4 property)
-- [ ] T016 [US1] Golden vectors (SC-005 enabler): an engine test emits `specs/062-randomized-starts/contracts/golden-draws.json` (recorded real payloads — seed, dims, shares, roster → raw u64 sequence + final kitty/x/y/category list) and a sibling assertion pins the committed file byte-stable; commit the emitted file
-- [ ] T017 [US1] Rule-5 red cycles for every US1 guard via `scripts/mutate.sh --expect <prediction>`, one mutation per guard at the cheapest layer (e.g. flip category comparison, skip occupied-marking, swap v1/v2, perturb seed layout byte), each prediction declared before its run; rule 6: sort the pile — must-fail list red, must-pass pile read and green
+- [X] T010 [US1] Implement `starts::draw(config) -> Result<Vec<DrawnStart>, StartsError>` in `crates/cloudkitty-core/src/starts.rs` exactly per contracts/draw-law-v1.md: 32-byte sub-stream seed (seed LE ∥ `ck-starts-v1` ∥ zeros) into `ChaCha8Rng::from_seed`; per drawn kitty (id ascending) v1→category via `(v1>>11)×2⁻⁵³` against the shares, v2→`free[v2 mod len]` over the canonical row-major free list; explicit kitties consume zero draws, tiles pre-marked occupied; exhaustion = `StartsError`
+- [X] T011 [US1] Add `World::try_generate(&Config) -> Result<World, StartsError>` in `crates/cloudkitty-core/src/world.rs`; `World::generate` delegates + `expect`s (signature frozen, 68 call sites untouched); knob on resolves positions via `starts::draw`, knob off takes today's explicit path unchanged
+- [X] T012 [P] [US1] Determinism tests in `crates/cloudkitty-core/src/starts.rs` tests: same (config, seed) drawn twice → identical positions; `[[kitty]]` file-order reorder → identical positions per id (acceptance 1 & 3)
+- [X] T013 [P] [US1] Sweep test (SC-001/SC-002) in `crates/cloudkitty-core/src/starts.rs` tests: many seeds, every start in-bounds + unique; category verified by an IN-TEST independent classifier (coverage_read.py's geometry re-stated, not calling the draw's own classifier); realized shares within binomial tolerance
+- [X] T014 [P] [US1] Exhaustion test: roster larger than a category's capacity (e.g. corner_share 1.0, 5 kitties) → error naming the category, the drawn count, and the capacity — never spilling into another category
+- [X] T015 [P] [US1] Mixed-config test: explicit kitty's tile never drawn (occupied); adding/removing an explicit kitty does NOT shift any drawn kitty's position (zero draws consumed — draw-law §4 property)
+- [X] T016 [US1] Golden vectors (SC-005 enabler): an engine test emits `specs/062-randomized-starts/contracts/golden-draws.json` (recorded real payloads — seed, dims, shares, roster → raw u64 sequence + final kitty/x/y/category list) and a sibling assertion pins the committed file byte-stable; commit the emitted file
+- [X] T017 [US1] Rule-5 red cycles for every US1 guard via `scripts/mutate.sh --expect <prediction>`, one mutation per guard at the cheapest layer (e.g. flip category comparison, skip occupied-marking, swap v1/v2, perturb seed layout byte), each prediction declared before its run; rule 6: sort the pile — must-fail list red, must-pass pile read and green
 
 **Checkpoint**: the law exists, is pinned by goldens, and every guard has seen
 its red. MVP complete.
@@ -79,9 +79,9 @@ its red. MVP complete.
 seed, full horizon → byte-identical; whole existing suite green untouched
 (quickstart §§1, 3).
 
-- [ ] T018 [US2] SC-003 integration test `crates/cloudkitty-core/tests/starts_baseline_identity.rs`: build knob-on world on seed S, read drawn starts, build knob-off config with those starts explicit, run BOTH a full horizon; assert snapshots byte-equal every tick, element history included
-- [ ] T019 [US2] Rule-5 red for SC-003 via `scripts/mutate.sh --expect`: mutation makes `draw` consume one u64 from the MASTER world stream; predict failure at first element divergence (the baseline-attribution trap made flesh — this red is the feature's load-bearing proof)
-- [ ] T020 [US2] SC-004 full gate in the worktree: `cargo test --workspace`, `cargo clippy --all-targets -- -D warnings`, `cargo test -p cloudkitty-rl --test shipped_configs_rl` — all green with `git status` showing ONLY this feature's files (zero golden/pin/shipped-config re-cuts)
+- [X] T018 [US2] SC-003 integration test `crates/cloudkitty-core/tests/starts_baseline_identity.rs`: build knob-on world on seed S, read drawn starts, build knob-off config with those starts explicit, run BOTH a full horizon; assert snapshots byte-equal every tick, element history included
+- [X] T019 [US2] Rule-5 red for SC-003 via `scripts/mutate.sh --expect`: mutation makes `draw` consume one u64 from the MASTER world stream; predict failure at first element divergence (the baseline-attribution trap made flesh — this red is the feature's load-bearing proof)
+- [X] T020 [US2] SC-004 full gate in the worktree: `cargo test --workspace`, `cargo clippy --all-targets -- -D warnings`, `cargo test -p cloudkitty-rl --test shipped_configs_rl` — all green with `git status` showing ONLY this feature's files (zero golden/pin/shipped-config re-cuts)
 
 **Checkpoint**: divergence attribution guaranteed; existing surface untouched.
 
@@ -98,10 +98,10 @@ Cross-lane into `experiments/tools/bc-collect` — the PR body carries a literal
 SHA), `starts_law_version == 1`, `starts` echo matching tick-0 readback
 (quickstart §5).
 
-- [ ] T021 [P] [US3] Add `experiments/tools/bc-collect/build.rs`: embed workspace git SHA as `cargo:rustc-env`, `-dirty` from an engine-scoped `git status --porcelain` probe, `"unknown"` without git, probe failure fails TOWARD `-dirty`, rerun-if-changed on sources + `{git-dir}/HEAD` + common-dir `refs/heads`/`packed-refs` — mirror the merged `crates/cloudkitty-py/build.rs` (#452, final form 66a8eb6d) with paths adjusted for bc-collect's manifest dir
-- [ ] T022 [US3] Extend meta.json in `experiments/tools/bc-collect/src/main.rs`: `engine_commit` + `starts_law_version` on EVERY run; `starts` echo array (kitty-id ascending, `{kitty, x, y, category, drawn}`) when the knob is on, from the SAME `starts::draw` call — field names and absence-when-off per contracts/provenance.md (additive-only; no existing key moves)
-- [ ] T023 [US3] SC-006 test (engine-side, in `crates/cloudkitty-core` tests or bc-collect's): the echo equals tick-0 world-state readback exactly, and each echoed category equals an independent geometric classification of the position
-- [ ] T024 [US3] Rule-5 reds for US3 guards via `scripts/mutate.sh --expect`: e.g. echo built from a second draw call with a perturbed tag (prediction: echo ≠ tick-0), law-version stamp zeroed (prediction: `starts_law_version` assert fails), each declared first
+- [X] T021 [P] [US3] Add `experiments/tools/bc-collect/build.rs`: embed workspace git SHA as `cargo:rustc-env`, `-dirty` from an engine-scoped `git status --porcelain` probe, `"unknown"` without git, probe failure fails TOWARD `-dirty`, rerun-if-changed on sources + `{git-dir}/HEAD` + common-dir `refs/heads`/`packed-refs` — mirror the merged `crates/cloudkitty-py/build.rs` (#452, final form 66a8eb6d) with paths adjusted for bc-collect's manifest dir
+- [X] T022 [US3] Extend meta.json in `experiments/tools/bc-collect/src/main.rs`: `engine_commit` + `starts_law_version` on EVERY run; `starts` echo array (kitty-id ascending, `{kitty, x, y, category, drawn}`) when the knob is on, from the SAME `starts::draw` call — field names and absence-when-off per contracts/provenance.md (additive-only; no existing key moves)
+- [X] T023 [US3] SC-006 test (engine-side, in `crates/cloudkitty-core` tests or bc-collect's): the echo equals tick-0 world-state readback exactly, and each echoed category equals an independent geometric classification of the position
+- [X] T024 [US3] Rule-5 reds for US3 guards via `scripts/mutate.sh --expect`: e.g. echo built from a second draw call with a perturbed tag (prediction: echo ≠ tick-0), law-version stamp zeroed (prediction: `starts_law_version` assert fails), each declared first
 
 **Checkpoint**: a corpus is auditable back to its law.
 
@@ -109,8 +109,8 @@ SHA), `starts_law_version == 1`, `starts` echo matching tick-0 readback
 
 ## Phase 6: Polish & PR
 
-- [ ] T025 Run quickstart.md §§1–5 end to end in the worktree and record each outcome (the quickstart is the feature's validation guide; a failing section reopens its task)
-- [ ] T026 Self-check the frozen surfaces one last time: `World::generate` signature, `Config::fingerprint()`, validate() positions 1–18, `engine_defaults_sha256` — all byte-untouched; confirm no new root `.toml` appeared (toolchain-pin trap)
+- [X] T025 Run quickstart.md §§1–5 end to end in the worktree and record each outcome (the quickstart is the feature's validation guide; a failing section reopens its task)
+- [X] T026 Self-check the frozen surfaces one last time: `World::generate` signature, `Config::fingerprint()`, validate() positions 1–18, `engine_defaults_sha256` — all byte-untouched; confirm no new root `.toml` appeared (toolchain-pin trap)
 - [ ] T027 Push `product/randomized-starts`, read `gh pr view --json files` against expectation, open the PR with the `cross-lane:` reason (T021/T022 paths), self-review comment, Monitor CI then verify `gh pr checks` directly — merge only on her word
 
 ---

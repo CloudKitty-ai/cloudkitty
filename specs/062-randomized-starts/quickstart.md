@@ -53,13 +53,20 @@ rejected; mixed explicit+drawn config legal with pinned tiles occupied.
 ## 5. Provenance (US3 / SC-006, cross-lane)
 
 ```sh
-cargo run -p bc-collect -- <share-enabled.toml> --rollouts 2 --ticks 50 --out-dir /tmp/bc-test
+# bc-collect is a standalone workspace: run it from its own directory,
+# and configs are named with --config (not positional).
+cd experiments/tools/bc-collect
+cargo run --release -- --config <share-enabled.toml> --rollouts 2 --ticks 50 --out-dir /tmp/bc-test
 python3 - <<'EOF'
-import json; m = json.load(open('/tmp/bc-test/<run>/meta.json'))
+import json; m = json.load(open('/tmp/bc-test/config-00-rollout-00/meta.json'))
 assert m['engine_commit'] and m['starts_law_version'] == 1
 assert all(s['category'] in ('corner','edge_ring','interior') for s in m['starts'])
 EOF
 ```
+
+Keep the share-enabled toml OUTSIDE experiments/ (scratch dir): the
+shipped-config sweep loads every experiments toml, and a stray knob-on
+file would join the sweep's surface.
 
 Expected: `engine_commit` a real SHA (not "unknown") on a clean build;
 `starts` echo present, kitty-id order; the engine-side test additionally pins
