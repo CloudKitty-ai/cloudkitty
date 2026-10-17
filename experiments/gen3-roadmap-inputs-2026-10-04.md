@@ -107,8 +107,8 @@ seeds x 4,000 ticks, seed-paired):
   band keeps the cut at 1.3-2.2x. Consent: cost cliff just below the
   anchor (25 pays most of 20's price), 35 mildly better than 30 on
   every seed; at line 20 the loss is ~93% PARTNERED play; refusal
-  density is the demonstration supply (2.3% of kitty-ticks at 30,
-  8-11% at 15-25). Favourites: tabled to Gen 3 (first addendum above);
+  density is the demonstration supply (2.3% of kitty-ticks at 30;
+  7.8%/10.8%/14.6% at lines 25/20/15). Favourites: tabled to Gen 3 (first addendum above);
   a play favourite on an already-playful character was invisible.
 - F-034 remains the governing lesson: rare conditions don't clone —
   played demonstrations must keep double-digit-ish presence or Gen 3's
