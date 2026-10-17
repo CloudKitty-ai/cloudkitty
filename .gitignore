@@ -23,6 +23,11 @@ Thumbs.db
 
 # Python (training-surface dev: venv + bytecode)
 .venv/
+# quickstart-smoke.sh builds its own venv beside the crate so a bare
+# runner works without clobbering a dev's .venv; ignored so a smoke
+# run cannot stamp the binding's ENGINE_COMMIT -dirty (#452's probe
+# scopes to crates/).
+.venv-smoke/
 __pycache__/
 
 # Saved worlds (runtime state, like snapshot.json)
