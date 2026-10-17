@@ -84,8 +84,9 @@ enrichment, base value disabled/0. Agreed on per episode."
 - Enrichment consent line drawn PER EPISODE (world-level: the whole
   roster shares the drawn line), so every kitty's own obs cell 37
   reveals the episode's refusal regime — the readable-regime design.
-- Still open: the exact enrichment range (her named options 15-25 /
-  20-25 / static 20; recommendation on record is 20-25 per-episode).
+- Enrichment range RULED (owner 2026-10-17, verbatim): "20-25 it is"
+  — per-episode uniform draw over [20, 25], whole roster shares the
+  drawn line.
 - FLAGGED to her at the ruling: base 0 also governs what the gate
   protects in PPO episodes and the deployed world unless those are
   ruled separately — the gate's protective value for covered minds
