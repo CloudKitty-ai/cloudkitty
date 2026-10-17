@@ -13,6 +13,16 @@ Three configs — g2leg-20 / g2leg-40 / g2leg-100 — each the draft plus:
 - Sizes 40/100: world.width/height scaled, and every element min/max
   scaled with AREA (x4 / x25) — the §7 gates line, RULED: "Element
   density scaled with area at served per-tile density".
+- VISION LAW (owner ruled 2026-10-17, her words: "What if we do log
+  scaling on world size (20x20=4, base. >=40=5, >=80=6, <=10=3)?" →
+  "Do it"): vision radius steps with size — ≤10 → 3, 11–39 → 4 (the
+  served base; 28 in the mixed-size recipe stays 4), 40–79 → 5,
+  ≥80 → 6. The served 20×20 keeps radius 4 BYTE-IDENTICAL (no patch
+  when the law equals the base), so the Gen 1 fog law and the comms
+  thesis are untouched; fog still deepens with size (visible share
+  10% → 3.8% → 0.85%). Measured basis: vision5-40 paired leg +1.294
+  (28/30 seeds), 100×100 v6 probe near-clean; the v6 realized leg
+  replaces the probe.
 
 Checks, all hard: toml parse; deep-diff against the draft (exactly the
 declared keys differ, nothing else moves); scaled counts equal base x
@@ -39,6 +49,17 @@ SIZES = {20: 1, 40: 4, 100: 25}  # size -> area ratio vs the 20x20 draft
 STARTS_BLOCK = "[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n\n"
 
 
+def vision_law(size):
+    """Owner 2026-10-17: ≤10 → 3, 11–39 → 4 (base), 40–79 → 5, ≥80 → 6."""
+    if size <= 10:
+        return 3
+    if size < 40:
+        return 4
+    if size < 80:
+        return 5
+    return 6
+
+
 def derive(base_text, size, ratio):
     out, section = [], None
     for line in base_text.splitlines(keepends=True):
@@ -52,6 +73,10 @@ def derive(base_text, size, ratio):
             line = f"{m.group(1)} = {size}\n"
         elif m and section.startswith("elements.") and m.group(1) in ("min", "max"):
             line = f"{m.group(1)} = {int(m.group(2)) * ratio}\n"
+        elif section == "vision" and re.match(r"^radius\s*=\s*\d+", line.strip()):
+            v = vision_law(size)
+            if int(re.match(r"^radius\s*=\s*(\d+)", line.strip()).group(1)) != v:
+                line = f"radius = {v}  # vision law (owner 2026-10-17): steps with size, base 4 at 20x20\n"
         elif section == "kitty" and re.match(r"^[xy]\s*=\s*\d+\s*$", line.strip()):
             continue  # drawn per seed (062 knob-on, x/y absent)
         out.append(line)
@@ -62,6 +87,7 @@ def check(base, derived, size, ratio):
     b, d = tomllib.loads(base), tomllib.loads(derived)
     assert d["starts"] == {"edge_ring_share": 0.25, "corner_share": 0.05}
     assert d["world"]["width"] == d["world"]["height"] == size
+    assert d["vision"]["radius"] == vision_law(size), (size, d["vision"]["radius"])
     for e in ELEMENTS:
         for k in ("min", "max"):
             assert d["elements"][e][k] == b["elements"][e][k] * ratio, (e, k)
@@ -74,6 +100,7 @@ def check(base, derived, size, ratio):
     d.pop("starts")
     for t in (b, d):
         t["world"]["width"] = t["world"]["height"] = 0
+        t["vision"]["radius"] = 0
         for e in ELEMENTS:
             t["elements"][e]["min"] = t["elements"][e]["max"] = 0
         for k in t["kitty"]:

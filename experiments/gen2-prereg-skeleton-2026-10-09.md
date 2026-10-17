@@ -397,6 +397,22 @@ rulings nor answers to blanks until she rules. Rulings sources:
   closure of the trigger, not her text: final = pencil means no
   re-run. Experiments' note: §4's collection remedy keeps its own
   "materially" test — that governs recollection, not this re-run.)
+- [RULED owner 2026-10-17 at the freeze sitting, her words: "What
+  if we do log scaling on world size (20x20=4, base. >=40=5, >=80=6,
+  <=10=3)?" then "Do it"] VISION LAW: the vision radius steps with
+  world size — ≤10 → 3, 11–39 → 4 (the served base; the mixed-size
+  recipe's 28 stays 4), 40–79 → 5, ≥80 → 6. The served 20×20 world is
+  BYTE-UNTOUCHED (fog law and comms thesis intact); fog still deepens
+  with size (visible share 10% → 3.8% → 0.85% at 20/40/100). Measured
+  basis in gen2-comparator-legs-2026-10-14/: the vision5-40 paired leg
+  (+1.294, 28/30 seeds) and the 905029 vision probe; realized §7
+  numbers for displaced sizes re-run under the law (the v5-40 leg IS
+  the law's 40×40 comparator — law config parse-equal to the probe
+  config; the 100×100 v6 leg replaces the vision-4 characterize row,
+  whose one F-053 abort at seed 905029 stays on record as the vision-4
+  finding). Cross-size comparisons now carry size AND radius; rows
+  naming them cite the law. The §S§6 radius-axis leg reads "radius
+  relative to the law's value at that size" from here on.
 - [RULED] Mixed-size trigger: fires only on a 40×40 gated miss;
   the mixed recipe is a declared arm via prereg addendum (episode
   sizes over {20, 28, 40} at declared shares, served world
