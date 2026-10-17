@@ -1,0 +1,1332 @@
+{
+ "anchor": 0,
+ "values": {
+  "0": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 82.64795796394348,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1075,
+     "consent_refusals": 518
+    },
+    {
+     "mean_happiness": 82.29243732662201,
+     "distress_ticks": 87,
+     "max_distress_streak": 86,
+     "play_share": 0.11565,
+     "consent_refusals": 573
+    },
+    {
+     "mean_happiness": 82.76086050777435,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1143,
+     "consent_refusals": 425
+    },
+    {
+     "mean_happiness": 82.81792136116027,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11895,
+     "consent_refusals": 403
+    },
+    {
+     "mean_happiness": 82.40296530075074,
+     "distress_ticks": 46,
+     "max_distress_streak": 41,
+     "play_share": 0.1097,
+     "consent_refusals": 505
+    },
+    {
+     "mean_happiness": 82.39941599311828,
+     "distress_ticks": 21,
+     "max_distress_streak": 17,
+     "play_share": 0.10975,
+     "consent_refusals": 356
+    },
+    {
+     "mean_happiness": 82.34161323318482,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.106,
+     "consent_refusals": 408
+    },
+    {
+     "mean_happiness": 82.36175945758819,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1135,
+     "consent_refusals": 463
+    }
+   ],
+   "mean": {
+    "mean_happiness": 82.50311639301776,
+    "distress_ticks": 19.25,
+    "max_distress_streak": 18.0,
+    "play_share": 0.11191875,
+    "consent_refusals": 456.375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.0,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.0,
+    "consent_refusals": 0.0
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     0.0,
+     0.0
+    ],
+    "distress_ticks": [
+     0,
+     0
+    ],
+    "max_distress_streak": [
+     0,
+     0
+    ],
+    "play_share": [
+     0.0,
+     0.0
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ]
+   }
+  },
+  "10": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 83.12814120845795,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11915,
+     "consent_refusals": 387
+    },
+    {
+     "mean_happiness": 82.79590910892486,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.12005,
+     "consent_refusals": 334
+    },
+    {
+     "mean_happiness": 82.7300072977066,
+     "distress_ticks": 34,
+     "max_distress_streak": 34,
+     "play_share": 0.11395,
+     "consent_refusals": 395
+    },
+    {
+     "mean_happiness": 82.35999300060273,
+     "distress_ticks": 3,
+     "max_distress_streak": 3,
+     "play_share": 0.10485,
+     "consent_refusals": 497
+    },
+    {
+     "mean_happiness": 83.102360537529,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11575,
+     "consent_refusals": 319
+    },
+    {
+     "mean_happiness": 81.79191340522766,
+     "distress_ticks": 252,
+     "max_distress_streak": 108,
+     "play_share": 0.11415,
+     "consent_refusals": 809
+    },
+    {
+     "mean_happiness": 82.13788538894653,
+     "distress_ticks": 152,
+     "max_distress_streak": 152,
+     "play_share": 0.10705,
+     "consent_refusals": 463
+    },
+    {
+     "mean_happiness": 83.03488457241059,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1206,
+     "consent_refusals": 390
+    }
+   ],
+   "mean": {
+    "mean_happiness": 82.63513681497574,
+    "distress_ticks": 55.125,
+    "max_distress_streak": 37.125,
+    "play_share": 0.11444375,
+    "consent_refusals": 449.25
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.13202042195797148,
+    "distress_ticks": 35.875,
+    "max_distress_streak": 19.125,
+    "play_share": 0.002525000000000001,
+    "consent_refusals": -7.125
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -0.6075025878906217,
+     0.6993952367782583
+    ],
+    "distress_ticks": [
+     -87,
+     231
+    ],
+    "max_distress_streak": [
+     -86,
+     152
+    ],
+    "play_share": [
+     -0.014100000000000001,
+     0.011650000000000008
+    ],
+    "consent_refusals": [
+     -239,
+     453
+    ]
+   }
+  },
+  "25": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 82.44449786853791,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10635,
+     "consent_refusals": 377
+    },
+    {
+     "mean_happiness": 82.28996666870117,
+     "distress_ticks": 42,
+     "max_distress_streak": 41,
+     "play_share": 0.10765,
+     "consent_refusals": 526
+    },
+    {
+     "mean_happiness": 82.74439759654999,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10745,
+     "consent_refusals": 435
+    },
+    {
+     "mean_happiness": 82.65882143211364,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.12125,
+     "consent_refusals": 382
+    },
+    {
+     "mean_happiness": 82.49422311916351,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.113,
+     "consent_refusals": 428
+    },
+    {
+     "mean_happiness": 83.1184796918869,
+     "distress_ticks": 2,
+     "max_distress_streak": 2,
+     "play_share": 0.1174,
+     "consent_refusals": 373
+    },
+    {
+     "mean_happiness": 82.18681800251007,
+     "distress_ticks": 66,
+     "max_distress_streak": 47,
+     "play_share": 0.116,
+     "consent_refusals": 569
+    },
+    {
+     "mean_happiness": 82.7908788160324,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1163,
+     "consent_refusals": 348
+    }
+   ],
+   "mean": {
+    "mean_happiness": 82.59101039943695,
+    "distress_ticks": 13.75,
+    "max_distress_streak": 11.25,
+    "play_share": 0.113175,
+    "consent_refusals": 429.75
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.08789400641918022,
+    "distress_ticks": -5.5,
+    "max_distress_streak": -6.75,
+    "play_share": 0.0012562500000000004,
+    "consent_refusals": -26.625
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -0.20346009540557475,
+     0.7190636987686219
+    ],
+    "distress_ticks": [
+     -46,
+     66
+    ],
+    "max_distress_streak": [
+     -45,
+     47
+    ],
+    "play_share": [
+     -0.008000000000000007,
+     0.010000000000000009
+    ],
+    "consent_refusals": [
+     -141,
+     161
+    ]
+   }
+  },
+  "50": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 82.46909905700683,
+     "distress_ticks": 39,
+     "max_distress_streak": 27,
+     "play_share": 0.1174,
+     "consent_refusals": 419
+    },
+    {
+     "mean_happiness": 83.473005742836,
+     "distress_ticks": 9,
+     "max_distress_streak": 9,
+     "play_share": 0.1233,
+     "consent_refusals": 403
+    },
+    {
+     "mean_happiness": 82.63338639030457,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1167,
+     "consent_refusals": 374
+    },
+    {
+     "mean_happiness": 82.9020474653244,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1175,
+     "consent_refusals": 479
+    },
+    {
+     "mean_happiness": 82.63075197582245,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1169,
+     "consent_refusals": 483
+    },
+    {
+     "mean_happiness": 79.82420780658722,
+     "distress_ticks": 528,
+     "max_distress_streak": 146,
+     "play_share": 0.10385,
+     "consent_refusals": 1333
+    },
+    {
+     "mean_happiness": 79.58885474033356,
+     "distress_ticks": 691,
+     "max_distress_streak": 331,
+     "play_share": 0.0984,
+     "consent_refusals": 1094
+    },
+    {
+     "mean_happiness": 81.27272520523071,
+     "distress_ticks": 374,
+     "max_distress_streak": 145,
+     "play_share": 0.1112,
+     "consent_refusals": 946
+    }
+   ],
+   "mean": {
+    "mean_happiness": 81.84925979793071,
+    "distress_ticks": 205.125,
+    "max_distress_streak": 82.25,
+    "play_share": 0.11315625,
+    "consent_refusals": 691.375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": -0.653856595087051,
+    "distress_ticks": 185.875,
+    "max_distress_streak": 64.25,
+    "play_share": 0.001237499999999999,
+    "consent_refusals": 235.0
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -2.7527584928512567,
+     1.180568416213987
+    ],
+    "distress_ticks": [
+     -78,
+     691
+    ],
+    "max_distress_streak": [
+     -77,
+     331
+    ],
+    "play_share": [
+     -0.007599999999999996,
+     0.009900000000000006
+    ],
+    "consent_refusals": [
+     -170,
+     977
+    ]
+   }
+  },
+  "100": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 82.16862598667144,
+     "distress_ticks": 38,
+     "max_distress_streak": 25,
+     "play_share": 0.10525,
+     "consent_refusals": 461
+    },
+    {
+     "mean_happiness": 80.44138754234314,
+     "distress_ticks": 499,
+     "max_distress_streak": 274,
+     "play_share": 0.10505,
+     "consent_refusals": 1046
+    },
+    {
+     "mean_happiness": 81.30523071079254,
+     "distress_ticks": 442,
+     "max_distress_streak": 217,
+     "play_share": 0.1127,
+     "consent_refusals": 813
+    },
+    {
+     "mean_happiness": 82.62810618610382,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10735,
+     "consent_refusals": 424
+    },
+    {
+     "mean_happiness": 83.41141889305115,
+     "distress_ticks": 42,
+     "max_distress_streak": 42,
+     "play_share": 0.1208,
+     "consent_refusals": 489
+    },
+    {
+     "mean_happiness": 83.02857595291138,
+     "distress_ticks": 29,
+     "max_distress_streak": 20,
+     "play_share": 0.12125,
+     "consent_refusals": 477
+    },
+    {
+     "mean_happiness": 79.75591902198792,
+     "distress_ticks": 488,
+     "max_distress_streak": 156,
+     "play_share": 0.09265,
+     "consent_refusals": 1254
+    },
+    {
+     "mean_happiness": 82.61836732902528,
+     "distress_ticks": 53,
+     "max_distress_streak": 41,
+     "play_share": 0.11555,
+     "consent_refusals": 451
+    }
+   ],
+   "mean": {
+    "mean_happiness": 81.91970395286083,
+    "distress_ticks": 198.875,
+    "max_distress_streak": 96.875,
+    "play_share": 0.110075,
+    "consent_refusals": 676.875
+   },
+   "paired_delta_mean": {
+    "mean_happiness": -0.583412440156934,
+    "distress_ticks": 179.625,
+    "max_distress_streak": 78.875,
+    "play_share": -0.0018437500000000016,
+    "consent_refusals": 220.5
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -2.585694211196895,
+     1.0084535923004125
+    ],
+    "distress_ticks": [
+     -4,
+     488
+    ],
+    "max_distress_streak": [
+     0,
+     217
+    ],
+    "play_share": [
+     -0.01335,
+     0.011499999999999996
+    ],
+    "consent_refusals": [
+     -57,
+     846
+    ]
+   }
+  }
+ },
+ "fav": {
+  "0": {
+   "expression": {
+    "Miso cuddle (resting)": {
+     "per_seed": [
+      0.09525,
+      0.09725,
+      0.09125,
+      0.08025,
+      0.0995,
+      0.08025,
+      0.0945,
+      0.101
+     ],
+     "mean": 0.09240625,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Biscuit play (playing)": {
+     "per_seed": [
+      0.12275,
+      0.137,
+      0.14,
+      0.14775,
+      0.14025,
+      0.139,
+      0.11575,
+      0.13825
+     ],
+     "mean": 0.13509375,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Kittybear bath (grooming)": {
+     "per_seed": [
+      0.03975,
+      0.02725,
+      0.03825,
+      0.032,
+      0.043,
+      0.041,
+      0.0305,
+      0.0345
+     ],
+     "mean": 0.03578125,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Clementine sleep (sleeping)": {
+     "per_seed": [
+      0.04775,
+      0.0585,
+      0.052,
+      0.066,
+      0.05575,
+      0.06425,
+      0.06275,
+      0.06
+     ],
+     "mean": 0.058375,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   "seat_happiness": {
+    "Miso": {
+     "per_seed": [
+      83.53403650474549,
+      82.04630028629303,
+      82.98639673995972,
+      82.80417914009094,
+      83.163917801857,
+      83.72256483840943,
+      82.66740389537811,
+      82.37674523735046
+     ],
+     "mean": 82.91269305551052,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Biscuit": {
+     "per_seed": [
+      81.92753377819061,
+      82.62307166194915,
+      82.53928830242157,
+      83.06943389415741,
+      83.161888589859,
+      82.69821477031708,
+      82.77083167266845,
+      83.09673523521424
+     ],
+     "mean": 82.7358747380972,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Pumpkin": {
+     "per_seed": [
+      82.3074316444397,
+      82.72503657531739,
+      83.12612317276,
+      82.74562884712219,
+      82.06277021884918,
+      82.22641073799133,
+      81.56982570171357,
+      82.10293451404571
+     ],
+     "mean": 82.35827017652989,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Kittybear": {
+     "per_seed": [
+      83.1510187292099,
+      83.6574545211792,
+      83.40302713966369,
+      83.72894077968597,
+      83.10862085533142,
+      82.44819391155242,
+      83.31058322429656,
+      83.52750446891784
+     ],
+     "mean": 83.29191795372962,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    },
+    "Clementine": {
+     "per_seed": [
+      82.31976916313171,
+      80.41032358837127,
+      81.74946718406677,
+      81.74142414474487,
+      80.51762903785706,
+      80.90169570732117,
+      81.38942167186737,
+      80.70487783241272
+     ],
+     "mean": 81.21682604122162,
+     "delta_mean": 0.0,
+     "delta_range": [
+      0.0,
+      0.0
+     ]
+    }
+   }
+  },
+  "10": {
+   "expression": {
+    "Miso cuddle (resting)": {
+     "per_seed": [
+      0.0875,
+      0.09575,
+      0.10375,
+      0.10725,
+      0.09575,
+      0.09025,
+      0.094,
+      0.092
+     ],
+     "mean": 0.09578125,
+     "delta_mean": 0.003374999999999996,
+     "delta_range": [
+      -0.009000000000000008,
+      0.026999999999999996
+     ]
+    },
+    "Biscuit play (playing)": {
+     "per_seed": [
+      0.141,
+      0.14325,
+      0.13025,
+      0.10775,
+      0.1425,
+      0.13375,
+      0.13525,
+      0.144
+     ],
+     "mean": 0.13471875,
+     "delta_mean": -0.00037500000000001074,
+     "delta_range": [
+      -0.039999999999999994,
+      0.019500000000000003
+     ]
+    },
+    "Kittybear bath (grooming)": {
+     "per_seed": [
+      0.03725,
+      0.03825,
+      0.02875,
+      0.04275,
+      0.0395,
+      0.0475,
+      0.05775,
+      0.03775
+     ],
+     "mean": 0.0411875,
+     "delta_mean": 0.0054062500000000005,
+     "delta_range": [
+      -0.009499999999999998,
+      0.027250000000000003
+     ]
+    },
+    "Clementine sleep (sleeping)": {
+     "per_seed": [
+      0.061,
+      0.0675,
+      0.05125,
+      0.0665,
+      0.0575,
+      0.06225,
+      0.05975,
+      0.0625
+     ],
+     "mean": 0.06103125,
+     "delta_mean": 0.0026562499999999998,
+     "delta_range": [
+      -0.0030000000000000027,
+      0.013249999999999998
+     ]
+    }
+   },
+   "seat_happiness": {
+    "Miso": {
+     "per_seed": [
+      83.68947224998475,
+      83.27496698284149,
+      83.16861260986329,
+      82.99083735656738,
+      83.21500318145752,
+      82.21986544036865,
+      82.28976799297332,
+      83.15939980316162
+     ],
+     "mean": 83.00099070215225,
+     "delta_mean": 0.08829764664173112,
+     "delta_range": [
+      -1.5026993980407752,
+      1.2286666965484585
+     ]
+    },
+    "Biscuit": {
+     "per_seed": [
+      83.55497029685974,
+      82.33374054431916,
+      82.84458205413819,
+      81.58308036708831,
+      84.06399471092224,
+      82.64823401355743,
+      82.76158181285858,
+      83.5639135169983
+     ],
+     "mean": 82.91926216459274,
+     "delta_mean": 0.18338742649555329,
+     "delta_range": [
+      -1.4863535270690988,
+      1.6274365186691284
+     ]
+    },
+    "Pumpkin": {
+     "per_seed": [
+      82.2929185552597,
+      83.11650299453736,
+      82.40362767791748,
+      83.23269083690643,
+      82.86007597923279,
+      81.39240775203704,
+      81.91497472286224,
+      83.1305231180191
+     ],
+     "mean": 82.54296520459651,
+     "delta_mean": 0.18469502806663307,
+     "delta_range": [
+      -0.8340029859542852,
+      1.0275886039733848
+     ]
+    },
+    "Kittybear": {
+     "per_seed": [
+      83.70345924377442,
+      83.4493195552826,
+      83.12264475250244,
+      83.31298240280151,
+      83.26798124217987,
+      82.42095773983002,
+      83.038633603096,
+      83.14931764316559
+     ],
+     "mean": 83.18316202282905,
+     "delta_mean": -0.10875593090057123,
+     "delta_range": [
+      -0.41595837688446125,
+      0.5524405145645233
+     ]
+    },
+    "Clementine": {
+     "per_seed": [
+      82.39988569641113,
+      81.80501546764374,
+      82.11056939411164,
+      80.68037403964996,
+      82.10474757385253,
+      80.27810208034515,
+      80.6844688129425,
+      82.17126878070832
+     ],
+     "mean": 81.52930398070812,
+     "delta_mean": 0.31247793948650404,
+     "delta_range": [
+      -1.0610501050949068,
+      1.5871185359954723
+     ]
+    }
+   }
+  },
+  "25": {
+   "expression": {
+    "Miso cuddle (resting)": {
+     "per_seed": [
+      0.11325,
+      0.1155,
+      0.12125,
+      0.11075,
+      0.1075,
+      0.1175,
+      0.116,
+      0.10425
+     ],
+     "mean": 0.11325,
+     "delta_mean": 0.020843749999999998,
+     "delta_range": [
+      0.003249999999999989,
+      0.03724999999999999
+     ]
+    },
+    "Biscuit play (playing)": {
+     "per_seed": [
+      0.13825,
+      0.12825,
+      0.13325,
+      0.128,
+      0.13925,
+      0.15025,
+      0.132,
+      0.14375
+     ],
+     "mean": 0.136625,
+     "delta_mean": 0.0015312499999999962,
+     "delta_range": [
+      -0.01974999999999999,
+      0.01625
+     ]
+    },
+    "Kittybear bath (grooming)": {
+     "per_seed": [
+      0.0505,
+      0.03925,
+      0.041,
+      0.0505,
+      0.0495,
+      0.044,
+      0.03575,
+      0.0375
+     ],
+     "mean": 0.0435,
+     "delta_mean": 0.00771875,
+     "delta_range": [
+      0.0027500000000000024,
+      0.018500000000000003
+     ]
+    },
+    "Clementine sleep (sleeping)": {
+     "per_seed": [
+      0.06225,
+      0.0635,
+      0.063,
+      0.06375,
+      0.0695,
+      0.05725,
+      0.06175,
+      0.067
+     ],
+     "mean": 0.0635,
+     "delta_mean": 0.005125000000000001,
+     "delta_range": [
+      -0.006999999999999999,
+      0.014499999999999999
+     ]
+    }
+   },
+   "seat_happiness": {
+    "Miso": {
+     "per_seed": [
+      81.6396870288849,
+      81.23503779315948,
+      82.77060446357727,
+      81.4665622997284,
+      81.83441197109222,
+      82.35410540485383,
+      82.71019338703155,
+      81.90211090278625
+     ],
+     "mean": 81.98908915638924,
+     "delta_mean": -0.9236038991212858,
+     "delta_range": [
+      -1.8943494758605937,
+      0.04278949165343704
+     ]
+    },
+    "Biscuit": {
+     "per_seed": [
+      83.48912119483948,
+      82.48123144054412,
+      82.5761816329956,
+      81.96785272216798,
+      82.7540875492096,
+      83.53366188240051,
+      81.34005248069764,
+      83.7270157661438
+     ],
+     "mean": 82.73365058362484,
+     "delta_mean": -0.002224154472349582,
+     "delta_range": [
+      -1.4307791919708137,
+      1.5615874166488766
+     ]
+    },
+    "Pumpkin": {
+     "per_seed": [
+      82.21856894207001,
+      82.99047858905793,
+      82.94194948959351,
+      83.88237443637848,
+      82.7194182958603,
+      84.42795522689819,
+      82.37440077018738,
+      82.84880462837219
+     ],
+     "mean": 83.05049379730225,
+     "delta_mean": 0.6922236207723635,
+     "delta_range": [
+      -0.18417368316649174,
+      2.201544488906862
+     ]
+    },
+    "Kittybear": {
+     "per_seed": [
+      83.16613006210328,
+      83.35582887268066,
+      83.51430144691467,
+      84.13485187149048,
+      83.50053448104859,
+      82.98325046920776,
+      82.61926477146149,
+      83.18089548301697
+     ],
+     "mean": 83.30688218224049,
+     "delta_mean": 0.014964228510860877,
+     "delta_range": [
+      -0.6913184528350769,
+      0.5350565576553379
+     ]
+    },
+    "Clementine": {
+     "per_seed": [
+      81.70898211479187,
+      81.38725664806366,
+      81.91895094966888,
+      81.84246583080292,
+      81.66266329860687,
+      82.29342547607422,
+      81.8901786031723,
+      82.29556729984283
+     ],
+     "mean": 81.87493627762794,
+     "delta_mean": 0.6581102364063263,
+     "delta_range": [
+      -0.6107870483398443,
+      1.59068946743011
+     ]
+    }
+   }
+  },
+  "50": {
+   "expression": {
+    "Miso cuddle (resting)": {
+     "per_seed": [
+      0.12075,
+      0.1205,
+      0.128,
+      0.11175,
+      0.1215,
+      0.12475,
+      0.126,
+      0.11775
+     ],
+     "mean": 0.121375,
+     "delta_mean": 0.028968749999999995,
+     "delta_range": [
+      0.016749999999999987,
+      0.0445
+     ]
+    },
+    "Biscuit play (playing)": {
+     "per_seed": [
+      0.14575,
+      0.136,
+      0.15625,
+      0.1435,
+      0.13325,
+      0.113,
+      0.11575,
+      0.1475
+     ],
+     "mean": 0.136375,
+     "delta_mean": 0.0012812499999999925,
+     "delta_range": [
+      -0.02600000000000001,
+      0.022999999999999993
+     ]
+    },
+    "Kittybear bath (grooming)": {
+     "per_seed": [
+      0.05275,
+      0.053,
+      0.06675,
+      0.04525,
+      0.05975,
+      0.06375,
+      0.073,
+      0.057
+     ],
+     "mean": 0.05890625,
+     "delta_mean": 0.023125,
+     "delta_range": [
+      0.012999999999999998,
+      0.042499999999999996
+     ]
+    },
+    "Clementine sleep (sleeping)": {
+     "per_seed": [
+      0.0725,
+      0.073,
+      0.0635,
+      0.06575,
+      0.0635,
+      0.0735,
+      0.066,
+      0.07475
+     ],
+     "mean": 0.0690625,
+     "delta_mean": 0.010687499999999999,
+     "delta_range": [
+      -0.0002500000000000002,
+      0.024749999999999994
+     ]
+    }
+   },
+   "seat_happiness": {
+    "Miso": {
+     "per_seed": [
+      81.47294937992096,
+      82.10617589759826,
+      80.77942202472687,
+      82.44612213802337,
+      80.62886480045319,
+      79.85505707073212,
+      76.98873218727111,
+      81.09577602958679
+     ],
+     "mean": 80.67163744103908,
+     "delta_mean": -2.2410556144714384,
+     "delta_range": [
+      -5.678671708107004,
+      0.059875611305230336
+     ]
+    },
+    "Biscuit": {
+     "per_seed": [
+      83.19287687301636,
+      84.08552070236206,
+      83.42646106719971,
+      83.15280061340331,
+      82.16930941581727,
+      78.75572911548615,
+      80.39404223060608,
+      82.57583045768737
+     ],
+     "mean": 82.21907130944729,
+     "delta_mean": -0.5168034286499008,
+     "delta_range": [
+      -3.942485654830932,
+      1.4624490404129062
+     ]
+    },
+    "Pumpkin": {
+     "per_seed": [
+      83.85519767761231,
+      84.05325587463379,
+      82.85938519477844,
+      82.95029955387116,
+      83.77276260566711,
+      79.8213329668045,
+      81.35308725070954,
+      80.35989888477326
+     ],
+     "mean": 82.37815250110626,
+     "delta_mean": 0.019882324576379062,
+     "delta_range": [
+      -2.405077771186825,
+      1.7099923868179303
+     ]
+    },
+    "Kittybear": {
+     "per_seed": [
+      82.69549047851562,
+      84.49763814735412,
+      83.22690062999726,
+      83.99753063964843,
+      83.5385738735199,
+      81.75023552513123,
+      81.60254145431519,
+      83.74796258354186
+     ],
+     "mean": 83.13210916650296,
+     "delta_mean": -0.1598087872266749,
+     "delta_range": [
+      -1.708041769981378,
+      0.8401836261749196
+     ]
+    },
+    "Clementine": {
+     "per_seed": [
+      81.12898087596894,
+      82.62243809223175,
+      82.87476303482056,
+      81.96348438167573,
+      83.04424918365478,
+      78.93868435478211,
+      77.60587057876587,
+      78.58415807056427
+     ],
+     "mean": 80.845328571558,
+     "delta_mean": -0.3714974696636162,
+     "delta_range": [
+      -3.7835510931014937,
+      2.5266201457977218
+     ]
+    }
+   }
+  },
+  "100": {
+   "expression": {
+    "Miso cuddle (resting)": {
+     "per_seed": [
+      0.15125,
+      0.144,
+      0.1545,
+      0.152,
+      0.1205,
+      0.1355,
+      0.139,
+      0.16775
+     ],
+     "mean": 0.1455625,
+     "delta_mean": 0.05315625,
+     "delta_range": [
+      0.02099999999999999,
+      0.07175
+     ]
+    },
+    "Biscuit play (playing)": {
+     "per_seed": [
+      0.1235,
+      0.13,
+      0.13925,
+      0.12725,
+      0.14475,
+      0.14675,
+      0.11625,
+      0.14075
+     ],
+     "mean": 0.1335625,
+     "delta_mean": -0.0015312500000000083,
+     "delta_range": [
+      -0.02049999999999999,
+      0.007749999999999979
+     ]
+    },
+    "Kittybear bath (grooming)": {
+     "per_seed": [
+      0.07825,
+      0.063,
+      0.0605,
+      0.082,
+      0.0745,
+      0.07375,
+      0.07775,
+      0.06375
+     ],
+     "mean": 0.0716875,
+     "delta_mean": 0.03590625,
+     "delta_range": [
+      0.02225,
+      0.05
+     ]
+    },
+    "Clementine sleep (sleeping)": {
+     "per_seed": [
+      0.08775,
+      0.09075,
+      0.07575,
+      0.0835,
+      0.08675,
+      0.089,
+      0.083,
+      0.0885
+     ],
+     "mean": 0.08562499999999999,
+     "delta_mean": 0.027249999999999996,
+     "delta_range": [
+      0.0175,
+      0.039999999999999994
+     ]
+    }
+   },
+   "seat_happiness": {
+    "Miso": {
+     "per_seed": [
+      80.28578456878662,
+      79.21347298240661,
+      79.95833536052704,
+      81.47508825206756,
+      82.54362474060059,
+      80.59946370220185,
+      77.52608696365357,
+      80.73942075347901
+     ],
+     "mean": 80.29265966546535,
+     "delta_mean": -2.6200333900451636,
+     "delta_range": [
+      -5.141316931724546,
+      -0.6202930612564046
+     ]
+    },
+    "Biscuit": {
+     "per_seed": [
+      82.0619101896286,
+      81.5552459897995,
+      82.12354448223114,
+      82.37211448574067,
+      83.56981660461426,
+      83.65182846069337,
+      81.4841646232605,
+      83.36638083267212
+     ],
+     "mean": 82.52312570858003,
+     "delta_mean": -0.21274902951716967,
+     "delta_range": [
+      -1.2866670494079528,
+      0.9536136903762866
+     ]
+    },
+    "Pumpkin": {
+     "per_seed": [
+      82.92420291996002,
+      80.26193911743164,
+      82.47953444385529,
+      83.38422019386292,
+      83.57067378807068,
+      83.43864026546478,
+      79.54086069488525,
+      83.3035710220337
+     ],
+     "mean": 82.36295530569554,
+     "delta_mean": 0.004685129165649116,
+     "delta_range": [
+      -2.463097457885752,
+      1.5079035692214973
+     ]
+    },
+    "Kittybear": {
+     "per_seed": [
+      83.20019730186462,
+      81.89155715179443,
+      81.93675856399535,
+      82.8290906419754,
+      83.92187873649597,
+      84.26828177642822,
+      80.59723524570465,
+      83.98861738204955
+     ],
+     "mean": 82.82920210003853,
+     "delta_mean": -0.46271585369110113,
+     "delta_range": [
+      -2.713347978591912,
+      1.820087864875802
+     ]
+    },
+    "Clementine": {
+     "per_seed": [
+      82.37103495311737,
+      79.28472247028351,
+      80.02798070335388,
+      83.08001735687256,
+      83.45110059547424,
+      83.18466555976867,
+      79.6312475824356,
+      81.69384665489197
+     ],
+     "mean": 81.59057698452473,
+     "delta_mean": 0.37375094330310965,
+     "delta_range": [
+      -1.758174089431762,
+      2.9334715576171817
+     ]
+    }
+   }
+  }
+ }
+}
