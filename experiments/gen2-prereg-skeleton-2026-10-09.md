@@ -210,9 +210,18 @@ rulings nor answers to blanks until she rules. Rulings sources:
 - [RULED shelf] New corpus ⇒ the here-word density pins (F-034
   cliff 5.6–8.2%, A1b) are re-checked.
 - [BLANK] Teacher dial ranges per trait draw (need-rate multiplier
-  bounds, comfort slack range, consent-line range, favourite
-  vectors), and the empty-bowl early end's spec-006 amendment
-  (own spec, every cat — ruled IN S§6) landing BEFORE collection.
+  bounds, comfort slack range, consent-line range), and the
+  empty-bowl early end's spec-006 amendment (own spec, every cat —
+  ruled IN S§6) landing BEFORE collection. Favourite vectors are OUT
+  of this blank: TABLED to Gen 3 (owner 2026-10-17 verbatim: "Ok,
+  let's table it, and add a note to our gen 3 plan to rerun the
+  sweep after we implement stratified needs" —
+  gen3-roadmap-inputs-2026-10-04.md Addendum 2026-10-17; obs cells
+  38-43 ride all-zero in Gen 2, declared inert at the freeze). NOTE:
+  this supersedes the S§4 "trait expressed as favourite weighting"
+  rider above — Biscuit's groom response still lands via the
+  one-teacher preset; the favourite-weighting expression route waits
+  for Gen 3. Flagged to the owner at tabling.
 - [RULED, owner 2026-10-10 in-session: "revive"] Want-law memory
   reach: REVIVED. Pin: `relief_memory_margin = 0` in the Gen 2
   world toml — spec 050's shipped knob (config/mod.rs §MeowConfig),

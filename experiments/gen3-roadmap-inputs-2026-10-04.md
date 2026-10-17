@@ -61,3 +61,28 @@ verbatim, so register citations to the set are checkable.
   emergent), threshold ladder; open her-call flagged deliberately:
   caching/burying enables deception — measure or rule
   out-of-scope.
+
+## Addendum 2026-10-17: favourites TABLED to Gen 3
+
+Owner, verbatim (Experiments session, 2026-10-17): "Ok, let's table
+it, and add a note to our gen 3 plan to rerun the sweep after we
+implement stratified needs." Context: the favourite-weight screen
+(experiments/gen2-dial-screens-2026-10-17/RESULTS.md, 047d32e9)
+showed flat-stack favourites are legibility-confounded (a play
+favourite on Biscuit is invisible against his 0.8 play rise) and
+welfare seat-concentrated; the engine docs already carried favourites
+as interim "until Gen 3's enjoyment economy" (config/mod.rs §FavouriteWeights).
+
+Gen 3 obligations this adds:
+
+- Favourite behavior lands WITH (or after) the stratified need stack
+  (three tiers: drink/eat/sleep; cuddle/bath; play), not before.
+- RERUN the favourite-weight sweep on the stratified stack before any
+  Gen 3 favourite draw ranges are set: the rig is
+  experiments/gen2-dial-screens-2026-10-17/screen_dials.py
+  (--dial favourite) + read_screen.py --fav; the 2026-10-17 numbers
+  (identifiability floor between 0.25 and 0.5, cuddle/bath/sleep
+  dose-response, seat-concentrated welfare cost) do NOT transfer —
+  only the lesson shape does.
+- Gen 2 consequence: obs cells 38-43 (favourite weights) ride
+  all-zero; declare them inert at the freeze the dirt-reserve way.

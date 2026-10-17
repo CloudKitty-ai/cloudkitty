@@ -185,6 +185,12 @@ Four reads:
    Roster-wide play share stays flat (0.110–0.114): favourites do not
    collapse the played-demonstration corpus the way slack does.
 
+**Outcome** (owner 2026-10-17, verbatim): "Ok, let's table it, and
+add a note to our gen 3 plan to rerun the sweep after we implement
+stratified needs." Favourites are OUT of the Gen 2 dial draws; the
+rerun obligation is recorded in
+`gen3-roadmap-inputs-2026-10-04.md` (Addendum 2026-10-17).
+
 ## Verification
 
 Reader suite: 10 plain-assert tests on a real captured fixture trace
