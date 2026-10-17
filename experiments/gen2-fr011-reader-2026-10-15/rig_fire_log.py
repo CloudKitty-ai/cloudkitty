@@ -10,10 +10,14 @@ never hand-written lines (rule 5).
 
 One run per mode:
 
-    python rig_fire_log.py observe   # INFO  "stuck fire (observe-only)"
-    python rig_fire_log.py enforce   # WARN  "stuck fire"
+    python rig_fire_log.py observe [suffix]   # INFO  "stuck fire (observe-only)"
+    python rig_fire_log.py enforce [suffix]   # WARN  "stuck fire"
 
-Output: results-raw/serving-<mode>.log (ANSI as the server emits it).
+Output: results-raw/serving-<mode><suffix>.log (ANSI as the server
+emits it). The optional suffix keeps a re-capture from overwriting the
+recorded originals the test suite's literals were derived from — the
+pre-change (unquoted-name) logs are serving-{enforce,observe}.log; the
+post-#451 (quoted-Debug name) capture is serving-enforce-v2.log.
 A served run is wall-clock-coupled (plugin budget, tick scheduling), so
 a re-run reproduces the SHAPE of the log, not its bytes — the fixture
 logs in results-raw/ are the recorded originals the test suite reads.
@@ -73,7 +77,8 @@ recent_fires = 256
 def main() -> None:
     mode = sys.argv[1]
     assert mode in ("observe", "enforce"), mode
-    out = HERE / "results-raw" / f"serving-{mode}.log"
+    suffix = sys.argv[2] if len(sys.argv) > 2 else ""
+    out = HERE / "results-raw" / f"serving-{mode}{suffix}.log"
     with tempfile.TemporaryDirectory() as td:
         snapshot = Path(td) / "rig-snapshot.json"
         config = Path(td) / f"fire-rig-{mode}.toml"
@@ -89,7 +94,8 @@ def main() -> None:
                 time.sleep(RUN_SECONDS)
                 stuck = urllib.request.urlopen(
                     f"http://127.0.0.1:{PORT}/stuck", timeout=5).read()
-                (HERE / "results-raw" / f"stuck-{mode}.json").write_bytes(stuck)
+                (HERE / "results-raw" /
+                 f"stuck-{mode}{suffix}.json").write_bytes(stuck)
             finally:
                 proc.send_signal(signal.SIGTERM)
                 proc.wait(timeout=30)

@@ -155,16 +155,38 @@ def test_doubled_log_flags_nonmonotonic_and_doubles_counts():
     assert r["logs"]["d"]["ticks_nonmonotonic"]
 
 
-# The quoted-Debug name shape (spaced kitty names). Source: a REAL
-# captured line relayed verbatim by Product 2026-10-15 (their rendering
-# change in flight; the corrected contract §3 says readers handle both
-# shapes). Re-pin from our own rig capture once their change merges.
+# The quoted-Debug name shape landed in #451 (0c40d8bb, 2026-10-16);
+# ENFORCE_V2 below is our OWN rig capture on that binary (278 fires,
+# grep-derived). This relayed line (Product's real capture, 2026-10-15)
+# stays as the SPACED-name case — the shape #451 exists for, which our
+# single-word roster cannot produce.
 QUOTED_NAME_LINE = (
     'WARN cloudkitty_server::stuck: stuck fire kitty=2 name="Mr Whiskers" '
     "tick=4412 mode=\"enforce\" window=30 anchor_x=4 anchor_y=7 "
     "confined_span=31 armed_need=Eat need_value=83.19999694824219 "
     "proposal_replaced=Sleep { with: Some(3) } replaced_message=WantEat "
     "substitute=Move { direction: East } substitute_message=")
+
+
+ENFORCE_V2 = HERE / "results-raw/serving-enforce-v2.log"
+# Independent literals (grep/sed on the raw v2 bytes, 2026-10-16):
+V2_FIRES, V2_FIRST_TICK, V2_LAST_TICK = 278, 27, 1981
+
+
+def test_post_451_capture_parses_with_the_quoted_name():
+    # Our own rig capture on the #451 binary: name arrives quoted
+    # (name="Miso") and must come out unescaped; everything else kept
+    # its pre-change shape, so the one summarize matters to both eras.
+    raw = ENFORCE_V2.read_text()
+    assert ' name="Miso" ' in ANSI.sub("", raw.split("stuck fire", 1)[1][:300])
+    r = run(f"v2={ENFORCE_V2}")
+    s = r["logs"]["v2"]
+    assert s["fires"] == {"total": V2_FIRES, "enforce": V2_FIRES,
+                          "observe": 0}, s["fires"]
+    k = s["per_kitty"]["1"]
+    assert k["name"] == "Miso", k["name"]
+    ticks = k["enforce_fire_ticks"]
+    assert ticks[0] == V2_FIRST_TICK and ticks[-1] == V2_LAST_TICK
 
 
 def test_quoted_debug_name_shape_parses_and_unescapes():
