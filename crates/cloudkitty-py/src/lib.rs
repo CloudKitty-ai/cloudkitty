@@ -917,6 +917,14 @@ fn cloudkitty(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
         "GLOBAL_STATE_SCHEMA_VERSION",
         cloudkitty_rl::global_state::GLOBAL_STATE_SCHEMA_VERSION,
     )?;
+    // The engine build's identity (owner 2026-10-16): the workspace git
+    // commit this binding was compiled from, `-dirty` when the build tree
+    // had uncommitted changes, "unknown" when git was unavailable. The
+    // cert harnesses have stamped `binding_engine` via
+    // `getattr(cloudkitty, "ENGINE_COMMIT", None)` since birth; this makes
+    // that stamp real. Refreshed by rebuilding (see build.rs) — the lab's
+    // rebind discipline already owns binding staleness.
+    m.add("ENGINE_COMMIT", env!("CLOUDKITTY_ENGINE_COMMIT"))?;
     // Spec 058 FR-015: the schema-version-keyed column maps, so no
     // downstream reader hardcodes an index a bump silently moves.
     // COLUMN_MAPS[version] holds "cells" (self.* and clock absolute;
