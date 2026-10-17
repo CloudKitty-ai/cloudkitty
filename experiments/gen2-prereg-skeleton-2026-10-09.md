@@ -218,8 +218,13 @@ rulings nor answers to blanks until she rules. Rulings sources:
   slack-1 default question was dissolved by the 24-seed check,
   01f76b42); consent RULED (base 0 gate-off; enrichment episodes draw
   PER-EPISODE uniform [20, 25], "20-25 it is"; deployed/PPO-episode
-  line deferrable to the three-leg readout). STILL BLANK: need-rate
-  draw shape, mix shares (majority M, enrichment E, rollout count).
+  line deferrable to the three-leg readout). Draw shape + mix RULED
+  same day ("2,3 as recommended"): need-rate log-uniform [0.5, 2],
+  K = 3-of-6 (undrawn needs exactly 1.0); mix M = 0.6 served /
+  E = 0.12 enrichment / 0.28 trait-draw; 100 rollouts full, 30 pilot
+  (gen2-consent-design-2026-10-17.md). Slack 2-5 re-price at base
+  consent 0 running at her word; §4's dial set then COMPLETE pending
+  that read.
   Also here: the empty-bowl early end's spec-006 amendment (own spec,
   every cat — ruled IN S§6) landing BEFORE collection. Favourite vectors are OUT
   of this blank: TABLED to Gen 3 (owner 2026-10-17 verbatim: "Ok,
