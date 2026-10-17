@@ -97,7 +97,11 @@ BANDS = {"eval": 870_001, "stress": 880_001, "probe": 40_001, "rep1": 890_001, "
          # fog-deafening-2026-09-23: 4 arms x the SAME 30 seeds (paired by design)
          "deaf": 900_101,
          # world-size-screen-2026-09-24: the size x density grid, paired within config
-         "wsize": 900_201}
+         "wsize": 900_201,
+         # gen2-comparator-legs: skeleton §7, 30 x 20k at 20/40/100 (owner
+         # launched 2026-10-17); starts drawn per seed by the engine
+         # ([starts] in the g2leg configs, draw-law v1)
+         "g2cmp": 905_001}
 
 
 def load_model(spec):

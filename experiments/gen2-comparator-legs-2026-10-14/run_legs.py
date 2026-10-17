@@ -12,14 +12,14 @@ asymmetric, never auto-continued.
 The driver orchestrates cert_harness_fog.py (which keys its state
 stride off the live binding, 2026-10-14) and decides nothing the
 sitting owns: band, seeds, ticks and the three config paths are
-inputs. The Gen 2 size configs do not exist yet — they land with the
-§2 toml diff at freeze prep. Starts: PER-SEED randomized (owner
-ruled 2026-10-15, skeleton §7; that the legs draw under the
-collection share law is Experiments' design) — this driver does
-not implement that yet; Experiments recommends it lands
-engine-native (a Product spec), with per-seed derived configs
-extending collect_corpus's approach only as the interim until the
-engine mechanism ships. Never reuse world-size-screen's
+inputs. The Gen 2 size configs are g2leg-{20,40,100}.toml beside this
+driver (derive_leg_configs.py, freeze sitting 2026-10-17). Starts:
+PER-SEED randomized (owner ruled 2026-10-15, skeleton §7) — landed
+ENGINE-NATIVE as spec 062: the g2leg configs carry [starts]
+edge_ring_share 0.25 / corner_share 0.05 with kitty x/y removed, so
+the engine draws per world seed (draw-law v1) and a trained leg on
+seed s reproduces the comparator's starts by construction; this
+driver needs no per-seed derived configs. Never reuse world-size-screen's
 size100.toml starts (the 20x20 layout clusters all five cats in one
 corner).
 
