@@ -221,7 +221,15 @@ rulings nor answers to blanks until she rules. Rulings sources:
   this supersedes the S§4 "trait expressed as favourite weighting"
   rider above — Biscuit's groom response still lands via the
   one-teacher preset; the favourite-weighting expression route waits
-  for Gen 3. Flagged to the owner at tabling.
+  for Gen 3. RULED at the flag (owner 2026-10-17, verbatim): "Re:
+  Biscuit, I decided her lack of groom other was not a core
+  behavioral trait. We saw in our screen that the favorite weighting
+  didn't impact her behavior at present, which is worth noting. When
+  we run the screen for gen 3 we can reevaluate." Screen scope note:
+  the favourite screened ON Biscuit was PLAY (the trait-sheet
+  stand-in), and that one was invisible against her 0.8 play rise; a
+  groom/bath favourite on her seat was never screened — the Gen 3
+  rerun covers the reevaluation.
 - [RULED, owner 2026-10-10 in-session: "revive"] Want-law memory
   reach: REVIVED. Pin: `relief_memory_margin = 0` in the Gen 2
   world toml — spec 050's shipped knob (config/mod.rs §MeowConfig),
