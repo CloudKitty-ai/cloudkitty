@@ -25,6 +25,22 @@
 //! label_msg_proposed.npy (N u16) is the PROPOSED message under the same
 //! codec (fog-gen1-cert, 2026-09-13): the tick may downgrade a proposal to
 //! Silent at apply, and meta's msg_downgraded counts those rows.
+//! label_proposed.npy (N u16) is the activity half's mirror (Experiments'
+//! relayed ask, 2026-10-17; their call e1b3e095): the PROPOSED action under
+//! the same codec, so a propose-then-refuse exchange is visible in the
+//! corpus instead of landing as the applied fallback alone. Rows exist only
+//! where the APPLIED action was expressible and clean, so a proposed action
+//! the codec cannot express falls back to the applied label and is counted
+//! (meta proposed_inexpressible) — a divergent row (label_proposed !=
+//! label, counted as meta action_downgraded) is therefore always a real,
+//! expressible disagreement. Unlike label.npy, label_proposed rows are NOT
+//! mask-guaranteed: a proposal the tick rewrote is often exactly the
+//! mask-illegal one (~3% of rows on the Gen 2 draft world), so a consumer
+//! training this column under a masked softmax must handle
+//! mask[i][label_proposed[i]] == 0 — the activity-half mirror of the
+//! message half's over-emitting caveat above. Applied labels and the
+//! consume rule are untouched: which column trains is Experiments' prereg
+//! call.
 //!
 //! Output: one directory per rollout with obs.npy (N x obs_width f32),
 //! mask.npy (N x mask_width u8), label.npy (N u16), mask_msg.npy
@@ -262,8 +278,12 @@ fn main() {
             // against applied labels. The want bar reads this file;
             // training labels stay applied. Same codec, WaitForMe -> 0.
             let mut label_msg_proposed_buf: Vec<u16> = Vec::new();
+            // The PROPOSED action beside the applied one (header doc).
+            let mut label_proposed_buf: Vec<u16> = Vec::new();
             let mut msg_downgraded = 0u64;
             let mut msg_inexpressible = 0u64;
+            let mut action_downgraded = 0u64;
+            let mut proposed_inexpressible = 0u64;
             let mut msg_mask_mismatch = 0u64;
             let mut kitty_buf: Vec<u32> = Vec::new();
             let mut tick_buf: Vec<u32> = Vec::new();
@@ -386,12 +406,28 @@ fn main() {
                     if msg_proposed != msg_label {
                         msg_downgraded += 1;
                     }
+                    // The proposed ACTION (header doc): inexpressible falls
+                    // back to the applied label — 0 is head 0, not Idle, so
+                    // the message half's unwrap_or(0) would mislabel here.
+                    let proposed = match codec.encode(&rec.proposed, &obs.table) {
+                        Some(i) => {
+                            if i != label {
+                                action_downgraded += 1;
+                            }
+                            i
+                        }
+                        None => {
+                            proposed_inexpressible += 1;
+                            label
+                        }
+                    };
                     obs_buf.extend_from_slice(&obs.values);
                     mask_buf.extend(mask.iter().map(|&b| b as u8));
                     label_buf.push(label as u16);
                     mask_msg_buf.extend(msg_mask.iter().map(|&b| b as u8));
                     label_msg_buf.push(msg_label as u16);
                     label_msg_proposed_buf.push(msg_proposed as u16);
+                    label_proposed_buf.push(proposed as u16);
                     kitty_buf.push(id);
                     tick_buf.push(tick as u32);
                 }
@@ -415,6 +451,7 @@ fn main() {
                 &label_msg_proposed_buf,
                 &[n],
             );
+            write_npy_u16(&dir.join("label_proposed.npy"), &label_proposed_buf, &[n]);
             write_npy_u32(&dir.join("kitty.npy"), &kitty_buf, &[n]);
             write_npy_u32(&dir.join("tick.npy"), &tick_buf, &[n]);
             write_npy_f32(&dir.join("reward.npy"), &reward_buf, &[reward_buf.len()]);
@@ -499,7 +536,7 @@ fn main() {
                 String::new()
             };
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"engine_commit\": \"{}\",\n  \"starts_law_version\": {},{starts_field}\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"engine_commit\": \"{}\",\n  \"starts_law_version\": {},{starts_field}\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"action_downgraded\": {action_downgraded},\n  \"proposed_inexpressible\": {proposed_inexpressible},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 env!("CLOUDKITTY_ENGINE_COMMIT"),
                 cloudkitty_core::starts::STARTS_LAW_VERSION,
@@ -518,7 +555,7 @@ fn main() {
             total_dropped += dropped;
             total_mask_mismatch += mask_mismatch + msg_mask_mismatch;
             eprintln!(
-                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible, {msg_downgraded} msg-downgraded"
+                "config {ci:02} rollout {r:02} (seed {world_seed}): {n} decisions, {dropped} dropped, {mask_mismatch} mask-mismatch, {msg_mask_mismatch} msg-mask-mismatch, {msg_inexpressible} msg-inexpressible, {msg_downgraded} msg-downgraded, {action_downgraded} action-downgraded, {proposed_inexpressible} proposed-inexpressible"
             );
         }
     }
