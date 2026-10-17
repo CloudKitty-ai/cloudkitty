@@ -1088,8 +1088,8 @@ mod tests {
         .map(|&(id, x, y)| cloudkitty_core::config::KittyConfig {
             id,
             name: format!("K{id}"),
-            x,
-            y,
+            x: Some(x),
+            y: Some(y),
             behavior: "needs_driven".into(),
             needs: None,
             comfort_slack: None,

@@ -52,8 +52,8 @@ fn build_config(
             id: i as u32 + 1,
             name: format!("Kitty{}", i + 1),
             // Unique, in-bounds starting tiles.
-            x: (i as u32) % width,
-            y: (i as u32) / width,
+            x: Some((i as u32) % width),
+            y: Some((i as u32) / width),
             behavior: names[pick % names.len()].to_string(),
             needs: None,
             comfort_slack: None,

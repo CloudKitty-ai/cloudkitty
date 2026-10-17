@@ -473,9 +473,36 @@ fn main() {
                     format!("\"{}\": \"{resolved}\"", k.id)
                 })
                 .collect();
+            // Spec 062 (FR-009/010/012): the engine identity and draw-law
+            // version on every run; the per-kitty draw echo when [starts]
+            // is on — the SAME pure `starts::draw` the world build used,
+            // kitty-id ascending (contracts/provenance.md). Knob off, the
+            // "starts" key is absent and the meta stays shaped as before
+            // plus the two identity fields.
+            let starts_field = if config.starts.is_some() {
+                let echo: Vec<String> = cloudkitty_core::starts::draw(&config)
+                    .expect("the world built from this config, so the draw succeeds")
+                    .iter()
+                    .map(|s| {
+                        format!(
+                            "{{\"kitty\": {}, \"x\": {}, \"y\": {}, \"category\": \"{}\", \"drawn\": {}}}",
+                            s.kitty,
+                            s.position.x,
+                            s.position.y,
+                            s.category.as_str(),
+                            s.drawn
+                        )
+                    })
+                    .collect();
+                format!("\n  \"starts\": [{}],", echo.join(", "))
+            } else {
+                String::new()
+            };
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"engine_commit\": \"{}\",\n  \"starts_law_version\": {},{starts_field}\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
+                env!("CLOUDKITTY_ENGINE_COMMIT"),
+                cloudkitty_core::starts::STARTS_LAW_VERSION,
                 args.ticks,
                 dropped_json.join(", "),
                 rl.episode.horizon,
