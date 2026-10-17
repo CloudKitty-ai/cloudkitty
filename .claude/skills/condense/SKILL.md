@@ -77,7 +77,11 @@ recoverability by following the new text's pointers, and a worktree
 may be missing what they lead to). It gets the OLD document body and
 the NEW document body — fixture or scaffolding comments stripped —
 and the never-cut list above; never this skill's fixture answer key,
-never the session's reasons for each cut. It lists every fact in the
+never the session's reasons for each cut. Pointer targets that are
+NEW on the branch are handed to it explicitly — a checker that
+cannot reach a target excuses the loss instead of flagging it (the
+2026-09-28 round-2 trap: four qualifiers excused via files the
+checker could not see). It lists every fact in the
 old text not recoverable from the new text plus the files the new
 text points to, each with the old sentence quoted. The pass is clean
 only when that list is empty; anything on it goes back into the file
@@ -116,8 +120,10 @@ The landing order:
 2. Run the fact-loss check (above); a loss means amending commit 1
    and re-checking.
 3. Open the PR (tier 1: take the diff to the owner first).
-4. Commit the log line — append to `.claude/CONDENSE-LOG.md`
-   `## Passes`: `- YYYY-MM-DD <blob> <file>: <what came out, one
+4. Commit the log line — INSERT under `.claude/CONDENSE-LOG.md`
+   `## Passes` (never `>>`-append at file end: that lands the line
+   under `## Frozen`, which sits last — the 2026-09-28 bug, caught
+   twice): `- YYYY-MM-DD <blob> <file>: <what came out, one
    clause> (PR #N)`, where `<blob>` is `git rev-parse HEAD:<file>`
    run after commit 1. A blob hash names the condensed CONTENT, so
    it survives any merge style — squash, rebase, the UI button —
@@ -135,7 +141,9 @@ the tier reads from the new base.
 
 A skill's `TRIALS.md` is shakeout evidence, not a permanent ledger
 (owner ruled 2026-09-25). While a skill is in shakeout, its TRIALS
-appends one section per run and is unmetered. Shakeout closes on the
+appends one section per run and is unmetered. Write the section at
+the final diff, never mid-run — a mid-pass record goes stale by
+landing (the 2026-09-28 lesson). Shakeout closes on the
 owner's word per skill — the suggested trigger is three consecutive
 real runs needing no skill edit — with a backstop date on the file's
 header so it cannot drift. At close, Harness runs the close-out:
