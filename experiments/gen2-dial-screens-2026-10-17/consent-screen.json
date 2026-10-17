@@ -1,0 +1,490 @@
+{
+ "anchor": 30,
+ "values": {
+  "0": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 83.2441233701706,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13145,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.46307402877808,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13245,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.13361269836426,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13585,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.23341702632904,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13285,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.1183112323761,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1363,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 82.77895966472626,
+     "distress_ticks": 5,
+     "max_distress_streak": 5,
+     "play_share": 0.12825,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.06026868419647,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1329,
+     "consent_refusals": 0
+    },
+    {
+     "mean_happiness": 83.10936700687408,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1396,
+     "consent_refusals": 0
+    }
+   ],
+   "mean": {
+    "mean_happiness": 83.14264171397686,
+    "distress_ticks": 0.625,
+    "max_distress_streak": 0.625,
+    "play_share": 0.13370625,
+    "consent_refusals": 0.0
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.639525320959093,
+    "distress_ticks": -18.625,
+    "max_distress_streak": -17.375,
+    "play_share": 0.0217875,
+    "consent_refusals": -456.375
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     0.3727521905899067,
+     1.1706367021560737
+    ],
+    "distress_ticks": [
+     -87,
+     0
+    ],
+    "max_distress_streak": [
+     -86,
+     0
+    ],
+    "play_share": [
+     0.013899999999999996,
+     0.026899999999999993
+    ],
+    "consent_refusals": [
+     -573,
+     -356
+    ]
+   }
+  },
+  "10": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 81.89772480545044,
+     "distress_ticks": 9,
+     "max_distress_streak": 9,
+     "play_share": 0.07005,
+     "consent_refusals": 2257
+    },
+    {
+     "mean_happiness": 77.67888052444458,
+     "distress_ticks": 1068,
+     "max_distress_streak": 450,
+     "play_share": 0.06285,
+     "consent_refusals": 3289
+    },
+    {
+     "mean_happiness": 81.9772908794403,
+     "distress_ticks": 93,
+     "max_distress_streak": 82,
+     "play_share": 0.07515,
+     "consent_refusals": 2106
+    },
+    {
+     "mean_happiness": 79.75251643962861,
+     "distress_ticks": 117,
+     "max_distress_streak": 47,
+     "play_share": 0.062,
+     "consent_refusals": 2618
+    },
+    {
+     "mean_happiness": 71.0859886259079,
+     "distress_ticks": 3481,
+     "max_distress_streak": 961,
+     "play_share": 0.0636,
+     "consent_refusals": 4709
+    },
+    {
+     "mean_happiness": 71.68282822322846,
+     "distress_ticks": 3140,
+     "max_distress_streak": 565,
+     "play_share": 0.055,
+     "consent_refusals": 5186
+    },
+    {
+     "mean_happiness": 76.93846898612976,
+     "distress_ticks": 1325,
+     "max_distress_streak": 347,
+     "play_share": 0.0611,
+     "consent_refusals": 3226
+    },
+    {
+     "mean_happiness": 70.24476911144257,
+     "distress_ticks": 3446,
+     "max_distress_streak": 601,
+     "play_share": 0.04825,
+     "consent_refusals": 4913
+    }
+   ],
+   "mean": {
+    "mean_happiness": 76.40730844945908,
+    "distress_ticks": 1584.875,
+    "max_distress_streak": 382.75,
+    "play_share": 0.06225,
+    "consent_refusals": 3538.0
+   },
+   "paired_delta_mean": {
+    "mean_happiness": -6.095807943558691,
+    "distress_ticks": 1565.625,
+    "max_distress_streak": 364.75,
+    "play_share": -0.04966875,
+    "consent_refusals": 3081.625
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -12.116990346145627,
+     -0.750233158493046
+    ],
+    "distress_ticks": [
+     9,
+     3446
+    ],
+    "max_distress_streak": [
+     9,
+     920
+    ],
+    "play_share": [
+     -0.06525,
+     -0.03745
+    ],
+    "consent_refusals": [
+     1681,
+     4830
+    ]
+   }
+  },
+  "15": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 77.59443940029145,
+     "distress_ticks": 1008,
+     "max_distress_streak": 234,
+     "play_share": 0.06295,
+     "consent_refusals": 2955
+    },
+    {
+     "mean_happiness": 78.2359426902771,
+     "distress_ticks": 960,
+     "max_distress_streak": 273,
+     "play_share": 0.06445,
+     "consent_refusals": 2659
+    },
+    {
+     "mean_happiness": 78.07210264015198,
+     "distress_ticks": 892,
+     "max_distress_streak": 268,
+     "play_share": 0.0625,
+     "consent_refusals": 3106
+    },
+    {
+     "mean_happiness": 82.38122831382752,
+     "distress_ticks": 20,
+     "max_distress_streak": 20,
+     "play_share": 0.08235,
+     "consent_refusals": 1624
+    },
+    {
+     "mean_happiness": 71.76309282512665,
+     "distress_ticks": 2748,
+     "max_distress_streak": 845,
+     "play_share": 0.04715,
+     "consent_refusals": 4286
+    },
+    {
+     "mean_happiness": 79.58382278347015,
+     "distress_ticks": 402,
+     "max_distress_streak": 139,
+     "play_share": 0.0683,
+     "consent_refusals": 2570
+    },
+    {
+     "mean_happiness": 81.45470231380463,
+     "distress_ticks": 42,
+     "max_distress_streak": 17,
+     "play_share": 0.0748,
+     "consent_refusals": 2367
+    },
+    {
+     "mean_happiness": 75.44065938892365,
+     "distress_ticks": 1797,
+     "max_distress_streak": 435,
+     "play_share": 0.06445,
+     "consent_refusals": 3838
+    }
+   ],
+   "mean": {
+    "mean_happiness": 78.06574879448414,
+    "distress_ticks": 983.625,
+    "max_distress_streak": 278.875,
+    "play_share": 0.06586875,
+    "consent_refusals": 2925.625
+   },
+   "paired_delta_mean": {
+    "mean_happiness": -4.437367598533626,
+    "distress_ticks": 964.375,
+    "max_distress_streak": 260.875,
+    "play_share": -0.04605,
+    "consent_refusals": 2469.25
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -10.639872475624088,
+     -0.4366930473327528
+    ],
+    "distress_ticks": [
+     20,
+     2702
+    ],
+    "max_distress_streak": [
+     17,
+     804
+    ],
+    "play_share": [
+     -0.06255000000000001,
+     -0.03119999999999999
+    ],
+    "consent_refusals": [
+     1221,
+     3781
+    ]
+   }
+  },
+  "20": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 79.12930096073151,
+     "distress_ticks": 850,
+     "max_distress_streak": 349,
+     "play_share": 0.07365,
+     "consent_refusals": 2739
+    },
+    {
+     "mean_happiness": 81.49355318260193,
+     "distress_ticks": 8,
+     "max_distress_streak": 6,
+     "play_share": 0.0806,
+     "consent_refusals": 1874
+    },
+    {
+     "mean_happiness": 79.95244673252105,
+     "distress_ticks": 386,
+     "max_distress_streak": 176,
+     "play_share": 0.06515,
+     "consent_refusals": 2385
+    },
+    {
+     "mean_happiness": 79.24830905647278,
+     "distress_ticks": 745,
+     "max_distress_streak": 264,
+     "play_share": 0.07075,
+     "consent_refusals": 2761
+    },
+    {
+     "mean_happiness": 82.15441034698486,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0864,
+     "consent_refusals": 1419
+    },
+    {
+     "mean_happiness": 79.81959228839874,
+     "distress_ticks": 126,
+     "max_distress_streak": 102,
+     "play_share": 0.0721,
+     "consent_refusals": 2418
+    },
+    {
+     "mean_happiness": 81.53961224975586,
+     "distress_ticks": 128,
+     "max_distress_streak": 77,
+     "play_share": 0.07935,
+     "consent_refusals": 1731
+    },
+    {
+     "mean_happiness": 80.77522918510437,
+     "distress_ticks": 370,
+     "max_distress_streak": 191,
+     "play_share": 0.0878,
+     "consent_refusals": 2014
+    }
+   ],
+   "mean": {
+    "mean_happiness": 80.51405675032139,
+    "distress_ticks": 326.625,
+    "max_distress_streak": 145.625,
+    "play_share": 0.076975,
+    "consent_refusals": 2167.625
+   },
+   "paired_delta_mean": {
+    "mean_happiness": -1.9890596426963807,
+    "distress_ticks": 307.375,
+    "max_distress_streak": 127.625,
+    "play_share": -0.03494375,
+    "consent_refusals": 1711.25
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -3.569612304687496,
+     -0.24855495376587555
+    ],
+    "distress_ticks": [
+     -79,
+     850
+    ],
+    "max_distress_streak": [
+     -80,
+     349
+    ],
+    "play_share": [
+     -0.04915,
+     -0.0233
+    ],
+    "consent_refusals": [
+     914,
+     2358
+    ]
+   }
+  },
+  "30": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 82.64795796394348,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1075,
+     "consent_refusals": 518
+    },
+    {
+     "mean_happiness": 82.29243732662201,
+     "distress_ticks": 87,
+     "max_distress_streak": 86,
+     "play_share": 0.11565,
+     "consent_refusals": 573
+    },
+    {
+     "mean_happiness": 82.76086050777435,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1143,
+     "consent_refusals": 425
+    },
+    {
+     "mean_happiness": 82.81792136116027,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11895,
+     "consent_refusals": 403
+    },
+    {
+     "mean_happiness": 82.40296530075074,
+     "distress_ticks": 46,
+     "max_distress_streak": 41,
+     "play_share": 0.1097,
+     "consent_refusals": 505
+    },
+    {
+     "mean_happiness": 82.39941599311828,
+     "distress_ticks": 21,
+     "max_distress_streak": 17,
+     "play_share": 0.10975,
+     "consent_refusals": 356
+    },
+    {
+     "mean_happiness": 82.34161323318482,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.106,
+     "consent_refusals": 408
+    },
+    {
+     "mean_happiness": 82.36175945758819,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1135,
+     "consent_refusals": 463
+    }
+   ],
+   "mean": {
+    "mean_happiness": 82.50311639301776,
+    "distress_ticks": 19.25,
+    "max_distress_streak": 18.0,
+    "play_share": 0.11191875,
+    "consent_refusals": 456.375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.0,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.0,
+    "consent_refusals": 0.0
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     0.0,
+     0.0
+    ],
+    "distress_ticks": [
+     0,
+     0
+    ],
+    "max_distress_streak": [
+     0,
+     0
+    ],
+    "play_share": [
+     0.0,
+     0.0
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ]
+   }
+  }
+ }
+}
