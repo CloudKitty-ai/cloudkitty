@@ -9,56 +9,64 @@
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.1075,
-     "consent_refusals": 518
+     "consent_refusals": 518,
+     "partnered_play_share": 0.08399999999999999
     },
     {
      "mean_happiness": 82.29243732662201,
      "distress_ticks": 87,
      "max_distress_streak": 86,
      "play_share": 0.11565,
-     "consent_refusals": 573
+     "consent_refusals": 573,
+     "partnered_play_share": 0.0841
     },
     {
      "mean_happiness": 82.76086050777435,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.1143,
-     "consent_refusals": 425
+     "consent_refusals": 425,
+     "partnered_play_share": 0.0831
     },
     {
      "mean_happiness": 82.81792136116027,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.11895,
-     "consent_refusals": 403
+     "consent_refusals": 403,
+     "partnered_play_share": 0.098
     },
     {
      "mean_happiness": 82.40296530075074,
      "distress_ticks": 46,
      "max_distress_streak": 41,
      "play_share": 0.1097,
-     "consent_refusals": 505
+     "consent_refusals": 505,
+     "partnered_play_share": 0.0875
     },
     {
      "mean_happiness": 82.39941599311828,
      "distress_ticks": 21,
      "max_distress_streak": 17,
      "play_share": 0.10975,
-     "consent_refusals": 356
+     "consent_refusals": 356,
+     "partnered_play_share": 0.08375
     },
     {
      "mean_happiness": 82.34161323318482,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.106,
-     "consent_refusals": 408
+     "consent_refusals": 408,
+     "partnered_play_share": 0.0834
     },
     {
      "mean_happiness": 82.36175945758819,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.1135,
-     "consent_refusals": 463
+     "consent_refusals": 463,
+     "partnered_play_share": 0.0885
     }
    ],
    "mean": {
@@ -66,14 +74,16 @@
     "distress_ticks": 19.25,
     "max_distress_streak": 18.0,
     "play_share": 0.11191875,
-    "consent_refusals": 456.375
+    "consent_refusals": 456.375,
+    "partnered_play_share": 0.08654375
    },
    "paired_delta_mean": {
     "mean_happiness": 0.0,
     "distress_ticks": 0.0,
     "max_distress_streak": 0.0,
     "play_share": 0.0,
-    "consent_refusals": 0.0
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.0
    },
    "paired_delta_range": {
     "mean_happiness": [
@@ -95,6 +105,565 @@
     "consent_refusals": [
      0,
      0
+    ],
+    "partnered_play_share": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "1": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 83.08775504417419,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11665,
+     "consent_refusals": 441,
+     "partnered_play_share": 0.0884
+    },
+    {
+     "mean_happiness": 83.22001354694366,
+     "distress_ticks": 19,
+     "max_distress_streak": 19,
+     "play_share": 0.1207,
+     "consent_refusals": 464,
+     "partnered_play_share": 0.0931
+    },
+    {
+     "mean_happiness": 83.44412876663208,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11795,
+     "consent_refusals": 359,
+     "partnered_play_share": 0.08275
+    },
+    {
+     "mean_happiness": 82.76960687770844,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.11185,
+     "consent_refusals": 406,
+     "partnered_play_share": 0.0876
+    },
+    {
+     "mean_happiness": 82.56896954097748,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1072,
+     "consent_refusals": 315,
+     "partnered_play_share": 0.07875000000000001
+    },
+    {
+     "mean_happiness": 83.00425374889373,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1169,
+     "consent_refusals": 365,
+     "partnered_play_share": 0.08654999999999999
+    },
+    {
+     "mean_happiness": 82.3419357345581,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10595,
+     "consent_refusals": 408,
+     "partnered_play_share": 0.0834
+    },
+    {
+     "mean_happiness": 82.9727203994751,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1204,
+     "consent_refusals": 450,
+     "partnered_play_share": 0.09815
+    }
+   ],
+   "mean": {
+    "mean_happiness": 82.92617295742035,
+    "distress_ticks": 2.375,
+    "max_distress_streak": 2.375,
+    "play_share": 0.1147,
+    "consent_refusals": 401.0,
+    "partnered_play_share": 0.0873375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.42305656440257877,
+    "distress_ticks": -16.875,
+    "max_distress_streak": -15.625,
+    "play_share": 0.0027812500000000007,
+    "consent_refusals": -55.375,
+    "partnered_play_share": 0.0007937500000000045
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     -0.04831448345183276,
+     0.9275762203216544
+    ],
+    "distress_ticks": [
+     -68,
+     0
+    ],
+    "max_distress_streak": [
+     -67,
+     0
+    ],
+    "play_share": [
+     -0.007099999999999995,
+     0.009150000000000005
+    ],
+    "consent_refusals": [
+     -190,
+     9
+    ],
+    "partnered_play_share": [
+     -0.010400000000000006,
+     0.009650000000000006
+    ]
+   }
+  },
+  "2": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 84.60261723136902,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.08025,
+     "consent_refusals": 276,
+     "partnered_play_share": 0.05625
+    },
+    {
+     "mean_happiness": 84.99998670215606,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0809,
+     "consent_refusals": 240,
+     "partnered_play_share": 0.0581
+    },
+    {
+     "mean_happiness": 85.14420835266114,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0823,
+     "consent_refusals": 199,
+     "partnered_play_share": 0.06484999999999999
+    },
+    {
+     "mean_happiness": 84.92543371486664,
+     "distress_ticks": 6,
+     "max_distress_streak": 6,
+     "play_share": 0.082,
+     "consent_refusals": 225,
+     "partnered_play_share": 0.0605
+    },
+    {
+     "mean_happiness": 85.3122897359848,
+     "distress_ticks": 16,
+     "max_distress_streak": 16,
+     "play_share": 0.0853,
+     "consent_refusals": 415,
+     "partnered_play_share": 0.06615
+    },
+    {
+     "mean_happiness": 85.83242869606018,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.09055,
+     "consent_refusals": 243,
+     "partnered_play_share": 0.0633
+    },
+    {
+     "mean_happiness": 85.24112237377167,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.08525,
+     "consent_refusals": 225,
+     "partnered_play_share": 0.055200000000000006
+    },
+    {
+     "mean_happiness": 85.1556034992218,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.08565,
+     "consent_refusals": 238,
+     "partnered_play_share": 0.06584999999999999
+    }
+   ],
+   "mean": {
+    "mean_happiness": 85.15171128826141,
+    "distress_ticks": 2.75,
+    "max_distress_streak": 2.75,
+    "play_share": 0.084025,
+    "consent_refusals": 257.625,
+    "partnered_play_share": 0.061274999999999996
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 2.6485948952436473,
+    "distress_ticks": -16.5,
+    "max_distress_streak": -15.25,
+    "play_share": -0.02789375,
+    "consent_refusals": -198.75,
+    "partnered_play_share": -0.02526875
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     1.9546592674255407,
+     3.4330127029418946
+    ],
+    "distress_ticks": [
+     -87,
+     6
+    ],
+    "max_distress_streak": [
+     -86,
+     6
+    ],
+    "play_share": [
+     -0.03695,
+     -0.019199999999999995
+    ],
+    "consent_refusals": [
+     -333,
+     -90
+    ],
+    "partnered_play_share": [
+     -0.037500000000000006,
+     -0.018250000000000002
+    ]
+   }
+  },
+  "3": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 86.15811189155579,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.07105,
+     "consent_refusals": 180,
+     "partnered_play_share": 0.04985
+    },
+    {
+     "mean_happiness": 86.45766755504609,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0731,
+     "consent_refusals": 206,
+     "partnered_play_share": 0.0531
+    },
+    {
+     "mean_happiness": 85.96711245212555,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.06905,
+     "consent_refusals": 161,
+     "partnered_play_share": 0.04655
+    },
+    {
+     "mean_happiness": 86.06414801578522,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.07035,
+     "consent_refusals": 236,
+     "partnered_play_share": 0.05155
+    },
+    {
+     "mean_happiness": 85.14031472415924,
+     "distress_ticks": 4,
+     "max_distress_streak": 4,
+     "play_share": 0.0658,
+     "consent_refusals": 282,
+     "partnered_play_share": 0.04295
+    },
+    {
+     "mean_happiness": 86.6754667667389,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0755,
+     "consent_refusals": 176,
+     "partnered_play_share": 0.051500000000000004
+    },
+    {
+     "mean_happiness": 85.45190621128083,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.066,
+     "consent_refusals": 239,
+     "partnered_play_share": 0.046450000000000005
+    },
+    {
+     "mean_happiness": 85.14618716373444,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.06445,
+     "consent_refusals": 312,
+     "partnered_play_share": 0.049
+    }
+   ],
+   "mean": {
+    "mean_happiness": 85.88261434755326,
+    "distress_ticks": 0.5,
+    "max_distress_streak": 0.5,
+    "play_share": 0.0694125,
+    "consent_refusals": 224.0,
+    "partnered_play_share": 0.04886875
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 3.3794979545354877,
+    "distress_ticks": -18.75,
+    "max_distress_streak": -17.5,
+    "play_share": -0.04250625,
+    "consent_refusals": -232.375,
+    "partnered_play_share": -0.03767499999999999
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     2.737349423408503,
+     4.276050773620611
+    ],
+    "distress_ticks": [
+     -87,
+     0
+    ],
+    "max_distress_streak": [
+     -86,
+     0
+    ],
+    "play_share": [
+     -0.04905000000000001,
+     -0.03425
+    ],
+    "consent_refusals": [
+     -367,
+     -151
+    ],
+    "partnered_play_share": [
+     -0.046450000000000005,
+     -0.030999999999999993
+    ]
+   }
+  },
+  "5": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 87.65161536331176,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0522,
+     "consent_refusals": 80,
+     "partnered_play_share": 0.0387
+    },
+    {
+     "mean_happiness": 87.0704167552948,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05185,
+     "consent_refusals": 107,
+     "partnered_play_share": 0.037
+    },
+    {
+     "mean_happiness": 86.74056158809663,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0498,
+     "consent_refusals": 113,
+     "partnered_play_share": 0.035699999999999996
+    },
+    {
+     "mean_happiness": 87.60770857276917,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0552,
+     "consent_refusals": 89,
+     "partnered_play_share": 0.0426
+    },
+    {
+     "mean_happiness": 87.0494781042099,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05475,
+     "consent_refusals": 121,
+     "partnered_play_share": 0.041299999999999996
+    },
+    {
+     "mean_happiness": 86.45816993122101,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.04915,
+     "consent_refusals": 204,
+     "partnered_play_share": 0.0369
+    },
+    {
+     "mean_happiness": 86.64755586452485,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.04925,
+     "consent_refusals": 126,
+     "partnered_play_share": 0.0336
+    },
+    {
+     "mean_happiness": 86.51315558395386,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0534,
+     "consent_refusals": 113,
+     "partnered_play_share": 0.03655
+    }
+   ],
+   "mean": {
+    "mean_happiness": 86.96733272042275,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.05195,
+    "consent_refusals": 119.125,
+    "partnered_play_share": 0.03779375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 4.464216327404978,
+    "distress_ticks": -19.25,
+    "max_distress_streak": -18.0,
+    "play_share": -0.05996875,
+    "consent_refusals": -337.25,
+    "partnered_play_share": -0.04875
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     3.979701080322272,
+     5.003657399368279
+    ],
+    "distress_ticks": [
+     -87,
+     0
+    ],
+    "max_distress_streak": [
+     -86,
+     0
+    ],
+    "play_share": [
+     -0.0645,
+     -0.054950000000000006
+    ],
+    "consent_refusals": [
+     -466,
+     -152
+    ],
+    "partnered_play_share": [
+     -0.055400000000000005,
+     -0.04529999999999999
+    ]
+   }
+  },
+  "7": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 87.05899741725922,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0381,
+     "consent_refusals": 107,
+     "partnered_play_share": 0.02955
+    },
+    {
+     "mean_happiness": 87.7848877620697,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0414,
+     "consent_refusals": 61,
+     "partnered_play_share": 0.03075
+    },
+    {
+     "mean_happiness": 86.83519858703613,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0402,
+     "consent_refusals": 120,
+     "partnered_play_share": 0.028749999999999998
+    },
+    {
+     "mean_happiness": 86.9067346754074,
+     "distress_ticks": 32,
+     "max_distress_streak": 32,
+     "play_share": 0.03995,
+     "consent_refusals": 187,
+     "partnered_play_share": 0.03015
+    },
+    {
+     "mean_happiness": 87.27035955543518,
+     "distress_ticks": 25,
+     "max_distress_streak": 25,
+     "play_share": 0.0426,
+     "consent_refusals": 181,
+     "partnered_play_share": 0.0323
+    },
+    {
+     "mean_happiness": 87.73249613571167,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0432,
+     "consent_refusals": 68,
+     "partnered_play_share": 0.0316
+    },
+    {
+     "mean_happiness": 87.02347484512329,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.04085,
+     "consent_refusals": 127,
+     "partnered_play_share": 0.028700000000000003
+    },
+    {
+     "mean_happiness": 87.80731467685699,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.042,
+     "consent_refusals": 77,
+     "partnered_play_share": 0.03145
+    }
+   ],
+   "mean": {
+    "mean_happiness": 87.30243295686245,
+    "distress_ticks": 7.125,
+    "max_distress_streak": 7.125,
+    "play_share": 0.0410375,
+    "consent_refusals": 116.0,
+    "partnered_play_share": 0.03040625
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 4.79931656384468,
+    "distress_ticks": -12.125,
+    "max_distress_streak": -10.875,
+    "play_share": -0.07088125,
+    "consent_refusals": -340.375,
+    "partnered_play_share": -0.0561375
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     4.0743380792617785,
+     5.492450435447694
+    ],
+    "distress_ticks": [
+     -87,
+     32
+    ],
+    "max_distress_streak": [
+     -86,
+     32
+    ],
+    "play_share": [
+     -0.079,
+     -0.06515
+    ],
+    "consent_refusals": [
+     -512,
+     -216
+    ],
+    "partnered_play_share": [
+     -0.06785000000000001,
+     -0.05215
     ]
    }
   },
@@ -106,56 +675,64 @@
      "distress_ticks": 27,
      "max_distress_streak": 27,
      "play_share": 0.03045,
-     "consent_refusals": 235
+     "consent_refusals": 235,
+     "partnered_play_share": 0.02305
     },
     {
      "mean_happiness": 87.77810892868042,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03305,
-     "consent_refusals": 54
+     "consent_refusals": 54,
+     "partnered_play_share": 0.02455
     },
     {
      "mean_happiness": 87.65087516365051,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03235,
-     "consent_refusals": 63
+     "consent_refusals": 63,
+     "partnered_play_share": 0.02535
     },
     {
      "mean_happiness": 87.60209243049621,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.032,
-     "consent_refusals": 67
+     "consent_refusals": 67,
+     "partnered_play_share": 0.0254
     },
     {
      "mean_happiness": 87.6795217924118,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03345,
-     "consent_refusals": 55
+     "consent_refusals": 55,
+     "partnered_play_share": 0.02345
     },
     {
      "mean_happiness": 87.90737108535767,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03505,
-     "consent_refusals": 115
+     "consent_refusals": 115,
+     "partnered_play_share": 0.025
     },
     {
      "mean_happiness": 87.67581641693116,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0331,
-     "consent_refusals": 93
+     "consent_refusals": 93,
+     "partnered_play_share": 0.025750000000000002
     },
     {
      "mean_happiness": 87.47130700263978,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03425,
-     "consent_refusals": 56
+     "consent_refusals": 56,
+     "partnered_play_share": 0.024399999999999998
     }
    ],
    "mean": {
@@ -163,14 +740,16 @@
     "distress_ticks": 3.375,
     "max_distress_streak": 3.375,
     "play_share": 0.0329625,
-    "consent_refusals": 92.25
+    "consent_refusals": 92.25,
+    "partnered_play_share": 0.024618750000000002
    },
    "paired_delta_mean": {
     "mean_happiness": 4.941697619557383,
     "distress_ticks": -15.875,
     "max_distress_streak": -14.625,
     "play_share": -0.07895625,
-    "consent_refusals": -364.125
+    "consent_refusals": -364.125,
+    "partnered_play_share": -0.061924999999999994
    },
    "paired_delta_range": {
     "mean_happiness": [
@@ -192,6 +771,10 @@
     "consent_refusals": [
      -519,
      -241
+    ],
+    "partnered_play_share": [
+     -0.0726,
+     -0.05765
     ]
    }
   },
@@ -203,56 +786,64 @@
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0264,
-     "consent_refusals": 68
+     "consent_refusals": 68,
+     "partnered_play_share": 0.0221
     },
     {
      "mean_happiness": 87.7967194114685,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.02745,
-     "consent_refusals": 48
+     "consent_refusals": 48,
+     "partnered_play_share": 0.022699999999999998
     },
     {
      "mean_happiness": 87.18851338787078,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0293,
-     "consent_refusals": 97
+     "consent_refusals": 97,
+     "partnered_play_share": 0.0211
     },
     {
      "mean_happiness": 87.10411264438629,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.02815,
-     "consent_refusals": 121
+     "consent_refusals": 121,
+     "partnered_play_share": 0.0224
     },
     {
      "mean_happiness": 87.42216915245056,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0267,
-     "consent_refusals": 46
+     "consent_refusals": 46,
+     "partnered_play_share": 0.02225
     },
     {
      "mean_happiness": 86.87423730278014,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0284,
-     "consent_refusals": 78
+     "consent_refusals": 78,
+     "partnered_play_share": 0.02025
     },
     {
      "mean_happiness": 86.89838139724732,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0299,
-     "consent_refusals": 71
+     "consent_refusals": 71,
+     "partnered_play_share": 0.02295
     },
     {
      "mean_happiness": 87.44852525482177,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0299,
-     "consent_refusals": 60
+     "consent_refusals": 60,
+     "partnered_play_share": 0.02245
     }
    ],
    "mean": {
@@ -260,14 +851,16 @@
     "distress_ticks": 0.0,
     "max_distress_streak": 0.0,
     "play_share": 0.028275,
-    "consent_refusals": 73.625
+    "consent_refusals": 73.625,
+    "partnered_play_share": 0.022025
    },
    "paired_delta_mean": {
     "mean_happiness": 4.786880488324165,
     "distress_ticks": -19.25,
     "max_distress_streak": -18.0,
     "play_share": -0.08364375,
-    "consent_refusals": -382.75
+    "consent_refusals": -382.75,
+    "partnered_play_share": -0.06451875
    },
    "paired_delta_range": {
     "mean_happiness": [
@@ -289,6 +882,10 @@
     "consent_refusals": [
      -525,
      -278
+    ],
+    "partnered_play_share": [
+     -0.0756,
+     -0.060450000000000004
     ]
    }
   },
@@ -300,56 +897,64 @@
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.028,
-     "consent_refusals": 44
+     "consent_refusals": 44,
+     "partnered_play_share": 0.022
     },
     {
      "mean_happiness": 87.61213818588257,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0302,
-     "consent_refusals": 70
+     "consent_refusals": 70,
+     "partnered_play_share": 0.02395
     },
     {
      "mean_happiness": 87.44768183441163,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0274,
-     "consent_refusals": 49
+     "consent_refusals": 49,
+     "partnered_play_share": 0.02165
     },
     {
      "mean_happiness": 87.6707784412384,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03135,
-     "consent_refusals": 38
+     "consent_refusals": 38,
+     "partnered_play_share": 0.0248
     },
     {
      "mean_happiness": 85.88062248973847,
      "distress_ticks": 231,
      "max_distress_streak": 118,
      "play_share": 0.02495,
-     "consent_refusals": 399
+     "consent_refusals": 399,
+     "partnered_play_share": 0.0218
     },
     {
      "mean_happiness": 88.33837570343017,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.03085,
-     "consent_refusals": 35
+     "consent_refusals": 35,
+     "partnered_play_share": 0.023899999999999998
     },
     {
      "mean_happiness": 87.79669947395325,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0291,
-     "consent_refusals": 53
+     "consent_refusals": 53,
+     "partnered_play_share": 0.02335
     },
     {
      "mean_happiness": 87.97397548522949,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0286,
-     "consent_refusals": 37
+     "consent_refusals": 37,
+     "partnered_play_share": 0.02255
     }
    ],
    "mean": {
@@ -357,14 +962,16 @@
     "distress_ticks": 28.875,
     "max_distress_streak": 14.75,
     "play_share": 0.028806250000000002,
-    "consent_refusals": 90.625
+    "consent_refusals": 90.625,
+    "partnered_play_share": 0.023
    },
    "paired_delta_mean": {
     "mean_happiness": 5.052568008828166,
     "distress_ticks": 9.625,
     "max_distress_streak": -3.25,
     "play_share": -0.0831125,
-    "consent_refusals": -365.75
+    "consent_refusals": -365.75,
+    "partnered_play_share": -0.06354375
    },
    "paired_delta_range": {
     "mean_happiness": [
@@ -386,6 +993,10 @@
     "consent_refusals": [
      -503,
      -106
+    ],
+    "partnered_play_share": [
+     -0.0732,
+     -0.05985000000000001
     ]
    }
   },
@@ -397,56 +1008,64 @@
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0279,
-     "consent_refusals": 63
+     "consent_refusals": 63,
+     "partnered_play_share": 0.02025
     },
     {
      "mean_happiness": 86.7192328163147,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0273,
-     "consent_refusals": 109
+     "consent_refusals": 109,
+     "partnered_play_share": 0.0212
     },
     {
      "mean_happiness": 87.29433805122376,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0257,
-     "consent_refusals": 49
+     "consent_refusals": 49,
+     "partnered_play_share": 0.021249999999999998
     },
     {
      "mean_happiness": 87.43548706836701,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.02625,
-     "consent_refusals": 81
+     "consent_refusals": 81,
+     "partnered_play_share": 0.02125
     },
     {
      "mean_happiness": 88.21880511665344,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.02605,
-     "consent_refusals": 26
+     "consent_refusals": 26,
+     "partnered_play_share": 0.022449999999999998
     },
     {
      "mean_happiness": 87.8607035030365,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0307,
-     "consent_refusals": 25
+     "consent_refusals": 25,
+     "partnered_play_share": 0.022899999999999997
     },
     {
      "mean_happiness": 87.36122854804992,
      "distress_ticks": 0,
      "max_distress_streak": 0,
      "play_share": 0.0247,
-     "consent_refusals": 53
+     "consent_refusals": 53,
+     "partnered_play_share": 0.0219
     },
     {
      "mean_happiness": 85.24656706504821,
      "distress_ticks": 312,
      "max_distress_streak": 111,
      "play_share": 0.0281,
-     "consent_refusals": 700
+     "consent_refusals": 700,
+     "partnered_play_share": 0.02265
     }
    ],
    "mean": {
@@ -454,14 +1073,16 @@
     "distress_ticks": 39.0,
     "max_distress_streak": 13.875,
     "play_share": 0.0270875,
-    "consent_refusals": 138.25
+    "consent_refusals": 138.25,
+    "partnered_play_share": 0.02173125
    },
    "paired_delta_mean": {
     "mean_happiness": 4.596795595479014,
     "distress_ticks": 19.75,
     "max_distress_streak": -4.125,
     "play_share": -0.08483125,
-    "consent_refusals": -318.125
+    "consent_refusals": -318.125,
+    "partnered_play_share": -0.0648125
    },
    "paired_delta_range": {
     "mean_happiness": [
@@ -483,6 +1104,10 @@
     "consent_refusals": [
      -479,
      237
+    ],
+    "partnered_play_share": [
+     -0.07675,
+     -0.06085000000000001
     ]
    }
   }

@@ -34,6 +34,7 @@ K1_RESTING, K1_RESTING_PARTNERED = 283, 183
 K4_GROOMING = 59
 K5_SLEEPING = 115
 K3_HAPPINESS = 84.3496529236
+PARTNERED_PLAYING_KTICKS = 1063
 
 
 def plant(mutate, out_path):
@@ -217,6 +218,9 @@ def test_run_scalars_names_the_consume_columns():
     row = run_scalars(run)
     assert row["play_share"] == PLAYING_KTICKS / (TICKS * KITTIES)
     assert row["consent_refusals"] == REFUSALS["consent_declined"]
+    assert round(row["partnered_play_share"], 9) == round(
+        PARTNERED_PLAYING_KTICKS / (TICKS * KITTIES), 9), (
+        "partnered_play_share must count playing WITH a target per kitty-tick")
 
 
 if __name__ == "__main__":

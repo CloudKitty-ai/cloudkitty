@@ -131,6 +131,12 @@ def run_scalars(run):
     row = {m: run[m] for m in SCALARS}
     row["play_share"] = run["activity_share"].get("playing", 0.0)
     row["consent_refusals"] = run["refusals"].get("consent_declined", 0)
+    # Roster partnered-playing share per kitty-tick (playing with a
+    # target): the consent gate guards play proposals, so this is the
+    # paired-behavior column the consent screen reads.
+    row["partnered_play_share"] = sum(
+        d.get("playing", 0.0) for d in run["kitty_partnered_share"].values()
+    ) / run["kitties"]
     return row
 
 
