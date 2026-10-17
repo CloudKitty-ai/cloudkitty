@@ -1,0 +1,449 @@
+{
+ "anchor": 0,
+ "values": {
+  "0": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 83.2441233701706,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13145,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.1126
+    },
+    {
+     "mean_happiness": 83.46307402877808,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13245,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.10865
+    },
+    {
+     "mean_happiness": 83.13361269836426,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13585,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.11234999999999999
+    },
+    {
+     "mean_happiness": 83.23341702632904,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.13285,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.11240000000000001
+    },
+    {
+     "mean_happiness": 83.1183112323761,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1363,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.1167
+    },
+    {
+     "mean_happiness": 82.77895966472626,
+     "distress_ticks": 5,
+     "max_distress_streak": 5,
+     "play_share": 0.12825,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.10124999999999999
+    },
+    {
+     "mean_happiness": 83.06026868419647,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1329,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.11380000000000001
+    },
+    {
+     "mean_happiness": 83.10936700687408,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1396,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.12084999999999999
+    }
+   ],
+   "mean": {
+    "mean_happiness": 83.14264171397686,
+    "distress_ticks": 0.625,
+    "max_distress_streak": 0.625,
+    "play_share": 0.13370625,
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.112325
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 0.0,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.0,
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.0
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     0.0,
+     0.0
+    ],
+    "distress_ticks": [
+     0,
+     0
+    ],
+    "max_distress_streak": [
+     0,
+     0
+    ],
+    "play_share": [
+     0.0,
+     0.0
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ],
+    "partnered_play_share": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "2": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 85.98545581417083,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1007,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.08195
+    },
+    {
+     "mean_happiness": 85.40838861694336,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.09325,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.06970000000000001
+    },
+    {
+     "mean_happiness": 85.54666731452942,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10325,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0886
+    },
+    {
+     "mean_happiness": 86.17076101436615,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.1071,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.08225
+    },
+    {
+     "mean_happiness": 85.5978377040863,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0973,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0761
+    },
+    {
+     "mean_happiness": 85.65431312179565,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.10205,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0813
+    },
+    {
+     "mean_happiness": 85.08468915557862,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.09055,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.07265
+    },
+    {
+     "mean_happiness": 85.27271511802674,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.097,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.07535
+    }
+   ],
+   "mean": {
+    "mean_happiness": 85.59010348243713,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.0989,
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.0784875
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 2.447461768460272,
+    "distress_ticks": -0.625,
+    "max_distress_streak": -0.625,
+    "play_share": -0.034806250000000004,
+    "consent_refusals": 0.0,
+    "partnered_play_share": -0.0338375
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     1.9453145881652745,
+     2.9373439880371137
+    ],
+    "distress_ticks": [
+     -5,
+     0
+    ],
+    "max_distress_streak": [
+     -5,
+     0
+    ],
+    "play_share": [
+     -0.0426,
+     -0.025749999999999995
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ],
+    "partnered_play_share": [
+     -0.045499999999999985,
+     -0.019949999999999996
+    ]
+   }
+  },
+  "3": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 86.9163740776062,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0818,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.06375
+    },
+    {
+     "mean_happiness": 86.5011179550171,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0824,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0606
+    },
+    {
+     "mean_happiness": 85.81570660514832,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.07515,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.059550000000000006
+    },
+    {
+     "mean_happiness": 86.08985843887329,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0748,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0593
+    },
+    {
+     "mean_happiness": 86.02896085224151,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0797,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.0629
+    },
+    {
+     "mean_happiness": 85.93782245922088,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0759,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.059550000000000006
+    },
+    {
+     "mean_happiness": 86.79448205566406,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.082,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.06265000000000001
+    },
+    {
+     "mean_happiness": 85.87206308002472,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.07675,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.05885
+    }
+   ],
+   "mean": {
+    "mean_happiness": 86.24454819047452,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.0785625,
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.06089375
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 3.10190647649765,
+    "distress_ticks": -0.625,
+    "max_distress_streak": -0.625,
+    "play_share": -0.055143750000000005,
+    "consent_refusals": 0.0,
+    "partnered_play_share": -0.05143125
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     2.6820939067840612,
+     3.7342133714675896
+    ],
+    "distress_ticks": [
+     -5,
+     0
+    ],
+    "max_distress_streak": [
+     -5,
+     0
+    ],
+    "play_share": [
+     -0.06285,
+     -0.049650000000000014
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ],
+    "partnered_play_share": [
+     -0.061999999999999986,
+     -0.04169999999999999
+    ]
+   }
+  },
+  "5": {
+   "seeds": 8,
+   "per_seed": [
+    {
+     "mean_happiness": 87.99242932090759,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.06015,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04755
+    },
+    {
+     "mean_happiness": 87.0233043340683,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05575,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04355
+    },
+    {
+     "mean_happiness": 87.27019084796906,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05595,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04325
+    },
+    {
+     "mean_happiness": 87.63647501716613,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.0567,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04285
+    },
+    {
+     "mean_happiness": 87.38627540359496,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.058,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04395
+    },
+    {
+     "mean_happiness": 87.24518201637268,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05655,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.041749999999999995
+    },
+    {
+     "mean_happiness": 87.15153191947937,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.055,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.04185
+    },
+    {
+     "mean_happiness": 87.19574257526398,
+     "distress_ticks": 0,
+     "max_distress_streak": 0,
+     "play_share": 0.05735,
+     "consent_refusals": 0,
+     "partnered_play_share": 0.045
+    }
+   ],
+   "mean": {
+    "mean_happiness": 87.36264142935276,
+    "distress_ticks": 0.0,
+    "max_distress_streak": 0.0,
+    "play_share": 0.05693125,
+    "consent_refusals": 0.0,
+    "partnered_play_share": 0.04371875
+   },
+   "paired_delta_mean": {
+    "mean_happiness": 4.219999715375899,
+    "distress_ticks": -0.625,
+    "max_distress_streak": -0.625,
+    "play_share": -0.07677500000000001,
+    "consent_refusals": 0.0,
+    "partnered_play_share": -0.06860625
+   },
+   "paired_delta_range": {
+    "mean_happiness": [
+     3.5602303052902187,
+     4.748305950736992
+    ],
+    "distress_ticks": [
+     -5,
+     0
+    ],
+    "max_distress_streak": [
+     -5,
+     0
+    ],
+    "play_share": [
+     -0.08225,
+     -0.0713
+    ],
+    "consent_refusals": [
+     0,
+     0
+    ],
+    "partnered_play_share": [
+     -0.07584999999999999,
+     -0.0595
+    ]
+   }
+  }
+ }
+}

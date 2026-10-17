@@ -140,6 +140,19 @@ at 0 with a short upper tail, keeps both. Low-end distress is small
 996104: 32, 996105: 25); the only events exceeding the anchor's own
 worst streak (86) remain the single-seed ones at 20/30 noted below.
 
+Slack re-price at base consent 0 (2026-10-17, her kickoff "Run the
+slack screen against consent 0" after ruling the collection base
+gate-off; the ramp above was measured at consent 30):
+`results-raw-consent0/slack/` {0, 2, 3, 5}, same 8 seeds, read in
+`slack-consent0-screen.json` — the ruled band HOLDS at the new
+operating point. Paired gains +2.447 (2), +3.102 (3), +4.220 (5)
+against +2.649/+3.379/+4.464 at consent 30; play share 0.134 →
+0.099/0.079/0.057 (cuts 1.35×/1.70×/2.35× — the gate-off world plays
+more, and slack takes a proportionally similar bite); distress and
+refusals are zero at every value (the gate is off — the zero refusal
+column is the cross-check, and the anchor row reproduces the consent
+sweep's line-0 row exactly: same derived config, same seeds).
+
 Slack 0-vs-1 default check (2026-10-17, her question: "it appears 1
 is strictly superior to 0"): at 24 fresh seeds (996301–996324,
 `results-raw-default-check/slack/`, read in
