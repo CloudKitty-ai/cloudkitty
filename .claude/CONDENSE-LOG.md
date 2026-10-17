@@ -48,3 +48,4 @@ which keeps the founding line valid.
 
 One line each: `- <path> @ <sha of the freezing commit>`.
 - experiments/fog-gen1-timeline-2026-08-26.md @ 48af87d
+- .claude/skills/condense/TRIALS.md @ 347c50f9
