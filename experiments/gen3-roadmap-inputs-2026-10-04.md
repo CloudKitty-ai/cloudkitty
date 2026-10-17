@@ -86,3 +86,56 @@ Gen 3 obligations this adds:
   only the lesson shape does.
 - Gen 2 consequence: obs cells 38-43 (favourite weights) ride
   all-zero; declare them inert at the freeze the dirt-reserve way.
+
+## Addendum 2026-10-17 (2): play demonstrations — the Gen 2 consent/dial record, banked for Gen 3 prep
+
+Owner (verbatim): "Play demonstration is going to be crucial for gen
+3, so can we bank a summary of this work to refresh my memory when we
+get into the gen3 prep work?" This section is that refresher. Under
+the stratified stack, play is tier 3 ALONE — the luxury whose
+expression every Gen 2 dial turned out to tax — so these are the
+numbers and rulings to re-read before Gen 3 dial design.
+
+What the Gen 2 screens showed (full tables:
+experiments/gen2-dial-screens-2026-10-17/RESULTS.md at fef97862; 8
+seeds x 4,000 ticks, seed-paired):
+
+- EVERY welfare-improving dial bought its gain by cutting play.
+  Slack: a saturating ramp (NOT the step the coarse grid suggested) —
+  slack 2 buys half the plateau's +4.9 happiness, knee at 5; play
+  share falls smoothly 0.112 -> 0.027 (3.4-4.1x cut at 10+); the 2-5
+  band keeps the cut at 1.3-2.2x. Consent: cost cliff just below the
+  anchor (25 pays most of 20's price), 35 mildly better than 30 on
+  every seed; at line 20 the loss is ~93% PARTNERED play; refusal
+  density is the demonstration supply (2.3% of kitty-ticks at 30,
+  8-11% at 15-25). Favourites: tabled to Gen 3 (first addendum above);
+  a play favourite on an already-playful character was invisible.
+- F-034 remains the governing lesson: rare conditions don't clone —
+  played demonstrations must keep double-digit-ish presence or Gen 3's
+  tier-3 behavior starves at the source.
+
+The consent rulings and the experiment that carries them
+(experiments/gen2-consent-design-2026-10-17.md at dad510aa+):
+
+- The gate is play-only and STAYS play-only (her scrap ruling
+  2026-10-17): play is the only conscripting proposal; companions
+  never change the target's state; the lone companion-side welfare
+  channel is water contagion (044/045) — narrow enough to skip.
+- The proposer is consent-blind (ruling eb9e860b), so the corpus
+  records teacher-composed-with-gate, and the CONSUME RULE decides
+  whether the gate's refusal demonstrations reach the BC student
+  (applied = gate-as-teacher, proposed = clean intent). The shelved
+  #368 proposer-awareness stays shelved: under hidden needs it
+  demonstrates an unobservable policy.
+- The three-leg BC comparison is the declared test: consent-off /
+  on+consume-proposed / on+consume-applied; two collections, three
+  trainings, 2x2 eval; week-plus wall-clock is fine (her word).
+- Corpus enrichment is welfare-free: BC collection is scripted-only,
+  so collection variations may run low consent lines for refusal
+  density while episode/deployed draws stay in the safe zone.
+
+Gen 3 implications to carry in: tier gating will interact with every
+play knob above (slack delays tier-3 re-entry, consent refuses tier-3
+scenes, favourites tilt toward it) — re-screen all three on the
+stratified stack before Gen 3 ranges, with the play-share column as
+the first-class corpus metric.

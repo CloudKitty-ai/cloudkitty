@@ -28,7 +28,7 @@ Three BC legs, two collections (the consume rule is a trainer knob —
 both consent-on legs train from the same corpus):
 
 1. consent-OFF corpus -> BC
-2. consent-ON corpus, consume = PROPOSED where consent-refused -> BC
+2. consent-ON corpus (play-only gate, per her scrap ruling), consume = PROPOSED where consent-refused -> BC
    (the banked #459 candidate: clean intent, gate's teaching discarded)
 3. consent-ON corpus, consume = APPLIED everywhere -> BC
    (the gate-as-teacher leg: refused proposals land as Idle rows on
@@ -56,14 +56,16 @@ Mechanism notes the design rests on (all source-verified 2026-10-17):
 
 ## Gates and open items
 
-- ENGINE (Product's lane, spec; changes the teacher the corpus
-  records, so it lands BEFORE the dial freeze): extend the target-side
-  consent gate to all conscriptable paired behaviors. Scope read:
-  play + cuddle + sleep-with; groom-other is call-initiated (the call
-  is the consent) and stays out unless she rules otherwise. RELAY
-  AWAITS HER WORD.
-- Re-run the consent screen after the extended gate lands (current
-  numbers price the play-only gate).
+- EXTENSION SCRAPPED (owner 2026-10-17, verbatim): "That's narrow
+  enough that play only is fine and we can scrap the extension." —
+  ruled after the source read: play is the only proposal that changes
+  the receiving cat's state ("a companion, never a conscript", spec
+  041 at action.rs Rest arm), and the one companion-side welfare
+  channel is the narrow water-contagion case (specs 044/045,
+  contagion_factor). The gate stays play-only; NO engine work, NO
+  Product relay, and the existing consent screens (fef97862) price
+  the shipping gate — no re-screen needed. The three-leg comparison
+  stands unchanged on the play-only gate.
 - Corpus-enrichment option on record: BC collection is scripted-only
   (welfare-exempt), so collection variations may run LOW consent lines
   (15-25: refusals at 8-11% of kitty-ticks vs 2.3% at 30) for
