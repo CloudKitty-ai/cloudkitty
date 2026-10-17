@@ -1,10 +1,14 @@
 # Teacher dispersion-coping package — Experiments' requirements note
 # (2026-10-15)
 
-STATUS: HOLD — written for Product's lane but NOT relayed.
-Experiments' reading: the owner's hold on the randomized-starts note
-("don't send it over yet (we're mid implement on spec 061)") covers
-this companion note too; it travels when she clears the relay. The
+STATUS: RELAYED to Product on her condition (2026-10-15/16,
+acknowledged; specs start on her word there). CANDIDATE 3 KICKED OFF
+2026-10-17 (owner verbatim: "Let's build it and see what happiness
+delta it produces on 100x100"; relay msg 1202edff) — toggleable flag
+per her ruling below; candidates 1 and 2 stay banked awaiting her
+word. Experiments' screen plan on the landed flag: happiness delta on
+100x100, flag on vs off, both arms fresh on the landed binary,
+seed-paired on the g2cmp band (the comparator-leg worlds). The
 engine/teacher specs are Product's to write; the doctrine rule-8
 check travels with their specs.
 
