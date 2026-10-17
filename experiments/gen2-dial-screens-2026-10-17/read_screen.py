@@ -33,6 +33,9 @@ def read_run(trace_path):
     max_streak = 0
     activity = {}
     refusals = {}
+    k_happy = {}
+    k_act = {}
+    k_part = {}
     with open(trace_path) as f:
         for line in f:
             rec = json.loads(line)
@@ -43,9 +46,18 @@ def read_run(trace_path):
             for k in rec["snapshot"]["kitties"]:
                 kitty_ticks += 1
                 happiness_sum += k["happiness"]
-                state = k["activity"]["state"]
+                a = k["activity"]
+                state = a["state"]
                 activity[state] = activity.get(state, 0) + 1
                 kid = k["id"]
+                k_happy[kid] = k_happy.get(kid, 0.0) + k["happiness"]
+                k_act.setdefault(kid, {})
+                k_act[kid][state] = k_act[kid].get(state, 0) + 1
+                # Partnered variant: Resting/Sleeping carry with_friend,
+                # Playing/Grooming carry target, when the scene has one.
+                if a.get("with_friend") is not None or a.get("target") is not None:
+                    k_part.setdefault(kid, {})
+                    k_part[kid][state] = k_part[kid].get(state, 0) + 1
                 if k["in_distress"]:
                     distress_ticks += 1
                     streaks[kid] = streaks.get(kid, 0) + 1
@@ -61,10 +73,58 @@ def read_run(trace_path):
         "max_distress_streak": max_streak,
         "activity_share": {s: n / kitty_ticks for s, n in sorted(activity.items())},
         "refusals": dict(sorted(refusals.items())),
+        "kitty_happiness": {kid: s / ticks for kid, s in sorted(k_happy.items())},
+        "kitty_activity_share": {kid: {s: n / ticks for s, n in sorted(d.items())}
+                                 for kid, d in sorted(k_act.items())},
+        "kitty_partnered_share": {kid: {s: n / ticks for s, n in sorted(d.items())}
+                                  for kid, d in sorted(k_part.items())},
     }
 
 
 SCALARS = ["mean_happiness", "distress_ticks", "max_distress_streak"]
+
+# Favourite screen (owner kickoff 2026-10-17): the stand-in assignment
+# (screen_dials.FAVOURITES; deployed assignment is her freeze call) and
+# each favourite's expressing trace signature. Cuddle = PARTNERED
+# resting (with_friend set); bath = grooming (self-groom is the cat's
+# own bath relief); Pumpkin (id 3) carries no favourite, the control.
+KITTY_NAMES = {1: "Miso", 2: "Biscuit", 3: "Pumpkin",
+               4: "Kittybear", 5: "Clementine"}
+FAV_EXPRESSION = {
+    1: ("cuddle", "kitty_partnered_share", "resting"),
+    2: ("play", "kitty_activity_share", "playing"),
+    4: ("bath", "kitty_activity_share", "grooming"),
+    5: ("sleep", "kitty_activity_share", "sleeping"),
+}
+
+
+def _stats(rows, anchor_rows):
+    deltas = [r - a for r, a in zip(rows, anchor_rows)]
+    return {"per_seed": rows, "mean": sum(rows) / len(rows),
+            "delta_mean": sum(deltas) / len(deltas),
+            "delta_range": [min(deltas), max(deltas)]}
+
+
+def fav_view(values, anchor):
+    """Per value: each favourite kitty's expression-state share and every
+    seat's happiness, seed-paired against the anchor like the main table."""
+    def expr(run, kid):
+        _, table, state = FAV_EXPRESSION[kid]
+        return run[table].get(kid, {}).get(state, 0.0)
+    anchor_runs = values[anchor]
+    out = {}
+    for value, runs in values.items():
+        expression = {}
+        for kid, (kind, _, state) in sorted(FAV_EXPRESSION.items()):
+            label = f"{KITTY_NAMES[kid]} {kind} ({state})"
+            expression[label] = _stats([expr(r, kid) for r in runs],
+                                       [expr(r, kid) for r in anchor_runs])
+        seat = {}
+        for kid, name in sorted(KITTY_NAMES.items()):
+            seat[name] = _stats([r["kitty_happiness"][kid] for r in runs],
+                                [r["kitty_happiness"][kid] for r in anchor_runs])
+        out[value] = {"expression": expression, "seat_happiness": seat}
+    return out
 
 
 def run_scalars(run):
@@ -74,7 +134,7 @@ def run_scalars(run):
     return row
 
 
-def sweep(sweep_dir, anchor):
+def sweep(sweep_dir, anchor, fav=False):
     sweep_dir = pathlib.Path(sweep_dir)
     values = {}
     for vdir in sorted(sweep_dir.glob("v*")):
@@ -99,7 +159,10 @@ def sweep(sweep_dir, anchor):
             "paired_delta_mean": {m: sum(d) / len(d) for m, d in deltas.items()},
             "paired_delta_range": {m: [min(d), max(d)] for m, d in deltas.items()},
         }
-    return {"anchor": anchor, "values": table}
+    result = {"anchor": anchor, "values": table}
+    if fav:
+        result["fav"] = fav_view(values, anchor)
+    return result
 
 
 def markdown(result):
@@ -119,17 +182,45 @@ def markdown(result):
     return "\n".join(lines)
 
 
+def markdown_fav(result):
+    fav = result["fav"]
+    labels = sorted(next(iter(fav.values()))["expression"])
+    lines = ["| value | " + " | ".join(labels) + " |",
+             "|" + "---|" * (len(labels) + 1)]
+    for value in sorted(fav):
+        cells = [f"{fav[value]['expression'][l]['mean']:.3f} "
+                 f"({fav[value]['expression'][l]['delta_mean']:+.3f})"
+                 for l in labels]
+        tag = " (anchor)" if value == result["anchor"] else ""
+        lines.append(f"| {value}{tag} | " + " | ".join(cells) + " |")
+    names = sorted(next(iter(fav.values()))["seat_happiness"])
+    lines += ["", "| value | " + " | ".join(f"{n} happiness" for n in names) + " |",
+              "|" + "---|" * (len(names) + 1)]
+    for value in sorted(fav):
+        cells = [f"{fav[value]['seat_happiness'][n]['mean']:.3f} "
+                 f"({fav[value]['seat_happiness'][n]['delta_mean']:+.3f})"
+                 for n in names]
+        tag = " (anchor)" if value == result["anchor"] else ""
+        lines.append(f"| {value}{tag} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sweep_dir")
     ap.add_argument("--anchor", type=int, required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--md", action="store_true")
+    ap.add_argument("--fav", action="store_true",
+                    help="add the favourite expression + per-seat view")
     a = ap.parse_args()
-    result = sweep(a.sweep_dir, a.anchor)
+    result = sweep(a.sweep_dir, a.anchor, fav=a.fav)
     pathlib.Path(a.out).write_text(json.dumps(result, indent=1))
     if a.md:
         print(markdown(result))
+        if a.fav:
+            print()
+            print(markdown_fav(result))
 
 
 if __name__ == "__main__":

@@ -28,6 +28,12 @@ MEAN_HAPPINESS = 83.8741479053
 PLAYING_KTICKS = 1337
 REFUSALS = {"consent_declined": 188, "other": 126,
             "partner_absent": 406, "partner_busy": 913}
+# Per-kitty (flat scan, 2026-10-17, favourite-screen surface):
+K2_PLAYING = 269
+K1_RESTING, K1_RESTING_PARTNERED = 283, 183
+K4_GROOMING = 59
+K5_SLEEPING = 115
+K3_HAPPINESS = 84.3496529236
 
 
 def plant(mutate, out_path):
@@ -135,6 +141,75 @@ def test_sweep_refuses_missing_anchor():
             assert "anchor" in str(e)
         else:
             raise AssertionError("missing anchor accepted")
+
+
+def test_per_kitty_fixture_metrics():
+    run = read_run(FIXTURE)
+    assert run["kitty_activity_share"][2]["playing"] == K2_PLAYING / TICKS
+    assert run["kitty_activity_share"][1]["resting"] == K1_RESTING / TICKS
+    assert run["kitty_partnered_share"][1]["resting"] == K1_RESTING_PARTNERED / TICKS
+    assert run["kitty_activity_share"][4]["grooming"] == K4_GROOMING / TICKS
+    assert run["kitty_activity_share"][5]["sleeping"] == K5_SLEEPING / TICKS
+    assert round(run["kitty_happiness"][3], 6) == round(K3_HAPPINESS, 6)
+
+
+def test_partnered_split_counts_only_partnered():
+    """Pumpkin gets 10 planted resting ticks, 5 with a friend: the
+    activity share counts all 10, the partnered share exactly the 5."""
+    def mutate(tick, rec):
+        for k in rec["snapshot"]["kitties"]:
+            if k["id"] == 3 and 500 <= tick < 510:
+                k["activity"] = {"state": "resting"}
+                if tick < 505:
+                    k["activity"]["with_friend"] = 1
+    base = read_run(FIXTURE)
+    with tempfile.TemporaryDirectory() as td:
+        p = pathlib.Path(td) / "t.jsonl"
+        plant(mutate, p)
+        run = read_run(p)
+        b_act = base["kitty_activity_share"][3].get("resting", 0.0)
+        b_part = base["kitty_partnered_share"].get(3, {}).get("resting", 0.0)
+        assert run["kitty_activity_share"][3]["resting"] == b_act + 10 / TICKS
+        assert run["kitty_partnered_share"][3]["resting"] == b_part + 5 / TICKS, (
+            "partnered share must count only with_friend/target records")
+
+
+def test_fav_view_attribution_and_pairing():
+    """Mini-sweep: the shifted value moves ONLY Biscuit's play expression
+    (+100 planted playing ticks) and every seat's happiness by -1.0."""
+    from read_screen import fav_view
+    def shifted(tick, rec):
+        for k in rec["snapshot"]["kitties"]:
+            k["happiness"] -= 1.0
+            if k["id"] == 2 and tick < 100:
+                k["activity"] = {"state": "playing"}
+    with tempfile.TemporaryDirectory() as td:
+        d0 = pathlib.Path(td) / "v00" / "config-00-rollout-00"
+        d30 = pathlib.Path(td) / "v30" / "config-00-rollout-00"
+        d30.mkdir(parents=True)
+        d0.mkdir(parents=True)
+        (d30 / "trace.jsonl").write_text(FIXTURE.read_text())
+        plant(shifted, d0 / "trace.jsonl")
+        result = sweep(td, anchor=30, fav=True)
+        fav = result["fav"][0]
+        # Every seat's paired happiness delta is exactly -1.0.
+        for name, s in fav["seat_happiness"].items():
+            assert round(s["delta_mean"], 9) == -1.0, (name, s)
+        # Biscuit's play expression rose by exactly the planted ticks that
+        # were not already playing; no other expression moved.
+        import json as _json
+        already = 0
+        with open(FIXTURE) as f:
+            for tick, line in enumerate(f):
+                if tick >= 100:
+                    break
+                for k in _json.loads(line)["snapshot"]["kitties"]:
+                    if k["id"] == 2 and k["activity"]["state"] == "playing":
+                        already += 1
+        expect = (100 - already) / TICKS
+        for label, s in fav["expression"].items():
+            want = expect if label.startswith("Biscuit") else 0.0
+            assert round(s["delta_mean"], 9) == round(want, 9), (label, s)
 
 
 def test_run_scalars_names_the_consume_columns():
