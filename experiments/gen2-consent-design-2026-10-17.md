@@ -73,3 +73,21 @@ Mechanism notes the design rests on (all source-verified 2026-10-17):
   ruled separately on the welfare numbers.
 - Dial-range blanks still open with her: consent range (now reframed:
   episode range vs collection enrichment), slack range.
+
+## Consent ruling round 2 (owner 2026-10-17, later in the session)
+
+Her words, verbatim: "Re: consent, yes those numbers are for
+enrichment, base value disabled/0. Agreed on per episode."
+
+- BASE consent = 0 (gate DISABLED) in the base/majority collection
+  world. The 15-25-zone numbers are enrichment-slice values only.
+- Enrichment consent line drawn PER EPISODE (world-level: the whole
+  roster shares the drawn line), so every kitty's own obs cell 37
+  reveals the episode's refusal regime — the readable-regime design.
+- Still open: the exact enrichment range (her named options 15-25 /
+  20-25 / static 20; recommendation on record is 20-25 per-episode).
+- FLAGGED to her at the ruling: base 0 also governs what the gate
+  protects in PPO episodes and the deployed world unless those are
+  ruled separately — the gate's protective value for covered minds
+  was the screens' standing unmeasured caveat, and the Biscuit 3.0
+  anchor gate (owner 2026-09-02) is what base 0 switches off.
