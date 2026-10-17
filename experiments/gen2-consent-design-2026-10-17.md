@@ -92,3 +92,23 @@ enrichment, base value disabled/0. Agreed on per episode."
   ruled separately — the gate's protective value for covered minds
   was the screens' standing unmeasured caveat, and the Biscuit 3.0
   anchor gate (owner 2026-09-02) is what base 0 switches off.
+
+## Draw-shape and mix rulings (owner 2026-10-17, verbatim: "2,3 as recommended / Run the slack screen against consent 0")
+
+The recommendations she ruled onto, as stated to her:
+
+- Need-rate draw: LOG-UNIFORM over [0.5, 2] (exp(U[ln 0.5, ln 2]) —
+  halving as likely as doubling, equal mass per octave), K-OF-6 with
+  K = 3 (three drawn needs per kitty, the house 3-dial character
+  shape; undrawn needs exactly 1.0).
+- Mix: majority M = 0.6 (served roster verbatim, honors rule 8's
+  "majority"); enrichment E = 0.12 (per-episode consent draw [20, 25],
+  gate on); remainder 0.28 = trait-draw variations at base consent 0.
+- Rollout count: 100 full run (60 served / 12 enrichment / 28
+  trait-draw), 30 as the pilot. ~10 min per 20k-tick rollout.
+- Slack ruling (same sitting): "2-5 still, default 0" — variations
+  draw slack in [2, 5]; majority/deployed slack 0.
+- CONFIRM SWEEP RUNNING at her word: slack {0, 2, 3, 5} re-priced at
+  base consent 0 (the slack screens ran at consent 30; the base moved)
+  — screen_dials.py --base-consent, out in
+  gen2-dial-screens-2026-10-17/results-raw-consent0/.

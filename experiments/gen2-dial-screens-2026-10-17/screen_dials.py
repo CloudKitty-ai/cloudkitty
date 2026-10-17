@@ -46,8 +46,16 @@ FAVOURITES = {"Miso": "cuddle", "Biscuit": "play",
               "Kittybear": "bath", "Clementine": "sleep"}  # Pumpkin: none
 
 
-def derive(dial, value):
+def derive(dial, value, base_consent=None):
     text = BASE_CONFIG.read_text()
+    # --base-consent: pin the consent line BEFORE applying the swept dial
+    # (owner 2026-10-17: re-price the slack band at the ruled base, gate
+    # off). Mutually exclusive with sweeping consent itself.
+    if base_consent is not None:
+        assert dial != "consent", "--base-consent conflicts with --dial consent"
+        assert text.count(CONSENT_LINE) == 1, "consent anchor line moved"
+        text = text.replace(
+            CONSENT_LINE, f"consent_line = {base_consent:.1f}  # SCREEN BASE")
     if dial == "consent":
         assert text.count(CONSENT_LINE) == 1, "consent anchor line moved"
         text = text.replace(CONSENT_LINE, f"consent_line = {value:.1f}  # SCREEN VALUE")
@@ -86,13 +94,14 @@ def main():
     ap.add_argument("--rollouts", type=int, default=8)
     ap.add_argument("--ticks", type=int, default=4000)
     ap.add_argument("--out", default=str(pathlib.Path(__file__).parent / "results-raw"))
+    ap.add_argument("--base-consent", type=float, default=None)
     a = ap.parse_args()
 
     for value in [float(v) for v in a.values.split(",")]:
         vdir = pathlib.Path(a.out) / a.dial / value_dir(a.dial, value)
         vdir.mkdir(parents=True, exist_ok=True)
         cfg = vdir / "config.toml"
-        cfg.write_text(derive(a.dial, value))
+        cfg.write_text(derive(a.dial, value, base_consent=a.base_consent))
         cmd = [str(BC_COLLECT), "--config", str(cfg),
                "--rollouts", str(a.rollouts), "--ticks", str(a.ticks),
                "--seed-base", str(a.seed_base), "--out-dir", str(vdir), "--trace"]
