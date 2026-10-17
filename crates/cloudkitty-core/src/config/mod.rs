@@ -3910,14 +3910,19 @@ trill = true",
 
     #[test]
     fn a_mixed_share_config_parses_and_validates() {
-        let c: Config =
-            toml::from_str(&starts_toml("[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n"))
-                .expect("a [starts] config with a coordinate-free kitty parses");
-        c.validate().expect("mixed explicit+drawn is legal (spec 062)");
+        let c: Config = toml::from_str(&starts_toml(
+            "[starts]\nedge_ring_share = 0.25\ncorner_share = 0.05\n",
+        ))
+        .expect("a [starts] config with a coordinate-free kitty parses");
+        c.validate()
+            .expect("mixed explicit+drawn is legal (spec 062)");
         let s = c.starts.expect("the table landed");
         assert_eq!((s.edge_ring_share, s.corner_share), (0.25, 0.05));
         assert_eq!(c.kitties[0].position(), None);
-        assert_eq!(c.kitties[1].position(), Some(crate::grid::Position::new(3, 3)));
+        assert_eq!(
+            c.kitties[1].position(),
+            Some(crate::grid::Position::new(3, 3))
+        );
     }
 
     #[test]

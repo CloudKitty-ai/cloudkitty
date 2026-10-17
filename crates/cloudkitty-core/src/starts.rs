@@ -378,7 +378,10 @@ mod tests {
         let blocked = draw(&blocking).unwrap();
         let moved = blocked.iter().find(|s| s.kitty == victim.kitty).unwrap();
         assert_ne!(moved.position, victim.position, "occupied tile re-drawn");
-        assert_eq!(moved.category, victim.category, "resample stays in category");
+        assert_eq!(
+            moved.category, victim.category,
+            "resample stays in category"
+        );
     }
 
     #[test]

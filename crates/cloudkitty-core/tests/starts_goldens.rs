@@ -104,7 +104,9 @@ fn documented_sub_stream(seed: u64) -> ChaCha8Rng {
 fn canonical_goldens() -> String {
     let mut out = String::new();
     out.push_str("{\n");
-    out.push_str(&format!("  \"starts_law_version\": {STARTS_LAW_VERSION},\n"));
+    out.push_str(&format!(
+        "  \"starts_law_version\": {STARTS_LAW_VERSION},\n"
+    ));
     out.push_str("  \"cases\": [\n");
     let cases = cases();
     for (i, case) in cases.iter().enumerate() {

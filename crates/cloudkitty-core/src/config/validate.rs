@@ -133,7 +133,11 @@ impl Config {
                     }
                 }
                 (set, _) => {
-                    let (have, missing) = if set.is_some() { ("x", "y") } else { ("y", "x") };
+                    let (have, missing) = if set.is_some() {
+                        ("x", "y")
+                    } else {
+                        ("y", "x")
+                    };
                     return Err(ConfigError::invalid(
                         format!("[[kitty]] '{}' position", k.name),
                         format!("{have} set, {missing} unset"),

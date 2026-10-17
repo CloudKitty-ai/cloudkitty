@@ -140,9 +140,12 @@ impl World {
                     .position()
                     .expect("validated: explicit coordinates are required without [starts]"),
             };
-            world
-                .kitties
-                .push(Kitty::new(kc.id, kc.name.clone(), position, kc.behavior.clone()));
+            world.kitties.push(Kitty::new(
+                kc.id,
+                kc.name.clone(),
+                position,
+                kc.behavior.clone(),
+            ));
         }
         world.kitties.sort_by_key(|k| k.id);
         // Spec 049 FR-023 (T088): each cat starts the lattice tour at
