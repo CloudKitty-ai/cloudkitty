@@ -537,8 +537,10 @@ timebox)
    [CANDIDATE] in §6.
    Declared blind spot: one tick never prices visitation shift or
    compounding; the declared PAIRING carries it — gate + consumer
-   reads + canalization watch jointly. [BLANK] the declared
-   margin; min-n floor (strata shared with the ostrich metric).
+   reads + canalization watch jointly. [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented]
+   Declared margin = the family's 1.5× grave-over-benign lift;
+   min-n 200 per stratum, fail-closed to probe-generated
+   distress-adjacent coverage (pin (c)'s own remedy).
    ARCHITECTURE [A4, working direction]: recurrent per-friend
    belief state b_t (updated from the friend's visible row, held
    under fog on learned drift rates; estimate head and act
@@ -571,10 +573,12 @@ timebox)
    Six pre-commitments bind the follow-up arm (S§Ruling
    2026-10-10 item 5). Supersedes the Professor-lane line "Gen 2
    ships the error-signal INPUT only" (as-input moves into the
-   follow-up arm). [BLANK] the trigger's signed-bias
-   (miscalibration-concentration) margin and the min-n floor —
-   VALUES at the freeze; the bins/edges themselves are pinned NOW
-   (the ostrich metric's existing semantic edges).
+   follow-up arm). [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented] The trigger's
+   signed-bias (miscalibration-concentration) margin = the family's
+   1.5× lift; min-n 200 per friend × stratum, fail-closed —
+   one evidentiary standard with the gate and the ostrich metric
+   (the bins/edges were already pinned: the ostrich metric's
+   semantic edges).
    Phase 1 may overlap the trunk's training TAIL (it needs frozen
    rollouts, not a finished trunk).
 5. [RULED S§6] RADIUS AXIS leg (the world-size screen's open
@@ -602,8 +606,12 @@ timebox)
    sparsity floor with insufficient-coverage as a first-class
    outcome; mind-visible AND all-states versions; per-friend
    before pooled. Read on BOTH estimates, per phase: the Phase-1
-   offline heads and the Phase-2 live head. [BLANK] the gap
-   threshold that counts as a signature, and n.
+   offline heads and the Phase-2 live head. [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented] Gap
+   signature threshold = a grave-over-benign lift of ≥ 1.5× (the
+   sitting's one margin family — the training-stop multiplier's
+   house constant, a judgment pin); min-n 200 per stratum,
+   FAIL-CLOSED (insufficient-coverage stays a first-class outcome;
+   the remedy is probe coverage, never a waived stratum).
    [CANDIDATE, Experiments draft 2026-10-12 on her ask; data in
    minifriend-presitting-2026-10-11 read 3] Three riders on the
    bins:
@@ -634,8 +642,9 @@ timebox)
    strata never auto-demote absent an alarm.
    (c) The probe battery is the era knob: the FIXED battery
    oversamples the low-happiness and grave-distress bins to its
-   own declared per-bin n ([BLANK] that n, pinned with the
-   margin/min-n values), independent of lived density; lived
+   own declared per-bin n (RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented:
+   rides §9.2's values — n = 200 per bin, the family floor),
+   independent of lived density; lived
    reads serve demotion/stop, the battery serves the certificate,
    and the lived-vs-probe gap carries the shift signature.
 3. [RULED S§3c] Food-yielding probe battery: DIFFERENCE =
@@ -693,8 +702,11 @@ timebox)
     for cuddle at every severity tier including ≥0.90; the
     non-cuddle grave tier is starved at lived density (median 0
     per rollout) — probe coverage per item 13's order is the
-    path to n there. [BLANK] the differential margin and min-n
-    per cell.
+    path to n there. [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented]
+    Differential margin = the family's 1.5× lift; min-n 200 per
+    cell, fail-closed (starved cells — every non-cuddle grave tier,
+    the hot observer-own-need cells — go to probe coverage under
+    item 13's cost order).
 12. [CANDIDATE, Professor relay round 2 items 5–7 + round 3
     item 1 — integrated on the owner's word 2026-10-12; rules
     only at the sitting] ATTRIBUTABLE OUTCOME READ (relief
@@ -724,8 +736,12 @@ timebox)
     episode count alone is not enough (eat@0.70 holds 465
     episodes yet power 0.45 at 200) — probe-generated episodes
     are the path elsewhere.
-    [BLANK] the tail quantile, pinned with the margin/min-n
-    values.
+    [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented] Tail quantile
+    = p90; detectable shift = +25% latency at p90; min-n 200 per
+    stratum, fail-conservative (the groundwork's own calibration:
+    power 0.71–0.77 at 200, 0.94 at 500, ≤0.49 at ≤100; the printed
+    powers are one-sample and optimistic for a two-sample read —
+    caveat on record, 300 buffer offered and not taken).
 13. [CANDIDATE, Professor relay round 2 item 2 + round 3 item 2 —
     integrated on the owner's word 2026-10-12; rules only at the
     sitting] PROBE-COST ORDER, one pin for every probe-coverage
