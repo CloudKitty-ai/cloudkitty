@@ -110,11 +110,17 @@ def main():
     ap.add_argument("--seeds", default="905001,905002,905003")
     ap.add_argument("--ticks", type=int, default=20_000)
     ap.add_argument("--out-dir", type=Path, default=HERE / "results-raw/bin-anchor")
+    ap.add_argument("--config", type=Path, default=None,
+                    help="explicit config (one size only); default g2leg-{size}.toml")
+    ap.add_argument("--label", default=None,
+                    help="output name suffix (anchor-{label}.json); default the size")
     a = ap.parse_args()
     seeds = [int(s) for s in a.seeds.split(",")]
     a.out_dir.mkdir(parents=True, exist_ok=True)
-    for size in (int(s) for s in a.sizes.split(",")):
-        config = HERE / f"g2leg-{size}.toml"
+    sizes = [int(s) for s in a.sizes.split(",")]
+    assert a.config is None or len(sizes) == 1, "--config takes one size"
+    for size in sizes:
+        config = a.config if a.config else HERE / f"g2leg-{size}.toml"
         acc = {"kitty_ticks": 0,
                "occ": {"lt45": 0, "b45_70": 0, "gt70": 0},
                "flag": {"n": 0, "hap": []}, "noflag": {"n": 0, "hap": []},
@@ -129,7 +135,7 @@ def main():
         meta = {"config": config.name, "seeds": seeds, "ticks": a.ticks,
                 "distress_edge": 90.0, "happiness_edges": [45.0, 70.0]}
         summary = summarize(acc, meta)
-        p = a.out_dir / f"anchor-{size}.json"
+        p = a.out_dir / f"anchor-{a.label or size}.json"
         p.write_text(json.dumps(summary, indent=1))
         print(f"wrote {p}", flush=True)
 

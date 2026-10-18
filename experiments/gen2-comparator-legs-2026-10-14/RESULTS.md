@@ -110,6 +110,20 @@ by size; bath nearly absent at 0/53/259). Unflagged happiness median
 83.2/82.9/80.5. The Gen 3 re-anchor re-runs `bin_anchor.py` on the
 Gen 3 engine and bridges per the banked obligation.
 
+Vision-vs-social side read (owner ask 2026-10-17: does larger vision
+also help cats find each other?): the same anchor read on the v4
+config, same seeds/ticks (`anchor-100-v4.json`), per-need flag ticks
+v4 → v6: cuddle 23,010 → 20,845 (1.10×), eat 21,000 → 18,273 (1.15×),
+bath 520 → 259 (2.01×), while drink 0.82×, sleep 0.83×, play 0.92×
+move the other way; total flagged share 11.53% → 10.72%. On typical
+seeds vision buys little on the social need (~10% on cuddle) — the
+distance-closing machinery is global hearing, and the vision-only
+channel (quiet or sleeping friends, who emit no stamps) is marginal
+at these densities. The law's big v4 → v6 happiness gain (+3.809
+paired) is tail-driven (catastrophic consumption-shadow seeds like
+905029: eat flags 4,989 → 25 on that seed), not a uniform per-need
+improvement; 3-seed caveat on the side read.
+
 ## Friend-ward drift screen (spec 063, owner kickoff "Let's build it
 and see what happiness delta it produces on 100x100")
 
