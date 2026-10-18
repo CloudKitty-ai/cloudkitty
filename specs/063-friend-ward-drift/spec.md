@@ -39,6 +39,21 @@ steady-state nudge, which makes inert-when-off and
 no-outsized-clustering the load-bearing requirements, not the drift
 itself.
 
+## Clarifications
+
+### Session 2026-10-17
+
+- Q: Should the friend-ward drift also steer the idle potter step, or
+  only the choice among relief options? → A: Include the potter (owner:
+  "A") — when the flag is on and the nearest known friend is beyond the
+  gate, the potter step heads toward that friend, cadence unchanged; no
+  separate sub-flag.
+- Q: When a friend is known only by sound, may the drift use a stamp of
+  any meow kind, or only want/here-word stamps? → A: Want + here words
+  only for this feature (owner: "B") — the drift's own friend knowledge
+  pre-applies the fence; existing heard-unseen consumers stay unchanged
+  until Candidate 2 is kicked off.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A toggleable flag that is inert when off (Priority: P1)
@@ -172,9 +187,14 @@ byte-identical to the pre-feature engine.
   WHETHER relief/walking happens. A friend-ward beam beyond reach loses
   to an in-reach beam even inside the band.
 - The friend is known only as an audible stamp: the gate and the
-  friend-ward distance are measured to the stamp's position, and the
-  stamp is used kind-blind (position and freshness only, never the
-  word's kind).
+  friend-ward distance are measured to the stamp's position; only
+  want/here-word stamps qualify (FR-005), and a qualifying stamp
+  contributes position and freshness only.
+- A friend's freshest audible meow is a free-register word while an
+  older want/here stamp of the same friend is still within the digest
+  window: the drift uses the freshest QUALIFYING stamp — the
+  free-register word neither places the friend nor hides the older
+  lawful stamp.
 - Flag on alters the engine's RNG consumption relative to flag off
   (the potter's direction draw): accepted and declared — the flag-on
   arm is its own stream; flag-off must consume draws exactly as today.
@@ -205,14 +225,17 @@ byte-identical to the pre-feature engine.
   non-negative).
 - **FR-004**: "Nearest known friend" MUST be computed from the cat's
   fogged view only: visible roster members, plus unseen roster members
-  at their freshest audible stamp within the digest window — the same
-  knowledge base the existing heard-unseen helper supplies — picked by
-  Manhattan distance with the lower id breaking ties. No read of
-  unobservable state (true positions, needs, private counters) may
-  enter the computation.
-- **FR-005**: Audible stamps MUST be used kind-blind: position and
-  freshness only. The drift introduces no new dependence on any meow
-  kind.
+  at their freshest audible want- or here-word stamp within the digest
+  window, picked by Manhattan distance with the lower id breaking
+  ties. No read of unobservable state (true positions, needs, private
+  counters) may enter the computation.
+- **FR-005**: The drift's stamp set is law-named want and here words
+  only (her ruling, Clarifications): a stamp of any other kind — the
+  free register, purr, WaitForMe — MUST NOT enter the drift's friend
+  knowledge. Within the admitted set, a stamp contributes position and
+  freshness only. The existing heard-unseen consumers (cuddle walk,
+  play scan) keep their current kind-agnostic set untouched — their
+  narrowing is banked Candidate 2's, not this spec's.
 - **FR-006**: The drift MUST fire only when the flag is on AND a
   nearest known friend exists AND its distance exceeds the gate. In
   every other case each drift site MUST decide exactly as flag-off.
@@ -250,7 +273,8 @@ byte-identical to the pre-feature engine.
   convergence without impacting steady state".
 - **Nearest known friend**: a derived, observation-only quantity —
   (position, id) of the closest roster member the cat can currently
-  see or has heard within the digest window.
+  see or has heard via a want/here-word stamp within the digest
+  window (FR-005's fence).
 
 ## Success Criteria *(mandatory)*
 
@@ -293,14 +317,16 @@ before planning:
   heard-unseen digest the observation already carries; no new
   observation cell, so no schema boundary.
 - **Rule 6 (the free register is never scripted) — moved a choice.**
-  FR-005 (kind-blind stamps) is rule 6's hearing test applied: a heard
-  word places the friend at its stamped tile, nothing more. The drift
-  adds no kind-dependent decision. Standing note: the shared
-  heard-unseen helper is kind-agnostic today and Experiments' rule-3
-  report flags an apparent 059 FR-012 tension on its existing
-  consumers; candidate 2 (banked) owns that fence, and by reusing the
-  shared helper this spec inherits whatever narrowing lands there
-  rather than pre-empting the banked ruling.
+  FR-005 exists because of it: the drift's friend knowledge admits
+  law-named want/here stamps only (her ruling, Clarifications), so no
+  scripted decision ever keys on a free-register word — harmony with
+  059 FR-012's "mute and deaf" rather than the apparent tension
+  Experiments' rule-3 report flags on the existing kind-agnostic
+  consumers. Keying on law-named kinds is established practice (the
+  groom response keys on WantBath). Within the admitted set a stamp
+  contributes position and freshness only. The existing consumers'
+  narrowing stays banked Candidate 2's; this spec touches none of
+  them.
 - **Rule 9 (frozen models / pins) — moved choices.** FR-001/FR-002:
   the flag ships off everywhere, flag-off is byte-identical, so no
   pin or golden re-cuts and no deploy question arises. Turning the
@@ -331,16 +357,15 @@ before planning:
 
 ## Assumptions
 
-- **Scope of "beyond just idle"**: read as including the idle potter
-  (US3) alongside relief choice (US2), per her sentence structure;
-  US3 is severable if she rules it out. The blind lattice-tour search
-  (explore) is explicitly out of scope — that surface belongs to
-  candidate 1 (waypoint start-index), which stays banked.
-- **Friend knowledge reuses the shared heard-unseen helper as-is**
-  (kind-agnostic stamps): candidate 2's want+here fence is banked and
-  owns any narrowing; this spec must not pre-empt it. If candidate 2
-  lands first, this feature inherits the fence through the shared
-  helper with no spec change.
+- The blind lattice-tour search (explore) is explicitly out of scope —
+  that surface belongs to candidate 1 (waypoint start-index), which
+  stays banked. (The idle potter's inclusion is ruled, not assumed:
+  see Clarifications.)
+- **Friend knowledge is the drift's own, fenced to want+here stamps**
+  (ruled, see Clarifications); the shared heard-unseen helper's
+  existing consumers are untouched. If banked Candidate 2 later lands
+  the same fence on those consumers, the two meet with no change to
+  this feature.
 - **"Friend" means any other roster member**, as everywhere else in
   the teacher (no friendship graph exists); busy/idle state does not
   gate the drift (knowledge of a friend's position is enough to drift
