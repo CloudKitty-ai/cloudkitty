@@ -138,6 +138,33 @@ knowledge-flip residual produced no streak at the line (on-arm worst
 on (417, 496, 356), all clean. Raws: `results-raw/fwd-screen/`
 ({off,on}/legs/size100 + scouts, run.log, the on-arm toml).
 
+### The v4 variant (owner ask 2026-10-17: "Can we run the test with
+vision 4 and see if it helps there?")
+
+Same paired screen at radius 4 (the pre-law constraint regime), both
+arms fresh on the landed binary, configs deep-diff-checked (off =
+law config with only radius 6 → 4; on = that + the flag):
+
+| arm | team happiness | per-seed range | worst-streak mean / max | F-053 |
+|---|---|---|---|---|
+| v4 off | 72.814 | [68.808, 75.440] | 556 / 1000 | seed 905029 ABORTED at tick 5,807 |
+| v4 on | 72.501 | [68.954, 75.963] | 536 / 866 | none |
+
+The off arm reproduces the recorded v4 leg EXACTLY, abort included.
+The headline is the tail, not the mean: **the flag rescues 905029** —
+no abort, worst streak 1000 → 472, seed happiness 72.938 over the
+full 20k (the off arm's 69.651 is a 5,807-tick mean, so that pair's
+delta is truncation-confounded). Mean effect stays null-to-slightly-
+negative: paired delta −0.313 (14/30 positive, sd 1.925, mean/sem
+−0.89; excluding the confounded 905029 pair, −0.437), low_share
+6.605% → 6.630%. Worst-streak tail compresses (max 1000-abort → 866,
+mean 556 → 536). Scouts clean both arms (off worst 794, on worst
+544). Read: at v4 the drift does exactly what Candidate 3 was
+designed to do — pull relief choices toward the pod in the
+consumption-shadow failure mode — buying tail welfare, not mean
+happiness; under the vision law that failure mode is already gone and
+the flag is a null. Raws: `results-raw/fwd-screen-v4/`.
+
 ## Regeneration
 
 ### Collect
@@ -203,6 +230,20 @@ ln = [v for s in sorted(off) for v in on[s]['low_share']]
 print('dist_ticks delta mean %+.0f pos %d/30; low_share off %.3f%% on %.3f%%' %
       (statistics.mean(dd), sum(x > 0 for x in dd),
        statistics.mean(lo) * 100, statistics.mean(ln) * 100))
+"
+# v4 variant read (~1 s): same recipe on results-raw/fwd-screen-v4/{off,on};
+# plus the 905029 pair and the excluding-905029 delta:
+python3 -c "
+import json, statistics
+def load(p):
+    return {r['seed']: r for r in (json.loads(l) for l in open(p).read().splitlines()[1:])}
+off = load('results-raw/fwd-screen-v4/off/legs/size100/scripted-g2cmp-30x20000.jsonl')
+on  = load('results-raw/fwd-screen-v4/on/legs/size100/scripted-g2cmp-30x20000.jsonl')
+team = lambda r: statistics.mean(r['mean_happiness'])
+print('905029 off', round(team(off[905029]), 3), off[905029]['max_distress_age'], off[905029].get('aborted_streak'))
+print('905029 on ', round(team(on[905029]), 3), on[905029]['max_distress_age'], on[905029].get('aborted_streak'))
+d = {s: team(on[s]) - team(off[s]) for s in sorted(off)}
+print('delta excl 905029: %+.3f' % statistics.mean([v for s, v in d.items() if s != 905029]))
 "
 # Bin-anchor read (~1 s): every cell of the anchor table from the JSON.
 python3 -c "
