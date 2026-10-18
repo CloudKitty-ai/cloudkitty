@@ -82,6 +82,34 @@ and the comms-pressure thesis are worth the ~0.75 scripted-roster
 happiness price (owner's law keeps 20×20 at base). Raw:
 `results-raw/vision5-20/legs/size20/`.
 
+## Bin-anchor read (owner "Agreed", 2026-10-17): what 45/70/90 name in Gen 2
+
+The semantic anchor of the doctrine bin edges, recorded pre-freeze so
+the banked Gen 3 re-anchor obligation
+(`gen3-roadmap-inputs-2026-10-04.md` addendum 3) has a committed Gen 2
+reference. Scout seeds 905001–905003 per size, 20k ticks, law
+configs, traced; flags are the engine's own `in_distress` lists
+(edge = `thresholds.distress` 90), never re-derived. 300,000
+kitty-ticks per size. Raws: `results-raw/bin-anchor/anchor-{size}.json`
+(traces regenerate deterministically; not kept).
+
+| leg | occ <45 / 45–70 / >70 | flagged share | flagged hap median (p10–p90) | flagged <45 / <70 | P(flag·hap<45) | P(flag·hap>70) |
+|---|---|---|---|---|---|---|
+| 20×20 | 0.668% / 4.20% / 95.13% | 0.99% | 42.0 (25.6–57.1) | 59.1% / 99.7% | 0.876 | 0.0000 |
+| 40×40 | 0.787% / 5.32% / 93.89% | 1.24% | 41.1 (22.5–60.6) | 60.7% / 98.6% | 0.955 | 0.0002 |
+| 100×100 | 5.570% / 19.00% / 75.43% | 10.72% | 45.6 (23.9–64.9) | 48.6% / 96.9% | 0.935 | 0.0045 |
+
+The anchor in one sentence: **70 is the distress ceiling** (96.9–99.7%
+of flagged kitty-ticks sit below it, and essentially no flagged tick
+lives above it — P(flag | hap > 70) ≤ 0.0045), **45 marks the graver
+half** (48.6–60.7% of flagged ticks below it; a sub-45 tick is flagged
+with probability 0.876–0.955), and unflagged mass below 45 is
+negligible (0.036–0.403%). Flag composition is cuddle/eat-dominated
+(cuddle 1,447/2,743/20,845 and eat 1,205/2,078/18,273 flag kitty-ticks
+by size; bath nearly absent at 0/53/259). Unflagged happiness median
+83.2/82.9/80.5. The Gen 3 re-anchor re-runs `bin_anchor.py` on the
+Gen 3 engine and bridges per the banked obligation.
+
 ## Regeneration
 
 ### Collect
@@ -98,6 +126,8 @@ caffeinate -s python3 -B run_legs.py --config-20 g2leg-20.toml --config-40 g2leg
 # same binary. The forensic trace re-capture:
 ../tools/bc-collect/target/release/bc-collect --config g2leg-100.toml --rollouts 1 \
     --ticks 6000 --seed-base 905029 --out-dir OUT --trace   # (v4 variant needs radius=4)
+# Bin-anchor collect (~15 min; traces to scratch, JSON to results-raw/bin-anchor/):
+caffeinate -s python3 -B bin_anchor.py --scratch /tmp/bin-anchor-traces
 ```
 
 ### Read
@@ -120,4 +150,19 @@ for name, path in [('20x20 law', 'results-raw/legs/size20/scripted-g2cmp-30x2000
     print(name, round(statistics.mean(team), 3), [round(min(team), 3), round(max(team), 3)],
           round(statistics.mean(m)), max(m), [r['seed'] for r in rows if r['max_distress_age'] >= 1000])
 "  # ~5 s
+# Bin-anchor read (~1 s): every cell of the anchor table from the JSON.
+python3 -c "
+import json
+for s in (20, 40, 100):
+    d = json.load(open(f'results-raw/bin-anchor/anchor-{s}.json'))
+    o, f, nf = d['occupancy_share'], d['flag'], d['noflag']
+    print(s, d['kitty_ticks'],
+          ['%.3f' % (o[b]*100) for b in ('lt45','b45_70','gt70')],
+          '%.2f' % (f['share']*100), '%.1f' % f['hap_median'],
+          '%.1f/%.1f' % (f['hap_p10'], f['hap_p90']),
+          '%.1f/%.1f' % (f['share_lt45']*100, f['share_lt70']*100),
+          '%.4f/%.4f' % (d['p_flag_given_lt45'], d['p_flag_given_gt70']),
+          '%.3f' % (nf['share_lt45']*100), '%.1f' % nf['hap_median'],
+          d['flag_ticks_by_need'])
+"
 ```

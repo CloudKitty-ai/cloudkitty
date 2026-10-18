@@ -139,3 +139,36 @@ play knob above (slack delays tier-3 re-entry, consent refuses tier-3
 scenes, favourites tilt toward it) — re-screen all three on the
 stratified stack before Gen 3 ranges, with the play-share column as
 the first-class corpus metric.
+
+## Addendum 2026-10-17 (3): bin-edge re-anchor obligation (45/70/90)
+
+Owner, freeze sitting 2026-10-17 ("Agreed" to the re-anchor + bridge
+plan). The doctrine bin edges — happiness 45/70 + the need-90
+distress edge — are pinned for Gen 2 (prereg §9.2 rider (a): one
+fixed set across Gen 2's eras; 90 frozen BY VALUE, config-key
+provenance only). Gen 3's stratified need stack re-architects how
+needs feed happiness, so the fixed values will name different lived
+states there, and one flat need-90 edge may misfit tiered needs.
+
+OBLIGATION, at the Gen 3 need-stack landing (same trigger as the
+favourites re-screen above):
+
+1. Re-run the SEMANTIC-ANCHOR read on the Gen 3 engine
+   (`gen2-comparator-legs-2026-10-14/bin_anchor.py` — bin occupancy,
+   happiness conditioned on the engine's own distress flags,
+   P(flag | hap < 45) vs P(flag | hap > 70), per-need flag counts).
+   The committed Gen 2 reference lives in
+   `gen2-comparator-legs-2026-10-14/results-raw/bin-anchor/` with
+   the numbers quoted in that experiment's RESULTS.md.
+2. If the anchor holds, carry the values into the Gen 3 prereg; if
+   it moved, re-pin by the same procedure and BRIDGE: a dual-reported
+   overlap battery (old and new edges computed on the same rollouts)
+   so cross-generation reads translate.
+3. No test runnable on the Gen 2 engine can set the Gen 3 values
+   (the distribution they bin does not exist until the stack does) —
+   recorded so nobody pre-pins them from Gen 2 data.
+
+Context: the Gen 1 absolute cert bars built on these numbers
+(welfare.rs 45-streak/share, 70 run-mean, 90-age-150) are already
+superseded for Gen 2 certification by the paired-strict gate ruling;
+they stay live only as the Gen 1 served-world CI gate, tighten-only.
