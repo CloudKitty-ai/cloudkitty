@@ -65,8 +65,32 @@ rulings nor answers to blanks until she rules. Rulings sources:
   spec 033). Free-register baseline re-declared on the Gen 2
   corpus.
 - [RULED S§6] F-035 waterline contagion OUT of Gen 2.
-- [BLANK] The full world toml diff vs `anchor.toml`, committed at
-  freeze.
+- [PINNED at freeze, 2026-10-17, owner "Proceed"] The full world
+  toml diff, `gen2-world-draft-2026-10-15.toml` vs
+  `fog-gen1-shakeout/anchor.toml`, machine-derived (flattened-key
+  compare) — every line traces to a ruling:
+  - REMOVED: `actions.groom_cuddle_relief = 0.5` (spec 054 groom
+    reprice).
+  - ADDED: `actions.sleep_floor_off_beam = 15` (#390);
+    `behavior.consent_line = 30.0` — PENCIL deployed value (the
+    Biscuit 3.0 anchor); the §4 ruling sets the COLLECTION base to
+    0 (gate off, `collect_corpus --base-consent 0`) with enrichment
+    drawn per-episode U[20,25]; the DEPLOYED/PPO-episode line is
+    deferred to the three-leg readout, and the exact-trigger
+    comparator re-run rule (owner 2026-10-15) governs if the ruled
+    line differs from 30 — the §7 realized legs ran at 30.
+  - CHANGED: `actions.sleep_relief` 5.0 → 3.0 (#390);
+    `behavior.playful_comfort` 55.0 → 30.0 (Biscuit 3.0 c30);
+    `elements.sunbeam` min 4 → 6, max 5 → 7, ttl 300 → 3000 (#390,
+    6 beams); every `kitty[*].behavior` → `teacher` (S§ one
+    parameterized teacher).
+  - Per-kitty trait keys (need-rate multipliers, comfort_slack,
+    favourite weights) are ABSENT from the base toml by design:
+    slack default 0 = absent key, multipliers drawn at collection
+    (§4), favourites tabled to Gen 3.
+  - The comparator-leg size derivations (starts block, area-scaled
+    elements, vision law) live in §7's derive_leg_configs.py, not
+    in this base diff.
 
 ## 3. Schema bump (one wall, everything rides it)
 
@@ -136,9 +160,21 @@ rulings nor answers to blanks until she rules. Rulings sources:
   the Gen 2 trunk) is specified. Named flip trigger: a ruled
   followups-window pilot needing world-state observation reserves
   at that moment's next schema touch.
-- [BLANK] Observation rows for others carry WHICH visible fields
-  exactly (position, activity, bath, message digest, purr;
-  confirm nothing else leaks at the field level — audit at spec).
+- [PINNED at freeze, 2026-10-17, owner "Proceed"] Observation rows
+  for others carry EXACTLY the audited fifteen-cell enumeration
+  (`gen2-field-audit-2026-10-14/AUDIT.md`, PASS at c3f034cb:
+  shipped COLUMN_MAPS[6] vs the 058 contract, 15 named cells
+  tiling 58 offsets, no gap or overlap): position (present,
+  bearing_x/y, linear, log), bath (the one visible need),
+  activity (one-hot block + partner + is_my_target), three world
+  facts about a visible cat (in_water, on_sunbeam, scene_age —
+  FR-007a's leak-audit paragraph), and the message digest
+  (msg_block 30 with purr as HEAD_KINDS index 5, want intensities
+  6, answers-me bits 4). No hidden-state name in the row: the
+  five hidden needs, happiness, identity, distress, memory,
+  progress and pursuit appear nowhere. Map-level pin;
+  value-level leakage stays the Part A checker's job on the
+  fresh corpus.
 - DECLARED SURFACE CAVEAT (sweep finding, 2026-10-09): the plugin
   advisor wire (DecisionRequest, script.rs:104) carries the fog
   snapshot with visible friends' FULL state — a second visibility
@@ -158,8 +194,21 @@ rulings nor answers to blanks until she rules. Rulings sources:
   Gen 2. Effect-body pays are world pricing and exempt.
 - [RULED S§2] Cue-answer rungs (cuddle_response / play_response)
   built at collection: digest-keyed, imitable; FR-036
-  cuddle-clause revisit travels with them. [BLANK] response shape
-  (drift rule, answer threshold) at spec.
+  cuddle-clause revisit travels with them. [PINNED at freeze,
+  2026-10-17, owner "Proceed" — the shape landed in spec 059's
+  contract, `specs/059-teacher-rework/contracts/cue-answer.md`]
+  Response shape: answer threshold = deterministic fire condition
+  `intensity ≥ max(reply_intensity_floor, top_pressure(me)/100)`
+  (served floor 0.20, no RNG; want kinds only, free register never
+  keyed); contention = one winner per tick, calls never stack;
+  drift rule = PRINCIPLED ASYMMETRY (owner ruled B, 2026-10-10):
+  play answers walk as Chase with an observable pursuit record, so
+  a challenger displaces the incumbent only past the commitment
+  margin `h = k × response_commitment_ticks` (served ≈ 0.0857);
+  cuddle answers walk as bare Moves with no observable commitment,
+  so NO margin — a pure function of the observation. Flip
+  signature prereg-able at `intensity_diff = k · distance_diff`,
+  k ≈ 0.0286.
 - [RULED S§6, MECHANISM superseded 2026-10-10 — S§Ruling
   "consent re-keyed to the consent-giver"] Consent is TARGET-SIDE
   and ENGINE-VALIDATED: the target declines on its OWN state (always
@@ -281,7 +330,17 @@ rulings nor answers to blanks until she rules. Rulings sources:
 - [RULED shelf ruled items] Stuck detector at decoding
   (served-side; net-zero displacement or exact repetition with an
   armed need) + identity input trained in (options 3+4, owner
-  2026-09-16). [BLANK] detector window N and perturbation rule.
+  2026-09-16). [PINNED at freeze, 2026-10-17, owner "Proceed" —
+  the values landed in spec 061's contract,
+  `specs/061-stuck-detector/contracts/stuck-detector.md`]
+  Detector window N = 30 ticks (config default; `[stuck_detector]`
+  armed_line 75.0, confinement radius 1 Manhattan, shipped DARK —
+  mode off/observe/enforce, deny_unknown_fields); perturbation
+  rule = the substitute is the scripted needs-driven brain's
+  proposal for the stuck seat (owner's clarify answer in 061:
+  scripted substitute, never random-legal), full fire record
+  either way; deterministic — identical seeds reproduce identical
+  fire sequences and substitutes (SC-004).
 - [RULED S§5] Trunk keeps the seeded corpus and the two-head
   leash.
 - [RULED at the freeze sitting, owner 2026-10-17 — the C-bite-1
@@ -404,7 +463,18 @@ rulings nor answers to blanks until she rules. Rulings sources:
   served per-tile density.
 - [RULED] Scripted comparator legs at 20/40/100 run PRE-freeze,
   battery shape (30 × 20k), and the prereg pins the realized
-  numbers. [BLANK] those numbers.
+  numbers. [PINNED at freeze, 2026-10-17 — realized under the
+  vision law, band g2cmp 905001–905030, zero F-053 events; full
+  tables + regeneration fences in
+  `gen2-comparator-legs-2026-10-14/RESULTS.md`]: 20×20 team
+  happiness 81.921 [80.409, 82.712], worst-streak 178/401; 40×40
+  @ v5 81.634 [80.640, 82.320], 197/626; 100×100 @ v6 76.623
+  [73.754, 80.416], 443/716. The v4 record (40×40 80.341, 100×100
+  72.814 with seed 905029 aborted at tick 5,807) is kept as the
+  finding that ruled the vision law; the 100×100 row is
+  characterize-only per the gates line. Flag-off behavioral
+  byte-identity re-confirmed at the 063/064 rebuilds (three exact
+  reproductions on record).
 - [RULED owner 2026-10-15 in-session, per-seed deterministic
   placement: "I think as long as placement is deterministic for
   seed, we should do that for every unique seed". The legs
@@ -589,9 +659,9 @@ timebox)
    coverage, never waiving the stratum; (d) the calibration half
    folds INTO the ostrich metric — one instrument. k = 1 pinned IN
    TEXT;
-   k > 1 is a named marker-review trigger (sitting decision); a
-   gradient/decision-flow trigger beside it is drafted as a
-   [CANDIDATE] in §6.
+   k > 1 is a named marker-review trigger (sitting decision); the
+   gradient/decision-flow trigger beside it is RULED in §6
+   (2026-10-17, "Accept all") and landed in standing text (b).
    Declared blind spot: one tick never prices visitation shift or
    compounding; the declared PAIRING carries it — gate + consumer
    reads + canalization watch jointly. [RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented]
