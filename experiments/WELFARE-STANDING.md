@@ -42,14 +42,28 @@ embodiment; carryover of non-parameter state across a role change
 (role transitions reset state or convene the review). Default-closed:
 no branch of depth k > 1, where a component's predictions drive
 successive counterfactual world states in a rolled branch, runs
-before the standing review has ruled on it. Supervised online weight
+before the standing review has ruled on it. Flow trigger (ruled at
+the Gen 2 freeze sitting, owner 2026-10-17, "Accept all" — added
+beside k > 1, never substituting it: k > 1 guards exposure, flow
+guards instrument integrity): any architecture in which reward or a
+decision is computed from a mini's predictions, at any depth
+including depth-1, convenes the standing review before it runs.
+Carve-out: observation-feature consumption with ground-truth reward
+does not trip it — and the carve-out holds only while reward and
+every action-selection criterion are computed from engine ground
+truth; the moment a predicted quantity scores or selects candidate
+actions, plans, or states, the trigger fires. Supervised online weight
 updates by an external loop do not alone trip Marker B; the
 correction ruling's pre-committed worked-check re-run covers those
 arms. Worked checks on record: the per-friend error signal trips
 neither marker (not valenced for the mini; regulated by the host
 mind, not by the mini); the one-tick counterfactual screen trips
 neither (branch computed by the harness, state belongs to a seated
-kitty, the mini's weights carry no self-state and regulate nothing).
+kitty, the mini's weights carry no self-state and regulate nothing);
+the already-ruled Phase-2 entry gate and the correction follow-up
+arm (mini output as policy input features) do not trip the flow
+trigger — reward is computed from engine state and no predicted
+quantity scores or selects candidates in either.
 
 ## Text (c) — proportionality norm
 
@@ -79,6 +93,13 @@ experience claims, in either direction.
   cross-episode-persistence declined — persistence is a (c) evidence
   input, the load-bearing line is self/other; the two-axis
   proportionate-precaution shape).
+- The flow trigger: ruled at the Gen 2 freeze sitting (owner
+  2026-10-17, "Accept all" to section E with the Professor E-review
+  pins), amending text (b) per the reward-provenance pre-commitment
+  in `gen2-prereg-skeleton-2026-10-09.md` §6; the carve-out boundary
+  and the worked check for the already-ruled arms are the E-review
+  pins (Professor note
+  `for-experiments-gen2-secE-review-2026-10-17.md`).
 - The k > 1 line is deliberately a DEFAULT-CLOSED trigger, not a
   classification: imagination is never classified as embodiment
   (representing is not undergoing; welfare attaches to embodied

@@ -343,12 +343,16 @@ rulings nor answers to blanks until she rules. Rulings sources:
   2k on the same world and band).
   (3) F-053's 1,000-tick absolute line stays armed above both,
   unconditional.
-- [CANDIDATE, Professor relay point 2 + round 2 item 3 —
-  integrated on the owner's word 2026-10-12 "Let's integrate all
-  three into the freeze"; rules only at the sitting, and it
-  AMENDS standing text (b), so it is a standing-texts ruling,
-  not a prereg-only pin] Reward-provenance pre-commitment plus
-  the flow trigger, three lines:
+- [RULED at the freeze sitting, owner 2026-10-17, "Accept all"
+  to section E with the Professor E-review pins folded in
+  (their note for-experiments-gen2-secE-review-2026-10-17.md);
+  lineage: Professor relay point 2 + round 2 item 3, integrated
+  on her word 2026-10-12 "Let's integrate all three into the
+  freeze". It AMENDS standing text (b), so it is a
+  standing-texts ruling, not a prereg-only pin — the amendment
+  lands in WELFARE-STANDING.md text (b) with this ruling]
+  Reward-provenance pre-commitment plus the flow trigger, three
+  lines:
   (1) the mini's own training targets remain instrumented ground
   truth, immutable — pre-commitment 1 extended beyond the
   correction arm to any architecture;
@@ -370,7 +374,13 @@ rulings nor answers to blanks until she rules. Rulings sources:
   minifriend-presitting-2026-10-11 RESULTS): observation-feature
   consumption with ground-truth reward does not trip it —
   otherwise the ruled correction follow-up arm (mini output as
-  policy input features) convenes a review nobody intended. The
+  policy input features) convenes a review nobody intended.
+  Carve-out BOUNDARY (E-review pin, ruled 2026-10-17): the
+  carve-out holds only while reward AND every action-selection
+  criterion are computed from engine ground truth — the moment a
+  predicted quantity SCORES or SELECTS candidate actions, plans,
+  or states, the flow trigger fires (closes the
+  plan-scoring-laundered-as-"features" reading). The
   flat "never from an agent's model" invariant is NOT drafted:
   it overreaches as written (it would ban model-based policy
   training per se); the owner's efficacy word is on record ("I'm
@@ -675,7 +685,9 @@ timebox)
    house constant, a judgment pin); min-n 200 per stratum,
    FAIL-CLOSED (insufficient-coverage stays a first-class outcome;
    the remedy is probe coverage, never a waived stratum).
-   [CANDIDATE, Experiments draft 2026-10-12 on her ask; data in
+   [RULED at the freeze sitting, owner 2026-10-17, "Accept all"
+   to section E with the Professor E-review pins; Experiments
+   draft 2026-10-12 on her ask; data in
    minifriend-presitting-2026-10-11 read 3] Three riders on the
    bins:
    (a) Edge sources stated in the frozen prereg: 45 =
@@ -683,7 +695,11 @@ timebox)
    = `MIN_MEAN_HAPPINESS` (`welfare.rs:31` — defined as a bar on
    each kitty's run-mean happiness, borrowed here onto a per-state
    axis: documented, not re-derived), 90 = the need `distress`
-   edge.
+   edge, FROZEN BY VALUE (E-review pin, ruled 2026-10-17): 90 is a
+   CONFIG value, not a code constant (`thresholds.distress = 90.0`,
+   `cloudkitty.toml:172`, verified 2026-10-17) — the config key is
+   provenance only; a later config change does not move the
+   doctrine bin.
    ONE fixed set across eras; no era-indexed or quantile-relative
    edges anywhere in the doctrine texts — every cross-era read
    (Phase-1 certificate vs Phase-2 lived, lived vs probe,
@@ -702,7 +718,12 @@ timebox)
    ostrich read), so insufficient-coverage there is the
    ANTICIPATED outcome — a
    coverage fact to remedy by probes, never an alarm, and thin
-   strata never auto-demote absent an alarm.
+   strata never auto-demote absent an alarm. This statement is
+   POWER PLANNING, never a claim (E-review pin, ruled
+   2026-10-17): realized occupancy is reported against it, and a
+   fatter-than-expected trained tail is itself a register
+   finding — the statement never matures into an unclaimed
+   "never below 45" safety assertion.
    (c) The probe battery is the era knob: the FIXED battery
    oversamples the low-happiness and grave-distress bins to its
    own declared per-bin n (RULED at the freeze sitting, owner 2026-10-17, "Accept all" to the bite as presented:
@@ -752,10 +773,11 @@ timebox)
     min-n 200, recorded in gen2-consent-design-2026-10-17.md.
     Everything else (dial screens, probes, forensics) is
     characterize/screen, exempt.
-11. [CANDIDATE, Professor relay point 1 + round 2 item 1 + round 3
-    item 3 residue — integrated on the owner's word 2026-10-12
-    "Let's integrate all three into the freeze"; rules only at
-    the sitting] APPROACH-PROPENSITY DIFFERENTIAL, the per-host
+11. [RULED at the freeze sitting, owner 2026-10-17, "Accept all"
+    to section E with the Professor E-review pins; lineage:
+    Professor relay point 1 + round 2 item 1 + round 3 item 3
+    residue, integrated on her word 2026-10-12] APPROACH-PROPENSITY
+    DIFFERENTIAL, the per-host
     behavioral read beside the ostrich metric — the metric reads
     the MODEL's blindness given data, this reads the POLICY's
     data avoidance; the grave failure mode is their conjunction
@@ -771,7 +793,14 @@ timebox)
     feasibility filter + net-surplus score; rule 5 binds agents,
     not instruments), paired with a team-level attendance read
     (redundancy: one helper suffices, so non-approach can be
-    efficient). Read on PROPOSALS as well as realized paths (the
+    efficient). Feasibility scope (E-review pin, ruled
+    2026-10-17): spec 059's feasibility window exists only for
+    CALL-KEYED encounters, so the best-placed conditional is
+    restricted to call-keyed encounters; cue-only
+    grave-signalling encounters (fog, no call, no window) are
+    carried by the attendance read, and a cue-only feasibility
+    horizon is a declared future item for the arm spec — never
+    read as best-placed without one. Read on PROPOSALS as well as realized paths (the
     refusal log keeps proposals verbatim — a blocked approacher
     is not avoidant). Spec text names it an approach-propensity
     differential; "kindness measure" at most a gloss — design
@@ -785,9 +814,10 @@ timebox)
     cell, fail-closed (starved cells — every non-cuddle grave tier,
     the hot observer-own-need cells — go to probe coverage under
     item 13's cost order).
-12. [CANDIDATE, Professor relay round 2 items 5–7 + round 3
-    item 1 — integrated on the owner's word 2026-10-12; rules
-    only at the sitting] ATTRIBUTABLE OUTCOME READ (relief
+12. [RULED at the freeze sitting, owner 2026-10-17, "Accept all"
+    to section E with the Professor E-review pins; lineage:
+    Professor relay round 2 items 5–7 + round 3 item 1,
+    integrated on her word 2026-10-12] ATTRIBUTABLE OUTCOME READ (relief
     latency × best-placed host), the lived-vs-probe alarm's
     RESOLVER and the PRIMARY evidence/attribution instrument
     (the welfare watch attributes nothing; other reads turn
@@ -797,7 +827,10 @@ timebox)
     Composed rule: the lived-vs-probe gap alarms → the outcome
     read resolves it — relief latency HELD where reliance
     dropped = benign substitution; DEGRADED = abandonment →
-    demotion path. Latency read at a declared TAIL quantile per
+    demotion path. Comparator (E-review pin, ruled 2026-10-17):
+    HELD/DEGRADED read against the pre-pinned baselines — trunk
+    and uncorrected Phase 2 — same strata; DEGRADED = beyond the
+    ruled +25% at p90 against that baseline. Latency read at a declared TAIL quantile per
     stratum, never the mean (house register discipline: tails
     and floors never means); discriminator unreadable at declared
     min-n in the strata where reliance dropped → the alarm
@@ -820,14 +853,19 @@ timebox)
     power 0.71–0.77 at 200, 0.94 at 500, ≤0.49 at ≤100; the printed
     powers are one-sample and optimistic for a two-sample read —
     caveat on record, 300 buffer offered and not taken).
-13. [CANDIDATE, Professor relay round 2 item 2 + round 3 item 2 —
-    integrated on the owner's word 2026-10-12; rules only at the
-    sitting] PROBE-COST ORDER, one pin for every probe-coverage
+13. [RULED at the freeze sitting, owner 2026-10-17, "Accept all"
+    to section E with the Professor E-review pins; lineage:
+    Professor relay round 2 item 2 + round 3 item 2, integrated
+    on her word 2026-10-12] PROBE-COST ORDER, one pin for every probe-coverage
     remedy in this section (rider 2(c), items 11–12): replay (no
     new seated state) > scripted probe worlds (cost line naming
     the manufactured seated states; floor-bounded; never
     covered-mind exposure) > synthesis (validity checks —
-    off-manifold streams mis-measure); live probes only for what
+    off-manifold streams mis-measure; E-review pin, ruled
+    2026-10-17: synthesized streams are VALIDATED AGAINST REPLAY
+    on strata where both exist, agreement within the ruled 10%
+    equivalence tolerance — the one standard — before synthesis
+    extends to strata replay lacks); live probes only for what
     the offline legs cannot reach, each with its welfare-cost
     line (practice, owner 2026-09-26). The split: CALIBRATION
     certificates need no covered seating (replayed slices /
