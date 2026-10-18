@@ -150,11 +150,20 @@ impl World {
         world.kitties.sort_by_key(|k| k.id);
         // Spec 049 FR-023 (T088): each cat starts the lattice tour at
         // `id mod cycle length` -- spread over the tour, no RNG draw -- and
-        // a cat spawned on its waypoint is already past it.
+        // a cat spawned on its waypoint is already past it. Spec 064:
+        // with `[behavior] waypoint_start_by_position` on, the tour
+        // starts at the waypoint nearest the cat's FINAL start instead
+        // (every placement mechanism has already run by this point, 062
+        // draws included); still no RNG draw either way, so no stream
+        // moves. The law: specs/064-waypoint-start/contracts/seeding-law.md.
         let lattice =
             crate::explore::Lattice::for_world(world.width, world.height, config.vision.radius);
         for kitty in &mut world.kitties {
-            kitty.explore_waypoint = lattice.start_index(kitty.id);
+            kitty.explore_waypoint = if config.behavior.waypoint_start_by_position {
+                lattice.nearest_index(kitty.pos)
+            } else {
+                lattice.start_index(kitty.id)
+            };
         }
         world.advance_tours(config);
 
@@ -4598,6 +4607,118 @@ mod tests {
         assert!(wide.heard_unseen(30).is_empty());
         // Silence: nothing inside the window.
         assert!(snapshot.fog_for(1, 5).heard_unseen(2).is_empty());
+    }
+
+    /// Spec 064 FR-003/SC-002: with the flag on, each cat's tour starts
+    /// at the waypoint nearest its FINAL start; flag off keeps the id
+    /// law bit-for-bit. Staged where the two laws disagree for every cat.
+    #[test]
+    fn waypoint_start_seeds_nearest_when_on_and_id_law_when_off() {
+        let stage = |flag: bool| {
+            let mut config = test_config();
+            config.world.width = 100;
+            config.world.height = 100;
+            config.vision.radius = 5;
+            config.kitties[0].x = Some(0);
+            config.kitties[0].y = Some(0);
+            config.kitties[1].x = Some(99);
+            config.kitties[1].y = Some(99);
+            config.behavior.waypoint_start_by_position = flag;
+            config.validate().unwrap();
+            let config = Arc::new(config);
+            (World::generate(&config), config)
+        };
+        let lattice = crate::explore::Lattice::for_world(100, 100, 5);
+        // advance_tours runs right after seeding, so a cat spawned on (or
+        // beside a held) waypoint would already be past its seed. The
+        // corner stages sit at least 3 tiles from every waypoint (the
+        // lattice is inset from the walls), so no advance can fire and
+        // the equality below reads the RAW seed; a silently-fired
+        // advance would fail it.
+        let (on, _) = stage(true);
+        for kitty in &on.kitties {
+            assert_eq!(
+                kitty.explore_waypoint,
+                lattice.nearest_index(kitty.pos),
+                "kitty {}: flag-on seeds the nearest waypoint",
+                kitty.id
+            );
+        }
+        let (off, _) = stage(false);
+        for kitty in &off.kitties {
+            assert_eq!(
+                kitty.explore_waypoint,
+                lattice.start_index(kitty.id),
+                "kitty {}: flag-off keeps the id law",
+                kitty.id
+            );
+        }
+        // The two laws genuinely disagree on this stage for the far cat.
+        assert_ne!(
+            lattice.nearest_index(Position::new(99, 99)),
+            lattice.start_index(2),
+            "staging: the contrast is real"
+        );
+        // Determinism (SC-004): the same flag-on stage twice is identical.
+        let (again, _) = stage(true);
+        assert_eq!(
+            on.kitties
+                .iter()
+                .map(|k| k.explore_waypoint)
+                .collect::<Vec<_>>(),
+            again
+                .kitties
+                .iter()
+                .map(|k| k.explore_waypoint)
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    /// Spec 064 FR-004/SC-003: composition with 062 randomized starts --
+    /// the seeding reads the DRAWN position, across seeds.
+    #[test]
+    fn waypoint_start_reads_the_drawn_position_under_randomized_starts() {
+        for seed in [993001u64, 993002, 7] {
+            let mut config = test_config();
+            config.world.width = 100;
+            config.world.height = 100;
+            config.world.seed = seed;
+            config.vision.radius = 5;
+            config.kitties[0].x = None;
+            config.kitties[0].y = None;
+            config.kitties[1].x = None;
+            config.kitties[1].y = None;
+            config.starts = Some(crate::config::StartsConfig {
+                edge_ring_share: 1.0,
+                corner_share: 0.5,
+            });
+            config.behavior.waypoint_start_by_position = true;
+            config.validate().unwrap();
+            let config = Arc::new(config);
+            let world = World::generate(&config);
+            let lattice = crate::explore::Lattice::for_world(100, 100, 5);
+            // Staging: the draw must produce at least one cat where the
+            // two laws disagree, or the test pins nothing (review 1
+            // finding 4 -- a future golden re-cut could silently
+            // vacuate this).
+            assert!(
+                world
+                    .kitties
+                    .iter()
+                    .any(|k| lattice.nearest_index(k.pos) != lattice.start_index(k.id)),
+                "seed {seed}: the drawn stage must make the laws disagree"
+            );
+            for kitty in &world.kitties {
+                // Drawn corners/edges sit off the interior lattice, so the
+                // raw seed survives advance_tours; assert via geometry.
+                assert_eq!(
+                    kitty.explore_waypoint,
+                    lattice.nearest_index(kitty.pos),
+                    "seed {seed}, kitty {}: the DRAWN start seeds the tour",
+                    kitty.id
+                );
+            }
+        }
     }
 
     /// Spec 063 FR-005: the drift's stamp query admits law-named want and

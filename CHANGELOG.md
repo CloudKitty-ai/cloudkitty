@@ -33,6 +33,20 @@ change.
 
 ## Unreleased
 
+- **A cat's search starts where the cat is.** Waypoint start-index by
+  position (spec 064), off by default everywhere: a new `[behavior]`
+  flag seeds each cat's blind exploration tour at the waypoint nearest
+  its actual starting tile instead of wherever its id happens to land
+  on the tour cycle — so a corner-spawned cat on a big map sweeps its
+  own neighborhood first instead of trekking across the world. Purely
+  positional: no social rule, no new randomness (the seeded draw order
+  is untouched in both states), and it composes with randomized starts
+  (spec 062) by reading the drawn tile. With the flag off — every
+  served and shipped config — the engine is byte-identical to before,
+  verified by byte-comparing full runs at landing. No compatibility marker: the
+  defaults stamp, observation schema, world fingerprint and seeded
+  draw order are all unmoved.
+
 - **Lonely cats drift toward their friends.** Friend-ward drift (spec
   063), off by default everywhere: a new `[behavior]` flag teaches the
   scripted cats a gentle social pull for big maps. When a cat's nearest
