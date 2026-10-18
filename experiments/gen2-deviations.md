@@ -21,5 +21,21 @@ in the clone's metrics JSON). Chosen as the nearest-to-text fallback
 (the pin's own "applied everywhere else"); dropping the rows from
 the loss is the alternative, and the choice is reversible without
 recollection — both label columns are in the corpus by the pin's
-design. Owner notified 2026-10-18; no word yet — her ruling, if it
-differs, supersedes this default.
+design.
+
+Cause (traced 2026-10-18, owner's question): the proposer is
+mid-rest INSIDE its activity minimum — the mask is an outcome claim
+and duration enforcement collapses it to the continuation's entry
+(mask.rs doc; all 389 rows have mask = [RestSolo] only). The
+scripted teacher's ladder runs every tick regardless of its ongoing
+activity and proposes play on need pressure (adjacency-legal per
+the K§3 rider); the partner's consent gate declines it first
+(action.rs refusal_reason, spec 059 order), and apply absorbs the
+resolved Idle into the rest continuation (is_continued_by →
+continue_current_activity), which is why the residual is 100%
+RestSolo. The rows are doubly blocked — the teacher's play could
+not have been applied even with consent — so the applied RestSolo
+label is the engine's continuation law, not an artifact: the
+fallback is the correct demonstration for a mask-constrained
+student. Owner notified 2026-10-18; no word yet — her ruling, if
+it differs, supersedes this default.
