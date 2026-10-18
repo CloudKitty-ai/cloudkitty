@@ -20,11 +20,22 @@ no contract.
 - **Gate** `G`: `friend_ward_gate` (default 10, Manhattan tiles).
 - **Detour bound** `B`: `friend_ward_detour` (default 4.0, priced-cost
   tiles).
-- **Fires** (per site, ruled 2026-10-17 after review 1 HIGH-1): flag on
-  ∧ a nearest known friend exists ∧ that friend is strictly farther
-  than `G` from the site's ANCHOR — Site 1 anchors at the CHEAPEST
-  candidate (walk-invariant inputs, so the choice cannot oscillate
-  mid-walk); Site 2 anchors at the cat.
+- **Known-friend set**: every known friend's position (visible, or
+  fenced stamp). **Friend key** of a position: min over the set of the
+  Manhattan distance to it (ruled 2026-10-17, review 2: keying on THE
+  cat's-nearest friend let the key flip as the cat walked).
+- **Fires** (per site, ruled 2026-10-17): flag on ∧ the set is
+  non-empty ∧ the gate reading exceeds `G` — Site 1 reads the CHEAPEST
+  candidate's friend key; Site 2 reads the cat's distance to its
+  nearest known friend.
+- **Stability invariant**: under fixed knowledge every Site 1 ranking
+  input is fixed per candidate — the cheapest-wins state is absorbing
+  and a fired target only switches to a strictly better key, so
+  walking alone never oscillates the choice. Knowledge changes (a
+  friend crossing the vision-disc edge, a stamp expiring) are a
+  DECLARED residual the screen prices; at served radius 4 the relief
+  gate cannot fire from visible knowledge alone, the 100×100 legs
+  (radius 5/6) are exposed.
 
 When the drift does not fire, every site below behaves exactly as
 flag-off.
@@ -39,18 +50,17 @@ the same law, so they always agree).
    elements plus the remembered slot; fog-era beam occupancy filter
    unchanged).
 2. `min_cost` = cheapest candidate's priced cost (ties by id, as
-   today). The gate reads here: friend within `G` of that cheapest
-   candidate ⇒ the cheapest wins exactly as flag-off.
+   today). The gate reads here: the cheapest candidate's friend key
+   ≤ `G` ⇒ the cheapest wins exactly as flag-off.
 3. Band = candidates with `cost ≤ min_cost + B`, further capped by the
    caller's acceptance bound where one exists (the sunbeam walk's
    `sunbeam_reach`): a candidate failing the bound is never in the
    band. The drift changes WHICH option wins, never WHETHER relief or
    walking happens.
-4. Winner = band minimum by
-   `(manhattan(candidate_pos, friend_pos), cost, id)`, cost compared
-   by `total_cmp`. The fallback `(cost, id)` ordering inside
-   friend-distance ties is today's ordering, so the remembered slot
-   (id `u32::MAX`) still loses ties to a real sighting.
+4. Winner = band minimum by `(friend key of the candidate, cost, id)`,
+   cost compared by `total_cmp`. The fallback `(cost, id)` ordering
+   inside key ties is today's ordering, so the remembered slot (id
+   `u32::MAX`) still loses ties to a real sighting.
 
 Consequences pinned: with one candidate, with `B = 0` and distinct
 costs, or with every rival outside the band, the winner equals

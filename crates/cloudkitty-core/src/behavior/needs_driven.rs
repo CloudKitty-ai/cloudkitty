@@ -767,6 +767,87 @@ mod tests {
         );
     }
 
+    /// Review 2 finding 1 regression, owner "As recommended" (2026-10-17):
+    /// the exact two-friend geometry that livelocked when the band keyed
+    /// on the CAT's nearest friend (whose identity flipped between kitty 2
+    /// and kitty 3 on a single step, S/N ping-pong for 60 ticks). Under
+    /// the ruled per-candidate key every ranking input is fixed, the
+    /// target (bowl 901) is fixed, and the cat must DRINK within 40
+    /// simulated ticks.
+    #[test]
+    fn a_thirsty_cat_between_two_sleeping_friends_drinks_instead_of_livelocking() {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 32;
+        config.world.height = 32;
+        config.vision.radius = 64;
+        config.kitties[0].x = Some(14);
+        config.kitties[0].y = Some(11);
+        config.kitties[1].x = Some(0);
+        config.kitties[1].y = Some(14);
+        config.kitties.push(crate::config::KittyConfig::new(
+            3,
+            "Clover",
+            25,
+            6,
+            "needs_driven",
+        ));
+        config.behavior.friend_ward_drift = true;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        crate::test_support::forget_everything(&mut world);
+        world.elements.clear();
+        world.tick = 100;
+        for (id, pos) in [(900u32, Position::new(9, 0)), (901, Position::new(20, 21))] {
+            world.push_element(crate::element::Element {
+                id,
+                kind: crate::element::ElementKind::Water,
+                pos,
+                ttl: None,
+            });
+        }
+        let i1 = world.kitty_index(1).unwrap();
+        world.kitties[i1].needs.add(NeedKind::Drink, 95.0);
+        for friend in [2u32, 3] {
+            let idx = world.kitty_index(friend).unwrap();
+            world.kitties[idx].activity = crate::kitty::Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            };
+        }
+        let mut drank = false;
+        for tick in 0..40u64 {
+            let me = world.kitty(1).unwrap().clone();
+            let ctx = crate::behavior::DecisionContext {
+                me,
+                world: std::sync::Arc::new(world.snapshot().fog_for(1, 64)),
+                rng: crate::behavior::DecisionRng::from_seed(tick),
+                config: config.clone(),
+            };
+            match NeedsDriven.decide_action(&ctx) {
+                Action::Move { direction } => {
+                    let i1 = world.kitty_index(1).unwrap();
+                    let stepped = world.kitties[i1]
+                        .pos
+                        .step(direction, 32, 32)
+                        .expect("steps stay on the board");
+                    world.kitties[i1].pos = stepped;
+                }
+                Action::Drink => {
+                    drank = true;
+                    break;
+                }
+                other => panic!("tick {tick}: unexpected action {other:?}"),
+            }
+            world.tick += 1;
+        }
+        assert!(
+            drank,
+            "the per-candidate key must let the thirsty cat reach a bowl; final pos {:?}",
+            world.kitty(1).unwrap().pos
+        );
+    }
+
     // ---- Spec 063: the friend-ward potter (drift-law Site 2) ----------
 
     /// A 32x32 stage for the potter: all needs zero, no elements, kitty 1

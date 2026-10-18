@@ -488,32 +488,41 @@ pub(crate) fn priced_nearest_element_capped(
             .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
             .chain(remembered)
     };
-    match drift_known_friend(ctx) {
+    match drift_known_friends(ctx) {
         // The drift is off or nobody is known: today's pick, bit-for-bit
         // (FR-002/FR-006).
         None => candidates()
             .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
             .map(|(_, pos, cost)| (pos, cost)),
-        // Drift-law Site 1. The gate is CANDIDATE-ANCHORED (review 1
-        // HIGH-1, owner "Ruled as recommended" 2026-10-17): it measures
-        // the friend's distance from the CHEAPEST candidate, not from the
-        // cat -- those inputs do not change as the cat walks, so the
-        // gate cannot oscillate mid-walk (the probe-confirmed livelock of
-        // the cat-anchored gate). Within the gate, the cheapest wins
-        // exactly as flag-off. Beyond it, the bounded-detour band
-        // re-rank; the fallback `(cost, id)` ordering inside
-        // friend-distance ties is today's, so the memory phantom (id
-        // u32::MAX) still loses ties to a real sighting.
-        Some(friend) => {
+        // Drift-law Site 1, as twice ruled (2026-10-17; reviews 1 and 2,
+        // HIGH-1 each): every ranking input is PER-CANDIDATE -- each
+        // option's key is its distance to the nearest known friend OF
+        // THAT OPTION (min over the known-friend set), and the gate reads
+        // the cheapest option's key. With the known-friend set and the
+        // candidate set fixed, every key is fixed, the cheapest is
+        // absorbing, and a fired target can only ever switch to a
+        // strictly better key -- so no oscillation from walking alone.
+        // What CAN change mid-walk is knowledge itself (a friend crossing
+        // the vision-disc edge, a stamp expiring): declared residual,
+        // spec 063 edge cases. Within the gate, the cheapest wins exactly
+        // as flag-off. The fallback `(cost, id)` ordering inside key ties
+        // is today's, so the memory phantom (id u32::MAX) still loses
+        // ties to a real sighting.
+        Some(friends) => {
+            let key = |pos: &Position| {
+                friends
+                    .iter()
+                    .map(|f| f.manhattan_distance(pos))
+                    .min()
+                    .expect("drift_known_friends is non-empty")
+            };
             let candidates: Vec<_> = candidates().collect();
             let cheapest = candidates
                 .iter()
                 .copied()
                 .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))?;
             let (_, cheapest_pos, min_cost) = cheapest;
-            if friend.manhattan_distance(&cheapest_pos)
-                <= ctx.config.behavior.friend_ward_gate_tiles()
-            {
+            if key(&cheapest_pos) <= ctx.config.behavior.friend_ward_gate_tiles() {
                 return Some((cheapest_pos, min_cost));
             }
             let mut edge = min_cost + ctx.config.behavior.friend_ward_detour_cost();
@@ -524,9 +533,8 @@ pub(crate) fn priced_nearest_element_capped(
                 .into_iter()
                 .filter(|&(_, _, cost)| cost <= edge)
                 .min_by(|a, b| {
-                    friend
-                        .manhattan_distance(&a.1)
-                        .cmp(&friend.manhattan_distance(&b.1))
+                    key(&a.1)
+                        .cmp(&key(&b.1))
                         .then(a.2.total_cmp(&b.2))
                         .then(a.0.cmp(&b.0))
                 })
@@ -578,15 +586,31 @@ pub(crate) fn nearest_known_friend(ctx: &DecisionContext) -> Option<(KittyId, Po
         .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id))
 }
 
-/// Spec 063: the drift's friend, gate-free -- `Some(pos)` iff the flag
-/// is on and somebody is known. Site 1 applies its own CANDIDATE-anchored
-/// gate to this (owner ruling 2026-10-17, review 1 HIGH-1); Site 2's
-/// cat-anchored gate lives in [`friend_ward_target`].
-pub(crate) fn drift_known_friend(ctx: &DecisionContext) -> Option<Position> {
+/// Spec 063: the drift's KNOWN-FRIEND SET, gate-free -- `Some(positions)`
+/// iff the flag is on and at least one friend is known (visible, or a
+/// fenced want/here stamp in the window). Site 1 ranks every relief
+/// candidate against this whole set (owner ruling 2026-10-17, review 2
+/// finding 1: ranking against THE nearest friend made the key flip as
+/// the cat walked -- the two-friend livelock); Site 2's single walk
+/// target with its cat-anchored gate lives in [`friend_ward_target`].
+pub(crate) fn drift_known_friends(ctx: &DecisionContext) -> Option<Vec<Position>> {
     if !ctx.config.behavior.friend_ward_drift {
         return None;
     }
-    nearest_known_friend(ctx).map(|(_, pos)| pos)
+    let me = &ctx.me;
+    let window = ctx.config.meow.digest_window_ticks;
+    let friends: Vec<Position> = ctx
+        .world
+        .others(me.id)
+        .map(|k| k.pos)
+        .chain(
+            ctx.world
+                .heard_unseen_want_here(window)
+                .into_iter()
+                .map(|(_, pos, _)| pos),
+        )
+        .collect();
+    (!friends.is_empty()).then_some(friends)
 }
 
 /// Spec 063 FR-006, the POTTER's gate (drift-law Site 2): fires iff the
@@ -597,7 +621,10 @@ pub(crate) fn drift_known_friend(ctx: &DecisionContext) -> Option<Position> {
 /// WRONG for relief choice, where it livelocked (review 1 HIGH-1):
 /// Site 1 anchors its gate to the cheapest candidate instead.
 pub(crate) fn friend_ward_target(ctx: &DecisionContext) -> Option<Position> {
-    let pos = drift_known_friend(ctx)?;
+    if !ctx.config.behavior.friend_ward_drift {
+        return None;
+    }
+    let (_, pos) = nearest_known_friend(ctx)?;
     (ctx.me.pos.manhattan_distance(&pos) > ctx.config.behavior.friend_ward_gate_tiles())
         .then_some(pos)
 }
@@ -3416,6 +3443,62 @@ mod spec_063_friend_ward_tests {
             priced_nearest_element(&ctx, ElementType::Water),
             Some((Position::new(13, 25), 12.0)),
             "equal cost 12, friend-dist 11 beats 13: drift keeps the pod"
+        );
+    }
+
+    /// Review 2 finding 1, owner "As recommended" (2026-10-17): the band
+    /// key is PER-CANDIDATE -- min over ALL known friends of the distance
+    /// to that candidate -- never the distance to THE nearest friend of
+    /// the cat, whose identity flips as the cat walks (the two-friend
+    /// livelock). Staged at the repro's second position, where the two
+    /// laws disagree: nearest-friend keying picks bowl 900, the ruled
+    /// set keying picks 901.
+    #[test]
+    fn the_band_key_is_per_candidate_over_the_friend_set_not_the_cats_nearest() {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 32;
+        config.world.height = 32;
+        config.vision.radius = 64;
+        config.kitties[0].x = Some(14);
+        config.kitties[0].y = Some(12);
+        config.kitties[1].x = Some(0);
+        config.kitties[1].y = Some(14);
+        config.kitties.push(crate::config::KittyConfig::new(
+            3,
+            "Clover",
+            25,
+            6,
+            "needs_driven",
+        ));
+        config.behavior.friend_ward_drift = true;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        crate::test_support::forget_everything(&mut world);
+        world.elements.clear();
+        world.tick = 100;
+        for (id, pos) in [(900u32, Position::new(9, 0)), (901, Position::new(20, 21))] {
+            world.push_element(Element {
+                id,
+                kind: ElementKind::Water,
+                pos,
+                ttl: None,
+            });
+        }
+        let me = world.kitty(1).unwrap().clone();
+        let ctx = DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, 64)),
+            rng: crate::behavior::DecisionRng::from_seed(9876),
+            config,
+        };
+        // Costs 17 (900) / 15 (901); keys over the set {(0,14), (25,6)}:
+        // 900 -> 22, 901 -> 20. Winner 901. Keyed on the CAT's nearest
+        // friend (kitty 2 at distance 16), 900 (23 vs 27) would win.
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(20, 21), 15.0)),
+            "the key is each bowl's own nearest friend, not the cat's"
         );
     }
 

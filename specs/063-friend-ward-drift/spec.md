@@ -57,11 +57,23 @@ itself.
   concurring): the cat-anchored relief gate livelocks at the boundary
   (probe-confirmed ping-pong beside a sleeping friend) — how is the
   relief gate measured? → A: "Ruled as recommended" (2026-10-17):
-  CANDIDATE-anchored for relief choice — the drift fires when the
-  nearest known friend is strictly farther than the gate from the
-  CHEAPEST candidate, whose inputs are walk-invariant, so no
-  oscillation is possible. The potter keeps the cat-anchored gate (its
-  boundary dither is harmless idle motion).
+  CANDIDATE-anchored for relief choice — the drift fires on the
+  cheapest candidate's friend distance, not the cat's, which removed
+  the single-friend oscillation (review 2 then found and closed the
+  multi-friend remainder; see its Q/A below and Edge Cases for the
+  declared knowledge-flip residual). The potter keeps the cat-anchored
+  gate (its boundary dither is harmless idle motion).
+- Q (review 2 finding 1, relayed to Experiments on her word, their take
+  concurring): the candidate-anchored gate still livelocked with TWO
+  known friends — the key read distance to THE cat's-nearest friend,
+  whose identity flips as the cat walks — how is the band keyed? → A:
+  "As recommended" (2026-10-17): PER-CANDIDATE — each relief option is
+  keyed by min over ALL known friends of the distance to that option,
+  and the gate reads the cheapest option's key. Every ranking input is
+  then fixed per candidate under fixed knowledge (the cheapest is
+  absorbing; a fired target only ever switches to a strictly better
+  key). The knowledge-flip residual (a friend crossing the vision-disc
+  edge, a stamp expiring) is DECLARED, not fixed — see Edge Cases.
 - Q (review 1 HIGH-2, same relay): the drift's detour cost flows into
   the need scores, so a near-tie need can flip — which law stands? →
   A: "Ruled as recommended" (2026-10-17): honest pricing kept — the
@@ -217,11 +229,21 @@ byte-identical to the pre-feature engine.
 - Flag on alters the engine's RNG consumption relative to flag off
   (the potter's direction draw): accepted and declared — the flag-on
   arm is its own stream; flag-off must consume draws exactly as today.
-- Mid-walk stability: the relief gate's inputs (candidate positions,
-  the friend's seen/stamped position) do not change as the cat walks,
-  so the chosen target cannot flip step-to-step — the cat-anchored
-  gate's probe-confirmed livelock (review 1 HIGH-1) is impossible by
-  construction, pinned by a multi-tick regression test.
+- Mid-walk stability (restated after review 2): under FIXED knowledge
+  (the known-friend set and candidate set unchanged), every ranking
+  input is fixed per candidate, the cheapest-wins state is absorbing,
+  and a fired target can only switch to a strictly better key — so
+  walking alone can never oscillate the choice. Two multi-tick
+  regressions pin it (the review-1 single-friend probe and the
+  review-2 two-friend probe). DECLARED RESIDUAL, not fixed: knowledge
+  itself can change as the cat walks — a friend crossing the
+  vision-disc edge, a stamp expiring — and can in principle ping-pong
+  the choice (~1 per 100–200k random stages; transient in the live
+  engine, where sleeps end, stamps expire and needs cross thresholds).
+  At served vision radius 4 the relief gate cannot fire from visible
+  knowledge alone; the displaced 100×100 legs run radius 5/6, so the
+  screened flag-on arm IS exposed — Experiments' screen prices it, and
+  F-053 stays the asymmetric backstop.
 - Friend adjacent to the cat but far from the cheapest option: the
   relief gate FIRES (it measures from the candidate), and the drift
   prefers relief near the pod rather than walking away from an
@@ -251,12 +273,15 @@ byte-identical to the pre-feature engine.
   bound: 4 priced-cost tiles, Experiments' pencil), validated with
   named errors (gate must be positive; detour bound must be
   non-negative).
-- **FR-004**: "Nearest known friend" MUST be computed from the cat's
-  fogged view only: visible roster members, plus unseen roster members
-  at their freshest audible want- or here-word stamp within the digest
-  window, picked by Manhattan distance with the lower id breaking
-  ties. No read of unobservable state (true positions, needs, private
-  counters) may enter the computation.
+- **FR-004**: Friend knowledge MUST be computed from the cat's fogged
+  view only: the KNOWN-FRIEND SET is the visible roster members plus
+  unseen roster members at their freshest audible want- or here-word
+  stamp within the digest window. Relief choice (Site 1) ranks against
+  the whole set (ruled 2026-10-17, review 2); the potter (Site 2)
+  walks toward the single nearest known friend, picked by Manhattan
+  distance with the lower id breaking ties. No read of unobservable
+  state (true positions, needs, private counters) may enter either
+  computation.
 - **FR-005**: The drift's stamp set is law-named want and here words
   only (her ruling, Clarifications): a stamp of any other kind — the
   free register, purr, WaitForMe — MUST NOT enter the drift's friend
@@ -264,21 +289,22 @@ byte-identical to the pre-feature engine.
   freshness only. The existing heard-unseen consumers (cuddle walk,
   play scan) keep their current kind-agnostic set untouched — their
   narrowing is banked Candidate 2's, not this spec's.
-- **FR-006**: The drift MUST fire only when the flag is on AND a
-  nearest known friend exists AND that friend is strictly farther than
-  the gate from the site's ANCHOR — for relief choice, the cheapest
-  candidate (walk-invariant, so the choice cannot oscillate mid-walk;
-  ruled 2026-10-17); for the potter, the cat itself. In every other
-  case each drift site MUST decide exactly as flag-off.
+- **FR-006**: The drift MUST fire only when the flag is on AND the
+  known-friend set is non-empty AND the site's gate reading exceeds
+  the gate — for relief choice, the CHEAPEST CANDIDATE's friend key
+  (its distance to its own nearest known friend; ruled 2026-10-17);
+  for the potter, the cat's distance to its nearest known friend. In
+  every other case each drift site MUST decide exactly as flag-off.
 - **FR-007** (relief choice): When the drift fires at the shared
   priced-element selection, the choice MUST be: among candidates whose
   priced travel cost is within the detour bound of the cheapest
   candidate — restricted to candidates satisfying any acceptance bound
-  the calling context applies — the one closest (Manhattan) to the
-  nearest known friend, with ties falling back to today's ordering
-  (priced cost, then id). The scored side and the walk side MUST keep
-  choosing through the same shared rule, so they always agree on the
-  same option.
+  the calling context applies — the one with the smallest friend key
+  (min over all known friends of the Manhattan distance to that
+  candidate; ruled 2026-10-17), with ties falling back to today's
+  ordering (priced cost, then id). The scored side and the walk side
+  MUST keep choosing through the same shared rule, so they always
+  agree on the same option.
 - **FR-008** (potter): When the drift fires at the idle potter, the
   potter step MUST move toward the nearest known friend through the
   existing step rule instead of a uniform random direction. The
