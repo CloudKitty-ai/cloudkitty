@@ -37,11 +37,17 @@ change.
   063), off by default everywhere: a new `[behavior]` flag teaches the
   scripted cats a gentle social pull for big maps. When a cat's nearest
   known friend — one it can see, or has heard asking or announcing
-  recently — is more than a gate's distance away, two things change:
-  choosing between near-equal relief options (two water bowls, two
-  sunbeams), it takes the one closer to that friend, as long as the
-  detour stays within a bounded budget; and its idle potter heads that
-  way instead of a random step, no more often than it pottered before.
+  recently — is far away, two things change: choosing between
+  near-equal relief options (two water bowls, two sunbeams), it takes
+  the one closer to that friend when the relief would otherwise happen
+  more than a gate's distance from them, as long as the detour stays
+  within a bounded budget (the gate is measured from the cheapest
+  option, so the choice can never flip mid-walk); and its idle potter
+  heads that way instead of a random step whenever the friend is a
+  gate's distance from the cat, no more often than it pottered before.
+  The detour's real cost is charged honestly in the cat's own
+  weighing, so a dear detour can defer a near-tie errand by a tick —
+  a bounded, deliberate trade.
   Both distances are dials. A free-register meow never counts as
   knowing where a friend is — only the law-named want and here words
   place anyone. With the flag off — every served and shipped config —

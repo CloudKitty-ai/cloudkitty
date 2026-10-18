@@ -20,7 +20,11 @@ no contract.
 - **Gate** `G`: `friend_ward_gate` (default 10, Manhattan tiles).
 - **Detour bound** `B`: `friend_ward_detour` (default 4.0, priced-cost
   tiles).
-- **Fires**: flag on ∧ nearest known friend exists at distance > `G`.
+- **Fires** (per site, ruled 2026-10-17 after review 1 HIGH-1): flag on
+  ∧ a nearest known friend exists ∧ that friend is strictly farther
+  than `G` from the site's ANCHOR — Site 1 anchors at the CHEAPEST
+  candidate (walk-invariant inputs, so the choice cannot oscillate
+  mid-walk); Site 2 anchors at the cat.
 
 When the drift does not fire, every site below behaves exactly as
 flag-off.
@@ -34,7 +38,9 @@ the same law, so they always agree).
 1. Candidates and priced costs are computed exactly as today (visible
    elements plus the remembered slot; fog-era beam occupancy filter
    unchanged).
-2. `min_cost` = cheapest candidate's priced cost.
+2. `min_cost` = cheapest candidate's priced cost (ties by id, as
+   today). The gate reads here: friend within `G` of that cheapest
+   candidate ⇒ the cheapest wins exactly as flag-off.
 3. Band = candidates with `cost ≤ min_cost + B`, further capped by the
    caller's acceptance bound where one exists (the sunbeam walk's
    `sunbeam_reach`): a candidate failing the bound is never in the
@@ -50,6 +56,14 @@ Consequences pinned: with one candidate, with `B = 0` and distinct
 costs, or with every rival outside the band, the winner equals
 flag-off's winner. Adjacency use of an element ("use it if adjacent")
 precedes selection, unchanged.
+
+**Scoring consequence (ruled 2026-10-17, review 1 HIGH-2)**: the
+scored side charges the drift winner's REAL priced cost (honest
+pricing; the 004/019 score/walk invariants hold exactly). A need's
+score therefore sits at most `tile_cost × B` below its flag-off value,
+and a near-tie need ordering may flip within that bound. This is the
+drift's declared influence on the ladder, priced for the 100×100
+screen; nothing above the scored selection moves.
 
 ## Site 2 — idle potter
 

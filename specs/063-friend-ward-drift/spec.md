@@ -53,6 +53,23 @@ itself.
   only for this feature (owner: "B") — the drift's own friend knowledge
   pre-applies the fence; existing heard-unseen consumers stay unchanged
   until Candidate 2 is kicked off.
+- Q (review 1 HIGH-1, relayed to Experiments on her word, their take
+  concurring): the cat-anchored relief gate livelocks at the boundary
+  (probe-confirmed ping-pong beside a sleeping friend) — how is the
+  relief gate measured? → A: "Ruled as recommended" (2026-10-17):
+  CANDIDATE-anchored for relief choice — the drift fires when the
+  nearest known friend is strictly farther than the gate from the
+  CHEAPEST candidate, whose inputs are walk-invariant, so no
+  oscillation is possible. The potter keeps the cat-anchored gate (its
+  boundary dither is harmless idle motion).
+- Q (review 1 HIGH-2, same relay): the drift's detour cost flows into
+  the need scores, so a near-tie need can flip — which law stands? →
+  A: "Ruled as recommended" (2026-10-17): honest pricing kept — the
+  score charges the drift winner's real cost, and FR-009 is amended to
+  admit need-level reordering bounded by tile_cost × detour (4.0 at
+  defaults), named so Experiments' screen prices it. Drift-blind
+  scores were rejected: they would underprice walks the teacher
+  actually takes and break the 004/019 score/walk invariants.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -117,8 +134,10 @@ chosen in either case.
    **When** the cat seeks that relief, **Then** it pursues the option
    closest to that friend, and the scored (decision) side and the walk
    side agree on the same option.
-2. **Given** the same world with the friend within the gate, **When**
-   the cat seeks relief, **Then** its choice is identical to flag-off.
+2. **Given** the same world with the friend within the gate of the
+   cheapest option (the relief gate's anchor, ruled 2026-10-17),
+   **When** the cat seeks relief, **Then** its choice is identical to
+   flag-off.
 3. **Given** a friend-ward option whose priced cost exceeds the
    cheapest by more than the detour bound, **When** the cat seeks
    relief, **Then** the cheapest option wins exactly as today — the
@@ -198,6 +217,15 @@ byte-identical to the pre-feature engine.
 - Flag on alters the engine's RNG consumption relative to flag off
   (the potter's direction draw): accepted and declared — the flag-on
   arm is its own stream; flag-off must consume draws exactly as today.
+- Mid-walk stability: the relief gate's inputs (candidate positions,
+  the friend's seen/stamped position) do not change as the cat walks,
+  so the chosen target cannot flip step-to-step — the cat-anchored
+  gate's probe-confirmed livelock (review 1 HIGH-1) is impossible by
+  construction, pinned by a multi-tick regression test.
+- Friend adjacent to the cat but far from the cheapest option: the
+  relief gate FIRES (it measures from the candidate), and the drift
+  prefers relief near the pod rather than walking away from an
+  adjacent friend.
 - Gate dial set below any realistic map distance or detour bound set
   to zero: both are lawful (zero detour = drift only among exact-cost
   ties; a huge gate = drift never fires). Gate zero is rejected:
@@ -237,8 +265,11 @@ byte-identical to the pre-feature engine.
   play scan) keep their current kind-agnostic set untouched — their
   narrowing is banked Candidate 2's, not this spec's.
 - **FR-006**: The drift MUST fire only when the flag is on AND a
-  nearest known friend exists AND its distance exceeds the gate. In
-  every other case each drift site MUST decide exactly as flag-off.
+  nearest known friend exists AND that friend is strictly farther than
+  the gate from the site's ANCHOR — for relief choice, the cheapest
+  candidate (walk-invariant, so the choice cannot oscillate mid-walk;
+  ruled 2026-10-17); for the potter, the cat itself. In every other
+  case each drift site MUST decide exactly as flag-off.
 - **FR-007** (relief choice): When the drift fires at the shared
   priced-element selection, the choice MUST be: among candidates whose
   priced travel cost is within the detour bound of the cheapest
@@ -252,11 +283,16 @@ byte-identical to the pre-feature engine.
   potter step MUST move toward the nearest known friend through the
   existing step rule instead of a uniform random direction. The
   potter's firing rate MUST be unchanged.
-- **FR-009**: The drift MUST never change whether a need is pursued,
-  whether relief is taken, or any rung of the decision ladder above
-  target selection (scene continuation, opportunism, groom response,
-  cue answers, the luxury line). It reorders target/direction choices
-  at its two sites only.
+- **FR-009**: The drift MUST never change whether relief is taken once
+  a need is pursued, nor any rung of the decision ladder above the
+  scored selection (scene continuation, opportunism, groom response,
+  cue answers, the luxury line). Within the scored selection, honest
+  pricing is kept (ruled 2026-10-17): the score charges the drift
+  winner's real walk cost, so a need's score may drop by at most
+  tile_cost × detour relative to flag-off, and a near-tie need
+  ordering may flip within that bound — a real, demonstrable
+  trade-off, priced for Experiments' screen. Beyond that bound the
+  drift changes nothing above target selection.
 - **FR-010**: With the flag on, decisions MUST remain deterministic
   for a given context: identical contexts choose identically.
 - **FR-011**: The full existing test and config surface MUST pass

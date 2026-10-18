@@ -690,6 +690,83 @@ mod tests {
     use crate::meow::MessageKind;
     use crate::test_support::decision_context;
 
+    /// Review 1 HIGH-1 regression, owner "Ruled as recommended"
+    /// (2026-10-17): the exact probe stage that livelocked under the
+    /// cat-anchored gate -- thirsty cat at (16,16), sleeping visible
+    /// friend at (5,16) (distance 11, a step across the old gate), cheap
+    /// bowl east at (18,16), friend-ward bowl west at (11,16) inside the
+    /// band. Under the cat-anchored law the cat ping-ponged West/East
+    /// indefinitely; under the ruled candidate-anchored law the gate's
+    /// inputs are walk-invariant, so the target cannot flip mid-walk.
+    /// Simulated decide-and-step: the cat must DRINK within 12 ticks.
+    #[test]
+    fn a_thirsty_cat_beside_a_sleeping_friend_drinks_instead_of_livelocking() {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 32;
+        config.world.height = 32;
+        config.vision.radius = 64;
+        config.kitties[0].x = Some(16);
+        config.kitties[0].y = Some(16);
+        config.kitties[1].x = Some(5);
+        config.kitties[1].y = Some(16);
+        config.behavior.friend_ward_drift = true;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        crate::test_support::forget_everything(&mut world);
+        world.elements.clear();
+        world.tick = 100;
+        for (id, pos) in [
+            (900u32, Position::new(18, 16)),
+            (901, Position::new(11, 16)),
+        ] {
+            world.push_element(crate::element::Element {
+                id,
+                kind: crate::element::ElementKind::Water,
+                pos,
+                ttl: None,
+            });
+        }
+        let i1 = world.kitty_index(1).unwrap();
+        world.kitties[i1].needs.add(NeedKind::Drink, 95.0);
+        let i2 = world.kitty_index(2).unwrap();
+        world.kitties[i2].activity = crate::kitty::Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        let mut drank = false;
+        for tick in 0..12u64 {
+            let me = world.kitty(1).unwrap().clone();
+            let ctx = crate::behavior::DecisionContext {
+                me,
+                world: std::sync::Arc::new(world.snapshot().fog_for(1, 64)),
+                rng: crate::behavior::DecisionRng::from_seed(tick),
+                config: config.clone(),
+            };
+            match NeedsDriven.decide_action(&ctx) {
+                Action::Move { direction } => {
+                    let i1 = world.kitty_index(1).unwrap();
+                    let stepped = world.kitties[i1]
+                        .pos
+                        .step(direction, 32, 32)
+                        .expect("steps stay on the board");
+                    world.kitties[i1].pos = stepped;
+                }
+                Action::Drink => {
+                    drank = true;
+                    break;
+                }
+                other => panic!("tick {tick}: unexpected action {other:?}"),
+            }
+            world.tick += 1;
+        }
+        assert!(
+            drank,
+            "the ruled gate must let the thirsty cat reach a bowl; final pos {:?}",
+            world.kitty(1).unwrap().pos
+        );
+    }
+
     // ---- Spec 063: the friend-ward potter (drift-law Site 2) ----------
 
     /// A 32x32 stage for the potter: all needs zero, no elements, kitty 1

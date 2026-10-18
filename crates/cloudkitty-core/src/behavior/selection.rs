@@ -488,22 +488,34 @@ pub(crate) fn priced_nearest_element_capped(
             .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
             .chain(remembered)
     };
-    match friend_ward_target(ctx) {
-        // The drift is off, nobody is known, or the friend is within the
-        // gate: today's pick, bit-for-bit (FR-002/FR-006).
+    match drift_known_friend(ctx) {
+        // The drift is off or nobody is known: today's pick, bit-for-bit
+        // (FR-002/FR-006).
         None => candidates()
             .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
             .map(|(_, pos, cost)| (pos, cost)),
-        // Drift-law Site 1: the bounded-detour band re-rank. The fallback
-        // `(cost, id)` ordering inside friend-distance ties is today's,
-        // so the memory phantom (id u32::MAX) still loses ties to a real
-        // sighting.
+        // Drift-law Site 1. The gate is CANDIDATE-ANCHORED (review 1
+        // HIGH-1, owner "Ruled as recommended" 2026-10-17): it measures
+        // the friend's distance from the CHEAPEST candidate, not from the
+        // cat -- those inputs do not change as the cat walks, so the
+        // gate cannot oscillate mid-walk (the probe-confirmed livelock of
+        // the cat-anchored gate). Within the gate, the cheapest wins
+        // exactly as flag-off. Beyond it, the bounded-detour band
+        // re-rank; the fallback `(cost, id)` ordering inside
+        // friend-distance ties is today's, so the memory phantom (id
+        // u32::MAX) still loses ties to a real sighting.
         Some(friend) => {
             let candidates: Vec<_> = candidates().collect();
-            let min_cost = candidates
+            let cheapest = candidates
                 .iter()
-                .map(|&(_, _, cost)| cost)
-                .min_by(f32::total_cmp)?;
+                .copied()
+                .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))?;
+            let (_, cheapest_pos, min_cost) = cheapest;
+            if friend.manhattan_distance(&cheapest_pos)
+                <= ctx.config.behavior.friend_ward_gate_tiles()
+            {
+                return Some((cheapest_pos, min_cost));
+            }
             let mut edge = min_cost + ctx.config.behavior.friend_ward_detour_cost();
             if let Some(cap) = cap {
                 edge = edge.min(cap);
@@ -566,17 +578,26 @@ pub(crate) fn nearest_known_friend(ctx: &DecisionContext) -> Option<(KittyId, Po
         .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id))
 }
 
-/// Spec 063 FR-006: the drift fires iff the flag is on AND a nearest
-/// known friend exists STRICTLY farther than the gate; the fired drift's
-/// pull is that friend's (seen or stamped) position. Every other case --
-/// flag off, nobody known, friend at or within the gate -- returns None
-/// and every drift site decides exactly as flag-off
-/// (specs/063-friend-ward-drift/contracts/drift-law.md).
-pub(crate) fn friend_ward_target(ctx: &DecisionContext) -> Option<Position> {
+/// Spec 063: the drift's friend, gate-free -- `Some(pos)` iff the flag
+/// is on and somebody is known. Site 1 applies its own CANDIDATE-anchored
+/// gate to this (owner ruling 2026-10-17, review 1 HIGH-1); Site 2's
+/// cat-anchored gate lives in [`friend_ward_target`].
+pub(crate) fn drift_known_friend(ctx: &DecisionContext) -> Option<Position> {
     if !ctx.config.behavior.friend_ward_drift {
         return None;
     }
-    let (_, pos) = nearest_known_friend(ctx)?;
+    nearest_known_friend(ctx).map(|(_, pos)| pos)
+}
+
+/// Spec 063 FR-006, the POTTER's gate (drift-law Site 2): fires iff the
+/// flag is on AND a nearest known friend exists STRICTLY farther than
+/// the gate from the CAT; the fired drift's pull is that friend's (seen
+/// or stamped) position. The cat-anchored gate is correct here -- a
+/// potter that dithers at the boundary is harmless idle motion -- and
+/// WRONG for relief choice, where it livelocked (review 1 HIGH-1):
+/// Site 1 anchors its gate to the cheapest candidate instead.
+pub(crate) fn friend_ward_target(ctx: &DecisionContext) -> Option<Position> {
+    let pos = drift_known_friend(ctx)?;
     (ctx.me.pos.manhattan_distance(&pos) > ctx.config.behavior.friend_ward_gate_tiles())
         .then_some(pos)
 }
@@ -3338,6 +3359,61 @@ mod spec_063_friend_ward_tests {
         );
     }
 
+    /// Review 1 HIGH-1, owner "Ruled as recommended" (2026-10-17): the
+    /// relief gate is CANDIDATE-anchored. Two stages the cat-anchored law
+    /// decides differently, pinned absolute both ways.
+    #[test]
+    fn the_relief_gate_is_measured_from_the_cheapest_candidate_not_the_cat() {
+        // (i) Friend far from the CAT (manhattan 11) but near the cheapest
+        // bowl (9): inert -- the cheapest wins. The cat-anchored law would
+        // fire and pick the friend-ward bowl at (22, 16).
+        let ctx = fw_ctx(true, 64, |w| {
+            let i2 = w.kitty_index(2).unwrap();
+            w.kitties[i2].pos = Position::new(27, 16);
+            for (id, pos) in [
+                (900u32, Position::new(18, 16)),
+                (901, Position::new(22, 16)),
+            ] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(18, 16), 2.0)),
+            "relief is already happening near the friend: no detour"
+        );
+        // (ii) Friend ADJACENT to the cat but far from the cheapest bowl
+        // (13 > 10): fires, and the friend-ward equal-cost bowl wins --
+        // the pod stays together instead of the cat walking away from an
+        // adjacent friend. The cat-anchored law would be inert (distance
+        // 1) and pick id 900.
+        let ctx = fw_ctx(true, 64, |w| {
+            let i2 = w.kitty_index(2).unwrap();
+            w.kitties[i2].pos = Position::new(15, 16);
+            for (id, pos) in [
+                (900u32, Position::new(16, 28)),
+                (901, Position::new(13, 25)),
+            ] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(13, 25), 12.0)),
+            "equal cost 12, friend-dist 11 beats 13: drift keeps the pod"
+        );
+    }
+
     /// Review 1 finding 4: the cost step of the `(friend-dist, cost, id)`
     /// ordering, staged so neither friend-distance nor id can mask it --
     /// equal friend-distance 27, the CHEAPER option carries the HIGHER id.
@@ -3412,7 +3488,8 @@ mod spec_063_friend_ward_tests {
                 }
             })
         };
-        // Friend at manhattan 4: within the gate, drift inert. Pinned
+        // Friend at manhattan 6 from the CHEAPEST candidate (the ruled
+        // candidate-anchored gate): within the gate, drift inert. Pinned
         // ABSOLUTE as well as arm-equal (review 1 finding 6): a bug
         // breaking both arms identically must not pass.
         let expected = Some((Position::new(18, 16), 2.0));
