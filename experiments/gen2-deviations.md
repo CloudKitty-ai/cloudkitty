@@ -37,5 +37,16 @@ RestSolo. The rows are doubly blocked — the teacher's play could
 not have been applied even with consent — so the applied RestSolo
 label is the engine's continuation law, not an artifact: the
 fallback is the correct demonstration for a mask-constrained
-student. Owner notified 2026-10-18; no word yet — her ruling, if
-it differs, supersedes this default.
+student.
+
+Loss-level fact (measured 2026-10-18 on row 2656 of r02, the
+owner's drop-from-loss question): the §5 masked cross-entropy
+(bc_loss2 → exp-001 bc_loss) pushes illegal logits to −inf, so on
+a one-legal-action row the action-head loss and gradient are
+exactly 0 whatever the label — keep-applied, swap, and drop are
+gradient-identical on the action head, while the row's message
+label (never refused) still trains the message head. Dropping the
+389 rows would therefore change nothing the clone learns and would
+discard 389 valid message-head demonstrations; the default stands
+on that measurement. Owner notified 2026-10-18; no word yet — her
+ruling, if it differs, supersedes this default.
