@@ -4623,10 +4623,10 @@ mod tests {
             reply: false,
         };
         world.recent_meows = vec![
-            meow(MessageKind::WantEat, 20, 10, 10),  // qualifying
+            meow(MessageKind::WantEat, 20, 10, 10),   // qualifying
             meow(MessageKind::HereWater, 25, 11, 11), // qualifying, freshest lawful
-            meow(MessageKind::Mew, 37, 12, 12),      // free register: fenced out
-            meow(MessageKind::Purr, 38, 12, 12),     // fenced out
+            meow(MessageKind::Mew, 37, 12, 12),       // free register: fenced out
+            meow(MessageKind::Purr, 38, 12, 12),      // fenced out
             meow(MessageKind::WaitForMe, 39, 12, 12), // fenced out
         ];
         let snapshot = world.snapshot();

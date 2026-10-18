@@ -3084,7 +3084,6 @@ mod spec_057_sleep_floor_tests {
             score(&prefog(0.0), NeedKind::Sleep)
         );
     }
-
 }
 
 #[cfg(test)]
@@ -3133,10 +3132,7 @@ mod spec_063_friend_ward_tests {
             let i2 = w.kitty_index(2).unwrap();
             w.kitties[i2].pos = Position::new(8, 16);
         });
-        assert_eq!(
-            nearest_known_friend(&ctx),
-            Some((2, Position::new(8, 16)))
-        );
+        assert_eq!(nearest_known_friend(&ctx), Some((2, Position::new(8, 16))));
         // Friend 2 unseen (radius 5) but stamped lawfully at manhattan 6:
         // the stamp places it.
         let ctx = fw_ctx(true, 5, |w| {
@@ -3150,10 +3146,7 @@ mod spec_063_friend_ward_tests {
             });
         });
         assert!(ctx.world.kitty(2).is_none(), "friend 2 is outside the disc");
-        assert_eq!(
-            nearest_known_friend(&ctx),
-            Some((2, Position::new(10, 16)))
-        );
+        assert_eq!(nearest_known_friend(&ctx), Some((2, Position::new(10, 16))));
         // Nobody visible, nothing lawful in the window: nobody is known.
         let ctx = fw_ctx(true, 5, |w| {
             w.recent_meows.push(crate::meow::Meow {
@@ -3165,7 +3158,11 @@ mod spec_063_friend_ward_tests {
                 reply: false,
             });
         });
-        assert_eq!(nearest_known_friend(&ctx), None, "free register never places");
+        assert_eq!(
+            nearest_known_friend(&ctx),
+            None,
+            "free register never places"
+        );
     }
 
     /// Spec 063 FR-006 and the gate boundary: distance == gate does NOT
@@ -3198,7 +3195,10 @@ mod spec_063_friend_ward_tests {
     /// 3 and sits friend-ward; W2 (id 901) at (18, 16) costs 2. All dry.
     fn two_bowls(flag: bool) -> DecisionContext {
         fw_ctx(flag, 64, |w| {
-            for (id, pos) in [(900u32, Position::new(13, 16)), (901, Position::new(18, 16))] {
+            for (id, pos) in [
+                (900u32, Position::new(13, 16)),
+                (901, Position::new(18, 16)),
+            ] {
                 w.push_element(Element {
                     id,
                     kind: ElementKind::Water,
@@ -3279,7 +3279,10 @@ mod spec_063_friend_ward_tests {
             fw_ctx(flag, 64, move |w| {
                 let i2 = w.kitty_index(2).unwrap();
                 w.kitties[i2].pos = friend_pos;
-                for (id, pos) in [(900u32, Position::new(13, 16)), (901, Position::new(18, 16))] {
+                for (id, pos) in [
+                    (900u32, Position::new(13, 16)),
+                    (901, Position::new(18, 16)),
+                ] {
                     w.push_element(Element {
                         id,
                         kind: ElementKind::Water,

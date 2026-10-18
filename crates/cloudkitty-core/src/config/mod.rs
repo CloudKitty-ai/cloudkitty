@@ -2378,7 +2378,10 @@ mod tests {
         assert_eq!(flag_on.friend_ward_gate_tiles(), 10);
         assert_eq!(flag_on.friend_ward_detour_cost(), 4.0);
         let round_trip = toml::to_string(&flag_on).unwrap();
-        assert!(round_trip.contains("friend_ward_drift"), "a set flag serializes");
+        assert!(
+            round_trip.contains("friend_ward_drift"),
+            "a set flag serializes"
+        );
         assert!(
             !round_trip.contains("friend_ward_gate") && !round_trip.contains("friend_ward_detour"),
             "unset dials stay skipped even with the flag on"

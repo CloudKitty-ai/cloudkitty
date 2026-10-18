@@ -747,7 +747,11 @@ mod tests {
             "staging: the friend must sit beyond the default gate"
         );
         let step = wander(&ctx);
-        assert_eq!(step, step_toward(&ctx, FAR), "the existing step rule walks it");
+        assert_eq!(
+            step,
+            step_toward(&ctx, FAR),
+            "the existing step rule walks it"
+        );
         assert!(
             matches!(step, Action::Move { .. }),
             "a far friend on an empty board is always a move"
