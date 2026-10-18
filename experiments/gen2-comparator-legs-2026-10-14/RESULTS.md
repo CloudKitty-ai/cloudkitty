@@ -179,6 +179,37 @@ consumption-shadow failure mode — buying tail welfare, not mean
 happiness; under the vision law that failure mode is already gone and
 the flag is a null. Raws: `results-raw/fwd-screen-v4/`.
 
+## Waypoint-start screen (spec 064, dispersion Candidate 1, landed
+b5aaa8cd; owner's C1-flagged ruling)
+
+Same paired protocol: both arms fresh on the landed binary, g2cmp
+30×20k scouts-first, law config; on arm = `g2leg-100.toml` +
+`waypoint_start_by_position = true` (deep-diff: exactly that key).
+Law: `specs/064-waypoint-start/contracts/seeding-law.md`.
+
+| arm | team happiness | per-seed range | worst-streak mean / max | F-053 |
+|---|---|---|---|---|
+| flag off | 76.623 | [73.754, 80.416] | 443 / 716 | none |
+| flag on | 76.898 | [70.909, 79.779] | 400 / 673 | none |
+
+Paired delta +0.275 (16/30 positive, range [−4.149, +4.776], sd
+2.355, mean/sem 0.64) — NULL on mean happiness, as predicted for a
+start-transient correctness fix. Worst-streak tail improves modestly
+(mean 443 → 400, max 716 → 673); dist_ticks −347 per seed (15/30
+positive, not consistent). Early-window traced read (scout seeds,
+first 2k ticks, `anchor-wps-{off,on}-2k.json`): the start transient
+is already benign — flagged share 0.32% vs 0.31% (101 vs 99 flag
+kitty-ticks of 30,000), needs start low enough that the waypoint[0]
+trek never bites at these rise rates. The off arm reproduces the
+recorded law leg EXACTLY (third behavioral byte-identity
+confirmation across 063/064 rebuilds). No lockstep signature in the
+streak columns. Scouts clean (off worst 413, on worst 556). Raws:
+`results-raw/wps-screen/`. Read: keep default OFF for Gen 2
+(baselines stand; the collection world is 20×20 where the trek is
+≤ ~40 tiles); carry flag-on as a Gen 3 default candidate on
+correctness grounds — the fix is right even though the welfare
+instrument can't see it at these dynamics.
+
 ## Regeneration
 
 ### Collect
@@ -245,6 +276,9 @@ print('dist_ticks delta mean %+.0f pos %d/30; low_share off %.3f%% on %.3f%%' %
       (statistics.mean(dd), sum(x > 0 for x in dd),
        statistics.mean(lo) * 100, statistics.mean(ln) * 100))
 "
+# Waypoint-start screen read (~1 s): the friend-ward recipe on
+# results-raw/wps-screen/{off,on}; early-window cells from
+# results-raw/bin-anchor/anchor-wps-{off,on}-2k.json (share, flag_ticks_by_need).
 # v4 variant read (~1 s): same recipe on results-raw/fwd-screen-v4/{off,on};
 # plus the 905029 pair and the excluding-905029 delta:
 python3 -c "
