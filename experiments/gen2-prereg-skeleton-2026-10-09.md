@@ -476,11 +476,35 @@ timebox)
    over training (four free kinds); transfer caveat declared
    (message-off-leash result, not a trunk property). 2 seeds
    screen; promotion REPLICATES ≥3 fresh seeds and bundles the
-   seeded-but-off-leash comparison cell. [BLANK] the four rung
-   bars and the no-seeding floor number.
-2. [RULED S§6] CRITIC-BLIND CTDE arm: 3 seeds. [BLANK] exact
-   blinding (critic sees own-seat info only vs no hidden needs)
-   and its read.
+   seeded-but-off-leash comparison cell. [RULED at the freeze sitting, owner 2026-10-17 "Accept D bite 1" — Experiments proposal + Professor review pins (their note for-experiments-gen2-sec8-review-2026-10-17.md, advisory, ruled here)] The four rung bars:
+   (1) production above the NO-SEEDING FLOOR = the free-register
+   chatter baseline RE-MEASURED on the Gen 2 comparator legs
+   (sourced Gen 1 reference, F-048: purr 72.8 / mew 36.8 / chirp
+   31.7 per 1k decisions — 31.7 is the sourced number, the client
+   census 34 is a different instrument);
+   (2) hearer contingency = the sitting's margin family, its FIFTH
+   NAMED INSTRUMENT: ≥1.5× response lift vs matched non-hearing
+   control, min-n 200;
+   (3) context binding = MI above the permutation-null p99, min-n
+   200; estimator and count pinned now: plug-in MI, 1,000 seeded
+   permutations;
+   (4) value = an EXISTENCE claim only: paired deafening lesion
+   cost, mean > 0 with the replication valve as THE bar; per-world
+   sign consistency reported descriptively (30-of-30 would fail
+   true-but-modest value); F-052's 6.716 (all-kind, wrong
+   comparator) and 0.455 (Gen 1's world) are named reference
+   points, never bars; the pass is worded as existence, magnitudes
+   descriptive, never parity.
+2. [RULED S§6] CRITIC-BLIND CTDE arm: 3 seeds. [RULED at the freeze sitting, owner 2026-10-17 "Accept D bite 1" — Experiments proposal + Professor review pins (their note for-experiments-gen2-sec8-review-2026-10-17.md, advisory, ruled here)]
+   Blinding = OTHERS'-HIDDEN-NEEDS-ONLY (the critic keeps every
+   other cross-seat input): isolates Gen 2's visibility line — the
+   gradient-laundering channel — rather than confounding it with
+   general CTDE value (own-seat-only rejected for that reason).
+   Read: paired trunk-vs-arm on the cert battery (team happiness +
+   the gate set) plus training curves. DECLARED CROSS-READ (the
+   Professor candidate, ruled in): if blinding moves outcomes,
+   §8.1's trunk emergence results carry a laundering caveat and the
+   critic-blind cell is the cleaner home for emergence claims.
 3. [RULED S§3a] MINI-FRIEND Phase 1: both loss weightings
    (natural-frequency vs distress-reweighted) as OFFLINE auxiliary
    heads on frozen trunk rollouts; 2×2 weighting × eval-stratum;
@@ -488,8 +512,21 @@ timebox)
    welfare-critical coverage floor dissolves the tension). Bath
    EXCLUDED/downweighted from the estimate loss, reported
    separately (pipeline-noise bound, never inference skill).
-   [BLANK] the coverage floor definition and number; stratum
-   definitions.
+   [RULED at the freeze sitting, owner 2026-10-17 "Accept D bite 1" — Experiments proposal + Professor review pins (their note for-experiments-gen2-sec8-review-2026-10-17.md, advisory, ruled here)] Strata = the ostrich
+   metric's shared bins (happiness 45/70 + the 90 distress edge).
+   The floor is a DECLARED-PROCEDURE PIN, not a number: set at
+   Phase 1's first read as the distress-reweighted head's realized
+   grave-bin prediction loss — the natural-frequency head dissolves
+   the tension iff it MATCHES that head within a declared 10%
+   relative equivalence tolerance on grave-bin loss; procedure,
+   read order, and min-n 200 frozen now so the number cannot be
+   chosen after seeing which head it favors. SCOPE LINE: the floor
+   licenses HEAD CHOICE only, never welfare adequacy — adequacy
+   stays with the ruled gate margins (a both-heads-bad floor must
+   not masquerade as a safety bar). Trivial baselines
+   (marginal-frequency, persistence) are reported beside the floor
+   on the same grave bins — a reference read, not a bar — so a
+   both-heads-bad floor is visible.
 4. [RULED S§3b, amended S§Amendment A1/A2′/A4] MINI-FRIEND
    Phase 2: winner-only imagination feedback, one live arm vs
    trunk; canalization watch (dispersion + per-seat action-mix
