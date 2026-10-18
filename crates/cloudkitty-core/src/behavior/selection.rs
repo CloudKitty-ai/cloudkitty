@@ -3138,29 +3138,18 @@ mod spec_057_sleep_floor_tests {
 mod spec_063_friend_ward_tests {
     use super::*;
 
-    /// A 32x32 stage for the drift: kitty 1 (the decider) at (16, 16),
-    /// kitty 2 at (0, 0), no elements, tick 100, flag as given. Distances
-    /// are set by `setup` moving the kitties.
-    fn fw_ctx(
+    /// Context over the shared spec-063 stage (`test_support::
+    /// friend_ward_stage`): apply `setup` to the staged world, then
+    /// snapshot through the fog for kitty 1.
+    fn fw_stage(
         flag: bool,
         radius: u32,
+        cat: Position,
+        friends: &[(crate::kitty::KittyId, Position)],
         setup: impl FnOnce(&mut crate::world::World),
     ) -> DecisionContext {
-        let mut config = crate::test_support::test_config();
-        config.world.width = 32;
-        config.world.height = 32;
-        config.vision.radius = radius;
-        config.kitties[0].x = Some(16);
-        config.kitties[0].y = Some(16);
-        config.kitties[1].x = Some(0);
-        config.kitties[1].y = Some(0);
-        config.behavior.friend_ward_drift = flag;
-        config.validate().unwrap();
-        let config = std::sync::Arc::new(config);
-        let mut world = crate::world::World::generate(&config);
-        crate::test_support::forget_everything(&mut world);
-        world.elements.clear();
-        world.tick = 100;
+        let (mut world, config) =
+            crate::test_support::friend_ward_stage(flag, radius, cat, friends);
         setup(&mut world);
         let me = world.kitty(1).unwrap().clone();
         DecisionContext {
@@ -3169,6 +3158,31 @@ mod spec_063_friend_ward_tests {
             rng: crate::behavior::DecisionRng::from_seed(9876),
             config,
         }
+    }
+
+    /// The default drift stage: kitty 1 at (16, 16), kitty 2 at (0, 0).
+    fn fw_ctx(
+        flag: bool,
+        radius: u32,
+        setup: impl FnOnce(&mut crate::world::World),
+    ) -> DecisionContext {
+        fw_stage(
+            flag,
+            radius,
+            Position::new(16, 16),
+            &[(2, Position::new(0, 0))],
+            setup,
+        )
+    }
+
+    /// Stage one water bowl.
+    fn water(w: &mut crate::world::World, id: u32, x: u32, y: u32) {
+        w.push_element(Element {
+            id,
+            kind: ElementKind::Water,
+            pos: Position::new(x, y),
+            ttl: None,
+        });
     }
 
     /// Spec 063 FR-004: a visible friend and a lawful stamp compete on
@@ -3217,36 +3231,13 @@ mod spec_063_friend_ward_tests {
     /// two kitties on the stage, "nearest" can never be wrong, and the
     /// min-by pick was unguarded (max_by_key survived the suite).
     fn fw3_ctx(radius: u32, setup: impl FnOnce(&mut crate::world::World)) -> DecisionContext {
-        let mut config = crate::test_support::test_config();
-        config.world.width = 32;
-        config.world.height = 32;
-        config.vision.radius = radius;
-        config.kitties[0].x = Some(16);
-        config.kitties[0].y = Some(16);
-        config.kitties[1].x = Some(8);
-        config.kitties[1].y = Some(16);
-        config.kitties.push(crate::config::KittyConfig::new(
-            3,
-            "Clover",
-            0,
-            0,
-            "needs_driven",
-        ));
-        config.behavior.friend_ward_drift = true;
-        config.validate().unwrap();
-        let config = std::sync::Arc::new(config);
-        let mut world = crate::world::World::generate(&config);
-        crate::test_support::forget_everything(&mut world);
-        world.elements.clear();
-        world.tick = 100;
-        setup(&mut world);
-        let me = world.kitty(1).unwrap().clone();
-        DecisionContext {
-            me,
-            world: std::sync::Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
-            rng: crate::behavior::DecisionRng::from_seed(9876),
-            config,
-        }
+        fw_stage(
+            true,
+            radius,
+            Position::new(16, 16),
+            &[(2, Position::new(8, 16)), (3, Position::new(0, 0))],
+            setup,
+        )
     }
 
     /// Spec 063 FR-004 (review 1 finding 3): with a REAL choice -- a
@@ -3310,17 +3301,8 @@ mod spec_063_friend_ward_tests {
     /// 3 and sits friend-ward; W2 (id 901) at (18, 16) costs 2. All dry.
     fn two_bowls(flag: bool) -> DecisionContext {
         fw_ctx(flag, 64, |w| {
-            for (id, pos) in [
-                (900u32, Position::new(13, 16)),
-                (901, Position::new(18, 16)),
-            ] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 13, 16);
+            water(w, 901, 18, 16);
         })
     }
 
@@ -3359,14 +3341,8 @@ mod spec_063_friend_ward_tests {
     fn beyond_the_band_or_at_detour_zero_the_cheapest_wins() {
         // W1 moved friend-ward to cost 7: beyond edge 2 + 4 = 6.
         let ctx = fw_ctx(true, 64, |w| {
-            for (id, pos) in [(900u32, Position::new(9, 16)), (901, Position::new(18, 16))] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 9, 16);
+            water(w, 901, 18, 16);
         });
         assert_eq!(
             priced_nearest_element(&ctx, ElementType::Water),
@@ -3402,17 +3378,8 @@ mod spec_063_friend_ward_tests {
         let ctx = fw_ctx(true, 64, |w| {
             let i2 = w.kitty_index(2).unwrap();
             w.kitties[i2].pos = Position::new(27, 16);
-            for (id, pos) in [
-                (900u32, Position::new(18, 15)),
-                (901, Position::new(21, 16)),
-            ] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 18, 15);
+            water(w, 901, 21, 16);
         });
         assert_eq!(
             priced_nearest_element(&ctx, ElementType::Water),
@@ -3427,17 +3394,8 @@ mod spec_063_friend_ward_tests {
         let ctx = fw_ctx(true, 64, |w| {
             let i2 = w.kitty_index(2).unwrap();
             w.kitties[i2].pos = Position::new(15, 16);
-            for (id, pos) in [
-                (900u32, Position::new(16, 28)),
-                (901, Position::new(13, 25)),
-            ] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 16, 28);
+            water(w, 901, 13, 25);
         });
         assert_eq!(
             priced_nearest_element(&ctx, ElementType::Water),
@@ -3455,43 +3413,16 @@ mod spec_063_friend_ward_tests {
     /// set keying picks 901.
     #[test]
     fn the_band_key_is_per_candidate_over_the_friend_set_not_the_cats_nearest() {
-        let mut config = crate::test_support::test_config();
-        config.world.width = 32;
-        config.world.height = 32;
-        config.vision.radius = 64;
-        config.kitties[0].x = Some(14);
-        config.kitties[0].y = Some(12);
-        config.kitties[1].x = Some(0);
-        config.kitties[1].y = Some(14);
-        config.kitties.push(crate::config::KittyConfig::new(
-            3,
-            "Clover",
-            25,
-            6,
-            "needs_driven",
-        ));
-        config.behavior.friend_ward_drift = true;
-        config.validate().unwrap();
-        let config = std::sync::Arc::new(config);
-        let mut world = crate::world::World::generate(&config);
-        crate::test_support::forget_everything(&mut world);
-        world.elements.clear();
-        world.tick = 100;
-        for (id, pos) in [(900u32, Position::new(9, 0)), (901, Position::new(20, 21))] {
-            world.push_element(Element {
-                id,
-                kind: ElementKind::Water,
-                pos,
-                ttl: None,
-            });
-        }
-        let me = world.kitty(1).unwrap().clone();
-        let ctx = DecisionContext {
-            me,
-            world: std::sync::Arc::new(world.snapshot().fog_for(1, 64)),
-            rng: crate::behavior::DecisionRng::from_seed(9876),
-            config,
-        };
+        let ctx = fw_stage(
+            true,
+            64,
+            Position::new(14, 12),
+            &[(2, Position::new(0, 14)), (3, Position::new(25, 6))],
+            |w| {
+                water(w, 900, 9, 0);
+                water(w, 901, 20, 21);
+            },
+        );
         // Costs 17 (900) / 15 (901); keys over the set {(0,14), (25,6)}:
         // 900 -> 22, 901 -> 20. Winner 901. Keyed on the CAT's nearest
         // friend (kitty 2 at distance 16), 900 (23 vs 27) would win.
@@ -3508,17 +3439,8 @@ mod spec_063_friend_ward_tests {
     #[test]
     fn inside_a_friend_distance_tie_the_cost_step_decides_before_the_id() {
         let ctx = fw_ctx(true, 64, |w| {
-            for (id, pos) in [
-                (900u32, Position::new(17, 10)),
-                (901, Position::new(11, 16)),
-            ] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 17, 10);
+            water(w, 901, 11, 16);
         });
         // Both at friend-distance 27 from (0, 0); costs 7 (id 900) vs 5
         // (id 901); band edge 5 + 4 = 9 admits both. Cost must decide.
@@ -3536,17 +3458,8 @@ mod spec_063_friend_ward_tests {
     fn a_candidate_at_exactly_the_band_edge_is_in_the_band() {
         let ctx = fw_ctx(true, 64, |w| {
             // W1 friend-ward at cost 6 = min (2) + B (4) exactly; W2 cheap.
-            for (id, pos) in [
-                (900u32, Position::new(10, 16)),
-                (901, Position::new(18, 16)),
-            ] {
-                w.push_element(Element {
-                    id,
-                    kind: ElementKind::Water,
-                    pos,
-                    ttl: None,
-                });
-            }
+            water(w, 900, 10, 16);
+            water(w, 901, 18, 16);
         });
         assert_eq!(
             priced_nearest_element(&ctx, ElementType::Water),
@@ -3563,17 +3476,8 @@ mod spec_063_friend_ward_tests {
             fw_ctx(flag, 64, move |w| {
                 let i2 = w.kitty_index(2).unwrap();
                 w.kitties[i2].pos = friend_pos;
-                for (id, pos) in [
-                    (900u32, Position::new(13, 16)),
-                    (901, Position::new(18, 16)),
-                ] {
-                    w.push_element(Element {
-                        id,
-                        kind: ElementKind::Water,
-                        pos,
-                        ttl: None,
-                    });
-                }
+                water(w, 900, 13, 16);
+                water(w, 901, 18, 16);
             })
         };
         // Friend at manhattan 6 from the CHEAPEST candidate (the ruled
@@ -3592,12 +3496,7 @@ mod spec_063_friend_ward_tests {
         // Nobody known (radius 5, silence): inert, pinned absolute.
         let blind = |flag| {
             fw_ctx(flag, 5, |w| {
-                w.push_element(Element {
-                    id: 900,
-                    kind: ElementKind::Water,
-                    pos: Position::new(14, 16),
-                    ttl: None,
-                });
+                water(w, 900, 14, 16);
             })
         };
         let expected = Some((Position::new(14, 16), 2.0));
@@ -3612,12 +3511,7 @@ mod spec_063_friend_ward_tests {
         // One candidate: the band has one member; the pick equals flag-off.
         let single = |flag| {
             fw_ctx(flag, 64, |w| {
-                w.push_element(Element {
-                    id: 900,
-                    kind: ElementKind::Water,
-                    pos: Position::new(18, 16),
-                    ttl: None,
-                });
+                water(w, 900, 18, 16);
             })
         };
         let expected = Some((Position::new(18, 16), 2.0));
@@ -3678,12 +3572,7 @@ mod spec_063_friend_ward_tests {
         let ctx = fw_ctx(true, 64, |w| {
             // Real water at (12, 16) and a remembered tile at (16, 12):
             // both cost 4, both friend-dist 28 from (0, 0).
-            w.push_element(Element {
-                id: 905,
-                kind: ElementKind::Water,
-                pos: Position::new(12, 16),
-                ttl: None,
-            });
+            water(w, 905, 12, 16);
             let i1 = w.kitty_index(1).unwrap();
             w.kitties[i1].memory[crate::kitty::memory_index(ElementType::Water)] =
                 Some(crate::kitty::MemorySlot {
