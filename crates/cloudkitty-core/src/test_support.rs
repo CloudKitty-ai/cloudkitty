@@ -9,6 +9,7 @@ use crate::action::TargetRef;
 use crate::behavior::DecisionContext;
 use crate::config::{Config, ElementRule, ElementsConfig, KittyConfig, VisionConfig, WorldConfig};
 use crate::element::ElementType;
+use crate::grid::Position;
 use crate::kitty::{Activity, KittyId};
 use crate::rng::DecisionRng;
 use crate::world::World;
@@ -204,4 +205,38 @@ pub fn complete_toml(fragment: &str) -> String {
     let over: toml::Table = toml::from_str(fragment).expect("the fragment is valid TOML");
     merge(&mut merged, over);
     toml::to_string(&merged).expect("the merged table serialises")
+}
+
+/// Spec 063 test stage: a 32x32 world at `radius`, kitty 1 (the decider)
+/// at `cat`, kitty 2 at `friends[0]`, any further friends appended to the
+/// roster, the friend-ward flag as given; elements cleared, memory blank,
+/// tick 100. Callers mutate the returned world (needs, meows, elements)
+/// and then build their own `DecisionContext` or simulation loop.
+pub fn friend_ward_stage(
+    flag: bool,
+    radius: u32,
+    cat: Position,
+    friends: &[(KittyId, Position)],
+) -> (World, Arc<Config>) {
+    let mut config = test_config();
+    config.world.width = 32;
+    config.world.height = 32;
+    config.vision.radius = radius;
+    config.kitties[0].x = Some(cat.x);
+    config.kitties[0].y = Some(cat.y);
+    config.kitties[1].x = Some(friends[0].1.x);
+    config.kitties[1].y = Some(friends[0].1.y);
+    for &(id, pos) in &friends[1..] {
+        config
+            .kitties
+            .push(KittyConfig::new(id, "Clover", pos.x, pos.y, "needs_driven"));
+    }
+    config.behavior.friend_ward_drift = flag;
+    config.validate().unwrap();
+    let config = Arc::new(config);
+    let mut world = World::generate(&config);
+    forget_everything(&mut world);
+    world.elements.clear();
+    world.tick = 100;
+    (world, config)
 }

@@ -664,6 +664,15 @@ fn cosleep_worth_the_exposure(ctx: &DecisionContext, friend: crate::kitty::Kitty
 }
 
 pub(crate) fn wander(ctx: &DecisionContext) -> Action {
+    // Spec 063 drift-law Site 2: a fired friend-ward drift steers the
+    // potter toward the far friend through the existing step rule, and
+    // the uniform direction draw is SKIPPED -- the declared flag-on RNG
+    // divergence. The cadence (whether a potter step happens at all) is
+    // the caller's, untouched. Flag off, this arm is unreachable and the
+    // draw below is consumed exactly as before 063.
+    if let Some(friend) = selection::friend_ward_target(ctx) {
+        return step_toward(ctx, friend);
+    }
     let direction = ctx
         .rng
         .choose(&Direction::ALL)
@@ -680,6 +689,236 @@ mod tests {
     use crate::grid::Position;
     use crate::meow::MessageKind;
     use crate::test_support::decision_context;
+
+    /// Shared stage for the spec 063 livelock regressions: a thirsty cat
+    /// and sleeping friends (first entry is kitty 2, the rest are added to
+    /// the roster) on a 32x32 board with two bowls, flag on -- then a
+    /// simulated decide-and-step loop. Ok(()) once the cat DRINKS inside
+    /// the budget; Err(final position) if it never does (a livelock).
+    fn drinks_within(
+        ticks: u64,
+        cat: Position,
+        friends: &[(u32, Position)],
+        bowls: &[(u32, Position)],
+    ) -> Result<(), Position> {
+        let (mut world, config) = crate::test_support::friend_ward_stage(true, 64, cat, friends);
+        for &(id, pos) in bowls {
+            world.push_element(crate::element::Element {
+                id,
+                kind: crate::element::ElementKind::Water,
+                pos,
+                ttl: None,
+            });
+        }
+        let i1 = world.kitty_index(1).unwrap();
+        world.kitties[i1].needs.add(NeedKind::Drink, 95.0);
+        for &(friend, _) in friends {
+            let idx = world.kitty_index(friend).unwrap();
+            world.kitties[idx].activity = crate::kitty::Activity::Sleeping {
+                in_sunbeam: false,
+                with_friend: None,
+            };
+        }
+        for tick in 0..ticks {
+            let me = world.kitty(1).unwrap().clone();
+            let ctx = crate::behavior::DecisionContext {
+                me,
+                world: std::sync::Arc::new(world.snapshot().fog_for(1, 64)),
+                rng: crate::behavior::DecisionRng::from_seed(tick),
+                config: config.clone(),
+            };
+            match NeedsDriven.decide_action(&ctx) {
+                Action::Move { direction } => {
+                    let i1 = world.kitty_index(1).unwrap();
+                    let stepped = world.kitties[i1]
+                        .pos
+                        .step(direction, 32, 32)
+                        .expect("steps stay on the board");
+                    world.kitties[i1].pos = stepped;
+                }
+                Action::Drink => return Ok(()),
+                other => panic!("tick {tick}: unexpected action {other:?}"),
+            }
+            world.tick += 1;
+        }
+        Err(world.kitty(1).unwrap().pos)
+    }
+
+    /// Review 1 HIGH-1 regression, owner "Ruled as recommended"
+    /// (2026-10-17): the single-friend probe stage that livelocked under
+    /// the cat-anchored gate (friend at distance 11, a step across the
+    /// old gate; cheap bowl east, friend-ward bowl west inside the band;
+    /// West/East ping-pong forever). Under the ruled per-candidate law
+    /// the ranking inputs are fixed, so the cat must drink inside 12
+    /// simulated ticks.
+    #[test]
+    fn a_thirsty_cat_beside_a_sleeping_friend_drinks_instead_of_livelocking() {
+        drinks_within(
+            12,
+            Position::new(16, 16),
+            &[(2, Position::new(5, 16))],
+            &[(900, Position::new(18, 16)), (901, Position::new(11, 16))],
+        )
+        .unwrap_or_else(|pos| panic!("the ruled gate must let the cat drink; stuck near {pos:?}"));
+    }
+
+    /// Review 2 finding 1 regression, owner "As recommended" (2026-10-17):
+    /// the two-friend geometry that livelocked when the band keyed on the
+    /// CAT's nearest friend (its identity flipped between kitty 2 and
+    /// kitty 3 on a single step; S/N ping-pong for 60 ticks). Under the
+    /// per-candidate key every ranking input is fixed and the target
+    /// (bowl 901) is fixed, so the cat must drink inside 40 ticks.
+    #[test]
+    fn a_thirsty_cat_between_two_sleeping_friends_drinks_instead_of_livelocking() {
+        drinks_within(
+            40,
+            Position::new(14, 11),
+            &[(2, Position::new(0, 14)), (3, Position::new(25, 6))],
+            &[(900, Position::new(9, 0)), (901, Position::new(20, 21))],
+        )
+        .unwrap_or_else(|pos| {
+            panic!("the per-candidate key must let the cat drink; stuck near {pos:?}")
+        });
+    }
+
+    // ---- Spec 063: the friend-ward potter (drift-law Site 2) ----------
+
+    /// A 32x32 stage for the potter: all needs zero, no elements, kitty 1
+    /// standing ON its explore waypoint (so a not-fired tick's pursuit
+    /// lands on Idle/Nap, never a Move), kitty 2 at `friend_pos` and BUSY
+    /// (sleeping -- a busy friend is still KNOWN to the drift but never a
+    /// cuddle walk's target, so the only Move left is the potter's).
+    fn potter_ctx(flag: bool, friend_pos: Position, seed: u64) -> DecisionContext {
+        let lattice = crate::explore::Lattice::for_world(32, 32, 64);
+        let wp = lattice.waypoint(0);
+        let (mut world, config) =
+            crate::test_support::friend_ward_stage(flag, 64, wp, &[(2, friend_pos)]);
+        let i1 = world.kitty_index(1).unwrap();
+        world.kitties[i1].explore_waypoint = 0;
+        let i2 = world.kitty_index(2).unwrap();
+        world.kitties[i2].activity = crate::kitty::Activity::Sleeping {
+            in_sunbeam: false,
+            with_friend: None,
+        };
+        let me = world.kitty(1).unwrap().clone();
+        crate::behavior::DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
+            rng: crate::behavior::DecisionRng::from_seed(seed),
+            config,
+        }
+    }
+
+    /// The far corner: beyond the gate from any 32x32 waypoint.
+    const FAR: Position = Position { x: 0, y: 0 };
+
+    /// Spec 063 FR-008: a fired drift's potter step IS the step rule's
+    /// step toward the friend (not a private walk), it moves, and it
+    /// draws NOTHING from the RNG -- the stream after a steered potter is
+    /// a virgin stream (the 062 rng-state lesson: assert the state, not
+    /// just the action).
+    #[test]
+    fn a_fired_potter_steps_toward_the_friend_and_skips_the_draw() {
+        let ctx = potter_ctx(true, FAR, 4242);
+        assert!(
+            ctx.me.pos.manhattan_distance(&FAR) > 10,
+            "staging: the friend must sit beyond the default gate"
+        );
+        let step = wander(&ctx);
+        assert_eq!(
+            step,
+            step_toward(&ctx, FAR),
+            "the existing step rule walks it"
+        );
+        assert!(
+            matches!(step, Action::Move { .. }),
+            "a far friend on an empty board is always a move"
+        );
+        // Zero draws consumed: the next values equal a fresh stream's first.
+        let probe: Vec<u32> = (0..1000).collect();
+        let fresh = crate::behavior::DecisionRng::from_seed(4242);
+        assert_eq!(ctx.rng.choose(&probe), fresh.choose(&probe));
+        assert_eq!(ctx.rng.choose(&probe), fresh.choose(&probe));
+    }
+
+    /// Spec 063 FR-006/FR-008: with the friend within the gate the potter
+    /// is today's uniform draw -- same action AND same RNG consumption as
+    /// flag-off at the same seed.
+    #[test]
+    fn an_inert_potter_is_todays_uniform_draw_with_the_same_consumption() {
+        // Friend within the gate: 3 tiles from the waypoint (derived from
+        // a probe context, since the waypoint position is the lattice's).
+        // The pin is ABSOLUTE -- the action must equal the seed-derived
+        // uniform draw and consume exactly one draw -- never flag-on ==
+        // flag-off, which a mutation breaking both arms identically
+        // satisfies (this test's first version was exactly that vacuous
+        // guard; mutate.sh exit 6 caught it, 2026-10-17).
+        let close_pos = {
+            let probe = potter_ctx(true, FAR, 0);
+            Position::new(probe.me.pos.x.saturating_sub(3), probe.me.pos.y)
+        };
+        let probe_vals: Vec<u32> = (0..1000).collect();
+        for flag in [true, false] {
+            for seed in 0..20u64 {
+                let ctx = potter_ctx(flag, close_pos, seed);
+                assert!(ctx.me.pos.manhattan_distance(&close_pos) <= 10);
+                // The absolute uniform law at this seed, drawn fresh:
+                let fresh = crate::behavior::DecisionRng::from_seed(seed);
+                let expected =
+                    Action::move_to(*fresh.choose(&crate::grid::Direction::ALL).unwrap());
+                assert_eq!(
+                    wander(&ctx),
+                    expected,
+                    "flag {flag}, seed {seed}: the potter IS the uniform draw"
+                );
+                // Exactly one draw consumed: the streams align after the
+                // fresh rng's single direction draw above.
+                assert_eq!(
+                    ctx.rng.choose(&probe_vals),
+                    fresh.choose(&probe_vals),
+                    "flag {flag}, seed {seed}: exactly one draw consumed"
+                );
+            }
+        }
+    }
+
+    /// Spec 063 FR-008/SC-004: the potter's CADENCE is the caller's gate,
+    /// which the drift never touches. The cadence draw precedes the steer,
+    /// so at equal seeds the flag-on and flag-off arms fire on EXACTLY the
+    /// same ticks -- pinned seed-by-seed (stronger than the binomial
+    /// tolerance SC-004 asks). Prediction, declared before the first run:
+    /// per-seed firing identical; the shared count lands in 50..=110
+    /// (n = 200, p = 0.4, mean 80, +/- >4 sigma).
+    #[test]
+    fn the_potter_cadence_is_identical_flag_on_and_off() {
+        let mut fired = 0u32;
+        for seed in 0..200u64 {
+            let on = super::super::teacher::Teacher::NEEDS_DRIVEN
+                .decide_action(&potter_ctx(true, FAR, seed));
+            let off = super::super::teacher::Teacher::NEEDS_DRIVEN
+                .decide_action(&potter_ctx(false, FAR, seed));
+            let on_moves = matches!(on, Action::Move { .. });
+            let off_moves = matches!(off, Action::Move { .. });
+            assert_eq!(
+                on_moves, off_moves,
+                "seed {seed}: the cadence gate fires identically in both arms"
+            );
+            if on_moves {
+                fired += 1;
+                // A fired flag-on potter steers friend-ward; flag-off is
+                // uniform, so only the ON arm is pinned to the step rule.
+                assert_eq!(
+                    on,
+                    step_toward(&potter_ctx(true, FAR, seed), FAR),
+                    "seed {seed}: the fired potter walks the step rule's step"
+                );
+            }
+        }
+        assert!(
+            (50..=110).contains(&fired),
+            "declared band: {fired} potter fires out of 200 at p = 0.4"
+        );
+    }
 
     /// Spec 047 doctrine guard (FR-005): the consent line moves ONLY the
     /// playful behavior. Classic opportunism — needs_driven's entry point —

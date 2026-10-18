@@ -62,3 +62,6 @@ regenerate and commit (owning thread) when specs change.
 | `058-gen2-observation-schema` | Draft |
 | `059-teacher-rework` | Draft |
 | `060-empty-bowl` | Draft |
+| `061-stuck-detector` | Draft |
+| `062-randomized-starts` | Draft |
+| `063-friend-ward-drift` | Draft |

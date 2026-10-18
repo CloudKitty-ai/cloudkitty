@@ -202,6 +202,17 @@ pub(super) fn default_sunbeam_reach() -> u32 {
     8
 }
 
+/// Spec 063: friend-ward gate, Manhattan tiles ("> 10" is her rule's
+/// pencil; a dial, expected to move after Experiments' 100x100 screen).
+pub(super) fn default_friend_ward_gate() -> u32 {
+    10
+}
+
+/// Spec 063: detour bound B, priced-cost tiles (Experiments' pencil).
+pub(super) fn default_friend_ward_detour() -> f32 {
+    4.0
+}
+
 pub(super) fn default_budget_strikes() -> u32 {
     5
 }

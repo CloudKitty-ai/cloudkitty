@@ -1827,6 +1827,31 @@ impl FogView {
             .collect()
     }
 
+    /// Spec 063 FR-004/FR-005: `heard_unseen`, fenced to the friend-ward
+    /// drift's stamp set -- per unseen roster friend, the freshest
+    /// audible WANT- or HERE-word stamp. The fence filters BEFORE the
+    /// freshest pick, so a fresher free-register meow neither places the
+    /// friend nor hides that friend's older qualifying stamp (063 edge
+    /// case). Same audibility rule and ordering as `heard_unseen`, which
+    /// keeps its kind-agnostic consumers untouched (banked Candidate 2's
+    /// surface); this query is the drift's alone.
+    pub fn heard_unseen_want_here(&self, window: u64) -> Vec<(KittyId, Position, u64)> {
+        self.roster
+            .iter()
+            .filter(|&&id| id != self.observer && self.snapshot.kitty(id).is_none())
+            .filter_map(|&id| {
+                self.snapshot
+                    .recent_meows
+                    .iter()
+                    .filter(|m| {
+                        m.kitty_id == id && m.kind.is_want_or_here() && self.audible(m, window)
+                    })
+                    .max_by_key(|m| m.tick)
+                    .map(|m| (id, m.pos, m.tick))
+            })
+            .collect()
+    }
+
     /// THE audibility rule (spec 049 FR-016/FR-017, research R5): a call
     /// is audible at this view's tick iff it was recorded on an EARLIER
     /// tick (the start-of-tick buffer; nobody hears a same-tick word) and
@@ -4573,5 +4598,56 @@ mod tests {
         assert!(wide.heard_unseen(30).is_empty());
         // Silence: nothing inside the window.
         assert!(snapshot.fog_for(1, 5).heard_unseen(2).is_empty());
+    }
+
+    /// Spec 063 FR-005: the drift's stamp query admits law-named want and
+    /// here words only, and the fence filters BEFORE the freshest pick --
+    /// a fresher free-register (or Purr/WaitForMe) meow neither places
+    /// the friend nor hides that friend's older qualifying stamp.
+    #[test]
+    fn heard_unseen_want_here_fences_to_lawful_stamps() {
+        use crate::meow::MessageKind;
+        let config = Arc::new(test_config());
+        let mut world = World::generate(&config);
+        let i1 = world.kitty_index(1).unwrap();
+        let i2 = world.kitty_index(2).unwrap();
+        world.kitties[i1].pos = Position::new(2, 2);
+        world.kitties[i2].pos = Position::new(13, 13);
+        world.tick = 40;
+        let meow = |kind: MessageKind, tick: u64, x: u32, y: u32| Meow {
+            kitty_id: 2,
+            kind,
+            tick,
+            intensity: 0.5,
+            pos: Position::new(x, y),
+            reply: false,
+        };
+        world.recent_meows = vec![
+            meow(MessageKind::WantEat, 20, 10, 10),   // qualifying
+            meow(MessageKind::HereWater, 25, 11, 11), // qualifying, freshest lawful
+            meow(MessageKind::Mew, 37, 12, 12),       // free register: fenced out
+            meow(MessageKind::Purr, 38, 12, 12),      // fenced out
+            meow(MessageKind::WaitForMe, 39, 12, 12), // fenced out
+        ];
+        let snapshot = world.snapshot();
+        let view = snapshot.fog_for(1, 5);
+        assert!(view.kitty(2).is_none(), "friend 2 is outside the disc");
+        assert_eq!(
+            view.heard_unseen_want_here(30),
+            vec![(2, Position::new(11, 11), 25)],
+            "the freshest QUALIFYING stamp places the friend"
+        );
+        assert_eq!(
+            view.heard_unseen(30),
+            vec![(2, Position::new(12, 12), 39)],
+            "the kind-agnostic helper is untouched: it still hands back the freshest of ANY kind"
+        );
+        // Only non-qualifying words in the window: the drift knows nobody.
+        world.recent_meows = vec![
+            meow(MessageKind::Mew, 37, 12, 12),
+            meow(MessageKind::Purr, 38, 12, 12),
+        ];
+        let snapshot = world.snapshot();
+        assert!(snapshot.fog_for(1, 5).heard_unseen_want_here(30).is_empty());
     }
 }
