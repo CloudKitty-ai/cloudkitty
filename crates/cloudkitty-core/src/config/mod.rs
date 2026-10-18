@@ -2365,6 +2365,14 @@ mod tests {
                 "{key} is skipped from serialization, keeping the defaults stamp still"
             );
         }
+        // Review 1 finding 7: the stamp hashes serde_json of
+        // Config::default(), not TOML -- assert the surface that is
+        // actually hashed, too.
+        let default_json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_json.contains("friend_ward"),
+            "no friend-ward key reaches the hashed JSON defaults"
+        );
         let parsed: BehaviorConfig = toml::from_str(&default_toml).unwrap();
         assert!(!parsed.friend_ward_drift, "absent = flag off");
         assert_eq!(parsed.friend_ward_gate_tiles(), 10, "her rule's pencil");

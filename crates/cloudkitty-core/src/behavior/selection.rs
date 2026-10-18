@@ -3165,6 +3165,73 @@ mod spec_063_friend_ward_tests {
         );
     }
 
+    /// A third kitty for the pick tests: review 1 finding 3 -- with only
+    /// two kitties on the stage, "nearest" can never be wrong, and the
+    /// min-by pick was unguarded (max_by_key survived the suite).
+    fn fw3_ctx(radius: u32, setup: impl FnOnce(&mut crate::world::World)) -> DecisionContext {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 32;
+        config.world.height = 32;
+        config.vision.radius = radius;
+        config.kitties[0].x = Some(16);
+        config.kitties[0].y = Some(16);
+        config.kitties[1].x = Some(8);
+        config.kitties[1].y = Some(16);
+        config.kitties.push(crate::config::KittyConfig::new(
+            3,
+            "Clover",
+            0,
+            0,
+            "needs_driven",
+        ));
+        config.behavior.friend_ward_drift = true;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        crate::test_support::forget_everything(&mut world);
+        world.elements.clear();
+        world.tick = 100;
+        setup(&mut world);
+        let me = world.kitty(1).unwrap().clone();
+        DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
+            rng: crate::behavior::DecisionRng::from_seed(9876),
+            config,
+        }
+    }
+
+    /// Spec 063 FR-004 (review 1 finding 3): with a REAL choice -- a
+    /// visible friend against a nearer stamped one -- the pick is the
+    /// minimum by `(manhattan, id)`, absolutely pinned both ways.
+    #[test]
+    fn with_two_known_friends_the_nearer_wins_and_ties_go_to_the_lower_id() {
+        let stamp = |pos: Position| {
+            move |w: &mut crate::world::World| {
+                w.recent_meows.push(crate::meow::Meow {
+                    kitty_id: 3,
+                    kind: crate::meow::MessageKind::WantCuddle,
+                    tick: 99,
+                    intensity: 0.5,
+                    pos,
+                    reply: false,
+                });
+            }
+        };
+        // Friend 2 visible at distance 8; kitty 3 unseen (euclid ~22.6 at
+        // radius 10) but stamped at distance 6: the NEARER stamp wins.
+        let ctx = fw3_ctx(10, stamp(Position::new(10, 16)));
+        assert!(
+            ctx.world.kitty(2).is_some(),
+            "staging: friend 2 in the disc"
+        );
+        assert!(ctx.world.kitty(3).is_none(), "staging: kitty 3 outside it");
+        assert_eq!(nearest_known_friend(&ctx), Some((3, Position::new(10, 16))));
+        // Equal distance 8 (stamp at (10, 14)): the LOWER id wins.
+        let ctx = fw3_ctx(10, stamp(Position::new(10, 14)));
+        assert_eq!(nearest_known_friend(&ctx), Some((2, Position::new(8, 16))));
+    }
+
     /// Spec 063 FR-006 and the gate boundary: distance == gate does NOT
     /// fire ("strictly farther"); gate + 1 does; the flag off never does.
     #[test]
@@ -3271,6 +3338,59 @@ mod spec_063_friend_ward_tests {
         );
     }
 
+    /// Review 1 finding 4: the cost step of the `(friend-dist, cost, id)`
+    /// ordering, staged so neither friend-distance nor id can mask it --
+    /// equal friend-distance 27, the CHEAPER option carries the HIGHER id.
+    #[test]
+    fn inside_a_friend_distance_tie_the_cost_step_decides_before_the_id() {
+        let ctx = fw_ctx(true, 64, |w| {
+            for (id, pos) in [
+                (900u32, Position::new(17, 10)),
+                (901, Position::new(11, 16)),
+            ] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        // Both at friend-distance 27 from (0, 0); costs 7 (id 900) vs 5
+        // (id 901); band edge 5 + 4 = 9 admits both. Cost must decide.
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(11, 16), 5.0)),
+            "equal friend-distance falls to cost, not to the lower id"
+        );
+    }
+
+    /// Review 1 finding 5: the band edge is INCLUSIVE -- a candidate at
+    /// exactly min_cost + B is in the band (B > 0, so the detour-0 case
+    /// cannot stand in for this).
+    #[test]
+    fn a_candidate_at_exactly_the_band_edge_is_in_the_band() {
+        let ctx = fw_ctx(true, 64, |w| {
+            // W1 friend-ward at cost 6 = min (2) + B (4) exactly; W2 cheap.
+            for (id, pos) in [
+                (900u32, Position::new(10, 16)),
+                (901, Position::new(18, 16)),
+            ] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(10, 16), 6.0)),
+            "cost <= min + B: the edge itself qualifies"
+        );
+    }
+
     /// Spec 063 SC-003 / FR-006: friend within the gate, nobody known, or
     /// a single candidate -- every one decides exactly as flag-off.
     #[test]
@@ -3292,12 +3412,19 @@ mod spec_063_friend_ward_tests {
                 }
             })
         };
-        // Friend at manhattan 4: within the gate, drift inert.
+        // Friend at manhattan 4: within the gate, drift inert. Pinned
+        // ABSOLUTE as well as arm-equal (review 1 finding 6): a bug
+        // breaking both arms identically must not pass.
+        let expected = Some((Position::new(18, 16), 2.0));
         assert_eq!(
             priced_nearest_element(&stage(true, Position::new(12, 16)), ElementType::Water),
-            priced_nearest_element(&stage(false, Position::new(12, 16)), ElementType::Water),
+            expected,
         );
-        // Nobody known (radius 5, silence): inert.
+        assert_eq!(
+            priced_nearest_element(&stage(false, Position::new(12, 16)), ElementType::Water),
+            expected,
+        );
+        // Nobody known (radius 5, silence): inert, pinned absolute.
         let blind = |flag| {
             fw_ctx(flag, 5, |w| {
                 w.push_element(Element {
@@ -3308,9 +3435,14 @@ mod spec_063_friend_ward_tests {
                 });
             })
         };
+        let expected = Some((Position::new(14, 16), 2.0));
         assert_eq!(
             priced_nearest_element(&blind(true), ElementType::Water),
+            expected
+        );
+        assert_eq!(
             priced_nearest_element(&blind(false), ElementType::Water),
+            expected
         );
         // One candidate: the band has one member; the pick equals flag-off.
         let single = |flag| {
@@ -3323,9 +3455,14 @@ mod spec_063_friend_ward_tests {
                 });
             })
         };
+        let expected = Some((Position::new(18, 16), 2.0));
         assert_eq!(
             priced_nearest_element(&single(true), ElementType::Water),
+            expected
+        );
+        assert_eq!(
             priced_nearest_element(&single(false), ElementType::Water),
+            expected
         );
     }
 
