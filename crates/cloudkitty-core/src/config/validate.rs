@@ -561,6 +561,30 @@ impl Config {
                 ));
             }
         }
+        // Spec 063: the friend-ward dials are checked whenever present,
+        // flag on or off -- an invalid value is invalid config, not an
+        // inert one. Gate 0 is rejected: "farther than zero away" would
+        // fire on adjacent friends and contradict the rule's intent.
+        if let Some(gate) = self.behavior.friend_ward_gate {
+            if gate == 0 {
+                return Err(ConfigError::invalid(
+                    "[behavior] friend_ward_gate",
+                    "0".to_string(),
+                    "must be at least 1 Manhattan tile (the drift fires only \
+                     beyond the gate, so 0 would fire on adjacent friends)",
+                ));
+            }
+        }
+        if let Some(detour) = self.behavior.friend_ward_detour {
+            if !detour.is_finite() || detour < 0.0 {
+                return Err(ConfigError::invalid(
+                    "[behavior] friend_ward_detour",
+                    detour.to_string(),
+                    "must be a finite number of priced-cost tiles >= 0 \
+                     (0 means drift only among exact-cost ties)",
+                ));
+            }
+        }
         Ok(())
     }
 

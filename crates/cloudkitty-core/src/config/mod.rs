@@ -1321,6 +1321,33 @@ pub struct BehaviorConfig {
     /// derived constant in `behavior::teacher`. Default 3.0.
     #[serde(default = "default_response_commitment_ticks")]
     pub response_commitment_ticks: f32,
+    /// Spec 063: the friend-ward drift flag. When true, a teacher whose
+    /// nearest KNOWN friend (visible, or freshest audible want/here stamp
+    /// in the digest window) is farther than the gate (a) picks, among
+    /// relief options priced within the detour bound of the cheapest, the
+    /// one closest to that friend, and (b) potters toward that friend
+    /// instead of a uniform random step. False (the default, and every
+    /// served config) is structurally byte-identical to the pre-063
+    /// engine — both drift sites short-circuit before any friend read.
+    /// Skip-serialized at false (the 039-D5 stamp discipline). The law:
+    /// specs/063-friend-ward-drift/contracts/drift-law.md.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub friend_ward_drift: bool,
+    /// Spec 063: the friend-distance gate, Manhattan tiles. The drift
+    /// fires only when the nearest known friend is STRICTLY farther than
+    /// this. Unset = 10 (her rule's pencil; read via
+    /// `friend_ward_gate_tiles`). Present ⇒ must be > 0. Skip-serialized
+    /// when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub friend_ward_gate: Option<u32>,
+    /// Spec 063: the detour bound B, priced-cost tiles (the same units as
+    /// `priced_travel`, so a wet detour is dearer than a dry one). A
+    /// relief candidate joins the friend-ward band only when its priced
+    /// cost is within B of the cheapest candidate's. Unset = 4.0
+    /// (Experiments' pencil; read via `friend_ward_detour_cost`).
+    /// Present ⇒ must be finite and >= 0. Skip-serialized when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub friend_ward_detour: Option<f32>,
 }
 
 impl Default for BehaviorConfig {
@@ -1356,6 +1383,9 @@ impl Default for BehaviorConfig {
             contagion_aware_ladder: false,
             reply_intensity_floor: None,
             response_commitment_ticks: default_response_commitment_ticks(),
+            friend_ward_drift: false,
+            friend_ward_gate: None,
+            friend_ward_detour: None,
         }
     }
 }
@@ -1424,6 +1454,20 @@ impl BehaviorConfig {
     pub fn budget_ms(&self, tick_ms: u64) -> u64 {
         let ms = (tick_ms as f64 * self.budget_fraction_of_tick as f64).floor() as u64;
         ms.max(1)
+    }
+
+    /// Spec 063: the friend-distance gate with its default applied
+    /// (absent = 10 Manhattan tiles).
+    pub fn friend_ward_gate_tiles(&self) -> u32 {
+        self.friend_ward_gate
+            .unwrap_or_else(default_friend_ward_gate)
+    }
+
+    /// Spec 063: the detour bound with its default applied (absent =
+    /// 4.0 priced-cost tiles).
+    pub fn friend_ward_detour_cost(&self) -> f32 {
+        self.friend_ward_detour
+            .unwrap_or_else(default_friend_ward_detour)
     }
 }
 
@@ -2301,6 +2345,86 @@ mod tests {
         let with_floor: ActionEffects =
             toml::from_str(&format!("sleep_floor_off_beam = 20.0\n{default_toml}")).unwrap();
         assert_eq!(with_floor.sleep_floor_off_beam, 20.0, "a set floor parses");
+    }
+
+    /// Spec 063 FR-001/FR-002: all three friend-ward keys are absent from
+    /// the serialized defaults (039-D5 stamp discipline —
+    /// `engine_defaults_sha256` and `GET /config` must not grow), absent
+    /// keys parse to flag-off with the pencilled dial defaults, and a
+    /// flag-ON config serializes exactly the keys that were set.
+    #[test]
+    fn friend_ward_keys_default_off_and_leave_the_stamp_unmoved() {
+        let default_toml = toml::to_string(&BehaviorConfig::default()).unwrap();
+        for key in [
+            "friend_ward_drift",
+            "friend_ward_gate",
+            "friend_ward_detour",
+        ] {
+            assert!(
+                !default_toml.contains(key),
+                "{key} is skipped from serialization, keeping the defaults stamp still"
+            );
+        }
+        let parsed: BehaviorConfig = toml::from_str(&default_toml).unwrap();
+        assert!(!parsed.friend_ward_drift, "absent = flag off");
+        assert_eq!(parsed.friend_ward_gate_tiles(), 10, "her rule's pencil");
+        assert_eq!(parsed.friend_ward_detour_cost(), 4.0, "Experiments' pencil");
+        assert_eq!(parsed, BehaviorConfig::default());
+
+        // Flag on, dials absent: defaults still apply through the accessors.
+        let flag_on: BehaviorConfig =
+            toml::from_str(&format!("friend_ward_drift = true\n{default_toml}")).unwrap();
+        assert!(flag_on.friend_ward_drift);
+        assert_eq!(flag_on.friend_ward_gate_tiles(), 10);
+        assert_eq!(flag_on.friend_ward_detour_cost(), 4.0);
+        let round_trip = toml::to_string(&flag_on).unwrap();
+        assert!(round_trip.contains("friend_ward_drift"), "a set flag serializes");
+        assert!(
+            !round_trip.contains("friend_ward_gate") && !round_trip.contains("friend_ward_detour"),
+            "unset dials stay skipped even with the flag on"
+        );
+
+        // Dials set: they parse, and the accessors hand them back.
+        let dialed: BehaviorConfig = toml::from_str(&format!(
+            "friend_ward_drift = true\nfriend_ward_gate = 7\nfriend_ward_detour = 2.5\n{default_toml}"
+        ))
+        .unwrap();
+        assert_eq!(dialed.friend_ward_gate_tiles(), 7);
+        assert_eq!(dialed.friend_ward_detour_cost(), 2.5);
+    }
+
+    /// Spec 063 FR-003/SC-005: present-but-invalid dials are rejected by
+    /// name, with the flag OFF as well as on — invalid config is invalid,
+    /// never silently inert.
+    #[test]
+    fn friend_ward_dials_are_validated_by_name_flag_on_or_off() {
+        let mut config = Config::default();
+        config.behavior.friend_ward_gate = Some(0);
+        let msg = config
+            .validate()
+            .expect_err("gate 0 contradicts 'farther than the gate'")
+            .to_string();
+        assert!(msg.contains("friend_ward_gate"), "names the key: {msg}");
+
+        let mut config = Config::default();
+        config.behavior.friend_ward_detour = Some(-1.0);
+        let msg = config
+            .validate()
+            .expect_err("a negative detour has no meaning on a priced band")
+            .to_string();
+        assert!(msg.contains("friend_ward_detour"), "names the key: {msg}");
+
+        let mut config = Config::default();
+        config.behavior.friend_ward_detour = Some(f32::NAN);
+        config
+            .validate()
+            .expect_err("a NaN detour would poison the band's total order");
+
+        // detour 0 is lawful: drift only among exact-cost ties.
+        let mut config = Config::default();
+        config.behavior.friend_ward_drift = true;
+        config.behavior.friend_ward_detour = Some(0.0);
+        config.validate().expect("detour 0 is a lawful dial");
     }
 
     #[test]
