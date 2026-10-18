@@ -192,15 +192,23 @@ rulings nor answers to blanks until she rules. Rulings sources:
   groom response via the one-teacher design; trait expressed as
   favourite weighting.
 - [RULED shelf, owner 2026-09-15] Corner/edge randomized starts at
-  collection and in every PPO episode. [BLANK] declared edge-ring
-  and corner start shares. DECLARED LOOP RESOLUTION (review r1):
-  shares are set FROM the coverage instrument, but the instrument
-  reads a corpus collected WITH shares — so: collection runs on
-  the pencil shares (25% edge ring / 5% corner); the instrument
-  reads that corpus; the FINAL shares pinned at freeze apply to
-  PPO episodes; and the remedy if the instrument moves the shares
-  materially is declared at freeze (recollect vs keep-if-the-
-  placement-bar-and-density-pins-pass).
+  collection and in every PPO episode. [RULED at the freeze
+  sitting, owner 2026-10-17: "1) agreed 2) agreed" to the bite as
+  presented] FINAL shares = the pencil shares, 25% edge ring / 5%
+  corner (corners inside the edge count), for collection AND PPO
+  episodes. Final = pencil, so the §7 share-timing re-run rule does
+  NOT fire — the realized comparator legs (4c520202) stand as the
+  gate baseline. REMEDY if the coverage instrument reads the
+  collected corpus and moves the shares materially:
+  KEEP-IF-PLACEMENT-AND-DENSITY-PASS — the corpus stands when the
+  S§6 placement bar and the density pins pass despite coverage
+  drift; recollection is the remedy only when those named checks
+  fail. The materiality call stays the instrument read's, made at
+  read time (no numeric threshold pre-declared — her bite accepted
+  as presented). DECLARED LOOP RESOLUTION (review r1) retained for
+  the record: shares are set FROM the coverage instrument, but the
+  instrument reads a corpus collected WITH shares — resolved by
+  pinning final = pencil and the remedy above.
 - [RULED S§6] Corpus placement bar: teacher in-beam sleep share
   ≥ **0.40** on the fresh corpus, read pre-PPO. Remedy on a miss
   (Experiments' recommendation, re-ruled here at freeze): lifetime
