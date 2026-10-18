@@ -1,5 +1,8 @@
 # Gen 2 inputs banked from the step-5 shakeout
 
+> The Gen 2 tracker is live: `experiments/fog-gen2-timeline-2026-10-17.md`
+> (opened at the freeze sitting, generation practice).
+
 Written 2026-09-11, for review before Gen 2 design. Gen 1 scope is
 closed against all of it: the owner ruled the free-register question
 "do nothing for Gen 1" (verbatim: "For now let's go with option 3 (do

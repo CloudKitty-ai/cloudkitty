@@ -1,0 +1,86 @@
+# Fog Gen 2: sequencing timeline
+## (Opened 2026-10-17 at the freeze sitting, per the generation
+## practice — owner 2026-09-22; the tracker, not the design record.)
+
+Design lives in the prereg (`gen2-prereg-skeleton-2026-10-09.md`,
+superseded by the frozen PREREG at freeze), standing texts in
+`WELFARE-STANDING.md`, claims in `FINDINGS.md`, evidence in the
+experiment RESULTS files; this file points at them. Freezes in one
+commit at the generation's close.
+
+Goal: train the first hidden-needs generation (schema v6, fog +
+hidden needs, one parameterized teacher, consent engine-validated
+target-side) and certify it paired-strict against the realized
+scripted comparator; the mini-friend arm phases and the three-leg
+consent BC comparison ride the trunk.
+
+## Rulings record
+
+- Kickoff + scope: `gen2-kickoff-rulings-2026-10-07.md` (#389),
+  `gen2-sitting-rulings-2026-10-08.md` (S§), #390 package world.
+- Freeze sitting 2026-10-17 (agenda `gen2-freeze-agenda-2026-10-13.md`):
+  A/B via pre-freeze work; C bites 1–3 (36bd53e3, 45e506f3, 64d71389);
+  D bites 1–2 (ed7d7400, 43f50e2f); E all five blocks + seven
+  Professor pins (c36ed5b9 — text (b) flow trigger landed in
+  WELFARE-STANDING.md); trigger-bin restate + semantic anchor
+  (anchor read 0fd90eba, restate pin in §9.2 rider (a)).
+- Consent arc: `gen2-consent-design-2026-10-17.md` (three-leg
+  design + decision grid); dial rulings in §4 of the skeleton.
+
+## Steps, gates, status
+
+1. **Product specs land** — DONE. 058 schema v6; teacher rework +
+   consent re-key; 061 stuck detector (dark); 062 engine-drawn
+   starts; #459 label_proposed; 063 friend-ward drift (flag off,
+   screened null under the law, v4 tail rescue on record); 064
+   waypoint start (flag off, screened null, owner "Agreed, default
+   off"). Dispersion C2 SHELVED on her word.
+2. **Readers on schema v6** — DONE (bc-collect ported, schema_check
+   tranches, corpus readers, dial-draw extension d2f71897).
+3. **Scripted comparator legs** — DONE, realized numbers pinned in
+   §7 (`gen2-comparator-legs-2026-10-14/RESULTS.md`): law table
+   20/40/100 under the vision law, zero F-053; v4 record kept.
+4. **Prereg FREEZE** — IN PROGRESS. Sitting decisions all ruled;
+   remaining: §2 world-toml diff, §3 visible-fields rows, §4
+   response shape (mechanical assembly), then her freeze word
+   (skeleton §10.3). GATE: every [BLANK] pinned.
+5. **Pilot collection** (30 rollouts) → placement bar ≥ 0.40 +
+   density-pin re-check — PENDING, post-freeze
+   (`gen2-collection-driver-2026-10-14/collect_corpus.py`).
+6. **Full collection** (100 rollouts; mix 0.6 served / 0.12
+   enrichment / 0.28 traits; dial draws per §4) — PENDING. Also:
+   §8.1 chatter-floor re-measure on the comparator legs.
+7. **Trunk training** (BC+PPO, 3 seeds; §5 recipe carried; stops:
+   probe 300, F-053 1,000, 20M cap) — PENDING.
+8. **Cert battery** — paired-strict vs comparator, replication
+   valve (§6) — PENDING.
+9. **Three-leg consent BC comparison** (9 trainings; decision grid
+   in `gen2-consent-design-2026-10-17.md` appendix; deployed-episode
+   consent line DEFERRED to this readout) — PENDING.
+10. **Arms per §8 order + declared reads §9** — PENDING (mini-friend
+    phases, §8.4 closure, §8.5 radii, ostrich/approach/outcome
+    instruments).
+11. **Close** — timeline freezes; Gen 3 handoff items below.
+
+## Outstanding owner items
+
+- The freeze word on the assembled skeleton (step 4).
+- Deployed/PPO-episode consent line — at the three-leg readout.
+- 057-triggered Gen 2 re-record — waits on her word
+  (`fog-gen1-timeline` note).
+- #392 deferred behind Gen 2+3.
+
+## Banked for Gen 3 (pointers)
+
+`gen3-roadmap-inputs-2026-10-04.md` addenda: favourites re-screen on
+the stratified stack; bin-edge re-anchor + bridge (addendum 3);
+play-demonstration refresher; vision-law measurements; 064 flag-on
+default candidate; 063 drift as robustness-knob candidate; C2 reopen
+carries the comparator re-run sequencing note.
+
+## Standing welfare machinery
+
+Scouts-first on displaced sizes (never a veto); F-053 1,000-tick
+line armed everywhere; asymmetric stops; paired-strict cert gate;
+WELFARE-STANDING texts (a)–(c) incl. the 2026-10-17 flow trigger;
+margin family 1.5× / min-n 200 across the §8/§9 instruments.
