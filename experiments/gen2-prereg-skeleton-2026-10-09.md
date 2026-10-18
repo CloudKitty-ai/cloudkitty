@@ -554,8 +554,18 @@ timebox)
    grounds for the sizing/architecture change). The capacity cap
    is engineering budget only; params ratio reported as its
    descriptor, carrying no doctrinal non-clone claim (that job
-   lives in role-based standing). [BLANK] the closure band (in
-   the re-pointed quantity) and the cap (params).
+   lives in role-based standing). [RULED at the freeze sitting, owner 2026-10-17 "Accept all" (D bite 2) — Experiments proposal + Professor review pins (their note for-experiments-gen2-d-bite2-review-2026-10-17.md)]
+   CLOSURE BAND, measured not invented: closure = the arm-vs-trunk
+   per-stratum divergence falling inside the trunk's own
+   seed-to-seed envelope; EDGE STATISTIC declared = the mean of the
+   three pairwise trunk-vs-trunk divergences per stratum (all three
+   pairwise values reported beside any closure read); closure
+   claimable only through the replication valve (≥3 fresh arm
+   seeds); seed pairing declared at the arm spec. The 3-seed
+   envelope's structural failure mode is false NON-closure
+   ((n−1)/(n+1) = 1/2 at n = 3), bounded by investigate-never-parity
+   and the guarded follow-up seating. CAP: mini ≤ 10% of trunk
+   params — engineering budget only, ratio reported as descriptor.
    PHASE-2 ENTRY GATE [A2′ item 2, replacing A2's seated
    welfare-delta instruments — those move Gen-3-if-ever behind
    the expressibility branch]: the owner's one-tick counterfactual
@@ -586,8 +596,13 @@ timebox)
    CONSUMER READS (the claim's evidence — review r1 fix: the S§3f
    claim is about BEHAVIOR, and these are what evidence it):
    the gating pair = harm-prediction instrument + the
-   partnered-refusal tax (by `reason`), arm vs trunk, [BLANK]
-   bars for both; consent and fog-pursuit OBSERVATIONAL-ONLY in
+   partnered-refusal tax (by `reason`), arm vs trunk — [RULED at the freeze sitting, owner 2026-10-17 "Accept all" (D bite 2) — Experiments proposal + Professor review pins (their note for-experiments-gen2-d-bite2-review-2026-10-17.md)]
+   BARS: harm-prediction = arm BEATS trunk in the ruled rung-4
+   grammar verbatim (paired mean > 0, signs descriptive,
+   replication valve); refusal tax = arm NOT WORSE than trunk per
+   reason (consent_declined named) within the ruled 10% equivalence
+   tolerance (strict per-world non-inferiority fails truly-equal
+   arms by construction), replication valve; consent and fog-pursuit OBSERVATIONAL-ONLY in
    Gen 2 [RULED S§3f]. Without passed consumer reads the claim
    does not graduate past prediction accuracy.
    THE CORRECTION [RULED, owner 2026-10-10 in-session: "4) split
@@ -619,8 +634,19 @@ timebox)
    Phase 1 may overlap the trunk's training TAIL (it needs frozen
    rollouts, not a finished trunk).
 5. [RULED S§6] RADIUS AXIS leg (the world-size screen's open
-   axis). [BLANK] design: which radii, frozen-vs-trained-at-radius
-   arms, harm-rule carryover.
+   axis). [RULED at the freeze sitting, owner 2026-10-17 "Accept all" (D bite 2) — Experiments proposal + Professor review pins (their note for-experiments-gen2-d-bite2-review-2026-10-17.md)] Radii {3, 4, 5}
+   at the served 20×20 (the radius partial at the served size; 5
+   reuses the measured +0.746 scripted baseline in
+   gen2-comparator-legs-2026-10-14/results-raw/vision5-20/; 3 is a
+   DECLARED OFF-LAW PROBE, scouts covering the 905029 local-hole
+   mechanism). Arms: frozen trunk at each radius vs
+   trained-at-radius, 2-seed screen, promotion replicates ≥3.
+   Harm-rule carryover: the K§5 shape applies to radius
+   displacement — scouts-first at non-served radii, F-053 line
+   armed, no frozen legs at a new radius without her word.
+   DECLARED FUTURE READ: if the trained-vs-scripted gap moves with
+   size across cert legs, one displaced-size radius cell runs,
+   scouts-first per the carryover.
 6. [RULED S§2 rider 3, BANKED] DIRT PACKAGE arm (dirt-as-cause +
    bath hidden vs the visible-bath baseline; compartment split;
    package-vs-package comparison on groom placement +
@@ -709,8 +735,23 @@ timebox)
    bridge reads — Gen 2 is the first generation under the
    versioning ruling, and this future-proofs its numbers against
    the W3 bridge.
-10. [BLANK] Which reads are paper-cited (⇒ ≥3 seeds) — marked at
-    freeze.
+10. [RULED at the freeze sitting, owner 2026-10-17 "Accept all" (D bite 2) — Experiments proposal + Professor review pins (their note for-experiments-gen2-d-bite2-review-2026-10-17.md)]
+    Paper-cited (each ⇒ ≥3 seeds): the cert gates vs comparator
+    (the 3 ruled trunk seeds); the critic-blind contrast (3
+    ruled); the ostrich metric + phase-2 gate (ride the trunk's
+    3); mini-friend Phase 1 2×2 (offline heads on the trunk's
+    frozen rollouts); here-word emergence IF promoted (its own
+    ≥3 rule); and the CONSENT THREE-LEG BC comparison —
+    paper-cited from the start, 3 seeds × 3 legs = 9 BC trainings
+    (the consume rule decides what the clone IS; the
+    off-trained-in-on-world cell is consent-doctrine evidence
+    beyond Gen 2; budget pre-cleared by her affordability word).
+    Its decision rule's reads and margins pin NOW, grid declared
+    before data: completed partnered scenes, incurred refusal
+    rate, welfare, proposal rate — the margin family's 1.5× /
+    min-n 200, recorded in gen2-consent-design-2026-10-17.md.
+    Everything else (dial screens, probes, forensics) is
+    characterize/screen, exempt.
 11. [CANDIDATE, Professor relay point 1 + round 2 item 1 + round 3
     item 3 residue — integrated on the owner's word 2026-10-12
     "Let's integrate all three into the freeze"; rules only at

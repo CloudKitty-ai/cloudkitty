@@ -112,3 +112,13 @@ The recommendations she ruled onto, as stated to her:
   base consent 0 (the slack screens ran at consent 30; the base moved)
   — screen_dials.py --base-consent, out in
   gen2-dial-screens-2026-10-17/results-raw-consent0/.
+
+## Three-leg decision rule PINNED (freeze sitting, owner "Accept all" on D bite 2, 2026-10-17)
+
+Paper-cited per skeleton §9.10: 3 seeds per leg = 9 BC trainings.
+Decision-rule grid, declared BEFORE any data: reads = completed
+partnered scenes, incurred refusal rate, welfare (team happiness +
+distress envelope), proposal rate — each arm-vs-arm comparison at the
+sitting's margin family (1.5× lift where a differential is claimed,
+the 10% equivalence tolerance where not-worse is claimed, min-n 200,
+replication valve). The decisive cell stays off-trained-in-on-world.
