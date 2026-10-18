@@ -1348,6 +1348,17 @@ pub struct BehaviorConfig {
     /// Present ⇒ must be finite and >= 0. Skip-serialized when absent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub friend_ward_detour: Option<f32>,
+    /// Spec 064: positional tour seeding. When true, World generation
+    /// seeds each cat's exploration-tour index at the waypoint nearest
+    /// (Manhattan) its FINAL start position, ties to the lower index --
+    /// a dispersed cat's first blind search sweeps its own neighborhood
+    /// instead of wherever its id lands on the cycle. False (the
+    /// default, and every served config) keeps the id-modulo law
+    /// bit-for-bit; no RNG is drawn either way, so the 062 starts
+    /// sub-stream never moves. Skip-serialized at false (039-D5).
+    /// The law: specs/064-waypoint-start/contracts/seeding-law.md.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub waypoint_start_by_position: bool,
 }
 
 impl Default for BehaviorConfig {
@@ -1386,6 +1397,7 @@ impl Default for BehaviorConfig {
             friend_ward_drift: false,
             friend_ward_gate: None,
             friend_ward_detour: None,
+            waypoint_start_by_position: false,
         }
     }
 }
@@ -2359,6 +2371,8 @@ mod tests {
             "friend_ward_drift",
             "friend_ward_gate",
             "friend_ward_detour",
+            // Spec 064 shares the discipline and this guard.
+            "waypoint_start_by_position",
         ] {
             assert!(
                 !default_toml.contains(key),
@@ -2370,8 +2384,8 @@ mod tests {
         // actually hashed, too.
         let default_json = serde_json::to_string(&Config::default()).unwrap();
         assert!(
-            !default_json.contains("friend_ward"),
-            "no friend-ward key reaches the hashed JSON defaults"
+            !default_json.contains("friend_ward") && !default_json.contains("waypoint_start"),
+            "no 063/064 key reaches the hashed JSON defaults"
         );
         let parsed: BehaviorConfig = toml::from_str(&default_toml).unwrap();
         assert!(!parsed.friend_ward_drift, "absent = flag off");

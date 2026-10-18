@@ -68,11 +68,12 @@ red.
       byte-equal `explore_waypoint` vectors and world state (extend
       the existing determinism test shape, not a new clone).
 - [ ] T010 [US2] Mutate reds (predictions first): seed from the
-      PRE-placement position (e.g. read config coords instead of
-      `kitty.pos`) expecting the 062-composition test red; swap
-      Manhattan for Chebyshev in `nearest_index` expecting a staged
-      off-axis nearest test red (stage one world where the two metrics
-      disagree).
+      PRE-placement position (ignore `kitty.pos`) expecting the
+      062-composition test red. DROPPED, with reason recorded in
+      explore.rs: the Chebyshev-swap red is vacuous by mathematics on
+      an axis-aligned waypoint grid (the two metrics' unique argmins
+      always coincide; a 100x100 brute scan finds no disagreeing tile),
+      so no guard is owed for a mutation with no behavior.
 
 ## Phase 5: Polish
 

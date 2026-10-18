@@ -152,6 +152,17 @@ impl Lattice {
     pub fn start_index(&self, kitty_id: u32) -> u32 {
         kitty_id % self.cycle_len()
     }
+
+    /// Spec 064: the positional seeder -- the tour index whose waypoint
+    /// is nearest (Manhattan) to `pos`, ties to the lower index. Pure
+    /// geometry, generation-time only, no draw; the readable linear scan
+    /// on purpose (the serpentine's closed forms are where its
+    /// reflection bugs live -- see `waypoint_at`'s pinned agreement).
+    pub fn nearest_index(&self, pos: Position) -> u32 {
+        (0..self.cycle_len())
+            .min_by_key(|&i| (self.waypoint(i).manhattan_distance(&pos), i))
+            .expect("a lattice always has at least one waypoint")
+    }
 }
 
 #[cfg(test)]
@@ -279,4 +290,79 @@ mod tests {
         assert_eq!(single.cycle_len(), 1);
         assert_eq!(single.waypoint(7), Position::new(1, 1));
     }
+
+    /// Spec 064: the positional seeder agrees with the built lattice's
+    /// own geometry -- for every waypoint of every test world, the
+    /// nearest index to a waypoint's own tile is that index (first
+    /// occurrence on the cycle), and nearest genuinely beats the id law
+    /// where they disagree.
+    #[test]
+    fn nearest_index_is_min_by_manhattan_then_index() {
+        let l = Lattice::for_world(100, 100, 5);
+        // A corner start: its nearest waypoint is the cycle's first
+        // (serpentine origin), not wherever an id would land.
+        assert_eq!(l.nearest_index(Position::new(0, 0)), 0);
+        assert_ne!(
+            l.start_index(3),
+            l.nearest_index(Position::new(0, 0)),
+            "staging: the id law must disagree here for the contrast to mean anything"
+        );
+        // Every waypoint's own tile maps to itself (first occurrence).
+        for i in 0..l.cycle_len() {
+            let wp = l.waypoint(i);
+            let found = l.nearest_index(wp);
+            assert_eq!(
+                l.waypoint(found),
+                wp,
+                "index {i}: the nearest waypoint to a waypoint is itself"
+            );
+            assert!(
+                found <= i,
+                "ties (the serpentine revisits columns) go to the LOWER index"
+            );
+        }
+        // Tie law, self-staged: brute-scan the grid for the first tile
+        // whose minimal Manhattan distance is achieved by two or more
+        // waypoints, and pin that nearest_index picks the LOWEST of
+        // them. The scan is an independent restatement of the law.
+        let mut tie_checked = false;
+        'grid: for y in 0..100 {
+            for x in 0..100 {
+                let probe = Position::new(x, y);
+                let best = (0..l.cycle_len())
+                    .map(|i| l.waypoint(i).manhattan_distance(&probe))
+                    .min()
+                    .unwrap();
+                let achievers: Vec<u32> = (0..l.cycle_len())
+                    .filter(|&i| l.waypoint(i).manhattan_distance(&probe) == best)
+                    .collect();
+                if achievers.len() >= 2 {
+                    assert_eq!(
+                        l.nearest_index(probe),
+                        achievers[0],
+                        "ties go to the lower index"
+                    );
+                    tie_checked = true;
+                    break 'grid;
+                }
+            }
+        }
+        assert!(
+            tie_checked,
+            "staging: a 100x100 lattice must contain a tie tile"
+        );
+        // One-waypoint lattice: nearest is the only one.
+        let single = Lattice::for_world(3, 3, 5);
+        assert_eq!(single.nearest_index(Position::new(2, 0)), 0);
+    }
+
+    // Spec 064, recorded non-guard: "nearest is Manhattan, not
+    // Chebyshev" cannot be pinned behaviorally on this geometry. The
+    // waypoints form an axis-aligned grid, and on a grid the two
+    // metrics' unique argmins always coincide (each axis minimizes
+    // independently; a brute scan of 100x100 finds no disagreeing
+    // tile). A metric-swap mutation is therefore a semantic no-op here
+    // -- no red is owed for it (rule 5 guards defects that can exist).
+    // The contract pins the word "Manhattan"; the tie test above pins
+    // the comparator.
 }
