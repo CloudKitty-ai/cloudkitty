@@ -42,6 +42,31 @@ ticks, driver defaults = the ruled dials. Raws:
   read that the per-class rates stay uniform — divergence would be
   a between-arm corpus bias for the three-leg comparison.
 
+## Starts check (banked at the 062 merge; owner "Starts check first")
+
+`starts_check.py`, two independent legs, all PASS 2026-10-18:
+
+- ENGINE LAW: pure-Python port of draw-law v1 (own ChaCha8,
+  rand_chacha 0.3 semantics) is BYTE-EXACT against the engine-emitted
+  golden vectors — all 3 cases, raw u64 streams and final positions —
+  and matches the live engine's knob-on starts echo position-for-
+  position on g2leg-20 at seeds 905001/905013/905029 (recorded metas:
+  `results-raw/fixture-starts-echo/`, never delete). This validates
+  the mechanism the comparator legs and future PPO episodes draw
+  under (SC-005's independent-port expectation met a second time).
+- DRIVER DRAW: the pilot's 30 driver-drawn rollouts re-derived from
+  the manifest's draw_seed by replaying collect_corpus's exact RNG
+  order (class permutation → per-rollout starts → class draws):
+  manifest starts/categories, the explicit x/y in every rollout
+  config, and the enrichment consent lines all match.
+
+Guard: `test_starts_check.py` (6 tests incl. the explicit-consumes-
+zero-draws law property and two tamper-sensitivity self-tests);
+3 mutate cycles RED CONFIRMED (ChaCha rounds 4→3 → "u64 stream
+diverges"; `v1 >> 11` → `>> 10` → "positions differ"; dropped
+permutation replay → "re-derived draw differs"; the first cycle
+re-ran isolated to its target test after a wrong-reason red).
+
 ## Regeneration
 
 ### Collect
