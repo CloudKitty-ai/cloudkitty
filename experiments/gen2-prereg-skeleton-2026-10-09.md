@@ -276,9 +276,14 @@ rulings nor answers to blanks until she rules. Rulings sources:
   2026-09-16). [BLANK] detector window N and perturbation rule.
 - [RULED S§5] Trunk keeps the seeded corpus and the two-head
   leash.
-- [BLANK] β schedule, γ, plateau stop rule, seeds for the trunk,
-  binding SHA at launch — pinned at freeze (precedent: β 0.04,
-  γ 0.998).
+- [RULED at the freeze sitting, owner 2026-10-17 — the C-bite-1
+  carry, pinned with the §6 stops via her "300 is good" to the bite
+  as presented] Trunk recipe carried forward verbatim: β = 0.04
+  constant (the Gen 1 pool dose; the 0.02/0.10 sweep bracketed it),
+  γ = 0.998, the shakeout's plateau stop rule verbatim, probe cadence
+  every 50 updates (2k ticks, PROBE_SEEDS 40,001–3), the 20M step
+  cap, THREE trunk seeds (the ≥3-paper-seeds rule). Binding SHA
+  recorded at launch (a record, not a decision).
 - Train at the served 20×20 only [RULED, owner 2026-09-25
   staging]; mixed-size training exists only as §7's declared
   trigger.
@@ -304,8 +309,32 @@ rulings nor answers to blanks until she rules. Rulings sources:
   start draw is a finding taken to the owner, not an
   infrastructure failure — consistent with her 2026-10-15 framing
   that tail draws "identify more "hard" seeds".
-- [BLANK] The realized-distress stop numbers for trunk training
-  (precedent values carried forward or re-pinned).
+- [RULED at the freeze sitting, owner 2026-10-17; her word "300 is
+  good" after "Do we need to reconsider the stops based on the data
+  we just collected?" — yes: the realized legs outgrew the absolute
+  precedent] Re-pinned, not carried:
+  (1) The cert CATASTROPHE GATE on distress goes PAIRED-STRICT
+  against the scripted comparator (same worlds and seeds, no
+  allowance; a miss inside noise replicates on a disjoint band and
+  counts only if it survives — the happiness gate's own shape). The
+  constitutional-150 absolute is superseded: the realized scripted
+  baseline at 20×20 under randomized starts is mean worst-streak
+  178 / max 401 (gen2-comparator-legs-2026-10-14/RESULTS.md), above
+  the old bar — any absolute goes stale when the world moves; the
+  paired bar cannot. The F-021 streak-bar re-measure is satisfied by
+  the same realized legs.
+  (2) TRAINING-PROBE STOP at a 300-tick distress streak, asymmetric
+  declared (fires on harm only; a trip halts the run and goes to the
+  owner; never auto-resumed). Arithmetic on record: the measured
+  probe-shaped comparator envelope (30 seeds × 2,000 ticks, 20×20,
+  g2cmp band, raws gen2-comparator-legs-2026-10-14/
+  results-raw/probe-envelope-20/) has max-streak median 0 (19/30
+  seeds zero), mean 23, max 197; bar = 197 × 1.5 = 295.5, rounded to
+  300 on her word. Window normalization is why this is not the leg
+  number: max-streak grows with exposure (401 at 20k ticks vs 197 at
+  2k on the same world and band).
+  (3) F-053's 1,000-tick absolute line stays armed above both,
+  unconditional.
 - [CANDIDATE, Professor relay point 2 + round 2 item 3 —
   integrated on the owner's word 2026-10-12 "Let's integrate all
   three into the freeze"; rules only at the sitting, and it
