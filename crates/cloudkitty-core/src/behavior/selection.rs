@@ -428,8 +428,29 @@ pub fn expected_scene_exposure(
 /// The element of `kind` cheapest to actually walk to, by
 /// `(priced_travel, id)` -- the choice both the score and the pursuit use,
 /// so the bowl a kitty picks and the bowl it walks to can never differ
-/// (the 004 agreement rule, extended to pricing).
+/// (the 004 agreement rule, extended to pricing). Spec 063: when the
+/// friend-ward drift fires, the pick becomes the drift-law band re-rank
+/// (see `priced_nearest_element_capped`); hooking the one shared helper
+/// is what keeps score and walk agreeing under the drift too.
 pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Option<(Position, f32)> {
+    priced_nearest_element_capped(ctx, kind, None)
+}
+
+/// `priced_nearest_element` with a caller-supplied acceptance cap (spec
+/// 063, drift-law Site 1). The cap bounds the DRIFT BAND only: with the
+/// drift not firing the pick is today's `(priced_travel, id)` minimum,
+/// bit-for-bit, cap unread -- the caller applies its own acceptance test
+/// after, exactly as before 063. With the drift firing, the band is
+/// `cost <= min(min_cost + detour, cap)` and the winner is the band
+/// minimum by `(manhattan to the friend, cost, id)` -- so the drift
+/// changes WHICH acceptable option wins, never WHETHER one is pursued
+/// (a friend-ward beam past `sunbeam_reach` is never promoted over an
+/// in-reach one).
+pub(crate) fn priced_nearest_element_capped(
+    ctx: &DecisionContext,
+    kind: ElementType,
+    cap: Option<f32>,
+) -> Option<(Position, f32)> {
     // Spec 049 FR-022: candidates are the VISIBLE elements of the kind plus
     // the one remembered tile, walked to as if it held the element -- a
     // phantom with id u32::MAX, so a real element always wins a price tie.
@@ -460,13 +481,46 @@ pub fn priced_nearest_element(ctx: &DecisionContext, kind: ElementType) -> Optio
     let remembered = ctx.me.memory[crate::kitty::memory_index(kind)]
         .filter(|slot| !occupied(slot.pos))
         .map(|slot| (u32::MAX, slot.pos, priced_travel(ctx, ctx.me.pos, slot.pos)));
-    ctx.world
-        .elements_of(kind)
-        .filter(|e| !occupied(e.pos))
-        .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
-        .chain(remembered)
-        .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
-        .map(|(_, pos, cost)| (pos, cost))
+    let candidates = || {
+        ctx.world
+            .elements_of(kind)
+            .filter(|e| !occupied(e.pos))
+            .map(|e| (e.id, e.pos, priced_travel(ctx, ctx.me.pos, e.pos)))
+            .chain(remembered)
+    };
+    match friend_ward_target(ctx) {
+        // The drift is off, nobody is known, or the friend is within the
+        // gate: today's pick, bit-for-bit (FR-002/FR-006).
+        None => candidates()
+            .min_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)))
+            .map(|(_, pos, cost)| (pos, cost)),
+        // Drift-law Site 1: the bounded-detour band re-rank. The fallback
+        // `(cost, id)` ordering inside friend-distance ties is today's,
+        // so the memory phantom (id u32::MAX) still loses ties to a real
+        // sighting.
+        Some(friend) => {
+            let candidates: Vec<_> = candidates().collect();
+            let min_cost = candidates
+                .iter()
+                .map(|&(_, _, cost)| cost)
+                .min_by(f32::total_cmp)?;
+            let mut edge = min_cost + ctx.config.behavior.friend_ward_detour_cost();
+            if let Some(cap) = cap {
+                edge = edge.min(cap);
+            }
+            candidates
+                .into_iter()
+                .filter(|&(_, _, cost)| cost <= edge)
+                .min_by(|a, b| {
+                    friend
+                        .manhattan_distance(&a.1)
+                        .cmp(&friend.manhattan_distance(&b.1))
+                        .then(a.2.total_cmp(&b.2))
+                        .then(a.0.cmp(&b.0))
+                })
+                .map(|(_, pos, cost)| (pos, cost))
+        }
+    }
 }
 
 /// Spec 049 FR-022 (owner ruled 2026-09-03): friends the cat can only HEAR
@@ -533,8 +587,13 @@ pub(crate) fn friend_ward_target(ctx: &DecisionContext) -> Option<Position> {
 /// within-shape agreement the `relief` module's invariant names (spec 019;
 /// originally the mirror the 004 review demanded, now priced).
 pub fn sunbeam_worth_walking(ctx: &DecisionContext) -> Option<(Position, f32)> {
-    let (pos, cost) = priced_nearest_element(ctx, ElementType::Sunbeam)?;
-    (cost <= ctx.config.behavior.sunbeam_reach as f32).then_some((pos, cost))
+    // Spec 063: reach is handed down as the drift band's cap, so a fired
+    // drift can never promote a beyond-reach beam over an in-reach one
+    // (drift-law Site 1). With the drift not firing the cap is unread and
+    // the acceptance test below is the whole rule, exactly as before.
+    let reach = ctx.config.behavior.sunbeam_reach as f32;
+    let (pos, cost) = priced_nearest_element_capped(ctx, ElementType::Sunbeam, Some(reach))?;
+    (cost <= reach).then_some((pos, cost))
 }
 
 /// Spec 057: a warm option is in play when a nap would clear the sleep
@@ -3130,5 +3189,221 @@ mod spec_063_friend_ward_tests {
         // Nobody known (radius 5, silence): never fires.
         let alone = fw_ctx(true, 5, |_| {});
         assert_eq!(friend_ward_target(&alone), None);
+    }
+
+    use crate::element::{Element, ElementKind};
+
+    /// Two water sources for a cat whose nearest known friend (kitty 2 at
+    /// (0, 0), manhattan 32 > gate) is far: W1 (id 900) at (13, 16) costs
+    /// 3 and sits friend-ward; W2 (id 901) at (18, 16) costs 2. All dry.
+    fn two_bowls(flag: bool) -> DecisionContext {
+        fw_ctx(flag, 64, |w| {
+            for (id, pos) in [(900u32, Position::new(13, 16)), (901, Position::new(18, 16))] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        })
+    }
+
+    /// Spec 063 SC-002 / drift-law Site 1: inside the band the friend-ward
+    /// option wins; flag off, the cheapest wins; and the WALK pursues the
+    /// same bowl the score chose (the 004 agreement rule under the drift).
+    #[test]
+    fn inside_the_band_the_friend_ward_bowl_wins_and_the_walk_agrees() {
+        // Flag on: min cost 2, band edge 2 + 4; W1 (cost 3, friend-dist
+        // 29) beats W2 (cost 2, friend-dist 34).
+        assert_eq!(
+            priced_nearest_element(&two_bowls(true), ElementType::Water),
+            Some((Position::new(13, 16), 3.0))
+        );
+        // Flag off: today's pick, the cheapest.
+        assert_eq!(
+            priced_nearest_element(&two_bowls(false), ElementType::Water),
+            Some((Position::new(18, 16), 2.0))
+        );
+        // The walk side flows through the same helper: a thirsty cat steps
+        // WEST toward the friend-ward bowl, not east toward the cheaper one.
+        let mut thirsty = two_bowls(true);
+        let idx_needs = &mut thirsty.me;
+        idx_needs.needs.add(crate::needs::NeedKind::Drink, 95.0);
+        assert_eq!(
+            crate::behavior::needs_driven::NeedsDriven.decide_action(&thirsty),
+            crate::action::Action::move_to(crate::grid::Direction::West),
+            "score and walk agree on the friend-ward bowl"
+        );
+    }
+
+    /// Spec 063 SC-002: beyond the band the cheapest wins exactly as
+    /// today -- a bounded detour, never an open preference. And at detour
+    /// 0 with distinct costs, the band is the cheapest alone.
+    #[test]
+    fn beyond_the_band_or_at_detour_zero_the_cheapest_wins() {
+        // W1 moved friend-ward to cost 7: beyond edge 2 + 4 = 6.
+        let ctx = fw_ctx(true, 64, |w| {
+            for (id, pos) in [(900u32, Position::new(9, 16)), (901, Position::new(18, 16))] {
+                w.push_element(Element {
+                    id,
+                    kind: ElementKind::Water,
+                    pos,
+                    ttl: None,
+                });
+            }
+        });
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(18, 16), 2.0)),
+            "a 7-cost detour is outside the 4-tile band"
+        );
+        // Detour 0: drift only among exact-cost ties.
+        let mut ctx = two_bowls(true);
+        std::sync::Arc::get_mut(&mut ctx.config)
+            .unwrap()
+            .behavior
+            .friend_ward_detour = Some(0.0);
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(18, 16), 2.0)),
+            "distinct costs at B = 0 collapse to today's pick"
+        );
+    }
+
+    /// Spec 063 SC-003 / FR-006: friend within the gate, nobody known, or
+    /// a single candidate -- every one decides exactly as flag-off.
+    #[test]
+    fn within_gate_nobody_known_or_single_candidate_equal_flag_off() {
+        let stage = |flag: bool, friend_pos: Position| {
+            fw_ctx(flag, 64, move |w| {
+                let i2 = w.kitty_index(2).unwrap();
+                w.kitties[i2].pos = friend_pos;
+                for (id, pos) in [(900u32, Position::new(13, 16)), (901, Position::new(18, 16))] {
+                    w.push_element(Element {
+                        id,
+                        kind: ElementKind::Water,
+                        pos,
+                        ttl: None,
+                    });
+                }
+            })
+        };
+        // Friend at manhattan 4: within the gate, drift inert.
+        assert_eq!(
+            priced_nearest_element(&stage(true, Position::new(12, 16)), ElementType::Water),
+            priced_nearest_element(&stage(false, Position::new(12, 16)), ElementType::Water),
+        );
+        // Nobody known (radius 5, silence): inert.
+        let blind = |flag| {
+            fw_ctx(flag, 5, |w| {
+                w.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(14, 16),
+                    ttl: None,
+                });
+            })
+        };
+        assert_eq!(
+            priced_nearest_element(&blind(true), ElementType::Water),
+            priced_nearest_element(&blind(false), ElementType::Water),
+        );
+        // One candidate: the band has one member; the pick equals flag-off.
+        let single = |flag| {
+            fw_ctx(flag, 64, |w| {
+                w.push_element(Element {
+                    id: 900,
+                    kind: ElementKind::Water,
+                    pos: Position::new(18, 16),
+                    ttl: None,
+                });
+            })
+        };
+        assert_eq!(
+            priced_nearest_element(&single(true), ElementType::Water),
+            priced_nearest_element(&single(false), ElementType::Water),
+        );
+    }
+
+    /// Spec 063 edge case: the acceptance cap. A friend-ward beam past
+    /// `sunbeam_reach` is never promoted over an in-reach one, even when
+    /// the detour bound alone would admit it -- the drift changes WHICH
+    /// acceptable option wins, never WHETHER walking happens.
+    #[test]
+    fn a_friend_ward_beam_past_reach_is_never_promoted() {
+        let stage = || {
+            let mut ctx = fw_ctx(true, 64, |w| {
+                // S1: in reach (cost 2), away from the friend. S2: cost 9,
+                // past reach 8, friend-ward (friend-dist 23 vs 34).
+                for (id, pos) in [(910u32, Position::new(18, 16)), (911, Position::new(7, 16))] {
+                    w.push_element(Element {
+                        id,
+                        kind: ElementKind::Sunbeam,
+                        pos,
+                        ttl: None,
+                    });
+                }
+            });
+            // A wide-open detour: the cap, not the band edge, must do the work.
+            std::sync::Arc::get_mut(&mut ctx.config)
+                .unwrap()
+                .behavior
+                .friend_ward_detour = Some(20.0);
+            ctx
+        };
+        assert_eq!(
+            sunbeam_worth_walking(&stage()),
+            Some((Position::new(18, 16), 2.0)),
+            "the cap keeps the beyond-reach beam out of the band"
+        );
+        // Uncapped, the same band admits the friend-ward beam -- the cap
+        // above is what rejected it, not the detour bound.
+        assert_eq!(
+            priced_nearest_element(&stage(), ElementType::Sunbeam),
+            Some((Position::new(7, 16), 9.0)),
+        );
+    }
+
+    /// Spec 063 drift-law Site 1 tiebreak: inside friend-distance ties the
+    /// fallback is today's `(cost, id)`, so the memory phantom (id
+    /// u32::MAX) still loses a perfect tie to a real sighting.
+    #[test]
+    fn the_memory_phantom_still_loses_ties_to_a_real_sighting() {
+        let ctx = fw_ctx(true, 64, |w| {
+            // Real water at (12, 16) and a remembered tile at (16, 12):
+            // both cost 4, both friend-dist 28 from (0, 0).
+            w.push_element(Element {
+                id: 905,
+                kind: ElementKind::Water,
+                pos: Position::new(12, 16),
+                ttl: None,
+            });
+            let i1 = w.kitty_index(1).unwrap();
+            w.kitties[i1].memory[crate::kitty::memory_index(ElementType::Water)] =
+                Some(crate::kitty::MemorySlot {
+                    pos: Position::new(16, 12),
+                    last_seen: 90,
+                });
+        });
+        assert_eq!(
+            priced_nearest_element(&ctx, ElementType::Water),
+            Some((Position::new(12, 16), 4.0)),
+            "a perfect (friend-dist, cost) tie goes to the real element"
+        );
+    }
+
+    /// Spec 063 FR-010 (analyze C1): flag-on determinism at the band path
+    /// -- identical contexts choose identically, score and walk both.
+    #[test]
+    fn flag_on_band_decisions_are_deterministic_for_a_given_context() {
+        let a = priced_nearest_element(&two_bowls(true), ElementType::Water);
+        let b = priced_nearest_element(&two_bowls(true), ElementType::Water);
+        assert_eq!(a, b);
+        let act = |mut ctx: DecisionContext| {
+            ctx.me.needs.add(crate::needs::NeedKind::Drink, 95.0);
+            crate::behavior::needs_driven::NeedsDriven.decide_action(&ctx)
+        };
+        assert_eq!(act(two_bowls(true)), act(two_bowls(true)));
     }
 }
