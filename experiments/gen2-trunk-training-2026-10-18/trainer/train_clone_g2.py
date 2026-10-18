@@ -92,9 +92,11 @@ def main():
                                         args.limit_rollouts)
     n_actions, n_msgs = dims["n_actions"], dims["n_msgs"]
     swapped = sum(r.swapped for r in train_r + val_r)
+    unswappable = sum(r.unswappable for r in train_r + val_r)
     print(f"[{args.name}] dims {dims}; rollouts {len(train_r)} train "
           f"/ {len(val_r)} val ({', '.join(r.name for r in val_r)}); "
-          f"consent-swap rows {swapped}", flush=True)
+          f"consent-swap rows {swapped} (+{unswappable} unswappable, "
+          "proposed off-menu: gen2-deviations.md entry 1)", flush=True)
 
     tr = tuple(torch.from_numpy(a) for a in stack_decisions(train_r))
     va = tuple(torch.from_numpy(a) for a in stack_decisions(val_r))
@@ -181,6 +183,7 @@ def main():
                "stopped_by": "plateau" if patience == 0 else "epoch_cap",
                "val_rollouts": [r.name for r in val_r],
                "consent_swap_rows": swapped,
+               "consent_unswappable_rows": unswappable,
                "val": {k: ev[k] for k in ("loss", "act_loss", "msg_loss",
                                           "act_top1", "msg_top1",
                                           "act_entropy", "msg_entropy")},

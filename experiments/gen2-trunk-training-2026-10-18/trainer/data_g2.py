@@ -16,7 +16,14 @@ student experiences, not a demonstration. The swap rows come from
 consent_rows.py's extraction JSON (traced deterministic re-runs of the
 enrichment rollouts; served/traits run consent base 0, gate off, and
 the loader asserts no swap row lands outside an enrichment rollout).
-A swapped label must still be solo-mask legal; the loader asserts it.
+
+A swapped label must be solo-mask legal (masked cross-entropy cannot
+train on an off-menu target). In the full-100 corpus 389 of 137,088
+refusal rows (0.284%) carry a proposed label the recorded mask
+forbids — all proposed PlayKittyN absorbed to RestSolo, rows where
+play is not on the student's menu — so the loader swaps where the
+proposed label is mask-legal and keeps the applied label at the
+residual, counting both (`gen2-deviations.md` entry 1, 2026-10-18).
 """
 import json
 import sys
@@ -90,6 +97,7 @@ class Rollout:
     state: np.ndarray
     meta: dict
     swapped: int             # consent-swap rows applied
+    unswappable: int         # refusal rows whose proposed label is off-menu
 
 
 def load_rollout(d: Path, name, cls, swap_rows=()):
@@ -115,18 +123,20 @@ def load_rollout(d: Path, name, cls, swap_rows=()):
     assert mask_msg[rows, label_msg].all(), f"{name}: illegal message label"
     assert mask_msg[:, 0].all(), f"{name}: Silent masked somewhere"
 
-    swapped = 0
+    swapped = unswappable = 0
     if len(swap_rows):
         assert cls == "enrichment", \
             f"{name}: consent-swap rows on a {cls} rollout"
         idx = np.asarray(sorted(swap_rows), dtype=np.int64)
         assert (idx >= 0).all() and (idx < n).all(), name
-        assert mask[idx, label_proposed[idx]].all(), \
-            f"{name}: a consent-refused proposed label is solo-mask illegal"
-        label[idx] = label_proposed[idx]
-        swapped = len(idx)
+        legal = mask[idx, label_proposed[idx]].astype(bool)
+        label[idx[legal]] = label_proposed[idx[legal]]
+        swapped = int(legal.sum())
+        unswappable = int((~legal).sum())
+        assert mask[rows, label].all(), \
+            f"{name}: post-swap label is solo-mask illegal"
     return Rollout(name, cls, obs, mask, label, mask_msg, label_msg,
-                   tick, reward, state, meta, swapped)
+                   tick, reward, state, meta, swapped, unswappable)
 
 
 def _is_val(name: str) -> bool:
@@ -156,10 +166,11 @@ def load_dataset(root, consent_rows=None, limit_rollouts=None):
     for d in dirs:
         name = d.parent.name
         c = cls[int(name[1:])]
-        if c == "enrichment" and consent_rows is None and name not in swaps:
+        if c == "enrichment" and name not in swaps:
             raise SystemExit(
-                f"{name} is enrichment but no consent-rows JSON was given "
-                "(frozen §4 pins the proposed-where-consent-refused swap)")
+                f"{name} is enrichment but has no consent-rows entry "
+                "(frozen §4 pins the proposed-where-consent-refused swap; "
+                "a refusal-free rollout still gets an empty entry)")
         rollouts.append(load_rollout(d, name, c, swaps.get(name, ())))
 
     dims = {"obs_dim": OBS_DIM, "n_actions": N_ACT, "n_msgs": N_HEAD}
