@@ -57,8 +57,12 @@ consent BC comparison ride the trunk.
    enrichment / 0.28 traits; dial draws per §4) — DONE 2026-10-18:
    placement 0.4341 PASS, density 17.23% PASS, mask-mismatch
    per-class uniformity PASS, starts check 100/100, classes
-   60/12/28 exact (`results-raw/full-100/`). STILL PENDING here:
-   §8.1 chatter-floor re-measure on the comparator legs.
+   60/12/28 exact (`results-raw/full-100/`). §8.1 chatter-floor
+   re-measure DONE 2026-10-18 (owner "Proceed"): the no-seeding
+   floor is 0 free-register emissions per 1k on all three comparator
+   legs (0 of ~2.99M rows each) and 0 in the full corpus
+   (0/9,960,292); here-word channel alive in the same histograms
+   (`gen2-comparator-legs-2026-10-14/RESULTS.md` §Chatter floor).
 7. **Trunk training** (BC+PPO, 3 seeds; §5 recipe carried; stops:
    probe 300, F-053 1,000, 20M cap) — PENDING.
 8. **Cert battery** — paired-strict vs comparator, replication

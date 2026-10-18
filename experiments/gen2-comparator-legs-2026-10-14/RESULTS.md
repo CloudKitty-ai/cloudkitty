@@ -239,6 +239,41 @@ streak columns. Scouts clean (off worst 413, on worst 556). Raws:
 correctness grounds — the fix is right even though the welfare
 instrument can't see it at these dynamics.
 
+## Chatter floor — §8.1 rung-1 no-seeding floor (re-measured 2026-10-18)
+
+The frozen prereg §8.1 pins rung 1 of the emergence ladder as
+"production above the NO-SEEDING FLOOR = the free-register chatter
+baseline RE-MEASURED on the Gen 2 comparator legs". The battery raws
+carry no message counts for scripted seats, so the re-measure is a
+bc-collect pass over the same three leg configs on the same g2cmp
+band (30 seeds × 20,000 ticks per leg, world_seed = 905001 + r,
+paired with the battery by design): `label_msg` is the teacher's
+chosen message head per kept decision row, histogrammed per rollout
+(`chatter_floor_collect.sh` → `results-raw/chatter-floor/`).
+
+| leg | decision rows | mew | purr | chirp | trill | ekekek | free total | per 1k rows |
+|---|---|---|---|---|---|---|---|---|
+| 20×20 | 2,985,975 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0 |
+| 40×40 | 2,988,126 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0 |
+| 100×100 | 2,990,883 | 0 | 0 | 0 | 0 | 0 | 0 | 0.0 |
+
+**The Gen 2 no-seeding floor is exactly 0 per 1k decisions on all
+three legs.** The Gen 1 reference the prereg sources (F-048: purr
+72.8 / mew 36.8 / chirp 31.7 per 1k) does not transfer: the Gen 2
+scripted teacher never emits the free register (spec 033 cue-answer,
+FR-012 — the vocabulary arming flags gate trained-seat legality
+only, consistent with the vocab-armed byte-identity re-run above).
+The here-word channel is alive in the same histograms (heads 9–12;
+508,072 emissions on the 20×20 leg), so the zero is a property
+of the free register, not a dead instrument. Corroborating in-corpus
+read: the trunk-BC corpus
+(`../gen2-collection-driver-2026-10-14/results-raw/full-100/`,
+100 × 20k on the collection world) contains 0 free-register labels
+in 9,960,292 rows. Consequence for §8.1: any free-register
+production > 0 in the emergence arm clears the rung-1 arithmetic;
+the characterisation bar ("above the floor") is left to the arm's
+read as prereg'd.
+
 ## Regeneration
 
 ### Collect
@@ -257,6 +292,9 @@ caffeinate -s python3 -B run_legs.py --config-20 g2leg-20.toml --config-40 g2leg
     --ticks 6000 --seed-base 905029 --out-dir OUT --trace   # (v4 variant needs radius=4)
 # Bin-anchor collect (~15 min; traces to scratch, JSON to results-raw/bin-anchor/):
 caffeinate -s python3 -B bin_anchor.py --scratch /tmp/bin-anchor-traces
+# Chatter-floor collect (~1.75 h under contention, 3 legs × 6 parallel shards;
+# raw shards to scratch, histograms to results-raw/chatter-floor/):
+caffeinate -s zsh chatter_floor_collect.sh /tmp/chatter-scratch
 ```
 
 ### Read
@@ -345,5 +383,35 @@ for s in (20, 40, 100):
           '%.4f/%.4f' % (d['p_flag_given_lt45'], d['p_flag_given_gt70']),
           '%.3f' % (nf['share_lt45']*100), '%.1f' % nf['hap_median'],
           d['flag_ticks_by_need'])
+"
+# Chatter-floor read (~1 s): every cell of the §8.1 floor table + the
+# here-word liveness check.
+python3 -c "
+import json
+FREE = {'mew': 3, 'purr': 6, 'chirp': 13, 'trill': 14, 'ekekek': 15}
+for leg in (20, 40, 100):
+    d = json.load(open(f'results-raw/chatter-floor/leg-{leg}.json'))
+    rs = d['rollouts']
+    assert len(rs) == 30 and d['ticks'] == 20000
+    assert [r['world_seed'] for r in rs] == list(range(905001, 905031))
+    rows = sum(r['rows'] for r in rs)
+    per = {k: sum(r['msg_hist'][i] for r in rs) for k, i in FREE.items()}
+    here = sum(sum(r['msg_hist'][9:13]) for r in rs)
+    print(leg, rows, per, 'free', sum(per.values()),
+          'per1k %.1f' % (sum(per.values()) / rows * 1000), 'here', here)
+"
+# Corpus corroboration (~40 s, needs the lab venv's numpy; run from the
+# collection driver dir):
+cd /Users/elizabethkelly/ai/cloudkitty/experiments/gen2-collection-driver-2026-10-14
+../exp-006-character-gen/.venv/bin/python -c "
+import numpy as np
+from pathlib import Path
+tot = np.zeros(16, np.int64); rows = 0
+dirs = sorted(Path('results-raw/full-100').glob('r*/config-00-rollout-00'))
+assert len(dirs) == 100, len(dirs)
+for d in dirs:
+    m = np.load(d / 'label_msg.npy')
+    tot += np.bincount(m, minlength=16); rows += len(m)
+print('rows', rows, 'free', int(tot[[3, 6, 13, 14, 15]].sum()))
 "
 ```
