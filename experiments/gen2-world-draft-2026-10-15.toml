@@ -354,9 +354,11 @@ relief_memory_margin = 0
 # by engine fork. Law-named kinds (want_*, purr, here_*) mean what their
 # grounding predicate enforces; sound-named kinds (mew, chirp, trill,
 # ekekek — the free register) mean whatever the cats decide. trill and
-# ekekek are RESERVES: in every layout, legal in none, until the post-fog
-# language-capacity experiment arms them. The full language reference is
-# docs/meows.md.
+# ekekek were RESERVES through Gen 1; the owner armed them for Gen 2
+# (S§7, 2026-10-08: "all four armed for Gen 2, trunk and emergence
+# arm") — caught at the freeze copy check 2026-10-17, which found this
+# file still carrying the reserve values against that ruling. The full
+# language reference is docs/meows.md.
 [meow.vocabulary]
 want_eat = true
 want_drink = true
@@ -371,8 +373,8 @@ here_water = true
 here_critter = true
 here_sunbeam = true
 chirp = true
-trill = false
-ekekek = false
+trill = true
+ekekek = true
 
 [purr]
 # A contented kitty rumbles for a while (a seeded draw between min and max

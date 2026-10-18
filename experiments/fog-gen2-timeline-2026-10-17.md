@@ -40,10 +40,13 @@ consent BC comparison ride the trunk.
 3. **Scripted comparator legs** — DONE, realized numbers pinned in
    §7 (`gen2-comparator-legs-2026-10-14/RESULTS.md`): law table
    20/40/100 under the vision law, zero F-053; v4 record kept.
-4. **Prereg FREEZE** — IN PROGRESS. Sitting decisions all ruled;
-   remaining: §2 world-toml diff, §3 visible-fields rows, §4
-   response shape (mechanical assembly), then her freeze word
-   (skeleton §10.3). GATE: every [BLANK] pinned.
+4. **Prereg FREEZE** — DONE 2026-10-17 (owner "Do it"):
+   `gen2-prereg-2026-10-17.md` is THE prereg; collection cites it.
+   Copy-check gate: round 1 FAIL (vocabulary arming missing from
+   the world toml vs S§7 — fixed, battery re-run byte-identical,
+   90/90 rows; probe-envelope numbers uncommitted — section added)
+   → round 2 PASS, fresh subagent each. Deviations ledger open:
+   `gen2-deviations.md`.
 5. **Pilot collection** (30 rollouts) → placement bar ≥ 0.40 +
    density-pin re-check — PENDING, post-freeze
    (`gen2-collection-driver-2026-10-14/collect_corpus.py`).

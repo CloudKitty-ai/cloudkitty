@@ -27,6 +27,20 @@ Provenance note: the 40×40 law raws record the probe toml's hash
 (`results-raw/g2leg-40-vision5.toml`), which parses equal to
 `g2leg-40.toml` — the bytes differ only in one comment.
 
+VOCABULARY-ARMING provenance (freeze copy check, 2026-10-17): the
+runs above executed with `trill = false, ekekek = false` — the
+draft's Gen 1 reserve values, contradicting the S§7 arming ruling;
+the draft and the derived configs were corrected at the freeze
+(current shas: g2leg-20 64d77c8afba7a9a8, g2leg-40 f45a51832f7fb7ca,
+g2leg-100 4157cb3ce6ac4c7d; the table's original 20×20 sha
+e664ce6f262ac8ea is the pre-arming config). The full battery was
+re-run on the armed configs (`results-raw/vocab-armed-rerun/`): all
+90 seed rows BYTE-IDENTICAL to the pinned raws — the flags gate
+legality only and the scripted teacher never emits the free register
+(spec 033; cue-answer FR-012), so every number in this file stands
+on the armed configs. Trained-seat legality and corpus masks DO
+differ under arming; collection runs on the corrected draft.
+
 ## The vision-4 record (superseded for the pin; kept as the finding)
 
 The first full run used vision 4 at every size:
@@ -72,6 +86,21 @@ the v4 config):
   move (182–216): the v4 failure was latency, not total supply.
 - Under the law (v6, full 20k run): this seed finishes at happiness
   77.35, worst streak 362.
+
+## The probe envelope (§6 training-stop basis — committed at the
+freeze copy check, which found these numbers had no committed home)
+
+The training-probe stop's measured basis (owner "300 is good",
+2026-10-17): the served 20×20 law config in the TRAINING-PROBE shape —
+30 seeds (g2cmp band), 2,000 ticks each, scripted seating. Worst
+distress streak per seed: median 0 (19/30 seeds exactly 0), mean 23,
+max 197; bar = 197 × 1.5 = 295.5, rounded to 300 on her word. The
+window matters: the same world and band reach max-streak 401 at 20k
+ticks (the law table above) — streak grows with exposure, which is
+why the stop is pinned at the probe window, never the leg number.
+Raw: `results-raw/probe-envelope-20/scripted-g2cmp-30x2000.jsonl`
+(ran on the pre-arming config; the vocabulary-arming provenance note
+above covers it — behavior byte-identical).
 
 ## Reference reads (not pins)
 
@@ -275,6 +304,15 @@ ln = [v for s in sorted(off) for v in on[s]['low_share']]
 print('dist_ticks delta mean %+.0f pos %d/30; low_share off %.3f%% on %.3f%%' %
       (statistics.mean(dd), sum(x > 0 for x in dd),
        statistics.mean(lo) * 100, statistics.mean(ln) * 100))
+"
+# Probe-envelope read (~1 s): the §6 stop numbers.
+python3 -c "
+import json, statistics
+rows = [json.loads(l) for l in open('results-raw/probe-envelope-20/scripted-g2cmp-30x2000.jsonl').read().splitlines()[1:]]
+m = [r['max_distress_age'] for r in rows]
+assert len(m) == 30
+print('median', statistics.median(m), 'zeros', sum(x == 0 for x in m),
+      'mean %.2f' % statistics.mean(m), 'max', max(m), 'bar', max(m) * 1.5)
 "
 # Waypoint-start screen read (~1 s): the friend-ward recipe on
 # results-raw/wps-screen/{off,on}; early-window cells from

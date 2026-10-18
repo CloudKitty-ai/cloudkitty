@@ -20,7 +20,7 @@ Three configs — g2leg-20 / g2leg-40 / g2leg-100 — each the draft plus:
   ≥80 → 6. The served 20×20 keeps radius 4 BYTE-IDENTICAL (no patch
   when the law equals the base), so the Gen 1 fog law and the comms
   thesis are untouched; fog still deepens with size (visible share
-  10% → 3.8% → 0.85%). Measured basis: vision5-40 paired leg +1.294
+  12.25% → 5.06% → 1.13%, closed Euclidean disc — corrected at the freeze copy check 2026-10-17). Measured basis: vision5-40 paired leg +1.294
   (28/30 seeds), 100×100 v6 probe near-clean; the v6 realized leg
   replaces the probe.
 

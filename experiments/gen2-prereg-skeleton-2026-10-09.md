@@ -1,5 +1,10 @@
 # Gen 2 prereg — SKELETON, DRAFT r0 (2026-10-09)
 
+> SUPERSEDED 2026-10-17 by the frozen prereg,
+> `gen2-prereg-2026-10-17.md` ("Do it"). This file stays as the
+> sitting's working copy — its edit history is the pinning record;
+> collection cites the frozen file, never this one.
+
 Status: DRAFT for Professor review then the owner's walkthrough.
 NOT a declaration; nothing here is frozen, and no collection may
 cite it. One slot per ruling: **[RULED]** lines carry their source
@@ -520,7 +525,7 @@ rulings nor answers to blanks until she rules. Rulings sources:
   world size — ≤10 → 3, 11–39 → 4 (the served base; the mixed-size
   recipe's 28 stays 4), 40–79 → 5, ≥80 → 6. The served 20×20 world is
   BYTE-UNTOUCHED (fog law and comms thesis intact); fog still deepens
-  with size (visible share 10% → 3.8% → 0.85% at 20/40/100). Measured
+  with size (visible share 12.25% → 5.06% → 1.13% at 20/40/100 — closed Euclidean disc, grid.rs:80, corrected at the freeze copy check 2026-10-17). Measured
   basis in gen2-comparator-legs-2026-10-14/: the vision5-40 paired leg
   (+1.294, 28/30 seeds) and the 905029 vision probe; realized §7
   numbers for displaced sizes re-run under the law (the v5-40 leg IS
@@ -528,7 +533,7 @@ rulings nor answers to blanks until she rules. Rulings sources:
   config; the 100×100 v6 leg replaces the vision-4 characterize row,
   whose one F-053 abort at seed 905029 stays on record as the vision-4
   finding). Cross-size comparisons now carry size AND radius; rows
-  naming them cite the law. The §S§6 radius-axis leg reads "radius
+  naming them cite the law. The S§6 radius-axis leg reads "radius
   relative to the law's value at that size" from here on.
 - [RULED] Mixed-size trigger: fires only on a 40×40 gated miss;
   the mixed recipe is a declared arm via prereg addendum (episode
