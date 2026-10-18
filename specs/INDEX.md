@@ -65,3 +65,4 @@ regenerate and commit (owning thread) when specs change.
 | `061-stuck-detector` | Draft |
 | `062-randomized-starts` | Draft |
 | `063-friend-ward-drift` | Draft |
+| `064-waypoint-start` | Draft |
