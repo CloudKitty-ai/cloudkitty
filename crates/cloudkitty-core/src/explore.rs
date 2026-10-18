@@ -322,9 +322,12 @@ mod tests {
             );
         }
         // Tie law, self-staged: brute-scan the grid for the first tile
-        // whose minimal Manhattan distance is achieved by two or more
-        // waypoints, and pin that nearest_index picks the LOWEST of
-        // them. The scan is an independent restatement of the law.
+        // whose minimal distance is achieved by two or more INDICES and
+        // pin that nearest_index picks the LOWEST. Review note: on this
+        // lattice the first such tie is the serpentine's return leg
+        // revisiting the SAME tile (indices 1 and 447), not two distinct
+        // waypoints -- the pin still matters because the index sets the
+        // tour DIRECTION (1 advances forward, 447 wraps back).
         let mut tie_checked = false;
         'grid: for y in 0..100 {
             for x in 0..100 {
@@ -356,13 +359,45 @@ mod tests {
         assert_eq!(single.nearest_index(Position::new(2, 0)), 0);
     }
 
-    // Spec 064, recorded non-guard: "nearest is Manhattan, not
-    // Chebyshev" cannot be pinned behaviorally on this geometry. The
-    // waypoints form an axis-aligned grid, and on a grid the two
-    // metrics' unique argmins always coincide (each axis minimizes
-    // independently; a brute scan of 100x100 finds no disagreeing
-    // tile). A metric-swap mutation is therefore a semantic no-op here
-    // -- no red is owed for it (rule 5 guards defects that can exist).
-    // The contract pins the word "Manhattan"; the tie test above pins
-    // the comparator.
+    /// Review 1 finding 1: the metric IS behaviorally distinguishable,
+    /// and the first version of this file recorded the opposite as a
+    /// "non-guard" from an r=5-only scan -- wrong. At radius 6 (the Gen 2
+    /// 100x100 leg config) the uneven rounded spacing plus the wall inset
+    /// creates tiles where Chebyshev's lower-index TIE-BREAK names a
+    /// different waypoint (90 such tiles, 20 on the outer ring where 062
+    /// starts land). Pinned on the reviewer's hand-checked tile and on
+    /// every disagreeing tile a brute scan finds.
+    #[test]
+    fn nearest_is_manhattan_not_chebyshev_at_the_leg_radius() {
+        let l = Lattice::for_world(100, 100, 6);
+        // (16, 0): Manhattan picks index 2, waypoint (19, 4), distance 7;
+        // Chebyshev ties (12, 4)/(19, 4) at 4 and would pick index 1.
+        assert_eq!(l.nearest_index(Position::new(16, 0)), 2);
+        let pick = |probe: Position, d: &dyn Fn(Position, Position) -> u32| {
+            (0..l.cycle_len())
+                .min_by_key(|&i| (d(l.waypoint(i), probe), i))
+                .unwrap()
+        };
+        let man = |w: Position, p: Position| w.manhattan_distance(&p);
+        let cheb = |w: Position, p: Position| w.x.abs_diff(p.x).max(w.y.abs_diff(p.y));
+        let mut disagreements = 0u32;
+        for y in 0..100 {
+            for x in 0..100 {
+                let probe = Position::new(x, y);
+                let m = pick(probe, &man);
+                if m != pick(probe, &cheb) {
+                    disagreements += 1;
+                    assert_eq!(
+                        l.nearest_index(probe),
+                        m,
+                        "({x},{y}): the walk metric is Manhattan"
+                    );
+                }
+            }
+        }
+        assert!(
+            disagreements > 0,
+            "staging: r = 6 must disagree somewhere (the review counted 90 tiles)"
+        );
+    }
 }

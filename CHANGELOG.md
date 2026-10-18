@@ -43,7 +43,7 @@ change.
   is untouched in both states), and it composes with randomized starts
   (spec 062) by reading the drawn tile. With the flag off — every
   served and shipped config — the engine is byte-identical to before,
-  proven by byte-comparing full runs. No compatibility marker: the
+  verified by byte-comparing full runs at landing. No compatibility marker: the
   defaults stamp, observation schema, world fingerprint and seeded
   draw order are all unmoved.
 

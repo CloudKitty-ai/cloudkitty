@@ -4629,15 +4629,14 @@ mod tests {
             (World::generate(&config), config)
         };
         let lattice = crate::explore::Lattice::for_world(100, 100, 5);
-        // advance_tours runs right after seeding, so a cat spawned ON its
-        // waypoint may already be past it; both laws' expectations are
-        // read through the same post-generate state by re-deriving the
-        // seed and letting the shared advance rule act. The corners sit
-        // OFF every waypoint here, so no advancement fires and the raw
-        // seed is observable (asserted below via lattice geometry).
+        // advance_tours runs right after seeding, so a cat spawned on (or
+        // beside a held) waypoint would already be past its seed. The
+        // corner stages sit at least 3 tiles from every waypoint (the
+        // lattice is inset from the walls), so no advance can fire and
+        // the equality below reads the RAW seed; a silently-fired
+        // advance would fail it.
         let (on, _) = stage(true);
         for kitty in &on.kitties {
-            assert_ne!(kitty.pos, lattice.waypoint(kitty.explore_waypoint));
             assert_eq!(
                 kitty.explore_waypoint,
                 lattice.nearest_index(kitty.pos),
@@ -4698,6 +4697,17 @@ mod tests {
             let config = Arc::new(config);
             let world = World::generate(&config);
             let lattice = crate::explore::Lattice::for_world(100, 100, 5);
+            // Staging: the draw must produce at least one cat where the
+            // two laws disagree, or the test pins nothing (review 1
+            // finding 4 -- a future golden re-cut could silently
+            // vacuate this).
+            assert!(
+                world
+                    .kitties
+                    .iter()
+                    .any(|k| lattice.nearest_index(k.pos) != lattice.start_index(k.id)),
+                "seed {seed}: the drawn stage must make the laws disagree"
+            );
             for kitty in &world.kitties {
                 // Drawn corners/edges sit off the interior lattice, so the
                 // raw seed survives advance_tours; assert via geometry.

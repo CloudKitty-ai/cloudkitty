@@ -91,7 +91,11 @@ waypoint, flag-off equal today's id-modulo value.
 - Several cats share a nearest waypoint: all start there; the engine's
   existing arrival/contention rule (advance when standing on it, or
   beside it while another cat holds it) already handles shared
-  waypoints — no new rule.
+  waypoints — no new rule. DECLARED consequence (review 1 observation):
+  cats starting in the same area seed the same index and may tour in
+  LOCKSTEP where the id law spread them — a real behavior change the
+  corners-vs-central reads should expect; whether it matters is the
+  screen's to measure.
 - Explicit per-kitty coordinates, drawn starts (062), or default grid
   placement: the seeding reads the FINAL start position, whatever
   placed it.
