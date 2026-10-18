@@ -33,6 +33,23 @@ change.
 
 ## Unreleased
 
+- **Lonely cats drift toward their friends.** Friend-ward drift (spec
+  063), off by default everywhere: a new `[behavior]` flag teaches the
+  scripted cats a gentle social pull for big maps. When a cat's nearest
+  known friend — one it can see, or has heard asking or announcing
+  recently — is more than a gate's distance away, two things change:
+  choosing between near-equal relief options (two water bowls, two
+  sunbeams), it takes the one closer to that friend, as long as the
+  detour stays within a bounded budget; and its idle potter heads that
+  way instead of a random step, no more often than it pottered before.
+  Both distances are dials. A free-register meow never counts as
+  knowing where a friend is — only the law-named want and here words
+  place anyone. With the flag off — every served and shipped config —
+  the engine is byte-identical to before: same decisions, same random
+  draws, same collection arrays, proven by byte-comparing full runs.
+  No marker: the defaults stamp, observation schema, world fingerprint
+  and seeded draw order are all unmoved.
+
 - **A world that seats its own cats.** Randomized starts (spec 062): a
   config may now carry a `[starts]` table — an edge-ring share and a
   corner share — instead of pinning every kitty's tile, and the engine

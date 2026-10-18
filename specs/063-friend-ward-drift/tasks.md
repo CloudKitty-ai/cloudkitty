@@ -21,7 +21,7 @@ mapping.
 
 **Purpose**: a byte-identity baseline to measure FR-002 against.
 
-- [ ] T001 Record the pre-change baseline: from `experiments/tools/bc-collect`
+- [X] T001 Record the pre-change baseline: from `experiments/tools/bc-collect`
       (standalone workspace) at current HEAD, run a short collection
       (`--rollouts 1 --ticks 2000 --seed-base 993001`) on a scratch copy of
       `experiments/world-size-screen-2026-09-24/size100.toml` into the
@@ -35,7 +35,7 @@ mapping.
 **Purpose**: config surface and the fenced knowledge helper — every
 story reads these.
 
-- [ ] T002 Add the three `[behavior]` fields to `BehaviorConfig` in
+- [X] T002 Add the three `[behavior]` fields to `BehaviorConfig` in
       `crates/cloudkitty-core/src/config/mod.rs`: `friend_ward_drift: bool`
       (`#[serde(default, skip_serializing_if = <bool-false skip>)]` — add a
       `bool_is_false`-style helper beside `f32_is_zero` if none exists),
@@ -43,30 +43,30 @@ story reads these.
       (both `#[serde(default, skip_serializing_if = "Option::is_none")]`),
       with accessor fns defaulting to 10 / 4.0 reading
       `crates/cloudkitty-core/src/config/defaults.rs` constants.
-- [ ] T003 Add validation in `validate_behavior` in
+- [X] T003 Add validation in `validate_behavior` in
       `crates/cloudkitty-core/src/config/validate.rs` (existing position 7,
       order list untouched): present gate must be > 0, present detour must
       be finite and >= 0; error strings name `[behavior] friend_ward_gate` /
       `[behavior] friend_ward_detour`. Applies flag on or off.
-- [ ] T004 Unit tests for T002+T003 in the config test modules: absent keys
+- [X] T004 Unit tests for T002+T003 in the config test modules: absent keys
       → defaults via accessors; serialization skips all three when
       absent/false (the `GET /config` must-not-grow surface); gate 0 and
       detour -1.0/NaN rejected by name; flag-on with absent dials loads
       10/4.0. Then mutate reds (predictions declared first), e.g.: break an
       accessor default (10→0) expecting the default test's failure; drop a
       validation arm expecting the rejection test's failure.
-- [ ] T005 Add the kind-fenced freshest-stamp query to `FogView` in
+- [X] T005 Add the kind-fenced freshest-stamp query to `FogView` in
       `crates/cloudkitty-core/src/world.rs` as a SIBLING of `heard_unseen`
       (world.rs:1815, untouched): per unseen roster member, the freshest
       audible stamp within the window whose kind is a law-named want or
       here word; same audibility rule (start-of-tick, age in window).
-- [ ] T006 Add `nearest_known_friend(ctx) -> Option<(KittyId, Position)>`
+- [X] T006 Add `nearest_known_friend(ctx) -> Option<(KittyId, Position)>`
       and the `drift_fires` gate check to
       `crates/cloudkitty-core/src/behavior/selection.rs`: visible others
       (any activity state) chained with T005's stamps,
       `min_by_key((manhattan, id))`; fires ⇔ flag on ∧ Some ∧ distance >
       gate accessor.
-- [ ] T007 Unit tests for T005+T006 in `world.rs` and `selection.rs` test
+- [X] T007 Unit tests for T005+T006 in `world.rs` and `selection.rs` test
       modules: want/here stamp qualifies, free-register/Purr/WaitForMe
       never do; a fresher free-register meow neither places the friend nor
       hides that friend's older qualifying stamp (spec edge case); visible
@@ -92,16 +92,16 @@ US2/US3 land.)
 **Independent Test**: full suite green with zero golden/pin re-cuts;
 baseline byte-compare; config A/B loads.
 
-- [ ] T008 [US1] Run the full flag-off surface: `cargo test` workspace-wide
+- [X] T008 [US1] Run the full flag-off surface: `cargo test` workspace-wide
       — all goldens (`crates/cloudkitty-core/tests/`: determinism.rs,
       evolution_golden.rs, starts_goldens.rs), unit suites, config sweep
       tests. Zero failures, zero re-cuts in `git status`.
-- [ ] T009 [US1] Byte-identity vs baseline: rebuild bc-collect at this tree,
+- [X] T009 [US1] Byte-identity vs baseline: rebuild bc-collect at this tree,
       re-run T001's exact invocation into `<scratch>/baseline-post/`, and
       byte-compare every output file against `<scratch>/baseline-pre/`
       (`cmp` each array + meta modulo the engine_commit stamp field — list
       any other delta as a failure).
-- [ ] T010 [US1] Flag-on load test in the config test module: a toml with
+- [X] T010 [US1] Flag-on load test in the config test module: a toml with
       `friend_ward_drift = true` (dials absent, then present) parses,
       validates, and constructs a world; `GET /config`-surface
       serialization of a flag-ON config includes exactly the set fields.
@@ -123,7 +123,7 @@ contracts/drift-law.md Site 1.
 **Independent Test**: staged two-option scenarios flip with the flag;
 gate/no-friend scenarios never flip; score and walk agree.
 
-- [ ] T011 [US2] Implement the band re-rank in `priced_nearest_element` in
+- [X] T011 [US2] Implement the band re-rank in `priced_nearest_element` in
       `crates/cloudkitty-core/src/behavior/selection.rs` with an optional
       acceptance-cap parameter: drift not firing → today's `(cost, id)`
       path bit-for-bit; firing → band = `cost <= min(min_cost + detour,
@@ -134,7 +134,7 @@ gate/no-friend scenarios never flip; score and walk agree.
       `crates/cloudkitty-core/src/behavior/needs_driven.rs`,
       `distance_given`/`sleep_travel_distance` in selection.rs keep flowing
       through the one helper — the 004 agreement rule).
-- [ ] T012 [US2] Unit tests in `selection.rs`/`needs_driven.rs` test
+- [X] T012 [US2] Unit tests in `selection.rs`/`needs_driven.rs` test
       modules, staged per spec SC-002/SC-003 and the contract: friend-ward
       pick inside band; cheapest wins when the gap exceeds the band;
       B = 0 with distinct costs equals flag-off; single candidate equals
@@ -146,7 +146,7 @@ gate/no-friend scenarios never flip; score and walk agree.
       (extend the existing agreement test shape); flag-ON determinism for
       the band path — identical contexts choose identically with the
       drift firing (FR-010 must not wait for US3).
-- [ ] T013 [US2] Rule 6 sort + mutate reds for US2 (predictions declared
+- [X] T013 [US2] Rule 6 sort + mutate reds for US2 (predictions declared
       first, file committed first), minimum set: (1) remove the cap clause
       expecting the beam-promotion test red; (2) re-rank over ALL
       candidates instead of the band expecting the beyond-band test red;
@@ -171,13 +171,13 @@ cadence untouched.
 **Independent Test**: staged potter scenarios steer vs stay uniform;
 cadence binomial check.
 
-- [ ] T014 [US3] Implement the potter arm in `wander` in
+- [X] T014 [US3] Implement the potter arm in `wander` in
       `crates/cloudkitty-core/src/behavior/needs_driven.rs`: drift fires →
       `step_toward(ctx, friend_pos)` (no direction draw); otherwise
       today's uniform draw. The cadence draw in
       `crates/cloudkitty-core/src/behavior/teacher.rs:137-142` is NOT
       touched.
-- [ ] T015 [US3] Unit tests in `needs_driven.rs`/`teacher.rs` test modules:
+- [X] T015 [US3] Unit tests in `needs_driven.rs`/`teacher.rs` test modules:
       steered step reduces Manhattan distance to the friend (through the
       step rule); friend within gate / no friend / flag off → uniform draw
       path (RNG consumed exactly as today, asserted via rng-state
@@ -189,7 +189,7 @@ cadence binomial check.
       determinism — identical
       contexts choose identically (extend the existing
       `decisions_are_deterministic_for_a_given_context` shape).
-- [ ] T016 [US3] Rule 6 sort + mutate reds for US3 (predictions first):
+- [X] T016 [US3] Rule 6 sort + mutate reds for US3 (predictions first):
       (1) steer unconditionally (ignore the gate) expecting the
       within-gate-uniform test red; (2) consume an RNG draw on the steered
       path expecting the rng-state test red; (3) steer on the cadence draw
@@ -201,19 +201,19 @@ cadence binomial check.
 
 ## Phase 6: Polish & cross-cutting
 
-- [ ] T017 Full flag-off re-verification: T008 surface + T009 byte-compare
+- [X] T017 Full flag-off re-verification: T008 surface + T009 byte-compare
       re-run at the final tree (baseline-pre unchanged); `git status
       --ignored` clean of stray fixtures.
-- [ ] T018 Flag-on smoke per quickstart.md §5: scratch size100 toml with
+- [X] T018 Flag-on smoke per quickstart.md §5: scratch size100 toml with
       the flag on (scratchpad only — knob-on tomls NEVER under
       `experiments/`), bc-collect 1×2000 ticks; arrays well-formed, run
       completes. Delete the scratch config after.
-- [ ] T019 Local gate: `cargo fmt` && `cargo clippy --all-targets` &&
+- [X] T019 Local gate: `cargo fmt` && `cargo clippy --all-targets` &&
       `cargo test` from the workspace root, all green.
-- [ ] T020 Doc touch: config field doc-comments reference spec 063 and the
+- [X] T020 Doc touch: config field doc-comments reference spec 063 and the
       drift-law contract; CHANGELOG Unreleased entry (public voice at
       write time) in `CHANGELOG.md`.
-- [ ] T021 Verify spec SC checklist against reality (SC-001..SC-006) and
+- [X] T021 Verify spec SC checklist against reality (SC-001..SC-006) and
       record the mutate-red ledger (every prediction + outcome) in the PR
       body draft; any vacuous or wrong-reason red is unresolved debt, not
       a pass.
