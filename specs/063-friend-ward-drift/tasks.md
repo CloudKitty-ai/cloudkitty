@@ -13,7 +13,9 @@ checks — guards of the change must go red, kept behavior must stay
 green; read the must-pass pile, don't only run it.
 
 **Organization**: by user story. All paths relative to the worktree
-root (`~/ai/cloudkitty-friend-ward`).
+root (`~/ai/cloudkitty-friend-ward`). Terminology: the spec's "potter"
+is the code's `wander` (needs_driven.rs); contract Site 2 carries the
+mapping.
 
 ## Phase 1: Setup
 
@@ -103,8 +105,10 @@ baseline byte-compare; config A/B loads.
       `friend_ward_drift = true` (dials absent, then present) parses,
       validates, and constructs a world; `GET /config`-surface
       serialization of a flag-ON config includes exactly the set fields.
-      Mutate red (prediction first): make the flag field non-optional in
-      deserialization expecting the absent-key test red.
+      Mutate red (prediction first): flip the flag's serde default to
+      `true` expecting the absent-key default test red specifically — a
+      narrow mutation, not a deserialization break that reddens half the
+      suite for the wrong reason.
 
 **Checkpoint**: MVP — the mechanism's safety story is proven; US2/US3
 add the behavior.
@@ -139,7 +143,9 @@ gate/no-friend scenarios never flip; score and walk agree.
       configs through the same context); beyond-reach beam never promoted
       over an in-reach one (cap clause); memory phantom still loses ties
       to a real sighting; walk side pursues the same bowl the score chose
-      (extend the existing agreement test shape).
+      (extend the existing agreement test shape); flag-ON determinism for
+      the band path — identical contexts choose identically with the
+      drift firing (FR-010 must not wait for US3).
 - [ ] T013 [US2] Rule 6 sort + mutate reds for US2 (predictions declared
       first, file committed first), minimum set: (1) remove the cap clause
       expecting the beam-promotion test red; (2) re-rank over ALL
@@ -177,7 +183,10 @@ cadence binomial check.
       path (RNG consumed exactly as today, asserted via rng-state
       comparison — the 062 vacuity lesson); cadence unchanged: over a
       fixed window with the flag on, potter-fire count matches flag-off
-      within binomial tolerance (SC-004); flag-on determinism — identical
+      within binomial tolerance (SC-004 — pin n and the tolerance bound
+      in the test comment alongside the declared prediction; the bound is
+      chosen before the first run, never fitted after); flag-on
+      determinism — identical
       contexts choose identically (extend the existing
       `decisions_are_deterministic_for_a_given_context` shape).
 - [ ] T016 [US3] Rule 6 sort + mutate reds for US3 (predictions first):
