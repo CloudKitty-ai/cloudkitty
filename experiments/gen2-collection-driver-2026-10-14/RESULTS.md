@@ -30,6 +30,17 @@ ticks, driver defaults = the ruled dials. Raws:
   (enrichment 0.463%, served 0.419%, traits 0.348%), so it is
   structural, not consent-driven. Known companions: msg_downgraded
   present, proposed-inexpressible per the #459 header pricing.
+  COMPOSITION (traced re-run of rollout 00, deterministic, 424
+  skipped rows): 261 are applied groom-with-kitty-target, activity
+  states grooming 257 / idle 166 / resting 1 — i.e. mostly
+  mid-scene groom continuation ticks the engine carries while the
+  solo-context mask no longer offers the entry; the rest are
+  scattered moves/idles/chases. Scene-START rows are mask-legal
+  and kept, so the corpus still demonstrates initiation; the
+  student never needs the excluded continuation labels (activity
+  state carries scenes at deployment). Re-check at the 100-rollout
+  read that the per-class rates stay uniform — divergence would be
+  a between-arm corpus bias for the three-leg comparison.
 
 ## Regeneration
 
@@ -73,4 +84,13 @@ print({c: '%d/%d=%.3f%%' % (mm, n, 100 * mm / n) for c, (mm, n) in sorted(agg.it
 "
 # here-kind labels: msg head indices 9-12 = HereFood/HereWater/
 # HereCritter/HereSunbeam (observe.rs HEAD_KINDS, Silent = 0).
+# Mask-mismatch composition (~2 min): traced re-run of rollout 00, then
+# diff (tick,kitty) pairs in the trace against the kept corpus rows and
+# read each skipped pair's last_action/activity from the post-apply
+# snapshot:
+#   bc-collect --config results-raw/pilot-30/configs/rollout-00.toml \
+#       --rollouts 1 --ticks 20000 --seed-base 910001 --out-dir SCRATCH --trace
+#   (kept = zip(tick.npy, kitty.npy); missing pairs -> trace.jsonl rows;
+#    expect 424 skipped, 261 groom-with-target, states grooming 257 /
+#    idle 166 / resting 1)
 ```
