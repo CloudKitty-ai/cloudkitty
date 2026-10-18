@@ -699,7 +699,14 @@ timebox)
    CONFIG value, not a code constant (`thresholds.distress = 90.0`,
    `cloudkitty.toml:172`, verified 2026-10-17) — the config key is
    provenance only; a later config change does not move the
-   doctrine bin.
+   doctrine bin. TRIGGER-BIN RESTATE (sitting standing-list item,
+   owner "Confirm" 2026-10-17): the edges live on TWO axes — 45
+   and 70 on happiness, 90 on the need axis — there is no
+   need-level 45/70/90 triple anywhere in the doctrine. Semantic
+   anchor measured pre-freeze: 70 is the distress ceiling and 45
+   the graver-half edge (gen2-comparator-legs-2026-10-14/RESULTS.md
+   §Bin-anchor read; Gen 3 re-anchor obligation banked in
+   gen3-roadmap-inputs addendum 3).
    ONE fixed set across eras; no era-indexed or quantile-relative
    edges anywhere in the doctrine texts — every cross-era read
    (Phase-1 certificate vs Phase-2 lived, lived vs probe,
