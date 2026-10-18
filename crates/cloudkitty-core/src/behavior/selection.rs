@@ -3364,15 +3364,20 @@ mod spec_063_friend_ward_tests {
     /// decides differently, pinned absolute both ways.
     #[test]
     fn the_relief_gate_is_measured_from_the_cheapest_candidate_not_the_cat() {
-        // (i) Friend far from the CAT (manhattan 11) but near the cheapest
-        // bowl (9): inert -- the cheapest wins. The cat-anchored law would
-        // fire and pick the friend-ward bowl at (22, 16).
+        // (i) Friend far from the CAT (manhattan 11) but within the gate
+        // of the cheapest bowl (exactly 10): inert -- the cheapest wins.
+        // The cat-anchored law fires and picks the friend-ward (21, 16)
+        // at cost 5. Review 2 finding 4: the first staging of this case
+        // was VACUOUS -- its friend-ward bowl priced across the cheap
+        // bowl's own wet tile and fell out of the band, so both laws
+        // agreed; these positions keep every staircase dry (verified to
+        // fail under the cat-anchored mutant).
         let ctx = fw_ctx(true, 64, |w| {
             let i2 = w.kitty_index(2).unwrap();
             w.kitties[i2].pos = Position::new(27, 16);
             for (id, pos) in [
-                (900u32, Position::new(18, 16)),
-                (901, Position::new(22, 16)),
+                (900u32, Position::new(18, 15)),
+                (901, Position::new(21, 16)),
             ] {
                 w.push_element(Element {
                     id,
@@ -3384,7 +3389,7 @@ mod spec_063_friend_ward_tests {
         });
         assert_eq!(
             priced_nearest_element(&ctx, ElementType::Water),
-            Some((Position::new(18, 16), 2.0)),
+            Some((Position::new(18, 15), 3.0)),
             "relief is already happening near the friend: no detour"
         );
         // (ii) Friend ADJACENT to the cat but far from the cheapest bowl
