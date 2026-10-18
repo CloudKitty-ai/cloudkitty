@@ -766,20 +766,38 @@ mod tests {
     fn an_inert_potter_is_todays_uniform_draw_with_the_same_consumption() {
         // Friend within the gate: 3 tiles from the waypoint (derived from
         // a probe context, since the waypoint position is the lattice's).
+        // The pin is ABSOLUTE -- the action must equal the seed-derived
+        // uniform draw and consume exactly one draw -- never flag-on ==
+        // flag-off, which a mutation breaking both arms identically
+        // satisfies (this test's first version was exactly that vacuous
+        // guard; mutate.sh exit 6 caught it, 2026-10-17).
         let close_pos = {
             let probe = potter_ctx(true, FAR, 0);
             Position::new(probe.me.pos.x.saturating_sub(3), probe.me.pos.y)
         };
-        let on = potter_ctx(true, close_pos, 777);
-        let off = potter_ctx(false, close_pos, 777);
-        assert!(on.me.pos.manhattan_distance(&close_pos) <= 10);
-        assert_eq!(wander(&on), wander(&off), "the uniform draw is untouched");
-        let probe: Vec<u32> = (0..1000).collect();
-        assert_eq!(
-            on.rng.choose(&probe),
-            off.rng.choose(&probe),
-            "one draw consumed on both sides: the streams stay in lockstep"
-        );
+        let probe_vals: Vec<u32> = (0..1000).collect();
+        for flag in [true, false] {
+            for seed in 0..20u64 {
+                let ctx = potter_ctx(flag, close_pos, seed);
+                assert!(ctx.me.pos.manhattan_distance(&close_pos) <= 10);
+                // The absolute uniform law at this seed, drawn fresh:
+                let fresh = crate::behavior::DecisionRng::from_seed(seed);
+                let expected =
+                    Action::move_to(*fresh.choose(&crate::grid::Direction::ALL).unwrap());
+                assert_eq!(
+                    wander(&ctx),
+                    expected,
+                    "flag {flag}, seed {seed}: the potter IS the uniform draw"
+                );
+                // Exactly one draw consumed: the streams align after the
+                // fresh rng's single direction draw above.
+                assert_eq!(
+                    ctx.rng.choose(&probe_vals),
+                    fresh.choose(&probe_vals),
+                    "flag {flag}, seed {seed}: exactly one draw consumed"
+                );
+            }
+        }
     }
 
     /// Spec 063 FR-008/SC-004: the potter's CADENCE is the caller's gate,
