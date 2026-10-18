@@ -89,7 +89,14 @@ consent BC comparison ride the trunk.
 the stratified stack; bin-edge re-anchor + bridge (addendum 3);
 play-demonstration refresher; vision-law measurements; 064 flag-on
 default candidate; 063 drift as robustness-knob candidate; C2 reopen
-carries the comparator re-run sequencing note.
+carries the comparator re-run sequencing note. Teacher polish (owner
+2026-10-18 "Keep default, add teacher polish note to gen3", on
+deviations entry 1): the scripted teacher's ladder skips
+partner-targeted proposals while inside its own activity minimum —
+389/137,088 Gen 2 refusal rows were doubly-blocked mid-rest play
+proposals (mask collapsed to RestSolo); harmless here (zero
+action-head gradient, measured), but a Gen 3 teacher change lands
+before its collection, Product's lane on her kickoff.
 
 ## Standing welfare machinery
 

@@ -48,5 +48,10 @@ gradient-identical on the action head, while the row's message
 label (never refused) still trains the message head. Dropping the
 389 rows would therefore change nothing the clone learns and would
 discard 389 valid message-head demonstrations; the default stands
-on that measurement. Owner notified 2026-10-18; no word yet — her
-ruling, if it differs, supersedes this default.
+on that measurement.
+
+RULED (owner, 2026-10-18): "Keep default, add teacher polish note
+to gen3" — the keep-applied default stands for Gen 2; the teacher
+polish (ladder skips partner proposals inside its own activity
+minimum) is banked in `fog-gen2-timeline-2026-10-17.md` §Banked for
+Gen 3.
