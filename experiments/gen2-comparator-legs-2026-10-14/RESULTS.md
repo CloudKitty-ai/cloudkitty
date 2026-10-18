@@ -110,6 +110,34 @@ by size; bath nearly absent at 0/53/259). Unflagged happiness median
 83.2/82.9/80.5. The Gen 3 re-anchor re-runs `bin_anchor.py` on the
 Gen 3 engine and bridges per the banked obligation.
 
+## Friend-ward drift screen (spec 063, owner kickoff "Let's build it
+and see what happiness delta it produces on 100x100")
+
+Both arms fresh on the landed binary (merge 0b2d216f, binding rebuilt
++ 5 smoke tests, bc-collect rebuilt), g2cmp band 30×20k, scouts-first,
+law config. On arm = `g2leg-100.toml` + `friend_ward_drift = true` in
+`[behavior]` (deep-diff: exactly that key; dials at defaults G=10,
+B=4.0). Law for the arm: `specs/063-friend-ward-drift/contracts/drift-law.md`.
+
+| arm | team happiness | per-seed range | worst-streak mean / max | F-053 |
+|---|---|---|---|---|
+| flag off | 76.623 | [73.754, 80.416] | 443 / 716 | none |
+| flag on | 76.811 | [73.752, 79.857] | 451 / 839 | none |
+
+Seed-paired delta (on − off): mean **+0.188**, 14/30 positive, range
+[−5.200, +4.263], sd 2.266, mean/sem 0.45 — a NULL at this power. The
+flag reshuffles trajectories rather than shifting them: 20/30 seeds
+move by more than a point in one direction or the other (the
+trajectory lottery), netting ~zero. Distress mass agrees: dist_ticks
+paired delta −80 per seed (15/30 positive), low_share(<45) 3.815% off
+vs 3.714% on. No F-053 events in either arm; the declared
+knowledge-flip residual produced no streak at the line (on-arm worst
+839). The off arm reproduces the recorded law-leg row EXACTLY
+(76.623 [73.754, 80.416], 443/716) — behavioral confirmation that the
+0b2d216f rebuild left flag-off untouched. Scouts: off (361, 413, 334),
+on (417, 496, 356), all clean. Raws: `results-raw/fwd-screen/`
+({off,on}/legs/size100 + scouts, run.log, the on-arm toml).
+
 ## Regeneration
 
 ### Collect
@@ -150,6 +178,32 @@ for name, path in [('20x20 law', 'results-raw/legs/size20/scripted-g2cmp-30x2000
     print(name, round(statistics.mean(team), 3), [round(min(team), 3), round(max(team), 3)],
           round(statistics.mean(m)), max(m), [r['seed'] for r in rows if r['max_distress_age'] >= 1000])
 "  # ~5 s
+# Friend-ward screen read (~1 s): every cell of the screen table + the paired stats.
+python3 -c "
+import json, statistics, math
+def load(p):
+    return {r['seed']: r for r in (json.loads(l) for l in open(p).read().splitlines()[1:])}
+off = load('results-raw/fwd-screen/off/legs/size100/scripted-g2cmp-30x20000.jsonl')
+on  = load('results-raw/fwd-screen/on/legs/size100/scripted-g2cmp-30x20000.jsonl')
+assert set(off) == set(on) and len(off) == 30
+team = lambda r: statistics.mean(r['mean_happiness'])
+for name, arm in (('off', off), ('on', on)):
+    t = [team(arm[s]) for s in sorted(arm)]
+    m = [arm[s]['max_distress_age'] for s in sorted(arm)]
+    print(name, round(statistics.mean(t), 3), [round(min(t), 3), round(max(t), 3)],
+          round(statistics.mean(m)), max(m), sum(x >= 1000 for x in m))
+d = [team(on[s]) - team(off[s]) for s in sorted(off)]
+sd = statistics.stdev(d)
+print('delta %+.3f pos %d/30 [%+.3f, %+.3f] sd %.3f mean/sem %.2f gt1 %d/30' %
+      (statistics.mean(d), sum(x > 0 for x in d), min(d), max(d), sd,
+       statistics.mean(d) / (sd / math.sqrt(30)), sum(abs(x) > 1 for x in d)))
+dd = [sum(on[s]['dist_ticks']) - sum(off[s]['dist_ticks']) for s in sorted(off)]
+lo = [v for s in sorted(off) for v in off[s]['low_share']]
+ln = [v for s in sorted(off) for v in on[s]['low_share']]
+print('dist_ticks delta mean %+.0f pos %d/30; low_share off %.3f%% on %.3f%%' %
+      (statistics.mean(dd), sum(x > 0 for x in dd),
+       statistics.mean(lo) * 100, statistics.mean(ln) * 100))
+"
 # Bin-anchor read (~1 s): every cell of the anchor table from the JSON.
 python3 -c "
 import json
