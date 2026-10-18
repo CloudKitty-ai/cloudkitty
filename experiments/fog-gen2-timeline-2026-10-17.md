@@ -47,11 +47,17 @@ consent BC comparison ride the trunk.
    90/90 rows; probe-envelope numbers uncommitted — section added)
    → round 2 PASS, fresh subagent each. Deviations ledger open:
    `gen2-deviations.md`.
-5. **Pilot collection** (30 rollouts) → placement bar ≥ 0.40 +
-   density-pin re-check — PENDING, post-freeze
-   (`gen2-collection-driver-2026-10-14/collect_corpus.py`).
+5. **Pilot collection** (30 rollouts) — DONE 2026-10-17 (owner
+   "Start the pilot"): placement 0.4254 PASS, here-word density
+   17.10% PASS, mask-mismatch 0.406% composition measured
+   (`gen2-collection-driver-2026-10-14/RESULTS.md`). Starts check
+   DONE 2026-10-18 (owner "Starts check first"): golden byte-exact
+   + engine echo + driver replay 30/30.
 6. **Full collection** (100 rollouts; mix 0.6 served / 0.12
-   enrichment / 0.28 traits; dial draws per §4) — PENDING. Also:
+   enrichment / 0.28 traits; dial draws per §4) — DONE 2026-10-18:
+   placement 0.4341 PASS, density 17.23% PASS, mask-mismatch
+   per-class uniformity PASS, starts check 100/100, classes
+   60/12/28 exact (`results-raw/full-100/`). STILL PENDING here:
    §8.1 chatter-floor re-measure on the comparator legs.
 7. **Trunk training** (BC+PPO, 3 seeds; §5 recipe carried; stops:
    probe 300, F-053 1,000, 20M cap) — PENDING.

@@ -42,6 +42,46 @@ ticks, driver defaults = the ruled dials. Raws:
   read that the per-class rates stay uniform — divergence would be
   a between-arm corpus bias for the three-leg comparison.
 
+## Full collection, 100 rollouts (2026-10-18)
+
+Same frozen shape, 100 rollouts × 20k ticks (launched directly after
+the starts check per her "Starts check first" sequencing). Raws:
+`results-raw/full-100/` (manifest, configs, r00–r99, placement.json,
+coverage.json). THIS is the trunk-BC corpus.
+
+- Classes (exact-count law at 100): **60 served / 12 enrichment /
+  28 traits** — as pinned (mix 0.6/0.12/0.28). Enrichment consents
+  12 draws in [20.417, 24.351] ⊂ [20,25]. Realized start shares
+  0.190 edge / 0.038 corner over 500 draws (pilot read 0.300/0.067;
+  both bracket the pencil thresholds 0.25/0.05, seed-keyed draw).
+  Decisions 9,960,292; dropped 0 (100/100 rollout lines).
+- **Placement bar (S§6, pre-PPO gate): PASS** — pooled in-beam
+  sleep share **0.4341** ≥ 0.40, over 680,725 sleep ticks
+  (`results-raw/full-100/placement.json`; pilot read 0.4254).
+- **Here-word density pin (F-034, pre-PPO re-check): PASS** —
+  here-kinds are **17.23%** of decisions vs the 8.18% fluent anchor
+  (pilot 17.10%). By kind: food 3.92%, water 4.61%, critter 1.77%,
+  sunbeam 6.93%.
+- Coverage read: pooled edge-ring visit share 0.0508, corner 0.0009
+  over 10,000,000 kitty-ticks (pilot 0.0577/0.0012; uniform 20×20
+  would read 0.19/0.01). No bar; the frozen remedy keys on placement
+  + density, both PASS.
+- mask-mismatch 39,708/9,960,292 = **0.399%** (pilot 0.406%).
+  **Per-class uniformity re-check (flagged at the pilot): PASS** —
+  enrichment 0.478%, served 0.408%, traits 0.346%, each within
+  0.015 points of its pilot value (0.463/0.419/0.348); same ordering,
+  no divergence, so no between-arm corpus bias for the three-leg
+  comparison from this exclusion class.
+- **Starts check, leg B on this manifest: PASS 100/100** — every
+  rollout's manifest starts/categories, config x/y, and enrichment
+  consent line re-derived exactly from the manifest draw_seed
+  (`starts_check.py --manifest results-raw/full-100/manifest.json`).
+
+All pre-PPO gates pass; no deviations — `gen2-deviations.md` stays
+empty. Regeneration: the pilot fences below with
+`results-raw/pilot-30` → `results-raw/full-100`, `--rollouts 100`,
+`range(30)` → `range(100)`.
+
 ## Starts check (banked at the 062 merge; owner "Starts check first")
 
 `starts_check.py`, two independent legs, all PASS 2026-10-18:
