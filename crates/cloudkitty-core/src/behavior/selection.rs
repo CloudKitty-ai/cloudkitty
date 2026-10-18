@@ -488,6 +488,45 @@ pub(crate) fn heard_unseen_targets(ctx: &DecisionContext) -> Vec<(KittyId, Posit
         .collect()
 }
 
+/// Spec 063 FR-004: the friend-ward drift's one knowledge read -- the
+/// nearest KNOWN friend: visible roster members (any activity state;
+/// drifting toward a friend is not conscription, so busy-ness does not
+/// gate it) chained with the want/here-fenced heard stamps
+/// (`FogView::heard_unseen_want_here`), picked by `(manhattan, id)`.
+/// No adjacency drop: an adjacent stamp sits within every lawful gate,
+/// so the drift is inert there anyway. Everything read is the fogged
+/// view and the digest the observation already carries (doctrine rule
+/// 5); the stamp fence is rule 6's (`MessageKind::is_want_or_here`).
+pub(crate) fn nearest_known_friend(ctx: &DecisionContext) -> Option<(KittyId, Position)> {
+    let me = &ctx.me;
+    let window = ctx.config.meow.digest_window_ticks;
+    ctx.world
+        .others(me.id)
+        .map(|k| (k.id, k.pos))
+        .chain(
+            ctx.world
+                .heard_unseen_want_here(window)
+                .into_iter()
+                .map(|(id, pos, _)| (id, pos)),
+        )
+        .min_by_key(|(id, pos)| (me.pos.manhattan_distance(pos), *id))
+}
+
+/// Spec 063 FR-006: the drift fires iff the flag is on AND a nearest
+/// known friend exists STRICTLY farther than the gate; the fired drift's
+/// pull is that friend's (seen or stamped) position. Every other case --
+/// flag off, nobody known, friend at or within the gate -- returns None
+/// and every drift site decides exactly as flag-off
+/// (specs/063-friend-ward-drift/contracts/drift-law.md).
+pub(crate) fn friend_ward_target(ctx: &DecisionContext) -> Option<Position> {
+    if !ctx.config.behavior.friend_ward_drift {
+        return None;
+    }
+    let (_, pos) = nearest_known_friend(ctx)?;
+    (ctx.me.pos.manhattan_distance(&pos) > ctx.config.behavior.friend_ward_gate_tiles())
+        .then_some(pos)
+}
+
 /// The sunbeam worth walking to for a nap, if any: the priced-cheapest one,
 /// provided its priced cost fits within `sunbeam_reach`. One helper for both
 /// the sleep score and `pursue`'s sleep arm -- the shared carrier of
@@ -2985,5 +3024,111 @@ mod spec_057_sleep_floor_tests {
             score(&floored, NeedKind::Sleep),
             score(&prefog(0.0), NeedKind::Sleep)
         );
+    }
+
+}
+
+#[cfg(test)]
+mod spec_063_friend_ward_tests {
+    use super::*;
+
+    /// A 32x32 stage for the drift: kitty 1 (the decider) at (16, 16),
+    /// kitty 2 at (0, 0), no elements, tick 100, flag as given. Distances
+    /// are set by `setup` moving the kitties.
+    fn fw_ctx(
+        flag: bool,
+        radius: u32,
+        setup: impl FnOnce(&mut crate::world::World),
+    ) -> DecisionContext {
+        let mut config = crate::test_support::test_config();
+        config.world.width = 32;
+        config.world.height = 32;
+        config.vision.radius = radius;
+        config.kitties[0].x = Some(16);
+        config.kitties[0].y = Some(16);
+        config.kitties[1].x = Some(0);
+        config.kitties[1].y = Some(0);
+        config.behavior.friend_ward_drift = flag;
+        config.validate().unwrap();
+        let config = std::sync::Arc::new(config);
+        let mut world = crate::world::World::generate(&config);
+        crate::test_support::forget_everything(&mut world);
+        world.elements.clear();
+        world.tick = 100;
+        setup(&mut world);
+        let me = world.kitty(1).unwrap().clone();
+        DecisionContext {
+            me,
+            world: std::sync::Arc::new(world.snapshot().fog_for(1, config.vision.radius)),
+            rng: crate::behavior::DecisionRng::from_seed(9876),
+            config,
+        }
+    }
+
+    /// Spec 063 FR-004: a visible friend and a lawful stamp compete on
+    /// `(manhattan, id)` alone -- source doesn't rank, distance does.
+    #[test]
+    fn nearest_known_friend_is_min_by_distance_then_id_across_sources() {
+        // Visible friend 2 at manhattan 8; nothing heard: the visible one.
+        let ctx = fw_ctx(true, 64, |w| {
+            let i2 = w.kitty_index(2).unwrap();
+            w.kitties[i2].pos = Position::new(8, 16);
+        });
+        assert_eq!(
+            nearest_known_friend(&ctx),
+            Some((2, Position::new(8, 16)))
+        );
+        // Friend 2 unseen (radius 5) but stamped lawfully at manhattan 6:
+        // the stamp places it.
+        let ctx = fw_ctx(true, 5, |w| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: crate::meow::MessageKind::WantDrink,
+                tick: 99,
+                intensity: 0.5,
+                pos: Position::new(10, 16),
+                reply: false,
+            });
+        });
+        assert!(ctx.world.kitty(2).is_none(), "friend 2 is outside the disc");
+        assert_eq!(
+            nearest_known_friend(&ctx),
+            Some((2, Position::new(10, 16)))
+        );
+        // Nobody visible, nothing lawful in the window: nobody is known.
+        let ctx = fw_ctx(true, 5, |w| {
+            w.recent_meows.push(crate::meow::Meow {
+                kitty_id: 2,
+                kind: crate::meow::MessageKind::Chirp,
+                tick: 99,
+                intensity: 0.0,
+                pos: Position::new(10, 16),
+                reply: false,
+            });
+        });
+        assert_eq!(nearest_known_friend(&ctx), None, "free register never places");
+    }
+
+    /// Spec 063 FR-006 and the gate boundary: distance == gate does NOT
+    /// fire ("strictly farther"); gate + 1 does; the flag off never does.
+    #[test]
+    fn friend_ward_target_fires_strictly_beyond_the_gate_and_only_with_the_flag() {
+        let at_distance = |flag: bool, d: u32| {
+            fw_ctx(flag, 64, move |w| {
+                let i2 = w.kitty_index(2).unwrap();
+                w.kitties[i2].pos = Position::new(16 - d, 16);
+            })
+        };
+        // Default gate 10: manhattan 10 is inert, 11 fires.
+        assert_eq!(friend_ward_target(&at_distance(true, 10)), None);
+        assert_eq!(
+            friend_ward_target(&at_distance(true, 11)),
+            Some(Position::new(5, 16))
+        );
+        // Same world, flag off: never fires.
+        assert_eq!(friend_ward_target(&at_distance(false, 11)), None);
+        // Nobody known (radius 5, silence): never fires.
+        let alone = fw_ctx(true, 5, |_| {});
+        assert_eq!(friend_ward_target(&alone), None);
     }
 }

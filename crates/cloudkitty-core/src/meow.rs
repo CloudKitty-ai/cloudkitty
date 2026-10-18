@@ -129,6 +129,16 @@ impl MessageKind {
         }
     }
 
+    /// Spec 063: the friend-ward drift's stamp fence -- law-named want
+    /// and here words only. The free register (Mew, Chirp, Trill,
+    /// Ekekek), Purr and WaitForMe never qualify: the drift reads a
+    /// stamp's position and freshness, and only from words whose meaning
+    /// the law enforces (her ruling, 063 Clarifications; the existing
+    /// kind-agnostic heard-unseen consumers are banked Candidate 2's).
+    pub fn is_want_or_here(&self) -> bool {
+        self.related_need().is_some() || Self::HERE_KINDS.contains(self)
+    }
+
     /// The wire spelling (serde's snake_case tag) as a static string --
     /// the one spelling every surface reports (spec 028 R17: the py
     /// binding's Debug-spelling wart died with this).
