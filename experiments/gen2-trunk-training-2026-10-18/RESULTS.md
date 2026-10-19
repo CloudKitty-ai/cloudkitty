@@ -187,3 +187,37 @@ for w in v["per_world"]:
           [round(x, 1) for x in w["target_range"]])
 EOF
 ```
+
+## Critic investigation reads (owner "Run the investigation reads", 2026-10-18)
+
+Professor's advisory (second opinion relayed on her word; their note:
+`~/ai/professor/notes/for-experiments-critic-probe-opinion-2026-10-18.md`)
+read the FAIL as cause (a) — narrow corpus return span, welfare
+features never bound — with (c), a real encoding gap, as the
+alternative worth excluding, and called the pooled-Spearman instrument
+mostly wrong while the declared FAIL stands (no post-hoc re-scoring;
+an amended instrument is declared here for the NEW reads only). Two
+reads, declared before running:
+
+**Read 1 — feature sensitivity** (`trainer/critic_sensitivity_g2.py`):
+20,000 corpus val states (seeded sample), each perturbed per kitty
+block — distress flags → 1, needs → 0.20, happiness → 0.20, and all
+three combined — and the critic's raw-unit prediction delta read per
+variant. Layout offsets asserted in-run on the raw sample. Reference
+scale: the corpus-to-probe target gap is ~174 raw units (417.1 →
+243.1). Reading rule: deltas a small fraction of that gap = features
+unbound, (a) confirmed and (c) dissolved; a large wrong-direction
+delta = encoding issue, named before PPO.
+
+**Read 2 — ε-on-clone re-probes** (`trainer/critic_probe_g2.py
+--epsilon`, PPO's actual early visitation): per seat-tick the clone's
+greedy legal action, random-legal with probability ε. Two runs, ε 0.1
+at seed-base 870007 and ε 0.3 at seed-base 870010 (fresh bases off
+the shared battery eval band; 3 worlds × 4,000 ticks each, one
+continuous episode per world). Declared bars for THESE reads
+(amended, per-world, so world offsets cannot wash the rank out):
+finite and in-band unchanged as hard bars; benign line = EVERY
+world's Spearman ≥ 0.3; a world whose target std is under 2 raw
+units is reported as uninformative, not passed. These are
+investigation reads, not acceptance gates — acceptance stays the
+owner's word either way.

@@ -34,6 +34,21 @@ for _ in range(200):
 assert acts == {0, 5, 34} and msgs == {0, 4}, \
     f"rand_legal covers every legal head, got {acts} {msgs}"
 
+# --- masked_argmax ---------------------------------------------------------
+rng2 = np.random.default_rng(11)
+for _ in range(200):
+    logits = rng2.normal(0, 3, 51)
+    m = rng2.random(51) < 0.3
+    m[4] = True          # a legal activity always exists (RestSolo)
+    m[35] = True         # Silent always legal
+    a, g = cp.masked_argmax(logits, m)
+    assert m[a] and m[35 + g], "masked_argmax: illegal head"
+    legal_a = np.flatnonzero(m[:35])
+    legal_g = np.flatnonzero(m[35:])
+    assert logits[a] == logits[legal_a].max(), "masked_argmax: not the max act"
+    assert logits[35 + g] == logits[35:][legal_g].max(), \
+        "masked_argmax: not the max msg"
+
 # --- spearman --------------------------------------------------------------
 assert cp.spearman([1, 2, 3, 4], [10, 20, 30, 40]) == 1.0, "spearman: perfect"
 assert cp.spearman([1, 2, 3, 4], [4, 3, 2, 1]) == -1.0, "spearman: inverted"

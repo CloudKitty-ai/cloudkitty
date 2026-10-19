@@ -85,8 +85,18 @@ def verdict(pred_raw, targets, target_mean):
             "verdict": "PASS" if ok else "FAIL"}
 
 
-def collect(ticks, n_worlds, seed_base):
+def masked_argmax(logits, mask):
+    """Greedy legal (activity, message) pair from 51-wide logits."""
+    lg = np.where(mask, logits, -np.inf)
+    return int(np.argmax(lg[:N_ACT])), int(np.argmax(lg[N_ACT:]))
+
+
+def collect(ticks, n_worlds, seed_base, epsilon=1.0, clone=None):
+    """epsilon = probability a seat acts random-legal this tick; the
+    rest follow the BC clone's greedy legal action (epsilon 1.0 = the
+    original pure-random probe; a clone is required below 1.0)."""
     from ppo_env_g2 import TrunkVecRunner
+    assert epsilon == 1.0 or clone is not None
     # horizon override: the rl config default truncates at 2,000 ticks;
     # the probe needs one continuous episode per world so censored
     # returns never span a reset (the Gen 1 probe crossed resets
@@ -100,12 +110,22 @@ def collect(ticks, n_worlds, seed_base):
     rewards = [[] for _ in range(n_worlds)]
     for _ in range(ticks):
         st = runner.states()
-        _obs, mask, valid = runner.flat_obs(obs_dim, mask_dim)
+        obs, mask, valid = runner.flat_obs(obs_dim, mask_dim)
+        if clone is not None:
+            flat = torch.as_tensor(obs[valid])
+            with torch.no_grad():
+                logits = clone(flat).numpy()
         actions = np.zeros((n_worlds, mask.shape[1], 2), np.int64)
+        row = 0
         for w in range(n_worlds):
             for j in range(mask.shape[1]):
                 if valid[w, j]:
-                    actions[w, j] = rand_legal(mask[w, j], rng)
+                    if clone is not None and rng.random() >= epsilon:
+                        actions[w, j] = masked_argmax(logits[row],
+                                                      mask[w, j])
+                    else:
+                        actions[w, j] = rand_legal(mask[w, j], rng)
+                    row += 1
         _rew, trunc, _final = runner.step(actions)
         assert not trunc.any(), "probe world truncated mid-stream"
         for w in range(n_worlds):
@@ -123,6 +143,11 @@ def main():
     ap.add_argument("--worlds", type=int, default=3)
     ap.add_argument("--seed-base", type=int, default=870004)
     ap.add_argument("--critic", type=Path, default=CRITIC)
+    ap.add_argument("--epsilon", type=float, default=1.0,
+                    help="random-legal probability per seat-tick; below "
+                         "1.0 the rest is the clone's greedy legal action")
+    ap.add_argument("--clone", type=Path,
+                    default=ARC / "artifacts/trunk-clone/trunk-clone.pt")
     ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args()
 
@@ -130,7 +155,15 @@ def main():
     from tokens_v2 import tokenize
     from train_critic_g2 import critic_arrays
 
-    rollouts = collect(args.ticks, args.worlds, args.seed_base)
+    clone = None
+    if args.epsilon < 1.0:
+        from model_v6 import EntityPolicyV6
+        ck = torch.load(args.clone, map_location="cpu", weights_only=True)
+        clone = EntityPolicyV6(**ck["hyper"])
+        clone.load_state_dict(ck["state_dict"])
+        clone.eval()
+    rollouts = collect(args.ticks, args.worlds, args.seed_base,
+                       args.epsilon, clone)
     for r in rollouts:
         assert np.isfinite(r.reward).all() and np.isfinite(r.state).all()
         print(f"{r.name}: mean reward {r.reward.mean():.4f}", flush=True)
@@ -159,13 +192,16 @@ def main():
          "pred_range": [float(pred_raw[w * keep:(w + 1) * keep].min()),
                         float(pred_raw[w * keep:(w + 1) * keep].max())],
          "target_range": [float(y[w * keep:(w + 1) * keep].min()),
-                          float(y[w * keep:(w + 1) * keep].max())]}
+                          float(y[w * keep:(w + 1) * keep].max())],
+         "target_std": float(y[w * keep:(w + 1) * keep].std())}
         for w, r in enumerate(rollouts)]
     v.update({"states": int(len(y)),
               "target_min": float(y.min()), "target_max": float(y.max()),
               "target_mean_probe": float(y.mean()),
               "target_mean_corpus": float(art["target_mean"]),
               "ticks": args.ticks, "worlds": args.worlds,
+              "epsilon": args.epsilon,
+              "clone": str(args.clone) if clone is not None else None,
               "seed_base": args.seed_base,
               "world_seeds": [args.seed_base + w * 1_000_000
                               for w in range(args.worlds)],
