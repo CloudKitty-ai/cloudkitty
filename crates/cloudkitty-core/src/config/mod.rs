@@ -2516,50 +2516,78 @@ mod tests {
         );
         assert!(
             Config::default().initial_needs.is_none()
-                && Config::default().kitties.iter().all(|k| k.initial_needs.is_none()),
+                && Config::default()
+                    .kitties
+                    .iter()
+                    .all(|k| k.initial_needs.is_none()),
             "absent = feature off at both levels"
         );
 
         // Both spellings parse and round-trip; unset needs stay skipped.
-        let spec: InitialNeedsSpec = toml::from_str(
-            "cuddle = 80.0\neat = { min = 40.0, max = 70.0 }",
-        )
-        .unwrap();
+        let spec: InitialNeedsSpec =
+            toml::from_str("cuddle = 80.0\neat = { min = 40.0, max = 70.0 }").unwrap();
         assert_eq!(spec.cuddle, Some(NeedInit::Value(80.0)));
         assert_eq!(
             spec.eat,
-            Some(NeedInit::Range(NeedInitRange { min: 40.0, max: 70.0 }))
+            Some(NeedInit::Range(NeedInitRange {
+                min: 40.0,
+                max: 70.0
+            }))
         );
         assert_eq!(spec.sleep, None);
         let round_trip = toml::to_string(&spec).unwrap();
-        assert!(round_trip.contains("cuddle = 80.0"), "bare value spelling kept: {round_trip}");
-        assert!(round_trip.contains("min = 40.0"), "range spelling kept: {round_trip}");
+        assert!(
+            round_trip.contains("cuddle = 80.0"),
+            "bare value spelling kept: {round_trip}"
+        );
+        assert!(
+            round_trip.contains("min = 40.0"),
+            "range spelling kept: {round_trip}"
+        );
         assert!(!round_trip.contains("sleep"), "unset needs stay skipped");
-        assert_eq!(toml::from_str::<InitialNeedsSpec>(&round_trip).unwrap(), spec);
+        assert_eq!(
+            toml::from_str::<InitialNeedsSpec>(&round_trip).unwrap(),
+            spec
+        );
 
         // deny_unknown_fields holds inside the section and the range.
         assert!(toml::from_str::<InitialNeedsSpec>("hunger = 10.0").is_err());
-        assert!(toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0, max = 2.0, mode = 1.5 }")
-            .is_err());
+        assert!(
+            toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0, max = 2.0, mode = 1.5 }")
+                .is_err()
+        );
     }
 
     /// Spec 065 init-law §8: out-of-bounds values, inverted ranges, and
     /// non-finite numbers are rejected by name at both levels.
     #[test]
     fn initial_needs_settings_are_validated_by_name_at_both_levels() {
-        let mut config = Config::default();
-        config.initial_needs = Some(InitialNeedsSpec {
-            cuddle: Some(NeedInit::Value(101.0)),
+        let config = Config {
+            initial_needs: Some(InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(101.0)),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
-        let msg = config.validate().expect_err("101 is out of need bounds").to_string();
-        assert!(msg.contains("[initial_needs].cuddle"), "names the key: {msg}");
+        };
+        let msg = config
+            .validate()
+            .expect_err("101 is out of need bounds")
+            .to_string();
+        assert!(
+            msg.contains("[initial_needs].cuddle"),
+            "names the key: {msg}"
+        );
 
-        let mut config = Config::default();
-        config.initial_needs = Some(InitialNeedsSpec {
-            eat: Some(NeedInit::Range(NeedInitRange { min: 50.0, max: 40.0 })),
+        let config = Config {
+            initial_needs: Some(InitialNeedsSpec {
+                eat: Some(NeedInit::Range(NeedInitRange {
+                    min: 50.0,
+                    max: 40.0,
+                })),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         let msg = config.validate().expect_err("inverted range").to_string();
         assert!(msg.contains("min must be at most max"), "{msg}");
 
@@ -2568,18 +2596,26 @@ mod tests {
             bath: Some(NeedInit::Value(f32::NAN)),
             ..Default::default()
         });
-        let msg = config.validate().expect_err("NaN is not a need value").to_string();
+        let msg = config
+            .validate()
+            .expect_err("NaN is not a need value")
+            .to_string();
         assert!(
             msg.contains("initial_needs.bath") && msg.contains(&config.kitties[0].name),
             "names the kitty and the need: {msg}"
         );
 
         // Bounds themselves are legal values: 0 and 100 pass.
-        let mut config = Config::default();
-        config.initial_needs = Some(InitialNeedsSpec {
-            play: Some(NeedInit::Range(NeedInitRange { min: 0.0, max: 100.0 })),
+        let config = Config {
+            initial_needs: Some(InitialNeedsSpec {
+                play: Some(NeedInit::Range(NeedInitRange {
+                    min: 0.0,
+                    max: 100.0,
+                })),
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         config.validate().expect("0 and 100 are legal need bounds");
     }
 

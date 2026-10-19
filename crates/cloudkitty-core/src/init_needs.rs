@@ -127,8 +127,7 @@ mod tests {
             (NeedKind::Cuddle, NeedInit::Value(80.0)),
             (NeedKind::Eat, NeedInit::Value(30.0)),
         ]));
-        config.kitties[1].initial_needs =
-            Some(spec(&[(NeedKind::Cuddle, NeedInit::Value(10.0))]));
+        config.kitties[1].initial_needs = Some(spec(&[(NeedKind::Cuddle, NeedInit::Value(10.0))]));
 
         let resolved = resolve(&config);
         let get = |id: u32, kind| {
@@ -146,7 +145,11 @@ mod tests {
         );
         assert_eq!(get(1, NeedKind::Cuddle), 80.0);
         assert_eq!(get(3, NeedKind::Cuddle), 80.0);
-        assert_eq!(get(1, NeedKind::Drink), 0.0, "ungoverned needs start at zero");
+        assert_eq!(
+            get(1, NeedKind::Drink),
+            0.0,
+            "ungoverned needs start at zero"
+        );
     }
 
     #[test]
@@ -163,7 +166,10 @@ mod tests {
 
         let mut kitty_only = base_config();
         kitty_only.kitties[2].initial_needs = Some(InitialNeedsSpec::default());
-        assert!(active(&kitty_only), "a per-kitty entry alone activates (FR-001)");
+        assert!(
+            active(&kitty_only),
+            "a per-kitty entry alone activates (FR-001)"
+        );
     }
 
     #[test]
@@ -184,7 +190,10 @@ mod tests {
         // Staging asserts on THIS seed (993001): per-kitty variation and
         // per-need variation both actually present, so the independence
         // claim is exercised, not vacuous.
-        let cuddles: Vec<f32> = resolved.iter().map(|(_, n)| n.get(NeedKind::Cuddle)).collect();
+        let cuddles: Vec<f32> = resolved
+            .iter()
+            .map(|(_, n)| n.get(NeedKind::Cuddle))
+            .collect();
         assert!(
             cuddles.windows(2).any(|w| w[0] != w[1]),
             "kitties must differ within the range at this seed: {cuddles:?}"
@@ -201,7 +210,11 @@ mod tests {
     fn same_seed_and_config_resolve_identically_and_seeds_differ() {
         let mut config = base_config();
         config.initial_needs = Some(spec(&[(NeedKind::Eat, range(20.0, 90.0))]));
-        assert_eq!(resolve(&config), resolve(&config), "deterministic per seed+config");
+        assert_eq!(
+            resolve(&config),
+            resolve(&config),
+            "deterministic per seed+config"
+        );
 
         let mut other_seed = config.clone();
         other_seed.world.seed = 993002;
@@ -230,7 +243,11 @@ mod tests {
 
         let point_r = resolve(&point);
         let fixed_r = resolve(&fixed);
-        assert_eq!(point_r[0].1.get(NeedKind::Eat), 50.0, "a point range lands its value");
+        assert_eq!(
+            point_r[0].1.get(NeedKind::Eat),
+            50.0,
+            "a point range lands its value"
+        );
         assert_eq!(fixed_r[0].1.get(NeedKind::Eat), 50.0);
         assert_ne!(
             point_r[0].1.get(NeedKind::Cuddle),
@@ -279,7 +296,14 @@ mod tests {
         let mut config = base_config();
         config.initial_needs = Some(spec(&[(NeedKind::Cuddle, range(0.0, 100.0))]));
         let resolved = resolve(&config);
-        let got: Vec<f32> = resolved.iter().map(|(_, n)| n.get(NeedKind::Cuddle)).collect();
-        assert_eq!(got, vec![36.552055, 51.803318, 87.84356], "seed 993001, range [0,100]");
+        let got: Vec<f32> = resolved
+            .iter()
+            .map(|(_, n)| n.get(NeedKind::Cuddle))
+            .collect();
+        assert_eq!(
+            got,
+            vec![36.552055, 51.803318, 87.84356],
+            "seed 993001, range [0,100]"
+        );
     }
 }

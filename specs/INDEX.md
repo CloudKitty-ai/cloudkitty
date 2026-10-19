@@ -66,3 +66,4 @@ regenerate and commit (owning thread) when specs change.
 | `062-randomized-starts` | Draft |
 | `063-friend-ward-drift` | Draft |
 | `064-waypoint-start` | Draft |
+| `065-initial-needs` | Draft |

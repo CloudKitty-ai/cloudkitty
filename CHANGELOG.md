@@ -33,6 +33,22 @@ change.
 
 ## Unreleased
 
+- **A world can begin mid-story.** Initial-needs distribution (spec
+  065), absent by default everywhere: a new optional `[initial_needs]`
+  config section (with per-kitty overrides) lets a world be created
+  with chosen needs already elevated — a fixed value or a per-cat draw
+  from a range — instead of every cat starting rested, fed, and
+  perfectly content. Happiness at tick 0 is computed from those needs
+  by the same formula as always, a cat created in distress is on the
+  record as distressed from tick 0 (never a healthy-looking first
+  instant), and the world's standing relief guarantees apply to a
+  born-high need exactly as to one that climbed there. Built for
+  training-data worlds that study recovery; no served or shipped
+  config uses it. With the section absent — all of them — the engine
+  is byte-identical to before, verified by byte-comparing full runs at
+  landing. No compatibility marker: the defaults stamp, observation
+  schema, world fingerprint and seeded draw order are all unmoved.
+
 - **A cat's search starts where the cat is.** Waypoint start-index by
   position (spec 064), off by default everywhere: a new `[behavior]`
   flag seeds each cat's blind exploration tour at the waypoint nearest

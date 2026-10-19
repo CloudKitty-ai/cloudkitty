@@ -4771,7 +4771,10 @@ mod tests {
         let config = initial_needs_config(
             InitialNeedsSpec {
                 cuddle: Some(NeedInit::Value(80.0)),
-                eat: Some(NeedInit::Range(NeedInitRange { min: 40.0, max: 70.0 })),
+                eat: Some(NeedInit::Range(NeedInitRange {
+                    min: 40.0,
+                    max: 70.0,
+                })),
                 ..Default::default()
             },
             &[],
@@ -4781,17 +4784,32 @@ mod tests {
             assert_eq!(kitty.needs.get(NeedKind::Cuddle), 80.0);
             let eat = kitty.needs.get(NeedKind::Eat);
             assert!((40.0..=70.0).contains(&eat), "kitty {}: {eat}", kitty.id);
-            assert_eq!(kitty.needs.get(NeedKind::Drink), 0.0, "unspecified stays zero");
+            assert_eq!(
+                kitty.needs.get(NeedKind::Drink),
+                0.0,
+                "unspecified stays zero"
+            );
             assert_eq!(
                 kitty.happiness,
-                happiness(&kitty.needs, &config.happiness.weights, config.happiness.floor),
+                happiness(
+                    &kitty.needs,
+                    &config.happiness.weights,
+                    config.happiness.floor
+                ),
                 "tick-0 happiness is derived, never configured (FR-004)"
             );
         }
         // Staging: this seed must actually produce per-kitty variation in
         // the ranged need, or the independence claim is pinned nowhere.
-        let eats: Vec<f32> = world.kitties.iter().map(|k| k.needs.get(NeedKind::Eat)).collect();
-        assert!(eats.windows(2).any(|w| w[0] != w[1]), "kitties must differ: {eats:?}");
+        let eats: Vec<f32> = world
+            .kitties
+            .iter()
+            .map(|k| k.needs.get(NeedKind::Eat))
+            .collect();
+        assert!(
+            eats.windows(2).any(|w| w[0] != w[1]),
+            "kitties must differ: {eats:?}"
+        );
     }
 
     /// Spec 065 FR-003 (US2 scenario 5, clarify Q1): a per-kitty override
@@ -4816,9 +4834,21 @@ mod tests {
         );
         let world = World::generate(&config);
         let needs_of = |id: u32| world.kitties.iter().find(|k| k.id == id).unwrap().needs;
-        assert_eq!(needs_of(2).get(NeedKind::Cuddle), 10.0, "override wins its need");
-        assert_eq!(needs_of(2).get(NeedKind::Eat), 30.0, "other needs follow the table");
-        assert_eq!(needs_of(1).get(NeedKind::Cuddle), 80.0, "other kitties untouched");
+        assert_eq!(
+            needs_of(2).get(NeedKind::Cuddle),
+            10.0,
+            "override wins its need"
+        );
+        assert_eq!(
+            needs_of(2).get(NeedKind::Eat),
+            30.0,
+            "other needs follow the table"
+        );
+        assert_eq!(
+            needs_of(1).get(NeedKind::Cuddle),
+            80.0,
+            "other kitties untouched"
+        );
     }
 
     /// Spec 065 FR-001/FR-002 (US1): a feature-absent config generates
@@ -4845,12 +4875,18 @@ mod tests {
     fn initial_needs_compose_with_randomized_starts_without_moving_either_draw() {
         use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
         let table = InitialNeedsSpec {
-            play: Some(NeedInit::Range(NeedInitRange { min: 0.0, max: 100.0 })),
+            play: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
             ..Default::default()
         };
         let needs_only = initial_needs_config(table, &[]);
         let needs_of = |w: &World| -> Vec<(u32, f32)> {
-            w.kitties.iter().map(|k| (k.id, k.needs.get(NeedKind::Play))).collect()
+            w.kitties
+                .iter()
+                .map(|k| (k.id, k.needs.get(NeedKind::Play)))
+                .collect()
         };
 
         let mut with_starts = (*needs_only).clone();
@@ -4873,17 +4909,26 @@ mod tests {
 
         // Staging: both laws nontrivial on this stage.
         let drawn_needs = needs_of(&w_needs);
-        assert!(drawn_needs.iter().any(|(_, v)| *v != 0.0), "needs law must draw");
         assert!(
-            w_starts.kitties.iter().zip(test_config().kitties.iter()).any(|(k, kc)| {
-                Some(k.pos.x) != kc.x || Some(k.pos.y) != kc.y
-            }),
+            drawn_needs.iter().any(|(_, v)| *v != 0.0),
+            "needs law must draw"
+        );
+        assert!(
+            w_starts
+                .kitties
+                .iter()
+                .zip(test_config().kitties.iter())
+                .any(|(k, kc)| { Some(k.pos.x) != kc.x || Some(k.pos.y) != kc.y }),
             "starts law must move someone off the explicit tiles"
         );
 
         assert_eq!(needs_of(&w_both), drawn_needs, "[starts] moved a need draw");
         for (a, b) in w_both.kitties.iter().zip(w_starts.kitties.iter()) {
-            assert_eq!((a.id, a.pos), (b.id, b.pos), "[initial_needs] moved a position draw");
+            assert_eq!(
+                (a.id, a.pos),
+                (b.id, b.pos),
+                "[initial_needs] moved a position draw"
+            );
         }
     }
 
@@ -4895,8 +4940,14 @@ mod tests {
         use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
         let config = initial_needs_config(
             InitialNeedsSpec {
-                cuddle: Some(NeedInit::Range(NeedInitRange { min: 85.0, max: 100.0 })),
-                drink: Some(NeedInit::Range(NeedInitRange { min: 0.0, max: 50.0 })),
+                cuddle: Some(NeedInit::Range(NeedInitRange {
+                    min: 85.0,
+                    max: 100.0,
+                })),
+                drink: Some(NeedInit::Range(NeedInitRange {
+                    min: 0.0,
+                    max: 50.0,
+                })),
                 ..Default::default()
             },
             &[],
@@ -4932,7 +4983,9 @@ mod tests {
         let roster = world.kitties.len();
         let tick0_events = world.distress.to_vec();
         assert_eq!(tick0_events.len(), roster, "one event per kitty at tick 0");
-        assert!(tick0_events.iter().all(|e| e.need == NeedKind::Cuddle && e.tick == 0));
+        assert!(tick0_events
+            .iter()
+            .all(|e| e.need == NeedKind::Cuddle && e.tick == 0));
         for kitty in &world.kitties {
             assert!(kitty.in_distress.contains(&NeedKind::Cuddle));
             assert_eq!(kitty.distress_since.get(&NeedKind::Cuddle), Some(&0));
@@ -4946,7 +4999,10 @@ mod tests {
         // this fast), and the edge trigger stays quiet.
         let proposals = crate::seam::JointProposal::new();
         world.tick_with_proposals(&proposals, &config);
-        assert!(world.kitties.iter().all(|k| k.needs.get(NeedKind::Cuddle) >= 90.0));
+        assert!(world
+            .kitties
+            .iter()
+            .all(|k| k.needs.get(NeedKind::Cuddle) >= 90.0));
         assert_eq!(
             world.distress.to_vec().len(),
             roster,
@@ -4991,12 +5047,20 @@ mod tests {
             assert_eq!(ka.in_distress, kb.in_distress);
             assert_eq!(ka.distress_since, kb.distress_since);
             assert_eq!(ka.announce_armed, kb.announce_armed);
-            assert_eq!(ka.activity, kb.activity, "kitty {}: relief path diverged", ka.id);
+            assert_eq!(
+                ka.activity, kb.activity,
+                "kitty {}: relief path diverged",
+                ka.id
+            );
         }
         let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
             w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
         };
-        assert_eq!(shape(&a), shape(&b), "the environment answered the two worlds differently");
+        assert_eq!(
+            shape(&a),
+            shape(&b),
+            "the environment answered the two worlds differently"
+        );
         assert_eq!(a.distress.to_vec(), b.distress.to_vec());
     }
 

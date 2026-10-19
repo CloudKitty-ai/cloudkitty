@@ -54,18 +54,18 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
 
 ## Phase 3: User Story 1 — inert when absent (P1) 🎯 MVP
 
-- [ ] T005 [US1] Wire application in `crates/cloudkitty-core/src/world.rs`
+- [X] T005 [US1] Wire application in `crates/cloudkitty-core/src/world.rs`
       `try_generate`: iff the feature is active (init-law §1), apply
       resolved initial needs right after the kitty-creation loop + id
       sort; after the existing happiness recompute, run
       `update_announce_arming(config)` then `record_distress(config)`
       (the Phase-4 order, init-law §6). Inactive: not one line of the
       pre-065 path moves. Comment carries the contract pointer.
-- [ ] T006 [US1] Full feature-absent surface: workspace `cargo test`
+- [X] T006 [US1] Full feature-absent surface: workspace `cargo test`
       green, zero golden movement in `git status`; rebuild bc-collect
       and byte-compare T001's run (all arrays identical, meta delta =
       engine_commit only).
-- [ ] T007 [US1] Mutate red (prediction first): make the activation
+- [X] T007 [US1] Mutate red (prediction first): make the activation
       predicate always-true (apply path + generation-time needs-phase
       calls run on every config) expecting a flag-off guard red — write
       the guard in T008 first if ordering demands, else name the
@@ -73,7 +73,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
 
 ## Phase 4: User Story 2 — a world starts where configured (P2)
 
-- [ ] T008 [US2] World-generation tests in `world.rs` test module
+- [X] T008 [US2] World-generation tests in `world.rs` test module
       (stage on `test_support` builders): fixed value lands exactly for
       every kitty with happiness = engine function of the vector;
       ranged need draws inside bounds with kitties differing (seeded
@@ -82,21 +82,21 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
       (scenario US2-5: override kitty gets its cuddle, its OTHER needs
       follow roster-wide; all other kitties roster-wide); feature-absent
       world generates all-zero needs (the US1/T007 guard).
-- [ ] T009 [US2] Composition + determinism tests in `world.rs`: with
+- [X] T009 [US2] Composition + determinism tests in `world.rs`: with
       `[starts]` (062) also on — drawn positions per the 062 law
       (golden-draw suite untouched), needs identical to the
       no-`[starts]` case at the same seed (staging assert: both laws
       produce nontrivial outcomes); same seed+config twice → byte-equal
       need vectors and world state (extend the existing determinism
       test shape).
-- [ ] T010 [US2] Mutate reds (predictions first): draw needs from the
+- [X] T010 [US2] Mutate reds (predictions first): draw needs from the
       MASTER stream (`world.rng`) instead of the sub-stream expecting
       the 062-composition test red; apply needs AFTER the happiness
       recompute expecting the happiness-derivation test red.
 
 ## Phase 5: User Story 3 — register-real distressed starts (P2)
 
-- [ ] T011 [US3] Tick-0 distress tests in `world.rs` test module: a
+- [X] T011 [US3] Tick-0 distress tests in `world.rs` test module: a
       need initialized ≥ `thresholds.distress` yields a tick-0
       DistressLog event per affected (kitty, need), `in_distress`
       containing it, and `distress_since == 0` BEFORE any tick runs; a
@@ -110,7 +110,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
       the same value in a pre-065 world (resource present/reachable per
       the existing machinery); never an absolute resource claim for
       social needs (cuddle relief is another kitty, not a spawn).
-- [ ] T012 [US3] Mutate reds (predictions first): skip the
+- [X] T012 [US3] Mutate reds (predictions first): skip the
       generation-time `record_distress` call expecting the tick-0-event
       test red; seed `distress_since` by hand with tick 1 (simulating a
       parallel path) expecting the `distress_since == 0` pin red; make
@@ -119,13 +119,13 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
 
 ## Phase 6: Polish
 
-- [ ] T013 Feature-on smoke per quickstart scenarios 2/3/5 (scratch
+- [X] T013 Feature-on smoke per quickstart scenarios 2/3/5 (scratch
       tomls in the scratchpad only, deleted after; NEVER under
       experiments/ — the shipped-config sweep); verify no served or
       committed config carries the section (FR-009 grep).
-- [ ] T014 CHANGELOG.md Unreleased entry (public voice, forward-only);
+- [X] T014 CHANGELOG.md Unreleased entry (public voice, forward-only);
       specs/INDEX.md line for 065.
-- [ ] T015 Local gate (`cargo fmt`, `cargo clippy --all-targets`, full
+- [X] T015 Local gate (`cargo fmt`, `cargo clippy --all-targets`, full
       `cargo test`) + local jscpd at threshold 3.5; SC-001..005
       verified against reality; FR-008 verified by inspection (no
       behavior-API or observation surface touched — name it in the PR
