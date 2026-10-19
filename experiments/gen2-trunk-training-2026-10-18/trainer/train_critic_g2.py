@@ -13,17 +13,30 @@ states are 237 wide with no padding; the trunk critic sees every
 seat's identity dials (spec 058 FR-009).
 
   .venv/bin/python train_critic_g2.py --data-root <collection dir> \
-      --consent-rows <consent_rows.py JSON>
+      --consent-rows <consent_rows.py JSON> \
+      [--extension-manifest <extension-manifest.json>] \
+      [--extension-dirs <dir> ...]
 
 (The consent swap moves activity labels only; the critic reads states
 and rewards. The loader still takes the JSON so its integrity asserts
 run once, identically, for every consumer of the corpus.)
+
+EXTENSION (MITIGATION.md, deviations entry 2): --extension-manifest
+adds the rung (i) harvest rollouts (the manifest's included entries,
+re-verified by sha256 at load) and --extension-dirs adds collection
+dirs holding config-*-rollout-* bundles (the degradation suite).
+Extension data is TRAIN-ONLY — states and rewards, no labels — and
+the val split stays the ORIGINAL corpus val rollouts, so the
+acceptance no-regression band reads the same quantity before and
+after the mix.
 """
 import argparse
+import hashlib
 import json
 import sys
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import torch
@@ -34,6 +47,38 @@ sys.path.insert(0, str(HERE))
 from data_g2 import load_dataset  # noqa: E402
 from model_attn_v2 import EntityCriticV2  # noqa: E402
 from tokens_v2 import STATE_DIM, tokenize  # noqa: E402
+
+
+def load_extension(manifest: Path | None, dirs):
+    """Extension rollouts as (name, state, reward) rows, train-only."""
+    exp = HERE.parents[1]
+    rows = []
+    if manifest is not None:
+        man = json.loads(manifest.read_text())
+        for r in man["rollouts"]:
+            if not r["included"]:
+                continue
+            d = exp / r["path"]
+            state = np.load(d / "state.npy", mmap_mode="r")
+            digest = hashlib.sha256(
+                np.ascontiguousarray(state)).hexdigest()
+            assert digest == r["sha256"], \
+                f"{r['path']}: harvest rollout changed since assembly"
+            rows.append(SimpleNamespace(
+                name=f"ext:{r['path']}", state=state,
+                reward=np.asarray(np.load(d / "reward.npy"), np.float32)))
+    for root in dirs or ():
+        found = sorted(Path(root).glob("**/config-*-rollout-*"))
+        assert found, f"no rollout dirs under {root}"
+        for d in found:
+            rows.append(SimpleNamespace(
+                name=f"ext:{d}", state=np.load(d / "state.npy",
+                                               mmap_mode="r"),
+                reward=np.asarray(np.load(d / "reward.npy"), np.float32)))
+    for r in rows:
+        assert r.state.shape[1] == STATE_DIM, (r.name, r.state.shape)
+        assert r.state.shape[0] == r.reward.shape[0], r.name
+    return rows
 
 
 def critic_arrays(rollouts, gamma: float, min_future: int = 1500):
@@ -72,6 +117,8 @@ def main():
     ap.add_argument("--seed", type=int, default=20261018)
     ap.add_argument("--limit-rollouts", type=int, default=None)
     ap.add_argument("--threads", type=int, default=None)
+    ap.add_argument("--extension-manifest", type=Path, default=None)
+    ap.add_argument("--extension-dirs", type=Path, nargs="*", default=None)
     args = ap.parse_args()
 
     if args.threads:
@@ -80,7 +127,10 @@ def main():
     np.random.seed(args.seed)
     train_r, val_r, dims = load_dataset(args.data_root, args.consent_rows,
                                         args.limit_rollouts)
-    print(f"dims: {dims}; rollouts {len(train_r)} train / {len(val_r)} val",
+    ext = load_extension(args.extension_manifest, args.extension_dirs)
+    train_r = list(train_r) + ext
+    print(f"dims: {dims}; rollouts {len(train_r)} train "
+          f"({len(ext)} extension, train-only) / {len(val_r)} val",
           flush=True)
 
     x_tr, y_tr = critic_arrays(train_r, args.gamma, args.min_future)
@@ -159,6 +209,7 @@ def main():
     stats = {"gamma": args.gamma, "target_mean": mean, "target_std": std,
              "min_future": args.min_future, "params": n_params,
              "train_states": int(k_tr.shape[0]),
+             "extension_rollouts": len(ext),
              "val_states": int(k_va.shape[0]),
              "best_epoch": best["epoch"], "best_val_mse": best["mse"],
              "best_val_ev": best["ev"], "history": history,

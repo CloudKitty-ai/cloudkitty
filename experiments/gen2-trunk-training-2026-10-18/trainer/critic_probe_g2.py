@@ -71,6 +71,54 @@ def spearman(a, b):
     return float((ra * rb).sum() / denom) if denom else 0.0
 
 
+def zscore(x):
+    """Within-slice standardization; a zero-variance slice maps to zeros
+    (it carries no rank information and must not fake any)."""
+    x = np.asarray(x, float)
+    s = x.std()
+    return (x - x.mean()) / s if s > 0 else np.zeros_like(x)
+
+
+def block_null(pred_raw, targets, keep, n_worlds, n_perm=1000, seed=0,
+               min_shift=500):
+    """Amended ε instrument (MITIGATION.md acceptance 3b): pooled
+    Spearman after within-world standardization, against a seeded
+    per-world circular-shift null (shifts respect within-episode
+    autocorrelation; p99 pass line)."""
+    zp = np.concatenate([zscore(pred_raw[w * keep:(w + 1) * keep])
+                         for w in range(n_worlds)])
+    zy_w = [zscore(targets[w * keep:(w + 1) * keep])
+            for w in range(n_worlds)]
+    observed = spearman(zp, np.concatenate(zy_w))
+    rng = np.random.default_rng(seed)
+    null = np.empty(n_perm)
+    for i in range(n_perm):
+        shifted = [np.roll(z, rng.integers(min_shift, keep - min_shift))
+                   for z in zy_w]
+        null[i] = spearman(zp, np.concatenate(shifted))
+    p99 = float(np.percentile(null, 99))
+    return {"observed": observed, "null_p99": p99, "n_perm": n_perm,
+            "seed": seed, "min_shift": min_shift,
+            "pass": bool(observed > p99)}
+
+
+def amended_verdict(v, epsilon):
+    """MITIGATION.md acceptance 3: the per-declaration reading of a
+    probe JSON dict (hard bars + the leg-appropriate rank bar)."""
+    hard = v["finite"] and v["in_band"]
+    if epsilon == 1.0:
+        ok = hard and all(w["rho"] >= 0.3 for w in v["per_world"])
+        return {"mode": "random", "pass": bool(ok)}
+    qualifying = [w for w in v["per_world"] if w["target_std"] >= 5.0]
+    if len(qualifying) < 2:
+        return {"mode": "epsilon", "pass": False,
+                "uninformative": True,
+                "qualifying_worlds": len(qualifying)}
+    ok = hard and v["block_null"]["pass"]
+    return {"mode": "epsilon", "pass": bool(ok), "uninformative": False,
+            "qualifying_worlds": len(qualifying)}
+
+
 def verdict(pred_raw, targets, target_mean):
     """The three declared bars over pooled probe states."""
     finite = bool(np.isfinite(pred_raw).all())
@@ -195,6 +243,10 @@ def main():
                           float(y[w * keep:(w + 1) * keep].max())],
          "target_std": float(y[w * keep:(w + 1) * keep].std())}
         for w, r in enumerate(rollouts)]
+    if args.epsilon < 1.0:
+        v["block_null"] = block_null(pred_raw, y, keep, args.worlds,
+                                     seed=args.seed_base)
+    v["amended"] = amended_verdict(v, args.epsilon)
     v.update({"states": int(len(y)),
               "target_min": float(y.min()), "target_max": float(y.max()),
               "target_mean_probe": float(y.mean()),

@@ -58,6 +58,43 @@ assert cp.spearman([1, 1, 2, 2], [1, 1, 2, 2]) == 1.0, "spearman: ties"
 assert cp.spearman([1, 2, 3, 4], [1, 10, 100, 1000]) == 1.0, \
     "spearman: rank-based, monotone nonlinear must be exactly 1 (Pearson is not)"
 
+# --- block_null (amended epsilon instrument) --------------------------------
+rng3 = np.random.default_rng(3)
+keep, nw = 2000, 3
+t = np.concatenate([np.cumsum(rng3.normal(0, 1, keep)) for _ in range(nw)])
+offsets = np.repeat([50.0, -40.0, 0.0], keep)
+# a within-world ranker under ANTI-ALIGNED world offsets (the measured
+# defect geometry) must pass: standardization kills the offsets
+ranker = t + rng3.normal(0, 0.5, keep * nw) - 3 * offsets
+r = cp.block_null(ranker, t, keep, nw, n_perm=200, seed=7)
+assert r["pass"], f"within-world ranker with anti-aligned offsets must pass: {r}"
+# an offset-only predictor (no within-world signal) must fail
+r = cp.block_null(offsets.copy(), t, keep, nw, n_perm=200, seed=7)
+assert not r["pass"], f"offset-only predictor must fail: {r}"
+# independent noise must fail
+r = cp.block_null(rng3.normal(0, 1, keep * nw), t, keep, nw,
+                  n_perm=200, seed=7)
+assert not r["pass"], f"independent noise must fail the null: {r}"
+
+# --- amended_verdict ---------------------------------------------------------
+pw = [{"rho": 0.5, "target_std": 9.0}, {"rho": 0.4, "target_std": 7.0},
+      {"rho": 0.31, "target_std": 6.0}]
+base = {"finite": True, "in_band": True, "per_world": pw}
+assert cp.amended_verdict(base, 1.0)["pass"], "random leg: all >= 0.3 passes"
+low = {**base, "per_world": [dict(pw[0]), dict(pw[1]),
+                             {"rho": 0.29, "target_std": 6.0}]}
+assert not cp.amended_verdict(low, 1.0)["pass"], \
+    "random leg: one world at 0.29 must fail"
+eps_ok = {**base, "block_null": {"pass": True}}
+assert cp.amended_verdict(eps_ok, 0.1)["pass"], "eps leg: null pass passes"
+thin = {**base, "per_world": [{"rho": 0.9, "target_std": 9.0},
+                              {"rho": 0.9, "target_std": 2.0},
+                              {"rho": 0.9, "target_std": 1.0}],
+        "block_null": {"pass": True}}
+v = cp.amended_verdict(thin, 0.1)
+assert not v["pass"] and v["uninformative"], \
+    "eps leg: one qualifying world is uninformative, never a pass"
+
 # --- verdict ---------------------------------------------------------------
 t = np.linspace(300, 500, 100)
 good = t + np.random.default_rng(0).normal(0, 5, 100)
