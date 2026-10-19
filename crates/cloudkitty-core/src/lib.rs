@@ -33,6 +33,7 @@ pub mod needs;
 pub mod rng;
 pub mod seam;
 pub mod spawn;
+pub mod init_needs;
 pub mod starts;
 pub mod test_support;
 pub mod world;

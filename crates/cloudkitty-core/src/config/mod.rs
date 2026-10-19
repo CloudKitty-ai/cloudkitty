@@ -100,6 +100,15 @@ pub struct Config {
     /// unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub starts: Option<StartsConfig>,
+    /// Initial-needs distribution (spec 065): the roster-wide
+    /// `[initial_needs]` table. OPTIONAL by the same 062 design — the
+    /// feature's off state is this table AND every per-kitty
+    /// `initial_needs` field absent (FR-001), today's all-zero spawn
+    /// byte for byte, and skip-if-none keeps `engine_defaults_sha256`
+    /// and `GET /config` unmoved. The law:
+    /// `specs/065-initial-needs/contracts/init-law.md`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_needs: Option<InitialNeedsSpec>,
     /// The `[rl]`, `[plugins]`, `[watchdog]`, and `[stuck_detector]`
     /// tables are parsed from the same file text by cloudkitty-rl and
     /// the server respectively -- everything under them is someone
@@ -386,6 +395,12 @@ pub struct KittyConfig {
     /// hungry" without restating the other five.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub needs: Option<NeedRateOverrides>,
+    /// Optional per-kitty INITIAL-needs override (spec 065): takes
+    /// precedence over the roster-wide `[initial_needs]` table
+    /// need-by-need (init-law §2). Living ON the roster entry makes an
+    /// override for an un-rostered kitty inexpressible by construction.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_needs: Option<InitialNeedsSpec>,
     /// Gen 2 identity dials (spec 058). Each is an optional per-kitty
     /// override behind an accessor (`comfort_slack_for`, `consent_line_for`,
     /// `favourite_weight_for`) — and since spec 059 the SAME accessors
@@ -422,6 +437,7 @@ impl KittyConfig {
             y: Some(y),
             behavior: behavior.into(),
             needs: None,
+            initial_needs: None,
             comfort_slack: None,
             consent_line: None,
             favourite: None,
@@ -457,6 +473,66 @@ pub struct NeedRateOverrides {
 
 impl NeedRateOverrides {
     pub fn get(&self, kind: crate::needs::NeedKind) -> Option<f32> {
+        use crate::needs::NeedKind::*;
+        match kind {
+            Eat => self.eat,
+            Drink => self.drink,
+            Sleep => self.sleep,
+            Play => self.play,
+            Cuddle => self.cuddle,
+            Bath => self.bath,
+        }
+    }
+}
+
+/// One need's initial setting (spec 065): a bare number is a fixed
+/// value for every kitty the setting governs; a `{ min, max }` table is
+/// a draw range resolved per kitty per need by the init law
+/// (`specs/065-initial-needs/contracts/init-law.md`). Serde untagged so
+/// `cuddle = 80.0` and `cuddle = { min = 60.0, max = 95.0 }` both read
+/// naturally and round-trip byte-identically.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum NeedInit {
+    Value(f32),
+    Range(NeedInitRange),
+}
+
+/// The range form of [`NeedInit`]: inclusive bounds, validated
+/// `0 <= min <= max <= 100`. A range consumes exactly one draw per
+/// governed kitty even when `min == max` (the fixed-shape rule); a
+/// bare value consumes none.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct NeedInitRange {
+    pub min: f32,
+    pub max: f32,
+}
+
+/// Initial-needs settings (spec 065): six optional per-need entries.
+/// Used at BOTH levels — the roster-wide `[initial_needs]` table and
+/// the per-kitty `initial_needs` override field, which takes precedence
+/// need-by-need. A need absent from both starts at today's zero. The
+/// feature's OFF state (FR-001) is this type absent at every level.
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InitialNeedsSpec {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eat: Option<NeedInit>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drink: Option<NeedInit>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sleep: Option<NeedInit>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub play: Option<NeedInit>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cuddle: Option<NeedInit>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bath: Option<NeedInit>,
+}
+
+impl InitialNeedsSpec {
+    pub fn get(&self, kind: crate::needs::NeedKind) -> Option<NeedInit> {
         use crate::needs::NeedKind::*;
         match kind {
             Eat => self.eat,
@@ -1562,6 +1638,7 @@ impl Default for Config {
             viewer: ViewerConfig::default(),
             vision: VisionConfig::default(),
             starts: None,
+            initial_needs: None,
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
@@ -1616,6 +1693,8 @@ impl Config {
         self.validate_identity_dials()?;
         // Position 19: appended by spec 062 (randomized starts).
         self.validate_starts()?;
+        // Position 20: appended by spec 065 (initial-needs distribution).
+        self.validate_initial_needs()?;
         Ok(())
     }
 
@@ -2416,6 +2495,92 @@ mod tests {
         .unwrap();
         assert_eq!(dialed.friend_ward_gate_tiles(), 7);
         assert_eq!(dialed.friend_ward_detour_cost(), 2.5);
+    }
+
+    /// Spec 065 FR-001/FR-002: no initial-needs key reaches either
+    /// serialized-defaults surface (039-D5 stamp discipline), absence
+    /// parses to the feature's off state at both levels, and set
+    /// entries round-trip in both spellings (bare value and
+    /// `{ min, max }` table).
+    #[test]
+    fn initial_needs_keys_default_absent_and_leave_the_stamp_unmoved() {
+        let default_toml = toml::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_toml.contains("initial_needs"),
+            "the defaults TOML must not grow the 065 key"
+        );
+        let default_json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_json.contains("initial_needs"),
+            "no 065 key reaches the hashed JSON defaults"
+        );
+        assert!(
+            Config::default().initial_needs.is_none()
+                && Config::default().kitties.iter().all(|k| k.initial_needs.is_none()),
+            "absent = feature off at both levels"
+        );
+
+        // Both spellings parse and round-trip; unset needs stay skipped.
+        let spec: InitialNeedsSpec = toml::from_str(
+            "cuddle = 80.0\neat = { min = 40.0, max = 70.0 }",
+        )
+        .unwrap();
+        assert_eq!(spec.cuddle, Some(NeedInit::Value(80.0)));
+        assert_eq!(
+            spec.eat,
+            Some(NeedInit::Range(NeedInitRange { min: 40.0, max: 70.0 }))
+        );
+        assert_eq!(spec.sleep, None);
+        let round_trip = toml::to_string(&spec).unwrap();
+        assert!(round_trip.contains("cuddle = 80.0"), "bare value spelling kept: {round_trip}");
+        assert!(round_trip.contains("min = 40.0"), "range spelling kept: {round_trip}");
+        assert!(!round_trip.contains("sleep"), "unset needs stay skipped");
+        assert_eq!(toml::from_str::<InitialNeedsSpec>(&round_trip).unwrap(), spec);
+
+        // deny_unknown_fields holds inside the section and the range.
+        assert!(toml::from_str::<InitialNeedsSpec>("hunger = 10.0").is_err());
+        assert!(toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0, max = 2.0, mode = 1.5 }")
+            .is_err());
+    }
+
+    /// Spec 065 init-law §8: out-of-bounds values, inverted ranges, and
+    /// non-finite numbers are rejected by name at both levels.
+    #[test]
+    fn initial_needs_settings_are_validated_by_name_at_both_levels() {
+        let mut config = Config::default();
+        config.initial_needs = Some(InitialNeedsSpec {
+            cuddle: Some(NeedInit::Value(101.0)),
+            ..Default::default()
+        });
+        let msg = config.validate().expect_err("101 is out of need bounds").to_string();
+        assert!(msg.contains("[initial_needs].cuddle"), "names the key: {msg}");
+
+        let mut config = Config::default();
+        config.initial_needs = Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Range(NeedInitRange { min: 50.0, max: 40.0 })),
+            ..Default::default()
+        });
+        let msg = config.validate().expect_err("inverted range").to_string();
+        assert!(msg.contains("min must be at most max"), "{msg}");
+
+        let mut config = Config::default();
+        config.kitties[0].initial_needs = Some(InitialNeedsSpec {
+            bath: Some(NeedInit::Value(f32::NAN)),
+            ..Default::default()
+        });
+        let msg = config.validate().expect_err("NaN is not a need value").to_string();
+        assert!(
+            msg.contains("initial_needs.bath") && msg.contains(&config.kitties[0].name),
+            "names the kitty and the need: {msg}"
+        );
+
+        // Bounds themselves are legal values: 0 and 100 pass.
+        let mut config = Config::default();
+        config.initial_needs = Some(InitialNeedsSpec {
+            play: Some(NeedInit::Range(NeedInitRange { min: 0.0, max: 100.0 })),
+            ..Default::default()
+        });
+        config.validate().expect("0 and 100 are legal need bounds");
     }
 
     /// Spec 063 FR-003/SC-005: present-but-invalid dials are rejected by

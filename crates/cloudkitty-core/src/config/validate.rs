@@ -1141,6 +1141,59 @@ impl Config {
         Ok(())
     }
 
+    /// Spec 065 (init-law §8): every initial-needs setting — the
+    /// roster-wide `[initial_needs]` table and each per-kitty override —
+    /// carries finite numbers in the need bounds [0, 100], ranges with
+    /// min <= max. Errors name the need, and the kitty for overrides.
+    pub(super) fn validate_initial_needs(&self) -> Result<(), ConfigError> {
+        let mut specs: Vec<(String, &crate::config::InitialNeedsSpec)> = Vec::new();
+        if let Some(s) = &self.initial_needs {
+            specs.push(("[initial_needs]".to_string(), s));
+        }
+        for k in &self.kitties {
+            if let Some(s) = &k.initial_needs {
+                specs.push((format!("[[kitty]] '{}' initial_needs", k.name), s));
+            }
+        }
+        for (home, spec) in specs {
+            for kind in crate::needs::NeedKind::ALL {
+                let Some(init) = spec.get(kind) else {
+                    continue;
+                };
+                let field = format!("{home}.{}", kind.as_str());
+                let in_bounds = |v: f32| v.is_finite() && (0.0..=100.0).contains(&v);
+                match init {
+                    crate::config::NeedInit::Value(v) => {
+                        if !in_bounds(v) {
+                            return Err(ConfigError::invalid(
+                                field,
+                                v.to_string(),
+                                "must be a finite initial need value in [0, 100]",
+                            ));
+                        }
+                    }
+                    crate::config::NeedInit::Range(r) => {
+                        if !in_bounds(r.min) || !in_bounds(r.max) {
+                            return Err(ConfigError::invalid(
+                                field,
+                                format!("min = {}, max = {}", r.min, r.max),
+                                "both bounds must be finite initial need values in [0, 100]",
+                            ));
+                        }
+                        if r.min > r.max {
+                            return Err(ConfigError::invalid(
+                                field,
+                                format!("min = {}, max = {}", r.min, r.max),
+                                "min must be at most max (an inclusive-bounds draw range)",
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Confirms every configured behavior name is registered. Called once the
     /// behavior registry is known.
     pub fn validate_behavior_names(&self, known: &[String]) -> Result<(), ConfigError> {
