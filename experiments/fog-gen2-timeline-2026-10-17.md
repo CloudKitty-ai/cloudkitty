@@ -76,9 +76,14 @@ consent BC comparison ride the trunk.
    investigation reads run on her word 2026-10-18: welfare features
    UNBOUND (needs inert, distress flags wrong-sign +17.5) and the
    eps-on-clone re-probes miss the declared per-world benign line
-   (best world rho 0.284) — advisory fork lands on MITIGATE;
-   accept/mitigate/hold OWNER-ROUTED, pending her word; then the
-   PPO launch card (her word) before any seed burns.
+   (best world rho 0.284) — RULED 2026-10-18 (owner "Agreed,
+   mitigate under this design"): MITIGATE per the Professor
+   corpus-extension design, deviations entry 2 (coverage in outcome
+   currency, cheapest-welfare-cost-first rungs, contrast pairing,
+   binding-not-volume acceptance). Mitigation arc IN FLIGHT:
+   declaration → collection → critic retrain → fresh-seed per-world
+   re-probe + mechanism test → probe-then-accept (her word) → PPO
+   launch card (her word) before any seed burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
@@ -98,6 +103,12 @@ consent BC comparison ride the trunk.
 - #392 deferred behind Gen 2+3.
 
 ## Banked for Gen 3 (pointers)
+
+Critic-corpus prevention trio (deviations entry 2, 2026-10-18;
+prereg-amendment candidates at the Gen 3 freeze): corpus-adequacy
+gate before training; inherited constants re-derived at freeze; the
+collection-declaration question "what will this critic be asked to
+evaluate that this collection policy never produces?".
 
 `gen3-roadmap-inputs-2026-10-04.md` addenda: favourites re-screen on
 the stratified stack; bin-edge re-anchor + bridge (addendum 3);
