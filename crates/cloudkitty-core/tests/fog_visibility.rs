@@ -47,6 +47,7 @@ proptest! {
                 y: Some(y),
                 behavior: "needs_driven".into(),
                 needs: None,
+                initial_needs: None,
                 comfort_slack: None,
                 consent_line: None,
                 favourite: None,

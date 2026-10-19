@@ -148,6 +148,19 @@ impl World {
             ));
         }
         world.kitties.sort_by_key(|k| k.id);
+        // Spec 065: with any initial-needs setting present (the
+        // roster-wide [initial_needs] table or a per-kitty override),
+        // starting needs come from the resolve law — its own
+        // domain-separated sub-stream, the master `rng` above never
+        // touched. No setting = all needs zero, today's path byte for
+        // byte. The law: specs/065-initial-needs/contracts/init-law.md.
+        if crate::init_needs::active(config) {
+            for (id, needs) in crate::init_needs::resolve(config) {
+                if let Some(kitty) = world.kitties.iter_mut().find(|k| k.id == id) {
+                    kitty.needs = needs;
+                }
+            }
+        }
         // Spec 049 FR-023 (T088): each cat starts the lattice tour at
         // `id mod cycle length` -- spread over the tour, no RNG draw -- and
         // a cat spawned on its waypoint is already past it. Spec 064:
@@ -181,6 +194,17 @@ impl World {
                 &config.happiness.weights,
                 config.happiness.floor,
             );
+        }
+
+        // Spec 065 (init-law §6, FR-006): a world created at elevated
+        // needs carries the state those levels imply at tick 0 —
+        // announce arming and distress (events, flags, clocks anchored
+        // at 0) through the engine's OWN Phase-4 calls in Phase-4
+        // order, never a parallel seeding path. Inactive, these do not
+        // run and the generated world is the pre-065 one byte for byte.
+        if crate::init_needs::active(config) {
+            world.update_announce_arming(config);
+            let _ = world.record_distress(config);
         }
 
         Ok(world)
@@ -4719,6 +4743,530 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Spec 065 helper: test_config plus initial-needs settings, validated.
+    fn initial_needs_config(
+        table: crate::config::InitialNeedsSpec,
+        per_kitty: &[(u32, crate::config::InitialNeedsSpec)],
+    ) -> Arc<Config> {
+        let mut config = test_config();
+        config.initial_needs = Some(table);
+        for (id, spec) in per_kitty {
+            let kc = config.kitties.iter_mut().find(|k| k.id == *id).unwrap();
+            kc.initial_needs = Some(*spec);
+        }
+        config.validate().unwrap();
+        Arc::new(config)
+    }
+
+    /// Spec 065 FR-003/FR-004 (US2): fixed values land exactly for every
+    /// kitty, ranged values land inside bounds with kitties differing,
+    /// unspecified needs start at zero, and tick-0 happiness is the
+    /// engine's one function of the initialized vector -- never a
+    /// separately configured number.
+    #[test]
+    fn initial_needs_land_exactly_with_happiness_derived() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(80.0)),
+                eat: Some(NeedInit::Range(NeedInitRange {
+                    min: 40.0,
+                    max: 70.0,
+                })),
+                ..Default::default()
+            },
+            &[],
+        );
+        let world = World::generate(&config);
+        for kitty in &world.kitties {
+            assert_eq!(kitty.needs.get(NeedKind::Cuddle), 80.0);
+            let eat = kitty.needs.get(NeedKind::Eat);
+            assert!((40.0..=70.0).contains(&eat), "kitty {}: {eat}", kitty.id);
+            assert_eq!(
+                kitty.needs.get(NeedKind::Drink),
+                0.0,
+                "unspecified stays zero"
+            );
+            assert_eq!(
+                kitty.happiness,
+                happiness(
+                    &kitty.needs,
+                    &config.happiness.weights,
+                    config.happiness.floor
+                ),
+                "tick-0 happiness is derived, never configured (FR-004)"
+            );
+        }
+        // Staging: this seed must actually produce per-kitty variation in
+        // the ranged need, or the independence claim is pinned nowhere.
+        let eats: Vec<f32> = world
+            .kitties
+            .iter()
+            .map(|k| k.needs.get(NeedKind::Eat))
+            .collect();
+        assert!(
+            eats.windows(2).any(|w| w[0] != w[1]),
+            "kitties must differ: {eats:?}"
+        );
+    }
+
+    /// Spec 065 FR-003 (US2 scenario 5, clarify Q1): a per-kitty override
+    /// wins its own need, the override kitty's OTHER needs still follow
+    /// the roster-wide table, and other kitties are untouched by it.
+    #[test]
+    fn initial_needs_per_kitty_override_wins_need_by_need() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(80.0)),
+                eat: Some(NeedInit::Value(30.0)),
+                ..Default::default()
+            },
+            &[(
+                2,
+                InitialNeedsSpec {
+                    cuddle: Some(NeedInit::Value(10.0)),
+                    ..Default::default()
+                },
+            )],
+        );
+        let world = World::generate(&config);
+        let needs_of = |id: u32| world.kitties.iter().find(|k| k.id == id).unwrap().needs;
+        assert_eq!(
+            needs_of(2).get(NeedKind::Cuddle),
+            10.0,
+            "override wins its need"
+        );
+        assert_eq!(
+            needs_of(2).get(NeedKind::Eat),
+            30.0,
+            "other needs follow the table"
+        );
+        assert_eq!(
+            needs_of(1).get(NeedKind::Cuddle),
+            80.0,
+            "other kitties untouched"
+        );
+    }
+
+    /// Spec 065 FR-001/FR-002 (US1): a feature-absent config generates
+    /// the pre-065 world -- all needs zero, happiness 100-equivalent, no
+    /// distress state, no distress events, nothing armed.
+    #[test]
+    fn feature_absent_worlds_generate_the_pre_065_tick_zero_state() {
+        let config = Arc::new(test_config());
+        let world = World::generate(&config);
+        for kitty in &world.kitties {
+            assert!(NeedKind::ALL.iter().all(|&k| kitty.needs.get(k) == 0.0));
+            assert!(kitty.in_distress.is_empty());
+            assert!(kitty.distress_since.is_empty());
+            assert!(kitty.announce_armed.is_empty());
+        }
+        assert!(world.distress.to_vec().is_empty(), "no fabricated records");
+    }
+
+    /// Spec 065 FR-005 (US2 scenario, SC-003): composition with 062 --
+    /// adding [starts] changes no need draw, and the needs section
+    /// changes no position draw; both laws live in their own
+    /// domain-separated sub-streams.
+    #[test]
+    fn initial_needs_compose_with_randomized_starts_without_moving_either_draw() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let table = InitialNeedsSpec {
+            play: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
+            ..Default::default()
+        };
+        let needs_only = initial_needs_config(table, &[]);
+        let needs_of = |w: &World| -> Vec<(u32, f32)> {
+            w.kitties
+                .iter()
+                .map(|k| (k.id, k.needs.get(NeedKind::Play)))
+                .collect()
+        };
+
+        let mut with_starts = (*needs_only).clone();
+        for kc in &mut with_starts.kitties {
+            kc.x = None;
+            kc.y = None;
+        }
+        with_starts.starts = Some(crate::config::StartsConfig {
+            edge_ring_share: 1.0,
+            corner_share: 0.5,
+        });
+        with_starts.validate().unwrap();
+        let mut starts_only = with_starts.clone();
+        starts_only.initial_needs = None;
+        starts_only.validate().unwrap();
+
+        let w_needs = World::generate(&needs_only);
+        let w_both = World::generate(&Arc::new(with_starts));
+        let w_starts = World::generate(&Arc::new(starts_only));
+
+        // Staging: both laws nontrivial on this stage.
+        let drawn_needs = needs_of(&w_needs);
+        assert!(
+            drawn_needs.iter().any(|(_, v)| *v != 0.0),
+            "needs law must draw"
+        );
+        assert!(
+            w_starts
+                .kitties
+                .iter()
+                .zip(test_config().kitties.iter())
+                .any(|(k, kc)| { Some(k.pos.x) != kc.x || Some(k.pos.y) != kc.y }),
+            "starts law must move someone off the explicit tiles"
+        );
+
+        assert_eq!(needs_of(&w_both), drawn_needs, "[starts] moved a need draw");
+        for (a, b) in w_both.kitties.iter().zip(w_starts.kitties.iter()) {
+            assert_eq!(
+                (a.id, a.pos),
+                (b.id, b.pos),
+                "[initial_needs] moved a position draw"
+            );
+        }
+    }
+
+    /// Spec 065 FR-005/SC-004 (US2): same seed + config twice is the
+    /// same world -- needs, happiness, distress state, arming, and the
+    /// distress record all byte-equal.
+    #[test]
+    fn initial_needs_worlds_are_deterministic_per_seed_and_config() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Range(NeedInitRange {
+                    min: 85.0,
+                    max: 100.0,
+                })),
+                drink: Some(NeedInit::Range(NeedInitRange {
+                    min: 0.0,
+                    max: 50.0,
+                })),
+                ..Default::default()
+            },
+            &[],
+        );
+        let a = World::generate(&config);
+        let b = World::generate(&config);
+        for (ka, kb) in a.kitties.iter().zip(b.kitties.iter()) {
+            assert_eq!(ka.needs, kb.needs);
+            assert_eq!(ka.happiness, kb.happiness);
+            assert_eq!(ka.in_distress, kb.in_distress);
+            assert_eq!(ka.distress_since, kb.distress_since);
+            assert_eq!(ka.announce_armed, kb.announce_armed);
+        }
+        assert_eq!(a.distress.to_vec(), b.distress.to_vec());
+    }
+
+    /// Spec 065 FR-007 (US3, review F2): the Article I safeguard answers
+    /// an INITIALIZED need. Tested at the safeguard's own layer, because
+    /// no valid full-tick stage can isolate it: the eat/drink minimums
+    /// are validated >= 1 and `ensure_minimums` restocks BEFORE the
+    /// safeguard in the same phase, so on legal configs the pantry is
+    /// never empty at the safeguard's check -- it is deliberate
+    /// belt-and-braces (reachable from hand-built states, per its own
+    /// doc). Here: a world GENERATED with eat above the threshold, chow
+    /// stripped, answers with a spawn; the same stage with near-zero
+    /// needs obliges nothing -- an initialized need is a real need to
+    /// the machinery, with no new rule either side.
+    #[test]
+    fn the_safeguard_fires_for_an_initialized_need() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let chow_count = |w: &World| {
+            w.elements
+                .iter()
+                .filter(|e| matches!(e.kind, crate::element::ElementKind::Chow { .. }))
+                .count()
+        };
+        let stage = |init: Option<InitialNeedsSpec>| {
+            let mut config = test_config();
+            config.initial_needs = init;
+            config.validate().unwrap();
+            let config = Arc::new(config);
+            let mut world = World::generate(&config);
+            world
+                .elements
+                .retain(|e| !matches!(e.kind, crate::element::ElementKind::Chow { .. }));
+            assert_eq!(chow_count(&world), 0, "staging: the pantry is empty");
+            spawn::safeguard(&mut world, &config);
+            chow_count(&world)
+        };
+        let armed = stage(Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(80.0)),
+            ..Default::default()
+        }));
+        assert_eq!(
+            armed, 1,
+            "eat 80 > safeguard 75 with zero chow: the safeguard must provide"
+        );
+        let unarmed = stage(None);
+        assert_eq!(
+            unarmed, 0,
+            "near-zero needs oblige nothing: the spawn above WAS the safeguard firing"
+        );
+    }
+
+    /// Spec 065 FR-005 / init-law §7 (review F1): the feature NEVER
+    /// touches the master stream. Feature-on vs feature-off at the same
+    /// seed: the post-generation master RNG is byte-equal in its
+    /// SERIALIZED state (position included) and the element board is
+    /// identical. MULTI-SEED by necessity (measured): on seed 1234 the
+    /// first spawn draw's Lemire sampling rejects the stream's words 0
+    /// and 1, so a 2-word offset injected before the spawns realigns on
+    /// the first accepted word and vanishes from every surface, the
+    /// serialized state included. One seed can be that fluke; four
+    /// cannot.
+    #[test]
+    fn initial_needs_leave_the_master_stream_untouched() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        for seed in [1234u64, 7, 993001, 424242] {
+            let mut on_cfg = test_config();
+            on_cfg.world.seed = seed;
+            on_cfg.initial_needs = Some(InitialNeedsSpec {
+                cuddle: Some(NeedInit::Range(NeedInitRange {
+                    min: 60.0,
+                    max: 95.0,
+                })),
+                ..Default::default()
+            });
+            on_cfg.validate().unwrap();
+            let mut off_cfg = test_config();
+            off_cfg.world.seed = seed;
+            let on = World::generate(&Arc::new(on_cfg));
+            let off = World::generate(&Arc::new(off_cfg));
+            assert_eq!(
+                serde_json::to_string(&on.rng).unwrap(),
+                serde_json::to_string(&off.rng).unwrap(),
+                "seed {seed}: the master stream's full state must be untouched"
+            );
+            let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
+                w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
+            };
+            assert_eq!(
+                shape(&on),
+                shape(&off),
+                "seed {seed}: element spawns must not move"
+            );
+        }
+    }
+
+    /// Spec 065 FR-006/SC-004 (US3 scenario 3, review F3): the knob alone
+    /// never fabricates distress -- a feature-ON world below every
+    /// threshold has an empty record, no flags, no clocks, and arming
+    /// only where the arm threshold (30) is actually met.
+    #[test]
+    fn initial_needs_below_thresholds_fabricate_no_records() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(50.0)),
+                eat: Some(NeedInit::Value(20.0)),
+                ..Default::default()
+            },
+            &[],
+        );
+        let world = World::generate(&config);
+        assert!(
+            world.distress.to_vec().is_empty(),
+            "no fabricated distress events"
+        );
+        for kitty in &world.kitties {
+            assert!(kitty.in_distress.is_empty());
+            assert!(kitty.distress_since.is_empty());
+            assert_eq!(
+                kitty.announce_armed.iter().copied().collect::<Vec<_>>(),
+                vec![NeedKind::Cuddle],
+                "cuddle 50 >= arm 30 arms; eat 20 does not"
+            );
+        }
+    }
+
+    /// Spec 065 US2 scenario 3 (review F7): all six needs armed high --
+    /// happiness computes to the Article I floor, never below, and the
+    /// world still generates with every invariant green.
+    #[test]
+    fn all_needs_armed_floors_happiness_and_generates_clean() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let all_high = InitialNeedsSpec {
+            eat: Some(NeedInit::Value(100.0)),
+            drink: Some(NeedInit::Value(100.0)),
+            sleep: Some(NeedInit::Value(100.0)),
+            play: Some(NeedInit::Value(100.0)),
+            cuddle: Some(NeedInit::Value(100.0)),
+            bath: Some(NeedInit::Value(100.0)),
+        };
+        let config = initial_needs_config(all_high, &[]);
+        let mut world = World::generate(&config);
+        for kitty in &world.kitties {
+            assert_eq!(
+                kitty.happiness, config.happiness.floor,
+                "all needs at 100: weighted happiness clamps to the floor, never below"
+            );
+        }
+        world.tick_with_proposals(&crate::seam::JointProposal::new(), &config);
+        // invariants::assert_or_report ran inside the tick; reaching here
+        // with elevated state intact is the check.
+        assert!(world.kitties.iter().all(|k| !k.in_distress.is_empty()));
+    }
+
+    /// Spec 065 init-law §4 (review F7): a per-kitty override RANGE
+    /// consumes its draw in place of the table's for that (kitty, need) --
+    /// the override changes WHICH setting governs, never the draw
+    /// positions. (The absolute one-draw-per-range law is pinned by
+    /// `the_v1_mapping_is_pinned_for_porting`: a double-draw mutation
+    /// shifts both of this test's configs identically and only the pin
+    /// reds -- measured, mutate ledger R7.)
+    #[test]
+    fn override_range_draws_once_in_place_of_the_table_range() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let table = InitialNeedsSpec {
+            play: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
+            bath: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
+            ..Default::default()
+        };
+        // Kitty 1 overrides play with ANOTHER range: still exactly one
+        // draw for (1, play), so every later draw -- (1, bath) included --
+        // is unmoved relative to the table-only config.
+        let overridden = initial_needs_config(
+            table,
+            &[(
+                1,
+                InitialNeedsSpec {
+                    play: Some(NeedInit::Range(NeedInitRange {
+                        min: 0.0,
+                        max: 100.0,
+                    })),
+                    ..Default::default()
+                },
+            )],
+        );
+        let table_only = initial_needs_config(table, &[]);
+        let w_over = World::generate(&overridden);
+        let w_table = World::generate(&table_only);
+        let needs_of = |w: &World, id: u32| w.kitties.iter().find(|k| k.id == id).unwrap().needs;
+        assert_eq!(
+            needs_of(&w_over, 1).get(NeedKind::Play),
+            needs_of(&w_table, 1).get(NeedKind::Play),
+            "identical range, same draw position: the override consumed the SAME one draw"
+        );
+        assert_eq!(
+            needs_of(&w_over, 1).get(NeedKind::Bath),
+            needs_of(&w_table, 1).get(NeedKind::Bath),
+            "downstream draws unmoved -- the override did not add a second draw"
+        );
+        assert_eq!(needs_of(&w_over, 2), needs_of(&w_table, 2));
+    }
+
+    /// Spec 065 FR-006 (US3): a need initialized at or above the distress
+    /// threshold is register-real at tick 0 -- an event in the record, the
+    /// flag set, the clock anchored at 0, BEFORE any tick runs -- and the
+    /// first tick does not re-record it (the edge trigger is preserved,
+    /// through the engine's one definition).
+    #[test]
+    fn initialized_distress_is_register_real_at_tick_zero_without_re_recording() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(92.0)),
+                ..Default::default()
+            },
+            &[],
+        );
+        let mut world = World::generate(&config);
+        let roster = world.kitties.len();
+        let tick0_events = world.distress.to_vec();
+        assert_eq!(tick0_events.len(), roster, "one event per kitty at tick 0");
+        assert!(tick0_events
+            .iter()
+            .all(|e| e.need == NeedKind::Cuddle && e.tick == 0));
+        for kitty in &world.kitties {
+            assert!(kitty.in_distress.contains(&NeedKind::Cuddle));
+            assert_eq!(kitty.distress_since.get(&NeedKind::Cuddle), Some(&0));
+            assert!(
+                kitty.announce_armed.contains(&NeedKind::Cuddle),
+                "92 is above the arm threshold; arming is part of the tick-0 family (FR-006)"
+            );
+        }
+
+        // First tick: cuddle stays above threshold (nothing relieves it
+        // this fast), and the edge trigger stays quiet.
+        let proposals = crate::seam::JointProposal::new();
+        world.tick_with_proposals(&proposals, &config);
+        assert!(world
+            .kitties
+            .iter()
+            .all(|k| k.needs.get(NeedKind::Cuddle) >= 90.0));
+        assert_eq!(
+            world.distress.to_vec().len(),
+            roster,
+            "a distressed START records once, never again per crossing"
+        );
+    }
+
+    /// Spec 065 FR-007 (US3): an INITIALIZED need behaves exactly as a
+    /// RISEN one -- full same-need parity. World A initializes eat at 80
+    /// (above the safeguard threshold, a spawnable need); world B is the
+    /// pre-065 world with eat hand-set to 80 at tick 0, the staging
+    /// existing engine tests use for risen state. One tick later every
+    /// relief-relevant surface is equal: the engine keeps no memory of
+    /// HOW a need reached its level, so the safeguard, distress, and
+    /// arming machinery answer both identically. No new rule either side.
+    #[test]
+    fn initialized_safeguard_needs_get_relief_exactly_as_risen_ones() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let mut init_config = test_config();
+        init_config.initial_needs = Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(80.0)),
+            ..Default::default()
+        });
+        init_config.validate().unwrap();
+        let init_config = Arc::new(init_config);
+        let plain_config = Arc::new(test_config());
+
+        let mut a = World::generate(&init_config);
+        let mut b = World::generate(&plain_config);
+        for kitty in &mut b.kitties {
+            kitty.needs.add(NeedKind::Eat, 80.0);
+        }
+        // Staging: the case is exercised -- above safeguard (75), below
+        // distress (90), so this isolates the relief obligation.
+        assert!(a.kitties.iter().all(|k| k.needs.get(NeedKind::Eat) == 80.0));
+
+        a.tick_with_proposals(&crate::seam::JointProposal::new(), &init_config);
+        b.tick_with_proposals(&crate::seam::JointProposal::new(), &plain_config);
+
+        for (ka, kb) in a.kitties.iter().zip(b.kitties.iter()) {
+            assert_eq!(ka.needs, kb.needs, "kitty {}: needs diverged", ka.id);
+            assert_eq!(ka.in_distress, kb.in_distress);
+            assert_eq!(ka.distress_since, kb.distress_since);
+            assert_eq!(ka.announce_armed, kb.announce_armed);
+            assert_eq!(
+                ka.activity, kb.activity,
+                "kitty {}: relief path diverged",
+                ka.id
+            );
+        }
+        let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
+            w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
+        };
+        assert_eq!(
+            shape(&a),
+            shape(&b),
+            "the environment answered the two worlds differently"
+        );
+        assert_eq!(a.distress.to_vec(), b.distress.to_vec());
     }
 
     /// Spec 063 FR-005: the drift's stamp query admits law-named want and

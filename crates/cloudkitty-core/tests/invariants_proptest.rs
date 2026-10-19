@@ -56,6 +56,7 @@ fn build_config(
             y: Some((i as u32) / width),
             behavior: names[pick % names.len()].to_string(),
             needs: None,
+            initial_needs: None,
             comfort_slack: None,
             consent_line: None,
             favourite: None,

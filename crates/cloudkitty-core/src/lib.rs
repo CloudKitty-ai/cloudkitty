@@ -26,6 +26,7 @@ pub mod element;
 pub mod events;
 pub mod explore;
 pub mod grid;
+pub mod init_needs;
 pub mod invariants;
 pub mod kitty;
 pub mod meow;
