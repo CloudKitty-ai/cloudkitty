@@ -84,6 +84,7 @@ def main():
     ap.add_argument("--sample", type=int, default=20000)
     ap.add_argument("--seed", type=int, default=20261018)
     ap.add_argument("--limit-rollouts", type=int, default=None)
+    ap.add_argument("--critic", type=Path, default=CRITIC)
     ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args()
 
@@ -98,7 +99,7 @@ def main():
     base = states[idx]
     check_layout(base)
 
-    art = torch.load(CRITIC, map_location="cpu", weights_only=True)
+    art = torch.load(args.critic, map_location="cpu", weights_only=True)
     model = EntityCriticV2(**art["hyper"])
     model.load_state_dict(art["state_dict"])
     model.eval()
