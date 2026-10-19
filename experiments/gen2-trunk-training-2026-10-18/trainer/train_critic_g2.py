@@ -213,8 +213,11 @@ def main():
              "val_states": int(k_va.shape[0]),
              "best_epoch": best["epoch"], "best_val_mse": best["mse"],
              "best_val_ev": best["ev"], "history": history,
-             "hyperparams": {k: str(v) if isinstance(v, Path) else v
-                             for k, v in vars(args).items()}}
+             "hyperparams": {
+                 k: (str(v) if isinstance(v, Path)
+                     else [str(x) for x in v] if isinstance(v, list)
+                     else v)
+                 for k, v in vars(args).items()}}
     (args.out_dir / f"critic-g2-{tag}-stats.json").write_text(
         json.dumps(stats, indent=2) + "\n")
     print(f"  best epoch {best['epoch']}: val MSE {best['mse']:.4f}, "
