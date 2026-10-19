@@ -131,3 +131,15 @@ a dashboard, not a guard (third appearance this arc).
 STATUS: OPEN — closes when the extended-corpus critic passes the
 fresh-seed per-world re-probe and the mechanism test and the owner
 pins it (probe-then-accept, her word).
+
+ITERATION RULED (owner, 2026-10-19): "We'll wait for 065 to land,
+and go with iteration" — the first acceptance round (mechanism PASS,
+ε0.1 PASS, no-regression PASS; random per-world and ε0.3 FAIL;
+`gen2-trunk-training-2026-10-18/RESULTS.md` §Critic mitigation)
+resolves to ONE combined second mix, not an accept: rung (iv)
+ε-mixture data (the mid-drift regime that failed) plus TRUE rung (ii)
+manufactured-init worlds on the trunk config once spec 065
+(configurable starting needs; Product, her kickoff) lands — then one
+remix, one retrain, one fresh re-probe round under the same amended
+instrument. Scope and seeds in MITIGATION.md §Iteration. Entry stays
+OPEN to probe-then-accept (her word).

@@ -168,3 +168,30 @@ register-real as (iii). Scouts-first applies to any displaced size
 
 Acceptance of the critic itself remains probe-then-accept on the
 owner's word (#365); entry 2 closes there.
+
+## Iteration (ruled 2026-10-19: "We'll wait for 065 to land, and go with iteration")
+
+One combined second mix on top of the first (everything above stays
+in the corpus):
+
+- **Rung (iv), collected now** (no 065 dependency): ε-mixture
+  trajectories on the trunk config — the clone's greedy legal action
+  with ε random-legal — 20 rollouts × 4,000 ticks at each of ε 0.1
+  and ε 0.3. Seeds 1095201–1095220 (ε 0.1) and 1095221–1095240
+  (ε 0.3) from the claimed band. This is regime data for the two
+  failing legs, not bin filling. Welfare: covered-mind seats (the
+  clone); standing stops armed; ε capped at 0.3.
+- **True rung (ii), on 065 landing**: manufactured-init worlds on
+  the TRUNK config (unaltered dynamics — the dial suite's distress
+  was learned under cranked-rate MDPs; this supervises the MDP the
+  critic will evaluate), per-kitty × need initial draws per spec
+  065. Volume derived against binding diversity, seeds
+  1095241–1095290; exact draw ranges declared in a one-commit
+  addendum here when 065's config surface is concrete. Welfare:
+  scripted seats, the path into distress never run; register-real.
+- **Fresh re-probe bases, declared now**: random 870022, ε 0.1
+  870025, ε 0.3 870028 (3 worlds × 4,000 ticks each; the 870013/16/19
+  worlds are burned as probes and excluded from training alongside
+  the original nine). Same amended instrument, same bars, mechanism
+  test re-run; acceptance remains probe-then-accept on the owner's
+  word.
