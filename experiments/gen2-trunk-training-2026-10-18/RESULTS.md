@@ -360,3 +360,77 @@ for k, x in m["variants"].items():
 assert m["variants"]["distress_on"]["delta_mean"] <= 0
 EOF2
 ```
+
+## Critic mitigation — round 2 (2026-10-19; iteration ruled "We'll wait for 065 to land, and go with iteration")
+
+Second mix, on top of round 1: rung (iv) ε-mixture 40 rollouts (ε 0.1
+seeds 1095201–1095220, ε 0.3 1095221–1095240) + true rung (ii) 50
+manufactured-init rollouts on the UNALTERED trunk config via spec 065
+(landed 5fb27cfb; IN-wide 0–90 seeds 1095241–1095265, IN-grave 60–95
+1095266–1095290; tick-0 draws verified in-state). Post-mix-2 coverage
+still met: below-45 2.464% (≥ 1.5), 45–70 6.670% (≥ 6), span 156.0
+(≤ 220); IN-grave alone runs 1.758% below-45 with returns to 245.8.
+
+Retrain (artifacts/critic-g2-ext2/): 2,982,380 train states (290
+extension rollouts, train-only), ORIGINAL val split. Best epoch 4:
+val MSE 0.0117, **val EV 0.8286 — no-regression PASS** (band ≥ 0.80;
+round 1 0.8249, pre-mix 0.8351). Target mean 400.84, std 36.87.
+
+Acceptance reads (fresh bases as declared 952e6009; amended
+instrument unchanged at 9fe6d214):
+
+| leg | bar | reading | verdict |
+|---|---|---|---|
+| random 870022 | every world ρ ≥ 0.3 | −0.204 / 0.551 / 0.108 (pooled 0.533) | **FAIL** |
+| ε 0.1 870025 | block null p99 | observed −0.025 < p99 0.412 (2 qualifying; worlds +0.183/−0.480/+0.144) | **FAIL** |
+| ε 0.3 870028 | block null p99 | observed 0.371 > p99 0.179 (3 qualifying; worlds +0.054/+0.372/+0.696) | PASS |
+| mechanism | distress Δmean ≤ 0 | **−29.87** (round 1 −1.65); needs −0.49, happy −5.10, all −33.00 | PASS |
+
+Reading: the mix repaired what it targeted and nothing it didn't.
+ε 0.3 — the mid-drift regime rung (iv) was aimed at — went from
+rank-dead to a clean null pass, and the distress binding deepened by
+an order of magnitude (−1.65 → −29.87). But the two previously-better
+legs moved the other way: ε 0.1, which passed round 1 at base 870016,
+fails its null outright at 870025 (pooled −0.132 with one world at
+−0.480), and the random leg's pooled rank keeps climbing (−0.026 →
+0.418 → 0.533) while the strict per-world bar fails on a different
+world each round (0.061 at 870013, now −0.204 at 870022). The
+flip-flop across independent world triples at matched geometry reads
+as marginal instrument power on the near-teacher legs — ε 0.1 target
+std sits at 4.7–6.3 raw, straddling the qualifying line — not as a
+corpus gap a third mix would obviously fill. Acceptance is not met as
+declared (2 of 4 legs); the accept/iterate/hold decision is
+OWNER-ROUTED (probe-then-accept, #365), PENDING.
+
+### Read (round 2; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+cv = json.load(open(d + "mix2-coverage.json"))
+p2 = cv["postmix2"]
+assert round(p2["b45_frac"] * 100, 3) == 2.464
+assert round(p2["f4570_frac"] * 100, 3) == 6.670
+assert round(p2["span_min"], 1) == 156.0 and p2["kt"] == 18760000
+g = cv["per_group"]["IN-grave"]
+assert round(g["b45_frac"] * 100, 3) == 1.758
+assert round(g["ret_min"], 1) == 245.8
+s = json.load(open(d + "critic-g2-ext2/critic-g2-0p998-stats.json"))
+assert s["extension_rollouts"] == 290 and s["best_epoch"] == 4
+assert s["train_states"] == 2982380
+print("EV", round(s["best_val_ev"], 4), "mean", round(s["target_mean"], 2),
+      "std", round(s["target_std"], 2))
+for tag in ("reprobe-random", "reprobe-eps01", "reprobe-eps03"):
+    v = json.load(open(d + f"critic-g2-ext2/{tag}.json"))
+    print(tag, v["amended"], "pooled", round(v["spearman"], 3),
+          [round(w["rho"], 3) for w in v["per_world"]],
+          [round(w["target_std"], 1) for w in v["per_world"]],
+          v.get("block_null", {}).get("observed"),
+          v.get("block_null", {}).get("null_p99"))
+m = json.load(open(d + "critic-g2-ext2/mechanism-test.json"))
+for k, x in m["variants"].items():
+    print(k, round(x["delta_mean"], 2))
+assert m["variants"]["distress_on"]["delta_mean"] <= 0
+EOF2
+```

@@ -88,7 +88,20 @@ consent BC comparison ride the trunk.
    ε-0.1 leg PASS; random leg misses the per-world bar (one world
    0.061; pooled 0.418 clears the ORIGINAL #365 bar) and ε-0.3
    fails its null — acceptance not met as declared;
-   ACCEPT / ITERATE rung (iv) / HOLD owner-routed, pending her
+   ACCEPT / ITERATE rung (iv) / HOLD owner-routed — RULED 2026-10-19
+   ("We'll wait for 065 to land, and go with iteration"): one
+   combined second mix, rung (iv) ε-mixture collected at once (40
+   rollouts, seeds 1095201–1095240) + true rung (ii) on spec 065's
+   landing (landed 5fb27cfb same day; IN-wide/IN-grave 50 rollouts,
+   seeds 1095241–1095290, unaltered trunk config). ROUND 2 EXECUTED
+   2026-10-19 (results in the arc RESULTS.md §round 2): coverage
+   still met (2.464% / 6.670% / span 156), retrain EV 0.8286
+   no-regression PASS, mechanism PASS and deepened (−1.65 → −29.87),
+   ε-0.3 PASS its null (the regime the mix targeted); ε-0.1 now
+   FAILS its null and the random leg still misses the per-world bar
+   (−0.204 on one world; pooled 0.533, third straight pooled climb).
+   Acceptance not met as declared (2 of 4 legs);
+   ACCEPT / ITERATE / HOLD owner-routed, pending her
    word; then the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
