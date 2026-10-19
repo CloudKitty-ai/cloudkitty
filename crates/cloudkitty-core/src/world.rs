@@ -5117,7 +5117,11 @@ mod tests {
 
     /// Spec 065 init-law §4 (review F7): a per-kitty override RANGE
     /// consumes its draw in place of the table's for that (kitty, need) --
-    /// one draw per governed ranged need, never two.
+    /// the override changes WHICH setting governs, never the draw
+    /// positions. (The absolute one-draw-per-range law is pinned by
+    /// `the_v1_mapping_is_pinned_for_porting`: a double-draw mutation
+    /// shifts both of this test's configs identically and only the pin
+    /// reds -- measured, mutate ledger R7.)
     #[test]
     fn override_range_draws_once_in_place_of_the_table_range() {
         use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
