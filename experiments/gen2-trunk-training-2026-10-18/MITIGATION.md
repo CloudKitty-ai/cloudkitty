@@ -84,9 +84,11 @@ On the post-mix critic pretraining corpus, deduped, all-ticks basis:
    out, so entry dynamics, persistence, AND recovery are all present
    and both contrast halves come from the same world. The
    initial-needs engine knob (world-creation-time distribution,
-   config-expressible, training-only) is a CONTINGENT Product ask on
-   the owner's word, only if targets stay unmet after rungs (iii-ext),
-   (iv) and (v).
+   config-expressible, training-only) was a CONTINGENT Product ask —
+   KICKED OFF 2026-10-18 on the owner's word ("Relay initial needs
+   work to product"; relay msg cd983d5d), not blocking this
+   mitigation: the suite covers the bins meanwhile and the knob
+   reopens true rung (ii) when it lands (Gen 3 candidate either way).
 
    RUNG (v), CONTINGENT (declared with this amendment): fresh
    random-legal rollouts on fresh seeds/worlds — the mechanism that
