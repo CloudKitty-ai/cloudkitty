@@ -87,7 +87,12 @@ def verdict(pred_raw, targets, target_mean):
 
 def collect(ticks, n_worlds, seed_base):
     from ppo_env_g2 import TrunkVecRunner
-    runner = TrunkVecRunner(str(TRUNK_TOML), n_worlds, seed_base)
+    # horizon override: the rl config default truncates at 2,000 ticks;
+    # the probe needs one continuous episode per world so censored
+    # returns never span a reset (the Gen 1 probe crossed resets
+    # silently; here the stream is asserted unbroken).
+    runner = TrunkVecRunner(str(TRUNK_TOML), n_worlds, seed_base,
+                            horizon=ticks + 1)
     obs_dim, mask_dim = runner.dims
     assert mask_dim == N_LOGITS, (mask_dim, N_LOGITS)
     rng = np.random.default_rng(seed_base)
