@@ -64,7 +64,13 @@ consent BC comparison ride the trunk.
    (0/9,960,292); here-word channel alive in the same histograms
    (`gen2-comparator-legs-2026-10-14/RESULTS.md` §Chatter floor).
 7. **Trunk training** (BC+PPO, 3 seeds; §5 recipe carried; stops:
-   probe 300, F-053 1,000, 20M cap) — PENDING.
+   probe 300, F-053 1,000, 20M cap) — IN FLIGHT. BC clone DONE
+   2026-10-18 (plateau at epoch 112, best 102: val 0.8330, act@1
+   0.8608, msg@1 0.9763; consent swap 136,699 + 389 kept-applied
+   per deviations entry 1; `gen2-trunk-training-2026-10-18/
+   RESULTS.md`), init_clone PINNED. Critic training; acceptance =
+   probe-then-accept on her word (#365), then the PPO launch card
+   (her word) before any seed burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid

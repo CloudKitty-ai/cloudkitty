@@ -95,8 +95,10 @@ PINS = {
     # 0.5 -> 0.04 over the first 20%).
     "beta": 0.04,
     # The Gen 2 trunk BC clone (train_clone_g2.py on the full-100
-    # corpus with the consent swap); pinned at its readout.
-    "init_clone": None,
+    # corpus with the consent swap); pinned at its readout
+    # (RESULTS.md, 2026-10-18: best epoch 102, val 0.8330,
+    # act@1 0.8608, msg@1 0.9763, plateau stop at 112).
+    "init_clone": str(ARC / "artifacts/trunk-clone/trunk-clone.pt"),
     # The Gen 2 critic (train_critic_g2.py); Gen 1 practice: probe
     # then accept (owner's word), pinned at acceptance.
     "critic": None,
