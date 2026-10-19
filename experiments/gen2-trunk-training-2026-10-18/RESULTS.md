@@ -221,3 +221,74 @@ world's Spearman ≥ 0.3; a world whose target std is under 2 raw
 units is reported as uninformative, not passed. These are
 investigation reads, not acceptance gates — acceptance stays the
 owner's word either way.
+
+### Investigation results (run 2026-10-18, instruments at 228a8134)
+
+**Read 1 — feature sensitivity** (20,000 val states, baseline mean
+prediction 417.9; reference gap ~174 raw units):
+
+| perturbation | Δmean | Δp5 | Δp95 |
+|---|---|---|---|
+| distress flags → 1 | **+17.54** | −2.15 | +23.63 |
+| needs → 0.20 | −0.30 | −2.12 | +0.86 |
+| happiness → 0.20 | −7.35 | −19.59 | −2.89 |
+| all three | +11.74 | −6.53 | +19.04 |
+
+The welfare features are essentially unbound: needs are inert
+(−0.30), happiness moves 4% of the gap in the right direction, and
+the distress flags move the prediction the WRONG way (+17.5, ~10% of
+the gap — flipping every kitty to distressed makes the critic predict
+a better future). Cause (a) confirmed with a mild perverse edge on
+the distress flags; no evidence of a bound-but-wrong encoding beyond
+that small wrong-sign component. The wrong-sign edge is consistent
+with the failed probe's anti-aligned world offsets.
+
+**Read 2 — ε-on-clone re-probes** (declared bars: finite + in-band
+hard; benign = every world ρ ≥ 0.3; target std < 2 = uninformative):
+
+| run | pooled ρ | per-world ρ | per-world target std | target mean |
+|---|---|---|---|---|
+| ε 0.1 (870007) | 0.179 | +0.013 / +0.226 / +0.143 | 5.8 / 10.2 / 7.2 | 408.8 |
+| ε 0.3 (870010) | 0.114 | +0.033 / −0.165 / +0.284 | 7.4 / 5.6 / 12.2 | 399.5 |
+
+Finite and in-band PASS on both; every world's target std ≥ 2
+(informative). **The benign line is NOT met** — best world ρ 0.284,
+one world negative. Context the numbers carry: at PPO's early
+visitation the worlds do not tank (target means 408.8 / 399.5 vs
+corpus 417.1, spans narrow), prediction ranges overlap the target
+ranges, so the magnitude error is modest there — the failure is rank
+signal, not calibration collapse.
+
+**Fork resolution per the Professor advisory**: the ε-probe did not
+come back benign, so the advisory's recommendation lands on MITIGATE
+— mix fresh ε-random rollouts into critic pretraining (training and
+probe data disjoint), re-probe on fresh seeds under the amended
+per-world instrument. Whether to mitigate (a deviations-ledger
+candidate: frozen §5 carries the critic recipe, and widening its
+training data departs from it), accept as warm start with the
+keeping-up monitor, or hold is the OWNER'S call — routed 2026-10-18,
+PENDING.
+
+#### Read (investigation; seconds; stdlib python3 only)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/critic-g2/"
+s = json.load(open(d + "critic-sensitivity.json"))
+assert s["states_sampled"] == 20000 and s["seed"] == 20261018
+print("baseline", round(s["baseline_mean"], 1))
+for k, v in s["variants"].items():
+    print(k, round(v["delta_mean"], 2), round(v["delta_p5"], 2),
+          round(v["delta_p95"], 2))
+for tag, eps, base in (("eps01", 0.1, 870007), ("eps03", 0.3, 870010)):
+    v = json.load(open(d + f"critic-probe-{tag}.json"))
+    assert v["epsilon"] == eps and v["seed_base"] == base
+    assert v["finite"] and v["in_band"] and v["states"] == 7503
+    print(tag, "pooled", round(v["spearman"], 3),
+          "tgt mean", round(v["target_mean_probe"], 1))
+    for w in v["per_world"]:
+        assert w["target_std"] >= 2.0, (tag, w)
+        print(" ", w["name"], round(w["rho"], 3), round(w["target_std"], 1))
+EOF2
+```
