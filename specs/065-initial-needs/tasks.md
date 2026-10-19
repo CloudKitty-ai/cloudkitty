@@ -11,7 +11,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the pre-change baseline: bc-collect (standalone
+- [X] T001 Record the pre-change baseline: bc-collect (standalone
       workspace, `experiments/tools/bc-collect`) at current HEAD on a
       scratch copy of
       `experiments/world-size-screen-2026-09-24/size100.toml`,
@@ -20,7 +20,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
 
 ## Phase 2: Foundational
 
-- [ ] T002 Config types in `crates/cloudkitty-core/src/config/mod.rs`:
+- [X] T002 Config types in `crates/cloudkitty-core/src/config/mod.rs`:
       `NeedInit` (untagged value-or-range per research D2, range struct
       `deny_unknown_fields`), `InitialNeedsSpec` (six `Option<NeedInit>`
       fields, skip-if-none, `deny_unknown_fields`),
@@ -30,7 +30,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
       law). Validation per init-law §8 (finite, [0,100], min ≤ max;
       errors name need and kitty). Extend the existing stamp-shape test
       with the new keys (TOML + hashed JSON surfaces must not grow).
-- [ ] T003 [P] The law module `crates/cloudkitty-core/src/init_needs.rs`
+- [X] T003 [P] The law module `crates/cloudkitty-core/src/init_needs.rs`
       (sibling of starts.rs): `INIT_NEEDS_LAW_VERSION = 1`, tag
       `ck-initnd-v1`, sub-stream seed per init-law §3, `resolve` over
       (kitty id ascending × NeedKind::ALL) per §2/§4, mapping per §5.
@@ -44,7 +44,7 @@ red. Stage tests on `test_support` builders (jscpd ratchet 3.5 scans
       needs on one kitty differ across seeds), determinism (same
       seed+config twice byte-equal), bounds at 0/100 legal, validation
       rejections (out-of-bounds, min > max, non-finite).
-- [ ] T004 Mutate reds for T002+T003 (predictions first; line-bounded
+- [X] T004 Mutate reds for T002+T003 (predictions first; line-bounded
       mutations — never rewrite test oracles in the same file): swap
       precedence order (top-level beats kitty) expecting the precedence
       test red; drop the `>> 11` mapping for raw modulo expecting the
