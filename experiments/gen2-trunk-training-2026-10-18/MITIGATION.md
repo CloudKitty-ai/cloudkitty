@@ -195,3 +195,29 @@ in the corpus):
   the original nine). Same amended instrument, same bars, mechanism
   test re-run; acceptance remains probe-then-accept on the owner's
   word.
+
+### Rung (ii) draw ranges (declared 2026-10-19 against spec 065's pinned shape)
+
+Keyed to the spec'd TOML at Product's 159aeffc (`[initial_needs]`
+roster-wide, per-kitty × per-need independent draws, ChaCha8
+sub-stream tag ck-initnd-v1, values in [0,100], unspecified needs
+start 0); re-anchored by one commit here if review moves those keys.
+Two variants on the UNALTERED trunk config (g2leg-20 + the
+`[initial_needs]` section only), 4,000 ticks each, 25 rollouts each:
+
+- **IN-wide** (seeds 1095241–1095265): all six needs
+  `{ min = 0.0, max = 90.0 }` — the full reachable band, mixed
+  per-kitty profiles by construction.
+- **IN-grave** (seeds 1095266–1095290): all six needs
+  `{ min = 60.0, max = 95.0 }` — guaranteed deep-distress starts
+  with competent relief from tick 0.
+
+Welfare: scripted seats; the path into distress is never run; the
+distressed starts are register-real at tick 0 per the spec's own
+record_distress arming. Round-1 coherence note for the record
+(Professor, 2026-10-19): the mechanism test passing while ε0.3 fails
+its null says the flags are now bound but mid-drift ranking is still
+off-MDP — exactly what trunk-MDP supervision targets and cranked-rate
+dial supervision cannot; and random-leg pooled 0.418 vs the original
+−0.026 under a stricter instrument is the cleanest single measure of
+round-1 progress.
