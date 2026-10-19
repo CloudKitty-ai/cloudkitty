@@ -148,6 +148,19 @@ def main():
                           for i in range(0, k.shape[0], 4096)]).numpy()
     pred_raw = pred * art["target_std"] + art["target_mean"]
     v = verdict(pred_raw, y, art["target_mean"])
+    # per-world slices (equal keeps: ticks - min_future + 1 each), so a
+    # pooled rho washed out by world-level offsets stays diagnosable
+    keep = args.ticks - 1500 + 1
+    assert len(y) == keep * args.worlds, (len(y), keep, args.worlds)
+    v["per_world"] = [
+        {"name": r.name,
+         "rho": spearman(pred_raw[w * keep:(w + 1) * keep],
+                         y[w * keep:(w + 1) * keep]),
+         "pred_range": [float(pred_raw[w * keep:(w + 1) * keep].min()),
+                        float(pred_raw[w * keep:(w + 1) * keep].max())],
+         "target_range": [float(y[w * keep:(w + 1) * keep].min()),
+                          float(y[w * keep:(w + 1) * keep].max())]}
+        for w, r in enumerate(rollouts)]
     v.update({"states": int(len(y)),
               "target_min": float(y.min()), "target_max": float(y.max()),
               "target_mean_probe": float(y.mean()),
