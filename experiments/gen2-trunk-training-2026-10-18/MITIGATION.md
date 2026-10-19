@@ -22,7 +22,8 @@ kitty-tick basis — different bases, both correct, never drift.
 
 - full-100 critic corpus (2.0M ticks, 10M kitty-ticks): below-45
   37,564 kitty-ticks (0.3756%) — 37,540 enrichment (3.1283% within
-  class), 24 served (0.0004%; served min 42.89), 0 traits (traits
+  class), 24 served (0.0004% within class, 0.00024% all-ticks;
+  served min 42.89), 0 traits (traits
   min 47.63); 45–70 = 230,695 (2.3070%). Per-tick reward 0.8355 ±
   0.0504; censored-return target std 16.87 around mean 417.08
   (4.0% CV).
@@ -68,9 +69,36 @@ On the post-mix critic pretraining corpus, deduped, all-ticks basis:
    family's min-n), so the distress flags get within-world
    covariance — the direct repair of the wrong-sign signature.
 4. Fill order, cheapest welfare first, stopping when 1–3 are met:
-   (i) archive harvest → (ii) manufactured initial conditions →
-   (iii) graded degradation suite → (iv) ε-mixture on clones
-   (0.1 + 0.3). Volume per rung is whatever the targets still need.
+   (i) archive harvest → (iii-extended, below) → (iv) ε-mixture on
+   clones (0.1 + 0.3) → (v) contingent fresh random-legal (below).
+   Volume per rung is whatever the targets still need.
+
+   RUNG (ii) SUPERSEDED (2026-10-18, Professor-endorsed amendment):
+   manufactured initial conditions have no engine path at the freeze
+   — kitties spawn at Needs::default() = 0 (kitty.rs), no
+   initial-needs config knob, no snapshot start in the RL env. Its
+   bins are covered by EXTENDED RUNG (iii): degraded-dial scripted
+   worlds (cranked per-need rates — one need beyond servicing
+   capacity per named variant — consent/slack extremes, dispersion
+   corners), which cycle into distress, through strained relief, and
+   out, so entry dynamics, persistence, AND recovery are all present
+   and both contrast halves come from the same world. The
+   initial-needs engine knob (world-creation-time distribution,
+   config-expressible, training-only) is a CONTINGENT Product ask on
+   the owner's word, only if targets stay unmet after rungs (iii-ext),
+   (iv) and (v).
+
+   RUNG (v), CONTINGENT (declared with this amendment): fresh
+   random-legal rollouts on fresh seeds/worlds — the mechanism that
+   generated the 214.9 span demand, so it demonstrably reaches the
+   span floor with zero engine change; random policy is not
+   experience-shaped (scripted-exempt class). Fires only if targets
+   1–3 remain unmet after (iii-ext) and (iv). Training on the
+   probe's POLICY CLASS with disjoint worlds and seeds is
+   regime-teaching, not instrument-gaming: the wall is worlds and
+   seeds, the random-policy re-probe keeps its per-world ρ ≥ 0.3
+   magnitude bar, and teaching the return range the probe tests is
+   the mitigation's whole point.
 
 Off-config note: archive and dial-leg sources are not the trunk
 config, so their value LEVELS differ by world; they enter as binding
@@ -82,13 +110,16 @@ geometry).
 
 ## Welfare-cost lines (per rung)
 
-(i) zero — paid for; (ii) near-zero — scripted seats only, the path
-into distress never run, competent relief from tick 0; (iii) zero
-new exposure class — scripted seatings with named weaknesses,
-F-053's 1,000-tick line and the asymmetric stops armed as
-everywhere; (iv) covered-mind seats (the clone) — standing stops
-armed, ε capped at 0.3, 4k ticks per world. Scouts-first applies to
-any displaced size (none planned).
+(i) zero — paid for; (iii-extended) zero new exposure class —
+scripted seatings with named weaknesses, F-053's 1,000-tick line
+and the asymmetric stops armed as everywhere; the REGISTER still
+records the added scripted distress ticks (manufactured states are
+register-real and priced per the philosophy-round qualifier), so a
+future register read is not surprised; (iv) covered-mind seats (the
+clone) — standing stops armed, ε capped at 0.3, 4k ticks per world;
+(v) scripted-exempt (random policy is not experience-shaped),
+register-real as (iii). Scouts-first applies to any displaced size
+(none planned).
 
 ## Seeds and disjointness
 
