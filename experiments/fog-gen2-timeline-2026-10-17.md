@@ -68,9 +68,13 @@ consent BC comparison ride the trunk.
    2026-10-18 (plateau at epoch 112, best 102: val 0.8330, act@1
    0.8608, msg@1 0.9763; consent swap 136,699 + 389 kept-applied
    per deviations entry 1; `gen2-trunk-training-2026-10-18/
-   RESULTS.md`), init_clone PINNED. Critic training; acceptance =
-   probe-then-accept on her word (#365), then the PPO launch card
-   (her word) before any seed burns.
+   RESULTS.md`), init_clone PINNED. Critic trained same day (val EV
+   0.8351, best epoch 3) but the #365 acceptance probe FAILED its
+   Spearman bar (pooled rho −0.026 vs ≥ 0.3; finite + in-band PASS;
+   rank-blind on far-off-distribution states while strong
+   on-distribution) — acceptance OWNER-ROUTED 2026-10-18, pending
+   her word; then the PPO launch card (her word) before any seed
+   burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid

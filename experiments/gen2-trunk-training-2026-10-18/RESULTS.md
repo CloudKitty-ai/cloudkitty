@@ -62,7 +62,7 @@ the launcher re-hashes it at launch. Critic and PPO launch stay
 behind their own gates: probe-then-accept for the critic and the
 PPO launch card, both on the owner's word.
 
-### Regeneration
+### Regeneration (BC clone)
 
 #### Collect (~6.2 h: 112 epochs × ~190 s; writes artifacts/trunk-clone/)
 
@@ -96,5 +96,94 @@ free = {c["name"]: c["count"] for c in m["message_classes"]
 assert set(free.values()) == {0}, free
 sil = next(c for c in m["message_classes"] if c["name"] == "Silent")
 print("Silent", sil["count"], round(sil["count"] / 996112, 3))
+EOF
+```
+
+
+## Critic (critic-g2) — readout + acceptance probe 2026-10-18
+
+train_critic_g2.py, same corpus and consent JSON (the swap moves
+activity labels only; the loader's integrity asserts run identically
+for every consumer): EntityCriticV2 over the 237-wide global state
+(75,073 params), censored MC returns (γ 0.998, min_future 1500,
+exp-001 deviation 27c), normalized targets, Adam 1e-3, batch 4096,
+plateau patience 5, seed 20261018. 1,665,090 train / 185,010 val
+states; target mean 417.08, std 16.87. Stopped by plateau at epoch 8;
+best epoch 3: **val MSE 0.0537, val EV 0.8351**. (Gen 1's fog critic
+had EV ~0 on its flat anchor corpus; the Gen 2 corpus has return
+signal and the critic captures most of it on-distribution.)
+
+### Acceptance probe (#365 "Probe then accept") — FAIL
+
+critic_probe_g2.py (committed 27fa06fe before the run, bars carried
+verbatim from the Gen 1 probe): random-legal policy on the trunk
+config, 3 worlds × 4,000 ticks (one continuous episode per world,
+horizon override; world seeds 870004 / 1870004 / 2870004 off the
+shared battery eval band), 7,503 pooled states.
+
+| bar | reading | verdict |
+|---|---|---|
+| finite | all | PASS |
+| in band [0, 834.17] | pred [236.09, 409.83] | PASS |
+| Spearman ≥ 0.3 | **−0.026** | **FAIL** |
+
+Shape, measured (per-world stats in `critic-probe.json`): the random
+policy tanks returns as designed (probe target range [214.9, 303.9],
+mean 243.1, vs corpus mean 417.1), and the critic does not follow —
+predictions stay at 236–410, mostly near the corpus mean, so it
+overestimates every probe state. Per-world rho 0.189 / 0.378 /
+−0.058; the pooled rank washes out further because world-level
+offsets anti-align (the world with the lowest targets gets the
+highest predictions). Deterministic: the re-run reproduces pooled
+rho −0.0257 exactly.
+
+Reading: on-distribution EV 0.8351 with rank-blind extrapolation on
+far-off-distribution states — the failure mode the probe exists to
+surface. Two facts that bear on acceptance: PPO starts from the BC
+clone (act@1 0.8608), so early PPO states are near-distribution, and
+train_ppo_g2 keeps training the critic in the loop (opt_v) — the pin
+is a warm start, not a frozen evaluator. Acceptance is the owner's
+word per #365; ROUTED 2026-10-18, PENDING.
+
+### Regeneration (critic)
+
+#### Collect (~5 min train + ~3 min probe; writes artifacts/critic-g2/)
+
+```
+cd experiments/gen2-trunk-training-2026-10-18/trainer
+caffeinate -s ../../exp-006-character-gen/.venv/bin/python -B train_critic_g2.py \
+  --data-root ../../gen2-collection-driver-2026-10-14/results-raw/full-100 \
+  --consent-rows ../../gen2-collection-driver-2026-10-14/results-raw/consent-rows-full-100.json \
+  > ../artifacts/trunk-critic-train.log 2>&1
+caffeinate -s ../../exp-006-character-gen/.venv/bin/python -B critic_probe_g2.py \
+  --out ../artifacts/critic-g2/critic-probe.json > ../artifacts/critic-probe.log 2>&1
+```
+
+#### Read (seconds; stdlib python3 only)
+
+```
+python3 - <<'EOF'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/critic-g2/"
+s = json.load(open(d + "critic-g2-0p998-stats.json"))
+assert s["params"] == 75073 and s["best_epoch"] == 3
+assert (s["gamma"], s["min_future"]) == (0.998, 1500)
+print("train/val states", s["train_states"], s["val_states"])
+print("target mean/std", round(s["target_mean"], 2), round(s["target_std"], 2))
+print("best val MSE/EV", round(s["best_val_mse"], 4), round(s["best_val_ev"], 4))
+v = json.load(open(d + "critic-probe.json"))
+assert v["verdict"] == "FAIL" and v["finite"] and v["in_band"]
+assert (v["ticks"], v["worlds"], v["states"]) == (4000, 3, 7503)
+assert v["world_seeds"] == [870004, 1870004, 2870004]
+print("band", [round(x, 2) for x in v["band"]],
+      "pred", round(v["pred_min"], 2), round(v["pred_max"], 2))
+print("pooled rho", round(v["spearman"], 4))
+print("probe targets", round(v["target_min"], 1), round(v["target_max"], 1),
+      "mean", round(v["target_mean_probe"], 1),
+      "corpus mean", round(v["target_mean_corpus"], 1))
+for w in v["per_world"]:
+    print(w["name"], round(w["rho"], 3),
+          [round(x, 1) for x in w["pred_range"]],
+          [round(x, 1) for x in w["target_range"]])
 EOF
 ```
