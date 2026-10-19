@@ -5015,35 +5015,45 @@ mod tests {
     /// Spec 065 FR-005 / init-law §7 (review F1): the feature NEVER
     /// touches the master stream. Feature-on vs feature-off at the same
     /// seed: the post-generation master RNG is byte-equal in its
-    /// SERIALIZED state (ChaCha carries its stream position, so even a
-    /// draw whose downstream effect this stage happens to absorb -- the
-    /// review found the spawn path can mask a pre-spawn draw's value
-    /// peek -- cannot hide), and the element board is identical.
+    /// SERIALIZED state (position included) and the element board is
+    /// identical. MULTI-SEED by necessity (measured): on seed 1234 the
+    /// first spawn draw's Lemire sampling rejects the stream's words 0
+    /// and 1, so a 2-word offset injected before the spawns realigns on
+    /// the first accepted word and vanishes from every surface, the
+    /// serialized state included. One seed can be that fluke; four
+    /// cannot.
     #[test]
     fn initial_needs_leave_the_master_stream_untouched() {
         use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
-        let config_on = initial_needs_config(
-            InitialNeedsSpec {
+        for seed in [1234u64, 7, 993001, 424242] {
+            let mut on_cfg = test_config();
+            on_cfg.world.seed = seed;
+            on_cfg.initial_needs = Some(InitialNeedsSpec {
                 cuddle: Some(NeedInit::Range(NeedInitRange {
                     min: 60.0,
                     max: 95.0,
                 })),
                 ..Default::default()
-            },
-            &[],
-        );
-        let config_off = Arc::new(test_config());
-        let on = World::generate(&config_on);
-        let off = World::generate(&config_off);
-        assert_eq!(
-            serde_json::to_string(&on.rng).unwrap(),
-            serde_json::to_string(&off.rng).unwrap(),
-            "the master stream's full state (position included) must be untouched"
-        );
-        let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
-            w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
-        };
-        assert_eq!(shape(&on), shape(&off), "element spawns must not move");
+            });
+            on_cfg.validate().unwrap();
+            let mut off_cfg = test_config();
+            off_cfg.world.seed = seed;
+            let on = World::generate(&Arc::new(on_cfg));
+            let off = World::generate(&Arc::new(off_cfg));
+            assert_eq!(
+                serde_json::to_string(&on.rng).unwrap(),
+                serde_json::to_string(&off.rng).unwrap(),
+                "seed {seed}: the master stream's full state must be untouched"
+            );
+            let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
+                w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
+            };
+            assert_eq!(
+                shape(&on),
+                shape(&off),
+                "seed {seed}: element spawns must not move"
+            );
+        }
     }
 
     /// Spec 065 FR-006/SC-004 (US3 scenario 3, review F3): the knob alone
