@@ -72,8 +72,13 @@ consent BC comparison ride the trunk.
    0.8351, best epoch 3) but the #365 acceptance probe FAILED its
    Spearman bar (pooled rho −0.026 vs ≥ 0.3; finite + in-band PASS;
    rank-blind on far-off-distribution states while strong
-   on-distribution) —    her word; then the PPO launch card (her word) before any seed
-   burns.
+   on-distribution). Professor second opinion relayed (her word);
+   investigation reads run on her word 2026-10-18: welfare features
+   UNBOUND (needs inert, distress flags wrong-sign +17.5) and the
+   eps-on-clone re-probes miss the declared per-world benign line
+   (best world rho 0.284) — advisory fork lands on MITIGATE;
+   accept/mitigate/hold OWNER-ROUTED, pending her word; then the
+   PPO launch card (her word) before any seed burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
