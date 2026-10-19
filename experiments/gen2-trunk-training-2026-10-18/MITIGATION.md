@@ -7,24 +7,37 @@ runs; the targets and bars below are frozen by this commit. The
 policy BC corpus and §4/§5 policy training are untouched — this
 extension feeds the CRITIC's pretraining only.
 
-## Baseline, measured (archive-inventory.json, 2026-10-18)
+## Baseline, measured (archive-inventory.json + exact-count
+## reconciliation, 2026-10-18; reviewed by Professor, scale catch fixed)
 
-Occupancy is kitty-tick mass on the happiness axis at the rider (b)
-edges (45 graver-half, 70 distress ceiling), all-ticks basis.
+UNIT CONVENTION (pinned at review): every happiness number in this
+document is in RAW engine points (0–100) — the rider (b) edges 45
+and 70, the Article I floor 5.0, every minimum. The state vector
+stores happiness /100; readers convert at the read, never in the
+prose. Occupancy is kitty-tick mass at the rider (b) edges, all-ticks
+basis. Relation to rider (b)'s own numbers: the prereg's 0.0236% /
+3.95% are SCRIPTED lived density on the comparator battery; the
+0.3756% / 2.307% here are the trained-teacher CORPUS on the
+kitty-tick basis — different bases, both correct, never drift.
 
 - full-100 critic corpus (2.0M ticks, 10M kitty-ticks): below-45
-  0.376%, 45–70 2.307% — ALL below-45 mass from the 12 enrichment
-  rollouts (3.128% within class); served and traits never dip below
-  happiness 0.43. Per-tick reward 0.8355 ± 0.0504; censored-return
-  target std 16.87 around mean 417.08 (4.0% CV).
+  37,564 kitty-ticks (0.3756%) — 37,540 enrichment (3.1283% within
+  class), 24 served (0.0004%; served min 42.89), 0 traits (traits
+  min 47.63); 45–70 = 230,695 (2.3070%). Per-tick reward 0.8355 ±
+  0.0504; censored-return target std 16.87 around mean 417.08
+  (4.0% CV).
 - Probe demand: the critic is asked to rank states whose realized
   censored returns reached down to 214.9 (random-policy probe) —
   the corpus supplies nearly nothing below ~350.
 - Reachable envelope: the trunk config pins `[happiness] floor =
   5.0` (g2leg-20.toml; Article I, invariants.rs) — no reachable
-  state sits below happiness 0.05, and the deep-distress archive
-  piles at exactly that floor. Collection below the floor is
-  impossible; targets never ask for it.
+  state sits below 5.0 raw, and the deep-distress archive piles at
+  exactly that floor (enrichment min 5.00). Collection below the
+  floor is impossible; targets never ask for it.
+- Archive return floor, measured: the richest paid-for sources
+  bottom out at 224.8 (pilot enrichment; forensic 247.8, dispersion
+  corners 247.3, central 252.1, consent/v10 263.8) — the harvest
+  alone leaves [214.9, ~225) uncovered.
 - Richest paid-for sources (per-group table in the inventory JSON):
   forensic-905029 base leg 14.10% below-45 (6k ticks),
   teacher-dispersion corners-20k 7.40% (40k), dial-screen
@@ -44,8 +57,12 @@ On the post-mix critic pretraining corpus, deduped, all-ticks basis:
 1. Below-45 occupancy ≥ 1.5% (4× baseline) and 45–70 occupancy
    ≥ 6% (2.6× baseline).
 2. Return span: censored-return targets with real mass down to
-   ≤ 250 raw units (the probe-demand region; floor-bounded worlds
-   reach ~215).
+   ≤ 220 raw units (extended from 250 at review: the probe demand
+   floor is 214.9 and the paid-for archive reaches only 224.8, so
+   the manufactured-init rung is aimed below the archive floor by
+   construction — floor-initialized, all needs armed). Whatever
+   remains uncovered in [214.9, 220) is REPORTED as residual
+   extrapolation at acceptance, never silent.
 3. Contrast pairing: for each of the 6 need kinds, ≥ 200 near-paired
    flagged/unflagged passages within the same world (the margin
    family's min-n), so the distress flags get within-world
@@ -94,16 +111,27 @@ any displaced size (none planned).
    full-100 val split ≥ 0.80 (current 0.8351; declared band −0.035).
 3. Fresh-seed re-probe under the amended per-world instrument:
    random-policy probe (870013) — every world's Spearman ρ ≥ 0.3;
-   ε-probes (870016/870019) — every world with target std ≥ 5 raw
-   units must show ρ > 0, all worlds reported with their stds. (The
-   ε bars are directional because near-teacher spans are narrow by
-   design; a magnitude bar there would be owned by noise in either
-   direction.)
+   ε-probes (870016/870019) — directional, with two review pins:
+   (a) vacuous-pass guard: at least 2 of 3 worlds must QUALIFY
+   (target std ≥ 5 raw units); fewer qualifying worlds makes that
+   probe UNINFORMATIVE and it re-runs (longer ticks or fresh
+   worlds), never passes; (b) the PRIMARY ε read is pooled Spearman
+   after within-world standardization, tested against a seeded
+   block-permutation null (blocks respect within-episode structure;
+   1,000 permutations, pass at the p99 line), with per-world signs
+   reported descriptively beside it — effective n per world is in
+   the tens, so bare per-world signs are coin-flips, not evidence.
+   (The ε bars are directional because near-teacher spans are
+   narrow by design; a magnitude bar there would be owned by noise
+   in either direction.)
 4. Mechanism test: the sensitivity read re-run on the retrained
    critic shows the distress-flag perturbation no longer positive
-   (Δmean ≤ 0). A persistent wrong sign after paired supervision
-   means something deeper and goes to the owner, not to another
-   mix.
+   (Δmean ≤ 0). The zero-tolerance point bar is DELIBERATE: its
+   failure consequence is escalation to the owner (review), not
+   auto-reject, so strictness errs safe — do not soften it with a
+   tolerance whose consequence would be auto-pass. A persistent
+   wrong sign after paired supervision means something deeper and
+   goes to the owner, not to another mix.
 
 Acceptance of the critic itself remains probe-then-accept on the
 owner's word (#365); entry 2 closes there.
