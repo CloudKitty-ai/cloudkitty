@@ -80,10 +80,17 @@ consent BC comparison ride the trunk.
    mitigate under this design"): MITIGATE per the Professor
    corpus-extension design, deviations entry 2 (coverage in outcome
    currency, cheapest-welfare-cost-first rungs, contrast pairing,
-   binding-not-volume acceptance). Mitigation arc IN FLIGHT:
-   declaration → collection → critic retrain → fresh-seed per-world
-   re-probe + mechanism test → probe-then-accept (her word) → PPO
-   launch card (her word) before any seed burns.
+   binding-not-volume acceptance). Mitigation EXECUTED 2026-10-18
+   (declaration MITIGATION.md + results in the arc RESULTS.md): all
+   coverage targets met (below-45 2.647%, 45–70 6.835%, span 156,
+   pairs every kind), retrain EV 0.8249 no-regression PASS,
+   mechanism test PASS (distress sign repaired +17.54 → −1.65),
+   ε-0.1 leg PASS; random leg misses the per-world bar (one world
+   0.061; pooled 0.418 clears the ORIGINAL #365 bar) and ε-0.3
+   fails its null — acceptance not met as declared;
+   ACCEPT / ITERATE rung (iv) / HOLD owner-routed, pending her
+   word; then the PPO launch card (her word) before any seed
+   burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
