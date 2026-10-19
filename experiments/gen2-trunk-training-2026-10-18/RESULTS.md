@@ -292,3 +292,71 @@ for tag, eps, base in (("eps01", 0.1, 870007), ("eps03", 0.3, 870010)):
         print(" ", w["name"], round(w["rho"], 3), round(w["target_std"], 1))
 EOF2
 ```
+
+## Critic mitigation — results (2026-10-18; declaration MITIGATION.md)
+
+Coverage, achieved (vs declared targets): post-mix below-45 2.647%
+(≥ 1.5), 45–70 6.835% (≥ 6), return mass to 156.0 (≤ 220 — and below
+the fresh random probe's own floor 209.1, so no residual
+extrapolation gap remains at the span edge), contrast pairs per kind
+eat 3,500 / drink 1,896 / sleep 2,129 / play 2,328 / cuddle 4,311 /
+bath 243 (all ≥ 200). Rungs used: (i) harvest 84 rollouts + (iii-ext)
+suite 116 rollouts (R-cuddle3 the richest: 28.6% below-45, returns to
+156); rungs (iv)/(v) not fired (occupancy targets met first).
+
+Retrain (artifacts/critic-g2-ext/): 2,757,290 train states (200
+extension rollouts, train-only), ORIGINAL val split. Best epoch 4:
+val MSE 0.0112, **val EV 0.8249 — no-regression PASS** (band ≥ 0.80;
+pre-mix 0.8351). Target std 16.87 → 38.15 (the span widening, as
+designed).
+
+Acceptance reads (fresh seeds as declared; amended instrument at
+9fe6d214):
+
+| leg | bar | reading | verdict |
+|---|---|---|---|
+| random 870013 | every world ρ ≥ 0.3 | 0.061 / 0.281 / 0.457 (pooled 0.418) | **FAIL** |
+| ε 0.1 870016 | block null p99 | observed 0.283 > p99 0.173 (2 qualifying) | PASS |
+| ε 0.3 870019 | block null p99 | observed 0.019 < p99 0.309 (worlds +0.481/−0.220/−0.254) | **FAIL** |
+| mechanism | distress Δmean ≤ 0 | **−1.65** (was +17.54); needs −0.75, happy −4.35, all −19.23 | PASS |
+
+Reading: the mitigation repaired what it targeted — the wrong-sign
+distress binding is gone (the one defect the contrast pairing was
+built to fix), the extrapolation clamp loosened (random-leg
+predictions now reach down to 276.5 and pooled rank 0.418 would clear
+the ORIGINAL #365 pooled bar that failed at −0.026), and the
+deployment-matched ε 0.1 leg passes its calibrated null. What still
+misses: one random-leg world carries no rank (0.061), and ε 0.3 —
+the mid-drift regime — is rank-dead in two of three worlds. Rung
+(iv), the declared deployment-matched data rung, was never fired and
+is the natural next mix for exactly that regime; a second re-probe
+round would need fresh declared seed bases. Acceptance is not met as
+declared; the accept/iterate/hold decision is OWNER-ROUTED
+(probe-then-accept, #365), PENDING.
+
+### Read (mitigation results; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+cv = json.load(open(d + "suite-coverage.json"))["postmix"]
+assert round(cv["b45_frac"] * 100, 3) == 2.647
+assert round(cv["f4570_frac"] * 100, 3) == 6.835
+assert round(cv["span_min"], 1) == 156.0
+cp = json.load(open(d + "contrast-pairs.json"))
+assert all(cp["met"].values()) and cp["pairs"]["bath"] == 243
+s = json.load(open(d + "critic-g2-ext/critic-g2-0p998-stats.json"))
+assert s["extension_rollouts"] == 200 and s["best_epoch"] == 4
+print("EV", round(s["best_val_ev"], 4), "std", round(s["target_std"], 2))
+for tag in ("reprobe-random", "reprobe-eps01", "reprobe-eps03"):
+    v = json.load(open(d + f"critic-g2-ext/{tag}.json"))
+    print(tag, v["amended"], "pooled", round(v["spearman"], 3),
+          [round(w["rho"], 3) for w in v["per_world"]],
+          v.get("block_null", {}).get("observed"))
+m = json.load(open(d + "critic-g2-ext/mechanism-test.json"))
+for k, x in m["variants"].items():
+    print(k, round(x["delta_mean"], 2))
+assert m["variants"]["distress_on"]["delta_mean"] <= 0
+EOF2
+```
