@@ -307,3 +307,26 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod probe_157 {
+    use super::*;
+    use crate::config::{InitialNeedsSpec, NeedInit};
+    #[test]
+    fn print_gen_state() {
+        let mut config = crate::test_support::test_config();
+        config.initial_needs = Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(80.0)),
+            ..Default::default()
+        });
+        config.validate().unwrap();
+        let mut world = crate::world::World::generate(&std::sync::Arc::new(config));
+        let shapes: Vec<_> = world
+            .elements
+            .iter()
+            .map(|e| (e.kind.clone(), e.pos))
+            .collect();
+        println!("PROBE elements = {shapes:?}");
+        println!("PROBE rng_next = {}", world.rng.next_u64());
+    }
+}

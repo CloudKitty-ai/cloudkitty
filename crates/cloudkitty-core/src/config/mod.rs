@@ -488,14 +488,42 @@ impl NeedRateOverrides {
 /// One need's initial setting (spec 065): a bare number is a fixed
 /// value for every kitty the setting governs; a `{ min, max }` table is
 /// a draw range resolved per kitty per need by the init law
-/// (`specs/065-initial-needs/contracts/init-law.md`). Serde untagged so
-/// `cuddle = 80.0` and `cuddle = { min = 60.0, max = 95.0 }` both read
-/// naturally and round-trip byte-identically.
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+/// (`specs/065-initial-needs/contracts/init-law.md`). These are the only
+/// TWO spellings (review F4: Deserialize is hand-written rather than
+/// untagged, so a sequence like `[1.0, 2.0]` is rejected instead of
+/// silently becoming a range, and a bad range keeps its field-named
+/// error). Round-trips by VALUE: `cuddle = 80` re-serializes as `80.0`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum NeedInit {
     Value(f32),
     Range(NeedInitRange),
+}
+
+impl<'de> Deserialize<'de> for NeedInit {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct NeedInitVisitor;
+        impl<'de> serde::de::Visitor<'de> for NeedInitVisitor {
+            type Value = NeedInit;
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("a need value in [0, 100] or a { min, max } table")
+            }
+            fn visit_f64<E: serde::de::Error>(self, v: f64) -> Result<NeedInit, E> {
+                Ok(NeedInit::Value(v as f32))
+            }
+            fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<NeedInit, E> {
+                Ok(NeedInit::Value(v as f32))
+            }
+            fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<NeedInit, E> {
+                Ok(NeedInit::Value(v as f32))
+            }
+            fn visit_map<A: serde::de::MapAccess<'de>>(self, map: A) -> Result<NeedInit, A::Error> {
+                NeedInitRange::deserialize(serde::de::value::MapAccessDeserializer::new(map))
+                    .map(NeedInit::Range)
+            }
+        }
+        deserializer.deserialize_any(NeedInitVisitor)
+    }
 }
 
 /// The range form of [`NeedInit`]: inclusive bounds, validated
@@ -2550,12 +2578,32 @@ mod tests {
             spec
         );
 
-        // deny_unknown_fields holds inside the section and the range.
+        // deny_unknown_fields holds inside the section and the range, and
+        // the hand-written NeedInit deserializer (review F4) keeps the
+        // range's FIELD-NAMED errors instead of a bare untagged failure.
         assert!(toml::from_str::<InitialNeedsSpec>("hunger = 10.0").is_err());
+        let msg = toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0, max = 2.0, mode = 1.5 }")
+            .unwrap_err()
+            .to_string();
+        assert!(msg.contains("mode"), "names the unknown range field: {msg}");
+        let msg = toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0 }")
+            .unwrap_err()
+            .to_string();
+        assert!(msg.contains("max"), "names the missing range field: {msg}");
+
+        // Exactly TWO spellings (review F4): a sequence is NOT a range.
+        let msg = toml::from_str::<InitialNeedsSpec>("eat = [1.0, 2.0]")
+            .unwrap_err()
+            .to_string();
         assert!(
-            toml::from_str::<InitialNeedsSpec>("eat = { min = 1.0, max = 2.0, mode = 1.5 }")
-                .is_err()
+            msg.contains("a need value in [0, 100] or a { min, max } table"),
+            "rejects the undocumented sequence spelling with the expecting text: {msg}"
         );
+        assert!(toml::from_str::<InitialNeedsSpec>("eat = true").is_err());
+        assert!(toml::from_str::<InitialNeedsSpec>("eat = \"80\"").is_err());
+        // Integer spelling parses as the value (round-trips by VALUE).
+        let int_spelled: InitialNeedsSpec = toml::from_str("eat = 80").unwrap();
+        assert_eq!(int_spelled.eat, Some(NeedInit::Value(80.0)));
     }
 
     /// Spec 065 init-law §8: out-of-bounds values, inverted ranges, and

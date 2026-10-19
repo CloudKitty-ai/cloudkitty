@@ -4964,6 +4964,197 @@ mod tests {
         assert_eq!(a.distress.to_vec(), b.distress.to_vec());
     }
 
+    /// Spec 065 FR-007 (US3, review F2): the Article I safeguard answers
+    /// an INITIALIZED need. Tested at the safeguard's own layer, because
+    /// no valid full-tick stage can isolate it: the eat/drink minimums
+    /// are validated >= 1 and `ensure_minimums` restocks BEFORE the
+    /// safeguard in the same phase, so on legal configs the pantry is
+    /// never empty at the safeguard's check -- it is deliberate
+    /// belt-and-braces (reachable from hand-built states, per its own
+    /// doc). Here: a world GENERATED with eat above the threshold, chow
+    /// stripped, answers with a spawn; the same stage with near-zero
+    /// needs obliges nothing -- an initialized need is a real need to
+    /// the machinery, with no new rule either side.
+    #[test]
+    fn the_safeguard_fires_for_an_initialized_need() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let chow_count = |w: &World| {
+            w.elements
+                .iter()
+                .filter(|e| matches!(e.kind, crate::element::ElementKind::Chow { .. }))
+                .count()
+        };
+        let stage = |init: Option<InitialNeedsSpec>| {
+            let mut config = test_config();
+            config.initial_needs = init;
+            config.validate().unwrap();
+            let config = Arc::new(config);
+            let mut world = World::generate(&config);
+            world
+                .elements
+                .retain(|e| !matches!(e.kind, crate::element::ElementKind::Chow { .. }));
+            assert_eq!(chow_count(&world), 0, "staging: the pantry is empty");
+            spawn::safeguard(&mut world, &config);
+            chow_count(&world)
+        };
+        let armed = stage(Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(80.0)),
+            ..Default::default()
+        }));
+        assert_eq!(
+            armed, 1,
+            "eat 80 > safeguard 75 with zero chow: the safeguard must provide"
+        );
+        let unarmed = stage(None);
+        assert_eq!(
+            unarmed, 0,
+            "near-zero needs oblige nothing: the spawn above WAS the safeguard firing"
+        );
+    }
+
+    /// Spec 065 FR-005 / init-law §7 (review F1): the feature NEVER
+    /// touches the master stream. Feature-on vs feature-off at the same
+    /// seed: the post-generation master RNG is byte-equal in its
+    /// SERIALIZED state (ChaCha carries its stream position, so even a
+    /// draw whose downstream effect this stage happens to absorb -- the
+    /// review found the spawn path can mask a pre-spawn draw's value
+    /// peek -- cannot hide), and the element board is identical.
+    #[test]
+    fn initial_needs_leave_the_master_stream_untouched() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let config_on = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Range(NeedInitRange {
+                    min: 60.0,
+                    max: 95.0,
+                })),
+                ..Default::default()
+            },
+            &[],
+        );
+        let config_off = Arc::new(test_config());
+        let on = World::generate(&config_on);
+        let off = World::generate(&config_off);
+        assert_eq!(
+            serde_json::to_string(&on.rng).unwrap(),
+            serde_json::to_string(&off.rng).unwrap(),
+            "the master stream's full state (position included) must be untouched"
+        );
+        let shape = |w: &World| -> Vec<(crate::element::ElementKind, Position)> {
+            w.elements.iter().map(|e| (e.kind.clone(), e.pos)).collect()
+        };
+        assert_eq!(shape(&on), shape(&off), "element spawns must not move");
+    }
+
+    /// Spec 065 FR-006/SC-004 (US3 scenario 3, review F3): the knob alone
+    /// never fabricates distress -- a feature-ON world below every
+    /// threshold has an empty record, no flags, no clocks, and arming
+    /// only where the arm threshold (30) is actually met.
+    #[test]
+    fn initial_needs_below_thresholds_fabricate_no_records() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let config = initial_needs_config(
+            InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(50.0)),
+                eat: Some(NeedInit::Value(20.0)),
+                ..Default::default()
+            },
+            &[],
+        );
+        let world = World::generate(&config);
+        assert!(
+            world.distress.to_vec().is_empty(),
+            "no fabricated distress events"
+        );
+        for kitty in &world.kitties {
+            assert!(kitty.in_distress.is_empty());
+            assert!(kitty.distress_since.is_empty());
+            assert_eq!(
+                kitty.announce_armed.iter().copied().collect::<Vec<_>>(),
+                vec![NeedKind::Cuddle],
+                "cuddle 50 >= arm 30 arms; eat 20 does not"
+            );
+        }
+    }
+
+    /// Spec 065 US2 scenario 3 (review F7): all six needs armed high --
+    /// happiness computes to the Article I floor, never below, and the
+    /// world still generates with every invariant green.
+    #[test]
+    fn all_needs_armed_floors_happiness_and_generates_clean() {
+        use crate::config::{InitialNeedsSpec, NeedInit};
+        let all_high = InitialNeedsSpec {
+            eat: Some(NeedInit::Value(100.0)),
+            drink: Some(NeedInit::Value(100.0)),
+            sleep: Some(NeedInit::Value(100.0)),
+            play: Some(NeedInit::Value(100.0)),
+            cuddle: Some(NeedInit::Value(100.0)),
+            bath: Some(NeedInit::Value(100.0)),
+        };
+        let config = initial_needs_config(all_high, &[]);
+        let mut world = World::generate(&config);
+        for kitty in &world.kitties {
+            assert_eq!(
+                kitty.happiness, config.happiness.floor,
+                "all needs at 100: weighted happiness clamps to the floor, never below"
+            );
+        }
+        world.tick_with_proposals(&crate::seam::JointProposal::new(), &config);
+        // invariants::assert_or_report ran inside the tick; reaching here
+        // with elevated state intact is the check.
+        assert!(world.kitties.iter().all(|k| !k.in_distress.is_empty()));
+    }
+
+    /// Spec 065 init-law §4 (review F7): a per-kitty override RANGE
+    /// consumes its draw in place of the table's for that (kitty, need) --
+    /// one draw per governed ranged need, never two.
+    #[test]
+    fn override_range_draws_once_in_place_of_the_table_range() {
+        use crate::config::{InitialNeedsSpec, NeedInit, NeedInitRange};
+        let table = InitialNeedsSpec {
+            play: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
+            bath: Some(NeedInit::Range(NeedInitRange {
+                min: 0.0,
+                max: 100.0,
+            })),
+            ..Default::default()
+        };
+        // Kitty 1 overrides play with ANOTHER range: still exactly one
+        // draw for (1, play), so every later draw -- (1, bath) included --
+        // is unmoved relative to the table-only config.
+        let overridden = initial_needs_config(
+            table,
+            &[(
+                1,
+                InitialNeedsSpec {
+                    play: Some(NeedInit::Range(NeedInitRange {
+                        min: 0.0,
+                        max: 100.0,
+                    })),
+                    ..Default::default()
+                },
+            )],
+        );
+        let table_only = initial_needs_config(table, &[]);
+        let w_over = World::generate(&overridden);
+        let w_table = World::generate(&table_only);
+        let needs_of = |w: &World, id: u32| w.kitties.iter().find(|k| k.id == id).unwrap().needs;
+        assert_eq!(
+            needs_of(&w_over, 1).get(NeedKind::Play),
+            needs_of(&w_table, 1).get(NeedKind::Play),
+            "identical range, same draw position: the override consumed the SAME one draw"
+        );
+        assert_eq!(
+            needs_of(&w_over, 1).get(NeedKind::Bath),
+            needs_of(&w_table, 1).get(NeedKind::Bath),
+            "downstream draws unmoved -- the override did not add a second draw"
+        );
+        assert_eq!(needs_of(&w_over, 2), needs_of(&w_table, 2));
+    }
+
     /// Spec 065 FR-006 (US3): a need initialized at or above the distress
     /// threshold is register-real at tick 0 -- an event in the record, the
     /// flag set, the clock anchored at 0, BEFORE any tick runs -- and the

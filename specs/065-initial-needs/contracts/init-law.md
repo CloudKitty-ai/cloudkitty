@@ -44,13 +44,21 @@ For a range `{min, max}` and draw `d: u64`:
 
 ```
 u     = (d >> 11) as f64 * 2^-53        // uniform in [0, 1)
-value = (min + u * (max - min)) as f32  // min inclusive; max approached,
-                                        // attained when min == max
+value = (min + u * (max - min)) as f32  // both endpoints attainable
 ```
 
-A fixed setting applies its value exactly. Applied values are set on
-the kitty's needs (the `Need` type's clamp is belt-and-braces;
-validation already bounds every configured number to [0, 100]).
+The f64 → f32 cast at the boundary can round the product up to `max`
+exactly (verified at review: `[0, 100]` with `u = 1 − 2⁻⁵³` yields
+100.0), and can never exceed it — so the range is inclusive at both
+ends, with `max` additionally guaranteed when `min == max`. A fixed
+setting applies its value exactly. Applied values are set on the
+kitty's needs (the `Need` type's clamp is belt-and-braces; validation
+already bounds every configured number to [0, 100]).
+
+The two spellings above are the ONLY wire forms: the deserializer is
+hand-written (review F4) so a sequence (`[1.0, 2.0]`) is rejected, and
+configs round-trip by VALUE, not by text (`cuddle = 80` re-serializes
+as `80.0`).
 
 ## §6 Application site and the tick-0 state family
 
@@ -69,6 +77,16 @@ the distress log's tick-0 events all come from the engine's one
 definition of entering distress. No parallel seeding path exists.
 `purr_phase` does not run at generation.
 
+Two declared consequences (review F5/F6d): the generation-time events
+land in the distress LOG (the ring the server serves); no `TickReport`
+ever carries them, since reports are per-tick captures and the edge
+has already fired by tick 1 — a report-based counter undercounts
+manufactured distress by exactly the tick-0 events. And a need BORN at
+or above the threshold carries the same `since = 0` stamp as one that
+crossed during the first tick's needs phase, so the register cannot
+distinguish the two (distress age undercounts the born case by one
+tick). Both conform to the spec; welfare readers take note here.
+
 ## §7 Invariants carried
 
 - Master stream (`World.rng`) and every other sub-stream: untouched —
@@ -81,7 +99,8 @@ definition of entering distress. No parallel seeding path exists.
 
 ## §8 Validation (startup, before any world builds)
 
-Reject with a clear error naming the need (and kitty for overrides):
+Reject with a clear error naming the need (and, for overrides, the
+kitty by name AND id — the law keys by id):
 non-finite numbers; any value, min, or max outside [0, 100];
 min > max. (Overrides for un-rostered kitties are inexpressible: the
 override is a field on the roster entry itself.)

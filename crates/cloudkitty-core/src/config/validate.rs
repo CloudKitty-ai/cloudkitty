@@ -1152,7 +1152,10 @@ impl Config {
         }
         for k in &self.kitties {
             if let Some(s) = &k.initial_needs {
-                specs.push((format!("[[kitty]] '{}' initial_needs", k.name), s));
+                specs.push((
+                    format!("[[kitty]] '{}' (id {}) initial_needs", k.name, k.id),
+                    s,
+                ));
             }
         }
         for (home, spec) in specs {
