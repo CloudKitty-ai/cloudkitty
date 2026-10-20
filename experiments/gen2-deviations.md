@@ -173,3 +173,29 @@ from each run's own null. Exact ceiling, (m, k), world count, and
 fresh bases: MITIGATION.md §Round 3. Professor's prediction on
 record there (ceiling + ~10 worlds stops the flip-flop). Entry stays
 OPEN to probe-then-accept (her word).
+
+ROUND 4 RULED (owner, 2026-10-19): the round-3 informative FAILs were
+diagnosed on her word ("run it") to a SECOND instrument artifact —
+the censored-MC remaining-horizon ramp owns the ε targets at 4k
+geometry (R² 0.70–0.96) and contaminated the random per-world reads;
+detrended, the critic's genuine welfare rank is positive in 9 of 10
+random worlds (RESULTS.md §World-heterogeneity diagnosis).
+Professor's owner-routed review recommends GEOMETRY repair over
+detrend-as-gate (detrending removes genuine monotone welfare arcs),
+refined to 6k/3500. Her words: "Relay our findings to Professor for
+review" → **"Agreed on both"** (refined geometry into the sequence +
+the extension-ramp check first) → **"Assuming this works, let's
+recollect rather than trying to salvage the 4k runs"** (the check
+confirmed 4k training-rung contamination, ramp R² 0.42–0.81).
+Consequences, all declared in MITIGATION.md §Round 4 before any
+collection: 6k/3500 probe at fresh bases, standing ramp guard (trip
+at world ramp R² > 0.2), uniform remaining-horizon ≥ 3500 training
+censoring with a re-derived no-regression baseline, 92-rollout
+recollection on the new 1095301–1095400 band (the 4k raws are kept on
+disk but POISONED FOR TRAINING), a sign-uniformity random bar with
+the ramp-sized (10, 7) points retired explicitly, and a held-out
+contrast-pair gate. The round-1/2/3 probe verdicts are all superseded
+as instrument readings; the corpus mitigation itself is NOT
+invalidated (occupancy targets were in ramp-free currency; the
+detrended reads show the binding the mix created). Entry stays OPEN
+to probe-then-accept (her word).

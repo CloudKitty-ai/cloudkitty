@@ -680,3 +680,57 @@ is the source; collection geometry joins the amendment) OR flat
 (drift is intrinsic state-drift; collection geometry still moves to
 6k/3500 for future rungs on cost-of-correctness grounds, but no
 salvage question arises for the existing 290).
+
+### Extension-ramp check — results (2026-10-19)
+
+artifacts/ext-ramp-check.json. Record correction first: MITIGATION's
+"extension rollouts collected fresh run 4,000 ticks" was true of the
+round-2 rungs and the suite PILOTS; the suite FILL rollouts ran 8,000
+ticks (seeds.json allocs; e.g. C10 pilot ticks 4000 / fill 8000).
+
+Training-target contamination by rung (ramp R² / corr_t, each rollout
+vs its own length's curve): the 4k rungs are heavily contaminated —
+ε0.1 0.694/−0.679, IN-wide 0.607/−0.561, ε0.3 0.521/−0.542, IN-grave
+0.417/−0.459, SCwater-pilot 0.809 — harvest (mixed lengths, mean
+5,619) 0.557/−0.541, while the 8k suite fills are mild (0.053–0.303).
+
+Checkpoint drift (same regenerated probe series, three critics):
+NEITHER declared branch cleanly — round0-noext already drifts (random
+mean|corr_t(pred)| 0.312 vs ext200 0.337 vs ext290 0.238; drift is
+partly intrinsic state-drift), but the ε leg jumps exactly at ext290
+(0.226 / 0.225 / 0.359, mean swinging to −0.235, ramp-shaped
+downward) — the checkpoint that added the 90 heavily-ramped 4k
+rollouts. Suggestive of added ramp-following on the near-teacher leg;
+not decisive.
+
+Consequence under the owner's ruling ("Assuming this works, let's
+recollect rather than trying to salvage the 4k runs"): contamination
+is confirmed and material in the 4k rungs → those rungs RECOLLECT at
+honest geometry (ε 40 + IN 50 + SCwater-pilot 2 = 92 rollouts at
+6k/3500, fresh seeds); the 8k suite fills and the harvest enter the
+retrain under the uniform remaining-horizon censoring instead
+(declared in MITIGATION §Round 4). No salvage of 4k data.
+
+### Read (ext-ramp check; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+c = json.load(open(d + "ext-ramp-check.json"))
+p1 = c["part1_by_rung"]
+assert round(p1["eps01"]["mean_ramp_r2"], 3) == 0.694
+assert round(p1["IN-wide"]["mean_ramp_r2"], 3) == 0.607
+assert round(p1["harvest"]["mean_ramp_r2"], 3) == 0.557
+assert p1["harvest"]["n"] == 84 and round(p1["harvest"]["mean_len"]) == 5619
+assert all(v["mean_ramp_r2"] < 0.31 for k, v in p1.items()
+           if k.startswith("suite:") and k != "suite:SCwater")
+assert round(p1["suite:SCwater"]["mean_ramp_r2"], 3) == 0.809
+p2 = c["part2_drift"]
+assert round(p2["random"]["round0-noext"]["mean_abs"], 3) == 0.312
+assert round(p2["eps01"]["ext290"]["mean_abs"], 3) == 0.359
+assert round(p2["eps01"]["ext200"]["mean_abs"], 3) == 0.225
+assert round(p2["eps01"]["ext290"]["mean"], 3) == -0.235
+print("ext-ramp fence: all cells match")
+EOF2
+```

@@ -332,3 +332,69 @@ Sized bars (from the measurement, declared before the round-3 probe):
 - Welfare: ε legs are covered-mind clone seats, 2 legs × 10 worlds ×
   4k ticks (up from 3 worlds; same exposure class as the already-run
   probes, standing stops armed, ε ≤ 0.3); random leg scripted-exempt.
+
+## Round 4: honest geometry (ruled 2026-10-19 — "Agreed on both" + "Assuming this works, let's recollect rather than trying to salvage the 4k runs")
+
+Authority: her two rulings above adopt Professor's reviewed design
+(geometry fix, not detrend-as-gate; refinement 6k/3500) and the
+recollect-not-salvage consequence of the extension-ramp check
+(RESULTS.md §Extension-ramp check: 4k training rungs ramp R²
+0.42–0.81; ε-leg checkpoint drift jumps at ext290). Declared before
+any round-4 collection or read.
+
+1. **Probe geometry**: 6,000 ticks, min_future 3,500 — every kept
+   state has remaining horizon ≥ 3,500, ramp span ≈ 0.4 raw
+   (negligible against residual stds), 2,501 kept states per world
+   (unchanged). m = 10 worlds per leg. Fresh bases from the claimed
+   870031–870060 row: random 870040, ε 0.1 870043, ε 0.3 870046.
+2. **Standing ramp guard** (dashboard → guard): every probe JSON
+   carries per-world ramp R² of targets and Spearman(target, tick).
+   Declared trip: any world's target ramp R² > 0.2 → the leg is
+   RAMP-CONTAMINATED and UNINFORMATIVE — re-runs at flatter
+   geometry, never passes, never fails (two-sided, the ceiling's
+   sibling).
+3. **Uniform remaining-horizon censoring for training**: every kept
+   training state has remaining ≥ 3,500 (the 20k base corpus keeps
+   [0, 16500] — dropping exactly the ~11% tail that carried ramp; 8k
+   suite fills keep [0, 4500]; harvest per its own lengths). The
+   no-regression baseline re-derives once: round-0 critic's val EV
+   recomputed under the new censoring; band = that baseline − 0.035,
+   with the absolute 0.80 floor retained if higher.
+4. **Recollection, no salvage** (her ruling): the 4k-collected rungs
+   recollect at 6k — ε 0.1 × 20, ε 0.3 × 20, IN-wide × 25,
+   IN-grave × 25, SCwater-pilot × 2 = 92 rollouts, same configs and
+   draw ranges as declared, fresh seeds from the NEW band
+   1095301–1095400 (SEED-BANDS row claimed with this commit):
+   ε 0.1 1095301–1095320, ε 0.3 1095321–1095340, IN-wide
+   1095341–1095365, IN-grave 1095366–1095390, SCwater 1095391–1095392.
+   The contaminated 4k raws are KEPT on disk (never delete) as
+   diagnosis evidence but are POISONED FOR TRAINING: excluded from
+   every retrain from this commit on.
+5. **Random-leg bars at honest geometry**: hard bars; raw pooled
+   ρ ≥ 0.3 (kept); pooled block null INFORMATIVE and passed;
+   **sign-uniformity** — no world whose own per-world null is
+   informative may be significantly wrong-signed (ρ_w < −p99_w).
+   The round-3 (m, k) = (10, 7) per-world 0.3 magnitude points are
+   RETIRED EXPLICITLY: they were sized against ramp-inflated
+   per-world stds (Professor review 2026-10-19), never silently.
+6. **Contrast-pair gate** (the near-teacher claim in deployment
+   currency, ramp-free by construction): pairs extracted from the
+   round-4 RANDOM-leg probe worlds (held out — never trained),
+   contrast_pairs_g2 conventions (flag runs ≥ 3 ticks, same kitty,
+   unflagged same-length window within ±500 ticks). For every need
+   kind with ≥ 50 pairs: fraction where the critic values the
+   flagged state LOWER. Gate: pooled fraction's exact-binomial 99%
+   lower bound > 0.5, and no qualifying kind significantly below 0.5
+   (its own binomial p99). ε informativeness (demote-or-keep) is
+   decided at this honest geometry, by the scaled qualifying guard,
+   not now.
+7. **Welfare**: recollection — IN/SCwater scripted seats (path into
+   distress never run; register-real); ε rungs covered-mind clone
+   seats 40 × 6k = 240k seat-ticks (1.5× the original rung (iv);
+   standing stops armed, ε ≤ 0.3). Probe ε legs 2 × 10 × 6k = 120k
+   clone seat-ticks. Random legs scripted-exempt.
+8. **Sequence**: recollect → retrain (artifacts/critic-g2-ext3;
+   harvest manifest + 8k suite fills + the new 6k dirs, all under
+   censoring rule 3) → round-4 reads (three legs + mechanism test +
+   contrast-pair gate) → acceptance report → probe-then-accept on
+   the owner's word (#365). Entry 2 closes there.
