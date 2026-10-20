@@ -221,3 +221,32 @@ null-width ceiling and pinned-amplitude guard pattern, the
 magnitude-calibrated per-kind value read, and the declaration-time
 guard question ("what does this trip fire on that is NOT the
 artifact?").
+
+## 3. PPO trunk-s3 halted by the frozen §6 probe-distress stop (2026-10-19)
+
+Frozen §5 plans three 20M-tick trunk PPO seeds; the frozen §6
+asymmetric stop halts a run when any probe-world kitty's
+engine-distress streak reaches 300 ticks, owner-routed, never
+auto-resumed. At update 249 (768,000 ticks, 3.8% of cap), trunk-s3
+(seed 3, run index 98, seed_base 2060000000) tripped it: max streak
+317 on the u249 probe (prior probes: u199 streak 0; nash at trip
+0.797, well above the 0.5 welfare line; lounge/inwater normal). The
+run checkpointed cleanly (artifacts/ppo-g2-trunk-s3/: checkpoint.pt,
+policy-final.pt, probe-u249.npz carrying the full 30,000-row probe
+trace, metrics.jsonl; manifest pins git 1318804e, clone dbe912eb…,
+critic bd394a96…). Training-policy state at trip: KL-to-anchor 0.042,
+entropy 0.844 (up from 0.768 at launch), live EV 0.699. Sibling seeds
+trunk-s1/s2 run on under their own armed stops (independent seeds;
+the declared stop is per-run).
+
+The stop performed as declared on a covered-mind seat: halted,
+checkpointed, routed — consequence is owner review, never auto-pass
+or auto-resume (MITIGATION.md welfare lines; the zero-tolerance
+pattern). Candidate next reads if she words them (nothing run yet):
+which kitty/need carried the streak and what the policy was doing
+through it (probe-u249.npz, on disk, no collection); the same read on
+u199 for the before/after contrast.
+
+STATUS: OPEN — awaiting the owner's ruling on investigation and on
+trunk-s3's disposition (resume from checkpoint / restart / hold);
+trunk-s1/s2 unaffected unless she says otherwise.
