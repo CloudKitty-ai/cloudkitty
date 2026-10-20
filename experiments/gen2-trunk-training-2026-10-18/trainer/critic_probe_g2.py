@@ -131,18 +131,33 @@ def world_null(pred_w, target_w, n_perm=1000, seed=0, min_shift=500):
             "n_eff": float((2.33 / p99) ** 2) if p99 > 0 else float("inf")}
 
 
-RAMP_R2_TRIP = 0.2  # §Round 4 (2): the standing ramp guard's trip
+RAMP_R2_TRIP = 0.2  # §Round 4 amendment (1): trip on the PINNED share
 
 
-def ramp_r2(y_w, total_ticks, min_future):
-    """Share of one world's target variance owned by the deterministic
-    remaining-horizon ramp (§Round 4 (2)). y_w is that world's kept
-    targets, in tick order."""
+def _ramp_curve(n, total_ticks, min_future):
+    t = np.arange(n, dtype=float)
+    assert n == total_ticks - min_future + 1, (n, total_ticks, min_future)
+    return (1.0 - 0.998 ** (total_ticks - t)) / (1.0 - 0.998)
+
+
+def artifact_share(y_w, total_ticks, min_future, r_bar):
+    """§Round 4 amendment (1): the deterministic censoring artifact's
+    share of one world's target variance, amplitude PINNED — the
+    artifact component is exactly r_bar · c(t), r_bar that world's
+    measured mean per-tick reward, c(t) the ramp curve fixed by γ and
+    geometry. Zero free parameters."""
     y_w = np.asarray(y_w, float)
-    t = np.arange(len(y_w), dtype=float)
-    assert len(y_w) == total_ticks - min_future + 1, (len(y_w),
-                                                     total_ticks, min_future)
-    ramp = (1.0 - 0.998 ** (total_ticks - t)) / (1.0 - 0.998)
+    c = _ramp_curve(len(y_w), total_ticks, min_future)
+    a = r_bar * c
+    return float(a.var() / y_w.var()) if y_w.var() > 0 else 0.0
+
+
+def monotone_trend_r2(y_w, total_ticks, min_future):
+    """DESCRIPTIVE ONLY (§Round 4 amendment (1)): the free-coefficient
+    regression R² on the ramp curve — a monotone-TREND share, which at
+    honest geometry includes genuine welfare drift. Never a trip."""
+    y_w = np.asarray(y_w, float)
+    ramp = _ramp_curve(len(y_w), total_ticks, min_future)
     basis = np.stack([np.ones(len(y_w)), ramp], axis=1)
     coef, *_ = np.linalg.lstsq(basis, y_w, rcond=None)
     ry = y_w - basis @ coef
@@ -163,7 +178,7 @@ def amended_verdict(v, epsilon):
     hard = v["finite"] and v["in_band"]
     mode = "random" if epsilon == 1.0 else "epsilon"
     ramped = [w["name"] for w in v["per_world"]
-              if w.get("ramp_r2", 0.0) > RAMP_R2_TRIP]
+              if w.get("artifact_share", 0.0) > RAMP_R2_TRIP]
     if ramped:
         return {"mode": mode, "pass": False, "uninformative": True,
                 "reason": "ramp_contaminated", "ramped_worlds": ramped}
@@ -317,9 +332,14 @@ def main():
          "target_range": [float(y[w * keep:(w + 1) * keep].min()),
                           float(y[w * keep:(w + 1) * keep].max())],
          "target_std": float(y[w * keep:(w + 1) * keep].std()),
-         # §Round 4 (2): the standing ramp guard's per-world reads
-         "ramp_r2": ramp_r2(y[w * keep:(w + 1) * keep],
-                            args.ticks, args.min_future),
+         # §Round 4 amendment (1): the standing ramp guard's per-world
+         # reads — pinned-amplitude trip + descriptive trend share
+         "r_bar": float(r.reward.mean()),
+         "artifact_share": artifact_share(y[w * keep:(w + 1) * keep],
+                                          args.ticks, args.min_future,
+                                          float(r.reward.mean())),
+         "monotone_trend_r2": monotone_trend_r2(y[w * keep:(w + 1) * keep],
+                                                args.ticks, args.min_future),
          "corr_t_target": spearman(y[w * keep:(w + 1) * keep], tick),
          "world_null": world_null(pred_raw[w * keep:(w + 1) * keep],
                                   y[w * keep:(w + 1) * keep],

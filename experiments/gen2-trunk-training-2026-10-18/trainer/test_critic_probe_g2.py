@@ -112,9 +112,9 @@ bn_ok = {"pass": True, "informative": True, "null_p99": 0.15}
 WN_OK = {"informative": True, "null_p99": 0.2}
 
 
-def seat(rho, wn=WN_OK, r2=0.05):
+def seat(rho, wn=WN_OK, share=0.001):
     return {"name": f"w{rho}", "rho": rho, "target_std": 9.0,
-            "ramp_r2": r2, "world_null": dict(wn)}
+            "artifact_share": share, "world_null": dict(wn)}
 
 
 base = {"finite": True, "in_band": True, "spearman": 0.45,
@@ -147,21 +147,35 @@ wide = {**base, "block_null": {"pass": True, "informative": False,
 v = cp.amended_verdict(wide, 1.0)
 assert not v["pass"] and v["uninformative"] and v["reason"] == "null_width", \
     f"wide-null leg must be UNINFORMATIVE, never a fail: {v}"
-# §Round 4 ramp guard: one contaminated world trips the whole leg,
-# UNINFORMATIVE, never a pass, never a plain fail — before any other read
-ramped = {**base, "per_world": base["per_world"][:9] + [seat(0.9, r2=0.35)]}
+# §Round 4 amendment ramp guard: one contaminated world (PINNED artifact
+# share over the trip) voids the leg, UNINFORMATIVE, before any other read
+ramped = {**base, "per_world": base["per_world"][:9] + [seat(0.9, share=0.35)]}
 v = cp.amended_verdict(ramped, 1.0)
 assert not v["pass"] and v["uninformative"] \
     and v["reason"] == "ramp_contaminated" \
     and v["ramped_worlds"] == ["w0.9"], \
     f"ramp-contaminated leg must be UNINFORMATIVE: {v}"
-# ramp_r2: a pure-ramp target owns ~all variance; white noise owns ~none
+# artifact_share: pinned amplitude. A target that IS the artifact
+# (r_bar x ramp curve + small noise) reads ~1 at the true r_bar...
 rngr = np.random.default_rng(17)
 tt = np.arange(2501, dtype=float)
-pure = (1 - 0.998 ** (4000 - tt)) / 0.002 + rngr.normal(0, 0.1, 2501)
-assert cp.ramp_r2(pure, 4000, 1500) > 0.95, "pure ramp must read ~1"
-assert cp.ramp_r2(rngr.normal(0, 1, 2501), 4000, 1500) < 0.05, \
-    "white noise must read ~0 ramp share"
+curve = (1 - 0.998 ** (4000 - tt)) / 0.002
+pure = 0.8 * curve + rngr.normal(0, 0.1, 2501)
+assert cp.artifact_share(pure, 4000, 1500, 0.8) > 0.9, \
+    "a pure artifact target must read ~1 at the pinned amplitude"
+# ...while a GENUINE trend 50x the artifact's size must NOT trip the
+# pinned share (the round-4 mis-fire geometry: free coefficient would
+# read ~1 here; the pinned share must stay tiny because the artifact
+# amplitude is fixed) — but the descriptive trend share still sees it
+drift = 50 * 0.8 * curve + rngr.normal(0, 0.1, 2501)
+assert cp.artifact_share(drift, 4000, 1500, 0.8) < 0.01, \
+    "a genuine trend must not read as pinned artifact share"
+assert cp.monotone_trend_r2(drift, 4000, 1500) > 0.95, \
+    "the descriptive trend share must still see the drift"
+# at HONEST geometry (6k/3500) the artifact is tiny by construction:
+# realistic-std targets read near-zero share even at full amplitude
+assert cp.artifact_share(rngr.normal(0, 10, 2501), 6000, 3500, 0.8) < 0.01, \
+    "honest-geometry targets carry ~0 pinned artifact share"
 eps_ok = {"finite": True, "in_band": True,
           "per_world": pw10([0.2] * 10), "block_null": dict(bn_ok)}
 assert cp.amended_verdict(eps_ok, 0.1)["pass"], "eps leg: null pass passes"
