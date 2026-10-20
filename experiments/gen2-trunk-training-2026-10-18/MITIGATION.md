@@ -398,3 +398,69 @@ any round-4 collection or read.
    censoring rule 3) → round-4 reads (three legs + mechanism test +
    contrast-pair gate) → acceptance report → probe-then-accept on
    the owner's word (#365). Entry 2 closes there.
+
+### Round 4 amendment: trip re-specification + gate hygiene + the play read (2026-10-19, owner "Ok, let's run Professor's sequence")
+
+Classification (Professor's correction, accepted): §Round 4 (2) as
+committed said "ramp R² ... trip at R² > 0.2", whose conventional
+reading IS free-coefficient regression — the implementation matched
+the declared TEXT and contradicted the declared PURPOSE (a
+known-structure artifact check). This is an UNDER-SPECIFIED
+DECLARATION being re-specified, not a bug fix restoring declared
+text.
+
+1. **Trip quantity re-specified**: pinned-amplitude artifact share —
+   the artifact component is r̄_w · c(t), c(t) the centered ramp curve
+   fixed by γ and geometry, r̄_w that world's MEASURED mean per-tick
+   reward (declared amplitude source; zero free parameters). Share =
+   var(r̄_w · c)/var(targets). Trip stays 0.2 on the corrected
+   quantity. The free-coefficient R² stays in every probe JSON
+   DESCRIPTIVELY, renamed monotone-trend share. Legitimacy of
+   re-scoring the round-4 JSONs (Professor's five grounds, recorded
+   in their note): validity label (the allowed retroactive class);
+   provable from the runs' own data independent of outcome; threshold
+   unmoved; symmetric (equally mandatory had the free trip wrongly
+   PASSED a leg); not outcome-selected (restores random, does not
+   rescue the ε legs — their qualifying demotion stands on its own
+   guard).
+2. **Recording rule**: re-scored verdicts land BESIDE the original
+   scoring as round4-<leg>-rescored.json, marked with this
+   amendment's commit; originals are never overwritten. Re-scoring is
+   by seed-exact regeneration under the amended instrument with
+   per-world identity asserts (ρ, target std) against the originals.
+3. **Held-out gate hygiene**: the per-kind qualifying rule is ≥ 50
+   held-out pairs (the ≥ 200/kind figure was a TRAINING-corpus
+   coverage target, never a held-out minimum); non-qualifying kinds
+   (this round: sleep 31, bath 1) are reported, never gated.
+4. **Paired play read, decision structure declared BEFORE the read**:
+   within each held-out play near-pair whose BOTH members sit in the
+   censored window, the per-pair edge = realized censored return at
+   the flagged midpoint − at the unflagged midpoint; sign test
+   against 0.5 at p99.
+   - Realized play edge NOT significantly lower → the CRITIC IS
+     RIGHT; the gate's uniform direction is the defect; the gate
+     moves to per-kind expected direction DERIVED from realized
+     held-out ordering (re-derived per generation) — the claim was
+     never "flagged = lower," it was "no FALSE welfare-contingent
+     edge."
+   - Realized edge significantly lower while the critic says higher →
+     BINDING DEFECT; localization read (declared, fires only on this
+     branch): realized edges of the 3,500 TRAINING play pairs
+     (training-lower-but-learned-higher = optimization defect;
+     training-higher = corpus-taught distribution question,
+     owner-routed, not a retrain reflex).
+   - Registered pre-read (Professor): play is 26% of the pooled gate
+     sample, so if play resolves benign and the gate goes
+     per-kind-direction, the pooled number likely clears — stated now
+     so it is never a post-hoc observation. Owner's domain prior,
+     recorded pre-read, her words: "We've handled play different from
+     the other needs for a bit, first due to having Biscuit in the
+     mix, then with Consent, so it's possible this read is valid."
+   - Welfare line (Professor, endorsed): if the benign branch holds,
+     the critic reports MDP truth and is not "fixed" — welfare
+     protection lives in reward/stops/Article I, never in falsifying
+     V; a true play edge raises a reward/environment-design question
+     in Product's and the owner's lane.
+5. **Banked for Gen 3** (prevention list): the declaration-time
+   question for every guard — "what does this trip fire on that is
+   NOT the artifact?"
