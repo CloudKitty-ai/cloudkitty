@@ -372,3 +372,20 @@ disposition of g2-s2 given an F-053 event at the GATED served size;
 0/30) is investigated before export. Remedy for the instrument (not
 run, awaiting her word): a leg-abort gate in `run_legs.py` with a
 declared-first mutate red.
+
+Investigation DECLARED (owner 2026-10-20: "the 100x100 runs are
+informative only, not a gate. Let's investigate s2's stop first, then
+we can look at the 100x100 stops for informational purposes"). The
+recorded row localizes the s2 stop as a ROSTER-WIDE collapse: every
+seat's dist_ticks equals its max per-need streak (949 / 1000 / 994 /
+967 / 940), i.e. one continuous single-need run per cat with no
+earlier distress, onsets inside ~60 ticks; the same seed is
+distress-free under g2-s1 and g2-s4 (mda 0) and the scripted
+comparator's worst streak there is 348. Reader
+`gen2-cert-battery-2026-10-20/diag_s2_905008.py` (committed before
+its run): deterministic replay of the battery loop, stopped at tick
+18300 (past every predicted onset, ~300-350 re-exposed distress ticks
+per cat instead of ~1000 — the declared welfare mitigation; one
+world, five covered minds), exact-onset reproduction as the positive
+control, trace 16000-18300 saved for the reads. The 100×100 stops
+follow, informational only (her framing: never a gate).
