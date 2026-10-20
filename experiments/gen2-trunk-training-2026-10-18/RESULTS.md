@@ -543,3 +543,37 @@ corpus-type gap → ANTI worlds' outcome profiles sit outside the
 extension corpus's supervised envelope; drift mis-tracking → read 2's
 sign relation holds; identity-driven value variance → read 3's dial
 scalars correlate with ρ_world while reads 1–2 are flat.
+
+### Diagnosis results (reads 1–3) + read 4 declared (2026-10-19)
+
+Read 2 answers it: **drift mis-tracking, 20 of 20 worlds** —
+sign(ρ_world) = sign(corr_t(pred) · corr_t(target)) in every world of
+both legs (artifacts/diag-hetero.json), and across worlds ρ tracks
+corr_t(pred) at −0.952 (ε0.1) / −0.527 (random). Reads 1 and 3 are
+flat: no outcome-profile or identity-dial scalar reaches |0.5|
+against ρ_world. The critic ranks a world when its state-driven
+prediction drift happens to co-move with the target's time trend and
+anti-ranks when it drifts the other way.
+
+Why targets trend: the censored-MC construction on a finite 4,000-tick
+episode bakes in a deterministic remaining-horizon ramp — at γ 0.998
+the discounted-sum factor falls from (1−γ^4000) to (1−γ^1500), a 4.9%
+decline ≈ 20.6 raw units on the ε legs' ~417 mean. A linear ramp of
+that range has std ≈ 5.9 — the ε worlds' observed target stds are
+3.5–7.6, i.e. the ε targets are plausibly MOSTLY ramp, a component no
+stationary state-only critic can represent (the corpus training
+targets barely contain it: on 20k-tick rollouts ~89% of kept states
+sit beyond any material ramp). If that holds, the ε legs at this
+geometry never measured welfare ranking at all — round 1's ε0.1 PASS
+included.
+
+**Read 4, declared before running**: per world, with R_t =
+(1−γ^(4000−t))/(1−γ) the deterministic ramp — (a) ramp share of
+target variance (R² of target on R_t), (b) detrended ρ̃ =
+Spearman(resid(pred | R_t), resid(target | R_t)). Diagnosis only,
+never an acceptance bar (bar changes are the owner's on the ledger).
+Predictions: ε worlds show ramp R² > 0.6 in most worlds; if the
+mitigation's welfare binding is real, random-leg ρ̃ stays positive
+after detrending (the genuine welfare-collapse component survives);
+ε-leg ρ̃ tells us whether any rankable welfare signal exists at this
+geometry at all.
