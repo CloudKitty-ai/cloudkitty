@@ -912,3 +912,43 @@ assert g["pooled_pairs"] == 0 and g["included_kinds"] == []
 print("amendment fence: all cells match")
 EOF2
 ```
+
+## Trunk PPO — seeds s1/s2 readout (2026-10-20; launched on "Launch it" 2026-10-19 at 1318804e)
+
+Both completed by the frozen plateau rule (3 flat 1M-tick bins), no
+stop tripped:
+
+| seed | updates | ticks | wall | ep_return first→last | min probe nash | max probe streak |
+|---|---|---|---|---|---|---|
+| trunk-s1 (idx 96) | 2,604 | 8,002,560 | 3.3 h | 0.8257 → 0.8816 | 0.8170 | 103 |
+| trunk-s2 (idx 97) | 2,604 | 8,002,560 | 3.2 h | 0.8258 → 0.8807 | 0.8134 | 195 |
+
+Welfare: clean end to end — every probe streak under the 300 bar,
+nash never below 0.81 (line 0.5), lounge/inwater normal. The pinned
+critic held through training (live EV mostly 0.6–0.9). Finals:
+ppo-g2-trunk-s1/policy-final.pt sha256 a22b8713…,
+ppo-g2-trunk-s2/policy-final.pt sha256 4040554a…. trunk-s3 (idx 98)
+remains HALTED at u249 under deviations entry 3, owner-routed.
+Monitor lesson banked: the watch filter missed the uppercase
+"PLATEAU:" terminal line — terminal-state filters are
+case-insensitive from here on.
+
+### Read (PPO s1/s2; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+for s, last_ret, mn, mx in (("s1", 0.8816, 0.8170, 103),
+                            ("s2", 0.8807, 0.8134, 195)):
+    rows = [json.loads(l) for l in open(d + f"ppo-g2-trunk-{s}/metrics.jsonl")]
+    tr = [r for r in rows if not r.get("probe")]
+    pr = [r for r in rows if r.get("probe")]
+    assert tr[-1]["update"] == 2604 and tr[-1]["ticks"] == 8002560
+    ret = [r for r in tr if r.get("ep_return_mean")]
+    assert round(ret[-1]["ep_return_mean"], 4) == last_ret
+    assert round(min(p["nash"] for p in pr), 4) == mn
+    assert max(p["max_distress_streak"] for p in pr) == mx < 300
+print("ppo readout fence: all cells match")
+EOF2
+```
