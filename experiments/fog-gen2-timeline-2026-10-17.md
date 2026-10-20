@@ -136,8 +136,7 @@ consent BC comparison ride the trunk.
    dissolved). Every informative read PASSES.
    PROBE-THEN-ACCEPT RULED: "accept" (owner 2026-10-19) — critic
    PINNED (critic-g2-ext3, sha bd394a96...e20777); deviations entry 2
-   CLOSED. Next: the PPO launch card, pending her
-   word; then the PPO launch card (her word) before any seed
+   CLOSED. Next: the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
    valve (§6) — PENDING.
