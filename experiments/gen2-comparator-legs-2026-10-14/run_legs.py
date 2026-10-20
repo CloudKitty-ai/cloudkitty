@@ -45,10 +45,12 @@ SIZES = (20, 40, 100)
 DISPLACED = (40, 100)
 
 
-def harness_cmd(config, band, seeds, ticks, workers, out_dir):
-    """One cert_harness_fog invocation, scripted seating, the F-053
-    streak stop always armed."""
-    return [str(PYTHON), str(HARNESS), "scripted", band,
+def harness_cmd(config, band, seeds, ticks, workers, out_dir,
+                seating="scripted"):
+    """One cert_harness_fog invocation, the F-053 streak stop always
+    armed. Seating default scripted (the comparator legs); the Gen 2
+    battery passes its g2-* seatings (DECLARATION.md 2026-10-20)."""
+    return [str(PYTHON), str(HARNESS), seating, band,
             "--seeds", str(seeds), "--ticks", str(ticks),
             "--workers", str(workers), "--config", str(config),
             "--out-dir", str(out_dir), "--abort-streak", str(F053_STREAK)]
@@ -86,7 +88,7 @@ def scout_verdict(jsonl_path, expect_seeds=None):
 
 
 def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
-         scout_seeds=3):
+         scout_seeds=3, seating="scripted"):
     """Ordered stages: per size (ascending), scout-then-gate for the
     displaced sizes, then the full leg. Each stage: (name, cmd,
     scout_file_to_gate_on_or_None). Scout coverage (owner-amended
@@ -104,11 +106,12 @@ def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
             sdir = out_dir / f"scouts/size{size}"
             stages.append((f"scout-{size}",
                            harness_cmd(cfg, band, scout_seeds, ticks,
-                                       min(scout_seeds, workers), sdir),
-                           sdir / f"scripted-{band}-{scout_seeds}x{ticks}.jsonl"))
+                                       min(scout_seeds, workers), sdir,
+                                       seating),
+                           sdir / f"{seating}-{band}-{scout_seeds}x{ticks}.jsonl"))
         stages.append((f"leg-{size}",
                        harness_cmd(cfg, band, seeds, ticks, workers,
-                                   out_dir / f"legs/size{size}"),
+                                   out_dir / f"legs/size{size}", seating),
                        None))
     return stages
 
@@ -129,6 +132,9 @@ def main(argv=None):
     ap.add_argument("--scout-seeds", type=int, default=3,
                     help="worlds scouted per displaced size before its leg "
                          "(the band's first seeds; all must pass the F-053 gate)")
+    ap.add_argument("--seating", default="scripted",
+                    help="cert_harness_fog seating name (default scripted; "
+                         "the Gen 2 battery passes g2-s1/g2-s2/g2-s4)")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     only = tuple(int(s) for s in a.only.split(",")) if a.only else SIZES
@@ -137,7 +143,7 @@ def main(argv=None):
         raise SystemExit(f"run_legs: unknown sizes {bad}; sizes are {SIZES}")
     configs = {s: getattr(a, f"config_{s}") for s in SIZES}
     stages = plan(configs, a.band, a.seeds, a.ticks, a.workers, a.out_dir, only,
-                  a.scout_seeds)
+                  a.scout_seeds, a.seating)
     for name, cmd, scout_file in stages:
         print(f"== {name}: {' '.join(cmd)}", flush=True)
         if a.dry_run:

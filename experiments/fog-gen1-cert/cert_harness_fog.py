@@ -75,11 +75,25 @@ EAT_ACT, DRINK_ACT = 3, 4
 N_ACT, N_MSG = 39, 16
 N_HEADS = N_ACT + N_MSG
 OBS_DIM = 408
+# Gen 2 trunk seats (`g2:<slot>`, schema 6 / obs_layout_v6): obs 399,
+# heads 35 + 16 = 51 (gen2-cert-battery-2026-10-20/DECLARATION.md).
+# A roster is ONE schema: g2 seats never mix with ppo/plan seats.
+SCHEMA_DIMS = {"v5": (OBS_DIM, N_ACT, N_HEADS), "v6": (399, 35, 51)}
 NEG_INF = float("-inf")
 # CERT_ARTS: another pass's artifact root (beam-world screen tier 2, 2026-09-19); read at import so
 # spawned workers see it too. Seat specs stay `ppo:<slot>` -> <root>/ppo-fog-<slot>/policy-final.pt.
 ARTS = Path(os.environ["CERT_ARTS"]) if os.environ.get("CERT_ARTS") else HERE / "artifacts"
+G2_ARTS = EXPTS / "gen2-trunk-training-2026-10-18" / "artifacts"
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
+
+
+def artifact_path(spec):
+    """The policy artifact a seat spec resolves to (one home: load_model
+    and provenance both use it). `plan:<slot>` rides the ppo artifact."""
+    kind, name = spec.split(":", 1)
+    if kind == "g2":
+        return G2_ARTS / f"ppo-g2-{name}" / "policy-final.pt"
+    return ARTS / f"ppo-fog-{name}" / "policy-final.pt"
 
 # Seat order = kitty id order in the config: Miso, Biscuit, Pumpkin, Kittybear, Clementine.
 SEATINGS = {
@@ -90,6 +104,12 @@ SEATINGS = {
     #   Pumpkin dose-lo-s1 (clean on every seat over 108k ticks, nash .929)
     #   Kittybear cand-s4 · Clementine cand-s7
     "gen1-A": ["ppo:cand-s2", "ppo:cand-s1", "ppo:dose-lo-s1", "ppo:cand-s4", "ppo:cand-s7"],
+    # Gen 2 trunk battery (step 8, DECLARATION.md 2026-10-20): the
+    # CTDE-declared deployment shape — one artifact's weights in all
+    # five seats, one seating per completed trunk seed.
+    "g2-s1": ["g2:trunk-s1"] * 5,
+    "g2-s2": ["g2:trunk-s2"] * 5,
+    "g2-s4": ["g2:trunk-s4"] * 5,
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
 # disjoint 30-seed bands beyond the declared eval/stress pair
@@ -115,12 +135,27 @@ def load_model(spec):
         sys.path.insert(0, str(EXPTS / "beam-world-screen-2026-09-19"))
         from beam_plan import BeamPlanner
         return BeamPlanner(load_model(f"ppo:{name}"))
+    if kind == "g2":
+        import torch
+        sys.path.insert(0, str(EXPTS / "gen2-trunk-training-2026-10-18" / "trainer"))
+        from model_v6 import EntityPolicyV6
+        torch.set_num_threads(1)
+        ck = torch.load(artifact_path(spec), map_location="cpu",
+                        weights_only=True)
+        policy = EntityPolicyV6(**ck["hyper"])
+        policy.load_state_dict(ck["state_dict"])
+        policy.eval()
+
+        def fwd(rows, masks=None):
+            with torch.no_grad():
+                return policy(torch.from_numpy(rows)).numpy()
+        return fwd
     if kind != "ppo":
         raise ValueError(spec)
     import torch
     from train_ppo_fog import load_policy_ckpt
     torch.set_num_threads(1)
-    policy, _ck = load_policy_ckpt(ARTS / f"ppo-fog-{name}" / "policy-final.pt")
+    policy, _ck = load_policy_ckpt(artifact_path(spec))
     policy.eval()
 
     def fwd(rows, masks=None):
@@ -311,6 +346,44 @@ def play_account(st, roster, prev_play, acc):
     return playing
 
 
+def disp_acc(roster):
+    return {"together_ticks": [0] * roster, "group_count_sum": 0, "ticks": 0}
+
+
+def disp_account(st, roster, width, height, acc):
+    """One tick of the Gen 2 §9.5 dispersion read (K§4, INVESTIGATE;
+    definition declared in gen2-cert-battery-2026-10-20/DECLARATION.md):
+    kitties partition into connected components under walk adjacency
+    (Manhattan distance <= 1, same tile included); together = in a
+    component of size >= 2; group count = components this tick."""
+    pos = []
+    for k in range(roster):
+        b = k * PER_KITTY
+        pos.append((int(round(float(st[b + POS0]) * width)),
+                    int(round(float(st[b + POS0 + 1]) * height))))
+    parent = list(range(roster))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for i in range(roster):
+        for j in range(i + 1, roster):
+            if walk_distance(pos[i], pos[j]) <= 1:
+                parent[find(i)] = find(j)
+    roots = [find(k) for k in range(roster)]
+    sizes = {}
+    for r in roots:
+        sizes[r] = sizes.get(r, 0) + 1
+    for k in range(roster):
+        if sizes[roots[k]] >= 2:
+            acc["together_ticks"][k] += 1
+    acc["group_count_sum"] += len(sizes)
+    acc["ticks"] += 1
+
+
 def run_one(args):
     # The tail args are optional (older callers pass shorter tuples; the
     # deaf/dir_r extension silently broke the 7-tuple guard tests, found
@@ -333,6 +406,16 @@ def run_one(args):
     roster = len(kitties)
     seats = list(seats_override or SEATINGS[seating_name])
     assert len(seats) == roster, (seating_name, roster)
+    # One schema per roster. g2 (v6) observations carry no episode-clock
+    # input, so "served" is the only truthful clock mode, and the deafen
+    # offsets are schema-5 — both refused up front, before the env.
+    schema = "v6" if any(s.startswith("g2:") for s in seats) else "v5"
+    if schema == "v6":
+        assert all(s == "scripted" or s.startswith("g2:") for s in seats), seats
+        assert clock_mode == "served", \
+            f"g2 seats run clock=served only (no clock input exists): {clock_mode}"
+        assert deaf is None, "deafen offsets are schema-5; refused for g2 seats"
+    obs_dim, n_act, n_heads = SCHEMA_DIMS[schema]
 
     # control= names the seats the ENGINE drives; each keeps its configured behavior
     control = {f"kitty_{k['id']}": control_brain or k["behavior"]
@@ -355,7 +438,7 @@ def run_one(args):
     if names:
         w = np.asarray(obs[names[0]], np.float32).shape[0]
         mw = len(infos[names[0]]["mask"])
-        assert (w, mw) == (OBS_DIM, N_HEADS), (w, mw)
+        assert (w, mw) == (obs_dim, n_heads), (w, mw, schema)
 
     hap_sum = np.zeros(roster)
     low_ticks = np.zeros(roster, np.int64)
@@ -375,27 +458,29 @@ def run_one(args):
     aborted_at = None
     # message head per policy seat: counts of the chosen head index per tick (0 = Silent, then HEAD_KINDS
     # order); scripted seats decide inside the engine and are not counted (beam-world screen tier 5, P4)
-    msg_counts = {a: [0] * N_MSG for a in names}
+    msg_counts = {a: [0] * (n_heads - n_act) for a in names}
+    disp = disp_acc(roster)
 
     for _t in range(ticks):
         acts = {}
         if names:
             ob = np.stack([np.asarray(obs[a], np.float32) for a in names])
-            if clock_mode == "served":
-                ob[:, CLOCK_INDEX] = 0.0
-            elif clock_mode == "train":
-                # the training schedule: t / rl.episode.horizon (default 2000), cycling, no world reset
-                ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
+            if schema == "v5":
+                if clock_mode == "served":
+                    ob[:, CLOCK_INDEX] = 0.0
+                elif clock_mode == "train":
+                    # the training schedule: t / rl.episode.horizon (default 2000), cycling, no world reset
+                    ob[:, CLOCK_INDEX] = (n_ticks % TRAIN_HORIZON) / TRAIN_HORIZON
             if deaf:
                 deafen(ob, deaf, (width, height, dir_r))
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
-            lg = np.zeros((len(names), N_HEADS), np.float32)
+            lg = np.zeros((len(names), n_heads), np.float32)
             for s, fwd in models.items():
                 rows = [i for i, a in enumerate(names) if seat_of[a] == s]
                 if rows:
                     lg[rows] = np.asarray(fwd(ob[rows], mk[rows]), np.float32)
-            a0 = np.where(mk[:, :N_ACT], lg[:, :N_ACT], NEG_INF).argmax(1)
-            g0 = np.where(mk[:, N_ACT:], lg[:, N_ACT:], NEG_INF).argmax(1)
+            a0 = np.where(mk[:, :n_act], lg[:, :n_act], NEG_INF).argmax(1)
+            g0 = np.where(mk[:, n_act:], lg[:, n_act:], NEG_INF).argmax(1)
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}
             for i, a in enumerate(names):
                 msg_counts[a][int(g0[i])] += 1
@@ -425,6 +510,7 @@ def run_one(args):
         prev_sleep = beam_account(st, beams, roster, width, height, prev_sleep, beams_acc)
         prev_play = play_account(st, roster, prev_play, plays_acc)
         needs_account(st, roster, needs_hist)
+        disp_account(st, roster, width, height, disp)
         # Welfare-practice streak abort (owner ruled 2026-09-26; the F-053
         # 1,000-tick line is the reference): the leg stops the tick any
         # cat's distress streak REACHES the limit. None = never fires.
@@ -438,6 +524,11 @@ def run_one(args):
         "play": plays_acc,
         "needs": needs_hist,
         "beam": beams_acc,
+        "dispersion": {
+            "together_share": [round(t / max(1, disp["ticks"]), 6)
+                               for t in disp["together_ticks"]],
+            "mean_group_count": round(
+                disp["group_count_sum"] / max(1, disp["ticks"]), 4)},
         "plan": {s: dict(m.stats) for s, m in models.items() if hasattr(m, "stats")},
         "msg": msg_counts,
         "seating": seating_name, "seats": seats, "seed": seed, "ticks": n_ticks, "clock": clock_mode,
@@ -465,7 +556,7 @@ def provenance(config_path, seats):
         "rustc": rustc.stdout.strip() or None,
         "binding_artifacts": binding_identity(cloudkitty),
         "artifacts_root": str(ARTS),
-        "artifacts": {s: hashlib.sha256((ARTS / f"ppo-fog-{s.split(':', 1)[1]}" / "policy-final.pt").read_bytes()).hexdigest()
+        "artifacts": {s: hashlib.sha256(artifact_path(s).read_bytes()).hexdigest()
                       for s in sorted(set(seats)) if s != "scripted"},
     })
 
@@ -514,10 +605,15 @@ def main():
         tag += f"-deaf-dir-r{int(a.dir_r)}"
     elif a.deaf:
         tag += f"-deaf-{a.deaf}"
-    if a.clock == "served" and any(s != "scripted" for s in seats):
-        tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
-    elif a.clock == "train" and any(s != "scripted" for s in seats):
-        tag += "-ctrain"
+    # Clock suffixes are a v5 disambiguator (v6 has no clock input at
+    # all: one truthful mode, no suffix — scout/leg filenames stay
+    # seating-band-NxT for the run_legs gate).
+    g2 = any(s.startswith("g2:") for s in seats)
+    if not g2:
+        if a.clock == "served" and any(s != "scripted" for s in seats):
+            tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
+        elif a.clock == "train" and any(s != "scripted" for s in seats):
+            tag += "-ctrain"
     a.out_dir.mkdir(parents=True, exist_ok=True)
     out = a.out_dir / f"{tag}-{a.band}-{a.seeds}x{a.ticks}.jsonl"
     with out.open("w") as f:
