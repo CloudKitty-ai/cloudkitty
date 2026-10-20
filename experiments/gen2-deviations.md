@@ -321,10 +321,9 @@ print("entry-3 fence: all cells match")
 EOF2
 ```
 
-STATUS: OPEN — disposition owner-routed. Options on the table:
-(a) replacement seed (fresh declared run index + seed, ~3.3 h at the
-siblings' plateau pace) — a resume of the tripping weights is NOT
-recommended (deterministic greedy probes make a near-term re-trip
-likely); (b) proceed to §10 on the two completed seeds (a §5
-three-seed deviation, ruled here); (c) hold. The play-economy
-question banks for Gen 3 regardless.
+RULED (owner, 2026-10-20): **"A"** — replacement seed. trunk-s4
+declared: seed 4, run index 99, seed stripe 2080000000-2099999999
+(SEED-BANDS row claimed with the ruling; the tripping s3 weights are
+never resumed and its artifacts stay on disk as the entry record).
+The play-economy question banks for Gen 3. Entry CLOSES at s4
+completion or its own stop (which would reopen it to her).

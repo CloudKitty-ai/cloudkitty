@@ -115,6 +115,10 @@ SLOTS = {
     "trunk-s1": (1, 96),
     "trunk-s2": (2, 97),
     "trunk-s3": (3, 98),
+    # replacement for the halted trunk-s3 (deviations entry 3, owner
+    # "A" 2026-10-20): fresh seed + run index; its 20M seed stripe
+    # (2,080,000,000+) claimed in SEED-BANDS.md with the ruling.
+    "trunk-s4": (4, 99),
 }
 
 
