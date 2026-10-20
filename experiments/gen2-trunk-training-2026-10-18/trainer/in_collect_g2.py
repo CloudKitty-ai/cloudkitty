@@ -49,9 +49,26 @@ def main():
     ap.add_argument("--ticks", type=int, default=4000)
     ap.add_argument("--out", type=pathlib.Path,
                     default=ARC / "results-raw-extension-iter")
+    ap.add_argument("--wide-base", type=int, default=None,
+                    help="override IN-wide seed base (round-4 recollection "
+                         "uses 1095341 per MITIGATION.md §Round 4)")
+    ap.add_argument("--grave-base", type=int, default=None,
+                    help="override IN-grave seed base (round 4: 1095366)")
+    ap.add_argument("--band", type=int, nargs=2, default=None,
+                    help="override claimed band (round 4: 1095301 1095400)")
     args = ap.parse_args()
 
-    for v, ((lo, hi), seed, rollouts) in VARIANTS.items():
+    global BAND_BASE, BAND_END
+    if args.band:
+        BAND_BASE, BAND_END = args.band
+    variants = dict(VARIANTS)
+    if args.wide_base:
+        variants["IN-wide"] = (variants["IN-wide"][0], args.wide_base,
+                               variants["IN-wide"][2])
+    if args.grave_base:
+        variants["IN-grave"] = (variants["IN-grave"][0], args.grave_base,
+                                variants["IN-grave"][2])
+    for v, ((lo, hi), seed, rollouts) in variants.items():
         top = seed + rollouts - 1
         assert BAND_BASE <= seed and top <= BAND_END, \
             f"{v}: seeds {seed}..{top} leave the band"
