@@ -327,3 +327,8 @@ declared: seed 4, run index 99, seed stripe 2080000000-2099999999
 never resumed and its artifacts stay on disk as the entry record).
 The play-economy question banks for Gen 3. Entry CLOSES at s4
 completion or its own stop (which would reopen it to her).
+
+CLOSED (2026-10-20): trunk-s4 plateau-complete, welfare-clean (max
+probe streak 217 < 300 — the closest of the three, noted; min nash
+0.8149; final 0.8864, the best of the three). Frozen §5 satisfied by
+s1/s2/s4; readout in the arc RESULTS.md.

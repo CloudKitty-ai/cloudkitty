@@ -952,3 +952,35 @@ for s, last_ret, mn, mx in (("s1", 0.8816, 0.8170, 103),
 print("ppo readout fence: all cells match")
 EOF2
 ```
+
+### Trunk PPO — replacement seed s4 readout (2026-10-20; entry-3 ruling "A")
+
+trunk-s4 (seed 4, idx 99, stripe 2080000000+): plateau-complete at
+2,604 updates / 8,002,560 ticks / 2.3 h — the same convergence point
+as s1/s2. ep_return 0.8229 → **0.8864** (the best of the three
+finals); min probe nash 0.8149; max probe streak **217** — under the
+300 bar but the closest approach of the three completed seeds (s1
+103, s2 195), consistent with the entry-3 reading that the play-lean
+pressure is real and seed-dependent. Final
+ppo-g2-trunk-s4/policy-final.pt sha256 69d7248c…. Frozen §5's
+three-seed plan is satisfied by s1/s2/s4; deviations entry 3 CLOSES
+at this completion per its own ruling text.
+
+### Read (s4; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+rows = [json.loads(l) for l in open(
+    "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+    "ppo-g2-trunk-s4/metrics.jsonl")]
+tr = [r for r in rows if not r.get("probe")]
+pr = [r for r in rows if r.get("probe")]
+assert tr[-1]["update"] == 2604 and tr[-1]["ticks"] == 8002560
+ret = [r for r in tr if r.get("ep_return_mean")]
+assert round(ret[-1]["ep_return_mean"], 4) == 0.8864
+assert round(min(p["nash"] for p in pr), 4) == 0.8149
+assert max(p["max_distress_streak"] for p in pr) == 217 < 300
+print("s4 fence: all cells match")
+EOF2
+```
