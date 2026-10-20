@@ -262,3 +262,69 @@ the streak — the halted run's own probe-u249.npz trace (actions,
 messages, masks) for that kitty over that window; (3) contrast — the
 same kitty/world in the healthy u199 probe (streak 0). Instruments:
 diag_s3_g2.py, committed before results.
+
+INVESTIGATION RESULTS (2026-10-20; diag_s3_g2.py →
+artifacts/diag-s3.json; regeneration reproduced the recorded 317
+exactly — per-seed max streaks 0 / 317 / 0):
+
+- WHERE: probe world 40002, kitty 1, ticks 820–1136 of the 2k window.
+- WHAT: a MULTI-NEED collapse, not a single-need loop — within the
+  317-tick span the kitty's flags ran sleep 296, cuddle 280, eat 214,
+  drink 154 ticks; play just 26 (and bath 0). Four needs critical at
+  once while the one need the policy kept serving was play.
+- BEHAVIOR through the window (the run's own u249 trace): the
+  tripping kitty's top greedy choices were PlayKitty2 (68) +
+  PlayKitty3 (39) — a third of the window spent proposing partner
+  play — plus MoveW/E 54, SleepSolo 29, RestSolo 13; messages mostly
+  silent. Masks stayed rich (mean 11.7 legal actions), so this was
+  CHOICE, not a constrained menu. At u199 (same kitty, same window,
+  streak 0) the mix was balanced: play present but alongside
+  ChaseKitty0, RestWithKitty3, PlaySolo, SleepSolo.
+- READING: the policy under PPO drifted toward play-seeking under
+  multi-need pressure in this world — play being the one need whose
+  distress carries no value penalty (the entry-2 paired read showed
+  play-flagged states genuinely aren't lower-value in the MDP), so
+  optimization pressure can lean there while eat/drink/sleep
+  compound. One world of three, at 3.8% of training, KL 0.042 off
+  anchor: siblings s1/s2 trained through the same region with rising
+  but under-bar streaks (103/195) and finished welfare-clean. The
+  stop caught exactly the corner it was built for. This is the
+  materialized form of the reward-design question Professor's review
+  flagged (play-distress as an instrumentally attractive region) —
+  an environment/reward lane item, not a critic falsification and
+  not a Gen 2 world change (prereg frozen).
+
+Verification: streak reproduction asserted in-run (0/317/0);
+behavior read from the halted run's own trace; u199 contrast is
+trace-only (the rolling checkpoint overwrote u199's weights —
+noted limitation).
+
+### Read (entry 3; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = json.load(open("experiments/gen2-trunk-training-2026-10-18/"
+                   "artifacts/diag-s3.json"))
+assert d["per_seed_max_streak"] == {"40001": 0, "40002": 317, "40003": 0}
+loc = d["located"]
+assert loc["seed"] == 40002 and loc["kitty"] == 1
+assert loc["span"] == [820, 1136] and loc["streak"] == 317
+f = loc["flag_ticks_by_kind"]
+assert f["sleep"] == 296 and f["cuddle"] == 280 and f["eat"] == 214
+assert f["drink"] == 154 and f["play"] == 26 and f["bath"] == 0
+b = d["behavior"]["probe-u249"]
+assert b["window_rows"] == 317
+assert b["act_hist"]["32"] == 68 and b["act_hist"]["33"] == 39
+assert round(b["mean_legal_acts"], 1) == 11.7
+print("entry-3 fence: all cells match")
+EOF2
+```
+
+STATUS: OPEN — disposition owner-routed. Options on the table:
+(a) replacement seed (fresh declared run index + seed, ~3.3 h at the
+siblings' plateau pace) — a resume of the tripping weights is NOT
+recommended (deterministic greedy probes make a near-term re-trip
+likely); (b) proceed to §10 on the two completed seeds (a §5
+three-seed deviation, ruled here); (c) hold. The play-economy
+question banks for Gen 3 regardless.

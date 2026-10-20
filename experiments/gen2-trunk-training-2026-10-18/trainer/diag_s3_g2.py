@@ -51,7 +51,10 @@ def main():
                     weights_only=False)
     policy.load_state_dict(ck["policy"])
     policy.eval()
-    assert ck["update"] == 249, ck["update"]
+    # the stop checkpoint stores update+1 (resume convention); its
+    # policy weights ARE the u249-probed ones (rk is built before the
+    # probe block from the current policy)
+    assert ck["update"] == 250, ck["update"]
 
     # read 1: regenerate, locate the streak
     worst_overall, located = 0, None
@@ -76,7 +79,7 @@ def main():
                 o = torch.from_numpy(
                     np.stack([obs[a] for a in names]).astype(np.float32))
                 m = torch.from_numpy(
-                    np.stack([infos[a]["mask"] for a in names]))
+                    np.stack([infos[a]["mask"] for a in names]).astype(bool))
                 logits = policy(o)
                 act = logits[:, :N_ACT].masked_fill(
                     ~m[:, :N_ACT], NEG_INF).argmax(-1).numpy()
