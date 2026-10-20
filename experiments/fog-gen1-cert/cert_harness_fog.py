@@ -110,6 +110,12 @@ SEATINGS = {
     "g2-s1": ["g2:trunk-s1"] * 5,
     "g2-s2": ["g2:trunk-s2"] * 5,
     "g2-s4": ["g2:trunk-s4"] * 5,
+    # Mixed-roster test (MIXED-DECLARATION.md, owner 2026-10-20):
+    # seat-balanced 2-2-1 rosters — across the three, every network
+    # sits in every seat exactly once and each is the singleton once.
+    "g2-mix1": ["g2:trunk-s1", "g2:trunk-s1", "g2:trunk-s2", "g2:trunk-s2", "g2:trunk-s4"],
+    "g2-mix2": ["g2:trunk-s2", "g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s4", "g2:trunk-s1"],
+    "g2-mix3": ["g2:trunk-s4", "g2:trunk-s2", "g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s2"],
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
 # disjoint 30-seed bands beyond the declared eval/stress pair

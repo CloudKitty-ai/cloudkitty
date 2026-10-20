@@ -73,17 +73,20 @@ def test_plan_is_scouts_first_for_displaced_sizes_only():
     names = [s[0] for s in stages]
     assert names == ["leg-20", "scout-40", "leg-40", "scout-100", "leg-100"], names
     by_name = dict((n, (cmd, gate)) for n, cmd, gate in stages)
-    # the 20x20 leg has no scout and no gate; each displaced scout
-    # covers scout_seeds worlds (the band's first, recurring in the
-    # leg), carries its gate file, and runs with the F-053 stop
-    assert by_name["leg-20"][1] is None
+    # the 20x20 leg has no scout; each displaced scout covers
+    # scout_seeds worlds (the band's first, recurring in the leg),
+    # carries its gate file, and runs with the F-053 stop; every LEG is
+    # gated on its own output file (entry-4 remedy)
+    for size in (20, 40, 100):
+        gate = by_name[f"leg-{size}"][1]
+        assert gate is not None and str(gate).endswith(
+            f"legs/size{size}/scripted-probe-30x20000.jsonl"), gate
     for size in (40, 100):
         cmd, gate = by_name[f"scout-{size}"]
         assert gate is not None and f"size{size}" in str(gate)
         assert str(gate).endswith("scripted-probe-3x20000.jsonl"), gate
         assert cmd[cmd.index("--seeds") + 1] == "3"
         assert cmd[cmd.index("--abort-streak") + 1] == "1000"
-        assert by_name[f"leg-{size}"][1] is None
     # every stage is scripted seating with the streak stop armed
     for n, (cmd, _g) in by_name.items():
         assert "scripted" in cmd and "--abort-streak" in cmd, n
@@ -113,6 +116,39 @@ def test_main_stops_on_a_failed_gate_and_runs_no_leg():
         assert len(calls) == 1 and "--seeds" in calls[0], calls  # scout only, no leg
     finally:
         rl.subprocess.run, rl.scout_verdict = real_run, real_verdict
+
+
+def test_main_stops_after_an_aborted_leg_and_runs_no_later_stage():
+    # The entry-4 remedy: a leg whose file carries an abort stops the
+    # driver; with --only 20,40 the stages are leg-20, scout-40,
+    # leg-40, so a stop at leg-20 must leave exactly one harness call.
+    calls = []
+    real_run, real_verdict = rl.subprocess.run, rl.scout_verdict
+    rl.subprocess.run = lambda cmd: (calls.append(cmd),
+                                     type("R", (), {"returncode": 0}))[1]
+    rl.scout_verdict = lambda p, expect_seeds=None, kind="scout": (
+        (False, "leg seed 905008 ABORTED at tick 18949") if kind == "leg"
+        else (True, "clean"))
+    try:
+        try:
+            rl.main(["--config-20=c", "--config-40=c", "--config-100=c",
+                     "--band", "probe", "--only", "20,40"])
+        except SystemExit as e:
+            assert "LEG STOP" in str(e) and "905008" in str(e), e
+        else:
+            raise AssertionError("a leg abort must stop the driver")
+        assert len(calls) == 1 and "size20" in " ".join(calls[0]), calls
+    finally:
+        rl.subprocess.run, rl.scout_verdict = real_run, real_verdict
+
+
+def test_leg_gate_trips_on_the_real_recorded_abort_row():
+    # Recorded payload, not a hand-written one: the g2-s2 20x20 row for
+    # seed 905008 copied verbatim from the battery raws (the row the
+    # undeclared continuation ran past, gen2-deviations entry 4).
+    p = HERE / "fixtures" / "leg-abort-g2-s2-905008.jsonl"
+    ok, reason = rl.scout_verdict(p, expect_seeds=1, kind="leg")
+    assert not ok and "905008" in reason and "18949" in reason, (ok, reason)
 
 
 def test_real_tiny_run_scout_gate_end_to_end():

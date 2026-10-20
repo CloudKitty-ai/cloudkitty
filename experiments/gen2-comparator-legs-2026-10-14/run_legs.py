@@ -7,7 +7,10 @@ seating); the prereg pins the realized numbers. Displaced sizes (40,
 band's-first-seeds selection are Experiments' design), each with a
 stop at the F-053 1,000-tick distress-streak line, gate each full
 leg; a scout miss STOPS that leg and the driver — the stop is
-asymmetric, never auto-continued.
+asymmetric, never auto-continued. Every LEG is gated on its own output
+too (gen2-deviations entry 4 remedy, 2026-10-20): an aborted row, a
+row at the line, or a short file stops the driver before the next
+stage.
 
 The driver orchestrates cert_harness_fog.py (which keys its state
 stride off the live binding, 2026-10-14) and decides nothing the
@@ -56,34 +59,34 @@ def harness_cmd(config, band, seeds, ticks, workers, out_dir,
             "--out-dir", str(out_dir), "--abort-streak", str(F053_STREAK)]
 
 
-def scout_verdict(jsonl_path, expect_seeds=None):
-    """(ok, reason) for a scout file: row 1 is provenance, every later
-    row is one scouted seed. ALL seeds must be clean — the gate fails
-    on an armed abort, on a streak at/over the line even unaborted, on
-    an unreadable file, or on fewer rows than seeds scouted (a dead
-    worker is not a clean scout)."""
+def scout_verdict(jsonl_path, expect_seeds=None, kind="scout"):
+    """(ok, reason) for a scout or leg file (`kind` names it in the
+    reason): row 1 is provenance, every later row is one seed. ALL
+    seeds must be clean — the gate fails on an armed abort, on a
+    streak at/over the line even unaborted, on an unreadable file, or
+    on fewer rows than seeds run (a dead worker is not a clean run)."""
     p = Path(jsonl_path)
     try:
         lines = p.read_text().splitlines()
         rows = [json.loads(l) for l in lines[1:]]
     except (OSError, json.JSONDecodeError) as e:
-        return False, f"scout file unreadable: {p} ({e})"
+        return False, f"{kind} file unreadable: {p} ({e})"
     if not rows or (expect_seeds is not None and len(rows) != expect_seeds):
-        return False, (f"scout file carries {len(rows)} seed rows, "
+        return False, (f"{kind} file carries {len(rows)} seed rows, "
                        f"expected {expect_seeds}: {p}")
     worst = -1
     for row in rows:
         seed = row.get("seed")
         if "aborted_streak" in row:
             a = row["aborted_streak"]
-            return False, (f"scout seed {seed} ABORTED at tick {a['at_tick']} "
+            return False, (f"{kind} seed {seed} ABORTED at tick {a['at_tick']} "
                            f"(distress streak reached {a['limit']})")
         if row.get("max_distress_age", 0) >= F053_STREAK:
-            return False, (f"scout seed {seed} distress streak "
+            return False, (f"{kind} seed {seed} distress streak "
                            f"{row['max_distress_age']} >= the F-053 line "
                            f"{F053_STREAK}")
         worst = max(worst, row.get("max_distress_age", 0))
-    return True, (f"{len(rows)} scout seeds clean: worst distress streak "
+    return True, (f"{len(rows)} {kind} seeds clean: worst distress streak "
                   f"{worst}")
 
 
@@ -91,11 +94,12 @@ def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
          scout_seeds=3, seating="scripted"):
     """Ordered stages: per size (ascending), scout-then-gate for the
     displaced sizes, then the full leg. Each stage: (name, cmd,
-    scout_file_to_gate_on_or_None). Scout coverage (owner-amended
-    2026-10-15; the count and band's-first-seeds selection are
-    Experiments' design): scout_seeds worlds per displaced size, so
-    every scouted world recurs in the full leg — all gated on the
-    F-053 line before the leg runs."""
+    gate_file) — every stage is gated on its own output file (scouts
+    since 2026-10-15; legs since the entry-4 remedy, 2026-10-20). Scout
+    coverage (owner-amended 2026-10-15; the count and band's-first-seeds
+    selection are Experiments' design): scout_seeds worlds per displaced
+    size, so every scouted world recurs in the full leg — all gated on
+    the F-053 line before the leg runs."""
     out_dir = Path(out_dir)
     stages = []
     for size in SIZES:
@@ -109,10 +113,11 @@ def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
                                        min(scout_seeds, workers), sdir,
                                        seating),
                            sdir / f"{seating}-{band}-{scout_seeds}x{ticks}.jsonl"))
+        ldir = out_dir / f"legs/size{size}"
         stages.append((f"leg-{size}",
-                       harness_cmd(cfg, band, seeds, ticks, workers,
-                                   out_dir / f"legs/size{size}", seating),
-                       None))
+                       harness_cmd(cfg, band, seeds, ticks, workers, ldir,
+                                   seating),
+                       ldir / f"{seating}-{band}-{seeds}x{ticks}.jsonl"))
     return stages
 
 
@@ -144,21 +149,31 @@ def main(argv=None):
     configs = {s: getattr(a, f"config_{s}") for s in SIZES}
     stages = plan(configs, a.band, a.seeds, a.ticks, a.workers, a.out_dir, only,
                   a.scout_seeds, a.seating)
-    for name, cmd, scout_file in stages:
+    for name, cmd, gate_file in stages:
         print(f"== {name}: {' '.join(cmd)}", flush=True)
         if a.dry_run:
             continue
         r = subprocess.run(cmd)
         if r.returncode != 0:
             raise SystemExit(f"run_legs: {name} exited {r.returncode}; stopping")
-        if scout_file is not None:
-            ok, reason = scout_verdict(scout_file, expect_seeds=a.scout_seeds)
+        if name.startswith("scout-"):
+            ok, reason = scout_verdict(gate_file, expect_seeds=a.scout_seeds)
             print(f"== {name} verdict: {reason}", flush=True)
             if not ok:
                 raise SystemExit(
                     f"run_legs: {name} FAILED the F-053 gate — the full leg "
                     "does not run; the stop is asymmetric (welfare practice, "
                     "owner 2026-09-26). Take the scout row to the owner.")
+        else:
+            ok, reason = scout_verdict(gate_file, expect_seeds=a.seeds,
+                                       kind="leg")
+            print(f"== {name} verdict: {reason}", flush=True)
+            if not ok:
+                raise SystemExit(
+                    f"run_legs: {name} LEG STOP — {reason}; the remaining "
+                    "legs of this seating do not run (declared stop, "
+                    "gen2-deviations entry 4 remedy). Take the row to the "
+                    "owner.")
     print("== done" if not a.dry_run else "== dry run only")
 
 

@@ -91,6 +91,23 @@ def test_run_one_refuses_untruthful_clock_and_deaf_for_g2():
             raise AssertionError(f"run_one accepted g2 args it must refuse: {args}")
 
 
+def test_mixed_rosters_are_seat_balanced():
+    # MIXED-DECLARATION.md: every network sits in every seat exactly
+    # once across the three rosters (seat personality never confounds
+    # network identity), each roster is 2-2-1, and each network is the
+    # singleton exactly once.
+    nets = {"g2:trunk-s1", "g2:trunk-s2", "g2:trunk-s4"}
+    mixes = [ch.SEATINGS[f"g2-mix{i}"] for i in (1, 2, 3)]
+    for seat in range(5):
+        assert {m[seat] for m in mixes} == nets, ("seat", seat, [m[seat] for m in mixes])
+    singles = []
+    for m in mixes:
+        counts = sorted(m.count(n) for n in nets)
+        assert counts == [1, 2, 2], (m, counts)
+        singles.append(next(n for n in nets if m.count(n) == 1))
+    assert sorted(singles) == sorted(nets), singles
+
+
 def test_run_legs_plan_carries_the_seating_into_cmd_and_gate_file():
     cfgs = {20: "c20.toml", 40: "c40.toml", 100: "c100.toml"}
     stages = rl.plan(cfgs, "g2cmp", 30, 20000, 6, "/tmp/out",
