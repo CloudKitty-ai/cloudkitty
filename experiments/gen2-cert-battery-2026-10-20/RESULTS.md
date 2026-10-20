@@ -42,3 +42,60 @@ raws and not yet read.
 ```
 cd experiments/gen2-cert-battery-2026-10-20 && python3 -B gate_read.py --out gate-read.json
 ```
+
+## s2 stop investigation (2026-10-20; owner "Let's investigate s2's stop first")
+
+Seed 905008, served 20×20, g2-s2 roster. Deterministic replay
+(`diag_s2_905008.py`, stopped at tick 18300 to limit re-exposure)
+reproduced every seat's distress onset exactly: 18001 / 17950 /
+17956 / 17983 / 18010, continuous after onset.
+
+**Mechanism: a five-cat co-sleep pile, F-027's twin lock at roster
+scale.** Through tick ~17400 the roster plays and roams normally
+(mean pairwise distance 7.5 tiles). Over the next 550 ticks the cats
+drift together (4.5) and switch toward SleepWith / RestWith partner
+actions. From onset they hold adjacent tiles at the bottom edge
+(pairwise 1.8; positions x 9–10, y 17–19). In the locked window
+60% of chosen actions are sleep/rest-with a packmate, 20% chase a
+packmate, 19% groom one, and 1 of 1,755 is a move. Eat, drink and
+play climb to 100 on every cat while cuddle sits near 0 and sleep
+holds at the 15 floor (sleeping off-beam buys no further relief,
+yet the cats keep choosing it). Several call WantEat and do not go.
+Chow was 5 tiles and water 8 tiles from the pile in the world's
+tick-0 layout. Whether Move was legal on each locked tick was not
+recorded; chase actions, which move the cat, were legal and chosen.
+
+The same world is distress-free under g2-s1 and g2-s4 (worst streak
+0), and the scripted roster's worst streak there is 348. F-027's
+scope note carries over: greedy argmax sustains a symmetric lock and
+sampled action selection is untested; the engine's relief guarantee
+is supply-side only, so nothing interrupts the loop.
+
+## Read (s2 stop; ~1 min replay + seconds; lab venv, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B diag_s2_905008.py --out diag-s2-905008.npz
+```
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B - <<'EOF2'
+import sys, numpy as np
+sys.path.insert(0, "../gen2-trunk-training-2026-10-18/trainer"); sys.path.insert(1, "../attn-oracle-2026-08-15")
+from data_g2 import ACTION_NAMES
+z = np.load("diag-s2-905008.npz"); t = z["tick"]
+assert z["onset"].tolist() == [18001, 17950, 17956, 17983, 18010]
+def pw(a, b):
+    P = z["pos"][(t >= a) & (t < b)]
+    return round(float(np.mean([np.abs(P[:, i] - P[:, j]).sum(1).mean() for i in range(5) for j in range(i + 1, 5)])), 2)
+assert (pw(16000, 17400), pw(17400, 17950), pw(17950, 18301)) == (7.46, 4.45, 1.78)
+names = [ACTION_NAMES[x] for x in z["act"][t >= 17950].ravel()]
+n = len(names)
+w = sum(s.startswith(("SleepWith", "RestWith")) for s in names)
+assert n == 1755 and round(w / n, 2) == 0.60
+assert sum(s.startswith("Move") for s in names) == 1
+assert sum(s in ("Eat", "Drink") for s in names) == 0
+last = z["needs"][-1]
+assert (last[:, 0] >= 0.995).all() and (last[:, 1] >= 0.995).all() and (last[:, 3] >= 0.995).all()
+print("s2 stop fence: all cells match")
+EOF2
+```

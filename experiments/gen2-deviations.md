@@ -389,3 +389,13 @@ per cat instead of ~1000 — the declared welfare mitigation; one
 world, five covered minds), exact-onset reproduction as the positive
 control, trace 16000-18300 saved for the reads. The 100×100 stops
 follow, informational only (her framing: never a gate).
+
+Investigation RESULTS (s2 stop; detail + fence in the battery
+RESULTS.md §s2 stop investigation): replay reproduced all five
+onsets exactly. Mechanism = a five-cat co-sleep pile, F-027's twin
+lock at roster scale: the cats converge (pairwise 7.5 → 1.8 tiles),
+then 60% of locked-window choices are sleep/rest-with a packmate,
+1 of 1,755 a move, 0 eat/drink, while eat/drink/play reach 100 on
+every cat with chow 5 and water 8 tiles away. Same world is
+distress-free under s1 and s4. The s2 disposition (owner call (b))
+stays open with this read in hand.
