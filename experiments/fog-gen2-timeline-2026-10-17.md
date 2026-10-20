@@ -114,9 +114,27 @@ consent BC comparison ride the trunk.
    UNINFORMATIVE (6/10 qualifying, re-run owed), mechanism PASS
    stands (−29.87). The defect moved back into the object: per-world
    ρ spans ~6 SE (+0.778 to −0.519 across legs) — real world-level
-   heterogeneity of binding, the registered "genuine corpus
-   question" branch. Acceptance not met;
-   ACCEPT / ITERATE / HOLD owner-routed, pending her
+   heterogeneity of binding — DIAGNOSED on her word ("run it") to a
+   SECOND instrument artifact: the censored-MC remaining-horizon ramp
+   owns the ε targets at 4k (R² 0.70–0.96) and the "heterogeneity"
+   was its share varying by world; detrended, genuine binding is
+   positive 9/10. ROUND 4 (her "Agreed on both" + recollect-not-
+   salvage + "Ok, let's run Professor's sequence"; Professor reviewed
+   twice): honest geometry 6k/3500, 92-rollout recollection (band
+   1095301–1095400; 4k rungs poisoned for training), uniform ≥3500
+   censoring, re-derived baseline 0.8746. RESULTS (19a3c5da +
+   82e85564): no-regression PASS with first EV IMPROVEMENT (0.8818),
+   mechanism PASS −46.09, random leg PASS informative (all 10 worlds
+   positive, pooled 0.522, sign-uniform; re-scored under the
+   pinned-amplitude trip amendment 28f57999 — the declared free-R²
+   trip was under-specified, voided legs for genuine welfare drift),
+   ε legs descriptive-only EARNED (3/10 qualifying at honest
+   geometry; ε0.1 descriptively positive), contrast gate
+   STRUCTURALLY UNINFORMATIVE (paired play read fired the benign
+   branch — critic right, 55.2% p 0.165; NO kind has a realized
+   near-pair direction at these horizons; play "inversion"
+   dissolved). Every informative read PASSES.
+   PROBE-THEN-ACCEPT owner-routed, pending her
    word; then the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
