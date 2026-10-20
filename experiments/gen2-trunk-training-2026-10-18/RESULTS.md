@@ -651,3 +651,32 @@ assert round(mean_rt, 2) == 0.29
 print("diagnosis fence: all cells match")
 EOF2
 ```
+
+## Extension-ramp check — declaration (2026-10-19, owner "Agreed on both"; Professor's refinement ask)
+
+The 290 extension TRAINING rollouts were collected at 4k ticks, so
+the censoring ramp sits in their targets (the 20k base corpus is ~89%
+flat; the extension is 0% flat). Question: did extension data source
+the prediction drift read 2 measured? Two reads, zero new collection
+(ext_ramp_check_g2.py → artifacts/ext-ramp-check.json):
+
+1. **Training-target contamination by rung**: per extension rollout,
+   ramp R² of its censored targets (vs its own length's ramp curve)
+   and Spearman(target, tick); aggregated by source rung (harvest
+   groups / suite / ε / IN). The harvest rollouts have their own
+   lengths; each uses its own T.
+2. **Drift across checkpoints**: the round-3 random (870031) and ε0.1
+   (870034) legs regenerated once, predictions from all three
+   on-disk checkpoints — critic-g2 (round 0, NO extension),
+   critic-g2-ext (200 ext), critic-g2-ext2 (290 ext) — per-world
+   corr_t(pred) each. If drift grows with extension exposure, the
+   extension data is the source; if round 0 drifts equally, the
+   drift predates the mix.
+
+Predictions declared: the 4k rungs (suite/ε/IN) show high target
+ramp R² (the geometry guarantees it); checkpoint drift ordering is
+the open question — EITHER monotone in extension exposure (extension
+is the source; collection geometry joins the amendment) OR flat
+(drift is intrinsic state-drift; collection geometry still moves to
+6k/3500 for future rungs on cost-of-correctness grounds, but no
+salvage question arises for the existing 290).
