@@ -15,7 +15,12 @@ import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CMP = HERE.parent / "gen2-comparator-legs-2026-10-14/results-raw/legs"
+_RAW = HERE.parent / "gen2-comparator-legs-2026-10-14/results-raw"
+# The vision-law comparators (prereg §7 pins); results-raw/legs/size{40,100}
+# hold the superseded vision-4 record and must never be paired against.
+CMP_FILE = {20: _RAW / "legs/size20/scripted-g2cmp-30x20000.jsonl",
+            40: _RAW / "vision5-40/legs/size40/scripted-g2cmp-30x20000.jsonl",
+            100: _RAW / "vision-law-100/legs/size100/scripted-g2cmp-30x20000.jsonl"}
 PINNED = {20: 81.921, 40: 81.634, 100: 76.623}
 SEATINGS = ("g2-s1", "g2-s2", "g2-s4")
 
@@ -34,7 +39,7 @@ def main():
     a = ap.parse_args()
     cmp = {}
     for size in (20, 40, 100):
-        rs = rows(CMP / f"size{size}/scripted-g2cmp-30x20000.jsonl")
+        rs = rows(CMP_FILE[size])
         assert len(rs) == 30
         cmp[size] = {r["seed"]: team(r) for r in rs}
         m = sum(cmp[size].values()) / 30

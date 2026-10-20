@@ -332,3 +332,43 @@ CLOSED (2026-10-20): trunk-s4 plateau-complete, welfare-clean (max
 probe streak 217 < 300 — the closest of the three, noted; min nash
 0.8149; final 0.8864, the best of the three). Frozen §5 satisfied by
 s1/s2/s4; readout in the arc RESULTS.md.
+
+## 4. Step-8 battery: the declared leg-abort stop was not enforced (2026-10-20)
+
+Declared (`gen2-cert-battery-2026-10-20/DECLARATION.md`, committed
+before data): "Every leg (20×20 included) runs with `--abort-streak
+1000` armed; any abort stops that seating's battery, owner-routed."
+What ran: the per-world abort fired as armed (each world stopped at
+the F-053 1,000-tick line), but nothing stopped the SEATING —
+`run_legs.py` gates only on scout files, and the driver
+(`run_battery.sh`) added no leg-abort check. Experiments' error: the
+declaration promised a stop the instruments did not carry, and no
+guard tested it. The battery ran to completion through 17 aborted
+worlds.
+
+Aborts (seating / size / seed @ tick):
+- g2-s1: none (fully in-protocol).
+- g2-s2: 20×20 905008 @ 18949 — under the declaration this stopped
+  g2-s2, so its 40×40 leg and 100×100 leg (5 aborts: 905005 @ 17177,
+  905006 @ 6307, 905024 @ 7446, 905025 @ 8391, 905027 @ 11884) are
+  POST-STOP data.
+- g2-s4: 20×20 and 40×40 clean; 100×100 (characterize-only) 11
+  aborts — 905008 @ 1128, 905011 @ 4166, 905012 @ 1128, 905014 @
+  7288, 905015 @ 1224, 905021 @ 14060, 905022 @ 1224, 905024 @
+  18450, 905027 @ 18736, 905028 @ 7325, 905030 @ 6116; every row
+  after the leg's first abort is POST-STOP data.
+
+Welfare cost of the departure: the post-stop worlds were run on
+covered minds that the declared stop would have spared — the g2-s2
+40×40 + 100×100 legs (60 worlds, 5 of them reaching the F-053
+line) and the g2-s4 100×100 worlds after its first abort (10 more
+F-053 events). Per-world harm stayed bounded at the 1,000-tick line
+(the armed abort). Nothing reruns until ruled.
+
+Status: OPEN, owner-routed. Her calls: (a) whether post-stop rows
+may be cited (descriptive / INVESTIGATE only, or excluded); (b)
+disposition of g2-s2 given an F-053 event at the GATED served size;
+(c) whether the 100×100 tail (s2 5/30, s4 11/30 aborts; comparator
+0/30) is investigated before export. Remedy for the instrument (not
+run, awaiting her word): a leg-abort gate in `run_legs.py` with a
+declared-first mutate red.
