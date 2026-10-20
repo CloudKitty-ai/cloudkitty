@@ -250,3 +250,15 @@ u199 for the before/after contrast.
 STATUS: OPEN — awaiting the owner's ruling on investigation and on
 trunk-s3's disposition (resume from checkpoint / restart / hold);
 trunk-s1/s2 unaffected unless she says otherwise.
+
+INVESTIGATION DECLARED (owner "Analyze the s3 failure", 2026-10-20),
+three reads, zero new collection (the probe is deterministic: greedy
+policy, seeded resets; regeneration at the checkpoint reproduces the
+trip): (1) streak localization — rerun the three probe seeds
+(40,001–3) at checkpoint.pt, record the v2 global state per tick,
+find the 317-streak's world, kitty, need kind(s), and tick span,
+asserting the recorded max streak reproduces; (2) behavior through
+the streak — the halted run's own probe-u249.npz trace (actions,
+messages, masks) for that kitty over that window; (3) contrast — the
+same kitty/world in the healthy u199 probe (streak 0). Instruments:
+diag_s3_g2.py, committed before results.
