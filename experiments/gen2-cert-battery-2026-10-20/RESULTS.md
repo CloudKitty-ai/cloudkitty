@@ -99,3 +99,49 @@ assert (last[:, 0] >= 0.995).all() and (last[:, 1] >= 0.995).all() and (last[:, 
 print("s2 stop fence: all cells match")
 EOF2
 ```
+
+## 100×100 stops, row-level read (informational only; owner: "the 100x100 runs are informative only, not a gate")
+
+No replay; read from the recorded rows. A seat whose distress-tick
+count equals its longest single-need streak spent all its distress
+in one continuous run, which fixes its onset at abort − count + 1.
+
+**g2-s2 (5 aborts): roster-wide, the 20×20 pile signature.** In
+every aborted world all five seats carry long streaks (713–1000).
+Seed 905024 matches the 20×20 stop exactly: five continuous runs
+with onsets 6447–6734.
+
+**g2-s4 (11 aborts): one cat alone.** In 8 of 11 aborted worlds a
+single seat carries the streak and every other seat stays under 100
+ticks. Four abort early with an isolated cat: seeds 905008 and
+905012 (seat 4, onset tick 129) and 905015 and 905022 (seats 2
+and 3, onset tick 225). Each of those cats has together_share 0.0:
+it never stood adjacent to another cat for the whole run. The
+identical onset ticks across different seeds are unexplained and
+not investigated. Which need ran out is not in the rows.
+
+## Read (100×100 stops; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-cert-battery-2026-10-20/results-raw/"
+def ab(s):
+    rs = [json.loads(l) for l in open(d + f"{s}/legs/size100/{s}-g2cmp-30x20000.jsonl").read().splitlines()[1:]]
+    return {r["seed"]: r for r in rs if "aborted_streak" in r}
+s2, s4 = ab("g2-s2"), ab("g2-s4")
+assert len(s2) == 5 and len(s4) == 11
+assert all(min(r["max_distress_age_seat"]) >= 713 for r in s2.values())
+r = s2[905024]; at = r["aborted_streak"]["at_tick"]
+assert r["dist_ticks"] == r["max_distress_age_seat"]
+assert sorted(at - x + 1 for x in r["dist_ticks"]) == [6447, 6450, 6491, 6522, 6734]
+solo = [s for s, r in s4.items() if sum(x > 100 for x in r["max_distress_age_seat"]) == 1]
+assert len(solo) == 8
+for seed, seat, onset in ((905008, 4, 129), (905012, 4, 129), (905015, 2, 225), (905022, 3, 225)):
+    r = s4[seed]
+    assert r["dist_ticks"][seat] == r["max_distress_age_seat"][seat] == 1000
+    assert r["aborted_streak"]["at_tick"] - 1000 + 1 == onset
+    assert r["dispersion"]["together_share"][seat] == 0.0
+print("100x100 fence: all cells match")
+EOF2
+```
