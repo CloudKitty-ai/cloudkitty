@@ -831,3 +831,84 @@ assert round(g["cp99_lower"], 3) == 0.478
 print("round-4 fence: all cells match")
 EOF2
 ```
+
+## Round 4 amendment — re-scores, the play read, and the gate's true nature (2026-10-19; amendment 28f57999, instrument d852b933)
+
+Re-scores (beside the originals, per the recording rule; per-world ρ
+and target std identity-asserted against the original JSONs):
+
+| leg | amended-trip reading | re-scored verdict |
+|---|---|---|
+| random 870040 | max pinned artifact share 0.00007; all 10 worlds positive, pooled 0.522, null passed, sign-uniform | **PASS (informative)** |
+| ε 0.1 870043 | max share 0.00167; 3/10 qualifying | UNINFORMATIVE (qualifying) — descriptive-only EARNED |
+| ε 0.3 870046 | max share 0.00134; 3/10 qualifying | UNINFORMATIVE (qualifying) — descriptive-only EARNED |
+
+Paired play read (declared decision structure, pre-read): 105
+in-window pairs, flagged-lower 58 (55.2%), p = 0.165 — realized
+returns from play-flagged states are NOT significantly lower (median
+edge −0.07 raw against target stds ~10). **The declared benign branch
+fires: the critic was right, the gate's uniform direction was the
+defect.** The owner's pre-read domain prior (play handled differently
+since Biscuit, then consent) and Professor's registered prediction
+both land on this branch.
+
+Derived directions (the declared consequence, artifacts/
+kind-edges.json): **NO kind has one.** Realized per-pair edges are
+null for all six needs (frac-lower 0.537–0.583 at n 12–159, nothing
+near p99 either way). The deeper finding: at γ 0.998 with ≥3,500-tick
+horizons, a local ±500-tick distress excursion moves the realized
+discounted return by less than noise — the quantity the held-out
+near-pair gate ranks has NO measurable ground truth at this
+granularity, for any kind. Under its own derived-direction rule the
+re-scored gate has zero directional kinds (n = 0): the gate is
+STRUCTURALLY UNINFORMATIVE at this geometry — recorded as such, not
+as a fail, and never silently dropped. Its one finding dissolves with
+it: the critic's play lean (0.338) is a lean on a quantity whose
+truth is ≈ 0 — descriptive, not a defect; and symmetrically, the
+critic's "correct" eat/cuddle/sleep rankings were never
+realized-confirmed either. Welfare-relevant state→value binding
+remains gated by the MECHANISM test (170+-raw-unit corpus-level
+perturbations, where signal exists; −46.09 PASS), which is exactly
+where it belongs. A magnitude-calibrated per-kind value read is
+banked as a Gen 3 instrument question.
+
+**Acceptance picture under the declared-and-amended instruments**:
+coverage MET; no-regression PASS (0.8818 vs re-derived baseline
+0.8746); mechanism PASS (−46.09); random leg PASS, informative, every
+declared bar; ε legs descriptive-only by their own guard
+(descriptively positive at ε 0.1: 0.180 > p99 0.083, n_eff ~790);
+contrast gate structurally uninformative at this geometry (recorded).
+Every read that CAN be informatively taken passes.
+Probe-then-accept remains the owner's word (#365); entry 2 closes
+there.
+
+### Read (amendment reads; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+for leg in ("random", "eps01", "eps03"):
+    o = json.load(open(d + f"critic-g2-ext3/round4-{leg}.json"))
+    r = json.load(open(d + f"critic-g2-ext3/round4-{leg}-rescored.json"))
+    for wo, wr in zip(o["per_world"], r["per_world"]):
+        assert abs(wo["rho"] - wr["rho"]) < 1e-9
+        assert wr["artifact_share"] < 0.002
+rr = json.load(open(d + "critic-g2-ext3/round4-random-rescored.json"))
+assert rr["amended"] == {"mode": "random", "pass": True,
+                         "uninformative": False, "wrong_signed_worlds": []}
+for leg in ("eps01", "eps03"):
+    e = json.load(open(d + f"critic-g2-ext3/round4-{leg}-rescored.json"))
+    assert e["amended"]["reason"] == "qualifying_worlds"
+p = json.load(open(d + "play-edge-read.json"))
+assert p["n_edges"] == 105 and p["flagged_lower"] == 58
+assert round(p["p_significantly_lower"], 3) == 0.165
+assert p["branch"] == "critic_right_gate_direction_defect"
+k = json.load(open(d + "kind-edges.json"))
+assert all(v["direction"] == "NONE"
+           for v in k["derived_directions"].values())
+g = k["gate_rescored"]
+assert g["pooled_pairs"] == 0 and g["included_kinds"] == []
+print("amendment fence: all cells match")
+EOF2
+```
