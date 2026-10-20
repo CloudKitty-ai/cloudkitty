@@ -100,8 +100,13 @@ PINS = {
     # act@1 0.8608, msg@1 0.9763, plateau stop at 112).
     "init_clone": str(ARC / "artifacts/trunk-clone/trunk-clone.pt"),
     # The Gen 2 critic (train_critic_g2.py); Gen 1 practice: probe
-    # then accept (owner's word), pinned at acceptance.
-    "critic": None,
+    # then accept (owner's word), pinned at acceptance. ACCEPTED
+    # (owner "accept", 2026-10-19) after round 4 of deviations entry
+    # 2: coverage met, no-regression 0.8818 at the re-derived
+    # honest-censoring baseline, mechanism -46.09, random leg PASS
+    # informative on every amended bar (RESULTS.md §Round 4 +
+    # amendment). sha256 bd394a96…e20777.
+    "critic": str(ARC / "artifacts/critic-g2-ext3/critic-g2-0p998.pt"),
 }
 
 # slot -> (seed, run_index). Run indices 96-98 (SEED-BANDS.md, claimed

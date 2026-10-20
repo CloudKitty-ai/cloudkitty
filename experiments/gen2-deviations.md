@@ -199,3 +199,25 @@ as instrument readings; the corpus mitigation itself is NOT
 invalidated (occupancy targets were in ramp-free currency; the
 detrended reads show the binding the mix created). Entry stays OPEN
 to probe-then-accept (her word).
+
+CLOSED (owner, 2026-10-19): **"accept"** — after the round-4
+amendment reads (RESULTS.md §Round 4 + amendment; Professor's
+sequence run on her "Ok, let's run Professor's sequence", both their
+round-4 predictions scored CORRECT): coverage MET, no-regression PASS
+with the first EV improvement (0.8818 vs re-derived baseline 0.8746),
+mechanism PASS (−46.09), random leg PASS informative on every amended
+bar (all 10 worlds positive, pooled 0.522, sign-uniform, pinned
+artifact share ≤ 0.00007), ε legs descriptive-only by their own
+qualifying guard, contrast gate structurally uninformative at
+near-pair granularity (recorded, with the play "inversion" dissolved
+against a null realized edge). Critic PINNED:
+`train_ppo_g2.PINS["critic"]` →
+artifacts/critic-g2-ext3/critic-g2-0p998.pt, sha256
+bd394a967d9e030499b8f7b446e9ee647e35b7625cb3ce0b60723d0cf5e20777.
+Banked for Gen 3 from this entry's four rounds: the prevention trio
+(+ its two amendments: artifact-free currency into the adequacy gate;
+inherited RECIPES re-derived at the geometry they meet), the
+null-width ceiling and pinned-amplitude guard pattern, the
+magnitude-calibrated per-kind value read, and the declaration-time
+guard question ("what does this trip fire on that is NOT the
+artifact?").

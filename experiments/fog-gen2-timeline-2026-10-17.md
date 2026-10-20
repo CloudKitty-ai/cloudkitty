@@ -134,7 +134,9 @@ consent BC comparison ride the trunk.
    branch — critic right, 55.2% p 0.165; NO kind has a realized
    near-pair direction at these horizons; play "inversion"
    dissolved). Every informative read PASSES.
-   PROBE-THEN-ACCEPT owner-routed, pending her
+   PROBE-THEN-ACCEPT RULED: "accept" (owner 2026-10-19) — critic
+   PINNED (critic-g2-ext3, sha bd394a96...e20777); deviations entry 2
+   CLOSED. Next: the PPO launch card, pending her
    word; then the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
