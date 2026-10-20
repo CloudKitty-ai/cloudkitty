@@ -129,9 +129,10 @@ wrong = {**base, "per_world": base["per_world"][:9] + [seat(-0.25)]}
 v = cp.amended_verdict(wrong, 1.0)
 assert not v["pass"] and v["wrong_signed_worlds"] == ["w-0.25"], \
     f"random leg: a significantly wrong-signed world must fail: {v}"
-# the same world under an UNINFORMATIVE own-null cannot be called wrong-signed
+# a world past the magnitude line (rho < -p99) but under an UNINFORMATIVE
+# own-null cannot be called wrong-signed — only the informativeness excuses it
 excused = {**base, "per_world": base["per_world"][:9]
-           + [seat(-0.25, wn={"informative": False, "null_p99": 0.45})]}
+           + [seat(-0.5, wn={"informative": False, "null_p99": 0.45})]}
 assert cp.amended_verdict(excused, 1.0)["pass"], \
     "random leg: a wide own-null world cannot be scored wrong-signed"
 lowpool = {**base, "spearman": 0.25}
