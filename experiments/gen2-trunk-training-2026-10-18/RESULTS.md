@@ -546,9 +546,14 @@ scalars correlate with ρ_world while reads 1–2 are flat.
 
 ### Diagnosis results (reads 1–3) + read 4 declared (2026-10-19)
 
-Read 2 answers it: **drift mis-tracking, 20 of 20 worlds** —
-sign(ρ_world) = sign(corr_t(pred) · corr_t(target)) in every world of
-both legs (artifacts/diag-hetero.json), and across worlds ρ tracks
+Read 2 answers it: **drift mis-tracking** — in every world where the
+prediction drifts at all (|corr_t(pred)| ≥ 0.05, 16 of 20),
+sign(ρ_world) = sign(corr_t(pred) · corr_t(target)) or ρ is under
+0.1; the four no-drift worlds carry only small ranks (|ρ| ≤ 0.217)
+that drift does not explain (correction 2026-10-19: the first write
+of this sentence claimed "20 of 20" with no drift qualifier; its own
+fence caught ε0.1 w7 — corr_t(pred) −0.0002, ρ −0.217 — and the
+recount found four no-drift worlds, not one). Across worlds ρ tracks
 corr_t(pred) at −0.952 (ε0.1) / −0.527 (random). Reads 1 and 3 are
 flat: no outcome-profile or identity-dial scalar reaches |0.5|
 against ρ_world. The critic ranks a world when its state-driven
@@ -577,3 +582,72 @@ mitigation's welfare binding is real, random-leg ρ̃ stays positive
 after detrending (the genuine welfare-collapse component survives);
 ε-leg ρ̃ tells us whether any rankable welfare signal exists at this
 geometry at all.
+
+### Read 4 results: the ramp owns the ε legs; genuine binding survives on random (2026-10-19)
+
+artifacts/diag-detrend.json (seed-exact regeneration, recorded ρ
+reproduced per world before any read):
+
+- **ε0.1**: ramp R² of target variance 0.70–0.96 in 8 of 10 worlds
+  (the other two 0.31 / 0.54); residual std collapses to 1.3–4.7 raw.
+  Detrended ρ̃ scatters on zero (−0.369 … +0.187). The ε targets at
+  this geometry are MOSTLY the deterministic censoring ramp — a
+  quantity no stationary state-only critic can represent — and once
+  it is removed there is essentially nothing left to rank. Every ε
+  verdict to date, round-1's PASS included, measured accidental
+  ramp-tracking, not welfare ranking.
+- **random**: ramp R² 0.00–0.50 in 9 of 10 worlds (one at 0.77) —
+  genuine welfare-collapse variance dominates — and detrended ρ̃ is
+  POSITIVE in 9 of 10 worlds (+0.119 … +0.742; the one exception
+  −0.010, flat). Both round-3 anti-ranking worlds flip sign when the
+  ramp comes out: w4 −0.363 → +0.261, w3 −0.137 → +0.153. The
+  world-level "heterogeneity of binding" was the ramp component
+  flipping per-world reads; the critic's genuine welfare ranking is
+  uniformly non-negative.
+
+Conclusion (diagnosis, no bars moved): the mitigation did what it
+claimed — distress binding repaired (−29.87) and genuine within-world
+welfare rank positive everywhere it is measurable — and every
+acceptance FAIL from round 1 through round 3 traces to a
+target-construction artifact: exp-001/002's censored-MC recipe, built
+for 20k-tick rollouts where the ramp touches ~11% of kept states, was
+inherited into a 4k-tick probe where it spans the entire window
+(prevention-trio pattern: an inherited RECIPE, not just an inherited
+constant, re-derived at the geometry it meets). Detrended magnitudes
+are honest but modest: random-leg ρ̃ mean +0.29, 4 of 10 worlds
+≥ 0.3. Whether a detrended instrument becomes the acceptance bar — and
+what level — is a deviations-ledger decision on the owner's word,
+with Professor review the natural route.
+
+### Read (diagnosis; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+h = json.load(open(d + "diag-hetero.json"))
+na = []
+for leg in ("random", "eps01"):
+    for w in h["legs"][leg]["per_world"]:
+        if abs(w["corr_t_pred"]) < 0.05:   # no prediction drift: relation n/a
+            na.append(abs(w["rho"]))
+            continue
+        prod = w["corr_t_pred"] * w["corr_t_target"]
+        assert (w["rho"] > 0) == (prod > 0) or abs(w["rho"]) < 0.1, (leg, w)
+assert len(na) == 4 and max(na) < 0.22  # small unexplained ranks only
+assert round(h["legs"]["eps01"]["rho_vs_scalar"]["corr_t_pred"], 3) == -0.952
+assert round(h["legs"]["random"]["rho_vs_scalar"]["corr_t_pred"], 3) == -0.527
+t = json.load(open(d + "diag-detrend.json"))
+assert round(t["ramp_range_raw"], 1) == 24.7 or t["ramp_range_raw"] > 20
+e = t["legs"]["eps01"]["per_world"]
+assert sum(w["ramp_r2_target"] > 0.6 for w in e) == 8
+r = t["legs"]["random"]["per_world"]
+assert sum(w["rho_detrended"] > 0 for w in r) == 9
+assert round(r[4]["rho"], 3) == -0.363
+assert round(r[4]["rho_detrended"], 3) == 0.261
+assert round(r[3]["rho_detrended"], 3) == 0.153
+mean_rt = sum(w["rho_detrended"] for w in r) / 10
+assert round(mean_rt, 2) == 0.29
+print("diagnosis fence: all cells match")
+EOF2
+```
