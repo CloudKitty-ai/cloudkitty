@@ -734,3 +734,100 @@ assert round(p2["eps01"]["ext290"]["mean"], 3) == -0.235
 print("ext-ramp fence: all cells match")
 EOF2
 ```
+
+## Round 4 — honest-geometry reads (2026-10-19; declaration §Round 4, recollection band 1095301–1095400)
+
+Recollection: 92/92 rollouts at 6k (0 dropped). Baseline re-derived
+per §Round 4 (3): round-0 critic val EV at min_future 3500 = 0.8746
+(artifacts/baseline-ev-mf3500.json) → band 0.8396. Retrain
+(artifacts/critic-g2-ext3; harvest + 8k suite fills + the 6k
+recollection, poisoned 4k dirs excluded): best epoch 7, **val EV
+0.8818 — no-regression PASS**, and the first mix that IMPROVES
+on-distribution EV (rounds 1–2 cost it; the contaminated targets were
+why). Reads as scored by the declared instrument:
+
+| leg | reading | verdict as declared |
+|---|---|---|
+| random 870040 | ALL 10 worlds positive (0.227…0.694), pooled raw 0.522, null 0.470 > p99 0.013 | UNINFORMATIVE (ramp trip: 4 worlds R² > 0.2) |
+| ε 0.1 870043 | null 0.180 > p99 0.083 (n_eff ~790); 3/10 qualifying | UNINFORMATIVE (ramp trip; also fails qualifying) |
+| ε 0.3 870046 | null 0.141 ≈ p99 0.137; 3/10 qualifying | UNINFORMATIVE (ramp trip; also fails qualifying) |
+| mechanism | distress Δmean **−46.09** (round 3: −29.87) | PASS |
+| contrast gate | pooled 456/881 = 0.518, CP99 lower 0.478; **play 0.338 on 231 pairs, significantly BELOW chance** | **FAIL** |
+
+**Finding 1 — the ramp trip is mis-specified and the mis-fire is
+provable from its own JSONs.** The declared trip reads a
+FREE-COEFFICIENT regression R² of target on the ramp curve, which at
+honest geometry is a monotone-TREND share, not an artifact share: the
+deterministic artifact's amplitude is pinned by γ and geometry (~0.38
+raw span, std ~0.11), so its true share of target variance here is
+≤ 0.028% (random) / ≤ 0.242% (ε) in EVERY world — three orders of
+magnitude under the 0.2 trip. What the free coefficient fit is
+genuine within-world welfare drift, the very signal the probe exists
+to rank. The guard voided all three legs for carrying the quantity
+under test. Intent (deviations entry 2, §Round 4 (2): a KNOWN-
+STRUCTURE check) says pinned amplitude; the implementation let the
+amplitude float. No verdict is re-scored here: the trip's
+re-specification is an owner call on the ledger, recommended below.
+For the record, under a pinned-amplitude trip the same JSONs read:
+random INFORMATIVE and PASS on every declared bar (all worlds
+positive — sign-uniformity clean, pooled 0.522, null passed); both ε
+legs UNINFORMATIVE by the QUALIFYING guard (3/10 each) — at honest
+geometry near-teacher targets genuinely lack rankable spread (stds
+2.2–10, mostly < 5), which is the §Round 4 (6) mechanical demotion
+point: ε legs earn descriptive-only status as a fact about the claim,
+not a rescue (descriptively, ε0.1's above-null rank 0.180 > 0.083 at
+n_eff ~790 is positive).
+
+**Finding 2 — the contrast gate works and caught a real one-kind
+inversion.** Pooled 0.518 with CP99 lower 0.478 misses the > 0.5
+line, and PLAY is significantly inverted: the critic values
+play-flagged states HIGHER in 66% of 231 held-out near-pairs, while
+eat 0.558, cuddle 0.607, sleep 0.645 rank correctly and drink sits at
+chance (0.482, n=110). The pooled mechanism test (−46.09) perturbs
+all six flags at once, so a one-kind wrong sign hides inside it —
+the gate exists in deployment currency precisely to see this. Whether
+play's inversion is a binding defect or real MDP structure
+(play-flagged passages may genuinely precede high-value play relief
+in ways eat/drink distress does not) is NOT decided here; it is the
+open question routed to the owner with this round's report.
+
+Acceptance not met as declared (gate FAIL + all legs UNINFORMATIVE);
+accept / iterate / hold OWNER-ROUTED, with two recommendations on
+record: (1) one-commit amendment re-specifying the ramp trip to
+pinned-amplitude artifact share (the declaration's own intent),
+re-scoring these same JSONs under it; (2) a declared investigation of
+the play inversion before any accept.
+
+### Read (round 4; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+b = json.load(open(d + "baseline-ev-mf3500.json"))
+assert round(b["val_ev"], 4) == 0.8746 and b["min_future"] == 3500
+s = json.load(open(d + "critic-g2-ext3/critic-g2-0p998-stats.json"))
+assert s["extension_rollouts"] == 290 and s["best_epoch"] == 7
+assert round(s["best_val_ev"], 4) == 0.8818
+assert s["best_val_ev"] >= b["val_ev"] - 0.035
+r = json.load(open(d + "critic-g2-ext3/round4-random.json"))
+assert r["amended"]["reason"] == "ramp_contaminated"
+rhos = [w["rho"] for w in r["per_world"]]
+assert min(rhos) > 0 and round(max(rhos), 3) == 0.694
+assert round(r["spearman"], 3) == 0.522 and r["block_null"]["pass"]
+for w in r["per_world"]:   # pinned-amplitude artifact share bound
+    assert (0.11 / w["target_std"]) ** 2 < 0.001
+for leg in ("eps01", "eps03"):
+    e = json.load(open(d + f"critic-g2-ext3/round4-{leg}.json"))
+    assert e["amended"]["uninformative"]
+    assert sum(w["target_std"] >= 5.0 for w in e["per_world"]) == 3
+m = json.load(open(d + "critic-g2-ext3/mechanism-test.json"))
+assert round(m["variants"]["distress_on"]["delta_mean"], 2) == -46.09
+g = json.load(open(d + "contrast-gate.json"))
+assert not g["pass"] and g["kinds_below"] == ["play"]
+assert g["pooled_pairs"] == 881 and g["pooled_correct"] == 456
+assert round(g["per_kind"]["play"]["fraction"], 3) == 0.338
+assert round(g["cp99_lower"], 3) == 0.478
+print("round-4 fence: all cells match")
+EOF2
+```
