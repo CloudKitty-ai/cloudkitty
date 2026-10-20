@@ -131,34 +131,54 @@ def world_null(pred_w, target_w, n_perm=1000, seed=0, min_shift=500):
             "n_eff": float((2.33 / p99) ** 2) if p99 > 0 else float("inf")}
 
 
-K_OF_M = (10, 7)  # §Round 3 addendum: power 0.907 at true 0.45/world,
-#                   false-pass 7.4e-9 for a rank-dead critic
+RAMP_R2_TRIP = 0.2  # §Round 4 (2): the standing ramp guard's trip
+
+
+def ramp_r2(y_w, total_ticks, min_future):
+    """Share of one world's target variance owned by the deterministic
+    remaining-horizon ramp (§Round 4 (2)). y_w is that world's kept
+    targets, in tick order."""
+    y_w = np.asarray(y_w, float)
+    t = np.arange(len(y_w), dtype=float)
+    assert len(y_w) == total_ticks - min_future + 1, (len(y_w),
+                                                     total_ticks, min_future)
+    ramp = (1.0 - 0.998 ** (total_ticks - t)) / (1.0 - 0.998)
+    basis = np.stack([np.ones(len(y_w)), ramp], axis=1)
+    coef, *_ = np.linalg.lstsq(basis, y_w, rcond=None)
+    ry = y_w - basis @ coef
+    return 1.0 - float(ry.var() / y_w.var()) if y_w.var() > 0 else 0.0
 
 
 def amended_verdict(v, epsilon):
-    """MITIGATION.md acceptance 3 as reshaped by §Round 3: the
-    per-declaration reading of a probe JSON dict. The null-width
-    ceiling binds every block-null read first — a wide null makes the
-    leg UNINFORMATIVE (re-runs at more worlds; never passes, never
-    fails). Random leg: hard bars + raw pooled ρ ≥ 0.3 (kept) +
-    pooled block null passed + at least k of the m declared worlds at
-    ρ ≥ 0.3. ε legs: primary block-null read, vacuous-pass guard
-    scaled to ⌈2m/3⌉ qualifying worlds."""
+    """MITIGATION.md acceptance 3 as reshaped by §Round 3 + §Round 4:
+    guards first — the ramp trip (any world's target ramp R² over the
+    trip = RAMP-CONTAMINATED) then the null-width ceiling — both
+    two-sided: an UNINFORMATIVE leg re-runs, never passes, never
+    fails. Random leg (§Round 4 (5)): hard bars + raw pooled ρ ≥ 0.3
+    + pooled block null passed + sign-uniformity (no world whose own
+    per-world null is informative sits significantly wrong-signed,
+    ρ_w < −p99_w). The round-3 (10, 7) magnitude points are RETIRED
+    (ramp-inflated sizing). ε legs: primary block-null read,
+    vacuous-pass guard at ⌈2m/3⌉ qualifying worlds."""
     hard = v["finite"] and v["in_band"]
     mode = "random" if epsilon == 1.0 else "epsilon"
+    ramped = [w["name"] for w in v["per_world"]
+              if w.get("ramp_r2", 0.0) > RAMP_R2_TRIP]
+    if ramped:
+        return {"mode": mode, "pass": False, "uninformative": True,
+                "reason": "ramp_contaminated", "ramped_worlds": ramped}
     bn = v.get("block_null")
     if bn is not None and not bn["informative"]:
         return {"mode": mode, "pass": False, "uninformative": True,
                 "reason": "null_width", "null_p99": bn["null_p99"]}
     if epsilon == 1.0:
-        m, k = K_OF_M
-        assert len(v["per_world"]) == m, \
-            f"random leg runs the declared m={m} worlds"
-        hits = int(sum(w["rho"] >= 0.3 for w in v["per_world"]))
+        wrong = [w["name"] for w in v["per_world"]
+                 if w.get("world_null", {}).get("informative")
+                 and w["rho"] < -w["world_null"]["null_p99"]]
         ok = (hard and v["spearman"] >= 0.3
-              and bn is not None and bn["pass"] and hits >= k)
+              and bn is not None and bn["pass"] and not wrong)
         return {"mode": mode, "pass": bool(ok), "uninformative": False,
-                "worlds_at_bar": hits, "k_of_m": [k, m]}
+                "wrong_signed_worlds": wrong}
     need = -(-2 * len(v["per_world"]) // 3)  # ceil(2m/3)
     qualifying = [w for w in v["per_world"] if w["target_std"] >= 5.0]
     if len(qualifying) < need:
@@ -239,6 +259,9 @@ def collect(ticks, n_worlds, seed_base, epsilon=1.0, clone=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ticks", type=int, default=4000)
+    ap.add_argument("--min-future", type=int, default=1500,
+                    help="probe censoring floor; §Round 4 honest "
+                         "geometry is --ticks 6000 --min-future 3500")
     ap.add_argument("--worlds", type=int, default=3)
     ap.add_argument("--seed-base", type=int, default=870004)
     ap.add_argument("--critic", type=Path, default=CRITIC)
@@ -266,10 +289,10 @@ def main():
     for r in rollouts:
         assert np.isfinite(r.reward).all() and np.isfinite(r.state).all()
         print(f"{r.name}: mean reward {r.reward.mean():.4f}", flush=True)
-    x, y = critic_arrays(rollouts, gamma=0.998, min_future=1500)
+    x, y = critic_arrays(rollouts, gamma=0.998, min_future=args.min_future)
 
     art = torch.load(args.critic, map_location="cpu", weights_only=True)
-    assert art["gamma"] == 0.998 and art["min_future"] == 1500
+    assert art["gamma"] == 0.998
     model = EntityCriticV2(**art["hyper"])
     model.load_state_dict(art["state_dict"])
     model.eval()
@@ -282,8 +305,9 @@ def main():
     v = verdict(pred_raw, y, art["target_mean"])
     # per-world slices (equal keeps: ticks - min_future + 1 each), so a
     # pooled rho washed out by world-level offsets stays diagnosable
-    keep = args.ticks - 1500 + 1
+    keep = args.ticks - args.min_future + 1
     assert len(y) == keep * args.worlds, (len(y), keep, args.worlds)
+    tick = np.arange(keep, dtype=float)
     v["per_world"] = [
         {"name": r.name,
          "rho": spearman(pred_raw[w * keep:(w + 1) * keep],
@@ -292,7 +316,14 @@ def main():
                         float(pred_raw[w * keep:(w + 1) * keep].max())],
          "target_range": [float(y[w * keep:(w + 1) * keep].min()),
                           float(y[w * keep:(w + 1) * keep].max())],
-         "target_std": float(y[w * keep:(w + 1) * keep].std())}
+         "target_std": float(y[w * keep:(w + 1) * keep].std()),
+         # §Round 4 (2): the standing ramp guard's per-world reads
+         "ramp_r2": ramp_r2(y[w * keep:(w + 1) * keep],
+                            args.ticks, args.min_future),
+         "corr_t_target": spearman(y[w * keep:(w + 1) * keep], tick),
+         "world_null": world_null(pred_raw[w * keep:(w + 1) * keep],
+                                  y[w * keep:(w + 1) * keep],
+                                  seed=args.seed_base + w)}
         for w, r in enumerate(rollouts)]
     # §Round 3: every leg carries its pooled block null (the random leg
     # previously had none — "a dashboard, not a guard")

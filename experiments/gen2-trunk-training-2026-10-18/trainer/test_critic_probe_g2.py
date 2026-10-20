@@ -109,18 +109,34 @@ def pw10(rhos, std=9.0):
 
 
 bn_ok = {"pass": True, "informative": True, "null_p99": 0.15}
-seven = pw10([0.5] * 7 + [0.1, 0.0, -0.2])
+WN_OK = {"informative": True, "null_p99": 0.2}
+
+
+def seat(rho, wn=WN_OK, r2=0.05):
+    return {"name": f"w{rho}", "rho": rho, "target_std": 9.0,
+            "ramp_r2": r2, "world_null": dict(wn)}
+
+
 base = {"finite": True, "in_band": True, "spearman": 0.45,
-        "per_world": seven, "block_null": dict(bn_ok)}
+        "per_world": [seat(r) for r in
+                      [0.5, 0.4, 0.3, 0.2, 0.1, 0.0, -0.1, 0.35, 0.6, 0.15]],
+        "block_null": dict(bn_ok)}
 v = cp.amended_verdict(base, 1.0)
-assert v["pass"] and v["worlds_at_bar"] == 7, \
-    f"random leg: exactly k=7 worlds at bar must pass: {v}"
-six = {**base, "per_world": pw10([0.5] * 6 + [0.1] * 4)}
-assert not cp.amended_verdict(six, 1.0)["pass"], \
-    "random leg: 6 of 10 at bar must fail"
+assert v["pass"] and v["wrong_signed_worlds"] == [], \
+    f"random leg: sign-uniform worlds with pooled+null pass must pass: {v}"
+# one informative world significantly wrong-signed (rho < -its p99) fails
+wrong = {**base, "per_world": base["per_world"][:9] + [seat(-0.25)]}
+v = cp.amended_verdict(wrong, 1.0)
+assert not v["pass"] and v["wrong_signed_worlds"] == ["w-0.25"], \
+    f"random leg: a significantly wrong-signed world must fail: {v}"
+# the same world under an UNINFORMATIVE own-null cannot be called wrong-signed
+excused = {**base, "per_world": base["per_world"][:9]
+           + [seat(-0.25, wn={"informative": False, "null_p99": 0.45})]}
+assert cp.amended_verdict(excused, 1.0)["pass"], \
+    "random leg: a wide own-null world cannot be scored wrong-signed"
 lowpool = {**base, "spearman": 0.25}
 assert not cp.amended_verdict(lowpool, 1.0)["pass"], \
-    "random leg: pooled below 0.3 must fail even with k worlds at bar"
+    "random leg: pooled below 0.3 must fail even when sign-uniform"
 nullfail = {**base, "block_null": {"pass": False, "informative": True,
                                    "null_p99": 0.2}}
 assert not cp.amended_verdict(nullfail, 1.0)["pass"], \
@@ -130,6 +146,21 @@ wide = {**base, "block_null": {"pass": True, "informative": False,
 v = cp.amended_verdict(wide, 1.0)
 assert not v["pass"] and v["uninformative"] and v["reason"] == "null_width", \
     f"wide-null leg must be UNINFORMATIVE, never a fail: {v}"
+# §Round 4 ramp guard: one contaminated world trips the whole leg,
+# UNINFORMATIVE, never a pass, never a plain fail — before any other read
+ramped = {**base, "per_world": base["per_world"][:9] + [seat(0.9, r2=0.35)]}
+v = cp.amended_verdict(ramped, 1.0)
+assert not v["pass"] and v["uninformative"] \
+    and v["reason"] == "ramp_contaminated" \
+    and v["ramped_worlds"] == ["w0.9"], \
+    f"ramp-contaminated leg must be UNINFORMATIVE: {v}"
+# ramp_r2: a pure-ramp target owns ~all variance; white noise owns ~none
+rngr = np.random.default_rng(17)
+tt = np.arange(2501, dtype=float)
+pure = (1 - 0.998 ** (4000 - tt)) / 0.002 + rngr.normal(0, 0.1, 2501)
+assert cp.ramp_r2(pure, 4000, 1500) > 0.95, "pure ramp must read ~1"
+assert cp.ramp_r2(rngr.normal(0, 1, 2501), 4000, 1500) < 0.05, \
+    "white noise must read ~0 ramp share"
 eps_ok = {"finite": True, "in_band": True,
           "per_world": pw10([0.2] * 10), "block_null": dict(bn_ok)}
 assert cp.amended_verdict(eps_ok, 0.1)["pass"], "eps leg: null pass passes"
