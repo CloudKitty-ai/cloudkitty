@@ -512,3 +512,34 @@ assert round(m["variants"]["distress_on"]["delta_mean"], 2) == -29.87
 print("round-3 fence: all cells match")
 EOF2
 ```
+
+## World-heterogeneity diagnosis — declaration (2026-10-19, owner "run it"; results below after the run)
+
+Question: what separates the worlds the round-3 critic ranks from the
+worlds it anti-ranks? Groups are fixed by the ROUND-3 recorded
+per-world ρ before any diagnostic is read: RANKING ρ ≥ 0.3, ANTI
+ρ ≤ −0.1, MID the rest — random leg (870031) and ε0.1 leg (870034),
+10 worlds each, series regenerated seed-exactly with the recorded-ρ
+reproduction assert (the §Round 3 measurement's regeneration rule).
+No new collection; no bars — this is diagnosis, not acceptance.
+
+Declared reads, one JSON per leg (diag_hetero_g2.py →
+artifacts/diag-hetero.json):
+
+1. **Outcome profile** per world: censored-target mean/std/min/max,
+   happiness occupancy below-45 and 45–70 (HCOLS convention),
+   per-need distress-flag tick rates (kitty offsets 20–25).
+2. **Temporal structure** per world: Spearman(target, tick) and
+   Spearman(prediction, tick) — the drift-mis-tracking test. If
+   anti-ranking is drift mis-tracking, sign(ρ_world) tracks
+   sign(corr_t(pred) · corr_t(target)).
+3. **Identity composition** per world: mean of each identity-dial
+   column (kitty offsets 26–39), plus across-world Spearman of
+   ρ_world against every scalar in reads 1 and 3 (n = 10 per leg,
+   descriptive only).
+
+Competing mechanisms the reads separate (predictions declared):
+corpus-type gap → ANTI worlds' outcome profiles sit outside the
+extension corpus's supervised envelope; drift mis-tracking → read 2's
+sign relation holds; identity-driven value variance → read 3's dial
+scalars correlate with ρ_world while reads 1–2 are flat.
