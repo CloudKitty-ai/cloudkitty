@@ -19,6 +19,7 @@ before trusting a gap here, then add what you find.
 | 840001–840450 | exp-004 re-baseline | class-credit batches A/B/C, 028 engine (F-004) |
 | 850001–866000 | exp-004 | dataset v4 collection (850001 + ci×1000 + r) |
 | 870001–870030 | battery convention | shared eval band (eval 870001+; trait screen anchor) |
+| 870031–870060 | fog Gen 2 (gen2-trunk-training-2026-10-18) | round-3 critic probe bases 870031/870034/870037 at 10 worlds each (MITIGATION.md §Round 3 addendum; world seeds = base + w·1e6), eval-band continuation |
 | 875001–875450 | exp-006 | class-credit batches A/B/C, post-wall stamp |
 | 880001–880030 | battery convention | shared stress band (stress 880001+) |
 | 890001–890030 | fog Gen 1 (fog-gen1-cert) | step-7 battery tail replication band 1 (owner 2026-09-15), the seated roster gen1-A + the scripted baseline, 30 × 20k |

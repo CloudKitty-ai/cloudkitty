@@ -280,3 +280,55 @@ edited after the round-3 probe runs.
 
 Acceptance remains probe-then-accept on the owner's word (#365);
 entry 2 closes there.
+
+### Round 3 addendum: measured n_eff, sized bars, fresh bases (2026-10-19)
+
+Measurement ran as declared (neff_measure_g2.py; every leg's recorded
+per-world ρ reproduced to 1e-6 before any null was read; artifact
+artifacts/neff-measurement.json). Pooled nulls, all six legs to date:
+
+| leg | pooled p99 | n_eff | informative (ceiling 0.3) |
+|---|---|---|---|
+| r1-random 870013 | 0.319 | 53 | NO |
+| r1-ε0.1 870016 | 0.173 | 182 | yes |
+| r1-ε0.3 870019 | 0.309 | 57 | NO |
+| r2-random 870022 | 0.245 | 91 | yes |
+| r2-ε0.1 870025 | 0.412 | 32 | NO |
+| r2-ε0.3 870028 | 0.179 | 169 | yes |
+
+Retroactive labels (the one legitimate retroactive read — each run's
+own null already measured its width): round-2 ε0.1 FAIL →
+UNINFORMATIVE (0.412), round-1 ε0.3 FAIL → UNINFORMATIVE (0.309).
+Two-sided check, for the record: both historical PASSes survive the
+ceiling (0.173, 0.179) — nothing was rescued that the guard would not
+equally have voided. The random legs' point-bar FAILs are untouched
+(no null existed in-run; the ceiling binds block-null reads). With the
+labels applied, the ε flip-flop disappears: every INFORMATIVE ε read
+to date is a PASS. Round-2 random w0's −0.204 sits inside its own
+per-world null band (p99 0.292, informative): a noise reading, the
+"tail" interpretation — Professor's lean, scored right on this datum.
+
+Sized bars (from the measurement, declared before the round-3 probe):
+
+- Per-world SE 0.1658 (median per-world p99 0.3864 / 2.33 across all
+  18 world reads; per-world geometry is unchanged at 2,501 states, so
+  this SE carries to round 3). P(world at true ρ 0.45 clears 0.3) =
+  0.817; P(rank-dead world clears 0.3) = 0.035.
+- **(m, k) = (10, 7)**: the largest k at m = 10 with pass power
+  ≥ 0.8 for a critic truly at ρ 0.45 per world (0.907; k = 8 drops to
+  0.729); false-pass for a rank-dead critic 7.4e-9.
+- Random leg, round 3: hard bars; raw pooled ρ ≥ 0.3 (kept); pooled
+  block null INFORMATIVE and passed; ≥ 7 of 10 worlds ρ ≥ 0.3.
+- ε legs, round 3: 10 worlds each; primary read unchanged (pooled
+  standardized vs block null, p99); the vacuous-pass guard scales
+  with m — ≥ ⌈2m/3⌉ = 7 of 10 qualifying (target std ≥ 5) — and the
+  ceiling binds: null p99 > 0.3 → UNINFORMATIVE, re-runs at more
+  worlds, never passes, never fails.
+- Fresh bases, 10 worlds each (world seeds base + w·1e6, w = 0..9):
+  random 870031, ε 0.1 870034, ε 0.3 870037 — disjoint from all nine
+  original probe worlds, the six re-probe triples, and every training
+  source; SEED-BANDS extension row 870031–870060 claimed with this
+  commit.
+- Welfare: ε legs are covered-mind clone seats, 2 legs × 10 worlds ×
+  4k ticks (up from 3 worlds; same exposure class as the already-run
+  probes, standing stops armed, ε ≤ 0.3); random leg scripted-exempt.

@@ -99,7 +99,9 @@ def block_null(pred_raw, targets, keep, n_worlds, n_perm=1000, seed=0,
     p99 = float(np.percentile(null, 99))
     return {"observed": observed, "null_p99": p99, "n_perm": n_perm,
             "seed": seed, "min_shift": min_shift,
-            "pass": bool(observed > p99)}
+            "pass": bool(observed > p99),
+            "informative": bool(p99 <= NULL_CEILING),
+            "n_eff": float((2.33 / p99) ** 2) if p99 > 0 else float("inf")}
 
 
 NULL_CEILING = 0.3  # MITIGATION.md §Round 3 (2): null-width ceiling
@@ -129,20 +131,42 @@ def world_null(pred_w, target_w, n_perm=1000, seed=0, min_shift=500):
             "n_eff": float((2.33 / p99) ** 2) if p99 > 0 else float("inf")}
 
 
+K_OF_M = (10, 7)  # §Round 3 addendum: power 0.907 at true 0.45/world,
+#                   false-pass 7.4e-9 for a rank-dead critic
+
+
 def amended_verdict(v, epsilon):
-    """MITIGATION.md acceptance 3: the per-declaration reading of a
-    probe JSON dict (hard bars + the leg-appropriate rank bar)."""
+    """MITIGATION.md acceptance 3 as reshaped by §Round 3: the
+    per-declaration reading of a probe JSON dict. The null-width
+    ceiling binds every block-null read first — a wide null makes the
+    leg UNINFORMATIVE (re-runs at more worlds; never passes, never
+    fails). Random leg: hard bars + raw pooled ρ ≥ 0.3 (kept) +
+    pooled block null passed + at least k of the m declared worlds at
+    ρ ≥ 0.3. ε legs: primary block-null read, vacuous-pass guard
+    scaled to ⌈2m/3⌉ qualifying worlds."""
     hard = v["finite"] and v["in_band"]
+    mode = "random" if epsilon == 1.0 else "epsilon"
+    bn = v.get("block_null")
+    if bn is not None and not bn["informative"]:
+        return {"mode": mode, "pass": False, "uninformative": True,
+                "reason": "null_width", "null_p99": bn["null_p99"]}
     if epsilon == 1.0:
-        ok = hard and all(w["rho"] >= 0.3 for w in v["per_world"])
-        return {"mode": "random", "pass": bool(ok)}
+        m, k = K_OF_M
+        assert len(v["per_world"]) == m, \
+            f"random leg runs the declared m={m} worlds"
+        hits = int(sum(w["rho"] >= 0.3 for w in v["per_world"]))
+        ok = (hard and v["spearman"] >= 0.3
+              and bn is not None and bn["pass"] and hits >= k)
+        return {"mode": mode, "pass": bool(ok), "uninformative": False,
+                "worlds_at_bar": hits, "k_of_m": [k, m]}
+    need = -(-2 * len(v["per_world"]) // 3)  # ceil(2m/3)
     qualifying = [w for w in v["per_world"] if w["target_std"] >= 5.0]
-    if len(qualifying) < 2:
-        return {"mode": "epsilon", "pass": False,
-                "uninformative": True,
+    if len(qualifying) < need:
+        return {"mode": mode, "pass": False, "uninformative": True,
+                "reason": "qualifying_worlds",
                 "qualifying_worlds": len(qualifying)}
     ok = hard and v["block_null"]["pass"]
-    return {"mode": "epsilon", "pass": bool(ok), "uninformative": False,
+    return {"mode": mode, "pass": bool(ok), "uninformative": False,
             "qualifying_worlds": len(qualifying)}
 
 
@@ -270,9 +294,10 @@ def main():
                           float(y[w * keep:(w + 1) * keep].max())],
          "target_std": float(y[w * keep:(w + 1) * keep].std())}
         for w, r in enumerate(rollouts)]
-    if args.epsilon < 1.0:
-        v["block_null"] = block_null(pred_raw, y, keep, args.worlds,
-                                     seed=args.seed_base)
+    # §Round 3: every leg carries its pooled block null (the random leg
+    # previously had none — "a dashboard, not a guard")
+    v["block_null"] = block_null(pred_raw, y, keep, args.worlds,
+                                 seed=args.seed_base)
     v["amended"] = amended_verdict(v, args.epsilon)
     v.update({"states": int(len(y)),
               "target_min": float(y.min()), "target_max": float(y.max()),

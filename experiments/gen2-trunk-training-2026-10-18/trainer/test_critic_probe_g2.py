@@ -103,24 +103,45 @@ r_known = cp.world_null(ranker, wn, n_perm=200, seed=5)
 assert abs(r_known["n_eff"] - (2.33 / r_known["null_p99"]) ** 2) < 1e-9, \
     "n_eff must be (2.33/p99)^2 of this run's own p99"
 
-# --- amended_verdict ---------------------------------------------------------
-pw = [{"rho": 0.5, "target_std": 9.0}, {"rho": 0.4, "target_std": 7.0},
-      {"rho": 0.31, "target_std": 6.0}]
-base = {"finite": True, "in_band": True, "per_world": pw}
-assert cp.amended_verdict(base, 1.0)["pass"], "random leg: all >= 0.3 passes"
-low = {**base, "per_world": [dict(pw[0]), dict(pw[1]),
-                             {"rho": 0.29, "target_std": 6.0}]}
-assert not cp.amended_verdict(low, 1.0)["pass"], \
-    "random leg: one world at 0.29 must fail"
-eps_ok = {**base, "block_null": {"pass": True}}
+# --- amended_verdict (as reshaped by §Round 3) --------------------------------
+def pw10(rhos, std=9.0):
+    return [{"rho": r, "target_std": std} for r in rhos]
+
+
+bn_ok = {"pass": True, "informative": True, "null_p99": 0.15}
+seven = pw10([0.5] * 7 + [0.1, 0.0, -0.2])
+base = {"finite": True, "in_band": True, "spearman": 0.45,
+        "per_world": seven, "block_null": dict(bn_ok)}
+v = cp.amended_verdict(base, 1.0)
+assert v["pass"] and v["worlds_at_bar"] == 7, \
+    f"random leg: exactly k=7 worlds at bar must pass: {v}"
+six = {**base, "per_world": pw10([0.5] * 6 + [0.1] * 4)}
+assert not cp.amended_verdict(six, 1.0)["pass"], \
+    "random leg: 6 of 10 at bar must fail"
+lowpool = {**base, "spearman": 0.25}
+assert not cp.amended_verdict(lowpool, 1.0)["pass"], \
+    "random leg: pooled below 0.3 must fail even with k worlds at bar"
+nullfail = {**base, "block_null": {"pass": False, "informative": True,
+                                   "null_p99": 0.2}}
+assert not cp.amended_verdict(nullfail, 1.0)["pass"], \
+    "random leg: failed pooled null must fail"
+wide = {**base, "block_null": {"pass": True, "informative": False,
+                               "null_p99": 0.41}}
+v = cp.amended_verdict(wide, 1.0)
+assert not v["pass"] and v["uninformative"] and v["reason"] == "null_width", \
+    f"wide-null leg must be UNINFORMATIVE, never a fail: {v}"
+eps_ok = {"finite": True, "in_band": True,
+          "per_world": pw10([0.2] * 10), "block_null": dict(bn_ok)}
 assert cp.amended_verdict(eps_ok, 0.1)["pass"], "eps leg: null pass passes"
-thin = {**base, "per_world": [{"rho": 0.9, "target_std": 9.0},
-                              {"rho": 0.9, "target_std": 2.0},
-                              {"rho": 0.9, "target_std": 1.0}],
-        "block_null": {"pass": True}}
+thin = {**eps_ok, "per_world": pw10([0.9] * 6) + pw10([0.9] * 4, std=2.0)}
 v = cp.amended_verdict(thin, 0.1)
 assert not v["pass"] and v["uninformative"], \
-    "eps leg: one qualifying world is uninformative, never a pass"
+    "eps leg: 6 of 10 qualifying (< ceil(2m/3)) is uninformative, never a pass"
+v = cp.amended_verdict({**eps_ok, "block_null": {"pass": True,
+                                                 "informative": False,
+                                                 "null_p99": 0.41}}, 0.1)
+assert v["uninformative"] and v["reason"] == "null_width", \
+    "eps leg: wide null is uninformative before any other read"
 
 # --- verdict ---------------------------------------------------------------
 t = np.linspace(300, 500, 100)
