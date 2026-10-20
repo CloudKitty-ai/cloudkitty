@@ -101,6 +101,21 @@ consent BC comparison ride the trunk.
    FAILS its null and the random leg still misses the per-world bar
    (−0.204 on one world; pooled 0.533, third straight pooled climb).
    Acceptance not met as declared (2 of 4 legs);
+   ACCEPT / ITERATE / HOLD owner-routed — her word 2026-10-19 "yes,
+   relay to Professor", then "Ruled as recommended by Professor":
+   INSTRUMENT REPAIR (MITIGATION.md §Round 3 + addendum): n_eff
+   measured on all six legs (per-world block nulls, seed-exact
+   regeneration), null-width ceiling 0.3 declared two-sided —
+   retroactive UNINFORMATIVE labels kill the ε flip-flop (every
+   informative ε read through round 2 was a PASS); bars resized
+   (m,k)=(10,7) from measured SE 0.166. ROUND-3 READS at 10 fresh
+   worlds/leg (870031/34/37): random FAIL informative (4/10 at bar,
+   pooled 0.202), ε0.1 FAIL informative (0.108 < p99 0.177), ε0.3
+   UNINFORMATIVE (6/10 qualifying, re-run owed), mechanism PASS
+   stands (−29.87). The defect moved back into the object: per-world
+   ρ spans ~6 SE (+0.778 to −0.519 across legs) — real world-level
+   heterogeneity of binding, the registered "genuine corpus
+   question" branch. Acceptance not met;
    ACCEPT / ITERATE / HOLD owner-routed, pending her
    word; then the PPO launch card (her word) before any seed
    burns.

@@ -434,3 +434,81 @@ for k, x in m["variants"].items():
 assert m["variants"]["distress_on"]["delta_mean"] <= 0
 EOF2
 ```
+
+## Critic round 3 — instrument repair + adequate-power reads (2026-10-19; ruled "Ruled as recommended by Professor")
+
+Instrument repair per MITIGATION.md §Round 3 (declared before any
+measurement): per-world block nulls measured on all six probe legs to
+date (every recorded ρ reproduced to 1e-6 before a null was read;
+artifacts/neff-measurement.json), the null-width ceiling (0.3)
+applied. Retroactive labels: round-2 ε0.1 FAIL → UNINFORMATIVE (its
+own p99 0.412), round-1 ε0.3 FAIL → UNINFORMATIVE (0.309); both
+historical PASSes survive (0.173 / 0.179) — with the labels, every
+INFORMATIVE ε read through round 2 was a PASS, and the "flip-flop"
+was the instrument. Round-2 random w0 (−0.204) sits inside its own
+per-world null band (p99 0.292): noise. Bars resized from the
+measurement (per-world SE 0.1658): (m, k) = (10, 7), power 0.907 at
+true ρ 0.45, false-pass 7.4e-9; pooled ≥ 0.3 kept; random leg gains
+its pooled block null; ε qualifying guard scales to ⌈2m/3⌉.
+
+Round-3 reads, 10 fresh worlds per leg (bases declared in the
+addendum; critic unchanged = artifacts/critic-g2-ext2):
+
+| leg | bar | reading | verdict |
+|---|---|---|---|
+| random 870031 | ≥7/10 worlds ρ ≥ 0.3, pooled ≥ 0.3, null pass | 4/10 at bar; pooled raw 0.202; null 0.218 > p99 0.167 | **FAIL (informative)** |
+| ε 0.1 870034 | block null p99 | observed 0.108 < p99 0.177 (7/10 qualifying) | **FAIL (informative)** |
+| ε 0.3 870037 | block null p99 | 6/10 qualifying < 7 | UNINFORMATIVE (re-runs) |
+| mechanism | distress Δmean ≤ 0 | −29.87 (round-2 read; same critic artifact, no retrain since) | PASS |
+
+Reading: the instrument question is answered and the answer moves the
+defect back into the object. At n_eff ~195 (random) and ~173 (ε0.1)
+— tight, informative nulls — the critic's within-world rank signal is
+real but far under the bars: a 4-of-10 world count against a bar with
+0.907 power for a true-0.45 critic is a confident miss, not a coin
+flip. The new fact the 10-world geometry exposes is world-level
+heterogeneity of binding: per-world ρ spans +0.778 to −0.363 (random)
+and +0.587 to −0.519 (ε0.1) against a per-world SE of 0.166 — spreads
+of ~6 SE, genuine, not sampling noise. The critic ranks well in some
+trunk worlds and anti-ranks in others; which worlds and why is now
+the question (Professor's registered prediction named exactly this
+branch: still-failing at measured-adequate power = a real corpus
+question, their "tail" lean wrong on the defect/tail call at the
+leg level — though right on the single w0 datum). The ε0.3
+UNINFORMATIVE is a qualifying-count miss (6 < 7); by declaration it
+re-runs at fresh worlds and is owed before any accept — moot while
+two legs informatively fail. Acceptance not met; accept / iterate /
+hold OWNER-ROUTED (probe-then-accept, #365), PENDING.
+
+### Read (round 3; seconds; stdlib python3)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+n = json.load(open(d + "neff-measurement.json"))
+assert n["ceiling"] == 0.3
+labels = {k: v["pooled"]["informative"] for k, v in n["legs"].items()}
+assert labels == {"r1-random": False, "r1-eps01": True, "r1-eps03": False,
+                  "r2-random": True, "r2-eps01": False, "r2-eps03": True}
+assert round(n["legs"]["r2-eps01"]["pooled"]["null_p99"], 3) == 0.412
+assert round(n["legs"]["r2-random"]["per_world"][0]["null_p99"], 3) == 0.292
+r = json.load(open(d + "critic-g2-ext2/round3-random.json"))
+assert r["amended"] == {"mode": "random", "pass": False,
+                        "uninformative": False, "worlds_at_bar": 4,
+                        "k_of_m": [7, 10]}
+assert round(r["spearman"], 3) == 0.202 and r["block_null"]["pass"]
+rhos = [round(w["rho"], 3) for w in r["per_world"]]
+assert max(rhos) == 0.778 and min(rhos) == -0.363
+e1 = json.load(open(d + "critic-g2-ext2/round3-eps01.json"))
+assert not e1["amended"]["pass"] and not e1["amended"]["uninformative"]
+assert round(e1["block_null"]["observed"], 3) == 0.108
+assert round(e1["block_null"]["null_p99"], 3) == 0.177
+e3 = json.load(open(d + "critic-g2-ext2/round3-eps03.json"))
+assert e3["amended"]["uninformative"] and \
+    e3["amended"]["qualifying_worlds"] == 6
+m = json.load(open(d + "critic-g2-ext2/mechanism-test.json"))
+assert round(m["variants"]["distress_on"]["delta_mean"], 2) == -29.87
+print("round-3 fence: all cells match")
+EOF2
+```
