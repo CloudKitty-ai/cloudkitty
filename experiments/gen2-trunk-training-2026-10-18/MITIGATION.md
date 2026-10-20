@@ -221,3 +221,62 @@ off-MDP — exactly what trunk-MDP supervision targets and cranked-rate
 dial supervision cannot; and random-leg pooled 0.418 vs the original
 −0.026 under a stricter instrument is the cleanest single measure of
 round-1 progress.
+
+## Round 3: instrument repair (ruled 2026-10-19 "Ruled as recommended by Professor")
+
+Round 2 left two reds that Professor's owner-routed power analysis
+reads as MEASUREMENT defects, not corpus gaps (their note
+`for-experiments-round2-instrument-power-2026-10-19.md`; ruling
+recorded in deviations entry 2). This section declares the repair
+BEFORE the measurement runs; the quantities it leaves open are sized
+by that measurement and land in a one-commit addendum here, never
+edited after the round-3 probe runs.
+
+1. **n_eff measurement (zero new collection)**: per-world
+   block-permutation nulls (the §acceptance machinery, run per world)
+   on every probe leg to date — round 1 bases 870013/16/19 against
+   artifacts/critic-g2-ext, round 2 bases 870022/25/28 against
+   artifacts/critic-g2-ext2. The probe JSONs persist stats, not
+   series, so the series are REGENERATED deterministically at the
+   same seeds/critic/clone (the probe collector is seed-exact); the
+   regeneration asserts each world's recorded ρ reproduces before
+   any null is read. n_eff per read is reported as (2.33/p99)^2.
+2. **Null-width informativeness ceiling (the missing guard)**:
+   declared at 0.3 — the instrument's own effect scale, fixed before
+   the measurement reports which rounds it rescues. Any block-null
+   read (pooled or per-world) whose null p99 exceeds 0.3 is
+   UNINFORMATIVE: it re-runs at more worlds, it never passes, and it
+   never fails. The guard is TWO-SIDED by construction — it voids a
+   lucky pass exactly as it voids an unlucky fail — which is what
+   keeps it an instrument repair rather than a post-hoc rescue.
+   Applied retroactively ONLY as a label (each run's own null already
+   measured its width); no retroactive pass/fail changes.
+3. **Random-leg bar reshape**: the within-world ranking CLAIM is
+   kept (pooled-carried-by-levels was the original −0.026 lesson),
+   and pooled Spearman ≥ 0.3 stays binding. The every-world point
+   bar is replaced by a declared (m, k) fraction bar — at least k of
+   m worlds with ρ ≥ 0.3 — where m (world count) and k move together
+   or not at all, sized by a power calculation from MEASURED n_eff
+   targeting ≥ 0.8 pass probability for a critic truly at ρ = 0.45
+   per world, with false-pass probability for a rank-dead critic
+   reported beside it. More WORLDS, not longer ticks (pooled SE
+   shrinks 1/sqrt(worlds); within-world autocorrelation does not).
+4. **Fresh bases only**: the round-3 bars bind only fresh declared
+   probe bases (declared in the addendum with m); 870004/07/10,
+   870013/16/19, 870022/25/28 are burned and never re-scored under
+   bars chosen after seeing them. All burned probe worlds stay
+   excluded from training.
+5. **Welfare**: the measurement regenerates burned probe worlds at
+   their original seeds — random legs scripted-exempt, ε legs
+   covered-mind clone seats identical to the already-run probes
+   (standing stops armed, ε ≤ 0.3, no new exposure class beyond the
+   re-run). The round-3 probe's added worlds are priced per leg in
+   the addendum.
+6. **Professor's prediction, on record**: with the ceiling declared
+   and the random leg at ~10 worlds, the ε0.1 and random verdicts
+   stop flip-flopping across fresh triples; still flipping at
+   measured-adequate power = real world-level heterogeneity (a
+   corpus question after all, and their "tail" lean scored wrong).
+
+Acceptance remains probe-then-accept on the owner's word (#365);
+entry 2 closes there.

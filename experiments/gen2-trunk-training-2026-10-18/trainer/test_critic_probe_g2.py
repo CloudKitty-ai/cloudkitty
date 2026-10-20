@@ -76,6 +76,33 @@ r = cp.block_null(rng3.normal(0, 1, keep * nw), t, keep, nw,
                   n_perm=200, seed=7)
 assert not r["pass"], f"independent noise must fail the null: {r}"
 
+# --- world_null (round-3 n_eff instrument) -----------------------------------
+rng4 = np.random.default_rng(13)
+n = 2501
+# white-noise target: shifts decorrelate fully, null stays tight, and a
+# true ranker's observed rho clears it — the read is INFORMATIVE
+wn = rng4.normal(0, 1, n)
+ranker = wn + rng4.normal(0, 0.5, n)
+r = cp.world_null(ranker, wn, n_perm=200, seed=5)
+assert r["informative"] and r["null_p99"] < 0.1, \
+    f"white-noise target must give a tight null: {r}"
+assert r["observed"] > r["null_p99"], f"true ranker must clear the null: {r}"
+assert r["n_eff"] > 500, f"tight null means large n_eff: {r}"
+# heavily autocorrelated target (slow random walk): circular shifts keep
+# the smoothness, the null is WIDE, and the read must label itself
+# UNINFORMATIVE — the round-2 defect geometry (p99 0.412 gated nothing)
+walk = np.sin(np.linspace(0, 4 * np.pi, n)) + rng4.normal(0, 0.05, n)
+# two slow cycles across the window: some legal shifts re-align the
+# phase almost perfectly, so the null's p99 must blow past the ceiling
+r = cp.world_null(walk + rng4.normal(0, 0.1 * walk.std(), n), walk,
+                  n_perm=200, seed=5)
+assert not r["informative"] and r["null_p99"] > cp.NULL_CEILING, \
+    f"slow-walk target must give a wide null and label UNINFORMATIVE: {r}"
+# n_eff is the declared inversion of the measured p99, exactly
+r_known = cp.world_null(ranker, wn, n_perm=200, seed=5)
+assert abs(r_known["n_eff"] - (2.33 / r_known["null_p99"]) ** 2) < 1e-9, \
+    "n_eff must be (2.33/p99)^2 of this run's own p99"
+
 # --- amended_verdict ---------------------------------------------------------
 pw = [{"rho": 0.5, "target_std": 9.0}, {"rho": 0.4, "target_std": 7.0},
       {"rho": 0.31, "target_std": 6.0}]

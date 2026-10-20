@@ -102,6 +102,33 @@ def block_null(pred_raw, targets, keep, n_worlds, n_perm=1000, seed=0,
             "pass": bool(observed > p99)}
 
 
+NULL_CEILING = 0.3  # MITIGATION.md §Round 3 (2): null-width ceiling
+
+
+def world_null(pred_w, target_w, n_perm=1000, seed=0, min_shift=500):
+    """Round-3 n_eff measurement (MITIGATION.md §Round 3 (1)–(2)): one
+    world's circular-shift null. The shifts preserve within-episode
+    autocorrelation, so the null's p99 is the instrument measuring its
+    own power on this world; above NULL_CEILING the read is
+    UNINFORMATIVE — two-sided, it neither passes nor fails. n_eff is
+    the back-of-envelope inversion (2.33 / p99)^2."""
+    pred_w = np.asarray(pred_w, float)
+    target_w = np.asarray(target_w, float)
+    n = len(target_w)
+    assert n == len(pred_w) and n > 2 * min_shift, (n, min_shift)
+    observed = spearman(pred_w, target_w)
+    rng = np.random.default_rng(seed)
+    null = np.empty(n_perm)
+    for i in range(n_perm):
+        null[i] = spearman(
+            pred_w, np.roll(target_w, rng.integers(min_shift, n - min_shift)))
+    p99 = float(np.percentile(null, 99))
+    return {"observed": observed, "null_p99": p99, "n_perm": n_perm,
+            "seed": seed, "min_shift": min_shift,
+            "informative": bool(p99 <= NULL_CEILING),
+            "n_eff": float((2.33 / p99) ** 2) if p99 > 0 else float("inf")}
+
+
 def amended_verdict(v, epsilon):
     """MITIGATION.md acceptance 3: the per-declaration reading of a
     probe JSON dict (hard bars + the leg-appropriate rank bar)."""

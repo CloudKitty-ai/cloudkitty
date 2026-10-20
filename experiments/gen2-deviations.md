@@ -143,3 +143,33 @@ manufactured-init worlds on the trunk config once spec 065
 remix, one retrain, one fresh re-probe round under the same amended
 instrument. Scope and seeds in MITIGATION.md §Iteration. Entry stays
 OPEN to probe-then-accept (her word).
+
+INSTRUMENT REPAIR RULED (owner, 2026-10-19): **"Ruled as recommended
+by Professor"** — round 2 (RESULTS.md §round 2: mechanism PASS
+deepened, ε0.3 PASS, no-regression PASS; ε0.1 FAIL its null, random
+FAIL per-world, legs FLIPPED vs round 1) routed to Professor on her
+word ("yes, relay to Professor"); their read (verified against
+a5470db2; note `~/ai/professor/notes/
+for-experiments-round2-instrument-power-2026-10-19.md`): both
+remaining reds are MEASUREMENT, not corpus — the ε0.1 null p99 jumped
+0.173 → 0.412 at matched geometry (n_eff ≈ 180 → ≈ 32; PASS-then-FAIL
+near the modal joint outcome for an unchanged critic), and the random
+per-world point bar at n_eff ~30 operates at ~0.7, not its declared
+0.3. Her ruling adopts their recommendation in full: (a) measure
+n_eff — per-world block nulls on every probe leg to date, zero new
+collection; (b) declare the missing guard, a null-width
+informativeness ceiling at 0.3 (effect scale, set before checking
+which rounds it rescues), TWO-SIDED — null p99 above the ceiling
+makes the read UNINFORMATIVE, re-runs at more worlds, never passes
+and never fails (it would void a lucky pass equally); (c) on
+re-probe, more WORLDS not longer ticks; the random per-world claim is
+kept but the bar becomes a declared (m, k) fraction bar sized by a
+power calculation from MEASURED n_eff, pooled ≥ 0.3 kept, worlds and
+allowance moving together or not at all; (d) new bars bind FRESH
+declared bases only — 870022/25/28 and earlier are never re-scored
+under bars chosen after seeing them fail; the one legitimate
+retroactive read is the UNINFORMATIVE label, computed two-sidedly
+from each run's own null. Exact ceiling, (m, k), world count, and
+fresh bases: MITIGATION.md §Round 3. Professor's prediction on
+record there (ceiling + ~10 worlds stops the flip-flop). Entry stays
+OPEN to probe-then-accept (her word).
