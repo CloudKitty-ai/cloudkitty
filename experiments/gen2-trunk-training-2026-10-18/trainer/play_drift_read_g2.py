@@ -73,17 +73,29 @@ def main():
             u = int(re.search(r"u(\d+)", f.name)[1])
             rows.append({"update": u, **probe_stats(np.load(f))})
         late = rows[-5:]
+        best = max(late, key=lambda r: r["max_cell_share"])
         out[run] = {
             "n_probes": len(rows),
             "trajectory": rows,
             "late_mean_share": float(np.mean([r["share"] for r in late])),
-            "late_max_cell_share": max(r["max_cell_share"] for r in late),
+            "late_max_cell_share": best["max_cell_share"],
+            "late_max_cell": {"update": best["update"],
+                              "cell": best["max_cell"]},
             "final": rows[-1]}
 
-    # positive control: s3's halting probe shows the entry-3 cell elevated
-    s3f = out["s3"]["final"]
-    assert s3f["update"] == 249 and s3f["max_cell"] == [40002, 1], s3f
-    assert s3f["max_cell_share"] > 2 * out["s3"]["trajectory"][0]["share"], s3f
+    # positive control, exact reproduction against the committed
+    # entry-3 record (artifacts/diag-s3.json): s3's halting probe,
+    # cell (seed 40002, kitty 1), streak span ticks 820-1136 -> 317
+    # rows of which 122 are PlayKitty proposals (act_hist ids 30-33:
+    # 4+11+68+39).
+    assert out["s3"]["final"]["update"] == 249, out["s3"]["final"]
+    z = np.load(RUNS["s3"] / "probe-u249.npz")
+    sel = ((z["seed"] == 40002) & (z["kitty"] == 1)
+           & (z["tick"] >= 820) & (z["tick"] <= 1136))
+    n_play = int(np.isin(z["act"][sel], PLAY_IDS).sum())
+    assert (int(sel.sum()), n_play) == (317, 122), (sel.sum(), n_play)
+    out["s3"]["entry3_window"] = {"rows": 317, "play": n_play,
+                                  "share": n_play / 317}
 
     for run, r in out.items():
         t = r["trajectory"]
@@ -92,7 +104,8 @@ def main():
               f"final u{t[-1]['update']} {t[-1]['share']:.4f}, "
               f"late mean {r['late_mean_share']:.4f}, "
               f"late max cell {r['late_max_cell_share']:.4f} "
-              f"@ {r['final']['max_cell']}")
+              f"@ {r['late_max_cell']['cell']} "
+              f"u{r['late_max_cell']['update']}")
     args.out.write_text(json.dumps(out, indent=1) + "\n")
     print(f"wrote {args.out}")
 

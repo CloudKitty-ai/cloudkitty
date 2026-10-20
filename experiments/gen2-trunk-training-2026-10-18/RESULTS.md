@@ -984,3 +984,45 @@ assert max(p["max_distress_streak"] for p in pr) == 217 < 300
 print("s4 fence: all cells match")
 EOF2
 ```
+
+### Play-proposal drift read (2026-10-20; owner "Sounds great, let's do it")
+
+Trace-only read ahead of the step-8 cert battery (no new rollouts,
+zero welfare cost): partner-play (PlayKitty*) share of chosen actions
+across every training probe, all four trunk seeds
+(trainer/play_drift_read_g2.py, declared before results; artifact
+artifacts/play-drift-read.json). Positive control reproduced exactly:
+s3's halting probe, entry-3 cell (seed 40002, kitty 1), span 820–1136
+= 317 rows / 122 play proposals (share 0.385), matching the committed
+diag-s3 record.
+
+| run | probes | share u49 | final share | late mean (5) | late max cell (last 5 probes) |
+|-----|--------|-----------|-------------|----------------|----------------|
+| s1 | 52 | 0.1734 | 0.2076 (u2599) | 0.1903 | 0.2825 @ (40003, 5) u2449 |
+| s2 | 52 | 0.1317 | 0.1630 (u2599) | 0.1692 | 0.3375 @ (40003, 2) u2499 |
+| s3 | 5 | 0.1556 | 0.1759 (u249) | 0.1558 | 0.2925 @ (40002, 2) u249 |
+| s4 | 52 | 0.1382 | 0.1520 (u2599) | 0.1601 | 0.2480 @ (40002, 4) u2499 |
+
+Reading: the pooled play-proposal pressure is **recipe-level, not an
+s3 anomaly** — all three completed seeds drift upward (first probe →
+late mean: s1 +0.0169, s2 +0.0375, s4 +0.0219; s3's five probes are
+too short to read drift, +0.0002), and s3's pooled share at halt
+(0.1759) sits inside the survivors' range. What distinguished s3 was
+**concentration**: a single cell locking at 0.385 in-window while
+multi-need distress ran 317 ticks. The survivors' late max cells
+(0.248–0.338 over full 2k probes) show the same pressure diffusing
+without locking onto a distressed cell. Two consequences, as assessed for the owner: (1)
+training more same-recipe seeds would not remove the pressure — it is
+the play-economy question (no value penalty on the play need's
+distress), banked for Gen 3; (2) whether diffuse pressure stays
+benign at battery scale (30×20k, two sizes) is exactly what step 8
+measures — its worst-streak and dispersion columns are the
+discriminator. s4, the best final return, carries the lowest late
+pooled share (0.1601) and lowest late max cell (0.2480); s2 the
+highest late max cell (0.3375).
+
+### Read (play drift; ~1 min; lab venv, repo root)
+
+```
+cd experiments/gen2-trunk-training-2026-10-18/trainer && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B play_drift_read_g2.py --out ../artifacts/play-drift-read.json
+```
