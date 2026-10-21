@@ -17,11 +17,27 @@ jobs:
   # required gate on every merge. `cargo test --workspace` includes it.
   test:
     name: fmt + clippy + test
-    # Pinned: on ubuntu-26.04 the restored rust-cache carries a pyo3 build
-    # config that links -lpython3.12, which that image lacks.
+    # Pinned: on ubuntu-26.04 docs/deploy/test-update-tail.sh's closed-stdout
+    # case fails: print_key_settings returns 0 with stdout closed there.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
+      # The tests link cloudkitty-py against libpython, so the interpreter
+      # is an input to the build: pinned here, exported as PYO3_PYTHON (pyo3
+      # rebuilds its config when that changes), and folded into the cache
+      # key below with the runner image. Without the key, a runner-image
+      # move restores a build config pointing at a libpython the new image
+      # lacks, and rust-cache never replaces it because it only saves on
+      # success (2026-10-20: ubuntu-26.04, -lpython3.12).
+      - uses: actions/setup-python@v5
+        id: py
+        with:
+          python-version: "3.12"
+      - name: Export the interpreter and runner image
+        run: |
+          echo "PYO3_PYTHON=${{ steps.py.outputs.python-path }}" >> "$GITHUB_ENV"
+          echo "RUNNER_IMAGE=${ImageOS:?ImageOS unset, the cache key would not name the image}" >> "$GITHUB_ENV"
 
       # No `rustup toolchain install` here: rust-toolchain.toml pins the
       # compiler, and rustup installs it -- with the components the file
@@ -42,6 +58,8 @@ jobs:
           esac
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ env.RUNNER_IMAGE }}-py${{ steps.py.outputs.python-version }}
 
       - name: Format check
         run: cargo fmt --all -- --check
