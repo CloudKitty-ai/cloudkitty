@@ -156,6 +156,15 @@ consent BC comparison ride the trunk.
   (`fog-gen1-timeline` note).
 - #392 deferred behind Gen 2+3.
 
+## Flagged follow-ups (owner's word to start)
+
+- Relief just beyond vision (owner 2026-10-21: "Let's flag this for a
+  deep follow up"; she suggests a round before Gen 3): the 905029
+  search-latency failure and the scripted 20×20 holds share one
+  structure that wider vision masks; she wants the cats to solve it
+  organically. Test sketch: lower vision on 100×100. Evidence and
+  design questions: `vision-search-followup-inputs-2026-10-21.md`.
+
 ## Banked for Gen 3 (pointers)
 
 Critic-corpus prevention trio (deviations entry 2, 2026-10-18;
