@@ -446,3 +446,94 @@ assert [(x["held_longest_max"], x["shared_hold_longest_max"], x["worlds_with_sha
 print("Phase B fence: all cells match")
 EOF2
 ```
+
+## s7 streak investigation (2026-10-21; owner "Can you investigate the S7 streak cause?")
+
+Reader `diag_s7_streaks.py`, committed before results (68c0298e). Part
+1 read the rotation's recorded streams (no new exposure). Part 2
+replayed Phase B s7 uniform 40×40, world 905029, in one pass with the
+collector's distress abort at 100. Only Pumpkin's 622-tick run could
+reach it (every other cat's longest there is 31 or less), so the
+replay stopped 100 ticks into that run: about 100 re-exposed distress
+ticks for one cat instead of 622.
+
+**Cause: water parking.** In every case read, a cat that is
+effectively alone sits at water and keeps choosing Drink while not
+thirsty, and its distressed need goes untended. That need is one only
+leaving can fix: company or food.
+
+| case | need in distress | chose Drink | thirst (mean) | moving | alone |
+|---|---|---|---|---|---|
+| rotation rot1, Clementine, 121 ticks | cuddle | 111 of 121 | 0.6 | 4% | 96% |
+| rotation rot1, Clementine, 84 ticks | cuddle | 79 of 84 | 0.5 | 0% | 96% |
+| rotation rot3, Pumpkin, 94 ticks | eat | 42 of 94 | 2.4 | 42% | 42% |
+| Phase B uniform 40×40, Pumpkin (first 100 of 622 ticks) | cuddle | 100 of 100 | 0.4 | 0% | 100% |
+
+In the one eat case, chow was a median 8 tiles away and in sight on
+only 4% of the run; the cat paced north and south (MoveS 20, MoveN 18)
+and ate once it reached food. The cuddle cases never moved toward a
+friend.
+
+It is s7's own habit, learned, not inherited. Across the rotation's
+streams, drinking while sated (thirst under 10) during distress filled
+234 of s7's 322 distress ticks (73%, 3 of 25 cat-worlds), and no tick
+for s1, s2, s4 or s6; the teacher did it on 8 of 3,917 distress ticks.
+(This comparison was added after parts 1 and 2 had been read.)
+
+It concentrates on two seats without being confined to them. Of s7's
+33 Phase B streaks of 100 ticks or more (both sizes, among copies), 15
+sit at Pumpkin (fastest hunger, 0.6) and 9 at Clementine (fastest
+cuddle need, 0.7), with 6 at Biscuit, 3 at Miso and none at Kittybear;
+the three longest (641, 622, 323) are Pumpkin and Clementine. In the
+rotation s7's only streaks of 50 or more were the three above
+(Clementine twice, Pumpkin once). Only the four cases read are
+confirmed water parking; the rest are unread. Company shortens it:
+s7's worst in mixed company was 121, against 641 among copies at
+40×40.
+
+The holding read cannot see this shape (the cat is alone), and the
+teacher does not share it, so it does not belong to the teacher fix in
+the vision follow-up. For an eat case it is a trained cousin of the
+out-of-sight failure: relief beyond vision, and no search.
+
+## Read (s7 streaks; part 1 seconds, part 2 about a minute; lab venv, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B diag_s7_streaks.py --part 1 --out diag-s7-part1.json && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B diag_s7_streaks.py --part 2 --out diag-s7-part2.json
+```
+
+```
+cd experiments && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B - <<'EOF2'
+import json, glob
+import numpy as np
+p1 = json.load(open("gen2-cert-battery-2026-10-20/diag-s7-part1.json"))["part1"]
+p2 = json.load(open("gen2-cert-battery-2026-10-20/diag-s7-part2.json"))["part2"]
+got = [(c["roster"], c["seed"], c["seat"], c["need"], c["length"], dict(c["chosen_top"]).get("Drink"),
+        round(c["moving_share"], 2), round(c["alone_share"], 2)) for c in p1]
+assert got == [("g2-rot1", 905002, "Clementine", "cuddle", 121, 111, 0.04, 0.96),
+               ("g2-rot1", 905005, "Clementine", "cuddle", 84, 79, 0.0, 0.96),
+               ("g2-rot3", 905002, "Pumpkin", "eat", 94, 42, 0.41, 0.41)], got
+assert p1[2]["relief"]["nearest_median"] == 8.0 and p1[2]["relief"]["in_sight_share"] == 0.043 and p1[2]["ended_by_tending_within_30"]
+assert (p2["seat"], p2["need"], p2["length"], p2["chosen_top"], p2["moving_share"], p2["alone_share"], p2["span"][0]) == \
+       ("Pumpkin", "cuddle", 100, [["Drink", 100]], 0.0, 1.0, 353), p2
+tot = {}
+for p in sorted(glob.glob("seating-analysis-g2-2026-10-21/results-raw/*/streams-*.npz")):
+    z = np.load(p); meta = json.loads(str(z["meta"]))
+    fl = np.unpackbits(z["distress"][:, :, None].astype(np.uint8), axis=2, bitorder="little")[:, :, :6].astype(bool)
+    for k, spec in enumerate(meta["seats"]):
+        n = "scripted" if spec == "scripted" else spec.split("-")[-1]
+        dis = fl[:, k, :].any(1)
+        drink = (z["act"][:, k] == 20) if spec != "scripted" else (z["activity"][:, k] == 4)
+        hit = dis & (z["needs"][:, k, 1] < 10) & drink
+        t = tot.setdefault(n, [0, 0, 0]); t[0] += int(dis.sum()); t[1] += int(hit.sum()); t[2] += int(hit.sum() >= 10)
+assert tot["s7"] == [322, 234, 3] and tot["scripted"][:2] == [3917, 8], tot
+assert all(tot[n][1] == 0 for n in ("s1", "s2", "s4", "s6")), tot
+from collections import Counter
+cats = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
+long_ = [(cats[k], s) for zz in (20, 40) for r in (json.loads(l) for l in open(f"gen2-cert-battery-2026-10-20/results-raw/g2-s7/legs/size{zz}/g2-s7-g2cmp-30x20000.jsonl").read().splitlines()[1:])
+         for k, s in enumerate(r["max_distress_age_seat"]) if s >= 100]
+assert len(long_) == 33 and Counter(c for c, _ in long_) == Counter({"Pumpkin": 15, "Clementine": 9, "Biscuit": 6, "Miso": 3}), Counter(c for c, _ in long_)
+assert sorted(long_, key=lambda x: -x[1])[:3] == [("Pumpkin", 641), ("Pumpkin", 622), ("Clementine", 323)]
+print("s7 streak fence: all cells match")
+EOF2
+```
