@@ -65,6 +65,24 @@ def test_max_streak_matches_run_length_reference():
     print(f"  (r00 max engine-distress streak per kitty: {ref})")
 
 
+def test_every_slot_stripe_is_disjoint_and_claimed():
+    # red: a slot whose seed stripe overlaps another run's, or a slot
+    # whose stripe lies outside every claimed SEED-BANDS.md row
+    import re
+    rows = []
+    for line in (HERE.parents[1] / "SEED-BANDS.md").read_text().splitlines():
+        m = re.match(r"\|\s*(\d+)\s*[–-]\s*(\d+)\s*\|", line)
+        if m:
+            rows.append((int(m.group(1)), int(m.group(2))))
+    assert len({seed for seed, _ in tp.SLOTS.values()}) == len(tp.SLOTS)
+    stripes = sorted(tp.seed_stripe(idx) for _seed, idx in tp.SLOTS.values())
+    for (a0, a1), (b0, _b1) in zip(stripes, stripes[1:]):
+        assert a1 < b0, ("overlapping stripes", (a0, a1), b0)
+    for s0, s1 in stripes:
+        assert any(r0 <= s0 and s1 <= r1 for r0, r1 in rows), \
+            ("unclaimed stripe", s0, s1)
+
+
 if __name__ == "__main__":
     passed = 0
     for name, fn in sorted(globals().items()):

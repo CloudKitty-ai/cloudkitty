@@ -406,3 +406,35 @@ Remedy BUILT (2026-10-20, under her mixed-roster word, declared in
 declared mutate reds confirmed, one on the real recorded 905008
 abort row). It was armed for the mixed-roster test; no stop fired.
 Open calls (a) post-stop citation and (b) s2 disposition remain hers.
+
+## 5. Three additional trunk seeds for the five-network seating roster (2026-10-20)
+
+Owner, 2026-10-20, verbatim: "Let's train 3 more and run them all
+through the certification process". Context: the F-044 seating rule
+(five distinct networks, owner 2026-09-16), which Experiments assessed
+as still applying after the step-8 s2 roster-wide lock (s2's five
+copies had distinct identity inputs and locked anyway); and the
+mixed-roster test (no measurable welfare cost from mixing, tail
+improved). Five distinct networks need five; s1/s2/s4 are three.
+
+Departure: frozen §5 names THREE trunk seeds (the ≥3-paper-seeds
+rule), satisfied by s1/s2/s4. This entry adds trunk-s5/s6/s7 (seeds
+5/6/7, run indices 100–102; stripes 2,100,000,000–2,159,999,999
+claimed in SEED-BANDS.md before first burn) on the identical pinned
+recipe: β 0.04, init_clone sha256 dbe912eb…, critic sha256
+bd394a96…e20777, frozen §6 stops unchanged, probe trio 40001–3, the
+same g2leg-20.toml (sha256 64d77c8a…). Binding held fixed:
+cloudkitty.abi3.so sha256 e3bcc79a…, ENGINE_COMMIT b5aaa8cd, built
+2026-10-18T04:21Z, the binary that trained s1/s2/s4 and ran the
+battery. Spec 065 (5fb27cfb) is not in it; 065 is byte-identical when
+absent (its FR-002) and the g2leg configs carry no initial-needs
+entries, so the engine the six networks train on matches main for
+these configs.
+
+Scope: the new seeds serve SEATING. The paper's trunk-seed set stays
+s1/s2/s4 as frozen, so no paper claim is re-selected after its data.
+Stops: a frozen §6 stop halts that run, owner-routed, never resumed,
+with no automatic replacement (entry 3's replacement took her word).
+Seeds above 2³¹−1 (the top of the idx-102 stripe) verified to reach
+the engine unwrapped: a reset at 2,151,000,000 differs from its i32
+alias. Certification plan: `gen2-cert-battery-2026-10-20/ROSTER-DECLARATION.md`.

@@ -119,7 +119,25 @@ SLOTS = {
     # "A" 2026-10-20): fresh seed + run index; its 20M seed stripe
     # (2,080,000,000+) claimed in SEED-BANDS.md with the ruling.
     "trunk-s4": (4, 99),
+    # Seating seeds for the five-network roster (deviations entry 5,
+    # owner 2026-10-20 "Let's train 3 more and run them all through the
+    # certification process"); stripes 2,100,000,000-2,159,999,999
+    # claimed in SEED-BANDS.md before first burn. Seeds above 2**31-1
+    # verified to reach the engine unwrapped.
+    "trunk-s5": (5, 100),
+    "trunk-s6": (6, 101),
+    "trunk-s7": (7, 102),
 }
+
+STRIPE = 20_000_000
+
+
+def seed_stripe(run_index):
+    """(first, last) PPO episode seed a run may draw: disjoint 20M
+    blocks at 100M+, one per run index (SEED-BANDS.md rows); worlds
+    stride w*1M and segments *1k inside the block."""
+    first = 100_000_000 + run_index * STRIPE
+    return first, first + STRIPE - 1
 
 
 class FlatEntityCritic(torch.nn.Module):
@@ -510,7 +528,7 @@ def main():
 
     # The claimed training band (SEED-BANDS.md, run indices 96-98):
     # disjoint 20M blocks per run at 100M+, worlds striding w*1M inside.
-    seed_base = 100_000_000 + run_index * 20_000_000 + segment * 1_000
+    seed_base = seed_stripe(run_index)[0] + segment * 1_000
 
     runner = TrunkVecRunner(str(config_path), args.n_worlds, seed_base,
                             horizon=args.horizon)

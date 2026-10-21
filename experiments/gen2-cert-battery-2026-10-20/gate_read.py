@@ -36,17 +36,23 @@ def team(r):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=HERE / "gate-read.json")
+    ap.add_argument("--seatings", default=",".join(SEATINGS),
+                    help="comma list; default = the step-8 uniform trio")
+    ap.add_argument("--sizes", default="20,40,100",
+                    help="comma list of sizes to read (ROSTER-DECLARATION Phase B: 20,40)")
     a = ap.parse_args()
+    seatings = tuple(a.seatings.split(","))
+    sizes = tuple(int(s) for s in a.sizes.split(","))
     cmp = {}
-    for size in (20, 40, 100):
+    for size in sizes:
         rs = rows(CMP_FILE[size])
         assert len(rs) == 30
         cmp[size] = {r["seed"]: team(r) for r in rs}
         m = sum(cmp[size].values()) / 30
         assert round(m, 3) == PINNED[size], (size, m)  # pinned baseline reproduces
     out = {}
-    for s in SEATINGS:
-        for size in (20, 40, 100):
+    for s in seatings:
+        for size in sizes:
             rs = rows(HERE / f"results-raw/{s}/legs/size{size}/{s}-g2cmp-30x20000.jsonl")
             assert len(rs) == 30 and {r["seed"] for r in rs} == set(cmp[size])
             ab = sorted(r["seed"] for r in rs if "aborted_streak" in r)

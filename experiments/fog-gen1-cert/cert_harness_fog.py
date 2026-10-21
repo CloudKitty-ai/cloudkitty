@@ -110,6 +110,10 @@ SEATINGS = {
     "g2-s1": ["g2:trunk-s1"] * 5,
     "g2-s2": ["g2:trunk-s2"] * 5,
     "g2-s4": ["g2:trunk-s4"] * 5,
+    # Seating seeds (deviations entry 5; ROSTER-DECLARATION.md Phase B).
+    "g2-s5": ["g2:trunk-s5"] * 5,
+    "g2-s6": ["g2:trunk-s6"] * 5,
+    "g2-s7": ["g2:trunk-s7"] * 5,
     # Mixed-roster test (MIXED-DECLARATION.md, owner 2026-10-20):
     # seat-balanced 2-2-1 rosters — across the three, every network
     # sits in every seat exactly once and each is the singleton once.
