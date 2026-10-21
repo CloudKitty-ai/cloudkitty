@@ -64,7 +64,7 @@ consent BC comparison ride the trunk.
    (0/9,960,292); here-word channel alive in the same histograms
    (`gen2-comparator-legs-2026-10-14/RESULTS.md` §Chatter floor).
 7. **Trunk training** (BC+PPO, 3 seeds; §5 recipe carried; stops:
-   probe 300, F-053 1,000, 20M cap) — IN FLIGHT. BC clone DONE
+   probe 300, F-053 1,000, 20M cap) — DONE 2026-10-21. BC clone DONE
    2026-10-18 (plateau at epoch 112, best 102: val 0.8330, act@1
    0.8608, msg@1 0.9763; consent swap 136,699 + 389 kept-applied
    per deviations entry 1; `gen2-trunk-training-2026-10-18/
@@ -136,10 +136,18 @@ consent BC comparison ride the trunk.
    dissolved). Every informative read PASSES.
    PROBE-THEN-ACCEPT RULED: "accept" (owner 2026-10-19) — critic
    PINNED (critic-g2-ext3, sha bd394a96...e20777); deviations entry 2
-   CLOSED. Next: the PPO launch card (her word) before any seed
-   burns.
+   CLOSED. PPO launched on "Launch it" (2026-10-19, 1318804e):
+   trunk-s1 and trunk-s2 plateau-complete 2026-10-20, welfare-clean;
+   trunk-s3 HALTED at u249 by the frozen §6 probe-distress stop
+   (deviations entry 3, RULED "A": replacement seed); trunk-s4
+   plateau-complete 2026-10-20, entry 3 CLOSED. Frozen §5's three
+   seeds are s1/s2/s4. Seating seeds (entry 5, owner "Let's train 3
+   more and run them all through the certification process"):
+   trunk-s5 HALTED at u199 by the same stop (entry 6, RULED "Yes,
+   keep s2 and don't replace s5", CLOSED); s6 and s7 plateau-complete
+   2026-10-21. Readouts in the arc RESULTS.md.
 8. **Cert battery** — paired-strict vs comparator, replication
-   valve (§6) — RAN 2026-10-20; FIVE-NETWORK ROSTER rot2 CERTIFIED 2026-10-21 (Miso s2, Biscuit s4, Pumpkin s6, Kittybear s7, Clementine s1: 20×20 +5.566 and 40×40 +4.594 in 30/30 worlds, no stops; 100×100 characterize +7.187, no aborts, worst 859 = s7 water parking at Kittybear) (`gen2-cert-battery-2026-10-20/`): uniform rosters all PASS both happiness gates; s2 roster-wide lock at 20×20 (deviations entry 4, OPEN — its declared stop was not enforced); Experiments assessed the F-044 seating rule (five distinct networks) as still applying (owner call open, not ruled); mixed-roster test (3 seat-balanced rosters, 180 worlds) no measurable welfare cost, tail improved, no stops. Owner calls open.
+   valve (§6) — RAN 2026-10-20; DONE 2026-10-21, FIVE-NETWORK ROSTER rot2 CERTIFIED (Miso s2, Biscuit s4, Pumpkin s6, Kittybear s7, Clementine s1: 20×20 +5.566 and 40×40 +4.594 in 30/30 worlds, no stops; 100×100 characterize +7.187, no aborts, worst 859 = s7 water parking at Kittybear) (`gen2-cert-battery-2026-10-20/`): uniform rosters all PASS both happiness gates; s2 roster-wide lock at 20×20 (deviations entry 4: its declared stop was not enforced; (b) RULED 2026-10-21 "Yes, keep s2 and don't replace s5"; (a) post-stop citation still OPEN); the F-044 seating rule (five distinct networks) KEPT by the owner (entry 5), so the uniform seatings are all-copies stress reads (battery DECLARATION §Correction); mixed-roster test (3 seat-balanced rosters, 180 worlds) no measurable welfare cost, tail improved, no stops. Phase C composition RULED 2026-10-21: "Rot 2, run the analysis after we certify it" (0f1fadd4). Standing analysis of the certified roster DONE (34062ded, `seating-analysis-g2-2026-10-21/`); its activity and partner columns CORRECTED 2026-10-21 (owner: "Those eat and drink numbers look suspiciously low (e. g. 0.007 for biscuit)"; ruling "1 for gen 2"): the readers dropped every scene's last tick; rot2 re-collected exactly on byte-identical worlds (Amendment 1, 9920a6f3..b3978398), Gen 1 re-read as ranges (98732453); the certificate is unaffected (its gates read happiness and distress).
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
    in `gen2-consent-design-2026-10-17.md` appendix; deployed-episode
    consent line DEFERRED to this readout) — PENDING.
@@ -150,7 +158,13 @@ consent BC comparison ride the trunk.
 
 ## Outstanding owner items
 
-- The freeze word on the assembled skeleton (step 4).
+- Step 9, the three-leg consent BC comparison — waits on her word.
+- Deviations entry 4 (a): may post-stop rows be cited.
+- rot2 policy export for serving — waits on her word.
+- The cert harness's own reads of the end-of-tick activity flag
+  (eat/drink tick counts, sleep/play accounting, streak shape,
+  holding): reported, not fixed; no gate reads them
+  (`seating-analysis-g2-2026-10-21/RESULTS.md` §Correction).
 - Deployed/PPO-episode consent line — at the three-leg readout.
 - 057-triggered Gen 2 re-record — waits on her word
   (`fog-gen1-timeline` note).
