@@ -61,31 +61,35 @@ def summ(xs):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=HERE / "mixed-read.json")
+    ap.add_argument("--mixes", default=",".join(MIXES),
+                    help="comma list of mixed seatings (default: the mixed-roster test's three)")
     a = ap.parse_args()
-    nets = {m: [s.split("-")[-1] for s in SEATINGS[m]] for m in MIXES}
+    mixes = tuple(a.mixes.split(","))
+    nets = {m: [s.split("-")[-1] for s in SEATINGS[m]] for m in mixes}
+    needed = sorted({n for m in mixes for n in nets[m]})
     cmp_, unif, mixed = {}, {}, {}
     for z in SIZES:
         cmp_[z] = by_seed(CMP_FILE[z])
         assert len(cmp_[z]) == 30
         assert round(mean([team(r) for r in cmp_[z].values()]), 3) == PINNED[z]
-        for n in ("s1", "s2", "s4"):
+        for n in needed:
             u = by_seed(HERE / f"results-raw/g2-{n}/legs/size{z}/g2-{n}-g2cmp-30x20000.jsonl")
             assert u is not None and set(u) == set(cmp_[z]), (n, z)
             unif[(n, z)] = u
-        for m in MIXES:
+        for m in mixes:
             mixed[(m, z)] = by_seed(HERE / f"results-raw/{m}/legs/size{z}/{m}-g2cmp-30x20000.jsonl")
             if mixed[(m, z)] is not None:
                 assert set(mixed[(m, z)]) == set(cmp_[z]), (m, z)
 
     ab = lambda r: "aborted_streak" in r  # noqa: E731
-    out = {"rosters": {m: nets[m] for m in MIXES}, "by_size": {}}
+    out = {"rosters": {m: nets[m] for m in mixes}, "by_size": {}}
     for z in SIZES:
         S = out["by_size"][z] = {"rosters": {}, "networks": {}, "post_stop": []}
         pool = {"all": [], "clean": []}
-        net_pool = {n: {"all": [], "clean": []} for n in ("s1", "s2", "s4")}
+        net_pool = {n: {"all": [], "clean": []} for n in needed}
         disp_pool = {"all": [], "clean": []}
         aborts_total = 0
-        for m in MIXES:
+        for m in mixes:
             M = mixed[(m, z)]
             if M is None:
                 S["rosters"][m] = "not run"
@@ -139,8 +143,8 @@ def main():
                 "aborts": abr, "multi_cat_300": multi,
                 "group_count_delta_vs_matched_uniform": r3(mean(gc_d)),
             }
-        for n in ("s1", "s2", "s4"):
-            seats_m = [(m, k) for m in MIXES if mixed[(m, z)] is not None
+        for n in needed:
+            seats_m = [(m, k) for m in mixes if mixed[(m, z)] is not None
                        for k, x in enumerate(nets[m]) if x == n]
             worst_mix = max((mixed[(m, z)][w]["max_distress_age_seat"][k]
                              for m, k in seats_m for w in mixed[(m, z)]), default=None)
@@ -161,19 +165,19 @@ def main():
     s20 = out["by_size"][20]
     p1 = s20["pooled_company_effect_unflagged"]["mean"]
     p2 = s20["pooled_together_share_delta_unflagged"]
-    ran = [m for m in MIXES for z in SIZES if mixed[(m, z)] is not None]
-    out["predictions"] = {
+    ran = [m for m in mixes for z in SIZES if mixed[(m, z)] is not None]
+    out["predictions"] = None if mixes != MIXES else {
         "P1_company_effect_20_in_bracket": None if p1 is None else P1[0] <= p1 <= P1[1],
         "P1_value": p1, "P1_bracket": list(P1),
         "P2_together_share_delta_20_negative": None if p2 is None else p2 < 0,
         "P2_value": p2,
         "P3_zero_aborts_20_40": sum(out["by_size"][z]["aborts_total"] for z in SIZES) == 0,
-        "legs_run": len(ran), "legs_declared": len(MIXES) * len(SIZES)}
+        "legs_run": len(ran), "legs_declared": len(mixes) * len(SIZES)}
 
     for z in SIZES:
         S = out["by_size"][z]
         print(f"== {z}x{z}")
-        for m in MIXES:
+        for m in mixes:
             R = S["rosters"][m]
             if R == "not run":
                 print(f"  {m}: NOT RUN")

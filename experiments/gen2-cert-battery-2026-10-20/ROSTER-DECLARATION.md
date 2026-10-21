@@ -112,3 +112,18 @@ test for characterizing streaks". Declared before any Phase C data.
   run: parked ≥ 0.4, tending ≤ 0.05), and the harness equal to the pure
   account on a scripted world's streams (905002, 3,000 ticks; no
   covered minds).
+
+## Phase C composition (RULED 2026-10-21)
+
+Owner, verbatim: "Rot 2, run the analysis after we certify it". The
+certified candidate is the rotation's rot2: Miso s2, Biscuit s4,
+Pumpkin s6, Kittybear s7, Clementine s1 (harness seating `g2-rot2`).
+Phase C runs as declared above into `results-raw/g2-rot2/` (20×20 and
+40×40 gates, 100×100 characterize-only, scouts-first, F-053 abort per
+world, leg stop). Reads: `gate_read.py` (20/40 gates; 100 reported),
+`mixed_read.py --mixes g2-rot2` (company effect vs each network's
+uniform roster at 20/40; s2's 40×40 uniform baseline stays excluded
+as post-stop), `holding_read.py` (a read, per her 2026-10-21 ruling),
+`shape_read.py` (the shape of every streak of 100 ticks or more).
+After certification, the standing seating analysis runs on the
+certified roster (her words above).
