@@ -169,6 +169,19 @@ consent BC comparison ride the trunk.
 - 057-triggered Gen 2 re-record — waits on her word
   (`fog-gen1-timeline` note).
 - #392 deferred behind Gen 2+3.
+- Post-cert analysis plan RULED 2026-10-21 ("Recommendation accepted",
+  on the owner's own list "where play increase comes from" and
+  "Accuracy of mini models"): (1) the play decomposition, reads of
+  existing raws plus a scripted-teacher run on the rot2 worlds under
+  the Gen 1 dials, own arc with a DECLARATION; (3) the owed cheap
+  reads: §9.5 dispersion at 100×100, the battery DECLARATION's swaps
+  digest (run or deviate), §8.5's "gap moves with size" trigger
+  recorded, §9.4 partner_absent re-read on the trained roster, §9.8
+  F-050 revisit, the unread s4/s7 tails, the Gen 2 FINDINGS entries,
+  entry 4 (a); THEN mini-friend Phase 1 (§8.3, the "accuracy" read,
+  stratified, never overall); THEN step 9 and the remaining §8 arms
+  decided with those results in hand. Skipping any arm is a roadmap
+  adjustment recorded in the deviations ledger.
 
 ## Flagged follow-ups (owner's word to start)
 
