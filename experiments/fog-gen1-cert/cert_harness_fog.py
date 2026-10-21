@@ -114,6 +114,12 @@ SEATINGS = {
     "g2-s5": ["g2:trunk-s5"] * 5,
     "g2-s6": ["g2:trunk-s6"] * 5,
     "g2-s7": ["g2:trunk-s7"] * 5,
+    # Seating analysis rotation (seating-analysis-g2-2026-10-21, owner
+    # 2026-10-21 "I approve the five-roster rotation"): cyclic Latin square
+    # over s1/s2/s4/s6/s7 — every network sits in every seat exactly once.
+    **{f"g2-rot{r + 1}": [f"g2:trunk-{n}" for n in
+                          ("s1", "s2", "s4", "s6", "s7")[r:] + ("s1", "s2", "s4", "s6", "s7")[:r]]
+       for r in range(5)},
     # Mixed-roster test (MIXED-DECLARATION.md, owner 2026-10-20):
     # seat-balanced 2-2-1 rosters — across the three, every network
     # sits in every seat exactly once and each is the singleton once.
