@@ -393,3 +393,56 @@ for seed, w in want.items():
 print("held-scripted-behavior fence: all cells match")
 EOF2
 ```
+
+## Phase B: s6/s7 uniform battery (2026-10-21; ROSTER-DECLARATION.md)
+
+Each new network in all five seats, band g2cmp, 30 × 20k, scouts-first
+at 40×40, leg stop and holding armed. s5 was skipped as a
+welfare-stopped run (entry 6). No stop fired.
+
+| seating | size | trained | paired Δ | seeds + | Δ range | worst streak mean / max | aborts | gate |
+|---|---|---|---|---|---|---|---|---|
+| g2-s6 | 20 | 86.692 | +4.771 | 30/30 | [3.883, 6.354] | 1.8 / 54 | 0 | PASS |
+| g2-s6 | 40 | 85.468 | +3.833 | 30/30 | [3.116, 4.970] | 2.9 / 29 | 0 | PASS |
+| g2-s7 | 20 | 88.063 | +6.143 | 30/30 | [5.331, 7.545] | 35.3 / 226 | 0 | PASS |
+| g2-s7 | 40 | 86.734 | +5.099 | 30/30 | [4.199, 6.220] | 173.0 / 641 | 0 | PASS |
+
+Holding, the first trained rows with the account: s6's longest held
+stretch is 10 ticks at 20×20 and 5 at 40×40, with no shared hold; s7's
+is 12 and 24, with one shared hold of 7 ticks at 20×20. The scripted
+roster on the same worlds: 220 and 219, with shared holds up to 196
+and 249 in 23 and 25 of 30 worlds.
+
+Reading. Both networks pass both gates in every world. s6 carries the
+lightest tail of the six networks (worst streak 54 and 29). s7 posts
+the largest gain of any seating (+6.143 at 20×20) and the heaviest
+gated tail (40×40 mean 173.0, max 641: above the scripted maximum of
+626, below the F-053 line). Holding rules out a group trap there
+(s7's longest held stretch at 40×40 is 24), so it is a solitary
+distress run, cause unread, like s4's 40×40 tail. Seated with copies
+of themselves, the trained cats almost never hold. On this axis the
+learners are far ahead of the teacher, a first answer (uniform seating
+only) to the follow-up's step-0 question.
+
+## Read (Phase B; seconds; stdlib python3, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && python3 -B gate_read.py --seatings g2-s6,g2-s7 --sizes 20,40 --out gate-read-phaseB.json && python3 -B holding_read.py results-raw/g2-s6/legs/size20/g2-s6-g2cmp-30x20000.jsonl results-raw/g2-s6/legs/size40/g2-s6-g2cmp-30x20000.jsonl results-raw/g2-s7/legs/size20/g2-s7-g2cmp-30x20000.jsonl results-raw/g2-s7/legs/size40/g2-s7-g2cmp-30x20000.jsonl --out holding-phaseB-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+B = "experiments/gen2-cert-battery-2026-10-20/"
+g = json.load(open(B + "gate-read-phaseB.json"))
+exp = {"g2-s6/20": (86.692, 4.771, [3.883, 6.354], 1.8, 54), "g2-s6/40": (85.468, 3.833, [3.116, 4.97], 2.9, 29),
+       "g2-s7/20": (88.063, 6.143, [5.331, 7.545], 35.3, 226), "g2-s7/40": (86.734, 5.099, [4.199, 6.22], 173.0, 641)}
+for k, (t, d, rng, sm, sx) in exp.items():
+    r = g[k]
+    assert (r["trained_mean"], r["paired_mean_delta"], r["delta_range"], r["worst_streak_mean"], r["worst_streak_max"]) == (t, d, rng, sm, sx), k
+    assert r["positive"] == 30 and r["aborted_seeds"] == [] and r["gate"] == "PASS", k
+h = json.load(open(B + "holding-phaseB-read.json"))
+assert [(x["held_longest_max"], x["shared_hold_longest_max"], x["worlds_with_shared_hold"]) for x in h] == [(10, 0, 0), (5, 0, 0), (12, 7, 1), (24, 0, 0)], h
+print("Phase B fence: all cells match")
+EOF2
+```
