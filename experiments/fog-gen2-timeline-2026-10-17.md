@@ -164,8 +164,8 @@ consent BC comparison ride the trunk.
   structure that wider vision masks; she wants the cats to solve it
   organically. Her sequencing (same day): fix it in the teacher before
   any training-side attempt; a bug or minor fix becomes Gen 2a, a
-  structural cause goes to the tiered-needs teacher, iterated until the
-  behavior is gone. Test sketch: lower vision on 100×100.
+  structural cause goes straight to Gen 3 (the tiered-needs teacher),
+  iterated until the behavior is gone. Test sketch: lower vision on 100×100.
   Evidence and design questions:
   `vision-search-followup-inputs-2026-10-21.md`.
 

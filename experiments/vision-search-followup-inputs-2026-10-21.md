@@ -95,9 +95,11 @@ So step 1's diagnosis decides the route:
 - **Bug or minor logic fix → Gen 2a**: fix the teacher, then the
   corpus, clone, critic and PPO stages re-run and the roster is
   re-certified against the improved teacher.
-- **Structural → tiered needs**: implement the three-tier needs
-  hierarchy in the teacher (the Gen 3 tiering on the roadmap) and
-  iterate until the holding behavior no longer appears.
+- **Structural → straight to Gen 3**: implement the three-tier needs
+  hierarchy in the teacher as Gen 3's work and iterate there until the
+  holding behavior no longer appears. Her clarification (2026-10-21,
+  verbatim): "To be clear, if we need to go as far as implementing
+  tiered needs first, we go straight to gen 3".
 
 The comparator rising and the corpus re-run are accepted costs (her
 words above).
