@@ -17,7 +17,9 @@ jobs:
   # required gate on every merge. `cargo test --workspace` includes it.
   test:
     name: fmt + clippy + test
-    runs-on: ubuntu-latest
+    # Pinned: on ubuntu-26.04 the restored rust-cache carries a pyo3 build
+    # config that links -lpython3.12, which that image lacks.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
