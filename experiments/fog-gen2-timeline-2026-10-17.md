@@ -162,8 +162,10 @@ consent BC comparison ride the trunk.
   deep follow up"; she suggests a round before Gen 3): the 905029
   search-latency failure and the scripted 20×20 holds share one
   structure that wider vision masks; she wants the cats to solve it
-  organically. Test sketch: lower vision on 100×100. Evidence and
-  design questions: `vision-search-followup-inputs-2026-10-21.md`.
+  organically. Her sequencing (same day): fix it in the teacher before
+  any training-side attempt. Test sketch: lower vision on 100×100.
+  Evidence and design questions:
+  `vision-search-followup-inputs-2026-10-21.md`.
 
 ## Banked for Gen 3 (pointers)
 

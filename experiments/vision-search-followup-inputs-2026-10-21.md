@@ -48,6 +48,39 @@ much shorter streaks at 20×20 (s1 worst 77 against the teacher's 401)
 suggest they already solve part of it, through element memory,
 hearing (Here-words) or movement.
 
+## Her sequencing (2026-10-21, verbatim)
+
+"Next point: if this behavior exists in the teacher, before we attempt
+to solve this with training, we should solve it at the teacher level.
+If the learners are already improving on this axis compared to
+teachers, it's possible that fixing the teacher prevents the learners
+from adopting this maladaptive behavioral pattern in the first place."
+
+Order this sets (Experiments' reading of her words):
+
+0. Measure the axis first, teacher against learners on the same
+   worlds, from streams that will exist anyway (the seating analysis's
+   scripted reference and rotation, seeds 905001–905005): for each time
+   a cat's eat or drink need crosses 75, whether relief was in sight
+   (Euclidean ≤ 4), the latency to eating or drinking, and what the cat
+   did meanwhile. No new exposure. Declared before it is read.
+1. Diagnose why the teacher idles. It is not missing a search: the
+   teacher already walks an exploration tour when relief is neither
+   visible nor remembered (`needs_driven.rs` `seek_element` →
+   `explore`, spec 049 FR-023). Something returns Idle first.
+   Candidates in the code, unconfirmed: the cuddle branch idles when
+   every friend is mid-scene (`needs_driven.rs` ~line 288, "wait
+   rather than lock into a relief-less solo rest"), the approach
+   etiquette's hold (`wait_for_them`), or a step blocked by an
+   occupied tile inside a group.
+2. Fix it in the teacher. The teacher is Product's (a spec, on her
+   word to relay). Consequences to weigh: a better teacher raises the
+   certification comparator (the gates compare trained rosters to the
+   scripted roster), and a changed teacher means a new corpus, so the
+   clone, critic and PPO stages re-run. Gen 2 is frozen (18f06f84), so
+   this lands in the pre-Gen-3 round or Gen 3.
+3. Only then, if needed, the training-side work below.
+
 ## Her proposed test, and design questions to settle at kickoff
 
 - Lower vision on 100×100, where the failure was common, and measure
