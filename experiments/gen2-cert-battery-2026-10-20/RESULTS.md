@@ -537,3 +537,70 @@ assert sorted(long_, key=lambda x: -x[1])[:3] == [("Pumpkin", 641), ("Pumpkin", 
 print("s7 streak fence: all cells match")
 EOF2
 ```
+
+## Phase C: the five-network roster rot2 is certified (2026-10-21)
+
+Roster (owner's ruling, "Rot 2"): Miso s2, Biscuit s4, Pumpkin s6,
+Kittybear s7, Clementine s1. Band g2cmp, 30 × 20k per size,
+scouts-first at 40 and 100, F-053 abort and leg stop armed. No stop
+fired at any size.
+
+| size | trained | paired Δ vs scripted | seeds + | Δ range | worst streak mean / max | aborts | gate |
+|---|---|---|---|---|---|---|---|
+| 20 | 87.487 | +5.566 | 30/30 | [4.716, 7.055] | 16.2 / 267 | 0 | **PASS** |
+| 40 | 86.229 | +4.594 | 30/30 | [3.935, 5.549] | 16.5 / 128 | 0 | **PASS** |
+| 100 | 83.810 | +7.187 | 30/30 | [3.460, 10.309] | 304.6 / 859 | 0 | characterize-only |
+
+Company effect against each network's own uniform roster: +0.067 at
+20×20 (+0.048 without the flagged s2 world) and +0.025 at 40×40; no
+welfare cost from mixing, as in the mixed-roster test. At 100×100
+the roster had no abort, where uniform s2 and s4 had 5 and 11.
+Holding, a read (her ruling): longest held stretch 7 / 13 / 19 ticks,
+longest shared hold 0 / 0 / 5.
+
+Streak shape, every streak of 100 ticks or more. At the gated sizes
+there are four. At 20×20 both are Pumpkin (s6) on the move (eat 267,
+97% moving; drink 152, 77%): searching, not parked. At 40×40,
+Kittybear (s7) carries a cuddle run of 128 split parked 42% / idle
+46%, the water-parking mix, and Clementine (s1) a cuddle run of 106,
+84% moving. At 100×100 there are 43: 27 moving-dominant, 15
+parked-dominant, 1 idle. All 15 parked runs are Kittybear's, the seat
+s7 holds, including the worst of the leg (cuddle, 859 ticks: parked
+40%, idle 35%, moving 25%). s7's water parking, which mixed company
+and the Kittybear seat kept short at 20×20, returns on the big map,
+where company is scarce.
+
+## Read (Phase C; seconds; stdlib python3, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && python3 -B gate_read.py --seatings g2-rot2 --sizes 20,40,100 --out gate-read-phaseC.json && python3 -B holding_read.py results-raw/g2-rot2/legs/size20/g2-rot2-g2cmp-30x20000.jsonl results-raw/g2-rot2/legs/size40/g2-rot2-g2cmp-30x20000.jsonl results-raw/g2-rot2/legs/size100/g2-rot2-g2cmp-30x20000.jsonl --out holding-phaseC-read.json && python3 -B shape_read.py results-raw/g2-rot2/legs/size20/g2-rot2-g2cmp-30x20000.jsonl results-raw/g2-rot2/legs/size40/g2-rot2-g2cmp-30x20000.jsonl results-raw/g2-rot2/legs/size100/g2-rot2-g2cmp-30x20000.jsonl --out shape-phaseC-read.json && python3 -B mixed_read.py --mixes g2-rot2 --out mixed-read-phaseC.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+from collections import Counter
+B = "experiments/gen2-cert-battery-2026-10-20/"
+g = json.load(open(B + "gate-read-phaseC.json"))
+exp = {"g2-rot2/20": (87.487, 5.566, [4.716, 7.055], 16.2, 267, "PASS"), "g2-rot2/40": (86.229, 4.594, [3.935, 5.549], 16.5, 128, "PASS"),
+       "g2-rot2/100": (83.81, 7.187, [3.46, 10.309], 304.6, 859, "characterize-only")}
+for k, (t, d, rng, sm, sx, gate) in exp.items():
+    r = g[k]
+    assert (r["trained_mean"], r["paired_mean_delta"], r["delta_range"], r["worst_streak_mean"], r["worst_streak_max"], r["gate"]) == (t, d, rng, sm, sx, gate), k
+    assert r["positive"] == 30 and r["aborted_seeds"] == [], k
+h = json.load(open(B + "holding-phaseC-read.json"))
+assert [(x["held_longest_max"], x["shared_hold_longest_max"]) for x in h] == [(7, 0), (13, 0), (19, 5)], h
+s = json.load(open(B + "shape-phaseC-read.json"))
+st20, st40, st100 = (x["streaks"] for x in s)
+assert [(x["seat"], x["need"], x["length"], round(x["moving"], 2)) for x in st20] == [("Pumpkin", "eat", 267, 0.97), ("Pumpkin", "drink", 152, 0.77)]
+assert [(x["seat"], x["need"], x["length"], round(x["parked"], 2), round(x["idle"], 2)) for x in st40][0] == ("Kittybear", "cuddle", 128, 0.42, 0.46)
+assert (st40[1]["seat"], st40[1]["length"], round(st40[1]["moving"], 2)) == ("Clementine", 106, 0.84)
+assert len(st100) == 43 and s[2]["by_dominant"] == {"parked": 15, "moving": 27, "idle": 1}
+assert Counter(x["seat"] for x in st100 if x["dominant"] == "parked") == Counter({"Kittybear": 15})
+w = st100[0]
+assert (w["seat"], w["need"], w["length"], round(w["parked"], 2), round(w["idle"], 2), round(w["moving"], 2)) == ("Kittybear", "cuddle", 859, 0.4, 0.35, 0.25)
+m = json.load(open(B + "mixed-read-phaseC.json"))["by_size"]
+assert (m["20"]["pooled_company_effect"]["mean"], m["20"]["pooled_company_effect_unflagged"]["mean"], m["40"]["pooled_company_effect"]["mean"]) == (0.067, 0.048, 0.025)
+print("Phase C fence: all cells match")
+EOF2
+```

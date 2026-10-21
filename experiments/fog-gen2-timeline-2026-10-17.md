@@ -139,7 +139,7 @@ consent BC comparison ride the trunk.
    CLOSED. Next: the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
-   valve (§6) — RAN 2026-10-20 (`gen2-cert-battery-2026-10-20/`): uniform rosters all PASS both happiness gates; s2 roster-wide lock at 20×20 (deviations entry 4, OPEN — its declared stop was not enforced); Experiments assessed the F-044 seating rule (five distinct networks) as still applying (owner call open, not ruled); mixed-roster test (3 seat-balanced rosters, 180 worlds) no measurable welfare cost, tail improved, no stops. Owner calls open.
+   valve (§6) — RAN 2026-10-20; FIVE-NETWORK ROSTER rot2 CERTIFIED 2026-10-21 (Miso s2, Biscuit s4, Pumpkin s6, Kittybear s7, Clementine s1: 20×20 +5.566 and 40×40 +4.594 in 30/30 worlds, no stops; 100×100 characterize +7.187, no aborts, worst 859 = s7 water parking at Kittybear) (`gen2-cert-battery-2026-10-20/`): uniform rosters all PASS both happiness gates; s2 roster-wide lock at 20×20 (deviations entry 4, OPEN — its declared stop was not enforced); Experiments assessed the F-044 seating rule (five distinct networks) as still applying (owner call open, not ruled); mixed-roster test (3 seat-balanced rosters, 180 worlds) no measurable welfare cost, tail improved, no stops. Owner calls open.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
    in `gen2-consent-design-2026-10-17.md` appendix; deployed-episode
    consent line DEFERRED to this readout) — PENDING.
