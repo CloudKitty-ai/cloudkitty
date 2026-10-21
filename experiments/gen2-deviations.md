@@ -407,6 +407,16 @@ declared mutate reds confirmed, one on the real recorded 905008
 abort row). It was armed for the mixed-roster test; no stop fired.
 Open calls (a) post-stop citation and (b) s2 disposition remain hers.
 
+RULED (b), owner 2026-10-21, verbatim: "Yes, keep s2 and don't replace
+s5". s2 stays a seating candidate on the evidence that its one known
+failure is the copies-lock (F-027 class) and that mixed company
+removed it (mixed-roster test: no lock in 180 worlds, s2 cats' worst
+streak 87; the served stuck detector would fire on this shape only
+48–286 ticks after onset, RESULTS.md §stuck-detector replay). (c) was
+answered by her 2026-10-20 framing ("informative only, not a gate")
+and the informational row read; (d) the leg stop is built (492ed69d).
+Still OPEN: (a) whether post-stop rows may be cited.
+
 ## 5. Three additional trunk seeds for the five-network seating roster (2026-10-20)
 
 Owner, 2026-10-20, verbatim: "Let's train 3 more and run them all
@@ -462,3 +472,10 @@ investigate first or not; replace s5 with a fresh seed (that would
 need a new stripe claim) or not. If s6 and s7 complete eligible,
 s1/s2/s4/s6/s7 are five networks without a replacement, which ties
 this call to entry 4 (b), s2's disposition.
+
+RULED, owner 2026-10-21, verbatim: "Yes, keep s2 and don't replace s5".
+No replacement seed; no investigation requested. The halted s5 weights
+and probe traces stay on disk as this entry's record and are never
+resumed. CLOSED. If s6 and s7 complete eligible, the five-network
+roster's networks are s1/s2/s4/s6/s7 (seat order still to be proposed
+after Phase B, per ROSTER-DECLARATION.md).
