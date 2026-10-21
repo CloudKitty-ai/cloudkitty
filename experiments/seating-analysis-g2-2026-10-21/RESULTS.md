@@ -288,3 +288,205 @@ assert all(b > a for a, b in zip(f3, l3))
 print("certified-roster analysis fence: all cells match")
 EOF2
 ```
+
+## Correction (2026-10-21): every scene's last tick was missing
+
+Owner, 2026-10-21, verbatim: "Those eat and drink numbers look
+suspiciously low (e. g. 0.007 for biscuit)". They were low because the
+instrument dropped ticks. The collector reads each cat's activity and
+partner from the end-of-tick state, after `resolve_activity_ends` has
+closed every scene that finished that tick, so a scene's last tick
+read as Idle with no partner. That is the F-031 instrument rule; v1
+broke it and this port inherited the break. Meals and drinks last two
+ticks, so at most one tick of each showed, and a meal that takes a
+bowl's last serving ends on its first tick (`out_of_chow` ends a meal
+whatever its minimum) and never showed at all. Every activity share,
+everything built on one, and every partner-based number read low;
+Idle read high. Happiness, distress, speech, positions and the
+play-proposal share read neither flag and stand.
+
+Her ruling, verbatim: "1 for gen 2": an exact re-collection for Gen 2,
+the flag-only method for Gen 1 (DECLARATION.md Amendment 1, 9920a6f3,
+declared before the data). The collector now records each cat's
+applied action and partner every tick (855bfc20; eight guards, each
+seen red, recorded in 391b43bb). The scripted reference and rot2
+re-ran on 905001–905005 × 20,000, and all ten worlds came out
+byte-identical to the originals in every stream the first collection
+recorded: the same worlds, now read exactly. No stop fired.
+
+### The certified roster, corrected
+
+Replaces the printer output in §The certified roster (the same reader
+and printer on the new streams):
+
+```
+| cat | Idle | Rest | Sleep | Eat | Drink | Play | Groom | contact | company | partnered | nearest med/p95 | hap mean/p5 | H bits | transH | home |
+| Miso | 0.305 | 0.099 | 0.142 | 0.019 | 0.033 | 0.350 | 0.053 | 0.525 | 0.815 | 0.292 | 1.0/9.8 | 87.7/82.0 | 2.28 | 1.17 | 209 |
+| Biscuit | 0.295 | 0.111 | 0.084 | 0.018 | 0.025 | 0.413 | 0.055 | 0.547 | 0.828 | 0.315 | 1.0/9.4 | 87.9/82.5 | 2.17 | 1.15 | 215 |
+| Pumpkin | 0.375 | 0.093 | 0.060 | 0.030 | 0.029 | 0.386 | 0.026 | 0.506 | 0.786 | 0.274 | 1.4/11.0 | 86.9/81.0 | 2.06 | 1.11 | 234 |
+| Kittybear | 0.316 | 0.102 | 0.096 | 0.026 | 0.026 | 0.347 | 0.088 | 0.530 | 0.805 | 0.288 | 1.0/10.4 | 88.2/82.8 | 2.29 | 1.21 | 228 |
+| Clementine | 0.337 | 0.168 | 0.084 | 0.022 | 0.030 | 0.319 | 0.040 | 0.573 | 0.857 | 0.350 | 1.0/8.4 | 86.8/80.7 | 2.25 | 1.12 | 216 |
+
+eat / drink cadence (median ticks between session starts): Miso 97/64, Biscuit 100/83,
+Pumpkin 55/74, Kittybear 71/87, Clementine 80/73
+PAIRS (top five by pair ticks): Biscuit-Clementine 2433 (reciprocity 0.96), Miso-Clementine 2159 (0.93),
+Pumpkin-Clementine 2066 (0.88), Kittybear-Clementine 2024 (0.92), Miso-Biscuit 1952 (0.91)
+Top partner: Clementine for Miso, Biscuit, Pumpkin and Kittybear; Biscuit for Clementine.
+ROUTINE dominant lag per seed: Miso [61, 59, 59, 59, 59]; Biscuit [115, 106, 110, 112, 109];
+Pumpkin [1142, 1676, 165, 1606, 159]; Kittybear [110, 104, 1518, 2163, 692]; Clementine [112, 107, 737, 61, 114]
+```
+
+How much the flags hid (flag → exact, share of ticks):
+
+| cat | idle | play | eat | drink | rest | sleep | groom | partnered |
+|---|---|---|---|---|---|---|---|---|
+| Miso | 0.537 → 0.305 | 0.186 → 0.350 | 0.008 → 0.019 | 0.016 → 0.033 | 0.091 → 0.099 | 0.121 → 0.142 | 0.040 → 0.053 | 0.209 → 0.292 |
+| Biscuit | 0.545 → 0.295 | 0.221 → 0.413 | 0.007 → 0.018 | 0.013 → 0.025 | 0.103 → 0.111 | 0.071 → 0.084 | 0.041 → 0.055 | 0.215 → 0.315 |
+| Pumpkin | 0.612 → 0.375 | 0.205 → 0.386 | 0.012 → 0.030 | 0.014 → 0.029 | 0.086 → 0.093 | 0.051 → 0.060 | 0.020 → 0.026 | 0.186 → 0.274 |
+| Kittybear | 0.551 → 0.316 | 0.185 → 0.347 | 0.010 → 0.026 | 0.013 → 0.026 | 0.094 → 0.102 | 0.080 → 0.096 | 0.066 → 0.088 | 0.199 → 0.288 |
+| Clementine | 0.553 → 0.337 | 0.168 → 0.319 | 0.009 → 0.022 | 0.015 → 0.030 | 0.154 → 0.168 | 0.071 → 0.084 | 0.031 → 0.040 | 0.253 → 0.350 |
+
+Sentences in §The certified roster that change (quoted, then
+corrected):
+
+- "the most connected (contact 0.573, partnered 0.253)": partnered
+  0.350, still the most.
+- "Reciprocity is high everywhere (0.84–0.97)": 0.88–0.97.
+- "Biscuit's sleep repeats on a ~110-tick cycle in all five worlds
+  (107–115), and Miso's on ~59 in four; Clementine sits near 61–112 in
+  four": Biscuit 106–115 in all five; Miso 59–61 in all five (the
+  first world's 995 came from the hidden ticks); Clementine 61–114 in
+  four.
+
+The rest of that section stands: welfare, the hub (the same top five
+pairs and the same top partners), speech, territory and the heatmaps.
+
+### The model table (§Behavior by model)
+
+Its activity and partnered columns read the rotation's streams, which
+carry no applied action, so they hold the same bias. Quoted: "The five
+networks share one character: idle about 56%, playing 18–21%". Read
+2's method gives each network a range over its 25 seat-worlds: idle
+from 0.295–0.307 up to 0.553–0.573, play from 0.181–0.207 up to
+0.359–0.410. On the exact rot2 read each network's one seat idled
+0.295–0.375 and played 0.319–0.413. The paragraph's comparisons hold
+at both ends of every range: s6 plays most (0.207 at the floor, 0.410
+at the ceiling), and the teacher idles and rests more and plays about
+half as much (exact on the scripted reference: idle 0.435–0.513, rest
+0.152–0.228, play 0.142–0.233).
+
+### Read 2: the flag-only method, checked
+
+For Gen 1, whose streams have no applied action. On both re-collected
+rosters, pooled over five worlds:
+
+- Drink: the estimate equals the exact count for all ten cats.
+- Eat: equal for the five scripted cats; for rot2 off by −9, −2, +1,
+  −13 and −11 ticks against about 1,800–3,000 eat ticks per cat. A
+  sated cat licking a bowl's last serving lowers no need, so the
+  method cannot see that meal.
+- Every other exact share lies inside its floor..ceiling. Where it
+  sits (0 = floor, 1 = ceiling): sleep 0.998–1.0, partnered 0.93–0.99
+  (added beyond the declaration), play 0.88–0.91, groom 0.66–0.97,
+  rest 0.45–0.71, Idle 0.09–0.17. Cats rarely walk out of a sleep
+  scene and often walk out of rest and grooming, so the tick after a
+  run is almost always the scene's own for sleep and least often for
+  rest.
+
+### Read 3: the battery's two flag reads
+
+rot2's five worlds hold no distress tick and no held tick, so nothing
+moves there. On the scripted reference, 170 of 5,943 distress
+cat-need-ticks (2.9%) change class, every one out of idle (154 to
+parked, 9 to tending, 7 to other), and held ticks fall from 2,473 to
+2,457 (shared 686 to 680). The correction only fills ticks the flag
+read as Idle, so it never moves a tick into idle and can only remove
+held ticks. The battery's streak shapes would shift a few points from
+idle toward parked or tending and its holding would dip slightly; no
+reading there changes direction. Its legs did not record the applied
+action, so they are not re-read. The certification harness reads the
+same flag for its eat and drink tick counts, its sleep and play
+accounting, streak shape and holding; its gates read happiness and
+distress, which do not use it, so the certificate stands.
+
+### Regeneration
+
+#### Collect (never run by the gate; under a minute)
+
+```
+experiments/seating-analysis-g2-2026-10-21/run_applied.sh
+```
+
+#### Read (seconds; lab venv, repo root)
+
+```
+experiments/exp-006-character-gen/.venv/bin/python -B experiments/seating-analysis-2026-09-28/seating_read.py --raws experiments/seating-analysis-g2-2026-10-21/results-raw/applied/g2-rot2/streams-905001.npz experiments/seating-analysis-g2-2026-10-21/results-raw/applied/g2-rot2/streams-905002.npz experiments/seating-analysis-g2-2026-10-21/results-raw/applied/g2-rot2/streams-905003.npz experiments/seating-analysis-g2-2026-10-21/results-raw/applied/g2-rot2/streams-905004.npz experiments/seating-analysis-g2-2026-10-21/results-raw/applied/g2-rot2/streams-905005.npz --out experiments/seating-analysis-g2-2026-10-21/certified-rot2-exact-read.json && experiments/exp-006-character-gen/.venv/bin/python -B experiments/seating-analysis-2026-09-28/seating_summary.py experiments/seating-analysis-g2-2026-10-21/certified-rot2-exact-read.json
+cd experiments/seating-analysis-g2-2026-10-21 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B same_world.py scripted && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B same_world.py g2-rot2 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B correction_read.py --out correction-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+import statistics as st
+B = "experiments/seating-analysis-g2-2026-10-21/"
+old = json.load(open(B + "certified-rot2-read.json"))["legs"]
+new = json.load(open(B + "certified-rot2-exact-read.json"))["legs"]
+C = json.load(open(B + "correction-read.json"))
+assert [l["seed"] for l in new] == [905001, 905002, 905003, 905004, 905005] and all(l["ticks"] == 20000 for l in new)
+assert all(l["activity_source"] == "applied" for l in new) and all(l.get("activity_source", "flag") == "flag" for l in old)
+m = lambda L, k, f: round(st.mean(f(l["cats"][k]) for l in L), 3)
+want = {  # idle, play, eat, drink, rest, sleep, groom, partnered: (flag, exact)
+    0: [(0.537, 0.305), (0.186, 0.350), (0.008, 0.019), (0.016, 0.033), (0.091, 0.099), (0.121, 0.142), (0.040, 0.053), (0.209, 0.292)],
+    1: [(0.545, 0.295), (0.221, 0.413), (0.007, 0.018), (0.013, 0.025), (0.103, 0.111), (0.071, 0.084), (0.041, 0.055), (0.215, 0.315)],
+    2: [(0.612, 0.375), (0.205, 0.386), (0.012, 0.030), (0.014, 0.029), (0.086, 0.093), (0.051, 0.060), (0.020, 0.026), (0.186, 0.274)],
+    3: [(0.551, 0.316), (0.185, 0.347), (0.010, 0.026), (0.013, 0.026), (0.094, 0.102), (0.080, 0.096), (0.066, 0.088), (0.199, 0.288)],
+    4: [(0.553, 0.337), (0.168, 0.319), (0.009, 0.022), (0.015, 0.030), (0.154, 0.168), (0.071, 0.084), (0.031, 0.040), (0.253, 0.350)]}
+for k, rows in want.items():
+    for (fl, ex), i in zip(rows[:7], (0, 5, 3, 4, 1, 2, 6)):
+        assert (m(old, k, lambda c: c["activity_share"][i]), m(new, k, lambda c: c["activity_share"][i])) == (fl, ex), (k, i)
+    assert (m(old, k, lambda c: c["grouped"]["partnered"]), m(new, k, lambda c: c["grouped"]["partnered"])) == rows[7], k
+assert [round(st.mean(l["cats"][k]["eat_cadence"]["median"] for l in new)) for k in range(5)] == [97, 100, 55, 71, 80]
+assert [round(st.mean(l["cats"][k]["drink_cadence"]["median"] for l in new)) for k in range(5)] == [64, 83, 74, 87, 73]
+pt = {p: st.mean(l["pairs"][p]["pair_ticks"] for l in new) for p in new[0]["pairs"]}
+rc = {p: round(st.mean(l["reciprocity"].get(p, 0) for l in new), 2) for p in new[0]["pairs"]}
+top = sorted(pt, key=lambda p: -pt[p])[:5]
+assert top == ["Biscuit-Clementine", "Miso-Clementine", "Pumpkin-Clementine", "Kittybear-Clementine", "Miso-Biscuit"]
+assert [round(pt[p]) for p in top] == [2433, 2159, 2066, 2024, 1952] and [rc[p] for p in top] == [0.96, 0.93, 0.88, 0.92, 0.91]
+assert (min(rc.values()), max(rc.values())) == (0.88, 0.97)
+assert [st.mode(l["cats"][k]["top_partner"] for l in new) for k in range(5)] == ["Clementine"] * 4 + ["Biscuit"]
+lag = lambda k: [l["cats"][k]["routine"]["dominant_lag"] for l in new]
+assert (lag(0), lag(1), lag(4)) == ([61, 59, 59, 59, 59], [115, 106, 110, 112, 109], [112, 107, 737, 61, 114])
+assert [l["cats"][0]["routine"]["dominant_lag"] for l in old][0] == 995
+MR = C["model_ranges (added)"]
+assert all(MR[n]["seat_worlds"] == 25 for n in MR)
+lo = lambda a, i: round(min(MR[n][a][i] for n in MR), 3)
+hi = lambda a, i: round(max(MR[n][a][i] for n in MR), 3)
+assert (lo("Idle", 0), hi("Idle", 0), lo("Idle", 1), hi("Idle", 1)) == (0.295, 0.307, 0.553, 0.573)
+assert (lo("Play", 0), hi("Play", 0), lo("Play", 1), hi("Play", 1)) == (0.181, 0.207, 0.359, 0.41)
+assert max(MR, key=lambda n: MR[n]["Play"][0]) == max(MR, key=lambda n: MR[n]["Play"][1]) == "s6"
+assert (MR["s6"]["Play"][0], MR["s6"]["Play"][1]) == (0.207, 0.41)
+MC = C["method_check"]
+ex = lambda r, a: [c["activities"][a]["exact"] for c in MC[r]]
+rng = lambda xs: (round(min(xs), 3), round(max(xs), 3))
+assert rng(ex("g2-rot2", "Idle")) == (0.295, 0.375) and rng(ex("g2-rot2", "Play")) == (0.319, 0.413)
+assert rng(ex("scripted", "Idle")) == (0.435, 0.513) and rng(ex("scripted", "Rest")) == (0.152, 0.228) and rng(ex("scripted", "Play")) == (0.142, 0.233)
+assert all(c["activities"]["Drink"]["error_ticks"] == 0 for r in MC for c in MC[r])
+assert [c["activities"]["Eat"]["error_ticks"] for c in MC["scripted"]] == [0] * 5
+assert [c["activities"]["Eat"]["error_ticks"] for c in MC["g2-rot2"]] == [-9, -2, 1, -13, -11]
+eat_ticks = [c["activities"]["Eat"]["exact"] * c["ticks"] for c in MC["g2-rot2"]]
+assert (round(min(eat_ticks), -2), round(max(eat_ticks), -2)) == (1800, 3000)
+assert all(c["activities"][a]["inside"] for r in MC for c in MC[r] for a in ("Idle", "Rest", "Sleep", "Play", "Groom"))
+assert all(c["partnered (added)"]["inside"] for r in MC for c in MC[r])
+pos = lambda a: rng([c["activities"][a]["position"] for r in MC for c in MC[r]])
+assert (pos("Sleep"), pos("Play"), pos("Rest"), pos("Idle")) == ((0.998, 1.0), (0.883, 0.914), (0.453, 0.706), (0.092, 0.171))
+assert (round(pos("Groom")[0], 2), round(pos("Groom")[1], 2)) == (0.66, 0.97)
+assert rng([c["partnered (added)"]["position"] for r in MC for c in MC[r]]) == (0.93, 0.992)
+R3 = C["reclassify"]
+s, h = R3["scripted"]["shape"], R3["scripted"]["holding"]
+assert (s["changed"], s["classified"], s["changed_share"]) == (170, 5943, 0.0286)
+assert s["moves"] == {"idle->parked": 154, "idle->tending": 9, "idle->other": 7}
+assert (h["held_flag"], h["held_corrected"], h["shared_flag"], h["shared_corrected"]) == (2473, 2457, 686, 680)
+assert R3["g2-rot2"]["shape"]["classified"] == 0 and R3["g2-rot2"]["holding"]["held_flag"] == 0
+print("activity-flag correction fence: all cells match")
+EOF2
+```

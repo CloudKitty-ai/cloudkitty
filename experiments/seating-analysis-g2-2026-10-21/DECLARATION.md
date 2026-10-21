@@ -189,3 +189,11 @@ Stops and welfare:
   has no covered minds. It buys exact behavior numbers for the
   certified roster's baseline. No scout: 20×20 is the served size and
   these exact worlds already ran clean.
+
+Logistics note (2026-10-21, after the run, no read or rule changed):
+the re-collected streams live at `results-raw/applied/g2-rot2/` and
+`results-raw/applied/scripted/` instead of the `-applied` sibling
+folders named above, which matched the glob of this file's own Read
+command (`results-raw/*/streams-*.npz`) and the verbosity fence
+(`results-raw/g2-rot*/`). Moved, not rewritten; `same_world.py`
+re-checks them at the new path.
