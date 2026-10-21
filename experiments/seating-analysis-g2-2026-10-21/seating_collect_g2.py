@@ -37,7 +37,7 @@ import cert_harness_fog as H  # noqa: E402
 from coverage_read import infer_block  # noqa: E402
 
 CONFIG = EXPTS / "gen2-comparator-legs-2026-10-14" / "g2leg-20.toml"
-E_MAX = 64
+E_MIN = 64   # element slots at 20x20; bigger worlds size from their reset count
 
 
 def collect(seating, seed, ticks, abort_streak, config=CONFIG):
@@ -56,6 +56,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
     models = {s: H.load_model(s) for s in set(seats) if s != "scripted"}
     env = cloudkitty.ParallelEnv(str(config), control=control or None, horizon=ticks)
     obs, infos = env.reset(seed=seed)
+    e_max = max(E_MIN, 2 * len(env.elements()))
     pk = infer_block(np.asarray(env.state()).size, roster)[1]
     names = list(env.possible_agents)
     assert names == [f"kitty_{k['id']}" for k, s in zip(kitties, seats) if s != "scripted"], names
@@ -79,7 +80,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
     partner = np.full((T, roster, 2), -1, np.int8)
     distress = np.zeros((T, roster), np.uint8)
     nash = np.zeros(T, np.float64)
-    elements = np.full((T, E_MAX, 3), -1, np.int16)
+    elements = np.full((T, e_max, 3), -1, np.int16)
 
     dist_streak = np.zeros((roster, 6), np.int64)
     aborted_at = None
@@ -116,7 +117,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
         h_norm = st[H.HAP:roster * pk:pk].astype(np.float64)
         nash[n] = float(np.exp(np.log(np.maximum(h_norm + H.REWARD_EPS, H.TERM_FLOOR)).mean()) - H.REWARD_EPS)
         els = env.elements()
-        assert len(els) <= E_MAX, len(els)
+        assert len(els) <= e_max, (len(els), e_max)
         for j, (_id, ty, x, y) in enumerate(els):
             elements[n, j] = (ecode(ty), x, y)
         n += 1

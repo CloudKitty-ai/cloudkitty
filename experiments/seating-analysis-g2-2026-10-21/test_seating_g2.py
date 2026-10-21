@@ -77,6 +77,18 @@ def test_play_share_counts_partner_play_proposals_only():
     assert R.play_share(_pair("scripted")[0]["act"]) == [None] * 5
 
 
+def test_collector_records_every_element_on_a_bigger_world():
+    # red: a fixed 64-slot element table (40x40 carries 92 elements)
+    import cloudkitty
+    cfg = EXPTS / "gen2-comparator-legs-2026-10-14" / "g2leg-40.toml"
+    arrays, _meta = C.collect("scripted", SEED, 5, None, config=cfg)
+    env = cloudkitty.ParallelEnv(str(cfg), control={f"kitty_{i}": "teacher" for i in range(1, 6)}, horizon=5)
+    env.reset(seed=SEED)
+    for t in range(5):
+        env.step({})
+        assert (arrays["elements"][t, :, 0] >= 0).sum() == len(env.elements()) > 64
+
+
 if __name__ == "__main__":
     n = 0
     for name, fn in sorted(globals().items()):
