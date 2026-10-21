@@ -81,6 +81,27 @@ Order this sets (Experiments' reading of her words):
    this lands in the pre-Gen-3 round or Gen 3.
 3. Only then, if needed, the training-side work below.
 
+## Her routing rule (2026-10-21, verbatim)
+
+"The two consequences are fine, especially if it prevents fragility
+like this. We need to update the teacher to handle the three-tier
+needs hierarchy anyway. If the fix is a bug or minor logic
+improvement, we can do a gen 2a. If it's more structural, we can
+implement the tiered needs and continue to iterate until we no longer
+see this problematic behavior."
+
+So step 1's diagnosis decides the route:
+
+- **Bug or minor logic fix → Gen 2a**: fix the teacher, then the
+  corpus, clone, critic and PPO stages re-run and the roster is
+  re-certified against the improved teacher.
+- **Structural → tiered needs**: implement the three-tier needs
+  hierarchy in the teacher (the Gen 3 tiering on the roadmap) and
+  iterate until the holding behavior no longer appears.
+
+The comparator rising and the corpus re-run are accepted costs (her
+words above).
+
 ## Her proposed test, and design questions to settle at kickoff
 
 - Lower vision on 100×100, where the failure was common, and measure

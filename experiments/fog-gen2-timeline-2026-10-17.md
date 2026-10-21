@@ -163,7 +163,9 @@ consent BC comparison ride the trunk.
   search-latency failure and the scripted 20×20 holds share one
   structure that wider vision masks; she wants the cats to solve it
   organically. Her sequencing (same day): fix it in the teacher before
-  any training-side attempt. Test sketch: lower vision on 100×100.
+  any training-side attempt; a bug or minor fix becomes Gen 2a, a
+  structural cause goes to the tiered-needs teacher, iterated until the
+  behavior is gone. Test sketch: lower vision on 100×100.
   Evidence and design questions:
   `vision-search-followup-inputs-2026-10-21.md`.
 
