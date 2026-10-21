@@ -139,7 +139,7 @@ consent BC comparison ride the trunk.
    CLOSED. Next: the PPO launch card (her word) before any seed
    burns.
 8. **Cert battery** — paired-strict vs comparator, replication
-   valve (§6) — PENDING.
+   valve (§6) — RAN 2026-10-20 (`gen2-cert-battery-2026-10-20/`): uniform rosters all PASS both happiness gates; s2 roster-wide lock at 20×20 (deviations entry 4, OPEN — its declared stop was not enforced); seating rule (F-044 five distinct networks) re-affirmed by assessment; mixed-roster test (3 seat-balanced rosters, 180 worlds) no measurable welfare cost, tail improved, no stops. Owner calls open.
 9. **Three-leg consent BC comparison** (9 trainings; decision grid
    in `gen2-consent-design-2026-10-17.md` appendix; deployed-episode
    consent line DEFERRED to this readout) — PENDING.

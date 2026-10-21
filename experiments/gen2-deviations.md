@@ -399,3 +399,10 @@ then 60% of locked-window choices are sleep/rest-with a packmate,
 every cat with chow 5 and water 8 tiles away. Same world is
 distress-free under s1 and s4. The s2 disposition (owner call (b))
 stays open with this read in hand.
+
+Remedy BUILT (2026-10-20, under her mixed-roster word, declared in
+`gen2-cert-battery-2026-10-20/MIXED-DECLARATION.md` before launch):
+`run_legs.py` now gates every leg on its own output (492ed69d; four
+declared mutate reds confirmed, one on the real recorded 905008
+abort row). It was armed for the mixed-roster test; no stop fired.
+Open calls (a) post-stop citation and (b) s2 disposition remain hers.

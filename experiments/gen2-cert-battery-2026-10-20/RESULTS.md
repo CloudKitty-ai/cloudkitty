@@ -145,3 +145,97 @@ for seed, seat, onset in ((905008, 4, 129), (905012, 4, 129), (905015, 2, 225), 
 print("100x100 fence: all cells match")
 EOF2
 ```
+
+## Mixed-roster test (2026-10-20/21; owner "Let's do a mixed roster test with the 3 models we have first")
+
+Declaration `MIXED-DECLARATION.md` (9336e573); instruments and guards
+492ed69d (the per-roster leg stop, armed this time); reader 538980a6.
+All six legs ran, 30 × 20k each, paired with the comparator and the
+uniform battery on band g2cmp. No stops fired.
+
+| roster (Miso…Clementine) | size | team | vs scripted | company effect (worlds +) | worst streak mean / max | aborts |
+|---|---|---|---|---|---|---|
+| mix1 s1 s1 s2 s2 s4 | 20 | 87.436 | +5.516 (30/30) | −0.001 (11/29) | 1.7 / 38 | 0 |
+| mix2 s2 s4 s1 s4 s1 | 20 | 87.513 | +5.592 (30/30) | +0.034 (18/29) | 3.2 / 66 | 0 |
+| mix3 s4 s2 s4 s1 s2 | 20 | 87.508 | +5.587 (30/30) | +0.015 (18/29) | 21.0 / 165 | 0 |
+| mix1 | 40 | 86.168 | +4.533 (30/30) | −0.018 (14/30) | 10.3 / 90 | 0 |
+| mix2 | 40 | 86.240 | +4.606 (30/30) | −0.023 (11/30) | 16.2 / 173 | 0 |
+| mix3 | 40 | 86.217 | +4.583 (30/30) | −0.057 (11/30) | 36.3 / 177 | 0 |
+
+Company effect = a cat's happiness in the mixed roster minus the same
+network's happiness at the same seat in the same world under uniform
+seating, averaged per world. The 20×20 rows exclude world 905008,
+whose uniform s2 baseline aborted (flagged pairs). Uniform s2 at
+40×40 is post-stop data (entry 4), so s2 seats are excluded at 40×40;
+those 150 pairs average +0.036 and are reported only.
+
+Per network, pooled over its seat-worlds: s1 +0.001 (20), −0.027
+(40); s2 +0.074 at 20 (+0.157 with the flagged world); s4 −0.018
+(20), −0.037 (40). Pooled: +0.018 at 20×20 (445 seat-worlds; +0.047
+with the 5 flagged pairs), −0.032 at 40×40 (300).
+
+Worst streak per network at the same seats, mixed vs uniform: 20×20
+s1 66 vs 77, s2 87 vs 1000, s4 165 vs 535; 40×40 s1 142 vs 219, s4
+147 vs 687 (s2 177 vs a post-stop uniform 120). Dispersion barely
+moved: together-share 0.519–0.527 mixed vs 0.523–0.530 uniform at
+20×20 (pooled Δ −0.005; −0.003 at 40×40), group count within +0.03.
+
+Predictions as declared. P1 held (+0.018 inside [−1.5, +0.5]); the
+bracket was centred on a cost from the Gen 1 kin effect (−0.94), and
+no cost appeared. P2 held in direction only (−0.005: half a
+percentage point of time adjacent, far from Gen 1's F-045 gap). P3
+held: no F-053 event in 180 worlds.
+
+Reading. Mixing the three networks cost no measurable mean welfare at
+either gated size; every pooled and per-network company effect is
+under a tenth of a happiness point. The tail improved: the worst
+stretch for s2 cats fell from 1,000 to 87 ticks at the served size
+and for s4 cats from 535 to 165. Every mixed roster beat the scripted
+roster in all 30 worlds at both sizes. Limits: each roster still
+seats two twin pairs; 30 worlds per leg cannot bound a 1-in-30 event
+(s2's lock was exactly that rate); the five-network roster is
+untested; mini-models do not exist yet.
+
+## Read (mixed roster; seconds; stdlib python3, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && python3 -B mixed_read.py --out mixed-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+B = "experiments/gen2-cert-battery-2026-10-20/"
+d = json.load(open(B + "mixed-read.json"))
+s20, s40 = d["by_size"]["20"], d["by_size"]["40"]
+exp = {("20", "g2-mix1"): (87.436, 5.516, -0.001, 11, 1.7, 38), ("20", "g2-mix2"): (87.513, 5.592, 0.034, 18, 3.2, 66),
+       ("20", "g2-mix3"): (87.508, 5.587, 0.015, 18, 21.0, 165), ("40", "g2-mix1"): (86.168, 4.533, -0.018, 14, 10.3, 90),
+       ("40", "g2-mix2"): (86.24, 4.606, -0.023, 11, 16.2, 173), ("40", "g2-mix3"): (86.217, 4.583, -0.057, 11, 36.3, 177)}
+for (z, m), (t, v, c, cp, sm, sx) in exp.items():
+    R = d["by_size"][z]["rosters"][m]
+    assert (R["team_mean"], R["vs_scripted"]["mean"], R["vs_scripted"]["positive"]) == (t, v, 30), (z, m)
+    assert (R["company_effect_unflagged"]["mean"], R["company_effect_unflagged"]["positive"]) == (c, cp), (z, m)
+    assert (R["worst_streak_mean"], R["worst_streak_max"], R["aborts"]) == (sm, sx, []), (z, m)
+N20, N40 = s20["networks"], s40["networks"]
+assert (N20["s1"]["company_effect_unflagged"]["mean"], N20["s2"]["company_effect_unflagged"]["mean"],
+        N20["s2"]["company_effect"]["mean"], N20["s4"]["company_effect"]["mean"]) == (0.001, 0.074, 0.157, -0.018)
+assert (N40["s1"]["company_effect"]["mean"], N40["s4"]["company_effect"]["mean"], N40["s2"]["company_effect"]["n"]) == (-0.027, -0.037, 0)
+assert (s20["pooled_company_effect_unflagged"]["mean"], s20["pooled_company_effect_unflagged"]["n"]) == (0.018, 445)
+assert (s20["pooled_company_effect"]["mean"], s40["pooled_company_effect"]["mean"], s40["pooled_company_effect"]["n"]) == (0.047, -0.032, 300)
+assert round(sum(x["delta"] for x in s40["post_stop"]) / len(s40["post_stop"]), 3) == 0.036 and len(s40["post_stop"]) == 150
+w = {n: (N20[n]["worst_seat_streak_mixed"], N20[n]["worst_seat_streak_uniform_same_seats"]) for n in N20}
+assert w == {"s1": (66, 77), "s2": (87, 1000), "s4": (165, 535)}, w
+w = {n: (N40[n]["worst_seat_streak_mixed"], N40[n]["worst_seat_streak_uniform_same_seats"]) for n in N40}
+assert w == {"s1": (142, 219), "s2": (177, 120), "s4": (147, 687)}, w
+assert (s20["pooled_together_share_delta"], s40["pooled_together_share_delta"]) == (-0.005, -0.003)
+P = d["predictions"]
+assert P["P1_company_effect_20_in_bracket"] and P["P2_together_share_delta_20_negative"] and P["P3_zero_aborts_20_40"]
+assert P["legs_run"] == P["legs_declared"] == 6
+def tog(s, z):
+    rs = [json.loads(l) for l in open(B + f"results-raw/{s}/legs/size{z}/{s}-g2cmp-30x20000.jsonl").read().splitlines()[1:]]
+    return round(sum(sum(r["dispersion"]["together_share"]) / 5 for r in rs) / 30, 3)
+assert sorted(tog(m, 20) for m in ("g2-mix1", "g2-mix2", "g2-mix3")) == [0.519, 0.52, 0.527]
+assert sorted(tog(s, 20) for s in ("g2-s1", "g2-s2", "g2-s4")) == [0.523, 0.529, 0.53]
+print("mixed-roster fence: all cells match")
+EOF2
+```
