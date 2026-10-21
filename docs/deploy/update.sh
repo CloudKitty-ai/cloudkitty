@@ -168,7 +168,7 @@ wait_healthy() {
 # seconds apart: wait_healthy just saw the server answer, and the box is
 # known to throttle, so one blip must not red a good deploy.
 print_key_settings() {
-    local body code attempt
+    local body code attempt text
     body="$(mktemp)"
     for attempt in 1 2 3; do
         if code="$(curl -sS --max-time 5 -H 'Accept: text/plain' \
@@ -194,7 +194,10 @@ print_key_settings() {
         return 2
     fi
     log "key settings"
-    if ! cat "$body"; then
+    # The shell's own printf, never an external tool: a Rust-built one (uutils
+    # cat on ubuntu-26.04) reopens a closed stdout onto /dev/null and exits 0.
+    text="$(<"$body")"
+    if ! printf '%s\n' "$text"; then
         rm -f "$body"
         echo "!! could not print the key settings section" >&2
         return 2

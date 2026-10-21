@@ -17,9 +17,7 @@ jobs:
   # required gate on every merge. `cargo test --workspace` includes it.
   test:
     name: fmt + clippy + test
-    # Pinned: on ubuntu-26.04 docs/deploy/test-update-tail.sh's closed-stdout
-    # case fails: print_key_settings returns 0 with stdout closed there.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 

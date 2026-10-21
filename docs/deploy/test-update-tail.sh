@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Exercises update.sh's closing "key settings" section (spec 052 FR-008/009)
-# against a stub server, with no CloudKitty server involved. Exit 0 = all
-# five cases held. Runs from any directory on a laptop or in CI; needs bash, curl
-# and python3.
+# against a stub server, with no CloudKitty server involved. Exit 0 = every
+# case held (the full-disk case runs only where /dev/full exists, i.e. Linux).
+# Runs from any directory on a laptop or in CI; needs bash, curl and python3.
 #
 # update.sh cannot be sourced (it takes a lock and runs top-level statements
 # before its functions are defined), so the function under test is extracted
@@ -46,7 +46,7 @@ start_stub() {
 }
 stop_stub() { kill "$STUB" 2>/dev/null; wait "$STUB" 2>/dev/null; STUB=""; }
 
-fail=0
+fail=0 passed=0
 run_case() {  # run_case <label> <want-exit> <want-stderr-substring> <want-stdout-substring>
   local label=$1 want=$2 err_want=$3 out_want=$4
   local out err got
@@ -54,7 +54,7 @@ run_case() {  # run_case <label> <want-exit> <want-stderr-substring> <want-stdou
   if [[ "$got" -ne "$want" ]]; then echo "FAIL $label: want exit $want got $got"; fail=1; return; fi
   if [[ -n "$err_want" && "$err" != *"$err_want"* ]]; then echo "FAIL $label: stderr lacks '$err_want' (got: $err)"; fail=1; return; fi
   if [[ -n "$out_want" && "$out" != *"$out_want"* ]]; then echo "FAIL $label: stdout lacks '$out_want' (got: $out)"; fail=1; return; fi
-  echo "ok   $label"
+  echo "ok   $label"; passed=$((passed + 1))
 }
 
 start_stub ok;       UPSTREAM="127.0.0.1:$PORT"
@@ -76,16 +76,26 @@ stop_stub
 UPSTREAM="127.0.0.1:1"
 run_case "closed port means the server stopped answering" 2 "the server stopped answering after the health check" ""
 
-# A section that cannot be printed (stdout gone: a closed pipe, a full disk)
-# must not report clean — the function's status is cat's, not the cleanup's.
-start_stub ok;       UPSTREAM="127.0.0.1:$PORT"
-print_key_settings >&- 2> "$T/err"; got=$?
-if [[ "$got" -eq 2 && "$(cat "$T/err")" == *"could not print the key settings section"* ]]; then
-  echo "ok   closed stdout is not a clean deploy"
+# A section that cannot be printed (stdout closed, a full disk) must not
+# report clean — the function's status is the write's, not the cleanup's.
+# A closed stdout is the case a Rust-built cat cannot see (ubuntu-26.04).
+unwritable_case() {  # unwritable_case <label> <redirect target, or "-" to close>
+  start_stub ok;     UPSTREAM="127.0.0.1:$PORT"
+  if [[ "$2" == "-" ]]; then print_key_settings >&- 2> "$T/err"; else print_key_settings > "$2" 2> "$T/err"; fi
+  got=$?
+  if [[ "$got" -eq 2 && "$(cat "$T/err")" == *"could not print the key settings section"* ]]; then
+    echo "ok   $1"; passed=$((passed + 1))
+  else
+    echo "FAIL $1: exit $got, stderr: $(cat "$T/err")"; fail=1
+  fi
+  stop_stub
+}
+unwritable_case "closed stdout is not a clean deploy" -
+if [[ -w /dev/full ]]; then
+  unwritable_case "full disk is not a clean deploy" /dev/full
 else
-  echo "FAIL closed stdout is not a clean deploy: exit $got, stderr: $(cat "$T/err")"; fail=1
+  echo "skip full disk (no /dev/full here)"
 fi
-stop_stub
 
-if [[ "$fail" -eq 0 ]]; then echo "5 passed"; fi
+if [[ "$fail" -eq 0 ]]; then echo "$passed passed"; fi
 exit "$fail"
