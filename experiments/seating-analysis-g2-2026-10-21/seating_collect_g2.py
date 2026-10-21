@@ -167,10 +167,12 @@ def main():
     ap.add_argument("--ticks", type=int, default=20000)
     ap.add_argument("--abort-streak", type=int, default=1000)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--config", type=Path, default=CONFIG,
+                    help="world toml (default g2leg-20); play-decomposition cells pass their own")
     a = ap.parse_args()
     import torch
     torch.set_num_threads(1)
-    arrays, meta = collect(a.seating, a.seed, a.ticks, a.abort_streak)
+    arrays, meta = collect(a.seating, a.seed, a.ticks, a.abort_streak, config=a.config)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(out, meta=json.dumps(meta), **arrays)

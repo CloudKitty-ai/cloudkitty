@@ -64,6 +64,26 @@ def test_collector_matches_the_certified_harness_scripted_roster():
     assert meta["speech_recorded"] == [False] * 5 and (arrays["act"] == -1).all()
 
 
+def test_cli_config_flag_reaches_the_engine_and_the_meta():
+    # red: main() drops config=a.config -> meta names g2leg-20 and its sha
+    import hashlib
+    import json
+    import tempfile
+    cfg = EXPTS / "play-decomposition-g2-2026-10-21" / "w2-teacher-d1.toml"
+    out = Path(tempfile.mkdtemp()) / "streams-cli.npz"
+    argv = sys.argv
+    sys.argv = ["seating_collect_g2.py", "--seating", "scripted", "--seed", str(SEED),
+                "--ticks", "5", "--out", str(out), "--config", str(cfg)]
+    try:
+        C.main()
+    finally:
+        sys.argv = argv
+    meta = json.loads(str(np.load(out)["meta"]))
+    assert meta["config"] == cfg.name, meta["config"]
+    assert meta["provenance"]["config_sha256"] == hashlib.sha256(cfg.read_bytes()).hexdigest(), \
+        meta["provenance"]["config_sha256"]
+
+
 def test_rotation_is_a_latin_square_over_the_five_networks():
     nets = {f"g2:trunk-{n}" for n in ("s1", "s2", "s4", "s6", "s7")}
     rots = [H.SEATINGS[f"g2-rot{r}"] for r in range(1, 6)]
