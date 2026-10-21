@@ -289,3 +289,107 @@ assert [f - o for f, o in zip(first, z["onset"].tolist())] == [90, 141, 286, 48,
 print("stuck-detector replay fence: all cells match")
 EOF2
 ```
+
+## Group holding: scripted baseline (2026-10-21; ROSTER-DECLARATION §Amendment)
+
+The scripted comparator re-ran at 20, 40 and 100 with the holding
+account (`results-raw/holding-baseline/`). Every pinned comparator
+field reproduces exactly (team happiness 81.921 / 81.634 / 76.623,
+worst streaks 401 / 626 / 716): the harness change moved nothing it
+already measured.
+
+| size | time in a 3+ group | largest per-cat held share | longest held stretch | longest shared hold | worlds with a shared hold |
+|---|---|---|---|---|---|
+| 20 | 0.4287 | 0.0355 | 220 | 196 | 23/30 |
+| 40 | 0.3376 | 0.0306 | 219 | 249 | 25/30 |
+| 100 | 0.2905 | 0.0893 | 351 | 297 | 30/30 |
+
+The teacher holds routinely. What it is doing while held, from the
+per-tick scripted-reference streams of worlds 905001 and 905002 (the
+seating analysis's declared reference collection; the per-tick
+reconstruction matches the rows' per-cat longest stretches exactly):
+idle on 88% and 85% of held cat-ticks, partnered on 10% and 9%,
+moving on 3% and 6%, hottest need at a median of 92 and 100. Food was
+on the map (six chow) with the nearest a median 5 and 6 tiles away,
+and water a median 3 and 10 tiles away; under 1% of held ticks were
+within a tile of either. Most held stretches ended in eating or
+drinking within 60 ticks (63 of 76; 40 of 55).
+
+Reading: the teacher's holds are not the social lock s2 showed. They
+look like search failures under fog, with hungry cats idling together
+while food sits just beyond the 4-tile vision radius. The measure
+registers the welfare state (grouped, hungry or thirsty, not tending)
+whatever its cause, so this envelope is a lenient anchor for a bar.
+
+## Read (holding baseline; seconds; stdlib python3, then lab venv; repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && python3 -B holding_read.py results-raw/holding-baseline/legs/size20/scripted-g2cmp-30x20000.jsonl results-raw/holding-baseline/legs/size40/scripted-g2cmp-30x20000.jsonl results-raw/holding-baseline/legs/size100/scripted-g2cmp-30x20000.jsonl --out holding-baseline-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+B = "experiments/gen2-cert-battery-2026-10-20/"
+r = json.load(open(B + "holding-baseline-read.json"))
+cells = [(x["group3_share_mean"], x["held_share_max_cat"], x["held_longest_max"], x["shared_hold_longest_max"], x["worlds_with_shared_hold"]) for x in r]
+assert cells == [(0.4287, 0.03545, 220, 196, 23), (0.3376, 0.03055, 219, 249, 25), (0.2905, 0.0893, 351, 297, 30)], cells
+C = "experiments/gen2-comparator-legs-2026-10-14/results-raw/"
+for z, p in ((20, C + "legs/size20"), (40, C + "vision5-40/legs/size40"), (100, C + "vision-law-100/legs/size100")):
+    old = {x["seed"]: x for x in (json.loads(l) for l in open(p + "/scripted-g2cmp-30x20000.jsonl").read().splitlines()[1:])}
+    new = {x["seed"]: x for x in (json.loads(l) for l in open(B + f"results-raw/holding-baseline/legs/size{z}/scripted-g2cmp-30x20000.jsonl").read().splitlines()[1:])}
+    assert set(old) == set(new) and len(new) == 30
+    assert all(old[s][k] == new[s][k] for s in old for k in ("mean_happiness", "max_distress_age", "max_distress_age_seat", "low_share", "floor_touches", "ticks", "nash_state")), z
+print("holding baseline fence: all cells match")
+EOF2
+```
+
+```
+cd experiments && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B - <<'EOF2'
+import json, sys
+import numpy as np
+sys.path.insert(0, "fog-gen1-cert")
+import cert_harness_fog as H
+def sizes_of(p):
+    out = []
+    for k in range(5):
+        seen, todo = {k}, [k]
+        while todo:
+            i = todo.pop()
+            for j in range(5):
+                if j not in seen and abs(int(p[i][0]) - int(p[j][0])) + abs(int(p[i][1]) - int(p[j][1])) <= 1:
+                    seen.add(j); todo.append(j)
+        out.append(len(seen))
+    return out
+rows = {x["seed"]: x for x in (json.loads(l) for l in open("gen2-cert-battery-2026-10-20/results-raw/holding-baseline/legs/size20/scripted-g2cmp-30x20000.jsonl").read().splitlines()[1:])}
+want = {905001: (0.88, 0.10, 0.03, 92, 5.0, 3.0, 63, 76), 905002: (0.85, 0.09, 0.06, 100, 6.0, 10.0, 40, 55)}
+for seed, w in want.items():
+    z = np.load(f"seating-analysis-g2-2026-10-21/results-raw/scripted/streams-{seed}.npz")
+    et = json.loads(str(z["meta"]))["element_types"]
+    pos, needs, act, partner, els = z["pos"], z["needs"], z["activity"], z["partner"], z["elements"]
+    T = len(act); acc = H.hold_acc(5); held = np.zeros((T, 5), bool)
+    for t in range(T):
+        before = list(acc["held_ticks"])
+        H.hold_update(sizes_of(pos[t]), needs[t, :, 0].tolist(), needs[t, :, 1].tolist(), act[t].tolist(), acc)
+        held[t] = np.array(acc["held_ticks"]) > np.array(before)
+    assert acc["held_longest"] == rows[seed]["holding"]["held_longest"]
+    moving = np.r_[np.zeros((1, 5), bool), np.abs(np.diff(pos.astype(int), axis=0)).sum(2) > 0]
+    df, dw = [], []
+    for t, k in zip(*np.nonzero(held)):
+        p = pos[t, k]
+        ch = els[t][els[t][:, 0] == et["Chow"]][:, 1:]; wa = els[t][els[t][:, 0] == et["Water"]][:, 1:]
+        if needs[t, k, 0] >= 75: df.append(int(np.abs(ch - p).sum(1).min()))
+        if needs[t, k, 1] >= 75: dw.append(int(np.abs(wa - p).sum(1).min()))
+    ends = tend = 0
+    for k in range(5):
+        h = held[:, k]
+        for t in np.flatnonzero(h[:-1] & ~h[1:]):
+            ends += 1; tend += bool(np.isin(act[t + 1:t + 61, k], (3, 4)).any())
+    got = (round(float((act[held] == 0).mean()), 2), round(float((partner[:, :, 0][held] == 1).mean()), 2),
+           round(float(moving[held].mean()), 2), round(float(np.median(np.maximum(needs[:, :, 0], needs[:, :, 1])[held]))),
+           float(np.median(df)), float(np.median(dw)), tend, ends)
+    assert got == w, (seed, got)
+    assert (np.array(df + dw) <= 1).mean() < 0.01
+print("held-scripted-behavior fence: all cells match")
+EOF2
+```
