@@ -73,7 +73,11 @@ Declared before any Phase B or Phase C data.
   two or more cats held at once). Read with `holding_read.py`.
 - Status: a declared READ in Phase B and Phase C, reported per roster
   beside the worst distress streak and F-053 events. It is not a bar;
-  a bar needs her word (doctrine rule 10).
+  a bar needs her word (doctrine rule 10). RULED 2026-10-21, verbatim:
+  "Keep holding a read for now, we're going to try to fix it in
+  gen2a/3". The bar options (envelope 294/374, paired) are set aside;
+  the fix path is the teacher work in
+  `../vision-search-followup-inputs-2026-10-21.md`.
 - Healthy baseline: the scripted comparator legs re-run at 20, 40 and
   100 with the new account, same seeds (g2cmp), configs and harness,
   into `results-raw/holding-baseline/`. Scripted seats are not covered
