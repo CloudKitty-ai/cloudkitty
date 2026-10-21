@@ -438,3 +438,27 @@ with no automatic replacement (entry 3's replacement took her word).
 Seeds above 2³¹−1 (the top of the idx-102 stripe) verified to reach
 the engine unwrapped: a reset at 2,151,000,000 differs from its i32
 alias. Certification plan: `gen2-cert-battery-2026-10-20/ROSTER-DECLARATION.md`.
+
+## 6. PPO trunk-s5 halted by the frozen §6 probe-distress stop (2026-10-21)
+
+trunk-s5 (entry 5; seed 5, run index 100, stripe 2,100,000,000+)
+halted at update 199 / 614,400 ticks, 2026-10-21 ~00:31Z: a 307-tick
+engine-distress streak on probe world 40001 (bar 300). Its probe rows,
+in order: u49 streak 0; u99 247 on world 40002 (under the bar); u149
+0; u199 307 on world 40001. Nash 0.8109 at the stopping probe. Final
+saved with stop_reason probe-distress-stop (sha256 c33f1163…);
+checkpoint and probe traces kept on disk as this entry's record;
+never resumed (frozen §6, entry 3 precedent). s6 and s7 continue.
+
+Context, recorded not interpreted: s3 (entry 3) also stopped early,
+at update 249 (world 40002, streak 317); s1/s2/s4 ran to plateau with
+max probe streaks 103/195/217. Two of six trunk seeds have now tripped
+this stop, both inside the first ~0.8M ticks.
+
+Status: OPEN, owner-routed. No investigation run (a localization
+needs a deterministic probe regeneration, which re-exposes the
+halted policy; entry 3 ran one only on her word). Her calls:
+investigate first or not; replace s5 with a fresh seed (that would
+need a new stripe claim) or not. If s6 and s7 complete eligible,
+s1/s2/s4/s6/s7 are five networks without a replacement, which ties
+this call to entry 4 (b), s2's disposition.
