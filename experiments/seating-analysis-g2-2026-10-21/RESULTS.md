@@ -124,3 +124,79 @@ for n, w in want.items():
 print("behavior table fence: all cells match")
 EOF2
 ```
+
+## Verbosity vs Gen 1 (2026-10-21; owner: "give me a comparison of verbosity vs gen 1")
+
+Gen 1 = the served gen1-A roster's seating analysis (5 worlds × 20,000
+ticks on its served world). Gen 2 = rot2, the roster chosen for
+certification (5 worlds × 20,000 ticks on the Gen 2 world). Both read
+the chosen message head with the same table (the engine's HEAD_KINDS,
+corrected 2026-10-21). The worlds differ (Gen 2 has hidden needs, the
+sleep floor, six beams and the vision law), so this compares shapes,
+not cells (the inputs doc's cross-generation rule).
+
+| | Gen 1 (gen1-A) | Gen 2 (rot2) |
+|---|---|---|
+| speaks on (share of cat-ticks) | 29.6% (seeds 29.5–29.8%) | 27.7% (seeds 27.2–28.0%) |
+| per-seat range | 22.7% (Clementine) – 37.0% (Biscuit) | 27.0% (Biscuit) – 28.3% (Miso) |
+| want words, share of spoken | 7.4% | 30.5% |
+| here words | 45.4% | 69.5% |
+| free register (mew, purr, chirp, trill, ekekek) | 47.2% | 0 |
+| top words | Purr 24.3%, HereFood 16.2%, HereWater 16.1% | HereSunbeam 26.0%, HereWater 17.9%, HereFood 16.1% |
+
+Reading. Gen 2 is slightly quieter overall (27.7% against 29.6%, a
+gap well outside either generation's seed spread), and it talks about
+different things. Want words rose about fourfold (7.4% → 30.5%;
+WantSleep 11.9% and WantEat 7.1% lead), the shape hidden needs
+predict, since a want-word is now the only way a friend learns what a
+cat needs. The free register vanished: no purr, mew, chirp, trill or
+ekekek in any of the 2.5M cat-ticks of the five rotations. That is
+inherited, not lost: the Gen 2 teacher emits none (0 free words in a
+10-rollout sample of the training corpus, about 1M labels, 24.8%
+spoken), so the clone had none to copy, and whether free words emerge
+unseeded is the prereg's §8.1 arm. Gen 1's seats spoke in distinct
+dialects (a 14-point spread across five distinct networks); Gen 2's five networks speak alike (a 1.3-point spread). Gen 2
+also talks more when needier (21.0% → 27.1% → 28.5% across own
+worst-need bins < 15, 15–25, ≥ 25; Gen 1 flat at 29.0–30.3%), with a
+caveat: under the sleep floor Gen 2 cats spend 56% of cat-ticks in the
+top bin against Gen 1's 9%, so the bins do not line up across
+generations.
+
+## Read (verbosity; seconds; lab venv, repo root)
+
+```
+cd experiments && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B - <<'EOF2'
+import glob, sys
+import numpy as np
+sys.path.insert(0, "seating-analysis-2026-09-28")
+import seating_read as v1
+N = v1.MSG_NAMES
+G = {"want": {"WantEat", "WantDrink", "WantPlay", "WantCuddle", "WantBath", "WantSleep"},
+     "here": {"HereFood", "HereWater", "HereCritter", "HereSunbeam"},
+     "free": {"Mew", "Purr", "Chirp", "Trill", "Ekekek"}}
+def read(pat):
+    fs = sorted(glob.glob(pat)); assert len(fs) == 5, fs
+    seeds, cats, c, binsn, binsd = [], np.zeros(5), np.zeros(16), np.zeros(3), np.zeros(3)
+    for f in fs:
+        z = np.load(f); m = z["msg"]; s = m > 0
+        seeds.append(s.mean()); cats += s.mean(0) / 5; c += np.bincount(m.ravel(), minlength=16)
+        b = np.digitize(z["needs"][:, :, list(v1.GATE_NEED_IDX)].max(2), (15.0, 25.0))
+        for i in range(3):
+            binsn[i] += s[b == i].sum(); binsd[i] += (b == i).sum()
+    sp = c[1:].sum()
+    return (round(float(np.mean(seeds)), 3), [round(float(x), 3) for x in (min(seeds), max(seeds))],
+            [round(float(x), 3) for x in cats], {g: round(float(sum(c[N.index(n)] for n in S) / sp), 3) for g, S in G.items()},
+            [round(float(x), 3) for x in binsn / binsd], round(float(binsd[2] / binsd.sum()), 2), c)
+g1 = read("seating-analysis-2026-09-28/results-raw/streams-90050[1-5].npz")
+g2 = read("seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-90500[1-5].npz")
+assert g1[:6] == (0.296, [0.295, 0.298], [0.312, 0.37, 0.31, 0.262, 0.227], {"want": 0.074, "here": 0.454, "free": 0.472}, [0.3, 0.29, 0.303], 0.09), g1[:6]
+assert g2[:6] == (0.277, [0.272, 0.28], [0.283, 0.27, 0.278, 0.277, 0.275], {"want": 0.305, "here": 0.695, "free": 0.0}, [0.21, 0.271, 0.285], 0.56), g2[:6]
+sp2 = g2[6][1:].sum()
+assert [round(float(g2[6][N.index(n)] / sp2), 3) for n in ("HereSunbeam", "HereWater", "HereFood", "WantSleep", "WantEat")] == [0.26, 0.179, 0.161, 0.119, 0.071]
+allrot = sum(np.bincount(np.load(f)["msg"].ravel(), minlength=16) for f in glob.glob("seating-analysis-g2-2026-10-21/results-raw/g2-rot*/streams-*.npz"))
+assert all(allrot[N.index(n)] == 0 for n in G["free"]) and allrot.sum() == 2_500_000
+corp = sum(np.bincount(np.asarray(np.load(f, mmap_mode="r")).ravel(), minlength=16)[:16] for f in sorted(glob.glob("gen2-collection-driver-2026-10-14/results-raw/full-100/r0*/config-*-rollout-*/label_msg.npy")))
+assert all(corp[N.index(n)] == 0 for n in G["free"]) and round(float(corp[1:].sum() / corp.sum()), 3) == 0.248
+print("verbosity fence: all cells match")
+EOF2
+```
