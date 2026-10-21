@@ -239,3 +239,53 @@ assert sorted(tog(s, 20) for s in ("g2-s1", "g2-s2", "g2-s4")) == [0.523, 0.529,
 print("mixed-roster fence: all cells match")
 EOF2
 ```
+
+## Would the served stuck detector catch the s2 lock? (offline replay, 2026-10-21)
+
+The battery ran without spec 061's stuck detector: it is a
+server-side table the engine never sees, shipped dark (mode off), so
+every certification number above is free of it. To see whether it
+would catch the s2 pile, spec 061's own rule
+(`specs/061-stuck-detector/stuck_rule_replay.py`, `run_stream`, its
+synthetic-pacer self-test passing first) was replayed over the saved
+pile trace (`diag-s2-905008.npz`, ticks 16000–18300). No new exposure.
+Relief is read pessimistically as in the replay's arm B (resting and
+grooming clear nothing), which can only make fires earlier.
+
+At the shipped settings (window 30, armed line 75) it fires on all
+five cats, 48 to 286 ticks after each one's distress onset: Miso
+18091 (+90), Biscuit 18091 (+141), Pumpkin 18242 (+286), Kittybear
+18031 (+48), Clementine 18089 (+79). The armed needs were already at
+100 when it fired. It is late because co-sleep and grooming scenes
+pause the armed count, and the locked cats spent most ticks in those
+scenes. A fire replaces one proposal with the scripted brain's choice
+and re-arms only after a fresh window; whether that breaks a
+self-renewing lock is untested (that needs the detector in the loop).
+Reading: the detector is a late backstop for this shape, not a fix.
+
+## Read (stuck-detector replay; seconds; lab venv, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B - <<'EOF2'
+import sys
+import numpy as np
+sys.argv = ["x"]
+sys.path.insert(0, "../../specs/061-stuck-detector")
+import stuck_rule_replay as sr
+sr.selftest()
+z = np.load("diag-s2-905008.npz")
+t, pos, needs, act = z["tick"], z["pos"].astype(int), z["needs"] * 100.0, z["act_state"]
+first, counts = [], []
+for k in range(5):
+    rows = [(int(t[i]), (int(pos[i, k, 0]), int(pos[i, k, 1])),
+             dict(zip(sr.NEED_ORDER, needs[i, k].tolist())), bool(act[i, k] != 0),
+             sr.ARM_B_RELIEVES[int(act[i, k])], {"seat": sr.SEATS[k]}) for i in range(len(t))]
+    fires = []
+    sr.run_stream(rows, 30, 75.0, "s2-905008", fires)
+    first.append(fires[0]["tick"]); counts.append(len(fires))
+assert first == [18091, 18091, 18242, 18031, 18089], first
+assert counts == [3, 2, 1, 2, 2], counts
+assert [f - o for f, o in zip(first, z["onset"].tolist())] == [90, 141, 286, 48, 79]
+print("stuck-detector replay fence: all cells match")
+EOF2
+```
