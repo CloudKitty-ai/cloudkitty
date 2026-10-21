@@ -1,0 +1,21 @@
+name: probe-2604
+on: pull_request
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-26.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run: |
+          set +e
+          echo "== cat identity"; readlink -f "$(command -v cat)"; cat --version | head -2
+          dpkg -S "$(readlink -f "$(command -v cat)")" 2>&1 | head -2
+          echo "== bash"; bash --version | head -1
+          f=$(mktemp); echo hello > "$f"
+          echo "== cat to closed stdout"; cat "$f" >&- ; echo "exit=$?"
+          echo "== cat to /dev/full"; cat "$f" > /dev/full ; echo "exit=$?"
+          echo "== printf builtin to closed stdout"; printf 'x\n' >&- ; echo "exit=$?"
+          echo "== /usr/bin/printf to closed stdout"; /usr/bin/printf 'x\n' >&- ; echo "exit=$?"
+          echo "== gnucat present?"; ls /usr/bin/gnucat /usr/lib/cargo/bin/coreutils/cat 2>&1; command -v gnucat && gnucat "$f" >&- ; echo "gnucat exit=$?"
