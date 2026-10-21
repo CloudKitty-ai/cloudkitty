@@ -54,14 +54,14 @@ cargo test -p cloudkitty-server --test server_integration settings
 bash docs/deploy/test-update-tail.sh
 ```
 
-Five cases: 200 + body → section printed, exit 0; 404 → message 1, exit 2; 200 empty → message 2, exit 2; closed port (127.0.0.1:1) → message 3, exit 2; stdout closed → message 4, exit 2. Exit 2, never 1: the rollback branch owns 1.
+Five cases, six where `/dev/full` exists: 200 + body → section printed, exit 0; 404 → message 1, exit 2; 200 empty → message 2, exit 2; closed port (127.0.0.1:1) → message 3, exit 2; stdout closed → message 4, exit 2; and, where `/dev/full` exists (Linux), a full disk → message 4, exit 2. Exit 2, never 1: the rollback branch owns 1.
 
 | red | prediction |
 |---|---|
 | 404 not special-cased (falls to the unusable branch) | the 404 case fails: stderr lacks the old-binary message |
 | drop the empty-body check | the empty case fails |
 | swallow curl's exit status | the closed-port case fails (it reports "unusable" instead of "stopped answering") |
-| ignore `cat`'s status | the closed-stdout case fails (exit 0) |
+| ignore the section print's status | the closed-stdout case fails (exit 0), and the full-disk case where it runs |
 | `return 1` in one branch | that branch's case fails (want 2 got 1) |
 
 ### 3a. The CI step (FR-015 / SC-007)
