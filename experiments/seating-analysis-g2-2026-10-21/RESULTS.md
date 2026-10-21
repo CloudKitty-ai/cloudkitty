@@ -200,3 +200,91 @@ assert all(corp[N.index(n)] == 0 for n in G["free"]) and round(float(corp[1:].su
 print("verbosity fence: all cells match")
 EOF2
 ```
+
+## The certified roster: standing analysis (2026-10-21; owner: "run the analysis after we certify it")
+
+rot2 (Miso s2, Biscuit s4, Pumpkin s6, Kittybear s7, Clementine s1),
+certified in the battery (`../gen2-cert-battery-2026-10-20/RESULTS.md`
+§Phase C). The rotation already ran this exact roster on the served
+world, 5 worlds × 20,000 ticks; a fresh collection on those seeds
+would be byte-identical (the collector is deterministic and held equal
+to the harness), so the standing analysis reads those streams. No new
+exposure. Read with v1's own reader and printer, so the report sits in
+the Gen 1 baseline's format (`../seating-analysis-2026-09-28/RESULTS.md`).
+
+```
+nash per seed: [0.8764, 0.8739, 0.8739, 0.8757, 0.8733]
+gap mean/p95 per seed: [(7.49, 12.93), (7.79, 13.12), (7.83, 13.55), (7.69, 12.93), (7.84, 13.47)]
+
+| cat | Idle | Rest | Sleep | Eat | Drink | Play | Groom | contact | company | partnered | nearest med/p95 | hap mean/p5 | H bits | transH | home |
+| Miso | 0.537 | 0.091 | 0.121 | 0.008 | 0.016 | 0.186 | 0.040 | 0.525 | 0.815 | 0.209 | 1.0/9.8 | 87.7/82.0 | 1.96 | 1.11 | 209 |
+| Biscuit | 0.545 | 0.103 | 0.071 | 0.007 | 0.013 | 0.221 | 0.041 | 0.547 | 0.828 | 0.215 | 1.0/9.4 | 87.9/82.5 | 1.89 | 1.11 | 215 |
+| Pumpkin | 0.612 | 0.086 | 0.051 | 0.012 | 0.014 | 0.205 | 0.020 | 0.506 | 0.786 | 0.186 | 1.4/11.0 | 86.9/81.0 | 1.70 | 1.06 | 234 |
+| Kittybear | 0.551 | 0.094 | 0.080 | 0.010 | 0.013 | 0.185 | 0.066 | 0.530 | 0.805 | 0.199 | 1.0/10.4 | 88.2/82.8 | 1.95 | 1.14 | 228 |
+| Clementine | 0.553 | 0.154 | 0.071 | 0.009 | 0.015 | 0.168 | 0.031 | 0.573 | 0.857 | 0.253 | 1.0/8.4 | 86.8/80.7 | 1.90 | 1.11 | 216 |
+
+PAIRS (top five by pair ticks): Biscuit-Clementine 1851 (reciprocity 0.93), Miso-Clementine 1717 (0.93),
+Pumpkin-Clementine 1598 (0.84), Kittybear-Clementine 1590 (0.91), Miso-Biscuit 1468 (0.94)
+Top partner: Clementine for Miso, Biscuit, Pumpkin and Kittybear; Biscuit for Clementine.
+Distress onsets: 0 for every cat in these five worlds.
+ROUTINE dominant lag per seed: Miso [995, 58, 60, 59, 59]; Biscuit [115, 107, 110, 112, 109];
+Pumpkin [1143, 1676, 165, 1606, 159]; Kittybear [111, 104, 1518, 2163, 917]; Clementine [112, 107, 736, 61, 65]
+CONVERGENCE (successive 2,000-tick window JS): first-3 means 0.247-0.406, last-3 means 0.282-0.471
+```
+
+Reading:
+
+- **Welfare.** Happiness 86.8–88.2 by cat (p5 80.7–82.8); the
+  worst-cat gap averages 7.5–7.8. No distress onset in any of the five
+  worlds (the certification legs, 30 worlds per size, carry its tail).
+- **Social structure: a hub, not dyads.** Clementine (the cuddle-heavy
+  seat) is the top partner of all four other cats and the most
+  connected (contact 0.573, partnered 0.253). Biscuit–Clementine is
+  the strongest pair and it is mutual, the same pair that led Gen 1;
+  Gen 1's other dyad (Pumpkin–Kittybear) and its unpaired Miso do not
+  recur. Reciprocity is high everywhere (0.84–0.97).
+- **Routine appears.** Biscuit's sleep repeats on a ~110-tick cycle in
+  all five worlds (107–115), and Miso's on ~59 in four; Clementine
+  sits near 61–112 in four. Gen 1 found no stable routine.
+- **Speech.** About 72% silent for every cat, HereSunbeam first for
+  each; Miso's third word is WantSleep (see §Verbosity vs Gen 1).
+- **Territory.** Home ranges 209–234 tiles; pairwise territory JS
+  0.097–0.114, more uniform overlap than Gen 1's.
+- **Heatmaps keep moving.** Successive 2,000-tick windows differ by JS
+  0.25–0.41 over each world's first three windows and 0.28–0.47 over
+  its last three (Gen 1: 0.17–0.22 and 0.16–0.25), and the last-three
+  mean sits above the first-three in all five worlds: no settling. A
+  Gen 2 heatmap needs a longer horizon than Gen 1's to be
+  representative.
+
+Cross-generation notes compare shapes, not cells (different worlds).
+
+## Read (certified roster; under a minute; lab venv, repo root)
+
+```
+experiments/exp-006-character-gen/.venv/bin/python -B experiments/seating-analysis-2026-09-28/seating_read.py --raws experiments/seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-905001.npz experiments/seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-905002.npz experiments/seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-905003.npz experiments/seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-905004.npz experiments/seating-analysis-g2-2026-10-21/results-raw/g2-rot2/streams-905005.npz --out experiments/seating-analysis-g2-2026-10-21/certified-rot2-read.json && experiments/exp-006-character-gen/.venv/bin/python -B experiments/seating-analysis-2026-09-28/seating_summary.py experiments/seating-analysis-g2-2026-10-21/certified-rot2-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+import statistics as st
+d = json.load(open("experiments/seating-analysis-g2-2026-10-21/certified-rot2-read.json"))
+L = d["legs"]
+assert [l["seed"] for l in L] == [905001, 905002, 905003, 905004, 905005] and all(l["ticks"] == 20000 for l in L)
+assert [round(l["welfare"]["nash_mean"], 4) for l in L] == [0.8764, 0.8739, 0.8739, 0.8757, 0.8733]
+cats = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
+hap = [round(st.mean(l["cats"][k]["hap"]["mean"] for l in L), 1) for k in range(5)]
+assert hap == [87.7, 87.9, 86.9, 88.2, 86.8], hap
+assert all(l["cats"][k]["distress"]["onsets"] == 0 for l in L for k in range(5))
+pt = {p: st.mean(l["pairs"][p]["pair_ticks"] for l in L) for p in L[0]["pairs"]}
+top = sorted(pt, key=lambda p: -pt[p])[:5]
+assert top == ["Biscuit-Clementine", "Miso-Clementine", "Pumpkin-Clementine", "Kittybear-Clementine", "Miso-Biscuit"], top
+assert [l["cats"][1]["routine"]["dominant_lag"] for l in L] == [115, 107, 110, 112, 109]
+assert [l["cats"][0]["routine"]["dominant_lag"] for l in L] == [995, 58, 60, 59, 59]
+f3 = [st.mean(l["convergence_js"][:3]) for l in L]; l3 = [st.mean(l["convergence_js"][-3:]) for l in L]
+assert (round(min(f3), 2), round(max(f3), 2), round(min(l3), 2), round(max(l3), 2)) == (0.25, 0.41, 0.28, 0.47), (f3, l3)
+assert all(b > a for a, b in zip(f3, l3))
+print("certified-roster analysis fence: all cells match")
+EOF2
+```
