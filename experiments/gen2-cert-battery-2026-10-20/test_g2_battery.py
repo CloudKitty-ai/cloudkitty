@@ -91,6 +91,64 @@ def test_run_one_refuses_untruthful_clock_and_deaf_for_g2():
             raise AssertionError(f"run_one accepted g2 args it must refuse: {args}")
 
 
+def _sizes(p):
+    """Independent group sizes (not the harness's union-find): grow each
+    cat's walk-adjacency component by breadth-first search."""
+    R = len(p)
+    out = []
+    for k in range(R):
+        seen, todo = {k}, [k]
+        while todo:
+            i = todo.pop()
+            for j in range(R):
+                if j not in seen and abs(int(p[i][0]) - int(p[j][0])) + abs(int(p[i][1]) - int(p[j][1])) <= 1:
+                    seen.add(j)
+                    todo.append(j)
+        out.append(len(seen))
+    return out
+
+
+def test_hold_update_separates_normal_grouping_from_the_s2_lock():
+    # red: holding without the need condition reads normal grouping as held
+    z = np.load(HERE / "diag-s2-905008.npz")
+    t, pos, needs, act = z["tick"], z["pos"], z["needs"] * 100.0, z["act_state"]
+    for window, check in (((t < 17400), "normal"), ((t >= 17950), "lock")):
+        acc = ch.hold_acc(5)
+        idx = np.flatnonzero(window)
+        for i in idx:
+            ch.hold_update(_sizes(pos[i]), needs[i, :, 0].tolist(), needs[i, :, 1].tolist(),
+                           act[i].tolist(), acc)
+        n = len(idx)
+        if check == "normal":
+            assert sum(acc["group3_ticks"]) / (5 * n) > 0.15, acc["group3_ticks"]
+            assert sum(acc["held_ticks"]) == 0, acc["held_ticks"]
+        else:
+            assert min(acc["held_ticks"]) / n > 0.8, acc["held_ticks"]
+            assert acc["shared_hold_longest"] >= 100, acc["shared_hold_longest"]
+
+
+def test_hold_update_does_not_count_a_cat_that_is_eating():
+    # red: the tending exclusion dropped (analytic: cat 0 grouped at eat 90,
+    # eating on tick 0, idle on tick 1 -> held once)
+    acc = ch.hold_acc(5)
+    for slot in (ch.EAT_ACT, 0):
+        ch.hold_update([3, 3, 3, 1, 1], [90.0, 0, 0, 0, 0], [0.0] * 5,
+                       [slot, 0, 0, 0, 0], acc)
+    assert acc["held_ticks"] == [1, 0, 0, 0, 0], acc["held_ticks"]
+    assert acc["group3_ticks"] == [2, 2, 2, 0, 0], acc["group3_ticks"]
+
+
+def test_run_one_group3_matches_an_independent_read_of_the_same_world():
+    # red: the harness's group sizes wrong (the read the holding rides on)
+    sys.path.insert(0, str(EXPTS / "seating-analysis-g2-2026-10-21"))
+    import seating_collect_g2 as sc
+    arrays, _meta = sc.collect("g2-s1", 905001, 300, 1000)
+    row = ch.run_one(("g2-s1", 905001, 300, str(G2LEG20), None, None, "served", None, None, 1000))
+    want = np.mean([[s >= 3 for s in _sizes(p)] for p in arrays["pos"]], 0).round(6).tolist()
+    assert row["holding"]["group3_share"] == want, (row["holding"]["group3_share"], want)
+    assert max(want) > 0, want
+
+
 def test_mixed_rosters_are_seat_balanced():
     # MIXED-DECLARATION.md: every network sits in every seat exactly
     # once across the three rosters (seat personality never confounds

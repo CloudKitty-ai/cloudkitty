@@ -41,11 +41,12 @@ no clock input); seating and config as inputs, provenance through the
 harness; Gen 2 head sizes; plus the chosen-action stream and
 all-scripted rosters through the engine's own seats. Message labels
 corrected to the engine's HEAD_KINDS (d38a2e95; v1 mislabeled four
-want-words; no gated v1 printout changed). Guards: 6 here (the
+want-words; no gated v1 printout changed). Guards: 4 here (the
 collector held EQUAL to the certified harness on the same world for a
-policy and a scripted roster; the Latin property; play share; holding
-on the real s2 trace and an analytic eating case) plus v1's 12;
-declared mutate reds confirmed for all seven changes.
+policy and a scripted roster; the Latin property; play share) plus
+v1's 12, with declared mutate reds confirmed for the stride, the
+clock write, the play set, the rotation and the label table. (The
+holding guards moved with the metric to the certification side.)
 
 ## Metrics
 
@@ -57,15 +58,10 @@ conventions: contact ≤ 1 tile, company ≤ 4 (the vision radius at
     action is a PlayKitty proposal (policy seats only).
 13. **Distress streak**: per cat, the longest per-(cat, need)
     distress-flag streak, the battery's max_distress_age convention.
-14. **Group holding — PROPOSED, enters only on the owner's word before
-    any read.** A cat is *held* on a tick when it is in a walk-adjacent
-    group of three or more (Manhattan ≤ 1, transitive), its eat or
-    drink need is at or above 75 (spec 061's armed line, pinned at the
-    Gen 2 freeze), and it is not eating or drinking. Reported: per cat
-    the share of time in a 3+ group (character, not a concern), the
-    held share, and the longest held stretch; per roster the longest
-    stretch with two or more cats held at once. The scripted reference
-    gives the healthy baseline on the same worlds.
+Group holding is NOT in this analysis. Owner, 2026-10-21, verbatim:
+"That's a great metric, but for our certification process, not the
+personality/behavior analysis". It moved to the certification harness
+(`../gen2-cert-battery-2026-10-20/ROSTER-DECLARATION.md` §Amendment).
 
 **Refusals per pair: not included** (her condition). The lab
 binding's `survived` flag mixes real refusals with engine rewrites of
@@ -78,14 +74,13 @@ refusal reasons in the lab binding. Deferred, as in v1.
 ## Rollup and the seat proposal
 
 Per roster: team happiness (mean and SD over seeds), worst-cat
-happiness p5 (mean and SD), worst-cat gap, longest distress streak,
-longest shared hold (if 14 enters). Per network × seat cell and per
-network across seats.
+happiness p5 (mean and SD), worst-cat gap, longest distress streak.
+Per network × seat cell and per network across seats.
 
 Proposal rule, fixed now: Experiments proposes ONE of the five
 measured rotation rosters (a whole measured composition, never an
 unmeasured recombination of cells). (1) Exclude any roster with an
-abort, and, if 14 enters, any shared hold of 100 ticks or more. (2)
+abort. (2)
 Rank by worst-cat happiness p5, equity first (her welfare-shape
 family). (3) Then team happiness. Differences inside the larger of the
 two rosters' per-seed SDs are ties, and ties go to the owner. Phase C

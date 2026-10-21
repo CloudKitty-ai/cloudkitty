@@ -398,6 +398,40 @@ def disp_account(st, roster, width, height, acc):
             acc["together_ticks"][k] += 1
     acc["group_count_sum"] += len(sizes)
     acc["ticks"] += 1
+    return [sizes[roots[k]] for k in range(roster)]
+
+
+# Group holding (owner 2026-10-21: "That's a great metric, but for our
+# certification process"; definition in gen2-cert-battery-2026-10-20/
+# ROSTER-DECLARATION.md §Amendment): a cat is HELD on a tick when it is in
+# a walk-adjacent group of >= 3, its eat or drink need is at or above
+# spec 061's armed line, and it is not eating or drinking. Grouping alone
+# is character; holding is the welfare signal.
+HOLD_LINE, HOLD_GROUP = 75.0, 3
+
+
+def hold_acc(roster):
+    return {"group3_ticks": [0] * roster, "held_ticks": [0] * roster,
+            "held_longest": [0] * roster, "shared_hold_ticks": 0,
+            "shared_hold_longest": 0, "_run": [0] * roster, "_shared_run": 0}
+
+
+def hold_update(sizes, eat, drink, act_slot, acc):
+    """One tick. sizes: each cat's group size; eat/drink: need values x100;
+    act_slot: activity one-hot argmax (EAT_ACT / DRINK_ACT tend)."""
+    held_now = 0
+    for k in range(len(sizes)):
+        grouped = sizes[k] >= HOLD_GROUP
+        held = (grouped and (eat[k] >= HOLD_LINE or drink[k] >= HOLD_LINE)
+                and act_slot[k] not in (EAT_ACT, DRINK_ACT))
+        acc["group3_ticks"][k] += grouped
+        acc["held_ticks"][k] += held
+        acc["_run"][k] = acc["_run"][k] + 1 if held else 0
+        acc["held_longest"][k] = max(acc["held_longest"][k], acc["_run"][k])
+        held_now += held
+    acc["shared_hold_ticks"] += held_now >= 2
+    acc["_shared_run"] = acc["_shared_run"] + 1 if held_now >= 2 else 0
+    acc["shared_hold_longest"] = max(acc["shared_hold_longest"], acc["_shared_run"])
 
 
 def run_one(args):
@@ -476,6 +510,7 @@ def run_one(args):
     # order); scripted seats decide inside the engine and are not counted (beam-world screen tier 5, P4)
     msg_counts = {a: [0] * (n_heads - n_act) for a in names}
     disp = disp_acc(roster)
+    hold = hold_acc(roster)
 
     for _t in range(ticks):
         acts = {}
@@ -526,7 +561,12 @@ def run_one(args):
         prev_sleep = beam_account(st, beams, roster, width, height, prev_sleep, beams_acc)
         prev_play = play_account(st, roster, prev_play, plays_acc)
         needs_account(st, roster, needs_hist)
-        disp_account(st, roster, width, height, disp)
+        sizes = disp_account(st, roster, width, height, disp)
+        hold_update(sizes,
+                    [float(st[k * PER_KITTY + 0]) * 100 for k in range(roster)],
+                    [float(st[k * PER_KITTY + 1]) * 100 for k in range(roster)],
+                    [int(st[k * PER_KITTY + ACT0:k * PER_KITTY + ACT0 + 7].argmax())
+                     for k in range(roster)], hold)
         # Welfare-practice streak abort (owner ruled 2026-09-26; the F-053
         # 1,000-tick line is the reference): the leg stops the tick any
         # cat's distress streak REACHES the limit. None = never fires.
@@ -540,6 +580,12 @@ def run_one(args):
         "play": plays_acc,
         "needs": needs_hist,
         "beam": beams_acc,
+        "holding": {
+            "group3_share": [round(t / max(1, n_ticks), 6) for t in hold["group3_ticks"]],
+            "held_share": [round(t / max(1, n_ticks), 6) for t in hold["held_ticks"]],
+            "held_longest": hold["held_longest"],
+            "shared_hold_ticks": hold["shared_hold_ticks"],
+            "shared_hold_longest": hold["shared_hold_longest"]},
         "dispersion": {
             "together_share": [round(t / max(1, disp["ticks"]), 6)
                                for t in disp["together_ticks"]],

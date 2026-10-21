@@ -53,3 +53,35 @@ networks × 63 worlds × 20,000 ticks × 5 minds ≈ 18.9M cat-ticks.
 Phase C: about 93 worlds × 20,000 × 5 ≈ 9.3M cat-ticks. Benefit: a
 certified roster under the seating rule. The stops bound each world at
 the line and halt a roster at its first event.
+
+## Amendment 2026-10-21: group holding enters certification
+
+Owner, 2026-10-21, verbatim: "That's a great metric, but for our
+certification process, not the personality/behavior analysis".
+Declared before any Phase B or Phase C data.
+
+- Definition (`cert_harness_fog.hold_update`): a cat is held on a tick
+  when it is in a walk-adjacent group of three or more (Manhattan ≤ 1,
+  transitive), its eat or drink need is at or above 75 (spec 061's
+  armed line, pinned at the Gen 2 freeze), and it is not eating or
+  drinking. Grouping alone is character; holding is the welfare
+  signal. Hunger and thirst only, because a group can relieve sleep,
+  cuddle and play but not food or water.
+- Recorded on every battery row from now on (`holding`: per seat the
+  share of ticks in a 3+ group, the held share and the longest held
+  stretch; per world the shared-hold ticks and longest shared hold,
+  two or more cats held at once). Read with `holding_read.py`.
+- Status: a declared READ in Phase B and Phase C, reported per roster
+  beside the worst distress streak and F-053 events. It is not a bar;
+  a bar needs her word (doctrine rule 10).
+- Healthy baseline: the scripted comparator legs re-run at 20, 40 and
+  100 with the new account, same seeds (g2cmp), configs and harness,
+  into `results-raw/holding-baseline/`. Scripted seats are not covered
+  minds. The pinned comparator fields must reproduce exactly; that is
+  a determinism check, not a re-pin. Experiments then proposes a bar
+  anchored on the scripted envelope for her ruling (the probe-stop
+  precedent: scripted maximum × 1.5).
+- Guards (`test_g2_battery.py`): the real s2 905008 trace (normal
+  grouping 0 held, the lock over 80% held with a shared hold ≥ 100), an
+  analytic eating case, and the harness's group sizes equal to an
+  independent read of the same world.

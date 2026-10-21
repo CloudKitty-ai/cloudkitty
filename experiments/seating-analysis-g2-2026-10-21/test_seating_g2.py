@@ -3,10 +3,9 @@
 
 The collector is held EQUAL to the certified harness (cert_harness_fog
 run_one, the battery's own loop) on the same world: any stride, loop or
-observation-tampering error shows as a different world. Group holding
-is checked on a recorded payload (the s2 905008 replay trace: normal
-grouping before the lock, the lock after) and its tending exclusion on
-analytic literals, as v1 checks its math helpers.
+observation-tampering error shows as a different world. (Group holding
+moved to the certification harness on the owner's word, 2026-10-21; its
+guards live in gen2-cert-battery-2026-10-20/test_g2_battery.py.)
 """
 import sys
 from pathlib import Path
@@ -22,7 +21,6 @@ import seating_collect_g2 as C  # noqa: E402
 import seating_read_g2 as R  # noqa: E402
 
 SEED, TICKS = 905001, 300
-TRACE = EXPTS / "gen2-cert-battery-2026-10-20" / "diag-s2-905008.npz"
 _cache = {}
 
 
@@ -77,32 +75,6 @@ def test_play_share_counts_partner_play_proposals_only():
     assert R.play_share(arrays["act"]) == ref, (R.play_share(arrays["act"]), ref)
     assert max(ref) > 0
     assert R.play_share(_pair("scripted")[0]["act"]) == [None] * 5
-
-
-def test_group_holding_separates_normal_grouping_from_the_s2_lock():
-    # red: holding without the need condition reads normal grouping as held
-    z = np.load(TRACE)
-    t, pos, needs, act = z["tick"], z["pos"].astype(np.int16), z["needs"] * 100.0, z["act_state"]
-    normal, lock = t < 17400, t >= 17950
-    hn = R.group_holding(pos[normal], needs[normal], act[normal])
-    hl = R.group_holding(pos[lock], needs[lock], act[lock])
-    assert np.mean(hn["group3_share"]) > 0.15, hn["group3_share"]   # grouping happened
-    assert max(hn["held_share"]) == 0.0, hn["held_share"]           # and was never held
-    assert min(hl["held_share"]) > 0.8, hl["held_share"]
-    assert hl["shared_hold_longest"] >= 100, hl["shared_hold_longest"]
-
-
-def test_group_holding_does_not_count_a_cat_that_is_eating():
-    # red: the tending exclusion dropped (analytic literals: three cats on
-    # adjacent tiles, cat 0 at eat 90; eating -> not held, idle -> held)
-    pos = np.array([[[5, 5], [5, 6], [6, 6], [15, 15], [0, 0]]] * 2, np.int16)
-    needs = np.zeros((2, 5, 6), np.float32)
-    needs[:, 0, 0] = 90.0
-    act = np.zeros((2, 5), np.int8)
-    act[0, 0] = 3          # tick 0: Eat
-    h = R.group_holding(pos, needs, act)
-    assert h["group3_share"][:3] == [1.0, 1.0, 1.0] and h["group3_share"][3] == 0.0
-    assert h["held_share"][0] == 0.5, h["held_share"]                # idle tick only
 
 
 if __name__ == "__main__":
