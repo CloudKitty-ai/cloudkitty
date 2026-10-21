@@ -1026,3 +1026,38 @@ highest late max cell (0.3375).
 ```
 cd experiments/gen2-trunk-training-2026-10-18/trainer && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B play_drift_read_g2.py --out ../artifacts/play-drift-read.json
 ```
+
+### Trunk PPO — seating seeds s5/s6/s7 (2026-10-21; deviations entries 5 and 6)
+
+Three seating seeds on the identical pinned recipe and binding (entry
+5), launched in parallel. trunk-s5 halted at update 199 / 614,400
+ticks on the frozen §6 probe-distress stop (streak 307 on world 40001;
+entry 6, ruled "don't replace s5", closed). trunk-s6 plateau-complete
+at 2,604 updates / 8,002,560 ticks, ep_return 0.8270 → 0.8774, min
+probe nash 0.8129, max probe streak 220 (final sha256 c93a4424…).
+trunk-s7 plateau-complete at 2,929 updates / 9,000,960 ticks (one
+more flat bin than the others), ep_return 0.8228 → **0.8877**, the best
+of the six seeds, min probe nash 0.8182, max probe streak 247 (final
+sha256 8ca8a517…). With s1/s2/s4, the five-network roster's networks
+are complete: s1, s2, s4, s6, s7.
+
+### Read (s5/s6/s7; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+for s, upd, ticks, first, last, mn, mx in (("s5", 199, 614400, None, None, 0.8109, 307),
+                                           ("s6", 2604, 8002560, 0.8270, 0.8774, 0.8129, 220),
+                                           ("s7", 2929, 9000960, 0.8228, 0.8877, 0.8182, 247)):
+    rows = [json.loads(l) for l in open(d + f"ppo-g2-trunk-{s}/metrics.jsonl")]
+    tr = [r for r in rows if not r.get("probe")]
+    pr = [r for r in rows if r.get("probe")]
+    assert (tr[-1]["update"], tr[-1]["ticks"]) == (upd, ticks), (s, tr[-1]["update"], tr[-1]["ticks"])
+    ret = [r for r in tr if r.get("ep_return_mean")]
+    if first is not None:
+        assert (round(ret[0]["ep_return_mean"], 4), round(ret[-1]["ep_return_mean"], 4)) == (first, last), s
+    assert round(min(p["nash"] for p in pr), 4) == mn and max(p["max_distress_streak"] for p in pr) == mx, s
+print("s5/s6/s7 fence: all cells match")
+EOF2
+```
