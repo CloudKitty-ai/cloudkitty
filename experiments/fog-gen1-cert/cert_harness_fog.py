@@ -410,6 +410,74 @@ def disp_account(st, roster, width, height, acc):
 HOLD_LINE, HOLD_GROUP = 75.0, 3
 
 
+# Streak shape (owner 2026-10-21: "Agreed on 'parked at relief…' as a good
+# test for characterizing streaks"; ROSTER-DECLARATION.md §Amendment 2):
+# for each cat's longest per-(cat, need) distress run, the share of its
+# ticks spent TENDING (the activity relieves that need), PARKED (standing
+# in an activity that relieves a different need), IDLE, MOVING, or OTHER.
+SHAPE_NEEDS = ("eat", "drink", "sleep", "play", "cuddle", "bath")
+SHAPE_KINDS = ("tending", "parked", "idle", "moving", "other")
+
+
+def shape_primary(act_slot, partnered):
+    """The need an activity relieves for the cat itself (NeedKind index),
+    or None: resting relieves cuddle only with a friend; grooming relieves
+    the cat's own bath only when alone (grooming a friend relieves the
+    friend's)."""
+    if act_slot == 1:
+        return 4 if partnered else None
+    if act_slot == 6:
+        return None if partnered else 5
+    return {2: 2, 3: 0, 4: 1, 5: 3}.get(act_slot)
+
+
+def shape_kind(need, act_slot, partnered, moved):
+    p = shape_primary(act_slot, partnered)
+    if p == need:
+        return 0
+    if moved:
+        return 3
+    if p is not None:
+        return 1
+    return 2 if act_slot == 0 else 4
+
+
+def shape_acc(roster):
+    return {"run": [[0] * 6 for _ in range(roster)],
+            "cnt": [[[0] * 5 for _ in range(6)] for _ in range(roster)],
+            "best": [None] * roster}
+
+
+def _shape_close_run(acc, k, j):
+    n = acc["run"][k][j]
+    best = acc["best"][k]
+    if best is None or n > best["length"]:
+        acc["best"][k] = {"length": n, "need": SHAPE_NEEDS[j],
+                          **{c: round(x / n, 4) for c, x in zip(SHAPE_KINDS, acc["cnt"][k][j])}}
+    acc["run"][k][j] = 0
+    acc["cnt"][k][j] = [0] * 5
+
+
+def shape_update(flags, act_slot, partnered, moved, acc):
+    """One tick. flags: per cat six distress booleans; act_slot: activity
+    one-hot argmax; partnered: partner-present; moved: position changed."""
+    for k in range(len(flags)):
+        for j in range(6):
+            if flags[k][j]:
+                acc["run"][k][j] += 1
+                acc["cnt"][k][j][shape_kind(j, act_slot[k], partnered[k], moved[k])] += 1
+            elif acc["run"][k][j]:
+                _shape_close_run(acc, k, j)
+
+
+def shape_close(acc):
+    for k in range(len(acc["run"])):
+        for j in range(6):
+            if acc["run"][k][j]:
+                _shape_close_run(acc, k, j)
+    return [b or {"length": 0} for b in acc["best"]]
+
+
 def hold_acc(roster):
     return {"group3_ticks": [0] * roster, "held_ticks": [0] * roster,
             "held_longest": [0] * roster, "shared_hold_ticks": 0,
@@ -511,6 +579,8 @@ def run_one(args):
     msg_counts = {a: [0] * (n_heads - n_act) for a in names}
     disp = disp_acc(roster)
     hold = hold_acc(roster)
+    shape = shape_acc(roster)
+    prev_tiles = None
 
     for _t in range(ticks):
         acts = {}
@@ -567,6 +637,13 @@ def run_one(args):
                     [float(st[k * PER_KITTY + 1]) * 100 for k in range(roster)],
                     [int(st[k * PER_KITTY + ACT0:k * PER_KITTY + ACT0 + 7].argmax())
                      for k in range(roster)], hold)
+        tiles = [(int(round(float(st[k * PER_KITTY + POS0]) * width)),
+                  int(round(float(st[k * PER_KITTY + POS0 + 1]) * height))) for k in range(roster)]
+        shape_update([(st[k * PER_KITTY + DIST0:k * PER_KITTY + DIST0 + 6] > 0).tolist() for k in range(roster)],
+                     [int(st[k * PER_KITTY + ACT0:k * PER_KITTY + ACT0 + 7].argmax()) for k in range(roster)],
+                     [bool(st[k * PER_KITTY + PARTNER_PRESENT] > 0.5) for k in range(roster)],
+                     [prev_tiles is not None and tiles[k] != prev_tiles[k] for k in range(roster)], shape)
+        prev_tiles = tiles
         # Welfare-practice streak abort (owner ruled 2026-09-26; the F-053
         # 1,000-tick line is the reference): the leg stops the tick any
         # cat's distress streak REACHES the limit. None = never fires.
@@ -580,6 +657,7 @@ def run_one(args):
         "play": plays_acc,
         "needs": needs_hist,
         "beam": beams_acc,
+        "streak_shape": shape_close(shape),
         "holding": {
             "group3_share": [round(t / max(1, n_ticks), 6) for t in hold["group3_ticks"]],
             "held_share": [round(t / max(1, n_ticks), 6) for t in hold["held_ticks"]],

@@ -85,3 +85,26 @@ Declared before any Phase B or Phase C data.
   grouping 0 held, the lock over 80% held with a shared hold ≥ 100), an
   analytic eating case, and the harness's group sizes equal to an
   independent read of the same world.
+
+## Amendment 2 (2026-10-21): streak shape enters certification
+
+Owner, 2026-10-21, verbatim: "Agreed on "parked at relief…" as a good
+test for characterizing streaks". Declared before any Phase C data.
+
+- Definition (`cert_harness_fog.shape_update`): for each cat's longest
+  per-(cat, need) distress run, the share of its ticks that were
+  TENDING (the cat's activity relieves that need for itself), PARKED
+  (standing still in an activity that relieves a different need: the
+  s7 water parking, and co-sleeping while hungry in the s2 pile), IDLE
+  (standing still, no activity: the teacher's search failure), MOVING,
+  or OTHER. Resting relieves cuddle only with a friend; grooming
+  relieves the cat's own bath only when alone.
+- Recorded on every battery row (`streak_shape`), its run length equal
+  to the row's per-seat worst streak by construction (guarded).
+- Status: a characterization READ in Phase C, reported for every
+  streak of 100 ticks or more. Not a bar.
+- Guards: an analytic case covering every category, the recorded s7
+  water-parking stream (rotation rot1 world 905002, 121-tick cuddle
+  run: parked ≥ 0.4, tending ≤ 0.05), and the harness equal to the pure
+  account on a scripted world's streams (905002, 3,000 ticks; no
+  covered minds).

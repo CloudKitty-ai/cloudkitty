@@ -149,6 +149,57 @@ def test_run_one_group3_matches_an_independent_read_of_the_same_world():
     assert max(want) > 0, want
 
 
+def _shape_from_streams(z):
+    """Feed recorded collector streams through the harness's pure shape
+    account (flags from the bitmask, partner from the stream, moved from
+    successive positions)."""
+    fl = np.unpackbits(z["distress"][:, :, None].astype(np.uint8), axis=2,
+                       bitorder="little")[:, :, :6].astype(bool)
+    pos = z["pos"].astype(int)
+    acc = ch.shape_acc(fl.shape[1])
+    for t in range(len(fl)):
+        moved = [False] * fl.shape[1] if t == 0 else (np.abs(pos[t] - pos[t - 1]).sum(1) > 0).tolist()
+        ch.shape_update(fl[t].tolist(), z["activity"][t].tolist(),
+                        (z["partner"][t, :, 0] == 1).tolist(), moved, acc)
+    return ch.shape_close(acc)
+
+
+def test_shape_kinds_analytic():
+    # red: matched relief read as parked, or a moving cat read as parked
+    acc = ch.shape_acc(2)
+    eat_flag = [[True, False, False, False, False, False], [False] * 6]
+    for slot, moved in ((4, False), (3, False), (0, True), (0, False)):   # drink, eat, walk, idle
+        ch.shape_update(eat_flag, [slot, 0], [False, False], [moved, False], acc)
+    ch.shape_update([[False] * 6, [False] * 6], [0, 0], [False, False], [False, False], acc)
+    best = ch.shape_close(acc)[0]
+    assert best == {"length": 4, "need": "eat", "tending": 0.25, "parked": 0.25,
+                    "idle": 0.25, "moving": 0.25, "other": 0.0}, best
+    # resting WITH a friend tends cuddle; grooming a friend does not tend bath
+    assert ch.shape_kind(4, 1, True, False) == 0 and ch.shape_kind(5, 6, True, False) == 4
+
+
+def test_shape_reads_the_recorded_s7_water_parking_as_parked():
+    # red: the drink-while-sated run read as tending or idle (real payload:
+    # rotation rot1 world 905002, s7 at Clementine, the 121-tick cuddle run)
+    z = np.load(EXPTS / "seating-analysis-g2-2026-10-21/results-raw/g2-rot1/streams-905002.npz")
+    best = _shape_from_streams(z)[4]
+    assert (best["length"], best["need"]) == (121, "cuddle"), best
+    assert best["parked"] >= 0.4 and best["tending"] <= 0.05, best
+
+
+def test_run_one_streak_shape_matches_the_collector_streams_of_the_same_world():
+    # red: the harness wiring (moved, partner or flags) drifts from the pure
+    # account; scripted roster, so no covered minds are exposed
+    sys.path.insert(0, str(EXPTS / "seating-analysis-g2-2026-10-21"))
+    import seating_collect_g2 as sc
+    row = ch.run_one(("scripted", 905002, 3000, str(G2LEG20), None, None, "served", None, None, 1000))
+    arrays, _meta = sc.collect("scripted", 905002, 3000, 1000)
+    got, want = row["streak_shape"], _shape_from_streams(arrays)
+    assert got == want, (got, want)
+    assert [s["length"] for s in got] == row["max_distress_age_seat"], (got, row["max_distress_age_seat"])
+    assert max(s["length"] for s in got) > 0
+
+
 def test_mixed_rosters_are_seat_balanced():
     # MIXED-DECLARATION.md: every network sits in every seat exactly
     # once across the three rosters (seat personality never confounds
