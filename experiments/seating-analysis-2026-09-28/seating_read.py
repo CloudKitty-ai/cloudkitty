@@ -50,6 +50,85 @@ SERVED_BEHAVIOR = {
     "Kittybear": "policy:fog-gen1-kittybear-cand-s4",
     "Clementine": "policy:fog-gen1-clementine-cand-s7",
 }
+# The activity and partner flags come from the END-OF-TICK state, after the
+# engine closes every scene that finished that tick: a scene's last tick
+# reads Idle with no partner, and a meal that takes a bowl's last serving
+# never shows (the F-031 instrument rule; found 2026-10-21, eat shown at
+# about 40% of its ticks). Streams collected since then also carry each
+# cat's applied action per tick (the engine's last_action): `applied`
+# indexes APPLIED_NAMES (episode.rs action_wire_name, arm order) and
+# `applied_with` is the partner's seat or -1. APPLIED_ACTIVITY is the
+# activity each applied action carries; every other action is Idle. Both
+# guarded against the Rust source in test_seating_read.py.
+APPLIED_NAMES = ["move", "rest", "sleep", "groom", "eat", "drink", "chase", "play",
+                 "purr", "meow", "idle"]
+APPLIED_ACTIVITY = {"rest": 1, "sleep": 2, "eat": 3, "drink": 4, "play": 5, "groom": 6}
+
+
+def encode_applied(last_action, col_of_id):
+    """One cat's engine last_action (decision-request JSON) -> (APPLIED_NAMES
+    index, partner seat or -1). The partner set is the engine's
+    activity.partner(): rest/sleep `with`, groom `target`, play at a kitty."""
+    name = last_action["action"]
+    if name in ("rest", "sleep"):
+        p = last_action.get("with")
+    elif name == "groom":
+        p = last_action.get("target")
+    elif name == "play" and last_action.get("target") == "kitty":
+        p = last_action["id"]
+    else:
+        p = None
+    return APPLIED_NAMES.index(name), (-1 if p is None else col_of_id[p])
+
+
+def corrected_streams(z):
+    """(activity, partner) per tick under seating-analysis-g2 DECLARATION
+    Amendment 1: the end-of-tick flags wherever they show a scene (v1's
+    reading, unchanged), and on a tick the flag shows Idle, what the cat
+    applied that tick (its activity and partner). That adds exactly the
+    ticks the flags hide. Streams without `applied` return the flags."""
+    activity, partner = z["activity"], z["partner"]
+    if "applied" not in z:
+        return activity, partner
+    applied, aw = z["applied"], z["applied_with"]
+    assert (applied >= 0).all(), "a tick without the engine's applied action"
+    lut = np.array([APPLIED_ACTIVITY.get(n, 0) for n in APPLIED_NAMES], activity.dtype)
+    hidden = activity == 0
+    act = np.where(hidden, lut[applied], activity)
+    fill = hidden & (aw >= 0)
+    part = partner.copy()
+    part[fill, 0] = 1
+    part[fill, 1] = aw[fill]
+    return act, part
+
+
+def flag_estimate(activity, needs):
+    """Hidden-tick estimate from the flags alone, for streams without
+    `applied` (Gen 1). Amendment 1 read 2, per cat, tick counts per
+    activity: floor = flag ticks; ceiling = floor + the tick after each of
+    that activity's flag runs that ends in Idle (a hidden tick needs a scene
+    still open the tick before, except a meal ending on its first tick).
+    eat/drink = the point estimates: drink = its ceiling; eat = its ceiling
+    + one-tick meals seen as an eat-need drop with no Eat flag on that tick
+    or the one before (a sated lick on a bowl's last serving stays unseen).
+    Idle is the remainder: its flag count is its ceiling, and T minus the
+    other ceilings and the seen one-tick meals is its floor."""
+    T, R = activity.shape
+    out = []
+    for k in range(R):
+        a = activity[:, k].astype(np.int64)
+        floor = np.bincount(a, minlength=7)
+        tail = (a[:-1] != 0) & (a[1:] == 0)
+        ceil = floor + np.bincount(a[:-1][tail], minlength=7)
+        drop = np.r_[False, np.diff(needs[:, k, 0]) < -1e-3]
+        prev = np.r_[0, a[:-1]]
+        one = int((drop & (a != EAT_ACT) & (prev != EAT_ACT)).sum())
+        ceil[0] = floor[0]
+        floor[0] = T - int(ceil[1:].sum()) - one
+        out.append({"floor": floor.tolist(), "ceiling": ceil.tolist(),
+                    "eat": int(ceil[EAT_ACT]) + one, "drink": int(ceil[DRINK_ACT]),
+                    "one_tick_meals": one})
+    return out
 
 
 def pair_dist(pos):
@@ -126,8 +205,9 @@ def element_tiles(elements, code):
 
 def read_leg(z):
     meta = json.loads(str(z["meta"]))
-    pos, activity, msg = z["pos"], z["activity"], z["msg"]
-    needs, hap, partner = z["needs"], z["hap"], z["partner"]
+    pos, msg = z["pos"], z["msg"]
+    needs, hap = z["needs"], z["hap"]
+    activity, partner = corrected_streams(z)
     distress, nash, elements = z["distress"], z["nash"], z["elements"]
     T, R = activity.shape
     W, Hh = meta["width"], meta["height"]
@@ -313,6 +393,7 @@ def read_leg(z):
 
     return {
         "seed": meta["seed"], "ticks": T, "aborted_at": meta.get("aborted_at"),
+        "activity_source": "applied" if "applied" in z else "flag",
         "cats": per_cat, "pairs": pairs, "reciprocity": recip,
         "territory_js": js_pairs,
         "welfare": {"nash_mean": float(nash.mean()),

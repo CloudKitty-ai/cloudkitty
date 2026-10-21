@@ -18,7 +18,12 @@ Streams are v1's (pos, activity, msg, needs, hap, partner, distress,
 nash, elements) plus act (T, R) int8, the chosen menu action (-1 for an
 engine-driven seat). Scripted seats choose inside the engine, so their
 msg is recorded as 0 and meta["speech_recorded"] lists which seats
-carry real message heads.
+carry real message heads. Since Amendment 1 (2026-10-21) also applied
+and applied_with (T, R) int8: every seat's applied action per tick (the
+engine's last_action, read through decision_request, which never moves
+the episode) and its partner seat, encoded by the reader's
+encode_applied; the end-of-tick activity and partner flags hide each
+scene's last tick.
 """
 import argparse
 import json
@@ -33,8 +38,10 @@ HERE = Path(__file__).resolve().parent
 EXPTS = HERE.parent
 sys.path.insert(0, str(EXPTS / "fog-gen1-cert"))
 sys.path.insert(0, str(EXPTS / "gen2-corpus-reads-2026-10-13"))
+sys.path.insert(0, str(EXPTS / "seating-analysis-2026-09-28"))
 import cert_harness_fog as H  # noqa: E402
 from coverage_read import infer_block  # noqa: E402
+from seating_read import APPLIED_NAMES, encode_applied  # noqa: E402
 
 CONFIG = EXPTS / "gen2-comparator-legs-2026-10-14" / "g2leg-20.toml"
 E_MIN = 64   # element slots at 20x20; bigger worlds size from their reset count
@@ -54,7 +61,11 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
     control = {f"kitty_{k['id']}": k["behavior"]
                for k, s in zip(kitties, seats) if s == "scripted"}
     models = {s: H.load_model(s) for s in set(seats) if s != "scripted"}
-    env = cloudkitty.ParallelEnv(str(config), control=control or None, horizon=ticks)
+    # horizon one past the last step: the engine closes the decision window
+    # at the horizon, and the last tick's applied actions are read after it.
+    # The horizon feeds only truncation and the critic's clock cell, which
+    # nothing here records (schema 6 observations carry no clock).
+    env = cloudkitty.ParallelEnv(str(config), control=control or None, horizon=ticks + 1)
     obs, infos = env.reset(seed=seed)
     e_max = max(E_MIN, 2 * len(env.elements()))
     pk = infer_block(np.asarray(env.state()).size, roster)[1]
@@ -62,6 +73,8 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
     assert names == [f"kitty_{k['id']}" for k, s in zip(kitties, seats) if s != "scripted"], names
     seat_of = {f"kitty_{k['id']}": s for k, s in zip(kitties, seats)}
     col = {f"kitty_{k['id']}": i for i, k in enumerate(kitties)}
+    ids = [k["id"] for k in kitties]
+    col_of_id = {kid: i for i, kid in enumerate(ids)}
 
     etypes = {}
 
@@ -78,6 +91,8 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
     needs = np.zeros((T, roster, 6), np.float32)
     hap = np.zeros((T, roster), np.float32)
     partner = np.full((T, roster, 2), -1, np.int8)
+    applied = np.full((T, roster), -1, np.int8)
+    applied_with = np.full((T, roster), -1, np.int8)
     distress = np.zeros((T, roster), np.uint8)
     nash = np.zeros(T, np.float64)
     elements = np.full((T, e_max, 3), -1, np.int16)
@@ -114,6 +129,9 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
             flags = st[b + H.DIST0:b + H.DIST0 + 6] > 0
             distress[n, k] = int(np.packbits(flags, bitorder="little")[0])
             dist_streak[k] = np.where(flags, dist_streak[k] + 1, 0)
+        for k, kid in enumerate(ids):
+            applied[n, k], applied_with[n, k] = encode_applied(
+                json.loads(env.decision_request(kid))["me"]["last_action"], col_of_id)
         h_norm = st[H.HAP:roster * pk:pk].astype(np.float64)
         nash[n] = float(np.exp(np.log(np.maximum(h_norm + H.REWARD_EPS, H.TERM_FLOOR)).mean()) - H.REWARD_EPS)
         els = env.elements()
@@ -132,11 +150,13 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
         "speech_recorded": [s != "scripted" for s in seats],
         "element_types": etypes, "width": width, "height": height,
         "per_kitty": pk, "abort_streak": abort_streak, "aborted_at": aborted_at,
+        "applied_names": APPLIED_NAMES,
         "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     arrays = dict(pos=pos[:n], activity=activity[:n], msg=msg[:n], act=act[:n],
                   needs=needs[:n], hap=hap[:n], partner=partner[:n],
-                  distress=distress[:n], nash=nash[:n], elements=elements[:n])
+                  distress=distress[:n], nash=nash[:n], elements=elements[:n],
+                  applied=applied[:n], applied_with=applied_with[:n])
     return arrays, meta
 
 

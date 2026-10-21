@@ -21,12 +21,18 @@ import seating_collect_g2 as C  # noqa: E402
 import seating_read_g2 as R  # noqa: E402
 
 SEED, TICKS = 905001, 300
-_cache = {}
+_cache, _streams = {}, {}
+
+
+def _collect(seating):
+    if seating not in _streams:
+        _streams[seating] = C.collect(seating, SEED, TICKS, 1000)
+    return _streams[seating]
 
 
 def _pair(seating):
     if seating not in _cache:
-        arrays, meta = C.collect(seating, SEED, TICKS, 1000)
+        arrays, meta = _collect(seating)
         ref = H.run_one((seating, SEED, TICKS, str(C.CONFIG), None, None,
                          "served", None, None, 1000))
         _cache[seating] = (arrays, meta, ref)
@@ -75,6 +81,39 @@ def test_play_share_counts_partner_play_proposals_only():
     assert R.play_share(arrays["act"]) == ref, (R.play_share(arrays["act"]), ref)
     assert max(ref) > 0
     assert R.play_share(_pair("scripted")[0]["act"]) == [None] * 5
+
+
+def test_applied_stream_carries_every_relief_tick():
+    # red: the applied action written one row off. A tick that lowered a
+    # cat's eat (drink) need is a tick the cat applied eat (drink): only
+    # those effects lower it. Both windows hold relief ticks the
+    # end-of-tick flag hides, so a flag-derived stream fails too.
+    for seating in ("g2-s1", "scripted"):
+        arrays, meta = _collect(seating)
+        names, ap = meta["applied_names"], arrays["applied"]
+        for need, name, code in ((0, "eat", 3), (1, "drink", 4)):
+            drop = np.zeros(ap.shape, bool)
+            drop[1:] = np.diff(arrays["needs"][:, :, need], axis=0) < -1e-3
+            assert (drop & (arrays["activity"] != code)).any(), (seating, name)
+            got = {names[x] for x in ap[drop]}
+            assert got == {name}, (seating, name, got)
+
+
+def test_applied_partner_matches_the_flag_inside_a_scene():
+    # red: a partner decoded from the wrong field (groom's target). Where
+    # the end-of-tick flag names a partner and the cat's applied action
+    # carries that scene, the applied action names the same partner. (A
+    # cat invited into a duet after its own turn applied something else;
+    # g2-s1 has two such ticks here.)
+    carries = {"rest": 1, "sleep": 2, "eat": 3, "drink": 4, "play": 5, "groom": 6}
+    for seating in ("g2-s1", "scripted"):
+        arrays, meta = _collect(seating)
+        names = meta["applied_names"]
+        fp, aw, flag = arrays["partner"], arrays["applied_with"], arrays["activity"]
+        same = np.vectorize(lambda x: carries.get(names[x], 0))(arrays["applied"]) == flag
+        m = (fp[:, :, 0] == 1) & same
+        assert m.sum() > 0 and (flag[m] == 6).any(), seating
+        assert (aw[m] == fp[:, :, 1][m]).all(), seating
 
 
 def test_collector_records_every_element_on_a_bigger_world():

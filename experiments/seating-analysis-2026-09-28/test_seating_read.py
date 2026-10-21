@@ -219,6 +219,85 @@ def test_msg_names_follow_the_engine_head_kinds():
     assert seating_summary.MSG is sr.MSG_NAMES
 
 
+G2_FIXTURE = HERE / "fixture-streams-g2-scripted-905001.npz"
+# Independent copy: the activity each applied action carries (ACTIVITIES index).
+R_CARRIES = {"rest": 1, "sleep": 2, "eat": 3, "drink": 4, "play": 5, "groom": 6}
+
+
+def test_applied_tables_follow_the_engine():
+    # red: an applied-name table out of the engine's order, or an activity
+    # mapped to the wrong index. Reference = the Rust source, composed:
+    # push_activity (observe.rs) -> continuation() (kitty.rs) ->
+    # action_wire_name (episode.rs).
+    import re
+    root = HERE.parents[1] / "crates"
+    ep = (root / "cloudkitty-rl/src/episode.rs").read_text()
+    body = re.search(r"pub fn action_wire_name\(action: &Action\) -> &'static str \{(.*?)\n\}",
+                     ep, re.S).group(1)
+    arms = re.findall(r'Action::(\w+)[^=]*=> "(\w+)"', body)
+    assert sr.APPLIED_NAMES == [n for _v, n in arms], arms
+    kt = (root / "cloudkitty-core/src/kitty.rs").read_text()
+    cont = re.search(r"pub fn continuation\(&self\) -> Option<Action> \{(.*?)\n    \}",
+                      kt, re.S).group(1)
+    action_of = dict(re.findall(r"Activity::(\w+)[^=]*=> Some\(Action::(\w+)", cont))
+    ob = (root / "cloudkitty-rl/src/observe.rs").read_text()
+    pa = re.search(r"fn push_activity\(.*?\{(.*?)\n\}", ob, re.S).group(1)
+    index = {a: int(i) for a, i in re.findall(r"Activity::(\w+)[^=]*=> (\d+)", pa)}
+    ref = {dict(arms)[action_of[a]]: i for a, i in index.items() if a in action_of}
+    assert len(ref) == 6 and sr.APPLIED_ACTIVITY == ref, (sr.APPLIED_ACTIVITY, ref)
+
+
+def _reference_streams(z):
+    """Independent per-tick loop: the flag where it shows a scene, else the
+    applied action's activity and partner (names from the stream's meta)."""
+    names = json.loads(str(z["meta"]))["applied_names"]
+    flag, ap, aw, fp = z["activity"], z["applied"], z["applied_with"], z["partner"]
+    T, R = flag.shape
+    act = np.zeros((T, R), int)
+    part = np.full((T, R, 2), -1, int)
+    for t in range(T):
+        for k in range(R):
+            if flag[t, k] != 0:
+                act[t, k], part[t, k] = flag[t, k], fp[t, k]
+            else:
+                act[t, k] = R_CARRIES.get(names[ap[t, k]], 0)
+                part[t, k] = (1, aw[t, k]) if aw[t, k] >= 0 else fp[t, k]
+    return act, part
+
+
+def test_corrected_streams_restore_the_hidden_ticks():
+    # red: the flags read as they are (no hidden tick restored), or a read
+    # that ignores the corrected streams. Recorded g2 world (scripted,
+    # 905001, 300 ticks): hidden ticks of all six activities, 35 partner fills.
+    z = np.load(G2_FIXTURE)
+    ref_act, ref_part = _reference_streams(z)
+    assert ((z["activity"] == 0) & (ref_act != 0)).sum() > 0
+    act, part = sr.corrected_streams(z)
+    assert (act == ref_act).all() and (part == ref_part).all()
+    leg = sr.read_leg(z)[0]
+    assert leg["activity_source"] == "applied"
+    T = ref_act.shape[0]
+    for k in range(ref_act.shape[1]):
+        share = [round(sum(1 for t in range(T) if ref_act[t, k] == a) / T, 6) for a in range(7)]
+        assert leg["cats"][k]["activity_share"] == share, k
+        assert abs(leg["cats"][k]["grouped"]["partnered"] - float((ref_part[:, k, 0] == 1).mean())) < 1e-12, k
+
+
+def test_flag_estimate_matches_the_exact_counts():
+    # red: a ceiling without the hidden final ticks, or eat without the
+    # one-tick meals (this window has two, both Pumpkin's). Exact = the
+    # independent reference above on the same recorded world.
+    z = np.load(G2_FIXTURE)
+    ref_act, _ = _reference_streams(z)
+    est = sr.flag_estimate(z["activity"], z["needs"])
+    assert sum(e["one_tick_meals"] for e in est) > 0
+    for k in range(ref_act.shape[1]):
+        exact = np.bincount(ref_act[:, k], minlength=7)
+        for a in (0, 1, 2, 5, 6):
+            assert est[k]["floor"][a] <= exact[a] <= est[k]["ceiling"][a], (k, a)
+        assert (est[k]["eat"], est[k]["drink"]) == (exact[3], exact[4]), k
+
+
 if __name__ == "__main__":
     import sys
     fns = [v for n, v in sorted(globals().items()) if n.startswith("test_")]
