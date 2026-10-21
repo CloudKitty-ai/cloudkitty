@@ -31,9 +31,7 @@ def mark(z):
     return "‡" if z >= 2.0 else ("†" if z >= 1.0 else "")
 
 CATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
-MSG = ["Silent", "WantFood", "WantWater", "Mew", "WantSleep", "WantPlay", "Purr",
-       "WantCuddle", "WantBath", "HereFood", "HereWater", "HereCritter",
-       "HereSunbeam", "Chirp", "Trill", "Ekekek"]
+from seating_read import MSG_NAMES as MSG  # noqa: E402  (one home for the head table)
 ACTIVITIES = ["Idle", "Rest", "Sleep", "Eat", "Drink", "Play", "Groom"]
 
 

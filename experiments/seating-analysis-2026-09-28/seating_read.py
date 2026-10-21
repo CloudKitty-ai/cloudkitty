@@ -28,9 +28,14 @@ HIGH_NEED = 25.0
 WINDOW = 2000
 ROUTINE_MIN_LAG = 50
 HIST_SPREAD = 4  # attach the full histogram when p95 - median > this (tiles)
-# The message-head table (schema 5, HEAD_KINDS order after Silent at 0).
-MSG_NAMES = ["Silent", "WantFood", "WantWater", "Mew", "WantSleep", "WantPlay", "Purr",
-             "WantCuddle", "WantBath", "HereFood", "HereWater", "HereCritter",
+# The message-head table: Silent at 0, then the engine's HEAD_KINDS order
+# (crates/cloudkitty-rl/src/observe.rs, unchanged since spec 033 — schema 5
+# and 6 alike). Corrected 2026-10-21: v1 listed WantSleep/WantPlay/
+# WantCuddle/WantBath at heads 4/5/7/8, which are the engine's WantPlay/
+# WantCuddle/WantBath/WantSleep; no gated v1 printout carried a want label.
+# Guarded against observe.rs in test_seating_read.py.
+MSG_NAMES = ["Silent", "WantEat", "WantDrink", "Mew", "WantPlay", "WantCuddle", "Purr",
+             "WantBath", "WantSleep", "HereFood", "HereWater", "HereCritter",
              "HereSunbeam", "Chirp", "Trill", "Ekekek"]
 # The SERVED behavior string per seat (what the live /config kitty[] carries),
 # so the heatmap artifact can be staleness-checked against the served roster

@@ -204,6 +204,21 @@ def test_welfare_gap():
     assert abs(leg["welfare"]["nash_mean"] - float(z["nash"].mean())) < 1e-12
 
 
+def test_msg_names_follow_the_engine_head_kinds():
+    # red: a label table out of the engine's HEAD_KINDS order (v1 shipped
+    # one: heads 4/5/7/8 mislabeled until 2026-10-21). The reference is
+    # the Rust source itself, parsed here, never a copied list.
+    import re
+    src = (HERE.parents[1] / "crates/cloudkitty-rl/src/observe.rs").read_text()
+    block = re.search(r"pub const HEAD_KINDS: \[MessageKind; (\d+)\] = \[(.*?)\];",
+                      src, re.S)
+    kinds = re.findall(r"MessageKind::(\w+)", block.group(2))
+    assert len(kinds) == int(block.group(1)) == 15, kinds
+    assert sr.MSG_NAMES == ["Silent"] + kinds, (sr.MSG_NAMES, kinds)
+    import seating_summary
+    assert seating_summary.MSG is sr.MSG_NAMES
+
+
 if __name__ == "__main__":
     import sys
     fns = [v for n, v in sorted(globals().items()) if n.startswith("test_")]
