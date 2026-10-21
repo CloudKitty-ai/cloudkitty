@@ -373,3 +373,122 @@ ALL five seeds" conflated south-of-midline with south-of-Miso
 (three cat-seeds sit north of 9.5), and "through Clementine"
 understated Miso's tie to Biscuit (1,679, 94% of 1,793) — both
 compression errors in the summary sentence, not the table.
+
+## Correction (2026-10-21): the activity and partner columns read low
+
+Found in Gen 2's seating analysis on the owner's question (2026-10-21,
+verbatim: "Those eat and drink numbers look suspiciously low (e. g.
+0.007 for biscuit)"). This reader takes each cat's activity and
+partner from the end-of-tick state, after the engine has closed every
+scene that finished that tick, so a scene's last tick reads as Idle
+with no partner (the F-031 instrument rule). Every activity share in
+§The numbers reads low and Idle reads high; so do the partnered share,
+the pair ticks and the per-cat tick counts built on them. Happiness,
+distress, speech, positions, home range and the steady-state read use
+neither flag and stand.
+
+Gen 1's streams carry no record of the applied action. Her ruling
+(verbatim: "1 for gen 2") gives Gen 1 the flag-only method of
+`../seating-analysis-g2-2026-10-21/DECLARATION.md` Amendment 1,
+checked against exact counts on two Gen 2 rosters
+(`../seating-analysis-g2-2026-10-21/RESULTS.md` §Correction, read 2:
+drink exact for all ten cats, eat within 13 ticks, every true value
+inside its range).
+
+Corrected shares, pooled over the five seeds (eat and drink are the
+method's estimates; the rest run floor..ceiling; Gen 1 has no one-tick
+meals):
+
+| cat | Eat | Drink | Idle | Rest | Sleep | Play | Groom | partnered |
+|---|---|---|---|---|---|---|---|---|
+| Miso | 0.046 | 0.058 | 0.373..0.541 | 0.117..0.138 | 0.188..0.225 | 0.036..0.071 | 0.066..0.089 | 0.236..0.295 |
+| Biscuit | 0.024 | 0.033 | 0.246..0.543 | 0.015..0.018 | 0.149..0.179 | 0.227..0.450 | 0.038..0.051 | 0.178..0.232 |
+| Pumpkin | 0.096 | 0.060 | 0.441..0.615 | 0.129..0.152 | 0.089..0.107 | 0.041..0.080 | 0.048..0.063 | 0.196..0.244 |
+| Kittybear | 0.049 | 0.044 | 0.411..0.573 | 0.116..0.136 | 0.115..0.138 | 0.035..0.070 | 0.114..0.152 | 0.205..0.260 |
+| Clementine | 0.048 | 0.050 | 0.443..0.592 | 0.184..0.218 | 0.105..0.126 | 0.033..0.065 | 0.036..0.049 | 0.273..0.342 |
+
+On Gen 2's two rosters the true value sat near the top of its range
+for sleep, partnered and play (0.998–1.0, 0.93–0.99 and 0.88–0.91 of
+the way up), mid-range for rest and grooming (0.45–0.71, 0.66–0.97),
+and near the floor for Idle (0.09–0.17).
+
+§The reading, checked at both ends (each claim recomputed with the
+tick after every flag run that ends in Idle restored, and compared
+floor with floor, ceiling with ceiling):
+
+- **Biscuit's different economy holds.** Play 0.227..0.450 against
+  the others' 0.033..0.080, 5.6–6.9× at either end; Rest nearly
+  absent (0.015..0.018); still the sparsest cadences (eat 82 against
+  19–43 and drink 64 against 31–45 at the ceiling).
+- **Beam sleep stays small**: 0.8–8.1% of sleep ticks per cat, pooled
+  4.3%, at the ceiling as at the flag.
+- **The social reading holds.** Clementine has the highest partnered
+  share at both ends (0.273, 0.342). Pumpkin–Kittybear stays the top
+  pair from each of their sides, Clementine a top-two pair from every
+  other cat's side, and Biscuit–Clementine the first pair (1,952 at
+  the flag, 2,355 at the ceiling); the top seven pairs keep their
+  order. Reciprocity (0.72–0.96) is a ratio of the two directions and
+  is not re-derived.
+- **"No stable routine" narrows.** Sleep's ceiling equals its exact
+  count on Gen 2's rosters (4 of 7,306 tail ticks were not sleep), so
+  the restored sleep stream is close to exact. On it, no cat holds a
+  period in all five seeds, but Kittybear's dominant lag falls at
+  1,076–1,139 in three of five (autocorrelation 0.046–0.049, no
+  stronger than the scattered peaks); every other cat still scatters
+  (lags 51–3,686 overall).
+
+The flagged-values addendum below reads the same columns: its
+activity, partnered, cadence and tick-count rows are flag reads, and
+the pattern it flags (Biscuit's play, Miso's sleep, Clementine's
+partnering) holds at both ends of the ranges above.
+
+### Regeneration (correction)
+
+Read (seconds; lab venv, repo root): `correction_read.py` in
+`../seating-analysis-g2-2026-10-21/` (its §Correction Read fence runs
+it), then:
+
+```
+python3 - <<'EOF2'
+import json
+C = json.load(open("experiments/seating-analysis-g2-2026-10-21/correction-read.json"))
+G = {c["cat"]: c for c in C["gen1"]}
+assert all(c["ticks"] == 100000 and c["one_tick_meals"] == 0 for c in G.values())
+want = {"Miso": (0.046, 0.058, [0.373, 0.541], [0.117, 0.138], [0.188, 0.225], [0.036, 0.071], [0.066, 0.089], [0.236, 0.295]),
+        "Biscuit": (0.024, 0.033, [0.246, 0.543], [0.015, 0.018], [0.149, 0.179], [0.227, 0.450], [0.038, 0.051], [0.178, 0.232]),
+        "Pumpkin": (0.096, 0.060, [0.441, 0.615], [0.129, 0.152], [0.089, 0.107], [0.041, 0.080], [0.048, 0.063], [0.196, 0.244]),
+        "Kittybear": (0.049, 0.044, [0.411, 0.573], [0.116, 0.136], [0.115, 0.138], [0.035, 0.070], [0.114, 0.152], [0.205, 0.260]),
+        "Clementine": (0.048, 0.050, [0.443, 0.592], [0.184, 0.218], [0.105, 0.126], [0.033, 0.065], [0.036, 0.049], [0.273, 0.342])}
+r3 = lambda v: [round(x, 3) for x in v]
+for cat, w in want.items():
+    g = G[cat]
+    got = (round(g["eat"], 3), round(g["drink"], 3), *[r3(g["ranges"][a]) for a in ("Idle", "Rest", "Sleep", "Play", "Groom")], r3(g["partnered (added)"]))
+    assert got == w, (cat, got)
+MC = C["method_check"]
+pos = lambda a: (round(min(c["activities"][a]["position"] for r in MC for c in MC[r]), 2), round(max(c["activities"][a]["position"] for r in MC for c in MC[r]), 2))
+assert (pos("Sleep"), pos("Play"), pos("Rest"), pos("Groom"), pos("Idle")) == ((1.0, 1.0), (0.88, 0.91), (0.45, 0.71), (0.66, 0.97), (0.09, 0.17))
+pp = [c["partnered (added)"]["position"] for r in MC for c in MC[r]]
+assert (round(min(pp), 2), round(max(pp), 2)) == (0.93, 0.99)
+others = ("Miso", "Pumpkin", "Kittybear", "Clementine")
+for end in (0, 1):
+    ratios = [G["Biscuit"]["ranges"]["Play"][end] / G[c]["ranges"]["Play"][end] for c in others]
+    assert (round(min(ratios), 1), round(max(ratios), 1)) == (5.6, 6.9), (end, ratios)
+    assert max(G, key=lambda c: G[c]["partnered (added)"][end]) == "Clementine"
+    assert max(G, key=lambda c: G[c]["ranges"]["Sleep"][end]) == "Miso"
+X = C["gen1_checks (added)"]
+assert X["eat_cadence_ceiling"] == [43, 82, 19, 39, 40] and X["drink_cadence_ceiling"] == [38, 64, 31, 45, 39]
+assert (min(X["beam_share_ceiling"]), max(X["beam_share_ceiling"]), X["beam_share_ceiling_pooled"]) == (0.008, 0.081, 0.043)
+L = X["routine_lags_ceiling"]
+assert L[3] == [54, 51, 1097, 1139, 1076] and min(min(l) for l in L) == 51 and max(max(l) for l in L) == 3686
+P = X["pair_ticks"]
+order_lo = sorted(P, key=lambda p: -P[p][0])[:7]
+order_hi = sorted(P, key=lambda p: -P[p][1])[:7]
+assert order_lo == order_hi == ["Biscuit-Clementine", "Miso-Clementine", "Miso-Biscuit", "Pumpkin-Kittybear", "Kittybear-Clementine", "Pumpkin-Clementine", "Miso-Kittybear"]
+assert P["Biscuit-Clementine"] == [1952, 2355]
+for end in (0, 1):
+    side = lambda c: sorted((p for p in P if c in p.split("-")), key=lambda p: -P[p][end])
+    assert side("Pumpkin")[0] == side("Kittybear")[0] == "Pumpkin-Kittybear"
+    assert all(any("Clementine" in p for p in side(c)[:2]) for c in ("Miso", "Biscuit", "Pumpkin", "Kittybear"))
+print("Gen 1 correction fence: all cells match")
+EOF2
+```

@@ -153,6 +153,64 @@ def model_ranges():
     return out
 
 
+def tailfill(a, x):
+    """Indicator of activity x with the tick after each x run that ends in
+    Idle restored (read 2's ceiling, per tick)."""
+    m = a == x
+    return m | np.r_[False, m[:-1] & (a[1:] == 0)]
+
+
+def gen1_checks(files):
+    """Added beyond the declaration: Gen 1's flag-read claims recomputed at
+    the ceiling (the tick after each run that ends in Idle restored), so a
+    claim that holds at both the flag (floor) and the ceiling holds."""
+    R = len(sr.CATS)
+    cad = {"eat": [[] for _ in range(R)], "drink": [[] for _ in range(R)]}
+    lags = [[] for _ in range(R)]
+    beam = np.zeros((R, 2), np.int64)
+    pairs = {}
+    for f in files:
+        z = np.load(f)
+        meta = json.loads(str(z["meta"]))
+        A, P, pos = z["activity"], z["partner"], z["pos"]
+        bt = sr.element_tiles(z["elements"], meta["element_types"]["Sunbeam"])
+        T = len(A)
+        for k in range(R):
+            a = A[:, k]
+            for name, x in (("eat", sr.EAT_ACT), ("drink", sr.DRINK_ACT)):
+                cad[name][k].append(float(np.median(np.diff(sr.starts_of(tailfill(a, x))))))
+            sl = tailfill(a, sr.SLEEP_ACT)
+            s0 = sl.astype(float) - sl.mean()
+            den = float((s0 * s0).sum())
+            acf = np.array([float((s0[:-l] * s0[l:]).sum()) / den for l in range(1, min(4000, T - 2) + 1)])
+            lags[k].append(int(np.argmax(acf[sr.ROUTINE_MIN_LAG:]) + sr.ROUTINE_MIN_LAG + 1))
+            inb = np.array([(int(pos[t, k, 0]), int(pos[t, k, 1])) in bt[t] for t in range(T)])
+            beam[k] += (int((sl & inb).sum()), int(sl.sum()))
+        named = P[:, :, 0] == 1
+        tail = np.zeros_like(named)
+        tail[1:] = named[:-1] & (A[1:] == 0)
+        for k in range(R):
+            for j in range(R):
+                if j == k:
+                    continue
+                key = "-".join(sr.CATS[i] for i in sorted((k, j)))
+                lo = (named[:, k] & (P[:, k, 1] == j)) | (named[:, j] & (P[:, j, 1] == k))
+                prev_j = np.r_[False, (P[:-1, k, 1] == j)]
+                prev_k = np.r_[False, (P[:-1, j, 1] == k)]
+                hi = lo | (tail[:, k] & prev_j) | (tail[:, j] & prev_k)
+                c = pairs.setdefault(key, [0, 0])
+                if k < j:
+                    c[0] += int(lo.sum())
+                    c[1] += int(hi.sum())
+    n = len(files)
+    return {"eat_cadence_ceiling": [round(float(np.mean(c))) for c in cad["eat"]],
+            "drink_cadence_ceiling": [round(float(np.mean(c))) for c in cad["drink"]],
+            "routine_lags_ceiling": lags,
+            "beam_share_ceiling": [round(b[0] / b[1], 3) for b in beam],
+            "beam_share_ceiling_pooled": round(int(beam[:, 0].sum()) / int(beam[:, 1].sum()), 3),
+            "pair_ticks": {p: [round(v[0] / n), round(v[1] / n)] for p, v in sorted(pairs.items(), key=lambda kv: -kv[1][0])}}
+
+
 def components(tiles):
     """Each cat's walk-adjacent group size (disp_account's rule)."""
     R = len(tiles)
@@ -231,6 +289,7 @@ def main():
     out = {"method_check": {r: method_check(fs) for r, fs in files.items()},
            "gen1": gen1_estimate(GEN1),
            "model_ranges (added)": model_ranges(),
+           "gen1_checks (added)": gen1_checks(GEN1),
            "reclassify": {r: reclassify(fs) for r, fs in files.items()}}
     for r, cats in out["method_check"].items():
         print(f"== read 2, {r}: exact / flag / estimate or floor..ceiling (share of ticks)")
@@ -252,6 +311,11 @@ def main():
         print(f"  {c['cat']}: eat {c['eat']:.3f} (flag {c['flag']['Eat']:.3f}) | drink {c['drink']:.3f} "
               f"(flag {c['flag']['Drink']:.3f}) | {rg} | partnered {c['partnered (added)'][0]:.3f}.."
               f"{c['partnered (added)'][1]:.3f} | one-tick meals {c['one_tick_meals']}")
+    g = out["gen1_checks (added)"]
+    print("== Gen 1 claims at the ceiling (added): eat cadence", g["eat_cadence_ceiling"], "drink", g["drink_cadence_ceiling"],
+          "| beam share", g["beam_share_ceiling"], "pooled", g["beam_share_ceiling_pooled"])
+    print("   routine lags", g["routine_lags_ceiling"])
+    print("   pair ticks flag..ceiling", g["pair_ticks"])
     print("== rotation, flag-only ranges per network (added)")
     for n, m in out["model_ranges (added)"].items():
         print(f"  {n} ({m['seat_worlds']} seat-worlds): " + " | ".join(f"{k} {v[0]:.3f}..{v[1]:.3f}" for k, v in m.items() if k != "seat_worlds"))
