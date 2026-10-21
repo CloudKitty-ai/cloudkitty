@@ -12,16 +12,20 @@ LOG="$HERE/results-raw/run.log"
 mkdir -p "$HERE/results-raw"
 export VIRTUAL_ENV="$VENV"
 
-declare -A CFG=(
-  [C2]="$HERE/w2-teacher-d1.toml"
-  [C3]="$HERE/w2-gen1b-d2.toml"
-  [C4]="$HERE/w2-gen1b-d1.toml"
-  [C5]="$EXPTS/fog-gen1-cert/anchor-b3.toml"
-  [C6]="$HERE/w1-gen1b-d1.toml"
-)
+# macOS ships bash 3.2: no associative arrays, so a case picks the config.
+cfg_of() {
+  case "$1" in
+    C2) echo "$HERE/w2-teacher-d1.toml" ;;
+    C3) echo "$HERE/w2-gen1b-d2.toml" ;;
+    C4) echo "$HERE/w2-gen1b-d1.toml" ;;
+    C5) echo "$EXPTS/fog-gen1-cert/anchor-b3.toml" ;;
+    C6) echo "$HERE/w1-gen1b-d1.toml" ;;
+    *) echo "unknown cell $1" >&2; exit 2 ;;
+  esac
+}
 
 for cell in C2 C3 C4 C5 C6; do
-  cfg="${CFG[$cell]}"
+  cfg="$(cfg_of "$cell")"
   echo "== $cell $(basename "$cfg") $(date -u +%FT%TZ)" | tee -a "$LOG"
   mkdir -p "$HERE/results-raw/$cell"
   pids=()
