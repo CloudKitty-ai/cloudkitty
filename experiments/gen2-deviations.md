@@ -417,6 +417,12 @@ answered by her 2026-10-20 framing ("informative only, not a gate")
 and the informational row read; (d) the leg stop is built (492ed69d).
 Still OPEN: (a) whether post-stop rows may be cited.
 
+Correction recorded 2026-10-21: the step-8 declaration's framing of
+uniform seating as "the CTDE-declared deployment shape (prereg R§7)"
+was a misreading (R§7's weight sharing is training-time; the seating
+rule is F-044's five distinct networks, kept by the owner the same
+day). Correction note appended to `gen2-cert-battery-2026-10-20/DECLARATION.md`.
+
 ## 5. Three additional trunk seeds for the five-network seating roster (2026-10-20)
 
 Owner, 2026-10-20, verbatim: "Let's train 3 more and run them all

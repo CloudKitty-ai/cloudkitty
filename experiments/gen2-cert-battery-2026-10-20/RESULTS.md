@@ -566,9 +566,11 @@ Kittybear (s7) carries a cuddle run of 128 split parked 42% / idle
 84% moving. At 100×100 there are 43: 27 moving-dominant, 15
 parked-dominant, 1 idle. All 15 parked runs are Kittybear's, the seat
 s7 holds, including the worst of the leg (cuddle, 859 ticks: parked
-40%, idle 35%, moving 25%). s7's water parking, which mixed company
-and the Kittybear seat kept short at 20×20, returns on the big map,
-where company is scarce.
+40%, idle 35%, moving 25%). That is the shape of s7's water parking,
+which mixed company and the Kittybear seat kept short at 20×20, on
+the big map where company is scarce. The shape read does not record
+which relief the cat stood at, so drinking-while-sated is consistent
+with these runs, not confirmed for them.
 
 ## Read (Phase C; seconds; stdlib python3, repo root)
 

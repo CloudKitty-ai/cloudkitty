@@ -106,3 +106,16 @@ entry or a Gen 3 arm, per the owner-assessed options of 2026-10-20.
 `results-raw/` in this directory (native checkout, never delete,
 never commit): `scouts/` and `legs/` per seating via `--out-dir
 results-raw/<seating>`.
+
+## Correction (2026-10-21)
+
+The Seatings section above calls one artifact in all five seats "the
+CTDE-declared deployment shape (prereg R§7)". That misreads R§7: its
+actor weight sharing is one of three TRAINING-time channels and says
+nothing about deployment. The standing seating rule is F-044's five
+distinct networks (owner 2026-09-16), which the owner kept on
+2026-10-21 ("Let's train 3 more and run them all through the
+certification process"; deviations entry 5). The uniform seatings
+here are therefore all-copies stress reads of each network; the
+certificate for the roster that would be seated is Phase C's
+five-network rot2 (`RESULTS.md` §Phase C).
