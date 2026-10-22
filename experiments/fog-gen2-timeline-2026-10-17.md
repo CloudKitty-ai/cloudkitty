@@ -221,8 +221,12 @@ consent BC comparison ride the trunk.
   ALTERNATES for the digest only; launched 2026-10-22T05:40Z, three in
   parallel. s8 HALTED ~06:04Z by the frozen §6 probe-distress stop
   (streak 392 on world 40002 at u299; deviations entry 8, closed by
-  entry 7's terms: no legs, no automatic replacement); s9 and s10
-  continue. The digest runs 20×20 with every completion as an
+  entry 7's terms: no legs, no automatic replacement); REPLACED by
+  s11 on her word ("Replace s8 just in case.", entry 8 ruling,
+  launched 06:28Z); s11 HALTED ~06:35Z at u99 on probe world 40003
+  (streak 371; entry 9, closed by entry 7's terms; a further
+  replacement is her call). Four of ten same-recipe seeds have
+  tripped the §6 stop, all inside 1M ticks. s9 and s10 continue. The digest runs 20×20 with every completion as an
   alternate once they end. Call 3: §9.4 partner_absent WAITS behind
   the mini models and the prod seating, her ruling.
   TAIL READS: owner 2026-10-22 "Run the tail reads" → battery RESULTS

@@ -563,3 +563,26 @@ the identical pinned recipe and binding as entry 7's seeds, launched
 for the swaps digest only, never a roster seat; a frozen §6 stop
 halts it, owner-routed, never resumed. No investigation of s8's halt
 was asked for; none runs. s8's weights and probe traces stay on disk.
+
+## 9. PPO trunk-s11 halted by the frozen §6 probe-distress stop (2026-10-22)
+
+trunk-s11 (entry 8's replacement; seed 11, run index 106, stripe
+2,220,000,000+) halted at update 99 / 307,200 ticks, 2026-10-22
+~06:35Z: a 371-tick engine-distress streak on probe world 40003, the
+trio's third (bar 300). Its probe rows: u49 streak 6 on world 40001;
+u99 371 on world 40003 (18 on 40001). Nash 0.8016 at the stopping
+probe. Final saved with stop_reason probe-distress-stop (sha256
+5f87a01d…); checkpoint and probe traces kept on disk; never resumed.
+s9 and s10 continue (updates 700 and 750 at the halt, every probe
+streak 0 since update 349).
+
+Context, recorded not interpreted: four of ten same-recipe seeds
+have now tripped this stop (s3 u249, s5 u199, s8 u299, s11 u99), all
+inside the first 1M ticks, on all three probe worlds between them;
+the six completed seeds ran 8.0–9.0M ticks with max probe streaks
+103–247. Alternates for the swaps digest: none completed yet; s9 and
+s10 are the remaining candidates.
+
+Status: CLOSED by entry 7's terms (no legs, no automatic
+replacement). Whether a further replacement is drawn is the owner's;
+none is assumed. No investigation run.
