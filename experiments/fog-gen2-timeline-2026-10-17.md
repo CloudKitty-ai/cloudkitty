@@ -214,13 +214,22 @@ consent BC comparison ride the trunk.
   between the cert legs travelled with the radius, on the teacher's
   side; descriptive, the certificate stands; all scouts and legs clean.
   Call 2 is a question, answered 2026-10-22 (yes, cheap: ~3.3 h per
-  seed, three in parallel as s5–s7 ran); training three more seeds
-  takes her kickoff word and a deviations entry (entry 5's shape:
-  slots s8–s10, run indices 103–105, stripes claimed before first
-  burn, same pinned recipe and binding), and would supply the swaps
-  digest's alternates (2 needed; the record's §6 stop rate is 2 of 7
-  seeds). Call 3: §9.4 partner_absent WAITS behind the mini models and
-  the prod seating, her ruling.
+  seed, three in parallel as s5–s7 ran); then RULED 2026-10-22,
+  verbatim: "Train the additional seeds so we can run the swaps
+  digest" → deviations entry 7 (04f0bce5): trunk-s8/s9/s10, run
+  indices 103–105, stripes claimed, pinned recipe and binding,
+  ALTERNATES for the digest only; launched 2026-10-22T05:40Z, three in
+  parallel. The digest runs 20×20 with every completion as an
+  alternate once they end. Call 3: §9.4 partner_absent WAITS behind
+  the mini models and the prod seating, her ruling.
+  TAIL READS: owner 2026-10-22 "Run the tail reads" → battery RESULTS
+  §"s4/s7 tail reads" (reader cedcd37b declared before replay): six
+  worlds replayed with a per-seat stop at 100 ticks; s7's two unread
+  tails are water parking, pure (six of six s7 tails now); s4's four
+  are not that habit: a group HOLD at 20×20 (Miso and Biscuit, water
+  out of sight), two cuddle tails pacing alone at 40×40, one parked
+  mix. The first replay pass was lost to a serialisation error after
+  running, so the replays ran twice (disclosed in the section).
 
 ## Flagged follow-ups (owner's word to start)
 

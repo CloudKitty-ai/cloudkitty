@@ -991,3 +991,40 @@ section the figure is famous from; (3) "as X found" is a provenance
 claim about X's text, read X; (4) when a recorded row is reused as
 one cell of a design, its config AND binding sha go in the write-up
 beside the new rows', and any difference is shown inert or stated.
+
+## 2026-10-22 — gen2-cert-battery §s4/s7 tail reads, two rounds (Experiments)
+
+Scope: a replay-backed section (six worlds, seven runs, per-seat early
+stop). The Read fence re-exposes covered minds, so round 2 was told to
+reuse round 1's fresh JSON (deep-identical to the recorded; replay
+deterministic) instead of replaying a third time — stated on the stamp.
+- Round 1 FAIL, 3 CONTRADICTED + 2 WEAK: the reader's placement order
+  listed out of table order (first two swapped); "three needs" for six
+  cases that cover two; "Phase B" applied to s4's worlds (step-8
+  battery) and "Phase A rows" for s4's battery rows; "resting with
+  Miso on 24 of 25 ticks" (24 = CHOSEN RestWithKitty0, rest activity
+  20, and the kitty slot is nearest-first, not a name); "drank sated
+  on 22 ticks" (chosen 22, activity 11); "no cat in sight" where the
+  reader records walk-adjacency; an unscoped "289–587 ticks longer".
+  Also caught outside the section: the Read header's "~5 min" (about
+  a minute) and the docstring's welfare range.
+- Round 2 FAIL, 1 CONTRADICTED + 5 WEAK: the round-1 fix itself was
+  wrong ("the nearest cat's slot": kitty slots are permanent by id,
+  spec 049 FR-011, so slot 0 from Biscuit IS Miso — round 1's ground
+  was the critter/element fill rule); "replayed once" beside "ran
+  twice"; a shortfall computed as if Pumpkin's window were the 641
+  run; Biscuit's chosen count without its activity share; a Phase C
+  parked/idle split implied as this reader's; "six of six tails"
+  where three of the six are under the section's own 300 bar.
+- Round 3 PASS (~96 arithmetic, 7 threshold, 21/22 characterisations,
+  13 provenance; 1 WEAK fixed post-round, 1 UNDECIDABLE closed by the
+  landing commit's message). The first replay pass was gate-reused for
+  rounds 2 and 3 (welfare), stated on the stamp.
+Lessons: (1) a chosen-action count and an activity share are two
+numbers; say which; (2) a kitty slot index names a neighbour, never a
+cat; (3) "in sight" needs a sight field — alone_share is adjacency;
+(4) phase names are provenance: look the world up in the phase
+definition before labelling it; (5) list a reader's classification in
+the table's order or not at all; (6) a gate's correction is a claim
+too — check the subagent's ground (FR-011) before adopting it; (7) a
+word the section defines ("tail" = 300+) binds every later count.

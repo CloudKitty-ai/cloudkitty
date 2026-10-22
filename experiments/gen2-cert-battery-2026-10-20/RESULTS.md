@@ -730,3 +730,162 @@ SUPPORTED, 0 UNDECIDABLE; the doctrine companion's one word "served" →
 copy-checked: F-050's dated note, doctrine rule 7's worked example, the
 GEN2-INPUTS shelf entry. Raws are the battery's existing rows (hash per
 the Phase C stamp); the reader adds no raw.
+
+## s4/s7 tail reads (2026-10-22; owner "Run the tail reads")
+
+Reader `diag_tails.py`, declared in its docstring and committed before
+any replay (cedcd37b). Six uniform-seating worlds (s4's from the step-8
+battery, s7's from Phase B), seven cat-runs: every streak of 300 ticks
+or more in s4's and s7's 20×20 and 40×40 legs that no read had touched (the s7 investigation read 905029 at 40×40; the s2
+stop and the 100×100 rows were read separately). Each pass replays
+each world once with the seating collector on its leg's config with the
+distress stop watching the target seat alone at 100 ticks
+(`abort_seat`, added for this read), so the replay stops 100 ticks into
+the target's run. Controls passed in all six: the stopping seat is the
+target at exactly 100, and every other seat's longest streak in the
+replay is at or under its recorded row maximum. The recorded run was
+the cat's only one in six of seven cases (distress ticks equal the
+longest streak); Pumpkin in 905004 had 804 distress ticks against a
+641 streak, so its window is a run of 100 or more there, not
+necessarily the 641.
+
+The replays ran twice: the first pass completed all six and then lost
+them to a serialisation error in the reader's final write (a numpy
+integer in the controls), so the target cats' re-exposure was at least
+2 × (6 × 100 + 25) = 1,250 distress ticks (the windows; Pumpkin's
+earlier distress before its window in 905004, up to 163 ticks per
+pass, is not recorded) against the 3,645 recorded over the seven runs, and the other seats twice re-experienced only
+what precedes each stop (stops at ticks 324, 228, 16,463, 324, 6,910
+and 228). The reader now writes after every world.
+
+| world | cat | recorded streak | need | chosen, top three | Drink while thirst < 10 | moving | alone | in 3+ group | shape |
+|---|---|---|---|---|---|---|---|---|---|
+| s4 20×20 905029 | Miso | 535 | drink | SleepWithKitty0 30, PlayKitty0 23, SleepWithKitty3 18 | 0 | 0.17 | 0.11 | 0.62 | held |
+| s4 20×20 905029 | Biscuit (same window, last 25 ticks) | 468 | drink | RestWithKitty0 24, SleepWithKitty0 1 | 0 | 0.00 | 0.00 | 1.00 | held |
+| s4 40×40 905017 | Clementine | 687 | cuddle | Drink 22, MoveS 21, MoveN 18 | 22 | 0.60 | 1.00 | 0.00 | pacing |
+| s4 40×40 905002 | Biscuit | 602 | cuddle | Drink 47, SleepSolo 12, GroomSelf 8 | 47 | 0.24 | 1.00 | 0.00 | parked mix |
+| s4 40×40 905025 | Miso | 389 | cuddle | MoveE 35, MoveW 35, SleepSolo 25 | 0 | 0.70 | 1.00 | 0.00 | pacing |
+| s7 40×40 905004 | Pumpkin | 641 | eat | Drink 100 | 100 | 0.00 | 1.00 | 0.00 | parked |
+| s7 40×40 905015 | Clementine | 323 | cuddle | Drink 100 | 100 | 0.00 | 1.00 | 0.00 | parked |
+
+The reader's own three-way placement (moving ≥ 0.5 → searching;
+Drink-while-sated ≥ half the window and moving ≤ 0.2 → parked; else
+other) gives other / searching / other / searching / parked / parked
+for the six targets in table order and other for Biscuit's companion
+run; the "shape"
+column above names what the numbers show within "other" and
+"searching", as read here.
+
+**s7's two are water parking, pure.** Pumpkin (eat) and Clementine
+(cuddle) each chose Drink on all 100 ticks with thirst at 0.4, never
+moved, and were alone throughout; Pumpkin's chow sat a median 7 tiles
+away (24 chow tiles on the map) and was never in sight at radius 5.
+With the four cases of the s7 investigation (three rotation runs of
+84–121 ticks and the 622) that makes six of six s7 distress runs read
+water parking, both sizes, two needs (eat and cuddle); every s7 run of
+300 or more (641, 622, 323) now has a read, the 641's subject to the
+window caveat above.
+
+**s4's four are not that habit.** None is a still cat choosing Drink
+throughout:
+
+- The 20×20 tail is a HOLD. Miso, thirst at or past 90 the whole
+  window, spent 62% of it in a walk-adjacent group of three or more,
+  11% alone, and chose SleepWithKitty0, PlayKitty0, SleepWithKitty3 and
+  RestWithKitty0 (77 of 100 ticks) with water a median 10 tiles away
+  and never in sight at radius 4. Biscuit's 468-tick run begins 75
+  ticks later in a group of three or more throughout, choosing
+  RestWithKitty0 on 24 of its 25 ticks (rest activity on 20); kitty
+  slots are fixed by id (spec 049 FR-011) and Miso is id 1, so slot 0
+  from Biscuit is Miso. By the holding account's definition (3+ group,
+  eat or drink ≥ 75, not eating or drinking) Miso's 62% of the window
+  in a 3+ group and Biscuit's whole window are held ticks; s4's rows
+  predate the account (its step-8 rows carry no `holding` field), so
+  it was never printed for them. This is the
+  shape the vision follow-up's teacher fix is aimed at, on a trained
+  seat.
+- Two 40×40 cuddle tails are pacing alone: Clementine (687) moved on
+  60% of the window with MoveS 21 against MoveN 18, Miso (389) on 70%
+  with MoveE 35 against MoveW 35, each with every other need low
+  (Clementine eat 8.6, drink 15.2; Miso eat 38.5, drink 29.0, sleep
+  8.0) and no cat walk-adjacent on any tick (sight is not recorded by
+  this reader). Clementine also chose Drink on 22 ticks while sated,
+  with drink activity on 11.
+- The third 40×40 cuddle tail, Biscuit (602), is the parked mix:
+  alone, choosing Drink while sated on 47 of 100 ticks (drink activity
+  on 23), moving 24%, SleepSolo 12 and GroomSelf 8 — the parked-idle
+  mix Phase C read on Kittybear at 40×40 (parked 42% / idle 46% there;
+  this reader prints no such split), here on an s4 seat.
+
+Every s4 tail is a cat whose relief needs another cat or a tile it
+cannot see: cuddle with no cat adjacent at 40×40 (three cases), or
+water out of sight while the group holds (one case, two cats). No
+window ended in tending (the stop comes first; the five s4 windows
+stopped 289–587 ticks short of their recorded runs; Clementine's s7
+window 223 short, Pumpkin's 541 if its window is the 641 run). Descriptive (rule 10): nothing here is a bar
+and the certificate stands; s4 sits in rot2 at Biscuit's seat.
+
+## Read (tail reads; about a minute of replays; lab venv, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B diag_tails.py --out /private/tmp/diag-tails.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+res = json.load(open("/private/tmp/diag-tails.json"))
+assert [(c["seating"], c["size"], c["seed"], c["target"], c["recorded_longest"], c["recorded_dist_ticks"]) for c in res] == [
+    ("g2-s4", 20, 905029, "Miso", 535, 535), ("g2-s4", 40, 905017, "Clementine", 687, 687),
+    ("g2-s4", 40, 905002, "Biscuit", 602, 602), ("g2-s4", 40, 905025, "Miso", 389, 389),
+    ("g2-s7", 40, 905004, "Pumpkin", 641, 804), ("g2-s7", 40, 905015, "Clementine", 323, 323)]
+assert all(c["controls"]["target_streak_is_100"] and c["controls"]["others_within_row"] for c in res)
+assert [c["controls"]["stopped_at"] for c in res] == [324, 228, 16463, 324, 6910, 228]
+runs = [r for c in res for r in c["runs"]]
+got = [(r["seat"], r["need"], r["length"], r["chosen_top"][:3], r["drink_while_sated"], r["moving_share"], r["alone_share"], r["group3_share"], r["shape"]) for r in runs]
+assert got == [
+    ("Miso", "drink", 100, [["SleepWithKitty0", 30], ["PlayKitty0", 23], ["SleepWithKitty3", 18]], 0, 0.17, 0.11, 0.62, "other"),
+    ("Biscuit", "drink", 25, [["RestWithKitty0", 24], ["SleepWithKitty0", 1]], 0, 0.0, 0.0, 1.0, "other"),
+    ("Clementine", "cuddle", 100, [["Drink", 22], ["MoveS", 21], ["MoveN", 18]], 22, 0.6, 1.0, 0.0, "searching"),
+    ("Biscuit", "cuddle", 100, [["Drink", 47], ["SleepSolo", 12], ["GroomSelf", 8]], 47, 0.24, 1.0, 0.0, "other"),
+    ("Miso", "cuddle", 100, [["MoveE", 35], ["MoveW", 35], ["SleepSolo", 25]], 0, 0.7, 1.0, 0.0, "searching"),
+    ("Pumpkin", "eat", 100, [["Drink", 100]], 100, 0.0, 1.0, 0.0, "parked"),
+    ("Clementine", "cuddle", 100, [["Drink", 100]], 100, 0.0, 1.0, 0.0, "parked")], got
+m, b = runs[0], runs[1]
+assert m["span"] == [224, 323] and b["span"] == [299, 323] and m["need_at_start_end"][0] == 90.0
+assert sum(n for a, n in m["chosen_top"] if a in ("SleepWithKitty0", "PlayKitty0", "SleepWithKitty3", "RestWithKitty0")) == 77
+assert m["relief"]["nearest_median"] == 10.0 and m["relief"]["in_sight_share"] == 0.0
+p = runs[5]
+assert p["relief"] == {"kind": "Chow", "count_median": 24, "nearest_median": 7.0, "nearest_first_last": [7, 7], "in_sight_share": 0.0}
+assert all(r["other_needs_mean"]["drink"] == 0.4 for r in (runs[5], runs[6]))
+assert runs[2]["other_needs_mean"]["eat"] == 8.6 and runs[2]["other_needs_mean"]["drink"] == 15.2
+assert runs[4]["other_needs_mean"]["eat"] == 38.5 and runs[4]["other_needs_mean"]["drink"] == 29.0 and runs[4]["other_needs_mean"]["sleep"] == 8.0
+assert all(r["ended_by_tending_within_30"] in (None, False) for r in runs)
+assert 535 + 468 + 687 + 602 + 389 + 641 + 323 == 3645 and 2 * (6 * 100 + 25) == 1250
+print("tail reads fence: all cells match")
+EOF2
+```
+
+Guards: `test_diag_tails.py` (2; lab venv): t1 the shape placement
+follows the declared thresholds on the recorded reads; t2
+`drink_while_sated` equals an independent per-tick count on a recorded
+rot2 stream. Reds on record via `scripts/mutate.sh`, predicted then
+confirmed, restored at 2 passed: the searching threshold 0.5 → 0.9 →
+t1 (Clementine at 0.60 becomes other); thirst < 10 → < 100 → t2. The
+collector's `abort_seat` guard (`test_seating_g2.py`, 9) went red on
+`abort_due` reading the roster max (predicted, confirmed, restored at
+9 passed; recorded in the commit message of this section).
+
+Accuracy gate (tail reads): **PASS** 2026-10-22 after round 3 (round 1
+FAIL: placement order, "three needs", phase labels, two chosen-vs-activity
+counts, "in sight", an unscoped shortfall; round 2 FAIL: the round-1
+slot correction was itself wrong (kitty slots are by id, FR-011), plus
+five WEAK; round 3: ~96 arithmetic matched, 7 threshold sourced, 21 of 22
+characterisations SUPPORTED, 1 WEAK fixed after the round (the 641's
+read is subject to the window caveat), 1 UNDECIDABLE = the abort_due red,
+recorded in this section's commit message; 13 provenance). Round 1
+re-ran the Read fence (a third replay pass, fresh JSON deep-identical to
+the recorded); rounds 2 and 3 reused that fresh JSON rather than replay
+again, for the covered minds' sake. Raws are the battery's existing rows
+(hash per the Phase C stamp); the reader adds no raw, and the replay
+streams are not kept.
