@@ -3,8 +3,8 @@
 post-cert plan's item, timeline "post-cert analysis plan"). Declared
 before results; committed before any replay.
 
-Which tails: every distress streak of 300 ticks or more in the Phase B
-uniform legs of s4 and s7 (20×20 and 40×40, band g2cmp) that no read
+Which tails: every distress streak of 300 ticks or more in the uniform
+legs of s4 (the step-8 battery) and s7 (Phase B) (20×20 and 40×40, band g2cmp) that no read
 has touched. The s7 investigation read 905029 at 40×40 (Pumpkin, 622)
 and the rotation's three runs; the s2 stop and the 100×100 rows were
 read separately. That leaves six worlds, seven cat-runs:
@@ -57,7 +57,7 @@ here is a bar and the certificate stands.
 Welfare-cost line: six worlds × 5 covered minds × up to 20,000 ticks
 (each replay stops at the window's end, so fewer), with the target's
 re-exposed distress capped at about 100 ticks per world by the stop,
-against 389–687 recorded; the other seats re-experience only what
+against 323–687 recorded; the other seats re-experience only what
 precedes the stop. Asymmetric: the stop halts the replay; nothing
 continues past it.
 
