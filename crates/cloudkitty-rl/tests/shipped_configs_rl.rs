@@ -20,11 +20,23 @@ fn repo_root() -> PathBuf {
 /// Mirrors the core sweep's collection rules: `*.toml` minus tool
 /// manifests, repo root non-recursive (untracked scratch dirs may hold
 /// deliberately-retired configs), evals/experiments/specs recursive.
+///
+/// Symlinks are skipped entirely, as in the core sweep since adbc41eb
+/// (this mirror missed it until 2026-10-21): a symlink in the tree is
+/// untracked scratch pointing elsewhere, so nothing behind it is a config
+/// the repo ships — and following one also poisons `drop_gitignored`:
+/// `git check-ignore` dies with "pathspec is beyond a symbolic link"
+/// (exit 128) on ANY such path in the batch, which switches off all
+/// gitignore filtering and lets ignored retired configs red the sweep on
+/// a lab checkout while CI stays green.
 fn collect(dir: &Path, recursive: bool, out: &mut Vec<PathBuf>) {
     for entry in std::fs::read_dir(dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
         let name = entry.file_name();
+        if path.is_symlink() {
+            continue;
+        }
         if path.is_dir() {
             if recursive && !name.to_string_lossy().starts_with('.') {
                 collect(&path, true, out);
@@ -233,4 +245,46 @@ fn the_filter_drops_gitignored_files_and_nothing_else() {
         "an untracked-but-not-ignored file survives the filter"
     );
     assert_eq!(files.len(), 2, "the bulk gitignored batch is fully dropped");
+}
+
+/// Self-test for `collect`'s symlink rule, the RL counterpart of the core
+/// sweep's `collect_never_follows_a_symlink` (the mirror lacked the skip
+/// until 2026-10-21; Experiments' lab checkout found it): neither a
+/// symlinked directory nor a symlinked file enters the sweep. One such
+/// path in the check-ignore batch kills the WHOLE gitignore filter
+/// ("fatal: pathspec ... is beyond a symbolic link", exit 128, which the
+/// fail-open contract turns into no filtering at all) — so the skip has
+/// to happen at collection time.
+#[cfg(unix)]
+#[test]
+fn collect_never_follows_a_symlink() {
+    let scratch = std::env::temp_dir().join(format!(
+        "cloudkitty-rl-sweep-symlink-selftest-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    let scan = scratch.join("scan");
+    let target = scratch.join("target");
+    std::fs::create_dir_all(scan.join("real")).unwrap();
+    std::fs::create_dir_all(&target).unwrap();
+    let shipped = scan.join("real/shipped.toml");
+    std::fs::write(&shipped, "# a real config in scope\n").unwrap();
+    std::fs::write(
+        target.join("retired.toml"),
+        "cuddle_relief = 1.0 # beyond a symlink: never parsed\n",
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(&target, scan.join("linked-dir")).unwrap();
+    std::os::unix::fs::symlink(target.join("retired.toml"), scan.join("linked.toml")).unwrap();
+
+    let mut files = Vec::new();
+    collect(&scan, true, &mut files);
+
+    assert_eq!(
+        files,
+        vec![shipped],
+        "exactly the real config: a symlinked directory and a symlinked \
+         file are both outside the sweep"
+    );
 }
