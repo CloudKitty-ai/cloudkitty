@@ -1028,3 +1028,27 @@ definition before labelling it; (5) list a reader's classification in
 the table's order or not at all; (6) a gate's correction is a claim
 too — check the subagent's ground (FR-011) before adopting it; (7) a
 word the section defines ("tail" = 300+) binds every later count.
+
+## 2026-10-22 — FINDINGS F-060..F-063 + three addenda, copy check, three rounds (Experiments)
+
+Scope: four new entries minted at the Gen 2 step-8 close plus dated
+Gen 2 addenda on F-044, F-045, F-053; copy-check form. Every number
+matched from round 1 (~130 checked, 0 rounding).
+- Round 1 FAIL: F-063 dropped the tail reads' own window caveat on
+  the 641; "(both gated)" where one section was fence-checked only;
+  "the one eat case" after a second had been read; the F-053
+  addendum called the trained-at-size branch answered when Gen 2
+  trained at 20×20 only. WEAK: a header reading as one network doing
+  two seatings' failures; "not tending" against a groom fall; an
+  invalidation clause with no data domain; "#389" for spec 061.
+- Round 2 FAIL: the new invalidation clause FIRED on the entry's own
+  evidence (a stream with 8 distress ticks, 0 sated-drink = 0%);
+  an unsourced parenthetical in a Re-verify line.
+- Round 3 PASS; one wording note ("a rotation's five worlds" →
+  "the rotation's 25 cat-worlds") fixed post-round.
+Lessons: (1) before writing an invalidation clause, run it on the
+entry's own evidence; (2) an F-entry inherits every caveat of the
+section it cites, including caveats added in that section's own
+gate rounds; (3) "both gated" is a provenance claim: look for the
+stamp; (4) a header is read alone — scope words that live only in
+the body are missing from the index.

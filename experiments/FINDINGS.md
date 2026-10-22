@@ -98,6 +98,10 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-057 | active | The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms) |
 | F-058 | active | The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238); SCOPED 2026-10-04 (owner ruling, no invalidation): holds for the trained channel AS EXPRESSED — see F-059 for the in-weights capacity |
 | F-059 | active | Training on the E-channel taught E-conditioned SUPPRESSION, not inability: above-bar play capacity (0.1273/0.1270 blinded, vs 0.0955 arc trained max) sits in the j14 weights behind satiation conditioning — the policy holds the stock high (no overlap on eval E mean/p25 vs the blind twin at matched play) and holds play DOWN, relative to the blind twin, while E is high |
+| F-060 | active | Gen 2's hidden-needs trunk transfers across size where frozen Gen 1 minds collapsed: a five-network roster of β 0.04 PPO seeds trained on the served 20×20 beats its scripted teacher in 30 of 30 worlds at 20, 40 and 100 (+5.566 / +4.594 / +7.187, worst streak 267 / 128 / 859, no F-053 stop); five copies of one network (s2) locked roster-wide once at 20×20 and five copies of another (s4) aborted 11 of 30 worlds at 100×100 |
+| F-061 | active | The Gen 1 → Gen 2 play rise (0.074..0.147 → 0.363) is teacher and training, not world: the world moves it −0.004, one teacher on every seat +0.091 ± 0.007, training +0.166 ± 0.011; the networks play within 0.012 of the teacher with its comfort rule loosened and consent off, in slack time (less onset pressure than the teacher), out of idle moving and rest |
+| F-062 | active | The vision law's wider radius buys the scripted teacher, not the trained roster: at 40×40 one radius step (5 → 4) costs the teacher 1.294 ± 0.958 happiness and the frozen roster 0.088 ± 0.122, so the trained-vs-scripted gap's fall between the cert legs (+5.566 → +4.594) travelled with the radius on the teacher's side (gap at 40×40, radius 4: +5.800 ± 0.860) |
+| F-063 | active | A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency |
 
 ---
 
@@ -2421,6 +2425,8 @@ composition crossing at the probe rate (about 1.5 per 100 world-probes
 of 2,000 ticks). **Re-verify when**: the seating rule is relaxed (Gen 2
 identity input), or a probe series is used to gate a deploy.
 
+**Gen 2 read (2026-10-22)**: the re-verify fired (the seating rule was tested at Gen 2 with the identity input). Five copies of trunk-s2 locked roster-wide at 20×20 in 1 of 30 worlds (seed 905008, every seat's distress onset within 60 ticks, a five-cat co-sleep pile; `gen2-cert-battery-2026-10-20/RESULTS.md` §"s2 stop investigation"), and five copies of trunk-s4 aborted 11 of 30 worlds at 100×100, while the five-network roster rot2 had no stop at any size (§Phase C). The owner kept the rule the same day (deviations entry 4's correction paragraph; battery DECLARATION §Correction): the single-network seatings are all-copies stress reads. F-060 carries the Gen 2 numbers.
+
 ## F-045 · active · Distinct minds disperse: the policy roster lives as two or three small groups far apart (pairwise 11 against the scripted roster's 6) with nearest-neighbour distance unchanged, and the lab shape reproduces live to the second decimal
 
 `fog-gen1-cert/RESULTS.md` §"Dispersion" and the soak record. Groups
@@ -2443,6 +2449,8 @@ radius 4, the served element density. **Invalidated by**: pairwise
 distance within 1.0 of the scripted 6.1, or a single pile over 15% of
 ticks, on the same map. **Re-verify when**: Gen 2 seating, and any
 change that anchors piles (the beam package #390, a cuddle drip).
+
+**Gen 2 read (2026-10-22)**: the re-verify fired (Gen 2 seating). A different instrument (prereg §9.5 as declared in the battery DECLARATION §9.5: together-share per seat under walk adjacency, Manhattan ≤ 1, and mean group count), so no pairwise number; the certified roster rot2 sits within 0.0141 of its own networks' uniform seatings at 20×20 and 40×40, and at 100×100 is together less than the scripted teacher on every seat (−0.045 to −0.087) with +0.37 more groups per tick (`gen2-cert-battery-2026-10-20/RESULTS.md` §"§9.5, the dispersion read at all three sizes"). The dispersing character holds for the Gen 2 lineage on the big map; this entry's pairwise bar is unread.
 
 ## F-046 · active · A priced target feature the corpus never conditioned on stays unused: under the spec 054 ramp the minds groom clean friends (74 of 76 live grooms on bath < 10, none in the paid bin), and the scripted groom refusal tax leaves with the scripted seats
 
@@ -2769,6 +2777,8 @@ word — the full cell list with streaks is RESULTS §"The harm rule,
 fired" (the longest streaks: size40/rows 19,872; size100/rows and
 size100-d4 intact 19,776 each). **Promotion**: feeds the Gen 2 sitting
 (#389) as the shelf's world-size input; no number here picks a world.
+
+**Gen 2 read (2026-10-22)**: this entry's re-verify fired (the radius pin moved under the vision law); the same displacement branch, on a new lineage. The Gen 2 trunk, trained at the served 20×20 only and frozen at read time, beats its scripted teacher at 40×40 and 100×100 under the vision law (F-060), and the radius cell (F-062) shows the law's wider radius moving the scripted teacher, not the frozen roster. The trained-at-size branch this entry names as unanswered stays unanswered; and the two records are not the same cell (this entry at radius 4, the Gen 2 legs at 5 and 6).
 
 ## F-054 · active · Objective-side pressure substitutes for the world floor: on floor 0 all three counterfactual-floor reward shapes restore beam placement (hard 0.920/0.937, convex 0.768/0.767, priced 0.516/0.496 against the 0.033–0.062 null), the shapes trade placement for welfare along an ordered frontier (happiness orders the reverse), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12
 
@@ -3104,3 +3114,151 @@ on both legs). **Promotion**: Gen 3 design inputs — two-sided
 banded margins with a declared suppression branch; E-occupancy
 (mean, p25, floor-drain share) as a declared secondary; the
 paper-1 companion sentence to the F-058 negative control.
+
+## F-060 · active · Gen 2's hidden-needs trunk transfers across size where frozen Gen 1 minds collapsed: a five-network roster of β 0.04 PPO seeds trained on the served 20×20 beats its scripted teacher in 30 of 30 worlds at 20, 40 and 100 (+5.566 / +4.594 / +7.187, worst streak 267 / 128 / 859, no F-053 stop); five copies of one network (s2) locked roster-wide once at 20×20 and five copies of another (s4) aborted 11 of 30 worlds at 100×100
+
+Minted at the Gen 2 step-8 close (owner 2026-10-21 "Recommendation
+accepted", the post-cert plan's FINDINGS item). Evidence:
+`gen2-cert-battery-2026-10-20/RESULTS.md` §Phase C (the certificate),
+§Gate read (the uniform seatings), §"s2 stop investigation";
+`gen2-prereg-2026-10-17.md` §7 (gates pinned at the freeze, 18f06f84).
+The roster rot2 (Miso s2, Biscuit s4, Pumpkin s6, Kittybear s7,
+Clementine s1): team happiness 87.487 / 86.229 / 83.810 at 20 / 40 /
+100 against the scripted teacher's 81.921 / 81.634 / 76.623 on the
+same 30 worlds per size (band g2cmp, paired by seed), every world
+positive, no abort, worst distress streak 267 / 128 / 859 against
+the teacher's 401 / 626 / 716. Where frozen Gen 1 minds read 77.935
+and 52.813 at 40×40 and 100×100 (F-053, radius 4), the Gen 2 trunk
+under the vision law (radius 5 and 6 there) gains over the teacher
+MORE at 100×100 than at the gated sizes. Composition matters: the
+company effect against each network's own uniform seating is +0.067
+at 20×20 and +0.025 at 40×40, and the uniform seatings carry the
+tail — five copies of trunk-s2 locked roster-wide once at 20×20
+(seed 905008: a five-cat co-sleep pile, every seat's distress onset
+within 60 ticks, F-027's twin lock at roster scale) and five copies
+of trunk-s4 aborted 11 of 30 worlds at 100×100 (8 of the 11 single-seat;
+§"100×100 stops, row-level read"), while rot2 had no stop anywhere. **Scope**: the Gen 2 lineage (β 0.04 PPO from the
+trunk clone on the g2leg-20 world, schema 6 observations with the
+identity input), frozen at read time and displaced to 40×40 and
+100×100 under the vision law with element density scaled by area;
+100×100 is characterise-only by the prereg; greedy masked argmax
+(sampled selection untested, as in F-027). **Invalidated by**: a
+replication band of the same roster failing the paired gate at
+either gated size, or an F-053 abort of the five-network roster at a
+gated size. **Re-verify when**: the roster, binding or vision law
+changes; the rot2 export goes live (the live prior per F-042); any
+Gen 3 trunk. **Promotion**: the Gen 2 certificate; the five-distinct-
+networks rule (F-044) kept as the deployment shape.
+
+## F-061 · active · The Gen 1 → Gen 2 play rise (0.074..0.147 → 0.363) is teacher and training, not world: the world moves it −0.004, one teacher on every seat +0.091 ± 0.007, training +0.166 ± 0.011; the networks play within 0.012 of the teacher with its comfort rule loosened and consent off, in slack time (less onset pressure than the teacher), out of idle moving and rest
+
+Minted at the step-8 close (owner's own list, "where play increase
+comes from"). Evidence: `play-decomposition-g2-2026-10-21/RESULTS.md`
+(gate PASS; five scripted cells, five worlds each, paired by world
+where the world is shared). The ladder, pooled over five cats:
+Gen 1 behaviors on the Gen 2 world 0.106 (the world −0.004 from
+0.109, unpaired); the Gen 2 teacher on every seat 0.196 (+0.091 ±
+0.007: the luxury rung and partner responses reach the four
+`needs_driven` seats, +0.10–0.17 each, and Biscuit loses 0.10); the
+certified roster 0.363 (+0.166 ± 0.011 over its own teacher). The
+roster lands 0.012 ± 0.004 short of the same teacher at
+`playful_comfort` 55 with consent off (0.375 ± 0.007); the teacher is
+held by its own comfort rule plus the engine's consent line, the
+networks by the consent line alone. About 0.7 of the extra play is
+element and solo play and 0.3 kitty play; it came out of idle moving
+(−0.10 to −0.12) and rest (−0.04 to −0.07), not out of eating, drinking
+or sleeping (groom moved both ways). The
+networks start play under LESS other-need pressure than the teacher
+(another need past 30 on 1.5–5.3% of starts against 2.9–14%), so
+deviations entry 3's reward-side hypothesis gains no footing at the
+served size. Play's own need carries 14–22% of the roster's +5.1 to
++5.8 happiness over the teacher. **Scope**: the served 20×20 world,
+Gen 2 dials (comfort 30, consent 30), the certified roster and the
+`Teacher::GEN2` presets; n = 5 worlds per cell; the Gen 1 reference
+is a flag-only range. **Invalidated by**: a same-design decomposition
+on a replication band where the world step exceeds its paired SD or
+the training step falls inside it. **Re-verify when**: either play
+dial moves (a Gen 3 boundary decision, doctrine rule 9), the teacher
+presets change, or a mini-friend roster is read. **Promotion**: the Gen 3
+play-economy design input (deviations entry 3's banked question:
+play is the one need whose distress carries no value penalty; the
+networks' extra play is slack-time play under the present reward).
+
+## F-062 · active · The vision law's wider radius buys the scripted teacher, not the trained roster: at 40×40 one radius step (5 → 4) costs the teacher 1.294 ± 0.958 happiness and the frozen roster 0.088 ± 0.122, so the trained-vs-scripted gap's fall between the cert legs (+5.566 → +4.594) travelled with the radius on the teacher's side (gap at 40×40, radius 4: +5.800 ± 0.860)
+
+Minted from the prereg's declared future read (§8 item 5, "if the
+trained-vs-scripted gap moves with size across cert legs, one
+displaced-size radius cell runs"; owner 2026-10-21 "Call 1: run
+it"). Evidence: `radius-cell-g2-2026-10-21/RESULTS.md` (gate PASS):
+a 2 × 2 at 40×40 on the same 30 worlds, {scripted, rot2} × {radius 5,
+radius 4}, the radius-5 cells the recorded law rows. Team happiness
+81.634 / 86.229 at radius 5 and 80.341 / 86.140 at radius 4 (scripted
+/ rot2); the gap difference +1.206 ± 0.941 (SE 0.172, 28 of 30 worlds
+positive); every seat's gap widens (+0.850 to +1.396); the roster's
+between-world SD is 5–10× smaller than the teacher's in both cells.
+The scripted radius effect is the comparator arc's law-vs-v4 +1.294
+with the sign turned, reproduced on the vocabulary-armed config
+(byte-equal rows). **Scope**: one radius step at one displaced size,
+the frozen certified roster (doctrine rule 9: what a roster trained
+at radius 4 would do is the S§6 arm's question, declared at the
+served 20×20); welfare clean in every cell. **Invalidated by**: a
+replication of the cell where the rot2 radius effect exceeds the
+scripted one, or a gap at radius 4 inside the law gap's paired SD.
+**Re-verify when**: the vision law or the scripted vision rule
+changes; any roster trained at a non-served radius or size; the
+100×100 radius step if it is ever run. **Promotion**: a Gen 3 design
+input — cross-size comparisons under the law carry a teacher-side
+radius term, so a size effect on the gap must be read against a
+radius-held cell before it is called a size effect.
+
+## F-063 · active · A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency
+
+Minted at the step-8 close from two investigations the owner asked
+for ("Can you investigate the S7 streak cause?", 2026-10-21; "Run
+the tail reads", 2026-10-22). Evidence:
+`gen2-cert-battery-2026-10-20/RESULTS.md` §"s7 streak investigation"
+and §"s4/s7 tail reads" (the tail reads gated; the investigation
+fence-checked at its commit). The shape: a cat effectively
+alone sits at water and keeps choosing Drink while not thirsty while
+its distressed need (cuddle or eat) goes untended; in the two eat
+cases read in detail, chow was a median 8 and 7 tiles away, in sight
+on 4% and 0% of the window. Across the rotation's recorded streams (full 20,000-tick rollouts,
+mixed company), drinking while sated (thirst under 10) during
+distress filled 234 of s7's 322 distress ticks and no tick for s1 or
+s2 (55 and 40 distress ticks there; s4 and s6 had no distress tick
+in those streams, so they carry no evidence either way); the
+scripted teacher did it on 8 of 3,917 (a
+comparison added after the first four cases were read). Six of six
+s7 runs read (three rotation runs of 84–121 ticks, the 622, 641 and
+323 among copies at 40×40) are this shape, both sizes, eat and cuddle;
+the 641's window is a run of 100 or more of that cat in that world,
+not necessarily the 641 itself (the tail reads' caveat). In the
+early-stopped tail windows s4 seats also drank sated on 47 and 22 of
+100 ticks, inside cuddle runs that were otherwise pacing or mixed. It concentrates on
+the fast-need seats without being confined to them (of s7's 33 Phase
+B streaks of 100 or more, 15 at Pumpkin and 9 at Clementine). Company
+shortens it: s7's worst run in mixed company is 128 at 40×40 (the
+certified roster's Kittybear seat) and 121 at 20×20, against 641 and
+226 among copies at the same sizes.
+The other network's long tails (trunk-s4, four worlds) are not that
+habit: a group HOLD at 20×20 (two cats held inside a group of three
+or more) with water out of sight, two
+cuddle tails pacing alone at 40×40, one parked mix. **Scope**: the
+Gen 2 lineage's six trained networks, greedy masked argmax, the
+served and 40×40 worlds; "distress" is the engine flag (need past
+90); the tail reads are 100-tick windows under a per-seat early stop.
+**Invalidated by** (domain: full-rollout recorded streams of the
+seating analysis, mixed company at the served size, never
+early-stopped windows, pooled over the rotation's 25 cat-worlds with at
+least 200 distress ticks for the network in question): s7's
+sated-drinking share of its distress ticks falling under 25%, or
+another network of the lineage showing the habit on more than 10% of
+its distress ticks.
+**Re-verify when**: rot2 goes live (the Kittybear seat holds s7; the
+100×100 characterize leg's 15 parked runs were all that seat's); any
+retrain of s7; the served stuck detector (spec 061) is extended to a
+parked shape. **Promotion**: a Gen 3 design input — the holding
+account cannot see a lone parked cat, so a tail read needs a parked
+(still, sated-tending) shape beside the hold; and F-043's roster-
+property reading gains a mechanism: the tail travels with the seat
+that holds s7.
