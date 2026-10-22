@@ -120,6 +120,14 @@ SEATINGS = {
     **{f"g2-rot{r + 1}": [f"g2:trunk-{n}" for n in
                           ("s1", "s2", "s4", "s6", "s7")[r:] + ("s1", "s2", "s4", "s6", "s7")[:r]]
        for r in range(5)},
+    # Swaps digest (battery DECLARATION §Swaps digest; alternates from
+    # deviations entry 7, owner 2026-10-22 "Train the additional seeds so
+    # we can run the swaps digest"): the certified roster rot2 with ONE
+    # seat replaced by an alternate completed seed; `g2-rot2-swap<k>-<net>`
+    # = rot2 with seat k (0 Miso .. 4 Clementine) holding trunk-<net>.
+    **{f"g2-rot2-swap{k}-{n}": [f"g2:trunk-{m}" if i != k else f"g2:trunk-{n}"
+                                for i, m in enumerate(("s2", "s4", "s6", "s7", "s1"))]
+       for n in ("s8", "s9", "s10") for k in range(5)},
     # Mixed-roster test (MIXED-DECLARATION.md, owner 2026-10-20):
     # seat-balanced 2-2-1 rosters — across the three, every network
     # sits in every seat exactly once and each is the singleton once.

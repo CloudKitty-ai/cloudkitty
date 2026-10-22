@@ -217,6 +217,21 @@ def test_mixed_rosters_are_seat_balanced():
     assert sorted(singles) == sorted(nets), singles
 
 
+def test_swap_seatings_replace_exactly_one_rot2_seat_with_the_alternate():
+    # SWAPS-DECLARATION.md: g2-rot2-swap<k>-<net> is rot2 with seat k
+    # alone holding the alternate; 15 names, one per (seat, alternate).
+    # red: the swap writes the alternate into every seat but k
+    rot2 = ch.SEATINGS["g2-rot2"]
+    names = [n for n in ch.SEATINGS if n.startswith("g2-rot2-swap")]
+    assert len(names) == 15, names
+    for net in ("s8", "s9", "s10"):
+        for k in range(5):
+            s = ch.SEATINGS[f"g2-rot2-swap{k}-{net}"]
+            diff = [i for i in range(5) if s[i] != rot2[i]]
+            assert diff == [k], (net, k, s)
+            assert s[k] == f"g2:trunk-{net}", (net, k, s)
+
+
 def test_run_legs_plan_carries_the_seating_into_cmd_and_gate_file():
     cfgs = {20: "c20.toml", 40: "c40.toml", 100: "c100.toml"}
     stages = rl.plan(cfgs, "g2cmp", 30, 20000, 6, "/tmp/out",
