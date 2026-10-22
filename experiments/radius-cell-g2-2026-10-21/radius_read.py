@@ -21,6 +21,9 @@ ROWS = {
     # the pre-law v4 scripted row (radius 4, vocabulary unarmed): R4's
     # instrument check, never the pair
     "V4": CMP / "legs/size40/scripted-g2cmp-30x20000.jsonl",
+    # the comparator arc's vocab-armed re-run of the law row (config
+    # f45a5183, binding e3bcc79a: R5's config and binding); S5's check
+    "A5": CMP / "vocab-armed-rerun/legs/size40/scripted-g2cmp-30x20000.jsonl",
 }
 SEATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
 CONTEXT_20 = BAT / "dispersion-read.json"   # the 20×20 cert gap, printed beside
@@ -57,9 +60,12 @@ def welfare(X, seeds):
 
 
 def identity(A, B, seeds, places=3):
-    """R4: per-world team happiness equal at the printed precision."""
+    """R4: per-world team happiness equal at the printed precision, and
+    whether every seat's mean happiness is byte-equal as recorded."""
     bad = [w for w in seeds if round(team(A[w]), places) != round(team(B[w]), places)]
-    return {"worlds_compared": len(seeds), "mismatches": bad, "identical": not bad}
+    exact = all(A[w]["mean_happiness"] == B[w]["mean_happiness"] for w in seeds)
+    return {"worlds_compared": len(seeds), "mismatches": bad, "identical": not bad,
+            "mean_happiness_exact": exact}
 
 
 def read(rows=ROWS):
@@ -95,6 +101,8 @@ def read(rows=ROWS):
                                                       paired(R["R5"], R["S5"], seeds, f))])}
     out["r3"] = {k: welfare(R[k], seeds) for k in ("S5", "R5", "S4", "R4")}
     out["r4"] = identity(R["S4"], R["V4"], seeds)
+    out["r4_s5_vs_armed_rerun"] = identity(R["S5"], R["A5"], seeds)
+    out["binding_sha256"] = {k: heads[k]["provenance"]["binding_artifacts"][0]["sha256"] for k in heads}
     return out
 
 
@@ -126,7 +134,13 @@ def md(out):
         L.append(f"| {k} | {w['worst_streak_mean']:.1f} | {w['worst_streak_max']} | {w['at_or_over_line']} | {w['aborts']} |")
     i = out["r4"]
     L.append(f"\nR4 identity check, new scripted radius-4 row vs the pre-law v4 row: "
-             f"{i['worlds_compared']} worlds, mismatches {i['mismatches']}, identical={i['identical']}.")
+             f"{i['worlds_compared']} worlds, mismatches {i['mismatches']}, identical={i['identical']}, "
+             f"mean_happiness exact={i['mean_happiness_exact']}.")
+    j = out["r4_s5_vs_armed_rerun"]
+    L.append(f"S5 law row vs the comparator's vocab-armed re-run: identical={j['identical']}, "
+             f"mean_happiness exact={j['mean_happiness_exact']}.")
+    L.append("config / binding sha256 per row: " + ", ".join(
+        f"{k} {out['config_sha256'][k][:8]}/{out['binding_sha256'][k][:8]}" for k in out["config_sha256"]))
     return "\n".join(L)
 
 

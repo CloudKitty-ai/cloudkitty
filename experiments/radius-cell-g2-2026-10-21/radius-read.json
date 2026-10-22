@@ -36,7 +36,8 @@
   "R5": "f45a51832f7fb7ca99de52716996e3d11c50c860820a82af8a50a703e9fa2d40",
   "S4": "87f4cb2ef01eac072410d654e4637d4b5f3bc87b3bfb9a94312735a231936552",
   "R4": "87f4cb2ef01eac072410d654e4637d4b5f3bc87b3bfb9a94312735a231936552",
-  "V4": "84bc50b5271483905a7414a500aacead6936b2dde634222655b724d9e3c123e1"
+  "V4": "84bc50b5271483905a7414a500aacead6936b2dde634222655b724d9e3c123e1",
+  "A5": "f45a51832f7fb7ca99de52716996e3d11c50c860820a82af8a50a703e9fa2d40"
  },
  "team": {
   "S5": {
@@ -363,6 +364,21 @@
  "r4": {
   "worlds_compared": 30,
   "mismatches": [],
-  "identical": true
+  "identical": true,
+  "mean_happiness_exact": true
+ },
+ "r4_s5_vs_armed_rerun": {
+  "worlds_compared": 30,
+  "mismatches": [],
+  "identical": true,
+  "mean_happiness_exact": true
+ },
+ "binding_sha256": {
+  "S5": "6bb78efda70c3f5d63a41ecfcee29c0c05be10c98f1a7e64176610c179090f60",
+  "R5": "e3bcc79a4a39030297039c6bd00dbbca32a81b823a86a1930598f9e6278ebdc2",
+  "S4": "e3bcc79a4a39030297039c6bd00dbbca32a81b823a86a1930598f9e6278ebdc2",
+  "R4": "e3bcc79a4a39030297039c6bd00dbbca32a81b823a86a1930598f9e6278ebdc2",
+  "V4": "6bb78efda70c3f5d63a41ecfcee29c0c05be10c98f1a7e64176610c179090f60",
+  "A5": "e3bcc79a4a39030297039c6bd00dbbca32a81b823a86a1930598f9e6278ebdc2"
  }
 }
