@@ -2403,6 +2403,8 @@ so a seat's clean 30 runs certify the seat only in that roster.
 battery (the stuck detector, #389, is the intended fix for the pacing
 shape), and any live rate over 0.1 per 1k ticks.
 
+**Gen 2 read (2026-10-22)**: the re-verify fired (a Gen 2 battery: the swaps digest, `gen2-cert-battery-2026-10-20/RESULTS.md` §"Swaps digest"). Ten one-seat swaps of the certified roster rot2 at 20×20 (alternates trunk-s9 and trunk-s10, each in each seat, 30 worlds per leg): 6 cat-worlds crossed 150 ticks of distress and 0 of them sat in the swapped seat; four of the six were one world (905029), where the certified roster itself has no streak over 150. The roster-property reading holds for the Gen 2 lineage; the happiness change sits in the swapped seat (that seat moves most in eight of ten legs, −1.139 to +0.409; never over 0.14 at any other seat) and the tail does not.
+
 ## F-044 · active · Single-network probes overstate the catastrophe tail: nine crossings in 618 world-probes with one mind in every seat, none in 1.2 M ticks of the five-network composition
 
 `fog-gen1-cert/RESULTS.md` §"Welfare and the stop rows" and §"Welfare

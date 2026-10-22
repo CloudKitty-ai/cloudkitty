@@ -889,3 +889,121 @@ the recorded); rounds 2 and 3 reused that fresh JSON rather than replay
 again, for the covered minds' sake. Raws are the battery's existing rows
 (hash per the Phase C stamp); the reader adds no raw, and the replay
 streams are not kept.
+
+## Swaps digest (2026-10-22; owner "Train the additional seeds so we can run the swaps digest")
+
+Declared in `DECLARATION.md` §Swaps digest (2026-10-20) and
+`SWAPS-DECLARATION.md` (2026-10-22, committed before any alternate had
+finished). Alternates: trunk-s9 and trunk-s10 (deviations entry 7;
+both plateau-complete at 8,002,560 ticks, finals 6feaa9d5… and
+ab194dd5…); s8 and its replacement s11 halted on the frozen §6 stop
+(entries 8 and 9) and contribute no legs. Ten legs, the declared
+count: each alternate in each seat of the certified roster rot2, 20×20
+only, band g2cmp, 30 × 20,000 ticks, F-053 abort armed. Every leg
+clean: no abort, no row at the line. Reader `swaps_read.py`, output
+`swaps-read.json`. Report-only: nothing here gates, and the roster is
+unchanged.
+
+| alternate | seat it takes | team | Δ team vs rot2 (sd) | worlds + | Δ at that seat | worst streak mean / max | aborts |
+|---|---|---|---|---|---|---|---|
+| s10 | Miso (s2) | 87.410 | −0.077 (0.087) | 5/30 | −0.315 | 10.6 / 216 | 0 |
+| s10 | Biscuit (s4) | 87.293 | −0.193 (0.087) | 0/30 | −0.716 | 0.0 / 0 | 0 |
+| s10 | Pumpkin (s6) | 87.505 | +0.018 (0.071) | 18/30 | +0.084 | 4.9 / 122 | 0 |
+| s10 | Kittybear (s7) | 87.203 | −0.284 (0.098) | 0/30 | −1.139 | 6.6 / 110 | 0 |
+| s10 | Clementine (s1) | 87.387 | −0.100 (0.103) | 2/30 | −0.347 | 16.0 / 454 | 0 |
+| s9 | Miso (s2) | 87.477 | −0.010 (0.097) | 15/30 | +0.050 | 1.0 / 26 | 0 |
+| s9 | Biscuit (s4) | 87.419 | −0.067 (0.088) | 7/30 | −0.213 | 0.3 / 10 | 0 |
+| s9 | Pumpkin (s6) | 87.569 | +0.082 (0.096) | 26/30 | +0.409 | 36.1 / 834 | 0 |
+| s9 | Kittybear (s7) | 87.310 | −0.177 (0.094) | 1/30 | −0.676 | 7.6 / 192 | 0 |
+| s9 | Clementine (s1) | 87.463 | −0.023 (0.096) | 10/30 | −0.008 | 24.3 / 608 | 0 |
+
+rot2 on the same 30 worlds: team 87.487 ± 0.078, worst streak 16.2 /
+267, no F-053 event. Pooled over the ten legs the paired team delta is
+−0.083 ± 0.138 per world (mean over legs −0.127 for s10, −0.039 for
+s9). Every leg lands within 0.3 of the certified roster.
+
+**The cost sits in the swapped seat.** In eight of ten legs the swapped
+seat's own happiness moves the most (−1.139 to +0.409); in the other
+two the swap is near-neutral at its own seat (s9 at Miso +0.050, s9 at
+Clementine −0.008) and the largest movement elsewhere is −0.052 and
+−0.089. In no leg does an unswapped seat move by more than 0.14. The one seat where both alternates improve on
+the certified network is Pumpkin's (s6): +0.084 with s10 (that seat
+up in 17 of 30 worlds, inside the paired SD) and +0.409 with s9 (29 of
+30). The seat
+where both lose most is Kittybear's (s7, the highest-return network):
+−1.139 and −0.676. Mixed-seed deployment stays undeclared (DECLARATION
+§Swaps digest); this is a read of what one-seat changes cost, not a
+candidate roster.
+
+**The tail moves with the composition, not with the swapped seat**
+(F-043's re-verify, "each Gen 2 battery"). Over the ten legs there are
+6 cat-worlds with a distress streak of 150 or more, and 0 of them sit
+in the swapped seat: Clementine (s1) 216 under s10-at-Miso; Biscuit
+(s4) 454 under s10-at-Clementine; Kittybear (s7) 161 and Biscuit (s4)
+834 under s9-at-Pumpkin; Biscuit (s4) 192 under s9-at-Kittybear;
+Kittybear (s7) 608 under s9-at-Clementine. Four of the six are world
+905029 (the prereg's "local-hole" world; the s4 uniform hold and s7's
+622 at 40×40 were there too), where the certified roster itself has no
+streak over 150. rot2's own two crossings on these worlds are both
+Pumpkin's (152 and 267, worlds 905013 and 905019), and neither recurs
+in any swap leg. Holding stays near zero everywhere (largest held share
+0.003, longest held stretch 46 under s9-at-Pumpkin, no shared hold).
+
+## Read (swaps digest; seconds; stdlib python3 from the lab venv, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && VIRTUAL_ENV=/Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv /Users/elizabethkelly/ai/cloudkitty/experiments/exp-006-character-gen/.venv/bin/python3 -B swaps_read.py --out /private/tmp/swaps-read.json --md
+```
+
+```
+python3 - <<'EOF2'
+import json
+o = json.load(open("/private/tmp/swaps-read.json"))
+R = lambda x, n=3: round(x, n)
+assert len(o["legs"]) == 10 and o["pooled"]["legs"] == 10
+rows = [(l["alternate"], l["seat_name"], R(l["team"]["mean"]), R(l["delta"]["mean"]), R(l["delta"]["sd"]), l["delta"]["positive"], R(l["seat_delta"]["mean"]),
+         R(l["welfare"]["worst_streak_mean"], 1), l["welfare"]["worst_streak_max"], l["welfare"]["aborts"], l["welfare"]["f053_events"]) for l in o["legs"]]
+assert rows == [
+    ("s10", "Miso", 87.410, -0.077, 0.087, 5, -0.315, 10.6, 216, 0, 0), ("s10", "Biscuit", 87.293, -0.193, 0.087, 0, -0.716, 0.0, 0, 0, 0),
+    ("s10", "Pumpkin", 87.505, 0.018, 0.071, 18, 0.084, 4.9, 122, 0, 0), ("s10", "Kittybear", 87.203, -0.284, 0.098, 0, -1.139, 6.6, 110, 0, 0),
+    ("s10", "Clementine", 87.387, -0.100, 0.103, 2, -0.347, 16.0, 454, 0, 0), ("s9", "Miso", 87.477, -0.010, 0.097, 15, 0.050, 1.0, 26, 0, 0),
+    ("s9", "Biscuit", 87.419, -0.067, 0.088, 7, -0.213, 0.3, 10, 0, 0), ("s9", "Pumpkin", 87.569, 0.082, 0.096, 26, 0.409, 36.1, 834, 0, 0),
+    ("s9", "Kittybear", 87.310, -0.177, 0.094, 1, -0.676, 7.6, 192, 0, 0), ("s9", "Clementine", 87.463, -0.023, 0.096, 10, -0.008, 24.3, 608, 0, 0)], rows
+r = o["rot2"]
+assert (R(r["team"]["mean"]), R(r["team"]["sd"]), R(r["welfare"]["worst_streak_mean"], 1), r["welfare"]["worst_streak_max"], r["welfare"]["f053_events"]) == (87.487, 0.078, 16.2, 267, 0)
+p = o["pooled"]
+assert (R(p["all_per_world_deltas"]["mean"]), R(p["all_per_world_deltas"]["sd"])) == (-0.083, 0.138)
+assert (R(o["alternates"]["s10"]["mean_delta_over_legs"]), R(o["alternates"]["s9"]["mean_delta_over_legs"])) == (-0.127, -0.039)
+assert [l["seat_delta"]["positive"] for l in o["legs"] if l["seat_name"] == "Pumpkin"] == [17, 29]
+assert all(abs(l["delta"]["mean"]) < 0.3 for l in o["legs"])
+assert (p["crossings_total"], p["crossings_in_swapped_seat"]) == (6, 0) and p["crossings_rot2_per_leg"] == [2] * 10
+assert [(l["alternate"], l["seat"], l["crossings"]["total"], l["crossings"]["worlds"]) for l in o["legs"] if l["crossings"]["total"]] == [
+    ("s10", 0, 1, [905017]), ("s10", 4, 1, [905029]), ("s9", 2, 2, [905009, 905029]), ("s9", 3, 1, [905029]), ("s9", 4, 1, [905029])]
+hs = max(l["holding"]["held_share_max_cat"] for l in o["legs"]); hl = max(l["holding"]["held_longest_max"] for l in o["legs"])
+assert R(hs) == 0.003 and hl == 46 and all(l["holding"]["shared_hold_longest_max"] == 0 for l in o["legs"])
+# the swapped seat moves most, every other seat under 0.14: re-derived from the raws
+import glob
+rot2 = {json.loads(l)["seed"]: json.loads(l) for l in open("experiments/gen2-cert-battery-2026-10-20/results-raw/g2-rot2/legs/size20/g2-rot2-g2cmp-30x20000.jsonl").read().splitlines()[1:]}
+assert [w for w in sorted(rot2) for i, m in enumerate(rot2[w]["max_distress_age_seat"]) if m >= 150] == [905013, 905019]
+for l in o["legs"]:
+    S = {json.loads(x)["seed"]: json.loads(x) for x in open(f"experiments/gen2-cert-battery-2026-10-20/results-raw/swaps/{l['seating']}/legs/size20/{l['seating']}-g2cmp-30x20000.jsonl").read().splitlines()[1:]}
+    d = [sum(S[w]["mean_happiness"][i] - rot2[w]["mean_happiness"][i] for w in rot2) / 30 for i in range(5)]
+    k = l["seat"]
+    assert max(abs(d[i]) for i in range(5) if i != k) < 0.14, (l["seating"], d)
+    if l["seating"] in ("g2-rot2-swap0-s9", "g2-rot2-swap4-s9"):
+        assert abs(d[k]) < 0.06 and max(abs(d[i]) for i in range(5) if i != k) < 0.09, (l["seating"], d)
+    else:
+        assert abs(d[k]) == max(abs(x) for x in d), (l["seating"], d)
+print("swaps fence: all cells match")
+EOF2
+```
+
+Guards: `test_swaps.py` (4; lab venv). Reds on record via
+`scripts/mutate.sh`, predicted then confirmed, restored green: M1 the
+team delta zips rot2 in reversed seed order → g1; M2 at `seat_of` went
+red at the reader's own seating-provenance assert before g2 could (a
+wrong-reason red, recorded), re-run as the seat-delta index shifted by
+one → g2; M3 the unswapped-seats assert dropped → g3; M4a placement
+counts the other seats → g4; M4b the crossing bar 150 → 100,000 → g4.
+
+Accuracy gate (swaps digest): **PASS** 2026-10-22 after round 2 (round 1 FAIL on one arithmetic item: the Pumpkin-seat sentence quoted the team-delta sign counts 18/26 for the seat's own 17/29; "local hole" made verbatim "local-hole"; round 2: fence green on the regenerated JSON, 120 arithmetic, 4 threshold, 9 characterisations SUPPORTED, 16 provenance; 1 UNDECIDABLE = the g4 reds, recorded in this section's commit message). Companions: the trunk RESULTS alternates readout (fence green, 26 arithmetic, 9 provenance, PASS) and the F-043 addendum (copy check PASS after one qualifier). Swap raws hash `scripts/rawdir-hash.sh results-raw/swaps` = `v1:f5b84c32e6040c1d`; the rot2 rows are the battery's (hash per the Phase C stamp).

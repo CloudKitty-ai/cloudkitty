@@ -225,8 +225,17 @@ consent BC comparison ride the trunk.
   s11 on her word ("Replace s8 just in case.", entry 8 ruling,
   launched 06:28Z); s11 HALTED ~06:35Z at u99 on probe world 40003
   (streak 371; entry 9, closed by entry 7's terms; a further
-  replacement is her call). Four of ten same-recipe seeds have
-  tripped the §6 stop, all inside 1M ticks. s9 and s10 continue. The digest runs 20×20 with every completion as an
+  replacement is her call). Four of eleven same-recipe seeds have
+  tripped the §6 stop, all inside 1M ticks. s9 and s10 PLATEAU-COMPLETE
+  ~09:20Z (finals 6feaa9d5 / ab194dd5). SWAPS DIGEST DONE 2026-10-22
+  (battery RESULTS §"Swaps digest", gated; SWAPS-DECLARATION.md): ten
+  legs, all clean; every one-seat swap within 0.3 of rot2 (pooled
+  −0.083 ± 0.138 per world); the change sits in the swapped seat
+  (Pumpkin's the one seat both alternates improve, Kittybear's where
+  both lose most); 6 crossings ≥ 150, 0 in the swapped seat, four of
+  them world 905029 — F-043 holds for Gen 2 (dated addendum). The
+  step-8 declaration's last open item is closed; mixed-seed
+  deployment stays undeclared. The digest runs 20×20 with every completion as an
   alternate once they end. Call 3: §9.4 partner_absent WAITS behind
   the mini models and the prod seating, her ruling.
   TAIL READS: owner 2026-10-22 "Run the tail reads" → battery RESULTS

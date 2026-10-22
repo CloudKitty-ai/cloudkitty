@@ -1052,3 +1052,20 @@ section it cites, including caveats added in that section's own
 gate rounds; (3) "both gated" is a provenance claim: look for the
 stamp; (4) a header is read alone — scope words that live only in
 the body are missing from the index.
+
+## 2026-10-22 — gen2-cert-battery §Swaps digest + two companions, two rounds (Experiments)
+
+Scope: a ten-leg digest read on recorded rows (reader seconds), the
+trunk arc's alternates readout (fence), and an F-043 addendum (copy).
+- Round 1 FAIL, 1 arithmetic: a sentence about the swapped seat's own
+  gain quoted the TEAM sign counts from the table (18/26) where the
+  seat's own counts are 17/29 — two columns of the same JSON, the
+  fence guarded only the table's. Also: a quoted phrase off by a
+  hyphen ("local hole" / "local-hole"); the addendum dropped the
+  section's two stated exceptions. The gate also re-derived every
+  cell from the raws without the reader (0 misses).
+- Round 2 PASS.
+Lessons: (1) when prose names a count beside a different column's
+number, the fence asserts THAT count too; (2) a quoted phrase is
+verbatim or it is paraphrase — hyphens count; (3) an addendum that
+summarises a section inherits the section's exceptions.
