@@ -127,6 +127,13 @@ SLOTS = {
     "trunk-s5": (5, 100),
     "trunk-s6": (6, 101),
     "trunk-s7": (7, 102),
+    # Alternates for the swaps digest (deviations entry 7, owner
+    # 2026-10-22 "Train the additional seeds so we can run the swaps
+    # digest"); stripes 2,160,000,000-2,219,999,999 claimed in
+    # SEED-BANDS.md before first burn. Not roster seats.
+    "trunk-s8": (8, 103),
+    "trunk-s9": (9, 104),
+    "trunk-s10": (10, 105),
 }
 
 STRIPE = 20_000_000

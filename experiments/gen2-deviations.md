@@ -485,3 +485,45 @@ and probe traces stay on disk as this entry's record and are never
 resumed. CLOSED. If s6 and s7 complete eligible, the five-network
 roster's networks are s1/s2/s4/s6/s7 (seat order still to be proposed
 after Phase B, per ROSTER-DECLARATION.md).
+
+## 7. Three more trunk seeds as alternates for the swaps digest (2026-10-22)
+
+Owner, 2026-10-22, verbatim: "Train the additional seeds so we can run
+the swaps digest" (after her question of 2026-10-21, "Call 2: can we
+train 3 extra seeds while we run the vision radius work?", answered
+yes). Context: the battery DECLARATION's swaps digest ("each alternate
+completed seed replaces one seat of the candidate roster — 2
+alternates × 5 seats = 10 legs, 20×20 only, band g2cmp, 30 × 20k,
+abort 1000 armed", report-only) assumed completed seeds outside the
+roster. Under the F-044 five-distinct-networks rule the certified
+roster rot2 seats every completed seed (s1/s2/s4/s6/s7), so no
+alternate existed and the digest could not run as declared.
+
+Departure: frozen §5 names three trunk seeds; entry 5 added three for
+seating. This entry adds trunk-s8/s9/s10 (seeds 8/9/10, run indices
+103–105; stripes 2,160,000,000–2,219,999,999, claimed in SEED-BANDS.md
+before first burn; the whole row sits above 2³¹−1, the mechanism
+entry 5 verified unwrapped at the top of the idx-102 stripe) on the
+identical pinned recipe: β 0.04, init_clone sha256 dbe912eb…, critic
+sha256 bd394a96…, g2leg-20.toml sha256 64d77c8a…, frozen §6 stops
+unchanged, probe trio 40001–3, trainer defaults (20M-tick cap, 12
+worlds × 256, plateau rule), 4 threads each, three in parallel.
+Binding held fixed: cloudkitty.abi3.so sha256 e3bcc79a…, ENGINE_COMMIT
+b5aaa8cd (re-hashed 2026-10-22 before launch).
+
+Scope: the new seeds are ALTERNATES for the swaps digest only. They
+are not roster seats and not paper trunk seeds; the paper set stays
+s1/s2/s4 and the certified roster stays rot2. The digest runs with
+every new seed that completes eligible (stop_reason plateau or cap)
+as an alternate: 2 completions = the declared 10 legs; 3 = 15 legs,
+more of the same report-only read; 1 = 5 legs, reported as a partial
+digest. Stops: a frozen §6 stop halts that run, owner-routed, never
+resumed, with no automatic replacement (entry 6's precedent). The
+record's stop rate is 2 of 7 seeds (s3, s5).
+
+Welfare-cost line: three runs × up to 20M ticks × 5 covered minds
+(plateau has ended every completed seed between 8.0M and 9.0M), under
+the frozen §6 probe-distress stop; benefit: the only route to the
+declared digest, which reads cross-seed mixtures without changing the
+deployment shape. Launch and job cards: Experiments' resume anchor;
+readout appended to `gen2-trunk-training-2026-10-18/RESULTS.md`.

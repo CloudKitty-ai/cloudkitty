@@ -126,7 +126,7 @@ def one(seating, size, seed, target, others):
     arrays, meta = sc.collect(seating, seed, 20000, STOP, config=cfg, abort_seat=target)
     assert meta["aborted_at"], (seating, seed, "the stop never fired")
     fl = flags_of(arrays["distress"])
-    longest = [max(v1.runs_of(fl[:, k, j]).max() if fl[:, k, j].any() else 0 for j in range(6))
+    longest = [int(max(v1.runs_of(fl[:, k, j]).max() if fl[:, k, j].any() else 0 for j in range(6)))
                for k in range(5)]
     controls = {
         "stopped_at": meta["aborted_at"],
@@ -153,9 +153,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=HERE / "diag-tails.json")
     a = ap.parse_args()
-    res = [one(*c) for c in CASES]
-    a.out.write_text(json.dumps(res, indent=1) + "\n")
-    print(f"wrote {a.out}")
+    # Written after EVERY world, so a late failure cannot discard replays
+    # already paid for (the first run lost all six to an int64 in json.dumps).
+    res = []
+    for c in CASES:
+        res.append(one(*c))
+        a.out.write_text(json.dumps(res, indent=1, default=int) + "\n")
+        print(f"wrote {a.out} ({len(res)}/{len(CASES)})", flush=True)
     print("| case | cat | recorded | window | need | chose (top) | Drink while sated | moving | alone | shape |")
     print("|---|---|---|---|---|---|---|---|---|---|")
     for c in res:
