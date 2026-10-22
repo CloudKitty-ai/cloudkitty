@@ -553,3 +553,13 @@ digest's size now rests on s9 and s10: two completions = the declared
 owner is asked again. No investigation run (entry 6's precedent). The
 owner may still rule a replacement (a new stripe claim) or an
 investigation; neither is assumed.
+
+RULED, owner 2026-10-22, verbatim: "Replace s8 just in case."
+Replacement trunk-s11 (seed 11, run index 106; stripe
+2,220,000,000–2,239,999,999 claimed in SEED-BANDS.md before first
+burn; the seed_stripe formula, above 2³¹−1 like entry 5's rows) on
+the identical pinned recipe and binding as entry 7's seeds, launched
+2026-10-22 beside the running s9 and s10. Same scope: an alternate
+for the swaps digest only, never a roster seat; a frozen §6 stop
+halts it, owner-routed, never resumed. No investigation of s8's halt
+was asked for; none runs. s8's weights and probe traces stay on disk.

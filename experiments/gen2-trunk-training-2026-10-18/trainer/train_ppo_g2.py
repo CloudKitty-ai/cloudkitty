@@ -134,6 +134,10 @@ SLOTS = {
     "trunk-s8": (8, 103),
     "trunk-s9": (9, 104),
     "trunk-s10": (10, 105),
+    # Replacement for the halted trunk-s8 (deviations entry 8, owner
+    # 2026-10-22 "Replace s8 just in case."); stripe 2,220,000,000+
+    # claimed in SEED-BANDS.md before first burn.
+    "trunk-s11": (11, 106),
 }
 
 STRIPE = 20_000_000
