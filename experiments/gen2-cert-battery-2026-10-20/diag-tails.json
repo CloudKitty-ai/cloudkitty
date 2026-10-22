@@ -1,0 +1,545 @@
+[
+ {
+  "seating": "g2-s4",
+  "size": 20,
+  "seed": 905029,
+  "target": "Miso",
+  "recorded_longest": 535,
+  "recorded_dist_ticks": 535,
+  "controls": {
+   "stopped_at": 324,
+   "longest_in_replay": [
+    100,
+    25,
+    0,
+    0,
+    0
+   ],
+   "row_max": [
+    535,
+    468,
+    0,
+    0,
+    0
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "drink",
+    "length": 100,
+    "span": [
+     224,
+     323
+    ],
+    "need_at_start_end": [
+     90.0,
+     100.0
+    ],
+    "other_needs_mean": {
+     "eat": 40.6,
+     "sleep": 35.3,
+     "play": 14.6,
+     "cuddle": 3.4,
+     "bath": 17.5
+    },
+    "activity": {
+     "idle": 0.51,
+     "rest": 0.05,
+     "sleep": 0.43,
+     "play": 0.01
+    },
+    "moving_share": 0.17,
+    "group3_share": 0.62,
+    "alone_share": 0.11,
+    "chosen_top": [
+     [
+      "SleepWithKitty0",
+      30
+     ],
+     [
+      "PlayKitty0",
+      23
+     ],
+     [
+      "SleepWithKitty3",
+      18
+     ],
+     [
+      "MoveN",
+      13
+     ],
+     [
+      "RestWithKitty0",
+      6
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "relief": {
+     "kind": "Water",
+     "count_median": 7,
+     "nearest_median": 10.0,
+     "nearest_first_last": [
+      13,
+      10
+     ],
+     "in_sight_share": 0.0
+    },
+    "drink_while_sated": 0,
+    "shape": "other",
+    "seat": "Miso",
+    "recorded_longest": 535
+   },
+   {
+    "need": "drink",
+    "length": 25,
+    "span": [
+     299,
+     323
+    ],
+    "need_at_start_end": [
+     90.0,
+     97.2
+    ],
+    "other_needs_mean": {
+     "eat": 62.7,
+     "sleep": 20.9,
+     "play": 27.6,
+     "cuddle": 0.4,
+     "bath": 28.2
+    },
+    "activity": {
+     "idle": 0.16,
+     "rest": 0.8,
+     "sleep": 0.04
+    },
+    "moving_share": 0.0,
+    "group3_share": 1.0,
+    "alone_share": 0.0,
+    "chosen_top": [
+     [
+      "RestWithKitty0",
+      24
+     ],
+     [
+      "SleepWithKitty0",
+      1
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "relief": {
+     "kind": "Water",
+     "count_median": 7,
+     "nearest_median": 11.0,
+     "nearest_first_last": [
+      11,
+      11
+     ],
+     "in_sight_share": 0.0
+    },
+    "drink_while_sated": 0,
+    "shape": "other",
+    "seat": "Biscuit",
+    "recorded_longest": 468
+   }
+  ]
+ },
+ {
+  "seating": "g2-s4",
+  "size": 40,
+  "seed": 905017,
+  "target": "Clementine",
+  "recorded_longest": 687,
+  "recorded_dist_ticks": 687,
+  "controls": {
+   "stopped_at": 228,
+   "longest_in_replay": [
+    0,
+    0,
+    0,
+    0,
+    100
+   ],
+   "row_max": [
+    0,
+    0,
+    0,
+    0,
+    687
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "cuddle",
+    "length": 100,
+    "span": [
+     128,
+     227
+    ],
+    "need_at_start_end": [
+     90.3,
+     100.0
+    ],
+    "other_needs_mean": {
+     "eat": 8.6,
+     "drink": 15.2,
+     "sleep": 14.7,
+     "play": 20.0,
+     "bath": 11.7
+    },
+    "activity": {
+     "idle": 0.76,
+     "sleep": 0.05,
+     "eat": 0.01,
+     "drink": 0.11,
+     "play": 0.04,
+     "groom": 0.03
+    },
+    "moving_share": 0.6,
+    "group3_share": 0.0,
+    "alone_share": 1.0,
+    "chosen_top": [
+     [
+      "Drink",
+      22
+     ],
+     [
+      "MoveS",
+      21
+     ],
+     [
+      "MoveN",
+      18
+     ],
+     [
+      "MoveE",
+      11
+     ],
+     [
+      "MoveW",
+      10
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "drink_while_sated": 22,
+    "shape": "searching",
+    "seat": "Clementine",
+    "recorded_longest": 687
+   }
+  ]
+ },
+ {
+  "seating": "g2-s4",
+  "size": 40,
+  "seed": 905002,
+  "target": "Biscuit",
+  "recorded_longest": 602,
+  "recorded_dist_ticks": 602,
+  "controls": {
+   "stopped_at": 16463,
+   "longest_in_replay": [
+    77,
+    100,
+    0,
+    0,
+    0
+   ],
+   "row_max": [
+    77,
+    602,
+    0,
+    0,
+    0
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "cuddle",
+    "length": 100,
+    "span": [
+     16363,
+     16462
+    ],
+    "need_at_start_end": [
+     90.2,
+     100.0
+    ],
+    "other_needs_mean": {
+     "eat": 13.7,
+     "drink": 1.6,
+     "sleep": 7.8,
+     "play": 26.9,
+     "bath": 6.3
+    },
+    "activity": {
+     "idle": 0.54,
+     "sleep": 0.1,
+     "eat": 0.01,
+     "drink": 0.23,
+     "play": 0.06,
+     "groom": 0.06
+    },
+    "moving_share": 0.24,
+    "group3_share": 0.0,
+    "alone_share": 1.0,
+    "chosen_top": [
+     [
+      "Drink",
+      47
+     ],
+     [
+      "SleepSolo",
+      12
+     ],
+     [
+      "GroomSelf",
+      8
+     ],
+     [
+      "MoveN",
+      6
+     ],
+     [
+      "MoveE",
+      6
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "drink_while_sated": 47,
+    "shape": "other",
+    "seat": "Biscuit",
+    "recorded_longest": 602
+   }
+  ]
+ },
+ {
+  "seating": "g2-s4",
+  "size": 40,
+  "seed": 905025,
+  "target": "Miso",
+  "recorded_longest": 389,
+  "recorded_dist_ticks": 389,
+  "controls": {
+   "stopped_at": 324,
+   "longest_in_replay": [
+    100,
+    0,
+    0,
+    0,
+    0
+   ],
+   "row_max": [
+    389,
+    0,
+    0,
+    0,
+    0
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "cuddle",
+    "length": 100,
+    "span": [
+     224,
+     323
+    ],
+    "need_at_start_end": [
+     90.0,
+     100.0
+    ],
+    "other_needs_mean": {
+     "eat": 38.5,
+     "drink": 29.0,
+     "sleep": 8.0,
+     "play": 32.8,
+     "bath": 9.9
+    },
+    "activity": {
+     "idle": 0.76,
+     "sleep": 0.21,
+     "groom": 0.03
+    },
+    "moving_share": 0.7,
+    "group3_share": 0.0,
+    "alone_share": 1.0,
+    "chosen_top": [
+     [
+      "MoveE",
+      35
+     ],
+     [
+      "MoveW",
+      35
+     ],
+     [
+      "SleepSolo",
+      25
+     ],
+     [
+      "GroomSelf",
+      4
+     ],
+     [
+      "Eat",
+      1
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "drink_while_sated": 0,
+    "shape": "searching",
+    "seat": "Miso",
+    "recorded_longest": 389
+   }
+  ]
+ },
+ {
+  "seating": "g2-s7",
+  "size": 40,
+  "seed": 905004,
+  "target": "Pumpkin",
+  "recorded_longest": 641,
+  "recorded_dist_ticks": 804,
+  "controls": {
+   "stopped_at": 6910,
+   "longest_in_replay": [
+    110,
+    0,
+    100,
+    54,
+    0
+   ],
+   "row_max": [
+    110,
+    141,
+    641,
+    54,
+    0
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "eat",
+    "length": 100,
+    "span": [
+     6810,
+     6909
+    ],
+    "need_at_start_end": [
+     90.6,
+     100.0
+    ],
+    "other_needs_mean": {
+     "drink": 0.4,
+     "sleep": 29.3,
+     "play": 64.2,
+     "cuddle": 79.7,
+     "bath": 20.8
+    },
+    "activity": {
+     "idle": 0.5,
+     "drink": 0.5
+    },
+    "moving_share": 0.0,
+    "group3_share": 0.0,
+    "alone_share": 1.0,
+    "chosen_top": [
+     [
+      "Drink",
+      100
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "relief": {
+     "kind": "Chow",
+     "count_median": 24,
+     "nearest_median": 7.0,
+     "nearest_first_last": [
+      7,
+      7
+     ],
+     "in_sight_share": 0.0
+    },
+    "drink_while_sated": 100,
+    "shape": "parked",
+    "seat": "Pumpkin",
+    "recorded_longest": 641
+   }
+  ]
+ },
+ {
+  "seating": "g2-s7",
+  "size": 40,
+  "seed": 905015,
+  "target": "Clementine",
+  "recorded_longest": 323,
+  "recorded_dist_ticks": 323,
+  "controls": {
+   "stopped_at": 228,
+   "longest_in_replay": [
+    0,
+    0,
+    0,
+    0,
+    100
+   ],
+   "row_max": [
+    0,
+    0,
+    123,
+    0,
+    323
+   ],
+   "target_streak_is_100": true,
+   "others_within_row": true
+  },
+  "runs": [
+   {
+    "need": "cuddle",
+    "length": 100,
+    "span": [
+     128,
+     227
+    ],
+    "need_at_start_end": [
+     90.3,
+     100.0
+    ],
+    "other_needs_mean": {
+     "eat": 71.4,
+     "drink": 0.4,
+     "sleep": 53.5,
+     "play": 39.7,
+     "bath": 17.9
+    },
+    "activity": {
+     "idle": 0.5,
+     "drink": 0.5
+    },
+    "moving_share": 0.0,
+    "group3_share": 0.0,
+    "alone_share": 1.0,
+    "chosen_top": [
+     [
+      "Drink",
+      100
+     ]
+    ],
+    "ended_by_tending_within_30": null,
+    "drink_while_sated": 100,
+    "shape": "parked",
+    "seat": "Clementine",
+    "recorded_longest": 323
+   }
+  ]
+ }
+]
