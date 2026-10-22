@@ -219,7 +219,10 @@ consent BC comparison ride the trunk.
   digest" → deviations entry 7 (04f0bce5): trunk-s8/s9/s10, run
   indices 103–105, stripes claimed, pinned recipe and binding,
   ALTERNATES for the digest only; launched 2026-10-22T05:40Z, three in
-  parallel. The digest runs 20×20 with every completion as an
+  parallel. s8 HALTED ~06:04Z by the frozen §6 probe-distress stop
+  (streak 392 on world 40002 at u299; deviations entry 8, closed by
+  entry 7's terms: no legs, no automatic replacement); s9 and s10
+  continue. The digest runs 20×20 with every completion as an
   alternate once they end. Call 3: §9.4 partner_absent WAITS behind
   the mini models and the prod seating, her ruling.
   TAIL READS: owner 2026-10-22 "Run the tail reads" → battery RESULTS

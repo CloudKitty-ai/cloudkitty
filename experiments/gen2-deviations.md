@@ -527,3 +527,29 @@ the frozen §6 probe-distress stop; benefit: the only route to the
 declared digest, which reads cross-seed mixtures without changing the
 deployment shape. Launch and job cards: Experiments' resume anchor;
 readout appended to `gen2-trunk-training-2026-10-18/RESULTS.md`.
+
+## 8. PPO trunk-s8 halted by the frozen §6 probe-distress stop (2026-10-22)
+
+trunk-s8 (entry 7; seed 8, run index 103, stripe 2,160,000,000+)
+halted at update 299 / 921,600 ticks, 2026-10-22 ~06:04Z: a 392-tick
+engine-distress streak on probe world 40002, the trio's second (bar
+300). Its probe rows, in order: u49, u99, u149 streak 0; u199 271 on
+world 40002 (under the bar); u249 0; u299 392 on world 40002. Nash
+0.8046 at the stopping probe (line 0.5). Final saved with stop_reason
+probe-distress-stop (sha256 4fa8a25e…); checkpoint and probe traces
+kept on disk as this entry's record; never resumed (frozen §6; entries
+3 and 6). s9 and s10 continue (update 310 at the halt, clean probes).
+
+Context, recorded not interpreted: three of nine same-recipe seeds
+have now tripped this stop (s3 at u249 on 40002, streak 317; s5 at
+u199 on 40001, streak 307; s8 at u299 on 40002, streak 392), each
+inside the first 1M ticks; the six others ran to plateau with max
+probe streaks 103–247.
+
+Status: CLOSED by entry 7's own terms — a halted alternate contributes
+no legs to the swaps digest and is not replaced automatically. The
+digest's size now rests on s9 and s10: two completions = the declared
+10 legs; one = a partial digest; none = the digest cannot run and the
+owner is asked again. No investigation run (entry 6's precedent). The
+owner may still rule a replacement (a new stripe claim) or an
+investigation; neither is assumed.
