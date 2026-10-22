@@ -182,6 +182,26 @@ consent BC comparison ride the trunk.
   stratified, never overall); THEN step 9 and the remaining §8 arms
   decided with those results in hand. Skipping any arm is a roadmap
   adjustment recorded in the deviations ledger.
+  STATUS 2026-10-21: (1) play decomposition DONE
+  (`play-decomposition-g2-2026-10-21/`, 2c1cae0f, gate PASS): the rise
+  is teacher (+0.091) and training (+0.166), not world (−0.004); the
+  roster plays 0.012 short of its teacher with the comfort rule
+  loosened and consent off; extra play is slack-time play (less onset
+  pressure than the teacher), out of idle moving and rest; play's own
+  need carries 14–22% of the happiness gain. (3) DONE in
+  `gen2-cert-battery-2026-10-20/RESULTS.md` §Owed reads (d541d55a, gate
+  PASS): §9.5 dispersion at all sizes; §8.5 trigger recorded (gap
+  +5.566 / +4.594 / +7.187, not flat, no margin declared: whether the
+  displaced-size radius cell runs is HER CALL); §9.8 F-050 revisit
+  (placement 0.416/0.533/0.613 vs 0.387/0.472/0.538; F-050, doctrine
+  rule 7 and the GEN2-INPUTS shelf carry dated addenda; the density
+  half stays unmeasured, one density in Gen 2). STILL OPEN from (3):
+  the swaps digest (Experiments proposes a deviation entry: under the
+  F-044 five-distinct-networks roster every completed seed is seated,
+  so no alternate exists to swap in; her word); §9.4 partner_absent
+  re-read (its instrument polls the live server, so it waits behind the
+  rot2 export and deploy); the s4/s7 unread tails; the Gen 2 FINDINGS
+  entries; entry 4 (a).
 
 ## Flagged follow-ups (owner's word to start)
 
