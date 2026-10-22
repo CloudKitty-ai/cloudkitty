@@ -965,3 +965,29 @@ claim, read the toml at each size; (3) after rewriting one clause of a
 sentence, re-read the sentence; (4) "served" means the deployed config,
 not the lab's comparator.
 
+
+## 2026-10-22 — radius-cell-g2 RESULTS (whole document), two rounds (Experiments)
+
+Scope: a new arc's write-up (2 × 2 on 30 worlds, four reads), gated
+whole; ~117 arithmetic cells, all matched from round 1, 0 rounding.
+- Round 1 FAIL, 1 CONTRADICTED + 1 provenance miss + 2 WEAK + 1
+  disclosure: "a fifth of the teacher's" for ratios 0.147 (means) and
+  0.52 (maxima); "+5.566 ± 0.623 (§Phase C)" where §Phase C prints
+  the mean alone and the SD lives in §"§8.5, the declared future
+  read"; a Clementine clause attributed a per-seat happiness-gap
+  finding to the owed reads, which print none (their Clementine line
+  is beam placement); a Scope line placed the S§6 trained-at-radius
+  arm at 40×40 (it is declared at the served 20×20); the recorded
+  law row (S5) ran on the probe config (vocabulary unarmed) under an
+  earlier binding than the cell rows, undisclosed. The gate verified
+  the two byte-identities that make the undisclosed differences
+  inert; the reader now prints them, with config/binding sha per row.
+- Round 2 PASS (~126 arithmetic, 3 threshold, ~19 characterisations,
+  ~22 provenance; 3 UNDECIDABLE = the mutate reds, no log).
+Lessons: (1) a ratio written as a fraction word ("a fifth") is a
+number: compute it before writing it; (2) a citation names the
+SECTION that prints the figure at the precision quoted, not the
+section the figure is famous from; (3) "as X found" is a provenance
+claim about X's text, read X; (4) when a recorded row is reused as
+one cell of a design, its config AND binding sha go in the write-up
+beside the new rows', and any difference is shown inert or stated.

@@ -202,6 +202,25 @@ consent BC comparison ride the trunk.
   re-read (its instrument polls the live server, so it waits behind the
   rot2 export and deploy); the s4/s7 unread tails; the Gen 2 FINDINGS
   entries; entry 4 (a).
+  OWNER 2026-10-21, the three calls, verbatim: "Call 1: run it / Call
+  2: can we train 3 extra seeds while we run the vision radius work? /
+  Call 3: I was planning on waiting on seating on prod until we have
+  the mini models working. So wait". Call 1 DONE 2026-10-22
+  (`radius-cell-g2-2026-10-21/`, declaration cd846eac before data;
+  RESULTS gated): at 40×40 with the radius one step below the law the
+  paired gap is +5.800 ± 0.860 against the law's +4.594 ± 0.451 (gap
+  difference +1.206 ± 0.941, 28/30 worlds); the scripted teacher gains
+  1.294 from the wider radius, the frozen roster 0.088 — the fall
+  between the cert legs travelled with the radius, on the teacher's
+  side; descriptive, the certificate stands; all scouts and legs clean.
+  Call 2 is a question, answered 2026-10-22 (yes, cheap: ~3.3 h per
+  seed, three in parallel as s5–s7 ran); training three more seeds
+  takes her kickoff word and a deviations entry (entry 5's shape:
+  slots s8–s10, run indices 103–105, stripes claimed before first
+  burn, same pinned recipe and binding), and would supply the swaps
+  digest's alternates (2 needed; the record's §6 stop rate is 2 of 7
+  seeds). Call 3: §9.4 partner_absent WAITS behind the mini models and
+  the prod seating, her ruling.
 
 ## Flagged follow-ups (owner's word to start)
 
