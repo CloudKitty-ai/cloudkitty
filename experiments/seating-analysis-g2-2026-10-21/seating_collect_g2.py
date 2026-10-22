@@ -47,7 +47,18 @@ CONFIG = EXPTS / "gen2-comparator-legs-2026-10-14" / "g2leg-20.toml"
 E_MIN = 64   # element slots at 20x20; bigger worlds size from their reset count
 
 
-def collect(seating, seed, ticks, abort_streak, config=CONFIG):
+def abort_due(dist_streak, abort_streak, abort_seat=None):
+    """The distress stop: any seat's current single-need streak at or over
+    `abort_streak` — or, with `abort_seat`, that seat's alone (the tail
+    replays' welfare mitigation, 2026-10-22: stop 100 ticks into the
+    target cat's run even when another seat's run is longer)."""
+    if abort_streak is None:
+        return False
+    watched = dist_streak if abort_seat is None else dist_streak[abort_seat]
+    return bool(watched.max() >= abort_streak)
+
+
+def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
     import cloudkitty
     with open(config, "rb") as f:
         cfg = tomllib.load(f)
@@ -139,7 +150,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
         for j, (_id, ty, x, y) in enumerate(els):
             elements[n, j] = (ecode(ty), x, y)
         n += 1
-        if abort_streak is not None and dist_streak.max() >= abort_streak:
+        if abort_due(dist_streak, abort_streak, abort_seat):
             aborted_at = n
             break
 
@@ -150,6 +161,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG):
         "speech_recorded": [s != "scripted" for s in seats],
         "element_types": etypes, "width": width, "height": height,
         "per_kitty": pk, "abort_streak": abort_streak, "aborted_at": aborted_at,
+        "abort_seat": abort_seat,
         "applied_names": APPLIED_NAMES,
         "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }

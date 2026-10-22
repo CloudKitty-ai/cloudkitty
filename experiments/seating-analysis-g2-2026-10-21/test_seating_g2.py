@@ -84,6 +84,20 @@ def test_cli_config_flag_reaches_the_engine_and_the_meta():
         meta["provenance"]["config_sha256"]
 
 
+def test_abort_seat_watches_one_seat_only():
+    # red: abort_due ignores abort_seat (reads the roster max) -> the
+    # watched-seat-2 case stops on seat 0's 150
+    streak = np.zeros((5, 6), np.int64)
+    streak[0, 4] = 150   # another seat, longer run
+    streak[2, 0] = 50    # the watched seat, under the line
+    assert C.abort_due(streak, 100) is True
+    assert C.abort_due(streak, 100, abort_seat=2) is False
+    assert C.abort_due(streak, 100, abort_seat=0) is True
+    assert C.abort_due(streak, None, abort_seat=0) is False
+    streak[2, 0] = 100
+    assert C.abort_due(streak, 100, abort_seat=2) is True
+
+
 def test_rotation_is_a_latin_square_over_the_five_networks():
     nets = {f"g2:trunk-{n}" for n in ("s1", "s2", "s4", "s6", "s7")}
     rots = [H.SEATINGS[f"g2-rot{r}"] for r in range(1, 6)]
