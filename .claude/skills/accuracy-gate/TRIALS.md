@@ -942,3 +942,26 @@ gated by WHAT is a code claim, read the call site; (3) a 4-dp chain in
 a rounding note is four more numbers to check; (4) say where the reds
 live before the gate asks.
 
+## 2026-10-21 — gen2-cert-battery §Owed reads + three companions, three rounds (Experiments)
+
+Scope: one new section on existing rows (dispersion, §8.5 trigger, F-050
+beam placement) plus copy checks of the F-050 dated note, the doctrine
+rule 7 worked example and the GEN2-INPUTS shelf entry. Numbers matched
+from round 1 (132 checked).
+- Round 1 FAIL, 3 CONTRADICTED: "Pumpkin is the one seat below her
+  teacher" (Clementine was too; the fence asserted only Pumpkin, so it
+  passed vacuously); "2–2.5×" for ratios 2.51 / 2.00 / 1.71; "six beams
+  at every size" (the count scales with area, 6 / 24 / 150; the density
+  is what held). Also found a wrong seat→network label the fence had
+  encoded wrongly too ([0, 1, 2] for [0, 1, 4]).
+- Round 2 FAIL: a "two halves stay open" sentence left standing after
+  the 057 half was found met.
+- Round 3: section PASS; the doctrine companion failed on one word
+  ("served teacher" for a scripted comparator on a lab config), fixed
+  post-round.
+Lessons: (1) an "only X" claim needs a fence assert on the SET, not on
+X; (2) a config fact quoted from memory ("six beams") is a provenance
+claim, read the toml at each size; (3) after rewriting one clause of a
+sentence, re-read the sentence; (4) "served" means the deployed config,
+not the lab's comparator.
+

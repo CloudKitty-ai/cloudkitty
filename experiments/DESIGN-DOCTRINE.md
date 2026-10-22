@@ -367,7 +367,13 @@ welfare (F-019).
   Gen 2 roster's placement and welfare under floor 15 with the
   re-recorded teacher, and whether the welfare curve moves with beam
   density (the owner's caveat, GEN2-INPUTS); update this example and
-  F-050 with what it shows.
+  F-050 with what it shows. **Gen 2 read (2026-10-21)**: the certified
+  roster keeps 0.42–0.61 of its sleep on beams, rising with world size,
+  against the scripted teacher's 0.39–0.54 on the same worlds, conducts
+  1.7–2.5× as much, and sits 4.6–7.2 happiness above the teacher under
+  floor 15 (F-050's dated note; `gen2-cert-battery-2026-10-20/RESULTS.md`
+  §Owed reads; the scripted side is the post-057 floor-reading teacher).
+  The density half remains open: Gen 2 ran one density.
 - **Re-verify**: a contrast, never a level. After the retrain (rule 9),
   the rate at the lowest dose in the sweep under the valuing world
   against the same recipe under the world without the value, or the

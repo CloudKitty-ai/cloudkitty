@@ -551,6 +551,12 @@ is no longer load-bearing.
   (2) the corpus read on the new teacher (tier 1's declared pre-PPO
   read, on placement). The served Gen 1 world stays at floor 0: the
   frozen minds under a floor lose 1.4–5.2 happiness and nap uselessly.
+  **Gen 2 read (2026-10-21)**: the certified roster rot2 keeps 0.416 /
+  0.533 / 0.613 of its sleep on beams at 20 / 40 / 100 against the
+  post-057 teacher's 0.387 / 0.472 / 0.538, conducts 1.7–2.5× as much,
+  team happiness 87.49 / 86.23 / 83.81 vs 81.92 / 81.63 / 76.62
+  (`gen2-cert-battery-2026-10-20/RESULTS.md` §Owed reads; F-050's dated
+  note). One density only, so the density half stays unmeasured.
 - Critic compression rewatch (#365): the critic ranks correctly but
   does not extrapolate down; matters if training enters new return
   regimes. Step-7 rewatch on the B3 critic: EV 0.65–0.72 flat across

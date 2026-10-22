@@ -606,3 +606,127 @@ assert (m["20"]["pooled_company_effect"]["mean"], m["20"]["pooled_company_effect
 print("Phase C fence: all cells match")
 EOF2
 ```
+
+## Owed reads on the certified roster (2026-10-21; timeline "post-cert analysis plan", owner "Recommendation accepted")
+
+Three reads the prereg or this battery's declaration owed, all on rows
+already recorded (`dispersion_read.py` → `dispersion-read.json`).
+Nothing new was collected. Thirty worlds per size (905001–905030),
+paired by seed throughout.
+
+### §9.5, the dispersion read at all three sizes (character, not a bar)
+
+| size | together-share, rot2 by seat (Miso Biscuit Pumpkin Kittybear Clementine) | groups per tick | Δ vs the scripted teacher | Δ vs each seat's own network seated five times |
+|---|---|---|---|---|
+| 20 | 0.522 0.544 0.505 0.537 0.564 | 3.353 | no field in the comparator rows | +0.002 −0.002 −0.013 −0.002 −0.000 |
+| 40 | 0.427 0.457 0.418 0.445 0.481 | 3.692 | no field in the comparator rows | +0.012 +0.009 −0.014 −0.009 +0.001 |
+| 100 | 0.356 0.387 0.353 0.375 0.414 | 3.922 | −0.085 −0.072 −0.059 −0.087 −0.045; groups +0.371 | −0.007 (Miso, s2) −0.020 (Biscuit, s4) −0.012 (Clementine, s1); Pumpkin (s6) and Kittybear (s7) have no 100×100 leg |
+
+At 20 and 40 the vision-law comparator rows predate the field (this
+battery's DECLARATION), so the pairing there is the mixed read's: each
+seat against its own network seated five times. Every such delta is
+within 0.0141 of zero (the largest, Pumpkin at 40×40, −0.01406). At 100×100 the holding-baseline scripted re-run carries
+the field, so rot2 is paired against the teacher: every seat is
+together less (−0.045 to −0.087 of ticks) and the roster runs 0.37 more
+groups per tick. Together-share falls with size for the roster
+(0.505–0.564 → 0.418–0.481 → 0.353–0.414). INVESTIGATE row, as the
+prereg files it: on the big world the trained roster spreads out more
+than its teacher, which sits beside Phase C's water-parking tail
+(Kittybear's, the seat s7 holds) without explaining it.
+
+### §8.5, the declared future read: does the gap move with size?
+
+The paired team-happiness gap, trained minus scripted: +5.566 ± 0.623
+at 20×20, +4.594 ± 0.451 at 40×40 (the cert legs), +7.187 ± 1.704 at
+100×100 (the characterize leg); 30 of 30 worlds positive at each size,
+no aborts. Between the two cert legs the gap falls by 0.97, more than
+either leg's per-seed SD and about 8.5 times the SE of the per-seed
+paired difference between the two legs (SD 0.625, n 30); it rises again
+at 100. The prereg's trigger ("if the trained-vs-scripted
+gap moves with size across cert legs, one displaced-size radius cell
+runs, scouts-first") names no margin, so the record is the numbers: the
+gap is not flat across sizes. Whether the radius cell runs is the
+owner's call; none runs from this reading.
+
+### §9.8, the F-050 revisit: beam placement and welfare under floor 15
+
+In-beam = on-beam sleep ticks over sleep ticks, conducted = conducted
+sleep ticks over sleep ticks, pooled over the 30 worlds as the
+beam-world screen read them (`screen_read.py`).
+
+| size | roster | in-beam by seat (Miso Biscuit Pumpkin Kittybear Clementine) | in-beam pooled | conducted pooled | team happiness |
+|---|---|---|---|---|---|
+| 20 | rot2 | 0.413 0.440 0.383 0.432 0.404 | 0.416 | 0.138 | 87.487 |
+| 20 | scripted | 0.310 0.426 0.486 0.424 0.417 | 0.387 | 0.055 | 81.921 |
+| 40 | rot2 | 0.547 0.544 0.484 0.568 0.496 | 0.533 | 0.109 | 86.229 |
+| 40 | scripted | 0.390 0.519 0.548 0.513 0.513 | 0.472 | 0.054 | 81.634 |
+| 100 | rot2 | 0.650 0.622 0.589 0.661 0.513 | 0.613 | 0.084 | 83.810 |
+| 100 | scripted | 0.444 0.586 0.668 0.567 0.581 | 0.538 | 0.049 | 76.623 |
+
+The Gen 2 roster keeps 0.416 / 0.533 / 0.613 of its sleep on beams at
+20 / 40 / 100 against the teacher's 0.387 / 0.472 / 0.538, and conducts
+1.7–2.5× as much (0.138 / 0.109 / 0.084 against 0.055 / 0.054 / 0.049).
+Placement rises with size for both rosters. Two seats sit below their
+teacher at every size: Pumpkin (0.383 vs 0.486, 0.484 vs 0.548, 0.589
+vs 0.668) and Clementine (0.404 vs 0.417, 0.496 vs 0.513, 0.513 vs
+0.581); Miso is the largest gain at every size (0.413 vs 0.310 at
+20×20). Welfare
+under floor 15 is the certificate's: 87.49 / 86.23 / 83.81 against
+81.92 / 81.63 / 76.62. One half of the revisit stays open: Gen 2 ran
+one beam density (the sunbeam count scales with area, 6–7 / 24–28 /
+150–175 at 20 / 40 / 100, 1.5–1.75 per hundred tiles throughout), so
+the density half is unmeasured. F-050's re-verify condition (the
+teacher re-recorded under the floor) is met by construction: spec 057
+(the sleep rule reads the floor) merged 2026-09-22, before the Gen 2
+comparators were recorded, so the scripted side here is the
+floor-reading teacher. F-050, doctrine rule 7's worked example and the
+GEN2-INPUTS shelf entry carry a dated addendum with these numbers.
+
+## Read (owed reads; seconds; stdlib python3, repo root)
+
+```
+cd experiments/gen2-cert-battery-2026-10-20 && python3 -B dispersion_read.py --out dispersion-read.json
+```
+
+```
+python3 - <<'EOF2'
+import json
+J = json.load(open("experiments/gen2-cert-battery-2026-10-20/dispersion-read.json"))
+G, D, B = J["gap_by_size"], J["dispersion"], J["beam"]
+r3 = lambda x: round(x, 3)
+assert [(r3(G[z]["mean"]), r3(G[z]["sd"]), G[z]["positive"], G[z]["aborts"], G[z]["n"]) for z in ("20", "40", "100")] == \
+    [(5.566, 0.623, 30, 0, 30), (4.594, 0.451, 30, 0, 30), (7.187, 1.704, 30, 0, 30)]
+assert r3(G["20"]["mean"] - G["40"]["mean"]) == 0.972
+assert [r3(m["mean"]) for m in D["20"]["trained"]["together_share"]] == [0.522, 0.544, 0.505, 0.537, 0.564]
+assert [r3(m["mean"]) for m in D["100"]["trained"]["together_share"]] == [0.356, 0.387, 0.353, 0.375, 0.414]
+assert [r3(D[z]["trained"]["mean_group_count"]["mean"]) for z in ("20", "40", "100")] == [3.353, 3.692, 3.922]
+assert D["20"]["vs_scripted"] is None and D["40"]["vs_scripted"] is None
+assert [r3(m["mean"]) for m in D["100"]["vs_scripted"]["together_share_delta"]] == [-0.085, -0.072, -0.059, -0.087, -0.045]
+assert r3(D["100"]["vs_scripted"]["mean_group_count_delta"]["mean"]) == 0.371
+for z in ("20", "40"):
+    assert D[z]["vs_matched_uniform"]["seats_with_uniform"] == [0, 1, 2, 3, 4]
+    assert max(abs(m["mean"]) for m in D[z]["vs_matched_uniform"]["together_share_delta"].values()) <= 0.0145
+assert D["100"]["vs_matched_uniform"]["seats_with_uniform"] == [0, 1, 4]
+assert [r3(m["mean"]) for m in D["100"]["vs_matched_uniform"]["together_share_delta"].values()] == [-0.007, -0.020, -0.012]
+for z, tr, sc, ct, cs, ht, hs in (("20", 0.416, 0.387, 0.138, 0.055, 87.487, 81.921),
+                                  ("40", 0.533, 0.472, 0.109, 0.054, 86.229, 81.634),
+                                  ("100", 0.613, 0.538, 0.084, 0.049, 83.810, 76.623)):
+    assert (r3(B[z]["trained"]["in_beam_pooled"]), r3(B[z]["scripted"]["in_beam_pooled"])) == (tr, sc), z
+    assert (r3(B[z]["trained"]["conducted_pooled"]), r3(B[z]["scripted"]["conducted_pooled"])) == (ct, cs), z
+    assert (r3(G[z]["trained_team"]), r3(G[z]["scripted_team"])) == (ht, hs), z
+    assert {k for k in range(5) if B[z]["trained"]["in_beam"][k] < B[z]["scripted"]["in_beam"][k]} == {2, 4}, z
+    assert max(range(5), key=lambda k: B[z]["trained"]["in_beam"][k] - B[z]["scripted"]["in_beam"][k]) == 0, z
+assert [r3(x) for x in B["20"]["trained"]["in_beam"]] == [0.413, 0.440, 0.383, 0.432, 0.404]
+assert [r3(x) for x in B["20"]["scripted"]["in_beam"]] == [0.310, 0.426, 0.486, 0.424, 0.417]
+print("owed-reads fence: all cells match")
+EOF2
+```
+
+Accuracy gate (owed reads): **PASS** 2026-10-21 after round 3 (round 1
+FAIL: three characterisations; round 2 FAIL: one leftover "two halves"
+sentence; round 3: the section PASS, 34 arithmetic, 15 characterisations
+SUPPORTED, 0 UNDECIDABLE; the doctrine companion's one word "served" →
+"scripted" fixed after the round, no number touched). Companions
+copy-checked: F-050's dated note, doctrine rule 7's worked example, the
+GEN2-INPUTS shelf entry. Raws are the battery's existing rows (hash per
+the Phase C stamp); the reader adds no raw.

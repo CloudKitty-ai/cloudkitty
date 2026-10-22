@@ -2618,6 +2618,24 @@ the floor clear of the announce line at 20, so a naive mind's want
 channel cycles rather than saturates); the served Gen 1 world stays at
 floor 0 (the frozen column).
 
+**Dated note, 2026-10-21 (the Gen 2 read, per the 2026-09-20 revisit;
+no status change):** the certified Gen 2 roster rot2 (five distinct
+networks, `gen2-cert-battery-2026-10-20/RESULTS.md` §Owed reads) on the
+Gen 2 world (floor 15, one beam density) keeps 0.416 / 0.533 / 0.613 of its
+sleep ticks on beams at 20×20 / 40×40 / 100×100 against its scripted
+teacher's 0.387 / 0.472 / 0.538 on the same worlds, and conducts
+(cosleep beside a beam sleeper) 0.138 / 0.109 / 0.084 against 0.055 /
+0.054 / 0.049; team happiness 87.49 / 86.23 / 83.81 against 81.92 /
+81.63 / 76.62. Placement rises with world size for both rosters;
+Pumpkin (0.383 / 0.484 / 0.589 vs 0.486 / 0.548 / 0.668) and Clementine
+(0.404 / 0.496 / 0.513 vs 0.417 / 0.513 / 0.581) sit below their teacher
+at every size. One half of the revisit stays open: Gen 2 ran one beam
+density (the sunbeam count scales with area, 6–7 / 24–28 / 150–175 at
+20 / 40 / 100), so the density half is unmeasured. The re-verify
+condition above (the teacher re-recorded under the floor) is met by
+construction: spec 057 merged 2026-09-22, before the Gen 2 comparators
+were recorded, so the scripted side here is the floor-reading teacher.
+
 ## F-051 · active · Under a sleep floor, beam count is a step at six for a learned mind and flat past it: five beams cost about 0.6 happiness, six to eight are one level inside the seed spread, frozen minds span 0.14 across the four counts, and a mind trained at six beams seated on five, seven or eight is never worse than one retrained there
 
 `beam-world-screen-2026-09-19/RESULTS.md` §Tier 6 (prereg
