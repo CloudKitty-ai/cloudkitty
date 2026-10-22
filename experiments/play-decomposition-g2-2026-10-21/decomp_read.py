@@ -145,6 +145,7 @@ def main():
         "behaviors_at_d2 C3-C1": diff("C3", "C1", True), "behaviors_at_d1 C4-C2": diff("C4", "C2", True),
         "world_at_d2 C5-C3": diff("C5", "C3", False), "world_at_d1 C6-C4": diff("C6", "C4", False),
         "training_gen2 N2-C1": diff("N2", "C1", True),
+        "loosened_teacher_vs_networks C2-N2": diff("C2", "N2", True),
         "training_gen1 N1-C5": {"range_minus_mean": [out["cells"]["N1"]["pooled"]["floor"] - out["cells"]["C5"]["pooled"]["mean"],
                                                      out["cells"]["N1"]["pooled"]["ceiling"] - out["cells"]["C5"]["pooled"]["mean"]],
                                 "paired": False},

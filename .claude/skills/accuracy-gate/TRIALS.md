@@ -915,3 +915,30 @@ checks. New decay modes for the lesson set:
   session context must be supplied in the prompt as ground truth,
   and anything only the session can back gets cited to the session
   or cut (the worst-case-bench clause, r13).
+
+## 2026-10-21 — play-decomposition-g2 RESULTS, three rounds (Experiments)
+
+Scope: the whole write-up (R1–R5 tables + Summary), fresh subagent each
+round; reader regenerated to the scratchpad, fresh JSON byte-identical
+to the recorded one every round; 345 table cells matched from round 1.
+- Round 1 FAIL, 3 CONTRADICTED: all three were generalisations over the
+  five cats that one or two cats broke ("groom moved slightly up or not
+  at all": Pumpkin −0.014 ± 0.002; "no tending activity lost share";
+  "eat, drink and cuddle each carry as much or more [than play]":
+  Biscuit's play was her largest term). Four ROUNDING notes (a chain of
+  rounded cells not summing; "+5.5" for a 5.55 mean; a range whose low
+  end was exactly 0).
+- Round 2 FAIL: a 4-dp figure typed one digit off (0.1091 for 0.10931);
+  a MECHANISM sentence false in the code ("not gated differently":
+  `playful_comfort` is a teacher rule, never engine physics, so the
+  networks were under one gate and the teacher under two — found by
+  reading teacher.rs, not the config); "reds on record" with nothing in
+  git to show (mutate.sh keeps no log; the record is the landing
+  commit's message, now said so).
+- Round 3 PASS (34 prose figures, 15 characterisations, 7 provenance).
+Lessons: (1) every "each / every / all / none" over five cats gets
+re-derived per cat before it is written; (2) a sentence about WHO is
+gated by WHAT is a code claim, read the call site; (3) a 4-dp chain in
+a rounding note is four more numbers to check; (4) say where the reds
+live before the gate asks.
+
