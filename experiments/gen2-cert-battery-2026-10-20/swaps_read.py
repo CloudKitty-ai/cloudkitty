@@ -53,6 +53,18 @@ def welfare(X, seeds):
             "aborts": sum("aborted_streak" in X[w] for w in seeds)}
 
 
+CROSSING = 150   # F-043's crossing: a cat-world whose longest distress streak >= 150
+
+
+def crossings(X, seeds, k):
+    """F-043's re-verify read: cat-worlds with a distress streak >= 150 on
+    this leg, how many sit in the swapped seat k, and the same count on
+    the reference rows (per_seat streaks from max_distress_age_seat)."""
+    cells = [(w, i) for w in seeds for i, m in enumerate(X[w]["max_distress_age_seat"]) if m >= CROSSING]
+    return {"total": len(cells), "in_swapped_seat": sum(i == k for _, i in cells),
+            "worlds": sorted({w for w, _ in cells})}
+
+
 def seat_of(seating):
     m = NAME.match(seating)
     assert m, seating
@@ -73,6 +85,7 @@ def read_leg(seating, R, seeds):
             "delta": dict(msd(delta), positive=sum(d > 0 for d in delta)),
             "seat_delta": dict(msd(seat_delta), positive=sum(d > 0 for d in seat_delta)),
             "welfare": welfare(S, seeds), "holding": holding(S, seeds),
+            "crossings": crossings(S, seeds, k), "crossings_rot2": crossings(R, seeds, k),
             "per_world_delta": delta, "config_sha256": head["provenance"]["config_sha256"]}
 
 
@@ -95,6 +108,9 @@ def read():
                                   "worst_streak_max": max(l["welfare"]["worst_streak_max"] for l in mine),
                                   "aborts": sum(l["welfare"]["aborts"] for l in mine)}
     out["pooled"] = {"legs": len(legs),
+                     "crossings_total": sum(l["crossings"]["total"] for l in legs),
+                     "crossings_in_swapped_seat": sum(l["crossings"]["in_swapped_seat"] for l in legs),
+                     "crossings_rot2_per_leg": [l["crossings_rot2"]["total"] for l in legs],
                      "mean_delta": st.mean(l["delta"]["mean"] for l in legs) if legs else None,
                      "all_per_world_deltas": msd([d for l in legs for d in l["per_world_delta"]]) if legs else None}
     return out
@@ -117,6 +133,8 @@ def md(out):
     p = out["pooled"]
     if p["legs"]:
         L.append(f"pooled over {p['legs']} legs: mean Δ {p['mean_delta']:+.3f}; all per-world deltas {p['all_per_world_deltas']['mean']:+.3f} ± {p['all_per_world_deltas']['sd']:.3f}")
+        L.append(f"F-043 crossings (streak ≥ {CROSSING}): {p['crossings_total']} cat-worlds over the legs, {p['crossings_in_swapped_seat']} in the swapped seat; rot2's own on the same worlds: {p['crossings_rot2_per_leg'][0]}")
+        L.append("per leg (total / in swapped seat): " + ", ".join(f"{l['alternate']}@{l['seat']} {l['crossings']['total']}/{l['crossings']['in_swapped_seat']}" for l in out["legs"]))
     return "\n".join(L)
 
 

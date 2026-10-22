@@ -1061,3 +1061,45 @@ for s, upd, ticks, first, last, mn, mx in (("s5", 199, 614400, None, None, 0.810
 print("s5/s6/s7 fence: all cells match")
 EOF2
 ```
+
+### Trunk PPO — alternate seeds s8/s9/s10/s11 readout (2026-10-22; deviations entries 7, 8 and 9)
+
+Alternates for the swaps digest (owner 2026-10-22 "Train the
+additional seeds so we can run the swaps digest"; "Replace s8 just in
+case."), identical pinned recipe and binding, launched 05:40Z (s8, s9,
+s10 in parallel) and 06:28Z (s11). trunk-s8 halted at update 299 /
+921,600 ticks on the frozen §6 probe-distress stop (streak 392
+on probe world 40002; entry 8). trunk-s11, its replacement, halted at
+update 99 / 307,200 ticks (streak 371 on world 40003; entry 9).
+trunk-s9 and trunk-s10 both plateau-complete at 2,604 updates /
+8,002,560 ticks: s9 ep_return 0.8290 → 0.8800, min probe nash 0.8096,
+max probe streak 227 (final sha256 6feaa9d5…); s10 0.8275 → 0.8782,
+min probe nash 0.8169, max probe streak 179 (final sha256 ab194dd5…).
+Of eleven same-recipe seeds, four tripped the §6 stop (s3, s5, s8,
+s11), every one inside the first 1M ticks; the seven that cleared 1M
+all ran to plateau at 8.0–9.0M ticks with max probe streaks 103–247.
+Recorded, not interpreted. The digest runs on s9 and s10
+(`../gen2-cert-battery-2026-10-20/SWAPS-DECLARATION.md`).
+
+### Read (alternates; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = "experiments/gen2-trunk-training-2026-10-18/artifacts/"
+for s, upd, ticks, first, last, mn, mx in (("s8", 299, 921600, None, None, None, 392),
+                                           ("s9", 2604, 8002560, 0.8290, 0.8800, 0.8096, 227),
+                                           ("s10", 2604, 8002560, 0.8275, 0.8782, 0.8169, 179),
+                                           ("s11", 99, 307200, None, None, None, 371)):
+    rows = [json.loads(l) for l in open(d + f"ppo-g2-trunk-{s}/metrics.jsonl")]
+    tr = [r for r in rows if not r.get("probe")]
+    pr = [r for r in rows if r.get("probe")]
+    assert (tr[-1]["update"], tr[-1]["ticks"]) == (upd, ticks), (s, tr[-1]["update"], tr[-1]["ticks"])
+    ret = [r for r in tr if r.get("ep_return_mean")]
+    if first is not None:
+        assert (round(ret[0]["ep_return_mean"], 4), round(ret[-1]["ep_return_mean"], 4)) == (first, last), s
+        assert round(min(p["nash"] for p in pr), 4) == mn, s
+    assert max(p["max_distress_streak"] for p in pr) == mx, s
+print("alternates fence: all cells match")
+EOF2
+```

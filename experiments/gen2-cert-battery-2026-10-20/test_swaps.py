@@ -65,6 +65,24 @@ def test_g3_refuses_a_leg_whose_other_seats_differ():
     raise AssertionError("read_leg accepted a leg whose unswapped seats differ from the reference")
 
 
+def test_g4_crossings_count_streaks_at_or_over_150_and_place_them():
+    _, R = sr.by_seed(sr.ROT2)
+    seeds = sorted(R)
+    # the leg with the most long streaks on record: s9 at Pumpkin's seat
+    name = "g2-rot2-swap2-s9"
+    _, S = sr.by_seed(sr.SWAPS / name / "legs/size20" / f"{name}-g2cmp-30x20000.jsonl")
+    k, _ = sr.seat_of(name)
+    c = sr.crossings(S, seeds, k)
+    hand = [(w, i) for w in seeds for i in range(5) if S[w]["max_distress_age_seat"][i] >= 150]
+    assert c["total"] == len(hand) and c["in_swapped_seat"] == sum(i == k for _, i in hand), (c, len(hand))
+    assert c["total"] > 0, c
+    # placement reads the seat index: pointed at the seat that carries the
+    # first crossing, the in-seat count is that seat's hand count
+    j = hand[0][1]
+    assert j != k, "fixture: the first crossing sits in the swapped seat; pick another leg"
+    assert sr.crossings(S, seeds, j)["in_swapped_seat"] == sum(i == j for _, i in hand) > 0
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:
