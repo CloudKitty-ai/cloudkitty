@@ -127,6 +127,40 @@ def test_b3_group_contrast_by_hand():
             assert abs(c[head][v]["ratio"] - num["mean"] / den["mean"]) < 1e-12, ("contrast", head, v)
 
 
+def test_p1_check_world_on_the_recorded_scout():
+    """DECLARATION §Instrument: check_P.check_world on the P1 scout (the first recorded P world) —
+    the grave kitty's reset band and the other four at the served default — then tampered copies
+    (a non-grave kitty off zero; the grave kitty off the band; the grave kitty not varying) must be refused."""
+    import hashlib
+    import tempfile
+    import numpy as np
+    import check_P as CP
+    src = HERE / "results-raw" / "P1" / "streams-1095451.npz"
+    assert src.exists(), "the P1 scout is not recorded yet (run_P.sh 1 1095451)"
+    sha = hashlib.sha256((HERE / "g2leg-20-P1.toml").read_bytes()).hexdigest()
+    r = CP.check_world(src, 1, sha)
+    assert r["grave_kitty"] == "Miso" and r["seed"] == 1095451 and r["ticks"] == 4000 and r["aborted_at"] is None
+    n0 = np.array(r["needs0"])
+    assert (n0[0] >= 60).all() and (n0[0] <= 95).all() and np.ptp(n0[0]) > 1.0
+    assert (n0[1:] == 0).all() and r["hap0"][1:] == [100.0] * 4 and r["hap0"][0] < 100
+    z = dict(np.load(src))
+    with tempfile.TemporaryDirectory() as td:
+        def tampered(name, **over):
+            p = Path(td) / f"{name}.npz"
+            np.savez(p, **{**z, **over})
+            try:
+                CP.check_world(p, 1, sha)
+            except AssertionError:
+                return
+            raise AssertionError(f"check_world accepted a tampered world: {name}")
+        n = z["needs0"].copy(); n[2, 0] = 40.0
+        tampered("other_kitty_off_default", needs0=n)
+        n = z["needs0"].copy(); n[0, 1] = 99.0
+        tampered("grave_kitty_off_band", needs0=n)
+        n = z["needs0"].copy(); n[0] = 80.0
+        tampered("grave_kitty_not_varying", needs0=n)
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:
