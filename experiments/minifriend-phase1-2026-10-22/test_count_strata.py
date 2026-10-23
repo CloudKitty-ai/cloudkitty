@@ -56,6 +56,21 @@ def test_c2_visible_reads_the_present_cell_of_the_friends_row():
     assert int((obs[:, k, col + 5].astype(np.float32) > 0.5).sum()) != int((obs[:, k, col].astype(np.float32) > 0.5).sum())
 
 
+def test_c4_sets_filter_counts_only_the_requested_sets():
+    """--sets (Phase 1b): only the named sets are counted, in split.json order; an unknown name refuses.
+    Default None = every set, unchanged."""
+    sets = {"L": {"eval": [1]}, "W": {"eval": [2]}, "G": {"eval": [3]}, "P1": {"eval": [4]}, "P2": {"eval": [5]}}
+    assert C.select_sets(sets) == sets
+    assert list(C.select_sets(sets, ["P2", "P1"])) == ["P1", "P2"]
+    assert "L" not in C.select_sets(sets, ["P1", "P2", "G"]) and "G" in C.select_sets(sets, ["P1", "P2", "G"])
+    try:
+        C.select_sets(sets, ["P1", "P9"])
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("an unknown set name was accepted by --sets")
+
+
 def test_c3_truth_is_the_state_the_view_was_built_from():
     z = np.load(W)
     needs, hap = C.truth_streams(z)

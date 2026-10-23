@@ -87,14 +87,27 @@ def merge(into, per):
             into[f][n]["visible"] += v["visible"]
 
 
+def select_sets(sets, requested=None):
+    """The sets to count: every set in split.json, or only `requested` (each must exist). Used by
+    Phase 1b, whose results-raw also holds Phase 1's L/W/G (symlinks) that its P read must not pool."""
+    if requested is None:
+        return dict(sets)
+    missing = [n for n in requested if n not in sets]
+    assert not missing, f"--sets names sets absent from split.json: {missing}"
+    return {n: sets[n] for n in sets if n in requested}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=ARC / "strata-counts.json")
     ap.add_argument("--all-worlds", action="store_true")
+    ap.add_argument("--sets", nargs="+", default=None, help="count only these sets (default: every set present)")
     a = ap.parse_args()
     report = {"min_n": MIN_N, "split_seed": SPLIT["split_seed"], "sets": {}, "pooled_eval": {}}
+    if a.sets:
+        report["sets_requested"] = list(a.sets)
     pooled = {}
-    for name, spec in SPLIT["sets"].items():
+    for name, spec in select_sets(SPLIT["sets"], a.sets).items():
         d = ARC / "results-raw" / name
         worlds = sorted(int(p.stem.split("-")[1]) for p in d.glob("streams-*.npz")) if d.exists() else []
         if not worlds:
