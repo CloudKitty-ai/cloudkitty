@@ -214,7 +214,12 @@ the half-bin offset dropped from `two_hot` → `test_t2_two_hot_targets`
 red; t3 — the `residual` flag ignored (`if True:`) →
 `test_t3_residual_switch` red; t4 — `predict_world` writing the
 histogram mode (`CENTRES[argmax]`) instead of the mean →
-`test_t4_prediction_consistency` red. t5 and t6 follow with the reader.
+`test_t4_prediction_consistency` red. Reader reds the same day on
+`read_phase1c.py` (6 passed after every restore): t5 — the grave
+probability combined by max instead of 1 − ∏(1 − m) →
+`test_t5_reader_arithmetic` red; t6 — the provenance pin pointed at
+1b's width-12 read instead of 24 → the re-read comparators no longer
+match, `AssertionError: ('NF', 'mse5', …)` inside `test_t6_provenance`.
 RESULTS.md gated by `/accuracy-gate` before commit; Collect (none —
 no rollout) and Read fences separate, runtime declared.
 
