@@ -284,8 +284,25 @@ activations (the trunk is frozen and not opened).
 ## Run order (each step its own commit before its data)
 
 1. Build the arc venv + binding; record the engine delta. Collector
-   `--save-obs` + guard + red. Strata module + guard + red.
-2. L: 10 worlds. Count strata per friend on the eval worlds.
+   `--save-obs` + guard + red. Strata module + guard + red. DONE
+   2026-10-22 (79537ae1, 50f4bb27).
+2. L: 10 worlds. Count strata per friend on the eval worlds. DONE
+   2026-10-22: ten worlds, every one EQUAL to the certified rot2
+   battery row (mean happiness per seat, distress ticks; `check_L.py`,
+   `L-check.json`; worlds 905001–905005 also array-equal to the lab
+   binding's own rot2 streams), so the arc binding reproduces the
+   certified engine. Zero distress ticks on all ten (the battery's 503
+   sit in worlds 905011–905030). Strata on the eval worlds 905001 /
+   905008 / 905009 (`count_strata.py`, `strata-counts.json`; a sample
+   = observer × friend × tick, truth at t−1): GRAVE 0 for every friend
+   (all-states and mind-visible); ADJACENT Miso 16/9, Biscuit 0/0,
+   Pumpkin 68/19, Kittybear 0/0, Clementine 176/147; COMMON ≈ 240k /
+   110–119k. The foreseen case: L alone reaches min-n on COMMON only,
+   so W runs. Layout note (fixing the head's input line above): an
+   observation carries FOUR friend rows of 58 (the roster minus the
+   observer, ascending by id; observe.rs, spec 049 FR-011) after the
+   109-cell self block, then 58 element cells; the head reads the
+   observer's self block and the ONE row that is the friend's.
 3. W: scouts, then 25 worlds. Recount. G only if a GRAVE stratum is
    under 200 mind-visible eval samples for any friend.
 4. Train NF and DR × 3 seeds; R1–R6; RESULTS; gate; commit.

@@ -1,0 +1,405 @@
+{
+ "engine": "a2e8d0447146f2486f7c6c6e0adbb75f742f1a00",
+ "worlds": [
+  {
+   "seed": 905001,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.9472,
+     88.0048,
+     87.1773,
+     88.173,
+     87.1154
+    ],
+    "row_mean_happiness": [
+     87.9472,
+     88.0048,
+     87.1773,
+     88.173,
+     87.1154
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": {
+    "needs": true,
+    "hap": true,
+    "pos": true,
+    "activity": true,
+    "distress": true,
+    "msg": true,
+    "act": true
+   }
+  },
+  {
+   "seed": 905002,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.8821,
+     87.8186,
+     86.6841,
+     88.2256,
+     86.5919
+    ],
+    "row_mean_happiness": [
+     87.8821,
+     87.8186,
+     86.6841,
+     88.2256,
+     86.5919
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": {
+    "needs": true,
+    "hap": true,
+    "pos": true,
+    "activity": true,
+    "distress": true,
+    "msg": true,
+    "act": true
+   }
+  },
+  {
+   "seed": 905003,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.4665,
+     87.8679,
+     86.8336,
+     88.2175,
+     86.8341
+    ],
+    "row_mean_happiness": [
+     87.4665,
+     87.8679,
+     86.8336,
+     88.2175,
+     86.8341
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": {
+    "needs": true,
+    "hap": true,
+    "pos": true,
+    "activity": true,
+    "distress": true,
+    "msg": true,
+    "act": true
+   }
+  },
+  {
+   "seed": 905004,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.7971,
+     87.9963,
+     87.0245,
+     88.384,
+     86.9131
+    ],
+    "row_mean_happiness": [
+     87.7971,
+     87.9963,
+     87.0245,
+     88.384,
+     86.9131
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": {
+    "needs": true,
+    "hap": true,
+    "pos": true,
+    "activity": true,
+    "distress": true,
+    "msg": true,
+    "act": true
+   }
+  },
+  {
+   "seed": 905005,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.5101,
+     87.7185,
+     86.8225,
+     88.1311,
+     86.7166
+    ],
+    "row_mean_happiness": [
+     87.5101,
+     87.7185,
+     86.8225,
+     88.1311,
+     86.7166
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": {
+    "needs": true,
+    "hap": true,
+    "pos": true,
+    "activity": true,
+    "distress": true,
+    "msg": true,
+    "act": true
+   }
+  },
+  {
+   "seed": 905006,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.5555,
+     87.6327,
+     86.8667,
+     88.2746,
+     86.581
+    ],
+    "row_mean_happiness": [
+     87.5555,
+     87.6327,
+     86.8667,
+     88.2746,
+     86.581
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": null
+  },
+  {
+   "seed": 905007,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.7879,
+     87.8593,
+     86.8937,
+     88.2346,
+     86.7693
+    ],
+    "row_mean_happiness": [
+     87.7879,
+     87.8593,
+     86.8937,
+     88.2346,
+     86.7693
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": null
+  },
+  {
+   "seed": 905008,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.83,
+     87.9389,
+     86.8827,
+     88.1501,
+     86.719
+    ],
+    "row_mean_happiness": [
+     87.83,
+     87.9389,
+     86.8827,
+     88.1501,
+     86.719
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": null
+  },
+  {
+   "seed": 905009,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.6514,
+     87.8187,
+     86.9665,
+     88.0883,
+     86.7971
+    ],
+    "row_mean_happiness": [
+     87.6514,
+     87.8187,
+     86.9665,
+     88.0883,
+     86.7971
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": null
+  },
+  {
+   "seed": 905010,
+   "ticks": 20000,
+   "aborted_at": null,
+   "battery": {
+    "mean_happiness": [
+     87.7324,
+     87.8499,
+     87.1997,
+     88.3182,
+     86.9183
+    ],
+    "row_mean_happiness": [
+     87.7324,
+     87.8499,
+     87.1997,
+     88.3182,
+     86.9183
+    ],
+    "dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "row_dist_ticks": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "lab_stream_equal": null
+  }
+ ]
+}
