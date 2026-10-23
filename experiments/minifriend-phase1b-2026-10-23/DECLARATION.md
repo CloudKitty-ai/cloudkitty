@@ -204,6 +204,14 @@ Phase 1's check carries over. What this file moves:
   mind-visible GRAVE is uncovered on every friend, so both sides are
   None there). Phase 1 trainer guards 6 passed, Phase 1b 5 passed after
   every restore.
+- Reds on record 2026-10-23, after the scouts (owner's go the same day,
+  "No need to change the declaration. Let's run this as proposed"):
+  p1 on the recorded P1 scout (1095451) — the others-at-default check
+  disabled → `check_world accepted a tampered world:
+  other_kitty_off_default`; the band widened to {0, 100} → `… tampered
+  world: grave_kitty_off_band`. Phase 1b 6 passed after every restore.
+  Scouts: all five at 4,000 ticks, no abort, worst single-need streak
+  163 (Miso, P1); distress confined to the grave kitty in every scout.
 - RESULTS.md gated by `/accuracy-gate` before commit; Collect and Read
   fences separate, runtime declared.
 
