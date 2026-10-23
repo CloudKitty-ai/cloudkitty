@@ -295,6 +295,18 @@ consent BC comparison ride the trunk.
   friends, DR −7.57), dissolution fails at every width with DR pooled
   better. STATUS: DONE 2026-10-23; Phase 2 head choice HERS with
   F-064 + F-065 in hand; a wider head = deviations entry on her word.
+  PHASE 1c DECLARED 2026-10-23 (owner the same day, after the F-065
+  report: "Let's try it. Currently our accuracy is low enough that we
+  can reevaluate model size limit if needed. Let's test this approach
+  first though"; `minifriend-phase1c-2026-10-23/DECLARATION.md`,
+  deviations entry 12): a third offline candidate, the structured
+  discrete belief head SD (per-need 20-bin histogram, learned
+  per-friend drift up and relief down, width-16 recurrent residual,
+  cross-entropy on two-hot targets, natural frequency; 6,679 params,
+  under the cap) × 3 seeds on the Phase 1 + 1b raws (0 new cat-ticks)
+  against 1b's width-24 NF and DR; reads R1c–R8c (contrast with the
+  READ rule, ostrich, grave-probability calibration, rate recovery,
+  residual share, the floors). STATUS: DECLARED; heads next.
 
 ## Flagged follow-ups (owner's word to start)
 

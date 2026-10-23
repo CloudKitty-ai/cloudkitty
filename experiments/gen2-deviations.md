@@ -648,3 +648,26 @@ declared (100 worlds, 0 aborts, the extension clause did not fire;
 The §8 item 4 cap is unchanged: the over-cap probe read as declared
 (48/24 NF grave ratio 0.870 ± 0.053, READ) and any wider Phase 2 head
 is a further entry on her word.
+
+## 12. Mini-friend Phase 1c: a third offline candidate head, the structured discrete belief (2026-10-23)
+
+Owner-requested addition, 2026-10-23, after the F-065 report and a
+design exchange on the ostrich read: "Let's try it. Currently our
+accuracy is low enough that we can reevaluate model size limit if
+needed. Let's test this approach first though". The prereg's §8 item 3
+declares Phase 1 as one 2 × 2 of loss weighting × stratum, and item 4
+hands Phase 2 the winner; neither names a third candidate
+architecture. Recorded here as an addition before the winner is named:
+`minifriend-phase1c-2026-10-23/DECLARATION.md` — the SD head (a
+per-need histogram over 20 bins, drifting up at a learned per-friend
+rate and down on relief with a learned probability, a width-16
+recurrent residual, cross-entropy against two-hot targets, natural
+frequency; 6,679 params, UNDER the §8 item 4 cap of 8,445 — the cap is
+not moved by this entry), three seeds, on Phase 1's and 1b's raws
+(0 new cat-ticks), against 1b's width-24 NF and DR runs re-read through
+the same reader. Amendment A4's working direction (a recurrent
+per-friend belief state held under fog on learned drift rates) is what
+this head instantiates offline. Phase 1's and 1b's verdicts, floors,
+F-064 and F-065 stand; the Phase 2 head choice remains hers.
+
+Status: OPEN 2026-10-23 (declared; heads not yet trained).
