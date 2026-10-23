@@ -251,11 +251,24 @@ activations (the trunk is frozen and not opened).
 
 - Collector `--save-obs` (guard: saved observation equals the harness
   observation for the same seat and tick; red: save the post-step
-  observation instead of the pre-step one).
+  observation instead of the pre-step one). DONE 2026-10-22, 79537ae1:
+  guard `test_save_obs_keeps_the_start_of_tick_observation` (engine
+  observation on the same world driven by the recorded actions, 5
+  ticks; own needs in the self block equal needs[t−1]); red on record
+  via scripts/mutate.sh, predicted then confirmed at `ob[t, k] ==
+  fresh` (t = 0, seat 0, max |Δ| 1.0), restored 1 passed.
 - `strata.py`: bin assignment from true needs and happiness (guard:
   hand cases at each edge, 44.99/45/69.99/70/89.99/90, plus a recorded
   stream where the three bins partition every tick; red: an edge
-  flipped from < to ≤).
+  flipped from < to ≤). DONE 2026-10-22, 79537ae1: two reds on record
+  (mutate.sh, predicted then confirmed): happiness grave edge < → ≤
+  red at `one(45.0) == S.ADJACENT`; need edge ≥ → > red at
+  `one(80.0, play=90.0) == S.GRAVE`; restored 2 passed each.
+- `split.py` → `split.json`: the by-world train/eval assignment,
+  declared before collection (SPLIT_SEED in the file; per set the
+  sorted seeds are permuted once and the first round(0.3·n) are the
+  evaluation worlds). The JSON is committed before step 2 runs; the
+  reads assert their eval worlds equal it.
 - `train_heads.py`: parameter count asserted ≤ 8,445; DR weights
   computed on the training split only (guard: weights from a split
   that excludes an eval world do not change when that world's rows
