@@ -1104,3 +1104,39 @@ the pre-data commit), not a memory; (4) a commit-message citation
 for reds is checked with `git log --format=%B`; "Reds follow" is not
 a record; (5) when a range is stated "on every X", say what is
 averaged, or the gate reads it per world.
+
+## 2026-10-23 — minifriend-phase1 RESULTS re-read after a retrain, rounds 3–4, and the F-064 copy check that forced it (Experiments)
+
+Scope: the same document after the heads were retrained (bath weight
+1.0 → 0.1), plus the FINDINGS entry F-064 minted from it.
+- F-064 copy check, round 1 FAIL (narrow): bath numbers quoted
+  without the head label (they were NF's), a dropped hedge ("upper
+  bound" vs "best read as an upper bound"), the R4 lift caveat
+  missing from the entry.
+- F-064 copy check, round 2 FAIL: the claim line named "past the
+  1.10 tolerance" where the declared clause is 1.10 × DR plus the
+  between-seed SD (Clementine was past 1.10 too, inside her SD).
+  OUTSIDE ITS COPY SCOPE the subagent read the trainer against the
+  prereg and found bath fitted at weight 1 where the prereg says
+  "EXCLUDED/downweighted" and the declaration "excluded from the
+  estimate loss": a real departure the owning thread had pinned
+  before training without noticing. Remedy: deviations entry 10,
+  retrain at 0.1 (no new rollout), re-read, re-gate; the gated first
+  read stays in git as superseded.
+- RESULTS round 3 FAIL: one mechanical miss — the reader's guard
+  runner hard-coded the smoke run's path, which the owning thread had
+  moved aside with the superseded pass; "5 passed" was a stale claim.
+  Every number matched. Two notes taken: G holds sliding cases too
+  (early relief then re-entry), and a title with dates in two
+  timezones.
+- RESULTS round 4 PASS (five guard runners at their stated counts,
+  fresh JSON byte-identical).
+Lessons: (1) a copy-check subagent that reads the INSTRUMENT against
+the prereg, not only the prose against the section, catches what the
+numbers cannot show — ask for it explicitly; (2) moving a raw dir
+breaks any guard that names it: re-run every guard runner the doc
+counts, not only the ones whose code changed; (3) a claim line that
+compresses a two-part decision rule into its first part misstates the
+rule; (4) an "excluded/downweighted" prereg word is a constraint on
+the loss, and an engineering pin written before training still
+answers to it — pins get the rule-8 check too.

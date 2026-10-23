@@ -1,31 +1,34 @@
-# Mini-friend Phase 1 — RESULTS (collected and read 2026-10-22/23)
+# Mini-friend Phase 1 — RESULTS (collected and read 2026-10-23 UTC)
 
 Declaration: `DECLARATION.md`, ruled as declared (owner 2026-10-22
 "Fix the stale draft and go as declared"); prereg basis frozen
-18f06f84, §8 items 3–4 and §9. Binding: `BINDING.md` (the arc's own
-venv; engine a2e8d044, which is the certified engine plus spec 065,
-verified by set L below). Every read here is descriptive (doctrine
-rule 10); nothing gates, and the one procedure pin (R2) licenses head
-choice for Phase 2 only, never welfare adequacy.
+18f06f84, §8 items 3–4 and §9. This is the re-read of 2026-10-23
+after the heads were retrained with bath downweighted (deviations
+entry 10); the superseded first read is in git at d0de3213. Binding:
+`BINDING.md` (the arc's own venv; engine a2e8d044, which is the
+certified engine plus spec 065, verified by set L below). Every read
+here is descriptive (doctrine rule 10); nothing gates, and the one
+procedure pin (R2) licenses head choice for Phase 2 only, never
+welfare adequacy.
 
 ## Headline
 
 A 7,807-parameter belief head (9.2% of the trunk) reading only what a
 Gen 2 cat sees estimates a friend's five hidden needs to a root-mean-
-square error of about 5.4 need points when the friend is in sight and
-in a common state, and about 26 points in the grave stratum, where the
+square error of about 5.3 need points when the friend is in sight and
+in a common state, and about 25 points in the grave stratum, where the
 trivial baselines sit at about 53. The natural-frequency head carries
-the ostrich signature on every covered friend: in grave states it
-predicts the friend 8.6 points less needy than she is, against a bias
-near zero in common states. Distress reweighting removes that pooled
-optimism (grave bias +1.6) at a cost of 7.4 points² of common-state
-error, and the two heads tie on pooled grave loss (ratio 1.017). The
-declared dissolution test nevertheless FAILS on its per-friend clause:
-Miso's and Kittybear's grave loss under NF exceeds 1.10 × DR's by more
-than the between-seed SD, while Biscuit's goes the other way by a wider
-margin. The tension is present and friend-specific, not uniform. Pumpkin's
-mind-visible grave stratum stayed under min-n after every declared set
-and is reported as insufficient coverage.
+the ostrich signature on three of the four covered friends: pooled, in
+grave states it predicts the friend 3.8 points less needy than she is,
+against a bias within 0.9 of zero in common states. Distress
+reweighting removes that pooled optimism (grave bias +1.7) at a cost of
+7.5 points² of common-state error and is pooled WORSE on grave loss
+(ratio NF/DR 0.944). The declared dissolution test still FAILS on its
+per-friend clause, on one friend: Miso's grave loss under NF exceeds
+1.10 × DR's by 96.76 against a between-seed SD of 79.56; Biscuit's goes
+the other way by 401.27. The tension is present, friend-specific and
+narrow. Pumpkin's mind-visible grave stratum stayed under min-n after
+every declared set and is reported as insufficient coverage.
 
 ## Data as collected
 
@@ -50,7 +53,7 @@ In W, 25 of 125 cats start in GRAVE (mean start happiness per seat
 seat's run-mean happiness, averaged over a set's 25 worlds, stays
 86.2–88.0 in both sets (single worlds range wider): the roster
 relieves distressed starts, and Pumpkin's seat relieves them fastest
-(the fewest G distress ticks, 763).
+(the fewest G distress ticks, 763). The retrain added no rollout.
 
 Engine check (set L): every L world equals the certified rot2 battery
 row on mean happiness per seat and on distress ticks (`check_L.py`,
@@ -92,8 +95,9 @@ by the declared probe sets in their declared order.
 Two limitations on the grave stratum. One was declared before the
 data: G measures whether the head sees a friend who STARTS in
 distress, not one sliding into it; in this data the sliding case
-exists only in W (cats that start outside GRAVE and enter it later),
-and in no lived world (L has no grave tick). The second is seen in the
+exists in W (cats that start outside GRAVE and enter it later) and as
+re-entries in G (cats relieved early that slide back), and in no lived
+world (L has no grave tick). The second is seen in the
 data, not declared: in G every cat starts in GRAVE together, so the
 observer's own needs are informative about the friend's at the start
 in a way lived distress would not be. For the second reason in
@@ -108,7 +112,11 @@ trunk's 84,450), counted and asserted before training. Input per
 sample: the observer's self block (109) and the friend's permanent row
 (58). Hidden state zero at each world's start, carried across 500-tick
 chunks. Loss: weighted MSE over the five hidden needs plus happiness
-plus bath (targets /100); NF weight 1; DR weight by the friend's true
+plus 0.1 × bath (targets /100; bath DOWNWEIGHTED per prereg §8 item
+3, so the seventh output is fitted enough to report in R5 without
+driving the shared state; a first pass that fitted bath at weight 1
+is superseded, kept unread under `results-raw/heads-pass1/`,
+deviations entry 10); NF weight 1; DR weight by the friend's true
 stratum on the training samples, inverse frequency capped at 50× the
 common stratum's and renormalised to mean 1: training frequencies
 GRAVE 0.00309, ADJACENT 0.00209, COMMON 0.99482 → weights 39.87 /
@@ -118,12 +126,12 @@ stop on the validation loss (margin 1e-4, patience 10, cap 200). Seeds
 
 | run | best epoch / epochs run | best validation loss |
 |---|---|---|
-| NF-s1 | 65 / 75 | 0.00676 |
-| NF-s2 | 81 / 91 | 0.00652 |
-| NF-s3 | 72 / 82 | 0.00678 |
-| DR-s1 | 55 / 65 | 0.02677 |
-| DR-s2 | 57 / 67 | 0.02720 |
-| DR-s3 | 69 / 79 | 0.02857 |
+| NF-s1 | 85 / 95 | 0.00478 |
+| NF-s2 | 74 / 84 | 0.00497 |
+| NF-s3 | 71 / 81 | 0.00509 |
+| DR-s1 | 55 / 65 | 0.01931 |
+| DR-s2 | 47 / 57 | 0.01918 |
+| DR-s3 | 74 / 84 | 0.02005 |
 
 Every run plateaued before the cap. (The DR validation loss is DR-
 weighted, so the two columns are not comparable across heads.)
@@ -138,67 +146,67 @@ Mind-visible (the friend's row present):
 
 | friend | NF COMMON | NF DA | NF GRAVE | DR COMMON | DR DA | DR GRAVE |
 |---|---|---|---|---|---|---|
-| Miso | 29.03 ± 1.25 | 755.63 ± 31.89 | 823.76 ± 37.50 | 34.78 ± 0.71 | 566.75 ± 37.98 | 586.84 ± 56.80 |
-| Biscuit | 28.01 ± 0.63 | 615.67 ± 26.50 | 573.68 ± 18.46 | 36.07 ± 2.08 | 870.23 ± 92.45 | 891.81 ± 117.45 |
-| Pumpkin | 30.87 ± 0.92 | 374.13 ± 12.56 | insufficient | 38.03 ± 0.76 | 325.82 ± 8.99 | insufficient |
-| Kittybear | 25.91 ± 0.67 | 705.31 ± 32.04 | 702.18 ± 34.01 | 33.52 ± 2.33 | 582.09 ± 52.63 | 586.98 ± 55.38 |
-| Clementine | 33.66 ± 1.38 | 526.78 ± 39.64 | 707.33 ± 68.96 | 42.15 ± 0.61 | 467.73 ± 24.78 | 612.29 ± 67.75 |
-| pooled | 29.52 ± 0.94 | 611.84 ± 9.33 | 696.55 ± 15.21 | 36.94 ± 1.26 | 581.55 ± 33.62 | 685.15 ± 50.76 |
+| Miso | 27.44 ± 0.56 | 668.74 ± 83.36 | 714.98 ± 79.56 | 32.99 ± 1.14 | 538.76 ± 20.07 | 562.02 ± 32.12 |
+| Biscuit | 26.96 ± 0.75 | 637.43 ± 33.06 | 590.14 ± 42.50 | 35.12 ± 2.48 | 883.43 ± 110.43 | 901.28 ± 152.95 |
+| Pumpkin | 29.42 ± 1.41 | 319.02 ± 19.60 | insufficient | 37.50 ± 2.52 | 308.22 ± 13.88 | insufficient |
+| Kittybear | 24.91 ± 1.01 | 645.61 ± 68.80 | 626.66 ± 86.95 | 33.01 ± 2.76 | 564.58 ± 52.05 | 575.47 ± 61.61 |
+| Clementine | 32.37 ± 1.19 | 495.41 ± 20.18 | 659.15 ± 76.75 | 40.17 ± 2.43 | 479.86 ± 26.57 | 643.48 ± 83.79 |
+| pooled | 28.25 ± 0.93 | 569.99 ± 23.09 | 644.04 ± 30.61 | 35.78 ± 2.21 | 573.79 ± 5.24 | 682.11 ± 19.77 |
 
 All-states (every tick, seen or not):
 
 | friend | NF COMMON | NF DA | NF GRAVE | DR COMMON | DR DA | DR GRAVE |
 |---|---|---|---|---|---|---|
-| Miso | 37.61 ± 1.32 | 739.48 ± 15.28 | 790.25 ± 21.44 | 44.70 ± 0.58 | 611.42 ± 36.74 | 624.70 ± 48.94 |
-| Biscuit | 36.48 ± 0.81 | 492.23 ± 35.26 | 474.28 ± 34.48 | 45.76 ± 1.85 | 745.03 ± 64.78 | 748.59 ± 70.25 |
-| Pumpkin | 39.43 ± 1.09 | 469.92 ± 23.40 | 669.50 ± 59.35 | 47.58 ± 0.37 | 416.20 ± 10.34 | 533.21 ± 16.31 |
-| Kittybear | 33.78 ± 0.89 | 624.58 ± 21.64 | 596.10 ± 29.53 | 42.82 ± 1.92 | 623.62 ± 46.07 | 604.39 ± 52.18 |
-| Clementine | 43.02 ± 1.43 | 595.77 ± 38.79 | 683.53 ± 62.42 | 52.24 ± 0.22 | 583.94 ± 11.47 | 661.66 ± 16.50 |
-| pooled | 38.07 ± 1.09 | 582.11 ± 5.79 | 599.70 ± 11.08 | 46.62 ± 0.97 | 632.77 ± 30.69 | 671.57 ± 37.54 |
+| Miso | 35.99 ± 0.88 | 662.80 ± 34.61 | 695.11 ± 43.29 | 43.14 ± 1.34 | 566.90 ± 16.27 | 573.55 ± 17.70 |
+| Biscuit | 35.35 ± 0.92 | 524.89 ± 51.95 | 506.38 ± 56.37 | 44.79 ± 2.29 | 764.11 ± 152.02 | 768.25 ± 169.37 |
+| Pumpkin | 37.97 ± 1.16 | 423.70 ± 26.86 | 571.32 ± 20.92 | 46.47 ± 2.50 | 388.47 ± 0.98 | 489.74 ± 34.67 |
+| Kittybear | 32.96 ± 1.08 | 608.39 ± 44.35 | 582.26 ± 54.66 | 42.40 ± 2.59 | 626.69 ± 46.96 | 617.21 ± 61.24 |
+| Clementine | 41.46 ± 1.24 | 591.65 ± 23.61 | 675.85 ± 33.81 | 49.92 ± 2.42 | 572.54 ± 24.95 | 653.55 ± 59.89 |
+| pooled | 36.75 ± 1.04 | 567.75 ± 28.50 | 583.93 ± 40.25 | 45.35 ± 2.15 | 625.55 ± 49.82 | 668.47 ± 66.22 |
 
 What the table says. (a) Common states are estimated well: pooled
-mind-visible RMS error 5.4 points (NF) and 6.1 (DR). (b) The grave
-stratum is 18 to 24 times harder in squared error (685.15 / 36.94 for
-DR, 696.55 / 29.52 for NF): pooled mind-visible RMS 26.4 (NF) and 26.2
-(DR). (c) Reweighting costs common-state
-accuracy on every friend (+5.8 to +8.5 points² mind-visible) and buys
-grave accuracy on three of the four covered friends (Miso −236.9,
-Kittybear −115.2, Clementine −95.0 points² mind-visible) while losing
-it on Biscuit (+318.1); pooled, the two heads tie on GRAVE (685 vs 697)
-and DR is lower on DA (582 vs 612). (d) Mind-visible versus all-states
-diverge in both directions: common-state error rises when the friend
-is out of sight (29.5 → 38.1 for NF, 36.9 → 46.6 for DR), as a belief
-carried on stale evidence should; the pooled GRAVE cell reads lower
-all-states than in sight for both heads (696.6 → 599.7 for NF, 685.2
-→ 671.6 for DR), but the two pools differ (all-states admits Pumpkin
-and contains the in-sight ticks), so that is not an out-of-sight read
-and none was declared.
+mind-visible RMS error 5.3 points (NF) and 6.0 (DR). (b) The grave
+stratum is 19 to 23 times harder in squared error (682.11 / 35.78 for
+DR, 644.04 / 28.25 for NF): pooled mind-visible RMS 25.4 (NF) and 26.1
+(DR). (c) Reweighting costs common-state accuracy on every friend
+(+5.6 to +8.2 points² mind-visible) and buys grave accuracy on three
+of the four covered friends (Miso −152.96, Kittybear −51.19,
+Clementine −15.67 points² mind-visible) while losing it on Biscuit
+(+311.14); pooled, NF is LOWER on GRAVE (644 vs 682) and the two tie
+on DA (570 vs 574). (d) Mind-visible versus all-states: common-state
+error rises when the friend is out of sight (28.2 → 36.8 for NF, 35.8
+→ 45.4 for DR), as a belief carried on stale evidence should; the
+pooled GRAVE cell reads lower all-states than in sight for both heads
+(644.0 → 583.9 for NF, 682.1 → 668.5 for DR), but the two pools
+differ (all-states admits Pumpkin and contains the in-sight ticks), so
+that is not an out-of-sight read and none was declared.
 
 ## R2 — the dissolution test (procedure frozen in the declaration)
 
 Read order: (1) the floor = DR's pooled mind-visible GRAVE loss, mean
-of three seeds: **685.15**; (2) NF's, same split and seeds: **696.55**;
-(3) ratio 1.017 against the declared tolerance 1.10: the pooled clause
-HOLDS. Per-friend clause (NF_grave − 1.10 × DR_grave ≤ NF's between-
-seed SD, on the covered friends):
+of three seeds: **682.11**; (2) NF's, same split and seeds: **644.04**;
+(3) ratio 0.944 against the declared tolerance 1.10: the pooled clause
+HOLDS (NF under the floor). Per-friend clause (NF_grave − 1.10 ×
+DR_grave ≤ NF's between-seed SD, on the covered friends):
 
 | friend | NF grave | DR grave | excess over 1.10 × DR | NF SD | clause |
 |---|---|---|---|---|---|
-| Miso | 823.76 | 586.84 | +178.24 | 37.50 | EXCEEDS |
-| Biscuit | 573.68 | 891.81 | −407.31 | 18.46 | ok |
+| Miso | 714.98 | 562.02 | +96.76 | 79.56 | EXCEEDS |
+| Biscuit | 590.14 | 901.28 | −401.27 | 42.50 | ok |
 | Pumpkin | insufficient | insufficient | — | — | not read |
-| Kittybear | 702.18 | 586.98 | +56.51 | 34.01 | EXCEEDS |
-| Clementine | 707.33 | 612.29 | +33.81 | 68.96 | ok |
+| Kittybear | 626.66 | 575.47 | −6.36 | 86.95 | ok |
+| Clementine | 659.15 | 643.48 | −48.67 | 76.75 | ok |
 
 Verdict: **the tension is NOT dissolved** (pooled clause holds, per-
-friend clause fails on Miso and Kittybear). Scope, as ruled: this
-licenses head choice for Phase 2 only. The shape of the failure is the
-finding: the natural-frequency head is not uniformly worse on grave
-states (Biscuit's grave loss is 36% lower under NF), it is worse on
-specific friends, and pooling hides that. A single head for Phase 2
-carries one of two costs: NF's grave loss on Miso and Kittybear (its
-grave optimism, R4, is on all four covered friends), or DR's
-common-state cost everywhere and its grave cost on Biscuit.
+friend clause fails on Miso, by 17.20 over her SD). Scope, as ruled:
+this licenses head choice for Phase 2 only. The shape of the result is
+the finding: pooled, the natural-frequency head is the better grave
+estimator; the reweighted head is better on Miso (and marginally on
+Kittybear and Clementine) and far worse on Biscuit (its grave loss is
+35% lower under NF). A single head for Phase 2 carries one of two
+costs: NF's grave loss on Miso (its grave optimism, R4, is on Miso,
+Kittybear and Clementine), or DR's common-state cost everywhere and
+its grave cost on Biscuit.
 
 ## R3 — trivial baselines beside the floor (reference reads)
 
@@ -211,17 +219,18 @@ the training samples).
 
 | cell (pooled, mind-visible) | marginal | persistence proxy | NF | DR |
 |---|---|---|---|---|
-| COMMON | 77.23 | 74.79 | 29.52 | 36.94 |
-| DA | 2,251.26 | 2,243.67 | 611.84 | 581.55 |
-| GRAVE | 2,814.09 | 2,809.14 | 696.55 | 685.15 |
+| COMMON | 77.23 | 74.79 | 28.25 | 35.78 |
+| DA | 2,251.26 | 2,243.67 | 569.99 | 573.79 |
+| GRAVE | 2,814.09 | 2,809.14 | 644.04 | 682.11 |
 
 Per friend on GRAVE mind-visible the baselines read 2,388–3,168
 (marginal) and 2,394–3,160 (proxy). Both heads clear both baselines by
-a factor of about four in squared error on the grave stratum, and the
-proxy is barely better than the marginal: the friend's visible activity
-says almost nothing about how high her hidden needs are. The head's
-grave skill is therefore not a lookup on the friend's visible activity
-and partner bit (the proxy reads no other row cell and no self block).
+a factor of about four in squared error on the grave stratum (4.4 for
+NF, 4.1 for DR), and the proxy is barely better than the marginal: the
+friend's visible activity says almost nothing about how high her
+hidden needs are. The head's grave skill is therefore not a lookup on
+the friend's visible activity and partner bit (the proxy reads no
+other row cell and no self block).
 
 ## R4 — the ostrich metric (both heads)
 
@@ -235,63 +244,69 @@ Mind-visible:
 
 | friend | NF grave / common / gap | DR grave / common / gap |
 |---|---|---|
-| Miso | −11.66 / −0.40 / −11.26 SIG | −3.59 / −0.41 / −3.18 SIG |
-| Biscuit | −5.44 / +0.55 / −5.99 SIG | +10.83 / +0.53 / +10.30 |
+| Miso | −7.61 / −0.17 / −7.44 SIG | −3.21 / −0.11 / −3.10 SIG |
+| Biscuit | +0.59 / +0.61 / −0.01 | +10.16 / +0.84 / +9.31 |
 | Pumpkin | insufficient | insufficient |
-| Kittybear | −9.73 / +0.81 / −10.54 SIG | −2.71 / +0.93 / −3.64 SIG |
-| Clementine | −6.93 / −0.67 / −6.26 SIG | −0.39 / −0.82 / +0.43 |
-| pooled | −8.56 / +0.03 / −8.59 SIG | +1.57 / −0.02 / +1.59 |
+| Kittybear | −5.54 / +0.88 / −6.42 SIG | −2.01 / +1.19 / −3.20 SIG |
+| Clementine | −2.48 / −0.63 / −1.84 SIG | +0.00 / −0.42 / +0.42 |
+| pooled | −3.80 / +0.12 / −3.92 SIG | +1.71 / +0.31 / +1.39 |
 
 All-states:
 
 | friend | NF grave / common / gap | DR grave / common / gap |
 |---|---|---|
-| Miso | −9.18 / −0.27 / −8.91 SIG | +1.74 / −0.31 / +2.05 |
-| Biscuit | −4.20 / +0.46 / −4.66 SIG | +13.72 / +0.47 / +13.24 |
-| Pumpkin | −12.79 / −0.22 / −12.57 SIG | −5.27 / −0.34 / −4.93 SIG |
-| Kittybear | −7.07 / +0.75 / −7.82 SIG | +0.86 / +0.87 / −0.01 |
-| Clementine | −5.84 / −0.72 / −5.13 SIG | +1.72 / −0.83 / +2.55 |
-| pooled | −6.48 / −0.00 / −6.48 SIG | +6.23 / −0.03 / +6.25 |
+| Miso | −4.13 / −0.09 / −4.04 SIG | +0.76 / +0.04 / +0.72 |
+| Biscuit | +2.94 / +0.57 / +2.36 | +12.55 / +0.84 / +11.71 |
+| Pumpkin | −8.38 / −0.13 / −8.25 SIG | −5.72 / +0.06 / −5.78 SIG |
+| Kittybear | −2.66 / +0.87 / −3.53 SIG | +1.57 / +1.21 / +0.36 |
+| Clementine | −1.49 / −0.66 / −0.83 SIG | +1.63 / −0.43 / +2.05 |
+| pooled | −0.80 / +0.11 / −0.91 SIG | +5.64 / +0.34 / +5.30 |
 
-The natural-frequency head carries the ostrich signature on every
-covered friend in both versions and pooled: in grave states it reads
-the friend 8.6 points (in sight) and 6.5 points (all states) less needy
-than she is, against a common-state bias within 0.9 of zero. The
-reweighted head removes the pooled optimism (+1.57 in sight, +6.23 all
-states, both on the pessimistic side) and keeps a small signature only
-on Miso and Kittybear in sight (−3.6, −2.7) and on Pumpkin all-states
-(−5.3); on Biscuit it overshoots to +10.8 / +13.7. The 1.5× lift
-is met trivially wherever the common bias is near zero (the lift
-values in `phase1-read.json` run from 0.5 to the thousands, the large
-ones exactly there), so the gap in points is the informative column;
-the signature column reports the rule as written.
+The natural-frequency head carries the ostrich signature on three of
+the four covered friends in sight (Miso, Kittybear, Clementine; not
+Biscuit, whose grave bias is +0.59) and pooled: in grave states it
+reads the friend 3.8 points less needy than she is in sight, against
+a common-state bias within 0.9 of zero; all-states the pooled bias
+shrinks to −0.80 (the signature flag still fires by the rule, on a
+gap of 0.91 points). The reweighted head removes the pooled optimism
+(+1.71 in sight, +5.64 all states, both on the pessimistic side) and
+keeps a small signature on Miso and Kittybear in sight (−3.21, −2.01)
+and on Pumpkin all-states (−5.72); on Biscuit it overshoots to +10.16
+/ +12.55. The 1.5× lift is met trivially wherever the common bias is
+near zero (the lift values in `phase1-read.json` run from 0.01 to 96,
+the large ones exactly there), so the gap in points is the informative
+column; the signature column reports the rule as written.
 
 ## R5 — bath, the visible need (pipeline-noise bound)
 
-Bath is a copy task when the friend is in sight. Pooled MSE, need
-points²: NF in sight COMMON 0.92 ± 0.26, GRAVE 27.73 ± 8.35; all
-states COMMON 15.64 ± 0.16, GRAVE 219.48 ± 17.57. DR in sight COMMON
-3.07 ± 0.45, GRAVE 54.80 ± 8.86; all states COMMON 20.39 ± 0.90,
-GRAVE 233.26 ± 1.00. So the pipeline floor is about 1 point RMS (NF,
+Bath is a copy task when the friend is in sight, fitted here at
+weight 0.1 (R6). Pooled MSE, need points²: NF in sight COMMON 3.99 ±
+0.67, GRAVE 138.56 ± 36.13; all states COMMON 21.16 ± 0.83, GRAVE
+422.50 ± 29.44. DR in sight COMMON 28.15 ± 7.35, GRAVE 335.09 ±
+134.33; all states COMMON 36.05 ± 2.55, GRAVE 433.72 ± 48.21. So the
+pipeline floor under a downweighted output is about 2 points RMS (NF,
 in sight, common). Bath error rises in grave states although bath is
 visible, consistent with the 24-unit state being shared across the
-seven outputs (not tested here); and out of sight bath must be
-inferred like any other need. Never pooled with R1.
+seven outputs and a 0.1-weight output yielding first (not tested
+here); out of sight bath must be inferred like any other need. Never
+pooled with R1.
 
 ## Not read
 
 Consumers (refusal tax, harm prediction, food yielding): Phase 2's.
 clone_fraction (A2′, uncomputable offline). Any welfare claim. No head
 with the global state, other friends' rows or the trunk's activations
-was trained. No set beyond G was run.
+was trained. No set beyond G was run. The superseded first pass
+(`results-raw/heads-pass1/`) is not read.
 
 ## Regeneration
 
 Arc venv `.venv` (BINDING.md; `A=experiments/minifriend-phase1-2026-10-22`,
 run from the repository root; `VIRTUAL_ENV=$PWD/$A/.venv` on every
 line). Raws: `results-raw/{L,W,G}/streams-<seed>.npz` (60 worlds) and
-`results-raw/heads/{NF,DR}-s{1,2,3}/` (six runs; `DR-s1-smoke/` is a
-two-epoch smoke of the writer, never read).
+`results-raw/heads/{NF,DR}-s{1,2,3}/` (the six runs read here;
+`results-raw/heads-pass1/` holds the superseded bath-at-1.0 pass and
+its two-epoch smoke `DR-s1-smoke/`, never read).
 
 ### Collect
 
@@ -320,18 +335,22 @@ Guards (plain-assert runners, arc venv): `test_strata.py` 2,
 5; collector guard in `../seating-analysis-g2-2026-10-21/test_seating_g2.py`
 (10). Reds on record via `scripts/mutate.sh` in the commit messages
 50f4bb27 (collector save-obs; strata edges), 375fd53e (check_L),
-ecfde71e (count_strata present cell; check_set band) and this
-section's own commit (trainer and data module: weights from the
-train worlds only, roles, friend row; truth alignment; the reader's
-four).
+ecfde71e (count_strata present cell; check_set band), d0de3213
+(trainer and data module: weights from the train worlds only, roles,
+friend row; truth alignment; the reader's four) and 0bcd7158's
+follow-up in this section's own commit (the bath weight).
 
-Accuracy gate: **PASS**, 2026-10-23, round 2 (fresh subagent per
-round; round 1 FAILED on prose only: four provenance misses, one
-arithmetic ratio, three contradicted characterisations, one weak
-claim in the R2 paragraph; every number matched the fresh JSON from
-round 1). Round 2: about 300 arithmetic values matched (two rounding
-notes), 10 thresholds all sourced, 29 characterisations (26
-supported, 3 weak outside decision lines, reworded after the round),
-9 undecidable, provenance all hits; fresh JSON byte-identical to the
-recorded. Raw-dir hash `v1:14975af6c7118473`
-(`scripts/rawdir-hash.sh experiments/minifriend-phase1-2026-10-22/results-raw`).
+Accuracy gate: **PASS**, 2026-10-23, round 4 (fresh subagent per
+round). History: rounds 1–2 gated the superseded bath-at-1.0 read
+(round 1 FAIL on prose, round 2 PASS; committed d0de3213); the F-064
+copy check then found the loss slip (deviations entry 10) and the
+heads were retrained; round 3 on this re-read FAILED on one
+mechanical miss (the reader's guard runner pointed at the moved smoke
+run; repointed at a real run) with every number matching; round 4
+PASS: about 250 numbers matched (two rounding notes in R1(d)), 11
+thresholds sourced, about 16 characterisations all supported, 1
+undecidable (the hedged R5 mechanism), provenance all hits, five
+guard runners at their stated counts (2 / 3 / 5 / 5 / 10), fresh JSON
+byte-identical to the recorded. Raw-dir hash `v1:b693200d5f159e90`
+(`scripts/rawdir-hash.sh experiments/minifriend-phase1-2026-10-22/results-raw`,
+covering the 60 worlds, the six runs read and the superseded pass).

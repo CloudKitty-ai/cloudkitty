@@ -66,7 +66,8 @@ def eval_index():
 
 def proxy_key(x):
     """The persistence baseline's lookup key from the friend's row: present
-    bit, activity one-hot argmax (7), partner bit → 0..27; 0 = not present."""
+    bit, activity one-hot argmax (7), partner bit → 1 + act·2 + partner in
+    1..14, or 0 = not present (15 possible keys, held in a 28-slot table)."""
     row = x[:, D.SELF_BLOCK:].astype(np.float32)
     present = row[:, 0] > 0.5
     act = row[:, ROW_ACT:ROW_ACT + 7].argmax(1)

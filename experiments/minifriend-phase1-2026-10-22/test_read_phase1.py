@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Guards for read_phase1.py (arc venv; raws and at least one head run
-present — the smoke run DR-s1-smoke stands in for both heads here, so
-every head-vs-head comparison is an identity and the guards test the
+present — one real run, NF-s1, stands in for BOTH heads here, so every
+head-vs-head comparison is an identity and the guards test the
 reader's arithmetic, not the result).
 
 r1  the floor equals DR's pooled mind-visible GRAVE loss recomputed from
@@ -28,7 +28,7 @@ sys.path.insert(0, str(HERE))
 import read_phase1 as R  # noqa: E402
 import phase1_data as D  # noqa: E402
 
-RUN = "DR-s1-smoke"
+RUN = "NF-s1"
 _cache = {}
 
 

@@ -264,15 +264,20 @@ consent BC comparison ride the trunk.
   binding reproduces the certified engine), W 25 and G 25 clean (0
   aborts, worst streak 756); GRAVE mind-visible after G 664 / 746 /
   170 / 671 / 316, Pumpkin's INSUFFICIENT COVERAGE by the fail-closed
-  rule; heads 7,807 params; RMS 5.4 need points in sight in common
-  states, 26 in grave states (baselines 53); NF carries the ostrich
-  signature on every covered friend (grave bias −8.6, common ≈ 0), DR
-  removes the pooled optimism (+1.6) for 7.4 points² of common error;
-  dissolution test NOT passed (pooled ratio 1.017 holds, per-friend
-  clause fails on Miso and Kittybear; Biscuit 36% better under NF):
-  the NF/DR tension is friend-specific. Phase 2 head choice is now
-  HER CALL with this read in hand (the declaration licenses head
-  choice only). FINDINGS entry F-064 follows (copy-check gated).
+  rule; heads 7,807 params. RE-READ 2026-10-23 after a retrain with
+  bath downweighted (the first pass fitted bath at weight 1 against
+  the prereg's "excluded/downweighted"; caught by the F-064 copy
+  check; deviations entry 10; first read superseded at d0de3213): RMS
+  5.3 need points in sight in common states, 25 in grave states
+  (baselines 53); NF carries the ostrich signature on three of four
+  covered friends (pooled grave bias −3.8, common ≈ 0), DR removes the
+  pooled optimism (+1.7) for 7.5 points² of common error and is pooled
+  worse on grave loss (NF/DR 0.944); dissolution test NOT passed on
+  one friend (Miso's NF grave loss exceeds 1.10 × DR by 96.76 against
+  an SD of 79.56; Biscuit 35% better under NF): the NF/DR tension is
+  friend-specific and narrow. Phase 2 head choice is HER CALL with
+  this read in hand (the declaration licenses head choice only).
+  FINDINGS F-064 minted from the re-read (copy-check gated).
 
 ## Flagged follow-ups (owner's word to start)
 

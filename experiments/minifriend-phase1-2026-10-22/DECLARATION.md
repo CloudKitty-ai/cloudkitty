@@ -342,7 +342,10 @@ activations (the trunk is frozen and not opened).
    loss is the five-hidden-need MSE (the estimate loss, NF weight 1 /
    DR stratum weights) plus the same-weighted MSE of the happiness and
    bath outputs, so those two reported outputs are fitted — R1 reports
-   the five-need term alone; (iii) torch `nn.GRU` with the hidden state
+   the five-need term alone; [CORRECTED 2026-10-23, deviations entry
+   10: bath enters at weight 0.1 (`BATH_WEIGHT`), the prereg's
+   "downweighted"; the first six runs, trained with bath at 1.0, are
+   superseded and kept unread under `results-raw/heads-pass1/`]; (iii) torch `nn.GRU` with the hidden state
    reset at each world's start and carried across 500-tick chunks
    within a world; (iv) seeds 1, 2, 3 for both heads (the pair shares
    the seed), Adam lr 1e-3, batch of sequences, patience 10 / cap 200
