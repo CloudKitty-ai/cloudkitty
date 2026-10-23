@@ -205,6 +205,16 @@ torch threads each, about 90 s per epoch; expected one to three hours.
 
 Each red by `scripts/mutate.sh --expect <test name>` on the committed
 file; the result lines are recorded below before any head is read.
+
+Reds on record 2026-10-23 (`scripts/mutate.sh --expect <test>` on
+`sd_head.py` at 2f4fc242's successor commit; each predicted first,
+each RED CONFIRMED, 4 passed after every restore): t1 — the boundary
+clamp dropped from `shift_matrix` → `test_t1_shift_operators` red; t2 —
+the half-bin offset dropped from `two_hot` → `test_t2_two_hot_targets`
+red; t3 — the `residual` flag ignored (`if True:`) →
+`test_t3_residual_switch` red; t4 — `predict_world` writing the
+histogram mode (`CENTRES[argmax]`) instead of the mean →
+`test_t4_prediction_consistency` red. t5 and t6 follow with the reader.
 RESULTS.md gated by `/accuracy-gate` before commit; Collect (none —
 no rollout) and Read fences separate, runtime declared.
 
