@@ -172,7 +172,7 @@ def main():
     a = ap.parse_args()
     out = read_all({h: runs_for(h) for h in SIZES})
     a.out.write_text(json.dumps(out, indent=1, default=float))
-    print(f"wrote {a.out}")
+    print(f"wrote {a.out}", file=sys.stderr)      # stdout under --md is the markdown alone (the Read fence redirects it)
     if a.md:
         print(md(out))
 

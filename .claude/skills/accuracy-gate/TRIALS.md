@@ -1148,3 +1148,136 @@ answers to it — pins get the rule-8 check too.
   corrected in a gate round, re-read every downstream text that
   copied the earlier wording — the entry and the declaration bracket
   both had it.
+
+## 2026-10-23 — minifriend-phase1b RESULTS (whole document) + the F-065 copy check (Experiments)
+
+Scope: the per-cat grave / head-width arc's RESULTS.md, one section
+set, with the F-065 entry minted from it gated as a copy check in
+round 2.
+- RESULTS round 1 FAIL: every number matched the fresh read (about
+  410 reader-backed cells, about 55 world-check values, about 70
+  derived values, no rounding cases; fresh JSON byte-identical) and
+  six prose claims contradicted them — "every cell beyond seed noise"
+  (DR's 12/24 ratios are not READ), a per-friend range quoted for
+  "either head" from NF's cells only, "lower all-states than in sight
+  for both heads at every width" (NF at 48 reads higher), the
+  friends-exceeding set at width 12 missing Pumpkin, a 23–39% range
+  that joined the in-sight minimum to the all-states maximum, and
+  "width narrows the gap" where a falling ratio widens it — plus six
+  WEAK (an illustration using a friend whose excess changes sign; "the
+  same proportion" where DR's common ratio is larger; a bias trend
+  called monotone that is not; a pooling sentence that contradicted
+  itself; mixed bases in a world count; cat-episodes where cat-ticks
+  were meant). Provenance: the training set was described as using
+  Phase 1's validation worlds, but the carve is seeded by the arc's
+  split seed and differs (the counts matched, the worlds did not); one
+  Phase 1 quote dropped a word without an ellipsis. FENCE DEFECT: the
+  strata-count line regenerated a different file once the Collect
+  fence's L/W/G symlinks existed (the counter pooled every set
+  present). Remedy: `count_strata.py --sets` (guard c4, red on
+  record), the fence repointed, the recorded file regenerated
+  (per-set and pooled cells identical, one new key); all prose
+  corrected; runtimes re-measured.
+- RESULTS round 2 FAIL + F-065 copy check FAIL: numbers all matched
+  again (three ROUNDING notes on printed-cell differences). RESULTS:
+  one CONTRADICTED scope claim ("the G side pools four friends" holds
+  in sight only; all-states covers Pumpkin on G at 744), one
+  provenance miss (the c4 red had run but was recorded nowhere — its
+  commit said "Red follows" and the RESULTS cited "the c4 commit
+  message"), one fence defect (the read line printed the markdown to
+  stdout and nothing wrote `phase1b-read.md`), eight WEAK (a "worst"
+  that holds at two widths of three; a validation-world list placed
+  so it read as Phase 1's; a seed-noise explanation that held on two
+  classes of three; "tens of points²" for moves of 56–213; a causal
+  "the register changed it" where heads, training set and carve also
+  changed; "a third of the loss was hidden by the cue" where the
+  ratio bounds a difference, not a share; "in common states" for
+  seats that pass through ADJACENT; a DR-larger-than-NF ratio inside
+  the SDs). F-065: the claim inverted the base ("a third harder"
+  where G over P 0.651 means the per-cat worlds are half again as
+  hard), a mean quoted as a bound ("within about 60 ticks"), NF-only
+  and in-sight-only percentages stated for both heads and both
+  versions, scope words carried from F-064 not the section, an
+  ostrich citation to §9 item 2 where the section cites §8 item 4, an
+  index row that condensed the heading. Remedy: the reader's "wrote"
+  line to stderr and the fence redirecting stdout; the c4 red
+  recorded in the declaration; every sentence reworded to the cells
+  it claims; the declaration's own world count corrected in a dated
+  bracket.
+- RESULTS round 3 PASS + F-065 copy check PASS (about 730 cells exact,
+  about 95 derived numbers, four byte-identical outputs including the
+  markdown, three guard runners at their counts, instrument matched).
+  Four WEAK wordings reported ("Phase 1's all-grave read" for cells
+  that pool L, W and G, W supplying about a tenth of the in-sight
+  grave samples; a happiness range attributed to G that Phase 1 gives
+  for W and G together; "near 1,000" beside a cell of 1245.18;
+  baseline factors unlabelled as marginal) and one F-065
+  self-contradiction (a bar worded "READ above 1 − SD" that fires at
+  1 − SD). All five tightened without a number changing; round 4 run
+  on the tightened text so the stamp names the text gated.
+- RESULTS round 4 FAIL + F-065 copy check FAIL: numbers exact (about
+  830). One CONTRADICTED sentence, introduced by the round-2 fix: "a
+  per-friend DR difference is rarely more than a seed difference"
+  (5 of 10 neighbouring-width moves exceed the larger cell SD); two
+  WEAK labels the round-3 pass had missed ("all-grave worlds" on two
+  more Phase 1 evaluation-world cells); F-065's second invalidation
+  clause worded "READ at or above 1", which the READ rule cannot fire
+  at 1 (consistent form: at or above 1 − SD, firing at 0.947), and a
+  heading that paired "24.3" with Phase 1 where it is these heads on
+  G. Remedy: the sentence restated without the quantifier, the labels
+  repointed, the clause rewritten, the heading qualified; round 5.
+- RESULTS round 5 PASS (about 560 cells and about 100 derived numbers,
+  four byte-identical outputs, guards at their counts, instrument
+  matched; two WEAK wordings reported and scoped after the verdict
+  without a number changing). F-065 copy check FAIL on one dropped
+  qualifier ("propagated into the ratio"), restored; round 6 = a
+  copy-only subagent on F-065 and the two scoped sentences.
+- F-065 copy check round 6 FAIL (copy-only, stricter reader): no
+  number wrong; dropped qualifiers — "does not isolate the cue's
+  share", "at the start", the heads/training-set/carve reason for the
+  reversal, widths on the heading's ostrich figures, "in proportion";
+  plus F-064 vocabulary ("friend sliding") and a declaration phrase
+  ("the register Phase 2 will meet") not carried by RESULTS. All
+  restored or replaced with RESULTS' own words.
+- F-065 copy check round 7 FAIL: no number wrong; "in sight" dropped
+  on two Promotion figures (all-states cells differ: −8.67, 20.80) and
+  the NF/in-sight label dropped on the heading's 0.651 parenthetical;
+  "at the capped width" and "no feedback into any policy" not
+  RESULTS' terms. All labelled; round 8.
+- F-065 copy check round 8 FAIL: no number wrong; "Phase 1's worlds"
+  for the training set (takes in its evaluation worlds, which R5b
+  reads), one unlabelled in-sight pair (0.651 / 0.702), and the
+  heading's "every cell monotonically" beside a bias clause where DR's
+  bias is not monotone ("every loss cell"). Fixed; round 9.
+- F-065 copy check round 9 FAIL: one mismatch, "at reset" dropped
+  from the heading (the claim's boundary, grave start vs lived
+  distress); seven advisories (a dropped "in squared error", "because
+  it is the largest cell", "and only just", a width on two biases, the
+  34-of-41 wording, "stop earlier", a width on a bar) all applied.
+  Round 10.
+- F-065 copy check round 10 FAIL: one word — the coverage counts
+  labelled "in sight" but not "GRAVE" (the DA in-sight counts differ);
+  four advisories ("about", "all-states GRAVE samples", "pooled" on
+  the bias triplets, "about a tenth from W") applied. Round 11.
+- F-065 copy check round 11 PASS (no counted mismatch; five
+  advisories left as written). Six copy-only rounds for one entry:
+  every failure a dropped label, never a number.
+Lessons: (6) a reader that counts "every set present" is a fence
+hazard the moment a regeneration step adds files beside the raws —
+the fence must name what it reads; (7) when a split module re-carves
+validation under the arc's own seed, "Phase 1's validation worlds" is
+a claim about worlds, not counts — derive the list, do not infer it
+from equal counts; (8) a range quoted "at every width and both
+versions" must be taken over all the cells it claims, not the
+visible table's; (9) a ratio under 1 reads "A easier" or "B harder by
+1/q", never "B harder by 1 − q" — write the base down before the
+adjective; (10) a red that ran is not on record until a durable text
+names it — the mutate output is not that text; (11) a fix written
+inside a gate round is new prose and carries new quantifiers — reread
+every sentence a fix adds against the cells before re-gating, and
+prefer stating the numbers to summarising them with "rarely" or
+"mostly"; (12) an F-entry condenses, and every condensation drops a
+label — write the entry with the version (in sight / all-states) and
+the head on EVERY figure first, then cut words, never labels; a
+copy-only round costs a tenth of a full round, so run it before the
+full gate, not after.

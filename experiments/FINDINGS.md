@@ -103,6 +103,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-062 | active | The vision law's wider radius buys the scripted teacher, not the trained roster: at 40×40 one radius step (5 → 4) costs the teacher 1.294 ± 0.958 happiness and the frozen roster 0.088 ± 0.122, so the trained-vs-scripted gap's fall between the cert legs (+5.566 → +4.594) travelled with the radius on the teacher's side (gap at 40×40, radius 4: +5.800 ± 0.860) |
 | F-063 | active | A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency |
 | F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free |
+| F-065 | active | With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W) |
 
 ---
 
@@ -3329,3 +3330,103 @@ head); any change of roster or schema. **Promotion**: the Phase 2 head
 choice is the owner's call with this read in hand; the per-friend
 failure says a single head is not free, and any mixed or
 re-capacitated head is a Phase 2 declaration, not this entry's claim.
+
+---
+
+## F-065 · active · With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W)
+
+Minted from mini-friend Phase 1b (`minifriend-phase1b-2026-10-23/RESULTS.md`,
+gated; declaration ruled as declared, owner 2026-10-23 "No need to
+change the declaration. Let's run this as proposed"; her ask quoted in
+the declaration; deviations entry 11). Data: five per-cat grave sets,
+one friend per block starting grave at reset by spec 065's per-kitty
+`initial_needs` ({60, 95}) with the other four at the served default,
+20 worlds per friend at 4,000 ticks (seeds 1095451–1095550), the
+certified roster rot2 on the served 20×20; 0 aborts, distress confined
+to the grave kitty in all 100 worlds; 4,000,000 evaluation samples on
+50 worlds split by world; every friend over min-n on mind-visible GRAVE (Miso
+572, Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), Pumpkin
+covered for the first time. Heads: Phase 1's architecture at widths 12
+/ 24 / 48 (3,043 / 7,807 / 22,519 parameters; 48 an over-cap probe,
+never a Phase 2 candidate), NF and DR, three seeds each, trained on
+34 of Phase 1's 41 non-evaluation L/W/G worlds plus 40 P training
+worlds, validation re-carved under this arc's split seed
+(not Phase 1's seven). Pooled mind-visible
+MSE on the five hidden needs at width 24: COMMON 25.34 ± 0.52 (NF) /
+40.15 ± 6.85 (DR), GRAVE 908.10 ± 33.43 / 827.69 ± 117.06; baselines
+3,264.16 (marginal) / 3,261.15 (proxy) on GRAVE. **The all-grave
+confound** (R5b): the same heads' GRAVE loss on Phase 1's all-grave
+evaluation worlds over their loss on the per-cat worlds reads, in
+sight, 0.651 ± 0.033 (NF) and 0.702 ± 0.102 (DR) at width 24, READ
+under 1 at every
+width and both weightings (0.651–0.774 in sight): the all-grave
+worlds, where an observer's own needs predicted her friend's at the
+start, were 21–39% easier in squared error for the same heads
+(23–35% in sight). The ratio bounds the
+difference between the registers and does not isolate the cue's
+share (different evaluation worlds and, in sight, different friend
+pools); it is the number behind F-064's "upper bound" caveat. **The size effect** (R2b, in sight): NF ratios to width 24 of 1.210 /
+1.213 / 1.199 at width 12 and 0.870 / 0.867 / 0.884 at width 48 on
+GRAVE / DA / COMMON, all READ; DR 0.827 / 0.824 / 0.767 at 48, READ;
+the DR 12/24 ratios not READ (DR's between-seed spread, propagated
+into the ratio, exceeds the width difference). For NF, halving the width costs about 20% in sight
+and doubling it past the cap buys about 12–13% in sight (9–11%
+all-states),
+in every stratum; for DR the 48/24 step buys 17–23% in sight (13–21%
+all-states); in points the grave stratum gains most because it is the largest
+cell (NF grave RMS 30.1 → 28.1, common 5.0 → 4.7). **Ostrich** (R4b; signature rule prereg §8 item 4):
+NF pooled grave bias in sight −13.58 / −10.10 / −9.68 at 12 / 24 / 48
+against a pooled common-state bias within 0.5 of zero; signature on Miso, Biscuit,
+Pumpkin and Kittybear at 24 and 48 (at 24: Kittybear deepest at
+−17.01; Biscuit, read without it in Phase 1, at −11.59), not on
+Clementine (+2.27, +2.89); DR pooled −7.38 / −7.57 / −6.06 with the signature on
+the same four. **Dissolution** (R3b, Phase 1's procedure as information):
+DR's floor 924.87 / 827.69 / 684.51, NF over it by 18.8% / 9.7% /
+15.4%; the pooled clause holds only at width 24 and only just (1.097
+against 1.10);
+the per-friend clause fails at every width, on Miso, Biscuit and
+Pumpkin at 12, Miso and Biscuit at 24, Pumpkin and Kittybear at 48; Clementine's grave loss is
+lower under NF at every width and she is the one friend DR hurts
+(+68.47 / +80.39 / +60.37 points²). The width did not change the
+verdict; what differs from Phase 1 is the register together with the
+retrained heads, their training set and validation carve, and on the
+all-grave G worlds these same heads read NF/DR grave 1.227 / 1.018 /
+0.997 at 12 / 24 / 48, so Phase 1's pooled NF advantage is absent for
+these heads there too at 12 and 24. **Caveats the section carries**:
+the grave stratum is a grave START relieved by the roster (about 61
+grave ticks per observer-episode for Miso, 2,440 all-states GRAVE
+samples over 40; a count, not a timing), seen by an observer for 13–29% of its ticks (a friend's
+GRAVE spell is the start of her episode); in sight the G side of
+R5b pools four friends (Pumpkin under min-n on G alone) and the P side
+five, all-states both sides five; the
+DR heads stop earlier than NF's and disagree between seeds (best
+epochs 21–53;
+between-seed SD up to 139.56 on a pooled grave cell), so a
+friend's DR grave mean moves by 56–213 points² between neighbouring
+widths with between-seed SDs of the same order (up to 226.98); the G-side losses are not Phase 1's
+cells (new training set, G-only evaluation worlds) and are never
+compared to them; the 1.5× lift is met trivially wherever the common
+bias is near zero, so the gap in points, not the flag, is the
+informative column. **Scope**: the certified Gen 2 roster at the
+served 20×20, greedy masked argmax, schema 6 observations (as Phase
+1); offline heads, no consumer read (RESULTS "Not read"); three seeds per head,
+the NF/DR pair sharing each seed; one grave friend per world. **Does
+not move**: F-064 (its worlds, floor and verdict stand); the §8 item 4
+cap (a wider Phase 2 head is a deviations entry on the owner's word
+with R2b as its evidence). **Invalidated by** (domain: this
+declaration's reads re-run on a Gen 2 roster with at least three seeds
+per head, the same strata and min-n, one friend grave per world; all
+three bars on the pooled mind-visible cells): the G-over-P grave
+ratio at width 24 at or above 1 − SD for NF (checked on this entry's
+evidence: 0.651 ± 0.033, fires at 0.967); the 48/24 NF grave ratio at
+or above 1 − SD (0.870 ± 0.053, fires at 0.947); the NF pooled
+mind-visible grave bias at width 24 at or above −1.5 points (F-064's
+bar; −10.10). **Re-verify
+when**: a register exists in which a friend enters GRAVE during the
+episode rather than at reset; Phase 2's live head is read
+(§9 item 2); any change of roster or schema. **Promotion**: an input
+to the Phase 2 head choice (hers) beside F-064: at Phase 1's width,
+in this register, the reweighted head is the better grave estimator
+pooled and the natural-frequency head under-reads a grave friend in
+sight by ten points; neither is free (DR costs 14.81 points² of
+pooled mind-visible common-state error and hurts Clementine).

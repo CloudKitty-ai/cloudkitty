@@ -285,8 +285,16 @@ consent BC comparison ride the trunk.
   per friend, seeds 1095451–1095550, extension blocks reserved) and
   widths 12 / 24 / 48 (the 48 an over-cap probe) × NF / DR × 3 seeds;
   reads R1b–R6b (per-cat grave accuracy, size ratios with a READ rule,
-  the all-grave confound G/P). STATUS: declared, guards green, reds on
-  record; collection WAITS on her word.
+  the all-grave confound G/P). Her go 2026-10-23 ("No need to change
+  the declaration. Let's run this as proposed"); 100 P worlds, 0
+  aborts, every friend over min-n (extension not fired); 18 heads;
+  RESULTS gated (round 5 PASS) → F-065: per-cat grave about half
+  again as hard as the all-grave worlds (G/P 0.651 at width 24),
+  width monotone on every cell and not grave-specific (cap binds:
+  48/24 NF 0.870), ostrich broader and deeper (−10.10, four of five
+  friends, DR −7.57), dissolution fails at every width with DR pooled
+  better. STATUS: DONE 2026-10-23; Phase 2 head choice HERS with
+  F-064 + F-065 in hand; a wider head = deviations entry on her word.
 
 ## Flagged follow-ups (owner's word to start)
 

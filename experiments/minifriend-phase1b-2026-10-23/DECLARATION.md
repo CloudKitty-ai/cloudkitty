@@ -64,7 +64,7 @@ Split (`split.py` → `split.json`, SPLIT_SEED 20261023, declared now):
 per P block the 20 seeds are permuted once and the first 10 evaluate;
 validation for early stopping is carved from the train worlds by
 Phase 1's rule (round(0.2·n)). Heads train on the TRAIN worlds of L,
-W, G and P1..P5 together (34 + 50 worlds before validation carving);
+W, G and P1..P5 together (34 + 50 worlds before validation carving [correction 2026-10-23 at the gate: 41 + 50 non-evaluation worlds; 34 + 40 training after the carve, 7 + 10 validation, re-carved under this arc's split seed]);
 the DR weights are recomputed on that training set (the stratum
 frequencies shift with P in). Min-n 200 per friend × stratum ×
 version, FAIL-CLOSED, as in Phase 1.
@@ -212,6 +212,12 @@ Phase 1's check carries over. What this file moves:
   world: grave_kitty_off_band`. Phase 1b 6 passed after every restore.
   Scouts: all five at 4,000 ticks, no abort, worst single-need streak
   163 (Miso, P1); distress confined to the grave kitty in every scout.
+- Red on record 2026-10-23, after accuracy-gate round 1 on the
+  RESULTS: c4 (`../minifriend-phase1-2026-10-22/test_count_strata.py`,
+  the `--sets` filter added so the P coverage read excludes the L/W/G
+  symlinks) — `select_sets` made to ignore its argument → the runner
+  fails inside `test_c4_sets_filter_counts_only_the_requested_sets`;
+  4 passed after the restore.
 - RESULTS.md gated by `/accuracy-gate` before commit; Collect and Read
   fences separate, runtime declared.
 

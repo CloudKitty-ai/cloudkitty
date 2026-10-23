@@ -641,5 +641,10 @@ gained an arc-root knob and the width flag with their default
 behaviour verified unchanged (the Phase 1 read regenerates identically
 but for a new `eval_sets` key).
 
-Status: OPEN until the Phase 1b RESULTS are gated; collection waits
-on her word to the declaration.
+Status: CLOSED 2026-10-23. Her go the same day ("No need to change the
+declaration. Let's run this as proposed"); collected and read as
+declared (100 worlds, 0 aborts, the extension clause did not fire;
+18 heads), RESULTS gated (accuracy gate PASS, round 5), F-065 minted.
+The §8 item 4 cap is unchanged: the over-cap probe read as declared
+(48/24 NF grave ratio 0.870 ± 0.053, READ) and any wider Phase 2 head
+is a further entry on her word.
