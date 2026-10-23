@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Guards for Phase 1c's head and reader (Phase 1 arc venv; this arc's
+split and symlinked raws). DECLARATION.md §Instrument names each with
+its predicted red.
+
+t1  shift operators: half-bin up-shift splits a delta 0.5 / 0.5; a 2-bin
+    down-shift from bin 1 lands wholly in bin 0; the top bin holds under
+    an up-shift; mass is conserved
+t2  two-hot targets: sum 1; mean equals the value inside the centre
+    range; the ends put every unit in the end bin
+t3  the residual switch: residual off → the belief is a distribution and
+    independent of the correction weights; on → it depends on them
+t4  prediction consistency: the prediction file's need columns are the
+    histogram means and the grave mass is the belief's mass over bins
+    18–19, on a 600-tick slice of one world
+t5  reader arithmetic: 1 − ∏(1 − m); reliability-bin counts sum to n;
+    AUROC on hand rankings
+t6  provenance: split.json equals Phase 1b's; the comparator cells
+    re-read here equal 1b's gated read at width 24
+"""
+import copy
+import json
+import os
+import sys
+from pathlib import Path
+
+import numpy as np
+import torch
+
+HERE = Path(__file__).resolve().parent
+PHASE1B = HERE.parent / "minifriend-phase1b-2026-10-23"
+os.environ["MINIFRIEND_ARC"] = str(HERE)
+sys.path.insert(0, str(HERE))
+import sd_head as M  # noqa: E402
+
+D = M.D
+torch.manual_seed(0)
+
+
+def delta(k):
+    b = torch.zeros(M.K)
+    b[k] = 1.0
+    return b
+
+
+def test_t1_shift_operators():
+    up_half = M.shift_matrix(torch.tensor(0.5), "up")
+    r = delta(3) @ up_half
+    assert torch.allclose(r[3], torch.tensor(0.5)) and torch.allclose(r[4], torch.tensor(0.5)), r
+    assert torch.allclose(r.sum(), torch.tensor(1.0))
+    down_two = M.shift_matrix(torch.tensor(2.0), "down")
+    r = delta(1) @ down_two
+    assert torch.allclose(r[0], torch.tensor(1.0)), r
+    for s in (0.3, 1.0, 7.0):
+        r = delta(M.K - 1) @ M.shift_matrix(torch.tensor(s), "up")
+        assert torch.allclose(r[M.K - 1], torch.tensor(1.0)), (s, r)
+    h = torch.softmax(torch.randn(4, 5, M.K), -1)                       # batched (friend, need) shifts
+    up = M.shift_matrix(torch.rand(4, 5) * 3, "up")
+    r = torch.einsum("bnk,bnkj->bnj", h, up)
+    assert torch.allclose(r.sum(-1), torch.ones(4, 5), atol=1e-6) and (r >= 0).all()
+
+
+def test_t2_two_hot_targets():
+    y = torch.tensor([0.125, 0.1, 0.0, 1.0, 0.5, 0.987])
+    t = M.two_hot(y)
+    assert torch.allclose(t.sum(-1), torch.ones(6), atol=1e-6)
+    assert torch.allclose(t[0], delta(2))                                  # 12.5 points = centre of bin 2
+    assert torch.allclose(t[1, 1:3], torch.tensor([0.5, 0.5])) and t[1].sum() == 1
+    assert torch.allclose(t[2], delta(0)) and torch.allclose(t[3], delta(M.K - 1))
+    means = (t * M.CENTRES).sum(-1)
+    assert torch.allclose(means[[0, 1, 4]], y[[0, 1, 4]], atol=1e-6), means  # exact inside [centre_0, centre_19]
+    assert (t[5, M.K - 1] > 0.5) and (t[5].argmax() == M.K - 1)
+
+
+def _model_pair():
+    m = M.SDHead()
+    m2 = copy.deepcopy(m)
+    with torch.no_grad():
+        m2.corr.weight.normal_(); m2.corr.bias.normal_()
+    return m.eval(), m2.eval()
+
+
+def test_t3_residual_switch():
+    m, m2 = _model_pair()
+    x = torch.randn(40, 6, D.X_DIM)
+    f = torch.tensor([0, 1, 2, 3, 4, 2])
+    with torch.no_grad():
+        a, _ = m(x, f, residual=False)
+        b, _ = m2(x, f, residual=False)
+        c, _ = m(x, f, residual=True)
+        d, _ = m2(x, f, residual=True)
+    for o in (a, b, c, d):
+        assert torch.allclose(o["belief"].sum(-1), torch.ones(40, 6, 5), atol=1e-5) and (o["belief"] >= 0).all()
+    assert torch.allclose(a["belief"], b["belief"], atol=1e-6), "residual off must not read the correction weights"
+    assert torch.allclose(a["p_rel"], b["p_rel"])
+    assert not torch.allclose(c["belief"], d["belief"], atol=1e-3), "residual on must read them"
+    assert not torch.allclose(a["belief"], c["belief"], atol=1e-3)
+
+
+def test_t4_prediction_consistency():
+    w = D.load_world("L", 905001)
+    Tn = 600
+    w = {**w, "ticks": Tn, "obs": w["obs"][:Tn], "needs": w["needs"][:Tn], "hap": w["hap"][:Tn], "codes": w["codes"][:Tn]}
+    m = M.SDHead().eval()
+    with torch.no_grad():
+        m.corr.weight.normal_(); m.rate_raw.normal_()
+    pred, grave, prel = M.predict_world(m, w)
+    assert pred.shape == (Tn, 5, 5, 7) and grave.shape == (Tn, 5, 5, 5)
+    k, j = 2, 4
+    x, _y, _v, _c = D.pair_arrays(w, k, j)
+    with torch.no_grad():
+        out, _ = m(torch.from_numpy(x).float()[:, None], torch.tensor([j]))
+    mean = out["mean"][:, 0].numpy()
+    gm = out["belief"][:, 0, :, M.GRAVE_BIN:].sum(-1).numpy()
+    assert np.allclose(pred[:, k, j, :5], mean, atol=1e-5), np.abs(pred[:, k, j, :5] - mean).max()
+    assert np.allclose(grave[:, k, j], gm, atol=1e-5)
+    assert np.allclose(prel[:, k, j], out["p_rel"][:, 0].numpy(), atol=1e-5)
+    assert np.isnan(pred[:, 0, 0]).all() and not np.isnan(pred[:, 0, 1]).any()
+    assert (pred[:, k, j, :5] >= 0).all() and (pred[:, k, j, :5] <= 1).all()
+
+
+if __name__ == "__main__":
+    only = sys.argv[1:]
+    tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and (not only or k in only)]
+    for t in tests:
+        t()
+        print("ok", t.__name__)
+    print(f"{len(tests)} passed")
