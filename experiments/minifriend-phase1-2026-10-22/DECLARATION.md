@@ -304,7 +304,16 @@ activations (the trunk is frozen and not opened).
    109-cell self block, then 58 element cells; the head reads the
    observer's self block and the ONE row that is the friend's.
 3. W: scouts, then 25 worlds. Recount. G only if a GRAVE stratum is
-   under 200 mind-visible eval samples for any friend.
+   under 200 mind-visible eval samples for any friend. W DONE
+   2026-10-22: scouts 1095401–1095403 clean (worst streak 71), then
+   the other 22; 25 worlds × 6,000 ticks, 0 aborts, worst single-need
+   streak 199 (`check_set.py W`, `W-check.json`; one F-043 crossing ≥
+   150 on the set, read in RESULTS). Recount on L + W eval worlds
+   (`strata-counts.json`): GRAVE mind-visible Miso 158, Biscuit 12,
+   Pumpkin 4, Kittybear 33, Clementine 32 (all-states 516 / 56 / 24 /
+   184 / 152) — every friend under min-n, so **G RUNS** by this
+   clause (choice (b), ruled). ADJACENT mind-visible: 178 / 136 / 324 /
+   134 / 369.
 4. Train NF and DR × 3 seeds; R1–R6; RESULTS; gate; commit.
 
 Owner's call before step 1 (taken 2026-10-22, "go as declared"): the

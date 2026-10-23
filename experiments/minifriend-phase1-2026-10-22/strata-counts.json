@@ -319,85 +319,798 @@
      }
     }
    }
+  },
+  "W": {
+   "worlds_recorded": [
+    1095401,
+    1095402,
+    1095403,
+    1095404,
+    1095405,
+    1095406,
+    1095407,
+    1095408,
+    1095409,
+    1095410,
+    1095411,
+    1095412,
+    1095413,
+    1095414,
+    1095415,
+    1095416,
+    1095417,
+    1095418,
+    1095419,
+    1095420,
+    1095421,
+    1095422,
+    1095423,
+    1095424,
+    1095425
+   ],
+   "worlds_counted": [
+    1095404,
+    1095406,
+    1095409,
+    1095411,
+    1095412,
+    1095416,
+    1095417,
+    1095424
+   ],
+   "per_world": {
+    "1095404": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 0,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 24000,
+        "visible": 11183
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 8,
+        "visible": 2
+       },
+       "COMMON": {
+        "all": 23992,
+        "visible": 11337
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 20,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 23980,
+        "visible": 10768
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 152,
+        "visible": 25
+       },
+       "ADJACENT": {
+        "all": 20,
+        "visible": 5
+       },
+       "COMMON": {
+        "all": 23828,
+        "visible": 11404
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 36,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 23964,
+        "visible": 12342
+       }
+      }
+     }
+    },
+    "1095406": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 120,
+        "visible": 68
+       },
+       "ADJACENT": {
+        "all": 104,
+        "visible": 78
+       },
+       "COMMON": {
+        "all": 23776,
+        "visible": 11581
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 24,
+        "visible": 3
+       },
+       "ADJACENT": {
+        "all": 112,
+        "visible": 57
+       },
+       "COMMON": {
+        "all": 23864,
+        "visible": 12681
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 36,
+        "visible": 10
+       },
+       "COMMON": {
+        "all": 23964,
+        "visible": 12010
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 4,
+        "visible": 1
+       },
+       "ADJACENT": {
+        "all": 68,
+        "visible": 25
+       },
+       "COMMON": {
+        "all": 23928,
+        "visible": 11218
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 36,
+        "visible": 5
+       },
+       "ADJACENT": {
+        "all": 72,
+        "visible": 26
+       },
+       "COMMON": {
+        "all": 23892,
+        "visible": 12075
+       }
+      }
+     }
+    },
+    "1095409": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 12,
+        "visible": 1
+       },
+       "COMMON": {
+        "all": 23988,
+        "visible": 11389
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 0,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 24000,
+        "visible": 10783
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 28,
+        "visible": 7
+       },
+       "COMMON": {
+        "all": 23972,
+        "visible": 10474
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 12,
+        "visible": 3
+       },
+       "ADJACENT": {
+        "all": 68,
+        "visible": 13
+       },
+       "COMMON": {
+        "all": 23920,
+        "visible": 11218
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 40,
+        "visible": 10
+       },
+       "ADJACENT": {
+        "all": 128,
+        "visible": 36
+       },
+       "COMMON": {
+        "all": 23832,
+        "visible": 10802
+       }
+      }
+     }
+    },
+    "1095411": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 52,
+        "visible": 10
+       },
+       "ADJACENT": {
+        "all": 84,
+        "visible": 27
+       },
+       "COMMON": {
+        "all": 23864,
+        "visible": 11663
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 52,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 23948,
+        "visible": 12373
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 48,
+        "visible": 12
+       },
+       "COMMON": {
+        "all": 23952,
+        "visible": 11423
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 16,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 23984,
+        "visible": 11807
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 12,
+        "visible": 3
+       },
+       "COMMON": {
+        "all": 23988,
+        "visible": 12582
+       }
+      }
+     }
+    },
+    "1095412": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 72,
+        "visible": 26
+       },
+       "COMMON": {
+        "all": 23928,
+        "visible": 11650
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 16,
+        "visible": 5
+       },
+       "ADJACENT": {
+        "all": 108,
+        "visible": 68
+       },
+       "COMMON": {
+        "all": 23876,
+        "visible": 11244
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 192,
+        "visible": 69
+       },
+       "COMMON": {
+        "all": 23808,
+        "visible": 12082
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 52,
+        "visible": 4
+       },
+       "COMMON": {
+        "all": 23948,
+        "visible": 11895
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 164,
+        "visible": 52
+       },
+       "COMMON": {
+        "all": 23836,
+        "visible": 12389
+       }
+      }
+     }
+    },
+    "1095416": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 92,
+        "visible": 33
+       },
+       "COMMON": {
+        "all": 23908,
+        "visible": 11428
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 16,
+        "visible": 4
+       },
+       "ADJACENT": {
+        "all": 52,
+        "visible": 3
+       },
+       "COMMON": {
+        "all": 23932,
+        "visible": 10731
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 148,
+        "visible": 31
+       },
+       "COMMON": {
+        "all": 23852,
+        "visible": 10829
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 16,
+        "visible": 4
+       },
+       "ADJACENT": {
+        "all": 168,
+        "visible": 79
+       },
+       "COMMON": {
+        "all": 23816,
+        "visible": 10980
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 60,
+        "visible": 4
+       },
+       "COMMON": {
+        "all": 23940,
+        "visible": 11776
+       }
+      }
+     }
+    },
+    "1095417": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 108,
+        "visible": 35
+       },
+       "ADJACENT": {
+        "all": 0,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 23892,
+        "visible": 13316
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 20,
+        "visible": 2
+       },
+       "COMMON": {
+        "all": 23980,
+        "visible": 12629
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 24,
+        "visible": 4
+       },
+       "ADJACENT": {
+        "all": 244,
+        "visible": 139
+       },
+       "COMMON": {
+        "all": 23732,
+        "visible": 12771
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 0,
+        "visible": 0
+       },
+       "COMMON": {
+        "all": 24000,
+        "visible": 13553
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 216,
+        "visible": 69
+       },
+       "COMMON": {
+        "all": 23784,
+        "visible": 13410
+       }
+      }
+     }
+    },
+    "1095424": {
+     "ticks": 6000,
+     "friends": {
+      "Miso": {
+       "GRAVE": {
+        "all": 236,
+        "visible": 45
+       },
+       "ADJACENT": {
+        "all": 268,
+        "visible": 4
+       },
+       "COMMON": {
+        "all": 23496,
+        "visible": 10340
+       }
+      },
+      "Biscuit": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 24,
+        "visible": 4
+       },
+       "COMMON": {
+        "all": 23976,
+        "visible": 10877
+       }
+      },
+      "Pumpkin": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 64,
+        "visible": 37
+       },
+       "COMMON": {
+        "all": 23936,
+        "visible": 10161
+       }
+      },
+      "Kittybear": {
+       "GRAVE": {
+        "all": 0,
+        "visible": 0
+       },
+       "ADJACENT": {
+        "all": 52,
+        "visible": 8
+       },
+       "COMMON": {
+        "all": 23948,
+        "visible": 9950
+       }
+      },
+      "Clementine": {
+       "GRAVE": {
+        "all": 76,
+        "visible": 17
+       },
+       "ADJACENT": {
+        "all": 60,
+        "visible": 32
+       },
+       "COMMON": {
+        "all": 23864,
+        "visible": 11463
+       }
+      }
+     }
+    }
+   },
+   "total": {
+    "Miso": {
+     "GRAVE": {
+      "all": 516,
+      "visible": 158
+     },
+     "ADJACENT": {
+      "all": 632,
+      "visible": 169
+     },
+     "COMMON": {
+      "all": 190852,
+      "visible": 92550
+     }
+    },
+    "Biscuit": {
+     "GRAVE": {
+      "all": 56,
+      "visible": 12
+     },
+     "ADJACENT": {
+      "all": 376,
+      "visible": 136
+     },
+     "COMMON": {
+      "all": 191568,
+      "visible": 92655
+     }
+    },
+    "Pumpkin": {
+     "GRAVE": {
+      "all": 24,
+      "visible": 4
+     },
+     "ADJACENT": {
+      "all": 780,
+      "visible": 305
+     },
+     "COMMON": {
+      "all": 191196,
+      "visible": 90518
+     }
+    },
+    "Kittybear": {
+     "GRAVE": {
+      "all": 184,
+      "visible": 33
+     },
+     "ADJACENT": {
+      "all": 444,
+      "visible": 134
+     },
+     "COMMON": {
+      "all": 191372,
+      "visible": 92025
+     }
+    },
+    "Clementine": {
+     "GRAVE": {
+      "all": 152,
+      "visible": 32
+     },
+     "ADJACENT": {
+      "all": 748,
+      "visible": 222
+     },
+     "COMMON": {
+      "all": 191100,
+      "visible": 96839
+     }
+    }
+   }
   }
  },
  "pooled_eval": {
   "Miso": {
    "GRAVE": {
-    "all": 0,
-    "visible": 0
+    "all": 516,
+    "visible": 158
    },
    "ADJACENT": {
-    "all": 16,
-    "visible": 9
+    "all": 648,
+    "visible": 178
    },
    "COMMON": {
-    "all": 239984,
-    "visible": 118531
+    "all": 430836,
+    "visible": 211081
    }
   },
   "Biscuit": {
    "GRAVE": {
-    "all": 0,
-    "visible": 0
+    "all": 56,
+    "visible": 12
    },
    "ADJACENT": {
-    "all": 0,
-    "visible": 0
+    "all": 376,
+    "visible": 136
    },
    "COMMON": {
-    "all": 240000,
-    "visible": 117161
+    "all": 431568,
+    "visible": 209816
    }
   },
   "Pumpkin": {
    "GRAVE": {
-    "all": 0,
-    "visible": 0
+    "all": 24,
+    "visible": 4
    },
    "ADJACENT": {
-    "all": 68,
-    "visible": 19
+    "all": 848,
+    "visible": 324
    },
    "COMMON": {
-    "all": 239932,
-    "visible": 110161
+    "all": 431128,
+    "visible": 200679
    }
   },
   "Kittybear": {
    "GRAVE": {
-    "all": 0,
-    "visible": 0
+    "all": 184,
+    "visible": 33
    },
    "ADJACENT": {
-    "all": 0,
-    "visible": 0
+    "all": 444,
+    "visible": 134
    },
    "COMMON": {
-    "all": 240000,
-    "visible": 112608
+    "all": 431372,
+    "visible": 204633
    }
   },
   "Clementine": {
    "GRAVE": {
-    "all": 0,
-    "visible": 0
+    "all": 152,
+    "visible": 32
    },
    "ADJACENT": {
-    "all": 176,
-    "visible": 147
+    "all": 924,
+    "visible": 369
    },
    "COMMON": {
-    "all": 239824,
-    "visible": 118082
+    "all": 430924,
+    "visible": 214921
    }
   }
  },
  "grave_visible_under_min_n": {
-  "Miso": 0,
-  "Biscuit": 0,
-  "Pumpkin": 0,
-  "Kittybear": 0,
-  "Clementine": 0
+  "Miso": 158,
+  "Biscuit": 12,
+  "Pumpkin": 4,
+  "Kittybear": 33,
+  "Clementine": 32
  }
 }
