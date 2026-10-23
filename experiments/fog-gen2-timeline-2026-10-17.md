@@ -258,9 +258,21 @@ consent BC comparison ride the trunk.
   spec 065 only, gated on the section being present), the collector's
   `--save-obs` + `needs0/hap0` with the start-of-tick guard, the
   strata module with its edge guard; W/G seed sub-band 1095401–1095450
-  claimed (the critic's IN rows are held by kept raws). Step 2 next:
-  L's ten worlds, first world byte-checked against the certified rot2
-  battery row.
+  claimed (the critic's IN rows are held by kept raws). PHASE 1 DONE
+  2026-10-23 (`minifriend-phase1-2026-10-22/RESULTS.md`, gate PASS
+  round 2): L 10 worlds all EQUAL to the certified battery (the arc
+  binding reproduces the certified engine), W 25 and G 25 clean (0
+  aborts, worst streak 756); GRAVE mind-visible after G 664 / 746 /
+  170 / 671 / 316, Pumpkin's INSUFFICIENT COVERAGE by the fail-closed
+  rule; heads 7,807 params; RMS 5.4 need points in sight in common
+  states, 26 in grave states (baselines 53); NF carries the ostrich
+  signature on every covered friend (grave bias −8.6, common ≈ 0), DR
+  removes the pooled optimism (+1.6) for 7.4 points² of common error;
+  dissolution test NOT passed (pooled ratio 1.017 holds, per-friend
+  clause fails on Miso and Kittybear; Biscuit 36% better under NF):
+  the NF/DR tension is friend-specific. Phase 2 head choice is now
+  HER CALL with this read in hand (the declaration licenses head
+  choice only). FINDINGS entry F-064 follows (copy-check gated).
 
 ## Flagged follow-ups (owner's word to start)
 

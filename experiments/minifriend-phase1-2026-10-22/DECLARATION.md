@@ -329,8 +329,12 @@ activations (the trunk is frozen and not opened).
    covered friends and say so; R2's per-friend clause is read on
    those four; Pumpkin's all-states GRAVE (768) is read. No further
    set is declared (the remedy list ended at G); the shortfall itself
-   is a finding (Pumpkin is the seat with most LIVED distress and the
-   fewest grave samples in sight after grave starts).
+   is a finding (Pumpkin is the seat with most lived distress in the
+   certified battery, 437 of its 503 distress ticks at 20×20 per the
+   expected-occupancy line above, and the fewest grave samples in
+   sight after grave starts). [Corrected 2026-10-23 at the gate: an
+   earlier draft of this line cited F-063 here; F-063 is trunk-s7's
+   habit, Kittybear's seat.]
    Engineering pins for step 4, stated before any training: (i) early
    stopping watches a VALIDATION subset carved from each set's TRAIN
    worlds by the same SPLIT_SEED (never an evaluation world; the
@@ -353,5 +357,8 @@ remedy, the prereg naming "probe-generated distress-adjacent coverage"
 without choosing the generator; (c) a separate arc binding instead of
 rebuilding the Gen 2 lab binding — all stand as declared. Stated
 limitation for the write-up: G measures whether the head sees a
-friend who STARTS in distress, not one sliding into it; only
-Pumpkin's lived ticks (F-063) cover the sliding case.
+friend who STARTS in distress, not one sliding into it. [Corrected
+2026-10-23 at the gate: this line first said "only Pumpkin's lived
+ticks (F-063) cover the sliding case"; F-063 is trunk-s7's habit at
+Kittybear's seat, and set L turned out to hold no grave tick at all,
+so the sliding cases in this arc's data are W's.]

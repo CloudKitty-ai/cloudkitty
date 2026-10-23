@@ -1069,3 +1069,38 @@ Lessons: (1) when prose names a count beside a different column's
 number, the fence asserts THAT count too; (2) a quoted phrase is
 verbatim or it is paraphrase — hyphens count; (3) an addendum that
 summarises a section inherits the section's exceptions.
+
+## 2026-10-23 — minifriend-phase1 RESULTS (whole document), two rounds (Experiments)
+
+Scope: a new arc's full write-up (60 collected worlds, six trained
+heads, reads R1–R6) with a five-line Read fence (seconds each) and
+four guard runners. Fresh JSON byte-identical to the recorded in
+both rounds; every number matched from round 1 (~430 checks).
+- Round 1 FAIL, prose only: "both declared before the data" where
+  one limitation was the reader's own observation; an F-063 citation
+  attached to the wrong seat (F-063 is s7, Kittybear's seat, and the
+  "lived ticks" it credited did not exist: set L had no grave tick);
+  "28 keys" for a lookup that can take 15; a reds citation naming
+  commits whose messages say "Reds follow" and a commit not yet
+  made; "more than twenty times" true for one head and false for the
+  other (18.5×); a mechanism ("the likely reason") asserted for a
+  pooled fall that the subagent showed was a pool-composition effect
+  and went the other way per friend for DR; a run-mean happiness
+  range stated "on every seat" that held only for set-averaged seats
+  (34 of 250 worlds outside it); and a WEAK line in the R2 paragraph
+  confining NF's optimism to two friends where R4 shows it on four.
+- Round 2 PASS; three WEAK characterisations outside decision lines
+  reworded after the round ("distressed together" → "in GRAVE
+  together"; "not a table lookup on the visible row" → on activity
+  and partner only; the upper-bound hedge tied to the reason that
+  supports it).
+Lessons: (1) an explanatory "likely reason" for a pooled number is a
+characterisation the gate WILL test per friend: either declare and
+read the split, or report the number bare; (2) a citation to an
+F-number carries the seat/network the finding is about: re-read the
+entry's claim line before attaching it; (3) "declared before the
+data" is a provenance claim with a diff to check (the declaration at
+the pre-data commit), not a memory; (4) a commit-message citation
+for reds is checked with `git log --format=%B`; "Reds follow" is not
+a record; (5) when a range is stated "on every X", say what is
+averaged, or the gate reads it per world.
