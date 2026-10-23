@@ -364,4 +364,5 @@ friend who STARTS in distress, not one sliding into it. [Corrected
 2026-10-23 at the gate: this line first said "only Pumpkin's lived
 ticks (F-063) cover the sliding case"; F-063 is trunk-s7's habit at
 Kittybear's seat, and set L turned out to hold no grave tick at all,
-so the sliding cases in this arc's data are W's.]
+so the sliding cases in this arc's data are W's and, as re-entries
+after early relief, G's (RESULTS §Samples and coverage).]

@@ -1140,3 +1140,11 @@ compresses a two-part decision rule into its first part misstates the
 rule; (4) an "excluded/downweighted" prereg word is a constraint on
 the loss, and an engineering pin written before training still
 answers to it — pins get the rule-8 check too.
+- F-064 copy check rounds 3–4 (2026-10-23, on the re-read's entry):
+  round 3 FAIL — the entry carried the declaration's older bracket
+  ("sliding cases are W's") after the section had been corrected to
+  W's late entries and G's re-entries, and the claim line dropped the
+  headline's "narrow"; round 4 PASS. Lesson (5): when a section is
+  corrected in a gate round, re-read every downstream text that
+  copied the earlier wording — the entry and the declaration bracket
+  both had it.

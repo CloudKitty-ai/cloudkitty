@@ -102,6 +102,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-061 | active | The Gen 1 → Gen 2 play rise (0.074..0.147 → 0.363) is teacher and training, not world: the world moves it −0.004, one teacher on every seat +0.091 ± 0.007, training +0.166 ± 0.011; the networks play within 0.012 of the teacher with its comfort rule loosened and consent off, in slack time (less onset pressure than the teacher), out of idle moving and rest |
 | F-062 | active | The vision law's wider radius buys the scripted teacher, not the trained roster: at 40×40 one radius step (5 → 4) costs the teacher 1.294 ± 0.958 happiness and the frozen roster 0.088 ± 0.122, so the trained-vs-scripted gap's fall between the cert legs (+5.566 → +4.594) travelled with the radius on the teacher's side (gap at 40×40, radius 4: +5.800 ± 0.860) |
 | F-063 | active | A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency |
+| F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free |
 
 ---
 
@@ -3264,3 +3265,67 @@ account cannot see a lone parked cat, so a tail read needs a parked
 (still, sated-tending) shape beside the hold; and F-043's roster-
 property reading gains a mechanism: the tail travels with the seat
 that holds s7.
+
+---
+
+## F-064 · active · A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free
+
+Minted from mini-friend Phase 1 (`minifriend-phase1-2026-10-22/RESULTS.md`,
+the re-read of 2026-10-23, gated; declaration ruled as declared, owner
+2026-10-22 "Fix the stale draft and go as declared"; prereg §8 item 3,
+RULED S§3a; deviations entry 10 records the retrain with bath
+downweighted). The head: Linear(167 → 24) + ReLU, GRU(24), Linear(24 →
+7), reading the observer's self block and the friend's permanent row
+from the observer's own frozen start-of-tick observation, nothing from
+the global state; targets the friend's five hidden needs (with
+happiness and, downweighted, bath as reported outputs) at the tick
+the view was built from. Data: the certified roster rot2, 10 lived
+worlds plus 25 wide-start and 25 grave-start worlds (spec 065
+`[initial_needs]`, run on an arc binding that reproduces the certified
+engine on the served config); 2,800,000 evaluation samples on 19
+worlds split by world. Pooled mind-visible MSE on the five hidden
+needs: COMMON 28.25 ± 0.93 (NF) / 35.78 ± 2.21 (DR); GRAVE 644.04 ±
+30.61 / 682.11 ± 19.77; the marginal and persistence-proxy baselines
+2,814.09 / 2,809.14 on GRAVE, and the proxy barely beats the marginal
+(the friend's visible activity says almost nothing about how high her
+hidden needs are). Ostrich read (prereg §9 item 2, S§3d; the 1.5×
+margin shared with §8 item 4; both heads): NF grave bias −3.80 in
+sight / −0.80 all states, signature on Miso, Kittybear and Clementine
+in sight and pooled, not on Biscuit (+0.59); DR +1.71 / +5.64 pooled,
+a small signature on Miso and Kittybear in sight (−3.21, −2.01) and
+on Pumpkin all-states (−5.72), Biscuit overshooting to +10.16 / +12.55.
+Dissolution (procedure frozen in the declaration): floor 682.11, NF
+644.04, ratio 0.944 ≤ 1.10 pooled; per friend Miso +96.76 over 1.10 ×
+DR against an NF SD of 79.56 (exceeds), Biscuit −401.27, Kittybear
+−6.36, Clementine −48.67 (within): NOT dissolved; this licenses head
+choice for Phase 2 only, never welfare adequacy. **Caveats the section
+carries**: Pumpkin's mind-visible GRAVE stratum is 170 < 200 after
+every declared set and is INSUFFICIENT COVERAGE (no number read;
+pooled mind-visible GRAVE pools the other four); the grave stratum
+comes from grave STARTS rather than from friends sliding into
+distress (the sliding cases in the data are W's late entries and G's
+re-entries after early relief, none lived), and in the
+grave-start worlds every cat starts in GRAVE together, so the
+observer's own needs are a cue at the start that they would not be in
+lived distress (the grave numbers are best read as an upper bound on
+inference skill); the 1.5× lift is met trivially wherever the
+common-state bias is near zero, so the gap in points, not the
+signature flag, is the informative column; bath, the one visible
+need, is fitted at weight 0.1 and reads 3.99 points² in sight in
+common states for NF (the pipeline floor under a downweighted output;
+DR 28.15) and 138.56 in grave states (DR 335.09). **Scope**: the
+certified Gen 2 roster at the served 20×20, greedy masked argmax,
+schema 6 observations; offline heads, no consumer, no feedback into
+any policy; three seeds per head, the NF/DR pair sharing each seed.
+**Invalidated by** (domain: this declaration's reads re-run on a Gen 2
+roster with at least three seeds per head and the same strata and
+min-n): the NF pooled mind-visible GRAVE bias at or above −1.5 points,
+or either head's pooled mind-visible GRAVE MSE within 1.5× of the
+marginal baseline's on the same cells (checked on this entry's own
+evidence: −3.80, and 4.4× / 4.1×; neither fires). **Re-verify when**:
+Phase 2's live head is read (prereg §9 item 2 reads the ostrich metric
+on both estimates, the Phase 1 offline heads and the Phase 2 live
+head); any change of roster or schema. **Promotion**: the Phase 2 head
+choice is the owner's call with this read in hand; the per-friend
+failure says a single head is not free, and any mixed or
+re-capacitated head is a Phase 2 declaration, not this entry's claim.
