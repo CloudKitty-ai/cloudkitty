@@ -119,6 +119,34 @@ def test_t4_prediction_consistency():
     assert (pred[:, k, j, :5] >= 0).all() and (pred[:, k, j, :5] <= 1).all()
 
 
+def test_t5_reader_arithmetic():
+    import read_phase1c as C
+    assert abs(C.grave_probability([[0.5, 0.5, 0.0, 0.0, 0.0]])[0] - 0.75) < 1e-12
+    assert C.grave_probability([[1.0, 0.0, 0.0, 0.0, 0.0]])[0] == 1.0 and C.grave_probability([[0.0] * 5])[0] == 0.0
+    p = np.array([0.0, 0.05, 0.15, 0.95, 0.999, 0.5, 0.5]); g = np.array([0, 0, 0, 1, 1, 1, 0], float)
+    rows = C.reliability(p, g)
+    assert sum(r["n"] for r in rows) == 7 and rows[0]["n"] == 2 and rows[-1]["n"] == 2 and rows[5]["n"] == 2
+    assert rows[5]["frac_grave"] == 0.5 and rows[-1]["frac_grave"] == 1.0 and rows[1]["mean_p"] == 0.15
+    assert C.auroc([0.1, 0.2, 0.3, 0.4], [0, 0, 1, 1]) == 1.0
+    assert C.auroc([0.1, 0.2, 0.3, 0.4], [1, 1, 0, 0]) == 0.0
+    assert C.auroc([0.3, 0.3, 0.3, 0.3], [1, 0, 1, 0]) == 0.5
+    assert abs(C.auroc([1.0, 1.0, 0.0], [1, 0, 0]) - 0.75) < 1e-12          # ties take the average rank
+    assert C.auroc([0.1, 0.2], [1, 1]) is None
+    rng = np.random.default_rng(1)
+    s = rng.integers(0, 4, 2000) / 4.0; lab = rng.random(2000) < 0.3        # heavy ties against a brute-force count
+    pos, neg = s[lab], s[~lab]
+    brute = (np.sum(pos[:, None] > neg[None, :]) + 0.5 * np.sum(pos[:, None] == neg[None, :])) / (len(pos) * len(neg))
+    assert abs(C.auroc(s, lab) - brute) < 1e-12
+
+
+def test_t6_provenance():
+    import read_phase1c as C
+    assert (HERE / "split.json").read_bytes() == (PHASE1B / "split.json").read_bytes()
+    base = C.R.read(C.RUNS_CMP, C.GROUPS["P"])
+    prov = C.provenance({"heads": base["heads"]})
+    assert prov["width"] == 24 and base["eval_sets"] == ["P1", "P2", "P3", "P4", "P5"]
+
+
 if __name__ == "__main__":
     only = sys.argv[1:]
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and (not only or k in only)]
