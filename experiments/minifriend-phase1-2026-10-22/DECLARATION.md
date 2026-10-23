@@ -314,6 +314,35 @@ activations (the trunk is frozen and not opened).
    184 / 152) — every friend under min-n, so **G RUNS** by this
    clause (choice (b), ruled). ADJACENT mind-visible: 178 / 136 / 324 /
    134 / 369.
+   G DONE 2026-10-22: scouts 1095426–1095428 clean (worst streak 97),
+   then the other 22; 25 worlds × 4,000 ticks, 0 aborts, worst
+   single-need streak 756 (Biscuit's seat, world 1095450; under the
+   F-053 line, an F-043 crossing, read in RESULTS). Recount on the
+   L + W + G eval worlds (`strata-counts.json`, 19 worlds): GRAVE
+   mind-visible Miso 664, Biscuit 746, Pumpkin 170, Kittybear 671,
+   Clementine 316 (all-states 3392 / 6544 / 768 / 3320 / 1584);
+   ADJACENT mind-visible 349 / 265 / 556 / 309 / 490. **Pumpkin's
+   GRAVE mind-visible stratum stays under min-n after G (170 < 200)**:
+   by the fail-closed rule above it is reported as INSUFFICIENT
+   COVERAGE and no mind-visible GRAVE number is read for Pumpkin; the
+   pooled mind-visible reads (R1, R2's floor, R4) pool the four
+   covered friends and say so; R2's per-friend clause is read on
+   those four; Pumpkin's all-states GRAVE (768) is read. No further
+   set is declared (the remedy list ended at G); the shortfall itself
+   is a finding (Pumpkin is the seat with most LIVED distress and the
+   fewest grave samples in sight after grave starts).
+   Engineering pins for step 4, stated before any training: (i) early
+   stopping watches a VALIDATION subset carved from each set's TRAIN
+   worlds by the same SPLIT_SEED (never an evaluation world; the
+   evaluation worlds touch nothing until the reads); (ii) the training
+   loss is the five-hidden-need MSE (the estimate loss, NF weight 1 /
+   DR stratum weights) plus the same-weighted MSE of the happiness and
+   bath outputs, so those two reported outputs are fitted — R1 reports
+   the five-need term alone; (iii) torch `nn.GRU` with the hidden state
+   reset at each world's start and carried across 500-tick chunks
+   within a world; (iv) seeds 1, 2, 3 for both heads (the pair shares
+   the seed), Adam lr 1e-3, batch of sequences, patience 10 / cap 200
+   epochs on the validation loss.
 4. Train NF and DR × 3 seeds; R1–R6; RESULTS; gate; commit.
 
 Owner's call before step 1 (taken 2026-10-22, "go as declared"): the
