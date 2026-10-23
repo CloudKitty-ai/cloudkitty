@@ -586,3 +586,34 @@ s10 are the remaining candidates.
 Status: CLOSED by entry 7's terms (no legs, no automatic
 replacement). Whether a further replacement is drawn is the owner's;
 none is assumed. No investigation run.
+
+## 10. Mini-friend Phase 1: the first training pass fitted bath at full weight (2026-10-23)
+
+The prereg (§8 item 3, RULED S§3a) has bath "EXCLUDED/downweighted
+from the estimate loss"; the Phase 1 declaration (§What the head
+predicts) says "Bath is excluded from the estimate loss and reported
+separately as a seventh output". The step-4 engineering pin (ii),
+written 2026-10-22 before training, set the training loss to the
+five-hidden-need MSE plus the happiness and bath MSEs at equal
+weight, so that the two reported outputs were fitted; it did not
+notice that weight 1 on bath is neither excluded nor downweighted
+(each hidden need carries 0.2 of the estimate term). Six runs trained
+under that loss (NF/DR × seeds 1–3, 2026-10-23 03:32–03:42Z) and the
+RESULTS read from them was gated and committed (d0de3213). The slip
+was caught by the F-064 copy-check subagent (round 2, outside its
+copy scope, reported), reading the trainer against the prereg.
+
+Remedy, taken the same day without new rollouts: `BATH_WEIGHT = 0.1`
+in `train_heads.py` (bath downweighted, the prereg's own word, so the
+seventh output stays reportable for R5); the six heads retrained
+under it on the same data, split and seeds; RESULTS re-read and
+re-gated; F-064 minted from the re-read. The first pass's artifacts
+are kept under `results-raw/heads-pass1/` and are never read; the
+superseded RESULTS text survives in git at d0de3213. Effect expected
+on the estimate: none that favours the read (bath at full weight
+could only take shared capacity from the five needs); R5's bath
+numbers change meaning (a downweighted output), stated in the
+re-read.
+
+Status: CLOSED by the retrain; no owner call needed (the remedy
+restores the prereg's rule; reported to her with the Phase 1 result).

@@ -8,7 +8,8 @@ h2  DR weights come from the TRAIN worlds only: train_weights(train)
 h3  roles: evaluation worlds are split.json's, untouched by train and
     validation; validation is carved from split.json's train worlds
 h4  sample_loss is the w-weighted mean: with w one-hot it returns that
-    sample's own (mse5 + hap + bath)
+    sample's own (mse5 + hap + 0.1 · bath); bath enters at BATH_WEIGHT
+    0.1 (prereg: excluded/downweighted from the estimate loss)
 h5  pair_arrays: x is the self block then the friend's row, y the
     friend's aligned truth /100 (own self needs equal y for the pair
     (k, k) built by hand), vis the row's present cell
@@ -67,6 +68,11 @@ def test_h4_sample_loss_is_the_weighted_mean():
     assert abs(loss2.item() - 0.25) < 1e-6
     loss3, _ = T.sample_loss(pred, y, torch.tensor([[1.0, 1.0]]))
     assert abs(loss3.item() - 0.145) < 1e-6
+    # bath is downweighted: a bath error of 0.5 (mse 0.25) adds 0.1 x 0.25 to the loss, the term itself unscaled
+    y2 = torch.zeros(1, 1, 7)
+    y2[0, 0, 6] = 0.5
+    loss4, terms4 = T.sample_loss(torch.zeros(1, 1, 7), y2, torch.ones(1, 1))
+    assert T.BATH_WEIGHT == 0.1 and abs(loss4.item() - 0.025) < 1e-6 and abs(terms4[2].item() - 0.25) < 1e-6
 
 
 def test_h5_pair_arrays_layout():

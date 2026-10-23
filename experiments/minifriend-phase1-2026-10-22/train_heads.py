@@ -8,8 +8,14 @@ NF vs DR; three seeds, the pair sharing its seed; step-4 pins).
 Model: Linear(167 → 24) → GRU(24) → Linear(24 → 7); hidden state zero
 at each world's start, carried (detached) across 500-tick chunks.
 Loss per sample: w · (MSE over the five hidden needs + MSE happiness +
-MSE bath), targets in [0, 1]; NF w = 1, DR w = the stratum weight from
-phase1_data.dr_weights on the TRAIN samples. Early stop: the head's
+BATH_WEIGHT · MSE bath), targets in [0, 1]; NF w = 1, DR w = the
+stratum weight from phase1_data.dr_weights on the TRAIN samples. Bath
+is DOWNWEIGHTED (prereg §8 item 3 "EXCLUDED/downweighted from the
+estimate loss"; declaration §What the head predicts): it is fitted at
+0.1 so the seventh output is reportable (R5, the pipeline-noise bound)
+without driving the shared state. The first training pass (2026-10-23
+03:32Z, kept under results-raw/heads-pass1/, never read) fitted it at
+1.0; deviations entry 10 records the slip. Early stop: the head's
 own loss on the VALIDATION worlds (carved from the train worlds),
 1e-4 margin, patience 10, cap 200 epochs (the clone trainer's rule).
 Adam lr 1e-3. Writes results-raw/heads/<HEAD>-s<seed>/: run-manifest.json
@@ -34,6 +40,7 @@ OUT_ROOT = HERE / "results-raw" / "heads"
 PARAM_CAP = 8445          # 10% of the trunk's 84,450 (declaration §Capacity)
 CHUNK = 500
 H = 24
+BATH_WEIGHT = 0.1         # bath downweighted in the loss (prereg §8 item 3); the five needs and happiness at 1
 
 
 class BeliefHead(nn.Module):
@@ -54,13 +61,14 @@ def n_params(m):
 
 def sample_loss(pred, y, w):
     """pred, y (T, B, 7); w (T, B). Returns the weighted mean of
-    (mse5 + mse_hap + mse_bath) and the three weighted terms."""
+    (mse5 + mse_hap + BATH_WEIGHT · mse_bath) and the three weighted
+    terms (the bath term unscaled)."""
     mse5 = ((pred[..., D.HIDDEN] - y[..., D.HIDDEN]) ** 2).mean(-1)
     mh = (pred[..., D.HAP] - y[..., D.HAP]) ** 2
     mb = (pred[..., D.BATH] - y[..., D.BATH]) ** 2
     ws = w.sum()
     terms = [(t * w).sum() / ws for t in (mse5, mh, mb)]
-    return terms[0] + terms[1] + terms[2], terms
+    return terms[0] + terms[1] + BATH_WEIGHT * terms[2], terms
 
 
 def train_weights(train):
@@ -167,6 +175,7 @@ def main():
     assert np_ <= PARAM_CAP, (np_, PARAM_CAP)
     manifest = {"head": a.head, "seed": a.seed, "params": np_, "param_cap": PARAM_CAP,
                 "arch": "Linear(167->24)+ReLU, GRU(24), Linear(24->7)", "chunk": CHUNK,
+                "loss": "w*(mse5 + mse_hap + BATH_WEIGHT*mse_bath)", "bath_weight": BATH_WEIGHT,
                 "lr": a.lr, "batch_sequences": a.batch, "patience": a.patience, "epoch_cap": a.epochs,
                 "margin": 1e-4, "roles": roles, "train_stratum_freq": freq.tolist(),
                 "dr_weights_GRAVE_ADJACENT_COMMON": weights.tolist(), "weights_used": a.head == "DR",
