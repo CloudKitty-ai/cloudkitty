@@ -150,6 +150,37 @@ def test_applied_partner_matches_the_flag_inside_a_scene():
         assert (aw[m] == fp[:, :, 1][m]).all(), seating
 
 
+def test_save_obs_keeps_the_start_of_tick_observation():
+    # red: the observation saved AFTER the tick's step (the next tick's
+    # view) -> row 0 differs from the reset observation the engine hands
+    # out, and the observer's own needs no longer equal needs[t-1]
+    import cloudkitty
+    arrays, meta = C.collect("g2-s1", SEED, 5, 1000, save_obs=True)
+    ob = arrays["obs"]
+    assert ob.shape == (5, 5, 399) and ob.dtype == np.float16, (ob.shape, ob.dtype)
+    assert meta["obs_recorded"] == [True] * 5
+    # (i) equal to the observation the engine builds for that seat on that
+    # tick, the same world driven by the recorded actions
+    env = cloudkitty.ParallelEnv(str(C.CONFIG), horizon=6)
+    obs, _ = env.reset(seed=SEED)
+    names = list(env.possible_agents)
+    for t in range(5):
+        for k, a in enumerate(names):
+            fresh = np.asarray(obs[a], np.float32).astype(np.float16)
+            assert (ob[t, k] == fresh).all(), (t, k, np.abs(ob[t, k].astype(np.float32) - fresh).max())
+        obs, *_ = env.step({a: (int(arrays["act"][t, k]), int(arrays["msg"][t, k])) for k, a in enumerate(names)})
+    # (ii) alignment: the self block opens with own needs /100 then
+    # happiness /100 (observe.rs self block); at tick t they are the
+    # world after tick t-1 (needs0 at t = 0), never this tick's
+    truth = np.concatenate([arrays["needs0"][None], arrays["needs"][:4]])   # (5, 5, 6)
+    own = ob[:, :, :6].astype(np.float32) * 100
+    assert np.abs(own - truth).max() < 0.06, np.abs(own - truth).max()      # float16 on [0, 1]
+    moved = np.abs(arrays["needs"][:4] - arrays["needs0"][None]).max(-1) > 0.06
+    assert moved.any()
+    assert np.abs(own[1:] - arrays["needs"][:4])[moved].max() < 0.06
+    assert np.abs(own[1:][moved] - arrays["needs"][1:5][moved]).max() > 0.06, "fixture: the world did not move"
+
+
 def test_collector_records_every_element_on_a_bigger_world():
     # red: a fixed 64-slot element table (40x40 carries 92 elements)
     import cloudkitty

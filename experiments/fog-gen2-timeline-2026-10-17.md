@@ -246,6 +246,21 @@ consent BC comparison ride the trunk.
   out of sight), two cuddle tails pacing alone at 40×40, one parked
   mix. The first replay pass was lost to a serialisation error after
   running, so the replays ran twice (disclosed in the section).
+  MINI-FRIEND PHASE 1 (§8.3) STARTED 2026-10-22: owner "Fix the stale
+  draft and go as declared" to `minifriend-phase1-2026-10-22/
+  DECLARATION.md` (its three open choices stand: one belief-state
+  architecture; grave-start set G as the conditional fail-closed
+  coverage remedy; a separate arc binding). The early §6 stops (4 of
+  11 seeds) are SKIPPED on her word the same day ("Skip it"): the
+  halting probes are already on disk, the shape would be a barely
+  trained policy's, and no current decision turns on it. Step 1 DONE:
+  arc venv + binding from main a2e8d044 (`BINDING.md`: engine delta =
+  spec 065 only, gated on the section being present), the collector's
+  `--save-obs` + `needs0/hap0` with the start-of-tick guard, the
+  strata module with its edge guard; W/G seed sub-band 1095401–1095450
+  claimed (the critic's IN rows are held by kept raws). Step 2 next:
+  L's ten worlds, first world byte-checked against the certified rot2
+  battery row.
 
 ## Flagged follow-ups (owner's word to start)
 

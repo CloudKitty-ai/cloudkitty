@@ -1,4 +1,11 @@
-# Mini-friend Phase 1 — declaration (draft 2026-10-22, awaiting the owner's word to run)
+# Mini-friend Phase 1 — declaration (2026-10-22; owner "Fix the stale draft and go as declared", 2026-10-22)
+
+Ruled as declared on 2026-10-22, before any data: (a) the belief-state
+head is the one Phase 1 architecture; (b) the grave-start set G is the
+fail-closed coverage remedy, conditional as written; (c) the arc runs
+on its own binding and venv. The two draft lines that had gone stale
+were fixed in the same edit (the trainer note below; the
+observation/target tick alignment, stated exactly now).
 
 Prereg basis (frozen 18f06f84): `../gen2-prereg-2026-10-17.md` §8 item 3
 [RULED S§3a; freeze sitting 2026-10-17 "Accept D bite 1" with the
@@ -98,8 +105,14 @@ policy seat's observation per tick (float16, (T, 5, 399)) beside the
 streams it already records (needs, happiness, distress, positions,
 messages); the guard: a saved observation equals the one the harness
 built for that seat on that tick (same world, 5 ticks). Targets come
-from the recorded `needs` and `hap` streams, so observation and truth
-are the same tick.
+from the recorded `needs` and `hap` streams, aligned to the
+observation's tick exactly: the observation at tick t is the frozen
+start-of-tick view, which is the world AFTER tick t−1's step, so the
+truth paired with obs[t] is needs[t−1] (and, for t = 0, the reset
+state, which the collector now records as `needs0`/`hap0`). The guard
+holds the observer's own needs inside its self block equal to that
+row (the collector's snapshots are post-apply; a same-index pairing
+would be one tick stale).
 
 Three sets, declared in order; the later ones run only if the
 earlier leave a stratum under min-n:
@@ -107,8 +120,8 @@ earlier leave a stratum under min-n:
 | set | worlds | ticks | purpose |
 |---|---|---|---|
 | L (lived) | 10 worlds of band g2cmp, 905001–905010, `g2leg-20.toml` as served | 20,000 | the natural distribution; COMMON and the held-out common test |
-| W (wide starts) | 25 worlds, seeds 1095341–1095365 (the IN-wide band already claimed for the critic's round 4; a new sub-band if those collide with kept raws, claimed before first burn), `g2leg-20.toml` + `[initial_needs]` all six needs {min 0, max 90} | 6,000 | distress-ADJACENT coverage from varied starts |
-| G (grave starts) | 25 worlds, seeds 1095366–1095390 (the IN-grave band, same rule), `[initial_needs]` all six {min 60, max 95} | 4,000 | GRAVE coverage; runs ONLY if L + W leave any friend's GRAVE stratum under 200 mind-visible samples on the eval split |
+| W (wide starts) | 25 worlds, seeds 1095401–1095425 (the IN-wide band 1095341–1095365 is held by the critic's round-4 raws, so the collision clause fired; this sub-band claimed in SEED-BANDS.md on 2026-10-22 before first burn), `g2leg-20.toml` + `[initial_needs]` all six needs {min 0, max 90} | 6,000 | distress-ADJACENT coverage from varied starts |
+| G (grave starts) | 25 worlds, seeds 1095426–1095450 (same claim), `[initial_needs]` all six {min 60, max 95} | 4,000 | GRAVE coverage; runs ONLY if L + W leave any friend's GRAVE stratum under 200 mind-visible samples on the eval split |
 
 Expected occupancy, measured before this declaration on the
 certified roster at the served size: distress ticks over 30 worlds ×
@@ -223,8 +236,8 @@ activations (the trunk is frozen and not opened).
   HEAD (engine delta since the certified binding: spec 065 only,
   byte-identical when the section is absent; `git log b5aaa8cd..main
   -- crates/` listed in the run manifest), never touching the Gen 2
-  lab venv (deviations entry 5 holds it fixed; no rebuild under a
-  running arm — trunk-s9/s10 are training as this is written). L runs
+  lab venv (deviations entry 5 holds it fixed; no trainer is running
+  as this is ruled — s9/s10 finished, s8/s11 halted, entries 7–9). L runs
   on the same arc binding so the three sets share one engine; its
   first world is checked byte-equal to the certified rot2 battery
   row on the same seed (team happiness and distress ticks).
@@ -264,10 +277,13 @@ activations (the trunk is frozen and not opened).
    under 200 mind-visible eval samples for any friend.
 4. Train NF and DR × 3 seeds; R1–R6; RESULTS; gate; commit.
 
-Owner's call before step 1: run as declared, or amend. Open design
-choices surfaced for her: (a) the belief state as the one Phase 1
-architecture (vs. also a memoryless head); (b) G's exposure (covered
-minds started in distress) as the fail-closed remedy — the prereg
-names "probe-generated distress-adjacent coverage" without choosing
-the generator; (c) a separate arc binding instead of rebuilding the
-Gen 2 lab binding.
+Owner's call before step 1 (taken 2026-10-22, "go as declared"): the
+three design choices surfaced for her — (a) the belief state as the
+one Phase 1 architecture (vs. also a memoryless head); (b) G's
+exposure (covered minds started in distress) as the fail-closed
+remedy, the prereg naming "probe-generated distress-adjacent coverage"
+without choosing the generator; (c) a separate arc binding instead of
+rebuilding the Gen 2 lab binding — all stand as declared. Stated
+limitation for the write-up: G measures whether the head sees a
+friend who STARTS in distress, not one sliding into it; only
+Pumpkin's lived ticks (F-063) cover the sliding case.

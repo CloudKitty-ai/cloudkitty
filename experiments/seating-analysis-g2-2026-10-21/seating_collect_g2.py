@@ -23,7 +23,13 @@ and applied_with (T, R) int8: every seat's applied action per tick (the
 engine's last_action, read through decision_request, which never moves
 the episode) and its partner seat, encoded by the reader's
 encode_applied; the end-of-tick activity and partner flags hide each
-scene's last tick.
+scene's last tick. Since the mini-friend Phase 1 declaration
+(2026-10-22) also needs0 (R, 6) and hap0 (R), the reset state on the
+/100 scale, and with --save-obs the stream obs (T, R, 399) float16:
+each policy seat's start-of-tick observation, the frozen view the
+policy acted on at tick t (the world after tick t-1's step, so its own
+needs equal needs[t-1], or needs0 at t = 0); scripted seats' rows are
+zero and meta["obs_recorded"] says which rows are real.
 """
 import argparse
 import json
@@ -58,7 +64,7 @@ def abort_due(dist_streak, abort_streak, abort_seat=None):
     return bool(watched.max() >= abort_streak)
 
 
-def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
+def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, save_obs=False):
     import cloudkitty
     with open(config, "rb") as f:
         cfg = tomllib.load(f)
@@ -68,7 +74,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
     seats = list(H.SEATINGS[seating])
     assert len(seats) == roster, (seating, roster)
     assert all(s == "scripted" or s.startswith("g2:") for s in seats), seats
-    n_act, n_heads = H.SCHEMA_DIMS["v6"][1:]
+    obs_dim, n_act, n_heads = H.SCHEMA_DIMS["v6"]
     control = {f"kitty_{k['id']}": k["behavior"]
                for k, s in zip(kitties, seats) if s == "scripted"}
     models = {s: H.load_model(s) for s in set(seats) if s != "scripted"}
@@ -79,7 +85,10 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
     env = cloudkitty.ParallelEnv(str(config), control=control or None, horizon=ticks + 1)
     obs, infos = env.reset(seed=seed)
     e_max = max(E_MIN, 2 * len(env.elements()))
-    pk = infer_block(np.asarray(env.state()).size, roster)[1]
+    st0 = np.asarray(env.state(), np.float32)
+    pk = infer_block(st0.size, roster)[1]
+    needs0 = np.stack([st0[k * pk:k * pk + 6] * 100 for k in range(roster)]).astype(np.float32)
+    hap0 = np.asarray([st0[k * pk + H.HAP] * 100 for k in range(roster)], np.float32)
     names = list(env.possible_agents)
     assert names == [f"kitty_{k['id']}" for k, s in zip(kitties, seats) if s != "scripted"], names
     seat_of = {f"kitty_{k['id']}": s for k, s in zip(kitties, seats)}
@@ -107,6 +116,8 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
     distress = np.zeros((T, roster), np.uint8)
     nash = np.zeros(T, np.float64)
     elements = np.full((T, e_max, 3), -1, np.int16)
+    obs_rec = np.zeros((T, roster, obs_dim), np.float16) if save_obs else None
+    obs_cols = [col[a] for a in names]
 
     dist_streak = np.zeros((roster, 6), np.int64)
     aborted_at = None
@@ -115,6 +126,8 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
         acts = {}
         if names:
             ob = np.stack([np.asarray(obs[a], np.float32) for a in names])
+            if save_obs:
+                obs_rec[n, obs_cols] = ob   # the start-of-tick view, before this tick's step
             mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
             lg = np.zeros((len(names), n_heads), np.float32)
             for s, fwd in models.items():
@@ -163,12 +176,16 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None):
         "per_kitty": pk, "abort_streak": abort_streak, "aborted_at": aborted_at,
         "abort_seat": abort_seat,
         "applied_names": APPLIED_NAMES,
+        "obs_recorded": [s != "scripted" for s in seats] if save_obs else None,
         "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     arrays = dict(pos=pos[:n], activity=activity[:n], msg=msg[:n], act=act[:n],
                   needs=needs[:n], hap=hap[:n], partner=partner[:n],
                   distress=distress[:n], nash=nash[:n], elements=elements[:n],
-                  applied=applied[:n], applied_with=applied_with[:n])
+                  applied=applied[:n], applied_with=applied_with[:n],
+                  needs0=needs0, hap0=hap0)
+    if save_obs:
+        arrays["obs"] = obs_rec[:n]
     return arrays, meta
 
 
@@ -181,10 +198,13 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--config", type=Path, default=CONFIG,
                     help="world toml (default g2leg-20); play-decomposition cells pass their own")
+    ap.add_argument("--save-obs", action="store_true",
+                    help="also record each policy seat's start-of-tick observation (float16)")
     a = ap.parse_args()
     import torch
     torch.set_num_threads(1)
-    arrays, meta = collect(a.seating, a.seed, a.ticks, a.abort_streak, config=a.config)
+    arrays, meta = collect(a.seating, a.seed, a.ticks, a.abort_streak, config=a.config,
+                           save_obs=a.save_obs)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(out, meta=json.dumps(meta), **arrays)
