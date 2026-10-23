@@ -192,6 +192,18 @@ Phase 1's check carries over. What this file moves:
 - `check_P.py` (guard after the scouts, on a recorded P world: the
   grave kitty's band and the others' default; red: the band check
   flipped). Declared now, run when the first scout exists.
+- Reds on record 2026-10-23 (`scripts/mutate.sh --expect`, each
+  predicted then confirmed, sequential, baseline == restored): h6 cap
+  comparison loosened to 10× → `over-cap head accepted without
+  --over-cap`; s1 EVAL_SHARE 0.5 → 0.3 → `split.json differs from
+  split.py`; s2 LO 60 → 50 → `g2leg-20-P1.toml differs from
+  make_configs.py`; b1 ratio pinned to 1.0 → `{'ratio': 1.0, …}` in the
+  1.2 case; b2 the `--eval-sets` filter replaced by True → the G read
+  listed L's 905001 and the W worlds; b3 groups swapped → `('contrast',
+  'NF', 'all')` (the mind-visible row passed under the swap because W's
+  mind-visible GRAVE is uncovered on every friend, so both sides are
+  None there). Phase 1 trainer guards 6 passed, Phase 1b 5 passed after
+  every restore.
 - RESULTS.md gated by `/accuracy-gate` before commit; Collect and Read
   fences separate, runtime declared.
 
