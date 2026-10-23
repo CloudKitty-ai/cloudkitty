@@ -89,7 +89,11 @@ def read_all(runs_by_size, groups=GROUPS):
 
 
 def fmt(m, d=2):
-    return "—" if m is None else (f"{m['mean']:.{d}f} ± {m['sd']:.{d}f}" if isinstance(m, dict) and "mean" in m else f"{m:.{d}f}")
+    if m is None:
+        return "—"
+    if isinstance(m, dict) and "mean" in m:
+        return f"{m['mean']:.{d}f}" + (f" ± {m['sd']:.{d}f}" if m.get("sd") is not None else "")
+    return f"{m:.{d}f}"
 
 
 def fmt_r(r):
@@ -110,10 +114,47 @@ def md(out):
                          + " | ".join(fmt_r(row["ratio_to_ref"][h]) for h in out["sizes"] if h != out["ref"]) + " |")
         cov = out["reads"][out["sizes"][0]][g]["coverage"]["visible"]["GRAVE"]
         L.append("coverage GRAVE mind-visible: " + ", ".join(f"{f} {n}" for f, n in cov.items()))
+        if g != "P":
+            continue
+        r0 = out["reads"][out["sizes"][0]][g]
+        L.append(f"\n#### group {g}: samples, worlds, coverage")
+        L.append(f"n_samples {r0['n_samples']}; eval worlds {r0['eval_worlds']}")
+        for v in R.VERSIONS:
+            L.append(f"coverage {v}: " + "; ".join(f"{cls} " + ", ".join(f"{f} {n}" for f, n in r0["coverage"][v][cls].items()) for cls in CLASSES))
         for h in out["sizes"]:
+            rd = out["reads"][h][g]
+            for v in R.VERSIONS:
+                L.append(f"\n#### R1b w{h} {v}: MSE on the five hidden needs per friend (mean ± SD over seeds)")
+                L.append("| friend | " + " | ".join(f"{head} {cls}" for head in HEADS for cls in ("COMMON", "DA", "GRAVE")) + " |")
+                L.append("|---|" + "---|" * 6)
+                for f in list(cov) + ["pooled"]:
+                    L.append(f"| {f} | " + " | ".join(fmt(rd["heads"][head]["mse5"][v][cls].get(f)) for head in HEADS for cls in ("COMMON", "DA", "GRAVE")) + " |")
             d = out["R3b_dissolution"][h][g]
-            L.append(f"R3b w{h}: floor {d['floor_dr_grave']:.2f}, NF pooled {d['nf_grave']:.2f}, pooled_ok {d['pooled_ok']}, friends_ok {d['friends_ok']} → dissolves {d['dissolves']}"
-                     if d and d.get("readable") else f"R3b w{h}: unreadable ({(d or {}).get('reason', 'no read')})")
+            if d and d.get("readable"):
+                L.append(f"\n#### R3b w{h}: floor {d['floor_dr_grave']:.2f}, NF pooled {d['nf_grave']:.2f}, ratio {d['ratio']:.3f}, pooled_ok {d['pooled_ok']}, friends_ok {d['friends_ok']} → dissolves {d['dissolves']}")
+                L.append("| friend | NF grave | DR grave | excess over 1.10 × DR | NF SD | clause |")
+                L.append("|---|---|---|---|---|---|")
+                for f, pf in d["per_friend"].items():
+                    L.append(f"| {f} | {pf['nf']:.2f} | {pf['dr']:.2f} | {pf['excess']:+.2f} | {pf['nf_sd']:.2f} | {'ok' if pf['ok'] else 'EXCEEDS'} |"
+                             if pf.get("covered") else f"| {f} | insufficient | insufficient | — | — | not read |")
+            else:
+                L.append(f"\n#### R3b w{h}: unreadable ({(d or {}).get('reason', 'no read')})")
+            for v in R.VERSIONS:
+                L.append(f"\n#### R4b w{h} {v}: bias (pred − true, need points) grave / common / gap, SIG = signature")
+                L.append("| friend | NF | DR |")
+                L.append("|---|---|---|")
+                for f in list(cov) + ["pooled"]:
+                    cells = []
+                    for head in HEADS:
+                        o = out["R4b_ostrich"][h][g][head][v].get(f)
+                        cells.append("insufficient" if not o or not o.get("covered", True) else
+                                     f"{o['grave_bias']:+.2f} / {o['common_bias']:+.2f} / {o['gap']:+.2f}" + (" SIG" if o["signature"] else ""))
+                    L.append(f"| {f} | " + " | ".join(cells) + " |")
+        b = r0["baselines"]
+        L.append(f"\n#### R1b baselines on group {g} (pooled, mind-visible / all-states; training-split statistics, width-independent)")
+        for cls in ("COMMON", "DA", "GRAVE"):
+            L.append(f"{cls}: marginal {fmt(b['marginal']['mse5']['visible'][cls]['pooled'])} / {fmt(b['marginal']['mse5']['all'][cls]['pooled'])}; "
+                     f"proxy {fmt(b['persistence']['mse5']['visible'][cls]['pooled'])} / {fmt(b['persistence']['mse5']['all'][cls]['pooled'])}")
     if "R5b_group_contrast" in out:
         L.append("\n### R5b GRAVE loss, G over P (mind-visible)")
         for h in out["sizes"]:
