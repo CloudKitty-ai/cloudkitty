@@ -16,14 +16,19 @@ columns are config order = id order (Miso 1 … Clementine 5).
 
     count_strata.py --out strata-counts.json          # eval worlds of every set present
     count_strata.py --all-worlds                       # occupancy on every world (information only)
+
+Arc root: split.json and results-raw/ come from MINIFRIEND_ARC when set
+(Phase 1b), else from this directory (see phase1_data.py).
 """
 import argparse
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
+ARC = Path(os.environ.get("MINIFRIEND_ARC", HERE)).resolve()
 import sys  # noqa: E402
 sys.path.insert(0, str(HERE))
 import strata as S  # noqa: E402
@@ -32,7 +37,7 @@ SELF_BLOCK, KITTY_SLOT, PRESENT = 109, 58, 0
 ROSTER = 5
 SEATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
 MIN_N = 200
-SPLIT = json.loads((HERE / "split.json").read_text())
+SPLIT = json.loads((ARC / "split.json").read_text())
 
 
 def friend_row(observer, friend):
@@ -84,13 +89,13 @@ def merge(into, per):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", type=Path, default=HERE / "strata-counts.json")
+    ap.add_argument("--out", type=Path, default=ARC / "strata-counts.json")
     ap.add_argument("--all-worlds", action="store_true")
     a = ap.parse_args()
     report = {"min_n": MIN_N, "split_seed": SPLIT["split_seed"], "sets": {}, "pooled_eval": {}}
     pooled = {}
     for name, spec in SPLIT["sets"].items():
-        d = HERE / "results-raw" / name
+        d = ARC / "results-raw" / name
         worlds = sorted(int(p.stem.split("-")[1]) for p in d.glob("streams-*.npz")) if d.exists() else []
         if not worlds:
             continue

@@ -4,6 +4,12 @@ NF vs DR; three seeds, the pair sharing its seed; step-4 pins).
 
     train_heads.py --head NF --seed 1 [--epochs 200 --patience 10]
     train_heads.py --head DR --seed 1 --smoke        # 1 epoch, 2 chunks/set
+    train_heads.py --head NF --seed 1 --hidden 12    # Phase 1b size sweep: run named NF-h12-s1
+    train_heads.py --head NF --seed 1 --hidden 48 --over-cap   # 22,519 params: a probe ABOVE the
+                                                     # 8,445 cap, refused without the flag
+
+Arc root: split.json, results-raw/ and the output root come from
+MINIFRIEND_ARC when set (Phase 1b), else from this directory.
 
 Model: Linear(167 → 24) → GRU(24) → Linear(24 → 7); hidden state zero
 at each world's start, carried (detached) across 500-tick chunks.
@@ -26,6 +32,7 @@ pred (T, 5, 5, 7) [observer, friend] (NaN on the diagonal).
 import argparse
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 
@@ -36,10 +43,11 @@ import torch.nn as nn
 import phase1_data as D
 
 HERE = Path(__file__).resolve().parent
-OUT_ROOT = HERE / "results-raw" / "heads"
+ARC = Path(os.environ.get("MINIFRIEND_ARC", HERE)).resolve()
+OUT_ROOT = ARC / "results-raw" / "heads"
 PARAM_CAP = 8445          # 10% of the trunk's 84,450 (declaration §Capacity)
 CHUNK = 500
-H = 24
+H = 24                    # the Phase 1 width; --hidden overrides it (Phase 1b)
 BATH_WEIGHT = 0.1         # bath downweighted in the loss (prereg §8 item 3); the five needs and happiness at 1
 
 
@@ -57,6 +65,14 @@ class BeliefHead(nn.Module):
 
 def n_params(m):
     return sum(p.numel() for p in m.parameters())
+
+
+def check_cap(n, over_cap=False):
+    """The cap rule: a head over PARAM_CAP trains only as a declared
+    over-cap probe (--over-cap; Phase 1b's 48-wide head), never silently."""
+    if n > PARAM_CAP and not over_cap:
+        raise SystemExit(f"{n} params exceed the cap {PARAM_CAP}; pass --over-cap for a declared probe")
+    return n > PARAM_CAP
 
 
 def sample_loss(pred, y, w):
@@ -154,11 +170,14 @@ def main():
     ap.add_argument("--batch", type=int, default=128)
     ap.add_argument("--threads", type=int, default=3)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--hidden", type=int, default=None, help=f"GRU width (default {H}; given, the run is named HEAD-h<width>-s<seed>)")
+    ap.add_argument("--over-cap", action="store_true", help="allow a head above PARAM_CAP as a declared probe")
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    name = f"{a.head}-s{a.seed}" + ("-smoke" if a.smoke else "")
+    h = H if a.hidden is None else a.hidden
+    name = f"{a.head}-" + (f"h{h}-" if a.hidden is not None else "") + f"s{a.seed}" + ("-smoke" if a.smoke else "")
     out = OUT_ROOT / name
     out.mkdir(parents=True, exist_ok=True)
 
@@ -170,11 +189,11 @@ def main():
 
     weights, freq = train_weights(train)      # TRAIN samples only (declaration guard)
 
-    model = BeliefHead()
+    model = BeliefHead(h=h)
     np_ = n_params(model)
-    assert np_ <= PARAM_CAP, (np_, PARAM_CAP)
-    manifest = {"head": a.head, "seed": a.seed, "params": np_, "param_cap": PARAM_CAP,
-                "arch": "Linear(167->24)+ReLU, GRU(24), Linear(24->7)", "chunk": CHUNK,
+    over = check_cap(np_, a.over_cap)
+    manifest = {"head": a.head, "seed": a.seed, "params": np_, "param_cap": PARAM_CAP, "over_cap": over, "hidden": h,
+                "arch": f"Linear(167->{h})+ReLU, GRU({h}), Linear({h}->7)", "chunk": CHUNK,
                 "loss": "w*(mse5 + mse_hap + BATH_WEIGHT*mse_bath)", "bath_weight": BATH_WEIGHT,
                 "lr": a.lr, "batch_sequences": a.batch, "patience": a.patience, "epoch_cap": a.epochs,
                 "margin": 1e-4, "roles": roles, "train_stratum_freq": freq.tolist(),
@@ -182,7 +201,7 @@ def main():
                 "torch": torch.__version__, "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "smoke": a.smoke}
     (out / "run-manifest.json").write_text(json.dumps(manifest, indent=1))
-    print(f"[{name}] params {np_} ≤ {PARAM_CAP}; train {len(train)} / val {len(val)} / eval {len(ev)} worlds; "
+    print(f"[{name}] params {np_} {'OVER' if over else '≤'} {PARAM_CAP}; train {len(train)} / val {len(val)} / eval {len(ev)} worlds; "
           f"freq {np.round(freq, 5).tolist()} weights {np.round(weights, 3).tolist()}", flush=True)
 
     t0 = time.time()

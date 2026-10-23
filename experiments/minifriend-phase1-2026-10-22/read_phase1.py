@@ -5,6 +5,11 @@ the recorded raws. Nothing here gates.
 
     read_phase1.py --out phase1-read.json --md
     read_phase1.py --runs NF=NF-s1 NF=NF-s2 ... DR=DR-s1 ...   # explicit run dirs
+    read_phase1.py --eval-sets P1 P2 P3 P4 P5 ...               # cells on these sets' eval worlds only (Phase 1b)
+
+Arc root: split.json, results-raw/ and the default --out come from
+MINIFRIEND_ARC when set (Phase 1b), else from this directory. Without
+--eval-sets every set's evaluation worlds are pooled, as Phase 1 read.
 
 Cells: friend × version (mind-visible / all-states) × stratum class
 (COMMON; DA = GRAVE ∪ ADJACENT, the prereg's distress-adjacent column;
@@ -17,12 +22,14 @@ predicted LESS needy than she is (the ostrich direction).
 """
 import argparse
 import json
+import os
 import statistics as st
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
+ARC = Path(os.environ.get("MINIFRIEND_ARC", HERE)).resolve()
 import sys  # noqa: E402
 sys.path.insert(0, str(HERE))
 import phase1_data as D  # noqa: E402
@@ -40,12 +47,17 @@ ROW_ACT, ROW_PARTNER = 6, 13       # inside a kitty row: activity one-hot 6..12,
 
 # ---------------------------------------------------------------- data
 
-def eval_index():
-    """Flat sample arrays over every evaluation world: true (N,7) in
-    points, code (N,), vis (N,), friend (N,), key (N,) for the persistence
-    proxy, plus per-run prediction loaders' slice map."""
+def eval_index(sets=None):
+    """Flat sample arrays over every evaluation world (of `sets` only, when
+    given): true (N,7) in points, code (N,), vis (N,), friend (N,), key
+    (N,) for the persistence proxy, plus per-run prediction loaders'
+    slice map."""
     roles = D.roles()
-    worlds = [(n, s) for n, r in roles.items() for s in r["eval"]]
+    if sets is not None:
+        missing = [n for n in sets if n not in roles]
+        assert not missing, f"--eval-sets not in split.json: {missing}"
+    worlds = [(n, s) for n, r in roles.items() if sets is None or n in sets for s in r["eval"]]
+    assert worlds, "no evaluation world selected"
     parts, keys, slices, pos = [], [], [], 0
     for n, s in worlds:
         w = D.load_world(n, s)
@@ -60,8 +72,8 @@ def eval_index():
     code = np.concatenate([p[1] for p in parts])
     vis = np.concatenate([p[2] for p in parts])
     friend = np.concatenate([p[3] for p in parts])
-    return {"worlds": worlds, "true": true, "code": code, "vis": vis, "friend": friend,
-            "key": np.concatenate(keys), "slices": slices, "n": pos}
+    return {"worlds": worlds, "sets": sorted({n for n, _ in worlds}), "true": true, "code": code, "vis": vis,
+            "friend": friend, "key": np.concatenate(keys), "slices": slices, "n": pos}
 
 
 def proxy_key(x):
@@ -80,7 +92,7 @@ def load_pred(run, idx):
     cache = {}
     for n, s, k, j, a, b in idx["slices"]:
         if (n, s) not in cache:
-            cache[(n, s)] = np.load(HERE / "results-raw/heads" / run / f"pred-{n}-{s}.npz")["pred"]
+            cache[(n, s)] = np.load(ARC / "results-raw/heads" / run / f"pred-{n}-{s}.npz")["pred"]
         out[a:b] = cache[(n, s)][:, k, j]
     return out * 100.0
 
@@ -230,14 +242,14 @@ def ostrich(bias_tbl):
 
 # ---------------------------------------------------------------- main
 
-def read(runs):
-    idx = eval_index()
+def read(runs, sets=None):
+    idx = eval_index(sets)
     stats = train_stats()
     per_run = {}
     for head, run in runs:
         pred = load_pred(run, idx)
-        man = json.loads((HERE / "results-raw/heads" / run / "run-manifest.json").read_text())
-        done = json.loads((HERE / "results-raw/heads" / run / "done.json").read_text())
+        man = json.loads((ARC / "results-raw/heads" / run / "run-manifest.json").read_text())
+        done = json.loads((ARC / "results-raw/heads" / run / "done.json").read_text())
         per_run[run] = {"head": head, "cells": cells_for(pred, idx), "params": man["params"],
                         "best_epoch": done["best_epoch"], "epochs_run": done["epochs_run"], "best_val": done["best_val"],
                         "dr_weights": man["dr_weights_GRAVE_ADJACENT_COMMON"], "seed": man["seed"]}
@@ -252,7 +264,7 @@ def read(runs):
         c = cells_for(baseline_preds(idx, stats, kind), idx)
         base[kind] = {"mse5": across_seeds([c], "mse5"), "bias": across_seeds([c], "bias")}
     coverage = {v: {cls: {f: cells_for_counts(idx, j, v, cls) for j, f in enumerate(SEATS)} for cls in CLASSES} for v in VERSIONS}
-    return {"min_n": MIN_N, "n_samples": idx["n"], "eval_worlds": idx["worlds"], "coverage": coverage,
+    return {"min_n": MIN_N, "n_samples": idx["n"], "eval_worlds": idx["worlds"], "eval_sets": idx["sets"], "coverage": coverage,
             "runs": {r: {k: v for k, v in d.items() if k != "cells"} for r, d in per_run.items()},
             "per_run_cells": {r: d["cells"] for r, d in per_run.items()},
             "heads": heads, "baselines": base,
@@ -308,12 +320,13 @@ def md(out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", type=Path, default=HERE / "phase1-read.json")
+    ap.add_argument("--out", type=Path, default=ARC / "phase1-read.json")
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--runs", nargs="*", help="HEAD=run-dir overrides (default NF-s1..3, DR-s1..3)")
+    ap.add_argument("--eval-sets", nargs="*", help="read the cells on these sets' evaluation worlds only (default: all sets)")
     a = ap.parse_args()
     runs = [tuple(r.split("=", 1)) for r in a.runs] if a.runs else DEFAULT_RUNS
-    out = read(runs)
+    out = read(runs, a.eval_sets)
     a.out.write_text(json.dumps(out, indent=1, default=float))
     print(f"wrote {a.out}")
     if a.md:

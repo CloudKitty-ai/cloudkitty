@@ -16,19 +16,26 @@ Splits come from split.json (by world). The VALIDATION worlds for early
 stopping are carved from each set's TRAIN worlds with the same
 SPLIT_SEED (round(0.2·n_train) of them); the evaluation worlds touch
 nothing until the reads.
+
+ARC ROOT: split.json and results-raw/ are read from this directory
+unless MINIFRIEND_ARC names another arc directory (Phase 1b,
+../minifriend-phase1b-2026-10-23, reuses these modules on its own
+split and raws). Unset, nothing here differs from the gated Phase 1.
 """
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
+ARC = Path(os.environ.get("MINIFRIEND_ARC", HERE)).resolve()
 import sys  # noqa: E402
 sys.path.insert(0, str(HERE))
 import strata as S  # noqa: E402
 from count_strata import SELF_BLOCK, KITTY_SLOT, ROSTER, friend_row, truth_streams  # noqa: E402
 
-SPLIT = json.loads((HERE / "split.json").read_text())
+SPLIT = json.loads((ARC / "split.json").read_text())
 VAL_SHARE = 0.2
 X_DIM = SELF_BLOCK + KITTY_SLOT      # 167
 Y_DIM = 7                            # eat, drink, sleep, play, cuddle, happiness, bath
@@ -50,7 +57,7 @@ def roles():
 
 
 def world_path(name, seed):
-    return HERE / "results-raw" / name / f"streams-{seed}.npz"
+    return ARC / "results-raw" / name / f"streams-{seed}.npz"
 
 
 def load_world(name, seed):

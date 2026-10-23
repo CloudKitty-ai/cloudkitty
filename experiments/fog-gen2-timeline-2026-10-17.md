@@ -278,6 +278,15 @@ consent BC comparison ride the trunk.
   friend-specific and narrow. Phase 2 head choice is HER CALL with
   this read in hand (the declaration licenses head choice only).
   FINDINGS F-064 minted from the re-read (copy-check gated).
+  PHASE 1b DECLARED 2026-10-23 (owner the same day: per-cat grave
+  states + three head sizes; `minifriend-phase1b-2026-10-23/
+  DECLARATION.md`, deviations entry 11): sets P1..P5 (one friend grave
+  at reset per world via spec 065 per-kitty initial needs, 20 worlds
+  per friend, seeds 1095451–1095550, extension blocks reserved) and
+  widths 12 / 24 / 48 (the 48 an over-cap probe) × NF / DR × 3 seeds;
+  reads R1b–R6b (per-cat grave accuracy, size ratios with a READ rule,
+  the all-grave confound G/P). STATUS: declared, guards green, reds on
+  record; collection WAITS on her word.
 
 ## Flagged follow-ups (owner's word to start)
 

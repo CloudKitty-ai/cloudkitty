@@ -617,3 +617,29 @@ re-read.
 
 Status: CLOSED by the retrain; no owner call needed (the remedy
 restores the prereg's rule; reported to her with the Phase 1 result).
+
+## 11. Mini-friend Phase 1b: per-cat grave starts and a head-size sweep (2026-10-23)
+
+Owner-requested addition, 2026-10-23: "We have the ability to do per
+cat grave states, we should take advantage of that to enrich the
+models. Let's test three different model sizes for the belief head as
+well and see what impact size has on accuracy, especially in grave
+states." The prereg's §8 item 3 declares one Phase 1 2 × 2 at one
+capped width; it does not declare a per-cat grave coverage set or a
+width sweep, so both are recorded here as an addition. Declared before
+any data in `minifriend-phase1b-2026-10-23/DECLARATION.md`: sets
+P1..P5 (one friend per block starts grave by spec 065's per-kitty
+`initial_needs`, the other four at the served default; 20 worlds per
+friend, 4,000 ticks, seeds 1095451–1095550, extension blocks
+1095551–1095650 reserved under a fail-closed min-n clause), widths 12 /
+24 / 48 (3,043 / 7,807 / 22,519 params) × NF / DR × three seeds. The
+48-wide head is OVER the §8 item 4 cap (8,445; "engineering budget
+only") and is declared a probe: `--over-cap` must be passed, the
+manifest marks it, and it can never be the Phase 2 head. Phase 1's
+verdicts, its dissolution floor and F-064 stand; the Phase 1 modules
+gained an arc-root knob and the width flag with their default
+behaviour verified unchanged (the Phase 1 read regenerates identically
+but for a new `eval_sets` key).
+
+Status: OPEN until the Phase 1b RESULTS are gated; collection waits
+on her word to the declaration.

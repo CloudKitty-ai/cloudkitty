@@ -13,6 +13,9 @@ h4  sample_loss is the w-weighted mean: with w one-hot it returns that
 h5  pair_arrays: x is the self block then the friend's row, y the
     friend's aligned truth /100 (own self needs equal y for the pair
     (k, k) built by hand), vis the row's present cell
+h6  --hidden (Phase 1b): widths 12 / 24 / 48 count 3,043 / 7,807 /
+    22,519 parameters; check_cap refuses 22,519 without --over-cap and
+    marks it over-cap with it; the default width is still 24
 """
 import sys
 from pathlib import Path
@@ -92,6 +95,20 @@ def test_h5_pair_arrays_layout():
     own = x[:, :5].astype(np.float32) * 100
     assert np.abs(own - w["needs"][:, k, :5]).max() < 0.06
     assert np.abs(own - w["needs"][:, j, :5]).max() > 1.0
+
+
+def test_h6_hidden_widths_and_the_cap_rule():
+    assert T.H == 24 and T.n_params(T.BeliefHead()) == T.n_params(T.BeliefHead(h=24))
+    counts = {h: T.n_params(T.BeliefHead(h=h)) for h in (12, 24, 48)}
+    assert counts == {12: 3043, 24: 7807, 48: 22519}, counts
+    assert T.check_cap(counts[12]) is False and T.check_cap(counts[24]) is False
+    try:
+        T.check_cap(counts[48])
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("over-cap head accepted without --over-cap")
+    assert T.check_cap(counts[48], over_cap=True) is True
 
 
 if __name__ == "__main__":
