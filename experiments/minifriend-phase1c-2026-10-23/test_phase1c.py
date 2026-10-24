@@ -183,6 +183,13 @@ def test_t8_md_every_width():
             assert f"### Width {w} ({C.ROLE[w]}), group {g} (" in text, (w, g)
     assert text.count("#### R2c visible") == len(out["widths"]) * len(out["groups"])
     assert "### R9c" in text and all(f"### R5c width {w}" in text for w in out["widths"])
+    for w in out["widths"]:                                   # R4c reliability counts are PER SEED (the first read printed seed 1's only)
+        for v in ("visible", "all"):
+            rows = out["reads"][str(w)]["P"]["R4c_calibration"][v]["reliability_seed_mean"]
+            assert all(isinstance(r["n"], list) and len(r["n"]) == len(out["seeds"]) for r in rows), (w, v)
+            per_seed_totals = [sum(r["n"][s] for r in rows) for s in range(len(out["seeds"]))]
+            assert len(set(per_seed_totals)) == 1, (w, v, per_seed_totals)   # every seed scores the same samples
+    assert "| p bin | n per seed |" in text
 
 
 if __name__ == "__main__":

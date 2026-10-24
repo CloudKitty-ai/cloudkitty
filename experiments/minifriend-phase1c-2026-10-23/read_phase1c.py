@@ -186,7 +186,7 @@ def read_group(sets, runs, full=True):
                                   "mean_p_on_GRAVE": R.msd([c["mean_p_on_GRAVE"] for c in cal[v]]),
                                   "mean_p_on_COMMON": R.msd([c["mean_p_on_COMMON"] for c in cal[v]]),
                                   "n_grave_happiness_only": cal[v][0]["n_grave_happiness_only"], "n_grave": cal[v][0]["n_grave"],
-                                  "reliability_seed_mean": [{"lo": r0["lo"], "hi": r0["hi"], "n": r0["n"],
+                                  "reliability_seed_mean": [{"lo": r0["lo"], "hi": r0["hi"], "n": [c["reliability"][i]["n"] for c in cal[v]],   # per seed
                                                              "mean_p": R.msd([c["reliability"][i]["mean_p"] for c in cal[v]]),
                                                              "frac_grave": R.msd([c["reliability"][i]["frac_grave"] for c in cal[v]])}
                                                             for i, r0 in enumerate(cal[v][0]["reliability"])]}
@@ -313,10 +313,10 @@ def md(out):
             c = rd["R4c_calibration"][v]
             L.append(f"\n#### R4c {v}: grave probability 1 − ∏(1 − m): Brier {fmt(c['brier'], 4)}; mean p on GRAVE {fmt(c['mean_p_on_GRAVE'], 3)}, "
                      f"on COMMON {fmt(c['mean_p_on_COMMON'], 3)}; GRAVE samples {c['n_grave']}, of which happiness-only {c['n_grave_happiness_only']}")
-            L.append("| p bin | n | mean p | realised grave fraction |")
+            L.append("| p bin | n per seed | mean p (seed mean) | realised grave fraction (mean over seeds with samples) |")
             L.append("|---|---|---|---|")
             for r in c["reliability_seed_mean"]:
-                L.append(f"| [{r['lo']:.1f}, {r['hi']:.1f}) | {r['n']} | {fmt(r['mean_p'], 3)} | {fmt(r['frac_grave'], 3)} |")
+                L.append(f"| [{r['lo']:.1f}, {r['hi']:.1f}) | {' / '.join(str(n) for n in r['n'])} | {fmt(r['mean_p'], 3)} | {fmt(r['frac_grave'], 3)} |")
         a = rd["R6c_prel_auroc"]
         L.append(f"\n#### R6c(b): p_rel AUROC against the true relief indicator — in sight {fmt(a['visible'], 3)}, under fog {fmt(a['fog'], 3)}, all {fmt(a['all'], 3)}")
         for key, label in (("SD_vs_DR", "SD against the DR floor"), ("SD_vs_NF", "SD against NF"), ("NF_vs_DR", "NF against the DR floor (1b's R3b at width 24)")):
