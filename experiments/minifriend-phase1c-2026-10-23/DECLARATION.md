@@ -289,3 +289,14 @@ read.
 Run order step 3b: `run_sd.sh` with widths 8 and 32 (skip-if-done,
 skip-if-running); no read of any width until all nine runs have
 `done.json`. Steps 4–5 then read all three widths.
+
+Red on record 2026-10-23 (`scripts/mutate.sh --expect
+test_t7_widths_and_cap` on `sd_head.py` at ffcdbfa0; predicted first,
+RED CONFIRMED, 1 passed after the restore): t7 — `configure` building
+`SDHead()` at the default width instead of `SDHead(r=a.hidden)` →
+`AssertionError: {'params': 6679, 'param_cap': 8445, 'over_cap': False,
+'hidden': 8}` at the width-8 line of `test_t7_widths_and_cap`. Guards
+t1–t6 unchanged, 7 passed at ffcdbfa0. Width-32 smoke (2 epochs, one
+world, `--over-cap`, scratchpad only): manifest `params 15783,
+over_cap true, hidden 32`; the same invocation without `--over-cap`
+refused by `check_cap`.
