@@ -268,9 +268,9 @@ ROLE = {8: "the small candidate", 16: "the declared head", 32: "the over-cap pro
 
 def md(out):
     L = ["## Phase 1c read (derived columns)"]
-    for h in out["widths"]:
-      for g, rd in out["reads"][str(h)].items():
-        L.append(f"\n### Width {h} ({ROLE[h]}), group {g} ({', '.join(out['groups'][g])} eval worlds): n_samples {rd['n_samples']}")
+    for w in out["widths"]:                                   # `w`, not `h`: the per-head loops below bind h to "SD" / "NF" / "DR"
+      for g, rd in out["reads"][str(w)].items():
+        L.append(f"\n### Width {w} ({ROLE[w]}), group {g} ({', '.join(out['groups'][g])} eval worlds): n_samples {rd['n_samples']}")
         cov = rd["coverage"]["visible"]["GRAVE"]
         L.append("coverage GRAVE mind-visible: " + ", ".join(f"{f} {n}" for f, n in cov.items()))
         for v in R.VERSIONS:

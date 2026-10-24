@@ -173,6 +173,18 @@ def test_t7_widths_and_cap():
     assert [r for _h, r in C.RUNS_SD[16]] == ["SD-s1", "SD-s2", "SD-s3"] and C.RUNS_SD[32][0][1] == "SD-h32-s1"
 
 
+def test_t8_md_every_width():
+    """The markdown prints every width × group block from the committed read (the first read died on a shadowed loop variable)."""
+    import read_phase1c as C
+    out = json.loads((HERE / "phase1c-read.json").read_text())
+    text = C.md(out)
+    for w in out["widths"]:
+        for g in out["groups"]:
+            assert f"### Width {w} ({C.ROLE[w]}), group {g} (" in text, (w, g)
+    assert text.count("#### R2c visible") == len(out["widths"]) * len(out["groups"])
+    assert "### R9c" in text and all(f"### R5c width {w}" in text for w in out["widths"])
+
+
 if __name__ == "__main__":
     only = sys.argv[1:]
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and (not only or k in only)]
