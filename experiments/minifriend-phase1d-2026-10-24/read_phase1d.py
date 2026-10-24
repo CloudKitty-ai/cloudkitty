@@ -229,15 +229,23 @@ def baseline_which_need(idx, sel, need):
 
 
 def episodes(idx):
-    """Maximal runs of stratum GRAVE within each (world, observer, friend) slice: list of [onset, end)."""
+    """Maximal runs of stratum GRAVE within each (world, observer, friend) slice: list of
+    (onset, end, slice_start); onset == slice_start is a RESET episode (the friend is grave
+    at the world's first tick — group P's per-cat grave starts), never a detection."""
     code = idx["code"]
     out = []
     for _n, _s, _k, _j, a, b in idx["slices"]:
         g = (code[a:b] == S.GRAVE).astype(np.int8)
         d = np.diff(np.concatenate([[0], g, [0]]))
         for st, en in zip(np.where(d == 1)[0], np.where(d == -1)[0]):
-            out.append((a + int(st), a + int(en)))
+            out.append((a + int(st), a + int(en), a))
     return out
+
+
+def friend_episode_count(idx, eps):
+    """Distinct (world, friend, onset offset, end offset) among the per-observer episodes."""
+    start_to_key = {a: (n, s, j) for n, s, _k, j, a, _b in idx["slices"]}
+    return len({start_to_key[a] + (st - a, en - a) for st, en, a in eps})
 
 
 def _runs(mask):
@@ -252,11 +260,12 @@ def latency(idx, signal, thresh, eps):
     above = np.asarray(signal, np.float64) >= thresh
     grave = idx["code"] == S.GRAVE
     rows = []
-    for st, en in eps:
+    for st, en, a in eps:
         hit = np.where(above[st:en])[0]
         lat = int(hit[0]) if len(hit) else None
-        antic = bool(lat == 0 and st > 0 and above[st - 1] and not grave[st - 1])
-        rows.append({"onset_visible": bool(idx["vis"][st]), "latency": lat, "length": en - st, "anticipated": antic})
+        reset = st == a
+        antic = bool(lat == 0 and not reset and above[st - 1] and not grave[st - 1])
+        rows.append({"onset_visible": bool(idx["vis"][st]), "reset": reset, "latency": lat, "length": en - st, "anticipated": antic})
 
     def stats(rs):
         n = len(rs)
@@ -269,14 +278,20 @@ def latency(idx, signal, thresh, eps):
                 "length_median": float(np.median([r["length"] for r in rs])) if n else None,
                 "length_p90": float(np.percentile([r["length"] for r in rs], 90)) if n else None}
     out = {"all": stats(rows), "onset_visible": stats([r for r in rows if r["onset_visible"]]),
-           "onset_fog": stats([r for r in rows if not r["onset_visible"]])}
-    fa = []
+           "onset_fog": stats([r for r in rows if not r["onset_visible"]]),
+           "reset": stats([r for r in rows if r["reset"]]),
+           "midworld_visible": stats([r for r in rows if not r["reset"] and r["onset_visible"]]),
+           "midworld_fog": stats([r for r in rows if not r["reset"] and not r["onset_visible"]])}
+    fa, fa_reset = [], []
     for _n, _s, _k, _j, a, b in idx["slices"]:
         for st, en in _runs(above[a:b]):
             if not grave[a + st:a + en].any():
-                fa.append(int(en - st))
-    out["false_alarms"] = {"runs": len(fa), "per_10k_ticks": len(fa) / idx["n"] * 1e4,
-                           "run_median_length": float(np.median(fa)) if fa else None}
+                (fa_reset if st == 0 else fa).append(int(en - st))
+    allfa = fa + fa_reset
+    out["false_alarms"] = {"runs": len(allfa), "per_10k_ticks": len(allfa) / idx["n"] * 1e4,
+                           "run_median_length": float(np.median(allfa)) if allfa else None,
+                           "runs_at_reset": len(fa_reset), "midworld_runs": len(fa), "midworld_per_10k_ticks": len(fa) / idx["n"] * 1e4,
+                           "midworld_run_median_length": float(np.median(fa)) if fa else None}
     return out
 
 
@@ -310,7 +325,11 @@ def read_addendum(idx):
     probs = {"SD-w16 P": [C.grave_probability(m) for m in sd_mass],
              "NF-h24+p": [load_p(run, idx) for run in PROBES["NF"]], "DR-h24+p": [load_p(run, idx) for run in PROBES["DR"]]}
     means = {"SD-w16 mean ≥ 90": sd_mean, "NF-h24 mean ≥ 90": nf_mean, "DR-h24 mean ≥ 90": dr_mean}
-    r4 = {"episodes_total": len(eps), "heads": {}}
+    r4 = {"episodes_total": len(eps), "episodes_reset": sum(st == a for st, _en, a in eps),
+          "episodes_midworld_visible": sum(st != a and bool(idx["vis"][st]) for st, _en, a in eps),
+          "episodes_midworld_fog": sum(st != a and not idx["vis"][st] for st, _en, a in eps),
+          "friend_episodes": friend_episode_count(idx, eps),
+          "heads": {}}
     for h, ps in probs.items():
         for t in THRESHOLDS:
             per = [latency(idx, p, t, eps) for p in ps]
@@ -324,9 +343,15 @@ def read_addendum(idx):
     lat = r4["heads"]["NF-h24+p ≥ 0.2"]["onset_visible"]
     rule_ii = bool(lat["detected_frac"]["mean"] >= 0.90 and lat["median_latency"]["mean"] <= 10)
     mean_rule = r4["heads"]["NF-h24 mean ≥ 90"]["onset_visible"]["detected_frac"]["mean"]
+    mw = r4["heads"]["NF-h24+p ≥ 0.2"]["midworld_visible"]
     rules = {"i_which_need": {"accuracy": nf["accuracy"]["mean"], "per_need_min": min(cells) if cells else None, "holds": rule_i},
-             "ii_latency": {"detected_frac": lat["detected_frac"]["mean"], "median_latency": lat["median_latency"]["mean"], "holds": rule_ii},
-             "prediction_mean_rule_under_half": {"detected_frac": mean_rule, "holds": bool(mean_rule < 0.5)},
+             "ii_latency": {"detected_frac": lat["detected_frac"]["mean"], "median_latency": lat["median_latency"]["mean"], "holds": rule_ii,
+                            "per_seed_detected_frac": [p["onset_visible"]["detected_frac"] for p in r4["heads"]["NF-h24+p ≥ 0.2"]["per_seed"]],
+                            "midworld_only": {"episodes": mw["episodes"]["mean"], "detected_frac": mw["detected_frac"]["mean"],
+                                              "per_seed_detected_frac": [p["midworld_visible"]["detected_frac"] for p in r4["heads"]["NF-h24+p ≥ 0.2"]["per_seed"]],
+                                              "median_latency": mw["median_latency"]["mean"], "note": "disclosed beside the declared rule (which counts every in-sight onset, reset included); not a rule"}},
+             "prediction_mean_rule_under_half": {"detected_frac": mean_rule, "holds": bool(mean_rule < 0.5),
+                                                 "per_seed_detected_frac": [p["onset_visible"]["detected_frac"] for p in r4["heads"]["NF-h24 mean ≥ 90"]["per_seed"]]},
              "verdict": "enough for detection and naming, on this evidence" if rule_i and rule_ii else ("partial" if rule_i or rule_ii else "not ready as read")}
     return {"R3d_which_need": r3, "R4d_latency": r4, "addendum_rules": rules}
 
@@ -410,21 +435,26 @@ def md_addendum(out):
     for i, n in enumerate(NEEDS):
         L.append(f"| {n} | " + " | ".join(str(int(x)) for x in conf[i]) + " |")
     r4 = out["R4d_latency"]
-    L.append(f"\n### R4d: latency — {r4['episodes_total']} grave episodes (per observer); detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (already above at onset), false-alarm runs per 10,000 observer-ticks (median run length)")
-    for split in ("onset_visible", "onset_fog", "all"):
+    L.append(f"\n### R4d: latency — {r4['episodes_total']} grave episodes over observer slices ({r4['friend_episodes']} friend-episodes × 4 observers): "
+             f"{r4['episodes_reset']} RESET (grave at the world's first tick; a crossing there is the prior, not a detection), "
+             f"{r4['episodes_midworld_visible']} mid-world with the friend in sight at onset, {r4['episodes_midworld_fog']} mid-world under fog; "
+             "detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (over the threshold at the tick before onset, mid-world only), "
+             "false-alarm runs per 10,000 observer-ticks (median run length) — all runs, then excluding runs that start at the world's first tick")
+    for split in ("onset_visible", "onset_fog", "all", "reset", "midworld_visible", "midworld_fog"):
         L.append(f"\n#### R4d {split}")
-        L.append("| head | episodes | detected | median lat | p90 lat | within 10 | anticipated | length median / p90 | FA / 10k (len) |")
-        L.append("|---|---|---|---|---|---|---|---|---|")
+        L.append("| head | episodes | detected | median lat | p90 lat | within 10 | anticipated | length median / p90 | FA / 10k (len) | FA mid-world / 10k (len) |")
+        L.append("|---|---|---|---|---|---|---|---|---|---|")
         for h, hv in r4["heads"].items():
             c = hv[split]
             fa = hv["false_alarms"]
             L.append(f"| {h} | {c['episodes']['mean']:.0f} | {fmt(c['detected_frac'])} | {fmt(c['median_latency'], 1)} | {fmt(c['p90_latency'], 1)} | "
                      f"{fmt(c['within_10_frac'])} | {fmt(c['anticipated_frac'])} | {fmt(c['length_median'], 0)} / {fmt(c['length_p90'], 0)} | "
-                     f"{fmt(fa['per_10k_ticks'], 2)} ({fmt(fa['run_median_length'], 1)}) |")
+                     f"{fmt(fa['per_10k_ticks'], 2)} ({fmt(fa['run_median_length'], 1)}) | {fmt(fa['midworld_per_10k_ticks'], 2)} ({fmt(fa['midworld_run_median_length'], 1)}) |")
     r = out["addendum_rules"]
     L.append(f"\n### Addendum reading rules: (i) NF-h24 mean which-need in sight {r['i_which_need']['accuracy']:.3f} (per-need min {fmt(r['i_which_need']['per_need_min'])}) → holds {r['i_which_need']['holds']}; "
-             f"(ii) NF-h24+p ≥ 0.2, onset in sight: detected {r['ii_latency']['detected_frac']:.3f}, median latency {r['ii_latency']['median_latency']:.1f} → holds {r['ii_latency']['holds']}; "
-             f"mean ≥ 90 rule detects {r['prediction_mean_rule_under_half']['detected_frac']:.3f} (prediction: under half → {r['prediction_mean_rule_under_half']['holds']}); verdict: {r['verdict']}")
+             f"(ii) NF-h24+p ≥ 0.2, onset in sight: detected {r['ii_latency']['detected_frac']:.3f} (per seed {', '.join(f'{x:.3f}' for x in r['ii_latency']['per_seed_detected_frac'])}), median latency {r['ii_latency']['median_latency']:.1f} → holds {r['ii_latency']['holds']} "
+             f"[mid-world in-sight onsets only, {r['ii_latency']['midworld_only']['episodes']:.0f} episodes: detected {r['ii_latency']['midworld_only']['detected_frac']:.3f} (per seed {', '.join(f'{x:.3f}' for x in r['ii_latency']['midworld_only']['per_seed_detected_frac'])}), median latency {fmt(r['ii_latency']['midworld_only']['median_latency'], 1)} — disclosed, not a rule]; "
+             f"mean ≥ 90 rule detects {r['prediction_mean_rule_under_half']['detected_frac']:.3f} (per seed {', '.join(f'{x:.3f}' for x in r['prediction_mean_rule_under_half']['per_seed_detected_frac'])}; prediction: under half on the seed mean → {r['prediction_mean_rule_under_half']['holds']}); verdict: {r['verdict']}")
     return L
 
 

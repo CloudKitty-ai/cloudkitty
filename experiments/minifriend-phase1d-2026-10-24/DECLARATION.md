@@ -335,3 +335,18 @@ suite): t5 — `which_need` naming the argmin instead of the argmax →
 the crossing searched from the slice's first tick instead of the
 onset (`above[:en]`) → latency 7 for the hand episode's 3,
 `AssertionError` at the median-latency line of `test_t6_latency`.
+
+Post-read addition 2026-10-24 (after gate round 1 on the addendum,
+which found that 200 of the 288 episodes begin at the world's first
+tick — group P's per-cat grave starts — so a crossing there is the
+head's prior, not a detection): R4d gains a split by onset class,
+RESET (onset at the slice's first tick) against mid-world in sight
+and mid-world under fog, beside the declared splits; "anticipated" is
+measured slice-relative (never across a slice boundary; a reset
+episode cannot be anticipated); false-alarm runs are reported all and
+excluding runs that start at the world's first tick. The declared
+reading rules and predictions are scored as declared (every in-sight
+onset, reset included); the mid-world-only numbers are DISCLOSED
+beside them, not a rule. Guard t6 extended (a reset episode, a
+cross-boundary signal, a reset-transient run); red: the reset flag
+forced false.

@@ -152,7 +152,7 @@ def test_t6_latency():
     vis = np.ones(20, bool); vis[12:] = False
     idx = {"n": 20, "code": code, "vis": vis, "true": np.zeros((20, 7)), "slices": [("P1", 1, 0, 1, 0, 20)]}
     eps = P.episodes(idx)
-    assert eps == [(4, 9), (14, 17)]
+    assert eps == [(4, 9, 0), (14, 17, 0)]
     sig = np.zeros(20); sig[7:9] = 0.9; sig[10:12] = 0.9                  # crosses 3 ticks after the first onset; never in the second; a false-alarm run on [10, 12)
     lat = P.latency(idx, sig, 0.5, eps)
     assert lat["all"]["episodes"] == 2 and abs(lat["all"]["detected_frac"] - 0.5) < 1e-12 and lat["all"]["median_latency"] == 3.0
@@ -160,9 +160,24 @@ def test_t6_latency():
     assert lat["onset_fog"]["episodes"] == 1 and lat["onset_fog"]["detected_frac"] == 0.0 and lat["onset_fog"]["median_latency"] is None
     assert lat["all"]["length_median"] == 4.0 and lat["false_alarms"]["runs"] == 1 and lat["false_alarms"]["run_median_length"] == 2.0
     assert abs(lat["false_alarms"]["per_10k_ticks"] - 500.0) < 1e-9
+    assert lat["reset"]["episodes"] == 0 and lat["midworld_visible"]["episodes"] == 1 and lat["midworld_fog"]["episodes"] == 1
     sig2 = np.zeros(20); sig2[2:6] = 0.9                                    # above before the onset: latency 0, anticipated
     lat2 = P.latency(idx, sig2, 0.5, eps)
     assert lat2["onset_visible"]["median_latency"] == 0.0 and lat2["onset_visible"]["anticipated_frac"] == 1.0 and lat2["false_alarms"]["runs"] == 0
+    # a second slice whose friend is grave from its first tick: a RESET episode; a signal already high there is neither a detection to credit nor anticipated,
+    # and a run that starts at the slice's first tick is a reset-transient false alarm, not a mid-world one
+    code2 = np.concatenate([code, np.full(10, S.COMMON, np.int8)]); code2[20:23] = S.GRAVE
+    vis2 = np.concatenate([vis, np.ones(10, bool)])
+    idx2 = {"n": 30, "code": code2, "vis": vis2, "true": np.zeros((30, 7)), "slices": [("P1", 1, 0, 1, 0, 20), ("P1", 1, 2, 1, 20, 30)]}
+    eps2 = P.episodes(idx2)
+    assert eps2 == [(4, 9, 0), (14, 17, 0), (20, 23, 20)] and P.friend_episode_count(idx2, eps2) == 3
+    sig3 = np.zeros(30); sig3[19:22] = 0.9; sig3[25:27] = 0.9                # high across the slice boundary; a reset-start run would need the first tick
+    lat3 = P.latency(idx2, sig3, 0.5, eps2)
+    assert lat3["reset"]["episodes"] == 1 and lat3["reset"]["median_latency"] == 0.0 and lat3["reset"]["anticipated_frac"] == 0.0   # tick 19 belongs to another slice: never "before onset"
+    assert lat3["false_alarms"]["runs"] == 2 and lat3["false_alarms"]["runs_at_reset"] == 0 and lat3["false_alarms"]["midworld_runs"] == 2
+    sig4 = np.zeros(30); sig4[20:22] = 0.0; sig4[0:2] = 0.9                   # a run starting at the first slice's first tick with no grave tick: reset transient
+    lat4 = P.latency(idx2, sig4, 0.5, eps2)
+    assert lat4["false_alarms"]["runs"] == 1 and lat4["false_alarms"]["runs_at_reset"] == 1 and lat4["false_alarms"]["midworld_runs"] == 0 and lat4["false_alarms"]["midworld_per_10k_ticks"] == 0.0
 
 
 if __name__ == "__main__":
