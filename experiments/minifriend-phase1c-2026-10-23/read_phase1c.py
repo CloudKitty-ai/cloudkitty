@@ -108,7 +108,13 @@ def auroc(score, label):
 def calibration(idx, mass, version):
     """R4c for one run: per version, Brier, separation, reliability, and the happiness-only grave count."""
     sel = idx["vis"] if version == "visible" else np.ones(idx["n"], bool)
-    p = grave_probability(mass[sel])
+    return calibration_p(idx, grave_probability(mass), sel)
+
+
+def calibration_p(idx, p, sel):
+    """R4c from a grave probability p (N,) directly, over the samples `sel` (N,) bool
+    (Phase 1d reads a logistic probe's p through the same instrument)."""
+    p = np.asarray(p, np.float64)[sel]
     code = idx["code"][sel]
     g = (code == S.GRAVE).astype(np.float64)
     hap_only = int(((code == S.GRAVE) & (idx["true"][sel][:, :5].max(1) < GRAVE_POINTS)).sum())
