@@ -703,4 +703,11 @@ unchanged by construction. Decision rule declared before any fit
 line closes; B SD clearly better → one loop-fixed, diffusion-fixed SD
 run would be justified on her word; C mixed). 0 new cat-ticks.
 
-Status: OPEN 2026-10-24 (declared; fits not yet run).
+Status: CLOSED 2026-10-24 (six probes fitted in 60–79 s each; RESULTS
+gated round 4; F-067: outcome A — NF-h24+p mean P(grave) on grave 0.583
+± 0.015 in sight against SD-w16's 0.474 ± 0.115, |Δ| 0.109 ≤ s 0.116;
+the probe ahead on the grave mean and Brier in sight and under fog;
+the SD filter's √(n f (1 − f)) smear confirmed to 2.3 × 10⁻⁸ bins; the
+hybrid is the candidate shape for a probability-reading consumer and
+the SD line closes under its own rule; Professor's P2 met; cap not
+moved; Phase 2 head choice hers with F-064 + F-065 + F-066 + F-067).

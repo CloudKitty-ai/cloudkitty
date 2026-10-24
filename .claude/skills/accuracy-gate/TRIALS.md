@@ -1339,3 +1339,64 @@ declaration's compute expectation is a claim the RESULTS must close
 out when it misses, welfare-cost or not; (17) running the F-entry copy
 check in parallel with the full gate's later rounds works when the
 rounds only move wording — re-run it only if a NUMBER moves.
+
+## 2026-10-24 — minifriend-phase1d RESULTS (whole document) + the F-067 copy check (Experiments)
+
+Scope: the two-reads arc (the SD filter's spread; a 25-param logistic
+grave probability on the frozen 1b states), one section set; the
+F-067 entry gated as three copy-only rounds (lesson 12) against the
+write-up as it then stood, re-checked by eye against the final text.
+- RESULTS round 1 FAIL: every table cell matched (fresh read
+  byte-identical; counts equal; 4 guards); one range wrong (AUROC
+  "0.9985–0.9993" excluded two of its own values, 0.9981 and 0.9983);
+  one WEAK in the decision section ("SD's one better cell" — the
+  read shows three: the above-0.7 gap, the ADJACENT mean, the bins
+  below 0.5); one provenance miss (the Professor's P2 quoted with
+  "(SD-w16: 0.474)" cut and no ellipsis); four weak wordings applied
+  ("no width at all" at n = 100; "not in doubt" with one SD seed above
+  the probe's mean; a thresholding-consumer claim that confused
+  ranking with operating points; a provenance claim the reader did
+  not back but guard t4 did).
+- RESULTS round 2 FAIL: numbers all matched; one WEAK in the decision
+  section ("none of the three enters the rule" — the gap is a
+  condition of B and of C's first branch); one ROUNDING (9.4 for
+  9.35 points); two weak ("'clamp' = any mass" against a 1e-12
+  threshold; "on the diagonal" for a 0.047 miss in one bin) applied.
+- F-067 copy round 1 FAIL (five): "better where it differs" (the
+  write-up names SD's better cells); "sweep the whole belief into the
+  top bin within 100 ticks" (sd still 0.133–1.021 at 100); a
+  thresholding-consumer clause the write-up reverses; an NF-vs-DR
+  "unmoved" characterisation the write-up does not make; "the cap
+  question is unmoved" likewise; fourteen advisories applied.
+- F-067 copy round 2 FAIL (six): the head's label ("structured
+  discrete head" is not F-066's "structured discrete belief head");
+  "ahead on common" not in the write-up; "above SD in every version"
+  without "on the grave mean"; "0.783" without "in sight"; two
+  min–max ranges the draft derived from printed cells (reproduction
+  2.4–4.5 × 10⁻⁷; stop epochs 74–112) → replaced by the six printed
+  values each.
+- F-067 copy round 3 PASS; three advisories applied ("applied as
+  declared" attached to the rule not the reading; a two-finding list
+  inconsistent with the sentence's opening; "after 100 ticks").
+- RESULTS round 3 FAIL: numbers all matched; one WEAK in the decision
+  section, this session's own fix from round 2 — "the gap enters only
+  the B and C clauses, which Δ < 0 rules out", when C's second branch
+  (Δ < −s) needs Δ < 0 and is excluded by |Δ| ≤ s instead; four weak
+  ("no mass has reached the top bin" for ≤ 1e-12; bin counts cited
+  where grave counts were meant; an illustration that ran against its
+  claim; "mass over 90" for a combined probability) applied.
+- RESULTS round 4 PASS: about 180 cells, 110 prose numbers, 40 derived
+  figures, 20 provenance/threshold items; 44 characterisations
+  supported, 1 undecidable; one wording note ("as low" → "lower")
+  applied after the verdict.
+Lessons: (18) a fix written inside the decision section is a new
+claim about the rule and gets re-read against the rule's text, branch
+by branch — round 3's failure was round 2's remedy; (19) a range the
+write-up derives (min–max over runs) must be computed from the
+printed cells, never typed from memory of the headline (the AUROC
+"0.9985" was the in-sight floor, not the floor over versions); (20) a
+copy check counts a derived range the write-up never prints — list
+the printed values or print the range in the write-up first; (21)
+when a sentence cites counts as evidence, cite the quantity the
+claim is about (grave samples in a bin, not samples in a bin), even
+when both support it.

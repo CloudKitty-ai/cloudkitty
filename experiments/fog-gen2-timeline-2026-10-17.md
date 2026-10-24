@@ -330,7 +330,18 @@ consent BC comparison ride the trunk.
   R2d a 25-param logistic grave probability on the FROZEN NF-h24 /
   DR-h24 states (three seeds each) read with 1c's R4c instrument
   against SD-w16; decision rule A / B / C declared first; Professor's
-  prediction P2 scored beside it. STATUS: DECLARED; fits not yet run.
+  prediction P2 scored beside it. Six probes fitted 2026-10-24 (60–79 s
+  each); RESULTS gated (round 4 PASS) → F-067: outcome A — the
+  frozen-state logistic read on NF-h24 reaches mean P(grave) on grave
+  0.583 ± 0.015 in sight against SD-w16's 0.474 ± 0.115 (|Δ| ≤ s),
+  Brier 0.00054 against 0.00064, 0.720 against 0.500 under fog; SD
+  keeps the above-0.7 reliability (gap 0.019 against 0.057); the SD
+  drift operator smears a sharp belief as √(n f (1 − f)) (2.708 bins
+  after 100 ticks at the initial rate); P2 MET; the hybrid (a Phase 1
+  head plus one sigmoid, 7,832 params) is the candidate shape for a
+  probability-reading consumer and the SD line closes under its own
+  rule. STATUS: DONE 2026-10-24; Phase 2 head choice HERS with F-064 +
+  F-065 + F-066 + F-067; the cap question hers (unmoved by this read).
 
 ## Flagged follow-ups (owner's word to start)
 

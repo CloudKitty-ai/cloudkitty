@@ -105,6 +105,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free |
 | F-065 | active | With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W) |
 | F-066 | active | A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators |
+| F-067 | active | A 25-parameter logistic read of "the true stratum is GRAVE" on the FROZEN NF-h24 GRU states reads grave within the seed spread of the structured discrete belief head SD at width 16 (F-066) and ahead of it on the grave mean and Brier in sight and under fog, with its mean on common samples as low: in sight on the per-cat worlds its mean P(grave) on grave samples is 0.583 ± 0.015 against SD's 0.474 ± 0.115 (Δ −0.109, combined seed spread 0.116 → outcome A of the declared rule, "the histogram bought nothing the consumer needs"), its Brier 0.00054 against 0.00064, its mean on common samples 0.0003 against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046 (Brier 0.00119 against 0.00185); in sight SD keeps its reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057; NF-h24+p's top bins realise 0.760 and 0.882 where they say 0.854 and 0.959) and a lower mean on adjacent samples (0.183 against 0.265); on the DR-h24 states the same probe reads 0.577 ± 0.037 in sight; all three rank grave against non-grave at AUROC 0.998–0.999 in every version, so the heads differ in confidence, not discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one sigmoid) is 7,832 parameters, under the cap; the Professor's registered prediction P2 (≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met. Beside it, the SD filter's drift operator smears a sharp belief exactly as the arithmetic says — sd √(n f (1 − f)) bins, matched to 2.3 × 10⁻⁸ bins over 79 unclamped rows; 2.708 bins (13.5 need points) after 100 ticks at every run's initial rate, 1.56–1.87 bins after 100 ticks at the learned width-16 median rates — while the engine's need rises with no uncertainty; the mechanism the Professor named for F-066's residual share stands as arithmetic, its causal share unmeasured |
 
 ---
 
@@ -3516,3 +3517,64 @@ structured head's grave probability and relief read are quantities
 this arc reads for SD only, and whether a Phase 2 consumer should read
 a probability rather than a mean is a design question this arc did
 not answer; the cap question is hers with that read in hand.
+
+## F-067 · active · A 25-parameter logistic read of "the true stratum is GRAVE" on the FROZEN NF-h24 GRU states reads grave within the seed spread of the structured discrete belief head SD at width 16 (F-066) and ahead of it on the grave mean and Brier in sight and under fog, with its mean on common samples as low: in sight on the per-cat worlds its mean P(grave) on grave samples is 0.583 ± 0.015 against SD's 0.474 ± 0.115 (Δ −0.109, combined seed spread 0.116 → outcome A of the declared rule, "the histogram bought nothing the consumer needs"), its Brier 0.00054 against 0.00064, its mean on common samples 0.0003 against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046 (Brier 0.00119 against 0.00185); in sight SD keeps its reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057; NF-h24+p's top bins realise 0.760 and 0.882 where they say 0.854 and 0.959) and a lower mean on adjacent samples (0.183 against 0.265); on the DR-h24 states the same probe reads 0.577 ± 0.037 in sight; all three rank grave against non-grave at AUROC 0.998–0.999 in every version, so the heads differ in confidence, not discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one sigmoid) is 7,832 parameters, under the cap; the Professor's registered prediction P2 (≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met. Beside it, the SD filter's drift operator smears a sharp belief exactly as the arithmetic says — sd √(n f (1 − f)) bins, matched to 2.3 × 10⁻⁸ bins over 79 unclamped rows; 2.708 bins (13.5 need points) after 100 ticks at every run's initial rate, 1.56–1.87 bins after 100 ticks at the learned width-16 median rates — while the engine's need rises with no uncertainty; the mechanism the Professor named for F-066's residual share stands as arithmetic, its causal share unmeasured
+
+Minted from mini-friend Phase 1d (`minifriend-phase1d-2026-10-24/RESULTS.md`,
+gated; owner 2026-10-24 "Let's run those in three in the order you
+listed", after the Professor's review of Phase 1c; deviations entry
+13). Data: none new (0 covered cat-ticks); Phase 1b's split byte for
+byte; the probe's training samples are every (world, observer,
+friend, tick) of the 74 training worlds, 8,400,000 (GRAVE on 0.00300),
+validation 1,800,000; reads on group P (P1..P5, 4,000,000 samples:
+1,927,130 in sight with 2,527 grave, 2,072,870 under fog with 8,977
+grave). **Read 2, the probe** (`grave_probe.py`): 1b's NF-h24-s{1,2,3}
+and DR-h24-s{1,2,3} (7,807 params) loaded, frozen, walked as
+`predict_world` walks them; `Linear(24 → 1)` + sigmoid by
+natural-frequency BCE on the stratum label, Adam 1e-2, batches of
+65,536, early stop on the validation BCE with a RELATIVE margin (new
+best when val < best × (1 − 1e-3)), patience 10, cap 200; every fit
+stopped on the plateau rule (stop epochs 83 / 99 / 91 / 74 / 110 / 112,
+none at the 200-epoch cap) in 60–79 s of wall clock;
+read through 1c's R4c instrument (`calibration_p`) beside SD width 16's
+committed cells. **Decision rule, applied** (declared before any fit;
+group P, in sight, every covered sample pooled, mean of seeds 1–3;
+comparator SD width 16 from 1c's committed read, base head NF-h24;
+m = mean P(grave) on GRAVE, Δ = m_SD − m_NF, s = √(s_SD² + s_NF²) over
+the seed SDs, g the above-0.7 gap): A if |Δ| ≤ s; B if Δ > s and
+g_SD < g_NF; C otherwise — read Δ = 0.474 − 0.583 = −0.109, s = 0.116,
+**A**, applied as declared; the stronger reading (the probe above SD on
+the grave mean in every version and lower on Brier) is reported, not
+ruled on (s is almost entirely SD's seed spread, 0.115 against the
+probe's 0.015; one SD seed, 0.601, sits above the probe's mean of
+0.583). **Read 1,
+the spread** (`filter_spread.py`, read-only on 1c's nine `head-best.pt`):
+a delta at bin 2 pushed n ∈ {1, 10, 50, 100, 500} ticks through 1c's
+`shift_matrix` at the initial rate and at each run's median, largest
+and smallest learned cell, no relief, no residual; sd equals
+√(n f (1 − f)) at the printed precision on every unclamped row; the
+largest learned cells (1.05–1.39 points per tick at widths 16 and 32)
+move a belief 21–28 bins in 100 ticks, piling it into the top bin (sd
+0.133–1.021 at 100 ticks, 0.000 by 500); one relief step adds at most
+0.5 bins of sd. **Caveats the section carries**: the
+probe is calibrated on the training distribution and read on the
+evaluation worlds (under-confident below p = 0.5, over-confident in its
+top two bins in sight); nothing was tuned and the states were trained
+for a squared-error mean; SD's P(grave) is derived from five need
+histograms under an independence assumption and cannot carry the
+happiness-only grave edge (168 of 2,527 in sight) that the probe reads
+at 0.676 (NF) and 0.783 (DR) in sight; discrimination saturates (AUROC
+above 0.998 for every head), so the read separates how much
+probability each head commits, which a consumer reading the number
+sees and one ranking by it would not; R1d is arithmetic on the operator, not an ablation of the
+training; group P, offline, no consumer, no welfare claim. What it
+hands to the Phase 2 head choice (hers) beside F-064, F-065 and F-066:
+if the Phase 2 consumer reads a probability, a Phase 1 head with one
+sigmoid on its state is the candidate shape and the SD line closes
+under its own declared rule; DR-h24+p reads 0.577 ± 0.037 in sight and
+0.685 ± 0.042 under fog beside NF-h24+p's 0.583 ± 0.015 and 0.720 ±
+0.010, with the smaller above-0.7 gap in sight (0.022) and 0.783 on
+the happiness-only grave samples in sight, and the Phase 2 head choice
+stays hers; the hybrid is under the cap (7,832 ≤
+8,445). Professor's P1 (a longer-cap SD re-run stays READ over 1
+with the signature on ≥ 4 friends) is carried forward unscored.
