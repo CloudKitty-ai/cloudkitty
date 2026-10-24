@@ -226,3 +226,22 @@ re-runnable in minutes) and Read fences separate, runtime declared.
 4. RESULTS.md gated; F-entry; deviations 13 closed; timeline updated;
    report to the owner with the decision rule's outcome. The Phase 2
    head choice stays hers.
+
+Reds on record 2026-10-24 (`scripts/mutate.sh --expect <test>` on the
+committed file at 95cc5aec; each predicted first, each RED CONFIRMED,
+1 passed after every restore; 4 passed on the restored suite): t1 —
+`belief_sd` taking the sd about bin 2 instead of the belief's mean →
+`AssertionError` at the 0.5-bin line of `test_t1_spread_arithmetic`;
+t2 — the hidden state reset at every chunk in `states_world` (`h =
+None` after each append) → `AssertionError: ('NF-h24-s1', 'P1',
+1095452, 0.497…)` inside `check_reproduces` (the 1b prediction no
+longer reproduced past tick 500); t3 — the spread inequality flipped
+(`abs(delta) > s`) → the first hand case returns C, `AssertionError`
+at the `== "A"` line of `test_t3_reader_arithmetic`; t4 — `SD_WIDTH`
+pointed at 8 → the re-read comparator no longer matches 1c's width-16
+cells, `AssertionError: ('visible', 'brier')`. Smoke (DR-h24-s2,
+2 train / 1 val / 1 eval world, 2 chunks, 2 epochs, scratchpad only):
+the base reproduces 1b's prediction to 2.4e-7; probe 25 params, hybrid
+7,832; `pgrave-L-905001.npz` (20000, 5, 5), NaN on the diagonal.
+Phase 1c's 8 guards pass after the `calibration_p` refactor and its
+read regenerates byte for byte (JSON and markdown).
