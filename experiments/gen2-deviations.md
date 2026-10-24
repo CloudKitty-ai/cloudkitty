@@ -711,3 +711,9 @@ the SD filter's √(n f (1 − f)) smear confirmed to 2.3 × 10⁻⁸ bins; the
 hybrid is the candidate shape for a probability-reading consumer and
 the SD line closes under its own rule; Professor's P2 met; cap not
 moved; Phase 2 head choice hers with F-064 + F-065 + F-066 + F-067).
+REOPENED 2026-10-24 for an addendum on her word ("Agreed, let's
+proceed. First the breakdown by need and latency read"): R3d which
+need (argmax accuracy on need-grave samples) and R4d latency (episode
+detection and delay at P(grave) ≥ 0.2 / 0.5 and for the mean ≥ 90
+rule); reads on outputs already on disk, 0 new cat-ticks; DECLARATION
+§Addendum. Status: OPEN (addendum declared; not yet read).

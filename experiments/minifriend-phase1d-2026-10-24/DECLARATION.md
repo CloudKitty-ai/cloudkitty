@@ -245,3 +245,84 @@ the base reproduces 1b's prediction to 2.4e-7; probe 25 params, hybrid
 7,832; `pgrave-L-905001.npz` (20000, 5, 5), NaN on the diagonal.
 Phase 1c's 8 guards pass after the `calibration_p` refactor and its
 read regenerates byte for byte (JSON and markdown).
+
+## Addendum 2026-10-24: which need, and how soon (owner, the same day)
+
+Her words, after the report and a sanity-check exchange on whether the
+minis give the main models what they need: "Agreed, let's proceed.
+First the breakdown by need and latency read". Two further reads on
+the outputs already on disk (0 new cat-ticks; no weight touched),
+declared here before either is run. Group P, seeds 1–3, mean ± SD.
+
+**R3d — which need.** Domain: grave samples whose grave status is
+carried by a need (some hidden need ≥ 90; the happiness-only grave
+samples are excluded, having no grave need to name), per version (in
+sight / under fog / all). Per head, the named need = the argmax over
+the five hidden needs of the head's per-need score; a sample is
+CORRECT when the named need is one of the sample's grave needs (≥ 90;
+usually one). Heads and their per-need score: SD-w16 grave mass
+(`belief-*.npz`), SD-w16 mean, NF-h24 mean, DR-h24 mean (the hybrid
+keeps its base head's five means, so NF-h24 mean and DR-h24 mean are
+the hybrid's which-need read; the probe emits one number and names no
+need). Reported: accuracy pooled and per true grave need; the 5 × 5
+confusion (true grave need × named need) for NF-h24 mean in sight;
+top-2 accuracy; the marginal baseline (always name the most frequent
+grave need on the training worlds' truth streams); the count of
+samples with two or more grave needs. Fail-closed at Phase 1's
+MIN_N = 200 per cell.
+
+**R4d — latency.** Episodes on the truth stream: for each evaluation
+world and friend j, a maximal run of consecutive ticks in stratum
+GRAVE; one episode per observer k ≠ j (each observer carries its own
+belief). Per episode and head, the detection tick is the first tick
+of the episode at which the head's signal crosses its threshold;
+latency = detection tick − onset tick (0 = detected at onset); an
+episode with no crossing is MISSED. Signals and thresholds: P(grave)
+≥ 0.2 and ≥ 0.5 for SD-w16 (1 − ∏(1 − m)), NF-h24+p and DR-h24+p; and
+the mean-reading consumer, max over needs of the head's mean ≥ 90, for
+SD-w16, NF-h24 and DR-h24 (the ostrich in latency terms). Reported per
+head × threshold: episodes, detected fraction, median and 90th
+percentile latency among detected (ticks), the fraction detected
+within 10 ticks of onset; split by whether the friend was in the
+observer's sight at onset (onset in sight / onset under fog) and
+pooled; episode length median and 90th percentile. False alarms: per
+head × threshold, maximal runs of the signal above threshold that
+contain no grave tick, as a count per 10,000 observer-ticks and their
+median length. Episodes shorter than 1 tick do not exist; no minimum
+length is imposed; the length distribution is printed so a reader can
+condition on it.
+
+**Reading rules (not gates; what "enough to hand the trunk" means for
+this sanity check, stated before the read):** (i) which-need accuracy
+for NF-h24 mean in sight, pooled, ≥ 0.80 with every per-need cell with
+n ≥ 200 above 0.60; (ii) NF-h24+p at P(grave) ≥ 0.2 detects ≥ 0.90 of
+episodes with onset in sight, median latency ≤ 10 ticks. Both hold →
+"enough for detection and naming, on this evidence"; one → partial,
+reported; neither → the belief is not ready to hand over as read, and
+the gap named. Registered predictions: (i) holds (the five means are
+read on the states that feed them; the grave need is usually the only
+high one); (ii) holds at 0.2 and the mean-reading rule (≥ 90) detects
+under half of the same episodes — the ostrich as a missed-detection
+rate. No decision beyond the sanity check; the Phase 2 declaration is
+hers.
+
+**Doctrine (rule 8):** rule 10 moved the reads (descriptive, per need
+before pooled, min-n fail-closed, both thresholds printed so no single
+operating point is privileged); rule 1–2 unchanged (nothing is
+priced); nothing else moved.
+
+**Guards** (`test_phase1d.py`, each with a predicted red): t5
+which-need on a hand case (argmax among five scores; a sample with two
+grave needs correct for either; happiness-only excluded; a cell under
+MIN_N fails closed to None). Red: argmin. t6 latency on a hand slice
+(two episodes, one crossing three ticks after onset, one never
+crossing; a false-alarm run between them; onset-in-sight classified
+from the visibility at the onset tick). Red: latency measured from the
+slice's first tick instead of the onset. Reds recorded below before
+the read is cited. The regenerated `phase1d-read.json` must keep R1d,
+R2d, the decision and P2 blocks identical to the committed read
+(asserted by the reader against the committed file before writing).
+
+**Run order:** (1) this addendum, deviations 13 reopened, the timeline
+line; (2) reader + t5–t6, reds; (3) the read (one fence); (4) RESULTS
+§Addendum gated; F-entry; deviations 13 closed again; report.

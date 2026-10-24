@@ -342,6 +342,12 @@ consent BC comparison ride the trunk.
   probability-reading consumer and the SD line closes under its own
   rule. STATUS: DONE 2026-10-24; Phase 2 head choice HERS with F-064 +
   F-065 + F-066 + F-067; the cap question hers (unmoved by this read).
+  ADDENDUM 2026-10-24 on her word ("Agreed, let's proceed. First the
+  breakdown by need and latency read"): R3d which-need accuracy and
+  R4d episode-detection latency on the same outputs (0 cat-ticks);
+  reading rules declared (≥ 0.80 which-need in sight; ≥ 0.90 of
+  in-sight-onset episodes detected at P ≥ 0.2 with median latency ≤ 10
+  ticks). STATUS: ADDENDUM DECLARED, not yet read.
 
 ## Flagged follow-ups (owner's word to start)
 
