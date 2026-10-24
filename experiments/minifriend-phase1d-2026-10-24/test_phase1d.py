@@ -125,6 +125,46 @@ def test_t4_provenance():
             assert hashlib.sha256((HERE / "results-raw/heads" / base / "head-best.pt").read_bytes()).hexdigest() == done["head_sha256"], base
 
 
+def test_t5_which_need():
+    true = np.zeros((6, 7)); true[0, 0] = 95; true[1, 2] = 92; true[1, 3] = 91; true[2, 4] = 90; true[3, 1] = 50; true[4, 0] = 99; true[5, 0] = 93
+    idx = {"n": 6, "true": true, "vis": np.ones(6, bool), "code": np.array([S.GRAVE] * 3 + [S.GRAVE, S.GRAVE, S.GRAVE], np.int8)}
+    score = np.array([[9, 1, 1, 1, 1], [1, 1, 5, 7, 1], [1, 1, 1, 1, 9], [1, 9, 1, 1, 1], [1, 9, 8, 1, 1], [9, 1, 1, 1, 1]], float)
+    old = P.MIN_N
+    P.MIN_N = 1
+    try:
+        w = P.which_need(idx, score, np.ones(6, bool))
+        # sample 3 is happiness-only grave (excluded); sample 1 has two grave needs and names play (grave); sample 4 names drink for a grave eat, and eat is not in its top two
+        assert w["n"] == 5 and w["n_multi"] == 1 and abs(w["accuracy"] - 0.8) < 1e-12 and abs(w["top2_accuracy"] - 0.8) < 1e-12
+        assert w["per_need"]["eat"] == {"n": 3, "accuracy": 2 / 3} and w["per_need"]["sleep"]["n"] == 1 and w["per_need"]["sleep"]["accuracy"] == 1.0
+        assert w["confusion_true_x_named"][0] == [2, 1, 0, 0, 0] and w["confusion_true_x_named"][2] == [0, 0, 0, 1, 0]
+        w2 = P.which_need(idx, score, np.array([1, 1, 1, 1, 0, 0], bool))
+        assert w2["n"] == 3 and abs(w2["accuracy"] - 1.0) < 1e-12
+    finally:
+        P.MIN_N = old
+    w3 = P.which_need(idx, score, np.ones(6, bool))
+    assert w3["accuracy"] is None and w3["per_need"]["eat"]["accuracy"] is None and w3["n"] == 5      # under MIN_N = 200: fail closed
+    assert P.baseline_which_need(idx, np.ones(6, bool), 0)["accuracy"] is None
+
+
+def test_t6_latency():
+    # one slice of 20 ticks: grave on [4, 9) and [14, 17); visible at tick 4, fog at tick 14
+    code = np.full(20, S.COMMON, np.int8); code[4:9] = S.GRAVE; code[14:17] = S.GRAVE
+    vis = np.ones(20, bool); vis[12:] = False
+    idx = {"n": 20, "code": code, "vis": vis, "true": np.zeros((20, 7)), "slices": [("P1", 1, 0, 1, 0, 20)]}
+    eps = P.episodes(idx)
+    assert eps == [(4, 9), (14, 17)]
+    sig = np.zeros(20); sig[7:9] = 0.9; sig[10:12] = 0.9                  # crosses 3 ticks after the first onset; never in the second; a false-alarm run on [10, 12)
+    lat = P.latency(idx, sig, 0.5, eps)
+    assert lat["all"]["episodes"] == 2 and abs(lat["all"]["detected_frac"] - 0.5) < 1e-12 and lat["all"]["median_latency"] == 3.0
+    assert lat["onset_visible"]["episodes"] == 1 and lat["onset_visible"]["median_latency"] == 3.0 and lat["onset_visible"]["within_10_frac"] == 1.0
+    assert lat["onset_fog"]["episodes"] == 1 and lat["onset_fog"]["detected_frac"] == 0.0 and lat["onset_fog"]["median_latency"] is None
+    assert lat["all"]["length_median"] == 4.0 and lat["false_alarms"]["runs"] == 1 and lat["false_alarms"]["run_median_length"] == 2.0
+    assert abs(lat["false_alarms"]["per_10k_ticks"] - 500.0) < 1e-9
+    sig2 = np.zeros(20); sig2[2:6] = 0.9                                    # above before the onset: latency 0, anticipated
+    lat2 = P.latency(idx, sig2, 0.5, eps)
+    assert lat2["onset_visible"]["median_latency"] == 0.0 and lat2["onset_visible"]["anticipated_frac"] == 1.0 and lat2["false_alarms"]["runs"] == 0
+
+
 if __name__ == "__main__":
     only = sys.argv[1:]
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_") and (not only or k in only)]
