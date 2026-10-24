@@ -311,3 +311,12 @@ width × group block, every R2c table, R9c and R5c per width. Red
 `read_phase1c.py` at 3ffd3e20; predicted first, RED CONFIRMED, 1
 passed after the restore): the loop variable renamed back to `h` →
 `KeyError: 'DR'`. 8 guards.
+
+Gate round 1 (2026-10-24) found the R4c reliability table printing
+seed 1's bin count beside a seed-mean fraction. `calibration_block`
+now carries the count PER SEED (a list) and the markdown says so; t8
+exercises it on a hand case (two seeds, one empty bin). Red
+(`scripts/mutate.sh --expect test_t8_md_every_width` on
+`read_phase1c.py` at d9365927; predicted first, RED CONFIRMED, 1
+passed after the restore): the count written from seed 1 only
+(`"n": r0["n"]`) → `AssertionError` on the hand case's `[7, 10]`.
