@@ -300,3 +300,14 @@ t1–t6 unchanged, 7 passed at ffcdbfa0. Width-32 smoke (2 epochs, one
 world, `--over-cap`, scratchpad only): manifest `params 15783,
 over_cap true, hidden 32`; the same invocation without `--over-cap`
 refused by `check_cap`.
+
+Read-time guard added 2026-10-24: the first Read fence wrote the JSON
+and then died printing the markdown (the width loop's variable `h` was
+rebound by the per-head loops to "SD" / "NF" / "DR"; `KeyError: 'DR'`
+at the second width's header). t8 `test_t8_md_every_width`: the
+markdown built from the committed `phase1c-read.json` prints every
+width × group block, every R2c table, R9c and R5c per width. Red
+(`scripts/mutate.sh --expect test_t8_md_every_width` on
+`read_phase1c.py` at 3ffd3e20; predicted first, RED CONFIRMED, 1
+passed after the restore): the loop variable renamed back to `h` →
+`KeyError: 'DR'`. 8 guards.
