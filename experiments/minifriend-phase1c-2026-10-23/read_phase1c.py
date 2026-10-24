@@ -154,6 +154,22 @@ def group_base(sets):
     return _GROUP_CACHE[key]
 
 
+def calibration_block(cal):
+    """R4c over seeds: Brier and mean-p as mean ± SD; per reliability bin the
+    COUNT PER SEED (a list; the seeds score the same samples but a bin's
+    membership differs by seed) and the seed means of mean_p / frac_grave
+    (R.msd skips None, so a seed with an empty bin drops out of the mean)."""
+    return {"per_seed": cal,
+            "brier": R.msd([c["brier"] for c in cal]),
+            "mean_p_on_GRAVE": R.msd([c["mean_p_on_GRAVE"] for c in cal]),
+            "mean_p_on_COMMON": R.msd([c["mean_p_on_COMMON"] for c in cal]),
+            "n_grave_happiness_only": cal[0]["n_grave_happiness_only"], "n_grave": cal[0]["n_grave"],
+            "reliability_seed_mean": [{"lo": r0["lo"], "hi": r0["hi"], "n": [c["reliability"][i]["n"] for c in cal],
+                                       "mean_p": R.msd([c["reliability"][i]["mean_p"] for c in cal]),
+                                       "frac_grave": R.msd([c["reliability"][i]["frac_grave"] for c in cal])}
+                                      for i, r0 in enumerate(cal[0]["reliability"])]}
+
+
 def read_group(sets, runs, full=True):
     base, idx, rel = group_base(sets)
     sd = head_block(runs, idx)
@@ -181,16 +197,7 @@ def read_group(sets, runs, full=True):
             aur[v].append(auroc(prel[sel], rel[sel]))
         fog = ~idx["vis"]
         aur.setdefault("fog", []).append(auroc(prel[fog], rel[fog]))
-    out["R4c_calibration"] = {v: {"per_seed": cal[v],
-                                  "brier": R.msd([c["brier"] for c in cal[v]]),
-                                  "mean_p_on_GRAVE": R.msd([c["mean_p_on_GRAVE"] for c in cal[v]]),
-                                  "mean_p_on_COMMON": R.msd([c["mean_p_on_COMMON"] for c in cal[v]]),
-                                  "n_grave_happiness_only": cal[v][0]["n_grave_happiness_only"], "n_grave": cal[v][0]["n_grave"],
-                                  "reliability_seed_mean": [{"lo": r0["lo"], "hi": r0["hi"], "n": [c["reliability"][i]["n"] for c in cal[v]],   # per seed
-                                                             "mean_p": R.msd([c["reliability"][i]["mean_p"] for c in cal[v]]),
-                                                             "frac_grave": R.msd([c["reliability"][i]["frac_grave"] for c in cal[v]])}
-                                                            for i, r0 in enumerate(cal[v][0]["reliability"])]}
-                              for v in R.VERSIONS}
+    out["R4c_calibration"] = {v: calibration_block(cal[v]) for v in R.VERSIONS}
     out["R6c_prel_auroc"] = {k: R.msd(vals) for k, vals in aur.items()}
     out["R7c_floors"] = {"SD_vs_DR": R.dissolution(heads["SD"]["mse5"], heads["DR"]["mse5"]),
                          "SD_vs_NF": R.dissolution(heads["SD"]["mse5"], heads["NF"]["mse5"]),

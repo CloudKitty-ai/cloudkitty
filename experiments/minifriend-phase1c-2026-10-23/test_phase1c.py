@@ -190,6 +190,13 @@ def test_t8_md_every_width():
             per_seed_totals = [sum(r["n"][s] for r in rows) for s in range(len(out["seeds"]))]
             assert len(set(per_seed_totals)) == 1, (w, v, per_seed_totals)   # every seed scores the same samples
     assert "| p bin | n per seed |" in text
+    rel = lambda ns, fr: [{"lo": 0.0, "hi": 0.5, "n": ns[0], "mean_p": 0.2, "frac_grave": fr[0]}, {"lo": 0.5, "hi": 1.0, "n": ns[1], "mean_p": 0.8, "frac_grave": fr[1]}]
+    cal = [{"brier": 0.1, "mean_p_on_GRAVE": 0.5, "mean_p_on_COMMON": 0.0, "n_grave_happiness_only": 1, "n_grave": 4, "reliability": rel([7, 3], [0.1, 0.9])},
+           {"brier": 0.3, "mean_p_on_GRAVE": 0.7, "mean_p_on_COMMON": 0.0, "n_grave_happiness_only": 1, "n_grave": 4, "reliability": rel([10, 0], [0.3, None])}]
+    blk = C.calibration_block(cal)
+    assert blk["reliability_seed_mean"][0]["n"] == [7, 10] and blk["reliability_seed_mean"][1]["n"] == [3, 0], blk["reliability_seed_mean"]
+    assert abs(blk["reliability_seed_mean"][1]["frac_grave"]["mean"] - 0.9) < 1e-12 and blk["reliability_seed_mean"][1]["frac_grave"]["seeds"] == 1
+    assert abs(blk["brier"]["mean"] - 0.2) < 1e-12
 
 
 if __name__ == "__main__":
