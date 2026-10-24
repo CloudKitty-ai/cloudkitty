@@ -310,7 +310,17 @@ consent BC comparison ride the trunk.
   ("Let's try 3 model sizes this time as well so we can get an idea
   of what more/less parameters buy"): widths 8 / 16 / 32 (3,279 /
   6,679 / 15,783 params; 32 an over-cap probe as 1b's 48, cap not
-  moved); R9c size effect. STATUS: RUNNING (nine heads).
+  moved); R9c size effect. Nine heads done 2026-10-24 (six at the
+  200-epoch cap, 10–14 h each); RESULTS gated (round 3 PASS) → F-066:
+  the approach does not help on the declared criteria at width 16
+  (grave 1.233 × NF-h24 READ, bias −15.01 with the signature on all
+  five friends; common states better by a fifth); width moves every
+  pooled loss cell (0.819 at 32/16, 1.414 at 8/16); the over-cap
+  probe ties NF-h24 on grave at 2.0× NF-h24's parameters; the grave
+  probability it emits is near the diagonal above p = 0.7 (mean
+  P(grave) 0.474 on grave samples); p_rel AUROC 0.979 in sight / 0.797
+  under fog. STATUS: DONE 2026-10-24; Phase 2 head choice HERS with
+  F-064 + F-065 + F-066; the cap question hers.
 
 ## Flagged follow-ups (owner's word to start)
 

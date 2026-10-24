@@ -104,6 +104,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-063 | active | A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency |
 | F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free |
 | F-065 | active | With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W) |
+| F-066 | active | A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators |
 
 ---
 
@@ -3430,3 +3431,88 @@ in this register, the reweighted head is the better grave estimator
 pooled and the natural-frequency head under-reads a grave friend in
 sight by ten points; neither is free (DR costs 14.81 points² of
 pooled mind-visible common-state error and hurts Clementine).
+
+## F-066 · active · A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators
+
+Minted from mini-friend Phase 1c (`minifriend-phase1c-2026-10-23/RESULTS.md`,
+gated; owner 2026-10-23 "Let's try it. Currently our accuracy is low
+enough that we can reevaluate model size limit if needed. Let's test
+this approach first though" and, the same day, "Let's try 3 model
+sizes this time as well so we can get an idea of what more/less
+parameters buy"; deviations entry 12). Data: none new (0 covered
+cat-ticks); Phase 1b's split byte for byte (74 training, 17
+validation, 69 evaluation worlds); group P = the P1..P5 evaluation
+worlds (4,000,000 samples; mind-visible GRAVE coverage Miso 572,
+Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), the
+comparators 1b's width-24 NF and DR runs re-read through this arc's
+reader and pinned to 1b's gated cells. Head: `sd_head.py` — per hidden
+need a histogram over 20 bins of 5 points drifting up at a learned
+per-(friend, need) rate and down on relief by a learned per-need size
+with probability p_rel from a width-r GRU over the 167 input cells, a
+logit residual, learned priors; cross-entropy against two-hot targets
++ 0.5 × BCE on the relief indicator + Phase 1's happiness and 0.1 ×
+bath terms; natural frequency; point estimate the histogram mean;
+widths 8 / 16 / 32 = 3,279 / 6,679 / 15,783 params (32 an over-cap
+probe, cap 8,445 not moved); seeds 1, 2, 3. **Decision rules, applied**
+(the declaration's two criteria for what would count as the approach
+helping; width 16, group P, in sight): (i) grave SD / NF-h24 READ under
+1 — read 1.233 ± 0.091, READ, over 1, not met; (ii) pooled grave bias
+within ±5.0 with no pooled signature — read −15.01 ± 1.74, signature,
+not met; by the declared text the approach does not help at this
+capacity. **Accuracy** (R1c, in sight, P): SD grave 1582.84 / 1119.69 /
+917.44 at widths 8 / 16 / 32 (NF-h24 908.10, DR-h24 827.69), common
+24.69 / 19.96 / 16.92 (NF 25.34, DR 40.15); SD's grave loss is above
+NF's on every friend at width 16 (by 83 to 348 points²) and below both
+comparators in common states on every friend. **Contrast** (R2c, in
+sight, P): SD / NF grave 1.743 / 1.233 / 1.010 (READ, READ, tie), SD /
+DR 1.912 / 1.353 / 1.108 (READ, READ, tie); common SD / NF 0.974 /
+0.787 / 0.668, all READ (all states at width 8: 1.088 ± 0.024 READ, SD
+worse). **Ostrich** (R3c, in sight, P): pooled grave bias −21.80 /
+−15.01 / −11.07 (NF −10.10, DR −7.57), signature on all five friends
+at every width (Clementine, positive for NF and DR, is −8.56 at width
+16), common-state bias +0.41 to +0.43. **Calibration** (R4c, P(grave by
+need) = 1 − ∏(1 − grave mass_i), in sight, P): Brier 0.0009 / 0.0006 / 0.0005,
+mean p on GRAVE 0.294 / 0.474 / 0.545 and on COMMON 0.000–0.001; at
+width 16 under-confident below p = 0.7 and on the diagonal above it;
+happiness-only grave samples (168 of 2,527 in sight) cannot be carried
+by need histograms. **Rates** (R5c, width 16): the filter need not be
+physical and is not; the per-friend emphases are recovered (Pumpkin's
+eat the largest eat rate at every width, Clementine cuddle 0.71
+against the empirical 0.70), many ordinary cells sit well under the
+empirical step, play 0.03–0.06 against 0.30–0.40 for four friends.
+**Residual share** (R6c, in sight, P): no-residual over full grave loss
+1.426 / 2.013 / 2.948 (the structure-carries rule of 2.0× met at 8,
+missed by 0.013 at 16); the filter alone is worse than the marginal
+mean in common states at every width. **p_rel AUROC** (R6c(b), P):
+0.960 / 0.979 / 0.988 in sight, 0.755 / 0.797 / 0.823 under fog.
+**Floors** (R7c, information, in sight, P): width 16 clears neither
+DR-h24 (1.353) nor NF-h24 (1.233); width 32 clears NF-h24 (1.010,
+every friend inside) and misses DR-h24 by 0.008 pooled. **Size** (R9c,
+in sight, P): 1.414 ± 0.190 at 8/16 and 0.819 ± 0.080 at 32/16 on
+grave, 1.237 ± 0.025 and 0.848 ± 0.026 in common states, all READ; the
+cap binds for this head as it did for NF in 1b, on the means at a rate like
+NF's or steeper (about 18% against 13% for the doubling past the cap,
+spreads overlapping, the parameter steps unequal, ×2.4 against ×2.9);
+at about equal parameters SD is behind NF at every rung (3.3k:
+1582.84 against NF-h12's 1098.53; 6.7k against 7.8k: 1119.69 against
+908.10), and SD-h32 at 15.8k reaches NF-h24's cell, not NF-h48's
+(790.22 at 22,519 params). **Caveats the section carries**: six of
+nine runs reached the 200-epoch cap with the validation loss still
+improving by more than the plateau margin (best epochs 193–200; every
+1b run plateaued by 82), which biases the comparison against SD by an
+unmeasured amount and was reported, not re-run; every MSE and bias
+cell reads the histogram mean, and the calibration read shows the
+belief behind it on grave samples; SD saw an auxiliary target (the
+relief indicator) the comparators did not, declared as the approach;
+10–14 hours per run against 1b's 12–17 minutes for six, the
+sequential per-tick filter loop being the cost; "ties NF-h24" at
+width 32 is a tie at 2.0× NF-h24's parameters; offline, no consumer, no
+welfare claim. What it hands to the Phase 2 head choice (hers) beside
+F-064 and F-065: under the standing cap, and with the under-training
+caveat above, SD at width 16 is behind NF on a grave friend in sight
+(1.233 READ) and ahead of NF in common states (0.787 in sight, 0.902
+all states, READ); the
+structured head's grave probability and relief read are quantities
+this arc reads for SD only, and whether a Phase 2 consumer should read
+a probability rather than a mean is a design question this arc did
+not answer; the cap question is hers with that read in hand.

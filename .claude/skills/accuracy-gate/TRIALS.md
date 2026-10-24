@@ -1281,3 +1281,61 @@ label — write the entry with the version (in sight / all-states) and
 the head on EVERY figure first, then cut words, never labels; a
 copy-only round costs a tenth of a full round, so run it before the
 full gate, not after.
+
+## 2026-10-24 — minifriend-phase1c RESULTS (whole document) + the F-066 copy check (Experiments)
+
+Scope: the structured-discrete-head arc's RESULTS.md (three widths,
+nine runs, 1b's width-24 comparators re-read), one section set; the
+F-066 entry gated as two copy-only rounds run BEFORE the full gate
+passed (lesson 12), against the write-up as it then stood.
+- RESULTS round 1 FAIL: every number matched (about 560 printed
+  numbers; fresh JSON byte-identical to the recorded; 4,407 seed
+  counts equal; 8 guards); three prose claims contradicted — the
+  epoch-cap mechanism stated backwards ("falling by less than the
+  margin" when the loss kept beating the margin inside every window),
+  the R4c reliability table printing seed 1's bin count beside a
+  seed-mean fraction (a READER labelling fault: fixed by carrying the
+  count per seed, `calibration_block` extracted so guard t8 could
+  exercise it on a hand case, red on record), and a common-state
+  "at every width" claim true only in sight; five weak wordings
+  (a per-epoch contrast confounded with stop time; "tens of points";
+  "grave mass" for a combined probability; "lower as width grows" on
+  18 of 22 cells; "steeper rate" on overlapping spreads) all applied.
+- RESULTS round 2 FAIL: numbers all matched again; two one-phrase
+  contradictions — the signature rule quoted without its sign
+  condition (Phase 1's rule is lift ≥ 1.5 AND grave bias negative; a
+  provenance miss too), and "nine-wide" per-epoch time taken over
+  whole runs (314–326 s while nine ran, 232–324 s whole-run); two weak
+  ("every SD cell" → "every pooled SD loss cell"; "at a rate at
+  least NF's" on overlapping spreads) applied.
+- F-066 copy round 1 FAIL: five counted — "−15" for −15.01; a quoted
+  phrase ("approach helps") not in the write-up; a third "rung"
+  folded into an "about equal parameters" claim that covers two;
+  "22.5k" for 22,519; "quantities the regression heads do not emit"
+  stated nowhere in the write-up; thirteen advisories (dropped "in
+  sight" / "about" / width labels; "regression head" as a new label;
+  a hand-off sentence without its caveat) all applied.
+- F-066 copy round 2 PASS: no counted mismatch; five advisories
+  ("its parameters" ambiguous; an F-065 attribution the sentence did
+  not make; the hand-off restated as the two READ ratios with the
+  under-training caveat; "reads for SD only"; "by need") applied.
+- RESULTS round 3 PASS: about 410 reader-backed cells and about 170
+  derived numbers matched; nine thresholds all sourced; three weak
+  reported ("two-moded" unmeasured; a "hardest" ordering true in its
+  in-sight context; the provenance pin narrower than the sentence),
+  one wording ambiguity ("at each step"), three undecidable
+  mechanisms; a note outside the claims — the declaration's compute
+  expectation (90 s per epoch, one to three hours) missed by an order
+  of magnitude (165–326 s, 10–14 h). All four applied after the
+  verdict without a number changing.
+Lessons: (13) a reader that prints a per-seed count beside a
+seed-mean statistic must say whose count it is — print all seeds or
+none; (14) a quoted rule carries ALL its conditions ("lift ≥ 1.5"
+without "grave bias negative" flags positive cells the rule does
+not); (15) a per-epoch time quoted "nine-wide" is a time measured
+while nine ran, not the whole-run median of a run launched into the
+batch — slice the metrics at the launch and finish instants; (16) a
+declaration's compute expectation is a claim the RESULTS must close
+out when it misses, welfare-cost or not; (17) running the F-entry copy
+check in parallel with the full gate's later rounds works when the
+rounds only move wording — re-run it only if a NUMBER moves.

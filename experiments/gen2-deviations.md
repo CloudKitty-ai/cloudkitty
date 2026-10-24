@@ -677,5 +677,8 @@ params); 32 is an over-cap probe as 1b's 48 was (`--over-cap`,
 manifest-marked, never a Phase 2 candidate); the cap is not moved;
 R9c (1b's size-effect rule on SD) added. DECLARATION.md §Addendum.
 
-Status: OPEN 2026-10-23 (declared; width-16 heads training, widths 8
-and 32 launched the same day).
+Status: CLOSED 2026-10-24 (nine heads read; RESULTS gated round 3; F-066:
+the approach does not help on the declared criteria at width 16 —
+grave 1.233 × NF-h24, bias −15.01, both READ against the bars; the
+over-cap probe ties NF-h24 on grave at 2.0× its parameters; cap not
+moved; Phase 2 head choice hers with F-064 + F-065 + F-066).
