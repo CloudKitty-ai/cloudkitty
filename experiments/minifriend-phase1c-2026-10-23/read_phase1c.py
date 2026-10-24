@@ -32,7 +32,11 @@ import strata as S  # noqa: E402
 
 D = R.D
 SEEDS = (1, 2, 3)
-RUNS_SD = [("SD", f"SD-s{s}") for s in SEEDS]
+sys.path.insert(0, str(HERE))
+from sd_head import WIDTHS, run_name  # noqa: E402  (§Addendum: widths 8 / 16 / 32 and their run names)
+
+DECLARED = 16                                                              # the declared head; the criteria read here
+RUNS_SD = {h: [("SD", run_name(h, s)) for s in SEEDS] for h in WIDTHS}     # per width
 RUNS_CMP = [(h, f"{h}-h24-s{s}") for h in ("NF", "DR") for s in SEEDS]
 GROUPS = {"P": ["P1", "P2", "P3", "P4", "P5"], "G": ["G"]}
 CLASSES = ("GRAVE", "DA", "COMMON")
@@ -138,11 +142,22 @@ def head_block(runs, idx, sub=""):
             **{f: R.across_seeds(cells, f) for f in ("mse5", "bias", "mse_hap", "mse_bath")}}
 
 
-def read_group(sets, full=True):
-    base = R.read(RUNS_CMP, sets)                          # NF / DR cells, baselines, coverage, R2, R4
-    idx = R.eval_index(sets)
-    sd = head_block(RUNS_SD, idx)
-    nores = head_block(RUNS_SD, idx, "/nores")
+_GROUP_CACHE = {}
+
+
+def group_base(sets):
+    """The comparator read, the sample index and the relief truth of a group, computed once and shared by the widths."""
+    key = tuple(sets)
+    if key not in _GROUP_CACHE:
+        idx = R.eval_index(sets)
+        _GROUP_CACHE[key] = (R.read(RUNS_CMP, sets), idx, relief_truth(idx))      # NF / DR cells, baselines, coverage, R2, R4
+    return _GROUP_CACHE[key]
+
+
+def read_group(sets, runs, full=True):
+    base, idx, rel = group_base(sets)
+    sd = head_block(runs, idx)
+    nores = head_block(runs, idx, "/nores")
     heads = {"NF": base["heads"]["NF"], "DR": base["heads"]["DR"],
              "SD": {k: v for k, v in sd.items() if k != "cells"}, "SD_nores": {k: v for k, v in nores.items() if k != "cells"}}
     out = {"eval_sets": base["eval_sets"], "eval_worlds": base["eval_worlds"], "n_samples": base["n_samples"],
@@ -156,9 +171,8 @@ def read_group(sets, full=True):
                                         and out["R6c_residual_share"][v]["GRAVE"]["ratio"] <= NORES_TOL) for v in R.VERSIONS}
     if not full:
         return out
-    rel = relief_truth(idx)
     cal, aur = {v: [] for v in R.VERSIONS}, {v: [] for v in R.VERSIONS}
-    for _h, run in RUNS_SD:
+    for _h, run in runs:
         mass = load_field(run, idx, "grave")
         prel = load_field(run, idx, "p_rel")
         for v in R.VERSIONS:
@@ -196,28 +210,40 @@ def provenance(readP):
 
 def runs_block():
     out = {}
-    for _h, run in RUNS_SD:
-        man = json.loads((R.ARC / "results-raw/heads" / run / "run-manifest.json").read_text())
-        done = json.loads((R.ARC / "results-raw/heads" / run / "done.json").read_text())
-        out[run] = {"params": man["params"], "param_cap": man["param_cap"], "best_epoch": done["best_epoch"],
-                    "epochs_run": done["epochs_run"], "best_val": done["best_val"],
-                    "rates_points_per_tick": done["rates_points_per_tick"], "relief_points_per_tick": done["relief_points_per_tick"]}
+    for h in WIDTHS:
+        for _h, run in RUNS_SD[h]:
+            man = json.loads((R.ARC / "results-raw/heads" / run / "run-manifest.json").read_text())
+            done = json.loads((R.ARC / "results-raw/heads" / run / "done.json").read_text())
+            assert man["hidden"] == h and man["over_cap"] == (man["params"] > man["param_cap"]), (run, man["hidden"], man["over_cap"])
+            out[run] = {"width": h, "params": man["params"], "param_cap": man["param_cap"], "over_cap": man["over_cap"],
+                        "best_epoch": done["best_epoch"], "epochs_run": done["epochs_run"], "best_val": done["best_val"],
+                        "rates_points_per_tick": done["rates_points_per_tick"], "relief_points_per_tick": done["relief_points_per_tick"]}
     return out
 
 
+def size_effect(reads):
+    """R9c: 1b's R2b rule on SD — pooled loss at width h over the loss at the declared width, per group × version × class."""
+    return {g: {str(h): {v: {cls: ratio(reads[str(h)][g]["heads"]["SD"]["mse5"][v][cls]["pooled"],
+                                   reads[str(DECLARED)][g]["heads"]["SD"]["mse5"][v][cls]["pooled"])
+                             for cls in CLASSES} for v in R.VERSIONS}
+                for h in WIDTHS if h != DECLARED} for g in GROUPS}
+
+
 def read_all():
-    reads = {"P": read_group(GROUPS["P"], full=True), "G": read_group(GROUPS["G"], full=False)}
-    prov = provenance(reads["P"])
+    reads = {str(h): {"P": read_group(GROUPS["P"], RUNS_SD[h], full=True), "G": read_group(GROUPS["G"], RUNS_SD[h], full=False)}
+             for h in WIDTHS}
+    prov = provenance(reads[str(DECLARED)]["P"])
     runs = runs_block()
-    rates = np.array([runs[r]["rates_points_per_tick"] for r in runs])          # (seeds, 5 friends, 5 needs)
-    relief = np.array([runs[r]["relief_points_per_tick"] for r in runs])
     emp = empirical_rates(D.roles())
-    return {"groups": GROUPS, "seeds": list(SEEDS), "comparators": [r for _h, r in RUNS_CMP], "reads": reads,
-            "provenance": prov,
-            "R5c_rates": {"learned_mean": rates.mean(0).tolist(), "learned_sd": rates.std(0, ddof=1).tolist(),
-                          "empirical_median_positive_step": emp,
-                          "relief_learned_mean": relief.mean(0).tolist(), "relief_learned_sd": relief.std(0, ddof=1).tolist()},
-            "R8c_runs": runs}
+    r5 = {"empirical_median_positive_step": emp}
+    for h in WIDTHS:
+        rates = np.array([runs[r]["rates_points_per_tick"] for _h, r in RUNS_SD[h]])          # (seeds, 5 friends, 5 needs)
+        relief = np.array([runs[r]["relief_points_per_tick"] for _h, r in RUNS_SD[h]])
+        r5[str(h)] = {"learned_mean": rates.mean(0).tolist(), "learned_sd": rates.std(0, ddof=1).tolist(),
+                      "relief_learned_mean": relief.mean(0).tolist(), "relief_learned_sd": relief.std(0, ddof=1).tolist()}
+    return {"groups": GROUPS, "seeds": list(SEEDS), "widths": list(WIDTHS), "declared_width": DECLARED,
+            "comparators": [r for _h, r in RUNS_CMP], "reads": reads, "provenance": prov,
+            "R5c_rates": r5, "R8c_runs": runs, "R9c_size": size_effect(reads)}
 
 
 # ---------------------------------------------------------------- printer
@@ -237,10 +263,14 @@ def fmt_r(r):
 NEEDS = ("eat", "drink", "sleep", "play", "cuddle")
 
 
+ROLE = {8: "the small candidate", 16: "the declared head", 32: "the over-cap probe"}
+
+
 def md(out):
     L = ["## Phase 1c read (derived columns)"]
-    for g, rd in out["reads"].items():
-        L.append(f"\n### Group {g} ({', '.join(out['groups'][g])} eval worlds): n_samples {rd['n_samples']}")
+    for h in out["widths"]:
+      for g, rd in out["reads"][str(h)].items():
+        L.append(f"\n### Width {h} ({ROLE[h]}), group {g} ({', '.join(out['groups'][g])} eval worlds): n_samples {rd['n_samples']}")
         cov = rd["coverage"]["visible"]["GRAVE"]
         L.append("coverage GRAVE mind-visible: " + ", ".join(f"{f} {n}" for f, n in cov.items()))
         for v in R.VERSIONS:
@@ -299,16 +329,25 @@ def md(out):
                 for f, pf in d["per_friend"].items():
                     L.append(f"| {f} | {pf['nf']:.2f} | {pf['dr']:.2f} | {pf['excess']:+.2f} | {pf['nf_sd']:.2f} | {'ok' if pf['ok'] else 'EXCEEDS'} |"
                              if pf.get("covered") else f"| {f} | insufficient | insufficient | — | — | not read |")
-    r5 = out["R5c_rates"]
-    L.append("\n### R5c: learned rise rates (points per tick, mean ± SD over seeds) against the training worlds' median positive step")
-    L.append("| friend | " + " | ".join(f"{n} learned / empirical" for n in NEEDS) + " |")
-    L.append("|---|" + "---|" * 5)
-    for j, f in enumerate(R.SEATS):
-        L.append(f"| {f} | " + " | ".join(f"{r5['learned_mean'][j][i]:.2f} ± {r5['learned_sd'][j][i]:.2f} / {r5['empirical_median_positive_step'][j][i]:.2f}" for i in range(5)) + " |")
-    L.append("relief sizes learned (points per relieving tick): " + ", ".join(f"{n} {r5['relief_learned_mean'][i]:.2f} ± {r5['relief_learned_sd'][i]:.2f}" for i, n in enumerate(NEEDS)))
+    L.append(f"\n### R9c: size effect — SD pooled mse5 at width h over width {out['declared_width']} (first-order SD; READ when |r − 1| > SD)")
+    L.append("| group | version | " + " | ".join(f"w{h} {cls}" for h in out["widths"] if h != out["declared_width"] for cls in CLASSES) + " |")
+    L.append("|---|---|" + "---|" * (3 * (len(out["widths"]) - 1)))
+    for g, byw in out["R9c_size"].items():
+        for v in R.VERSIONS:
+            L.append(f"| {g} | {v} | " + " | ".join(fmt_r(byw[str(h)][v][cls]) for h in out["widths"] if h != out["declared_width"] for cls in CLASSES) + " |")
+    emp = out["R5c_rates"]["empirical_median_positive_step"]
+    for h in out["widths"]:
+        r5 = out["R5c_rates"][str(h)]
+        L.append(f"\n### R5c width {h}: learned rise rates (points per tick, mean ± SD over seeds) against the training worlds' median positive step")
+        L.append("| friend | " + " | ".join(f"{n} learned / empirical" for n in NEEDS) + " |")
+        L.append("|---|" + "---|" * 5)
+        for j, f in enumerate(R.SEATS):
+            L.append(f"| {f} | " + " | ".join(f"{r5['learned_mean'][j][i]:.2f} ± {r5['learned_sd'][j][i]:.2f} / {emp[j][i]:.2f}" for i in range(5)) + " |")
+        L.append("relief sizes learned (points per relieving tick): " + ", ".join(f"{n} {r5['relief_learned_mean'][i]:.2f} ± {r5['relief_learned_sd'][i]:.2f}" for i, n in enumerate(NEEDS)))
     L.append("\n### R8c runs")
     for r, d in out["R8c_runs"].items():
-        L.append(f"{r}: params {d['params']} (cap {d['param_cap']}) best {d['best_epoch']}/{d['epochs_run']} val {d['best_val']:.4f}")
+        L.append(f"{r}: width {d['width']} params {d['params']} (cap {d['param_cap']}{', OVER-CAP PROBE' if d['over_cap'] else ''}) "
+                 f"best {d['best_epoch']}/{d['epochs_run']} val {d['best_val']:.4f}")
     p = out["provenance"]
     L.append(f"\nprovenance: comparators {', '.join(out['comparators'])} re-read here equal {p['checked_against']} at width {p['width']} on {p['cells']}")
     return "\n".join(L)

@@ -17,6 +17,9 @@ t5  reader arithmetic: 1 − ∏(1 − m); reliability-bin counts sum to n;
     AUROC on hand rankings
 t6  provenance: split.json equals Phase 1b's; the comparator cells
     re-read here equal 1b's gated read at width 24
+t7  widths and the cap (§Addendum): configure builds 3,279 / 6,679 /
+    15,783 params at widths 8 / 16 / 32 with the declared run names;
+    32 is refused without --over-cap and marked over_cap with it
 """
 import copy
 import json
@@ -145,6 +148,29 @@ def test_t6_provenance():
     base = C.R.read(C.RUNS_CMP, C.GROUPS["P"])
     prov = C.provenance({"heads": base["heads"]})
     assert prov["width"] == 24 and base["eval_sets"] == ["P1", "P2", "P3", "P4", "P5"]
+
+
+def test_t7_widths_and_cap():
+    import argparse
+    import read_phase1c as C
+
+    def ns(h, over=False, seed=1):
+        return argparse.Namespace(seed=seed, hidden=h, over_cap=over, smoke=False)
+    assert tuple(M.WIDTHS) == (8, 16, 32) and C.DECLARED == 16
+    name, m, cfg = M.configure(ns(8))
+    assert name == "SD-h8-s1" and cfg["params"] == 3279 == M.T.n_params(m) and not cfg["over_cap"] and cfg["hidden"] == 8, cfg
+    name, m, cfg = M.configure(ns(16))
+    assert name == "SD-s1" and cfg["params"] == 6679 and not cfg["over_cap"] and cfg["param_cap"] == 8445, cfg
+    try:
+        M.configure(ns(32))
+        refused = False
+    except SystemExit:
+        refused = True
+    assert refused, "width 32 must be refused without --over-cap"
+    name, m, cfg = M.configure(ns(32, over=True, seed=3))
+    assert name == "SD-h32-s3" and cfg["params"] == 15783 and cfg["over_cap"], cfg
+    assert M.run_name(8, 2, smoke=True) == "SD-h8-s2-smoke"
+    assert [r for _h, r in C.RUNS_SD[16]] == ["SD-s1", "SD-s2", "SD-s3"] and C.RUNS_SD[32][0][1] == "SD-h32-s1"
 
 
 if __name__ == "__main__":

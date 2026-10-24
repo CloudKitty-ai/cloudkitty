@@ -63,6 +63,12 @@ LAMBDA_REL = 0.5                         # weight of the relief-indicator BCE
 N_NEEDS, N_FRIENDS = 5, D.ROSTER
 OUT_ROOT = D.ARC / "results-raw" / "heads"
 EPS = 1e-6
+WIDTHS = (8, 16, 32)                     # §Addendum: the small candidate, the declared head, the over-cap probe
+
+
+def run_name(hidden, seed, smoke=False):
+    """Width 16 keeps the launch name SD-s<seed> (its runs predate the addendum); other widths SD-h<r>-s<seed>."""
+    return (f"SD-s{seed}" if hidden == R else f"SD-h{hidden}-s{seed}") + ("-smoke" if smoke else "")
 
 
 def inv_softplus(x):
@@ -246,9 +252,20 @@ def predict_world(model, w, residual=True):
     return pred, grave, prel
 
 
+def configure(a):
+    """The head, its run name and its cap record from the parsed arguments;
+    the cap rule applies (an over-cap width trains only with --over-cap)."""
+    model = SDHead(r=a.hidden)
+    n = T.n_params(model)
+    over = T.check_cap(n, a.over_cap)
+    return run_name(a.hidden, a.seed, a.smoke), model, {"params": n, "param_cap": T.PARAM_CAP, "over_cap": over, "hidden": a.hidden}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, required=True)
+    ap.add_argument("--hidden", type=int, default=R, help="recurrent width r (§Addendum: 8 / 16 / 32)")
+    ap.add_argument("--over-cap", action="store_true", help="declared over-cap probe (width 32)")
     ap.add_argument("--epochs", type=int, default=200)
     ap.add_argument("--patience", type=int, default=10)
     ap.add_argument("--lr", type=float, default=1e-3)
@@ -260,7 +277,8 @@ def main():
     torch.set_num_threads(a.threads)
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
-    name = f"SD-s{a.seed}" + ("-smoke" if a.smoke else "")
+    name, model, cfg = configure(a)
+    h = a.hidden
     out = a.out_root / name
     (out / "nores").mkdir(parents=True, exist_ok=True)
 
@@ -270,19 +288,17 @@ def main():
     ev = [(n, s) for n, r in roles.items() for s in r["eval"]]
     assert not (set(train) & set(ev)) and not (set(val) & set(ev)) and not (set(train) & set(val))
 
-    model = SDHead()
-    np_ = T.n_params(model)
-    over = T.check_cap(np_, False)
-    manifest = {"head": "SD", "seed": a.seed, "params": np_, "param_cap": T.PARAM_CAP, "over_cap": over, "hidden": R,
-                "arch": f"Linear(167->{R})+ReLU, GRU({R}); histogram filter K={K} (drift per friend x need, relief per need, "
-                        f"p_rel Linear({R}->5), residual Linear({R}->{N_NEEDS * K}), prior per friend x need); aux Linear({R + N_NEEDS}->2)",
+    manifest = {"head": "SD", "seed": a.seed, **cfg,
+                "arch": f"Linear(167->{h})+ReLU, GRU({h}); histogram filter K={K} (drift per friend x need, relief per need, "
+                        f"p_rel Linear({h}->5), residual Linear({h}->{N_NEEDS * K}), prior per friend x need); aux Linear({h + N_NEEDS}->2)",
                 "K": K, "bin_points": BIN, "grave_bin": GRAVE_BIN, "chunk": T.CHUNK,
                 "loss": f"CE5(two-hot) + {LAMBDA_REL}*BCE_rel + mse_hap + {T.BATH_WEIGHT}*mse_bath", "lambda_rel": LAMBDA_REL,
                 "bath_weight": T.BATH_WEIGHT, "lr": a.lr, "batch_sequences": a.batch, "patience": a.patience, "epoch_cap": a.epochs,
                 "margin": 1e-4, "roles": roles, "weights_used": False, "dr_weights_GRAVE_ADJACENT_COMMON": [1.0, 1.0, 1.0],
                 "torch": torch.__version__, "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "smoke": a.smoke}
     (out / "run-manifest.json").write_text(json.dumps(manifest, indent=1))
-    print(f"[{name}] params {np_} ≤ {T.PARAM_CAP}; train {len(train)} / val {len(val)} / eval {len(ev)} worlds", flush=True)
+    print(f"[{name}] params {cfg['params']} (cap {T.PARAM_CAP}{'; OVER-CAP PROBE' if cfg['over_cap'] else ''}); "
+          f"train {len(train)} / val {len(val)} / eval {len(ev)} worlds", flush=True)
 
     t0 = time.time()
     tr_seqs = build(train)
