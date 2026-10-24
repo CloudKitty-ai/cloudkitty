@@ -326,3 +326,12 @@ R2d, the decision and P2 blocks identical to the committed read
 **Run order:** (1) this addendum, deviations 13 reopened, the timeline
 line; (2) reader + t5–t6, reds; (3) the read (one fence); (4) RESULTS
 §Addendum gated; F-entry; deviations 13 closed again; report.
+
+Reds on record 2026-10-24 for the addendum (`scripts/mutate.sh --expect
+<test>` on `read_phase1d.py` at 887020e4; each predicted first, each
+RED CONFIRMED, 1 passed after every restore; 6 passed on the restored
+suite): t5 — `which_need` naming the argmin instead of the argmax →
+`AssertionError` at the accuracy line of `test_t5_which_need`; t6 —
+the crossing searched from the slice's first tick instead of the
+onset (`above[:en]`) → latency 7 for the hand episode's 3,
+`AssertionError` at the median-latency line of `test_t6_latency`.
