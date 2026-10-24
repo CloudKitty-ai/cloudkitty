@@ -321,6 +321,16 @@ consent BC comparison ride the trunk.
   P(grave) 0.474 on grave samples); p_rel AUROC 0.979 in sight / 0.797
   under fog. STATUS: DONE 2026-10-24; Phase 2 head choice HERS with
   F-064 + F-065 + F-066; the cap question hers.
+  PHASE 1d DECLARED 2026-10-24 (owner the same day, after the
+  Professor's 1c review was carried to her: "Let's run those in three
+  in the order you listed"; `minifriend-phase1d-2026-10-24/
+  DECLARATION.md`, deviations entry 13): two reads on committed heads,
+  0 new cat-ticks — R1d the SD filter's spread under pure drift
+  (read-only on 1c's `head-best.pt`; the √(n f (1 − f)) mechanism) and
+  R2d a 25-param logistic grave probability on the FROZEN NF-h24 /
+  DR-h24 states (three seeds each) read with 1c's R4c instrument
+  against SD-w16; decision rule A / B / C declared first; Professor's
+  prediction P2 scored beside it. STATUS: DECLARED; fits not yet run.
 
 ## Flagged follow-ups (owner's word to start)
 

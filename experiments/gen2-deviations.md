@@ -682,3 +682,25 @@ the approach does not help on the declared criteria at width 16 —
 grave 1.233 × NF-h24, bias −15.01, both READ against the bars; the
 over-cap probe ties NF-h24 on grave at 2.0× its parameters; cap not
 moved; Phase 2 head choice hers with F-064 + F-065 + F-066).
+
+## 13. Mini-friend Phase 1d: two reads on the committed heads — the SD filter's spread, and a grave probability from the frozen 1b states (2026-10-24)
+
+Owner-requested, 2026-10-24, after the Professor's review of Phase 1c
+was carried to her: "Let's run those in three in the order you
+listed" — (1) the filter-spread test, (2) the 25-parameter logistic
+grave read on the frozen 1b states, (3) the Phase 2 head choice (hers).
+`minifriend-phase1d-2026-10-24/DECLARATION.md`. Neither read trains a
+belief head or moves the cap: (1) is read-only on 1c's committed
+`head-best.pt` (does the fractional two-tap shift smear a sharp
+belief as √n, the mechanism behind F-066's residual share and falling
+rates); (2) fits `Linear(24 → 1)` + sigmoid (25 params; hybrid total
+7,832, under 8,445) by natural-frequency BCE on "the true stratum is
+GRAVE" over the FROZEN NF-h24 and DR-h24 GRU states, three seeds each,
+read with 1c's R4c calibration instrument against SD width 16's
+committed cells; every MSE and bias cell of F-064 / F-065 / F-066 is
+unchanged by construction. Decision rule declared before any fit
+(A within the spread → the hybrid is the candidate shape and the SD
+line closes; B SD clearly better → one loop-fixed, diffusion-fixed SD
+run would be justified on her word; C mixed). 0 new cat-ticks.
+
+Status: OPEN 2026-10-24 (declared; fits not yet run).
