@@ -235,3 +235,57 @@ no rollout) and Read fences separate, runtime declared.
    `phase1c-read.json` + `.md` committed.
 5. RESULTS.md gated; F-entry; deviations 12 closed; timeline updated;
    report to the owner. Phase 2 head choice stays hers.
+
+## Addendum 2026-10-23: three widths (owner, the same day)
+
+Her words, after the launch report: "Let's try 3 model sizes this time
+as well so we can get an idea of what more/less parameters buy".
+
+The width r of the recurrent part (the input projection, the GRU, the
+p_rel read, the residual correction, the aux read) is the size knob;
+the filter's own parameters (rates 25, relief sizes 5, priors 500) are
+530 at every width:
+
+| width r | params | vs cap 8,445 | vs trunk 84,450 | role |
+|---|---|---|---|---|
+| 8 | 3,279 | under | 3.9% | the small candidate |
+| 16 | 6,679 | under | 7.9% | the declared head (§Head); its three runs were training when this addendum was written and keep their launch name `SD-s<seed>` |
+| 32 | 15,783 | OVER (1.9×) | 18.7% | probe only: `--over-cap` must be passed; the manifest marks it; never a Phase 2 candidate |
+
+Chosen before any width-8 or width-32 run as the halving and doubling
+of the declared width (×2.0 and ×2.4 in params), one head on each side
+of the cap, as 1b's 12 / 24 / 48 were. **The cap is not moved.** Run
+names `SD-h<r>-s<seed>`; seeds 1, 2, 3; everything else §Head verbatim
+(`sd_head.py --hidden <r> [--over-cap]`). The width-16 runs were
+launched from `sd_head.py` at 5fed6daa; the flags added for this
+addendum default to that behaviour (guard t7 below).
+
+Read added — **R9c. Size effect.** 1b's R2b rule on SD: r(h) = SD
+pooled loss at width h over the loss at width 16, per class × version,
+groups P and G, first-order SD, READ when |r − 1| > SD. The cap-binds
+question is r(32) on mind-visible GRAVE, group P: a READ ratio under 1
+says capacity above the budget buys grave accuracy for this head too;
+a tie says it does not. R1c–R8c run at every width (calibration, rate
+recovery, residual share, p_rel AUROC and the floors per width). The
+"approach helps" criteria stay as declared, at width 16 against the
+width-24 comparators; nothing at width 8 or 32 enters them. The
+width-32 read is an input to her cap question ("we can reevaluate
+model size limit if needed"), never a Phase 2 candidate under the
+standing cap.
+
+Welfare: 0 new cat-ticks (the same raws). Compute: six more runs at
+two torch threads each beside the three running; per-epoch time is
+set by the per-tick filter loop and is near width-independent (165 s
+at width 16 on three threads), so the six should finish within the
+day.
+
+Guard t7 (`test_phase1c.py`): `configure` at width 8 builds 3,279
+params named `SD-h8-s1`; at 16, 6,679 named `SD-s1`; at 32 without
+`--over-cap`, `check_cap` refuses (SystemExit); with it, 15,783 marked
+over_cap. Red: `configure` ignores the width and builds the default
+head. The red is recorded below before any width-8 or width-32 run is
+read.
+
+Run order step 3b: `run_sd.sh` with widths 8 and 32 (skip-if-done,
+skip-if-running); no read of any width until all nine runs have
+`done.json`. Steps 4–5 then read all three widths.

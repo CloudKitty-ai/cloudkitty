@@ -306,7 +306,11 @@ consent BC comparison ride the trunk.
   under the cap) × 3 seeds on the Phase 1 + 1b raws (0 new cat-ticks)
   against 1b's width-24 NF and DR; reads R1c–R8c (contrast with the
   READ rule, ostrich, grave-probability calibration, rate recovery,
-  residual share, the floors). STATUS: DECLARED; heads next.
+  residual share, the floors). Amended the same day on her word
+  ("Let's try 3 model sizes this time as well so we can get an idea
+  of what more/less parameters buy"): widths 8 / 16 / 32 (3,279 /
+  6,679 / 15,783 params; 32 an over-cap probe as 1b's 48, cap not
+  moved); R9c size effect. STATUS: RUNNING (nine heads).
 
 ## Flagged follow-ups (owner's word to start)
 

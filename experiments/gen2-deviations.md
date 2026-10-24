@@ -670,4 +670,12 @@ per-friend belief state held under fog on learned drift rates) is what
 this head instantiates offline. Phase 1's and 1b's verdicts, floors,
 F-064 and F-065 stand; the Phase 2 head choice remains hers.
 
-Status: OPEN 2026-10-23 (declared; heads not yet trained).
+Amended the same day on her word ("Let's try 3 model sizes this time
+as well so we can get an idea of what more/less parameters buy"):
+widths 8 / 16 / 32 of the recurrent part (3,279 / 6,679 / 15,783
+params); 32 is an over-cap probe as 1b's 48 was (`--over-cap`,
+manifest-marked, never a Phase 2 candidate); the cap is not moved;
+R9c (1b's size-effect rule on SD) added. DECLARATION.md §Addendum.
+
+Status: OPEN 2026-10-23 (declared; width-16 heads training, widths 8
+and 32 launched the same day).
