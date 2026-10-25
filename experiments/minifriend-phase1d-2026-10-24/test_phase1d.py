@@ -12,6 +12,12 @@ t3  reader arithmetic: calibration_p on a hand case; the above-0.7 gap;
     the decision rule returns A / B / C on hand cases
 t4  provenance: split.json equals 1b's; the SD-w16 cells re-read here
     equal 1c's committed read; the base heads' sha256 equal done.json
+t5  which-need on a hand case (§Addendum)
+t6  latency on hand slices (§Addendum; extended for reset episodes)
+t7  the operating-point sweep (§Addendum 2): a signal sitting exactly
+    at the threshold is a crossing (at or over); detected fraction and
+    false-alarm runs non-increasing up the ladder; the sweep's 0.20 and
+    0.50 rows on group P equal the committed R4d rows
 """
 import hashlib
 import json
@@ -31,6 +37,7 @@ sys.path.insert(0, str(HERE))
 import filter_spread as FS  # noqa: E402
 import grave_probe as G  # noqa: E402
 import read_phase1d as P  # noqa: E402
+import sweep_threshold as SW  # noqa: E402
 
 D = G.D
 S = G.S
@@ -178,6 +185,30 @@ def test_t6_latency():
     sig4 = np.zeros(30); sig4[20:22] = 0.0; sig4[0:2] = 0.9                   # a run starting at the first slice's first tick with no grave tick: reset transient
     lat4 = P.latency(idx2, sig4, 0.5, eps2)
     assert lat4["false_alarms"]["runs"] == 1 and lat4["false_alarms"]["runs_at_reset"] == 1 and lat4["false_alarms"]["midworld_runs"] == 0 and lat4["false_alarms"]["midworld_per_10k_ticks"] == 0.0
+
+
+def test_t7_sweep():
+    # the t6 slice; a signal that sits exactly on 0.2 at the first onset, 0.3 at the second onset, and a 0.1 bump with no grave tick
+    code = np.full(20, S.COMMON, np.int8); code[4:9] = S.GRAVE; code[14:17] = S.GRAVE
+    vis = np.ones(20, bool); vis[12:] = False
+    idx = {"n": 20, "code": code, "vis": vis, "true": np.zeros((20, 7)), "slices": [("P1", 1, 0, 1, 0, 20)]}
+    sig = np.zeros(20); sig[4] = 0.2; sig[14] = 0.3; sig[10:12] = 0.1
+    sw = SW.sweep(idx, [sig])
+    rows = sw["rows"]
+    assert list(rows) == ["0.05", "0.10", "0.15", "0.20", "0.25", "0.30", "0.40", "0.50"]
+    assert rows["0.20"]["midworld_visible"]["detected_frac"]["mean"] == 1.0 and rows["0.20"]["midworld_visible"]["median_latency"]["mean"] == 0.0   # exactly at the threshold counts
+    assert rows["0.25"]["midworld_visible"]["detected_frac"]["mean"] == 0.0 and rows["0.25"]["midworld_fog"]["detected_frac"]["mean"] == 1.0
+    assert rows["0.10"]["false_alarms"]["midworld_runs"]["mean"] == 1 and rows["0.15"]["false_alarms"]["midworld_runs"]["mean"] == 0
+    det = [r["all"]["detected_frac"]["mean"] for r in rows.values()]
+    fa = [r["false_alarms"]["runs"]["mean"] for r in rows.values()]
+    assert det == sorted(det, reverse=True) and fa == sorted(fa, reverse=True)
+    assert det[0] == 1.0 and det[-1] == 0.0
+    d = rows["0.10"]["derived"]
+    assert d["midworld_detected"]["mean"] == 2.0 and d["midworld_fa_per_100_detected"]["mean"] == 50.0
+    # group P, NF-h24+p: the sweep's 0.20 and 0.50 rows equal the committed R4d rows
+    idx_p = R.eval_index(C.GROUPS["P"])
+    swp = SW.sweep(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], thresholds=(0.2, 0.5))
+    SW.pin_r4d(swp)
 
 
 if __name__ == "__main__":
