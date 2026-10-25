@@ -621,3 +621,10 @@ signal replaced by the masked one in the cut test
 (`boundary_runs(idx, above_m, above_0, …)` → `(idx, above_m, above_m,
 …)`) — no unmasked run then begins before the boundary, so the cut
 count is 0 where the hand case has 1, `AssertionError` at the cut line.
+
+Red on record 2026-10-25 for the second extension of t8
+(`scripts/mutate.sh --expect fa_runs_at_boundary_cut_from_grave_run` on
+`burnin_read.py` at 49137bf9; predicted first — RED CONFIRMED, 1 passed
+after the restore): the unmasked signal replaced by the masked one in
+the cut test → the cut count 0 where the hand case has 1,
+`AssertionError` at the cut line of `test_t8_burnin`.

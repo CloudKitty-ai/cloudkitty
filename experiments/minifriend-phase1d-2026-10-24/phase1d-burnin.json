@@ -62,6 +62,33 @@
    "episodes_midworld": 88,
    "n_ticks": 4000000,
    "onsets": {
+    "per_set": {
+     "P1": {
+      "slices": 200,
+      "ticks": 800000,
+      "grave_in_100": 40
+     },
+     "P2": {
+      "slices": 200,
+      "ticks": 800000,
+      "grave_in_100": 40
+     },
+     "P3": {
+      "slices": 200,
+      "ticks": 800000,
+      "grave_in_100": 40
+     },
+     "P4": {
+      "slices": 200,
+      "ticks": 800000,
+      "grave_in_100": 40
+     },
+     "P5": {
+      "slices": 200,
+      "ticks": 800000,
+      "grave_in_100": 40
+     }
+    },
     "midworld_n": 88,
     "min": 8,
     "median": 25.5,
@@ -566,6 +593,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 800,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 85,
          "fa_per_100_midworld_detected": 990.5882352941177
@@ -656,6 +684,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 797,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 82,
          "fa_per_100_midworld_detected": 1001.219512195122
@@ -746,6 +775,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 800,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 88,
          "fa_per_100_midworld_detected": 959.0909090909091
@@ -1072,6 +1102,11 @@
        "sd": 1.7320508075688772,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 85,
@@ -1172,6 +1207,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 800,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 83,
          "fa_per_100_midworld_detected": 1000.0
@@ -1262,6 +1298,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 242,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 343.0379746835443
@@ -1352,6 +1389,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 800,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 87,
          "fa_per_100_midworld_detected": 951.7241379310345
@@ -1678,6 +1716,11 @@
        "sd": 322.1614502078112,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 83,
@@ -1778,6 +1821,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 707,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 82,
          "fa_per_100_midworld_detected": 897.560975609756
@@ -1868,6 +1912,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 200,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 286.0759493670886
@@ -1958,6 +2003,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 785,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 85,
          "fa_per_100_midworld_detected": 942.3529411764706
@@ -2284,6 +2330,11 @@
        "sd": 317.636584794636,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 82,
@@ -2384,6 +2435,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 439,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 81,
          "fa_per_100_midworld_detected": 586.4197530864197
@@ -2474,6 +2526,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 200,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 293.67088607594934
@@ -2564,6 +2617,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 351,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 84,
          "fa_per_100_midworld_detected": 441.6666666666667
@@ -2890,6 +2944,11 @@
        "sd": 120.87596948939024,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 81.33333333333333,
@@ -2990,6 +3049,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 232,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 81,
          "fa_per_100_midworld_detected": 330.8641975308642
@@ -3080,6 +3140,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 196,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 78,
          "fa_per_100_midworld_detected": 291.02564102564105
@@ -3170,6 +3231,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 151,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 83,
          "fa_per_100_midworld_detected": 208.43373493975903
@@ -3496,6 +3558,11 @@
        "sd": 40.58324777540605,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 80.66666666666667,
@@ -3596,6 +3663,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 190,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 80,
          "fa_per_100_midworld_detected": 275.0
@@ -3686,6 +3754,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 194,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 77,
          "fa_per_100_midworld_detected": 288.31168831168833
@@ -3776,6 +3845,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 62,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 80,
          "fa_per_100_midworld_detected": 106.25
@@ -4102,6 +4172,11 @@
        "sd": 75.0821772016058,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 79,
@@ -4202,6 +4277,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 116,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 78,
          "fa_per_100_midworld_detected": 196.15384615384616
@@ -4292,6 +4368,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 168,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 264.86486486486484
@@ -4382,6 +4459,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 7,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 32.432432432432435
@@ -4708,6 +4786,11 @@
        "sd": 82.16446920658588,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 75.33333333333333,
@@ -4808,6 +4891,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 55.4054054054054
@@ -4898,6 +4982,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 148,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 72,
          "fa_per_100_midworld_detected": 243.05555555555554
@@ -4988,6 +5073,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 72,
          "fa_per_100_midworld_detected": 30.555555555555557
@@ -5314,6 +5400,11 @@
        "sd": 81.95323869947626,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 72.66666666666667,
@@ -5416,6 +5507,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 85,
          "fa_per_100_midworld_detected": 58.8235294117647
@@ -5506,6 +5598,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 82,
          "fa_per_100_midworld_detected": 43.90243902439025
@@ -5596,6 +5689,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 88,
          "fa_per_100_midworld_detected": 61.36363636363637
@@ -5950,6 +6044,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 12,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 85,
@@ -6050,6 +6149,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 83,
          "fa_per_100_midworld_detected": 49.397590361445786
@@ -6140,6 +6240,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 53.164556962025316
@@ -6230,6 +6331,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 87,
          "fa_per_100_midworld_detected": 44.827586206896555
@@ -6584,6 +6686,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 12,
+       "sd": 1.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 83,
@@ -6684,6 +6791,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 82,
          "fa_per_100_midworld_detected": 48.78048780487805
@@ -6774,6 +6882,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 48.10126582278481
@@ -6864,6 +6973,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 85,
          "fa_per_100_midworld_detected": 30.58823529411765
@@ -7218,6 +7328,11 @@
        "sd": 1.1547005383792515,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 11.333333333333334,
+       "sd": 0.5773502691896257,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 82,
@@ -7318,6 +7433,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 81,
          "fa_per_100_midworld_detected": 58.02469135802469
@@ -7408,6 +7524,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 79,
          "fa_per_100_midworld_detected": 55.69620253164557
@@ -7498,6 +7615,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 10,
         "derived": {
          "midworld_detected": 84,
          "fa_per_100_midworld_detected": 35.714285714285715
@@ -7852,6 +7970,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 11,
+       "sd": 1.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 81.33333333333333,
@@ -7952,6 +8075,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 81,
          "fa_per_100_midworld_detected": 60.49382716049383
@@ -8042,6 +8166,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 78,
          "fa_per_100_midworld_detected": 55.12820512820513
@@ -8132,6 +8257,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 83,
          "fa_per_100_midworld_detected": 39.75903614457831
@@ -8486,6 +8612,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 12.666666666666666,
+       "sd": 0.5773502691896257,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 80.66666666666667,
@@ -8586,6 +8717,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 15,
+        "fa_runs_at_boundary_cut_from_grave_run": 14,
         "derived": {
          "midworld_detected": 80,
          "fa_per_100_midworld_detected": 53.75
@@ -8676,6 +8808,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 77,
          "fa_per_100_midworld_detected": 48.05194805194805
@@ -8766,6 +8899,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 80,
          "fa_per_100_midworld_detected": 42.5
@@ -9120,6 +9254,11 @@
        "sd": 1.5275252316519468,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 12.333333333333334,
+       "sd": 1.5275252316519468,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 79,
@@ -9220,6 +9359,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 78,
          "fa_per_100_midworld_detected": 58.97435897435897
@@ -9310,6 +9450,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 50.0
@@ -9400,6 +9541,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 16,
+        "fa_runs_at_boundary_cut_from_grave_run": 14,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 41.891891891891895
@@ -9754,6 +9896,11 @@
        "sd": 1.7320508075688772,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 13,
+       "sd": 1.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 75.33333333333333,
@@ -9854,6 +10001,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 74,
          "fa_per_100_midworld_detected": 48.648648648648646
@@ -9944,6 +10092,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 71,
          "fa_per_100_midworld_detected": 53.521126760563384
@@ -10034,6 +10183,7 @@
         },
         "blind_frac": 0.00625,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 11,
         "derived": {
          "midworld_detected": 72,
          "fa_per_100_midworld_detected": 44.44444444444444
@@ -10388,6 +10538,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 12,
+       "sd": 1.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 72.33333333333333,
@@ -10490,6 +10645,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 60,
+        "fa_runs_at_boundary_cut_from_grave_run": 57,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 182.0
@@ -10580,6 +10736,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 63,
+        "fa_runs_at_boundary_cut_from_grave_run": 60,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 170.83333333333334
@@ -10670,6 +10827,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 58,
+        "fa_runs_at_boundary_cut_from_grave_run": 57,
         "derived": {
          "midworld_detected": 52,
          "fa_per_100_midworld_detected": 184.6153846153846
@@ -11024,6 +11182,11 @@
        "sd": 2.516611478423583,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 58,
+       "sd": 1.7320508075688772,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 50,
@@ -11124,6 +11287,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 55,
+        "fa_runs_at_boundary_cut_from_grave_run": 51,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 150.0
@@ -11214,6 +11378,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 57,
+        "fa_runs_at_boundary_cut_from_grave_run": 49,
         "derived": {
          "midworld_detected": 42,
          "fa_per_100_midworld_detected": 178.57142857142858
@@ -11304,6 +11469,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 50,
+        "fa_runs_at_boundary_cut_from_grave_run": 48,
         "derived": {
          "midworld_detected": 52,
          "fa_per_100_midworld_detected": 142.30769230769232
@@ -11658,6 +11824,11 @@
        "sd": 3.605551275463989,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 49.333333333333336,
+       "sd": 1.5275252316519468,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 48,
@@ -11758,6 +11929,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 51,
+        "fa_runs_at_boundary_cut_from_grave_run": 45,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 141.66666666666666
@@ -11848,6 +12020,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 51,
+        "fa_runs_at_boundary_cut_from_grave_run": 43,
         "derived": {
          "midworld_detected": 42,
          "fa_per_100_midworld_detected": 154.76190476190476
@@ -11938,6 +12111,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 47,
+        "fa_runs_at_boundary_cut_from_grave_run": 42,
         "derived": {
          "midworld_detected": 49,
          "fa_per_100_midworld_detected": 114.28571428571429
@@ -12292,6 +12466,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 43.333333333333336,
+       "sd": 1.5275252316519468,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 46.333333333333336,
@@ -12392,6 +12571,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 41,
+        "fa_runs_at_boundary_cut_from_grave_run": 35,
         "derived": {
          "midworld_detected": 46,
          "fa_per_100_midworld_detected": 141.30434782608697
@@ -12482,6 +12662,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 45,
+        "fa_runs_at_boundary_cut_from_grave_run": 38,
         "derived": {
          "midworld_detected": 42,
          "fa_per_100_midworld_detected": 135.71428571428572
@@ -12572,6 +12753,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 41,
+        "fa_runs_at_boundary_cut_from_grave_run": 36,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 104.16666666666667
@@ -12926,6 +13108,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 36.333333333333336,
+       "sd": 1.5275252316519468,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 45.333333333333336,
@@ -13026,6 +13213,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 35,
+        "fa_runs_at_boundary_cut_from_grave_run": 32,
         "derived": {
          "midworld_detected": 45,
          "fa_per_100_midworld_detected": 131.11111111111111
@@ -13116,6 +13304,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 41,
+        "fa_runs_at_boundary_cut_from_grave_run": 35,
         "derived": {
          "midworld_detected": 42,
          "fa_per_100_midworld_detected": 128.57142857142858
@@ -13206,6 +13395,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 36,
+        "fa_runs_at_boundary_cut_from_grave_run": 32,
         "derived": {
          "midworld_detected": 47,
          "fa_per_100_midworld_detected": 95.74468085106383
@@ -13560,6 +13750,11 @@
        "sd": 3.2145502536643185,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 33,
+       "sd": 1.7320508075688772,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 44.666666666666664,
@@ -13660,6 +13855,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 31,
+        "fa_runs_at_boundary_cut_from_grave_run": 28,
         "derived": {
          "midworld_detected": 43,
          "fa_per_100_midworld_detected": 111.62790697674419
@@ -13750,6 +13946,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 33,
+        "fa_runs_at_boundary_cut_from_grave_run": 28,
         "derived": {
          "midworld_detected": 40,
          "fa_per_100_midworld_detected": 102.5
@@ -13840,6 +14037,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 29,
+        "fa_runs_at_boundary_cut_from_grave_run": 23,
         "derived": {
          "midworld_detected": 45,
          "fa_per_100_midworld_detected": 84.44444444444444
@@ -14194,6 +14392,11 @@
        "sd": 2.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 26.333333333333332,
+       "sd": 2.8867513459481287,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 42.666666666666664,
@@ -14294,6 +14497,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 24,
+        "fa_runs_at_boundary_cut_from_grave_run": 21,
         "derived": {
          "midworld_detected": 39,
          "fa_per_100_midworld_detected": 87.17948717948718
@@ -14384,6 +14588,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 28,
+        "fa_runs_at_boundary_cut_from_grave_run": 21,
         "derived": {
          "midworld_detected": 37,
          "fa_per_100_midworld_detected": 110.8108108108108
@@ -14474,6 +14679,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 20,
+        "fa_runs_at_boundary_cut_from_grave_run": 18,
         "derived": {
          "midworld_detected": 41,
          "fa_per_100_midworld_detected": 60.97560975609756
@@ -14828,6 +15034,11 @@
        "sd": 4.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 20,
+       "sd": 1.7320508075688772,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 39,
@@ -14928,6 +15139,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 20,
+        "fa_runs_at_boundary_cut_from_grave_run": 18,
         "derived": {
          "midworld_detected": 36,
          "fa_per_100_midworld_detected": 80.55555555555556
@@ -15018,6 +15230,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 25,
+        "fa_runs_at_boundary_cut_from_grave_run": 19,
         "derived": {
          "midworld_detected": 36,
          "fa_per_100_midworld_detected": 94.44444444444444
@@ -15108,6 +15321,7 @@
         },
         "blind_frac": 0.0125,
         "fa_runs_at_boundary": 17,
+        "fa_runs_at_boundary_cut_from_grave_run": 16,
         "derived": {
          "midworld_detected": 39,
          "fa_per_100_midworld_detected": 64.1025641025641
@@ -15462,6 +15676,11 @@
        "sd": 4.041451884327381,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 17.666666666666668,
+       "sd": 1.5275252316519468,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 37,
@@ -15564,6 +15783,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 5,
+        "fa_runs_at_boundary_cut_from_grave_run": 5,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -15654,6 +15874,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 18,
+        "fa_runs_at_boundary_cut_from_grave_run": 15,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -15744,6 +15965,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16066,6 +16288,11 @@
        "sd": 7.810249675906654,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 8,
+       "sd": 6.082762530298219,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -16162,6 +16389,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16252,6 +16480,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16342,6 +16571,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16664,6 +16894,11 @@
        "sd": 5.196152422706632,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 6.666666666666667,
+       "sd": 4.618802153517006,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -16760,6 +16995,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16850,6 +17086,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 12,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -16940,6 +17177,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -17262,6 +17500,11 @@
        "sd": 4.618802153517006,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 6.666666666666667,
+       "sd": 4.618802153517006,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -17358,6 +17601,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -17448,6 +17692,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 10,
+        "fa_runs_at_boundary_cut_from_grave_run": 10,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -17538,6 +17783,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -17860,6 +18106,11 @@
        "sd": 3.4641016151377544,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 6,
+       "sd": 3.4641016151377544,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -17956,6 +18207,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -18046,6 +18298,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 9,
+        "fa_runs_at_boundary_cut_from_grave_run": 9,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -18136,6 +18389,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 3,
+        "fa_runs_at_boundary_cut_from_grave_run": 3,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -18458,6 +18712,11 @@
        "sd": 3.2145502536643185,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 5.333333333333333,
+       "sd": 3.2145502536643185,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -18554,6 +18813,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 3,
+        "fa_runs_at_boundary_cut_from_grave_run": 3,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -18644,6 +18904,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 7,
+        "fa_runs_at_boundary_cut_from_grave_run": 7,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -18734,6 +18995,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 1,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19056,6 +19318,11 @@
        "sd": 3.0550504633038935,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 3.6666666666666665,
+       "sd": 3.0550504633038935,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -19152,6 +19419,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19242,6 +19510,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 6,
+        "fa_runs_at_boundary_cut_from_grave_run": 5,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19332,6 +19601,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19654,6 +19924,11 @@
        "sd": 3.4641016151377544,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.6666666666666667,
+       "sd": 2.8867513459481287,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -19750,6 +20025,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19840,6 +20116,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 3,
+        "fa_runs_at_boundary_cut_from_grave_run": 1,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -19930,6 +20207,7 @@
         },
         "blind_frac": 0.025,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -20252,6 +20530,11 @@
        "sd": 1.7320508075688772,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0.3333333333333333,
+       "sd": 0.5773502691896257,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -20350,6 +20633,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -20440,6 +20724,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -20530,6 +20815,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -20852,6 +21138,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 2.6666666666666665,
+       "sd": 2.309401076758503,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -20948,6 +21239,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -21038,6 +21330,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -21128,6 +21421,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 1,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -21450,6 +21744,11 @@
        "sd": 2.0816659994661326,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.6666666666666667,
+       "sd": 2.0816659994661326,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -21546,6 +21845,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -21636,6 +21936,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -21726,6 +22027,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22048,6 +22350,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.3333333333333333,
+       "sd": 2.309401076758503,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -22144,6 +22451,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22234,6 +22542,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22324,6 +22633,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22646,6 +22956,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.3333333333333333,
+       "sd": 2.309401076758503,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -22742,6 +23057,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22832,6 +23148,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -22922,6 +23239,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -23244,6 +23562,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.3333333333333333,
+       "sd": 2.309401076758503,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -23340,6 +23663,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -23430,6 +23754,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -23520,6 +23845,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -23842,6 +24168,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 1.3333333333333333,
+       "sd": 2.309401076758503,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -23938,6 +24269,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -24028,6 +24360,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 2,
+        "fa_runs_at_boundary_cut_from_grave_run": 2,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -24118,6 +24451,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -24440,6 +24774,11 @@
        "sd": 1.1547005383792515,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0.6666666666666666,
+       "sd": 1.1547005383792515,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -24536,6 +24875,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -24626,6 +24966,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -24716,6 +25057,7 @@
         },
         "blind_frac": 0.0375,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25030,6 +25372,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -25128,6 +25475,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25218,6 +25566,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25308,6 +25657,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25626,6 +25976,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -25726,6 +26081,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25816,6 +26172,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -25906,6 +26263,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -26224,6 +26582,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -26324,6 +26687,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -26414,6 +26778,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -26504,6 +26869,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -26826,6 +27192,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -26922,6 +27293,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -27012,6 +27384,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -27102,6 +27475,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -27424,6 +27798,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -27520,6 +27899,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -27610,6 +27990,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -27700,6 +28081,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28022,6 +28404,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -28118,6 +28505,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28208,6 +28596,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28298,6 +28687,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28620,6 +29010,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -28716,6 +29111,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28806,6 +29202,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -28896,6 +29293,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -29218,6 +29616,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -29314,6 +29717,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -29404,6 +29808,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -29494,6 +29899,7 @@
         },
         "blind_frac": 0.05,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -29804,6 +30210,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -29906,6 +30317,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -29996,6 +30408,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -30086,6 +30499,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -30380,6 +30794,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -30480,6 +30899,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -30570,6 +30990,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -30660,6 +31081,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -30954,6 +31376,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -31054,6 +31481,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -31144,6 +31572,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -31234,6 +31663,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -31532,6 +31962,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -31628,6 +32063,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -31718,6 +32154,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -31808,6 +32245,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32094,6 +32532,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -32194,6 +32637,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32284,6 +32728,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32374,6 +32819,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32660,6 +33106,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -32760,6 +33211,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32850,6 +33302,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -32940,6 +33393,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -33226,6 +33680,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -33326,6 +33785,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -33416,6 +33876,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -33506,6 +33967,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -33792,6 +34254,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -33892,6 +34359,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -33982,6 +34450,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -34072,6 +34541,7 @@
         },
         "blind_frac": 0.075,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 0,
          "fa_per_100_midworld_detected": null
@@ -34362,6 +34832,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 0,
@@ -34386,6 +34861,23 @@
    "episodes_midworld": 100,
    "n_ticks": 2800000,
    "onsets": {
+    "per_set": {
+     "L": {
+      "slices": 60,
+      "ticks": 1200000,
+      "grave_in_100": 0
+     },
+     "W": {
+      "slices": 160,
+      "ticks": 960000,
+      "grave_in_100": 60
+     },
+     "G": {
+      "slices": 160,
+      "ticks": 640000,
+      "grave_in_100": 160
+     }
+    },
     "midworld_n": 100,
     "min": 3,
     "median": 24.0,
@@ -34890,6 +35382,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 164,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 96,
          "fa_per_100_midworld_detected": 276.0416666666667
@@ -34980,6 +35473,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 160,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 100,
          "fa_per_100_midworld_detected": 235.0
@@ -35070,6 +35564,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 160,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 99,
          "fa_per_100_midworld_detected": 216.16161616161617
@@ -35396,6 +35891,11 @@
        "sd": 2.309401076758503,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 98.33333333333333,
@@ -35496,6 +35996,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 168,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 89,
          "fa_per_100_midworld_detected": 311.23595505617976
@@ -35586,6 +36087,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 106,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 98,
          "fa_per_100_midworld_detected": 177.55102040816325
@@ -35676,6 +36178,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 161,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 98,
          "fa_per_100_midworld_detected": 221.42857142857142
@@ -36002,6 +36505,11 @@
        "sd": 33.95585369269929,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 95,
@@ -36102,6 +36610,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 153,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 89,
          "fa_per_100_midworld_detected": 279.7752808988764
@@ -36192,6 +36701,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 103,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 95,
          "fa_per_100_midworld_detected": 178.94736842105263
@@ -36282,6 +36792,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 160,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 97,
          "fa_per_100_midworld_detected": 218.55670103092783
@@ -36608,6 +37119,11 @@
        "sd": 31.085902485424697,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 93.66666666666667,
@@ -36708,6 +37224,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 127,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 86,
          "fa_per_100_midworld_detected": 266.27906976744185
@@ -36798,6 +37315,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 104,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 92,
          "fa_per_100_midworld_detected": 170.65217391304347
@@ -36888,6 +37406,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 93,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 91,
          "fa_per_100_midworld_detected": 191.2087912087912
@@ -37214,6 +37733,11 @@
        "sd": 17.349351572897472,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 89.66666666666667,
@@ -37314,6 +37838,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 116,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 83,
          "fa_per_100_midworld_detected": 242.16867469879517
@@ -37404,6 +37929,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 89,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 92,
          "fa_per_100_midworld_detected": 166.30434782608697
@@ -37494,6 +38020,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 28,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 87,
          "fa_per_100_midworld_detected": 148.27586206896552
@@ -37820,6 +38347,11 @@
        "sd": 45.081407845511364,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 87.33333333333333,
@@ -37920,6 +38452,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 113,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 81,
          "fa_per_100_midworld_detected": 246.91358024691357
@@ -38010,6 +38543,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 64,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 88,
          "fa_per_100_midworld_detected": 170.45454545454547
@@ -38100,6 +38634,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 11,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 84,
          "fa_per_100_midworld_detected": 145.23809523809524
@@ -38426,6 +38961,11 @@
        "sd": 51.013070220614374,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 84.33333333333333,
@@ -38526,6 +39066,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 90,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 77,
          "fa_per_100_midworld_detected": 253.24675324675326
@@ -38616,6 +39157,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 42,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 80,
          "fa_per_100_midworld_detected": 160.0
@@ -38706,6 +39248,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 8,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 70,
          "fa_per_100_midworld_detected": 164.28571428571428
@@ -39032,6 +39575,11 @@
        "sd": 41.198705481281,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 75.66666666666667,
@@ -39132,6 +39680,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 36,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 72,
          "fa_per_100_midworld_detected": 215.27777777777777
@@ -39222,6 +39771,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 17,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 72,
          "fa_per_100_midworld_detected": 184.72222222222223
@@ -39312,6 +39862,7 @@
         },
         "blind_frac": 0.0,
         "fa_runs_at_boundary": 6,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 60,
          "fa_per_100_midworld_detected": 188.33333333333334
@@ -39638,6 +40189,11 @@
        "sd": 15.17673658377628,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 68,
@@ -39740,6 +40296,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 111,
+        "fa_runs_at_boundary_cut_from_grave_run": 65,
         "derived": {
          "midworld_detected": 51,
          "fa_per_100_midworld_detected": 356.8627450980392
@@ -39830,6 +40387,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 111,
+        "fa_runs_at_boundary_cut_from_grave_run": 74,
         "derived": {
          "midworld_detected": 52,
          "fa_per_100_midworld_detected": 330.7692307692308
@@ -39920,6 +40478,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 114,
+        "fa_runs_at_boundary_cut_from_grave_run": 68,
         "derived": {
          "midworld_detected": 51,
          "fa_per_100_midworld_detected": 311.7647058823529
@@ -40274,6 +40833,11 @@
        "sd": 1.7320508075688772,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 69,
+       "sd": 4.58257569495584,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 51.333333333333336,
@@ -40374,6 +40938,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 89,
+        "fa_runs_at_boundary_cut_from_grave_run": 50,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 308.0
@@ -40464,6 +41029,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 96,
+        "fa_runs_at_boundary_cut_from_grave_run": 64,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 296.0
@@ -40554,6 +41120,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 98,
+        "fa_runs_at_boundary_cut_from_grave_run": 58,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 286.0
@@ -40908,6 +41475,11 @@
        "sd": 4.725815626252609,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 57.333333333333336,
+       "sd": 7.023769168568492,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 50,
@@ -41008,6 +41580,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 74,
+        "fa_runs_at_boundary_cut_from_grave_run": 48,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 280.0
@@ -41098,6 +41671,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 85,
+        "fa_runs_at_boundary_cut_from_grave_run": 55,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 275.0
@@ -41188,6 +41762,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 90,
+        "fa_runs_at_boundary_cut_from_grave_run": 52,
         "derived": {
          "midworld_detected": 50,
          "fa_per_100_midworld_detected": 246.0
@@ -41542,6 +42117,11 @@
        "sd": 8.18535277187245,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 51.666666666666664,
+       "sd": 3.511884584284246,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 49.333333333333336,
@@ -41642,6 +42222,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 70,
+        "fa_runs_at_boundary_cut_from_grave_run": 44,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 297.9166666666667
@@ -41732,6 +42313,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 77,
+        "fa_runs_at_boundary_cut_from_grave_run": 49,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 241.66666666666666
@@ -41822,6 +42404,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 83,
+        "fa_runs_at_boundary_cut_from_grave_run": 48,
         "derived": {
          "midworld_detected": 46,
          "fa_per_100_midworld_detected": 260.8695652173913
@@ -42176,6 +42759,11 @@
        "sd": 6.506407098647712,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 47,
+       "sd": 2.6457513110645907,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 47.333333333333336,
@@ -42276,6 +42864,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 67,
+        "fa_runs_at_boundary_cut_from_grave_run": 40,
         "derived": {
          "midworld_detected": 47,
          "fa_per_100_midworld_detected": 263.82978723404256
@@ -42366,6 +42955,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 75,
+        "fa_runs_at_boundary_cut_from_grave_run": 46,
         "derived": {
          "midworld_detected": 48,
          "fa_per_100_midworld_detected": 231.25
@@ -42456,6 +43046,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 71,
+        "fa_runs_at_boundary_cut_from_grave_run": 42,
         "derived": {
          "midworld_detected": 45,
          "fa_per_100_midworld_detected": 226.66666666666666
@@ -42810,6 +43401,11 @@
        "sd": 4.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 42.666666666666664,
+       "sd": 3.0550504633038935,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 46.666666666666664,
@@ -42910,6 +43506,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 62,
+        "fa_runs_at_boundary_cut_from_grave_run": 37,
         "derived": {
          "midworld_detected": 47,
          "fa_per_100_midworld_detected": 253.19148936170214
@@ -43000,6 +43597,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 67,
+        "fa_runs_at_boundary_cut_from_grave_run": 43,
         "derived": {
          "midworld_detected": 45,
          "fa_per_100_midworld_detected": 242.22222222222223
@@ -43090,6 +43688,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 61,
+        "fa_runs_at_boundary_cut_from_grave_run": 32,
         "derived": {
          "midworld_detected": 44,
          "fa_per_100_midworld_detected": 195.45454545454547
@@ -43444,6 +44043,11 @@
        "sd": 3.2145502536643185,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 37.333333333333336,
+       "sd": 5.507570547286102,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 45.333333333333336,
@@ -43544,6 +44148,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 45,
+        "fa_runs_at_boundary_cut_from_grave_run": 25,
         "derived": {
          "midworld_detected": 47,
          "fa_per_100_midworld_detected": 217.0212765957447
@@ -43634,6 +44239,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 57,
+        "fa_runs_at_boundary_cut_from_grave_run": 37,
         "derived": {
          "midworld_detected": 42,
          "fa_per_100_midworld_detected": 200.0
@@ -43724,6 +44330,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 55,
+        "fa_runs_at_boundary_cut_from_grave_run": 28,
         "derived": {
          "midworld_detected": 38,
          "fa_per_100_midworld_detected": 194.73684210526315
@@ -44078,6 +44685,11 @@
        "sd": 6.429100507328637,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 30,
+       "sd": 6.244997998398398,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 42.333333333333336,
@@ -44178,6 +44790,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 39,
+        "fa_runs_at_boundary_cut_from_grave_run": 21,
         "derived": {
          "midworld_detected": 46,
          "fa_per_100_midworld_detected": 169.56521739130434
@@ -44268,6 +44881,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 48,
+        "fa_runs_at_boundary_cut_from_grave_run": 23,
         "derived": {
          "midworld_detected": 40,
          "fa_per_100_midworld_detected": 185.0
@@ -44358,6 +44972,7 @@
         },
         "blind_frac": 0.0033928571428571428,
         "fa_runs_at_boundary": 45,
+        "fa_runs_at_boundary_cut_from_grave_run": 21,
         "derived": {
          "midworld_detected": 36,
          "fa_per_100_midworld_detected": 172.22222222222223
@@ -44712,6 +45327,11 @@
        "sd": 4.58257569495584,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 21.666666666666668,
+       "sd": 1.1547005383792515,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 40.666666666666664,
@@ -44814,6 +45434,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 62,
+        "fa_runs_at_boundary_cut_from_grave_run": 44,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 450.0
@@ -44904,6 +45525,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 74,
+        "fa_runs_at_boundary_cut_from_grave_run": 58,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 510.0
@@ -44994,6 +45616,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 73,
+        "fa_runs_at_boundary_cut_from_grave_run": 50,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 475.0
@@ -45348,6 +45971,11 @@
        "sd": 6.6583281184793925,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 50.666666666666664,
+       "sd": 7.023769168568492,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 20,
@@ -45448,6 +46076,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 46,
+        "fa_runs_at_boundary_cut_from_grave_run": 37,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 320.0
@@ -45538,6 +46167,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 48,
+        "fa_runs_at_boundary_cut_from_grave_run": 37,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 320.0
@@ -45628,6 +46258,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 56,
+        "fa_runs_at_boundary_cut_from_grave_run": 36,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 370.0
@@ -45982,6 +46613,11 @@
        "sd": 5.291502622129181,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 36.666666666666664,
+       "sd": 0.5773502691896257,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 20,
@@ -46082,6 +46718,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 37,
+        "fa_runs_at_boundary_cut_from_grave_run": 29,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 300.0
@@ -46172,6 +46809,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 40,
+        "fa_runs_at_boundary_cut_from_grave_run": 30,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 270.0
@@ -46262,6 +46900,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 39,
+        "fa_runs_at_boundary_cut_from_grave_run": 23,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 250.0
@@ -46616,6 +47255,11 @@
        "sd": 1.5275252316519468,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 27.333333333333332,
+       "sd": 3.7859388972001824,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 20,
@@ -46716,6 +47360,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 29,
+        "fa_runs_at_boundary_cut_from_grave_run": 20,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 270.0
@@ -46806,6 +47451,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 32,
+        "fa_runs_at_boundary_cut_from_grave_run": 21,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 225.0
@@ -46896,6 +47542,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 22,
+        "fa_runs_at_boundary_cut_from_grave_run": 10,
         "derived": {
          "midworld_detected": 19,
          "fa_per_100_midworld_detected": 200.0
@@ -47250,6 +47897,11 @@
        "sd": 5.131601439446884,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 17,
+       "sd": 6.082762530298219,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 19.666666666666668,
@@ -47350,6 +48002,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 23,
+        "fa_runs_at_boundary_cut_from_grave_run": 17,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 180.0
@@ -47440,6 +48093,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 24,
+        "fa_runs_at_boundary_cut_from_grave_run": 14,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 185.0
@@ -47530,6 +48184,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 17,
+        "fa_runs_at_boundary_cut_from_grave_run": 8,
         "derived": {
          "midworld_detected": 19,
          "fa_per_100_midworld_detected": 142.10526315789474
@@ -47884,6 +48539,11 @@
        "sd": 3.7859388972001824,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 13,
+       "sd": 4.58257569495584,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 19.666666666666668,
@@ -47984,6 +48644,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 21,
+        "fa_runs_at_boundary_cut_from_grave_run": 13,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 165.0
@@ -48074,6 +48735,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 20,
+        "fa_runs_at_boundary_cut_from_grave_run": 12,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 175.0
@@ -48164,6 +48826,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 14,
+        "fa_runs_at_boundary_cut_from_grave_run": 8,
         "derived": {
          "midworld_detected": 19,
          "fa_per_100_midworld_detected": 110.52631578947368
@@ -48518,6 +49181,11 @@
        "sd": 3.7859388972001824,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 11,
+       "sd": 2.6457513110645907,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 19.666666666666668,
@@ -48618,6 +49286,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 17,
+        "fa_runs_at_boundary_cut_from_grave_run": 10,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 155.0
@@ -48708,6 +49377,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 7,
         "derived": {
          "midworld_detected": 19,
          "fa_per_100_midworld_detected": 105.26315789473684
@@ -48798,6 +49468,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 11,
+        "fa_runs_at_boundary_cut_from_grave_run": 6,
         "derived": {
          "midworld_detected": 17,
          "fa_per_100_midworld_detected": 82.3529411764706
@@ -49152,6 +49823,11 @@
        "sd": 3.0550504633038935,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 7.666666666666667,
+       "sd": 2.0816659994661326,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 18.666666666666668,
@@ -49252,6 +49928,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 13,
+        "fa_runs_at_boundary_cut_from_grave_run": 9,
         "derived": {
          "midworld_detected": 20,
          "fa_per_100_midworld_detected": 115.0
@@ -49342,6 +50019,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 4,
+        "fa_runs_at_boundary_cut_from_grave_run": 3,
         "derived": {
          "midworld_detected": 19,
          "fa_per_100_midworld_detected": 42.10526315789474
@@ -49432,6 +50110,7 @@
         },
         "blind_frac": 0.0067857142857142855,
         "fa_runs_at_boundary": 6,
+        "fa_runs_at_boundary_cut_from_grave_run": 3,
         "derived": {
          "midworld_detected": 17,
          "fa_per_100_midworld_detected": 70.58823529411765
@@ -49786,6 +50465,11 @@
        "sd": 4.725815626252609,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 5,
+       "sd": 3.4641016151377544,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 18.666666666666668,
@@ -49888,6 +50572,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 6,
+        "fa_runs_at_boundary_cut_from_grave_run": 5,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 93.75
@@ -49978,6 +50663,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 7,
+        "fa_runs_at_boundary_cut_from_grave_run": 4,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 112.5
@@ -50068,6 +50754,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 81.25
@@ -50422,6 +51109,11 @@
        "sd": 3.2145502536643185,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 3,
+       "sd": 2.6457513110645907,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 16,
@@ -50522,6 +51214,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 2,
+        "fa_runs_at_boundary_cut_from_grave_run": 1,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 25.0
@@ -50612,6 +51305,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 12.5
@@ -50702,6 +51396,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 14,
          "fa_per_100_midworld_detected": 71.42857142857143
@@ -51056,6 +51751,11 @@
        "sd": 1.1547005383792515,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0.3333333333333333,
+       "sd": 0.5773502691896257,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 15.333333333333334,
@@ -51156,6 +51856,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 62.5
@@ -51246,6 +51947,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 15,
          "fa_per_100_midworld_detected": 0.0
@@ -51336,6 +52038,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 13,
          "fa_per_100_midworld_detected": 7.6923076923076925
@@ -51690,6 +52393,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 14.666666666666666,
@@ -51790,6 +52498,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 43.75
@@ -51880,6 +52589,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 14,
          "fa_per_100_midworld_detected": 0.0
@@ -51970,6 +52680,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 13,
          "fa_per_100_midworld_detected": 0.0
@@ -52324,6 +53035,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 14.333333333333334,
@@ -52424,6 +53140,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 18.75
@@ -52514,6 +53231,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 13,
          "fa_per_100_midworld_detected": 0.0
@@ -52604,6 +53322,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -52958,6 +53677,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 13.666666666666666,
@@ -53058,6 +53782,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 1,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 6.25
@@ -53148,6 +53873,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 13,
          "fa_per_100_midworld_detected": 7.6923076923076925
@@ -53238,6 +53964,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -53592,6 +54319,11 @@
        "sd": 0.5773502691896257,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 13.666666666666666,
@@ -53692,6 +54424,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 0.0
@@ -53782,6 +54515,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 8.333333333333334
@@ -53872,6 +54606,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -54226,6 +54961,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 13.333333333333334,
@@ -54326,6 +55066,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 16,
          "fa_per_100_midworld_detected": 0.0
@@ -54416,6 +55157,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 16.666666666666668
@@ -54506,6 +55248,7 @@
         },
         "blind_frac": 0.013571428571428571,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -54860,6 +55603,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 13.333333333333334,
@@ -54962,6 +55710,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 66.66666666666667
@@ -55052,6 +55801,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 41.666666666666664
@@ -55142,6 +55892,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 91.66666666666667
@@ -55496,6 +56247,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -55596,6 +56352,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -55686,6 +56443,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 16.666666666666668
@@ -55776,6 +56534,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 75.0
@@ -56130,6 +56889,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -56230,6 +56994,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -56320,6 +57085,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -56410,6 +57176,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 8.333333333333334
@@ -56764,6 +57531,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -56864,6 +57636,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -56954,6 +57727,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -57044,6 +57818,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -57386,6 +58161,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
@@ -57490,6 +58270,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -57580,6 +58361,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -57670,6 +58452,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58016,6 +58799,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -58116,6 +58904,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58206,6 +58995,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58296,6 +59086,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58642,6 +59433,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -58742,6 +59538,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58832,6 +59629,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -58922,6 +59720,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -59268,6 +60067,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -59368,6 +60172,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -59458,6 +60263,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -59548,6 +60354,7 @@
         },
         "blind_frac": 0.02035714285714286,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 12,
          "fa_per_100_midworld_detected": 0.0
@@ -59894,6 +60701,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 12,
@@ -59996,6 +60808,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 100.0
@@ -60086,6 +60899,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 62.5
@@ -60176,6 +60990,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 137.5
@@ -60530,6 +61345,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -60630,6 +61450,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -60720,6 +61541,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 25.0
@@ -60810,6 +61632,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 112.5
@@ -61164,6 +61987,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -61264,6 +62092,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -61354,6 +62183,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -61444,6 +62274,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 12.5
@@ -61798,6 +62629,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -61898,6 +62734,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -61988,6 +62825,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -62078,6 +62916,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -62424,6 +63263,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -62524,6 +63368,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -62614,6 +63459,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -62704,6 +63550,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63050,6 +63897,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -63150,6 +64002,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63240,6 +64093,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63330,6 +64184,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63676,6 +64531,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -63776,6 +64636,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63866,6 +64727,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -63956,6 +64818,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -64302,6 +65165,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -64402,6 +65270,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -64492,6 +65361,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -64582,6 +65452,7 @@
         },
         "blind_frac": 0.027142857142857142,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -64928,6 +65799,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -65030,6 +65906,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 100.0
@@ -65120,6 +65997,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 37.5
@@ -65210,6 +66088,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 137.5
@@ -65564,6 +66443,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -65664,6 +66548,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -65754,6 +66639,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -65844,6 +66730,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 62.5
@@ -66198,6 +67085,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -66298,6 +67190,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -66388,6 +67281,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -66478,6 +67372,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 12.5
@@ -66832,6 +67727,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -66932,6 +67832,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -67022,6 +67923,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -67112,6 +68014,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -67458,6 +68361,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -67558,6 +68466,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -67648,6 +68557,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -67738,6 +68648,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68084,6 +68995,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -68184,6 +69100,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68274,6 +69191,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68364,6 +69282,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68710,6 +69629,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -68810,6 +69734,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68900,6 +69825,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -68990,6 +69916,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -69336,6 +70263,11 @@
        "sd": 0.0,
        "seeds": 3
       },
+      "fa_runs_at_boundary_cut_from_grave_run": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
       "derived": {
        "midworld_detected": {
         "mean": 8,
@@ -69436,6 +70368,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -69526,6 +70459,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -69616,6 +70550,7 @@
         },
         "blind_frac": 0.04071428571428572,
         "fa_runs_at_boundary": 0,
+        "fa_runs_at_boundary_cut_from_grave_run": 0,
         "derived": {
          "midworld_detected": 8,
          "fa_per_100_midworld_detected": 0.0
@@ -69958,6 +70893,11 @@
        "seeds": 3
       },
       "fa_runs_at_boundary": {
+       "mean": 0,
+       "sd": 0.0,
+       "seeds": 3
+      },
+      "fa_runs_at_boundary_cut_from_grave_run": {
        "mean": 0,
        "sd": 0.0,
        "seeds": 3
