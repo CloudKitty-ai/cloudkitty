@@ -812,8 +812,8 @@ cut from a run that held a grave tick — the declaration's truncation
 case, a detection run of the grave-start friend that the mask turns
 into a false alarm — while the remaining runs number 30 / 29 / 27 per
 seed at 25 and 24 / 26 / 26 at 50; the reset episodes still running at
-the boundary are 0.618 at 25 and 0.407 at 50 (the reset detected
-fraction). What the same burn-in costs: by
+the boundary are at least 0.618 at 25 and 0.407 at 50 (the reset
+detected fraction, a lower bound on them). What the same burn-in costs: by
 B = 25 the onsets inside the burn-in are 44 of 88 on P (still caught,
 1.000, at a median latency of 6.0 ticks) and 56 of 100 on L / W / G
 (0.143 caught); by 50, 68 and 84 (0.451 ± 0.034 and 0.048 caught); by
@@ -849,16 +849,18 @@ threshold from 0.10 to 0.50 costs 0.017 of the grave slices on P and
 by 0.700 and 0.473. The sweep's detection curve (§Addendum 2) is built from onsets
 inside this window, and its runs-after-tick-100 column from the ticks
 outside it; read together they compared a start-up detection with a
-post-start-up false-alarm rate, which is why the curve said "pick low".
-That reading was this thread's, offered to the owner as a
-recommendation on 2026-10-25 before this read; it does not stand.
+post-start-up false-alarm rate. The recommendation for the low end that
+this thread drew from them and gave the owner on 2026-10-25, before
+this read, does not stand.
 
 ### Expectations stated before the read, scored
 
 Three were stated (DECLARATION §Addendum 3), none a prediction to score
 for a rule. (1) False-alarm runs per 10,000 non-increasing in B at a
 fixed threshold: did NOT hold on group P at 0.10 (0.102 at B = 25,
-0.187 at 50, then 0.024 / 0.011 / 0.007 / 0.003), held on L / W / G
+0.187 at 50, then 0.024 / 0.011 / 0.007 / 0.003) — over the full grid
+the 25 → 50 rise is there at six of the eight thresholds on P (0.05
+through 0.30) and at none on L / W / G — held on L / W / G at 0.10
 (0.795 / 0.530 / 0.240 / 0.019 / 0.013 / 0.013 / 0.006); the rise is
 the truncation case the declaration named, in full: the runs cut from
 a run that held a grave tick go 11 / 13 / 12 → 51 / 49 / 48 per seed
@@ -867,14 +869,16 @@ between B = 25 and 50 while all other runs go 30 / 29 / 27 → 24 / 26 /
 group P within 0.05 per 10,000 of the sweep's late-runs column (0.007):
 held, 0.024 ± 0.013 (identity 3 makes it the late runs plus the 4 / 13
 / 4 boundary runs per seed). (3) Reset detection delayed to a median
-latency of B on every cell with B > 0: held on the printed cells (100.0
-at B = 100 on both sets at 0.10; 100.0–102.5 across the threshold
-ladder on P, 100.0 on L / W / G); over the full grid the median runs
-over B by up to 19.7 ticks on P (169.7 at B = 150 / 0.20) and 20.3 on
-L / W / G (320.3 at B = 300 / 0.30), and at B = 300 on P no reset
-episode is detected at any threshold (an empty cell) — the expectation
-holds where a reset episode is still running at B and is moot where
-none is, with the detected fraction falling as stated above.
+latency of B on every cell with B > 0: did NOT hold as stated. The
+median is at or over B in every non-empty cell, exactly B in 27 of the
+40 non-empty cells on P and 43 of the 48 on L / W / G, and over B in
+the rest by up to 19.7 ticks on P (169.7 at B = 150 / 0.20) and 20.3
+on L / W / G (320.3 at B = 300 / 0.30) — cells where the caught reset
+episodes' first tick at or over the threshold came after the boundary;
+the printed cells read 100.0 at B = 100 on both sets at 0.10,
+100.0–102.5 across the threshold ladder on P and 100.0 on L / W / G;
+at B = 300 on P no reset episode is detected at any threshold (eight
+empty cells). The detected fraction falls as stated above.
 
 ### R6d — the tables (`phase1d-burnin.md`, verbatim)
 
@@ -973,15 +977,17 @@ mid-world onset offsets: n 100, min 3, median 24.0, max 90; at or under 25 / 50 
 
 ### Limitations of the burn-in read
 
-Everything here is a property of two evaluation sets built from
-grave-start worlds: group P's per-cat grave starts, W's wide starts and
-G's all-needs-high starts put every grave onset inside the first
-hundred ticks, and L, the lived distribution, has no episode at all in
-its 60 slices of 20,000 ticks (1,200,000 observer-ticks). Whether a Gen 2 friend ever goes
-grave mid-world under the certified policy is not read here; these sets
-cannot show it either way, and a set that could would have to be built
-(its welfare cost declared) before any mid-world detection number can
-be claimed. The start-up split is a slice-level read at one window
+Everything here is a property of two evaluation sets in which every
+grave onset is a start-up one: group P's per-cat grave starts, W's wide
+starts and G's all-needs-high starts put every onset inside the first
+hundred ticks, and L, the lived worlds under the certified roster, has
+no episode at all in its 60 slices of 20,000 ticks (1,200,000
+observer-ticks). Whether a Gen 2 friend ever goes grave mid-world under
+the certified policy is not settled here: L could have shown one and
+did not, which is evidence of rarity, not of absence, and a set in
+which mid-world onsets are known to occur would have to be built (its
+welfare cost declared) before any mid-world detection number can be
+claimed. The start-up split is a slice-level read at one window
 width (100 ticks, the declared cross-section): it says whether the
 alarm fired at all inside the window, not when, and a probe that fires
 on the first tick of every slice (two of three seeds at 0.10) is counted
