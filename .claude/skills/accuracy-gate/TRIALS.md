@@ -1400,3 +1400,41 @@ the printed values or print the range in the write-up first; (21)
 when a sentence cites counts as evidence, cite the quantity the
 claim is about (grave samples in a bin, not samples in a bin), even
 when both support it.
+
+## 2026-10-24 — minifriend-phase1d RESULTS §Addendum (which need, latency) + the F-068 copy check (Experiments)
+
+Scope: the addendum section only (the document's earlier sections
+gated the same day); F-068 as three copy-only rounds.
+- Round 1 FAIL: every number matched (fresh read byte-identical; 6
+  guards); one WEAK on a line naming an F-number (SD's slow climb
+  attributed to "F-067's under-confident bins below 0.7" — F-067 says
+  the probe's below 0.5; the support was this document's own R2d(a));
+  and a structural disclosure the section lacked: 200 of 288 episodes
+  begin at the world's first tick (group P's per-cat grave starts), so
+  "detected at onset" there is the prior; the reader also had a latent
+  defect (the anticipation guard read across slice boundaries; fired 0
+  times). Remedy: reset / mid-world split, slice-relative anticipation,
+  world-start false-alarm split, rules scored as declared with the
+  mid-world numbers disclosed, t6 extended with a red.
+- Between rounds the session filled four table rows from memory for
+  cells its filtered printout had hidden (SD-w16 P ≥ 0.5, DR-h24+p ≥
+  0.5, both mean rules; 14 cells wrong) and caught them itself by
+  printing the JSON before relaunching — lesson 19 again, at table
+  scale.
+- Round 2 PASS: 372 cells, ~170 prose numbers, ~30 derived; 4 weak
+  outside the zones (an extended guard's red run but unrecorded; a
+  definition missing a conjunct the code requires; an unscoped
+  "half or more"; "two thirds" for 0.69), 1 rounding, 1 pointer.
+- F-068 copy rounds: 1 FAIL (four: the head's label; two rules
+  restated without their scope; "per seed" dropped; a "hers to
+  declare" the write-up does not say); 2 PASS (three advisories); 3
+  PASS after the split (five advisories applied).
+Lessons: (22) a per-tick detection read on worlds that START in the
+condition must class onsets by whether the world began there — a
+prior is not a detection, and the declared split hid it; (23) a
+guard's red is on record only when the declaration says so — "Red
+follows" in a commit message is not the record; (24) a definition in
+prose must carry every conjunct the code tests ("at the tick before"
+hid "and at onset"); (25) never fill a table from a filtered
+printout — print every cell the table has, or paste the reader's
+rows.

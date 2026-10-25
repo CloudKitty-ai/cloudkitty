@@ -106,6 +106,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-065 | active | With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W) |
 | F-066 | active | A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators |
 | F-067 | active | A 25-parameter logistic read of "the true stratum is GRAVE" on the FROZEN NF-h24 GRU states reads grave within the seed spread of the structured discrete belief head SD at width 16 (F-066) and ahead of it on the grave mean and Brier in sight and under fog, with its mean on common samples as low: in sight on the per-cat worlds its mean P(grave) on grave samples is 0.583 ± 0.015 against SD's 0.474 ± 0.115 (Δ −0.109, combined seed spread 0.116 → outcome A of the declared rule, "the histogram bought nothing the consumer needs"), its Brier 0.00054 against 0.00064, its mean on common samples 0.0003 against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046 (Brier 0.00119 against 0.00185); in sight SD keeps its reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057; NF-h24+p's top bins realise 0.760 and 0.882 where they say 0.854 and 0.959) and a lower mean on adjacent samples (0.183 against 0.265); on the DR-h24 states the same probe reads 0.577 ± 0.037 in sight; all three rank grave against non-grave at AUROC 0.998–0.999 in every version, so the heads differ in confidence, not discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one sigmoid) is 7,832 parameters, under the cap; the Professor's registered prediction P2 (≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met. Beside it, the SD filter's drift operator smears a sharp belief exactly as the arithmetic says — sd √(n f (1 − f)) bins, matched to 2.3 × 10⁻⁸ bins over 79 unclamped rows; 2.708 bins (13.5 need points) after 100 ticks at every run's initial rate, 1.56–1.87 bins after 100 ticks at the learned width-16 median rates — while the engine's need rises with no uncertainty; the mechanism the Professor named for F-066's residual share stands as arithmetic, its causal share unmeasured |
+| F-068 | active | The base head's five means name the grave need, the frozen-state grave probability is over 0.2 before a mid-world grave episode begins in most cases, and a consumer reading the means against 90 misses half or more of them: on the per-cat worlds NF-h24's means name a grave need on 0.871 ± 0.031 of the need-grave samples in sight (top-2 0.969; the always-name-drink baseline 0.353; DR-h24 0.872 ± 0.010; SD-w16's grave mass 0.739 ± 0.043, its mean 0.687 ± 0.031) and 0.867 under fog, play the weakest need (0.783); of 288 grave episodes over observer slices (72 friend-episodes × 4 observers) 200 are RESET episodes (grave at the world's first tick, group P's per-cat grave-start design; a crossing there is the prior, not a detection), 20 begin mid-world in the observer's sight and 68 mid-world under fog; on the mid-world fog-onset episodes NF-h24+p at P(grave) ≥ 0.2 detects 0.946 ± 0.042 at a median latency of 0 ticks and is over the threshold at the tick before onset as well in 0.931 of them, on the mid-world in-sight episodes 0.850 ± 0.087 (anticipated in 0.833), over all onsets 0.912 ± 0.051 of the 34 in-sight-onset and 0.966 ± 0.016 of the 254 fog-onset episodes; its false-alarm runs are 0.90 ± 0.30 per 10,000 observer-ticks in all and 0.07 ± 0.02 excluding runs that start at the world's first tick; the max-of-means ≥ 90 rule on the same head detects 0.367 ± 0.058 of the mid-world in-sight and 0.490 ± 0.090 of the mid-world fog episodes (0.490 ± 0.045 and 0.686 ± 0.065 over all onsets, 3 ticks late at the median), on SD-w16's means 0.294 and 0.177 over all onsets at a median of 11.3 and 34.0 ticks; both declared reading rules hold as declared ((i) NF-h24 mean which-need in sight, pooled, ≥ 0.80 with every per-need cell of n ≥ 200 above 0.60; (ii) NF-h24+p at P(grave) ≥ 0.2 detecting ≥ 0.90 of the episodes with onset in sight at median latency ≤ 10 ticks — 0.912, by less than one of its 34 episodes, 0.850 on the 20 mid-world in-sight episodes alone, disclosed) and the registered prediction that the mean rule detects under half of the in-sight-onset episodes holds on the seed mean (0.490; per seed 0.500 / 0.441 / 0.529, one seed exactly at half and one over), so the verdict as declared is "enough for detection and naming, on this evidence" |
 
 ---
 
@@ -3578,3 +3579,60 @@ the happiness-only grave samples in sight, and the Phase 2 head choice
 stays hers; the hybrid is under the cap (7,832 ≤
 8,445). Professor's P1 (a longer-cap SD re-run stays READ over 1
 with the signature on ≥ 4 friends) is carried forward unscored.
+
+## F-068 · active · The base head's five means name the grave need, the frozen-state grave probability is over 0.2 before a mid-world grave episode begins in most cases, and a consumer reading the means against 90 misses half or more of them: on the per-cat worlds NF-h24's means name a grave need on 0.871 ± 0.031 of the need-grave samples in sight (top-2 0.969; the always-name-drink baseline 0.353; DR-h24 0.872 ± 0.010; SD-w16's grave mass 0.739 ± 0.043, its mean 0.687 ± 0.031) and 0.867 under fog, play the weakest need (0.783); of 288 grave episodes over observer slices (72 friend-episodes × 4 observers) 200 are RESET episodes (grave at the world's first tick, group P's per-cat grave-start design; a crossing there is the prior, not a detection), 20 begin mid-world in the observer's sight and 68 mid-world under fog; on the mid-world fog-onset episodes NF-h24+p at P(grave) ≥ 0.2 detects 0.946 ± 0.042 at a median latency of 0 ticks and is over the threshold at the tick before onset as well in 0.931 of them, on the mid-world in-sight episodes 0.850 ± 0.087 (anticipated in 0.833), over all onsets 0.912 ± 0.051 of the 34 in-sight-onset and 0.966 ± 0.016 of the 254 fog-onset episodes; its false-alarm runs are 0.90 ± 0.30 per 10,000 observer-ticks in all and 0.07 ± 0.02 excluding runs that start at the world's first tick; the max-of-means ≥ 90 rule on the same head detects 0.367 ± 0.058 of the mid-world in-sight and 0.490 ± 0.090 of the mid-world fog episodes (0.490 ± 0.045 and 0.686 ± 0.065 over all onsets, 3 ticks late at the median), on SD-w16's means 0.294 and 0.177 over all onsets at a median of 11.3 and 34.0 ticks; both declared reading rules hold as declared ((i) NF-h24 mean which-need in sight, pooled, ≥ 0.80 with every per-need cell of n ≥ 200 above 0.60; (ii) NF-h24+p at P(grave) ≥ 0.2 detecting ≥ 0.90 of the episodes with onset in sight at median latency ≤ 10 ticks — 0.912, by less than one of its 34 episodes, 0.850 on the 20 mid-world in-sight episodes alone, disclosed) and the registered prediction that the mean rule detects under half of the in-sight-onset episodes holds on the seed mean (0.490; per seed 0.500 / 0.441 / 0.529, one seed exactly at half and one over), so the verdict as declared is "enough for detection and naming, on this evidence"
+
+Minted from mini-friend Phase 1d §Addendum (`minifriend-phase1d-2026-10-24/RESULTS.md`
+§Addendum, gated; owner 2026-10-24 "Agreed, let's proceed. First the
+breakdown by need and latency read", after a sanity-check exchange on
+whether the minis give the main models what they need; deviations
+entry 13). Data: none new (0 covered cat-ticks); the outputs of Phase
+1b's NF-h24 / DR-h24 runs, 1c's SD-w16 runs and 1d's probes, read on
+group P (P1..P5, 4,000,000 samples). **R3d which need**: domain the
+grave samples with some hidden need ≥ 90 (2,359 per seed in sight, of
+which 1,021 carry two or more grave needs; 7,865 under fog); named
+need = argmax of the head's five per-need scores, correct when it is
+one of the sample's grave needs; per-need cells all n ≥ 500 per seed; the
+confusion for NF-h24's means in sight names a grave play need as
+sleep 511, drink 474 and eat 354 times against play 661 (counts
+summed over seeds), eat the strongest need in sight (0.986). **R4d latency**:
+episodes = maximal runs of stratum GRAVE on the truth stream per
+(world, friend), one per observer, classed by onset (RESET at the
+world's first tick; mid-world in sight; mid-world under fog — the
+split added after gate round 1, the declared rules scored as declared
+and the mid-world numbers disclosed beside them); detection = the
+first tick at or over the threshold, latency from onset (0 = at
+onset); anticipated = over the threshold at onset and at the tick before
+it, within the observer's slice; false alarms = over-threshold runs
+containing no grave tick. On the 68 mid-world fog-onset episodes every
+probability head at 0.2 detects over nine in ten (SD-w16 0.961,
+NF-h24+p 0.946, DR-h24+p 0.926) at a median latency of 0, anticipated
+in 0.88–0.96; on the 200 reset episodes SD-w16's P(grave) is over 0.2
+at the first tick for every friend, grave or not (its prior) while NF-h24+p and
+DR-h24+p cross at a median of 1 and 0 ticks, and the world-start
+transient holds almost all of the probes' false-alarm runs (NF-h24+p
+0.90 → 0.07, DR-h24+p 2.06 → 0.16 per 10,000 observer-ticks once runs
+beginning at the world's first tick are set aside); at 0.5 NF-h24+p
+loses 0.20 (mid-world in sight) and 0.07 (mid-world fog) of detection,
+SD-w16 0.17 and 0.20, and on the reset episodes SD-w16's median latency
+at 0.5 is 11 ticks against NF-h24+p's 1. **Caveats
+the section carries**: reset episodes are over two thirds of the sample
+and the declared splits count a head's prior as a detection there;
+the mid-world in-sight split rests on 20 observer-episodes (one is
+0.05 of the detected fraction) and the mid-world fog split on 68;
+rule (ii) as declared clears its bar by less than one of its 34
+episodes; the which-need read
+is the base head's means, not the probe's (the probe emits one
+number; a per-need probability is a Phase 2 design choice); 43% of
+the in-sight need-grave samples have two or more grave needs and
+naming any one counts; fog-onset detection says the belief knows,
+not that the cat can reach; the false-alarm rate counts runs per
+tick, at the 0.2 rows most one to three ticks long, and what a run
+costs depends on the consumer; one group, offline, three seeds. What it hands to the
+Phase 2 declaration (hers) beside F-067: a probability-reading
+consumer at 0.2 sees a mid-world grave episode as it begins in most
+cases (median latency 0), the base
+head's means are where the need's name is, and the mean-against-90 reading is the
+ostrich as a missed-detection rate; a per-need probability output is
+a design choice for the Phase 2 declaration, not read here, and both
+thresholds are printed so no single operating point is privileged.

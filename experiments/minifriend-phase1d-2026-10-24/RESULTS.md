@@ -306,6 +306,244 @@ under the 8,445 cap.
 Any MSE or bias cell (unchanged by construction); group G; the Phase
 2 consumer; any joint fit; P1 (no longer-cap SD run exists).
 
+## Addendum — which need, and how soon (owner 2026-10-24 "Agreed, let's proceed. First the breakdown by need and latency read")
+
+Two reads on the same outputs (DECLARATION §Addendum and its post-read
+addition; 0 new cat-ticks). Group P, seeds 1–3, mean ± SD. The
+committed R1d / R2d blocks are pinned unchanged by the reader.
+
+### Headline
+
+**The base head names the grave need, and the probe's probability is
+over 0.2 before a mid-world grave episode begins in most cases; a
+consumer reading the means against 90 misses half or more of what
+starts in front of it.** In sight,
+NF-h24's five means name a grave need on 0.871 ± 0.031 of the
+need-grave samples (top-2 0.969; the always-name-drink baseline
+0.353), DR-h24's on 0.872 ± 0.010; SD's grave mass on 0.739 ± 0.043 and
+SD's mean on 0.687 ± 0.031. Under fog NF-h24 holds at 0.867 and DR-h24
+at 0.885. The 288 grave episodes over observer slices (72
+friend-episodes × 4 observers) split by how they begin: 200 are RESET
+episodes (the friend is grave at the world's first tick, which is
+group P's per-cat grave-start design; a crossing there is the head's
+prior, not a detection), 20 begin mid-world with the friend in the
+observer's sight and 68 mid-world under fog. On the 68 mid-world
+fog-onset episodes NF-h24+p at P(grave) ≥ 0.2 detects 0.946 ± 0.042 at
+a median latency of 0 ticks and is already over the threshold at the
+tick before onset as well in 0.931 of them; on the 20 mid-world in-sight
+episodes 0.850 ± 0.087, median latency 0, anticipated in 0.833. Across
+all onsets (the declared rule's domain) it detects 0.912 ± 0.051 of the
+34 in-sight-onset and 0.966 ± 0.016 of the 254 fog-onset episodes.
+False-alarm runs are 0.90 ± 0.30 per 10,000 observer-ticks in all,
+0.07 ± 0.02 once the runs that start at the world's first tick are set
+aside (the world-start transient of a state initialised at zero). The
+mean-reading rule (max of the five means ≥ 90) on the same head
+detects 0.367 ± 0.058 of the mid-world in-sight episodes and 0.490 ±
+0.090 of the mid-world fog ones (0.490 ± 0.045 and 0.686 ± 0.065 over
+all onsets, 3 ticks late at the median); on SD's means 0.294 and 0.177
+over all onsets, 11 and 34 ticks late. Both declared reading rules
+hold as declared (which-need 0.871 with the weakest need, play, at
+0.783; in-sight-onset detection 0.912 at median latency 0) and the
+registered prediction that the mean rule detects under half of the
+in-sight-onset episodes holds on the seed mean (0.490), so the verdict
+as declared is "enough for detection and naming, on this evidence";
+beside it, disclosed, rule (ii)'s detection on the 20 mid-world
+in-sight episodes alone is 0.850 (15 / 18 / 18 per seed), under the
+0.90 bar, and the mean rule's per-seed in-sight-onset detections are
+17 / 15 / 18 of 34, one seed exactly at half.
+
+### R3d — which need
+
+
+Domain: samples in stratum GRAVE with some hidden need ≥ 90 (the
+happiness-only grave samples are excluded). Named need = argmax of the
+head's five per-need scores; correct when it is one of the sample's
+grave needs. In sight 2,359 such samples per seed, of which 1,021 have
+two or more grave needs; under fog 7,865 (2,559); all 10,224 (3,580).
+Per-need accuracy is over the samples where THAT need is grave and
+counts any grave need named; the confusion shows which need was
+named. Baseline: always name drink, the most frequent grave need on
+the training worlds' truth streams (drink 2,305 grave kitty-ticks,
+cuddle 1,938, eat 1,261, sleep 1,256, play 1,100).
+
+| in sight | accuracy | top-2 | eat (716) | drink (832) | sleep (500) | play (753) | cuddle (807) |
+|---|---|---|---|---|---|---|---|
+| SD-w16 grave mass | 0.739 ± 0.043 | 0.876 ± 0.037 | 0.732 | 0.900 | 0.815 | 0.799 | 0.744 |
+| SD-w16 mean | 0.687 ± 0.031 | 0.865 ± 0.011 | 0.666 | 0.880 | 0.829 | 0.726 | 0.717 |
+| NF-h24 mean | 0.871 ± 0.031 | 0.969 ± 0.007 | 0.986 | 0.898 | 0.913 | 0.783 | 0.873 |
+| DR-h24 mean | 0.872 ± 0.010 | 0.959 ± 0.010 | 0.946 | 0.927 | 0.867 | 0.878 | 0.850 |
+| baseline (drink) | 0.353 | | | | | | |
+
+| under fog | accuracy | top-2 | eat (1,204) | drink (1,976) | sleep (1,612) | play (2,375) | cuddle (3,993) |
+|---|---|---|---|---|---|---|---|
+| SD-w16 grave mass | 0.665 ± 0.029 | 0.859 ± 0.005 | 0.588 | 0.745 | 0.740 | 0.600 | 0.757 |
+| SD-w16 mean | 0.582 ± 0.024 | 0.785 ± 0.049 | 0.499 | 0.862 | 0.831 | 0.453 | 0.629 |
+| NF-h24 mean | 0.867 ± 0.006 | 0.953 ± 0.004 | 0.914 | 0.877 | 0.866 | 0.783 | 0.938 |
+| DR-h24 mean | 0.885 ± 0.004 | 0.952 ± 0.006 | 0.860 | 0.835 | 0.891 | 0.867 | 0.959 |
+| baseline (drink) | 0.251 | | | | | | |
+
+All samples: NF-h24 mean 0.868 ± 0.012 (top-2 0.957), DR-h24 mean
+0.882 ± 0.005, SD grave mass 0.682 ± 0.030, SD mean 0.606 ± 0.017,
+baseline 0.275. Play is the weakest need for NF-h24 in every version
+(0.783, with the largest seed spread, ± 0.119 in sight); its
+confusion row in sight (counts summed over seeds, 2,259 play-grave
+samples) names sleep 511, drink 474 and eat 354 times against play
+661 and cuddle 259, so a grave play need is mostly named as some
+other need, which is a grave need too in the multi-grave samples and
+a miss otherwise. Eat is the strongest (0.986 in sight: 1,756 of 2,148
+named eat, 321 sleep). Every per-need cell has n ≥ 500 per seed, so
+none fails closed.
+
+### R4d — latency
+
+Episodes: maximal runs of stratum GRAVE on the truth stream per
+(world, friend), one per observer: 288 over the observer slices, 72
+distinct friend-episodes each seen by four observers. Onset class:
+RESET = the episode begins at the world's first tick (200 of 288; 50 of
+the 72 friend-episodes, one per world: group P's per-cat grave starts);
+mid-world in sight (20); mid-world under fog (68). The declared splits
+"onset in sight" (34 = 14 reset + 20 mid-world) and "onset under fog"
+(254 = 186 reset + 68 mid-world) are kept beside them. Episode length:
+median 30 ticks overall, 90th percentile 80 (reset 40 / 87, mid-world
+in sight 12 / 23, mid-world fog 20 / 70). Latency = first tick at or
+over the threshold within the episode minus the onset tick (0 = at
+onset; median and 90th percentile among detected episodes);
+"anticipated" = over the threshold at onset and at the tick before
+it, within the same observer slice (a reset episode has no such
+tick); detected fraction over all episodes of the split; false alarms = runs over threshold containing
+no grave tick, per 10,000 observer-ticks (4,000,000 in the group),
+reported for all runs and excluding runs that begin at the world's
+first tick.
+
+| mid-world, onset in sight (20) | detected | median / p90 latency | within 10 | anticipated |
+|---|---|---|---|---|
+| SD-w16 P ≥ 0.2 | 0.867 ± 0.029 | 0.0 / 0.8 | 0.850 | 0.817 |
+| SD-w16 P ≥ 0.5 | 0.700 ± 0.087 | 0.0 / 0.0 | 0.700 | 0.650 |
+| NF-h24+p ≥ 0.2 | 0.850 ± 0.087 | 0.0 / 0.0 | 0.850 | 0.833 |
+| NF-h24+p ≥ 0.5 | 0.650 ± 0.050 | 0.0 / 3.3 | 0.650 | 0.450 |
+| DR-h24+p ≥ 0.2 | 0.683 ± 0.076 | 0.0 / 0.9 | 0.683 | 0.600 |
+| DR-h24+p ≥ 0.5 | 0.500 ± 0.000 | 0.0 / 0.3 | 0.500 | 0.450 |
+| SD-w16 mean ≥ 90 | 0.333 ± 0.252 | 1.8 / 6.8 | 0.300 | 0.183 |
+| NF-h24 mean ≥ 90 | 0.367 ± 0.058 | 0.0 / 4.3 | 0.350 | 0.250 |
+| DR-h24 mean ≥ 90 | 0.300 ± 0.050 | 0.0 / 3.9 | 0.283 | 0.250 |
+
+| mid-world, onset under fog (68) | detected | median / p90 latency | within 10 | anticipated |
+|---|---|---|---|---|
+| SD-w16 P ≥ 0.2 | 0.961 ± 0.017 | 0.0 / 0.0 | 0.956 | 0.956 |
+| SD-w16 P ≥ 0.5 | 0.765 ± 0.106 | 0.0 / 13.4 | 0.686 | 0.520 |
+| NF-h24+p ≥ 0.2 | 0.946 ± 0.042 | 0.0 / 0.0 | 0.946 | 0.931 |
+| NF-h24+p ≥ 0.5 | 0.877 ± 0.022 | 0.0 / 0.0 | 0.877 | 0.824 |
+| DR-h24+p ≥ 0.2 | 0.926 ± 0.053 | 0.0 / 0.1 | 0.926 | 0.882 |
+| DR-h24+p ≥ 0.5 | 0.745 ± 0.034 | 0.0 / 6.8 | 0.711 | 0.652 |
+| SD-w16 mean ≥ 90 | 0.147 ± 0.039 | 20.7 / 31.0 | 0.059 | 0.015 |
+| NF-h24 mean ≥ 90 | 0.490 ± 0.090 | 0.0 / 3.8 | 0.466 | 0.377 |
+| DR-h24 mean ≥ 90 | 0.554 ± 0.081 | 0.0 / 8.5 | 0.510 | 0.348 |
+
+| reset (200; the first crossing after the world starts) | detected | median / p90 latency | within 10 |
+|---|---|---|---|
+| SD-w16 P ≥ 0.2 | 1.000 ± 0.000 | 0.0 / 0.0 | 1.000 |
+| SD-w16 P ≥ 0.5 | 0.722 ± 0.048 | 11.0 / 29.3 | 0.320 |
+| NF-h24+p ≥ 0.2 | 0.975 ± 0.009 | 1.0 / 1.3 | 0.968 |
+| NF-h24+p ≥ 0.5 | 0.965 ± 0.013 | 1.0 / 2.7 | 0.948 |
+| DR-h24+p ≥ 0.2 | 0.997 ± 0.006 | 0.0 / 0.0 | 0.997 |
+| DR-h24+p ≥ 0.5 | 0.982 ± 0.006 | 1.0 / 3.3 | 0.968 |
+| SD-w16 mean ≥ 90 | 0.192 ± 0.028 | 36.3 / 69.2 | 0.017 |
+| NF-h24 mean ≥ 90 | 0.752 ± 0.066 | 4.0 / 21.9 | 0.627 |
+| DR-h24 mean ≥ 90 | 0.788 ± 0.094 | 5.3 / 19.0 | 0.563 |
+
+| all onsets, the declared splits | in sight (34) detected / median lat | under fog (254) detected / median lat | all (288) detected / median lat | FA / 10k all runs (median len) | FA / 10k excluding world-start runs (median len) |
+|---|---|---|---|---|---|
+| SD-w16 P ≥ 0.2 | 0.922 ± 0.017 / 0.0 | 0.990 ± 0.005 / 0.0 | 0.981 ± 0.005 / 0.0 | 2.20 ± 0.14 (2.7) | 0.20 ± 0.14 (9.0) |
+| SD-w16 P ≥ 0.5 | 0.676 ± 0.059 / 0.0 | 0.738 ± 0.067 / 9.5 | 0.730 ± 0.063 / 8.3 | 0.10 ± 0.03 (6.5) | 0.09 ± 0.03 (7.2) |
+| NF-h24+p ≥ 0.2 | 0.912 ± 0.051 / 0.0 | 0.966 ± 0.016 / 0.7 | 0.959 ± 0.010 / 0.7 | 0.90 ± 0.30 (1.3) | 0.07 ± 0.02 (5.5) |
+| NF-h24+p ≥ 0.5 | 0.794 ± 0.029 / 0.0 | 0.940 ± 0.012 / 1.0 | 0.922 ± 0.012 / 1.0 | 0.20 ± 0.21 (1.3) | 0.06 ± 0.01 (3.2) |
+| DR-h24+p ≥ 0.2 | 0.814 ± 0.045 / 0.0 | 0.978 ± 0.014 / 0.0 | 0.958 ± 0.015 / 0.0 | 2.06 ± 0.17 (1.3) | 0.16 ± 0.08 (2.3) |
+| DR-h24+p ≥ 0.5 | 0.706 ± 0.000 / 0.0 | 0.917 ± 0.014 / 1.0 | 0.892 ± 0.012 / 1.0 | 0.21 ± 0.13 (1.3) | 0.08 ± 0.03 (4.7) |
+| SD-w16 mean ≥ 90 | 0.294 ± 0.135 / 11.3 | 0.177 ± 0.031 / 34.0 | 0.191 ± 0.044 / 30.7 | 0.02 ± 0.01 (3.7) | 0.02 ± 0.01 (3.7) |
+| NF-h24 mean ≥ 90 | 0.490 ± 0.045 / 3.0 | 0.686 ± 0.065 / 3.0 | 0.663 ± 0.060 / 3.0 | 0.06 ± 0.00 (3.0) | 0.06 ± 0.00 (3.0) |
+| DR-h24 mean ≥ 90 | 0.490 ± 0.034 / 3.7 | 0.727 ± 0.091 / 4.3 | 0.699 ± 0.079 / 4.3 | 0.09 ± 0.01 (3.3) | 0.09 ± 0.01 (3.3) |
+
+Four readings:
+
+- **On a mid-world onset the probability is already up.** On the 68
+  mid-world fog-onset episodes every probability head at 0.2 detects
+  over nine in ten (SD-w16 0.961, NF-h24+p 0.946, DR-h24+p 0.926) with
+  a median latency of 0, and in 0.88–0.96 of them the probability was
+  over 0.2 at the tick before the onset: the belief rises with the
+  friend's state and crosses before the stratum does. On the 20
+  mid-world in-sight episodes NF-h24+p detects 0.850 ± 0.087 (15 / 18 /
+  18) and SD-w16 0.867; DR-h24+p 0.683.
+- **Reset episodes are the prior, and the probes recover from it in
+  a tick.** On the 200 reset episodes SD-w16's P(grave) is over 0.2 at
+  the first tick for every friend, grave or not (its prior); NF-h24+p
+  and DR-h24+p cross at a median of 1 and 0 ticks and the world-start
+  transient is where almost all of their false-alarm runs are: the
+  rate falls from 0.90 to 0.07 (NF-h24+p) and from 2.06 to 0.16
+  (DR-h24+p) per 10,000 observer-ticks once runs that begin at the
+  world's first tick are set aside, and the remaining runs are longer
+  (median 5.5 and 2.3 ticks).
+- **A mean-reading consumer misses half or more of what starts in
+  front of it.** The ≥ 90 rule on NF-h24's means detects 0.367 of the
+  mid-world in-sight episodes and 0.490 of the mid-world fog ones
+  (0.490 and 0.686 over all onsets, 3 ticks late at the median and
+  15–18 at the 90th percentile); on SD's means 0.333 and 0.147
+  mid-world (0.294 and 0.177 over all onsets, 11 and 34 ticks late).
+  This is F-066's −15.01 pooled grave bias on SD and F-065's −10.10 on
+  NF as a missed-detection rate: the ostrich in the consumer's terms.
+- **Raising the threshold to 0.5 costs mid-world detection and
+  costs SD its reset recovery.** On the mid-world episodes NF-h24+p
+  loses 0.20 (in sight) and 0.07 (fog) of detection, SD-w16 0.17 and
+  0.20, DR-h24+p 0.18 and 0.18; on the reset episodes SD-w16's median
+  latency at 0.5 is 11 ticks against NF-h24+p's 1: SD's grave
+  probability climbs slowly from its prior (§R2d(a): its reliability
+  bins below 0.7 realise more grave than they state), which is what
+  the 0 → 9.5 median in the declared fog-onset split reads.
+
+### Reading rules and predictions, applied (declared in §Addendum; not gates)
+
+(i) NF-h24 mean which-need in sight: 0.871 ≥ 0.80, every per-need cell
+(all n ≥ 500) above 0.60 (minimum play 0.783) → holds; the registered
+prediction "(i) holds" is met. (ii) NF-h24+p ≥ 0.2, onset in sight (34
+episodes as declared, reset included): detected 0.912 ≥ 0.90 (per seed
+0.853 / 0.941 / 0.941 = 29 / 32 / 32), median latency 0.0 ≤ 10 →
+holds; the registered prediction "(ii) holds at 0.2" is met. Disclosed
+beside it, not a rule: on the 20 mid-world in-sight episodes alone
+detection is 0.850 (0.750 / 0.900 / 0.900 = 15 / 18 / 18), under the
+bar. Registered prediction (the mean ≥ 90 rule detects under half of
+the same episodes): 0.490 on the seed mean → holds; per seed 0.500 /
+0.441 / 0.529 (17 / 15 / 18 of 34), one seed exactly at half and one
+over. Verdict as declared: "enough for detection and naming, on this
+evidence".
+
+### Limitations of the addendum
+
+- **Reset episodes are over two thirds of the sample.** Group P starts
+  every world with one grave friend, so 200 of 288 observer-episodes
+  begin at tick 0 and the declared splits count a head's prior as a
+  detection there. The reset / mid-world split was added after gate
+  round 1 (DECLARATION, post-read addition); the declared rules are
+  scored as declared and the mid-world numbers stand beside them.
+- **Twenty and sixty-eight episodes.** The mid-world in-sight split
+  rests on 20 observer-episodes (one is 0.05 of the detected
+  fraction) and the mid-world fog split on 68 (0.015). Rule (ii) as
+  declared clears its bar by less than one of its 34 episodes.
+- **The which-need read is the base head's means, not the probe's.**
+  The probe emits one number. A hybrid that names a need does so from
+  the five means it already carries; a per-need probability output is
+  a design choice for the Phase 2 declaration, not read here.
+- **Multi-grave samples inflate per-need accuracy.** 43% of the
+  in-sight need-grave samples have two or more grave needs, and
+  naming any one counts; the confusion rows quoted above show the
+  named need and the pooled accuracy counts a sample once.
+- **Episodes are the truth stream's, not the consumer's.** An
+  observer under fog cannot act on a friend it cannot see; the
+  fog-onset detection says the belief knows, not that the cat can
+  reach. The false-alarm rate counts runs per tick; at the 0.2 rows
+  most runs are one to three ticks (NF-h24+p's median 1.3), at SD's
+  0.5 rows they are longer (median 6.5); what a run costs depends on
+  the consumer.
+- **One group, offline, three seeds.** As §Limitations above.
+
 ## Regeneration
 
 Phase 1's arc venv (`A=experiments/minifriend-phase1-2026-10-22`,
@@ -332,12 +570,13 @@ reads their `head-best.pt`; R2d reads SD-s*'s `belief-*.npz`).
 ### Read
 
 ```sh
-MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 10 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all)
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 25 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all); the addendum's R3d / R4d run inside it too and the reader asserts the committed R1d / R2d blocks unchanged
 ```
 
-Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 4
-(t1–t4; about 6 s). Reds on record via `scripts/mutate.sh` in the
-declaration's §Instrument.
+Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 6
+(t1–t6; about 6 s). Reds on record via `scripts/mutate.sh` in the
+declaration's §Run order (t1–t4) and §Addendum (t5–t6, and the
+extended t6).
 
 Accuracy gate: **PASS**, 2026-10-24, round 4 (fresh subagent per
 round; every round regenerated the read byte-identically, matched the
@@ -366,3 +605,31 @@ Phase 1's bundles, stamped in their RESULTS): NF-h24-s1+p
 `v1:9c85cdc2f6d1ddff`, DR-h24-s3+p `v1:43946a66feced14c` (each
 `scripts/rawdir-hash.sh
 experiments/minifriend-phase1d-2026-10-24/results-raw/probe/<run>`).
+
+Accuracy gate (§Addendum): **PASS**, 2026-10-24, round 2 (fresh
+subagent per round; both rounds regenerated the read byte-identically
+and matched the counts and the 6-guard count). Round 1 FAILED on one
+WEAK clause naming an F-number (SD's slow climb attributed to "F-067's
+under-confident bins below 0.7", which F-067 does not say; now
+§R2d(a)) and surfaced the structural fact the section had not
+disclosed: 200 of the 288 episodes begin at the world's first tick
+(group P's per-cat grave starts), so a crossing there is a head's
+prior; the reader gained the reset / mid-world split, slice-relative
+anticipation and the world-start false-alarm split (DECLARATION
+post-read addition; t6 extended with its red), the declared rules
+stayed scored as declared with the mid-world numbers disclosed, and
+every table was rebuilt from the regenerated read. Round 2 PASS: 372
+table cells, about 170 prose numbers and about 30 derived figures
+matched, about 15 provenance and threshold items located, 28
+characterisations supported, 4 weak outside the failing zones (the
+extended t6's red unrecorded in the declaration → recorded; the
+"anticipated" definition missing "at onset" → stated in full here and
+in the reader's header; the headline's "half or more" unscoped →
+scoped; "two thirds" for 0.69 → "over two thirds"), one rounding
+(a 12.5 median printed 12), one section pointer corrected. The F-068
+copy check ran as three copy-only rounds (round 1 four dropped
+qualifiers and labels, round 2 PASS with three advisories, round 3
+PASS after the split with five advisories applied). Raw-dir hashes
+unchanged from the stamp above (no new raw; the addendum reads the
+same six probe directories, 1c's SD-s{1,2,3} belief files and 1b's
+NF/DR-h24 prediction files).

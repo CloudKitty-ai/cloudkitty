@@ -438,7 +438,7 @@ def md_addendum(out):
     L.append(f"\n### R4d: latency — {r4['episodes_total']} grave episodes over observer slices ({r4['friend_episodes']} friend-episodes × 4 observers): "
              f"{r4['episodes_reset']} RESET (grave at the world's first tick; a crossing there is the prior, not a detection), "
              f"{r4['episodes_midworld_visible']} mid-world with the friend in sight at onset, {r4['episodes_midworld_fog']} mid-world under fog; "
-             "detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (over the threshold at the tick before onset, mid-world only), "
+             "detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (over the threshold at onset and at the tick before it, within the observer slice; mid-world only), "
              "false-alarm runs per 10,000 observer-ticks (median run length) — all runs, then excluding runs that start at the world's first tick")
     for split in ("onset_visible", "onset_fog", "all", "reset", "midworld_visible", "midworld_fog"):
         L.append(f"\n#### R4d {split}")

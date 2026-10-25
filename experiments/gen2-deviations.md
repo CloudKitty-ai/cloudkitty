@@ -716,4 +716,11 @@ proceed. First the breakdown by need and latency read"): R3d which
 need (argmax accuracy on need-grave samples) and R4d latency (episode
 detection and delay at P(grave) ≥ 0.2 / 0.5 and for the mean ≥ 90
 rule); reads on outputs already on disk, 0 new cat-ticks; DECLARATION
-§Addendum. Status: OPEN (addendum declared; not yet read).
+§Addendum. Status: CLOSED 2026-10-24 (RESULTS §Addendum gated round 2;
+F-068: NF-h24's means name the grave need on 0.871 in sight; of 288
+grave episodes 200 are reset episodes (group P's grave starts) and on
+the 68 mid-world fog-onset episodes NF-h24+p ≥ 0.2 detects 0.946 at
+median latency 0, on the 20 mid-world in-sight ones 0.850; the mean ≥
+90 rule 0.367 / 0.490; both declared reading rules hold as declared,
+the mid-world read disclosed beside them; verdict "enough for
+detection and naming, on this evidence"; Phase 2 declaration hers).

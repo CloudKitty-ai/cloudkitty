@@ -233,7 +233,7 @@ baseline: always name drink (training-world grave-need counts eat 1261, drink 23
 | play | 354 | 474 | 511 | 661 | 259 |
 | cuddle | 283 | 538 | 330 | 85 | 1185 |
 
-### R4d: latency — 288 grave episodes over observer slices (72 friend-episodes × 4 observers): 200 RESET (grave at the world's first tick; a crossing there is the prior, not a detection), 20 mid-world with the friend in sight at onset, 68 mid-world under fog; detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (over the threshold at the tick before onset, mid-world only), false-alarm runs per 10,000 observer-ticks (median run length) — all runs, then excluding runs that start at the world's first tick
+### R4d: latency — 288 grave episodes over observer slices (72 friend-episodes × 4 observers): 200 RESET (grave at the world's first tick; a crossing there is the prior, not a detection), 20 mid-world with the friend in sight at onset, 68 mid-world under fog; detected fraction, median / p90 latency in ticks among detected, within 10 ticks of onset, anticipated (over the threshold at onset and at the tick before it, within the observer slice; mid-world only), false-alarm runs per 10,000 observer-ticks (median run length) — all runs, then excluding runs that start at the world's first tick
 
 #### R4d onset_visible
 | head | episodes | detected | median lat | p90 lat | within 10 | anticipated | length median / p90 | FA / 10k (len) | FA mid-world / 10k (len) |

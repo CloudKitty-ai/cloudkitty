@@ -350,3 +350,13 @@ onset, reset included); the mid-world-only numbers are DISCLOSED
 beside them, not a rule. Guard t6 extended (a reset episode, a
 cross-boundary signal, a reset-transient run); red: the reset flag
 forced false.
+
+Red on record 2026-10-24 for the extended t6 (`scripts/mutate.sh
+--expect test_t6_latency` on `read_phase1d.py` at 36da006d; predicted
+first, RED CONFIRMED, 1 passed after the restore; 6 passed): the reset
+flag forced false (`reset = False`) → the reset episode of the hand
+case counted as mid-world, `AssertionError` at the reset line of
+`test_t6_latency`. The "anticipated" definition is stated in full
+after gate round 2: over the threshold at onset AND at the tick
+before it, within the observer slice (the code's condition from the
+start; the earlier wording named only the tick before).

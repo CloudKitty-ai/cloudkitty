@@ -347,7 +347,16 @@ consent BC comparison ride the trunk.
   R4d episode-detection latency on the same outputs (0 cat-ticks);
   reading rules declared (≥ 0.80 which-need in sight; ≥ 0.90 of
   in-sight-onset episodes detected at P ≥ 0.2 with median latency ≤ 10
-  ticks). STATUS: ADDENDUM DECLARED, not yet read.
+  ticks). Read and gated the same day (round 2 PASS) → F-068: which-need
+  0.871 in sight for NF-h24's means (baseline 0.353); 200 of 288
+  episodes are reset episodes, disclosed; mid-world fog-onset detection
+  0.946 at median latency 0 for NF-h24+p ≥ 0.2, mid-world in-sight
+  0.850 (20 episodes); the mean ≥ 90 rule 0.367 / 0.490; false alarms
+  0.07 per 10,000 ticks outside the world-start transient; verdict as
+  declared "enough for detection and naming, on this evidence".
+  STATUS: DONE 2026-10-24; Phase 2 declaration (hybrid shape, NF vs DR,
+  probability consumer, threshold, per-need probability, calibration
+  step) HERS with F-064..F-068.
 
 ## Flagged follow-ups (owner's word to start)
 
