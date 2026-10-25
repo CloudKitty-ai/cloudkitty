@@ -592,3 +592,10 @@ widened to the whole slice (`grave[a:a + window]` → `grave[a:b]` in
 `startup_split`) — the slice with grave only after the window is then
 counted among the grave slices, `AssertionError` at the grave-slices
 line.
+
+Red on record 2026-10-25 for the extended t8 (`scripts/mutate.sh --expect
+grave_slices` on `burnin_read.py` at b70449dc; predicted first — RED
+CONFIRMED, 1 passed after the restore): the split's window test widened
+to the whole slice → the hand slice with grave only after the window
+joins the grave slices, `AssertionError` at the grave-slices line of
+`test_t8_burnin`.
