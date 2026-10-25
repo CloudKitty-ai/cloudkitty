@@ -3642,3 +3642,15 @@ entry calls "mid-world" starts within a slice's first hundred ticks,
 so the start-up transient is about a hundred ticks long rather than
 the one tick set aside here; the detection numbers above are
 unaffected, and the false-alarm rate reads as mostly start-up.
+Note 2026-10-25 (RESULTS §Addendum 3, gated): a burn-in read found
+that every grave episode this entry calls "mid-world" begins inside a
+slice's first hundred ticks — on the per-cat worlds each is the friend
+that was grave at the world's first tick crossing back into grave
+during the start-up — and that no grave onset in either evaluation
+set comes later; the detection numbers above stand as printed, but
+they are start-up detections, and neither set holds a mid-world grave
+onset in the sense this entry's wording suggests (the lived worlds
+hold none at all, which is evidence of rarity, not absence). Inside
+the start-up window a higher threshold separates the grave-start
+slices from the rest better than a lower one. What Phase 2 reads, and
+on which set, is the owner's.

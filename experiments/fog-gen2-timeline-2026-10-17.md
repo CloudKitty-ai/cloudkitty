@@ -380,7 +380,15 @@ consent BC comparison ride the trunk.
   and L / W / G; the full grid read, two cross-sections printed (burn-in
   ladder at 0.10; threshold ladder at 100); blind ticks and delayed
   episodes priced against false alarms removed; descriptive, no rule,
-  the burn-in length hers; 0 cat-ticks. STATUS: OPEN.
+  the burn-in length hers; 0 cat-ticks. Read and gated the same day
+  (round 3 PASS): NO GRAVE ONSET AFTER A SLICE'S HUNDREDTH TICK in
+  either set (P 8–72, all re-entries of the grave-start friend; L / W / G
+  3–90; L none) — the burn-in removes nearly all false alarms and every
+  onset; inside the start-up window a higher threshold discriminates
+  better (P clean slices 0.767 → 0.067 from 0.10 to 0.50, grave slices
+  0.995 → 0.978); the sweep's "pick low" reading was this thread's
+  error. STATUS: DONE 2026-10-25; threshold, burn-in and whether a set
+  with known mid-world onsets must be built: HERS.
 
 ## Flagged follow-ups (owner's word to start)
 

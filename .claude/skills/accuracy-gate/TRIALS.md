@@ -1466,3 +1466,33 @@ from a seed mean × n; (29) an exclusion defined by one tick ("not
 starting at the first tick") understates a transient that lasts a
 hundred — when a column's definition rests on a boundary, print the
 distribution past it before naming the column.
+
+## 2026-10-25 — Mini-friend Phase 1d RESULTS §Addendum 3 (the burn-in), Experiments thread
+
+Three rounds, fresh subagent each; every round regenerated the read
+byte-identically and found no table cell or prose number wrong (tables
+pasted from the reader's markdown; per-seed values pulled from the JSON
+before writing, lesson 28 applied).
+- Round 1 FAIL: a mechanism CONTRADICTED by the subagent's read-only
+  test — a false-alarm rise written up as "one part … unmeasured"
+  truncation was the truncation case in full, measurable in minutes;
+  the clean-slice composition and a set's dimensions wrong; a per-seed
+  range unscoped. → reader column with a red, per-set composition
+  printed, prose rebuilt.
+- Round 2 FAIL: one wording in a scored expectation ("moot where none
+  is running") that the full grid contradicted — the overshoot cells
+  are exactly the ones with episodes still running. Three WEAK.
+- Round 3 PASS: ~590 cells, ~150 prose numbers, 18 derived, both
+  full-grid claims re-derived; 1 weak (applied), 1 undecidable.
+Lessons: (30) when a first run shows the data is not what the
+declaration assumed (here: no onset after tick 100), measure the shape
+of the data itself — onset offsets, slice composition — and make those
+reader columns BEFORE drafting a sentence; the first draft's errors
+were all in the unmeasured description of the sets, not in the cells;
+(31) "unmeasured" is not a safe word for a mechanism the reader could
+measure — the gate measures it and fails the doc; (32) an expectation
+scored over "every cell" is scored over the full grid, not the printed
+cross-sections — print the full-grid counts (held / over / empty) in
+the scoring sentence; (33) a scoring sentence that explains WHY a
+column deviates ("moot where none is running") is a mechanism claim
+and gets checked cell by cell.

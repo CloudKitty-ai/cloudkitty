@@ -781,7 +781,7 @@ declaration; the burn-in length is hers.
 
 **No grave episode in either evaluation set begins after a slice's
 hundredth tick, so a burn-in of 100 ticks removes nearly all the false
-alarms and the whole detection task with them; the trade-off the sweep drew —
+alarms and the whole onset-detection task with them; the trade-off the sweep drew —
 onset detection against false alarms after the start-up — does not
 exist in this data, and the comparison that does exist, the alarm's
 discrimination inside the start-up window, favours a higher threshold.**
@@ -1117,3 +1117,32 @@ roundings of one unit, no undecidable (the "W's worlds" attribution
 was measured read-only). Raw-dir hashes unchanged from the stamp above
 (no new raw; the sweep reads the same six probe directories' saved
 P(grave) and the symlinked world raws).
+
+Accuracy gate (§Addendum 3): **PASS**, 2026-10-25, round 3 (fresh
+subagent per round; every round regenerated `phase1d-burnin.json` and
+`.md` byte-identically, matched the episode, sample, seed and slice
+counts and the 8-guard count; no table cell or prose number was wrong
+in any round). Round 1 FAILED on a mechanism claim a read-only test
+contradicted — the 25 → 50 false-alarm rise called "one part …
+unmeasured" truncation when it is the truncation case in full (now the
+second post-read addition's column, red at 49137bf9) — on the clean
+slices' composition (L's 60 and W's 100, not G's), on L's dimensions
+and on an unscoped per-seed range; four WEAK applied. Round 2 FAILED
+on one wording in expectation (3) ("moot where none is running" where
+the overshoot cells are exactly ones with reset episodes still running;
+rescored as not held as stated, with the full-grid counts); three WEAK
+applied (the detected fraction a lower bound on episodes still running;
+the curve never said "pick low"; L is lived worlds and its empty ticks
+are evidence of rarity). Round 3 PASS: about 590 table cells, about
+150 prose numbers and 18 derived figures matched, both full-grid
+expectation claims re-derived, 9 provenance items located (the owner
+quotation, three reds, Phase 1's group descriptions), 22
+characterisations supported with the mechanism claims tested read-only
+(the re-entries follow their slice's reset episode by 1–53 ticks; every
+cut run's unmasked run overlaps a reset episode), 1 weak outside any
+failing zone (applied after the verdict without a number changing:
+"the whole onset-detection task"), 1 undecidable (the date and fact of
+this thread's low-end recommendation, which no file records), no
+rounding. Raw-dir hashes unchanged from the stamp above (no new raw;
+the read uses the three NF-h24+p probe directories' saved P(grave) and
+the symlinked world raws).

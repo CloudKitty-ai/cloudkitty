@@ -746,4 +746,18 @@ an instrument — the alarm forced off for the first B ticks of every
 observer slice (B = 0 … 300) under R4d's latency instrument, NF-h24+p,
 group P and L / W / G; prices blind ticks and delayed episodes against
 the false alarms removed; descriptive, no reading rule, the burn-in
-length hers; 0 new cat-ticks; DECLARATION §Addendum 3. Status: OPEN.
+length hers; 0 new cat-ticks; DECLARATION §Addendum 3. Status: CLOSED
+2026-10-25 (RESULTS §Addendum 3 gated round 3): no grave onset after a
+slice's hundredth tick in either set — P's 88 non-reset onsets at
+offsets 8–72, every one the grave-start friend re-entering grave after
+its reset episode; L / W / G's 100 at 3–90; L none in 1,200,000
+observer-ticks — so a 100-tick burn-in removes nearly all false alarms
+(1.607 → 0.024 per 10,000 on P at 0.10) and every onset with them;
+inside the start-up window, where every onset is, a higher threshold
+discriminates better (P's clean slices fire 0.767 at 0.10 against
+0.067 at 0.50; grave slices 0.995 against 0.978); the sweep's curve
+compared start-up detections with post-start-up false alarms and this
+thread's low-end recommendation does not stand; two post-read
+additions with reds; expectations (1) and (3) did not hold as stated,
+(2) held. The threshold and the burn-in both hers; whether Phase 2
+needs an evaluation set with known mid-world onsets is hers.
