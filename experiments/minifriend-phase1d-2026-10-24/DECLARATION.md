@@ -428,3 +428,28 @@ restore; 7 passed on the restored suite): the crossing test changed
 from at-or-over to strictly-over (`>= thresh` → `> thresh`) → the hand
 signal sitting exactly on 0.2 at onset is missed, `AssertionError` at
 the first detected-fraction line of `test_t7_sweep`.
+
+Post-read addition 2026-10-24 (after the first run of the sweep, before
+any write-up). Two things the declaration got wrong, stated here: (a)
+the expectation that false-alarm RUNS are non-increasing in the
+threshold did not hold — on L / W / G the mid-world run count rises
+from 0.27 to 0.41 per 10,000 ticks between 0.05 and 0.50, and on group
+P it is flat; the mechanism is run splitting (a higher threshold cuts
+one run into several, and a sub-run of a run that contained a grave
+tick becomes a run that contains none), so the sweep gains one
+post-read column, non-grave ticks at or over the threshold per 10,000
+observer-ticks, which is a tick count and monotone by construction
+(it includes the ticks just before an onset and after an episode's
+end, so it is not a false-alarm rate; the run columns stay the
+false-alarm read); (b) grave is not rare on L / W / G: G is Phase 1's
+grave-start group (all six needs started in 60–95), so the set carries
+296 episodes of which 196 are reset, and L contributes none — the
+sweep gains a per-set episode composition. Guard t7 extended for both
+(the tick column on the hand slice, monotone; the composition). Red on
+record 2026-10-24 (`scripts/mutate.sh --expect nongrave_above_per_10k`
+on `sweep_threshold.py` at dd11ce6a; predicted first — the 0.10 cell
+survives the mutation by coincidence, two grave ticks at or over 0.10
+against two non-grave, and the 0.15 cell catches it — RED CONFIRMED, 1
+passed after the restore): non-grave ticks counted as grave
+(`!= GRAVE` → `== GRAVE`) → `AssertionError` at the tick-column line of
+`test_t7_sweep`.
