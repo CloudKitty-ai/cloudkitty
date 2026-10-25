@@ -730,4 +730,12 @@ R5d, an operating-point sweep of R4d's latency instrument over
 P(grave) ≥ 0.05 … 0.50 for NF-h24+p and DR-h24+p on group P and on the
 held-out evaluation worlds of L, W and G; descriptive, no reading
 rule, the pick hers with a stated price; 0 new cat-ticks; DECLARATION
-§Addendum 2. Status: OPEN.
+§Addendum 2. Status: CLOSED 2026-10-24 (RESULTS §Addendum 2 gated
+round 3; the threshold costs NF-h24+p detections all the way up —
+mid-world in-sight 0.950 → 0.850 → 0.650 on P at 0.05 / 0.20 / 0.50 —
+and from 0.10 up nine in ten or more of the "mid-world" false-alarm
+runs start within a slice's first 100 ticks, so the world-start
+transient is about a hundred ticks long; runs after tick 100 are 0.027
+/ 0.003 / 0.000 per 10,000 on P; two post-read additions with reds;
+expectation (2) did not hold and (3) was malformed, both reported; no
+rule; the pick hers).

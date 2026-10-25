@@ -1438,3 +1438,31 @@ prose must carry every conjunct the code tests ("at the tick before"
 hid "and at onset"); (25) never fill a table from a filtered
 printout — print every cell the table has, or paste the reader's
 rows.
+
+## 2026-10-24 — Mini-friend Phase 1d RESULTS §Addendum 2 (the operating-point sweep), Experiments thread
+
+Three rounds, fresh subagent each; every round regenerated the read
+byte-identically and found no table cell wrong (the tables were pasted
+from the reader's markdown, lesson 25 applied).
+- Round 1 FAIL: two mechanism claims CONTRADICTED by a read-only test
+  the subagent ran on the saved outputs ("run splitting" for a rise
+  that is world-start runs escaping a first-tick exclusion;
+  "anticipation" for ticks that mostly sit after episodes), one
+  unmarked word change inside a quotation. The round also surfaced a
+  structural fact the section had no column for (nearly every
+  "mid-world" false-alarm run starts within the first ~100 ticks) →
+  post-read addition with a guard and red, headline rewritten.
+- Round 2 FAIL: an "only" clause ("the only false-alarm column higher
+  at the low end") that four printed columns contradicted; a per-seed
+  range (0–11) filled from the seed mean (0–22 per seed). Seven WEAK.
+- Round 3 PASS: ~512 cells, ~150 prose numbers, ~35 derived; 3 weak
+  (applied), 3 roundings.
+Lessons: (26) a mechanism named in prose is a claim — measure it
+before writing it, or write "unmeasured"; the subagent could test it
+read-only in minutes and did; (27) "only" and "every" clauses are
+checked against every printed column, so enumerate the columns
+instead; (28) a "per seed" range comes from the per-seed cells, never
+from a seed mean × n; (29) an exclusion defined by one tick ("not
+starting at the first tick") understates a transient that lasts a
+hundred — when a column's definition rests on a boundary, print the
+distribution past it before naming the column.

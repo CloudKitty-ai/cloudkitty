@@ -3636,3 +3636,9 @@ head's means are where the need's name is, and the mean-against-90 reading is th
 ostrich as a missed-detection rate; a per-need probability output is
 a design choice for the Phase 2 declaration, not read here, and both
 thresholds are printed so no single operating point is privileged.
+Note 2026-10-24 (RESULTS §Addendum 2, gated): an operating-point
+sweep over 0.05–0.50 found that nearly every false-alarm run this
+entry calls "mid-world" starts within a slice's first hundred ticks,
+so the start-up transient is about a hundred ticks long rather than
+the one tick set aside here; the detection numbers above are
+unaffected, and the false-alarm rate reads as mostly start-up.

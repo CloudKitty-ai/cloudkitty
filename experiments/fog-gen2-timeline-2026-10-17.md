@@ -363,7 +363,14 @@ consent BC comparison ride the trunk.
   probabilities): R5d operating-point sweep, P(grave) ≥ 0.05 … 0.50,
   NF-h24+p and DR-h24+p, group P and the held-out L / W / G evaluation
   worlds; descriptive, no rule, the threshold pick hers with a stated
-  price; 0 cat-ticks. STATUS: OPEN.
+  price; 0 cat-ticks. Read and gated the same day (round 3 PASS):
+  detections fall all the way up the ladder (P mid-world in sight
+  0.950 → 0.850 → 0.650 at 0.05 / 0.20 / 0.50), nearly every
+  "mid-world" false-alarm run starts within a slice's first 100 ticks
+  (the start-up transient is ~100 ticks, not 1), runs after tick 100
+  0.027 / 0.003 / 0.000 per 10k on P; L / W / G carries 296 episodes (G
+  is a grave-start group). STATUS: DONE 2026-10-24; the threshold pick
+  HERS (Phase 2 declaration).
 
 ## Flagged follow-ups (owner's word to start)
 

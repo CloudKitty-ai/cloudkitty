@@ -550,8 +550,8 @@ One read on the same six probe runs (DECLARATION §Addendum 2 and its
 two post-read additions; 0 new cat-ticks; no weight touched): R4d's
 latency instrument at eight thresholds, on group P and on the held-out
 evaluation worlds of Phase 1's L, W and G, with two post-read
-additions (four columns: non-grave ticks over the threshold; where the
-false-alarm runs start). Seeds 1–3, mean ± SD. NF-h24+p's 0.20 and
+additions (four columns: non-grave ticks at or over the threshold;
+where the false-alarm runs start). Seeds 1–3, mean ± SD. NF-h24+p's 0.20 and
 0.50 rows on group P are asserted equal to the committed R4d rows by
 the reader before it writes. Descriptive: no reading rule was declared and none is applied;
 the pick is hers.
@@ -566,8 +566,8 @@ not the one tick R4d set aside.** On group P, NF-h24+p's mid-world in-sight dete
 falls from 0.950 ± 0.050 at 0.05 to 0.850 ± 0.087 at 0.20 and 0.650 ±
 0.050 at 0.50 (20 episodes), its mid-world fog detection from 0.971 ±
 0.039 to 0.946 ± 0.042 to 0.877 ± 0.022 (68). Its mid-world
-false-alarm runs (R4d's definition: over the threshold, no grave tick,
-not starting at the slice's first tick) stay between 0.059 and 0.092
+false-alarm runs (R4d's definition: at or over the threshold, no grave
+tick, not starting at the slice's first tick) stay between 0.059 and 0.092
 per 10,000 observer-ticks over the whole ladder (0.092 ± 0.028 at
 0.05, 0.073 ± 0.021 at 0.20, 0.064 ± 0.008 at 0.50), but 0.718 ± 0.204
 of them at 0.05, 0.958 ± 0.072 at 0.20 and 1.000 at 0.50 start within
@@ -603,15 +603,16 @@ fog detection from 0.15 up (by 0.013 and 0.009 at 0.15 and 0.20, by
 against 0.281 ± 0.088 at 0.20). For NF-h24+p no threshold on the
 ladder improves detection: on both sets the lowest threshold has the
 highest detection in every split. What the low end pays, column by
-column: the all-runs rate, which is the first-tick runs (P 2.089
-against 0.198 at 0.50; L / W / G 0.850 against 0.477); the mid-world
+column: the all-runs rate, whose extra at the low end is the
+first-tick runs (P 2.089 against 0.198 at 0.50; L / W / G 0.850 against
+0.477); the mid-world
 run rate on P (0.092 ± 0.028 against 0.064 ± 0.008, within one seed SD
 of the 0.05 row; on L / W / G 0.274 is below 0.407); the runs per 100
 detected on P (42.9 against 35.3; on L / W / G 78.3 against 168.2) —
 these two columns have a shallow minimum at 0.15 on both sets (P 0.059
-and 29.0 ± 8.9; L / W / G 0.256 and 77.3 ± 27.8), within the seed SD of
-their neighbours; the median run length (P 3.8 against 3.2 ticks;
-L / W / G 6.5 against 4.7); and the runs starting after tick 100 (0.027
+and 29.0 ± 8.9; L / W / G 0.256 and 77.3 ± 27.8), within the 0.15
+cell's own seed SD; the median run length on L / W / G (6.5 against
+4.7 ticks; on P 3.8 against 3.2, inside the seed SD); and the runs starting after tick 100 (0.027
 against 0.000 per 10,000 on P, 4 / 6 / 22 runs per seed at 0.05 against
 0 / 0 / 0 at 0.50; 0.038 against 0.002 on L / W / G, 9 / 11 / 12
 against 0 / 2 / 0).
@@ -644,7 +645,7 @@ mid-world in-sight / mid-world fog episodes; `antic` the fraction over
 the threshold at onset and at the tick before, within the slice; `p90
 lat` the 90th-percentile latency among detected (ticks); `reset det` /
 `reset med lat` the reset episodes' detected fraction and median
-latency; `mw FA /10k` runs over the threshold containing no grave tick
+latency; `mw FA /10k` runs at or over the threshold containing no grave tick
 and not starting at the slice's first tick, per 10,000 observer-ticks,
 `mw FA len` their median length; `all FA /10k` the same count with the
 first-tick runs included; `mw FA per 100 det` mid-world false-alarm
@@ -740,8 +741,8 @@ episodes are 72 × 4.
 ### Limitations of the sweep
 
 The mid-world in-sight cells rest on 20 (P) and 22 (L / W / G)
-observer-episodes, one of which is 0.05 of the detected fraction; the
-mid-world fog cells on 68 and 78; the runs-after-tick-100 cells on 0–22
+observer-episodes, one of which is 0.05 (P) or 0.045 (L / W / G) of
+the detected fraction; the mid-world fog cells on 68 and 78; the runs-after-tick-100 cells on 0–22
 runs per seed (NF-h24+p on P at 0.05: 4 / 6 / 22). The same six probes and the same instrument produce
 every row, so the two sets are two reads of one head, not two heads. A
 threshold picked here from group P and read again in Phase 2 on group P
@@ -848,3 +849,31 @@ PASS after the split with five advisories applied). Raw-dir hashes
 unchanged from the stamp above (no new raw; the addendum reads the
 same six probe directories, 1c's SD-s{1,2,3} belief files and 1b's
 NF/DR-h24 prediction files).
+
+Accuracy gate (§Addendum 2): **PASS**, 2026-10-24, round 3 (fresh
+subagent per round; every round regenerated `phase1d-sweep.json` and
+`.md` byte-identically, matched the episode, sample and seed counts
+and the 7-guard count; no table cell was wrong in any round). Round 1
+FAILED on two mechanism claims a read-only test on the saved outputs
+contradicted — the L / W / G rise named as "run splitting" (it is
+world-start runs that begin at offset 1 once their first tick falls
+under the threshold) and the non-grave over-threshold ticks glossed as
+"anticipation" (most sit after an episode or in the start-up) — and on
+an unmarked word change inside a quotation; the round also measured
+that nearly every "mid-world" false-alarm run starts within a slice's
+first hundred ticks, which became the second post-read addition (the
+run-start columns, guard t7 extended, red at 2d7bfbff) and the
+section's headline. Round 2 FAILED on an "only" clause that ignored
+four false-alarm columns and on a per-seed range (0–11) filled from
+the seed mean (0–22 per seed); five WEAK scopings applied. Round 3
+PASS: about 512 table cells, about 150 prose numbers and about 35
+derived figures matched, 14 provenance items located (the owner quote,
+the expectation quotation, three reds, the pin's scope, Phase 1's
+group table), 30 characterisations supported, 3 weak outside any
+failing zone (applied after the verdict without a number changing:
+"whose extra at the low end is the first-tick runs"; "within the 0.15
+cell's own seed SD"; the run-length cost scoped to L / W / G), three
+roundings of one unit, no undecidable (the "W's worlds" attribution
+was measured read-only). Raw-dir hashes unchanged from the stamp above
+(no new raw; the sweep reads the same six probe directories' saved
+P(grave) and the symlinked world raws).

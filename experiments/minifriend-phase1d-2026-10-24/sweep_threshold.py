@@ -5,9 +5,12 @@ six probe runs' saved P(grave)).
 R4d's `latency` instrument, unchanged, at THRESHOLDS for NF-h24+p and
 DR-h24+p, on group P and on the held-out evaluation worlds of L, W and G
 (SETS); seeds 1–3, mean ± SD. The 0.20 and 0.50 rows on group P must
-equal the committed R4d rows (asserted before writing). One derived
-column: mid-world false-alarm runs per 100 detected mid-world episodes.
-Descriptive — no reading rule; the pick is the owner's.
+equal the committed R4d rows (asserted before writing). Derived column:
+mid-world false-alarm runs per 100 detected mid-world episodes. Post-read
+columns (DECLARATION §Addendum 2 additions): non-grave ticks at or over
+the threshold per 10k; where the mid-world false-alarm runs start
+(offset 1, ≤ EARLY, after EARLY per 10k). Descriptive — no reading rule;
+the pick is the owner's.
 """
 import argparse
 import json
