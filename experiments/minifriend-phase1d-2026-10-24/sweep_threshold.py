@@ -45,6 +45,30 @@ def nongrave_above(idx, signal, thresh):
     return float((above & (idx["code"] != P.S.GRAVE)).sum() / idx["n"] * 1e4)
 
 
+EARLY = 100   # a false-alarm run starting within the slice's first EARLY ticks (offset ≤ EARLY) is "early"
+
+
+def fa_detail(idx, signal, thresh):
+    """Post-read addition (gate round 1): where the mid-world false-alarm runs start. Over the
+    runs that `latency` counts as mid-world false alarms (over the threshold, no grave tick, not
+    starting at the slice's first tick): the count starting at offset 1 (the world-start run with
+    its first tick under the threshold), the fraction starting at offset ≤ EARLY, and the runs
+    starting after EARLY per 10,000 observer-ticks (the false-alarm rate a burn-in of EARLY ticks
+    would leave)."""
+    above = np.asarray(signal, np.float64) >= thresh
+    grave = idx["code"] == P.S.GRAVE
+    starts = []
+    for _n, _s, _k, _j, a, b in idx["slices"]:
+        for st, en in P._runs(above[a:b]):
+            if st != 0 and not grave[a + st:a + en].any():
+                starts.append(int(st))
+    n = len(starts)
+    late = sum(st > EARLY for st in starts)
+    return {"midworld_runs": n, "start_at_1": sum(st == 1 for st in starts),
+            "frac_start_le_early": (n - late) / n if n else None,
+            "late_runs_per_10k": late / idx["n"] * 1e4, "early": EARLY}
+
+
 def composition(idx, eps):
     """Episodes per evaluation set name: reset and mid-world counts."""
     start = {a: n for n, _s, _k, _j, a, _b in idx["slices"]}
@@ -67,6 +91,8 @@ def sweep(idx, ps, thresholds=THRESHOLDS):
         for r, p in zip(per, ps):
             r["derived"] = derived(r)
             r["nongrave_above_per_10k"] = nongrave_above(idx, p, t)
+            r["fa_detail"] = fa_detail(idx, p, t)
+            assert r["fa_detail"]["midworld_runs"] == r["false_alarms"]["midworld_runs"]
         out["rows"][f"{t:.2f}"] = {"per_seed": per, **P.msd_tree(per)}
     return out
 
@@ -79,6 +105,7 @@ def pin_r4d(sweep_p_nf, path=HERE / "phase1d-read.json"):
         for r in got["per_seed"] + [got]:
             r.pop("derived")
             r.pop("nongrave_above_per_10k")
+            r.pop("fa_detail")
         assert got == ref[name], (t, name)
 
 
@@ -108,15 +135,16 @@ def md(out):
             L.append("per set: " + "; ".join(f"{n} reset {c['reset']} / mid-world {c['midworld']}" for n, c in sw["composition"].items())
                      + "".join(f"; {n} 0 / 0" for n in blk["eval_sets"] if n not in sw["composition"]))
             L.append("")
-            L.append("| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |")
-            L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+            L.append("| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k | mw FA start ≤ 100 | mw FA at tick 1 | late FA /10k (start > 100) |")
+            L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
             for t, r in sw["rows"].items():
                 mv, mf, rs, fa, dv = r["midworld_visible"], r["midworld_fog"], r["reset"], r["false_alarms"], r["derived"]
                 L.append(f"| {t} | {fmt(mv['detected_frac'])} | {fmt(mv['anticipated_frac'])} | {fmt(mv['p90_latency'], 1)} "
                          f"| {fmt(mf['detected_frac'])} | {fmt(mf['anticipated_frac'])} | {fmt(mf['p90_latency'], 1)} "
                          f"| {fmt(rs['detected_frac'])} | {fmt(rs['median_latency'], 1)} "
                          f"| {fmt(fa['midworld_per_10k_ticks'])} | {fmt(fa['midworld_run_median_length'], 1)} | {fmt(fa['per_10k_ticks'])} "
-                         f"| {fmt(dv['midworld_fa_per_100_detected'], 1)} | {fmt(r['nongrave_above_per_10k'], 2)} |")
+                         f"| {fmt(dv['midworld_fa_per_100_detected'], 1)} | {fmt(r['nongrave_above_per_10k'], 2)} "
+                         f"| {fmt(r['fa_detail']['frac_start_le_early'])} | {fmt(r['fa_detail']['start_at_1'], 1)} | {fmt(r['fa_detail']['late_runs_per_10k'])} |")
             L.append("")
     return "\n".join(L)
 

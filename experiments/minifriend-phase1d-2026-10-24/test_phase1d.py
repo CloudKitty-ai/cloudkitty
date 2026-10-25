@@ -18,7 +18,8 @@ t7  the operating-point sweep (§Addendum 2): a signal sitting exactly
     at the threshold is a crossing (at or over); detected fraction and
     false-alarm runs non-increasing up the ladder; the sweep's 0.20 and
     0.50 rows on group P equal the committed R4d rows; post-read: the
-    non-grave-ticks-above column counts ticks and is monotone
+    non-grave-ticks-above column counts ticks and is monotone; the
+    false-alarm start detail (offset 1; ≤ 100 inclusive; late per 10k)
 """
 import hashlib
 import json
@@ -211,6 +212,16 @@ def test_t7_sweep():
     ng = [r["nongrave_above_per_10k"]["mean"] for r in rows.values()]
     assert ng == sorted(ng, reverse=True)
     assert sw["composition"] == {"P1": {"reset": 0, "midworld": 2}}
+    fd = rows["0.10"]["fa_detail"]
+    assert fd["midworld_runs"]["mean"] == 1 and fd["start_at_1"]["mean"] == 0 and fd["frac_start_le_early"]["mean"] == 1.0 and fd["late_runs_per_10k"]["mean"] == 0.0
+    # post-read (gate round 1): where false-alarm runs start — a 300-tick slice with no grave tick and three runs: at offset 1
+    # (a world-start run whose first tick is under the threshold), at offset 100 exactly (early, inclusive), and at offset 200 (late)
+    code3 = np.full(300, S.COMMON, np.int8)
+    idx3 = {"n": 300, "code": code3, "vis": np.ones(300, bool), "true": np.zeros((300, 7)), "slices": [("P1", 1, 0, 1, 0, 300)]}
+    sig5 = np.zeros(300); sig5[1:3] = 0.9; sig5[100:102] = 0.9; sig5[200:203] = 0.9
+    fd3 = SW.fa_detail(idx3, sig5, 0.5)
+    assert fd3["midworld_runs"] == 3 and fd3["start_at_1"] == 1 and abs(fd3["frac_start_le_early"] - 2 / 3) < 1e-12
+    assert abs(fd3["late_runs_per_10k"] - 1 / 300 * 1e4) < 1e-9
     # group P, NF-h24+p: the sweep's 0.20 and 0.50 rows equal the committed R4d rows
     idx_p = R.eval_index(C.GROUPS["P"])
     swp = SW.sweep(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], thresholds=(0.2, 0.5))
