@@ -20,6 +20,13 @@ t7  the operating-point sweep (§Addendum 2): a signal sitting exactly
     0.50 rows on group P equal the committed R4d rows; post-read: the
     non-grave-ticks-above column counts ticks and is monotone; the
     false-alarm start detail (offset 1; ≤ 100 inclusive; late per 10k)
+t8  the burn-in (§Addendum 3): on the 300-tick slice the run count under
+    burn-in 0 / 100 / 101 / 102 is 3 / 2 / 2 / 1 with the boundary run
+    counted at 100 and 101, blind fraction B / 300; on the 20-tick slice
+    an onset inside the burn-in is missed when its only over-threshold
+    tick is masked and caught at B − k + 1 when a later tick is over; an
+    onset at or after B keeps its latency; the reader's identities on
+    group P at 0.10 / 0.20 with B = 0 / 100
 """
 import hashlib
 import json
@@ -40,6 +47,7 @@ import filter_spread as FS  # noqa: E402
 import grave_probe as G  # noqa: E402
 import read_phase1d as P  # noqa: E402
 import sweep_threshold as SW  # noqa: E402
+import burnin_read as BR  # noqa: E402
 
 D = G.D
 S = G.S
@@ -226,6 +234,43 @@ def test_t7_sweep():
     idx_p = R.eval_index(C.GROUPS["P"])
     swp = SW.sweep(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], thresholds=(0.2, 0.5))
     SW.pin_r4d(swp)
+
+
+def test_t8_burnin():
+    # the sweep's 300-tick slice: runs at offsets 1, 100 and 200, no grave tick, threshold 0.5
+    code3 = np.full(300, S.COMMON, np.int8)
+    idx3 = {"n": 300, "code": code3, "vis": np.ones(300, bool), "true": np.zeros((300, 7)), "slices": [("P1", 1, 0, 1, 0, 300)]}
+    sig5 = np.zeros(300); sig5[1:3] = 0.9; sig5[100:102] = 0.9; sig5[200:203] = 0.9
+    for burnin, runs, at_boundary in ((0, 3, 0), (100, 2, 1), (101, 2, 1), (102, 1, 0)):
+        r = BR.burnin_row(idx3, sig5, 0.5, burnin, [])
+        assert r["false_alarms"]["runs"] == runs, (burnin, r["false_alarms"])
+        assert r["fa_runs_at_boundary"] == at_boundary, (burnin, r["fa_runs_at_boundary"])
+        assert abs(r["blind_frac"] - burnin / 300) < 1e-12
+        assert r["false_alarms"]["per_10k_ticks"] == runs / 300 * 1e4
+    assert BR.mask_burnin(idx3, sig5, 400).max() == BR.MASKED   # a burn-in longer than the slice masks the whole slice
+    # the sweep's 20-tick slice (grave 4–8 in sight, 14–16 under fog; 0.2 at the first onset, 0.3 at the second, a 0.1 bump at 10–11)
+    code = np.full(20, S.COMMON, np.int8); code[4:9] = S.GRAVE; code[14:17] = S.GRAVE
+    vis = np.ones(20, bool); vis[12:] = False
+    idx = {"n": 20, "code": code, "vis": vis, "true": np.zeros((20, 7)), "slices": [("P1", 1, 0, 1, 0, 20)]}
+    sig = np.zeros(20); sig[4] = 0.2; sig[14] = 0.3; sig[10:12] = 0.1
+    eps = P.episodes(idx)
+    r0 = BR.burnin_row(idx, sig, 0.1, 0, eps)
+    assert r0["midworld_visible"]["detected_frac"] == 1.0 and r0["midworld_onset_in_burnin"]["episodes"] == 0 and r0["midworld_after_burnin"]["episodes"] == 2
+    r5 = BR.burnin_row(idx, sig, 0.1, 5, eps)      # onset 4 inside the burn-in, its only over-threshold tick masked → missed
+    assert r5["midworld_onset_in_burnin"]["episodes"] == 1 and r5["midworld_onset_in_burnin"]["detected_frac"] == 0.0
+    assert r5["midworld_visible"]["detected_frac"] == 0.0 and r5["midworld_after_burnin"]["episodes"] == 1
+    assert r5["midworld_fog"]["detected_frac"] == 1.0 and r5["midworld_fog"]["median_latency"] == 0.0   # onset 14 ≥ 5 keeps its latency
+    assert r5["false_alarms"]["runs"] == 1 and r5["derived"]["midworld_detected"] == 1 and r5["derived"]["fa_per_100_midworld_detected"] == 100.0
+    sig2 = sig.copy(); sig2[6] = 0.5                 # a later tick over: the onset inside the burn-in is caught at latency 2 (B − k + 1)
+    r5b = BR.burnin_row(idx, sig2, 0.1, 5, eps)
+    assert r5b["midworld_onset_in_burnin"]["detected_frac"] == 1.0 and r5b["midworld_onset_in_burnin"]["median_latency"] == 2.0
+    assert BR.burnin_row(idx, sig2, 0.1, 0, eps)["midworld_visible"]["median_latency"] == 0.0
+    g = BR.grid(idx, [sig, sig2], burnins=(0, 5), thresholds=(0.1,))
+    assert g["episodes_total"] == 2 and g["episodes_midworld"] == 2 and g["rows"]["5"]["0.10"]["midworld_onset_in_burnin"]["detected_frac"]["mean"] == 0.5
+    # group P, NF-h24+p: B = 0 equals the committed sweep rows; at B = 100 the runs equal the sweep's late runs plus the boundary runs
+    idx_p = R.eval_index(C.GROUPS["P"])
+    gp = BR.grid(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], burnins=(0, 100), thresholds=(0.1, 0.2))
+    BR.pin_sweep(gp["rows"], idx_p["n"])
 
 
 if __name__ == "__main__":
