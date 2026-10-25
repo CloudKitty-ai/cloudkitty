@@ -556,3 +556,13 @@ cat-ticks.
 line with her ruling; (2) `burnin_read.py` + t8, red; (3) the read
 (one fence); (4) RESULTS §Addendum 3 gated; the price to her; the
 burn-in length hers.
+
+Red on record 2026-10-25 for t8 (`scripts/mutate.sh --expect
+fa_runs_at_boundary` on `burnin_read.py` at ea60a35d; predicted first —
+the B = 0 and B = 100 hand cases survive the mutation since the tick
+that escapes carries no signal there, and the B = 101 case catches it
+— RED CONFIRMED, 1 passed after the restore): the mask's end moved one
+tick short (`< burnin` → `< burnin - 1`) → at B = 101 the run at
+offsets 100–101 is no longer truncated and no run begins at the
+boundary, `AssertionError: (101, 0)` at the boundary line of
+`test_t8_burnin`.
