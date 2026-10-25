@@ -547,55 +547,67 @@ evidence".
 ## Addendum 2 — the operating-point sweep (owner 2026-10-24 "Let's run the read and see what we find")
 
 One read on the same six probe runs (DECLARATION §Addendum 2 and its
-post-read addition; 0 new cat-ticks; no weight touched): R4d's latency
-instrument at eight thresholds, on group P and on the held-out
-evaluation worlds of Phase 1's L, W and G. Seeds 1–3, mean ± SD. The
-0.20 and 0.50 rows on group P are asserted equal to the committed R4d
-rows by the reader before it writes. Descriptive: no reading rule was
-declared and none is applied; the pick is hers.
+two post-read additions; 0 new cat-ticks; no weight touched): R4d's
+latency instrument at eight thresholds, on group P and on the held-out
+evaluation worlds of Phase 1's L, W and G, with two post-read columns
+(non-grave ticks over the threshold; where the false-alarm runs
+start). Seeds 1–3, mean ± SD. The 0.20 and 0.50 rows on group P are
+asserted equal to the committed R4d rows by the reader before it
+writes. Descriptive: no reading rule was declared and none is applied;
+the pick is hers.
 
 ### Headline
 
-**Between 0.05 and 0.50 the threshold costs detections all the way up
-and buys almost nothing on false alarms; the one column that falls
-steeply with it is the world-start transient.** On group P, NF-h24+p's
-mid-world in-sight detection falls from 0.950 ± 0.050 at 0.05 to 0.850
-± 0.087 at 0.20 and 0.650 ± 0.050 at 0.50 (20 episodes), its mid-world
-fog detection from 0.971 ± 0.039 to 0.946 ± 0.042 to 0.877 ± 0.022
-(68), while its mid-world false-alarm runs stay between 0.059 and 0.092
-per 10,000 observer-ticks over the whole ladder (0.092 ± 0.028 at 0.05,
-0.073 ± 0.021 at 0.20, 0.064 ± 0.008 at 0.50) and the false runs per
-100 detected mid-world episodes between 29.0 and 42.9. On the L / W / G
-evaluation worlds the shape is the same on a higher false-alarm floor:
-mid-world in-sight detection 0.985 ± 0.026 → 0.833 ± 0.052 → 0.606 ±
-0.139 (22 episodes), fog 0.983 ± 0.020 → 0.915 ± 0.027 → 0.701 ± 0.053
-(78), mid-world false-alarm runs between 0.256 and 0.407 per 10,000
-ticks and rising with the threshold (0.274 ± 0.084 at 0.05, 0.281 ±
-0.088 at 0.20, 0.407 ± 0.022 at 0.50), false runs per 100 detected
-78.3 → 88.4 → 168.2. The rise is run splitting, not more false
-alarms: the non-grave ticks at or over the threshold fall
-monotonically on both sets (L / W / G 27.94 → 17.28 → 9.24 per 10,000;
-P 13.23 → 7.98 → 4.47), while a higher threshold cuts one run into
-several and turns the grave-free part of a run that touched an episode
-into a run of its own. The all-runs false-alarm rate is the column
-that falls steeply (P: 2.089 ± 0.032 at 0.05, 0.898 ± 0.305 at 0.20,
-0.198 ± 0.208 at 0.50), and it is the world-start transient (§R4d:
-330 of 359 runs at 0.20 start at the world's first tick). Reset
-episodes are detected at every threshold (P 0.965–1.000) at a median
-latency of 0–1 ticks. DR-h24+p is behind NF-h24+p on group P at every
-threshold (mid-world in-sight 0.683 ± 0.076 at 0.20; mid-world false
-runs 0.159 ± 0.076 per 10,000, twice NF's) and on L / W / G is level
-on detection with more false runs (0.401 ± 0.076 against 0.281 ± 0.088
-at 0.20). On the printed columns there is no interior optimum: on both
-sets the lowest threshold in the ladder has the highest detection, and
-its mid-world false-alarm run rate is within one seed SD of the
-highest-threshold row's on group P (0.092 ± 0.028 against 0.064 ±
-0.008) and below it on L / W / G (0.274 against 0.407). What rises as
-the threshold falls is the world-start transient, which a burn-in
-handles, and the count of non-grave ticks over the threshold, most of
-which sit just before an onset or after an episode's end (the
-anticipation a continuous reader wants, counted as nuisance by a flag
-reader).
+**Between 0.05 and 0.50 the threshold costs NF-h24+p detections all
+the way up, and nearly every false-alarm run it counts starts inside a
+slice's first 100 ticks: the world-start transient of a
+zero-initialised state is about a hundred ticks long, not the one tick
+R4d set aside.** On group P, NF-h24+p's mid-world in-sight detection
+falls from 0.950 ± 0.050 at 0.05 to 0.850 ± 0.087 at 0.20 and 0.650 ±
+0.050 at 0.50 (20 episodes), its mid-world fog detection from 0.971 ±
+0.039 to 0.946 ± 0.042 to 0.877 ± 0.022 (68). Its mid-world
+false-alarm runs (R4d's definition: over the threshold, no grave tick,
+not starting at the slice's first tick) stay between 0.059 and 0.092
+per 10,000 observer-ticks over the whole ladder (0.092 ± 0.028 at
+0.05, 0.073 ± 0.021 at 0.20, 0.064 ± 0.008 at 0.50), but 0.718 ± 0.204
+of them at 0.05, 0.958 ± 0.072 at 0.20 and 1.000 at 0.50 start within
+the slice's first 100 ticks; the runs starting after tick 100 are
+0.027 ± 0.025, 0.003 ± 0.006 and 0.000 per 10,000 observer-ticks. On
+the L / W / G evaluation worlds the detections fall the same way
+(mid-world in-sight 0.985 ± 0.026 → 0.833 ± 0.052 → 0.606 ± 0.139 on
+22 episodes; fog 0.983 ± 0.020 → 0.915 ± 0.027 → 0.701 ± 0.053 on 78),
+the mid-world run rate is higher (0.274 ± 0.084 at 0.05, 0.281 ± 0.088
+at 0.20, 0.407 ± 0.022 at 0.50), 0.847 ± 0.067 / 0.980 ± 0.034 / 0.994
+± 0.010 of those runs start within the first 100 ticks, and the runs
+starting after tick 100 are 0.038 ± 0.005 / 0.007 ± 0.012 / 0.002 ±
+0.004 per 10,000. The L / W / G rate's rise from 0.25 up is
+world-start runs whose first tick falls under the threshold, so they
+begin at offset 1 and escape R4d's first-tick exclusion: runs starting
+at tick 1 number 0.0 per seed at 0.05–0.10, 0.3 at 0.15, 6.0 at 0.20,
+20.0 at 0.25 and 44.3 at 0.50 (W's worlds). Over-threshold ticks are a
+subset of those over a lower threshold, and the non-grave tick column
+falls monotonically on both sets (L / W / G 27.94 → 17.28 → 9.24 per
+10,000; P 13.23 → 7.98 → 4.47). The all-runs false-alarm rate, which
+includes the runs starting at the first tick, falls steeply (P 2.089 ±
+0.032 → 0.898 ± 0.305 → 0.198 ± 0.208). Reset episodes are detected at
+every threshold (P 0.965–1.000) at a median latency of 0–1 ticks.
+DR-h24+p on group P is behind NF-h24+p in mid-world in-sight detection
+and in mid-world false-alarm runs at every threshold (0.683 ± 0.076
+and 0.159 ± 0.076 at 0.20, the runs 2.2 × NF's; its run rate does fall
+with the threshold, 0.392 ± 0.265 → 0.082 ± 0.030), level with NF in
+fog detection at 0.05–0.10 and behind from 0.15 up; on L / W / G it is
+within 0.05 of NF in in-sight detection at every threshold, behind in
+fog detection from 0.25 up (0.577 ± 0.068 against 0.701 ± 0.053 at
+0.50) and higher in false-alarm runs at every threshold (0.401 ± 0.076
+against 0.281 ± 0.088 at 0.20). For NF-h24+p there is no interior
+optimum on the printed columns: on both sets the lowest threshold has
+the highest detection, its mid-world run rate is within one seed SD of
+the highest threshold's on group P (0.092 ± 0.028 against 0.064 ±
+0.008) and below it on L / W / G (0.274 against 0.407), and the only
+false-alarm column that is higher at the low end is the runs starting
+after tick 100 (0.027 against 0.000 per 10,000 on P; 0.038 against
+0.002 on L / W / G), which are 0–11 runs per seed over 4,000,000
+observer-ticks.
 
 ### Expectations stated before the read, scored
 
@@ -606,15 +618,17 @@ in-sight 0.950 / 0.900 / 0.867 / 0.850 / 0.817 / 0.767 / 0.717 / 0.650;
 fog 0.971 / 0.956 / 0.951 / 0.946 / 0.946 / 0.936 / 0.897 / 0.877). (2)
 Mid-world false-alarm runs non-increasing: did NOT hold — on group P
 the NF-h24+p rate goes 0.092 / 0.072 / 0.059 / 0.073 / 0.074 / 0.068 /
-0.068 / 0.064, up from 0.15 to 0.20, and on L / W / G it rises from
-0.274 to 0.407; the mechanism (run splitting) is given above and the
-post-read tick column, which is monotone by construction, was added
-for it. (3) "Between 0.15 and 0.30 the mid-world false-alarm rate
-moves by less than the seed spread of the mid-world in-sight detected
-fraction" compared a rate per 10,000 ticks with a fraction's SD and is
-malformed as written; the rate moves by 0.009 per 10,000 on group P
-(0.059 → 0.068) and by 0.082 on L / W / G (0.256 → 0.338) between those
-two rows, reported without a bar.
+0.068 / 0.064, up from 0.15 to 0.20 within the seed SD (0.017 and
+0.021), and on L / W / G it goes 0.274 / 0.277 / 0.256 / 0.281 / 0.298 /
+0.338 / 0.355 / 0.407, flat within the seed SD to 0.25 and rising
+after, the rise being the tick-1 runs above; the two post-read columns
+(a tick count, monotone by construction; the run-start detail) were
+added for it. (3) The declaration's "between 0.15 and 0.30 the
+mid-world false-alarm rate moving by less than the seed spread of the
+mid-world in-sight detected fraction" compared a rate per 10,000 ticks
+with a fraction's SD and is malformed as written; the rate moves by
+0.009 per 10,000 on group P (0.059 → 0.068) and by 0.082 on L / W / G
+(0.256 → 0.338) between those two rows, reported without a bar.
 
 ### R5d — the tables (`phase1d-sweep.md`, verbatim)
 
@@ -624,100 +638,118 @@ the threshold at onset and at the tick before, within the slice; `p90
 lat` the 90th-percentile latency among detected (ticks); `reset det` /
 `reset med lat` the reset episodes' detected fraction and median
 latency; `mw FA /10k` runs over the threshold containing no grave tick
-and not starting at the world's first tick, per 10,000 observer-ticks,
+and not starting at the slice's first tick, per 10,000 observer-ticks,
 `mw FA len` their median length; `all FA /10k` the same count with the
-world-start runs included; `mw FA per 100 det` mid-world false-alarm
+first-tick runs included; `mw FA per 100 det` mid-world false-alarm
 runs per 100 detected mid-world episodes (a ratio of counts per seed,
-then averaged); `non-grave ticks ≥ t /10k` the post-read tick column.
+then averaged); `non-grave ticks ≥ t /10k` non-grave ticks at or over
+the threshold per 10,000 observer-ticks (a tick count, not a
+false-alarm rate: it counts the ticks before, during the settling and
+after episodes alike); `mw FA start ≤ 100` the fraction of the
+mid-world false-alarm runs starting within the slice's first 100 ticks
+(offset ≤ 100); `mw FA at tick 1` the number of them per seed starting
+at offset 1; `late FA /10k (start > 100)` the runs starting after tick
+100 per 10,000 observer-ticks. The last three are post-read columns
+(DECLARATION §Addendum 2, second post-read addition); 100 is a
+reporting constant chosen after gate round 1 showed the start-offset
+distribution, not a declared burn-in.
 
 #### P (P1, P2, P3, P4, P5; 4,000,000 observer-ticks) — NF-h24+p
 episodes 288 (72 friend-episodes): reset 200, mid-world in sight 20, mid-world under fog 68
 per set: P1 reset 40 / mid-world 8; P2 reset 40 / mid-world 16; P3 reset 40 / mid-world 28; P4 reset 40 / mid-world 20; P5 reset 40 / mid-world 16
 
-| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0.05 | 0.950 ± 0.050 | 0.900 ± 0.050 | 0.0 ± 0.0 | 0.971 ± 0.039 | 0.961 ± 0.045 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.092 ± 0.028 | 3.8 ± 1.8 | 2.089 ± 0.032 | 42.9 ± 11.8 | 13.23 ± 0.96 |
-| 0.10 | 0.900 ± 0.050 | 0.883 ± 0.029 | 0.0 ± 0.0 | 0.956 ± 0.053 | 0.951 ± 0.047 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.072 ± 0.003 | 4.2 ± 0.8 | 1.607 ± 0.805 | 35.0 ± 2.5 | 10.51 ± 0.21 |
-| 0.15 | 0.867 ± 0.058 | 0.867 ± 0.058 | 0.0 ± 0.0 | 0.951 ± 0.047 | 0.936 ± 0.034 | 0.0 ± 0.0 | 0.987 ± 0.015 | 0.3 ± 0.6 | 0.059 ± 0.017 | 5.3 ± 2.3 | 1.469 ± 0.787 | 29.0 ± 8.9 | 9.29 ± 0.17 |
-| 0.20 | 0.850 ± 0.087 | 0.833 ± 0.076 | 0.0 ± 0.0 | 0.946 ± 0.042 | 0.931 ± 0.031 | 0.0 ± 0.0 | 0.975 ± 0.009 | 1.0 ± 0.0 | 0.073 ± 0.021 | 5.5 ± 2.5 | 0.898 ± 0.305 | 36.3 ± 11.0 | 7.98 ± 0.59 |
-| 0.25 | 0.817 ± 0.058 | 0.767 ± 0.029 | 0.3 ± 0.5 | 0.946 ± 0.042 | 0.926 ± 0.029 | 0.0 ± 0.0 | 0.972 ± 0.003 | 1.0 ± 0.0 | 0.074 ± 0.018 | 4.5 ± 1.8 | 0.557 ± 0.119 | 36.9 ± 9.3 | 7.04 ± 0.80 |
-| 0.30 | 0.767 ± 0.029 | 0.733 ± 0.029 | 0.0 ± 0.0 | 0.936 ± 0.034 | 0.922 ± 0.031 | 0.0 ± 0.0 | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.068 ± 0.009 | 3.0 ± 1.0 | 0.439 ± 0.196 | 34.2 ± 4.8 | 6.40 ± 0.83 |
-| 0.40 | 0.717 ± 0.029 | 0.650 ± 0.000 | 0.4 ± 0.7 | 0.897 ± 0.025 | 0.858 ± 0.022 | 0.0 ± 0.0 | 0.967 ± 0.010 | 1.0 ± 0.0 | 0.068 ± 0.025 | 3.0 ± 1.0 | 0.311 ± 0.224 | 36.1 ± 12.3 | 5.35 ± 0.62 |
-| 0.50 | 0.650 ± 0.050 | 0.450 ± 0.100 | 3.3 ± 3.3 | 0.877 ± 0.022 | 0.824 ± 0.015 | 0.0 ± 0.0 | 0.965 ± 0.013 | 1.0 ± 0.0 | 0.064 ± 0.008 | 3.2 ± 1.6 | 0.198 ± 0.208 | 35.3 ± 4.1 | 4.47 ± 0.51 |
+| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k | mw FA start ≤ 100 | mw FA at tick 1 | late FA /10k (start > 100) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 0.950 ± 0.050 | 0.900 ± 0.050 | 0.0 ± 0.0 | 0.971 ± 0.039 | 0.961 ± 0.045 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.092 ± 0.028 | 3.8 ± 1.8 | 2.089 ± 0.032 | 42.9 ± 11.8 | 13.23 ± 0.96 | 0.718 ± 0.204 | 0.0 ± 0.0 | 0.027 ± 0.025 |
+| 0.10 | 0.900 ± 0.050 | 0.883 ± 0.029 | 0.0 ± 0.0 | 0.956 ± 0.053 | 0.951 ± 0.047 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.072 ± 0.003 | 4.2 ± 0.8 | 1.607 ± 0.805 | 35.0 ± 2.5 | 10.51 ± 0.21 | 0.905 ± 0.135 | 0.0 ± 0.0 | 0.007 ± 0.009 |
+| 0.15 | 0.867 ± 0.058 | 0.867 ± 0.058 | 0.0 ± 0.0 | 0.951 ± 0.047 | 0.936 ± 0.034 | 0.0 ± 0.0 | 0.987 ± 0.015 | 0.3 ± 0.6 | 0.059 ± 0.017 | 5.3 ± 2.3 | 1.469 ± 0.787 | 29.0 ± 8.9 | 9.29 ± 0.17 | 0.933 ± 0.063 | 0.0 ± 0.0 | 0.003 ± 0.003 |
+| 0.20 | 0.850 ± 0.087 | 0.833 ± 0.076 | 0.0 ± 0.0 | 0.946 ± 0.042 | 0.931 ± 0.031 | 0.0 ± 0.0 | 0.975 ± 0.009 | 1.0 ± 0.0 | 0.073 ± 0.021 | 5.5 ± 2.5 | 0.898 ± 0.305 | 36.3 ± 11.0 | 7.98 ± 0.59 | 0.958 ± 0.072 | 0.0 ± 0.0 | 0.003 ± 0.006 |
+| 0.25 | 0.817 ± 0.058 | 0.767 ± 0.029 | 0.3 ± 0.5 | 0.946 ± 0.042 | 0.926 ± 0.029 | 0.0 ± 0.0 | 0.972 ± 0.003 | 1.0 ± 0.0 | 0.074 ± 0.018 | 4.5 ± 1.8 | 0.557 ± 0.119 | 36.9 ± 9.3 | 7.04 ± 0.80 | 0.946 ± 0.093 | 0.0 ± 0.0 | 0.004 ± 0.007 |
+| 0.30 | 0.767 ± 0.029 | 0.733 ± 0.029 | 0.0 ± 0.0 | 0.936 ± 0.034 | 0.922 ± 0.031 | 0.0 ± 0.0 | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.068 ± 0.009 | 3.0 ± 1.0 | 0.439 ± 0.196 | 34.2 ± 4.8 | 6.40 ± 0.83 | 0.976 ± 0.041 | 0.0 ± 0.0 | 0.002 ± 0.003 |
+| 0.40 | 0.717 ± 0.029 | 0.650 ± 0.000 | 0.4 ± 0.7 | 0.897 ± 0.025 | 0.858 ± 0.022 | 0.0 ± 0.0 | 0.967 ± 0.010 | 1.0 ± 0.0 | 0.068 ± 0.025 | 3.0 ± 1.0 | 0.311 ± 0.224 | 36.1 ± 12.3 | 5.35 ± 0.62 | 0.964 ± 0.062 | 0.0 ± 0.0 | 0.003 ± 0.004 |
+| 0.50 | 0.650 ± 0.050 | 0.450 ± 0.100 | 3.3 ± 3.3 | 0.877 ± 0.022 | 0.824 ± 0.015 | 0.0 ± 0.0 | 0.965 ± 0.013 | 1.0 ± 0.0 | 0.064 ± 0.008 | 3.2 ± 1.6 | 0.198 ± 0.208 | 35.3 ± 4.1 | 4.47 ± 0.51 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.000 ± 0.000 |
+
 #### P (P1, P2, P3, P4, P5; 4,000,000 observer-ticks) — DR-h24+p
 episodes 288 (72 friend-episodes): reset 200, mid-world in sight 20, mid-world under fog 68
 per set: P1 reset 40 / mid-world 8; P2 reset 40 / mid-world 16; P3 reset 40 / mid-world 28; P4 reset 40 / mid-world 20; P5 reset 40 / mid-world 16
 
-| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0.05 | 0.917 ± 0.029 | 0.883 ± 0.076 | 0.0 ± 0.0 | 0.975 ± 0.008 | 0.971 ± 0.000 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.392 ± 0.265 | 2.0 ± 1.7 | 2.392 ± 0.265 | 184.5 ± 124.2 | 29.71 ± 8.96 |
-| 0.10 | 0.867 ± 0.029 | 0.783 ± 0.076 | 0.8 ± 1.4 | 0.961 ± 0.017 | 0.936 ± 0.037 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.269 ± 0.170 | 2.5 ± 1.8 | 2.267 ± 0.169 | 131.2 ± 84.4 | 20.13 ± 4.67 |
-| 0.15 | 0.783 ± 0.076 | 0.667 ± 0.076 | 1.5 ± 2.0 | 0.931 ± 0.045 | 0.912 ± 0.064 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.198 ± 0.123 | 2.5 ± 0.9 | 2.177 ± 0.128 | 101.8 ± 64.8 | 15.12 ± 2.78 |
-| 0.20 | 0.683 ± 0.076 | 0.600 ± 0.050 | 0.9 ± 0.8 | 0.926 ± 0.053 | 0.882 ± 0.092 | 0.1 ± 0.1 | 0.997 ± 0.006 | 0.0 ± 0.0 | 0.159 ± 0.076 | 2.3 ± 0.6 | 2.055 ± 0.170 | 84.6 ± 43.5 | 12.26 ± 1.69 |
-| 0.25 | 0.617 ± 0.029 | 0.550 ± 0.000 | 0.3 ± 0.5 | 0.892 ± 0.075 | 0.858 ± 0.084 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.116 ± 0.057 | 2.3 ± 0.6 | 1.669 ± 0.505 | 65.2 ± 35.5 | 10.08 ± 1.29 |
-| 0.30 | 0.567 ± 0.029 | 0.533 ± 0.029 | 0.0 ± 0.0 | 0.863 ± 0.096 | 0.809 ± 0.074 | 0.0 ± 0.0 | 0.985 ± 0.000 | 0.7 ± 0.6 | 0.099 ± 0.045 | 3.7 ± 0.6 | 1.076 ± 0.549 | 58.1 ± 28.8 | 8.31 ± 0.91 |
-| 0.40 | 0.567 ± 0.029 | 0.483 ± 0.029 | 0.3 ± 0.5 | 0.809 ± 0.059 | 0.711 ± 0.075 | 2.3 ± 4.0 | 0.982 ± 0.006 | 1.0 ± 0.0 | 0.089 ± 0.031 | 2.8 ± 1.8 | 0.388 ± 0.238 | 54.3 ± 20.2 | 6.05 ± 0.41 |
-| 0.50 | 0.500 ± 0.000 | 0.450 ± 0.000 | 0.3 ± 0.3 | 0.745 ± 0.034 | 0.652 ± 0.066 | 6.8 ± 9.4 | 0.982 ± 0.006 | 1.0 ± 0.0 | 0.082 ± 0.030 | 4.7 ± 2.8 | 0.210 ± 0.132 | 53.9 ± 19.8 | 4.71 ± 0.14 |
+| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k | mw FA start ≤ 100 | mw FA at tick 1 | late FA /10k (start > 100) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 0.917 ± 0.029 | 0.883 ± 0.076 | 0.0 ± 0.0 | 0.975 ± 0.008 | 0.971 ± 0.000 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.392 ± 0.265 | 2.0 ± 1.7 | 2.392 ± 0.265 | 184.5 ± 124.2 | 29.71 ± 8.96 | 0.887 ± 0.058 | 0.0 ± 0.0 | 0.034 ± 0.015 |
+| 0.10 | 0.867 ± 0.029 | 0.783 ± 0.076 | 0.8 ± 1.4 | 0.961 ± 0.017 | 0.936 ± 0.037 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.269 ± 0.170 | 2.5 ± 1.8 | 2.267 ± 0.169 | 131.2 ± 84.4 | 20.13 ± 4.67 | 0.876 ± 0.182 | 0.0 ± 0.0 | 0.015 ± 0.014 |
+| 0.15 | 0.783 ± 0.076 | 0.667 ± 0.076 | 1.5 ± 2.0 | 0.931 ± 0.045 | 0.912 ± 0.064 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.198 ± 0.123 | 2.5 ± 0.9 | 2.177 ± 0.128 | 101.8 ± 64.8 | 15.12 ± 2.78 | 0.848 ± 0.244 | 0.0 ± 0.0 | 0.013 ± 0.017 |
+| 0.20 | 0.683 ± 0.076 | 0.600 ± 0.050 | 0.9 ± 0.8 | 0.926 ± 0.053 | 0.882 ± 0.092 | 0.1 ± 0.1 | 0.997 ± 0.006 | 0.0 ± 0.0 | 0.159 ± 0.076 | 2.3 ± 0.6 | 2.055 ± 0.170 | 84.6 ± 43.5 | 12.26 ± 1.69 | 0.942 ± 0.066 | 0.0 ± 0.0 | 0.007 ± 0.006 |
+| 0.25 | 0.617 ± 0.029 | 0.550 ± 0.000 | 0.3 ± 0.5 | 0.892 ± 0.075 | 0.858 ± 0.084 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.116 ± 0.057 | 2.3 ± 0.6 | 1.669 ± 0.505 | 65.2 ± 35.5 | 10.08 ± 1.29 | 0.862 ± 0.137 | 0.0 ± 0.0 | 0.011 ± 0.007 |
+| 0.30 | 0.567 ± 0.029 | 0.533 ± 0.029 | 0.0 ± 0.0 | 0.863 ± 0.096 | 0.809 ± 0.074 | 0.0 ± 0.0 | 0.985 ± 0.000 | 0.7 ± 0.6 | 0.099 ± 0.045 | 3.7 ± 0.6 | 1.076 ± 0.549 | 58.1 ± 28.8 | 8.31 ± 0.91 | 0.952 ± 0.053 | 1.0 ± 1.0 | 0.003 ± 0.003 |
+| 0.40 | 0.567 ± 0.029 | 0.483 ± 0.029 | 0.3 ± 0.5 | 0.809 ± 0.059 | 0.711 ± 0.075 | 2.3 ± 4.0 | 0.982 ± 0.006 | 1.0 ± 0.0 | 0.089 ± 0.031 | 2.8 ± 1.8 | 0.388 ± 0.238 | 54.3 ± 20.2 | 6.05 ± 0.41 | 0.970 ± 0.026 | 0.3 ± 0.6 | 0.003 ± 0.003 |
+| 0.50 | 0.500 ± 0.000 | 0.450 ± 0.000 | 0.3 ± 0.3 | 0.745 ± 0.034 | 0.652 ± 0.066 | 6.8 ± 9.4 | 0.982 ± 0.006 | 1.0 ± 0.0 | 0.082 ± 0.030 | 4.7 ± 2.8 | 0.210 ± 0.132 | 53.9 ± 19.8 | 4.71 ± 0.14 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.000 ± 0.000 |
+
 #### LWG (L, W, G; 2,800,000 observer-ticks) — NF-h24+p
 episodes 296 (74 friend-episodes): reset 196, mid-world in sight 22, mid-world under fog 78
 per set: W reset 36 / mid-world 52; G reset 160 / mid-world 48; L 0 / 0
 
-| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0.05 | 0.985 ± 0.026 | 0.970 ± 0.052 | 0.0 ± 0.0 | 0.983 ± 0.020 | 0.974 ± 0.013 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.274 ± 0.084 | 6.5 ± 1.3 | 0.850 ± 0.092 | 78.3 ± 25.5 | 27.94 ± 0.52 |
-| 0.10 | 0.955 ± 0.079 | 0.909 ± 0.079 | 0.6 ± 1.0 | 0.949 ± 0.044 | 0.927 ± 0.032 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.277 ± 0.099 | 4.7 ± 0.8 | 0.795 ± 0.185 | 83.0 ± 34.7 | 22.57 ± 0.69 |
-| 0.15 | 0.909 ± 0.045 | 0.833 ± 0.026 | 0.1 ± 0.2 | 0.944 ± 0.041 | 0.906 ± 0.027 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.256 ± 0.080 | 5.0 ± 1.0 | 0.751 ± 0.141 | 77.3 ± 27.8 | 19.58 ± 0.78 |
-| 0.20 | 0.833 ± 0.052 | 0.773 ± 0.000 | 0.2 ± 0.2 | 0.915 ± 0.027 | 0.880 ± 0.027 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.281 ± 0.088 | 4.3 ± 1.5 | 0.667 ± 0.134 | 88.4 ± 30.5 | 17.28 ± 0.47 |
-| 0.25 | 0.818 ± 0.045 | 0.758 ± 0.026 | 0.1 ± 0.2 | 0.889 ± 0.045 | 0.825 ± 0.032 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.298 ± 0.066 | 6.3 ± 2.5 | 0.575 ± 0.131 | 96.0 ± 23.9 | 15.41 ± 0.29 |
-| 0.30 | 0.788 ± 0.026 | 0.742 ± 0.026 | 0.2 ± 0.3 | 0.859 ± 0.038 | 0.761 ± 0.020 | 0.2 ± 0.2 | 0.988 ± 0.021 | 0.3 ± 0.6 | 0.338 ± 0.051 | 5.7 ± 2.1 | 0.562 ± 0.141 | 112.4 ± 17.7 | 13.94 ± 0.42 |
-| 0.40 | 0.727 ± 0.079 | 0.652 ± 0.095 | 0.7 ± 0.7 | 0.765 ± 0.045 | 0.675 ± 0.058 | 3.5 ± 3.8 | 0.973 ± 0.012 | 0.3 ± 0.6 | 0.355 ± 0.041 | 5.0 ± 1.0 | 0.521 ± 0.153 | 132.2 ± 23.0 | 11.45 ± 0.39 |
-| 0.50 | 0.606 ± 0.139 | 0.500 ± 0.157 | 3.9 ± 3.4 | 0.701 ± 0.053 | 0.594 ± 0.049 | 8.2 ± 10.1 | 0.956 ± 0.016 | 0.7 ± 0.6 | 0.407 ± 0.022 | 4.7 ± 0.6 | 0.477 ± 0.075 | 168.2 ± 9.0 | 9.24 ± 0.33 |
+| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k | mw FA start ≤ 100 | mw FA at tick 1 | late FA /10k (start > 100) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 0.985 ± 0.026 | 0.970 ± 0.052 | 0.0 ± 0.0 | 0.983 ± 0.020 | 0.974 ± 0.013 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.274 ± 0.084 | 6.5 ± 1.3 | 0.850 ± 0.092 | 78.3 ± 25.5 | 27.94 ± 0.52 | 0.847 ± 0.067 | 0.0 ± 0.0 | 0.038 ± 0.005 |
+| 0.10 | 0.955 ± 0.079 | 0.909 ± 0.079 | 0.6 ± 1.0 | 0.949 ± 0.044 | 0.927 ± 0.032 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.277 ± 0.099 | 4.7 ± 0.8 | 0.795 ± 0.185 | 83.0 ± 34.7 | 22.57 ± 0.69 | 0.925 ± 0.089 | 0.0 ± 0.0 | 0.017 ± 0.016 |
+| 0.15 | 0.909 ± 0.045 | 0.833 ± 0.026 | 0.1 ± 0.2 | 0.944 ± 0.041 | 0.906 ± 0.027 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.256 ± 0.080 | 5.0 ± 1.0 | 0.751 ± 0.141 | 77.3 ± 27.8 | 19.58 ± 0.78 | 0.962 ± 0.050 | 0.3 ± 0.6 | 0.012 ± 0.018 |
+| 0.20 | 0.833 ± 0.052 | 0.773 ± 0.000 | 0.2 ± 0.2 | 0.915 ± 0.027 | 0.880 ± 0.027 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.281 ± 0.088 | 4.3 ± 1.5 | 0.667 ± 0.134 | 88.4 ± 30.5 | 17.28 ± 0.47 | 0.980 ± 0.034 | 6.0 ± 10.4 | 0.007 ± 0.012 |
+| 0.25 | 0.818 ± 0.045 | 0.758 ± 0.026 | 0.1 ± 0.2 | 0.889 ± 0.045 | 0.825 ± 0.032 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.298 ± 0.066 | 6.3 ± 2.5 | 0.575 ± 0.131 | 96.0 ± 23.9 | 15.41 ± 0.29 | 0.992 ± 0.014 | 20.0 ± 25.7 | 0.002 ± 0.004 |
+| 0.30 | 0.788 ± 0.026 | 0.742 ± 0.026 | 0.2 ± 0.3 | 0.859 ± 0.038 | 0.761 ± 0.020 | 0.2 ± 0.2 | 0.988 ± 0.021 | 0.3 ± 0.6 | 0.338 ± 0.051 | 5.7 ± 2.1 | 0.562 ± 0.141 | 112.4 ± 17.7 | 13.94 ± 0.42 | 0.996 ± 0.007 | 28.0 ± 32.1 | 0.001 ± 0.002 |
+| 0.40 | 0.727 ± 0.079 | 0.652 ± 0.095 | 0.7 ± 0.7 | 0.765 ± 0.045 | 0.675 ± 0.058 | 3.5 ± 3.8 | 0.973 ± 0.012 | 0.3 ± 0.6 | 0.355 ± 0.041 | 5.0 ± 1.0 | 0.521 ± 0.153 | 132.2 ± 23.0 | 11.45 ± 0.39 | 0.996 ± 0.007 | 37.0 ± 22.1 | 0.001 ± 0.002 |
+| 0.50 | 0.606 ± 0.139 | 0.500 ± 0.157 | 3.9 ± 3.4 | 0.701 ± 0.053 | 0.594 ± 0.049 | 8.2 ± 10.1 | 0.956 ± 0.016 | 0.7 ± 0.6 | 0.407 ± 0.022 | 4.7 ± 0.6 | 0.477 ± 0.075 | 168.2 ± 9.0 | 9.24 ± 0.33 | 0.994 ± 0.010 | 44.3 ± 3.8 | 0.002 ± 0.004 |
+
 #### LWG (L, W, G; 2,800,000 observer-ticks) — DR-h24+p
 episodes 296 (74 friend-episodes): reset 196, mid-world in sight 22, mid-world under fog 78
 per set: W reset 36 / mid-world 52; G reset 160 / mid-world 48; L 0 / 0
 
-| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0.05 | 1.000 ± 0.000 | 0.985 ± 0.026 | 0.0 ± 0.0 | 0.987 ± 0.022 | 0.987 ± 0.022 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.375 ± 0.058 | 5.0 ± 1.0 | 0.948 ± 0.060 | 106.2 ± 18.0 | 42.01 ± 0.49 |
-| 0.10 | 0.939 ± 0.052 | 0.924 ± 0.026 | 0.0 ± 0.0 | 0.970 ± 0.041 | 0.957 ± 0.045 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.440 ± 0.082 | 5.0 ± 1.0 | 1.023 ± 0.078 | 128.5 ± 26.4 | 32.61 ± 0.26 |
-| 0.15 | 0.894 ± 0.026 | 0.864 ± 0.045 | 0.0 ± 0.1 | 0.932 ± 0.052 | 0.902 ± 0.041 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.400 ± 0.043 | 4.8 ± 0.8 | 0.987 ± 0.029 | 121.1 ± 8.8 | 26.95 ± 0.33 |
-| 0.20 | 0.879 ± 0.026 | 0.848 ± 0.026 | 0.0 ± 0.0 | 0.906 ± 0.061 | 0.825 ± 0.041 | 0.1 ± 0.1 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.401 ± 0.076 | 5.3 ± 1.2 | 0.961 ± 0.068 | 124.5 ± 20.2 | 22.95 ± 0.26 |
-| 0.25 | 0.818 ± 0.045 | 0.788 ± 0.069 | 0.1 ± 0.2 | 0.850 ± 0.066 | 0.782 ± 0.080 | 0.0 ± 0.0 | 0.998 ± 0.003 | 0.0 ± 0.0 | 0.454 ± 0.084 | 5.0 ± 0.5 | 0.883 ± 0.116 | 149.9 ± 16.9 | 19.82 ± 0.25 |
-| 0.30 | 0.773 ± 0.045 | 0.742 ± 0.069 | 0.0 ± 0.0 | 0.829 ± 0.083 | 0.744 ± 0.077 | 0.6 ± 0.6 | 0.991 ± 0.006 | 0.3 ± 0.6 | 0.480 ± 0.070 | 5.3 ± 0.6 | 0.756 ± 0.129 | 164.9 ± 23.2 | 17.09 ± 0.40 |
-| 0.40 | 0.697 ± 0.026 | 0.621 ± 0.026 | 0.0 ± 0.0 | 0.735 ± 0.133 | 0.590 ± 0.090 | 4.1 ± 3.3 | 0.969 ± 0.018 | 0.7 ± 0.6 | 0.494 ± 0.047 | 4.7 ± 0.6 | 0.575 ± 0.082 | 191.2 ± 8.9 | 12.78 ± 0.79 |
-| 0.50 | 0.591 ± 0.091 | 0.530 ± 0.069 | 0.2 ± 0.3 | 0.577 ± 0.068 | 0.432 ± 0.096 | 14.9 ± 13.9 | 0.951 ± 0.019 | 1.0 ± 0.0 | 0.462 ± 0.092 | 4.3 ± 0.6 | 0.493 ± 0.093 | 221.6 ± 25.6 | 9.47 ± 0.88 |
+| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k | mw FA start ≤ 100 | mw FA at tick 1 | late FA /10k (start > 100) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 1.000 ± 0.000 | 0.985 ± 0.026 | 0.0 ± 0.0 | 0.987 ± 0.022 | 0.987 ± 0.022 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.375 ± 0.058 | 5.0 ± 1.0 | 0.948 ± 0.060 | 106.2 ± 18.0 | 42.01 ± 0.49 | 0.918 ± 0.043 | 0.0 ± 0.0 | 0.032 ± 0.019 |
+| 0.10 | 0.939 ± 0.052 | 0.924 ± 0.026 | 0.0 ± 0.0 | 0.970 ± 0.041 | 0.957 ± 0.045 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.440 ± 0.082 | 5.0 ± 1.0 | 1.023 ± 0.078 | 128.5 ± 26.4 | 32.61 ± 0.26 | 0.932 ± 0.025 | 0.0 ± 0.0 | 0.031 ± 0.015 |
+| 0.15 | 0.894 ± 0.026 | 0.864 ± 0.045 | 0.0 ± 0.1 | 0.932 ± 0.052 | 0.902 ± 0.041 | 0.0 ± 0.0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.400 ± 0.043 | 4.8 ± 0.8 | 0.987 ± 0.029 | 121.1 ± 8.8 | 26.95 ± 0.33 | 0.951 ± 0.031 | 0.0 ± 0.0 | 0.019 ± 0.013 |
+| 0.20 | 0.879 ± 0.026 | 0.848 ± 0.026 | 0.0 ± 0.0 | 0.906 ± 0.061 | 0.825 ± 0.041 | 0.1 ± 0.1 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.401 ± 0.076 | 5.3 ± 1.2 | 0.961 ± 0.068 | 124.5 ± 20.2 | 22.95 ± 0.26 | 0.936 ± 0.024 | 4.7 ± 6.4 | 0.026 ± 0.013 |
+| 0.25 | 0.818 ± 0.045 | 0.788 ± 0.069 | 0.1 ± 0.2 | 0.850 ± 0.066 | 0.782 ± 0.080 | 0.0 ± 0.0 | 0.998 ± 0.003 | 0.0 ± 0.0 | 0.454 ± 0.084 | 5.0 ± 0.5 | 0.883 ± 0.116 | 149.9 ± 16.9 | 19.82 ± 0.25 | 0.964 ± 0.029 | 14.7 ± 15.6 | 0.015 ± 0.011 |
+| 0.30 | 0.773 ± 0.045 | 0.742 ± 0.069 | 0.0 ± 0.0 | 0.829 ± 0.083 | 0.744 ± 0.077 | 0.6 ± 0.6 | 0.991 ± 0.006 | 0.3 ± 0.6 | 0.480 ± 0.070 | 5.3 ± 0.6 | 0.756 ± 0.129 | 164.9 ± 23.2 | 17.09 ± 0.40 | 0.973 ± 0.031 | 28.0 ± 18.3 | 0.012 ± 0.013 |
+| 0.40 | 0.697 ± 0.026 | 0.621 ± 0.026 | 0.0 ± 0.0 | 0.735 ± 0.133 | 0.590 ± 0.090 | 4.1 ± 3.3 | 0.969 ± 0.018 | 0.7 ± 0.6 | 0.494 ± 0.047 | 4.7 ± 0.6 | 0.575 ± 0.082 | 191.2 ± 8.9 | 12.78 ± 0.79 | 0.972 ± 0.016 | 41.0 ± 5.0 | 0.014 ± 0.009 |
+| 0.50 | 0.591 ± 0.091 | 0.530 ± 0.069 | 0.2 ± 0.3 | 0.577 ± 0.068 | 0.432 ± 0.096 | 14.9 ± 13.9 | 0.951 ± 0.019 | 1.0 ± 0.0 | 0.462 ± 0.092 | 4.3 ± 0.6 | 0.493 ± 0.093 | 221.6 ± 25.6 | 9.47 ± 0.88 | 0.983 ± 0.021 | 35.0 ± 3.5 | 0.008 ± 0.011 |
 
 ### Composition of the sets
 
-Group P: five sets of ten evaluation worlds (4,000,000 observer-ticks);
-every set carries 40 reset episodes (its per-cat grave start, four
-observers each on ten worlds) and 8 / 16 / 28 / 20 / 16 mid-world
-episodes (P1–P5). L / W / G: the evaluation worlds of Phase 1's three
-groups (3 + 8 + 8 worlds; 2,800,000 observer-ticks); W (wide starts,
-all six needs started in 0–90) carries 36 reset and 52 mid-world
-episodes, G (grave starts, all six needs started in 60–95) 160 reset
-and 48 mid-world, and L (the lived distribution) none at all. The
-declaration expected grave to be rare on L / W / G; it is not, because
-G is a grave-start group by design, and the post-read addition says
-so. The 296 L / W / G episodes are 74 friend-episodes × 4 observers;
-the 288 group P episodes are 72 × 4.
+Group P: five sets of ten evaluation worlds (4,000,000 observer-ticks;
+4,000-tick slices); every set carries 40 reset episodes (its per-cat
+grave start, four observers each on ten worlds) and 8 / 16 / 28 / 20 /
+16 mid-world episodes (P1–P5). L / W / G: the evaluation worlds of
+Phase 1's three groups (3 + 8 + 8 worlds; 2,800,000 observer-ticks;
+slices of 20,000 / 6,000 / 4,000 ticks); W (wide starts, all six needs
+started in 0–90) carries 36 reset and 52 mid-world episodes, G (grave
+starts, all six needs started in 60–95) 160 reset and 48 mid-world,
+and L (the lived distribution) none at all. The declaration expected
+grave to be rare on L / W / G; it is not, because G is a grave-start
+group by design, and the first post-read addition says so. The 296
+L / W / G episodes are 74 friend-episodes × 4 observers; the 288 group P
+episodes are 72 × 4.
 
 ### Limitations of the sweep
 
 The mid-world in-sight cells rest on 20 (P) and 22 (L / W / G)
-observer-episodes, one of which is 0.05 of the detected fraction;
-the mid-world fog cells on 68 and 78. The same six probes and the same
-instrument produce every row, so the two sets are two reads of one
-head, not two heads. A threshold picked here from group P and read
-again in Phase 2 on group P re-reads the same 20 episodes; L / W / G is
-the set a pick can rest on without that, and its distribution (G's
-all-needs-high starts, W's wide starts, no lived worlds with an
-episode) is not group P's. False alarms are counted as runs, and what
-a run costs depends on the consumer; the tick column is not a
-false-alarm rate (it counts the anticipation ticks too). Platt scaling
-is monotone: it relabels the thresholds on this curve and moves no
-row's position relative to another. Nothing here is about reach,
-action or welfare; it is the belief as an alarm, offline, three seeds.
+observer-episodes, one of which is 0.05 of the detected fraction; the
+mid-world fog cells on 68 and 78; the runs-after-tick-100 cells on 0–11
+runs per seed. The same six probes and the same instrument produce
+every row, so the two sets are two reads of one head, not two heads. A
+threshold picked here from group P and read again in Phase 2 on group P
+re-reads the same 20 episodes; L / W / G is the set a pick can rest on
+without that, and its distribution (G's all-needs-high starts, W's
+wide starts, no lived world with an episode) is not group P's. R4d's
+"mid-world" false-alarm column excludes only the first-tick runs; this
+sweep shows the settling transient runs on for about a hundred ticks,
+so that column understates how much of the false-alarm count is
+start-up — the start-offset columns carry the correction, with 100 a
+post-read reporting constant. False alarms are counted as runs, and
+what a run costs depends on the consumer. Platt scaling is monotone:
+it relabels the thresholds on this curve and moves no row's position
+relative to another. Nothing here is about reach, action or welfare;
+it is the belief as an alarm, offline, three seeds.
 
 ## Regeneration
 
@@ -746,7 +778,7 @@ reads their `head-best.pt`; R2d reads SD-s*'s `belief-*.npz`).
 
 ```sh
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 25 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all); the addendum's R3d / R4d run inside it too and the reader asserts the committed R1d / R2d blocks unchanged
-MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d; asserts its 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the two post-read columns); asserts its 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
 ```
 
 Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 7

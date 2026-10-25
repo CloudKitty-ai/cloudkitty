@@ -453,3 +453,27 @@ against two non-grave, and the 0.15 cell catches it — RED CONFIRMED, 1
 passed after the restore): non-grave ticks counted as grave
 (`!= GRAVE` → `== GRAVE`) → `AssertionError` at the tick-column line of
 `test_t7_sweep`.
+
+Second post-read addition 2026-10-24 (after accuracy-gate round 1 on
+RESULTS §Addendum 2, before any number of it was cited). The round
+measured, read-only on the saved outputs, that the runs R4d counts as
+mid-world false alarms almost all start within a slice's first hundred
+ticks, and that the L / W / G rate's rise with the threshold is
+world-start runs whose first tick falls under the threshold (they then
+start at offset 1 and escape R4d's first-tick exclusion) — not the run
+splitting the first write-up named, and the non-grave ticks over the
+threshold are not mostly anticipation. So the sweep gains the
+run-start detail per row: the number of mid-world false-alarm runs
+starting at offset 1, the fraction starting within the first 100 ticks
+(offset ≤ 100, inclusive), and the runs starting after tick 100 per
+10,000 observer-ticks. 100 is a reporting constant, chosen after the
+distribution was seen; it is not a declared burn-in and no rule rests
+on it. Guard t7 extended (a 300-tick hand slice with runs at offsets
+1, exactly 100 and 200; the detail's run count asserted equal to
+R4d's). Red on record 2026-10-24 (`scripts/mutate.sh --expect
+frac_start_le_early` on `sweep_threshold.py` at 2d7bfbff; predicted
+first — the offset-100 run reclassified as late, the fraction 1/3 for
+2/3 — RED CONFIRMED, 1 passed after the restore; 7 passed on the
+restored suite): the early/late boundary moved from "after 100" to "at
+or after 100" (`st > EARLY` → `st >= EARLY`) → `AssertionError` at the
+fraction line of `test_t7_sweep`.

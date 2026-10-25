@@ -157,7 +157,14 @@
           "midworld_detected": 85.0,
           "midworld_fa_per_100_detected": 49.411764705882355
          },
-         "nongrave_above_per_10k": 12.13
+         "nongrave_above_per_10k": 12.13,
+         "fa_detail": {
+          "midworld_runs": 42,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9047619047619048,
+          "late_runs_per_10k": 0.01,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -233,7 +240,14 @@
           "midworld_detected": 82.0,
           "midworld_fa_per_100_detected": 29.26829268292683
          },
-         "nongrave_above_per_10k": 13.940000000000001
+         "nongrave_above_per_10k": 13.940000000000001,
+         "fa_detail": {
+          "midworld_runs": 24,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.75,
+          "late_runs_per_10k": 0.015000000000000001,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -309,7 +323,14 @@
           "midworld_detected": 88.0,
           "midworld_fa_per_100_detected": 50.0
          },
-         "nongrave_above_per_10k": 13.615
+         "nongrave_above_per_10k": 13.615,
+         "fa_detail": {
+          "midworld_runs": 44,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.5,
+          "late_runs_per_10k": 0.055,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -617,6 +638,33 @@
         "mean": 13.228333333333333,
         "sd": 0.9649654570674193,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 36.666666666666664,
+         "sd": 11.015141094572204,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.7182539682539683,
+         "sd": 0.20423982908663127,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.02666666666666667,
+         "sd": 0.024664414311581236,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.10": {
@@ -695,7 +743,14 @@
           "midworld_detected": 83.0,
           "midworld_fa_per_100_detected": 36.144578313253014
          },
-         "nongrave_above_per_10k": 10.3925
+         "nongrave_above_per_10k": 10.3925,
+         "fa_detail": {
+          "midworld_runs": 30,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -771,7 +826,14 @@
           "midworld_detected": 79.0,
           "midworld_fa_per_100_detected": 36.70886075949367
          },
-         "nongrave_above_per_10k": 10.76
+         "nongrave_above_per_10k": 10.76,
+         "fa_detail": {
+          "midworld_runs": 29,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9655172413793104,
+          "late_runs_per_10k": 0.0025,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -847,7 +909,14 @@
           "midworld_detected": 87.0,
           "midworld_fa_per_100_detected": 32.18390804597701
          },
-         "nongrave_above_per_10k": 10.39
+         "nongrave_above_per_10k": 10.39,
+         "fa_detail": {
+          "midworld_runs": 28,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.75,
+          "late_runs_per_10k": 0.017499999999999998,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -1155,6 +1224,33 @@
         "mean": 10.514166666666666,
         "sd": 0.21290158133121792,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 29,
+         "sd": 1.0,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9051724137931034,
+         "sd": 0.13548477280604923,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.006666666666666666,
+         "sd": 0.009464847243000455,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.15": {
@@ -1233,7 +1329,14 @@
           "midworld_detected": 82.0,
           "midworld_fa_per_100_detected": 35.36585365853659
          },
-         "nongrave_above_per_10k": 9.1725
+         "nongrave_above_per_10k": 9.1725,
+         "fa_detail": {
+          "midworld_runs": 29,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -1309,7 +1412,14 @@
           "midworld_detected": 79.0,
           "midworld_fa_per_100_detected": 32.91139240506329
          },
-         "nongrave_above_per_10k": 9.49
+         "nongrave_above_per_10k": 9.49,
+         "fa_detail": {
+          "midworld_runs": 26,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9230769230769231,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -1385,7 +1495,14 @@
           "midworld_detected": 85.0,
           "midworld_fa_per_100_detected": 18.823529411764707
          },
-         "nongrave_above_per_10k": 9.21
+         "nongrave_above_per_10k": 9.21,
+         "fa_detail": {
+          "midworld_runs": 16,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.875,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -1693,6 +1810,33 @@
         "mean": 9.290833333333333,
         "sd": 0.17349951969193855,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 23.666666666666668,
+         "sd": 6.8068592855540455,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9326923076923077,
+         "sd": 0.06305229350290385,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0033333333333333335,
+         "sd": 0.002886751345948129,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.20": {
@@ -1771,7 +1915,14 @@
           "midworld_detected": 81.0,
           "midworld_fa_per_100_detected": 44.44444444444444
          },
-         "nongrave_above_per_10k": 7.78
+         "nongrave_above_per_10k": 7.78,
+         "fa_detail": {
+          "midworld_runs": 36,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -1847,7 +1998,14 @@
           "midworld_detected": 79.0,
           "midworld_fa_per_100_detected": 40.50632911392405
          },
-         "nongrave_above_per_10k": 8.6525
+         "nongrave_above_per_10k": 8.6525,
+         "fa_detail": {
+          "midworld_runs": 32,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.875,
+          "late_runs_per_10k": 0.01,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -1923,7 +2081,14 @@
           "midworld_detected": 84.0,
           "midworld_fa_per_100_detected": 23.80952380952381
          },
-         "nongrave_above_per_10k": 7.5175
+         "nongrave_above_per_10k": 7.5175,
+         "fa_detail": {
+          "midworld_runs": 20,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -2231,6 +2396,33 @@
         "mean": 7.983333333333333,
         "sd": 0.5941923790602949,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 29.333333333333332,
+         "sd": 8.32666399786453,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9583333333333334,
+         "sd": 0.07216878364870322,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0033333333333333335,
+         "sd": 0.005773502691896258,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.25": {
@@ -2309,7 +2501,14 @@
           "midworld_detected": 81.0,
           "midworld_fa_per_100_detected": 44.44444444444444
          },
-         "nongrave_above_per_10k": 6.6475
+         "nongrave_above_per_10k": 6.6475,
+         "fa_detail": {
+          "midworld_runs": 36,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -2385,7 +2584,14 @@
           "midworld_detected": 78.0,
           "midworld_fa_per_100_detected": 39.743589743589745
          },
-         "nongrave_above_per_10k": 7.965
+         "nongrave_above_per_10k": 7.965,
+         "fa_detail": {
+          "midworld_runs": 31,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8387096774193549,
+          "late_runs_per_10k": 0.0125,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -2461,7 +2667,14 @@
           "midworld_detected": 83.0,
           "midworld_fa_per_100_detected": 26.50602409638554
          },
-         "nongrave_above_per_10k": 6.505000000000001
+         "nongrave_above_per_10k": 6.505000000000001,
+         "fa_detail": {
+          "midworld_runs": 22,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -2769,6 +2982,33 @@
         "mean": 7.039166666666667,
         "sd": 0.8049547088708363,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 29.666666666666668,
+         "sd": 7.094598884597588,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.946236559139785,
+         "sd": 0.09312101115961705,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.004166666666666667,
+         "sd": 0.007216878364870323,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.30": {
@@ -2847,7 +3087,14 @@
           "midworld_detected": 80.0,
           "midworld_fa_per_100_detected": 37.5
          },
-         "nongrave_above_per_10k": 6.0275
+         "nongrave_above_per_10k": 6.0275,
+         "fa_detail": {
+          "midworld_runs": 30,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -2923,7 +3170,14 @@
           "midworld_detected": 77.0,
           "midworld_fa_per_100_detected": 36.36363636363637
          },
-         "nongrave_above_per_10k": 7.3475
+         "nongrave_above_per_10k": 7.3475,
+         "fa_detail": {
+          "midworld_runs": 28,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9285714285714286,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -2999,7 +3253,14 @@
           "midworld_detected": 80.0,
           "midworld_fa_per_100_detected": 28.75
          },
-         "nongrave_above_per_10k": 5.8149999999999995
+         "nongrave_above_per_10k": 5.8149999999999995,
+         "fa_detail": {
+          "midworld_runs": 23,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -3307,6 +3568,33 @@
         "mean": 6.3966666666666665,
         "sd": 0.8302722946921292,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 27,
+         "sd": 3.605551275463989,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9761904761904762,
+         "sd": 0.041239304942116105,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0016666666666666668,
+         "sd": 0.002886751345948129,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.40": {
@@ -3385,7 +3673,14 @@
           "midworld_detected": 78.0,
           "midworld_fa_per_100_detected": 47.43589743589744
          },
-         "nongrave_above_per_10k": 5.0325
+         "nongrave_above_per_10k": 5.0325,
+         "fa_detail": {
+          "midworld_runs": 37,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -3461,7 +3756,14 @@
           "midworld_detected": 74.0,
           "midworld_fa_per_100_detected": 37.83783783783784
          },
-         "nongrave_above_per_10k": 6.0625
+         "nongrave_above_per_10k": 6.0625,
+         "fa_detail": {
+          "midworld_runs": 28,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8928571428571429,
+          "late_runs_per_10k": 0.007500000000000001,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -3537,7 +3839,14 @@
           "midworld_detected": 74.0,
           "midworld_fa_per_100_detected": 22.972972972972972
          },
-         "nongrave_above_per_10k": 4.945
+         "nongrave_above_per_10k": 4.945,
+         "fa_detail": {
+          "midworld_runs": 17,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -3845,6 +4154,33 @@
         "mean": 5.346666666666667,
         "sd": 0.6214717075887954,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 27.333333333333332,
+         "sd": 10.016652800877813,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9642857142857143,
+         "sd": 0.06185895741317416,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0025,
+         "sd": 0.004330127018922193,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.50": {
@@ -3923,7 +4259,14 @@
           "midworld_detected": 74.0,
           "midworld_fa_per_100_detected": 37.83783783783784
          },
-         "nongrave_above_per_10k": 4.0874999999999995
+         "nongrave_above_per_10k": 4.0874999999999995,
+         "fa_detail": {
+          "midworld_runs": 28,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -3999,7 +4342,14 @@
           "midworld_detected": 72.0,
           "midworld_fa_per_100_detected": 37.5
          },
-         "nongrave_above_per_10k": 5.05
+         "nongrave_above_per_10k": 5.05,
+         "fa_detail": {
+          "midworld_runs": 27,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -4075,7 +4425,14 @@
           "midworld_detected": 72.0,
           "midworld_fa_per_100_detected": 30.555555555555557
          },
-         "nongrave_above_per_10k": 4.2700000000000005
+         "nongrave_above_per_10k": 4.2700000000000005,
+         "fa_detail": {
+          "midworld_runs": 22,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -4383,6 +4740,33 @@
         "mean": 4.469166666666666,
         "sd": 0.5112260589341405,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 25.666666666666668,
+         "sd": 3.2145502536643185,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 1.0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       }
      }
@@ -4493,7 +4877,14 @@
           "midworld_detected": 84.0,
           "midworld_fa_per_100_detected": 46.42857142857143
          },
-         "nongrave_above_per_10k": 23.15
+         "nongrave_above_per_10k": 23.15,
+         "fa_detail": {
+          "midworld_runs": 39,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8205128205128205,
+          "late_runs_per_10k": 0.017499999999999998,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -4569,7 +4960,14 @@
           "midworld_detected": 85.0,
           "midworld_fa_per_100_detected": 220.0
          },
-         "nongrave_above_per_10k": 26.055000000000003
+         "nongrave_above_per_10k": 26.055000000000003,
+         "fa_detail": {
+          "midworld_runs": 187,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9144385026737968,
+          "late_runs_per_10k": 0.04,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -4645,7 +5043,14 @@
           "midworld_detected": 85.0,
           "midworld_fa_per_100_detected": 287.05882352941177
          },
-         "nongrave_above_per_10k": 39.92
+         "nongrave_above_per_10k": 39.92,
+         "fa_detail": {
+          "midworld_runs": 244,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9262295081967213,
+          "late_runs_per_10k": 0.045,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -4953,6 +5358,33 @@
         "mean": 29.708333333333336,
         "sd": 8.962051011533763,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 156.66666666666666,
+         "sd": 105.81272765283641,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.8870602771277796,
+         "sd": 0.05793254645922534,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.034166666666666665,
+         "sd": 0.014648663192705788,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.10": {
@@ -5031,7 +5463,14 @@
           "midworld_detected": 84.0,
           "midworld_fa_per_100_detected": 42.857142857142854
          },
-         "nongrave_above_per_10k": 16.825
+         "nongrave_above_per_10k": 16.825,
+         "fa_detail": {
+          "midworld_runs": 36,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.6666666666666666,
+          "late_runs_per_10k": 0.030000000000000002,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -5107,7 +5546,14 @@
           "midworld_detected": 83.0,
           "midworld_fa_per_100_detected": 139.75903614457832
          },
-         "nongrave_above_per_10k": 18.0925
+         "nongrave_above_per_10k": 18.0925,
+         "fa_detail": {
+          "midworld_runs": 116,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9913793103448276,
+          "late_runs_per_10k": 0.0025,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -5183,7 +5629,14 @@
           "midworld_detected": 81.0,
           "midworld_fa_per_100_detected": 211.11111111111111
          },
-         "nongrave_above_per_10k": 25.48
+         "nongrave_above_per_10k": 25.48,
+         "fa_detail": {
+          "midworld_runs": 171,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9707602339181286,
+          "late_runs_per_10k": 0.0125,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -5491,6 +5944,33 @@
         "mean": 20.1325,
         "sd": 4.674233225888499,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 107.66666666666667,
+         "sd": 67.88470618138767,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.876268736976541,
+         "sd": 0.18181324893090614,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.015000000000000001,
+         "sd": 0.013919410907075056,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.15": {
@@ -5569,7 +6049,14 @@
           "midworld_detected": 82.0,
           "midworld_fa_per_100_detected": 36.58536585365854
          },
-         "nongrave_above_per_10k": 13.2275
+         "nongrave_above_per_10k": 13.2275,
+         "fa_detail": {
+          "midworld_runs": 30,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.5666666666666667,
+          "late_runs_per_10k": 0.0325,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -5645,7 +6132,14 @@
           "midworld_detected": 78.0,
           "midworld_fa_per_100_detected": 102.56410256410257
          },
-         "nongrave_above_per_10k": 13.8325
+         "nongrave_above_per_10k": 13.8325,
+         "fa_detail": {
+          "midworld_runs": 80,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -5721,7 +6215,14 @@
           "midworld_detected": 77.0,
           "midworld_fa_per_100_detected": 166.23376623376623
          },
-         "nongrave_above_per_10k": 18.31
+         "nongrave_above_per_10k": 18.31,
+         "fa_detail": {
+          "midworld_runs": 128,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9765625,
+          "late_runs_per_10k": 0.007500000000000001,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -6029,6 +6530,33 @@
         "mean": 15.123333333333333,
         "sd": 2.7762636011973596,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 79.33333333333333,
+         "sd": 49.0034012424988,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.8477430555555555,
+         "sd": 0.24370121336315897,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.013333333333333334,
+         "sd": 0.017017148213885114,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.20": {
@@ -6107,7 +6635,14 @@
           "midworld_detected": 81.0,
           "midworld_fa_per_100_detected": 38.27160493827161
          },
-         "nongrave_above_per_10k": 11.1775
+         "nongrave_above_per_10k": 11.1775,
+         "fa_detail": {
+          "midworld_runs": 31,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8709677419354839,
+          "late_runs_per_10k": 0.01,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -6183,7 +6718,14 @@
           "midworld_detected": 76.0,
           "midworld_fa_per_100_detected": 90.78947368421052
          },
-         "nongrave_above_per_10k": 11.405
+         "nongrave_above_per_10k": 11.405,
+         "fa_detail": {
+          "midworld_runs": 69,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -6259,7 +6801,14 @@
           "midworld_detected": 73.0,
           "midworld_fa_per_100_detected": 124.65753424657534
          },
-         "nongrave_above_per_10k": 14.205000000000002
+         "nongrave_above_per_10k": 14.205000000000002,
+         "fa_detail": {
+          "midworld_runs": 91,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9560439560439561,
+          "late_runs_per_10k": 0.01,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -6567,6 +7116,33 @@
         "mean": 12.262500000000001,
         "sd": 1.6860957119926507,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 63.666666666666664,
+         "sd": 30.35347316755256,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9423372326598133,
+         "sd": 0.06559905948071226,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.006666666666666667,
+         "sd": 0.005773502691896258,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.25": {
@@ -6645,7 +7221,14 @@
           "midworld_detected": 78.0,
           "midworld_fa_per_100_detected": 26.923076923076923
          },
-         "nongrave_above_per_10k": 9.375
+         "nongrave_above_per_10k": 9.375,
+         "fa_detail": {
+          "midworld_runs": 21,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.7142857142857143,
+          "late_runs_per_10k": 0.015000000000000001,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -6721,7 +7304,14 @@
           "midworld_detected": 74.0,
           "midworld_fa_per_100_detected": 71.62162162162163
          },
-         "nongrave_above_per_10k": 9.285
+         "nongrave_above_per_10k": 9.285,
+         "fa_detail": {
+          "midworld_runs": 53,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8867924528301887,
+          "late_runs_per_10k": 0.015000000000000001,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -6797,7 +7387,14 @@
           "midworld_detected": 67.0,
           "midworld_fa_per_100_detected": 97.01492537313433
          },
-         "nongrave_above_per_10k": 11.57
+         "nongrave_above_per_10k": 11.57,
+         "fa_detail": {
+          "midworld_runs": 65,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9846153846153847,
+          "late_runs_per_10k": 0.0025,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -7105,6 +7702,33 @@
         "mean": 10.076666666666666,
         "sd": 1.2940472685853996,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 46.333333333333336,
+         "sd": 22.744962812309307,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.8618978505770959,
+         "sd": 0.13687344001354623,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.010833333333333334,
+         "sd": 0.007216878364870323,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.30": {
@@ -7183,7 +7807,14 @@
           "midworld_detected": 76.0,
           "midworld_fa_per_100_detected": 25.0
          },
-         "nongrave_above_per_10k": 7.7675
+         "nongrave_above_per_10k": 7.7675,
+         "fa_detail": {
+          "midworld_runs": 19,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8947368421052632,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -7259,7 +7890,14 @@
           "midworld_detected": 70.0,
           "midworld_fa_per_100_detected": 72.85714285714286
          },
-         "nongrave_above_per_10k": 7.797499999999999
+         "nongrave_above_per_10k": 7.797499999999999,
+         "fa_detail": {
+          "midworld_runs": 51,
+          "start_at_1": 1,
+          "frac_start_le_early": 0.9607843137254902,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -7335,7 +7973,14 @@
           "midworld_detected": 64.0,
           "midworld_fa_per_100_detected": 76.5625
          },
-         "nongrave_above_per_10k": 9.365
+         "nongrave_above_per_10k": 9.365,
+         "fa_detail": {
+          "midworld_runs": 49,
+          "start_at_1": 2,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -7643,6 +8288,33 @@
         "mean": 8.31,
         "sd": 0.9137799242706093,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 39.666666666666664,
+         "sd": 17.925772879665004,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 1,
+         "sd": 1.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9518403852769178,
+         "sd": 0.05319848207010198,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0033333333333333335,
+         "sd": 0.002886751345948129,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.40": {
@@ -7721,7 +8393,14 @@
           "midworld_detected": 70.0,
           "midworld_fa_per_100_detected": 31.428571428571427
          },
-         "nongrave_above_per_10k": 5.680000000000001
+         "nongrave_above_per_10k": 5.680000000000001,
+         "fa_detail": {
+          "midworld_runs": 22,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9545454545454546,
+          "late_runs_per_10k": 0.0025,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -7797,7 +8476,14 @@
           "midworld_detected": 66.0,
           "midworld_fa_per_100_detected": 69.6969696969697
          },
-         "nongrave_above_per_10k": 5.9625
+         "nongrave_above_per_10k": 5.9625,
+         "fa_detail": {
+          "midworld_runs": 46,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9565217391304348,
+          "late_runs_per_10k": 0.005,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -7873,7 +8559,14 @@
           "midworld_detected": 63.0,
           "midworld_fa_per_100_detected": 61.904761904761905
          },
-         "nongrave_above_per_10k": 6.495
+         "nongrave_above_per_10k": 6.495,
+         "fa_detail": {
+          "midworld_runs": 39,
+          "start_at_1": 1,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -8181,6 +8874,33 @@
         "mean": 6.045833333333333,
         "sd": 0.41384125378378256,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 35.666666666666664,
+         "sd": 12.342339054382412,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0.3333333333333333,
+         "sd": 0.5773502691896257,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9703557312252965,
+         "sd": 0.025691699604743063,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0025,
+         "sd": 0.0025,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.50": {
@@ -8259,7 +8979,14 @@
           "midworld_detected": 62.0,
           "midworld_fa_per_100_detected": 32.25806451612903
          },
-         "nongrave_above_per_10k": 4.5775
+         "nongrave_above_per_10k": 4.5775,
+         "fa_detail": {
+          "midworld_runs": 20,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -8335,7 +9062,14 @@
           "midworld_detected": 62.0,
           "midworld_fa_per_100_detected": 70.96774193548387
          },
-         "nongrave_above_per_10k": 4.702500000000001
+         "nongrave_above_per_10k": 4.702500000000001,
+         "fa_detail": {
+          "midworld_runs": 44,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -8411,7 +9145,14 @@
           "midworld_detected": 58.0,
           "midworld_fa_per_100_detected": 58.62068965517241
          },
-         "nongrave_above_per_10k": 4.86
+         "nongrave_above_per_10k": 4.86,
+         "fa_detail": {
+          "midworld_runs": 34,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -8719,6 +9460,33 @@
         "mean": 4.713333333333334,
         "sd": 0.1415612352776473,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 32.666666666666664,
+         "sd": 12.055427546683417,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 1.0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       }
      }
@@ -8827,7 +9595,14 @@
           "midworld_detected": 96.0,
           "midworld_fa_per_100_detected": 105.20833333333333
          },
-         "nongrave_above_per_10k": 28.39642857142857
+         "nongrave_above_per_10k": 28.39642857142857,
+         "fa_detail": {
+          "midworld_runs": 101,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9108910891089109,
+          "late_runs_per_10k": 0.03214285714285714,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -8903,7 +9678,14 @@
           "midworld_detected": 100.0,
           "midworld_fa_per_100_detected": 75.0
          },
-         "nongrave_above_per_10k": 27.37857142857143
+         "nongrave_above_per_10k": 27.37857142857143,
+         "fa_detail": {
+          "midworld_runs": 75,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8533333333333334,
+          "late_runs_per_10k": 0.039285714285714285,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -8979,7 +9761,14 @@
           "midworld_detected": 99.0,
           "midworld_fa_per_100_detected": 54.54545454545455
          },
-         "nongrave_above_per_10k": 28.05
+         "nongrave_above_per_10k": 28.05,
+         "fa_detail": {
+          "midworld_runs": 54,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.7777777777777778,
+          "late_runs_per_10k": 0.04285714285714286,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -9287,6 +10076,33 @@
         "mean": 27.941666666666666,
         "sd": 0.5175039846703192,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 76.66666666666667,
+         "sd": 23.544284515213736,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.8473340667400073,
+         "sd": 0.06675913280689125,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.03809523809523809,
+         "sd": 0.005455447255899811,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.10": {
@@ -9365,7 +10181,14 @@
           "midworld_detected": 89.0,
           "midworld_fa_per_100_detected": 122.47191011235955
          },
-         "nongrave_above_per_10k": 22.96428571428571
+         "nongrave_above_per_10k": 22.96428571428571,
+         "fa_detail": {
+          "midworld_runs": 109,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.981651376146789,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -9441,7 +10264,14 @@
           "midworld_detected": 98.0,
           "midworld_fa_per_100_detected": 69.38775510204081
          },
-         "nongrave_above_per_10k": 21.767857142857146
+         "nongrave_above_per_10k": 21.767857142857146,
+         "fa_detail": {
+          "midworld_runs": 68,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9705882352941176,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -9517,7 +10347,14 @@
           "midworld_detected": 98.0,
           "midworld_fa_per_100_detected": 57.142857142857146
          },
-         "nongrave_above_per_10k": 22.96785714285714
+         "nongrave_above_per_10k": 22.96785714285714,
+         "fa_detail": {
+          "midworld_runs": 56,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8214285714285714,
+          "late_runs_per_10k": 0.03571428571428571,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -9825,6 +10662,33 @@
         "mean": 22.566666666666666,
         "sd": 0.691791645130313,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 77.66666666666667,
+         "sd": 27.79088579612628,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9245560609564927,
+         "sd": 0.0894821635502302,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.016666666666666666,
+         "sd": 0.01649572197684645,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.15": {
@@ -9903,7 +10767,14 @@
           "midworld_detected": 89.0,
           "midworld_fa_per_100_detected": 107.86516853932584
          },
-         "nongrave_above_per_10k": 19.803571428571427
+         "nongrave_above_per_10k": 19.803571428571427,
+         "fa_detail": {
+          "midworld_runs": 96,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.90625,
+          "late_runs_per_10k": 0.03214285714285714,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -9979,7 +10850,14 @@
           "midworld_detected": 95.0,
           "midworld_fa_per_100_detected": 70.52631578947368
          },
-         "nongrave_above_per_10k": 18.71785714285714
+         "nongrave_above_per_10k": 18.71785714285714,
+         "fa_detail": {
+          "midworld_runs": 67,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -10055,7 +10933,14 @@
           "midworld_detected": 97.0,
           "midworld_fa_per_100_detected": 53.608247422680414
          },
-         "nongrave_above_per_10k": 20.228571428571428
+         "nongrave_above_per_10k": 20.228571428571428,
+         "fa_detail": {
+          "midworld_runs": 52,
+          "start_at_1": 1,
+          "frac_start_le_early": 0.9807692307692307,
+          "late_runs_per_10k": 0.0035714285714285718,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -10363,6 +11248,33 @@
         "mean": 19.583333333333332,
         "sd": 0.779065483262405,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 71.66666666666667,
+         "sd": 22.368132093076824,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0.3333333333333333,
+         "sd": 0.5773502691896257,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9623397435897436,
+         "sd": 0.04951767485730889,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.011904761904761904,
+         "sd": 0.017617438793986594,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.20": {
@@ -10441,7 +11353,14 @@
           "midworld_detected": 86.0,
           "midworld_fa_per_100_detected": 118.6046511627907
          },
-         "nongrave_above_per_10k": 17.5
+         "nongrave_above_per_10k": 17.5,
+         "fa_detail": {
+          "midworld_runs": 102,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9411764705882353,
+          "late_runs_per_10k": 0.02142857142857143,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -10517,7 +11436,14 @@
           "midworld_detected": 92.0,
           "midworld_fa_per_100_detected": 57.608695652173914
          },
-         "nongrave_above_per_10k": 16.739285714285714
+         "nongrave_above_per_10k": 16.739285714285714,
+         "fa_detail": {
+          "midworld_runs": 53,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -10593,7 +11519,14 @@
           "midworld_detected": 91.0,
           "midworld_fa_per_100_detected": 89.01098901098901
          },
-         "nongrave_above_per_10k": 17.589285714285715
+         "nongrave_above_per_10k": 17.589285714285715,
+         "fa_detail": {
+          "midworld_runs": 81,
+          "start_at_1": 18,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -10901,6 +11834,33 @@
         "mean": 17.276190476190475,
         "sd": 0.46711136489159083,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 78.66666666666667,
+         "sd": 24.583192089989723,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 6,
+         "sd": 10.392304845413264,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9803921568627451,
+         "sd": 0.03396178054056623,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.007142857142857143,
+         "sd": 0.012371791482634838,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.25": {
@@ -10979,7 +11939,14 @@
           "midworld_detected": 83.0,
           "midworld_fa_per_100_detected": 102.40963855421687
          },
-         "nongrave_above_per_10k": 15.739285714285714
+         "nongrave_above_per_10k": 15.739285714285714,
+         "fa_detail": {
+          "midworld_runs": 85,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9764705882352941,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -11055,7 +12022,14 @@
           "midworld_detected": 92.0,
           "midworld_fa_per_100_detected": 69.56521739130434
          },
-         "nongrave_above_per_10k": 15.214285714285714
+         "nongrave_above_per_10k": 15.214285714285714,
+         "fa_detail": {
+          "midworld_runs": 64,
+          "start_at_1": 11,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -11131,7 +12105,14 @@
           "midworld_detected": 87.0,
           "midworld_fa_per_100_detected": 116.0919540229885
          },
-         "nongrave_above_per_10k": 15.282142857142857
+         "nongrave_above_per_10k": 15.282142857142857,
+         "fa_detail": {
+          "midworld_runs": 101,
+          "start_at_1": 49,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -11439,6 +12420,33 @@
         "mean": 15.411904761904761,
         "sd": 0.2855431034810302,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 83.33333333333333,
+         "sd": 18.556220879622373,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 20,
+         "sd": 25.709920264364882,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9921568627450981,
+         "sd": 0.013584712216226504,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.002380952380952381,
+         "sd": 0.004123930494211613,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.30": {
@@ -11517,7 +12525,14 @@
           "midworld_detected": 81.0,
           "midworld_fa_per_100_detected": 107.4074074074074
          },
-         "nongrave_above_per_10k": 14.425
+         "nongrave_above_per_10k": 14.425,
+         "fa_detail": {
+          "midworld_runs": 87,
+          "start_at_1": 0,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -11593,7 +12608,14 @@
           "midworld_detected": 88.0,
           "midworld_fa_per_100_detected": 97.72727272727273
          },
-         "nongrave_above_per_10k": 13.696428571428573
+         "nongrave_above_per_10k": 13.696428571428573,
+         "fa_detail": {
+          "midworld_runs": 86,
+          "start_at_1": 21,
+          "frac_start_le_early": 0.9883720930232558,
+          "late_runs_per_10k": 0.0035714285714285718,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -11669,7 +12691,14 @@
           "midworld_detected": 84.0,
           "midworld_fa_per_100_detected": 132.14285714285714
          },
-         "nongrave_above_per_10k": 13.703571428571427
+         "nongrave_above_per_10k": 13.703571428571427,
+         "fa_detail": {
+          "midworld_runs": 111,
+          "start_at_1": 63,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -11977,6 +13006,33 @@
         "mean": 13.941666666666666,
         "sd": 0.4185941810815989,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 94.66666666666667,
+         "sd": 14.153915830374764,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 28,
+         "sd": 32.07802986469088,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9961240310077519,
+         "sd": 0.006713375223135195,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0011904761904761906,
+         "sd": 0.0020619652471058065,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.40": {
@@ -12055,7 +13111,14 @@
           "midworld_detected": 77.0,
           "midworld_fa_per_100_detected": 136.36363636363637
          },
-         "nongrave_above_per_10k": 11.860714285714284
+         "nongrave_above_per_10k": 11.860714285714284,
+         "fa_detail": {
+          "midworld_runs": 105,
+          "start_at_1": 14,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -12131,7 +13194,14 @@
           "midworld_detected": 80.0,
           "midworld_fa_per_100_detected": 107.5
          },
-         "nongrave_above_per_10k": 11.096428571428572
+         "nongrave_above_per_10k": 11.096428571428572,
+         "fa_detail": {
+          "midworld_runs": 86,
+          "start_at_1": 39,
+          "frac_start_le_early": 0.9883720930232558,
+          "late_runs_per_10k": 0.0035714285714285718,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -12207,7 +13277,14 @@
           "midworld_detected": 70.0,
           "midworld_fa_per_100_detected": 152.85714285714286
          },
-         "nongrave_above_per_10k": 11.37857142857143
+         "nongrave_above_per_10k": 11.37857142857143,
+         "fa_detail": {
+          "midworld_runs": 107,
+          "start_at_1": 58,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -12515,6 +13592,33 @@
         "mean": 11.445238095238095,
         "sd": 0.38647961990076346,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 99.33333333333333,
+         "sd": 11.590225767142472,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 37,
+         "sd": 22.06807649071391,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9961240310077519,
+         "sd": 0.006713375223135195,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.0011904761904761906,
+         "sd": 0.0020619652471058065,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.50": {
@@ -12593,7 +13697,14 @@
           "midworld_detected": 72.0,
           "midworld_fa_per_100_detected": 165.27777777777777
          },
-         "nongrave_above_per_10k": 9.446428571428571
+         "nongrave_above_per_10k": 9.446428571428571,
+         "fa_detail": {
+          "midworld_runs": 119,
+          "start_at_1": 40,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -12669,7 +13780,14 @@
           "midworld_detected": 72.0,
           "midworld_fa_per_100_detected": 161.11111111111111
          },
-         "nongrave_above_per_10k": 8.860714285714286
+         "nongrave_above_per_10k": 8.860714285714286,
+         "fa_detail": {
+          "midworld_runs": 116,
+          "start_at_1": 47,
+          "frac_start_le_early": 0.9827586206896551,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -12745,7 +13863,14 @@
           "midworld_detected": 60.00000000000001,
           "midworld_fa_per_100_detected": 178.33333333333331
          },
-         "nongrave_above_per_10k": 9.417857142857143
+         "nongrave_above_per_10k": 9.417857142857143,
+         "fa_detail": {
+          "midworld_runs": 107,
+          "start_at_1": 46,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -13053,6 +14178,33 @@
         "mean": 9.241666666666667,
         "sd": 0.33022358947782476,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 114,
+         "sd": 6.244997998398398,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 44.333333333333336,
+         "sd": 3.7859388972001824,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9942528735632183,
+         "sd": 0.00995431498602805,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.002380952380952381,
+         "sd": 0.004123930494211613,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       }
      }
@@ -13151,7 +14303,14 @@
           "midworld_detected": 100.0,
           "midworld_fa_per_100_detected": 87.0
          },
-         "nongrave_above_per_10k": 41.49642857142857
+         "nongrave_above_per_10k": 41.49642857142857,
+         "fa_detail": {
+          "midworld_runs": 87,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9655172413793104,
+          "late_runs_per_10k": 0.010714285714285714,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -13227,7 +14386,14 @@
           "midworld_detected": 100.0,
           "midworld_fa_per_100_detected": 109.0
          },
-         "nongrave_above_per_10k": 42.06071428571429
+         "nongrave_above_per_10k": 42.06071428571429,
+         "fa_detail": {
+          "midworld_runs": 109,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.8807339449541285,
+          "late_runs_per_10k": 0.04642857142857143,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -13303,7 +14469,14 @@
           "midworld_detected": 97.0,
           "midworld_fa_per_100_detected": 122.68041237113403
          },
-         "nongrave_above_per_10k": 42.471428571428575
+         "nongrave_above_per_10k": 42.471428571428575,
+         "fa_detail": {
+          "midworld_runs": 119,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.907563025210084,
+          "late_runs_per_10k": 0.039285714285714285,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -13611,6 +14784,33 @@
         "mean": 42.00952380952381,
         "sd": 0.48951159193573773,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 105,
+         "sd": 16.3707055437449,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9179380705145076,
+         "sd": 0.043333393727951856,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.03214285714285714,
+         "sd": 0.01889822365046136,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.10": {
@@ -13689,7 +14889,14 @@
           "midworld_detected": 99.0,
           "midworld_fa_per_100_detected": 97.97979797979798
          },
-         "nongrave_above_per_10k": 32.47857142857143
+         "nongrave_above_per_10k": 32.47857142857143,
+         "fa_detail": {
+          "midworld_runs": 97,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9587628865979382,
+          "late_runs_per_10k": 0.014285714285714287,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -13765,7 +14972,14 @@
           "midworld_detected": 98.0,
           "midworld_fa_per_100_detected": 142.85714285714286
          },
-         "nongrave_above_per_10k": 32.910714285714285
+         "nongrave_above_per_10k": 32.910714285714285,
+         "fa_detail": {
+          "midworld_runs": 140,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9285714285714286,
+          "late_runs_per_10k": 0.03571428571428571,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -13841,7 +15055,14 @@
           "midworld_detected": 92.0,
           "midworld_fa_per_100_detected": 144.56521739130434
          },
-         "nongrave_above_per_10k": 32.45357142857143
+         "nongrave_above_per_10k": 32.45357142857143,
+         "fa_detail": {
+          "midworld_runs": 133,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9097744360902256,
+          "late_runs_per_10k": 0.04285714285714286,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -14149,6 +15370,33 @@
         "mean": 32.614285714285714,
         "sd": 0.2570188192903147,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 123.33333333333333,
+         "sd": 23.072349974229617,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9323695837531975,
+         "sd": 0.0247140963394426,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.030952380952380953,
+         "sd": 0.014869042853329519,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.15": {
@@ -14227,7 +15475,14 @@
           "midworld_detected": 89.0,
           "midworld_fa_per_100_detected": 111.23595505617978
          },
-         "nongrave_above_per_10k": 26.974999999999998
+         "nongrave_above_per_10k": 26.974999999999998,
+         "fa_detail": {
+          "midworld_runs": 99,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9494949494949495,
+          "late_runs_per_10k": 0.017857142857142856,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -14303,7 +15558,14 @@
           "midworld_detected": 96.0,
           "midworld_fa_per_100_detected": 128.125
          },
-         "nongrave_above_per_10k": 27.267857142857142
+         "nongrave_above_per_10k": 27.267857142857142,
+         "fa_detail": {
+          "midworld_runs": 123,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.983739837398374,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -14379,7 +15641,14 @@
           "midworld_detected": 92.0,
           "midworld_fa_per_100_detected": 123.91304347826087
          },
-         "nongrave_above_per_10k": 26.610714285714284
+         "nongrave_above_per_10k": 26.610714285714284,
+         "fa_detail": {
+          "midworld_runs": 114,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9210526315789473,
+          "late_runs_per_10k": 0.03214285714285714,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -14687,6 +15956,33 @@
         "mean": 26.951190476190476,
         "sd": 0.32921779074268903,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 112,
+         "sd": 12.12435565298214,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 0,
+         "sd": 0.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9514291394907569,
+         "sd": 0.031388330021947665,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.019047619047619046,
+         "sd": 0.012542444943872307,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.20": {
@@ -14765,7 +16061,14 @@
           "midworld_detected": 87.0,
           "midworld_fa_per_100_detected": 101.14942528735632
          },
-         "nongrave_above_per_10k": 23.1
+         "nongrave_above_per_10k": 23.1,
+         "fa_detail": {
+          "midworld_runs": 88,
+          "start_at_1": 2,
+          "frac_start_le_early": 0.9545454545454546,
+          "late_runs_per_10k": 0.014285714285714287,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -14841,7 +16144,14 @@
           "midworld_detected": 95.0,
           "midworld_fa_per_100_detected": 134.73684210526315
          },
-         "nongrave_above_per_10k": 23.09285714285714
+         "nongrave_above_per_10k": 23.09285714285714,
+         "fa_detail": {
+          "midworld_runs": 128,
+          "start_at_1": 12,
+          "frac_start_le_early": 0.9453125,
+          "late_runs_per_10k": 0.025,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -14917,7 +16227,14 @@
           "midworld_detected": 88.0,
           "midworld_fa_per_100_detected": 137.5
          },
-         "nongrave_above_per_10k": 22.64642857142857
+         "nongrave_above_per_10k": 22.64642857142857,
+         "fa_detail": {
+          "midworld_runs": 121,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9090909090909091,
+          "late_runs_per_10k": 0.039285714285714285,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -15225,6 +16542,33 @@
         "mean": 22.94642857142857,
         "sd": 0.25983216718112806,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 112.33333333333333,
+         "sd": 21.361959960016154,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 4.666666666666667,
+         "sd": 6.429100507328637,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9363162878787878,
+         "sd": 0.024025565550413568,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.02619047619047619,
+         "sd": 0.012542444943872307,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.25": {
@@ -15303,7 +16647,14 @@
           "midworld_detected": 79.0,
           "midworld_fa_per_100_detected": 141.77215189873417
          },
-         "nongrave_above_per_10k": 19.689285714285717
+         "nongrave_above_per_10k": 19.689285714285717,
+         "fa_detail": {
+          "midworld_runs": 112,
+          "start_at_1": 13,
+          "frac_start_le_early": 0.9821428571428571,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -15379,7 +16730,14 @@
           "midworld_detected": 91.0,
           "midworld_fa_per_100_detected": 169.23076923076923
          },
-         "nongrave_above_per_10k": 20.107142857142858
+         "nongrave_above_per_10k": 20.107142857142858,
+         "fa_detail": {
+          "midworld_runs": 154,
+          "start_at_1": 31,
+          "frac_start_le_early": 0.9805194805194806,
+          "late_runs_per_10k": 0.010714285714285714,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -15455,7 +16813,14 @@
           "midworld_detected": 83.0,
           "midworld_fa_per_100_detected": 138.55421686746988
          },
-         "nongrave_above_per_10k": 19.667857142857144
+         "nongrave_above_per_10k": 19.667857142857144,
+         "fa_detail": {
+          "midworld_runs": 115,
+          "start_at_1": 0,
+          "frac_start_le_early": 0.9304347826086956,
+          "late_runs_per_10k": 0.028571428571428574,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -15763,6 +17128,33 @@
         "mean": 19.821428571428573,
         "sd": 0.24766769210836784,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 127,
+         "sd": 23.430749027719962,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 14.666666666666666,
+         "sd": 15.56705923844749,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.964365706757011,
+         "sd": 0.0293962505786773,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.015476190476190477,
+         "sd": 0.011480536620229709,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.30": {
@@ -15841,7 +17233,14 @@
           "midworld_detected": 74.0,
           "midworld_fa_per_100_detected": 183.78378378378378
          },
-         "nongrave_above_per_10k": 16.692857142857143
+         "nongrave_above_per_10k": 16.692857142857143,
+         "fa_detail": {
+          "midworld_runs": 136,
+          "start_at_1": 32,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -15917,7 +17316,14 @@
           "midworld_detected": 89.0,
           "midworld_fa_per_100_detected": 171.91011235955057
          },
-         "nongrave_above_per_10k": 17.489285714285714
+         "nongrave_above_per_10k": 17.489285714285714,
+         "fa_detail": {
+          "midworld_runs": 153,
+          "start_at_1": 44,
+          "frac_start_le_early": 0.9803921568627451,
+          "late_runs_per_10k": 0.010714285714285714,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -15993,7 +17399,14 @@
           "midworld_detected": 82.0,
           "midworld_fa_per_100_detected": 139.02439024390245
          },
-         "nongrave_above_per_10k": 17.089285714285715
+         "nongrave_above_per_10k": 17.089285714285715,
+         "fa_detail": {
+          "midworld_runs": 114,
+          "start_at_1": 8,
+          "frac_start_le_early": 0.9385964912280702,
+          "late_runs_per_10k": 0.025,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -16301,6 +17714,33 @@
         "mean": 17.090476190476192,
         "sd": 0.39821562032661223,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 134.33333333333334,
+         "sd": 19.553345834749955,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 28,
+         "sd": 18.33030277982336,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9729962160302718,
+         "sd": 0.03136275941262502,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.011904761904761906,
+         "sd": 0.012542444943872308,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.40": {
@@ -16379,7 +17819,14 @@
           "midworld_detected": 64.0,
           "midworld_fa_per_100_detected": 200.0
          },
-         "nongrave_above_per_10k": 12.021428571428572
+         "nongrave_above_per_10k": 12.021428571428572,
+         "fa_detail": {
+          "midworld_runs": 128,
+          "start_at_1": 41,
+          "frac_start_le_early": 0.984375,
+          "late_runs_per_10k": 0.0071428571428571435,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -16455,7 +17902,14 @@
           "midworld_detected": 84.0,
           "midworld_fa_per_100_detected": 182.14285714285714
          },
-         "nongrave_above_per_10k": 13.596428571428572
+         "nongrave_above_per_10k": 13.596428571428572,
+         "fa_detail": {
+          "midworld_runs": 153,
+          "start_at_1": 46,
+          "frac_start_le_early": 0.954248366013072,
+          "late_runs_per_10k": 0.025,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -16531,7 +17985,14 @@
           "midworld_detected": 70.0,
           "midworld_fa_per_100_detected": 191.42857142857142
          },
-         "nongrave_above_per_10k": 12.732142857142858
+         "nongrave_above_per_10k": 12.732142857142858,
+         "fa_detail": {
+          "midworld_runs": 134,
+          "start_at_1": 36,
+          "frac_start_le_early": 0.9776119402985075,
+          "late_runs_per_10k": 0.010714285714285714,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -16839,6 +18300,33 @@
         "mean": 12.783333333333333,
         "sd": 0.7887468533309374,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 138.33333333333334,
+         "sd": 13.051181300301261,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 41,
+         "sd": 5.0,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9720784354371932,
+         "sd": 0.015807222269684965,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.014285714285714287,
+         "sd": 0.009449111825230682,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       },
       "0.50": {
@@ -16917,7 +18405,14 @@
           "midworld_detected": 52.0,
           "midworld_fa_per_100_detected": 192.30769230769232
          },
-         "nongrave_above_per_10k": 8.560714285714285
+         "nongrave_above_per_10k": 8.560714285714285,
+         "fa_detail": {
+          "midworld_runs": 100,
+          "start_at_1": 33,
+          "frac_start_le_early": 0.99,
+          "late_runs_per_10k": 0.0035714285714285718,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -16993,7 +18488,14 @@
           "midworld_detected": 64.0,
           "midworld_fa_per_100_detected": 232.8125
          },
-         "nongrave_above_per_10k": 10.325
+         "nongrave_above_per_10k": 10.325,
+         "fa_detail": {
+          "midworld_runs": 149,
+          "start_at_1": 39,
+          "frac_start_le_early": 0.959731543624161,
+          "late_runs_per_10k": 0.02142857142857143,
+          "early": 100
+         }
         },
         {
          "all": {
@@ -17069,7 +18571,14 @@
           "midworld_detected": 58.0,
           "midworld_fa_per_100_detected": 239.6551724137931
          },
-         "nongrave_above_per_10k": 9.52142857142857
+         "nongrave_above_per_10k": 9.52142857142857,
+         "fa_detail": {
+          "midworld_runs": 139,
+          "start_at_1": 33,
+          "frac_start_le_early": 1.0,
+          "late_runs_per_10k": 0.0,
+          "early": 100
+         }
         }
        ],
        "all": {
@@ -17377,6 +18886,33 @@
         "mean": 9.469047619047618,
         "sd": 0.8833084645453223,
         "seeds": 3
+       },
+       "fa_detail": {
+        "midworld_runs": {
+         "mean": 129.33333333333334,
+         "sd": 25.890796305508513,
+         "seeds": 3
+        },
+        "start_at_1": {
+         "mean": 35,
+         "sd": 3.4641016151377544,
+         "seeds": 3
+        },
+        "frac_start_le_early": {
+         "mean": 0.9832438478747203,
+         "sd": 0.020967149028376566,
+         "seeds": 3
+        },
+        "late_runs_per_10k": {
+         "mean": 0.008333333333333333,
+         "sd": 0.011480536620229709,
+         "seeds": 3
+        },
+        "early": {
+         "mean": 100,
+         "sd": 0.0,
+         "seeds": 3
+        }
        }
       }
      }
