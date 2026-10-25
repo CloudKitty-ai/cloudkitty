@@ -357,6 +357,13 @@ consent BC comparison ride the trunk.
   STATUS: DONE 2026-10-24; Phase 2 declaration (hybrid shape, NF vs DR,
   probability consumer, threshold, per-need probability, calibration
   step) HERS with F-064..F-068.
+  ADDENDUM 2 2026-10-24 on her word ("Let's run the read and see what
+  we find", after decisions 1, 2 and 4 of the Phase 2 talk-through were
+  ruled as recommended: two-stage on the frozen 1b head, NF, per-need
+  probabilities): R5d operating-point sweep, P(grave) ≥ 0.05 … 0.50,
+  NF-h24+p and DR-h24+p, group P and the held-out L / W / G evaluation
+  worlds; descriptive, no rule, the threshold pick hers with a stated
+  price; 0 cat-ticks. STATUS: OPEN.
 
 ## Flagged follow-ups (owner's word to start)
 

@@ -360,3 +360,62 @@ case counted as mid-world, `AssertionError` at the reset line of
 after gate round 2: over the threshold at onset AND at the tick
 before it, within the observer slice (the code's condition from the
 start; the earlier wording named only the tick before).
+
+## Addendum 2 2026-10-24: the operating-point sweep (owner, the same day)
+
+Her words, while talking through the Phase 2 decisions (decisions 1, 2
+and 4 ruled as recommended: two-stage on the frozen Phase 1b head, NF,
+per-need probabilities added), after asking whether any analysis had
+been run around the 0.2 mark: "Let's run the read and see what we
+find". One further read on the probe outputs already on disk (0 new
+cat-ticks; no weight touched), declared here before it runs.
+
+**R5d — the operating-point sweep.** R4d's latency instrument
+(`latency`, unchanged: detection = the first tick at or over the
+threshold; episodes classed reset / mid-world in sight / mid-world
+under fog; anticipation slice-relative; false-alarm runs all and
+excluding runs that start at the world's first tick) applied to
+NF-h24+p and DR-h24+p at thresholds 0.05, 0.10, 0.15, 0.20, 0.25,
+0.30, 0.40, 0.50 (0.20 and 0.50 are R4d's rows and must reproduce
+them). Two evaluation sets, read separately: group P (P1–P5, the
+addendum's set) and group LWG (the evaluation worlds of Phase 1's L, W
+and G — held out from the probe's training as P's are, but with no
+per-cat grave start, so grave episodes are expected rare there; the
+episode counts are printed and the reader conditions on them, no
+fail-closed floor on an episode cell). Reported per set × head ×
+threshold, seeds 1–3, mean ± SD: the mid-world in-sight and mid-world
+fog detected fraction, anticipated fraction, median and p90 latency;
+the reset detected fraction and median latency; mid-world false-alarm
+runs per 10,000 observer-ticks and their median length; all-run false
+alarms; and one derived column, mid-world false-alarm runs per 100
+detected mid-world episodes (a ratio of printed counts).
+
+**No reading rule.** The sweep is descriptive: it draws the trade-off
+a threshold moves along. The pick is hers, with a stated price (the
+odds at which a flag is worth acting on), which this read does not
+supply. Disclosed in advance: a threshold picked from group P and then
+read on group P in Phase 2 is a re-read of the same 20 mid-world
+in-sight episodes; group LWG is read so a pick can rest on worlds
+Phase 2 will not score. Platt scaling is monotone and does not change
+this curve, only the labels on its points. Expectation stated before
+the read (not a prediction to score): mid-world detection and
+mid-world false alarms both non-increasing in the threshold, and
+between 0.15 and 0.30 the mid-world false-alarm rate moving by less
+than the seed spread of the mid-world in-sight detected fraction
+(R4d: 0.073 → 0.064 per 10,000 ticks between 0.2 and 0.5, against a
+seed SD of 0.087 on that fraction).
+
+**Guard** t7 (`test_phase1d.py`): the sweep on a hand slice — a signal
+sitting exactly at the threshold counts as a crossing (at or over);
+detected fraction and false-alarm runs non-increasing across the
+ladder; and the sweep's 0.2 and 0.5 rows on group P equal the
+committed R4d rows. Red: `>=` → `>` in the crossing test (the hand
+signal sitting exactly at the threshold is then missed).
+
+**Doctrine (rule 8):** rule 10 moved it (both sets printed, counts
+printed, no single operating point privileged, no rule); nothing
+priced; nothing else moved. Welfare cost: 0 covered cat-ticks.
+
+**Run order:** (1) this addendum, deviations 13 reopened, the timeline
+line; (2) `sweep_threshold.py` + t7, red; (3) the read (one fence);
+(4) RESULTS §Addendum 2 gated; the curve to her; the pick hers.

@@ -724,3 +724,10 @@ median latency 0, on the 20 mid-world in-sight ones 0.850; the mean ≥
 90 rule 0.367 / 0.490; both declared reading rules hold as declared,
 the mid-world read disclosed beside them; verdict "enough for
 detection and naming, on this evidence"; Phase 2 declaration hers).
+REOPENED 2026-10-24 a second time, on her word while talking through
+the Phase 2 decisions ("Let's run the read and see what we find"):
+R5d, an operating-point sweep of R4d's latency instrument over
+P(grave) ≥ 0.05 … 0.50 for NF-h24+p and DR-h24+p on group P and on the
+held-out evaluation worlds of L, W and G; descriptive, no reading
+rule, the pick hers with a stated price; 0 new cat-ticks; DECLARATION
+§Addendum 2. Status: OPEN.
