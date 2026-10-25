@@ -759,6 +759,223 @@ it relabels the thresholds on this curve and moves no row's position
 relative to another. Nothing here is about reach, action or welfare;
 it is the belief as an alarm, offline, three seeds.
 
+## Addendum 3 — the burn-in (owner 2026-10-25 "Agreed, let's start with 0.10. Run the burn in")
+
+One read on the three NF-h24+p probe runs (DECLARATION §Addendum 3 and
+its post-read addition; 0 new cat-ticks; no weight touched): the alarm
+forced off for the first B ticks of every observer slice (B = 0, 25,
+50, 100, 150, 200, 300) and R4d's latency instrument run unchanged on
+the masked signal, at the sweep's eight thresholds, on group P and on
+the L / W / G evaluation worlds; two cross-sections printed (the burn-in
+ladder at her threshold 0.10; the threshold ladder at a burn-in of
+100), the full grid in `phase1d-burnin.json`. Seeds 1–3, mean ± SD.
+Three identities are asserted by the reader before it writes: the B = 0
+cells equal the committed sweep's NF-h24+p cells at every threshold on
+both sets; onsets at or after B keep their B = 0 latency; at B = 100
+the false-alarm run count equals the sweep's runs-after-tick-100 plus
+the runs beginning at offset 100. Descriptive: no reading rule was
+declared and none is applied. Her threshold ruling is recorded in the
+declaration; the burn-in length is hers.
+
+### Headline
+
+**No grave episode in either evaluation set begins after a slice's
+hundredth tick, so a burn-in of 100 ticks removes the false alarms and
+the whole detection task with them; the trade-off the sweep drew —
+onset detection against false alarms after the start-up — does not
+exist in this data, and the comparison that does exist, the alarm's
+discrimination inside the start-up window, favours a higher threshold.**
+On group P the 88 non-reset onsets fall at offsets 8–72 (median 25.5;
+44 at or under 25 ticks, 68 at or under 50), and all 88 are in a slice
+that also holds a reset episode: they are the grave-start friend
+crossing back into grave during the start-up, not a second friend going
+grave mid-world. Of 1,000 slices, 200 have a grave tick in the first
+100 ticks and 8 have one after it (736 grave ticks, the tail of
+episodes that began earlier). On L / W / G the 100 non-reset onsets fall
+at 3–90 (median 24.0; 60 / 84 at or under 25 / 50), 76 of them in a
+slice with a reset episode; 220 of 380 slices have grave in the first
+100 ticks, 32 after (7,796 grave ticks, G's long grave starts). The
+burn-in's columns follow from that. At 0.10 on group P the all-runs
+false-alarm rate goes 1.607 ± 0.805 per 10,000 observer-ticks at B = 0
+(830 / 271 / 828 runs per seed, of which 800 / 242 / 800 begin at the
+slice's first tick) → 0.102 ± 0.004 at 25 → 0.187 ± 0.001 at 50 →
+0.024 ± 0.013 at 100 (4 / 14 / 11 runs, 4 / 13 / 4 of them beginning
+at the boundary) → 0.003 ± 0.006 at 300; on L / W / G 0.795 ± 0.185 →
+0.530 ± 0.020 → 0.240 ± 0.021 → 0.019 ± 0.015 (4 / 2 / 10 runs) →
+0.006 ± 0.010. The rate is not monotone in B on group P (0.102 at 25,
+0.187 at 50): the boundary-run column shows why, 12.3 ± 0.6 runs begin
+at offset 25 and 54.0 ± 3.6 at offset 50, so the transient that offset
+25 cuts into is still running at 50. What the same burn-in costs: by
+B = 25 the onsets inside the burn-in are 44 of 88 on P (still caught,
+1.000, at a median latency of 6.0 ticks) and 56 of 100 on L / W / G
+(0.143 caught); by 50, 68 and 84 (0.451 ± 0.034 and 0.048 caught); by
+100, every onset on both sets, caught after the burn-in in 0.000 of
+cases on P and 0.153 ± 0.012 on L / W / G (median latency 26.0 ± 1.7);
+the mid-world in-sight detected fraction at 0.10 goes 0.900 → 0.900 →
+0.450 → 0.000 on P and 0.955 → 0.621 → 0.136 → 0.045 on L / W / G
+across B = 0 / 25 / 50 / 100, and the reset detected fraction 0.995 →
+0.618 → 0.407 → 0.033 and 1.000 → 0.422 → 0.197 → 0.082 (a reset
+episode is caught no earlier than B, so only those still running at B
+are caught: median reset length 40.0 ticks on P, 20.0 on L / W / G).
+The blind fraction is 0.025 of observer-ticks at B = 100 on P (4,000-tick
+slices) and 0.014 on L / W / G. At B = 100 the threshold ladder has
+nothing left to detect on P (0.000 in every mid-world cell at every
+threshold) and 0.045 in sight / 0.158–0.192 in fog on L / W / G; its
+false-alarm rate falls 0.049 ± 0.023 → 0.024 ± 0.013 → 0.003 ± 0.004
+on P and 0.055 ± 0.009 → 0.019 ± 0.015 → 0.002 ± 0.004 on L / W / G at
+0.05 / 0.10 / 0.50. The start-up split, read without a burn-in: among
+group P's 200 slices with a grave tick in the first 100 ticks the alarm
+fires inside that window in 0.995 ± 0.009 at 0.10 and 0.978 ± 0.006 at
+0.50; among the 800 slices with none it fires in 0.767 ± 0.403 at 0.10
+(1.000 / 0.302 / 1.000 per seed — two of the three probes sit at or
+over 0.10 on the first tick of every slice) and 0.067 ± 0.102 at 0.50
+(0.016 / 0.185 / 0.000); the ladder between runs 0.999 / 0.767 / 0.705
+/ 0.412 / 0.241 / 0.186 / 0.121 / 0.067 on the clean slices against
+1.000 / 0.995 / 0.992 / 0.987 / 0.983 / 0.982 / 0.980 / 0.978 on the
+grave ones. On L / W / G the clean slices (160, W's and L's worlds and
+G's non-grave friends) fire in 0.885 ± 0.198 at 0.10 and 0.412 ± 0.025
+at 0.50, the grave slices (220) in 1.000 and 0.959 ± 0.016. So inside
+the window where every onset in these sets occurs, raising the
+threshold from 0.10 to 0.50 costs 0.017 of the grave slices on P and
+0.041 on L / W / G and removes 0.700 and 0.473 of the clean-slice
+alarms. The sweep's detection curve (§Addendum 2) is built from onsets
+inside this window, and its runs-after-tick-100 column from the ticks
+outside it; read together they compared a start-up detection with a
+post-start-up false-alarm rate, which is why the curve said "pick low".
+That reading was this thread's, offered to the owner as a
+recommendation on 2026-10-25 before this read; it does not stand.
+
+### Expectations stated before the read, scored
+
+Three were stated (DECLARATION §Addendum 3), none a prediction to score
+for a rule. (1) False-alarm runs per 10,000 non-increasing in B at a
+fixed threshold: did NOT hold on group P at 0.10 (0.102 at B = 25,
+0.187 at 50, then 0.024 / 0.011 / 0.007 / 0.003), held on L / W / G
+(0.795 / 0.530 / 0.240 / 0.019 / 0.013 / 0.013 / 0.006); the boundary
+column printed for it shows 54.0 ± 3.6 runs beginning at offset 50 on P
+against 12.3 ± 0.6 at offset 25, so the rise is the transient still
+running at 50, cut into more runs than at 25 — the truncation case the
+declaration named is one part of it and was not separated from the
+rest (unmeasured). (2) At B = 100 and 0.10 the false-alarm rate on
+group P within 0.05 per 10,000 of the sweep's late-runs column (0.007):
+held, 0.024 ± 0.013 (identity 3 makes it the late runs plus the 4 / 13
+/ 4 boundary runs per seed). (3) Reset detection delayed to a median
+latency of B on every cell with B > 0: held on every printed cell
+(100.0 at B = 100 on both sets at 0.10; 100.0–102.5 across the
+threshold ladder on P, 100.0 on L / W / G), with the detected fraction
+falling as stated above.
+
+### R6d — the tables (`phase1d-burnin.md`, verbatim)
+
+Columns: `blind` the fraction of observer-ticks inside a burn-in;
+`mw-sight det` / `mw-fog det` and `p90 lat` as in the sweep, on the
+masked signal; `mw onsets in burn-in` the mid-world episodes whose onset
+offset is under B, `their det` / `their med lat` their detected fraction
+and median latency (from onset) under the burn-in; `reset det` / `reset
+med lat` the reset episodes; `FA /10k` all false-alarm runs (at or over
+the threshold, no grave tick) per 10,000 observer-ticks — under a
+burn-in there is no first-tick run, so this is the false-alarm read, and
+at B = 0 it is the sweep's all-runs column; `FA len` their median length;
+`FA at boundary` the runs beginning exactly at offset B (at B = 0, the
+first-tick runs); `FA per 100 mw det` all runs per 100 detected
+mid-world episodes. The start-up split counts slices (one friend seen by
+one observer), not episodes.
+
+## P (P1, P2, P3, P4, P5; 4,000,000 observer-ticks): episodes 288, reset 200, mid-world 88
+mid-world onset offsets: n 88, min 8, median 25.5, max 72; at or under 25 / 50 / 100 ticks: 44 / 68 / 88; in a slice that also has a reset episode: 88. Slices 1000: with a grave tick in the first 100 ticks 200, with a grave tick after tick 100 8 (736 grave ticks).
+
+### start-up split: slices whose alarm fires within the first 100 ticks
+| P ≥ | slices with grave in window | fired, given grave | slices without | fired, given none |
+|---|---|---|---|---|
+| 0.05 | 200 ± 0 | 1.000 ± 0.000 | 800 ± 0 | 0.999 ± 0.002 |
+| 0.10 | 200 ± 0 | 0.995 ± 0.009 | 800 ± 0 | 0.767 ± 0.403 |
+| 0.15 | 200 ± 0 | 0.992 ± 0.008 | 800 ± 0 | 0.705 ± 0.397 |
+| 0.20 | 200 ± 0 | 0.987 ± 0.003 | 800 ± 0 | 0.412 ± 0.151 |
+| 0.25 | 200 ± 0 | 0.983 ± 0.008 | 800 ± 0 | 0.241 ± 0.051 |
+| 0.30 | 200 ± 0 | 0.982 ± 0.006 | 800 ± 0 | 0.186 ± 0.094 |
+| 0.40 | 200 ± 0 | 0.980 ± 0.005 | 800 ± 0 | 0.121 ± 0.103 |
+| 0.50 | 200 ± 0 | 0.978 ± 0.006 | 800 ± 0 | 0.067 ± 0.102 |
+
+### burn-in ladder at P ≥ 0.10
+| burn-in | P ≥ | blind | mw-sight det | p90 lat | mw-fog det | p90 lat | mw onsets in burn-in | their det | their med lat | reset det | reset med lat | FA /10k | FA len | FA at boundary | FA per 100 mw det |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0.10 | 0.000 ± 0.000 | 0.900 ± 0.050 | 0.0 ± 0.0 | 0.956 ± 0.053 | 0.0 ± 0.0 | 0 ± 0 | — | — | 0.995 ± 0.009 | 0.3 ± 0.6 | 1.607 ± 0.805 | 1.3 ± 0.6 | 614.0 ± 322.2 | 764.9 ± 366.2 |
+| 25 | 0.10 | 0.006 ± 0.000 | 0.900 ± 0.050 | 2.3 ± 0.5 | 0.956 ± 0.053 | 15.0 ± 0.0 | 44 ± 0 | 1.000 ± 0.000 | 6.0 ± 0.0 | 0.618 ± 0.003 | 25.0 ± 0.0 | 0.102 ± 0.004 | 7.0 ± 1.0 | 12.3 ± 0.6 | 49.1 ± 4.2 |
+| 50 | 0.10 | 0.013 ± 0.000 | 0.450 ± 0.050 | 9.0 ± 0.0 | 0.574 ± 0.076 | 39.8 ± 1.4 | 68 ± 0 | 0.451 ± 0.034 | 35.0 ± 1.7 | 0.407 ± 0.003 | 50.0 ± 0.0 | 0.187 ± 0.001 | 8.0 ± 0.0 | 54.0 ± 3.6 | 157.0 ± 19.1 |
+| 100 | 0.10 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.033 ± 0.012 | 100.0 ± 0.0 | 0.024 ± 0.013 | 2.8 ± 0.8 | 7.0 ± 5.2 | — |
+| 150 | 0.10 | 0.037 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.020 ± 0.000 | 150.0 ± 0.0 | 0.011 ± 0.010 | 10.0 ± 9.9 | 1.7 ± 2.1 | — |
+| 200 | 0.10 | 0.050 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.018 ± 0.003 | 200.0 ± 0.0 | 0.007 ± 0.009 | 5.0 ± 0.0 | 0.0 ± 0.0 | — |
+| 300 | 0.10 | 0.075 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 0.003 ± 0.006 | 8.0 | 0.0 ± 0.0 | — |
+
+### threshold ladder at burn-in 100
+| burn-in | P ≥ | blind | mw-sight det | p90 lat | mw-fog det | p90 lat | mw onsets in burn-in | their det | their med lat | reset det | reset med lat | FA /10k | FA len | FA at boundary | FA per 100 mw det |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 100 | 0.05 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.040 ± 0.000 | 100.0 ± 0.0 | 0.049 ± 0.023 | 4.3 ± 0.6 | 9.0 ± 7.8 | — |
+| 100 | 0.10 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.033 ± 0.012 | 100.0 ± 0.0 | 0.024 ± 0.013 | 2.8 ± 0.8 | 7.0 ± 5.2 | — |
+| 100 | 0.15 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.033 ± 0.012 | 100.3 ± 0.6 | 0.020 ± 0.013 | 2.0 ± 0.0 | 6.7 ± 4.6 | — |
+| 100 | 0.20 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.033 ± 0.012 | 100.5 ± 0.9 | 0.018 ± 0.014 | 4.2 ± 4.2 | 6.0 ± 3.5 | — |
+| 100 | 0.25 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.033 ± 0.012 | 100.7 ± 1.2 | 0.017 ± 0.015 | 2.7 ± 2.9 | 5.3 ± 3.2 | — |
+| 100 | 0.30 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.028 ± 0.020 | 100.8 ± 1.4 | 0.011 ± 0.010 | 3.0 ± 3.5 | 3.7 ± 3.1 | — |
+| 100 | 0.40 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.028 ± 0.020 | 101.2 ± 2.0 | 0.007 ± 0.013 | 1.0 | 2.0 ± 3.5 | — |
+| 100 | 0.50 | 0.025 ± 0.000 | 0.000 ± 0.000 | — | 0.000 ± 0.000 | — | 88 ± 0 | 0.000 ± 0.000 | — | 0.025 ± 0.022 | 102.5 ± 3.5 | 0.003 ± 0.004 | 1.0 | 1.0 ± 1.7 | — |
+
+## LWG (L, W, G; 2,800,000 observer-ticks): episodes 296, reset 196, mid-world 100
+mid-world onset offsets: n 100, min 3, median 24.0, max 90; at or under 25 / 50 / 100 ticks: 60 / 84 / 100; in a slice that also has a reset episode: 76. Slices 380: with a grave tick in the first 100 ticks 220, with a grave tick after tick 100 32 (7796 grave ticks).
+
+### start-up split: slices whose alarm fires within the first 100 ticks
+| P ≥ | slices with grave in window | fired, given grave | slices without | fired, given none |
+|---|---|---|---|---|
+| 0.05 | 220 ± 0 | 1.000 ± 0.000 | 160 ± 0 | 1.000 ± 0.000 |
+| 0.10 | 220 ± 0 | 1.000 ± 0.000 | 160 ± 0 | 0.885 ± 0.198 |
+| 0.15 | 220 ± 0 | 1.000 ± 0.000 | 160 ± 0 | 0.838 ± 0.189 |
+| 0.20 | 220 ± 0 | 1.000 ± 0.000 | 160 ± 0 | 0.677 ± 0.053 |
+| 0.25 | 220 ± 0 | 0.997 ± 0.005 | 160 ± 0 | 0.571 ± 0.103 |
+| 0.30 | 220 ± 0 | 0.989 ± 0.018 | 160 ± 0 | 0.531 ± 0.097 |
+| 0.40 | 220 ± 0 | 0.980 ± 0.011 | 160 ± 0 | 0.498 ± 0.091 |
+| 0.50 | 220 ± 0 | 0.959 ± 0.016 | 160 ± 0 | 0.412 ± 0.025 |
+
+### burn-in ladder at P ≥ 0.10
+| burn-in | P ≥ | blind | mw-sight det | p90 lat | mw-fog det | p90 lat | mw onsets in burn-in | their det | their med lat | reset det | reset med lat | FA /10k | FA len | FA at boundary | FA per 100 mw det |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0.10 | 0.000 ± 0.000 | 0.955 ± 0.079 | 0.6 ± 1.0 | 0.949 ± 0.044 | 0.0 ± 0.0 | 0 ± 0 | — | — | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.795 ± 0.185 | 4.3 ± 3.2 | 145.0 ± 34.0 | 236.7 ± 68.1 |
+| 25 | 0.10 | 0.003 ± 0.000 | 0.621 ± 0.026 | 1.1 ± 0.6 | 0.466 ± 0.007 | 1.3 ± 0.6 | 56 ± 0 | 0.143 ± 0.000 | 1.0 ± 0.0 | 0.422 ± 0.003 | 25.0 ± 0.0 | 0.530 ± 0.020 | 8.8 ± 1.0 | 94.3 ± 4.7 | 296.7 ± 11.0 |
+| 50 | 0.10 | 0.007 ± 0.000 | 0.136 ± 0.000 | 21.0 ± 0.0 | 0.218 ± 0.000 | 13.8 ± 6.5 | 84 ± 0 | 0.048 ± 0.000 | 21.0 ± 0.0 | 0.197 ± 0.013 | 50.0 ± 0.0 | 0.240 ± 0.021 | 5.8 ± 1.3 | 50.0 ± 5.3 | 336.7 ± 28.9 |
+| 100 | 0.10 | 0.014 ± 0.000 | 0.045 ± 0.000 | 24.0 ± 0.0 | 0.184 ± 0.015 | 37.0 ± 0.0 | 100 ± 0 | 0.153 ± 0.012 | 26.0 ± 1.7 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.019 ± 0.015 | 4.0 ± 2.6 | 0.7 ± 1.2 | 36.3 ± 31.0 |
+| 150 | 0.10 | 0.020 ± 0.000 | 0.045 ± 0.000 | 74.0 ± 0.0 | 0.141 ± 0.000 | 87.0 ± 0.0 | 100 ± 0 | 0.120 ± 0.000 | 74.0 ± 0.0 | 0.041 ± 0.000 | 150.0 ± 0.0 | 0.013 ± 0.017 | 2.8 ± 0.4 | 0.0 ± 0.0 | 30.6 ± 39.4 |
+| 200 | 0.10 | 0.027 ± 0.000 | 0.045 ± 0.000 | 124.0 ± 0.0 | 0.090 ± 0.000 | 124.0 ± 0.0 | 100 ± 0 | 0.080 ± 0.000 | 117.0 ± 0.0 | 0.041 ± 0.000 | 200.0 ± 0.0 | 0.013 ± 0.017 | 2.8 ± 0.4 | 0.0 ± 0.0 | 45.8 ± 59.1 |
+| 300 | 0.10 | 0.041 ± 0.000 | 0.045 ± 0.000 | 224.0 ± 0.0 | 0.090 ± 0.000 | 224.0 ± 0.0 | 100 ± 0 | 0.080 ± 0.000 | 217.0 ± 0.0 | 0.020 ± 0.000 | 300.0 ± 0.0 | 0.006 ± 0.010 | 5.0 | 0.0 ± 0.0 | 20.8 ± 36.1 |
+
+### threshold ladder at burn-in 100
+| burn-in | P ≥ | blind | mw-sight det | p90 lat | mw-fog det | p90 lat | mw onsets in burn-in | their det | their med lat | reset det | reset med lat | FA /10k | FA len | FA at boundary | FA per 100 mw det |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 100 | 0.05 | 0.014 ± 0.000 | 0.045 ± 0.000 | 24.0 ± 0.0 | 0.192 ± 0.000 | 37.4 ± 0.7 | 100 ± 0 | 0.160 ± 0.000 | 27.0 ± 0.0 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.055 ± 0.009 | 4.7 ± 2.5 | 4.7 ± 3.2 | 95.8 ± 15.7 |
+| 100 | 0.10 | 0.014 ± 0.000 | 0.045 ± 0.000 | 24.0 ± 0.0 | 0.184 ± 0.015 | 37.0 ± 0.0 | 100 ± 0 | 0.153 ± 0.012 | 26.0 ± 1.7 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.019 ± 0.015 | 4.0 ± 2.6 | 0.7 ± 1.2 | 36.3 ± 31.0 |
+| 100 | 0.15 | 0.014 ± 0.000 | 0.045 ± 0.000 | 24.7 ± 1.2 | 0.175 ± 0.020 | 37.0 ± 0.0 | 100 ± 0 | 0.147 ± 0.015 | 27.0 ± 3.0 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.013 ± 0.020 | 2.8 ± 0.4 | 0.3 ± 0.6 | 23.4 ± 34.1 |
+| 100 | 0.20 | 0.014 ± 0.000 | 0.045 ± 0.000 | 25.7 ± 2.9 | 0.171 ± 0.020 | 37.6 ± 1.0 | 100 ± 0 | 0.143 ± 0.015 | 27.0 ± 3.0 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.008 ± 0.014 | 3.0 | 0.3 ± 0.6 | 14.6 ± 25.3 |
+| 100 | 0.25 | 0.014 ± 0.000 | 0.045 ± 0.000 | 28.7 ± 8.1 | 0.162 ± 0.027 | 44.7 ± 7.5 | 100 ± 0 | 0.137 ± 0.021 | 29.3 ± 6.8 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.004 ± 0.006 | 3.0 | 0.3 ± 0.6 | 6.2 ± 10.8 |
+| 100 | 0.30 | 0.014 ± 0.000 | 0.045 ± 0.000 | 32.7 ± 15.0 | 0.162 ± 0.027 | 50.4 ± 11.9 | 100 ± 0 | 0.137 ± 0.021 | 29.3 ± 6.8 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.002 ± 0.002 | 4.0 ± 2.8 | 0.3 ± 0.6 | 4.6 ± 4.1 |
+| 100 | 0.40 | 0.014 ± 0.000 | 0.045 ± 0.000 | 35.0 ± 19.1 | 0.158 ± 0.030 | 66.0 ± 29.0 | 100 ± 0 | 0.133 ± 0.023 | 29.5 ± 6.7 | 0.082 ± 0.000 | 100.0 ± 0.0 | 0.001 ± 0.002 | 8.0 | 0.0 ± 0.0 | 2.8 ± 4.8 |
+| 100 | 0.50 | 0.014 ± 0.000 | 0.045 ± 0.000 | 39.7 ± 19.1 | 0.158 ± 0.030 | 84.3 ± 44.8 | 100 ± 0 | 0.133 ± 0.023 | 37.8 ± 16.6 | 0.078 ± 0.006 | 100.0 ± 0.0 | 0.002 ± 0.004 | 6.0 | 0.0 ± 0.0 | 5.6 ± 9.6 |
+
+### Limitations of the burn-in read
+
+Everything here is a property of two evaluation sets built from
+grave-start worlds: group P's per-cat grave starts, W's wide starts and
+G's all-needs-high starts put every grave onset inside the first
+hundred ticks, and L, the lived distribution, has no episode at all in
+60,000 ticks × 3 worlds × 4 observers. Whether a Gen 2 friend ever goes
+grave mid-world under the certified policy is not read here; these sets
+cannot show it either way, and a set that could would have to be built
+(its welfare cost declared) before any mid-world detection number can
+be claimed. The start-up split is a slice-level read at one window
+width (100 ticks, the declared cross-section): it says whether the
+alarm fired at all inside the window, not when, and a probe that fires
+on the first tick of every slice (two of three seeds at 0.10) is counted
+as firing. The mid-world in-sight cells rest on 20 and 22
+observer-episodes and the runs-after-burn-in cells on 0–14 runs per
+seed. The sweep's late-runs column, the identities and the pin all hold;
+what changed is what they mean.
+
 ## Regeneration
 
 Phase 1's arc venv (`A=experiments/minifriend-phase1-2026-10-22`,
@@ -787,12 +1004,14 @@ reads their `head-best.pt`; R2d reads SD-s*'s `belief-*.npz`).
 ```sh
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 25 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all); the addendum's R3d / R4d run inside it too and the reader asserts the committed R1d / R2d blocks unchanged
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the post-read columns); asserts NF-h24+p's 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/burnin_read.py --out $Dd/phase1d-burnin.json --md > $Dd/phase1d-burnin.md   # ≈ 10 s; §Addendum 3's R6d (NF-h24+p; full grid in the JSON, two cross-sections and the start-up split in the markdown); asserts the B = 0 cells equal the committed phase1d-sweep.json NF-h24+p cells and the B = 100 run identity
 ```
 
-Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 7
-(t1–t7; about 6 s). Reds on record via `scripts/mutate.sh` in the
+Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 8
+(t1–t8; about 20 s). Reds on record via `scripts/mutate.sh` in the
 declaration's §Run order (t1–t4), §Addendum (t5–t6, and the extended
-t6) and §Addendum 2 (t7, and its two extensions).
+t6), §Addendum 2 (t7, and its two extensions) and §Addendum 3 (t8, and
+its extension).
 
 Accuracy gate: **PASS**, 2026-10-24, round 4 (fresh subagent per
 round; every round regenerated the read byte-identically, matched the
