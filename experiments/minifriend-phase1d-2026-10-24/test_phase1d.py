@@ -17,7 +17,8 @@ t6  latency on hand slices (§Addendum; extended for reset episodes)
 t7  the operating-point sweep (§Addendum 2): a signal sitting exactly
     at the threshold is a crossing (at or over); detected fraction and
     false-alarm runs non-increasing up the ladder; the sweep's 0.20 and
-    0.50 rows on group P equal the committed R4d rows
+    0.50 rows on group P equal the committed R4d rows; post-read: the
+    non-grave-ticks-above column counts ticks and is monotone
 """
 import hashlib
 import json
@@ -205,6 +206,11 @@ def test_t7_sweep():
     assert det[0] == 1.0 and det[-1] == 0.0
     d = rows["0.10"]["derived"]
     assert d["midworld_detected"]["mean"] == 2.0 and d["midworld_fa_per_100_detected"]["mean"] == 50.0
+    # post-read column: non-grave ticks at or over the threshold per 10k (ticks 10, 11 at 0.10; none at 0.15), monotone up the ladder
+    assert rows["0.10"]["nongrave_above_per_10k"]["mean"] == 1000.0 and rows["0.15"]["nongrave_above_per_10k"]["mean"] == 0.0
+    ng = [r["nongrave_above_per_10k"]["mean"] for r in rows.values()]
+    assert ng == sorted(ng, reverse=True)
+    assert sw["composition"] == {"P1": {"reset": 0, "midworld": 2}}
     # group P, NF-h24+p: the sweep's 0.20 and 0.50 rows equal the committed R4d rows
     idx_p = R.eval_index(C.GROUPS["P"])
     swp = SW.sweep(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], thresholds=(0.2, 0.5))

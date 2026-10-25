@@ -419,3 +419,12 @@ priced; nothing else moved. Welfare cost: 0 covered cat-ticks.
 **Run order:** (1) this addendum, deviations 13 reopened, the timeline
 line; (2) `sweep_threshold.py` + t7, red; (3) the read (one fence);
 (4) RESULTS §Addendum 2 gated; the curve to her; the pick hers.
+
+Red on record 2026-10-24 for t7 (`scripts/mutate.sh --expect 'exactly
+at the threshold counts'` on `read_phase1d.py` at 8990ccee; predicted
+first — t7 red at the exactly-at-threshold line, t6 green since its
+signals sit at 0.9 against 0.5 — RED CONFIRMED, 2 passed after the
+restore; 7 passed on the restored suite): the crossing test changed
+from at-or-over to strictly-over (`>= thresh` → `> thresh`) → the hand
+signal sitting exactly on 0.2 at onset is missed, `AssertionError` at
+the first detected-fraction line of `test_t7_sweep`.

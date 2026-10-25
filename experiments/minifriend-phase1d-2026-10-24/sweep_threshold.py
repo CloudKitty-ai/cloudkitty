@@ -37,16 +37,36 @@ def derived(row):
     return {"midworld_detected": det, "midworld_fa_per_100_detected": 100.0 * fa / det if det else None}
 
 
+def nongrave_above(idx, signal, thresh):
+    """Post-read addition: non-grave ticks at or over the threshold, per 10,000 observer-ticks —
+    monotone in the threshold by construction (a tick count, not a run count); it includes the
+    ticks just before an onset and after an episode's end, so it is not a false-alarm rate."""
+    above = np.asarray(signal, np.float64) >= thresh
+    return float((above & (idx["code"] != P.S.GRAVE)).sum() / idx["n"] * 1e4)
+
+
+def composition(idx, eps):
+    """Episodes per evaluation set name: reset and mid-world counts."""
+    start = {a: n for n, _s, _k, _j, a, _b in idx["slices"]}
+    out = {}
+    for st, _en, a in eps:
+        c = out.setdefault(start[a], {"reset": 0, "midworld": 0})
+        c["reset" if st == a else "midworld"] += 1
+    return out
+
+
 def sweep(idx, ps, thresholds=THRESHOLDS):
     eps = P.episodes(idx)
     out = {"episodes_total": len(eps), "episodes_reset": sum(st == a for st, _en, a in eps),
            "episodes_midworld_visible": sum(st != a and bool(idx["vis"][st]) for st, _en, a in eps),
            "episodes_midworld_fog": sum(st != a and not idx["vis"][st] for st, _en, a in eps),
-           "friend_episodes": P.friend_episode_count(idx, eps), "n_ticks": idx["n"], "rows": {}}
+           "friend_episodes": P.friend_episode_count(idx, eps), "n_ticks": idx["n"],
+           "composition": composition(idx, eps), "rows": {}}
     for t in thresholds:
         per = [P.latency(idx, p, t, eps) for p in ps]
-        for r in per:
+        for r, p in zip(per, ps):
             r["derived"] = derived(r)
+            r["nongrave_above_per_10k"] = nongrave_above(idx, p, t)
         out["rows"][f"{t:.2f}"] = {"per_seed": per, **P.msd_tree(per)}
     return out
 
@@ -56,9 +76,9 @@ def pin_r4d(sweep_p_nf, path=HERE / "phase1d-read.json"):
     ref = json.loads(path.read_text())["R4d_latency"]["heads"]
     for t, name in PINNED_ROWS.items():
         got = json.loads(json.dumps(sweep_p_nf["rows"][t], default=float))
-        for r in got["per_seed"]:
+        for r in got["per_seed"] + [got]:
             r.pop("derived")
-        got.pop("derived")
+            r.pop("nongrave_above_per_10k")
         assert got == ref[name], (t, name)
 
 
@@ -85,16 +105,18 @@ def md(out):
             L.append(f"## {sname} ({', '.join(blk['eval_sets'])}; {blk['n_samples']:,} observer-ticks) — {h}")
             L.append(f"episodes {sw['episodes_total']} ({sw['friend_episodes']} friend-episodes): reset {sw['episodes_reset']}, "
                      f"mid-world in sight {sw['episodes_midworld_visible']}, mid-world under fog {sw['episodes_midworld_fog']}")
+            L.append("per set: " + "; ".join(f"{n} reset {c['reset']} / mid-world {c['midworld']}" for n, c in sw["composition"].items())
+                     + "".join(f"; {n} 0 / 0" for n in blk["eval_sets"] if n not in sw["composition"]))
             L.append("")
-            L.append("| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det |")
-            L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|")
+            L.append("| P ≥ | mw-sight det | antic | p90 lat | mw-fog det | antic | p90 lat | reset det | reset med lat | mw FA /10k | mw FA len | all FA /10k | mw FA per 100 det | non-grave ticks ≥ t /10k |")
+            L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
             for t, r in sw["rows"].items():
                 mv, mf, rs, fa, dv = r["midworld_visible"], r["midworld_fog"], r["reset"], r["false_alarms"], r["derived"]
                 L.append(f"| {t} | {fmt(mv['detected_frac'])} | {fmt(mv['anticipated_frac'])} | {fmt(mv['p90_latency'], 1)} "
                          f"| {fmt(mf['detected_frac'])} | {fmt(mf['anticipated_frac'])} | {fmt(mf['p90_latency'], 1)} "
                          f"| {fmt(rs['detected_frac'])} | {fmt(rs['median_latency'], 1)} "
                          f"| {fmt(fa['midworld_per_10k_ticks'])} | {fmt(fa['midworld_run_median_length'], 1)} | {fmt(fa['per_10k_ticks'])} "
-                         f"| {fmt(dv['midworld_fa_per_100_detected'], 1)} |")
+                         f"| {fmt(dv['midworld_fa_per_100_detected'], 1)} | {fmt(r['nongrave_above_per_10k'], 2)} |")
             L.append("")
     return "\n".join(L)
 
