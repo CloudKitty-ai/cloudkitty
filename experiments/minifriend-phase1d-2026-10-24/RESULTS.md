@@ -549,20 +549,20 @@ evidence".
 One read on the same six probe runs (DECLARATION §Addendum 2 and its
 two post-read additions; 0 new cat-ticks; no weight touched): R4d's
 latency instrument at eight thresholds, on group P and on the held-out
-evaluation worlds of Phase 1's L, W and G, with two post-read columns
-(non-grave ticks over the threshold; where the false-alarm runs
-start). Seeds 1–3, mean ± SD. The 0.20 and 0.50 rows on group P are
-asserted equal to the committed R4d rows by the reader before it
-writes. Descriptive: no reading rule was declared and none is applied;
+evaluation worlds of Phase 1's L, W and G, with two post-read
+additions (four columns: non-grave ticks over the threshold; where the
+false-alarm runs start). Seeds 1–3, mean ± SD. NF-h24+p's 0.20 and
+0.50 rows on group P are asserted equal to the committed R4d rows by
+the reader before it writes. Descriptive: no reading rule was declared and none is applied;
 the pick is hers.
 
 ### Headline
 
 **Between 0.05 and 0.50 the threshold costs NF-h24+p detections all
-the way up, and nearly every false-alarm run it counts starts inside a
-slice's first 100 ticks: the world-start transient of a
-zero-initialised state is about a hundred ticks long, not the one tick
-R4d set aside.** On group P, NF-h24+p's mid-world in-sight detection
+the way up, and from 0.10 up nine in ten or more of the false-alarm
+runs it counts start inside a slice's first 100 ticks: the world-start
+transient of a zero-initialised state is about a hundred ticks long,
+not the one tick R4d set aside.** On group P, NF-h24+p's mid-world in-sight detection
 falls from 0.950 ± 0.050 at 0.05 to 0.850 ± 0.087 at 0.20 and 0.650 ±
 0.050 at 0.50 (20 episodes), its mid-world fog detection from 0.971 ±
 0.039 to 0.946 ± 0.042 to 0.877 ± 0.022 (68). Its mid-world
@@ -597,17 +597,24 @@ and 0.159 ± 0.076 at 0.20, the runs 2.2 × NF's; its run rate does fall
 with the threshold, 0.392 ± 0.265 → 0.082 ± 0.030), level with NF in
 fog detection at 0.05–0.10 and behind from 0.15 up; on L / W / G it is
 within 0.05 of NF in in-sight detection at every threshold, behind in
-fog detection from 0.25 up (0.577 ± 0.068 against 0.701 ± 0.053 at
+fog detection from 0.15 up (by 0.013 and 0.009 at 0.15 and 0.20, by
+0.030–0.038 at 0.25–0.40, and 0.577 ± 0.068 against 0.701 ± 0.053 at
 0.50) and higher in false-alarm runs at every threshold (0.401 ± 0.076
-against 0.281 ± 0.088 at 0.20). For NF-h24+p there is no interior
-optimum on the printed columns: on both sets the lowest threshold has
-the highest detection, its mid-world run rate is within one seed SD of
-the highest threshold's on group P (0.092 ± 0.028 against 0.064 ±
-0.008) and below it on L / W / G (0.274 against 0.407), and the only
-false-alarm column that is higher at the low end is the runs starting
-after tick 100 (0.027 against 0.000 per 10,000 on P; 0.038 against
-0.002 on L / W / G), which are 0–11 runs per seed over 4,000,000
-observer-ticks.
+against 0.281 ± 0.088 at 0.20). For NF-h24+p no threshold on the
+ladder improves detection: on both sets the lowest threshold has the
+highest detection in every split. What the low end pays, column by
+column: the all-runs rate, which is the first-tick runs (P 2.089
+against 0.198 at 0.50; L / W / G 0.850 against 0.477); the mid-world
+run rate on P (0.092 ± 0.028 against 0.064 ± 0.008, within one seed SD
+of the 0.05 row; on L / W / G 0.274 is below 0.407); the runs per 100
+detected on P (42.9 against 35.3; on L / W / G 78.3 against 168.2) —
+these two columns have a shallow minimum at 0.15 on both sets (P 0.059
+and 29.0 ± 8.9; L / W / G 0.256 and 77.3 ± 27.8), within the seed SD of
+their neighbours; the median run length (P 3.8 against 3.2 ticks;
+L / W / G 6.5 against 4.7); and the runs starting after tick 100 (0.027
+against 0.000 per 10,000 on P, 4 / 6 / 22 runs per seed at 0.05 against
+0 / 0 / 0 at 0.50; 0.038 against 0.002 on L / W / G, 9 / 11 / 12
+against 0 / 2 / 0).
 
 ### Expectations stated before the read, scored
 
@@ -621,9 +628,9 @@ the NF-h24+p rate goes 0.092 / 0.072 / 0.059 / 0.073 / 0.074 / 0.068 /
 0.068 / 0.064, up from 0.15 to 0.20 within the seed SD (0.017 and
 0.021), and on L / W / G it goes 0.274 / 0.277 / 0.256 / 0.281 / 0.298 /
 0.338 / 0.355 / 0.407, flat within the seed SD to 0.25 and rising
-after, the rise being the tick-1 runs above; the two post-read columns
+after, the rise being the tick-1 runs above; the two post-read additions
 (a tick count, monotone by construction; the run-start detail) were
-added for it. (3) The declaration's "between 0.15 and 0.30 the
+made for it. (3) The declaration's "between 0.15 and 0.30 the
 mid-world false-alarm rate moving by less than the seed spread of the
 mid-world in-sight detected fraction" compared a rate per 10,000 ticks
 with a fraction's SD and is malformed as written; the rate moves by
@@ -734,8 +741,8 @@ episodes are 72 × 4.
 
 The mid-world in-sight cells rest on 20 (P) and 22 (L / W / G)
 observer-episodes, one of which is 0.05 of the detected fraction; the
-mid-world fog cells on 68 and 78; the runs-after-tick-100 cells on 0–11
-runs per seed. The same six probes and the same instrument produce
+mid-world fog cells on 68 and 78; the runs-after-tick-100 cells on 0–22
+runs per seed (NF-h24+p on P at 0.05: 4 / 6 / 22). The same six probes and the same instrument produce
 every row, so the two sets are two reads of one head, not two heads. A
 threshold picked here from group P and read again in Phase 2 on group P
 re-reads the same 20 episodes; L / W / G is the set a pick can rest on
@@ -778,13 +785,13 @@ reads their `head-best.pt`; R2d reads SD-s*'s `belief-*.npz`).
 
 ```sh
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 25 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all); the addendum's R3d / R4d run inside it too and the reader asserts the committed R1d / R2d blocks unchanged
-MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the two post-read columns); asserts its 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the post-read columns); asserts NF-h24+p's 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
 ```
 
 Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 7
 (t1–t7; about 6 s). Reds on record via `scripts/mutate.sh` in the
 declaration's §Run order (t1–t4), §Addendum (t5–t6, and the extended
-t6) and §Addendum 2 (t7, and its extension).
+t6) and §Addendum 2 (t7, and its two extensions).
 
 Accuracy gate: **PASS**, 2026-10-24, round 4 (fresh subagent per
 round; every round regenerated the read byte-identically, matched the
