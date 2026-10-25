@@ -26,7 +26,10 @@ t8  the burn-in (§Addendum 3): on the 300-tick slice the run count under
     an onset inside the burn-in is missed when its only over-threshold
     tick is masked and caught at B − k + 1 when a later tick is over; an
     onset at or after B keeps its latency; the reader's identities on
-    group P at 0.10 / 0.20 with B = 0 / 100
+    group P at 0.10 / 0.20 with B = 0 / 100; post-read: the onset
+    offsets (shared slice with a reset episode; grave after the window)
+    and the start-up split (fired within the window, given grave in the
+    window / given none)
 """
 import hashlib
 import json
@@ -267,6 +270,22 @@ def test_t8_burnin():
     assert BR.burnin_row(idx, sig2, 0.1, 0, eps)["midworld_visible"]["median_latency"] == 0.0
     g = BR.grid(idx, [sig, sig2], burnins=(0, 5), thresholds=(0.1,))
     assert g["episodes_total"] == 2 and g["episodes_midworld"] == 2 and g["rows"]["5"]["0.10"]["midworld_onset_in_burnin"]["detected_frac"]["mean"] == 0.5
+    # post-read: onset offsets — the 20-tick slice's two mid-world onsets at 4 and 14, none sharing a slice with a reset episode
+    o = g["onsets"]
+    assert (o["midworld_n"], o["min"], o["median"], o["max"], o["le_25"], o["le_50"], o["le_100"], o["in_slice_with_reset"]) == (2, 4, 9.0, 14, 2, 2, 2, 0)
+    assert (o["slices"], o["slices_grave_in_100"], o["slices_grave_after_100"], o["grave_ticks_after_100"]) == (1, 1, 0, 0)
+    # three 300-tick slices: A grave at 0–2 (reset) and again at 10–11 (mid-world, sharing A); B grave at 150–159 only (none in the window,
+    # 10 grave ticks after it); C no grave. The signal fires at tick 2 of A and B, nowhere in C.
+    code3 = np.full(900, S.COMMON, np.int8); code3[0:3] = S.GRAVE; code3[10:12] = S.GRAVE; code3[450:460] = S.GRAVE
+    idx3 = {"n": 900, "code": code3, "vis": np.ones(900, bool), "true": np.zeros((900, 7)),
+            "slices": [("P1", 1, 0, 1, 0, 300), ("P1", 1, 0, 2, 300, 600), ("P1", 1, 0, 3, 600, 900)]}
+    eps3 = P.episodes(idx3)
+    o3 = BR.onset_offsets(idx3, eps3)
+    assert (o3["midworld_n"], o3["in_slice_with_reset"], o3["slices"], o3["slices_grave_in_100"], o3["slices_grave_after_100"], o3["grave_ticks_after_100"]) == (2, 1, 3, 1, 1, 10)
+    sig3 = np.zeros(900); sig3[2] = 0.9; sig3[302] = 0.9
+    sp = BR.startup_split(idx3, sig3, 0.5)
+    assert sp["grave_slices"] == 1 and sp["fired_given_grave"] == 1.0
+    assert sp["clean_slices"] == 2 and sp["fired_given_clean"] == 0.5
     # group P, NF-h24+p: B = 0 equals the committed sweep rows; at B = 100 the runs equal the sweep's late runs plus the boundary runs
     idx_p = R.eval_index(C.GROUPS["P"])
     gp = BR.grid(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], burnins=(0, 100), thresholds=(0.1, 0.2))

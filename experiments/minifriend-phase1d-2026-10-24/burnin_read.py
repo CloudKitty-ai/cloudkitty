@@ -12,8 +12,12 @@ the false-alarm runs beginning exactly at offset B; all-runs false alarms per
 100 detected mid-world episodes. Three identities are asserted before writing
 (`pin_sweep`): B = 0 equals the sweep's NF-h24+p cells; onsets at or after B
 keep their B = 0 latency; at B = 100 the run count equals the sweep's
-runs-after-tick-100 plus the runs beginning at offset 100. Descriptive — no
-reading rule; the burn-in length is the owner's.
+runs-after-tick-100 plus the runs beginning at offset 100. Post-read
+additions (DECLARATION §Addendum 3): where the mid-world onsets fall (offsets,
+the slices they share with a reset episode, grave after tick 100) and the
+start-up split (slices whose alarm fires within the first WINDOW ticks, among
+slices with a grave tick in that window and among slices without one).
+Descriptive — no reading rule; the burn-in length is the owner's.
 """
 import argparse
 import json
@@ -35,6 +39,7 @@ SETS = SW.SETS
 HEAD = "NF"                     # decision 2 ruled NF
 PICK_T, PICK_B = 0.10, 100      # the two printed cross-sections: burn-in ladder at 0.10; threshold ladder at 100
 MASKED = -1.0                   # under every threshold
+WINDOW = 100                    # post-read: the start-up window of the split (= PICK_B)
 
 
 def mask_burnin(idx, signal, burnin):
@@ -89,10 +94,43 @@ def burnin_row(idx, signal, thresh, burnin, eps):
     return row
 
 
+def onset_offsets(idx, eps, window=WINDOW):
+    """Post-read: where the mid-world onsets fall — offsets from the slice start (n, min, median, max,
+    counts at or under 25 / 50 / window), how many share their slice with a reset episode; and per
+    slice whether a grave tick falls inside the first `window` ticks, after them, and how many."""
+    offs = sorted(st - a for st, _en, a in eps if st != a)
+    reset_slices = {a for st, _en, a in eps if st == a}
+    grave = idx["code"] == P.S.GRAVE
+    sl = idx["slices"]
+    return {"midworld_n": len(offs), "min": offs[0] if offs else None, "median": float(np.median(offs)) if offs else None,
+            "max": offs[-1] if offs else None, "le_25": sum(o <= 25 for o in offs), "le_50": sum(o <= 50 for o in offs),
+            f"le_{window}": sum(o <= window for o in offs),
+            "in_slice_with_reset": sum(1 for st, _en, a in eps if st != a and a in reset_slices),
+            "slices": len(sl), f"slices_grave_in_{window}": int(sum(grave[a:a + window].any() for *_r, a, b in sl)),
+            f"slices_grave_after_{window}": int(sum(grave[a + window:b].any() for *_r, a, b in sl)),
+            f"grave_ticks_after_{window}": int(sum(grave[a + window:b].sum() for *_r, a, b in sl))}
+
+
+def startup_split(idx, signal, thresh, window=WINDOW):
+    """Post-read: among slices with a grave tick inside the first `window` ticks and among slices with
+    none, the fraction whose alarm fires (any tick at or over the threshold) inside that window."""
+    above = np.asarray(signal, np.float64) >= thresh
+    grave = idx["code"] == P.S.GRAVE
+    g, c = [], []
+    for *_r, a, b in idx["slices"]:
+        (g if grave[a:a + window].any() else c).append(bool(above[a:a + window].any()))
+    return {"window": window, "grave_slices": len(g), "fired_given_grave": sum(g) / len(g) if g else None,
+            "clean_slices": len(c), "fired_given_clean": sum(c) / len(c) if c else None}
+
+
 def grid(idx, ps, burnins=BURNINS, thresholds=THRESHOLDS):
     eps = P.episodes(idx)
     out = {"episodes_total": len(eps), "episodes_reset": sum(st == a for st, _en, a in eps),
-           "episodes_midworld": sum(st != a for st, _en, a in eps), "n_ticks": idx["n"], "rows": {}}
+           "episodes_midworld": sum(st != a for st, _en, a in eps), "n_ticks": idx["n"],
+           "onsets": onset_offsets(idx, eps), "startup": {}, "rows": {}}
+    for t in thresholds:
+        per = [startup_split(idx, p, t) for p in ps]
+        out["startup"][f"{t:.2f}"] = {"per_seed": per, **P.msd_tree(per)}
     for burnin in burnins:
         out["rows"][str(burnin)] = {}
         for t in thresholds:
@@ -159,6 +197,18 @@ def md(out):
     for sname, blk in out["by_set"].items():
         L.append(f"## {sname} ({', '.join(blk['eval_sets'])}; {blk['n_samples']:,} observer-ticks): episodes {blk['episodes_total']}, "
                  f"reset {blk['episodes_reset']}, mid-world {blk['episodes_midworld']}")
+        o = blk["onsets"]
+        L.append(f"mid-world onset offsets: n {o['midworld_n']}, min {o['min']}, median {fmt(o['median'], 1)}, max {o['max']}; "
+                 f"at or under 25 / 50 / {WINDOW} ticks: {o['le_25']} / {o['le_50']} / {o[f'le_{WINDOW}']}; "
+                 f"in a slice that also has a reset episode: {o['in_slice_with_reset']}. "
+                 f"Slices {o['slices']}: with a grave tick in the first {WINDOW} ticks {o[f'slices_grave_in_{WINDOW}']}, "
+                 f"with a grave tick after tick {WINDOW} {o[f'slices_grave_after_{WINDOW}']} ({o[f'grave_ticks_after_{WINDOW}']} grave ticks).")
+        L.append("")
+        L.append(f"### start-up split: slices whose alarm fires within the first {WINDOW} ticks")
+        L.append("| P ≥ | slices with grave in window | fired, given grave | slices without | fired, given none |")
+        L.append("|---|---|---|---|---|")
+        for t, r in blk["startup"].items():
+            L.append(f"| {t} | {fmt(r['grave_slices'], 0)} | {fmt(r['fired_given_grave'])} | {fmt(r['clean_slices'], 0)} | {fmt(r['fired_given_clean'])} |")
         L.append("")
         L.append(f"### burn-in ladder at P ≥ {tp}")
         L.extend([HEADER, RULE])

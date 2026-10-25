@@ -566,3 +566,29 @@ tick short (`< burnin` → `< burnin - 1`) → at B = 101 the run at
 offsets 100–101 is no longer truncated and no run begins at the
 boundary, `AssertionError: (101, 0)` at the boundary line of
 `test_t8_burnin`.
+
+Post-read addition 2026-10-25 (after the first run of the burn-in read,
+before any write-up). The read's "mid-world onsets inside the burn-in"
+column reached every mid-world episode by B = 100 on both sets (88 of
+88 on group P, 100 of 100 on L / W / G): no grave episode in either
+evaluation set begins after a slice's hundredth tick. That is a fact
+about the sets the sweep's composition did not show (it counted onsets
+as reset or not, never where the non-reset ones fall), and it changes
+what a burn-in costs, so the reader gains two post-read blocks per set,
+both measured before any sentence of the write-up was drafted: (a) the
+mid-world onset offsets — count, min, median, max, the counts at or
+under 25 / 50 / 100 ticks, how many share their slice with a reset
+episode (the grave-start friend crossing back into grave), and per
+slice whether a grave tick falls inside the first 100 ticks, after them,
+and how many ticks; (b) the start-up split per threshold — among slices
+with a grave tick inside the first 100 ticks and among slices with
+none, the fraction whose alarm fires inside that window (the alarm's
+discrimination during the transient, which is where every onset is).
+100 is the declared burn-in cross-section, not a rule. Guard t8
+extended (the 20-tick slice's offsets; three hand slices with a reset
+plus a re-entry, grave only after the window, and no grave; the split
+on a signal firing in two of the three). Red: the split's window test
+widened to the whole slice (`grave[a:a + window]` → `grave[a:b]` in
+`startup_split`) — the slice with grave only after the window is then
+counted among the grave slices, `AssertionError` at the grave-slices
+line.
