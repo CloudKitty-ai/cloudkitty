@@ -739,3 +739,11 @@ transient is about a hundred ticks long; runs after tick 100 are 0.027
 / 0.003 / 0.000 per 10,000 on P; two post-read additions with reds;
 expectation (2) did not hold and (3) was malformed, both reported; no
 rule; the pick hers).
+REOPENED 2026-10-25 a third time, on her word on the sweep report
+("Agreed, let's start with 0.10. Run the burn in"; decision 3 ruled:
+P(grave) ≥ 0.10, "start with" recorded verbatim): R6d, the burn-in as
+an instrument — the alarm forced off for the first B ticks of every
+observer slice (B = 0 … 300) under R4d's latency instrument, NF-h24+p,
+group P and L / W / G; prices blind ticks and delayed episodes against
+the false alarms removed; descriptive, no reading rule, the burn-in
+length hers; 0 new cat-ticks; DECLARATION §Addendum 3. Status: OPEN.

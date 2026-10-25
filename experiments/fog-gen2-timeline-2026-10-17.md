@@ -371,6 +371,16 @@ consent BC comparison ride the trunk.
   0.027 / 0.003 / 0.000 per 10k on P; L / W / G carries 296 episodes (G
   is a grave-start group). STATUS: DONE 2026-10-24; the threshold pick
   HERS (Phase 2 declaration).
+  THRESHOLD RULED 2026-10-25 (owner, on the sweep report: "Agreed,
+  let's start with 0.10. Run the burn in"): P(grave) ≥ 0.10 for the
+  evaluation's reading rule; "start with" verbatim, hers to move.
+  ADDENDUM 3 2026-10-25 on the same words: R6d the burn-in as an
+  instrument — the alarm forced off for the first B ticks of every
+  observer slice (0 … 300) under R4d's latency read, NF-h24+p, group P
+  and L / W / G; the full grid read, two cross-sections printed (burn-in
+  ladder at 0.10; threshold ladder at 100); blind ticks and delayed
+  episodes priced against false alarms removed; descriptive, no rule,
+  the burn-in length hers; 0 cat-ticks. STATUS: OPEN.
 
 ## Flagged follow-ups (owner's word to start)
 

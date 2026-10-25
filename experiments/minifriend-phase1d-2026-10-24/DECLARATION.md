@@ -477,3 +477,82 @@ first — the offset-100 run reclassified as late, the fraction 1/3 for
 restored suite): the early/late boundary moved from "after 100" to "at
 or after 100" (`st > EARLY` → `st >= EARLY`) → `AssertionError` at the
 fraction line of `test_t7_sweep`.
+
+## Addendum 3 2026-10-25: the burn-in (owner, after the sweep report)
+
+Her words, on the sweep report (decision 3 of the Phase 2 talk-through,
+the threshold): "Agreed, let's start with 0.10. Run the burn in". Two
+things follow. (a) The threshold ruling: P(grave) ≥ 0.10 for the
+evaluation's reading rule, "start with" recorded verbatim — the pick
+is hers and stays hers to move. (b) One further read on the probe
+outputs already on disk (0 new cat-ticks; no weight touched), declared
+here before it runs.
+
+**R6d — the burn-in.** The sweep (§Addendum 2) found that nine in ten
+or more of the false-alarm runs R4d counts as mid-world start within a
+slice's first 100 ticks, and reported 100 as a post-read constant
+with no rule on it. This read makes the burn-in an instrument: the
+alarm is forced off for the first B ticks of every observer slice (the
+saved P(grave) replaced by a value under every threshold at offsets
+0 … B − 1; nothing else changes), and R4d's `latency` instrument runs
+unchanged on the masked signal. NF-h24+p only (decision 2 ruled NF),
+seeds 1–3, mean ± SD, group P and the L / W / G evaluation worlds as in
+§Addendum 2. The full grid is read — burn-in lengths 0, 25, 50, 100,
+150, 200, 300 ticks × the sweep's eight thresholds — and two
+cross-sections are printed per set: the burn-in ladder at her
+threshold, 0.10, and the threshold ladder at a burn-in of 100.
+Per cell: the fraction of observer-ticks the alarm is blind to (B over
+the slice length, summed); the mid-world in-sight and fog detected
+fractions and p90 latency as before; the number of mid-world episodes
+whose onset falls inside the burn-in and, for those, the detected
+fraction and median latency (an onset at offset k < B can be caught
+no earlier than B − k); the reset detected fraction and median latency
+(a reset episode is caught no earlier than B); all false-alarm runs
+per 10,000 observer-ticks (under a burn-in there is no first-tick run
+to exclude, so the all-runs column is the false-alarm read) and their
+median length; the runs that begin exactly at offset B (the transient
+still running when the burn-in ends); and false-alarm runs per 100
+detected mid-world episodes. Three identities hold by construction
+and the reader asserts them before writing: the B = 0 cells equal the
+sweep's NF-h24+p cells at every threshold on both sets; mid-world
+episodes whose onset is at or after B have the same per-episode
+latency as at B = 0; and at B = 100 the false-alarm run count equals
+the sweep's runs-starting-after-tick-100 count plus the runs beginning
+exactly at offset 100.
+
+**No reading rule.** Descriptive, as the sweep was: it prices a
+burn-in length in blind ticks and in delayed episodes against the
+false alarms it removes. The burn-in is a consumer rule for our
+evaluation, of the same standing as the threshold: the policy gets the
+probability. Expectations stated before the read (not predictions to
+score): false-alarm runs per 10,000 non-increasing in B at a fixed
+threshold on both sets (a run can only vanish or be truncated; a
+truncated run that kept no grave tick becomes a false alarm, so this
+can fail and the reader prints the count that would show it — the
+runs beginning at offset B); at B = 100 and 0.10 the false-alarm rate
+on group P within 0.05 per 10,000 of the sweep's late-runs column
+(0.007); reset detection delayed to a median latency of B on every
+cell with B > 0.
+
+**Guard** t8 (`test_phase1d.py`): on the sweep's 300-tick hand slice
+(runs at offsets 1, 100, 200, no grave tick) the run count under
+burn-in 0 / 100 / 101 / 102 is 3 / 2 / 2 / 1 with the run beginning
+at the boundary counted at 100 and 101, and the blind fraction is
+B / 300; on the sweep's 20-tick slice an onset inside the burn-in is
+missed when its only over-threshold tick is masked and caught at
+latency B − k when a later tick is over; an onset at or after B keeps
+its B = 0 latency; the reader's identities on group P at 0.10 and 0.20
+with B = 0 and 100. Red: the mask's end moved one tick short
+(`a + B` → `a + B − 1`; the tick at offset B − 1 escapes the burn-in) —
+at B = 101 the run at offsets 100–101 is no longer truncated, so no run
+begins at the boundary: `AssertionError` at the boundary line.
+
+**Doctrine (rule 8):** rule 10 moved it (the full grid read, both
+cross-sections and the counts printed, no burn-in privileged, no
+rule); nothing priced; nothing else moved. Welfare cost: 0 covered
+cat-ticks.
+
+**Run order:** (1) this addendum, deviations 13 reopened, the timeline
+line with her ruling; (2) `burnin_read.py` + t8, red; (3) the read
+(one fence); (4) RESULTS §Addendum 3 gated; the price to her; the
+burn-in length hers.
