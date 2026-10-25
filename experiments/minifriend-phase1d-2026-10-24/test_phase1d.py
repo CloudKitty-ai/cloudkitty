@@ -29,7 +29,8 @@ t8  the burn-in (§Addendum 3): on the 300-tick slice the run count under
     group P at 0.10 / 0.20 with B = 0 / 100; post-read: the onset
     offsets (shared slice with a reset episode; grave after the window)
     and the start-up split (fired within the window, given grave in the
-    window / given none)
+    window / given none); boundary runs cut from a grave run; per-set
+    slice composition
 """
 import hashlib
 import json
@@ -286,6 +287,17 @@ def test_t8_burnin():
     sp = BR.startup_split(idx3, sig3, 0.5)
     assert sp["grave_slices"] == 1 and sp["fired_given_grave"] == 1.0
     assert sp["clean_slices"] == 2 and sp["fired_given_clean"] == 0.5
+    assert o3["per_set"] == {"P1": {"slices": 3, "ticks": 900, "grave_in_100": 1}}
+    # post-read (gate round 1): a boundary run cut from a run that held a grave tick — slice A's signal over the threshold at 0–5
+    # with grave at 0–2: at B = 4 the masked run 4–5 begins at the boundary and is the tail of a detection run; the 300-tick
+    # case's boundary runs (no grave anywhere) are not
+    sig4 = np.zeros(900); sig4[0:6] = 0.9
+    r4 = BR.burnin_row(idx3, sig4, 0.5, 4, eps3)
+    assert r4["fa_runs_at_boundary"] == 1 and r4["fa_runs_at_boundary_cut_from_grave_run"] == 1
+    assert BR.burnin_row(idx3, sig4, 0.5, 6, eps3)["fa_runs_at_boundary"] == 0
+    sig6 = np.zeros(900); sig6[100:102] = 0.9             # a run beginning at offset 100 of slice A, no grave tick in it: a boundary run, not a cut one
+    r6 = BR.burnin_row(idx3, sig6, 0.5, 100, eps3)
+    assert r6["fa_runs_at_boundary"] == 1 and r6["fa_runs_at_boundary_cut_from_grave_run"] == 0
     # group P, NF-h24+p: B = 0 equals the committed sweep rows; at B = 100 the runs equal the sweep's late runs plus the boundary runs
     idx_p = R.eval_index(C.GROUPS["P"])
     gp = BR.grid(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], burnins=(0, 100), thresholds=(0.1, 0.2))

@@ -599,3 +599,25 @@ CONFIRMED, 1 passed after the restore): the split's window test widened
 to the whole slice → the hand slice with grave only after the window
 joins the grave slices, `AssertionError` at the grave-slices line of
 `test_t8_burnin`.
+
+Second post-read addition 2026-10-25 (after accuracy-gate round 1 on
+RESULTS §Addendum 3, before any number of it was cited). The round
+measured, read-only on the saved outputs, that the false-alarm rate's
+rise from B = 25 to B = 50 on group P is entirely the truncation case
+this addendum named as possible — boundary runs that are the tail of
+an unmasked run which began before the burn-in and held a grave tick,
+a detection run cut by the mask into a false alarm — where the draft
+had called it "one part … unmeasured"; and that the draft's
+composition of the clean slices and L's dimensions were wrong. So the
+reader gains, per cell, the boundary runs cut from a grave run (the
+unmasked run containing offset B began before B and holds a grave
+tick), and per set the slice composition (slices, observer-ticks,
+slices with grave in the window, by evaluation set). Guard t8 extended
+(a slice with grave at 0–2 and the signal over the threshold at 0–5:
+at B = 4 the boundary run is a cut one, at B = 6 there is none; a run
+beginning exactly at the boundary with no grave tick is not cut; the
+per-set composition of the three hand slices). Red: the unmasked
+signal replaced by the masked one in the cut test
+(`boundary_runs(idx, above_m, above_0, …)` → `(idx, above_m, above_m,
+…)`) — no unmasked run then begins before the boundary, so the cut
+count is 0 where the hand case has 1, `AssertionError` at the cut line.

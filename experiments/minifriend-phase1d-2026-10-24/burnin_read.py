@@ -16,7 +16,9 @@ runs-after-tick-100 plus the runs beginning at offset 100. Post-read
 additions (DECLARATION §Addendum 3): where the mid-world onsets fall (offsets,
 the slices they share with a reset episode, grave after tick 100) and the
 start-up split (slices whose alarm fires within the first WINDOW ticks, among
-slices with a grave tick in that window and among slices without one).
+slices with a grave tick in that window and among slices without one); after
+gate round 1, the boundary runs cut from a run that held a grave tick, and the
+per-set slice composition.
 Descriptive — no reading rule; the burn-in length is the owner's.
 """
 import argparse
@@ -64,15 +66,20 @@ def episode_latencies(above, eps):
     return out
 
 
-def boundary_runs(idx, above, burnin):
-    """False-alarm runs (no grave tick) beginning exactly at offset `burnin` of their slice."""
+def boundary_runs(idx, above_m, above_0, burnin):
+    """False-alarm runs (no grave tick) beginning exactly at offset `burnin` of their slice, and — post-read
+    (gate round 1) — how many of them are the tail of an unmasked run that began before the burn-in and held a
+    grave tick (the declaration's truncation case: a detection run cut by the mask into a false alarm)."""
     grave = idx["code"] == P.S.GRAVE
-    n = 0
+    n = cut = 0
     for _n, _s, _k, _j, a, b in idx["slices"]:
-        for st, en in P._runs(above[a:b]):
+        for st, en in P._runs(above_m[a:b]):
             if st == burnin and not grave[a + st:a + en].any():
                 n += 1
-    return n
+                for st0, en0 in P._runs(above_0[a:b]):
+                    if st0 < burnin < en0 and grave[a + st0:a + en0].any():
+                        cut += 1
+    return n, cut
 
 
 def burnin_row(idx, signal, thresh, burnin, eps):
@@ -87,7 +94,7 @@ def burnin_row(idx, signal, thresh, burnin, eps):
     row["midworld_onset_in_burnin"] = P.latency(idx, masked, thresh, inside)["all"]
     row["midworld_after_burnin"] = {"episodes": len(after)}
     row["blind_frac"] = blind_frac(idx, burnin)
-    row["fa_runs_at_boundary"] = boundary_runs(idx, above_m, burnin)
+    row["fa_runs_at_boundary"], row["fa_runs_at_boundary_cut_from_grave_run"] = boundary_runs(idx, above_m, above_0, burnin)
     det = sum(1 for lat in episode_latencies(above_m, after + inside) if lat is not None)
     fa = row["false_alarms"]["runs"]
     row["derived"] = {"midworld_detected": det, "fa_per_100_midworld_detected": 100.0 * fa / det if det else None}
@@ -102,7 +109,13 @@ def onset_offsets(idx, eps, window=WINDOW):
     reset_slices = {a for st, _en, a in eps if st == a}
     grave = idx["code"] == P.S.GRAVE
     sl = idx["slices"]
-    return {"midworld_n": len(offs), "min": offs[0] if offs else None, "median": float(np.median(offs)) if offs else None,
+    per_set = {}
+    for n, _s, _k, _j, a, b in sl:
+        c = per_set.setdefault(n, {"slices": 0, "ticks": 0, f"grave_in_{window}": 0})
+        c["slices"] += 1
+        c["ticks"] += b - a
+        c[f"grave_in_{window}"] += int(grave[a:a + window].any())
+    return {"per_set": per_set,"midworld_n": len(offs), "min": offs[0] if offs else None, "median": float(np.median(offs)) if offs else None,
             "max": offs[-1] if offs else None, "le_25": sum(o <= 25 for o in offs), "le_50": sum(o <= 50 for o in offs),
             f"le_{window}": sum(o <= window for o in offs),
             "in_slice_with_reset": sum(1 for st, _en, a in eps if st != a and a in reset_slices),
@@ -139,7 +152,7 @@ def grid(idx, ps, burnins=BURNINS, thresholds=THRESHOLDS):
     return out
 
 
-EXTRA = ("midworld_onset_in_burnin", "midworld_after_burnin", "blind_frac", "fa_runs_at_boundary", "derived")
+EXTRA = ("midworld_onset_in_burnin", "midworld_after_burnin", "blind_frac", "fa_runs_at_boundary", "fa_runs_at_boundary_cut_from_grave_run", "derived")
 
 
 def pin_sweep(grid_rows, n_ticks, path=HERE / "phase1d-sweep.json", set_name="P"):
@@ -179,8 +192,8 @@ def fmt(m, d=3):
 
 
 HEADER = ("| burn-in | P ≥ | blind | mw-sight det | p90 lat | mw-fog det | p90 lat | mw onsets in burn-in | their det | their med lat "
-          "| reset det | reset med lat | FA /10k | FA len | FA at boundary | FA per 100 mw det |")
-RULE = "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
+          "| reset det | reset med lat | FA /10k | FA len | FA at boundary | of them cut from a grave run | FA per 100 mw det |")
+RULE = "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
 
 
 def _line(burnin, t, r):
@@ -188,7 +201,7 @@ def _line(burnin, t, r):
     return (f"| {burnin} | {t} | {fmt(r['blind_frac'])} | {fmt(mv['detected_frac'])} | {fmt(mv['p90_latency'], 1)} "
             f"| {fmt(mf['detected_frac'])} | {fmt(mf['p90_latency'], 1)} | {fmt(ib['episodes'], 0)} | {fmt(ib['detected_frac'])} | {fmt(ib['median_latency'], 1)} "
             f"| {fmt(rs['detected_frac'])} | {fmt(rs['median_latency'], 1)} | {fmt(fa['per_10k_ticks'])} | {fmt(fa['run_median_length'], 1)} "
-            f"| {fmt(r['fa_runs_at_boundary'], 1)} | {fmt(dv['fa_per_100_midworld_detected'], 1)} |")
+            f"| {fmt(r['fa_runs_at_boundary'], 1)} | {fmt(r['fa_runs_at_boundary_cut_from_grave_run'], 1)} | {fmt(dv['fa_per_100_midworld_detected'], 1)} |")
 
 
 def md(out):
@@ -202,7 +215,9 @@ def md(out):
                  f"at or under 25 / 50 / {WINDOW} ticks: {o['le_25']} / {o['le_50']} / {o[f'le_{WINDOW}']}; "
                  f"in a slice that also has a reset episode: {o['in_slice_with_reset']}. "
                  f"Slices {o['slices']}: with a grave tick in the first {WINDOW} ticks {o[f'slices_grave_in_{WINDOW}']}, "
-                 f"with a grave tick after tick {WINDOW} {o[f'slices_grave_after_{WINDOW}']} ({o[f'grave_ticks_after_{WINDOW}']} grave ticks).")
+                 f"with a grave tick after tick {WINDOW} {o[f'slices_grave_after_{WINDOW}']} ({o[f'grave_ticks_after_{WINDOW}']} grave ticks). "
+                 + "Per set (slices / observer-ticks / slices with grave in the window): "
+                 + "; ".join(f"{n} {c['slices']} / {c['ticks']:,} / {c[f'grave_in_{WINDOW}']}" for n, c in o["per_set"].items()) + ".")
         L.append("")
         L.append(f"### start-up split: slices whose alarm fires within the first {WINDOW} ticks")
         L.append("| P ≥ | slices with grave in window | fired, given grave | slices without | fired, given none |")
