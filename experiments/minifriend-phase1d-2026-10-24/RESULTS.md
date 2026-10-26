@@ -1004,8 +1004,8 @@ post-read addition; 0 new cat-ticks; no weight touched): the frozen
 NF-h24 heads re-run with the Phase 1d probes exactly as the probe fit
 walked them (zero state at the slice start, carried across 500-tick
 chunks), and the re-run P(grave) checked equal to the committed
-`pgrave-*.npz` on the first group-P evaluation world before anything
-else ran (0.0e+00 on every seed). (a) The state's step and drift and
+`pgrave-*.npz` on the first group-P evaluation world per seed, before
+that seed's re-run head is used (0.0e+00 on every seed). (a) The state's step and drift and
 the logit's trend on L's 60 clean evaluation slices; (b) the splice —
 group P's 200 covered reset-grave episodes (the friend's 58-cell rows
 over the episode, length 5 / 40 / 238 min / median / max, 14 in sight
@@ -1038,15 +1038,17 @@ are detected in 0.358 ± 0.175 after 100 clean ticks of history (0.540
 / 0.345 / 0.190 per seed) at a median latency of 26.5 ± 12.4 ticks,
 and in 0.287 ± 0.143 and 0.288 ± 0.132 after 500 and 2,000; SD width
 16 goes 1.000 → 0.275 → 0.282 → 0.287 on the same splices. The
-junction control never fires (0.000 ± 0.000 at every H and threshold
-for NF+p). The self block is not in it: H = 0 with the recipient's
+junction control never fires after a history (0.000 ± 0.000 at H =
+100 / 500 / 2,000 at every threshold for NF+p; at H = 0 with the
+recipient's self block it fires 0.678 ± 0.553 at 0.10, the zero-state
+transient on clean rows). The self block is not in it: H = 0 with the recipient's
 self block detects 0.995 / 0.972 / 0.968 at 0.10 / 0.30 / 0.50, the
-H = 0 row to within 0.003. And the fitted worlds hold no grave beyond a
-world's first 322 ticks: in the training role 6,301 grave ticks over 74
-worlds, the latest at offset 322, 182 episode onsets, the latest at 171,
-1 after tick 100; in the validation role 1,960 ticks, latest 601, 42
-onsets, latest 93; in the evaluation role 6,778 ticks, latest 779, 146
-onsets, latest 90.** The warm start says the same on the real episodes:
+H = 0 row to within 0.003. And the training worlds hold no grave after
+offset 322: 6,301 grave ticks over 74 worlds, the latest at offset 322,
+182 episode onsets, the latest at 171, 1 after tick 100 (the validation
+worlds, which early-stopped the fits, hold 1,960 ticks to offset 601
+and 42 onsets to 93; the evaluation worlds 6,778 ticks to 779 and 146
+onsets to 90).** The warm start says the same on the real episodes:
 run from h̄ instead of zero, the reset detected fraction at 0.10 on
 group P falls 0.995 ± 0.009 → 0.592 ± 0.066 (0.650 / 0.520 / 0.605 per
 seed) and its median latency 0.3 → 14.7 ± 2.1 ticks, the re-entries
@@ -1057,7 +1059,7 @@ L / W / G); its all-runs false-alarm rate is 0.078 ± 0.028 per 10,000.
 The state on a clean slice does not settle in the sense the declaration
 assumed: the median step ‖h_t − h_{t−1}‖ is 0.0480 ± 0.0009 in ticks
 [1, 100) and rises to 0.0571 ± 0.0024 from tick 1,000 on, the drift
-from h_100 sits at 0.80–0.88 in every window, and the logit has no
+from h_100 sits between 0.80 and 0.89 (seed means) in every window, and the logit has no
 trend (slope 0.0001 ± 0.0021 logits per 1,000 ticks against a
 within-slice SD of 0.9387 ± 0.0775; drift-to-scatter 0.032 ± 0.021).
 What does change is the first few ticks: the mean logit on a clean
@@ -1089,13 +1091,16 @@ collapse between H = 0 and H = 100 and both are flat from 100 to
 covered friend's slow crossing into grave after a long clean history
 would be seen; it says the response to a covered friend's grave rows
 depends on how long the state has watched the friend be fine, and that
-no grave the head was fitted on sits beyond a world's first 322 ticks.
+no grave in the training worlds sits after offset 322 (none in the
+validation worlds after 601).
 
 ### Predictions scored (the Professor's, 2026-10-25 note §Q6; operationalised in DECLARATION §Addendum 4)
 
-- **P3** ("on L, d_t reaches a stationary band within 300 ticks and
-  z_t shows no monotone trend from tick 300 on") — **not met as
-  operationalised**, on every seed: the band clause holds (the median
+- **P3** ("On L's clean slices the frozen NF-h24 GRU's step size `d_t`
+  reaches a stationary band within 300 ticks and the probe logit `z_t`
+  shows no monotone trend from tick 300 to the end of the slice (slope
+  indistinguishable from zero against its within-slice scatter, pooled
+  over slices).") — **not met as operationalised**, on every seed: the band clause holds (the median
   step in [300, 1,000), 0.0543 ± 0.0020, is within a factor of 2 of
   the median from 1,000 on, 0.0571 ± 0.0024) and the trend clause
   holds (drift-to-scatter 0.009 / 0.051 / 0.038 per seed, under 1); the
@@ -1104,21 +1109,27 @@ no grave the head was fitted on sits beyond a world's first 322 ticks.
   step of all (0.0480 ± 0.0009). The declaration assumed a step that
   starts large and decays; the measured step is near-constant and
   grows slightly with the slice.
-- **P4** ("splice detection fraction and median latency after 100 /
-  500 / 2,000 clean ticks differ by less than the seed SD for
-  NF-h24+p at 0.10") — **met**: the range of the seed-mean detected
+- **P4** ("Detection fraction and median latency of a covered start-up
+  grave signature spliced after 100 / 500 / 2,000 clean L ticks differ
+  across the three history lengths by less than the seed SD, for
+  NF-h24+p at 0.10. (If P3 fails, P4 is expected to fail with it; score
+  both.)") — **met**: the range of the seed-mean detected
   fraction over the three histories is 0.0717 against a mean seed SD of
   0.1501, the range of the median latency 2.83 ticks against 11.06. The
   prediction's range begins at 100 ticks; the fall from H = 0 (0.995)
-  to H = 100 (0.358) lies outside it and is the headline above.
-- **P5** ("burn-in 5 at 0.10 on P: all-runs FA from 1.607 to ≤ 0.20
-  per 10k with reset detection ≥ 0.90; a warm-started h_0 at B = 0
-  does at least as well on both") — **not met**: the burn-in half holds
+  to H = 100 (0.358) lies outside it and is the headline above. The
+  coupling the prediction expected did not occur: P3 failed on the
+  operationalisation's third clause and P4 held.
+- **P5** ("A burn-in of 5 ticks at 0.10 on P brings the all-runs
+  false-alarm rate from 1.607 to at most 0.20 per 10,000 observer-ticks
+  while keeping reset detection at or above 0.90. A warm-started `h_0`
+  at B = 0 does at least as well on both.") — **not met**: the burn-in half holds
   (0.073 ± 0.001 per 10,000; reset detection 0.960 ± 0.005), the
   warm-start half does not (false alarms 0.078 ± 0.028, over 0.073 by
   0.005; reset detection 0.592 ± 0.066 against 0.960).
-- **P8** ("self-block swap on P changes mid-world in-sight and fog
-  detected fractions at 0.10 by less than the seed SD") — **met**: Δ
+- **P8** ("On P, swapping the self block across observers within a
+  world changes NF-h24+p's mid-world in-sight and fog detected fractions
+  at 0.10 by less than the seed SD.") — **met**: Δ
   −0.0167 against an unswapped SD of 0.0500 in sight, Δ −0.0049
   against 0.0530 in fog.
 
@@ -1274,7 +1285,12 @@ length, runs beginning at the slice's first tick, runs beginning at
 offset B, the start-up split); "warm" rows run from h̄ at B = 0. The
 fitted-worlds table counts per world × friend over every set (L, W, G,
 P1–P5) in the role: grave ticks by offset from the world start and
-grave episodes by onset offset.
+grave episodes by onset offset. Two structural zeros and one constant:
+"anticipated" is 0 on every H = 0 row (a reset episode has no tick
+before its onset inside the slice); the start-up split in the burn-in
+tables is read on the unmasked signal, so its two columns do not change
+with B; and the H = 0 rows have no control (the committed signal in the
+donor's own slice).
 
 ### Limitations
 
@@ -1285,14 +1301,16 @@ grave episodes by onset offset.
   licenses the dependence of the response on the state's history for
   a covered grave signature as recorded; it says nothing about a slow
   crossing from below, which no set on disk contains.
-- 14 of the 200 donors are in sight at onset; every in-sight cell
-  rests on 14 episodes.
+- 14 of the 200 donors are in sight at onset; every in-sight cell of
+  the splice rests on 14 episodes (the burn-in and swap tables' mid-world
+  in-sight cells on group P rest on 20).
 - h̄ is the mean state over L's clean slices from tick 1,000, per seed:
   one warm start, not a search over them. A warm start is a change to
   the consumer's state at the world's start; the policy's input is
   untouched.
 - The fitted-worlds table is a fact about the data the head and the
-  probe were fitted on, per world × friend; the reads above do not
+  probe were fitted on (its train and val rows; the eval row is the
+  evaluation worlds beside them), per world × friend; the reads above do not
   measure whether the collapse after a clean history is learned from
   it. That is a question for a head fitted on worlds that hold grave
   after a long clean history, which no set on disk is.

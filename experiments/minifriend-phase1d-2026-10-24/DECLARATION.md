@@ -633,7 +633,7 @@ the cut test → the cut count 0 where the hand case has 1,
 
 Her words. On the burn-in report and the Professor's note of the same
 day (`~/ai/professor/notes/for-experiments-midworld-onset-instrument-
-2026-10-25.md`, sha256 prefix 2139fc3a389fbec6): "Let's do another
+2026-10-25.md`, sha256 prefix 2139fc3a389fbec6 at receipt — the Professor appended a relay-status block to the note afterwards, so the file's hash has moved; §Q6 is quoted verbatim in RESULTS §Addendum 4): "Let's do another
 threshold sweep rather than choosing an arbitrary value. Maybe
 0.1,0.3.,0.5 to start so we can get a feel for the trade-off.
 Zero-collection reads first. What other decisions do you need in order
