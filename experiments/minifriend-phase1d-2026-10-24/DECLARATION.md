@@ -810,3 +810,30 @@ donor rows shifted one tick late in the splice assembly
 the first spliced donor row keeps the recipient's friend row,
 `AssertionError: junction: the donor's rows begin at H` in
 `test_t9_history`.
+
+Post-read addition 2026-10-25 (after the first run of the history read,
+before any sentence of the write-up). Two results need a column each
+before they can be written about. First, the splice: detection of the
+covered grave rows is near-complete at H = 0 and falls to about a third
+at H = 100, then stays flat to H = 2,000 (NF+p and SD alike), with the
+junction control never firing; and the warm start cuts reset detection
+on the real episodes to about six in ten. Between H = 0 and H = 100
+two things change at once, the state's history and the self block
+(the donor observer's at H = 0, the L recipient's at H ≥ 100), and
+read (d) separates them only at the zero state. So the reader gains
+the splice at **H = 0 with the recipient's self block** (the
+recipient's self rows 0 … en − 1 beside the donor's rows, from the
+zero state; the same columns; NF+p and SD; its control is the clean
+rows from the zero state): if it detects as H = 0 does, the collapse
+is the state's; if it collapses too, the self block or the world type
+is in it. Second, the obvious question about the fitted worlds: the
+reader gains, per role (train, val, eval) over every set, the grave
+ticks by offset from the world start (count, max offset, counts at or
+under 100 / 300 / 500 / 1,000) and the grave episode onsets (count,
+max onset offset, onsets after tick 100), per world × friend — so any
+sentence about what the head was shown is a measured one. Guard t9
+extended (the H = 0 assembly and its reset episode; a hand set of code
+columns with an onset exactly at tick 100, which is not "after" it).
+Red: the after-window test made inclusive (`st > windows[0]` →
+`st >= windows[0]`) — the onset at tick 100 is then counted after it,
+`AssertionError` at the onsets-after line.

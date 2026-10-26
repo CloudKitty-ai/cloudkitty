@@ -360,6 +360,45 @@ def splice_rows_sd(model, donors, recips, H, thresholds=THRESHOLDS):
     return out
 
 
+def grave_offsets_from_codes(code_arrays, windows=(100, 300, 500, 1000)):
+    """Post-read: per (world, friend) stratum-code columns (T,) — grave ticks by offset from the world start
+    (count, max offset, count at or under each window) and grave episode onsets (count, max onset offset,
+    onsets after windows[0])."""
+    n_ticks = max_tick = n_on = max_on = after = 0
+    le = {w: 0 for w in windows}
+    for col in code_arrays:
+        g = np.asarray(col) == S.GRAVE
+        where = np.where(g)[0]
+        if len(where):
+            n_ticks += len(where)
+            max_tick = max(max_tick, int(where[-1]))
+            for w in windows:
+                le[w] += int((where <= w).sum())
+        for st, _en in P._runs(g):
+            n_on += 1
+            max_on = max(max_on, int(st))
+            after += int(st > windows[0])
+    return {"grave_ticks": n_ticks, "max_grave_tick_offset": max_tick if n_ticks else None,
+            **{f"grave_ticks_le_{w}": le[w] for w in windows},
+            "onsets": n_on, "max_onset_offset": max_on if n_on else None, f"onsets_after_{windows[0]}": after}
+
+
+def training_grave_offsets(roles=None):
+    """Post-read: where grave sits in the worlds the head and the probe were fitted on — the train and the
+    val role separately, per (world, friend) over every set; plus the eval role for comparison."""
+    roles = D.roles() if roles is None else roles
+    out = {}
+    for role in ("train", "val", "eval"):
+        cols, worlds = [], 0
+        for n, r in roles.items():
+            for s in r[role]:
+                w = load_world(n, s)
+                worlds += 1
+                cols.extend(w["codes"][:, j] for j in range(D.ROSTER))
+        out[role] = {"worlds": worlds, **grave_offsets_from_codes(cols)}
+    return out
+
+
 def h0_rows(idx, signal, thresholds=THRESHOLDS):
     """H = 0: the donor episodes in their own slices on the committed signal — R4d's rows over the reset episodes."""
     eps = [e for e in P.episodes(idx) if e[0] == e[2]]
@@ -510,7 +549,7 @@ def read_all(seeds=SEEDS):
     out = {"thresholds": list(THRESHOLDS), "histories": list(HISTORIES), "burnins": list(BURNINS), "seeds": list(seeds),
            "windows": [list(w) for w in WINDOWS], "slope_from": SLOPE_FROM, "warm_from": WARM_FROM,
            "n": {"P": idx_p["n"], "LWG": idx_lwg["n"], "L": idx_l["n"]}, "reproduces": {}}
-    conv, h0_nf, spl_nf, warm, swap, plain = [], [], {str(H): [] for H in HISTORIES}, {"P": [], "LWG": []}, [], {}
+    conv, h0_nf, spl_nf, warm, swap, plain = [], [], {str(H): [] for H in ("0r",) + HISTORIES}, {"P": [], "LWG": []}, [], {}
     ps_p = [P.load_p(run, idx_p) for run in P.PROBES["NF"]]
     ps_lwg = [P.load_p(run, idx_lwg) for run in P.PROBES["NF"]]
     plain["P"] = small_burnin(idx_p, ps_p, "P")
@@ -532,15 +571,17 @@ def read_all(seeds=SEEDS):
         warm["P"].append(signal_over_index(model, probe, idx_p, h0=hbar))
         warm["LWG"].append(signal_over_index(model, probe, idx_lwg, h0=hbar))
         h0_nf.append(h0_rows(idx_p, ps_p[si]))
+        spl_nf["0r"].append(splice_rows_nf(model, probe, donors, recips, 0))      # post-read: H = 0 with the recipient's self block
         for H in HISTORIES:
             spl_nf[str(H)].append(splice_rows_nf(model, probe, donors, recips, H))
         swap.append(swap_rows(sub, swap_signal(model, probe, sub), sub_plain[si]))
     pin_h0(h0_nf)
-    sd_h0, sd_spl = [], {str(H): [] for H in HISTORIES}
+    sd_h0, sd_spl = [], {str(H): [] for H in ("0r",) + HISTORIES}
     for run in SD_RUNS:
         sd_sig = C.grave_probability(C.load_field(run, idx_p, "grave"))
         sd_h0.append(h0_rows(idx_p, sd_sig))
         sd_model = load_sd(run)
+        sd_spl["0r"].append(splice_rows_sd(sd_model, donors, recips, 0))
         for H in HISTORIES:
             sd_spl[str(H)].append(splice_rows_sd(sd_model, donors, recips, H))
     pin_h0_sd(sd_h0)
@@ -548,13 +589,14 @@ def read_all(seeds=SEEDS):
     out["convergence"] = {"per_seed": conv, **P.msd_tree([{k: v for k, v in c.items() if k not in ("hbar", "p3")} for c in conv]),
                           "p3": {"per_seed": [c["p3"] for c in conv], "met_all_seeds": all(c["p3"]["met"] for c in conv)}}
     nf_rows = {"0": {"per_seed": h0_nf, **P.msd_tree(h0_nf)}}
-    for H in HISTORIES:
+    for H in ("0r",) + HISTORIES:
         nf_rows[str(H)] = {"per_seed": spl_nf[str(H)], **P.msd_tree(spl_nf[str(H)])}
     sd_rows = {"0": {"per_seed": sd_h0, **P.msd_tree(sd_h0)}}
-    for H in HISTORIES:
+    for H in ("0r",) + HISTORIES:
         sd_rows[str(H)] = {"per_seed": sd_spl[str(H)], **P.msd_tree(sd_spl[str(H)])}
     out["splice"]["NF-h24+p"] = nf_rows
     out["splice"]["SD-w16"] = sd_rows
+    out["training_grave_offsets"] = training_grave_offsets()
     out["splice"]["p4"] = score_p4(nf_rows)
     out["splice"]["sd_p4_style"] = score_p4(sd_rows)
     out["burnin"] = {"plain": plain, "warm": warm_g, "p5": score_p5(plain["P"], warm_g["P"]),
@@ -607,17 +649,17 @@ def md(out):
         L.append(f"\n### {head}")
         L.append("| H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | anticipated | FA in history /10k | control fired |")
         L.append("|---|---|---|---|---|---|---|---|---|---|---|---|")
-        for H in ["0"] + [str(h) for h in out["histories"]]:
+        for H in ["0", "0r"] + [str(h) for h in out["histories"]]:
             for t in sp[head][H]:
                 if t == "per_seed":
                     continue
                 r = sp[head][H][t]
-                cls = "reset" if H == "0" else "all"
-                a = r[cls]
-                vis_, fog_ = (r["onset_visible"], r["onset_fog"]) if H == "0" else (r["midworld_visible"], r["midworld_fog"])
-                ctl = fmt(r.get("control_fired"), 3) if H != "0" else "—"
-                fa = fmt(r["false_alarms"]["per_10k_ticks"], 3) if H != "0" else "—"
-                L.append(f"| {H} | {t} | {fmt(a['episodes'], 0)} | {fmt(a['detected_frac'])} | {fmt(a['median_latency'], 1)} | {fmt(a['p90_latency'], 1)} | {fmt(a['within_10_frac'])} "
+                own = H == "0"
+                a = r["reset" if own else "all"]
+                vis_, fog_ = (r["onset_visible"], r["onset_fog"]) if H in ("0", "0r") else (r["midworld_visible"], r["midworld_fog"])
+                ctl = "—" if own else fmt(r.get("control_fired"), 3)
+                fa = "—" if own else fmt(r["false_alarms"]["per_10k_ticks"], 3)
+                L.append(f"| {'0 (recipient self block)' if H == '0r' else H} | {t} | {fmt(a['episodes'], 0)} | {fmt(a['detected_frac'])} | {fmt(a['median_latency'], 1)} | {fmt(a['p90_latency'], 1)} | {fmt(a['within_10_frac'])} "
                          f"| {fmt(vis_['detected_frac'])} | {fmt(fog_['detected_frac'])} | {fmt(a['anticipated_frac'])} | {fa} | {ctl} |")
     p4 = sp["p4"]
     L.append(f"\nP4 (NF+p at {p4['threshold']}): detected-fraction range over H {fmt(p4['detected_frac_range'], 4)} vs mean seed SD {fmt(p4['detected_frac_mean_sd'], 4)} → {p4['detected_ok']}; "
@@ -656,6 +698,13 @@ def md(out):
     p8 = sw["p8"]
     L.append(f"P8 (at {p8['threshold']}): mid-world in-sight Δ {fmt(p8['midworld_visible']['delta'], 4)} vs SD {fmt(p8['midworld_visible']['sd'], 4)} → {p8['midworld_visible']['ok']}; "
              f"fog Δ {fmt(p8['midworld_fog']['delta'], 4)} vs SD {fmt(p8['midworld_fog']['sd'], 4)} → {p8['midworld_fog']['ok']}; met: {p8['met']}")
+    tg = out["training_grave_offsets"]
+    L.append("\n## (f) post-read: where grave sits in the fitted worlds (per world × friend, every set)")
+    L.append("| role | worlds | grave ticks | max tick offset | ≤ 100 | ≤ 300 | ≤ 500 | ≤ 1000 | onsets | max onset offset | onsets after 100 |")
+    L.append("|---|---|---|---|---|---|---|---|---|---|---|")
+    for role, r in tg.items():
+        L.append(f"| {role} | {r['worlds']} | {r['grave_ticks']:,} | {r['max_grave_tick_offset']} | {r['grave_ticks_le_100']:,} | {r['grave_ticks_le_300']:,} | {r['grave_ticks_le_500']:,} "
+                 f"| {r['grave_ticks_le_1000']:,} | {r['onsets']} | {r['max_onset_offset']} | {r['onsets_after_100']} |")
     e = out["expectations"]
     L.append("\n## expectations (this thread's, not scored predictions)")
     L.append(f"junction control fired at 0.10 per H: " + ", ".join(f"H={h} {fmt(v)}" for h, v in e["control_fired_at_0.10"]["per_H"].items()) + f" (bar < {EXPECT['control_fire_max']}) → holds {e['control_fired_at_0.10']['holds']}")

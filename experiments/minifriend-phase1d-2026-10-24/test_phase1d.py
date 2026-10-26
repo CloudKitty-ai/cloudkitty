@@ -354,6 +354,17 @@ def test_t9_history():
     assert HR.fired_in_segment(idx_s, sig2, 0.5, lambda i: H) == 0.0
     idx_c, eps_c = HR.splice_index([{**items[0], "grave": False}])
     assert eps_c == [] and (idx_c["code"] == S.COMMON).all()
+    # post-read: H = 0 with the recipient's self block — the recipient's self rows 0 … en−1 beside the donor's rows; a reset episode
+    x0 = HR.splice_inputs(rec, donor, 0)
+    assert x0.shape == (5, 167) and (x0[:, :HR.SELF] == rec[:5, :HR.SELF]).all() and (x0[:, HR.SELF:] == donor).all()
+    idx0, eps0 = HR.splice_index([{"H": 0, "en": 5, "vis_hist": np.ones(50, bool), "vis0": False, "grave": True}])
+    assert eps0 == [(0, 5, 0)] and P.latency(idx0, np.array([0.0, 0.9, 0, 0, 0]), 0.5, eps0)["reset"]["median_latency"] == 1.0
+    # post-read: grave offsets in a set of code columns — friend A grave at 0–2, 100–101 (an onset exactly at the window edge) and 150–151; friend B none
+    colA = np.full(400, S.COMMON, np.int8); colA[0:3] = S.GRAVE; colA[100:102] = S.GRAVE; colA[150:152] = S.GRAVE
+    go = HR.grave_offsets_from_codes([colA, np.full(400, S.COMMON, np.int8)])
+    assert (go["grave_ticks"], go["max_grave_tick_offset"], go["grave_ticks_le_100"], go["grave_ticks_le_300"], go["onsets"], go["max_onset_offset"]) == (7, 151, 4, 7, 3, 150)
+    assert go["onsets_after_100"] == 1, "onsets_after_100: an onset exactly at tick 100 is not after it"
+    assert HR.grave_offsets_from_codes([np.full(10, S.COMMON, np.int8)])["max_grave_tick_offset"] is None
     # next_seat and the swap assembly on a hand world (obs[:, k, c] = 100 k + c)
     assert HR.next_seat(0, {1}) == 2 and HR.next_seat(4, {0}) == 1 and HR.next_seat(3, {4}) == 0 and HR.next_seat(2, {3}) == 4
     T4 = 4
