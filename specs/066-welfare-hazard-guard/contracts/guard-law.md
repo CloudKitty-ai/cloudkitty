@@ -84,5 +84,7 @@ with no acknowledged mode is accepted and changes nothing.
   `welfare_hazard.acknowledged = [<names as JSON>] [toml]`; no default
   column.
 
-With no acknowledged mode: no line, no section, no row — the served
-`cloudkitty.toml` boot is byte-identical to today.
+With no acknowledged mode: no line, no row; the config surface carries
+the section only when the config wrote it (§1: absent stays absent, a
+written empty list serializes) — the served `cloudkitty.toml` boot is
+byte-identical to today.

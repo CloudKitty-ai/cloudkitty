@@ -301,8 +301,11 @@ the option is accepted and changes nothing.
   the acknowledgement MUST be visible from boot on the served config
   surface (the section serializes when present), in one boot-log line
   naming the modes, and as one row of the key-settings block (spec
-  052) naming the modes. With no acknowledged mode, none of the three
-  changes: no row, no line, no section.
+  052) naming the modes. With no acknowledged mode there is no row and
+  no line, and the served config surface carries the section only when
+  the config wrote it (absent stays absent; a written empty list
+  serializes, see Edge Cases) — the served `cloudkitty.toml` boot is
+  byte-identical to today.
 - **FR-008**: No behavior-API or observation surface changes, no new
   read at decision time, no change to any world's law: the feature
   decides what may LOAD and what the server will SERVE, and declares

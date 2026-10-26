@@ -15,9 +15,12 @@ file outside `experiments/` is exactly what FR-005 reddens.
 
 - `cargo test --workspace`: green, zero golden/pin/fixture diffs in
   the PR beyond the seven appends.
-- `engine_defaults_sha256` before and after the change: equal (the
-  suite test `the_engine_defaults_stamp_is_stable_and_well_formed`
-  pins the value; the PR diff shows no change to it).
+- `engine_defaults_sha256` before and after the change: equal. No test
+  pins the value (`the_engine_defaults_stamp_is_stable_and_well_formed`
+  checks only length, hex and self-equality), so T001 records it on
+  the base commit and T010 compares after; both values go in the PR.
+- `World::generate` at a fixed seed with and without the section:
+  identical serialized worlds (T009).
 - Serialize `Config::default()` to JSON: no `welfare_hazard` key.
 
 ## 2. The five failure shapes and the two legal ones (SC-002)
@@ -50,9 +53,12 @@ Python environment's path) and through the server (`cloudkitty-server
 - `cargo test -p cloudkitty-core --test shipped_configs` and
   `cargo test -p cloudkitty-rl --test shipped_configs_rl` on the
   branch with the seven appends in place: green. Before the appends
-  (validator landed, files not yet migrated): the sweeps are RED on
-  exactly the seven files — this is FR-009's reason, and the rule-5
-  red for the migration.
+  (validator landed, files not yet migrated) both sweeps are RED; each
+  panics on the FIRST failing file, so "exactly the seven" is read by
+  appending one file at a time and re-running the core sweep after
+  each: seven runs, seven distinct failing paths, green on the eighth
+  (T013, T017, T020). This is FR-009's reason, and the rule-5 red for
+  the migration.
 
 ## 4. The server (SC-004, FR-006, FR-007)
 
@@ -92,7 +98,10 @@ done
 
 Then, read-only, for each file: strip everything from the trailing
 `\n[welfare_hazard]\n` and sha256 the remainder; compare with the
-pre-retrofit hash in `experiments/gen2-deviations.md` entry 14. All
+pre-retrofit hash in `experiments/gen2-deviations.md` entry 14. The
+branch base ad16a681 predates 304221b1, so entry 14 is NOT on the
+branch: read it with `git show origin/main:experiments/gen2-deviations.md`
+after a `git fetch` (never reset the branch onto moved main). All
 seven equal, or the append shape is wrong. `git diff --stat` shows
 exactly seven files, +3 lines each.
 

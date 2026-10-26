@@ -26,13 +26,15 @@ the spec left open, each measured against the tree at 60f9dc78.
   `HazardMode::ALL`, `name() -> &'static str` (`"initial_needs"`), and
   `activation(&self, &Config) -> Option<String>` returning the FIRST
   activating site as text (`[initial_needs].cuddle = 92` or
-  `[[kitty]] 'Mochi' (id 3) initial_needs.eat = { min = 0, max = 90 }`)
-  or `None` when inactive. `Config::active_hazards()` maps `ALL`
+  `[[kitty]] 'Mochi' (id 3) initial_needs.eat = min = 0, max = 90` — the
+  setting rendered exactly as `validate_initial_needs` renders its
+  error value, guard-law §2) or `None` when inactive. `Config::active_hazards()` maps `ALL`
   through it. No teacher-eligibility field (owner, clarify Q4).
 - **Rationale**: a closed enum IS a closed registry; a new mode cannot
   be guarded without a match arm, and `ALL` makes the sweep and the
   validator iterate the same list. The site text reuses the home
-  strings `validate_initial_needs` already builds (validate.rs:1150).
+  strings `validate_initial_needs` already builds (validate.rs:1151 for
+  the roster table, :1156 for a kitty override).
 - **Alternatives**: a `&'static [HazardEntry]` of name + fn pointer —
   rejected: an enum gets exhaustiveness checks for free.
 
@@ -51,9 +53,10 @@ the spec left open, each measured against the tree at 60f9dc78.
 
 ## D4. Exactness as a pure function
 
-- **Decision**: `check_acknowledgement(acknowledged: &[String],
-  active: &[(name, site)], known: &[&str]) -> Result<(), ConfigError>`
-  in validate.rs, checked in this order: unknown name → duplicate →
+- **Decision**: `pub(super) fn check_acknowledgement(acknowledged:
+  Option<&[String]>, active: &[(&str, String)], known: &[&str]) ->
+  Result<(), ConfigError>` in validate.rs (`None` = section absent, so
+  the error's value can say `absent`), checked in this order: unknown name → duplicate →
   missing (lists EVERY missing mode with its site and the exact line
   to add) → stale (lists every stale name). `validate_welfare_hazard`
   feeds it the registry's output and is called from
@@ -92,7 +95,7 @@ the spec left open, each measured against the tree at 60f9dc78.
 - **Decision**: one flag in the hand-parsed `Args` (main.rs:16) with a
   HELP line; `Args.allow_welfare_hazard: bool`. The gate
   `welfare_hazard::gate(&config, allowed) -> anyhow::Result<()>` runs
-  immediately after `config.validate()?` in `run()` (main.rs:242) —
+  immediately after `config.validate()?` in `run()` (main.rs:236) —
   before the registry is built, before `load_or_generate_world`. It
   errs when `config.welfare_hazard` names one or more modes and the
   switch is absent; the message names the modes and the switch. With
@@ -122,8 +125,10 @@ the spec left open, each measured against the tree at 60f9dc78.
   is unchanged; a new test pins the row's presence, position and
   rendering on an acknowledged config and its absence on an empty
   list.
-- **Rationale**: FR-007 wants "no row, no line, no section" without an
-  acknowledged mode; a conditional row is new to the block, so it gets
+- **Rationale**: FR-007 wants "no row, no line" without an
+  acknowledged mode (the section itself follows D1: absent stays
+  absent, a written empty list serializes); a conditional row is new to
+  the block, so it gets
   its own pin rather than widening the minimal golden.
 
 ## D8. Fingerprint
