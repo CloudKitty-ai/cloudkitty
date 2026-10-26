@@ -31,6 +31,15 @@ t8  the burn-in (§Addendum 3): on the 300-tick slice the run count under
     and the start-up split (fired within the window, given grave in the
     window / given none); boundary runs cut from a grave run; per-set
     slice composition
+t9  history and state (§Addendum 4): convergence windows, slope and
+    ratio on a synthetic state and logit; the splice assembly (history
+    rows the recipient's, from H the recipient's self block beside the
+    donor's rows; the episode [H, H + en); a crossing at H + 3 reads
+    latency 3, one at H − 1 does not count); next_seat; the swap
+    assembly on a hand world; subindex rebasing; real pins (the re-run
+    head reproduces the committed P(grave); H = 0 equals the sweep's
+    reset rows; SD's H = 0 equals R4d's; B = 0 equals the sweep; the
+    sub-index's unswapped reset rows equal the sweep's)
 """
 import hashlib
 import json
@@ -52,6 +61,7 @@ import grave_probe as G  # noqa: E402
 import read_phase1d as P  # noqa: E402
 import sweep_threshold as SW  # noqa: E402
 import burnin_read as BR  # noqa: E402
+import history_read as HR  # noqa: E402
 
 D = G.D
 S = G.S
@@ -302,6 +312,77 @@ def test_t8_burnin():
     idx_p = R.eval_index(C.GROUPS["P"])
     gp = BR.grid(idx_p, [P.load_p(run, idx_p) for run in P.PROBES["NF"]], burnins=(0, 100), thresholds=(0.1, 0.2))
     BR.pin_sweep(gp["rows"], idx_p["n"])
+
+
+def test_t9_history():
+    # convergence on a synthetic state: big steps before tick 20, then an exact oscillation of step 2ε; a flat logit and a ramp
+    Tn, eps_ = 2000, 0.01
+    c, u = np.array([1.0, -2.0]), np.array([0.6, 0.8])
+    h = np.tile(c, (Tn, 1)).astype(np.float64)
+    h[:20] += np.arange(20)[:, None] * 5.0                                   # steps of 5 before tick 20
+    h[20:] += eps_ * ((-1.0) ** np.arange(20, Tn))[:, None] * u              # steps of 2ε from tick 21 on
+    z_flat = 0.3 + 0.05 * (-1.0) ** np.arange(Tn)                            # scatter without trend
+    z_ramp = 1.0 + 0.001 * np.arange(Tn)
+    win = ((1, 10), (10, 30), (30, 100), (100, 500), (500, 2000))
+    cv = HR.convergence([(h, z_flat), (h, z_flat)], windows=win, slope_from=30, warm_from=100, profile=(0, 1, 5))
+    assert abs(cv["median_step"]["[1, 10)"] - 5.0 * math.sqrt(2)) < 1e-9 and abs(cv["median_step_tail"] - 2 * eps_) < 1e-9
+    assert abs(cv["median_step"]["[30, 100)"] - 2 * eps_) < 1e-9
+    assert cv["p3"]["band_within_factor"] and cv["p3"]["under_first_window"] and cv["p3"]["ratio_under_1"] and cv["p3"]["met"]
+    assert abs(cv["slope_per_1000"]["mean"]) < 1e-3 and cv["drift_to_scatter"] < 0.01 and abs(cv["within_slice_sd"] - 0.05) < 1e-9   # the alternation's slope is ~1e-4 per 1,000
+    assert np.allclose(cv["hbar"], c, atol=1e-12) and cv["logit_profile"] == {"0": 0.35, "1": 0.25, "5": 0.25}
+    cv2 = HR.convergence([(h, z_ramp)], windows=win, slope_from=30, warm_from=100, profile=(0,))
+    assert abs(cv2["slope_per_1000"]["mean"] - 1.0) < 1e-9 and cv2["slope_per_1000"]["sd"] is None
+    assert cv2["drift_to_scatter"] > 1 and not cv2["p3"]["ratio_under_1"] and not cv2["p3"]["met"]
+    # the splice assembly: recipient cells carry their tick index, donor rows 1000 + tick
+    rec = np.tile(np.arange(50, dtype=np.float16)[:, None], (1, 167))
+    donor = np.tile((1000 + np.arange(5, dtype=np.float16))[:, None], (1, 58))
+    H = 10
+    x = HR.splice_inputs(rec, donor, H)
+    assert x.shape == (15, 167) and (x[:H] == rec[:H]).all()
+    assert (x[H:, :HR.SELF] == rec[H:15, :HR.SELF]).all(), "self block"
+    assert (x[H:, HR.SELF:] == donor).all(), "junction: the donor's rows begin at H"
+    items = [{"H": H, "en": 5, "vis_hist": np.ones(50, bool), "vis0": True, "grave": True}]
+    idx_s, eps_s = HR.splice_index(items)
+    assert idx_s["n"] == 15 and eps_s == [(10, 15, 0)] and (idx_s["code"][10:] == S.GRAVE).all() and (idx_s["code"][:10] == S.COMMON).all()
+    sig = np.zeros(15); sig[13] = 0.9                                       # crossing at H + 3
+    r = P.latency(idx_s, sig, 0.5, eps_s)
+    assert r["all"]["detected_frac"] == 1.0 and r["all"]["median_latency"] == 3.0 and r["midworld_visible"]["episodes"] == 1
+    assert HR.fired_in_segment(idx_s, sig, 0.5, lambda i: H) == 1.0
+    sig2 = np.zeros(15); sig2[9] = 0.9                                      # over at H − 1 only: not a detection, a history false alarm
+    r2 = P.latency(idx_s, sig2, 0.5, eps_s)
+    assert r2["all"]["detected_frac"] == 0.0 and r2["all"]["anticipated_frac"] == 0.0 and r2["false_alarms"]["runs"] == 1
+    assert HR.fired_in_segment(idx_s, sig2, 0.5, lambda i: H) == 0.0
+    idx_c, eps_c = HR.splice_index([{**items[0], "grave": False}])
+    assert eps_c == [] and (idx_c["code"] == S.COMMON).all()
+    # next_seat and the swap assembly on a hand world (obs[:, k, c] = 100 k + c)
+    assert HR.next_seat(0, {1}) == 2 and HR.next_seat(4, {0}) == 1 and HR.next_seat(3, {4}) == 0 and HR.next_seat(2, {3}) == 4
+    T4 = 4
+    obs = (100 * np.arange(5)[None, :, None] + np.arange(399)[None, None, :]).astype(np.float16) * np.ones((T4, 1, 1), np.float16)
+    w = {"obs": obs, "needs": np.zeros((T4, 5, 6), np.float32), "hap": np.full((T4, 5), 100.0, np.float32), "codes": np.full((T4, 5), S.COMMON, np.int8), "ticks": T4}
+    xs, kp = HR.swap_inputs(w, 0, 1)
+    assert kp == 2 and (xs[:, :HR.SELF] == obs[:, 2, :HR.SELF]).all() and (xs[:, HR.SELF:] == obs[:, 0, HR.SELF:HR.SELF + HR.ROW]).all()
+    xs4, kp4 = HR.swap_inputs(w, 4, 0)
+    assert kp4 == 1 and (xs4[:, :HR.SELF] == obs[:, 1, :HR.SELF]).all() and (xs4[:, HR.SELF:] == HR.pair_x(w, 4, 0)[:, HR.SELF:]).all()
+    # subindex rebases positions
+    idx3 = {"n": 9, "code": np.arange(9, dtype=np.int8), "vis": np.ones(9, bool), "true": np.zeros((9, 7)),
+            "slices": [("P1", 1, 0, 1, 0, 3), ("P1", 1, 0, 2, 3, 6), ("P1", 1, 0, 3, 6, 9)]}
+    sub = HR.subindex(idx3, {("P1", 1, 0, 1), ("P1", 1, 0, 3)})
+    assert sub["n"] == 6 and sub["slices"] == [("P1", 1, 0, 1, 0, 3), ("P1", 1, 0, 3, 3, 6)] and sub["code"].tolist() == [0, 1, 2, 6, 7, 8]
+    # real pins
+    idx_p = R.eval_index(C.GROUPS["P"])
+    model, probe = HR.load_probe(1)
+    assert HR.check_reproduces(model, probe, 1, idx_p) < HR.PRED_TOL
+    ps = [P.load_p(run, idx_p) for run in P.PROBES["NF"]]
+    HR.pin_h0([HR.h0_rows(idx_p, p_) for p_ in ps])
+    HR.pin_h0_sd([HR.h0_rows(idx_p, C.grave_probability(C.load_field(run, idx_p, "grave"))) for run in P.SD_RUNS])
+    HR.small_burnin(idx_p, ps, "P")
+    keep = HR.grave_start_slices(idx_p)
+    assert len(keep) == 200
+    sub_p = HR.subindex(idx_p, keep)
+    sub_sig = P.load_p(P.PROBES["NF"][0], sub_p)
+    rows = P.latency(sub_p, sub_sig, 0.1, P.episodes(sub_p))
+    ref = json.loads((HERE / "phase1d-sweep.json").read_text())["by_set"]["P"]["heads"]["NF-h24+p"]["rows"]["0.10"]["per_seed"][0]["reset"]
+    assert json.loads(json.dumps(rows["reset"], default=float)) == ref
 
 
 if __name__ == "__main__":
