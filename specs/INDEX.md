@@ -67,3 +67,4 @@ regenerate and commit (owning thread) when specs change.
 | `063-friend-ward-drift` | Draft |
 | `064-waypoint-start` | Draft |
 | `065-initial-needs` | Draft |
+| `066-welfare-hazard-guard` | Draft |
