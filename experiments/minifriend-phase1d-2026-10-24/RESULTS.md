@@ -997,6 +997,309 @@ seed at 0.10 (B ≥ 100) and 0–26 across the printed B = 100 ladder (P at
 0.05: 9 / 24 / 26). The sweep's late-runs column, the identities and the pin all hold;
 what changed is what they mean.
 
+## Addendum 4 — history and state (owner 2026-10-25 "Let's do another threshold sweep rather than choosing an arbitrary value. Maybe 0.1,0.3.,0.5 to start so we can get a feel for the trade-off. Zero-collection reads first."; "Yes on splice test. Yes on relay to product. Confirm 3")
+
+Five reads on arrays already on disk (DECLARATION §Addendum 4 and its
+post-read addition; 0 new cat-ticks; no weight touched): the frozen
+NF-h24 heads re-run with the Phase 1d probes exactly as the probe fit
+walked them (zero state at the slice start, carried across 500-tick
+chunks), and the re-run P(grave) checked equal to the committed
+`pgrave-*.npz` on the first group-P evaluation world before anything
+else ran (0.0e+00 on every seed). (a) The state's step and drift and
+the logit's trend on L's 60 clean evaluation slices; (b) the splice —
+group P's 200 covered reset-grave episodes (the friend's 58-cell rows
+over the episode, length 5 / 40 / 238 min / median / max, 14 in sight
+at onset) placed after 100 / 500 / 2,000 clean L ticks with the
+recipient observer's own self block continuing, a junction control
+with a default-start friend's rows over the same ticks, NF-h24+p and
+SD width 16, H = 0 the donor episode in its own slice on the committed
+signal (pinned to the sweep's reset rows at 0.10 / 0.50 and to R4d's
+SD row at 0.50), and — post-read — H = 0 with the recipient's self
+block; (c) burn-ins 0 / 2 / 5 / 10 through §Addendum 3's grid (B = 0
+pinned to the sweep) and the warm start, every evaluation slice re-run
+from h̄ (the mean state over ticks 1,000 … 19,999 of L's clean slices,
+per seed) and read through the same grid at B = 0; (d) the self-block
+swap on group P's 200 grave-start slices (the (observer, grave-start
+seat) row beside the next observer's self block, from the zero state)
+against the unswapped committed signal on the same slices; (e) every
+table at P(grave) ≥ 0.10 / 0.30 / 0.50; and — post-read — (f) the grave
+ticks and onsets of the fitted worlds by offset from the world start,
+per role. Seeds 1–3, mean ± SD. Descriptive: no reading rule was
+declared and none is applied; the Professor's P3 / P4 / P5 / P8 are
+scored below with the declaration's operationalisations. Decision 3
+(the threshold) is reopened by her words above; no burn-in is ruled.
+
+### Headline
+
+**The probe's grave detection is a property of the young state. The
+same covered grave rows that it detects in 0.995 ± 0.009 of episodes
+at a median latency of 0.3 ticks when they arrive at a world's start
+are detected in 0.358 ± 0.175 after 100 clean ticks of history (0.540
+/ 0.345 / 0.190 per seed) at a median latency of 26.5 ± 12.4 ticks,
+and in 0.287 ± 0.143 and 0.288 ± 0.132 after 500 and 2,000; SD width
+16 goes 1.000 → 0.275 → 0.282 → 0.287 on the same splices. The
+junction control never fires (0.000 ± 0.000 at every H and threshold
+for NF+p). The self block is not in it: H = 0 with the recipient's
+self block detects 0.995 / 0.972 / 0.968 at 0.10 / 0.30 / 0.50, the
+H = 0 row to within 0.003. And the fitted worlds hold no grave beyond a
+world's first 322 ticks: in the training role 6,301 grave ticks over 74
+worlds, the latest at offset 322, 182 episode onsets, the latest at 171,
+1 after tick 100; in the validation role 1,960 ticks, latest 601, 42
+onsets, latest 93; in the evaluation role 6,778 ticks, latest 779, 146
+onsets, latest 90.** The warm start says the same on the real episodes:
+run from h̄ instead of zero, the reset detected fraction at 0.10 on
+group P falls 0.995 ± 0.009 → 0.592 ± 0.066 (0.650 / 0.520 / 0.605 per
+seed) and its median latency 0.3 → 14.7 ± 2.1 ticks, the re-entries
+0.900 → 0.350 in sight and 0.956 → 0.765 in fog, while the first-tick
+runs go 614.0 ± 322.2 → 0.0 and the clean slices' firing inside the
+start-up window 0.767 ± 0.403 → 0.000 ± 0.000 (0.885 → 0.019 on
+L / W / G); its all-runs false-alarm rate is 0.078 ± 0.028 per 10,000.
+The state on a clean slice does not settle in the sense the declaration
+assumed: the median step ‖h_t − h_{t−1}‖ is 0.0480 ± 0.0009 in ticks
+[1, 100) and rises to 0.0571 ± 0.0024 from tick 1,000 on, the drift
+from h_100 sits at 0.80–0.88 in every window, and the logit has no
+trend (slope 0.0001 ± 0.0021 logits per 1,000 ticks against a
+within-slice SD of 0.9387 ± 0.0775; drift-to-scatter 0.032 ± 0.021).
+What does change is the first few ticks: the mean logit on a clean
+slice is −1.829 ± 0.598 at tick 0 (−1.530 / −2.517 / −1.439 per seed,
+P(grave) 0.178 / 0.075 / 0.192: the two probes that sit over 0.10 on
+the first tick of every slice in §Addendum 3), −4.059 at tick 1,
+−9.371 at tick 10 and −9.29 by tick 1,000. The small burn-ins price
+that transient on group P at 0.10: all-runs false alarms 1.607 ± 0.805
+per 10,000 at B = 0 → 0.136 ± 0.063 at 2 → 0.073 ± 0.001 at 5 → 0.072
+± 0.004 at 10, the reset detected fraction 0.995 → 0.980 → 0.960 →
+0.798 (reset episodes are as short as 5 ticks) and the re-entries
+untouched at 0.900 / 0.956 through B = 10; on L / W / G the same
+burn-ins leave 0.538 → 0.521 → 0.577 per 10,000 (73.0 ± 2.6 runs still
+running at the boundary at B = 2, median run length 10.0 ± 3.0 there)
+and cost reset detection 1.000 → 0.997 → 0.867 → 0.750. The swap moves
+little: on the 200 grave-start slices the reset detected fraction at
+0.10 goes 0.995 ± 0.009 → 0.992 ± 0.014, the re-entries 0.900 → 0.883
+in sight and 0.956 → 0.951 in fog, false alarms 0.342 → 0.308 per
+10,000, the mean P(grave) on grave ticks 0.690 → 0.689. On the
+three-point ladder after a clean history, 0.10 detects the most and
+the control fires at none of the three (H = 100: 0.358 / 0.228 / 0.162
+detected at 0.10 / 0.30 / 0.50, median latency 26.5 / 34.0 / 45.2); at
+a world's start the ladder is the start-up split of §Addendum 3 (grave
+slices 0.995 / 0.982 / 0.978, clean slices 0.767 / 0.186 / 0.067 on
+group P). The one condition the Professor named for reopening SD —
+NF+p degrading with history where SD does not — is not met: both
+collapse between H = 0 and H = 100 and both are flat from 100 to
+2,000; the SD line stays closed. Nothing in this read says whether a
+covered friend's slow crossing into grave after a long clean history
+would be seen; it says the response to a covered friend's grave rows
+depends on how long the state has watched the friend be fine, and that
+no grave the head was fitted on sits beyond a world's first 322 ticks.
+
+### Predictions scored (the Professor's, 2026-10-25 note §Q6; operationalised in DECLARATION §Addendum 4)
+
+- **P3** ("on L, d_t reaches a stationary band within 300 ticks and
+  z_t shows no monotone trend from tick 300 on") — **not met as
+  operationalised**, on every seed: the band clause holds (the median
+  step in [300, 1,000), 0.0543 ± 0.0020, is within a factor of 2 of
+  the median from 1,000 on, 0.0571 ± 0.0024) and the trend clause
+  holds (drift-to-scatter 0.009 / 0.051 / 0.038 per seed, under 1); the
+  operationalisation's third clause, both under the median step of
+  ticks [1, 100), fails because that first window has the smallest
+  step of all (0.0480 ± 0.0009). The declaration assumed a step that
+  starts large and decays; the measured step is near-constant and
+  grows slightly with the slice.
+- **P4** ("splice detection fraction and median latency after 100 /
+  500 / 2,000 clean ticks differ by less than the seed SD for
+  NF-h24+p at 0.10") — **met**: the range of the seed-mean detected
+  fraction over the three histories is 0.0717 against a mean seed SD of
+  0.1501, the range of the median latency 2.83 ticks against 11.06. The
+  prediction's range begins at 100 ticks; the fall from H = 0 (0.995)
+  to H = 100 (0.358) lies outside it and is the headline above.
+- **P5** ("burn-in 5 at 0.10 on P: all-runs FA from 1.607 to ≤ 0.20
+  per 10k with reset detection ≥ 0.90; a warm-started h_0 at B = 0
+  does at least as well on both") — **not met**: the burn-in half holds
+  (0.073 ± 0.001 per 10,000; reset detection 0.960 ± 0.005), the
+  warm-start half does not (false alarms 0.078 ± 0.028, over 0.073 by
+  0.005; reset detection 0.592 ± 0.066 against 0.960).
+- **P8** ("self-block swap on P changes mid-world in-sight and fog
+  detected fractions at 0.10 by less than the seed SD") — **met**: Δ
+  −0.0167 against an unswapped SD of 0.0500 in sight, Δ −0.0049
+  against 0.0530 in fog.
+
+This thread's expectations, not predictions: the junction control
+fires in under 0.05 of junctions at 0.10 at every H — holds (0.000 at
+100 / 500 / 2,000); the warm start removes at least nine in ten of the
+first-tick runs at 0.10 on group P — holds (614.0 → 0.0); the swap moves
+the reset detected fraction at 0.10 by under 0.05 — holds (−0.0033).
+
+### R7d tables (the reader's markdown, verbatim; `phase1d-history.json` holds the per-seed cells)
+
+reproduces the committed P(grave) on the first P evaluation world to: s1 0.0e+00, s2 0.0e+00, s3 0.0e+00
+
+### R7d (a) convergence on L's 60 clean slices × 20,000 ticks
+| window | median step ‖h_t − h_t−1‖ | median drift ‖h_t − h_100‖ |
+|---|---|---|
+| [1, 100) | 0.0480 ± 0.0009 | 0.8045 ± 0.1130 |
+| [100, 300) | 0.0516 ± 0.0024 | 0.8201 ± 0.1119 |
+| [300, 1000) | 0.0543 ± 0.0020 | 0.8814 ± 0.1351 |
+| [1000, 5000) | 0.0571 ± 0.0025 | 0.8399 ± 0.1034 |
+| [5000, 20000) | 0.0571 ± 0.0024 | 0.8529 ± 0.1134 |
+median step over [1000, 20000) (the P3 band's reference): 0.0571 ± 0.0024
+logit slope after tick 300: 0.0001 ± 0.0021 logits per 1,000 ticks (SD over slices 0.0097 ± 0.0010); within-slice SD of the logit 0.9387 ± 0.0775; drift-to-scatter ratio 0.032 ± 0.021
+mean logit by tick: t=0 -1.829 ± 0.598, t=1 -4.059 ± 1.145, t=2 -5.463 ± 1.479, t=5 -7.917 ± 1.916, t=10 -9.371 ± 2.722, t=25 -10.264 ± 3.398, t=50 -9.244 ± 1.320, t=100 -8.371 ± 0.915, t=300 -9.336 ± 0.652, t=1000 -9.290 ± 0.412
+P3 per seed: s1 band True / under-start False / ratio<1 True → False; s2 band True / under-start False / ratio<1 True → False; s3 band True / under-start False / ratio<1 True → False; all seeds met: False
+
+### R7d (b) the splice — 200 covered reset-grave donors (length 5 / 40 / 238 min / median / max; 14 in sight at onset) onto 60 clean L recipients; H = 0 is the committed signal in the donor's own slice
+
+#### NF-h24+p
+| H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | anticipated | FA in history /10k | control fired |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0.10 | 200 ± 0 | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.7 ± 1.2 | 0.990 ± 0.017 | 1.000 ± 0.000 | 0.995 ± 0.009 | 0.000 ± 0.000 | — | — |
+| 0 | 0.30 | 200 ± 0 | 0.970 ± 0.005 | 1.0 ± 0.0 | 2.3 ± 0.6 | 0.957 ± 0.006 | 1.000 ± 0.000 | 0.968 ± 0.005 | 0.000 ± 0.000 | — | — |
+| 0 | 0.50 | 200 ± 0 | 0.965 ± 0.013 | 1.0 ± 0.0 | 2.7 ± 0.6 | 0.948 ± 0.020 | 1.000 ± 0.000 | 0.962 ± 0.014 | 0.000 ± 0.000 | — | — |
+| 0 (recipient self block) | 0.10 | 200 ± 0 | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.7 ± 1.2 | 0.990 ± 0.017 | 1.000 ± 0.000 | 0.995 ± 0.009 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.678 ± 0.553 |
+| 0 (recipient self block) | 0.30 | 200 ± 0 | 0.972 ± 0.003 | 1.0 ± 0.0 | 2.3 ± 0.6 | 0.968 ± 0.006 | 1.000 ± 0.000 | 0.970 ± 0.003 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 0 (recipient self block) | 0.50 | 200 ± 0 | 0.968 ± 0.008 | 1.0 ± 0.0 | 3.3 ± 0.6 | 0.950 ± 0.009 | 1.000 ± 0.000 | 0.966 ± 0.008 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 100 | 0.10 | 200 ± 0 | 0.358 ± 0.175 | 26.5 ± 12.4 | 49.4 ± 18.3 | 0.038 ± 0.062 | 0.238 ± 0.251 | 0.367 ± 0.170 | 0.000 ± 0.000 | 47.368 ± 36.574 | 0.000 ± 0.000 |
+| 100 | 0.30 | 200 ± 0 | 0.228 ± 0.119 | 34.0 ± 12.5 | 60.8 ± 35.0 | 0.003 ± 0.006 | 0.119 ± 0.149 | 0.237 ± 0.119 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 100 | 0.50 | 200 ± 0 | 0.162 ± 0.098 | 45.2 ± 24.8 | 68.3 ± 34.6 | 0.000 ± 0.000 | 0.095 ± 0.109 | 0.167 ± 0.101 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 500 | 0.10 | 200 ± 0 | 0.287 ± 0.143 | 29.3 ± 8.3 | 60.6 ± 30.2 | 0.000 ± 0.000 | 0.190 ± 0.149 | 0.294 ± 0.144 | 0.000 ± 0.000 | 12.667 ± 9.781 | 0.000 ± 0.000 |
+| 500 | 0.30 | 200 ± 0 | 0.193 ± 0.095 | 37.2 ± 10.9 | 67.9 ± 29.8 | 0.000 ± 0.000 | 0.119 ± 0.149 | 0.199 ± 0.097 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 500 | 0.50 | 200 ± 0 | 0.153 ± 0.105 | 48.3 ± 23.9 | 81.3 ± 25.9 | 0.000 ± 0.000 | 0.071 ± 0.071 | 0.159 ± 0.110 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 2000 | 0.10 | 200 ± 0 | 0.288 ± 0.132 | 28.0 ± 12.5 | 58.3 ± 32.2 | 0.003 ± 0.006 | 0.214 ± 0.189 | 0.294 ± 0.128 | 0.000 ± 0.000 | 3.381 ± 2.610 | 0.000 ± 0.000 |
+| 2000 | 0.30 | 200 ± 0 | 0.223 ± 0.113 | 34.8 ± 12.0 | 62.3 ± 33.7 | 0.000 ± 0.000 | 0.095 ± 0.109 | 0.233 ± 0.115 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 2000 | 0.50 | 200 ± 0 | 0.165 ± 0.102 | 47.5 ± 22.8 | 80.1 ± 25.7 | 0.000 ± 0.000 | 0.095 ± 0.109 | 0.170 ± 0.105 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+
+#### SD-w16
+| H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | anticipated | FA in history /10k | control fired |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0.10 | 200 ± 0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.000 ± 0.000 | 1.000 ± 0.000 | 0.000 ± 0.000 | — | — |
+| 0 | 0.30 | 200 ± 0 | 0.998 ± 0.003 | 0.0 ± 0.0 | 0.1 ± 0.2 | 0.997 ± 0.006 | 1.000 ± 0.000 | 0.998 ± 0.003 | 0.000 ± 0.000 | — | — |
+| 0 | 0.50 | 200 ± 0 | 0.722 ± 0.048 | 11.0 ± 1.0 | 29.3 ± 5.5 | 0.320 ± 0.054 | 0.643 ± 0.189 | 0.728 ± 0.056 | 0.000 ± 0.000 | — | — |
+| 0 (recipient self block) | 0.10 | 200 ± 0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.000 ± 0.000 | 1.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 | 1.000 ± 0.000 |
+| 0 (recipient self block) | 0.30 | 200 ± 0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.992 ± 0.014 | 1.000 ± 0.000 | 0.995 ± 0.009 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.958 ± 0.064 |
+| 0 (recipient self block) | 0.50 | 200 ± 0 | 0.707 ± 0.068 | 11.0 ± 1.0 | 27.9 ± 2.5 | 0.318 ± 0.033 | 0.619 ± 0.149 | 0.713 ± 0.075 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.002 ± 0.003 |
+| 100 | 0.10 | 200 ± 0 | 0.275 ± 0.097 | 36.8 ± 4.6 | 82.4 ± 41.4 | 0.025 ± 0.005 | 0.167 ± 0.149 | 0.283 ± 0.100 | 0.000 ± 0.000 | 69.169 ± 1.186 | 0.007 ± 0.008 |
+| 100 | 0.30 | 200 ± 0 | 0.193 ± 0.068 | 41.3 ± 2.8 | 95.9 ± 49.2 | 0.013 ± 0.003 | 0.119 ± 0.109 | 0.199 ± 0.069 | 0.000 ± 0.000 | 67.571 ± 1.046 | 0.000 ± 0.000 |
+| 100 | 0.50 | 200 ± 0 | 0.137 ± 0.025 | 51.2 ± 2.9 | 108.0 ± 50.9 | 0.008 ± 0.008 | 0.048 ± 0.041 | 0.143 ± 0.025 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 500 | 0.10 | 200 ± 0 | 0.282 ± 0.108 | 33.3 ± 3.3 | 83.7 ± 42.9 | 0.037 ± 0.010 | 0.167 ± 0.149 | 0.290 ± 0.111 | 0.000 ± 0.000 | 18.925 ± 0.470 | 0.002 ± 0.003 |
+| 500 | 0.30 | 200 ± 0 | 0.195 ± 0.062 | 33.3 ± 3.8 | 93.7 ± 45.0 | 0.033 ± 0.013 | 0.071 ± 0.071 | 0.204 ± 0.063 | 0.000 ± 0.000 | 18.314 ± 0.660 | 0.000 ± 0.000 |
+| 500 | 0.50 | 200 ± 0 | 0.158 ± 0.041 | 42.2 ± 2.3 | 103.4 ± 50.6 | 0.013 ± 0.023 | 0.071 ± 0.071 | 0.165 ± 0.040 | 0.000 ± 0.000 | 0.092 ± 0.159 | 0.000 ± 0.000 |
+| 2000 | 0.10 | 200 ± 0 | 0.287 ± 0.105 | 35.0 ± 6.6 | 81.5 ± 32.1 | 0.028 ± 0.010 | 0.167 ± 0.149 | 0.296 ± 0.110 | 0.000 ± 0.000 | 5.116 ± 0.180 | 0.007 ± 0.012 |
+| 2000 | 0.30 | 200 ± 0 | 0.200 ± 0.066 | 38.2 ± 9.8 | 93.1 ± 40.6 | 0.013 ± 0.013 | 0.119 ± 0.109 | 0.206 ± 0.066 | 0.000 ± 0.000 | 4.888 ± 0.176 | 0.000 ± 0.000 |
+| 2000 | 0.50 | 200 ± 0 | 0.158 ± 0.036 | 43.2 ± 10.2 | 96.7 ± 41.9 | 0.005 ± 0.009 | 0.095 ± 0.082 | 0.163 ± 0.037 | 0.000 ± 0.000 | 0.024 ± 0.042 | 0.000 ± 0.000 |
+
+P4 (NF+p at 0.10): detected-fraction range over H 0.0717 vs mean seed SD 0.1501 → True; median-latency range 2.83 vs mean seed SD 11.06 → True; met: True
+SD width 16, the same arithmetic: detected range 0.0117 vs 0.1031 → True; latency range 3.50 vs 4.84 → True
+
+### R7d (c) small burn-ins and the warm start
+
+#### P: plain (zero state) at B ∈ [0, 2, 5, 10]; warm (h_0 = h̄) at B = 0
+| start | B | P ≥ | blind | reset det | reset med lat | mw-sight det | mw-fog det | FA /10k | FA len | first-tick runs | FA at boundary | grave slices fired in 100 | clean slices fired in 100 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| plain | 0 | 0.10 | 0.000 ± 0.000 | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.900 ± 0.050 | 0.956 ± 0.053 | 1.607 ± 0.805 | 1.3 ± 0.6 | 614.0 ± 322.2 | 614.0 ± 322.2 | 0.995 ± 0.009 | 0.767 ± 0.403 |
+| plain | 0 | 0.30 | 0.000 ± 0.000 | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.767 ± 0.029 | 0.936 ± 0.034 | 0.439 ± 0.196 | 1.0 ± 0.0 | 148.7 ± 75.1 | 148.7 ± 75.1 | 0.982 ± 0.006 | 0.186 ± 0.094 |
+| plain | 0 | 0.50 | 0.000 ± 0.000 | 0.965 ± 0.013 | 1.0 ± 0.0 | 0.650 ± 0.050 | 0.877 ± 0.022 | 0.198 ± 0.208 | 1.3 ± 0.6 | 53.7 ± 82.0 | 53.7 ± 82.0 | 0.978 ± 0.006 | 0.067 ± 0.102 |
+| plain | 2 | 0.10 | 0.001 ± 0.000 | 0.980 ± 0.005 | 2.0 ± 0.0 | 0.900 ± 0.050 | 0.956 ± 0.053 | 0.136 ± 0.063 | 2.0 ± 1.7 | 0.0 ± 0.0 | 25.3 ± 25.5 | 0.995 ± 0.009 | 0.767 ± 0.403 |
+| plain | 2 | 0.30 | 0.001 ± 0.000 | 0.968 ± 0.006 | 2.0 ± 0.0 | 0.767 ± 0.029 | 0.936 ± 0.034 | 0.070 ± 0.011 | 3.0 ± 1.0 | 0.0 ± 0.0 | 1.0 ± 1.7 | 0.982 ± 0.006 | 0.186 ± 0.094 |
+| plain | 2 | 0.50 | 0.001 ± 0.000 | 0.963 ± 0.013 | 2.0 ± 0.0 | 0.650 ± 0.050 | 0.877 ± 0.022 | 0.064 ± 0.008 | 3.2 ± 1.6 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.978 ± 0.006 | 0.067 ± 0.102 |
+| plain | 5 | 0.10 | 0.001 ± 0.000 | 0.960 ± 0.005 | 5.0 ± 0.0 | 0.900 ± 0.050 | 0.956 ± 0.053 | 0.073 ± 0.001 | 4.0 ± 1.0 | 0.0 ± 0.0 | 0.7 ± 1.2 | 0.995 ± 0.009 | 0.767 ± 0.403 |
+| plain | 5 | 0.30 | 0.001 ± 0.000 | 0.947 ± 0.003 | 5.0 ± 0.0 | 0.767 ± 0.029 | 0.936 ± 0.034 | 0.069 ± 0.010 | 3.0 ± 1.0 | 0.0 ± 0.0 | 0.7 ± 0.6 | 0.982 ± 0.006 | 0.186 ± 0.094 |
+| plain | 5 | 0.50 | 0.001 ± 0.000 | 0.945 ± 0.000 | 5.0 ± 0.0 | 0.650 ± 0.050 | 0.877 ± 0.022 | 0.066 ± 0.008 | 3.3 ± 1.5 | 0.0 ± 0.0 | 0.7 ± 0.6 | 0.978 ± 0.006 | 0.067 ± 0.102 |
+| plain | 10 | 0.10 | 0.003 ± 0.000 | 0.798 ± 0.008 | 10.0 ± 0.0 | 0.900 ± 0.050 | 0.956 ± 0.053 | 0.072 ± 0.004 | 4.3 ± 0.6 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.995 ± 0.009 | 0.767 ± 0.403 |
+| plain | 10 | 0.30 | 0.003 ± 0.000 | 0.787 ± 0.003 | 10.0 ± 0.0 | 0.767 ± 0.029 | 0.936 ± 0.034 | 0.077 ± 0.015 | 4.0 ± 0.0 | 0.0 ± 0.0 | 3.7 ± 2.3 | 0.982 ± 0.006 | 0.186 ± 0.094 |
+| plain | 10 | 0.50 | 0.003 ± 0.000 | 0.783 ± 0.003 | 10.0 ± 0.0 | 0.650 ± 0.050 | 0.877 ± 0.022 | 0.082 ± 0.012 | 4.0 ± 2.6 | 0.0 ± 0.0 | 7.0 ± 1.7 | 0.978 ± 0.006 | 0.067 ± 0.102 |
+| warm | 0 | 0.10 | 0.000 ± 0.000 | 0.592 ± 0.066 | 14.7 ± 2.1 | 0.350 ± 0.180 | 0.765 ± 0.078 | 0.078 ± 0.028 | 6.3 ± 4.0 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.838 ± 0.050 | 0.000 ± 0.000 |
+| warm | 0 | 0.30 | 0.000 ± 0.000 | 0.413 ± 0.056 | 21.8 ± 1.6 | 0.250 ± 0.132 | 0.451 ± 0.111 | 0.056 ± 0.020 | 4.7 ± 3.2 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.605 ± 0.073 | 0.000 ± 0.000 |
+| warm | 0 | 0.50 | 0.000 ± 0.000 | 0.295 ± 0.083 | 26.3 ± 3.1 | 0.217 ± 0.126 | 0.275 ± 0.114 | 0.022 ± 0.012 | 3.7 ± 1.5 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.423 ± 0.123 | 0.000 ± 0.000 |
+
+#### LWG: plain (zero state) at B ∈ [0, 2, 5, 10]; warm (h_0 = h̄) at B = 0
+| start | B | P ≥ | blind | reset det | reset med lat | mw-sight det | mw-fog det | FA /10k | FA len | first-tick runs | FA at boundary | grave slices fired in 100 | clean slices fired in 100 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| plain | 0 | 0.10 | 0.000 ± 0.000 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.955 ± 0.079 | 0.949 ± 0.044 | 0.795 ± 0.185 | 4.3 ± 3.2 | 145.0 ± 34.0 | 145.0 ± 34.0 | 1.000 ± 0.000 | 0.885 ± 0.198 |
+| plain | 0 | 0.30 | 0.000 ± 0.000 | 0.988 ± 0.021 | 0.3 ± 0.6 | 0.788 ± 0.026 | 0.859 ± 0.038 | 0.562 ± 0.141 | 5.7 ± 2.1 | 62.7 ± 51.0 | 62.7 ± 51.0 | 0.989 ± 0.018 | 0.531 ± 0.097 |
+| plain | 0 | 0.50 | 0.000 ± 0.000 | 0.956 ± 0.016 | 0.7 ± 0.6 | 0.606 ± 0.139 | 0.701 ± 0.053 | 0.477 ± 0.075 | 4.7 ± 0.6 | 19.7 ± 15.2 | 19.7 ± 15.2 | 0.959 ± 0.016 | 0.412 ± 0.025 |
+| plain | 2 | 0.10 | 0.000 ± 0.000 | 0.997 ± 0.003 | 2.0 ± 0.0 | 0.955 ± 0.079 | 0.949 ± 0.044 | 0.538 ± 0.108 | 10.0 ± 3.0 | 0.0 ± 0.0 | 73.0 ± 2.6 | 1.000 ± 0.000 | 0.885 ± 0.198 |
+| plain | 2 | 0.30 | 0.000 ± 0.000 | 0.968 ± 0.013 | 2.0 ± 0.0 | 0.788 ± 0.026 | 0.859 ± 0.038 | 0.482 ± 0.070 | 6.0 ± 1.0 | 0.0 ± 0.0 | 70.7 ± 3.2 | 0.989 ± 0.018 | 0.531 ± 0.097 |
+| plain | 2 | 0.50 | 0.000 ± 0.000 | 0.932 ± 0.024 | 2.0 ± 0.0 | 0.606 ± 0.139 | 0.701 ± 0.053 | 0.440 ± 0.059 | 4.5 ± 0.9 | 0.0 ± 0.0 | 63.3 ± 4.0 | 0.959 ± 0.016 | 0.412 ± 0.025 |
+| plain | 5 | 0.10 | 0.001 ± 0.000 | 0.867 ± 0.005 | 5.0 ± 0.0 | 0.955 ± 0.079 | 0.949 ± 0.044 | 0.521 ± 0.098 | 8.3 ± 2.5 | 0.0 ± 0.0 | 70.7 ± 1.2 | 1.000 ± 0.000 | 0.885 ± 0.198 |
+| plain | 5 | 0.30 | 0.001 ± 0.000 | 0.837 ± 0.018 | 5.0 ± 0.0 | 0.788 ± 0.026 | 0.850 ± 0.045 | 0.430 ± 0.062 | 4.7 ± 1.2 | 0.0 ± 0.0 | 58.3 ± 2.3 | 0.989 ± 0.018 | 0.531 ± 0.097 |
+| plain | 5 | 0.50 | 0.001 ± 0.000 | 0.793 ± 0.043 | 5.0 ± 0.0 | 0.606 ± 0.139 | 0.684 ± 0.082 | 0.379 ± 0.047 | 3.7 ± 1.2 | 0.0 ± 0.0 | 49.7 ± 2.1 | 0.959 ± 0.016 | 0.412 ± 0.025 |
+| plain | 10 | 0.10 | 0.001 ± 0.000 | 0.750 ± 0.005 | 10.0 ± 0.0 | 0.864 ± 0.079 | 0.872 ± 0.044 | 0.577 ± 0.064 | 8.2 ± 2.8 | 0.0 ± 0.0 | 90.3 ± 6.5 | 1.000 ± 0.000 | 0.885 ± 0.198 |
+| plain | 10 | 0.30 | 0.001 ± 0.000 | 0.716 ± 0.024 | 10.0 ± 0.0 | 0.742 ± 0.026 | 0.782 ± 0.046 | 0.406 ± 0.036 | 7.0 ± 1.7 | 0.0 ± 0.0 | 55.3 ± 12.0 | 0.989 ± 0.018 | 0.531 ± 0.097 |
+| plain | 10 | 0.50 | 0.001 ± 0.000 | 0.665 ± 0.044 | 10.0 ± 0.0 | 0.561 ± 0.139 | 0.624 ± 0.063 | 0.324 ± 0.030 | 5.3 ± 1.5 | 0.0 ± 0.0 | 40.3 ± 10.3 | 0.959 ± 0.016 | 0.412 ± 0.025 |
+| warm | 0 | 0.10 | 0.000 ± 0.000 | 0.287 ± 0.083 | 16.8 ± 3.2 | 0.182 ± 0.164 | 0.286 ± 0.211 | 0.149 ± 0.095 | 5.3 ± 2.5 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.386 ± 0.203 | 0.019 ± 0.000 |
+| warm | 0 | 0.30 | 0.000 ± 0.000 | 0.165 ± 0.065 | 27.0 ± 3.8 | 0.091 ± 0.079 | 0.162 ± 0.149 | 0.048 ± 0.064 | 4.0 ± 1.0 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.197 ± 0.160 | 0.002 ± 0.004 |
+| warm | 0 | 0.50 | 0.000 ± 0.000 | 0.105 ± 0.056 | 37.5 ± 7.4 | 0.045 ± 0.079 | 0.094 ± 0.131 | 0.017 ± 0.026 | 4.5 ± 2.1 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.121 ± 0.108 | 0.000 ± 0.000 |
+
+P5 (P, B = 5, 0.10): FA 0.073 per 10k (bar ≤ 0.2), reset det 0.960 (bar ≥ 0.9) → True; warm at B = 0: FA 0.078, reset det 0.592 → at least as good: False; met: False
+
+### R7d (d) the self-block swap on group P's 200 grave-start slices (800,000 observer-ticks)
+| P ≥ | input | reset det | reset med lat | mw-sight det | mw-fog det | FA /10k | first-tick runs | grave slices fired in 100 | clean slices fired in 100 |
+|---|---|---|---|---|---|---|---|---|---|
+| 0.10 | unswapped | 0.995 ± 0.009 | 0.3 ± 0.6 | 0.900 ± 0.050 | 0.956 ± 0.053 | 0.342 ± 0.047 | 0.0 ± 0.0 | 0.995 ± 0.009 | — |
+| 0.10 | swapped | 0.992 ± 0.014 | 0.3 ± 0.6 | 0.883 ± 0.076 | 0.951 ± 0.034 | 0.308 ± 0.051 | 0.0 ± 0.0 | 0.995 ± 0.009 | — |
+| 0.30 | unswapped | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.767 ± 0.029 | 0.936 ± 0.034 | 0.337 ± 0.045 | 0.0 ± 0.0 | 0.982 ± 0.006 | — |
+| 0.30 | swapped | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.733 ± 0.076 | 0.931 ± 0.042 | 0.379 ± 0.120 | 0.0 ± 0.0 | 0.982 ± 0.008 | — |
+| 0.50 | unswapped | 0.965 ± 0.013 | 1.0 ± 0.0 | 0.650 ± 0.050 | 0.877 ± 0.022 | 0.321 ± 0.040 | 0.0 ± 0.0 | 0.978 ± 0.006 | — |
+| 0.50 | swapped | 0.970 ± 0.005 | 1.0 ± 0.0 | 0.550 ± 0.087 | 0.882 ± 0.000 | 0.342 ± 0.080 | 0.0 ± 0.0 | 0.977 ± 0.008 | — |
+mean P(grave) on grave ticks: unswapped 0.690 ± 0.009, swapped 0.689 ± 0.008; on common ticks: 0.0011 ± 0.0001 / 0.0012 ± 0.0001
+P8 (at 0.10): mid-world in-sight Δ -0.0167 vs SD 0.0500 → True; fog Δ -0.0049 vs SD 0.0530 → True; met: True
+
+### R7d (f) post-read: where grave sits in the fitted worlds (per world × friend, every set)
+| role | worlds | grave ticks | max tick offset | ≤ 100 | ≤ 300 | ≤ 500 | ≤ 1000 | onsets | max onset offset | onsets after 100 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| train | 74 | 6,301 | 322 | 5,641 | 6,279 | 6,301 | 6,301 | 182 | 171 | 1 |
+| val | 17 | 1,960 | 601 | 1,204 | 1,659 | 1,859 | 1,960 | 42 | 93 | 0 |
+| eval | 69 | 6,778 | 779 | 4,655 | 5,722 | 6,243 | 6,778 | 146 | 90 | 0 |
+
+### R7d expectations (this thread's, not scored predictions)
+junction control fired at 0.10 per H: H=100 0.000, H=500 0.000, H=2000 0.000 (bar < 0.05) → holds True
+first-tick runs on P at 0.10: plain 614.0, warm 0.0, fraction left 0.000 (bar ≤ 0.1) → holds True
+swap's reset-detection delta at 0.10: -0.0033 (bar < 0.05) → holds True
+
+Column legend for the splice: "episodes" the 200 donor episodes;
+"detected" the fraction whose P(grave) reaches the threshold inside the
+donor segment (for H = 0, inside the episode in its own slice); latency
+from the junction (from the onset at H = 0); "in-sight det" / "fog det"
+split the 200 by the donor's in-sight bit at onset (14 / 186);
+"anticipated" over the threshold at the junction and at the tick before
+it; "FA in history /10k" the over-threshold runs holding no grave tick
+over the spliced index (the recipient's first H ticks, which hold the
+start-up transient of §Addendum 3, per 10,000 ticks of an index that is
+H + the episode length per slice — not a mid-world false-alarm rate);
+"control fired" the fraction of the 200 junction controls whose alarm
+reaches the threshold inside the control segment (for H = 0 with the
+recipient's self block, the control runs from the zero state, so its
+firing is the start-up transient on clean rows). For the burn-in and
+swap tables the columns are §Addendum 3's (blind fraction, reset and
+re-entry detection, all-runs false alarms per 10,000 and median run
+length, runs beginning at the slice's first tick, runs beginning at
+offset B, the start-up split); "warm" rows run from h̄ at B = 0. The
+fitted-worlds table counts per world × friend over every set (L, W, G,
+P1–P5) in the role: grave ticks by offset from the world start and
+grave episodes by onset offset.
+
+### Limitations
+
+- The splice junction is a jump into a covered friend's grave, not a
+  crossing: the donor's rows are the first ticks of its own world
+  (scene age, spatial group and answers-me are the donor observer's),
+  set beside a recipient self block from another world. The read
+  licenses the dependence of the response on the state's history for
+  a covered grave signature as recorded; it says nothing about a slow
+  crossing from below, which no set on disk contains.
+- 14 of the 200 donors are in sight at onset; every in-sight cell
+  rests on 14 episodes.
+- h̄ is the mean state over L's clean slices from tick 1,000, per seed:
+  one warm start, not a search over them. A warm start is a change to
+  the consumer's state at the world's start; the policy's input is
+  untouched.
+- The fitted-worlds table is a fact about the data the head and the
+  probe were fitted on, per world × friend; the reads above do not
+  measure whether the collapse after a clean history is learned from
+  it. That is a question for a head fitted on worlds that hold grave
+  after a long clean history, which no set on disk is.
+- The self-block swap separates the self block from the state only at
+  the zero state (read (d)) and at H = 0 (the post-read splice row); a
+  swap under a long history was not read.
+
 ## Regeneration
 
 Phase 1's arc venv (`A=experiments/minifriend-phase1-2026-10-22`,
@@ -1026,13 +1329,14 @@ reads their `head-best.pt`; R2d reads SD-s*'s `belief-*.npz`).
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/read_phase1d.py --out $Dd/phase1d-read.json --md > $Dd/phase1d-read.md   # ≈ 25 s (stdout is the markdown; the 'wrote' line goes to stderr); R1d runs inside it (filter_spread.read_all); the addendum's R3d / R4d run inside it too and the reader asserts the committed R1d / R2d blocks unchanged
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the post-read columns); asserts NF-h24+p's 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/burnin_read.py --out $Dd/phase1d-burnin.json --md > $Dd/phase1d-burnin.md   # ≈ 10 s; §Addendum 3's R6d (NF-h24+p; full grid in the JSON, two cross-sections and the start-up split in the markdown); asserts the B = 0 cells equal the committed phase1d-sweep.json NF-h24+p cells and the B = 100 run identity
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/history_read.py --out $Dd/phase1d-history.json --md > $Dd/phase1d-history.md   # ≈ 40 s; §Addendum 4's R7d (the frozen heads re-run on the saved observation streams: convergence on L, the splice with its control, NF+p and SD width 16, burn-ins 0 / 2 / 5 / 10 and the warm start, the self-block swap, the fitted worlds' grave offsets); asserts the re-run P(grave) equals the committed pgrave file on the first P evaluation world, H = 0 equals the sweep's reset rows at 0.10 / 0.50, SD's H = 0 equals R4d's row at 0.50, and the B = 0 cells equal the sweep's
 ```
 
-Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 8
-(t1–t8; about 20 s). Reds on record via `scripts/mutate.sh` in the
+Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 9
+(t1–t9; about 30 s). Reds on record via `scripts/mutate.sh` in the
 declaration's §Run order (t1–t4), §Addendum (t5–t6, and the extended
-t6), §Addendum 2 (t7, and its two extensions) and §Addendum 3 (t8, and
-its two extensions).
+t6), §Addendum 2 (t7, and its two extensions), §Addendum 3 (t8, and
+its two extensions) and §Addendum 4 (t9, and its extension).
 
 Accuracy gate: **PASS**, 2026-10-24, round 4 (fresh subagent per
 round; every round regenerated the read byte-identically, matched the
