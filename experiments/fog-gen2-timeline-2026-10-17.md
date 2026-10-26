@@ -402,7 +402,16 @@ consent BC comparison ride the trunk.
   swap; the three-point ladder throughout); the Professor's P3 / P4 /
   P5 / P8 scored; 0 cat-ticks. The scripted "needy" friend RELAYED to
   Product on her word (msg fe6e7d7c), not a kickoff; its set waits for
-  these reads. STATUS: DECLARED 2026-10-25; running next.
+  these reads. STATUS: DONE 2026-10-26 (gated round 2 PASS): THE
+  PROBE'S GRAVE DETECTION IS A YOUNG-STATE PROPERTY — the same covered
+  grave rows 0.995 at a world's start → 0.358 after 100 clean ticks,
+  flat to 2,000, SD alike; control never fires; self block not in it;
+  warm start cuts reset detection 0.995 → 0.592 and removes every
+  first-tick false alarm; training worlds hold no grave after offset
+  322 (validation 601, evaluation 779); P4 / P8 met, P3 / P5 not met
+  as operationalised; SD reopen condition not met; F-069. Threshold
+  and burn-in HERS on the 0.10 / 0.30 / 0.50 ladder; the scripted
+  "needy" friend set waits on Product's spec (her kickoff there).
 
 ## Flagged follow-ups (owner's word to start)
 

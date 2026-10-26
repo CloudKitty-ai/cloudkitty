@@ -778,4 +778,14 @@ the self-block swap on P's grave-start slices; (e) all at the three
 thresholds. The Professor's P3 / P4 / P5 / P8 scored with declared
 operationalisations; descriptive otherwise; 0 new cat-ticks. The
 scripted "needy" friend relayed to Product on her word the same day
-(msg fe6e7d7c); not a kickoff. Status: OPEN.
+(msg fe6e7d7c); not a kickoff. Status: CLOSED 2026-10-26 (RESULTS
+§Addendum 4 gated round 2): the probe's grave detection is a property
+of the young state — the same covered grave rows detected in 0.995 of
+episodes at a world's start are detected in 0.358 after 100 clean
+ticks of lived history, flat to 2,000 (SD width 16 alike), the junction
+control never firing, the self block not in it (H = 0 with the
+recipient's self block equals H = 0), the warm-started state cutting
+reset detection 0.995 → 0.592 while removing every first-tick false
+alarm; the training worlds hold no grave after offset 322; P4 and P8
+met, P3 and P5 not met as operationalised; the SD reopen condition not
+met. Threshold and burn-in: hers, with the three-point ladder; F-069.

@@ -997,7 +997,7 @@ seed at 0.10 (B ≥ 100) and 0–26 across the printed B = 100 ladder (P at
 0.05: 9 / 24 / 26). The sweep's late-runs column, the identities and the pin all hold;
 what changed is what they mean.
 
-## Addendum 4 — history and state (owner 2026-10-25 "Let's do another threshold sweep rather than choosing an arbitrary value. Maybe 0.1,0.3.,0.5 to start so we can get a feel for the trade-off. Zero-collection reads first."; "Yes on splice test. Yes on relay to product. Confirm 3")
+## Addendum 4 — history and state (owner 2026-10-25 "Let's do another threshold sweep rather than choosing an arbitrary value. Maybe 0.1,0.3.,0.5 to start so we can get a feel for the trade-off. Zero-collection reads first. …"; "Yes on splice test. Yes on relay to product. Confirm 3")
 
 Five reads on arrays already on disk (DECLARATION §Addendum 4 and its
 post-read addition; 0 new cat-ticks; no weight touched): the frozen
@@ -1289,8 +1289,8 @@ grave episodes by onset offset. Two structural zeros and one constant:
 "anticipated" is 0 on every H = 0 row (a reset episode has no tick
 before its onset inside the slice); the start-up split in the burn-in
 tables is read on the unmasked signal, so its two columns do not change
-with B; and the H = 0 rows have no control (the committed signal in the
-donor's own slice).
+with B; and the H = 0 rows print no control and no history false-alarm
+rate (the committed signal in the donor's own slice has neither).
 
 ### Limitations
 
@@ -1468,3 +1468,44 @@ this thread's low-end recommendation, which no file records), no
 rounding. Raw-dir hashes unchanged from the stamp above (no new raw;
 the read uses the three NF-h24+p probe directories' saved P(grave) and
 the symlinked world raws).
+
+Accuracy gate (§Addendum 4): **PASS**, 2026-10-26, round 2 (fresh
+subagent per round; both rounds regenerated `phase1d-history.json` and
+`.md` byte-identically, matched the seed, threshold, history, burn-in,
+sample, donor, recipient, slice and per-role world counts and the
+9-guard count; no table cell or prose number was wrong in either
+round). Round 1 FAILED on four provenance misses — the Professor's
+P3 / P4 / P5 / P8 paraphrased inside quotation marks (now verbatim
+from the note's §Q6) — and one CONTRADICTED sentence (the fitted
+worlds "hold no grave beyond a world's first 322 ticks", refuted by
+the validation and evaluation rows it listed; now scoped to the
+training worlds, no grave after offset 322, with the validation worlds
+to 601 and the evaluation worlds to 779 beside it); five WEAK applied
+(the junction-control sentence scoped to H = 100 / 500 / 2,000 with
+the H = 0 recipient row's 0.678 named; the reproduction check's
+timing stated per seed; the 14-episode caveat scoped to the splice,
+the burn-in and swap in-sight cells on 20; the fitted-worlds table's
+eval row named; the drift range 0.80–0.89 as seed means), one rounding
+(0.8814 printed inside 0.80–0.88), one undecidable (the note's hash
+moved after receipt: the Professor appended a relay-status block; now
+noted in the declaration), three advisories applied (the P3 → P4
+coupling noted as not having occurred; the structural zeros and the
+unmasked start-up split named in the legend). Round 2 PASS: about
+1,000 table cells (the pasted block diff-empty against the fresh
+markdown), about 95 prose numbers and about 15 derived figures
+matched, 9 threshold claims sourced, 18 provenance items located
+(the four prediction quotations character-identical to §Q6, the
+owner quotation, the operationalisations, two reds, the reproduction
+figure, the in-sight splits), 30 characterisations supported with the
+mechanism claims tested read-only (seeds 1 and 3 at or over 0.10 at
+tick 0 on every P and L / W / G slice; every L / W / G boundary run at
+B = 2 already over the threshold at tick 1; the validation role
+early-stops both fits; no onset in any role follows a climb), no
+undecidable, no rounding. Two advisories applied after the verdict
+without a number changing (a trailing cut in the owner quotation
+marked with "…"; the H = 0 rows' missing history rate named in the
+legend). Raw-dir hashes unchanged from the stamp above (no new raw;
+the read uses the three NF-h24+p probe directories' `probe.pt` and
+saved P(grave), 1b's NF-h24 `head-best.pt`, 1c's SD-s{1,2,3}
+`head-best.pt` and belief files, and the symlinked world raws'
+observation streams).

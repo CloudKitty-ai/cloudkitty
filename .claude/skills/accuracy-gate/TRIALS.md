@@ -1496,3 +1496,33 @@ cross-sections — print the full-grid counts (held / over / empty) in
 the scoring sentence; (33) a scoring sentence that explains WHY a
 column deviates ("moot where none is running") is a mechanism claim
 and gets checked cell by cell.
+
+## 2026-10-26 — Mini-friend Phase 1d RESULTS §Addendum 4 (history and state), Experiments thread
+
+Two rounds, fresh subagent each; both regenerated the read
+byte-identically and found no table cell or prose number wrong
+(tables pasted from the reader's markdown; per-seed values pulled from
+the JSON before writing; the two post-read columns measured before
+any sentence was drafted, lesson 30 applied — the write-up's errors
+were again outside the cells).
+- Round 1 FAIL: four provenance misses — the Professor's four
+  registered predictions paraphrased inside quotation marks — and one
+  CONTRADICTED sentence: "the fitted worlds hold no grave beyond a
+  world's first 322 ticks", refuted by the validation (601) and
+  evaluation (779) figures the same sentence listed. Five WEAK, one
+  rounding, one undecidable (a peer note's hash moved after receipt).
+- Round 2 PASS: ~1,000 cells (diff-empty block), ~95 prose numbers,
+  ~15 derived, 18 provenance located with the four quotations
+  character-identical, 30 characterisations supported with the
+  mechanism claims tested read-only; two advisories applied.
+Lessons: (34) a peer's registered prediction is quoted verbatim from
+their note or written without quotation marks as a paraphrase — the
+owner-quotation rule (round-1 precedents in §Addendum and §Addendum
+2) covers registered predictions too, and a paraphrase in quotes is a
+provenance miss per prediction; (35) a sentence that states a bound
+and then lists the numbers must not be refuted by its own list —
+scope the bound to the role it holds for (here the training worlds)
+and state the other roles as the exceptions they are; (36) describe a
+guard's timing from the code, not from the declaration's phrasing
+("before anything else runs" was the declaration's; the code checks
+per seed before that seed's head is used).
