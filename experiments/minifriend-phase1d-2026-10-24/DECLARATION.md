@@ -628,3 +628,176 @@ Red on record 2026-10-25 for the second extension of t8
 after the restore): the unmasked signal replaced by the masked one in
 the cut test → the cut count 0 where the hand case has 1,
 `AssertionError` at the cut line of `test_t8_burnin`.
+
+## Addendum 4 2026-10-25: history and state — the zero-collection reads (owner, after the burn-in report and the Professor's note)
+
+Her words. On the burn-in report and the Professor's note of the same
+day (`~/ai/professor/notes/for-experiments-midworld-onset-instrument-
+2026-10-25.md`, sha256 prefix 2139fc3a389fbec6): "Let's do another
+threshold sweep rather than choosing an arbitrary value. Maybe
+0.1,0.3.,0.5 to start so we can get a feel for the trade-off.
+Zero-collection reads first. What other decisions do you need in order
+to proceed?"; then "Yes on splice test. Yes on relay to product.
+Confirm 3" (3 = the small burn-ins and the warm start below, in place
+of ruling 100). Three things follow. (a) **Decision 3 is reopened**:
+the "start with 0.10" of §Addendum 3 is withdrawn by her; every table
+of this addendum reads the three-point ladder P(grave) ≥ 0.10 / 0.30 /
+0.50 and the pick waits on these reads. No burn-in is ruled. (b) The
+reads below run on arrays already on disk — the saved observation
+streams of the evaluation worlds, the frozen NF-h24 heads, the three
+probes, SD width 16's heads — 0 new cat-ticks, no weight touched. (c)
+The scripted "needy" friend goes to Product as a relay on her word
+(sent 2026-10-25, msg fe6e7d7c); its set, if built, gets its own
+declaration and welfare line and waits for these reads.
+
+What the burn-in established, and what nobody has asked. Every grave
+onset in every evaluation set is a start-up onset or a re-entry within
+72 ticks of one, read by a GRU state at most that old; the B = 0 false
+alarms are first-tick runs (runs beginning at the slice's first tick:
+800 / 242 / 800 of 830 / 271 / 828 at 0.10 on group P, per seed, from
+the committed sweep file), the zero-state transient. Nothing on disk
+has asked the probe to see grave arriving on a state that has tracked
+a long clean history. That question splits in two, history and
+signature, and the history half is answerable without a world.
+
+**R7d — five reads, one reader (`history_read.py`), NF-h24+p seeds
+1–3, mean ± SD; SD width 16 seeds 1–3 in read (b) only.** The frozen
+head is re-run exactly as `grave_probe.states_world` runs it (hidden
+state zero at the slice start, carried across 500-tick chunks; the
+chunking changes nothing under no_grad) and the probe's logit z_t =
+w·h_t + b and P(grave) = σ(z_t) are kept per tick. Guard of
+construction: on the first evaluation world of group P the re-run
+P(grave) equals the committed `pgrave-*.npz` to 1e-5 before anything
+else runs.
+
+(a) *State convergence on L* (the Professor's P3). Over L's 60
+evaluation slices (all clean: no grave tick in 1,200,000
+observer-ticks), per seed: the step d_t = ‖h_t − h_{t−1}‖₂ and the
+drift D_t = ‖h_t − h_100‖₂, medians over slices and ticks within the
+windows [1, 100), [100, 300), [300, 1,000), [1,000, 5,000),
+[5,000, 20,000); the logit's per-slice least-squares slope over
+t ≥ 300 (logits per 1,000 ticks), its mean and SD over slices, the
+within-slice SD of z_t over t ≥ 300 (mean over slices), and the ratio
+|mean slope × 19,700| / mean within-slice SD (the drift over the rest
+of the slice in units of the scatter). Also kept: h̄ = the mean of
+h_t over t ≥ 1,000 and all 60 slices (per seed), the warm-start state
+of read (c), and σ(w·h̄ + b).
+P3 scored as: (i) the median d_t in [300, 1,000) is within a factor
+of 2 of the median in [1,000, 20,000) and both are under the median in
+[1, 100); and (ii) the drift-to-scatter ratio is under 1. Both hold →
+met.
+
+(b) *The splice* (P4). Donors: the 200 reset episodes of group P's
+evaluation slices (50 worlds × the four observers of the grave-start
+seat): the friend's 58-cell row over ticks 0 … en − 1 of the episode,
+and its in-sight bit at tick 0. Recipients: L's 60 evaluation slices,
+donor i → slice i mod 60. For each history length H ∈ {100, 500,
+2,000}: the input is the recipient pair's own 167-cell rows for ticks
+0 … H − 1, then for ticks H … H + en − 1 the recipient observer's own
+self block (109 cells, continuing as recorded) beside the donor
+friend's row; the head runs from the zero state; the episode is
+[H, H + en). Per H × threshold: detected fraction, median and p90
+latency from the junction, within 10 ticks, split by the donor's
+in-sight bit at onset; H = 0 is the donor episode in its own slice
+(the committed P(grave); its reset rows must equal the sweep's at
+0.10 / 0.50, asserted). *Junction control*: the same recipients and
+history lengths with a donor segment of the same length from the
+same P world and observer watching a default-start friend (the next
+seat in roster order after the grave-start seat, skipping the
+observer) — the fraction of junctions whose alarm fires inside the
+segment, per threshold; a control that fires as often as the grave
+donors would make the detection a junction artefact. *SD width 16*:
+the same spliced inputs through the three SD-s heads (friend index =
+the donor friend's seat throughout; state from the seat's prior at
+tick 0), P(grave) = 1 − ∏(1 − grave mass) as R4c defines it, the same
+columns; its H = 0 reset row at 0.50 must equal R4d's committed SD
+row. Limitation declared: the donor's row at the junction is a
+fresh-world row (scene age, spatial group, answers-me are the donor
+observer's), so the junction is a jump into a covered friend's grave,
+not a crossing; the read licenses "does the response to a covered
+grave signature depend on how long the state watched the friend be
+fine", nothing about a slow crossing.
+P4 scored as: for NF-h24+p at 0.10, the range over H ∈ {100, 500,
+2,000} of the seed-mean detected fraction is under the mean over H of
+its seed SD, and the same for the median latency; both hold → met.
+The SD rows are reported beside; the one condition the Professor
+named (NF degrades with H and SD does not) is read off them, not
+scored as a prediction.
+
+(c) *Small burn-ins and the warm start* (P5). The §Addendum 3 grid at
+B ∈ {0, 2, 5, 10} × the three thresholds on group P and on L / W / G
+through `burnin_read.grid` unchanged (B = 0 pinned to the sweep as
+before). Then the warm start: every evaluation slice of both sets
+re-run from h_0 = h̄ (per seed, from read (a)) instead of zero, the
+resulting P(grave) read through the same grid at B = 0: the start-up
+split, the reset detected fraction and median latency, all-runs false
+alarms per 10,000 and the runs beginning at the first tick, at the
+three thresholds.
+P5 scored as: at B = 5 and 0.10 on group P the all-runs false alarms
+are ≤ 0.20 per 10,000 and the reset detected fraction ≥ 0.90 (seed
+means); and the warm start at B = 0 has false alarms ≤ B = 5's and
+reset detection ≥ B = 5's. All hold → met.
+
+(d) *The self-block swap* (P8). On group P's 200 grave-start slices:
+the input keeps the friend row of (observer k, grave-start seat j*)
+and takes the 109-cell self block of observer k′ = the next seat in
+roster order after k, skipping j* (k′ ≠ k). The head runs from zero;
+R4d's `latency` runs on these 200 slices swapped and unswapped (the
+unswapped signal recomputed from the committed P(grave) on the same
+sub-index, so the two differ in the self block alone) at the three
+thresholds: reset detected fraction and median latency, mid-world
+in-sight and fog detected fractions (the re-entries), all-runs false
+alarms per 10,000, the start-up split, and mean P(grave) on grave and
+on common ticks.
+P8 scored as: at 0.10 the mid-world in-sight and the mid-world fog
+detected fractions move by less than the unswapped row's seed SD
+(|Δ of seed means| < SD; where the unswapped SD is 0 the bar is a
+move of 0). Both hold → met.
+
+(e) Every table at 0.10 / 0.30 / 0.50; per seed and mean ± SD; no
+threshold privileged.
+
+**No reading rule.** Descriptive; the four scored bars are the
+Professor's registered predictions with this thread's
+operationalisations stated above, scored beside the originals and
+sent to them. This thread's own expectations, not predictions to
+score: the junction control fires in under 0.05 of junctions at 0.10
+at every H (a higher rate is reported as a confound of (b)); the warm
+start removes at least nine in ten of the first-tick runs at 0.10 on
+group P; the swap moves the reset detected fraction at 0.10 by under
+0.05.
+
+**Guard** t9 (`test_phase1d.py`). Hand cases, no head: the
+convergence windows and the slope on a synthetic state that decays
+to a constant and a logit with a known linear trend (window medians,
+slope recovered, ratio); the splice assembly on hand arrays (ticks
+0 … H − 1 are the recipient's 167 cells; from H the first 109 cells
+are the recipient's self rows H …, the last 58 the donor's rows
+0 …; the episode is [H, H + en); a hand P(grave) crossing at H + 3
+reads latency 3 and a crossing at H − 1 does not count); the swap
+assembly (first 109 cells from k′, last 58 the (k, j*) row; k′ never
+k or j*); the junction-control donor is the declared seat. Real pins:
+the re-run head reproduces the committed P(grave) on the first P
+evaluation world to 1e-5; H = 0's reset rows equal the sweep's at
+0.10 / 0.50; the unswapped sub-index rows at 0.10 are consistent with
+the sweep's reset rows (same episodes, same latencies). Red: the
+donor rows shifted one tick late in the assembly (`donor[t]` →
+`donor[t + 1]` at the junction) — the hand assembly's first donor row
+no longer equals the donor's row 0, `AssertionError` at the junction
+line.
+
+**Doctrine (rule 8):** rule 10 moved it (every table on the full
+three-point ladder, per seed, the bars declared and operationalised
+before the read, the junction control beside the detection, no
+threshold or burn-in privileged, no rule); rule 9 moved read (b)'s
+design (no covered friend is forced grave: the covered grave rows come
+from episodes already collected); nothing priced; nothing else moved.
+Welfare cost: 0 covered cat-ticks.
+
+**Run order:** (1) this addendum, deviations 13 reopened a fourth
+time, the timeline line with her words; (2) `history_read.py` + t9,
+red; (3) the read (one fence; the head re-run over every evaluation
+slice three times — plain, warm, spliced — plus SD on the splices:
+minutes, declared on the fence); (4) RESULTS §Addendum 4 gated; the
+four scores to the Professor beside their originals; the threshold
+and the burn-in to her with the ladder.

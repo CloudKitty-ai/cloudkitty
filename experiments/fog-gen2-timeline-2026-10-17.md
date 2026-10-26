@@ -389,6 +389,20 @@ consent BC comparison ride the trunk.
   0.995 → 0.978); the sweep's "pick low" reading was this thread's
   error. STATUS: DONE 2026-10-25; threshold, burn-in and whether a set
   with known mid-world onsets must be built: HERS.
+  DECISION 3 REOPENED 2026-10-25 (owner, after the burn-in report and
+  the Professor's note: "Let's do another threshold sweep rather than
+  choosing an arbitrary value. Maybe 0.1,0.3.,0.5 to start so we can
+  get a feel for the trade-off. Zero-collection reads first."): the
+  0.10 "start with" withdrawn; the ladder 0.10 / 0.30 / 0.50 on every
+  table; no burn-in ruled. ADDENDUM 4 the same day ("Yes on splice
+  test. Yes on relay to product. Confirm 3"): R7d, five zero-collection
+  reads (state convergence on L; the splice of covered reset-grave rows
+  onto 100 / 500 / 2,000 clean ticks with a junction control, NF+p and
+  SD; burn-ins 2 / 5 / 10 and a warm-started state; the self-block
+  swap; the three-point ladder throughout); the Professor's P3 / P4 /
+  P5 / P8 scored; 0 cat-ticks. The scripted "needy" friend RELAYED to
+  Product on her word (msg fe6e7d7c), not a kickoff; its set waits for
+  these reads. STATUS: DECLARED 2026-10-25; running next.
 
 ## Flagged follow-ups (owner's word to start)
 

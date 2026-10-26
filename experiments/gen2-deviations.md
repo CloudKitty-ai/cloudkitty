@@ -761,3 +761,21 @@ thread's low-end recommendation does not stand; two post-read
 additions with reds; expectations (1) and (3) did not hold as stated,
 (2) held. The threshold and the burn-in both hers; whether Phase 2
 needs an evaluation set with known mid-world onsets is hers.
+
+REOPENED 2026-10-25 a fourth time, on her words after the burn-in
+report and the Professor's note ("Let's do another threshold sweep
+rather than choosing an arbitrary value. Maybe 0.1,0.3.,0.5 to start
+so we can get a feel for the trade-off. Zero-collection reads first.";
+"Yes on splice test. Yes on relay to product. Confirm 3"): decision 3
+REOPENED — the "start with 0.10" withdrawn by her, every table on the
+0.10 / 0.30 / 0.50 ladder, the pick after these reads; no burn-in
+ruled. R7d, five zero-collection reads on arrays already on disk
+(DECLARATION §Addendum 4): (a) state convergence of the frozen head on
+L's clean slices; (b) the splice — group P's covered reset-grave rows
+after 100 / 500 / 2,000 clean L ticks, with a junction control, NF+p
+and SD width 16; (c) burn-ins 2 / 5 / 10 and a warm-started state; (d)
+the self-block swap on P's grave-start slices; (e) all at the three
+thresholds. The Professor's P3 / P4 / P5 / P8 scored with declared
+operationalisations; descriptive otherwise; 0 new cat-ticks. The
+scripted "needy" friend relayed to Product on her word the same day
+(msg fe6e7d7c); not a kickoff. Status: OPEN.
