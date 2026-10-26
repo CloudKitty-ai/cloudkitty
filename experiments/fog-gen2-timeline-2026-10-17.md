@@ -158,6 +158,12 @@ consent BC comparison ride the trunk.
 
 ## Outstanding owner items
 
+- Spec 066 retrofit of the seven committed initial_needs configs (W, G,
+  P1–P5): RULED 2026-10-26 ("Option 1 for the retrofit"); the scout
+  checks read provenance on the recorded bytes since 304221b1; the
+  files move in Product's PR under `cross-lane:`; OPEN until the
+  landing's sha256s are recorded in `gen2-deviations.md` entry 14 and
+  the three checks run green on the landed tree.
 - Step 9, the three-leg consent BC comparison — waits on her word.
 - Deviations entry 4 (a): may post-stop rows be cited.
 - rot2 policy export for serving — waits on her word.

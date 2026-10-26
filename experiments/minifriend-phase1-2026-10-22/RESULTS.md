@@ -332,7 +332,8 @@ VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/read_phase1.py --out $A/pha
 
 Guards (plain-assert runners, arc venv): `test_strata.py` 2,
 `test_count_strata.py` 3, `test_train_heads.py` 5, `test_read_phase1.py`
-5; collector guard in `../seating-analysis-g2-2026-10-21/test_seating_g2.py`
+5, `test_check_set.py` 1 (k1, added 2026-10-26: provenance on the
+recorded config bytes, gen2-deviations.md entry 14; reds at 304221b1); collector guard in `../seating-analysis-g2-2026-10-21/test_seating_g2.py`
 (10). Reds on record via `scripts/mutate.sh` in the commit messages
 50f4bb27 (collector save-obs; strata edges), 375fd53e (check_L),
 ecfde71e (count_strata present cell; check_set band), d0de3213

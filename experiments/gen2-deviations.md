@@ -820,8 +820,11 @@ allowed inside), nothing after; it appears once and is the last table.
 Any other edit to a config stays a mismatch. `test_phase1b.py` s2 and
 p1 read the configs through the same helper, so the make_configs.py
 identity of P1–P5 is also asserted on the recorded bytes. Guard
-`test_check_set.py` k1 (synthetic shapes and the real seven); red
-record in the follow-up commit. W-check / G-check / P-check regenerate
+`test_check_set.py` k1 (synthetic shapes and the real seven); reds on
+record via `scripts/mutate.sh` at 304221b1 (the prefix returned whole →
+"retrofit: the recorded bytes are the prefix"; the last-table assert
+removed → "recorded_bytes accepted not_last.toml"; both RED CONFIRMED,
+baseline == restored). W-check / G-check / P-check regenerate
 byte-identical before the retrofit (2026-10-26). The raws are not
 touched. No new cat-ticks; no welfare cost.
 
