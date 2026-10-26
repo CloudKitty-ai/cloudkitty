@@ -837,3 +837,10 @@ columns with an onset exactly at tick 100, which is not "after" it).
 Red: the after-window test made inclusive (`st > windows[0]` →
 `st >= windows[0]`) — the onset at tick 100 is then counted after it,
 `AssertionError` at the onsets-after line.
+
+Red on record 2026-10-25 for the extended t9 (`scripts/mutate.sh
+--expect onsets_after_100` on `history_read.py` at 3a41d7bc; predicted
+first — RED CONFIRMED, 1 passed after the restore): the after-window
+test made inclusive → the hand onset at tick 100 counted after it,
+`AssertionError: onsets_after_100: an onset exactly at tick 100 is not
+after it` in `test_t9_history`.
