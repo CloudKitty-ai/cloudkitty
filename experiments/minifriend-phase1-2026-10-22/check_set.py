@@ -22,6 +22,35 @@ HERE = Path(__file__).resolve().parent
 ENGINE = "a2e8d0447146f2486f7c6c6e0adbb75f742f1a00"   # BINDING.md
 BAND = {"W": (0.0, 90.0, 6000), "G": (60.0, 95.0, 4000)}
 SEATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
+# Spec 066 (Product) retrofits the seven committed initial_needs configs
+# with one acknowledgement table appended at EOF: one blank line, this
+# header, its lines, nothing after (gen2-deviations.md entry 14). The
+# raws pin the sha of the bytes the worlds ran on, so provenance is read
+# on the bytes BEFORE that table. Any other edit to a config stays a
+# mismatch. The header is Product's name; it changes here if theirs does.
+ACK_HEADER = b"\n[welfare_hazard]\n"
+
+
+def recorded_bytes(path):
+    """The config bytes the raws' provenance hashed: the file as committed, or,
+    after the spec-066 retrofit, the file before its trailing acknowledgement
+    table. The table must appear once and be the last table in the file."""
+    b = path.read_bytes()
+    n = b.count(ACK_HEADER)
+    if n == 0:
+        return b
+    assert n == 1, f"{path.name}: the acknowledgement header appears {n} times"
+    i = b.index(ACK_HEADER)
+    tail = b[i + len(ACK_HEADER):]
+    assert not any(line.startswith(b"[") for line in tail.splitlines()), \
+        f"{path.name}: a table follows the acknowledgement; it must be last"
+    return b[:i]
+
+
+def config_sha(path):
+    """sha256 of recorded_bytes(path): equal to the raws' provenance.config_sha256
+    when the file is the one the worlds ran on, retrofit or not."""
+    return hashlib.sha256(recorded_bytes(path)).hexdigest()
 
 
 def longest_streaks(distress):
@@ -66,7 +95,7 @@ def main():
     ap.add_argument("--out", type=Path, default=None)
     a = ap.parse_args()
     cfg = HERE / f"g2leg-20-{a.set}.toml"
-    sha = hashlib.sha256(cfg.read_bytes()).hexdigest()
+    sha = config_sha(cfg)
     d = HERE / "results-raw" / a.set
     seeds = sorted(int(p.stem.split("-")[1]) for p in d.glob("streams-*.npz"))
     assert seeds, f"no {a.set} world recorded"

@@ -789,3 +789,55 @@ reset detection 0.995 → 0.592 while removing every first-tick false
 alarm; the training worlds hold no grave after offset 322; P4 and P8
 met, P3 and P5 not met as operationalised; the SD reopen condition not
 met. Threshold and burn-in: hers, with the three-point ladder; F-069.
+
+## 14. Spec 066's acknowledgement table on the seven committed initial_needs configs: provenance read on the recorded bytes (2026-10-26)
+
+Product's spec 066 (welfare-hazard acknowledgement guard; her kickoff
+in their session 2026-10-26, "Agreed, let's start the guard. Let
+Experiments know what we're doing so they can account for it") makes
+a config that activates a hazardous mode fail to load unless it
+carries an exact acknowledgement. The seven committed configs of
+mini-friend Phases 1 and 1b activate the spec-065 distressed start,
+so the retrofit of all seven rides Product's PR under `cross-lane:`
+(spec 066 FR-009), on her ruling here, after the options were laid
+out (keep the acknowledgement out of the engine fingerprint, which
+spec 066 does by construction, AND retrofit; a legacy allow-list in
+the validator; retrofit with the checks going red): "Option 1 for the
+retrofit".
+
+What the retrofit touches: the raws of W, G and P1–P5
+(`results-raw/*/streams-*.npz`, meta `provenance.config_sha256`) pin
+the sha256 of the config BYTES each world ran on, and the scout checks
+(`minifriend-phase1-2026-10-22/check_set.py`,
+`minifriend-phase1b-2026-10-23/check_P.py`) assert the committed file
+still hashes to it. An edited file breaks that identity, so the checks
+now read provenance on the RECORDED bytes (`check_set.recorded_bytes`
+/ `config_sha`): the file as committed, or, when it ends in the
+acknowledgement table, the bytes before that table. The table's shape
+is fixed so the strip is exact and not a pattern: appended at EOF as
+one blank line, the header `[welfare_hazard]`, its lines (comments
+allowed inside), nothing after; it appears once and is the last table.
+Any other edit to a config stays a mismatch. `test_phase1b.py` s2 and
+p1 read the configs through the same helper, so the make_configs.py
+identity of P1–P5 is also asserted on the recorded bytes. Guard
+`test_check_set.py` k1 (synthetic shapes and the real seven); red
+record in the follow-up commit. W-check / G-check / P-check regenerate
+byte-identical before the retrofit (2026-10-26). The raws are not
+touched. No new cat-ticks; no welfare cost.
+
+Recorded sha256 of each file before the retrofit (the raws' pin; the
+check reads it off the file on every run, these are for the stranger
+who recomputes):
+
+- `experiments/minifriend-phase1-2026-10-22/g2leg-20-W.toml`: 95a2a6b3bde492a9c827ec6277dcb897ddd2e424a624ff778724fb45c81182e9
+- `experiments/minifriend-phase1-2026-10-22/g2leg-20-G.toml`: 2f0e592c0f5e2237c8e73e284ac8cc5f1403c259dd1b5f39101f3ae194d318cf
+- `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P1.toml`: b709bf2a5d0519e736bd4558799ba6e7a937f70a3a88f6875091a8eb6a9911c7
+- `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P2.toml`: a713aac5635c87471fed62094022646fb69f0829664cd8aeb30098080f0f0d55
+- `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P3.toml`: 79d157bb9dac98f7b59a4b40cd1ce805084793ba0a64a906ae65802d3fa7d0da
+- `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P4.toml`: 68980e5d4edfd1de863c799e6ef524e340d97ef19855f6566dac5113dfa6bcde
+- `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P5.toml`: e2fb4d8dde70c77dcadfc7ae347bb70611b3de6ccec9530e81d8709945fd08e9
+
+Sha256 of each file as retrofitted: recorded here when Product's PR
+lands (the section name is theirs and still provisional at this
+writing; `check_set.ACK_HEADER` follows it). Status: OPEN until that
+landing and a green run of the three checks on the landed tree.

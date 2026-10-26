@@ -15,7 +15,6 @@ rest are launched.
     check_P.py 3          # one set
 """
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -25,7 +24,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 PHASE1 = HERE.parent / "minifriend-phase1-2026-10-22"
 sys.path.insert(0, str(PHASE1))
-from check_set import ENGINE, SEATS, longest_streaks  # noqa: E402
+from check_set import ENGINE, SEATS, config_sha, longest_streaks  # noqa: E402
 
 LO, HI, TICKS = 60.0, 95.0, 4000
 
@@ -59,7 +58,7 @@ def check_world(path, k, cfg_sha):
 
 def check_set(k):
     cfg = HERE / f"g2leg-20-P{k}.toml"
-    sha = hashlib.sha256(cfg.read_bytes()).hexdigest()
+    sha = config_sha(cfg)
     d = HERE / "results-raw" / f"P{k}"
     seeds = sorted(int(p.stem.split("-")[1]) for p in d.glob("streams-*.npz")) if d.exists() else []
     res = [check_world(d / f"streams-{s}.npz", k, sha) for s in seeds]

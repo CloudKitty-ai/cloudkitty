@@ -35,6 +35,7 @@ import make_configs as MC  # noqa: E402
 assert Path(SP.__file__).parent == HERE, SP.__file__
 import read_phase1b as B  # noqa: E402
 import read_phase1 as R  # noqa: E402
+import check_set as CS  # noqa: E402  — Phase 1's provenance helper (the recorded bytes of a config)
 
 P1_RUNS = [(h, f"{h}-s{s}") for h in ("NF", "DR") for s in (1, 2, 3)]
 _cache = {}
@@ -69,7 +70,8 @@ def test_s1_split_blocks():
 def test_s2_configs_one_grave_kitty_each():
     served = tomllib.loads(MC.SERVED.read_text())
     for k in range(1, 6):
-        text = (HERE / f"g2leg-20-P{k}.toml").read_text()
+        # the recorded bytes: the file before any spec-066 acknowledgement table (check_set.recorded_bytes)
+        text = CS.recorded_bytes(HERE / f"g2leg-20-P{k}.toml").decode()
         assert text == MC.render(k), f"g2leg-20-P{k}.toml differs from make_configs.py"
         cfg = tomllib.loads(text)
         assert "initial_needs" not in cfg
@@ -131,13 +133,12 @@ def test_p1_check_world_on_the_recorded_scout():
     """DECLARATION §Instrument: check_P.check_world on the P1 scout (the first recorded P world) —
     the grave kitty's reset band and the other four at the served default — then tampered copies
     (a non-grave kitty off zero; the grave kitty off the band; the grave kitty not varying) must be refused."""
-    import hashlib
     import tempfile
     import numpy as np
     import check_P as CP
     src = HERE / "results-raw" / "P1" / "streams-1095451.npz"
     assert src.exists(), "the P1 scout is not recorded yet (run_P.sh 1 1095451)"
-    sha = hashlib.sha256((HERE / "g2leg-20-P1.toml").read_bytes()).hexdigest()
+    sha = CS.config_sha(HERE / "g2leg-20-P1.toml")   # the recorded bytes: before any spec-066 table
     r = CP.check_world(src, 1, sha)
     assert r["grave_kitty"] == "Miso" and r["seed"] == 1095451 and r["ticks"] == 4000 and r["aborted_at"] is None
     n0 = np.array(r["needs0"])
