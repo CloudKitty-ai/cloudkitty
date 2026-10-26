@@ -801,3 +801,12 @@ slice three times — plain, warm, spliced — plus SD on the splices:
 minutes, declared on the fence); (4) RESULTS §Addendum 4 gated; the
 four scores to the Professor beside their originals; the threshold
 and the burn-in to her with the ladder.
+
+Red on record 2026-10-25 for t9 (`scripts/mutate.sh --expect "junction:
+the donor's rows begin at H"` on `history_read.py` at 944211dd;
+predicted first — RED CONFIRMED, 1 passed after the restore): the
+donor rows shifted one tick late in the splice assembly
+(`x[H:, SELF:] = donor_rows` → `x[H:-1, SELF:] = donor_rows[1:]`) →
+the first spliced donor row keeps the recipient's friend row,
+`AssertionError: junction: the donor's rows begin at H` in
+`test_t9_history`.
