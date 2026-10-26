@@ -1526,3 +1526,16 @@ and state the other roles as the exceptions they are; (36) describe a
 guard's timing from the code, not from the declaration's phrasing
 ("before anything else runs" was the declaration's; the code checks
 per seed before that seed's head is used).
+The F-069 copy check ran as three copy-only rounds: round 1 FAIL
+(four dropped qualifiers — threshold, group, per seed, the
+reproduction check's scope — and three over-reaches: "settled" where
+the section says the state does not settle, "unanswered" without the
+section's "slow crossing", and a claim about what a future set would
+ask that no cited source makes); round 2 FAIL (nine L-scoped
+convergence figures left under the title's per-cat default scope);
+round 3 PASS (about 134 numbers, 27 characterisations, 9 provenance;
+four wording drifts noted, none failing). Lesson (37): when an
+F-entry opens with a default scope phrase, every figure from another
+world set, threshold or role must carry its own scope in the same
+clause — the default scope converts an unscoped number into a wrong
+one.
