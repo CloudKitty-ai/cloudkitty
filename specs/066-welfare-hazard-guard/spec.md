@@ -32,6 +32,29 @@ happened. Her question names the gap exactly: welfare-hazardous modes
 need a guard against inadvertent activation, one guard for all of
 them, before the second mode lands.
 
+## Clarifications
+
+### Session 2026-10-26
+
+- Q: Should a config that acknowledges a hazardous mode it does not
+  actually activate be rejected at load, or allowed to load? → A:
+  Rejected. The list must equal the set of active modes exactly
+  (missing, stale, unknown, duplicate all fail). Owner's choice, "A".
+- Q: When does a distressed start count as hazardous: whenever any
+  need is raised above zero at all, or only when a need is raised past
+  the world's distress line? → A: Any need given a fixed value above
+  zero, or a range whose upper bound is above zero (the widest).
+  Owner's choice, "A".
+- Q: Should the server's start-up option be a bare switch meaning "a
+  hazardous world is intended", or must it name the acknowledged modes
+  a second time? → A: A bare switch, no arguments; accepted and inert
+  on a non-hazardous config. Owner's choice, "A".
+- Q: Should each registry entry carry its teacher-eligibility flag
+  now, when nothing reads it yet, or should the needy-preset spec add
+  the flag together with its first reader? → A: Defer: this spec's
+  registry holds name and activity predicate only; the needy-preset
+  spec adds the flag and its reader together. Owner's choice, "B".
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A hazardous mode cannot be activated by accident (Priority: P1)
@@ -215,13 +238,13 @@ the option is accepted and changes nothing.
   applies in full; Story 4's start-up option is the server's alone,
   since only the server serves a world.
 - Future modes: a mode is hazardous only when the engine registers it
-  as such; the registration names the mode, states when it counts as
-  active, and states whether a seat in such a world may serve as a
-  teacher for a learning corpus (the distressed start: yes, it IS the
-  corpus-extension world; the needy preset will say no). Exposing the
-  teacher-eligibility bit to the collection path is the needy spec's
-  job; this spec makes the bit exist so every registered mode must
-  declare it.
+  as such; the registration names the mode and states when it counts as
+  active. Whether a seat in such a world may serve as a teacher for a
+  learning corpus (the distressed start: yes, it IS the
+  corpus-extension world; the needy preset will say no) is NOT recorded
+  by this spec: the needy-preset spec adds that flag to the registry
+  together with its first reader in the collection path (owner,
+  Clarifications 2026-10-26).
 
 ## Requirements *(mandatory)*
 
@@ -242,15 +265,15 @@ the option is accepted and changes nothing.
   section, so adding an acknowledgement to an existing config never
   changes which saved worlds it can resume.
 - **FR-003**: The engine MUST hold a closed registry of
-  welfare-hazardous modes. Each entry names the mode, defines when the
-  mode counts as ACTIVE in a given config, and states whether a seat in
-  a world running that mode may serve as a teacher for a learning
-  corpus. The first entry is the spec-065 distressed start, active when
-  any need — roster-wide or per-kitty — is given a fixed value above
-  zero or a range whose upper bound is above zero; teacher-eligible.
-  Adding a mode is adding an entry; a mode not in the registry is not
-  guarded, so every spec that introduces a hazardous mode MUST add its
-  entry (the needy preset's spec is the first consumer).
+  welfare-hazardous modes. Each entry names the mode and defines when
+  the mode counts as ACTIVE in a given config. The first entry is the
+  spec-065 distressed start, active when any need — roster-wide or
+  per-kitty — is given a fixed value above zero or a range whose upper
+  bound is above zero. Adding a mode is adding an entry; a mode not in
+  the registry is not guarded, so every spec that introduces a
+  hazardous mode MUST add its entry (the needy preset's spec is the
+  first consumer; it also adds the teacher-eligibility flag with its
+  first reader).
 - **FR-004**: Config validation MUST fail when the set of acknowledged
   names is not EXACTLY the set of active hazardous modes: a missing
   name (an active mode not acknowledged), a stale name (an acknowledged
@@ -269,9 +292,11 @@ the option is accepted and changes nothing.
 - **FR-006**: The server MUST refuse to start — before any world is
   created or resumed — when the loaded config acknowledges one or more
   hazardous modes and the operator did not pass an explicit start-up
-  option stating that a hazardous world is intended. The refusal names
-  the acknowledged modes and the option. The option on a non-hazardous
-  config MUST be accepted and inert.
+  option stating that a hazardous world is intended. The option is a
+  bare switch with no arguments: the config's acknowledgement is the
+  one place the modes are named. The refusal names the acknowledged
+  modes and the option. The option on a non-hazardous config MUST be
+  accepted and inert.
 - **FR-007**: When the server serves an acknowledged hazardous world,
   the acknowledgement MUST be visible from boot on the served config
   surface (the section serializes when present), in one boot-log line
@@ -295,12 +320,13 @@ the option is accepted and changes nothing.
 - **Welfare-hazard acknowledgement**: one optional top-level config
   section; a list of mode names; exact against the active modes.
 - **Hazardous-mode registry**: the engine's closed list of modes, each
-  with a name, an activity predicate over a config, and a
-  teacher-eligibility flag. One entry today (the distressed start);
-  the needy preset adds the second.
+  with a name and an activity predicate over a config. One entry today
+  (the distressed start); the needy preset adds the second, and the
+  teacher-eligibility flag.
 - **Start-up intent option**: the server's explicit operator statement
-  that serving a hazardous world is intended; required whenever the
-  config acknowledges any mode, inert otherwise.
+  that serving a hazardous world is intended; a bare switch, no
+  arguments; required whenever the config acknowledges any mode, inert
+  otherwise.
 
 ## Success Criteria *(mandatory)*
 
@@ -357,9 +383,8 @@ planning:
   carry a hazardous mode; the served world stays the majority episode
   by check, not by convention.
 - **Rule 5 (teacher sees what the student sees) — checked, moved
-  nothing.** No new read at decision time; the registry's
-  teacher-eligibility flag records a property for the corpus path to
-  consume later and changes no decision.
+  nothing.** No new read at decision time; teacher eligibility per
+  mode is the needy-preset spec's to record, with its reader.
 - **Rules 1, 2 (reward, prices) — checked, moved nothing.** No reward
   term, no price.
 - **Rules 3, 4, 6, 7, 10, 11 — checked, moved nothing.** No rider,
@@ -373,9 +398,18 @@ planning:
   `g2leg-20-G.toml` (roster-wide section), and
   `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P1.toml` through
   `g2leg-20-P5.toml` (one kitty's entry). All in DONE arcs whose data
-  exists; nothing in flight. Each gets the one acknowledgement line and
-  nothing else. Experiments' preference, their words: "loud load
-  failure, not a one-release warning" — adopted (FR-004).
+  exists; nothing in flight. Each gets the one acknowledgement table
+  and nothing else, in the exact shape Experiments' provenance checks
+  strip before hashing (owner to Experiments, "Option 1 for the
+  retrofit", 2026-10-26; main 304221b1): appended at the very end of
+  the file as one blank line, the section header, the one
+  acknowledgement line, end of file; no comment above the header; the
+  header once and the last table in the file; no other byte changes.
+  The PR body's crossing paragraph cites 304221b1 as the commit that
+  makes those checks tolerant of the table. Post-landing hash recording
+  and the re-run of their checks are Experiments'. Experiments'
+  preference, their words: "loud load failure, not a one-release
+  warning" — adopted (FR-004).
 - **Lane crossing of the migration**: the seven files are in
   Experiments' lane; the top-level config rejects unknown sections, so
   the line cannot be added before the section exists, and FR-009 says
@@ -387,16 +421,14 @@ planning:
   Experiments asked for this ("excluded from the world fingerprint");
   the text hash of a config file is a different thing and does move
   when a line is added — Experiments were told so.
-- **Exactness** (stale acknowledgement is an error) is this spec's
-  choice for the owner's stated purpose — a blanket list copied between
-  configs would otherwise cover the next mode silently. If the owner
-  prefers over-acknowledgement to be legal, FR-004 loses the "stale"
-  clause and nothing else changes.
+- **Exactness** (stale acknowledgement is an error) is the owner's
+  ruling (Clarifications, 2026-10-26): a blanket list copied between
+  configs would otherwise cover the next mode silently.
 - **Hazard predicate for the distressed start**: any configured value
-  or range upper bound above zero. A lower bar (above the safeguard or
-  distress threshold) would leave a world of kitties starting at 70
-  unguarded while calling itself a welfare guard; the predicate is
-  deliberately the widest.
+  or range upper bound above zero — the owner's ruling (Clarifications,
+  2026-10-26). A lower bar (above the safeguard or distress threshold)
+  would leave a world of kitties starting at 70 unguarded while calling
+  itself a welfare guard.
 - The start-up option's name and the registry's representation are
   plan-level; the deploy script is not changed by this feature, and
   whether the live box ever passes the option is a deploy ruling in its
@@ -405,5 +437,6 @@ planning:
   file; a one-line pointer there ("hazardous modes are acknowledged per
   spec 066") is proposed to the owner, not written by this spec.
 - The needy-preset spec depends on this one: it adds the second
-  registry entry (teacher-ineligible) and consumes the eligibility flag
-  in the collection path.
+  registry entry, adds the teacher-eligibility flag to every entry
+  (distressed start: eligible; needy: not) and its reader in the
+  collection path.
