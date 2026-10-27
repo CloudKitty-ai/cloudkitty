@@ -911,16 +911,11 @@ async fn the_needy_table_alone_never_reaches_a_plain_world() {
 /// roster fixed, the first onset out of reach — until that onset the two
 /// worlds tick identically on every surface except the seat's behaviour
 /// string and needy state: the schedule's draws reach nothing shared.
+/// Three seeds, because one world can absorb a small stream shift at
+/// generation (tie-broken placement re-synchronises the stream; traced
+/// 2026-10-27 under mutation T010-B).
 #[tokio::test]
 async fn swapping_a_teacher_seat_for_needy_moves_nothing_shared_before_the_onset() {
-    let mut teacher = test_config();
-    teacher.kitties[0].behavior = "teacher".to_string();
-    let mut needy = seated(NAME);
-    needy.needy = Some(crate::config::NeedyConfig {
-        onset_levels: vec![500, 501, 502, 503, 504, 505],
-        ..Default::default()
-    });
-    needy.validate().unwrap();
     let strip = |mut v: serde_json::Value| {
         for k in v["kitties"].as_array_mut().unwrap() {
             if k["id"] == 1 {
@@ -931,10 +926,22 @@ async fn swapping_a_teacher_seat_for_needy_moves_nothing_shared_before_the_onset
         }
         v
     };
-    let a = strip(serialized_after(teacher, 200).await);
-    let b = strip(serialized_after(needy, 200).await);
-    assert!(
-        a == b,
-        "identical until the first onset apart from the seat's behaviour and needy state"
-    );
+    for seed in [1234, 20260718, 99] {
+        let mut teacher = test_config();
+        teacher.world.seed = seed;
+        teacher.kitties[0].behavior = "teacher".to_string();
+        let mut needy = seated(NAME);
+        needy.world.seed = seed;
+        needy.needy = Some(crate::config::NeedyConfig {
+            onset_levels: vec![500, 501, 502, 503, 504, 505],
+            ..Default::default()
+        });
+        needy.validate().unwrap();
+        let a = strip(serialized_after(teacher, 200).await);
+        let b = strip(serialized_after(needy, 200).await);
+        assert!(
+            a == b,
+            "identical until the first onset apart from the seat's behaviour and needy state (seed {seed})"
+        );
+    }
 }
