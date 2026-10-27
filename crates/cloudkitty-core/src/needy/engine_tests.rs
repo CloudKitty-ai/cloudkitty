@@ -11,6 +11,7 @@ use crate::config::{Config, WelfareHazardConfig};
 use crate::element::{Element, ElementKind};
 use crate::grid::Position;
 use crate::kitty::Activity;
+use crate::needs::Needs;
 use crate::seam::JointProposal;
 use crate::test_support::test_config;
 use crate::world::World;
@@ -299,4 +300,270 @@ async fn a_resumed_needy_world_ticks_identically() {
         serde_json::to_string(&world).unwrap() == serde_json::to_string(&resumed).unwrap(),
         "the resumed world ticks identically"
     );
+}
+
+// ---------------------------------------------------------------- T005
+
+/// Rule 5's wrong-layer guard for the relief tables: they are read off
+/// `apply_activity_effects` / `apply_sleep_relief`, so each row is checked
+/// against what the effects ACTUALLY move — on the actor and on the kitty
+/// the action names — on a probe world where every relief can land (every
+/// need at 50, food, water and a bug adjacent, the partner settled so the
+/// companion tiers pay their mutual rate).
+#[test]
+fn the_relief_tables_match_what_the_effects_actually_move() {
+    use crate::action::TargetRef;
+    use crate::kitty::ActivityClock;
+    let rows = [
+        Action::Eat,
+        Action::Drink,
+        Action::Sleep { with: None },
+        Action::Sleep { with: Some(2) },
+        Action::Rest { with: None },
+        Action::Rest { with: Some(2) },
+        Action::Groom { target: None },
+        Action::Groom { target: Some(2) },
+        Action::Play { target: None },
+        Action::Play {
+            target: Some(TargetRef::Element { id: 902 }),
+        },
+        Action::Play {
+            target: Some(TargetRef::Kitty { id: 2 }),
+        },
+        Action::Chase(TargetRef::Kitty { id: 2 }),
+    ];
+    for action in rows {
+        let config = test_config();
+        let mut world = World::generate(&config);
+        side_by_side(&mut world);
+        // A settled partner pays the companion tiers' mutual rate (the
+        // rest drip is 0 by default), but cannot be conscripted: social
+        // play needs an idle partner or `apply` downgrades it to solo.
+        let duet = matches!(
+            action,
+            Action::Play {
+                target: Some(TargetRef::Kitty { .. })
+            }
+        );
+        if !duet {
+            let partner = kitty_mut(&mut world, 2);
+            partner.activity = Activity::Resting { with_friend: None };
+            partner.activity_clock = Some(ActivityClock::start(0));
+        }
+        for id in [1, 2] {
+            for kind in NeedKind::ALL {
+                kitty_mut(&mut world, id).needs.add(kind, 50.0);
+            }
+        }
+        for (id, kind, x, y) in [
+            (900, ElementKind::Chow { servings: 5 }, 4, 5),
+            (901, ElementKind::Water, 6, 5),
+            (902, ElementKind::Bug, 5, 4),
+        ] {
+            world.push_element(Element {
+                id,
+                kind,
+                pos: Position::new(x, y),
+                ttl: None,
+            });
+        }
+        let before = [world.kitty(1).unwrap().needs, world.kitty(2).unwrap().needs];
+        crate::action::apply(&mut world, 1, action, &config);
+        let moved = |id: KittyId, before: &Needs| {
+            let after = world.kitty(id).unwrap().needs;
+            let kinds: Vec<NeedKind> = NeedKind::ALL
+                .into_iter()
+                .filter(|k| after.get(*k) != before.get(*k))
+                .collect();
+            NeedSet::from_kinds(&kinds)
+        };
+        assert_eq!(
+            moved(1, &before[0]),
+            proposer_relief(&action),
+            "proposer needs moved for {action:?}"
+        );
+        assert_eq!(
+            moved(2, &before[1]),
+            partner_relief(&action)
+                .map(|(_, relief)| relief)
+                .unwrap_or_default(),
+            "partner needs moved for {action:?}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------- T006
+
+/// A needy world for the verdict tests: kitty 1 seated (release level
+/// out of reach so no episode releases mid-test), the pair side by side,
+/// food and water beside kitty 1, the schedule held off.
+fn verdict_stage() -> (World, Config) {
+    let mut config = seated(NAME);
+    config.needy = Some(crate::config::NeedyConfig {
+        release_level: 99.0,
+        ..Default::default()
+    });
+    let mut world = World::generate(&config);
+    hold_off(&mut world, 1);
+    side_by_side(&mut world);
+    for (id, kind, x, y) in [
+        (900, ElementKind::Chow { servings: 50 }, 4, 5),
+        (901, ElementKind::Water, 6, 5),
+    ] {
+        world.push_element(Element {
+            id,
+            kind,
+            pos: Position::new(x, y),
+            ttl: None,
+        });
+    }
+    (world, config)
+}
+
+/// Puts the seat straight into an episode masking `masked`.
+pub(super) fn force_held(world: &mut World, id: KittyId, masked: &[NeedKind]) {
+    let onset = world.tick;
+    let s = kitty_mut(world, id).needy.as_mut().expect("needy seat");
+    s.phase = Phase::Held {
+        onset,
+        masked: NeedSet::from_kinds(masked),
+    };
+}
+
+fn refusal_at(world: &World, id: KittyId, tick: u64) -> Option<&crate::events::RefusalEvent> {
+    world
+        .refusal_log
+        .events()
+        .find(|e| e.kitty_id == id && e.tick == tick)
+}
+
+#[test]
+fn a_masked_proposer_is_refused_and_the_refusal_names_the_mask() {
+    let (mut world, config) = verdict_stage();
+    kitty_mut(&mut world, 1).needs.add(NeedKind::Eat, 80.0);
+    kitty_mut(&mut world, 1).needs.add(NeedKind::Drink, 80.0);
+    force_held(&mut world, 1, &[NeedKind::Eat]);
+    let eat_before = world.kitty(1).unwrap().needs.get(NeedKind::Eat);
+    let heard = world.tick;
+    tick_with(&mut world, &config, &[(1, Action::Eat)]);
+    let k = world.kitty(1).unwrap();
+    assert_eq!(k.activity, Activity::Idle, "a masked eat resolved to Idle");
+    assert!(k.needs.get(NeedKind::Eat) >= eat_before);
+    let refusal = refusal_at(&world, 1, heard).expect("the refusal is recorded");
+    assert_eq!(refusal.proposed, Action::Eat);
+    assert_eq!(
+        refusal.reason,
+        crate::events::RefusalReason::NeedyMasked,
+        "the refusal names the mask (own)"
+    );
+
+    tick_with(&mut world, &config, &[(1, Action::Drink)]);
+    assert_eq!(
+        world.kitty(1).unwrap().activity,
+        Activity::Drinking,
+        "an unmasked need is serviced"
+    );
+}
+
+#[test]
+fn a_masked_cuddle_refuses_co_sleep_but_not_sleep_alone() {
+    let (mut world, config) = verdict_stage();
+    kitty_mut(&mut world, 1).needs.add(NeedKind::Sleep, 80.0);
+    force_held(&mut world, 1, &[NeedKind::Cuddle]);
+    tick_with(&mut world, &config, &[(1, Action::Sleep { with: Some(2) })]);
+    assert_eq!(
+        world.kitty(1).unwrap().activity,
+        Activity::Idle,
+        "co-sleep under a cuddle mask resolved to Idle"
+    );
+    tick_with(&mut world, &config, &[(1, Action::Sleep { with: None })]);
+    assert!(
+        matches!(
+            world.kitty(1).unwrap().activity,
+            Activity::Sleeping {
+                with_friend: None,
+                ..
+            }
+        ),
+        "sleep alone relieves nothing masked and applies"
+    );
+}
+
+#[test]
+fn a_friends_offer_of_masked_relief_is_refused_target_side() {
+    use crate::action::TargetRef;
+    let cases = [
+        (NeedKind::Cuddle, Action::Rest { with: Some(1) }),
+        (NeedKind::Bath, Action::Groom { target: Some(1) }),
+        (
+            NeedKind::Play,
+            Action::Play {
+                target: Some(TargetRef::Kitty { id: 1 }),
+            },
+        ),
+    ];
+    for (masked, offer) in cases {
+        let (mut world, config) = verdict_stage();
+        force_held(&mut world, 1, &[masked]);
+        assert_eq!(
+            crate::action::validate(&world, 2, offer, &config),
+            offer,
+            "validation never reads the mask: {offer:?}"
+        );
+        let heard = world.tick;
+        tick_with(&mut world, &config, &[(2, offer)]);
+        assert_eq!(
+            world.kitty(2).unwrap().activity,
+            Activity::Idle,
+            "the friend's offer was refused: {offer:?}"
+        );
+        assert_eq!(
+            refusal_at(&world, 2, heard).map(|e| e.reason),
+            Some(crate::events::RefusalReason::NeedyMasked),
+            "the refusal names the mask (offered): {offer:?}"
+        );
+
+        let (mut open, config) = verdict_stage();
+        tick_with(&mut open, &config, &[(2, offer)]);
+        assert_ne!(
+            open.kitty(2).unwrap().activity,
+            Activity::Idle,
+            "the same offer applies with no mask: {offer:?}"
+        );
+    }
+}
+
+#[test]
+fn the_apply_slot_verdict_agrees_with_the_served_path() {
+    use crate::action::TargetRef;
+    let cases = [
+        (NeedKind::Eat, 1, Action::Eat),
+        (NeedKind::Cuddle, 1, Action::Sleep { with: Some(2) }),
+        (NeedKind::Cuddle, 2, Action::Rest { with: Some(1) }),
+        (NeedKind::Bath, 2, Action::Groom { target: Some(1) }),
+        (
+            NeedKind::Play,
+            2,
+            Action::Play {
+                target: Some(TargetRef::Kitty { id: 1 }),
+            },
+        ),
+    ];
+    for (masked, proposer, proposal) in cases {
+        let (mut world, config) = verdict_stage();
+        force_held(&mut world, 1, &[masked]);
+        assert_eq!(
+            world
+                .clone()
+                .apply_slot_verdict(proposer, proposal, &config),
+            Action::Idle,
+            "apply_slot_verdict agrees with the served path: {proposal:?} is refused"
+        );
+        let (mut open, config) = verdict_stage();
+        assert_eq!(
+            open.apply_slot_verdict(proposer, proposal, &config),
+            proposal,
+            "and passes it with no mask"
+        );
+    }
 }

@@ -177,7 +177,7 @@ choose sensibly under it; ten episodes behave per needy-law §4–§6.
 **Independent Test**: quickstart §2 on a scratch needy config at a fixed
 seed.
 
-- [ ] T005 [P] [US1] Relief-table cross-check (rule 5's "wrong layer"
+- [X] T005 [P] [US1] Relief-table cross-check (rule 5's "wrong layer"
       guard) in `crates/cloudkitty-core/src/action.rs` tests: on a probe
       world with every need at 50, a partner adjacent and settled, chow
       and water adjacent, apply each §5a row for one tick; assert the
@@ -187,7 +187,7 @@ seed.
       Mutate (in needy.rs): `Groom{Some}`'s proposer row → `Bath` →
       predict the cross-check red (`proposer needs moved`); `Sleep{Some}`'s
       partner row → `Sleep` → predict red (`partner needs moved`).
-- [ ] T006 [US1] Engine law in `crates/cloudkitty-core/src/world.rs`,
+- [X] T006 [US1] Engine law in `crates/cloudkitty-core/src/world.rs`,
       `action.rs`, `events.rs`: `needy_verdict(proposer, validated,
       config) -> Action` (needy-law §5a) called directly after
       `consent_verdict` at BOTH sites (world.rs:419 served loop; :662

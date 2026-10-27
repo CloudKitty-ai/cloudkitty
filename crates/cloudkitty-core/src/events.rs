@@ -102,6 +102,14 @@ pub enum RefusalReason {
     /// proposer sees the refusal, never the reason's inputs. Wire name
     /// `consent_declined`.
     ConsentDeclined,
+    /// Spec 067 (needy-law §5a, research D15): the needy verdict refused a
+    /// proposal whose relief meets a needy seat's mask — the needy kitty's
+    /// own (its eat while eat is masked) or the kitty it names (a friend's
+    /// co-sleep while its cuddle is masked). Engine-validated at the apply
+    /// slot after consent; validation and the legal mask never read the
+    /// mask. Emitted only in a world with a needy seat. Wire name
+    /// `needy_masked`.
+    NeedyMasked,
     /// Everything else: a Move into an occupied tile, Eat/Drink with
     /// nothing adjacent, play or chase at a vanished or distant critter, a
     /// stale Meow/Purr, a target that does not exist.

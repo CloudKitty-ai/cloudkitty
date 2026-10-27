@@ -452,7 +452,17 @@ pub fn refusal_reason(
         | Action::Play {
             target: Some(TargetRef::Kitty { id }),
         } => id,
-        _ => return RefusalReason::Other,
+        // Spec 067 (D15): a proposal naming no kitty that validate passed
+        // was refused by the needy verdict — the slot's next gate.
+        _ => {
+            return if world.needy_refuses(kitty_id, &proposal)
+                && validate(world, kitty_id, proposal, config) == proposal
+            {
+                RefusalReason::NeedyMasked
+            } else {
+                RefusalReason::Other
+            };
+        }
     };
     if target == kitty_id || world.kitty(target).is_none() {
         return RefusalReason::Other;
@@ -478,6 +488,14 @@ pub fn refusal_reason(
                 }
             }
         }
+    }
+    // Spec 067 (D15): validate passed and consent allowed, so the needy
+    // verdict refused it — read before the partner predicates, which would
+    // mislabel an adjacent, available target as PartnerBusy.
+    if world.needy_refuses(kitty_id, &proposal)
+        && validate(world, kitty_id, proposal, config) == proposal
+    {
+        return RefusalReason::NeedyMasked;
     }
     if !world.is_available_friend(kitty_id, target) {
         RefusalReason::PartnerAbsent

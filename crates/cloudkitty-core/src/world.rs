@@ -438,6 +438,12 @@ impl World {
             // needs are hidden state; anticipation is emergent, never
             // handed to a seat). The TARGET declines on its OWN line.
             let validated = self.consent_verdict(kitty_id, validated, config);
+            // The needy verdict (spec 067, needy-law §5a): a proposal whose
+            // relief meets a needy seat's mask resolves to Idle — the
+            // proposer's own mask or the named kitty's. Like consent, a
+            // separate step outside what the legal mask replays: the mask
+            // is the needy kitty's hidden state.
+            let validated = self.needy_verdict(kitty_id, validated);
             // Duration enforcement (spec 006): inside an activity's minimum the
             // engine continues the scene whatever was proposed; past it, a
             // different action lawfully interrupts (ending a duet for both).
@@ -758,6 +764,8 @@ impl World {
     /// The consent step makes the two paths diverge EXACTLY at consent
     /// sites — the mask's documented blindness (ruling eb9e860b item 4),
     /// which that property test must therefore stage with the gate open.
+    /// The needy verdict (spec 067) diverges them the same way, and only
+    /// in a world with a needy seat.
     pub fn apply_slot_verdict(
         &mut self,
         kitty_id: KittyId,
@@ -767,7 +775,40 @@ impl World {
         self.prune_dead_activity(kitty_id);
         let validated = action::validate(self, kitty_id, proposal, config);
         let validated = self.consent_verdict(kitty_id, validated, config);
+        let validated = self.needy_verdict(kitty_id, validated);
         self.enforce_durations(kitty_id, validated, config)
+    }
+
+    /// The needy verdict (spec 067, needy-law §5a; research D5): `Idle`
+    /// when the needy law refuses the proposal, the proposal otherwise.
+    /// Binds every proposer type, like the consent gate.
+    fn needy_verdict(
+        &self,
+        proposer: KittyId,
+        validated: crate::action::Action,
+    ) -> crate::action::Action {
+        if self.needy_refuses(proposer, &validated) {
+            crate::action::Action::Idle
+        } else {
+            validated
+        }
+    }
+
+    /// Whether the needy law refuses `action` from `proposer`: the needs
+    /// it relieves on the proposer meet the proposer's mask, or the needs
+    /// it relieves on the kitty it names meet that kitty's mask. Always
+    /// `false` when neither party carries needy state — the inert path.
+    /// Shared by the verdict and the refusal stamp (`action::refusal_reason`).
+    pub(crate) fn needy_refuses(&self, proposer: KittyId, action: &crate::action::Action) -> bool {
+        let mask_of = |id: KittyId| {
+            self.kitty(id)
+                .and_then(|k| k.needy.as_ref())
+                .map(|s| s.mask())
+                .unwrap_or_default()
+        };
+        crate::needy::proposer_relief(action).meets(mask_of(proposer))
+            || crate::needy::partner_relief(action)
+                .is_some_and(|(named, relief)| relief.meets(mask_of(named)))
     }
 
     /// The target-side consent gate (spec 059 FR-005; ruling 2026-10-10,
