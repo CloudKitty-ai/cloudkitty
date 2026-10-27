@@ -175,10 +175,21 @@ unknowns, each measured against the tree at c9d85721.
   collector (`experiments/tools/bc-collect/src/main.rs`: records every
   config behaviour as a demonstrator, provenance at :498–512) skips a
   seat with `teaches == Some(false)` and logs the refusal once per run
-  (FR-011). Lane: Experiments'; the plan asks their consent to carry the
-  ~10-line change in this PR under `cross-lane:`; otherwise it lands in
-  their lane with this spec's FR-011 as the requirement and this PR
-  ships the flag plus a core test that `needy` answers false.
+  (FR-011). Lane: Experiments' — CONSENTED 2026-10-26 to option (a),
+  the collector half rides this PR under `cross-lane:` (their grounds:
+  between a 067 merge and a later collector change a needy seat would
+  be recordable as a teacher, the exact state FR-011 forbids). Their
+  four conditions, all binding on the PR: (1) its own rule-5 red (a
+  config seating a needy kitty → that kitty's rows absent, the other
+  seats' rows unchanged, the refusal logged once per run); (2) the
+  provenance stamp names the refused seats explicitly
+  (`teachers_refused: [<kitty id>, ...]`, empty when none), so a corpus
+  recorded after the flag is distinguishable; (3) `teaches(name) ==
+  None` (an unknown behaviour) is a HARD ERROR in the collector, never
+  a silent true — the current needs_driven provenance fallback
+  (main.rs:505–512) no longer applies to an unknown name; (4) the PR
+  body quotes the consent and Experiments reads the collector hunk
+  before the owner merges.
 - **Rationale**: spec 066 deferred the flag to its first reader; the
   collector is the reader; one `bool` on the trait is the smallest
   surface and lets a future plugin seat declare itself too.
