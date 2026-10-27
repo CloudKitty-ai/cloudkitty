@@ -31,16 +31,17 @@ Run the first ten episodes through the engine and assert, per tick:
 | onset/release ticks | equal the schedule the law computes from the seed |
 | masked needs between onset and release | non-decreasing apart from engine floors; the kitty's applied actions never carry a masked governing need |
 | unmasked needs | serviced (applied actions include their relief at the teacher's rate) |
-| a friend adjacent proposing Rest/Sleep/Groom toward the needy kitty every tick | resolved to Idle while the relief need is masked; accepted after release |
+| a friend adjacent proposing Rest/Sleep/Groom/Play toward the needy kitty every tick | resolved to Idle with reason `needy_masked` while the relief need is masked; accepted after release |
 | `needy_hold` variant | no level release; every release `by_limit` at onset + hold_ticks |
 | two needy seats | two schedules; changing one kitty's id changes only its own |
 
 ## 3. Determinism and stream isolation (SC-002)
 
 - Generate twice at one seed: identical `Kitty.needy` sequences.
-- Add a needy seat to a roster: every OTHER kitty's dealt decision
-  seeds and the master `World.rng` state after 300 ticks equal the
-  no-needy run's (the sub-stream consumed nothing shared).
+- Swap one seat from `teacher` to `needy` (roster fixed, late first
+  onset): the two worlds, with that kitty's `behavior` and `needy`
+  stripped, are byte-identical after 100 ticks (the sub-stream consumed
+  nothing shared; research D17).
 
 ## 4. Observability (SC-005, FR-012)
 
@@ -72,10 +73,11 @@ boot line / `GET /config` / settings row naming the modes with it.
 Every assertion above goes red first via `scripts/mutate.sh --expect`.
 Expected hand-rolled items: none (every red here is a code mutation).
 Candidate mutations the tasks must include: the verdict skipping the
-partner clause; `available_friend_in` ignoring the mask; the release
-check reading `>` instead of `>=`; `needy_hold` honouring the level;
-the sub-stream seeded without the kitty id; the ordinal not
-incrementing; the advance step placed before `advance_needs`; the
-masked view leaking into `Teacher` (D12 trace); `teaches()` defaulting
-false; the mix length check hard-coding 6 (FR-016: the test builds the
-expected message from `NeedKind::ALL.len()`).
+partner clause; the onset sweep's arms deleted one by one; the release
+check reading `>` instead of `>=`; the onset check reading `==`;
+`needy_hold` honouring the level; the sub-stream seeded without the
+kitty id; the ordinal not incrementing; the advance step placed before
+`advance_needs`; a teacher rung edited against the committed trace
+golden (D12); the fog blank deleted; the invariant deleted; `teaches()`
+defaulting false; the refusal reason's needy check deleted. The FR-016
+guard (a hard-coded 6) is construction-only and declared so.

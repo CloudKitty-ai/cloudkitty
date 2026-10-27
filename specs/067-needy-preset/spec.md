@@ -277,12 +277,12 @@ needy-seat roster.
   is at or above the release level (so a need that is already there
   waits for the others) or until the hold limit, whichever comes first.
   Under `needy_hold` the level plays no part.
-- **Release level below an engine floor**: plain-tile sleep stops at
-  the engine's off-beam sleep floor, so a sleep release level at or
-  below that floor could never be reached in a cold world; validation
-  refuses it. More generally a need the engine cannot hold at the
-  release level is not a stratum, and the per-need floors are declared
-  in the parameter section (Assumptions).
+- **Release level at or below an engine floor**: plain-tile sleep never
+  drops below the engine's off-beam sleep floor, so a sleep release
+  level at or below that floor is reached the moment sleep is masked:
+  the episode would release at once and the stratum would be
+  degenerate. Validation refuses a release level at or below any
+  engine floor (today the one floor is the off-beam sleep floor).
 - **The hold limit expires with no need at the release level**
   (`needy`): the episode releases anyway; the recorder's phase says so,
   so a reader can separate level-released from time-released episodes.
@@ -300,24 +300,52 @@ needy-seat roster.
   proposal from another cat): unmasked needs do not change how it
   answers; the mask only stops it from accepting relief FOR a masked
   need and from seeking one.
-- **A friend keeps proposing to a needy kitty every tick**: refusals go
-  through the engine's existing target-side gate and are recorded as
-  refusals are today; no new record type.
-- **A policy or plugin seat**: cannot carry a needy preset. Both are
-  engine builtins; the mask exists nowhere else, so a covered mind can
-  never be masked (doctrine rule 12, second guard).
+- **A friend keeps proposing to a needy kitty every tick**: refusals
+  are recorded as refusals are today, no new record type; the refusal
+  record's reason names the mask (a new reason value, `needy_masked`,
+  beside the consent reason — never the consent reason, which would
+  mislabel it), and the same reason stamps the needy kitty's own
+  refused proposal for a masked need. The friend's legal mask and
+  every other kitty's refusal reasons are exactly today's: the mask is
+  hidden state of the needy kitty, read by the engine at the apply slot
+  only (the consent gate's precedent), never by validation.
+- **A policy or plugin seat**: cannot carry a needy preset, by
+  construction: a kitty carries needy state exactly when its configured
+  behaviour is a needy preset name, the engine checks that pairing as
+  an invariant every tick, a control override (the binding's per-kitty
+  control map) that would seat a needy kitty on anything else or seat
+  anything else on a needy config seat is refused before the world
+  exists, and a resume that adds or removes a needy seat relative to
+  the saved world is refused. So a covered mind can never be masked
+  (doctrine rule 12, second guard).
 - **Every need masked (m = N, six today)**: reachable when the set
   gives m = N a weight. The kitty services nothing and only calls; the world's relief
   and safeguards still act on it (FR-013). Her ruling: the cap is the
   set's, from 1 to all needs.
-- **Save and resume**: a needy kitty's schedule is a pure function of
-  (world seed, kitty id, parameters), so a resumed world continues the
-  same schedule without storing it; the episode phase at the resume
-  tick is re-derived, not stored.
+- **Save and resume**: every DRAW of the schedule is a pure function of
+  (world seed, kitty id, parameters, draw order), but the episode's
+  STATE is not: a level release depends on the path the masked needs
+  took, so the state (phase, ordinal, mask, the private stream's
+  position) is saved with the world and a resumed world continues from
+  it; nothing is re-derived. A resume whose config seats a needy preset
+  where the saved world carries no needy state, or the reverse, is
+  refused (the policy-seat Edge Case above).
 - **A first onset drawn beyond the world's length** (a late history
   level in a short world): the seat never opens an episode in that
   world; the recorder shows ordinal 0 throughout, and the set's
   declaration counts it as a world with no onset, not as a missed one.
+- **An onset tick of 0**: "tick" throughout means the tick a snapshot
+  carries, and the first snapshot after generation carries tick 1 (the
+  generated world is tick 0, before any decision). An episode opens on
+  the first published tick whose number is AT OR PAST its onset, so an
+  onset of 0 opens on tick 1 and no onset is ever skipped; a rest gap
+  of 1 opens the next episode on the tick after the release.
+- **Switching off servicing mid-scene**: at onset, the needy kitty's
+  own activity ends if it would relieve a masked need, and a friend's
+  in-progress co-sleep or rest WITH the needy kitty drops to solo
+  posture and a friend's groom OF the needy kitty ends, the same tick,
+  so no relief for a masked need lands after the onset tick. Nothing
+  else about the friend's scene changes.
 
 ## Requirements *(mandatory)*
 
@@ -335,17 +363,22 @@ needy-seat roster.
   serialized config, the defaults stamp, the world fingerprint, the
   snapshot stream and the boot log. Zero golden, pin or fixture
   re-cuts.
-- **FR-003**: A needy seat's SCHEDULE — the sequence of episodes, each
-  with an onset tick, a masked need set and a release rule — MUST be a
-  deterministic function of the world seed, the kitty's id and the
-  declared parameters, derived without consuming the world's master
-  stream or any other kitty's private stream, so the same seed
-  reproduces the identical schedule and no other kitty's draws move.
+- **FR-003**: Every DRAW of a needy seat's SCHEDULE — each episode's
+  onset tick, masked need set and rest gap — MUST come from a private
+  stream that is a deterministic function of the world seed, the
+  kitty's id and the declared parameters, consuming neither the world's
+  master stream nor any other kitty's private stream, so the same seed
+  and config reproduce the identical schedule and no other kitty's
+  draws move. The schedule's STATE (which episode, its phase, its mask,
+  the stream's position) is world state: it is saved and resumed with
+  the world (Edge Cases, save and resume), because a level release
+  depends on the path the needs took.
 - **FR-004**: Each episode MUST have: an onset tick (the previous
   release plus a rest gap drawn from a declared range; the FIRST onset
   of each needy seat drawn per world from declared history-length
-  levels — at least five, spanning the world's length, e.g. 0–10 /
-  10–100 / 100–500 / 500–2,000 / 2,000+ ticks — each level with a
+  levels — at least five, spanning the world's length, e.g. 0–2 /
+  2–10 / 10–50 / 50–200 / 200–20,000 ticks (A2: edges straddling the
+  F-070 knee) — each level with a
   declared weight and the tick drawn flat or log-uniform within the
   level, so the schedule carries no clock: no onset tick is fixed
   across worlds and a head trained on the set cannot learn one (the
@@ -360,14 +393,21 @@ needy-seat roster.
   declared release level, or when the declared hold limit has passed
   since onset, whichever is first; `needy_hold` releases when the hold
   limit has passed and never before (owner ruling, "B").
-- **FR-005**: While a need is masked, the needy kitty MUST NOT choose
-  any action whose purpose is to relieve that need (the serious ladder,
-  the take-what-is-here rung and the groom-response rung all skip it),
-  and MUST refuse relief for that need offered by another kitty through
-  the engine's existing target-side consent gate (co-sleep and cuddle
-  lower cuddle on both cats; a friend's groom lowers the target's bath;
-  for these the target-side refusal is load-bearing). Needs not masked
-  are serviced exactly as the base preset services them. The mask
+- **FR-005**: While a need is masked, no action of the needy kitty's
+  own MAY relieve it: an action is judged by the full set of the
+  ACTOR's needs it relieves (eat → eat; drink → drink; solo sleep →
+  sleep; co-sleep → sleep AND cuddle; rest with a friend → cuddle;
+  self-groom → bath; grooming a friend → the groomer's own cuddle;
+  play, solo or social → play), and one that touches a masked need
+  resolves to nothing at the engine's apply slot, however it was
+  proposed. Relief OFFERED by another kitty for a masked need MUST be
+  refused at the same slot, target-side (a friend's co-sleep or rest
+  with the needy kitty → its cuddle; a friend's groom of it → its bath;
+  a friend's social play with it → its play): the friend's proposal
+  resolves to nothing and is recorded as a refusal. Needs not masked
+  are serviced exactly as the base preset services them, and the
+  preset's own choice avoids proposing what the slot would refuse, so a
+  needy kitty masked only on cuddle still sleeps, alone. The mask
   suppresses SERVICING ONLY: the kitty's calling (the law-named want
   for a masked need, and every other word rule) is unchanged from the
   base preset (owner ruling 2026-10-26, "A"; the Professor's line (b):
@@ -385,16 +425,17 @@ needy-seat roster.
   section: the mix weights (one per m from 1 to N, validated to exactly
   N entries with the error naming N), the release level
   (`needy` only; `needy_hold` ignores it), the hold limit, the rest-gap
-  range, the first-onset history levels (boundaries and one weight
-  each, at least five levels) and the per-need release floors, each
-  with a declared default, validated at load (every weight vector
-  non-negative and not all zero; release level in the need range and
-  above every declared floor; hold limit and gaps positive; level
-  boundaries strictly increasing with at least five levels; the sleep
-  release level above the engine's off-beam sleep floor; the per-need
-  floors keyed by need name, every key a known need), and inspectable on the
-  served config surface like any other section. Writing the section
-  with no needy seat is valid and inert.
+  range and the first-onset history levels (boundaries and one weight
+  each, at least five levels), each with a declared default, validated
+  at load (every weight vector finite, non-negative and not all zero;
+  release level in the need range and strictly above every engine
+  floor, today the off-beam sleep floor; hold limit and gaps positive;
+  level boundaries strictly increasing with at least five levels), and
+  inspectable on the served config surface like any other section.
+  Writing the section with no needy seat is valid and inert. (The
+  design notes' per-need floor table is not a parameter: the engine's
+  floors are already its own config, and the release rule reads them
+  there.)
 - **FR-009**: Seating any kitty on `needy` MUST register as the
   welfare-hazardous mode `needy`, and on `needy_hold` as the mode
   `needy_hold`, in spec 066's registry (mode name = preset name, one
@@ -417,9 +458,16 @@ needy-seat roster.
 - **FR-012**: For every needy seat, the lab recorder's per-kitty record
   MUST carry, each tick, the masked need set, the episode ordinal
   (counting from 1 at the first onset; 0 before it) and the episode
-  phase (resting, held, releasing, with time-released distinguished
-  from level-released). Records of non-needy seats MUST be unchanged.
-  The served viewer and the plugin wire are out of scope.
+  phase (resting, held, or released on the release tick, with
+  time-released distinguished from level-released). The record is the
+  kitty's own entry in the world snapshot plus a binding accessor;
+  records of non-needy seats MUST be unchanged. A needy kitty's state
+  is its OWN: it appears in no other kitty's view of the world (the fog
+  view blanks it on every kitty but the observer), so it never reaches
+  a policy observation, a plugin decision request or a corpus trace.
+  The operator's surfaces — the saved world and the server's state
+  endpoint — carry it as they carry every kitty field; the served
+  viewer shows nothing new.
 - **FR-013**: The mask MUST govern only the needy kitty's own choices.
   No world law changes: relief sources, the safeguard relief, distress
   records, Article I bounds, the here-word and consent law for every
@@ -449,15 +497,16 @@ needy-seat roster.
 - **Needy presets**: two builtin behaviours, `needy` (level-released)
   and `needy_hold` (held to the limit); a teacher-preset ladder plus a
   schedule and a mask.
-- **Schedule**: the ordered episodes a needy seat will run, a pure
-  function of (world seed, kitty id, parameters).
+- **Schedule**: the ordered episodes a needy seat runs; every draw a
+  pure function of (world seed, kitty id, parameters, draw order), the
+  state saved with the world.
 - **Episode**: onset tick, masked need set (m needs), release rule
   (level or hold limit), the rest gap that follows; its ordinal.
 - **Mask**: the set of needs a needy kitty is currently refusing to
   service or accept relief for; empty while resting.
 - **Needy parameters**: the shared config section — N mix weights (one
-  per possible count), release level, hold limit, rest-gap range, first-onset range,
-  per-need release floors.
+  per possible count), release level, hold limit, rest-gap range, the
+  first-onset levels and their weights, the within-level draw shape.
 - **Hazard modes `needy` and `needy_hold`**: spec 066's second and
   third registry entries; each active iff any seat carries that preset.
 - **Teacher eligibility**: the per-behaviour answer the collector
@@ -473,22 +522,31 @@ needy-seat roster.
   the defaults stamp is unchanged.
 - **SC-002**: Across any two generations of a world at the same seed
   and config, every needy seat's onset ticks, need sets and releases
-  are identical; adding a needy seat to a roster leaves the master
-  stream and every other kitty's private draw sequence byte-identical.
+  are identical. Changing one seat from `teacher` to a needy preset
+  (the roster otherwise equal) leaves the generated world identical
+  except that kitty's behaviour string and needy state, and until that
+  kitty's first onset the two worlds tick identically on every surface
+  except those two fields — the schedule's draws reach nothing shared.
+  (The master stream deals one seed per kitty per tick and the turn
+  order draws scale with the roster, so a roster of a different SIZE is
+  a different world; the comparison holds the roster fixed.)
 - **SC-003**: In a scratch world with one needy seat at the default
   parameters, run for its first ten episodes: every masked need rises
   monotonically (apart from engine floors) from onset to release; the
   kitty takes zero actions that relieve a masked need; every offered
   relief for a masked need is refused; every onset and release tick
   equals the schedule's declared tick.
-- **SC-004**: Over a declared number of long worlds at the default
-  parameters, every stratum of the coverage design (history length at
-  onset as the PRIMARY stratum, at least five levels; crossed with each
-  m from 1 to N the weights allow; crossed with each of the N needs)
-  reaches the declared minimum episode count, the observed mix over m
-  and over history levels matches the weights within sampling noise,
-  and first-episode and later-episode counts are reported separately
-  (the ordinal is a covariate, never pooled).
+- **SC-004**: Under the default parameters every stratum of the
+  coverage design is REACHABLE and drawn in proportion to its weight:
+  over 10,000 schedule draws, every history level with non-zero weight
+  receives first onsets and no zero-weight level does, every m with
+  non-zero weight occurs and no zero-weight m does, each of the N needs
+  appears in drawn sets, and the observed proportions over levels and
+  over m match the weights within two percentage points. The MINIMUM
+  episode count per stratum, the number of worlds that buys it and the
+  separate first-episode and later-episode reads (the ordinal is a
+  covariate, never pooled) are the consumer's: Experiments' declaration
+  of the set states them (doctrine rule 10).
 - **SC-005**: The lab recorder's record for a needy seat agrees with
   the schedule on every tick of SC-003's run (mask, ordinal, phase);
   the record for every non-needy seat is byte-identical to the
@@ -582,15 +640,20 @@ checked before planning:
 ## Assumptions
 
 - **A1 — The design notes of 2026-10-25 stand** (she said "All
-  reasonable"; recorded, not redone): the rule-12 paragraph shape
-  above; the per-need hold table — eat, drink, play and sleep are
-  relieved only by the actor's own action, so the actor-side mask
-  suffices; plain-tile sleep stops at the off-beam sleep floor, so the
-  sleep release level must sit above it; cuddle is lowered on both cats
-  by a partner's co-sleep or cuddle and bath by a friend's groom, so for
-  those two the target-side refusal is load-bearing. "Grave" is the
-  probe's lab band, not an engine term; any set imports its threshold
-  from the probe's declaration.
+  reasonable"; recorded, not redone), with the per-need hold table
+  corrected against the engine's effects at plan time: eat, drink and
+  sleep are relieved only by the actor's own action, so the actor-side
+  mask suffices for them; play is relieved by the actor's own play AND
+  by a friend's social play with it; cuddle is lowered on both cats by
+  a partner's co-sleep or rest and on the groomer by grooming a friend;
+  bath is lowered by self-groom and by a friend's groom. So the
+  target-side refusal is load-bearing for cuddle, bath and play, and
+  the actor-side judgement reads the whole relief set of an action (a
+  co-sleep relieves sleep and cuddle; grooming a friend relieves the
+  groomer's cuddle). Plain-tile sleep never drops below the off-beam
+  sleep floor, so a release level at or below it is degenerate and
+  refused. "Grave" is the probe's lab band, not an engine term; any set
+  imports its threshold from the probe's declaration.
 - **A2 — The Professor's four later design changes, received 2026-10-26
   (forwarded by Experiments on her word "Forward: yes"; verbatim text
   from the note's §Scoring, "Does this change the Q2 schedule design?
@@ -598,11 +661,16 @@ checked before planning:
   is the PRIMARY stratum and the schedule carries no clock: FR-004's
   first-onset levels (at least five, flat or log-uniform within a
   level, weights declared) and SC-004's per-level read. The level
-  boundaries are parameters (FR-008) with the Professor's example as
-  the default; the set's declaration may move them once Experiments'
-  knee read (the splice at H ∈ {1, 2, 5, 10, 20, 50}, their read, waits
-  on her word) locates where the frozen head's grave read collapses —
-  no mechanism here depends on that number. (2) The episode ordinal is
+  boundaries are parameters (FR-008). Experiments' knee read has run
+  (F-070, main a203e63c, her word "Run the knee read now"): the frozen
+  head's grave read falls gradually with the clean history before the
+  grave rows, 0.995 at a world's start, 0.978 / 0.970 / 0.852 / 0.658 /
+  0.537 / 0.362 after 1 / 2 / 5 / 10 / 20 / 50 clean ticks, 0.358 at
+  100, most of the fall over by 20 ticks. The default level edges
+  straddle that knee (0–2 / 2–10 / 10–50 / 50–200 / 200 to the end of
+  a 20,000-tick world) so no default level pools 0.98 with 0.66; the
+  set's declaration owns the edges and may move them — no mechanism
+  here depends on the number. (2) The episode ordinal is
   a logged covariate: FR-012; first-episode and later-episode reads
   are never pooled (SC-004). (3) The set's role has doubled, and this
   spec names which role it builds for: an INSTRUMENT for reading the
@@ -633,15 +701,14 @@ checked before planning:
   world is the mask. The alternative (`needs_driven` as base) would
   confound the read with the compat presets' silence.
 - **A4 — Default parameters are a coverage design**: N weights over
-  m (six today) such as (0.5, 0.2, 0.15, 0.15, 0, 0) with the higher counts opened
-  by a set's declaration, a release level such as 90 for `needy`
-  (crossings) with `needy_hold` as the sustained-grave variant, a hold
-  limit
-  and rest gap long enough for several episodes per 20,000-tick world,
-  per-need floors from the engine; exact numbers are the plan's, read
-  per stratum (play gets its own cell: the weakest named need in F-068
-  at 0.783). The spec declares the shape; no default is a model of the
-  world.
+  m (six today) such as (0.5, 0.2, 0.15, 0.15, 0, 0) with the higher
+  counts opened by a set's declaration, a release level such as 90 for
+  `needy` (crossings) with `needy_hold` as the sustained-grave variant,
+  a hold limit and rest gap long enough for several episodes per
+  20,000-tick world, first-onset levels straddling the F-070 knee (A2);
+  exact numbers are the plan's, read per stratum (play gets its own
+  cell: the weakest named need in F-068 at 0.783). The spec declares
+  the shape; no default is a model of the world.
 - **A5 — Spec 066 is the only hazard machinery**: no new switch, table
   or sweep rule; the second and third registry entries plug into what
   landed in PR #469, and the registry list is tied to the enum at this touch
