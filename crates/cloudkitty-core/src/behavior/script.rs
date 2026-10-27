@@ -531,6 +531,49 @@ mod tests {
     /// is not there at all, so a pre-066 world's requests are byte-identical.
     /// Information to the advisor, never a decision input: the engine reads
     /// it at load and boot only.
+    /// Spec 067 FR-012 / FR-014: a plain world's request carries no
+    /// `needy` key anywhere, and in a needy world a FRIEND's request — built
+    /// the real way, from its fog view — never carries the needy kitty's
+    /// schedule.
+    #[test]
+    fn the_needy_schedule_never_rides_a_friends_request() {
+        let request_for = |config: &Config, id: crate::kitty::KittyId| -> serde_json::Value {
+            let config = Arc::new(config.clone());
+            let world = World::generate(&config);
+            let snapshot = world.snapshot();
+            let ctx = crate::behavior::DecisionContext {
+                me: snapshot.kitty(id).unwrap().clone(),
+                world: Arc::new(snapshot.fog_for(id, config.vision.radius)),
+                rng: crate::rng::DecisionRng::from_seed(5),
+                config: config.clone(),
+            };
+            serde_json::to_value(DecisionRequest::for_context(&ctx, 42)).unwrap()
+        };
+        let plain = request_for(&test_config(), 2);
+        assert!(
+            !plain.to_string().contains("needy"),
+            "a plain world's request is unchanged: {plain}"
+        );
+
+        let mut seated = test_config();
+        seated.kitties[0].behavior = crate::needy::NAME.to_string();
+        seated.welfare_hazard = Some(crate::config::WelfareHazardConfig {
+            acknowledged: vec![crate::needy::NAME.into()],
+        });
+        seated.validate().unwrap();
+        let friend = request_for(&seated, 2);
+        let seen = friend["world"]["kitties"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|k| k["id"] == 1)
+            .expect("the needy kitty is in the friend's view");
+        assert!(
+            seen.get("needy").is_none(),
+            "a friend's request never carries the needy kitty's schedule: {seen}"
+        );
+    }
+
     #[test]
     fn the_welfare_hazard_acknowledgement_rides_the_wire_only_when_present() {
         let request_config_json = |config: &Config| -> serde_json::Value {

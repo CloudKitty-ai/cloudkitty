@@ -869,3 +869,72 @@ fn the_worlds_welfare_law_acts_on_a_masked_need_as_on_any_need() {
         "the safeguard spawns food for a masked need exactly as for any kitty"
     );
 }
+
+// ---------------------------------------------------------------- T010
+
+async fn serialized_after(config: Config, ticks: u64) -> serde_json::Value {
+    let config = Arc::new(config);
+    let registry = crate::behavior::BehaviorRegistry::with_builtins();
+    let mut world = World::generate(&config);
+    for _ in 0..ticks {
+        world.tick(&registry, &config).await;
+    }
+    serde_json::to_value(&world).unwrap()
+}
+
+/// FR-002 / US2 scenario 3: a WRITTEN `[needy]` table with no needy seat
+/// is inert — 300 ticks of the default world serialize identically with
+/// and without it, and no needy key appears.
+#[tokio::test]
+async fn the_needy_table_alone_never_reaches_a_plain_world() {
+    let mut base = Config::default();
+    base.world.seed = 20260718;
+    let mut written = base.clone();
+    written.needy = Some(crate::config::NeedyConfig {
+        release_level: 70.0,
+        ..Default::default()
+    });
+    written.validate().expect("the table alone validates");
+    let a = serialized_after(base, 300).await;
+    let b = serialized_after(written, 300).await;
+    assert!(
+        !a.to_string().contains("\"needy\""),
+        "no needy key in a plain world"
+    );
+    assert!(
+        a == b,
+        "a written [needy] table with no seat changes nothing in the world"
+    );
+}
+
+/// SC-002 (research D17): one seat swapped from `teacher` to `needy`, the
+/// roster fixed, the first onset out of reach — until that onset the two
+/// worlds tick identically on every surface except the seat's behaviour
+/// string and needy state: the schedule's draws reach nothing shared.
+#[tokio::test]
+async fn swapping_a_teacher_seat_for_needy_moves_nothing_shared_before_the_onset() {
+    let mut teacher = test_config();
+    teacher.kitties[0].behavior = "teacher".to_string();
+    let mut needy = seated(NAME);
+    needy.needy = Some(crate::config::NeedyConfig {
+        onset_levels: vec![500, 501, 502, 503, 504, 505],
+        ..Default::default()
+    });
+    needy.validate().unwrap();
+    let strip = |mut v: serde_json::Value| {
+        for k in v["kitties"].as_array_mut().unwrap() {
+            if k["id"] == 1 {
+                let k = k.as_object_mut().unwrap();
+                k.remove("behavior");
+                k.remove("needy");
+            }
+        }
+        v
+    };
+    let a = strip(serialized_after(teacher, 200).await);
+    let b = strip(serialized_after(needy, 200).await);
+    assert!(
+        a == b,
+        "identical until the first onset apart from the seat's behaviour and needy state"
+    );
+}

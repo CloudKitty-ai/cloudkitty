@@ -297,7 +297,7 @@ byte-equal; the swap comparison (SC-002).
 
 **Independent Test**: quickstart §1 against T001's pins.
 
-- [ ] T010 [US2] Pins in world.rs / behavior tests / `tests/snapshot_resume.rs`:
+- [X] T010 [US2] Pins in world.rs / behavior tests / `tests/snapshot_resume.rs`:
       `the_needy_state_never_reaches_a_plain_world` (300 ticks at seed
       20260718 of `Config::default()` with and without a WRITTEN
       `[needy]` section and no needy seat → serialized worlds equal, and
