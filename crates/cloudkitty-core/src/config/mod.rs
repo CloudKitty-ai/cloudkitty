@@ -3800,6 +3800,48 @@ mod tests {
         );
     }
 
+    /// Spec 066 FR-008 / SC-005: the acknowledgement is not part of the
+    /// resume identity — a saved world is never orphaned by adding or
+    /// removing the section (or the distressed start it acknowledges).
+    #[test]
+    fn fingerprint_ignores_the_welfare_hazard_section() {
+        let a = cfg();
+        let mut b = cfg();
+        b.initial_needs = Some(InitialNeedsSpec {
+            cuddle: Some(NeedInit::Value(92.0)),
+            ..Default::default()
+        });
+        b.welfare_hazard = Some(WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
+        b.validate().expect("the acknowledged config is valid");
+        assert_eq!(
+            a.fingerprint(),
+            b.fingerprint(),
+            "an acknowledgement must never orphan a saved world"
+        );
+    }
+
+    /// Spec 066 FR-002 / FR-008 (US1 scenario 2, US2 scenario 2, SC-001):
+    /// the section never reaches the world. A pre-feature config and the
+    /// same config with a written (exact, empty) acknowledgement generate
+    /// byte-identical worlds — `World` is serialized whole, RNG included,
+    /// so this compares every draw and every tick-0 value.
+    #[test]
+    fn the_acknowledgement_never_reaches_the_world() {
+        let a = cfg();
+        let b: Config =
+            toml::from_str(&complete("[welfare_hazard]\nacknowledged = []")).expect("parses");
+        b.validate()
+            .expect("exact: nothing acknowledged, nothing active");
+        assert!(b.welfare_hazard.is_some(), "the section is present on b");
+        assert_eq!(
+            serde_json::to_string(&crate::World::generate(&a)).unwrap(),
+            serde_json::to_string(&crate::World::generate(&b)).unwrap(),
+            "the acknowledgement must never reach the generated world"
+        );
+    }
+
     #[test]
     fn budget_ms_scales_with_the_tick() {
         let b = BehaviorConfig {

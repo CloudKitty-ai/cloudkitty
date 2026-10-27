@@ -1610,4 +1610,24 @@ sha256 = "{sha}"
             "an rl default moved but the stamp did not — silent comparability"
         );
     }
+
+    /// Spec 066 guard-law §1 at the stamp layer: a WRITTEN acknowledgement
+    /// serializes, so it moves the stamp. The absent half (the default
+    /// stamp unmoved) is not asserted here against a recomputed baseline —
+    /// that compares the function with itself and would stay green under
+    /// any mutation; it is the config module's "no key reaches the JSON
+    /// defaults" assertion plus the recorded-value comparison across
+    /// commits in the spec 066 PR.
+    #[test]
+    fn a_written_acknowledgement_moves_the_stamp() {
+        let mut core = Config::default();
+        core.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
+        assert_ne!(
+            defaults_stamp(&core, &crate::config::RlConfig::default()),
+            engine_defaults_sha256(),
+            "a written acknowledgement must reach the stamp (present-serializes)"
+        );
+    }
 }
