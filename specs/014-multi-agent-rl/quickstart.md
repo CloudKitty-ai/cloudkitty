@@ -77,6 +77,18 @@ same serial term would be ~4% and scaling near-linear. Scaling improves
 as world cost grows; single-world throughput is the binding measure at
 default cost.
 
+**Re-measured 2026-10-26 (Apple M5 Pro, 18 cores, rustc 1.97.1, release
+build, `python examples/bench.py --steps 2000`, two runs per
+configuration)**: 126,000–131,000 env steps/s single-threaded (default
+world, now 3 external agents); vectorized ×8 169,000–170,000 steps/s
+(1.30–1.32×); ×16 220,000–225,000 steps/s (1.73–1.78×). The floor above
+holds (×8 ≥ 1.05×). The bench had stopped running on the committed
+engine (scalar actions and a hard-coded Idle row from a retired menu;
+spec 028 requires `[activity, message]` pairs); it now reads the Idle
+row from the environment (`menu_len - 1`, Silent 0) and
+`tests/test_examples.py` runs it in CI's python-surface job, so this
+paragraph cannot silently drift from the example again.
+
 ## 4. Evaluation harness: baseline the built-ins (US3)
 
 ```bash
