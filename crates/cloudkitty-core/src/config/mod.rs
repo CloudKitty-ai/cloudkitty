@@ -16,6 +16,7 @@ use crate::needs::NeedWeights;
 
 mod defaults;
 mod validate;
+pub mod welfare_hazard;
 
 // Load-bearing glob: the `#[serde(default = "default_x")]` string attributes
 // below and the `Default` impls resolve these names bare. Narrowing or
@@ -109,6 +110,16 @@ pub struct Config {
     /// `specs/065-initial-needs/contracts/init-law.md`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub initial_needs: Option<InitialNeedsSpec>,
+    /// Welfare-hazard acknowledgement (spec 066): the `[welfare_hazard]`
+    /// table naming every welfare-hazardous mode this config activates,
+    /// exactly (`contracts/guard-law.md` §1, §3). OPTIONAL by the same
+    /// 062 design — absent is the pre-066 engine byte for byte, and
+    /// skip-if-none keeps `engine_defaults_sha256` and `GET /config`
+    /// unmoved; present (even with an empty list) it serializes, so the
+    /// served config surface shows the acknowledgement (FR-007). Never
+    /// read by `fingerprint()` or by any decision.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub welfare_hazard: Option<WelfareHazardConfig>,
     /// The `[rl]`, `[plugins]`, `[watchdog]`, and `[stuck_detector]`
     /// tables are parsed from the same file text by cloudkitty-rl and
     /// the server respectively -- everything under them is someone
@@ -571,6 +582,18 @@ impl InitialNeedsSpec {
             Bath => self.bath,
         }
     }
+}
+
+/// The `[welfare_hazard]` table (spec 066, guard-law §1): the modes an
+/// operator acknowledges activating, by registry name
+/// (`welfare_hazard::HazardMode::name`). `acknowledged` is REQUIRED
+/// inside the table — a bare `[welfare_hazard]` header fails to load —
+/// and the list must equal the active set exactly (`validate.rs`,
+/// `validate_welfare_hazard`).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WelfareHazardConfig {
+    pub acknowledged: Vec<String>,
 }
 
 /// Per-kitty favourite-source weights (spec 058, the Gen 2 identity
@@ -1667,6 +1690,7 @@ impl Default for Config {
             vision: VisionConfig::default(),
             starts: None,
             initial_needs: None,
+            welfare_hazard: None,
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
@@ -2604,6 +2628,60 @@ mod tests {
         // Integer spelling parses as the value (round-trips by VALUE).
         let int_spelled: InitialNeedsSpec = toml::from_str("eat = 80").unwrap();
         assert_eq!(int_spelled.eat, Some(NeedInit::Value(80.0)));
+    }
+
+    /// Spec 066 FR-002 / guard-law §1: no `welfare_hazard` key reaches
+    /// either serialized-defaults surface (039-D5 stamp discipline);
+    /// absent parses to `None`; a WRITTEN table serializes even with an
+    /// empty list (present-serializes, so `GET /config` shows it); the
+    /// table rejects unknown keys and requires `acknowledged`.
+    #[test]
+    fn welfare_hazard_defaults_absent_and_leaves_the_stamp_unmoved() {
+        let default_toml = toml::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_toml.contains("welfare_hazard"),
+            "the defaults TOML must not grow the 066 key"
+        );
+        let default_json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_json.contains("welfare_hazard"),
+            "no 066 key reaches the hashed JSON defaults"
+        );
+        assert!(Config::default().welfare_hazard.is_none(), "absent = None");
+
+        let written: Config = toml::from_str(&complete("[welfare_hazard]\nacknowledged = []"))
+            .expect("a written empty acknowledgement parses");
+        assert_eq!(
+            written.welfare_hazard,
+            Some(WelfareHazardConfig {
+                acknowledged: vec![]
+            })
+        );
+        let round_trip = toml::to_string(&written).unwrap();
+        assert!(
+            round_trip.contains("[welfare_hazard]") && round_trip.contains("acknowledged = []"),
+            "a written table serializes, empty list included: {round_trip}"
+        );
+        assert!(
+            serde_json::to_string(&written)
+                .unwrap()
+                .contains("\"welfare_hazard\""),
+            "the written table reaches the JSON surface (GET /config)"
+        );
+
+        // The table's own parser: unknown keys refused, `acknowledged`
+        // required (a bare header is not an acknowledgement of nothing).
+        let msg = toml::from_str::<WelfareHazardConfig>("acknowledged = []\nunsafe = true")
+            .unwrap_err()
+            .to_string();
+        assert!(msg.contains("unsafe"), "names the unknown key: {msg}");
+        let msg = toml::from_str::<WelfareHazardConfig>("")
+            .expect_err("a bare [welfare_hazard] table should reject: acknowledged is required")
+            .to_string();
+        assert!(
+            msg.contains("acknowledged"),
+            "names the missing field: {msg}"
+        );
     }
 
     /// Spec 065 init-law §8: out-of-bounds values, inverted ranges, and
