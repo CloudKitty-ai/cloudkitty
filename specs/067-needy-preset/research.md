@@ -184,10 +184,14 @@ unknowns, each measured against the tree at c9d85721.
   seats' rows unchanged, the refusal logged once per run); (2) the
   provenance stamp names the refused seats explicitly
   (`teachers_refused: [<kitty id>, ...]`, empty when none), so a corpus
-  recorded after the flag is distinguishable; (3) `teaches(name) ==
-  None` (an unknown behaviour) is a HARD ERROR in the collector, never
-  a silent true — the current needs_driven provenance fallback
-  (main.rs:505–512) no longer applies to an unknown name; (4) the PR
+  recorded after the flag is distinguishable; (3) WITHDRAWN by
+  Experiments the same day on reading the collector's fallback
+  (main.rs ~497–511): an unknown behaviour name is stamped `needs_driven`
+  because that is what the engine runs for it, exp-002 families depend
+  on that path, and a mistyped needy name runs needs_driven, teaches as
+  it does and is stamped truthfully — so the refusal keys on
+  `teaches(name) == Some(false)` ONLY; `None` keeps today's fallback
+  and stamp; (4) the PR
   body quotes the consent and Experiments reads the collector hunk
   before the owner merges.
 - **Rationale**: spec 066 deferred the flag to its first reader; the
