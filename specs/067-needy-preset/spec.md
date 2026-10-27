@@ -306,8 +306,8 @@ needy-seat roster.
 - **A policy or plugin seat**: cannot carry a needy preset. Both are
   engine builtins; the mask exists nowhere else, so a covered mind can
   never be masked (doctrine rule 12, second guard).
-- **Every need masked (m = 6)**: reachable when the set gives m = 6 a
-  weight. The kitty services nothing and only calls; the world's relief
+- **Every need masked (m = N, six today)**: reachable when the set
+  gives m = N a weight. The kitty services nothing and only calls; the world's relief
   and safeguards still act on it (FR-013). Her ruling: the cap is the
   set's, from 1 to all needs.
 - **Save and resume**: a needy kitty's schedule is a pure function of
@@ -352,9 +352,10 @@ needy-seat roster.
   Professor's change 1; the probe's grave read is a function of state
   age, F-069)); a masked need set of m distinct needs,
   m drawn by a declared weight vector with one weight per m from 1 to
-  6 (a zero weight excludes that count; the default mix is a coverage
-  design, not a model of the world — owner ruling 2026-10-26, "C",
-  configurable from one need to all needs); and the preset's release
+  the engine's need count, N (six today; a zero weight excludes that
+  count; the default mix is a coverage design, not a model of the
+  world — owner ruling 2026-10-26, "C", configurable from one need to
+  all needs); and the preset's release
   rule: `needy` releases when every masked need is at or above the
   declared release level, or when the declared hold limit has passed
   since onset, whichever is first; `needy_hold` releases when the hold
@@ -381,7 +382,8 @@ needy-seat roster.
   here, purr, wait-for-me), never a sound-named word, and its calling
   MUST follow the same rules as the base preset's.
 - **FR-008**: The presets' parameters MUST be one shared configuration
-  section: the mix weights (six, one per m), the release level
+  section: the mix weights (one per m from 1 to N, validated to exactly
+  N entries with the error naming N), the release level
   (`needy` only; `needy_hold` ignores it), the hold limit, the rest-gap
   range, the first-onset history levels (boundaries and one weight
   each, at least five levels) and the per-need release floors, each
@@ -389,7 +391,8 @@ needy-seat roster.
   non-negative and not all zero; release level in the need range and
   above every declared floor; hold limit and gaps positive; level
   boundaries strictly increasing with at least five levels; the sleep
-  release level above the engine's off-beam sleep floor), and inspectable on the
+  release level above the engine's off-beam sleep floor; the per-need
+  floors keyed by need name, every key a known need), and inspectable on the
   served config surface like any other section. Writing the section
   with no needy seat is valid and inert.
 - **FR-009**: Seating any kitty on `needy` MUST register as the
@@ -432,6 +435,15 @@ needy-seat roster.
   such a set as training data takes its own declaration). (The
   Professor's later change (c); binding text pending, see Assumptions.)
 
+- **FR-016**: Nothing in the preset, its parameters, its validation,
+  its recorder fields or its tests MAY hard-code the number of needs or
+  the list of need names: every per-need value is keyed by need name
+  and every per-count value is sized by the engine's single need list,
+  so adding a seventh need to the engine extends the preset with no
+  change to this feature beyond a default weight for m = 7 and a floor
+  entry (owner, 2026-10-26: a seventh need is planned). The validation
+  message for a wrong-length mix vector MUST name the current count.
+
 ### Key Entities
 
 - **Needy presets**: two builtin behaviours, `needy` (level-released)
@@ -443,8 +455,8 @@ needy-seat roster.
   (level or hold limit), the rest gap that follows; its ordinal.
 - **Mask**: the set of needs a needy kitty is currently refusing to
   service or accept relief for; empty while resting.
-- **Needy parameters**: the shared config section — six mix weights,
-  release level, hold limit, rest-gap range, first-onset range,
+- **Needy parameters**: the shared config section — N mix weights (one
+  per possible count), release level, hold limit, rest-gap range, first-onset range,
   per-need release floors.
 - **Hazard modes `needy` and `needy_hold`**: spec 066's second and
   third registry entries; each active iff any seat carries that preset.
@@ -472,7 +484,7 @@ needy-seat roster.
 - **SC-004**: Over a declared number of long worlds at the default
   parameters, every stratum of the coverage design (history length at
   onset as the PRIMARY stratum, at least five levels; crossed with each
-  m from 1 to 6 the weights allow; crossed with each of the six needs)
+  m from 1 to N the weights allow; crossed with each of the N needs)
   reaches the declared minimum episode count, the observed mix over m
   and over history levels matches the weights within sampling noise,
   and first-episode and later-episode counts are reported separately
@@ -557,8 +569,15 @@ checked before planning:
   only? → A: Two presets, one per rule, each its own hazard mode. Her
   choice, "B".
 - Q (process): may Experiments forward the Professor's four later design
-  changes? → A: "Forward: yes" — Assumption A2 is updated when the text
-  arrives.
+  changes? → A: "Forward: yes" — Assumption A2 holds the text, received
+  the same day.
+- Owner note (2026-10-26) on the masked-count range: "Re: the 1-6
+  needs, we're planning on adding a 7th need later. We don't need to
+  implement now, but ensuring we can add additional needs with minimal
+  issue would be nice." → Folded as FR-016: the spec never hard-codes
+  six; every per-need or per-count parameter is sized by the engine's
+  need count, and a new need joins the preset by joining the engine's
+  need list.
 
 ## Assumptions
 
@@ -613,8 +632,8 @@ checked before planning:
   the only behavioural difference between a needy world and a teacher
   world is the mask. The alternative (`needs_driven` as base) would
   confound the read with the compat presets' silence.
-- **A4 — Default parameters are a coverage design**: six weights over
-  m such as (0.5, 0.2, 0.15, 0.15, 0, 0) with the higher counts opened
+- **A4 — Default parameters are a coverage design**: N weights over
+  m (six today) such as (0.5, 0.2, 0.15, 0.15, 0, 0) with the higher counts opened
   by a set's declaration, a release level such as 90 for `needy`
   (crossings) with `needy_hold` as the sustained-grave variant, a hold
   limit
