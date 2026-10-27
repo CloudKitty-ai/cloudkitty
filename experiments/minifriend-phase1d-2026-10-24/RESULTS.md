@@ -1350,14 +1350,16 @@ H = 2 on. By the declared midpoint (0.641) the knee is at H = 20
 junction grows with the history as detection falls: 1.0 / 1.3 / 3.7 /
 11.3 / 16.3 / 24.7 ticks at H = 1 … 50 against 26.5 at 100. At 0.30 and
 0.50 the curve sits lower throughout (H = 10: 0.482 / 0.378; H = 50:
-0.250 / 0.185). SD width 16 at 0.10 falls faster (0.762 ± 0.185 at H =
-5, 0.487 ± 0.332 at 10, 0.403 ± 0.306 at 20, 0.297 ± 0.165 at 50; knee
-at H = 10) but its rows at H ≤ 2 are its own start-up transient, not
-detection: its control fires in 1.000 / 0.985 of junctions at H = 1 / 2
-and is under 0.05 only from H = 10. Read against decision 3 as ruled
+0.250 / 0.185). SD width 16 at 0.10 sits lower on the seed means at every
+H ≥ 5 (0.762 ± 0.185 at H = 5, 0.487 ± 0.332 at 10, 0.403 ± 0.306 at
+20, 0.297 ± 0.165 at 50; knee at H = 10), with one of its three seeds
+above every NF seed at H = 10 and 20; and its small-H rows carry its
+own start-up transient: its control fires in 1.000 / 0.985 of junctions
+at H = 1 / 2, in 0.122 ± 0.211 at H = 5 (0.000 / 0.000 / 0.365 per
+seed), and is under 0.05 only from H = 10. Read against decision 3 as ruled
 (0.10 with a 2-tick burn-in): on this splice, 2 clean ticks of history
 cost 2.5 points of detection (0.995 → 0.970), and the seed-mean
-detection is still above 0.85 at 5 ticks; the burn-in sits well inside
+detection is 0.852 at 5 ticks; the burn-in sits well inside
 the window in which the head sees a covered grave.
 
 ### Prediction scored (the Professor's P9, verbatim from the note's §"Registered predictions, added 2026-10-26"; operationalised in DECLARATION §Addendum 5)
@@ -1381,7 +1383,7 @@ This thread's expectation, not a prediction: the junction control at
 reproduces the committed P(grave) on the first P evaluation world to: s1 0.0e+00, s2 0.0e+00, s3 0.0e+00
 H = 100 re-run and equal to the committed rows per seed and threshold (asserted); 200 donors, 60 recipients
 
-## NF-h24+p
+#### NF-h24+p
 | H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | FA in history /10k | control fired |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | 0.10 | 200 ± 0 | 0.978 ± 0.003 | 1.0 ± 0.0 | 2.7 ± 1.2 | 0.968 ± 0.016 | 1.000 ± 0.000 | 0.977 ± 0.003 | 136.112 ± 104.075 | 0.010 ± 0.017 |
@@ -1443,10 +1445,13 @@ junction control fired at 0.10 for H ≥ 5: H=100 0.000, H=5 0.000, H=10 0.000, 
 Legend: *detected*, *median lat*, *p90 lat*, *within 10*, *in-sight det*,
 *fog det* as in §Addendum 4's splice tables (the episode is the donor
 segment from the junction; in-sight / fog by the donor's bit at onset,
-14 / 186 of 200); *FA in history /10k* is the alarm rate inside the H
-history ticks per 10,000 ticks — at H ≤ 50 the denominator is 60 × H
-ticks, so these are the recipients' start-up firings expressed per
-10,000 and are not comparable to the per-10,000 rates of §Addendum 3;
+14 / 186 of 200); *FA in history /10k* counts the alarm runs that
+start inside the H history ticks, per 10,000 ticks of the whole spliced
+index (200 splices × (H + the donor segment): 9,204 + 200 H ticks, so
+9,404 at H = 1 and 29,204 at H = 100) — for NF every such run is a
+recipient start-up firing (runs at reset equal runs), and the column is
+not comparable to the per-10,000 rates of §Addendum 3, whose
+denominator is the full slices;
 *control fired* is the fraction of the 200 junctions whose alarm fires
 inside the control segment; *(pin)* marks the re-run H = 100 row, equal
 to the committed one.
@@ -1456,11 +1461,14 @@ to the committed one.
 The §Addendum 4 limitation stands: the junction is a jump into a
 covered friend's grave, not a crossing. At H = 1 and 2 the NF control
 fires 0.010 and 0.000, so the NF rows there are detection and not the
-recipient's transient; the SD rows at H ≤ 5 are not, since SD's own
-transient from the seat's prior fires the control in 1.000 / 0.985 /
-0.122 of junctions. One ladder of six H values, three seeds per head;
-the seed SD at H = 10 (0.096) is a third of the fall between 5 and 20.
-The per-10,000 false-alarm column is over tiny denominators at small H.
+recipient's transient; SD's rows at H = 1 and 2 are its transient
+(control 1.000 / 0.985), and at H = 5 one seed's is (control 0.365 on
+seed 3, 0.000 on the others), so SD's curve is read from H = 10, where
+its control is under 0.05. One ladder of six H values, three seeds per
+head; the seed SD at H = 10 (0.096) is a third of the fall between 5
+and 20. The false-alarm column's denominator is the whole spliced index,
+mostly donor-segment ticks; it is a count of recipient start-up runs
+in disguise, not a rate comparable across addenda.
 The knee's definition (a midpoint) is one declared convention; the
 curve is the result.
 
