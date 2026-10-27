@@ -602,3 +602,6 @@ sleep = { min = 0, max = 90 }
 play = { min = 0, max = 90 }
 cuddle = { min = 0, max = 90 }
 bath = { min = 0, max = 90 }
+
+[welfare_hazard]
+acknowledged = ["initial_needs"]
