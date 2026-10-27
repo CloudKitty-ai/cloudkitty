@@ -1,10 +1,11 @@
-"""The examples run on the committed engine.
+"""examples/bench.py runs on the committed engine.
 
-Spec 014's quickstart §3 cites examples/bench.py as the SC-003
-reproduction, and the tag-time checks do not exercise examples; this is
-the CI guard (the python-surface job runs this directory). bench.py
-drifted once already: scalar actions and a hard-coded Idle row from a
-menu that no longer exists (found 2026-10-26, spec 028 pairs required).
+Spec 014's quickstart §3 cites bench.py as the SC-003 reproduction, and
+the tag-time checks do not exercise examples; this is the CI guard (the
+python-surface job runs this directory). bench.py drifted once already:
+scalar actions and a hard-coded Idle row from a menu that no longer
+exists (found 2026-10-26, spec 028 pairs required). random_rollout.py is
+NOT guarded here (same drift, reported separately, 2026-10-26).
 """
 
 import importlib.util
