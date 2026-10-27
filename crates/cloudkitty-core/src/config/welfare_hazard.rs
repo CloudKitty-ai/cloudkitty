@@ -251,29 +251,28 @@ mod tests {
     }
 
     /// PR #469 review N4: `ALL` is tied to the enum. An exhaustive `match`
-    /// over every variant builds the list, so a new variant fails to
-    /// compile here until it is placed in `ALL` too.
+    /// names each variant's successor and the walk builds the list, so a
+    /// new variant fails to compile here until it is given a place in the
+    /// chain — and the assertion then demands that place in `ALL` too.
     #[test]
     fn all_lists_every_variant_once() {
-        let mut from_match = Vec::new();
-        for mode in HazardMode::ALL {
-            // Exhaustive by construction: adding a variant breaks the build.
-            let placed = match mode {
-                HazardMode::InitialNeeds => HazardMode::InitialNeeds,
-                HazardMode::Needy => HazardMode::Needy,
-                HazardMode::NeedyHold => HazardMode::NeedyHold,
-            };
-            from_match.push(placed);
+        fn next(mode: Option<HazardMode>) -> Option<HazardMode> {
+            match mode {
+                None => Some(HazardMode::InitialNeeds),
+                Some(HazardMode::InitialNeeds) => Some(HazardMode::Needy),
+                Some(HazardMode::Needy) => Some(HazardMode::NeedyHold),
+                Some(HazardMode::NeedyHold) => None,
+            }
         }
-        let every_variant = [
-            HazardMode::InitialNeeds,
-            HazardMode::Needy,
-            HazardMode::NeedyHold,
-        ];
-        assert_eq!(from_match, every_variant);
+        let mut built = Vec::new();
+        let mut cursor = next(None);
+        while let Some(mode) = cursor {
+            built.push(mode);
+            cursor = next(Some(mode));
+        }
         assert_eq!(
             HazardMode::ALL,
-            &every_variant[..],
+            &built[..],
             "ALL lists every variant once, in order"
         );
     }

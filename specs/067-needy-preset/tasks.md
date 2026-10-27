@@ -332,7 +332,7 @@ treat them as such.
 
 **Independent Test**: quickstart §5.
 
-- [ ] T012 [US3] Registry in `crates/cloudkitty-core/src/config/welfare_hazard.rs`:
+- [X] T012 [US3] Registry in `crates/cloudkitty-core/src/config/welfare_hazard.rs`:
       `HazardMode::{InitialNeeds, Needy, NeedyHold}`, `ALL` in that
       order, `name()` → `"initial_needs"` / `needy::NAME` /
       `needy::HOLD_NAME`, `activation()` for the two new modes = the

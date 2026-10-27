@@ -3091,6 +3091,18 @@ mod tests {
         // The [needy] table alone is parameters, not a hazard.
         load("[needy]\nrelease_level = 70.0\n")
             .expect("the table without a seat is inert and valid");
+    }
+
+    /// Spec 067 FR-009 / SC-006: with several modes active the line to
+    /// add lists every one in registry order (`initial_needs`, `needy`,
+    /// `needy_hold`), and acknowledging all three loads.
+    #[test]
+    fn welfare_hazard_lists_every_active_needy_mode_in_registry_order() {
+        let load = |fragment: &str| -> Result<Config, String> {
+            let c: Config = toml::from_str(&complete(fragment)).map_err(|e| e.to_string())?;
+            c.validate().map_err(|e| e.to_string())?;
+            Ok(c)
+        };
         // Both presets seated: the line lists both, registry order.
         let mut both = cfg();
         both.kitties[2].behavior = "needy_hold".into();
