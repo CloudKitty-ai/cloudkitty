@@ -314,7 +314,7 @@ byte-equal; the swap comparison (SC-002).
       (`identical until the first onset`). Mutate C: `fingerprint()`
       appends `needy.is_some()` → predict `fingerprint_ignores_the_needy_section`
       red (T002's test; the call-site witness here).
-- [ ] T011 [US2] Byte-identity run: `cargo test --workspace` green with
+- [X] T011 [US2] Byte-identity run: `cargo test --workspace` green with
       zero golden/pin/fixture diffs beyond the new goldens file (`git
       status` shows source, tests, specs, CHANGELOG, the collector file
       only); T001's stamp, default JSON and serialized worlds equal the
@@ -482,7 +482,7 @@ law unchanged; the binding's door guarded.
       refusal reason `needy_masked`; no compatibility marker (stamp,
       obs-schema, fingerprint, draw order unmoved; a needy seat exists
       only in acknowledged research configs).
-- [ ] T020 Full `cargo test --workspace` + `cargo clippy --workspace
+- [X] T020 Full `cargo test --workspace` + `cargo clippy --workspace
       --all-targets -- -D warnings` + `cargo fmt --check` + `cd
       experiments/tools/bc-collect && cargo test && cargo clippy -- -D
       warnings` + the binding pytest via `maturin develop --release` in
