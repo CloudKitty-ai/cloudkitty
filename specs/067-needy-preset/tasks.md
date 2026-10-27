@@ -445,7 +445,7 @@ law unchanged; the binding's door guarded.
       Mutate A: `Needy::teaches` deleted (default true) → predict red
       (`needy must not teach`). Mutate B: registry returns `Some(true)`
       for unknown → predict the `None` test red.
-- [ ] T018 [US5] Collector refusal in
+- [X] T018 [US5] Collector refusal in
       `experiments/tools/bc-collect/src/main.rs` (CROSS-LANE, Experiments'
       consent 2026-10-26, research D8; conditions 1, 2, 4): a pure
       `fn teachers_refused(registry, config) -> Vec<KittyId>` (seats
