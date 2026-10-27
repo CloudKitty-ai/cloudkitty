@@ -33,6 +33,7 @@
 
 - The three clarifications were answered by the owner 2026-10-26 (C, A,
   B) and folded in; see spec §Clarifications.
-- Assumption A2 depends on the Professor's four design changes whose
-  full text is held by Experiments pending the owner's word; re-validate
-  FR-004, FR-012, FR-015 and SC-004 when it arrives.
+- The Professor's four design changes arrived 2026-10-26 and are folded
+  into FR-004, FR-008, FR-012, FR-015, SC-004 and A2; one doctrine
+  question (observer streams with a scripted-needy friend as
+  head-training data) is recorded as hers, not the spec's.

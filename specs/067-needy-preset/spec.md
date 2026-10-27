@@ -113,6 +113,11 @@ seed reproduces the identical schedule and identical world.
 6. **Given** two needy seats in one roster (either preset each),
    **When** the world runs, **Then** each has its own schedule and
    neither's draws move the other's.
+7. **Given** the default first-onset levels, **When** many worlds are
+   generated at different seeds, **Then** first onsets fall in every
+   level with non-zero weight, in proportion to the weights, and no
+   onset tick repeats across worlds more often than chance allows (the
+   schedule carries no clock).
 
 ---
 
@@ -309,6 +314,10 @@ needy-seat roster.
   (world seed, kitty id, parameters), so a resumed world continues the
   same schedule without storing it; the episode phase at the resume
   tick is re-derived, not stored.
+- **A first onset drawn beyond the world's length** (a late history
+  level in a short world): the seat never opens an episode in that
+  world; the recorder shows ordinal 0 throughout, and the set's
+  declaration counts it as a world with no onset, not as a missed one.
 
 ## Requirements *(mandatory)*
 
@@ -333,10 +342,15 @@ needy-seat roster.
   stream or any other kitty's private stream, so the same seed
   reproduces the identical schedule and no other kitty's draws move.
 - **FR-004**: Each episode MUST have: an onset tick (the previous
-  release plus a rest gap drawn from a declared range; the first onset
-  drawn from a declared, deliberately wide range so onsets span short
-  and long histories — see Clarifications and Assumptions on the
-  Professor's later change (a)); a masked need set of m distinct needs,
+  release plus a rest gap drawn from a declared range; the FIRST onset
+  of each needy seat drawn per world from declared history-length
+  levels — at least five, spanning the world's length, e.g. 0–10 /
+  10–100 / 100–500 / 500–2,000 / 2,000+ ticks — each level with a
+  declared weight and the tick drawn flat or log-uniform within the
+  level, so the schedule carries no clock: no onset tick is fixed
+  across worlds and a head trained on the set cannot learn one (the
+  Professor's change 1; the probe's grave read is a function of state
+  age, F-069)); a masked need set of m distinct needs,
   m drawn by a declared weight vector with one weight per m from 1 to
   6 (a zero weight excludes that count; the default mix is a coverage
   design, not a model of the world — owner ruling 2026-10-26, "C",
@@ -369,11 +383,13 @@ needy-seat roster.
 - **FR-008**: The presets' parameters MUST be one shared configuration
   section: the mix weights (six, one per m), the release level
   (`needy` only; `needy_hold` ignores it), the hold limit, the rest-gap
-  range, the first-onset range and the per-need release floors, each
-  with a declared default, validated at load (weights non-negative and
-  not all zero; release level in the need range and above every
-  declared floor; hold limit and gaps positive; the sleep release level
-  above the engine's off-beam sleep floor), and inspectable on the
+  range, the first-onset history levels (boundaries and one weight
+  each, at least five levels) and the per-need release floors, each
+  with a declared default, validated at load (every weight vector
+  non-negative and not all zero; release level in the need range and
+  above every declared floor; hold limit and gaps positive; level
+  boundaries strictly increasing with at least five levels; the sleep
+  release level above the engine's off-beam sleep floor), and inspectable on the
   served config surface like any other section. Writing the section
   with no needy seat is valid and inert.
 - **FR-009**: Seating any kitty on `needy` MUST register as the
@@ -454,11 +470,13 @@ needy-seat roster.
   relief for a masked need is refused; every onset and release tick
   equals the schedule's declared tick.
 - **SC-004**: Over a declared number of long worlds at the default
-  parameters, every stratum of the coverage design (each m from 1 to 6
-  the weights allow, crossed with each of the six needs, crossed with
-  short and long history at onset) reaches the declared minimum
-  episode count, and the observed mix over m matches the weights within
-  sampling noise.
+  parameters, every stratum of the coverage design (history length at
+  onset as the PRIMARY stratum, at least five levels; crossed with each
+  m from 1 to 6 the weights allow; crossed with each of the six needs)
+  reaches the declared minimum episode count, the observed mix over m
+  and over history levels matches the weights within sampling noise,
+  and first-episode and later-episode counts are reported separately
+  (the ordinal is a covariate, never pooled).
 - **SC-005**: The lab recorder's record for a needy seat agrees with
   the schedule on every tick of SC-003's run (mask, ordinal, phase);
   the record for every non-needy seat is byte-identical to the
@@ -554,18 +572,42 @@ checked before planning:
   those two the target-side refusal is load-bearing. "Grave" is the
   probe's lab band, not an engine term; any set imports its threshold
   from the probe's declaration.
-- **A2 — The Professor's four later design changes bind here where
-  named, pending the full text** (held by Experiments for her word to
-  forward; substance as Experiments named it 2026-10-26): (a) history
-  length at onset is the PRIMARY stratum, with a clock-free wide onset
-  range of five or more levels — FR-004's first-onset range and SC-004's
-  history stratum are written to that shape and the exact levels wait
-  for the text; (b) the episode ordinal is logged — FR-012; (c) the
-  set's doubled role, instrument versus training source, is named —
-  FR-015; (d) the natural-rows half of the tie-back — a consumer-side
-  read in Experiments' declaration, not a mechanism here; recorded so
-  the declaration can cite it. When the text arrives, this section is
-  updated and any binding difference goes through `/speckit-clarify`.
+- **A2 — The Professor's four later design changes, received 2026-10-26
+  (forwarded by Experiments on her word "Forward: yes"; verbatim text
+  from the note's §Scoring, "Does this change the Q2 schedule design?
+  Yes, in four places"), bind as follows.** (1) History length at onset
+  is the PRIMARY stratum and the schedule carries no clock: FR-004's
+  first-onset levels (at least five, flat or log-uniform within a
+  level, weights declared) and SC-004's per-level read. The level
+  boundaries are parameters (FR-008) with the Professor's example as
+  the default; the set's declaration may move them once Experiments'
+  knee read (the splice at H ∈ {1, 2, 5, 10, 20, 50}, their read, waits
+  on her word) locates where the frozen head's grave read collapses —
+  no mechanism here depends on that number. (2) The episode ordinal is
+  a logged covariate: FR-012; first-episode and later-episode reads
+  are never pooled (SC-004). (3) The set's role has doubled, and this
+  spec names which role it builds for: an INSTRUMENT for reading the
+  frozen head (FR-015). Use of a needy set as TRAINING DATA for a
+  Phase 2 head is NOT licensed here and takes its own declaration with
+  training-scale counts and a split by world seed. One doctrine
+  question the Professor leaves to her and Product, OPEN at this
+  write: whether an OBSERVER's observation stream in which a
+  scripted-needy friend appears may enter a friend-state head's
+  training set. The rule-5 bar was written for the needy cat's own
+  turns as teacher rows (its schedule is private state no student can
+  see); the head is not a policy and does not act, and rule 6 is
+  untouched while the needy cat speaks law-named words only. This spec
+  takes no position: FR-010/FR-011 bar the needy seat's TURNS from any
+  corpus by construction, and leave observer streams to her ruling in
+  the set's declaration. (4) The tie-back gains a second half (the same
+  scripted friend going grave after a long clean history, on continuous
+  natural rows with no junction, read against the splice's 0.29–0.36;
+  then the anticipation read of the descent): a consumer-side read in
+  Experiments' declaration; this spec's FR-012 phase and ordinal fields
+  and FR-004's clock-free onsets are what make it readable. Unchanged
+  per the Professor: schedule over a coin; coverage design read per
+  stratum; calling on, servicing suppressed only; the rule-12 line; a
+  covered friend forced grave still not recommended.
 - **A3 — Base preset**: outside the mask the needy kitty decides as the
   `teacher` preset (every rung on), the Gen 2 corpus demonstrator, so
   the only behavioural difference between a needy world and a teacher
