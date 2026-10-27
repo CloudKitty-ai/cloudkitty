@@ -474,7 +474,7 @@ law unchanged; the binding's door guarded.
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T019 [P] `CHANGELOG.md` `## Unreleased`: one public-voice entry
+- [X] T019 [P] `CHANGELOG.md` `## Unreleased`: one public-voice entry
       above the 066 entry — two research-only scripted presets that
       stop servicing chosen needs on a seeded schedule so a hidden need
       can be watched arriving mid-world; refused as teachers by
