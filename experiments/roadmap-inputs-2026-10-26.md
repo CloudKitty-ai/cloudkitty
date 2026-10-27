@@ -201,6 +201,19 @@ Total for 1–4: two to three weeks of one person, bench and wheels first
   product half + F-054 + tag checks, per the Professor's release plan).
 - The bench fix (Experiments; hours) as a stand-alone correction.
 
+RULED 2026-10-27, in the Experiments session, on this thread's
+walkthrough of item 3 (the ask put to her as one package: 1.0
+positioned as the instrument stack wrapped around the environment, the
+1.0 gate unchanged, no vectorization item in it, everything else about
+1.0 waiting for the P0 pass-1 read), her words verbatim: "Correct,
+positioned around the instrument stack." The wording of the public
+claim stays open until a paper draft exists. The bench fix was ruled
+separately on 2026-10-26 ("Run the bench fix while product implements
+the last spec for the mid-episode welfare testing") and merged as PR
+#470 (b1f60a4a), with the random_rollout fix folded in on her word
+("Include the rollout fix in 470"). The ruled roadmap order is
+unmoved.
+
 Ownership as the Professor stated it: Product owns any API-convention
 change and the spec of a PettingZoo adapter; Experiments owns the
 scoping, the bench fix and the library's reads; Harness owns the CI
