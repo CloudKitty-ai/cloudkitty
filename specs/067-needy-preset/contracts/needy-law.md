@@ -102,12 +102,14 @@ calling stays on, law-named words only.
 
 ## §7 Surfaces
 
-- `Kitty.needy` in the saved world and the server's state for a needy
-  seat: `hold`, `ordinal`, `phase` (`resting {next_onset}` or `held
-  {onset, masked}` with `masked` as need names), `next` (need names),
-  `last_release` (`tick`, `by`), `rng`; absent for every other kitty;
-  blanked in every OTHER kitty's view of the world (`fog_for`), so it
-  never reaches an observation, a plugin request or a trace.
+- `Kitty.needy` in the saved world, the server's kitty and world
+  endpoints and the collector's `--trace` snapshot (ground truth) for a
+  needy seat: `hold`, `ordinal`, `phase` (`{"state": "resting",
+  next_onset}` or `{"state": "held", onset, masked}` with `masked` as
+  need names), `next` (need names), `last_release` (`tick`, `by`),
+  `rng`; absent for every other kitty; blanked in every OTHER kitty's
+  view of the world (`fog_for`), so it never reaches an observation, a
+  plugin request or a corpus row.
 - Binding: `ParallelEnv.needy()` → `[(kitty_id, [names], ordinal,
   phase)]`, phase ∈ `resting | held | released_level | released_limit`
   (the released names on the release tick only).

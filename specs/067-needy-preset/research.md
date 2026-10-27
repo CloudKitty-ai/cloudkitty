@@ -37,7 +37,11 @@ there; D15–D17 are new.
   collector's trace. So `fog_for` blanks `needy` on every kitty but the
   observer: a needy kitty's state is its own (FR-012 as amended). The
   observer's own `needy` stays — a needy kitty's own view carries it,
-  and a needy kitty is never a plugin or policy seat (D16).
+  and a needy kitty is never a plugin or policy seat (D16). Measured at
+  implementation (2026-10-27): the collector's `--trace` writes the FULL
+  pre-tick snapshot (memory and waypoints of every kitty), so the needy
+  state is in `trace.jsonl` as ground truth; it is never in a corpus ROW
+  (observations are encoded from fog views). FR-012 says so.
 - **Alternatives**: a side table on `World` keyed by kitty id —
   rejected: two homes for one kitty's state and a second serialization
   site; re-deriving at resume by replay — rejected: level release
@@ -379,16 +383,19 @@ quality). This pins which half is the law.
   tick (`needy.is_some() == needy::is_needy_name(&kitty.behavior)`);
   (3) `Episode::new` (cloudkitty-rl/src/episode.rs:154–183) refuses a
   `control` entry that disagrees with the config seat about needy-ness
-  — `Builtin("needy")` on a `teacher` config seat, or `External` /
-  `Policy` / another builtin on a needy config seat — with
-  `EpisodeError::Config` naming the kitty (the binding defaults unnamed
-  kitties to External, so a needy config seat left unnamed is fine:
-  the registry seats it); (4) the server's resume (persist.rs:118–129
-  re-stamps `behavior` from config) refuses a saved world whose needy
-  state disagrees with the configured roster, naming the kitty — a
-  needy seat cannot be added or removed on resume. `kitty-eval --brain
-  needy` builds its own config, so the hazard guard (066) refuses it
-  unless acknowledged; the control-override door is (3).
+  — `Builtin("needy")` on a `teacher` config seat, or `External` or
+  another builtin (the other needy preset included) on a needy config
+  seat — with `EpisodeError::NeedySeat` naming the kitty; an UNNAMED
+  needy config seat, which the binding would default to External (a
+  trainer-driven seat under a mask), is seated on its own preset
+  instead, so it never appears among the external agents; (4) the
+  server's resume (persist.rs re-stamps `behavior` from config, then
+  runs `invariants::check`) refuses a saved world whose needy state
+  disagrees with the configured roster through the invariant (2),
+  naming the kitty — no new code; (5) `kitty-eval --brain needy`
+  would alias the preset onto the candidate seat with no schedule (the
+  teacher under another name), so kitty-eval refuses a needy name as a
+  brain.
 - **Rationale**: the advance step and the verdict key on the state; a
   policy seat with state would be a covered mind under a mask
   (doctrine rule 12's second guard, spec Edge Cases). Keying them on

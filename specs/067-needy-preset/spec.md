@@ -464,10 +464,11 @@ needy-seat roster.
   records of non-needy seats MUST be unchanged. A needy kitty's state
   is its OWN: it appears in no other kitty's view of the world (the fog
   view blanks it on every kitty but the observer), so it never reaches
-  a policy observation, a plugin decision request or a corpus trace.
-  The operator's surfaces — the saved world and the server's state
-  endpoint — carry it as they carry every kitty field; the served
-  viewer shows nothing new.
+  a policy observation, a plugin decision request or a corpus row. The
+  ground-truth surfaces — the saved world, the server's kitty and world
+  endpoints and the corpus collector's `--trace` snapshot — carry it as
+  they carry every kitty field (memory included); the served viewer
+  shows nothing new.
 - **FR-013**: The mask MUST govern only the needy kitty's own choices.
   No world law changes: relief sources, the safeguard relief, distress
   records, Article I bounds, the here-word and consent law for every
