@@ -428,6 +428,23 @@ pub fn load_configs_from_path(
 mod tests {
     use super::*;
 
+    /// Spec 066 FR-004 on the load path every tool shares (the Python
+    /// environment, kitty-eval, the census tools): an unacknowledged
+    /// distressed start is refused HERE, with the contract's text. A
+    /// wiring assertion — its red is T005's cycle (removing the call
+    /// from `Config::validate`), recorded in the PR ledger.
+    #[test]
+    fn welfare_hazard_refusal_reaches_load_configs_from_str() {
+        let text = cloudkitty_core::test_support::complete_toml("[initial_needs]\ncuddle = 92.0\n");
+        let msg = load_configs_from_str(&text)
+            .expect_err("expected Err for an unacknowledged distressed start")
+            .to_string();
+        assert!(
+            msg.contains("initial_needs") && msg.contains("[welfare_hazard]"),
+            "the refusal names the mode and the table to add: {msg}"
+        );
+    }
+
     #[test]
     fn an_empty_file_yields_the_documented_defaults() {
         let rl = RlConfig::from_toml_str("").expect("defaults are valid");

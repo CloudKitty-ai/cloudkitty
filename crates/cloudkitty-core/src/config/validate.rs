@@ -1214,3 +1214,124 @@ impl Config {
         Ok(())
     }
 }
+
+/// Spec 066 — the welfare-hazard acknowledgement law
+/// (`specs/066-welfare-hazard-guard/contracts/guard-law.md` §3, §4).
+impl Config {
+    /// Position 21 of `Config::validate` (appended by spec 066): the
+    /// `[welfare_hazard] acknowledged` list must equal the set of
+    /// registered modes this config activates, exactly. Absent with
+    /// nothing active returns Ok before any work — the inert path.
+    pub(super) fn validate_welfare_hazard(&self) -> Result<(), ConfigError> {
+        let acknowledged = self
+            .welfare_hazard
+            .as_ref()
+            .map(|w| w.acknowledged.as_slice());
+        let active: Vec<(&str, String)> = self
+            .active_hazards()
+            .into_iter()
+            .map(|(mode, site)| (mode.name(), site))
+            .collect();
+        if acknowledged.is_none() && active.is_empty() {
+            return Ok(());
+        }
+        let known: Vec<&str> = super::welfare_hazard::HazardMode::ALL
+            .iter()
+            .map(|m| m.name())
+            .collect();
+        check_acknowledgement(acknowledged, &active, &known)
+    }
+}
+
+/// The pure exactness check (guard-law §3): `acknowledged` (`None` =
+/// the section is absent) against `active` (name, first activating site;
+/// registry order) and `known` (every registered name, registry order).
+/// Checked in order — unknown name → duplicate → missing → stale — and
+/// the first failing check is the error. Every error is
+/// `ConfigError::Invalid` on field `[welfare_hazard] acknowledged` with
+/// the list as written (or `absent`) as its value and the §4 sentence as
+/// its expectation; the missing shape's sentence ends with the exact
+/// two-line table that makes the config exact in one paste.
+pub(super) fn check_acknowledgement(
+    acknowledged: Option<&[String]>,
+    active: &[(&str, String)],
+    known: &[&str],
+) -> Result<(), ConfigError> {
+    const FIELD: &str = "[welfare_hazard] acknowledged";
+    let quoted = |names: &mut dyn Iterator<Item = &str>| -> String {
+        names
+            .map(|n| format!("\"{n}\""))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let value = match acknowledged {
+        None => "absent".to_string(),
+        Some(list) => format!("[{}]", quoted(&mut list.iter().map(String::as_str))),
+    };
+    let list: &[String] = acknowledged.unwrap_or(&[]);
+
+    let unknown = list.iter().find(|n| !known.contains(&n.as_str()));
+    if let Some(name) = unknown {
+        return Err(ConfigError::invalid(
+            FIELD,
+            value,
+            format!(
+                "'{name}' is not a registered welfare-hazardous mode (known: {})",
+                known.join(", ")
+            ),
+        ));
+    }
+
+    for (i, name) in list.iter().enumerate() {
+        if list[..i].contains(name) {
+            return Err(ConfigError::invalid(
+                FIELD,
+                value,
+                format!("'{name}' is listed more than once; one name per mode"),
+            ));
+        }
+    }
+
+    let missing: Vec<&(&str, String)> = active
+        .iter()
+        .filter(|(name, _)| !list.iter().any(|a| a == name))
+        .collect();
+    if !missing.is_empty() {
+        let sites = missing
+            .iter()
+            .map(|(name, site)| format!("'{name}' at {site}"))
+            .collect::<Vec<_>>()
+            .join(", and ");
+        let line = quoted(&mut active.iter().map(|(name, _)| *name));
+        return Err(ConfigError::invalid(
+            FIELD,
+            value,
+            format!(
+                "the config activates welfare-hazardous mode {sites}; add to the config:\n\
+                 [welfare_hazard]\nacknowledged = [{line}]"
+            ),
+        ));
+    }
+
+    let stale: Vec<String> = list
+        .iter()
+        .filter(|a| !active.iter().any(|(name, _)| name == a))
+        .map(|a| format!("'{a}'"))
+        .collect();
+    if !stale.is_empty() {
+        let (verb, object) = if stale.len() == 1 {
+            ("is", "it")
+        } else {
+            ("are", "them")
+        };
+        return Err(ConfigError::invalid(
+            FIELD,
+            value,
+            format!(
+                "{} {verb} acknowledged but not active in this config; an acknowledgement is exact, remove {object}",
+                stale.join(", ")
+            ),
+        ));
+    }
+    Ok(())
+}

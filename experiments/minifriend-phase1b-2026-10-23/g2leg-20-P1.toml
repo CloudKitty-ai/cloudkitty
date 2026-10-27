@@ -598,3 +598,6 @@ remind_every = 150
 
 # ---- mini-friend Phase 1b set P1: g2leg-20.toml as served, plus the one per-kitty
 # `initial_needs` line inside Miso's [[kitty]] block above (make_configs.py).
+
+[welfare_hazard]
+acknowledged = ["initial_needs"]

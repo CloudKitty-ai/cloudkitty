@@ -154,10 +154,51 @@ fn every_shipped_toml_loads_through_both_config_surfaces() {
         "the frozen exams (evals/v3, spec 051) are in the sweep"
     );
     for file in files {
-        let text = std::fs::read_to_string(&file).unwrap();
-        cloudkitty_rl::config::load_configs_from_str(&text)
-            .unwrap_or_else(|e| panic!("{} no longer loads: {e}", file.display()));
+        if let Err(message) = check_file(&root, &file) {
+            panic!("{message}");
+        }
     }
+}
+
+/// One file through the sweep, the RL mirror of the core sweep's
+/// `check_file`: it loads through both surfaces (which is where an
+/// unacknowledged hazardous mode under `experiments/` is refused, spec 066
+/// FR-004), and outside `experiments/` it activates no hazardous mode
+/// (FR-005). The loop and the self-test share this body.
+fn check_file(root: &Path, file: &Path) -> Result<(), String> {
+    let text =
+        std::fs::read_to_string(file).map_err(|e| format!("{} unreadable: {e}", file.display()))?;
+    let (config, _rl) = cloudkitty_rl::config::load_configs_from_str(&text)
+        .map_err(|e| format!("{} no longer loads: {e}", file.display()))?;
+    match hazard_outside_experiments(root, file, &config) {
+        Some(message) => Err(message),
+        None => Ok(()),
+    }
+}
+
+/// Spec 066 FR-005 (guard-law §5), the RL mirror of the core sweep's
+/// rule: outside `<root>/experiments/` no tracked config may activate a
+/// welfare-hazardous mode — this sweep is the one that loads the frozen
+/// `evals/v3` exams through the full loader. Files under `experiments/`
+/// are governed by the acknowledgement law through the load itself.
+fn hazard_outside_experiments(
+    root: &Path,
+    file: &Path,
+    config: &cloudkitty_core::Config,
+) -> Option<String> {
+    if file.starts_with(root.join("experiments")) {
+        return None;
+    }
+    let active = config.active_hazards();
+    if active.is_empty() {
+        return None;
+    }
+    let names: Vec<&str> = active.iter().map(|(mode, _)| mode.name()).collect();
+    Some(format!(
+        "{}: welfare-hazardous mode(s) {} active outside experiments/ (spec 066 FR-005)",
+        file.display(),
+        names.join(", ")
+    ))
 }
 
 /// Removes the self-test's scratch repo even when the test panics.
@@ -245,6 +286,65 @@ fn the_filter_drops_gitignored_files_and_nothing_else() {
         "an untracked-but-not-ignored file survives the filter"
     );
     assert_eq!(files.len(), 2, "the bulk gitignored batch is fully dropped");
+}
+
+/// Self-test for `hazard_outside_experiments` (spec 066 US3), the RL
+/// mirror of the core sweep's: on a scratch tree, the same acknowledged
+/// distressed-start bytes are refused under `scratch/specs/` and pass
+/// under `scratch/experiments/`; a clean config under `scratch/specs/`
+/// passes. Loaded through `load_configs_from_str`, as the sweep loads.
+#[test]
+fn hazardous_configs_are_refused_outside_experiments() {
+    let scratch = std::env::temp_dir().join(format!(
+        "cloudkitty-rl-sweep-hazard-selftest-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    std::fs::create_dir_all(scratch.join("specs")).unwrap();
+    std::fs::create_dir_all(scratch.join("experiments")).unwrap();
+    let hazardous = cloudkitty_core::test_support::complete_toml(
+        "[initial_needs]\ncuddle = 92.0\n[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n",
+    );
+    let unacknowledged =
+        cloudkitty_core::test_support::complete_toml("[initial_needs]\ncuddle = 92.0\n");
+    let clean = cloudkitty_core::test_support::complete_toml("");
+    // A lookalike: a path that CONTAINS "experiments" but is not under
+    // `<root>/experiments/` must still be refused (component match, not
+    // substring).
+    std::fs::create_dir_all(scratch.join("specs/experiments-notes")).unwrap();
+    let outside = scratch.join("specs/x.toml");
+    let lookalike = scratch.join("specs/experiments-notes/x.toml");
+    let inside = scratch.join("experiments/x.toml");
+    let inside_unacknowledged = scratch.join("experiments/y.toml");
+    let clean_outside = scratch.join("specs/clean.toml");
+    std::fs::write(&outside, &hazardous).unwrap();
+    std::fs::write(&lookalike, &hazardous).unwrap();
+    std::fs::write(&inside, &hazardous).unwrap();
+    std::fs::write(&inside_unacknowledged, &unacknowledged).unwrap();
+    std::fs::write(&clean_outside, &clean).unwrap();
+
+    let refused = check_file(&scratch, &outside)
+        .expect_err("a hazardous config outside experiments/ is refused");
+    assert!(
+        refused.contains("specs/x.toml")
+            && refused.contains("initial_needs")
+            && refused.contains("outside experiments/"),
+        "the message names the file and the mode: {refused}"
+    );
+    let refused = check_file(&scratch, &lookalike).expect_err(
+        "a lookalike path (specs/experiments-notes/) is outside experiments/ and refused",
+    );
+    assert!(refused.contains("outside experiments/"), "{refused}");
+    check_file(&scratch, &inside).expect("the same bytes inside experiments/ pass the sweep rule");
+    let through_the_load = check_file(&scratch, &inside_unacknowledged)
+        .expect_err("inside experiments/ an UNACKNOWLEDGED hazard is refused through the load");
+    assert!(
+        through_the_load.contains("[welfare_hazard]")
+            && !through_the_load.contains("outside experiments/"),
+        "refused by validation, not by the path rule: {through_the_load}"
+    );
+    check_file(&scratch, &clean_outside).expect("a clean config outside experiments/ passes");
 }
 
 /// Self-test for `collect`'s symlink rule, the RL counterpart of the core

@@ -363,6 +363,23 @@ pub fn build(
         Some(json!(sd.recent_fires)),
     ));
 
+    // Spec 066 FR-007: the welfare-hazard acknowledgement, LAST and only
+    // when the config acknowledges a mode — the served `cloudkitty.toml`
+    // block (and the pinned-names golden) is byte-identical to before.
+    // No default column: the only legal non-empty value is the exact
+    // active set, and the source is `toml` by construction (validation
+    // has just proven the list equals what the file activates).
+    let acknowledged = crate::welfare_hazard::acknowledged(config);
+    if !acknowledged.is_empty() {
+        entries.push(Entry {
+            group: "welfare_hazard",
+            key: "acknowledged".to_string(),
+            value: json!(acknowledged),
+            default: None,
+            source: Source::Toml,
+        });
+    }
+
     KeySettings {
         engine_defaults_sha256: cloudkitty_rl::suite::engine_defaults_sha256(),
         entries,
@@ -786,6 +803,68 @@ mod tests {
             .unwrap();
         assert_eq!(floor.value, json!(0.2));
         assert_eq!(num(f32::NAN), json!("NaN"), "never null");
+    }
+
+    /// Spec 066 FR-007: the acknowledgement row is the LAST entry, rendered
+    /// `welfare_hazard.acknowledged = ["initial_needs"] [toml]` with no
+    /// default column, and it exists only when a mode is acknowledged — a
+    /// config with no section, or a written empty list, adds no row (the
+    /// pinned-names golden above is the kept-behaviour half).
+    #[test]
+    fn the_welfare_hazard_row_appears_last_only_when_acknowledged() {
+        let no_row = |config: &Config| {
+            let block = build(
+                config,
+                &WatchdogConfig::default(),
+                &crate::stuck::StuckConfig::default(),
+                None,
+            );
+            assert!(
+                !block
+                    .names()
+                    .iter()
+                    .any(|n| n.starts_with("welfare_hazard.")),
+                "no row without an acknowledgement: {:?}",
+                block.names()
+            );
+        };
+        no_row(&minimal_config());
+        let mut empty = minimal_config();
+        empty.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec![],
+        });
+        empty.validate().expect("a written empty list is exact");
+        no_row(&empty);
+
+        let mut acknowledged = minimal_config();
+        acknowledged.initial_needs = Some(cloudkitty_core::config::InitialNeedsSpec {
+            cuddle: Some(cloudkitty_core::config::NeedInit::Value(92.0)),
+            ..Default::default()
+        });
+        acknowledged.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
+        acknowledged
+            .validate()
+            .expect("the acknowledged config validates");
+        let block = build(
+            &acknowledged,
+            &WatchdogConfig::default(),
+            &crate::stuck::StuckConfig::default(),
+            None,
+        );
+        assert_eq!(
+            block.names().last().map(String::as_str),
+            Some("welfare_hazard.acknowledged"),
+            "the row is last"
+        );
+        assert!(
+            block
+                .render_text()
+                .ends_with("welfare_hazard.acknowledged = [\"initial_needs\"] [toml]\n"),
+            "the row renders the list as JSON with source toml and no default:\n{}",
+            block.render_text()
+        );
     }
 
     /// A writer that keeps what `tracing` formats, so the boot event can be
