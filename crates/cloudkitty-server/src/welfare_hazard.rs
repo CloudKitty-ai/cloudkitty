@@ -145,6 +145,10 @@ mod tests {
                 && logged.contains("acknowledged modes initial_needs"),
             "{logged}"
         );
+        assert!(
+            logged.contains(" INFO "),
+            "guard-law §7: an info line, not a warning: {logged}"
+        );
         let silent = captured_boot_log(&Config::default());
         assert!(
             silent.is_empty(),

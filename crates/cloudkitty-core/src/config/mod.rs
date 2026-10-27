@@ -2780,6 +2780,48 @@ mod tests {
             d.contains("'initial_needs' is listed more than once; one name per mode"),
             "duplicate wording: {d}"
         );
+
+        // The ORDER is pinned, not only the shapes (PR #469 review): missing
+        // beats stale, duplicate beats missing.
+        let ms = err(
+            check(Some(&s(&["needy_preset"])), &active[..1], &known),
+            "missing beats stale",
+        );
+        assert!(
+            ms.contains("'initial_needs' at") && !ms.contains("not active"),
+            "missing is reported before stale: {ms}"
+        );
+        let dm = err(
+            check(
+                Some(&s(&["initial_needs", "initial_needs"])),
+                &active,
+                &known,
+            ),
+            "duplicate beats missing",
+        );
+        assert!(
+            dm.contains("listed more than once") && !dm.contains("add to the config"),
+            "duplicate is reported before missing: {dm}"
+        );
+        // A WRITTEN empty list with a mode active: the value is the list as
+        // written (`[]`), never `absent`.
+        let e = err(
+            check(Some(&s(&[])), &active[..1], &known),
+            "written empty, one active",
+        );
+        assert!(
+            e.contains("[welfare_hazard] acknowledged is [];"),
+            "value is the written empty list, not absent: {e}"
+        );
+        // Two stale names: the plural shape (§4).
+        let st2 = err(
+            check(Some(&s(&["initial_needs", "needy_preset"])), &[], &known),
+            "two stale",
+        );
+        assert!(
+            st2.contains("'initial_needs', 'needy_preset' are acknowledged but not active in this config; an acknowledgement is exact, remove them"),
+            "plural stale wording: {st2}"
+        );
     }
 
     /// Spec 066 FR-004 through `Config::validate` with the REAL registry
@@ -2880,6 +2922,13 @@ mod tests {
                 cuddle: Some(NeedInit::Value(101.0)),
                 ..Default::default()
             }),
+            // Spec 066: acknowledged, so only the 065 bounds check can
+            // answer here — the 066 missing-acknowledgement error also
+            // names `[initial_needs].cuddle`, and without this line a
+            // broken bounds check would pass on that text (PR #469 review).
+            welfare_hazard: Some(WelfareHazardConfig {
+                acknowledged: vec!["initial_needs".into()],
+            }),
             ..Default::default()
         };
         let msg = config
@@ -2887,8 +2936,9 @@ mod tests {
             .expect_err("101 is out of need bounds")
             .to_string();
         assert!(
-            msg.contains("[initial_needs].cuddle"),
-            "names the key: {msg}"
+            msg.contains("[initial_needs].cuddle")
+                && msg.contains("must be a finite initial need value in [0, 100]"),
+            "names the key and the bound: {msg}"
         );
 
         let config = Config {
@@ -3823,16 +3873,44 @@ mod tests {
     /// so this compares every draw and every tick-0 value.
     #[test]
     fn the_acknowledgement_never_reaches_the_world() {
-        let a = cfg();
-        let b: Config =
-            toml::from_str(&complete("[welfare_hazard]\nacknowledged = []")).expect("parses");
-        b.validate()
-            .expect("exact: nothing acknowledged, nothing active");
-        assert!(b.welfare_hazard.is_some(), "the section is present on b");
+        // The pair differs ONLY in the section: both carry the distressed
+        // start (`World::generate` does not validate, so the unacknowledged
+        // twin is buildable); one acknowledges it. Comparing `cfg()` with
+        // `cfg()` + an empty list would only catch an `is_some()` read.
+        let raised = "[initial_needs]\ncuddle = 92.0\n";
+        let a: Config = toml::from_str(&complete(raised)).expect("parses");
+        let b: Config = toml::from_str(&complete(&format!(
+            "{raised}[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n"
+        )))
+        .expect("parses");
+        b.validate().expect("the acknowledged twin validates");
+        assert!(a.welfare_hazard.is_none() && b.welfare_hazard.is_some());
+        let (a, b) = (std::sync::Arc::new(a), std::sync::Arc::new(b));
+        let mut wa = crate::World::generate(&a);
+        let mut wb = crate::World::generate(&b);
+        let json = |w: &crate::World| serde_json::to_string(w).unwrap();
         assert_eq!(
-            serde_json::to_string(&crate::World::generate(&a)).unwrap(),
-            serde_json::to_string(&crate::World::generate(&b)).unwrap(),
+            json(&wa),
+            json(&wb),
             "the acknowledgement must never reach the generated world"
+        );
+        // And never a tick: every tick receives the config again, so a
+        // decision-time read is exactly what tick 0 cannot see (PR #469
+        // review). Through the registry-driven path, so a behavior reading
+        // `ctx.config.welfare_hazard` is caught too.
+        let registry = crate::BehaviorRegistry::with_builtins();
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("runtime");
+        for _ in 0..300 {
+            runtime.block_on(wa.tick(&registry, &a));
+            runtime.block_on(wb.tick(&registry, &b));
+        }
+        assert_eq!(
+            json(&wa),
+            json(&wb),
+            "the acknowledgement must never reach a ticked world (300 ticks)"
         );
     }
 

@@ -50,7 +50,7 @@ Every failure is `ConfigError::Invalid` with
 | unknown | the list as written | `'<name>' is not a registered welfare-hazardous mode (known: initial_needs)` |
 | duplicate | the list as written | `'<name>' is listed more than once; one name per mode` |
 | missing | the list as written, or `absent` | `the config activates welfare-hazardous mode '<name>' at <site>[, and '<name>' at <site>]; add to the config:\n[welfare_hazard]\nacknowledged = ["<every active name, registry order>"]` |
-| stale | the list as written | `'<name>' is acknowledged but not active in this config; an acknowledgement is exact, remove it` |
+| stale | the list as written | `'<name>' is acknowledged but not active in this config; an acknowledgement is exact, remove it`; two or more: `'<a>', '<b>' are acknowledged but not active in this config; an acknowledgement is exact, remove them` |
 
 The "line to add" always lists the FULL active set in registry order,
 so pasting it makes the config exact in one edit.

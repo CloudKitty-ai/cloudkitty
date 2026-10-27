@@ -1319,12 +1319,16 @@ pub(super) fn check_acknowledgement(
         .map(|a| format!("'{a}'"))
         .collect();
     if !stale.is_empty() {
-        let verb = if stale.len() == 1 { "is" } else { "are" };
+        let (verb, object) = if stale.len() == 1 {
+            ("is", "it")
+        } else {
+            ("are", "them")
+        };
         return Err(ConfigError::invalid(
             FIELD,
             value,
             format!(
-                "{} {verb} acknowledged but not active in this config; an acknowledgement is exact, remove it",
+                "{} {verb} acknowledged but not active in this config; an acknowledgement is exact, remove {object}",
                 stale.join(", ")
             ),
         ));
