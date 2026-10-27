@@ -252,7 +252,7 @@ seed.
       different stream object but the same state — if it stays green
       the test is VACUOUS: then compare the rng state after decide
       instead).
-- [ ] T008 [US1] Integration scenarios (quickstart §2; SC-003) in
+- [X] T008 [US1] Integration scenarios (quickstart §2; SC-003) in
       `crates/cloudkitty-core/src/world.rs` tests with a short-horizon
       `[needy]` (edges `[0, 5, 20, 50, 100, 200]`, hold 200, gap 20–40,
       release 60 — rates 0.5/0.7/0.3/0.4/0.25/0.2 per tick make eat,
@@ -274,7 +274,7 @@ seed.
       replay test red (`release tick`; the level check reads pre-rise
       needs so a level release lands one tick late — the staging above
       guarantees a level release exists).
-- [ ] T009 [US1] The recorded redundancy (research D14) in needy.rs
+- [X] T009 [US1] The recorded redundancy (research D14) in needy.rs
       behaviour tests: with T007's masked view and post-filter disabled
       by a test-only switch (`Needy::decide_unmasked_for_test`), run 300
       ticks on T008's staging and assert the masked needs never
@@ -414,7 +414,7 @@ law unchanged; the binding's door guarded.
       test-cmd under the repo `.venv`): the accessor filters `hold ==
       false` only → predict the needy_hold case red; the control guard
       deleted → predict the override test red (`raises`).
-- [ ] T016 [US4] Welfare-law and register tests in world.rs tests (share
+- [X] T016 [US4] Welfare-law and register tests in world.rs tests (share
       T008's staging): with every chow removed and Eat masked past the
       safeguard threshold, the next environment phase spawns a chow
       exactly as for a non-needy kitty forced to the same need (paired

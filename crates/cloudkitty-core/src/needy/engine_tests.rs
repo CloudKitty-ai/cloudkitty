@@ -567,3 +567,305 @@ fn the_apply_slot_verdict_agrees_with_the_served_path() {
         );
     }
 }
+
+// ------------------------------------------------- T008, T009, T016
+
+/// The short-horizon instrument: kitty 1 on `preset`, first onsets inside
+/// 200 ticks, a 200-tick hold, 20–40-tick rests, release at 60 — so with
+/// the default rise rates eat, drink, sleep and play reach the level
+/// inside the hold and cuddle and bath do not: both release kinds occur.
+fn short_horizon(preset: &str) -> Arc<Config> {
+    let mut c = seated(preset);
+    c.needy = Some(crate::config::NeedyConfig {
+        onset_levels: vec![0, 5, 20, 50, 100, 200],
+        hold_ticks: 200,
+        gap: crate::config::GapRange { min: 20, max: 40 },
+        release_level: 60.0,
+        ..Default::default()
+    });
+    c.validate().expect("valid");
+    Arc::new(c)
+}
+
+/// One driven tick: kitty 1 decides through `decide` on its own fog view
+/// and its dealt seed; kitty 2 offers to rest beside it every tick.
+fn drive(
+    world: &mut World,
+    config: &Arc<Config>,
+    decide: &dyn Fn(&crate::behavior::DecisionContext) -> crate::seam::Decision,
+) -> crate::seam::TickReport {
+    let seeds = world.deal_decision_seeds();
+    let snapshot = world.snapshot();
+    let ctx = crate::behavior::DecisionContext {
+        me: snapshot.kitty(1).unwrap().clone(),
+        world: Arc::new(snapshot.fog_for(1, config.vision.radius)),
+        rng: crate::rng::DecisionRng::from_seed(seeds.seed_for(1).unwrap()),
+        config: config.clone(),
+    };
+    let mut joint = JointProposal::new();
+    joint.propose(1, decide(&ctx));
+    joint.propose(2, Action::Rest { with: Some(1) });
+    world.tick_with_proposals_seeded(&joint, seeds, config)
+}
+
+#[derive(Debug, Default)]
+struct Ledger {
+    by_level: usize,
+    by_limit: usize,
+    own_refusals: usize,
+    friend_refusals: usize,
+    messages: usize,
+}
+
+/// Runs the instrument until `episodes` episodes have opened and closed
+/// (or `cap` ticks), checking every tick: a masked need never falls while
+/// masked; the needy kitty's applied action never relieves a masked need;
+/// the engine's schedule equals the law replayed on the recorded needs; a
+/// friend's offer is refused (as `needy_masked`) only while cuddle is
+/// masked; the needy kitty speaks law-named words only.
+fn run_instrument(
+    label: &str,
+    config: &Arc<Config>,
+    decide: &dyn Fn(&crate::behavior::DecisionContext) -> crate::seam::Decision,
+    episodes: u32,
+    cap: u64,
+) -> (World, Ledger) {
+    use crate::events::RefusalReason;
+    use crate::meow::MessageKind;
+    let mut world = World::generate(config);
+    let params = params(config).into_owned();
+    let mut replay = state(&world, 1).clone();
+    let mut ledger = Ledger::default();
+    for _ in 0..cap {
+        let mask = state(&world, 1).mask();
+        let before = world.kitty(1).unwrap().needs;
+        let heard = world.tick;
+        let report = drive(&mut world, config, decide);
+        let after = world.kitty(1).unwrap().needs;
+        for kind in mask.iter() {
+            assert!(
+                after.get(kind) >= before.get(kind),
+                "a masked need never fell while masked [{label}]: {kind:?} at tick {heard}"
+            );
+        }
+        let record = report.record(1).expect("kitty 1 decided");
+        assert!(
+            !proposer_relief(&record.applied).meets(mask),
+            "the needy kitty's applied action never relieves a masked need [{label}]: {:?} at tick {heard}",
+            record.applied
+        );
+        if let Some(kind) = record.applied_message {
+            ledger.messages += 1;
+            assert!(
+                kind.related_need().is_some()
+                    || MessageKind::HERE_KINDS.contains(&kind)
+                    || matches!(kind, MessageKind::Purr | MessageKind::WaitForMe),
+                "law-named words only over the run [{label}]: {kind:?} at tick {heard}"
+            );
+        }
+        match replay.step(&after, world.tick, &params) {
+            Some(Transition::Release {
+                by: ReleaseBy::Level,
+            }) => ledger.by_level += 1,
+            Some(Transition::Release {
+                by: ReleaseBy::Limit,
+            }) => ledger.by_limit += 1,
+            _ => {}
+        }
+        assert_eq!(
+            &replay,
+            state(&world, 1),
+            "the engine's schedule equals the law replayed on the recorded needs [{label}] (tick {})",
+            world.tick
+        );
+        for e in world.refusal_log.events().filter(|e| e.tick == heard) {
+            if e.reason != RefusalReason::NeedyMasked {
+                continue;
+            }
+            if e.kitty_id == 2 {
+                assert!(
+                    mask.contains(NeedKind::Cuddle),
+                    "a friend's offer is refused only while cuddle is masked [{label}] (tick {heard})"
+                );
+                ledger.friend_refusals += 1;
+            } else {
+                ledger.own_refusals += 1;
+            }
+        }
+        let s = state(&world, 1);
+        if s.ordinal >= episodes && matches!(s.phase, Phase::Resting { .. }) {
+            break;
+        }
+    }
+    (world, ledger)
+}
+
+fn preset_decides(ctx: &crate::behavior::DecisionContext) -> crate::seam::Decision {
+    use crate::behavior::Behavior;
+    futures::executor::block_on(crate::behavior::needy::Needy.decide(ctx))
+}
+
+/// SC-003 / quickstart §2: ten episodes of the `needy` instrument behave
+/// per the law, both release kinds occur, the gate fires on a friend's
+/// offers, and the seat still services its needs.
+#[test]
+fn ten_needy_episodes_run_per_the_law() {
+    let config = short_horizon(NAME);
+    let (world, ledger) = run_instrument("needy", &config, &preset_decides, 10, 6000);
+    let s = state(&world, 1);
+    assert!(s.ordinal >= 10, "ten episodes ran: {ledger:?}");
+    assert!(
+        ledger.by_level >= 1 && ledger.by_limit >= 1,
+        "staged: both release kinds occur (else the ordering guard is vacuous): {ledger:?}"
+    );
+    assert!(
+        ledger.friend_refusals >= 1,
+        "the gate fired on a friend's offer: {ledger:?}"
+    );
+    assert!(ledger.messages >= 1, "the needy kitty called: {ledger:?}");
+    let k = world.kitty(1).unwrap();
+    for kind in NeedKind::ALL {
+        assert!(
+            k.last_relief.contains_key(&kind),
+            "every need was relieved at least once over the run (the seat still services): {kind:?}"
+        );
+    }
+}
+
+#[test]
+fn needy_hold_releases_only_at_the_limit() {
+    let config = short_horizon(HOLD_NAME);
+    let (world, ledger) = run_instrument("needy_hold", &config, &preset_decides, 10, 6000);
+    assert!(state(&world, 1).ordinal >= 10, "{ledger:?}");
+    assert_eq!(
+        ledger.by_level, 0,
+        "needy_hold never releases by level: {ledger:?}"
+    );
+    assert!(ledger.by_limit >= 10, "{ledger:?}");
+}
+
+#[test]
+fn two_needy_seats_carry_their_own_schedules() {
+    let mut c = test_config();
+    c.kitties[0].behavior = NAME.to_string();
+    c.kitties[1].behavior = NAME.to_string();
+    c.welfare_hazard = Some(WelfareHazardConfig {
+        acknowledged: vec![NAME.to_string()],
+    });
+    c.validate().unwrap();
+    let world = World::generate(&c);
+    let params = params(&c).into_owned();
+    for id in [1, 2] {
+        assert_eq!(
+            *state(&world, id),
+            NeedyState::new(c.world.seed, id, false, &params),
+            "seat {id} runs the schedule keyed off its own id"
+        );
+    }
+    assert_ne!(
+        state(&world, 1),
+        state(&world, 2),
+        "two seats, two schedules"
+    );
+}
+
+/// Research D14, the recorded redundancy: the engine is the law, the
+/// preset's masked view and filter are advice. With the preset's half
+/// taken away (the plain teacher deciding for the needy seat) the masked
+/// needs still never fall — the verdict and sweep hold the line — and the
+/// seat is refused more often than with its own half in place.
+#[test]
+fn the_engine_holds_the_mask_without_the_presets_help() {
+    let config = short_horizon(NAME);
+    let teacher_decides = |ctx: &crate::behavior::DecisionContext| {
+        use crate::behavior::Behavior;
+        futures::executor::block_on(crate::behavior::teacher::Teacher::GEN2.decide(ctx))
+    };
+    let (_, without) = run_instrument("teacher-decided", &config, &teacher_decides, 6, 3000);
+    let (_, with) = run_instrument("preset-decided", &config, &preset_decides, 6, 3000);
+    assert!(
+        without.own_refusals > with.own_refusals,
+        "the filter is advice quality: refused turns without it ({}) exceed those with it ({})",
+        without.own_refusals,
+        with.own_refusals
+    );
+}
+
+/// FR-013: the mask governs only the kitty's choices. The world's welfare
+/// law acts on a needy kitty's masked need exactly as on any kitty's: the
+/// distress record names it on the same tick, and the Article I safeguard
+/// spawns food on the same tile, as in the same world with a teacher seat.
+#[test]
+fn the_worlds_welfare_law_acts_on_a_masked_need_as_on_any_need() {
+    let stage = |preset: &str, eat: f32| -> (World, Config) {
+        let mut config = test_config();
+        config.kitties[0].behavior = preset.to_string();
+        if preset == NAME {
+            config.welfare_hazard = Some(WelfareHazardConfig {
+                acknowledged: vec![NAME.to_string()],
+            });
+            config.needy = Some(crate::config::NeedyConfig {
+                release_level: 99.5,
+                ..Default::default()
+            });
+        }
+        config.validate().unwrap();
+        let mut world = World::generate(&config);
+        if preset == NAME {
+            hold_off(&mut world, 1);
+            force_held(&mut world, 1, &[NeedKind::Eat]);
+        }
+        world.elements.clear();
+        let k = kitty_mut(&mut world, 1);
+        let current = k.needs.get(NeedKind::Eat);
+        k.needs.add(NeedKind::Eat, eat - current);
+        (world, config)
+    };
+
+    // Distress: from just under the line, the crossing tick is the same.
+    let distress_tick = |preset: &str| -> Option<u64> {
+        let line = test_config().thresholds.distress;
+        let (mut world, config) = stage(preset, line - 1.2);
+        (0..20).find_map(|_| {
+            let report = world.tick_with_proposals(&JointProposal::new(), &config);
+            report
+                .distress_events
+                .iter()
+                .find(|e| e.kitty_id == 1 && e.need == NeedKind::Eat)
+                .map(|e| e.tick)
+        })
+    };
+    assert!(
+        distress_tick("teacher").is_some(),
+        "staged: the line is crossed"
+    );
+    assert_eq!(
+        distress_tick(NAME),
+        distress_tick("teacher"),
+        "the distress record names the masked need on the same tick as for any kitty"
+    );
+
+    // The safeguard: past its line with no food anywhere, food appears on
+    // the same tile in both worlds.
+    let chow_after = |preset: &str| -> Vec<Position> {
+        let line = test_config().thresholds.safeguard;
+        let (mut world, config) = stage(preset, line + 5.0);
+        world.tick_with_proposals(&JointProposal::new(), &config);
+        world
+            .elements
+            .iter()
+            .filter(|e| matches!(e.kind, ElementKind::Chow { .. }))
+            .map(|e| e.pos)
+            .collect()
+    };
+    let needy = chow_after(NAME);
+    assert!(
+        !needy.is_empty(),
+        "the safeguard spawned food for the masked need"
+    );
+    assert_eq!(
+        needy,
+        chow_after("teacher"),
+        "the safeguard spawns food for a masked need exactly as for any kitty"
+    );
+}
