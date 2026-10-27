@@ -123,7 +123,7 @@ Harness: CI never runs bc-collect's tests (D8 CI note).
       §3.2's draw order (set before m) → predict the pinned-trace test
       red. Mutate F: onset test `>=` → `==` → predict the onset-0 test
       red.
-- [ ] T004 World wiring in `crates/cloudkitty-core/src/kitty.rs`,
+- [X] T004 World wiring in `crates/cloudkitty-core/src/kitty.rs`,
       `world.rs`, `invariants.rs`: `Kitty.needy: Option<NeedyState>`
       with `#[serde(default, skip_serializing_if = "Option::is_none")]`
       (`Kitty::new` sets `None`); `World::try_generate` creates the

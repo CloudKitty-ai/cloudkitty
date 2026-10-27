@@ -345,6 +345,16 @@ pub struct Kitty {
     /// occupies the tile. Read only by the built-in explore step; never a
     /// behaviour's to write. Required on load.
     pub explore_waypoint: u32,
+    /// Spec 067: a needy seat's schedule state (`crate::needy`), present
+    /// exactly when the configured behaviour is a needy preset (an
+    /// invariant) and absent for every other kitty — skip-if-none keeps
+    /// every pre-067 snapshot byte for byte. Engine-written in Phase 4;
+    /// the kitty's OWN state: `fog_for` blanks it in every other kitty's
+    /// view, so it never reaches an observation, a plugin request or a
+    /// friend's decision. Saved and resumed with the world (the level
+    /// release depends on the path the needs took).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub needy: Option<crate::needy::NeedyState>,
 }
 
 /// One remembered tile (spec 049 FR-006): where an element kind was last
@@ -399,6 +409,7 @@ impl Kitty {
             announce_armed: BTreeSet::new(),
             memory: [None; crate::element::ElementType::ALL.len()],
             explore_waypoint: 0,
+            needy: None,
         }
     }
 

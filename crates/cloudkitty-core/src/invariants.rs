@@ -161,6 +161,26 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
             (false, None) => {}
         }
 
+        // Spec 067 (research D16): needy state exists exactly when the
+        // configured behaviour is a needy preset — so a policy, plugin or
+        // other builtin seat can never be masked, and a needy seat never
+        // runs without its schedule.
+        if kitty.needy.is_some() != crate::needy::is_needy_name(&kitty.behavior) {
+            return Err(Violation {
+                article: "Bookkeeping integrity",
+                detail: format!(
+                    "{} {} needy state but its behavior is {:?}",
+                    kitty.name,
+                    if kitty.needy.is_some() {
+                        "carries"
+                    } else {
+                        "lacks"
+                    },
+                    kitty.behavior
+                ),
+            });
+        }
+
         // Duets are never one-sided: a cuddle or social play binds both
         // partners with identical clocks (spec 006 FR-009).
         if let Some(partner_id) = kitty.activity.duet_partner() {

@@ -161,6 +161,27 @@ impl World {
                 }
             }
         }
+        // Spec 067: every needy seat carries its schedule from generation
+        // — its own sub-stream keyed off (world seed, kitty id), the master
+        // `rng` above never touched. No needy seat = no state, today's
+        // world byte for byte. The law: specs/067-needy-preset/contracts/needy-law.md.
+        if world
+            .kitties
+            .iter()
+            .any(|k| crate::needy::is_needy_name(&k.behavior))
+        {
+            let params = crate::needy::params(config);
+            for kitty in &mut world.kitties {
+                if crate::needy::is_needy_name(&kitty.behavior) {
+                    kitty.needy = Some(crate::needy::NeedyState::new(
+                        config.world.seed,
+                        kitty.id,
+                        kitty.behavior == crate::needy::HOLD_NAME,
+                        &params,
+                    ));
+                }
+            }
+        }
         // Spec 049 FR-023 (T088): each cat starts the lattice tour at
         // `id mod cycle length` -- spread over the tour, no RNG draw -- and
         // a cat spawned on its waypoint is already past it. Spec 064:
@@ -490,6 +511,10 @@ impl World {
         // Phase 4: needs rise, happiness follows, arming and distress are
         // noted, invariants hold.
         self.advance_needs(config);
+        // Spec 067 (needy-law §4): needy schedules step on this tick's
+        // risen needs; an onset sweeps away every scene that would relieve
+        // a newly masked need. Zero needy seats = zero work.
+        self.advance_needy(config);
         self.update_announce_arming(config);
         // The honest per-tick capture (spec 014 FR-003): both event kinds are
         // taken at their source, so the report cannot under-report however
@@ -554,6 +579,88 @@ impl World {
                 }
                 self.kitties[idx].clear_activity();
             }
+        }
+    }
+
+    /// Spec 067 (needy-law §4): one schedule step per needy seat, on this
+    /// tick's risen needs, for the tick about to be published. An onset
+    /// runs the sweep (§5b) before any decision reads the new mask.
+    fn advance_needy(&mut self, config: &Config) {
+        if self.kitties.iter().all(|k| k.needy.is_none()) {
+            return;
+        }
+        let params = crate::needy::params(config);
+        let t = self.tick + 1;
+        for i in 0..self.kitties.len() {
+            let needs = self.kitties[i].needs;
+            let Some(state) = self.kitties[i].needy.as_mut() else {
+                continue;
+            };
+            if let Some(crate::needy::Transition::Onset { masked }) = state.step(&needs, t, &params)
+            {
+                let id = self.kitties[i].id;
+                self.sweep_onset(id, masked);
+            }
+        }
+    }
+
+    /// The onset sweep (needy-law §5b): no scene that would relieve a
+    /// newly masked need survives the onset tick. The needy kitty's own
+    /// scene loses its companion when the solo scene relieves nothing
+    /// masked (a co-sleep under a cuddle-only mask sleeps on alone), and
+    /// ends otherwise; another kitty's scene that relieves the needy kitty
+    /// loses it as a companion (rest, co-sleep: spec 041's solo-posture
+    /// degrade) or ends (a groom of it, a social-play duet with it).
+    /// Validation, the legal mask and `available_friend_in` never read
+    /// the mask: it is hidden state, read only here and at the apply slot.
+    fn sweep_onset(&mut self, needy_id: KittyId, masked: crate::needy::NeedSet) {
+        use crate::needy::{partner_relief, proposer_relief, solo};
+        if let Some(scene) = self.kitty(needy_id).and_then(|k| k.activity.continuation()) {
+            if proposer_relief(&scene).meets(masked) {
+                match solo(&scene) {
+                    Some(alone) if !proposer_relief(&alone).meets(masked) => {
+                        self.drop_companion(needy_id)
+                    }
+                    _ => self.end_activity(needy_id),
+                }
+            }
+        }
+        for i in 0..self.kitties.len() {
+            let other = self.kitties[i].id;
+            if other == needy_id {
+                continue;
+            }
+            let Some(scene) = self.kitties[i].activity.continuation() else {
+                continue;
+            };
+            let Some((partner, relief)) = partner_relief(&scene) else {
+                continue;
+            };
+            if partner != needy_id || !relief.meets(masked) {
+                continue;
+            }
+            if solo(&scene).is_some() {
+                self.drop_companion(other);
+            } else {
+                self.end_activity(other);
+            }
+        }
+    }
+
+    /// Spec 041's solo-posture degrade, applied at a needy onset: a rest
+    /// or co-sleep scene loses its companion, clock untouched — exactly
+    /// what the effects arms do when a companion wanders off.
+    fn drop_companion(&mut self, kitty_id: KittyId) {
+        if let Some(idx) = self.kitty_index(kitty_id) {
+            let kitty = &mut self.kitties[idx];
+            kitty.activity = match kitty.activity {
+                Activity::Resting { .. } => Activity::Resting { with_friend: None },
+                Activity::Sleeping { in_sunbeam, .. } => Activity::Sleeping {
+                    in_sunbeam,
+                    with_friend: None,
+                },
+                other => other,
+            };
         }
     }
 
@@ -1745,6 +1852,9 @@ impl WorldSnapshot {
                 if seen.id != observer {
                     seen.memory = [None; ElementType::ALL.len()];
                     seen.explore_waypoint = 0;
+                    // Spec 067 (FR-012): a needy kitty's schedule is its own
+                    // hidden state; no friend sees it.
+                    seen.needy = None;
                 }
                 seen
             })

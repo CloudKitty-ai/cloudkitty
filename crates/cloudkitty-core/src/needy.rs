@@ -23,7 +23,7 @@ use rand_chacha::ChaCha8Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::action::{Action, TargetRef};
-use crate::config::{NeedyConfig, OnsetDraw};
+use crate::config::{Config, NeedyConfig, OnsetDraw};
 use crate::kitty::KittyId;
 use crate::needs::{NeedKind, Needs};
 
@@ -325,6 +325,27 @@ impl NeedyState {
     }
 }
 
+/// The parameters a needy seat runs: the written `[needy]` table, or the
+/// coverage defaults when the table is absent (the table is parameters,
+/// the seat is the hazard).
+pub fn params(config: &Config) -> std::borrow::Cow<'_, NeedyConfig> {
+    match &config.needy {
+        Some(table) => std::borrow::Cow::Borrowed(table),
+        None => std::borrow::Cow::Owned(NeedyConfig::default()),
+    }
+}
+
+/// The companion scene's solo variant: a rest or co-sleep without its
+/// friend. `None` for every other action (a groom of a friend or a
+/// social-play duet has no solo form; its target IS the scene).
+pub fn solo(action: &Action) -> Option<Action> {
+    match action {
+        Action::Rest { with: Some(_) } => Some(Action::Rest { with: None }),
+        Action::Sleep { with: Some(_) } => Some(Action::Sleep { with: None }),
+        _ => None,
+    }
+}
+
 /// The needs an action relieves on the ACTOR (needy-law §5a), read off
 /// `apply_activity_effects` / `apply_sleep_relief` and cross-checked
 /// against them by test: co-sleep relieves sleep AND cuddle; grooming a
@@ -364,6 +385,9 @@ pub fn partner_relief(action: &Action) -> Option<(KittyId, NeedSet)> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod engine_tests;
 
 #[cfg(test)]
 mod tests {
