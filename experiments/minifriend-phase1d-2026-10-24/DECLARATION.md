@@ -844,3 +844,97 @@ first — RED CONFIRMED, 1 passed after the restore): the after-window
 test made inclusive → the hand onset at tick 100 counted after it,
 `AssertionError: onsets_after_100: an onset exactly at tick 100 is not
 after it` in `test_t9_history`.
+
+## Addendum 5 2026-10-26: the knee — where between 0 and 100 clean ticks the probe stops seeing a covered grave (owner, on the ladder walkthrough)
+
+Her words. On the walkthrough of the three outstanding items after
+§Addendum 4's report, item 1 ruled first ("We'll start with your
+recommendation (10/2) , then after we get the mid-episode testing, we
+can reevaluate and dial in on the optimal level." — P(grave) ≥ 0.10
+with a 2-tick burn-in, provisional; deviations entry 13), then item 2:
+"Run the knee read now". The read is the Professor's proposal in
+their note's §Scoring (`~/ai/professor/notes/for-experiments-midworld-
+onset-instrument-2026-10-25.md`, sha256 prefix 202cac6c4d7c7b30 as read
+today), quoted verbatim: "The collapse is somewhere in H ∈ (0, 100).
+Running the existing splice at H ∈ {1, 2, 5, 10, 20, 50} on the same
+donors and recipients costs one fence and locates the knee. The stratum
+boundaries in item 1 should be set from that knee, not from 100; and
+the knee is the one number that tells her whether a 2-tick or 5-tick
+burn-in sits before or after the head stops seeing grave on P's own
+data. Threshold and burn-in remain hers on the ladder; this read only
+prices the ladder."
+
+**R8d — one read, one reader (`knee_read.py`), the §Addendum 4 splice
+unchanged at six new history lengths.** `history_read.splice_rows_nf`
+and `splice_rows_sd` run exactly as §Addendum 4 (b) declared them —
+the same 200 covered reset-grave donors of group P, the same 60 clean L
+recipients (donor i → slice i mod 60), the recipient's self block
+continuing from the junction, the head from the zero state, the
+junction control (a default-start friend's rows of the same length)
+beside — at H ∈ {1, 2, 5, 10, 20, 50}, NF-h24+p seeds 1–3 and SD width
+16 seeds 1–3, every table at 0.10 / 0.30 / 0.50, the same columns
+(detected fraction, median and p90 latency from the junction, within
+10, split by the donor's in-sight bit, false alarms inside the
+history, the control's fired fraction). Guard of construction: the
+reader also re-runs H = 100 and asserts, per seed and per threshold,
+that its detected fraction and median latency equal the committed
+`phase1d-history.json` rows exactly (the same function on the same
+arrays), before any new H is read; the committed H = 0 / 0r / 500 /
+2,000 rows are quoted beside the new ones, not re-run. The §Addendum 4
+limitation stands: the junction is a jump into a covered friend's
+grave, not a crossing.
+
+**The knee, operationalised** (descriptive, declared before the read):
+the smallest H in {1, 2, 5, 10, 20, 50, 100} at which the seed-mean
+detected fraction at 0.10 is at or under the midpoint between the
+committed H = 0 reset detection (0.995) and the committed plateau (the
+mean of the H = 500 and H = 2,000 detected fractions, 0.2875), i.e.
+≤ 0.641; reported for NF-h24+p and for SD width 16 with its own
+committed endpoints. A control that fires at a small H says the
+recipient's own start-up transient is in that row; the knee is read
+with the control beside it, and the first H at which the control
+fires in under 0.05 of junctions is reported as the end of the
+recipient transient.
+
+**Registered prediction, the Professor's P9, verbatim from the note's
+§"Registered predictions, added 2026-10-26":** "On the splice at 0.10,
+NF-h24+p, seed-mean detection at H = 10 is below 0.70, and detection at
+H = 20 is within one seed SD of H = 100's 0.358." Scored as: (i) the
+seed-mean detected fraction at H = 10 and 0.10 is < 0.70; (ii) |seed-
+mean detected fraction at H = 20 − the committed H = 100 seed mean
+(0.358)| ≤ the committed H = 100 seed SD (0.175). Both hold → met.
+
+This thread's expectation, not a prediction: the junction control at
+0.10 fires in under 0.05 of junctions at every H ≥ 5 (the first-tick
+false-alarm runs have median length about 1 tick, and §Addendum 4's
+burn-in grid shows the boundary runs gone by B = 5).
+
+**No reading rule.** The knee prices the ladder and sets the needy
+set's onset strata (Product's spec 067 makes the level boundaries
+configurable with the Professor's example as the default; the set's
+declaration sets them from this number); the threshold and burn-in
+stay as ruled above.
+
+Doctrine check (CLAUDE.md rule 8): no rule moves a choice; the read
+is the declared §Addendum 4 instrument at new values of its one
+parameter, on arrays already on disk.
+
+Guard (rule 5, predicted red before trust): `test_phase1d.py`
+`test_t10_knee` — `knee_read.knee_of` on a hand ladder (detected
+0.90 / 0.80 / 0.64 / 0.30 at H 1 / 2 / 5 / 10, endpoints 1.00 and
+0.28, midpoint 0.64) returns 5, the first H AT OR UNDER the midpoint;
+`knee_read.score_p9` on hand rows (H = 10 at 0.65; H = 20 exactly one
+SD from the reference) returns met. Predicted red: the knee's "at or
+under" made strict (`<=` → `<`) → the hand ladder's knee moves from 5
+to 10, `AssertionError: knee: the first H at or under the midpoint`.
+
+Welfare cost: 0 new cat-ticks; reads on arrays already on disk; no
+weight touched; nothing a covered mind experiences changes.
+
+Run order: (1) this addendum committed; (2) `knee_read.py` + t10, run,
+committed; (3) the red via `scripts/mutate.sh`, on record; (4) the
+read (`phase1d-knee.json` / `.md`), committed; (5) RESULTS §Addendum 5
+drafted, gated, stamped; a FINDINGS entry only if the knee is a
+finding on its own; (6) the number to Product (spec 067's strata) and
+the P9 score to the Professor, both on her standing word for this
+read.

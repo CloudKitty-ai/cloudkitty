@@ -418,9 +418,22 @@ consent BC comparison ride the trunk.
   warm start cuts reset detection 0.995 → 0.592 and removes every
   first-tick false alarm; training worlds hold no grave after offset
   322 (validation 601, evaluation 779); P4 / P8 met, P3 / P5 not met
-  as operationalised; SD reopen condition not met; F-069. Threshold
-  and burn-in HERS on the 0.10 / 0.30 / 0.50 ladder; the scripted
-  "needy" friend set waits on Product's spec (her kickoff there).
+  as operationalised; SD reopen condition not met; F-069. DECISION 3
+  RULED 2026-10-26 on the ladder walkthrough ("We'll start with your
+  recommendation (10/2) , then after we get the mid-episode testing,
+  we can reevaluate and dial in on the optimal level."): P(grave) ≥
+  0.10 with a 2-tick burn-in, PROVISIONAL, re-read on the needy set
+  (Product's spec 067, kicked off in their session 2026-10-26) before
+  any Phase 2 declaration fixes it; deviations entry 13. ADDENDUM 5
+  the same day ("Run the knee read now"): R8d, the splice at H ∈ {1, 2,
+  5, 10, 20, 50}; 0 cat-ticks. STATUS: DONE 2026-10-26 (gated round 3
+  PASS): THE FALL IS GRADUAL, MOST OF IT OVER BY 20 TICKS — detection
+  0.978 / 0.970 / 0.852 / 0.658 / 0.537 / 0.362 at H = 1 / 2 / 5 / 10 /
+  20 / 50 against 0.995 at the start and 0.358 at 100; control never
+  fires from H = 2; knee at 20 by the declared midpoint; P9 not met as
+  operationalised (clause ii by 0.003); the ruled 2-tick burn-in sits
+  inside the window; F-070. The number → Product (067 strata) and the
+  Professor (P9).
 
 ## Flagged follow-ups (owner's word to start)
 

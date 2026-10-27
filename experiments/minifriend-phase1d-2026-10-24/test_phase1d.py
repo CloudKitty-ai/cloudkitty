@@ -62,6 +62,7 @@ import read_phase1d as P  # noqa: E402
 import sweep_threshold as SW  # noqa: E402
 import burnin_read as BR  # noqa: E402
 import history_read as HR  # noqa: E402
+import knee_read as KR  # noqa: E402
 
 D = G.D
 S = G.S
@@ -395,6 +396,23 @@ def test_t9_history():
     ref = json.loads((HERE / "phase1d-sweep.json").read_text())["by_set"]["P"]["heads"]["NF-h24+p"]["rows"]["0.10"]["per_seed"][0]["reset"]
     assert json.loads(json.dumps(rows["reset"], default=float)) == ref
 
+
+
+def test_t10_knee():
+    """DECLARATION §Addendum 5: knee_of returns the first H AT OR UNDER the midpoint of the endpoints; score_p9 as
+    declared ((i) H = 10 under 0.70; (ii) H = 20 within one committed seed SD of H = 100, inclusive)."""
+    k = KR.knee_of({1: 0.90, 2: 0.80, 5: 0.64, 10: 0.30}, top=1.00, plateau=0.28)
+    assert abs(k["midpoint"] - 0.64) < 1e-12
+    assert k["H"] == 5 and k["detected"] == 0.64, "knee: the first H at or under the midpoint"
+    assert KR.knee_of({1: 0.9, 2: 0.8}, 1.0, 0.28)["H"] is None
+    def row(mean, sd=0.0):
+        return {"0.10": {"all": {"detected_frac": {"mean": mean, "sd": sd}}}}
+    committed = {"100": row(0.358, 0.175)}
+    p = KR.score_p9({"10": row(0.65), "20": row(0.358 + 0.175)}, committed)
+    assert p["i_ok"] and p["ii_ok"] and p["met"], p
+    p = KR.score_p9({"10": row(0.70), "20": row(0.358 + 0.175 + 1e-6)}, committed)
+    assert not p["i_ok"] and not p["ii_ok"] and not p["met"], p
+    assert KR.KNEE_H == (1, 2, 5, 10, 20, 50) and KR.PIN_H == 100
 
 if __name__ == "__main__":
     only = sys.argv[1:]
