@@ -2797,9 +2797,7 @@ mod tests {
         let ack = "[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n";
 
         // missing (section absent): names the mode, the site and the line.
-        let m = load(raised)
-            .err()
-            .expect("expected Err for missing (absent)");
+        let m = load(raised).expect_err("expected Err for missing (absent)");
         assert!(
             m.contains("'initial_needs' at [initial_needs].cuddle = 92")
                 && m.ends_with("[welfare_hazard]\nacknowledged = [\"initial_needs\"]"),
@@ -2809,26 +2807,22 @@ mod tests {
         let u = load(&format!(
             "{raised}[welfare_hazard]\nacknowledged = [\"initial_need\"]\n"
         ))
-        .err()
-        .expect("expected Err for unknown");
+        .expect_err("expected Err for unknown");
         assert!(u.contains("'initial_need' is not a registered"), "{u}");
         // duplicate.
         let d = load(&format!(
             "{raised}[welfare_hazard]\nacknowledged = [\"initial_needs\", \"initial_needs\"]\n"
         ))
-        .err()
-        .expect("expected Err for duplicate");
+        .expect_err("expected Err for duplicate");
         assert!(d.contains("listed more than once"), "{d}");
         // stale: acknowledged on a config with no distressed start at all.
-        let st = load(ack).err().expect("expected Err for stale");
+        let st = load(ack).expect_err("expected Err for stale");
         assert!(
             st.contains("'initial_needs' is acknowledged but not active"),
             "{st}"
         );
         // all-zero section WITH an acknowledgement: stale.
-        let st0 = load(&format!("{zero}{ack}"))
-            .err()
-            .expect("expected Err for stale (all-zero)");
+        let st0 = load(&format!("{zero}{ack}")).expect_err("expected Err for stale (all-zero)");
         assert!(st0.contains("is acknowledged but not active"), "{st0}");
 
         // The P shape: one kitty's inline override, no roster table.

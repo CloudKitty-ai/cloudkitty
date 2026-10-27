@@ -1620,10 +1620,12 @@ sha256 = "{sha}"
     /// commits in the spec 066 PR.
     #[test]
     fn a_written_acknowledgement_moves_the_stamp() {
-        let mut core = Config::default();
-        core.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
-            acknowledged: vec!["initial_needs".into()],
-        });
+        let core = Config {
+            welfare_hazard: Some(cloudkitty_core::config::WelfareHazardConfig {
+                acknowledged: vec!["initial_needs".into()],
+            }),
+            ..Config::default()
+        };
         assert_ne!(
             defaults_stamp(&core, &crate::config::RlConfig::default()),
             engine_defaults_sha256(),

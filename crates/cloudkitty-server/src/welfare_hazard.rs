@@ -57,14 +57,16 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     fn hazardous() -> Config {
-        let mut config = Config::default();
-        config.initial_needs = Some(InitialNeedsSpec {
-            cuddle: Some(NeedInit::Value(92.0)),
-            ..Default::default()
-        });
-        config.welfare_hazard = Some(WelfareHazardConfig {
-            acknowledged: vec!["initial_needs".into()],
-        });
+        let config = Config {
+            initial_needs: Some(InitialNeedsSpec {
+                cuddle: Some(NeedInit::Value(92.0)),
+                ..Default::default()
+            }),
+            welfare_hazard: Some(WelfareHazardConfig {
+                acknowledged: vec!["initial_needs".into()],
+            }),
+            ..Config::default()
+        };
         config
             .validate()
             .expect("the acknowledged config validates");
@@ -91,10 +93,12 @@ mod tests {
     fn a_config_with_no_acknowledged_mode_passes_with_or_without_the_switch() {
         gate(&Config::default(), false).expect("no mode, no switch: Ok");
         gate(&Config::default(), true).expect("no mode, switch: Ok and inert");
-        let mut empty = Config::default();
-        empty.welfare_hazard = Some(WelfareHazardConfig {
-            acknowledged: vec![],
-        });
+        let empty = Config {
+            welfare_hazard: Some(WelfareHazardConfig {
+                acknowledged: vec![],
+            }),
+            ..Config::default()
+        };
         gate(&empty, false).expect("a written empty list acknowledges nothing");
     }
 

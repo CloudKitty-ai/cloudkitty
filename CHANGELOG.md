@@ -33,6 +33,26 @@ change.
 
 ## Unreleased
 
+- **A hazardous world has to be asked for by name.** Welfare-hazard
+  acknowledgement guard (spec 066): a config that puts cats into a
+  manufactured hardship — today the elevated distressed start of spec
+  065, later any mode the engine registers as welfare-hazardous — now
+  loads only if it names that mode in a new `[welfare_hazard]
+  acknowledged = [...]` table, exactly: a missing name, a stale one, an
+  unknown one or a duplicate all fail to load, and the error prints the
+  line to add. Both shipped-config sweeps refuse any such mode in a
+  config outside `experiments/`, so the served world and the frozen
+  exams can never be hazardous; the server serves an acknowledged
+  config only when started with `--allow-welfare-hazard`, and then says
+  so in one boot line, on `GET /config` and as the last row of its key
+  settings, so the register shows the world as hazardous from tick 0.
+  The seven committed research configs that use the distressed start
+  carry the table now. With the table absent — every served and
+  shipped config — nothing changes: the engine, the defaults stamp,
+  `GET /config` and the generated world are byte-identical to before.
+  No compatibility marker: the defaults stamp, observation schema,
+  world fingerprint and seeded draw order are all unmoved.
+
 - **A world can begin mid-story.** Initial-needs distribution (spec
   065), absent by default everywhere: a new optional `[initial_needs]`
   config section (with per-kitty overrides) lets a world be created

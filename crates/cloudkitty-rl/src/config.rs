@@ -437,8 +437,7 @@ mod tests {
     fn welfare_hazard_refusal_reaches_load_configs_from_str() {
         let text = cloudkitty_core::test_support::complete_toml("[initial_needs]\ncuddle = 92.0\n");
         let msg = load_configs_from_str(&text)
-            .err()
-            .expect("expected Err for an unacknowledged distressed start")
+            .expect_err("expected Err for an unacknowledged distressed start")
             .to_string();
         assert!(
             msg.contains("initial_needs") && msg.contains("[welfare_hazard]"),
