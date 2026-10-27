@@ -13,8 +13,7 @@
 
 use std::sync::Arc;
 
-use cloudkitty_core::behavior::{Behavior, BehaviorRegistry, DecisionContext};
-use cloudkitty_core::config::Config;
+use cloudkitty_core::behavior::{BehaviorRegistry, DecisionContext};
 use cloudkitty_core::rng::DecisionRng;
 use cloudkitty_core::seam::JointProposal;
 use cloudkitty_core::test_support::test_config;

@@ -1241,6 +1241,78 @@ impl Config {
             .collect();
         check_acknowledgement(acknowledged, &active, &known)
     }
+
+    /// Spec 067 FR-008 (needy-law §8): the `[needy]` table's shape. Runs
+    /// whenever the table is written, seat or no seat (the table is
+    /// inert without a seat but still has to be well-formed). `N` is the
+    /// engine's need count, never a literal (FR-016).
+    pub(super) fn validate_needy(&self) -> Result<(), ConfigError> {
+        let Some(n) = &self.needy else {
+            return Ok(());
+        };
+        let count = crate::needs::NeedKind::ALL.len();
+        let well_formed_weights =
+            |w: &[f32]| w.iter().all(|x| x.is_finite() && *x >= 0.0) && w.iter().any(|x| *x > 0.0);
+        if n.mix.len() != count {
+            return Err(ConfigError::invalid(
+                "[needy].mix",
+                format!("{} weights", n.mix.len()),
+                format!("exactly {count} weights, one per masked-need count from 1 to {count}"),
+            ));
+        }
+        if !well_formed_weights(&n.mix) {
+            return Err(ConfigError::invalid(
+                "[needy].mix",
+                format!("{:?}", n.mix),
+                "finite, non-negative weights with at least one above zero",
+            ));
+        }
+        let floor = self.actions.sleep_floor_off_beam;
+        if !n.release_level.is_finite()
+            || !(0.0..=100.0).contains(&n.release_level)
+            || n.release_level <= floor
+        {
+            return Err(ConfigError::invalid(
+                "[needy].release_level",
+                n.release_level.to_string(),
+                format!(
+                    "a need level in [0, 100] strictly above the off-beam sleep floor ({floor})"
+                ),
+            ));
+        }
+        if n.hold_ticks < 1 {
+            return Err(ConfigError::invalid(
+                "[needy].hold_ticks",
+                n.hold_ticks.to_string(),
+                "at least 1 tick",
+            ));
+        }
+        if n.gap.min < 1 || n.gap.min > n.gap.max {
+            return Err(ConfigError::invalid(
+                "[needy].gap",
+                format!("min = {}, max = {}", n.gap.min, n.gap.max),
+                "1 <= min <= max",
+            ));
+        }
+        if n.onset_levels.len() < 6 || n.onset_levels.windows(2).any(|w| w[0] >= w[1]) {
+            return Err(ConfigError::invalid(
+                "[needy].onset_levels",
+                format!("{:?}", n.onset_levels),
+                "at least 6 strictly increasing tick edges (5 levels)",
+            ));
+        }
+        let levels = n.level_count();
+        if n.onset_weights.len() != levels || !well_formed_weights(&n.onset_weights) {
+            return Err(ConfigError::invalid(
+                "[needy].onset_weights",
+                format!("{:?}", n.onset_weights),
+                format!(
+                    "one finite, non-negative weight per level ({levels}), at least one above zero"
+                ),
+            ));
+        }
+        Ok(())
+    }
 }
 
 /// The pure exactness check (guard-law §3): `acknowledged` (`None` =

@@ -15,8 +15,11 @@ use crate::kitty::KittyId;
 use crate::needs::NeedWeights;
 
 mod defaults;
+pub mod needy;
 mod validate;
 pub mod welfare_hazard;
+
+pub use needy::{GapRange, NeedyConfig, OnsetDraw};
 
 // Load-bearing glob: the `#[serde(default = "default_x")]` string attributes
 // below and the `Default` impls resolve these names bare. Narrowing or
@@ -120,6 +123,16 @@ pub struct Config {
     /// read by `fingerprint()` or by any decision.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub welfare_hazard: Option<WelfareHazardConfig>,
+    /// The needy presets' parameters (spec 067): the `[needy]` table.
+    /// OPTIONAL by the same 062 design — absent is the pre-067 engine
+    /// byte for byte, skip-if-none keeps `engine_defaults_sha256` and
+    /// `GET /config` unmoved, and a needy seat with no table runs
+    /// `NeedyConfig::default()`. Parameters, never a hazard: the SEAT is
+    /// the hazard (`welfare_hazard::HazardMode::{Needy, NeedyHold}`).
+    /// Never read by `fingerprint()` or by any decision but the needy
+    /// preset's own. The law: `specs/067-needy-preset/contracts/needy-law.md`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub needy: Option<NeedyConfig>,
     /// The `[rl]`, `[plugins]`, `[watchdog]`, and `[stuck_detector]`
     /// tables are parsed from the same file text by cloudkitty-rl and
     /// the server respectively -- everything under them is someone
@@ -1691,6 +1704,7 @@ impl Default for Config {
             starts: None,
             initial_needs: None,
             welfare_hazard: None,
+            needy: None,
             rl: ForeignTable,
             plugins: ForeignTable,
             watchdog: ForeignTable,
@@ -1749,6 +1763,8 @@ impl Config {
         self.validate_initial_needs()?;
         // Position 21: appended by spec 066 (welfare-hazard acknowledgement).
         self.validate_welfare_hazard()?;
+        // Position 22: appended by spec 067 (the needy presets' parameters).
+        self.validate_needy()?;
         Ok(())
     }
 
@@ -2683,6 +2699,147 @@ mod tests {
         assert!(
             msg.contains("acknowledged"),
             "names the missing field: {msg}"
+        );
+    }
+
+    /// Spec 067 FR-002 / FR-008: no `needy` key reaches either
+    /// serialized-defaults surface; absent parses to `None`; a WRITTEN
+    /// (even partial) table serializes with the coverage defaults filled
+    /// in; unknown keys are refused; the defaults validate; `mix` is
+    /// sized by the engine's need count, never a literal (FR-016).
+    #[test]
+    fn needy_defaults_absent_and_leave_the_stamp_unmoved() {
+        let default_toml = toml::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_toml.contains("needy"),
+            "the defaults TOML must not grow the 067 key"
+        );
+        let default_json = serde_json::to_string(&Config::default()).unwrap();
+        assert!(
+            !default_json.contains("needy"),
+            "no needy key reaches the hashed JSON defaults"
+        );
+        assert!(Config::default().needy.is_none(), "absent = None");
+
+        let written: Config = toml::from_str(&complete("[needy]\nrelease_level = 80.0"))
+            .expect("a partial table parses");
+        let table = written.needy.clone().expect("present");
+        assert_eq!(table.release_level, 80.0);
+        assert_eq!(
+            table.mix.len(),
+            crate::needs::NeedKind::ALL.len(),
+            "the default mix is one weight per need count"
+        );
+        assert_eq!(table.onset_levels, vec![0, 2, 10, 50, 200, 20_000]);
+        written.validate().expect("the written table validates");
+        let round_trip = toml::to_string(&written).unwrap();
+        assert!(
+            round_trip.contains("[needy]") && round_trip.contains("release_level = 80.0"),
+            "a written table serializes: {round_trip}"
+        );
+        assert!(
+            serde_json::to_string(&written)
+                .unwrap()
+                .contains("\"needy\""),
+            "the written table reaches the JSON surface (GET /config)"
+        );
+        let defaults: Config = toml::from_str(&complete("[needy]")).unwrap();
+        defaults.validate().expect("the coverage defaults validate");
+        assert_eq!(defaults.needy, Some(NeedyConfig::default()));
+
+        let msg = toml::from_str::<NeedyConfig>("floors = { sleep = 20.0 }")
+            .unwrap_err()
+            .to_string();
+        assert!(msg.contains("floors"), "names the unknown key: {msg}");
+    }
+
+    /// Spec 067 FR-008 / needy-law §8: every refused shape, with the
+    /// field and the expectation the law pins; the mix-length message
+    /// names the engine's need count (FR-016).
+    #[test]
+    fn needy_section_shapes_are_refused_with_the_law_text() {
+        let count = crate::needs::NeedKind::ALL.len();
+        let floor = Config::default().actions.sleep_floor_off_beam;
+        let refused = |fragment: &str| -> String {
+            let config: Config = toml::from_str(&complete(fragment)).expect("parses");
+            config
+                .validate()
+                .expect_err(&format!("expected Err for {fragment:?}"))
+                .to_string()
+        };
+        let wrong_len = refused("[needy]\nmix = [1.0, 1.0]");
+        assert!(
+            wrong_len.contains("[needy].mix is 2 weights")
+                && wrong_len.contains(&format!(
+                    "exactly {count} weights, one per masked-need count from 1 to {count}"
+                )),
+            "wrong-length mix names N: {wrong_len}"
+        );
+        let mut negative = vec![1.0f32; count];
+        negative[1] = -0.5;
+        let msg = refused(&format!("[needy]\nmix = {negative:?}"));
+        assert!(
+            msg.contains("[needy].mix") && msg.contains("finite, non-negative weights"),
+            "{msg}"
+        );
+        let msg = refused(&format!("[needy]\nmix = {:?}", vec![0.0f32; count]));
+        assert!(msg.contains("at least one above zero"), "{msg}");
+        let msg = refused(&format!("[needy]\nrelease_level = {floor}"));
+        assert!(
+            msg.contains("[needy].release_level")
+                && msg.contains(&format!(
+                    "strictly above the off-beam sleep floor ({floor})"
+                )),
+            "a release level AT the floor is degenerate and refused: {msg}"
+        );
+        let msg = refused("[needy]\nrelease_level = 101.0");
+        assert!(msg.contains("[needy].release_level"), "{msg}");
+        let msg = refused("[needy]\nhold_ticks = 0");
+        assert!(
+            msg.contains("[needy].hold_ticks is 0; at least 1 tick"),
+            "{msg}"
+        );
+        let msg = refused("[needy]\ngap = { min = 40, max = 30 }");
+        assert!(
+            msg.contains("[needy].gap is min = 40, max = 30; 1 <= min <= max"),
+            "{msg}"
+        );
+        let msg = refused("[needy]\ngap = { min = 0, max = 30 }");
+        assert!(msg.contains("[needy].gap"), "{msg}");
+        let msg = refused(
+            "[needy]\nonset_levels = [0, 2, 10, 50, 200]\nonset_weights = [1.0, 1.0, 1.0, 1.0]",
+        );
+        assert!(
+            msg.contains("[needy].onset_levels")
+                && msg.contains("at least 6 strictly increasing tick edges (5 levels)"),
+            "{msg}"
+        );
+        let msg = refused("[needy]\nonset_levels = [0, 2, 10, 10, 200, 300]");
+        assert!(
+            msg.contains("[needy].onset_levels"),
+            "non-increasing edges: {msg}"
+        );
+        let msg = refused("[needy]\nonset_weights = [1.0, 1.0]");
+        assert!(
+            msg.contains("[needy].onset_weights")
+                && msg.contains(
+                    "one finite, non-negative weight per level (5), at least one above zero"
+                ),
+            "{msg}"
+        );
+    }
+
+    /// Spec 067 FR-002: neither the table nor a needy seat moves the
+    /// fingerprint, so no saved world is orphaned.
+    #[test]
+    fn fingerprint_ignores_the_needy_section() {
+        let a = cfg();
+        let mut b: Config = toml::from_str(&complete("[needy]\nrelease_level = 70.0")).unwrap();
+        b.kitties[0].behavior = crate::needy::NAME.to_string();
+        assert_eq!(
+            a.fingerprint(),
+            b.fingerprint(),
+            "the needy table and seat never orphan a saved world"
         );
     }
 
