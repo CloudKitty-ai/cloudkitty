@@ -160,7 +160,33 @@ fn every_shipped_toml_loads_through_validation() {
         config
             .validate()
             .unwrap_or_else(|e| panic!("{} no longer validates: {e}", file.display()));
+        if let Some(message) = hazard_outside_experiments(&root, &file, &config) {
+            panic!("{message}");
+        }
     }
+}
+
+/// Spec 066 FR-005 (guard-law §5): outside `<root>/experiments/` no
+/// tracked config may activate a welfare-hazardous mode — the served
+/// world (`cloudkitty.toml`, `training.toml`) and the frozen exams can
+/// never be hazardous, acknowledged or not. Files under `experiments/`
+/// are governed by the acknowledgement law through the load itself
+/// (`validate()` above), so nothing more is asked of them here. Returns
+/// the sweep's failure message, or `None` when the file passes.
+fn hazard_outside_experiments(root: &Path, file: &Path, config: &Config) -> Option<String> {
+    if file.starts_with(root.join("experiments")) {
+        return None;
+    }
+    let active = config.active_hazards();
+    if active.is_empty() {
+        return None;
+    }
+    let names: Vec<&str> = active.iter().map(|(mode, _)| mode.name()).collect();
+    Some(format!(
+        "{}: welfare-hazardous mode(s) {} active outside experiments/ (spec 066 FR-005)",
+        file.display(),
+        names.join(", ")
+    ))
 }
 
 /// Spec 041 US2 (the riders-partial contract) on the SERVED config: every
@@ -360,6 +386,59 @@ fn the_filter_drops_gitignored_files_and_nothing_else() {
         "an untracked-but-not-ignored file survives the filter"
     );
     assert_eq!(files.len(), 2, "the bulk gitignored batch is fully dropped");
+}
+
+/// Self-test for `hazard_outside_experiments` (spec 066 US3) on a scratch
+/// tree, so rule 5 gets its red without staging a hazardous file in the
+/// real tree: the same acknowledged distressed-start bytes are refused
+/// under `scratch/specs/` and pass under `scratch/experiments/`; a clean
+/// config under `scratch/specs/` passes.
+#[test]
+fn hazardous_configs_are_refused_outside_experiments() {
+    let scratch = std::env::temp_dir().join(format!(
+        "cloudkitty-core-sweep-hazard-selftest-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    std::fs::create_dir_all(scratch.join("specs")).unwrap();
+    std::fs::create_dir_all(scratch.join("experiments")).unwrap();
+    let hazardous = cloudkitty_core::test_support::complete_toml(
+        "[initial_needs]\ncuddle = 92.0\n[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n",
+    );
+    let clean = cloudkitty_core::test_support::complete_toml("");
+    let outside = scratch.join("specs/x.toml");
+    let inside = scratch.join("experiments/x.toml");
+    let clean_outside = scratch.join("specs/clean.toml");
+    std::fs::write(&outside, &hazardous).unwrap();
+    std::fs::write(&inside, &hazardous).unwrap();
+    std::fs::write(&clean_outside, &clean).unwrap();
+    let load = |path: &Path| -> Config {
+        let config: Config = toml::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        config
+            .validate()
+            .expect("the acknowledged config validates (FR-004 is exact)");
+        config
+    };
+
+    let refused = hazard_outside_experiments(&scratch, &outside, &load(&outside))
+        .expect("a hazardous config outside experiments/ is refused");
+    assert!(
+        refused.contains("specs/x.toml")
+            && refused.contains("initial_needs")
+            && refused.contains("outside experiments/"),
+        "the message names the file and the mode: {refused}"
+    );
+    assert_eq!(
+        hazard_outside_experiments(&scratch, &inside, &load(&inside)),
+        None,
+        "the same bytes inside experiments/ pass the sweep rule"
+    );
+    assert_eq!(
+        hazard_outside_experiments(&scratch, &clean_outside, &load(&clean_outside)),
+        None,
+        "a clean config outside experiments/ passes"
+    );
 }
 
 /// Self-test for `collect`'s symlink rule (found 2026-10-15 on the lab

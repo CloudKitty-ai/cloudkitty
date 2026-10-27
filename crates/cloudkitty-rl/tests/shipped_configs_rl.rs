@@ -155,9 +155,37 @@ fn every_shipped_toml_loads_through_both_config_surfaces() {
     );
     for file in files {
         let text = std::fs::read_to_string(&file).unwrap();
-        cloudkitty_rl::config::load_configs_from_str(&text)
+        let (config, _rl) = cloudkitty_rl::config::load_configs_from_str(&text)
             .unwrap_or_else(|e| panic!("{} no longer loads: {e}", file.display()));
+        if let Some(message) = hazard_outside_experiments(&root, &file, &config) {
+            panic!("{message}");
+        }
     }
+}
+
+/// Spec 066 FR-005 (guard-law §5), the RL mirror of the core sweep's
+/// rule: outside `<root>/experiments/` no tracked config may activate a
+/// welfare-hazardous mode — this sweep is the one that loads the frozen
+/// `evals/v3` exams through the full loader. Files under `experiments/`
+/// are governed by the acknowledgement law through the load itself.
+fn hazard_outside_experiments(
+    root: &Path,
+    file: &Path,
+    config: &cloudkitty_core::Config,
+) -> Option<String> {
+    if file.starts_with(root.join("experiments")) {
+        return None;
+    }
+    let active = config.active_hazards();
+    if active.is_empty() {
+        return None;
+    }
+    let names: Vec<&str> = active.iter().map(|(mode, _)| mode.name()).collect();
+    Some(format!(
+        "{}: welfare-hazardous mode(s) {} active outside experiments/ (spec 066 FR-005)",
+        file.display(),
+        names.join(", ")
+    ))
 }
 
 /// Removes the self-test's scratch repo even when the test panics.
@@ -245,6 +273,58 @@ fn the_filter_drops_gitignored_files_and_nothing_else() {
         "an untracked-but-not-ignored file survives the filter"
     );
     assert_eq!(files.len(), 2, "the bulk gitignored batch is fully dropped");
+}
+
+/// Self-test for `hazard_outside_experiments` (spec 066 US3), the RL
+/// mirror of the core sweep's: on a scratch tree, the same acknowledged
+/// distressed-start bytes are refused under `scratch/specs/` and pass
+/// under `scratch/experiments/`; a clean config under `scratch/specs/`
+/// passes. Loaded through `load_configs_from_str`, as the sweep loads.
+#[test]
+fn hazardous_configs_are_refused_outside_experiments() {
+    let scratch = std::env::temp_dir().join(format!(
+        "cloudkitty-rl-sweep-hazard-selftest-{}",
+        std::process::id()
+    ));
+    let _ = std::fs::remove_dir_all(&scratch);
+    let _cleanup = RemoveOnDrop(scratch.clone());
+    std::fs::create_dir_all(scratch.join("specs")).unwrap();
+    std::fs::create_dir_all(scratch.join("experiments")).unwrap();
+    let hazardous = cloudkitty_core::test_support::complete_toml(
+        "[initial_needs]\ncuddle = 92.0\n[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n",
+    );
+    let clean = cloudkitty_core::test_support::complete_toml("");
+    let outside = scratch.join("specs/x.toml");
+    let inside = scratch.join("experiments/x.toml");
+    let clean_outside = scratch.join("specs/clean.toml");
+    std::fs::write(&outside, &hazardous).unwrap();
+    std::fs::write(&inside, &hazardous).unwrap();
+    std::fs::write(&clean_outside, &clean).unwrap();
+    let load = |path: &Path| -> cloudkitty_core::Config {
+        let (config, _rl) =
+            cloudkitty_rl::config::load_configs_from_str(&std::fs::read_to_string(path).unwrap())
+                .expect("the acknowledged config loads (FR-004 is exact)");
+        config
+    };
+
+    let refused = hazard_outside_experiments(&scratch, &outside, &load(&outside))
+        .expect("a hazardous config outside experiments/ is refused");
+    assert!(
+        refused.contains("specs/x.toml")
+            && refused.contains("initial_needs")
+            && refused.contains("outside experiments/"),
+        "the message names the file and the mode: {refused}"
+    );
+    assert_eq!(
+        hazard_outside_experiments(&scratch, &inside, &load(&inside)),
+        None,
+        "the same bytes inside experiments/ pass the sweep rule"
+    );
+    assert_eq!(
+        hazard_outside_experiments(&scratch, &clean_outside, &load(&clean_outside)),
+        None,
+        "a clean config outside experiments/ passes"
+    );
 }
 
 /// Self-test for `collect`'s symlink rule, the RL counterpart of the core

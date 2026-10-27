@@ -26,6 +26,10 @@ struct Args {
     /// True when the operator named the client directory explicitly; a missing
     /// explicit path is an error, mirroring `config_explicit`.
     client_explicit: bool,
+    /// Spec 066 FR-006: the operator's stated intent to serve a config that
+    /// acknowledges a welfare-hazardous mode. Bare; inert on any other
+    /// config.
+    allow_welfare_hazard: bool,
 }
 
 impl Default for Args {
@@ -38,6 +42,7 @@ impl Default for Args {
             no_backup: false,
             client_dir: PathBuf::from(DEFAULT_CLIENT_DIR),
             client_explicit: false,
+            allow_welfare_hazard: false,
         }
     }
 }
@@ -54,6 +59,10 @@ OPTIONS:
         --fresh              Start a new world; the old one is moved aside to
                              <snapshot>.<timestamp>.bak first
         --no-backup          With --fresh: overwrite the old world in place
+        --allow-welfare-hazard
+                             Serve a config that acknowledges a
+                             welfare-hazardous mode (spec 066);
+                             refused without it
         --client <PATH>      Directory of static client files (default: client,
                              falling back to the workspace copy when absent)
     -h, --help               Print this help
@@ -71,6 +80,7 @@ fn parse_args() -> Result<Option<Args>> {
             }
             "--fresh" => args.fresh = true,
             "--no-backup" => args.no_backup = true,
+            cloudkitty_server::welfare_hazard::SWITCH => args.allow_welfare_hazard = true,
             "-c" | "--config" => {
                 let value = argv.next().context("--config needs a path")?;
                 args.config_path = PathBuf::from(value);
@@ -234,6 +244,10 @@ async fn run() -> Result<()> {
         load_config(&args)?;
     // The constitution is enforced here, before a single kitty exists.
     config.validate()?;
+    // Spec 066 FR-006: a config that acknowledges a welfare-hazardous mode
+    // is served only on stated intent — refused here, before the registry,
+    // before any snapshot is moved or any world is built.
+    cloudkitty_server::welfare_hazard::gate(&config, args.allow_welfare_hazard)?;
 
     let mut registry = BehaviorRegistry::with_builtins();
     // Policy and plugin behaviors register before name validation, exactly
@@ -358,6 +372,10 @@ async fn run() -> Result<()> {
     // Spec 061: the detector's one boot line -- the mode row is the fact
     // a deploy verifies (off = the shipped dark state, FR-009).
     cloudkitty_server::stuck::log_boot(&stuck_config);
+    // Spec 066 FR-007: one line, only when a mode is acknowledged — the
+    // register shows a hazardous world as hazardous from tick 0; silence
+    // otherwise keeps the served boot log byte-identical.
+    cloudkitty_server::welfare_hazard::log_boot(&config);
     // Spec 052: the key settings block, said once here — after validation,
     // before the first tick (FR-006) — and the SAME Arc the endpoint serves
     // (FR-006a), so the journal and GET /settings cannot disagree. The

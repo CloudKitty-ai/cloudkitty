@@ -10,6 +10,7 @@ pub mod settings;
 pub mod sim_task;
 pub mod stuck;
 pub mod watchdog;
+pub mod welfare_hazard;
 pub mod ws;
 
 use std::collections::{BTreeMap, BTreeSet};
