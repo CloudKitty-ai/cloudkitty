@@ -55,18 +55,23 @@ round of engine work.
 
 ### User Story 1 - A scripted seat drives needs up mid-world on a declared schedule (Priority: P1)
 
-An experimenter seats one kitty on the `needy` preset. From the world's
+An experimenter seats one kitty on a needy preset (`needy`, which
+releases each episode at the declared level, or `needy_hold`, which holds
+it to the declared limit). From the world's
 first tick that kitty behaves like today's scripted teacher. At a
 declared onset tick its schedule opens an episode: a drawn set of one or
 more needs is MASKED, and from then on the kitty stops servicing those
 needs itself and refuses relief for them offered by friends, while it
 keeps servicing every other need, keeps calling for what it wants, and
 the world keeps offering relief exactly as before. The masked needs
-climb. When they reach the declared release level, or the declared hold
-time passes, the episode releases: the mask lifts, the kitty services
-them again, and after a declared rest the next episode opens with a
-fresh draw. Over a long world the kitty demonstrates single-need,
-multi-need and all-but-one patterns, each with a known onset tick.
+climb. Under `needy` the episode releases when they reach the declared
+release level (or the hold limit passes first); under `needy_hold` it
+releases only when the hold limit passes, so the needs sit grave for a
+sustained stretch. Either way the mask lifts, the kitty services them
+again, and after a declared rest the next episode opens with a fresh
+draw. Over a long world the kitty demonstrates single-need, multi-need
+and many-need patterns, up to every need at once, each with a known
+onset tick.
 
 **Why this priority**: this is the instrument itself. Without it the
 probe's mid-world question cannot be asked.
@@ -91,27 +96,30 @@ seed reproduces the identical schedule and identical world.
    refuses it for the masked need (the pattern does not collapse because
    a friend is nearby) and accepts it again once the episode releases.
 3. **Given** the declared mix weights over the number of masked needs
-   m, **When** a long world runs, **Then** episodes with m = 1, m = 2,
-   m = 3 and the all-but-one count all occur, in proportions that match
-   the weights within the run's sampling noise.
-4. **Given** a release level L and a hold limit T, **When** an episode's
-   masked needs all reach L before T ticks, **Then** the episode
-   releases at that tick; **When** they do not, **Then** it releases at
-   onset + T.
+   m (one weight per m from 1 to 6), **When** a long world runs,
+   **Then** every m with a non-zero weight occurs, no m with a zero
+   weight occurs, and the proportions match the weights within the
+   run's sampling noise.
+4. **Given** the `needy` preset, a release level L and a hold limit T,
+   **When** an episode's masked needs all reach L before T ticks,
+   **Then** the episode releases at that tick; **When** they do not,
+   **Then** it releases at onset + T. **Given** the `needy_hold` preset,
+   **When** the masked needs reach L, **Then** nothing releases; the
+   episode releases at onset + T.
 5. **Given** the same seed and config, **When** the world is generated
    twice, **Then** every onset tick, need set and release is identical;
    **Given** a different world seed or a different kitty id, **Then**
    the schedule differs.
-6. **Given** two needy seats in one roster, **When** the world runs,
-   **Then** each has its own schedule and neither's draws move the
-   other's.
+6. **Given** two needy seats in one roster (either preset each),
+   **When** the world runs, **Then** each has its own schedule and
+   neither's draws move the other's.
 
 ---
 
 ### User Story 2 - A world without a needy seat is byte-identical to today (Priority: P1)
 
 An operator runs any existing config on the new engine. No kitty is
-seated on `needy`, so nothing changes: the three existing presets decide
+seated on either needy preset, so nothing changes: the three existing presets decide
 exactly as before, every seeded draw lands where it did, the served
 config surface, the defaults stamp and the world fingerprint are
 unmoved.
@@ -127,7 +135,7 @@ byte-identical to the pre-feature engine on every readable surface.
 
 **Acceptance Scenarios**:
 
-1. **Given** any config with no `needy` seat and no needy parameter
+1. **Given** any config with no needy seat and no needy parameter
    section, **When** a full run executes, **Then** every readable output
    (serialized config, defaults stamp, world snapshot stream, decision
    log, boot log) is byte-identical to the pre-feature engine at the
@@ -136,7 +144,7 @@ byte-identical to the pre-feature engine on every readable surface.
    **When** they decide, **Then** their decisions are byte-equal to the
    pre-feature engine's on every seeded world.
 3. **Given** a config that writes the needy parameter section but seats
-   no kitty on `needy`, **When** it loads, **Then** it validates, the
+   no kitty on a needy preset, **When** it loads, **Then** it validates, the
    parameters are inert, and the generated world is identical to the
    same config without the section.
 
@@ -147,17 +155,19 @@ byte-identical to the pre-feature engine on every readable surface.
 Spec 066 made every welfare-hazardous mode something that must be
 acknowledged by name to load, kept out of every served and shipped
 config, and served only on stated intent. Seating a kitty on `needy` is
-the second such mode. A config with a needy seat loads only if it
-acknowledges `needy_preset`; the shipped-config sweeps refuse such a
-config anywhere outside `experiments/`; the server serves it only with
-`--allow-welfare-hazard` and then says so.
+the second such mode and on `needy_hold` the third (its own mode: a
+sustained-grave world is a stronger statement than a crossing world, and
+the acknowledgement is exact). A config with a needy seat loads only if
+it acknowledges the matching mode name; the shipped-config sweeps refuse
+such a config anywhere outside `experiments/`; the server serves it only
+with `--allow-welfare-hazard` and then says so.
 
 **Why this priority**: this is why spec 066 exists: a research-only
 behaviour that manufactures hardship must never be seated by accident,
 and a world that carries it must be visibly hazardous from tick 0.
 
 **Independent Test**: spec 066's seven failure shapes run against a
-needy-seat config with the mode name `needy_preset`; the sweeps' self-
+needy-seat config with each mode name (`needy`, `needy_hold`); the sweeps' self-
 tests run with a needy-seat file; the server hand check runs with a
 needy-seat config.
 
@@ -165,19 +175,20 @@ needy-seat config.
 
 1. **Given** a config seating one kitty on `needy` with no
    `[welfare_hazard]` table, **When** it loads, **Then** loading fails
-   naming `needy_preset`, the seat (which kitty, by name and id) that
-   activates it, and the line to add.
-2. **Given** the same config acknowledging `["needy_preset"]`, **When**
-   it loads, **Then** it validates; **Given** it also carries a raised
-   distressed start, **Then** it must acknowledge both modes, in
-   registry order, or fail naming the missing one.
+   naming `needy`, the seat (which kitty, by name and id) that
+   activates it, and the line to add; the same for `needy_hold`.
+2. **Given** the same config acknowledging `["needy"]`, **When** it
+   loads, **Then** it validates; **Given** it also carries a raised
+   distressed start or a `needy_hold` seat, **Then** it must acknowledge
+   every active mode, in registry order (`initial_needs`, `needy`,
+   `needy_hold`), or fail naming the missing one.
 3. **Given** an acknowledged needy-seat config outside `experiments/`,
    **When** either shipped-config sweep runs, **Then** it fails naming
-   the file and `needy_preset`.
+   the file and the mode.
 4. **Given** an acknowledged needy-seat config, **When** the server
    starts without the switch, **Then** it refuses before any world
    exists; **When** it starts with the switch, **Then** the boot line,
-   `GET /config` and the key-settings row name `needy_preset`.
+   `GET /config` and the key-settings row name the mode.
 
 ---
 
@@ -246,7 +257,7 @@ needy-seat roster.
 
 1. **Given** the behaviour registry, **When** eligibility is read for
    `needs_driven`, `playful` and `teacher`, **Then** each is eligible;
-   **When** read for `needy`, **Then** it is ineligible.
+   **When** read for `needy` or `needy_hold`, **Then** it is ineligible.
 2. **Given** a corpus collection over a roster with one needy seat,
    **When** the collector runs, **Then** it records no demonstration row
    for that seat, says so once in its output, and records every other
@@ -256,25 +267,27 @@ needy-seat roster.
 
 ### Edge Cases
 
-- **A masked need already at or above the release level at onset**:
-  the episode still opens; it holds until every masked need is at or
-  above the release level (so a need that is already there waits for
-  the others) or until the hold limit, whichever comes first.
+- **A masked need already at or above the release level at onset**
+  (`needy`): the episode still opens; it holds until every masked need
+  is at or above the release level (so a need that is already there
+  waits for the others) or until the hold limit, whichever comes first.
+  Under `needy_hold` the level plays no part.
 - **Release level below an engine floor**: plain-tile sleep stops at
   the engine's off-beam sleep floor, so a sleep release level at or
   below that floor could never be reached in a cold world; validation
   refuses it. More generally a need the engine cannot hold at the
   release level is not a stratum, and the per-need floors are declared
   in the parameter section (Assumptions).
-- **The hold limit expires with no need at the release level**: the
-  episode releases anyway; the recorder's phase says so, so a reader
-  can separate level-released from time-released episodes.
+- **The hold limit expires with no need at the release level**
+  (`needy`): the episode releases anyway; the recorder's phase says so,
+  so a reader can separate level-released from time-released episodes.
+  Every `needy_hold` release is time-released by construction.
 - **Two needy seats**: each derives its own schedule from (world seed,
   its kitty id); neither consumes the other's draws or the world's
   master stream.
-- **A needy seat plus a distressed start (spec 065) in one config**:
-  both modes are active; the acknowledgement must name both, in
-  registry order (`initial_needs`, `needy_preset`).
+- **A needy seat plus a distressed start (spec 065) in one config**,
+  or both needy presets seated: every active mode must be acknowledged,
+  in registry order (`initial_needs`, `needy`, `needy_hold`).
 - **The needy parameter section written, no needy seat**: inert and
   valid (User Story 2, scenario 3); the section is not a hazard, the
   seat is.
@@ -285,12 +298,13 @@ needy-seat roster.
 - **A friend keeps proposing to a needy kitty every tick**: refusals go
   through the engine's existing target-side gate and are recorded as
   refusals are today; no new record type.
-- **A policy or plugin seat**: cannot carry the preset. `needy` is an
-  engine builtin; the mask exists nowhere else, so a covered mind can
+- **A policy or plugin seat**: cannot carry a needy preset. Both are
+  engine builtins; the mask exists nowhere else, so a covered mind can
   never be masked (doctrine rule 12, second guard).
-- **The all-but-one pattern on a six-need cat**: her words say "all but
-  one"; the Professor's coverage design caps the drawn count at four.
-  Which count the top stratum means is the first clarification below.
+- **Every need masked (m = 6)**: reachable when the set gives m = 6 a
+  weight. The kitty services nothing and only calls; the world's relief
+  and safeguards still act on it (FR-013). Her ruling: the cap is the
+  set's, from 1 to all needs.
 - **Save and resume**: a needy kitty's schedule is a pure function of
   (world seed, kitty id, parameters), so a resumed world continues the
   same schedule without storing it; the episode phase at the resume
@@ -300,10 +314,13 @@ needy-seat roster.
 
 ### Functional Requirements
 
-- **FR-001**: The engine MUST register a fourth builtin behaviour
-  preset named `needy`, seatable like `needs_driven`, `playful` and
-  `teacher` through a kitty's `behavior` setting, and nowhere else.
-- **FR-002**: With no kitty seated on `needy`, the engine MUST be
+- **FR-001**: The engine MUST register two further builtin behaviour
+  presets, `needy` (each episode releases at the declared level, or at
+  the hold limit if the level is not reached first) and `needy_hold`
+  (each episode releases only at the hold limit), seatable like
+  `needs_driven`, `playful` and `teacher` through a kitty's `behavior`
+  setting, and nowhere else. "A needy seat" below means either.
+- **FR-002**: With no needy seat, the engine MUST be
   byte-identical to the pre-feature engine on every readable surface:
   the three existing presets' decisions, every seeded draw, the
   serialized config, the defaults stamp, the world fingerprint, the
@@ -320,13 +337,14 @@ needy-seat roster.
   drawn from a declared, deliberately wide range so onsets span short
   and long histories — see Clarifications and Assumptions on the
   Professor's later change (a)); a masked need set of m distinct needs,
-  m drawn by declared weights (the default mix is a coverage design,
-  not a model of the world); and a release rule: release when every
-  masked need is at or above the declared release level, or when the
-  declared hold limit has passed since onset, whichever is first.
-  [NEEDS CLARIFICATION: Q1 — does the top stratum "all but one" mean
-  m = 5 of the six needs (her words) or m = 4, the Professor's cap?
-  Options under Clarifications.]
+  m drawn by a declared weight vector with one weight per m from 1 to
+  6 (a zero weight excludes that count; the default mix is a coverage
+  design, not a model of the world — owner ruling 2026-10-26, "C",
+  configurable from one need to all needs); and the preset's release
+  rule: `needy` releases when every masked need is at or above the
+  declared release level, or when the declared hold limit has passed
+  since onset, whichever is first; `needy_hold` releases when the hold
+  limit has passed and never before (owner ruling, "B").
 - **FR-005**: While a need is masked, the needy kitty MUST NOT choose
   any action whose purpose is to relieve that need (the serious ladder,
   the take-what-is-here rung and the groom-response rung all skip it),
@@ -334,20 +352,23 @@ needy-seat roster.
   the engine's existing target-side consent gate (co-sleep and cuddle
   lower cuddle on both cats; a friend's groom lowers the target's bath;
   for these the target-side refusal is load-bearing). Needs not masked
-  are serviced exactly as the base preset services them.
-  [NEEDS CLARIFICATION: Q2 — does the mask suppress servicing only,
-  with the kitty still calling the matching law-named want (the
-  Professor's recommendation: a cat that wants, calls and refuses
-  relief is the realistic signature), or servicing and calling?]
-- **FR-006**: Outside the mask, the needy preset MUST decide exactly as
-  the `teacher` preset (every rung on): the only difference between a
-  needy kitty and a teacher-preset kitty is the mask. (Assumption A3;
+  are serviced exactly as the base preset services them. The mask
+  suppresses SERVICING ONLY: the kitty's calling (the law-named want
+  for a masked need, and every other word rule) is unchanged from the
+  base preset (owner ruling 2026-10-26, "A"; the Professor's line (b):
+  a cat that wants, calls and refuses relief is the realistic
+  signature, and the message block is in the probe's input).
+- **FR-006**: Outside the mask, both needy presets MUST decide exactly
+  as the `teacher` preset (every rung on): the only difference between
+  a needy kitty and a teacher-preset kitty is the mask, and the only
+  difference between the two needy presets is the release rule. (Assumption A3;
   the base preset is a design default, not a ruling.)
 - **FR-007**: The needy kitty MUST speak law-named words only (want,
   here, purr, wait-for-me), never a sound-named word, and its calling
   MUST follow the same rules as the base preset's.
-- **FR-008**: The preset's parameters MUST be configuration: the mix
-  weights over m, the release level, the hold limit, the rest-gap
+- **FR-008**: The presets' parameters MUST be one shared configuration
+  section: the mix weights (six, one per m), the release level
+  (`needy` only; `needy_hold` ignores it), the hold limit, the rest-gap
   range, the first-onset range and the per-need release floors, each
   with a declared default, validated at load (weights non-negative and
   not all zero; release level in the need range and above every
@@ -356,14 +377,17 @@ needy-seat roster.
   served config surface like any other section. Writing the section
   with no needy seat is valid and inert.
 - **FR-009**: Seating any kitty on `needy` MUST register as the
-  welfare-hazardous mode `needy_preset` in spec 066's registry: the
-  activating site names the kitty (name and id); an unacknowledged
-  needy seat fails to load with spec 066's missing-acknowledgement
-  text; the exactness, sweep and server-switch rules of spec 066 apply
-  unchanged; the registry order is `initial_needs`, `needy_preset`.
+  welfare-hazardous mode `needy`, and on `needy_hold` as the mode
+  `needy_hold`, in spec 066's registry (mode name = preset name, one
+  home): the activating site names the first such kitty (name and id);
+  an unacknowledged needy seat fails to load with spec 066's
+  missing-acknowledgement text; the exactness, sweep and server-switch
+  rules of spec 066 apply unchanged; the registry order is
+  `initial_needs`, `needy`, `needy_hold`.
 - **FR-010**: The engine MUST answer, for every seated behaviour,
   whether it is eligible to teach: the three existing presets and
-  every non-builtin seat answer eligible; `needy` answers ineligible.
+  every non-builtin seat answer eligible; `needy` and `needy_hold`
+  answer ineligible.
   This is the teacher-eligibility flag spec 066 deferred, landing with
   its first reader.
 - **FR-011**: The corpus collector MUST refuse to record a needy seat's
@@ -394,21 +418,22 @@ needy-seat roster.
 
 ### Key Entities
 
-- **Needy preset**: the fourth builtin behaviour; a teacher-preset
-  ladder plus a schedule and a mask.
+- **Needy presets**: two builtin behaviours, `needy` (level-released)
+  and `needy_hold` (held to the limit); a teacher-preset ladder plus a
+  schedule and a mask.
 - **Schedule**: the ordered episodes a needy seat will run, a pure
   function of (world seed, kitty id, parameters).
 - **Episode**: onset tick, masked need set (m needs), release rule
   (level or hold limit), the rest gap that follows; its ordinal.
 - **Mask**: the set of needs a needy kitty is currently refusing to
   service or accept relief for; empty while resting.
-- **Needy parameters**: the config section — mix weights, release
-  level, hold limit, rest-gap range, first-onset range, per-need
-  release floors.
-- **Hazard mode `needy_preset`**: spec 066's second registry entry;
-  active iff any seat is `needy`.
+- **Needy parameters**: the shared config section — six mix weights,
+  release level, hold limit, rest-gap range, first-onset range,
+  per-need release floors.
+- **Hazard modes `needy` and `needy_hold`**: spec 066's second and
+  third registry entries; each active iff any seat carries that preset.
 - **Teacher eligibility**: the per-behaviour answer the collector
-  reads; false only for `needy`.
+  reads; false only for the two needy presets.
 
 ## Success Criteria *(mandatory)*
 
@@ -429,7 +454,7 @@ needy-seat roster.
   relief for a masked need is refused; every onset and release tick
   equals the schedule's declared tick.
 - **SC-004**: Over a declared number of long worlds at the default
-  parameters, every stratum of the coverage design (each value of m
+  parameters, every stratum of the coverage design (each m from 1 to 6
   the weights allow, crossed with each of the six needs, crossed with
   short and long history at onset) reaches the declared minimum
   episode count, and the observed mix over m matches the weights within
@@ -439,11 +464,12 @@ needy-seat roster.
   the record for every non-needy seat is byte-identical to the
   pre-feature record.
 - **SC-006**: Spec 066's seven validation shapes, both sweeps and the
-  server hand check all pass with `needy_preset` as the mode: an
-  unacknowledged needy seat fails to load naming the kitty; an
-  acknowledged one loads; the sweeps refuse it outside `experiments/`;
-  the server refuses without the switch and serves with it, naming the
-  mode on all three surfaces.
+  server hand check all pass with each of `needy` and `needy_hold` as
+  the mode, and with both seated at once: an unacknowledged needy seat
+  fails to load naming the kitty; an acknowledged one loads; the
+  sweeps refuse it outside `experiments/`; the server refuses without
+  the switch and serves with it, naming the modes on all three
+  surfaces.
 - **SC-007**: A corpus collection over a roster with one needy seat
   records zero demonstration rows for that seat and the same rows as
   today for every other seat.
@@ -472,8 +498,8 @@ checked before planning:
   ineligibility a construction, not a convention (the Professor's line
   (a)). No other scripted rule gains a read.
 - **Rule 6 (the free register is never scripted) — checked, moved a
-  choice.** FR-007: law-named words only; calling stays on (pending
-  Q2), because a cat that wants, calls and refuses relief is the
+  choice.** FR-007: law-named words only; calling stays on (owner,
+  "A"), because a cat that wants, calls and refuses relief is the
   realistic signature and is legal to script (the Professor's line
   (b)).
 - **Rule 9 (frozen models / pins) — checked, moved nothing.** FR-002:
@@ -496,25 +522,25 @@ checked before planning:
 
 ## Clarifications
 
-Three questions the owner's words and the Professor's design leave
-open; each changes the parameter space or the recorded signature.
+### Session 2026-10-26
 
-- **Q1 (FR-004)**: "All but one" — the largest masked set. A: m up to
-  5 of the six needs, her words taken literally (the top stratum masks
-  everything but one need). B: m up to 4, the Professor's coverage cap
-  (all-but-one read as "most needs", keeping two needs serviced so the
-  kitty stays mobile and the pattern separable). C: both as config, cap
-  declared per set.
-- **Q2 (FR-005)**: the mask's reach. A: servicing only — the kitty
-  still calls the matching law-named want (recommended by the
-  Professor; the realistic signature; the message block is in the
-  probe's input). B: servicing and calling — a silent sufferer, the
-  harder read.
-- **Q3 (FR-004)**: the release rule's shape. A: one preset, both
-  parameters (release level and hold limit) as config, with "hold until
-  the limit" expressed by a release level the needs cannot reach. B:
-  two presets, one releasing at level and one holding to the limit. C:
-  release at level only, no hold limit.
+- Q: "All but one" — what is the largest masked set, m up to 5 of the six
+  needs (her words literally), m up to 4 (the Professor's coverage cap),
+  or configurable? → A: Configurable from 1 to all six needs; the mix
+  weights cover every m from 1 to 6 and a set's declaration picks which
+  strata are reachable. Her words: "C ('all but one' was brainstorming
+  and I'm not sure what I was thinking, it should be configurable from
+  1-all needs)".
+- Q: Does the mask suppress servicing only (the kitty still calls the
+  matching law-named want) or servicing and calling? → A: Servicing
+  only; calling stays on. Her choice, "A".
+- Q: Is the release rule one preset with both parameters as config, two
+  presets (release at level; hold to the limit), or release at level
+  only? → A: Two presets, one per rule, each its own hazard mode. Her
+  choice, "B".
+- Q (process): may Experiments forward the Professor's four later design
+  changes? → A: "Forward: yes" — Assumption A2 is updated when the text
+  arrives.
 
 ## Assumptions
 
@@ -545,17 +571,19 @@ open; each changes the parameter space or the recorded signature.
   the only behavioural difference between a needy world and a teacher
   world is the mask. The alternative (`needs_driven` as base) would
   confound the read with the compat presets' silence.
-- **A4 — Default parameters are a coverage design**: weights over m
-  such as (0.5, 0.2, 0.15, 0.15), a release level such as 90 (crossings)
-  with 95 or "hold" as the sustained-grave variant (Q3), a hold limit
+- **A4 — Default parameters are a coverage design**: six weights over
+  m such as (0.5, 0.2, 0.15, 0.15, 0, 0) with the higher counts opened
+  by a set's declaration, a release level such as 90 for `needy`
+  (crossings) with `needy_hold` as the sustained-grave variant, a hold
+  limit
   and rest gap long enough for several episodes per 20,000-tick world,
   per-need floors from the engine; exact numbers are the plan's, read
   per stratum (play gets its own cell: the weakest named need in F-068
   at 0.783). The spec declares the shape; no default is a model of the
   world.
 - **A5 — Spec 066 is the only hazard machinery**: no new switch, table
-  or sweep rule; the second registry entry plugs into what landed in
-  PR #469, and the registry list is tied to the enum at this touch
+  or sweep rule; the second and third registry entries plug into what
+  landed in PR #469, and the registry list is tied to the enum at this touch
   (the N4 note from #469's review).
 - **A6 — Scope boundaries**: observation emission for builtin seats
   (so a scripted seat could be recorded through the observation path)

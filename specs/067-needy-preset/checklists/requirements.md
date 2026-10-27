@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,9 +31,8 @@
 
 ## Notes
 
-- Two [NEEDS CLARIFICATION] markers remain (FR-004 Q1, FR-005 Q2) plus
-  Q3 under Clarifications; resolved by the owner's answers before
-  `/speckit-plan`.
+- The three clarifications were answered by the owner 2026-10-26 (C, A,
+  B) and folded in; see spec §Clarifications.
 - Assumption A2 depends on the Professor's four design changes whose
   full text is held by Experiments pending the owner's word; re-validate
   FR-004, FR-012, FR-015 and SC-004 when it arrives.
