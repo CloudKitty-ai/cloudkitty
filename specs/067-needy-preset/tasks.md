@@ -54,7 +54,7 @@ Harness: CI never runs bc-collect's tests (D8 CI note).
 
 ## Phase 2: Foundational
 
-- [ ] T002 Config section in `crates/cloudkitty-core/src/config/needy.rs`
+- [X] T002 Config section in `crates/cloudkitty-core/src/config/needy.rs`
       (new; `pub mod needy;` in config/mod.rs) + `Config.needy:
       Option<NeedyConfig>` directly after `welfare_hazard` with
       `#[serde(default, skip_serializing_if = "Option::is_none")]` +
@@ -86,7 +86,7 @@ Harness: CI never runs bc-collect's tests (D8 CI note).
       FR-016 guard: CONSTRUCTION ONLY — a mutation hard-coding `6`
       stays green while N == 6; declared VACUOUS by nature in the ledger
       and covered by a self-review grep for `\b6\b` in the new files.
-- [ ] T003 The schedule law in `crates/cloudkitty-core/src/needy.rs`
+- [X] T003 The schedule law in `crates/cloudkitty-core/src/needy.rs`
       (new; `pub mod needy;` in lib.rs): `NAME`, `HOLD_NAME`,
       `is_needy_name`; `NeedSet` (bitset over `NeedKind::ALL`, serde as
       sorted need names); `Phase { Resting{next_onset}, Held{onset,

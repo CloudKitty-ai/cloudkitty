@@ -3040,6 +3040,87 @@ mod tests {
         );
     }
 
+    /// Spec 067 FR-009 / SC-006: spec 066's seven shapes with a needy
+    /// seat as the mode — the site names the kitty, the two presets are
+    /// two modes in registry order, and a raised distressed start joins
+    /// the line ahead of them.
+    #[test]
+    fn welfare_hazard_validation_treats_a_needy_seat_as_a_mode() {
+        let load = |fragment: &str| -> Result<Config, String> {
+            let c: Config = toml::from_str(&complete(fragment)).map_err(|e| e.to_string())?;
+            c.validate().map_err(|e| e.to_string())?;
+            Ok(c)
+        };
+        let seat = |id: usize, preset: &str| -> String {
+            let mut c = cfg();
+            c.kitties[id].behavior = preset.to_string();
+            toml::to_string(&c).unwrap()
+        };
+        let needy = seat(1, "needy");
+        let hold = seat(1, "needy_hold");
+        let ack = |names: &str| format!("[welfare_hazard]\nacknowledged = [{names}]\n");
+
+        // missing (section absent): names the mode, the seat and the line.
+        let m = load(&needy).expect_err("expected Err for missing (needy)");
+        assert!(
+            m.contains("'needy' at [[kitty]] 'Biscuit' (id 2) behavior = \"needy\"")
+                && m.ends_with("[welfare_hazard]\nacknowledged = [\"needy\"]"),
+            "{m}"
+        );
+        let mh = load(&hold).expect_err("expected Err for missing (needy_hold)");
+        assert!(
+            mh.contains("'needy_hold' at [[kitty]] 'Biscuit' (id 2) behavior = \"needy_hold\""),
+            "{mh}"
+        );
+        // exact: loads.
+        load(&format!("{needy}{}", ack("\"needy\""))).expect("an exact acknowledgement loads");
+        load(&format!("{hold}{}", ack("\"needy_hold\""))).expect("needy_hold alone loads");
+        // unknown, duplicate, stale.
+        let u = load(&format!("{needy}{}", ack("\"needy_preset\""))).expect_err("unknown");
+        assert!(
+            u.contains("'needy_preset' is not a registered welfare-hazardous mode (known: initial_needs, needy, needy_hold)"),
+            "{u}"
+        );
+        let d = load(&format!("{needy}{}", ack("\"needy\", \"needy\""))).expect_err("duplicate");
+        assert!(d.contains("listed more than once"), "{d}");
+        let st = load(&ack("\"needy\"")).expect_err("stale");
+        assert!(
+            st.contains("'needy' is acknowledged but not active"),
+            "{st}"
+        );
+        // The [needy] table alone is parameters, not a hazard.
+        load("[needy]\nrelease_level = 70.0\n")
+            .expect("the table without a seat is inert and valid");
+        // Both presets seated: the line lists both, registry order.
+        let mut both = cfg();
+        both.kitties[2].behavior = "needy_hold".into();
+        both.kitties[0].behavior = "needy".into();
+        let b = load(&toml::to_string(&both).unwrap()).expect_err("both seated, unacknowledged");
+        assert!(
+            b.ends_with("[welfare_hazard]\nacknowledged = [\"needy\", \"needy_hold\"]"),
+            "both modes on the line, in registry order: {b}"
+        );
+        // With a raised distressed start too: three modes, registry order.
+        both.initial_needs = Some(InitialNeedsSpec {
+            cuddle: Some(NeedInit::Value(92.0)),
+            ..Default::default()
+        });
+        let three = both
+            .validate()
+            .expect_err("three modes, unacknowledged")
+            .to_string();
+        assert!(
+            three.ends_with(
+                "[welfare_hazard]\nacknowledged = [\"initial_needs\", \"needy\", \"needy_hold\"]"
+            ),
+            "{three}"
+        );
+        both.welfare_hazard = Some(WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into(), "needy".into(), "needy_hold".into()],
+        });
+        both.validate().expect("all three acknowledged loads");
+    }
+
     /// Spec 066's two legal shapes through `Config::validate` (kept
     /// behaviour under T005's cycle, rule 6): an exact acknowledgement
     /// loads with the section kept as written, and an all-zero
