@@ -1567,3 +1567,16 @@ rows; (39) when a seed is cited by name as an exception, every
 per-seed caveat that applies to that seed travels in the same
 sentence — the section's own per-seed standard at one H binds it at
 every H.
+The F-070 copy check ran as two copy-only rounds: round 1 FAIL (five
+misses, all scoping — an NF-only denominator sentence extended to both
+heads, an SD caveat that put the H = 10 / 20 figures inside an "H ≤ 5"
+clause and dropped "clean only from H = 50", the heading's SD clause
+without its per-seed exception and SDs, a strata recommendation with
+no source, and 0.98 / 0.66 for the section's 0.978 / 0.658); round 2
+PASS (about 94 numbers, 1 quotation, 28 characterisations; four
+borderline notes, none a miss). Lesson (40): an F-entry's "what it
+hands on" sentence is sourced like any other — if the declaration
+says only "the strata are set from this number", the entry says that
+and the section's numbers, not this thread's suggested boundaries
+(those belong in the message to the peer, where they are labelled as
+a suggestion).
