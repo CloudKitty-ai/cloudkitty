@@ -418,9 +418,13 @@ consent BC comparison ride the trunk.
   warm start cuts reset detection 0.995 → 0.592 and removes every
   first-tick false alarm; training worlds hold no grave after offset
   322 (validation 601, evaluation 779); P4 / P8 met, P3 / P5 not met
-  as operationalised; SD reopen condition not met; F-069. Threshold
-  and burn-in HERS on the 0.10 / 0.30 / 0.50 ladder; the scripted
-  "needy" friend set waits on Product's spec (her kickoff there).
+  as operationalised; SD reopen condition not met; F-069. DECISION 3
+  RULED 2026-10-26 on the ladder walkthrough ("We'll start with your
+  recommendation (10/2) , then after we get the mid-episode testing,
+  we can reevaluate and dial in on the optimal level."): P(grave) ≥
+  0.10 with a 2-tick burn-in, PROVISIONAL, re-read on the needy set
+  (Product's spec 067, kicked off in their session 2026-10-26) before
+  any Phase 2 declaration fixes it; deviations entry 13.
 
 ## Flagged follow-ups (owner's word to start)
 

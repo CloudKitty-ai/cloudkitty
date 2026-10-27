@@ -789,6 +789,16 @@ reset detection 0.995 → 0.592 while removing every first-tick false
 alarm; the training worlds hold no grave after offset 322; P4 and P8
 met, P3 and P5 not met as operationalised; the SD reopen condition not
 met. Threshold and burn-in: hers, with the three-point ladder; F-069.
+DECISION 3 RULED 2026-10-26, on the walkthrough of the ladder (this
+thread's recommendation: 0.10 with a 2-tick burn-in — reset detection
+0.980, mid-world in-sight 0.900, false alarms 0.136 per 10,000 on P;
+the burn-in removes the start-up false alarms at every threshold and
+the threshold then trades mid-world detection for little), her words
+verbatim: "We'll start with your recommendation (10/2) , then after we
+get the mid-episode testing, we can reevaluate and dial in on the
+optimal level." Operating point for Phase 2: P(grave) ≥ 0.10, burn-in
+2 ticks; provisional, re-read on the needy set (spec 067) before any
+Phase 2 declaration fixes it.
 
 ## 14. Spec 066's acknowledgement table on the seven committed initial_needs configs: provenance read on the recorded bytes (2026-10-26)
 
