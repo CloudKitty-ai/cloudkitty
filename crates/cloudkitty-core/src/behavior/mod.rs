@@ -47,6 +47,7 @@ use crate::world::{FogView, World};
 
 pub mod exchange;
 pub mod needs_driven;
+pub mod needy;
 pub mod playful;
 mod relief;
 pub mod script;
@@ -105,6 +106,16 @@ pub trait Behavior: Send + Sync {
     fn is_builtin(&self) -> bool {
         false
     }
+
+    /// Whether this behaviour's turns may be recorded as teacher
+    /// demonstrations (spec 067 FR-010) — the per-mode eligibility flag
+    /// spec 066 deferred to its first reader, the corpus collector. Every
+    /// behaviour teaches by default; the needy presets answer `false` by
+    /// construction (their schedule is private state no student can see,
+    /// design doctrine rule 5). A delegating wrapper must forward this.
+    fn teaches(&self) -> bool {
+        true
+    }
 }
 
 /// One kitty's circuit-breaker state: its consecutive budget timeouts,
@@ -138,16 +149,20 @@ impl BehaviorRegistry {
         Self::default()
     }
 
-    /// The behaviors CloudKitty ships with. All three rows are the ONE
-    /// parameterized teacher (spec 059): the two historical names resolve
-    /// to its compat presets (byte-equal outside consent sites), and
-    /// `teacher` — every rung on — is the Gen 2 collection seat
-    /// (contracts/presets-and-dials.md is the citable table).
+    /// The behaviors CloudKitty ships with. The first three rows are the
+    /// ONE parameterized teacher (spec 059): the two historical names
+    /// resolve to its compat presets (byte-equal outside consent sites),
+    /// and `teacher` — every rung on — is the Gen 2 collection seat
+    /// (contracts/presets-and-dials.md is the citable table). The last two
+    /// are spec 067's research-only needy presets (the teacher under a
+    /// seeded mask; welfare-hazardous modes, never teachers).
     pub fn with_builtins() -> Self {
         let mut registry = Self::new();
         registry.register("needs_driven", Arc::new(teacher::Teacher::NEEDS_DRIVEN));
         registry.register("playful", Arc::new(teacher::Teacher::PLAYFUL));
         registry.register("teacher", Arc::new(teacher::Teacher::GEN2));
+        registry.register(crate::needy::NAME, Arc::new(needy::Needy));
+        registry.register(crate::needy::HOLD_NAME, Arc::new(needy::Needy));
         registry
     }
 
@@ -172,6 +187,13 @@ impl BehaviorRegistry {
 
     pub fn names(&self) -> Vec<String> {
         self.map.keys().cloned().collect()
+    }
+
+    /// The teacher-eligibility answer for a registered name (spec 067
+    /// FR-010); `None` for a name the registry does not know, so a caller
+    /// keeps its own fallback for it.
+    pub fn teaches(&self, name: &str) -> Option<bool> {
+        self.map.get(name).map(|b| b.teaches())
     }
 
     fn breaker(&self) -> std::sync::MutexGuard<'_, BTreeMap<KittyId, BreakerEntry>> {
@@ -664,13 +686,40 @@ mod tests {
 
     #[test]
     fn builtins_are_registered_and_marked() {
-        // Spec 059: three rows, one Teacher (BTreeMap order).
+        // Spec 059: three rows, one Teacher; spec 067: two needy rows
+        // (BTreeMap order).
         let r = BehaviorRegistry::with_builtins();
-        assert_eq!(r.names(), vec!["needs_driven", "playful", "teacher"]);
-        assert!(r.get("needs_driven").unwrap().is_builtin());
-        assert!(r.get("playful").unwrap().is_builtin());
-        assert!(r.get("teacher").unwrap().is_builtin());
+        assert_eq!(
+            r.names(),
+            vec!["needs_driven", "needy", "needy_hold", "playful", "teacher"]
+        );
+        for name in r.names() {
+            assert!(r.get(&name).unwrap().is_builtin(), "{name} is a builtin");
+        }
         assert!(r.get("nonexistent").is_none());
+    }
+
+    /// Spec 067 FR-010: the teacher-eligibility answer per name — the
+    /// three shipped presets and any non-builtin teach, the two needy
+    /// presets never do, an unknown name has no answer.
+    #[test]
+    fn teacher_eligibility_is_answered_per_name() {
+        let r = BehaviorRegistry::with_builtins();
+        for name in ["needs_driven", "playful", "teacher"] {
+            assert_eq!(r.teaches(name), Some(true), "{name} teaches");
+        }
+        for name in [crate::needy::NAME, crate::needy::HOLD_NAME] {
+            assert_eq!(r.teaches(name), Some(false), "{name}: needy must not teach");
+        }
+        assert_eq!(
+            r.teaches("nonexistent"),
+            None,
+            "an unknown name has no answer"
+        );
+        assert!(
+            SleepySlow::new(50).teaches(),
+            "a non-builtin teaches by default"
+        );
     }
 
     #[test]

@@ -99,6 +99,16 @@ impl DecisionRng {
         self.with(|r| *r = ChaCha8Rng::seed_from_u64(seed));
     }
 
+    /// A new stream starting from this stream's current state (spec 067):
+    /// a wrapping builtin runs an inner ladder on a derived context with
+    /// the fork, so the inner ladder draws exactly what it would have
+    /// drawn from this stream. This stream is not advanced.
+    pub fn fork(&self) -> Self {
+        Self {
+            inner: Mutex::new(self.with(|r| r.clone())),
+        }
+    }
+
     pub fn gen_range_usize(&self, low: usize, high: usize) -> usize {
         if low >= high {
             return low;

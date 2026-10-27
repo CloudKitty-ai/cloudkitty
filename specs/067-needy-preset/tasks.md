@@ -217,7 +217,7 @@ seed.
       Mutate C: delete the call at `apply_slot_verdict` → predict the
       agreement test red. Mutate D: `refusal_reason`'s needy check
       deleted → predict the reason test red (`needy_masked`).
-- [ ] T007 [US1] The presets in `crates/cloudkitty-core/src/behavior/needy.rs`
+- [X] T007 [US1] The presets in `crates/cloudkitty-core/src/behavior/needy.rs`
       (new) + registration in `behavior/mod.rs` `with_builtins` under
       `needy::NAME` / `needy::HOLD_NAME` + `DecisionRng::fork()` in
       rng.rs: `pub struct Needy { hold: bool }`; `decide`: mask empty →
@@ -436,7 +436,7 @@ law unchanged; the binding's door guarded.
 
 **Independent Test**: quickstart §6.
 
-- [ ] T017 [P] [US5] `Behavior::teaches(&self) -> bool { true }` in
+- [X] T017 [P] [US5] `Behavior::teaches(&self) -> bool { true }` in
       `crates/cloudkitty-core/src/behavior/mod.rs` (landed with T007),
       `BehaviorRegistry::teaches(&self, name: &str) -> Option<bool>`,
       `Needy::teaches() = false`. Tests: the three presets `Some(true)`,
