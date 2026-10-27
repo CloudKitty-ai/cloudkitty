@@ -71,8 +71,12 @@ def test_s2_configs_one_grave_kitty_each():
     served = tomllib.loads(MC.SERVED.read_text())
     for k in range(1, 6):
         # the recorded bytes: the file before any spec-066 acknowledgement table (check_set.recorded_bytes)
-        text = CS.recorded_bytes(HERE / f"g2leg-20-P{k}.toml").decode()
+        path = HERE / f"g2leg-20-P{k}.toml"
+        text = CS.recorded_bytes(path).decode()
         assert text == MC.render(k), f"g2leg-20-P{k}.toml differs from make_configs.py"
+        # and the committed file is what make_configs writes: recorded bytes + the spec-066 table, in the strip's shape
+        assert path.read_text() == MC.render_file(k), f"g2leg-20-P{k}.toml differs from make_configs.py render_file (spec 066 table)"
+        assert MC.ACK.encode().startswith(CS.ACK_HEADER)
         cfg = tomllib.loads(text)
         assert "initial_needs" not in cfg
         for i, kit in enumerate(cfg["kitty"], start=1):

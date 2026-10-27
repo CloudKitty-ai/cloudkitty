@@ -9,6 +9,13 @@ start at the served default (every need 0, happiness 100; FR-003
 `name = …`, before the block's [kitty.needs] sub-table, so it belongs to
 the kitty, not to its needs table.
 
+Since spec 066 (2026-10-26, gen2-deviations.md entry 14) each committed
+file also ends in the welfare-hazard acknowledgement table, appended after
+the rendered bytes in the fixed shape the scout checks strip (one blank
+line, header, one line, EOF). `render(k)` is the RECORDED bytes the raws
+pin; `render_file(k)` is the committed file. Never write render(k) alone:
+a file without the table fails every post-066 config load.
+
     make_configs.py           # writes the five files beside this script
     make_configs.py --check   # exits non-zero if any differs
 """
@@ -21,6 +28,8 @@ SEATS = ["Miso", "Biscuit", "Pumpkin", "Kittybear", "Clementine"]
 LO, HI = 60, 95
 NEEDS = ("eat", "drink", "sleep", "play", "cuddle", "bath")
 LINE = "initial_needs = { " + ", ".join(f"{n} = {{ min = {LO}, max = {HI} }}" for n in NEEDS) + " }"
+# spec 066's acknowledgement (Product, PR #469): the exact bytes appended at EOF; check_set.ACK_HEADER is its first line
+ACK = '\n[welfare_hazard]\nacknowledged = ["initial_needs"]\n'
 
 
 def render(k):
@@ -39,11 +48,16 @@ def render(k):
     return out
 
 
+def render_file(k):
+    """The committed file: the recorded bytes plus the spec-066 table."""
+    return render(k) + ACK
+
+
 def main():
     bad = []
     for k in range(1, 6):
         p = HERE / f"g2leg-20-P{k}.toml"
-        text = render(k)
+        text = render_file(k)
         if "--check" in sys.argv:
             if not p.exists() or p.read_text() != text:
                 bad.append(p.name)
