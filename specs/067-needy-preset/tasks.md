@@ -365,7 +365,7 @@ treat them as such.
       Mutate (each file): `hazard_outside_experiments` filters the
       active list to `initial_needs` only → predict the needy specs-side
       case red (`names needy`).
-- [ ] T014 [US3] Server hand check (quickstart §5) with a scratch needy
+- [X] T014 [US3] Server hand check (quickstart §5) with a scratch needy
       config and scratch port/snapshot: refusal without the switch names
       `needy`; with it the boot line, `GET /config` and the settings row
       name `needy`; both presets seated → both names. Record the three
@@ -391,7 +391,7 @@ law unchanged; the binding's door guarded.
 
 **Independent Test**: quickstart §4 and the FR-013 half of §2.
 
-- [ ] T015 [US4] Binding accessor in `crates/cloudkitty-py/src/lib.rs`
+- [X] T015 [US4] Binding accessor in `crates/cloudkitty-py/src/lib.rs`
       beside `recent_meows` (:494): `fn needy(&self) ->
       Vec<(u32, Vec<String>, u32, String)>` over the episode world's
       kitties with `needy = Some`, phase names per needy-law §7; the
