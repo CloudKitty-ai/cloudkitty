@@ -1,11 +1,11 @@
-"""examples/bench.py runs on the committed engine.
+"""The examples run on the committed engine.
 
-Spec 014's quickstart §3 cites bench.py as the SC-003 reproduction, and
-the tag-time checks do not exercise examples; this is the CI guard (the
-python-surface job runs this directory). bench.py drifted once already:
-scalar actions and a hard-coded Idle row from a menu that no longer
-exists (found 2026-10-26, spec 028 pairs required). random_rollout.py is
-NOT guarded here (same drift, reported separately, 2026-10-26).
+Spec 014's quickstart §3 cites bench.py as the SC-003 reproduction and
+random_rollout.py as the SC-002 one; the tag-time smoke runs only the
+rollout, and CI ran neither. This is the CI guard (the python-surface job
+runs this directory). Both drifted once already: scalar actions where
+spec 028 requires [activity, message] pairs, and the bench's hard-coded
+Idle row from a menu that no longer exists (found 2026-10-26).
 """
 
 import importlib.util
@@ -40,3 +40,18 @@ def test_bench_runs_end_to_end_at_small_scale():
     bench = load_example("bench")
     assert bench.bench_single(steps=20) > 0
     assert bench.bench_vector(steps=10, worlds=2) > 0
+
+
+def test_random_rollout_samples_legal_pairs_and_reproduces():
+    rr = load_example("random_rollout")
+    env = cloudkitty.ParallelEnv(horizon=3)
+    _, infos = env.reset(seed=7)
+    import numpy as np
+    rng = np.random.default_rng(0)
+    mask = np.asarray(infos[env.possible_agents[0]]["mask"], dtype=np.uint8)
+    for _ in range(20):
+        a, m = rr.legal_pair(mask, env.menu_len, rng)
+        # each half of the pair is drawn from its own half of the mask (spec 028)
+        assert mask[a] == 1 and mask[env.menu_len + m] == 1, "rollout must send a legal [activity, message] pair (spec 028)"
+    first, second = rr.rollout(seed=7, steps=15), rr.rollout(seed=7, steps=15)
+    assert first == second and first["decisions"] > 0 and first["steps"] == 15
