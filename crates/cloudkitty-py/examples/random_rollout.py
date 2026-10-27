@@ -24,6 +24,7 @@ def legal_pair(mask, menu_len, rng):
 
 
 def rollout(seed, steps):
+    """One seeded random-policy rollout; returns the summary main() prints."""
     env = cloudkitty.ParallelEnv(horizon=max(steps, 1))
     obs, infos = env.reset(seed=seed)
     agents = env.possible_agents
@@ -48,8 +49,15 @@ def rollout(seed, steps):
                     survived += 1
         if all(truncations.values()):
             break
-    return {"seed": seed, "steps": steps, "agents": agents, "mean_reward": total_reward / max(steps, 1),
-            "survived": survived, "decisions": decisions, "state_size": int(env.state().shape[0])}
+    return {
+        "seed": seed,
+        "steps": steps,
+        "agents": agents,
+        "mean_reward": total_reward / max(steps, 1),
+        "survived": survived,
+        "decisions": decisions,
+        "state_size": int(env.state().shape[0]),
+    }
 
 
 def main():

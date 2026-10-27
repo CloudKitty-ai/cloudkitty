@@ -11,6 +11,8 @@ Idle row from a menu that no longer exists (found 2026-10-26).
 import importlib.util
 from pathlib import Path
 
+import numpy as np
+
 import cloudkitty
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
@@ -46,7 +48,6 @@ def test_random_rollout_samples_legal_pairs_and_reproduces():
     rr = load_example("random_rollout")
     env = cloudkitty.ParallelEnv(horizon=3)
     _, infos = env.reset(seed=7)
-    import numpy as np
     rng = np.random.default_rng(0)
     mask = np.asarray(infos[env.possible_agents[0]]["mask"], dtype=np.uint8)
     for _ in range(20):
