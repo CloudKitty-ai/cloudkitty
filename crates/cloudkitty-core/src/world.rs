@@ -4756,6 +4756,11 @@ mod tests {
             let kc = config.kitties.iter_mut().find(|k| k.id == *id).unwrap();
             kc.initial_needs = Some(*spec);
         }
+        // Spec 066: a raised distressed start is a welfare-hazardous mode
+        // and loads only acknowledged by name (guard-law §3).
+        config.welfare_hazard = Some(crate::config::WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
         config.validate().unwrap();
         Arc::new(config)
     }
@@ -4901,6 +4906,7 @@ mod tests {
         with_starts.validate().unwrap();
         let mut starts_only = with_starts.clone();
         starts_only.initial_needs = None;
+        starts_only.welfare_hazard = None; // spec 066: an acknowledgement is exact
         starts_only.validate().unwrap();
 
         let w_needs = World::generate(&needs_only);
@@ -4987,6 +4993,11 @@ mod tests {
         let stage = |init: Option<InitialNeedsSpec>| {
             let mut config = test_config();
             config.initial_needs = init;
+            // Spec 066: acknowledge the distressed start when it is active.
+            config.welfare_hazard =
+                (!config.active_hazards().is_empty()).then(|| crate::config::WelfareHazardConfig {
+                    acknowledged: vec!["initial_needs".into()],
+                });
             config.validate().unwrap();
             let config = Arc::new(config);
             let mut world = World::generate(&config);
@@ -5034,6 +5045,9 @@ mod tests {
                     max: 95.0,
                 })),
                 ..Default::default()
+            });
+            on_cfg.welfare_hazard = Some(crate::config::WelfareHazardConfig {
+                acknowledged: vec!["initial_needs".into()],
             });
             on_cfg.validate().unwrap();
             let mut off_cfg = test_config();
@@ -5231,6 +5245,9 @@ mod tests {
             eat: Some(NeedInit::Value(80.0)),
             ..Default::default()
         });
+        init_config.welfare_hazard = Some(crate::config::WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        }); // spec 066
         init_config.validate().unwrap();
         let init_config = Arc::new(init_config);
         let plain_config = Arc::new(test_config());

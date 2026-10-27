@@ -1747,6 +1747,8 @@ impl Config {
         self.validate_starts()?;
         // Position 20: appended by spec 065 (initial-needs distribution).
         self.validate_initial_needs()?;
+        // Position 21: appended by spec 066 (welfare-hazard acknowledgement).
+        self.validate_welfare_hazard()?;
         Ok(())
     }
 
@@ -2684,6 +2686,179 @@ mod tests {
         );
     }
 
+    /// Spec 066 guard-law §3/§4 on a synthetic two-mode registry (the
+    /// partial shape is unreachable through a real config while one
+    /// mode is registered): exactness, the check order, and the wording
+    /// — which IS the contract, so the Display string is asserted.
+    #[test]
+    fn welfare_hazard_exactness_is_checked_unknown_duplicate_missing_stale() {
+        use super::validate::check_acknowledgement as check;
+        let known = ["initial_needs", "needy_preset"];
+        let active = [
+            ("initial_needs", "[initial_needs].cuddle = 92".to_string()),
+            ("needy_preset", "[needy] preset = \"clingy\"".to_string()),
+        ];
+        let s = |names: &[&str]| -> Vec<String> { names.iter().map(|n| n.to_string()).collect() };
+        let err = |r: Result<(), ConfigError>, shape: &str| -> String {
+            r.expect_err(&format!("should fail: {shape}")).to_string()
+        };
+
+        // The two legal shapes.
+        check(
+            Some(&s(&["initial_needs", "needy_preset"])),
+            &active,
+            &known,
+        )
+        .expect("exact two-mode acknowledgement is Ok");
+        check(None, &[], &known).expect("absent with nothing active is Ok");
+        check(Some(&s(&[])), &[], &known).expect("written empty with nothing active is Ok");
+
+        // missing, section absent: both sites, the full line, value `absent`.
+        let m = err(check(None, &active, &known), "missing (absent)");
+        assert!(
+            m.contains("[welfare_hazard] acknowledged is absent;"),
+            "{m}"
+        );
+        assert!(
+            m.contains("'initial_needs' at [initial_needs].cuddle = 92")
+                && m.contains("'needy_preset' at [needy] preset = \"clingy\""),
+            "the missing text names every missing mode with its site: {m}"
+        );
+        assert!(
+            m.ends_with("add to the config:\n[welfare_hazard]\nacknowledged = [\"initial_needs\", \"needy_preset\"]"),
+            "ends with the exact two-line table: {m}"
+        );
+        // partial: names only the absent one, the line still names both.
+        let p = err(
+            check(Some(&s(&["initial_needs"])), &active, &known),
+            "partial",
+        );
+        assert!(
+            p.contains("'needy_preset' at") && !p.contains("'initial_needs' at"),
+            "partial names only the missing mode: {p}"
+        );
+        assert!(
+            p.contains("acknowledged = [\"initial_needs\", \"needy_preset\"]"),
+            "the line to add names the FULL active set: {p}"
+        );
+        assert!(
+            p.contains("is [\"initial_needs\"];"),
+            "value is the list as written: {p}"
+        );
+
+        // stale: acknowledged, not active.
+        let st = err(check(Some(&s(&["needy_preset"])), &[], &known), "stale");
+        assert!(
+            st.contains("'needy_preset' is acknowledged but not active in this config; an acknowledgement is exact, remove it"),
+            "stale wording: {st}"
+        );
+
+        // unknown — and it wins over missing when both apply.
+        let u = err(
+            check(Some(&s(&["initial_need"])), &active, &known),
+            "unknown",
+        );
+        assert!(
+            u.contains("'initial_need' is not a registered welfare-hazardous mode (known: initial_needs, needy_preset)"),
+            "unknown wording: {u}"
+        );
+        assert!(
+            !u.contains("add to the config"),
+            "unknown is reported before missing: {u}"
+        );
+
+        // duplicate.
+        let d = err(
+            check(
+                Some(&s(&["initial_needs", "initial_needs"])),
+                &active[..1],
+                &known,
+            ),
+            "duplicate",
+        );
+        assert!(
+            d.contains("'initial_needs' is listed more than once; one name per mode"),
+            "duplicate wording: {d}"
+        );
+    }
+
+    /// Spec 066 FR-004 through `Config::validate` with the REAL registry
+    /// (quickstart §2's seven variants plus the phase-1b P shape): the
+    /// failing shapes name `initial_needs`; the two legal shapes load.
+    #[test]
+    fn welfare_hazard_validation_refuses_every_inexact_real_config() {
+        let load = |fragment: &str| -> Result<Config, String> {
+            let c: Config = toml::from_str(&complete(fragment)).map_err(|e| e.to_string())?;
+            c.validate().map_err(|e| e.to_string())?;
+            Ok(c)
+        };
+        let raised = "[initial_needs]\ncuddle = 92.0\n";
+        let zero = "[initial_needs]\ncuddle = 0.0\n";
+        let ack = "[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n";
+
+        // missing (section absent): names the mode, the site and the line.
+        let m = load(raised)
+            .err()
+            .expect("expected Err for missing (absent)");
+        assert!(
+            m.contains("'initial_needs' at [initial_needs].cuddle = 92")
+                && m.ends_with("[welfare_hazard]\nacknowledged = [\"initial_needs\"]"),
+            "{m}"
+        );
+        // exact: loads, and the section is kept as written.
+        let ok = load(&format!("{raised}{ack}")).expect("exact acknowledgement loads");
+        assert_eq!(
+            ok.welfare_hazard.as_ref().unwrap().acknowledged,
+            ["initial_needs"]
+        );
+        // unknown name.
+        let u = load(&format!(
+            "{raised}[welfare_hazard]\nacknowledged = [\"initial_need\"]\n"
+        ))
+        .err()
+        .expect("expected Err for unknown");
+        assert!(u.contains("'initial_need' is not a registered"), "{u}");
+        // duplicate.
+        let d = load(&format!(
+            "{raised}[welfare_hazard]\nacknowledged = [\"initial_needs\", \"initial_needs\"]\n"
+        ))
+        .err()
+        .expect("expected Err for duplicate");
+        assert!(d.contains("listed more than once"), "{d}");
+        // stale: acknowledged on a config with no distressed start at all.
+        let st = load(ack).err().expect("expected Err for stale");
+        assert!(
+            st.contains("'initial_needs' is acknowledged but not active"),
+            "{st}"
+        );
+        // all-zero section, no acknowledgement: nothing to acknowledge.
+        load(zero).expect("an all-zero distressed start is inert and loads");
+        // all-zero section WITH an acknowledgement: stale.
+        let st0 = load(&format!("{zero}{ack}"))
+            .err()
+            .expect("expected Err for stale (all-zero)");
+        assert!(st0.contains("is acknowledged but not active"), "{st0}");
+
+        // The P shape: one kitty's inline override, no roster table.
+        let mut c = cfg();
+        c.kitties[2].initial_needs = Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(45.0)),
+            ..Default::default()
+        });
+        let p = c
+            .validate()
+            .expect_err("expected Err for missing (P shape)")
+            .to_string();
+        assert!(
+            p.contains("'initial_needs' at [[kitty]] 'Pumpkin' (id 3) initial_needs.eat = 45"),
+            "the site names the kitty: {p}"
+        );
+        c.welfare_hazard = Some(WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
+        c.validate().expect("the acknowledged P shape loads");
+    }
+
     /// Spec 065 init-law §8: out-of-bounds values, inverted ranges, and
     /// non-finite numbers are rejected by name at both levels.
     #[test]
@@ -2739,6 +2914,11 @@ mod tests {
                     max: 100.0,
                 })),
                 ..Default::default()
+            }),
+            // Spec 066: the raised range is hazardous; acknowledge it so
+            // this test stays about the 065 bounds.
+            welfare_hazard: Some(WelfareHazardConfig {
+                acknowledged: vec!["initial_needs".into()],
             }),
             ..Default::default()
         };
