@@ -424,7 +424,16 @@ consent BC comparison ride the trunk.
   we can reevaluate and dial in on the optimal level."): P(grave) ≥
   0.10 with a 2-tick burn-in, PROVISIONAL, re-read on the needy set
   (Product's spec 067, kicked off in their session 2026-10-26) before
-  any Phase 2 declaration fixes it; deviations entry 13.
+  any Phase 2 declaration fixes it; deviations entry 13. ADDENDUM 5
+  the same day ("Run the knee read now"): R8d, the splice at H ∈ {1, 2,
+  5, 10, 20, 50}; 0 cat-ticks. STATUS: DONE 2026-10-26 (gated round 3
+  PASS): THE FALL IS GRADUAL, MOST OF IT OVER BY 20 TICKS — detection
+  0.978 / 0.970 / 0.852 / 0.658 / 0.537 / 0.362 at H = 1 / 2 / 5 / 10 /
+  20 / 50 against 0.995 at the start and 0.358 at 100; control never
+  fires from H = 2; knee at 20 by the declared midpoint; P9 not met as
+  operationalised (clause ii by 0.003); the ruled 2-tick burn-in sits
+  inside the window; F-070. The number → Product (067 strata) and the
+  Professor (P9).
 
 ## Flagged follow-ups (owner's word to start)
 

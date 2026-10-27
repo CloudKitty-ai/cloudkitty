@@ -799,6 +799,26 @@ get the mid-episode testing, we can reevaluate and dial in on the
 optimal level." Operating point for Phase 2: P(grave) ≥ 0.10, burn-in
 2 ticks; provisional, re-read on the needy set (spec 067) before any
 Phase 2 declaration fixes it.
+REOPENED 2026-10-26 a fifth time, on her word on the walkthrough's
+item 2 ("Run the knee read now"): R8d, the Professor's knee read — the
+§Addendum 4 splice unchanged at H ∈ {1, 2, 5, 10, 20, 50}, NF-h24+p
+and SD width 16, the three thresholds, the junction control beside,
+H = 100 re-run and pinned to the committed rows; the knee declared as
+the first H at or under the midpoint of the committed H = 0 and
+plateau detections; the Professor's P9 registered verbatim; 0 new
+cat-ticks (DECLARATION §Addendum 5). Status: CLOSED 2026-10-26
+(RESULTS §Addendum 5 gated round 3): the fall is gradual and most of it
+is over by 20 ticks — NF-h24+p at 0.10 detects the same covered grave
+rows in 0.978 / 0.970 / 0.852 / 0.658 / 0.537 / 0.362 of episodes after
+1 / 2 / 5 / 10 / 20 / 50 clean ticks against 0.995 at the start and
+0.358 at 100, the control never firing from H = 2; knee at H = 20 by
+the declared midpoint (0.641), H = 10 just above it; SD width 16 lower
+on the seed means from H = 5 with its small-H rows carrying its own
+transient (read from H = 10); P9 not met as operationalised (clause i
+holds at 0.658 < 0.70, clause ii misses the committed seed SD by
+0.003); the 2-tick burn-in as ruled sits inside the window (0.970 at
+H = 2); F-070. The number goes to Product for spec 067's onset strata
+and to the Professor for P9.
 
 ## 14. Spec 066's acknowledgement table on the seven committed initial_needs configs: provenance read on the recorded bytes (2026-10-26)
 

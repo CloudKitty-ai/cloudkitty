@@ -1539,3 +1539,31 @@ F-entry opens with a default scope phrase, every figure from another
 world set, threshold or role must carry its own scope in the same
 clause — the default scope converts an unscoped number into a wrong
 one.
+
+## 2026-10-26 — Mini-friend Phase 1d RESULTS §Addendum 5 (the knee), Experiments thread
+
+Three rounds, fresh subagent each; every round regenerated the read
+byte-identically (20,391 numeric leaves) and found no table cell or
+prose number wrong. Both failures were sentences about the reader's
+own denominator, written from memory of what the column "should"
+mean rather than from the code.
+- Round 1 FAIL: one CONTRADICTED legend sentence (the false-alarm
+  column's denominator given as 60 × H ticks; the reader divides by
+  the whole spliced index, 9,204 + 200 H). Four WEAK, one unsourced
+  bar ("above 0.85"), one heading-level advisory.
+- Round 2 FAIL: the corrected sentence over-reached the other way
+  ("mostly donor-segment ticks" holds at H ≤ 20 only). Three WEAK on
+  per-seed scoping (one SD seed's control at H = 10 / 20 left
+  unmentioned where that seed was cited as the exception).
+- Round 3 PASS: verbatim block diff-empty, 11 derived, 6 bars sourced,
+  4 provenance, 21 characterisations with per-seed claims checked
+  against the JSON arrays; one WEAK and one scoping note applied after
+  the verdict.
+Lessons: (38) a sentence about how a column is computed is a
+mechanism claim about the reader — derive it from the code (or
+back-compute it from the JSON, runs ÷ rate) before writing it, and
+state its composition per row when the composition changes across
+rows; (39) when a seed is cited by name as an exception, every
+per-seed caveat that applies to that seed travels in the same
+sentence — the section's own per-seed standard at one H binds it at
+every H.

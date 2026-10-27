@@ -1375,9 +1375,10 @@ the window in which the head sees a covered grave.
   of what it sees at the start, and the fall to the plateau continues
   to 50.
 
-This thread's expectation, not a prediction: the junction control at
-0.10 fires in under 0.05 of junctions at every H ≥ 5 — holds (0.000 at
-5 / 10 / 20 / 50 / 100).
+This thread's expectation, not a prediction: the NF-h24+p junction
+control at 0.10 fires in under 0.05 of junctions at every H ≥ 5 — holds
+(0.000 at 5 / 10 / 20 / 50 / 100; SD's is reported above and is not in
+the expectation).
 
 ### R8d tables (the reader's markdown, verbatim; `phase1d-knee.json` holds the per-seed cells)
 
@@ -1468,7 +1469,7 @@ seed 3, 0.000 on the others), so SD's curve is read from H = 10, where
 its seed-mean control is under 0.05 — on seed 3 alone the control still
 fires 0.140 / 0.130 at H = 10 / 20 (0.000 on seeds 1 and 2), and that
 seed is clean only from H = 50. One ladder of six H values, three seeds per
-head; the seed SD at H = 10 (0.096) is a third of the fall between 5
+head; NF's seed SD at H = 10 (0.096) is a third of its fall between 5
 and 20. The false-alarm column's denominator is the whole spliced index
 (mostly donor-segment ticks at H ≤ 20, mostly history ticks at 50 and
 100); for NF it is a count of recipient start-up runs in disguise, not
@@ -1672,3 +1673,31 @@ the read uses the three NF-h24+p probe directories' `probe.pt` and
 saved P(grave), 1b's NF-h24 `head-best.pt`, 1c's SD-s{1,2,3}
 `head-best.pt` and belief files, and the symlinked world raws'
 observation streams).
+
+Accuracy gate (§Addendum 5): **PASS**, 2026-10-26, round 3 (fresh
+subagent per round; all three rounds regenerated `phase1d-knee.json`
+and `.md` byte-identically — 20,391 numeric leaves equal — matched the
+seed, history, threshold, donor and recipient counts and the H = 100
+pin against every leaf of the committed §Addendum 4 rows; no table cell
+or prose number was wrong in any round). Round 1 FAILED on one
+CONTRADICTED sentence of the legend (the false-alarm column's
+denominator stated as 60 × H ticks; the reader divides by the whole
+spliced index, 9,204 + 200 H ticks); four WEAK applied (the limitation
+built on that denominator; "SD falls faster" replaced by the seed-mean
+and per-seed facts; SD's transient stated per H with seed 3's H = 5
+control named; "above 0.85" replaced by 0.852); the NF table heading
+demoted. Round 2 FAILED on one CONTRADICTED sentence (the denominator
+"mostly donor-segment ticks", true at H ≤ 20 and false at 50 and 100);
+three WEAK applied (seed 3's control at H = 10 / 20 named where that
+seed is cited; "start-up runs in disguise" scoped to NF with SD seed
+3's non-start-up runs counted; "runs lying wholly inside the history");
+decision 3 called provisional. Round 3 PASS: the verbatim block
+diff-empty against the fresh markdown, 11 derived figures recomputed, 6
+threshold claims sourced, 4 provenance items located (P9 character-
+identical to the note at sha256 prefix 202cac6c4d7c7b30), 21
+characterisations supported with the per-seed claims checked against
+the JSON's arrays, no undecidable, no rounding; one WEAK and one
+scoping note applied after the verdict without a number changing (the
+expectation and the H = 10 seed SD scoped to NF-h24+p). Raw-dir hashes
+unchanged from the §Addendum 4 stamp (no new raw; the read uses the
+same probe directories, heads and symlinked observation streams).
