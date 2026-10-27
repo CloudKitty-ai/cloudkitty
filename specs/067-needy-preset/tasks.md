@@ -353,7 +353,7 @@ treat them as such.
       test red. Mutate B: `ALL` loses `NeedyHold` → predict the N4 test
       red. Mutate C: order swapped (`NeedyHold` before `Needy`) →
       predict the both-seated line test red.
-- [ ] T013 [US3] Sweep self-tests in
+- [X] T013 [US3] Sweep self-tests in
       `crates/cloudkitty-core/tests/shipped_configs.rs` and
       `crates/cloudkitty-rl/tests/shipped_configs_rl.rs` (after T012):
       the existing `hazardous_configs_are_refused_outside_experiments`

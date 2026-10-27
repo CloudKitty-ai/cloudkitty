@@ -458,6 +458,41 @@ fn hazardous_configs_are_refused_outside_experiments() {
         "refused by validation, not by the path rule: {through_the_load}"
     );
     check_file(&scratch, &clean_outside).expect("a clean config outside experiments/ passes");
+
+    // Spec 067: a needy seat is a mode too — refused outside experiments/
+    // naming `needy`, passed inside when acknowledged, refused inside
+    // through the load when not. No new helper: the rule is 066's.
+    let needy_toml = |acknowledged: bool| {
+        let mut c = cloudkitty_core::Config::default();
+        c.kitties[0].behavior = "needy".into();
+        if acknowledged {
+            c.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+                acknowledged: vec!["needy".into()],
+            });
+        }
+        toml::to_string(&c).unwrap()
+    };
+    let needy_outside = scratch.join("specs/needy.toml");
+    let needy_inside = scratch.join("experiments/needy.toml");
+    let needy_unacknowledged = scratch.join("experiments/needy-unacknowledged.toml");
+    std::fs::write(&needy_outside, needy_toml(true)).unwrap();
+    std::fs::write(&needy_inside, needy_toml(true)).unwrap();
+    std::fs::write(&needy_unacknowledged, needy_toml(false)).unwrap();
+    let refused = check_file(&scratch, &needy_outside)
+        .expect_err("a needy seat outside experiments/ is refused");
+    assert!(
+        refused.contains("specs/needy.toml")
+            && refused.contains("mode(s) needy active outside experiments/"),
+        "the message names the file and the needy mode: {refused}"
+    );
+    check_file(&scratch, &needy_inside)
+        .expect("an acknowledged needy seat inside experiments/ passes the sweep rule");
+    let through_the_load = check_file(&scratch, &needy_unacknowledged)
+        .expect_err("inside experiments/ an UNACKNOWLEDGED needy seat is refused through the load");
+    assert!(
+        through_the_load.contains("[welfare_hazard]") && through_the_load.contains("'needy'"),
+        "refused by validation, naming the mode: {through_the_load}"
+    );
 }
 
 /// Self-test for `collect`'s symlink rule (found 2026-10-15 on the lab
