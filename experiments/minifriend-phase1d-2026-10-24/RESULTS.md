@@ -1318,6 +1318,153 @@ rate (the committed signal in the donor's own slice has neither).
   the zero state (read (d)) and at H = 0 (the post-read splice row); a
   swap under a long history was not read.
 
+## Addendum 5 2026-10-26: the knee — the §Addendum 4 splice at 1 … 50 clean ticks (owner, "Run the knee read now")
+
+Owner-requested, 2026-10-26, on the walkthrough of the outstanding items
+after §Addendum 4's report ("Run the knee read now"; DECLARATION
+§Addendum 5, committed before the read). R8d: `history_read`'s splice
+unchanged — the same 200 covered reset-grave donors of group P (the
+friend's 58-cell rows over the episode, 14 in sight at onset) onto the
+same 60 clean L recipients, the recipient's self block continuing from
+the junction, the head from the zero state, the junction control
+(default-start rows of the same length) beside — at H ∈ {1, 2, 5, 10,
+20, 50}, NF-h24+p seeds 1–3 and SD width 16 seeds 1–3, every table at
+0.10 / 0.30 / 0.50; H = 100 re-run and equal to the committed
+§Addendum 4 rows per seed and threshold (asserted by the reader). The
+knee as declared: the first H at which the seed-mean detected fraction
+at 0.10 is at or under the midpoint between the committed H = 0 reset
+detection and the committed plateau (the mean of H = 500 and 2,000). 0
+new cat-ticks; no weight touched. Reader `knee_read.py`, 8 s.
+
+### Headline
+
+The fall is gradual, not a step, and most of it is over by 20 ticks.
+On NF-h24+p at 0.10 the same covered grave rows are detected in 0.978 ±
+0.003 of episodes after 1 clean tick of history, 0.970 ± 0.009 after 2,
+0.852 ± 0.038 after 5, 0.658 ± 0.096 after 10, 0.537 ± 0.063 after 20
+and 0.362 ± 0.070 after 50, against the committed 0.995 at a world's
+start and 0.358 / 0.287 / 0.288 at 100 / 500 / 2,000; the junction
+control fires in 0.010 ± 0.017 of junctions at H = 1 and in 0.000 from
+H = 2 on. By the declared midpoint (0.641) the knee is at H = 20
+(0.537), with H = 10 just above it (0.658). Median latency from the
+junction grows with the history as detection falls: 1.0 / 1.3 / 3.7 /
+11.3 / 16.3 / 24.7 ticks at H = 1 … 50 against 26.5 at 100. At 0.30 and
+0.50 the curve sits lower throughout (H = 10: 0.482 / 0.378; H = 50:
+0.250 / 0.185). SD width 16 at 0.10 falls faster (0.762 ± 0.185 at H =
+5, 0.487 ± 0.332 at 10, 0.403 ± 0.306 at 20, 0.297 ± 0.165 at 50; knee
+at H = 10) but its rows at H ≤ 2 are its own start-up transient, not
+detection: its control fires in 1.000 / 0.985 of junctions at H = 1 / 2
+and is under 0.05 only from H = 10. Read against decision 3 as ruled
+(0.10 with a 2-tick burn-in): on this splice, 2 clean ticks of history
+cost 2.5 points of detection (0.995 → 0.970), and the seed-mean
+detection is still above 0.85 at 5 ticks; the burn-in sits well inside
+the window in which the head sees a covered grave.
+
+### Prediction scored (the Professor's P9, verbatim from the note's §"Registered predictions, added 2026-10-26"; operationalised in DECLARATION §Addendum 5)
+
+- **P9** ("On the splice at 0.10, NF-h24+p, seed-mean detection at H =
+  10 is below 0.70, and detection at H = 20 is within one seed SD of H
+  = 100's 0.358.") — **not met as operationalised**: clause (i) holds
+  (0.658 at H = 10, under 0.70); clause (ii) does not (0.537 at H = 20
+  against the committed 0.358 ± 0.175 at H = 100, |Δ| 0.178, over the
+  SD by 0.003). The miss is at the margin of the bar and the direction
+  is the substantive point: at 20 ticks the head still sees about half
+  of what it sees at the start, and the fall to the plateau continues
+  to 50.
+
+This thread's expectation, not a prediction: the junction control at
+0.10 fires in under 0.05 of junctions at every H ≥ 5 — holds (0.000 at
+5 / 10 / 20 / 50 / 100).
+
+### R8d tables (the reader's markdown, verbatim; `phase1d-knee.json` holds the per-seed cells)
+
+reproduces the committed P(grave) on the first P evaluation world to: s1 0.0e+00, s2 0.0e+00, s3 0.0e+00
+H = 100 re-run and equal to the committed rows per seed and threshold (asserted); 200 donors, 60 recipients
+
+## NF-h24+p
+| H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | FA in history /10k | control fired |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 0.10 | 200 ± 0 | 0.978 ± 0.003 | 1.0 ± 0.0 | 2.7 ± 1.2 | 0.968 ± 0.016 | 1.000 ± 0.000 | 0.977 ± 0.003 | 136.112 ± 104.075 | 0.010 ± 0.017 |
+| 1 | 0.30 | 200 ± 0 | 0.960 ± 0.010 | 1.3 ± 0.6 | 4.3 ± 2.3 | 0.933 ± 0.020 | 0.976 ± 0.041 | 0.959 ± 0.008 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 1 | 0.50 | 200 ± 0 | 0.913 ± 0.038 | 2.0 ± 1.0 | 6.6 ± 4.6 | 0.860 ± 0.083 | 0.905 ± 0.109 | 0.914 ± 0.034 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 2 | 0.10 | 200 ± 0 | 0.970 ± 0.009 | 1.3 ± 0.6 | 4.0 ± 1.7 | 0.948 ± 0.018 | 0.976 ± 0.041 | 0.970 ± 0.006 | 144.037 ± 111.214 | 0.000 ± 0.000 |
+| 2 | 0.30 | 200 ± 0 | 0.897 ± 0.032 | 2.3 ± 1.5 | 7.3 ± 4.2 | 0.822 ± 0.088 | 0.810 ± 0.082 | 0.903 ± 0.028 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 2 | 0.50 | 200 ± 0 | 0.820 ± 0.083 | 3.8 ± 2.4 | 15.2 ± 5.8 | 0.660 ± 0.165 | 0.667 ± 0.109 | 0.832 ± 0.081 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 5 | 0.10 | 200 ± 0 | 0.852 ± 0.038 | 3.7 ± 1.5 | 13.2 ± 1.9 | 0.695 ± 0.082 | 0.714 ± 0.124 | 0.862 ± 0.036 | 135.568 ± 104.674 | 0.000 ± 0.000 |
+| 5 | 0.30 | 200 ± 0 | 0.653 ± 0.070 | 11.3 ± 2.1 | 26.1 ± 2.0 | 0.302 ± 0.103 | 0.476 ± 0.149 | 0.667 ± 0.067 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 5 | 0.50 | 200 ± 0 | 0.520 ± 0.100 | 16.7 ± 3.5 | 36.0 ± 3.0 | 0.127 ± 0.095 | 0.405 ± 0.082 | 0.529 ± 0.102 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 10 | 0.10 | 200 ± 0 | 0.658 ± 0.096 | 11.3 ± 3.1 | 24.4 ± 5.6 | 0.303 ± 0.165 | 0.476 ± 0.082 | 0.672 ± 0.099 | 123.468 ± 95.332 | 0.000 ± 0.000 |
+| 10 | 0.30 | 200 ± 0 | 0.482 ± 0.104 | 17.3 ± 4.7 | 37.5 ± 4.0 | 0.107 ± 0.106 | 0.333 ± 0.041 | 0.493 ± 0.109 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 10 | 0.50 | 200 ± 0 | 0.378 ± 0.101 | 22.3 ± 3.8 | 47.3 ± 4.2 | 0.033 ± 0.058 | 0.286 ± 0.000 | 0.385 ± 0.108 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 20 | 0.10 | 200 ± 0 | 0.537 ± 0.063 | 16.3 ± 7.4 | 34.3 ± 3.6 | 0.163 ± 0.202 | 0.357 ± 0.071 | 0.550 ± 0.070 | 104.766 ± 80.892 | 0.000 ± 0.000 |
+| 20 | 0.30 | 200 ± 0 | 0.380 ± 0.105 | 22.7 ± 9.3 | 45.5 ± 4.1 | 0.072 ± 0.124 | 0.286 ± 0.000 | 0.387 ± 0.113 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 20 | 0.50 | 200 ± 0 | 0.262 ± 0.078 | 30.7 ± 10.6 | 51.0 ± 6.2 | 0.025 ± 0.043 | 0.167 ± 0.082 | 0.269 ± 0.083 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 50 | 0.10 | 200 ± 0 | 0.362 ± 0.070 | 24.7 ± 5.9 | 49.6 ± 17.1 | 0.010 ± 0.009 | 0.238 ± 0.109 | 0.371 ± 0.067 | 72.034 ± 55.619 | 0.000 ± 0.000 |
+| 50 | 0.30 | 200 ± 0 | 0.250 ± 0.078 | 32.8 ± 8.5 | 62.3 ± 31.1 | 0.000 ± 0.000 | 0.143 ± 0.071 | 0.258 ± 0.084 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 50 | 0.50 | 200 ± 0 | 0.185 ± 0.077 | 38.8 ± 9.3 | 69.7 ± 31.0 | 0.000 ± 0.000 | 0.095 ± 0.109 | 0.192 ± 0.079 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 100 (pin) | 0.10 | 200 ± 0 | 0.358 ± 0.175 | 26.5 ± 12.4 | 49.4 ± 18.3 | 0.038 ± 0.062 | 0.238 ± 0.251 | 0.367 ± 0.170 | 47.368 ± 36.574 | 0.000 ± 0.000 |
+| 100 (pin) | 0.30 | 200 ± 0 | 0.228 ± 0.119 | 34.0 ± 12.5 | 60.8 ± 35.0 | 0.003 ± 0.006 | 0.119 ± 0.149 | 0.237 ± 0.119 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 100 (pin) | 0.50 | 200 ± 0 | 0.162 ± 0.098 | 45.2 ± 24.8 | 68.3 ± 34.6 | 0.000 ± 0.000 | 0.095 ± 0.109 | 0.167 ± 0.101 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+committed §Addendum 4 rows at 0.10, detected: H=0 0.995 ± 0.009, H=0r 0.995 ± 0.009, H=100 0.358 ± 0.175, H=500 0.287 ± 0.143, H=2000 0.288 ± 0.132
+knee at 0.10: top (H = 0 reset) 0.995, plateau (500 / 2,000) 0.287, midpoint 0.641 → first H at or under it: 20 (detected 0.537); control under 0.05 from H = 1
+
+#### SD-w16
+| H | P ≥ | episodes | detected | median lat | p90 lat | within 10 | in-sight det | fog det | FA in history /10k | control fired |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 0.10 | 200 ± 0 | 1.000 ± 0.000 | 0.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.000 ± 0.000 | 1.000 ± 0.000 | 0.000 ± 0.000 | 1.000 ± 0.000 |
+| 1 | 0.30 | 200 ± 0 | 0.925 ± 0.005 | 1.7 ± 2.9 | 9.7 ± 2.1 | 0.855 ± 0.040 | 0.952 ± 0.082 | 0.923 ± 0.008 | 108.110 ± 22.059 | 0.410 ± 0.113 |
+| 1 | 0.50 | 200 ± 0 | 0.655 ± 0.100 | 14.5 ± 2.6 | 30.4 ± 5.2 | 0.207 ± 0.033 | 0.524 ± 0.109 | 0.665 ± 0.109 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 2 | 0.10 | 200 ± 0 | 0.995 ± 0.009 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.990 ± 0.017 | 1.000 ± 0.000 | 0.995 ± 0.009 | 3.124 ± 5.410 | 0.985 ± 0.026 |
+| 2 | 0.30 | 200 ± 0 | 0.775 ± 0.068 | 7.7 ± 1.2 | 21.3 ± 9.8 | 0.565 ± 0.189 | 0.667 ± 0.149 | 0.783 ± 0.082 | 191.934 ± 12.422 | 0.015 ± 0.026 |
+| 2 | 0.50 | 200 ± 0 | 0.582 ± 0.162 | 17.0 ± 4.4 | 42.7 ± 21.6 | 0.118 ± 0.083 | 0.452 ± 0.041 | 0.591 ± 0.171 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 5 | 0.10 | 200 ± 0 | 0.762 ± 0.185 | 9.7 ± 7.1 | 23.5 ± 16.0 | 0.487 ± 0.406 | 0.667 ± 0.297 | 0.769 ± 0.176 | 167.581 ± 49.225 | 0.122 ± 0.211 |
+| 5 | 0.30 | 200 ± 0 | 0.543 ± 0.203 | 18.7 ± 8.5 | 39.4 ± 24.6 | 0.210 ± 0.252 | 0.357 ± 0.189 | 0.557 ± 0.208 | 188.815 ± 7.921 | 0.002 ± 0.003 |
+| 5 | 0.50 | 200 ± 0 | 0.438 ± 0.209 | 24.3 ± 7.6 | 52.3 ± 23.0 | 0.080 ± 0.071 | 0.286 ± 0.124 | 0.450 ± 0.220 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 10 | 0.10 | 200 ± 0 | 0.487 ± 0.332 | 20.2 ± 14.3 | 43.0 ± 28.8 | 0.323 ± 0.422 | 0.310 ± 0.322 | 0.500 ± 0.336 | 172.260 ± 10.821 | 0.047 ± 0.081 |
+| 10 | 0.30 | 200 ± 0 | 0.400 ± 0.286 | 20.7 ± 8.9 | 75.6 ± 54.6 | 0.135 ± 0.147 | 0.262 ± 0.251 | 0.410 ± 0.292 | 171.962 ± 7.214 | 0.000 ± 0.000 |
+| 10 | 0.50 | 200 ± 0 | 0.340 ± 0.248 | 31.5 ± 14.0 | 81.6 ± 52.1 | 0.062 ± 0.055 | 0.190 ± 0.180 | 0.351 ± 0.255 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 20 | 0.10 | 200 ± 0 | 0.403 ± 0.306 | 21.3 ± 10.7 | 67.9 ± 47.9 | 0.185 ± 0.225 | 0.238 ± 0.251 | 0.416 ± 0.313 | 147.430 ± 6.996 | 0.043 ± 0.075 |
+| 20 | 0.30 | 200 ± 0 | 0.332 ± 0.247 | 27.3 ± 9.3 | 82.9 ± 56.8 | 0.083 ± 0.068 | 0.167 ± 0.180 | 0.344 ± 0.253 | 146.420 ± 5.319 | 0.008 ± 0.014 |
+| 20 | 0.50 | 200 ± 0 | 0.262 ± 0.220 | 34.7 ± 12.0 | 100.9 ± 72.5 | 0.043 ± 0.024 | 0.119 ± 0.149 | 0.272 ± 0.226 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 50 | 0.10 | 200 ± 0 | 0.297 ± 0.165 | 37.2 ± 11.9 | 75.7 ± 31.2 | 0.037 ± 0.020 | 0.167 ± 0.180 | 0.306 ± 0.167 | 105.186 ± 1.804 | 0.000 ± 0.000 |
+| 50 | 0.30 | 200 ± 0 | 0.208 ± 0.102 | 40.7 ± 11.6 | 96.5 ± 57.7 | 0.020 ± 0.010 | 0.095 ± 0.082 | 0.217 ± 0.108 | 102.756 ± 1.591 | 0.000 ± 0.000 |
+| 50 | 0.50 | 200 ± 0 | 0.153 ± 0.071 | 54.7 ± 14.0 | 107.8 ± 68.0 | 0.008 ± 0.008 | 0.024 ± 0.041 | 0.163 ± 0.073 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| 100 (pin) | 0.10 | 200 ± 0 | 0.275 ± 0.097 | 36.8 ± 4.6 | 82.4 ± 41.4 | 0.025 ± 0.005 | 0.167 ± 0.149 | 0.283 ± 0.100 | 69.169 ± 1.186 | 0.007 ± 0.008 |
+| 100 (pin) | 0.30 | 200 ± 0 | 0.193 ± 0.068 | 41.3 ± 2.8 | 95.9 ± 49.2 | 0.013 ± 0.003 | 0.119 ± 0.109 | 0.199 ± 0.069 | 67.571 ± 1.046 | 0.000 ± 0.000 |
+| 100 (pin) | 0.50 | 200 ± 0 | 0.137 ± 0.025 | 51.2 ± 2.9 | 108.0 ± 50.9 | 0.008 ± 0.008 | 0.048 ± 0.041 | 0.143 ± 0.025 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+committed §Addendum 4 rows at 0.10, detected: H=0 1.000 ± 0.000, H=0r 1.000 ± 0.000, H=100 0.275 ± 0.097, H=500 0.282 ± 0.108, H=2000 0.287 ± 0.105
+knee at 0.10: top (H = 0 reset) 1.000, plateau (500 / 2,000) 0.284, midpoint 0.642 → first H at or under it: 10 (detected 0.487); control under 0.05 from H = 10
+
+P9 (NF-h24+p at 0.10): (i) detected at H = 10 0.658 < 0.7 → True; (ii) detected at H = 20 0.537 vs committed H = 100 0.358 ± 0.175, |Δ| 0.178 → False; met: False
+
+#### expectation (this thread's, not a scored prediction)
+junction control fired at 0.10 for H ≥ 5: H=100 0.000, H=5 0.000, H=10 0.000, H=20 0.000, H=50 0.000 (bar < 0.05) → holds True
+
+Legend: *detected*, *median lat*, *p90 lat*, *within 10*, *in-sight det*,
+*fog det* as in §Addendum 4's splice tables (the episode is the donor
+segment from the junction; in-sight / fog by the donor's bit at onset,
+14 / 186 of 200); *FA in history /10k* is the alarm rate inside the H
+history ticks per 10,000 ticks — at H ≤ 50 the denominator is 60 × H
+ticks, so these are the recipients' start-up firings expressed per
+10,000 and are not comparable to the per-10,000 rates of §Addendum 3;
+*control fired* is the fraction of the 200 junctions whose alarm fires
+inside the control segment; *(pin)* marks the re-run H = 100 row, equal
+to the committed one.
+
+### Limitations
+
+The §Addendum 4 limitation stands: the junction is a jump into a
+covered friend's grave, not a crossing. At H = 1 and 2 the NF control
+fires 0.010 and 0.000, so the NF rows there are detection and not the
+recipient's transient; the SD rows at H ≤ 5 are not, since SD's own
+transient from the seat's prior fires the control in 1.000 / 0.985 /
+0.122 of junctions. One ladder of six H values, three seeds per head;
+the seed SD at H = 10 (0.096) is a third of the fall between 5 and 20.
+The per-10,000 false-alarm column is over tiny denominators at small H.
+The knee's definition (a midpoint) is one declared convention; the
+curve is the result.
+
+
 ## Regeneration
 
 Phase 1's arc venv (`A=experiments/minifriend-phase1-2026-10-22`,
@@ -1348,13 +1495,15 @@ MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/re
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/sweep_threshold.py --out $Dd/phase1d-sweep.json --md > $Dd/phase1d-sweep.md   # ≈ 5 s; §Addendum 2's R5d (with the post-read columns); asserts NF-h24+p's 0.20 / 0.50 group-P rows equal the committed phase1d-read.json R4d rows
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/burnin_read.py --out $Dd/phase1d-burnin.json --md > $Dd/phase1d-burnin.md   # ≈ 10 s; §Addendum 3's R6d (NF-h24+p; full grid in the JSON, two cross-sections and the start-up split in the markdown); asserts the B = 0 cells equal the committed phase1d-sweep.json NF-h24+p cells and the B = 100 run identity
 MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/history_read.py --out $Dd/phase1d-history.json --md > $Dd/phase1d-history.md   # ≈ 40 s; §Addendum 4's R7d (the frozen heads re-run on the saved observation streams: convergence on L, the splice with its control, NF+p and SD width 16, burn-ins 0 / 2 / 5 / 10 and the warm start, the self-block swap, the fitted worlds' grave offsets); asserts the re-run P(grave) equals the committed pgrave file on the first P evaluation world, H = 0 equals the sweep's reset rows at 0.10 / 0.50, SD's H = 0 equals R4d's row at 0.50, and the B = 0 cells equal the sweep's
+MINIFRIEND_ARC=$PWD/$Dd VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $Dd/knee_read.py --out $Dd/phase1d-knee.json --md > $Dd/phase1d-knee.md   # ≈ 8 s; §Addendum 5's R8d (the §Addendum 4 splice at H ∈ {1, 2, 5, 10, 20, 50}, NF-h24+p and SD width 16); asserts the re-run P(grave) on the first P evaluation world and that the re-run H = 100 rows equal the committed phase1d-history.json rows per seed and threshold
 ```
 
-Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 9
-(t1–t9; about 30 s). Reds on record via `scripts/mutate.sh` in the
+Guards (plain-assert runner, Phase 1's venv): `$Dd/test_phase1d.py` 10
+(t1–t10; about 30 s). Reds on record via `scripts/mutate.sh` in the
 declaration's §Run order (t1–t4), §Addendum (t5–t6, and the extended
 t6), §Addendum 2 (t7, and its two extensions), §Addendum 3 (t8, and
-its two extensions) and §Addendum 4 (t9, and its extension).
+its two extensions), §Addendum 4 (t9, and its extension) and
+§Addendum 5 (t10).
 
 Accuracy gate: **PASS**, 2026-10-24, round 4 (fresh subagent per
 round; every round regenerated the read byte-identically, matched the
