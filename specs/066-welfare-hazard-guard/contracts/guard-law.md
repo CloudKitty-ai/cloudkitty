@@ -15,7 +15,12 @@ acknowledged = ["initial_needs"]
 Optional, top-level, `deny_unknown_fields`. Absent: every readable
 surface is byte-identical to the pre-066 engine (serialization, stamp,
 `GET /config`, decisions, draws). Present: serializes as written (an
-empty list serializes as `acknowledged = []`). Never part of
+empty list serializes as `acknowledged = []`) on EVERY serialization
+of `Config` — `GET /config`, the stamp's input, and the plugin
+decision request (`behavior/script.rs` `DecisionRequest.config`, from
+which the spec 055 lab prompt is rendered). On the decision wire it is
+information to the advisor, never a decision input: the engine reads
+it at load and boot only (owner ruling 2026-10-26, "A"). Never part of
 `Config::fingerprint()`.
 
 ## §2 The registry
@@ -80,6 +85,9 @@ with no acknowledged mode is accepted and changes nothing.
   `welfare-hazardous world served on purpose (--allow-welfare-hazard):
   acknowledged modes <names>`.
 - `GET /config`: the section as written (§1).
+- The plugin decision request: the section inside its `config` field,
+  as written (§1); absent, the key is absent and the wire is
+  byte-identical to pre-066.
 - Key-settings block (spec 052), last row, only when non-empty:
   `welfare_hazard.acknowledged = [<names as JSON>] [toml]`; no default
   column.

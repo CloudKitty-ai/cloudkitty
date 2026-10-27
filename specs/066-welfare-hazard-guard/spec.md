@@ -54,6 +54,14 @@ them, before the second mode lands.
   the flag together with its first reader? → A: Defer: this spec's
   registry holds name and activity predicate only; the needy-preset
   spec adds the flag and its reader together. Owner's choice, "B".
+- Q (post-review, PR #469): The plugin decision request serializes the
+  whole config to every external advisor, so a present
+  `[welfare_hazard]` table reaches advisors at decision time. Name that
+  surface in the contract, or keep the table off the wire (which, with
+  the shared serializer, would also hide it from `GET /config`)? → A:
+  Name it. The table rides every serialization of the config as
+  information, never as a decision input; the engine reads it at load
+  and boot only. Owner's choice, "A".
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -305,7 +313,11 @@ the option is accepted and changes nothing.
   no line, and the served config surface carries the section only when
   the config wrote it (absent stays absent; a written empty list
   serializes, see Edge Cases) — the served `cloudkitty.toml` boot is
-  byte-identical to today.
+  byte-identical to today. The "served config surface" is every
+  serialization of the config, the plugin decision request included
+  (owner ruling, Clarifications): an external advisor seated in an
+  acknowledged world sees the acknowledgement as information; it is
+  never a decision input (FR-008).
 - **FR-008**: No behavior-API or observation surface changes, no new
   read at decision time, no change to any world's law: the feature
   decides what may LOAD and what the server will SERVE, and declares

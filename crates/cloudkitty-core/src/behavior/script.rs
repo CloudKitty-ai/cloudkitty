@@ -525,6 +525,58 @@ mod tests {
         assert!(!line.contains('\n'), "one request means one line");
     }
 
+    /// Spec 066 FR-007 / guard-law §1 (owner ruling 2026-10-26, "A"): the
+    /// `[welfare_hazard]` table rides every serialization of `Config`, this
+    /// wire included — present it appears inside `config`, absent the key
+    /// is not there at all, so a pre-066 world's requests are byte-identical.
+    /// Information to the advisor, never a decision input: the engine reads
+    /// it at load and boot only.
+    #[test]
+    fn the_welfare_hazard_acknowledgement_rides_the_wire_only_when_present() {
+        let request_config_json = |config: &Config| -> serde_json::Value {
+            let config = Arc::new(config.clone());
+            let world = World::generate(&config);
+            let me = world.kitties[0].clone();
+            let snapshot = world.snapshot();
+            let request = DecisionRequest {
+                v: PROPOSAL_WIRE_VERSION,
+                tick: 7,
+                kitty_id: me.id,
+                me: &me,
+                world: &snapshot,
+                seed: 42,
+                config: &config,
+            };
+            let value: serde_json::Value =
+                serde_json::from_str(&serde_json::to_string(&request).unwrap()).unwrap();
+            value["config"].clone()
+        };
+
+        let absent = request_config_json(&test_config());
+        assert!(
+            absent.get("welfare_hazard").is_none(),
+            "absent: no key on the wire, not even null: {absent}"
+        );
+
+        let mut acknowledged = test_config();
+        acknowledged.initial_needs = Some(crate::config::InitialNeedsSpec {
+            cuddle: Some(crate::config::NeedInit::Value(92.0)),
+            ..Default::default()
+        });
+        acknowledged.welfare_hazard = Some(crate::config::WelfareHazardConfig {
+            acknowledged: vec!["initial_needs".into()],
+        });
+        acknowledged
+            .validate()
+            .expect("the acknowledged config validates");
+        let present = request_config_json(&acknowledged);
+        assert_eq!(
+            present["welfare_hazard"],
+            serde_json::json!({ "acknowledged": ["initial_needs"] }),
+            "present: the advisor sees the acknowledgement as written: {present}"
+        );
+    }
+
     /// A reply cut off mid-line (the plugin crashed mid-write) is an I/O
     /// death -- stdout provably closed -- never a mere framing complaint
     /// that would leave the dead child unreaped (review 2026-07-23).
