@@ -22,7 +22,7 @@ those two commits added (`gen2-deviations.md` entry 14, the tolerant
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the pre-change pins in `<scratchpad>/066/baseline.txt`:
+- [X] T001 Record the pre-change pins in `<scratchpad>/066/baseline.txt`:
       `engine_defaults_sha256()` (no shipped test prints it —
       `the_engine_defaults_stamp_is_stable_and_well_formed` checks
       length, hex and self-equality only — so run a throwaway
@@ -36,7 +36,7 @@ those two commits added (`gen2-deviations.md` entry 14, the tolerant
 
 ## Phase 2: Foundational
 
-- [ ] T002 Config type in `crates/cloudkitty-core/src/config/mod.rs`:
+- [X] T002 Config type in `crates/cloudkitty-core/src/config/mod.rs`:
       `pub struct WelfareHazardConfig { pub acknowledged: Vec<String> }`
       (`deny_unknown_fields`, Serialize + Deserialize, `acknowledged`
       required — no `#[serde(default)]` on it; doc comment citing spec
@@ -55,7 +55,7 @@ those two commits added (`gen2-deviations.md` entry 14, the tolerant
       assertion red (`welfare_hazard.*null|"welfare_hazard"`). Mutate B:
       add `#[serde(default)]` to `acknowledged` → predict the bare-table
       assertion red (`should reject.*bare|is_err`).
-- [ ] T003 Registry module `crates/cloudkitty-core/src/config/welfare_hazard.rs`
+- [X] T003 Registry module `crates/cloudkitty-core/src/config/welfare_hazard.rs`
       (declared in mod.rs as `pub mod welfare_hazard`, every item below
       `pub` so the `tests/` sweeps reach them through the crate's public
       API): `pub enum HazardMode { InitialNeeds }`, `pub const ALL:
@@ -92,7 +92,7 @@ error text on every load path.
 **Independent Test**: quickstart §2 — the seven scratch variants
 through `load_configs_from_str`.
 
-- [ ] T004 [US1] Pure exactness check in
+- [X] T004 [US1] Pure exactness check in
       `crates/cloudkitty-core/src/config/validate.rs`:
       `pub(super) fn check_acknowledgement(acknowledged: Option<&[String]>,
       active: &[(&str, String)], known: &[&str]) -> Result<(), ConfigError>`
@@ -119,7 +119,7 @@ through `load_configs_from_str`.
       only the first missing mode → predict the absent-two-active test
       red (`needy_preset`); drop the line-to-add from the message →
       predict the partial test red (`acknowledged = \[`).
-- [ ] T005 [US1] `validate_welfare_hazard()` in validate.rs wiring the
+- [X] T005 [US1] `validate_welfare_hazard()` in validate.rs wiring the
       registry into T004 (acknowledged from `self.welfare_hazard`,
       active from `self.active_hazards()`, known from
       `HazardMode::ALL`), returning Ok immediately when the section is
@@ -137,7 +137,7 @@ through `load_configs_from_str`.
       `Config::validate` → predict every failing-shape test red
       (`expected Err|is_err`), the two Ok tests green (rule 6 sort:
       those are kept behaviour and must stay green).
-- [ ] T006 [US1] Prove the error reaches every load path: a test in
+- [X] T006 [US1] Prove the error reaches every load path: a test in
       `crates/cloudkitty-rl/src/config.rs` tests module —
       `load_configs_from_str` on the missing-ack variant errs with a
       message containing `initial_needs` and `[welfare_hazard]`
@@ -159,14 +159,14 @@ it either.
 
 **Independent Test**: quickstart §1 and §5.
 
-- [ ] T007 [P] [US2] Fingerprint pin in mod.rs tests beside
+- [X] T007 [P] [US2] Fingerprint pin in mod.rs tests beside
       `fingerprint_ignores_the_new_behavior_tunables` (mod.rs:3513):
       `fingerprint_ignores_the_welfare_hazard_section` — a config with
       `[initial_needs] cuddle = 92` + acknowledgement and the same
       config with neither fingerprint equal.
       Mutate: append `{:?}` of `self.welfare_hazard` to the format
       string in `fingerprint()` → predict red (`assertion.*left.*right`).
-- [ ] T008 [P] [US2] Stamp pin: in `crates/cloudkitty-rl/src/suite.rs`
+- [X] T008 [P] [US2] Stamp pin: in `crates/cloudkitty-rl/src/suite.rs`
       tests, sibling of `any_default_moving_moves_the_stamp`:
       `a_written_acknowledgement_moves_the_stamp` — `defaults_stamp` of
       `Config::default()` differs from the stamp of a clone with
@@ -179,7 +179,7 @@ it either.
       comparison across commits.
       Mutate: add `#[serde(skip)]` to the `welfare_hazard` field →
       predict the differs assertion red (`assertion.*left.*right|equal`).
-- [ ] T009 [US2] World-identity pin (US1 scenario 2, US2 scenario 2,
+- [X] T009 [US2] World-identity pin (US1 scenario 2, US2 scenario 2,
       SC-001) in mod.rs tests: `the_acknowledgement_never_reaches_the_world`
       — the compared pair is a pre-feature config (no section, no
       initial_needs) and the same config plus `[welfare_hazard]
@@ -189,7 +189,7 @@ it either.
       `Serialize`; the RNG is inside it, so this compares every draw).
       Mutate: in `World::generate` add `+ config.welfare_hazard.is_some()
       as u64` to the seed → predict red (`assertion.*left.*right`).
-- [ ] T010 [US2] Byte-identity run: `cargo test --workspace` green
+- [X] T010 [US2] Byte-identity run: `cargo test --workspace` green
       with zero golden/pin/fixture diffs (`git status` shows only source
       and spec files changed); compare T001's recorded stamp with the
       post-change stamp (same throwaway print) — equal. Record both in
@@ -207,7 +207,7 @@ with an active mode; the seven migrated files pass.
 
 **Independent Test**: quickstart §3.
 
-- [ ] T011 [P] [US3] Core sweep rule in
+- [X] T011 [P] [US3] Core sweep rule in
       `crates/cloudkitty-core/tests/shipped_configs.rs`: helper
       `fn hazard_outside_experiments(root: &Path, file: &Path, config:
       &Config) -> Option<String>` (guard-law §5 message), called in
@@ -224,7 +224,7 @@ with an active mode; the seven migrated files pass.
       Mutate: make the helper ignore the path (always check) → predict
       the experiments-side `None` assertion red; make it always `None`
       → predict the specs-side assertion red (two cycles).
-- [ ] T012 [P] [US3] RL sweep rule in
+- [X] T012 [P] [US3] RL sweep rule in
       `crates/cloudkitty-rl/tests/shipped_configs_rl.rs`: same helper
       and self-test (scratch dir
       `cloudkitty-rl-sweep-hazard-selftest-{pid}`), the helper taking
@@ -233,7 +233,7 @@ with an active mode; the seven migrated files pass.
       mutations, same predictions. (Mirror discipline from #468: the
       two files stay logic-parallel — crate names and the loader call
       differ, the rule and the self-test do not.)
-- [ ] T013 [US3] Run both sweeps on the branch BEFORE the migration:
+- [X] T013 [US3] Run both sweeps on the branch BEFORE the migration:
       `cargo test -p cloudkitty-core --test shipped_configs` and
       `cargo test -p cloudkitty-rl --test shipped_configs_rl` are RED
       with the missing-acknowledgement error (FR-004 through the load —
@@ -254,7 +254,7 @@ turns T013's red green.
 
 **Independent Test**: quickstart §4.
 
-- [ ] T014 [P] [US4] Gate module `crates/cloudkitty-server/src/welfare_hazard.rs`
+- [X] T014 [P] [US4] Gate module `crates/cloudkitty-server/src/welfare_hazard.rs`
       (`pub mod welfare_hazard` in lib.rs): `pub const SWITCH: &str =
       "--allow-welfare-hazard"`; `pub fn acknowledged(config: &Config)
       -> &[String]` (empty when absent); `pub fn gate(config: &Config,
@@ -273,7 +273,7 @@ turns T013's red green.
       test red; gate always Ok → predict the acknowledged+false test
       red; `log_boot` unconditional → predict the empty-capture test
       red (three cycles).
-- [ ] T015 [US4] Key-settings row in
+- [X] T015 [US4] Key-settings row in
       `crates/cloudkitty-server/src/settings.rs` `build` (after T014 —
       it calls `welfare_hazard::acknowledged`): after the last stuck
       row, `if !acknowledged.is_empty()` push
@@ -290,7 +290,7 @@ turns T013's red green.
       Mutate: push unconditionally → predict the minimal-config
       assertion red; push before the stuck rows → predict the `last()`
       assertion red (two cycles).
-- [ ] T016 [US4] Wire the server in `crates/cloudkitty-server/src/main.rs`:
+- [X] T016 [US4] Wire the server in `crates/cloudkitty-server/src/main.rs`:
       `Args.allow_welfare_hazard: bool` (default false), the match arm
       `"--allow-welfare-hazard" => args.allow_welfare_hazard = true`,
       and a HELP entry under `--no-backup` in the const's own layout
@@ -324,7 +324,7 @@ turns T013's red green.
 
 ## Phase 7: The migration (FR-009, cross-lane)
 
-- [ ] T017 Append the acknowledgement table to the seven files ONE AT A
+- [X] T017 Append the acknowledgement table to the seven files ONE AT A
       TIME, re-running `cargo test -p cloudkitty-core --test
       shipped_configs` after each append and recording the next failing
       path, in the order the sweep names them: exactly
@@ -334,7 +334,7 @@ turns T013's red green.
       … `P5.toml`. Seven runs name seven distinct paths, matching T001's
       grep set; the eighth run is green. `git diff --stat` = seven
       files, +3 each, nothing else.
-- [ ] T018 Read-only shape check (Experiments' contract, main
+- [X] T018 Read-only shape check (Experiments' contract, main
       304221b1): for each file, `python3` — bytes before the trailing
       `b"\n[welfare_hazard]\n"` sha256 == the pre-retrofit hash in
       `experiments/gen2-deviations.md` entry 14. Entry 14 is not on
@@ -342,13 +342,13 @@ turns T013's red green.
       `git show origin/main:experiments/gen2-deviations.md` after a
       `git fetch`; do not retype them. All seven equal. Record in the
       PR body.
-- [ ] T019 Fingerprint check for SC-005: `Config::fingerprint()` of
+- [X] T019 Fingerprint check for SC-005: `Config::fingerprint()` of
       each migrated file equals T001's recorded value (a one-line test
       print or the T007 helper on the real files). Record.
-- [ ] T020 Re-run both sweeps: GREEN. This is the migration's red→green
+- [X] T020 Re-run both sweeps: GREEN. This is the migration's red→green
       (T013 red before any append, T017's seven intermediate reds, T020
       green with all seven).
-- [ ] T021 Hand-rolled red record for the migration, stated reason:
+- [X] T021 Hand-rolled red record for the migration, stated reason:
       the red is a TREE STATE (files without the table), not a code
       mutation `mutate.sh` can apply and revert — T013's and T017's
       outputs ARE the red, T020 the green; the PR ledger says so with
@@ -358,7 +358,7 @@ turns T013's red green.
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T022 `CHANGELOG.md` `## Unreleased`: one public-voice entry
+- [X] T022 `CHANGELOG.md` `## Unreleased`: one public-voice entry
       above the spec-065 entry — a welfare-hazardous mode now has to be
       acknowledged by name in the config to load, both config sweeps
       keep every such mode out of the served world and the exams, and
@@ -368,7 +368,7 @@ turns T013's red green.
       order unmoved). `specs/INDEX.md` is script-generated and the 066
       row exists; the spec's `Status: Draft` stays (house practice,
       064 and 065) — neither is touched.
-- [ ] T023 Full `cargo test --workspace` + `cargo clippy --workspace
+- [X] T023 Full `cargo test --workspace` + `cargo clippy --workspace
       --all-targets -- -D warnings` + `cargo fmt --check`; jscpd ratchet
       if the sweep self-tests push `tests/` duplication (the two sweep
       files are deliberate mirrors — if the ratchet trips, say so in
