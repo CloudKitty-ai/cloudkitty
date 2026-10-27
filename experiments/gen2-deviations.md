@@ -840,7 +840,33 @@ who recomputes):
 - `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P4.toml`: 68980e5d4edfd1de863c799e6ef524e340d97ef19855f6566dac5113dfa6bcde
 - `experiments/minifriend-phase1b-2026-10-23/g2leg-20-P5.toml`: e2fb4d8dde70c77dcadfc7ae347bb70611b3de6ccec9530e81d8709945fd08e9
 
-Sha256 of each file as retrofitted: recorded here when Product's PR
-lands (the section name is theirs and still provisional at this
-writing; `check_set.ACK_HEADER` follows it). Status: OPEN until that
-landing and a green run of the three checks on the landed tree.
+Sha256 of each file as retrofitted (Product's PR #469, merge 3ba039c4,
+on her word 2026-10-26; the names `[welfare_hazard]` / `initial_needs`
+as pinned; the bytes before the table equal the recorded bytes above,
+checked by Experiments on the landed tree):
+
+- `g2leg-20-W.toml`: bd00f5354b7daf80227f52996343255bee7c8316fd47a359b92f11577f10f109
+- `g2leg-20-G.toml`: 4aafcc15893eb71d2d708a22dedb8b1c6c61425ffc3504937a2e26ce1f1f8c8c
+- `g2leg-20-P1.toml`: 66e915e70f0f2a08bd00e51c3a13f5843191b87f401f72501cab295c14886aaa
+- `g2leg-20-P2.toml`: df4912be37314742eaa58ace69a988e0cd84c8a13d838920641369492820c1fc
+- `g2leg-20-P3.toml`: d96206b57c276132c4fd4244d2d74b421e180695bbeb56ba9298d96efb14e21b
+- `g2leg-20-P4.toml`: 43e1cfb93f4c19c7ffe6cc4270968a719ef2bf1cef68c20c8384f63d6d0b9193
+- `g2leg-20-P5.toml`: 6494396836a42e34e8efaeb4b746f772f67bedb72471a653571819cb17b98652
+
+On the landed tree (3ba039c4): `check_set.py W` (25 worlds), `check_set.py
+G` (25), `check_P.py` (P1–P5) green and their JSONs byte-identical to the
+committed ones; `test_check_set.py` 1 and `test_phase1b.py` 6 green.
+Two traps the PR review reported in this lane, both closed here:
+(1) `make_configs.py` rendered the five P files without the table, so
+`--check` failed and a bare run would have rewritten them into files no
+post-066 load accepts; it now renders the recorded bytes (`render`) and
+the committed file (`render_file` = recorded bytes + the table), s2
+asserts both identities (red at b92b41af: the table's blank line
+dropped → "differs from make_configs.py render_file (spec 066 table)").
+(2) The arc binding (engine a2e8d044, pre-066) refuses the retrofitted
+files for the unknown top-level key `welfare_hazard`: the loud load
+failure consented to, not a corruption. W, G and P1–P5 collection is
+closed, so no run on that binding is owed; any future run of
+`run_set.sh` / `run_P.sh` needs a binding built from a post-066 engine,
+which is a new-generation question for the declaration that asks for it.
+Status: CLOSED 2026-10-26.

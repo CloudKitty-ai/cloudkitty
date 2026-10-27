@@ -161,9 +161,12 @@ consent BC comparison ride the trunk.
 - Spec 066 retrofit of the seven committed initial_needs configs (W, G,
   P1–P5): RULED 2026-10-26 ("Option 1 for the retrofit"); the scout
   checks read provenance on the recorded bytes since 304221b1; the
-  files move in Product's PR under `cross-lane:`; OPEN until the
-  landing's sha256s are recorded in `gen2-deviations.md` entry 14 and
-  the three checks run green on the landed tree.
+  files moved in Product's PR #469 (merge 3ba039c4); landed sha256s
+  recorded in `gen2-deviations.md` entry 14, the three checks green and
+  byte-identical on the landed tree, make_configs.py taught the table
+  (b92b41af). CLOSED 2026-10-26. Standing trap: the arc binding
+  (a2e8d044) refuses the retrofitted files (unknown key); collection is
+  closed, no run owed.
 - Step 9, the three-leg consent BC comparison — waits on her word.
 - Deviations entry 4 (a): may post-stop rows be cited.
 - rot2 policy export for serving — waits on her word.
