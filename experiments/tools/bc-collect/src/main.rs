@@ -621,10 +621,6 @@ mod tests {
         assert_eq!(h.len() % 64, 0, "numpy requires 64-byte-aligned headers");
     }
 
-    /// The regression this whole module exists for: the pre-2026-08-06
-    /// collector wrote `(n, 182)` from a literal, so a 183-wide buffer
-    /// produced a file numpy loads happily with every row after the first
-    /// shifted one column. It must now be impossible to write that file.
     /// Spec 067 FR-011: exactly the seats whose behaviour does not teach;
     /// an unknown name keeps the needs_driven fallback (condition 3 of
     /// Experiments' consent, withdrawn: no hard error).
@@ -651,6 +647,10 @@ mod tests {
         );
     }
 
+    /// The regression this whole module exists for: the pre-2026-08-06
+    /// collector wrote `(n, 182)` from a literal, so a 183-wide buffer
+    /// produced a file numpy loads happily with every row after the first
+    /// shifted one column. It must now be impossible to write that file.
     #[test]
     #[should_panic(expected = "refusing to write a header that lies")]
     fn a_header_narrower_than_its_buffer_is_refused() {
