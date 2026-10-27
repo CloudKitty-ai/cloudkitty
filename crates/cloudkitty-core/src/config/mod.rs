@@ -2805,12 +2805,6 @@ mod tests {
                 && m.ends_with("[welfare_hazard]\nacknowledged = [\"initial_needs\"]"),
             "{m}"
         );
-        // exact: loads, and the section is kept as written.
-        let ok = load(&format!("{raised}{ack}")).expect("exact acknowledgement loads");
-        assert_eq!(
-            ok.welfare_hazard.as_ref().unwrap().acknowledged,
-            ["initial_needs"]
-        );
         // unknown name.
         let u = load(&format!(
             "{raised}[welfare_hazard]\nacknowledged = [\"initial_need\"]\n"
@@ -2831,8 +2825,6 @@ mod tests {
             st.contains("'initial_needs' is acknowledged but not active"),
             "{st}"
         );
-        // all-zero section, no acknowledgement: nothing to acknowledge.
-        load(zero).expect("an all-zero distressed start is inert and loads");
         // all-zero section WITH an acknowledgement: stale.
         let st0 = load(&format!("{zero}{ack}"))
             .err()
@@ -2853,6 +2845,32 @@ mod tests {
             p.contains("'initial_needs' at [[kitty]] 'Pumpkin' (id 3) initial_needs.eat = 45"),
             "the site names the kitty: {p}"
         );
+    }
+
+    /// Spec 066's two legal shapes through `Config::validate` (kept
+    /// behaviour under T005's cycle, rule 6): an exact acknowledgement
+    /// loads with the section kept as written, and an all-zero
+    /// distressed start needs none; the acknowledged P shape loads.
+    #[test]
+    fn welfare_hazard_validation_accepts_the_two_legal_shapes() {
+        let load = |fragment: &str| -> Config {
+            let c: Config = toml::from_str(&complete(fragment)).expect("parses");
+            c.validate().expect("validates");
+            c
+        };
+        let ok = load("[initial_needs]\ncuddle = 92.0\n[welfare_hazard]\nacknowledged = [\"initial_needs\"]\n");
+        assert_eq!(
+            ok.welfare_hazard.as_ref().unwrap().acknowledged,
+            ["initial_needs"]
+        );
+        let zero = load("[initial_needs]\ncuddle = 0.0\n");
+        assert!(zero.welfare_hazard.is_none() && zero.active_hazards().is_empty());
+
+        let mut c = cfg();
+        c.kitties[2].initial_needs = Some(InitialNeedsSpec {
+            eat: Some(NeedInit::Value(45.0)),
+            ..Default::default()
+        });
         c.welfare_hazard = Some(WelfareHazardConfig {
             acknowledged: vec!["initial_needs".into()],
         });
