@@ -30,7 +30,7 @@ Harness: CI never runs bc-collect's tests (D8 CI note).
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the pre-change pins. (a) In the scratchpad
+- [X] T001 Record the pre-change pins. (a) In the scratchpad
       `<scratchpad>/067/baseline/` with a throwaway `#[test]` (deleted
       before committing): `engine_defaults_sha256()`; the serialized
       JSON of `Config::default()` (grep: no `needy` key); the serialized
