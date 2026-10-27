@@ -50,8 +50,11 @@ def test_random_rollout_samples_legal_pairs_and_reproduces():
     rng = np.random.default_rng(0)
     mask = np.asarray(infos[env.possible_agents[0]]["mask"], dtype=np.uint8)
     for _ in range(20):
-        a, m = rr.legal_pair(mask, env.menu_len, rng)
-        # each half of the pair is drawn from its own half of the mask (spec 028)
-        assert mask[a] == 1 and mask[env.menu_len + m] == 1, "rollout must send a legal [activity, message] pair (spec 028)"
+        pair = rr.legal_pair(mask, env.menu_len, rng)
+        # one [activity, message] pair, each half drawn from its own half of the mask (spec 028)
+        assert isinstance(pair, list) and len(pair) == 2, "rollout must send a legal [activity, message] pair (spec 028)"
+        a, m = pair
+        assert a < env.menu_len and mask[a] == 1 and mask[env.menu_len + m] == 1, \
+            "rollout must send a legal [activity, message] pair (spec 028)"
     first, second = rr.rollout(seed=7, steps=15), rr.rollout(seed=7, steps=15)
     assert first == second and first["decisions"] > 0 and first["steps"] == 15
