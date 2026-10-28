@@ -21,8 +21,9 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT, her ruling in progress: calls 1–4 RULED 2026-10-27
-(§12); call 5 open. Nothing below runs until she rules. No number from this
+**Status: DRAFT; all five calls RULED 2026-10-27 (§12). Open with her
+the same day, verbatim: "Do we need to run P0 pass 1 now? I was thinking
+we wait until we get gen 2 figured out. Pros and cons of waiting?" Nothing below runs until she rules. No number from this
 arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
@@ -610,3 +611,5 @@ recorded in this file before the read runs.
    pass 2. Without them the lockstep fold rests on a handful of policy
    traces and one pile, and the seat-type confound is untested on
    lockstep.
+   RULED 2026-10-27 on this thread's walkthrough: regenerate inside
+   pass 1 (run-order step 2b). Her words: "Yes, regenerate."
