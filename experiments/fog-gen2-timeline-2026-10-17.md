@@ -434,6 +434,36 @@ consent BC comparison ride the trunk.
   operationalised (clause ii by 0.003); the ruled 2-tick burn-in sits
   inside the window; F-070. The number → Product (067 strata) and the
   Professor (P9).
+  OBSERVER STREAMS RULED 2026-10-27 (spec 067 left the question "OPEN
+  at this write" for the needy set's declaration; Product put options
+  A–D to her and she asked for this thread's take first, "Leaning B,
+  let's get Experiments' take first though"; take sent msg 3bacd82b;
+  ruled on this thread's walkthrough, her words verbatim: "B with all
+  three amendments. One minor tweak: “without dropping below 0.995
+  below world start” seems overly restrictive. If we end up at e. g.
+  0.98 at world start and 0.95 mid world, that would clearly be an
+  improvement."): B — a head that only estimates may train on an
+  observer's stream from a needy world under its own declaration (seed
+  split, training-sized counts, welfare line, lived-world false-alarm
+  check, the frozen head's results as comparator); nothing that acts
+  learns from a needy world (no RL beside a needy seat, no imitation
+  rows from one); a needy-trained head feeds anything that acts only on
+  a new ruling from her, with the natural-world results in hand.
+  Amendments: (1) "only estimates" = the training changes no weights an
+  acting policy uses (today's heads, separate networks on observations,
+  qualify); (2) a needy-trained head passes the F-070 splice on covered
+  donors: detection after 100 clean ticks above the frozen head's
+  0.358, and at a world's start at most a bounded drop from 0.995, the
+  tolerance set by its declaration before any read (her tweak; her
+  example, 0.98 at the start with 0.95 mid-world, is an improvement);
+  (3) the acting bar covers needy and needy_hold as built (they refuse
+  help); a helpable variant gets its own ruling. Follows, Experiments':
+  bc-collect records no demonstration row from any seat of a world that
+  seats a non-teaching behaviour (`--trace` stays unfiltered); the RL
+  entry points this thread owns refuse a needy seat; the needy set's
+  declaration splits threshold-tuning seeds from confirming seeds and
+  collects any training set separately, after a head's declaration is
+  ruled.
 
 ## Flagged follow-ups (owner's word to start)
 
