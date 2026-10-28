@@ -614,6 +614,33 @@ printf '%s\n' '0.4.0 ::  :: 2026-10-28 "everything"' > scripts/tag-check.d/warni
 case_ 1 "an approval naming no line text: FAIL, never a blanket" warnings
 has "warnings-approved.txt line is not" "the blanket line refused"
 reset_
+# Product's review repros (2026-10-28): text of one space, and a placeholder for her words
+printf '%s\n' '0.4.0 ::   :: 2026-10-28 "probe"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "a whitespace line text: FAIL, never a blanket" warnings
+has "warnings-approved.txt line is not" "the whitespace line refused"
+reset_
+printf '%s\n' '0.4.0 ::            :: 2026-10-28 "spaces"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "a text of twelve spaces: FAIL" warnings
+has "warnings-approved.txt line is not" "the padded line refused"
+reset_
+printf '%s\n' '0.4.0 :: Node.js :: 2026-10-28 "too short"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "line text under 10 characters: FAIL" warnings
+has "warnings-approved.txt line is not" "the short line refused"
+reset_
+printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: x' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "no date and quoted words: FAIL, a placeholder is not her word" warnings
+has "warnings-approved.txt line is not" "the placeholder refused"
+reset_
+printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 unquoted words' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "unquoted words: FAIL" warnings
+has "warnings-approved.txt line is not" "the unquoted line refused"
+reset_
+printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 "fixture approval"' '0.4.0 :: tier 2 is +985 net lines :: 2026-10-28 "fixture approval"' \
+  '0.4.0 :: a warning fixed since :: 2026-10-28 "stale"' > scripts/tag-check.d/warnings-approved.txt
+case_ 0 "an approval matching nothing: reported, not a FAIL" warnings
+has "unused approval for 0.4.0 (matches no listed line): a warning fixed since" "the unused approval named"
+hasnt "unused approval for 0.4.0 (matches no listed line): Node.js" "a used approval is not called unused"
+reset_
 stub "$ON_MAIN" "" runs
 case_ 1 "runs unreadable: FAIL, not an empty review" warnings
 has "could not list the runs of ci.yml: HTTP 401: Bad credentials" "gh's error carried"

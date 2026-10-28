@@ -601,29 +601,37 @@ c_warnings() {
       printf "%s%s: %s%s — in %s%s\n", p[1], (n[k] > 1 ? " ×" n[k] : ""), (p[2] != "" ? p[2] ": " : ""),
         p[3], w[k], (u[k] > 3 ? ", +" (u[k] - 3) " more" : "") } }' "$TMP/ann" > "$TMP/listed"
   cat "$TMP/note" >> "$TMP/listed"
-  # the owner's approvals for this version: <version> :: <line text> :: <date> "<her words>"
+  # the owner's approvals for this version: <version> :: <line text> :: <YYYY-MM-DD> "<her words>".
+  # The line text (it cannot contain " :: ") is trimmed and must be at least 10
+  # characters, so it names a line rather than matching most of them.
   ver=${TAG:-$(sed -n 's/^version = "\([^"]*\)".*/\1/p' "$R/Cargo.toml" 2>/dev/null | head -n 1)}
-  : > "$TMP/appr"
+  : > "$TMP/appr"; : > "$TMP/used"
   if [ -f "$CFG/warnings-approved.txt" ]; then
     while IFS= read -r app; do
       case "$app" in ''|'#'*) continue ;; esac
-      rest=${app#* :: }; sub=${rest%% :: *}
-      if [ "$rest" = "$app" ] || [ "$sub" = "$rest" ] || [ -z "$sub" ]; then
-        echo "warnings-approved.txt line is not '<version> :: <line text> :: <date> \"<her words>\"': $app" >> "$D"; ok=1; continue
+      rest=${app#* :: }; sub=${rest%% :: *}; who=${rest#* :: }
+      sub=$(printf '%s' "$sub" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+      bad=0
+      [ "$rest" = "$app" ] || [ "$who" = "$rest" ] || [ ${#sub} -lt 10 ] && bad=1
+      case "$who" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' "'?*'"') ;; *) bad=1 ;; esac
+      if [ $bad = 1 ]; then
+        echo "warnings-approved.txt line is not '<version> :: <line text, 10+ characters> :: <YYYY-MM-DD> \"<her words>\"': $app" >> "$D"; ok=1; continue
       fi
-      [ "${app%% :: *}" = "$ver" ] && echo "$app" >> "$TMP/appr"
+      [ "${app%% :: *}" = "$ver" ] && printf '%s\t%s\n' "$sub" "$who" >> "$TMP/appr"
     done < "$CFG/warnings-approved.txt"
   fi
   unappr=0
   while IFS= read -r line; do
     who=""
-    while IFS= read -r app; do
-      rest=${app#* :: }; sub=${rest%% :: *}
-      case "$line" in *"$sub"*) who=${rest#* :: }; break ;; esac
+    while IFS=$'\t' read -r sub app; do
+      case "$line" in *"$sub"*) who=$app; echo "$sub" >> "$TMP/used"; break ;; esac
     done < "$TMP/appr"
     if [ -n "$who" ]; then echo "$line [approved: $who]"; else echo "$line"; unappr=1; fi
   done < "$TMP/listed" >> "$D"
-  [ $unappr = 1 ] && echo "unapproved lines FAIL the tag: resolve each, or the owner approves proceeding (a '$ver :: <line text> :: <date> \"<her words>\"' line in scripts/tag-check.d/warnings-approved.txt)" >> "$D"
+  [ $unappr = 1 ] && echo "unapproved lines FAIL the tag: resolve each, or the owner approves proceeding (a '$ver :: <line text> :: <YYYY-MM-DD> \"<her words>\"' line in scripts/tag-check.d/warnings-approved.txt)" >> "$D"
+  while IFS=$'\t' read -r sub app; do
+    grep -qxF -- "$sub" "$TMP/used" || echo "unused approval for $ver (matches no listed line): $sub" >> "$D"
+  done < "$TMP/appr"
   sed 's/^/read /' "$TMP/read" >> "$D"
   [ $ok = 1 ] && return 1
   [ $unappr = 1 ] && return 1
