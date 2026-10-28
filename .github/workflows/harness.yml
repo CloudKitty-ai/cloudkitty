@@ -39,7 +39,7 @@ jobs:
     name: condense budget
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # The base SHA on the log's last pass line has to be reachable.
           fetch-depth: 0
@@ -57,7 +57,7 @@ jobs:
     name: tag-check self-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Self-test the tag-check suite
         run: bash scripts/test-tag-check.sh
 
@@ -65,7 +65,7 @@ jobs:
     name: rawdir-hash self-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Self-test the raw-dir hash recipe
         run: bash scripts/test-rawdir-hash.sh
 
@@ -73,7 +73,7 @@ jobs:
     name: chebyshev guard
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Self-test the guard
         run: bash scripts/test-chebyshev-guard.sh
       - name: Undeclared Chebyshev sweep
@@ -94,7 +94,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Self-test the lane check

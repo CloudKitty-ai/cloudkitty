@@ -26,7 +26,7 @@ jobs:
     name: build + test experiments/tools
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # No `rustup toolchain install`: rust-toolchain.toml at the repo root
       # pins the compiler for these crates too -- rustup walks up from the
@@ -71,10 +71,13 @@ jobs:
       # `cargo test --workspace` never reaches them). Warn only, the same
       # doctrine as the build ("Fix both. Warn only."). A crate whose build
       # failed above is skipped: its drift is already named, and cargo test
-      # would only fail it a second time.
+      # would only fail it a second time. The timeout stops a hung test from
+      # holding the runner to GitHub's 6-hour default; a step stopped early
+      # never writes its crate list, so the warning says so instead.
       - name: Test tools crates
         id: test
         continue-on-error: true
+        timeout-minutes: 30
         env:
           BUILD_FAILED: ${{ steps.build.outputs.failed }}
         run: |
@@ -95,4 +98,4 @@ jobs:
 
       - name: Surface tools test failures
         if: steps.test.outcome == 'failure'
-        run: echo "::warning title=Tools tests failed::experiments/tools crates fail their own tests —${{ steps.test.outputs.failed }} — non-blocking, see the test log in this run"
+        run: echo "::warning title=Tools tests failed::experiments/tools crates fail their own tests —${{ steps.test.outputs.failed || ' (none named; the step stopped early, e.g. timed out)' }} — non-blocking, see the test log in this run"
