@@ -18,12 +18,13 @@
 - [ ] The staleness REPORT reviewed — every flagged §6 home is either
       updated or its subject truly did not change this release (say which,
       below the sign-offs).
-- [ ] The warnings REPORT reviewed — every line it lists (an annotation, a run
-      that did not succeed, a workflow with no run in this history) is fixed, or
-      accepted with a reason by the thread whose lane it concerns
-      (`scripts/lanes.txt`), one line each under Warning dispositions.
-      Non-blocking checks warn instead of failing; this row is where a release
-      reads them.
+- [ ] The warnings check green — every line it lists (an annotation, a run
+      that did not succeed, a workflow with no run in this history) is resolved
+      by the thread whose lane it concerns (`scripts/lanes.txt`), or the owner
+      approved proceeding with this tag: her words on a line for this version
+      in `scripts/tag-check.d/warnings-approved.txt` (owner ruled 2026-10-28).
+      One line each under Warning dispositions. Non-blocking checks warn
+      instead of failing; this row is where a release reads them.
 
 ## Human rows — Product
 
@@ -68,4 +69,4 @@
 
 ## Warning dispositions
 
-<!-- one line per listed line: fixed (PR) | accepted (why) -->
+<!-- one line per listed line: resolved (PR) | approved by the owner (date, her words) -->

@@ -1,0 +1,7 @@
+# The owner's approvals to proceed with a tag despite a line the warnings
+# check lists (owner ruled 2026-10-28: "If we're seeing these warnings at tag
+# time we need to either resolve them, or I need to manual approve proceeding
+# with the tag."). Only her word adds a line, quoted verbatim. One line each:
+#   <version> :: <text of the listed line, or a part of it> :: <YYYY-MM-DD> "<her words>"
+# The text is at least 10 bytes and cannot contain " :: ". A line
+# approves that version only, so each release starts clean.
