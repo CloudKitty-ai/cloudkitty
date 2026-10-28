@@ -1,4 +1,4 @@
-# P0 behavioural-degeneracy monitor — pass 1, archive only (declaration 2026-10-27; DRAFT for the owner's ruling)
+# P0 behavioural-degeneracy monitor — pass 1, archive only (declaration 2026-10-27; RULED 2026-10-28, run deferred)
 
 Owner's words. The Professor's preregistration framing
 (`~/ai/professor/notes/for-experiments-behavioral-monitor-prereg-framing-2026-10-23.md`,
@@ -21,10 +21,15 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT; all five calls RULED 2026-10-27 (§12). Open with her
-the same day, verbatim: "Do we need to run P0 pass 1 now? I was thinking
-we wait until we get gen 2 figured out. Pros and cons of waiting?" Nothing below runs until she rules. No number from this
-arc exists.**
+**Status: RULED 2026-10-28; the run is DEFERRED (§12 item 6). The five
+calls were ruled 2026-10-27 (§12). Her words, 2026-10-28, to two
+questions put together (this timing and starting the needy-set
+declaration now): "Yes to both. We still have another phase of gen 2
+left even after we figure out the needs estimator as well." This
+supersedes the 2026-10-27 timing above (the run in the 067 gap, before
+the Phase 2 declaration). From here the text changes only by dated
+addendum on her word, before any monitor number exists. No number from
+this arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
 first paper"): every headline number is a candidate paper number, so
@@ -37,7 +42,7 @@ Welfare-cost line: 0 new covered cat-ticks. Pass 1 reads arrays already
 on disk; no weight is changed (call 3's replay only reads committed
 weights over recorded observations; no world runs), no covered mind
 experiences anything. One
-scripted-only regeneration is proposed (§2's July pair, §12 call 5):
+scripted-only regeneration is ruled in (§2's July pair, §12 call 5):
 scripted kitties of the July engine, exempt under the welfare practice,
 their distress reported, not gated. Pass 2 (fresh labeled episodes or a
 transfer environment) is a separate declaration on her word.
@@ -146,8 +151,8 @@ which are not streams. The pattern is cleanly regenerable as a natural
 experiment: the fix commit's diff is the yield, FR-008's sidestep
 de-synchronisation and the new word (`needs_driven.rs`, `selection.rs`,
 `meow.rs`, a test), so the same worlds run on edc7d332 (the commit
-before it) and on d91b7c86 differ by those alone. Proposed (§12 call 5;
-pass 1 stays archive-only without her word on it): that commit's
+before it) and on d91b7c86 differ by those alone. Ruled in (§12 call 5,
+"Yes, regenerate."): that commit's
 default world (32 × 32; Miso, Pumpkin and Kittybear needs_driven,
 Biscuit playful; the same six needs as today), world seeds 1 … 30,
 5,000 ticks each, both commits, paired by seed; a per-tick dump of
@@ -540,7 +545,7 @@ recorded in this file before the read runs.
    the stream inventory `streams.json` (path, alphabet, kitties, ticks,
    needs present, positions present) — committed, zero numbers of the
    monitor computed.
-2b. Only on her word (§12 call 5): the July harness committed; both
+2b. Ruled in (§12 call 5): the July harness committed; both
    commits built in detached worktrees, nothing edited in them; the
    label rule's post-fix count read and committed before any monitor
    quantity is computed; streams under `results-raw/july/` (untracked,
@@ -559,7 +564,7 @@ recorded in this file before the read runs.
 7. To the Professor (scores) and Product (nothing to build; information
    only), on her standing word for this arc; pass 2, if any, is hers.
 
-## 12. Open with the owner (rule on these with the declaration)
+## 12. Owner calls (all ruled; item 6 is the timing)
 
 1. The FP budget number (§5): one flagged episode per 100,000
    kitty-ticks at W = 1000 is this thread's proposal; the Professor left
@@ -613,3 +618,20 @@ recorded in this file before the read runs.
    lockstep.
    RULED 2026-10-27 on this thread's walkthrough: regenerate inside
    pass 1 (run-order step 2b). Her words: "Yes, regenerate."
+6. Timing. Her question, 2026-10-27, verbatim: "Do we need to run P0
+   pass 1 now? I was thinking we wait until we get gen 2 figured out.
+   Pros and cons of waiting?" Answered with both sides (nothing in Gen 2
+   depends on pass 1 and pass 1 reads a fixed archive, so waiting costs
+   no data; waiting delays the read that 1.0 and the first paper wait
+   on). Put to her: wait, with this declaration ruled now so the design
+   is fixed and dated, and a latest start: pass 1 begins no later than
+   before Gen 3's first training run.
+   RULED 2026-10-28: "Yes to both. We still have another phase of gen 2
+   left even after we figure out the needs estimator as well." Two
+   consequences, stated here so they are not rediscovered later. The
+   latest start is a backstop: a monitor watching Gen 3 from its first
+   training run needs pass 1 and a ruled pass 2 finished before that
+   run, so starting at the backstop leaves Gen 3's first runs
+   unwatched; an earlier start is hers to call. A halted run from Gen
+   2's remaining training joins the label set only by a dated addendum
+   on her word, before any monitor number exists.

@@ -468,6 +468,14 @@ consent BC comparison ride the trunk.
   declaration carries F-070's junction control beside the transfer
   check, so a lift that comes from the seam alone fails (design notes
   from Product 2026-10-28, adopted here; not part of her ruling).
+  NEEDY-SET DECLARATION KICKED OFF 2026-10-28 (owner, verbatim: "Yes
+  to both. We still have another phase of gen 2 left even after we
+  figure out the needs estimator as well."; the two questions were
+  this one and whether the P0 monitor's pass 1 waits, which is ruled
+  in its own declaration and not part of Gen 2): Experiments drafts
+  the declaration; nothing collects before she rules it. Before any
+  collection: the two refusals above, and a fresh venv built from
+  main (the arc venv stays as recorded).
 
 ## Flagged follow-ups (owner's word to start)
 
