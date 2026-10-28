@@ -21,8 +21,8 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT, her ruling in progress: calls 1–2 RULED 2026-10-27
-(§12); calls 3–5 open. Nothing below runs until she rules. No number from this
+**Status: DRAFT, her ruling in progress: calls 1–3 RULED 2026-10-27
+(§12); calls 4–5 open. Nothing below runs until she rules. No number from this
 arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
@@ -33,7 +33,9 @@ and three declared random splits of the healthy worlds into calibration
 and test (the band's seeds).
 
 Welfare-cost line: 0 new covered cat-ticks. Pass 1 reads arrays already
-on disk; no weight is touched, no covered mind experiences anything. One
+on disk; no weight is changed (call 3's replay only reads committed
+weights over recorded observations; no world runs), no covered mind
+experiences anything. One
 scripted-only regeneration is proposed (§2's July pair, §12 call 5):
 scripted kitties of the July engine, exempt under the welfare practice,
 their distress reported, not gated. Pass 2 (fresh labeled episodes or a
@@ -348,8 +350,19 @@ comparator.
   carries no claim.
 - **Baselines**: repeated-action counters (longest run of one action in
   the window), episode-length statistics, needs thresholds alone (the
-  watchdog line), and the policy entropy where logits exist (none in
-  pass 1 unless a probe's policy is replayed; declared out of pass 1).
+  watchdog line), and the policy entropy from replayed logits (call 3,
+  RULED 2026-10-27): each halted run's halting probe recording through
+  that run's `policy-final.pt` (the weights that ran it; earlier
+  probes' weights were not kept, so they get no logits), and the healthy
+  side, the certified roster's L streams (observations saved at half
+  precision) through rot2's own weights, split by world like every band.
+  The detector: mean policy entropy over a W = 1000 window, two-sided
+  band at central 1 − α, α set on the healthy L calibration worlds to
+  each ladder setting's rate. Fidelity first (m13): the probes acted
+  greedily, so the replay's masked argmax reproduces every recorded
+  action and message exactly on the probe recordings; on L a mismatch is
+  allowed only at a near-tie (top-two logit gap under 0.01), every one
+  reported with its count; any other mismatch and nothing is scored.
 - **Ablation**: entropy rate alone / informativeness alone / both, on
   recall at matched FP.
 - **Across training** (her addition, §7b of the framing): on trunk s8
@@ -404,8 +417,10 @@ itself from the episode's labeled start, on the episodes where both
 exist; (2) over lockstep episodes, the fraction flagged by a pairwise
 quantity and by no single-kitty quantity at the same window ≥ 0.5;
 (3) scored per fold as "caught" in ≥ half of the held-out episodes;
-(4) NOT SCOREABLE in pass 1 (no logits) unless a probe's policy is
-replayed, and said so; (§7b) scored on the trunk seeds with ≥ 3
+(4) at each ladder setting, the fraction of the labeled episodes
+that have logits (the halting probes') which the policy-entropy
+detector flags; the prediction holds if under 0.5 at the headline
+setting, scored with its count (four runs); (§7b) scored on the trunk seeds with ≥ 3
 checkpoints, the "first half" being the checkpoints at or under half
 the run's final update.
 
@@ -505,6 +520,10 @@ Reader `monitor_read.py` in this directory (arc venv:
   latency is computed against its own stream's stop; predicted red: the
   context computed against a constant 1,000 → "context: each run
   against its own armed stop".
+- m13: the replay's masked argmax reproduces the recorded action and
+  message on every row of a halting probe recording; predicted red: the
+  legality mask dropped from the argmax → "replay: masked greedy
+  reproduces every recorded action".
 
 Every guard's red goes through `scripts/mutate.sh --expect` and is
 recorded in this file before the read runs.
@@ -523,6 +542,9 @@ recorded in this file before the read runs.
    quantity is computed; streams under `results-raw/july/` (untracked,
    never deleted).
 3. `monitor_read.py` + `test_monitor.py`, reds on record.
+3b. The replay (call 3): logits for the halting probe recordings and
+   the healthy L streams, m13 passing first; committed before any read
+   uses them.
 4. The band read (question 1) on the calibration worlds only; committed.
 5. Recall / latency, false positives, leave-one-out, baselines,
    ablation, across-training (questions 2–4); one fence, `--out
@@ -563,6 +585,13 @@ recorded in this file before the read runs.
 3. Whether the PPO probes' policies may be replayed to recover logits
    for prediction 4 (a read of committed weights, no training; a few
    minutes per checkpoint) or prediction 4 waits for pass 2.
+   RULED 2026-10-27 on this thread's walkthrough. Put to her: replay
+   the recorded observations through each halted run's saved final
+   weights (0 cat-ticks, no world runs, no training), with the greedy
+   probes' recorded actions as an exact fidelity check, the halting
+   probes the unhealthy side, the certified roster's lived worlds the
+   healthy side, scored with its count. Her words: "Yes". §5, §7 (4),
+   m13 and run-order step 3b carry it.
 4. Whether the 4k rungs' behaviour streams (poisoned for training, not
    for reading) may be used as additional healthy-teacher material if
    the A9 band needs more worlds; the default here is no.
