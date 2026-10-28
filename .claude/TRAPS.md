@@ -24,8 +24,9 @@ guard if any. A trap a guard now catches is deleted; the guard is its home.
 - **2026-10-16** — a `## Frozen` line in `.claude/CONDENSE-LOG.md` needs the
   freezing commit's SHA as it exists on main, and a squash merge replaces the
   branch's SHAs. *Bites:* freezing a tracker. *Evidence:* #454/#455. *Guard:*
-  the frozen check refuses a SHA that does not resolve; land the freeze as two
-  PRs (the content, then the log line naming the squash SHA).
+  the frozen check refuses such a SHA, but its message ("frozen file … changed
+  since <sha>") blames the file, not the missing SHA, so the entry stays. Land
+  the freeze as two PRs: the content, then the log line naming the squash SHA.
 - **2026-10-27** — `scripts/mutate.sh` prints only the first 12 lines of the
   mutated run that match its failure patterns. *Bites:* any prediction that
   spans several cases. *Evidence:* the #474 and #475 ledgers. *Guard:* none;
