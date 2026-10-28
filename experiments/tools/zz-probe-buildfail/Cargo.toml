@@ -1,0 +1,8 @@
+[package]
+name = "zz-probe-buildfail"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# PROBE for the warn-only tools-test step; never merged.
+[workspace]
