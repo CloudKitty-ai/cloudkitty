@@ -231,6 +231,8 @@ printf '%s\n' '# allow' > scripts/tag-check.d/citation-allow.txt
 printf '%s\n' '# allow' > scripts/tag-check.d/gate-allow.txt
 printf '%s\n' '# ship' 'client/app.js' 'client/index.html' > scripts/tag-check.d/client-ship.txt
 printf '%s\n' '# noship' 'client/test-x.mjs' > scripts/tag-check.d/client-noship.txt
+printf '%s\n' '# approvals' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 "fixture approval"' \
+  '0.4.0 :: tier 2 is +985 net lines :: 2026-10-28 "fixture approval"' > scripts/tag-check.d/warnings-approved.txt
 mkdir -p .github/workflows
 for w in ci experiments harness tag-rigor; do printf 'name: %s\n' "$w" > .github/workflows/$w.yml; done
 c base 2026-09-01T12:00:00
@@ -477,6 +479,12 @@ reset_
 printf '# jscpd:ig%s-end stray\n' 'nore' >> experiments/clean.py
 case_ 1 "a stray end marker alone blocks: FAIL" fences
 reset_
+# prose and workflow config that only NAME the marker fence nothing
+printf 'A fence opens with // jscpd:ig%s-start and a reason.\n' 'nore' > docs/fences.md
+printf '# a fence: // jscpd:ig%s-end\n' 'nore' >> .github/workflows/ci.yml
+git add docs/fences.md
+case_ 0 "the marker named in prose or a workflow comment: PASS" fences
+reset_
 
 # ---------------------------------------------------------------- gate-scope
 # the PASS branch first: a stamped file changed this release satisfies the
@@ -546,8 +554,10 @@ has "warning ×6: Node.js 20 is deprecated. The following actions target Node.js
 has "— in ci.yml (duplication ratchet (jscpd)), experiments.yml (build experiments/tools), harness.yml (tag-check self-test), +3 more" "where-list capped at three, the rest counted"
 has "warning: tier 2 is +985 net lines" "a one-off advisory listed"
 hasnt "tag-rigor.yml" "tag-rigor.yml's own runs not read"
+has '[approved: 2026-10-28 "fixture approval"]' "an approved line carries her words"
 stub "$ON_PROBE"
-case_ 0 "warnings on the probe's runs: REPORT" warnings
+case_ 1 "warnings on the probe's runs: unapproved lines FAIL" warnings
+has "unapproved lines FAIL the tag" "the way through named"
 has "warning: Tools tests failed: experiments/tools crates fail their own tests — zz-probe-testfail" "tools test warning listed with its crate"
 has "warning: Engine drift: experiments/tools crates no longer build against crates/ — zz-probe-buildfail" "drift warning listed with its crate"
 has "failure ×3: Process completed with exit code 1. — in experiments.yml (build + test experiments/tools), harness.yml (lane check)" "failure-level annotations listed, each job once"
@@ -556,15 +566,15 @@ stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G1 @SHA_OLD@=$G2 @SHA_QUEUE
 case_ 1 "an unfinished run: FAIL, the review could not look" warnings
 has "could not read harness.yml run 40629044179: it is queued, so its annotations are not final" "queued run named"
 stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$SIDE1 @SHA_OLD@=$SIDE1 @SHA_QUEUED@=$SIDE2"
-case_ 0 "no run in HEAD's history: REPORT" warnings
+case_ 1 "no run in HEAD's history: listed, FAILs unapproved" warnings
 has "ci.yml: no run on a commit in this history" "missing run named"
-has "REPORT  warnings" "no run is a REPORT, not a PASS"
+has "FAIL    warnings" "no run is never a silent PASS"
 # a startup failure completes with no jobs, so no annotations (recorded from
 # cli/cli run 18929595281; this repo has none): alone, it must not PASS
 git rm -q .github/workflows/ci.yml .github/workflows/harness.yml .github/workflows/tag-rigor.yml
 stub "$ON_MAIN @SHA_STARTUP@=$G" startup
-case_ 0 "a lone run that never started: REPORT, not a silent PASS" warnings
-has "REPORT  warnings" "the startup failure is reported"
+case_ 1 "a lone run that never started: FAILs unapproved, not a silent PASS" warnings
+has "FAIL    warnings" "the startup failure is never a silent PASS"
 has "experiments.yml: run 18929595281 concluded startup_failure" "its conclusion named"
 reset_
 # a clean run (recorded from actions/checkout run 40181359548; every run here
@@ -574,6 +584,35 @@ stub "$ON_MAIN @SHA_CLEAN@=$G" clean
 case_ 0 "a lone clean run: PASS" warnings
 has "PASS    warnings" "nothing to list is a PASS"
 hasnt "concluded success" "a run that succeeded is not listed"
+reset_
+# the owner's approvals (owner ruled 2026-10-28): each listed line is
+# resolved, or she approves proceeding with this version's tag
+stub "$ON_MAIN"
+git rm -q scripts/tag-check.d/warnings-approved.txt
+case_ 1 "no approvals: the listed lines FAIL" warnings
+has "unapproved lines FAIL the tag" "the way through named"
+hasnt "[approved:" "nothing claims an approval"
+reset_
+printf '%s\n' '0.3.9 :: Node.js 20 is deprecated :: 2026-09-20 "old release"' '0.3.9 :: tier 2 is +985 net lines :: 2026-09-20 "old release"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "another version's approvals: FAIL" warnings
+reset_
+printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 "fixture approval"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "a partial approval: the rest FAIL" warnings
+grep -F 'tier 2 is +985' "$O" | grep -qF '[approved' && { echo "FAIL the unapproved line claims an approval"; fail=1; } || echo "ok   the unapproved line is bare"
+has '+3 more [approved: 2026-10-28 "fixture approval"]' "the approved line says so"
+reset_
+printf '%s\n' '0.5.0 :: Node.js 20 is deprecated :: 2026-10-28 "for 0.5.0"' '0.5.0 :: tier 2 is +985 net lines :: 2026-10-28 "for 0.5.0"' > scripts/tag-check.d/warnings-approved.txt
+case_ 0 "--tag names the version an approval must match" --tag 0.5.0 warnings
+has '[approved: 2026-10-28 "for 0.5.0"]' "the tag's approval applied"
+case_ 1 "without --tag, Cargo's version decides" warnings
+reset_
+printf '%s\n' '0.4.0 Node.js 20 is deprecated' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "a malformed approval: FAIL" warnings
+has "warnings-approved.txt line is not" "the bad line named"
+reset_
+printf '%s\n' '0.4.0 ::  :: 2026-10-28 "everything"' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "an approval naming no line text: FAIL, never a blanket" warnings
+has "warnings-approved.txt line is not" "the blanket line refused"
 reset_
 stub "$ON_MAIN" "" runs
 case_ 1 "runs unreadable: FAIL, not an empty review" warnings

@@ -13,7 +13,8 @@
 #            scopes "changed this release" checks. Absent tags => those SKIP.
 # --tag:     the version being cut; adds tag==Cargo==CHANGELOG and the
 #            empty-Unreleased assertion to the version check.
-# Config lives in scripts/tag-check.d/ (allowlists, the client ship lists).
+# Config lives in scripts/tag-check.d/ (allowlists, the client ship lists,
+# the owner's warning approvals).
 set -u
 export LC_ALL=C   # byte-order sorts and comm everywhere; CI and macOS agree
 
@@ -425,14 +426,17 @@ c_layout() {
 # mid-refactor PRs may fence temporary duplication, reason + removal
 # target on the start line; Product's ci.yml ratchet honors fences).
 # A release repays loans: any marker still tracked FAILS the tag.
-# Marker presence IS the violation — no jscpd run needed. The marker
-# literal is split below so this suite never flags itself.
+# Marker presence IS the violation — no jscpd run needed — except in
+# prose and workflow config (.md, .yml), which jscpd never reads: a
+# workflow comment or a changelog entry that names the marker fences
+# nothing. The marker literal is split below so this suite never flags
+# itself.
 c_fences() {
   local ok=0 hit M='jscpd:ig'
   M="${M}nore"
   while IFS= read -r hit; do
     echo "$hit" >> "$D"; ok=1
-  done < <(git -C "$R" grep -nF "$M" -- . 2>/dev/null || true)
+  done < <(git -C "$R" grep -nF "$M" -- . ':(exclude)*.md' ':(exclude)*.yml' 2>/dev/null || true)
   return $ok
 }
 
@@ -536,13 +540,18 @@ c_glossary() {
 # advisories, GitHub's own deprecations — so this is where a release reads
 # them. tag-rigor.yml is skipped: its run is the one doing the reading. A run
 # that completed without succeeding is listed too: a startup failure has no
-# jobs, so no annotations. FAIL when a run cannot be read — gh fails, the run
-# is not finished, or GitHub has never registered the workflow (never run and
-# not on the default branch, so gh cannot find it) — because a review that
-# could not look has not happened. Needs gh with read access to the repo's
-# actions and checks.
+# jobs, so no annotations. Every listed line FAILs the check until it is
+# resolved, or the owner approves proceeding with the tag (owner ruled
+# 2026-10-28: "If we're seeing these warnings at tag time we need to either
+# resolve them, or I need to manual approve proceeding with the tag."): her
+# approval is a line for this version in tag-check.d/warnings-approved.txt,
+# and an approved line still REPORTs. FAIL too when a run cannot be read — gh
+# fails, the run is not finished, or GitHub has never registered the workflow
+# (never run and not on the default branch, so gh cannot find it) — because a
+# review that could not look has not happened. Needs gh with read access to
+# the repo's actions and checks.
 c_warnings() {
-  local ok=0 any=0 wf id sha st concl url jid jname line pick bad
+  local ok=0 wf id sha st concl url jid jname line pick bad ver app rest sub who unappr
   : > "$TMP/ann"; : > "$TMP/note"; : > "$TMP/read"
   while IFS= read -r wf; do
     wf=${wf#.github/workflows/}
@@ -558,7 +567,7 @@ c_warnings() {
       git -C "$R" merge-base --is-ancestor "$sha" HEAD 2>/dev/null && { pick=$id; break; }
     done < "$TMP/runs"
     if [ -z "$pick" ]; then
-      echo "$wf: no run on a commit in this history among its newest 100" >> "$TMP/note"; any=1; continue
+      echo "$wf: no run on a commit in this history among its newest 100" >> "$TMP/note"; continue
     fi
     if [ "$st" != completed ]; then
       echo "could not read $wf run $id: it is $st, so its annotations are not final; re-run once it completes" >> "$D"; ok=1; continue
@@ -580,10 +589,9 @@ c_warnings() {
     cat "$TMP/runann" >> "$TMP/ann"
     echo "$wf run $id @ ${sha:0:8} ($st/$concl) $url" >> "$TMP/read"
     case $concl in success|neutral|skipped) ;;
-      *) echo "$wf: run $id concluded $concl" >> "$TMP/note"; any=1 ;;
+      *) echo "$wf: run $id concluded $concl" >> "$TMP/note" ;;
     esac
   done < <(grep -E '^\.github/workflows/[^/]+\.ya?ml$' "$TRACKED")
-  [ -s "$TMP/ann" ] && any=1
   # one line per distinct annotation, with its count and where it was seen
   awk 'BEGIN { FS = "\t" }
     { k = $1 FS $2 FS $3; if (!(k in n)) o[++m] = k; n[k]++
@@ -591,11 +599,35 @@ c_warnings() {
       if (!((k, s) in seen)) { seen[k, s] = 1; u[k]++; if (u[k] <= 3) w[k] = w[k] (u[k] > 1 ? ", " : "") s } }
     END { for (i = 1; i <= m; i++) { k = o[i]; split(k, p, FS)
       printf "%s%s: %s%s — in %s%s\n", p[1], (n[k] > 1 ? " ×" n[k] : ""), (p[2] != "" ? p[2] ": " : ""),
-        p[3], w[k], (u[k] > 3 ? ", +" (u[k] - 3) " more" : "") } }' "$TMP/ann" >> "$D"
-  cat "$TMP/note" >> "$D"
+        p[3], w[k], (u[k] > 3 ? ", +" (u[k] - 3) " more" : "") } }' "$TMP/ann" > "$TMP/listed"
+  cat "$TMP/note" >> "$TMP/listed"
+  # the owner's approvals for this version: <version> :: <line text> :: <date> "<her words>"
+  ver=${TAG:-$(sed -n 's/^version = "\([^"]*\)".*/\1/p' "$R/Cargo.toml" 2>/dev/null | head -n 1)}
+  : > "$TMP/appr"
+  if [ -f "$CFG/warnings-approved.txt" ]; then
+    while IFS= read -r app; do
+      case "$app" in ''|'#'*) continue ;; esac
+      rest=${app#* :: }; sub=${rest%% :: *}
+      if [ "$rest" = "$app" ] || [ "$sub" = "$rest" ] || [ -z "$sub" ]; then
+        echo "warnings-approved.txt line is not '<version> :: <line text> :: <date> \"<her words>\"': $app" >> "$D"; ok=1; continue
+      fi
+      [ "${app%% :: *}" = "$ver" ] && echo "$app" >> "$TMP/appr"
+    done < "$CFG/warnings-approved.txt"
+  fi
+  unappr=0
+  while IFS= read -r line; do
+    who=""
+    while IFS= read -r app; do
+      rest=${app#* :: }; sub=${rest%% :: *}
+      case "$line" in *"$sub"*) who=${rest#* :: }; break ;; esac
+    done < "$TMP/appr"
+    if [ -n "$who" ]; then echo "$line [approved: $who]"; else echo "$line"; unappr=1; fi
+  done < "$TMP/listed" >> "$D"
+  [ $unappr = 1 ] && echo "unapproved lines FAIL the tag: resolve each, or the owner approves proceeding (a '$ver :: <line text> :: <date> \"<her words>\"' line in scripts/tag-check.d/warnings-approved.txt)" >> "$D"
   sed 's/^/read /' "$TMP/read" >> "$D"
   [ $ok = 1 ] && return 1
-  [ $any = 1 ] && return 3
+  [ $unappr = 1 ] && return 1
+  [ -s "$TMP/listed" ] && return 3
   return 0
 }
 
