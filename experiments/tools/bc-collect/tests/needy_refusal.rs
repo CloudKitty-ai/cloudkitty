@@ -1,12 +1,14 @@
 //! Spec 067 FR-011, the collector's own rule-5 red (Experiments' consent
-//! 2026-10-26, condition 1): a config seating a needy kitty records NO row
-//! for that kitty, every other seat's rows are unchanged, the refusal is
-//! logged once, and meta.json names the refused seat (condition 2).
+//! 2026-10-26, condition 1), widened by the owner's observer-stream ruling
+//! (2026-10-27: nothing that acts learns from a needy world): a config
+//! seating a needy kitty records NO demonstration row from ANY seat, the
+//! refusal is logged once, meta.json names the seat that does not teach
+//! (condition 2), and `--trace` keeps every seat's rows.
 //!
-//! "Unchanged" is read against the same config with that seat on
-//! `teacher`, the first onset placed past the end of the run: until its
-//! first onset a needy seat decides as the teacher, so the two worlds are
-//! the same world (spec 067 SC-002) and only the refusal differs.
+//! The control is the same config with that seat on `teacher`, the first
+//! onset placed past the end of the run: until its first onset a needy
+//! seat decides as the teacher, so the two worlds are the same world (spec
+//! 067 SC-002) and only the refusal differs.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -62,13 +64,16 @@ struct Run {
     stderr: String,
 }
 
+const TICKS: usize = 60;
+
 fn collect(scratch: &Path, name: &str, config: &str) -> Run {
     let config_path = scratch.join(format!("{name}.toml"));
     fs::write(&config_path, config).unwrap();
     let out_dir = scratch.join(name);
     let output = Command::new(env!("CARGO_BIN_EXE_bc-collect"))
         .args(["--config", config_path.to_str().unwrap()])
-        .args(["--rollouts", "1", "--ticks", "60", "--out-dir"])
+        .args(["--rollouts", "1", "--ticks", &TICKS.to_string(), "--trace"])
+        .arg("--out-dir")
         .arg(&out_dir)
         .output()
         .expect("the collector runs");
@@ -84,7 +89,7 @@ fn collect(scratch: &Path, name: &str, config: &str) -> Run {
 }
 
 #[test]
-fn a_needy_seat_records_no_rows_and_the_run_says_so() {
+fn a_needy_world_records_no_rows_from_any_seat_and_the_run_says_so() {
     let scratch = std::env::temp_dir().join(format!("bc-collect-needy-{}", std::process::id()));
     let _ = fs::remove_dir_all(&scratch);
     fs::create_dir_all(&scratch).unwrap();
@@ -96,23 +101,29 @@ fn a_needy_seat_records_no_rows_and_the_run_says_so() {
         u32s(&needy.rollout.join("kitty.npy")),
         u32s(&teacher.rollout.join("kitty.npy")),
     );
-    let (ln, lt) = (
-        u16s(&needy.rollout.join("label.npy")),
-        u16s(&teacher.rollout.join("label.npy")),
-    );
+    let ln = u16s(&needy.rollout.join("label.npy"));
+    let roster: Vec<u32> = (1..=5).collect();
+    for id in &roster {
+        assert!(
+            kt.contains(id),
+            "staged: on teacher, seat {id} records rows"
+        );
+    }
     assert!(
-        kt.contains(&1),
-        "staged: the same seat on teacher records rows"
+        kn.is_empty() && ln.is_empty(),
+        "no seat records a demonstration row in a needy world: {} rows",
+        kn.len()
     );
-    assert!(!kn.contains(&1), "the needy seat records no rows");
-    let others: Vec<(u32, u16)> = kt
-        .iter()
-        .zip(&lt)
-        .filter(|(k, _)| **k != 1)
-        .map(|(k, l)| (*k, *l))
-        .collect();
-    let needy_rows: Vec<(u32, u16)> = kn.iter().copied().zip(ln.iter().copied()).collect();
-    assert_eq!(needy_rows, others, "every other seat's rows are unchanged");
+    for (run, name) in [(&needy, "needy"), (&teacher, "teacher")] {
+        let trace = u32s(&run.rollout.join("trace_kitty.npy"));
+        for id in &roster {
+            assert_eq!(
+                trace.iter().filter(|k| *k == id).count(),
+                TICKS,
+                "{name}: the trace keeps seat {id} on every tick"
+            );
+        }
+    }
 
     let meta = fs::read_to_string(needy.rollout.join("meta.json")).unwrap();
     assert!(

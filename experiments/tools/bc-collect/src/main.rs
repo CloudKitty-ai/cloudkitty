@@ -76,8 +76,11 @@
 //! Teacher eligibility (spec 067 FR-011; Experiments' consent 2026-10-26):
 //! a seat whose behaviour answers `teaches() == false` — the needy presets,
 //! whose schedule is private state no student can see — records NO
-//! demonstration row. The refusal is logged once per config file and every
-//! meta.json names the refused seats (`teachers_refused`, empty when none).
+//! demonstration row, and neither does any other seat of the same world
+//! (owner ruling 2026-10-27 on observer streams: nothing that acts learns
+//! from a needy world). The refusal is logged once per config file and
+//! every meta.json names the seats that do not teach (`teachers_refused`,
+//! empty when none); a non-empty list means the rollout holds no rows.
 //! An unknown behaviour name keeps today's fallback (it runs, and is
 //! stamped, as needs_driven). The `--trace` snapshot is ground truth, not a
 //! corpus row, and stays unfiltered (the needy seat's state included).
@@ -272,7 +275,7 @@ fn main() {
         let refused = teachers_refused(&registry, &base_cfg);
         if !refused.is_empty() {
             eprintln!(
-                "{}: refusing teacher rows for seat(s) {refused:?} (behaviour does not teach: spec 067)",
+                "{}: refusing teacher rows for seat(s) {refused:?} (behaviour does not teach: spec 067) and every other seat's in the same world (owner ruling 2026-10-27)",
                 config_path.display()
             );
         }
@@ -400,7 +403,10 @@ fn main() {
                     trace_lines.push(line.to_string());
                 }
                 for (id, obs, mask, msg_mask) in views {
-                    if refused.contains(&id) {
+                    // A world that seats a non-teaching behaviour records
+                    // no demonstration row from ANY seat; the trace above
+                    // is ground truth and stays unfiltered.
+                    if !refused.is_empty() {
                         continue;
                     }
                     let rec = driven.report.record(id).expect("kitty in roster");
@@ -532,7 +538,8 @@ fn main() {
             // playful Biscuit, so a flat "needs_driven" stamp would lie.
             // Every seat is listed, refused teachers included: readers take
             // the roster size and state.npy's block order from this map, and
-            // `teachers_refused` names the seats that recorded no rows.
+            // `teachers_refused` names the seats that do not teach (when it
+            // is non-empty, no seat recorded a row).
             let experts_json: Vec<String> = config
                 .kitties
                 .iter()
