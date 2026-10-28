@@ -17,6 +17,7 @@ use std::sync::Arc;
 use cloudkitty_core::action::Action;
 use cloudkitty_core::behavior::{resolve_one, BehaviorRegistry, DecisionContext, DecisionRequest};
 use cloudkitty_core::kitty::KittyId;
+use cloudkitty_core::needy;
 use cloudkitty_core::rng::DecisionRng;
 use cloudkitty_core::seam::{DealtSeeds, JointProposal, Provenance, TickReport};
 use cloudkitty_core::world::World;
@@ -40,6 +41,18 @@ pub enum EpisodeError {
     UnknownKitty(KittyId),
     #[error("control for kitty {kitty} names unknown behavior '{name}'")]
     UnknownBehavior { kitty: KittyId, name: String },
+    /// Spec 067 (research D16): a needy preset decides only for the seat
+    /// the config gave it, and that seat only through its preset.
+    #[error(
+        "control for kitty {kitty} is '{control}' but its config seat is '{seat}': a needy \
+         preset is seated only through the config's [[kitty]] behavior and decides for that \
+         seat alone (spec 067)"
+    )]
+    NeedySeat {
+        kitty: KittyId,
+        control: String,
+        seat: String,
+    },
     #[error("action index {index} for kitty {kitty} out of range (menu has {len} entries)")]
     ActionOutOfRange {
         kitty: KittyId,
@@ -155,7 +168,8 @@ pub struct Episode {
 impl Episode {
     /// Builds an episode over `core` config with the `[rl.*]` blocks in
     /// `rl`. `control` maps kitty ids to who decides for them; unnamed
-    /// kitties default to `External`. The world starts from the config's
+    /// kitties default to `External`, except a needy config seat, which is
+    /// seated on its own preset (spec 067). The world starts from the config's
     /// own seed; call [`Episode::reset`] to reseed.
     pub fn new(
         core: Config,
@@ -177,6 +191,32 @@ impl Episode {
                         name: name.clone(),
                     });
                 }
+            }
+        }
+        // Spec 067 (research D16): a needy config seat is scripted by
+        // construction — with no entry it is seated on its own preset, never
+        // left to the trainer (a covered mind under a mask); an entry that
+        // disagrees with the seat about needy-ness, either way, is refused.
+        let mut control = control;
+        for seat in &core.kitties {
+            let seat_needy = needy::is_needy_name(&seat.behavior);
+            let refuse = |shown: &str| EpisodeError::NeedySeat {
+                kitty: seat.id,
+                control: shown.to_string(),
+                seat: seat.behavior.clone(),
+            };
+            match control.get(&seat.id) {
+                None if seat_needy => {
+                    control.insert(seat.id, Control::Builtin(seat.behavior.clone()));
+                }
+                Some(Control::Builtin(name)) if seat_needy && *name != seat.behavior => {
+                    return Err(refuse(name));
+                }
+                Some(Control::External) if seat_needy => return Err(refuse("external")),
+                Some(Control::Builtin(name)) if !seat_needy && needy::is_needy_name(name) => {
+                    return Err(refuse(name));
+                }
+                _ => {}
             }
         }
         let codec = ActionCodec::v2(&rl.observation);
@@ -258,7 +298,11 @@ impl Episode {
                 reason: "unknown kitty id",
             })?;
         let snapshot = self.world.snapshot();
-        let ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        let mut ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        // Spec 067 FR-012: a needy seat's schedule never leaves the engine.
+        // No plugin ever serves such a seat (`new` refuses one), so the
+        // render of its request carries none.
+        ctx.me.needy = None;
         // The served value without the served consumption (D1): the first
         // draw of THIS context's own stream — local to the render, seeded
         // exactly as the kitty's would be, and the same expression the
@@ -836,6 +880,31 @@ mod tests {
         episode.decision_request(1).unwrap();
     }
 
+    /// Spec 067 FR-012 (review of #471): a needy seat renders like any
+    /// scripted seat, but its request carries no schedule.
+    #[test]
+    fn a_needy_seats_rendered_request_carries_no_schedule() {
+        let mut config = Config::default();
+        config.kitties[0].behavior = "needy".into();
+        config.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec!["needy".into()],
+        });
+        let id = config.kitties[0].id;
+        let mut episode = Episode::new(config, RlConfig::default(), BTreeMap::new()).unwrap();
+        episode.reset(11);
+        assert!(
+            episode.world().kitty(id).unwrap().needy.is_some(),
+            "staged: the seat carries its schedule"
+        );
+        let request: serde_json::Value =
+            serde_json::from_str(&episode.decision_request(id).unwrap()).unwrap();
+        assert!(
+            request["me"].get("needy").is_none(),
+            "the rendered request carries no schedule: {}",
+            request["me"]
+        );
+    }
+
     /// Spec 055 FR-004 (US1 scenario 2): the rendered `world` is the fog
     /// view — a friend outside the vision disc is absent from the render
     /// while the real world still holds it (the independent oracle).
@@ -1056,6 +1125,60 @@ mod tests {
         episode
             .step(&BTreeMap::new())
             .expect("stepping works again");
+    }
+
+    /// Spec 067 (research D16): the control map's needy door. A needy
+    /// config seat with no entry is seated on its preset (never an external
+    /// agent); an entry that disagrees with the seat, either way, is refused.
+    #[test]
+    fn a_needy_seat_is_scripted_by_construction_and_overrides_that_disagree_are_refused() {
+        let needy_config = || {
+            let mut c = Config::default();
+            c.kitties[0].behavior = "needy".into();
+            c.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+                acknowledged: vec!["needy".into()],
+            });
+            c
+        };
+        let id = needy_config().kitties[0].id;
+        let episode = Episode::new(needy_config(), RlConfig::default(), BTreeMap::new())
+            .expect("a needy seat with no control entry builds");
+        assert!(
+            !episode.external_agents().contains(&id),
+            "a needy seat is never an external agent"
+        );
+        let agree = BTreeMap::from([(id, Control::Builtin("needy".into()))]);
+        Episode::new(needy_config(), RlConfig::default(), agree)
+            .expect("an entry naming the seat's own preset agrees");
+        for (control, label) in [
+            (Control::External, "an external override of a needy seat"),
+            (
+                Control::Builtin("teacher".into()),
+                "another builtin on a needy seat",
+            ),
+            (
+                Control::Builtin("needy_hold".into()),
+                "the other needy preset",
+            ),
+        ] {
+            let result = Episode::new(
+                needy_config(),
+                RlConfig::default(),
+                BTreeMap::from([(id, control)]),
+            );
+            assert!(
+                matches!(result, Err(EpisodeError::NeedySeat { kitty, .. }) if kitty == id),
+                "{label} is refused"
+            );
+        }
+        let plain_seat = BTreeMap::from([(id, Control::Builtin("needy".into()))]);
+        assert!(
+            matches!(
+                Episode::new(Config::default(), RlConfig::default(), plain_seat),
+                Err(EpisodeError::NeedySeat { .. })
+            ),
+            "a needy override of a non-needy seat is refused"
+        );
     }
 
     #[test]

@@ -517,6 +517,31 @@ impl ParallelEnv {
             .collect()
     }
 
+    /// Every needy seat's schedule as the lab recorder reads it (spec 067
+    /// FR-012): `(kitty_id, masked need names in NeedKind order, ordinal,
+    /// phase)` per needy seat, stable id order. `phase` is `"resting"`,
+    /// `"held"`, or on the release tick `"released_level"` /
+    /// `"released_limit"`; the ordinal counts onsets from 1 (0 before the
+    /// first). Empty for a world with no needy seat. Read-only, sibling to
+    /// `recent_meows`: a world-state reader, never an observation.
+    fn needy(&self) -> Vec<(u32, Vec<String>, u32, String)> {
+        let world = self.episode.world();
+        world
+            .kitties
+            .iter()
+            .filter_map(|k| {
+                k.needy.as_ref().map(|s| {
+                    (
+                        k.id,
+                        s.mask().names().into_iter().map(str::to_owned).collect(),
+                        s.ordinal,
+                        s.phase_name(world.tick).to_owned(),
+                    )
+                })
+            })
+            .collect()
+    }
+
     fn close(&self) {}
 
     fn render(&self) -> Option<String> {

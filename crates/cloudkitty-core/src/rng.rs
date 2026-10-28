@@ -99,6 +99,16 @@ impl DecisionRng {
         self.with(|r| *r = ChaCha8Rng::seed_from_u64(seed));
     }
 
+    /// A new stream starting from this stream's current state (spec 067):
+    /// a wrapping builtin runs an inner ladder on a derived context with
+    /// the fork, so the inner ladder draws exactly what it would have
+    /// drawn from this stream. This stream is not advanced.
+    pub fn fork(&self) -> Self {
+        Self {
+            inner: Mutex::new(self.with(|r| r.clone())),
+        }
+    }
+
     pub fn gen_range_usize(&self, low: usize, high: usize) -> usize {
         if low >= high {
             return low;
@@ -141,6 +151,22 @@ mod tests {
         for _ in 0..100 {
             assert_eq!(a.next_u64(), b.next_u64());
         }
+    }
+
+    /// Spec 067 (needy-law §6, review of #471): a fork draws exactly what
+    /// the stream would have drawn next, and drawing from the fork leaves
+    /// the stream where it was.
+    #[test]
+    fn a_fork_draws_the_streams_next_values_and_leaves_it_in_place() {
+        let stream = DecisionRng::from_seed(7);
+        stream.gen_u64();
+        let fork = stream.fork();
+        let forked: Vec<u64> = (0..4).map(|_| fork.gen_u64()).collect();
+        let own: Vec<u64> = (0..4).map(|_| stream.gen_u64()).collect();
+        assert_eq!(
+            forked, own,
+            "the fork's draws are the stream's own next draws"
+        );
     }
 
     #[test]

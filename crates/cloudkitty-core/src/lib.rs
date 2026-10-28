@@ -31,6 +31,7 @@ pub mod invariants;
 pub mod kitty;
 pub mod meow;
 pub mod needs;
+pub mod needy;
 pub mod rng;
 pub mod seam;
 pub mod spawn;

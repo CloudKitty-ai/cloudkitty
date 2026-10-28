@@ -463,3 +463,75 @@ def test_decision_request_window_and_seats():
     assert "kitty_1" not in env.possible_agents
     line = env.decision_request("kitty_1")
     assert '"kitty_id":1' in line
+
+
+# ---------------------------------------------------------------- spec 067
+
+REPO = __import__("pathlib").Path(__file__).resolve().parents[3]
+
+
+def needy_toml(preset="needy"):
+    """The served cloudkitty.toml with its first kitty on `preset`, a short
+    schedule (onsets inside 200 ticks, a 40-tick hold, 5–10-tick rests) and
+    the exact acknowledgement spec 066 requires."""
+    text = (REPO / "cloudkitty.toml").read_text()
+    head, sep, tail = text.partition('behavior = "')
+    text = head + sep + preset + '"' + tail.split('"', 1)[1]
+    return text + (
+        "\n[needy]\nonset_levels = [0, 5, 20, 50, 100, 200]\nhold_ticks = 40\n"
+        "gap = { min = 5, max = 10 }\nrelease_level = 60.0\n"
+        f'\n[welfare_hazard]\nacknowledged = ["{preset}"]\n'
+    )
+
+
+def run_needy(preset, steps=300):
+    env = cloudkitty.ParallelEnv(config_toml=needy_toml(preset), horizon=steps + 1)
+    infos = env.reset(seed=3)[1]
+    rows = [env.needy()]
+    rng = np.random.default_rng(0)
+    for _ in range(steps):
+        actions = {a: masked_choice(infos[a]["mask"], rng) for a in env.agents}
+        infos = env.step(actions)[4]
+        rows.append(env.needy())
+    return env, rows
+
+
+def test_the_needy_accessor_is_empty_without_a_needy_seat():
+    env = make_env()
+    env.reset(seed=3)
+    assert env.needy() == []
+
+
+def test_the_needy_accessor_follows_the_schedule():
+    env, rows = run_needy("needy")
+    assert all(len(r) == 1 for r in rows), "one tuple per needy seat, every step"
+    kid, masked, ordinal, phase = rows[0][0]
+    assert (kid, masked, ordinal, phase) == (1, [], 0, "resting"), rows[0]
+    assert "kitty_1" not in env.possible_agents, "a needy seat is scripted, never an agent"
+    held_set, last, phases = None, 0, set()
+    for (row,) in rows[1:]:
+        _, masked, ordinal, phase = row
+        assert ordinal - last in (0, 1), "the ordinal counts onsets one at a time"
+        if phase == "held":
+            assert masked, "a held episode masks at least one need"
+            if ordinal != last:
+                held_set = masked
+            assert masked == held_set, "the held set is constant within an episode"
+        else:
+            assert masked == [], f"no mask outside a held episode: {row}"
+        phases.add(phase)
+        last = ordinal
+    assert {"resting", "held"} <= phases and phases & {"released_level", "released_limit"}, phases
+    assert last >= 3, f"several episodes ran: ordinal {last}"
+
+
+def test_needy_hold_reports_only_limit_releases():
+    _, rows = run_needy("needy_hold")
+    assert all(len(r) == 1 for r in rows), "the needy_hold seat is reported too"
+    released = {r[0][3] for r in rows if r[0][3].startswith("released")}
+    assert released == {"released_limit"}, released
+
+
+def test_a_control_override_of_a_needy_seat_is_refused():
+    with pytest.raises(ValueError, match="needy preset is seated only through"):
+        cloudkitty.ParallelEnv(config_toml=needy_toml(), control={"kitty_1": "external"})

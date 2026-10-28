@@ -28,14 +28,18 @@ it at load and boot only (owner ruling 2026-10-26, "A"). Never part of
 | name | active iff | site text (first match, validator order) |
 |------|-----------|-------------------------------------------|
 | `initial_needs` | any governing initial-need setting, roster-wide table or any `[[kitty]]` override, any of the six needs, is a value > 0 or a range whose `max` > 0 | `[initial_needs].<need> = <setting>` / `[[kitty]] '<name>' (id <id>) initial_needs.<need> = <setting>` |
+| `needy` | any `[[kitty]]` has `behavior = "needy"` (spec 067; the seat is the hazard, the `[needy]` table only its parameters) | `[[kitty]] '<name>' (id <id>) behavior = "needy"` |
+| `needy_hold` | any `[[kitty]]` has `behavior = "needy_hold"` (spec 067) | `[[kitty]] '<name>' (id <id>) behavior = "needy_hold"` |
 
 Order of evaluation for the site: the roster-wide table first, then
 kitties in config order; within each, needs in `NeedKind::ALL` order
 (eat, drink, sleep, play, cuddle, bath). Numbers are rendered as
-`validate_initial_needs` renders them (`92`, `min = 0, max = 90`).
+`validate_initial_needs` renders them (`92`, `min = 0, max = 90`). For
+the needy modes: kitties in config order, the first seated on that
+preset.
 
-A mode absent from this table is not guarded. The registry records no
-teacher-eligibility (deferred to the needy-preset spec).
+A mode absent from this table is not guarded. Teacher-eligibility lives
+on the behaviour trait, not here (spec 067 FR-010: `Behavior::teaches`).
 
 ## §3 Exactness
 
@@ -52,7 +56,7 @@ Every failure is `ConfigError::Invalid` with
 
 | shape | value | expected |
 |-------|-------|----------|
-| unknown | the list as written | `'<name>' is not a registered welfare-hazardous mode (known: initial_needs)` |
+| unknown | the list as written | `'<name>' is not a registered welfare-hazardous mode (known: <every registered mode, registry order>)` — today `initial_needs, needy, needy_hold` (spec 067) |
 | duplicate | the list as written | `'<name>' is listed more than once; one name per mode` |
 | missing | the list as written, or `absent` | `the config activates welfare-hazardous mode '<name>' at <site>[, and '<name>' at <site>]; add to the config:\n[welfare_hazard]\nacknowledged = ["<every active name, registry order>"]` |
 | stale | the list as written | `'<name>' is acknowledged but not active in this config; an acknowledgement is exact, remove it`; two or more: `'<a>', '<b>' are acknowledged but not active in this config; an acknowledgement is exact, remove them` |

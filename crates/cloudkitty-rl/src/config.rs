@@ -390,10 +390,22 @@ impl RlConfig {
 pub fn load_configs_from_str(
     text: &str,
 ) -> Result<(cloudkitty_core::Config, RlConfig), RlConfigError> {
-    let core: cloudkitty_core::Config =
+    let mut core: cloudkitty_core::Config =
         toml::from_str(text).map_err(|e| RlConfigError::Message(e.to_string()))?;
     core.validate()
         .map_err(|e| RlConfigError::Message(e.to_string()))?;
+    // Spec 067 FR-008: a needy seat with no [needy] table runs the
+    // defaults (validated above as such), so they are written in here and
+    // every surface that serializes the config — GET /config first — shows
+    // the parameters in force. A world with no needy seat is untouched.
+    if core.needy.is_none()
+        && core
+            .kitties
+            .iter()
+            .any(|k| cloudkitty_core::needy::is_needy_name(&k.behavior))
+    {
+        core.needy = Some(Default::default());
+    }
     let rl = RlConfig::from_toml_str(text)?;
     // Spec 049 FR-011: permanent by-id rows -- every friend owns one, so a
     // roster the rows cannot seat is refused here, in the loader every
@@ -442,6 +454,33 @@ mod tests {
         assert!(
             msg.contains("initial_needs") && msg.contains("[welfare_hazard]"),
             "the refusal names the mode and the table to add: {msg}"
+        );
+    }
+
+    /// Spec 067 FR-008: the loader writes in the defaults a needy seat runs
+    /// when no [needy] table is written, so the served config shows them;
+    /// a plain config stays without the table (byte identity).
+    #[test]
+    fn a_needy_seat_with_no_table_loads_with_the_defaults_in_force() {
+        let mut c = cloudkitty_core::Config::default();
+        let plain = toml::to_string(&c).expect("the defaults serialize");
+        let (core, _) = load_configs_from_str(&plain).expect("the defaults load");
+        assert!(
+            core.needy.is_none(),
+            "a plain config stays without the table"
+        );
+
+        c.kitties[0].behavior = cloudkitty_core::needy::NAME.to_string();
+        c.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec![cloudkitty_core::needy::NAME.to_string()],
+        });
+        let text = toml::to_string(&c).expect("the needy config serializes");
+        assert!(!text.contains("[needy]"), "staged: no table is written");
+        let (core, _) = load_configs_from_str(&text).expect("an acknowledged needy seat loads");
+        assert_eq!(
+            core.needy,
+            Some(Default::default()),
+            "the defaults in force are written in"
         );
     }
 

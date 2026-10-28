@@ -62,9 +62,10 @@ regenerate and commit (owning thread) when specs change.
 | `058-gen2-observation-schema` | Draft |
 | `059-teacher-rework` | Draft |
 | `060-empty-bowl` | Draft |
-| `061-stuck-detector` | Draft |
+| `061-stuck-detector` | Planned (clarify complete 2026-10-14; cross-artifact analysis remediated 2026-10-15) |
 | `062-randomized-starts` | Draft |
 | `063-friend-ward-drift` | Draft |
 | `064-waypoint-start` | Draft |
 | `065-initial-needs` | Draft |
 | `066-welfare-hazard-guard` | Draft |
+| `067-needy-preset` | Draft |

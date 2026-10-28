@@ -73,6 +73,15 @@
 //! tick, with `reason`), and `reencode_identical` (per observer, whether a
 //! second encode of the same view reproduced the vector byte for byte).
 //!
+//! Teacher eligibility (spec 067 FR-011; Experiments' consent 2026-10-26):
+//! a seat whose behaviour answers `teaches() == false` — the needy presets,
+//! whose schedule is private state no student can see — records NO
+//! demonstration row. The refusal is logged once per config file and every
+//! meta.json names the refused seats (`teachers_refused`, empty when none).
+//! An unknown behaviour name keeps today's fallback (it runs, and is
+//! stamped, as needs_driven). The `--trace` snapshot is ground truth, not a
+//! corpus row, and stays unfiltered (the needy seat's state included).
+//!
 //! Usage:
 //!   bc-collect --family-dir DIR | --config FILE
 //!              [--rollouts N] [--ticks T] [--seed-base S] [--trace] --out-dir DIR
@@ -234,6 +243,19 @@ fn parse_args() -> Args {
     }
 }
 
+/// The seats whose turns are refused as teacher rows (spec 067 FR-011):
+/// every configured kitty whose behaviour the registry says does not teach.
+/// `None` (a name the registry does not know) is NOT refused: it runs, and
+/// is stamped, as the needs_driven fallback, exactly as before.
+fn teachers_refused(registry: &BehaviorRegistry, config: &Config) -> Vec<KittyId> {
+    config
+        .kitties
+        .iter()
+        .filter(|k| registry.teaches(&k.behavior) == Some(false))
+        .map(|k| k.id)
+        .collect()
+}
+
 fn main() {
     let args = parse_args();
     let registry = BehaviorRegistry::with_builtins();
@@ -247,6 +269,13 @@ fn main() {
         let config_sha = format!("{:x}", Sha256::digest(text.as_bytes()));
         let base_cfg: Config = toml::from_str(&text).expect("config parses");
         base_cfg.validate().expect("config validates");
+        let refused = teachers_refused(&registry, &base_cfg);
+        if !refused.is_empty() {
+            eprintln!(
+                "{}: refusing teacher rows for seat(s) {refused:?} (behaviour does not teach: spec 067)",
+                config_path.display()
+            );
+        }
         let rl = RlConfig::from_toml_str(&text).expect("[rl] blocks parse");
         let codec = ActionCodec::v2(&rl.observation);
         let horizon = rl.episode.horizon as f32;
@@ -371,6 +400,9 @@ fn main() {
                     trace_lines.push(line.to_string());
                 }
                 for (id, obs, mask, msg_mask) in views {
+                    if refused.contains(&id) {
+                        continue;
+                    }
                     let rec = driven.report.record(id).expect("kitty in roster");
                     let Some(label) = codec.encode(&rec.applied, &obs.table) else {
                         dropped += 1;
@@ -536,7 +568,7 @@ fn main() {
                 String::new()
             };
             let meta = format!(
-                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"engine_commit\": \"{}\",\n  \"starts_law_version\": {},{starts_field}\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"action_downgraded\": {action_downgraded},\n  \"proposed_inexpressible\": {proposed_inexpressible},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"experts\": {{{}}}\n}}\n",
+                "{{\n  \"config\": \"{}\",\n  \"config_sha256\": \"{config_sha}\",\n  \"world_seed\": {world_seed},\n  \"engine_commit\": \"{}\",\n  \"starts_law_version\": {},{starts_field}\n  \"ticks\": {},\n  \"decisions\": {n},\n  \"dropped_inexpressible\": {dropped},\n  \"dropped_by_action\": {{{}}},\n  \"mask_mismatch\": {mask_mismatch},\n  \"msg_mask_mismatch\": {msg_mask_mismatch},\n  \"msg_inexpressible\": {msg_inexpressible},\n  \"msg_downgraded\": {msg_downgraded},\n  \"action_downgraded\": {action_downgraded},\n  \"proposed_inexpressible\": {proposed_inexpressible},\n  \"horizon\": {},\n  \"vision_radius\": {},\n  \"trace\": {},\n  \"obs_width\": {obs_width},\n  \"mask_width\": {mask_width},\n  \"msg_mask_width\": {msg_mask_width},\n  \"state_width\": {state_len},\n  \"observation_schema\": {},\n  \"action_schema\": {},\n  \"mask_schema\": {},\n  \"teachers_refused\": [{}],\n  \"experts\": {{{}}}\n}}\n",
                 config_path.display(),
                 env!("CLOUDKITTY_ENGINE_COMMIT"),
                 cloudkitty_core::starts::STARTS_LAW_VERSION,
@@ -548,6 +580,11 @@ fn main() {
                 OBSERVATION_SCHEMA_VERSION,
                 ACTION_SCHEMA_VERSION,
                 MASK_SCHEMA_VERSION,
+                refused
+                    .iter()
+                    .map(|id| id.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
                 experts_json.join(", "),
             );
             fs::write(dir.join("meta.json"), meta).expect("writing meta");
@@ -582,6 +619,32 @@ mod tests {
         let h = npy_header("<f4", &[2, 183], 366);
         assert!(String::from_utf8_lossy(&h).contains("'shape': (2, 183)"));
         assert_eq!(h.len() % 64, 0, "numpy requires 64-byte-aligned headers");
+    }
+
+    /// Spec 067 FR-011: exactly the seats whose behaviour does not teach;
+    /// an unknown name keeps the needs_driven fallback (condition 3 of
+    /// Experiments' consent, withdrawn: no hard error).
+    #[test]
+    fn teachers_refused_names_exactly_the_seats_that_do_not_teach() {
+        let registry = BehaviorRegistry::with_builtins();
+        let mut config = Config::default();
+        assert!(
+            teachers_refused(&registry, &config).is_empty(),
+            "a plain roster refuses nobody"
+        );
+        config.kitties[1].behavior = "needy".into();
+        config.kitties[2].behavior = "needy_hold".into();
+        assert_eq!(
+            teachers_refused(&registry, &config),
+            vec![config.kitties[1].id, config.kitties[2].id],
+            "refuses the needy seats"
+        );
+        config.kitties[1].behavior = "telepathic".into();
+        config.kitties[2].behavior = "teacher".into();
+        assert!(
+            teachers_refused(&registry, &config).is_empty(),
+            "an unknown behaviour keeps today's fallback"
+        );
     }
 
     /// The regression this whole module exists for: the pre-2026-08-06

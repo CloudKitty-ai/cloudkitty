@@ -161,6 +161,45 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
             (false, None) => {}
         }
 
+        // Spec 067 (research D16): needy state exists exactly when the
+        // configured behaviour is a needy preset — so a policy, plugin or
+        // other builtin seat can never be masked, and a needy seat never
+        // runs without its schedule.
+        if kitty.needy.is_some() != crate::needy::is_needy_name(&kitty.behavior) {
+            return Err(Violation {
+                article: "Bookkeeping integrity",
+                detail: format!(
+                    "{} {} needy state but its behavior is {:?}",
+                    kitty.name,
+                    if kitty.needy.is_some() {
+                        "carries"
+                    } else {
+                        "lacks"
+                    },
+                    kitty.behavior
+                ),
+            });
+        }
+        // And the state's release rule is the configured preset's: a
+        // resume that swaps `needy` and `needy_hold` must not run one
+        // under the other's name and acknowledgement (needy-law §1).
+        if let Some(state) = &kitty.needy {
+            let seated_as = if state.hold {
+                crate::needy::HOLD_NAME
+            } else {
+                crate::needy::NAME
+            };
+            if kitty.behavior != seated_as {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!(
+                        "{} carries needy state seated as {:?} but its behavior is {:?}",
+                        kitty.name, seated_as, kitty.behavior
+                    ),
+                });
+            }
+        }
+
         // Duets are never one-sided: a cuddle or social play binds both
         // partners with identical clocks (spec 006 FR-009).
         if let Some(partner_id) = kitty.activity.duet_partner() {

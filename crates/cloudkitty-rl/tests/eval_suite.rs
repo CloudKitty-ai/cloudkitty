@@ -772,6 +772,32 @@ fn an_artifact_named_candidate_does_not_panic_the_suite() {
     );
 }
 
+// Spec 067 FR-001: the needy presets are seated only through a config's
+// [[kitty]] behavior. As a --brain they would be aliased onto the candidate
+// seat with no schedule — the teacher under another name — so the binary
+// refuses them before any exam runs.
+#[test]
+fn a_needy_preset_cannot_be_scored_as_a_brain() {
+    for brain in ["needy", "needy_hold"] {
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_kitty-eval"))
+            // A world is named so the run reaches the brain check (without
+            // one the binary refuses earlier, with the same exit code).
+            .args(["--config", "compiled", "--brain", brain])
+            .output()
+            .expect("binary runs");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert_eq!(
+            output.status.code(),
+            Some(1),
+            "{brain}: refused with exit 1; stderr: {stderr}"
+        );
+        assert!(
+            stderr.contains("research-only needy preset"),
+            "a needy brain is refused, naming why ({brain}): {stderr}"
+        );
+    }
+}
+
 // --sample in suite mode (issue #70 requirement 4): the selection mode is
 // a subject property, and the suite record — human header and JSON — must
 // state which distribution was evaluated.

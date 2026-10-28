@@ -291,6 +291,87 @@ mod tests {
     }
 
     #[test]
+    fn a_resume_that_adds_or_removes_a_needy_seat_is_refused() {
+        // Spec 067 (research D16): needy state exists exactly when the
+        // configured behaviour is a needy preset. The behaviour re-stamp
+        // above takes the config's word; the pairing invariant the load
+        // already runs then refuses a roster edit that would seat a needy
+        // preset without its schedule, or leave a schedule on another seat.
+        let dir = temp_dir("needy-restamp");
+        let path = dir.join("snapshot.json");
+        let plain = test_config();
+        let mut needy = test_config();
+        needy.kitties[0].behavior = "needy".into();
+        needy.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec!["needy".into()],
+        });
+        needy
+            .validate()
+            .expect("an acknowledged needy seat validates");
+
+        save(&World::generate(&plain), &path).expect("save");
+        let err = load_and_validate(&path, &needy)
+            .expect_err("a needy seat added on resume must be refused")
+            .to_string();
+        assert!(
+            err.contains(&plain.kitties[0].name) && err.contains("lacks needy state"),
+            "names the kitty: {err}"
+        );
+
+        save(&World::generate(&needy), &path).expect("save");
+        let err = load_and_validate(&path, &plain)
+            .expect_err("a needy seat removed on resume must be refused")
+            .to_string();
+        assert!(err.contains("carries needy state"), "{err}");
+
+        let world = load_and_validate(&path, &needy).expect("an unchanged needy roster resumes");
+        assert!(
+            world.kitties[0].needy.is_some(),
+            "the saved schedule state resumes"
+        );
+    }
+
+    #[test]
+    fn a_resume_that_swaps_needy_and_needy_hold_is_refused() {
+        // Spec 067 (needy-law §1, §8): the saved state carries its release
+        // rule. A resume that re-stamps the seat to the other preset would
+        // run one rule under the other's name and acknowledgement, so the
+        // same pairing invariant refuses it, both ways, naming the kitty.
+        let dir = temp_dir("needy-swap");
+        let path = dir.join("snapshot.json");
+        let seat = |preset: &str| {
+            let mut c = test_config();
+            c.kitties[0].behavior = preset.into();
+            c.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+                acknowledged: vec![preset.into()],
+            });
+            c.validate().expect("an acknowledged needy seat validates");
+            c
+        };
+        let (needy, hold) = (seat("needy"), seat("needy_hold"));
+
+        save(&World::generate(&needy), &path).expect("save");
+        let err = load_and_validate(&path, &hold)
+            .expect_err("a needy seat resumed as needy_hold must be refused")
+            .to_string();
+        assert!(
+            err.contains(&needy.kitties[0].name),
+            "names the kitty: {err}"
+        );
+
+        save(&World::generate(&hold), &path).expect("save");
+        let err = load_and_validate(&path, &needy)
+            .expect_err("a needy_hold seat resumed as needy must be refused")
+            .to_string();
+        assert!(
+            err.contains(&hold.kitties[0].name),
+            "names the kitty: {err}"
+        );
+
+        load_and_validate(&path, &hold).expect("an unchanged needy_hold roster resumes");
+    }
+
+    #[test]
     fn resume_restamps_descriptions_the_registry_stays_authoritative() {
         // Spec 034: `behavior_description` follows the spec-014 re-stamp
         // doctrine — the registry (via the server's post-load stamp), never

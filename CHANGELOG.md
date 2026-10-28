@@ -33,6 +33,32 @@ change.
 
 ## Unreleased
 
+- **A scripted cat can let a need climb, on a schedule.** Needy
+  behaviour presets (spec 067): two research-only builtins, `needy` and
+  `needy_hold`, decide exactly as the `teacher` preset until an episode
+  of their seeded schedule opens. Then a drawn set of one or more needs
+  is masked: the cat stops servicing those needs and refuses relief for
+  them from friends, while it keeps servicing every other need and keeps
+  calling for what it wants, so a hidden need can be watched arriving
+  mid-world on a cat with a long clean history. `needy` releases an
+  episode when the masked needs reach a declared level or a hold limit
+  passes; `needy_hold` holds to the limit. The world itself never
+  changes: food, water, partners, the distress record and the Article I
+  safeguard act on a needy cat exactly as on any cat, and the engine,
+  not the preset, enforces the mask at the apply slot, with a new
+  `needy_masked` refusal reason. The schedule draws from its own seeded
+  stream, so the master stream and every other cat's draws are
+  untouched. It is the cat's own state, saved with the world and hidden
+  from every other cat's view. Seating either preset is a
+  welfare-hazardous mode under the spec 066 guard, and the presets never
+  teach: `Behavior::teaches()` answers false for them and the corpus
+  collector records no demonstration rows for such a seat. The lab
+  binding reads each needy seat's mask, episode ordinal and phase
+  through `ParallelEnv.needy()`. With no needy seat nothing changes, and
+  the three existing presets decide byte-for-byte as before. No
+  compatibility marker: the defaults stamp, observation schema, world
+  fingerprint and seeded draw order are all unmoved.
+
 - **A hazardous world has to be asked for by name.** Welfare-hazard
   acknowledgement guard (spec 066): a config that puts cats into a
   manufactured hardship — today the elevated distressed start of spec
