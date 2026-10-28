@@ -460,10 +460,14 @@ consent BC comparison ride the trunk.
   help); a helpable variant gets its own ruling. Follows, Experiments':
   bc-collect records no demonstration row from any seat of a world that
   seats a non-teaching behaviour (`--trace` stays unfiltered); the RL
-  entry points this thread owns refuse a needy seat; the needy set's
-  declaration splits threshold-tuning seeds from confirming seeds and
-  collects any training set separately, after a head's declaration is
-  ruled.
+  learning steps this thread owns refuse a needy seat (the update step,
+  never the env: frozen policies beside a needy seat ARE the
+  instrument); the needy set's declaration splits threshold-tuning
+  seeds from confirming seeds and collects any training set
+  separately, after a head's declaration is ruled. Any head
+  declaration carries F-070's junction control beside the transfer
+  check, so a lift that comes from the seam alone fails (design notes
+  from Product 2026-10-28, adopted here; not part of her ruling).
 
 ## Flagged follow-ups (owner's word to start)
 
