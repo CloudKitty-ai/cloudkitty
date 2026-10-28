@@ -2908,37 +2908,31 @@ Stage B of the enrichment-decay sweep
 ddd2301): eleven arms on the d100-1000 corner — β {0.06, 0.10,
 0.14} × 3 seeds under the decay throttle, plus the accrual gate at
 β 0.10 × 2 seeds — read on the stage-A instrument (11 all-arm legs
-× 30 × 20,000, zero aborts on 330 rows). The response curve, with
-stage A's β 0.03 as the fourth point: family-mean pooled greedy
-play 0.0773 → 0.0848 → 0.0879 → 0.0885 against the 0.10 bar and a
-0.0749 baseline. Monotone, saturating (per-step gains 0.0075,
-0.0031, 0.0006), and cheap to summarize: β up 4.7×, play up 14%.
-Glow was off the cap on every arm (last-quarter at-cap share
-0.091–0.116, E p50 0.436–0.512), so the saturating curve is not
-saturation of the stock — the prereg's ruled branch fired: "the
-channel is dead as designed ('channel dead' branch of the ruled
-adjudication); report; the fork is the owner's". Trace banking
-stayed dead (0.0353–0.0399 throttle, 0.0000 structural on the
-accrual arms), but the closed-gate START share exceeded the 0.1043
+× 30 × 20,000, zero aborts on 330 rows). With stage A's β 0.03 as
+the fourth point, family-mean pooled greedy play is monotone and
+saturating in β, all under the 0.10 bar, against a 0.0749 baseline.
+Cheap to summarize along the curve: β up 4.7×, play up 14% (the per-β
+points and the step gains: RESULTS-B §"Predictions, scored" P1). Glow was off the cap on every
+arm (P1), so the saturating curve is not saturation of the stock —
+the prereg's ruled branch fired: "the channel is dead as designed
+('channel dead' branch of the ruled adjudication); report; the fork
+is the owner's". Trace banking
+stayed dead (P2), but the closed-gate START share exceeded the 0.1043
 stage-A band on every arm (0.1087–0.2540 vs comparator 0.0843) —
 including both accrual-gated arms, where a closed-gate start earns
 structurally nothing, so per PREREG-B's adjudicator the CORNER,
-not the mechanism, is at fault for P2. F-055 anticipated this
-stage in its Invalidated-by clause — "an accrual-gated or
-non-saturating variant failing the same way (which would indict
-the channel, not the gate), or a replication where these pins do
-lift play past the bar" — and stage B ran both variants and both
-missed the traction bar, though not with F-055's signature (its
-glow was saturated; stage B's is off the cap): the clause's
-channel-indicting arm fires, F-055's measured facts stand, and
-F-055 carries a dated note rather than a status change
-(RESULTS-B §Decision rules). Welfare priced the curve
-non-monotonically — family paired
-deltas b06 −0.806 (breaching its −0.50 bar), b10 −0.464, b14
-−0.605 — with the under-tending sign everywhere (eat+drink
-0.0432–0.0478, all below the comparator's 0.0499) and the
-teammate-distressed watch line (0.001) exceeded on four arms (max
-0.0022 vs 0.0003). **Scope**: lab trainer only, one world, the
+not the mechanism, is at fault for P2. Stage B ran both variants
+F-055's Invalidated-by clause names, and both missed the traction
+bar, though not with F-055's signature (its glow was saturated;
+stage B's is off the cap): the clause's channel-indicting arm fires,
+F-055's measured facts stand, and F-055 carries a dated note rather
+than a status change (RESULTS-B §Decision rules). Welfare priced the
+curve non-monotonically — family paired deltas b06 −0.806 (breaching
+its −0.50 bar), b10 −0.464, b14 −0.605 — with the under-tending sign
+everywhere (every arm's eat+drink below the comparator's 0.0499) and
+the teammate-distressed watch line (0.001) exceeded on four arms
+(§"The read", P3, P4).
+**Scope**: lab trainer only, one world, the
 d100-1000 corner with 15→25 brackets fixed (the stage-C bracket
 sweep is unrun — its premise needed a β winner and there is none),
 one init family, 2–3 seeds per family. **Invalidated by**: a
@@ -3349,9 +3343,9 @@ one friend per block starting grave at reset by spec 065's per-kitty
 20 worlds per friend at 4,000 ticks (seeds 1095451–1095550), the
 certified roster rot2 on the served 20×20; 0 aborts, distress confined
 to the grave kitty in all 100 worlds; 4,000,000 evaluation samples on
-50 worlds split by world; every friend over min-n on mind-visible GRAVE (Miso
-572, Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), Pumpkin
-covered for the first time. Heads: Phase 1's architecture at widths 12
+50 worlds split by world; every friend over min-n on mind-visible
+GRAVE (per friend: RESULTS §"Samples and coverage"), Pumpkin covered
+for the first time. Heads: Phase 1's architecture at widths 12
 / 24 / 48 (3,043 / 7,807 / 22,519 parameters; 48 an over-cap probe,
 never a Phase 2 candidate), NF and DR, three seeds each, trained on
 34 of Phase 1's 41 non-evaluation L/W/G worlds plus 40 P training
@@ -3360,39 +3354,36 @@ worlds, validation re-carved under this arc's split seed
 MSE on the five hidden needs at width 24: COMMON 25.34 ± 0.52 (NF) /
 40.15 ± 6.85 (DR), GRAVE 908.10 ± 33.43 / 827.69 ± 117.06; baselines
 3,264.16 (marginal) / 3,261.15 (proxy) on GRAVE. **The all-grave
-confound** (R5b): the same heads' GRAVE loss on Phase 1's all-grave
-evaluation worlds over their loss on the per-cat worlds reads, in
-sight, 0.651 ± 0.033 (NF) and 0.702 ± 0.102 (DR) at width 24, READ
-under 1 at every
-width and both weightings (0.651–0.774 in sight): the all-grave
-worlds, where an observer's own needs predicted her friend's at the
-start, were 21–39% easier in squared error for the same heads
-(23–35% in sight). The ratio bounds the
+confound** (R5b, every cell there): the same heads' GRAVE loss on
+Phase 1's all-grave evaluation worlds over their loss on the per-cat
+worlds is READ under 1 at every width and both weightings: the
+all-grave worlds, where an observer's own needs predicted her
+friend's at the start, were 21–39% easier in squared error for the
+same heads (23–35% in sight). The ratio bounds the
 difference between the registers and does not isolate the cue's
 share (different evaluation worlds and, in sight, different friend
-pools); it is the number behind F-064's "upper bound" caveat. **The size effect** (R2b, in sight): NF ratios to width 24 of 1.210 /
-1.213 / 1.199 at width 12 and 0.870 / 0.867 / 0.884 at width 48 on
-GRAVE / DA / COMMON, all READ; DR 0.827 / 0.824 / 0.767 at 48, READ;
-the DR 12/24 ratios not READ (DR's between-seed spread, propagated
-into the ratio, exceeds the width difference). For NF, halving the width costs about 20% in sight
+pools); it is the number behind F-064's "upper bound" caveat.
+**The size effect** (R2b, in sight; the GRAVE and COMMON ratios are
+the headline's, the DA ratios beside them in R2b): every NF ratio to
+width 24 READ, DR's at 48 READ; the DR 12/24 ratios not READ (DR's
+between-seed spread, propagated into the ratio, exceeds the width
+difference). For NF, halving the width costs about 20% in sight
 and doubling it past the cap buys about 12–13% in sight (9–11%
-all-states),
-in every stratum; for DR the 48/24 step buys 17–23% in sight (13–21%
-all-states); in points the grave stratum gains most because it is the largest
-cell (NF grave RMS 30.1 → 28.1, common 5.0 → 4.7). **Ostrich** (R4b; signature rule prereg §8 item 4):
-NF pooled grave bias in sight −13.58 / −10.10 / −9.68 at 12 / 24 / 48
-against a pooled common-state bias within 0.5 of zero; signature on Miso, Biscuit,
-Pumpkin and Kittybear at 24 and 48 (at 24: Kittybear deepest at
-−17.01; Biscuit, read without it in Phase 1, at −11.59), not on
-Clementine (+2.27, +2.89); DR pooled −7.38 / −7.57 / −6.06 with the signature on
-the same four. **Dissolution** (R3b, Phase 1's procedure as information):
-DR's floor 924.87 / 827.69 / 684.51, NF over it by 18.8% / 9.7% /
-15.4%; the pooled clause holds only at width 24 and only just (1.097
-against 1.10);
-the per-friend clause fails at every width, on Miso, Biscuit and
-Pumpkin at 12, Miso and Biscuit at 24, Pumpkin and Kittybear at 48; Clementine's grave loss is
-lower under NF at every width and she is the one friend DR hurts
-(+68.47 / +80.39 / +60.37 points²). The width did not change the
+all-states), in every stratum; for DR the 48/24 step buys 17–23% in
+sight (13–21% all-states); in points the grave stratum gains most
+because it is the largest cell (NF grave RMS 30.1 → 28.1, common 5.0
+→ 4.7). **Ostrich** (R4b; signature rule prereg §8 item 4; per-friend
+biases in R4b): NF pooled grave bias in sight −13.58 / −10.10 / −9.68
+at 12 / 24 / 48 against a pooled common-state bias within 0.5 of zero;
+signature on Miso, Biscuit, Pumpkin and Kittybear at 24 and 48 (at 24
+Kittybear deepest; Biscuit read without it in Phase 1), not on
+Clementine; DR pooled −7.38 / −7.57 / −6.06 with the signature on the
+same four. **Dissolution** (R3b, Phase 1's procedure as information;
+DR's floors, NF's excess over them and the friends exceeding at each
+width in R3b): the pooled clause holds only at width 24 and only just
+(1.097 against 1.10); the per-friend clause fails at every width;
+Clementine's grave loss is lower under NF at every width and she is
+the one friend DR hurts (by width: R1b (d)). The width did not change the
 verdict; what differs from Phase 1 is the register together with the
 retrained heads, their training set and validation carve, and on the
 all-grave G worlds these same heads read NF/DR grave 1.227 / 1.018 /
@@ -3446,61 +3437,49 @@ sizes this time as well so we can get an idea of what more/less
 parameters buy"; deviations entry 12). Data: none new (0 covered
 cat-ticks); Phase 1b's split byte for byte (74 training, 17
 validation, 69 evaluation worlds); group P = the P1..P5 evaluation
-worlds (4,000,000 samples; mind-visible GRAVE coverage Miso 572,
-Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), the
+worlds (4,000,000 samples; per-friend coverage in RESULTS §Data), the
 comparators 1b's width-24 NF and DR runs re-read through this arc's
-reader and pinned to 1b's gated cells. Head: `sd_head.py` — per hidden
-need a histogram over 20 bins of 5 points drifting up at a learned
-per-(friend, need) rate and down on relief by a learned per-need size
-with probability p_rel from a width-r GRU over the 167 input cells, a
-logit residual, learned priors; cross-entropy against two-hot targets
-+ 0.5 × BCE on the relief indicator + Phase 1's happiness and 0.1 ×
-bath terms; natural frequency; point estimate the histogram mean;
-widths 8 / 16 / 32 = 3,279 / 6,679 / 15,783 params (32 an over-cap
-probe, cap 8,445 not moved); seeds 1, 2, 3. **Decision rules, applied**
+reader and pinned to 1b's gated cells. Head (§"Heads (R8c)"):
+`sd_head.py`, the headline's per-need histogram (20 bins of 5 points;
+learned drift rates and relief sizes, the relief probability p_rel
+from a width-r GRU over the 167 input cells, a logit residual, learned
+priors), trained by cross-entropy on two-hot targets plus a
+relief-indicator BCE and Phase 1's happiness and bath terms; natural
+frequency; point estimate the histogram mean; widths 8
+/ 16 / 32 = 3,279 / 6,679 / 15,783 params (32 an over-cap probe, cap
+8,445 not moved); seeds 1, 2, 3. **Decision rules, applied**
 (the declaration's two criteria for what would count as the approach
 helping; width 16, group P, in sight): (i) grave SD / NF-h24 READ under
 1 — read 1.233 ± 0.091, READ, over 1, not met; (ii) pooled grave bias
 within ±5.0 with no pooled signature — read −15.01 ± 1.74, signature,
 not met; by the declared text the approach does not help at this
-capacity. **Accuracy** (R1c, in sight, P): SD grave 1582.84 / 1119.69 /
-917.44 at widths 8 / 16 / 32 (NF-h24 908.10, DR-h24 827.69), common
-24.69 / 19.96 / 16.92 (NF 25.34, DR 40.15); SD's grave loss is above
-NF's on every friend at width 16 (by 83 to 348 points²) and below both
-comparators in common states on every friend. **Contrast** (R2c, in
-sight, P): SD / NF grave 1.743 / 1.233 / 1.010 (READ, READ, tie), SD /
-DR 1.912 / 1.353 / 1.108 (READ, READ, tie); common SD / NF 0.974 /
-0.787 / 0.668, all READ (all states at width 8: 1.088 ± 0.024 READ, SD
-worse). **Ostrich** (R3c, in sight, P): pooled grave bias −21.80 /
-−15.01 / −11.07 (NF −10.10, DR −7.57), signature on all five friends
-at every width (Clementine, positive for NF and DR, is −8.56 at width
-16), common-state bias +0.41 to +0.43. **Calibration** (R4c, P(grave by
-need) = 1 − ∏(1 − grave mass_i), in sight, P): Brier 0.0009 / 0.0006 / 0.0005,
-mean p on GRAVE 0.294 / 0.474 / 0.545 and on COMMON 0.000–0.001; at
-width 16 under-confident below p = 0.7 and on the diagonal above it;
-happiness-only grave samples (168 of 2,527 in sight) cannot be carried
-by need histograms. **Rates** (R5c, width 16): the filter need not be
-physical and is not; the per-friend emphases are recovered (Pumpkin's
-eat the largest eat rate at every width, Clementine cuddle 0.71
-against the empirical 0.70), many ordinary cells sit well under the
-empirical step, play 0.03–0.06 against 0.30–0.40 for four friends.
-**Residual share** (R6c, in sight, P): no-residual over full grave loss
-1.426 / 2.013 / 2.948 (the structure-carries rule of 2.0× met at 8,
-missed by 0.013 at 16); the filter alone is worse than the marginal
-mean in common states at every width. **p_rel AUROC** (R6c(b), P):
-0.960 / 0.979 / 0.988 in sight, 0.755 / 0.797 / 0.823 under fog.
-**Floors** (R7c, information, in sight, P): width 16 clears neither
-DR-h24 (1.353) nor NF-h24 (1.233); width 32 clears NF-h24 (1.010,
-every friend inside) and misses DR-h24 by 0.008 pooled. **Size** (R9c,
-in sight, P): 1.414 ± 0.190 at 8/16 and 0.819 ± 0.080 at 32/16 on
-grave, 1.237 ± 0.025 and 0.848 ± 0.026 in common states, all READ; the
-cap binds for this head as it did for NF in 1b, on the means at a rate like
-NF's or steeper (about 18% against 13% for the doubling past the cap,
-spreads overlapping, the parameter steps unequal, ×2.4 against ×2.9);
-at about equal parameters SD is behind NF at every rung (3.3k:
-1582.84 against NF-h12's 1098.53; 6.7k against 7.8k: 1119.69 against
-908.10), and SD-h32 at 15.8k reaches NF-h24's cell, not NF-h48's
-(790.22 at 22,519 params). **Caveats the section carries**: six of
+capacity. Below, every read but the rates is in sight on group P, and
+every per-width cell is in RESULTS §R1c–§R9c. **Accuracy** (R1c,
+R2c): SD's grave loss
+is above NF's on every friend at width 16 and below both comparators
+in common states on every friend. **Ostrich** (R3c): the signature
+fires on all five friends at every width, Clementine (positive for NF
+and DR) included. **Calibration** (R4c, P(grave by need) = 1 − ∏(1 −
+grave mass_i)): at width 16 under-confident below p = 0.7 and on the
+diagonal above it; happiness-only grave samples (168 of 2,527 in
+sight) cannot be carried by need histograms. **Rates** (R5c, width
+16): the filter need not be physical and is not; the per-friend
+emphases are recovered, many ordinary cells sit well under the
+empirical step, and the play rate collapses for four friends.
+**Residual share** (R6c): no-residual over full grave loss meets the
+structure-carries rule of 2.0× at 8 and misses it by 0.013 at 16; the
+filter alone is worse than the marginal mean in common states at every
+width (p_rel's AUROC by width: R6c(b)). **Floors** (R7c, information):
+width 16 clears neither DR-h24 nor NF-h24; width 32 clears NF-h24
+(every friend inside) and misses DR-h24 by 0.008 pooled. **Size**
+(R9c): the cap binds for this head as it did for NF in 1b, on the
+means at a rate like NF's or steeper (about 18% against 13% for the
+doubling past the cap, spreads overlapping, the parameter steps
+unequal, ×2.4 against ×2.9); at about equal parameters SD is behind NF
+at every rung (3.3k: 1582.84 against NF-h12's 1098.53; 6.7k against
+7.8k: 1119.69 against 908.10), and SD-h32 at 15.8k reaches NF-h24's
+cell, not NF-h48's (790.22 at 22,519 params).
+**Caveats the section carries**: six of
 nine runs reached the 200-epoch cap with the validation loss still
 improving by more than the plateau margin (best epochs 193–200; every
 1b run plateaued by 82), which biases the comparison against SD by an
@@ -3527,19 +3506,16 @@ Minted from mini-friend Phase 1d (`minifriend-phase1d-2026-10-24/RESULTS.md`,
 gated; owner 2026-10-24 "Let's run those in three in the order you
 listed", after the Professor's review of Phase 1c; deviations entry
 13). Data: none new (0 covered cat-ticks); Phase 1b's split byte for
-byte; the probe's training samples are every (world, observer,
-friend, tick) of the 74 training worlds, 8,400,000 (GRAVE on 0.00300),
-validation 1,800,000; reads on group P (P1..P5, 4,000,000 samples:
-1,927,130 in sight with 2,527 grave, 2,072,870 under fog with 8,977
-grave). **Read 2, the probe** (`grave_probe.py`): 1b's NF-h24-s{1,2,3}
-and DR-h24-s{1,2,3} (7,807 params) loaded, frozen, walked as
-`predict_world` walks them; `Linear(24 → 1)` + sigmoid by
-natural-frequency BCE on the stratum label, Adam 1e-2, batches of
-65,536, early stop on the validation BCE with a RELATIVE margin (new
-best when val < best × (1 − 1e-3)), patience 10, cap 200; every fit
-stopped on the plateau rule (stop epochs 83 / 99 / 91 / 74 / 110 / 112,
-none at the 200-epoch cap) in 60–79 s of wall clock;
-read through 1c's R4c instrument (`calibration_p`) beside SD width 16's
+byte; the probe trains on every (world, observer, friend, tick) of the
+74 training worlds; reads on group P (P1..P5, 4,000,000 samples; the
+sample and grave counts per version in RESULTS §Data). **Read 2, the
+probe** (`grave_probe.py`; fit recipe in DECLARATION §"Read 2", runs
+in RESULTS §"R2d(b) — runs"): 1b's NF-h24-s{1,2,3} and
+DR-h24-s{1,2,3} loaded, frozen, walked as `predict_world` walks them;
+`Linear(24 → 1)` + sigmoid by natural-frequency BCE on the stratum
+label, early stop on the validation BCE with a RELATIVE margin; every
+fit stopped on the plateau rule, none at the 200-epoch cap; read
+through 1c's R4c instrument (`calibration_p`) beside SD width 16's
 committed cells. **Decision rule, applied** (declared before any fit;
 group P, in sight, every covered sample pooled, mean of seeds 1–3;
 comparator SD width 16 from 1c's committed read, base head NF-h24;
@@ -3550,16 +3526,14 @@ g_SD < g_NF; C otherwise — read Δ = 0.474 − 0.583 = −0.109, s = 0.116,
 the grave mean in every version and lower on Brier) is reported, not
 ruled on (s is almost entirely SD's seed spread, 0.115 against the
 probe's 0.015; one SD seed, 0.601, sits above the probe's mean of
-0.583). **Read 1,
-the spread** (`filter_spread.py`, read-only on 1c's nine `head-best.pt`):
-a delta at bin 2 pushed n ∈ {1, 10, 50, 100, 500} ticks through 1c's
-`shift_matrix` at the initial rate and at each run's median, largest
-and smallest learned cell, no relief, no residual; sd equals
+0.583). **Read 1, the spread** (`filter_spread.py`, read-only on 1c's
+nine `head-best.pt`; RESULTS §R1d): a delta at bin 2 pushed n ticks
+through 1c's `shift_matrix` at the initial rate and at each run's median,
+largest and smallest learned cell, no relief, no residual; sd equals
 √(n f (1 − f)) at the printed precision on every unclamped row; the
-largest learned cells (1.05–1.39 points per tick at widths 16 and 32)
-move a belief 21–28 bins in 100 ticks, piling it into the top bin (sd
-0.133–1.021 at 100 ticks, 0.000 by 500); one relief step adds at most
-0.5 bins of sd. **Caveats the section carries**: the
+largest learned cells overrun, piling the belief into the top bin (sd
+0.000 by 500 ticks); one relief step adds at most 0.5 bins of sd.
+**Caveats the section carries**: the
 probe is calibrated on the training distribution and read on the
 evaluation worlds (under-confident below p = 0.5, over-confident in its
 top two bins in sight); nothing was tuned and the states were trained
@@ -3590,34 +3564,27 @@ breakdown by need and latency read", after a sanity-check exchange on
 whether the minis give the main models what they need; deviations
 entry 13). Data: none new (0 covered cat-ticks); the outputs of Phase
 1b's NF-h24 / DR-h24 runs, 1c's SD-w16 runs and 1d's probes, read on
-group P (P1..P5, 4,000,000 samples). **R3d which need**: domain the
-grave samples with some hidden need ≥ 90 (2,359 per seed in sight, of
-which 1,021 carry two or more grave needs; 7,865 under fog); named
-need = argmax of the head's five per-need scores, correct when it is
-one of the sample's grave needs; per-need cells all n ≥ 500 per seed; the
-confusion for NF-h24's means in sight names a grave play need as
-sleep 511, drink 474 and eat 354 times against play 661 (counts
-summed over seeds), eat the strongest need in sight (0.986). **R4d latency**:
-episodes = maximal runs of stratum GRAVE on the truth stream per
-(world, friend), one per observer, classed by onset (RESET at the
-world's first tick; mid-world in sight; mid-world under fog — the
-split added after gate round 1, the declared rules scored as declared
-and the mid-world numbers disclosed beside them); detection = the
-first tick at or over the threshold, latency from onset (0 = at
-onset); anticipated = over the threshold at onset and at the tick before
-it, within the observer's slice; false alarms = over-threshold runs
-containing no grave tick. On the 68 mid-world fog-onset episodes every
-probability head at 0.2 detects over nine in ten (SD-w16 0.961,
-NF-h24+p 0.946, DR-h24+p 0.926) at a median latency of 0, anticipated
-in 0.88–0.96; on the 200 reset episodes SD-w16's P(grave) is over 0.2
-at the first tick for every friend, grave or not (its prior) while NF-h24+p and
-DR-h24+p cross at a median of 1 and 0 ticks, and the world-start
-transient holds almost all of the probes' false-alarm runs (NF-h24+p
-0.90 → 0.07, DR-h24+p 2.06 → 0.16 per 10,000 observer-ticks once runs
-beginning at the world's first tick are set aside); at 0.5 NF-h24+p
-loses 0.20 (mid-world in sight) and 0.07 (mid-world fog) of detection,
-SD-w16 0.17 and 0.20, and on the reset episodes SD-w16's median latency
-at 0.5 is 11 ticks against NF-h24+p's 1. **Caveats
+group P (P1..P5, 4,000,000 samples). **R3d which need** (domain sizes
+and the confusion counts in RESULTS §"R3d — which need"): domain the
+grave samples with some hidden need ≥ 90; named need = argmax of the
+head's five per-need scores, correct when it is one of the sample's
+grave needs; per-need cells all n ≥ 500 per seed; NF-h24's means in
+sight name a grave play need mostly as another need, eat the strongest
+need in sight (0.986). **R4d latency** (definitions in §"R4d —
+latency"): episodes = maximal runs of stratum GRAVE on the truth
+stream per (world, friend), one per observer, classed by onset (RESET
+at the world's first tick; mid-world in sight; mid-world under fog —
+the split added after gate round 1, the declared rules scored as
+declared and the mid-world numbers disclosed beside them). On the 68
+mid-world fog-onset episodes every probability head at 0.2 detects
+over nine in ten at a median latency of 0; on the 200 reset episodes
+SD-w16's P(grave) is over 0.2 at the first tick for every friend,
+grave or not (its prior) while NF-h24+p and DR-h24+p cross at a
+median of 1 and 0 ticks, and the world-start transient holds almost
+all of the probes' false-alarm runs; raising the threshold to 0.5
+costs NF-h24+p and SD-w16 mid-world detection and slows SD's reset
+detection (SD-w16's median reset latency at 0.5 is 11 ticks against
+NF-h24+p's 1; the per-head numbers in §"R4d — latency"). **Caveats
 the section carries**: reset episodes are over two thirds of the sample
 and the declared splits count a head's prior as a detection there;
 the mid-world in-sight split rests on 20 observer-episodes (one is
@@ -3677,27 +3644,19 @@ new (0 covered cat-ticks; no weight touched) — the saved observation
 streams of the evaluation worlds, Phase 1b's frozen NF-h24 heads, 1d's
 three probes and 1c's SD width 16 heads, re-run by the reader exactly
 as the probe fit walked them (the re-run P(grave) equals the committed
-file on the first group-P evaluation world to 0.0e+00 on every seed). **The splice**: donors are group P's 200
-reset-grave episodes over observer slices (the friend's 58-cell row
-over the episode, 5 / 40 / 238 ticks min / median / max, 14 in sight at
-onset), placed after H clean ticks of one of L's 60 evaluation slices
-with the recipient observer's own self block continuing; the episode is
-the donor segment; a junction control uses a default-start friend's
-rows over the same ticks; H = 0 is the donor episode in its own slice
-on the committed signal, pinned to the sweep. **The warm start**: h̄ is
-the mean state over ticks 1,000 … 19,999 of L's clean slices per seed;
-every evaluation slice re-run from it and read through §Addendum 3's
-burn-in grid at B = 0. **Convergence**, on L's 60 clean evaluation slices: step ‖h_t − h_{t−1}‖ and drift
-‖h_t − h_100‖ medians by tick window, the logit's per-slice slope after
-tick 300 and the drift-to-scatter ratio (0.032 ± 0.021). **The swap**:
-on the 200 grave-start slices, the (observer, grave-start seat) row
-beside the next observer's self block, from the zero state, against the
-unswapped committed signal. **The fitted worlds**: grave ticks and
-episode onsets by offset from the world start, per world × friend, per
-role (train 74 worlds, 6,301 grave ticks; val 17, 1,960; eval 69,
-6,778). Every table at 0.10 / 0.30 / 0.50; after a clean history 0.10
-detects the most (H = 100: 0.358 / 0.228 / 0.162) with the control at
-0.000 at all three. **Caveats the section carries**: the splice
+file on the first group-P evaluation world to 0.0e+00 on every seed).
+Method in RESULTS §Addendum 4's opening paragraph and R7d (a)
+convergence, (b) the splice, (c) burn-ins and the warm start, (d) the
+self-block swap, (f) the fitted worlds. **The splice** places group
+P's 200 reset-grave episodes over observer slices (the friend's
+58-cell row over the episode, 14 in sight at onset) after H clean
+ticks of one of L's 60 evaluation slices, with the recipient
+observer's own self block continuing and a junction control of a
+default-start friend's rows over the same ticks; H = 0 is the donor
+episode in its own slice on the committed signal. Every table at 0.10
+/ 0.30 / 0.50; after a clean history 0.10 detects the most (H = 100:
+0.358 / 0.228 / 0.162) with the control at 0.000 at all three.
+**Caveats the section carries**: the splice
 junction is a jump into a covered friend's grave, not a crossing (the
 donor's rows are the first ticks of its own world beside a self block
 from another), so the read licenses the dependence of the response on
