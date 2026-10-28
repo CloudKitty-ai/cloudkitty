@@ -21,7 +21,8 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT. Nothing below runs until she rules. No number from this
+**Status: DRAFT, her ruling in progress: call 1 RULED 2026-10-27 (§12);
+calls 2–5 open. Nothing below runs until she rules. No number from this
 arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
@@ -244,8 +245,9 @@ Cells and flags (§4) are assigned on the levels against the band.
 
 Band: per quantity, per window, per alphabet and per ENGINE ERA — the
 distribution of the excess over null on the era's healthy calibration
-worlds; a reading is out of band outside the central 95% ("low" below
-the 2.5% quantile, "high" above the 97.5%). An episode is read only
+worlds; a reading is out of band outside the central 1 − α ("low"
+below the α/2 quantile, "high" above 1 − α/2), α set per false-alarm
+setting on the calibration worlds (§5, call 1 RULED). An episode is read only
 against its own era's band. Eras and their healthy sources:
 - **Gen 2**: the 100 full-100 teacher worlds, split 60 calibration / 40
   test by world seed, three declared splits (seeds 1, 2, 3 of a declared
@@ -303,14 +305,31 @@ the stream's end and reported as such.
   worlds per split, flagged windows per 10,000 kitty-windows and flagged
   episodes per 100,000 kitty-ticks, per window and quantity; the same
   on the healthy certified-policy worlds (g2-rot1..5, L), which is the
-  rate a runtime monitor on a policy would see. **FP budget, declared
-  now by this thread (not the Professor's number):** on held-out healthy
-  teacher worlds, flagged episodes ≤ 1 per 100,000 kitty-ticks at
-  W = 1000 (one per kitty per five worlds); flagged windows are expected
-  near the band's nominal 5% and are reported, not budgeted. On healthy
-  certified-policy worlds the rate is reported against the same number
-  and the gap between the two healthy classes is the seat-type confound's
-  size.
+  rate a runtime monitor on a policy would see. **False-alarm ladder
+  (call 1, RULED 2026-10-27; replaces the single FP budget):** three
+  settings, one flagged episode per 10,000, per 100,000 and per
+  1,000,000 kitty-ticks (about ten, one and one-tenth per healthy
+  five-kitty, 20,000-tick world). Per setting and split, α is the
+  largest on the grid {0.10, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001,
+  0.0005, 0.0002, 0.0001} (the most sensitive band) whose flagged-episode
+  rate on the CALIBRATION healthy worlds is at or under the setting; an
+  α with fewer than 10 calibration windows beyond a tail quantile is
+  unavailable, and a setting no available α meets is reported as not
+  met. Held-out worlds and labeled episodes never move α. Recall,
+  latency, the leave-one-pattern-out folds, the baselines and the
+  ablation are read at every setting. The HEADLINE is the middle
+  setting, one per 100,000, declared now; the other two are reported
+  beside it and carry no headline claim. The held-out healthy teacher
+  worlds' rate at each setting is the measurement, reported against its
+  target; flagged windows are reported, not budgeted. The strictest
+  setting expects about four flagged episodes in a split's 40 held-out
+  worlds (4,000,000 kitty-ticks), so its held-out rate is reported with
+  its count and claims no more than met or not met. On healthy
+  certified-policy worlds the rate is reported at each setting, and the
+  gap between the two healthy classes is the seat-type confound's size.
+  The cost trade (how many false alarms one earlier catch is worth,
+  perhaps different for a served world and a training run) is pass 2's,
+  made with this curve and the measured incidence in hand.
 - **Leave-one-pattern-out** (question 4, the headline): calibrate the
   band on healthy worlds plus two patterns' episodes (their flagged
   windows define nothing — the band is the healthy quantiles; the two
@@ -400,7 +419,8 @@ Needs-informative degeneracy (competent servicing by welfare-costly
 means) is invisible to this monitor; the welfare register is the
 backstop. Improvement looks like novelty: the band is per checkpoint for
 runtime use, frozen for the across-training series. Base rates under
-many-kitty monitoring: the FP budget is the declared number above.
+many-kitty monitoring: the false-alarm ladder above, its headline
+setting declared; the cost trade is pass 2's.
 Label scarcity: three wrong-need spans, one catatonia episode, a handful
 of lockstep traces, four training-collapse runs and, if regenerated, the
 July orbits (the one mechanical label) — pass 1 is a
@@ -410,8 +430,9 @@ cites a recall.
 ## 9. Doctrine check (CLAUDE.md rule 8, against `experiments/DESIGN-DOCTRINE.md`)
 
 - Rule 10 (two-layer gates; a noise reading is never a pass bar) moved
-  three choices: the FP budget and the band quantiles are declared bars
-  (§4, §5) before any read; a leave-one-out fold under three held-out
+  three choices: the false-alarm ladder, its headline setting and the
+  rule that sets each setting's band are declared (§4, §5) before any
+  read; a leave-one-out fold under three held-out
   episodes carries no claim; the band's seeds are three declared splits
   so no single split's quantile is a bar.
 - Rule 11 (quantification domain) moved §6: every trip quantifies over
@@ -447,8 +468,8 @@ Reader `monitor_read.py` in this directory (arc venv:
   not an episode; three are; W = 1000 alone is); predicted red: `>= 3` →
   `>= 2`.
 - m6: the split is deterministic per seed and disjoint; the band's
-  quantiles on a hand distribution; predicted red: the 97.5 → 95
-  quantile.
+  quantiles at a given α on a hand distribution; predicted red: the
+  1 − α/2 quantile read at 1 − α.
 - m7: the labels file round-trips and every span lies inside its
   stream's length; predicted red: one span's end past the stream.
 - m8: M5 from positions on a hand track — a step north reads north in
@@ -463,6 +484,14 @@ Reader `monitor_read.py` in this directory (arc venv:
   reader computes satisfies W ≥ 10 × cells and no other pair is
   computed; predicted red: h1(A9) admitted at W = 300 →
   "resolvability: h1(A9) needs W ≥ 810".
+- m11: the ladder's band rule on a hand calibration set with known
+  flagged-episode counts per α — each setting takes the largest α on the
+  grid whose calibration rate is at or under it, an α with fewer than 10
+  calibration windows beyond a tail quantile is unavailable, and adding
+  a held-out world or a labeled episode to the inputs leaves every chosen
+  α unchanged; predicted red: the comparison flipped to take the
+  smallest α → "ladder: the most sensitive band at or under the
+  setting".
 
 Every guard's red goes through `scripts/mutate.sh --expect` and is
 recorded in this file before the read runs.
@@ -496,6 +525,14 @@ recorded in this file before the read runs.
 1. The FP budget number (§5): one flagged episode per 100,000
    kitty-ticks at W = 1000 is this thread's proposal; the Professor left
    it to the declaration.
+   RULED 2026-10-27 on this thread's walkthrough. Her words, verbatim:
+   "Let’s think this through. I’m assuming there will be a trade-off in
+   the shape of fewer false positives = more false negatives. We should
+   evaluate the relative cost of false positives vs false negatives, and
+   use that to inform our target"; then, on the proposal put to her (a
+   three-setting ladder, the middle setting the headline declared now,
+   the cost decision in pass 2, where the trade curve and the incidence
+   it needs exist): "Yes". §4, §5 and m11 carry it.
 2. The needs-trigger definition (§5): the watchdog's 150-tick sustained
    distress. The alternative is the F-053 1,000-tick abort line, which
    would make every latency look better by about 850 ticks.
