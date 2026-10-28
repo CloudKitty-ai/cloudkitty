@@ -3,5 +3,5 @@
 # time we need to either resolve them, or I need to manual approve proceeding
 # with the tag."). Only her word adds a line, quoted verbatim. One line each:
 #   <version> :: <text of the listed line, or a part of it> :: <YYYY-MM-DD> "<her words>"
-# The text is at least 10 characters and cannot contain " :: ". A line
+# The text is at least 10 bytes and cannot contain " :: ". A line
 # approves that version only, so each release starts clean.

@@ -635,6 +635,10 @@ printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 unquoted words' >
 case_ 1 "unquoted words: FAIL" warnings
 has "warnings-approved.txt line is not" "the unquoted line refused"
 reset_
+printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 " "' > scripts/tag-check.d/warnings-approved.txt
+case_ 1 "blank words: FAIL, a blank is not her word" warnings
+has "warnings-approved.txt line is not" "the blank words refused"
+reset_
 printf '%s\n' '0.4.0 :: Node.js 20 is deprecated :: 2026-10-28 "fixture approval"' '0.4.0 :: tier 2 is +985 net lines :: 2026-10-28 "fixture approval"' \
   '0.4.0 :: a warning fixed since :: 2026-10-28 "stale"' > scripts/tag-check.d/warnings-approved.txt
 case_ 0 "an approval matching nothing: reported, not a FAIL" warnings

@@ -603,7 +603,8 @@ c_warnings() {
   cat "$TMP/note" >> "$TMP/listed"
   # the owner's approvals for this version: <version> :: <line text> :: <YYYY-MM-DD> "<her words>".
   # The line text (it cannot contain " :: ") is trimmed and must be at least 10
-  # characters, so it names a line rather than matching most of them.
+  # bytes, so it names a line rather than matching most of them; her words
+  # need a non-space character.
   ver=${TAG:-$(sed -n 's/^version = "\([^"]*\)".*/\1/p' "$R/Cargo.toml" 2>/dev/null | head -n 1)}
   : > "$TMP/appr"; : > "$TMP/used"
   if [ -f "$CFG/warnings-approved.txt" ]; then
@@ -613,9 +614,9 @@ c_warnings() {
       sub=$(printf '%s' "$sub" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
       bad=0
       [ "$rest" = "$app" ] || [ "$who" = "$rest" ] || [ ${#sub} -lt 10 ] && bad=1
-      case "$who" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' "'?*'"') ;; *) bad=1 ;; esac
+      case "$who" in [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' "'*[![:space:]]*'"') ;; *) bad=1 ;; esac
       if [ $bad = 1 ]; then
-        echo "warnings-approved.txt line is not '<version> :: <line text, 10+ characters> :: <YYYY-MM-DD> \"<her words>\"': $app" >> "$D"; ok=1; continue
+        echo "warnings-approved.txt line is not '<version> :: <line text, 10+ bytes> :: <YYYY-MM-DD> \"<her words>\"': $app" >> "$D"; ok=1; continue
       fi
       [ "${app%% :: *}" = "$ver" ] && printf '%s\t%s\n' "$sub" "$who" >> "$TMP/appr"
     done < "$CFG/warnings-approved.txt"
