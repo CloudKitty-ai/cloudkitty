@@ -324,6 +324,22 @@ scripts/gen-specs-index.sh "$T" > "$O"
 has '| `061-wrap` | Planned (clarify complete 2026-10-14; cross-artifact analysis remediated 2026-10-15) |' "wrapped Status joined whole"
 hasnt 'kickoff' "Status paragraph ends at the blank line"
 reset_
+# a header with no blank lines between fields (recorded verbatim from
+# github/spec-kit templates/spec-template.md at dc7f09a7, the last of its
+# tight versions): the Status cell is its own line, hard-break spaces and all
+mkdir -p specs/900-tight && cat > specs/900-tight/spec.md <<'EOF'
+# Feature Specification: [FEATURE NAME]
+
+**Feature Branch**: `[###-feature-name]`  
+**Created**: [DATE]  
+**Status**: Draft  
+**Input**: User description: "$ARGUMENTS"
+EOF
+git add specs/900-tight/spec.md
+scripts/gen-specs-index.sh "$T" > "$O"
+has '| `900-tight` | Draft   |' "tight header: the Status cell is its line"
+hasnt 'User description' "tight header: the next field is not swallowed"
+reset_
 
 # ---------------------------------------------------------------- citations
 sed -i.bak 's#Evidence: \[arc result\](arc-a/RESULTS.md)#Evidence: [gone](arc-a/results-raw/gone.json)#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
