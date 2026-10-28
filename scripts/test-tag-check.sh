@@ -303,6 +303,43 @@ git rm -q experiments/INDEX.md
 case_ 1 "missing generated index: FAIL" indexes
 has "not yet generated" "missing index named"
 reset_
+# a wrapped Status keeps its whole paragraph (header recorded verbatim from
+# specs/061-stuck-detector/spec.md at 90429f0c~1, before #471 reflowed it)
+mkdir -p specs/061-wrap && cat > specs/061-wrap/spec.md <<'EOF'
+# Feature Specification: Stuck Detector at Decoding
+
+**Feature Branch**: `product/stuck-detector`
+
+**Created**: 2026-10-13
+
+**Status**: Planned (clarify complete 2026-10-14; cross-artifact
+analysis remediated 2026-10-15)
+
+**Input**: The owner's kickoff in the Product session, 2026-10-13
+("061 stuck detector") — the last of the Gen 2 build-phase Product
+specs (prereg skeleton §10.1), after the schema wall (058, merged),
+EOF
+git add specs/061-wrap/spec.md
+scripts/gen-specs-index.sh "$T" > "$O"
+has '| `061-wrap` | Planned (clarify complete 2026-10-14; cross-artifact analysis remediated 2026-10-15) |' "wrapped Status joined whole"
+hasnt 'kickoff' "Status paragraph ends at the blank line"
+reset_
+# a header with no blank lines between fields (recorded verbatim from
+# github/spec-kit templates/spec-template.md at dc7f09a7, the last of its
+# tight versions): the Status cell is its own line, hard-break spaces and all
+mkdir -p specs/900-tight && cat > specs/900-tight/spec.md <<'EOF'
+# Feature Specification: [FEATURE NAME]
+
+**Feature Branch**: `[###-feature-name]`  
+**Created**: [DATE]  
+**Status**: Draft  
+**Input**: User description: "$ARGUMENTS"
+EOF
+git add specs/900-tight/spec.md
+scripts/gen-specs-index.sh "$T" > "$O"
+has '| `900-tight` | Draft   |' "tight header: the Status cell is its line"
+hasnt 'User description' "tight header: the next field is not swallowed"
+reset_
 
 # ---------------------------------------------------------------- citations
 sed -i.bak 's#Evidence: \[arc result\](arc-a/RESULTS.md)#Evidence: [gone](arc-a/results-raw/gone.json)#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
