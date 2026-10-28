@@ -598,6 +598,10 @@ impl Behavior for StuckGuard {
     fn is_builtin(&self) -> bool {
         self.inner.is_builtin()
     }
+
+    fn teaches(&self) -> bool {
+        self.inner.teaches()
+    }
 }
 
 /// The boot line (FR-009/FR-010): one INFO line at startup carrying the
@@ -699,6 +703,21 @@ mod tests {
             armed_line,
             ..StuckConfig::default()
         }
+    }
+
+    /// Spec 067 FR-010 (review of #471): both seat wrappers forward the
+    /// teacher-eligibility answer, as the trait asks of every delegating
+    /// wrapper — a wrapped seat that does not teach still says so.
+    #[test]
+    fn the_seat_wrappers_forward_teaches() {
+        use crate::http_behavior::{SeatClass, SeatClassed};
+        let needy: Arc<dyn Behavior> = Arc::new(cloudkitty_core::behavior::needy::Needy);
+        let classed: Arc<dyn Behavior> = Arc::new(SeatClassed::new(needy, SeatClass::Scripted));
+        let guarded = StuckGuard::new(classed, StuckShared::new(StuckConfig::default()));
+        assert!(
+            !guarded.teaches(),
+            "a needy seat wrapped twice still does not teach"
+        );
     }
 
     // ---------- T004: the [stuck_detector] table ----------

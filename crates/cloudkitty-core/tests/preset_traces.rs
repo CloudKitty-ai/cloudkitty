@@ -8,8 +8,16 @@
 //! after the needy presets land beside them. Each trace drives a
 //! `test_config()` world for 100 ticks with EVERY seat deciding through the
 //! one preset under test, on its own fog view and its dealt seed, then
-//! applies those decisions through the engine's own tick — so a drift in
-//! any rung, in the announce rule or in the apply law shows here first.
+//! applies those decisions through the engine's own tick.
+//!
+//! Its reach is narrower than "every rung" (review of #471): on these
+//! worlds — zero starting needs, 100 ticks, no audible calls, vision over
+//! the whole map — the luxury rung pre-empts every turn, so `teacher`'s
+//! traces equal `playful`'s and the only word spoken is `wait_for_me`. A
+//! drift in the luxury rung, in the apply law, or in `needs_driven` shows
+//! here; a drift in `teacher`'s serious, response, groom-response, wander
+//! or calling rungs needs the byte-identity check of the default worlds
+//! (tasks T011) or `teacher`'s own tests, and needy is absent by design.
 
 use std::sync::Arc;
 

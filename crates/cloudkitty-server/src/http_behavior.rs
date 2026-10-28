@@ -98,6 +98,10 @@ impl Behavior for SeatClassed {
     fn is_builtin(&self) -> bool {
         self.inner.is_builtin()
     }
+
+    fn teaches(&self) -> bool {
+        self.inner.teaches()
+    }
 }
 
 /// One unit of work for the exchange thread: POST this body, hand back the

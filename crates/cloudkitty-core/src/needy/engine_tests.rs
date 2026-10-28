@@ -224,6 +224,72 @@ fn an_onset_ends_a_friends_groom_of_the_needy_kitty() {
     assert_eq!(world.kitty(2).unwrap().activity, Activity::Idle);
 }
 
+/// needy-law §5b: on the onset tick the needy kitty's OWN scene ends when
+/// it would relieve a masked need — a co-sleep and a co-rest under a cuddle
+/// mask, a social-play duet under a play mask (ending for both) — while a
+/// friend resting or sleeping with it keeps its scene, alone.
+#[test]
+fn an_onset_ends_the_needy_kittys_own_scene_and_its_friend_carries_on_alone() {
+    let play_with = |id| Action::Play {
+        target: Some(crate::action::TargetRef::Kitty { id }),
+    };
+    let cases = [
+        (
+            "co-sleep",
+            NeedKind::Cuddle,
+            [
+                Action::Sleep { with: Some(2) },
+                Action::Sleep { with: Some(1) },
+            ],
+        ),
+        (
+            "co-rest",
+            NeedKind::Cuddle,
+            [
+                Action::Rest { with: Some(2) },
+                Action::Rest { with: Some(1) },
+            ],
+        ),
+        ("duet", NeedKind::Play, [play_with(2), play_with(1)]),
+    ];
+    for (scene, masked, [own, friends]) in cases {
+        let config = seated(NAME);
+        let mut world = World::generate(&config);
+        hold_off(&mut world, 1);
+        side_by_side(&mut world);
+        for id in [1, 2] {
+            let k = kitty_mut(&mut world, id);
+            k.needs.add(NeedKind::Sleep, 80.0);
+            k.needs.add(NeedKind::Cuddle, 50.0);
+            k.needs.add(NeedKind::Play, 60.0);
+        }
+        tick_with(&mut world, &config, &[(1, own), (2, friends)]);
+        let partner = |world: &World, id| world.kitty(id).unwrap().activity.partner();
+        assert_eq!(
+            (partner(&world, 1), partner(&world, 2)),
+            (Some(2), Some(1)),
+            "staged: the {scene}"
+        );
+
+        open_next_tick(&mut world, 1, &[masked]);
+        tick_with(&mut world, &config, &[(1, own), (2, friends)]);
+        assert_eq!(
+            world.kitty(1).unwrap().activity,
+            Activity::Idle,
+            "the needy kitty's own {scene} ended on the onset tick"
+        );
+        let friend = world.kitty(2).unwrap().activity;
+        if scene == "duet" {
+            assert_eq!(friend, Activity::Idle, "a duet ends for both");
+        } else {
+            assert!(
+                friend != Activity::Idle && friend.partner().is_none(),
+                "the friend's {scene} carries on alone: {friend:?}"
+            );
+        }
+    }
+}
+
 #[test]
 fn no_friend_sees_a_needy_kittys_state() {
     let config = seated(NAME);
@@ -280,26 +346,36 @@ async fn a_resumed_needy_world_ticks_identically() {
     });
     let config = Arc::new(config);
     let registry = crate::behavior::BehaviorRegistry::with_builtins();
-    let mut world = World::generate(&config);
-    // Run to a rest AFTER at least one episode, so the private stream's
-    // position, the ordinal and the pending set all carry the future.
-    for _ in 0..2000 {
-        world.tick(&registry, &config).await;
-        let s = state(&world, 1);
-        if s.ordinal >= 1 && matches!(s.phase, Phase::Resting { .. }) {
-            break;
+    // Saved mid-episode (the held set and its onset carry the release), and
+    // at a rest after one (the private stream's position, the ordinal and
+    // the pending set carry the next onset).
+    type Stop = fn(&NeedyState) -> bool;
+    let saves: [(&str, Stop); 2] = [
+        ("held", |s| matches!(s.phase, Phase::Held { .. })),
+        ("resting", |s| {
+            s.ordinal >= 1 && matches!(s.phase, Phase::Resting { .. })
+        }),
+    ];
+    for (at, stop) in saves {
+        let mut world = World::generate(&config);
+        for _ in 0..2000 {
+            world.tick(&registry, &config).await;
+            if stop(state(&world, 1)) {
+                break;
+            }
         }
+        assert!(stop(state(&world, 1)), "staged: saved {at}");
+        let mut resumed: World =
+            serde_json::from_str(&serde_json::to_string(&world).unwrap()).unwrap();
+        for _ in 0..150 {
+            world.tick(&registry, &config).await;
+            resumed.tick(&registry, &config).await;
+        }
+        assert!(
+            serde_json::to_string(&world).unwrap() == serde_json::to_string(&resumed).unwrap(),
+            "the resumed world ticks identically (saved {at})"
+        );
     }
-    assert!(state(&world, 1).ordinal >= 1, "staged: one episode ran");
-    let mut resumed: World = serde_json::from_str(&serde_json::to_string(&world).unwrap()).unwrap();
-    for _ in 0..150 {
-        world.tick(&registry, &config).await;
-        resumed.tick(&registry, &config).await;
-    }
-    assert!(
-        serde_json::to_string(&world).unwrap() == serde_json::to_string(&resumed).unwrap(),
-        "the resumed world ticks identically"
-    );
 }
 
 // ---------------------------------------------------------------- T005
@@ -462,6 +538,26 @@ fn a_masked_proposer_is_refused_and_the_refusal_names_the_mask() {
         world.kitty(1).unwrap().activity,
         Activity::Drinking,
         "an unmasked need is serviced"
+    );
+}
+
+/// D15's validation clause (review of #471): a masked proposal that
+/// validate itself refuses — an eat with no food in reach — is named for
+/// that, never for the mask.
+#[test]
+fn a_masked_proposal_validate_refuses_is_not_named_for_the_mask() {
+    let (mut world, config) = verdict_stage();
+    world.elements.clear();
+    kitty_mut(&mut world, 1).needs.add(NeedKind::Eat, 80.0);
+    force_held(&mut world, 1, &[NeedKind::Eat]);
+    let heard = world.tick;
+    tick_with(&mut world, &config, &[(1, Action::Eat)]);
+    let refusal = refusal_at(&world, 1, heard).expect("the refusal is recorded");
+    assert_eq!(refusal.proposed, Action::Eat, "staged: the masked eat");
+    assert_eq!(
+        refusal.reason,
+        crate::events::RefusalReason::Other,
+        "an eat with nothing to eat is validate's refusal, not the mask's"
     );
 }
 
@@ -911,9 +1007,13 @@ async fn the_needy_table_alone_never_reaches_a_plain_world() {
 /// roster fixed, the first onset out of reach — until that onset the two
 /// worlds tick identically on every surface except the seat's behaviour
 /// string and needy state: the schedule's draws reach nothing shared.
-/// Three seeds, because one world can absorb a small stream shift at
-/// generation (tie-broken placement re-synchronises the stream; traced
-/// 2026-10-27 under mutation T010-B).
+/// Five seeds, because a world can absorb a master-stream leak at
+/// generation: `gen_range` rejects a word half the time (rand 0.8's zone;
+/// for the first draw's range of 256, every word with bit 23 set), and a
+/// world whose first word is rejected spends it either way, so one extra
+/// draw before it re-synchronises. 1234, 20260718 and 99 all start on a
+/// rejected word; 5 and 9 start on an accepted one (review of #471, which
+/// overturned the ledger's "equivalent mutant" verdict on T010-B).
 #[tokio::test]
 async fn swapping_a_teacher_seat_for_needy_moves_nothing_shared_before_the_onset() {
     let strip = |mut v: serde_json::Value| {
@@ -926,22 +1026,60 @@ async fn swapping_a_teacher_seat_for_needy_moves_nothing_shared_before_the_onset
         }
         v
     };
-    for seed in [1234, 20260718, 99] {
-        let mut teacher = test_config();
-        teacher.world.seed = seed;
-        teacher.kitties[0].behavior = "teacher".to_string();
-        let mut needy = seated(NAME);
-        needy.world.seed = seed;
-        needy.needy = Some(crate::config::NeedyConfig {
-            onset_levels: vec![500, 501, 502, 503, 504, 505],
-            ..Default::default()
-        });
-        needy.validate().unwrap();
+    for seed in SWAP_SEEDS {
+        let (teacher, needy) = swap_twins(seed, vec![500, 501, 502, 503, 504, 505]);
         let a = strip(serialized_after(teacher, 200).await);
         let b = strip(serialized_after(needy, 200).await);
         assert!(
             a == b,
             "identical until the first onset apart from the seat's behaviour and needy state (seed {seed})"
+        );
+    }
+}
+
+/// See the swap test's note on why five seeds.
+const SWAP_SEEDS: [u64; 5] = [1234, 20260718, 99, 5, 9];
+
+/// A teacher-seated world and its needy twin (kitty 1 swapped, the first
+/// onset drawn from `onset_levels`), both on `seed`.
+fn swap_twins(seed: u64, onset_levels: Vec<u64>) -> (Config, Config) {
+    let mut teacher = test_config();
+    teacher.world.seed = seed;
+    teacher.kitties[0].behavior = "teacher".to_string();
+    let mut needy = seated(NAME);
+    needy.world.seed = seed;
+    needy.needy = Some(crate::config::NeedyConfig {
+        onset_levels,
+        ..Default::default()
+    });
+    needy.validate().unwrap();
+    (teacher, needy)
+}
+
+/// needy-law §2 at the onset itself (review of #471): the step and the
+/// sweep draw only from the seat's own stream, so at the end of the tick
+/// an episode opens the master stream stands exactly where the teacher
+/// twin's does (every decision before an onset is the teacher's).
+#[tokio::test]
+async fn the_onset_tick_draws_nothing_from_the_master_stream() {
+    let registry = crate::behavior::BehaviorRegistry::with_builtins();
+    for seed in SWAP_SEEDS {
+        let (teacher, needy) = swap_twins(seed, vec![30, 31, 32, 33, 34, 35]);
+        let (teacher, needy) = (Arc::new(teacher), Arc::new(needy));
+        let mut a = World::generate(&teacher);
+        let mut b = World::generate(&needy);
+        for _ in 0..100 {
+            if state(&b, 1).ordinal > 0 {
+                break;
+            }
+            a.tick(&registry, &teacher).await;
+            b.tick(&registry, &needy).await;
+        }
+        assert_eq!(state(&b, 1).ordinal, 1, "staged: the first onset opened");
+        assert_eq!(
+            serde_json::to_value(&a.rng).unwrap(),
+            serde_json::to_value(&b.rng).unwrap(),
+            "the onset tick left the master stream where the teacher twin's is (seed {seed})"
         );
     }
 }

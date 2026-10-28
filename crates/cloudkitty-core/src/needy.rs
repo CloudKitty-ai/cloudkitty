@@ -485,6 +485,27 @@ mod tests {
     }
 
     #[test]
+    fn on_the_tick_both_rules_hold_the_release_is_by_level() {
+        // needy-law §4: Level is checked first, so a masked need at its
+        // level on the limit tick releases by Level, not Limit.
+        let c = short();
+        let mut state = NeedyState::new(1, 1, false, &c);
+        state.phase = Phase::Held {
+            onset: 10,
+            masked: NeedSet::from_kinds(&[NeedKind::Eat]),
+        };
+        let mut full = Needs::default();
+        full.add(NeedKind::Eat, 100.0);
+        assert_eq!(
+            state.step(&full, 10 + c.hold_ticks, &c),
+            Some(Transition::Release {
+                by: ReleaseBy::Level
+            }),
+            "Level before Limit on the tick both hold"
+        );
+    }
+
+    #[test]
     fn the_ordinal_counts_onsets_from_one_and_an_onset_of_zero_opens_on_tick_one() {
         let c = short();
         let mut state = NeedyState::new(3, 1, false, &c);
@@ -608,7 +629,7 @@ mod tests {
         }
     }
 
-    /// The porting-grade pin (needy-law §3): the first 20 uniforms of the
+    /// The porting-grade pin (needy-law §3): the first three uniforms of the
     /// documented sub-stream and the first three episodes' (onset, set,
     /// release tick) for seed 1 / kitty 1 under the short config on the
     /// flat 0.5-a-tick trajectory. Recorded from the law's own output at

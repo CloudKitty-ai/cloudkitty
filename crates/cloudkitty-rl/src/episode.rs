@@ -168,7 +168,8 @@ pub struct Episode {
 impl Episode {
     /// Builds an episode over `core` config with the `[rl.*]` blocks in
     /// `rl`. `control` maps kitty ids to who decides for them; unnamed
-    /// kitties default to `External`. The world starts from the config's
+    /// kitties default to `External`, except a needy config seat, which is
+    /// seated on its own preset (spec 067). The world starts from the config's
     /// own seed; call [`Episode::reset`] to reseed.
     pub fn new(
         core: Config,
@@ -297,7 +298,11 @@ impl Episode {
                 reason: "unknown kitty id",
             })?;
         let snapshot = self.world.snapshot();
-        let ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        let mut ctx = self.decision_context_for(&snapshot, kitty, seed0);
+        // Spec 067 FR-012: a needy seat's schedule never leaves the engine.
+        // No plugin ever serves such a seat (`new` refuses one), so the
+        // render of its request carries none.
+        ctx.me.needy = None;
         // The served value without the served consumption (D1): the first
         // draw of THIS context's own stream — local to the render, seeded
         // exactly as the kitty's would be, and the same expression the
@@ -873,6 +878,31 @@ mod tests {
         assert!(line.contains("\"kitty_id\":1"), "{line}");
         episode.step(&BTreeMap::new()).unwrap();
         episode.decision_request(1).unwrap();
+    }
+
+    /// Spec 067 FR-012 (review of #471): a needy seat renders like any
+    /// scripted seat, but its request carries no schedule.
+    #[test]
+    fn a_needy_seats_rendered_request_carries_no_schedule() {
+        let mut config = Config::default();
+        config.kitties[0].behavior = "needy".into();
+        config.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: vec!["needy".into()],
+        });
+        let id = config.kitties[0].id;
+        let mut episode = Episode::new(config, RlConfig::default(), BTreeMap::new()).unwrap();
+        episode.reset(11);
+        assert!(
+            episode.world().kitty(id).unwrap().needy.is_some(),
+            "staged: the seat carries its schedule"
+        );
+        let request: serde_json::Value =
+            serde_json::from_str(&episode.decision_request(id).unwrap()).unwrap();
+        assert!(
+            request["me"].get("needy").is_none(),
+            "the rendered request carries no schedule: {}",
+            request["me"]
+        );
     }
 
     /// Spec 055 FR-004 (US1 scenario 2): the rendered `world` is the fog

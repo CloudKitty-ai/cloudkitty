@@ -1247,9 +1247,17 @@ impl Config {
     /// inert without a seat but still has to be well-formed). `N` is the
     /// engine's need count, never a literal (FR-016).
     pub(super) fn validate_needy(&self) -> Result<(), ConfigError> {
-        let Some(n) = &self.needy else {
+        // The parameters a needy seat runs are checked whether written or
+        // not: an unwritten table runs the defaults, and those must clear
+        // this config's own floors too.
+        let seated = self
+            .kitties
+            .iter()
+            .any(|k| crate::needy::is_needy_name(&k.behavior));
+        if self.needy.is_none() && !seated {
             return Ok(());
-        };
+        }
+        let n = crate::needy::params(self);
         let count = crate::needs::NeedKind::ALL.len();
         let well_formed_weights =
             |w: &[f32]| w.iter().all(|x| x.is_finite() && *x >= 0.0) && w.iter().any(|x| *x > 0.0);
@@ -1272,9 +1280,19 @@ impl Config {
             || !(0.0..=100.0).contains(&n.release_level)
             || n.release_level <= floor
         {
+            // The one default a config can make illegal (by raising the
+            // floor), so its value says where the number came from.
+            let value = if self.needy.is_some() {
+                n.release_level.to_string()
+            } else {
+                format!(
+                    "{} (the default: no [needy] table is written)",
+                    n.release_level
+                )
+            };
             return Err(ConfigError::invalid(
                 "[needy].release_level",
-                n.release_level.to_string(),
+                value,
                 format!(
                     "a need level in [0, 100] strictly above the off-beam sleep floor ({floor})"
                 ),

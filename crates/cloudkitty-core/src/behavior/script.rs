@@ -525,12 +525,6 @@ mod tests {
         assert!(!line.contains('\n'), "one request means one line");
     }
 
-    /// Spec 066 FR-007 / guard-law §1 (owner ruling 2026-10-26, "A"): the
-    /// `[welfare_hazard]` table rides every serialization of `Config`, this
-    /// wire included — present it appears inside `config`, absent the key
-    /// is not there at all, so a pre-066 world's requests are byte-identical.
-    /// Information to the advisor, never a decision input: the engine reads
-    /// it at load and boot only.
     /// Spec 067 FR-012 / FR-014: a plain world's request carries no
     /// `needy` key anywhere, and in a needy world a FRIEND's request — built
     /// the real way, from its fog view — never carries the needy kitty's
@@ -574,6 +568,12 @@ mod tests {
         );
     }
 
+    /// Spec 066 FR-007 / guard-law §1 (owner ruling 2026-10-26, "A"): the
+    /// `[welfare_hazard]` table rides every serialization of `Config`, this
+    /// wire included — present it appears inside `config`, absent the key
+    /// is not there at all, so a pre-066 world's requests are byte-identical.
+    /// Information to the advisor, never a decision input: the engine reads
+    /// it at load and boot only.
     #[test]
     fn the_welfare_hazard_acknowledgement_rides_the_wire_only_when_present() {
         let request_config_json = |config: &Config| -> serde_json::Value {

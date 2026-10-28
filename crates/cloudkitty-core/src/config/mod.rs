@@ -2829,6 +2829,37 @@ mod tests {
         );
     }
 
+    /// Spec 067 FR-008 (review of #471): a needy seat with NO table runs the
+    /// defaults, so the defaults answer to this config's floors exactly as
+    /// a written table would — a raised floor refuses the seat until a
+    /// table clears it.
+    #[test]
+    fn an_unwritten_needy_table_is_checked_as_the_defaults_in_force() {
+        let mut c = cfg();
+        c.thresholds.distress = 95.0;
+        c.actions.sleep_floor_off_beam = 92.0;
+        c.validate()
+            .expect("a floor of 92 under a distress of 95 is legal");
+        c.kitties[0].behavior = crate::needy::NAME.to_string();
+        c.welfare_hazard = Some(WelfareHazardConfig {
+            acknowledged: vec![crate::needy::NAME.to_string()],
+        });
+        let msg = c
+            .validate()
+            .expect_err("the default release level 90 sits under the floor 92")
+            .to_string();
+        assert!(
+            msg.contains("[needy].release_level") && msg.contains("(the default"),
+            "{msg}"
+        );
+        c.needy = Some(NeedyConfig {
+            release_level: 95.0,
+            ..Default::default()
+        });
+        c.validate()
+            .expect("a written release level above the floor clears it");
+    }
+
     /// Spec 067 FR-002: neither the table nor a needy seat moves the
     /// fingerprint, so no saved world is orphaned.
     #[test]
@@ -2843,10 +2874,12 @@ mod tests {
         );
     }
 
-    /// Spec 066 guard-law §3/§4 on a synthetic two-mode registry (the
-    /// partial shape is unreachable through a real config while one
-    /// mode is registered): exactness, the check order, and the wording
-    /// — which IS the contract, so the Display string is asserted.
+    /// Spec 066 guard-law §3/§4 on a synthetic two-mode registry (written
+    /// while one mode was registered; since spec 067 the partial shape is
+    /// also reached through a real config, in
+    /// `welfare_hazard_lists_every_active_needy_mode_in_registry_order`):
+    /// exactness, the check order, and the wording — which IS the
+    /// contract, so the Display string is asserted.
     #[test]
     fn welfare_hazard_exactness_is_checked_unknown_duplicate_missing_stale() {
         use super::validate::check_acknowledgement as check;
@@ -3112,6 +3145,24 @@ mod tests {
             b.ends_with("[welfare_hazard]\nacknowledged = [\"needy\", \"needy_hold\"]"),
             "both modes on the line, in registry order: {b}"
         );
+        // One of the two acknowledged: the partial shape, reachable through
+        // a real config since a second mode registered. The sentence names
+        // only the missing mode; the line still lists every active one.
+        both.welfare_hazard = Some(WelfareHazardConfig {
+            acknowledged: vec!["needy".into()],
+        });
+        let partial = both
+            .validate()
+            .expect_err("one of two acknowledged")
+            .to_string();
+        assert!(
+            partial.contains("mode 'needy_hold' at")
+                && !partial.contains("'needy' at")
+                && partial
+                    .ends_with("[welfare_hazard]\nacknowledged = [\"needy\", \"needy_hold\"]"),
+            "the partial shape names the missing mode and the exact line: {partial}"
+        );
+        both.welfare_hazard = None;
         // With a raised distressed start too: three modes, registry order.
         both.initial_needs = Some(InitialNeedsSpec {
             cuddle: Some(NeedInit::Value(92.0)),

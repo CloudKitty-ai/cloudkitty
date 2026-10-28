@@ -180,6 +180,25 @@ pub fn check(world: &World, config: &Config) -> Result<(), Violation> {
                 ),
             });
         }
+        // And the state's release rule is the configured preset's: a
+        // resume that swaps `needy` and `needy_hold` must not run one
+        // under the other's name and acknowledgement (needy-law §1).
+        if let Some(state) = &kitty.needy {
+            let seated_as = if state.hold {
+                crate::needy::HOLD_NAME
+            } else {
+                crate::needy::NAME
+            };
+            if kitty.behavior != seated_as {
+                return Err(Violation {
+                    article: "Bookkeeping integrity",
+                    detail: format!(
+                        "{} carries needy state seated as {:?} but its behavior is {:?}",
+                        kitty.name, seated_as, kitty.behavior
+                    ),
+                });
+            }
+        }
 
         // Duets are never one-sided: a cuddle or social play binds both
         // partners with identical clocks (spec 006 FR-009).

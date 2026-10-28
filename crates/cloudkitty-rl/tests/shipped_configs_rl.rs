@@ -380,6 +380,39 @@ fn hazardous_configs_are_refused_outside_experiments() {
         through_the_load.contains("[welfare_hazard]") && through_the_load.contains("'needy'"),
         "refused by validation, naming the mode: {through_the_load}"
     );
+
+    // SC-006: `needy_hold` is refused alike, and the two presets seated
+    // together are named together, in registry order.
+    let seated_toml = |seats: &[(usize, &str)]| {
+        let mut c = cloudkitty_core::Config::default();
+        for (i, preset) in seats {
+            c.kitties[*i].behavior = (*preset).into();
+        }
+        c.welfare_hazard = Some(cloudkitty_core::config::WelfareHazardConfig {
+            acknowledged: seats.iter().map(|(_, p)| p.to_string()).collect(),
+        });
+        toml::to_string(&c).unwrap()
+    };
+    for (file, seats, modes) in [
+        (
+            "specs/needy-hold.toml",
+            &[(0, "needy_hold")][..],
+            "needy_hold",
+        ),
+        (
+            "specs/needy-both.toml",
+            &[(0, "needy"), (2, "needy_hold")][..],
+            "needy, needy_hold",
+        ),
+    ] {
+        let path = scratch.join(file);
+        std::fs::write(&path, seated_toml(seats)).unwrap();
+        let refused = check_file(&scratch, &path).expect_err("refused outside experiments/");
+        assert!(
+            refused.contains(&format!("mode(s) {modes} active outside experiments/")),
+            "{file}: {refused}"
+        );
+    }
 }
 
 /// Self-test for `collect`'s symlink rule, the RL counterpart of the core

@@ -22,7 +22,7 @@ use super::teacher::Teacher;
 use super::{Behavior, DecisionContext};
 use crate::action::Action;
 use crate::needs::NeedKind;
-use crate::needy::{proposer_relief, solo, NeedSet};
+use crate::needy::{proposer_relief, NeedSet};
 use crate::seam::Decision;
 
 /// Both needy registrations (`crate::needy::NAME`, `crate::needy::HOLD_NAME`).
@@ -74,17 +74,21 @@ fn masked_view(ctx: &DecisionContext, mask: NeedSet) -> DecisionContext {
 }
 
 /// The post-filter (needy-law §6): a choice whose relief meets the mask —
-/// a groom response paying the groomer's masked cuddle, a co-sleep under
-/// a cuddle mask, luxury play (or the chase that pursues it) under a play
-/// mask — becomes its solo form when that relieves nothing masked (the
-/// kitty still sleeps, alone), and `Idle` otherwise.
+/// a groom response paying the groomer's masked cuddle, a co-sleep or
+/// co-rest under a cuddle mask, luxury play (or the chase that pursues it)
+/// under a play mask — becomes `Idle`, except a co-sleep while sleep is
+/// unmasked, which becomes sleep alone (the kitty still sleeps). A co-rest
+/// never becomes a solo rest: that relieves nothing and only holds the
+/// kitty to the rest minimum.
 fn filter(action: Action, mask: NeedSet) -> Action {
     let pursues_masked_play = matches!(action, Action::Chase(_)) && mask.contains(NeedKind::Play);
     if !proposer_relief(&action).meets(mask) && !pursues_masked_play {
         return action;
     }
-    match solo(&action) {
-        Some(alone) if !proposer_relief(&alone).meets(mask) => alone,
+    match action {
+        Action::Sleep { with: Some(_) } if !mask.contains(NeedKind::Sleep) => {
+            Action::Sleep { with: None }
+        }
         _ => Action::Idle,
     }
 }
@@ -307,6 +311,32 @@ mod tests {
             ),
             Action::Idle,
             "a chase pursues play"
+        );
+    }
+
+    #[test]
+    fn under_a_cuddle_mask_a_co_rest_becomes_idle_never_a_solo_rest() {
+        // needy-law §6: only a co-sleep keeps a solo form (sleep still
+        // relieves); a solo rest relieves nothing and would only hold the
+        // kitty to the rest minimum (the answered-cuddle-call rung).
+        let cuddle = NeedSet::from_kinds(&[NeedKind::Cuddle]);
+        assert_eq!(
+            filter(Action::Rest { with: Some(2) }, cuddle),
+            Action::Idle,
+            "a co-rest under a cuddle mask is dropped, not kept alone"
+        );
+        assert_eq!(
+            filter(Action::Sleep { with: Some(2) }, cuddle),
+            Action::Sleep { with: None },
+            "a co-sleep under a cuddle mask sleeps alone"
+        );
+        assert_eq!(
+            filter(
+                Action::Sleep { with: Some(2) },
+                NeedSet::from_kinds(&[NeedKind::Cuddle, NeedKind::Sleep])
+            ),
+            Action::Idle,
+            "with sleep masked too, nothing is left to keep"
         );
     }
 }

@@ -327,7 +327,11 @@ fn resolve_subject(
             if cloudkitty_core::needy::is_needy_name(brain) {
                 // Spec 067 FR-001: the needy presets are seated only through
                 // a config's [[kitty]] behavior. Aliased as a candidate they
-                // would run with no schedule — the teacher under another name.
+                // would run with no schedule — the teacher under another name
+                // (--suite) — and in single-config mode the harness rewrites
+                // every seat AFTER validation, so `--brain needy` would seat
+                // real needy cats with no acknowledgement: this refusal is
+                // what keeps spec 066's guard whole here.
                 eprintln!(
                     "kitty-eval: '{brain}' is a research-only needy preset, seated only through \
                      a config's [[kitty]] behavior (spec 067); it cannot be scored as a brain"

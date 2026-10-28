@@ -612,23 +612,16 @@ impl World {
 
     /// The onset sweep (needy-law §5b): no scene that would relieve a
     /// newly masked need survives the onset tick. The needy kitty's own
-    /// scene loses its companion when the solo scene relieves nothing
-    /// masked (a co-sleep under a cuddle-only mask sleeps on alone), and
-    /// ends otherwise; another kitty's scene that relieves the needy kitty
-    /// loses it as a companion (rest, co-sleep: spec 041's solo-posture
-    /// degrade) or ends (a groom of it, a social-play duet with it).
+    /// scene ends (a social-play duet ends for both); another kitty's
+    /// scene that relieves the needy kitty loses it as a companion (rest,
+    /// co-sleep: spec 041's solo-posture degrade) or ends (a groom of it).
     /// Validation, the legal mask and `available_friend_in` never read
     /// the mask: it is hidden state, read only here and at the apply slot.
     fn sweep_onset(&mut self, needy_id: KittyId, masked: crate::needy::NeedSet) {
         use crate::needy::{partner_relief, proposer_relief, solo};
         if let Some(scene) = self.kitty(needy_id).and_then(|k| k.activity.continuation()) {
             if proposer_relief(&scene).meets(masked) {
-                match solo(&scene) {
-                    Some(alone) if !proposer_relief(&alone).meets(masked) => {
-                        self.drop_companion(needy_id)
-                    }
-                    _ => self.end_activity(needy_id),
-                }
+                self.end_activity(needy_id);
             }
         }
         for i in 0..self.kitties.len() {

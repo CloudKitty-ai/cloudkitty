@@ -153,6 +153,22 @@ mod tests {
         }
     }
 
+    /// Spec 067 (needy-law §6, review of #471): a fork draws exactly what
+    /// the stream would have drawn next, and drawing from the fork leaves
+    /// the stream where it was.
+    #[test]
+    fn a_fork_draws_the_streams_next_values_and_leaves_it_in_place() {
+        let stream = DecisionRng::from_seed(7);
+        stream.gen_u64();
+        let fork = stream.fork();
+        let forked: Vec<u64> = (0..4).map(|_| fork.gen_u64()).collect();
+        let own: Vec<u64> = (0..4).map(|_| stream.gen_u64()).collect();
+        assert_eq!(
+            forked, own,
+            "the fork's draws are the stream's own next draws"
+        );
+    }
+
     #[test]
     fn different_seeds_diverge() {
         let mut a = SimRng::from_seed(1);
