@@ -40,18 +40,21 @@ Shared orderings (normative everywhere below; sources cited):
 ## Observation — CURRENT: schema 6 (spec 058, the Gen 2 wall; `observe.rs`)
 
 Layout: `self 109 | kitty×4 ×58 | chow×2 ×6 | water×2 ×5 | sunbeam×2 ×7 |
-critter×2 ×11` = **399** at the served slot configuration; there is no
-clock cell. Length is `observation_len(cfg)`, config-derived and never a
-constant to quote; `schema_six_pins.rs` asserts every number here
-literally, and `schema_map::column_map(6)` (the binding's
-`COLUMN_MAPS[6]`) publishes every cell by name. The vector is a pure
+critter×2 ×11` = **399** at the default slot configuration
+(`ObservationConfig::default()`; `cloudkitty.toml` sets no slot counts);
+there is no clock cell. Length is `observation_len(cfg)`, config-derived
+and never a constant to quote. `schema_six_pins.rs` pins the block
+widths, the 399, the slot defaults, the frozen normalizers and the block
+offsets literally (`attn.rs` pins the token layout), and
+`schema_map::column_map(6)` (the binding's `COLUMN_MAPS[6]`) names every
+single cell and the first offset of every multi-cell block. The vector is a pure
 function of the deciding cat's **fog view** (`WorldSnapshot::fog_for`):
 the kitties and elements inside its Euclidean disc (`dx² + dy² ≤ r²`,
 integer, edge included; `[vision] radius`), every recent meow (hearing
 is global), the roster's ids, and its own memory — the same information
 set every built-in behaviour and plugin decides from (spec 049 FR-021,
 held through the bump). Kitty rows are **permanent, one per friend, in
-kitty-id order** (`kitty_slots` = roster − 1, served 4; a roster above
+kitty-id order** (`kitty_slots` = roster − 1, default 4; a roster above
 `kitty_slots + 1` is refused at load); a vacant row (a lab roster
 smaller than five) is all zero. Repetition and insistence are
 per-speaker fields on the rows (the schema-4 global digest stays gone).
@@ -69,8 +72,9 @@ in tiles, and d = |dx| + |dy|, the Manhattan walk cost:
 
 The cells are never clamped at the vision radius: a visible entity's
 Manhattan distance routinely exceeds the Euclidean radius, and a heard
-friend's meow position can lie well outside it (FR-001a). No absolute
-position appears anywhere; the vector is egocentric (FR-003).
+friend's meow position can lie well outside it (FR-001a). Every place
+but the cat's own is relative to the cat; its own position enters
+through the wall cells below.
 
 **Self block (109)** — never fogged:
 
@@ -96,6 +100,12 @@ position appears anywhere; the vector is egocentric (FR-003).
 | 75–104 | element memory: per `ElementType::ALL[j]`, `75+6j` present, `+1`–`+4` spatial group, `+5` staleness | spatial group from the CURRENT position to the remembered tile; staleness `(tick − last_seen) / 40`, clamp; **40 frozen** (049 FR-009); seeded at generation from the tick-0 disc (stamped 0), so a reset observation already carries what is in view |
 | 105–106 | waypoint bearing | the bearing pair to the exploration tour's current waypoint (`Lattice::waypoint_at`); (0, 0) on it |
 | 107–108 | dirt reserve | always 0.0: no engine write path until a future dirt arm (proven inert, `tests/dirt_reserve.rs`) |
+
+The wall cells count tiles to each edge, so a cell means the same on any
+world size. They still locate the cat: on a world up to 41 tiles a side,
+W = x/40 and N = y/40 give its exact tile. Spec 058 FR-003 expected the
+bump to lose global self-localization; on the shipped 20×20 world it
+does not.
 
 **Kitty row (58) × 4**, row k = the friend with the (k+1)-th smallest id.
 Visibility is **five of six**: of a friend's needs only bath has a cell
@@ -132,16 +142,16 @@ present, then the spatial group, then its extras: chow (6): + servings
 (/max_chow_servings, clamp); water (5): no extras; sunbeam (7): +
 remaining-ttl fraction (1.0 if untimed) + occupied-by-any-kitty; critter
 (11): + is-greeble + heading one-hot (4, `Direction::ALL` order; zeros
-for a bug) + is-my-activity's-target. Served slots: chow 2, water 2,
-sunbeam 2, critter 2 (4 → 2 by the owner's word 2026-10-09: two slots
-cover the most critters a radius-5 disc has ever shown).
+for a bug) + is-my-activity's-target. Default slots: chow 2, water 2,
+sunbeam 2, critter 2 (4 → 2 by the owner's word 2026-10-09, recorded in
+the spec 058 contract).
 
 **No clock** (spec 058 FR-010): the episode-clock cell is gone, and the
 encoder takes no clock argument. The critic's global state keeps its
 clock (below).
 
 The v3 artifact's token layout derives from these widths
-(`attn.rs` `token_layout`): 13 tokens at the served slots (self, 4
+(`attn.rs` `token_layout`): 13 tokens at the default slots (self, 4
 kitty, 2 chow, 2 water, 2 sunbeam, 2 critter), six type-embedding rows;
 the clock token went with the clock cell. An artifact pinned to schema
 5 refuses to load against schema 6, and the reverse.
@@ -153,7 +163,7 @@ the clock token went with the clock cell. An artifact pinned to schema
   served slots (404 before the kitty-row sunbeam bit, 2026-09-04). In
   place of the spatial group: own position /width, /height, and per
   reference dx, dy (/width, /height) plus a Manhattan distance cell
-  (/(width + height) on kitty rows); element memory 4 cells per kind
+  (/(width + height)); element memory 4 cells per kind
   (present, dx, dy, staleness). All six of a friend's needs and its
   happiness on the kitty row; the six trait cells without the rest of
   the identity block; an episode-clock cell (tick/horizon); 16 tokens,
@@ -182,7 +192,7 @@ by the same v2 construction rule (`ActionCodec::v2`), so only slot counts
 moved it. `kitty_slots` went 3 → 4 at the fog wall (spec 049: one
 kitty-verb entry each for the fourth row), and `critter_slots` 4 → 2 at
 the Gen 2 wall (spec 058: two fewer entries in each critter verb). The
-served menu is 35 entries, published by name in the binding's
+default menu is 35 entries, published by name in the binding's
 `ACTION_MENU`. `ACTION_SCHEMA_VERSION` stays 3.
 
 | idx | entry | notes |
@@ -241,7 +251,7 @@ Artifact containers and the forward contract: spec 030's
 ## Mask — CURRENT: schema 3 (spec 033; `mask.rs`)
 
 One vector: `[activity mask (35) ∥ message mask (16)]` = 51 at the
-served slots, u8/bool. Both halves are pure oracles over
+default slots, u8/bool. Both halves are pure oracles over
 engine law, probed over the deciding cat's **fog view** (spec 049 R2) —
 the activity half probes `validate` and duration enforcement on a probe
 world built from the view, the message half probes `message_legal` —
@@ -261,7 +271,7 @@ was `[34 ∥ 9]` = 43; schema 1 masked the 40-menu.
 
 ## Global state — CURRENT: v2 (spec 058; `global_state.rs`, critic-only)
 
-`roster × 40 + 5 × 7 + 2` (= 237 at roster 5 with the served element
+`roster × 40 + 5 × 7 + 2` (= 237 at roster 5 with the default element
 config). Per kitty, stable id order: needs 6 (/100), happiness, pos x/y
 (/width, /height), activity one-hot 7, has-partner, partner (present +
 roster-index/(roster−1)), progress, distress 6, identity 14 (the
@@ -295,8 +305,9 @@ the identity block: `roster × 32 + 5 × 7 + 2` = 197 at roster 5.
 Row invariant: `mask[i, label[i]] == 1` and `mask_msg[i, label_msg[i]]
 == 1` everywhere; `mask_msg[:, 0]` all-ones. Datasets record the schema
 they were collected under; a schema-6 dataset is 399/35/16-shaped at
-the served slots (schema 5: 408/39/16; schema 4: 225/34/16). Every observation is the kitty's own fog
-view of the pre-tick snapshot at the config's `[vision] radius`
+the default slots (schema 5: 408/39/16; schema 4: 225/34/16). Every
+observation is the kitty's own fog view of the pre-tick snapshot at the
+config's `[vision] radius`
 (recorded in meta as `vision_radius`).
 
 With `--trace` (meta `trace: true`) the rollout dir also holds the
