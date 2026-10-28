@@ -9,7 +9,9 @@
 ## Mechanical gate
 
 - [ ] `tag-rigor` workflow dispatched on this branch and **green**
-      (full `scripts/tag-check.sh` + quickstart smoke). Paste the run link:
+      (full `scripts/tag-check.sh` + quickstart smoke). Dispatch, and later
+      push the tag, only after CI on that commit has finished: an unfinished
+      run FAILs the warnings check and needs a re-run. Paste the run link:
 - [ ] `scripts/tag-check.sh --tag X.Y.Z` run locally (its warnings check needs
       an authenticated `gh`): version/CHANGELOG/tag agree, `## Unreleased` is
       expanded.
@@ -18,7 +20,8 @@
       below the sign-offs).
 - [ ] The warnings REPORT reviewed — every line it lists (an annotation, a run
       that did not succeed, a workflow with no run in this history) is fixed, or
-      accepted with a reason (one line each under Warning dispositions).
+      accepted with a reason by the thread whose lane it concerns
+      (`scripts/lanes.txt`), one line each under Warning dispositions.
       Non-blocking checks warn instead of failing; this row is where a release
       reads them.
 

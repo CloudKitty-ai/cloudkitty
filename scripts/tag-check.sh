@@ -529,17 +529,18 @@ c_glossary() {
 
 # ---------------------------------------------------------------- warnings
 # REPORT: the warning and failure annotations on the newest run of each
-# workflow whose commit is in HEAD's history (owner's word 2026-10-27: "Add
-# a review looking for warnings to our tag rigor"). A non-blocking step
-# stays green when it fails and speaks only through an annotation —
-# experiments.yml's tools build and tests, the budget's advisories,
-# GitHub's own deprecations — so this is where a release reads them.
-# tag-rigor.yml is skipped: its run is the one doing the reading. A run that
-# completed without succeeding is listed too: a startup failure has no jobs,
-# so no annotations. FAIL when a run cannot be read — gh fails, the run is
-# not finished, or the workflow has never run (gh cannot find it) — because a
-# review that could not look has not happened. Needs gh with read access to
-# the repo's actions and checks.
+# tracked workflow file whose commit is in HEAD's history (owner's word
+# 2026-10-27: "Add a review looking for warnings to our tag rigor"). A
+# non-blocking step stays green when it fails and speaks only through an
+# annotation — experiments.yml's tools build and tests, the budget's
+# advisories, GitHub's own deprecations — so this is where a release reads
+# them. tag-rigor.yml is skipped: its run is the one doing the reading. A run
+# that completed without succeeding is listed too: a startup failure has no
+# jobs, so no annotations. FAIL when a run cannot be read — gh fails, the run
+# is not finished, or GitHub has never registered the workflow (never run and
+# not on the default branch, so gh cannot find it) — because a review that
+# could not look has not happened. Needs gh with read access to the repo's
+# actions and checks.
 c_warnings() {
   local ok=0 any=0 wf id sha st concl url jid jname line pick bad
   : > "$TMP/ann"; : > "$TMP/note"; : > "$TMP/read"

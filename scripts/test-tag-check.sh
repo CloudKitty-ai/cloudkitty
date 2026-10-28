@@ -567,17 +567,25 @@ case_ 0 "a lone run that never started: REPORT, not a silent PASS" warnings
 has "REPORT  warnings" "the startup failure is reported"
 has "experiments.yml: run 18929595281 concluded startup_failure" "its conclusion named"
 reset_
+# a clean run (recorded from actions/checkout run 40181359548; every run here
+# carries GitHub's Node 20 warning): alone, nothing to list is a PASS
+git rm -q .github/workflows/ci.yml .github/workflows/harness.yml .github/workflows/tag-rigor.yml
+stub "$ON_MAIN @SHA_CLEAN@=$G" clean
+case_ 0 "a lone clean run: PASS" warnings
+has "PASS    warnings" "nothing to list is a PASS"
+hasnt "concluded success" "a run that succeeded is not listed"
+reset_
 stub "$ON_MAIN" "" runs
 case_ 1 "runs unreadable: FAIL, not an empty review" warnings
 has "could not list the runs of ci.yml: HTTP 401: Bad credentials" "gh's error carried"
 stub "$ON_MAIN" "" jobs
 case_ 1 "jobs unreadable: FAIL" warnings
 has "could not list the jobs of ci.yml run 40626949298: gh: Not Found (HTTP 404)" "the run named"
-hasnt "        read ci.yml run" "a run not read gets no read line"   # the detail indent: "could not read ci.yml run" is not a read line
+hasnt "read ci.yml run 40626949298 @" "a run not read gets no read line"
 stub "$ON_MAIN" "" annotations
 case_ 1 "annotations unreadable: FAIL" warnings
 has "could not read the annotations of ci.yml job 'fmt + clippy + test': gh: Not Found (HTTP 404)" "the job named"
-hasnt "        read ci.yml run" "a run read in part gets no read line"   # the detail indent: "could not read ci.yml run" is not a read line
+hasnt "read ci.yml run 40626949298 @" "a run read in part gets no read line"
 stub "$ON_MAIN"
 
 echo
