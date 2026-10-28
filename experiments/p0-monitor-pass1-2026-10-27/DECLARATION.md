@@ -21,8 +21,8 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT, her ruling in progress: calls 1–3 RULED 2026-10-27
-(§12); calls 4–5 open. Nothing below runs until she rules. No number from this
+**Status: DRAFT, her ruling in progress: calls 1–4 RULED 2026-10-27
+(§12); call 5 open. Nothing below runs until she rules. No number from this
 arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
@@ -114,7 +114,10 @@ kitty 2 / kitty 4, ticks 456–486; both alphabets below exclude the
 message head); the 4k rungs marked
 POISONED FOR TRAINING (their value targets, not their behaviour streams,
 are the poison — `gen2-trunk-training-2026-10-18/MITIGATION.md:362-372`;
-left out anyway, no label needs them); battery post-stop rows (citation
+left out anyway, no label needs them, and not healthy material: the ε
+rungs saved state and reward only, no actions, under the BC clone with
+ε-random actions, and the initial-needs rungs start from drawn wide or
+grave need levels; call 4 RULED no); battery post-stop rows (citation
 open, deviations entry 4(a)); `beam-world-screen` tier5-stale; eps01 /
 eps03 (no action labels). What does not exist: machine-readable hand
 labels (every label above is prose in a RESULTS, prereg or diag file,
@@ -595,6 +598,12 @@ recorded in this file before the read runs.
 4. Whether the 4k rungs' behaviour streams (poisoned for training, not
    for reading) may be used as additional healthy-teacher material if
    the A9 band needs more worlds; the default here is no.
+   RULED 2026-10-27 on this thread's walkthrough: no, and closed. Put
+   to her with the finding above (the call's "healthy-teacher
+   material" framing was this thread's error: `results-raw-extension-iter/
+   eps01`, `eps03` hold meta.json, reward.npy and state.npy only;
+   `IN-wide`, `IN-grave` are scripted seats from drawn need levels).
+   Her words: "5) no and close it".
 5. The July pair (§2): regenerate the pre-“wait for me” approach orbits
    inside pass 1 (scripted only, 0 covered cat-ticks, 30 worlds × 5,000
    ticks × 4 kitties per commit, minutes of compute), or leave them for
