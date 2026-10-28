@@ -4,7 +4,45 @@
 set -u
 SD="$(cd "$(dirname "$0")" && pwd)"
 TC="$SD/tag-check.sh"
-T=$(mktemp -d); O=$(mktemp); trap 'rm -rf "$T" "$O"' EXIT
+T=$(mktemp -d); O=$(mktemp); SB=$(mktemp -d); trap 'rm -rf "$T" "$O" "$SB"' EXIT
+
+# gh stand-in for the warnings check: serves the payloads recorded from this
+# repo's GitHub API on 2026-10-27 (scripts/test-tag-check.d/gh/) through the
+# caller's own --jq filter. The one edit to a recording: run-list head SHAs
+# are placeholders, mapped here onto fixture commits ($STUB_MAP).
+# $STUB_FAIL=runs|jobs|annotations fails that call with the recorded gh
+# error; $STUB_SCENARIO selects runs-<workflow>.<scenario>.json when present.
+cat > "$SB/gh" <<'STUB'
+#!/usr/bin/env bash
+set -u
+sub=$1; shift; [ "$sub" = run ] && shift
+wf="" q="" path=""
+while [ $# -gt 0 ]; do case $1 in
+  --workflow) wf=$2; shift 2 ;;
+  --jq) q=$2; shift 2 ;;
+  --limit|--json) shift 2 ;;
+  --paginate) shift ;;
+  *) path=$1; shift ;;
+esac; done
+case "$sub:$path" in
+  run:) kind=runs; f=$STUB_REC/runs-$wf.${STUB_SCENARIO:-none}.json; [ -f "$f" ] || f=$STUB_REC/runs-$wf.json ;;
+  api:*/actions/runs/*/jobs) kind=jobs; id=${path%/jobs}; f=$STUB_REC/jobs-${id##*/}.json ;;
+  api:*/check-runs/*/annotations) kind=annotations; id=${path%/annotations}; f=$STUB_REC/ann-${id##*/}.json ;;
+  *) echo "stub gh: nothing recorded for: $sub $path" >&2; exit 1 ;;
+esac
+if [ "${STUB_FAIL:-}" = "$kind" ]; then
+  if [ "$kind" = runs ]; then cat "$STUB_REC/err-401.txt" >&2; else cat "$STUB_REC/err-404.txt" >&2; fi
+  exit 1
+fi
+[ -f "$f" ] || { echo "stub gh: no recording $f" >&2; exit 1; }
+m=(-e 's/@@unused@@//')
+for pair in ${STUB_MAP:-}; do m+=(-e "s/${pair%%=*}/${pair#*=}/g"); done
+sed "${m[@]}" "$f" | jq -r "$q"
+STUB
+chmod +x "$SB/gh"
+export PATH="$SB:$PATH" STUB_REC="$SD/test-tag-check.d/gh"
+stub() { export STUB_MAP="$1" STUB_SCENARIO="${2:-}" STUB_FAIL="${3:-}"; }   # stub <map> [scenario] [fail]
+
 cd "$T" && git init -q
 c() { # c <msg> [date]
   git add -A
@@ -185,6 +223,8 @@ printf '%s\n' '# allow' > scripts/tag-check.d/citation-allow.txt
 printf '%s\n' '# allow' > scripts/tag-check.d/gate-allow.txt
 printf '%s\n' '# ship' 'client/app.js' 'client/index.html' > scripts/tag-check.d/client-ship.txt
 printf '%s\n' '# noship' 'client/test-x.mjs' > scripts/tag-check.d/client-noship.txt
+mkdir -p .github/workflows
+for w in ci experiments harness tag-rigor; do printf 'name: %s\n' "$w" > .github/workflows/$w.yml; done
 c base 2026-09-01T12:00:00
 scripts/gen-specs-index.sh "$T" > specs/INDEX.md
 scripts/gen-experiments-index.sh "$T" > experiments/INDEX.md
@@ -201,6 +241,14 @@ printf 'x\n' > .tag-marker && c marker 2026-09-20T11:00:00
 GIT_COMMITTER_DATE=2026-09-20T12:00:00 git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t 0.3.9
 c post-tag
 git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t green
+# the recorded runs' commits, as the fixture sees them: main (green and its
+# parent) and a side branch that never merged (a PR head, the probe on it)
+G=$(git rev-parse 'green^{commit}'); G1=$(git rev-parse 'green~1')
+SIDE1=$(git -c user.name=t -c user.email=t@t commit-tree -p "$G" -m side-pr "$G^{tree}")
+SIDE2=$(git -c user.name=t -c user.email=t@t commit-tree -p "$SIDE1" -m side-probe "$G^{tree}")
+ON_MAIN="@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G @SHA_OLD@=$G1 @SHA_QUEUED@=$SIDE2"
+ON_PROBE="@SHA_PROBE@=$G @SHA_PR@=$G1 @SHA_MAIN@=$G1 @SHA_OLD@=$G1 @SHA_QUEUED@=$SIDE2"
+stub "$ON_MAIN"
 
 # ---------------------------------------------------------------- green
 case_ 0 "green fixture: full suite passes"
@@ -439,6 +487,42 @@ git rm -q GLOSSARY.md
 case_ 0 "missing glossary: REPORT, not FAIL" glossary
 has "not yet created" "glossary report text"
 reset_
+
+# ---------------------------------------------------------------- warnings
+# recordings: main's runs at c3b54504, and the red-first probe PR #473 (a
+# tools crate that fails to build, one whose test fails) on a side branch
+case_ 0 "warnings on main's runs: REPORT, never FAIL" warnings
+has "REPORT  warnings" "warnings reported"
+has "read experiments.yml run 40626949340 @ ${G:0:8}" "newest run in HEAD's history is the one read"
+hasnt "Tools tests failed" "a newer run on a commit outside HEAD's history is skipped"
+hasnt "ubuntu-latest label will migrate" "notice-level annotations left out"
+has "warning ×6: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For" "identical warnings collapse to one counted line"
+[ "$(grep -c 'actions/checkout@v4. For more' "$O")" = 1 ] && echo "ok   the collapsed warning prints once" || { echo "FAIL the collapsed warning prints $(grep -c 'actions/checkout@v4. For more' "$O") times"; fail=1; }
+has "warning: tier 2 is +985 net lines" "a one-off advisory listed"
+hasnt "tag-rigor.yml" "tag-rigor.yml's own runs not read"
+stub "$ON_PROBE"
+case_ 0 "warnings on the probe's runs: REPORT" warnings
+has "warning: Tools tests failed: experiments/tools crates fail their own tests — zz-probe-testfail" "tools test warning listed with its crate"
+has "warning: Engine drift: experiments/tools crates no longer build against crates/ — zz-probe-buildfail" "drift warning listed with its crate"
+has "failure ×3: Process completed with exit code 1. — in experiments.yml (build + test experiments/tools), harness.yml (lane check)" "failure-level annotations listed, each job once"
+stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G @SHA_OLD@=$G1 @SHA_QUEUED@=$G" inprogress
+case_ 0 "an unfinished run: REPORT, not read" warnings
+has "read harness.yml: run 40629044179 is queued, so its annotations are not final" "queued run named"
+hasnt "tier 2 is +985" "the queued run's annotations are not read"
+stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$SIDE1 @SHA_OLD@=$SIDE1 @SHA_QUEUED@=$SIDE2"
+case_ 0 "no run in HEAD's history: REPORT" warnings
+has "read ci.yml: no run on a commit in this history" "missing run named"
+has "REPORT  warnings" "no run is a REPORT, not a PASS"
+stub "$ON_MAIN" "" runs
+case_ 1 "runs unreadable: FAIL, not an empty review" warnings
+has "could not list the runs of ci.yml: HTTP 401: Bad credentials" "gh's error carried"
+stub "$ON_MAIN" "" jobs
+case_ 1 "jobs unreadable: FAIL" warnings
+has "could not list the jobs of ci.yml run 40626949298: gh: Not Found (HTTP 404)" "the run named"
+stub "$ON_MAIN" "" annotations
+case_ 1 "annotations unreadable: FAIL" warnings
+has "could not read the annotations of ci.yml job 'fmt + clippy + test': gh: Not Found (HTTP 404)" "the job named"
+stub "$ON_MAIN"
 
 echo
 if [ "$fail" = 0 ]; then echo "ALL CASES HELD"; else echo "CASES FAILED"; fi

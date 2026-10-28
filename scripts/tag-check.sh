@@ -32,7 +32,7 @@ esac; done
 }
 CFG="$R/scripts/tag-check.d"
 
-CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary"
+CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary warnings"
 if [ "$LIST" = 1 ]; then for c in $CHECKS; do echo "$c"; done; exit 0; fi
 if [ -n "$ONLY" ]; then
   for c in $ONLY; do case " $CHECKS " in *" $c "*) ;; *) echo "tag-check: no such check: $c" >&2; exit 2 ;; esac; done
@@ -524,6 +524,66 @@ c_glossary() {
     echo "GLOSSARY.md exists but docs/ carries no pointer to it" >> "$D"
     return 3
   fi
+  return 0
+}
+
+# ---------------------------------------------------------------- warnings
+# REPORT: the warning and failure annotations on the newest run of each
+# workflow whose commit is in HEAD's history (owner's word 2026-10-27: "Add
+# a review looking for warnings to our tag rigor"). A non-blocking step
+# stays green when it fails and speaks only through an annotation —
+# experiments.yml's tools build and tests, the budget's advisories,
+# GitHub's own deprecations — so this is where a release reads them.
+# tag-rigor.yml is skipped: its run is the one doing the reading. FAIL when
+# the runs cannot be read: a review that could not look has not happened.
+# Needs gh with read access to the repo's actions and checks.
+c_warnings() {
+  local ok=0 any=0 wf id sha st concl url jid jname line pick
+  : > "$TMP/ann"; : > "$TMP/read"
+  while IFS= read -r wf; do
+    wf=${wf#.github/workflows/}
+    [ "$wf" = tag-rigor.yml ] && continue
+    if ! (cd "$R" && gh run list --workflow "$wf" --limit 100 \
+          --json databaseId,headSha,status,conclusion,url \
+          --jq '.[] | "\(.databaseId)|\(.headSha)|\(.status)|\(.conclusion)|\(.url)"') \
+          < /dev/null > "$TMP/runs" 2> "$TMP/gherr"; then
+      echo "could not list the runs of $wf: $(head -n 1 "$TMP/gherr")" >> "$D"; ok=1; continue
+    fi
+    pick=""
+    while IFS='|' read -r id sha st concl url; do
+      git -C "$R" merge-base --is-ancestor "$sha" HEAD 2>/dev/null && { pick=$id; break; }
+    done < "$TMP/runs"
+    if [ -z "$pick" ]; then
+      echo "$wf: no run on a commit in this history among its newest 100" >> "$TMP/read"; any=1; continue
+    fi
+    echo "$wf run $id @ ${sha:0:8} ($st${concl:+/$concl}) $url" >> "$TMP/read"
+    [ "$st" = completed ] ||
+      { echo "$wf: run $id is $st, so its annotations are not final; re-run once it completes" >> "$TMP/read"; any=1; continue; }
+    if ! (cd "$R" && gh api "repos/{owner}/{repo}/actions/runs/$id/jobs" --paginate \
+          --jq '.jobs[] | [.id, .name] | @tsv') < /dev/null > "$TMP/jobs" 2> "$TMP/gherr"; then
+      echo "could not list the jobs of $wf run $id: $(head -n 1 "$TMP/gherr")" >> "$D"; ok=1; continue
+    fi
+    while IFS=$'\t' read -r jid jname; do
+      if ! (cd "$R" && gh api "repos/{owner}/{repo}/check-runs/$jid/annotations" --paginate \
+            --jq '.[] | select(.annotation_level != "notice") | [.annotation_level, .title, .message] | @tsv') \
+            < /dev/null > "$TMP/one" 2> "$TMP/gherr"; then
+        echo "could not read the annotations of $wf job '$jname': $(head -n 1 "$TMP/gherr")" >> "$D"; ok=1; continue
+      fi
+      while IFS= read -r line; do printf '%s\t%s\t%s\n' "$line" "$wf" "$jname"; done < "$TMP/one" >> "$TMP/ann"
+    done < "$TMP/jobs"
+  done < <(grep -E '^\.github/workflows/[^/]+\.ya?ml$' "$TRACKED")
+  [ -s "$TMP/ann" ] && any=1
+  # one line per distinct annotation, with its count and where it was seen
+  awk 'BEGIN { FS = "\t" }
+    { k = $1 FS $2 FS $3; if (!(k in n)) o[++m] = k; n[k]++
+      s = $4 " (" $5 ")"
+      if (!((k, s) in seen)) { seen[k, s] = 1; u[k]++; if (u[k] <= 3) w[k] = w[k] (u[k] > 1 ? ", " : "") s } }
+    END { for (i = 1; i <= m; i++) { k = o[i]; split(k, p, FS)
+      printf "%s%s: %s%s — in %s%s\n", p[1], (n[k] > 1 ? " ×" n[k] : ""), (p[2] != "" ? p[2] ": " : ""),
+        p[3], w[k], (u[k] > 3 ? ", +" (u[k] - 3) " more" : "") } }' "$TMP/ann" >> "$D"
+  sed 's/^/read /' "$TMP/read" >> "$D"
+  [ $ok = 1 ] && return 1
+  [ $any = 1 ] && return 3
   return 0
 }
 

@@ -15,6 +15,10 @@
 - [ ] The staleness REPORT reviewed — every flagged §6 home is either
       updated or its subject truly did not change this release (say which,
       below the sign-offs).
+- [ ] The warnings REPORT reviewed — every warning and failure annotation it
+      lists is fixed, or accepted with a reason (one line each under Warning
+      dispositions). Non-blocking checks warn instead of failing; this row is
+      where a release reads them.
 
 ## Human rows — Product
 
@@ -56,3 +60,7 @@
 ## Staleness dispositions
 
 <!-- one line per flagged home: updated | unchanged-subject (why) -->
+
+## Warning dispositions
+
+<!-- one line per listed annotation: fixed (PR) | accepted (why) -->
