@@ -37,7 +37,7 @@
 //! mask-guaranteed: a proposal the tick rewrote is often exactly the
 //! mask-illegal one (~3% of rows on the Gen 2 draft world), so a consumer
 //! training this column under a masked softmax must handle
-//! mask[i][label_proposed[i]] == 0 — the activity-half mirror of the
+//! `mask[i][label_proposed[i]] == 0` — the activity-half mirror of the
 //! message half's over-emitting caveat above. Applied labels and the
 //! consume rule are untouched: which column trains is Experiments' prereg
 //! call.
@@ -530,6 +530,9 @@ fn main() {
             // configured behavior when the registry knows it, else the
             // engine's needs_driven fallback -- exp-002 families seat a
             // playful Biscuit, so a flat "needs_driven" stamp would lie.
+            // Every seat is listed, refused teachers included: readers take
+            // the roster size and state.npy's block order from this map, and
+            // `teachers_refused` names the seats that recorded no rows.
             let experts_json: Vec<String> = config
                 .kitties
                 .iter()
