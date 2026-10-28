@@ -243,7 +243,7 @@ artifact = "policies/trained.ckpolicy"
 ```
 
 ```bash
-cargo run    # validates + hash-logs the artifact before the first tick
+cargo run -p cloudkitty-server    # validates + hash-logs the artifact before the first tick
 ```
 
 A corrupted or mis-shaped artifact fails startup naming the config
