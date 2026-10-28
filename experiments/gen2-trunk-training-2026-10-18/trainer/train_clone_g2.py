@@ -32,7 +32,7 @@ sys.path.insert(3, str(EXPERIMENTS / "exp-004-meow-channel" / "trainer"))
 
 from bc_loss2 import two_head_loss  # noqa: E402
 from data_g2 import (ACTION_GROUPS, ACTION_NAMES, MSG_NAMES,  # noqa: E402
-                     load_dataset, stack_decisions)
+                     load_training_dataset, stack_decisions)
 from model_v6 import EntityPolicyV6  # noqa: E402
 from train_clone6 import evaluate  # noqa: E402
 
@@ -88,8 +88,8 @@ def main():
         torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-    train_r, val_r, dims = load_dataset(args.data_root, args.consent_rows,
-                                        args.limit_rollouts)
+    train_r, val_r, dims = load_training_dataset(
+        args.data_root, args.consent_rows, args.limit_rollouts)
     n_actions, n_msgs = dims["n_actions"], dims["n_msgs"]
     swapped = sum(r.swapped for r in train_r + val_r)
     unswappable = sum(r.unswappable for r in train_r + val_r)

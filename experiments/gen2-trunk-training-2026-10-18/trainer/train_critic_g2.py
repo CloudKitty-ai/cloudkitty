@@ -44,7 +44,8 @@ import torch
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from data_g2 import load_dataset  # noqa: E402
+from data_g2 import (load_training_dataset,  # noqa: E402
+                     refuse_non_teaching_world)
 from model_attn_v2 import EntityCriticV2  # noqa: E402
 from tokens_v2 import STATE_DIM, tokenize  # noqa: E402
 
@@ -59,6 +60,8 @@ def load_extension(manifest: Path | None, dirs):
             if not r["included"]:
                 continue
             d = exp / r["path"]
+            refuse_non_teaching_world(
+                json.loads((d / "meta.json").read_text()), d)
             state = np.load(d / "state.npy", mmap_mode="r")
             digest = hashlib.sha256(
                 np.ascontiguousarray(state)).hexdigest()
@@ -71,6 +74,8 @@ def load_extension(manifest: Path | None, dirs):
         found = sorted(Path(root).glob("**/config-*-rollout-*"))
         assert found, f"no rollout dirs under {root}"
         for d in found:
+            refuse_non_teaching_world(
+                json.loads((d / "meta.json").read_text()), d)
             rows.append(SimpleNamespace(
                 name=f"ext:{d}", state=np.load(d / "state.npy",
                                                mmap_mode="r"),
@@ -125,8 +130,8 @@ def main():
         torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-    train_r, val_r, dims = load_dataset(args.data_root, args.consent_rows,
-                                        args.limit_rollouts)
+    train_r, val_r, dims = load_training_dataset(
+        args.data_root, args.consent_rows, args.limit_rollouts)
     ext = load_extension(args.extension_manifest, args.extension_dirs)
     train_r = list(train_r) + ext
     print(f"dims: {dims}; rollouts {len(train_r)} train "

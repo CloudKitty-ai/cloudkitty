@@ -189,6 +189,32 @@ def load_dataset(root, consent_rows=None, limit_rollouts=None):
     return train, val, dims
 
 
+def refuse_non_teaching_world(meta: dict, name) -> None:
+    """The learning step's refusal (owner's observer-stream ruling,
+    2026-10-27, B: nothing that acts learns from a needy world).
+    bc-collect names a world's non-teaching seats in meta.json
+    `teachers_refused` and then records no demonstration row from any
+    seat, but it still writes that world's state and reward. A rollout
+    naming any such seat is never training data for a policy or a
+    critic; readers may still load it, trainers call this on everything
+    they train on."""
+    refused = meta.get("teachers_refused") or []
+    if refused:
+        raise SystemExit(
+            f"{name}: refusing to train on a world that seats a "
+            f"non-teaching behaviour (seats {refused}; owner ruling "
+            "2026-10-27, observer streams B)")
+
+
+def load_training_dataset(root, consent_rows=None, limit_rollouts=None):
+    """load_dataset for a learning step: every rollout passes
+    refuse_non_teaching_world first."""
+    train, val, dims = load_dataset(root, consent_rows, limit_rollouts)
+    for r in train + val:
+        refuse_non_teaching_world(r.meta, r.name)
+    return train, val, dims
+
+
 def stack_decisions(rollouts):
     return (
         np.concatenate([np.asarray(r.obs, dtype=np.float32)

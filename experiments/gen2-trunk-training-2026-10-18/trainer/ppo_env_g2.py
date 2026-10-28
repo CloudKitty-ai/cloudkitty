@@ -46,6 +46,16 @@ class TrunkVecRunner:
         obs, infos = env.reset(seed=seed)
         self.episode_idx[w] += 1
         self.envs[w] = env
+        # The learning step's refusal (owner's observer-stream ruling,
+        # 2026-10-27, B): PPO never gathers rollouts beside a needy seat.
+        # Checked before the roster-size assert so the refusal names it;
+        # a binding without needy() predates spec 067 and cannot load one.
+        needy = env.needy() if hasattr(env, "needy") else []
+        if needy:
+            raise SystemExit(
+                f"refusing PPO rollouts beside needy seat(s) "
+                f"{[k for k, *_ in needy]} (owner ruling 2026-10-27, "
+                "observer streams B)")
         self.agent_names[w] = list(env.possible_agents)
         assert len(self.agent_names[w]) == MAX_SEATS, self.agent_names[w]
         self._obs[w] = obs

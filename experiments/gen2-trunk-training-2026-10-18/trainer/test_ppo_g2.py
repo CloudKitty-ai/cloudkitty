@@ -12,12 +12,14 @@ hysteresis — so the flags must equal a needs-threshold recomputation
 cell for cell (away from the float boundary).
 """
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import ppo_env_g2  # noqa: E402
 import train_ppo_g2 as tp  # noqa: E402
 
 CORPUS = HERE.parents[1] / \
@@ -81,6 +83,63 @@ def test_every_slot_stripe_is_disjoint_and_claimed():
     for s0, s1 in stripes:
         assert any(r0 <= s0 and s1 <= r1 for r0, r1 in rows), \
             ("unclaimed stripe", s0, s1)
+
+
+def _needy_trunk_config(tmp: Path) -> str:
+    """The trunk world with Miso on needy and its acknowledgement, the
+    transform the needy fixtures in fixtures/ were recorded with."""
+    src = Path(tp.TRUNK_TOML).read_text()
+    line = 'behavior = "teacher"'
+    i = src.index(line, src.index('name = "Miso"'))  # Miso's own line
+    out = (src[:i] + 'behavior = "needy"' + src[i + len(line):]
+           + '\n[welfare_hazard]\nacknowledged = ["needy"]\n')
+    path = tmp / "needy-trunk.toml"
+    path.write_text(out)
+    return str(path)
+
+
+def _needy_binding():
+    import cloudkitty
+    if hasattr(cloudkitty.ParallelEnv, "needy"):
+        return True
+    print("  (skip: this binding predates spec 067; run in the needy-set "
+          "venv, experiments/needy-set-2026-10-28/BINDING.md)")
+    return False
+
+
+def test_ppo_runner_refuses_a_needy_world():
+    # red: the runner's needy check removed; the roster-size assert then
+    # fires instead, unnamed, and only because the seat count changed
+    # (owner's observer-stream ruling 2026-10-27, B)
+    if not _needy_binding():
+        return
+    with tempfile.TemporaryDirectory() as t:
+        cfg = _needy_trunk_config(Path(t))
+        try:
+            ppo_env_g2.TrunkVecRunner(cfg, 1, 900001)
+        except SystemExit as e:
+            assert "refusing PPO rollouts beside needy seat(s) [1]" \
+                in str(e), e
+        else:
+            raise AssertionError("PPO gathered rollouts beside a needy seat")
+
+
+def test_frozen_rollouts_beside_a_needy_seat_still_run():
+    # kept (the ruling refuses the update step, never the env): the
+    # environment seats a needy world and steps its four external seats
+    if not _needy_binding():
+        return
+    import cloudkitty
+    with tempfile.TemporaryDirectory() as t:
+        env = cloudkitty.ParallelEnv(_needy_trunk_config(Path(t)))
+        obs, infos = env.reset(seed=900001)
+        assert len(env.possible_agents) == 4, env.possible_agents
+        for _ in range(3):
+            acts = {a: [int(np.flatnonzero(np.asarray(infos[a]["mask"][:35]))[0]), 0]
+                    for a in obs}
+            obs, _rew, _term, _trunc, infos = env.step(acts)
+        ((kitty, _masked, _ordinal, phase),) = env.needy()
+        assert kitty == 1 and phase in ("resting", "held"), env.needy()
 
 
 if __name__ == "__main__":
