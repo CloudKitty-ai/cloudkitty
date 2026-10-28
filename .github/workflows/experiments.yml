@@ -1,26 +1,29 @@
 name: experiments (non-blocking)
 
-# Builds the research tooling under experiments/tools so engine API drift
-# gets noticed. Deliberately not a required check: experiments/ is trainer
-# territory (see experiments/README.md) and must never gate product changes.
-# A build failure keeps the check green (continue-on-error on the step) but
-# emits a warning annotation, so drift is visible in the checks UI without
+# Builds and tests the research tooling under experiments/tools, so engine
+# API drift and broken tool behaviour get noticed. Deliberately not a
+# required check: experiments/ is trainer territory (see
+# experiments/README.md) and must never gate product changes. A build or
+# test failure keeps the check green (continue-on-error on the step) but
+# emits a warning annotation, so it is visible in the checks UI without
 # opening the logs.
 
+# The workflow's own file is in its paths so an edit to it runs it before
+# merge, not first on main.
 on:
   push:
     branches: [main]
-    paths: ["experiments/**", "crates/**"]
+    paths: ["experiments/**", "crates/**", ".github/workflows/experiments.yml"]
   pull_request:
     branches: [main]
-    paths: ["experiments/**", "crates/**"]
+    paths: ["experiments/**", "crates/**", ".github/workflows/experiments.yml"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build-tools:
-    name: build experiments/tools
+    name: build + test experiments/tools
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,3 +65,34 @@ jobs:
       - name: Surface engine drift
         if: steps.build.outcome == 'failure'
         run: echo "::warning title=Engine drift::experiments/tools crates no longer build against crates/ —${{ steps.build.outputs.failed }} — non-blocking, see the build log in this run"
+
+      # The crates' own tests (owner's word 2026-10-27, on Product's report
+      # that nothing ran them: each crate is its own workspace, so ci.yml's
+      # `cargo test --workspace` never reaches them). Warn only, the same
+      # doctrine as the build ("Fix both. Warn only."). A crate whose build
+      # failed above is skipped: its drift is already named, and cargo test
+      # would only fail it a second time.
+      - name: Test tools crates
+        id: test
+        continue-on-error: true
+        env:
+          BUILD_FAILED: ${{ steps.build.outputs.failed }}
+        run: |
+          failed=""
+          for m in experiments/tools/*/Cargo.toml; do
+            crate=$(basename "$(dirname "$m")")
+            case " $BUILD_FAILED " in *" $crate "*) continue ;; esac
+            echo "::group::test $crate"
+            if ! cargo test --manifest-path "$m"; then
+              failed="$failed $crate"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then
+            echo "failed=$failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+      - name: Surface tools test failures
+        if: steps.test.outcome == 'failure'
+        run: echo "::warning title=Tools tests failed::experiments/tools crates fail their own tests —${{ steps.test.outputs.failed }} — non-blocking, see the test log in this run"
