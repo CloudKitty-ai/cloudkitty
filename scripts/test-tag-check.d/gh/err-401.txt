@@ -1,0 +1,2 @@
+HTTP 401: Bad credentials (https://api.github.com/repos/CloudKitty-ai/cloudkitty/actions/workflows/ci.yml)
+Try authenticating with:  gh auth login
