@@ -13,7 +13,11 @@ echo "| spec | status |"
 echo "|---|---|"
 git -C "$R" ls-files 'specs/*/spec.md' | LC_ALL=C sort | while IFS= read -r f; do
   d=${f#specs/}; d=${d%/spec.md}
-  s=$(sed -n 's/^\*\*Status\*\*: *//p' "$R/$f" | head -n 1)
+  # a long status wraps: its value is the whole paragraph, to the blank line
+  s=$(awk '!f && /^\*\*Status\*\*:/ { sub(/^\*\*Status\*\*: */, ""); v = $0; f = 1; next }
+           f && /^[[:space:]]*$/ { exit }
+           f { v = v " " $0 }
+           END { if (f) print v }' "$R/$f")
   [ -n "$s" ] || s="(no status line)"
   echo "| \`$d\` | $s |"
 done

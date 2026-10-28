@@ -303,6 +303,27 @@ git rm -q experiments/INDEX.md
 case_ 1 "missing generated index: FAIL" indexes
 has "not yet generated" "missing index named"
 reset_
+# a wrapped Status keeps its whole paragraph (header recorded verbatim from
+# specs/061-stuck-detector/spec.md at 90429f0c~1, before #471 reflowed it)
+mkdir -p specs/061-wrap && cat > specs/061-wrap/spec.md <<'EOF'
+# Feature Specification: Stuck Detector at Decoding
+
+**Feature Branch**: `product/stuck-detector`
+
+**Created**: 2026-10-13
+
+**Status**: Planned (clarify complete 2026-10-14; cross-artifact
+analysis remediated 2026-10-15)
+
+**Input**: The owner's kickoff in the Product session, 2026-10-13
+("061 stuck detector") — the last of the Gen 2 build-phase Product
+specs (prereg skeleton §10.1), after the schema wall (058, merged),
+EOF
+git add specs/061-wrap/spec.md
+scripts/gen-specs-index.sh "$T" > "$O"
+has '| `061-wrap` | Planned (clarify complete 2026-10-14; cross-artifact analysis remediated 2026-10-15) |' "wrapped Status joined whole"
+hasnt 'kickoff' "Status paragraph ends at the blank line"
+reset_
 
 # ---------------------------------------------------------------- citations
 sed -i.bak 's#Evidence: \[arc result\](arc-a/RESULTS.md)#Evidence: [gone](arc-a/results-raw/gone.json)#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
