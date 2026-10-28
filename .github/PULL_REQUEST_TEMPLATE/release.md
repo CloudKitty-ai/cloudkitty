@@ -10,15 +10,17 @@
 
 - [ ] `tag-rigor` workflow dispatched on this branch and **green**
       (full `scripts/tag-check.sh` + quickstart smoke). Paste the run link:
-- [ ] `scripts/tag-check.sh --tag X.Y.Z` run locally: version/CHANGELOG/tag
-      agree, `## Unreleased` is expanded.
+- [ ] `scripts/tag-check.sh --tag X.Y.Z` run locally (its warnings check needs
+      an authenticated `gh`): version/CHANGELOG/tag agree, `## Unreleased` is
+      expanded.
 - [ ] The staleness REPORT reviewed — every flagged §6 home is either
       updated or its subject truly did not change this release (say which,
       below the sign-offs).
-- [ ] The warnings REPORT reviewed — every warning and failure annotation it
-      lists is fixed, or accepted with a reason (one line each under Warning
-      dispositions). Non-blocking checks warn instead of failing; this row is
-      where a release reads them.
+- [ ] The warnings REPORT reviewed — every line it lists (an annotation, a run
+      that did not succeed, a workflow with no run in this history) is fixed, or
+      accepted with a reason (one line each under Warning dispositions).
+      Non-blocking checks warn instead of failing; this row is where a release
+      reads them.
 
 ## Human rows — Product
 
@@ -63,4 +65,4 @@
 
 ## Warning dispositions
 
-<!-- one line per listed annotation: fixed (PR) | accepted (why) -->
+<!-- one line per listed line: fixed (PR) | accepted (why) -->

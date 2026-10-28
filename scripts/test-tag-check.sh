@@ -4,24 +4,27 @@
 set -u
 SD="$(cd "$(dirname "$0")" && pwd)"
 TC="$SD/tag-check.sh"
-T=$(mktemp -d); O=$(mktemp); SB=$(mktemp -d); trap 'rm -rf "$T" "$O" "$SB"' EXIT
+T=$(mktemp -d); O=$(mktemp); GHSTUB=$(mktemp -d); trap 'rm -rf "$T" "$O" "$GHSTUB"' EXIT
 
 # gh stand-in for the warnings check: serves the payloads recorded from this
 # repo's GitHub API on 2026-10-27 (scripts/test-tag-check.d/gh/) through the
-# caller's own --jq filter. The one edit to a recording: run-list head SHAs
-# are placeholders, mapped here onto fixture commits ($STUB_MAP).
-# $STUB_FAIL=runs|jobs|annotations fails that call with the recorded gh
-# error; $STUB_SCENARIO selects runs-<workflow>.<scenario>.json when present.
-cat > "$SB/gh" <<'STUB'
+# caller's own --jq filter, honouring --json, --limit and --paginate. The
+# one edit to a recording: run-list head SHAs are placeholders, mapped here
+# onto fixture commits ($STUB_MAP). $STUB_FAIL=runs|jobs|annotations fails
+# that call with the recorded gh error; $STUB_SCENARIO selects
+# runs-<workflow>.<scenario>.json when present. Pages hold $STUB_PAGE items
+# (the tests use 1, so a call that stops paginating loses items).
+cat > "$GHSTUB/gh" <<'STUB'
 #!/usr/bin/env bash
 set -u
 sub=$1; shift; [ "$sub" = run ] && shift
-wf="" q="" path=""
+wf="" q="" path="" limit=20 fields="" pag=""
 while [ $# -gt 0 ]; do case $1 in
   --workflow) wf=$2; shift 2 ;;
   --jq) q=$2; shift 2 ;;
-  --limit|--json) shift 2 ;;
-  --paginate) shift ;;
+  --limit) limit=$2; shift 2 ;;
+  --json) fields=$2; shift 2 ;;
+  --paginate) pag=1; shift ;;
   *) path=$1; shift ;;
 esac; done
 case "$sub:$path" in
@@ -37,10 +40,15 @@ fi
 [ -f "$f" ] || { echo "stub gh: no recording $f" >&2; exit 1; }
 m=(-e 's/@@unused@@//')
 for pair in ${STUB_MAP:-}; do m+=(-e "s/${pair%%=*}/${pair#*=}/g"); done
-sed "${m[@]}" "$f" | jq -r "$q"
+case $kind in
+  runs) shape=".[0:$limit] | map({$fields})" ;;
+  jobs) shape='.'; [ -n "$pag" ] || shape=".jobs |= .[0:${STUB_PAGE:-30}]" ;;
+  annotations) shape='.'; [ -n "$pag" ] || shape=".[0:${STUB_PAGE:-30}]" ;;
+esac
+sed "${m[@]}" "$f" | jq "$shape" | jq -r "$q"
 STUB
-chmod +x "$SB/gh"
-export PATH="$SB:$PATH" STUB_REC="$SD/test-tag-check.d/gh"
+chmod +x "$GHSTUB/gh"
+export PATH="$GHSTUB:$PATH" STUB_REC="$SD/test-tag-check.d/gh" STUB_PAGE=1
 stub() { export STUB_MAP="$1" STUB_SCENARIO="${2:-}" STUB_FAIL="${3:-}"; }   # stub <map> [scenario] [fail]
 
 cd "$T" && git init -q
@@ -242,11 +250,11 @@ GIT_COMMITTER_DATE=2026-09-20T12:00:00 git -c user.name=t -c user.email=t@t -c t
 c post-tag
 git -c user.name=t -c user.email=t@t -c tag.gpgsign=false -c tag.forceSignAnnotated=false tag -a -m t green
 # the recorded runs' commits, as the fixture sees them: main (green and its
-# parent) and a side branch that never merged (a PR head, the probe on it)
-G=$(git rev-parse 'green^{commit}'); G1=$(git rev-parse 'green~1')
+# ancestors) and a side branch that never merged (a PR head, the probe on it)
+G=$(git rev-parse 'green^{commit}'); G1=$(git rev-parse 'green~1'); G2=$(git rev-parse 'green~2')
 SIDE1=$(git -c user.name=t -c user.email=t@t commit-tree -p "$G" -m side-pr "$G^{tree}")
 SIDE2=$(git -c user.name=t -c user.email=t@t commit-tree -p "$SIDE1" -m side-probe "$G^{tree}")
-ON_MAIN="@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G @SHA_OLD@=$G1 @SHA_QUEUED@=$SIDE2"
+ON_MAIN="@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G1 @SHA_OLD@=$G2 @SHA_QUEUED@=$SIDE2"
 ON_PROBE="@SHA_PROBE@=$G @SHA_PR@=$G1 @SHA_MAIN@=$G1 @SHA_OLD@=$G1 @SHA_QUEUED@=$SIDE2"
 stub "$ON_MAIN"
 
@@ -493,11 +501,12 @@ reset_
 # tools crate that fails to build, one whose test fails) on a side branch
 case_ 0 "warnings on main's runs: REPORT, never FAIL" warnings
 has "REPORT  warnings" "warnings reported"
-has "read experiments.yml run 40626949340 @ ${G:0:8}" "newest run in HEAD's history is the one read"
+has "read experiments.yml run 40626949340 @ ${G1:0:8}" "newest run in HEAD's history (an ancestor) is the one read"
 hasnt "Tools tests failed" "a newer run on a commit outside HEAD's history is skipped"
 hasnt "ubuntu-latest label will migrate" "notice-level annotations left out"
 has "warning ×6: Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For" "identical warnings collapse to one counted line"
 [ "$(grep -c 'actions/checkout@v4. For more' "$O")" = 1 ] && echo "ok   the collapsed warning prints once" || { echo "FAIL the collapsed warning prints $(grep -c 'actions/checkout@v4. For more' "$O") times"; fail=1; }
+has "— in ci.yml (duplication ratchet (jscpd)), experiments.yml (build experiments/tools), harness.yml (tag-check self-test), +3 more" "where-list capped at three, the rest counted"
 has "warning: tier 2 is +985 net lines" "a one-off advisory listed"
 hasnt "tag-rigor.yml" "tag-rigor.yml's own runs not read"
 stub "$ON_PROBE"
@@ -505,23 +514,33 @@ case_ 0 "warnings on the probe's runs: REPORT" warnings
 has "warning: Tools tests failed: experiments/tools crates fail their own tests — zz-probe-testfail" "tools test warning listed with its crate"
 has "warning: Engine drift: experiments/tools crates no longer build against crates/ — zz-probe-buildfail" "drift warning listed with its crate"
 has "failure ×3: Process completed with exit code 1. — in experiments.yml (build + test experiments/tools), harness.yml (lane check)" "failure-level annotations listed, each job once"
-stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G @SHA_OLD@=$G1 @SHA_QUEUED@=$G" inprogress
-case_ 0 "an unfinished run: REPORT, not read" warnings
-has "read harness.yml: run 40629044179 is queued, so its annotations are not final" "queued run named"
-hasnt "tier 2 is +985" "the queued run's annotations are not read"
+has "harness.yml: run 40628413457 concluded failure" "a run that did not succeed is named"
+stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$G1 @SHA_OLD@=$G2 @SHA_QUEUED@=$G" inprogress
+case_ 1 "an unfinished run: FAIL, the review could not look" warnings
+has "could not read harness.yml run 40629044179: it is queued, so its annotations are not final" "queued run named"
 stub "@SHA_PROBE@=$SIDE2 @SHA_PR@=$SIDE1 @SHA_MAIN@=$SIDE1 @SHA_OLD@=$SIDE1 @SHA_QUEUED@=$SIDE2"
 case_ 0 "no run in HEAD's history: REPORT" warnings
-has "read ci.yml: no run on a commit in this history" "missing run named"
+has "ci.yml: no run on a commit in this history" "missing run named"
 has "REPORT  warnings" "no run is a REPORT, not a PASS"
+# a startup failure completes with no jobs, so no annotations (recorded from
+# cli/cli run 18929595281; this repo has none): alone, it must not PASS
+git rm -q .github/workflows/ci.yml .github/workflows/harness.yml .github/workflows/tag-rigor.yml
+stub "$ON_MAIN @SHA_STARTUP@=$G" startup
+case_ 0 "a lone run that never started: REPORT, not a silent PASS" warnings
+has "REPORT  warnings" "the startup failure is reported"
+has "experiments.yml: run 18929595281 concluded startup_failure" "its conclusion named"
+reset_
 stub "$ON_MAIN" "" runs
 case_ 1 "runs unreadable: FAIL, not an empty review" warnings
 has "could not list the runs of ci.yml: HTTP 401: Bad credentials" "gh's error carried"
 stub "$ON_MAIN" "" jobs
 case_ 1 "jobs unreadable: FAIL" warnings
 has "could not list the jobs of ci.yml run 40626949298: gh: Not Found (HTTP 404)" "the run named"
+hasnt "read ci.yml run" "a run not read gets no read line"
 stub "$ON_MAIN" "" annotations
 case_ 1 "annotations unreadable: FAIL" warnings
 has "could not read the annotations of ci.yml job 'fmt + clippy + test': gh: Not Found (HTTP 404)" "the job named"
+hasnt "read ci.yml run" "a run read in part gets no read line"
 stub "$ON_MAIN"
 
 echo
