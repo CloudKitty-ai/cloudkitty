@@ -21,8 +21,8 @@ pair, §3's movement alphabet (the source showed that the first draft's
 action alphabet erased move direction, and re-deriving the estimator
 orders for the new alphabet corrected the first draft's), §12 call 5.
 
-**Status: DRAFT, her ruling in progress: call 1 RULED 2026-10-27 (§12);
-calls 2–5 open. Nothing below runs until she rules. No number from this
+**Status: DRAFT, her ruling in progress: calls 1–2 RULED 2026-10-27
+(§12); calls 3–5 open. Nothing below runs until she rules. No number from this
 arc exists.**
 
 Publication track P0 (her word 2026-10-23: "Let's try to make this our
@@ -287,7 +287,15 @@ Needs trigger, for latency: the tick at which the kitty's sustained
 distress on any need reaches 150 ticks (the served watchdog line,
 `[watchdog] threshold = 150`), or would have on a stream that ended
 earlier; where an episode never reaches it, latency is right-censored at
-the stream's end and reported as such.
+the stream's end and reported as such. The watchdog line is the
+HEADLINE for every run (call 2, RULED 2026-10-27). As context only,
+each latency is also reported against the hard stop actually armed on
+that run, recorded per stream in `streams.json` with its source: 300
+ticks for Gen 2 training runs (the frozen §6 probe-distress stop,
+`gen2-deviations.md:227-229`), 1,000 ticks for certification-battery
+runs (`--abort-streak 1000`, `gen2-deviations.md:339-340`), and no
+context row where no stop was armed. The F-053 line is never a uniform
+comparator.
 
 - **Recall and latency** (question 2): per labeled unhealthy episode and
   window, flagged yes/no, onset tick, and (onset − needs-trigger tick);
@@ -390,8 +398,8 @@ of training in ≥ 2 of 3 seeds; its early-checkpoint value predicts final
 welfare rank across seeds (validation of the leading-indicator claim —
 if not, the claim is dropped)."
 
-Operationalised: (1) median (needs-trigger tick − onset) over loop and
-wrong-need episodes ≥ 5 × the median latency of the needs trigger
+Operationalised: (1) median (needs-trigger tick − onset), the watchdog
+line per call 2, over loop and wrong-need episodes ≥ 5 × the median latency of the needs trigger
 itself from the episode's labeled start, on the episodes where both
 exist; (2) over lockstep episodes, the fraction flagged by a pairwise
 quantity and by no single-kitty quantity at the same window ≥ 0.5;
@@ -492,6 +500,11 @@ Reader `monitor_read.py` in this directory (arc venv:
   α unchanged; predicted red: the comparison flipped to take the
   smallest α → "ladder: the most sensitive band at or under the
   setting".
+- m12: every stream in `streams.json` carries an armed stop of 300,
+  1,000 or none, each non-none with a source line, and each context
+  latency is computed against its own stream's stop; predicted red: the
+  context computed against a constant 1,000 → "context: each run
+  against its own armed stop".
 
 Every guard's red goes through `scripts/mutate.sh --expect` and is
 recorded in this file before the read runs.
@@ -536,6 +549,17 @@ recorded in this file before the read runs.
 2. The needs-trigger definition (§5): the watchdog's 150-tick sustained
    distress. The alternative is the F-053 1,000-tick abort line, which
    would make every latency look better by about 850 ticks.
+   RULED 2026-10-27 on this thread's walkthrough. Put to her: the
+   watchdog as the headline line, the 1,000-tick line as context. Her
+   question, verbatim: "Do we need the 1000 tick line reported on
+   non-training runs? We should hopefully never see it on trained
+   models"; answered from the record (the 1,000-tick line is the
+   battery's armed abort, training runs stop at 300, and the step-8
+   battery aborted 17 worlds on two trained seatings, one at 20×20 —
+   g2-s2, world 905008, tick 18,949, a pass-1 lockstep source); revised
+   proposal: the watchdog the headline for every run, context against
+   the stop actually armed on each run. Her words: "Thanks for the
+   correction. Yes, that works". §5 and m12 carry it.
 3. Whether the PPO probes' policies may be replayed to recover logits
    for prediction 4 (a read of committed weights, no training; a few
    minutes per checkpoint) or prediction 4 waits for pass 2.
