@@ -1,0 +1,8 @@
+[package]
+name = "zz-probe-hang"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# PROBE for the tools-test timeout; never merged.
+[workspace]

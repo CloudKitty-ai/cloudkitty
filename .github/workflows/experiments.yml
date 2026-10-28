@@ -77,7 +77,7 @@ jobs:
       - name: Test tools crates
         id: test
         continue-on-error: true
-        timeout-minutes: 30
+        timeout-minutes: 3
         env:
           BUILD_FAILED: ${{ steps.build.outputs.failed }}
         run: |
