@@ -78,7 +78,7 @@ specs/067-needy-preset/
 ```text
 crates/cloudkitty-core/src/
 ├── behavior/
-│   ├── needy.rs           # NEW: Needy { hold: bool } Behavior; masked view; NAME/HOLD_NAME; teaches() = false
+│   ├── needy.rs           # NEW: Needy Behavior (unit struct); masked view; NAME/HOLD_NAME; teaches() = false
 │   ├── mod.rs             # register "needy"/"needy_hold"; Behavior::teaches() default true; registry.teaches(name)
 │   └── teacher.rs         # decide_action made reachable by needy.rs (pub(crate) already); no behaviour change
 ├── config/

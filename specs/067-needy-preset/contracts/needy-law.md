@@ -13,9 +13,11 @@ first) and `needy_hold` (release at limit only). Seated by
 `[[kitty]] behavior = "<name>"`. Each is a spec-066 hazard mode of the
 same name; registry order `initial_needs`, `needy`, `needy_hold`.
 Neither teaches (`Behavior::teaches() == false`). A kitty carries needy
-state exactly when its CONFIGURED behaviour is one of the two names
-(an engine invariant, checked every tick; the binding's control map and
-the server's resume refuse a roster that would break it).
+state exactly when its CONFIGURED behaviour is one of the two names,
+and that state's release rule is the configured name's (`hold` exactly
+for `needy_hold`) — an engine invariant, checked every tick; the
+binding's control map and the server's resume refuse a roster that
+would break it.
 
 ## §2 The sub-stream
 
@@ -96,9 +98,11 @@ Mask empty: `Teacher::GEN2` verbatim (the same `decide`). Mask
 non-empty: the same ladder on a view with masked needs read as 0 and a
 forked copy of the turn's stream; a chosen action whose proposer relief
 meets the mask, or a Chase while play is masked, becomes `Sleep{None}`
-when it was `Sleep{Some}` under a cuddle-only mask and `Idle`
-otherwise. The message channel is the teacher's on the UNMASKED view:
-calling stays on, law-named words only.
+when it was `Sleep{Some}` and sleep is not masked, and `Idle` otherwise
+(a co-rest never becomes a solo rest: that relieves nothing). The
+announcement is the teacher's on the UNMASKED view: calling stays on,
+law-named words only; a `WaitForMe` yield, being the ladder's own move,
+comes from the masked ladder.
 
 ## §7 Surfaces
 
@@ -108,13 +112,21 @@ calling stays on, law-named words only.
   next_onset}` or `{"state": "held", onset, masked}` with `masked` as
   need names), `next` (need names), `last_release` (`tick`, `by`),
   `rng`; absent for every other kitty; blanked in every OTHER kitty's
-  view of the world (`fog_for`), so it never reaches an observation, a
-  plugin request or a corpus row.
+  view of the world (`fog_for`), and in the lab's render of the needy
+  seat's own request (`Episode::decision_request`; no plugin ever
+  serves a needy seat), so it never reaches an observation, a plugin
+  request or a corpus row. Hidden, not secret: the sub-stream is keyed
+  by the world seed and the kitty id, which every plugin request
+  carries, so anything holding them, the parameters and this law can
+  recompute a schedule; no observation carries the seed.
 - Binding: `ParallelEnv.needy()` → `[(kitty_id, [names], ordinal,
   phase)]`, phase ∈ `resting | held | released_level | released_limit`
   (the released names on the release tick only).
-- Config: `[needy]` serializes when written (`GET /config`); absent
-  otherwise.
+- Config: `[needy]` serializes when written; when a needy seat is
+  seated and no table is written, the shared loader writes the defaults
+  in, so `GET /config` shows the parameters in force (FR-008); absent
+  otherwise. Like spec 066's table it rides a plugin request's
+  `config`.
 - Hazard: 066's boot line, `GET /config` and settings row name the
   modes as 066 renders them.
 - Refusal records: reason `needy_masked`.
@@ -128,13 +140,14 @@ calling stays on, law-named words only.
 |-------|----------|
 | `[needy].mix` | `exactly <N> weights, one per masked-need count from 1 to <N>` |
 | `[needy].mix` | `finite, non-negative weights with at least one above zero` |
-| `[needy].release_level` | `a need level in [0, 100] strictly above the off-beam sleep floor (<f>)` |
+| `[needy].release_level` | `a need level in [0, 100] strictly above the off-beam sleep floor (<f>)` — checked on the defaults too when a needy seat is seated with no table written (the value then says so) |
 | `[needy].hold_ticks` | `at least 1 tick` |
 | `[needy].gap` | `1 <= min <= max` |
 | `[needy].onset_levels` | `at least 6 strictly increasing tick edges (5 levels)` |
 | `[needy].onset_weights` | `one finite, non-negative weight per level (<L>), at least one above zero` |
 
 Resume and control errors (not config): the server refuses a saved
-world whose needy state disagrees with the configured roster, naming
+world whose needy state disagrees with the configured roster — a seat
+added, removed, or swapped between `needy` and `needy_hold` — naming
 the kitty; `Episode::new` refuses a control entry that disagrees with
 the config seat about needy-ness, naming the kitty.

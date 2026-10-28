@@ -129,10 +129,10 @@ verdict (`NeedyMasked`); `Other` for a legal proposal.
 
 | Item | Value |
 |------|-------|
-| `Needy { hold }` | builtin; `is_builtin() = true`; `teaches() = false` |
+| `Needy` (unit struct; the release rule is `NeedyState::hold`) | builtin; `is_builtin() = true`; `teaches() = false` |
 | names | `needy::NAME = "needy"`, `needy::HOLD_NAME = "needy_hold"`, `needy::is_needy_name(&str)` |
 | decide, mask empty | `Teacher::GEN2.decide(ctx)` verbatim |
-| decide, mask non-empty | masked `me` (masked needs read 0) + `rng.fork()` through `Teacher::GEN2.decide_action`; post-filter: relief meets mask or Chase under a Play mask → `Sleep{Some}` under a cuddle-only mask becomes `Sleep{None}`, else `Idle`; message = `announce(ctx)` on the unmasked context |
+| decide, mask non-empty | masked `me` (masked needs read 0) + `rng.fork()` through `Teacher::GEN2.decide_action`; post-filter: relief meets mask or Chase under a Play mask → `Sleep{Some}` while sleep is unmasked becomes `Sleep{None}`, else `Idle` (a co-rest never becomes a solo rest); message = the masked ladder's own `WaitForMe` yield if it yields, else `announce(ctx)` on the unmasked context |
 | `Behavior::teaches()` | default `true`; `BehaviorRegistry::teaches(name) -> Option<bool>` |
 | `DecisionRng::fork()` | a new `DecisionRng` carrying a clone of the current ChaCha8 state |
 

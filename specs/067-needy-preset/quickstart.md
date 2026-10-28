@@ -32,7 +32,7 @@ Run the first ten episodes through the engine and assert, per tick:
 | masked needs between onset and release | non-decreasing apart from engine floors; the kitty's applied actions never carry a masked governing need |
 | unmasked needs | serviced (applied actions include their relief at the teacher's rate) |
 | a friend adjacent proposing Rest/Sleep/Groom/Play toward the needy kitty every tick | resolved to Idle with reason `needy_masked` while the relief need is masked; accepted after release |
-| `needy_hold` variant | no level release; every release `by_limit` at onset + hold_ticks |
+| `needy_hold` variant | no level release; every release `by` = `limit` at onset + hold_ticks |
 | two needy seats | two schedules; changing one kitty's id changes only its own |
 
 ## 3. Determinism and stream isolation (SC-002)

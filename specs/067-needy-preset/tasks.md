@@ -220,7 +220,7 @@ seed.
 - [X] T007 [US1] The presets in `crates/cloudkitty-core/src/behavior/needy.rs`
       (new) + registration in `behavior/mod.rs` `with_builtins` under
       `needy::NAME` / `needy::HOLD_NAME` + `DecisionRng::fork()` in
-      rng.rs: `pub struct Needy { hold: bool }`; `decide`: mask empty →
+      rng.rs: `pub struct Needy` (unit; `hold` lives on `NeedyState`); `decide`: mask empty →
       `Teacher::GEN2.decide(ctx).await`; else masked `me` + `rng.fork()`
       → `Teacher::GEN2.decide_action` → post-filter (relief meets mask
       or Chase under Play mask → `Sleep{Some}`→`Sleep{None}` under a
@@ -268,7 +268,7 @@ seed.
       unmasked needs are relieved at least once per episode; a friend
       adjacent proposing Rest{with: needy} every tick is refused exactly
       while Cuddle is masked; the `needy_hold` variant releases only
-      `by_limit`; two needy seats (ids 1 and 2) carry different
+      by `Limit`; two needy seats (ids 1 and 2) carry different
       schedules and swapping their ids swaps the schedules.
       Mutate: `advance_needy` moved BEFORE `advance_needs` → predict the
       replay test red (`release tick`; the level check reads pre-rise
@@ -398,7 +398,7 @@ law unchanged; the binding's door guarded.
       Python-side doc line. Control guard (D16) in
       `crates/cloudkitty-rl/src/episode.rs` `Episode::new`: a control
       entry disagreeing with the config seat about needy-ness →
-      `EpisodeError::Config` naming the kitty; Rust tests there (needy
+      `EpisodeError::NeedySeat` naming the kitty; Rust tests there (needy
       config seat + `External` → refused; teacher seat + `Builtin("needy")`
       → refused; needy seat unnamed → fine). Python test in
       `crates/cloudkitty-py/tests/test_parallel_env.py`: a plain config

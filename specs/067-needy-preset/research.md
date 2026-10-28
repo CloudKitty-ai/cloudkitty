@@ -178,9 +178,10 @@ there; D15–D17 are new.
   (world.rs:677–706); duration enforcement cannot override the verdict
   for a NEW proposal because the sweep ended the masked scene.
 
-## D6. The preset: `Needy { hold: bool }` wrapping `Teacher::GEN2`
+## D6. The preset: `Needy` wrapping `Teacher::GEN2`
 
-- **Decision**: `behavior/needy.rs`: `pub struct Needy { hold: bool }`,
+- **Decision**: `behavior/needy.rs`: `pub struct Needy` (a unit struct;
+  the release rule is the seat's state, `NeedyState::hold`),
   registered in `with_builtins` (mod.rs:146) under `needy::NAME` and
   `needy::HOLD_NAME` (constants in `core/src/needy.rs`, one home);
   `is_builtin() = true`; `teaches() = false` (D8). `decide`: when
@@ -195,9 +196,12 @@ there; D15–D17 are new.
   `pub(crate)`), then the POST-FILTER: if `proposer_relief(action)`
   meets the mask, or the action is a Chase while Play is masked
   (luxury play returns Chase, which the zeroed view cannot stop), then
-  `Sleep { Some }` under a Cuddle-only mask becomes `Sleep { None }`
+  `Sleep { Some }` while sleep is unmasked becomes `Sleep { None }`
   (the kitty still sleeps, alone — spec FR-005 as amended) and
-  anything else becomes `Idle`. The message is `super::announce(ctx)`
+  anything else becomes `Idle` — a co-rest never becomes a solo rest,
+  which relieves nothing and holds the kitty to the rest minimum
+  (review of #471). A `WaitForMe` yield is the masked ladder's own move
+  and rides through `Decision::from_legacy`; otherwise the message is `super::announce(ctx)`
   on the UNMASKED context (teacher.rs:156–158 shape; `announce` draws
   no rng and reads `ctx.me.needs` and `message_legal`), so calling
   stays on (FR-005, FR-007; owner "A").
@@ -243,14 +247,14 @@ there; D15–D17 are new.
   `BehaviorRegistry::teaches(&self, name) -> Option<bool>`. The
   collector (`experiments/tools/bc-collect/src/main.rs`: records every
   config behaviour as a demonstrator, provenance at :497–512) skips a
-  seat with `teaches == Some(false)` and logs the refusal once per run
+  seat with `teaches == Some(false)` and logs the refusal once per config
   (FR-011). Lane: Experiments' — CONSENTED 2026-10-26 to option (a),
   the collector half rides this PR under `cross-lane:` (their grounds:
   between a 067 merge and a later collector change a needy seat would
   be recordable as a teacher, the exact state FR-011 forbids). Their
   four conditions, all binding on the PR: (1) its own rule-5 red (a
   config seating a needy kitty → that kitty's rows absent, the other
-  seats' rows unchanged, the refusal logged once per run); (2) the
+  seats' rows unchanged, the refusal logged once per config); (2) the
   provenance stamp names the refused seats explicitly
   (`teachers_refused: [<kitty id>, ...]`, empty when none), so a corpus
   recorded after the flag is distinguishable; (3) WITHDRAWN by
@@ -392,10 +396,15 @@ quality). This pins which half is the law.
   server's resume (persist.rs re-stamps `behavior` from config, then
   runs `invariants::check`) refuses a saved world whose needy state
   disagrees with the configured roster through the invariant (2),
-  naming the kitty — no new code; (5) `kitty-eval --brain needy`
-  would alias the preset onto the candidate seat with no schedule (the
-  teacher under another name), so kitty-eval refuses a needy name as a
-  brain.
+  naming the kitty — and a swap between `needy` and `needy_hold` too,
+  the invariant pairing the state's `hold` with the configured name
+  (review of #471); (5) `kitty-eval --brain needy` would alias the
+  preset onto the candidate seat with no schedule (the teacher under
+  another name) in `--suite` mode, and in single-config mode the
+  harness rewrites every seat AFTER validation, so the brain would seat
+  real needy cats with no acknowledgement — kitty-eval refuses a needy
+  name as a brain, and that refusal is what keeps spec 066's guard
+  whole there.
 - **Rationale**: the advance step and the verdict key on the state; a
   policy seat with state would be a covered mind under a mask
   (doctrine rule 12's second guard, spec Edge Cases). Keying them on

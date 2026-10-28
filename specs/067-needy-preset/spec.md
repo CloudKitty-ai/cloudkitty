@@ -329,7 +329,10 @@ needy-seat roster.
   position) is saved with the world and a resumed world continues from
   it; nothing is re-derived. A resume whose config seats a needy preset
   where the saved world carries no needy state, or the reverse, is
-  refused (the policy-seat Edge Case above).
+  refused (the policy-seat Edge Case above), and so is one that swaps a
+  seat between `needy` and `needy_hold`: the saved state carries its
+  release rule, which must stay the configured preset's (review of
+  #471).
 - **A first onset drawn beyond the world's length** (a late history
   level in a short world): the seat never opens an episode in that
   world; the recorder shows ordinal 0 throughout, and the set's
@@ -452,7 +455,7 @@ needy-seat roster.
   its first reader.
 - **FR-011**: The corpus collector MUST refuse to record a needy seat's
   turns as teacher demonstrations, by reading FR-010's answer, and MUST
-  say once per run which seats it refused. (The collector is in
+  say, once for each config it loads, which seats it refused. (The collector is in
   Experiments' lane; this spec requires the behaviour and the plan
   settles whether the change crosses lanes or is theirs.)
 - **FR-012**: For every needy seat, the lab recorder's per-kitty record
@@ -473,10 +476,14 @@ needy-seat roster.
   No world law changes: relief sources, the safeguard relief, distress
   records, Article I bounds, the here-word and consent law for every
   other kitty, and the needy kitty's own needs physics are untouched.
-- **FR-014**: No behaviour-API, observation-schema or plugin-wire
-  change: the preset is an engine builtin, the decision request to
-  external advisors is unchanged, and no new read enters any decision
-  except the needy preset's own read of its schedule.
+- **FR-014**: No observation-schema or plugin-wire change, and one
+  additive behaviour-API line: the preset is an engine builtin; the
+  behaviour trait gains `teaches()` (default true, FR-010); the decision
+  request to external advisors keeps its shape, its `config` carrying a
+  `[needy]` table when one is written or in force exactly as it carries
+  spec 066's table, and no request carries a needy kitty's state; and no
+  new read enters any decision except the needy preset's own read of its
+  schedule.
 - **FR-015**: The spec MUST name the doubled role of any world set
   built with this preset: an INSTRUMENT for reading the probe (its
   purpose here) versus a TRAINING SOURCE (not licensed by this spec;

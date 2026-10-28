@@ -56,7 +56,7 @@ Every failure is `ConfigError::Invalid` with
 
 | shape | value | expected |
 |-------|-------|----------|
-| unknown | the list as written | `'<name>' is not a registered welfare-hazardous mode (known: initial_needs)` |
+| unknown | the list as written | `'<name>' is not a registered welfare-hazardous mode (known: <every registered mode, registry order>)` — today `initial_needs, needy, needy_hold` (spec 067) |
 | duplicate | the list as written | `'<name>' is listed more than once; one name per mode` |
 | missing | the list as written, or `absent` | `the config activates welfare-hazardous mode '<name>' at <site>[, and '<name>' at <site>]; add to the config:\n[welfare_hazard]\nacknowledged = ["<every active name, registry order>"]` |
 | stale | the list as written | `'<name>' is acknowledged but not active in this config; an acknowledgement is exact, remove it`; two or more: `'<a>', '<b>' are acknowledged but not active in this config; an acknowledgement is exact, remove them` |
