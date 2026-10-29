@@ -445,8 +445,6 @@ impl KeySettings {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use std::sync::{Arc, Mutex};
 
     /// The twelve optional listed keys: every dial on the list that carries
     /// a per-key default (the 3.0 rule: sections are required, only inert
@@ -867,28 +865,6 @@ mod tests {
         );
     }
 
-    /// A writer that keeps what `tracing` formats, so the boot event can be
-    /// read back.
-    #[derive(Clone, Default)]
-    struct Captured(Arc<Mutex<Vec<u8>>>);
-
-    impl Write for Captured {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            self.0.lock().unwrap().extend_from_slice(buf);
-            Ok(buf.len())
-        }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Captured {
-        type Writer = Captured;
-        fn make_writer(&'a self) -> Self::Writer {
-            self.clone()
-        }
-    }
-
     /// FR-012: the boot log IS the renderer's output. A log line that says
     /// anything else (structured fields, JSON, a summary) goes red here.
     #[test]
@@ -899,13 +875,7 @@ mod tests {
             &crate::stuck::StuckConfig::default(),
             None,
         );
-        let sink = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_writer(sink.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || block.announce());
-        let logged = String::from_utf8(sink.0.lock().unwrap().clone()).unwrap();
+        let logged = crate::test_log::capture(|| block.announce());
         assert!(logged.contains("key settings\n"), "{logged}");
         assert!(
             logged.contains(&block.render_text()),

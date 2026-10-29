@@ -53,8 +53,6 @@ pub fn log_boot(config: &Config) {
 mod tests {
     use super::*;
     use cloudkitty_core::config::{InitialNeedsSpec, NeedInit, WelfareHazardConfig};
-    use std::io::Write;
-    use std::sync::{Arc, Mutex};
 
     fn hazardous() -> Config {
         let config = Config {
@@ -102,37 +100,8 @@ mod tests {
         gate(&empty, false).expect("a written empty list acknowledges nothing");
     }
 
-    /// A writer that keeps what `tracing` formats (the pattern settings.rs's
-    /// tests use; private there, so copied).
-    #[derive(Clone, Default)]
-    struct Captured(Arc<Mutex<Vec<u8>>>);
-
-    impl Write for Captured {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            self.0.lock().unwrap().extend_from_slice(buf);
-            Ok(buf.len())
-        }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Captured {
-        type Writer = Captured;
-        fn make_writer(&'a self) -> Self::Writer {
-            self.clone()
-        }
-    }
-
     fn captured_boot_log(config: &Config) -> String {
-        let sink = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_writer(sink.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || log_boot(config));
-        let bytes = sink.0.lock().unwrap().clone();
-        String::from_utf8(bytes).unwrap()
+        crate::test_log::capture(|| log_boot(config))
     }
 
     #[test]

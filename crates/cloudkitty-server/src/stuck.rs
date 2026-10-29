@@ -1578,27 +1578,6 @@ mod tests {
 
     // ---------- T010: the fire log line (contract §3) ----------
 
-    /// A capture target for the fmt subscriber.
-    #[derive(Clone, Default)]
-    struct Captured(Arc<Mutex<Vec<u8>>>);
-
-    impl std::io::Write for Captured {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            self.0.lock().unwrap().extend_from_slice(buf);
-            Ok(buf.len())
-        }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Captured {
-        type Writer = Captured;
-        fn make_writer(&'a self) -> Captured {
-            self.clone()
-        }
-    }
-
     #[test]
     fn the_fire_log_line_carries_the_contract_fields_at_the_contract_levels() {
         // Contract §3: WARN for enforce, INFO for observe, and these
@@ -1617,17 +1596,10 @@ mod tests {
             proposal_replaced: None,
             substitute: Decision::silent(cloudkitty_core::action::Action::Idle),
         };
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
+        let text = crate::test_log::capture(|| {
             log_fire(&record(StuckMode::Enforce));
             log_fire(&record(StuckMode::Observe));
         });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
         let lines: Vec<&str> = text.lines().collect();
         assert_eq!(lines.len(), 2, "one line per fire:\n{text}");
         assert!(
@@ -1692,16 +1664,7 @@ mod tests {
                 direction: Direction::East,
             }),
         };
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
-            log_fire(&record);
-        });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
+        let text = crate::test_log::capture(|| log_fire(&record));
         let line = text.lines().next().unwrap();
         assert!(
             line.contains("name=\"Mr Whiskers\""),
@@ -1739,13 +1702,7 @@ mod tests {
         // Review 2026-10-15 finding 3: the boot line interpolates the
         // live config — a deploy's first-page fact — so it is pinned on
         // non-default values, same capture rig as the fire line.
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
+        let text = crate::test_log::capture(|| {
             log_boot(&StuckConfig {
                 mode: StuckMode::Observe,
                 window: 42,
@@ -1754,7 +1711,6 @@ mod tests {
                 recent_fires: 7,
             });
         });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
         assert!(
             text.contains("INFO") && text.contains("stuck detector standing by"),
             "one INFO boot line: {text}"
