@@ -9,6 +9,8 @@ pub mod persist;
 pub mod settings;
 pub mod sim_task;
 pub mod stuck;
+#[cfg(test)]
+mod test_log;
 pub mod watchdog;
 pub mod welfare_hazard;
 pub mod ws;

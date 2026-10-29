@@ -1578,39 +1578,6 @@ mod tests {
 
     // ---------- T010: the fire log line (contract §3) ----------
 
-    /// A capture target for the fmt subscriber.
-    ///
-    /// Every capture closure starts with
-    /// `tracing::callsite::rebuild_interest_cache()`. tracing caches
-    /// each `info!`/`warn!` site's interest the first time any thread
-    /// hits it, against the dispatchers registered at that moment. The
-    /// observe-mode tests above hit the observe `info!` in `log_fire`
-    /// with no subscriber installed, so when one of them registers the
-    /// site after this test's scoped subscriber has already rebuilt the
-    /// cache, the site is cached as "never" and the event is dropped
-    /// before the subscriber sees it (CI 2026-10-28, job 122681607009:
-    /// one line captured, two expected). Rebuilding inside the scoped
-    /// subscriber recomputes every site against it.
-    #[derive(Clone, Default)]
-    struct Captured(Arc<Mutex<Vec<u8>>>);
-
-    impl std::io::Write for Captured {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            self.0.lock().unwrap().extend_from_slice(buf);
-            Ok(buf.len())
-        }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for Captured {
-        type Writer = Captured;
-        fn make_writer(&'a self) -> Captured {
-            self.clone()
-        }
-    }
-
     #[test]
     fn the_fire_log_line_carries_the_contract_fields_at_the_contract_levels() {
         // Contract §3: WARN for enforce, INFO for observe, and these
@@ -1629,18 +1596,10 @@ mod tests {
             proposal_replaced: None,
             substitute: Decision::silent(cloudkitty_core::action::Action::Idle),
         };
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
-            tracing::callsite::rebuild_interest_cache();
+        let text = crate::test_log::capture(|| {
             log_fire(&record(StuckMode::Enforce));
             log_fire(&record(StuckMode::Observe));
         });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
         let lines: Vec<&str> = text.lines().collect();
         assert_eq!(lines.len(), 2, "one line per fire:\n{text}");
         assert!(
@@ -1677,51 +1636,6 @@ mod tests {
     }
 
     #[test]
-    fn the_capture_rig_survives_a_bare_thread_registering_the_observe_callsite_first() {
-        // Forces the interleaving the CI flake hit (see `Captured`): our
-        // dispatcher registers first, rebuilding the cache before the
-        // observe callsite exists; a bare thread then registers the
-        // observe `info!` with no subscriber; then we log under the
-        // scoped subscriber. Without the rebuild inside the closure the
-        // INFO line is dropped (1 of 2). The forced loss needs this to
-        // be the only live scoped dispatcher (tracing's `has_just_one`
-        // path), so it is a deterministic guard alone and a plain pass
-        // beside other capture tests.
-        let record = |mode: StuckMode| FireRecord {
-            tick: 42,
-            kitty: 1,
-            name: "Biscuit".to_string(),
-            mode,
-            window: 30,
-            anchor: [18, 0],
-            confined_span: 31,
-            armed_need: NeedKind::Eat,
-            need_value: 83.0,
-            proposal_replaced: None,
-            substitute: Decision::silent(cloudkitty_core::action::Action::Idle),
-        };
-        let captured = Captured::default();
-        let dispatch = tracing::Dispatch::new(
-            tracing_subscriber::fmt()
-                .with_max_level(tracing::Level::TRACE)
-                .with_writer(captured.clone())
-                .with_ansi(false)
-                .finish(),
-        );
-        std::thread::spawn(move || log_fire(&record(StuckMode::Observe)))
-            .join()
-            .unwrap();
-        tracing::dispatcher::with_default(&dispatch, || {
-            tracing::callsite::rebuild_interest_cache();
-            log_fire(&record(StuckMode::Enforce));
-            log_fire(&record(StuckMode::Observe));
-        });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
-        let lines: Vec<&str> = text.lines().collect();
-        assert_eq!(lines.len(), 2, "one line per fire:\n{text}");
-    }
-
-    #[test]
     fn the_fire_log_line_renders_values_the_way_consumers_must_parse_them() {
         // Experiments' rule-3 report 2026-10-15: the contract §3 example
         // showed value SHAPES the formatter never emits, and T010 above
@@ -1750,17 +1664,7 @@ mod tests {
                 direction: Direction::East,
             }),
         };
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
-            tracing::callsite::rebuild_interest_cache();
-            log_fire(&record);
-        });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
+        let text = crate::test_log::capture(|| log_fire(&record));
         let line = text.lines().next().unwrap();
         assert!(
             line.contains("name=\"Mr Whiskers\""),
@@ -1798,14 +1702,7 @@ mod tests {
         // Review 2026-10-15 finding 3: the boot line interpolates the
         // live config — a deploy's first-page fact — so it is pinned on
         // non-default values, same capture rig as the fire line.
-        let captured = Captured::default();
-        let subscriber = tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
-            .with_writer(captured.clone())
-            .with_ansi(false)
-            .finish();
-        tracing::subscriber::with_default(subscriber, || {
-            tracing::callsite::rebuild_interest_cache();
+        let text = crate::test_log::capture(|| {
             log_boot(&StuckConfig {
                 mode: StuckMode::Observe,
                 window: 42,
@@ -1814,7 +1711,6 @@ mod tests {
                 recent_fires: 7,
             });
         });
-        let text = String::from_utf8(captured.0.lock().unwrap().clone()).unwrap();
         assert!(
             text.contains("INFO") && text.contains("stuck detector standing by"),
             "one INFO boot line: {text}"
