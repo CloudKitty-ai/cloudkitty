@@ -147,9 +147,9 @@ jobs:
   #     ...
   #     // jscpd:ignore-end
   # Fences are debt with a deadline: tag-check fails a release while
-  # any jscpd:ignore marker remains in code (scripts/tag-check.sh
-  # `fences` excludes *.md and *.yml, #479, so naming the marker here
-  # fences nothing).
+  # any jscpd:ignore marker remains in a tracked file other than *.md
+  # or *.yml (scripts/tag-check.sh `fences`, #479), so naming the
+  # marker here fences nothing.
   # jscpd is pinned to the survey's version; bumping it means
   # re-measuring the baselines in the same PR.
   duplication:
