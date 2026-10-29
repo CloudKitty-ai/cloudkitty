@@ -11,6 +11,13 @@ the reds are listed in RESULTS.md's Guards section as they land.
       world; a covered seat at the line still does.
   n2  the needy schedule recorded per tick, held to the engine's own law
       on real payloads (all-scripted fixtures, 0 covered cat-ticks).
+  n4  the reader pairs covered observers only; the scripted seat as an
+      observer trips the recorded-observation assertion.
+  n6  R4/R5's gate refuses a seed from the other half.
+  n8  the frozen probe reproduces the committed pgrave file in this venv.
+
+    test_needy_set.py            # every guard
+    test_needy_set.py n1 n2      # the guards whose name carries a tag
 """
 import json
 import subprocess
@@ -27,6 +34,7 @@ import split as SP  # noqa: E402
 
 sys.path.insert(0, str(HERE.parent / "seating-analysis-g2-2026-10-21"))
 import seating_collect_g2 as C  # noqa: E402
+import needy_read as R  # noqa: E402
 
 E1 = HERE / "g2leg-20-E1-n60.toml"
 _fix = {}
@@ -169,9 +177,11 @@ def test_n2_needy_schedule_is_recorded_on_the_engines_own_law():
     bits = np.array([(mask >> i) & 1 for i in range(6)], bool).T          # (T, 6)
     releases = np.where((phase == lvl) | (phase == lim))[0]
     assert (phase == lvl).any() and len(releases) >= 2, (np.bincount(phase, minlength=4).tolist())
-    # (b) a level release: every need masked on the tick before sits at 90 or over now
+    # (b) a level release is the FIRST tick every masked need sits at 90 or
+    # over: not all of them were there the tick before, all of them are now
     for t in np.where(phase == lvl)[0]:
         assert phase[t - 1] == held and mask[t] == 0 and bits[t - 1].any(), t
+        assert not (needs[t - 1][bits[t - 1]] >= 90.0).all(), ("release one tick late", t, needs[t - 1][bits[t - 1]])
         assert (needs[t][bits[t - 1]] >= 90.0 - 1e-4).all(), (t, needs[t][bits[t - 1]])
     # (a) while held, a masked need never falls
     for t in range(1, len(phase)):
@@ -195,10 +205,75 @@ def test_n2_needy_streams_are_absent_without_a_needy_seat():
     assert meta["needy_seat"] is None and "needy_mask" not in arrays
 
 
+def _mixed_world():
+    """rot2 with Miso scripted on N1 (the set's own shape), 20 ticks, obs
+    saved: 80 covered cat-ticks, the certified networks in a world they
+    have run."""
+    if "mixed" not in _fix:
+        _fix["mixed"] = C.collect("g2-rot2", 905001, 20, 1000, config=HERE / "g2leg-20-N1.toml",
+                                  save_obs=True, scripted_seat=0, abort_covered_only=True)
+        import tempfile
+        out = Path(tempfile.mkdtemp()) / "streams-905001.npz"
+        arrays, meta = _fix["mixed"]
+        np.savez_compressed(out, meta=json.dumps(meta), **arrays)
+        _fix["mixed_path"] = out
+    return _fix["mixed_path"]
+
+
+def test_n4_reader_pairs_covered_observers_only():
+    # red: the scripted seat admitted as an observer -> pair_x's
+    # recorded-observation assertion trips on its first pair
+    w = R.load_world(_mixed_world())
+    assert w["scripted"] == [0] and w["meta"]["abort_seats"] == [1, 2, 3, 4] and w["needy_seat"] == 0
+    pairs = R.observer_pairs(w)
+    for k, j in pairs:
+        x, vis = R.pair_x(w, k, j)
+        assert x.shape == (20, 167) and x.dtype == np.float16
+    assert len(pairs) == 16 and all(k != 0 for k, _j in pairs) and sum(j == 0 for _k, j in pairs) == 4, pairs
+    try:
+        R.pair_x(w, 0, 1)
+    except AssertionError as e:
+        assert "never an observer" in str(e)
+    else:
+        raise AssertionError("pair_x accepted the scripted seat as an observer")
+    model, probe, _m = R.load_probe(1)
+    p = R.probe_world(model, probe, w)
+    assert p.shape == (20, 5, 5) and np.isnan(p[:, 0, :]).all() and np.isfinite(p[:, 1:, 0]).all()
+    assert np.isnan(p[:, np.arange(5), np.arange(5)]).all()
+
+
+def test_n6_the_gate_refuses_the_other_half():
+    # red: refuse_unless lets the other half through -> no PermissionError
+    assert R.seeds("N", 1, "tuning", w=20) == list(range(1095711, 1095731, 2))
+    assert R.seeds("T", 3, "confirming") == [1095495, 1095497, 1095500, 1095506, 1095510]
+    assert R.refuse_unless("N", 1, 1095711, "tuning") == 1095711
+    for arm, k, seed, half in (("N", 1, 1095712, "tuning"), ("N", 1, 1095711, "confirming"),
+                               ("E", 5, 1096402, "tuning"), ("T", 1, 1095452, "confirming")):
+        try:
+            R.refuse_unless(arm, k, seed, half)
+        except PermissionError as e:
+            assert str(seed) in str(e) and half in str(e)
+        else:
+            raise AssertionError(f"{arm}{k} {seed} passed as {half}: did not raise")
+    try:
+        R.half_of("N", 1, 1096161)
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("a seed outside the block did not raise")
+
+
+def test_n8_the_probe_reproduces_the_committed_file():
+    # red: the reference pointed at another probe seed's file
+    worst = R.check_probe_reproduces(seeds=(1,))
+    assert worst == {1: 0.0}, worst
+
+
 if __name__ == "__main__":
     n = 0
+    tags = sys.argv[1:]
     for name, fn in sorted(globals().items()):
-        if name.startswith("test_"):
+        if name.startswith("test_") and (not tags or any(t in name for t in tags)):
             fn()
             print(f"ok {name}")
             n += 1
