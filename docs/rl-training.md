@@ -95,10 +95,11 @@ the first seed — pass an explicit seed only when you want a specific
 episode back.
 
 **The actor's observation has no episode clock** (schema 6, spec 058
-FR-010). Earlier schemas ended with a tick/horizon cell that training
-varied 0→1 and deployment pinned to 0, so a policy could learn
-late-episode urgency that the served world never showed it. That cell is
-gone; only the critic's `env.state()` still ends with the clock, and the
+FR-010). Earlier schemas ended with a tick/horizon cell: training varied
+it 0→1, and the served world either pinned it to 0 (before 0.3.0) or
+cycled it as tick mod horizon (0.3.0), so a policy could learn
+clock-conditional behavior that deployment then fed a different clock.
+That cell is gone; only the critic's `env.state()` still ends with the clock, and the
 critic never deploys. The deployment claim itself belongs to the
 certification pipeline (below).
 

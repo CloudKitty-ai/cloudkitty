@@ -267,7 +267,8 @@ living its life — which is the whole idea.
   original message, and `reset()` revives it. After a partial batch
   failure the environment refuses to step until reset resynchronizes.
 - **The actor sees no episode clock.** Observation schema 6 (spec 058)
-  dropped the tick/horizon cell that older schemas pinned to 0 at
-  deployment; only the critic's `env.state()` still carries one, and
-  the critic never deploys. A policy trained on an older schema's
+  dropped the tick/horizon cell older schemas carried (served pinned
+  to 0 before 0.3.0, cycled as tick mod horizon from 0.3.0 on); only
+  the critic's `env.state()` still carries one, and the critic never
+  deploys. A policy trained on an older schema's
   clock cell is refused at load, not quietly served.
