@@ -33,6 +33,12 @@ change.
 
 ## Unreleased
 
+- **The README's first command starts the server.** In 0.3.0 a bare
+  `cargo run` at the repo root stopped to ask which of the workspace's
+  four programs to run (`cloudkitty-server`, `kitty-eval`,
+  `ckpolicy-expand` and `clowder`), so the quickstart failed on its
+  first line. The README and the RL how-to now say
+  `cargo run -p cloudkitty-server`.
 - **A scripted cat can let a need climb, on a schedule.** Needy
   behaviour presets (spec 067): two research-only builtins, `needy` and
   `needy_hold`, decide exactly as the `teacher` preset until an episode

@@ -8,8 +8,9 @@ any PettingZoo-compatible cooperative trainer to them; adapt freely.
 
 ## The recommended training world (research.md R11)
 
-The *served* world is 20×20 with 4 kitties (spec 027's canonical
-generation, live since 2026-08-08) — its welfare bounds are calibrated
+The *served* world is 20×20 with 5 kitties (`cloudkitty.toml`; spec
+027's canonical generation, live since 2026-08-08, has since grown a
+fifth cat) — its welfare bounds are calibrated
 there and full mutual visibility is the right served meadow. Training
 defaults instead to **5 kitties on a 24×24 world**:
 
@@ -55,10 +56,10 @@ obs, infos = env.reset()
 agents = env.possible_agents          # e.g. ["kitty_1", ..., "kitty_5"]
 
 # obs[agent]:            float32 [N_WORLDS, obs_len]
-# infos[agent]["mask"]:  uint8   [N_WORLDS, 55] — 39 activity ∥ 16 message (spec 049, kitty_slots 4)
+# infos[agent]["mask"]:  uint8   [N_WORLDS, 51] — 35 activity ∥ 16 message (spec 058, kitty_slots 4, critter_slots 2)
 # env.state():           float32 [N_WORLDS, state_len] — the critic's view
 
-MENU = env.menu_len                    # 39 at the served slots (spec 049)
+MENU = env.menu_len                    # 35 at the default slots (spec 058)
 actions = {a: np.zeros((N_WORLDS, 2), dtype=np.int64) for a in agents}
 for a in agents:
     for w in range(N_WORLDS):
@@ -72,11 +73,12 @@ obs, rewards, terminations, truncations, infos = env.step(actions)
 # truncations:    all True exactly at the horizon
 ```
 
-A decision is a **pair** (spec 028): an activity from the 34-entry menu
+A decision is a **pair** (spec 028): an activity from the 35-entry menu
 and a message riding along for free — the action space is
-`MultiDiscrete([34, 16])` (the head widened to Silent + 15 at the spec-033
-say-surface freeze; the menu did not move), and the 50-wide mask is the two heads'
-legality concatenated, activity first. Train with any parameter-shared
+`MultiDiscrete([35, 16])` at the default slots (the head widened to
+Silent + 15 at the spec-033 say-surface freeze; the menu follows the slot
+counts, 39 → 35 at spec 058's critter cut), and the 51-wide mask is the
+two heads' legality concatenated, activity first. Train with any parameter-shared
 cooperative algorithm that consumes the parallel convention
 (MAPPO-style: actor on observations + mask, critic on `state()`). Apply
 each head's mask slice **before** that head's softmax (set illegal
@@ -92,25 +94,21 @@ is a genuinely new episode, and the whole sequence replays exactly from
 the first seed — pass an explicit seed only when you want a specific
 episode back.
 
-**The episode clock is a training-only signal.** The last observation
-input is tick/horizon, which varies 0→1 during training but is pinned to
-0 at deployment (the served world has no episodes) — and `kitty-eval`
-scores with the same pin, so evaluation matches deployment. A policy that
-learns strongly clock-conditional behavior (late-episode urgency,
-end-of-episode hoarding) will behave like perpetual tick 0 when deployed.
-If your training curves depend on the clock, either mask it out of your
-network's input, randomize episode phase at reset, or check with
-`kitty-eval` that the pinned-clock behavior holds up — it smokes with
-the deployment pin, which is exactly the failure mode it exists to
-catch. The deployment claim itself belongs to the certification
-pipeline (below).
+**The actor's observation has no episode clock** (schema 6, spec 058
+FR-010). Earlier schemas ended with a tick/horizon cell: training varied
+it 0→1, and the served world either pinned it to 0 (before 0.3.0) or
+cycled it as tick mod horizon (0.3.0), so a policy could learn
+clock-conditional behavior that deployment then fed a different clock.
+That cell is gone; only the critic's `env.state()` still ends with the clock, and the
+critic never deploys. The deployment claim itself belongs to the
+certification pipeline (below).
 
 ## Exporting a `.ckpolicy` artifact
 
-Policies are plain MLPs: observation → hidden ReLU layers → **50
-logits** — one trunk, two heads by index convention (spec 028, widths
-per spec 033): `[0..34)` is the activity head, `[34..50)` the message
-head. Greedy
+Policies are plain MLPs: observation → hidden ReLU layers → **51
+logits** at the default slots — one trunk, two heads by index convention
+(spec 028, widths per specs 033 and 058): `[0..35)` is the activity
+head, `[35..51)` the message head. Greedy
 selection is per-head masked argmax; sampled selection draws **one**
 u64 per decision and splits it, hi u32 → activity, lo u32 → message
 (the R10 law — never a second draw). The artifact container is **v2**
@@ -131,8 +129,8 @@ def export_ckpolicy(path, layers, obs_len):
         "artifact_version": 2,   # spec 028: two heads in one final layer
         # The three SCHEMA fields always come from the binding's constants,
         # never literals: an artifact stamped with a stale generation is
-        # refused at load (observation schema 5 since spec 049 -- the
-        # fog wall: 408 floats at the served slots, no global digest,
+        # refused at load (observation schema 6 since spec 058 -- the
+        # Gen 2 wall: 399 floats at the default slots, no clock cell,
         # per-speaker message blocks on the kitty rows).
         "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
         "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
@@ -141,7 +139,7 @@ def export_ckpolicy(path, layers, obs_len):
         "activation": "relu",
     }
     assert header["layers"][0][0] == obs_len
-    assert header["layers"][-1][1] == 55   # 39 activity + 16 message (spec 049, kitty_slots 4)
+    assert header["layers"][-1][1] == 51   # 35 activity + 16 message (spec 058, default slots)
     header_bytes = (json.dumps(header) + "\n").encode()
     with open(path, "wb") as f:
         f.write(b"CKPOLICY")
