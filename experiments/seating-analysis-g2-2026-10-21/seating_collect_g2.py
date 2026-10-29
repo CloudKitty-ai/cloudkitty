@@ -29,7 +29,18 @@ scene's last tick. Since the mini-friend Phase 1 declaration
 each policy seat's start-of-tick observation, the frozen view the
 policy acted on at tick t (the world after tick t-1's step, so its own
 needs equal needs[t-1], or needs0 at t = 0); scripted seats' rows are
-zero and meta["obs_recorded"] says which rows are real.
+zero and meta["obs_recorded"] says which rows are real. Since the needy
+set (needy-set-2026-10-28/DECLARATION.md §10 n1, n2; 2026-10-29): a
+world that seats a spec-067 needy kitty also records its schedule as
+the engine reports it after each step (ParallelEnv.needy): needy_mask
+(T,) uint8, the masked needs as bits in NeedKind order (eat 1, drink 2,
+sleep 4, play 8, cuddle 16, bath 32); needy_ordinal (T,) int32; and
+needy_phase (T,) int8 indexing NEEDY_PHASES; meta["needy_seat"] is the
+seat column. --scripted-seat K puts seat K of the seating on its config
+behaviour (the needy set's friend among rot2), and --abort-covered-only
+makes the F-053 stop watch the policy seats alone (the scripted friend
+is exempt by the welfare practice; its streaks are recorded, never a
+stop).
 """
 import argparse
 import json
@@ -51,20 +62,31 @@ from seating_read import APPLIED_NAMES, encode_applied  # noqa: E402
 
 CONFIG = EXPTS / "gen2-comparator-legs-2026-10-14" / "g2leg-20.toml"
 E_MIN = 64   # element slots at 20x20; bigger worlds size from their reset count
+NEED_BITS = {n: 1 << i for i, n in enumerate(("eat", "drink", "sleep", "play", "cuddle", "bath"))}
+NEEDY_PHASES = ("resting", "held", "released_level", "released_limit")
 
 
-def abort_due(dist_streak, abort_streak, abort_seat=None):
+def abort_due(dist_streak, abort_streak, abort_seat=None, abort_seats=None):
     """The distress stop: any seat's current single-need streak at or over
     `abort_streak` — or, with `abort_seat`, that seat's alone (the tail
     replays' welfare mitigation, 2026-10-22: stop 100 ticks into the
-    target cat's run even when another seat's run is longer)."""
+    target cat's run even when another seat's run is longer) — or, with
+    `abort_seats`, those seats' only (the needy set's covered-only stop,
+    n1: the scripted friend's streak is the instrument, never a stop;
+    an empty list watches nothing)."""
     if abort_streak is None:
         return False
-    watched = dist_streak if abort_seat is None else dist_streak[abort_seat]
+    if abort_seats is not None:
+        if not abort_seats:
+            return False
+        watched = dist_streak[list(abort_seats)]
+    else:
+        watched = dist_streak if abort_seat is None else dist_streak[abort_seat]
     return bool(watched.max() >= abort_streak)
 
 
-def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, save_obs=False):
+def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, save_obs=False,
+            scripted_seat=None, abort_covered_only=False):
     import cloudkitty
     with open(config, "rb") as f:
         cfg = tomllib.load(f)
@@ -73,6 +95,10 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
     width, height = cfg["world"]["width"], cfg["world"]["height"]
     seats = list(H.SEATINGS[seating])
     assert len(seats) == roster, (seating, roster)
+    if scripted_seat is not None:
+        seats[scripted_seat] = "scripted"
+    abort_seats = [i for i, s in enumerate(seats) if s != "scripted"] if abort_covered_only else None
+    assert not (abort_covered_only and abort_seat is not None), "one stop shape at a time"
     assert all(s == "scripted" or s.startswith("g2:") for s in seats), seats
     obs_dim, n_act, n_heads = H.SCHEMA_DIMS["v6"]
     control = {f"kitty_{k['id']}": k["behavior"]
@@ -95,6 +121,11 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
     col = {f"kitty_{k['id']}": i for i, k in enumerate(kitties)}
     ids = [k["id"] for k in kitties]
     col_of_id = {kid: i for i, kid in enumerate(ids)}
+    needy_seats = [col_of_id[kid] for kid, _m, _o, _p in env.needy()]
+    assert len(needy_seats) <= 1, needy_seats
+    needy_seat = needy_seats[0] if needy_seats else None
+    if needy_seat is not None:
+        assert seats[needy_seat] == "scripted", (needy_seat, seats)
 
     etypes = {}
 
@@ -117,6 +148,9 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
     nash = np.zeros(T, np.float64)
     elements = np.full((T, e_max, 3), -1, np.int16)
     obs_rec = np.zeros((T, roster, obs_dim), np.float16) if save_obs else None
+    needy_mask = np.zeros(T, np.uint8) if needy_seat is not None else None
+    needy_ordinal = np.zeros(T, np.int32) if needy_seat is not None else None
+    needy_phase = np.zeros(T, np.int8) if needy_seat is not None else None
     obs_cols = [col[a] for a in names]
 
     dist_streak = np.zeros((roster, 6), np.int64)
@@ -141,6 +175,14 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
                 act[n, col[a]] = a0[i]
                 msg[n, col[a]] = g0[i]
         obs, _r, _te, _tr, infos = env.step(acts)
+        if needy_seat is not None:
+            # the schedule as the engine reports it after this tick's step: the
+            # mask, ordinal and phase that produced needs[n] (held/released read
+            # on the post-rise needs; released_* appears on the release tick only)
+            (_kid, masked, ordinal, phase), = env.needy()
+            needy_mask[n] = sum(NEED_BITS[m] for m in masked)
+            needy_ordinal[n] = ordinal
+            needy_phase[n] = NEEDY_PHASES.index(phase)
         st = np.asarray(env.state(), np.float32)
         for k in range(roster):
             b = k * pk
@@ -163,7 +205,7 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
         for j, (_id, ty, x, y) in enumerate(els):
             elements[n, j] = (ecode(ty), x, y)
         n += 1
-        if abort_due(dist_streak, abort_streak, abort_seat):
+        if abort_due(dist_streak, abort_streak, abort_seat, abort_seats):
             aborted_at = n
             break
 
@@ -174,7 +216,9 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
         "speech_recorded": [s != "scripted" for s in seats],
         "element_types": etypes, "width": width, "height": height,
         "per_kitty": pk, "abort_streak": abort_streak, "aborted_at": aborted_at,
-        "abort_seat": abort_seat,
+        "abort_seat": abort_seat, "abort_seats": abort_seats, "scripted_seat": scripted_seat,
+        "needy_seat": needy_seat, "needy_phases": list(NEEDY_PHASES) if needy_seat is not None else None,
+        "needy_bits": dict(NEED_BITS) if needy_seat is not None else None,
         "applied_names": APPLIED_NAMES,
         "obs_recorded": [s != "scripted" for s in seats] if save_obs else None,
         "collected_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -186,6 +230,8 @@ def collect(seating, seed, ticks, abort_streak, config=CONFIG, abort_seat=None, 
                   needs0=needs0, hap0=hap0)
     if save_obs:
         arrays["obs"] = obs_rec[:n]
+    if needy_seat is not None:
+        arrays.update(needy_mask=needy_mask[:n], needy_ordinal=needy_ordinal[:n], needy_phase=needy_phase[:n])
     return arrays, meta
 
 
@@ -200,11 +246,16 @@ def main():
                     help="world toml (default g2leg-20); play-decomposition cells pass their own")
     ap.add_argument("--save-obs", action="store_true",
                     help="also record each policy seat's start-of-tick observation (float16)")
+    ap.add_argument("--scripted-seat", type=int, default=None,
+                    help="seat index (0 Miso .. 4 Clementine) to run on its config behaviour instead of the seating's network")
+    ap.add_argument("--abort-covered-only", action="store_true",
+                    help="the F-053 stop watches the policy seats only (the needy set's scripted friend is exempt)")
     a = ap.parse_args()
     import torch
     torch.set_num_threads(1)
     arrays, meta = collect(a.seating, a.seed, a.ticks, a.abort_streak, config=a.config,
-                           save_obs=a.save_obs)
+                           save_obs=a.save_obs, scripted_seat=a.scripted_seat,
+                           abort_covered_only=a.abort_covered_only)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(out, meta=json.dumps(meta), **arrays)
