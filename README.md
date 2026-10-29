@@ -84,19 +84,20 @@ merge:
 Requires a stable Rust toolchain.
 
 ```bash
-cargo run                       # starts the server with cloudkitty.toml
+cargo run -p cloudkitty-server  # starts the server with cloudkitty.toml
 open http://127.0.0.1:8090      # watch the world
 ```
 
-Other options:
+The workspace builds several programs, so `-p cloudkitty-server` names the
+server. Other options:
 
 ```bash
-cargo run -- --fresh            # start a new world (the old one is backed up)
-cargo run -- --fresh --no-backup  # start a new world, overwriting the old save in place
-cargo run -- --config my.toml   # a different world (its own size, port, roster…)
-cargo run -- --snapshot w.json  # a different save file
-cargo run -- --client path/     # serve the viewer from a different directory
-cargo run -- --help
+cargo run -p cloudkitty-server -- --fresh              # start a new world (the old one is backed up)
+cargo run -p cloudkitty-server -- --fresh --no-backup  # start a new world, overwriting the old save in place
+cargo run -p cloudkitty-server -- --config my.toml     # a different world (its own size, port, roster…)
+cargo run -p cloudkitty-server -- --snapshot w.json    # a different save file
+cargo run -p cloudkitty-server -- --client path/       # serve the viewer from a different directory
+cargo run -p cloudkitty-server -- --help
 ```
 
 The world saves itself to `snapshot.json` every 100 ticks and on `Ctrl-C`,
@@ -130,6 +131,7 @@ All read-only: the viewer is a window, not a control surface.
 | `GET /events/activity` | Recently finished activities with their true tick spans |
 | `GET /events/refusal` | Recent refusals as `{capacity, events}` — the proposal verbatim, the tick, the `absorbed` flag, and the `reason` (`partner_absent` / `partner_busy` / `consent_declined` / `other`; specs 049, 059) |
 | `GET /welfare` | The standing welfare watch: every live distress age, the alarm threshold, and whether an alarm is live (spec 040) |
+| `GET /stuck` | The stuck detector (spec 061): its mode and settings, fire counts and live trigger state for every seat a trained policy or a `"mind"` plugin drives, and the most recent fires; scripted seats never appear, and with the detector off the lists stay empty |
 | `GET /config` | The active, validated configuration |
 | `GET /settings` | The key settings — every dial anyone has needed to verify after a deploy, each as effective value, engine default and source (`toml` / `default`); `Accept: text/plain` returns the boot-log block verbatim |
 | `WS /ws` | The full world, pushed after every tick |

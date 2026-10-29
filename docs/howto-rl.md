@@ -29,11 +29,11 @@ import cloudkitty
 
 env = cloudkitty.ParallelEnv(horizon=100)     # the default world, one episode
 obs, infos = env.reset(seed=7)
-MENU = env.menu_len                           # 39 at the served kitty_slots 4 (spec 049)
+MENU = env.menu_len                           # 35 at the default kitty_slots 4, critter_slots 2 (spec 058)
 for _ in range(100):
     actions = {}
     for agent in env.agents:
-        mask = infos[agent]["mask"]           # 55 wide: 39 activity ∥ 16 message
+        mask = infos[agent]["mask"]           # 51 wide: 35 activity ∥ 16 message
         actions[agent] = [int(np.random.choice(np.flatnonzero(mask[:MENU]))),
                           int(np.random.choice(np.flatnonzero(mask[MENU:])))]
     obs, rewards, terminations, truncations, infos = env.step(actions)
@@ -42,10 +42,11 @@ for _ in range(100):
 Three things to internalize before training anything:
 
 - **The mask is law, and a decision is a pair** (spec 028). An action is
-  `[activity, message]` — `MultiDiscrete([39, 16])` at the served
-  `kitty_slots` 4 (spec 049; both widths are config-derived, read them
-  from the binding, never as literals) — and the 55-wide mask is both
-  heads' legality concatenated: the first 39 entries mark which menu
+  `[activity, message]` — `MultiDiscrete([35, 16])` at the default
+  `kitty_slots` 4 and `critter_slots` 2 (spec 058; both widths are
+  config-derived, read them from the binding, never as literals) — and
+  the 51-wide mask is both heads' legality concatenated: the first 35
+  entries mark which menu
   activities would apply as proposed *right now*, the last 16 which
   messages are lawfully expressible (Silent, index 0, always is —
   structurally). Under fog (spec 049) the mask is computed over the
@@ -89,8 +90,8 @@ env = cloudkitty.VectorEnv(N_WORLDS, horizon=HORIZON, workers=N_WORLDS)
 agents = env.possible_agents
 obs0, _ = env.reset(seeds=EVAL_SEEDS)
 OBS_LEN = obs0[agents[0]].shape[1]
-MENU, HEAD = env.menu_len, env.head_len       # 39 + 16 (spec 028 heads, spec 049 widths)
-OUT = MENU + HEAD                             # one trunk, 55 logits at the served slots
+MENU, HEAD = env.menu_len, env.head_len       # 35 + 16 (spec 028 heads, spec 058 widths)
+OUT = MENU + HEAD                             # one trunk, 51 logits at the default slots
 
 rng = np.random.default_rng(0)
 
@@ -146,7 +147,7 @@ for iteration in range(1, ITERATIONS + 1):
 # length-prefixed JSON header, then per layer weights row-major [out][in]
 # followed by bias, all little-endian f32.
 header = {
-    "artifact_version": 2,   # spec 028: one final layer, 55 logits = 39 activity + 16 message
+    "artifact_version": 2,   # spec 028: one final layer, 51 logits = 35 activity + 16 message
     "observation_schema": cloudkitty.OBSERVATION_SCHEMA_VERSION,
     "action_schema": cloudkitty.ACTION_SCHEMA_VERSION,
     "mask_schema": cloudkitty.MASK_SCHEMA_VERSION,
@@ -243,7 +244,7 @@ artifact = "policies/trained.ckpolicy"
 ```
 
 ```bash
-cargo run    # validates + hash-logs the artifact before the first tick
+cargo run -p cloudkitty-server    # validates + hash-logs the artifact before the first tick
 ```
 
 A corrupted or mis-shaped artifact fails startup naming the config
@@ -265,8 +266,9 @@ living its life — which is the whole idea.
 - **If a world panics**, it alone is poisoned: the step raises with the
   original message, and `reset()` revives it. After a partial batch
   failure the environment refuses to step until reset resynchronizes.
-- **The episode clock is pinned to 0 at deployment.** If training
-  performance depends on tick/horizon, re-read the caveat in
-  [rl-training.md](rl-training.md) before trusting the curve —
-  `kitty-eval` smokes with the deployment pin, which is why it is the
-  right place to catch this failure mode.
+- **The actor sees no episode clock.** Observation schema 6 (spec 058)
+  dropped the tick/horizon cell older schemas carried (served pinned
+  to 0 before 0.3.0, cycled as tick mod horizon from 0.3.0 on); only
+  the critic's `env.state()` still carries one, and the critic never
+  deploys. A policy trained on an older schema's
+  clock cell is refused at load, not quietly served.
