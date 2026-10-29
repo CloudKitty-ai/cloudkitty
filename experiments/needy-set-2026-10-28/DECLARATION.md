@@ -45,9 +45,9 @@ rests on them carries its file:line).
 Welfare-cost line. Covered minds: the four frozen rot2 networks seated
 beside the scripted friend in each covered world, and no others. No
 weight changes anywhere in this arc. Expected exposure at the drafted
-design: about 6.8M covered cat-ticks (arm N about 5.5M, arm T 0.8M, the
-covered scout's paired worlds about 0.5M, the binding check 10,000),
-capped at 8.0M (§7). Expected distress for the covered seats is near the
+design: about 7.1M covered cat-ticks (arm N about 5.5M, arm T 0.8M, arm
+E about 0.3M if she rules it in (§12 call 7), the covered scout's paired
+worlds about 0.5M, the binding check 10,000), capped at 8.0M (§7). Expected distress for the covered seats is near the
 lived worlds' own: L held no grave tick for any friend in 1.0M covered
 cat-ticks with 0 aborts (Phase 1 RESULTS.md:35-39, DECLARATION.md:296-300),
 and on P distress stayed with the grave kitty in all 100 worlds (1b
@@ -164,6 +164,33 @@ opens**, and a mask opening at tick 5 does not put grave in front of a
 history strata that pair with the splice are set on the crossing. The
 scripted scout measures the climbs; the table is the expectation.
 
+**What an elevated start can and cannot place** (arm E, §3; read
+2026-10-28 at 044c2170):
+- `initial_needs` is a per-need value or `{min, max}` range, roster-wide
+  or per kitty (`core/config/mod.rs:522-525`, `validate.rs:1148-1157`);
+  arm T's configs use the per-kitty form. A config activating two
+  hazard modes acknowledges exactly both, in registry order
+  (`acknowledged = ["initial_needs", "needy"]`; `validate.rs:1338-1395`
+  checks unknown, duplicate, missing, stale).
+- The mask draws its needs uniformly from all six kinds, bath included,
+  m from `mix` (`core/needy.rs:235-245`); no setting names the masked
+  need, so a start that is to shorten the climb lifts every hidden need.
+- Onset weights [1, 0, 0, 0, 0] draw the first onset inside [0, 2), tick
+  0 or 1 (`core/needy.rs:217-231, 254-266`): the teacher services
+  nothing before the mask opens.
+- Happiness is 100 − Σ need × weight, clamped at the floor of 5
+  (`core/needs.rs:181-193`; weights eat .20, drink .20, sleep .15, play
+  .15, cuddle .15, bath .15, `g2leg-20.toml:150-156`). The five hidden
+  needs weigh 0.85 together, so every hidden need at n puts happiness at
+  100 − 0.85n at reset: under 45 once n passes 64, which is grave at
+  tick 0 on the happiness edge (arm T's H0 again). Below that, all five
+  needs rise together until the friend services one (Miso's weighted
+  rise is 0.335 a tick), so happiness can reach 45 some 10 to 40 ticks
+  in, before any need reaches 90. **An elevated start therefore places
+  crossings at roughly H 10 to 150: the earliest on the happiness edge,
+  the later ones on the need edge at (90 − n)/r.** The scout measures
+  both; R2 prints the edge.
+
 **Tooling as it stands** (`seating-analysis-g2-2026-10-21/seating_collect_g2.py`):
 no seating puts a scripted seat beside rot2 networks (`cert_harness_fog.py:99-137`);
 the F-053 abort watches every seat (`seating_collect_g2.py:56-64, 145-168`),
@@ -231,6 +258,26 @@ H2 about 0.24, H3 about 0.35, H4 about 0.22, no first crossing before
 cannot learn a clock, so the clock-free schedule FR-004 builds for
 training sets is not needed here; a training set keeps it.
 
+**Arm E, early crossings** (drafted on her word 2026-10-28, "Call 2 as
+put + arm E"; in the set only if she rules it in, §12 call 7).
+`g2leg-20-E<k>.toml` = `g2leg-20-N<k>.toml` with kitty k's five hidden
+needs started at n (bath 0, happiness computed from the needs as
+usual), `acknowledged = ["initial_needs", "needy"]`, and
+`onset_weights = [1.0, 0.0, 0.0, 0.0, 0.0]` so the mask opens at tick 0
+or 1; everything else as arm N. 800 ticks a world: the latest need-edge
+crossing at n = 50 is 200 ticks, the longest donor episode 238, and 300
+ticks of margin, the shape of call 4's cheaper alternative. A first
+episode not released by tick 800 is printed as unreleased and enters no
+stratum. n is one of {50, 55, 60}, pinned by the scripted scout (§7)
+before any covered world runs.
+
+What it builds: the crossings arm N cannot reach. From a default start
+the earliest natural crossing is 113 ticks, so H1 [2, 100) is otherwise
+unbuilt and F-070's knee (0.978 at H = 1 to 0.362 at H = 50) rests on
+the splice alone. Arm E's mask anchor is tick 0 in every world, so the
+anticipation window is the whole climb, and its crossings carry no
+junction: a natural row either reproduces the knee or does not.
+
 **Seeds** (claimed in `SEED-BANDS.md` in the commit that first burns
 one): 1095651–1096650 for this arc.
 - Scripted scout 1095651–1095700, 10 per block in block order.
@@ -239,8 +286,14 @@ one): 1095651–1096650 for this arc.
 - Arm N 1095711–1096010, 60 per block in block order (N1 1095711–1095770
   … N5 1095951–1096010); each block uses its first w seeds, w from the
   sizing rule (§7).
-- 1096011–1096650 held for this arc (an extension under the sizing rule
-  or a declared re-run), never a training set.
+- Arm E's scripted scout 1096011–1096160: for each n in {50, 55, 60} in
+  that order, 10 per block in block order (n = 50 1096011–1096060,
+  n = 55 1096061–1096110, n = 60 1096111–1096160).
+- Arm E 1096161–1096460, 60 per block in block order (E1 1096161–1096220
+  … E5 1096401–1096460); each block uses its first w_E seeds (§7).
+- 1096461–1096650 held for this arc (an extension under the sizing rule
+  or a declared re-run), never a training set. If call 7 rules arm E
+  out, its two bands join the held range unburned.
 
 **The split.** Within each block, seeds in ascending order alternate
 tuning, confirming, tuning, …, in both arms. `split.json` is committed
@@ -263,11 +316,21 @@ before any covered world runs.
   between mask onset j and the tick after release j is episode j's
   crossing; one outside every mask window is "unmasked" and reported
   apart.
-- **Primary strata, on H:** H0 [0, 2) (arm T's reset episodes); H2
-  [100, 300); H3 [300, 1,250); H4 [1,250, 6,000). H2–H4 pair with the
-  splice at H = 100 / 500 / 2,000, the nearest by midpoint. H1 [2, 100)
-  is printed when arm N reaches it and is not sized; F-070's knee stays
-  a splice result (§8).
+- **Primary strata, on H:** H0 [0, 2) (arm T's reset episodes); H1
+  [2, 100) (arm E, if ruled in; sized by §7); H2 [100, 300); H3 [300,
+  1,250); H4 [1,250, 6,000). H2–H4 pair with the splice at H = 100 /
+  500 / 2,000, the nearest by midpoint; H1 pairs with the splice at
+  H = 50 (0.362 ± 0.070, 1d RESULTS.md:1404), with the splice's H = 10
+  and 20 rows (0.658, 0.537) printed beside it and the H1 episodes also
+  printed in the splice's bins [2, 5), [5, 10), [10, 20), [20, 50),
+  [50, 100) by crossing. Arm N's few H1 crossings, if any, are printed
+  apart from arm E's and never pooled with them (different starts). If
+  arm E is ruled out, H1 is printed when arm N reaches it and is not
+  sized, and F-070's knee stays a splice result (§8).
+- **Arm E's anchors.** The mask anchor is tick 0 or 1 by construction;
+  H measures the observer state's age at the crossing, exactly as the
+  splice's H does, and the friend's row is high from the first frame
+  (declared, §8 item 10).
 - **Covariates, never pooled across without the weights printed:**
   ordinal (the primary reads use first episodes only; later episodes are
   their own table, R7); m (1–4); which need, play its own cell; in sight
@@ -298,17 +361,20 @@ seed is read before her pick (§11 step 6).
 - **R1 tie-back** (arm T, all 50 worlds): reset detection at 0.10, B = 0
   and B = 2, per block and pooled, beside P's same-seed covered figure.
   Scores P7.
-- **R2 history** (arm N first episodes, all seeds): detection and median
-  latency per primary stratum at 0.10, B = 0 and B = 2, beside the
-  splice; the episode-length distribution beside the donors' 5 / 40 /
-  238; in sight and under fog apart. Scores P10 with R1.
-- **R3 anticipation** (arm N first episodes): the probe's logit aligned
-  to the crossing from mask onset; fraction anticipated; lead
-  distribution; per stratum, per m, per need. Scores P6.
+- **R2 history** (arm N and arm E first episodes, all seeds): detection
+  and median latency per primary stratum at 0.10, B = 0 and B = 2,
+  beside the splice; the episode-length distribution beside the donors'
+  5 / 40 / 238; in sight and under fog apart; which edge crossed apart
+  (arm E's happiness-edge crossings are its earliest). Scores P10 with
+  R1, and P11 on H1.
+- **R3 anticipation** (arm N and arm E first episodes): the probe's
+  logit aligned to the crossing from mask onset; fraction anticipated;
+  lead distribution; per stratum, per m, per need. Scores P6. In arm E
+  the window is the whole climb from tick 0 or 1.
 - **R4 the ladder** (tuning seeds only): thresholds {0.05, 0.10, 0.20,
   0.30, 0.50} × burn-ins {0, 2, 5, 10}; per cell, detection and latency
-  per primary stratum (H0 from arm T, H2–H4 from arm N), anticipation,
-  and false alarms per class. No rule. The pick is hers, with its price
+  per primary stratum (H0 from arm T, H1 from arm E, H2–H4 from arm N),
+  anticipation, and false alarms per class. No rule. The pick is hers, with its price
   printed (her "dial in on the optimal level").
 - **R5 confirm** (confirming seeds only, after her pick): the picked
   cell, the same columns. These are the numbers the Phase 2 declaration
@@ -366,6 +432,18 @@ R5.
   and 0.288, at 0.10 and B = 0. Both clauses must hold. The mask-anchored
   version is printed beside it.
 
+- **P11 (the knee on natural rows; this thread's, registered here
+  2026-10-28, not the Professor's; scored only if arm E is ruled in).**
+  Arm E's first episodes crossing in H1, at 0.10 and B = 0, detected
+  anywhere in the episode (R4d): the seed mean lies within one seed SD
+  of the splice at H = 50, that is inside [0.292, 0.432]. Printed
+  beside it, never scored: the same read per splice bin and per edge,
+  and whether the natural figure sits above the splice's at the matched
+  bin. Above means the visible climb adds what a stitched row cannot
+  (R3 says how); below by more than the SD means the splice flattered
+  the frozen probe. If P10 and P11 both hold, F-069 and F-070 together
+  are a property of the head.
+
 His reading of P6 and P7 together (lines 326-329): "If P6 holds and P7
 holds, the scripted set is a usable proxy for a covered friend's
 crossing with the behaviour-vs-consequence question answered in the
@@ -384,11 +462,23 @@ leg on any config no covered mind has run, its number cited).
   shares; episodes per world; release by level or limit; the scripted
   friend's distress streaks (reported, never gated); refusals by reason.
   Committed with the sizing below before any covered world runs.
+- **Arm E's scripted scout** (if call 7 rules it in). The E configs at
+  each n in {50, 55, 60}, 10 worlds per block per n, 800 ticks, every
+  seat scripted, 0 covered cat-ticks. Read per n: the first crossing's
+  H and edge per world, the H1 share, the share grave at tick 0 (must be
+  0 by construction; a nonzero share retires that n), episode lengths,
+  unreleased-by-800 share. **The pin, mechanical:** n is the value with
+  the largest H1 share; a tie goes to the smaller n. Committed with
+  w_E before any covered world runs.
 - **Sizing rule** (applied to the scout, mechanically). Arm N's w per
   block is the smallest even number with 5w × (the smallest scout share
   among H2, H3, H4) ≥ 50 first-episode friend-episodes, that is 200
   observer-episodes, the family's floor pooled over the halves. At the
-  expected shares w is 46 (230 worlds).
+  expected shares w is 46 (230 worlds). Arm E's w_E per block is the
+  smallest even number with 5w_E × (the pinned n's H1 share) ≥ 50; at
+  an H1 share of 0.5 (the rate table's expectation at n = 60, with the
+  happiness-edge crossings on top) w_E is 20, 100 worlds, about 0.3M
+  covered cat-ticks.
 - **Covered scout.** Arm T's first world per block (counted in the set
   if clean), and the two covered-scout seeds per block, each run twice:
   once with seat k on `needy`, once on `teacher`. SC-002 makes each pair
@@ -412,7 +502,9 @@ futility, never early success):
   miss goes to her with the read.
 - **S3, futility.** A primary stratum with a scout share of 0, or w over
   60 (a share under 1/6), or a total over 8.0M covered cat-ticks, goes
-  back to her before any covered world beyond the scout.
+  back to her before any covered world beyond the scout. Arm E's w_E is
+  under the same 60; an H1 share under 1/6 at every n retires arm E and
+  goes to her with the scout's read.
 
 ## 8. Blind spots (declared)
 
@@ -425,8 +517,11 @@ futility, never early success):
 3. Episode lengths: a `needy` grave run lasts as long as relief takes;
    R2 prints its lengths beside the donors' and reads detection anywhere
    in the episode, as the splice did.
-4. One size (20×20), the default start in arm N, so crossings at H 2–100
-   are not built and F-070's knee is not replicated on natural rows.
+4. One size (20×20). Crossings at H 2–100 come only from arm E's
+   elevated start (if ruled in): the happiness edge bounds the start
+   below 65, so H under about 10 is not built on any edge, and the need
+   edge is not reached before about H 37. Without arm E the knee is not
+   replicated on natural rows at all.
 5. Two grave edges: a multi-need mask can cross happiness 45 before any
    need reaches 90; R2 prints which edge crossed.
 6. No refusal reason through the binding: a covered seat's refused
@@ -438,6 +533,13 @@ futility, never early success):
    stratum); those episodes count only toward false alarms.
 9. Test-only seeds: nothing here says what a head trained on late grave
    would do.
+10. Arm E's rows are young but not clean: the friend's needs stand at n
+    from the first frame and every covered observer sees it, so H1
+    measures the observer state's age at the crossing (as the splice's
+    H does) and not ticks of an untroubled friend. Its earliest
+    crossings are on the happiness edge with no need yet at 90, a shape
+    P's donors (grave on both edges at once) did not separate; R2
+    prints the edge and P11 is scored on both together.
 
 ## 9. Doctrine check (against `experiments/DESIGN-DOCTRINE.md`)
 
@@ -458,7 +560,7 @@ futility, never early success):
   beyond the registered predictions and the confirm flag.
 - **Rule 11** (invalidation clauses), checked: any FINDINGS entry from
   this set names its domain (the frozen NF-h24+p; 20×20; rot2 less one
-  network plus a scripted friend; `needy` at 90).
+  network plus a scripted friend; `needy` at 90; arm E's start n).
 - **Rule 8**, checked: a coverage design read per stratum (spec 067
   SC-004). **Rules 1–4 and 7**, checked, moved nothing: no reward, price,
   rider or behaviour built for the served world.
@@ -485,7 +587,14 @@ futility, never early success):
   assertion.
 - **n5, anchors.** On the scripted scout's real payloads: every masked
   crossing lies inside its mask window and no anticipation run lies
-  outside one. Red: the window shifted by one tick.
+  outside one; in arm E every first onset is tick 0 or 1 and no world
+  is grave at tick 0. Red: the window shifted by one tick.
+- **n9, arm E's configs** (if ruled in). The make script's test: each
+  `g2leg-20-E<k>.toml` differs from `g2leg-20-N<k>.toml` only in kitty
+  k's `initial_needs` (five hidden needs at the pinned n, bath 0), the
+  onset weights [1, 0, 0, 0, 0], and `acknowledged` naming exactly
+  `initial_needs` and `needy`; the engine loads it. Red: one config's n
+  moved by one.
 - **n6, the split.** R4 refuses a confirming seed and R5 a tuning seed,
   both from `split.json`. Red: one seed's half flipped.
 - **n7, RL learning steps** (the observer-stream ruling's follow-up):
@@ -510,11 +619,12 @@ futility, never early success):
    script; `split.json`; the fresh venv with `BINDING.md` and n3; n7;
    the collector options n1–n2; the reader with n4, n6 and n8. Reds on
    record.
-3. Scripted scout, its read, n5's red on its payloads, the sizing rule
-   applied, arm N's w and the welfare-cost line's numbers committed. S3
-   checked.
+3. Scripted scout (arm N; arm E at its three n values, with n9 red
+   first), its read, n5's red on its payloads, the sizing rule applied,
+   arm N's w, arm E's n and w_E, and the welfare-cost line's numbers
+   committed. S3 checked.
 4. Covered scout; S2 read; a miss goes to her.
-5. The set: arm T and arm N, both halves, S1 armed throughout.
+5. The set: arm T, arm N and arm E, both halves, S1 armed throughout.
 6. R4 on the tuning seeds, to her for the pick; her words recorded.
 7. R5, R1–R3 with the three predictions, R6–R8. RESULTS gated (a fresh
    subagent per round) and stamped; a FINDINGS entry only on a result
@@ -559,3 +669,14 @@ futility, never early success):
    on the confirming seeds supplies the numbers the Phase 2 declaration
    cites; the predictions wait until after the pick so the confirming
    seeds stay unread until then. Recommendation: yes.
+7. **Arm E, early crossings** (drafted on her "Call 2 as put + arm E",
+   2026-10-28). Kitty k's five hidden needs start at n under `needy`
+   with the mask opening at tick 0 or 1, 800 ticks a world, n pinned
+   from {50, 55, 60} by the scripted scout's H1 share, w_E from the
+   sizing rule (expected 20 a block, about 0.3M covered cat-ticks),
+   seeds from the held band, P11 registered on it. It builds H1 [2,
+   100), the knee the splice measured and arm N cannot reach, with no
+   junction. Its limits are declared (§8 items 4 and 10): nothing under
+   about H 10, the earliest crossings on the happiness edge, rows young
+   but not clean. The alternative is no arm E: H1 stays a splice
+   result. Recommendation: in, at the scout-pinned n.
