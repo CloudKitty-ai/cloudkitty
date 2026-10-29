@@ -828,6 +828,16 @@ fidelity — act@1 +1.6–2.0 points on every arm (.80 → .82) at 3×
 cost; whether that trade is taken for Fog Gen 1's BC stage is an
 owner call at the fog prereg.
 
+**Invalidated by**: a V4 clone under the registered 20-epoch recipe
+reaching opportunity-use above 0.30 at a corpus here-share at or under
+5.6%, or falling under 0.30 at or above 8.2%, on the anchor composition
+(the cliff leaving the 5.6–8.2% bracket); or a budget extension moving
+A2 off mute (the extension addendum's rule, discharged once).
+**Re-verify when**: the clone recipe or the here-word density pin
+changes (the density screen returns only inside a prereg if the pin
+moves), and at a generation's corpus read of the realized here-share
+under `announce_here = 1`.
+
 ## F-035 · active · The waterline charge is a magnet before it is a fence: charge-blind arms drift TOWARD the water's edge, and only a charge-aware chooser turns the price into avoidance
 
 The water's-edge avoidance smoke
@@ -2156,6 +2166,13 @@ should read a probability rather than a mean is a design question this
 arc did not answer (F-067 took it up); the cap question is hers with
 the size read in hand.
 
+**Invalidated by**: a structured head at or under the 8,445 cap whose
+pooled mind-visible grave MSE on the per-cat worlds reads under NF-h24's
+with no pooled signature, the declared criteria (i) and (ii) met at cap
+capacity. **Re-verify when**: an SD run plateaus under the 200-epoch cap
+at width 16 (the under-training caveat), or Phase 2 chooses a
+probability-reading consumer.
+
 ## F-067 · active · A 25-parameter logistic read of "the true stratum is GRAVE" on the frozen NF-h24 states reads grave within the seed spread of the structured head SD at width 16 and ahead of it on the grave mean and Brier, in sight and under fog; the heads differ in confidence, not discrimination; the SD filter's drift operator smears a sharp belief as the arithmetic says
 Minted from mini-friend Phase 1d (`minifriend-phase1d-2026-10-24/RESULTS.md`,
 gated; owner 2026-10-24 "Let's run those in three in the order you
@@ -2222,6 +2239,12 @@ state is the candidate shape and the SD line closes under its own
 declared rule; DR-h24+p and NF-h24+p sit side by side on the numbers
 above, and the choice stays hers.
 
+**Invalidated by**: on the declared rule's cells, outcome B or C — SD's
+mean P(grave) on grave samples exceeding the probe's by more than the
+combined seed spread, or the probe behind SD on Brier in both versions.
+**Re-verify when**: the Phase 2 head is trained (the probe re-fit on its
+states), and on the needy set's grave strata.
+
 ## F-068 · active · The frozen NF-h24 head names the grave need from its five means, and its grave probability is over 0.2 before a mid-world grave episode begins in most cases, while a consumer reading the means against 90 misses half or more of the episodes
 The numbers a consumer needs (per-cat worlds, group P, three seeds;
 every table in `minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum,
@@ -2255,6 +2278,15 @@ per-need probability output and the operating point are Phase 2
 design choices, hers.
 
 Notes 2026-10-25 and 2026-10-26 (RESULTS §Addendum 3 and 4, gated): every grave episode this entry calls "mid-world" begins inside a slice's first hundred ticks, and neither evaluation set holds a mid-world grave onset in the sense the wording suggests (the lived worlds hold none at all, which is evidence of rarity, not absence); the detections are by a young state, and the same covered grave rows spliced after 100 clean ticks are detected in about a third of episodes (F-069, F-070). The numbers stand as printed for the start-up domain they were read on; what Phase 2 reads, and on which set, is the owner's.
+
+**Invalidated by**: on a re-run of R3d and R4d on a Gen 2 roster with
+three seeds, the means naming a grave need under 0.80 pooled in sight,
+or NF-h24+p at 0.2 detecting under 0.90 of in-sight-onset episodes or
+at a median latency over 10 ticks — the declared rules (i) and (ii)
+failing. **Re-verify when**: Phase 2 picks its reading set and operating
+point, and on the needy set, whose onsets arrive after long clean
+histories these worlds lack.
+
 ## F-069 · active · The frozen NF-h24 head's grave probability is a property of the young state: the same covered grave rows detected in 0.995 of reset episodes at a world's start are detected in 0.358 after 100 clean ticks of lived history and 0.287 / 0.288 after 500 and 2,000; the self block is not in it, a warm-started state trades reset detection for the first-tick false alarms, and a 2-tick burn-in removes them on the per-cat worlds at little cost
 Minted from mini-friend Phase 1d §Addendum 4
 (`minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum 4, gated round 2;
@@ -2310,6 +2342,11 @@ first-tick transient on the per-cat worlds at little cost to reset
 detection and does not on L / W / G, and the warm start removes it at a
 large cost.
 
+**Invalidated by**: the splice at H = 100 detecting within one seed SD
+of the H = 0 rate, or the junction control firing above 0.05 at
+H ≥ 100. **Re-verify when**: a set with mid-world grave onsets exists
+(the needy set); any retrain of the head.
+
 ## F-070 · active · The frozen NF-h24 head's grave detection falls gradually with the length of the clean history before the grave rows, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 / 0.362 after 1 / 5 / 10 / 20 / 50 clean ticks against 0.995 at a world's start and 0.358 at 100), with the knee at H = 20 by the declared midpoint
 Minted from mini-friend Phase 1d §Addendum 5
 (`minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum 5, gated round 3;
@@ -2346,3 +2383,9 @@ are set from this curve (DECLARATION §Addendum 5), and the curve the
 declaration will read has 0.978 at H = 1 and 0.658 at H = 10; the
 question F-069 left open, whether a slow crossing into grave after a
 long clean history is seen, is still open.
+
+**Invalidated by**: a re-run of the ladder putting the knee outside
+H = 5 to 50, or detection at H = 10 at or above 0.70 beyond its seed SD.
+**Re-verify when**: the needy set's onset strata are read, since their
+anchors come from this curve; any retrain.
+
