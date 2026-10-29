@@ -526,6 +526,12 @@ futility, never early success):
 1. **Arms and preset.** Arm T (the tie-back on P's seeds) and arm N
    (`needy` releasing at 90: crossings with natural relief), with
    `needy_hold` left out of this set. Recommendation: as drafted.
+   **RULED 2026-10-28: "Call 1 as recommended"** (after the in-depth
+   walkthrough: T pins the scripted signature at H0 and supplies S2's
+   paired controls; `needy` at 90 keeps the episode shape of P's donors,
+   on which the comparator figures were read; `needy_hold` answers the
+   hold question, breaks the any-tick detection scale, and is the
+   heavier welfare mode, so it is a later declaration of its own).
 2. **The anchor.** History measured at the grave crossing (what the
    splice's H measures), the mask opening kept as the second anchor for
    anticipation, P10's "onset" read as the crossing, and arm N's onset
