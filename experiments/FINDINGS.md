@@ -18,10 +18,31 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 - Every entry states its **scope of validity** (the conditions it was
   measured under) and **what would invalidate it** — findings stay
   falsifiable, matching the pre-registration culture.
+- **An entry is the claim, not the read** (THREADS.md §6; owner ruled
+  2026-10-28, "Sold on 1 and 3"): the heading is one sentence, the
+  index row one line. The body carries the claim's own numbers (the
+  headline figures a reader needs to use it), the scope, **Invalidated
+  by**, **Re-verify when**, provenance (owner words, dates, SHAs), and
+  the pointer to the arc's `RESULTS.md` section. Every other number,
+  table and method paragraph lives in RESULTS; restated here it is a
+  condense cut. Entries minted before this rule are brought to it by
+  condense passes, never by editing a claim.
+- **Cold entries** (owner ruled 2026-10-28, "let's proceed with 1,3,
+  and your recommended approach to 2"): at a generation's close, an
+  `active` entry cited by no file of that generation moves verbatim to
+  [FINDINGS-COLD.md](FINDINGS-COLD.md). The heading stays here as a stub
+  pointing there, the index row keeps the claim behind a `(cold: scope)`
+  tag, and the status does not change. A declaration that cites a cold
+  entry moves it back in the citing commit. The cold file is tier 2 of
+  the growth budget, so a move is budget-neutral. Every release PR
+  reads both files' **Invalidated by** and **Re-verify when** lines
+  against CHANGELOG `## Unreleased`, one disposition per entry touched
+  (release template, Experiments rows).
 - **Re-verify when** carries the standing trigger for re-testing a finding
   whose scope is expected to shift. This register — not BACKLOG.md — is
   where research re-checks live; the backlog is the product's register.
-- New pre-registrations MUST cite the F-ids they rely on.
+- New pre-registrations MUST cite the F-ids they rely on, and state
+  `cold index scanned: none apply` or name the cold entries they opened.
 - Findings that survive across contexts get **promoted**: the claim
   graduates into operating defaults (docs/rl-training.md, reference
   configs, the prereg conventions) with its F-id cited as provenance.
