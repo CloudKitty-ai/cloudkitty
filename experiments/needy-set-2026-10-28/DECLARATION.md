@@ -654,7 +654,11 @@ futility, never early success):
    start under `needy`, which call 7 below carries for its own ruling).
 3. **Which seat.** The scripted friend rotates through all five seats
    (five blocks, P's precedent, each dropping that seat's network), or
-   one fixed seat. Recommendation: rotate.
+   one fixed seat. Recommendation: rotate. **RULED 2026-10-28: "Call 3:
+   rotate"** (after the in-depth walkthrough: P's pairing holds in every
+   block, the five rate rows spread the climbs and needs across strata,
+   R6 and R8 read every seat, and F-043 keeps a one-roster result from
+   transferring to the other four).
 4. **Size and cost.** Arm N at 6,000 ticks with w from the scout's
    sizing rule (expected 230 worlds, about 5.5M covered cat-ticks), arm
    T 50 worlds (0.8M), the covered scout about 0.5M, the total capped
