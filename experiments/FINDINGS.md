@@ -21,8 +21,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 - **An entry is the claim, not the read** (THREADS.md §6; owner ruled
   2026-10-28, "Sold on 1 and 3"): the heading is one sentence, the
   index row one line. The body carries the claim's own numbers (the
-  headline figures a reader needs to use it), the scope, **Invalidated
-  by**, **Re-verify when**, provenance (dates, SHAs, the deviations
+  headline figures a reader needs to use it), the scope, **Invalidated by**, **Re-verify when**, provenance (dates, SHAs, the deviations
   entry), and the pointer to the arc's `RESULTS.md` section. Every
   other number, table and method paragraph lives in RESULTS; restated
   here it is a condense cut. Her words appear verbatim where they are
@@ -1031,8 +1030,7 @@ the stamp reads 5.13% after 048 took rows away says the seam probe
 undercounted, not that 048 did nothing. F-033's mechanism claim (the
 tax is partnered, per-seat currency) holds unchanged. **Scope**: the
 2026-09-02 deploy's roster and economy. **Invalidated by**: any deploy
-touching the selector, the play economy, or the roster. **Re-verify
-when**: the Biscuit 3.0 cutover lands (step 7); one window, same
+touching the selector, the play economy, or the roster. **Re-verify when**: the Biscuit 3.0 cutover lands (step 7); one window, same
 instrument.
 
 ## F-040 · active · Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls per 1000 ticks and adds ~12 eat calls
@@ -1127,8 +1125,7 @@ neither touches the want rate.
 
 **Scope**: fog-era want law on the served 20×20 (7 pools, 6 bowls),
 radius 4–5, scripted seats. **Invalidated by**: a water element that
-despawns or moves, a non-zero `memory_timeout_ticks`. **Re-verify
-when**: the step-5 radius screen (the rates above are r = 5 only).
+despawns or moves, a non-zero `memory_timeout_ticks`. **Re-verify when**: the step-5 radius screen (the rates above are r = 5 only).
 
 ## F-041 · active · The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase
 
@@ -1329,8 +1326,7 @@ needs, the first condition under which it could. Trap on record: the
 declared `--control any` pool starves (26–97% of events dropped) and is
 never read. **Scope**: Gen 1 clones with needs visible, cooldown-only
 legality, intensity 0. **Invalidated by**: a visible-class ratio outside
-[0.8, 1.25] or an unseen ratio above 1.0 on a settled word. **Re-verify
-when**: the Gen 2 collection (hidden needs), and if option 1 or 2 of
+[0.8, 1.25] or an unseen ratio above 1.0 on a settled word. **Re-verify when**: the Gen 2 collection (hidden needs), and if option 1 or 2 of
 #391 is adopted.
 
 ## F-049 · active · Mews and chirps are not echoed: cross-cat coincidence is 1.0–1.2× chance and only at lag 1, purr piles are cosleep, and the echo the owner sees is several cats answering one ask with here-words (1.9× at lag 1, two thirds of it explained by keying on the ask)
@@ -2023,8 +2019,7 @@ wherever the common-state bias is near zero, so the gap in points, not
 the signature flag, is the informative column. **Scope**: the certified
 Gen 2 roster at the served 20×20, greedy masked argmax, schema 6
 observations; offline heads, no consumer, no feedback into any policy;
-three seeds per head, the NF/DR pair sharing each seed. **Invalidated
-by** (domain: this declaration's reads re-run on a Gen 2 roster with at
+three seeds per head, the NF/DR pair sharing each seed. **Invalidated by** (domain: this declaration's reads re-run on a Gen 2 roster with at
 least three seeds per head and the same strata and min-n): the NF
 pooled mind-visible GRAVE bias at or above −1.5 points, or either
 head's pooled mind-visible GRAVE MSE within 1.5× of the marginal
