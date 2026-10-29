@@ -43,6 +43,13 @@
 - [ ] `GEN2-INPUTS.md` closed inputs pruned.
 - [ ] Evidence bundles for this release's findings uploaded on the owner's
       word (one batched approval; ruling 2026-09-27).
+- [ ] `FINDINGS.md` and `FINDINGS-COLD.md`: every **Invalidated by** /
+      **Re-verify when** line read against this release's CHANGELOG section
+      (`## Unreleased` until it expands into the tag's own section; the
+      `findings-review` REPORT prints each beside this release's markers);
+      one disposition line per entry touched, or `none` naming the
+      compatibility markers read (owner ruled 2026-10-28: an explicit
+      review of the cold file in the tag process, adopted for both files).
 
 ## Human rows — Client
 
@@ -70,3 +77,7 @@
 ## Warning dispositions
 
 <!-- one line per listed line: resolved (PR) | approved by the owner (date, her words) -->
+
+## Findings dispositions
+
+<!-- one line per entry touched: F-NNN re-verified (where) | F-NNN invalidated → superseded by F-NNN (PR); or `none`, naming the markers read -->

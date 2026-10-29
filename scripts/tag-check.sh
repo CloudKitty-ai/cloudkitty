@@ -33,7 +33,7 @@ esac; done
 }
 CFG="$R/scripts/tag-check.d"
 
-CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary warnings"
+CHECKS="version version-mentions license links ignored abspaths findings-index indexes citations findings-review registry viewer-keys endpoints schemas cli-flags layout fences gate-scope client-ship threads staleness glossary warnings"
 if [ "$LIST" = 1 ]; then for c in $CHECKS; do echo "$c"; done; exit 0; fi
 if [ -n "$ONLY" ]; then
   for c in $ONLY; do case " $CHECKS " in *" $c "*) ;; *) echo "tag-check: no such check: $c" >&2; exit 2 ;; esac; done
@@ -260,12 +260,19 @@ c_indexes() {
 # ---------------------------------------------------------------- citations
 # Every path FINDINGS.md cites is tracked, or the entry is labeled
 # "recorded (local)", or carries a DOI/zenodo reference (owner ruling
-# 2026-09-27, experiments/evidence-archive-ruling-2026-09-27.md).
+# 2026-09-27, experiments/evidence-archive-ruling-2026-09-27.md). The cold
+# register FINDINGS-COLD.md (owner ruled 2026-10-28) holds moved entries'
+# full text, citations included, so it is walked the same way when tracked;
+# its entries are named with the file.
 c_citations() {
-  local FF="$R/experiments/FINDINGS.md" ok=0 id flag p line
-  [ -f "$FF" ] || { echo "experiments/FINDINGS.md missing" >> "$D"; return 1; }
-  awk '
-    /^## F-[0-9][0-9][0-9] /{ if (id) dump(); id=substr($2,1,5); body="" }
+  local FF ok=0 id flag p line src tag
+  [ -f "$R/experiments/FINDINGS.md" ] || { echo "experiments/FINDINGS.md missing" >> "$D"; return 1; }
+  : > "$TMP/cit"
+  for src in FINDINGS.md FINDINGS-COLD.md; do
+    FF="$R/experiments/$src"; tag=""
+    if [ "$src" != FINDINGS.md ]; then tracked "experiments/$src" || continue; tag=" ($src)"; fi
+  awk -v tag="$tag" '
+    /^## F-[0-9][0-9][0-9] /{ if (id) dump(); id=substr($2,1,5) tag; body="" }
     { if (id) body = body "\n" $0 }
     END { if (id) dump() }
     function dump(   f) {
@@ -289,7 +296,9 @@ c_citations() {
           if (t ~ /\// || t ~ /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/) print id "|" f "|" t
         }
       }
-    }' "$FF" | sort -u > "$TMP/cit"
+    }' "$FF" >> "$TMP/cit"
+  done
+  sort -u -o "$TMP/cit" "$TMP/cit"
   while IFS='|' read -r id flag p; do
     tracked "$(norm "$p")" && continue
     tracked "$(norm "experiments/$p")" && continue
@@ -299,6 +308,67 @@ c_citations() {
   done < "$TMP/cit"
   [ $ok = 0 ] && echo "note: archived-bundle platform-tuple check activates when a bundle register lands (ruling 2026-09-27)" >> "$D"
   return $ok
+}
+
+# ---------------------------------------------------------------- findings-review
+# REPORT: every active finding's invalidator and re-verify lines, from
+# FINDINGS.md and FINDINGS-COLD.md, printed under the compatibility markers
+# of the release being cut, so the release PR's Experiments row compares
+# text instead of recalling it (owner ruled 2026-10-28, her "what if we put
+# an explicit review of the cold file into our tag process?", adopted for
+# both files). The markers are the ones CHANGELOG.md's own header defines,
+# counted over `## Unreleased` and, with --tag, the tag's section too (a
+# release PR expands the one into the other). An entry's invalidator is its
+# **Invalidated by** / **Would invalidate** / **What would invalidate it**
+# paragraph, whichever the entry wrote; a missing one is listed as missing,
+# since the register's rules require it. A hot stub that points at the cold
+# file and carries neither line is the cold entry's pointer, not a second
+# listing. Entries that are not `active` are nothing to re-verify.
+c_findings_review() {
+  local src FF tag vocab m n hdr
+  [ -f "$R/experiments/FINDINGS.md" ] || { echo "experiments/FINDINGS.md missing" >> "$D"; return 1; }
+  hdr="CHANGELOG ## Unreleased${TAG:+ and ## $TAG}"
+  awk -v tag="$TAG" '/^## /{ f = ($0 == "## Unreleased" || (tag != "" && index($0, "## " tag " ") == 1) || (tag != "" && $0 == "## " tag)); next } f' "$R/CHANGELOG.md" 2>/dev/null > "$TMP/rel"
+  n=$(grep -c '^- ' "$TMP/rel" | tr -d ' ')
+  if [ "$n" = 0 ]; then echo "$hdr: no entries" >> "$D"; else
+    echo "$hdr: $n entries; markers (lines mentioning each, as CHANGELOG.md's header defines them):" >> "$D"
+    vocab=$(sed -n '/^## /q; s/^- \*\*`\(\[[a-z][a-z-]*\]\)`\*\*.*/\1/p' "$R/CHANGELOG.md")
+    [ -n "$vocab" ] || echo "  (CHANGELOG.md's header defines no \`[marker]\` names)" >> "$D"
+    for m in $vocab; do echo "  $m x$(grep -cF -- "$m" "$TMP/rel" | tr -d ' ')" >> "$D"; done
+  fi
+  for src in FINDINGS.md FINDINGS-COLD.md; do
+    FF="$R/experiments/$src"; tag=""
+    if [ "$src" != FINDINGS.md ]; then tracked "experiments/$src" || continue; tag=" ($src)"; fi
+    awk -v tag="$tag" '
+      /^## F-[0-9][0-9][0-9] /{ if (id) dump(); id=substr($2,1,5); split($0, H, " · "); st=H[2]; body=""; next }
+      { body = body "\n" $0 }
+      END { if (id) dump() }
+      function field(label,   s, e, t) {   # the labelled text, one line
+        # nb is the body with paragraphs joined to one line each, so a label
+        # wrapped across lines (F-039: "**Re-verify" / "when**:") is found.
+        # The bold label may carry a suffix (F-023: "**Would invalidate /
+        # registered prediction**:") and be followed by ":" or a qualifier
+        # (F-064: "**Invalidated by** (domain: …)"); the text stops at the
+        # end of the paragraph or at the next bold label, whichever is first
+        # (F-039 keeps both labels in one paragraph) — Product review of #485
+        if (!match(nb, "\\*\\*" label "[^*]*\\*\\*(:| \\()")) return ""
+        s = substr(nb, RSTART); e = index(s, "\001"); if (e) s = substr(s, 1, e - 1)
+        t = substr(s, 3); if (match(t, /\*\*[A-Z][^*]*\*\*(:| \()/)) s = substr(s, 1, RSTART + 1)
+        sub(/^\*\*/, "", s); sub(/\*\*/, "", s); sub(/[ \t]+$/, "", s); return s
+      }
+      function dump(   inv, rv) {
+        if (st !~ /^active/) return
+        nb = body; gsub(/\n[ \t]*\n/, "\001", nb); gsub(/[ \t]*\n[ \t]*/, " ", nb); gsub(/  +/, " ", nb)
+        inv = field("Invalidated by"); if (inv == "") inv = field("Would invalidate"); if (inv == "") inv = field("What would invalidate it")
+        rv = field("Re-verify when")
+        if (inv == "" && rv == "" && tag == "" && body ~ /\]\(FINDINGS-COLD\.md/) return   # the cold entry is listed from its file
+        print id tag
+        print "  " (inv != "" ? inv : "(no invalidator line: none of **Invalidated by**, **Would invalidate**, **What would invalidate it**)")
+        print "  " (rv != "" ? rv : "(no **Re-verify when** line)")
+      }' "$FF" >> "$D"
+  done
+  grep -q '^F-' "$D" && return 3
+  return 0
 }
 
 # ---------------------------------------------------------------- registry
