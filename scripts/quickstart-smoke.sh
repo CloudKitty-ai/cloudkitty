@@ -13,10 +13,10 @@ echo "== build =="
 cargo build --workspace --quiet
 
 echo "== --help exits zero =="
-cargo run --quiet -- --help > /dev/null
+cargo run --quiet -p cloudkitty-server -- --help > /dev/null
 
 echo "== server serves /world =="
-cargo run --quiet &
+cargo run --quiet -p cloudkitty-server &
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true' EXIT
 ok=0
