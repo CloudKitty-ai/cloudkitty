@@ -18,10 +18,35 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 - Every entry states its **scope of validity** (the conditions it was
   measured under) and **what would invalidate it** — findings stay
   falsifiable, matching the pre-registration culture.
+- **An entry is the claim, not the read** (THREADS.md §6; owner ruled
+  2026-10-28, "Sold on 1 and 3"): the heading is one sentence, the
+  index row one line. The body carries the claim's own numbers (the
+  headline figures a reader needs to use it), the scope, **Invalidated by**, **Re-verify when**, provenance (dates, SHAs, the deviations
+  entry), and the pointer to the arc's `RESULTS.md` section. Every
+  other number, table and method paragraph lives in RESULTS; restated
+  here it is a condense cut. Her words appear verbatim where they are
+  a ruling — a choice among options, or an override of a declared rule
+  — because a ruling changes what the claim means; a kickoff or an
+  approval changes nothing here and stays in the arc's RESULTS or
+  DECLARATION (owner 2026-10-28: elide "where it doesn't add anything
+  meaningful"). Entries minted before this rule are brought to it by
+  condense passes, never by editing a claim.
+- **Cold entries** (owner ruled 2026-10-28, "let's proceed with 1,3,
+  and your recommended approach to 2"): at a generation's close, an
+  `active` entry cited by no file of that generation moves verbatim to
+  [FINDINGS-COLD.md](FINDINGS-COLD.md). The heading stays here as a stub
+  pointing there, the index row keeps the claim behind a `(cold: scope)`
+  tag, and the status does not change. A declaration that cites a cold
+  entry moves it back in the citing commit. The cold file is tier 2 of
+  the growth budget, so a move is budget-neutral. Every release PR
+  reads both files' **Invalidated by** and **Re-verify when** lines
+  against CHANGELOG `## Unreleased`, one disposition per entry touched
+  (release template, Experiments rows).
 - **Re-verify when** carries the standing trigger for re-testing a finding
   whose scope is expected to shift. This register — not BACKLOG.md — is
   where research re-checks live; the backlog is the product's register.
-- New pre-registrations MUST cite the F-ids they rely on.
+- New pre-registrations MUST cite the F-ids they rely on, and state
+  `cold index scanned: none apply` or name the cold entries they opened.
 - Findings that survive across contexts get **promoted**: the claim
   graduates into operating defaults (docs/rl-training.md, reference
   configs, the prereg conventions) with its F-id cited as provenance.
@@ -42,33 +67,33 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-001 | superseded → F-003 | Two-channel credit: fast self, slow teammate (pre-retune quantities) |
 | F-002 | refuted | Non-binding cuddle routes carry no material headroom |
 | F-003 | superseded → F-013 | The retune tripled the credit horizon; channels unchanged |
-| F-004 | active · **promoted** | Cluster probe statistics by world; replicate on disjoint worlds |
+| F-004 | active · **promoted** | *(cold: promoted; twin-probe statistics)* Cluster probe statistics by world; replicate on disjoint worlds |
 | F-005 | superseded → F-013 | Scarcity×tempo was the one replicated training-world improver |
 | F-006 | superseded → F-013 | Pre-024 default world carried no detectable cooperative credit |
-| F-007 | active | BC initialization is necessary for MAPPO to beat the baseline at exp-001's budget |
+| F-007 | active | *(cold: exp-001 MLP, 20M ticks)* BC initialization is necessary for MAPPO to beat the baseline at exp-001's budget |
 | F-008 | superseded → F-010 | All-policy collapse read as long-horizon coordination instability |
-| F-009 | active · **promoted** | Every dimension an instrument holds fixed bounds the failures it can detect |
-| F-010 | active | Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
+| F-009 | active · **promoted** | *(cold: promoted; instrument house rule)* Every dimension an instrument holds fixed bounds the failures it can detect |
+| F-010 | active | *(cold: exp-001 policy class)* Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy |
 | F-011 | superseded → F-018 | Meow restraint is a reward-structure equilibrium, not an engine guarantee |
-| F-012 | active · **promoted** | Channel use is context-dependent; measure in policy company, not solo |
-| F-013 | active | The 024 batch rewired the credit landscape; the served world gained a cooperative band |
-| F-014 | active | Post-024 world search: the served world wins as it stands; knob landscape flat |
-| F-015 | active | Pooled probes dilute under heterogeneous class amplitudes; condition by class |
-| F-016 | active | Raising bath_gain increases scripted on-water time via the grooming channel |
-| F-017 | active | The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
-| F-018 | active | The channel is two-layer: legality is engine law, meaning is reward economics |
-| F-019 | active | Clone-then-leash preserves visible personality; unleashed welfare-RL erases it |
-| F-020 | active | Trait prices are social prices: the cost order inverts between scripted and policy company |
+| F-012 | active · **promoted** | *(cold: promoted; exp-001 policies)* Channel use is context-dependent; measure in policy company, not solo |
+| F-013 | active | *(cold: post-024 scripted dynamics)* The 024 batch rewired the credit landscape; the served world gained a cooperative band |
+| F-014 | active | *(cold: post-024 scripted world search)* Post-024 world search: the served world wins as it stands; knob landscape flat |
+| F-015 | active | *(cold: twin-probe instrument)* Pooled probes dilute under heterogeneous class amplitudes; condition by class |
+| F-016 | active | *(cold: scripted dials, 24×24 lake world)* Raising bath_gain increases scripted on-water time via the grooming channel |
+| F-017 | active | *(cold: exp-003 schema-2 MLPs)* The multi-copy collapse is largely a symmetry artifact; sampling dissolves it |
+| F-018 | active | *(cold: post-028 two-head surface)* The channel is two-layer: legality is engine law, meaning is reward economics |
+| F-019 | active | *(cold: pre-wall 197 surface, global vision)* Clone-then-leash preserves visible personality; unleashed welfare-RL erases it |
+| F-020 | active | *(cold: pre-fog carrier-seat rates)* Trait prices are social prices: the cost order inverts between scripted and policy company |
 | F-021 | active | Seeing beats pricing: one observation bit bought the water behavior no reward dial could |
-| F-022 | active | The channel comes alive through demonstration, then the policies author its meanings |
-| F-023 | active | Channel dials are listener-population properties; no composition-free optimum exists |
-| F-024 | active | Entity attention: welfare parity, 40% fewer params, structural robustness, wider expression space |
+| F-022 | active | *(cold: exp-004 MLPs, 028 surface)* The channel comes alive through demonstration, then the policies author its meanings |
+| F-023 | active | *(cold: exp-004 policies, generation-mortal numbers)* Channel dials are listener-population properties; no composition-free optimum exists |
+| F-024 | active | *(cold: schema 3 / 197 surface)* Entity attention: welfare parity, 40% fewer params, structural robustness, wider expression space |
 | F-025 | active | Same recipe, different seed: dialects and cultures, mutually intelligible, welfare-coupled |
 | F-026 | active | Under global vision the channel is welfare-redundant — the measured baseline fog must overturn |
 | F-027 | active | Twin-seating one artifact creates dyadic self-interaction attractors |
-| F-028 | active | Census raws are attributable only if the instrument records its own provenance |
-| F-029 | active | A reader rule copied from the wrong contract shape reports a category that cannot exist |
-| F-030 | active | Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
+| F-028 | active | *(cold: census instrument provenance)* Census raws are attributable only if the instrument records its own provenance |
+| F-029 | active | *(cold: reader contract shape)* A reader rule copied from the wrong contract shape reports a category that cannot exist |
+| F-030 | active | *(cold: one seed, one λ, bugs-2.0 world)* Per-event shaping of a social behavior buys initiation churn; the KL leash does not prevent it |
 | F-031 | active | A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception |
 | F-032 | superseded → F-033 | Biscuit's idle read as the legality funnel refusing a partnered ask (inference; narrowed to 45% of idle) |
 | F-033 | active | Every seat pays a partnered-action refusal tax in its own currency; for Biscuit under half her idle, the rest chosen (pre-048 numbers retired by F-039) |
@@ -102,13 +127,13 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-061 | active | The Gen 1 → Gen 2 play rise (0.074..0.147 → 0.363) is teacher and training, not world: the world moves it −0.004, one teacher on every seat +0.091 ± 0.007, training +0.166 ± 0.011; the networks play within 0.012 of the teacher with its comfort rule loosened and consent off, in slack time (less onset pressure than the teacher), out of idle moving and rest |
 | F-062 | active | The vision law's wider radius buys the scripted teacher, not the trained roster: at 40×40 one radius step (5 → 4) costs the teacher 1.294 ± 0.958 happiness and the frozen roster 0.088 ± 0.122, so the trained-vs-scripted gap's fall between the cert legs (+5.566 → +4.594) travelled with the radius on the teacher's side (gap at 40×40, radius 4: +5.800 ± 0.860) |
 | F-063 | active | A learned distress habit is a per-network trait: trunk-s7 parks at water and keeps choosing Drink while sated on 73% of its distress ticks (234 of 322 across the rotation's streams; the two other networks with distress there, s1 and s2, on none; the teacher 8 of 3,917), every one of the six s7 runs read is that shape (one under a window caveat), and company shortens it (worst 128 in mixed company at 40×40 vs 641 among copies there); the other network's long tails are a hold, pacing and a parked mix, relief beyond sight or adjacency |
-| F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free |
-| F-065 | active | With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W) |
-| F-066 | active | A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators |
-| F-067 | active | A 25-parameter logistic read of "the true stratum is GRAVE" on the FROZEN NF-h24 GRU states reads grave within the seed spread of the structured discrete belief head SD at width 16 (F-066) and ahead of it on the grave mean and Brier in sight and under fog, with its mean on common samples as low: in sight on the per-cat worlds its mean P(grave) on grave samples is 0.583 ± 0.015 against SD's 0.474 ± 0.115 (Δ −0.109, combined seed spread 0.116 → outcome A of the declared rule, "the histogram bought nothing the consumer needs"), its Brier 0.00054 against 0.00064, its mean on common samples 0.0003 against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046 (Brier 0.00119 against 0.00185); in sight SD keeps its reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057; NF-h24+p's top bins realise 0.760 and 0.882 where they say 0.854 and 0.959) and a lower mean on adjacent samples (0.183 against 0.265); on the DR-h24 states the same probe reads 0.577 ± 0.037 in sight; all three rank grave against non-grave at AUROC 0.998–0.999 in every version, so the heads differ in confidence, not discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one sigmoid) is 7,832 parameters, under the cap; the Professor's registered prediction P2 (≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met. Beside it, the SD filter's drift operator smears a sharp belief exactly as the arithmetic says — sd √(n f (1 − f)) bins, matched to 2.3 × 10⁻⁸ bins over 79 unclamped rows; 2.708 bins (13.5 need points) after 100 ticks at every run's initial rate, 1.56–1.87 bins after 100 ticks at the learned width-16 median rates — while the engine's need rises with no uncertainty; the mechanism the Professor named for F-066's residual share stands as arithmetic, its causal share unmeasured |
-| F-068 | active | The base head's five means name the grave need, the frozen-state grave probability is over 0.2 before a mid-world grave episode begins in most cases, and a consumer reading the means against 90 misses half or more of them: on the per-cat worlds NF-h24's means name a grave need on 0.871 ± 0.031 of the need-grave samples in sight (top-2 0.969; the always-name-drink baseline 0.353; DR-h24 0.872 ± 0.010; SD-w16's grave mass 0.739 ± 0.043, its mean 0.687 ± 0.031) and 0.867 under fog, play the weakest need (0.783); of 288 grave episodes over observer slices (72 friend-episodes × 4 observers) 200 are RESET episodes (grave at the world's first tick, group P's per-cat grave-start design; a crossing there is the prior, not a detection), 20 begin mid-world in the observer's sight and 68 mid-world under fog; on the mid-world fog-onset episodes NF-h24+p at P(grave) ≥ 0.2 detects 0.946 ± 0.042 at a median latency of 0 ticks and is over the threshold at the tick before onset as well in 0.931 of them, on the mid-world in-sight episodes 0.850 ± 0.087 (anticipated in 0.833), over all onsets 0.912 ± 0.051 of the 34 in-sight-onset and 0.966 ± 0.016 of the 254 fog-onset episodes; its false-alarm runs are 0.90 ± 0.30 per 10,000 observer-ticks in all and 0.07 ± 0.02 excluding runs that start at the world's first tick; the max-of-means ≥ 90 rule on the same head detects 0.367 ± 0.058 of the mid-world in-sight and 0.490 ± 0.090 of the mid-world fog episodes (0.490 ± 0.045 and 0.686 ± 0.065 over all onsets, 3 ticks late at the median), on SD-w16's means 0.294 and 0.177 over all onsets at a median of 11.3 and 34.0 ticks; both declared reading rules hold as declared ((i) NF-h24 mean which-need in sight, pooled, ≥ 0.80 with every per-need cell of n ≥ 200 above 0.60; (ii) NF-h24+p at P(grave) ≥ 0.2 detecting ≥ 0.90 of the episodes with onset in sight at median latency ≤ 10 ticks — 0.912, by less than one of its 34 episodes, 0.850 on the 20 mid-world in-sight episodes alone, disclosed) and the registered prediction that the mean rule detects under half of the in-sight-onset episodes holds on the seed mean (0.490; per seed 0.500 / 0.441 / 0.529, one seed exactly at half and one over), so the verdict as declared is "enough for detection and naming, on this evidence" |
-| F-069 | active | The frozen NF-h24 head's grave probability is a property of the young state (at P(grave) ≥ 0.10 on the per-cat worlds unless stated): the same covered grave rows that it detects in 0.995 ± 0.009 of 200 reset episodes at a median latency of 0.3 ticks when they arrive at a world's start are detected in 0.358 ± 0.175 (0.540 / 0.345 / 0.190 per seed) at a median latency of 26.5 ± 12.4 ticks when spliced after 100 clean ticks of a lived world's history, 0.287 ± 0.143 and 0.288 ± 0.132 after 500 and 2,000, with a junction control of default-start rows never firing (0.000 at H = 100 / 500 / 2,000 at every threshold) and SD width 16 collapsing alike (1.000 → 0.275 → 0.282 → 0.287); the self block is not in it (H = 0 with the recipient's self block 0.995 / 0.972 / 0.968 at 0.10 / 0.30 / 0.50 against 0.995 / 0.970 / 0.965); the same head warm-started at the mean state over ticks 1,000 … 19,999 of L's clean slices detects the real reset episodes at 0.592 ± 0.066 (0.650 / 0.520 / 0.605 per seed) against 0.995 while every first-tick false-alarm run disappears (614.0 ± 322.2 → 0.0) and the clean slices' start-up firing goes 0.767 ± 0.403 → 0.000 ± 0.000; on L's clean slices the state's step does not shrink (median 0.0480 ± 0.0009 in ticks [1, 100), 0.0571 ± 0.0024 from tick 1,000 on) and the logit has no trend (0.0001 ± 0.0021 per 1,000 ticks against a within-slice SD of 0.9387 ± 0.0775), while the mean logit is −1.829 ± 0.598 at tick 0 (P(grave) 0.178 / 0.075 / 0.192 per seed), −4.059 at tick 1 and −9.371 at tick 10; the training worlds (every set) hold no grave after offset 322 (182 onsets, the latest at 171, 1 after tick 100; the validation worlds to 601, the evaluation worlds to 779); a burn-in of 2 ticks at 0.10 on the per-cat worlds takes all-runs false alarms 1.607 ± 0.805 → 0.136 ± 0.063 per 10,000 observer-ticks at reset detection 0.980 (5 ticks: 0.073 ± 0.001 at 0.960; 10: 0.072 ± 0.004 at 0.798) while on L / W / G the same burn-ins leave 0.538 → 0.521 → 0.577 per 10,000; swapping the observer's self block on the 200 grave-start slices moves reset detection 0.995 → 0.992 and the re-entries 0.900 → 0.883 in sight; the Professor's P4 and P8 are met, P3 and P5 not met as operationalised, and the condition named for reopening SD is not met |
-| F-070 | active | The frozen NF-h24 head's grave detection falls gradually with the length of the clean history before the grave rows, most of the fall over by 20 ticks (at P(grave) ≥ 0.10 on the §Addendum 4 splice, group P's 200 covered reset-grave donors onto L's 60 clean recipients, seeds 1–3, unless stated): the same covered grave rows detected in 0.995 ± 0.009 of episodes at a world's start are detected in 0.978 ± 0.003 / 0.970 ± 0.009 / 0.852 ± 0.038 / 0.658 ± 0.096 / 0.537 ± 0.063 / 0.362 ± 0.070 after 1 / 2 / 5 / 10 / 20 / 50 clean ticks and 0.358 ± 0.175 after 100, at median latencies from the junction of 1.0 / 1.3 / 3.7 / 11.3 / 16.3 / 24.7 ticks against 26.5 at 100, with the junction control of default-start rows firing in 0.010 ± 0.017 of junctions at H = 1 and 0.000 from H = 2 on; the knee by the declared midpoint (0.641 between the start's 0.995 and the 500 / 2,000 plateau's 0.287) is at H = 20, with H = 10 just above it; at 0.30 and 0.50 the curve sits lower at every H (H = 10: 0.482 / 0.378); SD width 16 at 0.10 sits lower on the seed means at every H ≥ 5 (0.762 ± 0.185 / 0.487 ± 0.332 / 0.403 ± 0.306 / 0.297 ± 0.165 at 5 / 10 / 20 / 50; knee at 10), with one of its three seeds (seed 3, whose control still fires 0.140 / 0.130 there) above every NF seed at H = 10 and 20, while its rows at H = 1 and 2 are its own start-up transient (control 1.000 / 0.985) and its seed-mean control is under 0.05 only from H = 10; the Professor's P9 is not met as operationalised (0.658 at H = 10 is under 0.70; 0.537 at H = 20 is 0.178 from the committed 0.358 at H = 100, over its seed SD of 0.175 by 0.003); the provisional 2-tick burn-in of decision 3 sits inside the window in which the head sees a covered grave (0.970 at H = 2, 0.852 at 5) |
+| F-064 | active | A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (RMS about 5.3 in common states, about 25 in grave); natural frequency carries the ostrich signature, reweighting trades it for common-state error; no single head is free |
+| F-065 | active | With one friend grave at reset, grave estimation is half again as hard as Phase 1's all-grave worlds showed and the ostrich signature is broader; width moves every loss cell in proportion, not grave-specifically |
+| F-066 | active | The structured discrete head does not beat NF on grave at equal capacity (1.233) and is better in common states (0.787); at width 16 its P(grave) is near the diagonal above p = 0.7 |
+| F-067 | active | A 25-parameter logistic probe on the frozen NF-h24 states reads grave within SD's seed spread and ahead of it on the grave mean and Brier (outcome A: the histogram bought nothing the consumer needs) |
+| F-068 | active | The head's means name the grave need (0.871 in sight) and its probability is over 0.2 before a mid-world grave episode begins in most cases (0.912 of in-sight onsets); the means-against-90 reading misses half or more |
+| F-069 | active | The head's grave probability is a property of the young state: 0.995 at a world's start, 0.358 after 100 clean ticks, 0.287 / 0.288 after 500 and 2,000; a 2-tick burn-in removes the first-tick false alarms on the per-cat worlds |
+| F-070 | active | Detection falls gradually with clean history, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 at H = 1 / 5 / 10 / 20); knee at H = 20 |
 
 ---
 
@@ -145,88 +170,8 @@ See F-013. Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ## F-004 · active · Probe statistics must cluster by world; few-world batches produce phantoms
 
-Twin-probe samples that share a world share long-lived state, so for the
-slow cooperative channel the effective sample size is the number of
-**worlds**, not the number of substitution samples. Per-sample 2·SE
-testing on 20-world batches produced a 3× phantom "winner" in the
-training-world search that collapsed to nothing on 20 disjoint seeds;
-cluster-robust per-tick statistics (mean/SE over per-world mean traces)
-on 100+ worlds eliminated it. Ranking differences smaller than ~2× on
-100-world batches still flip between batches — replicate on disjoint
-worlds before acting on one.
-
-**Scope**: any across-sample statistic over twin-probe traces (or any
-future rollout-derived statistic with shared world seeds). Applies
-retroactively as a margin-of-error note on F-001/F-003, whose datasets
-used 20 worlds: their per-sample significance overstates confidence for
-the late bands specifically; their structural claims (two channels,
-post-retune lengthening) are paired-comparison results on shared seeds
-and survive, but their absolute band edges and retention decimals carry
-world-batch noise.
-
-**Evidence**: [world-search result](exp-001-bc-mappo/results/world-search-2026-07-27.md)
-(the phantom, its collapse, and the fix are all reproducible from the
-archived first-pass rows).
-
-**Implications**: `search.py`'s cluster-robust `channel_metrics` is the
-reference implementation; every future probe analysis uses it (the
-original `analyze.py` per-sample method is superseded for significance
-claims). Probe runs default to 100+ worlds.
-
-*(Addendum 2026-08-02: the post-024 engine's flatter amplitudes moved
-the power bar — three disjoint 100-world batches produced three
-different search leaders with 5× swings, while 150-world batches
-replicate cleanly (served world: 0.089/0.109/0.090). Probe claims on
-the post-024 engine use 150+ worlds; see the post-024 world search.)*
-
-*(Promoted 2026-08-08 → [README.md § Measurement
-discipline](README.md): the discipline — cluster-robust by world,
-replicate on disjoint worlds before acting. The **world-count bar is
-not promoted** and stays here, engine-indexed: 100+ pre-024, 150+
-post-024, post-026/027 unmeasured — re-derive it at the next probe
-campaign rather than trusting either number.)*
-
-*(Re-derived 2026-08-09 on the 028 engine, v5 family base —
-[class-credit-2026-08-09.md](exp-004-rebaseline-2026-08-09/class-credit-2026-08-09.md):
-three disjoint 150-world eat/drink batches replicate to **1.24× on
-S(.998)≤600** but swing **1.68× on full-horizon S** (the spread is
-k>600 diffusion-tail mass, batch-specific). Bar for 028-engine probe
-claims: **150+ worlds, compare on the ≤600 truncated S**; full-S
-differences under ~2× are batch noise. The replication discipline is
-unchanged. **Class-dependence, same day**
-([play-share.md](exp-004-rebaseline-2026-08-09/play-share/play-share.md)):
-the 1.24× bar was derived on eat/drink (per-tick amplitude ~0.009) and
-does NOT transfer to floor-amplitude classes — play/chase (~0.002)
-swings 3.1× between disjoint 150-world bands and dissolves when pooled
-to 300. Small-amplitude class claims require disjoint-band agreement
-before they are claims at all.)*
-
-*(Bar status, 2026-08-16 review: the engine-indexed world-count bar is
-UNMEASURED on the post-wall stamp `5d293c67…` — the 150+/truncated-S
-bar above is a 028-engine number. Re-derive it as part of the phase-1
-class-credit re-baseline (queued, phase1-design-inputs.md §4) before
-any post-wall probe claim leans on it.)*
-
-*(RE-DERIVED 2026-08-17 on the post-wall stamp, phase-1 collection
-base —
-[class-credit-2026-08-17.md](exp-006-character-gen/results/class-credit-2026-08-17.md):
-eat/drink S(.998)≤600 replicates within **1.28×** across three
-disjoint 150-world bands (875k seeds); the bar stands as 150+
-worlds / ≤600 truncated S. The floor-class warning re-fired in the
-same campaign: play/chase batch A read 4–9× above its own B/C
-replications (late-k peaks, diffusion tail) — the second
-single-batch play/chase excursion withdrawn by replication, now a
-standing presumption for that class.)*
-
-**Would invalidate**: a demonstration that within-world sample
-correlation is negligible at some horizon (it is not, at k > ~50, on
-current evidence).
-
-**Re-verify when**: n/a — this is a statistics discipline, not an
-environment measurement; revisit only if the probe's sampling design
-changes (e.g., one world per sample).
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-004).
 
 ## F-005 · superseded by F-013 · Training-world knobs move detectable cooperative signal weakly; scarcity×tempo is the one replicated improver
 
@@ -253,69 +198,8 @@ Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ## F-007 · active · BC initialization is necessary for MAPPO to beat the baseline at exp-001's budget
 
-Measured 2026-07-30 (exp-001 Arms 1–3, deviation 30b). With identical §5
-settings, worlds, seeds, and a 20M-tick budget, BC-initialized MAPPO
-produced three maximal-significance wins over `needs_driven` (best
-+0.0212 paired Nash AllSubject, 30/30 eval seeds, W=0, p=1.9e-09), while
-**all six from-scratch runs finished at or below the BC clone's own
-level** (−0.127 to −0.168, 0/30 seeds, both γ) despite genuine learning
-(probes 0.21 → ~0.79 plateau). Diagnostic signature of the from-scratch
-ceiling: unmasked-argmax mask-violation rate converges to 0.99–1.00 —
-without a BC prior the policy leans wholly on the mask crutch and never
-internalizes action legality. The clone alone is 0/30 (−0.120) — so
-neither ingredient suffices: BC provides the floor RL climbs from, RL
-provides the entire +0.13 above it.
-
-**Scope**: exp-001's fixed factors (§4/§5 + deviations 30/30b): MLP
-182→256→256→40, level Nash reward, 20M ticks, the frozen scarcity×tempo
-training family, mixed control 33%. Says nothing about 10×+ budgets,
-other architectures, or curriculum/objective variants.
-
-**Evidence**: [report-protocol result](exp-001-bc-mappo/results/report-protocol-2026-07-30.md);
-[Arm 2 record](exp-001-bc-mappo/results/arm2-training-2026-07-30.md).
-
-**Implications**: the BC stage (dataset → clone → critic pretrain) is
-load-bearing and stays in every exp-002 design; "more RL instead of BC"
-is not a live hypothesis at this compute scale. The mask-violation rate
-doubles as a cheap fingerprint distinguishing BC-lineage policies from
-scratch-trained ones.
-
-**Would invalidate**: a from-scratch run reaching baseline under a
-larger budget or a different algorithm (that would narrow this to
-"necessary at 20M ticks with PPO", which is still the operative claim).
-
-**Re-verify when**: any exp-002 arm changes the training algorithm or
-raises the budget ≥ 5×; then one from-scratch control seed is cheap
-insurance against over-crediting BC.
-
-*(Trigger status, 2026-08-16 review: FIRED in spirit at the attention
-generation — the policy class changed (EntityPolicy, spec 030) with
-recipe and budget held — and the from-scratch control seed has never
-run on the new class: BC-necessity is carried as a recipe default, not
-re-established. Two reasons it likely still holds, neither a
-measurement: the budget is unchanged (the claim is budget-indexed),
-and F-022 adds an independent necessity argument (the channel only
-comes alive through demonstrations — a scratch policy would be mute
-regardless of welfare). The control seed remains cheap (~one PPO run)
-if the phase-1 prereg wants the register claim re-established on the
-current class; owner's call, flagged not queued.)*
-
-*(RE-ESTABLISHED on the attention class, 2026-08-16 — in a STRONGER
-form than the original claim. The scratch control (`--scratch`: random
-init, KL identically 0, recipe otherwise held; exp-005 trainer commit
-89594c4, trip recorded as its D-002) collapsed below the recipe's
-§9.6 welfare stop within 149 of 6,510 updates: probe nash 0.70 at
-init → 0.36 and falling, entropy RISING 1.69 → 1.90 (drifting toward
-noise, not learning). The matched clone-init run at the same beta
-endpoint (exp-005 β∞=0) trains cleanly to nash 0.953. So at this
-recipe and budget, BC init is not merely necessary to beat the
-baseline — it is necessary for the run to survive its own safety
-rule. Channel note: the scratch policy emitted 300–500 meows/1k of
-mask-random babble — volume without meaning, which is F-022's
-distinction, not a counterexample to it. One seed; the collapse
-margin (0.36 vs 0.95) is far past any seed-noise reading.)*
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-007).
 
 ## F-008 · superseded by F-010 (2026-07-30) · A long-horizon all-policy instability mode exists that short probes cannot detect; scripted teammates arrest it
 
@@ -332,120 +216,13 @@ Full text: [FINDINGS-ARCHIVE.md](FINDINGS-ARCHIVE.md).
 
 ## F-009 · active · House rule: a measurement's horizon bounds the failures it can detect
 
-Methodological, promoted from two independent bites in one experiment:
-(1) the 600-tick twin-probe traces truncated live cooperative signal
-mid-band and had to be extended to 1,200 (F-003's history); (2) 2,000-
-tick validation probes rated two long-horizon-unstable policies as
-indistinguishable from certifiable ones (F-008). In both cases the
-instrument was honest about what it measured and silent about everything
-past its own horizon, and in both cases the miss was discovered only by
-a longer measurement that already existed in the protocol.
-
-*(Nuance, 2026-07-30: forensics showed bite (2) was really a
-world-identity miss, not a horizon miss — the probes ran a world where
-the failure's trigger never occurs, and on the triggering world the
-collapse is visible within the probe's own 2k horizon (F-010,
-deviation 31). The rule generalizes rather than weakens: every
-dimension an instrument holds fixed — horizon, world, roster — bounds
-the failures it can detect. State all of them with the claim.)*
-
-*(Third bite, 2026-08-07, folded in at promotion: the **seed band** is
-one of those dimensions. Three independent signs in one week — exp-003's
-§9.2 admitting none of nine candidates, the bimodal failure split, and a
-[screen that voided itself](screens/geometry-20x20-2026-08-07/results.md)
-because its control showed 241-tick distress on a band where the same
-artifact on the same world had scored zero; the criterion had
-generalized one band's zero into a policy property. `max_distress_age
-== 0` is a property of policy × world × seed band. State the band with
-the claim.)*
-
-*(Promoted 2026-08-08 → [README.md § Measurement
-discipline](README.md): every criteria/prereg measurement section must
-declare its instrument's held-fixed dimensions — horizon, world, roster,
-seed band, selection mode. This entry stays as provenance.)*
-
-**Scope**: any instrument whose readings feed a decision — probes,
-validation curves, smoke evals, forensic re-checks.
-
-**Evidence**: F-003 (probe extension), F-008 (probe-vs-certification
-divergence); the general pattern is the point.
-
-**Implications**: when designing any measurement, state the horizon of
-the *claim* it supports and check the instrument covers it; when a
-shorter instrument is used for economy (2k probes during training),
-record what it cannot see and gate decisions on the full-length
-instrument. Companion to F-004 (which is the same discipline for sample
-*structure* rather than sample *length*).
-
-**Would invalidate**: n/a — a discipline, not an environment
-measurement; revisit only if it stops paying for its enforcement cost.
-
-**Re-verify when**: n/a.
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-009).
 
 ## F-010 · active · Roster-OOD fragility: an empty kitty slot can collapse an exp-001 policy into idle catatonia (supersedes F-008)
 
-Measured 2026-07-30 (collapse forensics + served-world re-measurement,
-deviation 31). Observations carry three proximity-sorted kitty slots;
-exp-001's training family (5 kitties) and anneal world (4 kitties) keep
-them always full. The compiled 3-kitty default world — which every
-pre-deviation-31 certification unknowingly ran — leaves one slot
-permanently empty: an input outside training support. On it, **3 of 9
-Arm 2 training seeds collapse into an idle attractor** (85% Idle
-post-onset, zero eat/drink, all kitties in permanent distress, welfare
-≈ 0.31), tipped by element layout (the same policy is healthy on
-another eval seed; a robust policy is healthy on the "collapsing"
-seed). Collapse is visible within 2,000 ticks on the triggering world
-(seed 8: welfare 0.58 at t=2000, first unresolved distress t≈769). The
-same policies on the served world (`cloudkitty.toml`, slots full):
-certification-clean — max distress age 0 across 60 runs, deltas +0.04.
-
-Re-reading F-008's observations: "scripted teammates arrest it" = in
-Mixed rosters only the lone subject idles while competent scripted
-kitties keep the world afloat; "invisible to 2k probes" = the probes
-ran a world (served) where the trigger never occurs. Env-chain replay
-reproduces the engine's certified numbers exactly given the same
-config.
-
-**Scope**: exp-001's policy class (MLP on slot-structured obs, BC
-lineage, frozen family). The *mechanism* — undefined extrapolation on
-slot patterns absent from training — plausibly generalizes to any
-slot-structured encoding; the 1/3 seed rate is specific to this class.
-
-**Evidence**: [collapse forensics](exp-001-bc-mappo/results/collapse-forensics-2026-07-30.md);
-[served-world re-measurement](exp-001-bc-mappo/results/served-world-remeasure-2026-07-30.md);
-tool `trainer/forensics_replay.py` (recorded (local): untracked, evidence-archive ruling 2026-09-27).
-
-**Implications**:
-- **exp-002's primary robustness target**: make empty-slot patterns
-  in-distribution (roster 3–5 coverage in the training family — the
-  bill for family-v1's deferred roster variation — or absent-slot
-  masking in the encoding).
-- **Candidate screening**: certify-length runs on every roster the
-  deploy surface can present (3, 4, 5). The compiled 3-kitty world is
-  retained as an explicitly-named secondary robustness screen
-  (deviation 31), never the primary gate.
-- The partner-population-curriculum hypothesis is weakened as the fix
-  for *this* mode (it is not self-play resonance) but not dead.
-
-**Would invalidate**: the collapse reproducing on a full-slot world
-(would reopen a genuine coordination-instability reading); roster-
-covered exp-002 policies still collapsing on 3-kitty worlds (would
-implicate something beyond slot support).
-
-**Re-verify when**: exp-002 candidates reach screening; any change to
-the obs slot encoding or slot count.
-
-*(Trigger FIRED at the attention generation, 2026-08-13/14: the
-encoding changed (entity tokens, spec 030). Addressed operationally,
-not by a dedicated retest — the certification battery's stress shapes
-(iii/r3/r5, the §9.2 bar-225 gate) bake vacancy patterns into every
-candidate screen, and the attention-era candidates passed with no
-catatonia; roster 5 with `kitty_slots` 3 makes someone-always-unslotted
-a *designed* condition of the phase-1 world. The encoding-level retest
-proper folds into phase 2, where variable entity tokens make absence a
-normal input (ROADMAP).)*
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-010).
 
 ## F-011 · superseded by F-018 · Meow restraint is a reward-structure equilibrium, not an engine guarantee
 
@@ -457,606 +234,48 @@ not manners. The reward-structure half survives in F-018. Full text:
 
 ## F-012 · active · Channel use is context-dependent: solo probes underestimate a policy's meow behavior
 
-s3 — silent in every solo measurement (certifications, forensics,
-the "s6 is the only meower among nine seeds" survey) — emits FollowMe
-meows and the occasional WantCuddle as soon as its world contains
-another *policy* kitty. The rate is **bursty, not steady** (correction
-2026-08-01; the original "7–16 per seed" was the two arms' means):
-Seating B per-seed FollowMe over seeds 1–10 is 0, 1, 0, 1, 3, 19, 5,
-13, 112, 5 — eight near-silent seeds and two carrying the bulk, seed 9
-alone 112 of 159. The behavior was latent: never expressed among
-scripted neighbors, unmasked by policy company — and when expressed,
-episodic.
-s6's behavior also shifts in the pair world (deliberate purrs down,
-WantDrink up), consistent with two-way channel traffic.
-
-**Scope**: exp-001's policy class; plausibly any policy whose training
-population (self-play siblings) differs from its evaluation population
-(scripted cats) — the behavior was learned *for* an audience that solo
-evaluation removes.
-
-**Evidence**: [pair-screen record](exp-001-bc-mappo/results/pair-screen-2026-07-31.md)
-(attribution tables); prior null:
-[meow-listening probe](exp-001-bc-mappo/results/meow-listening-2026-07-31.md).
-
-**Implications**:
-- Channel-use surveys for selection or preservation (exp-002 §1's
-  levers) must measure candidates **in policy company**, not solo —
-  the 1/9 "meower base rate" is a solo-context floor, not the truth.
-- The mixed-model roster is likely to be chattier than any solo
-  measurement predicts; viewer-facing meow volume should be assessed
-  on the actual roster.
-- Latent-behavior logic generalizes: any social behavior (grooming,
-  duets) may be under-counted by solo probes.
-
-**Would invalidate**: attribution showing FollowMe emission is an
-artifact of the seat (a scripted-behavior interaction) rather than
-s3's policy — checkable by seating s3 with scripted-only rosters at
-the same seats (it was silent there in certification Mixed runs,
-which *is* that control: same seats, scripted neighbors, no meows).
-
-**Re-verify when**: exp-002 candidate screening; any channel-use
-selection measurement.
-
-*(Promoted 2026-08-16 → [README.md § Measurement
-discipline](README.md): measure social behavior in the deployment
-composition. The trigger wording above is era-stale — the discipline
-has re-confirmed at every level since: selection (exp-003/004
-screens), the dial level (F-023), the welfare level (F-025), and the
-exp-005 fingerprint probes measure in the demonstration composition
-by prereg rule. The standing form binds all future measurement; this
-entry stays as provenance.)*
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-012).
 
 ## F-013 · active · The 024 batch rewired the credit landscape: the served world gained a cooperative band, the frozen gym lost its edge (supersedes F-003/F-005/F-006 quantities)
 
-Measured 2026-08-02, the fired engine-defaults triggers executed
-(six probe runs, cluster-robust per F-004, replication batches
-included). Three coupled results:
-
-1. **The current served world (`cloudkitty.toml`, 24×24, post-#86
-   cutover) carries a replicated cooperative band at k ≈ 230–330** —
-   dr 82/111 significant ticks on two disjoint 150-world batches
-   (floor ≈ 60), 25–43-tick contiguous runs, peak amplitude ~0.003–
-   0.005, S(.998) ≈ 0.09–0.11 — 3.4–4× the frozen gym's best pre-024
-   showing. Spillover co-locates (peak k=311).
-2. **The frozen scarcity×tempo gym lost its signal on paired seeds**
-   (3001–3150, engine-only change): 68 → 36 significant dr ticks
-   (sub-floor), S(.998) 0.026 → 0.011, surviving mass pushed to the
-   k≈930 queueing remnant. Consistent mechanism: the chase sidestep
-   dissolves the stall-queueing consequences that were the gym's
-   measured advantage (F-005's own k≈730–940 signature).
-3. **Geometry deconfound**: on the post-024 engine, the served config
-   at 32×32 (F-006's shape) is borderline (57 ticks, S(.998)=0.036);
-   at 24×24 it is clear. The 24×24 cutover is the dominant factor,
-   the engine's new water economics a plausible contributor — the
-   contention mechanism of F-005/F-006, now working in the served
-   world's favor.
-
-The two-channel *structure* (F-001→F-003 lineage) re-confirms
-everywhere: early self band (k ≤ ~16) in every run, team credit slow.
-
-**Scope**: `needs_driven` dynamics, post-024 engine (`6d955ab`),
-current served config and frozen `training.toml`; 1,000 samples ×
-1,200-tick traces per run. Trained-policy dynamics unmeasured (as
-always). Class-conditioned structure (the play/chase 3.6× prior)
-unmeasured on this engine.
-
-**Evidence**: [post-024 re-verification](exp-001-bc-mappo/results/twin-probe-2026-08-02-post024.md)
-(all six runs, dense retention curves, regeneration commands).
-
-**Implications**:
-- **exp-002's training-world choice is reopened and inverted**:
-  training on a family centered on the served world is the
-  evidence-backed default hypothesis (family-gen v3 already centers
-  24×24); the frozen gym is no longer self-recommending. A slimmed
-  post-024 world search should confirm before the prereg freezes.
-- **γ**: the served-world band sits inside γ=0.998's horizon; 0.995's
-  horizon ends before the band begins. Sweep {0.995, 0.998} stands;
-  0.9985 only as a conditional arm if the chosen world's band peak
-  lands past k ≈ 500.
-- Certification on the served world is no longer credit-blind —
-  paired-Nash gains there may partially reflect marginal cooperative
-  credit (F-006's welfare-gate-only framing is retired with it).
-- Every pre-024 probe quantity is design-dead; re-measure
-  class-conditioning on the chosen world before citing it.
-
-**Would invalidate**: the served-world band failing to reproduce on
-further disjoint batches or dissolving under trained-policy dynamics;
-a future engine or config change (this finding inherits the same
-mortality as its predecessors).
-
-**Re-verify when**: any engine-defaults or served-config change; the
-first exp-002 policy artifact reaches candidate stage (policy-seated
-probe, both worlds, per the F-001→F-003 standing trigger).
-
-*(Trigger FIRED repeatedly since: the served world moved to 20×20
-(PR #127, 2026-08-08) and the engine stamp through `cba976da…` →
-`412d00e2…` → `5d293c67…` (026/027, 028, the 031+033 wall). The band
-quantities and the 24×24 location claims above are historical; the
-class-conditioned re-measurements of 2026-08-09 (see F-015's note) are
-the most recent credit reference, and a full re-baseline on the
-post-wall stamp is queued as phase-1 re-baseline work
-(phase1-design-inputs.md §4). The two-channel structure has
-re-confirmed at every re-measurement.)*
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-013).
 
 ## F-014 · active · Post-024 world search: the served world wins as it stands; the knob landscape is flat at 100-world power
 
-Measured 2026-08-02 (F-013's recommended slimmed search, executed:
-nine served-centered candidates + the gym incumbent, three disjoint
-100-world rounds + a 150-world finalist wave, welfare-gated).
-
-1. **No searched knob beats the served world.** At 150-world power:
-   served S(.998) = 0.0896 (its *third* independent 150-world
-   replication: 0.089/0.109/0.090 — the strongest replication record
-   any world has held here); tempo125 0.066; roster5 0.041; size22
-   sub-floor; gym 0.017 (third sub-floor batch). Scarcity and tempo —
-   the pre-024 winners — now *hurt* or do nothing.
-2. **The knob landscape is flat at 100-world power**: three disjoint
-   100-world rounds produced three different leaders with 5× swings
-   (incl. a one-batch tempo125 early-band phantom). The pre-024
-   amplification regime (scarcity×tempo 1.5–1.8×, replicated at this
-   exact instrument) does not exist on the new engine.
-3. **Roster is a real signal knob**: adding a 5th kitty halves the
-   served world's S (0.090 → 0.041, mass spreads later) — more cats,
-   more chaotic mixing. The family's F-010 roster stratification is
-   therefore a quantified signal-for-robustness trade.
-
-**Scope**: needs_driven/playful scripted dynamics (policy seats
-neutralized), post-024 engine (`6d955ab`), the searched knob ranges
-(sizes 22/26, scarcity two notches, tempo ×1.25, roster ±1). Not
-searched: durations, trait spreads, element ratios, tempo below 1×.
-
-**Evidence**: [world-search-2026-08-02-post024.md](exp-001-bc-mappo/results/world-search-2026-08-02-post024.md);
-driver `experiments/tools/world-search/search_post024.py`.
-
-**Implications**: exp-002's family base = the served world shape
-(family-gen v3 jitter as the variation envelope; 5-kitty base variant
-for roster stratification carries the quantified signal cost);
-γ sweep {0.995, 0.998} confirmed (the served band sits inside 0.998's
-horizon — F-013's conditional 0.9985 rule stays dormant unless the
-family's realized band peak moves past k ≈ 500); probe claims on this
-engine use 150+ worlds (F-004 addendum).
-
-**Would invalidate**: a knob outside the searched ranges beating the
-served base at 150-world power; trained-policy dynamics reshaping the
-landscape (the standing caveat everywhere).
-
-**Re-verify when**: any engine-defaults or served-config change;
-exp-002 candidate stage (policy-seated probe re-ranks the worlds that
-matter).
-
-*(Same fired-trigger status as F-013 — served config and engine both
-moved (20×20, stamps through `5d293c67…`). The search's negative
-result (no knob beats the served shape) was re-affirmed in spirit by
-the 2026-08-15 world-size screen (proportional 22×22 bought nothing,
-zero-distress at 20×20 with five bodies; trait-screen results.md),
-but trait spreads — explicitly unsearched above — enter the phase-1
-family per its design inputs.)*
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-014).
 
 ## F-015 · active · Pooled all-action probes dilute under heterogeneous class amplitudes; class-conditioned batches carry the credit signal
 
-Measured 2026-08-03 on the exp-002 family base, post-025 engine
-(`0fd551d`), 150 worlds per batch (F-004 addendum), identical recipe
-and seeds as the post-024 measurement it pairs with.
-
-1. **The registered spec-025 prediction confirmed** (registered
-   2026-08-02 in the handoff + census doc, before the change
-   landed): the per-target play-relief gradient lifted the
-   play/chase credit class off its post-024 floor — S(.998)
-   0.0039 → 0.0245 (6.3×), significant ticks 8 → 43, real bands,
-   peak k=301 (inside 0.998's horizon). Eat/drink doubled
-   (0.0333 → 0.0709, now the largest class); groom/sleep/rest
-   roughly held (0.0334 → 0.0399).
-2. **The methodological finding: the pooled all-action batch went
-   sub-floor while every class rose** (S 0.0387 → 0.0099, 30
-   significant ticks against fp ≈ 60). Verified mechanism is
-   dilution, not cancellation: all classes are positive-signed, but
-   play/chase decision points are the most abundant in the pool
-   (density 0.71) with the smallest per-tick amplitude (+0.0003 vs
-   eat/drink's +0.0087), so the pooled per-tick mean drops below the
-   2·SE bar. A pooled probe's "all-action" S is a
-   composition-weighted average, NOT a ceiling or a denominator —
-   post-024's convenient "class ÷ all" ratio framing only worked
-   because amplitudes happened to be comparable.
-
-**Scope**: the twin-probe substitution instrument with cluster-robust
-per-tick means; scripted dynamics on the family base. The dilution
-mechanism is instrument-generic (any pooled mean over heterogeneous
-subpopulations), so assume it wherever decision-type frequencies and
-effect sizes are inversely related.
-
-**Evidence**: [class-credit-2026-08-03-post025.md](exp-002-mixed-population/results/class-credit-2026-08-03-post025.md)
-(supersedes the post-024 table's ratios, not its record).
-
-**Implications**: credit claims compare class-conditioned absolute S
-values, never class-vs-all ratios; an all-action batch still runs as
-a composition read (its density and sign structure), not a credit
-score. Prereg §10.1 diagnostics watch eat/drink, groom/sleep/rest,
-AND play/chase (re-entered post-025). The §3 dormant-γ trigger
-outcome (F-9985 follow-up cell) survives the refresh: late bands
-persist past k ≈ 500 in the class batches.
-
-**Re-verify when**: any engine-defaults change; when policy-seated
-(rather than scripted) probes become available at the exp-002
-candidate stage. *(Trigger FIRED, 2026-08-08 review: the 026/027 batch
-moved the engine to stamp `cba976da…` and no re-measurement has run —
-the class amplitudes and densities above are stale on the current
-engine. Queued as exp-004's first probe obligation; the dilution
-mechanism itself is instrument-generic and stands.)*
-
-*(RE-VERIFIED 2026-08-09 on the 028 engine, v5 family base, identical
-recipe —
-[class-credit-2026-08-09.md](exp-004-rebaseline-2026-08-09/class-credit-2026-08-09.md):
-pooled all-action sub-floor again (33 sig ticks, fp ≈ 60) while
-eat/drink carries S(.998) 0.0663 (4.5× pooled) and groom/sleep/rest
-0.0398 (2.7×); same mechanism, dilution not cancellation (play/chase
-density 0.69, amplitude 0.0020 vs eat/drink 0.0091, all positive).
-The 2026-08-03 base cannot load post-028 (courtesy trio), so the new
-table is a fresh record, not a paired comparison. The flag clears; the
-trigger conditions stand unchanged. The initially-flagged play/chase
-"halving" (0.0245 → 0.0125) was investigated same-day and **withdrawn
-as a batch artifact** — an identical-config disjoint-band replication
-swung 3.1× and pooling dissolved significance entirely; play/chase
-credit is below reliable measurement at standard batch sizes on this
-engine
-([play-share.md](exp-004-rebaseline-2026-08-09/play-share/play-share.md)).)*
-
-*(Trigger FIRED AGAIN, 2026-08-16 review: the 031+033 wall moved the
-stamp to `5d293c67…` with no class-credit re-measurement since. Queued
-as the phase-1 class-credit re-baseline (phase1-design-inputs.md §4);
-the dilution mechanism itself is instrument-generic and stands.)*
-
-*(RE-VERIFIED 2026-08-17 on the post-wall stamp, phase-1 collection
-base (sheets + playful demonstrator) —
-[class-credit-2026-08-17.md](exp-006-character-gen/results/class-credit-2026-08-17.md):
-pooled all-action at the floor again (64 sig ticks, fp = 60, ≤600 S
-0.0124) while eat/drink carries 0.0391 and groom/sleep/rest 0.0419
-on the truncated statistic; densities match the 028-era table to
-two decimals, so the wall + composition change moved amplitudes,
-not decision frequencies — and the stable classes barely at that
-(eat/drink ≤600 within 11% of its 028-era band values). Play/chase
-produced its second single-batch excursion, withdrawn by B/C
-replication (see the F-004 annotation). The flag clears; triggers
-stand.)*
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-015).
 
 ## F-016 · active · The wet-fur dial subsidises the behaviour it prices: raising bath_gain increases scripted on-water time through the grooming channel
 
-Measured 2026-08-06 on the post-027 engine
-(`cba976dae4b88703…`), served world, all four seats scripted, 10 seeds
-× 20k ticks, paired across identical seeds.
-
-1. **Raising `bath_gain` 1.5/50 → 3.5/60 *increases* total scripted
-   in-water share**, in all four splits measured: policy seats
-   +0.333pp (8/10 seeds) at `edge_penalty` 2.0 and +0.682pp (9/10) at
-   0; the historical reference seats +0.218pp and +0.211pp (7/10
-   each).
-2. **The mechanism is grooming, and it is a feedback loop.**
-   Decomposed by activity, every avoidance the dial was aimed at
-   happens — resting on water −0.043pp, sleeping −0.044pp, playing
-   −0.024pp — while **grooming-on-water rises +0.414pp (+61%)** and
-   swallows the rest. `Activity::Grooming => Some(NeedKind::Bath)`
-   (`kitty.rs:165`) with `groom_relief` applied to Bath
-   (`action.rs:699`), and the wet-fur charge *raises* Bath per
-   occupied water tick: being wet makes a cat want a bath, a
-   `needs_driven` cat takes it where it stands, and standing there
-   keeps charging. A higher gain engages the loop sooner.
-3. **A scripted floor and a learned policy move oppositely on this
-   lever.** exp-002's §9.1 dial resolution found a *policy's*
-   grooming-on-water fell ~60% between dials while its sleeping-on-water
-   was stubborn. Same channel, opposite sign, different decider — so a
-   scripted baseline is not a conservative proxy for policy behaviour
-   here, in either direction.
-4. **`edge_penalty` does not move water occupancy at this power**:
-   4/10, 3/10, 5/10, 5/10 seeds positive across the same four splits,
-   signs disagreeing, every delta inside its own seed spread. Its
-   effect is on welfare (+0.00049, 7/10), which is what it was for.
-
-**Scope**: scripted `needs_driven`/`playful` dynamics on the served
-24×24 world with a guaranteed lake, dials 1.5/50 vs 3.5/60,
-`edge_penalty` 0 vs 2.0, 10 seeds × 20k ticks. Says nothing about
-learned policies on this engine — none can run on it yet (observation
-schema 1 artifacts are rejected outright). The mechanism is structural
-rather than dial-specific, so expect it wherever a cost raises a need
-whose relief activity is location-indifferent.
-
-**Evidence**: [rebaseline-2026-08-06/results.md](rebaseline-2026-08-06/results.md);
-instrument `experiments/rebaseline-2026-08-06/scripted_water_baseline.py`.
-
-**Implications**: exp-003 cannot register "in-water share" as a single
-gated number — it pools a channel the dial suppresses with one it
-amplifies. Split grooming out, and set H2's band against the
-same-engine scripted measurement (policy seats: 1.50% lounging / 3.44%
-in-water), noting that exp-002's registered ≤3.0% in-water ceiling now
-sits *below* the scripted baseline in those seats. If the goal is to
-price lingering rather than bathing, the lever to reach for is the
-ceiling (which caps the accumulated need, and so caps how often the
-grooming loop re-arms) rather than the gain.
-
-**Re-verify when**: engine defaults change; `groom_relief`, the bath
-happiness weight, or the wet-fur charge move; and — first opportunity —
-when a schema-2 policy exists, since point 3 predicts it will not
-follow the scripted direction.
-
-*(Status note, 2026-08-16 review: the bath dials themselves are
-unchanged through the 033 wall (the stamp moves came from other
-fields), and the point-3 prediction remains unmeasured — schema-2+
-policies have existed since exp-003, but no paired policy-side dial
-measurement has run. Standing, not fired.)*
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-016).
 
 ## F-017 · active · The multi-copy collapse is largely a symmetry artifact: identical greedy policies deadlock over contested resources, and sampled selection dissolves it
 
-Measured 2026-08-07 on the post-027 engine (`cba976da…`), all nine
-exp-003 candidates, roster-5 world, 30 seeds × 20k, `--roster
-all-policy`, greedy vs `--sample` on matched seeds.
-
-1. **Breaking the tie removes the catastrophe.** `floor_touches`
-   **108,584 → 0** across the sweep; worst `max_distress_age`
-   **16,027 → 1,020**. The two collapsing candidates fall 300× and 15×,
-   and their welfare recovers from 0.9126 / 0.8681 to ~0.921 — into the
-   band the healthy candidates already occupied. Fallbacks zero in both
-   modes.
-2. **The mechanism is symmetry, not incapacity.** Four identical
-   deterministic policies observing similar states select the same
-   action, converge on the same resource tile, and deadlock; the
-   worst-off cat starves while the whole roster degrades. (Mechanism
-   *inferred* — from the greedy-vs-sampled contrast, the failing-need
-   signature, and the chow-tile geometry result; the committed JSON is
-   outcome-level, no position traces.) Eat leads the failing needs in
-   every §9.2 probe, drink usually second — the contested consumables —
-   and adding a single chow tile to a 20×20 world independently moved
-   incident runs 9/60 → 1/60
-   ([geometry-20x20-optE screen](screens/geometry-20x20-optE-2026-08-07/results.md)).
-   Two different interventions on contention, same direction.
-3. **Very little noise is required.** End-of-training policy entropy is
-   **0.31–0.39 nats** (uniform over the 40-action menu would be 3.69),
-   so `--sample` is near-greedy — it mostly agrees with the argmax. The
-   tie is fragile; breaking it is cheap.
-4. **Mixed and self-play arms respond oppositely**: mixed worst-case
-   mean **5,494.7 → 213.2** (26× better), self-play **80.0 → 135.7**
-   (slightly worse). Self-play trains entirely under self-contention and
-   has already learned to break symmetry behaviourally, so randomisation
-   only adds noise; mixed arms spent a third of training with no
-   self-contention and never learned it. This is a second, independent
-   line of evidence for the same mechanism as the mixing gradient
-   (exp-002's monotone 0/33/67 replication).
-5. **Not a free win**: incident *counts* fall only 92/270 → 69/270, and
-   the improvement is not uniform — by worst distress two candidates
-   worsen (A2-s1, A2-s3), by incident count three do (a different set:
-   A0-s2, A1-s1, A2-s1). Sampling trades a rare catastrophic tail for
-   slightly more frequent small wobbles.
-
-**Scope**: exp-003's schema-2 MLP policies on the roster-5 family world
-at four occupied seats. Says nothing about deployment, which seats two
-policies among two scripted cats and shows **zero** distress under
-greedy selection either way. The symmetry argument is generic to
-identical deterministic agents sharing scarce indivisible resources, so
-expect it wherever policy share is high; the *magnitudes* are specific
-to these policies and this world.
-
-**Evidence**: [selection-symmetry-2026-08-07.md](exp-003-water-schema/results/selection-symmetry-2026-08-07.md);
-per-run JSON committed beside it, seed band 810k.
-
-**Implications**: an all-policy collapse is weak evidence about policy
-*quality* — it conflates a coordination failure with a competence
-failure, which matters directly for respecifying exp-003 §9.2's roster
-gate (it admitted none of nine). For exp-004, symmetry-breaking rises up
-the knob list in two forms: cheap and behavioural (sampled selection, or
-a per-seat identity feature letting copies specialise) and principled
-(the meow channel — signalling intent is the designed resolution for
-resource contention, `WantEat` already exists, and these policies never
-learned to use it: greedy `meow/1k` 0.01–0.41). Nothing here licenses
-switching the served world to sampled selection: every §9.1 water figure
-— and the deployment record itself (Deviation 1: deployed, **not**
-certified) — is greedy, so a switch needs re-measurement rather than
-assumption.
-
-**Re-verify when**: policy entropy at convergence moves materially (the
-effect depends on distributions being sharp); a policy trained with any
-explicit symmetry-breaking or coordination mechanism exists; or the
-action menu changes such that resource targets stop being indivisible.
-
-*(Trigger FIRED and absorbed into operating practice, 2026-08-08/09:
-the exp-004 groundwork closed sampled selection for the served world
-(greedy stays), and the §9.2 respec this finding demanded became the
-bar-225 gate (max(1, floor(0.05n)) exceedances, stress shapes
-iii/r3/r5) — the identical-copies stress is now a standing battery
-condition rather than a disqualifying surprise. The "principled
-resolution" implication came true: exp-004-era policies are
-meow-equipped and use the channel (~100/1k vs the 0.01–0.41 measured
-above), and the attention-era candidates pass the iii shape within the
-bar. Heterogeneous per-seat traits (phase 1) de-symmetrize the roster
-further by construction.)*
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-017).
 
 ## F-018 · active · The channel is two-layer by design: legality is engine law, meaning is reward economics (supersedes F-011)
 
-Settled across specs 028 and 033 (2026-08-09 → 2026-08-15) and
-measured through exp-004 and the attention generation. The channel's
-architecture split F-011's single "economics" story into two layers
-with different guarantors:
-
-1. **The legality floor is law.** The cooldown lives in the mask
-   (per-cat-per-kind — an illegal meow cannot be selected, not
-   merely discouraged); law-named kinds (Purr, Here* 9–12) carry
-   grounded predicates the engine verifies at emission (adjacency
-   family-wide, purr_earned); the naming law (033 FR-002b) forbids a
-   kind's name asserting meaning its predicate doesn't enforce. spec
-   028 also removed F-011's central cost mechanism: the ride-along
-   head means a meow no longer costs a turn, and measured channel
-   rates rose accordingly (~100/1k vs the old ~0.1% — the turn-cost
-   economics F-011 leaned on are gone).
-2. **Everything above the floor is still equilibrium.** The engine
-   guarantees EMISSION-TIME truth only (owner pin, spec 033):
-   referent preservation, listening, restraint beyond the cooldown,
-   and the meaning of the sound-named free register (mew, chirp,
-   trill, ekekek) are learned team-reward equilibria with no engine
-   mechanism — docs/meows.md carries this as its non-guarantees
-   section. F-011's surviving clause carries forward verbatim: **any
-   per-kitty or competitive reward term voids this layer** (this is
-   why exp-004 used team-level potential shaping only, and why the
-   leash is a constraint, never an objective — F-019).
-
-**Scope**: the post-028 two-head decision surface, any policy class;
-layer 1 is engine law wherever the mask/legality path is used
-(bc-collect, PPO env, serving); layer 2 assumes the cooperative team
-reward.
-
-**Evidence**: spec 028 + exp-004 results (rates, responder gate,
-imitability design records); spec 033 (naming law, grounded
-predicates, emission-time-truth pin); docs/meows.md non-guarantees;
-F-011's archived record for the pre-028 world.
-
-**Implications**: channel claims must name their layer — "cats can't
-spam HereFood at a bare tile" is law; "cats don't announce food they
-intend to abandon" is an equilibrium to *measure*, never assume
-(hosting/courtesy measurement duties are registered for the fog era).
-Certification watches layer-2 quantities (channel rates, listening)
-because nothing else enforces them.
-
-**Would invalidate**: an engine mechanism that enforces meaning
-(would collapse the layers — flagged in 033 as deliberately rejected:
-pinned coordinates were refused to keep emitter-tracking honest); a
-cooperative-reward policy sustaining channel saturation *within*
-legality (would show the floor too low, echoing F-011's original
-invalidation clause).
-
-**Re-verify when**: any reward-structure change; any legality-flag or
-vocabulary change (the reserves arming, fog-era Here* activation);
-the first plugin/LLM seat (whose proposals bypass training economics
-entirely — only layer 1 constrains it).
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-018).
 
 ## F-019 · active · Clone-then-leash preserves visible personality; unleashed welfare-RL erases it (exp-005, the dose-response)
 
-Measured 2026-08-16 on the frozen exp-005 design (β∞ ∈ {0, 0.05,
-0.2} × 2 seeds, A1 recipe, playful-Biscuit clone as init AND anchor,
-fingerprints in the demonstration composition per F-012).
-
-1. **The erosion is real and total at β∞=0**: both control seeds
-   collapse the fingerprint (play_share −68%/−61% relative,
-   bug_over_meal → 0, duets → 5%, near-critters → a quarter) while
-   gaining ~14 happiness — the sunbeam/want-word pattern, now
-   measured end to end on a registered design.
-2. **A held KL floor stops it**: at β∞=0.05 the fingerprint is
-   substantially anchor-grade and welfare still recovers +5–7; at
-   0.2 the fingerprint is anchor-grade and welfare recovers ZERO —
-   the strong leash is expensive cloning. The knee of the trade is
-   at-or-below 0.05; decision metrics saturate between 0.05 and 0.2.
-3. **The leash bound trajectories, not just decisions** (the
-   registered H4 risk did NOT materialize): time_near_critters stays
-   anchor-grade at both doses under global vision.
-4. **The most welfare-expensive expression erodes first, with seed
-   lottery**: duet initiation is the most eroded and most
-   seed-variable metric at every dose (−56/−42% at 0.05, −54/−20% at
-   0.2). A dose alone cannot secure a social-play identity claim;
-   the fingerprint gate needs a floor on the specific expression,
-   and candidates will vary against it seed to seed.
-
-**Scope**: EntityPolicy on the pre-wall 197 surface, global vision,
-the A1 recipe with β0=0.5 annealed over 20% then held, one
-personality (playful) and one methodological anchor at pre-rebalance
-traits. Dose numbers are recipe- and personality-conditional; the
-qualitative structure (collapse at zero, knee near the low end,
-first-eroded = most-expensive expression) is the claim.
-
-**Evidence**: [dose-response](exp-005-leash/results/dose-response-2026-08-16.md);
-[clone + probe](exp-005-leash/results/clone-2026-08-15.md); prereg
-with D-001 extension (β∞ 0.03/0.04, descriptive, pending at
-registration of this finding).
-
-**Implications**: the lineage doctrine for phase 1 — clone from
-healthy-composition demonstrations, PPO with a held-β∞ leash chosen
-from this curve's low end, fingerprint-gate every candidate
-per-expression (duet floors explicitly), expect and budget for seed
-lottery (train several, gate, keep the passers). H4's trajectory
-concern stays registered for the fog era, where the information
-geometry changes.
-
-**Would invalidate**: a personality whose fingerprint collapses at
-doses that preserve this one (would make the curve
-personality-specific in structure, not just magnitude); trajectory
-collapse at a fingerprint-preserving dose under fog (H4's return).
-
-**Re-verify when**: phase-1 lineage arms (production anchors,
-post-rebalance traits, roster-5 world); any recipe change to the
-anneal shape; the fog generation.
-
-*(D-001 extension measured, 2026-08-17 — claim 3 NARROWED and the
-entry's most important nuance found below the frozen doses: H4's
-failure mode is REAL and dose-located. At β∞=0.03, both seeds hold
-decision-level play (play_share .54–.56, duets near-anchor at
-159–167/1k) while time_near_critters collapses to 55–63% of anchor
-and bug_over_meal erodes — the personality RELOCATES to the
-welfare-cheaper venue (kitty play by the pile) rather than fading:
-every decision metric can pass while the visible character changes.
-The trajectory cliff sits in (0.03, 0.04); β∞=0.04 is the measured
-knee (trajectory held .35–.39, decisions anchor-adjacent with the
-curve's tightest seed agreement, +8.2/+8.3 happiness) and is the
-lineage-dose recommendation. Consequence for gates: lineage
-fingerprints carry time_near_critters AND bug_over_meal floors, not
-just decision shares. Full table:
-[dose-response extension](exp-005-leash/results/dose-response-2026-08-16.md).)*
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-019).
 
 ## F-020 · active · Trait prices are social prices: the cost order inverts between scripted and policy company (the exchange table)
 
-Measured 2026-08-15 (trait-screen stages 1–2 + direct verifications:
-6 needs × 4 factors, 10 paired seeds × 20k per cell, carrier-seat
-design, scripted company then deployed roster-B company).
-
-1. **The whole [0.5×, 2×] envelope is constitution-safe** in both
-   companies (zero distress in 250+ runs) — the measured floor
-   behind the ≥0.5× discount rule.
-2. **The price order inverts with company.** Scripted: cuddle is the
-   priciest axis (relief needs a willing adjacent partner; scripted
-   cats rarely cosleep). Policy: the social needs halve (cuddle
-   −58%, play −51%, sleep/bath −34/35%) while the consumables hold
-   or rise (eat unchanged, drink +16% — contested water). Resource
-   physics does not adapt; affection economics does. Discounts also
-   buy less under policy (adapted cats have less slack to harvest).
-3. **Additivity holds at design magnitudes**: 8-for-8 verified
-   vectors within ~0.1 happiness of their marginal-sum predictions —
-   the exchange table works as a design tool, derive-then-verify.
-4. **Volatility is forecastable by need structure**: pack-need rates
-   (cuddle/bath/sleep) are society-mortal — they move with who's
-   seated; travel-need rates (eat/drink) are physics-stable, moved
-   only by contention. Re-measure pack rows first at each
-   re-derivation; travel rows and all structural PAIRINGS carry.
-
-**Scope**: served 20×20 geometry, engine `412d00e2…`, carrier-seat
-instrument (rates are carrier-conditional — measured with the
-cuddler carrying), scripted and roster-B policy brackets. All rates
-are bracket- and generation-mortal by design (stage 3 re-derives
-under the spread-trained generation); the structural claims (2) and
-(4) are the durable layer.
-
-**Evidence**: [trait-screen results](trait-screen-2026-08-15/results.md)
-(both brackets, verification tables, the five locked sheets);
-character-design brainstorm (need-structure taxonomy, verified
-against engine source).
-
-**Implications**: trait characters are designed from the CURRENT
-bracket's table and re-derived each generation (the config rider's
-pins carry the owner's stage-3-mortality note); pairing rules are
-rate-free and survive re-derivation (match discount structure to
-signature structure); Clementine's cuddle-0.7 design is a bet on
-policy-company prices — her scripted reading is expected-low
-(confirmed: 90.61, lowest healthy seat in the post-wall anchor).
-
-**Would invalidate**: additivity breaking at larger dial magnitudes
-or higher dial counts; a policy bracket where consumable prices
-adapt (would show the physics/economics split is company-specific,
-not structural).
-
-**Re-verify when**: any generation change (stage-3 re-derive, pack
-rows first); world geometry or element-economy changes; the fog era
-(vision changes the partner-finding economics that price pack
-needs).
-
----
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-020).
 
 ## F-021 · active · Seeing beats pricing: a single self-observation bit bought the water behavior no reward dial could (exp-003)
 
@@ -1116,162 +335,18 @@ construction); fog-era vision changes what "observable" means.
 
 ## F-022 · active · The channel comes alive through demonstration, then the policies author its meanings (exp-004)
 
-Measured 2026-08-09/11 on the 028 surface (197 obs, ride-along head,
-stamp `412d00e2…`). All five registered hypotheses supported; 15/15
-runs passed the respecified §9.2 gate (vs exp-003's 0/9 under the
-overtight zero gate).
-
-1. **Demonstrations seed the channel; exploration does not.**
-   exp-003's near-empty channel (0.2% of dataset decisions, three of
-   six kinds; clone predicted meows at 0.0000 accuracy) never came
-   alive — greedy meow/1k 0.01–0.41 after 20M PPO ticks. exp-004's
-   purr-rich v4 demonstrations cloned at 104.66/1k and certified at
-   ~170/1k. Same recipe family, same reward; the difference was
-   what the clone had seen.
-2. **Once seeded, the policies author meanings.** Purr: deliberate
-   on both ends (declines ~24 of 25 legal chances; erasing it flips
-   6.3% of hearer activity decisions, 450× the null; answered
-   society-wide +21pp within 10 ticks) and semantically a CONTACT
-   CALL — emitted at excursion apogee, redirecting approach *away*
-   ("I'm fine out here"), with the meet-lift speaker-driven.
-   FollowMe: **zero demonstrations, pure RL invention** — 255
-   emissions whose erasure flips 9.7%/19.3% of hearer decisions
-   (39× null), with semantics inverted from the spec's name to "I'm
-   coming" (speaker closes the gap; hearers are *released* from
-   approaching). The policies re-derived WaitForMe's designed
-   meaning — the one word spec 012 excluded — on a free label.
-3. **The channel needs no scripted anchor** (D1 diagnostic):
-   self-play arms kept it alive; mixing bought only its usual
-   welfare cost. And team-potential shaping (A1, c=0.5,
-   F-011/F-018-compliant) neither helped nor hurt — a registered
-   tie at the 0.002 margin, safe but not necessary at this budget.
-4. **Grounded legality makes the channel need-state-honest**: at
-   0.95 welfare the want-words go dormant (needs never reach the
-   announce threshold) and the hum that remains is Purr — "dormant,
-   not dead," with the census-first rule registered before any
-   threshold-lowering rollout.
-
-**Scope**: MLP on the 028 surface, cooperative team reward,
-20M-tick runs; purr/FollowMe pragmatics are screen-grade probes
-(F-004/F-009 bounds; FollowMe subgroup rows are dozens). Meanings
-are per-generation equilibria (see F-025), never engine guarantees
-(F-018 layer 2).
-
-**Evidence**:
-[grid + verdicts](exp-004-meow-channel/results/grid-2026-08-09.md);
-[purr-deliberateness](exp-004-meow-channel/results/purr-deliberateness-2026-08-10/results.md);
-[purr-semantics](exp-004-meow-channel/results/purr-semantics-2026-08-10/results.md);
-[followme](exp-004-meow-channel/results/followme-2026-08-11/results.md);
-exp-003's null: [grid-2026-08-07.md](exp-003-water-schema/results/grid-2026-08-07.md)
-+ [bc-clone-2026-08-06.md](exp-003-water-schema/results/bc-clone-2026-08-06.md).
-
-**Implications**: lineage anchors are also *channel* anchors — what
-a generation's demonstrations speak is what its clones will speak
-(the imitability principle, operating); a vocabulary word's designed
-meaning is a hypothesis the cats may overturn (mew's history made
-this law-visible: the wall renamed it to a sound). Free-register
-words are cheap experiments — RL fills them.
-
-**Would invalidate**: a channel coming alive from exploration alone
-under this reward class; an authored meaning failing to replicate in
-its own generation's re-probe.
-
-**Re-verify when**: each new generation (meanings are equilibria —
-re-probe, don't assume); the fog era (F-026's condition changes the
-channel's payoff landscape entirely).
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-022).
 
 ## F-023 · active · Channel dials are listener-population properties; no composition-free optimum exists (the threshold curve)
 
-Measured 2026-08-09, four announce thresholds T ∈ {15, 20, 25, 30}
-under three listener populations (same engine, same worlds).
-
-1. Scripted company: lowering T *helps* (+0.0018 ± 0.0004 at the
-   T20 nominal peak; 9/10 seeds).
-2. All-policy company: flat at zero for T ≥ 20; T15 −0.0011.
-3. **Mixed 2+2 (the deployed shape): smooth convex HARM** —
-   −0.0010 → −0.0067 → −0.0187 as T drops, every seed down at T15,
-   ~9× the certification margin, distress ticks 88 → 3,833.
-4. Want-traffic scales near-identically in all three (scripted
-   59→214/1k, policy 0.7→10.8) — the harm is not the traffic, it is
-   what each listener class *does* with it: scripted listeners
-   respond usefully, mistrained-on-quiet policy listeners respond
-   badly, and mixed company compounds both.
-
-The registered insight: **the optimal threshold is a property of
-the listener population, not the channel** — F-012's lesson
-(measure in the company you deploy) promoted from measurement to
-dial-setting.
-
-**Scope**: e004-era policies + scripted needs_driven, 10 seeds ×
-20k per cell, engine `412d00e2…`. The curve's numbers are
-generation-mortal; the composition-dependence structure is the
-claim.
-
-**Evidence**:
-[threshold-15-probe](exp-004-meow-channel/results/threshold-15-probe/results.md);
-[threshold-curve](exp-004-meow-channel/results/threshold-curve-2026-08-09/results.md).
-
-**Implications**: serving keeps T30 while dataset v5 collects at
-T15 — collection-time and serving-time dials may legitimately
-differ, because the collection's listeners are future (trained on
-the chatty data) while serving's listeners are present. Any dial
-whose effect routes through other agents' responses gets this
-treatment: set per composition, never globally.
-
-**Would invalidate / registered prediction**: v5-trained listeners
-(raised on chatty company) should FLATTEN the mixed/policy curves
-toward the scripted shape — re-measure at exactly T {15,20,25,30}
-when they exist. If the curves don't flatten, listener mistraining
-was the wrong mechanism.
-
-**Re-verify when**: the v5-listener generation (the registered
-prediction above); any announce-dial or cooldown change.
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-023).
 
 ## F-024 · active · Entity attention: welfare parity, 40% fewer parameters, structural robustness, and a wider expression space (the architecture arc)
 
-Measured 2026-08-12/13, all three stages recipe-identical to their
-MLP baselines with only the model swapped.
-
-1. **Critic**: EntityCritic val EV 0.555 vs MLP 0.53 at −36% params
-   (74.6k vs ~117k) — read as parity-at-least (one run each).
-2. **Clone**: activity top-1 79.9% vs 72.7% (+7.2pp) at −40% params
-   (77,083 vs ~128k), message head parity. The gain concentrates in
-   the multimodal classes (move 55.3→70.1, idle 39.3→45.3) — where
-   a dense head has to average, attention can attend.
-3. **PPO**: welfare parity — both classes saturate the ~0.95 band
-   this world supports. **The architectural difference is the
-   communication space**: five MLP seeds converged into a tight
-   86–154 meow/1k band; three attention seeds spread 167/355/808 at
-   no welfare cost — the class supports a much wider family of
-   channel equilibria (the raw material of F-025's cultures).
-4. **The F-010 answer, by construction**: identity lives in content
-   (shared type embeddings), never slot position; permutation
-   equivariance exact (8.3e-07 float noise); vacancy handled by
-   key-padding mask, shifting value smoothly instead of
-   extrapolating on an unseen zero pattern. Pointer heads (per-slot
-   menu logits from that slot's embedding) carry to schema 4's
-   variable rosters unchanged.
-
-**Scope**: obs schema 3 / 197 surface, A1 recipe, d64/4h/2L; critic
-and clone are single runs (no seed replication — margins are one
-draw), PPO three seeds. F-007's mask-violation fingerprint reads
-differently for pointer heads (vacant-slot logits are mask-owned).
-
-**Evidence**:
-[attn-critic results](attn-critic-2026-08-12/results.md);
-[attn-clone results](attn-clone-2026-08-12/results.md);
-[attn-ppo results](attn-ppo-2026-08-13/results.md).
-
-**Implications**: the attention generation seats on merit (certified
-2026-08-14) and phase 1 trains EntityPolicy by default; the
-schema-4/fog design leans on properties this arc demonstrated
-(vacancy-by-mask, variable tokens) rather than hoping for them.
-
-**Would invalidate**: seed replication erasing the clone margin; a
-schema-4 world where the pointer-head design fails to transfer.
-
-**Re-verify when**: schema 4 lands (the variable-roster claim meets
-reality); any trunk change.
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-024).
 
 ## F-025 · active · Same recipe, different seed: dialects and cultures — mutually intelligible, kin-biased, welfare-coupled (the meow economies)
 
@@ -1469,217 +544,18 @@ upstream of the override).
 
 ## F-028 · active · Census raws are attributable only if the instrument records its own provenance
 
-Found 2026-08-21 when the bugs-2.0 acceptance record failed
-byte-reproduction during SC-007 (owner approved registration same
-day).
-
-1. **The event**: every chase-census raw produced on the afternoon
-   of 2026-08-21 — acceptance grid 1 (a5e1aba), re-grid 2 (7e95b8f),
-   the sticker sweep, and the b044827 final-config census — differs
-   from reruns on instruments rebuilt from committed sources at
-   their recorded commits, same configs, same tick counts.
-2. **The elimination trail** (bugs2-sc007-2026-08-21.md §Provenance):
-   engine drift excluded (intervening commits diffed, docs-only);
-   tool drift excluded (worktree census source byte-identical to
-   main @ e39079e, unchanged since 13:46); config drift excluded
-   (mtimes predate the runs; header paths match); seed choice
-   excluded (tool default 1..=10 equals the rerun list);
-   toolchain excluded (rustc installed 2026-07-18); nondeterminism
-   excluded (back-to-back reruns byte-identical); snapshot resume
-   excluded (World::generate, no persistence path). The surviving
-   hypothesis — uncommitted working-tree state in the instrument
-   worktree during the runs — is uninspectable after the fact,
-   which is the finding.
-3. **The cost was borne at the thinnest margin**: no g20 verdict
-   moved, but the sweep's g26 bar-1 pass at sticker 28 (banked
-   10.1, flagged "+0.1, inside seed noise" the same hour) reads
-   9.7 reproduced. A record that cannot be re-attributed converts
-   a noise-flagged pass into an unanswerable question.
-
-**Practice adopted**: a census raw must carry enough to re-create
-its instrument — engine commit, working-tree dirty state, tool
-source sha — in the output header, stamped by the tool itself, not
-the operator's notes. Until the header exists, results docs record
-those three facts beside every run. Reruns supersede raws that
-cannot be attributed; today's rebuilt instrument is canonical for
-the bugs-2.0 record.
-
-**Would invalidate**: a reproduction of any afternoon raw from
-committed sources (would relocate the cause from lost working-tree
-state to something still latent and shared — worse, and worth the
-hunt).
-
-**Re-verify when**: the census header lands (check the stamp against
-a deliberate dirty-tree run); any future raw fails byte-repro with
-the stamp present.
-
-**THE HEADER LANDED, 2026-08-23** — `experiments/census_provenance.py`,
-wired into `live_census.py`, `pose_census.py` and (through
-`cert_harness6.provenance`) the whole exp-006 lab family;
-`playful_anchor.py` already carried its own compliant stamp. Every raw
-now carries commit, **working-tree dirty state with the modified paths
-named**, tool sha256, and — lab side — the config sha, the binding, and
-`rustc -V`, which is the fact this finding's elimination trail could
-only assert from an operator's note. Live raws additionally stamp the
-served world (config sha, roster with the behavior string per seat,
-tick), since the instrument's own commit says nothing about the box.
-
-The re-verify clause is satisfied both ways: `test_census_provenance.py`
-drives clean/dirty/unreadable in a throwaway repo (`OLD=1` replays the
-pre-patch header and goes red on four of five), and the first real raws
-were taken deliberately from a dirty tree and named all five modified
-files. **The guard earned itself on the first run**: the path parser
-sliced a fixed column offset, and stripping the porcelain output ate the
-leading space of ` M path` lines — so tracked-file paths came out
-missing their first character while untracked `?? path` lines looked
-fine. A header that misnames what was dirty is only marginally better
-than one that cannot say.
-
-**THE PIN LANDED** the same day — `rust-toolchain.toml` at channel
-1.97.1 (Product, PR #305, main 9f40c47), after this Mac, the build box
-and CI's Linux were each shown to resolve the identical build hash
-`8bab26f4f`. The header now stamps `toolchain_pin` beside `rustc`, so
-what the repo REQUIRES and what a run HAD are comparable rather than
-assumed. The trail's toolchain exclusion is checkable from here on.
-
-**And the pin exposed a live instance of the thing this finding is
-about.** The lab's compiled binding was two engine commits stale and
-would have been stamped with a PATH compiler that never built it. Worse,
-the drift — spec 040's `[watchdog]` ForeignTable — meant the binding
-*rejected the repo's own root config* under `deny_unknown_fields`, and
-nothing had failed only because every exp-006 config predates 040.
-Rebuilt and verified byte-continuous (identical 2,000-tick state-trace
-digest across changed binding bytes): `exp-006-character-gen/results/
-binding-rebuild-2026-08-23.md`, instrument `binding_continuity.py`.
-The lab stamp now also carries `binding_artifacts` (sha256 of the `.so`)
-— the one fact that cannot drift from what actually ran.
-
-**Correction to Experiments' own handoff** (Product falsified it
-directly, 2026-08-23): `rustup default stable` in a CI workflow does NOT
-override a `rust-toolchain.toml`. Rustup ranks `+toolchain` >
-`RUSTUP_TOOLCHAIN` > directory override > toolchain file > default, so
-the pin was never at risk from those lines; removing them was right only
-because they downloaded a second toolchain nobody would use. The real
-silent-inert mode is a `cargo` that is not a rustup shim, which ignores
-the file without a word — guarded now by an assertion in both blocking
-CI jobs.
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-028).
 
 ## F-029 · active · A reader rule copied from the wrong contract shape reports a category that cannot exist
 
-Found 2026-08-22, minutes after the Biscuit 2.0 deploy, when the
-owner said she could see substantial critter play and the G5 census
-reported `kitty 625 / solo 4` for that seat — no critters at all.
-The owner was right and the instrument was wrong.
-
-1. **The bug**: `live_census.py`'s play classifier branched on
-   `act.get("id")`, per the 001 http-api contract's action shape
-   `{"action":"chase","target":"element","id":12}`. But
-   `/events/activity` carries the ACTIVITY shape, where the target
-   is nested: `{"state":"playing","target":{"target":"element",
-   "id":11449}}`. `act.get("id")` is therefore always None, the
-   element branch was dead code, and `target is not None` swept
-   every element play into the `kitty` bucket. The instrument could
-   not emit a bug or greeble count under any world state — the
-   category it was built to measure was unreachable.
-2. **What it falsified**: the "zero critter play" line carried from
-   2026-08-18 through the bugs-2.0 freeze packet. Re-cutting the
-   retained raw events with the fixed rule shows element play in
-   EVERY re-cuttable census: 18 events (22037), 15 (25325), 22
-   (26221 — the freeze packet), 20 (27089), 14 (27729). The freeze
-   packet's headline "bug 0/greeble 0 ALL seats" is false, and its
-   companion claim "Clementine kitty-partnered 87/87 — duet outbids
-   bug, designed ordering" inverts: in that window scripted
-   Clementine played 14 element vs 12 kitty.
-3. **What survived**: the finding the zero was recruited to support
-   — that welfare-learners barely hunt — holds in the corrected
-   numbers (learner seats: 0–6 element events per window against
-   40–105 solo-play events), and the skill-moat EV analysis came
-   from a different instrument (the engine-native chase census) and
-   is untouched. The direction of the post-seating result is
-   unchanged and larger than first reported: Biscuit 2.0 reads 448
-   element vs 177 kitty in its first census — ~197 element plays
-   per 1k ticks against ~3 for the seat's predecessor.
-4. **The generalization**: an absent category in a summary is not
-   evidence of absence until the instrument has been shown able to
-   emit it. A zero that a tool structurally cannot exceed reads
-   exactly like a measured zero, and it survives review because
-   every downstream reader sees a plausible number. Sibling of the
-   client-side lesson: when a measurement says "impossible" and the
-   owner can see the thing, measure the other end of the function.
-
-**Guard**: the classifier now has a synthetic red/green unit check
-(element → kind, expired element, kitty, solo) that fails on the old
-rule; element ids resolve through a running id→kind map because bugs
-expire out of `/world` mid-census.
-
-**Re-verify when**: any engine change touches the activity JSON
-shape; any future census reports a flat zero in a category (re-run
-the unit check before banking the claim).
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-029).
 
 ## F-030 · active · Per-event shaping of a social behavior buys initiation churn, and the KL leash does not prevent it
 
-Measured 2026-08-22 by exp-006a's F-duet arm (prereg §3), the single
-shaped arm in a four-arm wave whose other three arms differ only in
-dose. Registered with the arm's own report-only guard as the
-detector.
-
-**The design**: λ = 0.1 added to the TRAINING reward for each seat
-transitioning INTO kitty-partnered play — a per-event bonus on the
-start, not on time spent partnered. State-stream detection, no
-penalties, telemetry unshaped. The prereg's sizing rationale argued
-the term was self-limiting at roughly 1% of per-tick return; at the
-measured scripted-anchor rate it was nearer 2%.
-
-1. **The policy farmed the event, because the event was what paid.**
-   Duet starts began at 30.3 per 1k seat-ticks — below the scripted
-   anchor's 40.49 (`derive_duet_anchor.py`, the trainer's own
-   detector) — crossed the pre-registered 3× grind threshold (121.5)
-   at update 981 / 3.0M ticks of 20M, and climbed monotonically to
-   201.1 final, peak 263.5. 81.6% of all telemetry rows flagged. The
-   fingerprint confirms it out-of-loop at 420.3 starts per 1k
-   decisions, **2.34× the scripted anchor**. Short duets, restarted
-   constantly, maximize a count that pays per start.
-2. **It was paid for out of the venues that paid nothing.**
-   Critter proximity fell to 0.33× anchor and bug-hunting to 0.15×,
-   against G3 floors of 0.70× — the arm fails character on exactly
-   the two dimensions the shaping never touched, while play share
-   *rose* to 1.07×. The shaped behavior did not add; it displaced.
-3. **The leash did not constrain it.** Final KL-to-anchor was 0.597,
-   squarely in family with the unshaped siblings (L-04-s3 0.604,
-   F-dose 0.513/0.549) — decision-level proximity to the anchor was
-   indistinguishable while the behavioral rate ran to 2.34×. This
-   extends F-019's structure: a KL leash bounds the policy
-   distribution per decision, not the emergent rate of a composite
-   behavior assembled from many in-distribution decisions.
-4. **It was not even good for the cat.** Subject happiness 85.12,
-   lowest of the wave (the two G3 passers read 88.48 and 86.65), and
-   the arm's greedy probe nash finished 0.8813 against 0.93+ for
-   every sibling. A ~2%-of-return shaping term bought a large
-   behavioral distortion and negative welfare.
-5. **The cheap report-only guard was the whole defence.** A
-   pre-registered threshold on a metric nobody gated fired at 15% of
-   training and its verdict was later confirmed by an independent
-   instrument (the G3 fingerprint's venue floors). Report-only
-   telemetry with a number declared in advance costs nothing and
-   converts a post-hoc argument into an observation.
-
-**Scope of validity**: one seed, one λ (0.1), one shaped behavior
-(partnered-play start), 20M ticks, dataset v6 on the bugs-2.0 world,
-BC-init + leashed PPO. This is a single point, not a dose-response —
-it does not establish that a smaller λ, or shaping *time partnered*
-rather than *starts*, carries the same defect. The general shape it
-supports is about per-event bonuses on repeatable social acts.
-
-**What would invalidate it**: a λ-sweep in which the churn signature
-disappears below some dose while retention holds (would narrow this
-to "λ ≥ 0.1"); or a duration-shaped arm (reward per tick partnered)
-that reproduces the venue collapse anyway (would move the cause from
-event-vs-state to shaping social behavior at all).
-
-**Re-verify when**: any future arm shapes a countable behavior;
-before adopting shaping as a retention tool in place of the leash;
-and if a duet-time-shaped arm is ever run, compare its venue
-retention against this arm's directly.
+Cold since the Gen 1 close (2026-10-28): full text, scope, invalidator and
+re-verify trigger in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-030).
 
 ## F-031 · active · A partnered scene runs its minimum only if the counterpart is pinned; grooming is the exception
 
@@ -2083,130 +959,44 @@ line); a lock class outside the three partnered families.
 the bar with the 0.43/0.82 numbers in hand, and a live v1 re-runs this
 set before it watches a seating.
 
-## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; a food-only weight band keeps play by leaving cuddle (her highest need) unserved; the spec-042 score at t_partner 5 refuses nearly every friend and halves the roster's duets
-
+## F-038 · active · Scripted Biscuit's comfort dial buys food promptness linearly and pays in element play, never duets; the food-only weight band keeps play by leaving cuddle unserved; the spec-042 score at `t_partner` 5 halves the roster's duets
 Biscuit 3.0 comfort sweep (`biscuit3-comfort-sweep-2026-09-01/RESULTS.md`;
-prereg + tooling @ 893cd48 before collection). Scripted `playful`
+prereg + tooling @ 893cd48 before collection): scripted `playful`
 Biscuit with four `needs_driven` seats, canonical 041 economy
 (`groom_cuddle_relief` 0.5), 20k measured ticks × 2 seeds per arm,
-20/20 runs valid, watchdog quiet throughout.
+20/20 runs valid. The curve: eat
+time-above-30 0.455 / 0.362 / 0.236 / 0.132 at comfort 55 / 45 / 35 /
+30, total play 1.00 / 0.93 / 0.76 / 0.70x, every play point lost is
+element play while duets hold at 67–79/1k; c25 / c20 reach roster
+parity on all five needs at 0.58x / 0.45x play, and below the announce
+threshold her hungry meow leaves the client. The weight band w35 (eat/drink/sleep at 35, bath/cuddle at 55) passed P3 by leaving cuddle, her highest elevated need, at 27.0 / 42%
+against flat c35's 20.7 / 26%, so weights are withdrawn: welfare is
+read on all five needs, and P3 as pinned read only eat. `t_partner 5.0`
+cuts her duets 72.6 → 8.9/1k at every comfort and the other four seats
+lose 51–57% of theirs. Two prereg measures failed as bars (armed
+excursions per 1k and "low-need play" both rise as comfort drops,
+because a fed cat lives below 30) and cannot serve again. The spec-047
+consent gate at c30 does its job (duets conscripting a friend with a
+non-play need over 30: 0.21 → 0.01) at a quarter of her duets (67.3 →
+49.0/1k, lost to elements, not to the idle eligible friend) and E1
+parity (+0.05–0.06); a `w_value` re-admission dial cannot buy them
+back (49.0 → 53.6 / 51.2) and switches on solo play and loitering.
+The 32/28 bracket, the per-arm tables and the addenda are in RESULTS.
 
-1. **The comfort curve is smooth, no free lunch.** Eat time-above-30
-   0.455 / 0.362 / 0.236 / 0.132 at comfort 55 / 45 / 35 / 30 (in-run
-   scripted floor 0.100); eat p50 88 / 56.5 / 26.5 / 10.5 ticks;
-   hungry-play share 0.65 → 0.15. Total play 1.00 / 0.93 / 0.76 / 0.70x.
-   Every play point lost is element play (162 → 96/1k); duets hold at
-   67–79/1k in all arms. Seeds agree to two digits. Biscuit happiness
-   77 → 85, demand price 22.7 → 15.2.
-
-2. **The weights arm passed P3 by leaving cuddle unserved (corrected
-   2026-09-01).** w35 (eat/drink/sleep at 35, bath/cuddle at 55) closes
-   0.51 of the eat time>30 gap vs flat c35's 0.62 and keeps 209 vs 179
-   play/1k, so P3 passes as pinned. But cuddle is Biscuit's highest
-   elevated need at c55 (mean 30.8, 50% of polls ≥30; roster 16.5/13%),
-   above eat (28.3/45%). w35 leaves it at 27.0/42% while c35 takes it to
-   20.7/26%. The play w35 "saved" is play she did while wanting a
-   cuddle. Bath is the one need genuinely fine at 55 (15.6, 7% ≥30; 1%
-   at c30), so a weight band covering everything but bath is within
-   noise of flat comfort. Welfare has to be read on all five needs;
-   P3 as pinned read only eat. Weights are not recommended.
-
-3. **The spec-042 candidate dials are not shippable.** With `t_partner
-   5.0` against a realized mean partner play need of 4.3 at duet
-   start, Biscuit's duets fall 72.6 → 8.9/1k at every comfort; she
-   substitutes elements (total play flat, +4–9%) and the four other
-   seats lose 51–57% of their duets. Partner need at duet start rises
-   4.3 → 10–12 as designed. Food unmoved. The next campaign sweeps
-   `t_partner` and `w_serious` with this as baseline.
-
-4. **Two prereg measures failed as bars.** Armed excursions per 1k
-   RISES as comfort drops (6.3 → 8.2): a meal resets eat to ~0
-   (35/tick × ~2 ticks), so meals per 1k ∝ 1 ÷ eating level (6.6 at
-   mean 48.5, 9.5 at 30.3), and an excursion is a meal that started
-   above 30. The floor seats' 4–5/1k comes from eating at 21–27, below
-   the line 70–85% of the time. The count measures how often a cat
-   gets hungry enough to cross 30, not how late she is. "Low-need play" (scenes
-   starting with food needs < 30) rises 1.6–2.9x for the same reason a
-   fed cat lives below 30. Neither can serve as a bar again.
-
-5. **Addendum 1 (c25 / c20, 2026-09-01): parity reached, play halves,
-   meows vanish.** Both arms reach roster-parity welfare on all five
-   needs (Biscuit's share ≥30 within 0 of the roster at c25, below it
-   at c20); total play 0.58x / 0.45x of c55 (predicted 0.55–0.65 /
-   0.40–0.55); duets begin to fall below 30 (67 → 56 → 54/1k) after
-   holding 67–79 from 55 to 30; roster duets slide to 0.88x / 0.85x
-   (bar 0.85x). Excursions per 1k turned over as point 4 predicted
-   (8.2 → 3.15 → 2.02, under the floor). Her announce share fell to the
-   roster's at c25 (0.39 → 0.19): below the announce threshold she
-   leaves play before arming, so the hungry-Biscuit meow disappears
-   from the client. c30 already met parity within +0.04 on the main
-   raws.
-
-6. **Addendum 1b (c32 / c28, 2026-09-01): the bracket fails on opposite
-   sides.** c32 misses parity on eat, sleep and cuddle (+0.07–0.09,
-   both seeds) at 0.76x play; c28 passes (+0.02–0.03) at 0.65x. Welfare
-   and play are monotone over 35/32/30/28/25 (eat ≥30 0.23 → 0.18 →
-   0.13 → 0.10 → 0.06; play 0.76 → 0.76 → 0.70 → 0.65 → 0.58) with one
-   flat step: c32 keeps c35's play at a third less time hungry. Between
-   32 and 28 each 2 points of comfort cost ~0.05x of c55 play and buy
-   ~0.025 of every gap; duets hold 63–67/1k down to 28. Report-only:
-   one c28 seed carried a 250-tick one-sided cosleep (Biscuit `resting
-   with_friend` Miso while Miso idle, cuddle 82 → 100, happiness 25.4,
-   watchdog quiet, self-resolved), the same shape as the served soak's
-   Miso event; a roster mechanic a seed exposed, not a comfort effect.
-
-7. **Addendum 2 (the spec-047 consent gate at c30, 2026-09-01): the
-   gate works and costs a quarter of her duets plus parity.** On the
-   f45a880 binary, `consent_line` absent reproduces the old c30 run
-   tick for tick (15,355 / 15,144 events, all shared: C1 at the event
-   level). At `consent_line = 30`, the share of her duets that
-   conscript a friend with a non-play need over 30 falls 0.21 → 0.01
-   (C2), but duets fall 67.3 → 49.0/1k (0.73x, bar 0.90x, predicted
-   60–64) and the lost duets go to elements (95.7 → 117.3/1k, total
-   play 1.02x), not to the idle eligible friend the offline pricing
-   put within 2 tiles in 84% of blocked starts. Roster duets 0.83x is
-   entirely her lost duets counted on their side (roster-roster starts
-   34.8 → 35.7/1k, flat). Her E1 gaps widen +0.006–0.028 (cuddle most,
-   both seeds) and E1 flips to MISS at c30 (+0.05–0.06 vs 0.05); the
-   roster's shares improve 0.006–0.014. Partnered refusal tax 4.9% →
-   3.4% of her ticks (scripted; the 4.9% matches F-033's policy 4.7%).
-8. **Addendum 3 Half A (2026-09-02): a `w_value` re-admission dial
-   cannot buy the duets back.** At `w_value` 0.25 / 0.5 (`w_busy` =
-   1/`w_value`) under the gate, duets move 49.0 → 53.6 / 51.2 per 1k
-   while element play falls 117.3 → 49.5 / 31.4 and SOLO play appears
-   from zero (54.8 / 67.3 per 1k); loiter share (idle beside a busy
-   friend) rises 0.137 → 0.18 / 0.20. Any `w_value` > 0 also switches
-   on mid-scene friend admission (`selection.rs:499`), and
-   `expected_wait` prices a resting or past-minimum friend at zero, so
-   a settled rester out-scores every critter; Biscuit walks over,
-   cannot conscript, and the solo backstop fires beside it. R7 / R8
-   unmoved.
-
-**Decision (prereg rule)**: middle case, owner's call on the curve. If
-Biscuit is to be fed, use flat comfort; the food-only weight band is
-withdrawn (point 2). Owner's lean 2026-09-01: c30 viable ("0.7x play
-with solid element play is still very Biscuit"). Addendum 1's rule
-(highest comfort passing parity with play ≥ the owner's 0.70x) lands
-on **c30**, and the 32/28 bracket confirms it (c32 fails parity, c28
-fails the play line); c25 is the next point on the curve (parity exact,
-0.58x, half the meows), not a candidate under that line. **Addendum 2
-(prereg rule)**: C2 passes, C3 / C4 / C5 miss → report the price, owner
-call: ship c30 + consent with E1 at +0.05–0.06, or re-pin comfort with
-the gate on (c28 / c26 + consent bracket; c28 passed E1 at +0.02–0.03
-without it). **OWNER RULED 2026-09-02: the anchor is c30 +
-`consent_line 30`, no re-admission mechanic** (C3 / C4 / C5 / E1
-overridden on the record, RESULTS §Owner ruling). The gate binds the
+**OWNER RULED 2026-09-02: the anchor is c30 + `consent_line 30`, no
+re-admission mechanic** (C3 / C4 / C5 / E1 overridden on the record,
+RESULTS §Owner ruling); her lean 2026-09-01: c30 viable ("0.7x play
+with solid element play is still very Biscuit"). The gate binds the
 scripted selector only; the RL menu picks partners directly and the
-reward does not price consent, so the trained kitty inherits consent as
-a teacher habit. Step 7 trains Biscuit 3.0 with `consent_line` 30 and 0
-to read the transfer (RULED 2026-09-02 after Half B; `w_value`
-re-admission SHELVED indefinitely, solo play is not a targeted
-behaviour). **Scope**: scripted anchor only; a clone's
+reward does not price consent, so the trained kitty inherits consent
+as a teacher habit, and step 7 trains Biscuit 3.0 with `consent_line`
+30 and 0 to read the transfer (RULED 2026-09-02 after Half B;
+`w_value` re-admission SHELVED indefinitely, solo play is not a
+targeted behaviour). **Scope**: scripted anchor only; a clone's
 transfer is the training's to show. **Invalidated by**: an economy
 change to `eat_relief` or the 041 rest dials; a `t_partner` re-sweep.
 **Re-verify when**: the owner pins a comfort value (re-run that arm
 against the then-served economy before the lineage retrain).
-
 ## F-039 · active · On the served world the refusal tax is Biscuit's alone and it is partner play: 5.13% of her ticks, 94% `play:kitty`; every other seat pays under 2.3% in grooming and movement
 
 Live refusal baseline (`refusal-baseline-2026-09-02/RESULTS.md`; prereg
@@ -2240,8 +1030,7 @@ the stamp reads 5.13% after 048 took rows away says the seam probe
 undercounted, not that 048 did nothing. F-033's mechanism claim (the
 tax is partnered, per-seat currency) holds unchanged. **Scope**: the
 2026-09-02 deploy's roster and economy. **Invalidated by**: any deploy
-touching the selector, the play economy, or the roster. **Re-verify
-when**: the Biscuit 3.0 cutover lands (step 7); one window, same
+touching the selector, the play economy, or the roster. **Re-verify when**: the Biscuit 3.0 cutover lands (step 7); one window, same
 instrument.
 
 ## F-040 · active · Under the fog want law `want_drink` is structurally silent: water is permanent and memory never expires, so drink relief is always known; a memory reach of `radius + 0` revives it at ~12 calls per 1000 ticks and adds ~12 eat calls
@@ -2336,8 +1125,7 @@ neither touches the want rate.
 
 **Scope**: fog-era want law on the served 20×20 (7 pools, 6 bowls),
 radius 4–5, scripted seats. **Invalidated by**: a water element that
-despawns or moves, a non-zero `memory_timeout_ticks`. **Re-verify
-when**: the step-5 radius screen (the rates above are r = 5 only).
+despawns or moves, a non-zero `memory_timeout_ticks`. **Re-verify when**: the step-5 radius screen (the rates above are r = 5 only).
 
 ## F-041 · active · The answers-me bit is strict (`their_here > my_want`), so a want re-called on the reply's own tick hides the reply; equal cooldowns lock the pair into that phase
 
@@ -2518,51 +1306,28 @@ already; of the 25% occupied-adjacent starts, only the non-mutual ones
 lose the differential. Owner ruled (a) and (b) of #390 the same day.
 
 ## F-048 · active · The free register (mew, chirp, purr) is inert for a visible listener and an unseen listener does less after it (row-vs-word attribution OPEN — 2026-09-27 review caveat below; retitled from "which is the heard row, not the word"); the want words move listeners on the same instrument
-
 `free-register-baseline-2026-09-17/RESULTS.md` (PREREG 251c67f, amended
 28e2bce; gen1-A trace, 125k decisions, message head recomputed by
 `add_msg.py`; read `free_register_read.py --control speaker
 --match-speaker`, window 10). Emission per 1k decisions: purr 72.8, mew
 36.8, chirp 31.7 (want_cuddle 4.7), spoken from rest or sleep 86 / 63 /
-65% (corrected 2026-09-27 with the baseline doc). Uptake, ratio to a
-matched control (the speaker's same-word speech excluded, keyed on both
-cats' activity class): visible listener, approach 0.88–1.07, proposal
-to the speaker 0.94–1.02, echo 1.11–1.13, any speech 0.99–1.00, INERT on all
-three words. Unseen listener: approach 0.78–0.85, proposal 0.53–0.73,
-29 of 30 per-seed ratios under 1.0. Positive control on the same
-instrument: want_cuddle from a visible caller 1.37× the proposals, from
-the fog approach 1.51× and proposal 2.50×.
+65% (corrected 2026-09-27 with the baseline doc). Uptake as a ratio to
+a matched control (the speaker's same-word speech excluded, keyed on
+both cats' activity class): a visible listener is in band on all three
+words (approach 0.88–1.07, proposal to the speaker 0.94–1.02, echo
+1.11–1.13); an unseen listener is below 1 (approach 0.78–0.85, proposal
+0.53–0.73, 29 of 30 per-seed ratios under 1.0); the positive control on
+the same instrument is want_cuddle at 1.37× the proposals from a
+visible caller, 1.51× approach and 2.50× proposal from the fog.
 
-The unseen-listener drop's attribution is OPEN (see the review
-caveat below, which retires this paragraph's original claims —
-quoted: "The unseen-listener drop reads as the heard row itself (a
-fresh position for an unseen cat, whose state is "asleep or
-resting" for these words) rather than the word, since the control
-cannot yet separate the two; the next control is a speaker who said
-some other word." — the measured control pool already consists of
-other-word speakers, 99.49–99.61% of unseen-class rows, so the read
-largely separates word from row and the contrast points toward the
-word if anywhere). The register carries no fact under visible needs (F-026); Gen 2
-hides needs, which is the first condition under which it could. **Scope**:
-Gen 1 clones with needs visible, cooldown-only legality, intensity 0.
-**Invalidated by**: a visible-class ratio outside [0.8, 1.25] or an
-unseen ratio above 1.0 on a settled word. **Re-verify when**: the Gen 2
-collection (hidden needs), and if option 1 or 2 of #391 is adopted.
-Trap on record: the declared `--control any` pool starves (26–97% of
-events dropped) and is never read.
-
-**Review caveat (2026-09-27, the retroactive gate on the baseline
-doc, its addendum entries 10/14/15):** the "heard row, not the
-word" attribution's stated support — a control whose speaker had
-been silent 30+ ticks with a stale or empty row — was refuted by
-measurement: the amended control excludes same-word speech only,
-and 99.49–99.61% of unseen-class control rows carry a speaker who
-said another word within the window (rows populated 99.19–99.34%). The measured
-ratios stand (visible in-band, unseen below 1, want_cuddle
-active);
-the row-vs-word attribution is OPEN, and the contrast as built
-points toward the word if anywhere. Gen 2's free-register read
-should treat the mechanism as undetermined.
+**Review caveat (2026-09-27, the retroactive gate on the baseline doc, its addendum entries 10/14/15):** the unseen-listener drop's attribution is OPEN. The original "heard row, not the word" reading (retired: "The unseen-listener drop reads as the heard row itself (a fresh position for an unseen cat, whose state is "asleep or resting" for these words) rather than the word, since the control cannot yet separate the two; the next control is a speaker who said some other word.") rested on a control whose speaker had been silent 30+ ticks with a stale or empty row, and that support was refuted by measurement: the amended control excludes same-word speech only, and 99.49–99.61% of unseen-class control rows carry a speaker who said another word within the window, so the read largely separates word from row and the contrast points toward the word if anywhere. The measured ratios stand (visible in-band, unseen below 1, want_cuddle active); Gen 2's free-register read should treat the mechanism as undetermined. The
+register carries no fact under visible needs (F-026); Gen 2 hides
+needs, the first condition under which it could. Trap on record: the
+declared `--control any` pool starves (26–97% of events dropped) and is
+never read. **Scope**: Gen 1 clones with needs visible, cooldown-only
+legality, intensity 0. **Invalidated by**: a visible-class ratio outside
+[0.8, 1.25] or an unseen ratio above 1.0 on a settled word. **Re-verify when**: the Gen 2 collection (hidden needs), and if option 1 or 2 of
+#391 is adopted.
 
 ## F-049 · active · Mews and chirps are not echoed: cross-cat coincidence is 1.0–1.2× chance and only at lag 1, purr piles are cosleep, and the echo the owner sees is several cats answering one ask with here-words (1.9× at lag 1, two thirds of it explained by keying on the ask)
 
@@ -2592,17 +1357,17 @@ engine's reply law changes (one reply per ask is a client change, #395,
 and does not touch this).
 
 ## F-050 · active · Beam seeking survives β 0.04 PPO once the tile changes a nap's outcome: under shallow ground (off-beam sleep relieves only to a floor, spec 056) the package clone keeps 0.46–0.81 of its naps on beams through the fine-tune at every floor from 10 to 25, where the same clone on the same world without a floor kept 0.04–0.07
-
 `beam-world-screen-2026-09-19/RESULTS.md` §Tier 5 (prereg
 `PREREG-tier5.md`). Eight arms from tier 2's package clone (placement
 0.511 before PPO), the package world plus `sleep_floor_off_beam` at 10 /
 15 / 20 / 25, two seeds each, run to the plateau rule (9–11 M ticks),
 read by the swap legs (the arm in its own gen1-A seat, 30 × 20k, served
-clock): 0.51 / 0.46, 0.44 / 0.72, 0.69 / 0.50, 0.81 / 0.65. Tier 2's
-identically trained arms on the same world at floor 0: 0.070 / 0.037.
-The arms also learned cosleep beside beam sleepers (conducted share
-0.11–0.26 in all-arm rosters against 0.016 at floor 0). Their probe
-series held through the 2.5–4.6 M-tick stretch where tier 2's fell.
+clock): own-seat placement 0.44–0.81 at every floor against tier 2's
+identically trained arms at floor 0, 0.070 / 0.037 (the per-floor pairs
+in §Tier 5). The arms also learned cosleep beside beam sleepers
+(conducted share 0.11–0.26 in all-arm rosters against 0.016 at floor
+0), and their probe series held through the 2.5–4.6 M-tick stretch
+where tier 2's fell.
 
 Why: a nap is a six-tick minimum that ends once the need clears, and
 these minds begin naps at need 7–9, so on flat ground a beam's higher
@@ -2611,147 +1376,128 @@ which PPO correctly unlearns (F-047, tier 2). Under a floor a ground nap
 leaves the need at the floor and only a beam clears it, so the tile
 changes every nap's outcome and the gradient keeps the walk. The price
 to a learning mind is flat across floors, about 1.5 happiness against
-floor 0 (all-arm rosters 90.5–91.1 vs 92.3), while a frozen mind pays
-1.4–5.2 and spends up to 40% of its ticks in naps that relieve nothing,
-armed for `want_sleep` most of the time from floor 15 up. **Scope**:
-the package world (six beams, lifetime 3,000, off-beam rate 3), the Gen
-1 lineage clone, β 0.04, floors 10–25; nap durations 6–12 with spec
-056's early end at the reachable floor. One beam density only (the count axis was read next, F-051): under a
+floor 0, while a frozen mind pays 1.4–5.2 and spends up to 40% of its
+ticks in naps that relieve nothing, armed for `want_sleep` most of the
+time from floor 15 up. **Scope**: the package world (six beams,
+lifetime 3,000, off-beam rate 3), the Gen 1 lineage clone, β 0.04,
+floors 10–25; nap durations 6–12 with spec 056's early end at the
+reachable floor; one beam density (the count axis is F-051). Under a
 floor, welfare depends on beam access, so the welfare numbers here do
 not transfer across beam count, lifetime, reach or roster size (owner's
 caveat, 2026-09-20), and floor-0 welfare priors are not comparators for
-a floored world. **Invalidated by**: an arm under
-a floor ≥ 10 ending under 0.15 placement in its seat, or the floor's
-cost to a learning mind exceeding 3 happiness. **Re-verify when**: the
-Gen 2 teacher is re-recorded under the floor (the scripted sleep rule
-does not read the floor today and naps on the spot into nothing:
-placement 0.46 → 0.25 from floor 0 to 25), and at any change of the nap
-duration law or the announce threshold. **Revisit at the Gen 2 read**
-(owner, 2026-09-20): update this entry with the Gen 2 roster's placement
-and welfare under floor 15 and the beam-density read, and update the
-worked example under doctrine rule 7 with it. **Promotion**: a floor is the
-Gen 2 world's beam law; the owner ruled 15 on 2026-09-20 (#390: keeps
-the floor clear of the announce line at 20, so a naive mind's want
-channel cycles rather than saturates); the served Gen 1 world stays at
-floor 0 (the frozen column).
+a floored world. **Invalidated by**: an arm under a floor ≥ 10 ending
+under 0.15 placement in its seat, or the floor's cost to a learning
+mind exceeding 3 happiness. **Re-verify when**: the Gen 2 teacher is
+re-recorded under the floor (the scripted sleep rule does not read the floor today and naps on the spot into nothing: placement 0.46 → 0.25 from floor 0 to 25), and at any change of the nap duration law or the
+announce threshold. **Revisit at the Gen 2 read** (owner, 2026-09-20):
+update this entry with the Gen 2 roster's placement and welfare under
+floor 15 and the beam-density read, and update the worked example under
+doctrine rule 7 with it. **Promotion**: a floor is the Gen 2 world's
+beam law; the owner ruled 15 on 2026-09-20 (#390: keeps the floor clear
+of the announce line at 20, so a naive mind's want channel cycles
+rather than saturates); the served Gen 1 world stays at floor 0 (the
+frozen column).
 
 **Dated note, 2026-10-21 (the Gen 2 read, per the 2026-09-20 revisit;
 no status change):** the certified Gen 2 roster rot2 (five distinct
 networks, `gen2-cert-battery-2026-10-20/RESULTS.md` §Owed reads) on the
-Gen 2 world (floor 15, one beam density) keeps 0.416 / 0.533 / 0.613 of its
-sleep ticks on beams at 20×20 / 40×40 / 100×100 against its scripted
-teacher's 0.387 / 0.472 / 0.538 on the same worlds, and conducts
-(cosleep beside a beam sleeper) 0.138 / 0.109 / 0.084 against 0.055 /
-0.054 / 0.049; team happiness 87.49 / 86.23 / 83.81 against 81.92 /
-81.63 / 76.62. Placement rises with world size for both rosters;
-Pumpkin (0.383 / 0.484 / 0.589 vs 0.486 / 0.548 / 0.668) and Clementine
-(0.404 / 0.496 / 0.513 vs 0.417 / 0.513 / 0.581) sit below their teacher
-at every size. One half of the revisit stays open: Gen 2 ran one beam
-density (the sunbeam count scales with area, 6–7 / 24–28 / 150–175 at
-20 / 40 / 100), so the density half is unmeasured. The re-verify
-condition above (the teacher re-recorded under the floor) is met by
+Gen 2 world (floor 15, one beam density) keeps 0.416 / 0.533 / 0.613 of
+its sleep ticks on beams at 20×20 / 40×40 / 100×100 against its
+scripted teacher's 0.387 / 0.472 / 0.538 on the same worlds, conducts
+more than the teacher at every size, and sits above it on team
+happiness (87.49 / 86.23 / 83.81 against 81.92 / 81.63 / 76.62).
+Placement rises with world size for both rosters; Pumpkin and
+Clementine sit below their teacher at every size (per-seat numbers in
+§Owed reads). The density half of the revisit stays open: Gen 2 ran one
+beam density (the sunbeam count scales with area, 6–7 / 24–28 / 150–175
+at 20 / 40 / 100). The re-verify condition above is met by
 construction: spec 057 merged 2026-09-22, before the Gen 2 comparators
 were recorded, so the scripted side here is the floor-reading teacher.
 
 ## F-051 · active · Under a sleep floor, beam count is a step at six for a learned mind and flat past it: five beams cost about 0.6 happiness, six to eight are one level inside the seed spread, frozen minds span 0.14 across the four counts, and a mind trained at six beams seated on five, seven or eight is never worse than one retrained there
-
 `beam-world-screen-2026-09-19/RESULTS.md` §Tier 6 (prereg
 `PREREG-tier6.md`). The floor-15 package world at count 5 / 6 / 7 / 8,
-two PPO arms per count from the package clone (count 6 = F-050's
-sg15 arms), 30 × 20k on the served clock. All-arm happiness by seed:
-89.78 / 90.92, 90.86 / 91.13, 90.58 / 90.66, 90.81 / 91.30; own-seat
-placement 0.44–0.72 at every count; the frozen gen1-A roster 89.77 →
-89.90. The count-6 arms on the 5 / 7 / 8 worlds without retraining:
-+0.78 / +0.13, +0.36 / +0.57, +0.21 / −0.01 happiness against the
-retrained arms, placement carried with the arm (0.28–0.43 and
-0.54–0.63 on every world). The teacher's placement rises with count
-(0.29 → 0.44) at flat happiness; `here_sunbeam` rises with count for
-everyone; the learned rosters' `want_sleep` is 8–11 per 1k from six
-beams up and 15–17 at five.
+two PPO arms per count from the package clone (count 6 = F-050's sg15
+arms), 30 × 20k on the served clock. All-arm happiness 89.78 / 90.92 at
+five beams against 90.58–91.30 at six to eight, own-seat placement
+0.44–0.72 at every count, the frozen gen1-A roster 89.77 → 89.90 across
+the four counts; the count-6 arms on the 5 / 7 / 8 worlds without
+retraining land −0.01 to +0.78 happiness against the retrained arms,
+placement carried with the arm. The teacher's placement rises with
+count (0.29 → 0.44) at flat happiness; the learned rosters' `want_sleep`
+is 8–11 per 1k from six beams up and 15–17 at five.
 
-Why: full sleep relief under the floor needs beam access (F-050), so
-a count under what the roster can share costs the minds naps that
-clear, and above it the sixth beam and up are slack; a frozen mind
-naps into the floor on any tile and never reads the count. Count
-changes what the policy observes (two nearest-beam slots), not what
-any action is worth, so doctrine rule 9's mechanism (a reprice a
-frozen model cannot answer) is absent on this knob; the prereg's
-mechanical trigger (a gap past both lines) fired once at count 7, in
-the transfer's favour (RESULTS §Tier 6, addendum 2026-09-23).
-**Scope**: floor 15, beam lifetime 3,000, reach 8, the five-cat
-gen1-A roster, the Gen 1 lineage clone, β 0.04, two seeds per count;
-the ordering 6 < 7 < 8 was not found (7 under 6 on both seeds, 8 over
-7 on both, all inside 0.75). Also on record: learned rosters under the
-floor start 0.16–0.33 of naps with sleep need under 5, three fifths on
-a beam and two fifths as ground cosleep joins, solo on the ground 0–1
-times in ~2,700 starts per slot; tier 5's 0.02–0.05 was the same
-measure pooled over frozen seats. One arm (cnt7-s1) under-serves drink at Biscuit's seat (a
-3,015-tick streak, 9 of 30 seeds in its swap leg), a mind property
-carried into the count-7 all-arm numbers. **Invalidated by**: a count
-in 6–8 leaving the seed spread on both seeds, or a transferred arm
-landing more than 0.5 happiness under a retrained one on any count.
-**Re-verify when**: the floor, lifetime, reach or roster size changes
-(the owner's density caveat, F-050), and at the Gen 2 read on the
-re-recorded teacher. Owner's triggers from the spec 057 merge
-(2026-09-22, PR #409, "B on both"): any floor change re-reads distress
-on the scripted comparator leg, and a floor past `safeguard −
-announce_threshold` needs the validator bound before it runs (the
-off-beam urgency knee sits at safeguard + floor; at floor 15 that is
-the distress line, measured clean). **Promotion**: the owner ruled count 6 on #390 (c)
-(2026-09-21, "6 beams"): the Gen 2 world is the package world as it
-stands (floor 15, lifetime 3,000, six beams); a later move to 7 or 8
-needs no new screen.
+Why: full sleep relief under the floor needs beam access (F-050), so a
+count under what the roster can share costs the minds naps that clear,
+and above it the sixth beam and up are slack; a frozen mind naps into
+the floor on any tile and never reads the count. Count changes what the
+policy observes (two nearest-beam slots), not what any action is worth,
+so doctrine rule 9's mechanism (a reprice a frozen model cannot answer)
+is absent on this knob; the prereg's mechanical trigger (a gap past
+both lines) fired once at count 7, in the transfer's favour (RESULTS
+§Tier 6, addendum 2026-09-23). **Scope**: floor 15, beam lifetime
+3,000, reach 8, the five-cat gen1-A roster, the Gen 1 lineage clone,
+β 0.04, two seeds per count; the ordering 6 < 7 < 8 was not found (all
+inside 0.75). Also on record: learned rosters under the floor start
+0.16–0.33 of naps with sleep need under 5, three fifths on a beam and
+two fifths as ground cosleep joins (tier 5's 0.02–0.05 was the same
+measure pooled over frozen seats); one arm (cnt7-s1) under-serves drink
+at Biscuit's seat (a 3,015-tick streak), a mind property carried into
+the count-7 all-arm numbers. **Invalidated by**: a count in 6–8 leaving
+the seed spread on both seeds, or a transferred arm landing more than
+0.5 happiness under a retrained one on any count. **Re-verify when**:
+the floor, lifetime, reach or roster size changes (the owner's density
+caveat, F-050), and at the Gen 2 read on the re-recorded teacher.
+Owner's triggers from the spec 057 merge (2026-09-22, PR #409, "B on
+both"): any floor change re-reads distress on the scripted comparator
+leg, and a floor past `safeguard − announce_threshold` needs the
+validator bound before it runs (the off-beam urgency knee sits at
+safeguard + floor; at floor 15 that is the distress line, measured
+clean). **Promotion**: the owner ruled count 6 on #390 (c) (2026-09-21,
+"6 beams"): the Gen 2 world is the package world as it stands (floor
+15, lifetime 3,000, six beams); a later move to 7 or 8 needs no new
+screen.
 
 ## F-052 · active · Under fog the meow channel is load-bearing: hearer-side deafening of every kind costs the served roster 6.716 team happiness on 30 of 30 worlds and multiplies distress ticks 3,762×; here-words alone cost 0.455 (30 of 30), want-words are welfare-null, and F-026's global-vision redundancy does not carry into the fog generation
-
 `fog-deafening-2026-09-23/RESULTS.md` (declaration `prereg.md`,
 committed before collection at d5c6c74; the
-`fog-gen1-cert/cert_harness_fog.py --deaf` mask landed at 207f8c9
-with three mutate reds, and afc43ae's copy collected — its only
-change the `deaf` band entry). The served gen1-A roster on `anchor-b3.toml`, served clock, 4
-arms × the same 30 seeds (900101–900130) × 20,000 ticks, hearer-side
-only, emission legal. Paired mean team-happiness deltas vs intact:
-want-deaf −0.020 (15 of 30 worse — a null), here-deaf −0.455 (30 of
-30), all-deaf −6.716 (30 of 30, range −4.948 to −11.935). Distress
-ticks 125 → 299 / 3,891 / 470,286; the longest all-deaf streak runs
-6,150 ticks. The all-deaf cost is unevenly carried: Clementine's seat
-loses 15.1 happiness, Miso's 7.3, the other three 3.1–4.2.
+`fog-gen1-cert/cert_harness_fog.py --deaf` mask landed at 207f8c9 with
+three mutate reds, and afc43ae's copy collected). The served gen1-A
+roster on `anchor-b3.toml`, served clock, 4 arms × the same 30 seeds
+(900101–900130) × 20,000 ticks, hearer-side only, emission legal.
+Paired mean team-happiness deltas vs intact: want-deaf −0.020 (15 of 30
+worse, a null), here-deaf −0.455 (30 of 30), all-deaf −6.716 (30 of 30,
+range −4.948 to −11.935); distress ticks 125 → 299 / 3,891 / 470,286,
+the longest all-deaf streak 6,150 ticks; the all-deaf cost is unevenly
+carried (Clementine's seat loses 15.1 happiness, Miso's 7.3, the other
+three 3.1–4.2).
 
 Why (the fog-thesis reading; the worlds also differ, so this is
-mechanism, not attribution — see the scope line): under fog a cat
-outside the vision disc is knowable only by sound — heard rows carry
-the caller's position, here-words carry what it found — where under
-global vision no F-026 arm moved team happiness more than 0.015 (no
-arm there silenced everything; both-deaf measured +0.013). Here-deaf moves the tail far more than
-the mean, a 31× distress rise beside the 0.455 cost — the direction
-of F-026's registered whisper, though that whisper was purr-deafening
-at flat welfare and here-deaf's mean cost is real. Want-words remain
+mechanism, not attribution): under fog a cat outside the vision disc is
+knowable only by sound, heard rows carrying the caller's position and
+here-words what it found, where under global vision no F-026 arm moved
+team happiness more than 0.015. Here-deaf moves the tail far more than
+the mean (a 31× distress rise beside the 0.455 cost); want-words remain
 function without fitness (they move listeners, F-048, and buy no
-happiness) even under fog. **Attribution (second collection, `prereg-2.md`,
-2026-09-24; replaces the bound quoted in RESULTS §Addendum
-2026-09-24)**: the heard-rows-only arm ran — erasing every heard row
-alone costs 6.371 (30 of 30), 0.95 of the all-deaf 6.716, so what a
-cat hears about unseen cats (their position and their in-fog words
-together; the arm does not separate them) carries the load; free-deaf
-costs 0.237 (28 of 30), an upper bound on free-word meaning (free
-calls also create rows). Single-family costs (want −0.020, here
-−0.455, free −0.237) sum to 0.712 against all-deaf's 6.716: strongly
-non-additive. Third collection (`prereg-3.md`, the direction sweep):
-the row without its exact range — bearing plus the in-fog words,
-both kept by the dir arms, shares unmeasured — recovers 0.97 of the
-rows-deaf loss (dir16 −0.203 against rows −6.371); exact range is
-worth at most 0.203 (the clean intact-vs-dir16 contrast); the cost
-is V-shaped in the fake range with its minimum at the true median
-(R = 16); the bias asymmetry is in the distress tail (dir5 99 ticks
-against dir28's 1,725 and dir37's 8,685, longest streak 612) while
-matched-offset welfare is level (dir28 − dir5 = −0.037). **Scope**: frozen minds (hearing's value to cats that grew up
-hearing), the served composition and world, one band; nothing here
-attributes the change to fog alone vs the bugs-2.0 economy (F-026
-SC-005). **Invalidated by**: a replication band where all-deaf lands
-inside ±0.15, or a here-deaf sign flip. **Re-verify when**: any
-roster or world reseating; Gen 2 (hidden needs raise the channel's
-load by design — re-run before the Gen 2 cert so the gate has its
-prior).
+happiness) even under fog. **Attribution (second collection,
+`prereg-2.md`, 2026-09-24; replaces the bound quoted in RESULTS
+§Addendum 2026-09-24)**: erasing every heard row alone costs 6.371 (30
+of 30), 0.95 of the all-deaf 6.716, so what a cat hears about unseen
+cats carries the load (the arm does not separate their position from
+their in-fog words); free-deaf costs 0.237 (28 of 30), an upper bound
+on free-word meaning; the single-family costs sum to 0.712 against
+6.716, strongly non-additive. Third collection (`prereg-3.md`, the
+direction sweep): the row without its exact range — bearing plus the in-fog words, both kept by the dir arms, shares unmeasured — recovers 0.97 of the rows-deaf loss (dir16 −0.203 against rows −6.371), so exact range is
+worth at most 0.203; the cost is V-shaped in the fake range with its
+minimum at the true median (R = 16), and the bias asymmetry is in the
+distress tail while matched-offset welfare is level. **Scope**: frozen
+minds (hearing's value to cats that grew up hearing), the served
+composition and world, one band; nothing here attributes the change to
+fog alone vs the bugs-2.0 economy (F-026 SC-005). **Invalidated by**: a
+replication band where all-deaf lands inside ±0.15, or a here-deaf sign
+flip. **Re-verify when**: any roster or world reseating; Gen 2 (hidden
+needs raise the channel's load by design — re-run before the Gen 2 cert
+so the gate has its prior).
 
 ## F-053 · active · Under fog, frozen Gen 1 minds do not survive world-size displacement: intact happiness falls 92.471 → 77.935 → 52.813 at 40×40 and 100×100 (the scripted teacher reads 86.343 / 82.898 on the same worlds), distress streaks reach 15,927 ticks, and exact range on meows stays near-worthless at every size (dir gaps 0.203–0.715)
 
@@ -2790,116 +1536,96 @@ size100-d4 intact 19,776 each). **Promotion**: feeds the Gen 2 sitting
 **Gen 2 read (2026-10-22)**: this entry's re-verify fired (the radius pin moved under the vision law); the same displacement branch, on a new lineage. The Gen 2 trunk, trained at the served 20×20 only and frozen at read time, beats its scripted teacher at 40×40 and 100×100 under the vision law (F-060), and the radius cell (F-062) shows the law's wider radius moving the scripted teacher, not the frozen roster. The trained-at-size branch this entry names as unanswered stays unanswered; and the two records are not the same cell (this entry at radius 4, the Gen 2 legs at 5 and 6).
 
 ## F-054 · active · Objective-side pressure substitutes for the world floor: on floor 0 all three counterfactual-floor reward shapes restore beam placement (hard 0.920/0.937, convex 0.768/0.767, priced 0.516/0.496 against the 0.033–0.062 null), the shapes trade placement for welfare along an ordered frontier (happiness orders the reverse), every shaped arm pays 0.75–1.98 happiness against unshaped gen1-A, and the learned price settles interior at λ ≈ 0.12
-
-`reward-shape-screen-2026-09-24/RESULTS.md` (PREREG frozen 2026-09-24
-+ deviations; owner: "Freezes approved"). Six PPO arms from the
-package clone on `package.toml` (floor 0), β 0.04, plateau stops at
-8–9M ticks; per arm the five swap legs + all-arm, 30 × 20k, eval
-band, against the recorded gen1-A and pkg-arm comparators on the same
-world and seeds. The shapes read the counterfactual state (asleep,
-off-beam, sleep need < 15) from each cat's own observation at
-magnitude-matched coefficients (c1 0.6, c2 1.0, d 0.06; probe-based
-pins).
+`reward-shape-screen-2026-09-24/RESULTS.md` (PREREG frozen 2026-09-24 + deviations; owner's word in `reward-shape-screen-2026-09-24/PREREG.md`). Six PPO arms from the package clone on `package.toml`
+(floor 0), β 0.04, plateau stops at 8–9M ticks; per arm the five swap
+legs + all-arm, 30 × 20k, eval band, against the recorded gen1-A and
+pkg-arm comparators on the same world and seeds. The shapes read the
+counterfactual state (asleep, off-beam, sleep need < 15) from each
+cat's own observation at magnitude-matched coefficients (c1 0.6, c2
+1.0, d 0.06; probe-based pins).
 
 Why: the world floor worked by making the tile change a nap's outcome
 (F-050); these shapes make the objective price the state the floor
 world forbids, and the gradient finds beams either way. The frontier
 ordering (hard > convex > priced on placement, reversed on happiness)
-is a property of form for the magnitude-matched pair — hard and
-convex shared expected magnitude at baseline, and the realized
-per-tick terms order the other way — while the priced arm's lower
-placement rides a genuinely lower marginal price (λ ≈ 0.12 against
-c1 = 0.6). The discontinuity is not required to clear the bar
-(convex reaches 0.77), though reproducing the fine's full placement
-did need the fine (P2's failed clause). The arms buy placement
-partly by sleeping less (sleep share 0.086–0.114 against gen1-A's
-0.135, least suppressed under the price). The priced arm hit the
-declared occupancy target (final-update 0.054–0.057, last-quarter
-mean 0.060, against d = 0.06, from the 0.126 baseline) at the least
-cost with a stable interior λ (0.117–0.119, stability 8–10% against
-the 20% line): a readable exchange rate: a tick with the whole
-roster in the counterfactual state costs about 0.12 team reward
-(about 0.024 per cat-tick). **Scope**: lab
-training variants only — rules 1 and 2 stand for shipped policy;
-one world, one init, two seeds per shape; the shaped arms' happiness
-deficit is against a baseline optimizing pure welfare on an easy
-world. **Invalidated by**: a replication seed pair where any shape's
-placement lands under 0.15, or a priced arm whose λ diverges or
-pins the clamp. **Re-verify when**: any shape is considered for the
-Gen 3 free-time objective (the amendment path, the owner's ruling);
-the Gen 2 encoding change lands (retrain, new schema). **Promotion**:
-feeds the Gen 3 free-time design as its reward machinery candidate
-(the shelf's two-channel entry); the rule-1 structural question is
-the owner's fork, RESULTS §Decision rules.
+is a property of form for the magnitude-matched pair, while the priced
+arm's lower placement rides a genuinely lower marginal price (λ ≈ 0.12
+against c1 = 0.6). The discontinuity is not required to clear the bar
+(convex reaches 0.77), though reproducing the fine's full placement did
+need the fine (P2's failed clause). The arms buy placement partly by
+sleeping less (sleep share 0.086–0.114 against gen1-A's 0.135, least
+suppressed under the price). The priced arm hit the declared occupancy
+target at the least cost with a stable interior λ (0.117–0.119): a tick
+with the whole roster in the counterfactual state costs about 0.12 team
+reward (about 0.024 per cat-tick). **Scope**: lab training variants
+only — rules 1 and 2 stand for shipped policy; one world, one init, two
+seeds per shape; the shaped arms' happiness deficit is against a
+baseline optimizing pure welfare on an easy world. **Invalidated by**:
+a replication seed pair where any shape's placement lands under 0.15,
+or a priced arm whose λ diverges or pins the clamp. **Re-verify when**:
+any shape is considered for the Gen 3 free-time objective (the
+amendment path, the owner's ruling); the Gen 2 encoding change lands
+(retrain, new schema). **Promotion**: feeds the Gen 3 free-time design
+as its reward machinery candidate (the shelf's two-channel entry); the
+rule-1 structural question is the owner's fork, RESULTS §Decision
+rules.
 
 **Review caveat (2026-09-26, Professor memo
-`2026-09-26-free-time-arc.md`, adopted by the owner):** the priced
-arm ran at λ ≈ 0.12 against the hard fine's 0.6 — one fifth the
-pressure — so the cost-channel-cheapest recommendation is
-confounded with dose until an equal-pressure arm runs; the
-hard-vs-convex form claim (the pressure-matched pair) stands. The
-0.75–1.98 cost was measured on floor 0, where beam-seeking has no
-welfare function; the cross-world reads
-(`cross-world-cost-reads-2026-09-26/`) put it on one footing with
-the world-side cost.
+`2026-09-26-free-time-arc.md`, adopted by the owner):** the priced arm
+ran at λ ≈ 0.12 against the hard fine's 0.6 — one fifth the pressure —
+so the cost-channel-cheapest recommendation is confounded with dose
+until an equal-pressure arm runs; the hard-vs-convex form claim (the
+pressure-matched pair) stands. The 0.75–1.98 cost was measured on floor
+0, where beam-seeking has no welfare function; the cross-world reads
+(`cross-world-cost-reads-2026-09-26/`) put it on one footing with the
+world-side cost.
 
 ## F-055 · active · An impact-only gate failed with a persistent bonus stock: the enrichment glow saturated into a level shift (play share 0.0775/0.0885 vs 0.0749 baseline against a 0.10 bar), play starts shifted into the closed-gate region (0.1172–0.1801 vs 0.0843, consistent with banking glow through the need gate), and the residual pressure cost 0.729–0.839 happiness (30/30) without buying the behavior
-
-`enrichment-bonus-screen-2026-09-26/RESULTS.md` (PREREG frozen
-2026-09-26 on the owner's overnight word). Four PPO arms from the
-package clone on `package.toml`, the Gen 3 free-time prototype: a
-positive-only bonus b = β·E·g entering each cat's happiness before
-the Nash mean (exact recomposition; the gap, the ramp 15→25 from the
-gen1-A p50/~p90, the glow gain 0.25 and half-life ~139 ticks, and
-β 0.03/0.015 × two seeds are the PREREG pins, frozen 61d7fc8);
-plateau stops; all-arm batteries 30 × 20k under
-`--abort-streak 1000` against the recorded gen1-A cell (happiness)
-and a fresh gen1-A leg (play baselines, which reproduced the
-recorded cell's shared fields exactly).
+`enrichment-bonus-screen-2026-09-26/RESULTS.md` (PREREG frozen 2026-09-26 on the owner's overnight word, `enrichment-bonus-screen-2026-09-26/PREREG.md`; pins frozen 61d7fc8). Four PPO arms from the package clone
+on `package.toml`, the Gen 3 free-time prototype: a positive-only bonus
+b = β·E·g entering each cat's happiness before the Nash mean (exact
+recomposition; the gap, the ramp 15→25 from the gen1-A p50/~p90, the
+glow gain 0.25 and half-life ~139 ticks, β 0.03/0.015 × two seeds);
+plateau stops; all-arm batteries 30 × 20k under `--abort-streak 1000`
+against the recorded gen1-A cell (happiness) and a fresh gen1-A leg
+(play baselines, which reproduced the recorded cell's shared fields
+exactly).
 
 The plausible mechanics of the P1 miss (diagnosis, not proof — no
 non-saturating control ran, and bonus-s2 still lifted play 18%):
-baseline-rate play alone pins the glow near its cap (last-quarter
-trace E 0.917–0.921 with the gate partly open, g 0.637–0.646, the
-term a roughly steady ~58% of β per tick), so marginal play buys
-almost nothing — a level shift teaches little. The stock's persistence leaves the gate pricing only the
-payout, never the act — a cat that plays while needy still holds the
-glow when the gate reopens — and the closed-gate start shift is
+baseline-rate play alone pins the glow near its cap (last-quarter trace
+E 0.917–0.921 with the gate partly open, the term a roughly steady ~58%
+of β per tick), so marginal play buys almost nothing — a level shift
+teaches little. The stock's persistence leaves the gate pricing only
+the payout, never the act, and the closed-gate start shift is
 consistent with exactly that banking (not proven: the data cannot
-separate it from needs generally running closer to the edge). Both dose arms sit inside
-the full arms' play range (0.0833/0.0858 vs 0.0775–0.0885), so β
-did not bind within the tested 0.015–0.03 (two seeds per β; larger
-β untested); the welfare cost tracked β (full −0.729/−0.839,
-dose −0.251/−0.381) while behavior did not. The F-054 sleep dodge
-splits by training seed (bonus-s2 inside the ±0.015 sleep band,
-0.1282 vs 0.1354; bonus-s1 breaks it, 0.1174); low-need nap starts
-fell (0.132–0.273 vs 0.284), which does not discriminate from
-F-054; part of bonus-s1's cost plausibly rides the old dodge, and
-the split of the remainder is unmeasured — what was measured:
-distress ticks 1,124/2,286 vs
-360, teammate-distressed play-start share up to 0.0021 vs 0.0003,
-all screen-scale, max streak 492, zero aborts. **Scope**: lab
-trainer prototype only, one world, one init, two seeds per β; the
-gate form tested is impact-only with these stock dynamics — the
-finding is about that combination, not about bonus channels as a
-class. **Invalidated by**: an accrual-gated or non-saturating
-variant failing the same way (which would indict the channel, not
-the gate), or a replication where these pins do lift play past the
-bar. **Re-verify when**: the Gen 3 free-time design fixes its
-mechanism. **Promotion**: redesign direction into the Gen 3 inputs
-(`gen3-free-time-inputs-2026-09-26.md`), as the session's
+separate it from needs generally running closer to the edge). β did not
+bind within the tested 0.015–0.03 (both dose arms sit inside the full
+arms' play range; larger β untested) while the welfare cost tracked β
+(full −0.729/−0.839, dose −0.251/−0.381). The F-054 sleep dodge splits
+by training seed (bonus-s2 inside the ±0.015 sleep band, bonus-s1
+breaks it), part of bonus-s1's cost plausibly rides the old dodge, and
+the split of the remainder is unmeasured; distress stayed screen-scale
+(max streak 492, zero aborts). **Scope**: lab trainer prototype only,
+one world, one init, two seeds per β; the gate form tested is
+impact-only with these stock dynamics — the finding is about that
+combination, not about bonus channels as a class. **Invalidated by**: an
+accrual-gated or non-saturating variant failing the same way (which
+would indict the channel, not the gate), or a replication where these
+pins do lift play past the bar. **Re-verify when**: the Gen 3 free-time
+design fixes its mechanism. **Promotion**: redesign direction into the
+Gen 3 inputs (`gen3-free-time-inputs-2026-09-26.md`), as the session's
 RECOMMENDATION at the owner's fork, not a declared branch: gate the
 ACCRUAL (the owner's original mechanism; per cat is this session's
 recommendation) and de-saturate the stock so marginal play carries
-marginal value — both preceding any engine work if she takes the
-branch at all; RESULTS §Decision rules.
+marginal value — both preceding any engine work if she takes the branch
+at all; RESULTS §Decision rules.
 
 **2026-09-29 note (F-056)**: the Invalidated-by's first arm ran —
-stage B's accrual-gated and non-saturating variants also missed
-the traction bar, with glow OFF the cap (a different signature
-than the saturation measured here). Per that clause the
-indictment moves to the channel; the measured failures above
-stand unchanged.
+stage B's accrual-gated and non-saturating variants also missed the
+traction bar, with glow OFF the cap (a different signature than the
+saturation measured here). Per that clause the indictment moves to the
+channel; the measured failures above stand unchanged.
 
 ## F-056 · active · β is not the enrichment channel's binding lever: 4.7× the bonus moved pooled greedy play 0.0773 → 0.0885 (monotone, all under the 0.10 bar, glow off the cap), and closed-gate starts exceeded the stage-A band on every arm INCLUDING the accrual-gated arms whose closed-gate play pays nothing — the failure indicts the channel, not the gate mechanism
 
@@ -2908,37 +1634,31 @@ Stage B of the enrichment-decay sweep
 ddd2301): eleven arms on the d100-1000 corner — β {0.06, 0.10,
 0.14} × 3 seeds under the decay throttle, plus the accrual gate at
 β 0.10 × 2 seeds — read on the stage-A instrument (11 all-arm legs
-× 30 × 20,000, zero aborts on 330 rows). The response curve, with
-stage A's β 0.03 as the fourth point: family-mean pooled greedy
-play 0.0773 → 0.0848 → 0.0879 → 0.0885 against the 0.10 bar and a
-0.0749 baseline. Monotone, saturating (per-step gains 0.0075,
-0.0031, 0.0006), and cheap to summarize: β up 4.7×, play up 14%.
-Glow was off the cap on every arm (last-quarter at-cap share
-0.091–0.116, E p50 0.436–0.512), so the saturating curve is not
-saturation of the stock — the prereg's ruled branch fired: "the
-channel is dead as designed ('channel dead' branch of the ruled
-adjudication); report; the fork is the owner's". Trace banking
-stayed dead (0.0353–0.0399 throttle, 0.0000 structural on the
-accrual arms), but the closed-gate START share exceeded the 0.1043
+× 30 × 20,000, zero aborts on 330 rows). With stage A's β 0.03 as
+the fourth point, family-mean pooled greedy play is monotone and
+saturating in β, all under the 0.10 bar, against a 0.0749 baseline.
+Cheap to summarize along the curve: β up 4.7×, play up 14% (the per-β
+points and the step gains: RESULTS-B §"Predictions, scored" P1). Glow was off the cap on every
+arm (P1), so the saturating curve is not saturation of the stock —
+the prereg's ruled branch fired: "the channel is dead as designed
+('channel dead' branch of the ruled adjudication); report; the fork
+is the owner's". Trace banking
+stayed dead (P2), but the closed-gate START share exceeded the 0.1043
 stage-A band on every arm (0.1087–0.2540 vs comparator 0.0843) —
 including both accrual-gated arms, where a closed-gate start earns
 structurally nothing, so per PREREG-B's adjudicator the CORNER,
-not the mechanism, is at fault for P2. F-055 anticipated this
-stage in its Invalidated-by clause — "an accrual-gated or
-non-saturating variant failing the same way (which would indict
-the channel, not the gate), or a replication where these pins do
-lift play past the bar" — and stage B ran both variants and both
-missed the traction bar, though not with F-055's signature (its
-glow was saturated; stage B's is off the cap): the clause's
-channel-indicting arm fires, F-055's measured facts stand, and
-F-055 carries a dated note rather than a status change
-(RESULTS-B §Decision rules). Welfare priced the curve
-non-monotonically — family paired
-deltas b06 −0.806 (breaching its −0.50 bar), b10 −0.464, b14
-−0.605 — with the under-tending sign everywhere (eat+drink
-0.0432–0.0478, all below the comparator's 0.0499) and the
-teammate-distressed watch line (0.001) exceeded on four arms (max
-0.0022 vs 0.0003). **Scope**: lab trainer only, one world, the
+not the mechanism, is at fault for P2. Stage B ran both variants
+F-055's Invalidated-by clause names, and both missed the traction
+bar, though not with F-055's signature (its glow was saturated;
+stage B's is off the cap): the clause's channel-indicting arm fires,
+F-055's measured facts stand, and F-055 carries a dated note rather
+than a status change (RESULTS-B §Decision rules). Welfare priced the
+curve non-monotonically — family paired deltas b06 −0.806 (breaching
+its −0.50 bar), b10 −0.464, b14 −0.605 — with the under-tending sign
+everywhere (every arm's eat+drink below the comparator's 0.0499) and
+the teammate-distressed watch line (0.001) exceeded on four arms
+(§"The read", P3, P4).
+**Scope**: lab trainer only, one world, the
 d100-1000 corner with 15→25 brackets fixed (the stage-C bracket
 sweep is unrun — its premise needed a β winner and there is none),
 one init family, 2–3 seeds per family. **Invalidated by**: a
@@ -2953,131 +1673,118 @@ more, and scripted demonstration of the new actions).
 free-time inputs (`gen3-free-time-inputs-2026-09-26.md`); the fork
 past channel-dead is the owner's (RESULTS-B §Decision rules).
 ## F-057 · active · The imitation leash sets the COMPOSITION of play, not its level: dropping it 0.04 → 0.01 released the four corpus-non-players (ex-Biscuit lift +0.0479/+0.0893, the arc's first non-Biscuit movement) while Biscuit gave play back and closed-gate starts fell to a third-to-half of baseline — with the total still under the 0.10 bar; making the stock visible moved nothing, so F-056's channel-dead verdict survives both releases at the total level (the nearest-branch reading: the declared "flat" condition missed downward on two arms)
-
 The dead-or-held probe
 (`enrichment-decay-sweep-2026-09-26/RESULTS-C.md`, PREREG-C frozen
-d5bf7fca; the Professor review's recommended test): two arms at β
-0.14 with the KL leash dropped 0.04 → 0.01 (l14 × 2 seeds), two
-with the enrichment stock written into the obs clock slot at leash
-0.04 (o14 × 2), read on the stage-B instrument (l14) and the
-declared E-fed runner (o14). Totals stayed under the 0.10 bar on
-every arm (greedy 0.0722–0.0915) and under b14's 0.0885 mean on 3
-of 4 — so the channel cannot raise play even with its suspected
-jailers removed one at a time, and F-056 stands at the total
-level (the nearest-branch reading — the declared "flat" condition
-missed downward on two arms). What the leash
-release DID do: the four seats whose corpus is nearly play-free
-moved for the first time anywhere in the arc (ex-Biscuit summed
-lift +0.0479 and +0.0893 vs stage B's per-seed extremes −0.0315 to
-+0.0160) while Biscuit's own lift went negative (−0.0612, −0.0300),
-and the closed-gate start share fell to 0.0305–0.0424 — a third to
-a half of the 0.0843 baseline, a fifth of b14's family mean — with
+d5bf7fca; the Professor review's recommended test): two arms at β 0.14
+with the KL leash dropped 0.04 → 0.01 (l14 × 2 seeds), two with the
+enrichment stock written into the obs clock slot at leash 0.04 (o14 ×
+2), read on the stage-B instrument (l14) and the declared E-fed runner
+(o14). Totals stayed under the 0.10 bar on every arm (greedy
+0.0722–0.0915) and under b14's 0.0885 mean on 3 of 4, so the channel
+cannot raise play even with its suspected jailers removed one at a
+time, and F-056 stands at the total level (the nearest-branch reading —
+the declared "flat" condition missed downward on two arms). What the
+leash release DID do: the four seats whose corpus is nearly play-free
+moved for the first time anywhere in the arc (ex-Biscuit summed lift
++0.0479 and +0.0893 vs stage B's per-seed extremes −0.0315 to +0.0160)
+while Biscuit's own lift went negative, and the closed-gate start share
+fell to 0.0305–0.0424 — a third to a half of the 0.0843 baseline — with
 96–97% of play starts below worst-need 25: the policy, unleashed,
-starts play almost exclusively with the gate open. Welfare split:
-the l14 arms posted the enrichment arc's first positive paired
-happiness deltas (+0.224, +0.441 — F-019's buy-the-mean direction,
-Biscuit's play fingerprint eroding as F-019's trade predicts) with
-a widened distress tail (3,262 dist ticks, a 952-tick streak,
-tm-dist 0.0039 — the probe's worst arm; F-019 measured no tails);
-the o14 arms moved the other way on the mean (−0.248, −0.887) and
-carried the probe's one ABORT (seed 870011, episode cut at tick
-1,224 — the welfare mechanism's second firing in anger).
-**Scope**: lab trainer, one world, the d100-1000 corner, β 0.14,
-one leash value below standard, 2 seeds per arm; the E-visibility
-arm carries a declared confound (E rode the clock slot, so the
-cycling clock vanished in the same move — moot for its null under
-the attribution rule, though an E-helps / clock-removal-hurts
-cancellation cannot be excluded from a null, and a clock-zero
-control is owed before any future positive o14-style result is
-attributed). **Invalidated by**: a leash schedule or
-value at which the total clears 0.10 (that would make the leash
-the level constraint after all), or a seat-level release that
-fails to reproduce at other seeds/corners. **Re-verify when**: Gen
-3 sets its leash dose — the composition effect and the tail cost
-are both direct inputs to that choice, with the abort line as the
-declared police. **Promotion**: Gen 3 inputs — the free-time SHAPE
-(open-gate play, all seats) is purchasable by leash dose; the
-free-time LEVEL is not purchasable by this channel at any tested
-β or leash, and not by visibility as tested (a confounded null;
-the clock-zero control is the owed discriminator) (RESULTS-C
-§Decision rules; the fork is the owner's).
+starts play almost exclusively with the gate open. Welfare split: the
+l14 arms posted the enrichment arc's first positive paired happiness
+deltas (+0.224, +0.441 — F-019's buy-the-mean direction, Biscuit's play
+fingerprint eroding as F-019's trade predicts) with a widened distress
+tail (3,262 dist ticks, a 952-tick streak — the probe's worst arm;
+F-019 measured no tails); the o14 arms moved the other way on the mean
+(−0.248, −0.887) and carried the probe's one ABORT (seed 870011,
+episode cut at tick 1,224 — the welfare mechanism's second firing in
+anger). **Scope**: lab trainer, one world, the d100-1000 corner, β
+0.14, one leash value below standard, 2 seeds per arm; the E-visibility
+arm carries a declared confound (E rode the clock slot, so the cycling
+clock vanished in the same move — moot for its null under the
+attribution rule, though an E-helps / clock-removal-hurts cancellation
+cannot be excluded from a null, and a clock-zero control is owed before
+any future positive o14-style result is attributed). **Invalidated by**:
+a leash schedule or value at which the total clears 0.10 (that would
+make the leash the level constraint after all), or a seat-level release
+that fails to reproduce at other seeds/corners. **Re-verify when**: Gen
+3 sets its leash dose — the composition effect and the tail cost are
+both direct inputs to that choice, with the abort line as the declared
+police. **Promotion**: Gen 3 inputs — the free-time SHAPE (open-gate
+play, all seats) is purchasable by leash dose; the free-time LEVEL is
+not purchasable by this channel at any tested β or leash, and not by
+visibility as tested (a confounded null; the clock-zero control is the
+owed discriminator) (RESULTS-C §Decision rules; the fork is the
+owner's).
 
 ## F-058 · active · The aggregate-reward route is closed in its STRONG form: with the leash released to 0.01 AND the stock in the observation together, play's level still does not move (0.0744/0.0800 vs the 0.10 bar) and the policy learns no E-conditioned play beyond the confound floor (excess banded contrast −0.0126..+0.0020 vs the +0.02804 margin, 0 of 8 cells) — while posting the arc's largest positive paired welfare deltas (+0.714/+0.809) with a COLLAPSED tail (559 and 9 dist ticks vs l14's 3,262/1,238)
-
 The joint release arm
 (`enrichment-decay-sweep-2026-09-26/RESULTS-D.md`, PREREG-D frozen
-3d274e70; the Professor's joint-arm spec as upgraded by their
-validation critique): j14 × 2 seeds at β 0.14, leash 0.01, E
-appended as obs column 408 (additive e_col policy — bit-identical
-to stock at zero, validated pre-freeze; the clock kept, so the o14
-confound does not arise), split clip declared, the recorded l14
-runs serving as the bitwise-validated control. Primary was the
-banded test the critique demanded: live high-E-minus-low-E play
-contrast per seat MINUS the control's same contrast (the confound
-floor — E tracks recent play at 0.085–0.094 per non-Biscuit seat
-even when the policy cannot see it), against a margin frozen from
-the control's between-seed spread. Result: the live contrasts sit
-AT the floor (seven of eight non-Biscuit cells negative), e_col
-trained to 0.09 with the main clip firing 100% of steps (full-rate
+3d274e70; the Professor's joint-arm spec as upgraded by their validation
+critique): j14 × 2 seeds at β 0.14, leash 0.01, E appended as obs column
+408 (additive e_col policy — bit-identical to stock at zero, validated
+pre-freeze; the clock kept, so the o14 confound does not arise), split
+clip declared, the recorded l14 runs serving as the bitwise-validated
+control. Primary was the banded test the critique demanded: live
+high-E-minus-low-E play contrast per seat MINUS the control's same
+contrast (the confound floor — E tracks recent play at 0.085–0.094 per
+non-Biscuit seat even when the policy cannot see it), against a margin
+frozen from the control's between-seed spread. Result: the live
+contrasts sit AT the floor (seven of eight non-Biscuit cells negative),
+e_col trained to 0.09 with the main clip firing 100% of steps (full-rate
 E gradient all run — the generous-to-discovery semantics), and the
-totals stayed under the 0.10 bar and b14's 0.0885 mean, within
-l14's 0.0722–0.0867 range. l14's composition shift
-reproduced under E-visibility (ex-Biscuit +0.0727/+0.0765, Biscuit
-−0.0751/−0.0508, closed-gate 0.0230–0.0379): the leash, not
-observability, sets who plays. Welfare: largest positive paired
-deltas of the arc's battery reads (+0.714/+0.809; both seeds
-improve all 30 pairs) with the tail COLLAPSED rather than widened
-(l14's buy-the-mean-pay-in-tail trade did not recur: max streak
-162 vs 952, tm-dist inside the watch both arms, no abort). Two
-tending watches crossed in the MORE-tending direction (s1
-eat+drink 0.07004 vs ≤0.0699; s2 bin0 0.224 vs ≤0.211) — stage B's
-under-tending dodge inverted. **Scope**: lab trainer, one world,
-the d100-1000 corner, β 0.14, leash 0.01, 2 seeds; the null stands
-on the recorded-l14 control per the declared asymmetry (the
-joint-clip replication rider is owed only on a positive and is not
-owed). **Invalidated by**: any setting of this channel at which
-the banded excess clears its control-derived margin, or the total
-clears 0.10. **Re-verify when**: Gen 3 designs its enrichment
-need — whether E-VISIBILITY is what tamed the tail (two seeds, no
-E-blind twin at these exact settings beyond l14) is the open
+totals stayed under the 0.10 bar and b14's 0.0885 mean, within l14's
+range. l14's composition shift reproduced under E-visibility
+(ex-Biscuit +0.0727/+0.0765, closed-gate 0.0230–0.0379): the leash, not
+observability, sets who plays. Welfare: largest positive paired deltas
+of the arc's battery reads (+0.714/+0.809; both seeds improve all 30
+pairs) with the tail COLLAPSED rather than widened (l14's
+buy-the-mean-pay-in-tail trade did not recur: max streak 162 vs 952,
+tm-dist inside the watch both arms, no abort). Two tending watches
+crossed in the MORE-tending direction — stage B's under-tending dodge
+inverted. **Scope**: lab trainer, one world, the d100-1000 corner, β
+0.14, leash 0.01, 2 seeds; the null stands on the recorded-l14 control
+per the declared asymmetry (the joint-clip replication rider is owed
+only on a positive and is not owed). **Invalidated by**: any setting of
+this channel at which the banded excess clears its control-derived
+margin, or the total clears 0.10. **Re-verify when**: Gen 3 designs its
+enrichment need — whether E-VISIBILITY is what tamed the tail (two
+seeds, no E-blind twin at these exact settings beyond l14) is the open
 welfare question this arm raises and cannot answer. **Promotion**:
 paper 1's negative-control paragraph (the route tested with both
 constraints lifted at once); Gen 3 proceeds on recreation-actions
 exactly as PREREG-C's consequence set, with the tail-collapse
 observation flagged as the open welfare question for that design
-(RESULTS-D §The negative control, closed; PREREG-D §Decision
-rules; the fork is the owner's).
+(RESULTS-D §The negative control, closed; PREREG-D §Decision rules; the
+fork is the owner's).
 
-**Dated note, 2026-10-04 (RESULTS-L, gated PASS r2 — facts stand,
-no status change made):** the PREREG-L lesion probe evaluated the
-trained j14 policies with e_col zeroed (the E-invisible form of
-the same weights). Blinded, pooled greedy play rose to
-0.1273/0.1270 — past the 0.10 bar no trained arm reached (arc
-maximum 0.0955, b14-s2) — while the tail STAYED at the collapsed
-scale (282/92 dist ticks, zero aborts) and the paired mean gave
-back most of its gain (−0.830/−0.727 on lesion; s1 to −0.116, s2
-to +0.082). With F-058's own banded excess small-negative on 7 of
-8 cells, the coherent reading is E-conditioned SUPPRESSION: the
-policy learned satiation (hold play down when E is high; eval E
-median 0.685/0.735), expressed as a level effect under the F-058
-margin. F-058's claims about the TRAINED condition are untouched.
-RULED by the owner 2026-10-04 ("A) confirmed", on the Professor's
-concurring second opinion): DOES NOT INVALIDATE — the clause's
-triggers quantify over trained arms at declared settings; an
-off-training-condition ablation is a probe of the weights, not a
-setting of the channel. Conditions executed with the ruling: the
-scope line below; F-059 minted (the suppression/capacity finding,
-three evidence legs); the paper-1 wording rule (the negative
-control is against ELEVATED play under the aggregate route — "the
-channel had no behavioral effect" is false and must not be
-implied; the suppression result is the companion sentence);
-doctrine line added (invalidation clauses state their
-quantification domain — experiments/DESIGN-DOCTRINE.md).
-**SCOPE LINE (mandatory, per the ruling):** F-058's "level not
-purchasable" holds for the trained channel AS EXPRESSED — the
-lesion probe (RESULTS-L) shows above-bar play capacity
-(0.1273/0.1270) exists in the trained weights behind E-conditioned
-suppression; see F-059.
+**Dated note, 2026-10-04 (RESULTS-L, gated PASS r2 — facts stand, no
+status change made):** the PREREG-L lesion probe evaluated the trained
+j14 policies with e_col zeroed (the E-invisible form of the same
+weights). Blinded, pooled greedy play rose to 0.1273/0.1270 — past the
+0.10 bar no trained arm reached (arc maximum 0.0955, b14-s2) — while
+the tail STAYED at the collapsed scale (282/92 dist ticks, zero aborts)
+and the paired mean gave back most of its gain (−0.830/−0.727 on
+lesion). With F-058's own banded excess small-negative on 7 of 8 cells,
+the coherent reading is E-conditioned SUPPRESSION: the policy learned
+satiation (hold play down when E is high; eval E median 0.685/0.735),
+expressed as a level effect under the F-058 margin. F-058's claims
+about the TRAINED condition are untouched. RULED by the owner
+2026-10-04 ("A) confirmed", on the Professor's concurring second
+opinion): DOES NOT INVALIDATE — the clause's triggers quantify over
+trained arms at declared settings; an off-training-condition ablation
+is a probe of the weights, not a setting of the channel. Conditions
+executed with the ruling: the scope line below; F-059 minted (the
+suppression/capacity finding, three evidence legs); the paper-1 wording
+rule (the negative control is against ELEVATED play under the aggregate
+route — "the channel had no behavioral effect" is false and must not be
+implied; the suppression result is the companion sentence); doctrine
+line added (invalidation clauses state their quantification domain —
+experiments/DESIGN-DOCTRINE.md). **SCOPE LINE (mandatory, per the
+ruling):** F-058's "level not purchasable" holds for the trained
+channel AS EXPRESSED — the lesion probe (RESULTS-L) shows above-bar
+play capacity (0.1273/0.1270) exists in the trained weights behind
+E-conditioned suppression; see F-059.
 
 ## F-059 · active · Training on the E-channel taught E-conditioned SUPPRESSION, not inability: above-bar play capacity (0.1273/0.1270 blinded, vs 0.0955 arc trained max) sits in the j14 weights behind satiation conditioning — the policy holds the stock high (no overlap on eval E mean/p25 vs the blind twin at matched play) and holds play DOWN, relative to the blind twin, while E is high
 
@@ -3274,475 +1981,368 @@ that holds s7.
 
 ---
 
-## F-064 · active · A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs (7,807 parameters, 9.2% of the trunk): RMS error about 5.3 need points in sight in common states and about 25 in grave states, where the trivial baselines read about 53; trained at natural frequency it carries the ostrich signature on three of four covered friends (pooled grave-state bias −3.8 points against a common-state bias within 0.9 of zero), distress reweighting removes the pooled optimism (+1.7) for 7.5 points² of common-state error and is pooled worse on grave loss (NF/DR 0.944), and the declared dissolution test fails on one friend (NF's grave loss on Miso exceeds 1.10 × DR's by more than the between-seed SD; Biscuit's is 35% lower under NF), so the NF/DR tension is friend-specific and narrow, and no single head is free
-
+## F-064 · active · A capped belief head reading only what a Gen 2 cat sees estimates a friend's hidden needs to about 5.3 need points in common states and about 25 in grave states, carries the ostrich signature at natural frequency, loses it under distress reweighting at a cost in common-state error, and leaves no single head free
 Minted from mini-friend Phase 1 (`minifriend-phase1-2026-10-22/RESULTS.md`,
-the re-read of 2026-10-23, gated; declaration ruled as declared, owner
-2026-10-22 "Fix the stale draft and go as declared"; prereg §8 item 3,
-RULED S§3a; deviations entry 10 records the retrain with bath
-downweighted). The head: Linear(167 → 24) + ReLU, GRU(24), Linear(24 →
-7), reading the observer's self block and the friend's permanent row
-from the observer's own frozen start-of-tick observation, nothing from
-the global state; targets the friend's five hidden needs (with
-happiness and, downweighted, bath as reported outputs) at the tick
-the view was built from. Data: the certified roster rot2, 10 lived
-worlds plus 25 wide-start and 25 grave-start worlds (spec 065
-`[initial_needs]`, run on an arc binding that reproduces the certified
-engine on the served config); 2,800,000 evaluation samples on 19
-worlds split by world. Pooled mind-visible MSE on the five hidden
-needs: COMMON 28.25 ± 0.93 (NF) / 35.78 ± 2.21 (DR); GRAVE 644.04 ±
-30.61 / 682.11 ± 19.77; the marginal and persistence-proxy baselines
-2,814.09 / 2,809.14 on GRAVE, and the proxy barely beats the marginal
-(the friend's visible activity says almost nothing about how high her
-hidden needs are). Ostrich read (prereg §9 item 2, S§3d; the 1.5×
-margin shared with §8 item 4; both heads): NF grave bias −3.80 in
-sight / −0.80 all states, signature on Miso, Kittybear and Clementine
-in sight and pooled, not on Biscuit (+0.59); DR +1.71 / +5.64 pooled,
-a small signature on Miso and Kittybear in sight (−3.21, −2.01) and
-on Pumpkin all-states (−5.72), Biscuit overshooting to +10.16 / +12.55.
-Dissolution (procedure frozen in the declaration): floor 682.11, NF
-644.04, ratio 0.944 ≤ 1.10 pooled; per friend Miso +96.76 over 1.10 ×
-DR against an NF SD of 79.56 (exceeds), Biscuit −401.27, Kittybear
-−6.36, Clementine −48.67 (within): NOT dissolved; this licenses head
-choice for Phase 2 only, never welfare adequacy. **Caveats the section
-carries**: Pumpkin's mind-visible GRAVE stratum is 170 < 200 after
-every declared set and is INSUFFICIENT COVERAGE (no number read;
-pooled mind-visible GRAVE pools the other four); the grave stratum
-comes from grave STARTS rather than from friends sliding into
-distress (the sliding cases in the data are W's late entries and G's
-re-entries after early relief, none lived), and in the
-grave-start worlds every cat starts in GRAVE together, so the
+the re-read of 2026-10-23, gated; declaration ruled as declared, owner 2026-10-22; prereg §8 item 3, RULED S§3a; deviations entry 10 records
+the retrain with bath downweighted). The head: Linear(167 → 24) + ReLU,
+GRU(24), Linear(24 → 7), 7,807 parameters (9.2% of the trunk), reading
+the observer's self block and the friend's permanent row from the
+observer's own frozen start-of-tick observation, nothing from the
+global state; targets the friend's five hidden needs (happiness and,
+downweighted, bath as reported outputs) at the tick the view was built
+from. Data: the certified roster rot2, 10 lived worlds plus 25
+wide-start and 25 grave-start worlds (spec 065 `[initial_needs]`, on an
+arc binding that reproduces the certified engine on the served config);
+2,800,000 evaluation samples on 19 worlds split by world. Pooled
+mind-visible MSE on the five hidden needs: COMMON 28.25 ± 0.93 (NF) /
+35.78 ± 2.21 (DR); GRAVE 644.04 ± 30.61 / 682.11 ± 19.77; the marginal
+and persistence-proxy baselines 2,814.09 / 2,809.14 on GRAVE, the proxy
+barely beating the marginal (a friend's visible activity says almost
+nothing about how high her hidden needs are). Ostrich (prereg §9 item
+2, S§3d, the 1.5× margin): NF grave bias −3.80 in sight against a
+common-state bias within 0.9 of zero, signature on Miso, Kittybear and
+Clementine, not on Biscuit; DR +1.71 in sight / +5.64 all states pooled, a small signature on Miso and Kittybear in sight, Biscuit overshooting (per-friend cells in
+RESULTS). Dissolution (procedure frozen in the declaration): NF/DR
+0.944 ≤ 1.10 pooled, but Miso's NF grave loss exceeds 1.10 × DR's by
+more than the between-seed SD while Biscuit's is 35% lower under NF:
+NOT dissolved; this licenses head choice for Phase 2 only, never
+welfare adequacy.
+
+Caveats that bound the claim: Pumpkin's mind-visible GRAVE stratum is
+170 < 200 and INSUFFICIENT COVERAGE (no number read; pooled
+mind-visible GRAVE pools the other four); the grave stratum comes from
+grave STARTS rather than from friends sliding into distress, and in
+the grave-start worlds every cat starts in GRAVE together, so the
 observer's own needs are a cue at the start that they would not be in
-lived distress (the grave numbers are best read as an upper bound on
-inference skill); the 1.5× lift is met trivially wherever the
-common-state bias is near zero, so the gap in points, not the
-signature flag, is the informative column; bath, the one visible
-need, is fitted at weight 0.1 and reads 3.99 points² in sight in
-common states for NF (the pipeline floor under a downweighted output;
-DR 28.15) and 138.56 in grave states (DR 335.09). **Scope**: the
-certified Gen 2 roster at the served 20×20, greedy masked argmax,
-schema 6 observations; offline heads, no consumer, no feedback into
-any policy; three seeds per head, the NF/DR pair sharing each seed.
-**Invalidated by** (domain: this declaration's reads re-run on a Gen 2
-roster with at least three seeds per head and the same strata and
-min-n): the NF pooled mind-visible GRAVE bias at or above −1.5 points,
-or either head's pooled mind-visible GRAVE MSE within 1.5× of the
-marginal baseline's on the same cells (checked on this entry's own
-evidence: −3.80, and 4.4× / 4.1×; neither fires). **Re-verify when**:
-Phase 2's live head is read (prereg §9 item 2 reads the ostrich metric
-on both estimates, the Phase 1 offline heads and the Phase 2 live
-head); any change of roster or schema. **Promotion**: the Phase 2 head
-choice is the owner's call with this read in hand; the per-friend
-failure says a single head is not free, and any mixed or
-re-capacitated head is a Phase 2 declaration, not this entry's claim.
+lived distress (the grave numbers are best read as an upper bound on inference skill; F-065 measured the gap); the 1.5× lift is met trivially
+wherever the common-state bias is near zero, so the gap in points, not
+the signature flag, is the informative column. **Scope**: the certified
+Gen 2 roster at the served 20×20, greedy masked argmax, schema 6
+observations; offline heads, no consumer, no feedback into any policy;
+three seeds per head, the NF/DR pair sharing each seed. **Invalidated by** (domain: this declaration's reads re-run on a Gen 2 roster with at
+least three seeds per head and the same strata and min-n): the NF
+pooled mind-visible GRAVE bias at or above −1.5 points, or either
+head's pooled mind-visible GRAVE MSE within 1.5× of the marginal
+baseline's on the same cells (checked on this entry's own evidence:
+−3.80, and 4.4× / 4.1×; neither fires). **Re-verify when**: Phase 2's
+live head is read (prereg §9 item 2 reads the ostrich metric on both
+estimates, the Phase 1 offline heads and the Phase 2 live head); any
+change of roster or schema. **Promotion**: the Phase 2 head choice is
+the owner's call with this read in hand; the per-friend failure says a
+single head is not free, and any mixed or re-capacitated head is a
+Phase 2 declaration, not this entry's claim.
 
 ---
 
-## F-065 · active · With one friend grave at reset and her observers never grave, the belief head's grave estimate is about half again as hard in squared error as Phase 1's all-grave worlds showed (NF in sight: G over P 0.651 ± 0.033 at width 24; RMS 30.1 against 24.3 need points for the same heads) and the ostrich signature is broader and deeper (NF pooled grave bias −10.10 in sight at width 24, signature on four of five friends at widths 24 and 48, distress reweighting no longer removing it at −7.57); head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in grave and common states alike (in sight: NF 0.870 and 0.884 at 48/24, 1.210 and 1.199 at 12/24; DR 0.827 and 0.767 at 48/24), so capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and, in proportion, not grave-specifically; the dissolution procedure fails at every width with the reweighted head pooled better on grave (NF/DR 1.097–1.188), the reverse of Phase 1's read on its own evaluation worlds (its grave samples mostly from the all-grave set G, about a tenth from W)
-
+## F-065 · active · With one friend grave at reset and her observers never grave, the head's grave estimate is about half again as hard as Phase 1's all-grave worlds showed and the ostrich signature is broader and deeper; head width moves every loss cell monotonically, beyond seed noise on every NF cell and on DR's at 48 over 24, in proportion and not grave-specifically; the dissolution procedure fails at every width
 Minted from mini-friend Phase 1b (`minifriend-phase1b-2026-10-23/RESULTS.md`,
-gated; declaration ruled as declared, owner 2026-10-23 "No need to
-change the declaration. Let's run this as proposed"; her ask quoted in
-the declaration; deviations entry 11). Data: five per-cat grave sets,
-one friend per block starting grave at reset by spec 065's per-kitty
-`initial_needs` ({60, 95}) with the other four at the served default,
-20 worlds per friend at 4,000 ticks (seeds 1095451–1095550), the
-certified roster rot2 on the served 20×20; 0 aborts, distress confined
-to the grave kitty in all 100 worlds; 4,000,000 evaluation samples on
-50 worlds split by world; every friend over min-n on mind-visible GRAVE (Miso
-572, Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), Pumpkin
-covered for the first time. Heads: Phase 1's architecture at widths 12
-/ 24 / 48 (3,043 / 7,807 / 22,519 parameters; 48 an over-cap probe,
-never a Phase 2 candidate), NF and DR, three seeds each, trained on
-34 of Phase 1's 41 non-evaluation L/W/G worlds plus 40 P training
-worlds, validation re-carved under this arc's split seed
-(not Phase 1's seven). Pooled mind-visible
-MSE on the five hidden needs at width 24: COMMON 25.34 ± 0.52 (NF) /
-40.15 ± 6.85 (DR), GRAVE 908.10 ± 33.43 / 827.69 ± 117.06; baselines
-3,264.16 (marginal) / 3,261.15 (proxy) on GRAVE. **The all-grave
-confound** (R5b): the same heads' GRAVE loss on Phase 1's all-grave
-evaluation worlds over their loss on the per-cat worlds reads, in
-sight, 0.651 ± 0.033 (NF) and 0.702 ± 0.102 (DR) at width 24, READ
-under 1 at every
-width and both weightings (0.651–0.774 in sight): the all-grave
-worlds, where an observer's own needs predicted her friend's at the
-start, were 21–39% easier in squared error for the same heads
-(23–35% in sight). The ratio bounds the
-difference between the registers and does not isolate the cue's
-share (different evaluation worlds and, in sight, different friend
-pools); it is the number behind F-064's "upper bound" caveat. **The size effect** (R2b, in sight): NF ratios to width 24 of 1.210 /
-1.213 / 1.199 at width 12 and 0.870 / 0.867 / 0.884 at width 48 on
-GRAVE / DA / COMMON, all READ; DR 0.827 / 0.824 / 0.767 at 48, READ;
-the DR 12/24 ratios not READ (DR's between-seed spread, propagated
-into the ratio, exceeds the width difference). For NF, halving the width costs about 20% in sight
-and doubling it past the cap buys about 12–13% in sight (9–11%
-all-states),
-in every stratum; for DR the 48/24 step buys 17–23% in sight (13–21%
-all-states); in points the grave stratum gains most because it is the largest
-cell (NF grave RMS 30.1 → 28.1, common 5.0 → 4.7). **Ostrich** (R4b; signature rule prereg §8 item 4):
-NF pooled grave bias in sight −13.58 / −10.10 / −9.68 at 12 / 24 / 48
-against a pooled common-state bias within 0.5 of zero; signature on Miso, Biscuit,
-Pumpkin and Kittybear at 24 and 48 (at 24: Kittybear deepest at
-−17.01; Biscuit, read without it in Phase 1, at −11.59), not on
-Clementine (+2.27, +2.89); DR pooled −7.38 / −7.57 / −6.06 with the signature on
-the same four. **Dissolution** (R3b, Phase 1's procedure as information):
-DR's floor 924.87 / 827.69 / 684.51, NF over it by 18.8% / 9.7% /
-15.4%; the pooled clause holds only at width 24 and only just (1.097
-against 1.10);
-the per-friend clause fails at every width, on Miso, Biscuit and
-Pumpkin at 12, Miso and Biscuit at 24, Pumpkin and Kittybear at 48; Clementine's grave loss is
-lower under NF at every width and she is the one friend DR hurts
-(+68.47 / +80.39 / +60.37 points²). The width did not change the
-verdict; what differs from Phase 1 is the register together with the
-retrained heads, their training set and validation carve, and on the
+gated; declaration ruled as declared, owner 2026-10-23; deviations entry 11).
+Data: five per-cat grave sets, one friend per block starting grave at
+reset by spec 065's per-kitty `initial_needs` ({60, 95}) with the other
+four at the served default, 20 worlds per friend at 4,000 ticks (seeds
+1095451–1095550), the certified roster rot2 on the served 20×20; 0
+aborts, distress confined to the grave kitty in all 100 worlds;
+4,000,000 evaluation samples on 50 worlds split by world; every friend
+over min-n on mind-visible GRAVE, Pumpkin covered for the first time.
+Heads: Phase 1's architecture at widths 12 / 24 / 48 (3,043 / 7,807 /
+22,519 parameters; 48 an over-cap probe, never a Phase 2 candidate), NF
+and DR, three seeds each, retrained on 34 of Phase 1's 41
+non-evaluation worlds plus 40 P training worlds. The numbers that carry
+the claim (width 24, in sight on P unless stated; every cell in RESULTS
+§R1b–§R5b): pooled mind-visible GRAVE MSE 908.10 ± 33.43 (NF) / 827.69
+± 117.06 (DR), COMMON 25.34 ± 0.52 / 40.15 ± 6.85, baselines 3,264.16 /
+3,261.15 on GRAVE. The all-grave confound (R5b): the same heads' GRAVE
+loss on Phase 1's all-grave worlds over the per-cat worlds is 0.651 ±
+0.033 for NF (RMS 30.1 against 24.3 need points for the same heads),
+READ under 1 at every width and both weightings (the all-grave worlds,
+where an observer's own needs predicted her friend's at the start, were
+21–39% easier); it is the number behind F-064's
+"upper bound" caveat and bounds the registers' difference without
+isolating the cue's share. The size effect (R2b): NF grave 0.870 at
+48/24 and 1.210 at 12/24, DR 0.827 at 48/24 (DR's 12/24 not READ), so
+capacity above the 8,445 cap buys 13–17% of grave loss at this geometry and in proportion, not grave-specifically (NF grave RMS 30.1 → 28.1, common 5.0 → 4.7).
+Ostrich (R4b): NF pooled grave bias −10.10 against a common-state bias
+within 0.5 of zero, signature on Miso, Biscuit, Pumpkin and Kittybear
+at 24 and 48, not on Clementine; DR −7.57 with the signature on the
+same four. Dissolution (R3b): NF/DR 1.097–1.188 across widths, the
+pooled clause holding only at 24 and only just, the per-friend clause
+failing at every width, Clementine the one friend DR hurts; on the
 all-grave G worlds these same heads read NF/DR grave 1.227 / 1.018 /
 0.997 at 12 / 24 / 48, so Phase 1's pooled NF advantage is absent for
-these heads there too at 12 and 24. **Caveats the section carries**:
-the grave stratum is a grave START relieved by the roster (about 61
-grave ticks per observer-episode for Miso, 2,440 all-states GRAVE
-samples over 40; a count, not a timing), seen by an observer for 13–29% of its ticks (a friend's
-GRAVE spell is the start of her episode); in sight the G side of
-R5b pools four friends (Pumpkin under min-n on G alone) and the P side
-five, all-states both sides five; the
-DR heads stop earlier than NF's and disagree between seeds (best
-epochs 21–53;
-between-seed SD up to 139.56 on a pooled grave cell), so a
-friend's DR grave mean moves by 56–213 points² between neighbouring
-widths with between-seed SDs of the same order (up to 226.98); the G-side losses are not Phase 1's
-cells (new training set, G-only evaluation worlds) and are never
-compared to them; the 1.5× lift is met trivially wherever the common
-bias is near zero, so the gap in points, not the flag, is the
-informative column. **Scope**: the certified Gen 2 roster at the
-served 20×20, greedy masked argmax, schema 6 observations (as Phase
-1); offline heads, no consumer read (RESULTS "Not read"); three seeds per head,
-the NF/DR pair sharing each seed; one grave friend per world. **Does
-not move**: F-064 (its worlds, floor and verdict stand); the §8 item 4
-cap (a wider Phase 2 head is a deviations entry on the owner's word
-with R2b as its evidence). **Invalidated by** (domain: this
-declaration's reads re-run on a Gen 2 roster with at least three seeds
-per head, the same strata and min-n, one friend grave per world; all
-three bars on the pooled mind-visible cells): the G-over-P grave
-ratio at width 24 at or above 1 − SD for NF (checked on this entry's
-evidence: 0.651 ± 0.033, fires at 0.967); the 48/24 NF grave ratio at
-or above 1 − SD (0.870 ± 0.053, fires at 0.947); the NF pooled
-mind-visible grave bias at width 24 at or above −1.5 points (F-064's
-bar; −10.10). **Re-verify
-when**: a register exists in which a friend enters GRAVE during the
-episode rather than at reset; Phase 2's live head is read
-(§9 item 2); any change of roster or schema. **Promotion**: an input
-to the Phase 2 head choice (hers) beside F-064: at Phase 1's width,
-in this register, the reweighted head is the better grave estimator
-pooled and the natural-frequency head under-reads a grave friend in
-sight by ten points; neither is free (DR costs 14.81 points² of
-pooled mind-visible common-state error and hurts Clementine).
+these heads there too at 12 and 24.
 
-## F-066 · active · A structured discrete belief head (per-need 20-bin histogram with learned drift and relief, cross-entropy on two-hot targets) does not beat the natural-frequency head NF on the declared grave cells at equal capacity: at width 16 (6,679 params) its pooled mind-visible grave MSE on the per-cat worlds is 1119.69 against NF-h24's 908.10 (1.233 ± 0.091, READ) and its pooled grave bias in sight is −15.01 against NF's −10.10 (signature on all five friends), while in sight it is better than NF in common states by about a fifth (19.96 against 25.34, 0.787 READ); width moves every pooled SD loss cell in one direction (in sight on P: grave 1.414 at 8/16, 0.819 at 32/16, both READ; common 1.237 / 0.848), in proportion not grave-specific, and the 1.9×-cap probe (15,783 params) ties NF-h24 on grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× NF-h24's parameters and is better by a third in common states (16.92; 0.668 READ); the grave probability the head emits is near the diagonal above p = 0.7 at width 16 in sight (realised 0.795 / 0.851 / 0.936 in the top three bins) with mean P(grave) 0.474 on grave samples, a belief whose histogram mean sits below the truth, which is the −15.01 the bias column reports and which the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; six of nine runs hit the 200-epoch cap before plateauing and each run cost 10–14 hours against minutes for the comparators
+Caveats that bound the claim: the grave stratum is a grave START
+relieved by the roster (about 61 grave ticks per observer-episode for
+Miso), seen by an observer for 13–29% of its ticks; the DR heads stop
+earlier than NF's and disagree between seeds (best epochs 21–53;
+between-seed SD up to 139.56 on a pooled grave cell), so a friend's DR
+grave mean moves by 56–213 points² between neighbouring widths; the
+G-side losses are not Phase 1's cells and are never compared to them;
+the 1.5× lift is met trivially wherever the common bias is near zero.
+**Scope**: the certified Gen 2 roster at the served 20×20, greedy
+masked argmax, schema 6 observations (as Phase 1); offline heads, no
+consumer read (RESULTS "Not read"); three seeds per head, the NF/DR
+pair sharing each seed; one grave friend per world. **Does not move**:
+F-064 (its worlds, floor and verdict stand); the §8 item 4 cap (a wider
+Phase 2 head is a deviations entry on the owner's word with R2b as its
+evidence). **Invalidated by** (domain: this declaration's reads re-run
+on a Gen 2 roster with at least three seeds per head, the same strata
+and min-n, one friend grave per world; all three bars on the pooled
+mind-visible cells): the G-over-P grave ratio at width 24 at or above
+1 − SD for NF (checked on this entry's evidence: 0.651 ± 0.033, fires
+at 0.967); the 48/24 NF grave ratio at or above 1 − SD (0.870 ± 0.053,
+fires at 0.947); the NF pooled mind-visible grave bias at width 24 at
+or above −1.5 points (F-064's bar; −10.10). **Re-verify when**: a
+register exists in which a friend enters GRAVE during the episode
+rather than at reset; Phase 2's live head is read (§9 item 2); any
+change of roster or schema. **Promotion**: an input to the Phase 2 head
+choice (hers) beside F-064: at Phase 1's width, in this register, the
+reweighted head is the better grave estimator pooled and the
+natural-frequency head under-reads a grave friend in sight by ten
+points; neither is free (DR costs 14.81 points² of pooled mind-visible
+common-state error and hurts Clementine).
 
+## F-066 · active · A structured discrete belief head (per-need 20-bin histogram with learned drift and relief) does not beat the natural-frequency head on the declared grave cells at equal capacity and is better than it in common states; width moves its cells in proportion; at width 16 its grave probability is near the diagonal above p = 0.7
 Minted from mini-friend Phase 1c (`minifriend-phase1c-2026-10-23/RESULTS.md`,
 gated; owner 2026-10-23 "Let's try it. Currently our accuracy is low
 enough that we can reevaluate model size limit if needed. Let's test
 this approach first though" and, the same day, "Let's try 3 model
 sizes this time as well so we can get an idea of what more/less
-parameters buy"; deviations entry 12). Data: none new (0 covered
-cat-ticks); Phase 1b's split byte for byte (74 training, 17
-validation, 69 evaluation worlds); group P = the P1..P5 evaluation
-worlds (4,000,000 samples; mind-visible GRAVE coverage Miso 572,
-Biscuit 364, Pumpkin 398, Kittybear 933, Clementine 260), the
+parameters buy"; deviations entry 12).
+Data: none new (0 covered cat-ticks); Phase 1b's split byte for byte;
+group P (4,000,000 samples; per-friend coverage in RESULTS §Data); the
 comparators 1b's width-24 NF and DR runs re-read through this arc's
-reader and pinned to 1b's gated cells. Head: `sd_head.py` — per hidden
-need a histogram over 20 bins of 5 points drifting up at a learned
-per-(friend, need) rate and down on relief by a learned per-need size
-with probability p_rel from a width-r GRU over the 167 input cells, a
-logit residual, learned priors; cross-entropy against two-hot targets
-+ 0.5 × BCE on the relief indicator + Phase 1's happiness and 0.1 ×
-bath terms; natural frequency; point estimate the histogram mean;
-widths 8 / 16 / 32 = 3,279 / 6,679 / 15,783 params (32 an over-cap
-probe, cap 8,445 not moved); seeds 1, 2, 3. **Decision rules, applied**
-(the declaration's two criteria for what would count as the approach
-helping; width 16, group P, in sight): (i) grave SD / NF-h24 READ under
-1 — read 1.233 ± 0.091, READ, over 1, not met; (ii) pooled grave bias
-within ±5.0 with no pooled signature — read −15.01 ± 1.74, signature,
-not met; by the declared text the approach does not help at this
-capacity. **Accuracy** (R1c, in sight, P): SD grave 1582.84 / 1119.69 /
-917.44 at widths 8 / 16 / 32 (NF-h24 908.10, DR-h24 827.69), common
-24.69 / 19.96 / 16.92 (NF 25.34, DR 40.15); SD's grave loss is above
-NF's on every friend at width 16 (by 83 to 348 points²) and below both
-comparators in common states on every friend. **Contrast** (R2c, in
-sight, P): SD / NF grave 1.743 / 1.233 / 1.010 (READ, READ, tie), SD /
-DR 1.912 / 1.353 / 1.108 (READ, READ, tie); common SD / NF 0.974 /
-0.787 / 0.668, all READ (all states at width 8: 1.088 ± 0.024 READ, SD
-worse). **Ostrich** (R3c, in sight, P): pooled grave bias −21.80 /
-−15.01 / −11.07 (NF −10.10, DR −7.57), signature on all five friends
-at every width (Clementine, positive for NF and DR, is −8.56 at width
-16), common-state bias +0.41 to +0.43. **Calibration** (R4c, P(grave by
-need) = 1 − ∏(1 − grave mass_i), in sight, P): Brier 0.0009 / 0.0006 / 0.0005,
-mean p on GRAVE 0.294 / 0.474 / 0.545 and on COMMON 0.000–0.001; at
-width 16 under-confident below p = 0.7 and on the diagonal above it;
-happiness-only grave samples (168 of 2,527 in sight) cannot be carried
-by need histograms. **Rates** (R5c, width 16): the filter need not be
-physical and is not; the per-friend emphases are recovered (Pumpkin's
-eat the largest eat rate at every width, Clementine cuddle 0.71
-against the empirical 0.70), many ordinary cells sit well under the
-empirical step, play 0.03–0.06 against 0.30–0.40 for four friends.
-**Residual share** (R6c, in sight, P): no-residual over full grave loss
-1.426 / 2.013 / 2.948 (the structure-carries rule of 2.0× met at 8,
-missed by 0.013 at 16); the filter alone is worse than the marginal
-mean in common states at every width. **p_rel AUROC** (R6c(b), P):
-0.960 / 0.979 / 0.988 in sight, 0.755 / 0.797 / 0.823 under fog.
-**Floors** (R7c, information, in sight, P): width 16 clears neither
-DR-h24 (1.353) nor NF-h24 (1.233); width 32 clears NF-h24 (1.010,
-every friend inside) and misses DR-h24 by 0.008 pooled. **Size** (R9c,
-in sight, P): 1.414 ± 0.190 at 8/16 and 0.819 ± 0.080 at 32/16 on
-grave, 1.237 ± 0.025 and 0.848 ± 0.026 in common states, all READ; the
-cap binds for this head as it did for NF in 1b, on the means at a rate like
-NF's or steeper (about 18% against 13% for the doubling past the cap,
-spreads overlapping, the parameter steps unequal, ×2.4 against ×2.9);
-at about equal parameters SD is behind NF at every rung (3.3k:
-1582.84 against NF-h12's 1098.53; 6.7k against 7.8k: 1119.69 against
-908.10), and SD-h32 at 15.8k reaches NF-h24's cell, not NF-h48's
-(790.22 at 22,519 params). **Caveats the section carries**: six of
-nine runs reached the 200-epoch cap with the validation loss still
-improving by more than the plateau margin (best epochs 193–200; every
-1b run plateaued by 82), which biases the comparison against SD by an
-unmeasured amount and was reported, not re-run; every MSE and bias
-cell reads the histogram mean, and the calibration read shows the
-belief behind it on grave samples; SD saw an auxiliary target (the
-relief indicator) the comparators did not, declared as the approach;
-10–14 hours per run against 1b's 12–17 minutes for six, the
-sequential per-tick filter loop being the cost; "ties NF-h24" at
-width 32 is a tie at 2.0× NF-h24's parameters; offline, no consumer, no
-welfare claim. What it hands to the Phase 2 head choice (hers) beside
-F-064 and F-065: under the standing cap, and with the under-training
-caveat above, SD at width 16 is behind NF on a grave friend in sight
-(1.233 READ) and ahead of NF in common states (0.787 in sight, 0.902
-all states, READ); the
-structured head's grave probability and relief read are quantities
-this arc reads for SD only, and whether a Phase 2 consumer should read
-a probability rather than a mean is a design question this arc did
-not answer; the cap question is hers with that read in hand.
+reader and pinned to 1b's gated cells. Head (`sd_head.py`): a per-need
+histogram of 20 bins of 5 points with learned drift rates and relief
+sizes, the relief probability p_rel from a width-r GRU over the 167
+input cells, a logit residual and learned priors; cross-entropy on
+two-hot targets plus a relief-indicator BCE and Phase 1's happiness and
+bath terms; point estimate the histogram mean; widths 8 / 16 / 32 =
+3,279 / 6,679 / 15,783 params (32 an over-cap probe, cap 8,445 not
+moved); seeds 1–3. **Decision rules, applied** (width 16, group P, in
+sight): (i) grave SD / NF-h24 READ under 1 — read 1.233 ± 0.091
+(1119.69 against 908.10), not met; (ii) pooled grave bias within ±5.0
+with no pooled signature — read −15.01 ± 1.74 against NF's −10.10,
+signature on all five friends, not met; by the declared text the
+approach does not help at this capacity. Beside it (every per-width
+cell in RESULTS §R1c–§R9c): common-state SD / NF 0.787 in sight (19.96
+against 25.34) and 0.902 all states, READ; width ratios in sight on P
+grave 1.414 at 8/16 and 0.819 at 32/16, common 1.237 / 0.848, all READ,
+in proportion not grave-specific; the width-32 probe ties NF-h24 on
+grave in sight (917.44; 1.010 ± 0.083, not READ) at 2.0× its parameters
+and is better by a third in common states (16.92; 0.668 READ), reaching
+NF-h24's cell, not NF-h48's; at about equal parameters SD is behind NF
+at every rung. Calibration (R4c, P(grave by need) = 1 − ∏(1 − grave mass_i)): at width 16 in sight, under-confident below p = 0.7 and on the diagonal above it
+(realised 0.795 / 0.851 / 0.936 in the top three bins) with mean
+P(grave) 0.474 on grave samples, a belief whose histogram mean sits
+below the truth, which is the −15.01 the bias column reports and which
+the ostrich metric as declared does not separate from optimism; p_rel discriminates relief at AUROC 0.979 in sight and 0.797 under fog at width 16; the
+learned rates are not physical (R5c); the no-residual head meets the
+structure-carries rule of 2.0× at 8 and misses it by 0.013 at 16 (R6c).
 
-## F-067 · active · A 25-parameter logistic read of "the true stratum is GRAVE" on the FROZEN NF-h24 GRU states reads grave within the seed spread of the structured discrete belief head SD at width 16 (F-066) and ahead of it on the grave mean and Brier in sight and under fog, with its mean on common samples as low: in sight on the per-cat worlds its mean P(grave) on grave samples is 0.583 ± 0.015 against SD's 0.474 ± 0.115 (Δ −0.109, combined seed spread 0.116 → outcome A of the declared rule, "the histogram bought nothing the consumer needs"), its Brier 0.00054 against 0.00064, its mean on common samples 0.0003 against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046 (Brier 0.00119 against 0.00185); in sight SD keeps its reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057; NF-h24+p's top bins realise 0.760 and 0.882 where they say 0.854 and 0.959) and a lower mean on adjacent samples (0.183 against 0.265); on the DR-h24 states the same probe reads 0.577 ± 0.037 in sight; all three rank grave against non-grave at AUROC 0.998–0.999 in every version, so the heads differ in confidence, not discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one sigmoid) is 7,832 parameters, under the cap; the Professor's registered prediction P2 (≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met. Beside it, the SD filter's drift operator smears a sharp belief exactly as the arithmetic says — sd √(n f (1 − f)) bins, matched to 2.3 × 10⁻⁸ bins over 79 unclamped rows; 2.708 bins (13.5 need points) after 100 ticks at every run's initial rate, 1.56–1.87 bins after 100 ticks at the learned width-16 median rates — while the engine's need rises with no uncertainty; the mechanism the Professor named for F-066's residual share stands as arithmetic, its causal share unmeasured
+Caveats that bound the claim: six of nine runs reached the 200-epoch
+cap with the validation loss still improving by more than the plateau
+margin (best epochs 193–200; every 1b run plateaued by 82), which
+biases the comparison against SD by an unmeasured amount and was
+reported, not re-run; every MSE and bias cell reads the histogram mean;
+SD saw an auxiliary target (the relief indicator) the comparators did
+not, declared as the approach; 10–14 hours per run against 1b's 12–17
+minutes for six, the sequential per-tick filter loop being the cost;
+offline, no consumer, no welfare claim. What it hands to the Phase 2
+head choice (hers) beside F-064 and F-065: under the standing cap, and
+with the under-training caveat, SD at width 16 is behind NF on a grave
+friend in sight and ahead in common states; whether a Phase 2 consumer
+should read a probability rather than a mean is a design question this
+arc did not answer (F-067 took it up); the cap question is hers with
+the size read in hand.
 
+## F-067 · active · A 25-parameter logistic read of "the true stratum is GRAVE" on the frozen NF-h24 states reads grave within the seed spread of the structured head SD at width 16 and ahead of it on the grave mean and Brier, in sight and under fog; the heads differ in confidence, not discrimination; the SD filter's drift operator smears a sharp belief as the arithmetic says
 Minted from mini-friend Phase 1d (`minifriend-phase1d-2026-10-24/RESULTS.md`,
 gated; owner 2026-10-24 "Let's run those in three in the order you
 listed", after the Professor's review of Phase 1c; deviations entry
 13). Data: none new (0 covered cat-ticks); Phase 1b's split byte for
-byte; the probe's training samples are every (world, observer,
-friend, tick) of the 74 training worlds, 8,400,000 (GRAVE on 0.00300),
-validation 1,800,000; reads on group P (P1..P5, 4,000,000 samples:
-1,927,130 in sight with 2,527 grave, 2,072,870 under fog with 8,977
-grave). **Read 2, the probe** (`grave_probe.py`): 1b's NF-h24-s{1,2,3}
-and DR-h24-s{1,2,3} (7,807 params) loaded, frozen, walked as
+byte; the probe trains on every (world, observer, friend, tick) of the 74
+training worlds; reads on group P (4,000,000 samples; counts per
+version in RESULTS §Data). **Read 2, the probe** (`grave_probe.py`; fit
+recipe in DECLARATION §"Read 2", runs in RESULTS §"R2d(b) — runs"):
+1b's NF-h24 and DR-h24 seeds 1–3 loaded, frozen, walked as
 `predict_world` walks them; `Linear(24 → 1)` + sigmoid by
-natural-frequency BCE on the stratum label, Adam 1e-2, batches of
-65,536, early stop on the validation BCE with a RELATIVE margin (new
-best when val < best × (1 − 1e-3)), patience 10, cap 200; every fit
-stopped on the plateau rule (stop epochs 83 / 99 / 91 / 74 / 110 / 112,
-none at the 200-epoch cap) in 60–79 s of wall clock;
-read through 1c's R4c instrument (`calibration_p`) beside SD width 16's
-committed cells. **Decision rule, applied** (declared before any fit;
-group P, in sight, every covered sample pooled, mean of seeds 1–3;
-comparator SD width 16 from 1c's committed read, base head NF-h24;
-m = mean P(grave) on GRAVE, Δ = m_SD − m_NF, s = √(s_SD² + s_NF²) over
-the seed SDs, g the above-0.7 gap): A if |Δ| ≤ s; B if Δ > s and
-g_SD < g_NF; C otherwise — read Δ = 0.474 − 0.583 = −0.109, s = 0.116,
-**A**, applied as declared; the stronger reading (the probe above SD on
-the grave mean in every version and lower on Brier) is reported, not
-ruled on (s is almost entirely SD's seed spread, 0.115 against the
-probe's 0.015; one SD seed, 0.601, sits above the probe's mean of
-0.583). **Read 1,
-the spread** (`filter_spread.py`, read-only on 1c's nine `head-best.pt`):
-a delta at bin 2 pushed n ∈ {1, 10, 50, 100, 500} ticks through 1c's
-`shift_matrix` at the initial rate and at each run's median, largest
-and smallest learned cell, no relief, no residual; sd equals
-√(n f (1 − f)) at the printed precision on every unclamped row; the
-largest learned cells (1.05–1.39 points per tick at widths 16 and 32)
-move a belief 21–28 bins in 100 ticks, piling it into the top bin (sd
-0.133–1.021 at 100 ticks, 0.000 by 500); one relief step adds at most
-0.5 bins of sd. **Caveats the section carries**: the
-probe is calibrated on the training distribution and read on the
-evaluation worlds (under-confident below p = 0.5, over-confident in its
-top two bins in sight); nothing was tuned and the states were trained
-for a squared-error mean; SD's P(grave) is derived from five need
-histograms under an independence assumption and cannot carry the
-happiness-only grave edge (168 of 2,527 in sight) that the probe reads
-at 0.676 (NF) and 0.783 (DR) in sight; discrimination saturates (AUROC
-above 0.998 for every head), so the read separates how much
-probability each head commits, which a consumer reading the number
-sees and one ranking by it would not; R1d is arithmetic on the operator, not an ablation of the
-training; group P, offline, no consumer, no welfare claim. What it
-hands to the Phase 2 head choice (hers) beside F-064, F-065 and F-066:
-if the Phase 2 consumer reads a probability, a Phase 1 head with one
-sigmoid on its state is the candidate shape and the SD line closes
-under its own declared rule; DR-h24+p reads 0.577 ± 0.037 in sight and
-0.685 ± 0.042 under fog beside NF-h24+p's 0.583 ± 0.015 and 0.720 ±
-0.010, with the smaller above-0.7 gap in sight (0.022) and 0.783 on
-the happiness-only grave samples in sight, and the Phase 2 head choice
-stays hers; the hybrid is under the cap (7,832 ≤
-8,445). Professor's P1 (a longer-cap SD re-run stays READ over 1
-with the signature on ≥ 4 friends) is carried forward unscored.
+natural-frequency BCE on the stratum label, early stop on the
+validation BCE with a relative margin; every fit stopped on the plateau
+rule, none at the 200-epoch cap; read through 1c's R4c instrument
+(`calibration_p`) beside SD width 16's committed cells. **Decision
+rule, applied** (declared before any fit; group P, in sight, every
+covered sample pooled, mean of seeds 1–3; m = mean P(grave) on GRAVE,
+Δ = m_SD − m_NF, s = √(s_SD² + s_NF²) over the seed SDs, g the
+above-0.7 gap: A if |Δ| ≤ s; B if Δ > s and g_SD < g_NF; C otherwise):
+Δ = 0.474 − 0.583 = −0.109, s = 0.116, **A**, "the histogram bought
+nothing the consumer needs", applied as declared; the stronger reading
+(the probe above SD on the grave mean in every version and lower on
+Brier: 0.00054 against 0.00064 in sight, mean on common samples 0.0003
+against 0.0005; under fog 0.720 ± 0.010 against 0.500 ± 0.046, Brier
+0.00119 against 0.00185) is reported, not ruled on (s is almost
+entirely SD's seed spread, 0.115 against the probe's 0.015; one SD
+seed, 0.601, sits above the probe's mean). In sight SD keeps its
+reliability above p = 0.7 (above-0.7 gap 0.019 against 0.057) and a
+lower mean on adjacent samples (0.183 against 0.265); the same probe on
+the DR-h24 states reads 0.577 ± 0.037 in sight and 0.685 ± 0.042 under
+fog, with the smaller above-0.7 gap in sight (0.022); all three rank
+grave against non-grave at AUROC 0.998–0.999 in every version, so the
+heads differ in how much probability they commit, not in
+discrimination; every MSE and bias cell of F-064 / F-065 / F-066 is
+unchanged by construction (the frozen heads' own output reproduces 1b's predictions to 3.9 / 4.5 / 3.7 / 3.0 / 2.4 / 3.6 × 10⁻⁷); the hybrid (a Phase 1 head plus one
+sigmoid) is 7,832 parameters, under the 8,445 cap; the Professor's P2
+(≥ 0.40 on grave, ≤ 0.002 on common, in sight) is met, and P1 (a
+longer-cap SD re-run stays READ over 1 with the signature on ≥ 4
+friends) is carried forward unscored. **Read 1, the spread**
+(`filter_spread.py`, read-only on 1c's nine `head-best.pt`; RESULTS
+§R1d): a delta at bin 2 pushed n ticks through 1c's `shift_matrix` with
+no relief and no residual has sd √(n f (1 − f)) bins at the printed
+precision on every unclamped row (matched to 2.3 × 10⁻⁸ bins over 79
+rows): 2.708 bins (13.5 need points) after 100 ticks at every run's
+initial rate, 1.56–1.87 bins at the learned width-16 median rates,
+while the engine's need rises with no uncertainty; the largest learned
+cells overrun, piling the belief into the top bin, and one relief step
+adds at most 0.5 bins of sd. The mechanism the Professor named for
+F-066's residual share stands as arithmetic, its causal share
+unmeasured (R1d is arithmetic on the operator, not an ablation of the
+training).
 
-## F-068 · active · The base head's five means name the grave need, the frozen-state grave probability is over 0.2 before a mid-world grave episode begins in most cases, and a consumer reading the means against 90 misses half or more of them: on the per-cat worlds NF-h24's means name a grave need on 0.871 ± 0.031 of the need-grave samples in sight (top-2 0.969; the always-name-drink baseline 0.353; DR-h24 0.872 ± 0.010; SD-w16's grave mass 0.739 ± 0.043, its mean 0.687 ± 0.031) and 0.867 under fog, play the weakest need (0.783); of 288 grave episodes over observer slices (72 friend-episodes × 4 observers) 200 are RESET episodes (grave at the world's first tick, group P's per-cat grave-start design; a crossing there is the prior, not a detection), 20 begin mid-world in the observer's sight and 68 mid-world under fog; on the mid-world fog-onset episodes NF-h24+p at P(grave) ≥ 0.2 detects 0.946 ± 0.042 at a median latency of 0 ticks and is over the threshold at the tick before onset as well in 0.931 of them, on the mid-world in-sight episodes 0.850 ± 0.087 (anticipated in 0.833), over all onsets 0.912 ± 0.051 of the 34 in-sight-onset and 0.966 ± 0.016 of the 254 fog-onset episodes; its false-alarm runs are 0.90 ± 0.30 per 10,000 observer-ticks in all and 0.07 ± 0.02 excluding runs that start at the world's first tick; the max-of-means ≥ 90 rule on the same head detects 0.367 ± 0.058 of the mid-world in-sight and 0.490 ± 0.090 of the mid-world fog episodes (0.490 ± 0.045 and 0.686 ± 0.065 over all onsets, 3 ticks late at the median), on SD-w16's means 0.294 and 0.177 over all onsets at a median of 11.3 and 34.0 ticks; both declared reading rules hold as declared ((i) NF-h24 mean which-need in sight, pooled, ≥ 0.80 with every per-need cell of n ≥ 200 above 0.60; (ii) NF-h24+p at P(grave) ≥ 0.2 detecting ≥ 0.90 of the episodes with onset in sight at median latency ≤ 10 ticks — 0.912, by less than one of its 34 episodes, 0.850 on the 20 mid-world in-sight episodes alone, disclosed) and the registered prediction that the mean rule detects under half of the in-sight-onset episodes holds on the seed mean (0.490; per seed 0.500 / 0.441 / 0.529, one seed exactly at half and one over), so the verdict as declared is "enough for detection and naming, on this evidence"
+Caveats that bound the claim: the probe is calibrated on the training
+distribution and read on the evaluation worlds (under-confident below
+p = 0.5, over-confident in its top two bins in sight); nothing was
+tuned and the states were trained for a squared-error mean; SD's
+P(grave) is derived from five need histograms under an independence
+assumption and cannot carry the happiness-only grave edge (168 of
+2,527 in sight) that the probe reads at 0.676 (NF) and 0.783 (DR);
+group P, offline, no consumer, no welfare claim. What it hands to the
+Phase 2 head choice (hers) beside F-064, F-065 and F-066: if the Phase
+2 consumer reads a probability, a Phase 1 head with one sigmoid on its
+state is the candidate shape and the SD line closes under its own
+declared rule; DR-h24+p and NF-h24+p sit side by side on the numbers
+above, and the choice stays hers.
 
-Minted from mini-friend Phase 1d §Addendum (`minifriend-phase1d-2026-10-24/RESULTS.md`
-§Addendum, gated; owner 2026-10-24 "Agreed, let's proceed. First the
-breakdown by need and latency read", after a sanity-check exchange on
-whether the minis give the main models what they need; deviations
-entry 13). Data: none new (0 covered cat-ticks); the outputs of Phase
-1b's NF-h24 / DR-h24 runs, 1c's SD-w16 runs and 1d's probes, read on
-group P (P1..P5, 4,000,000 samples). **R3d which need**: domain the
-grave samples with some hidden need ≥ 90 (2,359 per seed in sight, of
-which 1,021 carry two or more grave needs; 7,865 under fog); named
-need = argmax of the head's five per-need scores, correct when it is
-one of the sample's grave needs; per-need cells all n ≥ 500 per seed; the
-confusion for NF-h24's means in sight names a grave play need as
-sleep 511, drink 474 and eat 354 times against play 661 (counts
-summed over seeds), eat the strongest need in sight (0.986). **R4d latency**:
-episodes = maximal runs of stratum GRAVE on the truth stream per
-(world, friend), one per observer, classed by onset (RESET at the
-world's first tick; mid-world in sight; mid-world under fog — the
-split added after gate round 1, the declared rules scored as declared
-and the mid-world numbers disclosed beside them); detection = the
-first tick at or over the threshold, latency from onset (0 = at
-onset); anticipated = over the threshold at onset and at the tick before
-it, within the observer's slice; false alarms = over-threshold runs
-containing no grave tick. On the 68 mid-world fog-onset episodes every
-probability head at 0.2 detects over nine in ten (SD-w16 0.961,
-NF-h24+p 0.946, DR-h24+p 0.926) at a median latency of 0, anticipated
-in 0.88–0.96; on the 200 reset episodes SD-w16's P(grave) is over 0.2
-at the first tick for every friend, grave or not (its prior) while NF-h24+p and
-DR-h24+p cross at a median of 1 and 0 ticks, and the world-start
-transient holds almost all of the probes' false-alarm runs (NF-h24+p
-0.90 → 0.07, DR-h24+p 2.06 → 0.16 per 10,000 observer-ticks once runs
-beginning at the world's first tick are set aside); at 0.5 NF-h24+p
-loses 0.20 (mid-world in sight) and 0.07 (mid-world fog) of detection,
-SD-w16 0.17 and 0.20, and on the reset episodes SD-w16's median latency
-at 0.5 is 11 ticks against NF-h24+p's 1. **Caveats
-the section carries**: reset episodes are over two thirds of the sample
-and the declared splits count a head's prior as a detection there;
-the mid-world in-sight split rests on 20 observer-episodes (one is
-0.05 of the detected fraction) and the mid-world fog split on 68;
-rule (ii) as declared clears its bar by less than one of its 34
-episodes; the which-need read
-is the base head's means, not the probe's (the probe emits one
-number; a per-need probability is a Phase 2 design choice); 43% of
-the in-sight need-grave samples have two or more grave needs and
-naming any one counts; fog-onset detection says the belief knows,
-not that the cat can reach; the false-alarm rate counts runs per
-tick, at the 0.2 rows most one to three ticks long, and what a run
-costs depends on the consumer; one group, offline, three seeds. What it hands to the
-Phase 2 declaration (hers) beside F-067: a probability-reading
-consumer at 0.2 sees a mid-world grave episode as it begins in most
-cases (median latency 0), the base
-head's means are where the need's name is, and the mean-against-90 reading is the
-ostrich as a missed-detection rate; a per-need probability output is
-a design choice for the Phase 2 declaration, not read here, and both
-thresholds are printed so no single operating point is privileged.
-Note 2026-10-24 (RESULTS §Addendum 2, gated): an operating-point
-sweep over 0.05–0.50 found that nearly every false-alarm run this
-entry calls "mid-world" starts within a slice's first hundred ticks,
-so the start-up transient is about a hundred ticks long rather than
-the one tick set aside here; the detection numbers above are
-unaffected, and the false-alarm rate reads as mostly start-up.
-Note 2026-10-25 (RESULTS §Addendum 3, gated): a burn-in read found
-that every grave episode this entry calls "mid-world" begins inside a
-slice's first hundred ticks — on the per-cat worlds each is the friend
-that was grave at the world's first tick crossing back into grave
-during the start-up — and that no grave onset in either evaluation
-set comes later; the detection numbers above stand as printed, but
-they are start-up detections, and neither set holds a mid-world grave
-onset in the sense this entry's wording suggests (the lived worlds
-hold none at all, which is evidence of rarity, not absence). Inside
-the start-up window a higher threshold separates the grave-start
-slices from the rest better than a lower one. What Phase 2 reads, and
-on which set, is the owner's.
-Note 2026-10-26 (RESULTS §Addendum 4, gated): the detection numbers
-above are detections by a young state (every onset in the evaluation worlds at or before offset 90, the reset episodes at most 238 ticks long); at
-P(grave) ≥ 0.10 the same covered grave rows spliced after 100 clean
-ticks of lived history are detected in about a third of episodes, and
-a warm-started state detects the real reset episodes on the per-cat
-worlds in about six in ten (F-069). The
-numbers stand as printed for the start-up domain they were read on.
+## F-068 · active · The frozen NF-h24 head names the grave need from its five means, and its grave probability is over 0.2 before a mid-world grave episode begins in most cases, while a consumer reading the means against 90 misses half or more of the episodes
+The numbers a consumer needs (per-cat worlds, group P, three seeds;
+every table in `minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum,
+gated): NF-h24's means name a grave need on 0.871 ± 0.031 of the
+need-grave samples in sight and 0.867 under fog (always-name-drink
+baseline 0.353); NF-h24+p at P(grave) ≥ 0.2 detects 0.912 ± 0.051 of
+the 34 in-sight-onset episodes and 0.966 ± 0.016 of the 254 fog-onset episodes at median latencies of 0 and 0.7 ticks (0 on the 68 mid-world fog-onset episodes, over the threshold at the tick before onset as well in 0.931 of them), with false-alarm runs 0.90 ±
+0.30 per 10,000 observer-ticks in all and 0.07 ± 0.02 once runs that
+start at the world's first tick are set aside; the max-of-means ≥ 90
+rule on the same head detects 0.490 ± 0.045 and 0.686 ± 0.065 of the
+same episodes, 3 ticks late at the median. Both declared reading rules
+hold as declared (rule (ii) by less than one of its 34 episodes; 0.850
+on the 20 mid-world in-sight episodes alone, disclosed), and the
+registered prediction that the mean rule detects under half of the
+in-sight onsets holds on the seed mean (0.490). Verdict as declared:
+"enough for detection and naming, on this evidence".
 
-## F-069 · active · The frozen NF-h24 head's grave probability is a property of the young state (at P(grave) ≥ 0.10 on the per-cat worlds unless stated): the same covered grave rows that it detects in 0.995 ± 0.009 of 200 reset episodes at a median latency of 0.3 ticks when they arrive at a world's start are detected in 0.358 ± 0.175 (0.540 / 0.345 / 0.190 per seed) at a median latency of 26.5 ± 12.4 ticks when spliced after 100 clean ticks of a lived world's history, 0.287 ± 0.143 and 0.288 ± 0.132 after 500 and 2,000, with a junction control of default-start rows never firing (0.000 at H = 100 / 500 / 2,000 at every threshold) and SD width 16 collapsing alike (1.000 → 0.275 → 0.282 → 0.287); the self block is not in it (H = 0 with the recipient's self block 0.995 / 0.972 / 0.968 at 0.10 / 0.30 / 0.50 against 0.995 / 0.970 / 0.965); the same head warm-started at the mean state over ticks 1,000 … 19,999 of L's clean slices detects the real reset episodes at 0.592 ± 0.066 (0.650 / 0.520 / 0.605 per seed) against 0.995 while every first-tick false-alarm run disappears (614.0 ± 322.2 → 0.0) and the clean slices' start-up firing goes 0.767 ± 0.403 → 0.000 ± 0.000; on L's clean slices the state's step does not shrink (median 0.0480 ± 0.0009 in ticks [1, 100), 0.0571 ± 0.0024 from tick 1,000 on) and the logit has no trend (0.0001 ± 0.0021 per 1,000 ticks against a within-slice SD of 0.9387 ± 0.0775), while the mean logit is −1.829 ± 0.598 at tick 0 (P(grave) 0.178 / 0.075 / 0.192 per seed), −4.059 at tick 1 and −9.371 at tick 10; the training worlds (every set) hold no grave after offset 322 (182 onsets, the latest at 171, 1 after tick 100; the validation worlds to 601, the evaluation worlds to 779); a burn-in of 2 ticks at 0.10 on the per-cat worlds takes all-runs false alarms 1.607 ± 0.805 → 0.136 ± 0.063 per 10,000 observer-ticks at reset detection 0.980 (5 ticks: 0.073 ± 0.001 at 0.960; 10: 0.072 ± 0.004 at 0.798) while on L / W / G the same burn-ins leave 0.538 → 0.521 → 0.577 per 10,000; swapping the observer's self block on the 200 grave-start slices moves reset detection 0.995 → 0.992 and the re-entries 0.900 → 0.883 in sight; the Professor's P4 and P8 are met, P3 and P5 not met as operationalised, and the condition named for reopening SD is not met
+Minted 2026-10-24 on the owner's word (deviations entry 13; the kickoff and the sanity-check exchange before it in `minifriend-phase1d-2026-10-24/DECLARATION.md`); no new data (0 covered cat-ticks), read on Phase 1b / 1c / 1d outputs.
 
+**Scope**: start-up detections. Every grave onset in the evaluation
+worlds is at or before offset 90, and 200 of the 288 episodes are
+grave at the world's first tick, where a crossing is the head's prior,
+not a detection (RESULTS §Addendum 3); the false-alarm runs are mostly
+the start-up transient, about a hundred ticks long (§Addendum 2). The
+which-need read is the base head's means, not the probe's; 43% of the
+in-sight need-grave samples carry two or more grave needs and naming
+any one counts; fog-onset detection says the belief knows, not that
+the cat can reach; one group, offline, three seeds. What it hands Phase 2 beside F-067: a probability-reading consumer at 0.2 sees a mid-world grave episode as it begins in most cases (median latency 0), the means carry the need's name, and the
+mean-against-90 reading is the ostrich as a missed-detection rate; a
+per-need probability output and the operating point are Phase 2
+design choices, hers.
+
+Notes 2026-10-25 and 2026-10-26 (RESULTS §Addendum 3 and 4, gated): every grave episode this entry calls "mid-world" begins inside a slice's first hundred ticks, and neither evaluation set holds a mid-world grave onset in the sense the wording suggests (the lived worlds hold none at all, which is evidence of rarity, not absence); the detections are by a young state, and the same covered grave rows spliced after 100 clean ticks are detected in about a third of episodes (F-069, F-070). The numbers stand as printed for the start-up domain they were read on; what Phase 2 reads, and on which set, is the owner's.
+## F-069 · active · The frozen NF-h24 head's grave probability is a property of the young state: the same covered grave rows detected in 0.995 of reset episodes at a world's start are detected in 0.358 after 100 clean ticks of lived history and 0.287 / 0.288 after 500 and 2,000; the self block is not in it, a warm-started state trades reset detection for the first-tick false alarms, and a 2-tick burn-in removes them on the per-cat worlds at little cost
 Minted from mini-friend Phase 1d §Addendum 4
 (`minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum 4, gated round 2;
 owner 2026-10-25 "Let's do another threshold sweep rather than choosing
 an arbitrary value. Maybe 0.1,0.3.,0.5 to start so we can get a feel
-for the trade-off. Zero-collection reads first. …" and "Yes on splice
-test. Yes on relay to product. Confirm 3", after the burn-in report and
-the Professor's note of the same day; deviations entry 13). Data: none
-new (0 covered cat-ticks; no weight touched) — the saved observation
-streams of the evaluation worlds, Phase 1b's frozen NF-h24 heads, 1d's
-three probes and 1c's SD width 16 heads, re-run by the reader exactly
-as the probe fit walked them (the re-run P(grave) equals the committed
-file on the first group-P evaluation world to 0.0e+00 on every seed). **The splice**: donors are group P's 200
-reset-grave episodes over observer slices (the friend's 58-cell row
-over the episode, 5 / 40 / 238 ticks min / median / max, 14 in sight at
-onset), placed after H clean ticks of one of L's 60 evaluation slices
-with the recipient observer's own self block continuing; the episode is
-the donor segment; a junction control uses a default-start friend's
-rows over the same ticks; H = 0 is the donor episode in its own slice
-on the committed signal, pinned to the sweep. **The warm start**: h̄ is
-the mean state over ticks 1,000 … 19,999 of L's clean slices per seed;
-every evaluation slice re-run from it and read through §Addendum 3's
-burn-in grid at B = 0. **Convergence**, on L's 60 clean evaluation slices: step ‖h_t − h_{t−1}‖ and drift
-‖h_t − h_100‖ medians by tick window, the logit's per-slice slope after
-tick 300 and the drift-to-scatter ratio (0.032 ± 0.021). **The swap**:
-on the 200 grave-start slices, the (observer, grave-start seat) row
-beside the next observer's self block, from the zero state, against the
-unswapped committed signal. **The fitted worlds**: grave ticks and
-episode onsets by offset from the world start, per world × friend, per
-role (train 74 worlds, 6,301 grave ticks; val 17, 1,960; eval 69,
-6,778). Every table at 0.10 / 0.30 / 0.50; after a clean history 0.10
-detects the most (H = 100: 0.358 / 0.228 / 0.162) with the control at
-0.000 at all three. **Caveats the section carries**: the splice
-junction is a jump into a covered friend's grave, not a crossing (the
-donor's rows are the first ticks of its own world beside a self block
-from another), so the read licenses the dependence of the response on
-the state's history for a covered grave signature as recorded and
-says nothing about a slow crossing from below, which no set on disk
-contains; 14 of 200 donors in sight at onset; one warm start, not a
-search; the fitted-worlds table is a fact about the data, and the
-reads do not measure whether the collapse is learned from it; the
-self block is separated from the state only at the zero state and at
-H = 0. What it hands to the Phase 2 declaration (hers): the detection
-numbers of F-068 are start-up detections by a young state; whether
-the head sees a covered friend's slow crossing into grave after a long
-clean history is unanswered by any set on disk, which holds none; the
-threshold and the burn-in are hers on the three-point ladder, where a
-2–5-tick burn-in removes the first-tick transient on the per-cat
-worlds at little cost to reset detection and does not on L / W / G,
-and the warm start removes it at a large cost.
+for the trade-off. Zero-collection reads first. …", after the burn-in
+report and the Professor's note of the same day; deviations entry 13).
+Data: none new (0 covered cat-ticks; no weight touched) — the saved
+observation streams of the evaluation worlds, Phase 1b's frozen NF-h24
+heads, 1d's three probes and 1c's SD width 16 heads, re-run by the
+reader exactly as the probe fit walked them (the re-run P(grave) equals the committed file on the first group-P evaluation world to 0.0e+00 on every seed). Method in RESULTS
+§Addendum 4's opening paragraph and R7d (a)–(f). **The splice** places
+group P's 200 reset-grave episodes over observer slices (the friend's
+58-cell row over the episode, 14 in sight at onset) after H clean ticks
+of one of L's 60 evaluation slices, the recipient observer's own self
+block continuing, with a junction control of a default-start friend's
+rows over the same ticks. At P(grave) ≥ 0.10: detection 0.995 ± 0.009
+at H = 0 (median latency 0.3 ticks), 0.358 ± 0.175 at H = 100 (median
+latency 26.5 ± 12.4; 0.228 / 0.162 at 0.30 / 0.50), 0.287 ± 0.143 and 0.288 ± 0.132 at 500 and 2,000, the junction control of default-start rows never firing (0.000 at H = 100 / 500 / 2,000 at every threshold), SD width 16 collapsing alike (1.000 → 0.275 → 0.282 →
+0.287); the self block is not in it (H = 0 with the recipient's self
+block 0.995 against 0.995; swapping the observer's self block on the
+200 grave-start slices moves reset detection 0.995 → 0.992 and the
+re-entries 0.900 → 0.883 in sight). The warm start (the mean state over
+ticks 1,000 … 19,999 of L's clean slices) detects the real reset
+episodes at 0.592 ± 0.066 against 0.995 while every first-tick
+false-alarm run disappears (614.0 ± 322.2 → 0.0). On L's clean slices
+the state's step does not shrink and the logit has no trend, while the
+mean logit is −1.829 ± 0.598 at tick 0, −4.059 at tick 1 and −9.371 at
+tick 10; the training worlds (every set) hold no grave after offset 322 (182 onsets, the latest at 171, 1 after tick 100; the validation worlds to 601, the evaluation worlds to 779). Burn-ins: 2 ticks at 0.10
+on the per-cat worlds take all-runs false alarms 1.607 ± 0.805 → 0.136
+± 0.063 per 10,000 observer-ticks at reset detection 0.980 (5 ticks:
+0.073 at 0.960; 10: 0.072 at 0.798), while on L / W / G the same
+burn-ins leave 0.538 → 0.521 → 0.577. The Professor's P4 and P8 are
+met, P3 and P5 not met as operationalised, and the condition named for
+reopening SD is not met.
 
-## F-070 · active · The frozen NF-h24 head's grave detection falls gradually with the length of the clean history before the grave rows, most of the fall over by 20 ticks (at P(grave) ≥ 0.10 on the §Addendum 4 splice, group P's 200 covered reset-grave donors onto L's 60 clean recipients, seeds 1–3, unless stated): the same covered grave rows detected in 0.995 ± 0.009 of episodes at a world's start are detected in 0.978 ± 0.003 / 0.970 ± 0.009 / 0.852 ± 0.038 / 0.658 ± 0.096 / 0.537 ± 0.063 / 0.362 ± 0.070 after 1 / 2 / 5 / 10 / 20 / 50 clean ticks and 0.358 ± 0.175 after 100, at median latencies from the junction of 1.0 / 1.3 / 3.7 / 11.3 / 16.3 / 24.7 ticks against 26.5 at 100, with the junction control of default-start rows firing in 0.010 ± 0.017 of junctions at H = 1 and 0.000 from H = 2 on; the knee by the declared midpoint (0.641 between the start's 0.995 and the 500 / 2,000 plateau's 0.287) is at H = 20, with H = 10 just above it; at 0.30 and 0.50 the curve sits lower at every H (H = 10: 0.482 / 0.378); SD width 16 at 0.10 sits lower on the seed means at every H ≥ 5 (0.762 ± 0.185 / 0.487 ± 0.332 / 0.403 ± 0.306 / 0.297 ± 0.165 at 5 / 10 / 20 / 50; knee at 10), with one of its three seeds (seed 3, whose control still fires 0.140 / 0.130 there) above every NF seed at H = 10 and 20, while its rows at H = 1 and 2 are its own start-up transient (control 1.000 / 0.985) and its seed-mean control is under 0.05 only from H = 10; the Professor's P9 is not met as operationalised (0.658 at H = 10 is under 0.70; 0.537 at H = 20 is 0.178 from the committed 0.358 at H = 100, over its seed SD of 0.175 by 0.003); the provisional 2-tick burn-in of decision 3 sits inside the window in which the head sees a covered grave (0.970 at H = 2, 0.852 at 5)
+Caveats that bound the claim: the splice junction is a jump into a
+covered friend's grave, not a crossing (the donor's rows are the first
+ticks of its own world beside a self block from another), so the read
+licenses the dependence of the response on the state's history for a
+covered grave signature as recorded and says nothing about a slow
+crossing from below, which no set on disk contains; 14 of 200 donors
+in sight at onset; one warm start, not a search; the fitted-worlds
+table is a fact about the data, and the reads do not measure whether
+the collapse is learned from it; the self block is separated from the
+state only at the zero state and at H = 0. What it hands to the Phase 2
+declaration (hers): the detection numbers of F-068 are start-up
+detections by a young state; whether the head sees a covered friend's
+slow crossing into grave after a long clean history is unanswered by
+any set on disk, which holds none; the threshold and the burn-in are
+hers on the three-point ladder, where a 2–5-tick burn-in removes the
+first-tick transient on the per-cat worlds at little cost to reset
+detection and does not on L / W / G, and the warm start removes it at a
+large cost.
 
+## F-070 · active · The frozen NF-h24 head's grave detection falls gradually with the length of the clean history before the grave rows, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 / 0.362 after 1 / 5 / 10 / 20 / 50 clean ticks against 0.995 at a world's start and 0.358 at 100), with the knee at H = 20 by the declared midpoint
 Minted from mini-friend Phase 1d §Addendum 5
 (`minifriend-phase1d-2026-10-24/RESULTS.md` §Addendum 5, gated round 3;
-owner 2026-10-26 "Run the knee read now", on the walkthrough after
-§Addendum 4's report, decision 3 ruled provisionally the same day at
-0.10 with a 2-tick burn-in; deviations entry 13). Data: none new (0
-new cat-ticks; no weight touched) — `history_read`'s splice
-unchanged at six new history lengths, the same donors and recipients
-as F-069, the recipient's self block continuing from the junction, the
-head from the zero state; H = 100 re-run and equal to the committed
-§Addendum 4 rows in every leaf; reader `knee_read.py`, 8 s. **Caveats
-the section carries**: the junction is a jump into a covered friend's
-grave, not a crossing (F-069's limitation); 14 of 200 donors in sight at
-onset; one ladder of six H values, three seeds per head, NF's seed SD
-at H = 10 (0.096) a third of its fall between 5 and 20; SD's rows at
-H = 1 and 2 are its own transient (control 1.000 / 0.985) and at H = 5
-one seed's is (control 0.365 on seed 3, 0.000 on the others), so SD's
-curve is read from H = 10, where its seed-mean control is under 0.05,
-with seed 3's control still firing 0.140 / 0.130 at H = 10 / 20 and
-that seed clean only from H = 50; the false-alarm column of the tables
-is, for NF, a count of recipient start-up runs over the whole spliced
-index, not a rate comparable across addenda, and for SD seed 3 holds a
-few runs that are not start-up runs (3 of 184 at H = 20 and 6 of 206
-at 50 and 100, at 0.10); the knee's midpoint is one declared
-convention and the curve is the result. What it hands on: the needy
-set's onset strata are set from this number (DECLARATION §Addendum 5),
-and the curve the declaration will read has 0.978 at H = 1 and 0.658 at
-H = 10; the question F-069 left open, whether a slow crossing into grave
-after a long clean history is seen, is still open (F-069).
+owner 2026-10-26, on the walkthrough after §Addendum 4's report,
+decision 3 ruled provisionally the same day at 0.10 with a 2-tick
+burn-in; deviations entry 13). Data: none new (0 new cat-ticks; no
+weight touched) — F-069's splice unchanged at six new history lengths,
+the same donors and recipients, the recipient's self block continuing
+from the junction, the head from the zero state; H = 100 re-run and
+equal to the committed §Addendum 4 rows in every leaf; reader
+`knee_read.py`. At P(grave) ≥ 0.10, seeds 1–3: 0.978 ± 0.003 / 0.970 ±
+0.009 / 0.852 ± 0.038 / 0.658 ± 0.096 / 0.537 ± 0.063 / 0.362 ± 0.070
+at H = 1 / 2 / 5 / 10 / 20 / 50 and 0.358 ± 0.175 at 100, median
+latencies from the junction 1.0 / 1.3 / 3.7 / 11.3 / 16.3 / 24.7 ticks
+against 26.5 at 100, the junction control firing in 0.010 ± 0.017 of
+junctions at H = 1 and 0.000 from H = 2 on; the knee by the declared
+midpoint (0.641 between the start's 0.995 and the 500 / 2,000 plateau's
+0.287) is at H = 20, with H = 10 just above it; at 0.30 and 0.50 the
+curve sits lower at every H (H = 10: 0.482 / 0.378). SD width 16 at 0.10 sits lower on the seed means at every H ≥ 5 (0.762 ± 0.185 / 0.487 ± 0.332 / 0.403 ± 0.306 / 0.297 ± 0.165 at 5 / 10 / 20 / 50; knee at 10), with one of its three seeds (seed 3, whose control still fires 0.140 / 0.130 there) above every NF seed at H = 10 and 20, while its rows at H = 1 and 2 are its own start-up transient (control 1.000 / 0.985) and its seed-mean control is under 0.05 only from H = 10. The Professor's P9 is not met as operationalised (0.658 at H = 10
+is under 0.70; 0.537 at H = 20 is 0.178 from the committed 0.358 at
+H = 100, over its seed SD of 0.175 by 0.003); the provisional 2-tick
+burn-in of decision 3 sits inside the window in which the head sees a
+covered grave (0.970 at H = 2, 0.852 at 5).
+
+Caveats that bound the claim: the junction is a jump into a covered
+friend's grave, not a crossing (F-069's limitation); 14 of 200 donors
+in sight at onset; one ladder of six H values, three seeds per head,
+NF's seed SD at H = 10 (0.096) a third of its fall between 5 and 20; SD's rows at H = 1 and 2 are its own transient and at H = 5 one seed's is (control 0.365 on seed 3, 0.000 on the others), so SD's curve is read from H = 10, where its seed-mean control is under 0.05, with seed 3's control still firing at H = 10 / 20 and that seed clean only from H = 50; the false-alarm column of the tables is, for NF, a count of recipient
+start-up runs over the whole spliced index, not a rate comparable
+across addenda, and for SD seed 3 holds a few runs that are not
+start-up runs; the knee's midpoint is one declared convention and the
+curve is the result. What it hands on: the needy set's onset strata
+are set from this curve (DECLARATION §Addendum 5), and the curve the
+declaration will read has 0.978 at H = 1 and 0.658 at H = 10; the
+question F-069 left open, whether a slow crossing into grave after a
+long clean history is seen, is still open.
