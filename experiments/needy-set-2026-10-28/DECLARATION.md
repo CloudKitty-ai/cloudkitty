@@ -47,7 +47,8 @@ beside the scripted friend in each covered world, and no others. No
 weight changes anywhere in this arc. Expected exposure at the drafted
 design: about 7.1M covered cat-ticks (arm N about 5.5M, arm T 0.8M, arm
 E about 0.3M if she rules it in (§12 call 7), the covered scout's paired
-worlds about 0.5M, the binding check 10,000), capped at 8.0M (§7). Expected distress for the covered seats is near the
+worlds about 0.5M plus arm E's 64,000, the binding check 10,000), capped
+at 8.0M (§7). Expected distress for the covered seats is near the
 lived worlds' own: L held no grave tick for any friend in 1.0M covered
 cat-ticks with 0 aborts (Phase 1 RESULTS.md:35-39, DECLARATION.md:296-300),
 and on P distress stayed with the grave kitty in all 100 worlds (1b
@@ -483,6 +484,11 @@ leg on any config no covered mind has run, its number cited).
   if clean), and the two covered-scout seeds per block, each run twice:
   once with seat k on `needy`, once on `teacher`. SC-002 makes each pair
   the same world until the first onset. 6,000 ticks, the S1 stop armed.
+  If arm E is ruled in, its own paired scout: two seeds per block from
+  arm E's band (the first two of each block's sixty), each run twice,
+  once on the E config and once with seat k on `teacher` from the
+  default start, 800 ticks, about 64,000 covered cat-ticks; a whole-world
+  read, since the friend is in need from the first frame.
 
 **Stops**, declared before launch, asymmetric (README item 1: harm and
 futility, never early success):
@@ -494,12 +500,27 @@ futility, never early success):
   release tick by construction, and with m ≥ 2 its first masked need can
   sit at 90 while the slowest climbs, so a roster-wide line would stop
   the instrument for doing its job.
-- **S2, harm, the covered scout.** The set does not launch if the
-  covered seats' pooled mean happiness in the scout's `needy` worlds is
-  more than 1.0 point under their paired `teacher` worlds (for scale,
-  every one-seat swap of rot2 sat within 0.3, pooled −0.083 ± 0.138 per
-  world; battery RESULTS §"Swaps digest"), or on any covered abort. A
-  miss goes to her with the read.
+- **S2, harm, the covered scout** (shape ruled 2026-10-28, her
+  "Agreed", after her two challenges: a 1.0-point line "seems like a
+  very narrow margin … maybe it would be better to give a little more
+  latitude (say 5-10% below baseline?)", and a whole-world mean "doesn't
+  pool over 6000 ticks if we're simulating distress early"). Two reads
+  from the paired covered scout, each the covered seats' pooled mean
+  happiness in the `needy` world minus the paired `teacher` world:
+  - *whole world* (chronic): arm N pairs over 6,000 ticks, arm E pairs
+    over 800;
+  - *episode window* (acute): arm N pairs, the ticks from mask onset to
+    release plus 300 of each first episode only; the pair is the same
+    world until onset, so the window difference is clean. Its noise is
+    unmeasured; the scout prints the per-world spread beside the mean.
+  One rule on each read: a drop under 1.0 launches; 1.0 to 4.4 (5% of
+  the rot2 team's 87.49) launches on her word after the read; over 4.4
+  does not launch. For scale, every one-seat swap of rot2 moved the team
+  by at most 0.28, pooled −0.083 ± 0.138 per world, team SD across
+  worlds 0.08 (battery RESULTS §"Swaps digest"); 1.0 on four seats over
+  a world is one cat 4 points down throughout, about one need sitting
+  20 higher. Any covered abort in the scout stops the launch and goes to
+  her.
 - **S3, futility.** A primary stratum with a scout share of 0, or w over
   60 (a share under 1/6), or a total over 8.0M covered cat-ticks, goes
   back to her before any covered world beyond the scout. Arm E's w_E is
@@ -672,7 +693,11 @@ futility, never early success):
    the total stays under the 8.0M cap with arm E in).
 5. **Stops.** S1 on the covered seats only (the scripted friend exempt,
    its distress reported), S2's 1.0-point harm line on the covered
-   scout, S3's futility caps. Recommendation: yes.
+   scout, S3's futility caps. Recommendation: yes. **RULED 2026-10-28:
+   "Agreed"**, to S2 reshaped in the walkthrough (two reads, whole world
+   and episode window; one rule: under 1.0 launches, 1.0 to 4.4 on her
+   word, over 4.4 does not launch; arm E gets its own paired covered
+   scout), S1 and S3 as drafted. Her words that moved it are in §7.
 6. **The split and the pick.** Tuning and confirming seeds alternate
    within each block; R4's grid reads tuning seeds only; she picks; R5
    on the confirming seeds supplies the numbers the Phase 2 declaration
