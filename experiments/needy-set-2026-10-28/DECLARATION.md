@@ -702,7 +702,11 @@ futility, never early success):
    within each block; R4's grid reads tuning seeds only; she picks; R5
    on the confirming seeds supplies the numbers the Phase 2 declaration
    cites; the predictions wait until after the pick so the confirming
-   seeds stay unread until then. Recommendation: yes.
+   seeds stay unread until then. Recommendation: yes. **RULED
+   2026-10-29: "As drafted"** (after the in-depth walkthrough: the split
+   is the observer-stream ruling's own follow-up; the pick is hers from
+   R4's priced table; R5's confirming figures are the ones Phase 2
+   cites; the predictions wait so the confirming half stays unread).
 7. **Arm E, early crossings** (drafted on her "Call 2 as put + arm E",
    2026-10-28). Kitty k's five hidden needs start at n under `needy`
    with the mask opening at tick 0 or 1, 800 ticks a world, n pinned
