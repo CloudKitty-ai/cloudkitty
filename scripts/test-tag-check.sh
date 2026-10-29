@@ -78,6 +78,11 @@ printf '%s\n' '                                 Apache License' '               
 cat > CHANGELOG.md <<'EOF'
 # Changelog
 
+Entries carry **compatibility markers** where they apply:
+
+- **`[stamp]`** — the engine-defaults hash moved.
+- **`[world-fresh]`** — the world fingerprint changed.
+
 ## Unreleased
 
 ## 0.4.0 — 2026-09-27 — test release
@@ -169,6 +174,9 @@ cat > experiments/FINDINGS.md <<'EOF'
 ## F-001 · active · Alpha holds
 
 Evidence: [arc result](arc-a/RESULTS.md) and `arc-a/RESULTS.md` §1.
+
+**Invalidated by**: alpha retuned, or a
+`[stamp]` move. **Re-verify when**: the beta arc lands.
 
 ## F-002 · superseded by F-001 (2026-09-01) · Beta held
 
@@ -415,6 +423,68 @@ sed -i.bak 's#§1.#§1. Cites `2026-01-01-loose-note.md`, not yet on Zenodo.#' e
 case_ 1 "the bare word Zenodo in prose absolves nothing: FAIL" citations
 sed -i.bak 's#not yet on Zenodo#now zenodo.9876#' experiments/FINDINGS.md && rm experiments/FINDINGS.md.bak
 case_ 0 "a concrete zenodo record absolves: PASS" citations
+reset_
+# the cold register (owner 2026-10-28): a moved entry's citations are walked
+# from FINDINGS-COLD.md; the hot stub keeps the heading and points there
+cold_() {  # cold_ <body of F-003 in the cold file>
+  printf '\n## F-003 · active · Gamma holds\n\nCold since the close: text in [FINDINGS-COLD.md](FINDINGS-COLD.md#f-003).\n' >> experiments/FINDINGS.md
+  awk '/^\| F-002 \|/{print "| F-003 | active | *(cold: gamma)* Gamma holds |"} {print}' experiments/FINDINGS.md > f2 && mv f2 experiments/FINDINGS.md
+  printf '# cold\n\n## F-003 · active · Gamma holds\n\n%s\n' "$1" > experiments/FINDINGS-COLD.md
+  git add experiments/FINDINGS-COLD.md
+}
+cold_ 'Evidence: [gone](arc-a/results-raw/gone.json). **Re-verify when**: gamma re-runs.'
+case_ 1 "a cold entry citing an untracked path: FAIL" citations
+has "F-003 (FINDINGS-COLD.md) cites untracked" "the cold entry named with its file"
+case_ 1 "a dead link in the cold file: FAIL" links
+has "experiments/FINDINGS-COLD.md -> arc-a/results-raw/gone.json" "the cold file's link named"
+reset_
+
+# ---------------------------------------------------------------- findings-review
+case_ 0 "findings-review: REPORT, exit 0" findings-review
+has "REPORT  findings-review" "an active entry makes it a REPORT"
+has "CHANGELOG ## Unreleased: no entries" "an empty Unreleased says so"
+has "Invalidated by: alpha retuned, or a \`[stamp]\` move." "the invalidator paragraph, joined to one line"
+has "Re-verify when: the beta arc lands." "the re-verify line"
+hasnt "F-002" "a superseded stub is not listed"
+awk '/^## Unreleased/{print; print ""; print "- moved the stamp `[stamp]`"; print "  and the world `[world-fresh]`"; print "- neutral, `[stamp]` unmoved"; print "- nothing"; next} {print}' CHANGELOG.md > c2 && mv c2 CHANGELOG.md
+case_ 0 "findings-review: markers counted" findings-review
+has "CHANGELOG ## Unreleased: 3 entries; markers" "entries counted"
+has "  [stamp] x2" "a marker counted across entries"
+has "  [world-fresh] x1" "every header-defined marker listed"
+reset_
+case_ 0 "findings-review: --tag adds the tag's section" --tag 0.4.0 findings-review
+has "CHANGELOG ## Unreleased and ## 0.4.0: 1 entries" "the tag's section read too"
+cold_ '**Would invalidate**: gamma shifts. **Re-verify when**: gamma re-runs.'
+case_ 0 "findings-review: a cold entry listed from its file" findings-review
+has "F-003 (FINDINGS-COLD.md)" "the cold entry named with its file"
+has "Would invalidate: gamma shifts." "the other invalidator spelling read"
+[ "$(grep -c '^        F-003' "$O")" = 1 ] && echo "ok   the hot stub is not a second listing" || { echo "FAIL the hot stub is not a second listing: F-003 listed $(grep -c '^        F-003' "$O") times"; fail=1; }
+reset_
+printf '\n## F-004 · active · Delta holds\n\nA body with neither line.\n' >> experiments/FINDINGS.md
+case_ 0 "findings-review: an active entry missing both lines" findings-review
+has "(no invalidator line: none of **Invalidated by**" "the missing invalidator listed"
+has "(no **Re-verify when** line)" "the missing re-verify listed"
+reset_
+# a label wrapped across lines and a label followed by a qualifier, both as
+# the register writes them (F-039 and F-064 on main; Product review of #485)
+cat >> experiments/FINDINGS.md <<'EOF'
+
+## F-005 · active · Epsilon holds
+
+Scope: the served world. **Invalidated by** (domain: the
+recorded streams): a stream that disagrees.
+Not touching the roster. **Re-verify
+when**: the cutover lands (step 7).
+
+## F-006 · active · Zeta holds
+
+**Would invalidate / registered prediction**: the curve bends. **Re-verify when**: n/a.
+EOF
+case_ 0 "findings-review: wrapped, qualified and suffixed labels" findings-review
+has "Invalidated by (domain: the recorded streams): a stream that disagrees." "a label with a qualifier read"
+hasnt "Not touching the roster. **Re-verify" "the invalidator stops at the next bold label"
+has "Re-verify when: the cutover lands (step 7)." "a label wrapped across lines read"
+has "Would invalidate / registered prediction: the curve bends." "a label with a suffix read (F-023's form)"
 reset_
 
 # ---------------------------------------------------------------- registry

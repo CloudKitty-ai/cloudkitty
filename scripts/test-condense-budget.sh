@@ -170,4 +170,16 @@ grow client/BACKLOG.md 1300; c cb-grow
 case_ 1 "client/BACKLOG.md growth counts toward tier 2: blocked past +2000"
 printf -- '- 2026-09-28 %s client/BACKLOG.md: condensed (PR #17)\n' "$(git rev-parse HEAD:client/BACKLOG.md)" >> $log; c cb-pass
 case_ 0 "a client/BACKLOG.md pass line resets tier 2: passes"
+
+# ---- experiments/FINDINGS-COLD.md is tier 2 (owner 2026-10-28) ----
+seq 1 10 > experiments/FINDINGS-COLD.md; c cold-add
+grow experiments/FINDINGS-COLD.md 2001; c cold-grow
+case_ 1 "FINDINGS-COLD.md growth counts toward tier 2: blocked past +2000"
+printf -- '- 2026-10-28 %s experiments/FINDINGS-COLD.md: condensed (PR #18)\n' "$(git rev-parse HEAD:experiments/FINDINGS-COLD.md)" >> $log; c cold-pass
+case_ 0 "a FINDINGS-COLD.md pass line resets tier 2: passes"
+# bytes beside lines (Experiments' observation 2026-10-28): one line of
+# 3000 characters is +1 line and +3001 bytes
+printf '%03000d\n' 0 >> experiments/FINDINGS.md; c bytes-grow
+case_ 0 "report: a one-line, 3001-byte growth" --report
+grep -qF '+1  experiments/FINDINGS.md  (+3001 bytes)' "$O" && echo "ok   report: bytes column beside the line count" || { echo "FAIL report: no bytes column"; sed 's/^/     /' "$O"; fail=1; }
 exit $fail

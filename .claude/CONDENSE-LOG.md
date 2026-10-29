@@ -17,7 +17,9 @@ Tiers and budgets (net lines since the last pass):
 - tier 1, blocking past +80: `CLAUDE.md`, `THREADS.md`,
   `.claude/skills/prepare-for-compact/SKILL.md`
 - tier 2, advisory past +800, blocking past +2000:
-  `experiments/FINDINGS.md`, `experiments/DESIGN-DOCTRINE.md`,
+  `experiments/FINDINGS.md`, `experiments/FINDINGS-COLD.md` (owner
+  2026-10-28: the cold file is tier 2, so a hot→cold move is
+  budget-neutral), `experiments/DESIGN-DOCTRINE.md`,
   `experiments/ROADMAP.md`, `experiments/README.md`,
   `experiments/fog-gen1-shakeout/GEN2-INPUTS.md`, `BACKLOG.md`,
   `client/BACKLOG.md` (owner 2026-09-28: "Client backlog same tier

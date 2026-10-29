@@ -53,12 +53,14 @@ T2_ADVISE=800
 T2_BLOCK=2000
 
 TIER1=(CLAUDE.md THREADS.md .claude/skills/prepare-for-compact/SKILL.md)
-TIER2=(experiments/FINDINGS.md experiments/DESIGN-DOCTRINE.md
-  experiments/ROADMAP.md experiments/README.md
+TIER2=(experiments/FINDINGS.md experiments/FINDINGS-COLD.md
+  experiments/DESIGN-DOCTRINE.md experiments/ROADMAP.md experiments/README.md
   experiments/fog-gen1-shakeout/GEN2-INPUTS.md BACKLOG.md
   client/BACKLOG.md
   policies/purrsonality.md
   client/TRAPS.md crates/TRAPS.md experiments/TRAPS.md .claude/TRAPS.md)
+# FINDINGS-COLD.md is tier 2 with FINDINGS.md (owner ruled 2026-10-28), so
+# moving an entry hot→cold is budget-neutral, not a FINDINGS credit.
 # Skill TRIALS.md files are unmetered during shakeout and frozen at its
 # close (owner ruled 2026-09-25; the condense SKILL.md carries the rule).
 TIER3_GLOB=('experiments/*.md' 'experiments/**/*.md')
@@ -151,24 +153,32 @@ block() {
 # numstat over paths, printing "net path" per file; deleted files count too.
 growth() { local b=$1; shift; git diff --numstat "$b" HEAD -- "$@" | awk '$1 != "-" {print $1-$2, $3}'; }
 total() { awk '{n+=$1} END{print n+0}'; }
+# The budget is lines; the bytes beside each file show what a line count
+# hides — a heading that grew into one 2,293-byte line (F-068) moved the
+# tier by +1 (Experiments' observation, 2026-10-28). Report only.
+bytes_net() { local x y; x=$(git cat-file -s "$1:$2" 2>/dev/null || echo 0); y=$(git cat-file -s "HEAD:$2" 2>/dev/null || echo 0); echo $((y - x)); }
+show() {  # show <base> <growth lines>: one "+N  path  (+B bytes)" line per file
+  local b=$1 n p; [ -n "$2" ] || return 0
+  echo "$2" | while read -r n p; do printf '        %+d  %s  (%+d bytes)\n' "$n" "$p" "$(bytes_net "$b" "$p")"; done
+}
 
 say "condense-budget: HEAD $(git rev-parse --short HEAD), mode $mode; bases: tier 1 $(git rev-parse --short "$base1") · tier 2 $(git rev-parse --short "$base2") · tier 3 $(git rev-parse --short "$base3")"
 say
 
 t1=$(growth "$base1" "${TIER1[@]}"); n1=$(echo "$t1" | total)
-say "tier 1  net ${n1:+$n1} (blocking past +$T1_BLOCK)"; [ "$mode" != owed ] && [ -n "$t1" ] && echo "$t1" | awk '{printf "        %+d  %s\n", $1, $2}'
+say "tier 1  net ${n1:+$n1} (blocking past +$T1_BLOCK)"; [ "$mode" != owed ] && show "$base1" "$t1"
 if [ "$n1" -gt "$T1_BLOCK" ]; then block "tier 1 is +$n1 net lines since its last condense pass ($base1); budget +$T1_BLOCK. Condense, log the pass, do not raise the budget."
 elif [ "$mode" = owed ] && [ "$n1" -gt "$T1_WARN" ]; then
   echo "condense owed: tier 1 is +$n1 net lines (early warning past +$T1_WARN, blocking past +$T1_BLOCK). Condense before the gate reds: .claude/skills/condense/SKILL.md — tier 1 lands on the owner's word."
 fi
 
 t2=$(growth "$base2" "${TIER2[@]}"); n2=$(echo "$t2" | total)
-say "tier 2  net $n2 (advisory past +$T2_ADVISE, blocking past +$T2_BLOCK)"; [ "$mode" != owed ] && [ -n "$t2" ] && echo "$t2" | awk '{printf "        %+d  %s\n", $1, $2}'
+say "tier 2  net $n2 (advisory past +$T2_ADVISE, blocking past +$T2_BLOCK)"; [ "$mode" != owed ] && show "$base2" "$t2"
 if [ "$n2" -gt "$T2_BLOCK" ]; then block "tier 2 is +$n2 net lines since its last condense pass ($base2); budget +$T2_BLOCK. A pass is overdue."
 elif [ "$n2" -gt "$T2_ADVISE" ]; then warn "tier 2 is +$n2 net lines since its last condense pass ($base2); a pass is due past +$T2_ADVISE."; fi
 
 t3=$(growth "$base3" "${TIER3_GLOB[@]}" | grep -v -F -f <(printf '%s\n' "${TIER2[@]}" | sed 's/^/ /') ); n3=$(echo "$t3" | total)
-say "tier 3  net $n3 (report only); top growers:"; [ "$mode" != owed ] && [ -n "$t3" ] && echo "$t3" | sort -rn | head -n 5 | awk '{printf "        %+d  %s\n", $1, $2}'
+say "tier 3  net $n3 (report only); top growers:"; [ "$mode" != owed ] && show "$base3" "$(echo "$t3" | sort -rn | head -n 5)"
 
 say
 frozen=$(sed -n '/^## Frozen/,$p' "$log" | grep -E '^- \S+ @ [0-9a-f]{7,40}$' || true)
