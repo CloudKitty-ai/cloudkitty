@@ -22,10 +22,15 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
   2026-10-28, "Sold on 1 and 3"): the heading is one sentence, the
   index row one line. The body carries the claim's own numbers (the
   headline figures a reader needs to use it), the scope, **Invalidated
-  by**, **Re-verify when**, provenance (owner words, dates, SHAs), and
-  the pointer to the arc's `RESULTS.md` section. Every other number,
-  table and method paragraph lives in RESULTS; restated here it is a
-  condense cut. Entries minted before this rule are brought to it by
+  by**, **Re-verify when**, provenance (dates, SHAs, the deviations
+  entry), and the pointer to the arc's `RESULTS.md` section. Every
+  other number, table and method paragraph lives in RESULTS; restated
+  here it is a condense cut. Her words appear verbatim where they are
+  a ruling — a choice among options, or an override of a declared rule
+  — because a ruling changes what the claim means; a kickoff or an
+  approval changes nothing here and stays in the arc's RESULTS or
+  DECLARATION (owner 2026-10-28: elide "where it doesn't add anything
+  meaningful"). Entries minted before this rule are brought to it by
   condense passes, never by editing a claim.
 - **Cold entries** (owner ruled 2026-10-28, "let's proceed with 1,3,
   and your recommended approach to 2"): at a generation's close, an
