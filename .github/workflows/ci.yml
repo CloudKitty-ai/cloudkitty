@@ -19,7 +19,7 @@ jobs:
     name: fmt + clippy + test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # The tests link cloudkitty-py against libpython, so the interpreter
       # is an input to the build: pinned here, exported as PYO3_PYTHON (pyo3
@@ -28,7 +28,7 @@ jobs:
       # move restores a build config pointing at a libpython the new image
       # lacks, and rust-cache never replaces it because it only saves on
       # success (2026-10-20: ubuntu-26.04, -lpython3.12).
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         id: py
         with:
           python-version: "3.12"
@@ -85,7 +85,7 @@ jobs:
     name: python surface (maturin + pytest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # No `rustup toolchain install` here: rust-toolchain.toml pins the
       # compiler, and rustup installs it -- with the components the file
@@ -107,7 +107,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -147,14 +147,16 @@ jobs:
   #     ...
   #     // jscpd:ignore-end
   # Fences are debt with a deadline: tag-check fails a release while
-  # any jscpd:ignore marker remains in the tree (Harness's rule).
+  # any jscpd:ignore marker remains in a tracked file other than *.md
+  # or *.yml (scripts/tag-check.sh `fences`, #479), so naming the
+  # marker here fences nothing.
   # jscpd is pinned to the survey's version; bumping it means
   # re-measuring the baselines in the same PR.
   duplication:
     name: duplication ratchet (jscpd)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: rust prod (measured 3.20)
         run: npx --yes jscpd@5.3.2 crates/ --pattern "**/*.rs" --ignore "**/tests/**" --threshold 3.5 --silent
