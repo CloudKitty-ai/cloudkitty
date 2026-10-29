@@ -665,6 +665,11 @@ futility, never early success):
    at 8.0M. The cheaper alternative stops each arm N world 300 ticks
    after its first episode ends: about 2.1M for arm N instead of 5.5M,
    first episodes only, no re-entry read. Recommendation: full length.
+   **RULED 2026-10-28: "Full length"** (after the in-depth walkthrough:
+   later episodes are SC-004's separate read and the shape Phase 2
+   lives beside; the between-episode false-alarm class exists only after
+   a release; R8 compares whole worlds against whole paired controls;
+   the total stays under the 8.0M cap with arm E in).
 5. **Stops.** S1 on the covered seats only (the scripted friend exempt,
    its distress reported), S2's 1.0-point harm line on the covered
    scout, S3's futility caps. Recommendation: yes.
