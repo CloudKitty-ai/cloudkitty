@@ -904,7 +904,11 @@ mod tests {
             .with_writer(sink.clone())
             .with_ansi(false)
             .finish();
-        tracing::subscriber::with_default(subscriber, || block.announce());
+        tracing::subscriber::with_default(subscriber, || {
+            // Same callsite-interest race as stuck.rs's `Captured`.
+            tracing::callsite::rebuild_interest_cache();
+            block.announce()
+        });
         let logged = String::from_utf8(sink.0.lock().unwrap().clone()).unwrap();
         assert!(logged.contains("key settings\n"), "{logged}");
         assert!(

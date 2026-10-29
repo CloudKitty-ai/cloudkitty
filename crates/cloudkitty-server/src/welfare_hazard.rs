@@ -130,7 +130,11 @@ mod tests {
             .with_writer(sink.clone())
             .with_ansi(false)
             .finish();
-        tracing::subscriber::with_default(subscriber, || log_boot(config));
+        tracing::subscriber::with_default(subscriber, || {
+            // Same callsite-interest race as stuck.rs's `Captured`.
+            tracing::callsite::rebuild_interest_cache();
+            log_boot(config)
+        });
         let bytes = sink.0.lock().unwrap().clone();
         String::from_utf8(bytes).unwrap()
     }
