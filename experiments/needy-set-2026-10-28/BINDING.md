@@ -49,3 +49,16 @@ certified one. The declaration's empirical check (n3: rot2 on L seed
 905001 for 2,000 ticks, every array equal to the first 2,000 ticks of
 Phase 1's recorded stream) runs at step 2 after her ruling; it is a
 covered run (10,000 covered cat-ticks) and waits for her word.
+
+## n3 result (2026-10-29, owner "Do it" on §11 step 2)
+
+PASS. `check_binding.py collect` ran rot2 on L seed 905001 for 2,000
+ticks in this venv (10,000 covered cat-ticks, 0 aborts); `compare` found
+every recorded array equal to the first 2,000 ticks of Phase 1's L
+stream for that seed (collected 2026-10-22 on engine a2e8d044), the
+float16 observations included. The red: REF_SEED pointed at 905002,
+12 arrays differ (RESULTS.md §Guards). Fresh stream kept at
+`results-raw/binding-check/streams-905001.npz`. The binding is the
+certified engine for this arc's purposes; `crates/` was unchanged from
+5928b7ca to the check (origin/main 58809f48 touched only
+`crates/cloudkitty-server/` since).
