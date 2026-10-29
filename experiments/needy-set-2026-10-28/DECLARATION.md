@@ -536,7 +536,12 @@ futility, never early success):
    splice's H measures), the mask opening kept as the second anchor for
    anticipation, P10's "onset" read as the crossing, and arm N's onset
    weights moved to the late level so crossings fill the late strata.
-   Recommendation: yes.
+   Recommendation: yes. **RULED 2026-10-28: "Call 2 as put + arm E"**
+   (after the in-depth walkthrough: the crossing is what the splice's H
+   measures, so the comparator pairs on it; the mask opening stays as
+   the anticipation anchor; her "+ arm E" answered the question put with
+   it, whether to draft an early-crossing arm built from an elevated
+   start under `needy`, which call 7 below carries for its own ruling).
 3. **Which seat.** The scripted friend rotates through all five seats
    (five blocks, P's precedent, each dropping that seat's network), or
    one fixed seat. Recommendation: rotate.
