@@ -54,12 +54,17 @@ def load_world(path):
     z = np.load(path)
     meta = json.loads(str(z["meta"]))
     rec = meta["obs_recorded"]
-    assert rec is not None and len(rec) == ROSTER, rec
+    if rec is None:
+        # a scripted-scout world: every seat scripted, no observation saved
+        assert all(s == "scripted" for s in meta["seats"]), meta["seats"]
+        rec = [False] * ROSTER
+    assert len(rec) == ROSTER, rec
     needs, hap = truth_streams(z)
-    w = {"path": str(path), "seed": meta["seed"], "ticks": meta["ticks"], "meta": meta, "obs": z["obs"],
+    w = {"path": str(path), "seed": meta["seed"], "ticks": meta["ticks"], "meta": meta,
+         "obs": z["obs"] if "obs" in z.files else None,
          "needs": needs, "hap": hap, "codes": S.stratum(needs, hap), "obs_recorded": list(rec),
          "scripted": [k for k, r in enumerate(rec) if not r],
-         "post_needs": z["needs"], "post_hap": z["hap"]}
+         "post_needs": z["needs"], "post_hap": z["hap"], "distress": z["distress"]}
     if meta.get("needy_seat") is not None:
         w["needy_seat"] = meta["needy_seat"]
         w["needy_mask"], w["needy_ordinal"], w["needy_phase"] = z["needy_mask"], z["needy_ordinal"], z["needy_phase"]
@@ -216,6 +221,35 @@ def mask_windows(w):
         close = int(rel[0]) + 1 if len(rel) else w["ticks"]
         out.append((int(on[0]), close, o))
     return out
+
+
+def window_of(crossing, windows):
+    """The index into `windows` of the mask window a crossing belongs to, or
+    None (unmasked). The crossing is an index on the obs-aligned truth
+    (obs[t] carries needs[t - 1]); a window (onset, close) is in the
+    collector's post-step index, so the crossing belongs to it when the
+    step that produced the grave state, crossing - 1, lies in
+    [onset, close): from the first masked step through the release step."""
+    for j, (on, close, _o) in enumerate(windows):
+        if on <= crossing - 1 < close:
+            return j
+    return None
+
+
+def longest_streaks(distress):
+    """(R, 6) the longest single-need distress run per seat and need, from
+    the collector's packed per-need flags (T, R) uint8."""
+    bits = np.array([(distress >> i) & 1 for i in range(6)], bool)          # (6, T, R)
+    T = distress.shape[0]
+    best = np.zeros((distress.shape[1], 6), np.int64)
+    for i in range(6):
+        for k in range(distress.shape[1]):
+            run = top = 0
+            for t in range(T):
+                run = run + 1 if bits[i, t, k] else 0
+                top = max(top, run)
+            best[k, i] = top
+    return best
 
 
 def main():

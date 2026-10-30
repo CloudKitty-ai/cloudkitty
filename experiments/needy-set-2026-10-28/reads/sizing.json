@@ -1,0 +1,46 @@
+{
+ "arm_N": {
+  "shares": {
+   "H1": 0.0,
+   "H2": 0.34,
+   "H3": 0.3,
+   "H4": 0.18,
+   "none": 0.18
+  },
+  "min_share_H2_H3_H4": 0.18,
+  "w": 56,
+  "worlds": 280,
+  "expected_first_episodes_min_stratum": 50.4
+ },
+ "arm_E": {
+  "n": 60,
+  "H1_share": 0.74,
+  "H1_share_by_n": {
+   "50": 0.38,
+   "55": 0.62,
+   "60": 0.74
+  },
+  "w_E": 14,
+  "worlds": 70,
+  "expected_H1_first_episodes": 51.8
+ },
+ "rule": "smallest even w with 5w x share >= 50; cap 60",
+ "covered_cat_ticks": {
+  "arm_T": 800000,
+  "covered_scout_N": 480000,
+  "covered_scout_E": 64000,
+  "n3": 10000,
+  "arm_N": 6720000,
+  "arm_E": 224000,
+  "total": 8298000,
+  "cap": 8000000
+ },
+ "S3": {
+  "zero_share_stratum": [],
+  "w_over_cap": false,
+  "w_E_over_cap": false,
+  "H1_under_sixth_at_every_n": false,
+  "total_over_cap": true
+ },
+ "S3_trips": true
+}

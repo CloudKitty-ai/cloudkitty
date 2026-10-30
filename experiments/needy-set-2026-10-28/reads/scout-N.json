@@ -1,0 +1,10496 @@
+{
+ "arm": "N",
+ "ticks": 6000,
+ "worlds": 50,
+ "covered_cat_ticks": 0,
+ "per_group": {
+  "N1": {
+   "worlds": 10,
+   "first_crossing_status": {
+    "H2": 4,
+    "H3": 3,
+    "H4": 1,
+    "no_onset": 2
+   },
+   "stratum_share": {
+    "H0": 0.0,
+    "H1": 0.0,
+    "H2": 0.4,
+    "H3": 0.3,
+    "H4": 0.1,
+    "none": 0.2
+   },
+   "stratum_count": {
+    "H0": 0,
+    "H1": 0,
+    "H2": 4,
+    "H3": 3,
+    "H4": 1,
+    "none": 2
+   },
+   "H": {
+    "n": 8,
+    "min": 151.0,
+    "q1": 225.0,
+    "median": 325.0,
+    "q3": 593.25,
+    "max": 3341.0
+   },
+   "H_splice_bins": {
+    "[2,5)": 0,
+    "[5,10)": 0,
+    "[10,20)": 0,
+    "[20,50)": 0,
+    "[50,100)": 0
+   },
+   "first_edge": {
+    "happiness": 1,
+    "need": 7
+   },
+   "first_needs_at_90": {
+    "cuddle": 3,
+    "drink": 2,
+    "sleep": 4
+   },
+   "first_length": {
+    "n": 8,
+    "min": 1.0,
+    "q1": 4.0,
+    "median": 120.5,
+    "q3": 226.5,
+    "max": 736.0
+   },
+   "first_m": {
+    "1": 3,
+    "2": 2,
+    "3": 2,
+    "4": 1
+   },
+   "first_onset": {
+    "181": 1,
+    "182": 1,
+    "27": 1,
+    "3": 1,
+    "309": 1,
+    "3236": 1,
+    "6": 1,
+    "646": 1
+   },
+   "first_release": {
+    "released_level": 8
+   },
+   "grave_at_tick0_share": 0.0,
+   "mask_windows_per_world": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 3.5,
+    "median": 6.0,
+    "q3": 6.0,
+    "max": 8.0
+   },
+   "episodes_of_friend_per_world": {
+    "n": 10,
+    "min": 1.0,
+    "q1": 4.25,
+    "median": 5.5,
+    "q3": 7.0,
+    "max": 8.0
+   },
+   "releases": {
+    "level": 45,
+    "limit": 0,
+    "unreleased": 2
+   },
+   "unmasked_crossings": 12,
+   "climb_ticks": {
+    "eat": {
+     "n": 12,
+     "min": 0.0,
+     "q1": 183.5,
+     "median": 230.0,
+     "q3": 256.5,
+     "max": 296.0
+    },
+    "drink": {
+     "n": 15,
+     "min": 155.0,
+     "q1": 186.5,
+     "median": 197.0,
+     "q3": 219.5,
+     "max": 224.0
+    },
+    "sleep": {
+     "n": 18,
+     "min": 61.0,
+     "q1": 102.5,
+     "median": 120.0,
+     "q3": 129.75,
+     "max": 146.0
+    },
+    "play": {
+     "n": 14,
+     "min": 223.0,
+     "q1": 261.75,
+     "median": 283.5,
+     "q3": 299.0,
+     "max": 299.0
+    },
+    "cuddle": {
+     "n": 18,
+     "min": 146.0,
+     "q1": 171.75,
+     "median": 184.0,
+     "q3": 215.75,
+     "max": 224.0
+    },
+    "bath": {
+     "n": 16,
+     "min": 213.0,
+     "q1": 359.0,
+     "median": 383.5,
+     "q3": 406.0,
+     "max": 445.0
+    }
+   },
+   "longest_streak_friend": {
+    "n": 10,
+    "min": 14.0,
+    "q1": 179.0,
+    "median": 307.5,
+    "q3": 431.0,
+    "max": 677.0
+   },
+   "longest_streak_others_max": {
+    "n": 10,
+    "min": 71.0,
+    "q1": 220.25,
+    "median": 365.0,
+    "q3": 507.25,
+    "max": 761.0
+   },
+   "refusals_by_reason": {
+    "consent_declined": 24817,
+    "needy_masked": 5393,
+    "other": 4009,
+    "partner_absent": 10672,
+    "partner_busy": 20273
+   },
+   "refusals_toward_friend_by_reason": {
+    "consent_declined": 7100,
+    "needy_masked": 199,
+    "partner_absent": 903,
+    "partner_busy": 3954
+   },
+   "refusals_same_world": true
+  },
+  "N2": {
+   "worlds": 10,
+   "first_crossing_status": {
+    "H2": 3,
+    "H3": 1,
+    "H4": 2,
+    "no_onset": 3,
+    "released_level_no_crossing": 1
+   },
+   "stratum_share": {
+    "H0": 0.0,
+    "H1": 0.0,
+    "H2": 0.3,
+    "H3": 0.1,
+    "H4": 0.2,
+    "none": 0.4
+   },
+   "stratum_count": {
+    "H0": 0,
+    "H1": 0,
+    "H2": 3,
+    "H3": 1,
+    "H4": 2,
+    "none": 4
+   },
+   "H": {
+    "n": 6,
+    "min": 225.0,
+    "q1": 241.25,
+    "median": 295.0,
+    "q3": 2683.5,
+    "max": 4890.0
+   },
+   "H_splice_bins": {
+    "[2,5)": 0,
+    "[5,10)": 0,
+    "[10,20)": 0,
+    "[20,50)": 0,
+    "[50,100)": 0
+   },
+   "first_edge": {
+    "happiness": 1,
+    "need": 5
+   },
+   "first_needs_at_90": {
+    "cuddle": 2,
+    "drink": 1,
+    "eat": 1,
+    "play": 1
+   },
+   "first_length": {
+    "n": 6,
+    "min": 6.0,
+    "q1": 10.75,
+    "median": 86.5,
+    "q3": 254.5,
+    "max": 344.0
+   },
+   "first_m": {
+    "1": 4,
+    "3": 1,
+    "4": 2
+   },
+   "first_onset": {
+    "0": 2,
+    "1": 1,
+    "2": 1,
+    "234": 1,
+    "3192": 1,
+    "4741": 1
+   },
+   "first_release": {
+    "released_level": 7
+   },
+   "grave_at_tick0_share": 0.0,
+   "mask_windows_per_world": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 0.5,
+    "median": 4.5,
+    "q3": 6.0,
+    "max": 7.0
+   },
+   "episodes_of_friend_per_world": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 2.25,
+    "median": 5.0,
+    "q3": 8.0,
+    "max": 10.0
+   },
+   "releases": {
+    "level": 36,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "unmasked_crossings": 11,
+   "climb_ticks": {
+    "eat": {
+     "n": 18,
+     "min": 142.0,
+     "q1": 210.75,
+     "median": 238.0,
+     "q3": 275.0,
+     "max": 299.0
+    },
+    "drink": {
+     "n": 13,
+     "min": 190.0,
+     "q1": 233.0,
+     "median": 279.0,
+     "q3": 294.0,
+     "max": 299.0
+    },
+    "sleep": {
+     "n": 5,
+     "min": 83.0,
+     "q1": 232.0,
+     "median": 272.0,
+     "q3": 294.0,
+     "max": 299.0
+    },
+    "play": {
+     "n": 13,
+     "min": 55.0,
+     "q1": 80.0,
+     "median": 99.0,
+     "q3": 107.0,
+     "max": 112.0
+    },
+    "cuddle": {
+     "n": 9,
+     "min": 137.0,
+     "q1": 157.0,
+     "median": 198.0,
+     "q3": 223.0,
+     "max": 224.0
+    },
+    "bath": {
+     "n": 12,
+     "min": 167.0,
+     "q1": 332.0,
+     "median": 389.5,
+     "q3": 419.75,
+     "max": 449.0
+    }
+   },
+   "longest_streak_friend": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 41.75,
+    "median": 256.0,
+    "q3": 330.5,
+    "max": 544.0
+   },
+   "longest_streak_others_max": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 16.5,
+    "median": 250.0,
+    "q3": 316.5,
+    "max": 530.0
+   },
+   "refusals_by_reason": {
+    "consent_declined": 19427,
+    "needy_masked": 5054,
+    "other": 4040,
+    "partner_absent": 11008,
+    "partner_busy": 20689
+   },
+   "refusals_toward_friend_by_reason": {
+    "consent_declined": 4087,
+    "needy_masked": 561,
+    "partner_absent": 722,
+    "partner_busy": 5155
+   },
+   "refusals_same_world": true
+  },
+  "N3": {
+   "worlds": 10,
+   "first_crossing_status": {
+    "H2": 3,
+    "H3": 2,
+    "H4": 2,
+    "no_onset": 2,
+    "released_level_no_crossing": 1
+   },
+   "stratum_share": {
+    "H0": 0.0,
+    "H1": 0.0,
+    "H2": 0.3,
+    "H3": 0.2,
+    "H4": 0.2,
+    "none": 0.3
+   },
+   "stratum_count": {
+    "H0": 0,
+    "H1": 0,
+    "H2": 3,
+    "H3": 2,
+    "H4": 2,
+    "none": 3
+   },
+   "H": {
+    "n": 7,
+    "min": 225.0,
+    "q1": 225.0,
+    "median": 451.0,
+    "q3": 1081.5,
+    "max": 2965.0
+   },
+   "H_splice_bins": {
+    "[2,5)": 0,
+    "[5,10)": 0,
+    "[10,20)": 0,
+    "[20,50)": 0,
+    "[50,100)": 0
+   },
+   "first_edge": {
+    "need": 7
+   },
+   "first_needs_at_90": {
+    "cuddle": 1,
+    "drink": 3,
+    "play": 2,
+    "sleep": 2
+   },
+   "first_length": {
+    "n": 7,
+    "min": 3.0,
+    "q1": 4.5,
+    "median": 11.0,
+    "q3": 22.5,
+    "max": 442.0
+   },
+   "first_m": {
+    "1": 5,
+    "2": 1,
+    "3": 1,
+    "4": 1
+   },
+   "first_onset": {
+    "0": 2,
+    "1438": 1,
+    "149": 1,
+    "2617": 1,
+    "30": 1,
+    "360": 1,
+    "4359": 1
+   },
+   "first_release": {
+    "released_level": 8
+   },
+   "grave_at_tick0_share": 0.0,
+   "mask_windows_per_world": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 2.5,
+    "median": 4.5,
+    "q3": 5.0,
+    "max": 7.0
+   },
+   "episodes_of_friend_per_world": {
+    "n": 10,
+    "min": 1.0,
+    "q1": 2.75,
+    "median": 5.5,
+    "q3": 7.5,
+    "max": 10.0
+   },
+   "releases": {
+    "level": 36,
+    "limit": 0,
+    "unreleased": 2
+   },
+   "unmasked_crossings": 14,
+   "climb_ticks": {
+    "eat": {
+     "n": 9,
+     "min": 0.0,
+     "q1": 94.0,
+     "median": 109.0,
+     "q3": 119.0,
+     "max": 140.0
+    },
+    "drink": {
+     "n": 14,
+     "min": 12.0,
+     "q1": 165.0,
+     "median": 187.0,
+     "q3": 210.75,
+     "max": 224.0
+    },
+    "sleep": {
+     "n": 12,
+     "min": 242.0,
+     "q1": 297.75,
+     "median": 342.0,
+     "q3": 368.75,
+     "max": 450.0
+    },
+    "play": {
+     "n": 11,
+     "min": 5.0,
+     "q1": 191.5,
+     "median": 210.0,
+     "q3": 224.0,
+     "max": 224.0
+    },
+    "cuddle": {
+     "n": 8,
+     "min": 117.0,
+     "q1": 166.5,
+     "median": 213.0,
+     "q3": 221.75,
+     "max": 224.0
+    },
+    "bath": {
+     "n": 10,
+     "min": 697.0,
+     "q1": 772.5,
+     "median": 810.0,
+     "q3": 871.25,
+     "max": 900.0
+    }
+   },
+   "longest_streak_friend": {
+    "n": 10,
+    "min": 13.0,
+    "q1": 46.0,
+    "median": 581.0,
+    "q3": 642.25,
+    "max": 924.0
+   },
+   "longest_streak_others_max": {
+    "n": 10,
+    "min": 0.0,
+    "q1": 170.0,
+    "median": 280.0,
+    "q3": 489.25,
+    "max": 784.0
+   },
+   "refusals_by_reason": {
+    "consent_declined": 25690,
+    "needy_masked": 5606,
+    "other": 4140,
+    "partner_absent": 10587,
+    "partner_busy": 20056
+   },
+   "refusals_toward_friend_by_reason": {
+    "consent_declined": 5227,
+    "needy_masked": 1004,
+    "partner_absent": 752,
+    "partner_busy": 3920
+   },
+   "refusals_same_world": true
+  },
+  "N4": {
+   "worlds": 10,
+   "first_crossing_status": {
+    "H2": 5,
+    "H3": 5
+   },
+   "stratum_share": {
+    "H0": 0.0,
+    "H1": 0.0,
+    "H2": 0.5,
+    "H3": 0.5,
+    "H4": 0.0,
+    "none": 0.0
+   },
+   "stratum_count": {
+    "H0": 0,
+    "H1": 0,
+    "H2": 5,
+    "H3": 5,
+    "H4": 0,
+    "none": 0
+   },
+   "H": {
+    "n": 10,
+    "min": 199.0,
+    "q1": 225.0,
+    "median": 266.0,
+    "q3": 405.5,
+    "max": 746.0
+   },
+   "H_splice_bins": {
+    "[2,5)": 0,
+    "[5,10)": 0,
+    "[10,20)": 0,
+    "[20,50)": 0,
+    "[50,100)": 0
+   },
+   "first_edge": {
+    "happiness": 4,
+    "need": 6
+   },
+   "first_needs_at_90": {
+    "cuddle": 1,
+    "drink": 1,
+    "eat": 3,
+    "play": 1
+   },
+   "first_length": {
+    "n": 10,
+    "min": 1.0,
+    "q1": 4.75,
+    "median": 29.0,
+    "q3": 103.5,
+    "max": 151.0
+   },
+   "first_m": {
+    "1": 5,
+    "2": 3,
+    "3": 1,
+    "4": 1
+   },
+   "first_onset": {
+    "0": 1,
+    "1": 2,
+    "109": 1,
+    "2": 1,
+    "209": 1,
+    "483": 1,
+    "53": 1,
+    "599": 1,
+    "8": 1
+   },
+   "first_release": {
+    "released_level": 10
+   },
+   "grave_at_tick0_share": 0.0,
+   "mask_windows_per_world": {
+    "n": 10,
+    "min": 5.0,
+    "q1": 6.0,
+    "median": 6.0,
+    "q3": 6.75,
+    "max": 8.0
+   },
+   "episodes_of_friend_per_world": {
+    "n": 10,
+    "min": 5.0,
+    "q1": 6.0,
+    "median": 7.0,
+    "q3": 7.0,
+    "max": 10.0
+   },
+   "releases": {
+    "level": 62,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "unmasked_crossings": 9,
+   "climb_ticks": {
+    "eat": {
+     "n": 20,
+     "min": 117.0,
+     "q1": 161.75,
+     "median": 170.0,
+     "q3": 194.5,
+     "max": 224.0
+    },
+    "drink": {
+     "n": 22,
+     "min": 65.0,
+     "q1": 208.25,
+     "median": 263.5,
+     "q3": 289.0,
+     "max": 299.0
+    },
+    "sleep": {
+     "n": 19,
+     "min": 57.0,
+     "q1": 182.0,
+     "median": 221.0,
+     "q3": 261.5,
+     "max": 298.0
+    },
+    "play": {
+     "n": 21,
+     "min": 60.0,
+     "q1": 251.0,
+     "median": 286.0,
+     "q3": 297.0,
+     "max": 299.0
+    },
+    "cuddle": {
+     "n": 19,
+     "min": 72.0,
+     "q1": 160.0,
+     "median": 182.0,
+     "q3": 200.0,
+     "max": 214.0
+    },
+    "bath": {
+     "n": 19,
+     "min": 83.0,
+     "q1": 141.0,
+     "median": 187.0,
+     "q3": 202.0,
+     "max": 223.0
+    }
+   },
+   "longest_streak_friend": {
+    "n": 10,
+    "min": 76.0,
+    "q1": 174.0,
+    "median": 224.0,
+    "q3": 272.25,
+    "max": 420.0
+   },
+   "longest_streak_others_max": {
+    "n": 10,
+    "min": 92.0,
+    "q1": 188.75,
+    "median": 228.0,
+    "q3": 314.75,
+    "max": 419.0
+   },
+   "refusals_by_reason": {
+    "consent_declined": 21238,
+    "needy_masked": 5317,
+    "other": 4111,
+    "partner_absent": 10886,
+    "partner_busy": 20298
+   },
+   "refusals_toward_friend_by_reason": {
+    "consent_declined": 4182,
+    "needy_masked": 341,
+    "partner_absent": 562,
+    "partner_busy": 4123
+   },
+   "refusals_same_world": true
+  },
+  "N5": {
+   "worlds": 10,
+   "first_crossing_status": {
+    "H2": 2,
+    "H3": 4,
+    "H4": 4
+   },
+   "stratum_share": {
+    "H0": 0.0,
+    "H1": 0.0,
+    "H2": 0.2,
+    "H3": 0.4,
+    "H4": 0.4,
+    "none": 0.0
+   },
+   "stratum_count": {
+    "H0": 0,
+    "H1": 0,
+    "H2": 2,
+    "H3": 4,
+    "H4": 4,
+    "none": 0
+   },
+   "H": {
+    "n": 10,
+    "min": 129.0,
+    "q1": 373.0,
+    "median": 880.0,
+    "q3": 1430.75,
+    "max": 4850.0
+   },
+   "H_splice_bins": {
+    "[2,5)": 0,
+    "[5,10)": 0,
+    "[10,20)": 0,
+    "[20,50)": 0,
+    "[50,100)": 0
+   },
+   "first_edge": {
+    "happiness": 1,
+    "need": 9
+   },
+   "first_needs_at_90": {
+    "cuddle": 7,
+    "sleep": 2
+   },
+   "first_length": {
+    "n": 10,
+    "min": 2.0,
+    "q1": 3.25,
+    "median": 114.5,
+    "q3": 564.25,
+    "max": 848.0
+   },
+   "first_m": {
+    "1": 6,
+    "2": 1,
+    "3": 2,
+    "4": 1
+   },
+   "first_onset": {
+    "0": 1,
+    "10": 1,
+    "1013": 1,
+    "1396": 1,
+    "1739": 1,
+    "4780": 1,
+    "515": 1,
+    "6": 1,
+    "724": 1,
+    "800": 1
+   },
+   "first_release": {
+    "released_level": 10
+   },
+   "grave_at_tick0_share": 0.0,
+   "mask_windows_per_world": {
+    "n": 10,
+    "min": 2.0,
+    "q1": 4.25,
+    "median": 5.0,
+    "q3": 6.0,
+    "max": 7.0
+   },
+   "episodes_of_friend_per_world": {
+    "n": 10,
+    "min": 2.0,
+    "q1": 4.5,
+    "median": 6.5,
+    "q3": 7.0,
+    "max": 10.0
+   },
+   "releases": {
+    "level": 45,
+    "limit": 0,
+    "unreleased": 4
+   },
+   "unmasked_crossings": 9,
+   "climb_ticks": {
+    "eat": {
+     "n": 14,
+     "min": 54.0,
+     "q1": 118.75,
+     "median": 160.5,
+     "q3": 169.75,
+     "max": 206.0
+    },
+    "drink": {
+     "n": 13,
+     "min": 119.0,
+     "q1": 150.0,
+     "median": 158.0,
+     "q3": 188.0,
+     "max": 217.0
+    },
+    "sleep": {
+     "n": 20,
+     "min": 198.0,
+     "q1": 212.0,
+     "median": 245.5,
+     "q3": 277.75,
+     "max": 299.0
+    },
+    "play": {
+     "n": 15,
+     "min": 193.0,
+     "q1": 265.5,
+     "median": 283.0,
+     "q3": 293.0,
+     "max": 299.0
+    },
+    "cuddle": {
+     "n": 18,
+     "min": 46.0,
+     "q1": 85.5,
+     "median": 107.5,
+     "q3": 119.5,
+     "max": 128.0
+    },
+    "bath": {
+     "n": 16,
+     "min": 579.0,
+     "q1": 718.5,
+     "median": 787.5,
+     "q3": 859.75,
+     "max": 890.0
+    }
+   },
+   "longest_streak_friend": {
+    "n": 10,
+    "min": 61.0,
+    "q1": 571.25,
+    "median": 792.0,
+    "q3": 830.5,
+    "max": 869.0
+   },
+   "longest_streak_others_max": {
+    "n": 10,
+    "min": 113.0,
+    "q1": 201.0,
+    "median": 300.0,
+    "q3": 355.0,
+    "max": 463.0
+   },
+   "refusals_by_reason": {
+    "consent_declined": 27445,
+    "needy_masked": 8729,
+    "other": 3960,
+    "partner_absent": 10456,
+    "partner_busy": 19316
+   },
+   "refusals_toward_friend_by_reason": {
+    "consent_declined": 3676,
+    "needy_masked": 811,
+    "partner_absent": 459,
+    "partner_busy": 2802
+   },
+   "refusals_same_world": true
+  }
+ },
+ "records": [
+  {
+   "group": "N1",
+   "seed": 1095651,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 6,
+     "close": 306,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 218,
+      "sleep": 144,
+      "play": 299,
+      "cuddle": 218
+     },
+     "crossing": {
+      "H": 151,
+      "stratum": "H2",
+      "length": 736,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 55.29499816894531,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 902,
+     "close": 1179,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 276,
+      "play": 246
+     },
+     "crossing": {
+      "H": 924,
+      "stratum": "H3",
+      "length": 26,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 71.7099609375,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2309,
+     "close": 2483,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "eat": 173,
+      "sleep": 119
+     },
+     "crossing": {
+      "H": 2429,
+      "stratum": "H4",
+      "length": 81,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 56.418270111083984,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3284,
+     "close": 3404,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 119
+     },
+     "crossing": {
+      "H": 3404,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 62.11840057373047,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4228,
+     "close": 4663,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 197,
+      "bath": 434
+     },
+     "crossing": {
+      "H": 4426,
+      "stratum": "H4",
+      "length": 249,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 59.62632751464844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5108,
+     "close": 5408,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 250,
+      "sleep": 141,
+      "play": 299,
+      "cuddle": 209
+     },
+     "crossing": {
+      "H": 5250,
+      "stratum": "H4",
+      "length": 214,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 53.29753112792969,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 894,
+     "length": 2
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 6,
+    "close": 306,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "drink",
+     "sleep",
+     "play",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "drink": 218,
+     "sleep": 144,
+     "play": 299,
+     "cuddle": 218
+    },
+    "crossing": {
+     "H": 151,
+     "stratum": "H2",
+     "length": 736,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 55.29499816894531,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 662,
+    "others_max": 679,
+    "per_seat": [
+     662,
+     679,
+     257,
+     351,
+     284
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 4078,
+     "needy_masked": 458,
+     "other": 407,
+     "partner_absent": 1009,
+     "partner_busy": 1900
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 1427,
+     "needy_masked": 70,
+     "partner_absent": 105,
+     "partner_busy": 382
+    },
+    "total": 7852
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095652,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 7,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 3,
+     "close": 300,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "drink",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 296,
+      "drink": 221,
+      "cuddle": 221
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 98,
+      "edge": "need",
+      "needs_at_90": [
+       "drink",
+       "cuddle"
+      ],
+      "happiness": 45.5649528503418,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 937,
+     "close": 1312,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 374
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 3,
+     "onset": 2064,
+     "close": 2167,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 102
+     },
+     "crossing": {
+      "H": 2167,
+      "stratum": "H4",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 77.13504028320312,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2772,
+     "close": 3144,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 223,
+      "cuddle": 170,
+      "bath": 371
+     },
+     "crossing": {
+      "H": 2943,
+      "stratum": "H4",
+      "length": 287,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 54.606468200683594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3761,
+     "close": 3892,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 130
+     },
+     "crossing": {
+      "H": 3892,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 61.1806640625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4534,
+     "close": 4821,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "sleep": 94,
+      "play": 286
+     },
+     "crossing": {
+      "H": 4629,
+      "stratum": "H4",
+      "length": 236,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 67.78753662109375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5898,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": null
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 403,
+     "length": 200
+    },
+    {
+     "H": 1335,
+     "length": 223
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 3,
+    "close": 300,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "eat",
+     "drink",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "eat": 296,
+     "drink": 221,
+     "cuddle": 221
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 98,
+     "edge": "need",
+     "needs_at_90": [
+      "drink",
+      "cuddle"
+     ],
+     "happiness": 45.5649528503418,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 287,
+    "others_max": 256,
+    "per_seat": [
+     287,
+     256,
+     211,
+     124,
+     195
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3515,
+     "needy_masked": 962,
+     "other": 440,
+     "partner_absent": 1027,
+     "partner_busy": 1910
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 861,
+     "needy_masked": 40,
+     "partner_absent": 81,
+     "partner_busy": 345
+    },
+    "total": 7854
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095653,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 181,
+     "close": 579,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 223,
+      "bath": 397
+     },
+     "crossing": {
+      "H": 390,
+      "stratum": "H3",
+      "length": 197,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.7774658203125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1229,
+     "close": 1663,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 231,
+      "drink": 204,
+      "cuddle": 146,
+      "bath": 433
+     },
+     "crossing": {
+      "H": 1376,
+      "stratum": "H4",
+      "length": 332,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 48.982460021972656,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2475,
+     "close": 2607,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 131
+     },
+     "crossing": {
+      "H": 2607,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 58.366519927978516,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2908,
+     "close": 3122,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 213
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 5,
+     "onset": 4207,
+     "close": 4475,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 267
+     },
+     "crossing": {
+      "H": 4475,
+      "stratum": "H4",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 76.57247924804688,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5440,
+     "close": 5724,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 283,
+      "drink": 179,
+      "sleep": 121,
+      "cuddle": 174
+     },
+     "crossing": {
+      "H": 5562,
+      "stratum": "H4",
+      "length": 235,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 54.34498596191406,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 1052,
+     "length": 4
+    },
+    {
+     "H": 1062,
+     "length": 2
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 181,
+    "close": 579,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "drink",
+     "bath"
+    ],
+    "climb_ticks": {
+     "drink": 223,
+     "bath": 397
+    },
+    "crossing": {
+     "H": 390,
+     "stratum": "H3",
+     "length": 197,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.7774658203125,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 320,
+    "others_max": 487,
+    "per_seat": [
+     320,
+     487,
+     261,
+     160,
+     301
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3403,
+     "needy_masked": 775,
+     "other": 324,
+     "partner_absent": 992,
+     "partner_busy": 1902
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 921,
+     "needy_masked": 20,
+     "partner_absent": 84,
+     "partner_busy": 363
+    },
+    "total": 7396
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095654,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 5,
+   "releases": {
+    "level": 5,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 309,
+     "close": 534,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 224
+     },
+     "crossing": {
+      "H": 534,
+      "stratum": "H3",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 71.43997192382812,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1684,
+     "close": 2082,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 224,
+      "bath": 397
+     },
+     "crossing": {
+      "H": 1909,
+      "stratum": "H4",
+      "length": 904,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 62.50293731689453,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2580,
+     "close": 2582,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 0
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 4,
+     "onset": 3590,
+     "close": 3975,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 210,
+      "sleep": 124,
+      "cuddle": 202,
+      "bath": 384
+     },
+     "crossing": {
+      "H": 3715,
+      "stratum": "H4",
+      "length": 289,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 53.53248596191406,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4816,
+     "close": 5179,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 184,
+      "drink": 161,
+      "play": 271,
+      "bath": 362
+     },
+     "crossing": {
+      "H": 4967,
+      "stratum": "H4",
+      "length": 232,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.710575103759766,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 2857,
+     "length": 57
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 309,
+    "close": 534,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 224
+    },
+    "crossing": {
+     "H": 534,
+     "stratum": "H3",
+     "length": 5,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 71.43997192382812,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 461,
+    "others_max": 761,
+    "per_seat": [
+     461,
+     176,
+     418,
+     508,
+     761
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 4057,
+     "needy_masked": 870,
+     "other": 402,
+     "partner_absent": 1102,
+     "partner_busy": 1716
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 1202,
+     "needy_masked": 14,
+     "partner_absent": 106,
+     "partner_busy": 357
+    },
+    "total": 8147
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095655,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 8,
+   "releases": {
+    "level": 8,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 27,
+     "close": 327,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 197,
+      "play": 299,
+      "cuddle": 197
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 143,
+      "edge": "need",
+      "needs_at_90": [
+       "drink",
+       "cuddle"
+      ],
+      "happiness": 54.939945220947266,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1054,
+     "close": 1116,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 61
+     },
+     "crossing": {
+      "H": 1116,
+      "stratum": "H3",
+      "length": 8,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 69.9981460571289,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1449,
+     "close": 1678,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 228
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 4,
+     "onset": 2002,
+     "close": 2254,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 251
+     },
+     "crossing": {
+      "H": 2254,
+      "stratum": "H4",
+      "length": 10,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 66.46424865722656,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3062,
+     "close": 3287,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 224
+     },
+     "crossing": {
+      "H": 3287,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 71.54496765136719,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 3634,
+     "close": 3847,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 212,
+      "sleep": 146,
+      "cuddle": 181
+     },
+     "crossing": {
+      "H": 3781,
+      "stratum": "H4",
+      "length": 108,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 57.545005798339844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 4495,
+     "close": 4683,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 187
+     },
+     "crossing": {
+      "H": 4683,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 75.10247039794922,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 8,
+     "onset": 5549,
+     "close": 5737,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 187,
+      "sleep": 106,
+      "cuddle": 179
+     },
+     "crossing": {
+      "H": 5656,
+      "stratum": "H4",
+      "length": 180,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 61.34498596191406,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 4686,
+     "length": 5
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 27,
+    "close": 327,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "drink",
+     "play",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "drink": 197,
+     "play": 299,
+     "cuddle": 197
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 143,
+     "edge": "need",
+     "needs_at_90": [
+      "drink",
+      "cuddle"
+     ],
+     "happiness": 54.939945220947266,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 143,
+    "others_max": 71,
+    "per_seat": [
+     143,
+     32,
+     0,
+     0,
+     71
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1087,
+     "needy_masked": 594,
+     "other": 427,
+     "partner_absent": 1064,
+     "partner_busy": 2523
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 293,
+     "needy_masked": 28,
+     "partner_absent": 74,
+     "partner_busy": 475
+    },
+    "total": 5695
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095656,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 646,
+     "close": 997,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 124,
+      "bath": 350
+     },
+     "crossing": {
+      "H": 771,
+      "stratum": "H3",
+      "length": 315,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 58.74076461791992,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1605,
+     "close": 1753,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 147
+     },
+     "crossing": {
+      "H": 1753,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 72.15229034423828,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2092,
+     "close": 2328,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 235
+     },
+     "crossing": {
+      "H": 2328,
+      "stratum": "H4",
+      "length": 17,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 59.62946319580078,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3258,
+     "close": 3699,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "cuddle": 218,
+      "bath": 440
+     },
+     "crossing": {
+      "H": 3477,
+      "stratum": "H4",
+      "length": 224,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 63.15996170043945,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4568,
+     "close": 4868,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 186,
+      "play": 299
+     },
+     "crossing": {
+      "H": 4755,
+      "stratum": "H4",
+      "length": 121,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 61.382476806640625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5668,
+     "close": 6000,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 331
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 646,
+    "close": 997,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "sleep",
+     "bath"
+    ],
+    "climb_ticks": {
+     "sleep": 124,
+     "bath": 350
+    },
+    "crossing": {
+     "H": 771,
+     "stratum": "H3",
+     "length": 315,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 58.74076461791992,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 295,
+    "others_max": 474,
+    "per_seat": [
+     295,
+     163,
+     257,
+     67,
+     474
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1883,
+     "needy_masked": 705,
+     "other": 410,
+     "partner_absent": 1130,
+     "partner_busy": 2017
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 546,
+     "needy_masked": 15,
+     "partner_absent": 117,
+     "partner_busy": 370
+    },
+    "total": 6145
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095657,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 182,
+     "close": 260,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 77
+     },
+     "crossing": {
+      "H": 260,
+      "stratum": "H2",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 76.0450210571289,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1180,
+     "close": 1480,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "sleep": 129,
+      "play": 299
+     },
+     "crossing": {
+      "H": 1310,
+      "stratum": "H4",
+      "length": 179,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 67.08003234863281,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2124,
+     "close": 2512,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 387
+     },
+     "crossing": {
+      "H": 2369,
+      "stratum": "H4",
+      "length": 6,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.73413848876953,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2833,
+     "close": 3129,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 155,
+      "play": 295
+     },
+     "crossing": {
+      "H": 2989,
+      "stratum": "H4",
+      "length": 148,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 61.3599853515625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4061,
+     "close": 4322,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "play": 260,
+      "cuddle": 219
+     },
+     "crossing": {
+      "H": 4281,
+      "stratum": "H4",
+      "length": 117,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 62.294979095458984,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4636,
+     "close": 5082,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 190,
+      "play": 281,
+      "cuddle": 161,
+      "bath": 445
+     },
+     "crossing": {
+      "H": 4798,
+      "stratum": "H4",
+      "length": 677,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 53.33650588989258,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 182,
+    "close": 260,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "sleep"
+    ],
+    "climb_ticks": {
+     "sleep": 77
+    },
+    "crossing": {
+     "H": 260,
+     "stratum": "H2",
+     "length": 1,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 76.0450210571289,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 677,
+    "others_max": 227,
+    "per_seat": [
+     677,
+     42,
+     198,
+     187,
+     227
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2815,
+     "needy_masked": 551,
+     "other": 396,
+     "partner_absent": 980,
+     "partner_busy": 1703
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 783,
+     "needy_masked": 12,
+     "partner_absent": 72,
+     "partner_busy": 299
+    },
+    "total": 6445
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095658,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 1,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [
+    {
+     "H": 2376,
+     "length": 17
+    }
+   ],
+   "first": null,
+   "longest_streak": {
+    "friend": 14,
+    "others_max": 514,
+    "per_seat": [
+     14,
+     0,
+     92,
+     85,
+     514
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1338,
+     "other": 428,
+     "partner_absent": 1137,
+     "partner_busy": 2151
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 414,
+     "partner_absent": 75,
+     "partner_busy": 486
+    },
+    "total": 5054
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095659,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 3,
+   "mask_windows": 3,
+   "releases": {
+    "level": 2,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 3236,
+     "close": 3341,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 104
+     },
+     "crossing": {
+      "H": 3341,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 69.0975341796875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 4366,
+     "close": 4750,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "sleep",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 182,
+      "sleep": 79,
+      "cuddle": 178,
+      "bath": 383
+     },
+     "crossing": {
+      "H": 4446,
+      "stratum": "H4",
+      "length": 341,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 55.18503952026367,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 5742,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "eat",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 229,
+      "cuddle": 171,
+      "bath": null
+     },
+     "crossing": {
+      "H": 5914,
+      "stratum": "H4",
+      "length": 86,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 60.41495895385742,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 3236,
+    "close": 3341,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "sleep"
+    ],
+    "climb_ticks": {
+     "sleep": 104
+    },
+    "crossing": {
+     "H": 3341,
+     "stratum": "H4",
+     "length": 1,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 69.0975341796875,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 341,
+    "others_max": 89,
+    "per_seat": [
+     341,
+     24,
+     48,
+     0,
+     89
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1135,
+     "needy_masked": 478,
+     "other": 389,
+     "partner_absent": 1056,
+     "partner_busy": 2097
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 368,
+     "partner_absent": 75,
+     "partner_busy": 443
+    },
+    "total": 5155
+   }
+  },
+  {
+   "group": "N1",
+   "seed": 1095660,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 4,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [
+    {
+     "H": 3097,
+     "length": 50
+    },
+    {
+     "H": 3160,
+     "length": 28
+    },
+    {
+     "H": 3199,
+     "length": 8
+    },
+    {
+     "H": 3519,
+     "length": 98
+    }
+   ],
+   "first": null,
+   "longest_streak": {
+    "friend": 56,
+    "others_max": 218,
+    "per_seat": [
+     56,
+     218,
+     109,
+     0,
+     82
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1506,
+     "other": 386,
+     "partner_absent": 1175,
+     "partner_busy": 2354
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 285,
+     "partner_absent": 114,
+     "partner_busy": 434
+    },
+    "total": 5421
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095661,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 234,
+     "close": 290,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 55
+     },
+     "crossing": {
+      "H": 290,
+      "stratum": "H2",
+      "length": 6,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 66.8481216430664,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 860,
+     "close": 1115,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 170,
+      "sleep": 83,
+      "bath": 254
+     },
+     "crossing": {
+      "H": 884,
+      "stratum": "H3",
+      "length": 33,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.779754638671875,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1808,
+     "close": 2234,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 167,
+      "drink": 244,
+      "cuddle": 224,
+      "bath": 425
+     },
+     "crossing": {
+      "H": 1952,
+      "stratum": "H4",
+      "length": 568,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.87499237060547,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3431,
+     "close": 3664,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 232
+     },
+     "crossing": {
+      "H": 3664,
+      "stratum": "H4",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 80.6874771118164,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4162,
+     "close": 4461,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 298
+     },
+     "crossing": {
+      "H": 4461,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 74.26747131347656,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5543,
+     "close": 5819,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 275
+     },
+     "crossing": {
+      "H": 5819,
+      "stratum": "H4",
+      "length": 17,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 70.41545867919922,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 858,
+     "length": 3
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 234,
+    "close": 290,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "play"
+    ],
+    "climb_ticks": {
+     "play": 55
+    },
+    "crossing": {
+     "H": 290,
+     "stratum": "H2",
+     "length": 6,
+     "edge": "need",
+     "needs_at_90": [
+      "play"
+     ],
+     "happiness": 66.8481216430664,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 544,
+    "others_max": 530,
+    "per_seat": [
+     328,
+     544,
+     325,
+     325,
+     530
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3882,
+     "needy_masked": 292,
+     "other": 401,
+     "partner_absent": 1102,
+     "partner_busy": 1885
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 1249,
+     "needy_masked": 7,
+     "partner_absent": 63,
+     "partner_busy": 400
+    },
+    "total": 7562
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095662,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 7,
+   "releases": {
+    "level": 7,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 2,
+     "close": 300,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 297
+     },
+     "crossing": {
+      "H": 300,
+      "stratum": "H3",
+      "length": 7,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 64.0899658203125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1308,
+     "close": 1586,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 277
+     },
+     "crossing": {
+      "H": 1586,
+      "stratum": "H4",
+      "length": 20,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 66.77749633789062,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2022,
+     "close": 2287,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 264
+     },
+     "crossing": {
+      "H": 2287,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 70.16497802734375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2708,
+     "close": 2877,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 168
+     },
+     "crossing": {
+      "H": 2877,
+      "stratum": "H4",
+      "length": 131,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 72.28748321533203,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3186,
+     "close": 3403,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 216
+     },
+     "crossing": {
+      "H": 3403,
+      "stratum": "H4",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 66.07688903808594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4596,
+     "close": 4688,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 91
+     },
+     "crossing": {
+      "H": 4688,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 74.35000610351562,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5063,
+     "close": 5317,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 253
+     },
+     "crossing": {
+      "H": 5317,
+      "stratum": "H4",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 68.07247924804688,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 2,
+    "close": 300,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "eat"
+    ],
+    "climb_ticks": {
+     "eat": 297
+    },
+    "crossing": {
+     "H": 300,
+     "stratum": "H3",
+     "length": 7,
+     "edge": "need",
+     "needs_at_90": [
+      "eat"
+     ],
+     "happiness": 64.0899658203125,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 131,
+    "others_max": 0,
+    "per_seat": [
+     0,
+     131,
+     0,
+     0,
+     0
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 722,
+     "needy_masked": 134,
+     "other": 442,
+     "partner_absent": 1128,
+     "partner_busy": 2259
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 218,
+     "partner_absent": 68,
+     "partner_busy": 628
+    },
+    "total": 4685
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095663,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 300,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 299,
+      "drink": 299,
+      "sleep": 299,
+      "cuddle": 224
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 151,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 47.5150146484375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1089,
+     "close": 1227,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 137
+     },
+     "crossing": {
+      "H": 1227,
+      "stratum": "H3",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 73.26499938964844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2214,
+     "close": 2382,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 80,
+      "bath": 167
+     },
+     "crossing": {
+      "H": 2295,
+      "stratum": "H4",
+      "length": 98,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 54.03703308105469,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3212,
+     "close": 3369,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 156
+     },
+     "crossing": {
+      "H": 3369,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 77.15599060058594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4141,
+     "close": 4532,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 99,
+      "cuddle": 157,
+      "bath": 390
+     },
+     "crossing": {
+      "H": 4241,
+      "stratum": "H4",
+      "length": 299,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 61.34347152709961,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5188,
+     "close": 5468,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 275,
+      "drink": 279,
+      "play": 112
+     },
+     "crossing": {
+      "H": 5301,
+      "stratum": "H4",
+      "length": 187,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 62.668209075927734,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 2763,
+     "length": 137
+    },
+    {
+     "H": 2917,
+     "length": 9
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 300,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "eat",
+     "drink",
+     "sleep",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "eat": 299,
+     "drink": 299,
+     "sleep": 299,
+     "cuddle": 224
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 151,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 47.5150146484375,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 294,
+    "others_max": 323,
+    "per_seat": [
+     192,
+     294,
+     323,
+     177,
+     198
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2308,
+     "needy_masked": 983,
+     "other": 458,
+     "partner_absent": 1115,
+     "partner_busy": 1567
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 246,
+     "needy_masked": 243,
+     "partner_absent": 65,
+     "partner_busy": 383
+    },
+    "total": 6431
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095664,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 3,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [
+    {
+     "H": 4468,
+     "length": 6
+    },
+    {
+     "H": 4546,
+     "length": 53
+    },
+    {
+     "H": 4608,
+     "length": 12
+    }
+   ],
+   "first": null,
+   "longest_streak": {
+    "friend": 12,
+    "others_max": 297,
+    "per_seat": [
+     200,
+     12,
+     297,
+     288,
+     292
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2296,
+     "other": 357,
+     "partner_absent": 1084,
+     "partner_busy": 1974
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 441,
+     "partner_absent": 73,
+     "partner_busy": 484
+    },
+    "total": 5711
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095665,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 10,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 276,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 275
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 2,
+     "onset": 1418,
+     "close": 1643,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 224,
+      "play": 72
+     },
+     "crossing": {
+      "H": 1491,
+      "stratum": "H4",
+      "length": 164,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 68.93500518798828,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2171,
+     "close": 2561,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 235,
+      "play": 107,
+      "bath": 389
+     },
+     "crossing": {
+      "H": 2279,
+      "stratum": "H4",
+      "length": 313,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 60.045074462890625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2884,
+     "close": 3236,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 155,
+      "drink": 294,
+      "play": 103,
+      "bath": 351
+     },
+     "crossing": {
+      "H": 2987,
+      "stratum": "H4",
+      "length": 337,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.80485153198242,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3610,
+     "close": 4041,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 275,
+      "bath": 430
+     },
+     "crossing": {
+      "H": 3862,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.67998504638672,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5139,
+     "close": 5237,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 97
+     },
+     "crossing": {
+      "H": 5237,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 62.40736389160156,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 410,
+     "length": 12
+    },
+    {
+     "H": 423,
+     "length": 203
+    },
+    {
+     "H": 696,
+     "length": 5
+    },
+    {
+     "H": 4072,
+     "length": 2
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 276,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "bath"
+    ],
+    "climb_ticks": {
+     "bath": 275
+    },
+    "crossing": null
+   },
+   "longest_streak": {
+    "friend": 308,
+    "others_max": 352,
+    "per_seat": [
+     341,
+     308,
+     180,
+     306,
+     352
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3801,
+     "needy_masked": 1280,
+     "other": 376,
+     "partner_absent": 1088,
+     "partner_busy": 1508
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 568,
+     "needy_masked": 162,
+     "partner_absent": 113,
+     "partner_busy": 381
+    },
+    "total": 8053
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095666,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 2,
+   "mask_windows": 2,
+   "releases": {
+    "level": 2,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 4741,
+     "close": 5111,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 209,
+      "drink": 203,
+      "cuddle": 219,
+      "bath": 369
+     },
+     "crossing": {
+      "H": 4890,
+      "stratum": "H4",
+      "length": 289,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.642486572265625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 5465,
+     "close": 5578,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 112
+     },
+     "crossing": {
+      "H": 5578,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 74.41999816894531,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 4741,
+    "close": 5111,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "eat",
+     "drink",
+     "cuddle",
+     "bath"
+    ],
+    "climb_ticks": {
+     "eat": 209,
+     "drink": 203,
+     "cuddle": 219,
+     "bath": 369
+    },
+    "crossing": {
+     "H": 4890,
+     "stratum": "H4",
+     "length": 289,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.642486572265625,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 218,
+    "others_max": 230,
+    "per_seat": [
+     230,
+     218,
+     211,
+     86,
+     202
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1625,
+     "needy_masked": 398,
+     "other": 419,
+     "partner_absent": 1162,
+     "partner_busy": 2162
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 427,
+     "needy_masked": 11,
+     "partner_absent": 94,
+     "partner_busy": 539
+    },
+    "total": 5766
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095667,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 0,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [],
+   "first": null,
+   "longest_streak": {
+    "friend": 0,
+    "others_max": 0,
+    "per_seat": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 602,
+     "other": 412,
+     "partner_absent": 1099,
+     "partner_busy": 2575
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 119,
+     "partner_absent": 57,
+     "partner_busy": 743
+    },
+    "total": 4688
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095668,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 10,
+   "mask_windows": 7,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1,
+     "close": 451,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 298,
+      "cuddle": 223,
+      "bath": 449
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 344,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 52.944976806640625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1123,
+     "close": 1357,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 233,
+      "play": 112
+     },
+     "crossing": {
+      "H": 1236,
+      "stratum": "H3",
+      "length": 147,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 66.197509765625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1671,
+     "close": 1773,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 101
+     },
+     "crossing": {
+      "H": 1773,
+      "stratum": "H4",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 70.04499816894531,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2145,
+     "close": 2386,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 240
+     },
+     "crossing": {
+      "H": 2386,
+      "stratum": "H4",
+      "length": 15,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 71.3124771118164,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3399,
+     "close": 3694,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 248,
+      "sleep": 294,
+      "cuddle": 198
+     },
+     "crossing": {
+      "H": 3566,
+      "stratum": "H4",
+      "length": 10,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.76252365112305,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4047,
+     "close": 4460,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 142,
+      "bath": 412
+     },
+     "crossing": {
+      "H": 4190,
+      "stratum": "H4",
+      "length": 395,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 62.76847839355469,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5644,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "drink",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 280,
+      "sleep": 272,
+      "bath": null
+     },
+     "crossing": {
+      "H": 5838,
+      "stratum": "H4",
+      "length": 32,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.845001220703125,
+      "episodes_inside": 2
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 622,
+     "length": 8
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 1,
+    "close": 451,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "drink",
+     "cuddle",
+     "bath"
+    ],
+    "climb_ticks": {
+     "drink": 298,
+     "cuddle": 223,
+     "bath": 449
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 344,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 52.944976806640625,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 338,
+    "others_max": 270,
+    "per_seat": [
+     128,
+     338,
+     200,
+     159,
+     270
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2914,
+     "needy_masked": 1486,
+     "other": 347,
+     "partner_absent": 989,
+     "partner_busy": 1794
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 530,
+     "needy_masked": 60,
+     "partner_absent": 46,
+     "partner_busy": 458
+    },
+    "total": 7530
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095669,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 0,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [],
+   "first": null,
+   "longest_streak": {
+    "friend": 0,
+    "others_max": 0,
+    "per_seat": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 578,
+     "other": 411,
+     "partner_absent": 1078,
+     "partner_busy": 2338
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 129,
+     "partner_absent": 67,
+     "partner_busy": 545
+    },
+    "total": 4405
+   }
+  },
+  {
+   "group": "N2",
+   "seed": 1095670,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 3,
+   "mask_windows": 3,
+   "releases": {
+    "level": 3,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 3192,
+     "close": 3478,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 285
+     },
+     "crossing": {
+      "H": 3478,
+      "stratum": "H4",
+      "length": 22,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 75.85747528076172,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 4622,
+     "close": 5041,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 235,
+      "drink": 190,
+      "play": 72,
+      "bath": 418
+     },
+     "crossing": {
+      "H": 4695,
+      "stratum": "H4",
+      "length": 369,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 60.985015869140625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 5716,
+     "close": 5953,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 236
+     },
+     "crossing": {
+      "H": 5953,
+      "stratum": "H4",
+      "length": 21,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 74.62522888183594,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 3192,
+    "close": 3478,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "drink"
+    ],
+    "climb_ticks": {
+     "drink": 285
+    },
+    "crossing": {
+     "H": 3478,
+     "stratum": "H4",
+     "length": 22,
+     "edge": "need",
+     "needs_at_90": [
+      "drink"
+     ],
+     "happiness": 75.85747528076172,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 363,
+    "others_max": 66,
+    "per_seat": [
+     0,
+     363,
+     66,
+     0,
+     0
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 699,
+     "needy_masked": 481,
+     "other": 417,
+     "partner_absent": 1163,
+     "partner_busy": 2627
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 160,
+     "needy_masked": 78,
+     "partner_absent": 76,
+     "partner_busy": 594
+    },
+    "total": 5387
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095671,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 9,
+   "mask_windows": 7,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 30,
+     "close": 225,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 194
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 13,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 68.55994415283203,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 576,
+     "close": 738,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 161
+     },
+     "crossing": {
+      "H": 738,
+      "stratum": "H3",
+      "length": 8,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 74.2374496459961,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1298,
+     "close": 1636,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 337
+     },
+     "crossing": {
+      "H": 1630,
+      "stratum": "H4",
+      "length": 15,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.9900016784668,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2366,
+     "close": 2689,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 322
+     },
+     "crossing": {
+      "H": 2689,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 74.63253784179688,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3627,
+     "close": 4528,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 109,
+      "drink": 213,
+      "sleep": 450,
+      "bath": 900
+     },
+     "crossing": {
+      "H": 3737,
+      "stratum": "H4",
+      "length": 868,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 59.69169616699219,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5331,
+     "close": 5452,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 120
+     },
+     "crossing": {
+      "H": 5452,
+      "stratum": "H4",
+      "length": 19,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 67.59502410888672,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5928,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": null
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 1661,
+     "length": 72
+    },
+    {
+     "H": 1798,
+     "length": 7
+    },
+    {
+     "H": 4750,
+     "length": 118
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 30,
+    "close": 225,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "drink"
+    ],
+    "climb_ticks": {
+     "drink": 194
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 13,
+     "edge": "need",
+     "needs_at_90": [
+      "drink"
+     ],
+     "happiness": 68.55994415283203,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 861,
+    "others_max": 589,
+    "per_seat": [
+     192,
+     401,
+     861,
+     589,
+     202
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3894,
+     "needy_masked": 191,
+     "other": 369,
+     "partner_absent": 988,
+     "partner_busy": 2287
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 678,
+     "partner_absent": 75,
+     "partner_busy": 431
+    },
+    "total": 7729
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095672,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 5,
+   "releases": {
+    "level": 5,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 149,
+     "close": 451,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 301
+     },
+     "crossing": {
+      "H": 451,
+      "stratum": "H3",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 55.3000373840332,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 969,
+     "close": 1191,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 221
+     },
+     "crossing": {
+      "H": 1191,
+      "stratum": "H3",
+      "length": 10,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 61.78245544433594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2172,
+     "close": 2461,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "sleep": 288,
+      "play": 197
+     },
+     "crossing": {
+      "H": 2370,
+      "stratum": "H4",
+      "length": 96,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 64.23208618164062,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3082,
+     "close": 3919,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 224,
+      "bath": 836
+     },
+     "crossing": {
+      "H": 3307,
+      "stratum": "H4",
+      "length": 618,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 71.35494995117188,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5028,
+     "close": 5472,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "eat": 111,
+      "sleep": 443
+     },
+     "crossing": {
+      "H": 5140,
+      "stratum": "H4",
+      "length": 338,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 67.936279296875,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 4048,
+     "length": 20
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 149,
+    "close": 451,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "sleep"
+    ],
+    "climb_ticks": {
+     "sleep": 301
+    },
+    "crossing": {
+     "H": 451,
+     "stratum": "H3",
+     "length": 3,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 55.3000373840332,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 616,
+    "others_max": 531,
+    "per_seat": [
+     531,
+     304,
+     616,
+     267,
+     218
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2294,
+     "needy_masked": 322,
+     "other": 437,
+     "partner_absent": 1141,
+     "partner_busy": 2053
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 269,
+     "needy_masked": 121,
+     "partner_absent": 124,
+     "partner_busy": 394
+    },
+    "total": 6247
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095673,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 2,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [
+    {
+     "H": 2957,
+     "length": 13
+    },
+    {
+     "H": 3005,
+     "length": 7
+    }
+   ],
+   "first": null,
+   "longest_streak": {
+    "friend": 13,
+    "others_max": 21,
+    "per_seat": [
+     0,
+     0,
+     13,
+     0,
+     21
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 564,
+     "other": 467,
+     "partner_absent": 1147,
+     "partner_busy": 2192
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 116,
+     "partner_absent": 62,
+     "partner_busy": 437
+    },
+    "total": 4370
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095674,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 4,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1438,
+     "close": 1616,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 177
+     },
+     "crossing": {
+      "H": 1616,
+      "stratum": "H4",
+      "length": 11,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 70.76496124267578,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 2396,
+     "close": 2667,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 270
+     },
+     "crossing": {
+      "H": 2667,
+      "stratum": "H4",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 70.71502685546875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3158,
+     "close": 3383,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 224
+     },
+     "crossing": {
+      "H": 3383,
+      "stratum": "H4",
+      "length": 6,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 66.9092025756836,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4373,
+     "close": 5261,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 887
+     },
+     "crossing": {
+      "H": 5218,
+      "stratum": "H4",
+      "length": 42,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.711341857910156,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 5364,
+     "length": 70
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 1438,
+    "close": 1616,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "drink"
+    ],
+    "climb_ticks": {
+     "drink": 177
+    },
+    "crossing": {
+     "H": 1616,
+     "stratum": "H4",
+     "length": 11,
+     "edge": "need",
+     "needs_at_90": [
+      "drink"
+     ],
+     "happiness": 70.76496124267578,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 52,
+    "others_max": 191,
+    "per_seat": [
+     176,
+     107,
+     52,
+     184,
+     191
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2061,
+     "needy_masked": 511,
+     "other": 383,
+     "partner_absent": 1050,
+     "partner_busy": 2183
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 463,
+     "partner_absent": 56,
+     "partner_busy": 464
+    },
+    "total": 6188
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095675,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 5,
+   "releases": {
+    "level": 5,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 360,
+     "close": 584,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 223,
+      "play": 186,
+      "cuddle": 211
+     },
+     "crossing": {
+      "H": 547,
+      "stratum": "H3",
+      "length": 442,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 47.89491271972656,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1100,
+     "close": 1281,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "drink"
+     ],
+     "climb_ticks": {
+      "eat": 94,
+      "drink": 180
+     },
+     "crossing": {
+      "H": 1195,
+      "stratum": "H3",
+      "length": 106,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 60.7910041809082,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2474,
+     "close": 2699,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 224
+     },
+     "crossing": {
+      "H": 2699,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 70.34772491455078,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3273,
+     "close": 4048,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 224,
+      "bath": 774
+     },
+     "crossing": {
+      "H": 3498,
+      "stratum": "H4",
+      "length": 553,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 56.461936950683594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4404,
+     "close": 5177,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 772
+     },
+     "crossing": {
+      "H": 4671,
+      "stratum": "H4",
+      "length": 293,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.86766052246094,
+      "episodes_inside": 2
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 2808,
+     "length": 205
+    },
+    {
+     "H": 4181,
+     "length": 57
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 360,
+    "close": 584,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "drink",
+     "play",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "drink": 223,
+     "play": 186,
+     "cuddle": 211
+    },
+    "crossing": {
+     "H": 547,
+     "stratum": "H3",
+     "length": 442,
+     "edge": "need",
+     "needs_at_90": [
+      "play"
+     ],
+     "happiness": 47.89491271972656,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 553,
+    "others_max": 271,
+    "per_seat": [
+     221,
+     269,
+     553,
+     59,
+     271
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 4715,
+     "needy_masked": 1242,
+     "other": 380,
+     "partner_absent": 913,
+     "partner_busy": 1683
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 1377,
+     "needy_masked": 220,
+     "partner_absent": 58,
+     "partner_busy": 261
+    },
+    "total": 8933
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095676,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 1,
+   "mask_windows": 0,
+   "releases": {
+    "level": 0,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [],
+   "unmasked_crossings": [
+    {
+     "H": 385,
+     "length": 31
+    }
+   ],
+   "first": null,
+   "longest_streak": {
+    "friend": 31,
+    "others_max": 0,
+    "per_seat": [
+     0,
+     0,
+     31,
+     0,
+     0
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 492,
+     "other": 413,
+     "partner_absent": 1101,
+     "partner_busy": 2535
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 90,
+     "partner_absent": 62,
+     "partner_busy": 504
+    },
+    "total": 4541
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095677,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 10,
+   "mask_windows": 5,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 225,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 224
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 63.79746627807617,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1336,
+     "close": 2044,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 707
+     },
+     "crossing": {
+      "H": 1534,
+      "stratum": "H4",
+      "length": 125,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.81452178955078,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2557,
+     "close": 3353,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 795
+     },
+     "crossing": {
+      "H": 2757,
+      "stratum": "H4",
+      "length": 233,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 45.90413284301758,
+      "episodes_inside": 4
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4206,
+     "close": 4904,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 96,
+      "drink": 204,
+      "bath": 697
+     },
+     "crossing": {
+      "H": 4303,
+      "stratum": "H4",
+      "length": 621,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 58.83726501464844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5453,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 94,
+      "sleep": 242,
+      "cuddle": 224,
+      "bath": null
+     },
+     "crossing": {
+      "H": 5548,
+      "stratum": "H4",
+      "length": 452,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 59.31993103027344,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 2296,
+     "length": 101
+    },
+    {
+     "H": 3490,
+     "length": 7
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 225,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 224
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 5,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 63.79746627807617,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 609,
+    "others_max": 784,
+    "per_seat": [
+     167,
+     482,
+     609,
+     784,
+     449
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 6067,
+     "needy_masked": 1831,
+     "other": 407,
+     "partner_absent": 967,
+     "partner_busy": 1302
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 1361,
+     "partner_absent": 72,
+     "partner_busy": 279
+    },
+    "total": 10574
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095678,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 4,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 2617,
+     "close": 2965,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 347
+     },
+     "crossing": {
+      "H": 2965,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 72.23003387451172,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 3429,
+     "close": 3589,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 159
+     },
+     "crossing": {
+      "H": 3589,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 72.50497436523438,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 4762,
+     "close": 5111,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 348
+     },
+     "crossing": {
+      "H": 5111,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 72.17539978027344,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 5439,
+     "close": 5609,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 169
+     },
+     "crossing": {
+      "H": 5609,
+      "stratum": "H4",
+      "length": 44,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 67.48808288574219,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 1546,
+     "length": 98
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 2617,
+    "close": 2965,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "sleep"
+    ],
+    "climb_ticks": {
+     "sleep": 347
+    },
+    "crossing": {
+     "H": 2965,
+     "stratum": "H4",
+     "length": 4,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 72.23003387451172,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 44,
+    "others_max": 163,
+    "per_seat": [
+     163,
+     122,
+     44,
+     82,
+     151
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1621,
+     "needy_masked": 94,
+     "other": 474,
+     "partner_absent": 1172,
+     "partner_busy": 2169
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 456,
+     "partner_absent": 103,
+     "partner_busy": 495
+    },
+    "total": 5530
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095679,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 2,
+   "mask_windows": 2,
+   "releases": {
+    "level": 2,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 4359,
+     "close": 5243,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 0,
+      "drink": 12,
+      "play": 5,
+      "bath": 883
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 2,
+     "onset": 5638,
+     "close": 5849,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 210
+     },
+     "crossing": {
+      "H": 5849,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 72.96245574951172,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 4294,
+     "length": 964
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 4359,
+    "close": 5243,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "eat",
+     "drink",
+     "play",
+     "bath"
+    ],
+    "climb_ticks": {
+     "eat": 0,
+     "drink": 12,
+     "play": 5,
+     "bath": 883
+    },
+    "crossing": null
+   },
+   "longest_streak": {
+    "friend": 924,
+    "others_max": 289,
+    "per_seat": [
+     240,
+     289,
+     924,
+     287,
+     276
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2617,
+     "needy_masked": 507,
+     "other": 367,
+     "partner_absent": 1006,
+     "partner_busy": 1746
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 258,
+     "needy_masked": 146,
+     "partner_absent": 76,
+     "partner_busy": 408
+    },
+    "total": 6243
+   }
+  },
+  {
+   "group": "N3",
+   "seed": 1095680,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 225,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 224,
+      "play": 224
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 32,
+      "edge": "need",
+      "needs_at_90": [
+       "drink",
+       "play"
+      ],
+      "happiness": 55.01142883300781,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 580,
+     "close": 698,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 117
+     },
+     "crossing": {
+      "H": 698,
+      "stratum": "H3",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 69.40496826171875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1117,
+     "close": 1943,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 204,
+      "play": 177,
+      "cuddle": 215,
+      "bath": 825
+     },
+     "crossing": {
+      "H": 1295,
+      "stratum": "H4",
+      "length": 669,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 48.459903717041016,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2759,
+     "close": 3120,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 119,
+      "sleep": 360,
+      "play": 224
+     },
+     "crossing": {
+      "H": 2879,
+      "stratum": "H4",
+      "length": 265,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 63.49750900268555,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4266,
+     "close": 4447,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "drink"
+     ],
+     "climb_ticks": {
+      "eat": 140,
+      "drink": 180
+     },
+     "crossing": {
+      "H": 4407,
+      "stratum": "H4",
+      "length": 70,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 57.218994140625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5578,
+     "close": 5974,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 80,
+      "drink": 141,
+      "sleep": 395,
+      "play": 202
+     },
+     "crossing": {
+      "H": 5659,
+      "stratum": "H4",
+      "length": 341,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 53.56499099731445,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 225,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "drink",
+     "play"
+    ],
+    "climb_ticks": {
+     "drink": 224,
+     "play": 224
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 32,
+     "edge": "need",
+     "needs_at_90": [
+      "drink",
+      "play"
+     ],
+     "happiness": 55.01142883300781,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 651,
+    "others_max": 364,
+    "per_seat": [
+     178,
+     119,
+     651,
+     55,
+     364
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1365,
+     "needy_masked": 908,
+     "other": 443,
+     "partner_absent": 1102,
+     "partner_busy": 1906
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 159,
+     "needy_masked": 517,
+     "partner_absent": 64,
+     "partner_busy": 247
+    },
+    "total": 5724
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095681,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 5,
+   "releases": {
+    "level": 5,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 53,
+     "close": 225,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 171
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 26,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 67.14959716796875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1398,
+     "close": 1688,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 289,
+      "play": 264
+     },
+     "crossing": {
+      "H": 1663,
+      "stratum": "H4",
+      "length": 55,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 52.54145431518555,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2839,
+     "close": 3130,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 263,
+      "play": 290,
+      "cuddle": 164,
+      "bath": 188
+     },
+     "crossing": {
+      "H": 3004,
+      "stratum": "H4",
+      "length": 167,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 49.7449836730957,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3579,
+     "close": 3761,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 181
+     },
+     "crossing": {
+      "H": 3761,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 68.8199691772461,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4885,
+     "close": 5055,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 169
+     },
+     "crossing": {
+      "H": 5055,
+      "stratum": "H4",
+      "length": 20,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 73.54496765136719,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 53,
+    "close": 225,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "eat"
+    ],
+    "climb_ticks": {
+     "eat": 171
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 26,
+     "edge": "need",
+     "needs_at_90": [
+      "eat"
+     ],
+     "happiness": 67.14959716796875,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 167,
+    "others_max": 186,
+    "per_seat": [
+     87,
+     92,
+     104,
+     167,
+     186
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 876,
+     "needy_masked": 182,
+     "other": 388,
+     "partner_absent": 1221,
+     "partner_busy": 2454
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 158,
+     "needy_masked": 33,
+     "partner_absent": 57,
+     "partner_busy": 519
+    },
+    "total": 5121
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095682,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 5,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 225,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 224
+     },
+     "crossing": {
+      "H": 225,
+      "stratum": "H2",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 69.16747283935547,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 932,
+     "close": 1118,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 185
+     },
+     "crossing": {
+      "H": 1118,
+      "stratum": "H3",
+      "length": 16,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 69.93145751953125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2134,
+     "close": 2313,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 178
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 4,
+     "onset": 3421,
+     "close": 3711,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "drink": 289,
+      "sleep": 189
+     },
+     "crossing": {
+      "H": 3611,
+      "stratum": "H4",
+      "length": 130,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 59.684974670410156,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4640,
+     "close": 4939,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 298
+     },
+     "crossing": {
+      "H": 4939,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 73.1412353515625,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5323,
+     "close": 5568,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 227,
+      "sleep": 244,
+      "cuddle": 186
+     },
+     "crossing": {
+      "H": 5510,
+      "stratum": "H4",
+      "length": 354,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 54.947471618652344,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 225,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "eat"
+    ],
+    "climb_ticks": {
+     "eat": 224
+    },
+    "crossing": {
+     "H": 225,
+     "stratum": "H2",
+     "length": 3,
+     "edge": "need",
+     "needs_at_90": [
+      "eat"
+     ],
+     "happiness": 69.16747283935547,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 319,
+    "others_max": 240,
+    "per_seat": [
+     172,
+     161,
+     197,
+     319,
+     240
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2036,
+     "needy_masked": 349,
+     "other": 416,
+     "partner_absent": 1115,
+     "partner_busy": 2283
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 327,
+     "needy_masked": 33,
+     "partner_absent": 54,
+     "partner_busy": 432
+    },
+    "total": 6199
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095683,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 7,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 109,
+     "close": 401,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 291
+     },
+     "crossing": {
+      "H": 401,
+      "stratum": "H3",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 72.93748474121094,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1132,
+     "close": 1286,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 118,
+      "play": 124,
+      "cuddle": 72,
+      "bath": 153
+     },
+     "crossing": {
+      "H": 1205,
+      "stratum": "H3",
+      "length": 440,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 47.5595817565918,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1723,
+     "close": 1955,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "eat": 147,
+      "sleep": 231
+     },
+     "crossing": {
+      "H": 1871,
+      "stratum": "H4",
+      "length": 100,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 61.791229248046875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2409,
+     "close": 2630,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 198,
+      "bath": 220
+     },
+     "crossing": {
+      "H": 2607,
+      "stratum": "H4",
+      "length": 33,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.97367858886719,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3583,
+     "close": 3743,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 159
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 6,
+     "onset": 4814,
+     "close": 5102,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "drink": 287,
+      "sleep": 287
+     },
+     "crossing": {
+      "H": 5102,
+      "stratum": "H4",
+      "length": 21,
+      "edge": "need",
+      "needs_at_90": [
+       "drink",
+       "sleep"
+      ],
+      "happiness": 65.69496154785156,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5937,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": null,
+      "cuddle": null,
+      "bath": null
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 3287,
+     "length": 191
+    },
+    {
+     "H": 3781,
+     "length": 8
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 109,
+    "close": 401,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "play"
+    ],
+    "climb_ticks": {
+     "play": 291
+    },
+    "crossing": {
+     "H": 401,
+     "stratum": "H3",
+     "length": 1,
+     "edge": "need",
+     "needs_at_90": [
+      "play"
+     ],
+     "happiness": 72.93748474121094,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 420,
+    "others_max": 419,
+    "per_seat": [
+     272,
+     245,
+     348,
+     420,
+     419
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3961,
+     "needy_masked": 579,
+     "other": 337,
+     "partner_absent": 912,
+     "partner_busy": 2003
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 671,
+     "needy_masked": 41,
+     "partner_absent": 47,
+     "partner_busy": 396
+    },
+    "total": 7792
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095684,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 483,
+     "close": 705,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 201,
+      "sleep": 221,
+      "bath": 111
+     },
+     "crossing": {
+      "H": 660,
+      "stratum": "H3",
+      "length": 108,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.77834701538086,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1849,
+     "close": 2077,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "drink": 205,
+      "sleep": 227
+     },
+     "crossing": {
+      "H": 2055,
+      "stratum": "H4",
+      "length": 26,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 45.2324333190918,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2796,
+     "close": 3050,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 193,
+      "play": 253
+     },
+     "crossing": {
+      "H": 2981,
+      "stratum": "H4",
+      "length": 93,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.960716247558594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3955,
+     "close": 4174,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "drink"
+     ],
+     "climb_ticks": {
+      "eat": 175,
+      "drink": 218
+     },
+     "crossing": {
+      "H": 4131,
+      "stratum": "H4",
+      "length": 65,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 58.8549690246582,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5094,
+     "close": 5303,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 166,
+      "cuddle": 208,
+      "bath": 187
+     },
+     "crossing": {
+      "H": 5261,
+      "stratum": "H4",
+      "length": 121,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 48.126365661621094,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5633,
+     "close": 5918,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 284,
+      "play": 214,
+      "cuddle": 198,
+      "bath": 83
+     },
+     "crossing": {
+      "H": 5803,
+      "stratum": "H4",
+      "length": 21,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.957489013671875,
+      "episodes_inside": 2
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 483,
+    "close": 705,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "eat",
+     "sleep",
+     "bath"
+    ],
+    "climb_ticks": {
+     "eat": 201,
+     "sleep": 221,
+     "bath": 111
+    },
+    "crossing": {
+     "H": 660,
+     "stratum": "H3",
+     "length": 108,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.77834701538086,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 202,
+    "others_max": 216,
+    "per_seat": [
+     45,
+     48,
+     69,
+     202,
+     216
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1926,
+     "needy_masked": 484,
+     "other": 446,
+     "partner_absent": 1150,
+     "partner_busy": 2236
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 357,
+     "partner_absent": 47,
+     "partner_busy": 466
+    },
+    "total": 6242
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095685,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 599,
+     "close": 876,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "drink"
+     ],
+     "climb_ticks": {
+      "eat": 146,
+      "drink": 276
+     },
+     "crossing": {
+      "H": 746,
+      "stratum": "H3",
+      "length": 151,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 62.24497985839844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1685,
+     "close": 1981,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 295,
+      "cuddle": 148,
+      "bath": 175
+     },
+     "crossing": {
+      "H": 1834,
+      "stratum": "H4",
+      "length": 258,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 60.64595413208008,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3161,
+     "close": 3368,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 206
+     },
+     "crossing": {
+      "H": 3368,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 63.189971923828125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3746,
+     "close": 3949,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "sleep": 165,
+      "cuddle": 202
+     },
+     "crossing": {
+      "H": 3912,
+      "stratum": "H4",
+      "length": 47,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 62.58245849609375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4311,
+     "close": 4580,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 196,
+      "drink": 184,
+      "sleep": 268,
+      "bath": 187
+     },
+     "crossing": {
+      "H": 4443,
+      "stratum": "H4",
+      "length": 178,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.955101013183594,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4962,
+     "close": 5145,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 182
+     },
+     "crossing": {
+      "H": 5145,
+      "stratum": "H4",
+      "length": 11,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 72.21747589111328,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 599,
+    "close": 876,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "eat",
+     "drink"
+    ],
+    "climb_ticks": {
+     "eat": 146,
+     "drink": 276
+    },
+    "crossing": {
+     "H": 746,
+     "stratum": "H3",
+     "length": 151,
+     "edge": "need",
+     "needs_at_90": [
+      "eat"
+     ],
+     "happiness": 62.24497985839844,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 258,
+    "others_max": 413,
+    "per_seat": [
+     34,
+     128,
+     72,
+     258,
+     413
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2262,
+     "needy_masked": 664,
+     "other": 440,
+     "partner_absent": 1097,
+     "partner_busy": 1665
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 535,
+     "partner_absent": 70,
+     "partner_busy": 326
+    },
+    "total": 6128
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095686,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 10,
+   "mask_windows": 8,
+   "releases": {
+    "level": 8,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 8,
+     "close": 300,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 291
+     },
+     "crossing": {
+      "H": 300,
+      "stratum": "H3",
+      "length": 10,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 63.13998031616211,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 784,
+     "close": 999,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 92,
+      "sleep": 108,
+      "play": 60,
+      "cuddle": 214
+     },
+     "crossing": {
+      "H": 845,
+      "stratum": "H3",
+      "length": 197,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 48.69997024536133,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1573,
+     "close": 1739,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 165
+     },
+     "crossing": {
+      "H": 1739,
+      "stratum": "H4",
+      "length": 6,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 69.35496520996094,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2474,
+     "close": 2576,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 101
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 5,
+     "onset": 3157,
+     "close": 3287,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 65,
+      "sleep": 57,
+      "play": 117,
+      "bath": 129
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 6,
+     "onset": 3598,
+     "close": 3760,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 161
+     },
+     "crossing": {
+      "H": 3760,
+      "stratum": "H4",
+      "length": 34,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 81.01496887207031,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 4383,
+     "close": 4670,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 161,
+      "play": 286
+     },
+     "crossing": {
+      "H": 4545,
+      "stratum": "H4",
+      "length": 146,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 63.11009979248047,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 8,
+     "onset": 5647,
+     "close": 5842,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 194
+     },
+     "crossing": {
+      "H": 5842,
+      "stratum": "H4",
+      "length": 6,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 70.93070983886719,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 750,
+     "length": 8
+    },
+    {
+     "H": 784,
+     "length": 12
+    },
+    {
+     "H": 3126,
+     "length": 202
+    },
+    {
+     "H": 5526,
+     "length": 14
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 8,
+    "close": 300,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "drink"
+    ],
+    "climb_ticks": {
+     "drink": 291
+    },
+    "crossing": {
+     "H": 300,
+     "stratum": "H3",
+     "length": 10,
+     "edge": "need",
+     "needs_at_90": [
+      "drink"
+     ],
+     "happiness": 63.13998031616211,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 159,
+    "others_max": 92,
+    "per_seat": [
+     73,
+     54,
+     92,
+     159,
+     45
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1747,
+     "needy_masked": 489,
+     "other": 438,
+     "partner_absent": 1112,
+     "partner_busy": 2120
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 302,
+     "needy_masked": 128,
+     "partner_absent": 51,
+     "partner_busy": 454
+    },
+    "total": 5906
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095687,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 209,
+     "close": 407,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 197
+     },
+     "crossing": {
+      "H": 407,
+      "stratum": "H3",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 74.45497131347656,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1142,
+     "close": 1320,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 177
+     },
+     "crossing": {
+      "H": 1262,
+      "stratum": "H4",
+      "length": 29,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.84023666381836,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1710,
+     "close": 2005,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "sleep",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 117,
+      "drink": 294,
+      "sleep": 281,
+      "cuddle": 208
+     },
+     "crossing": {
+      "H": 1828,
+      "stratum": "H4",
+      "length": 232,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 60.18996810913086,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2695,
+     "close": 2894,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 198
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 5,
+     "onset": 3978,
+     "close": 4116,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 137
+     },
+     "crossing": {
+      "H": 4116,
+      "stratum": "H4",
+      "length": 17,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 63.734840393066406,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5037,
+     "close": 5257,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 219
+     },
+     "crossing": {
+      "H": 5257,
+      "stratum": "H4",
+      "length": 12,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 68.50747680664062,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 5942,
+     "length": 58
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 209,
+    "close": 407,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 197
+    },
+    "crossing": {
+     "H": 407,
+     "stratum": "H3",
+     "length": 2,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 74.45497131347656,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 277,
+    "others_max": 299,
+    "per_seat": [
+     139,
+     67,
+     263,
+     277,
+     299
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2783,
+     "needy_masked": 349,
+     "other": 419,
+     "partner_absent": 1078,
+     "partner_busy": 1926
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 503,
+     "partner_absent": 58,
+     "partner_busy": 375
+    },
+    "total": 6555
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095688,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 7,
+   "releases": {
+    "level": 7,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 2,
+     "close": 300,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 297,
+      "bath": 117
+     },
+     "crossing": {
+      "H": 232,
+      "stratum": "H2",
+      "length": 90,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.77101516723633,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1228,
+     "close": 1528,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 299
+     },
+     "crossing": {
+      "H": 1528,
+      "stratum": "H4",
+      "length": 5,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 79.49497985839844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2352,
+     "close": 2638,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "play": 285,
+      "cuddle": 139
+     },
+     "crossing": {
+      "H": 2492,
+      "stratum": "H4",
+      "length": 178,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 66.34249877929688,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3056,
+     "close": 3308,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "play": 251,
+      "cuddle": 163
+     },
+     "crossing": {
+      "H": 3220,
+      "stratum": "H4",
+      "length": 118,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 72.92623901367188,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3706,
+     "close": 3995,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 218,
+      "play": 288
+     },
+     "crossing": {
+      "H": 3925,
+      "stratum": "H4",
+      "length": 92,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 61.8549690246582,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 4414,
+     "close": 4618,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 203
+     },
+     "crossing": {
+      "H": 4618,
+      "stratum": "H4",
+      "length": 7,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 62.209617614746094,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5178,
+     "close": 5478,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 299,
+      "sleep": 201,
+      "play": 250,
+      "cuddle": 192
+     },
+     "crossing": {
+      "H": 5371,
+      "stratum": "H4",
+      "length": 253,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 46.3235969543457,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 2,
+    "close": 300,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "drink",
+     "bath"
+    ],
+    "climb_ticks": {
+     "drink": 297,
+     "bath": 117
+    },
+    "crossing": {
+     "H": 232,
+     "stratum": "H2",
+     "length": 90,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.77101516723633,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 246,
+    "others_max": 197,
+    "per_seat": [
+     19,
+     65,
+     197,
+     246,
+     59
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1569,
+     "needy_masked": 672,
+     "other": 416,
+     "partner_absent": 1068,
+     "partner_busy": 1939
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 519,
+     "needy_masked": 65,
+     "partner_absent": 51,
+     "partner_busy": 321
+    },
+    "total": 5664
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095689,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 8,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1,
+     "close": 301,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 299,
+      "bath": 223
+     },
+     "crossing": {
+      "H": 199,
+      "stratum": "H2",
+      "length": 32,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.69926071166992,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 693,
+     "close": 991,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "drink": 264,
+      "sleep": 255,
+      "play": 297,
+      "cuddle": 165
+     },
+     "crossing": {
+      "H": 859,
+      "stratum": "H3",
+      "length": 257,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 49.590023040771484,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 1775,
+     "close": 1884,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 108
+     },
+     "crossing": {
+      "H": 1884,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 68.62123107910156,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3060,
+     "close": 3360,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 166,
+      "play": 299,
+      "cuddle": 159
+     },
+     "crossing": {
+      "H": 3220,
+      "stratum": "H4",
+      "length": 201,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 50.257450103759766,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4079,
+     "close": 4279,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 175,
+      "bath": 199
+     },
+     "crossing": {
+      "H": 4255,
+      "stratum": "H4",
+      "length": 29,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 52.9258918762207,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5264,
+     "close": 5427,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 162
+     },
+     "crossing": {
+      "H": 5427,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 76.14995574951172,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 1902,
+     "length": 1
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 1,
+    "close": 301,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "play",
+     "bath"
+    ],
+    "climb_ticks": {
+     "play": 299,
+     "bath": 223
+    },
+    "crossing": {
+     "H": 199,
+     "stratum": "H2",
+     "length": 32,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.69926071166992,
+     "episodes_inside": 2
+    }
+   },
+   "longest_streak": {
+    "friend": 195,
+    "others_max": 116,
+    "per_seat": [
+     0,
+     116,
+     64,
+     195,
+     114
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1981,
+     "needy_masked": 831,
+     "other": 480,
+     "partner_absent": 1092,
+     "partner_busy": 1704
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 423,
+     "needy_masked": 7,
+     "partner_absent": 66,
+     "partner_busy": 369
+    },
+    "total": 6088
+   }
+  },
+  {
+   "group": "N4",
+   "seed": 1095690,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1,
+     "close": 300,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 298,
+      "sleep": 298,
+      "play": 298,
+      "bath": 223
+     },
+     "crossing": {
+      "H": 224,
+      "stratum": "H2",
+      "length": 111,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.69926834106445,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 794,
+     "close": 1000,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 205
+     },
+     "crossing": null
+    },
+    {
+     "ordinal": 3,
+     "onset": 1682,
+     "close": 1904,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 221
+     },
+     "crossing": {
+      "H": 1904,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 75.47929382324219,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 2579,
+     "close": 2803,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "drink",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 223,
+      "bath": 207
+     },
+     "crossing": {
+      "H": 2791,
+      "stratum": "H4",
+      "length": 13,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.687950134277344,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 3982,
+     "close": 4234,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 251
+     },
+     "crossing": {
+      "H": 4234,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 68.12948608398438,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5004,
+     "close": 5274,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 269
+     },
+     "crossing": {
+      "H": 5274,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 77.41996765136719,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 2866,
+     "length": 6
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 1,
+    "close": 300,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "drink",
+     "sleep",
+     "play",
+     "bath"
+    ],
+    "climb_ticks": {
+     "drink": 298,
+     "sleep": 298,
+     "play": 298,
+     "bath": 223
+    },
+    "crossing": {
+     "H": 224,
+     "stratum": "H2",
+     "length": 111,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.69926834106445,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 76,
+    "others_max": 320,
+    "per_seat": [
+     93,
+     116,
+     155,
+     76,
+     320
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2097,
+     "needy_masked": 718,
+     "other": 331,
+     "partner_absent": 1041,
+     "partner_busy": 1968
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 387,
+     "needy_masked": 34,
+     "partner_absent": 61,
+     "partner_busy": 465
+    },
+    "total": 6155
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095691,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 724,
+     "close": 853,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 128
+     },
+     "crossing": {
+      "H": 853,
+      "stratum": "H3",
+      "length": 9,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 66.83001708984375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 2004,
+     "close": 2867,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 87,
+      "drink": 147,
+      "cuddle": 109,
+      "bath": 862
+     },
+     "crossing": {
+      "H": 2092,
+      "stratum": "H4",
+      "length": 813,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 50.66493606567383,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3795,
+     "close": 4086,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 290
+     },
+     "crossing": {
+      "H": 4086,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 74.56497955322266,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4427,
+     "close": 4579,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 151
+     },
+     "crossing": {
+      "H": 4579,
+      "stratum": "H4",
+      "length": 11,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 70.31507873535156,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5115,
+     "close": 5258,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 142
+     },
+     "crossing": {
+      "H": 5258,
+      "stratum": "H4",
+      "length": 23,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 71.43695068359375,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5790,
+     "close": 5845,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 54
+     },
+     "crossing": {
+      "H": 5845,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 57.57495880126953,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 3690,
+     "length": 11
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 724,
+    "close": 853,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 128
+    },
+    "crossing": {
+     "H": 853,
+     "stratum": "H3",
+     "length": 9,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 66.83001708984375,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 799,
+    "others_max": 153,
+    "per_seat": [
+     153,
+     79,
+     84,
+     92,
+     799
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2268,
+     "needy_masked": 627,
+     "other": 392,
+     "partner_absent": 1062,
+     "partner_busy": 1927
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 518,
+     "partner_absent": 61,
+     "partner_busy": 273
+    },
+    "total": 6276
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095692,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 5,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 515,
+     "close": 1167,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 172,
+      "cuddle": 76,
+      "bath": 651
+     },
+     "crossing": {
+      "H": 592,
+      "stratum": "H3",
+      "length": 665,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 62.608482360839844,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1770,
+     "close": 2535,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "sleep",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 170,
+      "sleep": 212,
+      "play": 299,
+      "bath": 764
+     },
+     "crossing": {
+      "H": 1886,
+      "stratum": "H4",
+      "length": 668,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.80733871459961,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3326,
+     "close": 4049,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 245,
+      "play": 282,
+      "cuddle": 83,
+      "bath": 722
+     },
+     "crossing": {
+      "H": 3410,
+      "stratum": "H4",
+      "length": 705,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 65.02508544921875,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4773,
+     "close": 5576,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 78,
+      "sleep": 246,
+      "bath": 802
+     },
+     "crossing": {
+      "H": 4852,
+      "stratum": "H4",
+      "length": 785,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 65.38996124267578,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5940,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": null,
+      "cuddle": null,
+      "bath": null
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 5740,
+     "length": 17
+    },
+    {
+     "H": 5854,
+     "length": 5
+    },
+    {
+     "H": 5868,
+     "length": 27
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 515,
+    "close": 1167,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "drink",
+     "cuddle",
+     "bath"
+    ],
+    "climb_ticks": {
+     "drink": 172,
+     "cuddle": 76,
+     "bath": 651
+    },
+    "crossing": {
+     "H": 592,
+     "stratum": "H3",
+     "length": 665,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 62.608482360839844,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 785,
+    "others_max": 299,
+    "per_seat": [
+     157,
+     174,
+     214,
+     299,
+     785
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3953,
+     "needy_masked": 2193,
+     "other": 366,
+     "partner_absent": 1001,
+     "partner_busy": 1148
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 370,
+     "needy_masked": 278,
+     "partner_absent": 43,
+     "partner_busy": 189
+    },
+    "total": 8661
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095693,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 5,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 6,
+     "close": 129,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 122
+     },
+     "crossing": {
+      "H": 129,
+      "stratum": "H2",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 75.61500549316406,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 451,
+     "close": 1319,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 158,
+      "play": 283,
+      "bath": 867
+     },
+     "crossing": {
+      "H": 610,
+      "stratum": "H3",
+      "length": 872,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 48.871482849121094,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2314,
+     "close": 3174,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 859
+     },
+     "crossing": {
+      "H": 2415,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.81797409057617,
+      "episodes_inside": 3
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4102,
+     "close": 4379,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 276
+     },
+     "crossing": {
+      "H": 4379,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 69.59247589111328,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5571,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 4,
+     "masked": [
+      "drink",
+      "sleep",
+      "play",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 150,
+      "sleep": 256,
+      "play": 252,
+      "bath": null
+     },
+     "crossing": {
+      "H": 5722,
+      "stratum": "H4",
+      "length": 278,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 48.30048751831055,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 6,
+    "close": 129,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 122
+    },
+    "crossing": {
+     "H": 129,
+     "stratum": "H2",
+     "length": 2,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 75.61500549316406,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 863,
+    "others_max": 382,
+    "per_seat": [
+     170,
+     382,
+     295,
+     197,
+     863
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3980,
+     "needy_masked": 1193,
+     "other": 392,
+     "partner_absent": 961,
+     "partner_busy": 1544
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 343,
+     "needy_masked": 9,
+     "partner_absent": 48,
+     "partner_busy": 228
+    },
+    "total": 8070
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095694,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 4,
+   "mask_windows": 4,
+   "releases": {
+    "level": 4,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1396,
+     "close": 1478,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 81
+     },
+     "crossing": {
+      "H": 1478,
+      "stratum": "H4",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 75.96869659423828,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 2404,
+     "close": 2604,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 199
+     },
+     "crossing": {
+      "H": 2604,
+      "stratum": "H4",
+      "length": 11,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 65.09996795654297,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3496,
+     "close": 4348,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 198,
+      "play": 277,
+      "cuddle": 120,
+      "bath": 851
+     },
+     "crossing": {
+      "H": 3617,
+      "stratum": "H4",
+      "length": 828,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 58.21503829956055,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 5098,
+     "close": 5807,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "sleep",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 111,
+      "sleep": 271,
+      "cuddle": 93,
+      "bath": 708
+     },
+     "crossing": {
+      "H": 5192,
+      "stratum": "H4",
+      "length": 649,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 58.15522766113281,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 1396,
+    "close": 1478,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 81
+    },
+    "crossing": {
+     "H": 1478,
+     "stratum": "H4",
+     "length": 3,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 75.96869659423828,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 817,
+    "others_max": 193,
+    "per_seat": [
+     131,
+     107,
+     111,
+     193,
+     817
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2501,
+     "needy_masked": 1056,
+     "other": 452,
+     "partner_absent": 1065,
+     "partner_busy": 2131
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 569,
+     "needy_masked": 207,
+     "partner_absent": 42,
+     "partner_busy": 302
+    },
+    "total": 7205
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095695,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 4,
+   "mask_windows": 3,
+   "releases": {
+    "level": 3,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1739,
+     "close": 2627,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 212,
+      "bath": 887
+     },
+     "crossing": {
+      "H": 1952,
+      "stratum": "H4",
+      "length": 718,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 58.78295135498047,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 3557,
+     "close": 3826,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "drink",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "eat": 195,
+      "drink": 119,
+      "play": 268,
+      "cuddle": 117
+     },
+     "crossing": {
+      "H": 3675,
+      "stratum": "H4",
+      "length": 202,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 46.98495864868164,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 4653,
+     "close": 5427,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "play": 193,
+      "cuddle": 111,
+      "bath": 773
+     },
+     "crossing": {
+      "H": 4765,
+      "stratum": "H4",
+      "length": 869,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 69.32002258300781,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 5639,
+     "length": 43
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 1739,
+    "close": 2627,
+    "release": "released_level",
+    "m": 2,
+    "masked": [
+     "sleep",
+     "bath"
+    ],
+    "climb_ticks": {
+     "sleep": 212,
+     "bath": 887
+    },
+    "crossing": {
+     "H": 1952,
+     "stratum": "H4",
+     "length": 718,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 58.78295135498047,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 869,
+    "others_max": 370,
+    "per_seat": [
+     208,
+     370,
+     228,
+     98,
+     869
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 3536,
+     "needy_masked": 970,
+     "other": 296,
+     "partner_absent": 823,
+     "partner_busy": 1403
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 368,
+     "needy_masked": 88,
+     "partner_absent": 30,
+     "partner_busy": 226
+    },
+    "total": 7028
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095696,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 7,
+   "mask_windows": 7,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 800,
+     "close": 1099,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "sleep": 276,
+      "play": 298,
+      "cuddle": 106
+     },
+     "crossing": {
+      "H": 907,
+      "stratum": "H3",
+      "length": 262,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 70.99502563476562,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1507,
+     "close": 1629,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 121
+     },
+     "crossing": {
+      "H": 1629,
+      "stratum": "H4",
+      "length": 1,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 73.39501953125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2294,
+     "close": 2501,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 206
+     },
+     "crossing": {
+      "H": 2501,
+      "stratum": "H4",
+      "length": 10,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 71.73246765136719,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3274,
+     "close": 4079,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "eat",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 144,
+      "play": 294,
+      "cuddle": 103,
+      "bath": 804
+     },
+     "crossing": {
+      "H": 3378,
+      "stratum": "H4",
+      "length": 776,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 58.339481353759766,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4528,
+     "close": 4692,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 163
+     },
+     "crossing": {
+      "H": 4692,
+      "stratum": "H4",
+      "length": 7,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 72.61995697021484,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5047,
+     "close": 5176,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 128
+     },
+     "crossing": {
+      "H": 5176,
+      "stratum": "H4",
+      "length": 7,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 64.73745727539062,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 7,
+     "onset": 5628,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "drink",
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "drink": 217,
+      "sleep": 287,
+      "bath": null
+     },
+     "crossing": {
+      "H": 5846,
+      "stratum": "H4",
+      "length": 154,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 49.61967468261719,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 800,
+    "close": 1099,
+    "release": "released_level",
+    "m": 3,
+    "masked": [
+     "sleep",
+     "play",
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "sleep": 276,
+     "play": 298,
+     "cuddle": 106
+    },
+    "crossing": {
+     "H": 907,
+     "stratum": "H3",
+     "length": 262,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 70.99502563476562,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 761,
+    "others_max": 463,
+    "per_seat": [
+     432,
+     222,
+     143,
+     463,
+     761
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2253,
+     "needy_masked": 946,
+     "other": 420,
+     "partner_absent": 1145,
+     "partner_busy": 2256
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 259,
+     "needy_masked": 136,
+     "partner_absent": 58,
+     "partner_busy": 326
+    },
+    "total": 7020
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095697,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 10,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 0,
+     "close": 300,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 299
+     },
+     "crossing": {
+      "H": 300,
+      "stratum": "H3",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 72.78597259521484,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1365,
+     "close": 1522,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 156
+     },
+     "crossing": {
+      "H": 1522,
+      "stratum": "H4",
+      "length": 3,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 71.53997039794922,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 2672,
+     "close": 2965,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "drink",
+      "sleep",
+      "play"
+     ],
+     "climb_ticks": {
+      "drink": 196,
+      "sleep": 201,
+      "play": 292
+     },
+     "crossing": {
+      "H": 2856,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.73395538330078,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 3604,
+     "close": 3854,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "play"
+     ],
+     "climb_ticks": {
+      "play": 249
+     },
+     "crossing": {
+      "H": 3854,
+      "stratum": "H4",
+      "length": 26,
+      "edge": "need",
+      "needs_at_90": [
+       "play"
+      ],
+      "happiness": 63.35260772705078,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4160,
+     "close": 4451,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "sleep": 283,
+      "play": 290,
+      "cuddle": 105
+     },
+     "crossing": {
+      "H": 4266,
+      "stratum": "H4",
+      "length": 199,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 69.49464416503906,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5270,
+     "close": 5850,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "sleep",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 222,
+      "bath": 579
+     },
+     "crossing": {
+      "H": 5448,
+      "stratum": "H4",
+      "length": 552,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.74134063720703,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 632,
+     "length": 52
+    },
+    {
+     "H": 4523,
+     "length": 102
+    },
+    {
+     "H": 4632,
+     "length": 16
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 0,
+    "close": 300,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "sleep"
+    ],
+    "climb_ticks": {
+     "sleep": 299
+    },
+    "crossing": {
+     "H": 300,
+     "stratum": "H3",
+     "length": 2,
+     "edge": "need",
+     "needs_at_90": [
+      "sleep"
+     ],
+     "happiness": 72.78597259521484,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 508,
+    "others_max": 225,
+    "per_seat": [
+     223,
+     98,
+     204,
+     225,
+     508
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2543,
+     "needy_masked": 456,
+     "other": 436,
+     "partner_absent": 1109,
+     "partner_busy": 2080
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 461,
+     "needy_masked": 7,
+     "partner_absent": 65,
+     "partner_busy": 246
+    },
+    "total": 6624
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095698,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 5,
+   "releases": {
+    "level": 5,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 1013,
+     "close": 1740,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "bath"
+     ],
+     "climb_ticks": {
+      "bath": 726
+     },
+     "crossing": {
+      "H": 1289,
+      "stratum": "H4",
+      "length": 220,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.95801544189453,
+      "episodes_inside": 2
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 2455,
+     "close": 2676,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 220
+     },
+     "crossing": {
+      "H": 2676,
+      "stratum": "H4",
+      "length": 2,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 77.9424819946289,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3291,
+     "close": 3480,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "drink"
+     ],
+     "climb_ticks": {
+      "drink": 188
+     },
+     "crossing": {
+      "H": 3478,
+      "stratum": "H4",
+      "length": 33,
+      "edge": "happiness",
+      "needs_at_90": [],
+      "happiness": 44.952491760253906,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4255,
+     "close": 4302,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 46
+     },
+     "crossing": {
+      "H": 4302,
+      "stratum": "H4",
+      "length": 11,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 70.4825210571289,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 5197,
+     "close": 5436,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "sleep"
+     ],
+     "climb_ticks": {
+      "eat": 167,
+      "sleep": 238
+     },
+     "crossing": {
+      "H": 5365,
+      "stratum": "H4",
+      "length": 79,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 60.614837646484375,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 1013,
+    "close": 1740,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "bath"
+    ],
+    "climb_ticks": {
+     "bath": 726
+    },
+    "crossing": {
+     "H": 1289,
+     "stratum": "H4",
+     "length": 220,
+     "edge": "happiness",
+     "needs_at_90": [],
+     "happiness": 44.95801544189453,
+     "episodes_inside": 2
+    }
+   },
+   "longest_streak": {
+    "friend": 188,
+    "others_max": 310,
+    "per_seat": [
+     84,
+     310,
+     190,
+     219,
+     188
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2213,
+     "needy_masked": 431,
+     "other": 402,
+     "partner_absent": 1139,
+     "partner_busy": 2363
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 223,
+     "partner_absent": 40,
+     "partner_busy": 369
+    },
+    "total": 6548
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095699,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 2,
+   "mask_windows": 2,
+   "releases": {
+    "level": 1,
+    "limit": 0,
+    "unreleased": 1
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 4780,
+     "close": 4850,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "cuddle": 69
+     },
+     "crossing": {
+      "H": 4850,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 77.38751220703125,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 5940,
+     "close": 6000,
+     "release": "unreleased",
+     "m": 3,
+     "masked": [
+      "eat",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": null,
+      "cuddle": null,
+      "bath": null
+     },
+     "crossing": null
+    }
+   ],
+   "unmasked_crossings": [
+    {
+     "H": 1844,
+     "length": 117
+    }
+   ],
+   "first": {
+    "ordinal": 1,
+    "onset": 4780,
+    "close": 4850,
+    "release": "released_level",
+    "m": 1,
+    "masked": [
+     "cuddle"
+    ],
+    "climb_ticks": {
+     "cuddle": 69
+    },
+    "crossing": {
+     "H": 4850,
+     "stratum": "H4",
+     "length": 4,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 77.38751220703125,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 61,
+    "others_max": 113,
+    "per_seat": [
+     38,
+     32,
+     113,
+     92,
+     61
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 1523,
+     "needy_masked": 54,
+     "other": 403,
+     "partner_absent": 1091,
+     "partner_busy": 2489
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 205,
+     "partner_absent": 38,
+     "partner_busy": 399
+    },
+    "total": 5560
+   }
+  },
+  {
+   "group": "N5",
+   "seed": 1095700,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "grave_at_tick0": false,
+   "episodes_of_friend": 6,
+   "mask_windows": 6,
+   "releases": {
+    "level": 6,
+    "limit": 0,
+    "unreleased": 0
+   },
+   "windows": [
+    {
+     "ordinal": 1,
+     "onset": 10,
+     "close": 901,
+     "release": "released_level",
+     "m": 4,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle",
+      "bath"
+     ],
+     "climb_ticks": {
+      "sleep": 289,
+      "play": 299,
+      "cuddle": 118,
+      "bath": 890
+     },
+     "crossing": {
+      "H": 129,
+      "stratum": "H2",
+      "length": 848,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 67.60002136230469,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 2,
+     "onset": 1969,
+     "close": 2572,
+     "release": "released_level",
+     "m": 2,
+     "masked": [
+      "eat",
+      "bath"
+     ],
+     "climb_ticks": {
+      "eat": 158,
+      "bath": 602
+     },
+     "crossing": {
+      "H": 2128,
+      "stratum": "H4",
+      "length": 528,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 67.25833129882812,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 3,
+     "onset": 3307,
+     "close": 3477,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "eat"
+     ],
+     "climb_ticks": {
+      "eat": 169
+     },
+     "crossing": {
+      "H": 3477,
+      "stratum": "H4",
+      "length": 14,
+      "edge": "need",
+      "needs_at_90": [
+       "eat"
+      ],
+      "happiness": 64.81995391845703,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 4,
+     "onset": 4299,
+     "close": 4498,
+     "release": "released_level",
+     "m": 1,
+     "masked": [
+      "sleep"
+     ],
+     "climb_ticks": {
+      "sleep": 198
+     },
+     "crossing": {
+      "H": 4498,
+      "stratum": "H4",
+      "length": 4,
+      "edge": "need",
+      "needs_at_90": [
+       "sleep"
+      ],
+      "happiness": 61.24745559692383,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 5,
+     "onset": 4849,
+     "close": 5113,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "sleep",
+      "play",
+      "cuddle"
+     ],
+     "climb_ticks": {
+      "sleep": 210,
+      "play": 263,
+      "cuddle": 128
+     },
+     "crossing": {
+      "H": 4978,
+      "stratum": "H4",
+      "length": 199,
+      "edge": "need",
+      "needs_at_90": [
+       "cuddle"
+      ],
+      "happiness": 61.797523498535156,
+      "episodes_inside": 1
+     }
+    },
+    {
+     "ordinal": 6,
+     "onset": 5549,
+     "close": 5842,
+     "release": "released_level",
+     "m": 3,
+     "masked": [
+      "eat",
+      "drink",
+      "play"
+     ],
+     "climb_ticks": {
+      "eat": 202,
+      "drink": 163,
+      "play": 292
+     },
+     "crossing": {
+      "H": 5713,
+      "stratum": "H4",
+      "length": 171,
+      "edge": "need",
+      "needs_at_90": [
+       "drink"
+      ],
+      "happiness": 50.99494552612305,
+      "episodes_inside": 1
+     }
+    }
+   ],
+   "unmasked_crossings": [],
+   "first": {
+    "ordinal": 1,
+    "onset": 10,
+    "close": 901,
+    "release": "released_level",
+    "m": 4,
+    "masked": [
+     "sleep",
+     "play",
+     "cuddle",
+     "bath"
+    ],
+    "climb_ticks": {
+     "sleep": 289,
+     "play": 299,
+     "cuddle": 118,
+     "bath": 890
+    },
+    "crossing": {
+     "H": 129,
+     "stratum": "H2",
+     "length": 848,
+     "edge": "need",
+     "needs_at_90": [
+      "cuddle"
+     ],
+     "happiness": 67.60002136230469,
+     "episodes_inside": 1
+    }
+   },
+   "longest_streak": {
+    "friend": 835,
+    "others_max": 301,
+    "per_seat": [
+     124,
+     301,
+     131,
+     217,
+     835
+    ]
+   },
+   "refusals": {
+    "same_world": true,
+    "by_reason": {
+     "consent_declined": 2675,
+     "needy_masked": 803,
+     "other": 401,
+     "partner_absent": 1060,
+     "partner_busy": 1975
+    },
+    "toward_friend_by_reason": {
+     "consent_declined": 360,
+     "needy_masked": 86,
+     "partner_absent": 34,
+     "partner_busy": 244
+    },
+    "total": 6914
+   }
+  }
+ ],
+ "pooled": {
+  "worlds": 50,
+  "first_crossing_status": {
+   "H2": 17,
+   "H3": 15,
+   "H4": 9,
+   "no_onset": 7,
+   "released_level_no_crossing": 2
+  },
+  "stratum_share": {
+   "H0": 0.0,
+   "H1": 0.0,
+   "H2": 0.34,
+   "H3": 0.3,
+   "H4": 0.18,
+   "none": 0.18
+  },
+  "stratum_count": {
+   "H0": 0,
+   "H1": 0,
+   "H2": 17,
+   "H3": 15,
+   "H4": 9,
+   "none": 9
+  },
+  "H": {
+   "n": 41,
+   "min": 129.0,
+   "q1": 225.0,
+   "median": 390.0,
+   "q3": 853.0,
+   "max": 4890.0
+  },
+  "H_splice_bins": {
+   "[2,5)": 0,
+   "[5,10)": 0,
+   "[10,20)": 0,
+   "[20,50)": 0,
+   "[50,100)": 0
+  },
+  "first_edge": {
+   "happiness": 7,
+   "need": 34
+  },
+  "first_needs_at_90": {
+   "cuddle": 14,
+   "drink": 7,
+   "eat": 4,
+   "play": 4,
+   "sleep": 8
+  },
+  "first_length": {
+   "n": 41,
+   "min": 1.0,
+   "q1": 4.0,
+   "median": 26.0,
+   "q3": 197.0,
+   "max": 848.0
+  },
+  "first_m": {
+   "1": 23,
+   "2": 7,
+   "3": 7,
+   "4": 6
+  },
+  "first_onset": {
+   "0": 6,
+   "1": 3,
+   "10": 1,
+   "1013": 1,
+   "109": 1,
+   "1396": 1,
+   "1438": 1,
+   "149": 1,
+   "1739": 1,
+   "181": 1,
+   "182": 1,
+   "2": 2,
+   "209": 1,
+   "234": 1,
+   "2617": 1,
+   "27": 1,
+   "3": 1,
+   "30": 1,
+   "309": 1,
+   "3192": 1,
+   "3236": 1,
+   "360": 1,
+   "4359": 1,
+   "4741": 1,
+   "4780": 1,
+   "483": 1,
+   "515": 1,
+   "53": 1,
+   "599": 1,
+   "6": 2,
+   "646": 1,
+   "724": 1,
+   "8": 1,
+   "800": 1
+  },
+  "first_release": {
+   "released_level": 43
+  },
+  "grave_at_tick0_share": 0.0,
+  "mask_windows_per_world": {
+   "n": 50,
+   "min": 0.0,
+   "q1": 3.25,
+   "median": 6.0,
+   "q3": 6.0,
+   "max": 8.0
+  },
+  "episodes_of_friend_per_world": {
+   "n": 50,
+   "min": 0.0,
+   "q1": 4.0,
+   "median": 6.0,
+   "q3": 7.0,
+   "max": 10.0
+  },
+  "releases": {
+   "level": 224,
+   "limit": 0,
+   "unreleased": 10
+  },
+  "unmasked_crossings": 55,
+  "climb_ticks": {
+   "eat": {
+    "n": 73,
+    "min": 0.0,
+    "q1": 144.0,
+    "median": 173.0,
+    "q3": 229.0,
+    "max": 299.0
+   },
+   "drink": {
+    "n": 77,
+    "min": 12.0,
+    "q1": 180.0,
+    "median": 205.0,
+    "q3": 263.0,
+    "max": 299.0
+   },
+   "sleep": {
+    "n": 74,
+    "min": 57.0,
+    "q1": 133.5,
+    "median": 224.5,
+    "q3": 283.75,
+    "max": 450.0
+   },
+   "play": {
+    "n": 74,
+    "min": 5.0,
+    "q1": 187.75,
+    "median": 252.5,
+    "q3": 291.75,
+    "max": 299.0
+   },
+   "cuddle": {
+    "n": 72,
+    "min": 46.0,
+    "q1": 121.75,
+    "median": 168.5,
+    "q3": 206.5,
+    "max": 224.0
+   },
+   "bath": {
+    "n": 73,
+    "min": 83.0,
+    "q1": 220.0,
+    "median": 397.0,
+    "q3": 726.0,
+    "max": 900.0
+   }
+  },
+  "longest_streak_friend": {
+   "n": 50,
+   "min": 0.0,
+   "q1": 147.0,
+   "median": 301.5,
+   "q3": 614.25,
+   "max": 924.0
+  },
+  "longest_streak_others_max": {
+   "n": 50,
+   "min": 0.0,
+   "q1": 168.75,
+   "median": 270.5,
+   "q3": 379.0,
+   "max": 784.0
+  },
+  "refusals_by_reason": {
+   "consent_declined": 118617,
+   "needy_masked": 30099,
+   "other": 20260,
+   "partner_absent": 53609,
+   "partner_busy": 100632
+  },
+  "refusals_toward_friend_by_reason": {
+   "consent_declined": 24272,
+   "needy_masked": 2916,
+   "partner_absent": 3398,
+   "partner_busy": 19954
+  },
+  "refusals_same_world": true
+ }
+}

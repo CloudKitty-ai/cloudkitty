@@ -13,6 +13,12 @@ the reds are listed in RESULTS.md's Guards section as they land.
       on real payloads (all-scripted fixtures, 0 covered cat-ticks).
   n4  the reader pairs covered observers only; the scripted seat as an
       observer trips the recorded-observation assertion.
+  n5  anchors, on the scripted scout's real payloads (results-raw/scout):
+      every level release is grave on the obs-aligned truth inside its own
+      window, every crossing attributed to a window lies inside it, arm
+      E's first onset is tick 0 or 1 and no arm E world is grave at tick 0.
+      The anticipation clause (no alarm run outside a window) needs
+      covered observers and lands with the covered scout (step 4).
   n6  R4/R5's gate refuses a seed from the other half.
   n8  the frozen probe reproduces the committed pgrave file in this venv.
 
@@ -240,6 +246,61 @@ def test_n4_reader_pairs_covered_observers_only():
     p = R.probe_world(model, probe, w)
     assert p.shape == (20, 5, 5) and np.isnan(p[:, 0, :]).all() and np.isfinite(p[:, 1:, 0]).all()
     assert np.isnan(p[:, np.arange(5), np.arange(5)]).all()
+
+
+def _scout_worlds(arm):
+    import scout as SC
+    ws = [(g, s) for g, _c, s, _t in SC.worlds(arm)]
+    missing = [s for g, s in ws if not SC.paths(g, s)[0].exists()]
+    assert not missing, f"scout {arm} not run: {len(missing)} worlds missing (scout.py run --arm {arm})"
+    return [(g, SC.paths(g, s)[0]) for g, s in ws]
+
+
+def test_n5_anchors_hold_on_the_scripted_scouts_payloads():
+    # red: the mask window shifted by one tick (needy_read.mask_windows,
+    # both ends - 1) -> the first window of the first arm N world: its
+    # onset no longer equals the stream's first held step
+    GRAVE = R.S.GRAVE
+    held, lvl, lim = (R.PHASES.index(x) for x in ("held", "released_level", "released_limit"))
+    hidden_bits = sum(1 << i for i in range(5))
+    n_level = n_inside = 0
+    for g, path in _scout_worlds("N"):
+        w = R.load_world(path)
+        f, mask, phase, ordinal = w["needy_seat"], w["needy_mask"], w["needy_phase"], w["needy_ordinal"]
+        codes = w["codes"][:, f]
+        windows, episodes = R.mask_windows(w), R.grave_episodes(codes)
+        # the stream's own anchors: the first held step of each ordinal, every release step
+        onsets = np.where((phase == held) & (np.concatenate([[0], ordinal[:-1]]) != ordinal))[0]
+        releases = np.where((phase == lvl) | (phase == lim))[0]
+        assert len(windows) == len(onsets), (g, w["seed"], len(windows), len(onsets))
+        for j, (on, close, o) in enumerate(windows):
+            assert on == onsets[j] and mask[on] != 0 and (on == 0 or mask[on - 1] == 0), ("window onset", g, w["seed"], o, on, int(onsets[j]))
+        for r in releases:
+            # the release step is the last step of its own window: on <= r < close = r + 1
+            j = R.window_of(int(r) + 1, windows)
+            assert j is not None and windows[j][1] == r + 1, ("release outside its window", g, w["seed"], int(r), windows)
+            on, close, o = windows[j]
+            if phase[r] == lvl and mask[r - 1] & hidden_bits and close < w["ticks"]:
+                # a level release of a hidden need is grave on the obs-aligned truth at the
+                # window's close (obs[close] carries needs[r])
+                n_level += 1
+                assert codes[close] == GRAVE, ("level release not grave at the window's close", g, w["seed"], o, on, close)
+                (c, e), = [(c, e) for (c, e) in episodes if c <= close < e]
+                # the episode holding the release crossed inside the window, or before its onset (unmasked)
+                assert R.window_of(c, windows) == j or c - 1 < on, (g, w["seed"], o, c, on, close)
+                n_inside += R.window_of(c, windows) == j
+        for c, e in episodes:
+            j = R.window_of(c, windows)
+            if j is not None:
+                on, close, _o = windows[j]
+                assert on <= c - 1 < close and codes[c - 1] != GRAVE, (g, w["seed"], c, on, close)
+    assert n_level >= 50 and n_inside >= 50, (n_level, n_inside)
+    for g, path in _scout_worlds("E"):
+        w = R.load_world(path)
+        f = w["needy_seat"]
+        windows = R.mask_windows(w)
+        assert windows and windows[0][2] == 1 and windows[0][0] in (0, 1), (g, w["seed"], windows[:1])
+        assert w["codes"][0, f] != GRAVE, ("grave at tick 0", g, w["seed"])
 
 
 def test_n6_the_gate_refuses_the_other_half():
