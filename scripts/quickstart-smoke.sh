@@ -16,16 +16,35 @@ echo "== --help exits zero =="
 cargo run --quiet -p cloudkitty-server -- --help > /dev/null
 
 echo "== server serves /world =="
-cargo run --quiet -p cloudkitty-server &
+# Its own port and its own snapshot (Product review of #480, owner's word
+# 2026-10-29): on the default config a dev server already on 8090 would
+# answer in the smoke's place (a false green), and the real snapshot.json
+# would be loaded, then overwritten on shutdown. The scratch config is
+# cloudkitty.toml with only `bind` and `snapshot_path` changed, run by
+# README's `--config` form; paths in it stay repo-relative (the server
+# resolves them against the working directory). A port already bound is
+# an error, never a pass: SMOKE_PORT picks another.
+PORT=${SMOKE_PORT:-18090}
+if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
+  echo "port $PORT is already bound; the smoke needs a free port (set SMOKE_PORT)"; exit 1
+fi
+SCRATCH=$(mktemp -d)
+sed -e "s|^bind = .*|bind = \"127.0.0.1:$PORT\"|" \
+    -e "s|^snapshot_path = .*|snapshot_path = \"$SCRATCH/snapshot.json\"|" cloudkitty.toml > "$SCRATCH/cloudkitty.toml"
+grep -q "^bind = \"127.0.0.1:$PORT\"\$" "$SCRATCH/cloudkitty.toml" \
+  && grep -q "^snapshot_path = \"$SCRATCH/snapshot.json\"\$" "$SCRATCH/cloudkitty.toml" \
+  || { echo "cloudkitty.toml no longer has top-level 'bind =' and 'snapshot_path =' lines; update the smoke's scratch config"; rm -rf "$SCRATCH"; exit 1; }
+cargo run --quiet -p cloudkitty-server -- --config "$SCRATCH/cloudkitty.toml" &
 SRV=$!
-trap 'kill "$SRV" 2>/dev/null || true' EXIT
+trap 'kill "$SRV" 2>/dev/null || true; rm -rf "$SCRATCH"' EXIT
 ok=0
 for _ in $(seq 1 30); do
-  if curl -sf http://127.0.0.1:8090/world > /dev/null 2>&1; then ok=1; break; fi
+  if curl -sf "http://127.0.0.1:$PORT/world" > /dev/null 2>&1; then ok=1; break; fi
   sleep 1
 done
 kill "$SRV" 2>/dev/null || true; wait "$SRV" 2>/dev/null || true; trap - EXIT
-[ "$ok" = 1 ] || { echo "server never answered /world"; exit 1; }
+rm -rf "$SCRATCH"
+[ "$ok" = 1 ] || { echo "server never answered /world on port $PORT"; exit 1; }
 
 echo "== viewer meadow checks =="
 node client/test-meadow.mjs
