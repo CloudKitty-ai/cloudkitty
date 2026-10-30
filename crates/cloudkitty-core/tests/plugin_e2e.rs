@@ -23,7 +23,9 @@ use cloudkitty_core::world::World;
 /// loaded runner that passed the 1000 ms default (main run 40798024316:
 /// `F, F, F` where `P, P, P` was expected, green on rerun). Ten seconds
 /// keeps a slow start from reading as a dead advisor. Tests that DO test
-/// the deadline (`wedged.py`) set their own.
+/// the deadline (`wedged.py`) set their own. Deterministic red for every
+/// bump: a `python3` shim on PATH that sleeps 1.5 s before exec'ing the
+/// real one fails exactly the unbumped tests at tick 1.
 const GENEROUS_DEADLINE_MS: u64 = 10_000;
 
 fn fixture(name: &str) -> String {
@@ -97,6 +99,7 @@ fn the_request_carries_wire_v3_and_a_fogged_world() {
     let (mut world, registry, config) =
         world_with_plugin(plugin("well_behaved.py", &[]), &[0, 1], |c| {
             c.vision.radius = 2;
+            c.behavior.exchange_timeout_ms = GENEROUS_DEADLINE_MS;
         });
     let (first, second) = (config.kitties[0].id, config.kitties[1].id);
     for _ in 0..300 {

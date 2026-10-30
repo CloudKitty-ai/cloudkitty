@@ -27,6 +27,7 @@ while args:
     elif flag == "--startup-sleep":
         startup_sleep = float(value)
     else:
+        print(f"well_behaved.py: unknown flag {flag}", file=sys.stderr)
         sys.exit(2)
 if startup_sleep:
     time.sleep(startup_sleep)
