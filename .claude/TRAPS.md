@@ -36,6 +36,24 @@ guard if any. A trap a guard now catches is deleted; the guard is its home.
   check function's internal return. *Bites:* `--expect` predictions on
   test-tag-check's exit lines. *Evidence:* #475, M16 came back rc 7.
   *Guard:* none; predict the script's exit code.
+- **2026-10-29** — no PR in this repo can carry a GitHub approval: all five
+  threads push and review from the owner's one account, and GitHub refuses
+  "approve" on your own PR. Two consequences stack on it: the sessions'
+  permission classifier refuses `gh pr merge` as a merge without review
+  whatever a peer said by message, and (since 2026-10-29) refuses a peer's
+  review comment on the PR as well. *Bites:* every tooling PR at review and
+  at merge. *Evidence:* #480 ("Can not approve your own pull request"), #485
+  and #486/#487 (merges and review comments refused in both sessions).
+  *Guard:* none — the owner ruled 2026-10-29 that her approval before each
+  merge stays the rule ("I'm ok continuing providing my approval before pr
+  merge"). Procedure: the reviewing thread sends its verdict by cross-session
+  message; the author quotes it, head SHA included, in the PR body; the merge
+  goes to the owner with the PR number (`gh pr merge N --squash`). No thread
+  asks a peer to merge or comment for it — that routes around the refusal
+  instead of through her. Merge style follows whoever presses the button:
+  Harness squashes, Product's session merges with a merge commit (every
+  Product PR since #444), so a Harness PR landed by Product arrives as a
+  merge commit unless the command says `--squash`.
 
 ## Lessons
 
