@@ -198,6 +198,28 @@ the drafted 0.22: at 0.22 w would be 46 (230 worlds, 5.52M) and the
 total 7.13M, the declaration's "about 7.1M". (`reads/sizing.json`; the rule and the numbers
 above are what `scout.py size` prints.)
 
+### Second scripted block (declared 2026-10-30 before its data; owner "Do it")
+
+S3 went to her with the options (raise the cap; lower the floor; a
+second scripted block; trim arm T; run H4 under the floor). Her words:
+"I'm fine increasing the size/scope of the runs if there's benefit. I'd
+rather do this right than fast." and, on the recommendation below,
+"Do it". The recommendation, now the rule:
+
+- A second scripted block of arm N: 50 worlds, 10 per block in block
+  order, seeds 1096461–1096510 (the first 50 of the band §3 holds "for
+  an extension under the sizing rule"), the same configs, 6,000 ticks,
+  every seat scripted, 0 covered cat-ticks, the same two instruments.
+- **The pooled 100 worlds set the stratum shares and w, whatever they
+  say. No third block.** The two blocks are also printed apart.
+- The floor stays 50 first episodes per stratum and the sizing rule is
+  applied as written. If the total still clears 8.0M, the cap moves to
+  what the rule asks, on her word, recorded here; the floor, arm T and
+  the strata are not touched.
+
+Nothing covered runs before the pooled sizing is on main. The arm E
+scout, its pin (n = 60) and w_E stand; their worlds are not re-run.
+
 ### n5 — anchors on the scout's payloads (RED CONFIRMED twice, 2026-10-30)
 
 `test_needy_set.py n5` holds, on all 200 worlds (arm N then arm E, the

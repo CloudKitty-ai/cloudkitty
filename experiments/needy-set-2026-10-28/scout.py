@@ -58,15 +58,21 @@ CAP_COVERED = 8_000_000
 S1_STREAK = 1000      # F-053; watches no seat here (all scripted), recorded for the meta
 
 
+HELD = R.SPLIT["held"]       # [1096461, 1096650]; the second scripted block takes its first 50
+N_SCOUT_BLOCKS = 2           # owner "Do it" 2026-10-30: pooled 100 set the share, no third block
+
+
 def worlds(arm):
-    """[(group, config, seed, ticks)] in burn order."""
+    """[(group, config, seed, ticks)] in burn order. Arm N is two scripted
+    blocks of 50: the scout band, then the first 50 of the held band
+    (RESULTS.md §11 step 3, the second block); the read pools both."""
     out = []
     if arm == "N":
-        lo = SCOUT["N"][0]
-        for k in BLOCKS:
-            for i in range(PER_BLOCK):
-                out.append((f"N{k}", HERE / f"g2leg-20-N{k}.toml", lo + (k - 1) * PER_BLOCK + i, TICKS["N"]))
-        assert out[-1][2] == SCOUT["N"][1]
+        for b, lo in enumerate((SCOUT["N"][0], HELD[0])[:N_SCOUT_BLOCKS]):
+            for k in BLOCKS:
+                for i in range(PER_BLOCK):
+                    out.append((f"N{k}", HERE / f"g2leg-20-N{k}.toml", lo + (k - 1) * PER_BLOCK + i, TICKS["N"]))
+            assert out[-1][2] == (SCOUT["N"][1], HELD[0] + 49)[b]
     else:
         lo = SCOUT["E"][0]
         for ni, n in enumerate(N_VALUES):
@@ -176,6 +182,7 @@ def world_record(group, seed):
     mask, phase = w["needy_mask"], w["needy_phase"]
     lvl, lim = R.PHASES.index("released_level"), R.PHASES.index("released_limit")
     rec = {"group": group, "seed": seed, "ticks": w["ticks"], "friend_seat": f,
+           "scout_block": 2 if HELD[0] <= seed <= HELD[1] else 1,
            "grave_at_tick0": bool(codes[0] == R.S.GRAVE),
            "episodes_of_friend": len(episodes), "mask_windows": len(windows),
            "releases": {"level": 0, "limit": 0, "unreleased": 0}, "windows": [], "unmasked_crossings": [],
@@ -316,6 +323,8 @@ def read(arm):
            "records": recs}
     if arm == "N":
         out["pooled"] = summarise(recs)
+        out["per_scout_block"] = {str(b): summarise([r for r in recs if r["scout_block"] == b])
+                                  for b in sorted({r["scout_block"] for r in recs})}
     else:
         out["per_n"] = {str(n): summarise([r for r in recs if r["group"].endswith(f"-n{n}")]) for n in N_VALUES}
         shares = {n: out["per_n"][str(n)]["stratum_share"]["H1"] for n in N_VALUES}
@@ -335,6 +344,9 @@ def md_read(out):
     keys = list(out["per_group"]) + (["pooled"] if arm == "N" else [])
     tables = dict(out["per_group"])
     if arm == "N":
+        for b, s in out["per_scout_block"].items():
+            tables[f"scout block {b}"] = s
+            keys.append(f"scout block {b}")
         tables["pooled"] = out["pooled"]
     else:
         for n in N_VALUES:
