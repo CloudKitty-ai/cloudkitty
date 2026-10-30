@@ -42,7 +42,7 @@ jobs:
           fi
 
   quickstart:
-    name: quickstart smoke (README commands, literally)
+    name: quickstart smoke (README commands, own port + snapshot)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# quickstart-smoke.sh — the README's own commands, run literally, as the
-# tag-time acceptance test at small scale (checklist item 11). A fresh
+# quickstart-smoke.sh — the README's own commands, as the tag-time
+# acceptance test at small scale (checklist item 11); the server runs on a
+# scratch config so the smoke has its own port and snapshot. A fresh
 # reader's first session must work; if a command here diverges from
 # README §Run it / §Tests / §Training a mind, the cli-flags and README
 # checks in tag-check.sh are the drift alarm and this file follows README.
@@ -28,12 +29,14 @@ PORT=${SMOKE_PORT:-18090}
 if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
   echo "port $PORT is already bound; the smoke needs a free port (set SMOKE_PORT)"; exit 1
 fi
-SCRATCH=$(mktemp -d)
+SCRATCH=$(mktemp -d); trap 'rm -rf "$SCRATCH"' EXIT   # armed before anything can fail
+# the two keys are unindented lines (bind under [world], snapshot_path
+# under [persistence]); a mktemp path has nothing sed or TOML would escape
 sed -e "s|^bind = .*|bind = \"127.0.0.1:$PORT\"|" \
     -e "s|^snapshot_path = .*|snapshot_path = \"$SCRATCH/snapshot.json\"|" cloudkitty.toml > "$SCRATCH/cloudkitty.toml"
 grep -q "^bind = \"127.0.0.1:$PORT\"\$" "$SCRATCH/cloudkitty.toml" \
   && grep -q "^snapshot_path = \"$SCRATCH/snapshot.json\"\$" "$SCRATCH/cloudkitty.toml" \
-  || { echo "cloudkitty.toml no longer has top-level 'bind =' and 'snapshot_path =' lines; update the smoke's scratch config"; rm -rf "$SCRATCH"; exit 1; }
+  || { echo "cloudkitty.toml no longer has unindented 'bind =' and 'snapshot_path =' lines; update the smoke's scratch config"; exit 1; }
 cargo run --quiet -p cloudkitty-server -- --config "$SCRATCH/cloudkitty.toml" &
 SRV=$!
 trap 'kill "$SRV" 2>/dev/null || true; rm -rf "$SCRATCH"' EXIT
