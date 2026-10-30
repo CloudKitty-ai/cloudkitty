@@ -79,7 +79,7 @@ absolute difference of 0.0 on every seed.
 
 Ran 2026-10-30 04:46–05:06 UTC at main 868179d0 in this venv, 0 covered
 cat-ticks: every seat on its config behaviour inside the engine (seat k
-`needy`, the others `teacher`). Commits: c83accf9 (driver, read,
+`needy`, the others `teacher`). Commits: 5cc5f081 (driver, read,
 reader support, n5, the first reads), this file's commit (the §3
 unreleased rule applied to the read, n5's reds, this record). Seeds
 burned, the first of the claimed band, in declared order: arm N
