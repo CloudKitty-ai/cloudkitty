@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """A well-behaved CloudKitty plugin: correlated envelopes, always-legal
 proposals. With --die-after N it exits after N replies, playing the part of
-an advisor that dies mid-run (spec 016 SC-005).
+an advisor that dies mid-run (spec 016 SC-005). With --startup-sleep S it
+sleeps S seconds before reading its first request, playing a slow
+interpreter start on a loaded machine.
 
 Well-behaved also means (spec 049 FR-048 / SC-013): it refuses a wire
 version it does not understand (exit 3 -- the engine falls back, safely),
@@ -11,12 +13,23 @@ promises: every kitty and element inside the deciding cat's vision disc
 `pos` / `reply` on every meow (exit 4 on any leak)."""
 import json
 import sys
+import time
 
 WIRE_VERSION = 3
 
 die_after = None
-if len(sys.argv) == 3 and sys.argv[1] == "--die-after":
-    die_after = int(sys.argv[2])
+startup_sleep = 0.0
+args = sys.argv[1:]
+while args:
+    flag, value, args = args[0], args[1], args[2:]
+    if flag == "--die-after":
+        die_after = int(value)
+    elif flag == "--startup-sleep":
+        startup_sleep = float(value)
+    else:
+        sys.exit(2)
+if startup_sleep:
+    time.sleep(startup_sleep)
 
 
 def check_fogged(req):

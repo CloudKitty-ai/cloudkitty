@@ -17,6 +17,15 @@ use cloudkitty_core::seam::{drive_tick, Provenance};
 use cloudkitty_core::test_support::test_config;
 use cloudkitty_core::world::World;
 
+/// The exchange deadline for tests whose assertions do not concern it.
+/// Launch is lazy (`script.rs`), so the first exchange after every
+/// (re)launch pays the interpreter's startup inside the deadline; on CI's
+/// loaded runner that passed the 1000 ms default (main run 40798024316:
+/// `F, F, F` where `P, P, P` was expected, green on rerun). Ten seconds
+/// keeps a slow start from reading as a dead advisor. Tests that DO test
+/// the deadline (`wedged.py`) set their own.
+const GENEROUS_DEADLINE_MS: u64 = 10_000;
+
 fn fixture(name: &str) -> String {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
@@ -55,7 +64,9 @@ fn world_with_plugin(
 #[test]
 fn a_well_behaved_plugin_drives_kitties_for_a_full_day() {
     let (mut world, registry, config) =
-        world_with_plugin(plugin("well_behaved.py", &[]), &[0, 1], |_| {});
+        world_with_plugin(plugin("well_behaved.py", &[]), &[0, 1], |c| {
+            c.behavior.exchange_timeout_ms = GENEROUS_DEADLINE_MS
+        });
     let (first, second) = (config.kitties[0].id, config.kitties[1].id);
 
     for _ in 0..600 {
@@ -134,7 +145,10 @@ fn a_plugin_that_dies_mid_run_falls_back_and_relaunches_after_the_cooldown() {
     let (mut world, registry, config) = world_with_plugin(
         plugin("well_behaved.py", &["--die-after", "5"]),
         &[0],
-        |c| c.behavior.relaunch_cooldown_ticks = 3,
+        |c| {
+            c.behavior.relaunch_cooldown_ticks = 3;
+            c.behavior.exchange_timeout_ms = GENEROUS_DEADLINE_MS;
+        },
     );
     let advised = config.kitties[0].id;
 
@@ -152,6 +166,30 @@ fn a_plugin_that_dies_mid_run_falls_back_and_relaunches_after_the_cooldown() {
          automatic relaunch at tick 8"
     );
     assert_eq!(world.tick, 9, "zero missed ticks throughout");
+}
+
+/// The rig's own guard: a plugin whose interpreter starts slowly is not a
+/// dead advisor. 1.5 s of startup sleep is past the 1000 ms default and
+/// well inside `GENEROUS_DEADLINE_MS`; with the default deadline this
+/// reads `F` at tick 1 (the slow start times out, the process is killed)
+/// and stays `F` through the relaunch cooldown -- CI's signature.
+#[test]
+fn a_slow_starting_plugin_is_not_mistaken_for_a_dead_one() {
+    let (mut world, registry, config) = world_with_plugin(
+        plugin("well_behaved.py", &["--startup-sleep", "1.5"]),
+        &[0],
+        |c| c.behavior.exchange_timeout_ms = GENEROUS_DEADLINE_MS,
+    );
+    let advised = config.kitties[0].id;
+
+    for tick in 1..=2 {
+        let driven = drive_tick(&mut world, &registry, &config);
+        assert_eq!(
+            driven.report.record(advised).unwrap().provenance,
+            Provenance::PolicyMade,
+            "tick {tick}: a slow start is still the advisor's decision"
+        );
+    }
 }
 
 /// FR-010: an oversized reply is a failed proposal and kills the process --
@@ -215,7 +253,8 @@ fn a_silently_wedged_plugin_cannot_stall_the_budgetless_driver() {
 #[test]
 fn a_desynced_reply_stream_is_caught_by_correlation_never_applied_stale() {
     let (mut world, registry, config) = world_with_plugin(plugin("desync.py", &[]), &[0], |c| {
-        c.behavior.relaunch_cooldown_ticks = 1
+        c.behavior.relaunch_cooldown_ticks = 1;
+        c.behavior.exchange_timeout_ms = GENEROUS_DEADLINE_MS;
     });
     let advised = config.kitties[0].id;
 
