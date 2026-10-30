@@ -93,15 +93,26 @@ jobs:
     name: lane check
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Self-test the lane check
         run: bash scripts/test-lane-check.sh
+      # The body is fetched as it is NOW, not read from the triggering event:
+      # a re-run after adding a `cross-lane:` line must see the line. The
+      # event's copy is frozen at trigger time, so a re-run kept failing until
+      # the PR was closed and reopened (Experiments on #482; fixed #486).
       - name: PR paths stay in the branch's lane
         env:
-          BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
-        run: bash scripts/lane-check.sh "$HEAD_REF" "origin/$BASE_REF"
+        run: |
+          BODY=$(gh pr view "$PR" --json body --jq .body)
+          export BODY
+          bash scripts/lane-check.sh "$HEAD_REF" "origin/$BASE_REF"
