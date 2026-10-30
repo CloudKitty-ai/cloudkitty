@@ -220,10 +220,63 @@ rather do this right than fast." and, on the recommendation below,
 Nothing covered runs before the pooled sizing is on main. The arm E
 scout, its pin (n = 60) and w_E stand; their worlds are not re-run.
 
+**Ran 2026-10-30 06:19–06:33 UTC at main 7314408a**, 50 worlds, 0
+covered cat-ticks, same world under both instruments in every one. The
+block-1 table above stands as block 1's record; this is block 2 and
+the pool.
+
+| | worlds | H2 | H3 | H4 | none | first H quartiles | edge need / happiness | first length median (max) | releases level / limit / unreleased | unmasked crossings | friend's longest streak median (max) | other seats' max | refusals |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| block 1 | 50 | 0.34 | 0.30 | 0.18 | 0.18 | 225 / 390 / 853 | 34 / 7 | 26 (848) | 224 / 0 / 10 | 55 | 301.5 (924) | 784 | 323,217 |
+| block 2 | 50 | 0.46 | 0.32 | 0.14 | 0.08 | 225 / 285.5 / 628 | 35 / 11 | 69.5 (837) | 250 / 0 / 12 | 66 | 268.5 (964) | 957 | 328,137 |
+| **pooled** | 100 | **0.40** | **0.31** | **0.16** | 0.13 | 225 / 300 / 748 | 69 / 18 | 52 (848) | 474 / 0 / 22 | 121 | 290.5 (964) | 957 | 651,354 |
+
+- **Pooled first-crossing status:** H2 40, H3 31, H4 16, no onset
+  before 6,000 10, a first window released by level with no crossing
+  3 (bath-only masks or already grave at onset, as above). H4 is 16 of
+  100: share 0.16 with a binomial standard error of 0.037. Block 2
+  alone put 7 of 50 there.
+- **Pooled first H:** 129 at least, 225 / 300 / 748 at the quartiles,
+  4,890 at most (87 crossings). m at the first window: 1 in 44, 2 in
+  15, 3 in 15, 4 in 16. Climb medians (ticks): eat 184, drink 204,
+  sleep 225.5, play 251.5, cuddle 179, bath 407.
+- **Unmasked crossings:** 121; 106 after a release, their crossing
+  step 3 / 103 / 185 / 435 / 961 ticks after the latest release step
+  (min / quartiles / max), 15 before any window.
+- **Streaks** (reported, never gated): the friend's longest
+  single-need streak median 290.5, max 964 (N5, block 2); the other
+  scripted seats' max 957, both under F-053's 1,000 line and both
+  closer to it than block 1's.
+- **Refusals by reason**, pooled: consent_declined 240,990;
+  partner_busy 199,355; partner_absent 107,359; needy_masked 62,927;
+  other 40,723. Toward the friend: consent_declined 51,418;
+  partner_busy 39,467; partner_absent 6,469; needy_masked 6,206.
+
+**Sizing on the pool (the rule, floor 50):**
+
+| quantity | value |
+|---|---|
+| thinnest stratum share | H4, 0.16 |
+| **w** (smallest even w with 5w × 0.16 ≥ 50) | **64** → 320 worlds, 51.2 expected H4 first episodes |
+| w_E (unchanged) | 16 → 80 worlds |
+| arm N covered cat-ticks | 7,680,000 (320 × 6,000 × 4) |
+| **total** | **9,290,000** of the 8.0M cap |
+
+**S3 trips on two clauses:** w = 64 is over 60 (the "share under 1/6"
+clause: 0.16 < 0.1667) and the total is over the cap. No stratum
+share is 0; arm E is clear. The second block moved the estimate the
+other way: at 0.16 the design as declared cannot reach the H4 floor
+inside the w limit. Per §7 it goes back to her before any covered
+world beyond the scout; nothing covered has run. Her ruling and its
+record follow.
+
+n5 was re-run over the 100 arm N worlds plus arm E's 150 (1 passed);
+its reds above stand (the test is unchanged).
+
 ### n5 — anchors on the scout's payloads (RED CONFIRMED twice, 2026-10-30)
 
-`test_needy_set.py n5` holds, on all 200 worlds (arm N then arm E, the
-same per-window clauses): every mask window's
+`test_needy_set.py n5` holds, on every scout world (200 at block 1, 250
+with the second block; arm N then arm E, the same per-window clauses): every mask window's
 onset equals the stream's first held step of that ordinal and nothing
 was masked the step before; every release step is the last step of its
 own window; every level release of a hidden need is GRAVE on the
@@ -261,13 +314,17 @@ SCOUT_SCRATCH=/path/to/scratch VIRTUAL_ENV=$PWD/$A/.venv caffeinate -s $A/.venv/
 #### Read
 
 ```sh
-VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/scout.py read --arm N --out $A/reads/scout-N.json --md > $A/reads/scout-N.md   # about 2 s; the arm N tables and the pooled line
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/scout.py read --arm N --out $A/reads/scout-N.json --md > $A/reads/scout-N.md   # about 3 s; both scripted blocks (100 worlds): per group, per block, pooled
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/scout.py read --arm E --out $A/reads/scout-E.json --md > $A/reads/scout-E.md   # about 3 s; per group and per n, the pin
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/scout.py size --out $A/reads/sizing.json --md > $A/reads/sizing.md             # under 1 s; reads scout-N.json and scout-E.json beside --out
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n5                                                             # about 1 s
 ```
 
-Accuracy gate: **PASS** 2026-10-30, three rounds, a fresh subagent each
+Accuracy gate, the second-block addendum: **PASS** 2026-10-30, one round
+(97 arithmetic, 4 threshold, 5 characterisation, 6 provenance, 0
+undecidable); raw dir with both blocks `v1:e1d8ca12df1d8ccc`.
+
+Accuracy gate, block 1: **PASS** 2026-10-30, three rounds, a fresh subagent each
 (round 1: about 213 arithmetic, 6 threshold, 15 characterisation, 12
 provenance, 5 undecidable; two CONTRADICTED prose claims, fixed; round
 2: one off-by-one in a hand-derived gap, moved into the reader; round

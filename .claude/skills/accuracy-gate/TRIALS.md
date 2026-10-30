@@ -1606,3 +1606,13 @@ writing it, which also settles its index; (42) an explanation offered
 for a count ("bath alone") is a per-world claim — check it per world,
 not against the count it explains; (43) a guard's coverage sentence
 ("on all N worlds") is a claim about the loop, read from the loop.
+
+## 2026-10-30 — Needy set RESULTS §11 step 3, the second scripted block addendum, Experiments thread
+
+One round PASS (97 arithmetic, 4 sourced thresholds, 5
+characterisations, 6 provenance, 0 undecidable). The subagent also
+flagged, out of scope, a sentence in the next section gone stale by
+the addendum ("on all 200 worlds" after the pool grew to 250); fixed
+before the commit. Lesson (44): an addendum that grows a dataset
+re-dates every coverage sentence in the sections it does not touch —
+grep the doc for the old count before gating.

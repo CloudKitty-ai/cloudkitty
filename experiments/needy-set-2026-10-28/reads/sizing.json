@@ -2,15 +2,15 @@
  "arm_N": {
   "shares": {
    "H1": 0.0,
-   "H2": 0.34,
-   "H3": 0.3,
-   "H4": 0.18,
-   "none": 0.18
+   "H2": 0.4,
+   "H3": 0.31,
+   "H4": 0.16,
+   "none": 0.13
   },
-  "min_share_H2_H3_H4": 0.18,
-  "w": 56,
-  "worlds": 280,
-  "expected_first_episodes_min_stratum": 50.4
+  "min_share_H2_H3_H4": 0.16,
+  "w": 64,
+  "worlds": 320,
+  "expected_first_episodes_min_stratum": 51.2
  },
  "arm_E": {
   "n": 60,
@@ -30,14 +30,14 @@
   "covered_scout_N": 480000,
   "covered_scout_E": 64000,
   "n3": 10000,
-  "arm_N": 6720000,
+  "arm_N": 7680000,
   "arm_E": 256000,
-  "total": 8330000,
+  "total": 9290000,
   "cap": 8000000
  },
  "S3": {
   "zero_share_stratum": [],
-  "w_over_cap": false,
+  "w_over_cap": true,
   "w_E_over_cap": false,
   "H1_under_sixth_at_every_n": false,
   "total_over_cap": true
