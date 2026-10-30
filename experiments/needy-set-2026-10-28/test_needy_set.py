@@ -264,7 +264,7 @@ def test_n5_anchors_hold_on_the_scripted_scouts_payloads():
     held, lvl, lim = (R.PHASES.index(x) for x in ("held", "released_level", "released_limit"))
     hidden_bits = sum(1 << i for i in range(5))
     n_level = n_inside = 0
-    for g, path in _scout_worlds("N"):
+    for g, path in _scout_worlds("N") + _scout_worlds("E"):
         w = R.load_world(path)
         f, mask, phase, ordinal = w["needy_seat"], w["needy_mask"], w["needy_phase"], w["needy_ordinal"]
         codes = w["codes"][:, f]

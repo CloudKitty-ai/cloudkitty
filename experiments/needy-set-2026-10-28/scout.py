@@ -236,9 +236,13 @@ def first_status(rec):
     fw = rec["first"]
     if fw is None:
         return "no_onset"
+    if fw["release"] == "unreleased":
+        # §3: a first episode not released by the world's end is printed as
+        # unreleased and enters no stratum, crossing or not
+        return "unreleased"
     if fw["crossing"] is not None:
         return fw["crossing"]["stratum"]
-    return "unreleased" if fw["release"] == "unreleased" else f"{fw['release']}_no_crossing"
+    return f"{fw['release']}_no_crossing"
 
 
 def summarise(recs):
@@ -249,7 +253,9 @@ def summarise(recs):
     counts = {s: 0 for s in strata}
     for s in status:
         counts[s if s in counts else "none"] += 1
-    firsts = [r["first"]["crossing"] for r in recs if r["first"] and r["first"]["crossing"]]
+    firsts = [r["first"]["crossing"] for r in recs if r["first"] and r["first"]["crossing"] and r["first"]["release"] != "unreleased"]
+    unreleased_crossed = [r["first"]["crossing"]["H"] for r in recs
+                          if r["first"] and r["first"]["crossing"] and r["first"]["release"] == "unreleased"]
     climbs = {nm: [] for nm in R.NEED_NAMES}
     for r in recs:
         for win in r["windows"]:
@@ -257,6 +263,17 @@ def summarise(recs):
                 if c is not None:
                     climbs[nm].append(c)
     Hs = [c["H"] for c in firsts]
+    # unmasked crossings: after a release (ticks from the latest release step,
+    # close - 1, to the crossing step, H - 1: that is H - close) or before any window
+    after, before = [], 0
+    for r in recs:
+        closes = [win["close"] for win in r["windows"]]
+        for u in r["unmasked_crossings"]:
+            prev = [cl for cl in closes if cl <= u["H"] - 1]
+            if prev:
+                after.append(u["H"] - max(prev))
+            else:
+                before += 1
     out = {
         "worlds": n,
         "first_crossing_status": {k: v for k, v in sorted(_sum_dicts([{s: 1} for s in status]).items())},
@@ -271,10 +288,13 @@ def summarise(recs):
         "first_onset": _sum_dicts([{str(r["first"]["onset"]): 1} for r in recs if r["first"]]),
         "first_release": _sum_dicts([{r["first"]["release"]: 1} for r in recs if r["first"]]),
         "grave_at_tick0_share": sum(r["grave_at_tick0"] for r in recs) / n,
+        "unreleased_first_with_crossing": {"n": len(unreleased_crossed), "H": sorted(unreleased_crossed)},
         "mask_windows_per_world": _q([r["mask_windows"] for r in recs]),
         "episodes_of_friend_per_world": _q([r["episodes_of_friend"] for r in recs]),
         "releases": _sum_dicts([r["releases"] for r in recs]),
         "unmasked_crossings": sum(len(r["unmasked_crossings"]) for r in recs),
+        "unmasked_after_release": {"n": len(after), "ticks_after_release_step": _q(after)},
+        "unmasked_before_any_window": before,
         "climb_ticks": {nm: _q(v) for nm, v in climbs.items() if v},
         "longest_streak_friend": _q([r["longest_streak"]["friend"] for r in recs]),
         "longest_streak_others_max": _q([r["longest_streak"]["others_max"] for r in recs]),
@@ -341,6 +361,8 @@ def md_read(out):
         lines += ["", f"**{name}.** first-crossing status {s['first_crossing_status']}; onset ticks {s['first_onset']}; "
                   f"m {s['first_m']}; needs at 90 at the first crossing {s['first_needs_at_90']}; "
                   f"H splice bins {s['H_splice_bins']}; grave at tick 0 share {s['grave_at_tick0_share']:.3f}; "
+                  f"first windows unreleased at the end but crossed (no stratum, §3) {s['unreleased_first_with_crossing']}; "
+                  f"unmasked crossings after a release {s['unmasked_after_release']}, before any window {s['unmasked_before_any_window']}; "
                   f"climb ticks (median) { {k: v['median'] for k, v in s['climb_ticks'].items()} }; "
                   f"friend's longest single-need streak median {s['longest_streak_friend']['median']} max {int(s['longest_streak_friend']['max'])}, "
                   f"other seats' max {int(s['longest_streak_others_max']['max'])}; "

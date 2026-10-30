@@ -1580,3 +1580,29 @@ says only "the strata are set from this number", the entry says that
 and the section's numbers, not this thread's suggested boundaries
 (those belong in the message to the peer, where they are labelled as
 a suggestion).
+
+## 2026-10-30 — Needy set RESULTS §11 step 3 (the scripted scout), Experiments thread
+
+Three rounds, fresh subagent each; every number in both tables, the
+sizing and the prose regenerated and matched (round 1: about 213
+arithmetic, 6 sourced thresholds, 12 provenance, 5 undecidable).
+- Round 1 FAIL: two CONTRADICTED prose claims. (a) "2 worlds whose
+  first mask was bath alone" — only one was; the other was already
+  grave when its first mask opened (its crossing counted unmasked).
+  (b) "n5 holds on all 200 worlds" while the per-window loop ran arm
+  N's 50 only. Fixes: name both worlds; extend the loop to arm E (the
+  reds re-run and re-confirmed). One WEAK ("while relief runs",
+  unmeasured) rewritten as counts.
+- Round 2 FAIL: the rewritten counts carried a hand-derived gap
+  quartile labelled "past the close" while computed from the release
+  step — off by one on every value in the index named. Fix: the gap
+  moved into the reader (`unmasked_after_release`) so the Read fence
+  regenerates it, and the sentence names the quantity the reader
+  computes.
+- Round 3 PASS: the sentence regenerated and re-derived in one index.
+Lessons: (41) a count the doc states that no reader prints is a hand
+derivation the gate cannot regenerate — put it in the reader before
+writing it, which also settles its index; (42) an explanation offered
+for a count ("bath alone") is a per-world claim — check it per world,
+not against the count it explains; (43) a guard's coverage sentence
+("on all N worlds") is a claim about the loop, read from the loop.

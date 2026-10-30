@@ -14,15 +14,15 @@
  },
  "arm_E": {
   "n": 60,
-  "H1_share": 0.74,
+  "H1_share": 0.66,
   "H1_share_by_n": {
-   "50": 0.38,
-   "55": 0.62,
-   "60": 0.74
+   "50": 0.3,
+   "55": 0.56,
+   "60": 0.66
   },
-  "w_E": 14,
-  "worlds": 70,
-  "expected_H1_first_episodes": 51.8
+  "w_E": 16,
+  "worlds": 80,
+  "expected_H1_first_episodes": 52.800000000000004
  },
  "rule": "smallest even w with 5w x share >= 50; cap 60",
  "covered_cat_ticks": {
@@ -31,8 +31,8 @@
   "covered_scout_E": 64000,
   "n3": 10000,
   "arm_N": 6720000,
-  "arm_E": 224000,
-  "total": 8298000,
+  "arm_E": 256000,
+  "total": 8330000,
   "cap": 8000000
  },
  "S3": {
