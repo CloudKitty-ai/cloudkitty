@@ -293,17 +293,28 @@ the identity block: `roster × 32 + 5 × 7 + 2` = 197 at roster 5.
 |---|---|---|
 | obs.npy | (N, obs_len) f4 | per-decision observation |
 | mask.npy | (N, menu) u1 | activity legality |
-| label.npy | (N,) u2 | chosen activity index |
+| label.npy | (N,) u2 | the APPLIED activity (after validation and the budget), mask-guaranteed; a row exists only where it was expressible and clean (inexpressible rows dropped, meta `dropped_inexpressible` / `dropped_by_action`; mask disagreements dropped, meta `mask_mismatch`) |
 | mask_msg.npy | (N, head) u1 | message legality |
-| label_msg.npy | (N,) u2 | chosen message (0 = Silent) |
+| label_msg.npy | (N,) u2 | the APPLIED message, 0 = Silent; the engine-reserved WaitForMe has no head index and labels as Silent (meta `msg_inexpressible`) |
+| label_proposed.npy | (N,) u2 | the PROPOSED activity under the same codec (Experiments' ask 2026-10-17, call e1b3e095); a proposal the codec cannot express falls back to the applied label (meta `proposed_inexpressible`), so `label_proposed != label` is always a real, expressible disagreement (meta `action_downgraded`). NOT mask-guaranteed: a rewritten proposal is often the mask-illegal one (~3% of rows on the Gen 2 draft world), so a consumer under a masked softmax must handle `mask[i, label_proposed[i]] == 0` |
+| label_msg_proposed.npy | (N,) u2 | the PROPOSED message, same codec; the tick may downgrade it to Silent at apply (meta `msg_downgraded`) |
 | kitty.npy | (N,) u4 | decision's kitty id |
 | tick.npy | (N,) u4 | decision's tick (non-decreasing; aligns rows to state/reward — never reshape) |
 | reward.npy | (T,) f4 | post-tick team reward |
 | state.npy | (T, global_state_len) f4 | pre-tick global state |
 | meta.json | — | decisions, ticks, config identity |
 
+The applied-vs-proposed split is the F-031 third-bite distinction: a
+reader of what the cats *did* takes the applied columns, a reader of what
+they *asked for* takes the proposed ones, and which column trains is a
+prereg call, not the format's. A world that seats a non-teaching
+behaviour (spec 067's needy presets) writes no rows at all, and meta
+`teachers_refused` names the seat; with `--trace` the trace files still
+carry every tick.
+
 Row invariant: `mask[i, label[i]] == 1` and `mask_msg[i, label_msg[i]]
-== 1` everywhere; `mask_msg[:, 0]` all-ones. Datasets record the schema
+== 1` everywhere; `mask_msg[:, 0]` all-ones; the proposed columns carry
+no such guarantee (above). Datasets record the schema
 they were collected under; a schema-6 dataset is 399/35/16-shaped at
 the default slots (schema 5: 408/39/16; schema 4: 225/34/16). Every
 observation is the kitty's own fog view of the pre-tick snapshot at the
