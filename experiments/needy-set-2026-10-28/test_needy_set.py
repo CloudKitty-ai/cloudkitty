@@ -21,6 +21,11 @@ the reds are listed in RESULTS.md's Guards section as they land.
       covered observers and lands with the covered scout (step 4).
   n6  R4/R5's gate refuses a seed from the other half.
   n8  the frozen probe reproduces the committed pgrave file in this venv.
+  n10 step 4: every arm N covered pair is the same world until its first
+      onset (same_until recomputed from the raw arrays).
+  n11 step 4: the S2 episode window is [first held step, first release
+      + 1 + 300) clipped to the world, from the raw schedule.
+  n12 step 4: the S2 rule's classes at 0.99 / 1.0 / 4.4 / 4.41.
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -333,6 +338,70 @@ def test_n8_the_probe_reproduces_the_committed_file():
     # red: the reference pointed at another probe seed's file
     worst = R.check_probe_reproduces(seeds=(1,))
     assert worst == {1: 0.0}, worst
+
+
+# ---- step 4: the covered scout and S2 (covered_scout.py) ---------------------
+
+def _covered_pairs():
+    """Every arm N pair of the covered scout (teacher, needy) by path; fails
+    loudly until the covered scout has run."""
+    import covered_scout as CS
+    keys = sorted({(a, k, s) for a, k, _kind, _c, s, _t, _p in CS.worlds() if a == "N"})
+    paths = [(k, s, CS.RAW / f"N{k}" / f"streams-{s}-teacher.npz", CS.RAW / f"N{k}" / f"streams-{s}-needy.npz") for _a, k, s in keys]
+    missing = [s for _k, s, pt, pn in paths if not (pt.exists() and pn.exists())]
+    assert not missing, f"covered scout not run: {len(missing)} arm N pairs missing (covered_scout.py run)"
+    assert len(paths) == 10, len(paths)
+    return paths
+
+
+def test_n10_each_arm_N_pair_is_the_same_world_until_the_first_onset():
+    # red: covered_scout.same_until returning the index after the first
+    # difference -> this recomputation from the raw arrays disagrees
+    import covered_scout as CS
+    for k, seed, pt, pn in _covered_pairs():
+        wt, wn = CS.load(pt), CS.load(pn)
+        zt, zn = np.load(pt), np.load(pn)
+        T = min(wt["ticks"], wn["ticks"])
+        mine = T
+        for t in range(T):
+            if any(not np.array_equal(zt[key][t], zn[key][t]) for key in ("needs", "hap", "pos", "activity")):
+                mine = t
+                break
+        onset = int(np.flatnonzero(wn["needy_phase"] == R.PHASES.index("held"))[0]) if (wn["needy_phase"] == R.PHASES.index("held")).any() else T
+        got = CS.same_until(wt, wn)
+        assert got == mine, ("same_until", k, seed, got, mine)
+        assert mine >= onset, ("the pair differs before the first onset", k, seed, mine, onset)
+        assert np.array_equal(zt["needs0"], zn["needs0"]) and np.array_equal(zt["hap0"], zn["hap0"])
+
+
+def test_n11_the_S2_window_is_the_first_episodes_onset_to_release_plus_300():
+    # red: WINDOW_TAIL applied as 299 -> read_hi one short of release + 1 + 300
+    import covered_scout as CS
+    held, lvl, lim = (R.PHASES.index(x) for x in ("held", "released_level", "released_limit"))
+    for k, seed, _pt, pn in _covered_pairs():
+        wn = CS.load(pn)
+        phase = wn["needy_phase"]
+        rec = CS.pair_record("N", k, seed)
+        on = np.flatnonzero(phase == held)
+        if len(on) == 0:
+            assert rec["first_window"] is None and rec["window"] is None, (k, seed)
+            continue
+        onset = int(on[0])
+        rel = np.flatnonzero((phase == lvl) | (phase == lim))
+        close = int(rel[0]) + 1 if len(rel) else wn["ticks"]
+        hi = min(close + 300, wn["ticks"])
+        fw = rec["first_window"]
+        assert (fw["onset"], fw["close"], fw["read_lo"], fw["read_hi"], fw["ticks"]) == (onset, close, onset, hi, hi - onset), (k, seed, fw)
+        assert rec["window"]["drop"] == rec["window"]["teacher"] - rec["window"]["needy"]
+
+
+def test_n12_the_S2_rule_classes_the_pooled_drop_as_declared():
+    # red: the launch line made inclusive (< 1.0 -> <= 1.0) -> a drop of
+    # exactly 1.0 classed "launches" (§7: 1.0 to 4.4 is her word)
+    import covered_scout as CS
+    assert CS.s2_class(-3.0) == "launches" and CS.s2_class(0.99) == "launches"
+    assert CS.s2_class(1.0) == "her word" and CS.s2_class(2.5) == "her word" and CS.s2_class(4.4) == "her word"
+    assert CS.s2_class(4.41) == "no launch" and CS.s2_class(10.0) == "no launch"
 
 
 if __name__ == "__main__":

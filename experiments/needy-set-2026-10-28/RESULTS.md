@@ -496,6 +496,82 @@ provenance, 5 undecidable; two CONTRADICTED prose claims, fixed; round
 3: the sentence regenerated and re-derived, PASS). Raw dir
 `results-raw/scout` hash `v1:8613e5ee0c8ea10e` (`scripts/rawdir-hash.sh`).
 
+## §11 step 4 — the covered scout and S2 (owner "Go", 2026-10-31; declared before its data)
+
+Step 3 closed at 094f75b6 with the set sized and S3 clear; the report
+to her ended "Say the word and step 4 starts." Her word: "Go". This is
+the arc's first covered exposure beyond the binding check (n3) and the
+guard fixtures.
+
+**Welfare-cost line.** Covered minds: the four frozen rot2 networks
+seated beside the scripted friend (seat k scripted on its config
+behaviour, `g2-rot2` less that network), no others; no weight changes.
+Exposure: 624,000 covered cat-ticks (arm N pairs 480,000; arm E pairs
+64,000; arm T's first world per block 80,000, which count toward arm
+T's 800,000 if clean, §7). S1 armed on the covered seats alone
+(F-053's 1,000-tick single-need line, `--abort-covered-only`, n1); the
+scripted friend is exempt and its streaks are recorded. Any covered
+abort saves what was collected, stops the run (`covered_scout.py` exits
+3) and comes to her before anything else runs. What it buys: S2's two
+reads, the harm stop the set launches under, plus the first covered
+observers of a needy world (R8's price columns; the probe's reads on
+them land in step 7).
+
+**Worlds** (`covered_scout.py run`, resumable, in this order; every
+covered seat's observation saved):
+
+| worlds | config, seat k scripted | seeds | ticks | raws |
+|---|---|---|---|---|
+| arm T first world per block (5) | P's `g2leg-20-P<k>.toml` (`teacher`) | T<k>'s first evaluation seed: 1095452, 1095472, 1095493, 1095515, 1095533 | 4,000 | `results-raw/set/T<k>/streams-<seed>.npz` |
+| arm N pairs (10 seeds × 2) | control: the served `g2leg-20.toml` (`teacher`); then `g2leg-20-N<k>.toml` (`needy`, edge 4,500) | 1095701–1095710, 2 per block in block order | 6,000 | `results-raw/covered/N<k>/streams-<seed>-{teacher,needy}.npz` |
+| arm E pairs (10 seeds × 2) | control: the served config from the default start; then `g2leg-20-E<k>-n60.toml` | the first two of each E block: 1096161–1096162, 1096221–1096222, 1096281–1096282, 1096341–1096342, 1096401–1096402 | 800 | `results-raw/covered/E<k>/streams-<seed>-{teacher,needy}.npz` |
+
+**The S2 reads and rule** (§7, ruled 2026-10-28 "Agreed"; applied by
+`covered_scout.py read`, mechanically): per pair, the four covered
+seats' mean happiness (the collector's post-step `hap`, 0–100) in the
+teacher world minus the needy world; *whole world* over all ticks (arm
+N 6,000, arm E 800); *episode window*, arm N only, over the first
+episode's [mask onset, release + 300) clipped to the world. Each read
+is pooled over its pairs as the mean, with SD, min and max printed. On
+each read's pooled mean: under 1.0 launches; 1.0 to 4.4 launches on her
+word; over 4.4 does not launch. The scale: rot2's team happiness
+87.49, of which 4.4 is 5%. Arm N pairs are the same world until the
+first onset (SC-002; the read prints `same_until`, the first post-step
+index at which the pair differs, and holds it at or past the onset).
+Beside S2 the read prints each world's price columns: per covered seat
+the mean happiness, distress ticks and worst single-need streak, and
+the scripted seat's worst streak.
+
+**Guards** (`test_needy_set.py`): n10, every arm N pair is the same
+world until its first onset (`same_until` recomputed from the raw
+arrays); n11, the window read is [first held step, first release + 1 +
+300) clipped, from the raw schedule; n12, the rule's classes at
+0.99 / 1.0 / 4.4 / 4.41. n10 and n11 take their reds on the payloads
+after the run; n12's red is below. n5's anticipation clause ("no
+anticipation run outside a window") needs R3's alarm-run classifier,
+which does not exist yet: it lands with R3 in step 7 on these covered
+observers, a deviation from §10's "lands with the covered scout" that
+is stated here rather than met with a classifier written for the
+purpose.
+
+### Regeneration
+
+`A = experiments/needy-set-2026-10-28`; env as step 3's.
+
+#### Collect
+
+```sh
+# 624,000 covered cat-ticks; resumable (present worlds skipped); exits 3 on a covered abort
+VIRTUAL_ENV=$PWD/$A/.venv caffeinate -s $A/.venv/bin/python3 -B $A/covered_scout.py run > $A/results-raw/covered/covered.log 2>&1
+```
+
+#### Read
+
+```sh
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/covered_scout.py read --out $A/reads/covered.json --md > $A/reads/covered.md   # about 1 min (loads 35 worlds with observations)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n10 n11 n12                                                 # about 1 min
+```
+
 ## Welfare ledger (covered cat-ticks, running)
 
 | step | covered cat-ticks | note |
@@ -505,4 +581,5 @@ provenance, 5 undecidable; two CONTRADICTED prose claims, fixed; round
 | step 3 scripted scout | 0 | 250 all-scripted worlds (block 1 200, block 2 50) |
 | step 3 amendment 1 checks | 0 | onset law 200 × 200 ticks, arm E identity 15 × 800, all scripted |
 | step 3 re-scout at edge 4,500 | 0 | 100 all-scripted worlds |
-| total so far | about 10,600 | of the 8.0M cap (§7 S3) |
+| step 4 covered scout (declared; the row is corrected to what ran when it closes) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (count toward arm T if clean) |
+| total so far | about 634,600 | of the 8.0M cap (§7 S3); the set's remaining budget at w = 46: arm N 5,520,000, arm T 720,000 more, arm E 256,000 |
