@@ -436,6 +436,7 @@ the covered scout (step 4).
 |---|---|---|
 | both ends − 1 (the window shifted by one tick) | the onset assertion on N1 1095651's first window: window onset 5, stream onset 6 | `('window onset', 'N1', 1095651, 1, 5, 6)` — RED CONFIRMED, 1 passed == 1 passed |
 | close − 1 (the window closed on the step before its release) | the release-inside-window assertion on N1 1095651's first release, step 305 | `('release outside its window', 'N1', 1095651, 305, …)` — RED CONFIRMED, 1 passed == 1 passed |
+| the loader drops the edge-4,500 generation (`edges = (20000,)`; amendment 1, 2026-10-31) | the world-count assertion: 100 arm N worlds, not 200 | `AssertionError: 100` — RED CONFIRMED, 1 passed == 1 passed |
 
 Kept guards after the reader edits (load_world on all-scripted worlds,
 `window_of`, `longest_streaks`): n9, split, n4, n6, n8 — 6 passed.
