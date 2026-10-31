@@ -750,7 +750,7 @@ step 7.
 
 | guard | mutation | predicted first red | observed |
 |---|---|---|---|
-| n13 | `set_run.W_N = 46` → 44 | the arm counts: `{'T': 50, 'N': 220, 'E': 80}` | (recorded after the cycle, before launch) |
+| n13 | `set_run.W_N = 46` → 44 | the arm counts: `{'T': 50, 'N': 220, 'E': 80}` | `AssertionError: {'T': 50, 'E': 80, 'N': 220}` — RED CONFIRMED on the second cycle; the first cycle reached the same assertion with the same counts but my `--expect` regex had the keys in declaration order, not the dict's burn order, so the tool called it a wrong-reason red; regex corrected to the printed order, nothing else changed |
 
 ### Regeneration
 
