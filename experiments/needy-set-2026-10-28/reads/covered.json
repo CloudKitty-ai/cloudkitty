@@ -1,0 +1,3345 @@
+{
+ "seating": "g2-rot2",
+ "s1_streak_covered_only": 1000,
+ "rule": "teacher minus needy, covered seats' mean happiness; under 1.0 launches; 1.0-4.4 her word; over 4.4 no launch",
+ "team_baseline": 87.49,
+ "covered_cat_ticks": {
+  "arm_T_first_worlds": 80000,
+  "arm_N_pairs": 480000,
+  "arm_E_pairs": 64000
+ },
+ "arm_T_first_worlds": [
+  {
+   "block": 1,
+   "seed": 1095452,
+   "ticks": 4000,
+   "clean": true,
+   "covered_mean_happiness": 87.29346466064453,
+   "price": {
+    "covered_seats": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "ticks": 4000,
+    "mean_happiness_per_seat": [
+     87.66,
+     86.85,
+     87.98,
+     86.68
+    ],
+    "distress_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "grave_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_need_per_seat": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "worst_streak_covered": 0,
+    "scripted_seat_worst_streak": 12,
+    "scripted_seat_grave_ticks": 52
+   }
+  },
+  {
+   "block": 2,
+   "seed": 1095472,
+   "ticks": 4000,
+   "clean": true,
+   "covered_mean_happiness": 87.2349853515625,
+   "price": {
+    "covered_seats": [
+     0,
+     2,
+     3,
+     4
+    ],
+    "ticks": 4000,
+    "mean_happiness_per_seat": [
+     87.61,
+     86.53,
+     88.1,
+     86.7
+    ],
+    "distress_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "grave_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_need_per_seat": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "worst_streak_covered": 0,
+    "scripted_seat_worst_streak": 12,
+    "scripted_seat_grave_ticks": 22
+   }
+  },
+  {
+   "block": 3,
+   "seed": 1095493,
+   "ticks": 4000,
+   "clean": true,
+   "covered_mean_happiness": 87.52835083007812,
+   "price": {
+    "covered_seats": [
+     0,
+     1,
+     3,
+     4
+    ],
+    "ticks": 4000,
+    "mean_happiness_per_seat": [
+     87.58,
+     87.79,
+     88.24,
+     86.5
+    ],
+    "distress_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "grave_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_need_per_seat": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "worst_streak_covered": 0,
+    "scripted_seat_worst_streak": 26,
+    "scripted_seat_grave_ticks": 37
+   }
+  },
+  {
+   "block": 4,
+   "seed": 1095515,
+   "ticks": 4000,
+   "clean": true,
+   "covered_mean_happiness": 87.01921844482422,
+   "price": {
+    "covered_seats": [
+     0,
+     1,
+     2,
+     4
+    ],
+    "ticks": 4000,
+    "mean_happiness_per_seat": [
+     86.95,
+     87.65,
+     86.71,
+     86.77
+    ],
+    "distress_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "grave_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_need_per_seat": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "worst_streak_covered": 0,
+    "scripted_seat_worst_streak": 25,
+    "scripted_seat_grave_ticks": 35
+   }
+  },
+  {
+   "block": 5,
+   "seed": 1095533,
+   "ticks": 4000,
+   "clean": true,
+   "covered_mean_happiness": 87.66768646240234,
+   "price": {
+    "covered_seats": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "ticks": 4000,
+    "mean_happiness_per_seat": [
+     87.38,
+     87.89,
+     87.08,
+     88.32
+    ],
+    "distress_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "grave_ticks_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_per_seat": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "worst_streak_need_per_seat": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "worst_streak_covered": 0,
+    "scripted_seat_worst_streak": 36,
+    "scripted_seat_grave_ticks": 46
+   }
+  }
+ ],
+ "pairs": [
+  {
+   "arm": "N",
+   "block": 1,
+   "seed": 1095701,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "whole": {
+    "teacher": 87.39464569091797,
+    "needy": 87.08208465576172,
+    "drop": 0.31256103515625
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.9,
+      86.8,
+      88.38,
+      86.49
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.84,
+      86.66,
+      87.73,
+      86.11
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 165,
+     "scripted_seat_grave_ticks": 378
+    }
+   },
+   "first_window": {
+    "onset": 169,
+    "close": 377,
+    "read_lo": 169,
+    "read_hi": 677,
+    "ticks": 508,
+    "masked": [
+     "cuddle"
+    ]
+   },
+   "window": {
+    "teacher": 87.17555236816406,
+    "needy": 87.36930084228516,
+    "drop": -0.19374847412109375,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "ticks": 508,
+      "mean_happiness_per_seat": [
+       86.84,
+       86.88,
+       87.97,
+       87.01
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "ticks": 508,
+      "mean_happiness_per_seat": [
+       87.86,
+       87.15,
+       86.89,
+       87.58
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 6,
+      "scripted_seat_grave_ticks": 6
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 212
+  },
+  {
+   "arm": "N",
+   "block": 1,
+   "seed": 1095702,
+   "ticks": 6000,
+   "friend_seat": 0,
+   "whole": {
+    "teacher": 87.3323745727539,
+    "needy": 86.98209381103516,
+    "drop": 0.35028076171875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.81,
+      86.92,
+      88.04,
+      86.56
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.66,
+      86.47,
+      87.57,
+      86.22
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 199,
+     "scripted_seat_grave_ticks": 239
+    }
+   },
+   "first_window": {
+    "onset": 3412,
+    "close": 3700,
+    "read_lo": 3412,
+    "read_hi": 4000,
+    "ticks": 588,
+    "masked": [
+     "eat",
+     "drink",
+     "play",
+     "cuddle"
+    ]
+   },
+   "window": {
+    "teacher": 87.54037475585938,
+    "needy": 84.93380737304688,
+    "drop": 2.6065673828125,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "ticks": 588,
+      "mean_happiness_per_seat": [
+       88.16,
+       86.43,
+       87.92,
+       87.65
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       1,
+       2,
+       3,
+       4
+      ],
+      "ticks": 588,
+      "mean_happiness_per_seat": [
+       88.04,
+       83.57,
+       82.86,
+       85.27
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 199,
+      "scripted_seat_grave_ticks": 207
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 3413
+  },
+  {
+   "arm": "N",
+   "block": 2,
+   "seed": 1095703,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "whole": {
+    "teacher": 87.16798400878906,
+    "needy": 86.35230255126953,
+    "drop": 0.8156814575195312
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.43,
+      86.72,
+      87.9,
+      86.62
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.44,
+      85.1,
+      87.41,
+      85.47
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      128,
+      0,
+      50
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      128,
+      0,
+      50
+     ],
+     "worst_streak_per_seat": [
+      0,
+      92,
+      0,
+      50
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      "eat",
+      null,
+      "cuddle"
+     ],
+     "worst_streak_covered": 92,
+     "scripted_seat_worst_streak": 353,
+     "scripted_seat_grave_ticks": 703
+    }
+   },
+   "first_window": {
+    "onset": 3414,
+    "close": 3684,
+    "read_lo": 3414,
+    "read_hi": 3984,
+    "ticks": 570,
+    "masked": [
+     "sleep"
+    ]
+   },
+   "window": {
+    "teacher": 87.10460662841797,
+    "needy": 86.98774719238281,
+    "drop": 0.11685943603515625,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       2,
+       3,
+       4
+      ],
+      "ticks": 570,
+      "mean_happiness_per_seat": [
+       87.65,
+       86.71,
+       88.11,
+       85.95
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       2,
+       3,
+       4
+      ],
+      "ticks": 570,
+      "mean_happiness_per_seat": [
+       87.2,
+       86.9,
+       87.97,
+       85.88
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 4,
+      "scripted_seat_grave_ticks": 4
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 3521
+  },
+  {
+   "arm": "N",
+   "block": 2,
+   "seed": 1095704,
+   "ticks": 6000,
+   "friend_seat": 1,
+   "whole": {
+    "teacher": 87.09407806396484,
+    "needy": 85.73724365234375,
+    "drop": 1.3568344116210938
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.75,
+      86.72,
+      88.2,
+      85.71
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      86.01,
+      85.87,
+      86.7,
+      84.36
+     ],
+     "distress_ticks_per_seat": [
+      188,
+      95,
+      58,
+      164
+     ],
+     "grave_ticks_per_seat": [
+      188,
+      95,
+      81,
+      164
+     ],
+     "worst_streak_per_seat": [
+      170,
+      91,
+      53,
+      125
+     ],
+     "worst_streak_need_per_seat": [
+      "sleep",
+      "eat",
+      "eat",
+      "cuddle"
+     ],
+     "worst_streak_covered": 170,
+     "scripted_seat_worst_streak": 264,
+     "scripted_seat_grave_ticks": 281
+    }
+   },
+   "first_window": {
+    "onset": 2162,
+    "close": 2581,
+    "read_lo": 2162,
+    "read_hi": 2881,
+    "ticks": 719,
+    "masked": [
+     "drink",
+     "cuddle",
+     "bath"
+    ]
+   },
+   "window": {
+    "teacher": 87.24844360351562,
+    "needy": 72.65068054199219,
+    "drop": 14.597763061523438,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       2,
+       3,
+       4
+      ],
+      "ticks": 719,
+      "mean_happiness_per_seat": [
+       86.99,
+       87.0,
+       88.21,
+       86.8
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       2,
+       3,
+       4
+      ],
+      "ticks": 719,
+      "mean_happiness_per_seat": [
+       68.83,
+       77.18,
+       75.17,
+       69.43
+      ],
+      "distress_ticks_per_seat": [
+       188,
+       95,
+       58,
+       164
+      ],
+      "grave_ticks_per_seat": [
+       188,
+       95,
+       81,
+       164
+      ],
+      "worst_streak_per_seat": [
+       170,
+       91,
+       53,
+       125
+      ],
+      "worst_streak_need_per_seat": [
+       "sleep",
+       "eat",
+       "eat",
+       "cuddle"
+      ],
+      "worst_streak_covered": 170,
+      "scripted_seat_worst_streak": 264,
+      "scripted_seat_grave_ticks": 272
+     }
+    },
+    "covered_seats_grave_in_window": 4
+   },
+   "same_until": 2173
+  },
+  {
+   "arm": "N",
+   "block": 3,
+   "seed": 1095705,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "whole": {
+    "teacher": 87.48197937011719,
+    "needy": 86.57908630371094,
+    "drop": 0.90289306640625
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.23,
+      87.89,
+      88.15,
+      86.66
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 9,
+     "scripted_seat_grave_ticks": 9
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      86.74,
+      86.75,
+      87.01,
+      85.81
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 647,
+     "scripted_seat_grave_ticks": 1392
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 225,
+    "read_lo": 0,
+    "read_hi": 525,
+    "ticks": 525,
+    "masked": [
+     "drink"
+    ]
+   },
+   "window": {
+    "teacher": 87.84056854248047,
+    "needy": 87.82881164550781,
+    "drop": 0.01175689697265625,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       3,
+       4
+      ],
+      "ticks": 525,
+      "mean_happiness_per_seat": [
+       87.24,
+       88.11,
+       88.14,
+       87.88
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       3,
+       4
+      ],
+      "ticks": 525,
+      "mean_happiness_per_seat": [
+       87.07,
+       88.82,
+       88.49,
+       86.94
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 3,
+      "scripted_seat_grave_ticks": 3
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 80
+  },
+  {
+   "arm": "N",
+   "block": 3,
+   "seed": 1095706,
+   "ticks": 6000,
+   "friend_seat": 2,
+   "whole": {
+    "teacher": 87.36589813232422,
+    "needy": 85.87059020996094,
+    "drop": 1.4953079223632812
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.22,
+      87.52,
+      88.12,
+      86.6
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      85.68,
+      87.5,
+      85.62,
+      84.68
+     ],
+     "distress_ticks_per_seat": [
+      33,
+      0,
+      196,
+      8
+     ],
+     "grave_ticks_per_seat": [
+      42,
+      0,
+      207,
+      8
+     ],
+     "worst_streak_per_seat": [
+      33,
+      0,
+      196,
+      8
+     ],
+     "worst_streak_need_per_seat": [
+      "drink",
+      null,
+      "eat",
+      "cuddle"
+     ],
+     "worst_streak_covered": 196,
+     "scripted_seat_worst_streak": 580,
+     "scripted_seat_grave_ticks": 1423
+    }
+   },
+   "first_window": {
+    "onset": 421,
+    "close": 1222,
+    "read_lo": 421,
+    "read_hi": 1522,
+    "ticks": 1101,
+    "masked": [
+     "sleep",
+     "play",
+     "bath"
+    ]
+   },
+   "window": {
+    "teacher": 87.38639831542969,
+    "needy": 85.75029754638672,
+    "drop": 1.6361007690429688,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       3,
+       4
+      ],
+      "ticks": 1101,
+      "mean_happiness_per_seat": [
+       87.26,
+       87.24,
+       88.15,
+       86.89
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       3,
+       4
+      ],
+      "ticks": 1101,
+      "mean_happiness_per_seat": [
+       86.07,
+       87.13,
+       86.47,
+       83.33
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 580,
+      "scripted_seat_grave_ticks": 589
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 422
+  },
+  {
+   "arm": "N",
+   "block": 4,
+   "seed": 1095707,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "whole": {
+    "teacher": 87.29179382324219,
+    "needy": 86.3974838256836,
+    "drop": 0.8943099975585938
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.78,
+      87.86,
+      87.0,
+      86.52
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      86.79,
+      87.14,
+      86.3,
+      85.36
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      "eat",
+      null
+     ],
+     "worst_streak_covered": 6,
+     "scripted_seat_worst_streak": 151,
+     "scripted_seat_grave_ticks": 558
+    }
+   },
+   "first_window": {
+    "onset": 648,
+    "close": 813,
+    "read_lo": 648,
+    "read_hi": 1113,
+    "ticks": 465,
+    "masked": [
+     "cuddle"
+    ]
+   },
+   "window": {
+    "teacher": 87.53059387207031,
+    "needy": 86.59098052978516,
+    "drop": 0.9396133422851562,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       4
+      ],
+      "ticks": 465,
+      "mean_happiness_per_seat": [
+       88.1,
+       87.65,
+       86.83,
+       87.54
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       4
+      ],
+      "ticks": 465,
+      "mean_happiness_per_seat": [
+       87.28,
+       87.04,
+       85.73,
+       86.31
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 1,
+      "scripted_seat_grave_ticks": 1
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 648
+  },
+  {
+   "arm": "N",
+   "block": 4,
+   "seed": 1095708,
+   "ticks": 6000,
+   "friend_seat": 3,
+   "whole": {
+    "teacher": 87.1650390625,
+    "needy": 86.58641815185547,
+    "drop": 0.5786209106445312
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.51,
+      87.83,
+      86.69,
+      86.64
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.28,
+      87.3,
+      86.19,
+      85.57
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 120,
+     "scripted_seat_grave_ticks": 253
+    }
+   },
+   "first_window": {
+    "onset": 210,
+    "close": 420,
+    "read_lo": 210,
+    "read_hi": 720,
+    "ticks": 510,
+    "masked": [
+     "eat"
+    ]
+   },
+   "window": {
+    "teacher": 87.82308959960938,
+    "needy": 87.3382339477539,
+    "drop": 0.48485565185546875,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       4
+      ],
+      "ticks": 510,
+      "mean_happiness_per_seat": [
+       88.03,
+       88.84,
+       87.41,
+       87.0
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       4
+      ],
+      "ticks": 510,
+      "mean_happiness_per_seat": [
+       87.74,
+       87.98,
+       87.31,
+       86.33
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 4,
+      "scripted_seat_grave_ticks": 4
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 271
+  },
+  {
+   "arm": "N",
+   "block": 5,
+   "seed": 1095709,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "whole": {
+    "teacher": 87.29732513427734,
+    "needy": 86.5227279663086,
+    "drop": 0.77459716796875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.14,
+      87.62,
+      86.39,
+      88.04
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      "eat",
+      null
+     ],
+     "worst_streak_covered": 6,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      85.61,
+      87.17,
+      85.51,
+      87.8
+     ],
+     "distress_ticks_per_seat": [
+      52,
+      0,
+      6,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      52,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_per_seat": [
+      51,
+      0,
+      6,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      "eat",
+      null,
+      "eat",
+      null
+     ],
+     "worst_streak_covered": 51,
+     "scripted_seat_worst_streak": 673,
+     "scripted_seat_grave_ticks": 681
+    }
+   },
+   "first_window": {
+    "onset": 2100,
+    "close": 2868,
+    "read_lo": 2100,
+    "read_hi": 3168,
+    "ticks": 1068,
+    "masked": [
+     "cuddle",
+     "bath"
+    ]
+   },
+   "window": {
+    "teacher": 86.61942291259766,
+    "needy": 83.23231506347656,
+    "drop": 3.3871078491210938,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "ticks": 1068,
+      "mean_happiness_per_seat": [
+       86.4,
+       86.85,
+       86.22,
+       87.01
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "ticks": 1068,
+      "mean_happiness_per_seat": [
+       78.65,
+       84.74,
+       82.78,
+       86.76
+      ],
+      "distress_ticks_per_seat": [
+       52,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       52,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       51,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       "eat",
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 51,
+      "scripted_seat_worst_streak": 673,
+      "scripted_seat_grave_ticks": 673
+     }
+    },
+    "covered_seats_grave_in_window": 1
+   },
+   "same_until": 2124
+  },
+  {
+   "arm": "N",
+   "block": 5,
+   "seed": 1095710,
+   "ticks": 6000,
+   "friend_seat": 4,
+   "whole": {
+    "teacher": 87.48712158203125,
+    "needy": 86.21076202392578,
+    "drop": 1.2763595581054688
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      87.3,
+      88.0,
+      86.73,
+      87.92
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 6000,
+     "mean_happiness_per_seat": [
+      84.73,
+      86.57,
+      85.88,
+      87.66
+     ],
+     "distress_ticks_per_seat": [
+      149,
+      0,
+      94,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      183,
+      0,
+      94,
+      0
+     ],
+     "worst_streak_per_seat": [
+      107,
+      0,
+      64,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      "drink",
+      null,
+      "eat",
+      null
+     ],
+     "worst_streak_covered": 107,
+     "scripted_seat_worst_streak": 223,
+     "scripted_seat_grave_ticks": 837
+    }
+   },
+   "first_window": {
+    "onset": 115,
+    "close": 309,
+    "read_lo": 115,
+    "read_hi": 609,
+    "ticks": 494,
+    "masked": [
+     "eat",
+     "drink"
+    ]
+   },
+   "window": {
+    "teacher": 87.40047454833984,
+    "needy": 87.43537902832031,
+    "drop": -0.03490447998046875,
+    "price": {
+     "teacher": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "ticks": 494,
+      "mean_happiness_per_seat": [
+       87.92,
+       88.21,
+       86.4,
+       87.07
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 0,
+      "scripted_seat_grave_ticks": 0
+     },
+     "needy": {
+      "covered_seats": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "ticks": 494,
+      "mean_happiness_per_seat": [
+       87.89,
+       86.89,
+       87.11,
+       87.86
+      ],
+      "distress_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "grave_ticks_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_per_seat": [
+       0,
+       0,
+       0,
+       0
+      ],
+      "worst_streak_need_per_seat": [
+       null,
+       null,
+       null,
+       null
+      ],
+      "worst_streak_covered": 0,
+      "scripted_seat_worst_streak": 24,
+      "scripted_seat_grave_ticks": 26
+     }
+    },
+    "covered_seats_grave_in_window": 0
+   },
+   "same_until": 159
+  },
+  {
+   "arm": "E",
+   "block": 1,
+   "seed": 1096161,
+   "ticks": 800,
+   "friend_seat": 0,
+   "whole": {
+    "teacher": 87.39370727539062,
+    "needy": 87.79183959960938,
+    "drop": -0.39813232421875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.43,
+      87.65,
+      87.13,
+      87.38
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      88.79,
+      87.41,
+      87.45,
+      87.52
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 3,
+     "scripted_seat_grave_ticks": 3
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 100
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 1,
+   "seed": 1096162,
+   "ticks": 800,
+   "friend_seat": 0,
+   "whole": {
+    "teacher": 87.63134002685547,
+    "needy": 87.27056884765625,
+    "drop": 0.36077117919921875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.45,
+      86.69,
+      89.49,
+      86.89
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      1,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.41,
+      86.28,
+      88.54,
+      86.85
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 8,
+     "scripted_seat_grave_ticks": 8
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 217
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 2,
+   "seed": 1096221,
+   "ticks": 800,
+   "friend_seat": 1,
+   "whole": {
+    "teacher": 86.94844818115234,
+    "needy": 83.83900451660156,
+    "drop": 3.1094436645507812
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      86.83,
+      87.19,
+      87.2,
+      86.57
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      79.66,
+      82.71,
+      88.4,
+      84.59
+     ],
+     "distress_ticks_per_seat": [
+      110,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      110,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      110,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      "drink",
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 110,
+     "scripted_seat_worst_streak": 135,
+     "scripted_seat_grave_ticks": 221
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 38
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 2,
+   "seed": 1096222,
+   "ticks": 800,
+   "friend_seat": 1,
+   "whole": {
+    "teacher": 87.62904357910156,
+    "needy": 87.55804443359375,
+    "drop": 0.0709991455078125
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.36,
+      87.55,
+      89.02,
+      86.59
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      2,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.92,
+      87.47,
+      87.88,
+      86.96
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 12,
+     "scripted_seat_grave_ticks": 12
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 75
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 3,
+   "seed": 1096281,
+   "ticks": 800,
+   "friend_seat": 2,
+   "whole": {
+    "teacher": 87.9736099243164,
+    "needy": 87.69682312011719,
+    "drop": 0.27678680419921875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      88.3,
+      88.14,
+      88.78,
+      86.68
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.19,
+      89.17,
+      87.47,
+      86.95
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 1,
+     "scripted_seat_grave_ticks": 1
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 151
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 3,
+   "seed": 1096282,
+   "ticks": 800,
+   "friend_seat": 2,
+   "whole": {
+    "teacher": 87.343017578125,
+    "needy": 85.28179931640625,
+    "drop": 2.06121826171875
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      85.08,
+      87.88,
+      89.0,
+      87.42
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      3,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.31,
+      86.93,
+      81.06,
+      85.82
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      65,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      65,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      65,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      "eat",
+      null
+     ],
+     "worst_streak_covered": 65,
+     "scripted_seat_worst_streak": 517,
+     "scripted_seat_grave_ticks": 534
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 551
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 4,
+   "seed": 1096341,
+   "ticks": 800,
+   "friend_seat": 3,
+   "whole": {
+    "teacher": 80.82308197021484,
+    "needy": 86.88368225097656,
+    "drop": -6.060600280761719
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      61.46,
+      88.15,
+      87.44,
+      86.24
+     ],
+     "distress_ticks_per_seat": [
+      576,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      575,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      576,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      "drink",
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 576,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      86.26,
+      87.54,
+      86.56,
+      87.18
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 8,
+     "scripted_seat_grave_ticks": 8
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 100
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 4,
+   "seed": 1096342,
+   "ticks": 800,
+   "friend_seat": 3,
+   "whole": {
+    "teacher": 87.3292465209961,
+    "needy": 87.00837707519531,
+    "drop": 0.32086944580078125
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.58,
+      87.48,
+      87.13,
+      87.12
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      4
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      86.59,
+      87.68,
+      86.91,
+      86.86
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 136,
+     "scripted_seat_grave_ticks": 150
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 194
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 5,
+   "seed": 1096401,
+   "ticks": 800,
+   "friend_seat": 4,
+   "whole": {
+    "teacher": 87.45349884033203,
+    "needy": 86.06777954101562,
+    "drop": 1.3857192993164062
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.46,
+      87.26,
+      87.18,
+      87.9
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      87.23,
+      86.47,
+      85.05,
+      85.51
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 19,
+     "scripted_seat_grave_ticks": 29
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 800
+   },
+   "window": null
+  },
+  {
+   "arm": "E",
+   "block": 5,
+   "seed": 1096402,
+   "ticks": 800,
+   "friend_seat": 4,
+   "whole": {
+    "teacher": 88.05555725097656,
+    "needy": 86.96094512939453,
+    "drop": 1.0946121215820312
+   },
+   "price": {
+    "teacher": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      88.3,
+      88.74,
+      86.79,
+      88.39
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 0,
+     "scripted_seat_grave_ticks": 0
+    },
+    "needy": {
+     "covered_seats": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "ticks": 800,
+     "mean_happiness_per_seat": [
+      85.42,
+      87.84,
+      86.69,
+      87.89
+     ],
+     "distress_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "grave_ticks_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_per_seat": [
+      0,
+      0,
+      0,
+      0
+     ],
+     "worst_streak_need_per_seat": [
+      null,
+      null,
+      null,
+      null
+     ],
+     "worst_streak_covered": 0,
+     "scripted_seat_worst_streak": 82,
+     "scripted_seat_grave_ticks": 97
+    }
+   },
+   "first_window": {
+    "onset": 0,
+    "close": 100
+   },
+   "window": null
+  }
+ ],
+ "reads": {
+  "whole_world_N": {
+   "n": 10,
+   "mean": 0.87574462890625,
+   "sd": 0.4044597245509857,
+   "min": 0.31256103515625,
+   "max": 1.4953079223632812,
+   "s2": "launches"
+  },
+  "episode_window_N": {
+   "n": 10,
+   "mean": 2.3551971435546877,
+   "sd": 4.468894702545829,
+   "min": -0.19374847412109375,
+   "max": 14.597763061523438,
+   "s2": "her word",
+   "pairs_without_a_first_window": 0
+  },
+  "whole_world_E": {
+   "n": 10,
+   "mean": 0.22216873168945311,
+   "sd": 2.443726999088185,
+   "min": -6.060600280761719,
+   "max": 3.1094436645507812,
+   "s2": "launches"
+  }
+ },
+ "same_until_ge_onset": true,
+ "aborts": 0,
+ "worst_covered_streak": 576,
+ "S2": {
+  "whole_world_N": "launches",
+  "episode_window_N": "her word",
+  "whole_world_E": "launches"
+ },
+ "S2_launches": false
+}

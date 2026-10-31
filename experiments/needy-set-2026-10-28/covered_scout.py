@@ -154,13 +154,21 @@ def covered_mean(w, lo=0, hi=None):
     return float(w["post_hap"][lo:hi, cov].mean())
 
 
-def seat_price(w):
+def seat_price(w, lo=0, hi=None):
+    """R8's price columns for the covered seats over [lo, hi): mean
+    happiness, distress ticks (any need), grave ticks on the §4 truth, the
+    worst single-need streak and its need; the scripted seat's worst streak."""
     cov = R.observers(w)
-    streaks = R.longest_streaks(w["distress"])
-    any_distress = (w["distress"][:, cov] != 0).sum(0)
-    return {"covered_seats": cov, "mean_happiness_per_seat": w["post_hap"][:, cov].mean(0).round(3).tolist(),
-            "distress_ticks_per_seat": any_distress.tolist(), "worst_streak_per_seat": streaks[cov].max(1).tolist(),
-            "worst_streak_covered": int(streaks[cov].max()), "scripted_seat_worst_streak": int(streaks[w["scripted"][0]].max())}
+    hi = w["ticks"] if hi is None else hi
+    streaks = R.longest_streaks(w["distress"][lo:hi])
+    any_distress = (w["distress"][lo:hi, cov] != 0).sum(0)
+    grave = (w["codes"][lo:hi][:, cov] == R.S.GRAVE).sum(0)
+    return {"covered_seats": cov, "ticks": hi - lo, "mean_happiness_per_seat": w["post_hap"][lo:hi, cov].astype(np.float64).mean(0).round(2).tolist(),
+            "distress_ticks_per_seat": any_distress.tolist(), "grave_ticks_per_seat": grave.tolist(),
+            "worst_streak_per_seat": streaks[cov].max(1).tolist(),
+            "worst_streak_need_per_seat": [R.NEED_NAMES[i] if streaks[k].max() > 0 else None for k, i in zip(cov, streaks[cov].argmax(1))],
+            "worst_streak_covered": int(streaks[cov].max()), "scripted_seat_worst_streak": int(streaks[w["scripted"][0]].max()),
+            "scripted_seat_grave_ticks": int((w["codes"][lo:hi, w["scripted"][0]] == R.S.GRAVE).sum())}
 
 
 def pair_record(arm, k, seed):
@@ -179,9 +187,13 @@ def pair_record(arm, k, seed):
         if windows:
             on, close, _o = windows[0]
             hi = min(close + WINDOW_TAIL, wn["ticks"])
-            rec["first_window"] = {"onset": on, "close": close, "read_lo": on, "read_hi": hi, "ticks": hi - on}
+            bits = int(wn["needy_mask"][on])
+            rec["first_window"] = {"onset": on, "close": close, "read_lo": on, "read_hi": hi, "ticks": hi - on,
+                                   "masked": [n for i, n in enumerate(R.NEED_NAMES) if (bits >> i) & 1]}
             rec["window"] = {"teacher": covered_mean(wt, on, hi), "needy": covered_mean(wn, on, hi)}
             rec["window"]["drop"] = rec["window"]["teacher"] - rec["window"]["needy"]
+            rec["window"]["price"] = {"teacher": seat_price(wt, on, hi), "needy": seat_price(wn, on, hi)}
+            rec["window"]["covered_seats_grave_in_window"] = int((np.asarray(rec["window"]["price"]["needy"]["grave_ticks_per_seat"]) > 0).sum())
     else:
         assert windows and windows[0][0] in (0, 1), windows[:1]
         rec["first_window"] = {"onset": windows[0][0], "close": windows[0][1]}
@@ -241,6 +253,20 @@ def md(out):
         lines.append(f"| {p['arm']}{p['block']} | {p['seed']} | {p.get('same_until', '-')} | {fws} | "
                      f"{p['whole']['teacher']:.2f} / {p['whole']['needy']:.2f} / {p['whole']['drop']:.3f} | {win} | "
                      f"{p['price']['teacher']['worst_streak_covered']} / {p['price']['needy']['worst_streak_covered']} |")
+    lines += ["", "| arm N pair | masked at the first window | covered seats grave in the window (needy / teacher) | grave ticks per covered seat, needy | mean happiness per covered seat, needy | teacher |", "|---|---|---|---|---|---|"]
+    for p in out["pairs"]:
+        if p["arm"] == "N" and p["window"]:
+            pn, pt = p["window"]["price"]["needy"], p["window"]["price"]["teacher"]
+            lines.append(f"| N{p['block']} {p['seed']} | {', '.join(p['first_window']['masked'])} | {p['window']['covered_seats_grave_in_window']} / "
+                         f"{int((np.asarray(pt['grave_ticks_per_seat']) > 0).sum())} | {pn['grave_ticks_per_seat']} | {pn['mean_happiness_per_seat']} | {pt['mean_happiness_per_seat']} |")
+    lines += ["", "| world | seat | worst covered streak (need) | distress ticks per covered seat | grave ticks per covered seat |", "|---|---|---|---|---|"]
+    for p in out["pairs"]:
+        for kind in ("teacher", "needy"):
+            pr = p["price"][kind]
+            if pr["worst_streak_covered"] > 0:
+                i = int(np.argmax(pr["worst_streak_per_seat"]))
+                lines.append(f"| {p['arm']}{p['block']} {p['seed']} {kind} | {pr['covered_seats'][i]} | {pr['worst_streak_covered']} ({pr['worst_streak_need_per_seat'][i]}) | "
+                             f"{pr['distress_ticks_per_seat']} | {pr['grave_ticks_per_seat']} |")
     lines += ["", "| arm T first world | seed | ticks | clean | covered mean happiness | worst covered streak |", "|---|---|---|---|---|---|"]
     for t in out["arm_T_first_worlds"]:
         lines.append(f"| T{t['block']} | {t['seed']} | {t['ticks']} | {t['clean']} | {t['covered_mean_happiness']:.2f} | {t['price']['worst_streak_covered']} |")

@@ -552,7 +552,104 @@ anticipation run outside a window") needs R3's alarm-run classifier,
 which does not exist yet: it lands with R3 in step 7 on these covered
 observers, a deviation from §10's "lands with the covered scout" that
 is stated here rather than met with a classifier written for the
-purpose.
+purpose. *Correction after the gate (2026-10-31), the declared sentence
+above kept as written:* "lands with the covered scout" is this file's
+own step 3 n5 record, not §10; §10 n5 reads "no anticipation run lies
+outside one", on the scripted scout's payloads. The deviation stands as
+described: the clause needs the classifier either way.
+
+**Ran 2026-10-31 03:38–03:41 UTC at main ab6d597f**: 45 worlds (5 arm
+T, 20 arm N, 20 arm E), 194 s, 624,000 covered cat-ticks, **0 aborts**;
+the worst covered single-need streak anywhere 576 (under F-053's
+1,000). Every arm N pair is the same world until its first onset
+(`same_until` at or past the onset in all 10). The five arm T first
+worlds are clean and count toward arm T: covered mean happiness 87.29 /
+87.23 / 87.53 / 87.02 / 87.67, no covered distress tick in any. The
+numbers below are what `covered_scout.py read` prints
+(`reads/covered.json`, `reads/covered.md`).
+
+**S2** (teacher minus needy, the covered seats' mean happiness; the
+rule on each pooled mean):
+
+| read | pairs | pooled mean drop | SD across pairs | min | max | S2 |
+|---|---|---|---|---|---|---|
+| whole world, arm N (6,000 ticks) | 10 | 0.876 | 0.404 | 0.313 | 1.495 | **launches** (under 1.0) |
+| episode window, arm N (first episode, onset to release + 300) | 10 | 2.355 | 4.469 | −0.194 | 14.598 | **her word** (1.0 to 4.4) |
+| whole world, arm E (800 ticks) | 10 | 0.222 | 2.444 | −6.061 | 3.109 | **launches** (under 1.0) |
+
+Two reads launch and one is in the band that takes her word, so the
+step goes to her per §7. The pairs:
+
+| pair | seed | same until | first window: onset, close, read to | masked | whole: teacher / needy / drop | window: teacher / needy / drop | worst covered streak, teacher / needy |
+|---|---|---|---|---|---|---|---|
+| N1 | 1095701 | 212 | 169, 377, 677 | cuddle | 87.39 / 87.08 / 0.313 | 87.18 / 87.37 / −0.194 | 0 / 0 |
+| N1 | 1095702 | 3413 | 3412, 3700, 4000 | eat, drink, play, cuddle | 87.33 / 86.98 / 0.350 | 87.54 / 84.93 / 2.607 | 0 / 0 |
+| N2 | 1095703 | 3521 | 3414, 3684, 3984 | sleep | 87.17 / 86.35 / 0.816 | 87.10 / 86.99 / 0.117 | 0 / 92 |
+| N2 | 1095704 | 2173 | 2162, 2581, 2881 | drink, cuddle, bath | 87.09 / 85.74 / 1.357 | 87.25 / 72.65 / 14.598 | 0 / 170 |
+| N3 | 1095705 | 80 | 0, 225, 525 | drink | 87.48 / 86.58 / 0.903 | 87.84 / 87.83 / 0.012 | 0 / 0 |
+| N3 | 1095706 | 422 | 421, 1222, 1522 | sleep, play, bath | 87.37 / 85.87 / 1.495 | 87.39 / 85.75 / 1.636 | 0 / 196 |
+| N4 | 1095707 | 648 | 648, 813, 1113 | cuddle | 87.29 / 86.40 / 0.894 | 87.53 / 86.59 / 0.940 | 0 / 6 |
+| N4 | 1095708 | 271 | 210, 420, 720 | eat | 87.17 / 86.59 / 0.579 | 87.82 / 87.34 / 0.485 | 0 / 0 |
+| N5 | 1095709 | 2124 | 2100, 2868, 3168 | cuddle, bath | 87.30 / 86.52 / 0.775 | 86.62 / 83.23 / 3.387 | 6 / 51 |
+| N5 | 1095710 | 159 | 115, 309, 609 | eat, drink | 87.49 / 86.21 / 1.276 | 87.40 / 87.44 / −0.035 | 0 / 107 |
+| E1 | 1096161 | – | 0, 100 | – | 87.39 / 87.79 / −0.398 | – | 0 / 0 |
+| E1 | 1096162 | – | 0, 217 | – | 87.63 / 87.27 / 0.361 | – | 0 / 0 |
+| E2 | 1096221 | – | 0, 38 | – | 86.95 / 83.84 / 3.109 | – | 0 / 110 |
+| E2 | 1096222 | – | 0, 75 | – | 87.63 / 87.56 / 0.071 | – | 0 / 0 |
+| E3 | 1096281 | – | 0, 151 | – | 87.97 / 87.70 / 0.277 | – | 0 / 0 |
+| E3 | 1096282 | – | 0, 551 | – | 87.34 / 85.28 / 2.061 | – | 0 / 65 |
+| E4 | 1096341 | – | 0, 100 | – | 80.82 / 86.88 / −6.061 | – | 576 / 0 |
+| E4 | 1096342 | – | 0, 194 | – | 87.33 / 87.01 / 0.321 | – | 0 / 0 |
+| E5 | 1096401 | – | 0, 800 | – | 87.45 / 86.07 / 1.386 | – | 0 / 0 |
+| E5 | 1096402 | – | 0, 100 | – | 88.06 / 86.96 / 1.095 | – | 0 / 0 |
+
+- **The whole-world arm N read** is under the line at 0.876, with 3 of
+  10 pairs over 1.0 (1.276, 1.357, 1.495) and none under 0.3. In 9 of
+  the 10 teacher controls no covered seat had a distress tick; in 6 of
+  the 10 needy worlds at least one did.
+- **The episode-window read** is 2.355 because of one pair. In N2
+  1095704 the first mask covered drink, cuddle and bath; the friend was
+  grave for 272 of the window's 719 ticks (2162–2881); and all four
+  covered seats went grave inside the window, for 188 / 95 / 81 / 164
+  ticks, with mean happiness 68.83 / 77.18 / 75.17 / 69.43 against
+  86.99 / 87.00 / 88.21 / 86.80 in the same ticks of the paired teacher
+  world, where no covered seat was in distress (the worst single-need
+  streaks in the needy world: sleep 170, eat 91, eat 53, cuddle 125).
+  Without that pair the other nine average 0.995; their median is
+  0.485, and five of them are under 0.5 (the median of all ten is
+  0.712). The second-largest window drop, 3.387 (N5
+  1095709, cuddle and bath masked), has one covered seat grave for 52
+  ticks. No other pair has a covered seat grave in its window. In the
+  whole-world read the cascade pair's drop is 1.357; every covered
+  grave tick of that world lies inside the window (188 / 95 / 81 / 164
+  whole-world, the same counts).
+- **The arm E read** is under the line at 0.222, the wider of the two
+  whole-world reads (SD 2.444 against arm N's 0.404): its minimum,
+  −6.061, is E4 1096341's *teacher* control, where covered seat 0 ran a
+  576-tick drink streak (575 grave ticks, mean happiness 61.46) with no
+  needy seat in the world, while the needy world of the same seed had
+  no covered distress at all. That streak is this composition's own
+  tail (four rot2 networks beside a scripted teacher), not the mask's;
+  it is the only covered streak over 200 in the scout and it sits in a
+  control. The
+  largest arm E drop, 3.109 (E2 1096221), has one covered seat grave
+  for 110 ticks.
+- **Price, whole worlds** (R8's columns): covered seats with any
+  distress appear in 8 needy worlds and 2 teacher worlds (N5 1095709,
+  6 ticks; E4 1096341 above). No covered seat came within 400 ticks of
+  the S1 line in any needy world (the worst, 196, N3 1095706).
+
+**Guards** (reds via `scripts/mutate.sh --expect`, 2026-10-31; baseline
+== restored in each):
+
+| guard | mutation | predicted first red | observed |
+|---|---|---|---|
+| n10 | `covered_scout.same_until` returns the index after the first difference | the recomputed `same_until` disagrees on the first pair | `('same_until', 1, 1095701, 213, 212)` — RED CONFIRMED |
+| n11 | `WINDOW_TAIL = 300` → 299 | the first pair's window tuple: read_hi 676, not 677 | `(1, 1095701, {'onset': 169, 'close': 377, 'read_lo': 169, 'read_hi': 676, 'ticks': 507})` — RED CONFIRMED |
+| n12 | the launch line made inclusive (`< 1.0` → `<= 1.0`) | a drop of exactly 1.0 classed "launches" | `AssertionError` on the 1.0 clause — RED CONFIRMED |
+
+n10, n11, n12: 3 passed on the payloads. **Her word on the episode-window
+read follows.**
 
 ### Regeneration
 
@@ -568,9 +665,23 @@ VIRTUAL_ENV=$PWD/$A/.venv caffeinate -s $A/.venv/bin/python3 -B $A/covered_scout
 #### Read
 
 ```sh
-VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/covered_scout.py read --out $A/reads/covered.json --md > $A/reads/covered.md   # about 1 min (loads 35 worlds with observations)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/covered_scout.py read --out $A/reads/covered.json --md > $A/reads/covered.md   # about 1 s (loads 45 worlds; the observations are not read)
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n10 n11 n12                                                 # about 1 min
 ```
+
+Accuracy gate, step 4: **PASS** 2026-10-31, two rounds, a fresh subagent
+each (round 1 FAIL: the nine-pair window median given as all ten's,
+"widest spread" unscoped, the n5 sentence's source misattributed, an
+F-043 citation outside its scope; all four fixed, the declared sentence
+kept with a correction beside it; round 2: 264 arithmetic, 5 threshold,
+10 characterisation (1 WEAK reworded after), 14 provenance, 6
+undecidable; fresh reads byte-identical to the recorded). Raw dirs
+`results-raw/covered` `v1:19f141c335331485`, `results-raw/set`
+`v1:36043a4cde869c3b` (`scripts/rawdir-hash.sh`). The gate also noted
+§7 S2's own wording ("in the needy world minus the paired teacher
+world", then "a drop"): the read is teacher minus needy, the only
+reading under which the rule's "drop" is a drop; a one-word
+declaration fix waits on her word.
 
 ## Welfare ledger (covered cat-ticks, running)
 
@@ -581,5 +692,5 @@ VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n10 n11 n
 | step 3 scripted scout | 0 | 250 all-scripted worlds (block 1 200, block 2 50) |
 | step 3 amendment 1 checks | 0 | onset law 200 × 200 ticks, arm E identity 15 × 800, all scripted |
 | step 3 re-scout at edge 4,500 | 0 | 100 all-scripted worlds |
-| step 4 covered scout (declared; the row is corrected to what ran when it closes) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (count toward arm T if clean) |
+| step 4 covered scout (ran 2026-10-31, 0 aborts) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (clean: they count toward arm T) |
 | total so far | about 634,600 | of the 8.0M cap (§7 S3); the set's remaining budget at w = 46: arm N 5,520,000, arm T 720,000 more, arm E 256,000 |

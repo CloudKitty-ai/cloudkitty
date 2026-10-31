@@ -1633,3 +1633,25 @@ comparison operator — read the guard, not the number; (46) a
 declaration amendment's expectation bullet is a COPY of a table and is
 checked as one, "about" or not; (47) run stamps come from the log's
 first and last lines, never from the session's clock.
+
+## 2026-10-31 — Needy set RESULTS §11 step 4 (the covered scout and S2), Experiments thread
+
+Two rounds. Round 1 FAIL on four prose points while all 225 table
+cells held: a "median of the other nine" that was the median of all
+ten; "the widest spread" said of a read that was not the widest; a
+quoted phrase attributed to the declaration's §10 when it was this
+file's own earlier section; and F-043 cited for a world outside its
+stated scope (four networks plus a scripted seat, not a five-network
+roster). Round 2 PASS (264 arithmetic, 5 sourced thresholds, 10
+characterisations with 1 WEAK reworded, 14 provenance, 6 undecidable);
+fresh reads byte-identical. The subagent also caught a wording defect
+in the ruled declaration itself (§7 S2 says "needy minus teacher" and
+then "a drop") and that the reader had uncommitted edits the recorded
+JSON depended on. Lessons: (48) a summary statistic "without X" is
+recomputed on the set without X, every time, not read off the full
+set's printout; (49) "widest", "largest", "only" are claims over a
+named set — name the set in the sentence; (50) a phrase quoted from
+"the declaration" is grepped in the declaration before the sentence
+is written; the author's own earlier prose is the usual source; (51)
+an F-number carries its finding's scope — cite it only where that
+scope holds, else describe the mechanism without the number.
