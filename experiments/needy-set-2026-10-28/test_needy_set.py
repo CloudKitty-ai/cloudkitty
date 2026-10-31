@@ -249,11 +249,16 @@ def test_n4_reader_pairs_covered_observers_only():
 
 
 def _scout_worlds(arm):
+    """Every scout world of the arm: arm N at both onset top edges (the
+    two blocks at 20000 and the re-scout at 4500, §13 amendment 1), arm E's
+    one generation."""
     import scout as SC
-    ws = [(g, s) for g, _c, s, _t in SC.worlds(arm)]
-    missing = [s for g, s in ws if not SC.paths(g, s)[0].exists()]
-    assert not missing, f"scout {arm} not run: {len(missing)} worlds missing (scout.py run --arm {arm})"
-    return [(g, SC.paths(g, s)[0]) for g, s in ws]
+    edges = SC.EDGES if arm == "N" else (20000,)
+    ws = [(g, s, e) for e in edges for g, _c, s, _t in SC.worlds(arm, e)]
+    missing = [s for g, s, e in ws if not SC.paths(g, s, e)[0].exists()]
+    assert not missing, f"scout {arm} not run: {len(missing)} worlds missing (scout.py run --arm {arm} --edge E)"
+    assert len(ws) == (200 if arm == "N" else 150), len(ws)
+    return [(g, SC.paths(g, s, e)[0]) for g, s, e in ws]
 
 
 def test_n5_anchors_hold_on_the_scripted_scouts_payloads():

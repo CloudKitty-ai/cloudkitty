@@ -213,5 +213,5 @@
  ],
  "seeds": "2001-2200",
  "config": "g2leg-20-N1.toml at onset top edge 20000 (the first four levels are the same at 4500)",
- "ran": "2026-10-31T02:12-02:13Z, 0 covered cat-ticks"
+ "ran": "2026-10-31T02:13Z (log 02:13:01-02:13:23Z), 0 covered cat-ticks"
 }

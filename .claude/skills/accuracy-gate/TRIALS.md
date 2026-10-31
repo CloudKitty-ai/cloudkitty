@@ -1616,3 +1616,20 @@ the addendum ("on all 200 worlds" after the pool grew to 250); fixed
 before the commit. Lesson (44): an addendum that grows a dataset
 re-dates every coverage sentence in the sections it does not touch —
 grep the doc for the old count before gating.
+
+## 2026-10-31 — Needy set RESULTS §11 step 3, amendment 1 (the onset edge, its checks, the re-scout), Experiments thread
+
+Two rounds. Round 1 FAIL: a line naming F-053 said a covered seat at a
+998-tick streak "would have aborted its world under S1" while S1 fires
+at or over 1,000 (the subagent read `abort_due` and n1); and the
+declaration's copy of the model's expectations said "about 0.06" where
+the table has 0.000 + 0.033. Two run stamps carried the session's
+minute, not the log's. Round 2 PASS (about 215 arithmetic, 6 sourced
+thresholds, 10 characterisations with 1 WEAK "matched" reworded, about
+14 provenance, 5 undecidable); fresh reads byte-identical to the
+recorded ones. Lessons: (45) a sentence that reasons from a threshold
+("two ticks under the line, so it would have…") is a claim about the
+comparison operator — read the guard, not the number; (46) a
+declaration amendment's expectation bullet is a COPY of a table and is
+checked as one, "about" or not; (47) run stamps come from the log's
+first and last lines, never from the session's clock.

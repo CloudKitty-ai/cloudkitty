@@ -750,8 +750,8 @@ futility, never early success):
      equal; RESULTS.md step 3).
    - **Expectations at 4,500** (`edge_mc.py`: the engine's draw, the
      100 scout worlds' real first-window offsets resampled): H2 about
-     0.29, H3 about 0.39, H4 about 0.27, no onset or no crossing about
-     0.06; w about 38, total about 6.2M. The engine's draw itself was
+     0.29, H3 about 0.39, H4 about 0.27, no onset 0.00, no crossing
+     about 0.03; w about 38, total about 6.2M. The engine's draw itself was
      checked on 200 fresh scripted worlds before this amendment (RESULTS.md).
    - **The re-scout:** 100 arm N worlds on the new configs, seeds
      1096511–1096610 from the held band, 10 per block in block order
@@ -764,3 +764,11 @@ futility, never early success):
      nothing covered runs before it is on main; the welfare-cost line's
      numbers are re-stated with it. Step 4 then waits on her word as
      before.
+   - **The re-scout's read (2026-10-31, RESULTS.md step 3):** every
+     world opened a mask; shares H2 0.22, H3 0.49, H4 0.28, none 0.01;
+     the thinnest stratum is H2; **w = 46** (230 arm N worlds), w_E =
+     16 at n = 60 (unchanged); S3 clear on every clause. **Welfare-cost
+     line, re-stated:** arm N 5,520,000, arm T 800,000, arm E 256,000,
+     the covered scouts 480,000 + 64,000, n3 10,000: **7,130,000
+     covered cat-ticks** of the 8.0M cap, the "about 7.1M" above by a
+     different stratum.
