@@ -26,6 +26,8 @@ the reds are listed in RESULTS.md's Guards section as they land.
   n11 step 4: the S2 episode window is [first held step, first release
       + 1 + 300) clipped to the world, from the raw schedule.
   n12 step 4: the S2 rule's classes at 0.99 / 1.0 / 4.4 / 4.41.
+  n13 step 5: the set is the declared worlds and nothing else (counts,
+      seeds = each block's first w, even halves, ticks, configs, raw paths).
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -402,6 +404,30 @@ def test_n12_the_S2_rule_classes_the_pooled_drop_as_declared():
     assert CS.s2_class(-3.0) == "launches" and CS.s2_class(0.99) == "launches"
     assert CS.s2_class(1.0) == "her word" and CS.s2_class(2.5) == "her word" and CS.s2_class(4.4) == "her word"
     assert CS.s2_class(4.41) == "no launch" and CS.s2_class(10.0) == "no launch"
+
+
+def test_n13_the_set_is_the_declared_worlds_and_nothing_else():
+    # red: W_N 46 -> 44 -> arm N has 220 worlds, not 230 (§7 sizing on the
+    # re-scout; §3 seeds: each block's first w, both halves, ticks per arm)
+    import set_run as S
+    ws = S.worlds()
+    by = {}
+    for arm, k, cfg, seed, ticks, out in ws:
+        by.setdefault(arm, []).append((k, cfg.name, seed, ticks, str(out.relative_to(S.RAW_SET))))
+    assert {a: len(v) for a, v in by.items()} == {"T": 50, "N": 230, "E": 80}, {a: len(v) for a, v in by.items()}
+    for k in (1, 2, 3, 4, 5):
+        b = {a: [w for w in v if w[0] == k] for a, v in by.items()}
+        assert [w[2] for w in b["T"]] == R.arm_block("T", k)["seeds"] and {w[3] for w in b["T"]} == {4000}
+        assert [w[2] for w in b["N"]] == R.arm_block("N", k)["seeds"][:46] and {w[3] for w in b["N"]} == {6000}
+        assert [w[2] for w in b["E"]] == R.arm_block("E", k)["seeds"][:16] and {w[3] for w in b["E"]} == {800}
+        assert {w[1] for w in b["T"]} == {f"g2leg-20-P{k}.toml"} and {w[1] for w in b["N"]} == {f"g2leg-20-N{k}.toml"}
+        assert {w[1] for w in b["E"]} == {f"g2leg-20-E{k}-n60.toml"}
+        for arm in ("T", "N", "E"):
+            halves = [R.half_of(arm, k, w[2]) for w in b[arm]]
+            assert halves.count("tuning") == halves.count("confirming") == len(halves) // 2, (arm, k, halves)
+            assert all(w[4] == f"{arm}{k}/streams-{w[2]}.npz" for w in b[arm])
+    assert sum(t * 4 for *_r, t, _o in ws) == 6_576_000
+    assert len({w[5] for w in ws}) == len(ws)  # one raw path per world
 
 
 if __name__ == "__main__":

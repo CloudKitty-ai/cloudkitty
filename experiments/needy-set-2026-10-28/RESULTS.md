@@ -651,6 +651,31 @@ step goes to her per §7. The pairs:
 n10, n11, n12: 3 passed on the payloads. **Her word on the episode-window
 read follows.**
 
+**Her word (2026-10-31).** The read went to her with the cascade pair
+named and the recommendation to launch step 5 as declared. She asked
+"So when one cat goes grave, the others are as well? Can you elaborate
+on what we're seeing?", then "Can we: 1) confirm there is minimal dip
+(not just a less intense one) in the unaffected world 2) determine what
+the difference between the worlds. Why is one affected but not all?",
+then "So this looks like a side effect of refusal being invisible?".
+Each was answered from a diagnostic read of this step's raws in the
+conversation (not a recorded read; its scripts are not in the arc). In
+short: the paired teacher world of N2 1095704 has no dip (covered mean
+87.25 in the window against 87.09 whole-world, zero distress ticks on
+any seat); in the needy world the four covered seats boxed the scripted
+friend in on all four Manhattan-adjacent tiles for 162 ticks while
+asking it for co-sleep and grooming, which spec 067 FR-005 refuses
+target-side under its cuddle-and-bath mask; the policies' legal-action
+mask (`crates/cloudkitty-rl/src/mask.rs`) replays validation and
+duration enforcement but not the consent or needy verdicts, so the asks
+read legal every tick and the refused idle is spelled like a chosen one
+(F-033). Her ruling, verbatim: **"Ok, I'm satisfied that this is not a
+structural issue, more of a bug. Let's proceed"**. Step 5 launches as
+declared (the optional tighter per-world stop was not taken; §7's S2
+wording fix still waits on her word). The mask gap is a report for
+Product, not a fix from this thread; whether to file it waits on her
+word.
+
 ### Regeneration
 
 `A = experiments/needy-set-2026-10-28`; env as step 3's.
@@ -683,6 +708,68 @@ world", then "a drop"): the read is teacher minus needy, the only
 reading under which the rule's "drop" is a drop; a one-word
 declaration fix waits on her word.
 
+## §11 step 5 — the set (owner "Let's proceed", 2026-10-31; declared before its data)
+
+Step 4 closed at e31074ce with both whole-world S2 reads under the
+launch line and the episode-window read in the band that takes her
+word; her word, after the cascade diagnosis above: "Ok, I'm satisfied
+that this is not a structural issue, more of a bug. Let's proceed".
+
+**Welfare-cost line.** Covered minds: the four frozen rot2 networks
+seated beside the scripted friend (seat k scripted on its config
+behaviour, `g2-rot2` less that network), no others; no weight changes.
+Exposure: 6,496,000 covered cat-ticks (arm T's remaining 45 worlds
+720,000; arm E's 80 worlds 256,000; arm N's 230 worlds 5,520,000);
+with arm T's five first worlds from step 4 the set is 6,576,000, and
+the arc's running total lands at about 7,130,600 of the 8.0M cap (§7
+S3). S1 armed on the covered seats alone (F-053's 1,000-tick
+single-need line, `--abort-covered-only`, n1); the scripted friend is
+exempt and its streaks are recorded. Any covered abort saves what was
+collected, stops the run (`set_run.py` exits 3) and comes to her before
+anything else runs. The step 4 cascade (one arm N pair in ten; a
+self-limiting lock released with the mask, no seat near the S1 line)
+is the known tail; it is not a stop and it will show in R8's price
+columns. What it buys: every read of §5 (R1–R8, steps 6 and 7).
+
+**Worlds** (`set_run.py run`, resumable, in this order; every covered
+seat's observation saved; `set_run.py plan` prints the table's counts):
+
+| worlds | config, seat k scripted | seeds (§3; both halves, alternating) | ticks | raws |
+|---|---|---|---|---|
+| arm T (50; 5 present from step 4, 45 to run) | P's `g2leg-20-P<k>.toml` (`teacher`) | P's 10 evaluation seeds per block from `split.json` | 4,000 | `results-raw/set/T<k>/streams-<seed>.npz` |
+| arm E (80) | `g2leg-20-E<k>-n60.toml` (`needy`, n = 60) | each block's first 16: E1 1096161–1096176 … E5 1096401–1096416 | 800 | `results-raw/set/E<k>/streams-<seed>.npz` |
+| arm N (230) | `g2leg-20-N<k>.toml` (`needy`, edge 4,500) | each block's first 46: N1 1095711–1095756 … N5 1095951–1095996 | 6,000 | `results-raw/set/N<k>/streams-<seed>.npz` |
+
+Burn order T, E, N (the short arms first). 180 tuning worlds, 180
+confirming (n13). No read of the set runs in this step: R4 on the
+tuning half is step 6, on her word for the pick; R5 and the rest are
+step 7.
+
+**Guard** (red via `scripts/mutate.sh --expect`, 2026-10-31; baseline
+== restored):
+
+| guard | mutation | predicted first red | observed |
+|---|---|---|---|
+| n13 | `set_run.W_N = 46` → 44 | the arm counts: `{'T': 50, 'N': 220, 'E': 80}` | (recorded after the cycle, before launch) |
+
+### Regeneration
+
+`A = experiments/needy-set-2026-10-28`; env as step 3's.
+
+#### Collect
+
+```sh
+# 6,496,000 covered cat-ticks (about 35 min at step 4's rate: 7 s per 6,000-tick world); resumable (present worlds skipped); exits 3 on a covered abort
+VIRTUAL_ENV=$PWD/$A/.venv caffeinate -s $A/.venv/bin/python3 -B $A/set_run.py run > $A/results-raw/set/set.log 2>&1
+```
+
+#### Read
+
+```sh
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/set_run.py plan                 # about 1 s: the world table's counts, halves and covered cat-ticks; `present` = raws on disk
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n13           # about 1 s
+```
+
 ## Welfare ledger (covered cat-ticks, running)
 
 | step | covered cat-ticks | note |
@@ -693,4 +780,5 @@ declaration fix waits on her word.
 | step 3 amendment 1 checks | 0 | onset law 200 × 200 ticks, arm E identity 15 × 800, all scripted |
 | step 3 re-scout at edge 4,500 | 0 | 100 all-scripted worlds |
 | step 4 covered scout (ran 2026-10-31, 0 aborts) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (clean: they count toward arm T) |
-| total so far | about 634,600 | of the 8.0M cap (§7 S3); the set's remaining budget at w = 46: arm N 5,520,000, arm T 720,000 more, arm E 256,000 |
+| step 5 the set (declared 2026-10-31; running) | 6,496,000 declared | arm T 45 more worlds 720,000; arm E 80 worlds 256,000; arm N 230 worlds 5,520,000; the burned figure replaces this on the record |
+| total so far | about 634,600 burned, about 7,130,600 at the set's close | of the 8.0M cap (§7 S3) |
