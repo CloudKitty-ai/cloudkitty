@@ -90,7 +90,7 @@ def test_n9_configs_differ_from_their_bases_in_the_declared_keys_only():
         assert sorted(_diff(SERVED, n_cfg)) == sorted([f".kitty[{k - 1}].behavior", ".needy", ".welfare_hazard"]), _diff(SERVED, n_cfg)
         assert n_cfg["kitty"][k - 1]["behavior"] == "needy"
         assert n_cfg["needy"] == {"mix": [0.5, 0.2, 0.15, 0.15, 0.0, 0.0], "release_level": 90.0, "hold_ticks": 1500,
-                                  "gap": {"min": 300, "max": 1200}, "onset_levels": [0, 2, 10, 50, 200, 20000],
+                                  "gap": {"min": 300, "max": 1200}, "onset_levels": [0, 2, 10, 50, 200, 4500],
                                   "onset_weights": [0.1, 0.1, 0.1, 0.1, 0.6], "onset_draw": "log_uniform"}, n_cfg["needy"]
         assert n_cfg["welfare_hazard"] == {"acknowledged": ["needy"]}
         for n in M.N_VALUES:

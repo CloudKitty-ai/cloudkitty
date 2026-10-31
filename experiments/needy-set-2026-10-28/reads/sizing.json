@@ -1,4 +1,6 @@
 {
+ "onset_top_edge": 20000,
+ "arm_N_worlds_read": 100,
  "arm_N": {
   "shares": {
    "H1": 0.0,

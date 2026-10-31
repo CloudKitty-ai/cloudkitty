@@ -1,4 +1,4 @@
-## Scripted scout, arm N (100 worlds x 6000 ticks, 0 covered cat-ticks)
+## Scripted scout, arm N (100 worlds x 6000 ticks, 0 covered cat-ticks, onset top edge 20000)
 
 | group | worlds | H1 | H2 | H3 | H4 | none | H median | edge need/hap | len median | level/limit/unrel | unmasked | streak friend max | refusals | toward friend |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

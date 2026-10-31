@@ -595,13 +595,15 @@ remind_every = 150
 # (its behavior line above), the [needy] table below (make_configs.py).
 
 # ---- needy set arm N (DECLARATION.md §3): spec 067 defaults except the onset weights,
-# moved to the late level and drawn log-uniform so first crossings fill H2-H4.
+# moved to the late level and drawn log-uniform so first crossings fill H2-H4, and the
+# late level's top edge at 4,500 = 6,000 ticks - hold_ticks (amendment 1, 2026-10-30:
+# the spec's 20,000 drew a sixth of first onsets past the world's end).
 [needy]
 mix = [0.5, 0.2, 0.15, 0.15, 0.0, 0.0]
 release_level = 90.0
 hold_ticks = 1500
 gap = { min = 300, max = 1200 }
-onset_levels = [0, 2, 10, 50, 200, 20000]
+onset_levels = [0, 2, 10, 50, 200, 4500]
 onset_weights = [0.1, 0.1, 0.1, 0.1, 0.6]
 onset_draw = "log_uniform"
 

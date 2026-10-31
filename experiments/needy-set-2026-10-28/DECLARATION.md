@@ -1,4 +1,4 @@
-# Needy set: mid-world grave onsets for the frozen probe (declaration 2026-10-28; RULED 2026-10-29, §12)
+# Needy set: mid-world grave onsets for the frozen probe (declaration 2026-10-28; RULED 2026-10-29, §12; amendment 1 2026-10-30, §13)
 
 Owner's words. Kickoff, 2026-10-28, to two questions put together
 (whether the P0 monitor's pass 1 waits, and whether this declaration
@@ -239,7 +239,7 @@ mix = [0.5, 0.2, 0.15, 0.15, 0.0, 0.0]     # spec default
 release_level = 90.0                       # spec default
 hold_ticks = 1500                          # spec default
 gap = { min = 300, max = 1200 }            # spec default
-onset_levels = [0, 2, 10, 50, 200, 20000]  # spec default edges
+onset_levels = [0, 2, 10, 50, 200, 4500]   # spec default edges but the top: 4,500 = 6,000 - hold_ticks (§13 amendment 1; was 20000 as ruled)
 onset_weights = [0.1, 0.1, 0.1, 0.1, 0.6]  # weighted to the late level
 onset_draw = "log_uniform"
 ```
@@ -257,7 +257,9 @@ fifths of first crossings into one history stratum. Weight on the late
 level, drawn log-uniform, spreads them across the three late strata
 (§4). Expected per-world shares at these settings, from the rates above:
 H2 about 0.24, H3 about 0.35, H4 about 0.22, no first crossing before
-6,000 about 0.17. The scout measures them. The probe is frozen and
+6,000 about 0.17. The scout measures them. (As ruled, with the top
+edge at 20,000; the scout measured H4 at 0.16 and §13 amendment 1
+moved the top edge to 4,500, with its own expectations.) The probe is frozen and
 cannot learn a clock, so the clock-free schedule FR-004 builds for
 training sets is not needed here; a training set keeps it.
 
@@ -720,3 +722,45 @@ futility, never early success):
    **RULED 2026-10-29: "As recommended"** (in, at the scout-pinned n;
    its paired covered scout under S2's ruled shape; the conditional
    clauses it carried as a draft are resolved in this commit).
+
+## 13. Amendments (after the ruling, each on her word; the ruled text above stays as ruled, marked where it moved)
+
+1. **The late onset level's top edge, 20,000 → 4,500** (her word "1",
+   2026-10-30, to the three options RESULTS.md §11 step 3 records). The
+   scripted scout (§11 step 3: 100 arm N worlds over two blocks, 0
+   covered) measured the H4 share at 0.16 (16 of 100, SE 0.037) against
+   the 0.22 drafted in §3; the §7 rule asked w = 64 and 9.29M covered
+   cat-ticks, S3 tripped on the w limit and on the cap. The cause is the
+   instrument: the late level's tick is drawn log-uniform on [200,
+   20,000) and the world runs 6,000, so about a quarter of late onsets
+   (0.6 × 0.26, about 0.16 of worlds) fall past the world's end; 10 of
+   the 100 scout worlds opened no mask, and each such world in the set
+   would spend 24,000 covered cat-ticks on no episode. Options put to
+   her: fix the edge; run the rule as written at w = 64 with the limit
+   and the cap raised; accept H4 under the floor. Her word: "1".
+   - **What moves:** `onset_levels = [0, 2, 10, 50, 200, 4500]` in arm
+     N's table (§3) and so in every N and E config (`make_configs.py`;
+     n9 holds the value). 4,500 = 6,000 − hold_ticks: every first onset
+     drawn can reach even a limit release inside the world.
+   - **What stays:** the weights, the draw, the strata, the floor of 50,
+     the w limit of 60, the 8.0M cap, arm T, arm E's pin n = 60 and
+     w_E = 16. Arm E draws its first onset inside level 0 and never
+     reads the top edge: its 150 scout worlds are the same worlds under
+     the new configs (15 re-collected, one per config, every array
+     equal; RESULTS.md step 3).
+   - **Expectations at 4,500** (`edge_mc.py`: the engine's draw, the
+     100 scout worlds' real first-window offsets resampled): H2 about
+     0.29, H3 about 0.39, H4 about 0.27, no onset or no crossing about
+     0.06; w about 38, total about 6.2M. The engine's draw itself was
+     checked on 200 fresh scripted worlds before this amendment (RESULTS.md).
+   - **The re-scout:** 100 arm N worlds on the new configs, seeds
+     1096511–1096610 from the held band, 10 per block in block order
+     twice (two blocks of 50, as the first scout), 6,000 ticks, every
+     seat scripted, 0 covered cat-ticks, the same two instruments
+     (`scout.py run --arm N --edge 4500`, `results-raw/scout-edge4500/`).
+     **Those 100 worlds alone set the stratum shares and w under the §7
+     rule; the 100 worlds at 20,000 stay on record as the ruled law's
+     scout and size nothing.** S3 is re-checked on the new sizing;
+     nothing covered runs before it is on main; the welfare-cost line's
+     numbers are re-stated with it. Step 4 then waits on her word as
+     before.

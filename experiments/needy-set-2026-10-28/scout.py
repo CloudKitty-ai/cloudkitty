@@ -18,13 +18,22 @@ checks it per world and records the check):
   what is kept is every refusal event verbatim, with the world-identity
   check -> `results-raw/scout/<arm>/refusals-<seed>.json`.
 
-    scout.py run  --arm N|E                 # burns the scout band in declared order; resumable
-    scout.py read --arm N|E --out F [--md]  # the §7 read
-    scout.py size --out F [--md]            # the sizing rule, the n pin, S3, the welfare numbers
+    scout.py run  --arm N|E [--edge E]          # burns the scout band in declared order; resumable
+    scout.py read --arm N|E [--edge E] --out F [--md]  # the §7 read
+    scout.py size [--edge E] --out F [--md]     # the sizing rule, the n pin, S3, the welfare numbers
 
-Seeds: arm N 1095651-1095700, 10 per block in block order, 6,000 ticks;
-arm E 1096011-1096160, for each n in {50, 55, 60} 10 per block in
-block order, 800 ticks (`split.json` scout_bands).
+Seeds: arm N 1095651-1095700, 10 per block in block order, 6,000 ticks,
+then the second scripted block 1096461-1096510 (RESULTS.md step 3); arm
+E 1096011-1096160, for each n in {50, 55, 60} 10 per block in block
+order, 800 ticks (`split.json` scout_bands).
+
+`--edge` is the late onset level's top edge the arm N configs carried
+when the worlds burned (DECLARATION.md §13 amendment 1): 20000 (the
+default; the two blocks above, `results-raw/scout/`) or 4500 (the
+re-scout, seeds 1096511-1096610 as two more blocks of 50 in the same
+order, `results-raw/scout-edge4500/`). `run --arm N` refuses a config
+whose top edge is not the one asked for. Arm E has one generation: its
+first onset is drawn inside level 0 and never reads the top edge.
 """
 import argparse
 import json
@@ -60,19 +69,28 @@ S1_STREAK = 1000      # F-053; watches no seat here (all scripted), recorded for
 
 HELD = R.SPLIT["held"]       # [1096461, 1096650]; the second scripted block takes its first 50
 N_SCOUT_BLOCKS = 2           # owner "Do it" 2026-10-30: pooled 100 set the share, no third block
+EDGES = (20000, 4500)        # the late level's top edge per arm N scout generation (§13 amendment 1)
+# arm N block starts per edge: two blocks of 50 (10 per block) each
+N_BLOCK_STARTS = {20000: (SCOUT["N"][0], HELD[0]), 4500: (HELD[0] + 50, HELD[0] + 100)}
+RAW_BY_EDGE = {20000: RAW, 4500: HERE / "results-raw" / "scout-edge4500"}
 
 
-def worlds(arm):
+def worlds(arm, edge=20000):
     """[(group, config, seed, ticks)] in burn order. Arm N is two scripted
-    blocks of 50: the scout band, then the first 50 of the held band
-    (RESULTS.md §11 step 3, the second block); the read pools both."""
+    blocks of 50 per edge: at 20000 the scout band, then the first 50 of
+    the held band (RESULTS.md §11 step 3, the second block); at 4500 the
+    next 100 of the held band, 1096511-1096610 (the re-scout). The read
+    pools the two blocks of one edge."""
+    assert edge in EDGES, edge
     out = []
     if arm == "N":
-        for b, lo in enumerate((SCOUT["N"][0], HELD[0])[:N_SCOUT_BLOCKS]):
+        starts = N_BLOCK_STARTS[edge][:N_SCOUT_BLOCKS]
+        for b, lo in enumerate(starts):
             for k in BLOCKS:
                 for i in range(PER_BLOCK):
                     out.append((f"N{k}", HERE / f"g2leg-20-N{k}.toml", lo + (k - 1) * PER_BLOCK + i, TICKS["N"]))
-            assert out[-1][2] == (SCOUT["N"][1], HELD[0] + 49)[b]
+            assert out[-1][2] == lo + 49 and out[-1][2] <= HELD[1]
+        assert starts[0] in (SCOUT["N"][0], HELD[0] + 50) and (edge == 20000) == (starts[0] == SCOUT["N"][0])
     else:
         lo = SCOUT["E"][0]
         for ni, n in enumerate(N_VALUES):
@@ -84,9 +102,13 @@ def worlds(arm):
     return out
 
 
-def paths(group, seed):
-    d = RAW / group
+def paths(group, seed, edge=20000):
+    d = (RAW_BY_EDGE[edge] if group.startswith("N") else RAW) / group
     return d / f"streams-{seed}.npz", d / f"refusals-{seed}.json"
+
+
+def config_edge(config):
+    return tomllib.load(open(config, "rb"))["needy"]["onset_levels"][-1]
 
 
 # ---- run ----------------------------------------------------------------
@@ -149,14 +171,17 @@ def refusals_world(config, seed, ticks, arrays, meta, out, scratch):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def run(arm, scratch):
+def run(arm, scratch, edge=20000):
     import torch
     torch.set_num_threads(1)
     assert BC.exists(), f"{BC}: build it (cargo build --release) first"
-    todo = worlds(arm)
+    todo = worlds(arm, edge)
+    if arm == "N":
+        edges = {config_edge(c) for _g, c, _s, _t in todo}
+        assert edges == {edge}, f"arm N configs carry top edge {edges}, the run asked for {edge}"
     t0 = time.time()
     for i, (group, config, seed, ticks) in enumerate(todo):
-        npz, rj = paths(group, seed)
+        npz, rj = paths(group, seed, edge)
         if npz.exists() and rj.exists():
             print(f"[{i + 1}/{len(todo)}] {group} {seed}: present, skipped", flush=True)
             continue
@@ -171,8 +196,14 @@ def run(arm, scratch):
 
 # ---- read ---------------------------------------------------------------
 
-def world_record(group, seed):
-    npz, rj = paths(group, seed)
+def scout_block(seed, edge):
+    """1 or 2: which of the edge's two blocks of 50 the seed is in."""
+    starts = N_BLOCK_STARTS[edge]
+    return 2 if seed >= starts[1] else 1
+
+
+def world_record(group, seed, edge=20000):
+    npz, rj = paths(group, seed, edge)
     w = R.load_world(npz)
     f = w["needy_seat"]
     assert w["scripted"] == list(range(R.ROSTER)) and w["meta"]["aborted_at"] is None
@@ -182,7 +213,8 @@ def world_record(group, seed):
     mask, phase = w["needy_mask"], w["needy_phase"]
     lvl, lim = R.PHASES.index("released_level"), R.PHASES.index("released_limit")
     rec = {"group": group, "seed": seed, "ticks": w["ticks"], "friend_seat": f,
-           "scout_block": 2 if HELD[0] <= seed <= HELD[1] else 1,
+           "scout_block": scout_block(seed, edge) if group.startswith("N") else 1,
+           "onset_top_edge": edge if group.startswith("N") else None,
            "grave_at_tick0": bool(codes[0] == R.S.GRAVE),
            "episodes_of_friend": len(episodes), "mask_windows": len(windows),
            "releases": {"level": 0, "limit": 0, "unreleased": 0}, "windows": [], "unmasked_crossings": [],
@@ -312,9 +344,9 @@ def summarise(recs):
     return out
 
 
-def read(arm):
-    ws = worlds(arm)
-    recs = [world_record(g, s) for g, _c, s, _t in ws]
+def read(arm, edge=20000):
+    ws = worlds(arm, edge)
+    recs = [world_record(g, s, edge) for g, _c, s, _t in ws]
     groups = []
     for g in dict.fromkeys(r["group"] for r in recs):
         groups.append(g)
@@ -322,6 +354,7 @@ def read(arm):
            "per_group": {g: summarise([r for r in recs if r["group"] == g]) for g in groups},
            "records": recs}
     if arm == "N":
+        out["onset_top_edge"] = edge
         out["pooled"] = summarise(recs)
         out["per_scout_block"] = {str(b): summarise([r for r in recs if r["scout_block"] == b])
                                   for b in sorted({r["scout_block"] for r in recs})}
@@ -340,7 +373,8 @@ def read(arm):
 
 def md_read(out):
     arm = out["arm"]
-    lines = [f"## Scripted scout, arm {arm} ({out['worlds']} worlds x {out['ticks']} ticks, 0 covered cat-ticks)", ""]
+    edge = f", onset top edge {out['onset_top_edge']}" if arm == "N" else ""
+    lines = [f"## Scripted scout, arm {arm} ({out['worlds']} worlds x {out['ticks']} ticks, 0 covered cat-ticks{edge})", ""]
     keys = list(out["per_group"]) + (["pooled"] if arm == "N" else [])
     tables = dict(out["per_group"])
     if arm == "N":
@@ -414,7 +448,8 @@ def size(read_n, read_e):
           "w_over_cap": w is None or w > W_CAP, "w_E_over_cap": w_e is None or w_e > W_CAP,
           "H1_under_sixth_at_every_n": all(v < 1 / 6 for v in pin["H1_share_by_n"].values()),
           "total_over_cap": total > CAP_COVERED}
-    return {"arm_N": {"shares": {s: sh[s] for s in ("H1", "H2", "H3", "H4", "none")}, "min_share_H2_H3_H4": min_share,
+    return {"onset_top_edge": read_n["onset_top_edge"], "arm_N_worlds_read": read_n["worlds"],
+            "arm_N": {"shares": {s: sh[s] for s in ("H1", "H2", "H3", "H4", "none")}, "min_share_H2_H3_H4": min_share,
                       "w": w, "worlds": 5 * (w or 0), "expected_first_episodes_min_stratum": 5 * (w or 0) * min_share},
             "arm_E": {"n": pin["n"], "H1_share": pin["H1_share"], "H1_share_by_n": pin["H1_share_by_n"], "w_E": w_e,
                       "worlds": 5 * (w_e or 0), "expected_H1_first_episodes": 5 * (w_e or 0) * pin["H1_share"]},
@@ -427,7 +462,7 @@ def size(read_n, read_e):
 def md_size(s):
     N, E, c = s["arm_N"], s["arm_E"], s["covered_cat_ticks"]
     return "\n".join([
-        "## Sizing (§7, mechanical)", "",
+        f"## Sizing (§7, mechanical; arm N scout at onset top edge {s['onset_top_edge']}, {s['arm_N_worlds_read']} worlds)", "",
         f"- Arm N shares (pooled, first crossing): H2 {N['shares']['H2']:.2f}, H3 {N['shares']['H3']:.2f}, "
         f"H4 {N['shares']['H4']:.2f}, none {N['shares']['none']:.2f}; the smallest {N['min_share_H2_H3_H4']:.2f} -> "
         f"w = {N['w']} ({N['worlds']} worlds, {N['expected_first_episodes_min_stratum']:.1f} expected first episodes in the thinnest stratum).",
@@ -445,16 +480,20 @@ def main():
     ap.add_argument("--out", type=Path)
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--scratch", type=Path, default=Path(os.environ.get("SCOUT_SCRATCH", tempfile.gettempdir())))
+    ap.add_argument("--edge", type=int, choices=EDGES, default=20000,
+                    help="arm N's onset top edge generation (reads scout-N.json at 20000, scout-N-edge<E>.json otherwise)")
     a = ap.parse_args()
     if a.cmd == "run":
-        run(a.arm, a.scratch)
+        run(a.arm, a.scratch, a.edge)
         return
     if a.cmd == "read":
-        out = read(a.arm)
+        out = read(a.arm, a.edge)
         text = md_read(out)
     else:
-        rn = json.loads((a.out.parent / "scout-N.json").read_text())
+        n_name = "scout-N.json" if a.edge == 20000 else f"scout-N-edge{a.edge}.json"
+        rn = json.loads((a.out.parent / n_name).read_text())
         re_ = json.loads((a.out.parent / "scout-E.json").read_text())
+        assert rn.get("onset_top_edge", 20000) == a.edge, (rn.get("onset_top_edge"), a.edge)
         out = size(rn, re_)
         text = md_size(out)
     if a.out:

@@ -1,4 +1,4 @@
-## Sizing (§7, mechanical)
+## Sizing (§7, mechanical; arm N scout at onset top edge 20000, 100 worlds)
 
 - Arm N shares (pooled, first crossing): H2 0.40, H3 0.31, H4 0.16, none 0.13; the smallest 0.16 -> w = 64 (320 worlds, 51.2 expected first episodes in the thinnest stratum).
 - Arm E pin n = 60 (H1 share 0.66; by n {'50': 0.3, '55': 0.56, '60': 0.66}) -> w_E = 16 (80 worlds, 52.8 expected H1 first episodes).
