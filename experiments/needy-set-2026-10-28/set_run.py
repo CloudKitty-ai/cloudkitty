@@ -96,11 +96,79 @@ def run():
     print(f"== set done: {len(ws)} worlds, {time.time() - t0:.0f}s", flush=True)
 
 
+def read():
+    """The run record, not a §5 read: per arm, the worlds and covered
+    cat-ticks burned, the covered seats' mean happiness over worlds, S1's
+    worst covered single-need streak (must be under the line in every world),
+    and the scripted friend's worst streak and grave ticks (recorded, never a
+    stop)."""
+    arms = {}
+    worst = {"covered": (0, None), "scripted": (0, None)}
+    aborts = []
+    for arm, k, cfg, seed, ticks, out in worlds():
+        meta = json.loads(str(np.load(out, allow_pickle=True)["meta"]))
+        if meta["aborted_at"] is not None:
+            aborts.append((arm, k, seed, meta["aborted_at"]))
+            continue
+        w = R.load_world(out)
+        scr = k - 1
+        cov = [j for j in range(5) if j != scr]
+        assert meta["scripted_seat"] == scr and w["ticks"] == ticks, (arm, k, seed, meta["scripted_seat"], w["ticks"])
+        streaks = R.longest_streaks(w["distress"])          # (seats, needs)
+        cov_streak = int(streaks[cov].max())
+        scr_streak = int(streaks[scr].max())
+        a = arms.setdefault(arm, {"worlds": 0, "ticks_per_world": ticks, "covered_cat_ticks": 0, "covered_mean_happiness": [],
+                                  "worst_covered_streak": 0, "worlds_with_covered_distress": 0, "worlds_with_covered_grave": 0,
+                                  "scripted_worst_streak": 0, "scripted_grave_ticks_mean": 0.0})
+        a["worlds"] += 1
+        a["covered_cat_ticks"] += ticks * 4
+        a["covered_mean_happiness"].append(float(w["hap"][:, cov].mean()))
+        a["worst_covered_streak"] = max(a["worst_covered_streak"], cov_streak)
+        a["worlds_with_covered_distress"] += bool((w["distress"][:, cov] != 0).any())
+        a["worlds_with_covered_grave"] += bool((w["codes"][:, cov] == R.S.GRAVE).any())
+        a["scripted_worst_streak"] = max(a["scripted_worst_streak"], scr_streak)
+        a["scripted_grave_ticks_mean"] += int((w["codes"][:, scr] == R.S.GRAVE).sum())
+        if cov_streak > worst["covered"][0]:
+            worst["covered"] = (cov_streak, f"{arm}{k} {seed}")
+        if scr_streak > worst["scripted"][0]:
+            worst["scripted"] = (scr_streak, f"{arm}{k} {seed}")
+    for a in arms.values():
+        h = np.asarray(a["covered_mean_happiness"])
+        a["covered_mean_happiness"] = {"mean": round(float(h.mean()), 2), "min": round(float(h.min()), 2), "max": round(float(h.max()), 2)}
+        a["scripted_grave_ticks_mean"] = round(a["scripted_grave_ticks_mean"] / a["worlds"], 1)
+    return {"w_N": W_N, "w_E": W_E, "s1_streak": CS.S1_STREAK, "seating": CS.SEATING, "arms": arms,
+            "worlds": sum(a["worlds"] for a in arms.values()), "aborts": aborts,
+            "covered_cat_ticks": sum(a["covered_cat_ticks"] for a in arms.values()),
+            "s1_held": all(a["worst_covered_streak"] < CS.S1_STREAK for a in arms.values()) and not aborts,
+            "worst_covered_streak": worst["covered"], "worst_scripted_streak": worst["scripted"]}
+
+
+def md(r):
+    lines = ["| arm | worlds | ticks | covered cat-ticks | covered mean happiness over worlds (mean / min / max) | worst covered streak | worlds with covered distress / grave | scripted friend: worst streak, mean grave ticks |",
+             "|---|---|---|---|---|---|---|---|"]
+    for arm in ("T", "E", "N"):
+        a = r["arms"][arm]
+        h = a["covered_mean_happiness"]
+        lines.append(f"| {arm} | {a['worlds']} | {a['ticks_per_world']:,} | {a['covered_cat_ticks']:,} | {h['mean']:.2f} / {h['min']:.2f} / {h['max']:.2f} | "
+                     f"{a['worst_covered_streak']} | {a['worlds_with_covered_distress']} / {a['worlds_with_covered_grave']} | {a['scripted_worst_streak']}, {a['scripted_grave_ticks_mean']} |")
+    lines.append(f"\nworlds {r['worlds']}, covered cat-ticks {r['covered_cat_ticks']:,}, aborts {len(r['aborts'])}, S1 held: {r['s1_held']}; "
+                 f"worst covered streak {r['worst_covered_streak'][0]} ({r['worst_covered_streak'][1]}); "
+                 f"worst scripted streak {r['worst_scripted_streak'][0]} ({r['worst_scripted_streak'][1]})")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["run", "plan"])
+    ap.add_argument("cmd", choices=["run", "plan", "read"])
+    ap.add_argument("--out")
+    ap.add_argument("--md", action="store_true")
     a = ap.parse_args()
     if a.cmd == "plan":
         print(json.dumps(plan(), indent=1))
+    elif a.cmd == "read":
+        r = read()
+        if a.out:
+            Path(a.out).write_text(json.dumps(r, indent=1) + "\n")
+        print(md(r) if a.md else json.dumps(r, indent=1))
     else:
         run()

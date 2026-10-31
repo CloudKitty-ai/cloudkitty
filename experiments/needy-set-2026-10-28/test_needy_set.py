@@ -28,6 +28,8 @@ the reds are listed in RESULTS.md's Guards section as they land.
   n12 step 4: the S2 rule's classes at 0.99 / 1.0 / 4.4 / 4.41.
   n13 step 5: the set is the declared worlds and nothing else (counts,
       seeds = each block's first w, even halves, ticks, configs, raw paths).
+  n14 step 5: the run record prices the covered seats only (6,576,000) and
+      S1 held in every world (no abort, worst covered streak under 1,000).
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -428,6 +430,18 @@ def test_n13_the_set_is_the_declared_worlds_and_nothing_else():
             assert all(w[4] == f"{arm}{k}/streams-{w[2]}.npz" for w in b[arm])
     assert sum(t * 4 for *_r, t, _o in ws) == 6_576_000
     assert len({w[5] for w in ws}) == len(ws)  # one raw path per world
+
+
+def test_n14_the_run_record_counts_the_covered_seats_only_and_S1_held():
+    # red: the record's cat-ticks counted per seat (ticks * 5, the scripted
+    # friend priced as covered) -> 8,220,000, not the declared 6,576,000
+    import set_run as S
+    r = S.read()
+    assert {a: v["worlds"] for a, v in r["arms"].items()} == {"T": 50, "E": 80, "N": 230}, r["arms"]
+    assert r["covered_cat_ticks"] == 6_576_000, r["covered_cat_ticks"]
+    assert r["aborts"] == [] and r["s1_held"] is True
+    assert all(v["worst_covered_streak"] < S.CS.S1_STREAK for v in r["arms"].values())
+    assert all(0 < v["covered_mean_happiness"]["min"] <= v["covered_mean_happiness"]["mean"] <= v["covered_mean_happiness"]["max"] <= 100 for v in r["arms"].values())
 
 
 if __name__ == "__main__":

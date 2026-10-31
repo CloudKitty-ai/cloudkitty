@@ -1,0 +1,65 @@
+{
+ "w_N": 46,
+ "w_E": 16,
+ "s1_streak": 1000,
+ "seating": "g2-rot2",
+ "arms": {
+  "T": {
+   "worlds": 50,
+   "ticks_per_world": 4000,
+   "covered_cat_ticks": 800000,
+   "covered_mean_happiness": {
+    "mean": 87.36,
+    "min": 86.9,
+    "max": 87.83
+   },
+   "worst_covered_streak": 4,
+   "worlds_with_covered_distress": 1,
+   "worlds_with_covered_grave": 1,
+   "scripted_worst_streak": 83,
+   "scripted_grave_ticks_mean": 43.8
+  },
+  "E": {
+   "worlds": 80,
+   "ticks_per_world": 800,
+   "covered_cat_ticks": 256000,
+   "covered_mean_happiness": {
+    "mean": 86.45,
+    "min": 78.04,
+    "max": 88.16
+   },
+   "worst_covered_streak": 375,
+   "worlds_with_covered_distress": 12,
+   "worlds_with_covered_grave": 12,
+   "scripted_worst_streak": 758,
+   "scripted_grave_ticks_mean": 146.9
+  },
+  "N": {
+   "worlds": 230,
+   "ticks_per_world": 6000,
+   "covered_cat_ticks": 5520000,
+   "covered_mean_happiness": {
+    "mean": 86.43,
+    "min": 82.35,
+    "max": 87.7
+   },
+   "worst_covered_streak": 514,
+   "worlds_with_covered_distress": 140,
+   "worlds_with_covered_grave": 141,
+   "scripted_worst_streak": 825,
+   "scripted_grave_ticks_mean": 644.7
+  }
+ },
+ "worlds": 360,
+ "aborts": [],
+ "covered_cat_ticks": 6576000,
+ "s1_held": true,
+ "worst_covered_streak": [
+  514,
+  "N5 1095953"
+ ],
+ "worst_scripted_streak": [
+  825,
+  "N3 1095850"
+ ]
+}
