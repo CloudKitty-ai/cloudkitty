@@ -1655,3 +1655,26 @@ named set — name the set in the sentence; (50) a phrase quoted from
 is written; the author's own earlier prose is the usual source; (51)
 an F-number carries its finding's scope — cite it only where that
 scope holds, else describe the mechanism without the number.
+
+## 2026-10-31 — Needy set RESULTS §11 step 5 (the set ran; the run record), Experiments thread
+
+Two rounds. Round 1 FAIL on one characterisation tied to an owner
+ruling while all 24 table cells held: the run-record header said the
+record "is read on nothing the reads of steps 6 and 7 are declared
+on", but §5 declares R8 on the same covered happiness, distress and
+streak quantities, and the record pooled the confirming half before her
+pick (call 6: "the confirming seeds stay unread until then"). Rewritten
+as a stated deviation that goes to her. Also WEAK: 87.49 labelled "the
+S2 scale" beside unpaired gaps of 1.04 and 1.06; rounding: the driver's
+2,030 s counter against the stamps' 2,031 s. Round 2 PASS (37
+arithmetic, 5 sourced thresholds, 14 characterisations with 2 WEAK
+reworded, 12 provenance, 1 undecidable); fresh read byte-identical; the
+subagent read the collector to confirm S1 reads every covered streak
+live. Lessons: (52) "reads nothing X is declared on" is a claim about
+the declaration's text — grep every R-read's definition before writing
+it, and name the halves a record pools; (53) a welfare record that
+touches the confirming half is a deviation from a ruled call, stated
+as one, not a footnote; (54) a baseline figure named beside unpaired
+means must not carry a paired read's label; (55) a run's duration is
+the stamps' difference, and a counter the driver prints is reported
+as the driver's.

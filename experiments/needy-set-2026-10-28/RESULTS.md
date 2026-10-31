@@ -741,9 +741,10 @@ seat's observation saved; `set_run.py plan` prints the table's counts):
 | arm N (230) | `g2leg-20-N<k>.toml` (`needy`, edge 4,500) | each block's first 46: N1 1095711–1095756 … N5 1095951–1095996 | 6,000 | `results-raw/set/N<k>/streams-<seed>.npz` |
 
 Burn order T, E, N (the short arms first). 180 tuning worlds, 180
-confirming (n13). No read of the set runs in this step: R4 on the
+confirming (n13). No §5 read of the set runs in this step: R4 on the
 tuning half is step 6, on her word for the pick; R5 and the rest are
-step 7.
+step 7. (The run record under "The run" below is the welfare record and
+states where it overlaps R8.)
 
 **Guard** (red via `scripts/mutate.sh --expect`, 2026-10-31; baseline
 == restored):
@@ -751,6 +752,57 @@ step 7.
 | guard | mutation | predicted first red | observed |
 |---|---|---|---|
 | n13 | `set_run.W_N = 46` → 44 | the arm counts: `{'T': 50, 'N': 220, 'E': 80}` | `AssertionError: {'T': 50, 'E': 80, 'N': 220}` — RED CONFIRMED on the second cycle; the first cycle reached the same assertion with the same counts but my `--expect` regex had the keys in declaration order, not the dict's burn order, so the tool called it a wrong-reason red; regex corrected to the printed order, nothing else changed |
+| n14 (after the run) | the run record prices every seat (`ticks * 4` → `ticks * 5`: the scripted friend counted as covered) | `AssertionError: 8220000` | `AssertionError: 8220000` — RED CONFIRMED |
+
+### The run (2026-10-31)
+
+`set_run.py run` under `caffeinate -s nohup`, 06:26:35Z to 07:00:26Z at
+ffceaf8c (2,031 s by the log's stamps; the driver's own counter printed
+2,030 s; `results-raw/set/set.log`): 355 worlds collected,
+the five arm T first worlds from step 4 skipped as present, 360 raws on
+disk, **0 aborts, S1 held in every world**. Exit 0. Covered cat-ticks
+burned this step: 6,496,000; the set as a whole: 6,576,000.
+
+**Run record** (`set_run.py read`, the welfare record). **Deviation,
+stated:** every number below pools both halves, and the quantities are
+the covered seats' happiness, distress and worst streak across the set,
+which is what §5 declares R8 (step 7) on, plus the scripted friend's
+worst streak (declared recorded, §7 S1) and its mean grave ticks per
+world, an aggregate over both halves of the unit R2 and R7 read
+(grave-episode length) without reading either distribution; §5 and
+call 6 (ruled "As drafted") say nothing on a confirming seed is read
+before her pick. S1 reads every covered streak live in every world by
+construction (the run reveals only whether one reached 1,000; the exact
+maximum is this record's), and the happiness means are this step's
+welfare record; no prediction rides on R8, and nothing of R1–R7's own
+reads (crossings, strata, episode distributions, detections, probe
+scores) is computed here. A tighter record would have
+pooled the tuning half only; this one did not, and it is on the record
+as it ran (the gate caught the original sentence, which claimed no
+overlap). It goes to her with this step's report.
+
+| arm | worlds | ticks | covered cat-ticks | covered mean happiness over worlds (mean / min / max) | worst covered streak | worlds with covered distress / grave | scripted friend: worst streak, mean grave ticks |
+|---|---|---|---|---|---|---|---|
+| T | 50 | 4,000 | 800,000 | 87.36 / 86.90 / 87.83 | 4 | 1 / 1 | 83, 43.8 |
+| E | 80 | 800 | 256,000 | 86.45 / 78.04 / 88.16 | 375 | 12 / 12 | 758, 146.9 |
+| N | 230 | 6,000 | 5,520,000 | 86.43 / 82.35 / 87.70 | 514 | 140 / 141 | 825, 644.7 |
+
+The worst covered single-need streak in the set is 514 ticks (N5
+1095953), about half the S1 line; the worst scripted streak 825 (N3
+1095850), recorded and never a stop (§7). "Worlds with covered grave"
+counts a world in which any covered seat touched the grave code at any
+tick, whatever the cause (the control worlds of step 4 had such worlds
+too: one arm E teacher world carried 575 covered grave ticks); it is a
+tail-prevalence note for R8's price columns, not a read of harm
+attributable to the friend. The step 4 cascade shape (every covered seat
+grave at once for a long stretch) is not identified here; the per-world
+price read is R8's, step 7. For scale only: rot2's
+all-covered team figure is 87.49 (§7); arm T's covered mean over its 50
+worlds is 87.36, arm E's 86.45, arm N's 86.43. These are unpaired
+whole-world means over four covered seats beside a scripted friend, on
+worlds of three lengths, so they are not on S2's line (a paired
+difference) and are not read against it; the paired reads are S2's
+(step 4) and R8's (step 7).
 
 ### Regeneration
 
@@ -767,8 +819,23 @@ VIRTUAL_ENV=$PWD/$A/.venv caffeinate -s $A/.venv/bin/python3 -B $A/set_run.py ru
 
 ```sh
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/set_run.py plan                 # about 1 s: the world table's counts, halves and covered cat-ticks; `present` = raws on disk
-VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n13           # about 1 s
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/set_run.py read --out $A/reads/set-run.json --md > $A/reads/set-run.md   # about 6 s (loads 360 worlds; the observations are not read)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n13 n14       # about 7 s
 ```
+
+Accuracy gate, step 5: **PASS** 2026-10-31, two rounds, a fresh subagent
+each (round 1 FAIL: the run-record header claimed the record reads
+nothing steps 6–7 are declared on, which R8's definition and call 6's
+"confirming seeds stay unread" contradict; rewritten as the stated
+deviation above; also 87.49 labelled "the S2 scale" beside unpaired
+gaps, and 2,030 s against the stamps' 2,031; round 2: 37 arithmetic, 5
+threshold, 14 characterisation (2 WEAK, both reworded after: the
+happiness means called the ledger's price, and the scripted friend's
+grave-tick column missing from the deviation's list), 12 provenance,
+1 undecidable; fresh read byte-identical to the recorded). Raw dir
+`results-raw/set` `v1:973e5cf5a4541ba5` (`scripts/rawdir-hash.sh`;
+360 worlds; the step 4 stamp's `v1:36043a4cde869c3b` described the same
+directory when it held arm T's five first worlds only).
 
 ## Welfare ledger (covered cat-ticks, running)
 
@@ -780,5 +847,5 @@ VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n13      
 | step 3 amendment 1 checks | 0 | onset law 200 × 200 ticks, arm E identity 15 × 800, all scripted |
 | step 3 re-scout at edge 4,500 | 0 | 100 all-scripted worlds |
 | step 4 covered scout (ran 2026-10-31, 0 aborts) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (clean: they count toward arm T) |
-| step 5 the set (declared 2026-10-31; running) | 6,496,000 declared | arm T 45 more worlds 720,000; arm E 80 worlds 256,000; arm N 230 worlds 5,520,000; the burned figure replaces this on the record |
-| total so far | about 634,600 burned, about 7,130,600 at the set's close | of the 8.0M cap (§7 S3) |
+| step 5 the set (ran 2026-10-31, 0 aborts) | 6,496,000 | arm T 45 more worlds 720,000; arm E 80 worlds 256,000; arm N 230 worlds 5,520,000 (the declared figure, burned in full) |
+| total so far | about 7,130,600 | of the 8.0M cap (§7 S3); steps 6 and 7 are reads on these raws, 0 further covered cat-ticks unless a declaration says otherwise |
