@@ -1118,6 +1118,118 @@ re-run from a scratch copy to confirm what moved. Raw dir
 `results-raw/set` `v1:973e5cf5a4541ba5` (`scripts/rawdir-hash.sh`,
 recomputed 2026-11-01; the same 360 worlds as step 5's stamp).
 
+## §11 step 7 — the reads after her pick (owner "Take care of both of those, then run step 7", 2026-11-01; declared before its data)
+
+Step 6 closed at 2ee86d53 with her pick, "Ok, I'm convinced. 0.05, 2".
+The two items before this step: §13 amendment 2 (S2's sign, wording
+only; 5b3f52e6) and the report to Product on the mask's blindness at
+the needy verdict (`BACKLOG.md`, 34d764af).
+
+**Welfare-cost line.** Reads only, 0 covered cat-ticks: the 360 set
+raws (both halves; the confirming half opens here, after her pick), the
+20 covered-scout pairs of step 4, and P's 50 raws (1b) with their
+committed P(grave) files (1d) for the tie-back. No world runs; the
+arc's ledger stays at about 7,130,600 of 8.0M.
+
+**What runs** (`step7.py`; its docstring carries the definitions, all
+`ladder.py`'s with the fix of 17d1ea96). Cells: the registered point
+0.10 / B = 0 (§6), its B = 2 companion (§5 R1, R2), and her pick 0.05 /
+B = 2 (R5). Where §5 leaves the reader a choice, the choice, before the
+data:
+
+- *R5.* The picked cell on the confirming seeds, every R4 column per
+  primary stratum and the false alarms per class, beside the tuning
+  half's figures recomputed by the same reader (the gated ones are in
+  `reads/ladder.json`). The flag: a confirming value outside the tuning
+  value ± 2 world-bootstrap SE, the SE from resampling worlds (friend
+  episodes) with replacement within the stratum, 2,000 draws per probe
+  seed, seed-mean; applied to detection, to anticipation with the
+  offset-B run left out, and to each false-alarm class per arm. A flag
+  is reported, never a fail (§5).
+- *R1.* Arm T's reset episodes at 0.10, B = 0 and 2, per block and
+  pooled, two detections: anywhere in the episode (R4d) and inside both
+  the episode and the first 100 ticks (P7's clause). Beside each, P's
+  same-seed covered figure read the same two ways from P's committed
+  P(grave) files on P's own raws (the covered friend in seat k, its
+  needs started in {60, 95}; the other four observers).
+- *R2.* Per (arm, stratum): detection and median latency at both 0.10
+  cells, in sight and under fog apart, per edge apart, the
+  episode-length quartiles beside the donors' 5 / 40 / 238, the splice
+  figures of §2 printed beside each primary stratum (H1 the H = 50 row
+  with H = 10 and 20 beside; H2 the H = 100 row; H3 500; H4 2,000), and
+  H1 also in the splice's bins by crossing. Arm N crossings under 100
+  and arm E crossings at 100 or over stay printed apart.
+- *R3.* Per stratum at 0.10 / B = 0 and the pick: the share of
+  observer-episodes with an anticipation run (a run starting inside
+  [mask onset, crossing)), the lead quartiles from the first such run,
+  the same with the offset-B run left out, per m and per masked need on
+  single-need masks; the probe logit log(p / (1 − p)), p clipped to
+  [10⁻⁶, 1 − 10⁻⁶], at offsets −100 … +20 from the crossing, averaged
+  over observer-episodes from the mask onset on (earlier offsets of a
+  short window are left out of the average).
+- *R6.* On the scripted friend's grave ticks that an observer sees (the
+  friend's row visible), the argmax of NF-h24's five predicted means
+  (the head's output, /100 scale) against the mask at the decision
+  state (the step before) and, R3d's read, against the needs at 90;
+  per masked need on single-need masks; a cell under 200 samples prints
+  no accuracy (Phase 1's floor).
+- *R7.* Mask windows of ordinal 2 and up that released with a crossing,
+  by the gap from the previous release to the onset in 300-tick bands
+  ([300, 600), [600, 900), [900, 1,200]); detection and median latency
+  at 0.10 / B = 0 and the pick; unreleased windows counted apart; never
+  pooled with first episodes.
+- *R8.* Across the set per arm, tuning and confirming halves apart and
+  pooled (her ruling of 2026-11-01): the covered seats' mean happiness
+  over worlds, distress and grave ticks per 1,000 covered cat-ticks,
+  the worst single-need streak, worlds with any covered grave tick. The
+  covered-scout pairs: the same per pair, needy minus teacher. Refused
+  proposals toward the scripted friend: a covered seat's chosen menu
+  action naming the friend (the menu's kitty slot i is the roster
+  minus the observer, ascending, n21) whose applied action that tick is
+  not the proposal's activity with the friend; attributed to the mask
+  when the mask at the decision state covers a need the ask relieves on
+  the friend's side (co-rest cuddle; co-sleep sleep and cuddle; groom
+  bath; chase and play play), else "other" (consent, duration, the
+  friend's own state). Per 1,000 covered cat-ticks; beside it the
+  teacher-world controls of the covered scout, where no mask exists.
+- *Predictions* (§6, verbatim bars, scored on all seeds after R5):
+  **P7** arm T reset detection at 0.10 / B = 0 inside the episode and
+  the first 100 ticks, seed mean ≥ 0.986; **P10** clause 1 the same read
+  with anywhere-in-episode detection ≥ 0.986, clause 2 N-H2 / H3 / H4 at
+  0.10 / B = 0 within 0.175 / 0.143 / 0.132 of 0.358 / 0.287 / 0.288,
+  both; **P11** E-H1 at 0.10 / B = 0 inside [0.292, 0.432], with the
+  per-bin and per-edge reads and "above 0.362" printed beside, never
+  scored; **P6** arm N first episodes with m = 1, the masked need
+  hidden, the friend in sight at the crossing: the seed-mean share with
+  an anticipation run at 0.10 / B = 0 over 0.5 AND the median lead over
+  all eligible observer-episodes, a never-alarmed one as the lowest
+  value, at least 20; per stratum beside it. A FINDINGS entry only on a
+  result that stands alone; the scores go to the Professor through her;
+  the read to Product as information.
+
+**Guards** (red via `scripts/mutate.sh --expect`, 2026-11-01; baseline
+== restored):
+
+| guard | mutation | predicted first red | observed |
+|---|---|---|---|
+| n17 | `step7.r5` groups every record as confirming (`group_recs(recs, "confirming")` → `group_recs(recs, None)`) | N-H3's confirming count on the two-world record is 2, not 1: `AssertionError: ('N-H3', 2)` | (pending) |
+| n18 | the anticipation window's lower edge one tick early (`ladder.world_cells` `fe["onset"] <= st < c` → `fe["onset"] - 1 <= st < c`) | N1 1095727 (onset tick 1) takes its tick-0 run as anticipation at 0.10 / B = 0, observer 1: `AssertionError: ('N', 1, 1095727, 't0.10-B0', '1', 0, 1, 225)` | (pending) |
+| n19 | P7's bar read strictly (`step7.score` `w100 >= PRED["P7"]["bar"]` → `>`) | the read at exactly 0.986 scored NOT MET: `AssertionError: ('P7', 0.986)` | (pending) |
+| n20 | the pairing's friend seat wrong (`step7.p_record` `f = k - 1` → `f = k % 5`) | P1 1095452's seat 1 did not start elevated: `AssertionError: ('P pairing', 1, 1095452, 1, …)` | (pending) |
+| n21 | the slot roster descending (`step7.slot_roster` `[j for j in range(R.ROSTER) if j != observer]` → `[::-1]`) | the first scene seat 1 itself started in T1 1095452 names another seat than the proposal's slot: `AssertionError: ('T', 1, 1095452, 1, 20, 'PlayKitty2', 2, 3)` (the guard reads fresh scenes the seat started; a partner's accepted proposal makes the scene whatever the seat proposed, so those ticks are skipped; the engine's rule is spec 049 FR-011, `observe.rs` `TargetTable`) | (pending) |
+
+### Regeneration
+
+`A = experiments/needy-set-2026-10-28`; env as step 3's.
+
+#### Read
+
+```sh
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/step7.py plan                                                   # about 1 s
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/step7.py read --out $A/reads/step7.json --md > $A/reads/step7.md   # about 4 min (360 worlds + P's 50 + 20 pairs, 3 probe seeds)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n17 n18 n19 n20 n21                             # about 1 min
+```
+
 ## Welfare ledger (covered cat-ticks, running)
 
 | step | covered cat-ticks | note |
@@ -1130,4 +1242,5 @@ recomputed 2026-11-01; the same 360 worlds as step 5's stamp).
 | step 4 covered scout (ran 2026-10-31, 0 aborts) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (clean: they count toward arm T) |
 | step 5 the set (ran 2026-10-31, 0 aborts) | 6,496,000 | arm T 45 more worlds 720,000; arm E 80 worlds 256,000; arm N 230 worlds 5,520,000 (the declared figure, burned in full) |
 | step 6 R4 (declared 2026-11-01) | 0 | a read on the tuning half of step 5's raws |
+| step 7 R1–R3, R5–R8 (declared 2026-11-01) | 0 | reads on the set, the covered-scout pairs and P's raws |
 | total so far | about 7,130,600 | of the 8.0M cap (§7 S3); steps 6 and 7 are reads on these raws, 0 further covered cat-ticks unless a declaration says otherwise |

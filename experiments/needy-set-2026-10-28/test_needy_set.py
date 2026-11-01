@@ -36,6 +36,21 @@ the reds are listed in RESULTS.md's Guards section as they land.
       latency, anticipation lead (runs STARTING in the window; with and
       without the run at offset B) and false-alarm counts per class equal a
       scalar recompute of §4's definitions from the probe's output.
+  n17 step 7: R5 reads the confirming half only, at the picked cell
+      (0.05, B = 2); the tuning record beside it is the tuning half's.
+  n18 step 7 (n5's anticipation clause, on covered observers): on the
+      covered scout's needy worlds and the set's tuning worlds whose mask
+      opens at tick 0 or 1, every anticipation lead the reader records
+      points at a run that starts inside [mask onset, crossing).
+  n19 step 7: the registered predictions' bars are §6's numbers and the
+      scorer holds at every boundary (P7 0.986; P10's three bands; P11
+      [0.292, 0.432]; P6 majority over 0.5 and padded median lead >= 20).
+  n20 step 7: R1 pairs every arm T world with P's world of the same block
+      and seed: P's raw and its three P(grave) files exist, P's friend is
+      seat k - 1 from the elevated start, and P is grave at reset.
+  n21 step 7: the menu's kitty slots map to seats as the reader assumes
+      (the roster minus the observer, ascending): on real payloads every
+      applied partnered action agrees with the chosen proposal's slot.
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -524,6 +539,173 @@ def test_n16_the_cells_hold_the_declared_definitions_on_real_worlds():
                             else:
                                 fa["covered_friends"] += 1
                 assert cell["fa"] == fa, (arm, th, b, cell["fa"], fa)
+
+
+# ---- step 7: the reads after her pick (step7.py) ---------------------------------
+
+def _s7_probes():
+    import torch
+    torch.set_num_threads(1)
+    if "s7" not in _fix:
+        _fix["s7"] = {s: R.load_probe(s)[:2] for s in R.PROBE_SEEDS}
+    return _fix["s7"]
+
+
+def test_n17_R5_reads_the_confirming_half_at_the_picked_cell():
+    # red: r5 groups every record as confirming (step7.r5 `group_recs(recs,
+    # "confirming")` -> `group_recs(recs, None)`) -> N-H3's confirming count
+    # is 2, not 1
+    import step7 as S7
+    ws = [w for w in S7.worlds() if w[0] == "N" and w[1] == 1][:2]
+    assert [w[5] for w in ws] == ["tuning", "confirming"] and [w[2] for w in ws] == [1095711, 1095712]
+    recs = [S7.world_record(*w, _s7_probes()) for w in ws]
+    assert [r["stratum"] for r in recs] == ["H3", "H3"]
+    out = S7.r5(recs, recs)
+    g = out["groups"]["N-H3"]
+    assert g["confirming"]["friend_episodes"] == 1, ("N-H3", g["confirming"]["friend_episodes"])
+    assert g["tuning"]["friend_episodes"] == 1
+    assert S7.PICK == (0.05, 2) and out["cell"] == "t0.05-B2" and S7.cell("reg") == "t0.10-B0"
+    halves = {h: sum(1 for w in S7.worlds() if w[5] == h) for h in ("tuning", "confirming")}
+    assert halves == {"tuning": 180, "confirming": 180}, halves
+
+
+def test_n18_every_anticipation_lead_points_at_a_run_starting_inside_the_window():
+    # red: the window's lower edge one tick early (ladder.world_cells
+    # `fe["onset"] <= st < c` -> `fe["onset"] - 1 <= st < c`) -> in N1
+    # 1095727 (mask onset tick 1) the tick-0 run is taken as anticipation:
+    # start 0 under onset 1 at t0.10-B0, observer 1
+    import ladder as L
+    import step7 as S7
+    import covered_scout as CS
+    model, probe = _s7_probes()[1]
+    ws = [(a, k, s, CS.RAW / f"{a}{k}" / f"streams-{s}-needy.npz") for a, k, kind, _c, s, _t, _o in CS.worlds() if kind == "needy"]
+    for arm, k, seed, ticks, path in L.worlds():
+        if arm == "N":
+            w = R.load_world(path)
+            fe = L.first_episode(w, arm)
+            if fe["onset"] is not None and fe["onset"] <= 1:
+                ws.append((arm, k, seed, path))
+    checked = 0
+    for arm, k, seed, path in ws:
+        w = R.load_world(path)
+        fe = L.first_episode(w, arm)
+        if fe["crossing"] is None:
+            continue
+        f = k - 1
+        P = np.nan_to_num(R.probe_world(model, probe, w), nan=-1.0)
+        cells = L.world_cells(w, arm, {1: P}, fe)["cells"]["1"]
+        c, on = fe["crossing"], fe["onset"]
+        for cname, (th, b) in (("reg", S7.REG), ("pick", S7.PICK)):
+            cell = cells[L.cell_name(th, b)]
+            for kk, lead in cell["lead"].items():
+                if lead is None:
+                    continue
+                start = c - lead
+                sig = P[:, int(kk), f] >= th
+                sig[:b] = False
+                assert on <= start < c, (arm, k, seed, L.cell_name(th, b), kk, start, on, c)
+                assert sig[start] and (start == 0 or not sig[start - 1]), ("not a run start", arm, k, seed, kk, start)
+                checked += 1
+    assert checked >= 100, checked
+
+
+def test_n19_the_prediction_bars_are_section_6s_and_the_scorer_holds_at_the_boundaries():
+    # red: P7's bar read strictly (step7.score `w100 >= PRED["P7"]["bar"]` ->
+    # `>`) -> the read at exactly 0.986 is scored NOT MET
+    import step7 as S7
+    assert S7.PRED == {"P7": {"bar": 0.986, "comparator": 0.995, "sd": 0.009},
+                       "P10": {"H2": (0.358, 0.175), "H3": (0.287, 0.143), "H4": (0.288, 0.132)},
+                       "P11": {"lo": 0.292, "hi": 0.432, "splice_H50": 0.362},
+                       "P6": {"majority": 0.5, "median_lead": 20}}, S7.PRED
+    assert S7.REG == (0.10, 0)
+
+    def fixture(w100, anyw, h2, h3, h4, e1, maj, lead):
+        m = lambda v: {"mean": v, "sd": None}
+        r1o = {"reg": {"pooled": {"within100": m(w100), "anywhere": m(anyw), "P_within100": m(0.99)}}}
+        r2o = {"groups": {"N-H2": {"cells": {"reg": {"detected": m(h2)}}}, "N-H3": {"cells": {"reg": {"detected": m(h3)}}},
+                          "N-H4": {"cells": {"reg": {"detected": m(h4)}}}, "E-H1": {"cells": {"reg": {"detected": m(e1)}}, "splice_bins": {}}}}
+        r3o = {"P6": {"eligible_friend_episodes": 1, "pooled": {"majority": m(maj), "median_lead_padded": m(lead)}, "per_stratum": {}}}
+        return S7.score(r1o, r2o, r3o)
+
+    base = dict(w100=0.986, anyw=0.986, h2=0.358 + 0.175, h3=0.287 - 0.143, h4=0.288, e1=0.292, maj=0.501, lead=20)
+    s = fixture(**base)
+    assert s["P7"]["met"] is True, ("P7", 0.986)
+    assert s["P10"]["met"] is True and s["P11"]["met"] is True and s["P6"]["met"] is True
+    assert fixture(**{**base, "w100": 0.9859})["P7"]["met"] is False
+    assert fixture(**{**base, "anyw": 0.9859})["P10"]["met"] is False
+    assert fixture(**{**base, "h2": 0.358 + 0.1751})["P10"]["met"] is False
+    assert fixture(**{**base, "e1": 0.432})["P11"]["met"] is True and fixture(**{**base, "e1": 0.4321})["P11"]["met"] is False
+    assert fixture(**{**base, "e1": 0.2919})["P11"]["met"] is False
+    assert fixture(**{**base, "maj": 0.5})["P6"]["met"] is False and fixture(**{**base, "lead": 19.9})["P6"]["met"] is False
+
+
+def test_n20_R1_pairs_each_arm_T_world_with_Ps_same_seed_world():
+    # red: the pairing's friend seat wrong (step7.p_record `f = k - 1` -> `f = k % 5`)
+    # -> P1 1095452's seat 1 did not start elevated: the needs0 check inside
+    # p_record raises ('P pairing', 1, 1095452, 1, ...)
+    import step7 as S7
+    probes = _s7_probes()
+    n = 0
+    for k in (1, 2, 3, 4, 5):
+        for seed in R.arm_block("T", k)["seeds"]:
+            assert (S7.P_RAW / f"P{k}" / f"streams-{seed}.npz").exists(), (k, seed)
+            for s in R.PROBE_SEEDS:
+                assert (S7.P_PROBE / f"{R.HEAD}-s{s}+p" / f"pgrave-P{k}-{seed}.npz").exists(), (k, seed, s)
+            rec = S7.p_record(k, seed, probes)
+            assert rec["block"] == k and rec["seed"] == seed and rec["reset"], rec
+            assert set(rec["detect"]) == {"1", "2", "3"} and set(rec["detect"]["1"]["reg"]["anywhere"]) == {str(j) for j in range(5) if j != k - 1}
+            n += 1
+    assert n == 50
+
+
+def test_n21_the_menus_kitty_slots_map_to_seats_as_the_reader_assumes():
+    # red: the slot roster descending (step7.slot_roster `[j for j in range(R.ROSTER) if j != observer]`
+    # -> reversed) -> the first scene this seat started in T1 1095452 names
+    # another seat than the proposal's slot: ('T', 1, 1095452, 1, 20, 'PlayKitty2', 2, 3).
+    # Read on scenes the seat itself started: a fresh partnered scene (no
+    # partner at the end of the previous tick) whose partner did not propose
+    # toward this seat that tick (a partner's accepted proposal makes the
+    # scene whatever the seat proposed; a scripted partner's proposal is not
+    # recorded, so those ticks are skipped too). The engine's rule is spec
+    # 049 FR-011: the rows are the roster minus the observer, ascending by
+    # id, seen or not (observe.rs TargetTable).
+    import step7 as S7
+
+    def proposes_toward(act_val, proposer, target):
+        if act_val < 0:
+            return None
+        name = S7.MENU[act_val]
+        if "Kitty" not in name:
+            return False
+        fam, slot = name.split("Kitty")
+        return S7.slot_roster(proposer)[int(slot)] == target
+
+    checked = skipped = 0
+    for arm in ("T", "E", "N"):
+        arm_, k, seed, ticks, path, half = [w for w in S7.worlds() if w[0] == arm][0]
+        z = np.load(path)
+        act, ap, aw, partner = z["act"], z["applied"], z["applied_with"], z["partner"]
+        names = json.loads(str(z["meta"]))["applied_names"]
+        w = R.load_world(path)
+        for s in R.observers(w):
+            roster = S7.slot_roster(s)
+            for t in np.flatnonzero(aw[:, s] >= 0):
+                if act[t, s] < 0 or t == 0 or partner[t - 1, s, 0] == 1:
+                    continue
+                name = S7.MENU[act[t, s]]
+                if "Kitty" not in name:
+                    continue
+                fam, slot = name.split("Kitty")
+                if S7.PARTNERED[fam][0] != names[ap[t, s]]:
+                    continue
+                other = int(aw[t, s])
+                pt = proposes_toward(act[t, other], other, s)
+                if pt is None or pt:
+                    skipped += 1
+                    continue
+                assert roster[int(slot)] == aw[t, s], (arm, k, seed, s, int(t), name, roster[int(slot)], int(aw[t, s]))
+                checked += 1
+    assert checked >= 100 and skipped >= 100, (checked, skipped)
 
 
 if __name__ == "__main__":
