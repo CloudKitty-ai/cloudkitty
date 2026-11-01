@@ -27,9 +27,14 @@ Definitions, all from §4 (R4d's where it says so):
   apart;
 - detection: the alarm is on at any tick of [crossing, end); latency is
   that first tick minus the crossing (0 = at the crossing);
-- anticipation: an alarm run that starts inside [mask onset, crossing);
-  lead = crossing - the first alarm tick at or after the mask onset. Arm
-  T has no mask (no anticipation column);
+- anticipation: an alarm run that STARTS inside [mask onset, crossing); a
+  run that began before the onset and spans it is not one (it is a
+  false alarm of its class if it touches no grave tick). Lead = crossing
+  - the start of the first such run (§4's "first alarm tick at or after
+  mask onset", read over anticipation runs). Beside it, the same with
+  runs starting at the slice's first alarmable tick (offset B) left out,
+  run by run: the next anticipation run, if any, counts. Arm T has no
+  mask (no anticipation column);
 - false alarms: alarm runs touching no grave tick of the slice's friend,
   anticipation runs excluded, per 10,000 observer-ticks of their class:
   the scripted friend before its first mask onset, the scripted friend
@@ -175,7 +180,7 @@ def world_cells(w, arm, p_by_seed, fe):
             for b in BURNINS:
                 above = above_all.copy()
                 above[:b] = False                                   # R6d: the alarm forced off for the slice's first B ticks
-                cell = {"latency": {}, "lead": {}, "lead_run_at_offset_B": {}, "fa": {c: 0 for c in FA_CLASSES},
+                cell = {"latency": {}, "lead": {}, "lead_not_at_offset_B": {}, "fa": {c: 0 for c in FA_CLASSES},
                         "fa_at_offset_B": {c: 0 for c in FA_CLASSES}, "fa_run_ticks": {c: 0 for c in FA_CLASSES}}
                 for k in obs:
                     for j in range(R.ROSTER):
@@ -183,17 +188,19 @@ def world_cells(w, arm, p_by_seed, fe):
                             continue
                         a = above[:, k, j]
                         if j == f:
+                            rs = runs(a)
                             if fe["crossing"] is not None:
                                 c, e = fe["crossing"], fe["end"]
                                 hit = np.flatnonzero(a[c:e])
                                 cell["latency"][str(k)] = int(hit[0]) if len(hit) else None
                                 if fe["onset"] is not None:
-                                    hit = np.flatnonzero(a[fe["onset"]:c])
-                                    cell["lead"][str(k)] = int(c - (fe["onset"] + hit[0])) if len(hit) else None
-                                    # the run that holds the first alarm tick in the window: does it start at
-                                    # the slice's first alarmable tick (offset B)? R4d printed such runs apart
-                                    cell["lead_run_at_offset_B"][str(k)] = bool(a[b:fe["onset"] + hit[0] + 1].all()) if len(hit) else None
-                            for st, en in runs(a):
+                                    # anticipation runs: those STARTING inside [onset, crossing); lead from the first;
+                                    # beside it the first one not starting at offset B (R4d's runs-at-reset, counted apart)
+                                    starts = [st for st, _en in rs if fe["onset"] <= st < c]
+                                    cell["lead"][str(k)] = int(c - starts[0]) if starts else None
+                                    later = [st for st in starts if st != b]
+                                    cell["lead_not_at_offset_B"][str(k)] = int(c - later[0]) if later else None
+                            for st, en in rs:
                                 if grave_of[j][st:en].any() or any(on <= st < c for on, c in antic):
                                     continue
                                 cls = "scripted_before_first_mask" if first_onset is not None and st < first_onset else "scripted_from_first_mask"
@@ -253,7 +260,7 @@ def stratum_cell(recs, cell, with_sight):
                 (lat_sight if r["sight_at_crossing"][k] else lat_fog).append(lat)
             for k, lead in c["lead"].items():
                 leads.append(lead)
-                leads_later.append(None if lead is None or c["lead_run_at_offset_B"][k] else lead)
+                leads_later.append(c["lead_not_at_offset_B"][k])
         det = [l for l in lats if l is not None]
         row = {"detected": len(det) / len(lats) if lats else None,
                "median_latency": _median(det), "p90_latency": float(np.percentile(det, 90)) if det else None,
@@ -263,7 +270,7 @@ def stratum_cell(recs, cell, with_sight):
             row["detected_under_fog"] = (sum(l is not None for l in lat_fog) / len(lat_fog)) if lat_fog else None
             row["anticipated"] = sum(l is not None for l in leads) / len(leads) if leads else None
             row["median_lead_anticipated"] = _median([l for l in leads if l is not None])
-            # the same with runs starting at the slice's first alarmable tick (offset B) left out
+            # the same with runs starting at the slice's first alarmable tick (offset B) left out, run by run
             row["anticipated_run_not_at_offset_B"] = sum(l is not None for l in leads_later) / len(leads_later) if leads_later else None
             row["median_lead_run_not_at_offset_B"] = _median([l for l in leads_later if l is not None])
         per_seed[s] = row
@@ -410,5 +417,6 @@ if __name__ == "__main__":
     else:
         out = read()
         if a.out:
-            Path(a.out).write_text(json.dumps(out, indent=1) + "\n")
+            # compact: the per-world records carry every cell's per-observer latency and lead
+            Path(a.out).write_text(json.dumps(out, separators=(",", ":")) + "\n")
         print(md(out) if a.md else json.dumps({k: v for k, v in out.items() if k != "records"}, indent=1))

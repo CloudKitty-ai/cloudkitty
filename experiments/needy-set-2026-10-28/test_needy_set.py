@@ -33,8 +33,9 @@ the reds are listed in RESULTS.md's Guards section as they land.
   n15 step 6: the ladder's worlds are the tuning half of the set and
       nothing else (180; the other 180 set worlds are all confirming).
   n16 step 6: on the first tuning world of arm E and of arm N, every cell's
-      latency, lead, run-at-offset-B flag and false-alarm counts per class
-      equal a scalar recompute of §4's definitions from the probe's output.
+      latency, anticipation lead (runs STARTING in the window; with and
+      without the run at offset B) and false-alarm counts per class equal a
+      scalar recompute of §4's definitions from the probe's output.
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -469,8 +470,9 @@ def test_n15_the_ladder_reads_the_tuning_half_and_nothing_else():
 
 def test_n16_the_cells_hold_the_declared_definitions_on_real_worlds():
     # red: the burn-in one tick too long (ladder.world_cells `above[:b] = False`
-    # -> `above[:b + 1] = False`) -> at B = 0 the tick-0 alarm is masked and
-    # E1 1096161's lead at t0.05-B0 no longer equals the recompute (100)
+    # -> `above[:b + 1] = False`) -> at B = 0 the tick-0 alarm is masked, the
+    # first-frame run starts at tick 1 instead and E1 1096161's lead at
+    # t0.05-B0 reads 99 against the recompute's 100
     import ladder as L
     import torch
     torch.set_num_threads(1)
@@ -498,11 +500,13 @@ def test_n16_the_cells_hold_the_declared_definitions_on_real_worlds():
                     # detection: the first tick of [c, e) at or over the threshold, as a latency from c; None = missed
                     exp = next((t - c for t in range(c, e) if sig[t]), None)
                     assert cell["latency"][str(kk)] == exp, (arm, th, b, kk, cell["latency"][str(kk)], exp)
-                    # anticipation: lead = c minus the first alarm tick in [onset, c)
-                    first = next((t for t in range(on, c) if sig[t]), None)
-                    assert cell["lead"][str(kk)] == (None if first is None else c - first), (arm, th, b, kk, cell["lead"][str(kk)], first)
-                    if first is not None:
-                        assert cell["lead_run_at_offset_B"][str(kk)] == all(sig[b:first + 1]), (arm, th, b, kk)
+                    # anticipation: an alarm run STARTING in [onset, c); lead = c minus the first such start;
+                    # beside it the first such start that is not the slice's first alarmable tick (offset B)
+                    starts = [t for t in range(on, c) if sig[t] and (t == 0 or not sig[t - 1])]
+                    exp_lead = c - starts[0] if starts else None
+                    assert cell["lead"][str(kk)] == exp_lead, (arm, th, b, kk, cell["lead"][str(kk)], exp_lead)
+                    later = [t for t in starts if t != b]
+                    assert cell["lead_not_at_offset_B"][str(kk)] == (c - later[0] if later else None), (arm, th, b, kk)
                     # false alarms: runs touching no grave tick of the slice's friend; on the scripted friend's
                     # slice a run starting inside [onset, crossing) of a crossed window is anticipation, not one
                     for j in range(5):
