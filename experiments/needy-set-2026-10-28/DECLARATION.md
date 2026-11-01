@@ -507,7 +507,10 @@ futility, never early success):
   latitude (say 5-10% below baseline?)", and a whole-world mean "doesn't
   pool over 6000 ticks if we're simulating distress early"). Two reads
   from the paired covered scout, each the covered seats' pooled mean
-  happiness in the `needy` world minus the paired `teacher` world:
+  happiness in the `needy` world minus the paired `teacher` world
+  (§13 amendment 2: read as the `teacher` world minus the `needy`
+  world, the drop positive when the needy world is lower, which is the
+  sign the rule below and `covered_scout.py` use):
   - *whole world* (chronic): arm N pairs over 6,000 ticks, arm E pairs
     over 800;
   - *episode window* (acute): arm N pairs, the ticks from mask onset to
@@ -772,3 +775,15 @@ futility, never early success):
      the covered scouts 480,000 + 64,000, n3 10,000: **7,130,000
      covered cat-ticks** of the 8.0M cap, the "about 7.1M" above by a
      different stratum.
+2. **S2's sign, wording only** (her word 2026-11-01, "Take care of
+   both of those, then run step 7", to the item put to her on
+   2026-10-31 with the step 4 report and re-listed since). §7 S2 as
+   ruled says the two reads are the covered seats' pooled mean
+   happiness "in the `needy` world minus the paired `teacher` world";
+   the rule beside it ("a drop under 1.0 launches") and the reader
+   (`covered_scout.py`, `drop = teacher − needy`) take the difference
+   the other way, the drop positive when the needy world is lower. The
+   step 4 read (RESULTS §11 step 4, gated) was taken and recorded with
+   that sign: whole-world arm N 0.876, arm E 0.222, episode window
+   2.355. Nothing moves but the sentence: the ruled text stays, marked
+   in place; no read, rule or number changes.
