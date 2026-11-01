@@ -30,6 +30,11 @@ the reds are listed in RESULTS.md's Guards section as they land.
       seeds = each block's first w, even halves, ticks, configs, raw paths).
   n14 step 5: the run record prices the covered seats only (6,576,000) and
       S1 held in every world (no abort, worst covered streak under 1,000).
+  n15 step 6: the ladder's worlds are the tuning half of the set and
+      nothing else (180; the other 180 set worlds are all confirming).
+  n16 step 6: on the first tuning world of arm E and of arm N, every cell's
+      latency, lead, run-at-offset-B flag and false-alarm counts per class
+      equal a scalar recompute of §4's definitions from the probe's output.
 
     test_needy_set.py            # every guard
     test_needy_set.py n1 n2      # the guards whose name carries a tag
@@ -442,6 +447,79 @@ def test_n14_the_run_record_counts_the_covered_seats_only_and_S1_held():
     assert r["aborts"] == [] and r["s1_held"] is True
     assert all(v["worst_covered_streak"] < S.CS.S1_STREAK for v in r["arms"].values())
     assert all(0 < v["covered_mean_happiness"]["min"] <= v["covered_mean_happiness"]["mean"] <= v["covered_mean_happiness"]["max"] <= 100 for v in r["arms"].values())
+
+
+# ---- step 6: R4, the ladder (ladder.py) -------------------------------------
+
+def test_n15_the_ladder_reads_the_tuning_half_and_nothing_else():
+    # red: ladder.HALF "tuning" -> "confirming" -> the first world is a
+    # confirming seed (the counts are the same by construction of the split)
+    import ladder as L
+    import set_run as S
+    ws = L.worlds()
+    assert {a: sum(1 for w in ws if w[0] == a) for a in ("T", "E", "N")} == {"T": 25, "E": 40, "N": 115}
+    for arm, k, seed, ticks, path in ws:
+        assert R.half_of(arm, k, seed) == "tuning", (arm, k, seed)
+        assert path.exists() and ticks == S.TICKS[arm], (arm, k, seed)
+    mine = {(w[0], w[1], w[2]) for w in ws}
+    assert len(mine) == 180 and L.HALF == "tuning"
+    rest = [(a, k, s) for a, k, _c, s, _t, _o in S.worlds() if (a, k, s) not in mine]
+    assert len(rest) == 180 and all(R.half_of(a, k, s) == "confirming" for a, k, s in rest)
+
+
+def test_n16_the_cells_hold_the_declared_definitions_on_real_worlds():
+    # red: the burn-in one tick too long (ladder.world_cells `above[:b] = False`
+    # -> `above[:b + 1] = False`) -> at B = 0 the tick-0 alarm is masked and
+    # E1 1096161's lead at t0.05-B0 no longer equals the recompute (100)
+    import ladder as L
+    import torch
+    torch.set_num_threads(1)
+    model, probe, _m = R.load_probe(1)
+    for arm in ("E", "N"):
+        arm_, k, seed, ticks, path = [w for w in L.worlds() if w[0] == arm][0]
+        rec = L.world_record(arm_, k, seed, ticks, path, {1: (model, probe)})
+        w = R.load_world(path)
+        P = np.nan_to_num(R.probe_world(model, probe, w), nan=-1.0)
+        f = k - 1
+        c, e, on = rec["crossing"], rec["end"], rec["onset"]
+        assert c is not None and on is not None and on <= c - 1 < e, (arm, rec["status"])
+        windows = R.mask_windows(w)
+        antic = [(wo, min(cc for (cc, _e) in R.grave_episodes(w["codes"][:, f]) if R.window_of(cc, windows) == j))
+                 for j, (wo, _cl, _o) in enumerate(windows) if any(R.window_of(cc, windows) == j for (cc, _e) in R.grave_episodes(w["codes"][:, f]))]
+        grave = w["codes"] == R.S.GRAVE
+        obs = R.observers(w)
+        for th in L.THRESHOLDS:
+            for b in L.BURNINS:
+                cell = rec["cells"]["1"][L.cell_name(th, b)]
+                fa = {cls: 0 for cls in L.FA_CLASSES}
+                for kk in obs:
+                    sig = P[:, kk, f] >= th
+                    sig[:b] = False
+                    # detection: the first tick of [c, e) at or over the threshold, as a latency from c; None = missed
+                    exp = next((t - c for t in range(c, e) if sig[t]), None)
+                    assert cell["latency"][str(kk)] == exp, (arm, th, b, kk, cell["latency"][str(kk)], exp)
+                    # anticipation: lead = c minus the first alarm tick in [onset, c)
+                    first = next((t for t in range(on, c) if sig[t]), None)
+                    assert cell["lead"][str(kk)] == (None if first is None else c - first), (arm, th, b, kk, cell["lead"][str(kk)], first)
+                    if first is not None:
+                        assert cell["lead_run_at_offset_B"][str(kk)] == all(sig[b:first + 1]), (arm, th, b, kk)
+                    # false alarms: runs touching no grave tick of the slice's friend; on the scripted friend's
+                    # slice a run starting inside [onset, crossing) of a crossed window is anticipation, not one
+                    for j in range(5):
+                        if j == kk:
+                            continue
+                        s = P[:, kk, j] >= th
+                        s[:b] = False
+                        for st, en in L.runs(s):
+                            if grave[st:en, j].any():
+                                continue
+                            if j == f:
+                                if any(wo <= st < cc for wo, cc in antic):
+                                    continue
+                                fa["scripted_before_first_mask" if st < windows[0][0] else "scripted_from_first_mask"] += 1
+                            else:
+                                fa["covered_friends"] += 1
+                assert cell["fa"] == fa, (arm, th, b, cell["fa"], fa)
 
 
 if __name__ == "__main__":

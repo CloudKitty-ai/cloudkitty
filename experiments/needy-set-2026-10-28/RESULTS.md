@@ -850,6 +850,76 @@ grave-tick column missing from the deviation's list), 12 provenance,
 360 worlds; the step 4 stamp's `v1:36043a4cde869c3b` described the same
 directory when it held arm T's five first worlds only).
 
+## §11 step 6 — R4, the ladder (owner "Run step 6", 2026-11-01; declared before its data)
+
+Step 5 closed at 575e0bf0 with her ruling on the run-record deviation
+("A"). Her word for this step: "Run step 6".
+
+**Welfare-cost line.** A read, 0 covered cat-ticks: no world runs. It
+reads the tuning half of step 5's raws only, 180 worlds (arm T 25, arm
+E 40, arm N 115; 2,880 observer slices), every one through
+`refuse_unless(..., "tuning")` before it loads (n6, n15); the
+confirming half stays unread until her pick (§5, call 6). The arc's
+ledger stays at about 7,130,600 of 8.0M.
+
+**What R4 reads** (§5; `ladder.py`, its docstring carries the
+definitions): thresholds {0.05, 0.10, 0.20, 0.30, 0.50} × burn-ins {0,
+2, 5, 10}, the frozen NF-h24+p over the three probe seeds (n8), seed
+mean ± SD with the episode counts beside it. Per cell: detection and
+latency per primary stratum on the scripted friend's first episode (H0
+from arm T, H1 from arm E, H2–H4 from arm N), in sight and under fog
+apart; anticipation (an alarm run starting inside [mask onset,
+crossing), lead = crossing − the first alarm tick at or after onset);
+false alarms per class (the scripted friend before its first mask, the
+scripted friend from its first mask on, covered friends) per 10,000
+observer-ticks of the class, anticipation runs excluded, runs starting
+at the slice's first alarmable tick (offset B) counted apart. No rule;
+the pick is hers from the priced table. Where §4 leaves the reader a
+choice, the choice made, before the data:
+
+- *The first episode* (§4 "first episodes only"): arm N / E, the grave
+  episode whose crossing lies in the first mask window; a first window
+  unreleased at the world's end enters no stratum (§3), a window
+  released with no crossing and a world with no onset are counted as
+  such; arm T, the reset episode (crossing at tick 0, H0), a world not
+  grave at tick 0 counted apart. Arm E crossings at H ≥ 100 and arm N
+  crossings under 100 are printed apart and never pooled (§4).
+- *Anticipation at the slice's first tick.* The probe fires on the
+  first frame of nearly every slice (R4d's "runs at reset"; the step 4
+  pairs showed it too), and arm E's mask opens at tick 0 or 1, so by
+  the letter of §4 that first-frame run is anticipation in every arm E
+  world at B = 0. Both figures are printed: anticipation as defined,
+  and anticipation with runs starting at offset B left out, R4d's
+  convention for false alarms applied to the same artefact. The burn-in
+  columns are the dial that removes it.
+- *Denominators.* Observer-ticks per class: before the first mask 4 ×
+  onset, from the first mask 4 × (ticks − onset), covered friends 12 ×
+  ticks; arm T has no mask, so its scripted-friend ticks all fall in the
+  second class (printed under that name).
+- *Latency columns* as R4d's: median and 90th percentile among detected,
+  the share detected within 10 ticks, over observer-episodes (four per
+  friend episode); the seed SD is ddof 1 over the three probe seeds.
+
+**Guards** (red via `scripts/mutate.sh --expect`, 2026-11-01; baseline
+== restored):
+
+| guard | mutation | predicted first red | observed |
+|---|---|---|---|
+| n15 | `ladder.HALF = "tuning"` → `"confirming"` | the counts pass (the split is even), then the first world's half: `AssertionError: ('T', 1, 1095454)` | (pending) |
+| n16 | the burn-in one tick too long: `above[:b] = False` → `above[:b + 1] = False` in `ladder.world_cells` | at B = 0 the first-frame alarm is masked; the first cell's lead on E1 1096161's first observer no longer equals the recompute: `AssertionError: ('E', 0.05, 0, 1, …)` | (pending) |
+
+### Regeneration
+
+`A = experiments/needy-set-2026-10-28`; env as step 3's.
+
+#### Read
+
+```sh
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/ladder.py plan                                                    # about 1 s: the tuning worlds per arm and block
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/ladder.py read --out $A/reads/ladder.json --md > $A/reads/ladder.md   # about 1 min (180 worlds, 3 probe seeds, 20 cells)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n15 n16                                           # about 2 s
+```
+
 ## Welfare ledger (covered cat-ticks, running)
 
 | step | covered cat-ticks | note |
@@ -861,4 +931,5 @@ directory when it held arm T's five first worlds only).
 | step 3 re-scout at edge 4,500 | 0 | 100 all-scripted worlds |
 | step 4 covered scout (ran 2026-10-31, 0 aborts) | 624,000 | arm N pairs 480,000; arm E pairs 64,000; arm T first worlds 80,000 (clean: they count toward arm T) |
 | step 5 the set (ran 2026-10-31, 0 aborts) | 6,496,000 | arm T 45 more worlds 720,000; arm E 80 worlds 256,000; arm N 230 worlds 5,520,000 (the declared figure, burned in full) |
+| step 6 R4 (declared 2026-11-01) | 0 | a read on the tuning half of step 5's raws |
 | total so far | about 7,130,600 | of the 8.0M cap (§7 S3); steps 6 and 7 are reads on these raws, 0 further covered cat-ticks unless a declaration says otherwise |
