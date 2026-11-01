@@ -888,7 +888,10 @@ choice, the choice made, before the data:
   first frame of nearly every slice (R4d's "runs at reset"; the step 4
   pairs showed it too), and arm E's mask opens at tick 0 or 1, so by
   the letter of §4 that first-frame run is anticipation in every arm E
-  world at B = 0. Both figures are printed: anticipation as defined,
+  world at B = 0 (post-read note, 2026-11-01: where the mask opens at
+  tick 0; at an onset of tick 1 the tick-0 run starts before the mask
+  and is a before-first-mask false alarm instead; every arm E onset on
+  the tuning half is tick 0). Both figures are printed: anticipation as defined,
   and anticipation with runs starting at offset B left out, R4d's
   convention for false alarms applied to the same artefact. The burn-in
   columns are the dial that removes it.
@@ -905,8 +908,8 @@ choice, the choice made, before the data:
 
 | guard | mutation | predicted first red | observed |
 |---|---|---|---|
-| n15 | `ladder.HALF = "tuning"` → `"confirming"` | the counts pass (the split is even), then the first world's half: `AssertionError: ('T', 1, 1095454)` | (pending) |
-| n16 | the burn-in one tick too long: `above[:b] = False` → `above[:b + 1] = False` in `ladder.world_cells` | at B = 0 the first-frame alarm is masked; the first cell's lead on E1 1096161's first observer no longer equals the recompute: `AssertionError: ('E', 0.05, 0, 1, …)` | (pending) |
+| n15 | `ladder.HALF = "tuning"` → `"confirming"` | the counts pass (the split is even), then the first world's half: `AssertionError: ('T', 1, 1095454)` | `AssertionError: ('T', 1, 1095454)` — RED CONFIRMED (a first cycle was VACUOUS for a tooling reason: the test command piped through `grep -v Warning`, so the pipeline's exit status was grep's; re-run without the pipe, nothing else changed) |
+| n16 | the burn-in one tick too long: `above[:b] = False` → `above[:b + 1] = False` in `ladder.world_cells` | at B = 0 the first-frame alarm is masked; the first cell's lead on E1 1096161's first observer no longer equals the recompute: `AssertionError: ('E', 0.05, 0, 1, …)` | `AssertionError: ('E', 0.05, 0, 1, 98, 0)` (the mutant's lead 98 against the first alarm tick 0, lead 100) — RED CONFIRMED (same vacuous first cycle as n15, same fix). **Re-red at 17d1ea96** after the reader fix below (n16 recomputes the run-start definition): predicted `('E', 0.05, 0, 1, 99, 100)`, observed `AssertionError: ('E', 0.05, 0, 1, 98, 100)` — the first cycle was called WRONG REASON by the tool on the value alone (the first-frame run is one tick long and the next run starts at tick 2, so the mutant's lead is 98, which the earlier red had already shown); re-run with the prediction corrected to 98, RED CONFIRMED, nothing else changed |
 
 ### Regeneration
 
@@ -916,9 +919,187 @@ choice, the choice made, before the data:
 
 ```sh
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/ladder.py plan                                                    # about 1 s: the tuning worlds per arm and block
-VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/ladder.py read --out $A/reads/ladder.json --md > $A/reads/ladder.md   # about 1 min (180 worlds, 3 probe seeds, 20 cells)
+VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/ladder.py read --out $A/reads/ladder.json --md > $A/reads/ladder.md   # about 30 s (180 worlds, 3 probe seeds, 20 cells)
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n15 n16                                           # about 2 s
 ```
+
+### The read (2026-11-01)
+
+`ladder.py read` at 17d1ea96, 25 s, `reads/ladder.json` (every world's
+per-cell, per-observer latency and lead) and `reads/ladder.md` (every
+table). 180 tuning worlds, 0 covered cat-ticks. The full guard suite at
+74e744dd: 18 passed; n15 and n16 again at 17d1ea96.
+
+**Reader fix on record.** The first read ran at 74e744dd; the accuracy
+gate's round 2 (the gate record at the end of this section) found two of its anticipation figures off §4's
+letter: the reader counted any alarm tick inside [mask onset,
+crossing) as anticipation, where §4 says an alarm run that *starts*
+inside it (a run begun before the onset and spanning it is not one),
+and the "runs at offset B left out" figure dropped a whole
+observer-episode when its first run in the window started at offset B,
+where the declared choice above leaves out that run and counts the
+next. Both were fixed at 17d1ea96 (`ladder.py`, n16's recompute moved
+with it), the read re-run, and every figure below is from that run.
+What moved: the parenthesised anticipation column and its median lead
+(E-H1 at 0.05 / B = 2 from 0.299 to 0.392; at B = 0 its median lead
+from 10.0 to 40.3; E-H2 similar) and N-H2's B = 0 cells (0.505 to
+0.471 at 0.05, 0.321 to 0.319 at 0.10); the detection, latency and
+false-alarm columns did not change (a run spanning the onset that
+touches no grave tick already counted as a before-first-mask false
+alarm; the exclusion only ever skipped runs starting in the window).
+
+**First episodes found** (per arm; the strata are the crossing's H):
+arm T 25 of 25 reset episodes (H0); arm E 24 in H1, 13 at H ≥ 100
+(printed apart, every one on the need edge at H 100–151), 3 first
+windows unreleased at tick 800 (no stratum, §3); arm N 35 in H2, 45 in
+H3, 32 in H4, 3 first windows released with no crossing, none under H
+100. Primary strata: E-H1 24 friend episodes (96 observer-episodes, 36
+in sight at the crossing; H 11–75, median 75, the need edge at n = 60
+and rate 0.4), N-H2 35 (140; 83 in sight), N-H3 45 (180; 108), N-H4 32
+(128; 82), T-H0 25 (100; 5 in sight: P's grave starts are mostly under
+fog). The thinnest primary stratum on this half is E-H1 at 24, half of
+the 50-per-stratum floor §7 sized for both halves together.
+
+**The pick table** (seed means over the three probe seeds; SDs and the
+latency, sight/fog and lead columns are in `reads/ladder.md`'s
+per-stratum tables). "Detected" is the share of observer-episodes with
+the alarm on at any tick of the episode; "antic" is the share of
+observer-episodes with an alarm run that starts inside [mask onset,
+crossing), and in parentheses the same share with runs starting at the
+slice's first alarmable tick (offset B) left out, run by run (the next
+run starting inside the window, if any, counts); false alarms are arm
+N's, per 10,000 observer-ticks of the class, anticipation runs
+excluded.
+
+| threshold | B | det T-H0 | det E-H1 | det N-H2 | det N-H3 | det N-H4 | antic E-H1 (not at B) | antic N-H2 (not at B) | antic N-H3 (not at B) | antic N-H4 (not at B) | FA N scripted from first mask | FA N covered friends |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0.05 | 0 | 1.000 | 0.528 | 0.536 | 0.459 | 0.409 | 0.997 (0.476) | 0.471 (0.150) | 0.293 (0.232) | 0.307 (0.307) | 1.50 ± 0.63 | 2.35 ± 0.23 |
+| 0.05 | 2 | 1.000 | 0.528 | 0.536 | 0.459 | 0.409 | 0.653 (0.392) | 0.152 (0.150) | 0.232 (0.232) | 0.307 (0.307) | 1.50 ± 0.63 | 0.71 ± 0.22 |
+| 0.05 | 5 | 1.000 | 0.528 | 0.536 | 0.459 | 0.409 | 0.611 (0.358) | 0.150 (0.150) | 0.232 (0.232) | 0.307 (0.307) | 1.50 ± 0.63 | 0.69 ± 0.23 |
+| 0.05 | 10 | 0.760 | 0.528 | 0.536 | 0.459 | 0.409 | 0.556 (0.326) | 0.150 (0.150) | 0.232 (0.232) | 0.307 (0.307) | 1.50 ± 0.63 | 0.69 ± 0.23 |
+| 0.10 | 0 | 1.000 | 0.451 | 0.464 | 0.407 | 0.362 | 0.774 (0.392) | 0.319 (0.079) | 0.220 (0.180) | 0.237 (0.237) | 1.05 ± 0.51 | 1.51 ± 0.98 |
+| 0.10 | 2 | 1.000 | 0.451 | 0.464 | 0.407 | 0.362 | 0.503 (0.330) | 0.079 (0.079) | 0.180 (0.180) | 0.237 (0.237) | 1.05 ± 0.51 | 0.37 ± 0.13 |
+| 0.10 | 5 | 1.000 | 0.451 | 0.464 | 0.407 | 0.362 | 0.469 (0.302) | 0.079 (0.079) | 0.180 (0.180) | 0.237 (0.237) | 1.05 ± 0.51 | 0.37 ± 0.13 |
+| 0.10 | 10 | 0.760 | 0.451 | 0.464 | 0.407 | 0.362 | 0.410 (0.264) | 0.079 (0.079) | 0.180 (0.180) | 0.237 (0.237) | 1.05 ± 0.51 | 0.37 ± 0.13 |
+| 0.20 | 0 | 1.000 | 0.354 | 0.409 | 0.361 | 0.328 | 0.500 (0.361) | 0.079 (0.007) | 0.132 (0.117) | 0.162 (0.162) | 0.71 ± 0.40 | 0.55 ± 0.37 |
+| 0.20 | 2 | 1.000 | 0.354 | 0.409 | 0.361 | 0.328 | 0.368 (0.254) | 0.007 (0.007) | 0.117 (0.117) | 0.162 (0.162) | 0.71 ± 0.40 | 0.20 ± 0.07 |
+| 0.20 | 5 | 1.000 | 0.354 | 0.409 | 0.361 | 0.328 | 0.337 (0.212) | 0.007 (0.007) | 0.117 (0.117) | 0.162 (0.162) | 0.71 ± 0.40 | 0.20 ± 0.07 |
+| 0.20 | 10 | 0.760 | 0.354 | 0.409 | 0.361 | 0.328 | 0.295 (0.198) | 0.007 (0.007) | 0.117 (0.117) | 0.162 (0.162) | 0.71 ± 0.40 | 0.20 ± 0.07 |
+| 0.30 | 0 | 1.000 | 0.309 | 0.341 | 0.322 | 0.302 | 0.278 (0.278) | 0.002 (0.002) | 0.069 (0.069) | 0.112 (0.112) | 0.54 ± 0.35 | 0.13 ± 0.03 |
+| 0.30 | 2 | 1.000 | 0.309 | 0.341 | 0.322 | 0.302 | 0.278 (0.198) | 0.002 (0.002) | 0.069 (0.069) | 0.112 (0.112) | 0.54 ± 0.35 | 0.13 ± 0.03 |
+| 0.30 | 5 | 1.000 | 0.309 | 0.341 | 0.322 | 0.302 | 0.260 (0.167) | 0.002 (0.002) | 0.069 (0.069) | 0.112 (0.112) | 0.54 ± 0.35 | 0.13 ± 0.03 |
+| 0.30 | 10 | 0.760 | 0.309 | 0.341 | 0.322 | 0.302 | 0.233 (0.156) | 0.002 (0.002) | 0.069 (0.069) | 0.112 (0.112) | 0.54 ± 0.35 | 0.13 ± 0.03 |
+| 0.50 | 0 | 1.000 | 0.271 | 0.262 | 0.276 | 0.250 | 0.181 (0.181) | 0.002 (0.002) | 0.039 (0.039) | 0.050 (0.050) | 0.38 ± 0.26 | 0.05 ± 0.01 |
+| 0.50 | 2 | 1.000 | 0.271 | 0.262 | 0.276 | 0.250 | 0.181 (0.111) | 0.002 (0.002) | 0.039 (0.039) | 0.050 (0.050) | 0.38 ± 0.26 | 0.05 ± 0.01 |
+| 0.50 | 5 | 0.997 | 0.271 | 0.262 | 0.276 | 0.250 | 0.163 (0.111) | 0.002 (0.002) | 0.039 (0.039) | 0.050 (0.050) | 0.38 ± 0.26 | 0.05 ± 0.01 |
+| 0.50 | 10 | 0.750 | 0.271 | 0.262 | 0.276 | 0.250 | 0.149 (0.108) | 0.002 (0.002) | 0.039 (0.039) | 0.050 (0.050) | 0.38 ± 0.26 | 0.05 ± 0.01 |
+
+**How the table reads** (descriptive; no rule, no prediction scored
+here: P6, P7, P10 and P11 sit at the registered 0.10 / B = 0 and are
+scored on all seeds after R5, §6; her pick sets the operating point R5
+confirms and Phase 2 cites):
+
+- *The threshold is the dial on detection; the burn-in is not.* Every
+  non-reset crossing on this half lies past tick 10 (E-H1's earliest is
+  H 11), so B changes no detection figure outside T-H0, where B = 10
+  drops detection to 0.760 (0.750 at 0.50) because 6 of arm T's 25
+  reset episodes (the scripted friend on P's seeds and starts) are 10
+  ticks or shorter (median length 24; a length-10 episode covers ticks
+  0–9, all held off at B = 10); at B = 2 and 5 the reset episodes are
+  detected at median latency B (0.997 at 0.50 / B = 5; a tail of a few
+  ticks more at 0.50), at B = 0 at a median of 0–1 ticks.
+- *The first-frame alarm.* At 0.05 the probe fires on the first frame
+  of nearly every slice, at 0.10 on most, at 0.20 and above on few
+  (arm N "before the first mask" false alarms 10.27 per
+  10,000 at 0.05 / B = 0, 99 per cent of them starting at offset 0;
+  0.29 at B = 2). Burn-in B = 2 removes most of it: arm N's
+  covered-friend false alarms fall from 2.35 to 0.71 per 10,000 at 0.05
+  and from 1.51 to 0.37 at 0.10 (part of what remains at B = 2 is runs
+  starting at offset 2, all on probe seed 3: a seed-mean share of 45
+  per cent of arm N's 0.29 before the first mask and 16 per cent of
+  arm E's 1.04 on covered friends; 3 per cent of arm N's 0.71), and arm E's
+  anticipation figure falls from 0.997 to 0.653 at 0.05, the
+  first-frame run being an anticipation run by §4's letter wherever the
+  mask opens at tick 0 (all 40 arm E worlds on this half). The
+  parenthesised figure leaves that run out; at B = 0 it leaves out only
+  runs starting at tick 0, so a run starting at tick 2, after a
+  one-tick first-frame run, still counts there but is the offset-B run
+  at B = 2, and the B = 0 figure sits above the B = 2 one (E-H1 0.476
+  against 0.392 at 0.05). N-H2 shows the same artefact
+  at B = 0 (0.471 against 0.150) because about a fifth of arm N's first
+  onsets on this half fall at tick 0 or 1 (21 of 115: 16 at tick 0, 5
+  at tick 1; the onset law's lowest level) and 18 of those worlds cross
+  in H2: the 13 with onset at tick 0 carry their tick-0 run as
+  anticipation, the 5 with onset at tick 1 do not (their tick-0 run
+  starts before the onset, so it is a before-first-mask false alarm
+  whether it ends at tick 1, as most do, or spans the onset); the other 3
+  cross in H3, which shows it a little (0.293 against 0.232 at B = 0);
+  N-H4 not at all (0.307 at every B).
+- *Anticipation past the first frame* (the parenthesised column at B =
+  2) is 0.39 in E-H1, 0.31 in N-H4, 0.23 in N-H3 and 0.15 in N-H2 at
+  0.05, and 0.11 / 0.05 / 0.04 / 0.002 at 0.50; it falls with B in
+  E-H1 only (0.39 to 0.33 from B = 2 to 10 at 0.05), the arm whose
+  window begins inside the burn-in. Median leads over the B ≥ 2 cells
+  lie between 24 and 48 ticks in E-H1, N-H3 and N-H4; N-H2's are 21
+  ticks at 0.05 and 11 at 0.10, the higher thresholds resting on about
+  one episode.
+- *The price.* Arm N's false alarms on covered friends at B ≥ 2 run
+  from 0.71 per 10,000 observer-ticks at 0.05 to 0.05 at 0.50; on the
+  scripted friend from its first mask on, 1.50 down to 0.38, mean run
+  length about 8–11 ticks, unchanged by B (those runs start after the
+  burn-in). Arm E's covered-friend figures over its 800-tick worlds
+  are higher than arm N's at 0.05 at every B and at B = 0 up to 0.20
+  (13.27 at 0.05 / B = 0, 1.04 at B = 2), under arm N's at 0.10 and
+  0.20 for B ≥ 2 and at 0.30 at every B (0.36 against 0.37; 0.16
+  against 0.20; 0.09 against 0.13), and level at 0.50 at the printed
+  precision (0.05 against 0.05). Runs
+  starting at offset B after a burn-in that cut a detection run are the
+  small "at B" shares in arm T's "from first mask" column at B = 10.
+- *Sight.* At 0.10 the seed-mean detection in sight sits above
+  detection under fog in each of the four strata with a sight split
+  (T-H0 has 5 observer-episodes in sight), by 0.06–0.12 in E-H1, N-H2
+  and N-H4 (0.491 / 0.428; 0.510 / 0.398; 0.406 / 0.283) and by 0.03
+  in N-H3 (0.420 / 0.389); every gap is inside the larger of the two
+  columns' seed SDs; N-H2 and N-H4 read sight above fog on all three
+  probe seeds, E-H1 and N-H3 on two of three. A direction, not a
+  separation, on this half.
+- *Printed apart.* E-H2 (13 episodes at H 100–151, median length 5):
+  detection 0.301 at 0.05 falling to 0.147 at 0.50, under E-H1's at
+  every cell.
+
+**Overlap with step 7, stated.** R4 prints, on the tuning half only,
+quantities R2 (detection per stratum) and R3 (anticipation) read on all
+seeds in step 7; that is §5's design (the pick is made on the priced
+table), and nothing on a confirming seed was computed (n15). The
+registered predictions are not scored here.
+
+**To her for the pick:** the cell (threshold, B). R5 then reads that
+cell on the confirming seeds (step 7), the same columns; her words are
+recorded here.
+
+Accuracy gate, step 6: **PASS** 2026-11-01, four rounds, a fresh
+subagent each. Round 1 FAIL (tables exact; four bullets overstated the
+tables and three prose numbers were wrong: "shorter than 10 ticks" for
+"10 or shorter", "a tenth" of arm N onsets at tick 0 or 1 for 21 of
+115, "every cell" for arm E's false alarms; one provenance miss, the
+read's SHA omitting the uncommitted compact-JSON edit). Round 2 FAIL on
+the reader itself: anticipation counted any alarm tick inside the
+window where §4 says a run that starts inside it, and the offset-B
+exclusion dropped an observer-episode instead of one run; fixed at
+17d1ea96, n16's recompute moved with it and went red again, the read
+re-run ("Reader fix on record" above). Round 3 FAIL on three mechanism
+sentences (the tick-0 run as anticipation "at tick 0 or 1" where only
+tick 0 qualifies; "spans the onset" where most tick-0 runs end at tick
+1; "a run starting at tick 1" where the runs that separate 0.476 from
+0.392 start at tick 2), none moving a number. Round 4: about 240 table
+cells and 144 prose numbers all exact, 5 sourced thresholds, 25
+characterisations (1 WEAK, the first-frame sentence unscoped by
+threshold, reworded after), 4 undecidable (the mutate cycles' tool
+calls and the full-suite run, not re-run by the gate), provenance
+clean; the fresh md byte-identical to the recorded, the old reader
+re-run from a scratch copy to confirm what moved. Raw dir
+`results-raw/set` `v1:973e5cf5a4541ba5` (`scripts/rawdir-hash.sh`,
+recomputed 2026-11-01; the same 360 worlds as step 5's stamp).
 
 ## Welfare ledger (covered cat-ticks, running)
 

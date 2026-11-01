@@ -1678,3 +1678,35 @@ as one, not a footnote; (54) a baseline figure named beside unpaired
 means must not carry a paired read's label; (55) a run's duration is
 the stamps' difference, and a counter the driver prints is reported
 as the driver's.
+
+## 2026-11-01 — Needy set RESULTS §11 step 6 (R4, the ladder, on the tuning half), Experiments thread
+
+Four rounds; the tables were exact in every round. Round 1 FAIL on
+four bullets that generalised past the tables ("higher at every cell"
+held in 12 of 20; "N-H3 and N-H4 do not" held for N-H4 alone), three
+prose numbers ("shorter than 10 ticks" against lengths of exactly 10;
+"a tenth" from the onset law's weight where the half showed 21 of 115;
+a range whose lower end was the excepted stratum's own gap) and one
+provenance miss (the read's SHA omitted an uncommitted serialisation
+edit). Round 2 FAIL on the reader: the subagent recomputed anticipation
+from §4's wording ("an alarm run that starts inside") and found the
+reader counting any alarm tick in the window, and the "runs at offset B
+left out" column dropping whole observer-episodes; the reader was
+fixed, its guard re-redded, the read re-run and the change recorded.
+Round 3 FAIL on three mechanism sentences the records contradicted
+(which tick a run starts at; whether it spans the onset), no number
+moving. Round 4 PASS conditional on the gate record being appended in
+the same commit; the subagent recomputed P(grave) for all 180 worlds
+and re-ran the pre-fix reader from a scratch copy to confirm what
+moved. Lessons: (56) a reader built from a declaration's prose is
+gated against that prose by a recompute, not by its own tests — the
+owning thread's guard (n16) recomputed the owning thread's reading;
+(57) a mechanism sentence ("the run starts at tick 1", "spans the
+onset") is a claim about the records and is checked on them before it
+is written, as a number would be; (58) a generalisation over a table
+("every cell", "every stratum") is counted against the whole table
+before it is written, with the exceptions named; (59) a per-seed
+figure quoted as a seed mean says when one seed carries it; (60) a
+section that points at its own gate record must carry one in the
+commit that lands it; (61) `mutate.sh`'s test command must be the bare
+test, never a pipe — a trailing `grep` makes every cycle VACUOUS.

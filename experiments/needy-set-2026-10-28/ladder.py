@@ -46,7 +46,7 @@ Definitions, all from §4 (R4d's where it says so):
   seeds, the episode counts (friend episodes, observer-episodes) beside it.
 
     ladder.py plan                       # the tuning worlds per arm and block
-    ladder.py read --out F [--md]        # the ladder; about 2 min
+    ladder.py read --out F [--md]        # the ladder; about 30 s
 """
 import argparse
 import json

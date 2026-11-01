@@ -470,9 +470,9 @@ def test_n15_the_ladder_reads_the_tuning_half_and_nothing_else():
 
 def test_n16_the_cells_hold_the_declared_definitions_on_real_worlds():
     # red: the burn-in one tick too long (ladder.world_cells `above[:b] = False`
-    # -> `above[:b + 1] = False`) -> at B = 0 the tick-0 alarm is masked, the
-    # first-frame run starts at tick 1 instead and E1 1096161's lead at
-    # t0.05-B0 reads 99 against the recompute's 100
+    # -> `above[:b + 1] = False`) -> at B = 0 the one-tick first-frame run is
+    # masked, the next run starts at tick 2 and E1 1096161's lead at
+    # t0.05-B0 reads 98 against the recompute's 100
     import ladder as L
     import torch
     torch.set_num_threads(1)
