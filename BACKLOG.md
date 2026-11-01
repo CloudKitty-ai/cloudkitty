@@ -15,6 +15,50 @@ sitting · **P3** simulation depth · **P4** world-scale ambitions.
 
 <!-- shipped P1 items are removed once merged; see git history -->
 
+### Mask blindness at the needy verdict: four covered cats boxed a refusing friend in for 162 ticks (added 2026-11-01; Experiments thread, a REPORT on the owner's word, never a fix from there; Product's call)
+
+What was seen (needy set, `experiments/needy-set-2026-10-28/RESULTS.md`
+§11 step 4, "Her word", gated): in one arm N covered-scout pair in ten
+(N2 1095704, the scripted friend on `needy` with drink, cuddle and bath
+masked from tick 2162 to 2580), the four covered rot2 cats chose
+sleep-with, rest-with and groom at the friend every tick for hundreds
+of ticks (169 co-sleep asks from one seat, 157–201 groom asks from the
+other three), every one refused by the needy verdict (spec 067 FR-005:
+co-sleep and rest-with relieve the asker's cuddle, groom-other the
+target's bath, both masked) and applied as Idle. From tick 2388 to 2549
+the four held all four Manhattan-adjacent tiles, so the friend could
+not move (Move into an occupied tile is illegal); the friend sat grave
+2331–2602 and all four covered seats went grave 2408–2610 (every one
+of them out by 2610, no seat near the S1 line). The paired `teacher`
+world of the same seed shows no dip. Owner's ruling on the diagnosis
+(2026-10-31): "I'm satisfied that this is not a structural issue, more
+of a bug."
+
+Why it happens: `crates/cloudkitty-rl/src/mask.rs::legal_action_mask`
+replays prune → validate → `enforcement_verdict` and not the consent
+or needy verdicts (`world.rs::apply_slot_verdict` runs both); the
+divergence at consent sites is the mask's documented blindness (ruling
+eb9e860b item 4) and the needy verdict was built to diverge "the same
+way" (the doc comment on `apply_slot_verdict`), by spec 049 R2 (the
+mask encodes no knowledge the observation lacks), rule 12's own-state
+read and spec 067 FR-014 (no observation change). So a refused ask
+reads legal every tick, the refusal is invisible to the asker (F-033:
+the applied Idle is spelled like a chosen Idle), and a policy whose
+best legal action is the ask keeps asking. The step 4 diagnostic also
+found the condition is three-fold: a cuddle or bath mask (the needs
+the covered cats' asks relieve), the invisible refusal, and a
+geometric pin (all four neighbours occupied); the two other long grave
+episodes in the scout did not cascade because the friend kept moving.
+
+What Experiments asks: nothing specific. Options Product may weigh,
+in no order: a masked-target signal in the mask (a doctrine change,
+spec 049 R2 and FR-014 would have to move); a refusal the asker can
+read (F-033's register); or leaving the engine as it is and pricing
+the tail in training (the needy set is test-only; the step 7 R8 read
+quantifies refused asks toward the friend across 310 covered worlds
+when it lands, see the same RESULTS file). The needy set's §5 reads
+(R1–R8) go to Product as information at step 7's close.
+
 ### ~~Critter play gets one grace tick when the critter slips away~~ — DROPPED 2026-08-23 (owner: "let's keep it as is")
 
 Costed, then dropped the same day: the charm gain did not justify the
