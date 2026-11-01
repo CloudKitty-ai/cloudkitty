@@ -12,7 +12,8 @@ inside [mask onset, crossing)).
 Cells read: the registered point 0.10 / B = 0 (§6: every prediction sits
 there), its B = 2 companion (§5 R1, R2), and her pick 0.05 / B = 2 (R5).
 
-- R5 confirm (confirming seeds only, through `refuse_unless`): the picked
+- R5 confirm (confirming seeds only; every world it groups as confirming
+  is checked through `refuse_unless(..., "confirming")`, n17): the picked
   cell, R4's columns per primary stratum and the false alarms per class,
   beside the tuning values (`reads/ladder.json`); a stratum whose
   confirming value falls outside its tuning value +- 2 world-bootstrap SE
@@ -387,6 +388,14 @@ def r2(recs):
                     bins[f"[{lo},{hi})"] = {"friend_episodes": len(sel), "detected_reg": L.stratum_cell(sel, cell("reg"), with_sight=True)["detected"]}
             g["splice_bins"] = bins
         out["groups"][name] = g
+    # §6 P10: "the mask-anchored version is printed beside it" — the same read with the stratum set by the mask
+    # onset's offset from the slice's first tick instead of the crossing's (arm N and E first episodes)
+    ma = {}
+    for r in recs:
+        if r["arm"] != "T" and r["crossing"] is not None:
+            ma.setdefault(f"{r['arm']}-{R.stratum_of(r['onset']) or 'H0'}", []).append(r)
+    out["mask_anchored"] = {name: {"friend_episodes": len(rs), "onset_min_median_max": [min(r["onset"] for r in rs), L._median([r["onset"] for r in rs]), max(r["onset"] for r in rs)],
+                                   "detected_reg": L.stratum_cell(rs, cell("reg"), with_sight=True)["detected"]} for name, rs in sorted(ma.items())}
     return out
 
 
@@ -412,7 +421,22 @@ def r3(recs):
             continue
         g = {"friend_episodes": len(rs), "cells": {}}
         for cname in ("reg", "pick"):
+            # where the alarm falls per observer-episode: an anticipation run (not at offset B), a detection
+            # with no such run (the alarm only at or after the crossing), or neither
+            per = {}
+            for s in map(str, R.PROBE_SEEDS):
+                n = ant = det_only = 0
+                for r in rs:
+                    c = r["cells"][s][cell(cname)]
+                    for kk in c["latency"]:
+                        n += 1
+                        if c["lead_not_at_offset_B"].get(kk) is not None:
+                            ant += 1
+                        elif c["latency"][kk] is not None:
+                            det_only += 1
+                per[s] = {"anticipated": ant / n, "detected_without_anticipation": det_only / n, "never": (n - ant - det_only) / n}
             g["cells"][cname] = {"all": lead_rows(rs, cname, "lead"), "not_at_B": lead_rows(rs, cname, "lead_not_at_offset_B"),
+                                 "outcome": {k: msd([per[s][k] for s in per]) for k in ("anticipated", "detected_without_anticipation", "never")},
                                  "per_m": {str(m): lead_rows([r for r in rs if r["m"] == m], cname, "lead") for m in (1, 2, 3, 4) if any(r["m"] == m for r in rs)},
                                  "per_need_single": {nm: lead_rows([r for r in rs if r["m"] == 1 and r["masked"] == [nm]], cname, "lead")
                                                      for nm in R.NEED_NAMES if any(r["m"] == 1 and r["masked"] == [nm] for r in rs)}}
@@ -433,7 +457,9 @@ def r3(recs):
             padded = sorted([-1] * (n - len(have)) + have)
             med = float(np.median(padded)) if padded else None
             per[s] = {"observer_episodes": n, "majority": len(have) / n if n else None, "median_lead_padded": med}
-        return {"per_seed": per, "majority": msd([per[s]["majority"] for s in per]), "median_lead_padded": msd([per[s]["median_lead_padded"] for s in per])}
+        return {"friend_episodes_single_hidden": len(rs), "friend_episodes_with_an_observer_in_sight": sum(1 for r in rs if any(r["sight_at_crossing"].values())),
+                "observer_episodes_in_sight": per["1"]["observer_episodes"], "per_seed": per,
+                "majority": msd([per[s]["majority"] for s in per]), "median_lead_padded": msd([per[s]["median_lead_padded"] for s in per])}
     p6["pooled"] = p6_read(elig)
     for st in ("H2", "H3", "H4"):
         sel = [r for r in elig if r["stratum"] == st]
@@ -480,6 +506,12 @@ def r5(recs, tuning_recs):
     rng = np.random.default_rng(BOOT_SEED)
     conf = group_recs(recs, "confirming")
     tun = group_recs(tuning_recs, "tuning")
+    for name, rs in conf.items():                      # §5: R5 on the confirming seeds, through the split's gate (n6)
+        for r in rs:
+            R.refuse_unless(r["arm"], r["block"], r["seed"], "confirming")
+    for name, rs in tun.items():
+        for r in rs:
+            R.refuse_unless(r["arm"], r["block"], r["seed"], "tuning")
     out = {"cell": cell("pick"), "pick": PICK, "boot": BOOT, "groups": {}, "false_alarms": {}, "flags": []}
     for name in sorted(set(conf) | set(tun)):
         arm, st = name.split("-")
@@ -611,7 +643,8 @@ def r8(recs, probes):
                 pt, pn = CS.seat_price(wt), CS.seat_price(wn)
                 qt, qn = proposals_toward(wt, k - 1, wt["meta"]["applied_names"]), proposals_toward(wn, k - 1, wn["meta"]["applied_names"])
                 pairs.append({"block": k, "seed": seed,
-                              "d_mean_happiness": round(float(np.mean(pn["mean_happiness_per_seat"]) - np.mean(pt["mean_happiness_per_seat"])), 3),
+                              # the S2 read's own quantity (covered_scout.covered_mean), needy minus teacher: step 4's drop with the sign reversed
+                              "d_mean_happiness": round(CS.covered_mean(wn) - CS.covered_mean(wt), 3),
                               "d_distress_ticks": int(sum(pn["distress_ticks_per_seat"]) - sum(pt["distress_ticks_per_seat"])),
                               "d_grave_ticks": int(sum(pn["grave_ticks_per_seat"]) - sum(pt["grave_ticks_per_seat"])),
                               "worst_streak": [pt["worst_streak_covered"], pn["worst_streak_covered"]],
@@ -753,18 +786,20 @@ def md(out):
     if e1.get("splice_bins"):
         S += ["", "E-H1 by the splice's bins (0.10 / B = 0): " + "; ".join(f"{b}: {x['friend_episodes']} episodes, {_f(x['detected_reg'])}" for b, x in e1["splice_bins"].items())
               + f" — splice H10 {SPLICE['H1']['H10']}, H20 {SPLICE['H1']['H20']}, H50 {SPLICE['H1']['H50']}"]
-    S.append("")
+    S += ["", "Mask-anchored version (§6 P10: the stratum set by the mask onset's offset instead of the crossing's; first episodes, 0.10 / B = 0): "
+          + "; ".join(f"{name}: {x['friend_episodes']} episodes, onsets {x['onset_min_median_max']}, detected {_f(x['detected_reg'])}" for name, x in r2o["mask_anchored"].items()), ""]
     # R3
     r3o = out["R3"]
     S += ["### R3 — anticipation (first episodes; runs starting inside [mask onset, crossing); leads from the first such run)", "",
-          "| group | cell | anticipated (all) | median lead | anticipated (not at B) | median lead | q1–q3 lead | per m: anticipated | per single masked need: anticipated |", "|---|---|---|---|---|---|---|---|---|"]
+          "| group | cell | anticipated (all) | median lead | anticipated (not at B) | median lead | q1–q3 lead | detected without anticipation | never alarmed | per m: anticipated | per single masked need: anticipated |", "|---|---|---|---|---|---|---|---|---|---|---|"]
     for name, g in r3o["groups"].items():
         for cname in ("reg", "pick"):
             c = g["cells"][cname]
             pm = ", ".join(f"m{m} {_f(v['anticipated'])} (n {v['observer_episodes']})" for m, v in c["per_m"].items())
             pn = ", ".join(f"{nm} {_f(v['anticipated'])} (n {v['observer_episodes']})" for nm, v in c["per_need_single"].items())
             S.append(f"| {name} | {cell(cname)} | {_f(c['all']['anticipated'])} | {_f(c['all']['median_lead'], 1)} | {_f(c['not_at_B']['anticipated'])} | "
-                     f"{_f(c['not_at_B']['median_lead'], 1)} | {_f(c['not_at_B']['q1_lead'], 1)}–{_f(c['not_at_B']['q3_lead'], 1)} | {pm} | {pn} |")
+                     f"{_f(c['not_at_B']['median_lead'], 1)} | {_f(c['not_at_B']['q1_lead'], 1)}–{_f(c['not_at_B']['q3_lead'], 1)} | "
+                     f"{_f(c['outcome']['detected_without_anticipation'])} | {_f(c['outcome']['never'])} | {pm} | {pn} |")
     offs = r3o["profile_offsets"]
     pick_offs = [-100, -50, -20, -10, -5, -2, -1, 0, 1, 2, 5, 10, 20]
     S += ["", "Mean probe logit aligned to the crossing (offset 0 = the crossing), from the mask onset, over observer-episodes (n at each offset in parentheses):", "",
@@ -772,7 +807,8 @@ def md(out):
     for name, g in r3o["groups"].items():
         S.append(f"| {name} | " + " | ".join(f"{g['logit_profile_mean'][offs.index(o)]:.2f} ({g['logit_profile_n'][offs.index(o)]})" for o in pick_offs) + " |")
     p6 = r3o["P6"]
-    S += ["", f"P6 read (arm N first episodes, m = 1, hidden need, in sight at the crossing; 0.10 / B = 0): eligible friend episodes {p6['eligible_friend_episodes']}; "
+    S += ["", f"P6 read (arm N first episodes, m = 1, hidden need, in sight at the crossing; 0.10 / B = 0): single-need hidden-need first episodes {p6['eligible_friend_episodes']}, "
+          f"of them with at least one observer in sight at the crossing {p6['pooled']['friend_episodes_with_an_observer_in_sight']} ({p6['pooled']['observer_episodes_in_sight']} observer-episodes per seed); "
           f"pooled majority {_f(p6['pooled']['majority'])}, padded median lead {_f(p6['pooled']['median_lead_padded'], 1)}; per stratum "
           + "; ".join(f"{st}: majority {_f(x['majority'])}, padded median lead {_f(x['median_lead_padded'], 1)} (n obs-episodes {x['per_seed']['1']['observer_episodes']})" for st, x in p6["per_stratum"].items()), ""]
     # R6
@@ -791,6 +827,8 @@ def md(out):
         for band, b in g["bands"].items():
             S.append(f"| {arm} | {band} | {b['episodes']} | {b['length_median']} | {b['H_since_onset_median']} | {b['in_sight_share']:.2f} | "
                      f"{_f(b['reg']['detected'])} | {_f(b['reg']['median_latency'], 1)} | {_f(b['pick']['detected'])} | {_f(b['pick']['median_latency'], 1)} |")
+    S.append("")
+    for arm, g in r7o.items():
         S.append(f"arm {arm}: {g['episodes_ordinal_2_up']} later windows, {g['released_with_crossing']} released with a crossing, {g['unreleased']} unreleased at the world's end")
     S.append("")
     # R8

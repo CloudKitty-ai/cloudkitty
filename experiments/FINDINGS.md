@@ -134,6 +134,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-068 | active | The head's means name the grave need (0.871 in sight) and its probability is over 0.2 before a mid-world grave episode begins in most cases (0.912 of in-sight onsets); the means-against-90 reading misses half or more |
 | F-069 | active | The head's grave probability is a property of the young state: 0.995 at a world's start, 0.358 after 100 clean ticks, 0.287 / 0.288 after 500 and 2,000; a 2-tick burn-in removes the first-tick false alarms on the per-cat worlds |
 | F-070 | active | Detection falls gradually with clean history, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 at H = 1 / 5 / 10 / 20); knee at H = 20 |
+| F-071 | active | On natural rows the frozen probe's history curve is the head's, not the splice's: a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 lived ticks is detected in 0.490 / 0.398 / 0.370 at 0.10 (splice 0.358 / 0.287 / 0.288, inside one seed SD and above it at every stratum), the elevated-start crossing at H 11–75 in 0.431 (splice 0.362 at H = 50), the reset crossing in 1.000 (P's 0.995); the alarm precedes the crossing in a minority (0.13–0.32 past the first frame) while the logit rises 1.6–2.5 over the climb |
 
 ---
 
@@ -2388,4 +2389,89 @@ long clean history is seen, is still open.
 H = 5 to 50, or detection at H = 10 at or above 0.70 beyond its seed SD.
 **Re-verify when**: the needy set's onset strata are read, since their
 anchors come from this curve; any retrain.
+
+## F-071 · active · On natural rows the frozen NF-h24+p's history curve is the head's, not the splice's: a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 ticks of lived history is detected in 0.490 / 0.398 / 0.370 of observer-episodes at 0.10 (the splice's 0.358 / 0.287 / 0.288, inside one seed SD and above it at every stratum), an elevated start's crossing at H 11–75 in 0.431 (the splice's 0.362 at H = 50), and the reset crossing in 1.000 (P's covered 0.995); the alarm precedes the crossing in a minority of episodes (0.13–0.32 past the first frame) while the probe's logit rises 1.6–2.5 over the climb
+Minted from the needy set, §11 step 7 (`needy-set-2026-10-28/RESULTS.md`
+§11 step 7, gated PASS round 3; DECLARATION RULED 2026-10-29, amendments 1 and 2;
+owner 2026-11-01 "Take care of both of those, then run step 7", after
+her pick of the operating point "Ok, I'm convinced. 0.05, 2" on the
+tuning half's ladder). Data: the set's 360 worlds (`g2-rot2` less one
+network, seat k scripted on its config behaviour: arm T P's 50
+evaluation seeds at 4,000 ticks with the friend's needs started in
+{60, 95}; arm E 80 worlds at 800 ticks, the friend on `needy` with
+its five hidden needs started at 60 and the mask opening at tick 0;
+arm N 230 worlds at 6,000 ticks, the friend on `needy` from the
+default start with the late onset level's top edge at 4,500), the
+360 worlds holding 6,576,000 covered cat-ticks (6,496,000 burned in
+step 5, 80,000 in step 4) under S1 with 0 aborts, the reads
+themselves 0; the frozen NF-h24 heads and 1d's three probes, run as
+1d ran them (n8). Method: DECLARATION §4–§5 (the crossing as the
+history anchor, the mask opening as the anticipation anchor; strata
+on the crossing's offset from the slice's first tick; detection
+anywhere in the episode, R4d's; an anticipation run one that starts
+inside [mask onset, crossing)); the comparators F-069's and F-070's
+rows at 0.10. At 0.10 / B = 0, seed mean ± SD over the three probe
+seeds, first episodes on all 360 worlds: T-H0 1.000 ± 0.000 (50
+friend episodes; P's same-seed covered friend 0.995 ± 0.009 by the
+same reader), E-H1 0.431 ± 0.043 (47; the splice at H = 50 0.362 ±
+0.070, so the natural figure is inside one SD and 0.001 under the
+band's top; by the splice's bins 0.083 / 0.546 / 0.431 at [10, 20) /
+[20, 50) / [50, 100) on 3 / 9 / 35 episodes against 0.658 / 0.537 /
+0.362), N-H2 0.490 ± 0.084 (61; splice 0.358 ± 0.175), N-H3 0.398 ±
+0.094 (109; 0.287 ± 0.143), N-H4 0.370 ± 0.108 (52; 0.288 ± 0.132);
+the B = 2 column equal to B = 0 in every stratum but T-H0's latency.
+The declaration's P7, P10 and P11 are met (P10's clause: "If P10
+holds, F-069 is a property of the head, not of the splice"; P11's:
+"If P10 and P11 both hold, F-069 and F-070 together are a property
+of the head"); the Professor's P6 is not: on the eligible arm N first episodes
+(85 single-need hidden-need episodes, 74 with an observer in sight
+at the crossing, 194 observer-episodes per seed) the alarm run
+starts before the crossing in 0.153 of observer-episodes (H2 0.265,
+H3 0.131, H4 0.125), the padded median lead −1. Beside it: anticipation past the first frame
+0.325 / 0.130 / 0.164 / 0.210 (E-H1 / N-H2 / N-H3 / N-H4) with median
+leads 27–45 ticks at 0.10 / B = 0 and the pick; the mean logit aligned to the crossing rises from
+−8.4 / −7.6 / −7.7 at −100 to −5.9 / −6.0 / −5.5 at it (0.10 is
+−2.2); later episodes (ordinal 2 and up, 920 in arm N) detected in
+0.420–0.426 whatever the gap since the last release; the head's five
+means name the masked need in 0.77–0.78 of grave samples in sight
+(arm N, single-need masks: sleep 0.97, eat 0.87, drink 0.72, cuddle
+0.63, play 0.50). At her
+operating point 0.05 / B = 2 on the confirming seeds alone (R5, the
+figures Phase 2 cites): detection 1.000 / 0.489 / 0.596 / 0.444 /
+0.421 (T-H0 / E-H1 / N-H2 / N-H3 / N-H4), one stratum column flagged
+outside its tuning band (N-H2's anticipation, 0.253 against a band to
+0.251), covered-friend false alarms 0.63 per 10,000 observer-ticks in
+arm N.
+
+Scope: the frozen NF-h24+p (Phase 1b heads, 1d probes); 20×20 under
+fog, radius 4; `g2-rot2` less one network beside a scripted friend
+(four networks, not the certified five, F-043); `needy` releasing at
+90 (grave lasts as long as relief takes: episode medians 12 / 105 /
+43 / 33 ticks in E-H1 / N-H2 / N-H3 / N-H4 against the donors' 40),
+arm E's start n = 60; first episodes; three probe seeds. Caveats
+that bound the claim: a scripted friend, not a covered one (P7 says
+the H0 signature matches; late-state transfer rests on R3); within
+one seed SD is a wide band (the comparators' SDs 0.07–0.18) and every
+natural figure sits above its comparator, so "no worse than the
+splice" is the claim, not "equal"; E-H1 holds 47 episodes against
+the 50 the declaration sized for and its figure is 0.001 under the
+band's edge; the happiness-edge crossings (3–8 per stratum) are
+detected more often than need-edge ones (0.53–0.82 against
+0.32–0.48); a covered friend's slow crossing is still the case no set
+holds (F-069's open question, answered here on scripted rows only).
+What it hands on: F-069's open question (whether the head sees a
+slow crossing into grave after a long clean history) is answered on
+natural rows at about 0.4 at 0.10, no worse than the splice said;
+the Phase 2 declaration cites R5's confirming figures at 0.05 /
+B = 2; the price of living beside a `needy` friend is R8's (covered
+mean happiness 86.43 against arm T's 87.36; 36.7 masked refusals per
+1,000 covered cat-ticks on top of the 22.9 ordinary ones), reported
+to Product.
+
+**Invalidated by**: a re-read of R2 at 0.10 / B = 0 on fresh seeds of
+these configs putting N-H2, N-H3 or N-H4 outside its comparator's
+seed SD, or E-H1 outside [0.292, 0.432]; or a flagged R5 stratum
+whose confirming detection falls below the splice's comparator.
+**Re-verify when**: any retrain of the head or the probe; a set with a
+covered `needy` friend; Phase 2's reading set, if it is not this one.
 

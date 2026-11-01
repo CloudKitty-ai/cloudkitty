@@ -661,7 +661,9 @@ def test_n20_R1_pairs_each_arm_T_world_with_Ps_same_seed_world():
 def test_n21_the_menus_kitty_slots_map_to_seats_as_the_reader_assumes():
     # red: the slot roster descending (step7.slot_roster `[j for j in range(R.ROSTER) if j != observer]`
     # -> reversed) -> the first scene this seat started in T1 1095452 names
-    # another seat than the proposal's slot: ('T', 1, 1095452, 1, 20, 'PlayKitty2', 2, 3).
+    # another seat than the proposal's slot: ('T', 1, 1095452, 1, 16, 'PlayKitty2', 2, 3)
+    # (tick 16, not the previewed 20: the mutated helper also drives the
+    # exclusion below, so a tick the unmutated guard skips is read).
     # Read on scenes the seat itself started: a fresh partnered scene (no
     # partner at the end of the previous tick) whose partner did not propose
     # toward this seat that tick (a partner's accepted proposal makes the

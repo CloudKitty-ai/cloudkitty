@@ -1212,11 +1212,11 @@ data:
 
 | guard | mutation | predicted first red | observed |
 |---|---|---|---|
-| n17 | `step7.r5` groups every record as confirming (`group_recs(recs, "confirming")` → `group_recs(recs, None)`) | N-H3's confirming count on the two-world record is 2, not 1: `AssertionError: ('N-H3', 2)` | (pending) |
-| n18 | the anticipation window's lower edge one tick early (`ladder.world_cells` `fe["onset"] <= st < c` → `fe["onset"] - 1 <= st < c`) | N1 1095727 (onset tick 1) takes its tick-0 run as anticipation at 0.10 / B = 0, observer 1: `AssertionError: ('N', 1, 1095727, 't0.10-B0', '1', 0, 1, 225)` | (pending) |
-| n19 | P7's bar read strictly (`step7.score` `w100 >= PRED["P7"]["bar"]` → `>`) | the read at exactly 0.986 scored NOT MET: `AssertionError: ('P7', 0.986)` | (pending) |
-| n20 | the pairing's friend seat wrong (`step7.p_record` `f = k - 1` → `f = k % 5`) | P1 1095452's seat 1 did not start elevated: `AssertionError: ('P pairing', 1, 1095452, 1, …)` | (pending) |
-| n21 | the slot roster descending (`step7.slot_roster` `[j for j in range(R.ROSTER) if j != observer]` → `[::-1]`) | the first scene seat 1 itself started in T1 1095452 names another seat than the proposal's slot: `AssertionError: ('T', 1, 1095452, 1, 20, 'PlayKitty2', 2, 3)` (the guard reads fresh scenes the seat started; a partner's accepted proposal makes the scene whatever the seat proposed, so those ticks are skipped; the engine's rule is spec 049 FR-011, `observe.rs` `TargetTable`) | (pending) |
+| n17 | `step7.r5` groups every record as confirming (`group_recs(recs, "confirming")` → `group_recs(recs, None)`) | N-H3's confirming count on the two-world record is 2, not 1: `AssertionError: ('N-H3', 2)` | `AssertionError: ('N-H3', 2)` — RED CONFIRMED |
+| n18 | the anticipation window's lower edge one tick early (`ladder.world_cells` `fe["onset"] <= st < c` → `fe["onset"] - 1 <= st < c`) | N1 1095727 (onset tick 1) takes its tick-0 run as anticipation at 0.10 / B = 0, observer 1: `AssertionError: ('N', 1, 1095727, 't0.10-B0', '1', 0, 1, 225)` | `AssertionError: ('N', 1, 1095727, 't0.10-B0', '1', 0, 1, 225)` — RED CONFIRMED |
+| n19 | P7's bar read strictly (`step7.score` `w100 >= PRED["P7"]["bar"]` → `>`) | the read at exactly 0.986 scored NOT MET: `AssertionError: ('P7', 0.986)` | `AssertionError: ('P7', 0.986)` — RED CONFIRMED |
+| n20 | the pairing's friend seat wrong (`step7.p_record` `f = k - 1` → `f = k % 5`) | P1 1095452's seat 1 did not start elevated: `AssertionError: ('P pairing', 1, 1095452, 1, …)` | `AssertionError: ('P pairing', 1, 1095452, 1, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])` — RED CONFIRMED on the second cycle; the first cycle's `sed` matched the same line in `world_record` as well, so n17 (run first) died on a `ValueError` and the tool called it a wrong-reason red; the edit was scoped to `p_record`, nothing else changed |
+| n21 | the slot roster descending (`step7.slot_roster` `[j for j in range(R.ROSTER) if j != observer]` → `[::-1]`) | the first scene seat 1 itself started in T1 1095452 names another seat than the proposal's slot: `AssertionError: ('T', 1, 1095452, 1, 20, 'PlayKitty2', 2, 3)` (the guard reads fresh scenes the seat started; a partner's accepted proposal makes the scene whatever the seat proposed, so those ticks are skipped; the engine's rule is spec 049 FR-011, `observe.rs` `TargetTable`) | `AssertionError: ('T', 1, 1095452, 1, 16, 'PlayKitty2', 2, 3)` — RED CONFIRMED on the second cycle: the first prediction (tick 20) was previewed with the unmutated slot helper, but the mutant's helper also drives the guard's own partner-proposal exclusion, so under it tick 16 is no longer excluded and fails first; the prediction was corrected to 16, nothing else changed |
 
 ### Regeneration
 
@@ -1229,6 +1229,367 @@ VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/step7.py plan              
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/step7.py read --out $A/reads/step7.json --md > $A/reads/step7.md   # about 4 min (360 worlds + P's 50 + 20 pairs, 3 probe seeds)
 VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B $A/test_needy_set.py n17 n18 n19 n20 n21                             # about 1 min
 ```
+
+### The read (2026-11-01)
+
+`step7.py read` at 953d3def plus the edits to `step7.py` committed with
+this record, about a minute (59 s on the recorded run), `reads/step7.json` (every world's record) and
+`reads/step7.md` (every table). 360 worlds, P's 50, the 20 pairs; 0
+covered cat-ticks. The confirming half opened here, after her pick.
+The edits, every one an addition the gate's round 1 asked for and none
+moving a declared column: R7's summary lines under its table; P6's
+counts printed before and after the sight filter; R3's outcome columns
+(detected without an anticipation run, never alarmed); R2's
+mask-anchored version of the stratum read, which §6 P10 says is printed
+beside the crossing-anchored one; and R8's pair difference taken from
+the S2 read's own quantity (`covered_scout.covered_mean`) instead of
+rounded per-seat means, which moved the pairs' SD and extremes in the
+third decimal and nothing else.
+
+**Scope of every figure below** (the declaration's, §2–§4, §13): the
+frozen NF-h24+p (Phase 1b heads, 1d probes, three seeds); 20×20 under
+fog at vision radius 4; `g2-rot2` less one network beside the scripted
+friend, four networks and not the certified five (F-043); arm T P's 50
+evaluation seeds at 4,000 ticks with the friend's needs started in
+{60, 95}; arm E 80 worlds at 800 ticks, the friend on `needy` with its
+five hidden needs started at n = 60 and the mask opening at tick 0; arm
+N 230 worlds at 6,000 ticks, the friend on `needy` from the default
+start, the late onset level's top edge 4,500 (amendment 1); strata on
+the crossing's H: H0 [0, 2), H1 [2, 100), H2 [100, 300), H3 [300,
+1,250), H4 [1,250, 6,000); the set's 360 worlds hold 6,576,000 covered
+cat-ticks (6,496,000 burned in step 5, 80,000 in step 4) under S1 with
+0 aborts, these reads 0. §6's clause on P11:
+"If P10 and P11 both hold, F-069 and F-070 together are a property of
+the head."
+
+**First episodes on the confirming half:** arm T 25 of 25 reset
+episodes; arm E 23 in H1, 11 at H ≥ 100, 1 first window released with
+no crossing, 5 unreleased at tick 800; arm N 26 in H2, 64 in H3, 20 in
+H4, 5 released with no crossing. On all seeds the primary strata hold
+T-H0 50, E-H1 47, N-H2 61, N-H3 109, N-H4 52 friend episodes: every
+stratum §7 sized to 50 reaches it except E-H1, three short (w_E = 16 at
+the scout's H1 share of 0.66 expected 52.8; the set's share came out
+0.59, 47 of 80). E-H2 (24) stays apart.
+
+#### R5 — the picked cell (0.05 / B = 2) on the confirming seeds
+
+| stratum | friend episodes conf / tun | detected conf / tun | tuning ± 2 SE | median latency conf / tun | in sight conf / tun | under fog conf / tun | anticipated, run not at B, conf / tun | tuning ± 2 SE | median lead conf / tun |
+|---|---|---|---|---|---|---|---|---|---|
+| T-H0 | 25 / 25 | 1.000 / 1.000 | [1.000, 1.000] | 2.0 / 2.0 | – | – | – | – | – |
+| E-H1 | 23 / 24 | 0.489 ± 0.022 / 0.528 ± 0.091 | [0.353, 0.702] | 36.7 / 2.0 | 0.400 / 0.528 | 0.544 / 0.528 | 0.254 ± 0.082 / 0.392 ± 0.110 | [0.242, 0.543] | 38.0 / 36.8 |
+| N-H2 | 26 / 35 | 0.596 ± 0.092 / 0.536 ± 0.077 | [0.376, 0.696] | 23.7 / 43.3 | 0.582 / 0.558 | 0.612 / 0.503 | 0.253 ± 0.059 / 0.150 ± 0.047 | [0.049, 0.251] **FLAG** | 30.0 / 20.8 |
+| N-H3 | 64 / 45 | 0.444 ± 0.110 / 0.459 ± 0.111 | [0.322, 0.597] | 35.0 / 15.8 | 0.501 / 0.485 | 0.359 / 0.421 | 0.211 ± 0.077 / 0.232 ± 0.125 | [0.119, 0.344] | 35.2 / 40.3 |
+| N-H4 | 20 / 32 | 0.421 ± 0.134 / 0.409 ± 0.144 | [0.253, 0.565] | 2.3 / 3.8 | 0.429 / 0.439 | 0.405 / 0.355 | 0.275 ± 0.108 / 0.307 ± 0.098 | [0.163, 0.452] | 23.8 / 42.2 |
+
+False alarms per 10,000 observer-ticks, confirming / tuning (tuning
+SE): arm N scripted friend before its first mask 0.38 / 0.29 (0.10),
+from its first mask on 1.47 / 1.50 (0.20), covered friends 0.63 / 0.71
+(0.06); arm E from the first mask 1.95 / 3.39 (1.14), covered friends
+1.02 / 1.04 (0.36); arm T from the first mask 0.51 / 0.91 (0.28),
+covered friends 0.07 / 0.05 (0.02). No false-alarm class is flagged.
+
+**One flag, reported, not failed** (§5): N-H2's anticipation with the
+offset-B run left out, 0.253 on the confirming seeds against 0.150 on
+the tuning seeds, 0.003 over the top of the band. Every detection
+column sits inside its band. The confirming figures Phase 2 cites at
+her operating point: detection T-H0 1.000, E-H1 0.489, N-H2 0.596,
+N-H3 0.444, N-H4 0.421; anticipation past the first frame 0.25 / 0.25
+/ 0.21 / 0.28 in E-H1 / N-H2 / N-H3 / N-H4; false alarms on covered
+friends 0.63 per 10,000 observer-ticks in arm N. E-H1's median latency
+moved from 2.0 to 36.7 ticks between the halves (no flag is declared
+on latency); the confirming half's H1 episodes have a longer median
+length (17 against 12; over all seeds E-H1's lengths run 5 / 12 /
+134.5 at the quartiles, max 546), and a median over few detections
+moves with which episodes carry them.
+
+#### R1 — tie-back
+
+Arm T's 50 reset episodes (every arm T world grave at tick 0; median
+length 23.5 against P's 40.0 on the same seeds: the scripted friend
+relieves faster) are detected in 1.000 ± 0.000 of observer-episodes at
+0.10 with B = 0 and with B = 2, anywhere in the episode and inside the
+first 100 ticks, in every block. P's same-seed covered friend, read
+from the committed P(grave) files the same two ways: 0.995 ± 0.009 at
+B = 0 (F-069's figure, reproduced; block T3 0.975) and 0.980 ± 0.005 at
+B = 2 (T3 0.917, T4 0.983). Scores P7 and P10's clause 1 below.
+
+#### R2 — history
+
+| stratum | friend episodes (tun + conf) | H min / median / max | length min / q1 / median / q3 / max | edge need / hap | m 1 / 2 / 3 / 4 | detected 0.10 B = 0 | median latency | in sight | under fog | detected 0.10 B = 2 | need edge / happiness edge | splice (§2) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| T-H0 | 50 (25 + 25) | 0 | 6 / 11.25 / 23.5 / 51.25 / 118 | – | – | 1.000 ± 0.000 | 0.3 | – | – | 1.000 ± 0.000 | – | 0.995 ± 0.009 (P, H = 0) |
+| E-H1 | 47 (24 + 23) | 11 / 75 / 75 | 1 / 5 / 12 / 134.5 / 546 | 39 / 8 | 23 / 10 / 10 / 4 | 0.431 ± 0.043 | 25.3 | 0.418 | 0.439 | 0.431 ± 0.043 | 0.410 / 0.531 | H = 50: 0.362 ± 0.070 (H = 10: 0.658, H = 20: 0.537) |
+| N-H2 | 61 (35 + 26) | 113 / 217 / 290 | 1 / 14 / 105 / 225 / 813 | 55 / 6 | 15 / 17 / 10 / 19 | 0.490 ± 0.084 | 46.0 | 0.514 | 0.459 | 0.490 ± 0.084 | 0.480 / 0.583 | H = 100: 0.358 ± 0.175 |
+| N-H3 | 109 (45 + 64) | 300 / 507 / 1,236 | 1 / 5 / 43 / 173 / 632 | 106 / 3 | 49 / 25 / 20 / 15 | 0.398 ± 0.094 | 37.2 | 0.432 | 0.349 | 0.398 ± 0.094 | 0.390 / 0.694 | H = 500: 0.287 ± 0.143 |
+| N-H4 | 52 (32 + 20) | 1,278 / 2,434.5 / 4,498 | 1 / 6.5 / 33 / 126.5 / 668 | 47 / 5 | 23 / 17 / 7 / 5 | 0.370 ± 0.108 | 6.2 | 0.403 | 0.311 | 0.370 ± 0.108 | 0.323 / 0.817 | H = 2,000: 0.288 ± 0.132 |
+| E-H2 (apart) | 24 (13 + 11) | 100 / 100 / 217 | 1 / 2.75 / 7.5 / 28.5 / 393 | 24 / 0 | 18 / 3 / 3 / 0 | 0.306 ± 0.126 | 29.8 | 0.294 | 0.324 | 0.306 ± 0.126 | 0.306 / – | – |
+
+Three things the table says. Detection on natural rows sits above the
+splice's figure at every primary stratum (by 0.132 / 0.111 / 0.082 in
+N-H2 / H3 / H4 and 0.069 in E-H1), inside one comparator seed SD in
+each (0.175 / 0.143 / 0.132 / 0.070), and the B = 2 column equals the
+B = 0 column everywhere a crossing comes after tick 2. The donors'
+episodes were 5 / 40 / 238 ticks long (min / median / max); these run
+from 1 tick to 813, medians 12 (E-H1), 105 (N-H2), 43 (N-H3) and 33
+(N-H4), so the "anywhere in the episode" read has more ticks to work
+with in N-H2 than the splice had and fewer in E-H1. The few
+happiness-edge crossings (3 to 8 per stratum, 22 in all, 19 of them
+under a multi-need mask dragging happiness under 45 before any need
+reaches 90) are detected more often than need-edge ones in every
+stratum (0.531 to 0.817 against 0.323 to 0.480). In sight and under
+fog: the N strata read higher in sight (0.514 / 0.432 / 0.403 against
+0.459 / 0.349 / 0.311), E-H1 the other way (0.418 / 0.439). E-H1 by
+the splice's bins at 0.10 / B = 0: [10, 20) 3 episodes 0.083, [20, 50)
+9 episodes 0.546, [50, 100) 35 episodes 0.431, against the splice's
+0.658 / 0.537 / 0.362 at H = 10 / 20 / 50: where the stitched curve
+falls across H1, the natural one rises from its young bin (three
+episodes, 0.083 against the H = 10 row's 0.658) to its middle one and
+sits over the splice at both of the two larger bins, by 0.009 at [20,
+50) (0.546 against the H = 20 row's 0.537, nine episodes) and by 0.069
+at [50, 100) on thirty-five episodes. The mask-anchored version §6 asks
+for beside P10 (the stratum set by the mask onset's offset instead of
+the crossing's, first episodes at 0.10 / B = 0): E-H0 71 episodes
+0.389 ± 0.064; N-H0 31 (onsets 0 to 1) 0.352 ± 0.061; N-H1 50 (onsets
+2 to 88) 0.472 ± 0.077; N-H2 28 (116 to 288) 0.408 ± 0.192; N-H3 65
+(301 to 1,142) 0.444 ± 0.076; N-H4 48 (1,253 to 4,287) 0.371 ± 0.100.
+Scores P10's clause 2 and P11 below on the crossing anchor (call 2).
+
+#### R3 — anticipation
+
+| stratum | cell | anticipated, any run | median lead | anticipated, run not at B | median lead | q1 – q3 lead | per m (1 / 2 / 3 / 4) | per single masked need |
+|---|---|---|---|---|---|---|---|---|
+| E-H1 | 0.10 / B = 0 | 0.777 ± 0.382 | 62.3 | 0.325 ± 0.037 | 45.3 | 27.7 – 64.2 | 0.754 / 0.775 / 0.792 / 0.875 | eat 0.717, drink 0.792, sleep 0.917, play 0.750, cuddle 0.726 |
+| E-H1 | 0.05 / B = 2 | 0.589 ± 0.161 | 55.0 | 0.325 ± 0.093 | 37.2 | 21.3 – 50.8 | 0.591 / 0.683 / 0.483 / 0.604 | eat 0.450, drink 0.750, sleep 1.000, play 0.488, cuddle 0.631 |
+| N-H2 | 0.10 / B = 0 | 0.329 ± 0.152 | 105.2 | 0.130 ± 0.035 | 27.5 | 10.2 – 40.1 | 0.267 / 0.324 / 0.450 / 0.320 | eat 0.194, drink 0.133, play 0.333, cuddle 0.417 |
+| N-H2 | 0.05 / B = 2 | 0.197 ± 0.040 | 28.3 | 0.194 ± 0.044 | 27.0 | 10.3 – 43.2 | 0.078 / 0.240 / 0.258 / 0.219 | eat 0.306, drink 0.017, play 0.000, cuddle 0.033 |
+| N-H3 | 0.10 / B = 0 | 0.188 ± 0.074 | 44.8 | 0.164 ± 0.091 | 32.3 | 15.4 – 61.0 | 0.133 / 0.240 / 0.221 / 0.239 | eat 0.226, drink 0.103, sleep 0.300, play 0.000, cuddle 0.031, bath 0.333 |
+| N-H3 | 0.05 / B = 2 | 0.219 ± 0.096 | 36.5 | 0.219 ± 0.096 | 36.5 | 17.0 – 71.5 | 0.122 / 0.307 / 0.317 / 0.261 | eat 0.214, drink 0.006, sleep 0.383, play 0.000, cuddle 0.031, bath 0.333 |
+| N-H4 | 0.10 / B = 0 | 0.210 ± 0.063 | 29.7 | 0.210 ± 0.063 | 29.7 | 18.5 – 58.2 | 0.112 / 0.172 / 0.524 / 0.350 | eat 0.167, drink 0.042, sleep 0.250, play 0.042, cuddle 0.000, bath 0.000 |
+| N-H4 | 0.05 / B = 2 | 0.295 ± 0.099 | 37.8 | 0.295 ± 0.099 | 37.8 | 18.8 – 64.7 | 0.210 / 0.245 / 0.595 / 0.433 | eat 0.400, drink 0.125, sleep 0.306, play 0.083, cuddle 0.050, bath 0.167 |
+
+(E-H2's rows and the outcome columns are in `reads/step7.md`; the
+per-m and per-need cells rest on 4 to 196 observer-episodes each,
+printed there.) The arm E "any run" column at B = 0 is the first-frame
+run again (0.777; the column beside it, 0.325, is the one to read).
+Past the first frame the probe anticipates a crossing in a minority of
+observer-episodes in every primary stratum (E-H2, apart, 0.531 /
+0.507): about a third in E-H1, 0.13 to 0.21 in arm N at 0.10, 0.19 to
+0.29 at her pick, with median leads of 27 to 45 ticks. Where the alarm
+falls otherwise, at 0.10 / B = 0 (E-H1 / N-H2 / N-H3 / N-H4): a
+detection with no anticipation run, the alarm only at or after the
+crossing, 0.241 / 0.387 / 0.262 / 0.191; neither, past the first
+frame, 0.434 / 0.484 / 0.574 / 0.599 (the first-frame run itself fired
+on some of these). A single masked need anticipates least in arm N (m = 1:
+0.08 to 0.21 at the pick) and a mask of three needs most (0.26 to
+0.60). By need at the pick: a masked sleep 0.38 / 0.31 in N-H3 / N-H4
+and 1.000 on E-H1's eight, eat 0.21 to 0.40 in arm N, and drink, play
+and cuddle 0.00 to 0.13 in arm N (at 0.10 / B = 0 N-H2 reads cuddle
+0.417 and play 0.333 on 20 and 8 observer-episodes, the first-frame
+run included there). The logit profile shows what the probe does read
+while the alarm stays off: aligned to the crossing, the mean
+logit over the N strata rises from about −8.4 / −7.6 / −7.7 a hundred
+ticks before it (N-H2 / H3 / H4) to −5.9 / −6.0 / −5.5 at it, 1.6 to
+2.5 logits over the climb, most of it before −20; 0.10 is logit −2.2,
+so the climb is read and the alarm rarely reached before the crossing.
+E-H1's profile sits near −5 throughout, falling slightly (−4.4 at −50
+to −5.1 at the crossing: the elevated start keeps the row high from
+the first frame) and E-H2's falls from −2.7 at −100 toward −5.6.
+Scores P6
+below: arm N single-need hidden-need first episodes 85, of them 74
+with at least one observer in sight at the crossing (194 eligible
+observer-episodes per seed; the sight filter applies per observer);
+seed-mean majority 0.153 (H2 0.265, H3 0.131, H4 0.125); the padded
+median lead is −1 in every stratum (more than half of eligible
+observer-episodes never alarm before the crossing).
+
+#### R6 — which need
+
+On the scripted friend's grave ticks an observer sees, the argmax of
+NF-h24's five predicted means names a masked hidden need in 0.780 ±
+0.026 (arm E, 30,648 samples on seed 1) and 0.771 ± 0.018 (arm N,
+396,818) of samples, and a need at 90 (R3d's read) in 0.831 / 0.805
+(arm T, no mask: 0.803 on 2,240). On single-need masks, per masked
+need (arm N; samples, accuracy): sleep 13,595, 0.966 ± 0.007; eat
+7,189, 0.872 ± 0.019; drink 9,729, 0.720 ± 0.128; cuddle 16,233, 0.629
+± 0.094; play 3,940, 0.498 ± 0.076; arm E: sleep 319, 1.000; cuddle
+2,032, 0.633 ± 0.129; eat 521, 0.432 ± 0.068 (play 20, under the
+floor). Input to decision 4's per-need output, nothing more.
+
+#### R7 — later episodes
+
+Arm N: 1,049 mask windows of ordinal 2 and up, 920 released with a
+crossing, 74 unreleased at the world's end. By the gap since the last
+release, detection at 0.10 / B = 0 is 0.420 ± 0.089 / 0.426 ± 0.104 /
+0.420 ± 0.108 in [300, 600) / [600, 900) / [900, 1,200] (323 / 337 /
+260 episodes; median latency 33.3 / 32.3 / 38.7; lengths median 42 /
+37 / 30.5; H since onset median 176 to 182; in sight at the crossing
+0.59 to 0.62), and 0.473 / 0.470 / 0.477 at her pick: flat in the gap,
+and between the first episodes' N-H2 (0.490) and N-H4 (0.370) at
+0.10. Arm E's 9 later
+episodes (31 later windows, 22 unreleased by tick 800) read 0.176 ±
+0.058, printed and not weighed.
+
+#### R8 — price
+
+| arm | half | worlds | covered mean happiness (mean / SD / min over worlds) | distress ticks per 1,000 covered cat-ticks | grave ticks per 1,000 | worst covered single-need streak median / max | worlds with any covered grave tick | scripted friend's grave ticks, mean |
+|---|---|---|---|---|---|---|---|---|
+| T | tuning | 25 | 87.36 / 0.25 / 86.99 | 0.01 | 0.01 | 0 / 4 | 1 | 48.8 |
+| T | confirming | 25 | 87.36 / 0.24 / 86.89 | 0.00 | 0.00 | 0 / 0 | 0 | 38.7 |
+| T | pooled | 50 | 87.36 / 0.24 / 86.89 | 0.01 | 0.01 | 0 / 4 | 1 | 43.8 |
+| E | tuning | 40 | 86.50 / 1.72 / 79.45 | 4.52 | 4.93 | 0 / 125 | 5 | 115.2 |
+| E | confirming | 40 | 86.37 / 2.25 / 78.01 | 5.55 | 6.11 | 0 / 375 | 7 | 178.6 |
+| E | pooled | 80 | 86.43 / 1.99 / 78.01 | 5.04 | 5.52 | 0 / 375 | 12 | 146.9 |
+| N | tuning | 115 | 86.47 / 0.59 / 84.74 | 3.37 | 3.75 | 11 / 514 | 68 | 645.2 |
+| N | confirming | 115 | 86.40 / 0.85 / 82.34 | 4.82 | 5.27 | 14 / 487 | 73 | 644.3 |
+| N | pooled | 230 | 86.43 / 0.73 / 82.34 | 4.10 | 4.51 | 13 / 514 | 141 | 644.7 |
+
+The halves agree within 0.14 of a happiness point in every arm and the
+pooled means are the step 5 run record's (87.36 / 86.45 / 86.43 there
+over the same worlds; arm E reads 86.43 here because the run record
+read the obs-aligned stream, which carries the reset state and drops
+the last tick, and R8 reads the post-step stream: over 800 ticks that
+one-tick shift is worth 0.02, over 4,000 and 6,000 nothing at this
+precision). The covered-scout pairs,
+needy minus teacher on the covered seats: arm N −0.876 ± 0.404 over 10
+pairs (min −1.495, max −0.313; distress ticks +122 per world, grave
+ticks +130), arm E −0.222 ± 2.444 (min −3.109, max +6.061; distress
+−40, grave −40): S2's step 4 figures (0.876 ± 0.404, 0.222 ± 2.444)
+with the sign reversed, S2 reading teacher minus needy as amendment 2
+records.
+Distress on the covered seats runs at 4 to 5 ticks per 1,000 covered
+cat-ticks in the needy arms against 0.01 in arm T; 141 of arm N's 230
+worlds hold at least one covered grave tick (whether any shares the
+step 4 cascade's shape, seen in a covered-scout pair, is not read
+here; the worst streak is 514 on the tuning half and 487 on the
+confirming, under S1's 1,000).
+
+**Refused asks toward the scripted friend** (a covered seat's chosen
+menu action naming the friend, not applied as proposed; per 1,000
+covered cat-ticks; the mask attribution by the friend's side of the
+ask at the decision state):
+
+| arm | asks toward the friend | refused | by the mask | other | refused share of asks | refused, by family (pooled, counts) |
+|---|---|---|---|---|---|---|
+| T (no mask) | 102.0 | 23.6 | 0 | 23.6 | 0.23 | chase 9,972; play 7,542; groom 679; rest-with 506; sleep-with 203 |
+| E | 140.5 | 71.7 | 50.9 | 20.9 | 0.51 | groom 9,301; play 4,033; chase 2,737; rest-with 1,728; sleep-with 562 |
+| N | 130.8 | 59.6 | 36.7 | 22.9 | 0.46 | groom 148,084; play 81,903; chase 64,647; rest-with 24,270; sleep-with 10,043 |
+
+The halves agree within 1 per 1,000 in arms T and N and within 8 in
+arm E (tuning / confirming in `reads/step7.md`: arm E 137.5 / 143.6
+asks, 68.3 / 75.2 refused, 47.2 / 54.6 by the mask). Arm T sets the
+floor: with no mask, 23.6 asks
+per 1,000 covered cat-ticks toward the friend are not applied as
+proposed (the binding exposes no reason, §2; the consent gate, a
+running scene, the friend's own proposal winning the tick and
+duration enforcement are the candidates). The needy arms add 36.7 (N) and 50.9
+(E) per 1,000 attributed to the mask, while the "other" rate stays
+near the arm T floor (22.9 and 20.9 against 23.6): the mask's
+refusals come on top of the ordinary ones. Groom-the-friend, which
+relieves the friend's bath, carries the most refusals of any family in
+both needy arms (the family counts are not split by attribution). In
+the covered-scout pairs the teacher worlds held
+5,823 refused asks toward the friend against 13,692 in the needy
+worlds (8,555 of those attributed to the mask) in arm N, and 707
+against 2,321 (1,672) in arm E. For Product (`BACKLOG.md`, 34d764af):
+the masked-refusal rate is about one tick in 27 for every covered cat
+beside a `needy` friend over a 6,000-tick world.
+
+#### Predictions scored (§6; the Professor's P6, P7, P10 verbatim from the note at the sha256 in the declaration's header; P11 this thread's; all at 0.10 / B = 0 on all seeds)
+
+- **P6** ("In single-need episodes in sight, the probe logit at 0.10
+  crosses threshold before the grave crossing in a majority of
+  episodes, with a median lead of at least 20 ticks.") — **not met**:
+  on the eligible arm N first episodes (85 single-need hidden-need
+  episodes, 74 with an observer in sight at the crossing, 194
+  observer-episodes per seed) the seed-mean share with an
+  alarm run starting inside [mask onset, crossing) is 0.153 (clause 1
+  needs over 0.5), and the median lead over all eligible
+  observer-episodes, a never-alarmed one as the lowest value, is −1
+  (clause 2 needs at least 20). Per stratum, against his expectation
+  of 2026-10-26 (§6: that P6 holds "in the early stratum and fail[s]
+  in the late ones"): it
+  fails in all three, H2 highest at 0.265 (H3 0.131, H4 0.125). R3's
+  logit profile shows the shape: on the mean, the climb is read as a
+  1.6-to-2.5-logit rise that stops short of the 0.10 line.
+- **P7** ("The scripted friend's start-up grave detection within the
+  first 100 ticks at 0.10 is within the seed SD of P's covered figure
+  (0.995).") — **met**: 1.000 ± 0.000 against the bar 0.986 (R4d's
+  anywhere-in-episode figure also 1.000; P's same-seed covered friend
+  0.995 ± 0.009 by the same reader).
+- **P10** ("For the scripted needy friend at 0.10 on the frozen
+  NF-h24+p, detection in the earliest history stratum is within one
+  seed SD of P's 0.995, and detection in every stratum with onset
+  after tick 100 is within one seed SD of the splice's figure at the
+  nearest H (0.358 at 100; 0.287 / 0.288 at 500 / 2,000). If P10
+  holds, F-069 is a property of the head, not of the splice.") —
+  **met**: clause 1, 1.000 against 0.986; clause 2, N-H2 0.490 against
+  0.358 ± 0.175, N-H3 0.398 against 0.287 ± 0.143, N-H4 0.370 against
+  0.288 ± 0.132, each inside its band and each above its comparator
+  (by 0.132 / 0.111 / 0.082).
+- **P11** (this thread's: E-H1 at 0.10 / B = 0 detected anywhere in
+  the episode within one seed SD of the splice at H = 50, inside
+  [0.292, 0.432]) — **met**, at the edge: 0.431 ± 0.043, 0.001 under
+  the band's top, on 47 friend episodes (three under the 50-episode
+  floor §7 sized for). Printed beside and not scored: above the
+  splice's 0.362; by bin 0.083 / 0.546 / 0.431 at [10, 20) / [20, 50)
+  / [50, 100) against 0.658 / 0.537 / 0.362; by edge 0.410 (need) and
+  0.531 (happiness).
+
+**His reading of P6 and P7 together** ("If P6 holds and P7 holds, the
+scripted set is a usable proxy for a covered friend's crossing with
+the behaviour-vs-consequence question answered in the direction that
+transfers. If P7 fails, the signature gap is real and the set licenses
+only the physics-consequence half."): P7 holds and P6 does not. No
+signature gap at H0: the scripted friend's reset grave is seen as P's
+covered friend's was. The behaviour-vs-consequence question comes out
+on the consequence side: past the first frame the probe's alarm
+precedes the crossing in 0.13 to 0.32 of observer-episodes, follows it
+with no run before in 0.19 to 0.39, and never fires in 0.43 to 0.60
+(at 0.10 / B = 0, E-H1 and the N strata), with the climb visible in
+the logit but under the line. Which half of his sentence that
+licenses is his to say; the numbers are above.
+
+**Decision rules, applied.** §5 names one, R5's flag: one stratum
+column flagged (N-H2 anticipation past the first frame, 0.253 against
+a band to 0.251), reported. §6's four predictions: P7, P10, P11 met,
+P6 not met. No stop was in reach (reads only).
+
+**What stands alone** (a FINDINGS entry, F-071, in this commit): P10
+and P11 together, by §6's own clause, make F-069 and F-070 properties
+of the head and not of the splice. The frozen probe sees a natural
+grave crossing after 100 to 6,000 ticks of lived history in 0.37 to
+0.49 of observer-episodes at 0.10, above the splice's 0.29 to 0.36 at
+every stratum and inside its seed SD, and the splice's knee region
+(H1) in 0.43 against 0.36. The scores go to the Professor through her;
+the read to Product as information (the R8 refused-ask rates beside
+the BACKLOG entry).
+
+Accuracy gate, step 7: **PASS** 2026-11-01, three rounds, a fresh
+subagent each. Round 1 FAIL (the reader reproduced exactly; four
+characterisations contradicted by the records: "flatter" for a curve
+that rises where the splice falls, "sleep anticipated most" where eat
+led in N-H4, P6's 85 as in-sight episodes where 74 have an observer in
+sight, "follows the crossing in most episodes" where no stratum does;
+two arithmetic misses, a cell-size floor of 8 against 4 and the pair
+extremes off in the third decimal from rounded per-seat means on a line
+naming amendment 2; the guard table's observed column unfilled; §6's
+mask-anchored P10 companion not printed; FINDINGS carrying scope
+numbers the section never stated). Fixed by four reader additions
+(above), the table filled from the mutate cycles, a scope paragraph,
+and rewording. Round 2 FAIL on two one-line items (a splice-bin clause
+reversed, 0.546 over the H = 20 row's 0.537 not under; 6,576,000
+attributed to step 5 where 80,000 of it was step 4's). Round 3: about
+560 numbers all exact, 10 sourced thresholds, 34 characterisations (3
+WEAK, reworded after: the E-H1 latency mechanism, "both populated
+bins" with a third bin populated, "never on" inside the
+past-first-frame scope), 3 undecidable, about 28 provenance checks
+clean, the fresh md byte-identical to the recorded, every F-071 number
+a copy. The gate also noted that `step7.py`'s docstring named
+`refuse_unless` where R5 split the halves by the records' labels alone;
+R5 now passes every grouped world through `refuse_unless` (its figures
+unchanged; the read re-run before this commit, the md identical but
+for the run time). Raw dir `results-raw/set` `v1:973e5cf5a4541ba5`
+(unchanged since step 5; `scripts/rawdir-hash.sh`).
 
 ## Welfare ledger (covered cat-ticks, running)
 

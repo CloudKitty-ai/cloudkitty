@@ -1710,3 +1710,37 @@ figure quoted as a seed mean says when one seed carries it; (60) a
 section that points at its own gate record must carry one in the
 commit that lands it; (61) `mutate.sh`'s test command must be the bare
 test, never a pipe — a trailing `grep` makes every cycle VACUOUS.
+
+## 2026-11-01 — Needy set RESULTS §11 step 7 (R1–R3, R5–R8, the four predictions) + the F-071 copy check, Experiments thread
+
+Three rounds; the reader reproduced exactly in every round (about 560
+numbers, md byte-identical). Round 1 FAIL on four characterisations the
+records contradicted (a curve called "flatter" that rose where the
+comparator fell; "sleep anticipated most" where another need led in one
+stratum; an eligible-episode count quoted as the in-sight count; "the
+alarm follows the crossing in most episodes" where no stratum reached
+half), two arithmetic misses (a cell-size floor of 8 against a true 4;
+pair extremes off in the third decimal because the reader averaged
+per-seat means rounded to 2 dp instead of reusing the S2 read's own
+quantity), the guard table's observed column still "(pending)" after
+the reds had run, a §6 companion read ("the mask-anchored version is
+printed beside it") not printed, and a FINDINGS entry carrying scope
+facts (board size, radius, F-043, start values, the strata edges, the
+cat-tick total) that the section never stated. Fixed with four reader
+additions, the table filled, a scope paragraph and rewording. Round 2
+FAIL on two one-liners (a bin clause reversed; a cat-tick total
+attributed to one step where 80,000 of it was another's). Round 3 PASS
+with 3 WEAK reworded; the subagent also caught a docstring naming a
+gate the code never called. Lessons: (62) a FINDINGS entry copies from
+the section, so every scope fact the entry needs is written into the
+section first, in a paragraph of its own; (63) a §-numbered read that
+says "printed beside it" is a column the reader must emit, checked
+against the declaration before the reader is declared; (64) the guard
+table's observed column is filled in the same edit that records the
+red, never left for the write-up; (65) a comparative sentence
+("flatter", "most", "both", "follows in most") is a claim about a
+specific set of cells — count them before writing it; (66) a reader
+that re-derives a quantity another gated read already defines reuses
+that read's function, so the two cannot drift by rounding; (67) a
+docstring's claim about the code ("through `refuse_unless`") is a
+provenance claim the gate checks against the code.
