@@ -781,6 +781,19 @@ pooled the tuning half only; this one did not, and it is on the record
 as it ran (the gate caught the original sentence, which claimed no
 overlap). It goes to her with this step's report.
 
+**Her ruling (2026-11-01).** The two handlings were put to her: A, accept
+the deviation as stated, R8 in step 7 reads the whole set as declared;
+B, R8 in step 7 reads the tuning half only as a consequence (halving
+R8's n and needing an amendment to punish a read §5 declares rule-free).
+Her word: **"A"**. The deviation stands as stated above; §5's R8 reads
+all 360 worlds in step 7. Reader-design note for step 7, no amendment:
+R8 prints the two halves apart beside the pooled figure, so the pooled
+numbers above decompose on the record. For the record's own reading of
+what was disclosed: the pick (R4) is over detector cells, which do not
+change the worlds, so welfare aggregates carry nothing about which cell
+confirms; the worst covered streak's world (N5 1095953) is a tuning
+seed, the worst scripted streak's (N3 1095850) a confirming seed.
+
 | arm | worlds | ticks | covered cat-ticks | covered mean happiness over worlds (mean / min / max) | worst covered streak | worlds with covered distress / grave | scripted friend: worst streak, mean grave ticks |
 |---|---|---|---|---|---|---|---|
 | T | 50 | 4,000 | 800,000 | 87.36 / 86.90 / 87.83 | 4 | 1 / 1 | 83, 43.8 |
