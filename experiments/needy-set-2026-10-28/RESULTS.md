@@ -1077,6 +1077,23 @@ registered predictions are not scored here.
 cell on the confirming seeds (step 7), the same columns; her words are
 recorded here.
 
+**Her pick (2026-11-01).** Asked for a recommendation; mine was 0.05
+with B = 2 (B = 2 removes the first-frame fire at no cost to any
+crossing on this half; 0.05 over 0.10 buys 5–8 points of detection in
+every primary stratum and shorter latencies for about one extra false
+run per 30,000 covered-friend observer-ticks; the registered
+predictions stay scored at 0.10 / B = 0 on all seeds whatever the
+pick; the grid's floor is 0.05, so a lower optimum would be a new
+declaration). Her words: **"Ok, I'm convinced. 0.05, 2"**. The picked
+cell is **threshold 0.05, burn-in B = 2**: R5 (step 7) reads it on the
+confirming seeds, the same columns, and flags any stratum whose
+confirming value falls outside its tuning value ± 2 world-bootstrap SE
+(§5). On the tuning half the picked cell reads: detection E-H1 0.528,
+N-H2 0.536, N-H3 0.459, N-H4 0.409, T-H0 1.000; anticipation past the
+first frame E-H1 0.392, N-H2 0.150, N-H3 0.232, N-H4 0.307; arm N
+false alarms 1.50 (scripted friend from its first mask) and 0.71
+(covered friends) per 10,000 observer-ticks. Step 7 waits on her word.
+
 Accuracy gate, step 6: **PASS** 2026-11-01, four rounds, a fresh
 subagent each. Round 1 FAIL (tables exact; four bullets overstated the
 tables and three prose numbers were wrong: "shorter than 10 ticks" for
