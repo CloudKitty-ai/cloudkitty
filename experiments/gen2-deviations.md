@@ -959,5 +959,7 @@ cell beside the frozen probe, F-070's splice with the junction control
 Phase 1's estimate cells; P16–P20 registered (P16 mean N-stratum gain
 ≥ 0.15 at matched price; P18 splice H = 100 above 0.358 with H = 0 ≥
 0.95 and the control ≤ 0.05).
-Status: DRAFT (declared; her calls §12 pending; nothing collected,
-trained or read).
+Status: RULED 2026-11-01 (owner "As recommended" to all five §12 calls:
+fresh seeds, 23 + 8 per block, start-drop tolerance 0.95, the
+false-run-matched rule, from scratch); declared da10f553, reds 51e88bf3;
+collection next.

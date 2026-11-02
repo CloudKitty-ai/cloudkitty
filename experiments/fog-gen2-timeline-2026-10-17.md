@@ -510,6 +510,10 @@ consent BC comparison ride the trunk.
   (amendment 2), lived-world false runs, Phase 1's estimate cells;
   P16–P20 registered; `minifriend-phase1e-2026-11-01/DECLARATION.md`,
   deviations entry 16. Nothing collects before she rules §12.
+  PHASE 1e RULED 2026-11-01 (owner "As recommended" to all five §12
+  calls: fresh seeds, 23 + 8 per block, tolerance 0.95, the
+  false-run-matched rule, from scratch); collection (2.92M covered
+  cat-ticks, S1) starts on this ruling.
 
 ## Flagged follow-ups (owner's word to start)
 

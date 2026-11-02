@@ -1,4 +1,4 @@
-# Mini-friend Phase 1e — the natural-frequency head retrained with late-history graves in its training data (declaration 2026-11-01; DRAFT, owner calls §12)
+# Mini-friend Phase 1e — the natural-frequency head retrained with late-history graves in its training data (declaration 2026-11-01; RULED 2026-11-01, §12)
 
 Owner's words, 2026-11-01, to recommendation 2 of the mini-model
 assessment given the same day: "Let's run the retrain. We can
@@ -23,11 +23,12 @@ file can take; it is her call 1 in §12, drafted on fresh seeds as the
 ruled texts say, with the tuning half as the alternative and its cost
 stated. Everything else in the recommendation stands.
 
-**Status: DRAFT. Nothing collects, trains or reads before she rules
-§12. No number from this arc exists.** The instrument and its guards
-are committed with this file (green; reds in the next commit, §7).
+**Status: RULED 2026-11-01 — owner, to the five calls of §12 as
+recommended: "As recommended". Collection (§11 step 3) may start.
+No number from this arc exists at this write.** The instrument and
+its guards were committed with the draft (da10f553; reds 51e88bf3, §7).
 
-Welfare-cost line (as drafted, §12 call 1 = A). Covered minds: the
+Welfare-cost line (ruled, §12 call 1 = A). Covered minds: the
 four frozen rot2 networks seated beside the scripted friend in each
 training world, and no others; no weight any acting policy uses
 changes (the ruling's amendment 1: the head is a separate network on
@@ -478,7 +479,7 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $P/read_1e.py estimate   --out $P/r
 VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $P/read_1e.py score      --out $P/reads/score.json      --md > $P/reads/score.md
 ```
 
-## 12. Owner calls (rule on these with the declaration)
+## 12. Owner calls (RULED 2026-11-01, her words verbatim: "As recommended" — every call below as its recommendation)
 
 1. **Where the training data comes from.** A: fresh seeds, collected
    after this declaration is ruled — the needy set's ruled scope and
