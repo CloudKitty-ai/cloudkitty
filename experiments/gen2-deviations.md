@@ -921,4 +921,15 @@ confirming half beside the pick; P12–P15 registered before any number
 and T-H0; P14 covered-friend false alarms ≤ 1.5 per 10,000; P15 no
 early warning, anticipation gain < 0.10). 0 covered cat-ticks. Gates
 recommendation 2 (Phase 1e, a retrain with late-world graves), hers.
-Status: OPEN (declared; the read follows the reds).
+Status: CLOSED 2026-11-01 (declared 48dae5cf; reds r1–r4 on record,
+one re-red after a wrong-world prediction; the read 62 s; RESULTS gated PASS, round 4). P12 NOT MET: the only pure rise cell inside the pick's
+false-run budget (w = 10, k = 3.0) detects 0.138 / 0.076 / 0.086 of
+the N-H2 / H3 / H4 crossings and adds 0.000 / 0.000 / +0.013 to the
+pick on the confirming half, and no cell of any family inside the
+budget detects more than the pick; the
+pure rise cells that see the climb (w = 100, k ≤ 1.0, detection 0.69–0.90,
+an alarm run starting before the crossing past the first alarmable
+tick in 0.60–0.87 of N-H3 / N-H4 observer-episodes) pay 25–51 times
+the pick's false runs;
+P13–P15 met trivially. No FINDINGS entry; F-071 carries a dated
+addendum. Recommendation 2 (Phase 1e) is the next lever, hers.

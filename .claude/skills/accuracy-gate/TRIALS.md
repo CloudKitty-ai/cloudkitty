@@ -1744,3 +1744,36 @@ that re-derives a quantity another gated read already defines reuses
 that read's function, so the two cannot drift by rounding; (67) a
 docstring's claim about the code ("through `refuse_unless`") is a
 provenance claim the gate checks against the code.
+
+## 2026-11-01 — Probe-rise read RESULTS.md (whole file) + the F-071 addendum, deviations 15 and the timeline lines (copy checks), Experiments thread
+
+Four rounds; the reader reproduced exactly in every round (459 table
+cells, md byte-identical but for the run time). Round 1 FAIL on a
+family range taken from the cells remembered rather than the family
+(0.149 for 0.087), on "the only rise cell" where five cells of a
+sibling family also sat inside the budget (copied into all three
+companions), on "a tenth" true of one family only on the F-071 line,
+and on a re-rounded range in a companion. Round 2 FAIL on "crossings
+fall mostly before tick 199" where the window TICKS do and 16 of 35
+crossings do, on "the alarm on at the crossing" written for an
+anticipation figure, and on the F-071 sentence missing its family
+word and the middle-ground cells. Round 3 FAIL on "before the
+crossing" without "past the first alarmable tick" on the F-071 line.
+Round 4 PASS; one WEAK (tables called copies when they add derived
+columns) reworded after, and six unescaped `|` in cell names fixed
+after. Lessons: (68) a family word in a superlative ("the only rise
+cell") is a set-membership claim — name the family every time, and
+check the sibling families before writing "only"; (69) "the alarm on
+before the crossing", "a run starting before the crossing" and "past
+the first alarmable tick" are three quantities — write the one the
+column measures, with its qualifier, every time it appears, F-lines
+included; (70) a range over a family is computed over the whole
+family from the JSON, never from the rows in view; (71) "mostly" names
+a set — ticks or episodes — and the sentence must say which; (72) a
+companion's status word ("gated") is a claim the gate reads: leave it
+out until the stamp exists; (73) a rule-5 prediction that names which
+world fails first needs that world's own figures (whether any
+observer detects at the cell), not the stratum mean; (74) a cell name
+containing `|` breaks a Markdown table silently — escape at write
+time, in the reader's md too (left raw in this arc's `reads/rise.md`,
+noted in the RESULTS header).

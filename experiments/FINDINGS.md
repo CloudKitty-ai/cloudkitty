@@ -2468,6 +2468,32 @@ mean happiness 86.43 against arm T's 87.36; 36.7 masked refusals per
 1,000 covered cat-ticks on top of the 22.9 ordinary ones), reported
 to Product.
 
+Addendum 2026-11-01 (the probe-rise read,
+`probe-rise-2026-11-01/RESULTS.md`, declared 48dae5cf before its
+data, owner "Ok, let's try it"; 0 covered cat-ticks): the rise in
+the mean logit profile is a population mean and a noisy per-slice
+trend, not a per-slice signal a reader can act on at the level
+rule's price. On the tuning half the one pure two-window
+step-statistic cell (s_t = mean of the last w logits minus the mean
+of the w before; w ∈ {10, 25, 50, 100}, k ∈ {0.5 … 3.0}) whose
+covered-friend and scripted-friend false-run rates stay at or under
+the pick's (0.7077 / 1.4965 per 10,000 observer-ticks) is w = 10,
+k = 3.0, which detects 0.138 / 0.076 / 0.086 of the N-H2 / H3 / H4
+crossings; OR-ed with the pick on the confirming half it adds 0.000 /
+0.000 / +0.013 (P12 NOT MET; P13–P15 met trivially); no cell of any
+family inside that budget detects more than the pick (every in-budget
+mean N gain is negative). The pure rise cells that do see
+the climb (w = 100, k ≤ 1.0: detection 0.69–0.90, the alarm on
+before the crossing, a run starting inside [mask onset, crossing)
+past the slice's first alarmable tick, in 0.60–0.87 of N-H3 / N-H4
+observer-episodes)
+pay 17.84–36.43 false runs per 10,000 covered-friend observer-ticks,
+25 to 51 times the pick's; the best gain within three times the
+pick's rate is +0.102 in mean N detection (w = 100, k = 0.5 with a
+P ≥ 0.01 floor, at 2.8×). Scope: this one detector family on the
+frozen NF-h24+p over the set's scripted-friend crossings; a
+smoothed level rule, a CUSUM or a retrained head are not read.
+
 **Invalidated by**: a re-read of R2 at 0.10 / B = 0 on fresh seeds of
 these configs putting N-H2, N-H3 or N-H4 outside its comparator's
 seed SD, or E-H1 outside [0.292, 0.432]; or a flagged R5 stratum

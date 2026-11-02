@@ -491,7 +491,12 @@ consent BC comparison ride the trunk.
   reader on the frozen probe's logit over the needy set's raws, 0
   covered cat-ticks, tuning grid → one declared cell on the confirming
   half, P12–P15 registered; `probe-rise-2026-11-01/DECLARATION.md`,
-  deviations entry 15.
+  deviations entry 15. READ DONE 2026-11-01: P12 NOT MET (the one
+  in-budget pure rise cell adds 0.000 / 0.000 / +0.013 to the pick on the
+  confirming half; the pure rise cells that see the climb pay 25–51× the
+  pick's false runs), P13–P15 met trivially; F-071 addendum, no new
+  entry; Phase 1e (a retrain with late-world graves) is the next
+  lever, on her word.
 
 ## Flagged follow-ups (owner's word to start)
 
