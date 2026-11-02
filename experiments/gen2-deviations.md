@@ -933,3 +933,31 @@ tick in 0.60–0.87 of N-H3 / N-H4 observer-episodes) pay 25–51 times
 the pick's false runs;
 P13–P15 met trivially. No FINDINGS entry; F-071 carries a dated
 addendum. Recommendation 2 (Phase 1e) is the next lever, hers.
+
+## 16. Mini-friend Phase 1e: the natural-frequency head retrained with late-history graves in its training data (2026-11-01)
+
+Owner-requested, 2026-11-01, to the mini-model assessment's second
+recommendation ("Let's run the retrain. We can reevaluate model
+architecture if that doesn't work"). Outside the prereg's §8 item 3
+plan as entries 11–13 were: a head of Phase 1's recipe (NF, width 24,
+7,807 params under the cap) trained again on 1b's training worlds plus
+a late-grave training set collected under the observer-stream ruling
+(B + amendments, 2026-10-27), then Phase 1d's probe refit on its
+states. `minifriend-phase1e-2026-11-01/DECLARATION.md`. Why: the
+frozen head's training worlds hold no grave after offset 322 and its
+late-history detection sits at 0.42–0.60 (F-069–F-071); the
+probe-rise read closed the reader route (entry 15). The training set
+as drafted is fresh seeds (band 1096651–1097050: TN1..5 = arm N's
+config at 6,000 ticks, 23 a block; TE1..5 = arm E's at 1,000 ticks, 8
+a block; 2.92M covered cat-ticks, S1 covered-only), because the needy
+set's ruled declaration makes its own seeds test-only; the
+recommendation's "train on the tuning half" is owner call 1's
+alternative. Reads: the needy set's tuning grid with a declared
+false-run-matched selection, the confirming half at the selected
+cell beside the frozen probe, F-070's splice with the junction control
+(the ruling's amendment 2), the lived evaluation worlds' false runs,
+Phase 1's estimate cells; P16–P20 registered (P16 mean N-stratum gain
+≥ 0.15 at matched price; P18 splice H = 100 above 0.358 with H = 0 ≥
+0.95 and the control ≤ 0.05).
+Status: DRAFT (declared; her calls §12 pending; nothing collected,
+trained or read).

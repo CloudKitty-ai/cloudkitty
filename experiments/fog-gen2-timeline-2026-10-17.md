@@ -497,6 +497,19 @@ consent BC comparison ride the trunk.
   pick's false runs), P13–P15 met trivially; F-071 addendum, no new
   entry; Phase 1e (a retrain with late-world graves) is the next
   lever, on her word.
+  PHASE 1e DECLARED (DRAFT) 2026-11-01 (owner "Let's run the retrain.
+  We can reevaluate model architecture if that doesn't work", to
+  recommendation 2): Phase 1's NF recipe at width 24 retrained from
+  scratch on 1b's training worlds plus a late-grave training set, the
+  probe refit on its states; the training set drafted on FRESH seeds
+  (1096651–1097050, 2.92M covered cat-ticks under S1) because the
+  needy set's ruled declaration makes its seeds test-only — her call
+  1, with the tuning half as the alternative; reads = the needy set's
+  tuning grid → a false-run-matched cell on the confirming half beside
+  the frozen probe, F-070's splice with the junction control
+  (amendment 2), lived-world false runs, Phase 1's estimate cells;
+  P16–P20 registered; `minifriend-phase1e-2026-11-01/DECLARATION.md`,
+  deviations entry 16. Nothing collects before she rules §12.
 
 ## Flagged follow-ups (owner's word to start)
 
