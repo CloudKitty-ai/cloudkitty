@@ -83,11 +83,77 @@ def run():
     print(f"== training set done: {len(ws)} worlds, {time.time() - t0:.0f}s", flush=True)
 
 
+def read():
+    """The run record (DECLARATION §11 step 3), per kind: worlds and covered
+    cat-ticks burned, the covered seats' mean happiness over worlds, S1's
+    worst covered single-need streak (under the line in every world), the
+    scripted friend's grave ticks and episodes; aborts listed."""
+    import needy_read as R
+    kinds, aborts = {}, []
+    worst = (0, None)
+    for name, seed, _cfg, ticks, scr, out in worlds():
+        meta = json.loads(str(np.load(out, allow_pickle=True)["meta"]))
+        if meta["aborted_at"] is not None:
+            aborts.append((name, seed, meta["aborted_at"]))
+            continue
+        w = R.load_world(out)
+        cov = [j for j in range(5) if j != scr]
+        assert meta["scripted_seat"] == scr and w["ticks"] == ticks and w["scripted"] == [scr], (name, seed)
+        streaks = R.longest_streaks(w["distress"])
+        cs = int(streaks[cov].max())
+        a = kinds.setdefault(name[:2], {"worlds": 0, "ticks_per_world": ticks, "covered_cat_ticks": 0, "covered_mean_happiness": [],
+                                       "worst_covered_streak": 0, "worlds_with_covered_grave": 0, "scripted_grave_ticks": [],
+                                       "scripted_grave_episodes": [], "first_crossing": []})
+        a["worlds"] += 1
+        a["covered_cat_ticks"] += 4 * ticks
+        a["covered_mean_happiness"].append(float(w["hap"][:, cov].mean()))
+        a["worst_covered_streak"] = max(a["worst_covered_streak"], cs)
+        a["worlds_with_covered_grave"] += bool((w["codes"][:, cov] == R.S.GRAVE).any())
+        eps = R.grave_episodes(w["codes"][:, scr])
+        a["scripted_grave_ticks"].append(int((w["codes"][:, scr] == R.S.GRAVE).sum()))
+        a["scripted_grave_episodes"].append(len(eps))
+        a["first_crossing"].append(eps[0][0] if eps else None)
+        if cs > worst[0]:
+            worst = (cs, f"{name} {seed}")
+    for a in kinds.values():
+        h = np.asarray(a["covered_mean_happiness"])
+        a["covered_mean_happiness"] = {"mean": round(float(h.mean()), 2), "min": round(float(h.min()), 2), "max": round(float(h.max()), 2)}
+        a["scripted_grave_ticks_mean"] = round(float(np.mean(a.pop("scripted_grave_ticks"))), 1)
+        a["scripted_grave_episodes_total"] = int(sum(a.pop("scripted_grave_episodes")))
+        fc = a.pop("first_crossing")
+        a["first_crossing_strata"] = {s: sum(1 for c in fc if c is not None and R.stratum_of(c) == s) for s in R.STRATA}
+        a["first_crossing_strata"]["none"] = sum(1 for c in fc if c is None)
+    return {"seating": CS.SEATING, "s1_streak_covered_only": CS.S1_STREAK, "kinds": kinds, "aborts": aborts,
+            "worlds": sum(a["worlds"] for a in kinds.values()), "covered_cat_ticks": sum(a["covered_cat_ticks"] for a in kinds.values()),
+            "s1_held": all(a["worst_covered_streak"] < CS.S1_STREAK for a in kinds.values()) and not aborts,
+            "worst_covered_streak": worst}
+
+
+def md(r):
+    lines = ["| kind | worlds | ticks | covered cat-ticks | covered mean happiness (mean / min / max) | worst covered streak | worlds with covered grave | scripted friend: mean grave ticks, episodes, first crossings by stratum |",
+             "|---|---|---|---|---|---|---|---|"]
+    for k in ("TE", "TN"):
+        a = r["kinds"][k]
+        h = a["covered_mean_happiness"]
+        lines.append(f"| {k} | {a['worlds']} | {a['ticks_per_world']:,} | {a['covered_cat_ticks']:,} | {h['mean']:.2f} / {h['min']:.2f} / {h['max']:.2f} | "
+                     f"{a['worst_covered_streak']} | {a['worlds_with_covered_grave']} | {a['scripted_grave_ticks_mean']}, {a['scripted_grave_episodes_total']}, {a['first_crossing_strata']} |")
+    lines.append(f"\nworlds {r['worlds']}, covered cat-ticks {r['covered_cat_ticks']:,}, aborts {len(r['aborts'])}, S1 held: {r['s1_held']}; "
+                 f"worst covered streak {r['worst_covered_streak'][0]} ({r['worst_covered_streak'][1]})")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["plan", "run"])
+    ap.add_argument("cmd", choices=["plan", "run", "read"])
+    ap.add_argument("--out")
+    ap.add_argument("--md", action="store_true")
     a = ap.parse_args()
     if a.cmd == "plan":
         print(json.dumps(plan(), indent=1))
+    elif a.cmd == "read":
+        r = read()
+        if a.out:
+            Path(a.out).write_text(json.dumps(r, indent=1) + "\n")
+        print(md(r) if a.md else json.dumps(r, indent=1))
     else:
         run()
