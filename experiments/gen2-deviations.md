@@ -900,3 +900,25 @@ closed, so no run on that binding is owed; any future run of
 `run_set.sh` / `run_P.sh` needs a binding built from a post-066 engine,
 which is a new-generation question for the declaration that asks for it.
 Status: CLOSED 2026-10-26.
+
+## 15. Probe-rise read: a change-point reader on the frozen probe's logit over the needy set's raws (2026-11-01)
+
+Owner-requested, 2026-11-01, to the mini-model assessment's first
+recommendation ("Ok, let's try it"). Outside the prereg's §8 item 3/4
+plan in the way entry 13's reads were: a read on committed outputs,
+no head trained, the cap untouched, no world run.
+`probe-rise-2026-11-01/DECLARATION.md`. The needy set (its own ruled
+declaration, closed 2026-11-01 at 89ade5f5, F-071) found the probe's
+logit rising 1.6–2.5 over the 100 ticks before a late crossing while
+the level rule at her pick (0.05 / B = 2) detects 0.42–0.60 of those
+crossings; this read asks whether a rule on the RISE (a two-window
+step statistic, w ∈ {10, 25, 50, 100} × k ∈ {0.5 … 3.0}, three alarm
+families incl. rise-OR-level) catches what the level rule misses and
+at what false-run price. Grid on the tuning half; one cell chosen by a
+declared rule (false alarms at or under the pick's) read on the
+confirming half beside the pick; P12–P15 registered before any number
+(P12 gain ≥ 0.10 in mean N-stratum detection; P13 no change at E-H1
+and T-H0; P14 covered-friend false alarms ≤ 1.5 per 10,000; P15 no
+early warning, anticipation gain < 0.10). 0 covered cat-ticks. Gates
+recommendation 2 (Phase 1e, a retrain with late-world graves), hers.
+Status: OPEN (declared; the read follows the reds).

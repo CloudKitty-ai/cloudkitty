@@ -476,6 +476,22 @@ consent BC comparison ride the trunk.
   the declaration; nothing collects before she rules it. Before any
   collection: the two refusals above, and a fresh venv built from
   main (the arc venv stays as recorded).
+  NEEDY SET RULED 2026-10-29, amendments 1 (2026-10-30) and 2
+  (2026-11-01); steps 2–7 DONE, ARC CLOSED 2026-11-01 at 89ade5f5
+  (`needy-set-2026-10-28/RESULTS.md`): 360 worlds, 7.13M covered
+  cat-ticks, 0 aborts, S1 held; her pick after the tuning ladder
+  "0.05, 2"; R5 on the confirming half at that point T-H0 1.000, E-H1
+  0.489, N-H2 0.596, N-H3 0.444, N-H4 0.421; P7, P10, P11 MET, P6 NOT
+  MET; F-071 (the probe's history curve is the head's, not the
+  splice's); the mask gap behind the N2 cascade reported to Product
+  (`BACKLOG.md`, 34d764af). Scores relayed to the Professor on her
+  word 2026-11-01.
+  PROBE-RISE READ DECLARED 2026-11-01 (owner "Ok, let's try it", to
+  recommendation 1 of the mini-model assessment): a change-point
+  reader on the frozen probe's logit over the needy set's raws, 0
+  covered cat-ticks, tuning grid → one declared cell on the confirming
+  half, P12–P15 registered; `probe-rise-2026-11-01/DECLARATION.md`,
+  deviations entry 15.
 
 ## Flagged follow-ups (owner's word to start)
 
