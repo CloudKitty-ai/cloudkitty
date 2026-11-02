@@ -330,7 +330,8 @@ near zero; TE's early crossings detected like arm E's.
   None; cell names round-trip; the bound read from ladder.json is
   0.7077 / 1.4965; the burn-in forces exactly the first B ticks off
   and NaN sits under every threshold. Predicted red: `<=` → `<` on
-  the covered bound → the on-bound cell drops and t0.10-B0 is chosen.
+  the covered bound → the on-bound cell drops and the next cell is
+  chosen (first predicted as t0.10-B0; see the reds record).
 - **e4, the needy reader**: read_1e.world_record with level alarms
   equals ladder.world_record on the first E and N tuning worlds
   (frozen probe seed 1; the pick and the registered cells, six keys)
@@ -353,6 +354,19 @@ near zero; TE's early crossings detected like arm E's.
   rate; the burn-in zeroes exactly the first B ticks of every slice.
   Predicted red: `s[a:a + b]` → `s[a:a + b + 1]` → tick 2 of the first
   slice is zeroed under B = 2.
+- **Reds on record 2026-11-01** (`scripts/mutate.sh --expect`, on the
+  committed files at da10f553, sequential, baseline == restored at 1
+  passed each): e1 → `a scripted seat admitted as an observer` (16
+  pairs expected, 20 built); e2 → `split.json differs from
+  split_1e.py`; e3 → first run RED FOR THE WRONG REASON (exit 7): the
+  prediction named t0.10-B0, the mutant chose t0.20-B0 because the two
+  0.55 cells tie and the rule's own tie-break goes to the higher
+  threshold — the prediction was corrected (not the guard) and the
+  cycle re-run, `'chosen': 't0.20-B0'` RED CONFIRMED; e4 → `a
+  confirming seed passed as tuning`; e5 → `AssertionError: (1, …`
+  (seed 1's in-sight fraction against the committed 200-donor row);
+  e6 → `AssertionError: 1` (the per-seed cells differ at seed 1);
+  e7 → the B = 2 line, tick 2 zeroed. Seven of seven red; one re-red.
 - The trainer and the probe fit are Phase 1's and Phase 1d's gated
   code imported, not copied (`train_heads.run_epoch`, `predict_world`,
   `BeliefHead`, `check_cap`; `grave_probe.fit`, `mean_bce`); their

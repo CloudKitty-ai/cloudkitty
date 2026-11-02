@@ -154,7 +154,8 @@ print("e2 roles ok")
 
 def test_e3_the_selection_rule_on_a_hand_grid():
     # red: `r["fa_cov"] <= bound["fa_cov"]` -> `<` in read_1e.select_from -> the on-bound best cell drops out
-    # and t0.10-B0 is chosen instead of t0.05-B2
+    # and t0.20-B0 is chosen instead of t0.05-B2 (the two 0.55 cells tie; the rule's own tie-break goes to
+    # the higher threshold — the first prediction said t0.10-B0 and was red for the wrong reason, exit 7)
     bound = {"fa_cov": 0.70, "fa_scr": 1.50}
     rows = {"t0.05-B2": {"th": 0.05, "b": 2, "det_N": 0.60, "fa_cov": 0.70, "fa_scr": 1.50},   # on the bound: a candidate
             "t0.10-B0": {"th": 0.10, "b": 0, "det_N": 0.55, "fa_cov": 0.10, "fa_scr": 0.20},
