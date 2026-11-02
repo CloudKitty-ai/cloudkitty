@@ -1,0 +1,374 @@
+{
+ "S": null,
+ "cells": [
+  "t0.05-B2",
+  "t0.10-B0"
+ ],
+ "groups": {
+  "P": {
+   "observer_ticks": 4000000,
+   "new": {
+    "per_seed": {
+     "1": {
+      "t0.05-B2": {
+       "reset_detected": 0.99,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.1375,
+       "fa_midworld_per_10k": 0.1375,
+       "fa_runs": 55
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.99,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.1125,
+       "fa_midworld_per_10k": 0.1125,
+       "fa_runs": 45
+      }
+     },
+     "2": {
+      "t0.05-B2": {
+       "reset_detected": 0.99,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.3725,
+       "fa_midworld_per_10k": 0.3725,
+       "fa_runs": 149
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.99,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.24000000000000002,
+       "fa_midworld_per_10k": 0.24000000000000002,
+       "fa_runs": 96
+      }
+     },
+     "3": {
+      "t0.05-B2": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.22,
+       "fa_midworld_per_10k": 0.22,
+       "fa_runs": 88
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.64,
+       "fa_midworld_per_10k": 0.1725,
+       "fa_runs": 256
+      }
+     }
+    },
+    "mean_sd": {
+     "t0.05-B2": {
+      "reset_detected": {
+       "mean": 0.9883,
+       "sd": 0.0029,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.2433,
+       "sd": 0.1192,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.2433,
+       "sd": 0.1192,
+       "n_seeds": 3
+      }
+     },
+     "t0.10-B0": {
+      "reset_detected": {
+       "mean": 0.9883,
+       "sd": 0.0029,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.3308,
+       "sd": 0.2752,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.175,
+       "sd": 0.0638,
+       "n_seeds": 3
+      }
+     }
+    }
+   },
+   "frozen": {
+    "per_seed": {
+     "1": {
+      "t0.05-B2": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.105,
+       "fa_midworld_per_10k": 0.105,
+       "fa_runs": 42
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 200,
+       "fa_per_10k": 2.075,
+       "fa_midworld_per_10k": 0.075,
+       "fa_runs": 830
+      }
+     },
+     "2": {
+      "t0.05-B2": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.28500000000000003,
+       "fa_midworld_per_10k": 0.28500000000000003,
+       "fa_runs": 114
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.6774999999999999,
+       "fa_midworld_per_10k": 0.0725,
+       "fa_runs": 271
+      }
+     },
+     "3": {
+      "t0.05-B2": {
+       "reset_detected": 0.985,
+       "reset_episodes": 200,
+       "fa_per_10k": 0.3825,
+       "fa_midworld_per_10k": 0.3825,
+       "fa_runs": 153
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 200,
+       "fa_per_10k": 2.07,
+       "fa_midworld_per_10k": 0.06999999999999999,
+       "fa_runs": 828
+      }
+     }
+    },
+    "mean_sd": {
+     "t0.05-B2": {
+      "reset_detected": {
+       "mean": 0.985,
+       "sd": 0.0,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.2575,
+       "sd": 0.1408,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.2575,
+       "sd": 0.1408,
+       "n_seeds": 3
+      }
+     },
+     "t0.10-B0": {
+      "reset_detected": {
+       "mean": 0.995,
+       "sd": 0.0087,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 1.6075,
+       "sd": 0.8054,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.0725,
+       "sd": 0.0025,
+       "n_seeds": 3
+      }
+     }
+    }
+   }
+  },
+  "LWG": {
+   "observer_ticks": 2800000,
+   "new": {
+    "per_seed": {
+     "1": {
+      "t0.05-B2": {
+       "reset_detected": 0.9846938775510204,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.6714285714285714,
+       "fa_midworld_per_10k": 0.6714285714285714,
+       "fa_runs": 188
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.9795918367346939,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.6535714285714286,
+       "fa_midworld_per_10k": 0.6285714285714286,
+       "fa_runs": 183
+      }
+     },
+     "2": {
+      "t0.05-B2": {
+       "reset_detected": 0.9897959183673469,
+       "reset_episodes": 196,
+       "fa_per_10k": 1.05,
+       "fa_midworld_per_10k": 1.05,
+       "fa_runs": 294
+      },
+      "t0.10-B0": {
+       "reset_detected": 0.9897959183673469,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.8464285714285714,
+       "fa_midworld_per_10k": 0.8214285714285714,
+       "fa_runs": 237
+      }
+     },
+     "3": {
+      "t0.05-B2": {
+       "reset_detected": 0.9744897959183674,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.9071428571428571,
+       "fa_midworld_per_10k": 0.9071428571428571,
+       "fa_runs": 254
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.9357142857142856,
+       "fa_midworld_per_10k": 0.5785714285714285,
+       "fa_runs": 262
+      }
+     }
+    },
+    "mean_sd": {
+     "t0.05-B2": {
+      "reset_detected": {
+       "mean": 0.983,
+       "sd": 0.0078,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.8762,
+       "sd": 0.1912,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.8762,
+       "sd": 0.1912,
+       "n_seeds": 3
+      }
+     },
+     "t0.10-B0": {
+      "reset_detected": {
+       "mean": 0.9898,
+       "sd": 0.0102,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.8119,
+       "sd": 0.1442,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.6762,
+       "sd": 0.1282,
+       "n_seeds": 3
+      }
+     }
+    }
+   },
+   "frozen": {
+    "per_seed": {
+     "1": {
+      "t0.05-B2": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.6178571428571428,
+       "fa_midworld_per_10k": 0.6178571428571428,
+       "fa_runs": 173
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.9892857142857142,
+       "fa_midworld_per_10k": 0.3892857142857143,
+       "fa_runs": 277
+      }
+     },
+     "2": {
+      "t0.05-B2": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.5428571428571429,
+       "fa_midworld_per_10k": 0.5428571428571429,
+       "fa_runs": 152
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.6214285714285714,
+       "fa_midworld_per_10k": 0.24285714285714285,
+       "fa_runs": 174
+      }
+     },
+     "3": {
+      "t0.05-B2": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.47857142857142854,
+       "fa_midworld_per_10k": 0.47857142857142854,
+       "fa_runs": 134
+      },
+      "t0.10-B0": {
+       "reset_detected": 1.0,
+       "reset_episodes": 196,
+       "fa_per_10k": 0.775,
+       "fa_midworld_per_10k": 0.2,
+       "fa_runs": 217
+      }
+     }
+    },
+    "mean_sd": {
+     "t0.05-B2": {
+      "reset_detected": {
+       "mean": 1.0,
+       "sd": 0.0,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.5464,
+       "sd": 0.0697,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.5464,
+       "sd": 0.0697,
+       "n_seeds": 3
+      }
+     },
+     "t0.10-B0": {
+      "reset_detected": {
+       "mean": 1.0,
+       "sd": 0.0,
+       "n_seeds": 3
+      },
+      "fa_per_10k": {
+       "mean": 0.7952,
+       "sd": 0.1848,
+       "n_seeds": 3
+      },
+      "fa_midworld_per_10k": {
+       "mean": 0.2774,
+       "sd": 0.0993,
+       "n_seeds": 3
+      }
+     }
+    }
+   }
+  }
+ },
+ "score": {
+  "P19": {
+   "met": false,
+   "reason": "no S"
+  }
+ },
+ "seconds": 12
+}

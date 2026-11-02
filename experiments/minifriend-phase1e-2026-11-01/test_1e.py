@@ -171,9 +171,10 @@ def test_e3_the_selection_rule_on_a_hand_grid():
     rows2["t0.20-B2"] = {"th": 0.20, "b": 2, "det_N": 0.55, "fa_cov": 0.10, "fa_scr": 0.20}      # ties t0.20-B0: smaller B wins
     assert RE.select_from(rows2, bound)["chosen"] == "t0.20-B0"
     assert RE.select_from({"t0.02-B0": rows["t0.02-B0"]}, bound)["chosen"] is None
-    for c in RE.CELLS:
+    for c in RE.CELLS + RE.EXT_CELLS:
         assert RE.cell_name(*RE.parse_cell(c)) == c
-    assert len(RE.CELLS) == 12 and RE.PICK in RE.CELLS and RE.REG in RE.CELLS
+    assert len(RE.CELLS) == 12 and len(RE.EXT_CELLS) == 12 and RE.PICK in RE.CELLS and RE.REG in RE.CELLS
+    assert not (set(RE.CELLS) & set(RE.EXT_CELLS)) and min(RE.EXT_THRESHOLDS) > max(RE.THRESHOLDS)
     b = RE.bound_from_ladder()
     assert round(b["fa_cov"], 4) == 0.7077 and round(b["fa_scr"], 4) == 1.4965, b
     # the alarms: the first B ticks forced off, NaN under every threshold

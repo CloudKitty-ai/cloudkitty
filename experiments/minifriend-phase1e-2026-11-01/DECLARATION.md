@@ -512,3 +512,34 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $P/read_1e.py score      --out $P/r
 ## 13. Amendments (after the ruling, each on her word)
 
 None.
+
+### Amendment 1 (proposed 2026-11-02, after the tuning grid and before any confirming cell beyond the pick and the registered point; PENDING her word)
+
+What the tuning grid showed (`reads/tuning-grid12.json`, committed
+before this amendment): the retrained head detects 0.686–0.964 of the
+N-stratum crossings (mean over H2 / H3 / H4) at every cell of the
+declared grid, and no cell is inside the frozen pick's false-run bound.
+The grid's top threshold, 0.50, sits at 0.7110 covered-friend and
+1.5288 scripted-from-mask false runs per 10,000 against the bound's
+0.7077 and 1.4965 — over by 0.5% and 2%. By §5 R-A1's rule S = None,
+and P16, P17 and P19 are NOT MET by construction (§6: "no candidate →
+S = None and P16 is NOT MET by construction"). The decision rule's
+premise for that case ("coverage did not move the late curve") does
+not describe this table; the grid's upper edge does. Blind spot 6
+named it ("a finer threshold could sit nearer the bound").
+
+The amendment: R-A1's grid gains the thresholds {0.55, 0.60, 0.70,
+0.80, 0.90, 0.95} × burn-ins {0, 2} (24 cells in all); the selection
+rule, its bound, the predictions P16–P20 and their bars are unchanged
+and apply to the 24-cell grid; R-A2 then runs as declared at S, the
+pick and the registered point. Nothing on the confirming half has been
+read at any cell under this arc; `confirming` was not run. The
+12-cell table stays on record as read. Risk, stated: the extension is
+chosen after seeing the tuning table; what bounds it is that the rule
+is mechanical, its bound is the frozen pick's own price read before
+this arc, and the confirming half is untouched. The instrument:
+`read_1e.py tuning --extended` (`EXT_THRESHOLDS`; guard e3 extended to
+the 24 names, no new red needed: the cell names and the rule are the
+tested ones).
+
+Her words, when given: _(pending)_.

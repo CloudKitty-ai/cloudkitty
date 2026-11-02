@@ -38,6 +38,7 @@ READS = HERE / "reads"
 
 SEEDS = (1, 2, 3)
 THRESHOLDS = (0.02, 0.05, 0.10, 0.20, 0.30, 0.50)
+EXT_THRESHOLDS = (0.55, 0.60, 0.70, 0.80, 0.90, 0.95)   # §13 amendment 1 (pending her word): the grid's upper half
 BURNINS = (0, 2)
 PICK, REG = "t0.05-B2", "t0.10-B0"                       # her pick (needy set, 2026-11-01) and the registered point of F-071's rows
 PRIMARY = ("T-H0", "E-H1", "N-H2", "N-H3", "N-H4")
@@ -62,6 +63,7 @@ def parse_cell(c):
 
 
 CELLS = [cell_name(th, b) for th in THRESHOLDS for b in BURNINS]
+EXT_CELLS = [cell_name(th, b) for th in EXT_THRESHOLDS for b in BURNINS]
 
 
 # ---- the heads ------------------------------------------------------------------
@@ -173,17 +175,18 @@ def select_from(rows, bound):
     return {"bound": bound, "candidates": sorted(cands), "chosen": best}
 
 
-def read_tuning(progress=True):
+def read_tuning(progress=True, extended=False):
     rise, R, L = _needy_modules()
     import torch
     torch.set_num_threads(1)
     t0 = time.time()
+    cells = CELLS + EXT_CELLS if extended else CELLS
     probes = heads_e()
-    recs = records(rise, R, L, "tuning", probes, CELLS, progress)
-    tab = rise.table(recs, CELLS)
-    rows = selection_rows(tab)
+    recs = records(rise, R, L, "tuning", probes, cells, progress)
+    tab = rise.table(recs, cells)
+    rows = selection_rows(tab, cells)
     sel = select_from(rows, bound_from_ladder())
-    return {"half": "tuning", "head": "NF1e-h24+p", "seeds": list(SEEDS), "cells": CELLS, "table": tab,
+    return {"half": "tuning", "head": "NF1e-h24+p", "seeds": list(SEEDS), "cells": cells, "extended": extended, "table": tab,
             "selection_rows": rows, "selection": sel, "S": sel["chosen"], "records": recs, "seconds": round(time.time() - t0)}
 
 
@@ -469,7 +472,7 @@ def md_table(tab, cells, title):
 def md(cmd, out):
     lines = [f"# Phase 1e read: {cmd}", ""]
     if cmd == "tuning":
-        lines += md_table(out["table"], CELLS, "NF1e-h24+p on the tuning half (seed mean ± SD over the three retrained heads)")
+        lines += md_table(out["table"], out["cells"], "NF1e-h24+p on the tuning half (seed mean ± SD over the three retrained heads)")
         sel = out["selection"]
         lines += ["", f"Selection bound (the frozen pick's tuning rates): covered {sel['bound']['fa_cov']:.4f}, scripted-from-mask {sel['bound']['fa_scr']:.4f} per 10k. "
                       f"Candidates: {sel['candidates']}. **S = {sel['chosen']}**.",
@@ -517,8 +520,9 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--extended", action="store_true", help="tuning: the grid with EXT_THRESHOLDS added (§13 amendment 1)")
     a = ap.parse_args()
-    fn = {"tuning": read_tuning, "confirming": read_confirming, "splice": read_splice, "lived": read_lived, "estimate": read_estimate}
+    fn = {"tuning": (lambda progress: read_tuning(progress, a.extended)), "confirming": read_confirming, "splice": read_splice, "lived": read_lived, "estimate": read_estimate}
     out = read_score() if a.cmd == "score" else fn[a.cmd](progress=not a.quiet)
     if a.out:
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)
