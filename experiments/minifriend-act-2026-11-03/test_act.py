@@ -128,7 +128,8 @@ def a6():
     _rise, R, _L = RA.mods()
     tun, con = RA.needy_worlds("tuning"), RA.needy_worlds("confirming")
     assert len(tun) == 180 and len(con) == 180
-    assert all(R.half_of(a, k, s) == "tuning" for a, k, s, _t, _p in tun) and all(R.half_of(a, k, s) == "confirming" for a, k, s, _t, _p in con)
+    assert all(R.half_of(a, k, s) == "tuning" for a, k, s, _t, _p in tun), "accuracy / ladder run on tuning seeds only"
+    assert all(R.half_of(a, k, s) == "confirming" for a, k, s, _t, _p in con), "confirming runs on confirming seeds only"
     a, k, s, _t, p = tun[0]
     try:
         RA.load_needy(p, a, k, s, "confirming")
