@@ -17,9 +17,9 @@ The Professor's reading (their note
 sha256 4b00ac7e…, relayed to her in full) is advisory; this file
 declares, she rules. Their items 6–8 (collection) are not in it.
 
-**Status: DECLARED 2026-11-02 on her "Go"; nothing collects (0 covered
-cat-ticks); no weight moves; nothing acts. The reads run after the
-guards are red on record (§7) and this file is on main. No number from
+**Status: DECLARED 2026-11-02 on her "Go" (048803a4); guards g1–g7
+red on record (§7); nothing collects (0 covered cat-ticks); no weight
+moves; nothing acts. The reads start on this commit. No number from
 this arc exists at this write.**
 
 Welfare-cost line. Covered minds: none exposed. Every read walks raws
@@ -317,6 +317,20 @@ grave rate in the pick's bin is higher on the retrained head.
   35 worlds (a subprocess under the Phase 1e arc) and holds no training
   world; every validation raw exists. Predicted red: `"content":
   "confirming"` → `"tuning"` → "content runs on confirming seeds only".
+- **Reds on record 2026-11-02** (`scripts/mutate.sh --expect`, on the
+  committed files at 048803a4, sequential, baseline == restored at 1
+  passed each): g1 → `run of 4 under k = 3 keeps 3 ticks, expected 2`;
+  g2 → `W's end is exclusive`; g3 → needy_read's `recorded no
+  observation` refusal; g4 → `inclusive`; g5 → `the means differ from
+  the committed pred file`; g6 → `persistence's base cell … differs
+  from the committed confirming record at S`; g7 → first cycle RED FOR
+  THE WRONG REASON: the guard compared each read's world list against
+  `diag_1e.HALF`, the constant the mutant had changed, so the swap
+  passed that check and a bare constant assertion caught it with no
+  message; the guard (not the prediction) was fixed to assert against
+  an independent copy of §3's table by name, committed, and the cycle
+  re-run → `content runs on confirming seeds only` RED CONFIRMED.
+  Seven of seven red; one guard fix and re-red.
 
 ## 8. Blind spots (declared)
 
