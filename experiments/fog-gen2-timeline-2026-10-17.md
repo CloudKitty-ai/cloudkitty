@@ -514,6 +514,19 @@ consent BC comparison ride the trunk.
   calls: fresh seeds, 23 + 8 per block, tolerance 0.95, the
   false-run-matched rule, from scratch); collection (2.92M covered
   cat-ticks, S1) starts on this ruling.
+  PHASE 1e DONE 2026-11-02 (collection 155 worlds / 2.92M covered
+  cat-ticks / 0 aborts; heads and probes; amendment 1 RULED on her
+  words "judge based on welfare impact, not arbitrary numbers" — the
+  operating point is her pick, the false-run bound retired as a
+  selector): P16–P20 ALL MET — confirming detection at 0.05 / B = 2
+  0.920 / 0.880 / 0.863 (N-H2 / H3 / H4) against the frozen 0.596 /
+  0.444 / 0.421, latency 0 in the E and N strata, anticipation
+  0.84–0.89; splice H = 100 0.598 against 0.358 with the control at
+  most 0.013; estimate 0.846×; the
+  price beside a refusing friend 3.8× the false runs (2.40 against
+  0.63 per 10,000 observer-ticks). F-072 minted; NF1e-h24+p is the
+  Phase 2 candidate by the declaration's rule; feeding anything that
+  acts is her new ruling.
 
 ## Flagged follow-ups (owner's word to start)
 

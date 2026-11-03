@@ -190,18 +190,31 @@ def read_tuning(progress=True, extended=False):
             "selection_rows": rows, "selection": sel, "S": sel["chosen"], "records": recs, "seconds": round(time.time() - t0)}
 
 
-def read_confirming(progress=True):
+def selected_S():
+    """S: the operating point the confirming half is read at. §13 amendment 1 (owner 2026-11-02) sets it to
+    her pick, written to reads/S.json by `confirming --S`; otherwise the tuning grid's selection."""
+    f = READS / "S.json"
+    if f.exists():
+        return json.loads(f.read_text())["S"]
+    return json.loads((READS / "tuning.json").read_text())["S"]
+
+
+def read_confirming(progress=True, S_override=None):
     rise, R, L = _needy_modules()
     import torch
     torch.set_num_threads(1)
-    tun = json.loads((READS / "tuning.json").read_text())
-    S = tun["S"]
+    if S_override is not None:
+        assert S_override in CELLS, S_override
+        READS.mkdir(exist_ok=True)
+        (READS / "S.json").write_text(json.dumps({"S": S_override, "source": "DECLARATION §13 amendment 1 (owner 2026-11-02): her pick, the false-run bound retired as a selector"}, indent=1) + "\n")
+    S = selected_S()
     cells = [c for c in dict.fromkeys([S, PICK, REG]) if c is not None]
     t0 = time.time()
     new = records(rise, R, L, "confirming", heads_e(), cells, progress)
     frozen = records(rise, R, L, "confirming", {s: R.load_probe(s)[:2] for s in R.PROBE_SEEDS}, cells, progress)
     tab_new, tab_frozen = rise.table(new, cells), rise.table(frozen, cells)
-    out = {"half": "confirming", "S": S, "cells": cells, "new": tab_new, "frozen": tab_frozen,
+    out = {"half": "confirming", "S": S, "S_source": "reads/S.json" if (READS / "S.json").exists() else "tuning selection", "cells": cells,
+           "price": {"new": price_rows(tab_new, cells), "frozen": price_rows(tab_frozen, cells)}, "new": tab_new, "frozen": tab_frozen,
            "records": {"new": new, "frozen": frozen}, "seconds": round(time.time() - t0)}
     out["score"] = score_confirming(tab_new, tab_frozen, S)
     return out
@@ -229,6 +242,8 @@ def score_confirming(tab_new, tab_frozen, S):
                   "met": new_S["E-H1"] >= pick["E-H1"] - PRED["P17"]["E-H1_drop"] and new_S["T-H0"] >= PRED["P17"]["T-H0_min"]}
     fa = lambda tab, cell: _m(tab["false_alarms"]["N"][cell]["covered_friends"]["per_10k_ticks"])
     out["false_runs_covered_N"] = {"new_S": fa(tab_new, S), "frozen_pick": fa(tab_frozen, PICK), "new_pick": fa(tab_new, PICK)}
+    out["false_runs_covered_N"]["ratio_new_S_over_frozen_pick"] = (out["false_runs_covered_N"]["new_S"] / out["false_runs_covered_N"]["frozen_pick"]
+                                                                if out["false_runs_covered_N"]["frozen_pick"] else None)
     return out
 
 
@@ -270,7 +285,7 @@ def read_splice(progress=True):
     import torch
     torch.set_num_threads(1)
     t0 = time.time()
-    S = json.loads((READS / "tuning.json").read_text())["S"]
+    S = selected_S()
     thresholds = tuple(dict.fromkeys([SPLICE_THRESH] + ([parse_cell(S)[0]] if S else [])))
     idx_p = HR.P.R.eval_index(HR.C.GROUPS["P"])
     idx_l = HR.P.R.eval_index([HR.L_SET])
@@ -334,7 +349,7 @@ def read_lived(progress=True):
     import torch
     torch.set_num_threads(1)
     t0 = time.time()
-    S = json.loads((READS / "tuning.json").read_text())["S"]
+    S = selected_S()
     cells = [c for c in dict.fromkeys([S, PICK, REG]) if c is not None]
     out = {"S": S, "cells": cells, "groups": {}}
     for gname, sets in (("P", HR.C.GROUPS["P"]), ("LWG", GROUP_LWG)):
@@ -433,7 +448,7 @@ def score_estimate(out):
 
 def read_score():
     files = {n: json.loads((READS / f"{n}.json").read_text()) for n in ("tuning", "confirming", "splice", "lived", "estimate")}
-    out = {"S": files["tuning"]["S"], "selection": files["tuning"]["selection"],
+    out = {"S": files["confirming"]["S"], "S_source": files["confirming"]["S_source"], "tuning_selection": files["tuning"]["selection"],
            "P16": files["confirming"]["score"]["P16"], "P17": files["confirming"]["score"]["P17"],
            "P18": files["splice"]["score"]["P18"], "P19": files["lived"]["score"]["P19"], "P20": files["estimate"]["score"]["P20"]}
     out["met"] = {p: out[p]["met"] for p in ("P16", "P17", "P18", "P19", "P20")}
@@ -455,6 +470,30 @@ def _f(m, d=3):
     if isinstance(m, dict):
         return f"{m['mean']:.{d}f}" + (f" ± {m['sd']:.{d}f}" if m.get("sd") is not None else "")
     return f"{m:.{d}f}"
+
+
+def price_rows(tab, cells):
+    """The false-run price in welfare units, per class and cell (arm N): runs per 10,000 observer-ticks of the
+    class, mean run length, observer-ticks under a false alarm per 10,000, and per OBSERVER per 1,000 ticks
+    (covered friends: three per observer; the scripted friend: one), seed means."""
+    out = {}
+    per_obs = {"covered_friends": 3, "scripted_from_first_mask": 1, "scripted_before_first_mask": 1}
+    for c in cells:
+        out[c] = {}
+        for cls, fa in tab["false_alarms"]["N"][c].items():
+            r, ln = _m(fa["per_10k_ticks"]), _m(fa["mean_run_length"])
+            out[c][cls] = {"runs_per_10k_observer_ticks": r, "mean_run_length": ln,
+                           "ticks_under_false_alarm_per_10k": None if r is None or ln is None else r * ln,
+                           "runs_per_observer_per_1000_ticks": None if r is None else r * per_obs[cls] / 10.0}
+    return out
+
+
+def md_price(price, cells, title):
+    lines = [f"### {title}", "", "| cell | class | false runs per 10k observer-ticks | mean run length | observer-ticks under a false alarm per 10k | false runs per observer per 1,000 ticks |", "|---|---|---|---|---|---|"]
+    for c in cells:
+        for cls, r in price[c].items():
+            lines.append(f"| {c} | {cls} | {_f(r['runs_per_10k_observer_ticks'], 4)} | {_f(r['mean_run_length'], 1)} | {_f(r['ticks_under_false_alarm_per_10k'], 1)} | {_f(r['runs_per_observer_per_1000_ticks'], 4)} |")
+    return lines
 
 
 def md_table(tab, cells, title):
@@ -482,7 +521,9 @@ def md(cmd, out):
     elif cmd == "confirming":
         lines += md_table(out["new"], out["cells"], "NF1e-h24+p on the confirming half")
         lines += [""] + md_table(out["frozen"], out["cells"], "the frozen NF-h24+p on the confirming half (same reader)")
-        lines += ["", "```", json.dumps(out["score"], indent=1), "```"]
+        lines += [""] + md_price(out["price"]["new"], out["cells"], "the price, retrained head (arm N, confirming half)")
+        lines += [""] + md_price(out["price"]["frozen"], out["cells"], "the price, frozen probe (arm N, confirming half)")
+        lines += ["", f"S = {out['S']} ({out['S_source']})", "", "```", json.dumps(out["score"], indent=1), "```"]
     elif cmd == "splice":
         t = f"{SPLICE_THRESH:.2f}"
         lines += ["| H | new detected | new control fired | new median latency | frozen committed detected | frozen committed control |", "|---|---|---|---|---|---|"]
@@ -520,9 +561,10 @@ def main():
     ap.add_argument("--out")
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--quiet", action="store_true")
-    ap.add_argument("--extended", action="store_true", help="tuning: the grid with EXT_THRESHOLDS added (§13 amendment 1)")
+    ap.add_argument("--extended", action="store_true", help="tuning: the grid with EXT_THRESHOLDS added (the withdrawn extension; never run)")
+    ap.add_argument("--S", default=None, help="confirming: the operating point by §13 amendment 1 (her pick), written to reads/S.json")
     a = ap.parse_args()
-    fn = {"tuning": (lambda progress: read_tuning(progress, a.extended)), "confirming": read_confirming, "splice": read_splice, "lived": read_lived, "estimate": read_estimate}
+    fn = {"tuning": (lambda progress: read_tuning(progress, a.extended)), "confirming": (lambda progress: read_confirming(progress, a.S)), "splice": read_splice, "lived": read_lived, "estimate": read_estimate}
     out = read_score() if a.cmd == "score" else fn[a.cmd](progress=not a.quiet)
     if a.out:
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)

@@ -959,7 +959,18 @@ cell beside the frozen probe, F-070's splice with the junction control
 Phase 1's estimate cells; P16–P20 registered (P16 mean N-stratum gain
 ≥ 0.15 at matched price; P18 splice H = 100 above 0.358 with H = 0 ≥
 0.95 and the control ≤ 0.05).
-Status: RULED 2026-11-01 (owner "As recommended" to all five §12 calls:
-fresh seeds, 23 + 8 per block, start-drop tolerance 0.95, the
-false-run-matched rule, from scratch); declared da10f553, reds 51e88bf3;
-collection next.
+Status: CLOSED 2026-11-02 (RULED 2026-11-01, owner "As recommended" to
+all five §12 calls; declared da10f553, reds 51e88bf3; collection
+5e9056c2, 155 worlds, 2.92M covered cat-ticks, 0 aborts; amendment 1
+RULED 2026-11-02 — the false-run-matched selection found no cell, the
+grid's 0.50 cell sitting at 0.7110 against the bound 0.7077, and her
+words "Rather than run additional tests, let's open the door to
+accepting a potentially higher false positive rate. We should judge
+based on welfare impact, not arbitrary numbers." set the operating
+point to her pick with the price in welfare units). P16–P20 ALL MET:
+confirming detection at the pick 0.920 / 0.880 / 0.863 (N-H2 / H3 /
+H4) against the frozen 0.596 / 0.444 / 0.421, E-H1 0.786 against
+0.489, T-H0 1.000; splice H = 100 0.598 against 0.358, control ≤
+0.013; lived false runs 0.94× / 1.60×; grave mse5 0.846×; the price
+beside a refusing friend 2.40 against 0.63 covered-friend false runs
+per 10,000 (3.80×). F-072 minted. RESULTS gated PASS, round 3.

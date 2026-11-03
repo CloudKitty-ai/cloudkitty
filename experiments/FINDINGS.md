@@ -135,6 +135,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-069 | active | The head's grave probability is a property of the young state: 0.995 at a world's start, 0.358 after 100 clean ticks, 0.287 / 0.288 after 500 and 2,000; a 2-tick burn-in removes the first-tick false alarms on the per-cat worlds |
 | F-070 | active | Detection falls gradually with clean history, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 at H = 1 / 5 / 10 / 20); knee at H = 20 |
 | F-071 | active | On natural rows the frozen probe's history curve is the head's, not the splice's: a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 lived ticks is detected in 0.490 / 0.398 / 0.370 at 0.10 (splice 0.358 / 0.287 / 0.288, inside one seed SD and above it at every stratum), the elevated-start crossing at H 11–75 in 0.431 (splice 0.362 at H = 50), the reset crossing in 1.000 (P's 0.995); the alarm precedes the crossing in a minority (0.13–0.32 past the first frame) while the logit rises 1.6–2.5 over the climb |
+| F-072 | active | The frozen probe's late-history miss was a coverage gap in its training data: the same NF recipe at width 24, retrained from scratch with late-history graves in its training worlds (Phase 1e), detects the needy set's confirming crossings at her pick in 0.920 / 0.880 / 0.863 (N-H2 / H3 / H4) against 0.596 / 0.444 / 0.421, at the crossing, with the splice at H = 100 at 0.598 against 0.358 and the control at most 0.013; the price beside a refusing friend 3.8× the false runs |
 
 ---
 
@@ -2501,3 +2502,81 @@ whose confirming detection falls below the splice's comparator.
 **Re-verify when**: any retrain of the head or the probe; a set with a
 covered `needy` friend; Phase 2's reading set, if it is not this one.
 
+## F-072 · active · The frozen NF-h24+p's late-history miss was a coverage gap in its training data, not a property of the recipe: Phase 1's natural-frequency head at width 24, retrained from scratch with late-history graves in its training worlds and Phase 1d's probe refit on its states, detects a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 ticks of lived history in 0.920 / 0.880 / 0.863 of observer-episodes at her pick (the frozen probe's 0.596 / 0.444 / 0.421 on the same confirming worlds), with the median latency 0 in every E and N stratum and an anticipation run in 0.84–0.89; F-070's splice after 100 clean ticks 0.598 against 0.358 with the junction control at most 0.013, the estimate held (grave mse5 0.846×), and the false runs beside a refusing friend 3.8× the frozen probe's (2.40 against 0.63 per 10,000 observer-ticks)
+Minted from mini-friend Phase 1e (`minifriend-phase1e-2026-11-01/RESULTS.md`,
+gated PASS round 3; DECLARATION RULED 2026-11-01, owner "As recommended" to
+its five calls, amendment 1 RULED 2026-11-02, her words "Rather than
+run additional tests, let's open the door to accepting a potentially
+higher false positive rate. We should judge based on welfare impact,
+not arbitrary numbers."; deviations entry 16; the observer-stream
+ruling of 2026-10-27, B with three amendments, is its basis). Data: a
+late-grave training set of 155 worlds collected on fresh seeds
+1096651–1097050 under S1 (TN1..5 = arm N's config byte for byte at
+6,000 ticks, 23 a block; TE1..5 = arm E's at n = 60, 1,000 ticks, 8 a
+block; 2,920,000 covered cat-ticks, 0 aborts, worst covered streak
+636), beside Phase 1b's training worlds; the heads trained on 194
+worlds (74 of 1b's, 120 new; 52 validation), 17,520,000 samples, Phase 1's
+recipe verbatim (`train_heads.py` imported: GRU 24, 7,807 params, NF
+loss, Adam 1e-3, patience 10), three seeds, plateaus at epochs 66 / 60 /
+49; the probe by `grave_probe.py`'s recipe verbatim (25 params). Reads
+(all beside the frozen NF-h24+p by the same reader on the same worlds):
+the needy set's confirming half at her pick 0.05 / B = 2 — T-H0 1.000
+/ E-H1 0.786 ± 0.082 / N-H2 0.920 ± 0.006 / N-H3 0.880 ± 0.006 / N-H4
+0.863 ± 0.000 against 1.000 / 0.489 / 0.596 / 0.444 / 0.421 (gains in
+the N strata +0.324 / +0.436 / +0.442, mean +0.401; P16 and P17 met),
+median latency 0.0 in every E and N stratum (the frozen 23.7–36.7 in
+E-H1 / N-H2 / N-H3, 2.3 in N-H4; T-H0 2.0 for both), detected within
+10 ticks 0.72–0.84 (the frozen 0.16–0.32), an anticipation run started before the crossing past
+the first alarmable tick in 0.843 / 0.871 / 0.892 of N-H2 / H3 / H4
+observer-episodes with median leads 43–50 ticks (the frozen 0.253 /
+0.211 / 0.275), in sight and under fog alike (0.87–0.92 / 0.83–0.92);
+F-069/F-070's splice at 0.10: 0.988 / 0.988 / 0.982 / 0.962 / 0.913 /
+0.778 / 0.597 / 0.598 / 0.542 / 0.520 at H = 0 / 1 / 2 / 5 / 10 / 20 /
+50 / 100 / 500 / 2,000 (the frozen 0.995 / 0.978 / 0.970 / 0.852 /
+0.658 / 0.537 / 0.362 / 0.358 / 0.287 / 0.288), the junction control
+at most 0.013 from H = 2 (P18 met, the ruling's amendment 2); the
+lived evaluation worlds' false runs at the pick 0.94× the frozen
+probe's on group P and 1.60× on L / W / G with reset detection 0.988
+against 0.985 (P19 met); Phase 1's estimate cells: group P's
+mind-visible GRAVE mse5 767.82 ± 60.38 against 908.10 ± 33.43 (0.846),
+common-state cells 1.02–1.03× (P20 met). The price, in welfare units
+on the needy set's confirming arm N: covered-friend false runs 2.40
+per 10,000 observer-ticks against 0.63 (3.80×), 0.72 runs per
+observer per 1,000 ticks of 17.8 ticks each against 0.19 of 12.9,
+42.7 observer-ticks under a false alarm per 10,000 against 8.1; the
+scripted friend after its first mask 5.37 against 1.47; the excess
+sits in the arms whose friend refuses help (arm T 0.1222 against
+0.0722) and on the lived worlds is 0.94× (group P) and 1.60× (L / W /
+G). No clock: the logit on L's clean 20,000-tick slices slopes 0.001
+per 1,000 ticks (−7.37 at tick 0, −12.96 at 10, −9.35 to −9.66 from
+100 on). The declared false-run-matched
+selection found no cell (the grid's 0.50 cell at 0.7110 against the
+bound 0.7077); amendment 1 set the operating point to her pick and
+retired the bound as a selector. Every one of P16–P20 met.
+
+Caveats that bound the claim: the friend is scripted and refuses help
+(`needy` at 90), so the detection figures are of a scripted friend's
+crossing and the covered evidence is the splice, where the retrained
+head plateaus at 0.52–0.60 from H = 50 (0.61–0.68 at 0.05), under its
+natural-row figures; one recipe, one width, three seeds, the training
+set on arm N's schedule; the operating point is her pick, not a tuned
+one, and no cell beyond the pick and the registered point was read on
+the confirming half; the false-run excess beside a refusing friend is measured, its content not read; the
+L / W / G all-samples GRAVE cell rose to 1.128× (fog rows; not a
+scored cell); the design does not separate late-grave coverage from
+more data (74 → 194 training worlds, the probe's grave frequency
+0.00300 → 0.01821, together; no same-size control set without late
+graves); the welfare cost of acting on a false alarm is the Phase
+2 declaration's to measure with an acting consumer. What it hands on:
+NF1e-h24+p is the Phase 2 candidate by the declaration's rule, its
+confirming figures at her pick the ones Phase 2 cites, its price in
+welfare units hers to weigh; whether it feeds anything that acts is a
+new ruling from her (the observer-stream ruling's last clause); F-069,
+F-070 and F-071 stand as properties of the frozen head and now carry
+their cause.
+
+**Invalidated by**: a re-read of the confirming half at the pick
+putting any N stratum under the frozen probe's figure, or the splice
+at H = 100 at or under 0.358. **Re-verify when**: the Phase 2
+declaration reads the head beside an acting consumer; any change to
+the training set or recipe.

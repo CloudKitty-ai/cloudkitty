@@ -1,5 +1,5 @@
 {
- "S": null,
+ "S": "t0.05-B2",
  "cells": [
   "t0.05-B2",
   "t0.10-B0"
@@ -366,9 +366,25 @@
  },
  "score": {
   "P19": {
-   "met": false,
-   "reason": "no S"
+   "groups": {
+    "P": {
+     "new_S": 0.2433,
+     "frozen_pick": 0.2575,
+     "ratio": 0.9448543689320388
+    },
+    "LWG": {
+     "new_S": 0.8762,
+     "frozen_pick": 0.5464,
+     "ratio": 1.6035871156661785
+    }
+   },
+   "ratio_max": 2.0,
+   "met": true,
+   "reset_detected_P": {
+    "new_S": 0.9883,
+    "frozen_pick": 0.985
+   }
   }
  },
- "seconds": 12
+ "seconds": 13
 }

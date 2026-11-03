@@ -1777,3 +1777,39 @@ observer detects at the cell), not the stratum mean; (74) a cell name
 containing `|` breaks a Markdown table silently — escape at write
 time, in the reader's md too (left raw in this arc's `reads/rise.md`,
 noted in the RESULTS header).
+
+## 2026-11-02 — Mini-friend Phase 1e RESULTS.md (whole doc) + F-072 + deviations 16 + timeline + DECLARATION §13 amendment 1
+
+Three rounds; the reader reproduced exactly in every round (about 370
+table cells, six JSONs leaf-equal but for `seconds`, all six md files
+byte-identical; the ten raw-dir hashes recomputed). Round 1 FAIL on
+"0.0 ticks in every stratum" (T-H0's latency is the burn-in, 2.0), on
+"on lived worlds that excess is absent" where the doc's own R-C table
+has L / W / G at 1.60×, on "the control silent" (0.013 at H = 100) and
+"under 0.013" (0.0133), on a clock range "−9.4 from 100 on" (−9.66 at
+1,000), and on "the per-world figures are in the JSON" (they are in
+the collection log, on a different stream, 73.17 vs the read's 73.19).
+Round 2 FAIL on "no other cell was read on the confirming half" after
+the registered point had been (two cells), on an unscoped "no
+first-tick transient above 0.05" (true on the tuning half, false on
+the lived worlds), on F-072 copying coarser digits than RESULTS
+printed (−9.38 for −9.35; stratum bounds absent from RESULTS), and on
+an F-071 quote paraphrased inside quote marks. Round 3 PASS; two WEAK
+reworded after. The gate also named a confound the design does not
+separate (more data vs late-grave coverage), now in Limitations and
+F-072's caveats. Lessons: (75) a status word — "absent", "silent",
+"no other" — is checked against every group and every cell the doc's
+own tables hold, not the group the sentence has in mind; (76) "every
+stratum" includes the reset stratum, whose latency is the burn-in by
+construction — name the strata the figure covers; (77) a property
+measured on one set ("no first-tick transient") is stated for that
+set; the doc's other tables are the first place it fails; (78) a
+companion copies the doc's printed digits, never a re-rounding of
+them, and every definition it uses (stratum bounds) must be printed in
+the doc it cites; (79) a quotation of a prior finding is a substring
+of that finding's heading or it is not in quote marks; (80) the
+pointer "in the JSON" is a provenance claim: open the JSON before
+writing it, and name the stream when two readers print the same
+quantity differently; (81) when the gate names a confound the design
+does not separate, it goes into Limitations and the F-entry's caveats
+before the stamp, not into a reply.

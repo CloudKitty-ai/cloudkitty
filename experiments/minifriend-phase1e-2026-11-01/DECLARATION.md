@@ -511,35 +511,50 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $P/read_1e.py score      --out $P/r
 
 ## 13. Amendments (after the ruling, each on her word)
 
-None.
+### Amendment 1 (RULED 2026-11-02; her words below; the grid extension proposed the same day is withdrawn)
 
-### Amendment 1 (proposed 2026-11-02, after the tuning grid and before any confirming cell beyond the pick and the registered point; PENDING her word)
-
-What the tuning grid showed (`reads/tuning-grid12.json`, committed
-before this amendment): the retrained head detects 0.686–0.964 of the
+What the tuning grid showed (`reads/tuning.json`, committed before
+this amendment): the retrained head detects 0.686–0.964 of the
 N-stratum crossings (mean over H2 / H3 / H4) at every cell of the
-declared grid, and no cell is inside the frozen pick's false-run bound.
-The grid's top threshold, 0.50, sits at 0.7110 covered-friend and
+declared grid, and no cell is inside the frozen pick's false-run bound
+— the grid's top threshold, 0.50, sits at 0.7110 covered-friend and
 1.5288 scripted-from-mask false runs per 10,000 against the bound's
-0.7077 and 1.4965 — over by 0.5% and 2%. By §5 R-A1's rule S = None,
-and P16, P17 and P19 are NOT MET by construction (§6: "no candidate →
-S = None and P16 is NOT MET by construction"). The decision rule's
-premise for that case ("coverage did not move the late curve") does
-not describe this table; the grid's upper edge does. Blind spot 6
-named it ("a finer threshold could sit nearer the bound").
+0.7077 and 1.4965. By §5 R-A1's rule S = None, so P16 is NOT MET by construction (§5's
+clause), and P17 and P19, which are scored at S, with it. The first proposal (extend the grid
+to 0.55–0.95 and keep the bound) was put to her; her ruling, verbatim:
+"Rather than run additional tests, let's open the door to accepting a
+potentially higher false positive rate. We should judge based on
+welfare impact, not arbitrary numbers."
 
-The amendment: R-A1's grid gains the thresholds {0.55, 0.60, 0.70,
-0.80, 0.90, 0.95} × burn-ins {0, 2} (24 cells in all); the selection
-rule, its bound, the predictions P16–P20 and their bars are unchanged
-and apply to the 24-cell grid; R-A2 then runs as declared at S, the
-pick and the registered point. Nothing on the confirming half has been
-read at any cell under this arc; `confirming` was not run. The
-12-cell table stays on record as read. Risk, stated: the extension is
-chosen after seeing the tuning table; what bounds it is that the rule
-is mechanical, its bound is the frozen pick's own price read before
-this arc, and the confirming half is untouched. The instrument:
-`read_1e.py tuning --extended` (`EXT_THRESHOLDS`; guard e3 extended to
-the 24 names, no new red needed: the cell names and the rule are the
-tested ones).
+The amendment as ruled:
 
-Her words, when given: _(pending)_.
+1. The false-run bound is retired as a selector. S = her operating
+   point, t0.05-B2 (threshold 0.05, burn-in 2: the pick she made on
+   the needy set's ladder and the point the Phase 2 declaration cites),
+   written to `reads/S.json` by `read_1e.py confirming --S t0.05-B2`.
+   No further tuning cell is read; the 12-cell grid stands as read.
+2. R-A2 runs as declared at S, the pick and the registered point (two
+   distinct cells now), both heads; the predictions P16–P20 and their
+   bars are unchanged and scored at S. P19's 2× clause stays as a
+   registered prediction and is reported as such; it no longer selects
+   anything.
+3. The false-run price is reported in welfare units beside every
+   detection figure, so the judgment is on impact: per class (covered
+   friends; the scripted friend from its first mask), false runs per
+   10,000 observer-ticks, mean run length, observer-ticks under a false
+   alarm per 10,000, and false runs per observer per 1,000 ticks (a
+   covered observer watches three covered friends and the scripted
+   one); the same for the frozen probe at the pick. What this arc can
+   price is interruptions: an alarm with no grave behind it is a
+   friend a cat would turn toward for nothing, for that many ticks,
+   that often. What it cannot price is the act, because no policy
+   consumes the probability yet; the welfare cost of acting on a
+   false alarm (the observer's own needs deferred, the friend's
+   consent) is the Phase 2 declaration's to measure with an acting
+   consumer, and this arc hands it the two prices side by side.
+4. The decision rules of §6 read with S = her pick: "the lift came at
+   a price" (P19 not met) is reported with the welfare-unit price and
+   is hers to weigh, not a bar.
+
+The confirming half had not been read at any cell under this arc when
+this amendment was ruled; `confirming` runs after it.
