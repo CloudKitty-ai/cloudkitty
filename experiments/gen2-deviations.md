@@ -1009,3 +1009,27 @@ N detection, −12.4 ticks of lead, T-H0 1.000 → 0.720); P24 NOT MET
 (λ = 70: 0.446 at −0.035). D5: a [0.05, 0.10) tick is grave now in
 0.0329 on covered friends (frozen 0.3647). F-073 minted. RESULTS gated
 PASS, round 4 (rounds 1–3 wording and precision).
+
+## 18. Mini-friend act predictor, Phase 1: a friend's next act from the observer's belief — shared state against its own memory at three budgets (2026-11-03)
+Deviation: none from the Gen 2 prereg (18f06f84, untouched); the arm
+spec amendment A4 deferred ("estimate head and act predictor both read
+[b_t] … Detail at the arm spec"), on her words "We definitely want two
+heads", "Re: budget, we need to determine it empirically. Let's start
+with 10%,20%,30% and evaluate accuracy. We can increase if needed." and
+"Go". Zero collection: four arms × three seeds trained on Phase 1e's
+split verbatim with the friend's applied act as the target (y0 =
+applied[t] aligned to obs[t] per the collector's doc, y10 = applied[t +
+10]); arm A = NF1e-h24's frozen GRU state + the friend row → a two-layer
+head (6,742 trained parameters); arms B10 / B20 / B30 = their own
+GRU at widths 24 / 39 / 50 (8,182 / 16,792 / 24,822 = 9.7 / 19.9 /
+29.4% of the trunk; the needs head's 10% cap "was intended for need
+prediction", her words, and does not bind here). Baselines F
+(frequency), V (the visible row's activity), R (repeat). Reads on the
+lived evaluation worlds and the needy TUNING half's covered friends;
+the confirming half once for the chosen arm. P25–P28 registered (B10
+beats F by ≥ 0.05 under fog; A within her margin m of B's best on the
+primary and fog cells; B30 − B10 < 0.02; every arm ≥ V in sight).
+Owner call 1: the margin m (recommended 0.02).
+`minifriend-act-2026-11-03/DECLARATION.md`.
+Status: DECLARED 2026-11-03; guards a1–a7 green; reds next; training
+after the reds; no read before m is ruled.

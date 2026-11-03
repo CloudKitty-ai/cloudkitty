@@ -550,6 +550,22 @@ consent BC comparison ride the trunk.
   10,000; about 1.2 observer-ticks per observer per 1,000) is worth a
   filter or a Phase 1f composition arm, or whether Phase 2 declares
   on this head as read.
+  ACT PREDICTOR PHASE 1 DECLARED 2026-11-03 (owner, after the Gen 2
+  planning-notes review: "We definitely want two heads"; "Re: budget,
+  we need to determine it empirically. Let's start with 10%,20%,30%
+  and evaluate accuracy. We can increase if needed."; "Go"): the A4
+  arm spec for the act predictor — arm A reads the frozen NF1e belief
+  state plus the friend row, arms B10 / B20 / B30 carry their own
+  recurrent state at 9.7 / 19.9 / 29.4% of the trunk; target = the
+  friend's applied act this tick and ten ticks on; zero collection;
+  P25–P28; the margin m her one call (recommended 0.02);
+  `minifriend-act-2026-11-03/DECLARATION.md`, deviations entry 18.
+  The planning review itself (2026-11-03) re-read the record: the 10%
+  cap was an engineering budget for the needs head; heads' outputs as
+  policy inputs is Gen 2 Phase 2's ruled imagination arm (not Gen 3);
+  the Nash reward already pays for a friend's relief; the owner's
+  intent for Phase 2 is the heads' outputs as inputs to the main
+  model, the reaction learned by training.
 
 ## Flagged follow-ups (owner's word to start)
 
