@@ -162,7 +162,9 @@ def g6():
 def g7():
     """halves: D1 / D2 / D5 run on confirming seeds, D3 / D4 on tuning seeds; the validation list is data_1e.roles()'s 35 worlds."""
     _rise, R, _L = G.mods()
-    for cmd, half in G.HALF.items():
+    declared = {"content": "confirming", "covered": "confirming", "reliability": "confirming", "persistence": "tuning", "means": "tuning"}   # §3, independent of diag_1e.HALF
+    assert set(G.HALF) == set(declared)
+    for cmd, half in declared.items():
         ws = G.worlds_for(cmd)
         assert len(ws) == 180, (cmd, len(ws))
         a, k, seed, _t, _p = ws[0]
@@ -174,7 +176,6 @@ def g7():
             pass
         else:
             raise AssertionError(f"{cmd}: a {half} seed loaded under the {other} half")
-    assert G.HALF["content"] == G.HALF["covered"] == G.HALF["reliability"] == "confirming" and G.HALF["persistence"] == G.HALF["means"] == "tuning"
     code = "import json, data_1e as E; r = E.roles(); print(json.dumps({n: {'val': r[n]['val'], 'train': r[n]['train']} for n in E.NEW_SETS}))"
     out = subprocess.run([sys.executable, "-B", "-c", code], cwd=str(P1E), capture_output=True, text=True, check=True).stdout
     roles = json.loads(out.strip().splitlines()[-1])
