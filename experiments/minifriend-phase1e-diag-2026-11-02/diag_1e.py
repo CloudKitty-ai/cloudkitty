@@ -776,7 +776,7 @@ def md(cmd, out):
             for arm in ("N", "E", "T"):
                 for cls in ("covered_friends", "scripted_from_first_mask"):
                     t = out["tables"][which][arm][cls]
-                    lines += [f"### {which} head, arm {arm}, {cls} (W = {out['W']}, delta = {out['delta']}; {t['worlds']} worlds)", "",
+                    lines += [f"### {which} head, arm {arm}, {cls} (W = {out['W']}, delta = {out['delta']}; {out['tables'][which][arm]['worlds']} worlds)", "",
                               f"runs per 10k observer-ticks {_f(t['per_10k'], 4)}, mean run length {_f(t['mean_run_length'], 1)}, approach-or-grave share of runs {_f(t['approach_or_grave_share_runs'])}", "",
                               "| partition | runs | share of runs | share of ticks | per 10k | per observer per 1,000 | mean run length | rising at start | in sight at start |", "|---|---|---|---|---|---|---|---|---|"]
                     for part in PARTS:
