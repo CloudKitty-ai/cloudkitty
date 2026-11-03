@@ -1,0 +1,123 @@
+{
+ "S": "t0.05-B2",
+ "P21": {
+  "share_new": 0.7521,
+  "share_frozen": 0.8475,
+  "share_min": 0.5,
+  "clause_half": true,
+  "clause_above_frozen": false,
+  "met": false,
+  "per_10k_new": {
+   "mean": 2.4002,
+   "sd": 1.0702,
+   "n_seeds": 3
+  },
+  "per_10k_frozen": {
+   "mean": 0.6308,
+   "sd": 0.2269,
+   "n_seeds": 3
+  }
+ },
+ "P22": {
+  "observer_episodes": 753,
+  "friend_episodes": 251,
+  "detected": 0.9712,
+  "bar": 0.7721166666666667,
+  "bar_inputs": {
+   "splice_H100_at_S_threshold": 0.6567,
+   "scripted_N_mean_at_S": 0.8875333333333334,
+   "bar": 0.7721166666666667
+  },
+  "frozen_detected": 0.5635,
+  "validation_observer_episodes": 147,
+  "undecidable": false,
+  "met": true
+ },
+ "P23": {
+  "removed_min": 0.5,
+  "det_loss_max": 0.05,
+  "cells": {
+   "t0.05-B2-k2": {
+    "removed": 0.15773479675378066,
+    "det_loss": 0.006466666666666732,
+    "qualifies": false
+   },
+   "t0.05-B2-k3": {
+    "removed": 0.2501519430839083,
+    "det_loss": 0.011233333333333428,
+    "qualifies": false
+   },
+   "t0.05-B2-k5": {
+    "removed": 0.3606950055414536,
+    "det_loss": 0.020533333333333292,
+    "qualifies": false
+   },
+   "t0.05-B2-k10": {
+    "removed": 0.5335168567444853,
+    "det_loss": 0.03713333333333324,
+    "qualifies": true
+   },
+   "t0.05-B2-k20": {
+    "removed": 0.7096993314504307,
+    "det_loss": 0.0840333333333334,
+    "qualifies": false
+   },
+   "t0.05-B2-k30": {
+    "removed": 0.7989346108469486,
+    "det_loss": 0.14570000000000005,
+    "qualifies": false
+   },
+   "t0.05-B2-k50": {
+    "removed": 0.888741911265239,
+    "det_loss": 0.25203333333333333,
+    "qualifies": false
+   }
+  },
+  "qualifying": [
+   "t0.05-B2-k10"
+  ],
+  "met": true
+ },
+ "P24": {
+  "removed_min": 0.5,
+  "det_loss_max": 0.05,
+  "cells": {
+   "t0.05-B2-m50": {
+    "removed": 0.07686532480068642,
+    "det_loss": 0.005066666666666775,
+    "qualifies": false
+   },
+   "t0.05-B2-m60": {
+    "removed": 0.217046226448822,
+    "det_loss": 0.00883333333333347,
+    "qualifies": false
+   },
+   "t0.05-B2-m70": {
+    "removed": 0.4464624074934753,
+    "det_loss": 0.034766666666666834,
+    "qualifies": false
+   },
+   "t0.05-B2-m80": {
+    "removed": 0.7192091809373995,
+    "det_loss": 0.09626666666666672,
+    "qualifies": false
+   },
+   "t0.05-B2-m90": {
+    "removed": 0.9276035894319116,
+    "det_loss": 0.2876000000000001,
+    "qualifies": false
+   }
+  },
+  "qualifying": [],
+  "met": false
+ },
+ "met": {
+  "P21": false,
+  "P22": true,
+  "P23": true,
+  "P24": false
+ },
+ "undecidable": {
+  "P22": false
+ }
+}

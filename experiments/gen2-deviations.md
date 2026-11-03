@@ -994,4 +994,18 @@ splice at 0.05 and the scripted mean at S; a k, a λ that halves covered
 false runs at under 0.05 detection cost). Her side note the same day
 ("document our working recipe") → `experiments/MINIFRIEND-RECIPE.md`.
 `minifriend-phase1e-diag-2026-11-02/DECLARATION.md`.
-Status: DECLARED 2026-11-02; reads after the reds are on record.
+Status: CLOSED 2026-11-02 (declared 048803a4, reds 036d24d7, reads the
+same day, 0 covered cat-ticks). P22 MET: covered friends' natural
+crossings on the confirming half (251, H ≥ 100) detected 0.971 at her
+pick against the frozen 0.564, anticipated 0.923 with a 51.3-tick
+median lead — the scripted friend is a fair, conservative proxy. P21
+NOT MET on its relative clause: the retrained head's covered false
+runs are 0.752 approach-or-grave by runs (approach alone 0.728 by runs
+and 0.903 by ticks; a post-hoc null 0.028 approach) against the
+frozen's 0.848; the excess is 0.718 approach by runs and 0.923 by
+ticks under alarm, the no-approach quarter 0.6232 per 10,000.
+P23 MET at k = 10 only (0.534 of covered false runs removed at −0.037
+N detection, −12.4 ticks of lead, T-H0 1.000 → 0.720); P24 NOT MET
+(λ = 70: 0.446 at −0.035). D5: a [0.05, 0.10) tick is grave now in
+0.0329 on covered friends (frozen 0.3647). F-073 minted. RESULTS gated
+PASS, round 4 (rounds 1–3 wording and precision).

@@ -537,6 +537,19 @@ consent BC comparison ride the trunk.
   entry 17. Her side note the same day ("document our working recipe
   … for our next generation") → `experiments/MINIFRIEND-RECIPE.md`.
   Step 2 (Phase 1f, a collection) waits on these reads and her word.
+  PHASE 1e DIAGNOSTICS DONE 2026-11-02 (0 covered cat-ticks): P22
+  MET — 251 covered friends' natural crossings on the confirming half
+  detected 0.971 at her pick (frozen 0.564), anticipated 0.923, median
+  lead 51.3 ticks, the scripted friend a conservative proxy; P21 NOT
+  MET on its relative clause (0.752 approach-or-grave against the
+  frozen's 0.848; the price is three quarters attention on sliding
+  friends by runs, nine tenths by ticks, 26× a random window); P23
+  MET at k = 10 only; P24 NOT MET; "0.05" on a covered friend = grave
+  now 0.0329, within 50 ticks 0.2028. F-073 minted; deviations 17
+  CLOSED. Her call next: whether the no-approach quarter (0.6232 per
+  10,000; about 1.2 observer-ticks per observer per 1,000) is worth a
+  filter or a Phase 1f composition arm, or whether Phase 2 declares
+  on this head as read.
 
 ## Flagged follow-ups (owner's word to start)
 

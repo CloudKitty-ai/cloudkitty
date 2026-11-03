@@ -1,0 +1,93 @@
+{
+ "half": "confirming",
+ "W": 50,
+ "delta": 10.0,
+ "note": "post-hoc control, not in the declaration: the partition applied to every window start",
+ "tables": {
+  "T": {
+   "covered_friends": {
+    "windows": 400000,
+    "null_share": {
+     "grave_after": 0.0,
+     "approach": 0.0020375,
+     "no_approach": 0.9979625
+    },
+    "tick_base_rate": {
+     "grave": 0.0,
+     "adjacent": 0.0002,
+     "need_within_delta": 0.0
+    }
+   },
+   "scripted_from_first_mask": {
+    "windows": 100000,
+    "null_share": {
+     "grave_after": 0.01191,
+     "approach": 0.03263,
+     "no_approach": 0.95546
+    },
+    "tick_base_rate": {
+     "grave": 0.00967,
+     "adjacent": 0.00891,
+     "need_within_delta": 0.00324
+    }
+   }
+  },
+  "E": {
+   "covered_friends": {
+    "windows": 128000,
+    "null_share": {
+     "grave_after": 0.0114140625,
+     "approach": 0.0383359375,
+     "no_approach": 0.95025
+    },
+    "tick_base_rate": {
+     "grave": 0.006109375,
+     "adjacent": 0.0186875,
+     "need_within_delta": 0.0027421875
+    }
+   },
+   "scripted_from_first_mask": {
+    "windows": 32000,
+    "null_share": {
+     "grave_after": 0.28809375,
+     "approach": 0.08121875,
+     "no_approach": 0.6306875
+    },
+    "tick_base_rate": {
+     "grave": 0.22325,
+     "adjacent": 0.0714375,
+     "need_within_delta": 0.03553125
+    }
+   }
+  },
+  "N": {
+   "covered_friends": {
+    "windows": 2760000,
+    "null_share": {
+     "grave_after": 0.00891159420289855,
+     "approach": 0.027801811594202898,
+     "no_approach": 0.9632865942028985
+    },
+    "tick_base_rate": {
+     "grave": 0.005266666666666667,
+     "adjacent": 0.013193115942028986,
+     "need_within_delta": 0.0017728260869565218
+    }
+   },
+   "scripted_from_first_mask": {
+    "windows": 618466,
+    "null_share": {
+     "grave_after": 0.16790575391371554,
+     "approach": 0.10210262164775429,
+     "no_approach": 0.7299916244385302
+    },
+    "tick_base_rate": {
+     "grave": 0.11980771780502081,
+     "adjacent": 0.056948967283569345,
+     "need_within_delta": 0.024413629851923954
+    }
+   }
+  }
+ },
+ "seconds": 2
+}

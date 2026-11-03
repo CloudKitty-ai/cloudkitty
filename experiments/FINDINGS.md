@@ -136,6 +136,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-070 | active | Detection falls gradually with clean history, most of the fall over by 20 ticks (0.978 / 0.852 / 0.658 / 0.537 at H = 1 / 5 / 10 / 20); knee at H = 20 |
 | F-071 | active | On natural rows the frozen probe's history curve is the head's, not the splice's: a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 lived ticks is detected in 0.490 / 0.398 / 0.370 at 0.10 (splice 0.358 / 0.287 / 0.288, inside one seed SD and above it at every stratum), the elevated-start crossing at H 11–75 in 0.431 (splice 0.362 at H = 50), the reset crossing in 1.000 (P's 0.995); the alarm precedes the crossing in a minority (0.13–0.32 past the first frame) while the logit rises 1.6–2.5 over the climb |
 | F-072 | active | The frozen probe's late-history miss was a coverage gap in its training data: the same NF recipe at width 24, retrained from scratch with late-history graves in its training worlds (Phase 1e), detects the needy set's confirming crossings at her pick in 0.920 / 0.880 / 0.863 (N-H2 / H3 / H4) against 0.596 / 0.444 / 0.421, at the crossing, with the splice at H = 100 at 0.598 against 0.358 and the control at most 0.013; the price beside a refusing friend 3.8× the false runs |
+| F-073 | active | The retrained head NF1e-h24+p detects a COVERED friend's natural crossing into grave after 208–5,887 lived ticks in 0.971 of observer-episodes at her pick (251 crossings; frozen 0.564), at the crossing, anticipating in 0.923 with a 51.3-tick median lead; its covered-friend false runs beside a refusing friend are three quarters attention on a friend approaching the edge or under happiness 70 within 50 ticks (26× a random window), one quarter not |
 
 ---
 
@@ -2580,3 +2581,88 @@ putting any N stratum under the frozen probe's figure, or the splice
 at H = 100 at or under 0.358. **Re-verify when**: the Phase 2
 declaration reads the head beside an acting consumer; any change to
 the training set or recipe.
+
+
+## F-073 · active · The retrained NF1e-h24+p detects a COVERED friend's natural crossing into grave after 208–5,887 ticks of lived history in 0.971 of observer-episodes at her pick (251 natural crossings on the needy set's confirming half, 753 observer-episodes; the frozen probe 0.564 on the same episodes), at the crossing (median latency 0.0), anticipating in 0.923 with a median lead of 51.3 ticks and under fog in 0.956; and its covered-friend false runs beside a refusing friend are three quarters attention on a friend who approaches the grave edge or falls under happiness 70 inside the next 50 ticks (26× a random window's rate), one quarter not
+Minted 2026-11-02 from the Phase 1e diagnostics
+(`minifriend-phase1e-diag-2026-11-02/RESULTS.md`, whose stamp records
+the accuracy-gate verdict; declaration on
+the owner's "Go" to step 1 of the two-step recommendation after the
+Professor's Phase 1e reading, deviations entry 17). Data: none new (0
+covered cat-ticks; no weight touched): the needy set's confirming half
+(T 25, E 40, N 115 worlds) re-accounted at her operating point S =
+t0.05-B2 with the committed NF1e-h24-s1..3+p and the frozen
+NF-h24-s1..3+p by the same reader, seed mean ± SD over three heads.
+
+**The covered crossings** (D2): a maximal GRAVE run on a COVERED
+friend's truth stream, observed by the other three covered seats; 80 of
+the 180 confirming worlds hold one; 251 crossings with H ≥ 100 (212 in
+N-H4, H median 3,081, 518 of 753 observer-episodes in sight at the
+crossing, 175 need-edge / 76 happiness-edge). Retrained: detected 0.971
+± 0.012, median latency 0.0 ± 0.0, p90 0.0 ± 0.0, anticipated 0.923 ±
+0.033 (an alarm run containing the crossing began before it), median
+lead 51.3 ± 8.4 ticks, in sight 0.978 ± 0.011, under fog 0.956 ± 0.016;
+at the registered point t0.10-B0 0.955 ± 0.017. Frozen: 0.564 ± 0.066
+detected, p90 latency 52.8 ± 21.7, anticipated 0.358 ± 0.064 with a
+median lead of 25.3 ± 4.7. Phase 1e's validation worlds (35; they chose
+the stopping epoch, a second reading never pooled): 49 crossings, 147
+observer-episodes, 0.980 ± 0.020 against 0.526 ± 0.032. The registered
+bar (the midpoint of the splice at H = 100 at 0.05, 0.6567, and the
+scripted N-stratum mean at S, 0.8875: 0.7721) is cleared; the scripted
+friend understates the covered figure on the same worlds.
+
+**The price's content** (D1): of the retrained head's covered-friend
+false runs in arm N at S (2.4002 ± 1.0702 per 10,000 observer-ticks,
+mean length 17.8), by the friend's truth over the 50 ticks after each
+run's start: approach (a hidden need within 10 of 90, or happiness
+under 70, at any tick) 0.728 ± 0.046 of runs and 0.903 ± 0.038 of ticks
+under alarm; grave-after (a grave tick inside the window after the run
+ended) 0.024 ± 0.002; no approach 0.248 ± 0.045 of runs and 0.090 ±
+0.037 of ticks. The post-hoc null over every window start: approach
+0.028, grave-after 0.009. The frozen probe's runs: 0.706 / 0.142 /
+0.152. Of the excess over the frozen probe (1.7694 runs per 10,000;
+34.58 ticks under alarm per 10,000), 0.718 of runs and 0.923 of ticks
+are approach, 0.300 and 0.095 no approach. In her units a covered
+observer at S spends roughly 11–12 ticks per 1,000 under an alarm on a
+friend who approaches or is adjacent inside the window and about 1.2 on
+one who is not (the frozen probe about 2.0 and 0.2). The registered prediction
+P21 (approach-or-grave at least half AND above the frozen probe's
+share) is NOT MET on its second clause: 0.752 ± 0.045 against 0.848 ±
+0.062.
+
+**Beside it** (the same results, Phase 2 inputs, not claims of this
+entry): a persistence rule at k = 10 halves the covered false runs on
+the tuning half (0.534 removed) at −0.037 N-stratum detection, −12.4
+ticks of median lead, T-H0 1.000 → 0.720 and E-H1 0.865 → 0.778 (P23
+met at that one k); the need-means filter does not halve them at under
+0.05 cost (λ = 70: 0.446 at −0.035; P24 not met); the retrained head
+names the crossing need in 0.911–0.989 of N-stratum observer-episodes
+(frozen 0.643–0.708); in the [0.05, 0.10) bin the retrained head's
+covered-friend tick is grave now in 0.0329 and within 50 ticks in
+0.2028 (scripted 0.1025 / 0.4635) where the frozen probe's is 0.3647 /
+0.6044 (scripted 0.6839 / 0.8352).
+
+**Scope and caveats**: the covered crossings are the N2-cascade's — a
+covered cat sliding beside a refusing scripted friend in the needy
+composition — not crossings in a lived world of covered cats only
+(F-068's note: "the lived worlds hold none at all, which is evidence of
+rarity, not absence"); 212 of 251 are H4;
+"approach" is a truth-side partition with a thread-chosen window and
+cut, its happiness clause carrying 0.566 of runs against 0.162 by the
+need edge, and its null is post-hoc; the multiplicity on the confirming
+half is three accountings of the same alarms at S (D1, D2, D5) plus the
+null over every window start; the excess attribution derives from
+seed-mean products. What it hands the Phase 2
+declaration: the scripted friend is a fair and conservative proxy for a
+covered friend's crossing; the price at her pick is mostly attention on
+cats that were sliding, with a quarter of runs (0.090 of ticks) on
+cats that were not; a persistence rule is a priced option; the
+probability scale is the retrained head's own (about 2× over-confident
+on covered friends).
+
+**Invalidated by** (this entry's own criteria): a re-read of the
+confirming half's covered crossings at S under 0.90 detected, or the
+approach share of covered false runs under 0.5 by runs. **Re-verify when**: the Phase 2
+declaration reads the head beside an acting consumer; covered
+crossings exist in a composition without a scripted friend; any change
+to the training set or recipe.

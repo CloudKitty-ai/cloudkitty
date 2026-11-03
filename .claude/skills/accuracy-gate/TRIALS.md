@@ -1813,3 +1813,34 @@ writing it, and name the stream when two readers print the same
 quantity differently; (81) when the gate names a confound the design
 does not separate, it goes into Limitations and the F-entry's caveats
 before the stamp, not into a reply.
+
+## 2026-11-03 — Mini-friend Phase 1e diagnostics RESULTS.md (whole doc) + F-073 + deviations 17 + timeline
+
+Four rounds; the reader reproduced exactly in every round (six reads,
+about 573k JSON leaves equal but for `seconds`, all md byte-identical;
+no new raws, hash not applicable). Round 1 FAIL on a WEAK in Decision
+rules ("even more approach-shaped" for an approach-OR-GRAVE share whose
+surplus was grave-after), on six D5 cells printed at 5 decimals from a
+reader that stores 4 (0.00530 for 0.00527), and on nine companion
+digits coarser than the doc's (51 for 51.3, 0.62 for 0.6232). Round 2
+FAIL on an unscored expectation judged at one point ("about equal" at
+the ladders' crossing) that reversed over 8 of 11 matched comparisons,
+on a companion "11.6" the doc had reworded to "11–12", and on an F-068
+attribution paraphrased ("the lived evaluation worlds hold none"
+against "the lived worlds hold none at all, which is evidence of
+rarity, not absence"). Round 3 FAIL on F-073's "four accountings"
+after round 2's fix had recounted RESULTS to "three". Round 4: RESULTS
+clean; one companion count word ("a tenth" for 0.090) replaced by the
+digit after the round and checked by grep; stamped PASS round 4.
+Lessons: (82) a round's fix that changes a COUNT or STATUS word in the
+doc is swept through every companion by grep before the next round —
+the companion copied the declaration's count, and the doc moved; (83)
+a count word in a companion ("a tenth", "51-tick") is a copy item like
+a digit: write the doc's digit; (84) "at equal X" comparisons are read
+against the other ladder interpolated at matched X over its whole
+range, both heads, not at the one point where the curves cross; (85) a
+doc prints a summary at the precision the reader STORES (4 decimals
+here), never one digit more; (86) an attribution in parentheses is held
+to the substring rule like a quotation — quote it or drop the claim's
+specifics.
+

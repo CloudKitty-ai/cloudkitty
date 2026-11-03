@@ -125,10 +125,26 @@ live in the native checkout under `results-raw/` and are never deleted.
 - **The estimate**: `read_phase1.cells_for` (visible / all × COMMON /
   DA / GRAVE; `read_1e.py estimate`).
 - **Naming the need**: the five means' argmax (F-068).
-- **Diagnostics declared 2026-11-02** (`minifriend-phase1e-diag-2026-
-  11-02/`): the false runs' content, covered natural crossings,
-  persistence and need-means filters, reliability bins. Add their
-  findings here once gated.
+- **Diagnostics 2026-11-02** (`minifriend-phase1e-diag-2026-11-02/`,
+  F-073; zero collection, re-accountings of the same alarms at her
+  pick): (a) a COVERED friend's natural crossing is detected at least
+  as well as the scripted friend's (0.971 on 251 crossings against the
+  scripted 0.888), so the scripted-friend test set is a fair and
+  conservative proxy — keep it; (b) the false-run price beside a
+  refusing friend is mostly attention on friends who approach the edge
+  or fall under happiness 70 inside 50 ticks (three quarters of runs,
+  nine tenths of ticks, 26× a random window), one quarter not; read a
+  price's CONTENT with a truth-side partition and its null before
+  calling it noise; (c) a persistence rule (alarm after k consecutive
+  ticks) halves covered false runs at k = 10 for −0.037 detection and
+  −12 ticks of lead but costs reset detection (1.000 → 0.720); a
+  need-means filter does not halve them under the same cost; filters
+  are the consumer's choice, read on the tuning half, never baked into
+  the head; (d) the probability scale is the head's own: at her pick's
+  bin the retrained head is about 2× over-confident on covered friends
+  and 1.4× under on the scripted, where the frozen probe was 5–10×
+  under — re-read the reliability bins after any retrain before
+  carrying a threshold over.
 
 ## 7. Discipline that made the numbers trustworthy
 
