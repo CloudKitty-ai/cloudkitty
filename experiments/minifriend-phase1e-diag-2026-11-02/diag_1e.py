@@ -297,6 +297,9 @@ def content_table(recs, arm):
                                       "rising_share": sum(known) / len(known) if known else None, "rising_known": len(known),
                                       "in_sight_share": sum(x["in_sight"] for x in sub) / ns if ns else None}
             row["approach_or_grave_share_runs"] = (row["parts"]["grave_after"]["share_runs"] or 0) + (row["parts"]["approach"]["share_runs"] or 0) if n else None
+            appr = [x for x in runs if x["part"] == "approach"]
+            row["approach_by_need_edge_share_runs"] = sum(x["nearest"] <= DELTA for x in appr) / n if n else None      # approach via the worst need within delta (hap may also be under 70)
+            row["approach_by_happiness_only_share_runs"] = sum(x["nearest"] > DELTA for x in appr) / n if n else None  # approach via happiness under 70 alone
             for W in W_SENS:
                 row["sens"][str(W)] = {part: sum(1 for x in runs if x["sens"][str(W)] == part) / n if n else None for part in PARTS}
             for name_, key, bands in (("near_hist", "nearest", NEAR_BANDS), ("hap_hist", "hap_dist", NEAR_BANDS)):
@@ -309,6 +312,8 @@ def content_table(recs, arm):
                "runs": R1.msd([per_seed[s]["runs"] for s in per_seed]), "per_10k": R1.msd([per_seed[s]["per_10k"] for s in per_seed]),
                "mean_run_length": R1.msd([per_seed[s]["mean_run_length"] for s in per_seed]),
                "approach_or_grave_share_runs": R1.msd([per_seed[s]["approach_or_grave_share_runs"] for s in per_seed]),
+               "approach_by_need_edge_share_runs": R1.msd([per_seed[s]["approach_by_need_edge_share_runs"] for s in per_seed]),
+               "approach_by_happiness_only_share_runs": R1.msd([per_seed[s]["approach_by_happiness_only_share_runs"] for s in per_seed]),
                "parts": {part: {key: R1.msd([per_seed[s]["parts"][part][key] for s in per_seed])
                                 for key in ("runs", "share_runs", "share_ticks", "per_10k", "per_observer_per_1000", "mean_run_length", "rising_share", "in_sight_share")}
                          for part in PARTS},
@@ -349,6 +354,73 @@ def score_content(out):
                     "clause_half": sn is not None and sn >= PRED["P21"]["share_min"], "clause_above_frozen": sn is not None and sf is not None and sn > sf,
                     "met": sn is not None and sf is not None and sn >= PRED["P21"]["share_min"] and sn > sf,
                     "per_10k_new": out["tables"]["new"]["N"]["covered_friends"]["per_10k"], "per_10k_frozen": out["tables"]["frozen"]["N"]["covered_friends"]["per_10k"]}}
+
+
+# ---- D1 context (post-hoc, reported, not scored): the partition's null over every window start -----------
+
+def window_any(flag, W):
+    """(T,) bool: flag true at any tick of [t, t + W) clipped to the world (a forward-looking rolling any)."""
+    T = len(flag)
+    c = np.concatenate([[0], np.cumsum(flag.astype(np.int64))])
+    end = np.minimum(np.arange(T) + W, T)
+    return (c[end] - c[:T]) > 0
+
+
+def null_partition_world(w, fe, W=W_WINDOW, delta=DELTA):
+    """Per class (covered friends; the scripted friend from its first mask): over EVERY tick t as a window start, the
+    share of windows [t, t + W) that would class grave_after / approach / no_approach, plus the per-tick base rates of
+    GRAVE, ADJACENT and the worst need within delta. The null the D1 partition is read against."""
+    _rise, R, _L = mods()
+    f = fe["friend"]
+    first_onset = fe["windows"][0][0] if fe["windows"] else None
+    out = {}
+    for cls, friends, start in (("covered_friends", [j for j in range(R.ROSTER) if j != f], 0),
+                                ("scripted_from_first_mask", [f], first_onset if first_onset is not None else 0)):
+        acc = {"windows": 0, "grave_after": 0, "approach": 0, "no_approach": 0, "ticks": 0, "grave": 0, "adjacent": 0, "need_within_delta": 0}
+        for j in friends:
+            codes = np.asarray(w["codes"][:, j])
+            worst = np.asarray(w["needs"][:, j, :5], np.float64).max(1)
+            near = (R.S.NEED_DISTRESS - worst) <= delta
+            adj = np.asarray(w["hap"][:, j], np.float64) < R.S.HAP_ADJACENT
+            grave = codes == R.S.GRAVE
+            g_w, a_w = window_any(grave, W)[start:], window_any(near | adj, W)[start:]
+            acc["windows"] += len(g_w)
+            acc["grave_after"] += int(g_w.sum())
+            acc["approach"] += int((~g_w & a_w).sum())
+            acc["no_approach"] += int((~g_w & ~a_w).sum())
+            acc["ticks"] += len(codes) - start
+            acc["grave"] += int(grave[start:].sum())
+            acc["adjacent"] += int((adj & ~grave)[start:].sum())
+            acc["need_within_delta"] += int((near & ~grave)[start:].sum())
+        out[cls] = acc
+    return out
+
+
+def read_context(progress=True):
+    _rise, _R, L = mods()
+    t0 = time.time()
+    ws = worlds_for("content")
+    acc = {}
+    for i, (arm, k, seed, ticks, path) in enumerate(ws):
+        w = load(path, arm, k, seed, HALF["content"])
+        a = null_partition_world(w, L.first_episode(w, arm))
+        for cls, d in a.items():
+            tgt = acc.setdefault(arm, {}).setdefault(cls, {key: 0 for key in d})
+            for key, v in d.items():
+                tgt[key] += v
+        if progress:
+            _progress(i, len(ws), t0, "context")
+    out = {"half": HALF["content"], "W": W_WINDOW, "delta": DELTA, "note": "post-hoc control, not in the declaration: the partition applied to every window start",
+           "tables": {}}
+    for arm, by_cls in acc.items():
+        out["tables"][arm] = {}
+        for cls, d in by_cls.items():
+            n, tk = d["windows"], d["ticks"]
+            out["tables"][arm][cls] = {"windows": n, "null_share": {p: d[p] / n if n else None for p in PARTS},
+                                       "tick_base_rate": {"grave": d["grave"] / tk if tk else None, "adjacent": d["adjacent"] / tk if tk else None,
+                                                          "need_within_delta": d["need_within_delta"] / tk if tk else None}}
+    out["seconds"] = round(time.time() - t0)
+    return out
 
 
 # ---- D2: covered friends' natural crossings --------------------------------------------------------
@@ -782,10 +854,17 @@ def md(cmd, out):
                     for part in PARTS:
                         p = t["parts"][part]
                         lines.append(f"| {part} | {_f(p['runs'], 1)} | {_f(p['share_runs'])} | {_f(p['share_ticks'])} | {_f(p['per_10k'], 4)} | {_f(p['per_observer_per_1000'], 4)} | {_f(p['mean_run_length'], 1)} | {_f(p['rising_share'])} | {_f(p['in_sight_share'])} |")
-                    lines += ["", "sensitivity (share of runs): " + "; ".join(f"W = {W}: " + ", ".join(f"{part} {_f(t['sens'][W][part])}" for part in PARTS) for W in t["sens"]),
+                    lines += ["", f"approach split (share of all runs): by the worst need within delta {_f(t['approach_by_need_edge_share_runs'])}, by happiness under 70 alone {_f(t['approach_by_happiness_only_share_runs'])}",
+                              "", "sensitivity (share of runs): " + "; ".join(f"W = {W}: " + ", ".join(f"{part} {_f(t['sens'][W][part])}" for part in PARTS) for W in t["sens"]),
                               "", "nearest approach of the worst need to 90 (runs, all seeds): " + ", ".join(f"{b}: {n}" for b, n in t["near_hist_total"].items()),
                               "", "happiness distance to 45 (runs, all seeds): " + ", ".join(f"{b}: {n}" for b, n in t["hap_hist_total"].items()), ""]
         lines += ["```", json.dumps(out["score"], indent=1), "```"]
+    elif cmd == "context":
+        lines += [out["note"], "", "| arm | class | window starts | null grave_after | null approach | null no_approach | tick rate GRAVE | tick rate ADJACENT | tick rate need within delta |", "|---" * 9 + "|"]
+        for arm, by_cls in out["tables"].items():
+            for cls, r in by_cls.items():
+                ns, tb = r["null_share"], r["tick_base_rate"]
+                lines.append(f"| {arm} | {cls} | {r['windows']} | {_f(ns['grave_after'])} | {_f(ns['approach'])} | {_f(ns['no_approach'])} | {_f(tb['grave'], 4)} | {_f(tb['adjacent'], 4)} | {_f(tb['need_within_delta'], 4)} |")
     elif cmd == "covered":
         lines += [f"P22 bar: {json.dumps(out['bar'])}", ""]
         for block in ("confirming", "validation"):
@@ -841,12 +920,12 @@ def md(cmd, out):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["content", "covered", "persistence", "means", "reliability", "score"])
+    ap.add_argument("cmd", choices=["content", "context", "covered", "persistence", "means", "reliability", "score"])
     ap.add_argument("--out")
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
-    fn = {"content": read_content, "covered": read_covered, "persistence": lambda progress: read_ladder("persistence", progress),
+    fn = {"content": read_content, "context": read_context, "covered": read_covered, "persistence": lambda progress: read_ladder("persistence", progress),
           "means": lambda progress: read_ladder("means", progress), "reliability": read_reliability}
     out = read_score() if a.cmd == "score" else fn[a.cmd](progress=not a.quiet)
     if a.out:
