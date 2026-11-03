@@ -24,9 +24,10 @@ needs head; her words of 2026-10-09 ("I'm not convinced that I want
 anything limiting the efficacy of the mini-models") and today's make
 the act head's budget an empirical ladder, reported, not a cap.
 
-**Status: DECLARED 2026-11-03 on her "Go"; one owner call (§12, the
-margin) put to her with a recommendation — training may start after
-the reds are on record, the margin must be ruled before any read.
+**Status: DECLARED 2026-11-03 on her "Go" (45368022); guards a1–a7
+red on record (§7); training starts on this commit; one owner call
+(§12, the margin) put to her with a recommendation — the margin must
+be ruled before any read.
 Nothing collects (0 covered cat-ticks); no weight any acting policy
 uses changes; nothing acts. No number from this arc exists at this
 write.**
@@ -252,12 +253,18 @@ R above every arm in sight and near B under fog.
 - **a2, arm A's state**: the frozen part of arm A reproduces
   `probe_1e.states_world`'s GRU states on a 1b evaluation world to 0.0
   for every seed, and its parameters carry no gradient after a training
-  step. Predicted red: the frozen flag dropped → "the belief state must
-  not change".
+  step. Predicted red: the frozen flag dropped → "the belief head
+  carries no gradient" (corrected before the cycle from "the belief
+  state must not change": with the flag dropped the guard's gradient
+  assertion is reached first; the state-change assertion needs two
+  mutations to fire).
 - **a3, the budgets**: the four arms' trained parameter counts equal
   the §4 table (6,742 / 8,182 / 16,792 / 24,822), B10 is under 8,445,
   B20 under 16,890, B30 under 25,335, and width 40 / 51 would overshoot.
-  Predicted red: width 39 → 40 → "B20 exceeds 20% of the trunk".
+  Predicted red: width 39 → 40 → the count table differs from §4,
+  printing `'B20': 17462` (corrected before the cycle from "B20 exceeds
+  20% of the trunk": the equality check is the guard's first
+  assertion).
 - **a4, the reader**: on a hand array accuracy, log-loss, macro recall
   and the per-class recalls are the textbook values; the row state
   (seen / heard / silent) follows the present cell and the message
@@ -271,13 +278,24 @@ R above every arm in sight and near B under fog.
 - **a6, the halves**: `accuracy` / `ladder` run on tuning seeds and
   refuse a confirming seed; `confirming` runs once on confirming seeds
   and refuses a tuning seed (`needy_read.refuse_unless`). Predicted
-  red: the half swapped in the arm-comparison loader → PermissionError.
+  red: the halves swapped in the world list → "accuracy / ladder run on
+  tuning seeds only" (the guard's assertions were given names before
+  the cycle; the first version's were bare).
 - **a7, the trainer**: a two-epoch smoke (arms A and B10, 2 train / 1
   val world per set, 2 chunks) writes the manifest, the metrics, the
   head and the done file, ends under the uniform predictor's loss
   (2 · ln 11 over the two targets), and its forward on one world gives
   probabilities whose rows sum to 1 to 1e-5. Predicted red: softmax
   over the wrong axis → "rows must sum to 1".
+- **Reds on record 2026-11-03** (`scripts/mutate.sh --expect`, on the
+  committed files at 7e2e3b95, sequential, baseline == restored at 1
+  passed each): a1 → `y10 is applied[t + 10]`; a2 → `the belief head
+  carries no gradient`; a3 → `{'A': 6742, 'B10': 8182, 'B20': 17462,
+  'B30': 24822}`; a4 → `row states [0, 2, 2, 2]: a heard row classed
+  silent`; a5 → `V's map differs from APPLIED_ACTIVITY`; a6 →
+  `accuracy / ladder run on tuning seeds only`; a7 → `rows must sum to
+  1`. Seven of seven red; three predictions corrected before their
+  cycles (a2, a3, a6, as noted above), none after.
 
 ## 8. Blind spots (declared)
 
