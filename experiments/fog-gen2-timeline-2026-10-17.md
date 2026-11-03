@@ -527,6 +527,16 @@ consent BC comparison ride the trunk.
   0.63 per 10,000 observer-ticks). F-072 minted; NF1e-h24+p is the
   Phase 2 candidate by the declaration's rule; feeding anything that
   acts is her new ruling.
+  PHASE 1e DIAGNOSTICS DECLARED 2026-11-02 (owner "Go" to step 1 of
+  the two-step recommendation after the Professor's reading): five
+  zero-collection reads on the retrained head at her pick — the false
+  runs' content (approach vs noise), covered friends' natural
+  crossings on the confirming half, persistence and need-means filter
+  ladders on the tuning half, reliability bins; P21–P24;
+  `minifriend-phase1e-diag-2026-11-02/DECLARATION.md`, deviations
+  entry 17. Her side note the same day ("document our working recipe
+  … for our next generation") → `experiments/MINIFRIEND-RECIPE.md`.
+  Step 2 (Phase 1f, a collection) waits on these reads and her word.
 
 ## Flagged follow-ups (owner's word to start)
 

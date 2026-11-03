@@ -974,3 +974,24 @@ H4) against the frozen 0.596 / 0.444 / 0.421, E-H1 0.786 against
 0.013; lived false runs 0.94× / 1.60×; grave mse5 0.846×; the price
 beside a refusing friend 2.40 against 0.63 covered-friend false runs
 per 10,000 (3.80×). F-072 minted. RESULTS gated PASS, round 3.
+
+## 17. Mini-friend Phase 1e diagnostics: five zero-collection reads on the retrained head (2026-11-02)
+Deviation: none from the Gen 2 prereg (18f06f84, untouched); an
+addition to the mini-friend thread on her word "Go" (2026-11-02) to the
+recommendation "step 1, a zero-collection diagnostics declaration" after
+the Professor's reading of Phase 1e. Reads, all on raws and heads
+already on disk (0 covered cat-ticks, no weight moves): D1 the
+covered-friend false runs at her pick partitioned by the friend's truth
+over the 50 ticks after each run's start (grave-after / approach within
+10 of the edge or ADJACENT / no approach); D2 covered friends' natural
+grave crossings on the confirming half (and the 35 validation worlds
+apart) by the ladder's detection, latency and lead; D3 a persistence
+ladder over k and the run-length distributions; D4 a need-means filter
+ladder over λ, both on the tuning half; D5 reliability bins per head.
+P21–P24 registered (the excess at least half approach-or-grave and
+above the frozen's; covered H ≥ 100 detection above the midpoint of the
+splice at 0.05 and the scripted mean at S; a k, a λ that halves covered
+false runs at under 0.05 detection cost). Her side note the same day
+("document our working recipe") → `experiments/MINIFRIEND-RECIPE.md`.
+`minifriend-phase1e-diag-2026-11-02/DECLARATION.md`.
+Status: DECLARED 2026-11-02; reads after the reds are on record.
