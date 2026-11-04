@@ -26,8 +26,8 @@ the act head's budget an empirical ladder, reported, not a cap.
 
 **Status: DECLARED 2026-11-03 on her "Go" (45368022); guards a1–a7
 red on record (§7); training starts on this commit; one owner call
-(§12, the margin) put to her with a recommendation — the margin must
-be ruled before any read.
+(§12, the margin) RULED 2026-11-03 "As recommended" (m = 0.02) after
+training finished and before any read.
 Nothing collects (0 covered cat-ticks); no weight any acting policy
 uses changes; nothing acts. No number from this arc exists at this
 write.**
@@ -373,7 +373,7 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $C/read_act.py confirming --out $C/
 VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $C/read_act.py score      --out $C/reads/score.json      --md > $C/reads/score.md
 ```
 
-## 12. Owner call
+## 12. Owner call (RULED 2026-11-03, her words verbatim: "As recommended" — m = 0.02)
 
 1. **The margin m** for P26: how much top-1 accuracy arm A may give up
    to B's best and still be "one belief per friend". **Recommendation:
