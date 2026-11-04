@@ -95,6 +95,18 @@ live in the native checkout under `results-raw/` and are never deleted.
   reproduce the head's own prediction file (`probe_1e.check_reproduces`).
 - Per-phase files: Phase 1e's `train_1e.py`, `probe_1e.py`, `run_1e.sh`
   (three heads in parallel, then three probes, skip-if-done).
+- **The act head** (`minifriend-act-2026-11-03/`, F-074; her words "We
+  definitely want two heads"): its own recurrent state, not the needs
+  head's — Linear(167 → 24) + ReLU, GRU(24), two Linear(24 → 11)
+  softmax outputs, the friend's applied act this tick (the act it takes
+  in the step the observer is about to take from obs[t]) and ten ticks
+  on; cross-entropy on both, natural frequency, the same optimiser,
+  chunking and early stop as the needs head, the same training worlds;
+  8,182 parameters (9.7% of the trunk). The needs head's frozen state
+  under a two-layer head reads 0.0178 less well at the same width, and
+  20–30% of the trunk buys about one point of top-1 (log-loss keeps
+  falling), so the act head's budget closed at 10% on her ruled ladder.
+  Labels are free in every raw (`applied`, `seating_collect_g2`).
 
 ## 5. The operating point
 
@@ -145,6 +157,15 @@ live in the native checkout under `results-raw/` and are never deleted.
   and 1.4× under on the scripted, where the frozen probe was 5–10×
   under — re-read the reliability bins after any retrain before
   carrying a threshold over.
+- **The act head's reads** (`minifriend-act-2026-11-03/read_act.py`):
+  top-1, log-loss and macro recall per row state (seen / heard /
+  silent) and horizon, covered friends only, beside three baselines —
+  the training mode, the activity the visible row names, and the
+  friend's previous act (privileged). Measure each declared cell's share
+  of samples on existing raws BEFORE registering a bar on it: the
+  act predictor's "fog" cell (silent) turned out to be 0.34% of
+  samples, because an out-of-sight friend's calls keep it "heard"
+  (0.993 of out-of-sight samples).
 
 ## 7. Discipline that made the numbers trustworthy
 

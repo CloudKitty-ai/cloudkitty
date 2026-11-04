@@ -1,0 +1,89 @@
+{
+ "primary": {
+  "group": "needy-tuning",
+  "horizon": "y0",
+  "state": "all",
+  "cls": "covered",
+  "metric": "top1"
+ },
+ "fog": {
+  "group": "needy-tuning",
+  "horizon": "y0",
+  "state": "silent",
+  "cls": "covered",
+  "metric": "top1"
+ },
+ "margin": 0.02,
+ "cells": {
+  "primary": {
+   "A": 0.6161,
+   "B10": 0.6339,
+   "B20": 0.6436,
+   "B30": 0.6466,
+   "F": 0.31487469586374695,
+   "V": 0.45735989456609893,
+   "R": 0.7244069343065693
+  },
+  "fog": {
+   "A": 0.8326,
+   "B10": 0.8343,
+   "B20": 0.8339,
+   "B30": 0.8365,
+   "F": 0.812403569807896,
+   "V": 0.812403569807896,
+   "R": 0.8955377401300862
+  }
+ },
+ "gains": {
+  "primary": {
+   "B_best": "B30",
+   "B_best_value": 0.6466,
+   "B20_minus_B10": 0.009699999999999931,
+   "B30_minus_B20": 0.0030000000000000027,
+   "B30_minus_B10": 0.012699999999999934,
+   "A_minus_B_best": -0.03049999999999997
+  },
+  "fog": {
+   "B_best": "B30",
+   "B_best_value": 0.8365,
+   "B20_minus_B10": -0.00040000000000006697,
+   "B30_minus_B20": 0.0026000000000000467,
+   "B30_minus_B10": 0.0021999999999999797,
+   "A_minus_B_best": -0.0039000000000000146
+  }
+ },
+ "score": {
+  "P25": {
+   "B10_fog": 0.8343,
+   "F_fog": 0.812403569807896,
+   "gain": 0.021896430192104077,
+   "bar": 0.05,
+   "met": false
+  },
+  "P27": {
+   "primary_B30_minus_B10": 0.012699999999999934,
+   "fog_B30_minus_B10": 0.0021999999999999797,
+   "bar": 0.02,
+   "met": true
+  },
+  "P28": {
+   "seen_cell": {
+    "A": 0.7183,
+    "B10": 0.7338,
+    "B20": 0.7422,
+    "B30": 0.7449
+   },
+   "V_seen": 0.5719367130312154,
+   "unfit": [],
+   "met": true
+  },
+  "P26": {
+   "margin": 0.02,
+   "A_minus_B_best_primary": -0.03049999999999997,
+   "A_minus_B_best_fog": -0.0039000000000000146,
+   "met": false
+  }
+ },
+ "chosen": "B10",
+ "chosen_rule": "P26 met -> A; else the smallest B within m of B_best on the primary cell (DECLARATION \u00a76)"
+}

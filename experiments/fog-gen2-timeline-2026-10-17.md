@@ -566,6 +566,17 @@ consent BC comparison ride the trunk.
   the Nash reward already pays for a friend's relief; the owner's
   intent for Phase 2 is the heads' outputs as inputs to the main
   model, the reaction learned by training.
+  ACT PREDICTOR PHASE 1 DONE 2026-11-03 (margin ruled "As recommended",
+  m = 0.02; 0 covered cat-ticks): the act predictor is B10 — its own
+  GRU at width 24, 8,182 parameters — reading a covered friend's next
+  act in 0.634 of ticks (frequency 0.315; 0.734 in sight, 0.522 heard,
+  0.410 ten ticks on; confirming half 0.633); P26 NOT MET (the needs
+  head's state, arm A, 0.0305 under B30); P27 MET (B30 − B10 = 0.0127;
+  the budget closes at 10%); P25 NOT MET as declared on the silent cell
+  (0.34% of samples), heard reported; P28 MET. F-074 minted; deviations
+  18 CLOSED. Her calls: P25's "sight-only" consequence; arm C (joint
+  training) by the rule; then the Gen 2 Phase 2 declaration (both
+  heads' outputs on the kitty rows, her acting ruling first).
 
 ## Flagged follow-ups (owner's word to start)
 

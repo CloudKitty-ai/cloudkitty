@@ -137,6 +137,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-071 | active | On natural rows the frozen probe's history curve is the head's, not the splice's: a scripted friend's grave crossing after 100–300 / 300–1,250 / 1,250–6,000 lived ticks is detected in 0.490 / 0.398 / 0.370 at 0.10 (splice 0.358 / 0.287 / 0.288, inside one seed SD and above it at every stratum), the elevated-start crossing at H 11–75 in 0.431 (splice 0.362 at H = 50), the reset crossing in 1.000 (P's 0.995); the alarm precedes the crossing in a minority (0.13–0.32 past the first frame) while the logit rises 1.6–2.5 over the climb |
 | F-072 | active | The frozen probe's late-history miss was a coverage gap in its training data: the same NF recipe at width 24, retrained from scratch with late-history graves in its training worlds (Phase 1e), detects the needy set's confirming crossings at her pick in 0.920 / 0.880 / 0.863 (N-H2 / H3 / H4) against 0.596 / 0.444 / 0.421, at the crossing, with the splice at H = 100 at 0.598 against 0.358 and the control at most 0.013; the price beside a refusing friend 3.8× the false runs |
 | F-073 | active | The retrained head NF1e-h24+p detects a COVERED friend's natural crossing into grave after 208–5,887 lived ticks in 0.971 of observer-episodes at her pick (251 crossings; frozen 0.564), at the crossing, anticipating in 0.923 with a 51.3-tick median lead; its covered-friend false runs beside a refusing friend are three quarters attention on a friend approaching the edge or under happiness 70 within 50 ticks (26× a random window), one quarter not |
+| F-074 | active | A cat's own observation stream predicts a covered friend's next act in 0.634 of ticks (frequency 0.315): 0.734 in sight, above the visible activity flag (0.572) and the friend's own previous act (0.717); 0.522 out of sight while heard (0.329); 0.410 ten ticks on (0.314); the frozen needs head's belief state carries it 0.0178 less well at the same state width; tripling the head's parameters buys 0.0127 |
 
 ---
 
@@ -2666,3 +2667,71 @@ approach share of covered false runs under 0.5 by runs. **Re-verify when**: the 
 declaration reads the head beside an acting consumer; covered
 crossings exist in a composition without a scripted friend; any change
 to the training set or recipe.
+
+
+## F-074 · active · From its own observation stream a cat's small recurrent head predicts a covered friend's next act in 0.634 of ticks (frequency 0.315), 0.734 in sight — above the visible activity flag (0.572) and the friend's own previous act, which the observer does not see (0.717) — 0.522 out of sight while the friend is heard (0.329) and 0.410 ten ticks ahead (0.314); the frozen needs head's belief state carries it 0.0178 less well at the same state width, and tripling the head's parameters buys 0.0127 top-1
+Minted 2026-11-03 from the mini-friend act predictor, Phase 1
+(`minifriend-act-2026-11-03/RESULTS.md`, gated PASS round 2; declaration on the owner's "Go" after the Gen 2
+planning-notes review, her words "We definitely want two heads" and
+"Re: budget, we need to determine it empirically. Let's start with
+10%,20%,30% and evaluate accuracy. We can increase if needed.";
+the margin ruled "As recommended"; deviations entry 18). Data: none new
+(0 covered cat-ticks; no acting weight touched): twelve heads trained
+on Phase 1e's split (194 training worlds, 52 validation, 17,520,000
+samples) with the friend's applied act as the target — y0 = the act it
+takes in the step the observer is about to take, y10 = ten ticks on —
+and read on the needy set's tuning half's covered friends (9,864,000
+observer-friend ticks), the lived evaluation worlds, and once, for the
+chosen arm, on the confirming half; seed mean ± SD over three heads.
+
+**The act head** (B10: Linear(167 → 24) + ReLU, GRU(24), two
+Linear(24 → 11); 8,182 trained parameters, 0.0969 of the trunk). Top-1
+on y0, tuning half, covered friends: all states 0.634 ± 0.001; seen
+0.734 ± 0.001; heard 0.522 ± 0.001; silent 0.834 ± 0.002. Baselines on
+the same samples: frequency (the mode, play) 0.315 / 0.299 / 0.329 /
+0.812; the visible activity flag 0.457 / 0.572 / 0.329 / 0.812; the
+friend's previous applied act (privileged) 0.724 / 0.717 / 0.731 /
+0.896. Log-loss 1.090 ± 0.002 against frequency's 1.915; macro recall
+0.494 ± 0.002. Ten ticks ahead 0.410 ± 0.002 against 0.314. The
+confirming half: 0.633 ± 0.000, seen 0.735, heard 0.521, y10 0.410.
+The lived worlds: group P 0.643 ± 0.002, L / W / G 0.641 ± 0.002.
+
+**One memory or two.** Arm A, the frozen NF1e-h24 belief state (F-072,
+F-073) concatenated with the friend's row under a two-layer head, reads
+0.616 ± 0.006, 0.0305 under B30 — outside the ruled margin of 0.02
+against the best B arm (P26 not met) — and 0.0178 under B10 at the
+same state width; the gap sits
+in sight (−0.0155) and heard (−0.0205), by per-class recall largest on
+eat, chase and idle;
+ten ticks ahead A is within 0.004 of B10 (0.406 against 0.410). By the
+declared rule the act predictor is B10, a second recurrent state per
+friend; joint training of one state on both targets is the next
+question, the owner's.
+
+**Budget.** B10 → B20 → B30 (9.7 / 19.9 / 29.4% of the trunk): 0.634
+→ 0.644 → 0.647, +0.0127 for three times the parameters (P27 met; the
+declared rule closes the budget at 10%); log-loss 1.090 → 1.055 →
+1.042, 4.4% lower at B30.
+
+**Scope and caveats**: Gen 2 rot2 behaviour, 20×20 under fog, the
+needy composition and the lived evaluation worlds; covered friends
+only (the scripted friend reads alike, 0.641, and is excluded by
+declaration). Of covered-friend samples 47.4% are "heard" and 0.34%
+"silent" (heard is 0.993 of out-of-sight samples): the registered fog prediction was written on the
+silent cell and is not met there (0.022 over frequency against a 0.05
+bar); the heard figure is reported, not registered, and the heard row
+carries the friend's calls, wants and answers-me bits, so memory and
+those live cells are not separated by any declared arm. Top-1 is the
+declared metric; the policy that would read these probabilities uses
+the whole distribution. The eleven applied kinds hold no "accept" or
+"refuse"; no partner is predicted. What it hands Gen 2 Phase 2: an act
+head of 8,182 parameters, one recurrent state per observer-friend pair,
+that reads a friend's next act at 0.634 and its act ten ticks on at 0.410, beside the needs
+head; two states per friend.
+
+**Invalidated by** (this entry's own criteria): a re-read of the
+confirming half's covered friends putting B10's y0 top-1 under 0.60 or
+its in-sight top-1 under the visible flag's. **Re-verify when**: the
+Gen 2 Phase 2 declaration reads the heads beside an acting policy;
+Gen 3 cats react to these heads (their acts change); any change to the
+training set or recipe.

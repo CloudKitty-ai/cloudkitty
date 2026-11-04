@@ -1,0 +1,80 @@
+# Act predictor read: score
+
+```
+{
+ "P25": {
+  "B10_fog": 0.8343,
+  "F_fog": 0.812403569807896,
+  "gain": 0.021896430192104077,
+  "bar": 0.05,
+  "met": false
+ },
+ "P26": {
+  "margin": 0.02,
+  "A_minus_B_best_primary": -0.03049999999999997,
+  "A_minus_B_best_fog": -0.0039000000000000146,
+  "met": false
+ },
+ "P27": {
+  "primary_B30_minus_B10": 0.012699999999999934,
+  "fog_B30_minus_B10": 0.0021999999999999797,
+  "bar": 0.02,
+  "met": true
+ },
+ "P28": {
+  "seen_cell": {
+   "A": 0.7183,
+   "B10": 0.7338,
+   "B20": 0.7422,
+   "B30": 0.7449
+  },
+  "V_seen": 0.5719367130312154,
+  "unfit": [],
+  "met": true
+ },
+ "chosen": "B10",
+ "confirming": {
+  "chosen": "B10",
+  "primary_cell": {
+   "top1": {
+    "mean": 0.6331,
+    "sd": 0.0003,
+    "n_seeds": 3
+   },
+   "logloss": {
+    "mean": 1.0924,
+    "sd": 0.0018,
+    "n_seeds": 3
+   },
+   "macro_recall": {
+    "mean": 0.4927,
+    "sd": 0.0018,
+    "n_seeds": 3
+   }
+  },
+  "fog_cell": {
+   "top1": {
+    "mean": 0.8242,
+    "sd": 0.0027,
+    "n_seeds": 3
+   },
+   "logloss": {
+    "mean": 0.6519,
+    "sd": 0.0218,
+    "n_seeds": 3
+   },
+   "macro_recall": {
+    "mean": 0.1928,
+    "sd": 0.0067,
+    "n_seeds": 3
+   }
+  }
+ },
+ "met": {
+  "P25": false,
+  "P26": false,
+  "P27": true,
+  "P28": true
+ }
+}
+```

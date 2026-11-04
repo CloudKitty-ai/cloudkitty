@@ -1844,3 +1844,24 @@ here), never one digit more; (86) an attribution in parentheses is held
 to the substring rule like a quotation — quote it or drop the claim's
 specifics.
 
+## 2026-11-03 — Mini-friend act predictor Phase 1 RESULTS.md (whole doc) + F-074 + deviations 18 + timeline
+
+Two rounds; the reader reproduced exactly in both (three reads, about
+28,000 JSON leaves equal but for `seconds`, the md files byte-identical,
+the 720 + 192 cell counts equal, the twelve heads' sha256 equal to their
+done.json; no new collected raws, hash not applicable). Round 1 FAIL on
+one CONTRADICTED sentence: "the tuning half's B10 figures hold within
+0.002 everywhere except the silent cells" — true of top-1 and macro
+recall (at most 0.0013), false of log-loss (heard 1.443 → 1.446,
+0.0034); and one WEAK: "almost always heard (47.4%)" printed heard's
+share of all samples for a claim about out-of-sight samples (0.993).
+Round 2 PASS with notes; three scope words added after the pass and
+recorded on the stamp. Lessons: (87) a "within X everywhere" claim
+covers every metric the section prints, not the one the writer had in
+mind — name the metrics, or print the largest move per metric; (88) a
+share in brackets carries the claim's own denominator ("almost always
+heard" needs heard / out-of-sight, not heard / all); (89) a ranking word
+over classes ("largest on eat, chase and idle") names its measure — the
+per-class recall gap and the share of the top-1 gap rank the same
+classes differently.
+

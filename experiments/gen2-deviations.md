@@ -1013,7 +1013,7 @@ PASS, round 4 (rounds 1–3 wording and precision).
 ## 18. Mini-friend act predictor, Phase 1: a friend's next act from the observer's belief — shared state against its own memory at three budgets (2026-11-03)
 Deviation: none from the Gen 2 prereg (18f06f84, untouched); the arm
 spec amendment A4 deferred ("estimate head and act predictor both read
-[b_t] … Detail at the arm spec"), on her words "We definitely want two
+[b_t] … Detail at the arm spec", bracket mine), on her words "We definitely want two
 heads", "Re: budget, we need to determine it empirically. Let's start
 with 10%,20%,30% and evaluate accuracy. We can increase if needed." and
 "Go". Zero collection: four arms × three seeds trained on Phase 1e's
@@ -1031,5 +1031,15 @@ beats F by ≥ 0.05 under fog; A within her margin m of B's best on the
 primary and fog cells; B30 − B10 < 0.02; every arm ≥ V in sight).
 Owner call 1: the margin m (recommended 0.02).
 `minifriend-act-2026-11-03/DECLARATION.md`.
-Status: DECLARED 2026-11-03; guards a1–a7 green; reds next; training
-after the reds; no read before m is ruled.
+Status: CLOSED 2026-11-03 (declared 45368022, reds e2987d73, margin
+RULED "As recommended" 3565f9be after training and before any read;
+twelve heads, 0 covered cat-ticks). P26 NOT MET: arm A on the needs
+head's state reads 0.616 against B10's 0.634 and B30's 0.647 (A −
+B_best = −0.0305) — the act predictor is B10, its own state of width
+24, two states per friend; arm C (joint training) hers by the rule.
+P27 MET: B30 − B10 = 0.0127 top-1, the budget closes at 10% (log-loss
+1.090 → 1.042 reported). P25 NOT MET as declared: the silent cell is
+0.34% of covered-friend samples and B10 is 0.022 over frequency there;
+heard (47.4%) reads 0.522 against 0.329, reported, the "sight-only"
+consequence hers. P28 MET. Confirming half 0.633. F-074 minted. RESULTS
+gated PASS, round 2 (round 1 one sentence's wording).
