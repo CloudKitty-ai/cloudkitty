@@ -383,3 +383,44 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $C/read_act.py score      --out $C/
    block in parameters and legibility. Alternatives: 0.01 (stricter;
    likely to send us to B on noise) or 0.05 (A ships unless it is
    plainly worse).
+
+## 13. Owner calls after the reads (RULED 2026-11-04, her words verbatim)
+
+The decision rules of §6 left two consequences to her: P25's "sight-only"
+consequence and arm C. Both were put to her with pros and cons on
+2026-11-04, alongside the Professor's review of F-073 / F-074 (their note
+`~/ai/professor/notes/for-experiments-f073-f074-certainty-review-2026-11-04.md`,
+sha256 938134f9…, relayed to her in full on her word "relay our findings
+and this probability exercise to Professor for review and feedback").
+The plan put to her, numbered as in the options table of that day: 1 =
+amend P25's consequence to "live in sight and heard, frequency prior when
+silent", skip arm C, open the Gen 2 Phase 2 declaration with the acting
+ruling as its first call; 2 = the memoryless row-only act head as a
+Phase 2 side read, not a gate; 3 = B20 only as a registered Phase 2
+prediction, never a switch after reading; plus a reliability read on
+B10 and B30 (by regime and by entropy within sight) before Phase 2
+declares. Her words: "So you're thinking 1+2+3 (5 done)?" and, to the
+order "confirm the note → reliability read → Phase 2 declaration → recipe
+sharpenings", "Sounds good, let's get started".
+
+2. **P25's consequence, AMENDED.** The act head is live for Phase 2
+   whenever the friend's row is live (seen or heard); the frequency prior
+   stands in when the row is silent. Grounds on the record: the declared
+   fog cell (silent) is 0.34% of covered samples; heard is 0.993 of
+   out-of-sight samples and B10 reads 0.522 there against 0.329 (log-loss
+   1.443 against 1.864). P25 itself stays scored NOT MET as declared; the
+   heard result is a reported cell and becomes a registered one only in
+   a new declaration.
+3. **Arm C, SKIPPED for Gen 2.** One state trained on needs and acts
+   would reopen the validated needs head for a saving of 9.7% of the
+   trunk; its natural time is Gen 3, when both heads retrain under
+   `MINIFRIEND-RECIPE.md`.
+4. **The Professor's note, CONFIRMED** (it banked on her word in this
+   session). Its declaration items travel into the Phase 2 draft: a read
+   that the policy learned the regime × confidence discount; heard y10
+   (0.407 against 0.320, RESULTS R-A) beside heard y0; F-074's
+   invalidation criterion as a declared rollout monitor; P21's NOT MET
+   verdict beside the attention partition; the row-only head as a side
+   read. Its four recipe sharpenings land in the recipe at the next
+   touch. The observer-stream ruling's last clause stays Phase 2's first
+   owner call; nothing here pre-empts it.

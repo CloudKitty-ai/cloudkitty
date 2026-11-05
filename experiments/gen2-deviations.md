@@ -1043,3 +1043,11 @@ P27 MET: B30 − B10 = 0.0127 top-1, the budget closes at 10% (log-loss
 heard (47.4%) reads 0.522 against 0.329, reported, the "sight-only"
 consequence hers. P28 MET. Confirming half 0.633. F-074 minted. RESULTS
 gated PASS, round 2 (round 1 one sentence's wording).
+Owner calls 2–4 RULED 2026-11-04 ("Sounds good, let's get started" to
+the plan "1+2+3 (5 done)?"): P25's consequence AMENDED to live in sight
+and heard, frequency prior when silent (P25 stays scored NOT MET; heard
+is a reported cell until a new declaration registers it); arm C SKIPPED
+for Gen 2; the Professor's review note (sha256 938134f9…) CONFIRMED,
+its declaration items carried into the Phase 2 draft. DECLARATION §13.
+Next on her word: the act-head reliability read (B10 and B30) before the
+Phase 2 declaration.

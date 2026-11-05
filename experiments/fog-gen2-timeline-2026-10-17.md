@@ -577,6 +577,15 @@ consent BC comparison ride the trunk.
   18 CLOSED. Her calls: P25's "sight-only" consequence; arm C (joint
   training) by the rule; then the Gen 2 Phase 2 declaration (both
   heads' outputs on the kitty rows, her acting ruling first).
+  ACT PREDICTOR CALLS RULED 2026-11-04 ("Sounds good, let's get
+  started" to "1+2+3 (5 done)?"): P25's consequence amended — the act
+  head is live in sight and heard, frequency prior when silent; arm C
+  skipped for Gen 2; the Professor's F-073/F-074/certainty review
+  (note sha256 938134f9…) confirmed, its items into the Phase 2 draft.
+  Order she set: reliability read on B10 and B30 (by regime; by
+  entropy within sight; temperature on the validation split) → Phase
+  2 declaration (acting ruling first; row-only act head as a side
+  read; B20 only as a registered prediction) → recipe sharpenings.
 
 ## Flagged follow-ups (owner's word to start)
 
