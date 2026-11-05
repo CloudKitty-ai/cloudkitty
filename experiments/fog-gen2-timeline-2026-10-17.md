@@ -618,6 +618,13 @@ consent BC comparison ride the trunk.
   count ladder: "What about B5,10,15 to better calibrate the loss
   curve against parameter count? … We can extend to 20,30 if we see
   real welfare benefit" — `minifriend-act-ladder-2026-11-04/`.
+  ACT-HEAD LADDER DECLARED 2026-11-04 (owner "Do it"; zero collection):
+  B5 (width 14, 3,942 params) and B15 (width 32, 12,438) trained by the
+  act arc's recipe beside B10 / B20 / B30; five-arm accuracy and
+  reliability reads, a curve read (log-loss and top-1 per 1,000 added
+  parameters per step); P33 (concave); no selector — the Phase 2 act
+  head is her pick after the curve; confirming half untouched until
+  then. `minifriend-act-ladder-2026-11-04/DECLARATION.md`, deviations 20.
 
 ## Flagged follow-ups (owner's word to start)
 

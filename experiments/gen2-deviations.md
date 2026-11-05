@@ -1095,3 +1095,25 @@ reasonable … overfitting trying to tune it by 1-2%"; "Do it"): T = 1 for
 every act head, no frozen temperatures; reliability read = monitor with
 a 0.05 ECE trigger; the B20 question overtaken by her parameter-count
 ladder (entry 20).
+
+## 20. Act-head parameter ladder: B5 and B15 beside B10 / B20 / B30 — the loss curve against parameter count (2026-11-04)
+Deviation: none from the Gen 2 prereg (18f06f84, untouched); the act
+head's 10% closure (entry 18, P27) was this thread's rule, never hers
+("The 10% budget rule was arbitrary and never declared by me last I
+checked"). Her design: "What about B5,10,15 to better calibrate the loss
+curve against parameter count? I. E. where are we getting bang for our
+buck. We can extend to 20,30 if we see real welfare benefit"; her word
+"Do it". Zero collection: six heads (B5 = GRU width 14, 3,942 params,
+4.67% of the trunk; B15 = width 32, 12,438, 14.73%) trained by
+`train_act.py` verbatim on Phase 1e's split, seeds 1–3, into the act
+arc's heads store; reads = the act arc's accuracy read and the
+calibration arc's reliability read over the five B arms (tuning half,
+lived worlds, validation fit reported only — T = 1 ruled), and a curve
+read: log-loss and top-1 per 1,000 added parameters at each step. P33
+registered (the log-loss gain per 1,000 params shrinks at every step).
+Decision rule: none selects — the Phase 2 act head is HER pick after the
+curve (§8), her conditional "extend to 20,30 if we see real welfare
+benefit" travels into Phase 2. Confirming half untouched until her pick.
+`minifriend-act-ladder-2026-11-04/DECLARATION.md`.
+Status: DECLARED 2026-11-04; guards l1–l5 green, reds next commit;
+training starts on the reds commit.
