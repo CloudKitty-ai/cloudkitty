@@ -610,6 +610,14 @@ consent BC comparison ride the trunk.
   arm only B10-s2 differs, at 0.99) B10 frozen at
   1.01 / 1.00 / 1.02, B30 at 1.00. F-075 minted; deviations 19
   CLOSED. Next on her word: the Phase 2 declaration.
+  CALIBRATION RULINGS 2026-11-04 ("T=1.00 seems reasonable … overfitting
+  trying to tune it by 1-2%"; "Do it"): T = 1 for every act head, no
+  frozen temperatures; the reliability read is a monitor with a 0.05
+  ECE trigger. The 10% budget was never hers ("arbitrary and never
+  declared by me"); the B20 question is overtaken by her parameter-
+  count ladder: "What about B5,10,15 to better calibrate the loss
+  curve against parameter count? … We can extend to 20,30 if we see
+  real welfare benefit" — `minifriend-act-ladder-2026-11-04/`.
 
 ## Flagged follow-ups (owner's word to start)
 

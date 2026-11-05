@@ -1090,3 +1090,8 @@ after the read; the per-arm reading differs only on B10-s2, 0.99; her
 word confirms or overrides), B10 frozen at 1.01 / 1.00 / 1.02 (seed 2's
 0.99 raised its own ECE), B30 at 1.00 / 1.00 / 1.00. F-075 minted. RESULTS gated PASS, round 7
 (rounds 1–6 wording and provenance; every number equal throughout).
+Owner RULED after the gate (calib DECLARATION §9, "T=1.00 seems
+reasonable … overfitting trying to tune it by 1-2%"; "Do it"): T = 1 for
+every act head, no frozen temperatures; reliability read = monitor with
+a 0.05 ECE trigger; the B20 question overtaken by her parameter-count
+ladder (entry 20).

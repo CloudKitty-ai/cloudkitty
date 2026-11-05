@@ -272,3 +272,39 @@ VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $C/calib_act.py score       --out <
 `A` = `experiments/needy-set-2026-10-28`, `C` =
 `experiments/minifriend-act-calib-2026-11-04`, absolute paths in use.
 `run_calib.sh` runs the three in order into `reads/`.
+
+## 9. Owner rulings after the read (RULED 2026-11-04, her words verbatim)
+
+Put to her after the gate: (2) the tempering unit — "a head" read per
+trained seed (this thread's reading, chosen after the read; per arm only
+B10-s2 differs, 0.99 against 1.00). Walked through in depth at her ask
+("Walk me through that in more depth"). Her words: "T=1.00 seems
+reasonable. Given the relatively tight range I wonder if we might be
+overfitting trying to tune it by 1-2%". The thread agreed (the fit is
+precise on 372,000 samples but its optimum does not travel between
+splits — seed 2's 0.99 worsened the tuning half — and what it buys is at
+most 0.0003 of validation NLL and ECE movements inside seed spread) and
+proposed: T = 1 for every act head, no frozen temperatures; the
+reliability read kept as a monitor, a temperature fitted only if a
+registered cell's ECE at T = 1 exceeds 0.05 (the bar already on record
+as the unscored expectation and F-075's invalidation line). Her word:
+"Do it".
+
+1. **Tempering: T = 1 for every act head.** Supersedes §6's tempering
+   outcome (global T per head: B10 1.01 / 1.00 / 1.02, B30 1.00) and
+   the per-head-vs-per-arm question with it. P29–P32 and every number
+   stand; R-3 is reported, not applied.
+2. **The 0.05 trigger.** After any retrain (the B5 / B15 ladder, Gen 3's
+   heads) the ECE at T = 1 is read per registered cell; a temperature
+   is fitted (validation split, per trained seed) only for a head whose
+   registered cell exceeds 0.05, and reported before it is adopted.
+3. **The B20 question** (§6's rule, rationale contradicted) is overtaken:
+   her next ask is a parameter-count ladder (B5, B15 beside B10 / B20 /
+   B30) with the Phase 2 act head her pick after the curve — its own
+   declaration (`minifriend-act-ladder-2026-11-04/`). Her words: "What
+   about B5,10,15 to better calibrate the loss curve against parameter
+   count? I. E. where are we getting bang for our buck. We can extend to
+   20,30 if we see real welfare benefit"; on the 10% budget: "The 10%
+   budget rule was arbitrary and never declared by me last I checked"
+   (correct: the cap was this thread's engineering budget for the needs
+   head; P27's closure was this thread's rule).

@@ -326,3 +326,12 @@ excluded; "ran on that commit" over a read re-run on a corrected reader;
 "tripling its width" for tripled parameters at doubled width; and a
 pending owner word written as settled. Raw-dir hash of the heads:
 `v1:5b29e9a2736a84f7` (`scripts/rawdir-hash.sh`).
+
+**Owner ruling after the gate (2026-11-04; DECLARATION §9):** T = 1 for
+every act head, no frozen temperatures ("T=1.00 seems reasonable. Given
+the relatively tight range I wonder if we might be overfitting trying to
+tune it by 1-2%"; "Do it"). The tempering outcome in "Decision rules
+applied" and R-3 is superseded and stands as reported; the reliability
+read becomes a monitor with a 0.05 ECE trigger. The B20 question is
+overtaken by the parameter-count ladder she asked for
+(`minifriend-act-ladder-2026-11-04/`).

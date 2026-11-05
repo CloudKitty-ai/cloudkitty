@@ -2788,7 +2788,8 @@ heard; B30's raises heard 0.0082 → 0.0106. Per head, B10-s2's fitted
 AUROC 0.860 ≥ 0.70); P31 MET (B30 − B10 AUROC −0.0002 seen, 0.0079
 heard, both < 0.02); P32 NOT MET (0.010 < 0.10). Rules applied: top-prob
 and entropy are Phase 2's two certainty scalars (the 11-way distribution
-itself is the act input, her design); tempering per head on the thread's
+itself is the act input, her design); tempering per head [SUPERSEDED the same day by her ruling: T = 1 for
+every act head, calib DECLARATION §9] on the thread's
 reading of "a head" (chosen after the read; her word confirms or
 overrides; per arm only B10-s2 differs, at 0.99) — B10 frozen at 1.01 / 1.00 / 1.02 (seed 2 reverts to 1), B30 at
 1.00 / 1.00 / 1.00;
