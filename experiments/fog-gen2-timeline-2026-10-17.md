@@ -625,6 +625,18 @@ consent BC comparison ride the trunk.
   parameters per step); P33 (concave); no selector — the Phase 2 act
   head is her pick after the curve; confirming half untouched until
   then. `minifriend-act-ladder-2026-11-04/DECLARATION.md`, deviations 20.
+  ACT-HEAD LADDER DONE 2026-11-05 (0 covered cat-ticks): on the needy
+  tuning half, covered friends, y0, log-loss 1.149 / 1.090 / 1.066 /
+  1.055 / 1.042 and top-1 0.615 / 0.634 / 0.640 / 0.644 / 0.647 across
+  B5 / B10 / B15 / B20 / B30; log-loss gain per
+  1,000 added parameters 0.0140 / 0.0055 / 0.0025 / 0.0017 — P33 MET,
+  concave, no knee; B10 holds 0.55 of the B5 → B30 log-loss gain, B15
+  0.77, B20 0.87; every
+  arm honest at T = 1 (largest registered-cell ECE 0.0149), none over
+  the 0.05 trigger.
+  No F-entry; deviations 20 CLOSED. Next: her pick of the Phase 2 act
+  head (ladder DECLARATION §8), then one confirming-half read of it,
+  then the Phase 2 declaration on her word.
 
 ## Flagged follow-ups (owner's word to start)
 

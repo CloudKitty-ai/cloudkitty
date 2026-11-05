@@ -1117,3 +1117,17 @@ benefit" travels into Phase 2. Confirming half untouched until her pick.
 `minifriend-act-ladder-2026-11-04/DECLARATION.md`.
 Status: DECLARED 2026-11-04; guards l1–l5 green, reds next commit;
 training starts on the reds commit.
+DONE 2026-11-05 (reds 2c26664d; six heads trained and the four reads run
+on that commit; 0 covered cat-ticks): on the tuning half, covered
+friends, y0, log-loss 1.149 / 1.090 / 1.066 / 1.055 / 1.042 across B5 /
+B10 / B15 / B20 / B30, top-1 0.615 / 0.634 / 0.640 / 0.644 / 0.647; per
+1,000 added parameters the log-loss gain is 0.0140, 0.0055, 0.0025,
+0.0017 — P33 MET, concave at every step, no knee (successive gains
+shrink by 1.5–2.6×); B10 holds 0.55 of the B5 → B30 log-loss gain, B15
+0.77, B20 0.87. Every arm honest at T = 1
+(largest registered-cell ECE 0.0149, B10 heard; none over the 0.05
+trigger); in-sight entropy AUROC 0.856–0.860 across the ladder. No
+F-entry (the declared test, a knee the record did not have, is not
+met); the ladder is a Phase 2 input cited from
+`minifriend-act-ladder-2026-11-04/RESULTS.md`. CLOSED; the Phase 2 act
+head is her pick (DECLARATION §8, not yet asked at this write).

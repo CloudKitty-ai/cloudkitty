@@ -1909,3 +1909,40 @@ Lessons:
     gate found the caveat incomplete in three places across two rounds,
     including a missing "only". Write the caveat once, then copy it
     verbatim into every companion.
+
+## 2026-11-05 — Act-head parameter ladder RESULTS.md (whole doc) + deviations 20 + timeline, Experiments thread
+
+Five rounds, fresh subagent each; PASS on round 5. Every number
+reproduced in every round (four reads re-run from the Read fence,
+leaf-equal JSON, byte-identical md, fifteen heads' sha256 equal); every
+FAIL was wording or companion copy. Rounds 3 and 4 passed RESULTS.md
+itself and failed only on the companions. No reader changed.
+
+Lessons:
+
+97. **Name the axis a superlative runs on.** "The weak end on every
+    axis" was false because the smallest head had the LOWEST ECE; "on
+    every accuracy axis" was true. A head can be worst at predicting and
+    best at knowing it.
+98. **A qualifier that scopes a universal travels with every copy.**
+    "No cell over the trigger" needs "registered"; "every arm is
+    honest" needs "in its registered cells"; a companion that drops the
+    qualifier fails on its own. Four of the nine catches this run were
+    the same qualifier dropped in a different place.
+99. **"Fitted" and "applied" are different verbs.** Fifteen temperatures
+    were fitted and reported; none was adopted. "No temperature is
+    fitted" contradicted the doc's own fit table; "fitted for adoption"
+    is what the ruling means.
+100. **Extending a finding's reading past its declared span is a new
+    claim.** F-075's "size does not move the ranking" was declared for
+    B30 − B10 (bar 0.02); across B5 → B30 the heard span is 0.022. Say
+    the span, say the bar's origin, say the excess against the seed SD.
+101. **A companion's series carries the surface, the subject and the
+    horizon.** "log-loss 1.149 / … / 1.042" without "tuning half,
+    covered friends, y0" is ambiguous when RESULTS also prints the
+    lived-world and y10 series for the same arms; "gain per 1,000
+    parameters" without "log-loss" is ambiguous beside a top-1 series.
+102. **Round the derived figure from the unrounded means, and say so.**
+    Gaps computed from 3-dp table cells came out one unit off in three
+    places; "from the unrounded means" on the sentence settles which
+    arithmetic the gate should do.

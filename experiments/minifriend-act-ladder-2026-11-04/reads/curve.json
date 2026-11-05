@@ -1,0 +1,138 @@
+{
+ "ladder": [
+  "B5",
+  "B10",
+  "B15",
+  "B20",
+  "B30"
+ ],
+ "trunk_params": 84450,
+ "rows": [
+  {
+   "arm": "B5",
+   "width": 14,
+   "params": 3942,
+   "share": 0.0467,
+   "top1": 0.6147,
+   "logloss": 1.1489,
+   "macro_recall": 0.4721,
+   "seen_top1": 0.721,
+   "heard_top1": 0.496,
+   "y10_top1": 0.3953
+  },
+  {
+   "arm": "B10",
+   "width": 24,
+   "params": 8182,
+   "share": 0.0969,
+   "top1": 0.6339,
+   "logloss": 1.0896,
+   "macro_recall": 0.494,
+   "seen_top1": 0.7338,
+   "heard_top1": 0.5224,
+   "y10_top1": 0.4096
+  },
+  {
+   "arm": "B15",
+   "width": 32,
+   "params": 12438,
+   "share": 0.1473,
+   "top1": 0.6405,
+   "logloss": 1.0663,
+   "macro_recall": 0.5074,
+   "seen_top1": 0.7404,
+   "heard_top1": 0.5291,
+   "y10_top1": 0.4144
+  },
+  {
+   "arm": "B20",
+   "width": 39,
+   "params": 16792,
+   "share": 0.1988,
+   "top1": 0.6436,
+   "logloss": 1.0553,
+   "macro_recall": 0.5102,
+   "seen_top1": 0.7422,
+   "heard_top1": 0.5336,
+   "y10_top1": 0.4181
+  },
+  {
+   "arm": "B30",
+   "width": 50,
+   "params": 24822,
+   "share": 0.2939,
+   "top1": 0.6466,
+   "logloss": 1.0419,
+   "macro_recall": 0.5127,
+   "seen_top1": 0.7449,
+   "heard_top1": 0.5369,
+   "y10_top1": 0.4239
+  }
+ ],
+ "marginal_logloss": [
+  {
+   "from": "B5",
+   "to": "B10",
+   "d_params": 4240,
+   "d_value": -0.05930000000000013,
+   "per_1000": -0.013985849056603805
+  },
+  {
+   "from": "B10",
+   "to": "B15",
+   "d_params": 4256,
+   "d_value": -0.023299999999999876,
+   "per_1000": -0.005474624060150347
+  },
+  {
+   "from": "B15",
+   "to": "B20",
+   "d_params": 4354,
+   "d_value": -0.01100000000000012,
+   "per_1000": -0.002526412494258181
+  },
+  {
+   "from": "B20",
+   "to": "B30",
+   "d_params": 8030,
+   "d_value": -0.013399999999999856,
+   "per_1000": -0.0016687422166874043
+  }
+ ],
+ "marginal_top1": [
+  {
+   "from": "B5",
+   "to": "B10",
+   "d_params": 4240,
+   "d_value": 0.019199999999999995,
+   "per_1000": 0.004528301886792451
+  },
+  {
+   "from": "B10",
+   "to": "B15",
+   "d_params": 4256,
+   "d_value": 0.006599999999999939,
+   "per_1000": 0.0015507518796992338
+  },
+  {
+   "from": "B15",
+   "to": "B20",
+   "d_params": 4354,
+   "d_value": 0.0030999999999999917,
+   "per_1000": 0.0007119889756545686
+  },
+  {
+   "from": "B20",
+   "to": "B30",
+   "d_params": 8030,
+   "d_value": 0.0030000000000000027,
+   "per_1000": 0.00037359900373599037
+  }
+ ],
+ "P33": {
+  "concave_logloss": true,
+  "concave_top1": true,
+  "met": true
+ },
+ "owner_call": "the Phase 2 act head: hers after this curve (DECLARATION \u00a76); no selector here"
+}
