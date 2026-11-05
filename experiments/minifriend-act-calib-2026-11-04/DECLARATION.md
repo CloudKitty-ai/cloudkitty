@@ -19,10 +19,10 @@ act arc's §13 records the same day's rulings (P25's consequence amended
 to sight and heard; arm C skipped; B20 only as a registered Phase 2
 prediction).
 
-**Status: DECLARED 2026-11-04; guards c1–c7 green at this commit, red on
-record in the next (§7); nothing collects (0 covered cat-ticks); no
-weight moves; nothing acts. No number from this arc exists at this
-write. The reads start on the reds commit.**
+**Status: DECLARED 2026-11-04 (2d111f51); guards c1–c7 RED CONFIRMED
+(§7, this commit); nothing collects (0 covered cat-ticks); no weight
+moves; nothing acts. No number from this arc exists at this write. The
+reads start on this commit.**
 
 Welfare-cost line. Covered minds: none exposed. Every read walks raws
 already on disk (the needy set's tuning half, Phase 1e's 52 validation
@@ -244,6 +244,20 @@ next commit:
 | c5 | `FLOOR_CELL = 10_000` → `10_000_000` | "registered cell B10/y0/seen holds 5,153,794 samples, under the floor 10,000,000" |
 | c6 | `ok` → `1.0 - ok` in the top-1 count (`self.correct += int(ok.sum())` → `int((1 - ok).sum())`) | "top-1 … vs metrics_hand …" |
 | c7 | `D.role_lists()[1]` → `D.role_lists()[0]` in fit_worlds | "fit_worlds is not the validation split (194 worlds against 52)" |
+
+**Reds on record 2026-11-04** (`scripts/mutate.sh --expect`, sequential,
+baseline == restored, 7 passed each): seven of seven RED CONFIRMED, each
+at the predicted first assertion, with one prediction corrected before
+its confirming cycle. **c4**: predicted "fitted T 3.0" for argmin →
+argmax; the mutant reached the predicted assertion but with T 0.5 — the
+validation NLL of a sharpened distribution is largest at the sharp end
+of the grid, not the flat end; mutate.sh exited 7 (wrong reason) on the
+first cycle, the prediction was corrected to "fitted T 0.5, expected
+2.00" and the cycle re-run RED CONFIRMED. Process note: the first cycles
+of c2 / c3 / c4 / c7 exited 5 (no-op) because the replacement strings
+carried regex escapes the plain-string helper does not read; re-run with
+plain strings, no file changed. Logs in the session scratchpad
+(`calib-reds*.log`).
 
 ## 8. Regeneration
 
