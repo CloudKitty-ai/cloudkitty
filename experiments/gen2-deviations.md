@@ -1073,5 +1073,20 @@ registered cell), whether B20 is registered as a Phase 2 prediction
 (only if P31 fails), and whether entropy / top-prob may be called
 certainty cells (P30). No head chosen or budget reopened here.
 `minifriend-act-calib-2026-11-04/DECLARATION.md`.
-Status: DECLARED 2026-11-04; guards c1–c7 green, reds next commit; the
-reads start on the reds commit.
+Status: CLOSED 2026-11-04 (declared 2d111f51, reds 9d048366; the fit
+and reliability reads on that commit, the score read re-run after gate
+round 1 with the per-head tempering rule, committed with RESULTS; 0
+covered cat-ticks). P29 MET (B10 mean top-prob 0.737 in
+sight against 0.537 heard); P30 MET (in-sight AUROC of 1 − entropy for
+correctness 0.860); P31 MET (B30 − B10 AUROC −0.0002 seen, 0.0079
+heard, under the declared 0.02; B20 not registered in Phase 2 by the
+rule as declared, though its stated rationale is contradicted — a
+temperature recovers at most 0.0003 of B30's roughly 0.047 NLL
+advantage — so the registration question is hers); P32 NOT MET (B10 seen / heard temperatures
+differ by 0.010; every non-silent fit 0.97–1.03). ECE at T = 1: B10 seen 0.0057,
+heard 0.0149. Rules: top-prob and entropy are the two certainty
+scalars; tempering per head (this thread's reading of "a head", chosen
+after the read; the per-arm reading differs only on B10-s2, 0.99; her
+word confirms or overrides), B10 frozen at 1.01 / 1.00 / 1.02 (seed 2's
+0.99 raised its own ECE), B30 at 1.00 / 1.00 / 1.00. F-075 minted. RESULTS gated PASS, round 7
+(rounds 1–6 wording and provenance; every number equal throughout).

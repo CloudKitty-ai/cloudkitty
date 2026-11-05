@@ -252,11 +252,12 @@ its confirming cycle. **c4**: predicted "fitted T 3.0" for argmin →
 argmax; the mutant reached the predicted assertion but with T 0.5 — the
 validation NLL of a sharpened distribution is largest at the sharp end
 of the grid, not the flat end; mutate.sh exited 7 (wrong reason) on the
-first cycle, the prediction was corrected to "fitted T 0.5, expected
-2.00" and the cycle re-run RED CONFIRMED. Process note: the first cycles
-of c2 / c3 / c4 / c7 exited 5 (no-op) because the replacement strings
-carried regex escapes the plain-string helper does not read; re-run with
-plain strings, no file changed. Logs in the session scratchpad
+first cycle that reached the mutant, the prediction was corrected to
+"fitted T 0.5, expected 2.00" and the cycle re-run RED CONFIRMED.
+Process note: before that, the first cycles of c2 / c3 / c4 / c7 exited
+5 (no-op) because the replacement strings carried regex escapes the
+plain-string helper does not read; re-run with plain strings, no file
+changed (so c4 ran three cycles: no-op, wrong reason, red). Logs in the session scratchpad
 (`calib-reds*.log`).
 
 ## 8. Regeneration

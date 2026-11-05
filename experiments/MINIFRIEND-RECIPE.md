@@ -166,6 +166,43 @@ live in the native checkout under `results-raw/` and are never deleted.
   act predictor's "fog" cell (silent) turned out to be 0.34% of
   samples, because an out-of-sight friend's calls keep it "heard"
   (0.993 of out-of-sight samples).
+  The Professor's four sharpenings of that lesson (review 2026-11-04,
+  confirmed by the owner): define a cell by the MECHANISM the
+  hypothesis names, not by a data flag, and check the definition
+  against `docs/encodings.md` before registering (the heard row is not
+  "uninformative": it carries calls, wants and answers-me bits for the
+  digest window); every registered cell carries a memoryless baseline
+  over that cell's FULL row, declared with it; every registered cell
+  carries an UNDECIDABLE floor as a COUNT, not a share (a cell under it
+  is reported, not scored); the cell-share table is a mutate-able guard
+  that prints before the first number and turns red when a registered
+  cell is under its floor.
+- **The act head's certainty** (`minifriend-act-calib-2026-11-04/
+  calib_act.py`, F-075; zero collection): top-probability reliability
+  bins and ECE per row state at T = 1 and under a temperature fitted on
+  the VALIDATION split (grid 0.50–3.00 step 0.01, argmin of the summed
+  NLL, frozen; a regime under the floor takes the global T); accuracy
+  binned by normalised entropy inside each regime; the AUROC of
+  1 − entropy and of top-prob for top-1 correctness. What it found,
+  and what to expect again: a GRU softmax head trained with plain
+  cross-entropy on this much data comes out calibrated (B10 ECE 0.0057
+  in sight, 0.0149 heard; every non-silent temperature 0.97–1.03), its
+  confidence tracks the row's regime (mean top-prob 0.737 in sight
+  against 0.537 heard) and its entropy ranks right over wrong ticks
+  inside a regime (AUROC 0.860 in sight, 0.657 heard). Three lessons
+  for the next head: (a) the certainty scalars the policy is shown are
+  top-prob and entropy, read from the distribution, with the row's
+  seen / heard / silent state beside them; measure the within-regime
+  AUROC before calling either a certainty measure; (b) a temperature
+  fit minimises NLL on another split, not the ECE on this one — read
+  both, and declare the UNIT the rule applies to (one trained seed or
+  the arm's seed mean) before the read — here a 0.99 fitted on
+  validation raised one head's ECE on the tuning half, and the unit had
+  to be read into the text afterwards; (c)
+  a bigger head's log-loss gain can be knowledge (more correct answers)
+  without a much sharper certainty ranking — test the ranking (AUROC) as
+  its own prediction before trading width for "calibration", and
+  never justify a budget rule by a mechanism the read can contradict.
 
 ## 7. Discipline that made the numbers trustworthy
 
@@ -184,6 +221,11 @@ live in the native checkout under `results-raw/` and are never deleted.
 - The write-up gated by a fresh subagent that re-runs the `### Read`
   fences (`.claude/skills/accuracy-gate/SKILL.md`); FAIL = no commit;
   lessons in its `TRIALS.md`.
+- A decision rule's RATIONALE is a claim the data can contradict. When
+  it does, the rule is still applied as written and the write-up says
+  the rationale failed; the consequence (here, whether B20 deserves a
+  Phase 2 prediction after all) goes to the owner as an open call, not
+  to a re-written rule.
 - Every arc its own directory, its deviations entry, its timeline
   line, its FINDINGS entry only when a result stands alone.
 

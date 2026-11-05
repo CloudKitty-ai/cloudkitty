@@ -307,17 +307,27 @@ def read_score():
              "P31": {"gaps": gaps31, "bar": PRED["P31"]["auroc_gap_max"], "met": bool(all(g < PRED["P31"]["auroc_gap_max"] for g in gaps31.values()))},
              "P32": {"gap": gap32, "per_seed": tgaps, "bar": PRED["P32"]["temp_gap_min"], "met": bool(gap32 >= PRED["P32"]["temp_gap_min"])}}
     undecidable = [(h, hz, rg) for h, hz, rg in REGISTERED if S[h][hz][rg]["n"] < FLOOR_CELL]
-    # the tempering rule (DECLARATION §6): per-regime if P32 met, else global; dropped to T = 1 for a head whose registered cell it worsens
+    # the tempering rule (DECLARATION §6): per-regime if P32 met, else global; dropped to T = 1 for A HEAD whose registered cell it
+    # worsens — a head is one trained seed (B10-s1 .. B30-s3), so the rule is applied per head; the arm view (seed means) is kept beside
     adopted = "regime" if score["P32"]["met"] else "global"
-    tempering = {}
+    tempering, arm_view = {}, {}
     for h in HEADS:
+        for s in SEEDS:
+            hn = head_name(h, s)
+            t = rel["tables"][hn]["y0"]
+            worse = [rg for rg in ("seen", "heard") if t[rg]["ece"][adopted] > t[rg]["ece"]["T1"]]
+            tf = fit["fits"][hn]["y0"]
+            frozen = (1.0 if worse else (tf["all"] if adopted == "global" else None))
+            tempering[hn] = {"adopted": ("T1" if worse else adopted), "worsened_cells": worse,
+                             "T_frozen": (frozen if adopted == "global" or worse else {rg: tf[rg] for rg in REGIMES}),
+                             "ece": {rg: {k: t[rg]["ece"][k] for k in TEMPERINGS} for rg in ("seen", "heard")}}
         worse = [rg for rg in ("seen", "heard") if S[h]["y0"][rg]["ece"][adopted]["mean"] > S[h]["y0"][rg]["ece"]["T1"]["mean"]]
-        tempering[h] = {"adopted": ("T1" if worse else adopted), "worsened_cells": worse,
-                        "ece": {rg: {t: S[h]["y0"][rg]["ece"][t]["mean"] for t in TEMPERINGS} for rg in ("seen", "heard")}}
-    b20 = "not registered in Phase 2 (P31 met: the width gain is calibration, not discrimination)" if score["P31"]["met"] else \
+        arm_view[h] = {"adopted_if_read_per_arm": ("T1" if worse else adopted), "worsened_cells": worse,
+                       "ece": {rg: {k: S[h]["y0"][rg]["ece"][k]["mean"] for k in TEMPERINGS} for rg in ("seen", "heard")}}
+    b20 = "not registered in Phase 2 (P31 met; the rule as declared — RESULTS reports on its rationale)" if score["P31"]["met"] else \
           "registered in Phase 2 as its own welfare prediction if the block can afford the ablation (her call)"
-    return {"score": score, "met": {p: score[p]["met"] for p in score}, "undecidable_registered_cells": undecidable, "tempering": tempering,
-            "b20": b20, "registered": [list(r) for r in REGISTERED]}
+    return {"score": score, "met": {p: score[p]["met"] for p in score}, "undecidable_registered_cells": undecidable, "tempering_rule": adopted,
+            "tempering": tempering, "arm_view": arm_view, "b20": b20, "registered": [list(r) for r in REGISTERED]}
 
 
 # ---- md --------------------------------------------------------------------------------------

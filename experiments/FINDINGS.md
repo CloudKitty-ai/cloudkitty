@@ -138,6 +138,7 @@ layer on top of that evidence (owner ruled A, 2026-09-25).
 | F-072 | active | The frozen probe's late-history miss was a coverage gap in its training data: the same NF recipe at width 24, retrained from scratch with late-history graves in its training worlds (Phase 1e), detects the needy set's confirming crossings at her pick in 0.920 / 0.880 / 0.863 (N-H2 / H3 / H4) against 0.596 / 0.444 / 0.421, at the crossing, with the splice at H = 100 at 0.598 against 0.358 and the control at most 0.013; the price beside a refusing friend 3.8× the false runs |
 | F-073 | active | The retrained head NF1e-h24+p detects a COVERED friend's natural crossing into grave after 208–5,887 lived ticks in 0.971 of observer-episodes at her pick (251 crossings; frozen 0.564), at the crossing, anticipating in 0.923 with a 51.3-tick median lead; its covered-friend false runs beside a refusing friend are three quarters attention on a friend approaching the edge or under happiness 70 within 50 ticks (26× a random window), one quarter not |
 | F-074 | active | A cat's own observation stream predicts a covered friend's next act in 0.634 of ticks (frequency 0.315): 0.734 in sight, above the visible activity flag (0.572) and the friend's own previous act (0.717); 0.522 out of sight while heard (0.329); 0.410 ten ticks on (0.314); the frozen needs head's belief state carries it 0.0178 less well at the same state width; tripling the head's parameters buys 0.0127 |
+| F-075 | active | The act head's stated confidence is honest — top-prob ECE 0.0057 in sight and 0.0149 heard at T = 1, fitted temperatures 0.97–1.03 in every non-silent regime — and informative inside a regime: its entropy ranks correct over incorrect in-sight ticks with AUROC 0.860 (heard 0.657); confidence tracks regime (mean top-prob 0.737 in sight, 0.537 heard); tripling the head's parameters improves that ranking by less than the declared 0.02 (−0.0002 seen, +0.0079 heard) while adding 0.013 of top-1 and lowering log-loss 1.090 → 1.042, a gain a temperature does not supply |
 
 ---
 
@@ -2735,3 +2736,72 @@ its in-sight top-1 under the visible flag's. **Re-verify when**: the
 Gen 2 Phase 2 declaration reads the heads beside an acting policy;
 Gen 3 cats react to these heads (their acts change); any change to the
 training set or recipe.
+
+## F-075 · active · The act head's stated confidence is honest — top-probability ECE 0.0057 in sight and 0.0149 heard at T = 1, with fitted temperatures of 0.97–1.03 in every non-silent regime — and informative inside a regime: its entropy ranks correct over incorrect in-sight ticks with AUROC 0.860 (heard 0.657), its confidence tracks regime (mean top-prob 0.737 in sight against 0.537 heard), and tripling its parameters improves that ranking by less than the declared 0.02 (−0.0002 seen, +0.0079 heard) while adding 0.013 of top-1 and lowering log-loss 1.090 → 1.042, a gain a temperature does not supply
+Minted 2026-11-04 from the act-head calibration read
+(`minifriend-act-calib-2026-11-04/RESULTS.md`; declared on the owner's
+"Sounds good, let's get started" to the order reliability read → Phase 2
+declaration → recipe sharpenings, after her question "is there a
+measure of predictive certainty we can use when feeding this
+information into the main cat model" and the Professor's review, note
+sha256 938134f9…; deviations entry 19). Data: none new (0 covered
+cat-ticks; no weight touched): the committed act heads B10-s1..3 and
+B30-s1..3 (F-074) read on the needy set's tuning half's covered friends
+(9,864,000 observer-friend ticks per head: seen 5,153,794, heard
+4,677,151, silent 33,055) and, for the temperature fit, on Phase 1e's 52
+validation worlds (372,000 thinned samples per head); seed mean ± SD
+over three heads.
+
+**Reliability (y0, T = 1).** B10's top-probability ECE: all 0.0096 ±
+0.0051, seen 0.0057 ± 0.0033, heard 0.0149 ± 0.0079, silent 0.0240 ±
+0.0064. Mean top-prob against top-1: seen 0.737 against 0.734, heard
+0.537 against 0.522 — over-confident by 0.003 and 0.015. In B10-s1's
+in-sight bins every non-thin bin's accuracy is within 0.021 of its mean
+confidence ([0.9, 1]: 2,054,354 ticks, confidence 0.985, accuracy
+0.989); heard, within 0.021 likewise, with 0.87 of heard ticks in bins
+under 0.7 against 0.41 in sight. B30: seen 0.0054 ± 0.0013, heard
+0.0082 ± 0.0021.
+
+**Certainty against correctness within a regime (y0, T = 1).** AUROC of
+1 − entropy for top-1 correctness, B10: seen 0.860 ± 0.001, heard 0.657
+± 0.002, all 0.782 ± 0.001; of top-prob: 0.864 / 0.665 / 0.789. B10-s1's
+in-sight accuracy by entropy bin falls monotonically 0.996 (bin
+[0, 0.1), 1,831,911 ticks) → 0.923 → 0.820 → 0.745 → 0.651 → 0.505 →
+0.379 → 0.290 → 0.219 ([0.8, 0.9), 3,459 ticks). B30: seen 0.860 ±
+0.001, heard 0.665 ± 0.003 — B30 − B10 = −0.0002 seen, +0.0079 heard.
+Ten ticks ahead the AUROCs fall to 0.609 (B10 all) with mean entropy
+0.707 against y0's 0.443.
+
+**Temperature.** Fitted on the validation split (grid 0.50–3.00 step
+0.01): B10 y0 all 1.01 / 0.99 / 1.02 by seed, seen 1.02 / 0.99 / 1.01,
+heard 1.01 / 0.99 / 1.03; B30 all 0.98 / 1.00 / 1.00. The fit lowers
+validation NLL by at most 0.0003 with the regimes pooled (0.0006 for
+B10-s3 heard). |T_seen − T_heard| for B10 = 0.010
+(per seed 0.01 / 0.00 / 0.02). Applied to the tuning half (seed means),
+B10's global T moves ECE 0.0057 → 0.0048 seen and 0.0149 → 0.0122
+heard; B30's raises heard 0.0082 → 0.0106. Per head, B10-s2's fitted
+0.99 raises its own ECE in both registered cells (0.0019 → 0.0026,
+0.0090 → 0.0125) and B30-s1's 0.98 raises its heard cell (0.0057 →
+0.0132).
+
+**Predictions.** P29 MET (confidence gap 0.200 ≥ 0.10); P30 MET (in-sight
+AUROC 0.860 ≥ 0.70); P31 MET (B30 − B10 AUROC −0.0002 seen, 0.0079
+heard, both < 0.02); P32 NOT MET (0.010 < 0.10). Rules applied: top-prob
+and entropy are Phase 2's two certainty scalars (the 11-way distribution
+itself is the act input, her design); tempering per head on the thread's
+reading of "a head" (chosen after the read; her word confirms or
+overrides; per arm only B10-s2 differs, at 0.99) — B10 frozen at 1.01 / 1.00 / 1.02 (seed 2 reverts to 1), B30 at
+1.00 / 1.00 / 1.00;
+B20 not registered by the rule as declared, though the rule's stated
+rationale is contradicted (a temperature recovers at most 0.0003 of
+B30's roughly 0.047 validation-NLL advantage; B30's top-1 is 0.013
+higher), so whether to register B20 anyway is the owner's call.
+
+Domain: Gen 2 rot2 behaviour on the needy set's tuning half, read by
+the committed heads; temperatures from Phase 1e's validation worlds.
+Invalidation: a Phase 2 rollout read in which B10's in-sight ECE at the
+adopted temperature exceeds 0.05 or its in-sight entropy AUROC falls
+under 0.70. Builds on F-074 (the head) and F-073 (the needs head's D5
+calibration, ECE 0.0018 on the grave channel; D5's regime dependence ran
+across friend class, an axis this covered-only read does not test —
+across seen / heard the act head's temperatures differ by 0.010).

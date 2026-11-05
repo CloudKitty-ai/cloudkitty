@@ -1865,3 +1865,47 @@ over classes ("largest on eat, chase and idle") names its measure — the
 per-class recall gap and the share of the top-1 gap rank the same
 classes differently.
 
+## 2026-11-04 — Act-head calibration RESULTS.md (whole doc) + F-075 + deviations 19 + timeline + MINIFRIEND-RECIPE §6/§7 bullets, Experiments thread
+
+Seven rounds, fresh subagent each; PASS on round 7. Every number
+reproduced in every round (three reads re-run from the Read fence,
+leaf-equal JSON, byte-identical md); all six FAILs were wording,
+provenance or rule-application. Reader change mid-gate: `read_score`
+applied the tempering rule per arm where the declaration says "a head";
+corrected to per head, recorded in RESULTS, the reading put to the owner
+because it was chosen after the read.
+
+Lessons:
+
+90. **Check units before "too coarse / too fine".** "A 0.01 temperature
+    step is too coarse to remove a 0.015 probability gap" compared a
+    step on one scale with a gap on another; one step actually moves
+    mean top-prob by 0.002–0.004. Derive the step's effect from the data
+    before claiming resolution limits.
+91. **A decision rule's rationale is a claim.** The rule "B20 not
+    registered" was applied correctly; its declared rationale ("the
+    log-loss gain is what a temperature supplies for free") was
+    contradicted by the same read (a temperature recovers 0.0003 of a
+    0.047 gap). Apply the rule as written, say the rationale failed,
+    send the consequence to the owner — never restate the rationale as
+    the finding.
+92. **Apply per-unit rules at the declared unit.** "A head" meant one
+    trained seed everywhere else in the declaration; the reader quietly
+    used the arm's seed mean. When the unit is only read into the text
+    after the numbers exist, print both readings and mark the choice as
+    post-read, for the owner's word.
+93. **"Every X" must cover the excluded X.** "Fitted temperatures
+    0.97–1.03 in every regime" was false for the regime the fit excluded
+    (silent, 0.79–0.97). Name the exclusion in the same sentence.
+94. **"Ran on that commit" is a provenance claim per read.** A score
+    read re-run on a corrected working-tree reader is not on the commit;
+    say which read ran where, and cite the file that holds the seconds.
+95. **Width, parameters and "tripling".** B30 has 3.03× the parameters
+    at 2.08× the width; "tripling its width" is false. Name the quantity
+    the multiplier applies to.
+96. **A pending owner word is never written as settled.** Every place a
+    frozen value appears carries the same caveat (whose reading, chosen
+    when, her word confirms or overrides, which value is at stake); the
+    gate found the caveat incomplete in three places across two rounds,
+    including a missing "only". Write the caveat once, then copy it
+    verbatim into every companion.

@@ -595,6 +595,21 @@ consent BC comparison ride the trunk.
   floor 10,000; P29–P32; the rules fix Phase 2's tempering, the B20
   registration and whether the certainty cells may be called so.
   `minifriend-act-calib-2026-11-04/DECLARATION.md`, deviations 19.
+  ACT-HEAD CALIBRATION DONE 2026-11-04 (0 covered cat-ticks): the act
+  head's confidence is honest (B10 top-prob ECE 0.0057 in sight, 0.0149
+  heard at T = 1; non-silent fitted temperatures 0.97–1.03) and informative within
+  a regime (in-sight AUROC of 1 − entropy for correctness 0.860, heard
+  0.657); confidence tracks regime (0.737 against 0.537); B30's
+  entropy ranks within the declared 0.02 of B10's (−0.0002 seen,
+  +0.0079 heard), so by the rule B20 is not registered in Phase 2 (the
+  rule's rationale contradicted: a temperature recovers at most 0.0003
+  of B30's 0.047 NLL advantage; registration hers);
+  P29–P31 MET, P32 NOT MET (regimes differ by 0.010 of temperature);
+  certainty scalars = top-prob + entropy; per head (the thread's
+  reading, chosen after the read; her word confirms or overrides; per
+  arm only B10-s2 differs, at 0.99) B10 frozen at
+  1.01 / 1.00 / 1.02, B30 at 1.00. F-075 minted; deviations 19
+  CLOSED. Next on her word: the Phase 2 declaration.
 
 ## Flagged follow-ups (owner's word to start)
 
