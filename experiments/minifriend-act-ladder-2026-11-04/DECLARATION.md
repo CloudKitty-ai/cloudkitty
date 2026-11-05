@@ -13,10 +13,10 @@ curve is concave), and the Phase 2 act head as HER pick after the curve,
 not a selector; her word: "Do it" (the same word covered the T = 1
 ruling, calib DECLARATION §9).
 
-**Status: DECLARED 2026-11-04; guards l1–l5 green at this commit, red on
-record in the next (§7); nothing collects (0 covered cat-ticks); no
-acting weight moves; nothing acts. No number from this arc exists at this
-write. Training starts on the reds commit.**
+**Status: DECLARED 2026-11-04 (1ae72312); guards l1–l5 RED CONFIRMED
+(§7, this commit); nothing collects (0 covered cat-ticks); no acting
+weight moves; nothing acts. No number from this arc exists at this write.
+Training starts on this commit.**
 
 Welfare-cost line. Covered minds: none exposed. Six heads train on Phase
 1e's training set already on disk (194 worlds; 17,520,000 samples) and
@@ -163,6 +163,15 @@ replacements, no regex escapes):
 (A mutation of the cap itself — `TA.BUDGET[arm] = cap` → `cap / 2` — reds
 at l1's `check_budget` call, "B5 exceeds 2% of the trunk", before l5 is
 reached; l5's own red is the one above.)
+
+**Reds on record 2026-11-04** (`scripts/mutate.sh --expect`, sequential,
+baseline == restored, 5 passed each): five of five RED CONFIRMED, each at
+the predicted first assertion (l1 "B5 width 15, declared 14"; l2 "readers
+must see the ladder"; l3 the per-1,000 gains ten times too small; l4 the
+redirected store path; l5 argparse "invalid choice: 'B5'" through the
+smoke run's return code). Log in the session scratchpad
+(`ladder-reds.log`). Smoke heads `B5-s1-smoke`, `B15-s1-smoke` in the
+store are never read.
 
 ## 8. Owner call (after the curve; her words verbatim, recorded here)
 
