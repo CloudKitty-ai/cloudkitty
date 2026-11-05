@@ -1051,3 +1051,27 @@ for Gen 2; the Professor's review note (sha256 938134f9…) CONFIRMED,
 its declaration items carried into the Phase 2 draft. DECLARATION §13.
 Next on her word: the act-head reliability read (B10 and B30) before the
 Phase 2 declaration.
+
+## 19. Act-head calibration: a zero-collection reliability read on B10 and B30 before Phase 2 declares (2026-11-04)
+Deviation: none from the Gen 2 prereg (18f06f84, untouched). On her
+question "is there a measure of predictive certainty we can use when
+feeding this information into the main cat model" and her word "Sounds
+good, let's get started" to the order reliability read → Phase 2
+declaration → recipe sharpenings, after the Professor's review (note
+sha256 938134f9…, confirmed). Zero collection: the committed act heads
+B10-s1..3 and B30-s1..3 read on the needy TUNING half's covered friends
+(top-prob reliability and ECE by regime at three temperings; accuracy by
+entropy and the AUROC of 1 − entropy and of top-prob for correctness,
+within regime) and on Phase 1e's 52 VALIDATION worlds (one temperature
+per head, horizon and regime, grid 0.50–3.00 step 0.01, frozen).
+Registered cells B10 / B30 × y0 × seen / heard with a 10,000-sample
+floor (a count); P29–P32 registered (confidence tracks regime by ≥ 0.10;
+in-sight AUROC ≥ 0.70; B30 − B10 AUROC < 0.02 in sight and heard; seen
+and heard temperatures differ by ≥ 0.10). Decision rules fix Phase 2's
+tempering (per-regime if P32, else global, T = 1 where it worsens a
+registered cell), whether B20 is registered as a Phase 2 prediction
+(only if P31 fails), and whether entropy / top-prob may be called
+certainty cells (P30). No head chosen or budget reopened here.
+`minifriend-act-calib-2026-11-04/DECLARATION.md`.
+Status: DECLARED 2026-11-04; guards c1–c7 green, reds next commit; the
+reads start on the reds commit.

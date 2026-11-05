@@ -586,6 +586,15 @@ consent BC comparison ride the trunk.
   entropy within sight; temperature on the validation split) → Phase
   2 declaration (acting ruling first; row-only act head as a side
   read; B20 only as a registered prediction) → recipe sharpenings.
+  ACT-HEAD CALIBRATION DECLARED 2026-11-04 (owner "Sounds good, let's
+  get started"; zero collection): B10 and B30 read for top-prob
+  reliability and ECE by regime at T = 1 / global / per-regime
+  temperature (fitted on Phase 1e's 52 validation worlds, frozen),
+  accuracy by entropy and the AUROC of certainty for correctness
+  within regime; registered cells B10 / B30 × y0 × seen / heard,
+  floor 10,000; P29–P32; the rules fix Phase 2's tempering, the B20
+  registration and whether the certainty cells may be called so.
+  `minifriend-act-calib-2026-11-04/DECLARATION.md`, deviations 19.
 
 ## Flagged follow-ups (owner's word to start)
 
