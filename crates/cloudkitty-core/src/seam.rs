@@ -84,6 +84,16 @@ pub enum Provenance {
     /// Deliberately distinct from `FallbackTaken`, whose meaning is reserved
     /// for dispatched decisions.
     SubstitutedIdle,
+    /// Spec 068: the harness substituted this seat's ACT for one tick
+    /// (`Episode::override_next`); the message half stayed the seat's own
+    /// behaviour's. Never a decision the seat made — a corpus collector
+    /// refuses the row as a teacher's act (DESIGN-DOCTRINE rule 5).
+    OverriddenAct,
+    /// Spec 068: the harness substituted this seat's MESSAGE for one tick;
+    /// the act stayed the seat's own.
+    OverriddenMessage,
+    /// Spec 068: the harness substituted both halves for one tick.
+    OverriddenBoth,
 }
 
 /// One tick's dealt per-kitty decision seeds (spec 014 FR-002/FR-003).
@@ -95,7 +105,14 @@ pub enum Provenance {
 /// master RNG's draw shape is checked by construction, not promised by a
 /// doc comment. [`World::tick_with_proposals_seeded`] asserts the stamp
 /// matches the tick it is applied to.
-#[derive(Debug)]
+///
+/// Serde (spec 068): an episode snapshot carries the deal already drawn
+/// for its next tick, so a restored episode applies the SAME seeds the
+/// original did instead of drawing again. Restoring a serialized deal is
+/// a deliberate second consumption on a second timeline — the one
+/// legitimate "reuse", and only through a snapshot of the world that
+/// drew it. No public constructor exists; serde is the only other mint.
+#[derive(Debug, Serialize, Deserialize)]
 #[must_use = "dropping a deal silently desyncs the master RNG; apply it to the tick \
               it was dealt for, or use World::advance_past_decision_draws to advance \
               deliberately"]

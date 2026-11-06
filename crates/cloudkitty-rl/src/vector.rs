@@ -37,13 +37,37 @@ enum Command {
     Reset(Vec<Option<u64>>),
     /// One action map per owned world, in chunk order.
     Step(Vec<BTreeMap<KittyId, (usize, usize)>>),
+    /// Spec 068 (FR-008): one owned world's snapshot, by local index.
+    Snapshot { local: usize, engine_commit: String },
+    /// Spec 068: restore one owned world from bytes, by local index.
+    Restore {
+        local: usize,
+        engine_commit: String,
+        bytes: Vec<u8>,
+    },
+    /// Spec 068: a one-tick proposal override on one owned world.
+    Override {
+        local: usize,
+        kitty: KittyId,
+        action: Option<usize>,
+        message: Option<usize>,
+    },
+}
+
+/// A worker's answer, shaped by the command: the batch commands answer
+/// positionally for every owned world, the per-world commands for one.
+enum Reply {
+    Steps(Vec<Result<EpisodeStep, EpisodeError>>),
+    Snapshot(Result<Vec<u8>, EpisodeError>),
+    Restore(Result<EpisodeStep, EpisodeError>),
+    Unit(Result<(), EpisodeError>),
 }
 
 struct Worker {
     /// `Some` while the worker is live; taken in Drop to close the channel
     /// and end the worker's loop.
     tx: Option<mpsc::Sender<Command>>,
-    rx: mpsc::Receiver<Vec<Result<EpisodeStep, EpisodeError>>>,
+    rx: mpsc::Receiver<Reply>,
     /// The global world indices this worker owns.
     range: Range<usize>,
     handle: Option<JoinHandle<()>>,
@@ -86,19 +110,38 @@ impl VectorizedEnvironment {
             let (result_tx, result_rx) = mpsc::channel();
             let handle = std::thread::spawn(move || {
                 while let Some(command) = recv_spinning(&cmd_rx) {
-                    let results: Vec<Result<EpisodeStep, EpisodeError>> = match command {
-                        Command::Reset(seeds) => owned
-                            .iter_mut()
-                            .zip(seeds)
-                            .map(|(episode, seed)| reset_slot(episode, seed))
-                            .collect(),
-                        Command::Step(actions) => owned
-                            .iter_mut()
-                            .zip(actions)
-                            .map(|(episode, map)| episode.step(&map))
-                            .collect(),
+                    let reply = match command {
+                        Command::Reset(seeds) => Reply::Steps(
+                            owned
+                                .iter_mut()
+                                .zip(seeds)
+                                .map(|(episode, seed)| reset_slot(episode, seed))
+                                .collect(),
+                        ),
+                        Command::Step(actions) => Reply::Steps(
+                            owned
+                                .iter_mut()
+                                .zip(actions)
+                                .map(|(episode, map)| episode.step(&map))
+                                .collect(),
+                        ),
+                        Command::Snapshot {
+                            local,
+                            engine_commit,
+                        } => Reply::Snapshot(owned[local].snapshot(&engine_commit)),
+                        Command::Restore {
+                            local,
+                            engine_commit,
+                            bytes,
+                        } => Reply::Restore(owned[local].restore(&engine_commit, &bytes)),
+                        Command::Override {
+                            local,
+                            kitty,
+                            action,
+                            message,
+                        } => Reply::Unit(owned[local].override_next(kitty, action, message)),
                     };
-                    if result_tx.send(results).is_err() {
+                    if result_tx.send(reply).is_err() {
                         break;
                     }
                 }
@@ -172,6 +215,82 @@ impl VectorizedEnvironment {
         results
     }
 
+    /// Spec 068 FR-008: world `i`'s snapshot ([`Episode::snapshot`]). The
+    /// other worlds are untouched; the batch's reset requirement is
+    /// unaffected. Panics on an out-of-range index (callers pre-check).
+    pub fn snapshot(&mut self, world: usize, engine_commit: &str) -> Result<Vec<u8>, EpisodeError> {
+        match self.one(world, |local| Command::Snapshot {
+            local,
+            engine_commit: engine_commit.to_owned(),
+        }) {
+            Reply::Snapshot(result) => result,
+            _ => unreachable!("a snapshot command answers with a snapshot"),
+        }
+    }
+
+    /// Spec 068 FR-008: restores world `i` from `bytes` ([`Episode::restore`])
+    /// and returns that world's step. The other worlds are untouched. The
+    /// batch's `needs_reset` is deliberately NOT cleared: restoring one
+    /// world does not seed the others, and a desynchronized batch stays so
+    /// until a full reset.
+    pub fn restore(
+        &mut self,
+        world: usize,
+        engine_commit: &str,
+        bytes: &[u8],
+    ) -> Result<EpisodeStep, EpisodeError> {
+        match self.one(world, |local| Command::Restore {
+            local,
+            engine_commit: engine_commit.to_owned(),
+            bytes: bytes.to_vec(),
+        }) {
+            Reply::Restore(result) => result,
+            _ => unreachable!("a restore command answers with a step"),
+        }
+    }
+
+    /// Spec 068 FR-009: a one-tick proposal override on world `i`
+    /// ([`Episode::override_next`]).
+    pub fn override_next(
+        &mut self,
+        world: usize,
+        kitty: KittyId,
+        action: Option<usize>,
+        message: Option<usize>,
+    ) -> Result<(), EpisodeError> {
+        match self.one(world, |local| Command::Override {
+            local,
+            kitty,
+            action,
+            message,
+        }) {
+            Reply::Unit(result) => result,
+            _ => unreachable!("an override command answers with a unit"),
+        }
+    }
+
+    /// Sends one command to the worker that owns `world` (by its local
+    /// index inside that worker's chunk) and waits for its reply.
+    fn one(&mut self, world: usize, command_for: impl FnOnce(usize) -> Command) -> Reply {
+        assert!(
+            world < self.n_worlds,
+            "world index {world} out of range ({})",
+            self.n_worlds
+        );
+        let worker = self
+            .workers
+            .iter()
+            .find(|w| w.range.contains(&world))
+            .expect("every world is owned by a worker");
+        worker
+            .tx
+            .as_ref()
+            .expect("workers are live until Drop")
+            .send(command_for(world - worker.range.start))
+            .expect("worker thread alive");
+        worker.rx.recv().expect("worker thread alive")
+    }
+
     fn settle_after_reset(&mut self, results: &[Result<EpisodeStep, EpisodeError>]) {
         self.needs_reset = if results.iter().all(|r| r.is_ok()) {
             None
@@ -197,7 +316,10 @@ impl VectorizedEnvironment {
         }
         let mut results = Vec::with_capacity(self.n_worlds);
         for worker in &self.workers {
-            results.extend(worker.rx.recv().expect("worker thread alive"));
+            match worker.rx.recv().expect("worker thread alive") {
+                Reply::Steps(steps) => results.extend(steps),
+                _ => unreachable!("a batch command answers positionally"),
+            }
         }
         assert_eq!(results.len(), self.n_worlds, "every world was processed");
         results

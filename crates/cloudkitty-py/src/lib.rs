@@ -56,6 +56,10 @@ fn provenance_str(p: Provenance) -> &'static str {
         Provenance::PolicyMade => "policy",
         Provenance::FallbackTaken => "fallback",
         Provenance::SubstitutedIdle => "substituted_idle",
+        // Spec 068: harness substitutions, named by the half they replaced.
+        Provenance::OverriddenAct => "overridden_act",
+        Provenance::OverriddenMessage => "overridden_message",
+        Provenance::OverriddenBoth => "overridden_both",
     }
 }
 
