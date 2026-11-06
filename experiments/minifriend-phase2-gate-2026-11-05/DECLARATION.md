@@ -31,8 +31,8 @@ day ("I approve the need and action predictor heads as inputs to the
 decision making head"; timeline block PHASE 2 RULINGS 2026-11-05); this
 gate precedes the Phase 2 declaration, which is drafted after the read.
 
-**Status: DECLARED 2026-11-05; guards g1–g7 green (reds the next
-commit); the reads run on her word after she sees this draft. Nothing
+**Status: DECLARED 2026-11-05 (ec67845a); guards g1–g7 RED CONFIRMED (§7,
+this commit); the reads run on her word after she sees this draft. Nothing
 collects; no acting weight moves; nothing acts. No number from this arc
 exists at this write beyond a one-world code-path smoke in the session
 scratchpad (24 points, never cited).**
@@ -210,13 +210,24 @@ replacements):
 
 | guard | mutation (`gate_screen.py`) | predicted first failure |
 |---|---|---|
-| g1 | `codes = w["codes"][1:, j]` → `codes = w["codes"][1:, k]` (the OBSERVER's state bins the point) | `grave_all.shape[0] == 3 * 3` fails: `(0, 3)` |
+| g1 | `codes = w["codes"][1:, j]` → `codes = w["codes"][1:, k]` (the OBSERVER's state bins the point) | first predicted `grave_all.shape[0] == 3 * 3` fails: `(0, 3)` — WRONG: observer 2's grave ticks give 3 friends × 3 ticks = 9 rows, the shape passes; re-predicted: the friend-set assertion prints the rows, `[[ 2  1 10] …` |
 | g2 | `return max(cands, key=lambda i: float(logits[i]))` → `return min(...)` | "the policy's preferred legal rest" |
-| g3 | `hap = np.asarray([st[k * pk + H.HAP] * 100` → `st[k * pk + H.HAP + 1] * 100` (the wrong state cell read as happiness) | "a branch on the recorded act is the record" |
+| g3 | `hap = np.asarray([st[k * pk + H.HAP] * 100` → `st[k * pk + H.HAP + 1] * 100` (the wrong state cell read as happiness) | first predicted "a branch on the recorded act is the record" — WRONG: `_state` also feeds the runner's own fidelity check, which fires first; re-predicted: "replay of 1095711 diverged from the record before tick 40" |
 | g4 | `np.asarray(branch_needs)[S.HIDDEN] - np.asarray(rec_needs)[S.HIDDEN]` → `[:6]` both sides (bath counted) | the first g4 assertion prints `d_need` −10.0 |
 | g5 | `"signature": bool(lift_v >= lift and g > 0)}` → `and g != 0)}` | "pessimism is not the ostrich" |
 | g6 | `"signature": bool(lift_v is not None and lift_v >= lift and g < 0),` → `and g != 0),` | "a grave friend read MORE needy than she is is not the ostrich" |
 | g7 | the `LA.register()` call removed from `act_heads()` | `KeyError: 'B15'` through g7's load |
+
+**Reds on record 2026-11-05** (`scripts/mutate.sh --expect`, sequential,
+baseline == restored, 7 passed each): seven of seven RED CONFIRMED. g2,
+g4, g5, g6, g7 at the predicted first assertion; g1 and g3 red at the
+FIRST run but at a different assertion than predicted (the two cases
+above), re-predicted in writing and re-run: red at the re-predicted
+assertion. Log in the session scratchpad (`gate-reds.log`). Lesson for
+the recipe: a state reader shared by the fidelity check and the branch
+reddens at the check; a mutant whose count coincides with the right one
+(3 × 3 either way) is caught by the identity assertion, so a guard
+asserts the identities, not only the count.
 
 ## 8. Blind spots (declared)
 
