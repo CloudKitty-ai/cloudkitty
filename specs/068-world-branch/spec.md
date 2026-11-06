@@ -446,10 +446,14 @@ with the differing component named.
   decision seeds, episode position, truncation, reward baselines)
   together with its identity stamps. Harness-side data; never an
   observation.
-- **Environment identity**: the engine commit, config fingerprint,
-  control map (which seats are external, which builtin and on which
-  preset) and output-shaping episode settings. Two environments of
-  equal identity accept each other's snapshots; any difference refuses.
+- **Environment identity**: the engine commit, config fingerprint (a
+  digest of the whole engine and RL configuration — observation,
+  reward, horizon included — with the world seed excluded: the seed is
+  episode state and travels in the snapshot, so a fresh environment of
+  the same config accepts a snapshot whatever seed it was reset with),
+  and control map (which seats are external, which builtin and on which
+  preset). Two environments of equal identity accept each other's
+  snapshots; any difference refuses.
 - **Proposal override**: a pending substitution (seat, optional
   activity, optional message; at least one named) consumed by exactly
   one step, ruled on by the engine's law like any proposal, marked by a
