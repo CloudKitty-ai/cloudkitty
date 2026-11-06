@@ -316,6 +316,7 @@ def read_act(sample_json=None, progress=True):
                         mask = rp.mask_at(t, j)
                         logits = np.asarray(policies[spec](z["obs"][t, j][None].astype(np.float32)), np.float32)[0]
                     a = branch_action(D.ACT_NAMES[c], mask, logits, cm)
+                    row["legal_in_class"] = int(sum(bool(mask[i]) for i in cm.get(D.ACT_NAMES[c], [])))   # §8 item 2
                     if a is None:
                         row.update({"action": None, "d_hap": 0.0, "d_need": 0.0, "branched": False})
                     else:
@@ -357,17 +358,21 @@ def summarise_act(rows):
                                    "abs_hap": _msd([c["abs_hap"] for c in cells if c["abs_hap"] is not None]),
                                    "branched": _msd([c["branched"] for c in cells if c["branched"] is not None]),
                                    "moved": _msd([c["moved"] for c in cells if c["moved"] is not None]),
+                                   "multi": _msd([c["multi"] for c in cells if c["multi"] is not None]),
                                    "per_friend": {f: _msd([c["per_friend"][f]["d_hap"] for c in cells if c["per_friend"][f]["d_hap"] is not None]) for f in FRIENDS}}
     return out
 
 
 def _cell(rs):
     if not rs:
-        return {"n": 0, "d_hap": None, "d_need": None, "abs_hap": None, "branched": None, "moved": None}
+        return {"n": 0, "d_hap": None, "d_need": None, "abs_hap": None, "branched": None, "moved": None, "multi": None}
     dh = np.asarray([r["d_hap"] for r in rs], np.float64)
     dn = np.asarray([r["d_need"] for r in rs], np.float64)
+    br = [r for r in rs if r["branched"]]
+    # §8 item 2: of the points that branched, the share whose predicted class had more than one legal menu entry at t
+    multi = float(np.mean([r.get("legal_in_class", 0) > 1 for r in br])) if br else None
     return {"n": len(rs), "d_hap": float(dh.mean()), "d_need": float(dn.mean()), "abs_hap": float(np.abs(dh).mean()),
-            "branched": float(np.mean([r["branched"] for r in rs])), "moved": float(np.mean(dh != 0))}
+            "branched": float(np.mean([r["branched"] for r in rs])), "moved": float(np.mean(dh != 0)), "multi": multi}
 
 
 def act_signature(summary, arm, v, lift=LIFT):
@@ -505,6 +510,12 @@ def md(cmd, out):
             for arm in ARMS:
                 s = act_signature(S_, arm, v)
                 L.append(f"{arm} {v}: GRAVE {_f(s.get('grave'))} / COMMON {_f(s.get('common'))} / lift {_f(s.get('lift'), 2)} → signature {s.get('signature')}")
+            multi = []
+            for st in STRATA:
+                for name in list(ARMS) + ["F"]:
+                    c = S_[v][st][name]
+                    multi.append(f"{st} {name} {_f(c['multi']['mean'] if name in ARMS else c['multi'])}")
+            L.append(f"branched points whose class had > 1 legal entry (§8 item 2): " + "; ".join(multi))
             L.append("")
         L.append(f"replays {out['replays']}; rows {len(out['rows'])}; {out['seconds']} s")
     elif cmd == "needs":
