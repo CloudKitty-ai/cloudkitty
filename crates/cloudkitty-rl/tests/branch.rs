@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 
 use cloudkitty_core::action::Action;
 use cloudkitty_core::config::WelfareHazardConfig;
-use cloudkitty_core::kitty::KittyId;
+use cloudkitty_core::kitty::{Activity, KittyId};
 use cloudkitty_core::needy;
 use cloudkitty_core::seam::Provenance;
 use cloudkitty_core::Config;
@@ -474,12 +474,22 @@ fn an_override_cannot_relieve_a_masked_need() {
 /// different act is continued by duration enforcement like any proposal.
 #[test]
 fn an_override_inside_a_scene_minimum_continues_the_scene() {
-    let mut episode = new_episode(needy_config(), RlConfig::default());
+    let mut rl = RlConfig::default();
+    rl.episode.horizon = 10_000;
+    let mut episode = new_episode(needy_config(), rl);
     let menu_len = episode.codec().len();
     let mut last = episode.reset(29);
     let durations = episode.core_config().actions.durations;
-    let mut staged: Option<(KittyId, Action)> = None;
-    for turn in 0..4000u64 {
+    // (seat, the scene's continuation, a validation-legal act that would
+    // INTERRUPT it). Idle continues every scene (`Activity::is_continued_by`),
+    // so the override must name a genuinely different act — a move onto a
+    // free tile — for the minimum clause of duration enforcement to be what
+    // holds the scene (a vacuous first cut of this guard used Idle;
+    // mutate.sh caught it). The move is chosen by validation's own rule
+    // (in bounds, no kitty there), NOT from the legal mask: the mask already
+    // replays duration enforcement and masks every interrupting act out.
+    let mut staged: Option<(KittyId, Action, usize, Action)> = None;
+    for turn in 0..9000u64 {
         let world = episode.world();
         for (id, control) in episode.control() {
             if !matches!(control, Control::Builtin(_)) {
@@ -493,11 +503,43 @@ fn an_override_inside_a_scene_minimum_continues_the_scene() {
             ) else {
                 continue;
             };
-            if bounds.min >= 2
+            // A SOLO sleep or rest: its counterpart cannot vanish (a critter
+            // play's bug may die, a duet's partner may leave, a meal's bowl
+            // may empty — each ends the scene before duration enforcement
+            // is heard), so the minimum clause alone decides the outcome.
+            let solo_long = matches!(
+                kitty.activity,
+                Activity::Sleeping {
+                    with_friend: None,
+                    ..
+                } | Activity::Resting { with_friend: None }
+            );
+            if !(solo_long
+                && bounds.min >= 2
                 && clock.serviced_before(world.tick) < bounds.min
-                && continuation != Action::Idle
+                && continuation != Action::Idle)
             {
-                staged = Some((*id, continuation));
+                continue;
+            }
+            let snapshot = world.snapshot();
+            let view = snapshot.fog_for(*id, episode.core_config().vision.radius);
+            let observation = encode_observation(
+                &view,
+                *id,
+                episode.core_config(),
+                &episode.rl_config().observation,
+            );
+            let interrupt = (0..menu_len).find_map(|index| {
+                let action = episode.codec().decode(index, &observation.table).ok()?;
+                let Action::Move { direction } = action else {
+                    return None;
+                };
+                let dest = kitty.pos.step(direction, world.width, world.height)?;
+                (world.kitty_at(dest).is_none() && !kitty.activity.is_continued_by(&action))
+                    .then_some((index, action))
+            });
+            if let Some((index, action)) = interrupt {
+                staged = Some((*id, continuation, index, action));
                 break;
             }
         }
@@ -508,14 +550,17 @@ fn an_override_inside_a_scene_minimum_continues_the_scene() {
             .step(&scripted_actions(&last, turn, menu_len))
             .unwrap();
     }
-    let (seat, continuation) = staged.expect("staged: a scripted seat inside a scene minimum");
-    let idle = idle_index(&episode);
-    episode.override_next(seat, Some(idle), None).unwrap();
+    let (seat, continuation, index, interrupting) = staged
+        .expect("staged: a scripted seat inside a scene minimum with a legal move to propose");
+    episode.override_next(seat, Some(index), None).unwrap();
     let step = episode
         .step(&scripted_actions(&last, 9999, menu_len))
         .unwrap();
     let record = record_of(&step, seat);
-    assert_eq!(record.proposed, Action::Idle, "the override proposed idle");
+    assert_eq!(
+        record.proposed, interrupting,
+        "the override proposed the interrupting move"
+    );
     assert_eq!(
         record.applied, continuation,
         "duration enforcement continues the scene"
