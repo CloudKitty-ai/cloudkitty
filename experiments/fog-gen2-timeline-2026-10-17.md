@@ -748,6 +748,26 @@ consent BC comparison ride the trunk.
   Next: her word to run; then RESULTS gated; then the Phase 2
   declaration.
 
+  PHASE 2 ENTRY GATE READ 2026-11-05 (her "Go"; zero collection, 0
+  covered cat-ticks): GATE FAIL on the needs head. B10 PASS, B15 PASS
+  (no arm × version lift over 1.09, every grave mean negative: the act
+  heads' errors are pessimistic, never the ostrich); NF1e-h24+p FAIL
+  (in sight grave bias −3.17 need points vs common +0.07, gap −3.24,
+  lift 43.8; all ticks −2.71 / +0.09; the frozen NF-h24+p −26.86 beside,
+  an 88% cut that keeps the sign; signature on 3 of 5 friends, Biscuit
+  −10.5). F, the reference, shows the signature (lift 4.2 / 5.4). P34
+  / P35 MET; P36 / P37 NOT MET (the one-tick price is not sparse at the
+  0.30 level; the arms' price is not larger in GRAVE). Open-loop B10 vs
+  B15: no stratum under by more than the seed SD → the B10 arm's
+  expected result is recorded as a null; the arm count hers. Per §5:
+  Phase 2 does not enter on NF1e; next = a Phase 1f composition arm on
+  the needs head, HER WORD. Two reporting fixes after the first run
+  (7b7459f2, e1ed7605), rows equal.
+  `minifriend-phase2-gate-2026-11-05/RESULTS.md` (gate stamp there);
+  deviations 21 CLOSED.
+  Next: her call on §5's consequence; the Phase 2 declaration waits on
+  it.
+
 ## Flagged follow-ups (owner's word to start)
 
 - Relief just beyond vision (owner 2026-10-21: "Let's flag this for a

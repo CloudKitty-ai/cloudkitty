@@ -1143,11 +1143,17 @@ friend's own policy ranks highest, the currency is unclamped happiness
 points (hidden-need points reported), the sample is 300 points per
 stratum × version at min-n 200 fail-closed, and step 2 is Phase 1's
 ostrich metric read on NF1e (never read on it before; the prereg reads
-the metric "on both estimates, per phase") with the frozen NF-h24+p
+the metric "on BOTH estimates, per phase") with the frozen NF-h24+p
 beside. B10 is read beside B15 as the Phase 2 comparator (open-loop
 B10-vs-B15); F is a reference. Her words: "Agreed" (the five steps),
 "Let's do it" (gate by replay now; the branch API to Product, msg
 9b1d6d03, not a kickoff). Zero collection; 0 covered cat-ticks (recorded
 actions replayed, the branch discarded, k = 1). P34–P37.
-`minifriend-phase2-gate-2026-11-05/DECLARATION.md`. Status: OPEN — the
-reads run on her word after the draft.
+`minifriend-phase2-gate-2026-11-05/DECLARATION.md`. Status: CLOSED
+2026-11-05 — read on her "Go": GATE FAIL on the needs head (B10 PASS,
+B15 PASS; NF1e FAIL: in-sight grave bias −3.17 need points against
+common +0.07, Phase 1's signature in both versions; the frozen NF-h24+p
+−26.86 beside). P34 / P35 MET, P36 / P37 NOT MET. Two reporting fixes
+after the first run (7b7459f2, e1ed7605), rows equal.
+`minifriend-phase2-gate-2026-11-05/RESULTS.md`. The consequence (§5: a
+Phase 1f composition arm on the needs head) is hers.

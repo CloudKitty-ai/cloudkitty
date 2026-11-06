@@ -32,10 +32,10 @@ decision making head"; timeline block PHASE 2 RULINGS 2026-11-05); this
 gate precedes the Phase 2 declaration, which is drafted after the read.
 
 **Status: DECLARED 2026-11-05 (ec67845a); guards g1–g7 RED CONFIRMED (§7,
-this commit); the reads run on her word after she sees this draft. Nothing
-collects; no acting weight moves; nothing acts. No number from this arc
-exists at this write beyond a one-world code-path smoke in the session
-scratchpad (24 points, never cited).**
+b5b6c9a4); READ 2026-11-05 on her "Go" — GATE: FAIL on the needs head
+(B10 PASS, B15 PASS, NF1e FAIL); `RESULTS.md`, `reads/`. Nothing
+collected; no acting weight moved; nothing acted. The consequence (§5:
+a Phase 1f composition arm on the needs head) is hers.**
 
 Welfare-cost line. Covered minds: none exposed. Every read walks recorded
 worlds (the needy set's tuning half); the act read REPLAYS them on the
@@ -228,6 +228,24 @@ the recipe: a state reader shared by the fidelity check and the branch
 reddens at the check; a mutant whose count coincides with the right one
 (3 × 3 either way) is caught by the identity assertion, so a guard
 asserts the identities, not only the count.
+
+**After the first read, 2026-11-05 (reporting fixes, both red on record;
+no rule, pin, prediction, sample or row value changed).** The first run
+(sample 06:11, act 06:17, needs 06:19 UTC; verdict GATE FAIL) printed the
+arm rows' `branched` / `moved` columns as "—" (the arm aggregate carried
+only the divergence means) and its rows did not carry §8 item 2's
+"share of branched points whose class had more than one legal entry".
+Two reader changes, each committed then redded through g5 before the act
+read was re-run (7b7459f2, e1ed7605): the arm aggregate carries
+`branched` / `moved` as seed means (mutation: the aggregate key renamed
+`branches` → predicted and observed `KeyError: 'branched'` at g5's new
+assertion); every branched row records `legal_in_class` and each cell
+reports `multi`, the share of branched points with more than one legal
+entry (mutation: `> 1` → `>= 1` → predicted and observed the seed mean
+1.0 against 0.5, `{'n': 2, 'mean': 1.0, 'sd': 0.0}`). The re-run's rows
+are checked equal to the first run's on every (cell, point, predictor,
+pred, action, d_hap, d_need) in RESULTS; the verdict is re-derived from
+them.
 
 ## 8. Blind spots (declared)
 

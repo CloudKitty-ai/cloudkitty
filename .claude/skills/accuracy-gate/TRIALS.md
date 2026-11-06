@@ -1968,3 +1968,41 @@ Lessons:
     and the store hash changed; say so in the provenance line and have
     the gate confirm the real heads' sha256 against their done.json
     instead of expecting the old hash.
+
+## 2026-11-06 UTC (2026-11-05 local) — Phase 2 entry gate RESULTS (Experiments)
+
+Three rounds, PASS at round 3; every number equal in all three (about
+267 arithmetic claims, 162 table cells by script, 0 mismatch, 0
+ROUNDING; counts, md diffs, head sha256s and both raw-dir hashes all
+equal). Round 1 FAIL on three characterisations: the title's UTC date
+(the run crossed midnight UTC), "rested, ate or idled" as F's rosier
+grave cases when the rows where she ate are pessimistic, and "353 was
+typical" when 353 sits at the 89th percentile of worlds. Round 2 FAIL on
+a claim the round-1 fix introduced: the re-step probe called "one tick
+of one world" when its saved outputs show two worlds, and the
+substitution pair cited in the reverse direction from the probe's.
+Round 3 re-checked the one rewritten bullet only, with the round-1 fresh
+JSON kept on disk (no re-run of the Read fence; the reads had not
+changed). The subagent's reports came back as messages; the stamp is
+the thread's.
+
+Lessons:
+
+105. **The UTC date comes off the run log, not the calendar.** A
+    late-evening local run lands on the next UTC day; the title names
+    both or the gate reads the log and fails it.
+106. **A sentence rewritten for the gate is a new claim.** The round-1
+    fix added "one tick of one world" from memory; the probe outputs in
+    the scratchpad said two. Re-derive what the fix asserts before
+    re-submitting, not only what it replaced.
+107. **A substitution pair has a direction.** "Rest predicted where she
+    moved" and "move predicted where she rested" are different rows
+    with different numbers (0.27 of 15 vs 0.61 of 18); name the
+    predicted class and the applied class every time.
+108. **"Typical" is a distributional claim.** Give the percentile or the
+    median, or drop the word; one world's count against a heavy tail
+    is not typical at any count.
+109. **An example list of cases is checked per item.** "Rested, ate or
+    idled" fails on "ate" alone (2 rows, pessimistic) even though the
+    sentence's pooled figure is right; list the cases the rows support
+    and say the list is partial.

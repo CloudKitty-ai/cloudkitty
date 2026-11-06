@@ -1,0 +1,219 @@
+{
+ "min_n": 200,
+ "lift": 1.5,
+ "heads": {
+  "B10": {
+   "verdict": "PASS",
+   "by_version": {
+    "visible": {
+     "covered": true,
+     "grave": -0.1282113986545139,
+     "common": -0.14438580830891926,
+     "gap": 0.016174409654405364,
+     "lift": 0.8879778432254258,
+     "signature": false
+    },
+    "all": {
+     "covered": true,
+     "grave": -0.05894719441731771,
+     "common": -0.168441653781467,
+     "gap": 0.10949445936414928,
+     "lift": 0.349956160450637,
+     "signature": false
+    }
+   },
+   "role": "comparator arm"
+  },
+  "B15": {
+   "verdict": "PASS",
+   "by_version": {
+    "visible": {
+     "covered": true,
+     "grave": -0.14032808939615884,
+     "common": -0.1287469482421875,
+     "gap": -0.011581141153971353,
+     "lift": 1.0899527430520988,
+     "signature": false
+    },
+    "all": {
+     "covered": true,
+     "grave": -0.08982498592800564,
+     "common": -0.16295277065700955,
+     "gap": 0.07312778472900391,
+     "lift": 0.5512332534503104,
+     "signature": false
+    }
+   },
+   "role": "Phase 2 act head (her pick)"
+  },
+  "NF1e": {
+   "verdict": "FAIL",
+   "by_version": {
+    "visible": {
+     "grave": -3.1657272462574313,
+     "common": 0.07223442783520939,
+     "n_grave": 21688,
+     "n_common": 5047819,
+     "insufficient": false,
+     "gap": -3.2379616740926407,
+     "lift": 43.825739901747426,
+     "signature": true,
+     "per_friend": {
+      "Miso": {
+       "grave": -2.5455545363132255,
+       "common": -0.15257495888872316,
+       "n_grave": 5012
+      },
+      "Biscuit": {
+       "grave": -10.510885226429767,
+       "common": 0.419502525921462,
+       "n_grave": 1455
+      },
+      "Pumpkin": {
+       "grave": 0.35586040948990644,
+       "common": -0.09886824235404294,
+       "n_grave": 5492
+      },
+      "Kittybear": {
+       "grave": -0.6037277528669369,
+       "common": 0.7386438076494645,
+       "n_grave": 2771
+      },
+      "Clementine": {
+       "grave": -5.8764143348804625,
+       "common": -0.5383082265969961,
+       "n_grave": 6958
+      }
+     }
+    },
+    "all": {
+     "grave": -2.7078461081276526,
+     "common": 0.09359460982011032,
+     "n_grave": 32931,
+     "n_common": 9712770,
+     "insufficient": false,
+     "gap": -2.801440717947763,
+     "lift": 28.93164588572095,
+     "signature": true,
+     "per_friend": {
+      "Miso": {
+       "grave": -2.8830732633723755,
+       "common": -0.08359451011705298,
+       "n_grave": 6918
+      },
+      "Biscuit": {
+       "grave": -10.66865969295978,
+       "common": 0.45616876068321344,
+       "n_grave": 2052
+      },
+      "Pumpkin": {
+       "grave": 0.7703046944881917,
+       "common": -0.08377439314554451,
+       "n_grave": 8463
+      },
+      "Kittybear": {
+       "grave": 0.9824992829151974,
+       "common": 0.7949772815960435,
+       "n_grave": 5670
+      },
+      "Clementine": {
+       "grave": -6.04647428005402,
+       "common": -0.622545075176529,
+       "n_grave": 9828
+      }
+     }
+    }
+   },
+   "frozen_beside": {
+    "visible": {
+     "grave": -26.857250050441664,
+     "common": -0.3328237385522988,
+     "n_grave": 21688,
+     "n_common": 5047819,
+     "insufficient": false,
+     "gap": -26.524426311889364,
+     "lift": 80.69511558058953,
+     "signature": true,
+     "per_friend": {
+      "Miso": {
+       "grave": -26.380666242394387,
+       "common": -0.5946820797838135,
+       "n_grave": 5012
+      },
+      "Biscuit": {
+       "grave": -39.180562980941495,
+       "common": 0.07608920081239252,
+       "n_grave": 1455
+      },
+      "Pumpkin": {
+       "grave": -15.21284031677222,
+       "common": -0.4182919013709274,
+       "n_grave": 5492
+      },
+      "Kittybear": {
+       "grave": -25.90500918619502,
+       "common": 0.3006729641788652,
+       "n_grave": 2771
+      },
+      "Clementine": {
+       "grave": -34.19383749283829,
+       "common": -1.0176420152134187,
+       "n_grave": 6958
+      }
+     }
+    },
+    "all": {
+     "grave": -24.109774903036136,
+     "common": -0.3040117488026784,
+     "n_grave": 32931,
+     "n_common": 9712770,
+     "insufficient": false,
+     "gap": -23.805763154233457,
+     "lift": 79.3054051298682,
+     "signature": true,
+     "per_friend": {
+      "Miso": {
+       "grave": -25.51137019702739,
+       "common": -0.5035485402477394,
+       "n_grave": 6918
+      },
+      "Biscuit": {
+       "grave": -37.929746185890174,
+       "common": 0.10068559183695565,
+       "n_grave": 2052
+      },
+      "Pumpkin": {
+       "grave": -12.332425408980967,
+       "common": -0.4130968622413076,
+       "n_grave": 8463
+      },
+      "Kittybear": {
+       "grave": -19.2962715750491,
+       "common": 0.38907701451711646,
+       "n_grave": 5670
+      },
+      "Clementine": {
+       "grave": -33.15632102855784,
+       "common": -1.1003544954732287,
+       "n_grave": 9828
+      }
+     }
+    }
+   },
+   "role": "Phase 2 needs head"
+  }
+ },
+ "gate": "FAIL",
+ "F_reference": {
+  "visible": {
+   "GRAVE": 0.3271581077575684,
+   "ADJACENT": 0.4643333053588867,
+   "COMMON": 0.07710032145182291
+  },
+  "all": {
+   "GRAVE": 0.49751691818237304,
+   "ADJACENT": 0.4644832483927409,
+   "COMMON": 0.09141660054524739
+  }
+ }
+}
