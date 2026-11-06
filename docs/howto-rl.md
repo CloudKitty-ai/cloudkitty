@@ -79,18 +79,30 @@ map, and leaves the environment untouched. A snapshot is a *transient
 token* for the binding that made it: no format version, no promise across
 engine commits; the raws are the durable artifact and any snapshot is
 re-derivable by replay. `VectorEnv` has the same calls per world index
-(`snapshot(i)`, `restore(i, data)`).
+(`snapshot(world)`, `restore(world, data)`, `override(world, …)`,
+`tick_records(world)`; no `fork`). A restored world keeps its own episode
+position, so in a batch it runs off the others' horizon cycle.
 
-A scripted seat — a builtin preset, the needy presets included — cannot be
-taken `external` for a branch (spec 067). Instead, substitute one tick's
-proposal:
+A branch cannot change who decides for a seat — the control map is part
+of the snapshot's identity, and a needy seat can never be external at all
+(spec 067). To ask "what if this scripted cat had done X" instead,
+substitute one tick's proposal (one pending override per seat; the next
+`step` consumes it):
 
 ```python
 env.override("kitty_2", action=idx)          # act substituted, message the cat's own
+env.step(actions)
+env.tick_records()["kitty_2"]["provenance"]  # "overridden_act"
 env.override("kitty_2", message=1)           # message substituted, act the cat's own
 env.step(actions)
-env.tick_records()["kitty_2"]["provenance"]  # "overridden_act" / "overridden_message" / "overridden_both"
+env.tick_records()["kitty_2"]["provenance"]  # "overridden_message" ("overridden_both" when both are named)
 ```
+
+The override does not consult the legal mask: it may name a mask-illegal
+act and the engine then rules (a refusal stamp where a mask-legal act
+would have applied), so a reader comparing a branch against a baseline
+that chose mask-legal acts should branch on the baseline's mask-legal
+action, not the raw class.
 
 The override is a *proposal*: validation, the consent verdict, the needy
 verdict and duration enforcement rule on it at the apply slot exactly as

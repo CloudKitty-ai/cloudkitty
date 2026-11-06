@@ -108,6 +108,15 @@ fn record_of(step: &EpisodeStep, kitty: KittyId) -> &cloudkitty_core::seam::Kitt
         .expect("every roster kitty has a record")
 }
 
+/// A branch of `original` at its current tick: a fresh episode of the same
+/// identity restored from `original`'s snapshot.
+fn fork(original: &Episode) -> Episode {
+    let bytes = original.snapshot(ENGINE).unwrap();
+    let mut branch = new_episode(needy_config(), original.rl_config().clone());
+    branch.restore(ENGINE, &bytes).expect("a fork restores");
+    branch
+}
+
 // ---------------------------------------------------------------------------
 // US1 — hold a tick, branch it, continue byte-identically
 // ---------------------------------------------------------------------------
@@ -141,6 +150,15 @@ fn a_restored_episode_continues_byte_identically() {
             observations(&last),
             "seed {seed}: restore returns the snapshot tick's observations"
         );
+        assert_eq!(
+            twin.current_seed(),
+            original.current_seed(),
+            "seed {seed}: the current seed (the fresh-seed chain's root) travelled"
+        );
+        assert_eq!(
+            restored.global_state, last.global_state,
+            "seed {seed}: the global state (the only surface carrying the episode clock) matches"
+        );
 
         let mut a = last;
         for turn in 300..500u64 {
@@ -151,6 +169,10 @@ fn a_restored_episode_continues_byte_identically() {
                 world_json(&original),
                 world_json(&twin),
                 "seed {seed} turn {turn}: world diverged"
+            );
+            assert_eq!(
+                a.global_state, b.global_state,
+                "seed {seed} turn {turn}: global state (episode clock) diverged"
             );
             assert_eq!(
                 observations(&a),
@@ -287,40 +309,112 @@ fn scripted_seat(episode: &Episode) -> KittyId {
 
 /// G7 (FR-009/FR-011, SC-004): an act-only override applies for exactly
 /// one tick with the `OverriddenAct` mark; the next tick is the seat's own.
+/// Staged against a fork at a tick where the seat's own act is NOT the
+/// override's, so a mutant that sets the mark but drops the act cannot pass
+/// by coincidence (review 2026-11-06). Runs over every builtin preset and
+/// both needy presets (SC-004 "every builtin and needy preset").
 #[test]
 fn an_act_override_applies_for_exactly_one_tick() {
-    let mut episode = new_episode(needy_config(), RlConfig::default());
-    let menu_len = episode.codec().len();
-    let seat = scripted_seat(&episode);
-    let mut last = episode.reset(11);
-    for turn in 0..20u64 {
-        last = episode
-            .step(&scripted_actions(&last, turn, menu_len))
-            .unwrap();
+    for preset in ["needs_driven", "playful", "teacher", "needy", "needy_hold"] {
+        let mut core = needy_config();
+        core.kitties[0].behavior = preset.into();
+        if needy::is_needy_name(preset) {
+            core.welfare_hazard = Some(WelfareHazardConfig {
+                acknowledged: vec![preset.into()],
+            });
+        } else {
+            core.welfare_hazard = None;
+        }
+        let seat = core.kitties[0].id;
+        let mut rl = RlConfig::default();
+        rl.episode.horizon = 10_000;
+        let mut original = Episode::new(core.clone(), rl.clone(), mixed_control(&core)).unwrap();
+        let menu_len = original.codec().len();
+        let mut last = original.reset(11);
+        let idle = idle_index(&original);
+        let mut done = false;
+        for turn in 0..3000u64 {
+            let bytes = original.snapshot(ENGINE).unwrap();
+            let mut branch = Episode::new(core.clone(), rl.clone(), mixed_control(&core)).unwrap();
+            branch.restore(ENGINE, &bytes).unwrap();
+            let actions = scripted_actions(&last, turn, menu_len);
+            let a = original.step(&actions).unwrap();
+            if record_of(&a, seat).proposed == Action::Idle {
+                last = a;
+                continue; // the seat's own act is the override's; try the next tick
+            }
+            branch.override_next(seat, Some(idle), None).unwrap();
+            let b = branch.step(&actions).unwrap();
+            let rb = record_of(&b, seat);
+            assert_eq!(
+                rb.provenance,
+                Provenance::OverriddenAct,
+                "{preset}: the overridden tick carries the act mark"
+            );
+            assert_eq!(
+                rb.proposed,
+                Action::Idle,
+                "{preset}: the proposal is the override's act (the seat's own was {:?})",
+                record_of(&a, seat).proposed
+            );
+            let next = branch
+                .step(&scripted_actions(&b, turn + 1, menu_len))
+                .unwrap();
+            assert_eq!(
+                record_of(&next, seat).provenance,
+                Provenance::PolicyMade,
+                "{preset}: one tick only: the seat decides for itself again"
+            );
+            done = true;
+            break;
+        }
+        assert!(
+            done,
+            "staged: {preset} proposed a non-idle act within 3000 ticks"
+        );
     }
-    let idle = idle_index(&episode);
-    episode.override_next(seat, Some(idle), None).unwrap();
-    let step = episode
-        .step(&scripted_actions(&last, 20, menu_len))
-        .unwrap();
-    let record = record_of(&step, seat);
-    assert_eq!(
-        record.provenance,
-        Provenance::OverriddenAct,
-        "the overridden tick carries the act mark"
-    );
-    assert_eq!(
-        record.proposed,
-        Action::Idle,
-        "the proposal is the override's act"
-    );
-    let next = episode
-        .step(&scripted_actions(&step, 21, menu_len))
-        .unwrap();
-    assert_eq!(
-        record_of(&next, seat).provenance,
-        Provenance::PolicyMade,
-        "one tick only: the seat decides for itself again"
+}
+
+/// G19 (FR-014, SC-004, doctrine rule 6): an act-only override leaves the
+/// MESSAGE the seat's own — the branch says exactly what the original said
+/// on a tick where the seat's own call is not Silent. The mutant this
+/// catches is the harness scripting the free register as a side effect of
+/// branching (review 2026-11-06, blocking finding).
+#[test]
+fn an_act_override_leaves_the_message_the_seats_own() {
+    let mut rl = RlConfig::default();
+    rl.episode.horizon = 10_000;
+    let mut original = new_episode(needy_config(), rl);
+    let menu_len = original.codec().len();
+    let seat = scripted_seat(&original);
+    let mut last = original.reset(19);
+    let idle = idle_index(&original);
+    let mut checked = false;
+    for turn in 0..6000u64 {
+        let mut branch = fork(&original);
+        let actions = scripted_actions(&last, turn, menu_len);
+        let a = original.step(&actions).unwrap();
+        let ra = record_of(&a, seat);
+        if ra.proposed_message.is_none() {
+            last = a;
+            continue; // Silent would be indistinguishable from a scripted Silent
+        }
+        branch.override_next(seat, Some(idle), None).unwrap();
+        let b = branch.step(&actions).unwrap();
+        let rb = record_of(&b, seat);
+        assert_eq!(
+            rb.proposed_message, ra.proposed_message,
+            "the branch's message is the seat's own ({:?}), not the harness's",
+            ra.proposed_message
+        );
+        assert_eq!(rb.proposed, Action::Idle, "the act half is the override's");
+        assert_eq!(rb.provenance, Provenance::OverriddenAct);
+        checked = true;
+        break;
+    }
+    assert!(
+        checked,
+        "staged: the seat called something non-Silent within 6000 ticks"
     );
 }
 
@@ -366,19 +460,47 @@ fn a_message_override_leaves_the_act_the_seats_own() {
     );
 }
 
-/// G9 (FR-011): both halves named → `OverriddenBoth`.
+/// G9 (FR-011/FR-014): both halves named → `OverriddenBoth`, and both halves
+/// are the override's — staged on a fork at a tick where the seat's own act
+/// differs from the override's, so neither half can match by coincidence.
 #[test]
 fn both_halves_override_marks_overridden_both() {
-    let mut episode = new_episode(needy_config(), RlConfig::default());
-    let menu_len = episode.codec().len();
-    let seat = scripted_seat(&episode);
-    let last = episode.reset(17);
-    let idle = idle_index(&episode);
-    episode.override_next(seat, Some(idle), Some(0)).unwrap();
-    let step = episode.step(&scripted_actions(&last, 0, menu_len)).unwrap();
-    assert_eq!(
-        record_of(&step, seat).provenance,
-        Provenance::OverriddenBoth
+    let mut rl = RlConfig::default();
+    rl.episode.horizon = 10_000;
+    let mut original = new_episode(needy_config(), rl);
+    let menu_len = original.codec().len();
+    let seat = scripted_seat(&original);
+    let mut last = original.reset(17);
+    let idle = idle_index(&original);
+    let want_eat = 1; // head index 1 = the first message kind after Silent
+    let mut checked = false;
+    for turn in 0..3000u64 {
+        let mut branch = fork(&original);
+        let actions = scripted_actions(&last, turn, menu_len);
+        let a = original.step(&actions).unwrap();
+        let ra = record_of(&a, seat);
+        if ra.proposed == Action::Idle || ra.proposed_message.is_some() {
+            last = a;
+            continue;
+        }
+        branch
+            .override_next(seat, Some(idle), Some(want_eat))
+            .unwrap();
+        let b = branch.step(&actions).unwrap();
+        let rb = record_of(&b, seat);
+        assert_eq!(rb.provenance, Provenance::OverriddenBoth);
+        assert_eq!(rb.proposed, Action::Idle, "the act is the override's");
+        assert_eq!(
+            rb.proposed_message,
+            cloudkitty_rl::codec::MessageCodec::decode(want_eat).unwrap(),
+            "the message is the override's"
+        );
+        checked = true;
+        break;
+    }
+    assert!(
+        checked,
+        "staged: a tick where the seat's own act was non-idle and its call Silent"
     );
 }
 
@@ -389,7 +511,9 @@ fn both_halves_override_marks_overridden_both() {
 fn an_override_cannot_relieve_a_masked_need() {
     let core = needy_config();
     let needy_seat = core.kitties[0].id;
-    let mut episode = new_episode(core, RlConfig::default());
+    let mut rl = RlConfig::default();
+    rl.episode.horizon = 10_000;
+    let mut episode = new_episode(core, rl);
     let menu_len = episode.codec().len();
     let mut last = episode.reset(23);
     let mut found: Option<(usize, Action)> = None;
@@ -422,7 +546,14 @@ fn an_override_cannot_relieve_a_masked_need() {
                     continue;
                 }
                 let action = episode.codec().decode(index, &observation.table).unwrap();
-                if needy::proposer_relief(&action).meets(mask) {
+                // A relief that names no kitty: the refusal stamp labels that
+                // path NeedyMasked, which is what the assertion below pins
+                // (a partnered relief could also be refused for the
+                // partner's reasons, and a validation refusal would stamp
+                // another reason entirely).
+                if needy::proposer_relief(&action).meets(mask)
+                    && needy::partner_relief(&action).is_none()
+                {
                     found = Some((index, action));
                     break;
                 }
@@ -462,6 +593,11 @@ fn an_override_cannot_relieve_a_masked_need() {
             && newest.kitty_id == needy_seat
             && newest.tick == tick,
         "the refusal is on the record for the needy seat at tick {tick}"
+    );
+    assert_eq!(
+        newest.reason,
+        cloudkitty_core::events::RefusalReason::NeedyMasked,
+        "the NEEDY verdict refused it, not validation"
     );
     assert_eq!(
         record.provenance,
@@ -562,6 +698,10 @@ fn an_override_inside_a_scene_minimum_continues_the_scene() {
         "the override proposed the interrupting move"
     );
     assert_eq!(
+        record.validated, interrupting,
+        "the move survived validation, so enforcement alone can hold the scene"
+    );
+    assert_eq!(
         record.applied, continuation,
         "duration enforcement continues the scene"
     );
@@ -576,8 +716,11 @@ fn override_refusals_name_their_cause_and_leave_the_episode_untouched() {
     let external = core.kitties[1].id;
     let mut episode = new_episode(core, RlConfig::default());
     let seat = scripted_seat(&episode);
-    let last = episode.reset(31);
-    let before = (world_json(&episode), seeds_of(&last));
+    let _ = episode.reset(31);
+    // The snapshot bytes hold the world AND the pending seeds: equal bytes
+    // after the refusals = nothing moved (the first cut compared a value
+    // with itself — review 2026-11-06).
+    let before = episode.snapshot(ENGINE).unwrap();
     let idle = idle_index(&episode);
     let menu_len = episode.codec().len();
 
@@ -590,7 +733,7 @@ fn override_refusals_name_their_cause_and_leave_the_episode_untouched() {
         "an unknown kitty is refused"
     );
     assert!(
-        matches!(episode.override_next(seat, None, None), Err(EpisodeError::OverrideRefused { ref reason, .. }) if reason.contains("empty")),
+        matches!(episode.override_next(seat, None, None), Err(EpisodeError::OverrideRefused { ref reason, .. }) if reason.contains("name an action, a message, or both")),
         "an empty override is refused"
     );
     assert!(
@@ -609,10 +752,13 @@ fn override_refusals_name_their_cause_and_leave_the_episode_untouched() {
         matches!(episode.override_next(seat, Some(idle), None), Err(EpisodeError::OverrideRefused { ref reason, .. }) if reason.contains("already")),
         "a second override before a step is refused"
     );
+    // The pending (accepted) override is not in the snapshot — by design it
+    // belongs to this state and is dropped by restore — so the bytes still
+    // compare equal; what they prove is that no REFUSAL moved world or seeds.
     assert_eq!(
-        (world_json(&episode), seeds_of(&last)),
+        episode.snapshot(ENGINE).unwrap(),
         before,
-        "no refusal touched the episode"
+        "no refusal touched the episode (world and pending seeds unchanged)"
     );
 }
 
@@ -682,16 +828,19 @@ fn a_refused_step_leaves_the_override_standing() {
 // US4 — one world of a batch branches alone
 // ---------------------------------------------------------------------------
 
-/// G15 (FR-008): in a two-world batch, world 0 restored from its own
-/// snapshot matches a single episode restored from the same bytes, and
-/// world 1 matches an un-branched twin batch.
+/// G15 (FR-008): in a two-world batch with one worker PER WORLD (so the
+/// per-index routing in `VectorizedEnvironment::one` is exercised, not just
+/// local-index arithmetic), world 0 restored from its own snapshot matches a
+/// single episode restored from the same bytes (seeds, observations and the
+/// serialized world), world 1 matches an un-branched twin batch, and world 1
+/// can then be branched too.
 #[test]
 fn a_batched_world_branches_alone() {
     let build = || {
         let episodes: Vec<Episode> = (0..2)
             .map(|_| new_episode(needy_config(), RlConfig::default()))
             .collect();
-        VectorizedEnvironment::new(episodes, Some(1))
+        VectorizedEnvironment::new(episodes, None)
     };
     let mut batch = build();
     let mut twin_batch = build();
@@ -727,6 +876,8 @@ fn a_batched_world_branches_alone() {
             .collect();
     }
     let bytes = batch.snapshot(0, ENGINE).unwrap();
+    let bytes1 = batch.snapshot(1, ENGINE).unwrap();
+    let seeds1_at_30 = seeds_of(&twin_steps[1]);
     for turn in 30..40u64 {
         steps = batch
             .step(&act(&steps, turn))
@@ -772,6 +923,17 @@ fn a_batched_world_branches_alone() {
             "turn {turn}: world 1 is untouched by the branch"
         );
     }
+    assert_eq!(
+        batch.snapshot(0, ENGINE).unwrap(),
+        single.snapshot(ENGINE).unwrap(),
+        "world 0's serialized state (world + seeds) equals the single restore's"
+    );
+    let restored1 = batch.restore(1, ENGINE, &bytes1).unwrap();
+    assert_eq!(
+        seeds_of(&restored1),
+        seeds1_at_30,
+        "world 1 restores to its own tick-30 deal: the second worker is addressed too"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -792,54 +954,121 @@ fn restore_refuses_every_identity_mismatch() {
     }
     let bytes = original.snapshot(ENGINE).unwrap();
 
-    let untouched = |episode: &mut Episode,
-                     label: &str,
-                     result: Result<EpisodeStep, EpisodeError>,
-                     component: &str| {
-        match result {
-            Err(EpisodeError::SnapshotIdentity { component: got, .. }) => {
-                assert_eq!(got, component, "{label}: the differing component is named")
+    // Each refused episode is reset first so its own snapshot bytes (world +
+    // pending seeds) can be compared before and after: "untouched" means the
+    // bytes are equal, not merely that it still steps.
+    let refuse = |episode: &mut Episode, label: &str, engine: &str, component: &str| {
+        episode.reset(5);
+        let before = episode.snapshot(ENGINE).unwrap();
+        match episode.restore(engine, &bytes) {
+            Err(EpisodeError::SnapshotIdentity {
+                component: got,
+                found,
+                expected,
+            }) => {
+                assert_eq!(got, component, "{label}: the differing component is named");
+                assert_ne!(
+                    found, expected,
+                    "{label}: both values are reported and differ"
+                );
+                if component == "control" {
+                    assert!(
+                        found.starts_with("kitty_") && expected.starts_with("kitty_"),
+                        "{label}: the control refusal names the seat ({found} / {expected})"
+                    );
+                }
             }
             other => panic!("{label}: expected an identity refusal on {component}, got {other:?}"),
         }
+        assert_eq!(
+            episode.snapshot(ENGINE).unwrap(),
+            before,
+            "{label}: the refused episode is exactly as it was"
+        );
         episode
             .step(&BTreeMap::new())
-            .expect("the refused episode still steps as it was");
+            .expect("the refused episode still steps");
     };
 
     let mut same = new_episode(needy_config(), RlConfig::default());
-    let result = same.restore("another-engine", &bytes);
-    untouched(&mut same, "engine commit", result, "engine_commit");
+    refuse(
+        &mut same,
+        "engine commit",
+        "another-engine",
+        "engine_commit",
+    );
 
     let mut rl = RlConfig::default();
     rl.episode.horizon = 7;
     let mut horizon = new_episode(needy_config(), rl);
-    let result = horizon.restore(ENGINE, &bytes);
-    untouched(&mut horizon, "rl horizon", result, "config_fingerprint");
+    refuse(&mut horizon, "rl horizon", ENGINE, "config_digest");
 
     let mut core = needy_config();
     core.kitties[2].behavior = "playful".into();
     let mut behaviour = new_episode(core, RlConfig::default());
-    let result = behaviour.restore(ENGINE, &bytes);
-    untouched(
+    refuse(
         &mut behaviour,
         "core behaviour name",
-        result,
-        "config_fingerprint",
+        ENGINE,
+        "config_digest",
     );
 
     let core = needy_config();
     let mut control = mixed_control(&core);
     control.insert(core.kitties[2].id, Control::External);
     let mut seats = Episode::new(core, RlConfig::default(), control).unwrap();
-    let result = seats.restore(ENGINE, &bytes);
-    untouched(&mut seats, "control map", result, "control");
+    refuse(&mut seats, "control map", ENGINE, "control");
 
     let mut same_seed_differs = new_episode(needy_config(), RlConfig::default());
     same_seed_differs.reset(999);
     same_seed_differs
         .restore(ENGINE, &bytes)
         .expect("the seed is state, not identity: a differently seeded twin accepts the snapshot");
+
+    // Control is normalized over the roster: a seat left unnamed (implicitly
+    // external) and one named "external" are the same environment.
+    let core = needy_config();
+    let mut unnamed = mixed_control(&core);
+    unnamed.remove(&core.kitties[1].id);
+    let mut spelled_differently = Episode::new(core, RlConfig::default(), unnamed).unwrap();
+    spelled_differently
+        .restore(ENGINE, &bytes)
+        .expect("an unnamed external seat and an explicit one are one identity");
+}
+
+/// G20 (FR-006, Articles I–V): a snapshot that parses but holds a world this
+/// environment cannot lawfully run — a trimmed roster, a foreign world
+/// fingerprint — is refused as malformed, exactly as the server's load path
+/// would refuse it, and the episode is untouched.
+#[test]
+fn restore_refuses_a_tampered_world() {
+    let mut episode = new_episode(needy_config(), RlConfig::default());
+    episode.reset(53);
+    let bytes = episode.snapshot(ENGINE).unwrap();
+    let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+
+    let mut trimmed = value.clone();
+    trimmed["world"]["kitties"].as_array_mut().unwrap().pop();
+    let before = episode.snapshot(ENGINE).unwrap();
+    assert!(
+        matches!(
+            episode.restore(ENGINE, &serde_json::to_vec(&trimmed).unwrap()),
+            Err(EpisodeError::SnapshotMalformed(ref why)) if why.contains("roster")
+        ),
+        "a world missing a roster kitty is refused as malformed"
+    );
+    assert_eq!(episode.snapshot(ENGINE).unwrap(), before, "untouched");
+
+    value["world"]["config_fingerprint"] = serde_json::Value::String("w1h1s1k1".into());
+    assert!(
+        matches!(
+            episode.restore(ENGINE, &serde_json::to_vec(&value).unwrap()),
+            Err(EpisodeError::SnapshotMalformed(ref why)) if why.contains("fingerprint")
+        ),
+        "a world stamped for another config is refused as malformed"
+    );
+    assert_eq!(episode.snapshot(ENGINE).unwrap(), before, "untouched");
+    episode.step(&BTreeMap::new()).expect("and still steps");
 }
 
 /// G17 (FR-006): bytes that are not a snapshot are refused as malformed and

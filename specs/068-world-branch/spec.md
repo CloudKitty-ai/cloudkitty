@@ -244,10 +244,10 @@ restore case, world 1 matches an un-branched run.
 
 ### User Story 5 - A snapshot is refused where it cannot be honoured (Priority: P2)
 
-A snapshot restored into an environment whose config fingerprint,
-control map or episode settings differ from the ones it was taken
-under, or built by a different engine, is refused with an error naming
-what differed — never silently accepted into a world that would then
+A snapshot restored into an environment whose config digest (the whole
+engine and RL configuration, seed excluded) or control map differs from
+the ones it was taken under, or built by a different engine, is refused
+with an error naming what differed — never silently accepted into a world that would then
 diverge or misread.
 
 **Why this priority**: The lab's binding discipline (every new binding
@@ -262,8 +262,8 @@ with the differing component named.
 **Acceptance Scenarios**:
 
 1. **Given** a snapshot, **When** restored into an environment whose
-   config fingerprint differs, **Then** the restore is refused and the
-   error names the found and expected fingerprints.
+   config digest differs, **Then** the restore is refused and the
+   error names the found and expected digests.
 2. **Given** a snapshot, **When** restored into an environment whose
    control map differs (a seat external here that was scripted there,
    or a different preset name), **Then** the restore is refused and the
@@ -343,8 +343,8 @@ with the differing component named.
   already dealt for the next tick, the tick position within the
   episode, the truncation flag, the reward baselines, and whatever else
   the proof in FR-003 shows to be load-bearing. It MUST NOT carry the
-  config, the control map or the episode settings as state; those are
-  identity (FR-006).
+  configuration (engine and RL, episode settings included) or the
+  control map as state; those are identity (FR-006).
 - **FR-003**: A restored environment MUST continue byte-identically with
   the original: for every later step under the same policy actions,
   observations, rewards, per-agent infos and the serialized world are
@@ -361,11 +361,18 @@ with the differing component named.
   `fork()` MAY be offered as a convenience that builds a fresh
   environment of the same identity and restores into it.
 - **FR-006**: A snapshot MUST carry its identity — the engine commit,
-  the config fingerprint, the control map and the episode settings that
-  shape outputs (horizon, observation configuration) — and `restore`
-  MUST refuse, with an error naming the differing component and both
-  values, any environment whose identity differs in any component.
-  Refusal MUST leave the environment exactly as it was.
+  the config digest (the whole engine and RL configuration, the episode
+  settings that shape outputs included, the world seed excluded) and the
+  control map normalized over the roster — and `restore` MUST refuse,
+  with an error naming the differing component and both values (for the
+  control map, the first differing seat), any environment whose identity
+  differs in any component. A snapshot that parses but holds a world the
+  environment cannot lawfully run (the world's own fingerprint is not the
+  config's, the roster differs, a constitutional invariant fails — the
+  checks the server's load path runs) MUST be refused as malformed.
+  Refusal MUST leave the environment exactly as it was. (The server's
+  "config fingerprint" — size, seed and roster — is a different, weaker
+  stamp; this spec says "config digest" for the identity component.)
 - **FR-007**: `restore` MUST heal a poisoned environment (one refusing
   steps after an engine panic) and MUST restore a truncated snapshot as
   truncated.
@@ -446,14 +453,15 @@ with the differing component named.
   decision seeds, episode position, truncation, reward baselines)
   together with its identity stamps. Harness-side data; never an
   observation.
-- **Environment identity**: the engine commit, config fingerprint (a
-  digest of the whole engine and RL configuration — observation,
-  reward, horizon included — with the world seed excluded: the seed is
-  episode state and travels in the snapshot, so a fresh environment of
-  the same config accepts a snapshot whatever seed it was reset with),
-  and control map (which seats are external, which builtin and on which
-  preset). Two environments of equal identity accept each other's
-  snapshots; any difference refuses.
+- **Environment identity**: the engine commit, config digest (a sha256
+  of the whole engine and RL configuration — observation, reward,
+  horizon included — with the world seed excluded: the seed is episode
+  state and travels in the snapshot, so a fresh environment of the same
+  config accepts a snapshot whatever seed it was reset with), and
+  control map normalized over the roster (which seats are external,
+  which builtin and on which preset; an unnamed seat is external). Two
+  environments of equal identity accept each other's snapshots; any
+  difference refuses.
 - **Proposal override**: a pending substitution (seat, optional
   activity, optional message; at least one named) consumed by exactly
   one step, ruled on by the engine's law like any proposal, marked by a
@@ -476,10 +484,11 @@ with the differing component named.
 - **SC-002**: The infos `restore` returns report the same next
   decision seed per agent as the original did at the snapshot tick, in
   100% of the SC-001 trials.
-- **SC-003**: Every identity mismatch class (config fingerprint, control
-  map, episode settings, engine commit, malformed bytes) is refused in
-  100% of attempts, with the error naming the differing component, and
-  the environment's next step is unaffected by the refused call.
+- **SC-003**: Every identity mismatch class (config digest — engine or
+  RL settings —, control map, engine commit, malformed or tampered
+  bytes) is refused in 100% of attempts, with the error naming the
+  differing component, and the environment's state (world and pending
+  seeds) is byte-identical after the refused call.
 - **SC-004**: An override applies for exactly one step: the overridden
   tick's record for that seat carries the substituted proposal and the
   substitution provenance; the following tick's record carries the
@@ -597,8 +606,8 @@ doctrine-gated).
   considered and rejected because the gate's branch runs beside the
   original, not in its place, and the identity check (FR-006) is what
   makes portability safe.
-- **Identity, not state.** Config, control map and episode settings are
-  checked, never restored; an experimenter who wants a different
+- **Identity, not state.** Configuration (episode settings included) and
+  control map are checked, never restored; an experimenter who wants a different
   control map builds a different environment, and a needy seat cannot
   be taken external that way either (spec 067 D16 stands).
 - **Engine-commit mismatch refuses by default.** The lab's binding

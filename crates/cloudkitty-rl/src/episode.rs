@@ -88,12 +88,15 @@ pub enum EpisodeError {
         found: String,
         expected: String,
     },
-    /// Spec 068: the bytes did not parse as a snapshot. Untouched.
+    /// Spec 068: the bytes did not parse as a snapshot, or parsed into a
+    /// world this environment cannot lawfully run (wrong world fingerprint
+    /// or roster, or a constitutional violation — the checks the server's
+    /// load path runs). Untouched.
     #[error("restore(): not a snapshot: {0}")]
     SnapshotMalformed(String),
     /// Spec 068 FR-012: the override was refused for `reason`; nothing
     /// changed.
-    #[error("override(): kitty {kitty} {reason}")]
+    #[error("override(): kitty_{kitty}: {reason}")]
     OverrideRefused { kitty: KittyId, reason: String },
 }
 
@@ -104,24 +107,44 @@ pub enum EpisodeError {
 /// trusted from the caller.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Identity {
+    /// The binding's build stamp. A `<sha>-dirty` stamp is the same for
+    /// any two dirty builds of one commit — acceptable for an in-process
+    /// token (FR-016), not a promise.
     pub engine_commit: String,
     /// hex sha256 of `serde_json(core with world.seed = 0)` ‖ `"\n"` ‖
-    /// `serde_json(rl)` — stricter than the server's size/seed/roster
-    /// fingerprint, which would accept a config differing in a need rate
-    /// or a behaviour name and let the branch diverge silently.
-    pub config_fingerprint: String,
-    /// `"external"` or the builtin/preset name, per seat — the same
-    /// vocabulary the Python `control=` mapping speaks.
+    /// `serde_json(rl)` — covers observation, reward, horizon, roster,
+    /// behaviours and the needy table; stricter than the server's
+    /// size/seed/roster fingerprint (`World::config_fingerprint`), which
+    /// would accept a config differing in a need rate or a behaviour name
+    /// and let the branch diverge silently. Fields the config skips in
+    /// serde (the test-only meow `law_era` switch) are outside it.
+    pub config_digest: String,
+    /// Who decides for EVERY roster kitty — `"external"` or the
+    /// builtin/preset name, the vocabulary the Python `control=` mapping
+    /// speaks — normalized, so a seat left unnamed (implicitly external)
+    /// and one named `"external"` are the same environment.
     pub control: BTreeMap<KittyId, String>,
 }
 
 impl Identity {
-    fn render_control(control: &BTreeMap<KittyId, String>) -> String {
-        control
-            .iter()
-            .map(|(id, who)| format!("kitty_{id}={who}"))
-            .collect::<Vec<_>>()
-            .join(", ")
+    /// The first seat whose controller differs: `(seat, snapshot's,
+    /// this environment's)`, with `"<absent>"` for a seat one side lacks.
+    fn first_control_difference(
+        snapshot: &BTreeMap<KittyId, String>,
+        mine: &BTreeMap<KittyId, String>,
+    ) -> Option<(KittyId, String, String)> {
+        let absent = || "<absent>".to_owned();
+        snapshot
+            .keys()
+            .chain(mine.keys())
+            .copied()
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .find_map(|id| {
+                let found = snapshot.get(&id).cloned().unwrap_or_else(absent);
+                let expected = mine.get(&id).cloned().unwrap_or_else(absent);
+                (found != expected).then_some((id, found, expected))
+            })
     }
 }
 
@@ -582,6 +605,12 @@ impl Episode {
                     // behaviour has already supplied the rest. The engine's
                     // law rules on the result at the apply slot like any
                     // proposal (FR-010); the mark says the harness did it.
+                    // The override's mark REPLACES the resolver's: a tick
+                    // whose builtin fell back (`FallbackTaken`) and was then
+                    // overridden records the override, not the fallback —
+                    // one mark per record, the harness's act outranking the
+                    // advisor's health for that tick (documented limit;
+                    // builtins fall back only on a panic).
                     if let Some(override_) = self.pending_overrides.get(&id) {
                         if let Some(activity) = override_.activity {
                             decision.activity = activity;
@@ -797,16 +826,21 @@ impl Episode {
         hasher.update(serde_json::to_vec(&self.rl).expect("the rl config serializes"));
         Identity {
             engine_commit: engine_commit.to_owned(),
-            config_fingerprint: format!("{:x}", hasher.finalize()),
+            config_digest: format!("{:x}", hasher.finalize()),
+            // Normalized over the roster: `self.control` holds only explicit
+            // entries plus auto-seated needy seats, and an unnamed seat is
+            // external by `external_agents`' rule — so the identity names
+            // every seat, or two spellings of one environment would refuse
+            // each other (review 2026-11-06).
             control: self
-                .control
-                .iter()
-                .map(|(id, who)| {
-                    let who = match who {
-                        Control::External => "external".to_owned(),
-                        Control::Builtin(name) => name.clone(),
+                .roster()
+                .into_iter()
+                .map(|id| {
+                    let who = match self.control.get(&id) {
+                        Some(Control::Builtin(name)) => name.clone(),
+                        Some(Control::External) | None => "external".to_owned(),
                     };
-                    (*id, who)
+                    (id, who)
                 })
                 .collect(),
         }
@@ -873,25 +907,51 @@ impl Episode {
                 expected: mine.engine_commit,
             });
         }
-        if snap.identity.config_fingerprint != mine.config_fingerprint {
+        if snap.identity.config_digest != mine.config_digest {
             return Err(EpisodeError::SnapshotIdentity {
-                component: "config_fingerprint",
-                found: snap.identity.config_fingerprint,
-                expected: mine.config_fingerprint,
+                component: "config_digest",
+                found: snap.identity.config_digest,
+                expected: mine.config_digest,
             });
         }
-        if snap.identity.control != mine.control {
+        if let Some((seat, found, expected)) =
+            Identity::first_control_difference(&snap.identity.control, &mine.control)
+        {
             return Err(EpisodeError::SnapshotIdentity {
                 component: "control",
-                found: Identity::render_control(&snap.identity.control),
-                expected: Identity::render_control(&mine.control),
+                found: format!("kitty_{seat}={found}"),
+                expected: format!("kitty_{seat}={expected}"),
             });
         }
-        // Identity agreed: assign everything. The seed is state (reset
-        // writes it into the config; current_seed and the fresh-seed chain
-        // derive from it), so it travels with the snapshot.
+        // Identity agreed. The world inside must still be one this
+        // environment can lawfully run — the same checks the server's load
+        // path makes (persist.rs): the world's own fingerprint against the
+        // config it will run under, the roster, and the constitution. A
+        // token is opaque, not trusted (review 2026-11-06).
         let mut config = (*self.core).clone();
         config.world.seed = snap.seed;
+        let expected_fingerprint = config.fingerprint();
+        if snap.world.config_fingerprint != expected_fingerprint {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world's fingerprint {} is not the config's {}",
+                snap.world.config_fingerprint, expected_fingerprint
+            )));
+        }
+        let roster: Vec<KittyId> = snap.world.kitties.iter().map(|k| k.id).collect();
+        if roster != self.roster() {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world's roster {roster:?} is not this environment's {:?}",
+                self.roster()
+            )));
+        }
+        if let Err(violation) = cloudkitty_core::invariants::check(&snap.world, &config) {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world violates the constitution: {violation}"
+            )));
+        }
+        // Assign everything. The seed is state (reset writes it into the
+        // config; current_seed and the fresh-seed chain derive from it), so
+        // it travels with the snapshot.
         self.core = Arc::new(config);
         self.world = snap.world;
         self.tick_in_episode = snap.tick_in_episode;
@@ -949,17 +1009,15 @@ impl Episode {
             reason: reason.to_owned(),
         };
         if !self.roster().contains(&kitty) {
-            return Err(refuse("is not in the roster"));
+            return Err(refuse("not in the roster"));
         }
         if !matches!(self.control.get(&kitty), Some(Control::Builtin(_))) {
             return Err(refuse(
-                "is externally controlled; supply its action through step()",
+                "externally controlled; supply its action through step()",
             ));
         }
         if action.is_none() && message.is_none() {
-            return Err(refuse(
-                "override is empty: name an action, a message, or both",
-            ));
+            return Err(refuse("name an action, a message, or both"));
         }
         if self.pending_overrides.contains_key(&kitty) {
             return Err(refuse("already has a pending override; step() first"));

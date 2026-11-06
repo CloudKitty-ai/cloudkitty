@@ -44,7 +44,6 @@ for _ in range(300):
     env.step({a: [34, 0] for a in env.possible_agents})   # idle, silent
 snap = env.snapshot()
 
-seeds_at_snapshot = {a: env.tick_records()[a]["decision_seed"] for a in env.possible_agents}
 twin = cloudkitty.ParallelEnv(horizon=5000)                 # never reset
 obs_t, infos_t = twin.restore(snap)
 assert all(infos_t[a]["decision_seed"] is not None for a in twin.possible_agents)  # FR-004: equal to the original's next seeds (test_branch.py compares them)
@@ -82,7 +81,7 @@ except ValueError as e:
 
 ```python
 import time, cloudkitty
-env = cloudkitty.ParallelEnv(horizon=20000)
+env = cloudkitty.ParallelEnv(horizon=20000, control={"kitty_2": "needs_driven"})  # the default 32×32 world, larger than the served 20×20
 env.reset(seed=1)
 acts = {a: [34, 0] for a in env.possible_agents}
 t0 = time.perf_counter()

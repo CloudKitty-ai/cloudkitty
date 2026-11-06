@@ -619,7 +619,10 @@ impl ParallelEnv {
                 "snapshot(): reset first (no world has been established yet)",
             ));
         }
-        let bytes = self.episode.snapshot(ENGINE_COMMIT).map_err(episode_err)?;
+        let episode = &self.episode;
+        let bytes = py
+            .detach(|| episode.snapshot(ENGINE_COMMIT))
+            .map_err(episode_err)?;
         Ok(PyBytes::new(py, &bytes))
     }
 
@@ -630,9 +633,11 @@ impl ParallelEnv {
     /// reset() (it stands in for it) and in every other state; heals a
     /// poisoned world; a truncated snapshot restores truncated and step()
     /// then raises until reset(). ValueError naming the differing component
-    /// (engine_commit, config_fingerprint, control) with both values on an
-    /// identity mismatch, or "not a snapshot" on malformed bytes — the
-    /// environment is left exactly as it was. Drops any pending override.
+    /// (engine_commit, config_digest, control — the control case names the
+    /// seat) with both values on an identity mismatch, or "not a snapshot"
+    /// on bytes that do not parse or hold a world this environment cannot
+    /// lawfully run — the environment is left exactly as it was. Drops any
+    /// pending override.
     #[doc = concat!("\n\n", welfare_line!())]
     fn restore<'py>(
         &mut self,
@@ -655,7 +660,9 @@ impl ParallelEnv {
         let core = (**self.episode.core_config()).clone();
         let rl = self.episode.rl_config().clone();
         let control = self.episode.control().clone();
-        let episode = Episode::new(core, rl, control).map_err(episode_err)?;
+        let episode = py
+            .detach(|| Episode::new(core, rl, control))
+            .map_err(episode_err)?;
         let mut twin = Self::wrap(episode);
         twin.restore(py, bytes.as_bytes())?;
         Ok(twin)
@@ -674,14 +681,19 @@ impl ParallelEnv {
     /// and tick_records() marks the seat "overridden_act",
     /// "overridden_message" or "overridden_both". ValueError for an
     /// externally controlled seat (use step()), an unknown kitty, an empty
-    /// override, a second override before a step, or before reset();
-    /// IndexError for an index a table cannot express; RuntimeError on a
-    /// truncated or poisoned world. Cleared by reset() and restore(); a
-    /// step() refused for a bad external action leaves it standing.
+    /// override, a second override before a step, or with no decision
+    /// window (before reset(), after truncation); IndexError for an index a
+    /// table cannot express; RuntimeError on a poisoned world. Cleared by
+    /// reset() and restore(); a step() refused for a bad external action
+    /// leaves it standing. The override does not consult the legal mask:
+    /// it may name a mask-illegal act and the engine then rules (a reader
+    /// comparing against a mask-legal baseline must branch on the baseline's
+    /// mask-legal action, not the raw class).
     #[doc = concat!("\n\n", welfare_line!())]
     #[pyo3(name = "override", signature = (kitty, action=None, message=None))]
     fn override_next(
         &mut self,
+        py: Python<'_>,
         kitty: &Bound<'_, PyAny>,
         action: Option<i64>,
         message: Option<i64>,
@@ -689,13 +701,13 @@ impl ParallelEnv {
         let kitty_id = parse_kitty_arg(kitty)?;
         if !self.live {
             return Err(PyValueError::new_err(format!(
-                "override(): kitty {kitty_id}: no decision window (reset first)"
+                "override(): kitty_{kitty_id}: no decision window (reset first)"
             )));
         }
         let action = index_arg(action, "action")?;
         let message = index_arg(message, "message")?;
-        self.episode
-            .override_next(kitty_id, action, message)
+        let episode = &mut self.episode;
+        py.detach(|| episode.override_next(kitty_id, action, message))
             .map_err(episode_err)
     }
 
@@ -822,6 +834,13 @@ struct VectorEnv {
     last_reports: Vec<TickReport>,
     /// The roster (identical across worlds), for the per-seat reader.
     roster: Vec<KittyId>,
+    /// Spec 068: per world, ParallelEnv's `armed` (a world established by
+    /// a fully successful reset or by restore(i)) and `live` (a decision
+    /// window is open: armed, not truncated, and the batch not desynced by
+    /// a partial step failure). snapshot(i) needs armed, override(i) needs
+    /// live — the single-world refusals, per world (review 2026-11-06).
+    armed: Vec<bool>,
+    live: Vec<bool>,
 }
 
 #[pymethods]
@@ -876,27 +895,38 @@ impl VectorEnv {
             last_states: vec![vec![0.0; state_len]; n],
             last_reports: (0..n).map(|_| TickReport::default()).collect(),
             roster,
+            armed: vec![false; n],
+            live: vec![false; n],
         })
     }
 
-    fn world_index(&self, world: usize) -> PyResult<usize> {
-        if world >= self.n_worlds {
+    fn world_index(&self, world: i64) -> PyResult<usize> {
+        if world < 0 || world as usize >= self.n_worlds {
             return Err(PyIndexError::new_err(format!(
                 "world index {world} out of range ({} worlds)",
                 self.n_worlds
             )));
         }
-        Ok(world)
+        Ok(world as usize)
     }
 
-    /// World `i`'s snapshot (spec 068 FR-008): the single-world
+    /// World `world`'s snapshot (spec 068 FR-008): the single-world
     /// ParallelEnv.snapshot() addressed to one world of the batch; the
-    /// other worlds are untouched. IndexError for a bad index; RuntimeError
-    /// on a poisoned world. A transient token for this binding, as the
-    /// single-world one.
+    /// other worlds are untouched. IndexError for a bad index; ValueError
+    /// before the first reset() (or before restore(world) established that
+    /// world); RuntimeError on a poisoned world; legal after truncation.
+    ///
+    /// A snapshot is a transient token for the binding that produced it:
+    /// no format version, no compatibility across engine commits; the raws
+    /// are the durable artifact and any snapshot is re-derivable by replay.
     #[doc = concat!("\n\n", welfare_line!())]
-    fn snapshot<'py>(&self, py: Python<'py>, world: usize) -> PyResult<Bound<'py, PyBytes>> {
+    fn snapshot<'py>(&self, py: Python<'py>, world: i64) -> PyResult<Bound<'py, PyBytes>> {
         let world = self.world_index(world)?;
+        if !self.armed[world] {
+            return Err(PyValueError::new_err(format!(
+                "snapshot({world}): reset first (no world has been established yet)"
+            )));
+        }
         let vector = &self.vector;
         let bytes = py
             .detach(|| {
@@ -909,18 +939,24 @@ impl VectorEnv {
         Ok(PyBytes::new(py, &bytes))
     }
 
-    /// Restores world `i` from a snapshot (spec 068 FR-008) and returns
+    /// Restores world `world` from a snapshot (spec 068 FR-008) and returns
     /// THAT world's {agent: observation}, {agent: info} (not stacked). The
     /// other worlds are untouched, and so is the batch's reset
     /// requirement: before the first reset(), or after a partial step
     /// failure, step() still refuses until a full reset() even if some
     /// worlds were restored. Same refusals as ParallelEnv.restore(); a
     /// ParallelEnv snapshot of the same identity restores here and back.
+    /// A restored world keeps the snapshot's episode position, so it runs
+    /// off the batch's horizon cycle: it truncates on its own tick, and a
+    /// truncated restore makes the next step() a partial failure that
+    /// discards that step's transitions and requires a full reset() — hold
+    /// one world's branch in its own batch or a ParallelEnv when the
+    /// others must keep going.
     #[doc = concat!("\n\n", welfare_line!())]
     fn restore<'py>(
         &mut self,
         py: Python<'py>,
-        world: usize,
+        world: i64,
         data: &[u8],
     ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
         let world = self.world_index(world)?;
@@ -934,27 +970,37 @@ impl VectorEnv {
             })
             .map_err(episode_err)?;
         self.last_states[world] = step.global_state.clone();
+        self.armed[world] = true;
+        self.live[world] = !step.truncated;
         let obs = observations_to_py(py, &step)?;
         let infos = infos_to_py(py, &step)?;
         self.last_reports[world] = step.report;
         Ok((obs, infos))
     }
 
-    /// A one-tick proposal override on world `i` (spec 068): the
+    /// A one-tick proposal override on world `world` (spec 068): the
     /// single-world ParallelEnv.override() addressed to one world; same
-    /// halves, same law, same refusals, same marks in tick_records(i).
+    /// halves, same law, same refusals, same marks in tick_records(world).
+    /// ValueError with no decision window — before the first reset(),
+    /// after that world truncated, or after a partial step failure
+    /// desynchronized the batch (reset() first).
     #[doc = concat!("\n\n", welfare_line!())]
     #[pyo3(name = "override", signature = (world, kitty, action=None, message=None))]
     fn override_next(
         &mut self,
         py: Python<'_>,
-        world: usize,
+        world: i64,
         kitty: &Bound<'_, PyAny>,
         action: Option<i64>,
         message: Option<i64>,
     ) -> PyResult<()> {
         let world = self.world_index(world)?;
         let kitty_id = parse_kitty_arg(kitty)?;
+        if !self.live[world] {
+            return Err(PyValueError::new_err(format!(
+                "override({world}): kitty_{kitty_id}: no decision window (reset first)"
+            )));
+        }
         let action = index_arg(action, "action")?;
         let message = index_arg(message, "message")?;
         let vector = &self.vector;
@@ -967,9 +1013,12 @@ impl VectorEnv {
         .map_err(episode_err)
     }
 
-    /// World `i`'s last tick record for every roster kitty (spec 068
+    /// World `world`'s last tick record for every roster kitty (spec 068
     /// FR-011) — the same keys and values as ParallelEnv.tick_records().
-    fn tick_records<'py>(&self, py: Python<'py>, world: usize) -> PyResult<Bound<'py, PyDict>> {
+    /// After a partial step failure the records, like state(), stay at the
+    /// pre-step tick for every world (that step's transitions are
+    /// discarded); restore(world) refreshes that one world's.
+    fn tick_records<'py>(&self, py: Python<'py>, world: i64) -> PyResult<Bound<'py, PyDict>> {
         let world = self.world_index(world)?;
         tick_records_to_py(py, &self.last_reports[world], &self.roster)
     }
@@ -1021,6 +1070,9 @@ impl VectorEnv {
         }
         self.pending_seeds = None;
         self.last_states = steps.iter().map(|s| s.global_state.clone()).collect();
+        // A fully successful reset establishes and opens every world.
+        self.armed = vec![true; self.n_worlds];
+        self.live = vec![true; self.n_worlds];
         let obs = self.stack_observations(py, &steps)?;
         let infos = self.stack_infos(py, &steps)?;
         self.last_reports = steps.into_iter().map(|s| s.report).collect();
@@ -1101,6 +1153,7 @@ impl VectorEnv {
         // or after an earlier partial failure, every world comes back
         // `ResetRequired` — translate it to one clean error.
         if let Some(Err(EpisodeError::ResetRequired { reason })) = results.first() {
+            self.live = vec![false; self.n_worlds];
             return Err(PyRuntimeError::new_err(format!(
                 "reset() required first: {reason}"
             )));
@@ -1116,6 +1169,8 @@ impl VectorEnv {
             .filter_map(|(world, r)| r.as_ref().err().map(|e| format!("world {world}: {e}")))
             .collect();
         if !failures.is_empty() {
+            // Spec 068: no decision window anywhere until the reset.
+            self.live = vec![false; self.n_worlds];
             return Err(PyRuntimeError::new_err(format!(
                 "{}; the batch is desynchronized — reset() before stepping again \
                  (this step's transitions are discarded)",
@@ -1128,6 +1183,7 @@ impl VectorEnv {
             .collect();
         for (world, step) in steps.iter().enumerate() {
             self.last_states[world] = step.global_state.clone();
+            self.live[world] = !step.truncated;
         }
 
         let obs = self.stack_observations(py, &steps)?;

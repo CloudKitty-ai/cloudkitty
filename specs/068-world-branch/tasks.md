@@ -50,8 +50,7 @@ every story needs.
   `"overridden_act"`, `"overridden_message"`, `"overridden_both"`.
 - [x] T005 `crates/cloudkitty-rl/src/episode.rs`: add `EpisodeError::
   SnapshotIdentity { component: &'static str, found: String, expected:
-  String }`, `SnapshotMalformed(String)`, `SnapshotUnavailable { reason:
-  &'static str }`, `OverrideRefused { kitty: KittyId, reason: String }`
+  String }`, `SnapshotMalformed(String)`, `OverrideRefused { kitty: KittyId, reason: String }`
   (R10) with `#[error]` texts matching contracts/python-api.md; add
   `pub fn control(&self) -> &BTreeMap<KittyId, Control>`; add the
   `Identity` struct and `fn identity(&self, engine_commit: &str) ->
@@ -59,7 +58,7 @@ every story needs.
   `(core, rl)` (R3) and the control-map rendering (`"external"` / name).
 - [x] T006 `crates/cloudkitty-py/src/lib.rs`: map the four new variants in
   `episode_err` — `SnapshotIdentity`, `SnapshotMalformed`,
-  `SnapshotUnavailable`, `OverrideRefused` → `ValueError` (R10;
+  `OverrideRefused` → `ValueError` (R10; a poisoned snapshot reuses `Panicked` → RuntimeError;
   out-of-range stays `IndexError`, poisoned stays `RuntimeError`).
 - [x] T007 Commit Phase 2 (`cargo build --workspace` green; existing
   suites unchanged).
@@ -108,7 +107,7 @@ over the menu as in `mixed_control.rs:76`.
   `poison` is reachable): poison, assert `step` is `Err(Panicked)`,
   `restore(snapshot taken earlier)` is `Ok`, `step` is `Ok`. **Red**:
   mutate `restore` to skip clearing `poisoned` → red at the post-restore
-  `step().is_ok()`, `--expect "poisoned"`.
+  `step().is_ok()`, `--expect "healthy one"` (the regex that ran).
 - [x] T011 [P] [US1] G4 `a_truncated_snapshot_restores_truncated` in
   `branch.rs`: `RlConfig` horizon 5; step to truncation; snapshot;
   restore into a fresh twin; `step` is `Err(SteppedAfterTruncation)`;
@@ -140,7 +139,7 @@ over the menu as in `mixed_control.rs:76`.
 - [x] T014 [US1] `crates/cloudkitty-rl/src/episode.rs`: `EpisodeSnapshot`
   struct (data-model.md) and `pub fn snapshot(&self, engine_commit: &str)
   -> Result<Vec<u8>, EpisodeError>` — refuse while poisoned
-  (`SnapshotUnavailable { reason: "episode poisoned ..." }`), serialize
+  (`Panicked`, the fault class `step` raises), serialize
   with `serde_json::to_vec`.
 - [x] T015 [US1] `crates/cloudkitty-rl/src/episode.rs`: `pub fn restore(
   &mut self, engine_commit: &str, bytes: &[u8]) -> Result<EpisodeStep,
@@ -227,7 +226,7 @@ read the record: applied act is the override's, provenance
   documented variant; `serde_json(world)` and `pending_seeds` unchanged
   after every refusal. **Red**: mutate `override_next` to drop the
   double-override check → red at the second-override `is_err`,
-  `--expect "already"`.
+  `--expect "second override"` (the regex that ran; the assertion text).
 - [x] T024a [P] [US2] G13 `reset_and_restore_drop_a_pending_override` in
   `branch.rs`: override, restore an earlier snapshot, step → `PolicyMade`;
   override, reset, step → `PolicyMade`. **Red**: mutate `restore` to not
@@ -353,11 +352,9 @@ untouched.
   core config only → red at (2), `--expect "config_fingerprint"`.
 - [x] T036 [P] [US5] G17 `restore_refuses_bytes_that_are_not_a_snapshot`
   in `branch.rs`: `b"not a snapshot"` → `SnapshotMalformed`; world
-  unchanged. **Red**: mutate `restore` to assign `world` before the
-  identity check and then fail → the world-unchanged assert goes red
-  only if parse succeeded; so instead mutate the error mapping to return
-  `SnapshotUnavailable` for a parse failure → red at the variant match,
-  `--expect "Malformed"`.
+  unchanged. **Red**: mutate the parse-error mapping to return another
+  variant (`OverrideRefused`) → red at the variant match,
+  `--expect "refused as malformed"` (the regex that ran).
 - [x] T037 [P] [US5] Python guard in `test_branch.py` (US5 part):
   `test_restore_mismatch_errors_name_the_component` (control differs →
   `ValueError` containing "control"; malformed → "not a snapshot").
@@ -435,7 +432,68 @@ scripted-seat half), US3 proof, US4 batched, US5 refusals, polish, PR.
 Stop at each checkpoint; commit after every task group; never cite a
 guard green that has not been seen red.
 
-## Rule-5 red predictions (summary)
+## Review fixes 2026-11-06 (three read-only agents on PR #491; her word "then review")
+
+Code: control half of the identity normalized over the roster (an unnamed
+seat = `external`), the control refusal names the first differing seat;
+`restore` also refuses as malformed a world whose own fingerprint is not
+the config's, whose roster differs, or that fails `invariants::check` (the
+server's load-path checks); identity component renamed `config_digest`
+(the server's "config fingerprint" is a different stamp); `OverrideRefused`
+texts `override(): kitty_N: <reason>`; `VectorEnv` tracks per-world
+`armed`/`live` so `snapshot(world)` and `override(world)` refuse like
+`ParallelEnv` (before reset, after truncation, after a partial failure);
+world index as `i64` (negative → IndexError); GIL released in
+`ParallelEnv.snapshot/fork/override`; docstrings corrected (ValueError on
+truncation; restore(world) off-cycle warning; tick_records after a partial
+failure; full transient-token sentence on `VectorEnv.snapshot`; the
+override does not consult the legal mask — Experiments' parity note).
+
+Guards added or tightened (each red via mutate.sh, table below): G1 +
+`current_seed` and `global_state` (episode clock) equality; G7 over every
+builtin and both needy presets, on a fork at a tick where the seat's own
+act differs; G9 asserts both halves on a fork; G10 pins
+`RefusalReason::NeedyMasked` and names-no-kitty relief, horizon 10,000;
+G11 asserts `validated == interrupting`; G12 compares snapshot bytes
+before/after the refusals (was a tautology); G15 one worker per world,
+snapshot-bytes equality with the single restore, world 1 branched too;
+G16 compares snapshot bytes before/after each refusal, checks the control
+refusal names a seat, adds the unnamed-vs-"external" same-identity case;
+NEW G19 `an_act_override_leaves_the_message_the_seats_own` (the blocking
+finding: rule 6 unguarded); NEW G20 `restore_refuses_a_tampered_world`.
+Python: world-1-untouched assertion made real (records equal before and
+after `restore(0)`), refused-restore "untouched" asserted on snapshot
+bytes, engine-commit tamper case, exact contract strings, both-halves and
+`want_eat` checks, roster equality, NEW
+`test_vector_env_refuses_like_the_single_world_env`, SC-006 best-of-5.
+
+| Guard | Mutant (file) | Predicted first failing assertion |
+|-------|---------------|-----------------------------------|
+| G1-seed | `restore` skips `config.world.seed = snap.seed` (episode.rs) | "current seed … travelled" |
+| G1-clock | `restore` sets `tick_in_episode = 0` (episode.rs) | "global state (the only surface carrying the episode clock) matches" |
+| G7 | act half not replaced in step_inner (episode.rs) | "{preset}: the proposal is the override's act" (needs_driven first) |
+| G9 | message half not replaced (episode.rs) | "the message is the override's" |
+| G10-reason | needy verdict disabled (world.rs) — same mutant as G10 | "resolves to Idle" (first assert unchanged) |
+| G11-validated | n/a — assertion strengthens G11's existing red | — |
+| G12 | double-override check removed (episode.rs) | "second override" (unchanged) |
+| G15-routing | `one()` sends `command_for(world)` instead of `world - range.start` (vector.rs) | panics/mismatch at the first per-index call → "world 0 restored like a single episode" or an index panic |
+| G16-untouched | control check moved after the assignments (episode.rs) | "control map: the refused episode is exactly as it was" |
+| G16-normalize | `identity()` maps `self.control` only (episode.rs) | "an unnamed external seat and an explicit one are one identity" |
+| G16-seat | control refusal renders whole maps (episode.rs) | "the control refusal names the seat" |
+| G19 | `decision.message = None` in the activity arm (episode.rs) | "the branch's message is the seat's own" |
+| G20-roster | roster check removed (episode.rs) | "a world missing a roster kitty is refused as malformed" |
+| G20-fingerprint | fingerprint check removed (episode.rs) | "a world stamped for another config is refused as malformed" |
+| PY-snapshot-before-reset | `armed` check removed (lib.rs) | `pytest.raises(ValueError)` did not raise |
+| PY-fork | `fork` returns the fresh env without restoring (lib.rs) | "the fork is live" |
+| PY-truncation | `land_restore` sets `live = true` always (lib.rs) | "a truncated snapshot restores truncated" |
+| PY-override-marks | `message` not forwarded by `ParallelEnv.override` (lib.rs) | `rec["provenance"] == "overridden_message"` |
+| PY-refusals | `live` check removed from `ParallelEnv.override` (lib.rs) | the pre-reset `pytest.raises(ValueError)` |
+| PY-vector-index | `VectorEnv.restore` clears every world's record (lib.rs) | "world 1's record is untouched" |
+| PY-vector-refusals | `armed` check removed from `VectorEnv.snapshot` (lib.rs) | the first `pytest.raises(ValueError)` |
+| PY-portable | `VectorEnv.restore` addresses world 0 regardless (lib.rs) | the round-trip `decision_seed` equality |
+| PY-mismatch | `SnapshotIdentity` mapped to RuntimeError (lib.rs) | the first `pytest.raises(ValueError)` |
+
+## Rule-5 red predictions (summary, first pass)
 
 | Guard | Mutant (file) | Predicted first failing assertion |
 |-------|---------------|-----------------------------------|
