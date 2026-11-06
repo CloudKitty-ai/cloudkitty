@@ -719,6 +719,17 @@ consent BC comparison ride the trunk.
   act head's 11-way class to one legal menu action. Next: the gate
   instrument's declaration (A2′ item 2 as frozen; B10 and B15 side by
   side; ostrich metric on NF1e), on her word to run.
+  RULED 2026-11-05 (owner, on "One replay per branch point is a lot, do
+  we want to just have product build feature instead? Being able to run
+  counterfactuals like this is likely to be useful for more than this
+  use case" → recommendation: gate by replay now, Product spec in
+  parallel → "Let's do it"): the gate runs by replay on the pinned
+  binding; the counterfactual-branch API ask RELAYED to Product the
+  same day (msg 9b1d6d03: env snapshot / restore or fork with RNG,
+  fingerprint-checked; a one-tick proposal override for engine-decided
+  seats; per-tick decision seeds in the streams; the k > 1 doctrine
+  line travels in the spec), NOT a kickoff — her word in Product's
+  session starts the spec. Next: the gate instrument's declaration.
 
 ## Flagged follow-ups (owner's word to start)
 
