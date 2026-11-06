@@ -675,8 +675,27 @@ consent BC comparison ride the trunk.
   0.528, y10 0.415) — within 0.0014 top-1 and 0.0033 log-loss of its
   tuning-half cells outside the silent ones; +0.007 top-1 / −0.023
   log-loss beside B10's confirming read, the tuning-half gap. Ladder
-  RESULTS addendum; TRIALS lessons 103–104. Next: the entry-gate
-  walkthrough; then the Phase 2 declaration on her word.
+  RESULTS addendum; TRIALS lessons 103–104.
+  ENTRY GATE RULED 2026-11-05 (owner "Agreed" to the five-step
+  recommendation after the walkthrough and her question "With A we can
+  also derive the welfare performance of the mini models without having
+  to run them though, correct?" — answered: A prices the heads' errors
+  in welfare currency per stratum at zero exposure, not a policy's
+  welfare): (1) the RE-STEP CHECK first — one zero-collection probe,
+  can the engine restore a recorded needy-set tick and step it once;
+  (2) if yes, the frozen gate A2′ item 2 runs AS DECLARED on both heads
+  (the act head's one-tick branch for B10 and B15 side by side; the
+  needs head's step 2 folded into the ostrich metric on NF1e, pin d);
+  (3) if no, a declared substitute on her word, the gate's pins
+  unchanged (differential 1.5×, min-n 200, fail-closed): the ostrich
+  metric on NF1e + the act head read by the ostrich strata with an
+  analytic one-tick price; the engine-restore instrument banked to
+  Product as a spec item; (4) fail-closed either way — a fired
+  signature on NF1e stops Phase 2 before any covered seed trains, next
+  step a Phase 1f composition arm; thin strata = coverage, remedy
+  probe worlds; (5) the Phase 2 declaration is drafted AFTER the gate
+  read; "three arms" stands as the default, the read can argue the B10
+  comparator down to two, her call. Next: the re-step check.
 
 ## Flagged follow-ups (owner's word to start)
 
