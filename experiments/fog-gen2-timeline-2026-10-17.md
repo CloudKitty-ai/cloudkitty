@@ -668,9 +668,15 @@ consent BC comparison ride the trunk.
   a call, she did not object: the input vector per kitty row (needs
   probs + grave prob; 11 act probs + top-prob + entropy at T = 1;
   ticks-since-seen); B15 at 14.73% over the frozen 10% line she ruled
-  an engineering budget never hers. Next: B15's confirming-half read
-  (ladder arc, own commit); the entry-gate walkthrough; then the Phase 2
-  declaration on her word.
+  an engineering budget never hers.
+  B15 CONFIRMING READ DONE 2026-11-05 (0 covered cat-ticks; gated PASS
+  round 1): on the needy confirming half, covered friends, y0, B15 reads
+  0.640 ± 0.001 top-1 and 1.069 ± 0.004 log-loss (seen 0.742, heard
+  0.528, y10 0.415) — within 0.0014 top-1 and 0.0033 log-loss of its
+  tuning-half cells outside the silent ones; +0.007 top-1 / −0.023
+  log-loss beside B10's confirming read, the tuning-half gap. Ladder
+  RESULTS addendum; TRIALS lessons 103–104. Next: the entry-gate
+  walkthrough; then the Phase 2 declaration on her word.
 
 ## Flagged follow-ups (owner's word to start)
 

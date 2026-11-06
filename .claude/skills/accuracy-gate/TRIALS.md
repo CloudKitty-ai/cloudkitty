@@ -1946,3 +1946,25 @@ Lessons:
     Gaps computed from 3-dp table cells came out one unit off in three
     places; "from the unrounded means" on the sentence settles which
     arithmetic the gate should do.
+
+## 2026-11-05 — ladder RESULTS addendum: B15's confirming-half read (Experiments)
+
+One round, PASS. Fresh read leaf-equal; 52 reader-backed cells with 0
+ROUNDING; 21 derived figures SUPPORTED (tuning-half bounds re-derived from
+unrounded means both ways); one WEAK outside the fail zones, reworded
+after the pass. The subagent could not write its report file under the
+scratchpad (harness block) and returned the report as its message; the
+owning thread copied nothing from it, the stamp is the thread's.
+
+Lessons:
+
+103. **A "reads the same" sentence names its comparator and its cell
+    scope.** "The arm-N group reads the same within 0.002" was true
+    against the arm-N tuning cells with the silent ones excluded and
+    false against the all-arm group at y10 heard (0.0024); the earlier
+    sentence's "but the silent ones" does not carry into the next.
+104. **A guard suite that retrains a smoke head moves the raw-dir hash.**
+    Running the act arc's `test_act.py` rewrote two smoke directories
+    and the store hash changed; say so in the provenance line and have
+    the gate confirm the real heads' sha256 against their done.json
+    instead of expecting the old hash.

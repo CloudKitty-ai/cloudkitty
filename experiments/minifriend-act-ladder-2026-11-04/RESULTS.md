@@ -298,3 +298,69 @@ friends, y0". Raw-dir hash of the heads store after the six new heads
 and the two smoke dirs landed: `v1:4135e34f68487201`
 (`scripts/rawdir-hash.sh`; F-074 / F-075 stamped the store before them
 as `v1:5b29e9a2736a84f7`).
+
+## Addendum after the stamp — R-C, the confirming half, B15 once (2026-11-05; `reads/confirming.md`, covered friends)
+
+Written after her pick (DECLARATION §8, RULED 2026-11-05: "Let's try
+B15, and we can compare to B10 to see if the accuracy gain translates to
+welfare"; "1) yes"). One read of B15's three heads on the needy
+CONFIRMING half, the act arc's `read_confirming` with the arm passed in
+(`ladder_act.py confirming`, guard l6 red on record before the read,
+commit a6a8b859); that half's fifth touch, one arm, nothing selected on
+it. Seed mean ± SD over the three heads; F / V / R the act arc's
+baselines on the same samples.
+
+| state | n (y0) | B15 y0 top-1 | B15 y0 log-loss | F | V | R | B15 y10 top-1 | F y10 |
+|---|---|---|---|---|---|---|---|---|
+| all | 9,864,000 | 0.640 ± 0.001 | 1.069 ± 0.004 | 0.316 | 0.458 | 0.725 | 0.415 ± 0.002 | 0.315 |
+| seen | 5,125,876 | 0.742 ± 0.001 | 0.750 ± 0.005 | 0.300 | 0.572 | 0.717 | 0.415 ± 0.003 | 0.306 |
+| heard | 4,705,307 | 0.528 ± 0.001 | 1.420 ± 0.004 | 0.330 | 0.330 | 0.732 | 0.412 ± 0.002 | 0.321 |
+| silent | 32,817 | 0.824 ± 0.006 | 0.647 ± 0.005 | 0.793 | 0.793 | 0.901 | 0.795 ± 0.002 | 0.770 |
+
+Macro recall, all states, y0: 0.506 ± 0.002. Per head (y0 all, top-1 /
+log-loss): 0.6403 / 1.0649, 0.6406 / 1.0687, 0.6386 / 1.0736.
+
+**Against the tuning half** (R-2, same arm; differences from the
+unrounded means): in every cell but the silent ones, top-1 and macro
+recall move by at most 0.0014 and log-loss by at most 0.0033 (y0 all:
+top-1 0.6405 → 0.6399, log-loss 1.0663 → 1.0691); the silent cells move
+more (y0 top-1 0.835 → 0.824, log-loss 0.618 → 0.647; y10 top-1 0.807 →
+0.795), on 32,817 samples. The arm-N group moves against its own
+tuning-half cells the same way: at most 0.0013 of top-1 in the non-silent
+cells, the silent cells more (y0 all 0.639, log-loss 1.070). **Beside
+B10's confirming read**
+(act arc RESULTS R-C: 0.633 ± 0.000, log-loss 1.092 ± 0.002; seen 0.735,
+heard 0.521, y10 0.410): B15 is +0.007 top-1 and −0.023 log-loss on the
+confirming half, the same gap as on the tuning half (R-1: +0.0066,
+−0.0233). The clean number the Phase 2 declaration cites for B15 is this
+table; it changes nothing about the pick, which was hers before the read.
+
+Provenance. Heads `B15-s1..3/head-best.pt` in the act arc's store,
+sha256 in each `done.json`, unchanged since the stamp above. The store's
+raw-dir hash is now `v1:4171820c2260bed7`: the act arc's own guard suite
+(`test_act.py`, run green 2026-11-05 before the reader edit was
+committed, 7 passed) retrains the smoke heads `A-s1-smoke` and
+`B10-s1-smoke` each run, and those two directories' bytes moved; no read
+touches a smoke head. Read wall 63 s.
+
+### Read (the gate runs this; fresh output to its scratchpad, never over reads/)
+
+```
+VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B $C/ladder_act.py confirming --out <scratch>/confirming.json --md --quiet   # about 1 min; B15's three heads on the needy confirming half
+```
+
+(`A`, `C` as above. The tuning-half comparison cells come from the
+committed `reads/accuracy.json`; B10's confirming cells from the act
+arc's committed `reads/confirming.json`.)
+
+**Accuracy gate (addendum): PASS 2026-11-05, round 1** (fresh read 63.6 s,
+leaf-equal to `reads/confirming.json` but for `seconds`, md
+byte-identical, all 192 n cells equal, heads exactly B15-s1..3 with
+sha256 equal to their done.json; 52 reader-backed cells all match (0
+ROUNDING), 21 derived figures SUPPORTED, 1 self-set descriptive bound
+reported, 9 characterisations 8 SUPPORTED and 1 WEAK outside the fail
+zones — the arm-N sentence named no comparator and no silent-cell scope;
+reworded after the pass to the tuning-half comparison with the silent
+cells excluded — 1 UNDECIDABLE (test_act "7 passed", not re-run because
+it rewrites the smoke heads), 17 provenance checks passed, companions
+PASS). Heads-store hash `v1:4171820c2260bed7`.
