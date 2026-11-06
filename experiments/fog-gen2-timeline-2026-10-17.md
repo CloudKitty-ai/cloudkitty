@@ -695,7 +695,30 @@ consent BC comparison ride the trunk.
   step a Phase 1f composition arm; thin strata = coverage, remedy
   probe worlds; (5) the Phase 2 declaration is drafted AFTER the gate
   read; "three arms" stands as the default, the read can argue the B10
-  comparator down to two, her call. Next: the re-step check.
+  comparator down to two, her call.
+  RE-STEP CHECK DONE 2026-11-05 (zero collection; survey of the binding
+  and raws by a read-only subagent, then a probe script in the session
+  scratchpad, `restep/probe.py`, three worlds): the binding
+  (`crates/cloudkitty-py`, engine 5928b7ca) has NO snapshot, clone or
+  state-set path from Python (the server's `persist.rs` save / load is
+  Rust-only; `Episode` has no world setter), BUT a recorded needy-set
+  world REPLAYS EXACTLY from (config, seed, recorded `act` / `msg` of
+  the covered seats): N1 seed 1095711 to tick 3,000, E3 1096281 to 790,
+  T2 to 1,500 — worst difference 0 on needs, happiness and the float16
+  observation rows, at 19,500–21,800 ticks/s (a replay to any tick
+  costs under 0.3 s). A covered seat's act substitutes at tick t through
+  the ordinary `step` (the friend's needs and happiness read off
+  `state()`); the scripted needy friend cannot (engine-decided seat),
+  which is no loss — every head read is on covered friends. Observed in
+  the probe: play → move moved the friend's need and happiness in one
+  tick; move → rest moved nothing in one tick, so the one-tick price is
+  SPARSE (it concentrates on relieving acts). VERDICT: A runs as
+  declared with no engine change — one replay per branch point (or
+  `VectorEnv` carrying K alternatives at one t). Open design item for
+  the gate's declaration (thread's, reversible): the mapping from the
+  act head's 11-way class to one legal menu action. Next: the gate
+  instrument's declaration (A2′ item 2 as frozen; B10 and B15 side by
+  side; ostrich metric on NF1e), on her word to run.
 
 ## Flagged follow-ups (owner's word to start)
 
