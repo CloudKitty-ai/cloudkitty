@@ -178,7 +178,10 @@ must see the ladder"; l3 the per-1,000 gains ten times too small; l4 the
 redirected store path; l5 argparse "invalid choice: 'B5'" through the
 smoke run's return code). Log in the session scratchpad
 (`ladder-reds.log`). Smoke heads `B5-s1-smoke`, `B15-s1-smoke` in the
-store are never read.
+store are never read. **l6 red on record 2026-11-05** (same cycle,
+baseline == restored, 5 passed): RED CONFIRMED at the predicted first
+assertion, "confirming read must be of her pick B15, got B10". The
+confirming read runs on the commit after this one.
 
 ## 8. Owner call (after the curve; her words verbatim, recorded here)
 
