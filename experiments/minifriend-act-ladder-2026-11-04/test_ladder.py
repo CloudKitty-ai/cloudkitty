@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Guards l1–l5 of DECLARATION.md §7 for ladder_act.py; each red on record via scripts/mutate.sh --expect before any training.
+"""Guards l1–l6 of DECLARATION.md §7 for ladder_act.py; each red on record via scripts/mutate.sh --expect before any training
+(l6 before the confirming read).
 
-    VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_ladder.py [l1 ... l5]
+    VIRTUAL_ENV=$A/.venv $A/.venv/bin/python3 -B test_ladder.py [l1 ... l6]
 """
 import json
 import subprocess
@@ -81,7 +82,34 @@ def l5():
         assert man["budget"] == L.NEW[arm][1], man["budget"]
 
 
-GUARDS = {"l1": l1, "l2": l2, "l3": l3, "l4": l4, "l5": l5}
+def l6():
+    """the confirming read is of HER PICK: the ladder's `confirming` hands the act arc's read_confirming the arm B15 and the §8 rule,
+    loads exactly B15's three heads, reads the CONFIRMING half; the act arc's own default path (ladder.json's B10) is unchanged.
+    The core read is stubbed: no half is touched by a guard."""
+    L.register()
+    calls = []
+
+    def fake_evaluate(worlds, heads, progress=True, label=""):
+        calls.append((label, sorted(heads), [g for g, _fn in worlds]))
+        return {}, {"mode": 7, "mode_name": "play", "freq": [], "live": []}
+
+    keep = R.evaluate, R.needy_worlds, R.summarise
+    R.evaluate, R.needy_worlds, R.summarise = fake_evaluate, (lambda half: (calls.append(("worlds", half)) or [])), (lambda tables, arms: {a: {} for a in arms})
+    try:
+        out = L.read_confirming(progress=False)
+        assert out["chosen"] == "B15" == L.PICK, f"confirming read must be of her pick B15, got {out['chosen']}"
+        assert "§8" in out["chosen_rule"] and "selector" in out["chosen_rule"], out["chosen_rule"]
+        assert out["half"] == "confirming" and ("worlds", "confirming") in calls, calls
+        ev = [c for c in calls if c[0] == "confirming"]
+        assert ev and ev[0][1] == [("B15", 1), ("B15", 2), ("B15", 3)], f"heads evaluated: {ev}"
+        calls.clear()
+        d = R.read_confirming(progress=False)
+        assert d["chosen"] == "B10" and "DECLARATION §6" in d["chosen_rule"], "the act arc's default path must still read its own ladder.json"
+    finally:
+        R.evaluate, R.needy_worlds, R.summarise = keep
+
+
+GUARDS = {"l1": l1, "l2": l2, "l3": l3, "l4": l4, "l5": l5, "l6": l6}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(GUARDS)

@@ -274,12 +274,16 @@ def read_ladder(margin=None, words=None):
     return out
 
 
-def read_confirming(progress=True):
+def read_confirming(progress=True, arm=None, rule=None):
+    """The chosen arm on the confirming half. Default: the arm ladder.json chose (DECLARATION §6). A caller may pass the arm
+    and the rule that chose it instead (the ladder arc, 2026-11-05: her pick, ladder DECLARATION §8); nothing else changes."""
     import torch
     torch.set_num_threads(1)
-    lad = json.loads((READS / "ladder.json").read_text())
-    assert lad.get("chosen"), "no chosen arm: the margin is not ruled (ladder.json)"
-    arm = lad["chosen"]
+    if arm is None:
+        lad = json.loads((READS / "ladder.json").read_text())
+        assert lad.get("chosen"), "no chosen arm: the margin is not ruled (ladder.json)"
+        arm, rule = lad["chosen"], lad.get("chosen_rule")
+    assert arm in ARMS, f"{arm} is not a registered arm"
     t0 = time.time()
     heads = {(arm, s): TA.load_act(arm, s)[0] for s in SEEDS}
     worlds = [("needy-confirming", (lambda p=path, a=a_, kk=k, sd=seed: load_needy(p, a, kk, sd, "confirming"))) for a_, k, seed, _t, path in needy_worlds("confirming")]
@@ -288,7 +292,7 @@ def read_confirming(progress=True):
     tables_n, _ = evaluate(worlds_n, heads, progress, "confirming N")
     for who, t in tables_n.items():
         tables.setdefault(who, {}).update(t)
-    return {"half": "confirming", "chosen": arm, "chosen_rule": lad.get("chosen_rule"), "baseline": base, "summary": summarise(tables, (arm,)), "tables": tables,
+    return {"half": "confirming", "chosen": arm, "chosen_rule": rule, "baseline": base, "summary": summarise(tables, (arm,)), "tables": tables,
             "note": "the confirming half's covered friends, read once for the chosen arm; this half's fourth touch (DECLARATION §3)", "seconds": round(time.time() - t0)}
 
 

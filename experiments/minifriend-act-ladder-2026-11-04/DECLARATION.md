@@ -148,6 +148,12 @@ rule superseded by her pick.
 - **l5** — trainer smoke for B5 and B15 through the wrapper (`--smoke`):
   a head with the declared parameter count, width and cap in its
   manifest.
+- **l6** (added 2026-11-05 with §8, before the confirming read) — the
+  confirming read is of her pick: `confirming` hands the act arc's
+  `read_confirming` the arm B15 and the §8 rule, loads exactly B15's
+  three heads and reads the confirming half; the act arc's own default
+  path (its `ladder.json`, B10 by that arc's rule) is unchanged. The core
+  read is stubbed, so the guard touches no half.
 
 Predicted reds (the FIRST assertion each mutant reaches; plain-string
 replacements, no regex escapes):
@@ -159,6 +165,7 @@ replacements, no regex escapes):
 | l3 | `/ (p1 - p0) * 1000.0` → `/ (p1 - p0) * 100.0` | "per-1,000 gains [-0.01, -0.002], expected [-0.1, -0.02]" |
 | l4 | `CA.READS = READS` → `CA.READS = READS; TA.OUT_ROOT = HERE / "results-raw"` (the wrapper redirects the heads store) | l1–l3 pass (none reads OUT_ROOT); l4's first assertion prints the redirected path: ".../minifriend-act-ladder-2026-11-04/results-raw" |
 | l5 | the `register()` call removed from `train()` | l1–l4 register for themselves and pass; the smoke run's argparse refuses the arm: "invalid choice: 'B5'" through l5's returncode assertion |
+| l6 | `R.read_confirming(progress, arm=PICK, rule=PICK_RULE)` → `R.read_confirming(progress)` (the wrapper forgets to pass her pick; the act arc's reader falls back to its own ladder.json) | "confirming read must be of her pick B15, got B10" |
 
 (A mutation of the cap itself — `TA.BUDGET[arm] = cap` → `cap / 2` — reds
 at l1's `check_budget` call, "B5 exceeds 2% of the trunk", before l5 is

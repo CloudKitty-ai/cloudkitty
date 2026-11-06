@@ -7,6 +7,7 @@ beside B10 / B20 / B30 by the act arc's accuracy reader and the calibration arc'
     ladder_act.py fit         --out reads/temperature.json [--md] # calib_act.read_fit over the five arms (reported only: T = 1 is ruled)
     ladder_act.py reliability --out reads/reliability.json [--md] # calib_act.read_reliability over the five arms; the 0.05 trigger read at T = 1
     ladder_act.py curve       --out reads/curve.json       [--md] # log-loss and top-1 against parameter count; marginal gain per 1,000 params; P33
+    ladder_act.py confirming  --out reads/confirming.json  [--md] # read_act.read_confirming of HER PICK (DECLARATION §8) on the needy confirming half, once
 
 The act arc's modules are imported, not copied; this file only registers the two arms and points the readers at this arc's reads/.
 """
@@ -31,6 +32,9 @@ TRUNK = TA.TRUNK_PARAMS
 NEW = {"B5": (14, 0.05, 3942), "B15": (32, 0.15, 12438)}            # arm -> (GRU width, nominal cap, declared trained params)
 LADDER = ("B5", "B10", "B15", "B20", "B30")                            # the five B arms in parameter order; arm A is not on the ladder
 ECE_TRIGGER = 0.05                                                     # her ruling (calib DECLARATION §9): a temperature only above this
+PICK = "B15"                                                           # the Phase 2 act head, HER pick RULED 2026-11-05 (DECLARATION §8); no selector
+PICK_RULE = ("her pick after the curve, DECLARATION §8 (RULED 2026-11-05): \"Let's try B15, and we can compare to B10 to see if the "
+             "accuracy gain translates to welfare\"; no selector")
 
 
 def params_for_width(h):
@@ -85,6 +89,16 @@ def read_reliability(progress=True):
     return out
 
 
+def read_confirming(progress=True):
+    """Her pick's three heads on the needy CONFIRMING half: the act arc's read_confirming verbatim, the arm passed in instead of
+    read from the act arc's ladder.json (which chose B10 by that arc's rule). That half's fifth touch (DECLARATION §8)."""
+    register()
+    assert PICK in LADDER, f"the pick {PICK} is not on the ladder"
+    out = R.read_confirming(progress, arm=PICK, rule=PICK_RULE)
+    out["note"] = "the confirming half's covered friends, read once for her pick (ladder DECLARATION §8); this half's fifth touch"
+    return out
+
+
 def marginal(points):
     """[(arm, params, value)] sorted by params -> [(from, to, d_params, d_value, d_value_per_1000)]."""
     out = []
@@ -123,8 +137,8 @@ def _f(v, d=3):
 
 
 def md(cmd, out):
-    if cmd == "accuracy":
-        return R.md("accuracy", out)
+    if cmd in ("accuracy", "confirming"):
+        return R.md(cmd, out)
     if cmd in ("fit", "reliability"):
         s = CA.md(cmd, out)
         if cmd == "reliability":
@@ -151,13 +165,14 @@ def main():
         train(sys.argv[2:])
         return
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["accuracy", "fit", "reliability", "curve"])
+    ap.add_argument("cmd", choices=["accuracy", "fit", "reliability", "curve", "confirming"])
     ap.add_argument("--out")
     ap.add_argument("--md", action="store_true")
     ap.add_argument("--quiet", action="store_true")
     a = ap.parse_args()
     fn = {"accuracy": lambda: read_accuracy(not a.quiet), "fit": lambda: read_fit(not a.quiet),
-          "reliability": lambda: read_reliability(not a.quiet), "curve": read_curve}[a.cmd]
+          "reliability": lambda: read_reliability(not a.quiet), "curve": read_curve,
+          "confirming": lambda: read_confirming(not a.quiet)}[a.cmd]
     out = fn()
     if a.out:
         Path(a.out).parent.mkdir(parents=True, exist_ok=True)
