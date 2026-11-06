@@ -637,6 +637,40 @@ consent BC comparison ride the trunk.
   No F-entry; deviations 20 CLOSED. Next: her pick of the Phase 2 act
   head (ladder DECLARATION §8), then one confirming-half read of it,
   then the Phase 2 declaration on her word.
+  PHASE 2 RULINGS 2026-11-05 (owner, on the ladder report; verbatim).
+  THE PICK: "Let's try B15, and we can compare to B10 to see if the
+  accuracy gain translates to welfare. Thoughts on that?" (ladder
+  DECLARATION §8). THE ACTING RULING — the observer-stream ruling's
+  (B+3) last clause, Phase 2's first owner call, now RULED: "I approve
+  the need and action predictor heads as inputs to the decision making
+  head. What other decisions do you need before we proceed?" Eight
+  decisions put to her with recommendations; her answers, numbered as
+  put: "1) yes" (B15 stands); "2) three arms" (B15, B10 comparator,
+  needs-head-only anchor; each three covered PPO seeds on the trunk's
+  recipe — a second and third live arm against the frozen prereg's
+  "one live arm vs trunk", a deviations entry on her word); "3) yes"
+  (graft: every arm warm-started from the trunk's frozen seeds s1 / s2
+  / s4, paired by seed, new input weights zero-initialised so an arm
+  starts as the trunk); "4) one head" (one frozen head per arm, the
+  median-validation seed, named before training); "5) agreed" (the
+  welfare rule for B15 vs B10: the cert battery's paired per-world
+  happiness and distress against trunk plus the consumer reads; B15
+  counts as better than B10 only if the gap clears the trunk's own
+  seed-to-seed envelope; asymmetric — B15 is the head unless demoted,
+  a null is not a demotion; her 20 / 30 conditional fires only on a
+  cleared gap); "6) walk me through this in more detail" (the frozen
+  Phase 2 ENTRY GATE, A2′ item 2 — the one-tick counterfactual screen,
+  not yet run: OPEN, walkthrough owed); "7) agreed" (Phase 2 trains and
+  reads only; head inference in the Python trainer; seating a Phase 2
+  policy live is a separate call and a Product spec on her word);
+  "8) agreed, let's figure all of this out first" (the Professor sees
+  the draft through her, after the decisions close). Recorded without
+  a call, she did not object: the input vector per kitty row (needs
+  probs + grave prob; 11 act probs + top-prob + entropy at T = 1;
+  ticks-since-seen); B15 at 14.73% over the frozen 10% line she ruled
+  an engineering budget never hers. Next: B15's confirming-half read
+  (ladder arc, own commit); the entry-gate walkthrough; then the Phase 2
+  declaration on her word.
 
 ## Flagged follow-ups (owner's word to start)
 

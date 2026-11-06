@@ -2706,8 +2706,14 @@ in sight (−0.0155) and heard (−0.0205), by per-class recall largest on
 eat, chase and idle;
 ten ticks ahead A is within 0.004 of B10 (0.406 against 0.410). By the
 declared rule the act predictor is B10, a second recurrent state per
-friend; joint training of one state on both targets is the next
-question, the owner's.
+friend [that rule was this thread's; SUPERSEDED 2026-11-05 by the
+owner's pick after the parameter ladder
+(`minifriend-act-ladder-2026-11-04/DECLARATION.md` §8): the Phase 2 act
+head is B15 (width 32, 12,438 parameters), B10 kept as a welfare
+comparator arm — "Let's try B15, and we can compare to B10 to see if the
+accuracy gain translates to welfare". The finding's claim, one memory
+beats the shared state, is untouched]; joint training of one state on
+both targets is the next question, the owner's.
 
 **Budget.** B10 → B20 → B30 (9.7 / 19.9 / 29.4% of the trunk): 0.634
 → 0.644 → 0.647, +0.0127 for three times the parameters (P27 met; the

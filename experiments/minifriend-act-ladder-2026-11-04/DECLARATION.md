@@ -175,7 +175,28 @@ store are never read.
 
 ## 8. Owner call (after the curve; her words verbatim, recorded here)
 
-The Phase 2 act head. Not yet asked.
+**The Phase 2 act head is B15.** RULED 2026-11-05, on the curve report
+(RESULTS R-1). Her words: "Let's try B15, and we can compare to B10 to
+see if the accuracy gain translates to welfare. Thoughts on that?"; and,
+to "The head: B15 stands?" among the Phase 2 decisions put to her the
+same day, "1) yes". No selector chose it; the curve informed it (§6).
+
+What travels with the pick into the Phase 2 declaration (her rulings of
+the same day, recorded verbatim in `fog-gen2-timeline-2026-10-17.md`
+§"PHASE 2 RULINGS 2026-11-05"): B10 as a welfare comparator arm ("compare
+to B10 to see if the accuracy gain translates to welfare"); her 20 / 30
+conditional unchanged. B15 at 14.73% of the trunk sits over the frozen
+prereg's "mini ≤ 10%" line, which she ruled an engineering budget never
+hers (calib DECLARATION §9); the Phase 2 declaration records that as a
+deviation under her word.
+
+**The confirming read.** One read of B15's three heads on the needy
+CONFIRMING half, the act arc's `read_confirming` verbatim with the arm
+passed in (`ladder_act.py confirming`; guard l6 in §7, red on record
+before the read). This is that half's fifth touch (the act arc's
+DECLARATION §3 declared the fourth). The result is reported in RESULTS as
+an addendum after the stamp, gated; it is the clean number the Phase 2
+declaration cites for B15 and changes nothing about the pick.
 
 ## 9. Regeneration
 
