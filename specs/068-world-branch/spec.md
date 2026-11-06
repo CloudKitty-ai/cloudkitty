@@ -16,6 +16,23 @@ message); a relay is never a kickoff. Grounds verified by Product
 against origin/main 87fae11e and 4464488e before this spec was written
 (recorded under Assumptions, not redone here).
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: With no message given, what does an overridden seat say that
+  tick — its own behaviour's message, Silent, or must the caller always
+  supply one? (FR-014) → A: Her words: "default to the supplied
+  message. Allow override of message independent of action (so we can
+  test counter factual on communication in addition to actions)". Read
+  as: the seat's own behaviour supplies the message by default; the
+  override may name the activity half, the message half, or both, each
+  independently, so a message-only counterfactual is a legal branch.
+- Q: Is a snapshot a transient in-process token for the binding that
+  made it, or a versioned on-disk artifact with a cross-commit
+  compatibility promise? (FR-016) → A: Transient token (her "A"). The
+  raws stay the durable artifact; a snapshot is re-derivable by replay.
+
 ## Why now
 
 The Gen 2 Phase 2 entry gate — the owner's one-tick counterfactual
@@ -95,10 +112,13 @@ primitive for policy-only worlds.
 ### User Story 2 - Substitute one tick's act for a scripted seat, under the engine's law, honestly marked (Priority: P1)
 
 An experimenter restores a recorded tick and, before stepping, names one
-engine-decided seat and the act it should propose this tick. The next
-step uses that proposal in place of the seat's own decision, and only
-for that step; afterwards the seat decides for itself again. The
-proposal is a proposal: the engine's validation, consent verdict, needy
+engine-decided seat and what it should propose this tick: the act, the
+message, or both. Whichever half is not named stays the seat's own
+behaviour's proposal for that tick, so a branch can ask "what if she had
+done X" and, separately, "what if she had said Y". The next step uses
+the substituted half in place of the seat's own decision, and only for
+that step; afterwards the seat decides for itself again. The proposal
+is a proposal: the engine's validation, consent verdict, needy
 verdict and duration enforcement rule on it exactly as on any other, so
 an override can never make an illegal act legal, never make a needy
 seat relieve a masked need, never cut a scene short of its minimum. The
@@ -142,6 +162,13 @@ substitution mark; step again and the seat's own decision is back.
    environment is stepped, **Then** no override applies — pending
    overrides belong to the state they were set against and do not
    survive a change of state.
+7. **Given** a scripted seat whose own decision this tick would be act A
+   with message M, **When** an override names only act B, **Then** the
+   tick proposes B with the seat's own M; **When** instead an override
+   names only message N, **Then** the tick proposes the seat's own A with
+   N; in both cases the record marks which half was substituted.
+8. **Given** an override naming neither an act nor a message, **When**
+   it is requested, **Then** it is refused as empty.
 
 ---
 
@@ -259,8 +286,18 @@ with the differing component named.
   restore; it is never carried into the new state.
 - An override's proposal is decoded in the same vocabulary `step`
   accepts for policy seats (a menu index against the seat's
-  start-of-tick target table), so an index the table cannot express is
-  refused as out of range exactly as a policy seat's would be.
+  start-of-tick target table; a message index against the message
+  table), so an index a table cannot express is refused as out of range
+  exactly as a policy seat's would be.
+- An override that names only one half leaves the other half to the
+  seat's own behaviour for that tick: the behaviour still runs against
+  the start-of-tick snapshot with its dealt seed, and only the named
+  half of its decision is replaced. The seat's own message is therefore
+  never Silent by default, and a message-only override never moves the
+  cat.
+- A snapshot is a transient token: valid for the binding that produced
+  it, with no format version and no compatibility promise. A reader who
+  wants a tick back after an engine change replays the raws.
 - The overridden seat's dealt decision seed is consumed by the tick as
   always and simply unused by the seat, as a policy seat's is today;
   the next tick's deal is unaffected.
@@ -318,9 +355,11 @@ with the differing component named.
   restore per world index, with FR-002 through FR-007 holding for the
   addressed world and no effect on any other world.
 - **FR-009**: The single-world environment MUST offer a one-tick
-  proposal override for an engine-decided seat: `override(kitty, action
-  [, message])` records a proposal that the NEXT step uses in place of
-  that seat's own decision, after which it is cleared. Builtin presets
+  proposal override for an engine-decided seat: `override(kitty,
+  action=None, message=None)`, naming at least one half, records a
+  proposal that the NEXT step uses in place of the named half (or
+  halves) of that seat's own decision, after which it is cleared; the
+  unnamed half stays the seat's own. Builtin presets
   and both needy presets are engine-decided seats. The batched
   environment MUST offer the same per world index.
 - **FR-010**: The override substitutes the seat's PROPOSAL only. The
@@ -330,27 +369,32 @@ with the differing component named.
   verdicts.
 - **FR-011**: A tick in which a seat's proposal was overridden MUST mark
   that seat's record with a provenance distinct from every existing
-  mark (the seat's own decision, dispatch fallback, substituted idle),
+  mark (the seat's own decision, dispatch fallback, substituted idle)
+  that also says which half was substituted (act, message, or both),
   readable on the per-agent info and the recorded streams, so that a
   corpus collector can refuse the row as a teacher's act and a reader
   can separate substituted acts from decided ones.
 - **FR-012**: The override MUST be refused for a policy-controlled
   (external) seat, for a kitty not in the roster, for a second override
-  of the same seat before a step, and for a proposal the seat's
-  start-of-tick target table cannot express; each refusal names its
+  of the same seat before a step, for an override naming neither half,
+  and for a proposal the seat's start-of-tick target table (or the
+  message table) cannot express; each refusal names its
   cause and leaves the environment as it was. A pending override MUST be
   dropped by reset and by restore.
 - **FR-013**: The override's proposal vocabulary MUST be the one `step`
   accepts for policy seats (menu index, and message index where a
   message is given), so the gate can inject a mini's predicted menu
   action without translation.
-- **FR-014**: The message half of an overridden decision is governed by
-  [NEEDS CLARIFICATION: with no message given, does the seat's own
-  behaviour still supply its message for that tick (the activity is
-  substituted, the calling stays the seat's — the doctrine-safe
-  default), is the message Silent, or must the caller always supply a
-  law-named message? The free register (meow/purr) is never scripted by
-  the harness in any reading].
+- **FR-014**: The two halves of an overridden decision MUST be
+  independently substitutable. With no message given, the seat's own
+  behaviour supplies its message for that tick (the owner's ruling,
+  Clarifications 2026-11-05); with no action given, the seat's own
+  behaviour supplies its act. A message named by the caller is a
+  one-tick counterfactual on communication, decoded from `step`'s
+  message vocabulary (FR-013), marked by FR-011's provenance as a
+  harness substitution of the message half, and never a default: the
+  harness never puts a word in a scripted cat's mouth unless a caller
+  names it for that one tick.
 - **FR-015**: With no call to snapshot, restore, fork or override, the
   engine MUST be byte-identical to the pre-feature engine on every
   readable surface: observation schema and encoding, rewards and infos,
@@ -358,12 +402,13 @@ with the differing component named.
   fingerprint and defaults stamp, the server's save format, endpoints
   and boot log, and the plugin wire's decision request. Zero golden,
   pin or fixture re-cuts.
-- **FR-016**: The snapshot format MUST be treated as [NEEDS
-  CLARIFICATION: a transient in-process token valid only for the binding
-  that produced it (recommended: the raws are the durable artifact and
-  any snapshot is re-derivable by replay), or a versioned on-disk
-  artifact with a compatibility promise across engine commits?]. Under
-  either reading, FR-006's engine-commit refusal holds by default.
+- **FR-016**: The snapshot format is a transient in-process token valid
+  only for the binding that produced it (the owner's ruling,
+  Clarifications 2026-11-05). It carries no format version and makes no
+  compatibility promise across engine commits; FR-006's engine-commit
+  refusal is the whole of that story. The raws are the durable artifact
+  and any snapshot is re-derivable by replay. The docstrings MUST say
+  so; nothing in the engine MUST ever read a snapshot from disk.
 - **FR-017**: The Python docstrings of snapshot, restore, fork and
   override MUST carry the welfare line: branch depth k > 1, where a
   component's predictions drive successive branch states, is a named
@@ -382,13 +427,15 @@ with the differing component named.
   control map (which seats are external, which builtin and on which
   preset) and output-shaping episode settings. Two environments of
   equal identity accept each other's snapshots; any difference refuses.
-- **Proposal override**: a pending substitution (seat, activity,
-  optional message) consumed by exactly one step, ruled on by the
-  engine's law like any proposal, marked by a distinct provenance in
-  that tick's record. Cleared by step, reset or restore.
+- **Proposal override**: a pending substitution (seat, optional
+  activity, optional message; at least one named) consumed by exactly
+  one step, ruled on by the engine's law like any proposal, marked by a
+  distinct provenance in that tick's record naming the substituted
+  half. Cleared by step, reset or restore.
 - **Provenance mark**: the per-tick, per-seat record of how a decision
-  came to be. Gains one value for harness substitution; existing values
-  keep their meaning.
+  came to be. Gains harness substitution as a value that names which
+  half (act, message, both) was substituted; existing values keep their
+  meaning.
 
 ## Success Criteria *(mandatory)*
 
@@ -410,7 +457,9 @@ with the differing component named.
   tick's record for that seat carries the substituted proposal and the
   substitution provenance; the following tick's record carries the
   seat's own decision and provenance, in 100% of trials over every
-  builtin and needy preset.
+  builtin and needy preset; an act-only override leaves the seat's own
+  message in the record, a message-only override leaves the seat's own
+  act, and the provenance names the substituted half, in 100% of trials.
 - **SC-005**: An override cannot bypass the law: for a needy seat masked
   on a need, an override proposing relief of that need resolves to idle
   and is recorded as a refusal in 100% of trials; for a seat inside its
@@ -450,11 +499,14 @@ check binds.
   stays teacher-ineligible (spec 067); the override does not change who
   controls a seat.
 - **Rule 6 (the free register is never scripted) → FR-014.** The
-  activity half is the counterfactual; the message half must not become
-  a channel for the harness to put free-register words in a scripted
-  cat's mouth. The clarification fixes which doctrine-safe reading
-  applies; all three candidate readings keep the free register
-  unscripted.
+  default is the seat's own call: an act-only override never touches
+  the message half, so the harness never scripts a scripted cat's
+  meow or purr as a side effect of branching. The owner's ruling adds a
+  message-only counterfactual; rule 6 shaped it into a one-tick,
+  caller-named, law-vocabulary substitution carrying its own provenance
+  mark — a probe of what a call would have done, recorded as the
+  harness's, never a behaviour the engine supplies or a reader can
+  mistake for the cat's own.
 - **Rule 9 (frozen models cannot answer a reprice) → FR-015, SC-007.**
   No observation change, no reprice, no change to any preset; a world
   without a branch call is byte-identical, so every frozen artifact and
@@ -527,7 +579,14 @@ doctrine-gated).
   cross-build reads; a snapshot does not try to.
 - **The override's vocabulary is `step`'s.** The gate injects a mini's
   predicted menu action; a wire-named engine action would need a
-  translation the spec would then have to pin.
+  translation the spec would then have to pin. The message half uses
+  the same message index `step` takes.
+- **Both halves, independently (owner 2026-11-05).** A message-only
+  override exists so a counterfactual on communication can be read the
+  same way as one on acts; the unnamed half is always the seat's own.
+- **A snapshot is a transient token (owner 2026-11-05).** No format
+  version, no on-disk promise; the server's persistence stays the only
+  durable world format.
 - **The dealt seed of an overridden seat is consumed and unused**, as a
   policy seat's is today; one draw per kitty per tick keeps same-seed
   futures coincident (spec 014).

@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — two open: FR-014 (the override's message half), FR-016 (snapshot durability promise); both put to the owner
+- [x] No [NEEDS CLARIFICATION] markers remain — FR-014 (message half: seat's own by default, each half independently overridable) and FR-016 (transient token) ruled by the owner 2026-11-05, recorded under Clarifications
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
