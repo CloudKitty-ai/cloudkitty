@@ -469,14 +469,14 @@ bytes, engine-commit tamper case, exact contract strings, both-halves and
 
 | Guard | Mutant (file) | Predicted first failing assertion |
 |-------|---------------|-----------------------------------|
-| G1-seed | `restore` skips `config.world.seed = snap.seed` (episode.rs) | "current seed … travelled" |
+| G1-seed | `restore` skips `config.world.seed = snap.seed` (episode.rs) | RAN: red at "same identity restores" — the new world-fingerprint check (which uses the config seed) refuses the restore before the `current_seed` assert is reached; the seed is guarded by that check, the assert is belt-and-braces |
 | G1-clock | `restore` sets `tick_in_episode = 0` (episode.rs) | "global state (the only surface carrying the episode clock) matches" |
 | G7 | act half not replaced in step_inner (episode.rs) | "{preset}: the proposal is the override's act" (needs_driven first) |
 | G9 | message half not replaced (episode.rs) | "the message is the override's" |
 | G10-reason | needy verdict disabled (world.rs) — same mutant as G10 | "resolves to Idle" (first assert unchanged) |
 | G11-validated | n/a — assertion strengthens G11's existing red | — |
 | G12 | double-override check removed (episode.rs) | "second override" (unchanged) |
-| G15-routing | `one()` sends `command_for(world)` instead of `world - range.start` (vector.rs) | panics/mismatch at the first per-index call → "world 0 restored like a single episode" or an index panic |
+| G15-routing | `one()` sends `command_for(world)` instead of `world - range.start` (vector.rs) | RAN: the second worker indexes `owned[1]` out of bounds and dies; the test panics "worker thread alive: RecvError" at the first per-index call for world 1 |
 | G16-untouched | control check moved after the assignments (episode.rs) | "control map: the refused episode is exactly as it was" |
 | G16-normalize | `identity()` maps `self.control` only (episode.rs) | "an unnamed external seat and an explicit one are one identity" |
 | G16-seat | control refusal renders whole maps (episode.rs) | "the control refusal names the seat" |
@@ -486,11 +486,16 @@ bytes, engine-commit tamper case, exact contract strings, both-halves and
 | PY-snapshot-before-reset | `armed` check removed (lib.rs) | `pytest.raises(ValueError)` did not raise |
 | PY-fork | `fork` returns the fresh env without restoring (lib.rs) | "the fork is live" |
 | PY-truncation | `land_restore` sets `live = true` always (lib.rs) | "a truncated snapshot restores truncated" |
-| PY-override-marks | `message` not forwarded by `ParallelEnv.override` (lib.rs) | `rec["provenance"] == "overridden_message"` |
+| PY-override-marks | `message` not forwarded by `ParallelEnv.override` (lib.rs) | RAN: the message-only call reaches the engine empty and raises `ValueError: … name an action, a message, or both` (test line 169) before the provenance assert |
 | PY-refusals | `live` check removed from `ParallelEnv.override` (lib.rs) | the pre-reset `pytest.raises(ValueError)` |
 | PY-vector-index | `VectorEnv.restore` clears every world's record (lib.rs) | "world 1's record is untouched" |
 | PY-vector-refusals | `armed` check removed from `VectorEnv.snapshot` (lib.rs) | the first `pytest.raises(ValueError)` |
-| PY-portable | `VectorEnv.restore` addresses world 0 regardless (lib.rs) | the round-trip `decision_seed` equality |
+| PY-portable | `VectorEnv.restore` addresses world 0 regardless (lib.rs) | RAN: red at the round-trip `infos_t[...]["decision_seed"]` equality (line 299), as predicted — the first loop passes because the misdirected restore still returns the restored world's infos |
+
+All 23 cycles above: RED CONFIRMED 2026-11-06 (exit 0 each; log
+`068-mutate-review.log` in the session scratchpad). Earlier reds for
+PY-US2, G18 and SC006 stand (their anchors are unchanged); PY-US1 was
+re-run against the new `live` line.
 | PY-mismatch | `SnapshotIdentity` mapped to RuntimeError (lib.rs) | the first `pytest.raises(ValueError)` |
 
 ## Rule-5 red predictions (summary, first pass)
