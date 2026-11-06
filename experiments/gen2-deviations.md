@@ -1131,3 +1131,23 @@ F-entry (the declared test, a knee the record did not have, is not
 met); the ladder is a Phase 2 input cited from
 `minifriend-act-ladder-2026-11-04/RESULTS.md`. CLOSED; the Phase 2 act
 head is her pick (DECLARATION §8, not yet asked at this write).
+
+## 21. The Phase 2 entry gate run by replay: the one-tick counterfactual screen on NF1e-h24+p and the act head B15 (2026-11-05)
+Deviation: none from the gate's frozen text (A2′ item 2 and its four
+pins stand verbatim); what the frozen text left to the arm spec is fixed
+here — the gate runs on the needy set's TUNING half by replay on the
+pinned binding (the Python binding has no snapshot path; a recorded world
+replays exactly from seed and recorded actions, RE-STEP CHECK 2026-11-05),
+the branch's menu action is the predicted class's legal entry the
+friend's own policy ranks highest, the currency is unclamped happiness
+points (hidden-need points reported), the sample is 300 points per
+stratum × version at min-n 200 fail-closed, and step 2 is Phase 1's
+ostrich metric read on NF1e (never read on it before; the prereg reads
+the metric "on both estimates, per phase") with the frozen NF-h24+p
+beside. B10 is read beside B15 as the Phase 2 comparator (open-loop
+B10-vs-B15); F is a reference. Her words: "Agreed" (the five steps),
+"Let's do it" (gate by replay now; the branch API to Product, msg
+9b1d6d03, not a kickoff). Zero collection; 0 covered cat-ticks (recorded
+actions replayed, the branch discarded, k = 1). P34–P37.
+`minifriend-phase2-gate-2026-11-05/DECLARATION.md`. Status: OPEN — the
+reads run on her word after the draft.

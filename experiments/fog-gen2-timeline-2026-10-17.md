@@ -729,7 +729,24 @@ consent BC comparison ride the trunk.
   fingerprint-checked; a one-tick proposal override for engine-decided
   seats; per-tick decision seeds in the streams; the k > 1 doctrine
   line travels in the spec), NOT a kickoff — her word in Product's
-  session starts the spec. Next: the gate instrument's declaration.
+  session starts the spec. Product ACKED the same day (grounds verified,
+  banked for her word in their session; their one question for her:
+  the engine-decided-seat override in the same spec or its own).
+  PHASE 2 ENTRY GATE DECLARED 2026-11-05 (her "Agreed" / "Let's do it";
+  zero collection, 0 covered cat-ticks): A2′ item 2 as frozen, by replay
+  on the pinned binding over the needy TUNING half — 300 branch points
+  per stratum × version (visible / all), min-n 200 fail-closed; the act
+  branch (B10-s1..3, B15-s1..3, F) with the predicted class's legal menu
+  action the friend's own policy ranks highest, divergence = branch −
+  record in unclamped happiness points, signature = GRAVE/COMMON lift ≥
+  1.5 with a POSITIVE grave mean; step 2 = Phase 1's ostrich metric on
+  NF1e-h24+p (frozen NF-h24+p beside), signature with a NEGATIVE grave
+  bias; the gate PASSES only if B15 and NF1e both pass; P34–P37;
+  instrument `gate_screen.py`, guards g1–g7 (reds next commit), one
+  world smoked in the scratchpad (24 points, 44 replays, 5 s).
+  `minifriend-phase2-gate-2026-11-05/DECLARATION.md`, deviations 21.
+  Next: her word to run; then RESULTS gated; then the Phase 2
+  declaration.
 
 ## Flagged follow-ups (owner's word to start)
 
