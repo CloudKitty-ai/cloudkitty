@@ -355,6 +355,8 @@ def summarise_act(rows):
                 out[v][st][arm] = {"n": cells[0]["n"], "d_hap": _msd([c["d_hap"] for c in cells if c["d_hap"] is not None]),
                                    "d_need": _msd([c["d_need"] for c in cells if c["d_need"] is not None]),
                                    "abs_hap": _msd([c["abs_hap"] for c in cells if c["abs_hap"] is not None]),
+                                   "branched": _msd([c["branched"] for c in cells if c["branched"] is not None]),
+                                   "moved": _msd([c["moved"] for c in cells if c["moved"] is not None]),
                                    "per_friend": {f: _msd([c["per_friend"][f]["d_hap"] for c in cells if c["per_friend"][f]["d_hap"] is not None]) for f in FRIENDS}}
     return out
 
@@ -496,7 +498,7 @@ def md(cmd, out):
                 for name in list(ARMS) + ["F"]:
                     c = S_[v][st][name]
                     if name in ARMS:
-                        L.append(f"| {st} | {name} | {c['n']} | {_f(c['d_hap']['mean'])} ± {_f(c['d_hap']['sd'])} | {_f(c['d_need']['mean'])} | {_f(c['abs_hap']['mean'])} | — | — |")
+                        L.append(f"| {st} | {name} | {c['n']} | {_f(c['d_hap']['mean'])} ± {_f(c['d_hap']['sd'])} | {_f(c['d_need']['mean'])} | {_f(c['abs_hap']['mean'])} | {_f(c['branched']['mean'])} | {_f(c['moved']['mean'])} |")
                     else:
                         L.append(f"| {st} | {name} | {c['n']} | {_f(c['d_hap'])} | {_f(c['d_need'])} | {_f(c['abs_hap'])} | {_f(c['branched'])} | {_f(c['moved'])} |")
             L.append("")

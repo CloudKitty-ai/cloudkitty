@@ -148,6 +148,12 @@ def g5():
     needs_sig = {"summary": {"NF1e": {v: {"insufficient": False, "signature": v == "visible"} for v in G.VERSIONS},
                              "NFfrozen": needs_ok["summary"]["NFfrozen"]}}
     assert G.verdict({"coverage": cov_ok}, act_pass, needs_sig)["gate"] == "FAIL", "the needs head's signature fails the gate"
+    # the arm aggregate carries the sparsity columns as seed means (added after the first read printed them as "—")
+    rows = [{"cell": "GRAVE/all", "friend": "Miso", "predictor": f"B10-s{s}", "branched": b, "d_hap": d, "d_need": 0.0}
+            for s, pts in ((1, [(True, 1.0), (False, 0.0)]), (2, [(True, 0.0), (True, 2.0)]), (3, [(False, 0.0), (False, 0.0)]))
+            for b, d in pts]
+    agg = G.summarise_act(rows)["all"]["GRAVE"]["B10"]
+    assert abs(agg["branched"]["mean"] - 0.5) < 1e-9 and abs(agg["moved"]["mean"] - 1 / 3) < 1e-9, agg
 
 
 def g6():
