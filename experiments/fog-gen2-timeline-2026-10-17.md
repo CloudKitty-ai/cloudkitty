@@ -768,6 +768,20 @@ consent BC comparison ride the trunk.
   Next: her call on §5's consequence; the Phase 2 declaration waits on
   it.
 
+  RULED 2026-11-06 (on the gate report and Product's spec 068 relay),
+  her words verbatim: "We can skip the needs head based on this result.
+  Spec 068 is being reviewed, so any additional features should be a
+  follow up spec. How many arms would be reasonable for b10? We aren't
+  pressed for time or resources". Read as: Phase 2 proceeds WITHOUT the
+  needs head as a policy input (no Phase 1f composition arm; §5's
+  consequence closed by her choice; NF1e-h24+p stays the Phase 1
+  product, F-072 / F-073's "Phase 2 candidate" superseded for Phase 2);
+  the act head B15 is the remaining head (B10 the comparator); spec 068
+  stands as implemented, every further engine feature its own spec on
+  her word (relayed to Product, msg 2579b999); the seed / arm count for
+  the B10 comparator is OPEN — recommendation sent, her ruling next.
+  Deviations entry 22.
+
 ## Flagged follow-ups (owner's word to start)
 
 - Relief just beyond vision (owner 2026-10-21: "Let's flag this for a

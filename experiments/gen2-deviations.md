@@ -1157,3 +1157,20 @@ common +0.07, Phase 1's signature in both versions; the frozen NF-h24+p
 after the first run (7b7459f2, e1ed7605), rows equal.
 `minifriend-phase2-gate-2026-11-05/RESULTS.md`. The consequence (§5: a
 Phase 1f composition arm on the needs head) is hers.
+
+## 22. Phase 2 without a needs head (2026-11-06)
+Deviation from the frozen prereg's Phase 2 framing (the Phase 1 needs
+head as the live arm's input; F-072 / F-073 named NF1e-h24+p the Phase 2
+candidate): the entry gate (entry 21) FAILED on NF1e-h24+p and the owner
+ruled, 2026-11-06, verbatim: "We can skip the needs head based on this
+result." Phase 2 proceeds with the act head B15 as its only mini input
+(B10 the comparator), no Phase 1f composition arm, the needs head and
+its grave probability out of the policy's inputs. Consequences carried
+into the Phase 2 declaration: the "needs-only anchor" arm she named on
+2026-11-05 ("three arms") no longer exists as described — its replacement
+(a no-head continuation anchor, or two arms) is her call; the consumer
+read "harm-prediction beats trunk" was aimed at the grave channel and is
+re-aimed or dropped in the declaration; the ticks-since-seen cell and
+the act head's eleven probabilities, top-prob and entropy at T = 1 stay.
+The frozen text is not edited; this entry is the record. Status: OPEN
+until the Phase 2 declaration carries it.

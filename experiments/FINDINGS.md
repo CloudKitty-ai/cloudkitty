@@ -2571,7 +2571,12 @@ more data (74 → 194 training worlds, the probe's grave frequency
 0.00300 → 0.01821, together; no same-size control set without late
 graves); the welfare cost of acting on a false alarm is the Phase
 2 declaration's to measure with an acting consumer. What it hands on:
-NF1e-h24+p is the Phase 2 candidate by the declaration's rule, its
+NF1e-h24+p is the Phase 2 candidate by the declaration's rule [the Phase
+2 entry gate read it on 2026-11-05 (ostrich metric, first read on this
+head): grave bias −3.17 need points vs common +0.07, Phase 1's signature,
+GATE FAIL; owner 2026-11-06: "We can skip the needs head based on this
+result" — Phase 2 proceeds without a needs head; the finding's claims
+about the head stand, `minifriend-phase2-gate-2026-11-05/RESULTS.md`], its
 confirming figures at her pick the ones Phase 2 cites, its price in
 welfare units hers to weigh; whether it feeds anything that acts is a
 new ruling from her (the observer-stream ruling's last clause); F-069,
