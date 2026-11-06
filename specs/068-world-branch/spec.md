@@ -32,6 +32,21 @@ against origin/main 87fae11e and 4464488e before this spec was written
   made it, or a versioned on-disk artifact with a cross-commit
   compatibility promise? (FR-016) → A: Transient token (her "A"). The
   raws stay the durable artifact; a snapshot is re-derivable by replay.
+- Q: Where does Python read an overridden scripted seat's record, given
+  that per-agent infos are built for external seats only
+  (`crates/cloudkitty-rl/src/episode.rs`, `collect_step`)? (FR-011) →
+  A: Resolved from the code, no owner ruling needed: a read-only
+  per-seat tick-record reader covering every roster kitty, sibling to
+  the existing `needy()` and `recent_meows()` world-state readers;
+  infos for external seats stay byte-identical (FR-015). The engine's
+  tick report already holds every seat's proposed and applied act,
+  messages, provenance and decision seed.
+- Q: What does `restore` return, and may it run before the first
+  reset? (FR-001) → A: Resolved as a default: `restore` is accepted
+  before the first reset (it supplies the world, which is what `fork`
+  relies on) and returns what `reset` returns — observations and infos
+  for the external seats at the restored tick — so a policy can act on
+  the branch at once; those equal the original's at the snapshot tick.
 
 ## Why now
 
@@ -92,8 +107,8 @@ primitive for policy-only worlds.
    is stepped the same n ticks with the same policy actions, **Then** the
    two produce identical observations, rewards, infos and serialized
    worlds at every one of the n ticks.
-2. **Given** a restored environment, **When** its first per-agent infos
-   are read, **Then** each agent's next decision seed equals the one the
+2. **Given** a restored environment, **When** the per-agent infos
+   `restore` returned are read, **Then** each agent's next decision seed equals the one the
    original environment reported at the snapshot tick — the restored
    world will draw exactly what the original drew.
 3. **Given** an environment whose last step panicked (a poisoned
@@ -266,7 +281,8 @@ with the differing component named.
 
 - A snapshot can only be taken and restored between steps; the tick is
   atomic and there is no mid-tick state to capture.
-- A snapshot taken before the first reset (no world yet) is refused.
+- A snapshot taken before the first reset (no world yet) is refused; a
+  restore before the first reset is accepted and stands in for it.
 - Restoring a snapshot replaces every piece of episode state, including
   the dealt decision seeds; it never re-deals them (re-dealing would
   consume different random draws and the branch would diverge from the
@@ -316,9 +332,11 @@ with the differing component named.
 - **FR-001**: The single-world environment MUST offer `snapshot()`,
   returning the complete episode state between steps as an opaque byte
   string, and `restore(bytes)`, replacing the environment's episode
-  state with the snapshot's. Both are refused mid-step (structurally
-  impossible from Python) and `snapshot()` is refused before the first
-  reset.
+  state with the snapshot's and returning what `reset` returns
+  (observations and infos for the external seats at the restored tick).
+  Both are refused mid-step (structurally impossible from Python);
+  `snapshot()` is refused before the first reset, `restore` is accepted
+  before it.
 - **FR-002**: A snapshot MUST carry every piece of episode state on
   which any later observation, reward, info or serialized world depends:
   the world including its random-number state, the decision seeds
@@ -334,7 +352,7 @@ with the differing component named.
   (`crates/cloudkitty-core/tests/snapshot_resume.rs`) lifted to the
   episode surface, over worlds with mixed control including a needy
   seat.
-- **FR-004**: The first per-agent infos of a restored environment MUST
+- **FR-004**: The per-agent infos `restore` returns MUST
   report, for every agent, the same next decision seed the original
   reported at the snapshot tick, so a recorded `decision_seed` column is
   a sufficient check that a branch started from the right state.
@@ -370,10 +388,15 @@ with the differing component named.
 - **FR-011**: A tick in which a seat's proposal was overridden MUST mark
   that seat's record with a provenance distinct from every existing
   mark (the seat's own decision, dispatch fallback, substituted idle)
-  that also says which half was substituted (act, message, or both),
-  readable on the per-agent info and the recorded streams, so that a
-  corpus collector can refuse the row as a teacher's act and a reader
-  can separate substituted acts from decided ones.
+  that also says which half was substituted (act, message, or both).
+  Because per-agent infos exist for external seats only and MUST stay
+  unchanged (FR-015), the mark MUST be readable from Python through a
+  read-only per-seat tick-record reader covering every roster kitty
+  (the seat's proposed and applied act, proposed and applied message,
+  provenance and decision seed for the last step), so that a corpus
+  collector can refuse the row as a teacher's act and a reader can
+  separate substituted acts from decided ones. The reader is a
+  world-state reader like `needy()`, never an observation.
 - **FR-012**: The override MUST be refused for a policy-controlled
   (external) seat, for a kitty not in the roster, for a second override
   of the same seat before a step, for an override naming neither half,
@@ -446,7 +469,7 @@ with the differing component named.
   observations, rewards, per-agent infos and serialized worlds of the
   restored environment equal the original's at every tick (zero
   differing bytes).
-- **SC-002**: The first infos after a restore report the same next
+- **SC-002**: The infos `restore` returns report the same next
   decision seed per agent as the original did at the snapshot tick, in
   100% of the SC-001 trials.
 - **SC-003**: Every identity mismatch class (config fingerprint, control
@@ -475,8 +498,9 @@ with the differing component named.
   is unchanged, and the config fingerprint of every shipped config is
   unchanged.
 - **SC-008**: Overridden rows are refusable downstream: a reader given
-  the recorded provenance column can separate substituted from decided
-  acts with zero misclassification on a world where overrides were
+  the per-seat tick-record reader's provenance can separate substituted
+  from decided acts, and act-substituted from message-substituted
+  rows, with zero misclassification on a world where overrides were
   applied at known ticks.
 
 ## Design-doctrine check (CLAUDE.md rule 8)
