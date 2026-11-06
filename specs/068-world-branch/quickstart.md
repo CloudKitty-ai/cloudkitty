@@ -97,7 +97,7 @@ print(f"replay 10k: {replay:.3f}s  restore+step: {branch*1e3:.2f}ms  ratio {bran
 
 | Machine | replay 10,000 ticks | restore + 1 step | ratio | bar |
 |---------|---------------------|------------------|-------|-----|
-| (fill at implementation) | | | | < 0.01 |
+| the lab Mac (arm64), release binding, 2026-11-05, default world with kitty_2 on `needs_driven`, idle actions | 0.078 s (128,057 ticks/s) | 0.20 ms (best of 5; snapshot 119,368 bytes) | 0.0026 | < 0.01 ✓ |
 
 The CI assertion in `test_branch.py` uses a loose 0.1 so a slow runner
 cannot flake it; the 0.01 bar is read here on the reference machine.

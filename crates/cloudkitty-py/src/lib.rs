@@ -17,17 +17,36 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 
 use cloudkitty_core::kitty::KittyId;
-use cloudkitty_core::seam::Provenance;
+use cloudkitty_core::seam::{Provenance, TickReport};
 use cloudkitty_core::Config;
 use cloudkitty_rl::config::{load_configs_from_path, load_configs_from_str, RlConfig};
-use cloudkitty_rl::episode::{AgentInfo, Control, Episode, EpisodeError, EpisodeStep};
+use cloudkitty_rl::episode::{
+    action_wire_name, AgentInfo, Control, Episode, EpisodeError, EpisodeStep,
+};
 use cloudkitty_rl::global_state::global_state_len;
 use cloudkitty_rl::observe::observation_len;
 use cloudkitty_rl::vector::VectorizedEnvironment;
 use numpy::{IntoPyArray, PyArray1, PyArray2, PyArrayMethods};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyBytes, PyDict};
+
+/// The engine build this binding was compiled from — the identity stamp a
+/// snapshot carries and `restore` checks (spec 068 FR-006); the same value
+/// the module exports as `ENGINE_COMMIT`.
+const ENGINE_COMMIT: &str = env!("CLOUDKITTY_ENGINE_COMMIT");
+
+/// The welfare line every branch method's docstring carries (spec 068
+/// FR-017), kept in one place so the four cannot drift from each other.
+macro_rules! welfare_line {
+    () => {
+        "Branch depth k > 1 -- where a component's predictions drive successive \
+         branch states -- is a named marker-review trigger \
+         (experiments/WELFARE-STANDING.md text (b); \
+         experiments/gen2-prereg-2026-10-17.md section A2' item 5). The API is \
+         depth-unlimited; the doctrine, not the API, caps its use."
+    };
+}
 
 /// The PettingZoo parallel step tuple:
 /// (observations, rewards, terminations, truncations, infos).
@@ -126,6 +145,85 @@ fn parse_control(control: Option<&Bound<'_, PyDict>>) -> PyResult<BTreeMap<Kitty
     Ok(map)
 }
 
+/// A kitty argument in either vocabulary: the raw id or the "kitty_N" agent
+/// name (review finding 6 of spec 055; every kitty-taking method speaks both).
+fn parse_kitty_arg(kitty: &Bound<'_, PyAny>) -> PyResult<KittyId> {
+    if let Ok(id) = kitty.extract::<KittyId>() {
+        return Ok(id);
+    }
+    let name: String = kitty
+        .extract()
+        .map_err(|_| PyValueError::new_err("kitty must be an int id or a 'kitty_N' agent name"))?;
+    parse_agent(&name)
+        .ok_or_else(|| PyValueError::new_err(format!("not a kitty id or agent name: {name:?}")))
+}
+
+/// An override's index argument: a non-negative int or None. A negative
+/// index is the same fault class as an out-of-range one (IndexError, as
+/// `step` raises), never a silent wrap.
+fn index_arg(value: Option<i64>, what: &str) -> PyResult<Option<usize>> {
+    match value {
+        None => Ok(None),
+        Some(v) if v < 0 => Err(PyIndexError::new_err(format!(
+            "{what} index {v} is negative"
+        ))),
+        Some(v) => Ok(Some(v as usize)),
+    }
+}
+
+/// Spec 068 FR-011: the last tick's record for EVERY roster kitty, scripted
+/// seats included — the per-seat reader the per-agent infos (external seats
+/// only, unchanged) cannot be. Empty report (reset/restore) → every field
+/// None. `survived` and `proposed_message` follow AgentInfo's bookkeeping:
+/// a substituted idle never proposed anything.
+fn tick_records_to_py<'py>(
+    py: Python<'py>,
+    report: &TickReport,
+    roster: &[KittyId],
+) -> PyResult<Bound<'py, PyDict>> {
+    let out = PyDict::new(py);
+    for id in roster {
+        let r = report.record(*id);
+        let d = PyDict::new(py);
+        d.set_item(
+            "proposed_action_name",
+            r.map(|r| action_wire_name(&r.proposed)),
+        )?;
+        d.set_item(
+            "validated_action_name",
+            r.map(|r| action_wire_name(&r.validated)),
+        )?;
+        d.set_item(
+            "applied_action_name",
+            r.map(|r| action_wire_name(&r.applied)),
+        )?;
+        d.set_item(
+            "proposed_message",
+            r.filter(|r| r.provenance != Provenance::SubstitutedIdle)
+                .and_then(|r| r.proposed_message)
+                .map(|k| k.wire_name()),
+        )?;
+        d.set_item(
+            "applied_message",
+            r.and_then(|r| r.applied_message).map(|k| k.wire_name()),
+        )?;
+        d.set_item("provenance", r.map(|r| provenance_str(r.provenance)))?;
+        d.set_item("decision_seed", r.map(|r| r.decision_seed))?;
+        d.set_item(
+            "survived",
+            r.and_then(|r| {
+                if r.provenance == Provenance::SubstitutedIdle {
+                    None
+                } else {
+                    Some(r.validated == r.proposed)
+                }
+            }),
+        )?;
+        out.set_item(agent_name(*id), d)?;
+    }
+    Ok(out)
+}
+
 fn info_to_py<'py>(py: Python<'py>, info: &AgentInfo) -> PyResult<Bound<'py, PyDict>> {
     let dict = PyDict::new(py);
     dict.set_item("applied_action", info.applied_action)?;
@@ -209,6 +307,13 @@ struct ParallelEnv {
     episode: Episode,
     external: Vec<KittyId>,
     live: bool,
+    /// Spec 068: whether a world has ever been established here by reset
+    /// or restore. `live` alone cannot say — it also drops at truncation,
+    /// and a truncated world may still be snapshotted (FR-007).
+    armed: bool,
+    /// Spec 068 FR-011: the last step's tick report, for `tick_records()`;
+    /// empty after reset/restore.
+    last_report: TickReport,
     /// PettingZoo requires `observation_space(agent)` and
     /// `action_space(agent)` to return the *same object* on every call
     /// (identity, not equality — trainers cache spaces and the conformance
@@ -290,6 +395,34 @@ impl ParallelEnv {
         Ok(map)
     }
 
+    fn wrap(episode: Episode) -> Self {
+        let external = episode.external_agents();
+        ParallelEnv {
+            episode,
+            external,
+            live: false,
+            armed: false,
+            last_report: TickReport::default(),
+            observation_space_obj: std::sync::OnceLock::new(),
+            action_space_obj: std::sync::OnceLock::new(),
+        }
+    }
+
+    /// Lands a restored step (spec 068): live unless the snapshot was
+    /// truncated, armed either way, the report cleared.
+    fn land_restore<'py>(
+        &mut self,
+        py: Python<'py>,
+        step: EpisodeStep,
+    ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
+        self.live = !step.truncated;
+        self.armed = true;
+        let obs = observations_to_py(py, &step)?;
+        let infos = infos_to_py(py, &step)?;
+        self.last_report = step.report;
+        Ok((obs, infos))
+    }
+
     fn step_result<'py>(&self, py: Python<'py>, step: &EpisodeStep) -> PyResult<StepTuple<'py>> {
         let obs = observations_to_py(py, step)?;
         let rewards = PyDict::new(py);
@@ -318,14 +451,7 @@ impl ParallelEnv {
         control: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<Self> {
         let episode = Self::build(config_path, config_toml, horizon, control)?;
-        let external = episode.external_agents();
-        Ok(ParallelEnv {
-            episode,
-            external,
-            live: false,
-            observation_space_obj: std::sync::OnceLock::new(),
-            action_space_obj: std::sync::OnceLock::new(),
-        })
+        Ok(Self::wrap(episode))
     }
 
     /// The wire's own DecisionRequest for a kitty's upcoming decision,
@@ -342,16 +468,7 @@ impl ParallelEnv {
     fn decision_request(&self, py: Python<'_>, kitty: &Bound<'_, PyAny>) -> PyResult<String> {
         // Review finding 6: speak both id vocabularies — the raw id and
         // the "kitty_N" name every other agent surface uses.
-        let kitty_id: KittyId = if let Ok(id) = kitty.extract::<KittyId>() {
-            id
-        } else {
-            let name: String = kitty.extract().map_err(|_| {
-                PyValueError::new_err("kitty must be an int id or a 'kitty_N' agent name")
-            })?;
-            parse_agent(&name).ok_or_else(|| {
-                PyValueError::new_err(format!("not a kitty id or agent name: {name:?}"))
-            })?
-        };
+        let kitty_id = parse_kitty_arg(kitty)?;
         // Review finding 2: the Rust constructor arms a throwaway world
         // (Episode::new -> arm()), but the Python contract's window opens
         // at reset(). `live` is false before the first reset and after
@@ -461,8 +578,10 @@ impl ParallelEnv {
             .detach(|| episode.reset_caught(seed))
             .map_err(episode_err)?;
         self.live = true;
+        self.armed = true;
         let obs = observations_to_py(py, &step)?;
         let infos = infos_to_py(py, &step)?;
+        self.last_report = step.report;
         Ok((obs, infos))
     }
 
@@ -477,7 +596,120 @@ impl ParallelEnv {
         if step.truncated {
             self.live = false;
         }
-        self.step_result(py, &step)
+        let result = self.step_result(py, &step)?;
+        self.last_report = step.report;
+        Ok(result)
+    }
+
+    /// The whole episode state between steps as opaque bytes (spec 068):
+    /// the world with its RNG, the decision seeds already dealt for the
+    /// next tick, the episode position, truncation, the reward baselines
+    /// and the current seed, stamped with this binding's engine commit,
+    /// the configuration digest and the control map. Legal after
+    /// truncation (it restores truncated); ValueError before the first
+    /// reset(); RuntimeError on a poisoned world.
+    ///
+    /// A snapshot is a transient token for the binding that produced it:
+    /// no format version, no compatibility across engine commits; the raws
+    /// are the durable artifact and any snapshot is re-derivable by replay.
+    #[doc = concat!("\n\n", welfare_line!())]
+    fn snapshot<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyBytes>> {
+        if !self.armed {
+            return Err(PyValueError::new_err(
+                "snapshot(): reset first (no world has been established yet)",
+            ));
+        }
+        let bytes = self.episode.snapshot(ENGINE_COMMIT).map_err(episode_err)?;
+        Ok(PyBytes::new(py, &bytes))
+    }
+
+    /// Replaces this environment's episode state with the snapshot's and
+    /// returns what reset() returns: {agent: observation} and {agent: info}
+    /// for the external seats at the restored tick, the infos'
+    /// decision_seed being the restored deal's. Legal before the first
+    /// reset() (it stands in for it) and in every other state; heals a
+    /// poisoned world; a truncated snapshot restores truncated and step()
+    /// then raises until reset(). ValueError naming the differing component
+    /// (engine_commit, config_fingerprint, control) with both values on an
+    /// identity mismatch, or "not a snapshot" on malformed bytes — the
+    /// environment is left exactly as it was. Drops any pending override.
+    #[doc = concat!("\n\n", welfare_line!())]
+    fn restore<'py>(
+        &mut self,
+        py: Python<'py>,
+        data: &[u8],
+    ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
+        let episode = &mut self.episode;
+        let step = py
+            .detach(|| episode.restore(ENGINE_COMMIT, data))
+            .map_err(episode_err)?;
+        self.land_restore(py, step)
+    }
+
+    /// A new ParallelEnv of the same config and control map, restored from
+    /// this one's snapshot() — a branch that runs beside the original.
+    /// Inherits snapshot()'s refusals.
+    #[doc = concat!("\n\n", welfare_line!())]
+    fn fork(&self, py: Python<'_>) -> PyResult<ParallelEnv> {
+        let bytes = self.snapshot(py)?;
+        let core = (**self.episode.core_config()).clone();
+        let rl = self.episode.rl_config().clone();
+        let control = self.episode.control().clone();
+        let episode = Episode::new(core, rl, control).map_err(episode_err)?;
+        let mut twin = Self::wrap(episode);
+        twin.restore(py, bytes.as_bytes())?;
+        Ok(twin)
+    }
+
+    /// Records a one-tick proposal substitution for an engine-decided seat
+    /// (a builtin preset or a needy preset; spec 068). `action` is a menu
+    /// index in the seat's start-of-tick target table and `message` a
+    /// message-head index (0 = Silent) — the vocabulary step() takes for a
+    /// policy seat. Each half is independent: an unnamed half stays the
+    /// seat's own behaviour's proposal for that tick, so the default is
+    /// the cat's own call and a message-only override is a counterfactual
+    /// on communication. The next step() consumes it; the engine's law
+    /// (validation, consent, the needy verdict, duration enforcement)
+    /// rules on the proposal at the apply slot exactly as on any other,
+    /// and tick_records() marks the seat "overridden_act",
+    /// "overridden_message" or "overridden_both". ValueError for an
+    /// externally controlled seat (use step()), an unknown kitty, an empty
+    /// override, a second override before a step, or before reset();
+    /// IndexError for an index a table cannot express; RuntimeError on a
+    /// truncated or poisoned world. Cleared by reset() and restore(); a
+    /// step() refused for a bad external action leaves it standing.
+    #[doc = concat!("\n\n", welfare_line!())]
+    #[pyo3(name = "override", signature = (kitty, action=None, message=None))]
+    fn override_next(
+        &mut self,
+        kitty: &Bound<'_, PyAny>,
+        action: Option<i64>,
+        message: Option<i64>,
+    ) -> PyResult<()> {
+        let kitty_id = parse_kitty_arg(kitty)?;
+        if !self.live {
+            return Err(PyValueError::new_err(format!(
+                "override(): kitty {kitty_id}: no decision window (reset first)"
+            )));
+        }
+        let action = index_arg(action, "action")?;
+        let message = index_arg(message, "message")?;
+        self.episode
+            .override_next(kitty_id, action, message)
+            .map_err(episode_err)
+    }
+
+    /// The last step's record for EVERY roster kitty, scripted seats
+    /// included (spec 068 FR-011), keyed by agent name:
+    /// proposed_action_name, validated_action_name, applied_action_name,
+    /// proposed_message, applied_message, provenance ("policy",
+    /// "fallback", "substituted_idle", "overridden_act",
+    /// "overridden_message", "overridden_both"), decision_seed, survived.
+    /// After reset() or restore() every field is None. A read-only
+    /// world-state reader like needy() and recent_meows(): never an
+    /// observation, and the per-agent infos are unchanged by it.
+    fn tick_records<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        tick_records_to_py(py, &self.last_report, &self.episode.roster())
     }
 
     /// The privileged global state (FR-019): training and evaluation only —
@@ -584,6 +816,12 @@ struct VectorEnv {
     pending_seeds: Option<Vec<u64>>,
     /// The latest global state per world, refreshed by reset/step.
     last_states: Vec<Vec<f32>>,
+    /// Spec 068 FR-011: the last tick report per world, for
+    /// `tick_records(i)`; refreshed by reset/step, and by restore for the
+    /// one world it touches.
+    last_reports: Vec<TickReport>,
+    /// The roster (identical across worlds), for the per-seat reader.
+    roster: Vec<KittyId>,
 }
 
 #[pymethods]
@@ -625,6 +863,7 @@ impl VectorEnv {
             return Err(PyValueError::new_err("seeds must have one entry per world"));
         }
         let n = episodes.len();
+        let roster = episodes[0].roster();
         Ok(VectorEnv {
             vector: Mutex::new(VectorizedEnvironment::new(episodes, workers)),
             n_worlds: n,
@@ -635,7 +874,104 @@ impl VectorEnv {
             state_len,
             pending_seeds: Some(seeds),
             last_states: vec![vec![0.0; state_len]; n],
+            last_reports: (0..n).map(|_| TickReport::default()).collect(),
+            roster,
         })
+    }
+
+    fn world_index(&self, world: usize) -> PyResult<usize> {
+        if world >= self.n_worlds {
+            return Err(PyIndexError::new_err(format!(
+                "world index {world} out of range ({} worlds)",
+                self.n_worlds
+            )));
+        }
+        Ok(world)
+    }
+
+    /// World `i`'s snapshot (spec 068 FR-008): the single-world
+    /// ParallelEnv.snapshot() addressed to one world of the batch; the
+    /// other worlds are untouched. IndexError for a bad index; RuntimeError
+    /// on a poisoned world. A transient token for this binding, as the
+    /// single-world one.
+    #[doc = concat!("\n\n", welfare_line!())]
+    fn snapshot<'py>(&self, py: Python<'py>, world: usize) -> PyResult<Bound<'py, PyBytes>> {
+        let world = self.world_index(world)?;
+        let vector = &self.vector;
+        let bytes = py
+            .detach(|| {
+                vector
+                    .lock()
+                    .expect("vector runner mutex poisoned")
+                    .snapshot(world, ENGINE_COMMIT)
+            })
+            .map_err(episode_err)?;
+        Ok(PyBytes::new(py, &bytes))
+    }
+
+    /// Restores world `i` from a snapshot (spec 068 FR-008) and returns
+    /// THAT world's {agent: observation}, {agent: info} (not stacked). The
+    /// other worlds are untouched, and so is the batch's reset
+    /// requirement: before the first reset(), or after a partial step
+    /// failure, step() still refuses until a full reset() even if some
+    /// worlds were restored. Same refusals as ParallelEnv.restore(); a
+    /// ParallelEnv snapshot of the same identity restores here and back.
+    #[doc = concat!("\n\n", welfare_line!())]
+    fn restore<'py>(
+        &mut self,
+        py: Python<'py>,
+        world: usize,
+        data: &[u8],
+    ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
+        let world = self.world_index(world)?;
+        let vector = &self.vector;
+        let step = py
+            .detach(|| {
+                vector
+                    .lock()
+                    .expect("vector runner mutex poisoned")
+                    .restore(world, ENGINE_COMMIT, data)
+            })
+            .map_err(episode_err)?;
+        self.last_states[world] = step.global_state.clone();
+        let obs = observations_to_py(py, &step)?;
+        let infos = infos_to_py(py, &step)?;
+        self.last_reports[world] = step.report;
+        Ok((obs, infos))
+    }
+
+    /// A one-tick proposal override on world `i` (spec 068): the
+    /// single-world ParallelEnv.override() addressed to one world; same
+    /// halves, same law, same refusals, same marks in tick_records(i).
+    #[doc = concat!("\n\n", welfare_line!())]
+    #[pyo3(name = "override", signature = (world, kitty, action=None, message=None))]
+    fn override_next(
+        &mut self,
+        py: Python<'_>,
+        world: usize,
+        kitty: &Bound<'_, PyAny>,
+        action: Option<i64>,
+        message: Option<i64>,
+    ) -> PyResult<()> {
+        let world = self.world_index(world)?;
+        let kitty_id = parse_kitty_arg(kitty)?;
+        let action = index_arg(action, "action")?;
+        let message = index_arg(message, "message")?;
+        let vector = &self.vector;
+        py.detach(|| {
+            vector
+                .lock()
+                .expect("vector runner mutex poisoned")
+                .override_next(world, kitty_id, action, message)
+        })
+        .map_err(episode_err)
+    }
+
+    /// World `i`'s last tick record for every roster kitty (spec 068
+    /// FR-011) — the same keys and values as ParallelEnv.tick_records().
+    fn tick_records<'py>(&self, py: Python<'py>, world: usize) -> PyResult<Bound<'py, PyDict>> {
+        let world = self.world_index(world)?;
+        tick_records_to_py(py, &self.last_reports[world], &self.roster)
     }
 
     #[getter]
@@ -687,6 +1023,7 @@ impl VectorEnv {
         self.last_states = steps.iter().map(|s| s.global_state.clone()).collect();
         let obs = self.stack_observations(py, &steps)?;
         let infos = self.stack_infos(py, &steps)?;
+        self.last_reports = steps.into_iter().map(|s| s.report).collect();
         Ok((obs, infos))
     }
 
@@ -807,6 +1144,7 @@ impl VectorEnv {
             truncations.set_item(&name, t.into_pyarray(py))?;
         }
         let infos = self.stack_infos(py, &steps)?;
+        self.last_reports = steps.into_iter().map(|s| s.report).collect();
         Ok((obs, rewards, terminations, truncations, infos))
     }
 
