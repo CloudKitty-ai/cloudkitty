@@ -717,7 +717,7 @@ green; the prediction written before each run):**
 | g5 | first post-floor bin may be flat; `plateau_flat` ignored; per-bin checkpoint not written | `counted flat before`; `return rose 0.05 is not flat`; `AssertionError: ckpt-u` | CONFIRMED (all three) |
 | g6 | edge as max pairwise; demotion without the valve; demotion inside the edge | `(20, …)`; `a seed the other way breaks the valve`; `inside the edge is a null` | CONFIRMED (all three) |
 | g7 | merge gap 6; censored episodes as events; min-n off by one; beats on any seed | `[(10, 20), (30, 41)]`; `a censored 86 leaves the risk set`; `AssertionError`; `beats needs all three seeds under` | CONFIRMED (all four) |
-| g8 | terciles fitted across regimes | `heard terciles must be fitted on heard rows only` | WRONG REASON: the seen equal-thirds assertion (unnamed) tripped first; named, re-predicted, re-run (`results-raw/reds/p2-reds-g8a.log`) |
+| g8 | terciles fitted across regimes | `heard terciles must be fitted on heard rows only` | WRONG REASON: the seen equal-thirds assertion (unnamed) tripped first — the bug was caught, the prediction named the wrong assertion; named, re-predicted as `seen terciles are not equal thirds`, re-run: CONFIRMED |
 | g8 | silent rows binned; the trunk shown a scaled observation | `silent rows must not be binned`; `diverges from its trunk on the same observation` | CONFIRMED (both) |
 | g9 | log opened `a+`; a `read_text()` of the log | `the passive log is write-only`; `the trainer reads its own log` | CONFIRMED (both) |
 | g10 | a slot at run index 116; the wrong head seed named | `[107, …, 116]`; `median-validation B15 seed is s2, not the named s1` | CONFIRMED (both) |
