@@ -804,6 +804,16 @@ consent BC comparison ride the trunk.
   (graft s1 / s2 / s4), 12 covered PPO seeds. Every Phase 2 design
   question is now ruled; next = the Phase 2 declaration DRAFT (she sees
   it first; Professor through her).
+  PHASE 2 DRAFT 2026-11-06 (not declared; nothing runs):
+  `minifriend-phase2-2026-11-06/DECLARATION.md` — four arms act15 /
+  act10 / needs / nohead, heads named by median validation (B15-s2,
+  B10-s3, NF1e-h24-s2+p), the graft (zero columns on the kitty
+  embedding), the welfare rule's bar measured from the battery (edge
+  statistic 0.326 / 0.325), reads R-1..R-7, P38–P44, guards g0–g10,
+  deviations 23 drafted, seven owner calls (budget 8M recommended;
+  ticks-since-live in the baseline; β held; battery scope; scouts;
+  the row-only side read; her three words). Welfare-cost line ≈ 560M
+  covered cat-ticks at the recommended budget.
 
 ## Flagged follow-ups (owner's word to start)
 
