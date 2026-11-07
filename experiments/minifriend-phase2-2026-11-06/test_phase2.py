@@ -59,7 +59,78 @@ def g0c():
     assert abs(row["nash"] - rec["nash"]) < 1e-12, (row["nash"], rec["nash"])
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c}
+def g1():
+    """the graft is the identity: on real probe rows with ARBITRARY appended cells, the widened policy's logits equal
+    the trunk's on the un-widened rows BIT-FOR-BIT; parameters 84,450 + 64·C; every trunk weight byte-equal; the
+    kitty embedding's new columns zero."""
+    import torch
+    import graft as G
+    import heads_online as HO
+    rows = _probe_rows()
+    obs = torch.from_numpy(rows["obs"][::20].reshape(-1, C.OBS_DIM))          # 500 real rows
+    g = torch.Generator().manual_seed(1)
+    for k in C.TRUNK_SEEDS:
+        for arm, spec in HO.ARMS.items():
+            c = spec["cells"]
+            p2, trunk, _ck = G.graft(k, c)
+            assert G.n_params(p2) == C.TRUNK_PARAMS + 64 * c, f"params {G.n_params(p2)} != {C.TRUNK_PARAMS + 64 * c}"
+            ts, ps = trunk.state_dict(), p2.state_dict()
+            assert set(ps) == set(ts) | {"embed_cells.weight"}, set(ps) ^ set(ts)
+            for name in ts:
+                assert torch.equal(ps[name], ts[name]), f"{name} not byte-equal"
+            assert ps["embed_cells.weight"].shape == (64, c) and not ps["embed_cells.weight"].any(), "new columns not zero"
+            cells = torch.randn(obs.shape[0], C.N_ROWS * c, generator=g) * 3
+            with torch.no_grad():
+                a, b = trunk(obs), p2(torch.cat([obs, cells], 1))
+            assert torch.equal(a, b), f"logits differ from the trunk's by {float((a - b).abs().max())} (trunk-s{k}, {arm})"
+
+
+def _tuning_world():
+    """The first needy TUNING world (DECLARATION §5: the tuning half serves guard g2 only): (w, observers, z)."""
+    import read_act as R
+    arm, k, seed, _t, path = list(R.needy_worlds("tuning"))[0]
+    w, observers, _scr = R.load_needy(path, arm, k, seed, "tuning")
+    return w, observers, np.load(path)
+
+
+def g2():
+    """online head inference reproduces offline: on a recorded needy tuning world the OnlineHeads' per-tick y0
+    probabilities equal train_act.probs_from_x's (state from zero at the world's start) to 1e-6 on every live row;
+    the frequency prior replaces the eleven probabilities and summaries exactly on SILENT rows; ticks-since-live is
+    0 on a live tick and follows (tick − last live) / 40 clamped to 1 after."""
+    import heads_online as HO
+    import train_act as TA
+    from count_strata import friend_row
+    w, observers, _z = _tuning_world()
+    T, n = w["ticks"], len(observers)
+    obs = np.asarray(w["obs"][:, observers], np.float32)                         # (T, n, 399)
+    heads = HO.OnlineHeads("act15", n)
+    cells = np.stack([heads.step(obs[t]) for t in range(T)])                      # (T, n, 4, 14)
+    import data_act as D
+    import read_act as R
+    pairs, X, _ys, _states, _cls = R.world_inputs(w, observers, w["scripted"][0])   # the needy loader's pair_x, every (k, j)
+    off = TA.probs_from_x(heads.head, X)[:, :, 0, :]                               # (T, n_pairs, 11)
+    worst = 0.0
+    for pi, (k, j) in enumerate(pairs):
+        i, r = observers.index(k), friend_row(k, j)
+        st = D.row_state(X[:, pi])
+        live = st != D.SILENT
+        d = np.abs(cells[live, i, r, :11] - off[live, pi]).max() if live.any() else 0.0
+        worst = max(worst, float(d))
+        assert np.array_equal(cells[~live, i, r, :13], np.broadcast_to(heads.prior_cells, ((~live).sum(), 13))), "silent rows do not carry the prior"
+        assert np.all(cells[live, i, r, 13] == 0.0), "ticks-since-live not 0 on a live tick"
+        tsl = cells[:, i, r, 13]
+        last = -1
+        for t in range(T):
+            if live[t]:
+                last = t
+            else:
+                want = 1.0 if last < 0 else min(1.0, (t - last) / 40.0)
+                assert abs(tsl[t] - want) < 1e-6, f"ticks-since-live at t={t}: {tsl[t]} want {want}"
+    assert worst < 1e-6, f"online y0 differs from offline by {worst}"
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]
