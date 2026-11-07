@@ -782,6 +782,23 @@ consent BC comparison ride the trunk.
   the B10 comparator is OPEN — recommendation sent, her ruling next.
   Deviations entry 22.
 
+  RULED 2026-11-06, later the same day (on the seeds / arms
+  recommendation: 3 paired PPO seeds per arm, graft s1 / s2 / s4, the
+  bar the trunk's 3-seed envelope; a no-head continuation anchor in
+  place of the needs-only arm), her words verbatim: "You're right, I
+  hadn't considered we lose needs only head as a comparison point for
+  welfare, let's include it after all. Seeds as recommended". Read as:
+  the needs-only arm RETURNS — NF1e-h24+p frozen as that arm's one
+  head, kept for the welfare comparison it affords (a pessimistic needs
+  input, GATE FAIL on record, read against the trunk under the welfare
+  rule); the gate verdict stands as a finding, §5's Phase 1f
+  consequence stays closed by her choice; the earlier reading "Phase 2
+  without a needs head" is superseded on the arm, not on the gate.
+  Seeds RULED: 3 paired per arm, none extra. OPEN: whether the no-head
+  continuation anchor also stays (four arms, 12 covered seeds) or the
+  roster is B15 / B10 / needs-only (nine) — put to her. Deviations entry
+  22 rewritten.
+
 ## Flagged follow-ups (owner's word to start)
 
 - Relief just beyond vision (owner 2026-10-21: "Let's flag this for a

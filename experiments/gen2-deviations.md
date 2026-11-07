@@ -1158,19 +1158,28 @@ after the first run (7b7459f2, e1ed7605), rows equal.
 `minifriend-phase2-gate-2026-11-05/RESULTS.md`. The consequence (§5: a
 Phase 1f composition arm on the needs head) is hers.
 
-## 22. Phase 2 without a needs head (2026-11-06)
-Deviation from the frozen prereg's Phase 2 framing (the Phase 1 needs
-head as the live arm's input; F-072 / F-073 named NF1e-h24+p the Phase 2
-candidate): the entry gate (entry 21) FAILED on NF1e-h24+p and the owner
-ruled, 2026-11-06, verbatim: "We can skip the needs head based on this
-result." Phase 2 proceeds with the act head B15 as its only mini input
-(B10 the comparator), no Phase 1f composition arm, the needs head and
-its grave probability out of the policy's inputs. Consequences carried
-into the Phase 2 declaration: the "needs-only anchor" arm she named on
-2026-11-05 ("three arms") no longer exists as described — its replacement
-(a no-head continuation anchor, or two arms) is her call; the consumer
-read "harm-prediction beats trunk" was aimed at the grave channel and is
-re-aimed or dropped in the declaration; the ticks-since-seen cell and
-the act head's eleven probabilities, top-prob and entropy at T = 1 stay.
-The frozen text is not edited; this entry is the record. Status: OPEN
-until the Phase 2 declaration carries it.
+## 22. Phase 2 carries the needs head past a gate FAIL (2026-11-06)
+Deviation from the Phase 2 entry gate's own §5 (a FAIL on the needs head
+→ a Phase 1f composition arm before Phase 2 enters on it) and from the
+frozen prereg's Phase 2 framing (the Phase 1 needs head as the live
+arm's input; F-072 / F-073 named NF1e-h24+p the Phase 2 candidate). The
+gate (entry 21) FAILED on NF1e-h24+p. The owner ruled twice on
+2026-11-06, verbatim: first "We can skip the needs head based on this
+result." (read as Phase 2 with the act head B15 as its only mini input,
+no Phase 1f arm, the needs-only anchor arm gone); then, on the
+recommendation to replace that anchor with a no-head continuation arm,
+"You're right, I hadn't considered we lose needs only head as a
+comparison point for welfare, let's include it after all. Seeds as
+recommended". Standing reading: the needs-only arm RETURNS with
+NF1e-h24+p frozen as its one head, carried as a welfare comparison
+point — a pessimistic needs input (grave bias −3.17 need points, 3 of 5
+friends) read against the trunk under the asymmetric welfare rule, not
+as a head that passed. No Phase 1f composition arm; the gate verdict
+stands as a finding; the frozen head is not retrained. Consequences
+carried into the Phase 2 declaration: the consumer read "harm-prediction
+beats trunk" (grave channel) applies to the needs-only arm only; the
+welfare-cost line names the known-pessimistic input on that arm's
+seeds; seeds 3 paired per arm (graft s1 / s2 / s4), none extra; whether
+the no-head continuation anchor also stays is OPEN with her. The frozen
+text is not edited; this entry is the record. Status: OPEN until the
+Phase 2 declaration carries it.
