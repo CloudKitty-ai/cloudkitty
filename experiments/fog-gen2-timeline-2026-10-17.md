@@ -898,6 +898,14 @@ consent BC comparison ride the trunk.
   categories; (5) the edge statistic from unrounded rows is 0.327 (the
   declared 0.326 is the bar). OPEN: her word for the three scouts
   (step 3) and for the trunk re-record.
+  RULED 2026-11-07, her words verbatim: "All three as recommended." —
+  (1) the staleness cell stays as declared (inert on silent rows; no
+  deviation); (2) the trunk uniform legs g2-s1 / s2 / s4 re-run with
+  act recording at 20×20 first (R-2 / R-3's trunk side; 9M covered
+  cat-ticks, trunk minds; the roster-bar perm legs, ruled call 10, run
+  beside them, 6M); (3) THE THREE SCOUTS LAUNCH (step 3; call 7's second
+  word): p2-act15-s1 / p2-act10-s1 / p2-nohead-s1 via run_arm.sh. The
+  battery (step 5) waits on her third word.
 
 ## Flagged follow-ups (owner's word to start)
 

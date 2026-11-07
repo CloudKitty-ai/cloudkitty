@@ -22,9 +22,14 @@ row reproduced exactly); step 2 DONE 2026-11-06 (graft.py,
 heads_online.py, train_ppo_p2.py, the harness `p2` seat with act
 recording, replay.py, read_r1 / r2 / r4 / r5, train_r6; `test_phase2.py`
 g0–g10 green; reds on record in §9's table and `results-raw/reds/`). The
-scouts (step 3) and the battery (step 5) each wait on her word; the
 "Instrument note 2026-11-06" paragraphs in §3, §4, §6 record what
-building the instrument showed — none changes a frozen rule.**
+building the instrument showed — none changes a frozen rule. **RULED
+2026-11-07, her words "All three as recommended."**: the staleness cell
+stays as declared (inert on silent rows; no deviation); the trunk
+uniform legs are re-run with act recording at 20×20 first (R-2 / R-3's
+trunk side, 9M covered cat-ticks, trunk minds); the three scouts LAUNCH
+(step 3; call 7's second word). The battery (step 5) still waits on her
+third word.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -272,7 +277,8 @@ No slot, no seed, no covered mind; §1 and §8.2 carry the reason.
   rows only, which is where the head carries information. Making the
   staleness cell live would mean appending it to the self token — a
   change to the declared graft, hers to rule as a deviation if she wants
-  it; the instrument as built follows the text.
+  it; the instrument as built follows the text. RULED 2026-11-07 ("All
+  three as recommended."): as declared, no deviation.
 - **No B20 / B30 arm.** Her ladder ruling superseded the "B20 as a
   registered prediction" item: the ladder closed concave with no knee
   (41ec2ca4) and B15 is the pick; "We can extend to 20,30 if we see real
@@ -449,7 +455,10 @@ on recorded rows).
   showed reproduces the recorded rows exactly — 9M covered cat-ticks per
   size (trunk minds), 27M at all three sizes, NOT in the welfare-cost
   line above; her word, recommended at 20×20 first (the size the
-  predictions are written at). R-5 needs no trunk leg (the trunk seed is
+  predictions are written at). RULED 2026-11-07 ("All three as
+  recommended."): the 20×20 trunk uniform legs re-run first (9M covered
+  cat-ticks added to the welfare-cost line's total); 40 / 100 on a
+  further word. R-5 needs no trunk leg (the trunk seed is
   run counterfactually on the arm's observations).
   (a) **harm-prediction = the attributable outcome read** (§9.12):
   relief latency for a friend's GRAVE episode (first tick in GRAVE → first
@@ -808,7 +817,9 @@ false-run figures, which stay on record for Phase 1f.
    arms, stop investigation). `override()` unused (nothing branches).
 7. **Her word to declare**, then to launch (step 3), then to run the
    battery (step 5) — three words, as the gate had. First word GIVEN
-   2026-11-06: "Do it" (DECLARED). Second and third open.
+   2026-11-06: "Do it" (DECLARED). Second word GIVEN 2026-11-07: "All
+   three as recommended." (the scouts launch; with it the trunk-leg
+   re-record at 20×20 and the staleness cell as declared). Third open.
 8. **The needs arm under the demotion trigger** (§8.2 collision; the
    Professor's shapes (i) / (ii) / (iii)). RULED 2026-11-06: "Iii drop
    the arm" — shape (iii); three arms, nine covered seeds; the needs
