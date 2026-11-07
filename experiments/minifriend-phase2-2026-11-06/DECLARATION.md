@@ -50,7 +50,13 @@ finished clean (plateau, u4882 / 15,000,576 ticks, 15:14:52Z; entry 25
 CLOSED). P43 NOT MET on either act scout (F-074 top-1 under 0.60 at 67
 of 84 / 61 of 70 probes; logged, never an input). No seed launches
 without her word; her same-day arm-set question (a needs+act stacked
-arm) is open beside entry 26.**
+arm) is open beside entry 26.** **RULED 2026-11-07, her word "iii"
+(after "I think I misunderstood our architecture here. I want us to
+ensure we test models fed by both needs+act heads (and just act
+heads)"): the arm set STANDS as declared — no needs head in any Phase 2
+arm; the needs head is fixed first (Phase 1f, the teacher-composition
+retrain) and a needs+act stacked arm follows it, both a new declaration
+on her word. Entry 26 and the six seeds' launch word stay open.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

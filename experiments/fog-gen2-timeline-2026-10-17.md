@@ -973,6 +973,12 @@ consent BC comparison ride the trunk.
   NOT MET on both act scouts (F-074 top-1 < 0.60 at most probes;
   logged only). Six seeds wait on her word; her same-day arm-set
   question (needs+act stacked arm beside act-only) open with entry 26.
+  RULED 2026-11-07, her word verbatim: "iii" (the shapes put: the
+  stacked arm armed as written / its trigger suspended / Phase 1f
+  first) — the Phase 2 arm set STANDS (three arms, no needs head in
+  any); Phase 1f (teacher-composition retrain of the needs head) then
+  a needs+act stacked arm, each a new declaration on her word. Still
+  open: entry 26 (a/b/c) and the launch word for the six seeds.
 
 ## Flagged follow-ups (owner's word to start)
 

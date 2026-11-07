@@ -1490,7 +1490,15 @@ run as a halted arm — the comparator then rests on s2 / s4, and §8.1's
 replication valve ("the same sign in all three paired seeds") cannot be
 met as written, a deviation to rule. Her same-day arm-set question
 (a needs+act stacked arm beside the act-only arms) bears on all three:
-a ruling on this entry and on the arm set go together. Recommendation:
+a ruling on this entry and on the arm set go together. [RULED
+2026-11-07, her word verbatim: "iii" — of the three shapes put (armed
+as written / the trigger suspended for that arm / Phase 1f first): the
+Phase 2 arm set STANDS as declared (three arms, no needs head in any
+arm; no deviation to §3); the needs head is fixed first — Phase 1f, the
+teacher-composition retrain named by the gate's §5 and the Phase 1e
+diagnostics — and a needs+act stacked arm follows it, both a new
+declaration on her word. This entry's options are unchanged by it.]
+Recommendation:
 (a), entry 25's and the trunk's precedent, noting that this trip came
 past the floor on a recurring world, so the replacement's own probes on
 40,002 are the recurrence read. Welfare cost, stated: the halted run
@@ -1529,5 +1537,6 @@ p2-reds-diag26.log`): the stop probe pointed at the clean probe before
 it (u3499 → u3449) → `streak did not reproduce: 0 vs recorded 378`,
 CONFIRMED, baseline == restored.
 
-Status: OPEN — awaits her word (with the arm-set question).
+Status: OPEN — awaits her word on (a) / (b) / (c); the arm-set question
+RULED "iii" the same day (the arm set stands).
 
