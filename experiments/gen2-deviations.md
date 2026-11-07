@@ -1273,3 +1273,131 @@ READ the halted run as a halted arm (no nohead-s1 row in the battery;
 the no-head baseline then rests on s2 / s4). Recommendation: (a), the
 trunk precedent. Status: OPEN — awaits her word.
 
+RULED, owner 2026-11-07, verbatim: "A, and let's analyze the behavioral
+pattern that caused the distress streak. Does it match our previously
+identified failure patterns?" — (a) REPLACE. Replacement slot
+`p2-nohead-s1r`: the same trunk-s1 graft (init a22b8713…), PPO run index
+116, stripe 2,420,000,000–2,439,999,999 claimed in `SEED-BANDS.md`
+before first burn, the arm-seed ↔ trunk-seed pairing unchanged, recipe
+and binding identical to the declared scouts (β 0.04 from step 0, floor
+8,002,560, arc venv on 226509ec, wheel e260cd28…), the frozen asymmetric
+stops armed. The halted run's weights are never resumed: the trainer
+refuses the halted slot by name (`train_ppo_p2.refuse_halted`), its
+artifacts stay on disk as this entry's record, and the harness seats the
+replacement in `p2u-nohead-s1` and `p2r-nohead` (guard g10 covers the
+ten slots, the widened band and the seating). nohead s2 / s4 stay HELD
+until the replacement scout finishes clean (the declaration's
+scouts-first). Mid-run edit, stated: `train_ppo_p2.py` (a table row, the
+band bound, the refusal) and the harness seating were edited while
+act15-s1 / act10-s1 train; the running processes hold the module as
+loaded at 07395819, neither slot's row changed, so a `--resume` loads
+identical behaviour — the entry-3 precedent (a959c05e added trunk-s4
+while s1 / s2 ran). Welfare-cost line: one more covered run of up to 20M
+ticks (plateau rule after the 8,002,560 floor), five covered minds,
+under the frozen stops; benefit: the no-head baseline keeps its three
+paired seeds, the comparison the declaration prices.
+
+INVESTIGATION (her word above; `diag_nohead_s1.py` → `reads/diag-
+nohead-s1.json` / `.md`; ZERO collection and ZERO regeneration — the v6
+self block carries each kitty's own engine distress flags
+(`SELF_DISTRESS`), so the streak localises from the halted run's own
+probe dump without re-exposing the halted policy; the entry-3 read
+regenerated instead):
+
+- WHERE: probe world 40001, kitty_3 (Pumpkin's seat), ticks 873–1235 —
+  363 ticks, reproduced exactly from the own flags; per world
+  [363, 0, 0] = the stop's record; nash at the stop 0.8923.
+- WHAT: a SINGLE-need collapse. Eat was flagged on all 363 ticks (90.6 at
+  the first flagged tick, pinned at 100 from about tick 900 to the end);
+  drink joined for the last 48; sleep, play, cuddle and bath were never
+  flagged. Happiness min 48.6 (GRAVE by need, not by the 45 line).
+- MENU, not choice: eat was legal on ONE tick of the 363 — tick 1235,
+  the last; she proposed eat, ate, and the streak ended. Mean legal acts
+  4.79 (entry 3's s3: 11.7). Chow was in sight on 1.1% of the window's
+  ticks and in her element memory on 1.1% — on the same world and the
+  same ticks it was in memory 61–86% at u349 / u299 / u199 and 69% on
+  trunk-s1's final probe, where eat was legal on 28–34 ticks. She
+  proposed a move 21 times in 363 ticks (46 in the 173 ticks before);
+  she heard here_food from the other rows on 24–50% of the window's
+  ticks and did not go.
+- WHAT SHE DID: play_solo 252 of 363 proposals (69%), sleep_with_kitty_3
+  40, play_critter_0 40; applied class play on 292 ticks (80%); activity
+  idle 180 / playing 146 / sleeping 35; partnered 8.8%; the other rows
+  mostly absent (present 0 / 0 / 0.09 / 0.38). Messages: silent 316,
+  want_eat 32, want_bath 10. The other four cats ate 12–17 ticks each in
+  the same window with eat needs 9–16 and happiness minima 78–85: the
+  world had food; one cat lost it.
+- DRIFT (whole probe, 3 worlds × 2,000 ticks × 5): from the parent
+  trunk-s1 final to nohead u349 to u399 the solo share rose 0.292 →
+  0.357 → 0.398 and the partner share fell 0.416 → 0.331 → 0.289;
+  eat-when-legal rose 0.299 → 0.341 → 0.378 (the arm eats when it can).
+  The act scouts at u399 read solo 0.308 / 0.392 and partner 0.402 /
+  0.320 (act15 / act10), at u599 0.370 / 0.356 and 0.345 / 0.352 — the
+  solitary drift belongs to the continuation recipe, not to the no-head
+  arm.
+- MATCH to the record: (1) entry 3 (trunk-s3) — NO on shape: that was
+  four needs critical at once and partner play chosen from a rich menu
+  (11.7 legal); this is one need and solo play from a collapsed menu
+  with food out of sight and memory. YES on the one ingredient entry 3
+  named: play as the attractor under distress (there partner play, here
+  solo), the need whose distress carries no value penalty. (2) F-027 /
+  F-060 co-sleep locks — NO: alone, 8.8% partnered, no other seat
+  touched. (3) F-044's Pumpkin "pacing-search" shape (eat and drink at
+  100, a two-step dither with chow IN VIEW) — the seat and the needs
+  match, the chow does not: here it is out of sight and out of memory
+  and the search stopped. A lost-food shape, not a pacing one. (4) The
+  trunk's trip record (s3 / s5 / s8 / s11, each inside 1M ticks, one
+  world and one kitty each) — the timing (1.23M ticks) and the one-
+  world-one-kitty footprint match; only s3's shape was ever read.
+- READING: a one-trajectory event in a deterministic probe — the drifted
+  greedy policy took Pumpkin on world 40001 into a stretch with no chow
+  in sight, kept no memory of it, parked in solo play while hearing
+  here_food, and ate at the first legal tick. Not a roster lock, not
+  multi-need, not a size displacement. It bears on the replacement only
+  as the trunk record did: this recipe trips early on some seeds, a
+  fresh episode stream from the same init is the declared remedy, and
+  the replacement's own probes answer whether it recurs.
+
+### Read (entry 25; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = json.load(open("experiments/minifriend-phase2-2026-11-06/reads/diag-nohead-s1.json"))
+loc = d["located"]
+assert (loc["seed"], loc["kitty"], loc["name"]) == (40001, 3, "Pumpkin")
+assert loc["span"] == [873, 1235] and loc["streak"] == 363
+assert loc["recorded"] == [363, 0, 0]
+w = d["behaviour"]["window"]
+assert w["flag_ticks_by_kind"] == {"eat": 363, "drink": 48, "sleep": 0, "play": 0, "cuddle": 0, "bath": 0}
+assert w["eat_legal_ticks"] == [1235] and w["mean_legal_acts"] == 4.79
+assert w["act_hist"]["play_solo"] == 252 and w["applied_class_hist"]["play"] == 292
+assert w["memory_present_share"]["chow"] == 0.011 and w["chow_visible_share"] == 0.011
+assert w["moves_proposed"] == 21 and w["hap_min"] == 48.6
+c = d["contrast_same_kitty_world_window"]
+assert [c[k]["eat_legal_ticks"] for k in ("probe-u349", "probe-u299", "probe-u199", "trunk-s1 probe-u2599")] == [34, 33, 31, 28]
+s = d["whole_probe_shares"]
+assert (s["trunk-s1 probe-u2599"]["solo"], s["trunk-s1 probe-u2599"]["partner"]) == (0.292, 0.416)
+assert (s["p2-nohead-s1 probe-u399"]["solo"], s["p2-nohead-s1 probe-u399"]["partner"]) == (0.398, 0.289)
+print("entry-25 fence: all cells match")
+EOF2
+```
+
+LAUNCHED 2026-11-07T08:49:07Z: `run_arm.sh p2-nohead-s1r` at HEAD
+9d374fb4 (pid 13868; manifest: run_index 116, seed_base 2,420,000,000,
+stripe 2,420,000,000–2,439,999,999, init sha256 a22b8713… = trunk-s1's
+final, engine 226509ec). Guards for the change, red on record
+(`results-raw/reds/p2-reds-g10-{idx,seat,halted}.log`,
+`p2-reds-diag25.log`): g10 with the replacement's index set to 113
+(`[…, 113, 113, …]`), with the harness seating pointed at a seed-9
+slot (`p2u-nohead-s1` falls back to the halted slot), with the halted
+table emptied (`{}`); the diagnosis with its flag threshold moved to
+1.5 (`streak did not reproduce: 0 vs recorded 363`) — all CONFIRMED,
+baseline == restored. The `refuse_halted` wiring in `main` is green-
+only evidence (the halted slot exits with the refusal before any
+artifact is touched); a red for it would run a mutant trainer on the
+halted weights, which this entry declines.
+
+Status: entry CLOSES at p2-nohead-s1r's clean completion (stop_reason
+plateau / cap) or reopens to her on its own stop.
+

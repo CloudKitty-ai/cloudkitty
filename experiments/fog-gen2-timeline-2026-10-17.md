@@ -937,6 +937,26 @@ consent BC comparison ride the trunk.
   halted; recommendation replace, the trunk precedent). act15-s1 /
   act10-s1 still training (u449: streak 0; act15's y0 top-1 0.595 →
   F-074 monitor flag logged, not a stop; act10 0.612).
+  RULED 2026-11-07, her word verbatim: "A, and let's analyze the
+  behavioral pattern that caused the distress streak. Does it match
+  our previously identified failure patterns?" — REPLACE: slot
+  `p2-nohead-s1r`, the same trunk-s1 graft under run index 116, band
+  row 2,420,000,000–2,439,999,999 claimed before first burn; the halted
+  run never resumed (the trainer refuses it), seated nowhere; nohead
+  s2 / s4 still HELD until the replacement scout finishes clean. The
+  streak read dump-only (`diag_nohead_s1.py`, zero regeneration): world
+  40001, Pumpkin's seat, ticks 873–1235, ONE need (eat 363 ticks, drink
+  the last 48), chow out of sight and out of memory (1.1% of ticks vs
+  61–86% at the same ticks on the three earlier probes), eat legal on
+  one tick (the last; she ate), solo play 69% of proposals from a
+  4.8-action menu while hearing here_food; the other four cats ate
+  normally. Not entry 3's multi-need partner-play shape (rich menu, a
+  choice); not an F-027 / F-060 co-sleep lock; shares entry 3's one
+  ingredient (play as the attractor under distress) and F-044's seat
+  and needs but not its chow-in-view. The solitary drift (solo 0.29 →
+  0.40, partner 0.42 → 0.29 over 1.2M ticks) is the continuation
+  recipe's, the act scouts show it too. Replacement launched (anchor
+  job card).
 
 ## Flagged follow-ups (owner's word to start)
 

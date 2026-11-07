@@ -32,7 +32,15 @@ trunk side, 9M covered cat-ticks, trunk minds); the three scouts LAUNCH
 third word. **2026-11-07 ~08:10Z: scout p2-nohead-s1 HALTED by the
 frozen probe-distress stop at 1,228,800 ticks (probe 40,001 streak
 363); checkpointed, owner-routed, nohead s2 / s4 held; deviations entry
-25 OPEN on her word. act15-s1 and act10-s1 still training.****
+25 OPEN on her word. act15-s1 and act10-s1 still training. RULED
+2026-11-07, her word "A": REPLACE — slot `p2-nohead-s1r`, the same
+trunk-s1 graft under run index 116 (band row 2,420,000,000–
+2,439,999,999 claimed before first burn), the halted run never resumed
+and seated nowhere; the streak read dump-only (`diag_nohead_s1.py`,
+entry 25: one need, eat, food out of sight and memory, solo play from a
+collapsed menu — not entry 3's multi-need partner-play shape, not a
+co-sleep lock). nohead s2 / s4 stay held until the replacement scout
+finishes clean.****
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -382,6 +390,9 @@ is the trunk's three-seed envelope, which extra arm seeds would not move.
   not reserved: nohead takes 113–115). Probes reuse 40,001–3; the battery
   reuses g2cmp 905001–905030 by the prereg's pairing design (no new
   burn). Torch / numpy seeds `20261018 + run_index` as the trainer does.
+  [Entry 25, owner 2026-11-07 "A": nohead s1 is the replacement run
+  `p2-nohead-s1r`, index 116, band row 2,420,000,000–2,439,999,999; the
+  halted index-113 run is the entry record, never resumed.]
 - **Passive log** (prereg §8.4 "ships in Phase 2 PASSIVE-LOGGED only"):
   at every probe the head's per-friend prediction loss on the probe
   streams (act CE y0; the act arms are the only head arms) and its
@@ -751,6 +762,8 @@ green; the prediction written before each run):**
 | g8 | silent rows binned; the trunk shown a scaled observation | `silent rows must not be binned`; `diverges from its trunk on the same observation` | CONFIRMED (both) |
 | g9 | log opened `a+`; a `read_text()` of the log | `the passive log is write-only`; `the trainer reads its own log` | CONFIRMED (both) |
 | g10 | a slot at run index 116; the wrong head seed named | `[107, …, 116]`; `median-validation B15 seed is s2, not the named s1` | CONFIRMED (both) |
+| g10 (entry 25, 2026-11-07: ten slots, band to 2,439,999,999, the replacement seated) | the replacement at index 113; the seating pointed at a seed-9 slot; the halted table emptied | `[…, 113, 113, …]`; `['p2:p2-nohead-s1', …]`; `AssertionError: {}` | CONFIRMED (all three) |
+| diag_nohead_s1 (entry 25's read) | the own-flag threshold moved 0.5 → 1.5 | `streak did not reproduce: 0 vs recorded 363` | CONFIRMED |
 
 ## 10. Blind spots (declared)
 

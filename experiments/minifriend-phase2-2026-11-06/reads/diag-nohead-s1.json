@@ -1,0 +1,560 @@
+{
+ "run": "/Users/elizabethkelly/ai/cloudkitty/experiments/minifriend-phase2-2026-11-06/artifacts/p2-nohead-s1",
+ "stop_probe": "probe-u399",
+ "located": {
+  "seed": 40001,
+  "kitty": 3,
+  "name": "Pumpkin",
+  "streak": 363,
+  "span": [
+   873,
+   1235
+  ],
+  "per_seed_max_streak": {
+   "40001": 363,
+   "40002": 0,
+   "40003": 0
+  },
+  "recorded": [
+   363,
+   0,
+   0
+  ],
+  "nash_at_stop": 0.8923150668608432
+ },
+ "behaviour": {
+  "window": {
+   "ticks": 363,
+   "flag_ticks_by_kind": {
+    "eat": 363,
+    "drink": 48,
+    "sleep": 0,
+    "play": 0,
+    "cuddle": 0,
+    "bath": 0
+   },
+   "needs_mean": {
+    "eat": 99.8,
+    "drink": 52.8,
+    "sleep": 22.1,
+    "play": 0.8,
+    "cuddle": 14.6,
+    "bath": 14.2
+   },
+   "needs_at_start": {
+    "eat": 90.6,
+    "drink": 30.8,
+    "sleep": 16.0,
+    "play": 0.4,
+    "cuddle": 9.6,
+    "bath": 8.7
+   },
+   "needs_at_end": {
+    "eat": 100.0,
+    "drink": 66.0,
+    "sleep": 39.6,
+    "play": 1.2,
+    "cuddle": 45.0,
+    "bath": 15.0
+   },
+   "act_hist": {
+    "play_solo": 252,
+    "sleep_with_kitty_3": 40,
+    "play_critter_0": 40,
+    "move_north": 6,
+    "move_west": 6,
+    "move_south": 5,
+    "move_east": 4,
+    "sleep_solo": 3,
+    "drink": 3,
+    "chase_kitty_3": 2,
+    "eat": 1,
+    "play_kitty_3": 1
+   },
+   "msg_hist": {
+    "silent": 316,
+    "want_eat": 32,
+    "want_bath": 10,
+    "here_sunbeam": 2,
+    "here_food": 1,
+    "here_water": 1,
+    "here_critter": 1
+   },
+   "activity_hist": {
+    "idle": 180,
+    "playing": 146,
+    "sleeping": 35,
+    "drinking": 2
+   },
+   "mean_legal_acts": 4.79,
+   "eat_legal_ticks": [
+    1235
+   ],
+   "drink_legal_share": 0.011,
+   "moves_legal_mean": 1.0,
+   "play_solo_legal_share": 0.846,
+   "eat_proposed": 1,
+   "eat_proposed_when_legal": 1,
+   "moves_proposed": 21,
+   "wall_vector_changes": 22,
+   "partnered_share": 0.088,
+   "memory_present_share": {
+    "water": 1.0,
+    "chow": 0.011,
+    "bug": 0.435,
+    "greeble": 0.0,
+    "sunbeam": 1.0
+   },
+   "chow_visible_share": 0.011,
+   "here_food_heard_share_per_row": [
+    0.24,
+    0.325,
+    0.488,
+    0.496
+   ],
+   "kitty_rows_present_share": [
+    0.0,
+    0.0,
+    0.094,
+    0.38
+   ],
+   "hap_min": 48.6,
+   "hap_mean": 61.7,
+   "applied_class_hist": {
+    "play": 292,
+    "sleep": 42,
+    "move": 21,
+    "drink": 3,
+    "chase": 2,
+    "idle": 2,
+    "eat": 1
+   }
+  },
+  "pre": {
+   "ticks": 173,
+   "flag_ticks_by_kind": {
+    "eat": 0,
+    "drink": 0,
+    "sleep": 0,
+    "play": 0,
+    "cuddle": 0,
+    "bath": 0
+   },
+   "needs_mean": {
+    "eat": 42.5,
+    "drink": 15.6,
+    "sleep": 8.5,
+    "play": 3.4,
+    "cuddle": 6.3,
+    "bath": 4.8
+   },
+   "needs_at_start": {
+    "eat": 18.0,
+    "drink": 10.8,
+    "sleep": 0.6,
+    "play": 0.4,
+    "cuddle": 8.0,
+    "bath": 1.2
+   },
+   "needs_at_end": {
+    "eat": 90.0,
+    "drink": 30.4,
+    "sleep": 15.8,
+    "play": 0.4,
+    "cuddle": 9.2,
+    "bath": 8.6
+   },
+   "act_hist": {
+    "play_solo": 28,
+    "play_critter_0": 25,
+    "rest_with_kitty_2": 18,
+    "move_north": 14,
+    "play_kitty_1": 14,
+    "move_east": 13,
+    "move_west": 13,
+    "sleep_with_kitty_3": 12,
+    "chase_critter_0": 10,
+    "move_south": 6,
+    "sleep_with_kitty_1": 6,
+    "groom_self": 4,
+    "drink": 4,
+    "play_kitty_2": 3,
+    "eat": 1,
+    "chase_kitty_3": 1,
+    "idle": 1
+   },
+   "msg_hist": {
+    "silent": 138,
+    "want_eat": 12,
+    "here_sunbeam": 10,
+    "here_water": 6,
+    "here_critter": 5,
+    "here_food": 2
+   },
+   "activity_hist": {
+    "idle": 101,
+    "playing": 36,
+    "resting": 16,
+    "sleeping": 15,
+    "grooming": 3,
+    "drinking": 2
+   },
+   "mean_legal_acts": 8.05,
+   "eat_legal_ticks": [
+    722
+   ],
+   "drink_legal_share": 0.035,
+   "moves_legal_mean": 1.68,
+   "play_solo_legal_share": 0.728,
+   "eat_proposed": 1,
+   "eat_proposed_when_legal": 1,
+   "moves_proposed": 46,
+   "wall_vector_changes": 54,
+   "partnered_share": 0.22,
+   "memory_present_share": {
+    "water": 1.0,
+    "chow": 0.133,
+    "bug": 0.717,
+    "greeble": 0.0,
+    "sunbeam": 1.0
+   },
+   "chow_visible_share": 0.133,
+   "here_food_heard_share_per_row": [
+    0.457,
+    0.243,
+    0.318,
+    0.439
+   ],
+   "kitty_rows_present_share": [
+    0.0,
+    0.543,
+    0.335,
+    0.694
+   ],
+   "hap_min": 70.8,
+   "hap_mean": 84.9,
+   "applied_class_hist": {
+    "play": 67,
+    "move": 46,
+    "rest": 18,
+    "sleep": 18,
+    "chase": 10,
+    "idle": 5,
+    "groom": 4,
+    "drink": 4,
+    "eat": 1
+   }
+  },
+  "post": {
+   "ticks": 165,
+   "flag_ticks_by_kind": {
+    "eat": 0,
+    "drink": 0,
+    "sleep": 0,
+    "play": 0,
+    "cuddle": 0,
+    "bath": 0
+   },
+   "needs_mean": {
+    "eat": 15.4,
+    "drink": 11.3,
+    "sleep": 12.0,
+    "play": 3.6,
+    "cuddle": 11.4,
+    "bath": 10.8
+   },
+   "needs_at_start": {
+    "eat": 65.6,
+    "drink": 66.4,
+    "sleep": 39.8,
+    "play": 1.6,
+    "cuddle": 45.4,
+    "bath": 15.1
+   },
+   "needs_at_end": {
+    "eat": 10.8,
+    "drink": 8.8,
+    "sleep": 8.8,
+    "play": 1.2,
+    "cuddle": 16.4,
+    "bath": 8.8
+   },
+   "act_hist": {
+    "play_critter_0": 20,
+    "chase_critter_0": 18,
+    "move_south": 13,
+    "sleep_solo": 13,
+    "sleep_with_kitty_0": 12,
+    "play_solo": 12,
+    "drink": 10,
+    "sleep_with_kitty_2": 9,
+    "groom_self": 8,
+    "move_west": 7,
+    "eat": 7,
+    "move_east": 6,
+    "rest_with_kitty_0": 6,
+    "rest_with_kitty_3": 4,
+    "chase_kitty_2": 4,
+    "chase_critter_1": 3,
+    "play_kitty_0": 3,
+    "rest_solo": 2,
+    "chase_kitty_1": 2,
+    "play_kitty_1": 2,
+    "rest_with_kitty_2": 1,
+    "groom_kitty_2": 1,
+    "chase_kitty_0": 1,
+    "play_kitty_2": 1
+   },
+   "msg_hist": {
+    "silent": 113,
+    "here_sunbeam": 15,
+    "here_water": 11,
+    "here_food": 7,
+    "here_critter": 6,
+    "want_eat": 4,
+    "want_bath": 3,
+    "want_sleep": 3,
+    "want_cuddle": 2,
+    "want_drink": 1
+   },
+   "activity_hist": {
+    "idle": 88,
+    "sleeping": 29,
+    "playing": 22,
+    "resting": 11,
+    "grooming": 6,
+    "drinking": 5,
+    "eating": 4
+   },
+   "mean_legal_acts": 8.19,
+   "eat_legal_ticks": [
+    1236,
+    1237,
+    1238,
+    1239,
+    1240,
+    1276,
+    1277,
+    1278,
+    1341,
+    1381,
+    1382,
+    1383
+   ],
+   "drink_legal_share": 0.255,
+   "moves_legal_mean": 2.18,
+   "play_solo_legal_share": 0.648,
+   "eat_proposed": 7,
+   "eat_proposed_when_legal": 7,
+   "moves_proposed": 26,
+   "wall_vector_changes": 53,
+   "partnered_share": 0.17,
+   "memory_present_share": {
+    "water": 1.0,
+    "chow": 0.648,
+    "bug": 0.818,
+    "greeble": 0.406,
+    "sunbeam": 1.0
+   },
+   "chow_visible_share": 0.473,
+   "here_food_heard_share_per_row": [
+    0.297,
+    0.303,
+    0.188,
+    0.0
+   ],
+   "kitty_rows_present_share": [
+    0.382,
+    0.273,
+    0.582,
+    0.352
+   ],
+   "hap_min": 58.3,
+   "hap_mean": 89.0,
+   "applied_class_hist": {
+    "play": 38,
+    "sleep": 33,
+    "chase": 28,
+    "move": 25,
+    "rest": 12,
+    "drink": 10,
+    "groom": 8,
+    "eat": 7,
+    "idle": 4
+   }
+  }
+ },
+ "others_in_window": {
+  "Miso": {
+   "applied_eat_ticks": 12,
+   "eat_need_mean": 13.1,
+   "hap_min": 83.8
+  },
+  "Biscuit": {
+   "applied_eat_ticks": 15,
+   "eat_need_mean": 9.0,
+   "hap_min": 85.2
+  },
+  "Kittybear": {
+   "applied_eat_ticks": 17,
+   "eat_need_mean": 15.5,
+   "hap_min": 78.3
+  },
+  "Clementine": {
+   "applied_eat_ticks": 12,
+   "eat_need_mean": 16.3,
+   "hap_min": 81.5
+  }
+ },
+ "contrast_same_kitty_world_window": {
+  "probe-u349": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_critter_0": 44,
+    "play_kitty_2": 31,
+    "rest_with_kitty_2": 24,
+    "play_kitty_1": 22,
+    "play_kitty_3": 22,
+    "play_solo": 20,
+    "groom_self": 18,
+    "drink": 18
+   },
+   "mean_legal_acts": 9.0,
+   "eat_legal_ticks": 34,
+   "chow_memory_present_share": 0.609,
+   "partnered_share": 0.273
+  },
+  "probe-u299": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_critter_0": 73,
+    "play_kitty_0": 26,
+    "move_east": 25,
+    "chase_critter_0": 24,
+    "groom_self": 20,
+    "sleep_solo": 19,
+    "rest_with_kitty_0": 18,
+    "move_west": 16
+   },
+   "mean_legal_acts": 8.66,
+   "eat_legal_ticks": 33,
+   "chow_memory_present_share": 0.862,
+   "partnered_share": 0.187
+  },
+  "probe-u199": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "rest_with_kitty_3": 56,
+    "play_solo": 40,
+    "play_kitty_3": 38,
+    "play_critter_0": 37,
+    "move_west": 20,
+    "chase_critter_0": 20,
+    "move_east": 16,
+    "groom_self": 16
+   },
+   "mean_legal_acts": 8.36,
+   "eat_legal_ticks": 31,
+   "chow_memory_present_share": 0.647,
+   "partnered_share": 0.262
+  },
+  "trunk-s1 probe-u2599": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_solo": 49,
+    "move_west": 32,
+    "rest_with_kitty_3": 31,
+    "move_east": 29,
+    "play_critter_0": 29,
+    "move_north": 28,
+    "move_south": 22,
+    "play_kitty_2": 18
+   },
+   "mean_legal_acts": 9.45,
+   "eat_legal_ticks": 28,
+   "chow_memory_present_share": 0.689,
+   "partnered_share": 0.218
+  }
+ },
+ "whole_probe_shares": {
+  "trunk-s1 probe-u2599": {
+   "play_solo": 0.09,
+   "solo": 0.292,
+   "partner": 0.416,
+   "eat": 0.021,
+   "eat_when_legal": 0.299,
+   "eat_legal": 0.072,
+   "moves": 0.175,
+   "mean_legal": 8.7
+  },
+  "p2-nohead-s1 probe-u349": {
+   "play_solo": 0.087,
+   "solo": 0.357,
+   "partner": 0.331,
+   "eat": 0.026,
+   "eat_when_legal": 0.341,
+   "eat_legal": 0.076,
+   "moves": 0.165,
+   "mean_legal": 8.07
+  },
+  "p2-nohead-s1 probe-u399": {
+   "play_solo": 0.122,
+   "solo": 0.398,
+   "partner": 0.289,
+   "eat": 0.027,
+   "eat_when_legal": 0.378,
+   "eat_legal": 0.073,
+   "moves": 0.161,
+   "mean_legal": 7.47
+  },
+  "p2-act15-s1 probe-u399": {
+   "play_solo": 0.086,
+   "solo": 0.308,
+   "partner": 0.402,
+   "eat": 0.026,
+   "eat_when_legal": 0.362,
+   "eat_legal": 0.073,
+   "moves": 0.157,
+   "mean_legal": 8.0
+  },
+  "p2-act15-s1 probe-u599": {
+   "play_solo": 0.09,
+   "solo": 0.37,
+   "partner": 0.345,
+   "eat": 0.028,
+   "eat_when_legal": 0.364,
+   "eat_legal": 0.078,
+   "moves": 0.149,
+   "mean_legal": 7.78
+  },
+  "p2-act10-s1 probe-u399": {
+   "play_solo": 0.153,
+   "solo": 0.392,
+   "partner": 0.32,
+   "eat": 0.027,
+   "eat_when_legal": 0.363,
+   "eat_legal": 0.075,
+   "moves": 0.159,
+   "mean_legal": 7.56
+  },
+  "p2-act10-s1 probe-u599": {
+   "play_solo": 0.064,
+   "solo": 0.356,
+   "partner": 0.352,
+   "eat": 0.026,
+   "eat_when_legal": 0.379,
+   "eat_legal": 0.068,
+   "moves": 0.151,
+   "mean_legal": 7.84
+  }
+ },
+ "method": "dump-only: own distress flags (SELF_DISTRESS) localise the streak; no regeneration, no collection"
+}
