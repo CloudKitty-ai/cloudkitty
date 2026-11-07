@@ -57,6 +57,20 @@ heads)"): the arm set STANDS as declared — no needs head in any Phase 2
 arm; the needs head is fixed first (Phase 1f, the teacher-composition
 retrain) and a needs+act stacked arm follows it, both a new declaration
 on her word. Entry 26 and the six seeds' launch word stay open.**
+**SUPERSEDED the same day — RULED 2026-11-07, her word "Yes, let's
+supersede iii and go this route" (after "Does it make more sense to do
+some small-scale canary runs with the head as is and evaluate the
+welfare impact of our predictors, and evaluate whether we need to
+tighten up the needs head based on that?"): deviations entry 27 — a
+FOURTH arm `both` (B15-s2 act cells ++ NF1e-h24-s2+p needs cells, C =
+22) on the trunk s1 / s2 / s4 grafts, run indices 117–119 (band row
+2,440,000,000–2,499,999,999 claimed), the needs head's §8.4 ostrich-
+shape trigger a READ for that arm (shape (ii); the three welfare stops
+and the act trigger armed as written), scouts-first: p2-both-s1 alone on
+her launch word, s2 / s4 after its read. P45–P47 and the reading grammar
+pinned in the entry. Built, g0a–g11 green, six reds CONFIRMED
+(8cdcde6e). NOT LAUNCHED: awaits her launch word, which confirms the
+pins.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -275,6 +289,14 @@ against trunk-s_k on the same worlds.
 Dropped 2026-11-06 ("Iii drop the arm"): **needs** (`p2-needs-s{1,2,4}`,
 NF1e-h24-s2+p, the seven estimates + P(grave) + ticks-since-live, C = 9).
 No slot, no seed, no covered mind; §1 and §8.2 carry the reason.
+[Entry 27, owner 2026-11-07 "Yes, let's supersede iii and go this
+route": a FOURTH arm **both** — `p2-both-s{1,2,4}`, heads B15-s2 AND
+NF1e-h24-s2+p, cells = the act15 cells (13) ++ the needs head's seven
+estimates and P(grave) (8) ++ ticks-since-live, **C = 22**; run indices
+117–119; scouts-first, s1 alone on her launch word. The needs head is
+the dropped arm's, carried STACKED beside the act head as a canary; its
+trigger is a read for this arm (§8.2 bracket). The text above is the
+frozen declaration; the entry is the record.]
 
 - **Act cells when the row is silent** (her ruling 2026-11-04, P25's
   amended consequence): the frequency prior — the training set's y0
@@ -630,6 +652,14 @@ on recorded rows).
   line). The leash (β 0.04 to the trunk anchor) and the small marginal
   information keep the arms' act distributions near the trunk's, so the
   labels the heads were trained on drift little.
+- [Entry 27, 2026-11-07, before any canary number: **P45** the needs
+  read on `both-s1`'s own rollouts shows the SIGNATURE at the first
+  sufficient stratum on the legs and INSUFFICIENT at most probes, the
+  per-probe grave bias in sight holding near the gate's −3.17 within its
+  SD; **P46** both-s1 vs act15-s1 paired team happiness at 20×20 inside
+  the envelope (|Δ| ≤ 0.326), a null; **P47** R-2a on both-s1 not
+  DEGRADED against trunk-s1 (+25% p90). The entry carries the grounds
+  and the reading grammar.]
 - **P44.** R-5 shows the WITHIN-regime half on act15 and act10: inside
   each regime, divergence from the trunk larger in the low-entropy
   tercile than the high. The cross-regime ordering is a READ, not a
@@ -692,6 +722,20 @@ any arm at the gated sizes (the trunk's s2 had one).
    1f. The trigger now stands as written on the two act arms, where the
    gate read no optimism-direction signature (every grave mean negative,
    no lift over 1.09), with no shape to choose.
+   [Entry 27, owner 2026-11-07 "Yes, let's supersede iii and go this
+   route": on the canary arm `both` the trigger's shape is read on the
+   NEEDS head (signed bias, optimism direction, lift 1.5, min-n 200,
+   cumulative and per probe, `needs_trigger` / `needs_bias_probe`) and
+   LOGGED — shape (ii): its halt / revert consequence is suspended for
+   that arm's needs component, the evidence half kept; the ACT trigger
+   on B15 and the §6 stops stay armed as written. A stop known in
+   advance to fire (the gate's lift 43.8 on tens of thousands of rows)
+   is a veto, not evidence; the harm detectors remain. The text above is
+   the frozen declaration; the entry is the record. Rule 3 below is
+   unchanged in letter: no needs head DECIDES anything in this arc — the
+   canary's needs cells are an INPUT to a policy whose welfare is read,
+   and whether a needs head ever feeds anything that acts LIVE stays her
+   ruling.]
 3. **The no-head arm decides nothing.** It is read under the welfare
    rule's columns and the consumer reads as the baseline in every table.
    Whether a needs head ever feeds anything that acts is a new ruling
@@ -781,6 +825,10 @@ green; the prediction written before each run):**
 | g10 (entry 25, 2026-11-07: ten slots, band to 2,439,999,999, the replacement seated) | the replacement at index 113; the seating pointed at a seed-9 slot; the halted table emptied | `[…, 113, 113, …]`; `['p2:p2-nohead-s1', …]`; `AssertionError: {}` | CONFIRMED (all three) |
 | diag_nohead_s1 (entry 25's read) | the own-flag threshold moved 0.5 → 1.5 | `streak did not reproduce: 0 vs recorded 363` | CONFIRMED |
 | diag_act10_s1 (entry 26's localisation) | the stop probe pointed at the clean probe before it (u3499 → u3449) | `streak did not reproduce: 0 vs recorded 378` | CONFIRMED |
+| g2 (entry 27: the `both` arm's needs cells) | the needs head's non-linearity swapped (relu → tanh) | `online needs cells differ from the Phase 1e reader's by 1.217` | CONFIRMED |
+| g10 (entry 27: 13 slots, band to 2,499,999,999, `both` seated) | both-s2 at index 117; the `both` arm dropped from the uniform seatings | `[…, 117, 117, 119]`; `KeyError: 'p2u-both-s1'` | CONFIRMED (both) |
+| g11 (entry 27: the needs read never a stop; canary smoke) | needs_eval's direction flipped (grave > 0); probe_reason consulting the needs signature; the cumulative accumulator detached | `{'signature': False, …}`; `a needs SIGNATURE stopped the run`; `the cumulative read is smaller than one probe's` | CONFIRMED (all three) |
+| g5 (found red at entry 27) | — its smoke slot was the HALTED `p2-nohead-s1`, refused since 9d374fb4; moved to `p2-nohead-s2` | (the refusal text) | fixed, green; stated in entry 27 |
 
 ## 10. Blind spots (declared)
 

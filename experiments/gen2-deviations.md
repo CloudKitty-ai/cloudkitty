@@ -1194,7 +1194,11 @@ composition arm now; the frozen head is not retrained. The deviation
 this entry was opened for (a failed head carried into a live arm) no
 longer occurs. The frozen text is not edited; this entry is the record.
 Status: CLOSED 2026-11-06 by the Phase 2 declaration (owner "Do it";
-entry 23 item (c) carries the record).
+entry 23 item (c) carries the record). REOPENED 2026-11-07 under entry
+27 (owner "Yes, let's supersede iii and go this route"): the failed
+head is carried into a live arm after all — stacked beside the act head
+in the canary arm `both`, scouts-first, its trigger a read; entry 27 is
+the record and this entry closes with it.
 
 ## 23. Phase 2 arm spec (2026-11-06)
 
@@ -1497,7 +1501,10 @@ Phase 2 arm set STANDS as declared (three arms, no needs head in any
 arm; no deviation to §3); the needs head is fixed first — Phase 1f, the
 teacher-composition retrain named by the gate's §5 and the Phase 1e
 diagnostics — and a needs+act stacked arm follows it, both a new
-declaration on her word. This entry's options are unchanged by it.]
+declaration on her word. This entry's options are unchanged by it.
+SUPERSEDED the same day by her "Yes, let's supersede iii and go this
+route" — entry 27: the needs head is carried as-is, stacked beside the
+act head in a fourth canary arm `both`, its trigger a read.]
 Recommendation:
 (a), entry 25's and the trunk's precedent, noting that this trip came
 past the floor on a recurring world, so the replacement's own probes on
@@ -1538,5 +1545,184 @@ it (u3499 → u3449) → `streak did not reproduce: 0 vs recorded 378`,
 CONFIRMED, baseline == restored.
 
 Status: OPEN — awaits her word on (a) / (b) / (c); the arm-set question
-RULED "iii" the same day (the arm set stands).
+RULED "iii" the same day, then SUPERSEDED by entry 27 (a fourth canary
+arm `both`; the three declared arms stand beside it).
 
+
+## 27. Phase 2 canary arm `both`: the needs head carried as a stacked input beside the act head, its ostrich-shape trigger a read (2026-11-07)
+
+Deviations, each on her word: (a) from the frozen Phase 2 §3 (three
+arms) — a FOURTH arm, `both`; (b) from the prereg §8.4 trigger's
+PROTECTION half for this arm's NEEDS component only — the demotion /
+stop consequence is suspended, the EVIDENCE half kept (the shape is
+read at every probe and on the legs; a signature still points at the
+correction follow-up, Phase 1f): the Professor's shape (ii) of
+2026-11-06, which she declined then and chooses now for a canary; (c)
+from the entry gate's §5 consequence (a FAIL on the needs head → Phase
+1f before Phase 2 enters on it) — entry 22's deviation RECURS (a head
+that failed the gate carried into a live arm) and is carried HERE; (d)
+from her own ruling "iii" earlier the same day (recorded in entry 26,
+the declaration status line and the timeline), superseded by her word
+below. The frozen texts are not edited; this entry is the record.
+
+Her words, verbatim and in order (2026-11-07): "I think I misunderstood
+our architecture here. I want us to ensure we test models fed by both
+needs+act heads (and just act heads)"; the three shapes put (the stacked
+arm armed as written / its trigger suspended by deviation / Phase 1f
+first), "iii"; then: "Before we do that, let's think this through. The
+relative level of optimism isn't too severe, especially given the way
+we are seeing preemptive intervention as cats start drifting towards
+grave (our false positives that weren't actually false positives). Does
+it make more sense to do some small-scale canary runs with the head as
+is and evaluate the welfare impact of our predictors, and evaluate
+whether we need to tighten up the needs head based on that? What do you
+think?"; the thread's answer (agree, with the shape made explicit: a
+canary with the head as-is is shape (ii) against the prereg's §8.4
+protection, the harm stops stay armed, shape (i) is a veto known in
+advance to fire, the cheapest honest vehicle is a fourth Phase 2 arm
+scouts-first, and the reading grammar is pinned before the burn); her
+ruling: **"Yes, let's supersede iii and go this route"**.
+
+Grounds she gave and the record behind them: the gate's FAIL (entry 21)
+was a calibration-shape test, not a welfare price — R-2 measured the
+estimates' bias (grave −3.17 need points in sight, common +0.07; the
+gate's own RESULTS say the 43.8 lift overstates the shape because the
+common bias sits near zero), and no read anywhere has priced what a
+policy FED this head does for a grave friend; her rule of 2026-11-02
+(judge on welfare impact; a false-run bound is never a selector or bar);
+F-073 / Phase 1e D1: the probe's covered "false" runs are three quarters
+approach-or-grave by runs, nine tenths by ticks — early firing on a cat
+drifting toward grave. The bundle the policy sees carries that
+early-firing P(grave) and the low-biased estimates; which it leans on is
+learned, and a frozen head's systematic offset is the kind of error PPO
+can learn around, which the open-loop gate under the frozen trunk could
+not. The canary is the test of that.
+
+The arm (DECLARATION §3's table gains a row): **both** — slots
+`p2-both-s{1,2,4}`, heads B15-s2 (act; the gate PASS, her pick) and
+NF1e-h24-s2+p (needs; the median-validation retrained head, s1 0.005988
+/ s2 0.006000 / s3 0.006434, named before training; store sha256
+0ca9ccb4… head-best.pt, 00e533b7… probe.pt), cells appended per friend
+row = the act15 cells (eleven y0 probabilities at T = 1, top-prob,
+normalised entropy; 13) ++ the needs head's seven estimates (five hidden
+needs, happiness, bath on its own 0–1 scale, out(z)[:7]) and P(grave)
+(sigmoid(probe(z))) (8) ++ ticks-since-live (1), **C = 22**; the act
+cells first so every act-head reader is unchanged. The needs head runs
+every tick on the same x_t (self block ++ friend row) with its own GRU
+state from zero at each episode start, as Phase 1e's reader does; no
+prior stands in on a silent row (the cells are inert there by the
+trunk's padding, §3's instrument note). Graft, recipe, budget, floor,
+plateau rule, β, probes and the three welfare stops exactly §4's. Run
+indices 117 / 118 / 119, band row 2,440,000,000–2,499,999,999 claimed in
+`SEED-BANDS.md` before any burn. Pairing: both-s_k is grafted from
+trunk-s_k and reads against trunk-s_k, nohead-s_k and act15-s_k on the
+same worlds — the act15 pair is the needs head's MARGINAL contribution,
+the question she asked. Harness seatings `p2u-both-s{k}` (uniform) and
+`p2r-both` (roster-shaped, descriptive per entry 24).
+
+Scouts-first, sharpened for a canary: `p2-both-s1` alone, on her launch
+word; s2 / s4 launch only on a further word after the scout finishes
+clean AND its 20×20 uniform leg and the reads below are in front of her.
+Stops on the canary: the frozen three (distress streak 300 / F-053 /
+nash) armed as written; the §8.2 ACT trigger armed as written on B15
+(the gate read no signature on it); the NEEDS read — the §8.4 shape on
+the needs head's signed bias (predicted − true hidden needs, need
+points, mean of five; negative = read less needy than she is, the gate's
+convention), per friend × stratum × version, lift 1.5, min-n 200,
+cumulative over the run (`needs_trigger`) and per probe
+(`needs_bias_probe`) — LOGGED at every probe, states INSUFFICIENT /
+CLEAR / SIGNATURE, and NEVER a stop (`train_ppo_p2.probe_reason`
+consults the §6 stops and the act trigger only; the manifest's
+`stops.needs_trigger.consequence` says "READ ONLY"). Why (ii) and not
+(i), on the record: the gate measured the signature at n in the tens of
+thousands, so as a stop it carries no information about THIS run, only a
+veto; the detectors of harm stay armed, and a grave friend's own
+300-tick streak halts the run whichever policy failed her.
+
+Pinned before the burn (her word with the launch confirms or amends
+them; nothing here is a selector — every consequence is hers):
+- **P45.** The needs read on the canary's own rollouts shows the
+  SIGNATURE at the first sufficient stratum on the legs (the gate's
+  reading of the frozen head; lived GRAVE is thin at the probes, so
+  INSUFFICIENT at most probes, as P42 said of the act arms). The lived
+  question is not whether the shape is there but the per-probe grave
+  bias trajectory in sight: does training on the arm's own rollouts
+  leave the head's input offset where the gate read it (−3.17) — a
+  frozen head cannot move, so the number should hold within its SD; a
+  drift would mean the arm's rollouts changed the grave population the
+  head sees.
+- **P46.** both-s1's paired team happiness against act15-s1 at 20×20
+  (R-1a, the 30 g2cmp worlds) is inside the envelope, |Δ| ≤ 0.326 — a
+  null. Grounds: the head's marginal information over the act cells and
+  the visible row is small; its errors are a few need points.
+- **P47.** R-2a on both-s1 is not DEGRADED against trunk-s1 (other-
+  relief p90 within +25% in every stratum with n ≥ 200), the arm's
+  policy having the friend's row and the act cells beside the needs
+  cells.
+- **The reading grammar (not a rule; the columns she reads):** (1) R-1a
+  paired team happiness, both-s1 vs act15-s1 and vs trunk-s1; (2) R-2a
+  (HELD / DEGRADED / BEATS) and R-2b (approach propensity grave-over-
+  benign) on both-s1 beside act15-s1; (3) the needs read's trajectory
+  (cumulative state and per-probe grave bias in sight over the run; on
+  the legs as R-4 extended to the needs head). Proposed consequences,
+  hers: DEGRADED on R-2a, or welfare below act15-s1 beyond the envelope
+  → the head goes to Phase 1f (tightened) before any further covered
+  mind trains on it, s2 / s4 do not launch; HELD inside the envelope,
+  the signature present → the canary says the policy absorbs the offset,
+  s2 / s4 on her word; BEATS → s2 / s4 on her word and the marginal
+  question is live. One seed clears nothing under the welfare rule
+  (three-seed valve); a one-seed read is harm, null, or signal.
+
+Welfare-cost line (practice, owner 2026-09-26). Covered minds: ONE more
+PPO seed first (both-s1), a covered mind warm-started from trunk-s1 on
+the served 20×20 with the frozen asymmetric stops armed; at the trunk's
+plateau length ≈ 8–15M world-ticks × 5 covered seats = 40–75M covered
+cat-ticks (the 20M cap bounds it at 100M), probes ≈ 19M per 8M trained,
+its 20×20 uniform leg 3M (30 worlds × 20k × 5 seats); s2 / s4 the same
+again each if she launches them. What is new in kind: the input is a
+head the gate read as under-reading a grave friend in sight by 3.17
+need points; a policy fed it may attend LESS to a grave friend. The
+armed stops catch the friend's own distress (her streak halts the run)
+but not neglect short of it, which shows only in R-2a after the scout
+has trained — that part of the cost is paid before it is read; scouts-
+first (one seed) is the mitigation, and the per-seed trip risk the
+recipe has shown (two of three scouts, heads uninvolved) applies.
+Nothing here seats a policy live.
+
+Instrument (`heads_online.py` ARMS["both"], `load_needs`, `needs_cells`;
+`train_ppo_p2.py` SLOTS 117–119, `new_needs_acc` / `needs_accumulate` /
+`needs_eval` / `probe_reason`, the probe's needs read and the manifest's
+`needs_head` + `stops.needs_trigger`; `cert_harness_fog.py` seatings;
+`run_arm.sh`). Guards: g2 extended (online needs cells equal the Phase
+1e reader's whole-sequence pass — read_1e.load_head_e's model and probe
+on the same pair_x — to 1e-6 on EVERY tick; the stack leaves the act
+cells and ticks-since-live bit-identical to act15's); g10 (13 slots at
+107–119, band 2,240,000,000–2,499,999,999, `both` seated in both
+seatings, the needs head named = the median-validation NF1e seed); g11
+new (needs_eval reads the gate's own figures as a SIGNATURE, a positive
+grave bias as CLEAR, under-min-n as INSUFFICIENT; probe_reason ignores a
+needs SIGNATURE while the act trigger, the distress stop and the welfare
+stop still halt; a smoke run of p2-both-s1 trains on 22 cells, logs the
+needs read at every probe with the cumulative equal to the sum of the
+probes, records the needs head's sha, finishes at the cap naming the
+arm). g0a–g11 green at 8cdcde6e. **Found here, stated:** g5's smoke
+slot was `p2-nohead-s1`, which the trainer refuses since entry 25
+(9d374fb4) — g5 had been RED since then and was not re-run at entries
+25 / 26; its smoke now uses the unlaunched `p2-nohead-s2` (scratch
+out-dir, `--smoke`), green. Reds for the change (predicted first,
+`results-raw/reds/p2-reds-{g2-needs,g10-idx27,g10-seat27,g11-direction,
+g11-stop,g11-cumulative}.log`): the needs head's
+non-linearity swapped (relu → tanh in `needs_cells`) → `online needs cells
+differ from the Phase 1e reader's by 1.217`; both-s2 at index 117 →
+`[…, 117, 117, 119]`; the `both` arm dropped from the uniform seatings →
+`KeyError: 'p2u-both-s1'`; needs_eval's direction flipped (grave > 0) →
+`{'signature': False, …}` on the gate's figures; probe_reason made to
+consult the needs signature → `a needs SIGNATURE stopped the run`; the
+cumulative accumulator detached → `the cumulative read is smaller than
+one probe's` — all six CONFIRMED, baseline == restored.
+
+Status: OPEN. The arm is built, guarded and red-confirmed; `p2-both-s1`
+LAUNCHES only on her word, which also confirms or amends the pins
+above. Entry 22 is REOPENED under this entry (its deviation recurs by
+her ruling); entry 26 (act10-s1) and the launch word for act15 /
+nohead s2 / s4 remain open beside it.

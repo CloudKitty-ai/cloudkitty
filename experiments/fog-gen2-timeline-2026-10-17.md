@@ -979,6 +979,22 @@ consent BC comparison ride the trunk.
   any); Phase 1f (teacher-composition retrain of the needs head) then
   a needs+act stacked arm, each a new declaration on her word. Still
   open: entry 26 (a/b/c) and the launch word for the six seeds.
+  SUPERSEDED the same day — her question: "Does it make more sense to
+  do some small-scale canary runs with the head as is and evaluate the
+  welfare impact of our predictors, and evaluate whether we need to
+  tighten up the needs head based on that?"; the thread agreed with the
+  shape made explicit (shape (ii) against the prereg §8.4 protection,
+  the harm stops armed, a fourth Phase 2 arm scouts-first, the reading
+  grammar pinned before the burn); RULED, her word verbatim: "Yes,
+  let's supersede iii and go this route" — deviations entry 27: canary
+  arm `both` (B15-s2 act cells ++ NF1e-h24-s2+p needs cells, C = 22),
+  slots p2-both-s1/s2/s4 at run indices 117–119 (band row claimed),
+  seated p2u-both-s{k} / p2r-both; the needs head's ostrich-shape read
+  logged at every probe, NEVER a stop; P45–P47 + reading grammar in the
+  entry; entry 22 reopened under it. Built and guarded (g0a–g11 green,
+  six reds CONFIRMED; g5 found red since 9d374fb4 and fixed) at
+  8cdcde6e. NOT LAUNCHED: p2-both-s1 waits on her launch word (which
+  confirms the pins); entry 26 and act15 / nohead s2 / s4 still open.
 
 ## Flagged follow-ups (owner's word to start)
 
