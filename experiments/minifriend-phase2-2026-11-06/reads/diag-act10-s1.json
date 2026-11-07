@@ -1,0 +1,479 @@
+{
+ "run": "/Users/elizabethkelly/ai/cloudkitty/experiments/minifriend-phase2-2026-11-06/artifacts/p2-act10-s1",
+ "stop_probe": "probe-u3499",
+ "located": {
+  "seed": 40002,
+  "kitty": 3,
+  "name": "Pumpkin",
+  "streak": 378,
+  "span": [
+   777,
+   1154
+  ],
+  "per_seed_max_streak": {
+   "40001": 0,
+   "40002": 378,
+   "40003": 0
+  },
+  "recorded": [
+   0,
+   378,
+   0
+  ],
+  "nash_at_stop": 0.8884154621155886,
+  "all_streaks_this_world": {
+   "Miso": 0,
+   "Biscuit": 0,
+   "Pumpkin": 378,
+   "Kittybear": 0,
+   "Clementine": 0
+  }
+ },
+ "nonzero_streak_history": [
+  {
+   "update": 199,
+   "ticks": 614400,
+   "per_seed": [
+    24,
+    0,
+    0
+   ]
+  },
+  {
+   "update": 2599,
+   "ticks": 7987200,
+   "per_seed": [
+    0,
+    80,
+    0
+   ]
+  },
+  {
+   "update": 2799,
+   "ticks": 8601600,
+   "per_seed": [
+    0,
+    48,
+    0
+   ]
+  },
+  {
+   "update": 2899,
+   "ticks": 8908800,
+   "per_seed": [
+    0,
+    224,
+    0
+   ]
+  },
+  {
+   "update": 3499,
+   "ticks": 10752000,
+   "per_seed": [
+    0,
+    378,
+    0
+   ]
+  }
+ ],
+ "behaviour": {
+  "window": {
+   "ticks": 378,
+   "flag_ticks_by_kind": {
+    "eat": 336,
+    "drink": 0,
+    "sleep": 0,
+    "play": 0,
+    "cuddle": 218,
+    "bath": 0
+   },
+   "needs_mean": {
+    "eat": 90.2,
+    "drink": 30.6,
+    "sleep": 40.4,
+    "play": 5.6,
+    "cuddle": 81.8,
+    "bath": 30.5
+   },
+   "needs_at_start": {
+    "eat": 90.6,
+    "drink": 24.4,
+    "sleep": 18.0,
+    "play": 10.8,
+    "cuddle": 26.0,
+    "bath": 16.7
+   },
+   "needs_at_end": {
+    "eat": 24.0,
+    "drink": 4.0,
+    "sleep": 4.2,
+    "play": 31.6,
+    "cuddle": 92.2,
+    "bath": 7.1
+   },
+   "act_hist": {
+    "play_solo": 201,
+    "move_south": 61,
+    "move_north": 53,
+    "sleep_solo": 19,
+    "move_west": 17,
+    "play_critter_0": 8,
+    "drink": 6,
+    "rest_with_kitty_3": 5,
+    "groom_self": 4,
+    "eat": 3,
+    "move_east": 1
+   },
+   "msg_hist": {
+    "silent": 303,
+    "want_eat": 33,
+    "want_bath": 31,
+    "want_cuddle": 4,
+    "here_water": 3,
+    "here_sunbeam": 3,
+    "here_food": 1
+   },
+   "activity_hist": {
+    "idle": 243,
+    "playing": 105,
+    "sleeping": 18,
+    "resting": 4,
+    "drinking": 3,
+    "grooming": 3,
+    "eating": 2
+   },
+   "mean_legal_acts": 5.54,
+   "eat_legal_ticks": [
+    1112,
+    1113,
+    1114,
+    1115,
+    1119
+   ],
+   "drink_legal_share": 0.053,
+   "moves_legal_mean": 1.72,
+   "play_solo_legal_share": 0.934,
+   "eat_proposed": 3,
+   "eat_proposed_when_legal": 3,
+   "moves_proposed": 132,
+   "wall_vector_changes": 131,
+   "partnered_share": 0.011,
+   "memory_present_share": {
+    "water": 1.0,
+    "chow": 0.124,
+    "bug": 0.0,
+    "greeble": 0.087,
+    "sunbeam": 1.0
+   },
+   "chow_visible_share": 0.093,
+   "here_food_heard_share_per_row": [
+    0.077,
+    0.156,
+    0.082,
+    0.246
+   ],
+   "kitty_rows_present_share": [
+    0.003,
+    0.032,
+    0.011,
+    0.021
+   ],
+   "hap_min": 36.8,
+   "hap_mean": 52.1,
+   "applied_class_hist": {
+    "play": 209,
+    "move": 131,
+    "sleep": 19,
+    "drink": 6,
+    "rest": 5,
+    "groom": 4,
+    "eat": 3,
+    "idle": 1
+   }
+  },
+  "pre": {
+   "ticks": 170,
+   "flag_ticks_by_kind": {
+    "eat": 0,
+    "drink": 0,
+    "sleep": 0,
+    "play": 0,
+    "cuddle": 0,
+    "bath": 0
+   },
+   "needs_mean": {
+    "eat": 40.8,
+    "drink": 8.7,
+    "sleep": 14.0,
+    "play": 5.0,
+    "cuddle": 13.8,
+    "bath": 8.2
+   },
+   "needs_at_start": {
+    "eat": 1.8,
+    "drink": 3.2,
+    "sleep": 12.8,
+    "play": 0.4,
+    "cuddle": 11.3,
+    "bath": 15.4
+   },
+   "needs_at_end": {
+    "eat": 90.0,
+    "drink": 24.0,
+    "sleep": 17.8,
+    "play": 10.4,
+    "cuddle": 25.6,
+    "bath": 16.6
+   },
+   "act_hist": {
+    "play_solo": 40,
+    "move_east": 30,
+    "move_north": 23,
+    "move_south": 16,
+    "move_west": 14,
+    "drink": 8,
+    "chase_kitty_2": 7,
+    "rest_with_kitty_1": 6,
+    "rest_with_kitty_2": 6,
+    "sleep_solo": 6,
+    "rest_solo": 4,
+    "groom_self": 4,
+    "rest_with_kitty_0": 2,
+    "eat": 2,
+    "chase_kitty_0": 1,
+    "play_kitty_2": 1
+   },
+   "msg_hist": {
+    "silent": 140,
+    "want_eat": 9,
+    "here_water": 7,
+    "here_food": 6,
+    "here_sunbeam": 4,
+    "want_cuddle": 3,
+    "want_sleep": 1
+   },
+   "activity_hist": {
+    "idle": 120,
+    "playing": 20,
+    "resting": 17,
+    "sleeping": 5,
+    "drinking": 4,
+    "grooming": 3,
+    "eating": 1
+   },
+   "mean_legal_acts": 7.24,
+   "eat_legal_ticks": [
+    607,
+    611,
+    613,
+    615,
+    617,
+    619,
+    621,
+    623,
+    625,
+    626,
+    627,
+    629,
+    631,
+    633,
+    635,
+    637,
+    639,
+    641,
+    643,
+    645,
+    647,
+    649,
+    651
+   ],
+   "drink_legal_share": 0.176,
+   "moves_legal_mean": 2.35,
+   "play_solo_legal_share": 0.835,
+   "eat_proposed": 2,
+   "eat_proposed_when_legal": 2,
+   "moves_proposed": 83,
+   "wall_vector_changes": 89,
+   "partnered_share": 0.065,
+   "memory_present_share": {
+    "water": 1.0,
+    "chow": 0.376,
+    "bug": 0.282,
+    "greeble": 0.0,
+    "sunbeam": 1.0
+   },
+   "chow_visible_share": 0.3,
+   "here_food_heard_share_per_row": [
+    0.0,
+    0.0,
+    0.353,
+    0.271
+   ],
+   "kitty_rows_present_share": [
+    0.212,
+    0.229,
+    0.212,
+    0.165
+   ],
+   "hap_min": 66.6,
+   "hap_mean": 83.9,
+   "applied_class_hist": {
+    "move": 82,
+    "play": 40,
+    "rest": 19,
+    "drink": 8,
+    "chase": 8,
+    "sleep": 6,
+    "groom": 4,
+    "eat": 2,
+    "idle": 1
+   }
+  }
+ },
+ "others_in_window": {
+  "Miso": {
+   "applied_eat_ticks": 8,
+   "applied_drink_ticks": 14,
+   "eat_need_mean": 13.1,
+   "hap_min": 77.9
+  },
+  "Biscuit": {
+   "applied_eat_ticks": 11,
+   "applied_drink_ticks": 28,
+   "eat_need_mean": 13.6,
+   "hap_min": 79.9
+  },
+  "Kittybear": {
+   "applied_eat_ticks": 8,
+   "applied_drink_ticks": 12,
+   "eat_need_mean": 14.9,
+   "hap_min": 83.1
+  },
+  "Clementine": {
+   "applied_eat_ticks": 18,
+   "applied_drink_ticks": 20,
+   "eat_need_mean": 14.8,
+   "hap_min": 83.4
+  }
+ },
+ "contrast_same_kitty_world_window": {
+  "probe-u3449": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_critter_0": 57,
+    "rest_with_kitty_3": 38,
+    "move_west": 35,
+    "chase_critter_0": 30,
+    "move_south": 29,
+    "play_solo": 28,
+    "eat": 18,
+    "drink": 18
+   },
+   "mean_legal_acts": 8.49,
+   "eat_legal_ticks": 46,
+   "chow_memory_present_share": 0.651,
+   "kitty_rows_present_share": [
+    0.127,
+    0.119,
+    0.656,
+    0.579
+   ],
+   "partnered_share": 0.151
+  },
+  "probe-u3399": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_critter_0": 55,
+    "chase_critter_0": 41,
+    "play_solo": 39,
+    "move_west": 30,
+    "rest_with_kitty_0": 30,
+    "groom_self": 20,
+    "drink": 20,
+    "move_east": 19
+   },
+   "mean_legal_acts": 8.17,
+   "eat_legal_ticks": 26,
+   "chow_memory_present_share": 0.728,
+   "kitty_rows_present_share": [
+    0.566,
+    0.13,
+    0.04,
+    0.508
+   ],
+   "partnered_share": 0.169
+  },
+  "probe-u3299": {
+   "flagged_ticks_world": 0,
+   "longest_run_world": 0,
+   "flag_ticks_in_window": {},
+   "act_hist_top8": {
+    "play_critter_0": 62,
+    "play_solo": 38,
+    "rest_with_kitty_3": 35,
+    "chase_critter_0": 30,
+    "move_east": 24,
+    "move_west": 24,
+    "move_south": 22,
+    "play_kitty_3": 20
+   },
+   "mean_legal_acts": 7.71,
+   "eat_legal_ticks": 40,
+   "chow_memory_present_share": 0.706,
+   "kitty_rows_present_share": [
+    0.0,
+    0.143,
+    0.275,
+    0.582
+   ],
+   "partnered_share": 0.23
+  }
+ },
+ "whole_probe_shares": {
+  "probe-u399": {
+   "play_solo": 0.153,
+   "solo": 0.392,
+   "partner": 0.32,
+   "eat": 0.027,
+   "eat_when_legal": 0.363,
+   "eat_legal": 0.075,
+   "moves": 0.159,
+   "mean_legal": 7.56
+  },
+  "probe-u1999": {
+   "play_solo": 0.099,
+   "solo": 0.364,
+   "partner": 0.341,
+   "eat": 0.029,
+   "eat_when_legal": 0.406,
+   "eat_legal": 0.071,
+   "moves": 0.149,
+   "mean_legal": 7.93
+  },
+  "probe-u3449": {
+   "play_solo": 0.098,
+   "solo": 0.363,
+   "partner": 0.337,
+   "eat": 0.028,
+   "eat_when_legal": 0.388,
+   "eat_legal": 0.071,
+   "moves": 0.151,
+   "mean_legal": 7.63
+  },
+  "probe-u3499": {
+   "play_solo": 0.131,
+   "solo": 0.359,
+   "partner": 0.359,
+   "eat": 0.026,
+   "eat_when_legal": 0.338,
+   "eat_legal": 0.076,
+   "moves": 0.157,
+   "mean_legal": 7.51
+  }
+ },
+ "method": "dump-only via diag_nohead_s1.localise / window_read (entry 25's instrument); no regeneration, no collection"
+}
