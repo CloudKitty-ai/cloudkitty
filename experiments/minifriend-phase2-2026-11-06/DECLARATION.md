@@ -29,7 +29,10 @@ stays as declared (inert on silent rows; no deviation); the trunk
 uniform legs are re-run with act recording at 20×20 first (R-2 / R-3's
 trunk side, 9M covered cat-ticks, trunk minds); the three scouts LAUNCH
 (step 3; call 7's second word). The battery (step 5) still waits on her
-third word.**
+third word. **2026-11-07 ~08:10Z: scout p2-nohead-s1 HALTED by the
+frozen probe-distress stop at 1,228,800 ticks (probe 40,001 streak
+363); checkpointed, owner-routed, nohead s2 / s4 held; deviations entry
+25 OPEN on her word. act15-s1 and act10-s1 still training.****
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

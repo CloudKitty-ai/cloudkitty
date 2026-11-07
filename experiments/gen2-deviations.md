@@ -1245,3 +1245,31 @@ measurement they are (read_r1 reports 0.011 as `edge.roster/20`,
 labelled seat-assignment noise). The frozen text is not edited; this
 entry is the record. Status: OPEN while the arc runs; CLOSED at RESULTS.
 
+## 25. Phase 2 scout p2-nohead-s1 halted by the frozen probe-distress stop (2026-11-07)
+
+The frozen §6 stop (prereg; Phase 2 DECLARATION §4 "Stops, verbatim and
+asymmetric": a training-probe distress streak ≥ 300 halts the run,
+checkpointed, owner-routed, never auto-resumed) fired on the no-head
+continuation scout at update 399 / 1,228,800 world-ticks (2026-11-07
+~08:10Z, run `artifacts/p2-nohead-s1/`, `stop_reason
+probe-distress-stop`): probe seed 40,001 carried a 363-tick engine-
+distress streak (seeds 40,002 / 40,003: 0); the seven earlier probes
+(u49–u349) all read streak 0 and nash 0.882–0.892; nash at the trip
+0.8923. No F-053 line crossed; no welfare (nash) strike; no trigger
+(the arm has no head). The two act scouts (p2-act15-s1, p2-act10-s1)
+had read streak 0 at every probe to u449. Per the declaration a trip in
+a scout HOLDS the other two seeds of that arm: p2-nohead-s2 / -s4 do
+not launch until she rules. The halted run is kept whole (checkpoint,
+per-bin ckpt-u325.pt, probe dumps, metrics); nothing is resumed.
+Precedent: the trunk's s3 / s5 / s8 / s11 halted on this stop
+(entries 3, 5, 7, 8); the owner's rulings there were replacement by a
+fresh seed ("A"; "Replace s8 just in case."). Options for her: (a)
+REPLACE — the same trunk-s1 graft trained under a fresh PPO run index
+(116; a new SEED-BANDS row 2,420,000,000–2,439,999,999 claimed before
+the burn), the arm-seed ↔ trunk-seed pairing unchanged; (b) RESUME on
+her explicit word (the stop's text forbids an automatic one; a resume
+would need its own entry and reasoning about what the streak was); (c)
+READ the halted run as a halted arm (no nohead-s1 row in the battery;
+the no-head baseline then rests on s2 / s4). Recommendation: (a), the
+trunk precedent. Status: OPEN — awaits her word.
+

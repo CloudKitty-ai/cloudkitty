@@ -929,6 +929,14 @@ consent BC comparison ride the trunk.
   decision?" and the three options) — roster verdicts DESCRIPTIVE at
   every size; the uniform 20×20 read alone carries §8.1; deviations
   entry 24. Scouts still training; battery waits on her third word.
+  SCOUT HALT 2026-11-07 ~08:10Z: p2-nohead-s1 tripped the frozen
+  probe-distress stop at u399 / 1,228,800 ticks (probe seed 40,001
+  streak 363; the other two seeds 0; seven earlier probes all 0; nash
+  0.892) — halted, checkpointed, never auto-resumed; nohead s2 / s4
+  HELD; deviations entry 25 OPEN (options replace / resume / read as
+  halted; recommendation replace, the trunk precedent). act15-s1 /
+  act10-s1 still training (u449: streak 0; act15's y0 top-1 0.595 →
+  F-074 monitor flag logged, not a stop; act10 0.612).
 
 ## Flagged follow-ups (owner's word to start)
 
