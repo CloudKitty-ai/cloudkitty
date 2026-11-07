@@ -799,6 +799,12 @@ consent BC comparison ride the trunk.
   roster is B15 / B10 / needs-only (nine) — put to her. Deviations entry
   22 rewritten.
 
+  RULED 2026-11-06, her words verbatim: "Four heads". Read as four arms:
+  B15 / B10 / needs-only / no-head continuation, 3 paired PPO seeds each
+  (graft s1 / s2 / s4), 12 covered PPO seeds. Every Phase 2 design
+  question is now ruled; next = the Phase 2 declaration DRAFT (she sees
+  it first; Professor through her).
+
 ## Flagged follow-ups (owner's word to start)
 
 - Relief just beyond vision (owner 2026-10-21: "Let's flag this for a

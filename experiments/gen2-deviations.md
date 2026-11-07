@@ -1180,6 +1180,8 @@ carried into the Phase 2 declaration: the consumer read "harm-prediction
 beats trunk" (grave channel) applies to the needs-only arm only; the
 welfare-cost line names the known-pessimistic input on that arm's
 seeds; seeds 3 paired per arm (graft s1 / s2 / s4), none extra; whether
-the no-head continuation anchor also stays is OPEN with her. The frozen
-text is not edited; this entry is the record. Status: OPEN until the
-Phase 2 declaration carries it.
+the no-head continuation anchor also stays was ruled the same day,
+verbatim "Four heads": four arms, B15 / B10 / needs-only / no-head, 3
+paired seeds each, 12 covered PPO seeds. The frozen text is not edited;
+this entry is the record. Status: OPEN until the Phase 2 declaration
+carries it.
