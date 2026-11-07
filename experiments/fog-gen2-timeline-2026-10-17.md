@@ -906,6 +906,25 @@ consent BC comparison ride the trunk.
   beside them, 6M); (3) THE THREE SCOUTS LAUNCH (step 3; call 7's second
   word): p2-act15-s1 / p2-act10-s1 / p2-nohead-s1 via run_arm.sh. The
   battery (step 5) waits on her third word.
+  LAUNCHED 2026-11-07T07:37:31Z at HEAD 07395819 (pids 10939 / 10948 /
+  10957; logs artifacts/<slot>.log). First probes (u49, u99): nash
+  0.884–0.886, streak 0, trigger INSUFFICIENT; act15's heard-regime
+  ECE 0.0549 at u99 → F-075 monitor flag (logged, not a stop); y0 top-1
+  0.614 / 0.607 (F-074 holds). Pace ~100 updates per 11 min → ~5 h to
+  the 8M floor per seed.
+  LEGS BATCH DONE 2026-11-07 07:37–07:48Z (20×20, 4 workers, acts
+  recorded): g2-rot2-perm1 / perm2 clean (worst streaks 51 / 90);
+  g2-s1 / s2 / s4 re-recorded — all 90 rows reproduce the battery rows
+  EXACTLY (mean happiness, streaks, ticks), including g2-s2's recorded
+  F-053 event on 905008 (abort at tick 18949; run_legs' gate exits on it
+  as it did in the battery, deviations entry 4 — a reproduction, not a
+  new event). ROSTER EDGE STATISTIC MEASURED at 20×20: team means rot2
+  87.487 / perm1 87.483 / perm2 87.470 → 0.011. CAVEAT for her: the
+  permutation bar measures seat-ASSIGNMENT noise of the same three
+  networks (tiny), not seed-to-seed spread; as the §8.1 roster bar it is
+  very liberal (a 0.02 roster difference would "clear" it). Recommend
+  the roster read stays DESCRIPTIVE at every size unless she rules a
+  different bar (a deviation); the uniform read carries the clause.
 
 ## Flagged follow-ups (owner's word to start)
 

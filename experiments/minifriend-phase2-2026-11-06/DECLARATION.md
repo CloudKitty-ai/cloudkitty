@@ -434,6 +434,17 @@ on recorded rows).
   the demotion clause (§8.1). At 40×40 and 100×100 the roster verdicts
   stay descriptive (the borrowed bar reported beside them). These two
   legs run after g0 passes and before any arm is read (§13 step 2b).
+  **MEASURED 2026-11-07 (record; the rule text above is frozen):** team
+  means rot2 87.487 / perm1 87.483 / perm2 87.470 → roster edge
+  statistic **0.011** at 20×20 (read_r1 `edge.roster/20`). The
+  permutations of the SAME three networks move the team by a hundredth
+  of a point: this bar measures seat-assignment noise, not the
+  seed-to-seed spread the uniform edge (0.326) measures, so as a
+  demotion input it is very liberal. Put to her 2026-11-07 with the
+  recommendation that the roster verdicts stay descriptive at every
+  size (the uniform read carrying §8.1) unless she rules another bar —
+  a deviations entry either way, since §8.1 as declared names the
+  measured roster bar at 20×20.
   **Instrument note 2026-11-06:** the declared 0.326 / 0.325 is the
   statistic of the battery's PRINTED trained means (3 dp, the §2
   arithmetic); from the unrounded rows it is 0.327 at 20×20 (a 0.001
