@@ -130,14 +130,20 @@ def g2():
     assert worst < 1e-6, f"online y0 differs from offline by {worst}"
 
 
-def _scratch_artifact(slot="p2-act15-s1", arm="act15", trunk_seed=1):
-    """A grafted (untrained) arm policy saved where the harness's p2 seat looks when P2_ARC is pointed at the scratch."""
+def _scratch_artifact(slot="p2-act15-s1", arm="act15", trunk_seed=1, live_cells=False):
+    """A grafted arm policy saved where the harness's p2 seat looks when P2_ARC is pointed at the scratch. Untrained
+    (zero cell columns) by default; live_cells=True gives the cell columns random weight so the head cells MOVE the
+    acts (a guard on head-state bookkeeping is vacuous on a policy that ignores its cells — found by g3's first red)."""
     import graft as G
     import heads_online as HO
+    import torch
     p2, _trunk, _ck = G.graft(trunk_seed, HO.ARMS[arm]["cells"])
+    if live_cells:
+        with torch.no_grad():
+            p2.embed_cells.weight.copy_(torch.randn(p2.embed_cells.weight.shape, generator=torch.Generator().manual_seed(7)) * 0.5)
     out = SCRATCH / "artifacts" / slot / "policy-final.pt"
     out.parent.mkdir(parents=True, exist_ok=True)
-    G.save_policy(p2, out, arm=arm, slot=slot, stop_reason="scratch")
+    G.save_policy(p2, out, arm=arm, slot=slot, stop_reason="scratch", trunk_seed=trunk_seed)
     return out
 
 
@@ -149,7 +155,7 @@ def g3():
     import cloudkitty
     import cert_harness_fog as H
     import heads_online as HO
-    art = _scratch_artifact()
+    art = _scratch_artifact(live_cells=True)
     H.P2_ARC = SCRATCH
     rec_dir = SCRATCH / "rec"
     H.run_one(("p2u-act15-s1", 905_001, 300, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
@@ -171,7 +177,7 @@ def g3():
         obs, _r, _te, _tr, infos = env.step({a: (int(acts[t, i, 0]), int(acts[t, i, 1])) for i, a in enumerate(names)})
     # the roster-shaped seating runs (three one-row p2 seats beside two trunk seats) and records every seat's acts
     for slot in ("p2-act15-s2", "p2-act15-s4"):
-        _scratch_artifact(slot)
+        _scratch_artifact(slot, live_cells=True)
     r = H.run_one(("p2r-act15", 905_002, 50, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
     assert r["seats"] == ["p2:p2-act15-s2", "p2:p2-act15-s4", "g2:trunk-s6", "g2:trunk-s7", "p2:p2-act15-s1"], r["seats"]
     assert np.load(rec_dir / "acts-905002.npz")["acts"].shape == (50, 5, 2)
@@ -317,7 +323,115 @@ def g10():
         assert med == seed, f"{arm}: the median-validation {h_arm} seed is s{med}, not the named s{seed}"
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g9": g9, "g10": g10}
+def g6():
+    """the welfare-rule arithmetic: the edge statistic 0.326 / 0.325 recomputed from gate-read.json's trained means by
+    the declared recipe (mean of the three pairwise |differences|); demotion only on act10 > act15 in all three seeds
+    beyond the edge; a null returns B15 stands; a one-seed disagreement never demotes; a roster clearance at 40×40 is
+    not a demotion input (the clause takes the 20×20 reads only)."""
+    import read_r1 as R
+    import json as _j
+    gj = _j.loads((C.BATTERY / "gate-read.json").read_text())
+    for size, want in ((20, 0.326), (40, 0.325)):
+        e = R.edge_statistic([gj[f"g2-s{k}/{size}"]["trained_mean"] for k in R.SEEDS])
+        assert round(e, 3) == want, (size, e)
+    assert abs(R.edge_statistic([87.314, 87.257, 87.746]) - (0.057 + 0.432 + 0.489) / 3) < 1e-9
+    e = 0.326
+    r = R.welfare_rule({1: 87.0, 2: 87.0, 4: 87.0}, {1: 87.4, 2: 87.4, 4: 87.4}, e, "uniform")
+    assert r["demote"], "act10 over act15 by 0.4 in all three seeds beyond 0.326 must demote"
+    r = R.welfare_rule({1: 87.0, 2: 87.0, 4: 87.0}, {1: 87.6, 2: 87.6, 4: 86.9}, e, "uniform")
+    assert not r["demote"], "a seed the other way breaks the valve: no demotion"
+    r = R.welfare_rule({1: 87.0, 2: 87.0, 4: 87.0}, {1: 87.3, 2: 87.3, 4: 87.3}, e, "uniform")
+    assert not r["demote"] and r["verdict"].startswith("null"), "inside the edge is a null: B15 stands"
+    r = R.welfare_rule({1: 87.0, 2: 87.0, 4: 87.0}, {1: 86.5, 2: 86.5, 4: 86.5}, e, "uniform")
+    assert r["extend_conditional"] and not r["demote"], "act15 over act10 beyond the edge is the 20 / 30 conditional"
+    out = {"edge": {"uniform/20": {"edge": e}, "roster/20": {"edge": None, "status": "x"}}, "uniform": {"20": {}}, "roster": {"20": {}, "40": {}}, "rule": {}}
+    assert "roster/40" not in out["rule"], "a 40×40 roster read is never in the clause"
+    # score_predictions: a null inside the edge is P38 MET; P40 needs positive AND inside
+    uni = {"act15": {"seed_mean_team": 87.5, "per_seed": {}}, "act10": {"seed_mean_team": 87.4, "per_seed": {}},
+           "nohead": {"seed_mean_team": 87.3, "per_seed": {str(k): {"paired_delta_trunk": {"mean": 0.1}} for k in R.SEEDS}}}
+    p = R.score_predictions(uni, e)
+    assert p["P38"]["met"] and p["P39"]["met"] and p["P40"]["met"]
+    uni["act15"]["seed_mean_team"] = 87.9
+    p = R.score_predictions(uni, e)
+    assert not p["P38"]["met"] and not p["P40"]["met"], "0.5 over act10 and 0.6 over nohead are outside the edge"
+
+
+def g7():
+    """R-2a: an episode is one GRAVE entry to exit; episodes separated by a gap under 5 ticks merge (a 4-tick gap
+    merges, a 5-tick gap does not); the p90 is Kaplan–Meier (a censored episode is not an event: treating it as closed
+    moves the p90); 199 episodes = UNDECIDABLE; HELD within +25%; beats needs all three seeds."""
+    import read_r2 as R2
+    T = 60
+    needs = np.full((T, 6), 20.0)
+    hap = np.full(T, 80.0)
+    part = np.zeros(T, bool)
+    codes = np.full(T, R2.S.COMMON, np.int8)
+    codes[10:13] = R2.S.GRAVE; codes[17:20] = R2.S.GRAVE          # gap 4 (13..16) -> merge
+    codes[30:33] = R2.S.GRAVE; codes[38:41] = R2.S.GRAVE          # gap 5 (33..37) -> two episodes
+    needs[10:13, 1] = needs[17:20, 1] = 95.0
+    needs[30:33, 0] = needs[38:41, 2] = 95.0
+    part[19] = True
+    eps = R2.grave_episodes(codes, part, needs, hap)
+    assert [(e["start"], e["end"]) for e in eps] == [(10, 20), (30, 33), (38, 41)], [(e["start"], e["end"]) for e in eps]
+    assert eps[0]["stratum"] == "drink" and eps[0]["source"] == "other" and eps[1]["source"] == "self", eps[:2]
+    codes2 = codes.copy(); codes2[55:] = R2.S.GRAVE; needs2 = needs.copy(); needs2[55:, 2] = 95.0
+    eps2 = R2.grave_episodes(codes2, part, needs2, hap)
+    assert eps2[-1]["censored"] and eps2[-1]["source"] is None and eps2[-1]["latency"] == 5, eps2[-1]
+    # KM: uncensored = the empirical quantile; censoring raises or voids the p90, never lowers it
+    lat = list(range(1, 101))
+    assert R2.km_quantile(lat, [False] * 100) == 90.0
+    cen = [False] * 100
+    cen[85] = True
+    assert R2.km_quantile(lat, cen) == 91.0, "a censored 86 leaves the risk set without an event: the p90 moves to 91"
+    assert R2.km_quantile(lat, [False] * 85 + [True] * 15) is None, "with the whole tail censored the p90 is unreachable"
+    assert R2.km_quantile(lat, [False] * 100, 0.9) < R2.km_quantile(lat, cen, 0.9), "treating a censored episode as closed lowers the p90"
+    # cells and verdicts
+    mk = lambda n, cen=False: [{"latency": 10, "censored": cen, "source": "self", "stratum": "eat"} for _ in range(n)]
+    assert R2.r2a_cell(mk(199))["state"] == "UNDECIDABLE" and R2.r2a_cell(mk(200))["state"] == "READ"
+    assert R2.held_or_degraded(125.0, 100.0) == "HELD" and R2.held_or_degraded(125.01, 100.0) == "DEGRADED"
+    assert R2.beats({1: 9.0, 2: 9.0, 4: 9.0}, {1: 10.0, 2: 10.0, 4: 10.0})
+    assert not R2.beats({1: 9.0, 2: 9.0, 4: 10.0}, {1: 10.0, 2: 10.0, 4: 10.0}), "beats needs all three seeds under"
+    assert not R2.beats({1: 9.0, 2: 9.0, 4: None}, {1: 10.0, 2: 10.0, 4: 10.0}), "an unreadable seed is not a beat"
+
+
+def g8():
+    """R-5: the divergence share is computed on the SAME observation for arm and trunk (the trunk never sees the
+    appended cells; the arm's replayed act equals the record); terciles are fitted on the head's entropy WITHIN
+    regime; silent rows are left out; the no-head arm bins by regime only. Runs on the g3 scratch leg (300 ticks)."""
+    import read_r5 as R5
+    import cert_harness_fog as H
+    import json as _j
+    saved = C.ARTS
+    C.ARTS = SCRATCH / "artifacts"
+    H.P2_ARC = SCRATCH
+    root = SCRATCH / "fakeroot-r5"
+    d = root / "legs" / "p2u-act15-s1" / "legs" / "size20"
+    (d / "acts").mkdir(parents=True, exist_ok=True)
+    _scratch_artifact()                                   # untrained: the arm's act IS the trunk's on the same observation
+    row = H.run_one(("p2u-act15-s1", 905_001, 300, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(d / "acts")))
+    (d / "p2u-act15-s1-g2cmp-30x20000.jsonl").write_text(_j.dumps({"provenance": {}, "seats": row["seats"], "band": "g2cmp", "seed0": 905001}) + "\n" + _j.dumps(row) + "\n")
+    try:
+        dv, meta = R5.divergence_rows("p2u-act15-s1", 20, 905_001, root)
+        assert dv["differ_tick"].size == 300 * 5 and dv["regime"].size == 300 * 5 * 4
+        # the graft is untrained: on the same observation the arm's act is the trunk's at every tick
+        assert not dv["differ_tick"].any(), "an untrained graft diverges from its trunk on the same observation"
+        # binning: terciles within regime, silent rows out, equal-thirds on synthetic entropy
+        reg = np.array([0] * 300 + [1] * 300 + [2] * 100)
+        ent = np.concatenate([np.linspace(0, 1, 300), np.linspace(0.5, 1, 300), np.zeros(100)])
+        dif = np.concatenate([ent[:300] < 0.34, ent[300:600] < 0.67, np.ones(100, bool)])
+        b = R5.bin_divergence(reg, ent, dif)
+        assert set(b) == {"seen", "heard"}, "silent rows must not be binned"
+        assert b["seen"]["low"]["n"] == b["seen"]["mid"]["n"] == b["seen"]["high"]["n"] == 100
+        assert abs(b["heard"]["tercile_edges"][0] - (0.5 + 1 / 6)) < 0.01, "heard terciles must be fitted on heard rows only"
+        assert b["seen"]["low"]["divergence"] == 1.0 and b["seen"]["high"]["divergence"] == 0.0
+        assert R5.within_regime_ordering(b) == {"seen": True, "heard": True}
+        nb = R5.bin_divergence(reg, np.full(reg.shape, np.nan), dif, has_head=False)
+        assert "low" not in nb["seen"] and nb["seen"]["n"] == 300, "the no-head arm bins by regime only"
+    finally:
+        C.ARTS = saved
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]
