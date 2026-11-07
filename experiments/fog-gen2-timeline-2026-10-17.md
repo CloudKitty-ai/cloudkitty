@@ -814,6 +814,16 @@ consent BC comparison ride the trunk.
   ticks-since-live in the baseline; β held; battery scope; scouts;
   the row-only side read; her three words). Welfare-cost line ≈ 560M
   covered cat-ticks at the recommended budget.
+  PHASE 2 DRAFT CALLS RULED 2026-11-06 (verbatim in the draft §12):
+  plateau rule per arm ("I think we need the plateau rule here. These
+  models are more complex than anything we've done before, and we've
+  had generations plateau after 8M"; matched-checkpoint mitigation
+  declared), battery "all three world sizes", scouts "yes",
+  ticks-since-live "in", β "held", row-only side read "run it", spec
+  068 ADOPTED ("Relay our plan to Professor for review (including 068
+  in)") conditional on g0 / g0b. Draft at 5ee24ffb RELAYED to the
+  Professor on her word (msg c2163075, 2026-11-06); their review banks
+  until she confirms it here. Open: her word to DECLARE.
 
 ## Flagged follow-ups (owner's word to start)
 
