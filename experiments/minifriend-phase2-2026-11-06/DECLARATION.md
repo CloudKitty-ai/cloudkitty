@@ -19,11 +19,13 @@ PPO seeds train, each a covered mind, warm-started from a frozen trunk
 seed on the served 20×20 with the frozen asymmetric stops armed
 (training-probe distress streak 300, F-053's 1,000-tick line, nash <
 0.5 on three consecutive probes; a trip halts the run and goes to her,
-never auto-resumed) plus this arc's demotion trigger (§8.2). At the
-recommended budget (§12 call 1) training is 12 × 8.0M world-ticks × 5
-covered seats ≈ 480M covered cat-ticks, probes ≈ 19M, the certification
-legs ≈ 60M (§6 R-1), about 560M in all; at the 4M alternative about
-320M. Scouts-first (§13): one seed per arm trains first; the other eight
+never auto-resumed) plus this arc's demotion trigger (§8.2). Under the
+plateau rule (her ruling, §4) the training exposure is not fixed: at the
+trunk's own plateau length it is 12 × 8.0M world-ticks × 5 covered seats
+≈ 480M covered cat-ticks, and the 20M cap bounds it at 1.2B; probes ≈
+19M per 8M trained; the certification legs at all three sizes 144M (§6
+R-1), plus any secondary matched-checkpoint read (9M each). Scouts-first
+(§13): one seed per arm trains first; the other eight
 launch only after the four scouts finish clean. The needs-only arm trains
 three covered minds on a known-pessimistic input (the gate's FAIL, entry
 22); that cost is named here, not hidden in the arm count. What it buys:
@@ -247,13 +249,21 @@ trunk's three-seed envelope, which extra arm seeds would not move.
 - **Critic.** The pinned accepted critic-g2 over the ground-truth global
   state v2, continued as in the trunk run (the Adam state fresh, as any
   new run's). It never sees a head cell.
-- **Budget** (§12 call 1, hers). Recommended: a FIXED 8,002,560 world-
-  ticks per arm seed — the trunk's own realized plateau length, so the
-  no-head arm is "the trunk trained twice as long" and every arm has the
-  same budget; the frozen plateau rule is COMPUTED and REPORTED (the
-  update at which each arm would have stopped) but does not stop the run,
-  since unequal budgets would re-confound what the no-head arm exists to
-  separate. Alternative: 4,001,280 (half). The 20M cap stays armed.
+- **Budget — RULED 2026-11-06, her words: "I think we need the plateau
+  rule here. These models are more complex than anything we've done
+  before, and we've had generations plateau after 8M".** The frozen
+  plateau rule applies verbatim to every arm seed (three flat 1M-tick
+  bins; `plateau_flat`), the 20M cap armed; each arm trains until its
+  own plateau. The draft's fixed-budget recommendation is withdrawn.
+  Consequence carried: arms may plateau at different tick counts, so a
+  head arm's gain over the no-head arm can mix the head with the extra
+  training. Mitigation declared (thread's, reversible; her word at
+  DECLARED): every arm checkpoints its policy at each closed 1M-tick bin
+  (`ckpt-u<update>.pt` beside `checkpoint.pt`); the plateau tick per arm
+  is a reported column; and if two arms compared in §8 plateau more than
+  one bin apart, a SECONDARY R-1a read (uniform, 20×20 only, three legs)
+  runs on the longer arm's checkpoint at the shorter arm's bin — a read
+  beside the primary, never replacing it.
 - **Stops, verbatim and asymmetric** (prereg §6; `train_ppo_g2.py`):
   training-probe distress streak ≥ 300 on PROBE_SEEDS 40,001–3 (2k ticks
   every 50 updates); F-053's 1,000-tick line; nash < 0.5 on three
@@ -300,8 +310,12 @@ on recorded rows).
   Columns as the battery's: trained mean, paired Δ, sign count, Δ range,
   worst streak mean / max, aborts, F-053 events, dispersion. The
   recorded trunk rows are the pair only if the binding reproduces them
-  (guard g0). 100×100 is not run (characterize-only in the prereg; §12
-  call 4 if she wants it).
+  (guard g0). **Sizes — RULED 2026-11-06, her words "all three world
+  sizes"**: read as both seating shapes at 20×20, 40×40 and 100×100
+  (the trunk has recorded uniform and rot2 rows at all three), 100×100
+  characterize-only as frozen (INVESTIGATE rows, never a gate or a
+  trigger), scouts-first at 40 and 100 per seating. Six legs per arm-
+  seed set, 144M covered cat-ticks across the four arms.
 - **R-2 consumer reads** (prereg §8.4 "CONSUMER READS", §9.11, §9.12),
   arm vs trunk on R-1's worlds, by replay of the legs where the rows do
   not carry the field (the tail reads' instrument; the `p2` seat replays
@@ -458,8 +472,10 @@ any arm at the gated sizes (the trunk's s2 had one).
   299 does not; the nash stop needs three consecutive probes; the
   demotion trigger fires on optimism with lift 1.5 and n 200, not on
   pessimism, not on lift 1.4, not on n 199.
-- **g5** — the budget is fixed: the plateau rule's "would have stopped"
-  update is logged and the run continues; the 20M cap halts.
+- **g5** — the plateau rule verbatim: three flat 1M-tick bins halt with
+  `stop_reason == "plateau"`, two do not; the 20M cap halts; a policy
+  checkpoint lands at every closed bin and the plateau tick is in the
+  final's record.
 - **g6** — the welfare-rule arithmetic: edge statistic 0.326 / 0.325
   recomputed from `gate-read.json`; demotion only on sign agreement in
   three seeds beyond the edge; a null returns "B15 stands".
@@ -533,21 +549,24 @@ the needs arm's welfare.
 
 ## 12. Owner calls (recommendation first; her word rules)
 
-1. **Budget per arm seed.** Recommended 8,002,560 world-ticks fixed (the
-   trunk's realized plateau length; the plateau rule reported, not
-   applied). Alternative 4,001,280.
+1. **Budget per arm seed.** RULED 2026-11-06: the plateau rule ("I
+   think we need the plateau rule here. These models are more complex
+   than anything we've done before, and we've had generations plateau
+   after 8M"); §4 carries it with the matched-checkpoint mitigation.
 2. **The ticks-since-live cell in the no-head arm.** Recommended: in
    (the head cells are then the only difference). Alternative: a bare
-   baseline.
+   baseline. OPEN (she asked for the explanation; given in session
+   2026-11-06).
 3. **β schedule.** Recommended: 0.04 held from step 0 (the arm starts at
    the anchor). Alternative: the recipe's 0.5 → 0.04 anneal verbatim.
-4. **Battery scope.** Recommended: uniform at 20×20, roster-shaped at 20
-   and 40 (the gated sizes). Alternative: add 100×100 characterize-only
-   legs (+12M covered cat-ticks roster-shaped, +48M with the uniform
-   seatings too).
-5. **Scouts.** Recommended: the s1 graft of each arm first (four runs in
-   parallel), the other eight after the scouts complete clean.
-6. **The side read R-6** (the row-only head): run it, or drop it.
+   OPEN (pros and cons given in session 2026-11-06).
+4. **Battery scope.** RULED 2026-11-06: "all three world sizes" (§6
+   R-1).
+5. **Scouts.** RULED 2026-11-06: "yes" — the s1 graft of each arm first
+   (four runs in parallel), the other eight after the scouts complete
+   clean.
+6. **The side read R-6** (the row-only head): run it, or drop it. OPEN
+   (explanation given in session 2026-11-06).
 7. **Her word to declare**, then to launch (step 3), then to run the
    battery (step 5) — three words, as the gate had.
 
