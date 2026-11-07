@@ -10,14 +10,14 @@ any PettingZoo-compatible cooperative trainer to them; adapt freely.
 
 The *served* world is 20×20 with 5 kitties (`cloudkitty.toml`; spec
 027's canonical generation, live since 2026-08-08, has since grown a
-fifth cat) — its welfare bounds are calibrated
-there and full mutual visibility is the right served meadow. Training
-defaults instead to **5 kitties on a 24×24 world**:
+fifth cat) — its welfare bounds are calibrated there, under the fog
+(spec 049: a cat observes only the friends inside its own vision).
+Training defaults instead to **5 kitties on a 24×24 world**:
 
-- Five is the smallest roster that turns the machinery on: with 3 kitty
-  slots, nearest-K selection genuinely selects, `is-activity-target`
-  displacement happens organically, and the policy must learn meows as the
-  channel for the kitty it cannot see.
+- Five is the smallest roster that turns the machinery on: the four
+  permanent by-id kitty rows (`kitty_slots` 4, spec 049) are all
+  occupied, friends drop out of view and return as the cats move, and
+  the policy must learn meows as the channel for the kitty it cannot see.
 - An odd roster makes inclusion a learned behavior: cuddling is strictly
   pairwise, so someone is always left out of any pairing — and under Nash
   welfare, turn-taking becomes a necessity the reward genuinely teaches.
@@ -37,9 +37,10 @@ elements one notch scarcer (bowls and beams worth walking for and worth
 yielding — the Article I safeguard still guarantees relief).
 
 Roster randomization is free robustness: vectorized worlds are fully
-independent, so mixing 4/5/6-kitty configs across one batch trains a
+independent, so mixing 3/4/5-kitty configs across one batch trains a
 single policy already comfortable at the deployed roster — the schema is
-roster-independent by design.
+roster-independent up to its rows: a roster larger than `kitty_slots + 1`
+is refused at load (spec 049 FR-011), so six cats need five rows.
 
 ## Rollouts
 
@@ -155,8 +156,9 @@ encoders, shapes must chain, and the blob length must be exact — a bad
 export fails startup naming the config field, never mid-tick.
 
 There is also a **v3** artifact format (spec 030): an entity-attention
-transformer over per-entity tokens with pointer action heads, on the same
-observation schema 3. Its header carries the four transformer
+transformer over per-entity tokens with pointer action heads, on whichever
+observation schema its header names (the loader refuses a header that
+differs from the binary's current schema). Its header carries the four transformer
 hyperparameters instead of MLP layer shapes, and the loader serves both
 versions in one binary — a v2 artifact loads unchanged, a v3 artifact runs
 the attention forward. The header schema, weight-blob module order, and the

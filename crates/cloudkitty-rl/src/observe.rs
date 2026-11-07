@@ -70,7 +70,8 @@ use crate::config::ObservationConfig;
 /// blocks, scene age, the water and sunbeam bits, the element memory,
 /// 225 → 408. Schema 6 (spec 058, the Gen 2 wall): Manhattan spatial
 /// groups + wall cells, five-of-six row visibility, the identity block,
-/// waypoint bearing, dirt reserve, no clock, 408 → 421.
+/// waypoint bearing, dirt reserve, no clock, critter slots 4 → 2,
+/// 408 → 399.
 pub const OBSERVATION_SCHEMA_VERSION: u32 = 6;
 
 /// The message-head kinds (spec 028, finalized by spec 033): every kind a
@@ -233,7 +234,7 @@ pub const fn block_widths() -> BlockWidths {
 
 /// The exact observation length for a slot configuration -- a function of
 /// the slot config, never a constant to quote (the served config's slot
-/// defaults currently work out to 408; read it from here, don't hardcode).
+/// defaults currently work out to 399; read it from here, don't hardcode).
 pub fn observation_len(cfg: &ObservationConfig) -> usize {
     SELF_BLOCK
         + cfg.kitty_slots * KITTY_SLOT

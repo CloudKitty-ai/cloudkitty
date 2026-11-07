@@ -223,14 +223,15 @@ with open("minimal.ckpolicy", "wb") as f:
 print(f"wrote minimal.ckpolicy (best mean return {best_score:.3f})")
 ```
 
-A real run of exactly this script:
+A real run of exactly this script (2026-11-06, observation schema 6):
 
 ```
-iteration  0: mean return 182.879 (random init)
-iteration  3: mean return 191.162  (kept)
-iteration  6: mean return 195.314  (kept)
-iteration 12: mean return 198.647  (kept)
-wrote minimal.ckpolicy (best mean return 198.647)
+iteration  0: mean return 163.629 (random init)
+iteration  7: mean return 165.815  (kept)
+iteration 15: mean return 168.269  (kept)
+iteration 17: mean return 169.809  (kept)
+iteration 19: mean return 174.165  (kept)
+wrote minimal.ckpolicy (best mean return 174.165)
 ```
 
 It genuinely improves — and it is genuinely not a good policy. That is
@@ -265,8 +266,8 @@ records which one was measured.)
 For the artifact above, honestly:
 
 ```
-aggregate delta [AllSubject] -0.5936 over 10 seeds
-aggregate delta [Mixed]      -0.2417 over 10 seeds
+aggregate delta [AllSubject] -0.6486 over 10 seeds
+aggregate delta [Mixed] -0.1739 over 10 seeds
 ```
 
 Negative — a 20-iteration hill-climb loses to the handcrafted

@@ -64,7 +64,7 @@ pub struct ObservationConfig {
     /// load (a friend without a row cannot exist under permanent rows),
     /// and a smaller roster leaves surplus rows permanently vacant.
     pub kitty_slots: usize,
-    /// Critter slots (default 4).
+    /// Critter slots (default 2 since spec 058; 4 before it).
     pub critter_slots: usize,
     /// Chow slots (default 2).
     pub chow_slots: usize,

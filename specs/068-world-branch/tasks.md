@@ -395,7 +395,7 @@ untouched.
   and say so: byte-identical without the API.
 - [x] T043 `cargo fmt --all`, `cargo clippy --workspace --all-targets`
   clean (the CI warnings gate), `pytest` green; run quickstart.md §1–§6.
-- [ ] T044 PR: push `product/068-world-branch`; `gh pr view --json files`
+- [x] T044 PR: push `product/068-world-branch`; `gh pr view --json files`
   against `scripts/lanes.txt` (expected lane: crates/, specs/, docs/
   howto-rl.md + CHANGELOG.md shared; no cross-lane); body with the SC
   table, the mutate red lines (exit 0 per guard), and the T029 counts;
