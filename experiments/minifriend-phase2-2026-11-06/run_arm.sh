@@ -11,7 +11,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 A="$ROOT/experiments/minifriend-phase2-2026-11-06"
-SLOT="${1:?slot (p2-act15-s1 | p2-act10-s1 | p2-nohead-s1 | ... -s2 | -s4)}"
+SLOT="${1:?slot (p2-act15-s1 | p2-act10-s1 | p2-nohead-s1r | ... -s2 | -s4; p2-nohead-s1 is HALTED, entry 25)}"
 shift || true
 mkdir -p "$A/artifacts"
 LOG="$A/artifacts/$SLOT.log"

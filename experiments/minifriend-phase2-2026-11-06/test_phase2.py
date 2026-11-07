@@ -305,15 +305,26 @@ def g10():
     import train_ppo_p2 as P
     import heads_online as HO
     import train_act as TA
+    import cert_harness_fog as H
     idx = sorted(P.SLOTS[s][2] for s in P.SLOTS)
-    assert idx == list(range(107, 116)), idx
+    assert idx == list(range(107, 117)), idx          # 107–115 declared + 116, the entry-25 replacement
     assert not any("needs" in s for s in P.SLOTS), "a needs slot exists"
     lo = min(P.T.seed_stripe(i)[0] for i in idx)
     hi = max(P.T.seed_stripe(i)[1] for i in idx)
-    assert (lo, hi) == (2_240_000_000, 2_419_999_999), (lo, hi)
+    assert (lo, hi) == (2_240_000_000, 2_439_999_999), (lo, hi)
     for slot, (arm, k, i) in P.SLOTS.items():
-        assert slot == f"p2-{arm}-s{k}" and k in C.TRUNK_SEEDS, slot
+        assert k in C.TRUNK_SEEDS, slot
+        if slot == "p2-nohead-s1r":
+            assert (arm, k, i) == ("nohead", 1, 116), (slot, arm, k, i)
+            continue
+        assert slot == f"p2-{arm}-s{k}", slot
         assert {"act15": 107, "act10": 110, "nohead": 113}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+    # entry 25: the halted p2-nohead-s1 seats nowhere; its replacement takes the nohead s1 seat in both seatings
+    assert P.HALTED_SLOTS == {"p2-nohead-s1": "p2-nohead-s1r"}, P.HALTED_SLOTS
+    assert H.SEATINGS["p2u-nohead-s1"] == ["p2:p2-nohead-s1r"] * 5, H.SEATINGS["p2u-nohead-s1"]
+    assert H.SEATINGS["p2r-nohead"][4] == "p2:p2-nohead-s1r" and H.SEATINGS["p2r-act15"][4] == "p2:p2-act15-s1", H.SEATINGS["p2r-nohead"]
+    seated = {s.split(":", 1)[1] for v in H.SEATINGS.values() for s in v if s.startswith("p2:")}
+    assert not (seated & set(P.HALTED_SLOTS)), f"a halted slot is seated: {seated & set(P.HALTED_SLOTS)}"
     for arm, spec in HO.ARMS.items():
         if spec["head"] is None:
             continue

@@ -53,9 +53,23 @@ import cloudkitty  # noqa: E402
 MAX_SEATS = T.MAX_SEATS
 N_ACTIONS, N_MSGS = T.N_ACTIONS, T.N_MSGS
 # slot -> (arm, trunk seed, run index). Run indices 107-115 (SEED-BANDS.md, claimed 2026-11-06 before first burn).
+# p2-nohead-s1r: the REPLACEMENT for p2-nohead-s1 (halted by the frozen probe-distress stop at 1,228,800 ticks;
+# deviations entry 25, owner 2026-11-07 "A"): the same trunk-s1 graft under run index 116 (stripe claimed 2026-11-07
+# before first burn). The halted slot stays in the table as its manifest's lineage; it is never relaunched or resumed.
 SLOTS = {"p2-act15-s1": ("act15", 1, 107), "p2-act15-s2": ("act15", 2, 108), "p2-act15-s4": ("act15", 4, 109),
          "p2-act10-s1": ("act10", 1, 110), "p2-act10-s2": ("act10", 2, 111), "p2-act10-s4": ("act10", 4, 112),
-         "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115)}
+         "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115),
+         "p2-nohead-s1r": ("nohead", 1, 116)}
+HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r"}   # halted -> replacement (entry 25); the trainer refuses the halted one
+
+
+def refuse_halted(slot):
+    """The refusal text for a halted slot (None for a live one): a frozen-stop halt is never relaunched or resumed by
+    the trainer; its replacement is named so the operator reaches for the right slot (deviations entry 25)."""
+    if slot not in HALTED_SLOTS:
+        return None
+    return (f"{slot} is HALTED by the frozen probe-distress stop (deviations entry 25) and is never relaunched or "
+            f"resumed; its replacement run is {HALTED_SLOTS[slot]}")
 BETA = T.PINS["beta"]                   # 0.04, held from step 0 (ruled)
 FLOOR_TICKS = 8_002_560                 # ruled 2026-11-06: the trunk's own plateau length
 TRIGGER_LIFT, TRIGGER_MIN_N = 1.5, 200  # §8.2 pins (the sitting's margin family; the frozen min-n)
@@ -415,6 +429,8 @@ def main():
     args.kl_beta = args.kl_beta_final = BETA          # held from step 0 (ruled); schedules() then returns the constant
     BIN_TICKS, floor_ticks = args.bin_ticks, args.floor_ticks
 
+    if (refusal := refuse_halted(args.slot)) is not None:
+        sys.exit(refusal)
     arm, trunk_seed, run_index = SLOTS[args.slot]
     out = args.out_dir or C.ARTS / args.slot
     out.mkdir(parents=True, exist_ok=True)
@@ -477,7 +493,7 @@ def main():
         branch_rng = np.random.default_rng(20261106 + run_index + 1000 * segment)
 
     seed_base = T.seed_stripe(run_index)[0] + segment * 1_000
-    assert T.seed_stripe(run_index)[1] < 2_420_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
+    assert T.seed_stripe(run_index)[1] < 2_440_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
     runner = P2VecRunner(arm, str(config_path), args.n_worlds, seed_base, horizon=args.horizon)
     obs_dim, mask_dim = runner.dims
     assert obs_dim == G.wide_dim(cells) and mask_dim == N_ACTIONS + N_MSGS, (obs_dim, mask_dim)

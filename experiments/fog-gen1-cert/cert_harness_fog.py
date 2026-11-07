@@ -144,8 +144,12 @@ SEATINGS = {
     # seed `p2u-<arm>-s<k>` — the arm's seed k in all five seats, paired with the recorded g2-s<k> uniform row;
     # (b) ROSTER-SHAPED `p2r-<arm>` — rot2 with Miso / Biscuit / Clementine's seats (trunk s2 / s4 / s1) taken by
     # the arm's s2 / s4 / s1, Pumpkin s6 and Kittybear s7 the trunk's.
-    **{f"p2u-{arm}-s{k}": [f"p2:p2-{arm}-s{k}"] * 5 for arm in ("act15", "act10", "nohead") for k in (1, 2, 4)},
-    **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7", f"p2:p2-{arm}-s1"]
+    # The nohead s1 seat is the REPLACEMENT run p2-nohead-s1r (deviations entry 25, owner 2026-11-07 "A"); the
+    # halted p2-nohead-s1 seats nowhere.
+    **{f"p2u-{arm}-s{k}": [f"p2:p2-{arm}-s{k}" + ("r" if (arm, k) == ("nohead", 1) else "")] * 5
+       for arm in ("act15", "act10", "nohead") for k in (1, 2, 4)},
+    **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7",
+                      f"p2:p2-{arm}-s1" + ("r" if arm == "nohead" else "")]
        for arm in ("act15", "act10", "nohead")},
     # The roster-shaped bar's two permuted TRUNK legs (DECLARATION §6 R-1, ruled 2026-11-06 "as recommended"):
     # rot2's three arm-replaceable seats (Miso, Biscuit, Clementine) hold s1 / s2 / s4 in the two cyclic
