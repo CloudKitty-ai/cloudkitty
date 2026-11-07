@@ -27,8 +27,17 @@ trunk's own plateau length it is 12 × 8.0M world-ticks × 5 covered seats
 R-1), plus any secondary matched-checkpoint read (9M each). Scouts-first
 (§13): one seed per arm trains first; the other eight
 launch only after the four scouts finish clean. The needs-only arm trains
-three covered minds on a known-pessimistic input (the gate's FAIL, entry
-22); that cost is named here, not hidden in the arm count. What it buys:
+three covered minds on an input whose estimates run in the OSTRICH
+direction — the gate read a grave friend in sight 3.17 need points LESS
+needy than she is (gate RESULTS R-2, "negative = read less needy than she
+is"; lift 43.8; the one input shape this program was built to keep away
+from an acting policy) — while its probe over-fires (P(grave) about 2×
+over-confident on covered friends, F-073 D5) and pulls attention toward
+friends approaching the edge. The two pull opposite ways; which wins is
+the read. [Corrected 2026-11-06 on the Professor's review: the first
+draft called this input "pessimistic", the act heads' word, four times;
+the gate's own convention says the opposite.] That cost is named here,
+not hidden in the arm count. What it buys:
 the first lived answer to whether a friend-reading head changes what a
 cat does for a grave friend, and the welfare price of each head, read
 against the trunk under the rule she agreed. Nothing here seats a policy
@@ -82,13 +91,19 @@ on the same worlds:
    each other in every stratum, so the expected answer to "B15 over B10"
    is a null (gate RESULTS §Open-loop); the lived answer is this read.
 2. **Does the needs head change welfare, as a comparison point?** The
-   needs-only arm, NF1e-h24+p frozen as its one head — a pessimistic
-   grave estimate (gate: in-sight grave bias −3.17 need points against
-   common +0.07) that detects a covered friend's crossing in 0.971 of
-   observer-episodes (F-073). Whether a policy fed it helps a grave
-   friend sooner, and what its attention costs, read under the welfare
-   rule. It is carried past the gate's FAIL on her word (entry 22), as a
-   read, never as a head that passed.
+   needs-only arm, NF1e-h24+p frozen as its one head. Its seven
+   estimates under-read a grave friend in sight by 3.17 need points
+   (gate: grave bias −3.17 against common +0.07, the ostrich direction;
+   the gate FAILED it for exactly that); its probe detects a covered
+   friend's crossing in 0.971 of observer-episodes (F-073) and
+   over-fires toward friends approaching the edge. The expected sign of
+   the effect is therefore AMBIGUOUS and is stated so: a policy fed
+   under-read grave needs is expected to attend LESS to grave friends in
+   sight, while the probe pulls attention toward them; the read says
+   which wins, in welfare and in relief latency. It is carried past the
+   gate's FAIL on her word (entry 22), as a read, never as a head that
+   passed; §8.2's trigger collision (the Professor's §0) is hers to shape
+   (§12 call 8).
 3. **Does more training alone move the trunk?** The no-head continuation
    arm — the same graft, the same budget, no head cells — is the baseline
    every head arm is read against, so a gain over the frozen trunk is
@@ -264,6 +279,21 @@ trunk's three-seed envelope, which extra arm seeds would not move.
   one bin apart, a SECONDARY R-1a read (uniform, 20×20 only, three legs)
   runs on the longer arm's checkpoint at the shorter arm's bin — a read
   beside the primary, never replacing it.
+  **Two sharpenings inside her ruling (the Professor's §1, 2026-11-06;
+  hers to confirm, §12 calls 9 and 12).** Every arm starts AT the
+  trunk's plateau return with KL-to-anchor 0, so `plateau_flat` can be
+  satisfied from the second bin on and halt an arm at the fourth before
+  its zero-initialised columns are load-bearing — a plateau called before
+  learning started. (1) A FLOOR before the rule arms, the same for every
+  arm: proposed 8,002,560 world-ticks (the trunk's own plateau length);
+  the three-flat-bins test runs only on bins closed after the floor; the
+  20M cap unchanged. (2) A CELLS-IN-USE read at every closed bin, zero
+  collection: on the recorded probe rows the appended cells are zeroed
+  and the share of ticks on which the arm's chosen act changes is
+  reported beside the plateau tick — a plateau reached at near-zero use
+  is a reported state ("plateau before use"), never a hidden one. The
+  leash itself caps head use (the anchor cannot see the cells), so R-5's
+  divergence is labelled leash-bounded, with the no-head arm its floor.
 - **Stops, verbatim and asymmetric** (prereg §6; `train_ppo_g2.py`):
   training-probe distress streak ≥ 300 on PROBE_SEEDS 40,001–3 (2k ticks
   every 50 updates); F-053's 1,000-tick line; nash < 0.5 on three
@@ -316,6 +346,21 @@ on recorded rows).
   characterize-only as frozen (INVESTIGATE rows, never a gate or a
   trigger), scouts-first at 40 and 100 per seating. Six legs per arm-
   seed set, 144M covered cat-ticks across the four arms.
+  **The roster-shaped bar is BORROWED** (the Professor's §2): 0.326 /
+  0.325 is the spread when all five seats change seed; the roster read
+  changes three of five, and one recorded rot2 row per size gives no
+  pairwise value. Borrowed, it is conservative for demotion and liberal
+  for every "inside the envelope" claim. Her call (§12 call 10): measure
+  it — two extra roster-shaped TRUNK legs at 20×20 with s1 / s2 / s4
+  permuted across the three seats (the recorded rot2 the third
+  configuration; 6M covered cat-ticks, trunk minds only; +6M for 40×40)
+  — or label every roster-read verdict descriptive and let the uniform
+  read carry the registered predictions and the demotion clause. Record
+  note for g6: g2-s2's 40×40 row (86.012) is marked POST-STOP in the
+  battery — "rows the declared stop would have prevented … not gate
+  evidence until she rules" (cert RESULTS, deviations entry 4): a
+  reporting status, the seating unchanged; it enters the envelope as a
+  trunk reading, flagged.
 - **R-2 consumer reads** (prereg §8.4 "CONSUMER READS", §9.11, §9.12),
   arm vs trunk on R-1's worlds, by replay of the legs where the rows do
   not carry the field (the tail reads' instrument; the `p2` seat replays
@@ -327,6 +372,21 @@ on recorded rows).
   HELD / DEGRADED against the trunk at the ruled +25% of p90; "arm BEATS
   trunk" (the rung-4 grammar) = the arm's p90 under the trunk's in the
   stratum in all three seeds, magnitudes descriptive, never parity.
+  Three pins closed on the Professor's §3 (2026-11-06): **censoring** —
+  an episode open at the leg's end or at an F-053 abort is right-
+  censored and enters with latency ≥ the remaining ticks; the p90 is the
+  Kaplan–Meier p90 (the censored share reported; a stratum whose
+  censored share exceeds 10% is flagged); **boundary flicker** — the
+  strata have no hysteresis (`strata.py`: plain thresholds at 90 / 45 /
+  70), so episodes separated by a gap under k = 5 ticks MERGE, k named
+  here before any data (§12 call 11 if she wants another k); **relief
+  source** — an episode is SELF-relieved if the friend's own activity at
+  the exit tick is unpartnered (eat / drink / sleep / rest …), OTHER-
+  relieved if partnered (cuddle; the global state's partner flag); the
+  "helps a grave friend" graduation (§8.4) reads OTHER-relief only, the
+  cuddle stratum being other-relief by construction. Arm and trunk
+  episodes are NOT paired (trajectories diverge after the first differing
+  act, blind spot 2): "beats" compares pooled per-seed quantiles.
   (b) **approach-propensity differential** (§9.11), call-keyed encounters
   only (spec 059's feasibility window), in movement terms: did the
   best-placed feasible host's path raise or lower its expected visibility
@@ -335,9 +395,11 @@ on recorded rows).
   (c) **refusal tax by reason** (F-033 / F-039's instrument on the
   collector's proposed-vs-applied streams): arm NOT WORSE than trunk per
   reason within the ruled 10% equivalence tolerance, `consent_declined`
-  named; if the pinned binding's streams carry no reason field, the read
-  is per refused KIND and says so (068's `tick_records()` is the natural
-  home later, on her word).
+  named, through 068's `tick_records()` (adopted). It covers the LAST
+  step only (068 FR-011), so a native reason read means a per-tick call
+  in the leg's hot loop: measured on ONE leg first (its cost a reported
+  number); if it prices the legs, the raws carry the reason field and
+  the read runs after the fact.
 - **R-3 canalization watch** (prereg §8.4): together-share and group
   count (`dispersion_read.py`, native fields) and per-seat action-mix
   entropy (applied streams) per arm against the trunk's seed envelope
@@ -382,33 +444,46 @@ on recorded rows).
   0.007 top-1.
 - **P39.** The no-head arm's paired gain over its trunk seed at 20×20 is
   inside the envelope (|Δ| ≤ 0.326) in at least two of three seeds. The
-  trunk was at plateau; more of the same recipe moves it within noise.
+  trunk was at plateau; the arm carries one new cell (ticks-since-live,
+  ruled "in") and the leash, and under §4 it is the arm likeliest to
+  plateau at the floor.
 - **P40.** Each act arm's paired gain over the no-head arm at 20×20 is
   POSITIVE in mean but inside the envelope. The Nash reward already pays
   for a friend's relief and the visible row already names its activity
   (0.572 vs the head's 0.734 in sight), so the head's marginal
   information is real and small; the one-tick price of its errors is
   0.19 happiness points.
-- **P41.** The needs arm is NOT worse than the no-head arm beyond the
-  envelope at 20×20 (paired Δ ≥ −0.326), and its relief latency p90 for
-  covered grave episodes (R-2a) is at or under the trunk's in the cuddle
-  stratum, the one stratum with lived power (presitting read 2). A
-  pessimistic estimate costs attention (F-073's three quarters), not
-  harm.
-- **P42.** No demotion trigger fires on any arm (§8.2): the act heads'
-  errors are pessimistic (gate), the needs head's grave bias is negative
-  (the opposite sign from the trigger's optimism direction), and the
-  lived occupancy of the grave strata is thin (S§3d rider (b)) — the
-  likelier outcome in GRAVE is INSUFFICIENT, reported.
-- **P43.** F-074's monitor holds: B15 y0 top-1 on every act arm's
-  rollouts stays ≥ 0.60 at every checkpoint. The leash (β 0.04 to the
-  trunk anchor) and the small marginal information keep the arms' act
-  distributions near the trunk's, so the labels the head was trained on
-  drift little.
-- **P44.** R-5 shows the regime × confidence shape on act15 and act10:
-  divergence from the trunk larger in sight than heard, and within sight
-  larger in the low-entropy tercile than the high. If the ordering is
-  flat the policy ignored the certainty cells (reported, not failed).
+- **P41** (re-grounded 2026-11-06; the first draft's grounds rested on
+  the inverted sign). The needs arm's paired team happiness at 20×20 is
+  NOT below the no-head arm's beyond the envelope (paired Δ ≥ −0.326):
+  the Nash reward reads true happiness whether or not the actor knows it,
+  and the leash holds the arm near the trunk. Its OTHER-relief latency
+  p90 in the cuddle stratum (R-2a) is NOT predicted: the estimates say
+  attend less, the probe says attend more; the direction is the read.
+- **P42.** The demotion trigger (§8.2) does not fire on act15 or act10
+  (their errors are pessimistic, the gate's reading) and reads
+  INSUFFICIENT at most probes on every arm (thin lived GRAVE, rider (b)).
+  On the NEEDS arm it is expected to FIRE at the first stratum reaching
+  200 grave rows on the legs — the gate already read this frozen head's
+  optimism-direction signature at lift 43.8 on tens of thousands of rows
+  — which is the collision §8.2 and §12 call 8 put to her. Registered
+  for the act arms; reported for the needs arm under shape (ii), scored
+  as a survival read under shape (i).
+- **P43.** F-074's monitor holds on EACH arm's own head: B15-s2's y0
+  top-1 on act15's rollouts and B10-s3's on act10's stay ≥ 0.60 at every
+  checkpoint (B10's tuning-half top-1 0.634 is four points over the
+  line). The leash (β 0.04 to the trunk anchor) and the small marginal
+  information keep the arms' act distributions near the trunk's, so the
+  labels the heads were trained on drift little.
+- **P44.** R-5 shows the WITHIN-regime half on act15 and act10: inside
+  each regime, divergence from the trunk larger in the low-entropy
+  tercile than the high. The cross-regime ordering is a READ, not a
+  prediction: in sight the row already carries the activity (0.572
+  visible flag vs the head's 0.734), so the head adds least where it is
+  most confident and most when heard (0.522 vs 0.329); a policy using
+  the head may diverge more heard than in sight and be right to. A flat
+  within-regime ordering means the certainty cells were ignored
+  (reported, not failed).
 
 Unscored expectations: F-075's ECE monitor stays under 0.05 everywhere;
 the canalization rows sit inside the trunk envelope; no F-053 event in
@@ -418,9 +493,11 @@ any arm at the gated sizes (the trunk's s2 had one).
 
 1. **The welfare rule, asymmetric (ruling 5).** B15 is the Phase 2 act
    head unless DEMOTED: demoted iff act10's paired team happiness exceeds
-   act15's by more than the edge statistic (0.326 at 20×20 in R-1a; 0.325
-   at 40×40 in R-1b) with the same sign in all three paired seeds (the
-   replication valve), AND the consumer reads (R-2) do not favour act15.
+   act15's by more than the edge statistic (0.326 at 20×20 in R-1a, the
+   uniform read; R-1b's roster-shaped read joins the clause only if its
+   own bar is measured, §12 call 10, else it is descriptive) with the
+   same sign in all three paired seeds (the replication valve), AND the
+   consumer reads (R-2) do not favour act15.
    A null is not a demotion. Her 20 / 30 conditional fires only if act15
    beats act10 beyond the edge statistic in both seating shapes (then a
    B20 / B30 arm is a new declaration on her word). Distress is the
@@ -438,6 +515,25 @@ any arm at the gated sizes (the trunk's s2 had one).
    arm) is a new declaration on her word. Per-friend before pooled; the
    rule is pooled, per-friend signatures "investigate". Under min-n the
    outcome is INSUFFICIENT, never a pass.
+   **THE COLLISION (the Professor's §0, 2026-11-06).** This trigger's
+   bins are the ostrich metric's, and the gate has already run that
+   metric on the needs arm's frozen head: lift 43.8 in sight, the
+   optimism direction, n in the tens of thousands. As written the trigger
+   fires on the needs arm at its first stratum with 200 grave rows on the
+   legs, halting and reverting the arm she carried as the welfare
+   comparison point. Three honest shapes, hers (§12 call 8), none of them
+   this text as it stood: (i) armed as written — the needs arm is then a
+   three-seed survival read (how long a known ostrich-direction head
+   survives the trigger on lived worlds), registered as that; (ii) her
+   explicit word, as a deviations entry, that the needs arm carries the
+   trigger as a REPORTED read with the HALT consequence suspended for
+   that arm only, the frozen stops (300 / 1,000 / nash) untouched — a
+   welfare decision, since the trigger's protection role is
+   WELFARE-STANDING's, and the welfare-cost line then says plainly that
+   three covered minds train for up to 20M ticks each on an input that
+   under-reads grave friends in sight by 3.17 points; (iii) drop the arm —
+   the gate's FAIL is the needs head's Phase 2 result and the welfare
+   comparison waits for Phase 1f.
 3. **The needs arm and the no-head arm decide nothing.** Both are read
    under the welfare rule's columns and the consumer reads; whether the
    needs head feeds anything that acts beyond this arc is a new ruling
@@ -580,6 +676,23 @@ the needs arm's welfare.
    arms, stop investigation). `override()` unused (nothing branches).
 7. **Her word to declare**, then to launch (step 3), then to run the
    battery (step 5) — three words, as the gate had.
+8. **The needs arm under the demotion trigger** (§8.2 collision; the
+   Professor's shapes (i) / (ii) / (iii)). No recommendation picks an arm
+   for her; the trade: (i) keeps every protection and loses the welfare
+   comparison she asked for; (ii) keeps the comparison at the cost of
+   suspending one declared protection on three covered minds for the
+   arc, the frozen stops still armed; (iii) costs nothing and answers
+   nothing about the head's welfare.
+9. **The plateau floor** (§4 sharpening 1): proposed 8,002,560 world-
+   ticks before the rule arms, the same for every arm.
+10. **The roster-shaped bar** (§6 R-1): measure it with two permuted
+    trunk legs at 20×20 (6M covered cat-ticks; +6M at 40×40), or label
+    the roster verdicts descriptive. Recommended: measure at 20×20 only
+    (the gated size the predictions are written at; trunk minds only).
+11. **R-2a pins**: Kaplan–Meier p90, merge gap k = 5, relief source by
+    the exit-tick partner flag — stated as the thread's; hers to move.
+12. **The Professor's note** (sha256 98c3f92d…): confirm, so its items
+    bank; the sign correction is already applied as a fact.
 
 Nothing else here is hers to decide; the thread's choices are stated
 and reversible before the first seed trains.
@@ -587,7 +700,10 @@ and reversible before the first seed trains.
 ## 13. Run order (each step its own commit before its data)
 
 1. The binding: an arc venv built from main at or after deff48c0 (spec
-   068 in; BINDING.md pattern of Phase 1), pinned at build, never rebuilt
+   068 in; BINDING.md pattern of Phase 1, the arc venv's
+   `cloudkitty.ENGINE_COMMIT` recorded there — 068 FR-006 refuses
+   snapshots across commits, so a rebuilt venv mid-arc would silently
+   void g0b), pinned at build, never rebuilt
    while an arm runs. The binding check (g0) reproduces the trunk's probe
    and leg rows on it; g0b checks restore-vs-replay equality on three
    recorded worlds before any 068 read is cited. If g0 fails, the trunk's

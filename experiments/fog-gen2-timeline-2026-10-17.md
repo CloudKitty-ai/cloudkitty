@@ -824,6 +824,22 @@ consent BC comparison ride the trunk.
   in)") conditional on g0 / g0b. Draft at 5ee24ffb RELAYED to the
   Professor on her word (msg c2163075, 2026-11-06); their review banks
   until she confirms it here. Open: her word to DECLARE.
+  PROFESSOR REVIEW RECEIVED 2026-11-06 (note for-experiments-phase2-
+  draft-review-2026-11-06.md, sha256 98c3f92d…; BANKS until she
+  confirms). Record fact, verified against gate RESULTS R-2 and
+  corrected in the draft at once: the needs head's grave error is in the
+  OPTIMISM direction (a grave friend read 3.17 need points LESS needy
+  than she is) — the first draft called it "pessimistic" four times, the
+  act heads' word. Consequence the draft now carries: §8.2's demotion
+  trigger as written fires on the needs arm at its first sufficient
+  stratum; three shapes put to her (armed / halt suspended by deviation
+  / drop the arm). Also carried: a plateau FLOOR before the rule arms
+  (proposed 8M) + a cells-in-use read per bin; the roster-shaped bar is
+  borrowed (measure with two permuted trunk legs, or descriptive);
+  R-2a pins (Kaplan–Meier p90, merge k = 5, relief source by partner
+  flag; unpaired); P39 / P41 / P42 / P43 / P44 re-grounded; 068 notes
+  (tick_records last-step-only; ENGINE_COMMIT in BINDING.md; spec
+  status "Draft" → Product msg 982cd2a2). Owner calls 8–12 open.
 
 ## Flagged follow-ups (owner's word to start)
 
