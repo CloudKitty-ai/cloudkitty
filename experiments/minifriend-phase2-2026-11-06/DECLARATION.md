@@ -553,20 +553,30 @@ the needs arm's welfare.
    think we need the plateau rule here. These models are more complex
    than anything we've done before, and we've had generations plateau
    after 8M"); §4 carries it with the matched-checkpoint mitigation.
-2. **The ticks-since-live cell in the no-head arm.** Recommended: in
-   (the head cells are then the only difference). Alternative: a bare
-   baseline. OPEN (she asked for the explanation; given in session
-   2026-11-06).
-3. **β schedule.** Recommended: 0.04 held from step 0 (the arm starts at
-   the anchor). Alternative: the recipe's 0.5 → 0.04 anneal verbatim.
-   OPEN (pros and cons given in session 2026-11-06).
+2. **The ticks-since-live cell in the no-head arm.** RULED 2026-11-06:
+   "in" — every arm carries it; the head cells are the only difference
+   between a head arm and the baseline (§3 stands as written).
+3. **β schedule.** RULED 2026-11-06: "held" — 0.04 from step 0, no
+   anneal (§4 stands as written; the pros and cons given in session: the
+   anneal protected a BC clone's first steps and, under the plateau rule,
+   could stop an arm at three flat early bins before it learned the new
+   cells).
 4. **Battery scope.** RULED 2026-11-06: "all three world sizes" (§6
    R-1).
 5. **Scouts.** RULED 2026-11-06: "yes" — the s1 graft of each arm first
    (four runs in parallel), the other eight after the scouts complete
    clean.
-6. **The side read R-6** (the row-only head): run it, or drop it. OPEN
-   (explanation given in session 2026-11-06).
+6. **The side read R-6** (the row-only head): RULED 2026-11-06: "run
+   it".
+6b. **Spec 068 adoption for Phase 2's binding and reads.** Her lean
+   2026-11-06 ("I'm leaning adopt 068, any compelling reason not to?"),
+   not yet ruled; recommendation: adopt, conditional on g0 reproducing
+   the trunk's probe and leg rows on the post-068 binding, the binding
+   pinned at build and never rebuilt while an arm runs, and a
+   restore-vs-replay equality guard (g0b) before any 068 read is cited.
+   Training uses `step` only; 068's calls serve the reads (R-2c native
+   refusal reasons via `tick_records()`, a cheap one-tick re-read on the
+   arms, stop investigation). `override()` unused (nothing branches).
 7. **Her word to declare**, then to launch (step 3), then to run the
    battery (step 5) — three words, as the gate had.
 
