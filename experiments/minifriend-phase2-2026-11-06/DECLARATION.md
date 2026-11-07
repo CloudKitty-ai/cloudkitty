@@ -1,4 +1,4 @@
-# Gen 2 Phase 2 — the heads as inputs to the acting policy: three arms grafted on the frozen trunk (DRAFT 2026-11-06, for the owner; nothing declared, nothing runs)
+# Gen 2 Phase 2 — the heads as inputs to the acting policy: three arms grafted on the frozen trunk (DECLARED 2026-11-06)
 
 The frozen prereg (`gen2-prereg-2026-10-17.md` §8 item 4, "MINI-FRIEND
 Phase 2", amended A1 / A2′ / A4) reaches its Phase 2 here: the Phase 1
@@ -10,12 +10,15 @@ and BEFORE any number exists. She sees it first; the Professor sees it
 through her ("relay"). Her word declares it; until then the status line
 below is the truth.
 
-**Status: DRAFT 2026-11-06. Not declared. Every §12 call is RULED (the
-last five on 2026-11-06, "Iii drop the arm. Confirm professors note
-8-12 as recommended"); only call 7, her word to declare, is open. No
-seed band claimed, no instrument built, no covered mind trained.
-Deviations entry 23 is drafted in §14 and lands in the ledger when this
-declares.**
+**Status: DECLARED 2026-11-06 on her word "Do it" (call 7's first word,
+after "Iii drop the arm. Confirm professors note 8-12 as recommended"
+closed calls 8–12). Seed band 2,240,000,000–2,419,999,999 claimed
+(`SEED-BANDS.md`); deviations entry 23 landed, entry 22 CLOSED. From
+this line on, §3–§9 are frozen: predictions, decision rules and guards
+change only by a deviations entry on her word. No instrument built yet,
+no covered mind trained; step 1 (the binding, g0 / g0b) and step 2 (the
+instruments and their reds) run next; the scouts (step 3) and the
+battery (step 5) each wait on her word.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -90,6 +93,12 @@ live (ruling 7).
   the Professor's note confirmed, its items bank; calls 9 / 10 / 11 as
   recommended (floor 8,002,560; the roster bar measured at 20×20; the
   R-2a pins as stated).
+- 2026-11-06, call 7's first word, on "The only open call is 7: your
+  word to declare. On it I claim the seed band, land deviations 23 and
+  close 22, build the arc venv from main ≥ deff48c0 and run g0 / g0b,
+  then build the instruments and reds before asking for the scout
+  launch": "Do it" — DECLARED. The scout launch and the battery remain
+  her second and third words.
 
 Standing: Gen 2 prereg FROZEN 18f06f84, never edited; her rule of
 2026-11-02 ("judge an operating point on welfare impact; a false-run
@@ -712,7 +721,8 @@ false-run figures, which stay on record for Phase 1f.
    refusal reasons via `tick_records()`, a cheap one-tick re-read on the
    arms, stop investigation). `override()` unused (nothing branches).
 7. **Her word to declare**, then to launch (step 3), then to run the
-   battery (step 5) — three words, as the gate had.
+   battery (step 5) — three words, as the gate had. First word GIVEN
+   2026-11-06: "Do it" (DECLARED). Second and third open.
 8. **The needs arm under the demotion trigger** (§8.2 collision; the
    Professor's shapes (i) / (ii) / (iii)). RULED 2026-11-06: "Iii drop
    the arm" — shape (iii); three arms, nine covered seeds; the needs
@@ -775,7 +785,7 @@ declare.
    result stands alone; the welfare rule's verdict put to her with the
    consequences (§8) as open calls.
 
-## 14. Deviations entry 23 (drafted; lands at DECLARED)
+## 14. Deviations entry 23 (landed in `gen2-deviations.md` at DECLARED, 2026-11-06)
 
 "Phase 2 arm spec (2026-11-06). Deviations from the frozen prereg's §8
 item 4 framing, each on her word: (a) THREE live arms against 'one live

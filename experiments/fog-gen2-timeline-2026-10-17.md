@@ -860,6 +860,15 @@ consent BC comparison ride the trunk.
   + 6M roster bar. Deviations entry 22 carries the third ruling and the
   sign correction; F-073's bracket updated. Open: her word to DECLARE
   (call 7), the only open call.
+  PHASE 2 DECLARED 2026-11-06, her word verbatim: "Do it" (call 7's
+  first word; the scout launch and the battery remain her second and
+  third). `minifriend-phase2-2026-11-06/DECLARATION.md` Status flipped;
+  §3–§9 frozen from this commit; SEED-BANDS row 2,240,000,000–
+  2,419,999,999 claimed (run idx 107–115); deviations entry 23 landed,
+  entry 22 CLOSED. Next: step 1 (arc venv from main ≥ deff48c0,
+  BINDING.md with ENGINE_COMMIT, g0 reproduction of trunk probe 40,001
+  and leg 905001, g0b restore-vs-replay), step 2 (instruments + reds
+  g0–g10), then her word for the three scouts.
 
 ## Flagged follow-ups (owner's word to start)
 

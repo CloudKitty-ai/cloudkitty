@@ -1193,5 +1193,27 @@ head waits for Phase 1f (a new declaration on her word); no Phase 1f
 composition arm now; the frozen head is not retrained. The deviation
 this entry was opened for (a failed head carried into a live arm) no
 longer occurs. The frozen text is not edited; this entry is the record.
-Status: OPEN until the Phase 2 declaration lands, which CLOSES it (its
-§14 entry 23 item (c) carries the record).
+Status: CLOSED 2026-11-06 by the Phase 2 declaration (owner "Do it";
+entry 23 item (c) carries the record).
+
+## 23. Phase 2 arm spec (2026-11-06)
+
+Deviations from the frozen prereg's §8 item 4 framing, each on her
+word (`minifriend-phase2-2026-11-06/DECLARATION.md` §14, verbatim):
+(a) THREE live arms against 'one live arm vs trunk' — B15, B10
+comparator, no-head continuation ('three arms' 2026-11-05; 'Four heads'
+then 'Iii drop the arm' 2026-11-06); (b) the act head at 14.73% of the
+trunk against the 10% cap, which she ruled an engineering budget never
+hers (2026-11-04); (c) the Phase 1 NEEDS head, the prereg's named Phase
+2 input, is NOT an input to any arm: the entry gate FAILED it (entry
+21) and she dropped the arm that would have carried it (entry 22 CLOSED
+by this declaration: no deviation remains; the needs head's welfare
+comparison is Phase 1f's, a new declaration on her word); (d) the heads
+frozen, the correction deferred, the error signal passive-logged — as
+frozen, no deviation; (e) the architecture of A4 (one recurrent belief
+state read by both heads) is not built: one act head per arm with its
+own state (her 'We definitely want two heads'; arm C skipped
+2026-11-04). The frozen text is not edited; this entry is the record.
+Declared 2026-11-06 on her word "Do it"; seed band
+2,240,000,000–2,419,999,999 claimed the same day before any burn.
+Status: OPEN while the arc runs; CLOSED at the arc's RESULTS.
