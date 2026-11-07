@@ -49,14 +49,19 @@ DISPLACED = (40, 100)
 
 
 def harness_cmd(config, band, seeds, ticks, workers, out_dir,
-                seating="scripted"):
+                seating="scripted", record=False, python=None):
     """One cert_harness_fog invocation, the F-053 streak stop always
     armed. Seating default scripted (the comparator legs); the Gen 2
-    battery passes its g2-* seatings (DECLARATION.md 2026-10-20)."""
-    return [str(PYTHON), str(HARNESS), seating, band,
-            "--seeds", str(seeds), "--ticks", str(ticks),
-            "--workers", str(workers), "--config", str(config),
-            "--out-dir", str(out_dir), "--abort-streak", str(F053_STREAK)]
+    battery passes its g2-* seatings (DECLARATION.md 2026-10-20); the
+    Phase 2 legs pass record=True (acts per tick to <out_dir>/acts/)
+    and their own arc venv's interpreter."""
+    cmd = [str(python or PYTHON), str(HARNESS), seating, band,
+           "--seeds", str(seeds), "--ticks", str(ticks),
+           "--workers", str(workers), "--config", str(config),
+           "--out-dir", str(out_dir), "--abort-streak", str(F053_STREAK)]
+    if record:
+        cmd += ["--record-dir", str(Path(out_dir) / "acts")]
+    return cmd
 
 
 def scout_verdict(jsonl_path, expect_seeds=None, kind="scout"):
@@ -91,7 +96,7 @@ def scout_verdict(jsonl_path, expect_seeds=None, kind="scout"):
 
 
 def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
-         scout_seeds=3, seating="scripted"):
+         scout_seeds=3, seating="scripted", record=False, python=None):
     """Ordered stages: per size (ascending), scout-then-gate for the
     displaced sizes, then the full leg. Each stage: (name, cmd,
     gate_file) — every stage is gated on its own output file (scouts
@@ -111,12 +116,12 @@ def plan(configs, band, seeds, ticks, workers, out_dir, only=SIZES,
             stages.append((f"scout-{size}",
                            harness_cmd(cfg, band, scout_seeds, ticks,
                                        min(scout_seeds, workers), sdir,
-                                       seating),
+                                       seating, record, python),
                            sdir / f"{seating}-{band}-{scout_seeds}x{ticks}.jsonl"))
         ldir = out_dir / f"legs/size{size}"
         stages.append((f"leg-{size}",
                        harness_cmd(cfg, band, seeds, ticks, workers, ldir,
-                                   seating),
+                                   seating, record, python),
                        ldir / f"{seating}-{band}-{seeds}x{ticks}.jsonl"))
     return stages
 
@@ -140,6 +145,12 @@ def main(argv=None):
     ap.add_argument("--seating", default="scripted",
                     help="cert_harness_fog seating name (default scripted; "
                          "the Gen 2 battery passes g2-s1/g2-s2/g2-s4)")
+    ap.add_argument("--record", action="store_true",
+                    help="Phase 2 legs: record every policy seat's acts per tick "
+                         "(cert_harness_fog --record-dir <leg dir>/acts)")
+    ap.add_argument("--python", type=Path, default=None,
+                    help="interpreter for the harness (default: the Gen 2 lab venv's; "
+                         "the Phase 2 legs pass their arc venv's)")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
     only = tuple(int(s) for s in a.only.split(",")) if a.only else SIZES
@@ -148,7 +159,7 @@ def main(argv=None):
         raise SystemExit(f"run_legs: unknown sizes {bad}; sizes are {SIZES}")
     configs = {s: getattr(a, f"config_{s}") for s in SIZES}
     stages = plan(configs, a.band, a.seeds, a.ticks, a.workers, a.out_dir, only,
-                  a.scout_seeds, a.seating)
+                  a.scout_seeds, a.seating, a.record, a.python)
     for name, cmd, gate_file in stages:
         print(f"== {name}: {' '.join(cmd)}", flush=True)
         if a.dry_run:

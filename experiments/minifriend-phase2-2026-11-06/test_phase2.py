@@ -130,10 +130,198 @@ def g2():
     assert worst < 1e-6, f"online y0 differs from offline by {worst}"
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2}
+def _scratch_artifact(slot="p2-act15-s1", arm="act15", trunk_seed=1):
+    """A grafted (untrained) arm policy saved where the harness's p2 seat looks when P2_ARC is pointed at the scratch."""
+    import graft as G
+    import heads_online as HO
+    p2, _trunk, _ck = G.graft(trunk_seed, HO.ARMS[arm]["cells"])
+    out = SCRATCH / "artifacts" / slot / "policy-final.pt"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    G.save_policy(p2, out, arm=arm, slot=slot, stop_reason="scratch")
+    return out
+
+
+def g3():
+    """the `p2` seat in the cert harness equals the trainer's forward on the same observation (one forward, two homes):
+    a 300-tick uniform p2 leg recorded by run_one replays by its recorded actions through the trainer-side P2Actor
+    with the same greedy (act, msg) at every tick and seat; the seat refuses a bundle whose head sha256 is not the
+    named head's."""
+    import cloudkitty
+    import cert_harness_fog as H
+    import heads_online as HO
+    art = _scratch_artifact()
+    H.P2_ARC = SCRATCH
+    rec_dir = SCRATCH / "rec"
+    H.run_one(("p2u-act15-s1", 905_001, 300, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
+    z = np.load(rec_dir / "acts-905001.npz")
+    acts = z["acts"]
+    assert acts.shape == (300, 5, 2) and list(z["seats"]) == ["p2:p2-act15-s1"] * 5, (acts.shape, list(z["seats"]))
+    actor, _ck = HO.actor_from_artifact(art, n_obs=5)
+    env = cloudkitty.ParallelEnv(str(C.TRUNK_TOML), horizon=300)
+    obs, infos = env.reset(seed=905_001)
+    names = list(env.possible_agents)
+    actor.reset()
+    for t in range(300):
+        ob = np.stack([np.asarray(obs[a], np.float32) for a in names])
+        mk = np.stack([np.asarray(infos[a]["mask"], np.uint8) for a in names]).astype(bool)
+        lg = actor.logits(ob)
+        a0 = np.where(mk[:, :35], lg[:, :35], -np.inf).argmax(1)
+        g0_ = np.where(mk[:, 35:], lg[:, 35:], -np.inf).argmax(1)
+        assert np.array_equal(a0, acts[t, :, 0]) and np.array_equal(g0_, acts[t, :, 1]), f"harness seat and trainer forward disagree at tick {t}"
+        obs, _r, _te, _tr, infos = env.step({a: (int(acts[t, i, 0]), int(acts[t, i, 1])) for i, a in enumerate(names)})
+    # the roster-shaped seating runs (three one-row p2 seats beside two trunk seats) and records every seat's acts
+    for slot in ("p2-act15-s2", "p2-act15-s4"):
+        _scratch_artifact(slot)
+    r = H.run_one(("p2r-act15", 905_002, 50, str(C.TRUNK_TOML), None, None, "served", None, None, 1_000, str(rec_dir)))
+    assert r["seats"] == ["p2:p2-act15-s2", "p2:p2-act15-s4", "g2:trunk-s6", "g2:trunk-s7", "p2:p2-act15-s1"], r["seats"]
+    assert np.load(rec_dir / "acts-905002.npz")["acts"].shape == (50, 5, 2)
+    # the head sha refusal
+    saved = dict(HO.HEAD_SHA256)
+    HO.HEAD_SHA256[("B15", 2)] = "0" * 64
+    try:
+        HO.OnlineHeads("act15", 1)
+        raise AssertionError("a head whose sha is not the named one was accepted")
+    except AssertionError as e:
+        assert "is not the named" in str(e), e
+    finally:
+        HO.HEAD_SHA256.update(saved)
+
+
+def g4():
+    """the stops: a 300-tick probe streak halts, 299 does not, 1,000 names the F-053 line; the nash stop needs three
+    consecutive probes; the demotion trigger fires on OPTIMISM (grave d_hap > 0) at lift ≥ 1.5 and n ≥ 200, not on
+    pessimism, not at lift 1.4, not at n 199."""
+    import train_ppo_p2 as P
+    assert P.probe_stop({"max_distress_streak": 300, "nash": 0.9}, 0)[0] == "probe-distress-stop", "300 must halt"
+    assert P.probe_stop({"max_distress_streak": 299, "nash": 0.9}, 0)[0] is None, "299 must not halt"
+    assert P.probe_stop({"max_distress_streak": 1_000, "nash": 0.9}, 0)[0] == "f053-line-crossed"
+    r1, k1 = P.probe_stop({"max_distress_streak": 0, "nash": 0.4}, 0)
+    r2, k2 = P.probe_stop({"max_distress_streak": 0, "nash": 0.4}, k1)
+    r3, k3 = P.probe_stop({"max_distress_streak": 0, "nash": 0.4}, k2)
+    assert (r1, r2, r3) == (None, None, "welfare-stop"), (r1, r2, r3)
+    assert P.probe_stop({"max_distress_streak": 0, "nash": 0.6}, 2) == (None, 0), "a clean probe resets the strikes"
+
+    def acc(grave, common, n_g=250, n_c=250):
+        a = P.new_trigger_acc()
+        for v in ("visible", "all"):
+            a[v]["GRAVE"]["pooled"] = [grave] * n_g
+            a[v]["COMMON"]["pooled"] = [common] * n_c
+            for f in P.FRIENDS:
+                a[v]["GRAVE"][f] = [grave] * (n_g // 5)
+                a[v]["COMMON"][f] = [common] * (n_c // 5)
+        return a
+    assert P.trigger_eval(acc(+2.0, +1.0))["fire"], "optimism at lift 2 must fire"
+    assert not P.trigger_eval(acc(-2.0, -1.0))["fire"], "pessimism must not fire"
+    assert not P.trigger_eval(acc(+1.4, +1.0))["fire"], "lift 1.4 must not fire"
+    assert P.trigger_eval(acc(+1.5, +1.0))["fire"], "lift 1.5 fires"
+    r = P.trigger_eval(acc(+2.0, +1.0, n_g=199))
+    assert not r["fire"] and r["by_version"]["all"]["state"] == "INSUFFICIENT", "n 199 is INSUFFICIENT"
+
+
+def g5():
+    """the plateau rule verbatim under the ruled floor: three flat bins halt, two do not; bins closed at or before the
+    floor never count and the first post-floor bin cannot be flat (no post-floor predecessor); with floor 0 the
+    trunk's own rule (bins 2–4 flat -> halt at the fourth). A tiny smoke run lands a policy checkpoint at every closed
+    bin, stops at the cap with the record naming it, and (g9) opens metrics.jsonl in append mode only."""
+    import train_ppo_p2 as P
+
+    def closed(ticks):
+        return {"ret": 0.9, "kl": 0.1, "ticks": ticks}
+    bins, streak = [], 0
+    for b in range(1, 13):
+        c = closed(b * 1_000_000)
+        flat, streak = P.plateau_step(bins, c, streak, P.FLOOR_TICKS)
+        c["flat"] = flat
+        bins.append(c)
+        if b <= 9:
+            assert not flat, f"bin {b} ({c['ticks']}) counted flat before / at the floor's first post-floor bin"
+        if b == 11:
+            assert streak == 2, "two post-floor flat bins must not halt"
+    assert streak == 3 and [b["flat"] for b in bins] == [False] * 9 + [True] * 3, [b["flat"] for b in bins]
+    bins, streak = [], 0
+    for b in range(1, 5):
+        flat, streak = P.plateau_step(bins, closed(b * 1_000_000), streak, 0)
+        bins.append(dict(closed(b * 1_000_000), flat=flat))
+    assert streak == 3 and [b["flat"] for b in bins] == [False, True, True, True], "floor 0 is the trunk's rule"
+    bins, streak = [], 0
+    for b in range(1, 4):
+        flat, streak = P.plateau_step(bins, closed(b * 1_000_000) if b < 3 else {"ret": 0.95, "kl": 0.1, "ticks": 3_000_000}, streak, 0)
+        bins.append(closed(b * 1_000_000))
+    assert streak == 0, "a bin whose return rose 0.05 is not flat"
+    # the smoke: checkpoints per closed bin, the final's record, append-only log
+    from pathlib import Path as _P
+    out = SCRATCH / "smoke-g5"
+    import shutil
+    if out.exists():
+        shutil.rmtree(out)
+    modes = []
+    real_open = _P.open
+
+    def spy(self, mode="r", *a, **k):
+        if self.name == "metrics.jsonl":
+            modes.append(mode)
+        return real_open(self, mode, *a, **k)
+    _P.open = spy
+    argv = sys.argv
+    sys.argv = ["train_ppo_p2.py", "--slot", "p2-nohead-s1", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "3072",
+                "--fragment", "64", "--probe-every", "8", "--probe-ticks", "40", "--bin-ticks", "1024", "--floor-ticks", "1024", "--out-dir", str(out)]
+    try:
+        P.main()
+    finally:
+        sys.argv = argv
+        _P.open = real_open
+    rows = [__import__("json").loads(l) for l in (out / "metrics.jsonl").read_text().splitlines()]
+    closed_rows = [r for r in rows if "bin_closed" in r]
+    assert len(closed_rows) == 3, len(closed_rows)
+    for r in closed_rows:
+        assert (out / r["bin_checkpoint"]).exists(), r["bin_checkpoint"]
+    assert len(list(out.glob("ckpt-u*.pt"))) == 3
+    import torch
+    fin = torch.load(out / "policy-final.pt", map_location="cpu", weights_only=True)
+    assert fin["stop_reason"] == "cap" and fin["ticks"] == 3072 and fin["plateau_tick"] is None and fin["arm"] == "nohead", {k: fin[k] for k in ("stop_reason", "ticks", "arm")}
+    assert modes and set(modes) == {"a"}, f"metrics.jsonl opened with modes {sorted(set(modes))}; the passive log is write-only"
+
+
+def g9():
+    """the passive log is write-only: g5's smoke records every open of metrics.jsonl (append only) — run with g5; here
+    the static half: the trainer's source never reads its log."""
+    src = (HERE / "train_ppo_p2.py").read_text()
+    assert "metrics.jsonl" in src
+    for bad in ("log_path.read", "open(log_path)", 'log_path.open("r")', "np.load(log_path", "json.load(log_path"):
+        assert bad not in src, f"the trainer reads its own log: {bad}"
+
+
+def g10():
+    """seeds and slots: the nine slots map to run indices 107–115 inside the claimed band by the stripe formula; no
+    needs slot exists; grafts pair s_k with trunk-s_k; the head named per arm is the median-validation seed by the
+    stores' done.json."""
+    import json as _j
+    import train_ppo_p2 as P
+    import heads_online as HO
+    import train_act as TA
+    idx = sorted(P.SLOTS[s][2] for s in P.SLOTS)
+    assert idx == list(range(107, 116)), idx
+    assert not any("needs" in s for s in P.SLOTS), "a needs slot exists"
+    lo = min(P.T.seed_stripe(i)[0] for i in idx)
+    hi = max(P.T.seed_stripe(i)[1] for i in idx)
+    assert (lo, hi) == (2_240_000_000, 2_419_999_999), (lo, hi)
+    for slot, (arm, k, i) in P.SLOTS.items():
+        assert slot == f"p2-{arm}-s{k}" and k in C.TRUNK_SEEDS, slot
+        assert {"act15": 107, "act10": 110, "nohead": 113}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+    for arm, spec in HO.ARMS.items():
+        if spec["head"] is None:
+            continue
+        h_arm, seed = spec["head"]
+        vals = {s: _j.loads((TA.OUT_ROOT / TA.run_name(h_arm, s) / "done.json").read_text())["best_val"] for s in (1, 2, 3)}
+        med = sorted(vals, key=vals.get)[1]
+        assert med == seed, f"{arm}: the median-validation {h_arm} seed is s{med}, not the named s{seed}"
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g9": g9, "g10": g10}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]
+    SCRATCH.mkdir(parents=True, exist_ok=True)
     for n in names:
         GUARDS[n]()
         print(f"{n} ok", flush=True)

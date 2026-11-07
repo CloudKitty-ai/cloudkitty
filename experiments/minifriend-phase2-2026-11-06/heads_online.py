@@ -130,17 +130,26 @@ class OnlineHeads:
 
 
 class P2Actor:
-    """The arm's policy with its head inline: logits(obs (n, 399)) steps the heads, widens the rows, runs the policy."""
+    """The arm's policy with its head inline: logits(obs (n, 399)) steps the heads, widens the rows, runs the policy.
+    heads may be None with `arm` given: the OnlineHeads are then sized at the first call (the cert harness feeds a
+    seat's rows in a fixed order every tick and knows the count only then) and the count is asserted constant."""
 
-    def __init__(self, policy, heads):
-        assert policy.cells == heads.cells, (policy.cells, heads.cells)
-        self.policy, self.heads = policy, heads
+    def __init__(self, policy, heads=None, arm=None):
+        assert heads is not None or arm is not None
+        self.policy, self.heads, self.arm = policy, heads, arm
+        if heads is not None:
+            assert policy.cells == heads.cells, (policy.cells, heads.cells)
         self.policy.eval()
 
     def reset(self, rows=None):
-        self.heads.reset(rows)
+        if self.heads is not None:
+            self.heads.reset(rows)
 
     def widen(self, obs):
+        if self.heads is None:
+            self.heads = OnlineHeads(self.arm, len(obs))
+            assert self.policy.cells == self.heads.cells, (self.policy.cells, self.heads.cells)
+        assert len(obs) == self.heads.n, f"{len(obs)} rows for a seat sized {self.heads.n}"
         cells = self.heads.step(obs)
         return np.concatenate([np.asarray(obs, np.float32), cells.reshape(len(obs), -1)], 1), cells
 
@@ -154,11 +163,13 @@ class P2Actor:
         return self.logits(rows)
 
 
-def actor_from_artifact(path, n_obs):
-    """A P2Actor from a saved Phase 2 policy (graft.save_policy's record names its arm)."""
+def actor_from_artifact(path, n_obs=None):
+    """A P2Actor from a saved Phase 2 policy (graft.save_policy's record names its arm); n_obs None = sized at the
+    first call."""
     policy, ck = G.load_policy(path)
-    arm = ck["arm"] if "arm" in ck else ck["graft"]["arm"]
-    return P2Actor(policy, OnlineHeads(arm, n_obs)), ck
+    arm = ck["arm"]
+    assert arm in ARMS, arm
+    return P2Actor(policy, None if n_obs is None else OnlineHeads(arm, n_obs), arm=arm), ck
 
 
 if __name__ == "__main__":

@@ -84,6 +84,10 @@ NEG_INF = float("-inf")
 # spawned workers see it too. Seat specs stay `ppo:<slot>` -> <root>/ppo-fog-<slot>/policy-final.pt.
 ARTS = Path(os.environ["CERT_ARTS"]) if os.environ.get("CERT_ARTS") else HERE / "artifacts"
 G2_ARTS = EXPTS / "gen2-trunk-training-2026-10-18" / "artifacts"
+# Phase 2 arm seats (`p2:<slot>`, minifriend-phase2-2026-11-06/DECLARATION.md §6 R-1; the arm's policy with its
+# frozen head inline, heads_online.P2Actor — one forward, every home): the same v6 schema as g2 seats.
+P2_ARC = EXPTS / "minifriend-phase2-2026-11-06"
+V6_KINDS = ("g2:", "p2:")
 DEFAULT_CONFIG = HERE / "anchor-b3.toml"
 
 
@@ -93,6 +97,8 @@ def artifact_path(spec):
     kind, name = spec.split(":", 1)
     if kind == "g2":
         return G2_ARTS / f"ppo-g2-{name}" / "policy-final.pt"
+    if kind == "p2":
+        return P2_ARC / "artifacts" / name / "policy-final.pt"
     return ARTS / f"ppo-fog-{name}" / "policy-final.pt"
 
 # Seat order = kitty id order in the config: Miso, Biscuit, Pumpkin, Kittybear, Clementine.
@@ -134,6 +140,18 @@ SEATINGS = {
     "g2-mix1": ["g2:trunk-s1", "g2:trunk-s1", "g2:trunk-s2", "g2:trunk-s2", "g2:trunk-s4"],
     "g2-mix2": ["g2:trunk-s2", "g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s4", "g2:trunk-s1"],
     "g2-mix3": ["g2:trunk-s4", "g2:trunk-s2", "g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s2"],
+    # Phase 2 (minifriend-phase2-2026-11-06/DECLARATION.md §6 R-1, declared 2026-11-06): per arm, (a) UNIFORM per
+    # seed `p2u-<arm>-s<k>` — the arm's seed k in all five seats, paired with the recorded g2-s<k> uniform row;
+    # (b) ROSTER-SHAPED `p2r-<arm>` — rot2 with Miso / Biscuit / Clementine's seats (trunk s2 / s4 / s1) taken by
+    # the arm's s2 / s4 / s1, Pumpkin s6 and Kittybear s7 the trunk's.
+    **{f"p2u-{arm}-s{k}": [f"p2:p2-{arm}-s{k}"] * 5 for arm in ("act15", "act10", "nohead") for k in (1, 2, 4)},
+    **{f"p2r-{arm}": [f"p2:p2-{arm}-s2", f"p2:p2-{arm}-s4", "g2:trunk-s6", "g2:trunk-s7", f"p2:p2-{arm}-s1"]
+       for arm in ("act15", "act10", "nohead")},
+    # The roster-shaped bar's two permuted TRUNK legs (DECLARATION §6 R-1, ruled 2026-11-06 "as recommended"):
+    # rot2's three arm-replaceable seats (Miso, Biscuit, Clementine) hold s1 / s2 / s4 in the two cyclic
+    # permutations distinct from rot2's own (s2, s4, s1); Pumpkin s6 and Kittybear s7 fixed.
+    "g2-rot2-perm1": ["g2:trunk-s4", "g2:trunk-s1", "g2:trunk-s6", "g2:trunk-s7", "g2:trunk-s2"],
+    "g2-rot2-perm2": ["g2:trunk-s1", "g2:trunk-s2", "g2:trunk-s6", "g2:trunk-s7", "g2:trunk-s4"],
 }
 # rep1/rep2: the owner's tail replication of the seated roster (2026-09-15), two more
 # disjoint 30-seed bands beyond the declared eval/stress pair
@@ -159,6 +177,13 @@ def load_model(spec):
         sys.path.insert(0, str(EXPTS / "beam-world-screen-2026-09-19"))
         from beam_plan import BeamPlanner
         return BeamPlanner(load_model(f"ppo:{name}"))
+    if kind == "p2":
+        import torch
+        sys.path.insert(0, str(P2_ARC))
+        from heads_online import actor_from_artifact
+        torch.set_num_threads(1)
+        actor, _ck = actor_from_artifact(artifact_path(spec), n_obs=None)   # heads sized at the first call (rows per tick)
+        return actor
     if kind == "g2":
         import torch
         sys.path.insert(0, str(EXPTS / "gen2-trunk-training-2026-10-18" / "trainer"))
@@ -514,8 +539,8 @@ def run_one(args):
     # The tail args are optional (older callers pass shorter tuples; the
     # deaf/dir_r extension silently broke the 7-tuple guard tests, found
     # 2026-09-26): pad with None = feature off.
-    args = tuple(args) + (None,) * (10 - len(args))
-    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf, dir_r, abort_streak = args
+    args = tuple(args) + (None,) * (11 - len(args))
+    seating_name, seed, ticks, config_path, seats_override, control_brain, clock_mode, deaf, dir_r, abort_streak, record_dir = args
     # clock_mode "served": the engine's policy seam pins the clock input to 0 at deploy
     # (behavior.rs decide_sync: "No episode runs at deploy"); the harness does the same so
     # the battery reads the served condition. Verified 2026-09-15: with the clock pinned the
@@ -535,9 +560,9 @@ def run_one(args):
     # One schema per roster. g2 (v6) observations carry no episode-clock
     # input, so "served" is the only truthful clock mode, and the deafen
     # offsets are schema-5 — both refused up front, before the env.
-    schema = "v6" if any(s.startswith("g2:") for s in seats) else "v5"
+    schema = "v6" if any(s.startswith(V6_KINDS) for s in seats) else "v5"
     if schema == "v6":
-        assert all(s == "scripted" or s.startswith("g2:") for s in seats), seats
+        assert all(s == "scripted" or s.startswith(V6_KINDS) for s in seats), seats
         assert clock_mode == "served", \
             f"g2 seats run clock=served only (no clock input exists): {clock_mode}"
         assert deaf is None, "deafen offsets are schema-5; refused for g2 seats"
@@ -589,6 +614,9 @@ def run_one(args):
     hold = hold_acc(roster)
     shape = shape_acc(roster)
     prev_tiles = None
+    # record_dir (Phase 2 legs): every policy seat's chosen (act, msg) per tick, so a leg is replayable by its
+    # recorded actions for the after-the-fact reads (minifriend-phase2 R-2..R-5); nothing else is recorded here.
+    rec_acts = np.zeros((ticks, len(names), 2), np.int16) if record_dir else None
 
     for _t in range(ticks):
         acts = {}
@@ -613,6 +641,8 @@ def run_one(args):
             acts = {a: (int(a0[i]), int(g0[i])) for i, a in enumerate(names)}
             for i, a in enumerate(names):
                 msg_counts[a][int(g0[i])] += 1
+            if rec_acts is not None:
+                rec_acts[n_ticks, :, 0], rec_acts[n_ticks, :, 1] = a0, g0
         obs, rew, _term, _trunc, infos = env.step(acts)
         st = np.asarray(env.state(), np.float32)
         if names:
@@ -659,6 +689,10 @@ def run_one(args):
             aborted_at = n_ticks
             break
 
+    if rec_acts is not None:
+        Path(record_dir).mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(Path(record_dir) / f"acts-{seed}.npz", acts=rec_acts[:n_ticks], names=np.array(names),
+                            seats=np.array(seats), seed=seed, ticks=n_ticks, config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest())
     return {
         **({"aborted_streak": {"limit": abort_streak, "at_tick": aborted_at}}
            if aborted_at is not None else {}),
@@ -737,6 +771,9 @@ def main():
                     help="welfare-practice stop (owner ruled 2026-09-26): abort the leg "
                          "when any cat's distress streak reaches N ticks; the row records "
                          "aborted_streak and its shortened tick count")
+    ap.add_argument("--record-dir", type=Path, default=None,
+                    help="Phase 2 legs: write every policy seat's chosen (act, msg) per tick to "
+                         "<dir>/acts-<seed>.npz so the leg replays by its recorded actions")
     a = ap.parse_args()
     assert (a.deaf == "dir") == (a.dir_r is not None), "--dir-r goes with --deaf dir, both or neither"
     seats = list(SEATINGS[a.seating])
@@ -746,7 +783,8 @@ def main():
         seats[int(i)] = spec
         tag += f"_s{i}-{spec.split(':', 1)[-1]}"
     seed0 = a.seed0 if a.seed0 is not None else BANDS[a.band]
-    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf, a.dir_r, a.abort_streak) for i in range(a.seeds)]
+    jobs = [(a.seating, seed0 + i, a.ticks, str(a.config), seats, a.control_brain, a.clock, a.deaf, a.dir_r, a.abort_streak,
+             None if a.record_dir is None else str(a.record_dir)) for i in range(a.seeds)]
     if a.control_brain:
         tag += f"_val-{a.control_brain}"
     if a.deaf == "dir":
@@ -756,7 +794,7 @@ def main():
     # Clock suffixes are a v5 disambiguator (v6 has no clock input at
     # all: one truthful mode, no suffix — scout/leg filenames stay
     # seating-band-NxT for the run_legs gate).
-    g2 = any(s.startswith("g2:") for s in seats)
+    g2 = any(s.startswith(V6_KINDS) for s in seats)
     if not g2:
         if a.clock == "served" and any(s != "scripted" for s in seats):
             tag += "-c0"  # legs before 2026-09-15 22:00 ran the episode clock and carry no suffix
