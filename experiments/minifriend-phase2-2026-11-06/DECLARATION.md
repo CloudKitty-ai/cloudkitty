@@ -568,9 +568,10 @@ the needs arm's welfare.
    clean.
 6. **The side read R-6** (the row-only head): RULED 2026-11-06: "run
    it".
-6b. **Spec 068 adoption for Phase 2's binding and reads.** Her lean
-   2026-11-06 ("I'm leaning adopt 068, any compelling reason not to?"),
-   not yet ruled; recommendation: adopt, conditional on g0 reproducing
+6b. **Spec 068 adoption for Phase 2's binding and reads.** RULED
+   2026-11-06 — her lean ("I'm leaning adopt 068, any compelling reason
+   not to?"; answered: none) then "Relay our plan to Professor for review
+   (including 068 in)": ADOPTED, conditional on g0 reproducing
    the trunk's probe and leg rows on the post-068 binding, the binding
    pinned at build and never rebuilt while an arm runs, and a
    restore-vs-replay equality guard (g0b) before any 068 read is cited.
@@ -585,9 +586,13 @@ and reversible before the first seed trains.
 
 ## 13. Run order (each step its own commit before its data)
 
-1. The binding check (g0) on both candidate venvs → `BINDING.md` names
-   the one that reproduces the trunk's probe and leg rows; if neither
-   does, STOP and report (no arm trains on a world that is not the
+1. The binding: an arc venv built from main at or after deff48c0 (spec
+   068 in; BINDING.md pattern of Phase 1), pinned at build, never rebuilt
+   while an arm runs. The binding check (g0) reproduces the trunk's probe
+   and leg rows on it; g0b checks restore-vs-replay equality on three
+   recorded worlds before any 068 read is cited. If g0 fails, the trunk's
+   own venv is the fallback (068 reads then wait); if neither
+   reproduces, STOP and report (no arm trains on a world that is not the
    trunk's).
 2. This declaration DECLARED on her word; `SEED-BANDS.md` row claimed;
    deviations entry 23; the instruments (`graft.py`, `heads_online.py`,
