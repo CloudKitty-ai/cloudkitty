@@ -1217,3 +1217,31 @@ own state (her 'We definitely want two heads'; arm C skipped
 Declared 2026-11-06 on her word "Do it"; seed band
 2,240,000,000–2,419,999,999 claimed the same day before any burn.
 Status: OPEN while the arc runs; CLOSED at the arc's RESULTS.
+
+## 24. Phase 2 §8.1: the roster-shaped read is descriptive at every size (2026-11-07)
+
+The Phase 2 declaration (`minifriend-phase2-2026-11-06/DECLARATION.md`
+§6 R-1, §8.1, frozen at DECLARED 226509ec) named a MEASURED roster edge
+statistic at 20×20 as the demotion bar for the roster-shaped read: the
+mean pairwise difference of the recorded rot2 leg and two trunk legs
+with s1 / s2 / s4 permuted across rot2's three replaceable seats (owner
+2026-11-06, call 10 "as recommended"). Measured 2026-11-07: rot2 87.487
+/ perm1 87.483 / perm2 87.470 → 0.011. That statistic answers a
+different question from the one the clause needs — permuting the SAME
+three networks among three chairs measures seat-assignment noise, while
+the arm comparison swaps the three networks for three different ones
+(the uniform edge, 0.326, measures that spread for all five chairs; the
+battery's swaps digest shows one-seat alternate swaps moving the team
+by mean |Δ| 0.103, max 0.284). As a demotion input 0.011 would let a
+0.02 roster difference demote B15 on noise the uniform read calls a
+null, inverting the clause's asymmetry. Put to the owner 2026-11-07
+with three options (descriptive; re-bar from the swaps digest; measure
+the right null with alternate-seated legs, 12M covered cat-ticks).
+RULED 2026-11-07, her word verbatim: "1" — option 1: **the roster
+verdicts stay DESCRIPTIVE at every size; the uniform 20×20 read (edge
+0.326) alone carries §8.1's demotion clause and the 20 / 30
+conditional.** The two permuted trunk legs stay on record as the
+measurement they are (read_r1 reports 0.011 as `edge.roster/20`,
+labelled seat-assignment noise). The frozen text is not edited; this
+entry is the record. Status: OPEN while the arc runs; CLOSED at RESULTS.
+

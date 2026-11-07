@@ -444,7 +444,9 @@ on recorded rows).
   recommendation that the roster verdicts stay descriptive at every
   size (the uniform read carrying §8.1) unless she rules another bar —
   a deviations entry either way, since §8.1 as declared names the
-  measured roster bar at 20×20.
+  measured roster bar at 20×20. **RULED 2026-11-07, her word "1":
+  roster verdicts DESCRIPTIVE at every size; the uniform 20×20 read
+  alone carries §8.1 (deviations entry 24).**
   **Instrument note 2026-11-06:** the declared 0.326 / 0.325 is the
   statistic of the battery's PRINTED trained means (3 dp, the §2
   arithmetic); from the unrounded rows it is 0.327 at 20×20 (a 0.001
@@ -624,6 +626,11 @@ any arm at the gated sizes (the trunk's s2 had one).
    The two 20×20 reads each stand alone: a clearance in either seating
    shape, both valves met, is a demotion finding put to her; a clearance
    in one and a null in the other is reported as that.
+   [Deviations entry 24, 2026-11-07, her word "1": the roster-shaped
+   read is DESCRIPTIVE at every size — the measured permutation bar
+   (0.011) is seat-assignment noise, not seed spread; only the uniform
+   20×20 read (edge 0.326) carries this clause. The text above is the
+   frozen declaration; the entry is the record.]
    A null is not a demotion. Her 20 / 30 conditional fires only if act15
    beats act10 beyond the edge statistic in both seating shapes (then a
    B20 / B30 arm is a new declaration on her word). Distress is the

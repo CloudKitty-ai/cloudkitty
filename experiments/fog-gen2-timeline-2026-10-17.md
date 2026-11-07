@@ -925,6 +925,10 @@ consent BC comparison ride the trunk.
   very liberal (a 0.02 roster difference would "clear" it). Recommend
   the roster read stays DESCRIPTIVE at every size unless she rules a
   different bar (a deviation); the uniform read carries the clause.
+  RULED 2026-11-07, her word verbatim: "1" (after "Explain the
+  decision?" and the three options) — roster verdicts DESCRIPTIVE at
+  every size; the uniform 20×20 read alone carries §8.1; deviations
+  entry 24. Scouts still training; battery waits on her third word.
 
 ## Flagged follow-ups (owner's word to start)
 
