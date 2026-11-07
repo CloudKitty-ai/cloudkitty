@@ -52,8 +52,20 @@ Run everything on it as `VIRTUAL_ENV=$PWD/$A/.venv $A/.venv/bin/python3 -B …`.
 
 ## g0 — the binding reproduces the trunk's worlds (DECLARATION §9)
 
-Filled by `test_phase2.py::test_g0_*` when run (the result and its date
-recorded here, never assumed): (a) trunk-s1's last dumped probe
+**RESULT 2026-11-06: PASS on every check** (`test_phase2.py g0a g0b
+g0c`, this venv): (a) trunk-s1's last dumped probe (`probe-u2599.npz`,
+seed 40,001, 2,000 ticks × 5 seats) replayed by its recorded actions
+gives the dumped observation and mask streams EXACTLY; (b) on all three
+probe worlds, `snapshot()` at tick 999 then `restore()` — and `fork()` +
+`restore()` — reproduce the straight replay's tail exactly; (c) the
+recorded g2-s1 uniform leg row on world 905001 at 20×20 (cert battery)
+re-run by `cert_harness_fog.run_one` on this binding reproduces every
+column (mean_happiness per seat, nash to 1e-16, max_distress_age 77,
+dist_ticks, low_share, floor_touches). Reds for g0a / g0b: RED
+CONFIRMED (the wrong seed; a reset in place of restore / on the fork).
+So the post-068 engine's ordinary path is the trunk's, and 068's
+snapshot / restore / fork may be cited (§12 call 6b's condition met).
+What g0 checks: (a) trunk-s1's last dumped probe
 (`artifacts/ppo-g2-trunk-s1/probe-u<N>.npz`, seed 40,001) replayed by
 its recorded actions on this binding reproduces the dumped observation
 stream byte-for-byte; (b) the recorded g2-s1 uniform leg at 20×20 on

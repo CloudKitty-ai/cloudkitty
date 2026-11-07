@@ -15,10 +15,16 @@ after "Iii drop the arm. Confirm professors note 8-12 as recommended"
 closed calls 8–12). Seed band 2,240,000,000–2,419,999,999 claimed
 (`SEED-BANDS.md`); deviations entry 23 landed, entry 22 CLOSED. From
 this line on, §3–§9 are frozen: predictions, decision rules and guards
-change only by a deviations entry on her word. No instrument built yet,
-no covered mind trained; step 1 (the binding, g0 / g0b) and step 2 (the
-instruments and their reds) run next; the scouts (step 3) and the
-battery (step 5) each wait on her word.**
+change only by a deviations entry on her word. No covered mind trained.
+Step 1 DONE 2026-11-06 (BINDING.md: arc venv on main 226509ec; g0a /
+g0b / g0c PASS — the probe world, snapshot / fork and the recorded leg
+row reproduced exactly); step 2 DONE 2026-11-06 (graft.py,
+heads_online.py, train_ppo_p2.py, the harness `p2` seat with act
+recording, replay.py, read_r1 / r2 / r4 / r5, train_r6; `test_phase2.py`
+g0–g10 green; reds on record in §9's table and `results-raw/reds/`). The
+scouts (step 3) and the battery (step 5) each wait on her word; the
+"Instrument note 2026-11-06" paragraphs in §3, §4, §6 record what
+building the instrument showed — none changes a frozen rule.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -252,6 +258,21 @@ No slot, no seed, no covered mind; §1 and §8.2 carry the reason.
   Every arm carries it, the no-head arm included, so the head cells are
   the only difference between any head arm and the baseline (thread's
   choice, reversible; §12 call 2 if she wants the baseline bare).
+  **Instrument note 2026-11-06 (found at g1; the text above stands as
+  declared).** The trunk's tokenizer pads a kitty row out of attention
+  iff its 58 cells are all zero (obs_tokens_v6), and g1's identity
+  forbids changing that rule (a silent row un-padded by its appended
+  cells would be a new token and the first forward would not equal the
+  trunk's). So on a SILENT row every appended cell is INERT, and
+  ticks-since-live — 0 whenever the row is live, non-zero only when it
+  is silent — never reaches the policy; the frequency prior on silent
+  rows is inert for the same reason. Consequences: the no-head arm is a
+  PURE continuation of the trunk (its one cell does nothing; P39 and
+  blind spot 5 read accordingly); the act cells act on SEEN and HEARD
+  rows only, which is where the head carries information. Making the
+  staleness cell live would mean appending it to the self token — a
+  change to the declared graft, hers to rule as a deviation if she wants
+  it; the instrument as built follows the text.
 - **No B20 / B30 arm.** Her ladder ruling superseded the "B20 as a
   registered prediction" item: the ladder closed concave with no knee
   (41ec2ca4) and B15 is the pick; "We can extend to 20,30 if we see real
@@ -278,6 +299,16 @@ is the trunk's three-seed envelope, which extra arm seeds would not move.
   any observation therefore equals the trunk's (guard g1: logits equal to
   float precision on real recorded rows, before and after the graft,
   with the appended cells arbitrary). No other new parameter.
+  **Instrument note 2026-11-06.** The widened map is held as two blocks
+  — the trunk's Linear(58 → 64) untouched plus a bias-free Linear(C →
+  64) on the cells, summed — the same linear map (Adam is elementwise,
+  so the same training), because one wider matrix reproduced the
+  trunk's logits only to 2e-5 (float accumulation order) while the
+  two-block form is bit-equal; g1 asserts bit-equality. The grafted
+  policy acts in eval mode wherever it acts (nn.TransformerEncoder's
+  fused inference path differs from the training-mode path by ~1e-5;
+  the trunk's own rollouts ran the training-mode path, as this arc's
+  training does).
 - **Head inference in the trainer** (ruling 7). One GRU state per
   (observer, friend) pair per world, reset at episode start, stepped
   every tick on the observer's own stream (self block + the friend's row,
@@ -397,7 +428,11 @@ on recorded rows).
   the demotion clause (§8.1). At 40×40 and 100×100 the roster verdicts
   stay descriptive (the borrowed bar reported beside them). These two
   legs run after g0 passes and before any arm is read (§13 step 2b).
-  Record note for g6: g2-s2's 40×40 row (86.012) is marked POST-STOP in the
+  **Instrument note 2026-11-06:** the declared 0.326 / 0.325 is the
+  statistic of the battery's PRINTED trained means (3 dp, the §2
+  arithmetic); from the unrounded rows it is 0.327 at 20×20 (a 0.001
+  rounding artifact; read_r1 reports both; the declared value is the
+  bar). Record note for g6: g2-s2's 40×40 row (86.012) is marked POST-STOP in the
   battery — "rows the declared stop would have prevented … not gate
   evidence until she rules" (cert RESULTS, deviations entry 4): a
   reporting status, the seating unchanged; it enters the envelope as a
@@ -406,6 +441,16 @@ on recorded rows).
   arm vs trunk on R-1's worlds, by replay of the legs where the rows do
   not carry the field (the tail reads' instrument; the `p2` seat replays
   with its heads inline):
+  **Instrument note 2026-11-06 — the trunk's side of R-2 / R-3.** The
+  recorded trunk rows carry summaries only (no actions), so the trunk's
+  per-tick behaviour on R-1's worlds exists nowhere to replay: the
+  arm-vs-trunk consumer reads need the trunk uniform legs RE-RUN with
+  act recording (g2-s1 / s2 / s4; `run_legs_p2.sh g2-s<k>`), which g0c
+  showed reproduces the recorded rows exactly — 9M covered cat-ticks per
+  size (trunk minds), 27M at all three sizes, NOT in the welfare-cost
+  line above; her word, recommended at 20×20 first (the size the
+  predictions are written at). R-5 needs no trunk leg (the trunk seed is
+  run counterfactually on the arm's observations).
   (a) **harm-prediction = the attributable outcome read** (§9.12):
   relief latency for a friend's GRAVE episode (first tick in GRAVE → first
   tick out), at p90 per stratum (need kind; crossing kind), min-n 200
@@ -434,6 +479,15 @@ on recorded rows).
   best-placed feasible host's path raise or lower its expected visibility
   of the grave-signalling friend, against matched benign encounters;
   1.5× lift, min-n 200, fail-closed; read on proposals as well as paths.
+  **Instrument note 2026-11-06 (no prior instrument existed; this
+  thread's operationalisation, read_r2.py, reversible before the legs
+  run):** an encounter opens when a friend's applied message is a want_*
+  kind at tick t (grave-keyed if she is GRAVE at t, benign if COMMON);
+  the host is the nearest unpartnered other cat by Manhattan distance;
+  over the next 30 ticks the host APPROACHES if its distance to her falls
+  by ≥ 1 net and PROPOSES if any of its chosen menu acts names her row;
+  propensity = the share of encounters with approach (proposal beside);
+  the differential = grave over benign.
   (c) **refusal tax by reason** (F-033 / F-039's instrument on the
   collector's proposed-vs-applied streams): arm NOT WORSE than trunk per
   reason within the ruled 10% equivalence tolerance, `consent_declined`
@@ -442,6 +496,16 @@ on recorded rows).
   in the leg's hot loop: measured on ONE leg first (its cost a reported
   number); if it prices the legs, the raws carry the reason field and
   the read runs after the fact.
+  **Instrument note 2026-11-06:** the legs record every seat's chosen
+  acts and the read runs by REPLAY (replay.py; the per-tick
+  `tick_records()` call costs nothing in the leg itself). `tick_records`
+  names proposed / validated / applied ACTION KINDS and a provenance,
+  not a refusal reason: `consent_declined` is not separable natively.
+  R-2c therefore reads two categories — VALIDATION (validated ≠
+  proposed) and APPLY (validated = proposed ≠ applied: consent /
+  duration / needy law at the apply slot) — arm not worse than trunk per
+  category within the 10% tolerance; the consent share inside APPLY is
+  not read here.
 - **R-3 canalization watch** (prereg §8.4): together-share and group
   count (`dispersion_read.py`, native fields) and per-seat action-mix
   entropy (applied streams) per arm against the trunk's seed envelope
@@ -635,6 +699,28 @@ any arm at the gated sizes (the trunk's s2 had one).
 Predicted reds are written per guard when the instrument lands (the
 table form of the gate DECLARATION §7); reds on record before step 3 of
 §13.
+
+**Reds on record (2026-11-06; `scripts/mutate.sh --expect`; logs in
+`results-raw/reds/`; each RED CONFIRMED with baseline == restored
+green; the prediction written before each run):**
+
+| guard | mutation (the bug planted) | predicted first failure | outcome |
+|---|---|---|---|
+| g0a | `reset(seed=seed + 1)` (the wrong world) | `replay diverges from the dump at tick 0` | CONFIRMED |
+| g0b | `reset` in place of `restore`; `reset` on the fork | `restore tail diverges`; `fork tail diverges` | CONFIRMED (both) |
+| g0c | a reproduction, not a mutant: run_one on 905001 vs the recorded row | equality | PASS (every column; nash to 1e-16) |
+| g1 | new columns 1e-3 for zero; `dense_act.bias` × 1.0001 | `new columns not zero`; `dense_act.bias not byte-equal` | CONFIRMED (both) |
+| g2 | GRU state not carried; normaliser 20 for 40; silent rows zeroed | `online y0 differs` (0.976); `ticks-since-live at t=`; `silent rows do not carry the prior` | CONFIRMED (all three) |
+| g3 | rows fed reversed (a STABLE permutation) | `disagree at tick` | WRONG REASON (torch stride), then on a contiguous copy VACUOUS — a stable permutation keeps every head state with its observer; not a bug. Then on the untrained graft still VACUOUS — a policy with zero cell weights cannot show misassigned head states; the guard's artifact now carries random cell weights. Lessons recorded. |
+| g3 | row order flipped on odd ticks (UNSTABLE), live-cell artifact | `harness seat and trainer forward disagree at tick` | CONFIRMED (tick 35) |
+| g4 | streak `>` for `>=`; trigger on pessimism; strict lift; min-n off by one; two nash strikes | `300 must halt`; `optimism at lift 2 must fire`; `lift 1.5 fires`; `n 199 is INSUFFICIENT`; `(None, 'welfare-stop', …)` | CONFIRMED (all five) |
+| g5 | first post-floor bin may be flat; `plateau_flat` ignored; per-bin checkpoint not written | `counted flat before`; `return rose 0.05 is not flat`; `AssertionError: ckpt-u` | CONFIRMED (all three) |
+| g6 | edge as max pairwise; demotion without the valve; demotion inside the edge | `(20, …)`; `a seed the other way breaks the valve`; `inside the edge is a null` | CONFIRMED (all three) |
+| g7 | merge gap 6; censored episodes as events; min-n off by one; beats on any seed | `[(10, 20), (30, 41)]`; `a censored 86 leaves the risk set`; `AssertionError`; `beats needs all three seeds under` | CONFIRMED (all four) |
+| g8 | terciles fitted across regimes | `heard terciles must be fitted on heard rows only` | WRONG REASON: the seen equal-thirds assertion (unnamed) tripped first; named, re-predicted, re-run (`results-raw/reds/p2-reds-g8a.log`) |
+| g8 | silent rows binned; the trunk shown a scaled observation | `silent rows must not be binned`; `diverges from its trunk on the same observation` | CONFIRMED (both) |
+| g9 | log opened `a+`; a `read_text()` of the log | `the passive log is write-only`; `the trainer reads its own log` | CONFIRMED (both) |
+| g10 | a slot at run index 116; the wrong head seed named | `[107, …, 116]`; `median-validation B15 seed is s2, not the named s1` | CONFIRMED (both) |
 
 ## 10. Blind spots (declared)
 

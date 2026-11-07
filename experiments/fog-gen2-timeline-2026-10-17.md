@@ -869,6 +869,35 @@ consent BC comparison ride the trunk.
   BINDING.md with ENGINE_COMMIT, g0 reproduction of trunk probe 40,001
   and leg 905001, g0b restore-vs-replay), step 2 (instruments + reds
   g0–g10), then her word for the three scouts.
+  PHASE 2 STEPS 1–2 DONE 2026-11-06: arc venv built on main 226509ec
+  (BINDING.md; wheel sha e260cd28…; 068 surface present); g0 PASS on
+  every check (probe 40,001 replay byte-exact; snapshot / restore /
+  fork tails exact on three worlds; the recorded g2-s1 905001 row
+  reproduced to 1e-16); instruments landed — graft.py (two-block
+  widening, bit-equal first forward), heads_online.py (OnlineHeads +
+  P2Actor, one forward for trainer / harness / readers),
+  train_ppo_p2.py (recipe imported verbatim; floor, per-bin ckpts,
+  cells-in-use, 068-fork trigger read, F-074 / F-075 monitors, passive
+  log), cert_harness_fog `p2` seat + `--record-dir`, run_legs
+  passthrough, replay.py, read_r1 / r2 / r4 / r5, train_r6 (R-6 heads
+  training now, ruled "run it"), drivers run_arm.sh / run_legs_p2.sh /
+  run_reads.sh; `test_phase2.py` g0–g10 green; reds RED CONFIRMED for
+  every guard (table in DECLARATION §9; logs results-raw/reds/), two
+  lessons: a stable row permutation is not a bug, and an untrained
+  graft makes a head-state guard vacuous. FOUND BUILDING IT (recorded
+  as "Instrument note 2026-11-06", no frozen rule changed): (1) the
+  trunk's padding rule makes every appended cell INERT on a silent
+  row, so ticks-since-live never reaches the policy and the no-head arm
+  is a pure continuation — making it live = appending to the self
+  token, a deviation on her word; (2) the arm-vs-trunk R-2 / R-3 reads
+  need the trunk uniform legs RE-RUN with act recording (9M covered
+  cat-ticks per size, 27M all sizes; not in the welfare-cost line; her
+  word); (3) R-2b operationalised by this thread (want-message
+  encounters, nearest unpartnered host, 30-tick approach / proposal);
+  (4) tick_records has no refusal reason: R-2c reads VALIDATION / APPLY
+  categories; (5) the edge statistic from unrounded rows is 0.327 (the
+  declared 0.326 is the bar). OPEN: her word for the three scouts
+  (step 3) and for the trunk re-record.
 
 ## Flagged follow-ups (owner's word to start)
 
