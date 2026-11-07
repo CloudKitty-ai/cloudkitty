@@ -1400,4 +1400,134 @@ halted weights, which this entry declines.
 
 Status: entry CLOSES at p2-nohead-s1r's clean completion (stop_reason
 plateau / cap) or reopens to her on its own stop.
+**CLOSED 2026-11-07T15:14:52Z**: p2-nohead-s1r finished clean —
+`policy-final.pt` stop_reason plateau (three flat 1M-tick bins after
+the floor) at update 4882 / 15,000,576 world-ticks; its 97 probes
+never crossed the 300 line (largest streak 65 at u1149; 4 / 15 / 25 /
+46 / 19 / 2 at u599 / u1299 / u1349 / u2999 / u3199 / u3849, 0
+elsewhere); nash 0.895–0.906 over the last ten. nohead s2 / s4 are
+released from THIS entry's hold; whether they launch is her word
+(entry 26 and her same-day arm-set question are open).
+
+## 26. Phase 2 scout p2-act10-s1 halted by the frozen probe-distress stop (2026-11-07)
+
+The frozen §6 stop (prereg; Phase 2 DECLARATION §4: a training-probe
+distress streak ≥ 300 halts the run, checkpointed, owner-routed, never
+auto-resumed) fired on the B10 comparator scout at update 3499 /
+10,752,000 world-ticks (`policy-final.pt` written 2026-11-07T12:49:57Z,
+stop_reason probe-distress-stop; run `artifacts/p2-act10-s1/`, run
+index 110) — past the 8,002,560 floor, inside the plateau watch. Probe
+seed 40,002 carried a 378-tick engine-distress streak (40,001 / 40,003:
+0); nash at the trip 0.8884; no F-053 line crossed; no welfare strike;
+the demotion trigger read `[INSUFFICIENT, CLEAR]` (no optimism-direction
+signature, as at its 14 other sufficient probes). The run's streak
+history, from `metrics.jsonl`: 65 of 70 probes read 0; u199 24 (seed
+40,001); then, all on seed 40,002 and all after the floor, u2599 80,
+u2799 48, u2899 224, u3499 378 — the same world's seat, recurring and
+growing over the last 900 updates, with the probe before the trip
+(u3449) at 0. Per the declaration a trip in a scout HOLDS that arm's
+other seeds: act10 s2 / s4 do not launch until she rules. The halted run
+is kept whole; nothing is resumed (the trainer's refusal lands with her
+ruling, as entry 25's did). The other two scouts finished clean the same
+day: p2-act15-s1 at 13:49:32Z (plateau, u4231 / 13,000,704 ticks;
+largest streak 23) and p2-nohead-s1r at 15:14:52Z (plateau, u4882 /
+15,000,576 ticks; largest streak 65; entry 25 CLOSED).
+
+Localisation, dump-only with entry 25's instrument (`diag_act10_s1.py`
+→ `reads/diag-act10-s1.json`; own SELF_DISTRESS flags, zero
+regeneration; the recorded `[0, 378, 0]` reproduces from the dump):
+world 40,002, kitty_3 **Pumpkin**, ticks 777–1154. TWO flags: eat on
+336 of the 378 ticks (90.6 at the window's start; eat became legal on
+five ticks, 1112–1119, she ate, eat 24.0 at the end) and cuddle on 218
+(26.0 → 92.2), flagged with no cat in sight — kitty rows present on
+0.3–3.2% of the window's ticks, partnered 1.1%. Happiness bottomed at
+36.8 (entry 25's trip: 48.6). Menu: 5.54 legal actions on average
+(the same ticks, same world and seat on the three probes before: 8.49 /
+8.17 / 7.71); chow in element memory on 12.4% of the window's ticks
+(65–73% on those probes), in sight 9.3%; eat legal on 5 ticks (46 / 26
+/ 40). Unlike entry 25's cat she SEARCHED: 132 move proposals (35%;
+entry 25: 21), the wall vector changed 131 times — moving without
+finding the chow; play_solo 201 of 378 proposals (53%), applied class
+play 209; messages silent 303, want_eat 33, want_bath 31; here_food
+heard on 8–25% of ticks per row. The other four cats ate 8–18 ticks
+each in the window (eat need means 13–15, happiness minima 78–83). The
+170 ticks before the window (607–776): no flags, happiness min 66.6,
+chow in memory 38%, rows present ~20%.
+
+MATCH against the record: the same family as entry 25 — Pumpkin's seat,
+eat-led, food lost from sight and memory, solo play from a collapsed
+menu while the other four eat — with two differences: she searched
+(moves 35% of proposals against 6%), and a second need, cuddle, flagged
+while she was alone (an isolation shape; entry 3's second need came
+with a partner in play). Not entry 3's multi-need partner-play from a
+rich menu; not an F-027 / F-060 co-sleep lock (partnered 1.1%); F-044's
+seat and eat need, but chow out of view, not pacing beside it. Across
+the two Phase 2 trips: both Pumpkin, both eat-led lost-food, different
+worlds (40,001 / 40,002), different arms and epochs (nohead at 1.2M
+ticks; act10 at 10.75M, the first trip past a floor in this generation;
+the trunk's s3 / s5 / s8 / s11 each tripped inside 1.3M). Sub-300
+streaks occur on every scout (act15's largest 23; nohead-s1r's 65;
+act10's rising series) — the 300 line is the frozen stop, the rest is
+read, never barred (§8.1 rule 10). Whole-probe shares on act10 do NOT
+show entry 25's solitary drift: solo 0.392 → 0.359, partner 0.320 →
+0.359 from u399 to u3499 (entry 25's drift read used u399 / u599 only;
+the arm-level drift is a RESULTS read).
+
+Monitors, for the record (logged, never an input; P43's result): the
+F-074 top-1 monitor (≥ 0.60 at every checkpoint) held at the first
+probe on both act scouts (act15 0.643, act10 0.615 at u49) and then
+failed at 67 of 84 probes on act15 (min 0.529 at u2249, last 0.534)
+and 61 of 70 on act10 (min 0.535 at u2749, last 0.566); the F-075
+heard-ECE monitor failed at 78 / 63. P43 is NOT MET on either act
+scout; RESULTS carries it.
+
+Options for her: (a) REPLACE — the same trunk-s1 graft trained under a
+fresh PPO run index (117; a new SEED-BANDS row 2,440,000,000–
+2,459,999,999 claimed before the burn), pairing unchanged, the halted
+slot refused by name and seated nowhere (entry 25's shape); (b) RESUME
+on her explicit word (its own entry and reasoning); (c) READ the halted
+run as a halted arm — the comparator then rests on s2 / s4, and §8.1's
+replication valve ("the same sign in all three paired seeds") cannot be
+met as written, a deviation to rule. Her same-day arm-set question
+(a needs+act stacked arm beside the act-only arms) bears on all three:
+a ruling on this entry and on the arm set go together. Recommendation:
+(a), entry 25's and the trunk's precedent, noting that this trip came
+past the floor on a recurring world, so the replacement's own probes on
+40,002 are the recurrence read. Welfare cost, stated: the halted run
+trained 10,752,000 ticks × 5 covered seats (53.8M covered cat-ticks);
+Pumpkin's seat on 40,002 held a 378-tick streak with happiness min 36.8
+under the trip; a replacement trains up to the 20M cap × 5 seats more.
+
+### Read (entry 26; seconds; stdlib python3, repo root)
+
+```
+python3 - <<'EOF2'
+import json
+d = json.load(open("experiments/minifriend-phase2-2026-11-06/reads/diag-act10-s1.json"))
+loc = d["located"]
+assert (loc["seed"], loc["kitty"], loc["name"]) == (40002, 3, "Pumpkin")
+assert loc["span"] == [777, 1154] and loc["streak"] == 378 and loc["recorded"] == [0, 378, 0]
+assert [(h["update"], h["per_seed"]) for h in d["nonzero_streak_history"]] == [(199, [24, 0, 0]), (2599, [0, 80, 0]), (2799, [0, 48, 0]), (2899, [0, 224, 0]), (3499, [0, 378, 0])]
+w = d["behaviour"]["window"]
+assert w["flag_ticks_by_kind"] == {"eat": 336, "drink": 0, "sleep": 0, "play": 0, "cuddle": 218, "bath": 0}
+assert w["eat_legal_ticks"] == [1112, 1113, 1114, 1115, 1119] and w["mean_legal_acts"] == 5.54
+assert w["act_hist"]["play_solo"] == 201 and w["applied_class_hist"]["play"] == 209 and w["moves_proposed"] == 132
+assert w["memory_present_share"]["chow"] == 0.124 and w["chow_visible_share"] == 0.093
+assert w["partnered_share"] == 0.011 and w["hap_min"] == 36.8
+assert (w["needs_at_start"]["eat"], w["needs_at_end"]["eat"], w["needs_at_start"]["cuddle"], w["needs_at_end"]["cuddle"]) == (90.6, 24.0, 26.0, 92.2)
+c = d["contrast_same_kitty_world_window"]
+assert [c[k]["eat_legal_ticks"] for k in ("probe-u3449", "probe-u3399", "probe-u3299")] == [46, 26, 40]
+assert [c[k]["mean_legal_acts"] for k in ("probe-u3449", "probe-u3399", "probe-u3299")] == [8.49, 8.17, 7.71]
+s = d["whole_probe_shares"]
+assert (s["probe-u399"]["solo"], s["probe-u399"]["partner"], s["probe-u3499"]["solo"], s["probe-u3499"]["partner"]) == (0.392, 0.32, 0.359, 0.359)
+print("entry-26 fence: all cells match")
+EOF2
+```
+
+Guard for the instrument, red on record (`results-raw/reds/
+p2-reds-diag26.log`): the stop probe pointed at the clean probe before
+it (u3499 → u3449) → `streak did not reproduce: 0 vs recorded 378`,
+CONFIRMED, baseline == restored.
+
+Status: OPEN — awaits her word (with the arm-set question).
 

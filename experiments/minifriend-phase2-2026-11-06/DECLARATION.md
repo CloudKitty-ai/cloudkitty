@@ -40,7 +40,17 @@ and seated nowhere; the streak read dump-only (`diag_nohead_s1.py`,
 entry 25: one need, eat, food out of sight and memory, solo play from a
 collapsed menu — not entry 3's multi-need partner-play shape, not a
 co-sleep lock). nohead s2 / s4 stay held until the replacement scout
-finishes clean.****
+finishes clean.** **SCOUTS DONE 2026-11-07: p2-act10-s1 HALTED by the
+frozen probe-distress stop at u3499 / 10,752,000 ticks (12:49:57Z;
+probe 40,002 streak 378, past the floor, a recurring and growing streak
+on that world's Pumpkin seat from u2599) — deviations entry 26 OPEN,
+act10 s2 / s4 HELD, the halted run never resumed; p2-act15-s1 finished
+clean (plateau, u4231 / 13,000,704 ticks, 13:49:32Z); p2-nohead-s1r
+finished clean (plateau, u4882 / 15,000,576 ticks, 15:14:52Z; entry 25
+CLOSED). P43 NOT MET on either act scout (F-074 top-1 under 0.60 at 67
+of 84 / 61 of 70 probes; logged, never an input). No seed launches
+without her word; her same-day arm-set question (a needs+act stacked
+arm) is open beside entry 26.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -764,6 +774,7 @@ green; the prediction written before each run):**
 | g10 | a slot at run index 116; the wrong head seed named | `[107, …, 116]`; `median-validation B15 seed is s2, not the named s1` | CONFIRMED (both) |
 | g10 (entry 25, 2026-11-07: ten slots, band to 2,439,999,999, the replacement seated) | the replacement at index 113; the seating pointed at a seed-9 slot; the halted table emptied | `[…, 113, 113, …]`; `['p2:p2-nohead-s1', …]`; `AssertionError: {}` | CONFIRMED (all three) |
 | diag_nohead_s1 (entry 25's read) | the own-flag threshold moved 0.5 → 1.5 | `streak did not reproduce: 0 vs recorded 363` | CONFIRMED |
+| diag_act10_s1 (entry 26's localisation) | the stop probe pointed at the clean probe before it (u3499 → u3449) | `streak did not reproduce: 0 vs recorded 378` | CONFIRMED |
 
 ## 10. Blind spots (declared)
 

@@ -957,6 +957,22 @@ consent BC comparison ride the trunk.
   0.40, partner 0.42 → 0.29 over 1.2M ticks) is the continuation
   recipe's, the act scouts show it too. Replacement launched (anchor
   job card).
+  SCOUTS DONE 2026-11-07: p2-act10-s1 HALTED by the frozen
+  probe-distress stop at u3499 / 10,752,000 ticks (12:49:57Z; probe
+  seed 40,002 streak 378; past the floor; the same world's Pumpkin seat
+  had read 80 / 48 / 224 at u2599 / u2799 / u2899) — deviations entry
+  26 OPEN (replace idx 117 / resume / read as halted; recommendation
+  replace), act10 s2 / s4 HELD. Localised dump-only
+  (`diag_act10_s1.py`): ticks 777–1154, eat flagged 336 ticks then
+  cuddle 218 with no cat in sight, chow in memory 12% (65–73% on the
+  probes before), menu 5.5, she searched (moves 35%) without finding
+  it, solo play 53%; entry 25's family (Pumpkin, eat-led lost-food),
+  with searching and an isolation second need. p2-act15-s1 clean
+  (plateau u4231 / 13,000,704 ticks, 13:49:32Z); p2-nohead-s1r clean
+  (plateau u4882 / 15,000,576 ticks, 15:14:52Z; entry 25 CLOSED). P43
+  NOT MET on both act scouts (F-074 top-1 < 0.60 at most probes;
+  logged only). Six seeds wait on her word; her same-day arm-set
+  question (needs+act stacked arm beside act-only) open with entry 26.
 
 ## Flagged follow-ups (owner's word to start)
 
