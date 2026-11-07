@@ -56,10 +56,15 @@ N_ACTIONS, N_MSGS = T.N_ACTIONS, T.N_MSGS
 # p2-nohead-s1r: the REPLACEMENT for p2-nohead-s1 (halted by the frozen probe-distress stop at 1,228,800 ticks;
 # deviations entry 25, owner 2026-11-07 "A"): the same trunk-s1 graft under run index 116 (stripe claimed 2026-11-07
 # before first burn). The halted slot stays in the table as its manifest's lineage; it is never relaunched or resumed.
+# p2-both-s{1,2,4}: the CANARY arm (deviations entry 27, owner 2026-11-07 "Yes, let's supersede iii and go this
+# route"): B15-s2 act cells ++ NF1e-h24-s2+p needs cells, run indices 117-119 (stripes claimed 2026-11-07 before first
+# burn); scouts-first — s1 alone until she rules on its read. Its needs head's ostrich-shape read is LOGGED, never a
+# stop (shape (ii) for this arm, entry 27); the act trigger and the three welfare stops stay armed as written.
 SLOTS = {"p2-act15-s1": ("act15", 1, 107), "p2-act15-s2": ("act15", 2, 108), "p2-act15-s4": ("act15", 4, 109),
          "p2-act10-s1": ("act10", 1, 110), "p2-act10-s2": ("act10", 2, 111), "p2-act10-s4": ("act10", 4, 112),
          "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115),
-         "p2-nohead-s1r": ("nohead", 1, 116)}
+         "p2-nohead-s1r": ("nohead", 1, 116),
+         "p2-both-s1": ("both", 1, 117), "p2-both-s2": ("both", 2, 118), "p2-both-s4": ("both", 4, 119)}
 HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r"}   # halted -> replacement (entry 25); the trainer refuses the halted one
 
 
@@ -174,6 +179,15 @@ def probe_stop(probe, stop_strikes):
     return ("welfare-stop" if strikes >= 3 else None), strikes
 
 
+def probe_reason(probe, stop_strikes):
+    """(reason or None, new stop_strikes) after a probe: the frozen §6 stops (probe_stop), then the §8.2 ACT trigger
+    ("demotion-trigger"). The needs-head read (`needs_trigger`, entry 27 shape (ii)) is never consulted here."""
+    reason, stop_strikes = probe_stop(probe, stop_strikes)
+    if reason is None and probe.get("trigger") is not None and probe["trigger"]["fire"]:
+        reason = "demotion-trigger"
+    return reason, stop_strikes
+
+
 def trigger_eval(acc, lift=TRIGGER_LIFT, min_n=TRIGGER_MIN_N):
     """§8.2: acc = {version: {stratum: {friend or 'pooled': [d_hap...]}}} cumulative over the run's probes.
     Per version: pooled GRAVE and COMMON means; INSUFFICIENT under min_n on either; FIRE iff GRAVE mean > 0 (the
@@ -204,6 +218,54 @@ def trigger_eval(acc, lift=TRIGGER_LIFT, min_n=TRIGGER_MIN_N):
 
 def new_trigger_acc():
     return {v: {st: {f: [] for f in FRIENDS + ("pooled",)} for st in STRATA} for v in ("visible", "all")}
+
+
+def new_needs_acc():
+    """Entry 27's needs-bias accumulator: {version: {stratum: {friend or 'pooled': [n, sum, sum of squares]}}} of the
+    needs head's signed bias (predicted − true hidden needs, need points, mean of five) per (observer, friend) row."""
+    return {v: {st: {f: [0, 0.0, 0.0] for f in FRIENDS + ("pooled",)} for st in STRATA} for v in ("visible", "all")}
+
+
+def needs_accumulate(acc, bias, strat, friend_j, visible):
+    for b, st, j, vis in zip(bias.tolist(), strat.tolist(), friend_j.tolist(), visible.tolist()):
+        for v in (("visible", "all") if vis else ("all",)):
+            for f in (FRIENDS[j], "pooled"):
+                c = acc[v][STRATA[st]][f]
+                c[0] += 1
+                c[1] += b
+                c[2] += b * b
+
+
+def needs_eval(acc, lift=TRIGGER_LIFT, min_n=TRIGGER_MIN_N):
+    """Entry 27 (shape (ii)): the prereg §8.4 trigger's SHAPE on the needs head — pooled GRAVE and COMMON mean bias per
+    version, INSUFFICIENT under min_n, SIGNATURE iff the GRAVE mean is NEGATIVE (a grave friend read less needy than
+    she is: the optimism direction, the gate's convention) and |GRAVE| / |COMMON| ≥ lift, else CLEAR. Per-friend
+    signatures reported. A READ: nothing here halts (the manifest's `needs_trigger.consequence` states it)."""
+    def cell(c):
+        n, s, q = c
+        if n == 0:
+            return {"n": 0, "mean": None, "sd": None}
+        m = s / n
+        return {"n": n, "mean": m, "sd": float(np.sqrt(max(0.0, q / n - m * m)))}
+    out = {"signature": False, "by_version": {}}
+    for v, strata in acc.items():
+        g, c = cell(strata["GRAVE"]["pooled"]), cell(strata["COMMON"]["pooled"])
+        row = {"n_grave": g["n"], "n_common": c["n"], "grave": g["mean"], "common": c["mean"], "grave_sd": g["sd"], "per_friend": {}}
+        if g["n"] < min_n or c["n"] < min_n:
+            row["state"] = "INSUFFICIENT"
+        else:
+            lift_v = abs(g["mean"]) / abs(c["mean"]) if c["mean"] != 0 else float("inf")
+            row["lift"] = lift_v
+            row["state"] = "SIGNATURE" if (g["mean"] < 0 and lift_v >= lift) else "CLEAR"
+        for f in FRIENDS:
+            gf, cf = cell(strata["GRAVE"][f]), cell(strata["COMMON"][f])
+            sig = None
+            if gf["n"] >= min_n and cf["n"] >= min_n and cf["mean"] != 0:
+                sig = bool(gf["mean"] < 0 and abs(gf["mean"]) / abs(cf["mean"]) >= lift)
+            row["per_friend"][f] = {"n_grave": gf["n"], "grave": gf["mean"], "common": cf["mean"], "signature": sig}
+        out["by_version"][v] = row
+        out["signature"] = out["signature"] or row["state"] == "SIGNATURE"
+    return out
 
 
 def monitor_reads(cells, applied, live, visible):
@@ -252,14 +314,20 @@ def cells_in_use(policy, dump_path, cells):
 
 # ---------------------------------------------------------------- the probe
 
-def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng):
+def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng, needs_acc=None):
     """train_ppo_g2.run_probe's greedy served-world probe (its stop-rule inputs and telemetry verbatim) with the arm's
     heads inline, every decision row dumped WITH its cells, and — act arms only — the one-tick branch read behind
     §8.2's trigger: for every (observer, friend) row whose predicted y0 class differs from the friend's applied act,
     in GRAVE (all) and a fixed-seed sample of COMMON rows (≤ COMMON_BRANCH_CAP per probe), the world is forked at
     the tick (068 snapshot / fork / restore), the friend's act replaced by the predicted class's legal menu entry her
     own policy ranks highest, stepped once, and d_hap = branch − real read; rows land in trigger_acc per version ×
-    stratum × friend. Also F-074 / F-075 monitor reads and the passive log's per-friend CE."""
+    stratum × friend. Also F-074 / F-075 monitor reads and the passive log's per-friend CE. Arms with a needs head
+    (entry 27): every (observer, friend) row's needs bias (five hidden estimates × 100 − the friend's TRUE needs, mean)
+    lands in `needs_acc` (cumulative, the trigger's shape, a READ) and in this probe's own accumulator."""
+    has_needs = HO.ARMS[arm]["needs"] is not None
+    needs_probe = new_needs_acc() if has_needs else None
+    if has_needs:
+        assert needs_acc is not None
     world = C.config_world(config_path)["world"]
     W, H = world["width"], world["height"]
     menu = list(cloudkitty.ACTION_MENU)
@@ -326,6 +394,10 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng):
                 live, visible = rstate != D.SILENT, rstate == D.SEEN
                 mon["cells"].append(kcells.copy()); mon["applied"].append(applied[friend_j])
                 mon["live"].append(live); mon["visible"].append(visible); mon["friend"].append(friend_j)
+                if has_needs:
+                    nbias = (kcells[:, HO.NEEDS_OFF:HO.NEEDS_OFF + 5] * 100.0 - needs_true[friend_j, :5]).mean(1)
+                    needs_accumulate(needs_acc, nbias, codes[friend_j], friend_j, visible)
+                    needs_accumulate(needs_probe, nbias, codes[friend_j], friend_j, visible)
                 if snap is not None:
                     pred = kcells[:, :D.N_ACTS].argmax(1)
                     mism = np.flatnonzero((pred != applied[friend_j]) & (applied[friend_j] >= 0))
@@ -387,7 +459,9 @@ def run_probe_p2(actor, arm, config_path, seeds, ticks, dump, trigger_acc, rng):
     return {"nash": float(np.mean(nash)), "lounge_share": float(np.mean(lounge)), "inwater_share": float(np.mean(inwater)),
             "meow_per_1k": float(np.mean(meow_rate)), "max_distress_streak": int(max(max_streaks)),
             "max_distress_streak_per_seed": max_streaks, "monitors": monitors, "passive": passive,
-            "branches": branches, "forks": forks, "trigger": trigger_eval(trigger_acc) if arm != "nohead" else None}
+            "branches": branches, "forks": forks, "trigger": trigger_eval(trigger_acc) if arm != "nohead" else None,
+            "needs_trigger": needs_eval(needs_acc) if has_needs else None,            # cumulative; a READ, never a stop
+            "needs_bias_probe": needs_eval(needs_probe) if has_needs else None}        # this probe alone
 
 
 # ---------------------------------------------------------------- main
@@ -455,7 +529,7 @@ def main():
         p.requires_grad_(False)
     heads_for_actor = HO.OnlineHeads(arm, MAX_SEATS)       # the probe's actor (reset per probe world)
     actor = HO.P2Actor(policy, heads_for_actor)
-    head_spec = HO.ARMS[arm]["head"]
+    head_spec, needs_spec = HO.ARMS[arm]["head"], HO.ARMS[arm]["needs"]
 
     critic_path = Path(T.PINS["critic"])
     critic_ckpt = torch.load(critic_path, map_location="cpu", weights_only=True)
@@ -473,6 +547,7 @@ def main():
     bins, open_bin = [], {"ret_sum": 0.0, "ret_n": 0, "kl_sum": 0.0, "kl_n": 0}
     flat_streak = 0
     trigger_acc = new_trigger_acc()
+    needs_acc = new_needs_acc() if HO.ARMS[arm]["needs"] is not None else None
     last_dump = None
     ckpt_path = out / "checkpoint.pt"
     if args.resume and ckpt_path.exists():
@@ -489,11 +564,12 @@ def main():
         bins, open_bin = rk["bins"], rk["open_bin"]
         flat_streak = rk["flat_streak"]
         trigger_acc = rk.get("trigger_acc", trigger_acc)
+        needs_acc = rk.get("needs_acc", needs_acc)
         last_dump = rk.get("last_dump")
         branch_rng = np.random.default_rng(20261106 + run_index + 1000 * segment)
 
     seed_base = T.seed_stripe(run_index)[0] + segment * 1_000
-    assert T.seed_stripe(run_index)[1] < 2_440_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
+    assert T.seed_stripe(run_index)[1] < 2_500_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
     runner = P2VecRunner(arm, str(config_path), args.n_worlds, seed_base, horizon=args.horizon)
     obs_dim, mask_dim = runner.dims
     assert obs_dim == G.wide_dim(cells) and mask_dim == N_ACTIONS + N_MSGS, (obs_dim, mask_dim)
@@ -504,6 +580,8 @@ def main():
     (out / "run-manifest.json").write_text(json.dumps({
         "arm": arm, "slot": args.slot, "smoke": args.smoke, "cells": cells,
         "head": None if head_spec is None else {"arm": head_spec[0], "seed": head_spec[1], "sha256": HO.HEAD_SHA256[head_spec]},
+        "needs_head": None if needs_spec is None else {"head": needs_spec[0], "seed": needs_spec[1], "sha256": list(HO.NEEDS_SHA256[needs_spec]),
+                                                       "cells": "seven estimates (0-1 scale) + P(grave), after the act cells"},
         "trunk_seed": trunk_seed, "trunk_final": str(C.trunk_final(trunk_seed)), "trunk_final_sha256": C.TRUNK_FINAL_SHA[trunk_seed],
         "init": str(init_path), "init_sha256": init_sha,
         "beta": BETA, "beta_schedule": "held from step 0 (ruled 2026-11-06)", "gamma": args.gamma,
@@ -518,7 +596,11 @@ def main():
                   "cap_ticks": args.total_ticks,
                   "demotion_trigger": None if head_spec is None else {"lift": TRIGGER_LIFT, "min_n": TRIGGER_MIN_N,
                                                                       "window": "cumulative over the run's probes",
-                                                                      "common_branch_cap_per_probe": COMMON_BRANCH_CAP}},
+                                                                      "common_branch_cap_per_probe": COMMON_BRANCH_CAP},
+                  "needs_trigger": None if needs_spec is None else {"lift": TRIGGER_LIFT, "min_n": TRIGGER_MIN_N,
+                                                                    "window": "cumulative over the run's probes (+ per probe)",
+                                                                    "consequence": "READ ONLY — logged, never halts (deviations "
+                                                                                   "entry 27, shape (ii) for this arm)"}},
         "monitors": {"f074_top1_min": MONITOR_TOP1, "f075_ece_max": MONITOR_ECE},
         "vstats": {"mean": mean_v, "std": std_v},
         "hyperparams": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
@@ -627,12 +709,12 @@ def main():
               "opt_v": opt_v.state_dict(), "torch_rng": torch.get_rng_state(), "np_rng": np.random.get_state(),
               "update": update + 1, "segment": segment, "vstats": vstats, "stop_strikes": stop_strikes,
               "bins": bins, "open_bin": open_bin, "flat_streak": flat_streak, "trigger_acc": trigger_acc,
-              "last_dump": last_dump}
+              "needs_acc": needs_acc, "last_dump": last_dump}
 
         if (update + 1) % args.probe_every == 0:
             dump = out / f"probe-u{update}.npz"
             policy.eval()
-            probe = run_probe_p2(actor, arm, probe_config, T.PROBE_SEEDS, args.probe_ticks, dump, trigger_acc, branch_rng)
+            probe = run_probe_p2(actor, arm, probe_config, T.PROBE_SEEDS, args.probe_ticks, dump, trigger_acc, branch_rng, needs_acc)
             policy.train()
             last_dump = str(dump)
             rk["last_dump"] = last_dump
@@ -642,11 +724,12 @@ def main():
             print(f"  probe u{update}: nash {probe['nash']:.4f} lounge {probe['lounge_share']:.4f} inwater {probe['inwater_share']:.4f} "
                   f"meow/1k {probe['meow_per_1k']:.2f} streak {probe['max_distress_streak']} "
                   f"top1 {mon.get('all', {}).get('top1')} f074 {mon.get('f074_ok')} f075 {mon.get('f075_ok')} "
-                  f"branches {probe['branches']} trigger {None if probe['trigger'] is None else [r['state'] for r in probe['trigger']['by_version'].values()]}", flush=True)
-            reason, stop_strikes = probe_stop(probe, stop_strikes)
+                  f"branches {probe['branches']} trigger {None if probe['trigger'] is None else [r['state'] for r in probe['trigger']['by_version'].values()]}"
+                  + ("" if probe["needs_trigger"] is None else
+                     f" needs-read {[r['state'] for r in probe['needs_trigger']['by_version'].values()]} grave-bias "
+                     f"{[None if r['grave'] is None else round(r['grave'], 2) for r in probe['needs_bias_probe']['by_version'].values()]}"), flush=True)
+            reason, stop_strikes = probe_reason(probe, stop_strikes)
             rk["stop_strikes"] = stop_strikes
-            if reason is None and probe["trigger"] is not None and probe["trigger"]["fire"]:
-                reason = "demotion-trigger"
             if reason is not None:
                 torch.save(rk, ckpt_path)
                 save_final(reason, ticks)

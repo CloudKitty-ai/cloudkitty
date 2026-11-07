@@ -128,6 +128,24 @@ def g2():
                 want = 1.0 if last < 0 else min(1.0, (t - last) / 40.0)
                 assert abs(tsl[t] - want) < 1e-6, f"ticks-since-live at t={t}: {tsl[t]} want {want}"
     assert worst < 1e-6, f"online y0 differs from offline by {worst}"
+    # entry 27, the `both` arm: its first 13 cells are act15's exactly, cells 13..20 are the frozen needs head's seven
+    # estimates and P(grave) stepped tick by tick from zero state (equal to the Phase 1e reader's whole-sequence pass,
+    # read_1e.load_head_e's model/probe on the same pair_x, to 1e-6 on EVERY tick — the needs head runs on silent rows
+    # too), and cell 21 is ticks-since-live.
+    import torch
+    both = HO.OnlineHeads("both", n)
+    assert (both.cells, HO.NEEDS_OFF) == (22, 13), (both.cells, HO.NEEDS_OFF)
+    bcells = np.stack([both.step(obs[t]) for t in range(T)])                      # (T, n, 4, 22)
+    assert np.array_equal(bcells[..., :13], cells[..., :13]) and np.array_equal(bcells[..., 21], cells[..., 13]), "the stack disturbs the act cells or ticks-since-live"
+    model, probe = both.needs
+    with torch.no_grad():
+        z, _h = model.gru(torch.relu(model.proj(torch.from_numpy(np.asarray(X, np.float32)))))
+        ref = torch.cat([model.out(z)[..., :7], torch.sigmoid(probe(z))], -1).numpy()  # (T, n_pairs, 8)
+    worst_n = 0.0
+    for pi, (k, j) in enumerate(pairs):
+        i, r = observers.index(k), friend_row(k, j)
+        worst_n = max(worst_n, float(np.abs(bcells[:, i, r, 13:21] - ref[:, pi]).max()))
+    assert worst_n < 1e-6, f"online needs cells differ from the Phase 1e reader's by {worst_n}"
 
 
 def _scratch_artifact(slot="p2-act15-s1", arm="act15", trunk_seed=1, live_cells=False):
@@ -269,7 +287,9 @@ def g5():
         return real_open(self, mode, *a, **k)
     _P.open = spy
     argv = sys.argv
-    sys.argv = ["train_ppo_p2.py", "--slot", "p2-nohead-s1", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "3072",
+    # the smoke slot is an unlaunched nohead seed (p2-nohead-s1 is HALTED and refused since entry 25; this line was left
+    # pointing at it and g5 was red from 9d374fb4 until entry 27 found it — stated in the entry)
+    sys.argv = ["train_ppo_p2.py", "--slot", "p2-nohead-s2", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "3072",
                 "--fragment", "64", "--probe-every", "8", "--probe-ticks", "40", "--bin-ticks", "1024", "--floor-ticks", "1024", "--out-dir", str(out)]
     try:
         P.main()
@@ -307,24 +327,29 @@ def g10():
     import train_act as TA
     import cert_harness_fog as H
     idx = sorted(P.SLOTS[s][2] for s in P.SLOTS)
-    assert idx == list(range(107, 117)), idx          # 107–115 declared + 116, the entry-25 replacement
-    assert not any("needs" in s for s in P.SLOTS), "a needs slot exists"
+    assert idx == list(range(107, 120)), idx          # 107–115 declared + 116 (entry 25) + 117–119 (entry 27, the `both` canary)
+    assert not any("needs" in s for s in P.SLOTS), "a needs-only slot exists"
     lo = min(P.T.seed_stripe(i)[0] for i in idx)
     hi = max(P.T.seed_stripe(i)[1] for i in idx)
-    assert (lo, hi) == (2_240_000_000, 2_439_999_999), (lo, hi)
+    assert (lo, hi) == (2_240_000_000, 2_499_999_999), (lo, hi)
     for slot, (arm, k, i) in P.SLOTS.items():
         assert k in C.TRUNK_SEEDS, slot
         if slot == "p2-nohead-s1r":
             assert (arm, k, i) == ("nohead", 1, 116), (slot, arm, k, i)
             continue
         assert slot == f"p2-{arm}-s{k}", slot
-        assert {"act15": 107, "act10": 110, "nohead": 113}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+        assert {"act15": 107, "act10": 110, "nohead": 113, "both": 117}[arm] + {1: 0, 2: 1, 4: 2}[k] == i, (slot, i)
+    assert {P.SLOTS[s][0] for s in P.SLOTS} == set(HO.ARMS) == {"act15", "act10", "nohead", "both"}, set(HO.ARMS)
     # entry 25: the halted p2-nohead-s1 seats nowhere; its replacement takes the nohead s1 seat in both seatings
     assert P.HALTED_SLOTS == {"p2-nohead-s1": "p2-nohead-s1r"}, P.HALTED_SLOTS
     assert H.SEATINGS["p2u-nohead-s1"] == ["p2:p2-nohead-s1r"] * 5, H.SEATINGS["p2u-nohead-s1"]
     assert H.SEATINGS["p2r-nohead"][4] == "p2:p2-nohead-s1r" and H.SEATINGS["p2r-act15"][4] == "p2:p2-act15-s1", H.SEATINGS["p2r-nohead"]
     seated = {s.split(":", 1)[1] for v in H.SEATINGS.values() for s in v if s.startswith("p2:")}
     assert not (seated & set(P.HALTED_SLOTS)), f"a halted slot is seated: {seated & set(P.HALTED_SLOTS)}"
+    # entry 27: the `both` arm is seated like the others (uniform per seed; roster-shaped s2 / s4 / s1)
+    for k in (1, 2, 4):
+        assert H.SEATINGS[f"p2u-both-s{k}"] == [f"p2:p2-both-s{k}"] * 5, H.SEATINGS[f"p2u-both-s{k}"]
+    assert H.SEATINGS["p2r-both"] == ["p2:p2-both-s2", "p2:p2-both-s4", "g2:trunk-s6", "g2:trunk-s7", "p2:p2-both-s1"], H.SEATINGS["p2r-both"]
     for arm, spec in HO.ARMS.items():
         if spec["head"] is None:
             continue
@@ -332,6 +357,10 @@ def g10():
         vals = {s: _j.loads((TA.OUT_ROOT / TA.run_name(h_arm, s) / "done.json").read_text())["best_val"] for s in (1, 2, 3)}
         med = sorted(vals, key=vals.get)[1]
         assert med == seed, f"{arm}: the median-validation {h_arm} seed is s{med}, not the named s{seed}"
+    # entry 27: the needs head named is the median-validation retrained head (Phase 1e's done.json), B15's seed stays s2
+    assert HO.ARMS["both"]["head"] == ("B15", 2) and HO.ARMS["both"]["needs"] == ("NF1e-h24", 2), HO.ARMS["both"]
+    nv = {s: _j.loads((HO.P1E / "results-raw" / "heads" / f"NF1e-h24-s{s}" / "done.json").read_text())["best_val"] for s in (1, 2, 3)}
+    assert sorted(nv, key=nv.get)[1] == 2, f"the median-validation NF1e seed is s{sorted(nv, key=nv.get)[1]}, not s2"
 
 
 def g6():
@@ -442,7 +471,65 @@ def g8():
         C.ARTS = saved
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10}
+def g11():
+    """entry 27, the `both` canary arm: (a) needs_eval reads the prereg §8.4 trigger's shape on the needs head — the
+    gate's own figures (grave −3.17, common +0.07, n ≥ 200) are a SIGNATURE, a positive grave bias or an under-min-n
+    stratum is not; (b) a needs SIGNATURE never stops a run: probe_reason ignores it while the act trigger's fire and
+    the distress / welfare stops still halt; (c) a smoke run of p2-both-s1 (scratch out-dir) trains on 22 cells, logs
+    `needs_trigger` / `needs_bias_probe` at every probe with rows counted, records the needs head's sha in the
+    manifest, and finishes at the cap with the final naming the arm."""
+    import json as _j
+    import shutil
+    import torch
+    import train_ppo_p2 as P
+    import heads_online as HO
+
+    def acc_with(grave, common, n):
+        acc = P.new_needs_acc()
+        for v in ("visible", "all"):
+            for st, m in (("GRAVE", grave), ("COMMON", common)):
+                for f in P.FRIENDS + ("pooled",):
+                    acc[v][st][f] = [n, m * n, m * m * n]
+        return acc
+    sig = P.needs_eval(acc_with(-3.17, 0.07, 1455))
+    assert sig["signature"] and all(r["state"] == "SIGNATURE" for r in sig["by_version"].values()), sig
+    assert abs(sig["by_version"]["visible"]["lift"] - 3.17 / 0.07) < 1e-9 and abs(sig["by_version"]["visible"]["grave"] + 3.17) < 1e-9, sig["by_version"]["visible"]
+    assert all(r["per_friend"]["Pumpkin"]["signature"] for r in sig["by_version"].values())
+    clear = P.needs_eval(acc_with(+3.17, 0.07, 1455))
+    assert not clear["signature"] and all(r["state"] == "CLEAR" for r in clear["by_version"].values()), "a pessimistic grave bias is not the signature"
+    ins = P.needs_eval(acc_with(-3.17, 0.07, 199))
+    assert not ins["signature"] and all(r["state"] == "INSUFFICIENT" for r in ins["by_version"].values()), "under min-n is never a signature"
+    base = {"max_distress_streak": 0, "nash": 0.9, "trigger": {"fire": False}, "needs_trigger": sig}
+    assert P.probe_reason(base, 0) == (None, 0), "a needs SIGNATURE stopped the run"
+    assert P.probe_reason(dict(base, trigger={"fire": True}), 0)[0] == "demotion-trigger"
+    assert P.probe_reason(dict(base, max_distress_streak=300), 0)[0] == "probe-distress-stop"
+    assert P.probe_reason(dict(base, nash=0.4), 2)[0] == "welfare-stop"
+    out = SCRATCH / "smoke-g11"
+    if out.exists():
+        shutil.rmtree(out)
+    argv = sys.argv
+    sys.argv = ["train_ppo_p2.py", "--slot", "p2-both-s1", "--smoke", "--n-worlds", "2", "--horizon", "200", "--total-ticks", "2048",
+                "--fragment", "64", "--probe-every", "8", "--probe-ticks", "40", "--bin-ticks", "1024", "--floor-ticks", "1024", "--out-dir", str(out)]
+    try:
+        P.main()
+    finally:
+        sys.argv = argv
+    man = _j.loads((out / "run-manifest.json").read_text())
+    assert man["arm"] == "both" and man["cells"] == 22 and man["run_index"] == 117 and man["seed_base"] == 2_440_000_000, {k: man[k] for k in ("arm", "cells", "run_index", "seed_base")}
+    assert man["head"]["sha256"] == HO.HEAD_SHA256[("B15", 2)] and man["needs_head"]["sha256"] == list(HO.NEEDS_SHA256[("NF1e-h24", 2)]), man["needs_head"]
+    assert man["stops"]["needs_trigger"]["consequence"].startswith("READ ONLY"), man["stops"]["needs_trigger"]
+    probes = [r for r in (_j.loads(l) for l in (out / "metrics.jsonl").read_text().splitlines()) if r.get("probe")]
+    assert len(probes) == 2, len(probes)
+    for r in probes:
+        nt, nb = r["needs_trigger"], r["needs_bias_probe"]
+        assert nt["by_version"]["all"]["state"] in ("INSUFFICIENT", "CLEAR", "SIGNATURE") and nb["by_version"]["all"]["n_grave"] + nb["by_version"]["all"]["n_common"] > 0, r
+        assert nb["by_version"]["all"]["n_common"] <= nt["by_version"]["all"]["n_common"], "the cumulative read is smaller than one probe's"
+    assert probes[1]["needs_trigger"]["by_version"]["all"]["n_common"] == sum(p["needs_bias_probe"]["by_version"]["all"]["n_common"] for p in probes), "cumulative != sum of probes"
+    fin = torch.load(out / "policy-final.pt", map_location="cpu", weights_only=True)
+    assert fin["stop_reason"] == "cap" and fin["arm"] == "both" and fin["cells"] == 22, {k: fin.get(k) for k in ("stop_reason", "arm", "cells")}
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]
