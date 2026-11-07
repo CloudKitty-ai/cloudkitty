@@ -421,7 +421,7 @@ def g8():
         dif = np.concatenate([ent[:300] < 0.34, ent[300:600] < 0.67, np.ones(100, bool)])
         b = R5.bin_divergence(reg, ent, dif)
         assert set(b) == {"seen", "heard"}, "silent rows must not be binned"
-        assert b["seen"]["low"]["n"] == b["seen"]["mid"]["n"] == b["seen"]["high"]["n"] == 100
+        assert b["seen"]["low"]["n"] == b["seen"]["mid"]["n"] == b["seen"]["high"]["n"] == 100, "seen terciles are not equal thirds of the seen rows"
         assert abs(b["heard"]["tercile_edges"][0] - (0.5 + 1 / 6)) < 0.01, "heard terciles must be fitted on heard rows only"
         assert b["seen"]["low"]["divergence"] == 1.0 and b["seen"]["high"]["divergence"] == 0.0
         assert R5.within_regime_ordering(b) == {"seen": True, "heard": True}
