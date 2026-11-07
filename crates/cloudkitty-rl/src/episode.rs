@@ -17,11 +17,14 @@ use std::sync::Arc;
 use cloudkitty_core::action::Action;
 use cloudkitty_core::behavior::{resolve_one, BehaviorRegistry, DecisionContext, DecisionRequest};
 use cloudkitty_core::kitty::KittyId;
+use cloudkitty_core::meow::MessageKind;
 use cloudkitty_core::needy;
 use cloudkitty_core::rng::DecisionRng;
 use cloudkitty_core::seam::{DealtSeeds, JointProposal, Provenance, TickReport};
 use cloudkitty_core::world::World;
 use cloudkitty_core::Config;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 use crate::codec::{ActionCodec, MessageCodec};
@@ -76,6 +79,122 @@ pub enum EpisodeError {
         kitty: KittyId,
         reason: &'static str,
     },
+    /// Spec 068 FR-006: the snapshot's identity disagrees with this
+    /// environment's on `component`; `found` is the snapshot's value,
+    /// `expected` this environment's. The environment is untouched.
+    #[error("restore(): {component} differs: snapshot {found}, this environment {expected}")]
+    SnapshotIdentity {
+        component: &'static str,
+        found: String,
+        expected: String,
+    },
+    /// Spec 068: the bytes did not parse as a snapshot, or parsed into a
+    /// world this environment cannot lawfully run (wrong world fingerprint
+    /// or roster, or a constitutional violation — the checks the server's
+    /// load path runs). Untouched.
+    #[error("restore(): not a snapshot: {0}")]
+    SnapshotMalformed(String),
+    /// Spec 068 FR-012: the override was refused for `reason`; nothing
+    /// changed.
+    #[error("override(): kitty_{kitty}: {reason}")]
+    OverrideRefused { kitty: KittyId, reason: String },
+}
+
+/// What a snapshot must agree with to be restored (spec 068 FR-006): the
+/// engine build, the whole configuration pair with the world seed masked
+/// out (the seed is episode state and travels in the snapshot), and who
+/// decides for each seat. Identity is computed by the environment, never
+/// trusted from the caller.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Identity {
+    /// The binding's build stamp. A `<sha>-dirty` stamp is the same for
+    /// any two dirty builds of one commit — acceptable for an in-process
+    /// token (FR-016), not a promise.
+    pub engine_commit: String,
+    /// hex sha256 of `serde_json(core with world.seed = 0)` ‖ `"\n"` ‖
+    /// `serde_json(rl)` — covers observation, reward, horizon, roster,
+    /// behaviours and the needy table; stricter than the server's
+    /// size/seed/roster fingerprint (`World::config_fingerprint`), which
+    /// would accept a config differing in a need rate or a behaviour name
+    /// and let the branch diverge silently. Fields the config skips in
+    /// serde (the test-only meow `law_era` switch) are outside it.
+    pub config_digest: String,
+    /// Who decides for EVERY roster kitty — `"external"` or the
+    /// builtin/preset name, the vocabulary the Python `control=` mapping
+    /// speaks — normalized, so a seat left unnamed (implicitly external)
+    /// and one named `"external"` are the same environment.
+    pub control: BTreeMap<KittyId, String>,
+}
+
+impl Identity {
+    /// The first seat whose controller differs: `(seat, snapshot's,
+    /// this environment's)`, with `"<absent>"` for a seat one side lacks.
+    fn first_control_difference(
+        snapshot: &BTreeMap<KittyId, String>,
+        mine: &BTreeMap<KittyId, String>,
+    ) -> Option<(KittyId, String, String)> {
+        let absent = || "<absent>".to_owned();
+        snapshot
+            .keys()
+            .chain(mine.keys())
+            .copied()
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .find_map(|id| {
+                let found = snapshot.get(&id).cloned().unwrap_or_else(absent);
+                let expected = mine.get(&id).cloned().unwrap_or_else(absent);
+                (found != expected).then_some((id, found, expected))
+            })
+    }
+}
+
+/// The serialized form of one episode between steps (spec 068 FR-002):
+/// everything a later observation, reward, info or serialized world
+/// depends on, beside the identity it was taken under. Borrowed for
+/// writing, owned for reading; the two must stay field-for-field equal.
+#[derive(Serialize)]
+struct SnapshotOut<'a> {
+    identity: Identity,
+    seed: u64,
+    world: &'a World,
+    tick_in_episode: u64,
+    truncated: bool,
+    prev_level: f64,
+    prev_potential: f64,
+    pending_seeds: &'a DealtSeeds,
+}
+
+#[derive(Deserialize)]
+struct SnapshotIn {
+    identity: Identity,
+    seed: u64,
+    world: World,
+    tick_in_episode: u64,
+    truncated: bool,
+    prev_level: f64,
+    prev_potential: f64,
+    pending_seeds: DealtSeeds,
+}
+
+/// A one-tick proposal substitution waiting for the next step (spec 068
+/// FR-009): each half decoded at the call against the seat's
+/// start-of-tick table; `None` = the seat's own behaviour supplies it.
+#[derive(Debug, Clone)]
+struct PendingOverride {
+    activity: Option<Action>,
+    /// Outer `None` = the seat's own message; `Some(None)` = Silent, named.
+    message: Option<Option<MessageKind>>,
+}
+
+impl PendingOverride {
+    fn mark(&self) -> Provenance {
+        match (self.activity.is_some(), self.message.is_some()) {
+            (true, true) => Provenance::OverriddenBoth,
+            (true, false) => Provenance::OverriddenAct,
+            (false, true) => Provenance::OverriddenMessage,
+            (false, false) => unreachable!("an empty override is refused at the call"),
+        }
+    }
 }
 
 /// Who decides for one kitty.
@@ -163,6 +282,10 @@ pub struct Episode {
     last_tables: BTreeMap<KittyId, TargetTable>,
     prev_level: f64,
     prev_potential: f64,
+    /// Spec 068: proposal overrides for the NEXT tick, one per seat at
+    /// most; consumed by the step that reaches the tick, dropped by reset
+    /// and restore.
+    pending_overrides: BTreeMap<KittyId, PendingOverride>,
 }
 
 impl Episode {
@@ -237,6 +360,7 @@ impl Episode {
             last_tables: BTreeMap::new(),
             prev_level: 0.0,
             prev_potential: 0.0,
+            pending_overrides: BTreeMap::new(),
         };
         episode.arm();
         Ok(episode)
@@ -244,6 +368,12 @@ impl Episode {
 
     pub fn codec(&self) -> &ActionCodec {
         &self.codec
+    }
+
+    /// Who decides for each seat, as resolved at construction (a needy
+    /// config seat is seated on its preset even with no entry).
+    pub fn control(&self) -> &BTreeMap<KittyId, Control> {
+        &self.control
     }
 
     pub fn core_config(&self) -> &Arc<Config> {
@@ -363,6 +493,9 @@ impl Episode {
         self.tick_in_episode = 0;
         self.truncated = false;
         self.poisoned = None;
+        // Spec 068 FR-012: a pending override belongs to the state it was
+        // set against and never survives a change of state.
+        self.pending_overrides.clear();
         self.pending_seeds = Some(self.world.deal_decision_seeds());
         let snapshot = self.world.snapshot();
         self.prev_level = team_reward(&snapshot, &self.core, &self.rl.reward);
@@ -465,8 +598,29 @@ impl Episode {
                         .and_then(|dealt| dealt.seed_for(id))
                         .expect("seeds are dealt for every roster kitty");
                     let ctx = self.decision_context_for(snapshot, id, seed);
-                    let (action, provenance) = resolve_one(self.registry.get(name), &ctx, seed);
-                    proposals.propose(id, action);
+                    let (mut decision, mut provenance) =
+                        resolve_one(self.registry.get(name), &ctx, seed);
+                    // Spec 068 FR-009/FR-014: a pending override replaces
+                    // the half (or halves) it named; the seat's own
+                    // behaviour has already supplied the rest. The engine's
+                    // law rules on the result at the apply slot like any
+                    // proposal (FR-010); the mark says the harness did it.
+                    // The override's mark REPLACES the resolver's: a tick
+                    // whose builtin fell back (`FallbackTaken`) and was then
+                    // overridden records the override, not the fallback —
+                    // one mark per record, the harness's act outranking the
+                    // advisor's health for that tick (documented limit;
+                    // builtins fall back only on a panic).
+                    if let Some(override_) = self.pending_overrides.get(&id) {
+                        if let Some(activity) = override_.activity {
+                            decision.activity = activity;
+                        }
+                        if let Some(message) = override_.message {
+                            decision.message = message;
+                        }
+                        provenance = override_.mark();
+                    }
+                    proposals.propose(id, decision);
                     scripted_marks.insert(id, provenance);
                 }
                 _ => {
@@ -497,6 +651,10 @@ impl Episode {
             }
         }
 
+        // Every external action decoded: the tick is committed, and the
+        // overrides it carries are spent (FR-012: a step refused above for
+        // a bad external index leaves them standing).
+        self.pending_overrides.clear();
         let seeds = self
             .pending_seeds
             .take()
@@ -654,6 +812,242 @@ impl Episode {
     /// here). Any successful reset heals.
     pub(crate) fn poison(&mut self, message: String) {
         self.poisoned = Some(message);
+    }
+
+    /// This environment's identity under `engine_commit` (spec 068
+    /// FR-006): the build, the seed-masked configuration digest and the
+    /// control map. See [`Identity`].
+    pub fn identity(&self, engine_commit: &str) -> Identity {
+        let mut core = (*self.core).clone();
+        core.world.seed = 0;
+        let mut hasher = Sha256::new();
+        hasher.update(serde_json::to_vec(&core).expect("the engine config serializes"));
+        hasher.update(b"\n");
+        hasher.update(serde_json::to_vec(&self.rl).expect("the rl config serializes"));
+        Identity {
+            engine_commit: engine_commit.to_owned(),
+            config_digest: format!("{:x}", hasher.finalize()),
+            // Normalized over the roster: `self.control` holds only explicit
+            // entries plus auto-seated needy seats, and an unnamed seat is
+            // external by `external_agents`' rule — so the identity names
+            // every seat, or two spellings of one environment would refuse
+            // each other (review 2026-11-06).
+            control: self
+                .roster()
+                .into_iter()
+                .map(|id| {
+                    let who = match self.control.get(&id) {
+                        Some(Control::Builtin(name)) => name.clone(),
+                        Some(Control::External) | None => "external".to_owned(),
+                    };
+                    (id, who)
+                })
+                .collect(),
+        }
+    }
+
+    /// The whole episode state between steps as opaque bytes (spec 068
+    /// FR-001/FR-002): the world with its RNG, the decision seeds already
+    /// dealt for the next tick, the episode position, the truncation flag,
+    /// the reward baselines and the current seed, under this environment's
+    /// identity. Refused while poisoned (the world may be mid-invariant;
+    /// the same fault class `step` raises). A transient token (FR-016):
+    /// no format version, no promise across engine commits — the raws are
+    /// the durable artifact and any snapshot is re-derivable by replay.
+    ///
+    /// Branch depth k > 1 — where a component's predictions drive
+    /// successive branch states — is a named marker-review trigger
+    /// (`experiments/WELFARE-STANDING.md` text (b);
+    /// `experiments/gen2-prereg-2026-10-17.md` §A2′ item 5). The API is
+    /// depth-unlimited; the doctrine, not the API, caps its use.
+    pub fn snapshot(&self, engine_commit: &str) -> Result<Vec<u8>, EpisodeError> {
+        if let Some(message) = &self.poisoned {
+            return Err(EpisodeError::Panicked {
+                message: message.clone(),
+            });
+        }
+        let pending_seeds = self
+            .pending_seeds
+            .as_ref()
+            .expect("seeds are dealt between steps");
+        let out = SnapshotOut {
+            identity: self.identity(engine_commit),
+            seed: self.core.world.seed,
+            world: &self.world,
+            tick_in_episode: self.tick_in_episode,
+            truncated: self.truncated,
+            prev_level: self.prev_level,
+            prev_potential: self.prev_potential,
+            pending_seeds,
+        };
+        Ok(serde_json::to_vec(&out).expect("an episode snapshot serializes"))
+    }
+
+    /// Replaces this episode's state with `bytes`' (spec 068 FR-003 to
+    /// FR-007) and returns what `reset` returns: observations, masks and
+    /// infos for the external seats at the restored tick, the infos'
+    /// `decision_seed` being the restored deal's (FR-004). Parse and the
+    /// identity check (engine commit, configuration digest, control map —
+    /// in that order) complete before any field is assigned, so a refusal
+    /// leaves the episode exactly as it was. Heals poison, drops any
+    /// pending override, restores truncated as truncated, and never
+    /// re-deals the seeds. Same welfare line as [`Episode::snapshot`].
+    pub fn restore(
+        &mut self,
+        engine_commit: &str,
+        bytes: &[u8],
+    ) -> Result<EpisodeStep, EpisodeError> {
+        let snap: SnapshotIn = serde_json::from_slice(bytes)
+            .map_err(|e| EpisodeError::SnapshotMalformed(e.to_string()))?;
+        let mine = self.identity(engine_commit);
+        if snap.identity.engine_commit != mine.engine_commit {
+            return Err(EpisodeError::SnapshotIdentity {
+                component: "engine_commit",
+                found: snap.identity.engine_commit,
+                expected: mine.engine_commit,
+            });
+        }
+        if snap.identity.config_digest != mine.config_digest {
+            return Err(EpisodeError::SnapshotIdentity {
+                component: "config_digest",
+                found: snap.identity.config_digest,
+                expected: mine.config_digest,
+            });
+        }
+        if let Some((seat, found, expected)) =
+            Identity::first_control_difference(&snap.identity.control, &mine.control)
+        {
+            return Err(EpisodeError::SnapshotIdentity {
+                component: "control",
+                found: format!("kitty_{seat}={found}"),
+                expected: format!("kitty_{seat}={expected}"),
+            });
+        }
+        // Identity agreed. The world inside must still be one this
+        // environment can lawfully run — the same checks the server's load
+        // path makes (persist.rs): the world's own fingerprint against the
+        // config it will run under, the roster, and the constitution. A
+        // token is opaque, not trusted (review 2026-11-06).
+        let mut config = (*self.core).clone();
+        config.world.seed = snap.seed;
+        let expected_fingerprint = config.fingerprint();
+        if snap.world.config_fingerprint != expected_fingerprint {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world's fingerprint {} is not the config's {}",
+                snap.world.config_fingerprint, expected_fingerprint
+            )));
+        }
+        let roster: Vec<KittyId> = snap.world.kitties.iter().map(|k| k.id).collect();
+        if roster != self.roster() {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world's roster {roster:?} is not this environment's {:?}",
+                self.roster()
+            )));
+        }
+        if let Err(violation) = cloudkitty_core::invariants::check(&snap.world, &config) {
+            return Err(EpisodeError::SnapshotMalformed(format!(
+                "the world violates the constitution: {violation}"
+            )));
+        }
+        // Assign everything. The seed is state (reset writes it into the
+        // config; current_seed and the fresh-seed chain derive from it), so
+        // it travels with the snapshot.
+        self.core = Arc::new(config);
+        self.world = snap.world;
+        self.tick_in_episode = snap.tick_in_episode;
+        self.truncated = snap.truncated;
+        self.prev_level = snap.prev_level;
+        self.prev_potential = snap.prev_potential;
+        self.pending_seeds = Some(snap.pending_seeds);
+        self.poisoned = None;
+        self.pending_overrides.clear();
+        // The same tail `arm` runs after a reset, minus the re-deal and the
+        // baseline re-prime, under the same panic guard as `reset_caught`.
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let snapshot = self.world.snapshot();
+            self.collect_step(0.0, TickReport::default(), snapshot)
+        })) {
+            Ok(step) => Ok(step),
+            Err(payload) => {
+                let message = panic_message(payload);
+                self.poison(message.clone());
+                Err(EpisodeError::Panicked { message })
+            }
+        }
+    }
+
+    /// Records a one-tick proposal substitution for an engine-decided seat
+    /// (spec 068 FR-009 to FR-014): `action` is a menu index in the seat's
+    /// start-of-tick target table, `message` a message-head index — the
+    /// vocabulary `step` takes for a policy seat — and each half is
+    /// independent: an unnamed half stays the seat's own behaviour's
+    /// proposal for that tick. The next step consumes it; the engine's law
+    /// (validation, consent, the needy verdict, duration enforcement)
+    /// rules on the result at the apply slot exactly as on any proposal,
+    /// and the tick's record carries an `Overridden*` provenance naming
+    /// the substituted half. Refused, leaving everything as it was, for an
+    /// external seat, an unknown kitty, an empty override, a second
+    /// override before a step, or an index a table cannot express.
+    /// Decoding happens here, against the world as it stands — which IS
+    /// the start-of-tick snapshot the next step decides from.
+    pub fn override_next(
+        &mut self,
+        kitty: KittyId,
+        action: Option<usize>,
+        message: Option<usize>,
+    ) -> Result<(), EpisodeError> {
+        if let Some(message) = &self.poisoned {
+            return Err(EpisodeError::Panicked {
+                message: message.clone(),
+            });
+        }
+        if self.truncated {
+            return Err(EpisodeError::SteppedAfterTruncation);
+        }
+        let refuse = |reason: &str| EpisodeError::OverrideRefused {
+            kitty,
+            reason: reason.to_owned(),
+        };
+        if !self.roster().contains(&kitty) {
+            return Err(refuse("not in the roster"));
+        }
+        if !matches!(self.control.get(&kitty), Some(Control::Builtin(_))) {
+            return Err(refuse(
+                "externally controlled; supply its action through step()",
+            ));
+        }
+        if action.is_none() && message.is_none() {
+            return Err(refuse("name an action, a message, or both"));
+        }
+        if self.pending_overrides.contains_key(&kitty) {
+            return Err(refuse("already has a pending override; step() first"));
+        }
+        let snapshot = self.world.snapshot();
+        let view = snapshot.fog_for(kitty, self.core.vision.radius);
+        let observation = encode_observation(&view, kitty, &self.core, &self.rl.observation);
+        let activity = action
+            .map(|index| {
+                self.codec.decode(index, &observation.table).map_err(|_| {
+                    EpisodeError::ActionOutOfRange {
+                        kitty,
+                        index,
+                        len: self.codec.len(),
+                    }
+                })
+            })
+            .transpose()?;
+        let message = message
+            .map(|index| {
+                MessageCodec::decode(index).map_err(|_| EpisodeError::MessageOutOfRange {
+                    kitty,
+                    index,
+                    len: MessageCodec::LEN,
+                })
+            })
+            .transpose()?;
+        self.pending_overrides
+            .insert(kitty, PendingOverride { activity, message });
+        Ok(())
     }
 }
 
@@ -1125,6 +1519,37 @@ mod tests {
         episode
             .step(&BTreeMap::new())
             .expect("stepping works again");
+    }
+
+    /// Spec 068 G3 (FR-007): restore heals a poisoned episode — the poison
+    /// belongs to the state that was replaced.
+    #[test]
+    fn restore_heals_a_poisoned_episode() {
+        let mut episode =
+            Episode::new(Config::default(), RlConfig::default(), BTreeMap::new()).unwrap();
+        episode.reset(5);
+        let bytes = episode.snapshot("test-engine").unwrap();
+        episode.poison("a mid-tick invariant broke (staged)".into());
+        assert!(
+            matches!(
+                episode.step(&BTreeMap::new()),
+                Err(EpisodeError::Panicked { .. })
+            ),
+            "staged: the poisoned episode refuses to step"
+        );
+        assert!(
+            matches!(
+                episode.snapshot("test-engine"),
+                Err(EpisodeError::Panicked { .. })
+            ),
+            "a poisoned episode refuses to be snapshotted"
+        );
+        episode
+            .restore("test-engine", &bytes)
+            .expect("a valid snapshot restores into a poisoned episode");
+        episode
+            .step(&BTreeMap::new())
+            .expect("the restored episode steps as a healthy one");
     }
 
     /// Spec 067 (research D16): the control map's needy door. A needy

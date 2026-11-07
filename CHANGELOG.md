@@ -33,6 +33,30 @@ change.
 
 ## Unreleased
 
+- **A running world can be held, branched once and the branch read.**
+  World branch API (spec 068): the Python binding's `ParallelEnv` gains
+  `snapshot()`, returning the whole episode state between steps as opaque
+  bytes — the world with its random state, the decision seeds already
+  dealt for the next tick, the position in the episode, truncation and
+  the reward baselines — and `restore(bytes)`, which puts that state back
+  into any environment of the same engine build, configuration and
+  control map and returns what `reset()` returns. The restored world
+  continues byte-for-byte with the original under the same actions, so a
+  counterfactual read no longer pays the prefix it branches from.
+  `fork()` does both in one call; `VectorEnv` has snapshot and restore
+  per world index. A snapshot is a transient token for the binding that made it,
+  with no format version and no promise across engine commits; a restore
+  that cannot be honoured is refused naming what differed. Beside it,
+  `override(kitty, action=None, message=None)` substitutes one tick's
+  proposal for a scripted seat — a builtin preset or a needy preset; a
+  branch cannot change who decides for a seat — each half independently,
+  the unnamed half staying the cat's own. The override is a proposal and nothing
+  more: the engine's law rules on it at the apply slot exactly as on any
+  other, and the tick's record carries a new provenance naming the half
+  the harness substituted, readable for every roster kitty through
+  `tick_records()`. A world that never calls any of these is byte-identical
+  to before. No compatibility marker: the observation schema, the world
+  fingerprint, the defaults stamp and the seeded draw order are unmoved.
 - **The README's first command starts the server.** In 0.3.0 a bare
   `cargo run` at the repo root stopped to ask which of the workspace's
   four programs to run (`cloudkitty-server`, `kitty-eval`,

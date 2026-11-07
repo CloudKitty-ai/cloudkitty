@@ -59,6 +59,63 @@ Three things to internalize before training anything:
 - **Terminations are always False.** Kitties cannot die (Article II);
   episodes only truncate, together, exactly at the horizon.
 
+### Branching a world (spec 068)
+
+A running world can be held, branched once and the branch read, without
+replaying its prefix:
+
+```python
+snap = env.snapshot()                 # bytes: world + RNG + the next tick's dealt seeds + episode state
+twin = cloudkitty.ParallelEnv(horizon=100)   # same config and control map; never reset
+obs, infos = twin.restore(snap)       # returns what reset() returns, at the held tick
+branch = env.fork()                   # the same two lines as one call
+```
+
+The restored world continues byte-for-byte with the original under the
+same actions — observations, rewards, infos (`decision_seed` included)
+and the serialized world. Restore refuses, naming the component, a
+snapshot taken under a different engine commit, configuration or control
+map, and leaves the environment untouched. A snapshot is a *transient
+token* for the binding that made it: no format version, no promise across
+engine commits; the raws are the durable artifact and any snapshot is
+re-derivable by replay. `VectorEnv` has the same calls per world index
+(`snapshot(world)`, `restore(world, data)`, `override(world, …)`,
+`tick_records(world)`; no `fork`). A restored world keeps its own episode
+position, so in a batch it runs off the others' horizon cycle.
+
+A branch cannot change who decides for a seat — the control map is part
+of the snapshot's identity, and a needy seat can never be external at all
+(spec 067). To ask "what if this scripted cat had done X" instead,
+substitute one tick's proposal (one pending override per seat; the next
+`step` consumes it):
+
+```python
+env.override("kitty_2", action=idx)          # act substituted, message the cat's own
+env.step(actions)
+env.tick_records()["kitty_2"]["provenance"]  # "overridden_act"
+env.override("kitty_2", message=1)           # message substituted, act the cat's own
+env.step(actions)
+env.tick_records()["kitty_2"]["provenance"]  # "overridden_message" ("overridden_both" when both are named)
+```
+
+The override does not consult the legal mask: it may name a mask-illegal
+act and the engine then rules (a refusal stamp where a mask-legal act
+would have applied), so a reader comparing a branch against a baseline
+that chose mask-legal acts should branch on the baseline's mask-legal
+action, not the raw class.
+
+The override is a *proposal*: validation, the consent verdict, the needy
+verdict and duration enforcement rule on it at the apply slot exactly as
+on any other, so it can never make an illegal act legal or a needy seat
+relieve a masked need. `tick_records()` reads every roster kitty's last
+record (scripted seats included; the per-agent infos are unchanged) so a
+corpus collector can refuse a substituted row as a teacher's act.
+
+Branch depth k > 1 — where a component's predictions drive successive
+branch states — is a named marker-review trigger
+(`experiments/WELFARE-STANDING.md` text (b)); the API is depth-unlimited
+and the doctrine, not the API, caps its use.
+
 ## 3. The minimal end-to-end example
 
 The smallest thing that exercises the *entire* pipeline — batched
