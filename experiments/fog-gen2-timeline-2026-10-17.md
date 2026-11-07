@@ -840,6 +840,26 @@ consent BC comparison ride the trunk.
   flag; unpaired); P39 / P41 / P42 / P43 / P44 re-grounded; 068 notes
   (tick_records last-step-only; ENGINE_COMMIT in BINDING.md; spec
   status "Draft" → Product msg 982cd2a2). Owner calls 8–12 open.
+  PHASE 2 DRAFT CALLS 8–12 RULED 2026-11-06, her words verbatim: "Iii
+  drop the arm. Confirm professors note 8-12 as recommended". Read as:
+  call 8 = shape (iii), the NEEDS ARM IS DROPPED — Phase 2 has THREE
+  arms (act15 / act10 / nohead, 3 paired seeds each, 9 covered PPO
+  seeds; run indices 107–115, band 2,240,000,000–2,419,999,999 to claim
+  at DECLARED); the gate's FAIL is the needs head's Phase 2 result; the
+  needs head's welfare comparison waits for Phase 1f (a new declaration
+  on her word); P41 WITHDRAWN (number not reused). Call 12 = the
+  Professor's note (sha256 98c3f92d…) CONFIRMED, its items BANK. Calls
+  9 / 10 / 11 as recommended: plateau floor 8,002,560 world-ticks
+  before the rule arms; the roster-shaped bar MEASURED at 20×20 with two
+  permuted trunk legs (6M covered cat-ticks, trunk minds only; 40×40 /
+  100×100 roster verdicts descriptive); R-2a pins Kaplan–Meier p90,
+  merge k = 5, relief source by the exit-tick partner flag. Product's
+  reply on 068's status line (template default; cite by path + deff48c0)
+  carried into the draft §2. Welfare-cost line now 360M covered
+  cat-ticks at the trunk's plateau length (900M at the cap) + 108M legs
+  + 6M roster bar. Deviations entry 22 carries the third ruling and the
+  sign correction; F-073's bracket updated. Open: her word to DECLARE
+  (call 7), the only open call.
 
 ## Flagged follow-ups (owner's word to start)
 

@@ -2575,11 +2575,13 @@ NF1e-h24+p is the Phase 2 candidate by the declaration's rule [the Phase
 2 entry gate read it on 2026-11-05 (ostrich metric, first read on this
 head): grave bias −3.17 need points vs common +0.07, Phase 1's signature,
 GATE FAIL; owner 2026-11-06, first "We can skip the needs head based on
-this result", then the same day "let's include it after all" — the head
-enters Phase 2 as the needs-only arm's frozen input, kept as a welfare
-comparison point, not as a head that passed; the finding's claims about
-the head stand, `minifriend-phase2-gate-2026-11-05/RESULTS.md`,
-deviations entry 22], its
+this result", then the same day "let's include it after all" (a
+needs-only arm as a welfare comparison point), then the same day, on the
+Professor's review of the Phase 2 draft, "Iii drop the arm" — the head
+is NOT an input to any Phase 2 arm; the gate's FAIL is its Phase 2
+result and its welfare comparison waits for Phase 1f; the finding's
+claims about the head stand, `minifriend-phase2-gate-2026-11-05/
+RESULTS.md`, deviations entry 22], its
 confirming figures at her pick the ones Phase 2 cites, its price in
 welfare units hers to weigh; whether it feeds anything that acts is a
 new ruling from her (the observer-stream ruling's last clause); F-069,

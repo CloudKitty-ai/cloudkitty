@@ -1170,18 +1170,28 @@ no Phase 1f arm, the needs-only anchor arm gone); then, on the
 recommendation to replace that anchor with a no-head continuation arm,
 "You're right, I hadn't considered we lose needs only head as a
 comparison point for welfare, let's include it after all. Seeds as
-recommended". Standing reading: the needs-only arm RETURNS with
+recommended". Reading at that point: the needs-only arm RETURNS with
 NF1e-h24+p frozen as its one head, carried as a welfare comparison
-point — a pessimistic needs input (grave bias −3.17 need points, 3 of 5
-friends) read against the trunk under the asymmetric welfare rule, not
-as a head that passed. No Phase 1f composition arm; the gate verdict
-stands as a finding; the frozen head is not retrained. Consequences
-carried into the Phase 2 declaration: the consumer read "harm-prediction
-beats trunk" (grave channel) applies to the needs-only arm only; the
-welfare-cost line names the known-pessimistic input on that arm's
-seeds; seeds 3 paired per arm (graft s1 / s2 / s4), none extra; whether
-the no-head continuation anchor also stays was ruled the same day,
-verbatim "Four heads": four arms, B15 / B10 / needs-only / no-head, 3
-paired seeds each, 12 covered PPO seeds. The frozen text is not edited;
-this entry is the record. Status: OPEN until the Phase 2 declaration
-carries it.
+point read against the trunk under the asymmetric welfare rule, not as
+a head that passed; then the same day, verbatim "Four heads": four
+arms, B15 / B10 / needs-only / no-head, 3 paired seeds each, 12 covered
+PPO seeds. [Sign correction 2026-11-06, on the Professor's draft review:
+this entry first called the input "pessimistic"; the gate's own
+convention (RESULTS R-2, "negative = read less needy than she is") puts
+the grave bias −3.17 in the OPTIMISM direction — the head reads a grave
+friend in sight LESS needy than she is, 3 of 5 friends.]
+**Third ruling the same day, verbatim: "Iii drop the arm. Confirm
+professors note 8-12 as recommended"** — shape (iii) of the Phase 2
+draft's §8.2: the Professor's review showed the draft's demotion
+trigger (optimism-direction bias, lift ≥ 1.5, min-n 200) fires on that
+arm as written, since the gate had read exactly that signature at lift
+43.8; of armed / halt-suspended / drop, she dropped the arm. Standing
+reading: Phase 2 has THREE arms (B15 / B10 / no-head, 9 covered PPO
+seeds); NO needs head is an input to any Phase 2 arm; the gate's FAIL
+is the needs head's Phase 2 result; the welfare comparison on a needs
+head waits for Phase 1f (a new declaration on her word); no Phase 1f
+composition arm now; the frozen head is not retrained. The deviation
+this entry was opened for (a failed head carried into a live arm) no
+longer occurs. The frozen text is not edited; this entry is the record.
+Status: OPEN until the Phase 2 declaration lands, which CLOSES it (its
+§14 entry 23 item (c) carries the record).

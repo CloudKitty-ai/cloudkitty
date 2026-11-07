@@ -1,4 +1,4 @@
-# Gen 2 Phase 2 — the heads as inputs to the acting policy: four arms grafted on the frozen trunk (DRAFT 2026-11-06, for the owner; nothing declared, nothing runs)
+# Gen 2 Phase 2 — the heads as inputs to the acting policy: three arms grafted on the frozen trunk (DRAFT 2026-11-06, for the owner; nothing declared, nothing runs)
 
 The frozen prereg (`gen2-prereg-2026-10-17.md` §8 item 4, "MINI-FRIEND
 Phase 2", amended A1 / A2′ / A4) reaches its Phase 2 here: the Phase 1
@@ -10,36 +10,38 @@ and BEFORE any number exists. She sees it first; the Professor sees it
 through her ("relay"). Her word declares it; until then the status line
 below is the truth.
 
-**Status: DRAFT 2026-11-06. Not declared. No seed band claimed, no
-instrument built, no covered mind trained. Deviations entry 23 is
-drafted in §14 and lands in the ledger when this declares.**
+**Status: DRAFT 2026-11-06. Not declared. Every §12 call is RULED (the
+last five on 2026-11-06, "Iii drop the arm. Confirm professors note
+8-12 as recommended"); only call 7, her word to declare, is open. No
+seed band claimed, no instrument built, no covered mind trained.
+Deviations entry 23 is drafted in §14 and lands in the ledger when this
+declares.**
 
-Welfare-cost line (practice, owner 2026-09-26). Covered minds: twelve
+Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
 seed on the served 20×20 with the frozen asymmetric stops armed
 (training-probe distress streak 300, F-053's 1,000-tick line, nash <
 0.5 on three consecutive probes; a trip halts the run and goes to her,
 never auto-resumed) plus this arc's demotion trigger (§8.2). Under the
 plateau rule (her ruling, §4) the training exposure is not fixed: at the
-trunk's own plateau length it is 12 × 8.0M world-ticks × 5 covered seats
-≈ 480M covered cat-ticks, and the 20M cap bounds it at 1.2B; probes ≈
-19M per 8M trained; the certification legs at all three sizes 144M (§6
-R-1), plus any secondary matched-checkpoint read (9M each). Scouts-first
-(§13): one seed per arm trains first; the other eight
-launch only after the four scouts finish clean. The needs-only arm trains
-three covered minds on an input whose estimates run in the OSTRICH
+trunk's own plateau length it is 9 × 8.0M world-ticks × 5 covered seats
+= 360M covered cat-ticks, and the 20M cap bounds it at 900M; probes ≈
+19M per 8M trained; the certification legs at all three sizes 108M (§6
+R-1), the roster-bar measurement 6M (trunk minds only, §6 R-1), plus any
+secondary matched-checkpoint read (9M each). Scouts-first (§13): one
+seed per arm trains first; the other six launch only after the three
+scouts finish clean. No covered mind trains on the needs head: the arm
+that would have (NF1e-h24+p frozen, whose estimates run in the OSTRICH
 direction — the gate read a grave friend in sight 3.17 need points LESS
-needy than she is (gate RESULTS R-2, "negative = read less needy than she
-is"; lift 43.8; the one input shape this program was built to keep away
-from an acting policy) — while its probe over-fires (P(grave) about 2×
-over-confident on covered friends, F-073 D5) and pulls attention toward
-friends approaching the edge. The two pull opposite ways; which wins is
-the read. [Corrected 2026-11-06 on the Professor's review: the first
-draft called this input "pessimistic", the act heads' word, four times;
-the gate's own convention says the opposite.] That cost is named here,
-not hidden in the arm count. What it buys:
-the first lived answer to whether a friend-reading head changes what a
-cat does for a grave friend, and the welfare price of each head, read
+needy than she is, gate RESULTS R-2, lift 43.8 — while its probe
+over-fires, F-073 D5) was DROPPED by her ruling of 2026-11-06 (§8.2
+shape (iii), "Iii drop the arm"); the gate's FAIL is that head's Phase 2
+result and the needs head's welfare comparison waits for Phase 1f, a new
+declaration. [The first draft called this input "pessimistic" four
+times; corrected 2026-11-06 on the Professor's review — the gate's own
+convention says the opposite.] What the nine covered minds buy: the
+first lived answer to whether a friend-reading head changes what a cat
+does for a grave friend, and the welfare price of each act head, read
 against the trunk under the rule she agreed. Nothing here seats a policy
 live (ruling 7).
 
@@ -72,8 +74,22 @@ live (ruling 7).
 - 2026-11-06, on the seeds / arms recommendation: "You're right, I hadn't
   considered we lose needs only head as a comparison point for welfare,
   let's include it after all. Seeds as recommended"
-- 2026-11-06: "Four heads" — read as four arms (§3), three paired seeds
+- 2026-11-06: "Four heads" — read as four arms, three paired seeds
   each.
+- 2026-11-06, the six design calls: "1) I think we need the plateau rule
+  here. These models are more complex than anything we've done before,
+  and we've had generations plateau after 8M 2) explain this further 3)
+  pros and cons of the two approaches? 4) all three world sizes 5) yes
+  6) explain. Re: 068, are there benefits to incorporating it?"; then
+  "2) in 3) held 6) run it. I'm leaning adopt 068, and compelling reason
+  not to?"; then "Relay our plan to Professor for review (including 068
+  in)".
+- 2026-11-06, on the Professor's review (calls 8–12): "Iii drop the arm.
+  Confirm professors note 8-12 as recommended" — read as: call 8 =
+  shape (iii), the needs-only arm is DROPPED (three arms, §3); call 12 =
+  the Professor's note confirmed, its items bank; calls 9 / 10 / 11 as
+  recommended (floor 8,002,560; the roster bar measured at 20×20; the
+  R-2a pins as stated).
 
 Standing: Gen 2 prereg FROZEN 18f06f84, never edited; her rule of
 2026-11-02 ("judge an operating point on welfare impact; a false-run
@@ -82,7 +98,7 @@ WELFARE-STANDING texts (a)–(c).
 
 ## 1. What is being asked
 
-Three questions, one per comparison, all read against the frozen trunk
+Two questions, one per comparison, all read against the frozen trunk
 on the same worlds:
 
 1. **Does the act head change welfare?** B15 (her pick) against B10 (the
@@ -90,28 +106,26 @@ on the same worlds:
    gate priced the two act heads' one-tick errors within the seed SD of
    each other in every stratum, so the expected answer to "B15 over B10"
    is a null (gate RESULTS §Open-loop); the lived answer is this read.
-2. **Does the needs head change welfare, as a comparison point?** The
-   needs-only arm, NF1e-h24+p frozen as its one head. Its seven
-   estimates under-read a grave friend in sight by 3.17 need points
-   (gate: grave bias −3.17 against common +0.07, the ostrich direction;
-   the gate FAILED it for exactly that); its probe detects a covered
-   friend's crossing in 0.971 of observer-episodes (F-073) and
-   over-fires toward friends approaching the edge. The expected sign of
-   the effect is therefore AMBIGUOUS and is stated so: a policy fed
-   under-read grave needs is expected to attend LESS to grave friends in
-   sight, while the probe pulls attention toward them; the read says
-   which wins, in welfare and in relief latency. It is carried past the
-   gate's FAIL on her word (entry 22), as a read, never as a head that
-   passed; §8.2's trigger collision (the Professor's §0) is hers to shape
-   (§12 call 8).
-3. **Does more training alone move the trunk?** The no-head continuation
+2. **Does more training alone move the trunk?** The no-head continuation
    arm — the same graft, the same budget, no head cells — is the baseline
    every head arm is read against, so a gain over the frozen trunk is
    never confused with the training it took to learn the input.
 
-What is NOT asked: nothing here seats; nothing here retrains a head; the
-correction (feedback into the heads) stays deferred (prereg §8.4 "THE
-CORRECTION"); no imagination branch runs (k = 0: the heads observe).
+What is NOT asked: **the needs head's welfare.** The needs-only arm
+(NF1e-h24+p frozen as its one head) was in this draft from "let's include
+it after all" through "Four heads" and was DROPPED on 2026-11-06 ("Iii
+drop the arm", §8.2 shape (iii)) once the Professor's review showed that
+the demotion trigger as written fires on it at its first sufficient
+stratum: the gate had already read that head's grave error in the
+OPTIMISM direction (grave bias −3.17 against common +0.07 in sight, lift
+43.8; a policy fed under-read grave needs is expected to attend LESS to
+a grave friend in sight, while its over-firing probe pulls the other
+way). The gate's FAIL (entry 21) is the needs head's Phase 2 result; the
+welfare comparison on a needs head waits for Phase 1f, a new declaration
+on her word. Also not asked: nothing here seats; nothing here retrains a
+head; the correction (feedback into the heads) stays deferred (prereg
+§8.4 "THE CORRECTION"); no imagination branch runs (k = 0: the heads
+observe).
 
 ## 2. Facts the design rests on (all on record)
 
@@ -140,10 +154,11 @@ CORRECTION"); no imagination branch runs (k = 0: the heads observe).
   + the friend's row (x of 167), its GRU state carried from the world's
   start.
 - **Validation losses, per seed (each store's `done.json`; the
-  median-validation seed is the arm's head, ruling 4):** NF1e-h24 s1
-  0.005988, **s2 0.006000**, s3 0.006434 → **NF1e-h24-s2+p**. B15 s1
+  median-validation seed is the arm's head, ruling 4):** B15 s1
   2.7176, **s2 2.7358**, s3 2.7393 → **B15-s2**. B10 s1 2.7623, **s3
-  2.7631**, s2 2.7788 → **B10-s3**. Named here, before training.
+  2.7631**, s2 2.7788 → **B10-s3**. Named here, before training. (NF1e-
+  h24 s1 0.005988, s2 0.006000, s3 0.006434 → NF1e-h24-s2+p would have
+  been the needs arm's head; no arm reads it, §1.)
 - **What the heads are worth, read.** F-074: B10 reads a covered friend's
   next act in 0.634 of ticks (0.734 in sight, 0.522 heard, 0.410 ten
   ticks on; heard y10 0.407 against the 0.320 frequency, act RESULTS
@@ -188,13 +203,15 @@ CORRECTION"); no imagination branch runs (k = 0: the heads observe).
   character-gen/.venv`, ENGINE_COMMIT b5aaa8cd, held fixed by deviations
   entry 5); the heads, the needy set and the gate ran on the needy arc's
   venv (`needy-set-2026-10-28/.venv`, ENGINE_COMMIT 5928b7ca). Spec 068
-  (World Branch API) merged to main 2026-11-06 as deff48c0; it is NOT
-  adopted here (her ruling: features beyond 068 are their own spec;
-  adoption of 068 for a read = her word + a BINDING.md reproduction
-  check). §13 step 1 settles which binding runs Phase 2 by reproduction,
-  never by assumption.
+  (World Branch API; `specs/068-world-branch/spec.md`, cited by path and
+  merge commit — its status line reads "Draft" by the speckit template's
+  default, Product 2026-11-06) merged to main 2026-11-06 as deff48c0 and
+  is ADOPTED for this arc's binding and reads on her word (§12 call 6b),
+  conditional on reproduction (g0 / g0b); features beyond 068 are their
+  own spec (her ruling). §13 step 1 settles which binding runs Phase 2 by
+  reproduction, never by assumption.
 
-## 3. The arms (ruled "Four heads"; three paired PPO seeds each; 12 covered seeds)
+## 3. The arms (three; "Four heads" then "Iii drop the arm", 2026-11-06; three paired PPO seeds each; 9 covered seeds)
 
 Every arm is the trunk seed warm-started (§4), trained the same budget on
 the same world with the same stops, differing ONLY in the cells appended
@@ -206,8 +223,11 @@ against trunk-s_k on the same worlds.
 |---|---|---|---|---|
 | **act15** (her pick) | `p2-act15-s{1,2,4}` | B15-s2 | 11 y0 class probabilities at T = 1, top-prob, normalised entropy; ticks-since-live | 14 |
 | **act10** (the comparator) | `p2-act10-s{1,2,4}` | B10-s3 | the same, from B10 | 14 |
-| **needs** (the comparison point) | `p2-needs-s{1,2,4}` | NF1e-h24-s2+p | the seven estimates (five hidden needs, happiness, bath, /100) and P(grave); ticks-since-live | 9 |
 | **nohead** (the continuation baseline) | `p2-nohead-s{1,2,4}` | none | ticks-since-live | 1 |
+
+Dropped 2026-11-06 ("Iii drop the arm"): **needs** (`p2-needs-s{1,2,4}`,
+NF1e-h24-s2+p, the seven estimates + P(grave) + ticks-since-live, C = 9).
+No slot, no seed, no covered mind; §1 and §8.2 carry the reason.
 
 - **Act cells when the row is silent** (her ruling 2026-11-04, P25's
   amended consequence): the frequency prior — the training set's y0
@@ -228,15 +248,18 @@ against trunk-s_k on the same worlds.
   (41ec2ca4) and B15 is the pick; "We can extend to 20,30 if we see real
   welfare benefit" is §8.1's conditional, fired only by a cleared gap.
 - **No composition (Phase 1f) arm**, by her ruling of 2026-11-06.
+- **No needs-only arm**, by her ruling of 2026-11-06 ("Iii drop the
+  arm"), after "let's include it after all" and "Four heads" the same
+  day: the Professor's review showed the demotion trigger fires on that
+  arm as written (§8.2), and of the three shapes she chose to drop it.
 
-Why four and not three or five, on the record: the needs-only arm is the
-only lived read of the needs head's welfare (her words, "we lose needs
-only head as a comparison point for welfare"); the no-head arm separates
-"the head" from "more training" (without it every arm's gain over the
-frozen trunk conflates the two); B10 beside B15 is her question of
-2026-11-05. Seeds cap at three because the graft pairs each arm seed with
-a frozen trunk seed and three survived; the welfare rule's bar is the
-trunk's three-seed envelope, which extra arm seeds would not move.
+Why three, on the record: the no-head arm separates "the head" from
+"more training" (without it every arm's gain over the frozen trunk
+conflates the two); B10 beside B15 is her question of 2026-11-05; the
+needs head's welfare comparison, which the fourth arm would have been,
+waits for Phase 1f. Seeds cap at three because the graft pairs each arm
+seed with a frozen trunk seed and three survived; the welfare rule's bar
+is the trunk's three-seed envelope, which extra arm seeds would not move.
 
 ## 4. The graft and the training (recipe deltas only; everything else `train_ppo_g2.py` verbatim)
 
@@ -280,14 +303,16 @@ trunk's three-seed envelope, which extra arm seeds would not move.
   runs on the longer arm's checkpoint at the shorter arm's bin — a read
   beside the primary, never replacing it.
   **Two sharpenings inside her ruling (the Professor's §1, 2026-11-06;
-  hers to confirm, §12 calls 9 and 12).** Every arm starts AT the
-  trunk's plateau return with KL-to-anchor 0, so `plateau_flat` can be
-  satisfied from the second bin on and halt an arm at the fourth before
-  its zero-initialised columns are load-bearing — a plateau called before
-  learning started. (1) A FLOOR before the rule arms, the same for every
-  arm: proposed 8,002,560 world-ticks (the trunk's own plateau length);
-  the three-flat-bins test runs only on bins closed after the floor; the
-  20M cap unchanged. (2) A CELLS-IN-USE read at every closed bin, zero
+  RULED 2026-11-06 "8-12 as recommended", §12 calls 9 and 12).** Every
+  arm starts AT the trunk's plateau return with KL-to-anchor 0, so
+  `plateau_flat` can be satisfied from the second bin on and halt an arm
+  at the fourth before its zero-initialised columns are load-bearing — a
+  plateau called before learning started. (1) A FLOOR before the rule
+  arms, the same for every arm: 8,002,560 world-ticks (the trunk's own
+  plateau length, 2,604 updates); the three-flat-bins test runs only on
+  bins closed after the floor, so the earliest plateau halt is at the
+  fourth bin after it; the 20M cap unchanged. (2) A CELLS-IN-USE read at
+  every closed bin, zero
   collection: on the recorded probe rows the appended cells are zeroed
   and the share of ticks on which the arm's chosen act changes is
   reported beside the plateau tick — a plateau reached at near-zero use
@@ -300,18 +325,19 @@ trunk's three-seed envelope, which extra arm seeds would not move.
   consecutive probes. A trip halts THAT run, checkpointed, owner-routed;
   never auto-resumed. Plus the demotion trigger (§8.2), read at every
   probe. A trip in a scout (§13) holds the other two seeds of that arm.
-- **Seeds.** PPO run indices 107–118 (`seed_stripe(idx) = 100M + idx ·
+- **Seeds.** PPO run indices 107–115 (`seed_stripe(idx) = 100M + idx ·
   20M`; above 2³¹ − 1, the mechanism verified unwrapped at entry 5):
-  act15 107–109, act10 110–112, needs 113–115, nohead 116–118; the band
-  2,240,000,000–2,479,999,999 claimed in `SEED-BANDS.md` when this
-  declares, before the first burn. Probes reuse 40,001–3; the battery
+  act15 107–109, act10 110–112, nohead 113–115; the band
+  2,240,000,000–2,419,999,999 claimed in `SEED-BANDS.md` when this
+  declares, before the first burn (the dropped needs arm's indices are
+  not reserved: nohead takes 113–115). Probes reuse 40,001–3; the battery
   reuses g2cmp 905001–905030 by the prereg's pairing design (no new
   burn). Torch / numpy seeds `20261018 + run_index` as the trainer does.
 - **Passive log** (prereg §8.4 "ships in Phase 2 PASSIVE-LOGGED only"):
   at every probe the head's per-friend prediction loss on the probe
-  streams (act CE y0; needs mse5) and its signed bias by the friend's
-  true stratum are written to `metrics.jsonl`. Logged, never an input,
-  never a reward term.
+  streams (act CE y0; the act arms are the only head arms) and its
+  signed bias by the friend's true stratum are written to
+  `metrics.jsonl`. Logged, never an input, never a reward term.
 
 ## 5. Data
 
@@ -345,18 +371,24 @@ on recorded rows).
   (the trunk has recorded uniform and rot2 rows at all three), 100×100
   characterize-only as frozen (INVESTIGATE rows, never a gate or a
   trigger), scouts-first at 40 and 100 per seating. Six legs per arm-
-  seed set, 144M covered cat-ticks across the four arms.
-  **The roster-shaped bar is BORROWED** (the Professor's §2): 0.326 /
-  0.325 is the spread when all five seats change seed; the roster read
-  changes three of five, and one recorded rot2 row per size gives no
-  pairwise value. Borrowed, it is conservative for demotion and liberal
-  for every "inside the envelope" claim. Her call (§12 call 10): measure
-  it — two extra roster-shaped TRUNK legs at 20×20 with s1 / s2 / s4
-  permuted across the three seats (the recorded rot2 the third
-  configuration; 6M covered cat-ticks, trunk minds only; +6M for 40×40)
-  — or label every roster-read verdict descriptive and let the uniform
-  read carry the registered predictions and the demotion clause. Record
-  note for g6: g2-s2's 40×40 row (86.012) is marked POST-STOP in the
+  seed set, 108M covered cat-ticks across the three arms.
+  **The roster-shaped bar is BORROWED at 40×40 and 100×100 and MEASURED
+  at 20×20** (the Professor's §2; RULED 2026-11-06 "as recommended",
+  §12 call 10): 0.326 / 0.325 is the spread when all five seats change
+  seed; the roster read changes three of five, and one recorded rot2 row
+  per size gives no pairwise value. Borrowed, it is conservative for
+  demotion and liberal for every "inside the envelope" claim. So at
+  20×20 the bar is measured: two extra roster-shaped TRUNK legs (30 ×
+  20k on g2cmp, trunk minds only, 6M covered cat-ticks) with the three
+  rot2 seats (Miso / Biscuit / Clementine) seated by trunk s1 / s2 / s4
+  in two permutations distinct from the recorded rot2's (s2 / s4 / s1),
+  Pumpkin s6 and Kittybear s7 the trunk's; the roster edge statistic =
+  the mean of the three pairwise differences among the recorded rot2 row
+  and the two new legs, recomputed by g6, and R-1b at 20×20 then joins
+  the demotion clause (§8.1). At 40×40 and 100×100 the roster verdicts
+  stay descriptive (the borrowed bar reported beside them). These two
+  legs run after g0 passes and before any arm is read (§13 step 2b).
+  Record note for g6: g2-s2's 40×40 row (86.012) is marked POST-STOP in the
   battery — "rows the declared stop would have prevented … not gate
   evidence until she rules" (cert RESULTS, deviations entry 4): a
   reporting status, the seating unchanged; it enters the envelope as a
@@ -372,14 +404,15 @@ on recorded rows).
   HELD / DEGRADED against the trunk at the ruled +25% of p90; "arm BEATS
   trunk" (the rung-4 grammar) = the arm's p90 under the trunk's in the
   stratum in all three seeds, magnitudes descriptive, never parity.
-  Three pins closed on the Professor's §3 (2026-11-06): **censoring** —
+  Three pins closed on the Professor's §3 (2026-11-06; RULED "as
+  recommended", §12 call 11): **censoring** —
   an episode open at the leg's end or at an F-053 abort is right-
   censored and enters with latency ≥ the remaining ticks; the p90 is the
   Kaplan–Meier p90 (the censored share reported; a stratum whose
   censored share exceeds 10% is flagged); **boundary flicker** — the
   strata have no hysteresis (`strata.py`: plain thresholds at 90 / 45 /
   70), so episodes separated by a gap under k = 5 ticks MERGE, k named
-  here before any data (§12 call 11 if she wants another k); **relief
+  here before any data; **relief
   source** — an episode is SELF-relieved if the friend's own activity at
   the exit tick is unpartnered (eat / drink / sleep / rest …), OTHER-
   relieved if partnered (cuddle; the global state's partner flag); the
@@ -406,7 +439,8 @@ on recorded rows).
   on the same worlds; INVESTIGATE rows, never a bar.
 - **R-4 the heads on the arms' own rollouts** (S§3d "read on BOTH
   estimates, per phase: … the Phase-2 live head"; the Professor's §1
-  monitor item): at every probe checkpoint and on R-1's legs,
+  monitor item): at every probe checkpoint and on R-1's legs, on the two
+  act arms (the only head arms),
   (a) the ostrich metric on each arm's head (`read_phase1.ostrich`, LIFT
   1.5, min-n 200; visible and all) — the lived-vs-probe shift signature;
   (b) **F-074's invalidation monitor**: the act head's y0 top-1 on the
@@ -453,22 +487,18 @@ on recorded rows).
   (0.572 vs the head's 0.734 in sight), so the head's marginal
   information is real and small; the one-tick price of its errors is
   0.19 happiness points.
-- **P41** (re-grounded 2026-11-06; the first draft's grounds rested on
-  the inverted sign). The needs arm's paired team happiness at 20×20 is
-  NOT below the no-head arm's beyond the envelope (paired Δ ≥ −0.326):
-  the Nash reward reads true happiness whether or not the actor knows it,
-  and the leash holds the arm near the trunk. Its OTHER-relief latency
-  p90 in the cuddle stratum (R-2a) is NOT predicted: the estimates say
-  attend less, the probe says attend more; the direction is the read.
+- **P41 — WITHDRAWN 2026-11-06** with the needs arm ("Iii drop the
+  arm"); the number is not reused. It read: the needs arm's paired team
+  happiness at 20×20 not below the no-head arm's beyond the envelope,
+  its cuddle-stratum other-relief latency not predicted (ambiguous
+  sign). Nothing in this arc scores it.
 - **P42.** The demotion trigger (§8.2) does not fire on act15 or act10
   (their errors are pessimistic, the gate's reading) and reads
-  INSUFFICIENT at most probes on every arm (thin lived GRAVE, rider (b)).
-  On the NEEDS arm it is expected to FIRE at the first stratum reaching
-  200 grave rows on the legs — the gate already read this frozen head's
-  optimism-direction signature at lift 43.8 on tens of thousands of rows
-  — which is the collision §8.2 and §12 call 8 put to her. Registered
-  for the act arms; reported for the needs arm under shape (ii), scored
-  as a survival read under shape (i).
+  INSUFFICIENT at most probes on both arms (thin lived GRAVE, rider (b)).
+  (Had the needs arm trained, the trigger was expected to FIRE on it at
+  the first stratum reaching 200 grave rows — the gate's lift 43.8 on
+  tens of thousands of rows; that expectation is why the arm was
+  dropped, not a prediction this arc scores.)
 - **P43.** F-074's monitor holds on EACH arm's own head: B15-s2's y0
   top-1 on act15's rollouts and B10-s3's on act10's stay ≥ 0.60 at every
   checkpoint (B10's tuning-half top-1 0.634 is four points over the
@@ -494,10 +524,13 @@ any arm at the gated sizes (the trunk's s2 had one).
 1. **The welfare rule, asymmetric (ruling 5).** B15 is the Phase 2 act
    head unless DEMOTED: demoted iff act10's paired team happiness exceeds
    act15's by more than the edge statistic (0.326 at 20×20 in R-1a, the
-   uniform read; R-1b's roster-shaped read joins the clause only if its
-   own bar is measured, §12 call 10, else it is descriptive) with the
-   same sign in all three paired seeds (the replication valve), AND the
-   consumer reads (R-2) do not favour act15.
+   uniform read; in R-1b at 20×20 the ROSTER edge statistic measured by
+   the two permuted trunk legs, §6 R-1, ruled; R-1b at 40×40 and 100×100
+   descriptive) with the same sign in all three paired seeds (the
+   replication valve), AND the consumer reads (R-2) do not favour act15.
+   The two 20×20 reads each stand alone: a clearance in either seating
+   shape, both valves met, is a demotion finding put to her; a clearance
+   in one and a null in the other is reported as that.
    A null is not a demotion. Her 20 / 30 conditional fires only if act15
    beats act10 beyond the edge statistic in both seating shapes (then a
    B20 / B30 arm is a new declaration on her word). Distress is the
@@ -515,30 +548,25 @@ any arm at the gated sizes (the trunk's s2 had one).
    arm) is a new declaration on her word. Per-friend before pooled; the
    rule is pooled, per-friend signatures "investigate". Under min-n the
    outcome is INSUFFICIENT, never a pass.
-   **THE COLLISION (the Professor's §0, 2026-11-06).** This trigger's
-   bins are the ostrich metric's, and the gate has already run that
-   metric on the needs arm's frozen head: lift 43.8 in sight, the
-   optimism direction, n in the tens of thousands. As written the trigger
-   fires on the needs arm at its first stratum with 200 grave rows on the
-   legs, halting and reverting the arm she carried as the welfare
-   comparison point. Three honest shapes, hers (§12 call 8), none of them
-   this text as it stood: (i) armed as written — the needs arm is then a
-   three-seed survival read (how long a known ostrich-direction head
-   survives the trigger on lived worlds), registered as that; (ii) her
-   explicit word, as a deviations entry, that the needs arm carries the
-   trigger as a REPORTED read with the HALT consequence suspended for
-   that arm only, the frozen stops (300 / 1,000 / nash) untouched — a
-   welfare decision, since the trigger's protection role is
-   WELFARE-STANDING's, and the welfare-cost line then says plainly that
-   three covered minds train for up to 20M ticks each on an input that
-   under-reads grave friends in sight by 3.17 points; (iii) drop the arm —
-   the gate's FAIL is the needs head's Phase 2 result and the welfare
-   comparison waits for Phase 1f.
-3. **The needs arm and the no-head arm decide nothing.** Both are read
-   under the welfare rule's columns and the consumer reads; whether the
-   needs head feeds anything that acts beyond this arc is a new ruling
-   from her (the observer-stream ruling's last clause stays hers). The
-   no-head arm is the baseline in every table.
+   **THE COLLISION (the Professor's §0, 2026-11-06) — RESOLVED by her
+   word "Iii drop the arm".** This trigger's bins are the ostrich
+   metric's, and the gate had already run that metric on the needs arm's
+   frozen head: lift 43.8 in sight, the optimism direction, n in the tens
+   of thousands. As written the trigger would have fired on the needs
+   arm at its first stratum with 200 grave rows on the legs, halting and
+   reverting the arm carried as the welfare comparison point. Three
+   shapes were put to her: (i) armed as written, the arm a survival read;
+   (ii) the halt suspended for that arm by deviation, the frozen stops
+   untouched; (iii) drop the arm. She chose (iii): the gate's FAIL is the
+   needs head's Phase 2 result and the welfare comparison waits for Phase
+   1f. The trigger now stands as written on the two act arms, where the
+   gate read no optimism-direction signature (every grave mean negative,
+   no lift over 1.09), with no shape to choose.
+3. **The no-head arm decides nothing.** It is read under the welfare
+   rule's columns and the consumer reads as the baseline in every table.
+   Whether a needs head ever feeds anything that acts is a new ruling
+   from her (the observer-stream ruling's last clause stays hers); no
+   needs head acts in this arc.
 4. **Graduation.** "Without passed consumer reads the claim does not
    graduate past prediction accuracy" (prereg §8.4): any sentence that a
    head "helps a grave friend" needs R-2a HELD-or-better in all three
@@ -557,8 +585,8 @@ any arm at the gated sizes (the trunk's s2 had one).
   un-widened rows; parameter count = 84,450 + 64 · C; every non-kitty
   weight byte-equal.
 - **g2** — online head inference reproduces offline: per-tick outputs on
-  a recorded needy-set tuning world equal `read_act`'s (act) and the
-  Phase 1e loader's (needs, probe) to 1e-6; the frequency prior replaces
+  a recorded needy-set tuning world equal `read_act`'s to 1e-6 for both
+  act heads (B15-s2, B10-s3); the frequency prior replaces
   the act cells exactly on `row_state == SILENT`; ticks-since-live
   follows the staleness encoding (0 at a live tick, 1 at ≥ 40).
 - **g3** — the `p2` seat in the cert harness equals the trainer's
@@ -573,18 +601,26 @@ any arm at the gated sizes (the trunk's s2 had one).
   checkpoint lands at every closed bin and the plateau tick is in the
   final's record.
 - **g6** — the welfare-rule arithmetic: edge statistic 0.326 / 0.325
-  recomputed from `gate-read.json`; demotion only on sign agreement in
-  three seeds beyond the edge; a null returns "B15 stands".
-- **g7** — R-2a: an episode is one GRAVE entry to exit; p90 per stratum;
-  199 episodes = UNDECIDABLE; HELD within +25%; "beats" needs three
-  seeds.
+  recomputed from `gate-read.json`; the roster edge statistic at 20×20
+  recomputed from the recorded rot2 row and the two permuted trunk legs'
+  `--out` (three pairwise differences, their mean); demotion only on sign
+  agreement in three seeds beyond the edge of ITS seating shape; a null
+  returns "B15 stands"; a 40×40 roster clearance never demotes.
+- **g7** — R-2a: an episode is one GRAVE entry to exit, episodes with a
+  gap under 5 ticks merge (a 4-tick gap merges, a 5-tick gap does not);
+  the p90 is Kaplan–Meier (an episode open at the leg's end is censored,
+  not dropped and not closed; a stratum's p90 moves when a censored
+  episode is wrongly treated as closed); relief source SELF / OTHER by
+  the exit-tick partner flag; 199 episodes = UNDECIDABLE; HELD within
+  +25%; "beats" needs three seeds.
 - **g8** — R-5: the divergence share is computed on the same
   observation for arm and trunk (the trunk never sees the appended
   cells); terciles are fitted on the head's entropy within regime.
 - **g9** — the passive log is write-only: no cell of `metrics.jsonl`
   reaches the observation or the reward tensors (a tainted-value test).
-- **g10** — seeds: slots map to run indices 107–118 and the stripe
-  formula; grafts pair s_k ↔ trunk-s_k; the head named per arm is the
+- **g10** — seeds: slots map to run indices 107–115 and the stripe
+  formula (no `p2-needs-*` slot exists; a needs slot is refused);
+  grafts pair s_k ↔ trunk-s_k; the head named per arm is the
   median-validation seed by `done.json`.
 
 Predicted reds are written per guard when the instrument lands (the
@@ -640,8 +676,9 @@ changes). WELFARE-STANDING: the flow trigger's carve-out holds (text (b)
 worked check, quoted in §2); k = 0; markers untripped; proportionality
 (text (c)) satisfied by the stops, the demotion trigger and the passive
 log on the register. Her standing rule 2026-11-02: no false-run figure
-selects or bars anything here; F-073's attention price is READ beside
-the needs arm's welfare.
+selects or bars anything here; the needs arm was dropped on the gate's
+lived-error read (the ostrich signature, a welfare read), not on F-073's
+false-run figures, which stay on record for Phase 1f.
 
 ## 12. Owner calls (recommendation first; her word rules)
 
@@ -660,8 +697,8 @@ the needs arm's welfare.
 4. **Battery scope.** RULED 2026-11-06: "all three world sizes" (§6
    R-1).
 5. **Scouts.** RULED 2026-11-06: "yes" — the s1 graft of each arm first
-   (four runs in parallel), the other eight after the scouts complete
-   clean.
+   (three runs in parallel since call 8), the other six after the scouts
+   complete clean.
 6. **The side read R-6** (the row-only head): RULED 2026-11-06: "run
    it".
 6b. **Spec 068 adoption for Phase 2's binding and reads.** RULED
@@ -677,25 +714,32 @@ the needs arm's welfare.
 7. **Her word to declare**, then to launch (step 3), then to run the
    battery (step 5) — three words, as the gate had.
 8. **The needs arm under the demotion trigger** (§8.2 collision; the
-   Professor's shapes (i) / (ii) / (iii)). No recommendation picks an arm
-   for her; the trade: (i) keeps every protection and loses the welfare
-   comparison she asked for; (ii) keeps the comparison at the cost of
-   suspending one declared protection on three covered minds for the
-   arc, the frozen stops still armed; (iii) costs nothing and answers
-   nothing about the head's welfare.
-9. **The plateau floor** (§4 sharpening 1): proposed 8,002,560 world-
-   ticks before the rule arms, the same for every arm.
-10. **The roster-shaped bar** (§6 R-1): measure it with two permuted
-    trunk legs at 20×20 (6M covered cat-ticks; +6M at 40×40), or label
-    the roster verdicts descriptive. Recommended: measure at 20×20 only
-    (the gated size the predictions are written at; trunk minds only).
-11. **R-2a pins**: Kaplan–Meier p90, merge gap k = 5, relief source by
-    the exit-tick partner flag — stated as the thread's; hers to move.
-12. **The Professor's note** (sha256 98c3f92d…): confirm, so its items
-    bank; the sign correction is already applied as a fact.
+   Professor's shapes (i) / (ii) / (iii)). RULED 2026-11-06: "Iii drop
+   the arm" — shape (iii); three arms, nine covered seeds; the needs
+   head's welfare comparison waits for Phase 1f. (The trade as put: (i)
+   kept every protection and lost the comparison; (ii) kept the
+   comparison by suspending one declared protection on three covered
+   minds; (iii) costs nothing and answers nothing about the head's
+   welfare.)
+9. **The plateau floor** (§4 sharpening 1). RULED 2026-11-06 ("8-12 as
+   recommended"): 8,002,560 world-ticks before the rule arms, the same
+   for every arm.
+10. **The roster-shaped bar** (§6 R-1). RULED 2026-11-06 ("as
+    recommended"): measured at 20×20 with two permuted trunk legs (6M
+    covered cat-ticks, trunk minds only); the 40×40 and 100×100 roster
+    verdicts descriptive.
+11. **R-2a pins**. RULED 2026-11-06 ("as recommended"): Kaplan–Meier
+    p90, merge gap k = 5, relief source by the exit-tick partner flag.
+12. **The Professor's note** (`~/ai/professor/notes/for-experiments-
+    phase2-draft-review-2026-11-06.md`, sha256 98c3f92d5f5a6274…).
+    RULED 2026-11-06: "Confirm professors note" — CONFIRMED; its items
+    bank (the sign correction, the trigger collision, the floor, the
+    cells-in-use read, the roster bar, the R-2a pins, ticks-since-live,
+    the regime × confidence read, the row-only side read).
 
 Nothing else here is hers to decide; the thread's choices are stated
-and reversible before the first seed trains.
+and reversible before the first seed trains. Open: call 7, her word to
+declare.
 
 ## 13. Run order (each step its own commit before its data)
 
@@ -711,13 +755,18 @@ and reversible before the first seed trains.
    reproduces, STOP and report (no arm trains on a world that is not the
    trunk's).
 2. This declaration DECLARED on her word; `SEED-BANDS.md` row claimed;
-   deviations entry 23; the instruments (`graft.py`, `heads_online.py`,
-   `train_ppo_p2.py`, the harness `p2` seat, the readers) with
-   `test_phase2.py` green; then the reds on record (g0–g10).
-3. On her word: the four scouts (`p2-*-s1`), `caffeinate -s nohup`, one
+   deviations entry 23, entry 22 closed; the instruments (`graft.py`,
+   `heads_online.py`, `train_ppo_p2.py`, the harness `p2` seat, the
+   readers) with `test_phase2.py` green; then the reds on record
+   (g0–g10).
+   2b. The roster bar (§6 R-1, ruled 2026-11-06): the two permuted trunk
+   legs at 20×20 on the arc binding once g0 passes — trunk minds only,
+   no arm involved, so they may run while the scouts train; their edge
+   statistic is on record before any arm is read.
+3. On her word: the three scouts (`p2-*-s1`), `caffeinate -s nohup`, one
    job card each; stops and the demotion trigger armed; the F-074 /
    F-075 monitors and the passive log at every probe.
-4. Scouts clean → the remaining eight seeds. Any trip → that arm holds,
+4. Scouts clean → the remaining six seeds. Any trip → that arm holds,
    owner-routed.
 5. On her word: the battery (R-1) scouts-first at 40×40, then R-2 … R-5
    on the recorded legs and probes; R-6 any time after step 2.
@@ -729,18 +778,21 @@ and reversible before the first seed trains.
 ## 14. Deviations entry 23 (drafted; lands at DECLARED)
 
 "Phase 2 arm spec (2026-11-06). Deviations from the frozen prereg's §8
-item 4 framing, each on her word: (a) FOUR live arms against 'one live
-arm vs trunk' — B15, B10 comparator, needs-only, no-head continuation
-('three arms' 2026-11-05; 'Four heads' 2026-11-06); (b) the act head at
-14.73% of the trunk against the 10% cap, which she ruled an engineering
-budget never hers (2026-11-04); (c) the needs head carried as an arm's
-input past the entry gate's FAIL (entry 22, carried here and CLOSED by
-this declaration); (d) the heads frozen, the correction deferred, the
-error signal passive-logged — as frozen, no deviation; (e) the
-architecture of A4 (one recurrent belief state read by both heads) is
-not built: two heads with their own states (her 'We definitely want two
-heads'; arm C skipped 2026-11-04). The frozen text is not edited; this
-entry is the record."
+item 4 framing, each on her word: (a) THREE live arms against 'one live
+arm vs trunk' — B15, B10 comparator, no-head continuation ('three arms'
+2026-11-05; 'Four heads' then 'Iii drop the arm' 2026-11-06); (b) the
+act head at 14.73% of the trunk against the 10% cap, which she ruled an
+engineering budget never hers (2026-11-04); (c) the Phase 1 NEEDS head,
+the prereg's named Phase 2 input, is NOT an input to any arm: the entry
+gate FAILED it (entry 21) and she dropped the arm that would have
+carried it (entry 22 CLOSED by this declaration: no deviation remains;
+the needs head's welfare comparison is Phase 1f's, a new declaration on
+her word); (d) the heads frozen, the correction deferred, the error
+signal passive-logged — as frozen, no deviation; (e) the architecture of
+A4 (one recurrent belief state read by both heads) is not built: one act
+head per arm with its own state (her 'We definitely want two heads'; arm
+C skipped 2026-11-04). The frozen text is not edited; this entry is the
+record."
 
 ## 15. Regeneration
 
