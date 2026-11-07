@@ -13,10 +13,10 @@
 //! block (14: need-rate multipliers 6, comfort slack /40, consent line
 //! /100, favourite weights 6 — the observation's own cells, spec 058
 //! FR-009) — then
-//! per element type (water, chow, bug, greeble, sunbeam): count / hard max,
-//! plus (chow only) total servings / (max elements × servings each), plus
+//! per element type in `ElementType::ALL` order: count / hard max, then
 //! the K nearest elements to the world center (present, x/width, y/height);
-//! then the episode clock.
+//! after the last type, chow's total servings / (max elements × servings
+//! each); then the episode clock.
 
 use cloudkitty_core::element::ElementType;
 use cloudkitty_core::grid::Position;

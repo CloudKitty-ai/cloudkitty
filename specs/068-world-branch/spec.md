@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Draft
+**Status**: Merged (PR #491, main deff48c0, 2026-11-06)
 
 **Input**: Owner kickoff 2026-11-05, her word in this session: "One
 spec", answering Product's shaping question (one spec or two for the

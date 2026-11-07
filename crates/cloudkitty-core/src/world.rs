@@ -755,7 +755,7 @@ impl World {
     /// checks the read-only [`World::enforcement_verdict`] path against
     /// this genuine one on a probe world; the served tick never calls it.
     /// The consent step makes the two paths diverge EXACTLY at consent
-    /// sites — the mask's documented blindness (ruling eb9e860b item 4),
+    /// sites — the mask's documented blindness (ruling eb9e860b item 3),
     /// which that property test must therefore stage with the gate open.
     /// The needy verdict (spec 067) diverges them the same way, and only
     /// in a world with a needy seat.

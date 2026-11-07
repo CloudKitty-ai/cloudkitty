@@ -1,7 +1,9 @@
 //! Entity-attention forward for policy artifact v3 (spec 030).
 //!
 //! A transformer encoder over per-entity tokens with pointer action heads,
-//! serving on observation schema 3. The container, behavior seam, codecs,
+//! serving on the observation schema its header names (the loader refuses a
+//! header that differs from this binary's current schema; spec 030 pinned
+//! it on schema 3). The container, behavior seam, codecs,
 //! masks, and legality are unchanged from v2; only the header schema and the
 //! forward differ. See `specs/030-artifact-v3/contracts/forward-v3.md` for
 //! the pinned architecture, module order, and parity contract.
@@ -11,7 +13,8 @@
 //! tokens share one row, all critter tokens one; each message kind its own),
 //! N pre-norm encoder layers, a summary of `[self-token ∥ masked mean pool]`,
 //! and four heads — a dense head for the 11 non-entity menu indices, the
-//! 9-way message head, and verb-specific pointer heads that read each
+//! message head (`message_head_len` wide: Silent + `HEAD_KINDS`, 16 since
+//! spec 033, 9 when spec 030 pinned it), and verb-specific pointer heads that read each
 //! kitty/critter token and scatter into the menu by the `ActionCodec::v2`
 //! map. The header is authoritative: the forward is generic over
 //! `d_model`/`heads`/`encoder_layers`/`ffn` (spec 030 FR-007).

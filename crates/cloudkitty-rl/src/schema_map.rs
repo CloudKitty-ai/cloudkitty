@@ -9,9 +9,10 @@
 //! contract's numbers in `tests/schema_five_pins.rs`. Unknown versions
 //! and unknown names are errors, never defaults.
 //!
-//! The maps describe the DEFAULT slot configuration (the served one:
-//! kitty 4, chow 2, water 2, sunbeam 2, critter 4) — the only
-//! configuration recorded artifacts use. `slot_config` states it, so a
+//! The maps describe the DEFAULT slot configuration of their version (the
+//! served one: kitty 4, chow 2, water 2, sunbeam 2; critter 4 for schema
+//! 5, 2 since schema 6 — owner ruled 2026-10-09) — the only configuration
+//! recorded artifacts use. `slot_config` states it, so a
 //! reader under a bespoke config can detect the mismatch instead of
 //! mis-indexing.
 //!
