@@ -1030,8 +1030,10 @@ consent BC comparison ride the trunk.
   s2 / s4 (after the canary read), the battery. Her "As recommended"
   (what to do while six trainers run): entry 27's reading instrument
   `read_canary.py` built, guarded (g12, five reds) and committed
-  210f3891 ahead of the canary's data; the Phase 2 RESULTS skeleton
-  next. Neither runs a read.
+  210f3891 ahead of the canary's data; the Phase 2 RESULTS.md
+  SKELETON committed beside it (no number, every cell bracketed; the
+  Regeneration Collect / Read fences fixed at full paths; the accuracy
+  gate runs on the filled document). Neither runs a read.
 
 ## Flagged follow-ups (owner's word to start)
 
