@@ -2116,5 +2116,13 @@ stops fired as declared (asymmetric, owner-routed, never auto-resumed);
 no further exposure of either policy — the localisation read dumps, not
 worlds. Any replacement is a new declaration line on her word.
 
-Status: OPEN — awaits her word on (A)–(D); the battery (entry 28 (4))
-blocked behind it.
+**RULED 2026-11-08** (her words, on the walk-through): "Re: path
+forward, let's start with D. We can decide between A and C based on
+that, leaning C." → (D) runs now: `diag_act10_s2s4.py` (entries 25 /
+26's instruments composed; dump-only, zero regeneration, zero
+collection, no world served) over both halted seeds, their sibling arms
+on the same trunk seed and the parent trunk, written to
+`reads/diag-act10-s2s4.{json,md}` and put in front of her. (B) is OFF
+the table by her word; (A) vs (C) is her next word after the read,
+leaning (C). The battery stays blocked until that word. Nothing runs.
+Status: OPEN — (D) in progress; awaits her A / C word on its read.
