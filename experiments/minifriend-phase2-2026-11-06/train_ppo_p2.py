@@ -60,21 +60,27 @@ N_ACTIONS, N_MSGS = T.N_ACTIONS, T.N_MSGS
 # route"): B15-s2 act cells ++ NF1e-h24-s2+p needs cells, run indices 117-119 (stripes claimed 2026-11-07 before first
 # burn); scouts-first — s1 alone until she rules on its read. Its needs head's ostrich-shape read is LOGGED, never a
 # stop (shape (ii) for this arm, entry 27); the act trigger and the three welfare stops stay armed as written.
+# p2-act10-s1r: the REPLACEMENT for p2-act10-s1 (halted by the frozen probe-distress stop at 10,752,000 ticks;
+# deviations entry 26, owner 2026-11-07 "Act10 s1 replace and analyze the failed seed"): the same trunk-s1 graft under
+# run index 120 (stripe claimed 2026-11-07 before first burn). The halted slot stays in the table as lineage.
 SLOTS = {"p2-act15-s1": ("act15", 1, 107), "p2-act15-s2": ("act15", 2, 108), "p2-act15-s4": ("act15", 4, 109),
          "p2-act10-s1": ("act10", 1, 110), "p2-act10-s2": ("act10", 2, 111), "p2-act10-s4": ("act10", 4, 112),
          "p2-nohead-s1": ("nohead", 1, 113), "p2-nohead-s2": ("nohead", 2, 114), "p2-nohead-s4": ("nohead", 4, 115),
          "p2-nohead-s1r": ("nohead", 1, 116),
-         "p2-both-s1": ("both", 1, 117), "p2-both-s2": ("both", 2, 118), "p2-both-s4": ("both", 4, 119)}
-HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r"}   # halted -> replacement (entry 25); the trainer refuses the halted one
+         "p2-both-s1": ("both", 1, 117), "p2-both-s2": ("both", 2, 118), "p2-both-s4": ("both", 4, 119),
+         "p2-act10-s1r": ("act10", 1, 120)}
+# halted -> replacement (entries 25, 26); the trainer refuses the halted one
+HALTED_SLOTS = {"p2-nohead-s1": "p2-nohead-s1r", "p2-act10-s1": "p2-act10-s1r"}
+HALTED_ENTRY = {"p2-nohead-s1": 25, "p2-act10-s1": 26}
 
 
 def refuse_halted(slot):
     """The refusal text for a halted slot (None for a live one): a frozen-stop halt is never relaunched or resumed by
-    the trainer; its replacement is named so the operator reaches for the right slot (deviations entry 25)."""
+    the trainer; its replacement is named so the operator reaches for the right slot (deviations entries 25 / 26)."""
     if slot not in HALTED_SLOTS:
         return None
-    return (f"{slot} is HALTED by the frozen probe-distress stop (deviations entry 25) and is never relaunched or "
-            f"resumed; its replacement run is {HALTED_SLOTS[slot]}")
+    return (f"{slot} is HALTED by the frozen probe-distress stop (deviations entry {HALTED_ENTRY[slot]}) and is never "
+            f"relaunched or resumed; its replacement run is {HALTED_SLOTS[slot]}")
 BETA = T.PINS["beta"]                   # 0.04, held from step 0 (ruled)
 FLOOR_TICKS = 8_002_560                 # ruled 2026-11-06: the trunk's own plateau length
 TRIGGER_LIFT, TRIGGER_MIN_N = 1.5, 200  # §8.2 pins (the sitting's margin family; the frozen min-n)
@@ -569,7 +575,7 @@ def main():
         branch_rng = np.random.default_rng(20261106 + run_index + 1000 * segment)
 
     seed_base = T.seed_stripe(run_index)[0] + segment * 1_000
-    assert T.seed_stripe(run_index)[1] < 2_500_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
+    assert T.seed_stripe(run_index)[1] < 2_520_000_000 and T.seed_stripe(run_index)[0] >= 2_240_000_000, run_index
     runner = P2VecRunner(arm, str(config_path), args.n_worlds, seed_base, horizon=args.horizon)
     obs_dim, mask_dim = runner.dims
     assert obs_dim == G.wide_dim(cells) and mask_dim == N_ACTIONS + N_MSGS, (obs_dim, mask_dim)
