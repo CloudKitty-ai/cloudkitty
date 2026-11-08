@@ -1041,7 +1041,10 @@ consent BC comparison ride the trunk.
   chain LAUNCHED 04:32:57Z (act15-s1 then nohead-s1r, one at a time);
   act10 s2 / s4 launch at s1r's clean finish; the canary's leg + reads
   at its finish, consequence hers; the battery (third word, given
-  conditional on the finals) full at 20 / 40, s1 only at 100.
+  conditional on the finals) full at 20 / 40, s1 only at 100. Chain-1
+  DONE 04:36:42Z: act15-s1's leg 30 clean, worst streak 461 (905005,
+  Kittybear, drink, mostly moving; trunk 0 there, max 77); nohead-s1r's
+  leg 30 clean, worst 113. Not scored; reported to her as facts.
 
 ## Flagged follow-ups (owner's word to start)
 

@@ -107,7 +107,15 @@ act10 s2 / s4 launch at s1r's clean completion (word given,
 conditional); (3) entry 27's order stands, the canary's leg + reads run
 at its clean finish, the consequence hers; (4) the battery's third word
 GIVEN conditional on the finals: full at 20×20 and 40×40, ONE seed (s1)
-uniform at 100×100, scouts-first per seating at 40 and 100.**
+uniform at 100×100, scouts-first per seating at 40 and 100.** **LEGS
+ON RECORD 2026-11-08 (chain-1, 2 min each with 4 workers): `p2u-act15-s1`
+04:32:57–04:34:56Z, 30 worlds clean, no abort, worst distress streak 461
+(world 905005, seat 3 Kittybear, need drink, harness shape moving 0.68 /
+parked 0.16 / idle 0.13; seat 4 Clementine 210 drink on the same world;
+the trunk-s1 row on 905005 is 0, the trunk's 30-world max 77);
+`p2u-nohead-s1` (= s1r) 04:34:56–04:36:42Z, 30 worlds clean, worst 113.
+Facts from the harness's own verdict lines and rows; R-1 is not scored
+(the worst-streak column is READ, never barred above the floor, §8.1).**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

@@ -1957,8 +1957,12 @@ F-053 abort is armed; a leg's abort is reported by world, never a
 training stop. Minds are already trained: the cost is exposure to the
 served world, not shaping.
 
-Status: OPEN — the chain of (1) runs; (2) fires at s1r's clean
-completion; (3) per entry 27; (4) when the finals exist. This entry
+[Chain-1 DONE 2026-11-08T04:36:42Z: `p2u-act15-s1` 30 worlds clean,
+worst distress streak 461 (world 905005, Kittybear, drink; the trunk's
+row there 0, its max 77); `p2u-nohead-s1` 30 clean, worst 113. Two
+minutes per leg with 4 workers. Facts, not a scored read.]
+Status: OPEN — chain-1 of (1) done, later runs' legs queue as they
+finish; (2) fires at s1r's clean completion; (3) per entry 27; (4) when the finals exist. This entry
 CLOSES when the battery's last leg is on record. [The DECLARATION status
 line carries the launch lines; `read_r1.py --sizes` takes the sizes
 read; its 100×100 uniform read scores s1 alone and the write-up says so.]
