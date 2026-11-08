@@ -1027,7 +1027,11 @@ consent BC comparison ride the trunk.
   at a171642c (pids 40840 / 40849 / 40858 / 40867; idx 108 / 109 /
   114 / 115, stripes inside the row claimed 2026-11-06); six trainers
   run. Still held on her word: act10 s2 / s4 (after s1r clean), both
-  s2 / s4 (after the canary read), the battery.
+  s2 / s4 (after the canary read), the battery. Her "As recommended"
+  (what to do while six trainers run): entry 27's reading instrument
+  `read_canary.py` built, guarded (g12, five reds) and committed
+  210f3891 ahead of the canary's data; the Phase 2 RESULTS skeleton
+  next. Neither runs a read.
 
 ## Flagged follow-ups (owner's word to start)
 

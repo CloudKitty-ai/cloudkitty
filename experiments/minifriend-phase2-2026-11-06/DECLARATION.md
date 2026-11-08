@@ -823,6 +823,17 @@ any arm at the gated sizes (the trunk's s2 had one).
   formula (no `p2-needs-*` slot exists; a needs slot is refused);
   grafts pair s_k ↔ trunk-s_k; the head named per arm is the
   median-validation seed by `done.json`.
+- [**g12** — added 2026-11-08 (entry 27's reading instrument,
+  `read_canary.py`; her "As recommended" on building the canary's reads
+  ahead of its data): R-1a pairs by WORLD and refuses legs on different
+  worlds; P46 reads |Δ| against the edge; P47 is met only with a readable
+  other-relief stratum and none DEGRADED (all-UNDECIDABLE is UNDECIDABLE);
+  the needs trajectory skips non-probe rows and takes the PER-PROBE bias
+  for its series, the cumulative state for first-sufficient; P45's lived
+  half is within one SD of the gate figure, UNDECIDABLE under min-n; the
+  leg bias is the trainer's convention (estimate × 100 − true, mean of
+  five, less needy = negative). A guard on a reader, not a rule: §3–§9's
+  frozen text is unchanged.]
 
 Predicted reds are written per guard when the instrument lands (the
 table form of the gate DECLARATION §7); reds on record before step 3 of
@@ -859,6 +870,7 @@ green; the prediction written before each run):**
 | g10 (entry 26 RULED, 2026-11-07: 14 slots, band to 2,519,999,999, the act10 replacement seated and the halted slot refused) | the replacement at index 110; the harness seating pointed at a seed-9 slot; the act10 pair dropped from the halted table; the refusal's entry number hard-wired to 25 | `110, 110`; `['p2:p2-act10-s1', …`; `{'p2-nohead-s1': 'p2-nohead-s1r'}`; `deviations entry 25) … replacement run is p2-act10-s1r` | CONFIRMED (all four) |
 | diag_act10_s1_seed (entry 26's failed-seed read: 303 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED |
 | diag_seat_tail (the per-seat tail read behind gen3-roadmap-inputs addendum 4: 403 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED (`p2-reds-seat-tail.log`) |
+| g12 (entry 27's reading instrument `read_canary.py`, 2026-11-08, before any canary leg exists) | R-1a paired by position; P46 without `abs`; P47 met with no readable stratum; the trajectory series fed the cumulative bias; the leg bias's operands swapped | `R-1a must pair by world: {… 'positive': 1 …}`; `P46 must be NOT MET at -0.5`; `all-UNDECIDABLE is not a met P47`; `the trajectory must take the per-probe bias`; `bias convention: … [ 10. -10.]` | CONFIRMED (all five; `p2-reds-g12-{pair,p46,p47,series,bias}.log`) |
 
 ## 10. Blind spots (declared)
 

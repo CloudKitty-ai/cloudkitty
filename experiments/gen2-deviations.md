@@ -1872,3 +1872,15 @@ completion; the launch word for act15 / nohead s2 / s4 remains open.
 [2026-11-08: that word came — "Launch"; the four launched
 2026-11-08T03:20:23Z at a171642c, recorded in DECLARATION.md's status
 line and the timeline. Not a deviation: §13 step 4 as declared.]
+[2026-11-08, her "As recommended" (build the reads ahead of the data):
+the reading grammar's instrument is `read_canary.py` (210f3891) — one
+canary seed: R-1a paired per world (both − act15 / − trunk / − nohead,
+P46 on read_r1's edge), R-2a / R-2b on read_r2's episode records (both
+vs trunk, act15 beside; P47 on the OTHER-relief verdicts, all-UNDECIDABLE
+never met), the needs read's trajectory from metrics.jsonl (P45's lived
+half: the cumulative in-sight grave bias at the last probe within one of
+its own SDs of the gate's −3.17, min-n 200; the gate recorded no SD of
+its own, so the run's SD is the yardstick — stated), and the needs head
+stepped over a recorded leg (R-4 extended; P45's leg half). Guard g12,
+five reds CONFIRMED (DECLARATION §9). No read has run: the canary's leg
+and these scores wait on her word after the scout finishes.]
