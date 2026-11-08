@@ -1673,6 +1673,10 @@ p2-reds-diag26-seed.log`): the own-flag threshold moved 0.5 → 1.5 →
 `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded
 [24, 0, 0]`, CONFIRMED, baseline == restored.
 
+[2026-11-08, her "2) sounds good" on the walk-through (entry 28's
+record): the launch word for act10 s2 / s4 is GIVEN, conditional on
+s1r's clean completion — they launch at that moment; a trip on s1r
+reopens this entry to her and the word lapses.]
 Status: RULED (a); entry CLOSES at p2-act10-s1r's clean completion
 (stop_reason plateau / cap) or reopens to her on its own stop. The
 arm-set question RULED "iii" the same day, then SUPERSEDED by entry 27
@@ -1884,3 +1888,77 @@ its own, so the run's SD is the yardstick — stated), and the needs head
 stepped over a recorded leg (R-4 extended; P45's leg half). Guard g12,
 five reds CONFIRMED (DECLARATION §9). No read has run: the canary's leg
 and these scores wait on her word after the scout finishes.]
+[2026-11-08, her "3) agreed" (on the walk-through of the open words):
+the order above stands — scout clean → its 20×20 uniform leg → the
+three reads in front of her → her word on the consequence. Her "Run as
+you recommend" the same message authorises the leg and the reads to run
+when the scout finishes (staged behind the legs chain of entry 28's
+record, one leg at a time); the consequence stays hers, never picked.]
+
+## 28. The battery at 100×100 reads one seed per arm (2026-11-08)
+
+Deviation from the frozen Phase 2 §6 R-1 as ruled 2026-11-06 ("all
+three world sizes": both seating shapes at 20×20, 40×40 and 100×100 for
+every arm-seed set, six legs per set). Her words, verbatim, 2026-11-08,
+in reply to the walk-through of the four open words (the 20×20 legs on
+finished runs; act10 s2 / s4; the canary's s2 / s4; the battery):
+**"1) one at a time 2) sounds good 3) agreed 4) we can do a single seed
+on 100x100, full battery"**, then **"Run as you recommend"**.
+
+What each word does (this entry is the record of all four; the §3–§9
+texts are not edited):
+- **(1) the 20×20 legs, one at a time.** Each finished run's 20×20
+  uniform leg (30 g2cmp worlds × 20k ticks, F-053 abort armed, acts
+  recorded) runs as its run finishes, strictly in sequence, never two
+  legs at once. Started the same hour on the two finished scouts:
+  `p2u-act15-s1` first, `p2u-nohead-s1` (= the replacement
+  p2-nohead-s1r, entry 25) queued behind it — chain pid 42883, launched
+  2026-11-08T04:32:57Z at db4b554c, `--workers 4` beside six trainers;
+  log `results-raw/legs/legs-chain-1.log`, each leg's own `run.log`
+  under its seating. Later runs' legs join the same rule as they finish.
+  3M covered cat-ticks per leg (trained minds, no training).
+- **(2) act10 s2 / s4: "sounds good"** = her launch word for
+  `p2-act10-s2` / `p2-act10-s4`, CONDITIONAL on `p2-act10-s1r` finishing
+  clean (entry 26's hold). They launch at that completion without a
+  further word; a trip on s1r instead reopens entry 26 to her and this
+  word lapses. Recorded here and bracketed on entry 26.
+- **(3) the canary's s2 / s4: "agreed"** = entry 27's order stands
+  (bracketed there); the leg and the reads run when the scout finishes,
+  the consequence hers.
+- **(4) the battery: "we can do a single seed on 100x100, full
+  battery"** — the deviation. At 20×20 and 40×40 the battery runs as
+  declared: the uniform leg per arm seed and the roster-shaped leg per
+  arm, every arm (act15, act10, nohead, both as far as its seeds exist),
+  scouts-first at 40×40 per seating (§6 R-1, §13 step 5). At 100×100
+  ONE seed per arm: the uniform leg on the scout seed (s1; act10's
+  s1r), characterise-only as frozen. **Thread's reading, stated and
+  reversible:** the roster-shaped leg seats three arm seeds by
+  construction (Miso s2 / Biscuit s4 / Clementine s1), so under "a
+  single seed" it does not run at 100×100; if she wants the 100×100
+  roster row, one word adds it (3M). "Run as you recommend" = the
+  battery's third word GIVEN, conditional on the finals existing (my
+  recommendation in the walk-through: "4 when all finals exist"): it
+  starts, scouts-first per seating at 40 and 100, once every arm seed
+  she has launched has its final; nothing starts on a partial arm.
+  Why one seed at 100 costs little in evidence: the 100×100 rows were
+  INVESTIGATE rows, never a gate or trigger (§6 R-1), and the trunk's
+  own 100×100 reading is one row per seed; the paired read at 100 on
+  s1 keeps the characterisation, drops two thirds of its covered
+  exposure.
+
+Welfare-cost line (practice, owner 2026-09-26; covered minds, no
+training): 3M covered cat-ticks per leg at any size (30 × 20k × 5
+trained seats). As ruled: 20×20 uniform 3 seeds × 4 arms = 36M + roster
+4 arms = 12M; 40×40 the same 48M; 100×100 uniform s1 × 4 arms = 12M —
+108M in all for four arms (the declared figure for three arms at all
+sizes was 108M; the fourth arm's legs add what the 100×100 cut removes).
+The 20×20 legs of (1) are the same legs, counted once. Every leg's
+F-053 abort is armed; a leg's abort is reported by world, never a
+training stop. Minds are already trained: the cost is exposure to the
+served world, not shaping.
+
+Status: OPEN — the chain of (1) runs; (2) fires at s1r's clean
+completion; (3) per entry 27; (4) when the finals exist. This entry
+CLOSES when the battery's last leg is on record. [The DECLARATION status
+line carries the launch lines; `read_r1.py --sizes` takes the sizes
+read; its 100×100 uniform read scores s1 alone and the write-up says so.]

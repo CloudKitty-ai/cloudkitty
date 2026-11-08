@@ -97,7 +97,17 @@ dd0e2d6e… on the act15 pair, no head on the nohead pair, inits = the
 trunk s2 / s4 finals 4040554a… / 69d7248c…, engine 226509ec. Six
 trainers on 18 cores. Still held: act10 s2 / s4 (entry 26, after s1r
 clean + her word), both s2 / s4 (entry 27, after the canary read + her
-word), the battery (her third word).**
+word), the battery (her third word).** **HER FOUR WORDS 2026-11-08
+(deviations entry 28 is the record): "1) one at a time 2) sounds good 3)
+agreed 4) we can do a single seed on 100x100, full battery" + "Run as
+you recommend" — (1) each finished run's 20×20 uniform leg runs as it
+finishes, one leg at a time: chain LAUNCHED 2026-11-08T04:32:57Z at
+db4b554c (pid 42883; `p2u-act15-s1` then `p2u-nohead-s1` = s1r); (2)
+act10 s2 / s4 launch at s1r's clean completion (word given,
+conditional); (3) entry 27's order stands, the canary's leg + reads run
+at its clean finish, the consequence hers; (4) the battery's third word
+GIVEN conditional on the finals: full at 20×20 and 40×40, ONE seed (s1)
+uniform at 100×100, scouts-first per seating at 40 and 100.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

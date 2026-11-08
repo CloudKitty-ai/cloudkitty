@@ -1034,6 +1034,14 @@ consent BC comparison ride the trunk.
   SKELETON committed beside it (no number, every cell bracketed; the
   Regeneration Collect / Read fences fixed at full paths; the accuracy
   gate runs on the filled document). Neither runs a read.
+  Her four words on the walk-through of the open asks: "1) one at a
+  time 2) sounds good 3) agreed 4) we can do a single seed on 100x100,
+  full battery" + "Run as you recommend" → deviations entry 28 (the
+  100×100 single-seed battery; the record of all four): the 20×20 legs
+  chain LAUNCHED 04:32:57Z (act15-s1 then nohead-s1r, one at a time);
+  act10 s2 / s4 launch at s1r's clean finish; the canary's leg + reads
+  at its finish, consequence hers; the battery (third word, given
+  conditional on the finals) full at 20 / 40, s1 only at 100.
 
 ## Flagged follow-ups (owner's word to start)
 
