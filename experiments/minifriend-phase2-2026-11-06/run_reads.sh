@@ -12,13 +12,16 @@ cd "$ROOT"
 export VIRTUAL_ENV="$A/.venv"
 mkdir -p "$A/reads/r2" "$A/reads/r4" "$A/reads/r5"
 # R-1: the welfare rule's read (edge statistics, paired deltas, the §8.1 clause, P38–P40)
-"$PY" -B "$A/read_r1.py" --out "$A/reads/r1.json" --md --sizes "$SIZES"
+# P2_ARMS (default all three) narrows the arms read; P2_SKIP (an egrep pattern on seating names) skips legs — set by
+# deviations entry 29 (C): act10 dropped, so P2_ARMS=act15,nohead P2_SKIP=act10 for the Phase 2 result.
+"$PY" -B "$A/read_r1.py" --out "$A/reads/r1.json" --md --sizes "$SIZES" --arms "${P2_ARMS:-act15,act10,nohead}"
 # R-2 / R-3 records per recorded leg (one replay per world; the trunk uniform legs must be re-recorded by
 # run_legs_p2.sh g2-s<k> for the arm-vs-trunk episode reads at each size)
 for size in ${SIZES//,/ }; do
   for d in "$A"/results-raw/legs/*/legs/size$size; do
     [ -d "$d/acts" ] || continue
     seating="$(basename "$(dirname "$(dirname "$d")")")"
+    if [ -n "${P2_SKIP:-}" ] && echo "$seating" | grep -qE "$P2_SKIP"; then echo "skip $seating (P2_SKIP=$P2_SKIP)"; continue; fi
     [ -f "$A/reads/r2/episodes-$seating-$size.json" ] || "$PY" -B "$A/read_r2.py" episodes --seating "$seating" --size "$size"
     case "$seating" in
       p2u-*|p2r-*)

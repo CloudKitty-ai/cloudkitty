@@ -174,7 +174,22 @@ s2 / s4 training, `p2r-both` NOT RUN (R-1 roster row for `both` reads
 not run, stated), its uniform s1 rows at 20 / 40 / 100 stand in the
 battery. Battery pace: the two 20×20 roster legs and all nine 40×40
 legs done by 22:53:06Z (~26 min for eleven legs, every scout and leg
-clean so far); the 100×100 legs began 22:53:06Z.**
+clean so far); the 100×100 legs began 22:53:06Z.** **BATTERY ON RECORD
+2026-11-08T23:00:03Z (entry 28 CLOSED; 14 legs, 33 min): every scout
+clean; 20×20 rosters act15 46 / nohead 261; 40×40 all 30 / 30 complete,
+no abort (worst 141–541 uniform, 463 / 330 roster); 100×100 act15-s1
+complete (worst 646), nohead-s1r ONE F-053 abort (905009, Miso, cuddle,
+tick 16,940), both-s1 TWO (905014 / 905019, Clementine, cuddle). The
+chain held on the first abort as scripted and resumed for both-s1 on
+the thread's reading of entry 28 (abort = a row, not a stop; both-s1's
+own scout gated it) — stated, hers to overrule. Cuddle leads every
+40 / 100 worst row but one. Reads follow (R-1 at all sizes; R-2 at
+20×20 only — the trunk uniform legs are not re-recorded at 40 / 100,
+the reader says so; R-4 / R-5 per leg); act10 excluded from scored
+cells per entry 29 (C): `P2_ARMS=act15,nohead P2_SKIP=act10
+run_reads.sh`. The §8.1 demotion rule needs act10's three paired seeds
+and therefore reads UNDECIDABLE by ruling, not by data — B15 stands
+undemoted for want of its comparator, stated in RESULTS.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

@@ -1087,6 +1087,12 @@ consent BC comparison ride the trunk.
   walk-through): entry 27 CLOSED, `both` a one-seed arm, p2r-both not
   run, ~60M covered cat-ticks not spent. Battery: eleven legs (20×20
   rosters + all 40×40) clean by 22:53Z; 100×100 under way.
+  Battery ON RECORD 23:00:03Z (entry 28 CLOSED): 14 legs in 33 min, all
+  scouts clean, 40×40 no abort; 100×100 act15-s1 clean (646),
+  nohead-s1r one F-053 abort (905009 Miso cuddle), both-s1 two
+  (Clementine cuddle). Chain held then resumed for both-s1 (thread's
+  reading of entry 28, stated). Reads start with act10 excluded (C);
+  the §8.1 demotion rule reads UNDECIDABLE by ruling.
 
 ## Flagged follow-ups (owner's word to start)
 

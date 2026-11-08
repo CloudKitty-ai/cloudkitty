@@ -2050,9 +2050,29 @@ reads are on entry 27.]
 LAUNCHED at 7eee4114, 14 legs one at a time (two 20×20 roster, nine
 40×40, three 100×100 s1-only; act10 dropped, p2r-both unseatable);
 `results-raw/legs/battery-chain.log`.]
-Status: OPEN — (1) eight legs on record; (2) DONE; (3) reads DELIVERED
-(entry 27); (4) RUNNING. This entry CLOSES when the battery's last leg
-is on record.
+[BATTERY ON RECORD 2026-11-08T23:00:03Z (`battery-chain.log`; 14 legs,
+22:27:18–23:00:03Z; ~80–105 s per uniform leg at every size with 4
+workers, ~4 min per roster leg at 40). Every scout clean. 20×20 roster:
+`p2r-act15` worst 46, `p2r-nohead` 261 (905009, Kittybear, drink).
+40×40, all 30 / 30 complete, no abort: act15 s1 / s2 / s4 worst 151 /
+379 / 541, nohead s1r / s2 / s4 294 / 141 / 158, both s1 288, rosters
+act15 463 / nohead 330; team nash means 0.886–0.895 uniform, 0.877 /
+0.881 roster. 100×100 (s1 only): `p2u-act15-s1` 30 / 30 complete, worst
+646 (905012, Miso, cuddle), no abort; `p2u-nohead-s1` ONE F-053 ABORT —
+world 905009 at tick 16,940, seat Miso, cuddle, shape moving 0.39 /
+parked 0.38 / idle 0.23 (act15-s1's row there 286; the runner's
+declared leg stop ended that seating, 100 being its last size, 29
+complete rows + the abort row on record; the chain HELD as scripted);
+`p2u-both-s1` TWO F-053 ABORTS — 905014 at tick 10,490 and 905019 at
+8,779, both Clementine, cuddle (act15-s1 182 / nohead-s1r 352 on
+905014); its scout was clean (worst 681). The chain resumed for both-s1
+on the thread's reading of entry 28 ("a leg's abort is reported by
+world, never a training stop"; the runner's stop reaches the remaining
+legs of ITS seating, and both-s1's own scout gated its leg) — stated,
+hers to overrule. Facts, R-1 unscored here. Cuddle leads every 40 / 100
+worst row but one.]
+Status: CLOSED 2026-11-08T23:00:03Z — the battery's last leg is on
+record; reads and the RESULTS fill follow under the declaration.
 
 ## 29. Phase 2 act10 s2 and s4 halted by the frozen stops: a seat's lost-food streak before the floor, a roster-wide lock past it (2026-11-08)
 
