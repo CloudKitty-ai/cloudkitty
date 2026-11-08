@@ -847,6 +847,7 @@ green; the prediction written before each run):**
 | g5 (found red at entry 27) | — its smoke slot was the HALTED `p2-nohead-s1`, refused since 9d374fb4; moved to `p2-nohead-s2` | (the refusal text) | fixed, green; stated in entry 27 |
 | g10 (entry 26 RULED, 2026-11-07: 14 slots, band to 2,519,999,999, the act10 replacement seated and the halted slot refused) | the replacement at index 110; the harness seating pointed at a seed-9 slot; the act10 pair dropped from the halted table; the refusal's entry number hard-wired to 25 | `110, 110`; `['p2:p2-act10-s1', …`; `{'p2-nohead-s1': 'p2-nohead-s1r'}`; `deviations entry 25) … replacement run is p2-act10-s1r` | CONFIRMED (all four) |
 | diag_act10_s1_seed (entry 26's failed-seed read: 303 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED |
+| diag_seat_tail (the per-seat tail read behind gen3-roadmap-inputs addendum 4: 403 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED (`p2-reds-seat-tail.log`) |
 
 ## 10. Blind spots (declared)
 
