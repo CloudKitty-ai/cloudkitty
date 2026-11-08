@@ -1211,7 +1211,14 @@ mod tests {
     #[test]
     fn the_lab_render_matches_what_a_real_advisor_receives() {
         use cloudkitty_core::behavior::{Behavior, ScriptBehavior};
-        let mut episode = episode_all_external();
+        // The exchange deadline is not what this test is about. Launch is
+        // lazy, so the first exchange pays the child's startup inside the
+        // deadline; core's plugin e2e tests moved to a generous one for the
+        // same reason (#489). `/bin/sh` starts in milliseconds, but a loaded
+        // CI runner is the case the margin is for.
+        let mut config = Config::default();
+        config.behavior.exchange_timeout_ms = 10_000;
+        let mut episode = Episode::new(config, RlConfig::default(), BTreeMap::new()).unwrap();
         episode.reset(43);
         let id = episode.roster()[0];
         let lab = episode.decision_request(id).unwrap();

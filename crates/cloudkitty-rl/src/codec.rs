@@ -3,28 +3,31 @@
 //! both directions — plus the fixed-width [`MessageCodec`] for the message
 //! head that replaced the meow rows.
 //!
-//! With the default slot counts (3 kitty, 4 critter) the menu is the
+//! With spec 028's slot counts (3 kitty, 4 critter) the menu is the
 //! normative 34-entry table from specs/028-meow-channel/contracts/
 //! encodings-v2.md — exactly menu v1 rows 0–32 with the six meow rows
-//! removed and Idle renumbered:
+//! removed and Idle renumbered. The served defaults since spec 058
+//! (`ObservationConfig::default()`: 4 kitty, 2 critter) give the same
+//! table at 35 entries; both columns below, the row order is the one
+//! `v2` builds:
 //!
-//! | Index | Proposal |
-//! |-------|----------|
-//! | 0–3   | Move North / East / South / West |
-//! | 4     | Rest (solo) |
-//! | 5–7   | Rest with kitty slot 0 / 1 / 2 (cuddle) |
-//! | 8     | Sleep (solo) |
-//! | 9–11  | Sleep with kitty slot 0 / 1 / 2 |
-//! | 12    | Groom (self) |
-//! | 13–15 | Groom kitty slot 0 / 1 / 2 |
-//! | 16    | Eat |
-//! | 17    | Drink |
-//! | 18–21 | Chase critter slot 0 / 1 / 2 / 3 |
-//! | 22–24 | Chase kitty slot 0 / 1 / 2 |
-//! | 25    | Play (solo pounce) |
-//! | 26–29 | Play with critter slot 0 / 1 / 2 / 3 |
-//! | 30–32 | Play with kitty slot 0 / 1 / 2 |
-//! | 33    | Idle |
+//! | 3k/4c | 4k/2c | Proposal |
+//! |-------|-------|----------|
+//! | 0–3   | 0–3   | Move North / East / South / West |
+//! | 4     | 4     | Rest (solo) |
+//! | 5–7   | 5–8   | Rest with kitty slot 0.. (cuddle) |
+//! | 8     | 9     | Sleep (solo) |
+//! | 9–11  | 10–13 | Sleep with kitty slot 0.. |
+//! | 12    | 14    | Groom (self) |
+//! | 13–15 | 15–18 | Groom kitty slot 0.. |
+//! | 16    | 19    | Eat |
+//! | 17    | 20    | Drink |
+//! | 18–21 | 21–22 | Chase critter slot 0.. |
+//! | 22–24 | 23–26 | Chase kitty slot 0.. |
+//! | 25    | 27    | Play (solo pounce) |
+//! | 26–29 | 28–29 | Play with critter slot 0.. |
+//! | 30–32 | 30–33 | Play with kitty slot 0.. |
+//! | 33    | 34    | Idle |
 //!
 //! The message head (index 0 = Silent, 1–15 = `HEAD_KINDS` in normative
 //! order since spec 033) is the only way to meow; `Action::Meow`
@@ -135,7 +138,8 @@ pub struct ActionCodec {
 
 impl ActionCodec {
     /// Builds menu v2 for the configured slot counts. The default
-    /// configuration yields the normative 34-entry menu.
+    /// configuration (kitty 4, critter 2 since spec 058) yields 35 entries;
+    /// spec 028's 3 kitty / 4 critter yields the normative 34-entry table.
     pub fn v2(cfg: &ObservationConfig) -> Self {
         use MenuEntry::*;
         let k = cfg.kitty_slots;

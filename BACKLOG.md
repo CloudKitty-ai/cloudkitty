@@ -23,9 +23,13 @@ What was seen (needy set, `experiments/needy-set-2026-10-28/RESULTS.md`
 masked from tick 2162 to 2580), the four covered rot2 cats chose
 sleep-with, rest-with and groom at the friend every tick for hundreds
 of ticks (169 co-sleep asks from one seat, 157–201 groom asks from the
-other three), every one refused by the needy verdict (spec 067 FR-005:
-co-sleep and rest-with relieve the asker's cuddle, groom-other the
-target's bath, both masked) and applied as Idle. From tick 2388 to 2549
+other three), every one refused by the needy verdict (spec 067 FR-005,
+target-side: co-sleep and rest-with would relieve the friend's cuddle,
+groom-other the friend's bath, both masked on the friend; the askers
+carry no mask) and applied as Idle. The per-tick figures in this
+paragraph come from a diagnostic RESULTS.md records as "not a recorded
+read; its scripts are not in the arc"; the step 7 R8 read supersedes
+them when it lands. From tick 2388 to 2549
 the four held all four Manhattan-adjacent tiles, so the friend could
 not move (Move into an occupied tile is illegal); the friend sat grave
 2331–2602 and all four covered seats went grave 2408–2610 (every one
@@ -38,7 +42,10 @@ Why it happens: `crates/cloudkitty-rl/src/mask.rs::legal_action_mask`
 replays prune → validate → `enforcement_verdict` and not the consent
 or needy verdicts (`world.rs::apply_slot_verdict` runs both); the
 divergence at consent sites is the mask's documented blindness (ruling
-eb9e860b item 4) and the needy verdict was built to diverge "the same
+eb9e860b item 3, "divergence accepted, declared"; its item 4 is the
+expectation that trained seats learn to anticipate a refusal, which is
+exactly what a frozen policy under a pin never does) and the needy
+verdict was built to diverge "the same
 way" (the doc comment on `apply_slot_verdict`), by spec 049 R2 (the
 mask encodes no knowledge the observation lacks), rule 12's own-state
 read and spec 067 FR-014 (no observation change). So a refused ask

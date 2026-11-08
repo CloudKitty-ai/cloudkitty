@@ -36,8 +36,8 @@ use crate::observe::{TargetTable, HEAD_KINDS};
 /// mask]` -- both halves pure oracles over engine law; neither is ever
 /// all-zero (activity: FR-018 structural; message: Silent always legal).
 /// Schema 3 (spec 033): the message half widened 9 → 16 with the
-/// say-surface (50 total at default slots); the activity half is
-/// unchanged.
+/// say-surface (50 total at spec 033's default slots; 51 since spec 058's
+/// kitty 4 / critter 2, 35 + 16); the activity half is unchanged.
 pub const MASK_SCHEMA_VERSION: u32 = 3;
 
 /// Computes the legal-action mask for `kitty_id` against its frozen fog
