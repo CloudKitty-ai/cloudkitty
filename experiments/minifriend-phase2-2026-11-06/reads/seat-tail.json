@@ -1,0 +1,221 @@
+{
+ "runs": {
+  "p2-act10-s1": {
+   "n_probes": 70,
+   "n_fenced": 70,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.8
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.6
+    },
+    "Pumpkin": {
+     "flag_per_1k": 1.26,
+     "eat_flag_per_1k": 1.1,
+     "streaks_ge_10": 4,
+     "hap_mean": 89.4
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.53,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 1,
+     "hap_mean": 89.5
+    },
+    "Clementine": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.3
+    }
+   }
+  },
+  "p2-act15-s1": {
+   "n_probes": 84,
+   "n_fenced": 84,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.9
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.7
+    },
+    "Pumpkin": {
+     "flag_per_1k": 0.09,
+     "eat_flag_per_1k": 0.04,
+     "streaks_ge_10": 2,
+     "hap_mean": 89.6
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.7
+    },
+    "Clementine": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.4
+    }
+   }
+  },
+  "p2-nohead-s1r": {
+   "n_probes": 97,
+   "n_fenced": 97,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.8
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.7
+    },
+    "Pumpkin": {
+     "flag_per_1k": 0.14,
+     "eat_flag_per_1k": 0.06,
+     "streaks_ge_10": 2,
+     "hap_mean": 89.5
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": 89.6
+    },
+    "Clementine": {
+     "flag_per_1k": 0.16,
+     "eat_flag_per_1k": 0.04,
+     "streaks_ge_10": 3,
+     "hap_mean": 89.3
+    }
+   }
+  },
+  "trunk-s1": {
+   "n_probes": 52,
+   "n_fenced": 52,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 0.32,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 2,
+     "hap_mean": null
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.23,
+     "eat_flag_per_1k": 0.11,
+     "streaks_ge_10": 1,
+     "hap_mean": null
+    },
+    "Pumpkin": {
+     "flag_per_1k": 0.83,
+     "eat_flag_per_1k": 0.83,
+     "streaks_ge_10": 4,
+     "hap_mean": null
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.08,
+     "eat_flag_per_1k": 0.03,
+     "streaks_ge_10": 1,
+     "hap_mean": null
+    },
+    "Clementine": {
+     "flag_per_1k": 0.49,
+     "eat_flag_per_1k": 0.16,
+     "streaks_ge_10": 5,
+     "hap_mean": null
+    }
+   }
+  },
+  "trunk-s2": {
+   "n_probes": 52,
+   "n_fenced": 52,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 1.07,
+     "eat_flag_per_1k": 0.27,
+     "streaks_ge_10": 3,
+     "hap_mean": null
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": null
+    },
+    "Pumpkin": {
+     "flag_per_1k": 0.71,
+     "eat_flag_per_1k": 0.41,
+     "streaks_ge_10": 5,
+     "hap_mean": null
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.37,
+     "eat_flag_per_1k": 0.11,
+     "streaks_ge_10": 2,
+     "hap_mean": null
+    },
+    "Clementine": {
+     "flag_per_1k": 1.82,
+     "eat_flag_per_1k": 0.33,
+     "streaks_ge_10": 9,
+     "hap_mean": null
+    }
+   }
+  },
+  "trunk-s4": {
+   "n_probes": 52,
+   "n_fenced": 52,
+   "seats": {
+    "Miso": {
+     "flag_per_1k": 0.66,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 2,
+     "hap_mean": null
+    },
+    "Biscuit": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": null
+    },
+    "Pumpkin": {
+     "flag_per_1k": 1.13,
+     "eat_flag_per_1k": 1.01,
+     "streaks_ge_10": 5,
+     "hap_mean": null
+    },
+    "Kittybear": {
+     "flag_per_1k": 0.0,
+     "eat_flag_per_1k": 0.0,
+     "streaks_ge_10": 0,
+     "hap_mean": null
+    },
+    "Clementine": {
+     "flag_per_1k": 1.44,
+     "eat_flag_per_1k": 0.58,
+     "streaks_ge_10": 6,
+     "hap_mean": null
+    }
+   }
+  }
+ },
+ "method": "dump-only via diag_nohead_s1 (own SELF_DISTRESS flags); per-world maxima fenced against metrics.jsonl at every probe"
+}
