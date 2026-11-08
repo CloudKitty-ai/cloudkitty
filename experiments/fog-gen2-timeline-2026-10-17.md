@@ -1045,6 +1045,13 @@ consent BC comparison ride the trunk.
   DONE 04:36:42Z: act15-s1's leg 30 clean, worst streak 461 (905005,
   Kittybear, drink, mostly moving; trunk 0 there, max 77); nohead-s1r's
   leg 30 clean, worst 113. Not scored; reported to her as facts.
+  p2-act10-s1r PLATEAU clean 08:13:30Z (u3900 / 12,002,304 ticks,
+  largest streak 145, never 300): entry 26 CLOSED; entry 28 (2) fired —
+  p2-act10-s2 / s4 LAUNCHED 08:30:37Z at 89f7340c (pids 58320 / 58329,
+  idx 111 / 112); seven trainers run. Its leg (p2u-act10-s1) 30 clean,
+  worst 138 (905030, Clementine, drink; comparators 0 / 0 / 14). Three
+  legs on record. Still held: both s2 / s4 (after the canary read), the
+  battery (on the finals).
 
 ## Flagged follow-ups (owner's word to start)
 

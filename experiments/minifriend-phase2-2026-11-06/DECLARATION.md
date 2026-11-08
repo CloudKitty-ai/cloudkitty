@@ -116,6 +116,16 @@ the trunk-s1 row on 905005 is 0, the trunk's 30-world max 77);
 `p2u-nohead-s1` (= s1r) 04:34:56–04:36:42Z, 30 worlds clean, worst 113.
 Facts from the harness's own verdict lines and rows; R-1 is not scored
 (the worst-streak column is READ, never barred above the floor, §8.1).**
+**ACT10-S1R CLEAN 2026-11-08T08:13:30Z, ENTRY 26 CLOSED: plateau at
+u3900 / 12,002,304 ticks, largest streak 145 (u2849), never 300, nash
+0.896–0.902 last ten. Entry 28 (2) fired: `p2-act10-s2` (pid 58320, idx
+111, stripe 2,320,000,000–2,339,999,999) and `p2-act10-s4` (pid 58329,
+idx 112, 2,340,000,000–2,359,999,999) LAUNCHED 08:30:37Z at 89f7340c,
+B10 s3 head, engine 226509ec. Seven trainers on 18 cores. Its leg
+`p2u-act10-s1` (= s1r) 08:31:14–08:33:23Z, 30 clean, worst 138 (905030,
+seat 4 Clementine, drink, mostly idle; trunk-s1 and act15-s1 rows there
+0, nohead-s1r 14). Still held: both s2 / s4 (entry 27, after the canary
+read + her word); the battery waits on the finals.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

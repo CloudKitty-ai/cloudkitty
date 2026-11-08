@@ -1681,6 +1681,22 @@ Status: RULED (a); entry CLOSES at p2-act10-s1r's clean completion
 (stop_reason plateau / cap) or reopens to her on its own stop. The
 arm-set question RULED "iii" the same day, then SUPERSEDED by entry 27
 (a fourth canary arm `both`; the three declared arms stand beside it).
+**CLOSED 2026-11-08T08:13:30Z**: p2-act10-s1r finished clean —
+`policy-final.pt` stop_reason plateau (three flat 1M-tick bins after
+the floor) at update 3900 / 12,002,304 world-ticks; its 78 probes never
+crossed the 300 line (largest streak 145 at u2849; 55 / 86 / 10 / 46 at
+u649 / u899 / u2149 / u2249, 0 elsewhere); nash 0.8964–0.9022 over the
+last ten. The replacement never met the halted run's 378. On her
+conditional word (entry 28, "2) sounds good") `p2-act10-s2` (pid 58320,
+idx 111, seed_base 2,320,000,000) and `p2-act10-s4` (pid 58329, idx 112,
+2,340,000,000) LAUNCHED 2026-11-08T08:30:37Z at 89f7340c, B10 s3 head,
+engine 226509ec; manifests checked. Its 20×20 leg per entry 28 (1):
+`p2u-act10-s1` 08:31:14–08:33:23Z, 30 worlds clean, no abort, worst
+distress streak 138 (world 905030, seat 4 Clementine, need drink, shape
+idle 0.78 / moving 0.12 / parked 0.07; seat 2 Pumpkin 21 eat beside it;
+the trunk-s1 and act15-s1 rows there 0, nohead-s1r 14); second 115
+(905008, Clementine, cuddle; all three comparators 0). Facts, R-1 not
+scored.
 
 
 ## 27. Phase 2 canary arm `both`: the needs head carried as a stacked input beside the act head, its ostrich-shape trigger a read (2026-11-07)
@@ -1961,8 +1977,13 @@ served world, not shaping.
 worst distress streak 461 (world 905005, Kittybear, drink; the trunk's
 row there 0, its max 77); `p2u-nohead-s1` 30 clean, worst 113. Two
 minutes per leg with 4 workers. Facts, not a scored read.]
-Status: OPEN — chain-1 of (1) done, later runs' legs queue as they
-finish; (2) fires at s1r's clean completion; (3) per entry 27; (4) when the finals exist. This entry
+[2026-11-08T08:13:30Z p2-act10-s1r PLATEAU clean → (2) FIRED: act10 s2 /
+s4 launched 08:30:37Z (entry 26's close line has the cards); its leg
+`p2u-act10-s1` 08:31:14–08:33:23Z, 30 clean, worst 138 (905030,
+Clementine, drink). Seven trainers run. Legs on record: act15-s1,
+nohead-s1r, act10-s1r.]
+Status: OPEN — (1) three legs on record, later runs' legs queue as they
+finish; (2) DONE; (3) per entry 27; (4) when the finals exist. This entry
 CLOSES when the battery's last leg is on record. [The DECLARATION status
 line carries the launch lines; `read_r1.py --sizes` takes the sizes
 read; its 100×100 uniform read scores s1 alone and the write-up says so.]
