@@ -86,7 +86,18 @@ corrected: u2899's 224 was Kittybear's). Still on her word: p2-both-s1
 item: gen3-roadmap-inputs addendum 4, trait vectors with a tail
 criterion): `p2-both-s1` at 294752de (pid 38418), P45–P47 and the
 reading grammar standing as pinned (entry 27); act10-s1r runs beside it;
-act15 / nohead s2 / s4 still held on a distinct word.**
+act15 / nohead s2 / s4 still held on a distinct word.** **S2 / S4 LAUNCHED
+2026-11-08T03:20:23Z on her "Launch" (§13 step 4, the scouts act15-s1
+and nohead-s1r clean): `p2-act15-s2` (pid 40840, idx 108, stripe
+2,260,000,000–2,279,999,999), `p2-act15-s4` (pid 40849, idx 109,
+2,280,000,000–2,299,999,999), `p2-nohead-s2` (pid 40858, idx 114,
+2,380,000,000–2,399,999,999), `p2-nohead-s4` (pid 40867, idx 115,
+2,400,000,000–2,419,999,999), all at a171642c; manifests carry B15 s2
+dd0e2d6e… on the act15 pair, no head on the nohead pair, inits = the
+trunk s2 / s4 finals 4040554a… / 69d7248c…, engine 226509ec. Six
+trainers on 18 cores. Still held: act10 s2 / s4 (entry 26, after s1r
+clean + her word), both s2 / s4 (entry 27, after the canary read + her
+word), the battery (her third word).**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

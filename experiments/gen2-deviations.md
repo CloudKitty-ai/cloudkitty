@@ -1869,3 +1869,6 @@ finishes clean AND its 20×20 uniform leg and the reads above are in
 front of her (her word). Entry 22 is REOPENED under this entry (its
 deviation recurs by her ruling); entry 26 closes on act10-s1r's clean
 completion; the launch word for act15 / nohead s2 / s4 remains open.
+[2026-11-08: that word came — "Launch"; the four launched
+2026-11-08T03:20:23Z at a171642c, recorded in DECLARATION.md's status
+line and the timeline. Not a deviation: §13 step 4 as declared.]

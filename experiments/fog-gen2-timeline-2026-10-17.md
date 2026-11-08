@@ -1022,7 +1022,12 @@ consent BC comparison ride the trunk.
   p2-both-s1 (entry 27, the canary scout) LAUNCHED 2026-11-08T01:47:10Z
   at 294752de (pid 38418) on that word, P45–P47 and the reading grammar
   standing as pinned; act15 / nohead s2 / s4 still held — a distinct
-  word for that batch (stated to her).
+  word for that batch (stated to her). Her "Launch" (2026-11-08):
+  p2-act15-s2 / s4 and p2-nohead-s2 / s4 LAUNCHED 2026-11-08T03:20:23Z
+  at a171642c (pids 40840 / 40849 / 40858 / 40867; idx 108 / 109 /
+  114 / 115, stripes inside the row claimed 2026-11-06); six trainers
+  run. Still held on her word: act10 s2 / s4 (after s1r clean), both
+  s2 / s4 (after the canary read), the battery.
 
 ## Flagged follow-ups (owner's word to start)
 
