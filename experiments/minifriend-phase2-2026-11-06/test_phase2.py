@@ -539,7 +539,55 @@ def g11():
     assert fin["stop_reason"] == "cap" and fin["arm"] == "both" and fin["cells"] == 22, {k: fin.get(k) for k in ("stop_reason", "arm", "cells")}
 
 
-GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11}
+def g12():
+    """entry 27's reading grammar (read_canary.py): (a) R-1a pairs by WORLD, never by position, and refuses legs on
+    different worlds; (b) P46 reads |Δ| against the edge (a −0.5 is outside, +0.3 inside, 0.327 outside); (c) P47 is
+    met only with a readable stratum and no DEGRADED one — all-UNDECIDABLE is UNDECIDABLE, never met; (d) the
+    trajectory skips non-probe rows, takes the PER-PROBE bias (needs_bias_probe) for its series and the cumulative
+    state for first-sufficient; P45's lived half is within one SD of the gate figure, UNDECIDABLE under min-n;
+    (e) the leg bias convention is the trainer's: estimate × 100 − true, mean of five, less needy = negative."""
+    import json as _j
+    import read_canary as RC
+    a = {905001: {"mean_happiness": [90.0] * 5}, 905002: {"mean_happiness": [80.0] * 5}}
+    b = {905002: {"mean_happiness": [60.0] * 5}, 905001: {"mean_happiness": [85.0] * 5}}
+    d = RC.paired(a, b)
+    assert d["positive"] == 2 and d["range"] == [5.0, 20.0] and d["per_world"] == {"905001": 5.0, "905002": 20.0}, f"R-1a must pair by world: {d}"
+    try:
+        RC.paired(a, {905001: a[905001], 905003: a[905002]})
+        raise RuntimeError("different worlds paired")
+    except AssertionError:
+        pass
+    e = 0.326
+    assert not RC.p46({"mean": -0.5}, e)["met"], "P46 must be NOT MET at -0.5"
+    assert RC.p46({"mean": 0.3}, e)["met"] and not RC.p46({"mean": 0.327}, e)["met"]
+    assert RC.p47({"eat": "HELD", "cuddle": "UNDECIDABLE"})["met"]
+    assert not RC.p47({"eat": "HELD", "cuddle": "DEGRADED"})["met"]
+    u = RC.p47({"eat": "UNDECIDABLE", "cuddle": "UNDECIDABLE"})
+    assert not u["met"] and u["state"].startswith("UNDECIDABLE"), "all-UNDECIDABLE is not a met P47"
+    def row(v_state, cum_grave, cum_sd, cum_n, probe_grave, probe_n):
+        bv = lambda g, sd, n: {v: {"state": v_state, "grave": g, "grave_sd": sd, "n_grave": n, "common": 0.5} for v in ("visible", "all")}
+        return {"probe": True, "update": None, "ticks": 0, "needs_trigger": {"by_version": bv(cum_grave, cum_sd, cum_n)},
+                "needs_bias_probe": {"by_version": bv(probe_grave, 0.3, probe_n)}}
+    r1, r2 = row("INSUFFICIENT", None, None, 10, -1.0, 10), row("SIGNATURE", -2.0, 1.0, 250, -1.5, 240)
+    r1["update"], r2["update"] = 49, 99
+    series = RC.trajectory([_j.dumps({"update": 1, "probe": False}), _j.dumps(r1), _j.dumps(r2)])
+    assert len(series) == 2, "non-probe rows must be skipped"
+    assert series[1]["probe"]["visible"]["grave"] == -1.5, "the trajectory must take the per-probe bias"
+    s = RC.trajectory_summary(series)
+    assert s["first_sufficient_update"] == 99 and s["per_probe_grave"]["total_grave_rows"] == 250 and s["cumulative_states"]["INSUFFICIENT"] == 1, s
+    ref = {"visible": {"grave": -3.17}, "all": {"grave": -2.71}}
+    assert RC.p45_lived(series, ref)["state"] == "NOT MET", "distance 1.17 exceeds the SD 1.0"
+    r2b = _j.loads(_j.dumps(r2)); r2b["needs_trigger"]["by_version"]["visible"]["grave_sd"] = 1.5
+    assert RC.p45_lived(RC.trajectory([_j.dumps(r1), _j.dumps(r2b)]), ref)["met"], "distance 1.17 inside the SD 1.5"
+    r2c = _j.loads(_j.dumps(r2)); r2c["needs_trigger"]["by_version"]["visible"]["n_grave"] = 199
+    assert RC.p45_lived(RC.trajectory([_j.dumps(r2c)]), ref)["met"] is None, "under min-n is UNDECIDABLE"
+    cells = np.zeros((2, 22), np.float32); cells[:, 13:18] = 0.5
+    true = np.zeros((5, 6), np.float32); true[1, :5] = 60.0; true[2, :5] = 40.0
+    bias = RC.needs_bias_rows(cells, true, np.array([1, 2]), 13)
+    assert np.allclose(bias, [-10.0, 10.0]), f"bias convention: estimate × 100 − true, less needy = negative: {bias}"
+
+
+GUARDS = {"g0a": g0a, "g0b": g0b, "g0c": g0c, "g1": g1, "g2": g2, "g3": g3, "g4": g4, "g5": g5, "g6": g6, "g7": g7, "g8": g8, "g9": g9, "g10": g10, "g11": g11, "g12": g12}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or [n for n in GUARDS if n != "g0c"]

@@ -31,3 +31,13 @@ done
 "$PY" -B "$A/read_r2.py" score --out "$A/reads/r2.json" --md
 "$PY" -B "$A/read_r4.py" score --out "$A/reads/r4.json" --md
 "$PY" -B "$A/read_r5.py" score --out "$A/reads/r5.json" --md
+# Entry 27's reading grammar on each recorded canary leg (both-s<k>): the needs head on the leg (R-4 extended, one
+# replay per world), then the one-seed score (R-1a vs act15 / trunk, R-2a / R-2b, the needs trajectory, P45–P47)
+for d in "$A"/results-raw/legs/p2u-both-s*/legs/size20; do
+  [ -d "$d/acts" ] || continue
+  seating="$(basename "$(dirname "$(dirname "$d")")")"
+  k="${seating##*-s}"
+  mkdir -p "$A/reads/canary"
+  [ -f "$A/reads/canary/needs-leg-$seating-20.json" ] || "$PY" -B "$A/read_canary.py" needs-leg --seating "$seating" --size 20
+  "$PY" -B "$A/read_canary.py" score --seed "$k" --size 20 --out "$A/reads/canary-s$k.json" --md
+done
