@@ -158,7 +158,17 @@ word; A vs C is her next word; the battery waits on it. Main's history
 REWRITTEN on her "Rewrite now": the 99 MB episode blobs dropped (commit
 77e417f5 + 77dae325 → one commit, tree identical); the force-push waits
 on the branch-protection flip (hers; the session's API call was
-refused by its permission layer).**
+refused by its permission layer).** **REWRITE PUSHED 2026-11-08 ~22:20Z
+on her flip: origin/main 77dae325 → 7eee4114 (forced, leased), zero
+episode blobs reachable. ENTRY 29 RULED (C), her "Let's go with C":
+act10 DROPPED from the battery (s1r's 20×20 row = characterisation
+only). BATTERY LAUNCHED 22:27:18Z at 7eee4114 (pid 76747; entry 28 (4)):
+14 legs one at a time — 20×20 roster p2r-act15 / p2r-nohead; 40×40
+uniform act15 s1/s2/s4, nohead s1r/s2/s4, both s1 + roster act15 /
+nohead; 100×100 uniform s1 only act15 / nohead / both; scouts-first at
+40 and 100 inside the runner; any scout miss or leg stop HOLDS the chain
+for her. p2r-both not seatable (no both s2 / s4). Log
+`results-raw/legs/battery-chain.log`.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

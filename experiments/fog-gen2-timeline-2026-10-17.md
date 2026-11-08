@@ -1077,6 +1077,12 @@ consent BC comparison ride the trunk.
   Pumpkin seat past 300, s4 = a five-seat lock on 40,001 (onset spread
   215 ticks; ate and drank early, then sat; F-060's family). (B) off;
   A vs C her next word; battery waits.
+  Rewrite PUSHED ~22:20Z on her protection flip (origin/main →
+  7eee4114, no episode blobs). Her "Let's go with C": act10 DROPPED
+  from the battery (entry 29 CLOSED); BATTERY LAUNCHED 22:27:18Z (entry
+  28 (4)): 14 legs one at a time, act15 / nohead full at 20 / 40, both
+  at s1, 100×100 s1-only; p2r-both unseatable. Runtimes at 40 / 100
+  measured at the first leg.
 
 ## Flagged follow-ups (owner's word to start)
 

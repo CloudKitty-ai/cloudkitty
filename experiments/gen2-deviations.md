@@ -2033,8 +2033,13 @@ trunk-s2 8); `p2u-act15-s4` 49 (905023, Pumpkin, eat; trunk-s4 0);
 / s2 1000 (the F-060 lock) / s4 535. EIGHT 20×20 uniform legs on record;
 act10 s2 / s4 have none (no final). Facts, R-1 unscored. The canary's
 reads are on entry 27.]
-Status: OPEN — (1) eight legs on record, no run left to leg; (2) DONE;
-(3) reads DELIVERED (entry 27); (4) BLOCKED on entry 29's ruling.
+[2026-11-08T22:27:18Z (4) FIRED on entry 29's (C): the battery chain
+LAUNCHED at 7eee4114, 14 legs one at a time (two 20×20 roster, nine
+40×40, three 100×100 s1-only; act10 dropped, p2r-both unseatable);
+`results-raw/legs/battery-chain.log`.]
+Status: OPEN — (1) eight legs on record; (2) DONE; (3) reads DELIVERED
+(entry 27); (4) RUNNING. This entry CLOSES when the battery's last leg
+is on record.
 
 ## 29. Phase 2 act10 s2 and s4 halted by the frozen stops: a seat's lost-food streak before the floor, a roster-wide lock past it (2026-11-08)
 
@@ -2160,4 +2165,23 @@ at their update — the same trunk seed under act15 and nohead is clean
 on the same world at the same moment; one is the known Pumpkin seat
 taken over the line, the other a roster lock no other arm has shown.
 Nothing scored, nothing selected.]
-Status: OPEN — (D) DELIVERED; awaits her A / C word (leaning C).
+**RULED (C) 2026-11-08**, her words on the (D) read: "Let's go with C."
+→ act10 is DROPPED from the battery: no further leg seats any act10
+policy (p2u-act10-s1's 20×20 row, worst 138, stays on record and is
+reported beside the arms as characterisation only, never in a scored
+R-1 / R-2 cell; `p2r-act10` and the act10 40×40 / 100×100 rows do not
+run). The halted s2 / s4 checkpoints and every probe dump are kept
+whole, nothing resumed. The battery (entry 28 (4)) is UNBLOCKED and
+LAUNCHED 2026-11-08T22:27:18Z at 7eee4114 (pid 76747, one leg at a
+time, sizes ascending, scouts-first inside the runner at 40 and 100, a
+scout miss or leg stop HOLDS the chain for her): 20×20 roster
+`p2r-act15`, `p2r-nohead`; 40×40 uniform `p2u-act15-s{1,2,4}`,
+`p2u-nohead-s{1,2,4}`, `p2u-both-s1` + roster `p2r-act15`,
+`p2r-nohead`; 100×100 uniform s1 only `p2u-act15-s1`, `p2u-nohead-s1`,
+`p2u-both-s1` — 14 legs. `p2r-both` cannot seat (both s2 / s4 do not
+exist; the canary's consequence is still hers) and is not run; stated,
+reversible. Welfare-cost line: 14 legs × 3M = 42M covered cat-ticks +
+the displaced scouts (12 × 3 worlds × 20k × 5 = 3.6M), inside the 108M
+ruled on entry 28; minds already trained, the cost is exposure to the
+served world.
+Status: CLOSED 2026-11-08 — ruled (C); the battery runs under entry 28.
