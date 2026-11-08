@@ -404,6 +404,15 @@ def g6():
     uni["act15"]["seed_mean_team"] = 87.9
     p = R.score_predictions(uni, e)
     assert not p["P38"]["met"] and not p["P40"]["met"], "0.5 over act10 and 0.6 over nohead are outside the edge"
+    # entry 29 (C): act10 absent — P38 UNDECIDABLE (None, never False), P39 scores, P40 = None when the act15 half
+    # holds (the act10 half is open), False when the act15 half fails on its own
+    uni_c = {"act15": {"seed_mean_team": 87.5, "per_seed": {}}, "nohead": uni["nohead"]}
+    p = R.score_predictions(uni_c, e)
+    assert p["P38"]["met"] is None and "act10 absent" in p["P38"]["reason"], p["P38"]
+    assert p["P39"]["met"] and p["P40"]["met"] is None and p["P40"]["act15_half_met"], p["P40"]
+    uni_c["act15"]["seed_mean_team"] = 87.2
+    p = R.score_predictions(uni_c, e)
+    assert p["P40"]["met"] is False and not p["P40"]["act15_half_met"], "act15 below nohead fails P40 on its own"
 
 
 def g7():

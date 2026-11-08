@@ -99,19 +99,34 @@ def welfare_rule(act15_by_seed, act10_by_seed, edge, shape):
 
 
 def score_predictions(uni20, edge):
-    """P38–P40 on the uniform 20×20 read (seed means over the three paired seeds)."""
+    """P38–P40 on the uniform 20×20 read (seed means over the three paired seeds). act10 may be ABSENT (deviations
+    entry 29 (C), 2026-11-08: the arm dropped from the battery): P38 then reads UNDECIDABLE (met None, reason), P39 is
+    act10-free and scores, P40's act15 half scores and its act10 half is UNDECIDABLE — the conjunction is NOT MET
+    when the act15 half fails on its own, UNDECIDABLE when it holds (the act10 half could still fail)."""
     a15 = uni20["act15"]["seed_mean_team"]
-    a10 = uni20["act10"]["seed_mean_team"]
+    a10 = uni20["act10"]["seed_mean_team"] if "act10" in uni20 else None
     nh = uni20["nohead"]
-    out = {"P38": {"value": abs(a15 - a10), "bar": edge, "met": abs(a15 - a10) <= edge,
-                   "text": "|act15 − act10| ≤ the edge statistic (a null)"}}
+    if a10 is None:
+        out = {"P38": {"value": None, "bar": edge, "met": None, "reason": "act10 absent (entry 29 (C)): no comparator",
+                       "text": "|act15 − act10| ≤ the edge statistic (a null)"}}
+    else:
+        out = {"P38": {"value": abs(a15 - a10), "bar": edge, "met": abs(a15 - a10) <= edge,
+                       "text": "|act15 − act10| ≤ the edge statistic (a null)"}}
     inside = [abs(nh["per_seed"][k]["paired_delta_trunk"]["mean"]) <= edge for k in map(str, SEEDS)]
     out["P39"] = {"per_seed_inside": dict(zip(map(str, SEEDS), inside)), "met": sum(inside) >= 2,
                   "text": "the no-head arm's paired gain over its trunk seed inside the envelope in ≥ 2 of 3 seeds"}
-    g15, g10 = a15 - nh["seed_mean_team"], a10 - nh["seed_mean_team"]
-    out["P40"] = {"act15_minus_nohead": g15, "act10_minus_nohead": g10,
-                  "met": (g15 > 0 and g10 > 0 and g15 <= edge and g10 <= edge),
-                  "text": "each act arm's gain over the no-head arm positive in mean but inside the envelope"}
+    g15 = a15 - nh["seed_mean_team"]
+    half15 = bool(g15 > 0 and g15 <= edge)
+    if a10 is None:
+        out["P40"] = {"act15_minus_nohead": g15, "act10_minus_nohead": None, "act15_half_met": half15,
+                      "met": (None if half15 else False),
+                      "reason": "act10 absent (entry 29 (C)): the act10 half is UNDECIDABLE" + ("" if half15 else "; the act15 half fails on its own"),
+                      "text": "each act arm's gain over the no-head arm positive in mean but inside the envelope"}
+    else:
+        g10 = a10 - nh["seed_mean_team"]
+        out["P40"] = {"act15_minus_nohead": g15, "act10_minus_nohead": g10, "act15_half_met": half15,
+                      "met": (half15 and g10 > 0 and g10 <= edge),
+                      "text": "each act arm's gain over the no-head arm positive in mean but inside the envelope"}
     return out
 
 
@@ -180,8 +195,13 @@ def read(sizes=SIZES, arms=ARMS, root=None):
         out["rule"]["uniform/20"] = welfare_rule({k: u20["act15"]["per_seed"][str(k)]["team_mean"] for k in SEEDS},
                                                  {k: u20["act10"]["per_seed"][str(k)]["team_mean"] for k in SEEDS},
                                                  out["edge"]["uniform/20"]["edge"], "uniform")
-        if "nohead" in u20 and u20["nohead"]["complete"]:
-            out["predictions"] = score_predictions(u20, out["edge"]["uniform/20"]["edge"])
+    elif "act15" in u20 and u20["act15"]["complete"]:
+        out["rule"]["uniform/20"] = {"shape": "uniform", "verdict": "UNDECIDABLE", "demote": None, "extend_conditional": None,
+                                     "reason": "act10 incomplete or absent (deviations entry 29 (C), 2026-11-08): the §8.1 clause has no comparator; "
+                                               "B15 stands undemoted for want of one, not on evidence"}
+    if all(a in u20 and u20[a]["complete"] for a in ("act15", "nohead")):
+        out["predictions"] = score_predictions({a: u20[a] for a in ("act15", "act10", "nohead") if a in u20 and u20[a]["complete"]},
+                                               out["edge"]["uniform/20"]["edge"])
     r20 = out["roster"].get("20", {})
     if all(a in r20 for a in ("act15", "act10")) and out["edge"]["roster/20"]["edge"] is not None:
         # the roster-shaped legs seat the three arm seeds together: one leg per arm, its 30-world mean per seat
