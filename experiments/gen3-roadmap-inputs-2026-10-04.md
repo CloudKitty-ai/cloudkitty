@@ -172,3 +172,77 @@ Context: the Gen 1 absolute cert bars built on these numbers
 (welfare.rs 45-streak/share, 70 run-mean, 90-age-150) are already
 superseded for Gen 2 certification by the paired-strict gate ruling;
 they stay live only as the Gen 1 served-world CI gate, tighten-only.
+
+## Addendum 2026-11-08 (4): trait vectors re-derived with a TAIL criterion (Pumpkin's streaks)
+
+Owner, on the Phase 2 entry-26 seed read (Experiments session,
+2026-11-07/08), verbatim: "If pumpkin is always the source of streaks,
+we should maybe look at rebalancing her need traits? When we initially
+set them, the goal was for them to be roughly welfare neutral" — then,
+on the assessment below, **"Bank it and let's proceed"**.
+
+What the record shows (dump-only, every probe of six runs — the three
+Phase 2 s1 continuations and trunk s1 / s2 / s4; the per-world streak
+maxima fenced against each run's `metrics.jsonl` at every probe;
+`minifriend-phase2-2026-11-06/diag_seat_tail.py` →
+`minifriend-phase2-2026-11-06/reads/seat-tail.json`):
+
+| seat (signature) | own-flag ticks / 1k: act10-s1 · trunk-s1 · trunk-s2 · trunk-s4 | streaks ≥ 10 ticks, same runs | happiness mean, Phase 2 runs |
+|---|---|---|---|
+| Miso (sleep) | 0.00 · 0.32 · 1.07 · 0.66 | 0 · 2 · 3 · 2 | 89.8–89.9 |
+| Biscuit (play) | 0.00 · 0.23 · 0.00 · 0.00 | 0 · 1 · 0 · 0 | 89.6–89.7 |
+| Pumpkin (eat) | 1.26 · 0.83 · 0.71 · 1.13 | 4 · 4 · 5 · 5 | 89.4–89.6 |
+| Kittybear (bath) | 0.53 · 0.08 · 0.37 · 0.00 | 1 · 1 · 2 · 0 | 89.5–89.7 |
+| Clementine (cuddle) | 0.00 · 0.49 · 1.82 · 1.44 | 0 · 5 · 9 · 6 | 89.3–89.4 |
+
+The MEAN is neutral, as the 2026-08-15 balance was built to make it
+(per-seat happiness within 0.6 points across all probes; the trait
+screen read Pumpkin at 91.10). The TAIL is not: distress streaks follow
+need STRUCTURE, not mean rate — eat is the travel need whose sources
+churn (every Phase 2 trip was food lost beyond vision and memory;
+deviations entries 25 / 26), cuddle the pack need that needs a partner.
+On trunk s2 / s4 Clementine leads, not Pumpkin; Biscuit, the chase
+signature, never flags in six runs. The streak stop has tripped two of
+four Phase 2 scouts and four of the trunk's seeds on this tail.
+
+Not a Gen 2 change: the trunk, the 20×20 legs, the recorded g2 rows and
+the 0.326 envelope stand on this config; Phase 2's reads are paired
+within it, so the tail is common-mode across arms. A rebalanced vector
+is a new generation's config under its own declaration.
+
+BANKED for the Gen 3 freeze:
+
+1. Re-derive the trait exchange table under the Gen 2 TRAINED policies
+   (her standing rule 3, trait-design 2026-08-15: vectors are
+   generation-mortal, re-derive under the spread-trained generation —
+   owed, not yet done), with a TAIL criterion beside the mean: own-flag
+   ticks per 1k seat-ticks and streaks ≥ N per probe, per seat,
+   seat-paired like the mean. `diag_seat_tail.py` is the read's shape.
+2. Expect the dial to be a weak lever against a structural tail: a
+   gentler Pumpkin (the only verified one is 06-light, sleep 0.225,
+   residual −0.14; eat below 0.6 is no longer the Hungry character)
+   likely moves the tail to Clementine's cuddle, already the trunk's
+   leader on two seeds. The structural lever is the "relief just beyond
+   vision" follow-up (fog-gen2-timeline §Flagged follow-ups; owner
+   2026-10-21: teacher first, structural cause → Gen 3) — the same
+   lost-food shape.
+3. Decision at the freeze, hers: dial, structure, or both; nothing here
+   picks.
+
+### Read (addendum 4; ~3 min — 403 probe dumps; arc venv, repo root)
+
+```
+VIRTUAL_ENV=experiments/minifriend-phase2-2026-11-06/.venv experiments/minifriend-phase2-2026-11-06/.venv/bin/python3 -B experiments/minifriend-phase2-2026-11-06/diag_seat_tail.py --out /tmp/seat-tail.json
+python3 - <<'EOF2'
+import json
+d = json.load(open("experiments/minifriend-phase2-2026-11-06/reads/seat-tail.json"))["runs"]
+assert all(r["n_probes"] == r["n_fenced"] for r in d.values()) and [r["n_probes"] for r in d.values()] == [70, 84, 97, 52, 52, 52]
+assert [d[r]["seats"]["Pumpkin"]["flag_per_1k"] for r in ("p2-act10-s1", "trunk-s1", "trunk-s2", "trunk-s4")] == [1.26, 0.83, 0.71, 1.13]
+assert [d[r]["seats"]["Clementine"]["flag_per_1k"] for r in ("p2-act10-s1", "trunk-s1", "trunk-s2", "trunk-s4")] == [0.0, 0.49, 1.82, 1.44]
+assert [d[r]["seats"]["Clementine"]["streaks_ge_10"] for r in ("trunk-s1", "trunk-s2", "trunk-s4")] == [5, 9, 6]
+assert all(d[r]["seats"]["Biscuit"]["flag_per_1k"] == 0.0 for r in ("p2-act10-s1", "p2-act15-s1", "p2-nohead-s1r", "trunk-s2", "trunk-s4"))
+haps = [s["hap_mean"] for r in ("p2-act10-s1", "p2-act15-s1", "p2-nohead-s1r") for s in d[r]["seats"].values()]
+assert min(haps) == 89.3 and max(haps) == 89.9
+print("addendum-4 fence: all cells match")
+EOF2
+```

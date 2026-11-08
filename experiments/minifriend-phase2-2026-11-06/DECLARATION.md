@@ -81,7 +81,12 @@ it finishes clean. The failed seed read dump-only across 303 probes
 hazard is world 40,002 × Pumpkin's eat-weighted seat, inherited from
 the trunk and present under every arm (the entry's "same seat" claim
 corrected: u2899's 224 was Kittybear's). Still on her word: p2-both-s1
-(confirms P45–P47), act15 / nohead s2 / s4.**
+(confirms P45–P47), act15 / nohead s2 / s4.** **CANARY LAUNCHED
+2026-11-08T01:47:10Z on her "Bank it and let's proceed" (the banked
+item: gen3-roadmap-inputs addendum 4, trait vectors with a tail
+criterion): `p2-both-s1` at 294752de (pid 38418), P45–P47 and the
+reading grammar standing as pinned (entry 27); act10-s1r runs beside it;
+act15 / nohead s2 / s4 still held on a distinct word.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

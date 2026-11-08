@@ -1014,6 +1014,15 @@ consent BC comparison ride the trunk.
   the replacement's probes on 40,002 are the paired read. Four g10 reds
   + the seed read's red CONFIRMED. Still waiting on her word: launch of
   p2-both-s1 (confirms P45–P47), act15 / nohead s2 / s4.
+  2026-11-08: her "If pumpkin is always the source of streaks, we
+  should maybe look at rebalancing her need traits?" → assessed
+  (dump-only per-seat tail across six runs: the mean is neutral, the
+  tail is eat's and cuddle's structure; not a Gen 2 change) → "Bank it
+  and let's proceed": BANKED as gen3-roadmap-inputs addendum 4;
+  p2-both-s1 (entry 27, the canary scout) LAUNCHED 2026-11-08T01:47:10Z
+  at 294752de (pid 38418) on that word, P45–P47 and the reading grammar
+  standing as pinned; act15 / nohead s2 / s4 still held — a distinct
+  word for that batch (stated to her).
 
 ## Flagged follow-ups (owner's word to start)
 
@@ -1038,6 +1047,11 @@ evaluate that this collection policy never produces?".
 
 `gen3-roadmap-inputs-2026-10-04.md` addenda: favourites re-screen on
 the stratified stack; bin-edge re-anchor + bridge (addendum 3);
+trait vectors re-derived under the Gen 2 trained policies WITH A TAIL
+criterion (addendum 4, owner 2026-11-08 "Bank it and let's proceed":
+the streak tail is eat's and cuddle's need structure, the mean is
+neutral; dial vs the vision-search structural lever, her call at the
+freeze);
 play-demonstration refresher; vision-law measurements; 064 flag-on
 default candidate; 063 drift as robustness-knob candidate; C2 reopen
 carries the comparator re-run sequencing note. Teacher polish (owner

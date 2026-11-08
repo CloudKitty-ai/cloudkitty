@@ -1851,8 +1851,21 @@ consult the needs signature → `a needs SIGNATURE stopped the run`; the
 cumulative accumulator detached → `the cumulative read is smaller than
 one probe's` — all six CONFIRMED, baseline == restored.
 
-Status: OPEN. The arm is built, guarded and red-confirmed; `p2-both-s1`
-LAUNCHES only on her word, which also confirms or amends the pins
-above. Entry 22 is REOPENED under this entry (its deviation recurs by
-her ruling); entry 26 (act10-s1) and the launch word for act15 /
-nohead s2 / s4 remain open beside it.
+LAUNCHED 2026-11-08T01:47:10Z on her word "Bank it and let's proceed"
+(2026-11-08, in reply to the entry-26 seed report and the trait
+assessment whose pending item was this launch; the banked item is
+gen3-roadmap-inputs addendum 4): `run_arm.sh p2-both-s1` at HEAD
+294752de (pid 38418; manifest: run_index 117, seed_base 2,440,000,000,
+cells 22, init sha256 a22b8713… = trunk-s1's final, act head B15 s2
+dd0e2d6e…, needs head NF1e-h24 s2 0ca9ccb4… / 00e533b7…,
+stops.needs_trigger.consequence "READ ONLY — logged, never halts").
+P45–P47 and the reading grammar stand as pinned — her word neither
+amended them nor was asked to beyond confirming. p2-act10-s1r (entry
+26) trains beside it; act15 / nohead s2 / s4 stay held — that batch
+takes a distinct word, stated to her at the launch.
+
+Status: OPEN — the canary scout trains; s2 / s4 of `both` only after it
+finishes clean AND its 20×20 uniform leg and the reads above are in
+front of her (her word). Entry 22 is REOPENED under this entry (its
+deviation recurs by her ruling); entry 26 closes on act10-s1r's clean
+completion; the launch word for act15 / nohead s2 / s4 remains open.
