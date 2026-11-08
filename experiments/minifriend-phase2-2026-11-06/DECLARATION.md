@@ -70,7 +70,18 @@ and the act trigger armed as written), scouts-first: p2-both-s1 alone on
 her launch word, s2 / s4 after its read. P45–P47 and the reading grammar
 pinned in the entry. Built, g0a–g11 green, six reds CONFIRMED
 (8cdcde6e). NOT LAUNCHED: awaits her launch word, which confirms the
-pins.**
+pins.** **ENTRY 26 RULED 2026-11-07, her word "Act10 s1 replace and
+analyze the failed seed": (a) REPLACE — slot `p2-act10-s1r` (the same
+trunk-s1 graft, the same B10-s3 head, run index 120, band row
+2,500,000,000–2,519,999,999 claimed before first burn), the halted
+p2-act10-s1 refused by name and seated nowhere; LAUNCHED
+2026-11-08T01:24:15Z at e85d86c8 (pid 37710); act10 s2 / s4 held until
+it finishes clean. The failed seed read dump-only across 303 probes
+(`diag_act10_s1_seed.py`, entry 26): not a policy-level collapse; the
+hazard is world 40,002 × Pumpkin's eat-weighted seat, inherited from
+the trunk and present under every arm (the entry's "same seat" claim
+corrected: u2899's 224 was Kittybear's). Still on her word: p2-both-s1
+(confirms P45–P47), act15 / nohead s2 / s4.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk
@@ -829,6 +840,8 @@ green; the prediction written before each run):**
 | g10 (entry 27: 13 slots, band to 2,499,999,999, `both` seated) | both-s2 at index 117; the `both` arm dropped from the uniform seatings | `[…, 117, 117, 119]`; `KeyError: 'p2u-both-s1'` | CONFIRMED (both) |
 | g11 (entry 27: the needs read never a stop; canary smoke) | needs_eval's direction flipped (grave > 0); probe_reason consulting the needs signature; the cumulative accumulator detached | `{'signature': False, …}`; `a needs SIGNATURE stopped the run`; `the cumulative read is smaller than one probe's` | CONFIRMED (all three) |
 | g5 (found red at entry 27) | — its smoke slot was the HALTED `p2-nohead-s1`, refused since 9d374fb4; moved to `p2-nohead-s2` | (the refusal text) | fixed, green; stated in entry 27 |
+| g10 (entry 26 RULED, 2026-11-07: 14 slots, band to 2,519,999,999, the act10 replacement seated and the halted slot refused) | the replacement at index 110; the harness seating pointed at a seed-9 slot; the act10 pair dropped from the halted table; the refusal's entry number hard-wired to 25 | `110, 110`; `['p2:p2-act10-s1', …`; `{'p2-nohead-s1': 'p2-nohead-s1r'}`; `deviations entry 25) … replacement run is p2-act10-s1r` | CONFIRMED (all four) |
+| diag_act10_s1_seed (entry 26's failed-seed read: 303 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED |
 
 ## 10. Blind spots (declared)
 

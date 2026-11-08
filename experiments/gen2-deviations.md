@@ -1429,7 +1429,9 @@ history, from `metrics.jsonl`: 65 of 70 probes read 0; u199 24 (seed
 40,001); then, all on seed 40,002 and all after the floor, u2599 80,
 u2799 48, u2899 224, u3499 378 — the same world's seat, recurring and
 growing over the last 900 updates, with the probe before the trip
-(u3449) at 0. Per the declaration a trip in a scout HOLDS that arm's
+(u3449) at 0. [CORRECTED by the seed read below (2026-11-07): the
+WORLD was the same, the SEAT was not — u2899's 224 was Kittybear's
+(ticks 715–938); Pumpkin's were 80 / 48 / 378.] Per the declaration a trip in a scout HOLDS that arm's
 other seeds: act10 s2 / s4 do not launch until she rules. The halted run
 is kept whole; nothing is resumed (the trainer's refusal lands with her
 ruling, as entry 25's did). The other two scouts finished clean the same
@@ -1487,7 +1489,8 @@ scout; RESULTS carries it.
 
 Options for her: (a) REPLACE — the same trunk-s1 graft trained under a
 fresh PPO run index (117; a new SEED-BANDS row 2,440,000,000–
-2,459,999,999 claimed before the burn), pairing unchanged, the halted
+2,459,999,999 claimed before the burn) [117–119 went to entry 27's
+canary arm the same day; the replacement took 120], pairing unchanged, the halted
 slot refused by name and seated nowhere (entry 25's shape); (b) RESUME
 on her explicit word (its own entry and reasoning); (c) READ the halted
 run as a halted arm — the comparator then rests on s2 / s4, and §8.1's
@@ -1544,9 +1547,136 @@ p2-reds-diag26.log`): the stop probe pointed at the clean probe before
 it (u3499 → u3449) → `streak did not reproduce: 0 vs recorded 378`,
 CONFIRMED, baseline == restored.
 
-Status: OPEN — awaits her word on (a) / (b) / (c); the arm-set question
-RULED "iii" the same day, then SUPERSEDED by entry 27 (a fourth canary
-arm `both`; the three declared arms stand beside it).
+RULED, owner 2026-11-07, verbatim: **"Act10 s1 replace and analyze the
+failed seed"** — (a) REPLACE. Replacement slot `p2-act10-s1r`: the same
+trunk-s1 graft (init a22b8713…) with the same B10-s3 head (9bde78f8…),
+PPO run index 120, stripe 2,500,000,000–2,519,999,999 claimed in
+`SEED-BANDS.md` before first burn (117–119 having gone to entry 27), the
+arm-seed ↔ trunk-seed pairing unchanged, recipe and binding identical to
+the declared scouts (β 0.04 from step 0, floor 8,002,560, arc venv on
+226509ec), the frozen asymmetric stops armed, the §8.2 act trigger armed
+on B10. The halted run's weights are never resumed: the trainer refuses
+the halted slot by name (`HALTED_SLOTS` gains it; the refusal names its
+entry and its replacement), its artifacts stay on disk as this entry's
+record, and the harness seats the replacement in `p2u-act10-s1` and
+`p2r-act10` (g10 covers the fourteen slots, the band to 2,519,999,999,
+both halted slots' refusals and seatings). act10 s2 / s4 stay HELD until
+the replacement scout finishes clean (scouts-first). The replacement
+probes the standing trio 40,001–40,003, so its own probes on 40,002 are
+the paired recurrence read. Welfare-cost line: one more covered run of
+up to 20M ticks × 5 covered seats under the frozen stops; benefit: the
+B10 comparator keeps its three paired seeds.
+
+LAUNCHED 2026-11-08T01:24:15Z: `run_arm.sh p2-act10-s1r` at HEAD
+e85d86c8 (pid 37710; manifest: run_index 120, seed_base 2,500,000,000,
+stripe 2,500,000,000–2,519,999,999, cells 14, init sha256 a22b8713… =
+trunk-s1's final, head B10 s3 9bde78f8…, engine 226509ec). Nothing else
+runs; p2-both-s1 still waits on her launch word. Guards for the change,
+red on record (`results-raw/reds/p2-reds-g10-{idx26,seat26,halted26,
+refusal26}.log`): the replacement at index 110 (`110, 110`); the harness
+seating pointed at a seed-9 slot (`p2u-act10-s1` falls back to the halted
+slot, `['p2:p2-act10-s1', …`); the act10 pair dropped from the halted
+table (`{'p2-nohead-s1': 'p2-nohead-s1r'}`); the refusal's entry number
+hard-wired to 25 (`deviations entry 25) … replacement run is
+p2-act10-s1r`) — all four CONFIRMED, baseline == restored. The
+`refuse_halted` wiring in `main` stays green-only evidence (entry 25).
+
+THE FAILED SEED (her word above; `diag_act10_s1_seed.py` →
+`reads/diag-act10-s1-seed.json`; dump-only, zero regeneration: every
+probe of the halted run and of its paired runs p2-act15-s1,
+p2-nohead-s1r and the parent trunk-s1 — 70 + 84 + 97 + 52 = 303 probes,
+the per-world maxima from the own flags asserted equal to each run's
+`metrics.jsonl` row at EVERY probe):
+
+- WHERE THE STREAKS LAND (≥ 10 ticks, all probes): act10-s1 — u199
+  Pumpkin / 40,001 24; u2599 Pumpkin / 40,002 80 (ticks 1478–1557);
+  u2799 Pumpkin / 40,002 48 (325–372); u2899 **Kittybear** / 40,002 224
+  (715–938); u3499 Pumpkin / 40,002 378 (777–1154). Four of the five on
+  world 40,002, four of the five Pumpkin's seat — the correction above:
+  the world recurred, the seat did not always. act15-s1 — Pumpkin 22
+  (40,003, u1549) and 23 (40,002, u2249), nothing else ≥ 10 in 84 probes.
+  nohead-s1r — Pumpkin 65 (40,003, u1149) and 15 (40,002, u1299),
+  Clementine 25 / 46 / 19 (40,002 u1349, 40,001 u2999, 40,002 u3199).
+  trunk-s1 — 13 landings in 52 probes, 8 of them on 40,002, the two
+  largest Pumpkin's: **103** (40,002, u149, ticks 917–1019) and 94
+  (40,001, u2049); the trunk's first probes (u49–u649) had streaks on
+  all five seats of 40,002 (Miso 48, Biscuit 72, Clementine 56,
+  Kittybear 17).
+- THE SEAT (Pumpkin on 40,002, the whole 2,000-tick episode, per
+  probe): flagged at 3 of 70 act10 probes (u2599 / u2799 / u3499 —
+  eat at 100 on each; happiness minima 48.3 / 61.9 / 36.8; chow in
+  memory 0.60–0.63), at 1 of 84 act15 probes (u2249: 23, hap min 54.7),
+  1 of 97 nohead-s1r (u1299: 15, hap min 57.1), 3 of 52 trunk-s1 (u149
+  103, u449 5, u599 24). Her eat need reached ≥ 80 at 5 act10 probes
+  (u649 90.0 and u2349 81.4 without a flag), 1 act15 probe (80.4), 0
+  nohead-s1r, 4 trunk-s1 (100 at u149 and u599). Probe-mean reads of
+  the seat, act10 / act15 / nohead-s1r / trunk-s1: chow in memory 0.670
+  / 0.677 / 0.693 / 0.734; eat-legal ticks 197 / 202 / 203 / 169; ticks
+  eaten 82 / 83 / 81 / –; solo 0.330 / 0.319 / 0.328 / 0.246; partner
+  0.315 / 0.325 / 0.322 / 0.351; happiness-min mean 75.8 / 77.1 / 77.4
+  / –. The act10 policy's handling of the seat is indistinguishable from
+  act15's and nohead's on the means; the trips are the tail.
+- PER SEAT at each run's final probe: Pumpkin's seat eats most (eat
+  share 0.035 / 0.040 / 0.042 / 0.030) and moves most (0.203 / 0.171 /
+  0.197 / 0.218) under every policy, the trunk included — her character
+  is the eat-weighted one (`g2leg-20.toml`: Pumpkin needs eat 0.6,
+  sleep 0.2, bath 0.1; F-044's seat). Her flag share at act10's final
+  probe 0.063 (the 378 ticks of 6,000), the other four seats 0 on every
+  run.
+- DIVERGENCE on 40,002 between the clean probe before the trip (u3449)
+  and the trip probe (u3499): proposals first differ at tick 6 (Miso),
+  8 (Kittybear, Clementine), 21 (Biscuit), 46 (Pumpkin); 1,794–1,898
+  of 2,000 ticks differ per seat. Fifty updates of policy change make
+  a different episode from the opening ticks; the trip at 777 is not a
+  late fork off a clean trajectory. The "recurrence" is the world's:
+  40,002's layout keeps putting the eat-weighted seat near a lost-food
+  edge, and a given checkpoint falls in or does not.
+- READING: (1) the failed seed is NOT a policy-level collapse — on the
+  seat's means and on all five seats' shares the act10-s1 policy reads
+  like act15-s1 and nohead-s1r (within a few hundredths); (2) the
+  hazard is world 40,002 × Pumpkin's eat-weighted seat, inherited from
+  the trunk (trunk-s1's own 103 at u149 there) and present under every
+  arm; act10-s1 hit its tail three times past the floor (80 / 48 / 378)
+  plus Kittybear's 224 — four landings ≥ 10 in its last 19 probes
+  against act15-s1's one (23) and nohead-s1r's two (46 / 19) over the
+  same stretch — suggestive of a less robust policy on that world, at
+  an n that settles nothing; the replacement's probes on 40,002 are the
+  paired read; (3) the failure-pattern match stands as read above
+  (entry 25's lost-food family, with searching and an isolation second
+  need), now with the seat's fragility placed in the trunk, not in the
+  act head: the B10 cells are inert in the window (no cat in sight) and
+  the same seat trips under no head at all.
+
+### Read (entry 26, the failed seed; ~3 min — 303 probe dumps; arc venv, repo root)
+
+```
+VIRTUAL_ENV=experiments/minifriend-phase2-2026-11-06/.venv experiments/minifriend-phase2-2026-11-06/.venv/bin/python3 -B experiments/minifriend-phase2-2026-11-06/diag_act10_s1_seed.py --out /tmp/diag-act10-s1-seed.json
+python3 - <<'EOF2'
+import json
+d = json.load(open("experiments/minifriend-phase2-2026-11-06/reads/diag-act10-s1-seed.json"))
+r = d["runs"]
+assert [(x["n_probes"], x["n_fenced"], x["max_streak"]) for x in r.values()] == [(70, 70, 378), (84, 84, 23), (97, 97, 65), (52, 52, 103)]
+assert [(e["update"], e["world"], e["name"], e["streak"]) for e in r["p2-act10-s1"]["landed_ge_10"]] == [(199, 40001, "Pumpkin", 24), (2599, 40002, "Pumpkin", 80), (2799, 40002, "Pumpkin", 48), (2899, 40002, "Kittybear", 224), (3499, 40002, "Pumpkin", 378)]
+assert r["trunk-s1"]["landed_by_name"]["Pumpkin"] == [103, 94, 24, 16] and r["p2-nohead-s1r"]["landed_by_name"]["Clementine"] == [46, 25, 19]
+s = r["p2-act10-s1"]["seat_series"]
+assert [u for u, v in s.items() if v["streak"] > 0] == ["2599", "2799", "3499"] and [s[u]["hap_min"] for u in ("2599", "2799", "3499")] == [48.3, 61.9, 36.8]
+assert [u for u, v in r["p2-act15-s1"]["seat_series"].items() if v["streak"] > 0] == ["2249"] and [u for u, v in r["p2-nohead-s1r"]["seat_series"].items() if v["streak"] > 0] == ["1299"]
+f = r["p2-act10-s1"]["final_per_seat"]
+assert f["Pumpkin"]["flag_tick_share"] == 0.063 and all(f[k]["flag_tick_share"] == 0 for k in f if k != "Pumpkin")
+assert d["divergence"]["per_seat"]["Pumpkin"]["first_tick_proposals_differ"] == 46 and d["divergence"]["per_seat"]["Miso"]["first_tick_proposals_differ"] == 6
+print("entry-26 seed fence: all cells match")
+EOF2
+```
+
+Guard for the instrument, red on record (`results-raw/reds/
+p2-reds-diag26-seed.log`): the own-flag threshold moved 0.5 → 1.5 →
+`p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded
+[24, 0, 0]`, CONFIRMED, baseline == restored.
+
+Status: RULED (a); entry CLOSES at p2-act10-s1r's clean completion
+(stop_reason plateau / cap) or reopens to her on its own stop. The
+arm-set question RULED "iii" the same day, then SUPERSEDED by entry 27
+(a fourth canary arm `both`; the three declared arms stand beside it).
 
 
 ## 27. Phase 2 canary arm `both`: the needs head carried as a stacked input beside the act head, its ostrich-shape trigger a read (2026-11-07)

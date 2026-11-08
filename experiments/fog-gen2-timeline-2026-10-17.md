@@ -995,6 +995,25 @@ consent BC comparison ride the trunk.
   six reds CONFIRMED; g5 found red since 9d374fb4 and fixed) at
   8cdcde6e. NOT LAUNCHED: p2-both-s1 waits on her launch word (which
   confirms the pins); entry 26 and act15 / nohead s2 / s4 still open.
+  ENTRY 26 RULED 2026-11-07, her word verbatim: "Act10 s1 replace and
+  analyze the failed seed" — (a) REPLACE: slot p2-act10-s1r (same
+  trunk-s1 graft, same B10-s3 head, run index 120, band row
+  2,500,000,000–2,519,999,999 claimed before first burn), the halted
+  run refused by name and seated nowhere; LAUNCHED 2026-11-08T01:24:15Z
+  at e85d86c8 (pid 37710); act10 s2 / s4 held until it finishes clean.
+  The failed seed read dump-only across 303 probes of the halted run
+  and its paired runs (`diag_act10_s1_seed.py`): not a policy-level
+  collapse (the act10 policy's seat and per-seat means match act15 /
+  nohead within hundredths); the hazard is world 40,002 × Pumpkin's
+  eat-weighted seat, inherited from the trunk (trunk-s1's own 103-tick
+  streak there at u149) and present under every arm; act10-s1 hit its
+  tail four times in its last 19 probes (80 / 48 / 378 Pumpkin, 224
+  Kittybear — the entry's "same seat" claim corrected: the world
+  recurred, the seat did not always) against one / two landings on
+  act15 / nohead over the same stretch — suggestive, n settles nothing;
+  the replacement's probes on 40,002 are the paired read. Four g10 reds
+  + the seed read's red CONFIRMED. Still waiting on her word: launch of
+  p2-both-s1 (confirms P45–P47), act15 / nohead s2 / s4.
 
 ## Flagged follow-ups (owner's word to start)
 
