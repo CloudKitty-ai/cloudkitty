@@ -231,11 +231,15 @@ def md(out):
                     L.append(f"| {size} | {arm} | {k} | {s['team_mean']:.3f} | {dt['mean']:+.3f}, {dt['positive']}/30, [{dt['range'][0]:+.3f}, {dt['range'][1]:+.3f}] | {dc['mean']:+.3f} | {s['worst_streak_mean']:.1f} / {s['worst_streak_max']} | {len(s['aborted_seeds'])} | {len(s['f053_events'])} |")
     L += ["", "## the rule (§8.1)", ""]
     for k, r in out.get("rule", {}).items():
+        if "act10_minus_act15" not in r:
+            L.append(f"- {k}: **{r['verdict']}** — {r['reason']}")
+            continue
         L.append(f"- {k}: act10 − act15 per seed {json.dumps({str(a): round(b, 3) for a, b in r['act10_minus_act15'].items()})}, seed mean {r['seed_mean_diff']:+.3f} vs edge {r['edge']:.3f} → **{r['verdict']}**")
     if "predictions" in out:
         L += ["", "## predictions", ""]
         for p, v in out["predictions"].items():
-            L.append(f"- {p}: {'MET' if v['met'] else 'NOT MET'} — {v['text']} ({json.dumps({k: (round(x, 3) if isinstance(x, float) else x) for k, x in v.items() if k not in ('text', 'met')})})")
+            label = "UNDECIDABLE" if v["met"] is None else ("MET" if v["met"] else "NOT MET")
+            L.append(f"- {p}: {label} — {v['text']} ({json.dumps({k: (round(x, 3) if isinstance(x, float) else x) for k, x in v.items() if k not in ('text', 'met')})})")
     for n in out["notes"]:
         L.append(f"- note: {n}")
     return "\n".join(L) + "\n"

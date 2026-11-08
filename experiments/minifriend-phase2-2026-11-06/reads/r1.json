@@ -613,6 +613,40 @@
   },
   "100": {}
  },
- "rule": {},
- "notes": []
+ "rule": {
+  "uniform/20": {
+   "shape": "uniform",
+   "verdict": "UNDECIDABLE",
+   "demote": null,
+   "extend_conditional": null,
+   "reason": "act10 incomplete or absent (deviations entry 29 (C), 2026-11-08): the \u00a78.1 clause has no comparator; B15 stands undemoted for want of one, not on evidence"
+  }
+ },
+ "notes": [],
+ "predictions": {
+  "P38": {
+   "value": null,
+   "bar": 0.3259999999999934,
+   "met": null,
+   "reason": "act10 absent (entry 29 (C)): no comparator",
+   "text": "|act15 \u2212 act10| \u2264 the edge statistic (a null)"
+  },
+  "P39": {
+   "per_seed_inside": {
+    "1": false,
+    "2": false,
+    "4": false
+   },
+   "met": false,
+   "text": "the no-head arm's paired gain over its trunk seed inside the envelope in \u2265 2 of 3 seeds"
+  },
+  "P40": {
+   "act15_minus_nohead": -0.2561675555555354,
+   "act10_minus_nohead": null,
+   "act15_half_met": false,
+   "met": false,
+   "reason": "act10 absent (entry 29 (C)): the act10 half is UNDECIDABLE; the act15 half fails on its own",
+   "text": "each act arm's gain over the no-head arm positive in mean but inside the envelope"
+  }
+ }
 }

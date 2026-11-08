@@ -360,6 +360,19 @@ def g10():
     for k in (1, 2, 4):
         assert H.SEATINGS[f"p2u-both-s{k}"] == [f"p2:p2-both-s{k}"] * 5, H.SEATINGS[f"p2u-both-s{k}"]
     assert H.SEATINGS["p2r-both"] == ["p2:p2-both-s2", "p2:p2-both-s4", "g2:trunk-s6", "g2:trunk-s7", "p2:p2-both-s1"], H.SEATINGS["p2r-both"]
+    # the roster legs' trunk seats (s6, s7) resolve through the same sha fence as the graft seeds (recorded 2026-11-08,
+    # read_r4 on p2r-* legs); a wrong recorded sha refuses the final by name
+    for k in (6, 7):
+        assert C.check_trunk_final(k).exists() and C.sha256(C.trunk_final(k)) == C.TRUNK_ROSTER_SHA[k], k
+    saved = C.TRUNK_ROSTER_SHA[6]
+    C.TRUNK_ROSTER_SHA[6] = "0" * 64
+    try:
+        C.check_trunk_final(6)
+        raise AssertionError("a wrong recorded sha for trunk-s6 must refuse the final")
+    except AssertionError as e:
+        assert "trunk-s6 final sha" in str(e), str(e)
+    finally:
+        C.TRUNK_ROSTER_SHA[6] = saved
     for arm, spec in HO.ARMS.items():
         if spec["head"] is None:
             continue

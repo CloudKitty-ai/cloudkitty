@@ -963,6 +963,7 @@ green; the prediction written before each run):**
 | diag_act10_s1_seed (entry 26's failed-seed read: 303 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED |
 | diag_seat_tail (the per-seat tail read behind gen3-roadmap-inputs addendum 4: 403 probes fenced) | the own-flag threshold moved 0.5 → 1.5 | `p2-act10-s1 u199: streak did not reproduce: [0, 0, 0] vs recorded [24, 0, 0]` | CONFIRMED (`p2-reds-seat-tail.log`) |
 | g12 (entry 27's reading instrument `read_canary.py`, 2026-11-08, before any canary leg exists) | R-1a paired by position; P46 without `abs`; P47 met with no readable stratum; the trajectory series fed the cumulative bias; the leg bias's operands swapped | `R-1a must pair by world: {… 'positive': 1 …}`; `P46 must be NOT MET at -0.5`; `all-UNDECIDABLE is not a met P47`; `the trajectory must take the per-probe bias`; `bias convention: … [ 10. -10.]` | CONFIRMED (all five; `p2-reds-g12-{pair,p46,p47,series,bias}.log`) |
+| [g6 extended (entry 29 (C), 2026-11-08: `read_r1` scores what exists when act10 is absent)] | P38's UNDECIDABLE `met: None` turned into `False` with act10 absent | `AssertionError: {'value': None, 'bar': 0.326, 'met': False, 'reason': 'act10 absent (entry 29 (C)): no comparator', …}` on the predicted assertion | CONFIRMED (`results-raw/reds/p2-reds-g6-noact10.log`) |
 
 ## 10. Blind spots (declared)
 
