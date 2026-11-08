@@ -1909,9 +1909,22 @@ leg NOT MET** (no SIGNATURE). The grammar's three outcomes: not
 DEGRADED (nothing readable degraded), inside the envelope, no signature
 — the "HELD inside envelope with signature" branch is not reached
 either. The consequence is HERS; both s2 / s4 stay held.]
-Status: OPEN — the canary scout trains; s2 / s4 of `both` only after it
-finishes clean AND its 20×20 uniform leg and the reads above are in
-front of her (her word). Entry 22 is REOPENED under this entry (its
+**RULED 2026-11-08**, her word on the reads above and the walk-through
+of the roster-shaped seating ("What I need from you is the canary's
+consequence": train both-s2 / s4, or leave `both` a one-seed arm): **"No"**
+→ `both` stays a ONE-SEED arm. No both-s2 / both-s4 training; `p2r-both`
+never seats (two of its five seats would be empty) and R-1's roster
+row for `both` reads NOT RUN, the write-up saying why; `both` keeps its
+uniform s1 rows at 20 / 40 / 100 in the battery (entry 28 (4), running).
+The grammar's "held inside the envelope, no signature" outcome is
+recorded as what one seed showed; P45–P47 stand as read (P46 MET, P47
+UNDECIDABLE, P45 UNDECIDABLE lived / NOT MET leg). Welfare: ~60M
+covered cat-ticks of training not spent. Slots 118 / 119 (both-s2 / s4)
+and their claimed stripes stay unused inside the band.
+Status: CLOSED 2026-11-08 — ruled "No"; the canary is a one-seed read.
+[Superseded status text kept for the record: OPEN — the canary scout
+trains; s2 / s4 of `both` only after it finishes clean AND its 20×20
+uniform leg and the reads above are in front of her (her word).] Entry 22 is REOPENED under this entry (its
 deviation recurs by her ruling); entry 26 closes on act10-s1r's clean
 completion; the launch word for act15 / nohead s2 / s4 remains open.
 [2026-11-08: that word came — "Launch"; the four launched

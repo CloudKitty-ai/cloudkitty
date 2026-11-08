@@ -168,7 +168,13 @@ uniform act15 s1/s2/s4, nohead s1r/s2/s4, both s1 + roster act15 /
 nohead; 100×100 uniform s1 only act15 / nohead / both; scouts-first at
 40 and 100 inside the runner; any scout miss or leg stop HOLDS the chain
 for her. p2r-both not seatable (no both s2 / s4). Log
-`results-raw/legs/battery-chain.log`.**
+`results-raw/legs/battery-chain.log`.** **ENTRY 27 CLOSED 2026-11-08, her
+"No" on the canary's consequence: `both` is a ONE-SEED arm — no both
+s2 / s4 training, `p2r-both` NOT RUN (R-1 roster row for `both` reads
+not run, stated), its uniform s1 rows at 20 / 40 / 100 stand in the
+battery. Battery pace: the two 20×20 roster legs and all nine 40×40
+legs done by 22:53:06Z (~26 min for eleven legs, every scout and leg
+clean so far); the 100×100 legs began 22:53:06Z.**
 
 Welfare-cost line (practice, owner 2026-09-26). Covered minds: nine
 PPO seeds train, each a covered mind, warm-started from a frozen trunk

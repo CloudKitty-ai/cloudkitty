@@ -1083,6 +1083,10 @@ consent BC comparison ride the trunk.
   28 (4)): 14 legs one at a time, act15 / nohead full at 20 / 40, both
   at s1, 100×100 s1-only; p2r-both unseatable. Runtimes at 40 / 100
   measured at the first leg.
+  Her "No" on the canary's consequence (after the roster-seating
+  walk-through): entry 27 CLOSED, `both` a one-seed arm, p2r-both not
+  run, ~60M covered cat-ticks not spent. Battery: eleven legs (20×20
+  rosters + all 40×40) clean by 22:53Z; 100×100 under way.
 
 ## Flagged follow-ups (owner's word to start)
 
